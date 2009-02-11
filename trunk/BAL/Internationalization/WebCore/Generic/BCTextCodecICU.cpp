@@ -37,7 +37,7 @@
 using std::auto_ptr;
 using std::min;
 
-namespace OWBAL {
+namespace WebCore {
 
 const size_t ConversionBufferSize = 16384;
 

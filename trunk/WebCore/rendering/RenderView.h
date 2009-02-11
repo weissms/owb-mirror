@@ -28,8 +28,13 @@
 #include "Frame.h"
 #include "LayoutState.h"
 #include "RenderBlock.h"
+#include <wtf/OwnPtr.h>
 
 namespace WebCore {
+    
+#if USE(ACCELERATED_COMPOSITING)
+class RenderLayerCompositor;
+#endif
 
 class RenderView : public RenderBlock {
 public:
@@ -46,7 +51,6 @@ public:
     virtual void calcPrefWidths();
     virtual FloatPoint localToAbsolute(FloatPoint localPoint = FloatPoint(), bool fixed = false, bool useTransforms = false) const;
     virtual FloatPoint absoluteToLocal(FloatPoint containerPoint, bool fixed = false, bool useTransforms = false) const;
-    virtual FloatQuad localToAbsoluteQuad(const FloatQuad&, bool fixed = false) const;
     
     int docHeight() const;
     int docWidth() const;
@@ -61,8 +65,11 @@ public:
 
     virtual bool hasOverhangingFloats() { return false; }
 
-    virtual void computeAbsoluteRepaintRect(IntRect&, bool fixed = false);
+    virtual void computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect&, bool fixed = false);
     virtual void repaintViewRectangle(const IntRect&, bool immediate = false);
+    // Repaint the view, and all composited layers that intersect the given absolute rectangle.
+    // FIXME: ideally we'd never have to do this, if all repaints are container-relative.
+    virtual void repaintRectangleInViewAndCompositedLayers(const IntRect&, bool immediate = false);
 
     virtual void paint(PaintInfo&, int tx, int ty);
     virtual void paintBoxDecorations(PaintInfo&, int tx, int ty);
@@ -76,7 +83,7 @@ public:
     void setPrintImages(bool enable) { m_printImages = enable; }
     bool printImages() const { return m_printImages; }
     void setTruncatedAt(int y) { m_truncatedAt = y; m_bestTruncatedAt = m_truncatorWidth = 0; m_forcedPageBreak = false; }
-    void setBestTruncatedAt(int y, RenderObject *forRenderer, bool forcedBreak = false);
+    void setBestTruncatedAt(int y, RenderBoxModelObject* forRenderer, bool forcedBreak = false);
     int bestTruncatedAt() const { return m_bestTruncatedAt; }
 
     int truncatedAt() const { return m_truncatedAt; }
@@ -86,7 +93,11 @@ public:
 
     IntRect selectionBounds(bool clipToVisibleContent = true) const;
 
+#if USE(ACCELERATED_COMPOSITING)
+    void setMaximalOutlineSize(int o);
+#else
     void setMaximalOutlineSize(int o) { m_maximalOutlineSize = o; }
+#endif
     int maximalOutlineSize() const { return m_maximalOutlineSize; }
 
     virtual IntRect viewRect() const;
@@ -145,9 +156,23 @@ public:
     void disableLayoutState() { m_layoutStateDisableCount++; }
     void enableLayoutState() { ASSERT(m_layoutStateDisableCount > 0); m_layoutStateDisableCount--; }
 
+    virtual void updateHitTestResult(HitTestResult&, const IntPoint&);
+
+    // Notifications that this view became visible in a window, or will be
+    // removed from the window.
+    void didMoveOnscreen();
+    void willMoveOffscreen();
+
+#if USE(ACCELERATED_COMPOSITING)
+    RenderLayerCompositor* compositor();
+    bool usesCompositing() const;
+#endif
+
+protected:
+    virtual FloatQuad localToContainerQuad(const FloatQuad&, RenderBoxModelObject* repaintContainer, bool fixed = false) const;
+
 private:
-    // selectionRect should never be called on a RenderView
-    virtual IntRect selectionRect(bool);
+    bool shouldRepaint(const IntRect& r) const;
 
 protected:
     FrameView* m_frameView;
@@ -174,7 +199,26 @@ private:
     bool m_forcedPageBreak;
     LayoutState* m_layoutState;
     unsigned m_layoutStateDisableCount;
+#if USE(ACCELERATED_COMPOSITING)
+    OwnPtr<RenderLayerCompositor> m_compositor;
+#endif
 };
+
+inline RenderView* toRenderView(RenderObject* o)
+{
+    ASSERT(!o || o->isRenderView());
+    return static_cast<RenderView*>(o);
+}
+
+inline const RenderView* toRenderView(const RenderObject* o)
+{
+    ASSERT(!o || o->isRenderView());
+    return static_cast<const RenderView*>(o);
+}
+
+// This will catch anyone doing an unnecessary cast.
+void toRenderView(const RenderView*);
+
 
 // Stack-based class to assist with LayoutState push/pop
 class LayoutStateMaintainer : Noncopyable {

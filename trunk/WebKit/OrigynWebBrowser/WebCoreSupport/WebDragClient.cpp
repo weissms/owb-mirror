@@ -73,11 +73,7 @@ DragDestinationAction WebDragClient::actionMaskForDrag(DragData* dragData)
     //COMPtr<IWebUIDelegate> delegateRef = 0;
     //Default behaviour (eg. no delegate, or callback not implemented) is to allow
     //any action
-#if PLATFORM(AMIGAOS4)
-    WebDragDestinationAction mask = WebDragDestinationActionNone;
-#else
     WebDragDestinationAction mask = WebDragDestinationActionAny;
-#endif
     /*if (SUCCEEDED(m_webView->uiDelegate(&delegateRef)))
         delegateRef->dragDestinationActionMaskForDraggingInfo(m_webView, dragData->platformData(), &mask);*/
 
@@ -96,11 +92,7 @@ void WebDragClient::willPerformDragDestinationAction(DragDestinationAction actio
 DragSourceAction WebDragClient::dragSourceActionMaskForPoint(const IntPoint& windowPoint)
 {
    //COMPtr<IWebUIDelegate> delegateRef = 0;
-#if PLATFORM(AMIGAOS4)
-   WebDragSourceAction action = WebDragSourceActionNone;
-#else
    WebDragSourceAction action = WebDragSourceActionAny;
-#endif
    /*POINT localpt = core(m_webView)->mainFrame()->view()->windowToContents(windowPoint);
    if (SUCCEEDED(m_webView->uiDelegate(&delegateRef)))
        delegateRef->dragSourceActionMaskForPoint(m_webView, &localpt, &action);*/

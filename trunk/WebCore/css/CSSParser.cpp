@@ -1315,7 +1315,6 @@ bool CSSParser::parseValue(int propId, bool important)
     case CSSPropertyWebkitAnimationDirection:
     case CSSPropertyWebkitAnimationDuration:
     case CSSPropertyWebkitAnimationName:
-    case CSSPropertyWebkitAnimationPlayState:
     case CSSPropertyWebkitAnimationIterationCount:
     case CSSPropertyWebkitAnimationTimingFunction:
     case CSSPropertyWebkitTransitionDelay:
@@ -2360,14 +2359,6 @@ PassRefPtr<CSSValue> CSSParser::parseAnimationName()
     return 0;
 }
 
-PassRefPtr<CSSValue> CSSParser::parseAnimationPlayState()
-{
-    CSSParserValue* value = m_valueList->current();
-    if (value->id == CSSValueRunning || value->id == CSSValuePaused)
-        return CSSPrimitiveValue::createIdentifier(value->id);
-    return 0;
-}
-
 PassRefPtr<CSSValue> CSSParser::parseAnimationProperty()
 {
     CSSParserValue* value = m_valueList->current();
@@ -2474,11 +2465,6 @@ bool CSSParser::parseAnimationProperty(int propId, RefPtr<CSSValue>& result)
                     break;
                 case CSSPropertyWebkitAnimationName:
                     currValue = parseAnimationName();
-                    if (currValue)
-                        m_valueList->next();
-                    break;
-                case CSSPropertyWebkitAnimationPlayState:
-                    currValue = parseAnimationPlayState();
                     if (currValue)
                         m_valueList->next();
                     break;
@@ -3807,7 +3793,7 @@ static PassRefPtr<CSSPrimitiveValue> parseGradientPoint(CSSParserValue* a, bool 
     return result;
 }
 
-bool parseGradientColorStop(CSSParser* p, CSSParserValue* a, CSSGradientColorStop& stop)
+static bool parseGradientColorStop(CSSParser* p, CSSParserValue* a, CSSGradientColorStop& stop)
 {
     if (a->unit != CSSParserValue::Function)
         return false;

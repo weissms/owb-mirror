@@ -43,7 +43,7 @@
 
 #include <fontconfig/fontconfig.h>
 
-namespace WKAL {
+namespace WebCore {
 
 void SimpleFontData::platformInit()
 {

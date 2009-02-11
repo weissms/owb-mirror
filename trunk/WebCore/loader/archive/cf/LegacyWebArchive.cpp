@@ -376,15 +376,21 @@ RetainPtr<CFDataRef> LegacyWebArchive::rawDataRepresentation()
         LOG(Archives, "LegacyWebArchive - Failed to create property list for archive, returning no data");
         return 0;
     }
-    
-    // FIXME: On Mac, WebArchives have been written out as Binary Property Lists until this change.
-    // Unless we jump through CFWriteStream hoops, they'll now be textual XML data.  Is this okay?
-    RetainPtr<CFDataRef> plistData(AdoptCF, CFPropertyListCreateXMLData(0, propertyList.get()));
+
+    RetainPtr<CFWriteStreamRef> stream(AdoptCF, CFWriteStreamCreateWithAllocatedBuffers(0, 0));
+
+    CFWriteStreamOpen(stream.get());
+    CFPropertyListWriteToStream(propertyList.get(), stream.get(), kCFPropertyListBinaryFormat_v1_0, 0);
+
+    RetainPtr<CFDataRef> plistData(AdoptCF, static_cast<CFDataRef>(CFWriteStreamCopyProperty(stream.get(), kCFStreamPropertyDataWritten)));
+
+    CFWriteStreamClose(stream.get());
+
     if (!plistData) {
         LOG(Archives, "LegacyWebArchive - Failed to convert property list into raw data, returning no data");
         return 0;
     }
-    
+
     return plistData;
 }
 
@@ -547,9 +553,10 @@ PassRefPtr<LegacyWebArchive> LegacyWebArchive::create(const String& markupString
     if (iconDatabase() && iconDatabase()->isEnabled()) {
         const String& iconURL = iconDatabase()->iconURLForPageURL(responseURL);
         if (!iconURL.isEmpty() && iconDatabase()->iconDataKnownForIconURL(iconURL)) {
-            RefPtr<SharedBuffer> data = iconDatabase()->iconForPageURL(responseURL, IntSize(16, 16))->data();
-            RefPtr<ArchiveResource> resource = ArchiveResource::create(data.release(), KURL(iconURL), "image/x-icon", "", "");
-            subresources.append(resource.release());
+            if (Image* iconImage = iconDatabase()->iconForPageURL(responseURL, IntSize(16, 16))) {
+                RefPtr<ArchiveResource> resource = ArchiveResource::create(iconImage->data(), KURL(iconURL), "image/x-icon", "", "");
+                subresources.append(resource.release());
+            }
         }
     }
 
@@ -561,13 +568,13 @@ PassRefPtr<LegacyWebArchive> LegacyWebArchive::createFromSelection(Frame* frame)
     if (!frame)
         return 0;
     
-    RefPtr<Range> selectionRange = frame->selection()->toRange();
+    RefPtr<Range> selectionRange = frame->selection()->toNormalizedRange();
     Vector<Node*> nodeList;
     String markupString = frame->documentTypeString() + createMarkup(selectionRange.get(), &nodeList, AnnotateForInterchange);
     
     RefPtr<LegacyWebArchive> archive = create(markupString, frame, nodeList);
     
-    if (!frame->isFrameSet()) 
+    if (!frame->document() || !frame->document()->isFrameSet())
         return archive.release();
         
     // Wrap the frameset document in an iframe so it can be pasted into

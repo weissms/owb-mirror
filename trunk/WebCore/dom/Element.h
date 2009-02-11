@@ -120,8 +120,8 @@ public:
 
     void normalizeAttributes();
 
-    virtual bool isInputTypeHidden() const { return false; }
-    virtual bool isPasswordField() const { return false; }
+    virtual bool isFormControlElement() const { return false; }
+    virtual bool isFormControlElementWithState() const { return false; }
 
     String nodeNamePreservingCase() const;
 

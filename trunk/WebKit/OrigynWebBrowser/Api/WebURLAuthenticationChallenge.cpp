@@ -111,7 +111,12 @@ WebURLProtectionSpace* WebURLAuthenticationChallenge::protectionSpace()
 WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
 {
     if (!m_sender) {
+#if PLATFORM(QT)
+        // FIXME : implement this 
+        ResourceHandle* handle = 0;
+#else
         ResourceHandle* handle = m_authenticationChallenge.sourceHandle();
+#endif
         m_sender = WebURLAuthenticationChallengeSender::createInstance(handle);
     }
 

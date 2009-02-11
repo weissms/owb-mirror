@@ -39,9 +39,9 @@
 
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
-    class StringBuilder : public OWBALBase {
+    class StringBuilder : public WebCoreBase {
     public:
     /**
      *  StringBuilder default constructor

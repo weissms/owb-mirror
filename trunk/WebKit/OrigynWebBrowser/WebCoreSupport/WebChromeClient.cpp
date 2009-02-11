@@ -48,11 +48,14 @@
 #include <Page.h>
 #include <WindowFeatures.h>
 #if PLATFORM(AMIGAOS4)
+#include <FrameLoader.h>
 #include <proto/requester.h>
-#include <classes/requester.h>
 #include <proto/intuition.h>
+#include <proto/layout.h>
+#include <classes/requester.h>
 #include <intuition/gadgetclass.h>
 #include <reaction/reaction_macros.h>
+#undef String
 #endif
 
 #include <cstdio>
@@ -129,6 +132,16 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
             newWebView->initWithFrame(clientRect, frameLoadRequest.frameName().utf8().data(), "");
             newWebView->setViewWindow(newowbwindow);
 
+            if (!amigaConfig.tabs
+             && (features.xSet || features.ySet || features.widthSet || features.heightSet))
+                IIntuition->ChangeWindowBox(newowbwindow->window,
+                                            features.xSet ? features.x : newowbwindow->window->LeftEdge,
+                                            features.ySet ? features.y : newowbwindow->window->TopEdge,
+                                            features.widthSet ? features.width : newowbwindow->window->Width,
+                                            features.heightSet ? features.height : newowbwindow->window->Height);
+
+            newWebView->mainFrame()->loadURL(frameLoadRequest.resourceRequest().url().prettyURL().utf8().data());
+
             return core(newWebView);
         }
         delete newWebView;
@@ -186,6 +199,9 @@ void WebChromeClient::setToolbarsVisible(bool visible)
 
 bool WebChromeClient::toolbarsVisible()
 {
+#if PLATFORM(AMIGAOS4)
+    return true;
+#endif
     return false;
 }
 
@@ -195,6 +211,9 @@ void WebChromeClient::setStatusbarVisible(bool visible)
 
 bool WebChromeClient::statusbarVisible()
 {
+#if PLATFORM(AMIGAOS4)
+    return true;
+#endif
     return false;
 }
 
@@ -221,6 +240,9 @@ void WebChromeClient::setMenubarVisible(bool visible)
 
 bool WebChromeClient::menubarVisible()
 {
+#if PLATFORM(AMIGAOS4)
+    return true;
+#endif
     return false;
 }
 
@@ -276,16 +298,17 @@ void WebChromeClient::runJavaScriptAlert(Frame* frame, const String& message)
 bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
 {
 #if PLATFORM(AMIGAOS4)
-    CString messageLatin1 = message.latin1();
+    extern char* utf8ToAmiga(const char* utf8);
+
+    char* messageAmiga = utf8ToAmiga(message.utf8().data());
     Object *requester = (Object *)RequesterObject,
-                                      REQ_CharSet, 4,
                                       REQ_TitleText, "OWB Javascript Confirm",
-                                      REQ_BodyText, messageLatin1.data(),
+                                      REQ_BodyText, messageAmiga,
                                       REQ_GadgetText, "Yes|No",
                                   End;
     if (requester) {
-        struct Window *window = m_webView->viewWindow()->window;
-        struct Requester dummyRequester;
+        Window *window = m_webView->viewWindow()->window;
+        Requester dummyRequester;
 
         if (window) {
             IIntuition->InitRequester(&dummyRequester);
@@ -301,9 +324,11 @@ bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
         }
 
         IIntuition->DisposeObject(requester);
+        free (messageAmiga);
 
         return 1 == result;
     }
+    free (messageAmiga);
 #endif
     printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message.utf8().data(), frame);
     return false;
@@ -311,6 +336,58 @@ bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
 
 bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, const String& defaultValue, String& result)
 {
+#if PLATFORM(AMIGAOS4)
+    extern char* utf8ToAmiga(const char* utf8);
+    TEXT buffer[1024];
+
+    char* messageAmiga = utf8ToAmiga(message.utf8().data());
+    char* defaultValueAmiga = utf8ToAmiga(defaultValue.utf8().data());
+    strlcpy(buffer, defaultValueAmiga, sizeof(buffer));
+    free(defaultValueAmiga);
+    Object *requester = (Object *)RequesterObject,
+                                      REQ_Type, REQTYPE_STRING,
+                                      REQS_Buffer, buffer,
+                                      REQS_MaxChars, sizeof(buffer) - 1,
+                                      REQ_TitleText, "OWB Javascript Prompt",
+                                      REQ_BodyText, messageAmiga,
+                                      REQ_GadgetText, "Ok|Cancel",
+                                  End;
+    if (requester) {
+        Window *window = m_webView->viewWindow()->window;
+        Requester dummyRequester;
+
+        if (window) {
+            IIntuition->InitRequester(&dummyRequester);
+            IIntuition->Request(&dummyRequester, window);
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, TRUE, WA_PointerDelay, TRUE, TAG_DONE);
+        }
+
+        uint32 requesterResult = OpenRequester(requester, window);
+
+        if (window) {
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, FALSE, TAG_DONE);
+            IIntuition->EndRequest(&dummyRequester, window);
+        }
+
+        IIntuition->DisposeObject(requester);
+        free (messageAmiga);
+
+        if (1 == requesterResult) {
+            extern uint32 amigaToUnicodeChar(uint32 c);
+
+            result = String();
+            size_t len = strlen(buffer);
+            for (uint32 i = 0 ; i < len ; i++) {
+                UChar temp[2] = { amigaToUnicodeChar(buffer[i]), 0 };
+                result += temp;
+            }
+            return true;
+        }
+
+        return false;
+    }
+    free (messageAmiga);
+#endif
     printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message.utf8().data(), frame);
     return false;
 }
@@ -320,15 +397,21 @@ void WebChromeClient::setStatusbarText(const String& statusText)
 #if PLATFORM(AMIGAOS4)
     BalWidget *widget = m_webView ? m_webView->viewWindow() : 0;
     if (widget && widget->gad_status) {
-        CString statusLatin1 = statusText.latin1();
-        snprintf(widget->statusBarText, sizeof(widget->statusBarText), "%s", statusLatin1.data());
+        extern char* utf8ToAmiga(const char* utf8);
+
+        char* statusAmiga = utf8ToAmiga(statusText.utf8().data());
+        snprintf(widget->statusBarText, sizeof(widget->statusBarText), "%s", statusAmiga);
+        free(statusAmiga);
+
         if (widget->statusBarText[0] && widget->toolTipText[0])
             snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s | %s", widget->statusBarText, widget->toolTipText);
         else
             snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s", widget->statusBarText[0] ? widget->statusBarText : widget->toolTipText);
-        IIntuition->RefreshSetGadgetAttrs(widget->gad_status, widget->window, NULL,
-                                          GA_Text, widget->statusToolTipText,
-                                          TAG_DONE);
+        if (ILayout->SetPageGadgetAttrs(widget->gad_status, widget->page,
+                                        widget->window, NULL,
+                                        GA_Text, widget->statusToolTipText,
+                                        TAG_DONE))
+            ILayout->RefreshPageGadget(widget->gad_status, widget->page, widget->window, NULL);
     }
 #endif
 }

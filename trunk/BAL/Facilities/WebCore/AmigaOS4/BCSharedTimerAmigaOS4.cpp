@@ -29,7 +29,7 @@
 #include "config.h"
 #include "SharedTimer.h"
 
-#include "SystemTime.h"
+#include "CurrentTime.h"
 #include <wtf/Assertions.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -43,7 +43,7 @@
 extern Task *mainTask;
 extern uint32 sharedTimerSignal;
 
-namespace OWBAL {
+namespace WebCore {
 
 void (*sharedTimerFiredFunction)() = NULL;
 

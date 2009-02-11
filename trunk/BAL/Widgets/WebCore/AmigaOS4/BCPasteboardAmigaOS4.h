@@ -41,7 +41,7 @@
 // knowledge of the frame and editor or moved into the editing directory.
 
 
-namespace WKAL {
+namespace WebCore {
 
 class CString;
 class DocumentFragment;
@@ -52,7 +52,7 @@ class Node;
 class Range;
 class String;
     
-class Pasteboard : Noncopyable, public WKALBase {
+class Pasteboard : Noncopyable {
 public:
     static Pasteboard* generalPasteboard();
     void writeSelection(Range*, bool canSmartCopyOrDelete, Frame*);

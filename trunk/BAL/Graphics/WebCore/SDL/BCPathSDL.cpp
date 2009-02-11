@@ -36,7 +36,7 @@
 #include <math.h>
 #include <wtf/MathExtras.h>
 
-namespace WKAL {
+namespace WebCore {
 
 Path::Path()
 //    : m_path(new CairoPath())

@@ -27,6 +27,7 @@
 #include "WebKitDLL.h"
 #include "WebHistoryItem.h"
 
+#include "COMEnumVariant.h"
 #include "COMPtr.h"
 #include "MarshallingHelpers.h"
 #include "WebKit.h"
@@ -97,6 +98,9 @@ static CFStringRef titleKey = CFSTR("title");
 static CFStringRef visitCountKey = CFSTR("visitCount");
 static CFStringRef lastVisitWasFailureKey = CFSTR("lastVisitWasFailure");
 static CFStringRef lastVisitWasHTTPNonGetKey = CFSTR("lastVisitWasHTTPNonGet");
+static CFStringRef redirectURLsKey = CFSTR("redirectURLs");
+static CFStringRef dailyVisitCountKey = CFSTR("D"); // short key to save space
+static CFStringRef weeklyVisitCountKey = CFSTR("W"); // short key to save space
 
 HRESULT STDMETHODCALLTYPE WebHistoryItem::initFromDictionaryRepresentation(void* dictionary)
 {
@@ -132,6 +136,40 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::initFromDictionaryRepresentation(void*
         return E_FAIL;
     bool lastVisitWasHTTPNonGet = lastVisitWasHTTPNonGetRef && CFBooleanGetValue(lastVisitWasHTTPNonGetRef);
 
+    std::auto_ptr<Vector<String> > redirectURLsVector;
+    if (CFArrayRef redirectURLsRef = static_cast<CFArrayRef>(CFDictionaryGetValue(dictionaryRef, redirectURLsKey))) {
+        CFIndex size = CFArrayGetCount(redirectURLsRef);
+        redirectURLsVector.reset(new Vector<String>(size));
+        for (CFIndex i = 0; i < size; ++i)
+            (*redirectURLsVector)[i] = String(static_cast<CFStringRef>(CFArrayGetValueAtIndex(redirectURLsRef, i)));
+    }
+
+    CFArrayRef dailyCounts = static_cast<CFArrayRef>(CFDictionaryGetValue(dictionaryRef, dailyVisitCountKey));
+    if (dailyCounts && CFGetTypeID(dailyCounts) != CFArrayGetTypeID())
+        dailyCounts = 0;
+    CFArrayRef weeklyCounts = static_cast<CFArrayRef>(CFDictionaryGetValue(dictionaryRef, weeklyVisitCountKey));
+    if (weeklyCounts && CFGetTypeID(weeklyCounts) != CFArrayGetTypeID())
+        weeklyCounts = 0;
+
+    std::auto_ptr<Vector<int> > dailyVector, weeklyVector;
+    if (dailyCounts || weeklyCounts) {
+        CFIndex dailySize = dailyCounts ? CFArrayGetCount(dailyCounts) : 0;
+        CFIndex weeklySize = weeklyCounts ? CFArrayGetCount(weeklyCounts) : 0;
+        dailyVector.reset(new Vector<int>(dailySize));
+        weeklyVector.reset(new Vector<int>(weeklySize));
+
+        for (CFIndex i = 0; i < dailySize; ++i) {
+            CFNumberRef dailyCount = static_cast<CFNumberRef>(CFArrayGetValueAtIndex(dailyCounts, i));        
+            if (CFGetTypeID(dailyCount) == CFNumberGetTypeID())
+                CFNumberGetValue(dailyCount, kCFNumberIntType, &(*dailyVector)[i]);
+        }
+        for (CFIndex i = 0; i < weeklySize; ++i) {
+            CFNumberRef weeklyCount = static_cast<CFNumberRef>(CFArrayGetValueAtIndex(weeklyCounts, i));        
+            if (CFGetTypeID(weeklyCount) == CFNumberGetTypeID())
+                CFNumberGetValue(weeklyCount, kCFNumberIntType, &(*weeklyVector)[i]);
+        }
+    }
+
     historyItemWrappers().remove(m_historyItem.get());
     m_historyItem = HistoryItem::create(urlStringRef, titleRef, lastVisitedTime);
     historyItemWrappers().set(m_historyItem.get(), this);
@@ -142,6 +180,12 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::initFromDictionaryRepresentation(void*
 
     if (lastVisitWasHTTPNonGet && (protocolIs(m_historyItem->urlString(), "http") || protocolIs(m_historyItem->urlString(), "https")))
         m_historyItem->setLastVisitWasHTTPNonGet(true);
+
+    if (redirectURLsVector.get())
+        m_historyItem->setRedirectURLs(redirectURLsVector);
+
+    if (dailyVector.get())
+        m_historyItem->adoptVisitCounts(*dailyVector, *weeklyVector);
 
     return S_OK;
 }
@@ -156,8 +200,8 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::dictionaryRepresentation(void** dictio
         return E_FAIL;
 
     int keyCount = 0;
-    CFTypeRef keys[6];
-    CFTypeRef values[6];
+    CFTypeRef keys[9];
+    CFTypeRef values[9];
 
     if (!m_historyItem->urlString().isEmpty()) {
         keys[keyCount] = urlKey;
@@ -185,6 +229,51 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::dictionaryRepresentation(void** dictio
         ASSERT(m_historyItem->urlString().startsWith("http:", false) || m_historyItem->urlString().startsWith("https:", false));
         keys[keyCount] = lastVisitWasHTTPNonGetKey;
         values[keyCount++] = CFRetain(kCFBooleanTrue);
+    }
+
+    if (Vector<String>* redirectURLs = m_historyItem->redirectURLs()) {
+        size_t size = redirectURLs->size();
+        ASSERT(size);
+        CFStringRef* items = new CFStringRef[size];
+        for (size_t i = 0; i < size; ++i)
+            items[i] = redirectURLs->at(i).createCFString();
+        CFArrayRef result = CFArrayCreate(0, (const void**)items, size, &kCFTypeArrayCallBacks);
+        for (size_t i = 0; i < size; ++i)
+            CFRelease(items[i]);
+        delete[] items;
+
+        keys[keyCount] = redirectURLsKey;
+        values[keyCount++] = result;
+    }
+
+    const Vector<int>& dailyVisitCount(m_historyItem->dailyVisitCounts());
+    if (size_t size = dailyVisitCount.size()) {
+        Vector<CFNumberRef, 13> numbers(size);
+        for (size_t i = 0; i < size; ++i)
+            numbers[i] = CFNumberCreate(0, kCFNumberIntType, &dailyVisitCount[i]);
+
+        CFArrayRef result = CFArrayCreate(0, (const void**)numbers.data(), size, &kCFTypeArrayCallBacks);
+
+        for (size_t i = 0; i < size; ++i)
+            CFRelease(numbers[i]);
+
+        keys[keyCount] = dailyVisitCountKey;
+        values[keyCount++] = result;
+    }
+
+    const Vector<int>& weeklyVisitCount(m_historyItem->weeklyVisitCounts());
+    if (size_t size = weeklyVisitCount.size()) {
+        Vector<CFNumberRef, 5> numbers(size);
+        for (size_t i = 0; i < size; ++i)
+            numbers[i] = CFNumberCreate(0, kCFNumberIntType, &weeklyVisitCount[i]);
+
+        CFArrayRef result = CFArrayCreate(0, (const void**)numbers.data(), size, &kCFTypeArrayCallBacks);
+
+        for (size_t i = 0; i < size; ++i)
+            CFRelease(numbers[i]);
+
+        keys[keyCount] = weeklyVisitCountKey;
+        values[keyCount++] = result;
     }
 
     *dictionaryRef = CFDictionaryCreate(0, keys, values, keyCount, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
@@ -242,7 +331,7 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::setTitle(BSTR title)
 
 HRESULT STDMETHODCALLTYPE WebHistoryItem::RSSFeedReferrer(BSTR* url)
 {
-    BString str(m_historyItem->rssFeedReferrer());
+    BString str(m_historyItem->referrer());
     *url = str.release();
 
     return S_OK;
@@ -250,7 +339,7 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::RSSFeedReferrer(BSTR* url)
 
 HRESULT STDMETHODCALLTYPE WebHistoryItem::setRSSFeedReferrer(BSTR url)
 {
-    m_historyItem->setRSSFeedReferrer(String(url, SysStringLen(url)));
+    m_historyItem->setReferrer(String(url, SysStringLen(url)));
 
     return S_OK;
 }
@@ -369,6 +458,61 @@ HRESULT STDMETHODCALLTYPE WebHistoryItem::lastVisitWasHTTPNonGet(BOOL* HTTPNonGe
 HRESULT STDMETHODCALLTYPE WebHistoryItem::setLastVisitWasHTTPNonGet(BOOL HTTPNonGet)
 {
     m_historyItem->setLastVisitWasHTTPNonGet(HTTPNonGet);
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistoryItem::redirectURLs(IEnumVARIANT** urls)
+{
+    if (!urls) {
+        ASSERT_NOT_REACHED();
+        return E_POINTER;
+    }
+
+    Vector<String>* urlVector = m_historyItem->redirectURLs();
+    if (!urlVector) {
+        *urls = 0;
+        return S_OK;
+    }
+
+    COMPtr<COMEnumVariant<Vector<String> > > enumVariant(AdoptCOM, COMEnumVariant<Vector<String> >::createInstance(*urlVector));
+    *urls = enumVariant.releaseRef();
+
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistoryItem::visitedWithTitle(BSTR title)
+{
+    m_historyItem->visited(title, CFAbsoluteTimeGetCurrent());
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistoryItem::getDailyVisitCounts(int* number, int** counts)
+{
+    if (!number || !counts) {
+        ASSERT_NOT_REACHED();
+        return E_POINTER;
+    }
+
+    *counts = const_cast<int*>(m_historyItem->dailyVisitCounts().data());
+    *number = m_historyItem->dailyVisitCounts().size();
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistoryItem::getWeeklyVisitCounts(int* number, int** counts)
+{
+    if (!number || !counts) {
+        ASSERT_NOT_REACHED();
+        return E_POINTER;
+    }
+
+    *counts = const_cast<int*>(m_historyItem->weeklyVisitCounts().data());
+    *number = m_historyItem->weeklyVisitCounts().size();
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistoryItem::recordInitialVisit()
+{
+    m_historyItem->recordInitialVisit();
     return S_OK;
 }
 

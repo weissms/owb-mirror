@@ -35,7 +35,7 @@ struct SDL_Cursor;
 struct FT_FaceRec_;
 struct _FcPattern;
 
-namespace WKAL {
+namespace WebCore {
     class FloatSize;
 }
 
@@ -53,21 +53,24 @@ typedef void BalAdjustment;
 typedef void BalContainer;
 typedef void BalPixbuf;
 typedef SDL_Color BalColor;
-typedef struct _BalMatrix{} BalMatrix;
+typedef struct _BalMatrix{double m11; double m12; double m13; double m14;
+                          double m21; double m22; double m23; double m24;
+                          double m31; double m32; double m33; double m34;
+                          double m41; double m42; double m43; double m44;} BalMatrix;
 
 
 typedef SDL_Surface PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
 typedef void* PlatformPatternPtr;
 
-namespace WKAL {
+namespace WebCore {
     typedef void* PlatformGradient;
     typedef void* PlatformPath;
     typedef SDL_Cursor* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;
-    typedef WKAL::FloatSize GlyphBufferAdvance;
+    typedef WebCore::FloatSize GlyphBufferAdvance;
 }
 
 #endif

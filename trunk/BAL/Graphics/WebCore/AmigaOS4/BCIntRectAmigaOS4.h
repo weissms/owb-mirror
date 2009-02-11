@@ -34,11 +34,11 @@
 #include "BALBase.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
 class FloatRect;
 
-class IntRect : public WKALBase{
+class IntRect {
 public:
     IntRect() { }
     IntRect(const IntPoint& location, const IntSize& size)

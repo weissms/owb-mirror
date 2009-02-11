@@ -47,7 +47,7 @@ namespace WebCore {
     struct CairoPath;
 }
 
-namespace WKAL {
+namespace WebCore {
     class FloatSize;
 }
 
@@ -60,12 +60,14 @@ struct AmigaConfig
     const char *unicodeFontName;
     OutlineFont *unicodeFace;
     int windowleft, windowtop, windowwidth, windowheight;
-    bool confirmQuit;
     const char *pubScreenName;
     const char *bookMarkCommand;
     const char* cookiePath;
-    bool fontKerning;
     int fontHinter;
+    bool confirmQuit;
+    bool fontKerning;
+    bool contextMenuRMB;
+    bool tabs;
 };
 extern struct AmigaConfig amigaConfig;
 
@@ -76,7 +78,7 @@ typedef void BalScaledFont;
 typedef void BalDrawable;
 typedef _cairo_surface BalSurface;
 typedef void BalMenuItem;
-typedef _cairo_surface BalMenu;
+typedef void BalMenu;
 typedef void BalClipboard;
 typedef void BalTargetList;
 typedef void BalAdjustment;
@@ -90,14 +92,14 @@ typedef _cairo PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
 typedef _cairo_pattern* PlatformPatternPtr;
 
-namespace WKAL {
+namespace WebCore {
     typedef _cairo_pattern *PlatformGradient;
     typedef WebCore::CairoPath PlatformPath;
     typedef void* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;
-    typedef WKAL::FloatSize GlyphBufferAdvance;
+    typedef WebCore::FloatSize GlyphBufferAdvance;
 }
 
 #endif

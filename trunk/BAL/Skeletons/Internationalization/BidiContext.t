@@ -41,10 +41,10 @@
 #include <wtf/RefPtr.h>
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 // Used to keep track of explicit embeddings.
-class BidiContext : public OWBALBase {
+class BidiContext : public WebCoreBase {
 public:
     /**
      * BidiContext constructor
@@ -123,7 +123,7 @@ private:
      */
 bool operator==(const BidiContext&, const BidiContext&);
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // BidiContext_h
 

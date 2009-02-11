@@ -39,7 +39,7 @@
 
 #include <wtf/Vector.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * base64 encode 

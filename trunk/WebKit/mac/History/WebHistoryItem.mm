@@ -35,6 +35,7 @@
 #import "WebIconDatabase.h"
 #import "WebKitLogging.h"
 #import "WebKitNSStringExtras.h"
+#import "WebNSArrayExtras.h"
 #import "WebNSDictionaryExtras.h"
 #import "WebNSObjectExtras.h"
 #import "WebNSURLExtras.h"
@@ -42,7 +43,6 @@
 #import "WebNSViewExtras.h"
 #import "WebPluginController.h"
 #import "WebTypesInternal.h"
-#import <WebCore/CachedPage.h>
 #import <WebCore/HistoryItem.h>
 #import <WebCore/Image.h>
 #import <WebCore/KURL.h>
@@ -63,6 +63,9 @@ static NSString *childrenKey = @"children";
 static NSString *displayTitleKey = @"displayTitle";
 static NSString *lastVisitWasFailureKey = @"lastVisitWasFailure";
 static NSString *lastVisitWasHTTPNonGetKey = @"lastVisitWasHTTPNonGet";
+static NSString *redirectURLsKey = @"redirectURLs";
+static NSString *dailyVisitCountKey = @"D"; // short key to save space
+static NSString *weeklyVisitCountKey = @"W"; // short key to save space
 
 // Notification strings.
 NSString *WebHistoryItemChangedNotification = @"WebHistoryItemChangedNotification";
@@ -74,7 +77,7 @@ typedef HashMap<HistoryItem*, WebHistoryItem*> HistoryItemMap;
 static inline WebHistoryItemPrivate* kitPrivate(WebCoreHistoryItem* list) { return (WebHistoryItemPrivate*)list; }
 static inline WebCoreHistoryItem* core(WebHistoryItemPrivate* list) { return (WebCoreHistoryItem*)list; }
 
-HistoryItemMap& historyItemWrappers()
+static HistoryItemMap& historyItemWrappers()
 {
     DEFINE_STATIC_LOCAL(HistoryItemMap, historyItemWrappers, ());
     return historyItemWrappers;
@@ -171,7 +174,7 @@ void WKNotifyHistoryItemChanged()
     core(_private)->setAlternateTitle(alternateTitle);
 }
 
-- (NSString *)alternateTitle;
+- (NSString *)alternateTitle
 {
     return nsStringNilIfEmpty(core(_private)->alternateTitle());
 }
@@ -321,7 +324,7 @@ static WebWindowWatcher *_windowWatcher = nil;
     core(_private)->setVisitCount(count);
 }
 
-- (void)setViewState:(id)statePList;
+- (void)setViewState:(id)statePList
 {
     core(_private)->setViewState(statePList);
 }
@@ -365,6 +368,28 @@ static WebWindowWatcher *_windowWatcher = nil;
     if (lastVisitWasHTTPNonGet && ([tempURLString hasPrefix:@"http:"] || [tempURLString hasPrefix:@"https:"]))
         core(_private)->setLastVisitWasHTTPNonGet(lastVisitWasHTTPNonGet);
 
+    if (NSArray *redirectURLs = [dict _webkit_arrayForKey:redirectURLsKey]) {
+        NSUInteger size = [redirectURLs count];
+        std::auto_ptr<Vector<String> > redirectURLsVector(new Vector<String>(size));
+        for (NSUInteger i = 0; i < size; ++i)
+            (*redirectURLsVector)[i] = String([redirectURLs _webkit_stringAtIndex:i]);
+        core(_private)->setRedirectURLs(redirectURLsVector);
+    }
+
+    NSArray *dailyCounts = [dict _webkit_arrayForKey:dailyVisitCountKey];
+    NSArray *weeklyCounts = [dict _webkit_arrayForKey:weeklyVisitCountKey];
+    if (dailyCounts || weeklyCounts) {
+        Vector<int> coreDailyCounts([dailyCounts count]);
+        Vector<int> coreWeeklyCounts([weeklyCounts count]);
+
+        for (size_t i = 0; i < coreDailyCounts.size(); ++i)
+            coreDailyCounts[i] = [[dailyCounts _webkit_numberAtIndex:i] intValue];
+        for (size_t i = 0; i < coreWeeklyCounts.size(); ++i)
+            coreWeeklyCounts[i] = [[weeklyCounts _webkit_numberAtIndex:i] intValue];
+    
+        core(_private)->adoptVisitCounts(coreDailyCounts, coreWeeklyCounts);
+    }
+
     NSArray *childDicts = [dict objectForKey:childrenKey];
     if (childDicts) {
         for (int i = [childDicts count] - 1; i >= 0; i--) {
@@ -393,6 +418,11 @@ static WebWindowWatcher *_windowWatcher = nil;
     core(_private)->setVisitCount(count);
 }
 
+- (void)_recordInitialVisit
+{
+    core(_private)->recordInitialVisit();
+}
+
 @end
 
 @implementation WebHistoryItem (WebPrivate)
@@ -405,21 +435,18 @@ static WebWindowWatcher *_windowWatcher = nil;
 - (NSDictionary *)dictionaryRepresentation
 {
     ASSERT_MAIN_THREAD();
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:6];
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:8];
 
     HistoryItem* coreItem = core(_private);
     
-    if (!coreItem->urlString().isEmpty()) {
+    if (!coreItem->urlString().isEmpty())
         [dict setObject:(NSString*)coreItem->urlString() forKey:@""];
-    }
-    if (!coreItem->title().isEmpty()) {
+    if (!coreItem->title().isEmpty())
         [dict setObject:(NSString*)coreItem->title() forKey:titleKey];
-    }
-    if (!coreItem->alternateTitle().isEmpty()) {
+    if (!coreItem->alternateTitle().isEmpty())
         [dict setObject:(NSString*)coreItem->alternateTitle() forKey:displayTitleKey];
-    }
     if (coreItem->lastVisitedTime() != 0.0) {
-        // store as a string to maintain backward compatibility (see 3245793)
+        // Store as a string to maintain backward compatibility. (See 3245793)
         [dict setObject:[NSString stringWithFormat:@"%.1lf", coreItem->lastVisitedTime()]
                  forKey:lastVisitedTimeIntervalKey];
     }
@@ -427,11 +454,37 @@ static WebWindowWatcher *_windowWatcher = nil;
         [dict setObject:[NSNumber numberWithInt:coreItem->visitCount()] forKey:visitCountKey];
     if (coreItem->lastVisitWasFailure())
         [dict setObject:[NSNumber numberWithBool:YES] forKey:lastVisitWasFailureKey];
-
     if (coreItem->lastVisitWasHTTPNonGet()) {
         ASSERT(coreItem->urlString().startsWith("http:", false) || coreItem->urlString().startsWith("https:", false));
         [dict setObject:[NSNumber numberWithBool:YES] forKey:lastVisitWasHTTPNonGetKey];
     }
+    if (Vector<String>* redirectURLs = coreItem->redirectURLs()) {
+        size_t size = redirectURLs->size();
+        ASSERT(size);
+        NSMutableArray *result = [[NSMutableArray alloc] initWithCapacity:size];
+        for (size_t i = 0; i < size; ++i)
+            [result addObject:(NSString*)redirectURLs->at(i)];
+        [dict setObject:result forKey:redirectURLsKey];
+        [result release];
+    }
+    
+    const Vector<int>& dailyVisitCounts = coreItem->dailyVisitCounts();
+    if (dailyVisitCounts.size()) {
+        NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:13];
+        for (size_t i = 0; i < dailyVisitCounts.size(); ++i)
+            [array addObject:[NSNumber numberWithInt:dailyVisitCounts[i]]];
+        [dict setObject:array forKey:dailyVisitCountKey];
+        [array release];
+    }
+    
+    const Vector<int>& weeklyVisitCounts = coreItem->weeklyVisitCounts();
+    if (weeklyVisitCounts.size()) {
+        NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:5];
+        for (size_t i = 0; i < weeklyVisitCounts.size(); ++i)
+            [array addObject:[NSNumber numberWithInt:weeklyVisitCounts[i]]];
+        [dict setObject:array forKey:weeklyVisitCountKey];
+        [array release];
+    }    
     
     if (coreItem->children().size()) {
         const HistoryItemVector& children = coreItem->children();
@@ -464,12 +517,12 @@ static WebWindowWatcher *_windowWatcher = nil;
 
 - (NSString *)RSSFeedReferrer
 {
-    return nsStringNilIfEmpty(core(_private)->rssFeedReferrer());
+    return nsStringNilIfEmpty(core(_private)->referrer());
 }
 
 - (void)setRSSFeedReferrer:(NSString *)referrer
 {
-    core(_private)->setRSSFeedReferrer(referrer);
+    core(_private)->setReferrer(referrer);
 }
 
 - (NSArray *)children
@@ -554,6 +607,34 @@ static WebWindowWatcher *_windowWatcher = nil;
 - (BOOL)_lastVisitWasHTTPNonGet
 {
     return core(_private)->lastVisitWasHTTPNonGet();
+}
+
+- (NSArray *)_redirectURLs
+{
+    Vector<String>* redirectURLs = core(_private)->redirectURLs();
+    if (!redirectURLs)
+        return nil;
+
+    size_t size = redirectURLs->size();
+    ASSERT(size);
+    NSMutableArray *result = [[NSMutableArray alloc] initWithCapacity:size];
+    for (size_t i = 0; i < size; ++i)
+        [result addObject:(NSString*)redirectURLs->at(i)];
+    return [result autorelease];
+}
+
+- (size_t)_getDailyVisitCounts:(const int**)counts
+{
+    HistoryItem* coreItem = core(_private);
+    *counts = coreItem->dailyVisitCounts().data();
+    return coreItem->dailyVisitCounts().size();
+}
+
+- (size_t)_getWeeklyVisitCounts:(const int**)counts
+{
+    HistoryItem* coreItem = core(_private);
+    *counts = coreItem->weeklyVisitCounts().data();
+    return coreItem->weeklyVisitCounts().size();
 }
 
 @end

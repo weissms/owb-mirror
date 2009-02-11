@@ -51,8 +51,13 @@ ApplicationCache::~ApplicationCache()
     
 void ApplicationCache::setGroup(ApplicationCacheGroup* group)
 {
-    ASSERT(!m_group);
+    ASSERT(!m_group || group == m_group);
     m_group = group;
+}
+
+bool ApplicationCache::isComplete() const
+{
+    return !m_group->cacheIsBeingUpdated(this);
 }
 
 void ApplicationCache::setManifestResource(PassRefPtr<ApplicationCacheResource> manifest)
@@ -76,7 +81,7 @@ void ApplicationCache::addResource(PassRefPtr<ApplicationCacheResource> resource
     
     if (m_storageID) {
         ASSERT(!resource->storageID());
-        ASSERT(resource->type() & (ApplicationCacheResource::Dynamic | ApplicationCacheResource::Implicit));
+        ASSERT(resource->type() & (ApplicationCacheResource::Dynamic | ApplicationCacheResource::Master));
         
         // Add the resource to the storage.
         cacheStorage().store(resource.get(), this);
@@ -141,13 +146,13 @@ bool ApplicationCache::addDynamicEntry(const String& url)
     if (!equalIgnoringCase(m_group->manifestURL().protocol(), KURL(url).protocol()))
         return false;
 
-    // FIXME: Implement
+    // FIXME: Implement (be sure to respect private browsing state).
     return true;
 }
     
 void ApplicationCache::removeDynamicEntry(const String&)
 {
-    // FIXME: Implement
+    // FIXME: Implement (be sure to respect private browsing state).
 }
 
 void ApplicationCache::setOnlineWhitelist(const Vector<KURL>& onlineWhitelist)

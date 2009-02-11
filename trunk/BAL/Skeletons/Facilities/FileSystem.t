@@ -44,7 +44,7 @@
 
 typedef const struct __CFData* CFDataRef;
 
-namespace OWBAL {
+namespace WebCore {
 
 class CString;
 class String;
@@ -211,6 +211,6 @@ class String;
     bool unloadModule(PlatformModule);
 
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // 

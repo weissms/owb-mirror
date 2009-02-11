@@ -89,6 +89,7 @@ void RenderMedia::destroy()
 
         removeChild(m_controlsShadowRoot->renderer());
         m_controlsShadowRoot->detach();
+        m_controlsShadowRoot = 0;
     }
     RenderReplaced::destroy();
 }
@@ -105,16 +106,16 @@ MediaPlayer* RenderMedia::player() const
 
 void RenderMedia::layout()
 {
-    IntSize oldSize = contentBox().size();
+    IntSize oldSize = contentBoxRect().size();
 
     RenderReplaced::layout();
 
-    RenderObject* controlsRenderer = m_controlsShadowRoot ? m_controlsShadowRoot->renderer() : 0;
+    RenderBox* controlsRenderer = m_controlsShadowRoot ? m_controlsShadowRoot->renderBox() : 0;
     if (!controlsRenderer)
         return;
-    IntSize newSize = contentBox().size();
+    IntSize newSize = contentBoxRect().size();
     if (newSize != oldSize || controlsRenderer->needsLayout()) {
-        controlsRenderer->setPos(borderLeft() + paddingLeft(), borderTop() + paddingTop());
+        controlsRenderer->setLocation(borderLeft() + paddingLeft(), borderTop() + paddingTop());
         controlsRenderer->style()->setHeight(Length(newSize.height(), Fixed));
         controlsRenderer->style()->setWidth(Length(newSize.width(), Fixed));
         controlsRenderer->setNeedsLayout(true, false);
@@ -123,16 +124,16 @@ void RenderMedia::layout()
     }
 }
 
-RenderObject* RenderMedia::firstChild() const 
-{ 
-    return m_controlsShadowRoot ? m_controlsShadowRoot->renderer() : 0; 
+const RenderObjectChildList* RenderMedia::children() const
+{
+    return m_controlsShadowRoot ? m_controlsShadowRoot->renderer()->virtualChildren() : 0; 
 }
 
-RenderObject* RenderMedia::lastChild() const 
-{ 
-    return m_controlsShadowRoot ? m_controlsShadowRoot->renderer() : 0;
+RenderObjectChildList* RenderMedia::children()
+{
+    return m_controlsShadowRoot ? m_controlsShadowRoot->renderer()->virtualChildren() : 0; 
 }
-    
+   
 void RenderMedia::removeChild(RenderObject* child)
 {
     ASSERT(m_controlsShadowRoot);
@@ -150,7 +151,7 @@ void RenderMedia::createControlsShadowRoot()
 void RenderMedia::createPanel()
 {
     ASSERT(!m_panel);
-    RenderStyle* style = getCachedPseudoStyle(RenderStyle::MEDIA_CONTROLS_PANEL);
+    RenderStyle* style = getCachedPseudoStyle(MEDIA_CONTROLS_PANEL);
     m_panel = new HTMLDivElement(HTMLNames::divTag, document());
     RenderObject* renderer = m_panel->createRenderer(renderArena(), style);
     if (renderer) {
@@ -194,7 +195,7 @@ void RenderMedia::createSeekForwardButton()
 void RenderMedia::createTimelineContainer()
 {
     ASSERT(!m_timelineContainer);
-    RenderStyle* style = getCachedPseudoStyle(RenderStyle::MEDIA_CONTROLS_TIMELINE_CONTAINER);
+    RenderStyle* style = getCachedPseudoStyle(MEDIA_CONTROLS_TIMELINE_CONTAINER);
     m_timelineContainer = new HTMLDivElement(HTMLNames::divTag, document());
     RenderObject* renderer = m_timelineContainer->createRenderer(renderArena(), style);
     if (renderer) {
@@ -440,7 +441,7 @@ int RenderMedia::lowestPosition(bool includeOverflowInterior, bool includeSelf) 
     if (!m_controlsShadowRoot || !m_controlsShadowRoot->renderer())
         return bottom;
     
-    return max(bottom,  m_controlsShadowRoot->renderer()->yPos() + m_controlsShadowRoot->renderer()->lowestPosition(includeOverflowInterior, includeSelf));
+    return max(bottom,  m_controlsShadowRoot->renderBox()->y() + m_controlsShadowRoot->renderer()->lowestPosition(includeOverflowInterior, includeSelf));
 }
 
 int RenderMedia::rightmostPosition(bool includeOverflowInterior, bool includeSelf) const
@@ -449,7 +450,7 @@ int RenderMedia::rightmostPosition(bool includeOverflowInterior, bool includeSel
     if (!m_controlsShadowRoot || !m_controlsShadowRoot->renderer())
         return right;
     
-    return max(right, m_controlsShadowRoot->renderer()->xPos() + m_controlsShadowRoot->renderer()->rightmostPosition(includeOverflowInterior, includeSelf));
+    return max(right, m_controlsShadowRoot->renderBox()->x() + m_controlsShadowRoot->renderer()->rightmostPosition(includeOverflowInterior, includeSelf));
 }
 
 int RenderMedia::leftmostPosition(bool includeOverflowInterior, bool includeSelf) const
@@ -458,7 +459,7 @@ int RenderMedia::leftmostPosition(bool includeOverflowInterior, bool includeSelf
     if (!m_controlsShadowRoot || !m_controlsShadowRoot->renderer())
         return left;
     
-    return min(left, m_controlsShadowRoot->renderer()->xPos() +  m_controlsShadowRoot->renderer()->leftmostPosition(includeOverflowInterior, includeSelf));
+    return min(left, m_controlsShadowRoot->renderBox()->x() +  m_controlsShadowRoot->renderer()->leftmostPosition(includeOverflowInterior, includeSelf));
 }
 
 } // namespace WebCore

@@ -16,13 +16,12 @@ list(APPEND WEBCORE_SRC
     rendering/RenderBR.cpp
     rendering/RenderBlock.cpp
     rendering/RenderBox.cpp
+    rendering/RenderBoxModelObject.cpp
     rendering/RenderButton.cpp
-    rendering/RenderContainer.cpp
     rendering/RenderCounter.cpp
     rendering/RenderFieldset.cpp
     rendering/RenderFileUploadControl.cpp
     rendering/RenderFlexibleBox.cpp
-    rendering/RenderFlow.cpp
     rendering/RenderFrame.cpp
     rendering/RenderFrameSet.cpp
     rendering/RenderHTMLCanvas.cpp
@@ -30,13 +29,17 @@ list(APPEND WEBCORE_SRC
     rendering/RenderImageGeneratedContent.cpp
     rendering/RenderInline.cpp
     rendering/RenderLayer.cpp
+    rendering/RenderLayerBacking.cpp
+    rendering/RenderLayerCompositor.cpp
     rendering/RenderLegend.cpp
+    rendering/RenderLineBoxList.cpp
     rendering/RenderListBox.cpp
     rendering/RenderListItem.cpp
     rendering/RenderListMarker.cpp
     rendering/RenderMarquee.cpp
     rendering/RenderMenuList.cpp
     rendering/RenderObject.cpp
+    rendering/RenderObjectChildList.cpp
     rendering/RenderPart.cpp
     rendering/RenderPartObject.cpp
     rendering/RenderReplaced.cpp

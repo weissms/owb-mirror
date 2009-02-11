@@ -29,7 +29,7 @@
 #include "config.h"
 #include "MIMETypeRegistry.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 struct ExtensionMap {
     const char* extension;

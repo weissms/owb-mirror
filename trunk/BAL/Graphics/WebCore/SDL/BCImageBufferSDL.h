@@ -37,7 +37,7 @@
 
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
     class GraphicsContext;
     class ImageData;
@@ -46,7 +46,7 @@ namespace WKAL {
     class RenderObject;
     class String;
 
-    class ImageBuffer : Noncopyable, public WKALBase {
+    class ImageBuffer : Noncopyable {
     public:
         static std::auto_ptr<ImageBuffer> create(const IntSize&, bool grayScale);
         ~ImageBuffer();

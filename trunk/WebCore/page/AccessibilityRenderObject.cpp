@@ -58,9 +58,11 @@
 #include "RenderFieldset.h"
 #include "RenderFileUploadControl.h"
 #include "RenderImage.h"
+#include "RenderInline.h"
 #include "RenderListBox.h"
 #include "RenderListMarker.h"
 #include "RenderMenuList.h"
+#include "RenderText.h"
 #include "RenderTextControl.h"
 #include "RenderTheme.h"
 #include "RenderView.h"
@@ -229,7 +231,14 @@ bool AccessibilityRenderObject::isPasswordField() const
     ASSERT(m_renderer);
     if (!m_renderer->element() || !m_renderer->element()->isHTMLElement())
         return false;
-    return static_cast<HTMLElement*>(m_renderer->element())->isPasswordField() && ariaRoleAttribute() == UnknownRole;
+    if (ariaRoleAttribute() != UnknownRole)
+        return false;
+
+    InputElement* inputElement = toInputElement(static_cast<Element*>(m_renderer->element()));
+    if (!inputElement)
+        return false;
+
+    return inputElement->isPasswordField();
 }
 
 bool AccessibilityRenderObject::isCheckboxOrRadio() const
@@ -320,13 +329,27 @@ bool AccessibilityRenderObject::isPressed() const
 bool AccessibilityRenderObject::isIndeterminate() const
 {
     ASSERT(m_renderer);
-    return m_renderer->node() && m_renderer->node()->isIndeterminate();
+    if (!m_renderer->node() || !m_renderer->node()->isElementNode())
+        return false;
+
+    InputElement* inputElement = toInputElement(static_cast<Element*>(m_renderer->node()));
+    if (!inputElement)
+        return false;
+
+    return inputElement->isIndeterminate();
 }
 
 bool AccessibilityRenderObject::isChecked() const
 {
     ASSERT(m_renderer);
-    return m_renderer->node() && m_renderer->node()->isChecked();
+    if (!m_renderer->node() || !m_renderer->node()->isElementNode())
+        return false;
+
+    InputElement* inputElement = toInputElement(static_cast<Element*>(m_renderer->node()));
+    if (!inputElement)
+        return false;
+
+    return inputElement->isChecked();
 }
 
 bool AccessibilityRenderObject::isHovered() const
@@ -430,7 +453,8 @@ bool AccessibilityRenderObject::isControl() const
         return false;
     
     Node* node = m_renderer->element();
-    return node && (node->isControl() || AccessibilityObject::isARIAControl(ariaRoleAttribute()));
+    return node && ((node->isElementNode() && static_cast<Element*>(node)->isFormControlElement())
+                    || AccessibilityObject::isARIAControl(ariaRoleAttribute()));
 }
 
 bool AccessibilityRenderObject::isFieldset() const
@@ -469,9 +493,11 @@ Element* AccessibilityRenderObject::anchorElement() const
     
     // Search up the render tree for a RenderObject with a DOM node.  Defer to an earlier continuation, though.
     for (currRenderer = m_renderer; currRenderer && !currRenderer->element(); currRenderer = currRenderer->parent()) {
-        RenderFlow* continuation = currRenderer->virtualContinuation();
-        if (continuation)
-            return cache->get(continuation)->anchorElement();
+        if (currRenderer->isRenderBlock()) {
+            RenderInline* continuation = toRenderBlock(currRenderer)->inlineContinuation();
+            if (continuation)
+                return cache->get(continuation)->anchorElement();
+        }
     }
     
     // bail if none found
@@ -527,15 +553,15 @@ Element* AccessibilityRenderObject::mouseButtonListener() const
     Node* node = m_renderer->element();
     if (!node)
         return 0;
-    if (!node->isEventTargetNode())
+    if (!node->isElementNode())
         return 0;
-    
+
     // FIXME: Do the continuation search like anchorElement does
-    for (EventTargetNode* elt = static_cast<EventTargetNode*>(node); elt; elt = static_cast<EventTargetNode*>(elt->parentNode())) {
-        if (elt->inlineEventListenerForType(eventNames().clickEvent) || elt->inlineEventListenerForType(eventNames().mousedownEvent) || elt->inlineEventListenerForType(eventNames().mouseupEvent))
-            return static_cast<Element*>(elt);
+    for (Element* element = static_cast<Element*>(node); element; element = element->parentElement()) {
+        if (element->inlineEventListenerForType(eventNames().clickEvent) || element->inlineEventListenerForType(eventNames().mousedownEvent) || element->inlineEventListenerForType(eventNames().mouseupEvent))
+            return element;
     }
-    
+
     return 0;
 }
 
@@ -943,7 +969,7 @@ IntRect AccessibilityRenderObject::boundingBoxRect() const
     if (!obj)
         return IntRect();
     
-    if (obj->isInlineContinuation())
+    if (obj->element()) // If we are a continuation, we want to make sure to use the primary renderer.
         obj = obj->element()->renderer();
     
     // FIXME: This doesn't work correctly with transforms.
@@ -1142,7 +1168,7 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
         if (parentObjectUnignored()->ariaRoleAttribute() == MenuItemRole ||
             parentObjectUnignored()->ariaRoleAttribute() == MenuButtonRole)
             return true;
-         return m_renderer->isBR() || !static_cast<RenderText*>(m_renderer)->firstTextBox();
+         return m_renderer->isBR() || !toRenderText(m_renderer)->firstTextBox();
     }
     
     if (isHeading())
@@ -1161,7 +1187,7 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
         return false;
     
     if (m_renderer->isBlockFlow() && m_renderer->childrenInline())
-        return !static_cast<RenderBlock*>(m_renderer)->firstLineBox() && !mouseButtonListener();
+        return !toRenderBlock(m_renderer)->firstLineBox() && !mouseButtonListener();
     
     // ignore images seemingly used as spacers
     if (isImage()) {
@@ -1177,12 +1203,12 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
         }
         
         // check for one-dimensional image
-        if (m_renderer->height() <= 1 || m_renderer->width() <= 1)
+        RenderImage* image = toRenderImage(m_renderer);
+        if (image->height() <= 1 || image->width() <= 1)
             return true;
         
         // check whether rendered image was stretched from one-dimensional file image
         if (isNativeImage()) {
-            RenderImage* image = static_cast<RenderImage*>(m_renderer);
             if (image->cachedImage()) {
                 IntSize imageSize = image->cachedImage()->imageSize(image->view()->zoomFactor());
                 return imageSize.height() <= 1 || imageSize.width() <= 1;
@@ -1210,7 +1236,7 @@ int AccessibilityRenderObject::layoutCount() const
 {
     if (!m_renderer->isRenderView())
         return 0;
-    return static_cast<RenderView*>(m_renderer)->frameView()->layoutCount();
+    return toRenderView(m_renderer)->frameView()->layoutCount();
 }
 
 String AccessibilityRenderObject::text() const
@@ -1246,7 +1272,7 @@ PassRefPtr<Range> AccessibilityRenderObject::ariaSelectedTextDOMRange() const
     if (!node)
         return 0;
     
-    RefPtr<Range> currentSelectionRange = selection().toRange();
+    RefPtr<Range> currentSelectionRange = selection().toNormalizedRange();
     if (!currentSelectionRange)
         return 0;
     
@@ -1435,12 +1461,20 @@ void AccessibilityRenderObject::setValue(const String& string)
 
 bool AccessibilityRenderObject::isEnabled() const
 {
-    return m_renderer->element() ? m_renderer->element()->isEnabled() : true;
+    ASSERT(m_renderer);
+    if (!m_renderer->element() || !m_renderer->element()->isElementNode())
+        return true;
+
+    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(m_renderer->element()));
+    if (!formControlElement)
+        return true;
+
+    return formControlElement->isEnabled();    
 }
 
-RenderObject* AccessibilityRenderObject::topRenderer() const
+RenderView* AccessibilityRenderObject::topRenderer() const
 {
-    return m_renderer->document()->topDocument()->renderer();
+    return m_renderer->document()->topDocument()->renderView();
 }
 
 Document* AccessibilityRenderObject::document() const
@@ -1702,7 +1736,7 @@ VisiblePosition AccessibilityRenderObject::visiblePositionForPoint(const IntPoin
 {
     // convert absolute point to view coordinates
     FrameView* frameView = m_renderer->document()->topDocument()->renderer()->view()->frameView();
-    RenderObject* renderer = topRenderer();
+    RenderView* renderView = topRenderer();
     Node* innerNode = 0;
     
     // locate the node containing the point
@@ -1714,9 +1748,10 @@ VisiblePosition AccessibilityRenderObject::visiblePositionForPoint(const IntPoin
 #else
         ourpoint = point;
 #endif
-        HitTestRequest request(true, true);
+        HitTestRequest request(HitTestRequest::ReadOnly |
+                               HitTestRequest::Active);
         HitTestResult result(ourpoint);
-        renderer->layer()->hitTest(request, result);
+        renderView->layer()->hitTest(request, result);
         innerNode = result.innerNode();
         if (!innerNode || !innerNode->renderer())
             return VisiblePosition();
@@ -1724,7 +1759,7 @@ VisiblePosition AccessibilityRenderObject::visiblePositionForPoint(const IntPoin
         pointResult = result.localPoint();
         
         // done if hit something other than a widget
-        renderer = innerNode->renderer();
+        RenderObject* renderer = innerNode->renderer();
         if (!renderer->isWidget())
             break;
         
@@ -1738,7 +1773,7 @@ VisiblePosition AccessibilityRenderObject::visiblePositionForPoint(const IntPoin
         Document* document = frame->document();
         if (!document)
             break;
-        renderer = document->renderer();
+        renderView = document->renderView();
         frameView = static_cast<FrameView*>(widget);
     }
     
@@ -1869,14 +1904,13 @@ IntRect AccessibilityRenderObject::doAXBoundsForRange(const PlainTextRange& rang
 
 AccessibilityObject* AccessibilityRenderObject::doAccessibilityHitTest(const IntPoint& point) const
 {
-    if (!m_renderer)
+    if (!m_renderer || !m_renderer->hasLayer())
         return 0;
     
-    RenderLayer* layer = m_renderer->layer();
-    if (!layer)
-        return 0;
-    
-    HitTestRequest request(true, true);
+    RenderLayer* layer = toRenderBox(m_renderer)->layer();
+     
+    HitTestRequest request(HitTestRequest::ReadOnly |
+                           HitTestRequest::Active);
     HitTestResult hitTestResult = HitTestResult(point);
     layer->hitTest(request, hitTestResult);
     if (!hitTestResult.innerNode())
@@ -2179,12 +2213,18 @@ bool AccessibilityRenderObject::ariaRoleHasPresentationalChildren() const
 
 bool AccessibilityRenderObject::canSetFocusAttribute() const
 {
+    ASSERT(m_renderer);
+
     // NOTE: It would be more accurate to ask the document whether setFocusedNode() would
     // do anything.  For example, it setFocusedNode() will do nothing if the current focused
     // node will not relinquish the focus.
-    if (!m_renderer->element() || !m_renderer->element()->isEnabled())
+    if (!m_renderer->element() || !m_renderer->element()->isElementNode())
         return false;
-    
+
+    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(m_renderer->element()));
+    if (formControlElement && !formControlElement->isEnabled())
+        return false;
+
     switch (roleValue()) {
         case WebCoreLinkRole:
         case ImageMapLinkRole:
@@ -2215,12 +2255,20 @@ bool AccessibilityRenderObject::canSetTextRangeAttributes() const
 
 void AccessibilityRenderObject::childrenChanged()
 {
-    clearChildren();
+    // this method is meant as a quick way of marking dirty
+    // a portion of the accessibility tree
     
-    if (accessibilityIsIgnored()) {
-        AccessibilityObject* parent = parentObject();
-        if (parent)
-            parent->childrenChanged();
+    markChildrenDirty();
+    
+    // this object may not be accessible (and thus may not appear
+    // in the hierarchy), which means we need to go up the parent
+    // chain and mark the parent's dirty. Ideally, we would want
+    // to only access the next object that is not ignored, but
+    // asking an element if it's ignored can lead to an examination of the
+    // render tree which is dangerous.
+    for (AccessibilityObject* parent = parentObject(); parent; parent = parent->parentObject()) {
+        if (parent->isAccessibilityRenderObject())
+            static_cast<AccessibilityRenderObject *>(parent)->markChildrenDirty();
     }
 }
     
@@ -2244,6 +2292,11 @@ bool AccessibilityRenderObject::canHaveChildren() const
 
 const AccessibilityObject::AccessibilityChildrenVector& AccessibilityRenderObject::children()
 {
+    if (m_childrenDirty) {
+        clearChildren();        
+        m_childrenDirty = false;
+    }
+    
     if (!m_haveChildren)
         addChildren();
     return m_children;
@@ -2279,7 +2332,7 @@ void AccessibilityRenderObject::addChildren()
     
     // for a RenderImage, add the <area> elements as individual accessibility objects
     if (m_renderer->isRenderImage()) {
-        HTMLMapElement* map = static_cast<RenderImage*>(m_renderer)->imageMap();
+        HTMLMapElement* map = toRenderImage(m_renderer)->imageMap();
         if (map) {
             for (Node* current = map->firstChild(); current; current = current->traverseNextNode(map)) {
 
@@ -2404,5 +2457,11 @@ const String& AccessibilityRenderObject::actionVerb() const
     }
 }
      
+void AccessibilityRenderObject::updateBackingStore()
+{
+    if (!m_renderer)
+        return;
+    m_renderer->view()->layoutIfNeeded();
+}    
     
 } // namespace WebCore

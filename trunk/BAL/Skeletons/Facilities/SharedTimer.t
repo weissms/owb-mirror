@@ -40,7 +40,7 @@
  */
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 
     /**

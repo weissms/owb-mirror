@@ -40,11 +40,11 @@
 #include "PlatformString.h"
 #include <wtf/Deque.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class SegmentedString;
 
-class SegmentedSubstring : public OWBALBase {
+class SegmentedSubstring : public WebCoreBase {
 public:
     /**
      * SegmentedSubstring default constructor
@@ -116,7 +116,7 @@ private:
     bool m_doNotExcludeLineNumbers;
 };
 
-class SegmentedString : public OWBALBase {
+class SegmentedString {
 public:
     /**
      * SegmentedString default constructor

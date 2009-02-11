@@ -1037,11 +1037,30 @@ template <int BITS> class MapSelector {
   typedef PackedCache<BITS, uint64_t> CacheType;
 };
 
+#if defined(WTF_CHANGES)
+#if PLATFORM(X86_64)
+// On all known X86-64 platforms, the upper 16 bits are always unused and therefore 
+// can be excluded from the PageMap key.
+// See http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
+
+static const size_t kBitsUnusedOn64Bit = 16;
+#else
+static const size_t kBitsUnusedOn64Bit = 0;
+#endif
+
+// A three-level map for 64-bit machines
+template <> class MapSelector<64> {
+ public:
+  typedef TCMalloc_PageMap3<64 - kPageShift - kBitsUnusedOn64Bit> Type;
+  typedef PackedCache<64, uint64_t> CacheType;
+};
+#endif
+
 // A two-level map for 32-bit machines
 template <> class MapSelector<32> {
  public:
-  typedef TCMalloc_PageMap2<32-kPageShift> Type;
-  typedef PackedCache<32-kPageShift, uint16_t> CacheType;
+  typedef TCMalloc_PageMap2<32 - kPageShift> Type;
+  typedef PackedCache<32 - kPageShift, uint16_t> CacheType;
 };
 
 // -------------------------------------------------------------------------
@@ -3297,6 +3316,8 @@ void* calloc(size_t n, size_t elem_size) {
   return result;
 }
 
+// Since cfree isn't used anywhere, we don't compile it in.
+#ifndef WTF_CHANGES
 #ifndef WTF_CHANGES
 extern "C" 
 #endif
@@ -3306,6 +3327,7 @@ void cfree(void* ptr) {
 #endif
   do_free(ptr);
 }
+#endif
 
 #ifndef WTF_CHANGES
 extern "C" 
@@ -3549,7 +3571,7 @@ extern "C" struct mallinfo mallinfo(void) {
 
 #if defined(__GLIBC__)
 extern "C" {
-# if defined(__GNUC__) && !defined(__MACH__) && defined(HAVE___ATTRIBUTE__)
+#if COMPILER(GCC) && !defined(__MACH__) && defined(HAVE___ATTRIBUTE__)
   // Potentially faster variants that use the gcc alias extension.
   // Mach-O (Darwin) does not support weak aliases, hence the __MACH__ check.
 # define ALIAS(x) __attribute__ ((weak, alias (x)))

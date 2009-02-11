@@ -2,14 +2,19 @@ if(USE_THREADS_GTHREADS)
     create_include_link(${BAL_DIR}/Types/WTF/Gtk/BCThreadingGtk.h BAL/wtf/Threading.h)
 endif(USE_THREADS_GTHREADS)
 
+if(USE_THREADS_NONE)
+    create_include_link(${BAL_DIR}/Types/WTF/None/BCThreadingNone.h BAL/wtf/Threading.h)
+endif(USE_THREADS_NONE)
+
 if(USE_THREADS_PTHREADS)
     create_include_link(${BAL_DIR}/Types/WTF/Pthreads/BCThreadingPthreads.h BAL/wtf/Threading.h)
     create_include_link(${BAL_DIR}/Types/WTF/BCThreadSpecificWTF.h BAL/wtf/ThreadSpecific.h)
 endif(USE_THREADS_PTHREADS)
 
-if(USE_THREADS_NONE)
-    create_include_link(${BAL_DIR}/Types/WTF/None/BCThreadingNone.h BAL/wtf/Threading.h)
-endif(USE_THREADS_NONE)
+if(USE_THREADS_QT)
+    create_include_link(${BAL_DIR}/Types/WTF/Qt/BCThreadingQt.h BAL/wtf/Threading.h)
+endif(USE_THREADS_QT)
+
 
 create_include_link(${BAL_DIR}/Types/WTF/BCASCIICTypeWTF.h BAL/wtf/ASCIICType.h)
 create_include_link(${BAL_DIR}/Types/WTF/BCAssertionsWTF.h BAL/wtf/Assertions.h)
@@ -50,6 +55,7 @@ create_include_link(${BAL_DIR}/Types/WTF/BCStringExtrasWTF.h BAL/wtf/StringExtra
 create_include_link(${BAL_DIR}/Types/WTF/BCTCPackedCacheWTF.h BAL/wtf/TCPackedCache.h)
 create_include_link(${BAL_DIR}/Types/WTF/BCTCPageMapWTF.h BAL/wtf/TCPageMap.h)
 create_include_link(${BAL_DIR}/Types/WTF/BCTCSpinLockWTF.h BAL/wtf/TCSpinLock.h)
+create_include_link(${BAL_DIR}/Types/WTF/BCTypeTraitsWTF.h BAL/wtf/TypeTraits.h)
 create_include_link(${BAL_DIR}/Types/WTF/BCVectorWTF.h BAL/wtf/Vector.h)
 create_include_link(${BAL_DIR}/Types/WTF/BCVectorTraitsWTF.h BAL/wtf/VectorTraits.h)
 
@@ -67,10 +73,16 @@ if(USE_THREADS_GTHREADS)
     aux_source_directory(${BAL_DIR}/Types/WTF/Gtk WTF_SRC)
 endif(USE_THREADS_GTHREADS)
 
+if(USE_THREADS_NONE)
+    aux_source_directory(${BAL_DIR}/Types/WTF/None WTF_SRC)
+endif(USE_THREADS_NONE)
+
 if(USE_THREADS_PTHREADS)
     aux_source_directory(${BAL_DIR}/Types/WTF/Pthreads WTF_SRC)
 endif(USE_THREADS_PTHREADS)
 
-if(USE_THREADS_NONE)
-    aux_source_directory(${BAL_DIR}/Types/WTF/None WTF_SRC)
-endif(USE_THREADS_NONE)
+if(USE_THREADS_QT)
+    owb_generate_moc(WTF_SRC ${OWB_SOURCE_DIR}/BAL/Types/WTF/Qt/BCMainThreadQt.cpp MainThreadQt.moc)
+    aux_source_directory(${BAL_DIR}/Types/WTF/Qt WTF_SRC)
+endif(USE_THREADS_QT)
+

@@ -59,8 +59,8 @@ public:
     virtual TransformationMatrix localTransform() const;
     
     virtual void layout();
-    virtual IntRect absoluteClippedOverflowRect();
-    virtual bool requiresLayer();
+    virtual IntRect clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer);
+    virtual bool requiresLayer() const { return false; }
     virtual int lineHeight(bool b, bool isRootLineBox = false) const;
     virtual int baselinePosition(bool b, bool isRootLineBox = false) const;
     virtual void paint(PaintInfo&, int parentX, int parentY);
@@ -75,6 +75,7 @@ public:
     
 private:
     FloatPoint mapAbsolutePointToLocal(const FloatPoint&) const;
+    virtual IntRect outlineBoundsForRepaint(RenderBoxModelObject* repaintContainer) const;
 
     mutable Path m_path;
     mutable FloatRect m_fillBBox;

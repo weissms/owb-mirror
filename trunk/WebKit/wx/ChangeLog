@@ -1,3 +1,90 @@
+2009-02-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::updateGlobalHistoryRedirectLinks):
+        * WebKitSupport/FrameLoaderClientWx.h:
+
+2009-02-06  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23708
+        Adds documentElementAvailable() callback to FrameLoaderClient.
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::documentElementAvailable):
+        Stub out documentElementAvailable().
+        * WebKitSupport/FrameLoaderClientWx.h:
+        Ditto.
+
+2009-02-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::updateGlobalHistoryForRedirectWithoutHistoryItem):
+        (WebCore::FrameLoaderClientWx::createPlugin):
+        (WebCore::FrameLoaderClientWx::createJavaAppletWidget):
+        * WebKitSupport/FrameLoaderClientWx.h:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebFrame.cpp:
+        (wxWebFrame::LoadURL):
+
+2009-02-02  Darin Adler  <darin@apple.com>
+
+        Build fix.
+
+        * WebView.cpp:
+        (wxWebView::OnSize): call sendResizeEvent on EventHandler.
+
+2009-01-30  David Kilzer  <ddkilzer@apple.com>
+
+        Build fix for Wx: Finish de-RefCount-ing FrameLoaderClientWx
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::ref): Removed.
+        (WebCore::FrameLoaderClientWx::deref): Removed.
+        * WebKitSupport/FrameLoaderClientWx.h: Ditto.
+
+2009-01-28  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 23490: Remove initialRefCount argument from RefCounted class
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23490>
+
+        Reviewed by Darin Adler.
+
+        FrameLoaderClientWx is no longer a RefCounted class.
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::FrameLoaderClientWx): Removed call
+        to the RefCounted<FrameLoaderClientWx>(0) super constructor.
+        * WebKitSupport/FrameLoaderClientWx.h: Don't include RefCounted.h
+        and stop inheriting from RefCounted<FrameLoaderClientWx>.
+
+2009-01-28  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Rework FrameLoaderClient to work on a CachedFrame basis instead of CachedPage
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::savePlatformDataToCachedFrame):
+        (WebCore::FrameLoaderClientWx::transitionToCommittedFromCachedFrame):
+        * WebKitSupport/FrameLoaderClientWx.h:
+
+2009-01-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, add missing include dir.
+
+        * presets/wxwebkit.bkl:
+
 2009-01-21  Sam Weinig  <sam@webkit.org>
 
         Rubber-stamped by Gavin Barraclough.

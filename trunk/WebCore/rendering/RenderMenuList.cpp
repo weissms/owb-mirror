@@ -1,7 +1,8 @@
-/**
+/*
  * This file is part of the select element renderer in WebCore.
  *
  * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
+ *               2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -24,20 +25,16 @@
 #include "RenderMenuList.h"
 
 #include "CSSStyleSelector.h"
-#include "Document.h"
-#include "FontSelector.h"
 #include "FrameView.h"
-#include "GraphicsContext.h"
 #include "HTMLNames.h"
-#include "HTMLOptionElement.h"
-#include "HTMLOptGroupElement.h"
 #include "HTMLSelectElement.h"
+#include "NodeRenderStyle.h"
+#include "OptionElement.h"
+#include "OptionGroupElement.h"
 #include "PopupMenu.h"
 #include "RenderBR.h"
 #include "RenderScrollbar.h"
-#include "RenderText.h"
 #include "RenderTheme.h"
-#include "NodeRenderStyle.h"
 #include <math.h>
 
 using namespace std;
@@ -118,7 +115,7 @@ void RenderMenuList::removeChild(RenderObject* oldChild)
         m_innerBlock->removeChild(oldChild);
 }
 
-void RenderMenuList::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderMenuList::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderBlock::styleDidChange(diff, oldStyle);
 
@@ -141,11 +138,13 @@ void RenderMenuList::updateOptionsWidth()
     int size = listItems.size();    
     for (int i = 0; i < size; ++i) {
         HTMLElement* element = listItems[i];
-        if (element->hasTagName(optionTag)) {
-            String text = static_cast<HTMLOptionElement*>(element)->optionText();
-            if (!text.isEmpty())
-                maxOptionWidth = max(maxOptionWidth, style()->font().floatWidth(text));
-        }
+        OptionElement* optionElement = toOptionElement(element);
+        if (!optionElement)
+            continue;
+
+        String text = optionElement->textIndentedToRespectGroupLabel();
+        if (!text.isEmpty())
+            maxOptionWidth = max(maxOptionWidth, style()->font().floatWidth(text));
     }
 
     int width = static_cast<int>(ceilf(maxOptionWidth));
@@ -178,10 +177,10 @@ void RenderMenuList::setTextFromOption(int optionIndex)
     int i = select->optionToListIndex(optionIndex);
     String text = "";
     if (i >= 0 && i < size) {
-        HTMLElement* element = listItems[i];
-        if (element->hasTagName(optionTag))
-            text = static_cast<HTMLOptionElement*>(listItems[i])->optionText();
+        if (OptionElement* optionElement = toOptionElement(listItems[i]))
+            text = optionElement->textIndentedToRespectGroupLabel();
     }
+
     setText(text.stripWhiteSpace());
 }
 
@@ -224,8 +223,8 @@ IntRect RenderMenuList::controlClipRect(int tx, int ty) const
                    contentWidth(), 
                    contentHeight());
     
-    IntRect innerBox(tx + m_innerBlock->xPos() + m_innerBlock->paddingLeft(), 
-                   ty + m_innerBlock->yPos() + m_innerBlock->paddingTop(),
+    IntRect innerBox(tx + m_innerBlock->x() + m_innerBlock->paddingLeft(), 
+                   ty + m_innerBlock->y() + m_innerBlock->paddingTop(),
                    m_innerBlock->contentWidth(), 
                    m_innerBlock->contentHeight());
 
@@ -302,10 +301,10 @@ String RenderMenuList::itemText(unsigned listIndex) const
 {
     HTMLSelectElement* select = static_cast<HTMLSelectElement*>(node());
     HTMLElement* element = select->listItems()[listIndex];
-    if (element->hasTagName(optgroupTag))
-        return static_cast<HTMLOptGroupElement*>(element)->groupLabelText();
-    else if (element->hasTagName(optionTag))
-        return static_cast<HTMLOptionElement*>(element)->optionText();
+    if (OptionGroupElement* optionGroupElement = toOptionGroupElement(element))
+        return optionGroupElement->groupLabelText();
+    else if (OptionElement* optionElement = toOptionElement(element))
+        return optionElement->textIndentedToRespectGroupLabel();
     return String();
 }
 
@@ -316,9 +315,15 @@ bool RenderMenuList::itemIsEnabled(unsigned listIndex) const
     if (!element->hasTagName(optionTag))
         return false;
     bool groupEnabled = true;
-    if (element->parentNode() && element->parentNode()->hasTagName(optgroupTag))
-        groupEnabled = element->parentNode()->isEnabled();
-    return element->isEnabled() && groupEnabled;
+    if (element->parentNode() && element->parentNode()->hasTagName(optgroupTag)) {
+        FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(element->parentNode()));
+        groupEnabled = formControlElement->isEnabled();
+    }
+
+    if (!groupEnabled)
+        return false;
+
+    return toFormControlElement(element)->isEnabled();
 }
 
 PopupMenuStyle RenderMenuList::itemStyle(unsigned listIndex) const
@@ -366,7 +371,7 @@ HostWindow* RenderMenuList::hostWindow() const
 PassRefPtr<Scrollbar> RenderMenuList::createScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize controlSize)
 {
     RefPtr<Scrollbar> widget;
-    bool hasCustomScrollbarStyle = style()->hasPseudoStyle(RenderStyle::SCROLLBAR);
+    bool hasCustomScrollbarStyle = style()->hasPseudoStyle(SCROLLBAR);
     if (hasCustomScrollbarStyle)
         widget = RenderScrollbar::createCustomScrollbar(client, orientation, this);
     else
@@ -424,7 +429,9 @@ bool RenderMenuList::itemIsSelected(unsigned listIndex) const
 {
     HTMLSelectElement* select = static_cast<HTMLSelectElement*>(node());
     HTMLElement* element = select->listItems()[listIndex];
-    return element->hasTagName(optionTag)&& static_cast<HTMLOptionElement*>(element)->selected();
+    if (OptionElement* optionElement = toOptionElement(element))
+        return optionElement->selected();
+    return false;
 }
 
 void RenderMenuList::setTextFromItem(unsigned listIndex)

@@ -33,7 +33,7 @@
 #include "SharedBuffer.h"
 #include "FontPlatformData.h"
 
-namespace WKAL {
+namespace WebCore {
 
 FontCustomPlatformData::~FontCustomPlatformData()
 {

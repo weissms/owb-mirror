@@ -37,7 +37,7 @@
 #include "ObserverData.h"
 #include "CString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 ObserverServiceData* ObserverServiceData::createObserverService()
 {

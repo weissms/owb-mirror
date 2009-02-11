@@ -51,9 +51,8 @@ namespace WebCore {
         FrameLoadTypeForward,
         FrameLoadTypeIndexedBackForward, // a multi-item hop in the backforward list
         FrameLoadTypeReload,
-        FrameLoadTypeReloadAllowingStaleData,
         FrameLoadTypeSame,               // user loads same URL again (but not reload button)
-        FrameLoadTypeRedirectWithLockedHistory,
+        FrameLoadTypeRedirectWithLockedBackForwardList, // FIXME: Merge "lockBackForwardList", "lockHistory", "quickRedirect" and "clientRedirect" into a single concept of redirect.
         FrameLoadTypeReplace,
         FrameLoadTypeReloadFromOrigin
     };

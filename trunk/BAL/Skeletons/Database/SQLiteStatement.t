@@ -41,11 +41,11 @@
 
 struct sqlite3_stmt;
 
-namespace OWBAL {
+namespace WebCore {
 
 class SQLValue;
 
-class SQLiteStatement : public OWBALBase, public Noncopyable {
+class SQLiteStatement : public WebCoreBase, public Noncopyable {
 public:
     /**
      * Constructor for SQLiteStatement.
@@ -348,7 +348,7 @@ private:
 #endif
 };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // SQLiteStatement_h
 

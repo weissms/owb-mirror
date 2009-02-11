@@ -39,7 +39,7 @@
 
 #include <wtf/RefPtr.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class DeprecatedValueListImplNode;
 

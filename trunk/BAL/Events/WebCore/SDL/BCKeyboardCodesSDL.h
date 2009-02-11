@@ -29,7 +29,7 @@
 #ifndef KeyboardCodes_h
 #define KeyboardCodes_h
 
-namespace WKAL {
+namespace WebCore {
 
 // VK_LBUTTON (01) Left mouse button
 // VK_RBUTTON (02) Right mouse button

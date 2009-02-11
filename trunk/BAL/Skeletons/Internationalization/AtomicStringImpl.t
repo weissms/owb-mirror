@@ -39,7 +39,7 @@
 
 #include "StringImpl.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 class AtomicStringImpl : public StringImpl
 {

@@ -44,7 +44,7 @@ namespace WebCore {
 
 void JSDocument::mark()
 {
-    JSEventTargetNode::mark();
+    JSNode::mark();
     markDOMNodesForDocument(impl());
     markActiveObjectsForContext(*Heap::heap(this)->globalData(), impl());
 }
@@ -73,7 +73,7 @@ void JSDocument::setLocation(ExecState* exec, JSValuePtr value)
         str = activeFrame->document()->completeURL(str).string();
 
     bool userGesture = activeFrame->script()->processingUserGesture();
-    frame->loader()->scheduleLocationChange(str, activeFrame->loader()->outgoingReferrer(), false, userGesture);
+    frame->loader()->scheduleLocationChange(str, activeFrame->loader()->outgoingReferrer(), !activeFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
 }
 
 JSValuePtr toJS(ExecState* exec, Document* document)

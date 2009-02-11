@@ -29,7 +29,7 @@
 #ifndef Language_h
 #define Language_h
 
-namespace OWBAL {
+namespace WebCore {
 
     class String;
 

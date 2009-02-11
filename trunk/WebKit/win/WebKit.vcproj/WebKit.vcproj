@@ -358,7 +358,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\WebCachedPagePlatformData.h"
+				RelativePath="..\WebCachedFramePlatformData.h"
 				>
 			</File>
 			<File
@@ -978,7 +978,6 @@
 				>
 				<FileConfiguration
 					Name="Release_Cairo|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

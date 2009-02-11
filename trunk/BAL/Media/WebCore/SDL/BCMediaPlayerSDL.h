@@ -33,7 +33,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class FrameView;
 class GraphicsContext;

@@ -39,9 +39,9 @@
 
 #include "TextCodec.h"
 
-namespace OWBAL {
+namespace WebCore {
 
-    class TextCodecUserDefined : public OWBALBase, public TextCodec {
+    class TextCodecUserDefined : public WebCoreBase, public TextCodec {
     public:
     /**
      * registerEncodingNames
@@ -71,7 +71,7 @@ namespace OWBAL {
         virtual CString encode(const UChar*, size_t length, UnencodableHandling);
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextCodecUserDefined_h
 

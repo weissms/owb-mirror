@@ -42,7 +42,7 @@
 #include "SharedBuffer.h"
 #include <wtf/Vector.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 typedef Vector<unsigned> RGBA32Array;
 

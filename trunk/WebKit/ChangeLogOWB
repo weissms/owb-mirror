@@ -1,3 +1,85 @@
+2009-02-05  Olivier DOLE  <odole@pleyo.com>
+
+        Code cleaning.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::updateBackground):
+
+2009-02-05  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix transparent background support which was broken.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::updateBackground):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::transitionToCommittedForNewPage):
+
+2009-01-30  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Added support for tabs instead of multiple windows in the
+        AmigaOS4 port, javascript prompt requester, closing
+        windows from javascript and setting the position and size
+        when opening windows from javascript. 
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (AmigaWebNotificationDelegate::AmigaWebNotificationDelegate):
+        (AmigaWebNotificationDelegate::~AmigaWebNotificationDelegate):
+        (AmigaWebNotificationDelegate::startLoadNotification):
+        (AmigaWebNotificationDelegate::progressNotification):
+        (AmigaWebNotificationDelegate::finishedLoadNotification):
+        (WebViewPrivate::WebViewPrivate):
+        (WebViewPrivate::~WebViewPrivate):
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::onMouseButtonDown):
+        (WebViewPrivate::popupMenuShow):
+        (WebViewPrivate::updateView):
+        (WebViewPrivate::repaint):
+        (WebViewPrivate::scrollBackingStore):
+        (WebViewPrivate::runJavaScriptAlert):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::name):
+        (WebFrame::url):
+        (WebFrame::invalidate):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::closeWindowSoon):
+        (WebView::closeWindow):
+        (WebView::setToolTip):
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::toolbarsVisible):
+        (WebChromeClient::statusbarVisible):
+        (WebChromeClient::menubarVisible):
+        (WebChromeClient::runJavaScriptConfirm):
+        (WebChromeClient::runJavaScriptPrompt):
+        (WebChromeClient::setStatusbarText):
+        * OrigynWebBrowser/WebCoreSupport/WebContextMenuClient.cpp:
+        (WebContextMenuClient::getCustomMenuFromDefaultItems):
+        * OrigynWebBrowser/WebCoreSupport/WebDragClient.cpp:
+        (WebDragClient::actionMaskForDrag):
+        (WebDragClient::dragSourceActionMaskForPoint):
+        * OrigynWebBrowser/WebCoreSupport/WebEditorClient.cpp:
+        (WebEditorClient::shouldInsertNode):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::setTitle):
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::highlight):
+
+2009-01-29  Mario Bensi  <mbensi@pleyo.com>
+
+        implement OnResize method and close the window on escape.
+
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::onResize):
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.h:
+        (WebViewPrivate::frameRect):
+        (WebViewPrivate::dirtyRegion):
+
 2009-01-21  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier Dole.

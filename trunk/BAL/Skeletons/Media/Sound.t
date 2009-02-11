@@ -37,14 +37,14 @@
  */
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * system beep 
      */
     void systemBeep();
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // Sound_h
 

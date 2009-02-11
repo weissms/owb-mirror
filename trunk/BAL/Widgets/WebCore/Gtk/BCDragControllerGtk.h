@@ -32,7 +32,7 @@
 #include "BIDragController.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
     
     class BCDragController : public BIDragController {

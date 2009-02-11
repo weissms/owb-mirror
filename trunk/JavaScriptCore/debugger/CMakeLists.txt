@@ -1,4 +1,5 @@
 list(APPEND JSC_SRC
+    debugger/DebuggerActivation.cpp
     debugger/DebuggerCallFrame.cpp
 )
 

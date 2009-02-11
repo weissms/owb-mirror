@@ -32,7 +32,7 @@
 
 #include <curl/curl.h>
 
-namespace WKAL {
+namespace WebCore {
 
 bool Cookie::is_lws(UChar c)
 {
@@ -305,4 +305,4 @@ void Cookie::setMaxAge(const String& maxAge)
         LOG_ERROR("Could not parse Max-Age : %s", maxAge.ascii().data());
 }
 
-} // namespace WKAL
+} // namespace WebCore

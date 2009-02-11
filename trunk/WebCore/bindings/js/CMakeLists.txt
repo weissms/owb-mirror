@@ -10,9 +10,9 @@ if(ENABLE_WORKERS)
 endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
-    bindings/js/DOMTimer.cpp
     bindings/js/GCController.cpp
     bindings/js/JSAttrCustom.cpp
+    bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCSSRuleCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
@@ -33,7 +33,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSEventCustom.cpp
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTarget.cpp
-    bindings/js/JSEventTargetNodeCustom.cpp
     bindings/js/JSGeolocationCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
@@ -80,7 +79,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp
     bindings/js/ScheduledAction.cpp
-    bindings/js/ScriptCachedPageData.cpp
+    bindings/js/ScriptCachedFrameData.cpp
     bindings/js/ScriptCallFrame.cpp
     bindings/js/ScriptCallStack.cpp
     bindings/js/ScriptController.cpp
@@ -167,9 +166,15 @@ if(USE_GRAPHICS_GTK)
     )
 endif(USE_GRAPHICS_GTK)
 
+if(USE_GRAPHICS_QT)
+    list(APPEND WEBCORE_SRC
+        bindings/js/ScriptControllerBAL.cpp
+    )
+endif(USE_GRAPHICS_QT)
+
 if(USE_GRAPHICS_SDL)
     list(APPEND WEBCORE_SRC
-        bindings/js/ScriptControllerSDL.cpp
+        bindings/js/ScriptControllerBAL.cpp
     )
 endif(USE_GRAPHICS_SDL)
 

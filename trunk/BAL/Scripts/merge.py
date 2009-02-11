@@ -50,15 +50,25 @@ logging.basicConfig(level=logging.DEBUG,
 if not check.checkDataIntegrity(trunkPath) :
     print "fix all error in data files, commit and restart the merge"
     exit(0)
+print "check data integrity done"
+
 cleanOWB.clean(trunkPath)
+print "clean owb done"
+
 vl = version.getVersionLastMerge(trunkPath)
 if mergeVersion == 0 :
     vr = version.getVersionCurrentMerge()
 else :
     vr = mergeVersion
 
+print "get version done"
+
 patch.createOWBPatch(trunkPath, vl)
+print "create owb patch done"
+
 patch.createWebkitPatch(trunkPath, vl, vr)
+print "create webkit patch done"
+
 patch.applyWebkitPatch(trunkPath, vr)
 raw_input('Fix the patches rejected and press return to continue...')
 modification.getListAdded(trunkPath)
@@ -82,6 +92,8 @@ raw_input("compile, fix if it's needed and press return to continue...")
 build.configureGtk(trunkPath)
 raw_input("compile, fix if it's needed and press return to continue...")
 build.configureSDLMini(trunkPath)
+raw_input("compile, fix if it's needed and press return to continue...")
+build.configureQt(trunkPath)
 raw_input("compile, fix if it's needed and press return to continue...")
 print "if you have modify WebKit files, please don't forget to add the files modified in BAL/Scripts/data/WebKitFiles.txt"
 raw_input('press return to continue...')

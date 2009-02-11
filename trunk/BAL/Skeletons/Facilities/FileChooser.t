@@ -39,13 +39,13 @@
 
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 class Document;
 class Font;
 class Icon;
 
-class FileChooserClient : public OWBALBase {
+class FileChooserClient : public WebCoreBase {
 public:
     /**
      * Destructor for FileChooserClient.
@@ -62,7 +62,7 @@ public:
     virtual void valueChanged() = 0;
 };
 
-class FileChooser : public OWBALBase, public RefCounted<FileChooser> {
+class FileChooser : public RefCounted<FileChooser> {
 public:
     /**
      * Create a FileChooser from a FileChooserClient and an initial filename.

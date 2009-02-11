@@ -37,7 +37,7 @@
 
 #include <fontconfig/fontconfig.h>
 
-namespace WKAL {
+namespace WebCore {
 
 void FontCache::platformInit()
 {

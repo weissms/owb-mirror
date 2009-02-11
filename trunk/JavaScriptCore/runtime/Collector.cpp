@@ -795,7 +795,7 @@ typedef pthread_attr_t PlatformThreadRegisters;
 #error Need a thread register struct for this platform
 #endif
 
-size_t getPlatformThreadRegisters(const PlatformThread& platformThread, PlatformThreadRegisters& regs)
+static size_t getPlatformThreadRegisters(const PlatformThread& platformThread, PlatformThreadRegisters& regs)
 {
 #if PLATFORM(DARWIN)
 
@@ -835,6 +835,7 @@ size_t getPlatformThreadRegisters(const PlatformThread& platformThread, Platform
     size_t size;
     pthread_attr_init(&regs);
     pthread_attr_getstacksize(&regs, &size);
+    return size;
 #else
 #error Need a way to get thread registers on this platform
 #endif

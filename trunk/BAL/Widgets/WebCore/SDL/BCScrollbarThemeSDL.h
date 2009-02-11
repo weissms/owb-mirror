@@ -28,7 +28,7 @@
 
 #include "ScrollbarThemeComposite.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class ScrollbarThemeBal : public ScrollbarThemeComposite {
 public:

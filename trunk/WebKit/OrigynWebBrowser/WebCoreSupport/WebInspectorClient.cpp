@@ -87,7 +87,7 @@ void WebInspectorClient::setAttachedWindowHeight(unsigned height)
     notImplemented();
 }
 
-void WebInspectorClient::highlight(Node* node)
+void WebInspectorClient::highlight(WebCore::Node* node)
 {
     notImplemented();
 }

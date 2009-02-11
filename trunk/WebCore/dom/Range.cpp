@@ -26,16 +26,12 @@
 #include "RangeException.h"
 
 #include "CString.h"
-#include "Document.h"
 #include "DocumentFragment.h"
-#include "ExceptionCode.h"
-#include "HTMLElement.h"
-#include "HTMLNames.h"
 #include "NodeWithIndex.h"
 #include "ProcessingInstruction.h"
-#include "RenderBlock.h"
 #include "Text.h"
 #include "TextIterator.h"
+#include "VisiblePosition.h"
 #include "markup.h"
 #include "visible_units.h"
 #include <stdio.h>
@@ -44,7 +40,6 @@
 namespace WebCore {
 
 using namespace std;
-using namespace HTMLNames;
 
 #ifndef NDEBUG
 static WTF::RefCountedLeakCounter rangeCounter("Range");
@@ -1603,7 +1598,7 @@ void Range::addLineBoxRects(Vector<IntRect>& rects, bool useSelectionHeight)
         if (!r->firstChild()) {
             int startOffset = r == start ? m_start.offset() : 0;
             int endOffset = r == end ? m_end.offset() : INT_MAX;
-            r->addLineBoxRects(rects, startOffset, endOffset, useSelectionHeight);
+            r->absoluteRectsForRange(rects, startOffset, endOffset, useSelectionHeight);
         }
     }
 }

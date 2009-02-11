@@ -224,7 +224,8 @@ bool DOMNode::dispatchEvent(DOMEvent* evt)
 #endif
 
     WebCore::ExceptionCode ec = 0;
-    return WebCore::EventTargetNodeCast(m_node)->dispatchEvent(evt->coreEvent(), ec) ? true : false;
+    //return WebCore::EventTargetNodeCast(m_node)->dispatchEvent(evt->coreEvent(), ec) ? true : false;
+    return false;
 #if 0   // FIXME - raise dom exceptions
     WebCore::raiseOnDOMError(ec);
 #endif

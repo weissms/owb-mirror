@@ -41,9 +41,9 @@
 
 class NSAutoreleasePool;
 
-namespace OWBAL {
+namespace WebCore {
 
-class AutodrainedPool : public OWBALBase, Noncopyable {
+class AutodrainedPool : public WebCoreBase, Noncopyable {
 public:
     /**
      * AutodrainedPool constructor
@@ -79,7 +79,7 @@ inline AutodrainedPool::~AutodrainedPool() ;
      */
 inline void AutodrainedPool::cycle() ;
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif
 

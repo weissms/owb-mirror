@@ -34,7 +34,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 void Gradient::platformDestroy()
 {

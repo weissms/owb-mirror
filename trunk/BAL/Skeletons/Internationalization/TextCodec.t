@@ -44,7 +44,7 @@
 
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
     class TextEncoding;
 
     // Specifies what will happen when a character is encountered that is
@@ -65,7 +65,7 @@ namespace OWBAL {
 
     typedef char UnencodableReplacementArray[32];
 
-    class TextCodec : public OWBALBase, Noncopyable {
+    class TextCodec : public WebCoreBase, Noncopyable {
     public:
     /**
      * TextCodec destructor
@@ -140,7 +140,7 @@ namespace OWBAL {
      */
     typedef void (*TextCodecRegistrar)(const char* name, NewTextCodecFunction, const void* additionalData);
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextCodec_h
 

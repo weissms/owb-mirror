@@ -1,3 +1,35 @@
+2009-02-08  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Resources.
+
+        * Resources/ScrollbarTheme: Added.
+        * Resources/ScrollbarTheme/bg.png: Added.
+        * Resources/ScrollbarTheme/bgh.png: Added.
+        * Resources/ScrollbarTheme/down.png: Added.
+        * Resources/ScrollbarTheme/left.png: Added.
+        * Resources/ScrollbarTheme/right.png: Added.
+        * Resources/ScrollbarTheme/thumbH.png: Added.
+        * Resources/ScrollbarTheme/thumbHL.png: Added.
+        * Resources/ScrollbarTheme/thumbHR.png: Added.
+        * Resources/ScrollbarTheme/thumbV.png: Added.
+        * Resources/ScrollbarTheme/thumbVD.png: Added.
+        * Resources/ScrollbarTheme/thumbVU.png: Added.
+        * Resources/ScrollbarTheme/up.png: Added.
+
+2009-01-30  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Updated AmigaOS4 types.
+
+        * Base/AmigaOS4/BALTypeAmigaOS4.h:
+        * Base/WebKitTypes.h:
+
+2009-01-29  Mario Bensi  <mbensi@pleyo.com>
+
+        add resize type for qt.
+
+        * Base/WebKitTypes.h:
+
 2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

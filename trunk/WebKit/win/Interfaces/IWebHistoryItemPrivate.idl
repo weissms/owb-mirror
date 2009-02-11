@@ -58,4 +58,12 @@ interface IWebHistoryItemPrivate : IUnknown
     HRESULT lastVisitWasFailure([out, retval] BOOL* wasFailure);
     HRESULT setLastVisitWasFailure([in] BOOL wasFailure);
     HRESULT lastVisitWasHTTPNonGet([out, retval] BOOL* HTTPNonGet);
+    HRESULT setLastVisitWasHTTPNonGet([in] BOOL wasHTTPNonGet);
+
+    HRESULT redirectURLs([out, retval] IEnumVARIANT** result);
+    HRESULT visitedWithTitle([in] BSTR title);
+
+    HRESULT getDailyVisitCounts([out] int* number, [out, retval] int** counts);
+    HRESULT getWeeklyVisitCounts([out] int* number, [out, retval] int** counts);
+    HRESULT recordInitialVisit();
 }

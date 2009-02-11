@@ -40,7 +40,7 @@
 
 namespace WebCore {
     class AuthenticationChallenge;
-    class CachedPage;
+    class CachedFrame;
     class HistoryItem;
     class String;
     class ResourceLoader;
@@ -139,6 +139,8 @@ private:
     virtual void committedLoad(WebCore::DocumentLoader*, const char*, int);
     virtual void finishedLoading(WebCore::DocumentLoader*);
     virtual void updateGlobalHistory();
+    virtual void updateGlobalHistoryRedirectLinks();
+
     virtual bool shouldGoToHistoryItem(WebCore::HistoryItem*) const;
 
     virtual WebCore::ResourceError cancelledError(const WebCore::ResourceRequest&);
@@ -154,8 +156,8 @@ private:
 
     virtual WebCore::String userAgent(const WebCore::KURL&);
     
-    virtual void savePlatformDataToCachedPage(WebCore::CachedPage*);
-    virtual void transitionToCommittedFromCachedPage(WebCore::CachedPage*);
+    virtual void savePlatformDataToCachedFrame(WebCore::CachedFrame*);
+    virtual void transitionToCommittedFromCachedFrame(WebCore::CachedFrame*);
     virtual void transitionToCommittedForNewPage();
 
     virtual bool canHandleRequest(const WebCore::ResourceRequest&) const;
@@ -175,17 +177,18 @@ private:
 
     virtual PassRefPtr<WebCore::Frame> createFrame(const WebCore::KURL& url, const WebCore::String& name, WebCore::HTMLFrameOwnerElement*,
                                         const WebCore::String& referrer, bool allowsScrolling, int marginWidth, int marginHeight);
-    virtual WebCore::Widget* createPlugin(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL&, const Vector<WebCore::String>&,
+    virtual WebCore::Widget* createPlugin(const WebCore::IntSize&, WebCore::HTMLPlugInElement*, const WebCore::KURL&, const Vector<WebCore::String>&,
                                           const Vector<WebCore::String>&, const WebCore::String&, bool);
     virtual void redirectDataToPlugin(WebCore::Widget* pluginWidget);
     
-    virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL& baseURL,
+    virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::HTMLAppletElement*, const WebCore::KURL& baseURL,
                                                     const Vector<WebCore::String>& paramNames, const Vector<WebCore::String>& paramValues);
     
     virtual WebCore::ObjectContentType objectContentType(const WebCore::KURL& url, const WebCore::String& mimeType);
     virtual WebCore::String overrideMediaType() const;
     
     virtual void windowObjectCleared();
+    virtual void documentElementAvailable();
     virtual void didPerformFirstNavigation() const;
 
     virtual void registerForIconNotification(bool listen);

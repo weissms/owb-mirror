@@ -48,4 +48,8 @@
 #define WTF_PLATFORM_GTK 1
 #endif
 
+#if defined(BUILDING_QT__)
+#define WTF_PLATFORM_QT 1
+#endif
+
 #endif //WebKitDefines_h

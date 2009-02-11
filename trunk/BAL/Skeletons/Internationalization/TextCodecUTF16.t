@@ -39,9 +39,9 @@
 
 #include "TextCodec.h"
 
-namespace OWBAL {
+namespace WebCore {
 
-    class TextCodecUTF16 : public OWBALBase, public TextCodec {
+    class TextCodecUTF16 : public WebCoreBase, public TextCodec {
     public:
     /**
      * registerEncodingNames
@@ -82,7 +82,7 @@ namespace OWBAL {
         unsigned char m_bufferedByte;
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextCodecUTF16_h
 

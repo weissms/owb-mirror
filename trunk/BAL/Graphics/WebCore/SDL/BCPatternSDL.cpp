@@ -29,7 +29,7 @@
 #include "TransformationMatrix.h"
 #include "GraphicsContext.h"
 
-namespace WKAL {
+namespace WebCore {
 
 PlatformPatternPtr Pattern::createPlatformPattern(const TransformationMatrix& patternTransform) const
 {

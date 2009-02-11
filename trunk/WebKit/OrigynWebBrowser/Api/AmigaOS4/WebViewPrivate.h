@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +35,26 @@
 #include "Frame.h"
 #include "BALBase.h"
 #include "cairo.h"
+#include "WebNotificationDelegate.h"
+
+class AmigaWebNotificationDelegate : public WebNotificationDelegate
+{
+public:
+    AmigaWebNotificationDelegate();
+    ~AmigaWebNotificationDelegate();
+
+    virtual void startLoadNotification(WebFrame* webFrame);
+    virtual void progressNotification(WebFrame* webFrame);
+    virtual void finishedLoadNotification(WebFrame* webFrame);
+
+private:
+    bool m_OS41;
+};
 
 class WebViewPrivate {
 public:
     WebViewPrivate(WebView *webView);
-    ~WebViewPrivate() 
-    {
-    }
+    ~WebViewPrivate();
 
     void show()
     {
@@ -125,6 +139,7 @@ private:
 
     WebCore::IntPoint m_backingStoreSize;
     WebCore::IntRect m_backingStoreDirtyRegion;
+    AmigaWebNotificationDelegate* m_amigaWebNotificationDelegate;
 };
 
 

@@ -31,7 +31,7 @@
 
 #include "AccessibilityObject.h"
 
-namespace WKAL {
+namespace WebCore {
 
 #if HAVE(ACCESSIBILITY)
 void AXObjectCache::detachWrapper(AccessibilityObject* obj)

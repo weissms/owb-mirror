@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include "Platform.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 static struct itimerval itimer;
 /* Our SIGALRM signal handler */

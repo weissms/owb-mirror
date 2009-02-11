@@ -32,12 +32,12 @@
 #include <wtf/Noncopyable.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class FontPlatformData;
 class SharedBuffer;
 
-struct FontCustomPlatformData : Noncopyable, public WKALBase {
+struct FontCustomPlatformData : Noncopyable {
     FontCustomPlatformData(BalFontFace* fontFace)
     : m_fontFace(fontFace)
     {}

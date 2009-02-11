@@ -39,7 +39,7 @@
 
 #define ARENA_ALIGN_MASK 3
 
-namespace OWBAL {
+namespace WebCore {
 
 typedef unsigned long uword;
 

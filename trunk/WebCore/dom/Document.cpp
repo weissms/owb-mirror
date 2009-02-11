@@ -3,7 +3,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  *           (C) 2006 Alexey Proskuryakov (ap@webkit.org)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  * Copyright (C) 2008 David Levin (levin@chromium.org)
  *
@@ -900,9 +900,10 @@ Element* Document::elementFromPoint(int x, int y) const
     if (!renderer())
         return 0;
 
-    HitTestRequest request(true, true);
+    HitTestRequest request(HitTestRequest::ReadOnly |
+                           HitTestRequest::Active);
     HitTestResult result(IntPoint(x, y));
-    renderer()->layer()->hitTest(request, result); 
+    renderView()->layer()->hitTest(request, result); 
 
     Node* n = result.innerNode();
     while (n && !n->isElementNode())
@@ -1108,9 +1109,6 @@ void Document::recalcStyle(StyleChange change)
     if (m_inStyleRecalc)
         return; // Guard against re-entrancy. -dwh
 
-    if (m_frame)
-        m_frame->animation()->beginAnimationUpdate();
-
     m_inStyleRecalc = true;
     suspendPostAttachCallbacks();
     
@@ -1159,8 +1157,16 @@ void Document::recalcStyle(StyleChange change)
         if (change >= Inherit || n->hasChangedChild() || n->changed())
             n->recalcStyle(change);
 
-    if (changed() && view())
-        view()->layout();
+    if (view()) {
+        if (changed())
+            view()->layout();
+#if USE(ACCELERATED_COMPOSITING)
+        else {
+            // If we didn't update compositing layers because of layout(), we need to do so here.
+            view()->updateCompositingLayers();
+        }
+#endif
+    }
 
 bail_out:
     setChanged(NoStyleChange);
@@ -1175,19 +1181,21 @@ bail_out:
         m_closeAfterStyleRecalc = false;
         implicitClose();
     }
-
-    if (m_frame)
-        m_frame->animation()->endAnimationUpdate();
 }
 
 void Document::updateRendering()
 {
-    if (hasChangedChild() && !inPageCache())
-        recalcStyle(NoChange);
-    
-    // Tell the animation controller that the style is available and it can start animations
+    if (!hasChangedChild() || inPageCache())
+        return;
+        
     if (m_frame)
-        m_frame->animation()->styleAvailable();
+        m_frame->animation()->beginAnimationUpdate();
+        
+    recalcStyle(NoChange);
+    
+    // Tell the animation controller that updateRendering is finished and it can do any post-processing
+    if (m_frame)
+        m_frame->animation()->endAnimationUpdate();
 }
 
 void Document::updateDocumentsRendering()
@@ -1210,7 +1218,6 @@ void Document::updateLayout()
     if (Element* oe = ownerElement())
         oe->document()->updateLayout();
 
-    // FIXME: Dave Hyatt's pretty sure we can remove this because layout calls recalcStyle as needed.
     updateRendering();
 
     // Only do a layout if changes have occurred that make it necessary.      
@@ -1263,6 +1270,9 @@ void Document::attach()
     
     // Create the rendering tree
     setRenderer(new (m_renderArena) RenderView(this, view()));
+#if USE(ACCELERATED_COMPOSITING)
+    renderView()->didMoveOnscreen();
+#endif
 
     if (!m_styleSelector) {
         bool matchAuthorAndUserStyles = true;
@@ -1290,6 +1300,11 @@ void Document::detach()
     stopActiveDOMObjects();
     
     RenderObject* render = renderer();
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (render)
+        renderView()->willMoveOffscreen();
+#endif
 
     // indicate destruction mode,  i.e. attached() but renderer == 0
     setRenderer(0);
@@ -1333,11 +1348,8 @@ void Document::removeAllEventListenersFromAllNodes()
         m_windowEventListeners[i]->setRemoved(true);
     m_windowEventListeners.clear();
     removeAllDisconnectedNodeEventListeners();
-    for (Node *n = this; n; n = n->traverseNextNode()) {
-        if (!n->isEventTargetNode())
-            continue;
-        EventTargetNodeCast(n)->removeAllEventListeners();
-    }
+    for (Node* node = this; node; node = node->traverseNextNode())
+        node->removeAllEventListeners();
 }
 
 void Document::registerDisconnectedNodeWithEventListeners(Node* node)
@@ -1354,8 +1366,13 @@ void Document::removeAllDisconnectedNodeEventListeners()
 {
     HashSet<Node*>::iterator end = m_disconnectedNodesWithEventListeners.end();
     for (HashSet<Node*>::iterator i = m_disconnectedNodesWithEventListeners.begin(); i != end; ++i)
-        EventTargetNodeCast(*i)->removeAllEventListeners();
+        (*i)->removeAllEventListeners();
     m_disconnectedNodesWithEventListeners.clear();
+}
+
+RenderView* Document::renderView() const
+{
+    return toRenderView(renderer());
 }
 
 void Document::clearAXObjectCache()
@@ -1467,7 +1484,7 @@ void Document::implicitOpen()
     setParsing(true);
 }
 
-HTMLElement* Document::body()
+HTMLElement* Document::body() const
 {
     Node* de = documentElement();
     if (!de)
@@ -1767,7 +1784,15 @@ void Document::setBaseElementURL(const KURL& baseElementURL)
 
 void Document::updateBaseURL()
 {
-    m_baseURL = m_baseElementURL.isEmpty() ? KURL(documentURI()) : m_baseElementURL;
+    // DOM 3 Core: When the Document supports the feature "HTML" [DOM Level 2 HTML], the base URI is computed using
+    // first the value of the href attribute of the HTML BASE element if any, and the value of the documentURI attribute
+    // from the Document interface otherwise.
+    if (m_baseElementURL.isEmpty()) {
+        // The documentURI attribute is an arbitrary string. DOM 3 Core does not specify how it should be resolved,
+        // so we use a null base URL.
+        m_baseURL = KURL(KURL(), documentURI());
+    } else
+        m_baseURL = m_baseElementURL;
     if (!m_baseURL.isValid())
         m_baseURL = KURL();
 
@@ -1997,9 +2022,9 @@ MouseEventWithHitTestResults Document::prepareMouseEvent(const HitTestRequest& r
         return MouseEventWithHitTestResults(event, HitTestResult(IntPoint()));
 
     HitTestResult result(documentPoint);
-    renderer()->layer()->hitTest(request, result);
+    renderView()->layer()->hitTest(request, result);
 
-    if (!request.readonly)
+    if (!request.readOnly())
         updateRendering();
 
     return MouseEventWithHitTestResults(event, result);
@@ -2456,20 +2481,20 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         // Dispatch a change event for text fields or textareas that have been edited
         RenderObject* r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer());
         if (r && (r->isTextArea() || r->isTextField()) && r->isEdited()) {
-            EventTargetNodeCast(oldFocusedNode.get())->dispatchEventForType(eventNames().changeEvent, true, false);
+            oldFocusedNode->dispatchEventForType(eventNames().changeEvent, true, false);
             if ((r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer())))
                 r->setEdited(false);
         }
 
         // Dispatch the blur event and let the node do any other blur related activities (important for text fields)
-        EventTargetNodeCast(oldFocusedNode.get())->dispatchBlurEvent();
+        oldFocusedNode->dispatchBlurEvent();
 
         if (m_focusedNode) {
             // handler shifted focus
             focusChangeBlocked = true;
             newFocusedNode = 0;
         }
-        EventTargetNodeCast(oldFocusedNode.get())->dispatchUIEvent(eventNames().DOMFocusOutEvent);
+        oldFocusedNode->dispatchUIEvent(eventNames().DOMFocusOutEvent);
         if (m_focusedNode) {
             // handler shifted focus
             focusChangeBlocked = true;
@@ -2492,14 +2517,14 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         m_focusedNode = newFocusedNode.get();
 
         // Dispatch the focus event and let the node do any other focus related activities (important for text fields)
-        EventTargetNodeCast(m_focusedNode.get())->dispatchFocusEvent();
+        m_focusedNode->dispatchFocusEvent();
 
         if (m_focusedNode != newFocusedNode) {
             // handler shifted focus
             focusChangeBlocked = true;
             goto SetFocusedNodeDone;
         }
-        EventTargetNodeCast(m_focusedNode.get())->dispatchUIEvent(eventNames().DOMFocusInEvent);
+        m_focusedNode->dispatchUIEvent(eventNames().DOMFocusInEvent);
         if (m_focusedNode != newFocusedNode) { 
             // handler shifted focus
             focusChangeBlocked = true;
@@ -2539,18 +2564,13 @@ SetFocusedNodeDone:
     return !focusChangeBlocked;
   }
   
-void Document::setCSSTarget(Node* n)
+void Document::setCSSTarget(Element* n)
 {
     if (m_cssTarget)
         m_cssTarget->setChanged();
     m_cssTarget = n;
     if (n)
         n->setChanged();
-}
-
-Node* Document::getCSSTarget() const
-{
-    return m_cssTarget;
 }
 
 void Document::attachNodeIterator(NodeIterator *ni)
@@ -3176,6 +3196,11 @@ void Document::setInPageCache(bool flag)
 
 void Document::documentWillBecomeInactive() 
 {
+#if USE(ACCELERATED_COMPOSITING)
+    if (renderer())
+        renderView()->willMoveOffscreen();
+#endif
+
     HashSet<Element*>::iterator end = m_documentActivationCallbackElements.end();
     for (HashSet<Element*>::iterator i = m_documentActivationCallbackElements.begin(); i != end; ++i)
         (*i)->documentWillBecomeInactive();
@@ -3186,6 +3211,11 @@ void Document::documentDidBecomeActive()
     HashSet<Element*>::iterator end = m_documentActivationCallbackElements.end();
     for (HashSet<Element*>::iterator i = m_documentActivationCallbackElements.begin(); i != end; ++i)
         (*i)->documentDidBecomeActive();
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (renderer())
+        renderView()->didMoveOnscreen();
+#endif
 }
 
 void Document::registerForDocumentActivationCallbacks(Element* e)
@@ -3893,15 +3923,18 @@ void Document::finishedParsing()
 Vector<String> Document::formElementsState() const
 {
     Vector<String> stateVector;
-    stateVector.reserveCapacity(m_formElementsWithState.size() * 3);
-    typedef ListHashSet<HTMLFormControlElementWithState*>::const_iterator Iterator;
+    stateVector.reserveInitialCapacity(m_formElementsWithState.size() * 3);
+    typedef ListHashSet<FormControlElementWithState*>::const_iterator Iterator;
     Iterator end = m_formElementsWithState.end();
     for (Iterator it = m_formElementsWithState.begin(); it != end; ++it) {
-        HTMLFormControlElementWithState* e = *it;
+        FormControlElementWithState* e = *it;
         String value;
         if (e->saveState(value)) {
-            stateVector.append(e->name().string());
-            stateVector.append(e->type().string());
+            FormControlElement* formControlElement = e->toFormControlElement();
+            ASSERT(formControlElement);
+
+            stateVector.append(formControlElement->name().string());
+            stateVector.append(formControlElement->type().string());
             stateVector.append(value);
         }
     }
@@ -4110,6 +4143,13 @@ void Document::initSecurityContext()
             securityOrigin()->grantLoadLocalResources();
     }
 
+    if (settings() && !settings()->isWebSecurityEnabled()) {
+        // Web security is turned off.  We should let this document access every
+        // other document.  This is used primary by testing harnesses for web
+        // sites.
+        securityOrigin()->grantUniversalAccess();
+    }
+
     if (!securityOrigin()->isEmpty())
         return;
 
@@ -4279,22 +4319,6 @@ void Document::parseDNSPrefetchControlHeader(const String& dnsPrefetchControl)
 
     m_isDNSPrefetchEnabled = false;
     m_haveExplicitlyDisabledDNSPrefetch = true;
-}
-
-void Document::addTimeout(int timeoutId, DOMTimer* timer)
-{
-    ASSERT(!m_timeouts.contains(timeoutId));
-    m_timeouts.set(timeoutId, timer);
-}
-
-void Document::removeTimeout(int timeoutId)
-{
-    m_timeouts.remove(timeoutId);
-}
-
-DOMTimer* Document::findTimeout(int timeoutId)
-{
-    return m_timeouts.get(timeoutId);
 }
 
 void Document::reportException(const String& errorMessage, int lineNumber, const String& sourceURL)

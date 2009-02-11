@@ -41,6 +41,13 @@
 #include <ResourceRequest.h>
 #include <NotImplemented.h>
 
+#if PLATFORM(AMIGAOS4)
+#include <FrameView.h>
+#include <proto/intuition.h>
+#include <proto/popupmenu.h>
+#include <intuition/intuitionbase.h>
+#endif
+
 using namespace WebCore;
 
 WebContextMenuClient::WebContextMenuClient(WebView* webView)
@@ -59,7 +66,24 @@ void WebContextMenuClient::contextMenuDestroyed()
 
 PlatformMenuDescription WebContextMenuClient::getCustomMenuFromDefaultItems(ContextMenu* menu)
 {
+#if PLATFORM(AMIGAOS4)
+    PlatformMenuDescription platformMenuDescription = menu->releasePlatformDescription();
+    struct IntuitionBase* intuitionBase = (struct IntuitionBase*)IIntuition->Data.LibBase;
+    IIntuition->SetAttrs((Object*)platformMenuDescription,
+                         PMA_Left, intuitionBase->MouseX,
+                         PMA_Top,  intuitionBase->MouseY,
+                         TAG_DONE);
+    Object* selected = (Object*)IIntuition->IDoMethod((Object*)platformMenuDescription, PM_OPEN, NULL);
+    if (selected) {
+        uint32 action = 0;
+        IIntuition->GetAttr(PMIA_UserData, selected, &action);
+        ContextMenuItem item(ActionType, (ContextMenuAction)action, "");
+        menu->controller()->contextMenuItemSelected(&item);
+    }
+    return platformMenuDescription;
+#else
     return menu->releasePlatformDescription();
+#endif
 }
 
 /*HMENU WebContextMenuClient::getCustomMenuFromDefaultItems(ContextMenu* menu)
@@ -125,7 +149,7 @@ void WebContextMenuClient::searchWithGoogle(const Frame* frame)
 
     ResourceRequest request = ResourceRequest(url);
     if (Page* page = frame->page())
-        page->mainFrame()->loader()->urlSelected(FrameLoadRequest(request), 0, false);
+        page->mainFrame()->loader()->urlSelected(FrameLoadRequest(request), 0, false, false);
 }
 
 void WebContextMenuClient::lookUpInDictionary(Frame*)

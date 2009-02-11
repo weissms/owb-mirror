@@ -38,7 +38,7 @@
 
 #include <cstdio>
 
-namespace OWBAL {
+namespace WebCore {
 
 String FileChooser::basenameForWidth(const Font& font, int width) const
 {

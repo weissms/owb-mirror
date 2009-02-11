@@ -106,17 +106,6 @@ class StyleImage;
 
 class RenderStyle: public RefCounted<RenderStyle> {
     friend class CSSStyleSelector;
-
-public:
-    // static pseudo styles. Dynamic ones are produced on the fly.
-    enum PseudoId { NOPSEUDO, FIRST_LINE, FIRST_LETTER, BEFORE, AFTER, SELECTION, FIRST_LINE_INHERITED, SCROLLBAR, FILE_UPLOAD_BUTTON, INPUT_PLACEHOLDER,
-                    SLIDER_THUMB, SEARCH_CANCEL_BUTTON, SEARCH_DECORATION, SEARCH_RESULTS_DECORATION, SEARCH_RESULTS_BUTTON, MEDIA_CONTROLS_PANEL,
-                    MEDIA_CONTROLS_PLAY_BUTTON, MEDIA_CONTROLS_MUTE_BUTTON, MEDIA_CONTROLS_TIMELINE, MEDIA_CONTROLS_TIMELINE_CONTAINER,
-                    MEDIA_CONTROLS_CURRENT_TIME_DISPLAY, MEDIA_CONTROLS_TIME_REMAINING_DISPLAY, MEDIA_CONTROLS_SEEK_BACK_BUTTON, 
-                    MEDIA_CONTROLS_SEEK_FORWARD_BUTTON, MEDIA_CONTROLS_FULLSCREEN_BUTTON, 
-                    SCROLLBAR_THUMB, SCROLLBAR_BUTTON, SCROLLBAR_TRACK, SCROLLBAR_TRACK_PIECE, SCROLLBAR_CORNER, RESIZER };
-    static const int FIRST_INTERNAL_PSEUDOID = FILE_UPLOAD_BUTTON;
-
 protected:
 
 // !START SYNC!: Keep this in sync with the copy constructor in RenderStyle.cpp
@@ -356,6 +345,11 @@ public:
     Length top() const { return surround->offset.top(); }
     Length bottom() const { return surround->offset.bottom(); }
 
+    // Whether or not a positioned element requires normal flow x/y to be computed
+    // to determine its position.
+    bool hasStaticX() const { return (left().isAuto() && right().isAuto()) || left().isStatic() || right().isStatic(); }
+    bool hasStaticY() const { return (top().isAuto() && bottom().isAuto()) || top().isStatic(); }
+
     EPosition position() const { return static_cast<EPosition>(noninherited_flags._position); }
     EFloat floating() const { return static_cast<EFloat>(noninherited_flags._floating); }
 
@@ -446,6 +440,19 @@ public:
 
     TextDirection direction() const { return static_cast<TextDirection>(inherited_flags._direction); }
     Length lineHeight() const { return inherited->line_height; }
+    int computedLineHeight() const
+    {
+        Length lh = lineHeight();
+
+        // Negative value means the line height is not set.  Use the font's built-in spacing.
+        if (lh.isNegative())
+            return font().lineSpacing();
+
+        if (lh.isPercent())
+            return lh.calcMinValue(fontSize());
+
+        return lh.value();
+    }
 
     EWhiteSpace whiteSpace() const { return static_cast<EWhiteSpace>(inherited_flags._white_space); }
     static bool autoWrap(EWhiteSpace ws)
@@ -629,7 +636,10 @@ public:
     Length transformOriginX() const { return rareNonInheritedData->m_transform->m_x; }
     Length transformOriginY() const { return rareNonInheritedData->m_transform->m_y; }
     bool hasTransform() const { return !rareNonInheritedData->m_transform->m_operations.operations().isEmpty(); }
-    void applyTransform(TransformationMatrix&, const IntSize& borderBoxSize, bool includeTransformOrigin = true) const;
+
+    enum ApplyTransformOrigin { IncludeTransformOrigin, ExcludeTransformOrigin };
+    void applyTransform(TransformationMatrix&, const IntSize& borderBoxSize, ApplyTransformOrigin = IncludeTransformOrigin) const;
+
     bool hasMask() const { return rareNonInheritedData->m_mask.hasImage() || rareNonInheritedData->m_maskBoxImage.hasImage(); }
     // End CSS3 Getters
 
@@ -645,7 +655,7 @@ public:
     bool hasTransitions() const { return rareNonInheritedData->m_transitions && rareNonInheritedData->m_transitions->size() > 0; }
 
     // return the first found Animation (including 'all' transitions)
-    const Animation* transitionForProperty(int property);
+    const Animation* transitionForProperty(int property) const;
 
     int lineClamp() const { return rareNonInheritedData->lineClamp; }
     bool textSizeAdjust() const { return rareInheritedData->textSizeAdjust; }
@@ -961,7 +971,7 @@ public:
 #endif
 
     const ContentData* contentData() const { return rareNonInheritedData->m_content.get(); }
-    bool contentDataEquivalent(const RenderStyle* otherStyle) const;
+    bool contentDataEquivalent(const RenderStyle* otherStyle) const { return const_cast<RenderStyle*>(this)->rareNonInheritedData->contentDataEquivalent(*const_cast<RenderStyle*>(otherStyle)->rareNonInheritedData); }
     void clearContent();
     void setContent(StringImpl*, bool add = false);
     void setContent(PassRefPtr<StyleImage>, bool add = false);
@@ -972,13 +982,7 @@ public:
 
     bool inheritedNotEqual(RenderStyle*) const;
 
-    // The difference between two styles.  The following values are used:
-    // (1) Equal - The two styles are identical
-    // (2) Repaint - The object just needs to be repainted.
-    // (3) RepaintLayer - The layer and its descendant layers needs to be repainted.
-    // (4) Layout - A layout is required.
-    enum Diff { Equal, Repaint, RepaintLayer, LayoutPositionedMovementOnly, Layout };
-    Diff diff(const RenderStyle*) const;
+    StyleDifference diff(const RenderStyle*) const;
 
     bool isDisplayReplacedType() const
     {

@@ -42,7 +42,7 @@
 
 
 
-namespace OWBAL {
+namespace WebCore {
 
 class TextEncoding;
 
@@ -51,7 +51,7 @@ class TextEncoding;
 // We should fix the terminology to match the URL and URI RFCs as closely
 // as possible to resolve this.
 
-class KURL : public OWBALBase {
+class KURL : public WebCoreBase {
 public:
     // Generates a URL which contains a null string.
     /**

@@ -57,7 +57,7 @@ Vector<char> loadResourceIntoArray(const char* name)
     return array;
 }
 
-namespace WKAL {
+namespace WebCore {
 
 bool FrameData::clear(bool clearMetadata)
 {

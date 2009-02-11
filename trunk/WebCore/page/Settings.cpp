@@ -60,6 +60,7 @@ Settings::Settings(Page* page)
     , m_databasesEnabled(false)
     , m_localStorageEnabled(false)
     , m_isJavaScriptEnabled(false)
+    , m_isWebSecurityEnabled(true)
     , m_javaScriptCanOpenWindowsAutomatically(false)
     , m_shouldPrintBackgrounds(false)
     , m_textAreasAreResizable(false)
@@ -85,6 +86,7 @@ Settings::Settings(Page* page)
     , m_zoomsTextOnly(false)
     , m_enforceCSSMIMETypeInStrictMode(true)
     , m_maximumDecodedImageSize(std::numeric_limits<size_t>::max())
+    , m_allowScriptsToCloseWindows(false)
 {
     // A Frame may not have been created yet, so we initialize the AtomicString 
     // hash before trying to use it.
@@ -189,6 +191,11 @@ void Settings::setLoadsImagesAutomatically(bool loadsImagesAutomatically)
 void Settings::setJavaScriptEnabled(bool isJavaScriptEnabled)
 {
     m_isJavaScriptEnabled = isJavaScriptEnabled;
+}
+
+void Settings::setWebSecurityEnabled(bool isWebSecurityEnabled)
+{
+    m_isWebSecurityEnabled = isWebSecurityEnabled;
 }
 
 void Settings::setJavaEnabled(bool isJavaEnabled)
@@ -404,5 +411,10 @@ void Settings::setShouldPaintNativeControls(bool shouldPaintNativeControls)
     gShouldPaintNativeControls = shouldPaintNativeControls;
 }
 #endif
+
+void Settings::setAllowScriptsToCloseWindows(bool allowScriptsToCloseWindows)
+{
+    m_allowScriptsToCloseWindows = allowScriptsToCloseWindows;
+}
 
 } // namespace WebCore

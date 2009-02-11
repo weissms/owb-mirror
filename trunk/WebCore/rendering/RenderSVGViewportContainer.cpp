@@ -37,7 +37,6 @@ namespace WebCore {
 RenderSVGViewportContainer::RenderSVGViewportContainer(SVGStyledElement* node)
     : RenderSVGContainer(node)
 {
-    setReplaced(true);
 }
 
 RenderSVGViewportContainer::~RenderSVGViewportContainer()
@@ -53,12 +52,9 @@ void RenderSVGViewportContainer::layout()
     // Arbitrary affine transforms are incompatible with LayoutState.
     view()->disableLayoutState();
     
-    IntRect oldBounds = m_absoluteBounds;
-    IntRect oldOutlineBox;
-    bool checkForRepaint = checkForRepaintDuringLayout() && selfNeedsLayout();
-    if (checkForRepaint)
-        oldOutlineBox = absoluteOutlineBounds();
-
+    // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
+    LayoutRepainter repainter(*this, checkForRepaintDuringLayout() && selfNeedsLayout(), &m_absoluteBounds);
+    
     calcBounds();    
     
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
@@ -69,8 +65,7 @@ void RenderSVGViewportContainer::layout()
         ASSERT(!child->needsLayout());
     }
     
-    if (checkForRepaint)
-        repaintAfterLayoutIfNeeded(oldBounds, oldOutlineBox);
+    repainter.repaintAfterLayout();
     
     view()->enableLayoutState();
     setNeedsLayout(false);
@@ -159,12 +154,12 @@ bool RenderSVGViewportContainer::nodeAtPoint(const HitTestRequest& request, HitT
         && style()->overflowX() == OHIDDEN
         && style()->overflowY() == OHIDDEN) {
         // Check if we need to do anything at all.
-        IntRect overflowBox = overflowRect(false);
+        IntRect overflowBox = IntRect(0, 0, width(), height());
         overflowBox.move(_tx, _ty);
         TransformationMatrix ctm = RenderObject::absoluteTransform();
         ctm.translate(viewport().x(), viewport().y());
         double localX, localY;
-        ctm.inverse().map(_x - _tx, _y - _ty, &localX, &localY);
+        ctm.inverse().map(_x - _tx, _y - _ty, localX, localY);
         if (!overflowBox.contains((int)localX, (int)localY))
             return false;
     }

@@ -38,7 +38,7 @@
 #include <proto/graphics.h>
 #include <proto/Picasso96API.h>
 
-namespace WKAL {
+namespace WebCore {
 
 int screenDepth(Widget* widget)
 {

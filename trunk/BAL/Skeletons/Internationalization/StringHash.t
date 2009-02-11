@@ -42,7 +42,7 @@
 #include <wtf/HashTraits.h>
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     // FIXME: We should really figure out a way to put the computeHash function that's
     // currently a member function of StringImpl into this file so we can be a little
@@ -97,7 +97,7 @@ namespace OWBAL {
         static const bool safeToCompareToEmptyOrDeleted = false;
     };
 
-    class CaseFoldingHash : public OWBALBase {
+    class CaseFoldingHash : public WebCoreBase {
     private:
         // Golden ratio - arbitrary start value to avoid mapping all 0's to all 0's
         static const unsigned PHI = 0x9e3779b9U;

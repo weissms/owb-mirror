@@ -32,7 +32,7 @@
 #include "Sound.h"
 #include <proto/intuition.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 void systemBeep()
 {

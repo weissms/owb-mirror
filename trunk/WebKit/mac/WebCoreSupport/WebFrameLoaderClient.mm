@@ -35,7 +35,7 @@
 
 #import "DOMElementInternal.h"
 #import "WebBackForwardList.h"
-#import "WebCachedPagePlatformData.h"
+#import "WebCachedFramePlatformData.h"
 #import "WebChromeClient.h"
 #import "WebDataSourceInternal.h"
 #import "WebDocumentInternal.h"
@@ -73,7 +73,7 @@
 #import <WebKitSystemInterface.h>
 #import <WebCore/AuthenticationMac.h>
 #import <WebCore/BlockExceptions.h>
-#import <WebCore/CachedPage.h>
+#import <WebCore/CachedFrame.h>
 #import <WebCore/Chrome.h>
 #import <WebCore/Document.h>
 #import <WebCore/DocumentLoader.h>
@@ -84,11 +84,13 @@
 #import <WebCore/FrameLoaderTypes.h>
 #import <WebCore/FrameTree.h>
 #import <WebCore/FrameView.h>
+#import <WebCore/HTMLAppletElement.h>
 #import <WebCore/HTMLHeadElement.h>
 #import <WebCore/HTMLFormElement.h>
 #import <WebCore/HTMLFrameElement.h>
 #import <WebCore/HTMLFrameOwnerElement.h>
 #import <WebCore/HTMLNames.h>
+#import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/HistoryItem.h>
 #import <WebCore/HitTestResult.h>
 #import <WebCore/IconDatabase.h>
@@ -786,10 +788,27 @@ void WebFrameLoaderClient::finishedLoading(DocumentLoader* loader)
 void WebFrameLoaderClient::updateGlobalHistory()
 {
     DocumentLoader* loader = core(m_webFrame.get())->loader()->documentLoader();
-    const KURL& url = loader->urlForHistory();
-    const String& title = loader->title();
-    bool wasFailure = loader->urlForHistoryReflectsFailure();
-    [[WebHistory optionalSharedHistory] _visitedURL:url withTitle:title method:loader->request().httpMethod() wasFailure:wasFailure];
+    [[WebHistory optionalSharedHistory] _visitedURL:loader->urlForHistory() 
+                                          withTitle:loader->title()
+                                             method:loader->request().httpMethod()
+                                         wasFailure:loader->urlForHistoryReflectsFailure()];
+
+    updateGlobalHistoryRedirectLinks();
+}
+
+void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
+{
+    DocumentLoader* loader = core(m_webFrame.get())->loader()->documentLoader();
+
+    if (!loader->clientRedirectSourceForHistory().isNull()) {
+        if (WebHistoryItem *item = [[WebHistory optionalSharedHistory] _itemForURLString:loader->clientRedirectSourceForHistory()])
+            core(item)->addRedirectURL(loader->clientRedirectDestinationForHistory());
+    }
+
+    if (!loader->serverRedirectSourceForHistory().isNull()) {
+        if (WebHistoryItem *item = [[WebHistory optionalSharedHistory] _itemForURLString:loader->serverRedirectSourceForHistory()])
+            core(item)->addRedirectURL(loader->serverRedirectDestinationForHistory());
+    }
 }
 
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem* item) const
@@ -878,12 +897,7 @@ void WebFrameLoaderClient::frameLoadCompleted()
     // See WebFrameLoaderClient::provisionalLoadStarted.
     if ([getWebView(m_webFrame.get()) drawsBackground])
         [[m_webFrame->_private->webFrameView _scrollView] setDrawsBackground:YES];
-
-    // Even if already complete, we might have set a previous item on a frame that
-    // didn't do any data loading on the past transaction. Make sure to clear these out.
-    core(m_webFrame.get())->loader()->setPreviousHistoryItem(0);
 }
-
 
 void WebFrameLoaderClient::saveViewStateToItem(HistoryItem* item)
 {
@@ -988,19 +1002,19 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& URL)
     [[[WebHistory optionalSharedHistory] itemForURL:nsURL] setTitle:titleNSString];
 }
 
-void WebFrameLoaderClient::savePlatformDataToCachedPage(CachedPage* cachedPage)
+void WebFrameLoaderClient::savePlatformDataToCachedFrame(CachedFrame* cachedFrame)
 {
-    WebCachedPagePlatformData* webPlatformData = new WebCachedPagePlatformData([m_webFrame->_private->webFrameView documentView]);
-    cachedPage->setCachedPagePlatformData(webPlatformData);
+    WebCachedFramePlatformData* webPlatformData = new WebCachedFramePlatformData([m_webFrame->_private->webFrameView documentView]);
+    cachedFrame->setCachedFramePlatformData(webPlatformData);
 }
 
-void WebFrameLoaderClient::transitionToCommittedFromCachedPage(CachedPage* cachedPage)
+void WebFrameLoaderClient::transitionToCommittedFromCachedFrame(CachedFrame* cachedFrame)
 {
-    WebCachedPagePlatformData* platformData = reinterpret_cast<WebCachedPagePlatformData*>(cachedPage->cachedPagePlatformData());
+    WebCachedFramePlatformData* platformData = reinterpret_cast<WebCachedFramePlatformData*>(cachedFrame->cachedFramePlatformData());
     NSView <WebDocumentView> *cachedView = platformData->webDocumentView();
     ASSERT(cachedView != nil);
-    ASSERT(cachedPage->documentLoader());
-    [cachedView setDataSource:dataSource(cachedPage->documentLoader())];
+    ASSERT(cachedFrame->documentLoader());
+    [cachedView setDataSource:dataSource(cachedFrame->documentLoader())];
     
     // clean up webkit plugin instances before WebHTMLView gets freed.
     WebView *webView = getWebView(m_webFrame.get());
@@ -1370,7 +1384,7 @@ static Class netscapePluginViewClass()
 #endif
 }
 
-Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, Element* element, const KURL& url,
+Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, HTMLPlugInElement* element, const KURL& url,
     const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
@@ -1441,7 +1455,7 @@ Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, Element* element
                 attributeKeys:kit(paramNames)
                 attributeValues:kit(paramValues)
                 loadManually:loadManually
-                DOMElement:kit(element)] autorelease];
+                element:element] autorelease];
             
             return new NetscapePluginWidget(pluginView);
         } 
@@ -1495,7 +1509,7 @@ void WebFrameLoaderClient::redirectDataToPlugin(Widget* pluginWidget)
     END_BLOCK_OBJC_EXCEPTIONS;
 }
     
-Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& size, Element* element, const KURL& baseURL, 
+Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& size, HTMLAppletElement* element, const KURL& baseURL, 
     const Vector<String>& paramNames, const Vector<String>& paramValues)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
@@ -1533,7 +1547,7 @@ Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& size, Elemen
                 attributeKeys:kit(paramNames)
                 attributeValues:kit(paramValues)
                 loadManually:NO
-                DOMElement:kit(element)] autorelease];
+                element:element] autorelease];
         } else {
             ASSERT_NOT_REACHED();
         }
@@ -1565,6 +1579,9 @@ String WebFrameLoaderClient::overrideMediaType() const
     if (overrideType)
         return overrideType;
     return String();
+}
+
+void WebFrameLoaderClient::documentElementAvailable() {
 }
 
 void WebFrameLoaderClient::windowObjectCleared()

@@ -42,6 +42,7 @@
 #include "EditorClient.h"
 #include "EventNames.h"
 #include "FocusController.h"
+#include "FloatQuad.h"
 #include "FrameLoader.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
@@ -274,7 +275,7 @@ Settings* Frame::settings() const
 
 String Frame::selectedText() const
 {
-    return plainText(selection()->toRange().get());
+    return plainText(selection()->toNormalizedRange().get());
 }
 
 IntRect Frame::firstRectForRange(Range* range) const
@@ -433,8 +434,7 @@ String Frame::searchForLabelsBeforeElement(const Vector<String>& labels, Element
          n = n->traversePreviousNode())
     {
         if (n->hasTagName(formTag)
-            || (n->isHTMLElement()
-                && static_cast<HTMLElement*>(n)->isGenericFormElement()))
+            || (n->isHTMLElement() && static_cast<Element*>(n)->isFormControlElement()))
         {
             // We hit another form element or the start of the form - bail out
             break;
@@ -753,7 +753,7 @@ void Frame::setPrinting(bool printing, float minPageWidth, float maxPageWidth, b
     m_doc->setPrinting(printing);
     view()->setMediaType(printing ? "print" : "screen");
     m_doc->updateStyleSelector();
-    forceLayoutWithPageWidthRange(minPageWidth, maxPageWidth, adjustViewSize);
+    view()->forceLayoutWithPageWidthRange(minPageWidth, maxPageWidth, adjustViewSize);
 
     for (Frame* child = tree()->firstChild(); child; child = child->tree()->nextSibling())
         child->setPrinting(printing, minPageWidth, maxPageWidth, adjustViewSize);
@@ -834,13 +834,13 @@ bool Frame::shouldChangeSelection(const Selection& newSelection) const
 
 bool Frame::shouldChangeSelection(const Selection& oldSelection, const Selection& newSelection, EAffinity affinity, bool stillSelecting) const
 {
-    return editor()->client()->shouldChangeSelectedRange(oldSelection.toRange().get(), newSelection.toRange().get(),
+    return editor()->client()->shouldChangeSelectedRange(oldSelection.toNormalizedRange().get(), newSelection.toNormalizedRange().get(),
                                                          affinity, stillSelecting);
 }
 
 bool Frame::shouldDeleteSelection(const Selection& selection) const
 {
-    return editor()->client()->shouldDeleteRange(selection.toRange().get());
+    return editor()->client()->shouldDeleteRange(selection.toNormalizedRange().get());
 }
 
 bool Frame::isContentEditable() const 
@@ -952,7 +952,7 @@ PassRefPtr<CSSComputedStyleDeclaration> Frame::selectionComputedStyle(Node*& nod
     if (selection()->isNone())
         return 0;
 
-    RefPtr<Range> range(selection()->toRange());
+    RefPtr<Range> range(selection()->toNormalizedRange());
     Position pos = range->editingStartPosition();
 
     Element *elem = pos.element();
@@ -1133,7 +1133,7 @@ RenderView* Frame::contentRenderer() const
     if (!object)
         return 0;
     ASSERT(object->isRenderView());
-    return static_cast<RenderView*>(object);
+    return toRenderView(object);
 }
 
 HTMLFrameOwnerElement* Frame::ownerElement() const
@@ -1196,7 +1196,7 @@ void Frame::selectionTextRects(Vector<FloatRect>& rects, bool clipToVisibleConte
     if (!root)
         return;
 
-    RefPtr<Range> selectedRange = selection()->toRange();
+    RefPtr<Range> selectedRange = selection()->toNormalizedRange();
 
     Vector<IntRect> intRects;
     selectedRange->addLineBoxRects(intRects, true);
@@ -1211,15 +1211,6 @@ void Frame::selectionTextRects(Vector<FloatRect>& rects, bool clipToVisibleConte
 }
 
 
-bool Frame::isFrameSet() const
-{
-    Document* document = m_doc.get();
-    if (!document || !document->isHTMLDocument())
-        return false;
-    Node *body = static_cast<HTMLDocument*>(document)->body();
-    return body && body->renderer() && body->hasTagName(framesetTag);
-}
-
 // Scans logically forward from "start", including any child frames
 static HTMLFormElement *scanForForm(Node *start)
 {
@@ -1227,7 +1218,7 @@ static HTMLFormElement *scanForForm(Node *start)
     for (n = start; n; n = n->traverseNextNode()) {
         if (n->hasTagName(formTag))
             return static_cast<HTMLFormElement*>(n);
-        else if (n->isHTMLElement() && static_cast<HTMLElement*>(n)->isGenericFormElement())
+        else if (n->isHTMLElement() && static_cast<Element*>(n)->isFormControlElement())
             return static_cast<HTMLFormControlElement*>(n)->form();
         else if (n->hasTagName(frameTag) || n->hasTagName(iframeTag)) {
             Node *childDoc = static_cast<HTMLFrameElementBase*>(n)->contentDocument();
@@ -1251,8 +1242,7 @@ HTMLFormElement *Frame::currentForm() const
     for (n = start; n; n = n->parentNode()) {
         if (n->hasTagName(formTag))
             return static_cast<HTMLFormElement*>(n);
-        else if (n->isHTMLElement()
-                   && static_cast<HTMLElement*>(n)->isGenericFormElement())
+        else if (n->isHTMLElement() && static_cast<Element*>(n)->isFormControlElement())
             return static_cast<HTMLFormControlElement*>(n)->form();
     }
     
@@ -1260,32 +1250,28 @@ HTMLFormElement *Frame::currentForm() const
     return start ? scanForForm(start) : 0;
 }
 
-// FIXME: should this go in SelectionController?
 void Frame::revealSelection(const RenderLayer::ScrollAlignment& alignment) const
 {
     IntRect rect;
-    
-    switch (selection()->state()) {
-        case Selection::NONE:
+
+    switch (selection()->selectionType()) {
+        case Selection::NoSelection:
             return;
-            
-        case Selection::CARET:
+        case Selection::CaretSelection:
             rect = selection()->absoluteCaretBounds();
             break;
-            
-        case Selection::RANGE:
+        case Selection::RangeSelection:
             rect = enclosingIntRect(selectionBounds(false));
             break;
     }
 
     Position start = selection()->start();
-
     ASSERT(start.node());
     if (start.node() && start.node()->renderer()) {
         // FIXME: This code only handles scrolling the startContainer's layer, but
         // the selection rect could intersect more than just that. 
         // See <rdar://problem/4799899>.
-        if (RenderLayer *layer = start.node()->renderer()->enclosingLayer())
+        if (RenderLayer* layer = start.node()->renderer()->enclosingLayer())
             layer->scrollRectToVisible(rect, false, alignment, alignment);
     }
 }
@@ -1304,22 +1290,6 @@ void Frame::revealCaret(const RenderLayer::ScrollAlignment& alignment) const
     }
 }
 
-void Frame::adjustPageHeight(float* newBottom, float oldTop, float oldBottom, float /*bottomLimit*/)
-{
-    RenderView* root = contentRenderer();
-    if (root) {
-        // Use a context with painting disabled.
-        GraphicsContext context((PlatformGraphicsContext*)0);
-        root->setTruncatedAt((int)floorf(oldBottom));
-        IntRect dirtyRect(0, (int)floorf(oldTop), root->docWidth(), (int)ceilf(oldBottom - oldTop));
-        root->layer()->paint(&context, dirtyRect);
-        *newBottom = root->bestTruncatedAt();
-        if (*newBottom == 0)
-            *newBottom = oldBottom;
-    } else
-        *newBottom = oldBottom;
-}
-
 Frame* Frame::frameForWidget(const Widget* widget)
 {
     ASSERT_ARG(widget, widget);
@@ -1334,74 +1304,13 @@ Frame* Frame::frameForWidget(const Widget* widget)
     return static_cast<const FrameView*>(widget)->frame();
 }
 
-void Frame::forceLayout(bool allowSubtree)
-{
-    FrameView *v = m_view.get();
-    if (v) {
-        v->layout(allowSubtree);
-        // We cannot unschedule a pending relayout, since the force can be called with
-        // a tiny rectangle from a drawRect update.  By unscheduling we in effect
-        // "validate" and stop the necessary full repaint from occurring.  Basically any basic
-        // append/remove DHTML is broken by this call.  For now, I have removed the optimization
-        // until we have a better invalidation stategy. -dwh
-        //v->unscheduleRelayout();
-    }
-}
-
-void Frame::forceLayoutWithPageWidthRange(float minPageWidth, float maxPageWidth, bool adjustViewSize)
-{
-    // Dumping externalRepresentation(m_frame->renderer()).ascii() is a good trick to see
-    // the state of things before and after the layout
-    RenderView *root = static_cast<RenderView*>(document()->renderer());
-    if (root) {
-        // This magic is basically copied from khtmlview::print
-        int pageW = (int)ceilf(minPageWidth);
-        root->setWidth(pageW);
-        root->setNeedsLayoutAndPrefWidthsRecalc();
-        forceLayout();
-        
-        // If we don't fit in the minimum page width, we'll lay out again. If we don't fit in the
-        // maximum page width, we will lay out to the maximum page width and clip extra content.
-        // FIXME: We are assuming a shrink-to-fit printing implementation.  A cropping
-        // implementation should not do this!
-        int rightmostPos = root->rightmostPosition();
-        if (rightmostPos > minPageWidth) {
-            pageW = min(rightmostPos, (int)ceilf(maxPageWidth));
-            root->setWidth(pageW);
-            root->setNeedsLayoutAndPrefWidthsRecalc();
-            forceLayout();
-        }
-    }
-
-    if (adjustViewSize && view())
-        view()->adjustViewSize();
-}
-
-void Frame::sendResizeEvent()
-{
-    if (Document* doc = document())
-        doc->dispatchWindowEvent(eventNames().resizeEvent, false, false);
-}
-
-void Frame::sendScrollEvent()
-{
-    FrameView* v = m_view.get();
-    if (!v)
-        return;
-    v->setWasScrolledByUser(true);
-    Document* doc = document();
-    if (!doc)
-        return;
-    doc->dispatchEventForType(eventNames().scrollEvent, true, false);
-}
-
 void Frame::clearTimers(FrameView *view, Document *document)
 {
     if (view) {
         view->unscheduleRelayout();
         if (view->frame()) {
             if (document && document->renderer() && document->renderer()->hasLayer())
-                document->renderer()->layer()->suspendMarquees();
+                document->renderView()->layer()->suspendMarquees();
             view->frame()->animation()->suspendAnimations(document);
             view->frame()->eventHandler()->stopAutoscrollTimer();
         }
@@ -1507,7 +1416,7 @@ bool Frame::findString(const String& target, bool forward, bool caseFlag, bool w
     // If we started in the selection and the found range exactly matches the existing selection, find again.
     // Build a selection with the found range to remove collapsed whitespace.
     // Compare ranges instead of selection objects to ignore the way that the current selection was made.
-    if (startInSelection && *Selection(resultRange.get()).toRange() == *selection.toRange()) {
+    if (startInSelection && *Selection(resultRange.get()).toNormalizedRange() == *selection.toNormalizedRange()) {
         searchRange = rangeOfContents(document());
         if (forward)
             setStart(searchRange.get(), selection.visibleEnd());
@@ -1806,9 +1715,9 @@ void Frame::respondToChangedSelection(const Selection& oldSelection, bool closeT
 
             // This only erases markers that are in the first unit (word or sentence) of the selection.
             // Perhaps peculiar, but it matches AppKit.
-            if (RefPtr<Range> wordRange = newAdjacentWords.toRange())
+            if (RefPtr<Range> wordRange = newAdjacentWords.toNormalizedRange())
                 document()->removeMarkers(wordRange.get(), DocumentMarker::Spelling);
-            if (RefPtr<Range> sentenceRange = newSelectedSentence.toRange())
+            if (RefPtr<Range> sentenceRange = newSelectedSentence.toNormalizedRange())
                 document()->removeMarkers(sentenceRange.get(), DocumentMarker::Grammar);
         }
 
@@ -1848,6 +1757,49 @@ Document* Frame::documentAtPoint(const IntPoint& point)
     if (contentRenderer())
         result = eventHandler()->hitTestResultAtPoint(pt, false);
     return result.innerNode() ? result.innerNode()->document() : 0;
+}
+
+void Frame::createView(const IntSize& viewportSize,
+                       const Color& backgroundColor, bool transparent,
+                       const IntSize& fixedLayoutSize, bool useFixedLayout,
+                       ScrollbarMode horizontalScrollbarMode, ScrollbarMode verticalScrollbarMode)
+{
+    ASSERT(this);
+    ASSERT(m_page);
+
+    bool isMainFrame = this == m_page->mainFrame();
+
+    if (isMainFrame && view())
+        view()->setParentVisible(false);
+
+    setView(0);
+
+    FrameView* frameView;
+    if (isMainFrame) {
+        frameView = new FrameView(this, viewportSize);
+        frameView->setFixedLayoutSize(fixedLayoutSize);
+        frameView->setUseFixedLayout(useFixedLayout);
+    } else
+        frameView = new FrameView(this);
+
+    frameView->setScrollbarModes(horizontalScrollbarMode, verticalScrollbarMode);
+    frameView->updateDefaultScrollbarState();
+
+    setView(frameView);
+    // FrameViews are created with a ref count of 1. Release this ref since we've assigned it to frame.
+    frameView->deref();
+
+    if (backgroundColor.isValid())
+        frameView->updateBackgroundRecursively(backgroundColor, transparent);
+
+    if (isMainFrame)
+        frameView->setParentVisible(true);
+
+    if (ownerRenderer())
+        ownerRenderer()->setWidget(frameView);
+
+    if (HTMLFrameOwnerElement* owner = ownerElement())
+        view()->setCanHaveScrollbars(owner->scrollingMode() != ScrollbarAlwaysOff);
 }
 
 } // namespace WebCore

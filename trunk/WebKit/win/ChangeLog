@@ -1,3 +1,472 @@
+2009-02-09  Adam Roben  <aroben@apple.com>
+
+        Build fix
+
+        Reviewed by Sam Weinig.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp: Added missing #include.
+        (WebFrameLoaderClient::updateGlobalHistoryRedirectLinks): Removed
+        incorrect .get(), and changed to use the new overload of
+        WebHistory::itemForURLString.
+
+        * WebHistory.cpp:
+        (WebHistory::itemForURLString): Made this const.
+        (WebHistory::itemForURLString): Added an overload that takes a
+        WebCore::String and returns the IWebHistoryItem instead of using an
+        out parameter.
+
+        * WebHistory.h: Added public overload of itemForURLString.
+
+        * WebView.cpp:
+        (WebView::prepareCandidateWindow):
+        (WebView::onIMERequestCharPosition):
+        (WebView::onIMERequestReconvertString):
+        Updated for toRange -> toNormalizedRange rename.
+
+2009-02-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Part III of <rdar://problem/6552272>.
+        
+        Refactored to use the redirect data WebCore makes available, instead of
+        tracking loading state in WebKit.
+        
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory):
+        (WebFrameLoaderClient::updateGlobalHistoryRedirectLinks):
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+        * WebHistory.h:
+
+2009-02-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - fix an assertion failure in Vector::at() beneath
+          WebHistoryItem::dictionaryRepresentation.
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::dictionaryRepresentation): Give the numbers vector initial
+        size. Also reduced the inline capacity of the vector used for weekly visit
+        counts to 5, which is the expected maximum size.
+
+2009-02-06  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix.  
+
+        * WebKit.vcproj/WebKit.vcproj: Re-enable missing file in Release
+          target of Cairo.
+
+2009-02-06  Maciej Stachowiak  <mjs@apple.com>
+
+        Rubber stamped by Dan Bernstein.
+
+        - fix obvious problem in previous commit (|| used instead of &&)
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation):
+
+2009-02-05  Maciej Stachowiak  <mjs@apple.com> and Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein and Geoff Garen..
+
+        - WebKit code to track per-day and per-week visit counts in history
+
+        For now this data is only exposed via SPI for performance reasons.
+
+        * Interfaces/IWebHistoryItemPrivate.idl: Added new interface.
+        * WebHistory.cpp:
+        (WebHistory::visitedURL): Use new recordInitialVisit method.
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation): Add parsing support
+        for new data.
+        (WebHistoryItem::dictionaryRepresentation): Add saving support for
+        new data.
+        (WebHistoryItem::getDailyVisitCounts): SPI accessor.
+        (WebHistoryItem::getWeeklyVisitCounts): SPI accessor.
+        (WebHistoryItem::recordInitialVisit): Tell WebCore to record an initial visit.
+        * WebHistoryItem.h:
+
+2009-02-05  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Sam Weinig <sam@webkit.org>
+
+        Build fix.  Update file for recently removed EventTargetNodeCast.
+        * DOMCoreClasses.cpp:
+        (DOMNode::dispatchEvent):
+
+2009-02-05  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23708
+        Adds documentElementAvailable() callback to FrameLoaderClient.
+
+        * WebFrame.cpp:
+        (WebFrame::documentElementAvailable):
+        Stub out documentElementAvailable()
+        * WebFrame.h:
+        Ditto.
+
+2009-02-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+
+2009-02-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        Part I of <rdar://problem/6552272>.
+
+        Clear the redirectURLs entry when first visiting a site, so sites that
+        only redirect you the first time you visit them can later learn that
+        they don't redirect.
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+
+2009-02-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+
+2009-02-02  Hiroaki Nakamura <hnakamur@gmail.com>
+
+        Reviewed by Adam Roben.
+
+        Fixes https://bugs.webkit.org/show_bug.cgi?id=15813
+        Modify pre-build step to properly handle the errorlevel
+        shell command.
+
+        * WebKit.vcproj/WebKit.vcproj: Change errorlevel handling
+        for all targets so prefast is only enabled in builds
+        where /analyze is available.
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Track redirects in global history.
+
+        * Interfaces/IWebFramePrivate.idl: Updated for WebCore rename.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory):
+        (WebFrameLoaderClient::updateGlobalHistoryForRedirectWithoutHistoryItem):
+        Store redirect information in global history.
+
+        (WebFrameLoaderClient::loadURLIntoChild): Updated for extra parameter.
+
+        * WebCoreSupport/WebFrameLoaderClient.h: See above.
+
+        * WebFrame.cpp:
+        (WebFrame::loadRequest):
+        (WebFrame::loadData): Updated for extra parameter.
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+        (WebHistory::visitedURLForRedirectWithoutHistoryItem): Store redirect
+        information in global history.
+
+        * WebHistory.h: See above.
+
+2009-02-02  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Transition Windows WebHistory to using the same "update already existing History Items" technique that Mac does.
+
+        * Interfaces/IWebHistoryItemPrivate.idl:
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory):
+
+        * WebHistory.cpp:
+        (WebHistory::visitedURL):
+        * WebHistory.h:
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::visitedWithTitle):
+        * WebHistoryItem.h:
+
+2009-02-02  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+        
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+        * WebCoreSupport/WebFrameLoaderClient.h:
+
+2009-02-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Update for changes to WebCore.
+
+        * WebFrame.cpp:
+        (WebFrame::createJavaAppletWidget):
+        * WebFrame.h:
+
+2009-02-02  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        Move Frame::forceLayout, Frame::adjustPageHeight and Frame::forceLayoutWithPageWidthRange to FrameView
+
+        https://bugs.webkit.org/show_bug.cgi?id=23428
+
+        FrameView::forceLayout could be killed but the comment might
+        contain a value over the the plain FrameView::layout...
+
+        Adjust the WebCore/WebKit consumers of these methods.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::forceLayout):
+
+2009-02-02  Matt Lilek  <webkit@mattlilek.com>
+
+        Not reviewed, build fixes.
+
+        * WebCoreSupport/WebContextMenuClient.cpp:
+        (WebContextMenuClient::searchWithGoogle):
+        * WebFrame.cpp:
+        (WebFrame::setInPrintingMode):
+        (WebFrame::isFrameSet):
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2009-01-30  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Add a pref to disable web security.
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::isWebSecurityEnabled):
+        (WebPreferences::setWebSecurityEnabled):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2009-01-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * Interfaces/IWebFramePrivate.idl:
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::loadURLIntoChild):
+
+2009-01-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        Kill FrameLoaderClient.cpp, move the code over to Frame::createView
+
+        FrameLoaderClient is supposed to be an interface, move the
+        to be shared code to Frame which is a controller and is
+        allowed to create a FrameView.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::transitionToCommittedForNewPage):
+
+2009-01-30  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Remove FrameLoaderClient code that is now handled by FrameLoader itself
+
+        * WebFrame.cpp:
+        (WebFrame::frameLoadCompleted):
+
+2009-01-30  Sam Weinig  <sam@webkit.org>
+
+        Fix Windows build
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation):
+
+2009-01-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Second step in tracking the urls a HistoryItem was redirected through
+        Add SPI to access the array of redirect urls associated with a HistoryItem.
+
+        * Interfaces/IWebHistoryItemPrivate.idl:
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::dictionaryRepresentation):
+        (WebHistoryItem::redirectURLs):
+        * WebHistoryItem.h:
+
+2009-01-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        First step in tracking the urls a HistoryItem was redirected through.
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation):
+        (WebHistoryItem::dictionaryRepresentation):
+
+2009-01-29  Adam Roben  <aroben@apple.com>
+
+        Fix Bug 23623: Windowed Flash instances aren't captured when a WebView
+        receives a WM_PRINTCLIENT message
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23623>
+        <rdar://problem/6513921>
+        <rdar://problem/6536874>
+
+        Reviewed by Darin Adler.
+
+        * WebFrame.cpp:
+        (WebFrame::paintDocumentRectToContext):
+        (WebFrame::spoolPages):
+        Call GraphicsContext::setShouldIncludeChildWindows so that child
+        windows will be painted into the GraphicsContext rather than painted
+        directly to the screen.
+
+        * WebView.cpp:
+        (WebView::updateBackingStore): Added a windowsToPaint parameter, which
+        we pass along to paintIntoBackingStore.
+
+        (WebView::paint): Tell updateBackingStore to paint child windows if
+        we're not painting to the screen.
+
+        (WebView::paintIntoBackingStore): Added a windowsToPaint paramter,
+        which we use to tell our GraphicsContext whether or not to include
+        child windows.
+
+        * WebView.h: Added windowsToPaint parameters to paintIntoBackingStore
+        and updateBackingStore (which I also made private).
+
+2009-01-29  Adam Roben  <aroben@apple.com>
+
+        Build fix after r40353
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::loadURLIntoChild): Removed the check for
+        FrameLoadTypeReloadAllowingStaleData.
+
+2009-01-28  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Updated for WebCore rename.
+        
+        * WebView.cpp:
+        (WebView::setCustomTextEncodingName):
+
+2009-01-28  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Rework FrameLoaderClient to work on a CachedFrame basis instead of CachedPage
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::savePlatformDataToCachedFrame):
+        (WebFrameLoaderClient::transitionToCommittedFromCachedFrame):
+        * WebCoreSupport/WebFrameLoaderClient.h:
+
+        * WebFrame.cpp:
+        * WebFrame.h:
+
+2009-01-26  Adam Roben  <aroben@apple.com>
+
+        Fix an assertion failure when Safari loads an error page
+
+        Reviewed by Alexey Proskuryakov.
+
+        * WebFrame.cpp:
+        (WebFrame::loadData): Use the two-argument version of KURL and
+        MarshallingHelpers::BSTRToKURL, for reasons mentioned in r40248.
+
+2009-01-26  Adam Roben  <aroben@apple.com>
+
+        Fix an assertion on launch in KURL::KURL
+
+        All URL strings passed in to the WebKit API need to be passed to
+        MarshallingHelpers::BSTRToKURL so that they may be properly parsed.
+
+        Reviewed by Alexey Proskuryakov.
+
+        * MarshallingHelpers.cpp:
+        (MarshallingHelpers::BSTRToKURL): Changed to use the two-argument
+        constructor for KURL so that the strings will be parsed rather than
+        assumed to be in the correct encoding/form.
+
+        * WebResource.cpp:
+        (WebResource::initWithData):
+        * WebURLResponse.cpp:
+        (WebURLResponse::initWithURL):
+        * WebView.cpp:
+        (WebView::userAgentForURL):
+        (WebView::copyURL):
+        Changed to use MarshallingHelpers::BSTRToKURL instead of trying to do
+        the work manually.
+
+2009-01-25  Darin Adler  <darin@apple.com>
+
+        Try to fix Windows build.
+
+        * WebView.cpp: Added FloatQuad.h.
+
+2009-01-23  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=23492
+        Exclude calls to WebKitSystemInterface functions when not
+        using CoreGraphics.
+
+        * WebPreferences.cpp:
+        (WebPreferences::setFontSmoothing): 
+        (WebPreferences::setFontSmoothingContrast):
+        * WebTextRenderer.cpp:
+        (WebTextRenderer::registerPrivateFont):
+
+2009-01-23  Brady Eidson  <beidson@apple.com>
+
+        Rubberstamped by Darin Adler
+
+        Rename CachedPagePlatformData to CachedFramePlatformData to more accurately reflect its true role.
+
+        * WebCachedFramePlatformData.h: Copied from WebKit/win/WebCachedPagePlatformData.h.
+        (WebCachedFramePlatformData::WebCachedFramePlatformData):
+        * WebCachedPagePlatformData.h: Removed.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::savePlatformDataToCachedPage):
+
+        * WebKit.vcproj/WebKit.vcproj:
+
+2009-01-22  Eric Roman  <eroman@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20806
+        Deprecate RSSFeedReferrer() and setRSSFeedReferrer().
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::RSSFeedReferrer):
+        (WebHistoryItem::setRSSFeedReferrer):
+
 2009-01-21  Sam Weinig  <sam@webkit.org>
 
         Rubber-stamped by Gavin Barraclough.

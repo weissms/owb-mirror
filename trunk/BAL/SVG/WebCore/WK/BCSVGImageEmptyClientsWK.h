@@ -50,7 +50,7 @@
  Brittle, yes.  Unfortunate, yes.  Hopefully temporary.
 */
 
-namespace WKAL {
+namespace WebCore {
 
 class SVGEmptyChromeClient : public ChromeClient {
 public:

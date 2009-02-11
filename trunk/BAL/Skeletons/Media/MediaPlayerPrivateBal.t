@@ -42,7 +42,7 @@
 #include "MediaPlayer.h"
 #include "Timer.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     class GraphicsContext;
     class IntSize;

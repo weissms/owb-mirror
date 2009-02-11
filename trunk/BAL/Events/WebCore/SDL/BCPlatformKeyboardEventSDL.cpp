@@ -37,7 +37,7 @@
 #include "Unicode.h"
 #include "CString.h"
 
-namespace WKAL {
+namespace WebCore {
 
 // FIXME: This is incomplete.  We should change this to mirror
 // more like what Firefox does, and generate these switch statements

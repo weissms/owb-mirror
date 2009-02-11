@@ -41,7 +41,7 @@
 #include "PlatformString.h"
 #include "StringHash.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     struct KURLHash {
     /**
@@ -57,7 +57,7 @@ namespace OWBAL {
         static const bool safeToCompareToEmptyOrDeleted = false;
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 namespace WTF {
 

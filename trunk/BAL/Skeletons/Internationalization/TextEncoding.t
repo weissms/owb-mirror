@@ -40,12 +40,12 @@
 #include "TextCodec.h"
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     class CString;
     class String;
 
-    class TextEncoding : public OWBALBase {
+    class TextEncoding : public WebCoreBase {
     public:
     /**
      * TextEncoding default constructor
@@ -181,7 +181,7 @@ namespace OWBAL {
      */
     const TextEncoding& WindowsLatin1Encoding();
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextEncoding_h
 

@@ -51,7 +51,7 @@ using namespace std;
 using namespace WTF;
 using namespace Unicode;
 
-namespace WKAL {
+namespace WebCore {
 
 ContextMenuController* ContextMenu::controller() const
 {
@@ -192,7 +192,7 @@ static void createAndAppendTextDirectionSubMenu(const HitTestResult& result, Con
 static bool selectionContainsPossibleWord(Frame* frame)
 {
     // Current algorithm: look for a character that's not just a separator.
-    for (TextIterator it(frame->selection()->toRange().get()); !it.atEnd(); it.advance()) {
+    for (TextIterator it(frame->selection()->toNormalizedRange().get()); !it.atEnd(); it.advance()) {
         int length = it.length();
         const UChar* characters = it.characters();
         for (int i = 0; i < length; ++i)
@@ -252,7 +252,7 @@ void ContextMenu::populate()
     if (!node)
         return;
 #if PLATFORM(GTK)
-    if (!result.isContentEditable() && node->isControl())
+    if (!result.isContentEditable() && (node->isElementNode() && static_cast<Element*>(node)->isFormControlElement()))
         return;
 #endif
     Frame* frame = node->document()->frame();

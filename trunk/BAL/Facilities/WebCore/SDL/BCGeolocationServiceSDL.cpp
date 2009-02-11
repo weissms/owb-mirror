@@ -20,7 +20,7 @@
 #include "config.h"
 #include "GeolocationServiceSDL.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 GeolocationService* GeolocationService::create(GeolocationServiceClient* client)
 {

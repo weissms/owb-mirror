@@ -1,3 +1,178 @@
+2009-02-10  Mario Bensi  <mbensi@pleyo.com>
+
+        Hack to fix the ticket #309
+
+        * Fonts/WebCore/Embedded/BCFontEmbedded.cpp:
+        (WebCore::Font::drawGlyphs):
+        * Fonts/WebCore/Freetype/BCFontFreetype.cpp:
+        (WebCore::Font::drawGlyphs):
+
+2009-02-08  Mario Bensi  <mbensi@pleyo.com>
+
+        add scrollbar skinable.
+
+        * Widgets/WebCore/SDL/BCScrollbarThemeSDL.cpp:
+        (WebCore::ScrollbarThemeBal::paintButton):
+        (WebCore::ScrollbarThemeBal::paintThumb):
+        (WebCore::ScrollbarThemeBal::paintTrackPiece):
+
+2009-02-06  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix Scrollbar not balified
+
+        * Scripts/data/balInputList.txt:
+        * Widgets/WebCore/Gtk/BCScrollbarGtk.cpp:
+        (ScrollbarGtk::ScrollbarGtk):
+        (ScrollbarGtk::frameRectsChanged):
+        * Widgets/WebCore/Gtk/BCScrollbarGtk.h:
+
+2009-01-30  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Added AmigaOS4 context menus, saving and loading
+        searches, support for double and triple mouse clicks,
+        copying URLs and images to the clipboard and text
+        shadow.
+
+        * Events/WebCore/AmigaOS4/BCEventHandlerAmigaOS4.cpp:
+        (WebCore::EventHandler::createDraggingClipboard):
+        * Events/WebCore/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.cpp:
+        (WKAL::ConvertAmigaKeyToVirtualKey):
+        (WKAL::keyIdentifierForAmigaKeyCode):
+        (WKAL::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * Events/WebCore/AmigaOS4/BCPlatformMouseEventAmigaOS4.cpp:
+        (WKAL::PlatformMouseEvent::PlatformMouseEvent):
+        * Facilities/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.cpp:
+        * Fonts/WebCore/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::drawglyphs):
+        (WKAL::Font::drawGlyphs):
+        * Fonts/WebCore/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WKAL::get_font_name):
+        (WKAL::openFont):
+        (WKAL::FontPlatformData::FontPlatformData):
+        * Fonts/WebCore/AmigaOS4/BCFontPlatformDataAmigaOS4.h:
+        (WKAL::FontPlatformData::hash):
+        * Graphics/WebCore/AmigaOS4/BCImageAmigaOS4.cpp: Added.
+        (loadResourceIntoArray):
+        (WKAL::BitmapImage::initPlatformData):
+        (WKAL::BitmapImage::invalidatePlatformData):
+        (WKAL::Image::loadPlatformResource):
+        * Internationalization/WebCore/AmigaOS4: Added.
+        * Internationalization/WebCore/AmigaOS4/BCLocalizedStringsAmigaOS4.cpp: Added.
+        (OWBAL::submitButtonDefaultLabel):
+        (OWBAL::inputElementAltText):
+        (OWBAL::resetButtonDefaultLabel):
+        (OWBAL::searchableIndexIntroduction):
+        (OWBAL::fileButtonChooseFileLabel):
+        (OWBAL::fileButtonNoFileSelectedLabel):
+        (OWBAL::contextMenuItemTagOpenLinkInNewWindow):
+        (OWBAL::contextMenuItemTagDownloadLinkToDisk):
+        (OWBAL::contextMenuItemTagCopyLinkToClipboard):
+        (OWBAL::contextMenuItemTagOpenImageInNewWindow):
+        (OWBAL::contextMenuItemTagDownloadImageToDisk):
+        (OWBAL::contextMenuItemTagCopyImageToClipboard):
+        (OWBAL::contextMenuItemTagOpenFrameInNewWindow):
+        (OWBAL::contextMenuItemTagCopy):
+        (OWBAL::contextMenuItemTagDelete):
+        (OWBAL::contextMenuItemTagSelectAll):
+        (OWBAL::contextMenuItemTagUnicode):
+        (OWBAL::contextMenuItemTagInputMethods):
+        (OWBAL::contextMenuItemTagGoBack):
+        (OWBAL::contextMenuItemTagGoForward):
+        (OWBAL::contextMenuItemTagStop):
+        (OWBAL::contextMenuItemTagReload):
+        (OWBAL::contextMenuItemTagCut):
+        (OWBAL::contextMenuItemTagPaste):
+        (OWBAL::contextMenuItemTagNoGuessesFound):
+        (OWBAL::contextMenuItemTagIgnoreSpelling):
+        (OWBAL::contextMenuItemTagLearnSpelling):
+        (OWBAL::contextMenuItemTagSearchWeb):
+        (OWBAL::contextMenuItemTagLookUpInDictionary):
+        (OWBAL::contextMenuItemTagOpenLink):
+        (OWBAL::contextMenuItemTagIgnoreGrammar):
+        (OWBAL::contextMenuItemTagSpellingMenu):
+        (OWBAL::contextMenuItemTagShowSpellingPanel):
+        (OWBAL::contextMenuItemTagCheckSpelling):
+        (OWBAL::contextMenuItemTagCheckSpellingWhileTyping):
+        (OWBAL::contextMenuItemTagCheckGrammarWithSpelling):
+        (OWBAL::contextMenuItemTagFontMenu):
+        (OWBAL::contextMenuItemTagBold):
+        (OWBAL::contextMenuItemTagItalic):
+        (OWBAL::contextMenuItemTagUnderline):
+        (OWBAL::contextMenuItemTagOutline):
+        (OWBAL::contextMenuItemTagInspectElement):
+        (OWBAL::searchMenuNoRecentSearchesText):
+        (OWBAL::searchMenuRecentSearchesText):
+        (OWBAL::searchMenuClearRecentSearchesText):
+        (OWBAL::AXDefinitionListTermText):
+        (OWBAL::AXDefinitionListDefinitionText):
+        (OWBAL::AXButtonActionVerb):
+        (OWBAL::AXRadioButtonActionVerb):
+        (OWBAL::AXTextFieldActionVerb):
+        (OWBAL::AXCheckedCheckBoxActionVerb):
+        (OWBAL::AXUncheckedCheckBoxActionVerb):
+        (OWBAL::AXLinkActionVerb):
+        (OWBAL::unknownFileSizeText):
+        (OWBAL::imageTitle):
+        (OWBAL::contextMenuItemTagLeftToRight):
+        (OWBAL::contextMenuItemTagDefaultDirection):
+        (OWBAL::contextMenuItemTagRightToLeft):
+        (OWBAL::contextMenuItemTagWritingDirectionMenu):
+        (OWBAL::contextMenuItemTagTextDirectionMenu):
+        (OWBAL::multipleFileUploadText):
+        * Internationalization/WebCore/AmigaOS4/BCLocalizedStringsAmigaOS4.h: Added.
+        * Widgets/WebCore/AmigaOS4/BCContextMenuAmigaOS4.cpp: Added.
+        (WKAL::ContextMenu::ContextMenu):
+        (WKAL::ContextMenu::~ContextMenu):
+        (WKAL::ContextMenu::appendItem):
+        (WKAL::ContextMenu::setPlatformDescription):
+        (WKAL::ContextMenu::platformDescription):
+        (WKAL::ContextMenu::releasePlatformDescription):
+        * Widgets/WebCore/AmigaOS4/BCContextMenuAmigaOS4.h: Added.
+        (WKAL::ContextMenu::hitTestResult):
+        * Widgets/WebCore/AmigaOS4/BCContextMenuItemAmigaOS4.cpp: Added.
+        (WKAL::ContextMenuItem::ContextMenuItem):
+        (WKAL::ContextMenuItem::~ContextMenuItem):
+        (WKAL::ContextMenuItem::createNativeMenuItem):
+        (WKAL::ContextMenuItem::releasePlatformDescription):
+        (WKAL::ContextMenuItem::type):
+        (WKAL::ContextMenuItem::setType):
+        (WKAL::ContextMenuItem::action):
+        (WKAL::ContextMenuItem::setAction):
+        (WKAL::ContextMenuItem::title):
+        (WKAL::ContextMenuItem::setTitle):
+        (WKAL::ContextMenuItem::platformSubMenu):
+        (WKAL::ContextMenuItem::setSubMenu):
+        (WKAL::ContextMenuItem::setChecked):
+        (WKAL::ContextMenuItem::setEnabled):
+        * Widgets/WebCore/AmigaOS4/BCContextMenuItemAmigaOS4.h: Added.
+        (WKAL::):
+        (WKAL::PlatformMenuItemDescription::PlatformMenuItemDescription):
+        * Widgets/WebCore/AmigaOS4/BCPasteboardAmigaOS4.cpp:
+        (WKAL::writeUTF8):
+        (WKAL::Pasteboard::writeSelection):
+        (WKAL::Pasteboard::writeURL):
+        (WKAL::Pasteboard::writeImage):
+        (WKAL::Pasteboard::documentFragment):
+        * Widgets/WebCore/AmigaOS4/BCSearchPopupMenuAmigaOS4.cpp:
+        (WKAL::SearchPopupMenu::SearchPopupMenu):
+        (WKAL::SearchPopupMenu::saveRecentSearches):
+        (WKAL::SearchPopupMenu::loadRecentSearches):
+        (WKAL::SearchPopupMenu::enabled):
+        * Widgets/WebCore/SDL/BCPopupMenuSDL.cpp:
+        (WKAL::PopupMenu::~PopupMenu):
+
+2009-01-29  Mario Bensi  <mbensi@pleyo.com>
+
+        fix leak on Network.
+
+        * Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp:
+        (WebCore::QNetworkReplyHandler::QNetworkReplyHandler):
+        (WebCore::QNetworkReplyHandler::~QNetworkReplyHandler):
+        (WebCore::QNetworkReplyHandler::start):
+        * Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h:
+
 2009-01-22  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.

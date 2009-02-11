@@ -31,7 +31,7 @@
 
 #define DOUBLE_FROM_26_6(t) ((double)(t) / 64.0)
 
-namespace WKAL {
+namespace WebCore {
 
 class FontDescription;
 class FontPlatformData;
@@ -119,6 +119,19 @@ public:
     mutable SimpleFontData* m_smallCapsFontData;
 
 };
+
+ALWAYS_INLINE float SimpleFontData::widthForGlyph(Glyph glyph) const
+{
+    float width = m_glyphToWidthMap.widthForGlyph(glyph);
+    if (width != cGlyphWidthUnknown)
+        return width;
+
+    width = platformWidthForGlyph(glyph);
+    m_glyphToWidthMap.setWidthForGlyph(glyph, width);
+
+    return width;
+}
+
 
 } // namespace WebCore
 

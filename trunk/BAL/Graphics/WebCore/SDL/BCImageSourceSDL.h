@@ -32,7 +32,7 @@
 #include <wtf/Vector.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class IntSize;
 class SharedBuffer;
@@ -45,7 +45,7 @@ typedef BalSurface* NativeImagePtr;
 const int cAnimationLoopOnce = -1;
 const int cAnimationNone = -2;
 
-class ImageSource : Noncopyable, public WKALBase {
+class ImageSource : Noncopyable {
 public:
     ImageSource();
     ~ImageSource();

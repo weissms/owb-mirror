@@ -34,9 +34,9 @@
 #include "BALBase.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
-class FontPlatformData : public WKALBase {
+class FontPlatformData {
 public:
     FontPlatformData(WTF::HashTableDeletedValueType);
     FontPlatformData();
@@ -55,7 +55,7 @@ public:
 
     unsigned hash() const
     {
-        uint32_t hashCodes[2] = { StringImpl::computeHash(m_fontname), (uint32_t)m_size };
+        uint32_t hashCodes[4] = { StringImpl::computeHash(m_fontname), (uint32_t)m_size, m_syntheticBold, m_syntheticOblique };
         return StringImpl::computeHash(reinterpret_cast<UChar*>(hashCodes), sizeof(hashCodes) / sizeof(UChar));
     }
 
@@ -65,6 +65,7 @@ public:
     };
 
     float m_size;
+    double m_sizefactor;
     bool m_syntheticBold;
     bool m_syntheticOblique;
     struct OutlineFont *m_face;

@@ -27,6 +27,10 @@ if(ENABLE_SVG)
 
         aux_source_directory(${BAL_DIR}/SVG/WebCore/Cairo WEBCORE_SRC)
     endif(USE_GRAPHICS_GTK)
+
+    if(USE_GRAPHICS_QT)
+        aux_source_directory(${BAL_DIR}/SVG/WebCore/Qt WEBCORE_SRC)
+    endif(USE_GRAPHICS_QT)
     
     if(USE_GRAPHICS_SDL)
         create_include_link(${BAL_DIR}/SVG/WebCore/SDL/BCSVGPaintServerSolidSDL.h BAL/SVGPaintServerSolid.h)

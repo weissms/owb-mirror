@@ -58,7 +58,6 @@ public:
     virtual bool isPointInOverflowControl(HitTestResult&, int x, int y, int tx, int ty);
 
     virtual bool scroll(ScrollDirection, ScrollGranularity, float multiplier = 1.0f);
-    virtual bool isScrollable() const;
 
     virtual void calcPrefWidths();
     virtual int baselinePosition(bool firstLine, bool isRootLineBox) const;
@@ -93,8 +92,10 @@ public:
     virtual void setScrollLeft(int);
     virtual void setScrollTop(int);
 
+    virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
+
 protected:
-    virtual void styleDidChange(RenderStyle::Diff, const RenderStyle* oldStyle);
+    virtual void styleDidChange(StyleDifference, const RenderStyle* oldStyle);
 
 private:
     // ScrollbarClient interface.

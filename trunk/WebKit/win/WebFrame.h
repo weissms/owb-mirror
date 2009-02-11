@@ -260,7 +260,6 @@ public:
     virtual void didFinishLoad();
     virtual void prepareForDataSourceReplacement();
     virtual WebCore::String userAgent(const WebCore::KURL&);
-    virtual void transitionToCommittedFromCachedPage(WebCore::CachedPage*);
     virtual void saveViewStateToItem(WebCore::HistoryItem *);
     virtual WebCore::ResourceError cancelledError(const WebCore::ResourceRequest&);
     virtual WebCore::ResourceError blockedError(const WebCore::ResourceRequest&);
@@ -281,12 +280,13 @@ public:
     virtual void dispatchDidFailLoad(const WebCore::ResourceError&);
     virtual void startDownload(const WebCore::ResourceRequest&);
         
-    virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL& baseURL, const Vector<WebCore::String>& paramNames, const Vector<WebCore::String>& paramValues);
+    virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::HTMLAppletElement*, const WebCore::KURL& baseURL, const Vector<WebCore::String>& paramNames, const Vector<WebCore::String>& paramValues);
 
     virtual WebCore::ObjectContentType objectContentType(const WebCore::KURL& url, const WebCore::String& mimeType);
     virtual WebCore::String overrideMediaType() const;
 
     virtual void windowObjectCleared();
+    virtual void documentElementAvailable();
     virtual void didPerformFirstNavigation() const;
 
     virtual void registerForIconNotification(bool listen);

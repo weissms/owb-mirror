@@ -44,9 +44,9 @@
 
 
 
-namespace OWBAL {
+namespace WebCore {
 
-class SharedBuffer : public OWBALBase, public RefCounted<SharedBuffer> {
+class SharedBuffer : public WebCoreBase, public RefCounted<SharedBuffer> {
 public:
     /**
      *  create description

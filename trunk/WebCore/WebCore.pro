@@ -13,6 +13,8 @@ CONFIG(QTDIR_build) {
     include($$QT_SOURCE_TREE/src/qbase.pri)
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
+} else {
+    win32-*:!static: DEFINES += QT_MAKEDLL
 }
 
 isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = tmp
@@ -279,7 +281,6 @@ IDL_BINDINGS += \
     dom/EventException.idl \
 #    dom/EventListener.idl \
 #    dom/EventTarget.idl \
-    dom/EventTargetNode.idl \
     dom/KeyboardEvent.idl \
     dom/MouseEvent.idl \
     dom/MessageChannel.idl \
@@ -401,9 +402,9 @@ IDL_BINDINGS += \
 
 
 SOURCES += \
-    bindings/js/DOMTimer.cpp \
     bindings/js/GCController.cpp \
     bindings/js/JSAttrCustom.cpp \
+    bindings/js/JSCDATASectionCustom.cpp \
     bindings/js/JSCanvasRenderingContext2DCustom.cpp \
     bindings/js/JSClipboardCustom.cpp \
     bindings/js/JSConsoleCustom.cpp \
@@ -424,7 +425,6 @@ SOURCES += \
     bindings/js/JSElementCustom.cpp \
     bindings/js/JSEventCustom.cpp \
     bindings/js/JSEventTarget.cpp \
-    bindings/js/JSEventTargetNodeCustom.cpp \
     bindings/js/JSGeolocationCustom.cpp \
     bindings/js/JSHTMLAllCollection.cpp \
     bindings/js/JSHistoryCustom.cpp \
@@ -460,6 +460,7 @@ SOURCES += \
     bindings/js/JSRGBColor.cpp \
     bindings/js/JSStyleSheetCustom.cpp \
     bindings/js/JSStyleSheetListCustom.cpp \
+    bindings/js/JSTextCustom.cpp \
     bindings/js/JSTreeWalkerCustom.cpp \
     bindings/js/JSWebKitCSSMatrixConstructor.cpp \
     bindings/js/JSXMLHttpRequestConstructor.cpp \
@@ -476,12 +477,13 @@ SOURCES += \
     bindings/js/JSDOMBinding.cpp \
     bindings/js/JSEventListener.cpp \
     bindings/js/JSPluginElementFunctions.cpp \
-    bindings/js/ScriptCachedPageData.cpp \
+    bindings/js/ScriptCachedFrameData.cpp \
     bindings/js/ScriptCallFrame.cpp \
     bindings/js/ScriptCallStack.cpp \
     bindings/js/ScriptController.cpp \
     bindings/js/ScriptValue.cpp \
     bindings/js/ScheduledAction.cpp \
+    bridge/IdentifierRep.cpp \
     bridge/NP_jsobject.cpp \
     bridge/npruntime.cpp \
     bridge/runtime_array.cpp \
@@ -565,6 +567,7 @@ SOURCES += \
     dom/ClipboardEvent.cpp \
     dom/Comment.cpp \
     dom/ContainerNode.cpp \
+    dom/CrossThreadCopier.cpp \
     dom/CSSMappedAttributeDeclaration.cpp \
     dom/Document.cpp \
     dom/DocumentFragment.cpp \
@@ -579,9 +582,9 @@ SOURCES += \
     dom/Event.cpp \
     dom/EventNames.cpp \
     dom/EventTarget.cpp \
-    dom/EventTargetNode.cpp \
     dom/ExceptionBase.cpp \
     dom/ExceptionCode.cpp \
+    dom/FormControlElementWithState.cpp \
     dom/FormControlElement.cpp \
     dom/InputElement.cpp \
     dom/KeyboardEvent.cpp \
@@ -600,6 +603,8 @@ SOURCES += \
     dom/NodeFilter.cpp \
     dom/NodeIterator.cpp \
     dom/Notation.cpp \
+    dom/OptionGroupElement.cpp \
+    dom/OptionElement.cpp \
     dom/OverflowEvent.cpp \
     dom/Position.cpp \
     dom/PositionIterator.cpp \
@@ -656,7 +661,6 @@ SOURCES += \
     editing/MoveSelectionCommand.cpp \
     editing/RemoveCSSPropertyCommand.cpp \
     editing/RemoveFormatCommand.cpp \
-    editing/RemoveNodeAttributeCommand.cpp \
     editing/RemoveNodeCommand.cpp \
     editing/RemoveNodePreservingChildrenCommand.cpp \
     editing/ReplaceSelectionCommand.cpp \
@@ -675,11 +679,13 @@ SOURCES += \
     editing/visible_units.cpp \
     editing/WrapContentsInDummySpanCommand.cpp \
     history/BackForwardList.cpp \
+    history/CachedFrame.cpp \
     history/CachedPage.cpp \
     history/HistoryItem.cpp \
     history/PageCache.cpp \
     html/CanvasGradient.cpp \
     html/CanvasPattern.cpp \
+    html/CanvasPixelArray.cpp \
     html/CanvasRenderingContext2D.cpp \
     html/CanvasStyle.cpp \
     html/File.cpp \
@@ -783,9 +789,9 @@ SOURCES += \
     loader/CachedXSLStyleSheet.cpp \
     loader/DocLoader.cpp \
     loader/DocumentLoader.cpp \
+    loader/DocumentThreadableLoader.cpp \
     loader/FormState.cpp \
     loader/FrameLoader.cpp \
-    loader/FrameLoaderClient.cpp \
     loader/FTPDirectoryDocument.cpp \
     loader/FTPDirectoryParser.cpp \
     loader/icon/IconLoader.cpp \
@@ -803,6 +809,8 @@ SOURCES += \
     loader/SubresourceLoader.cpp \
     loader/TextDocument.cpp \
     loader/TextResourceDecoder.cpp \
+    loader/ThreadableLoader.cpp \
+    loader/WorkerThreadableLoader.cpp \
     page/AccessibilityImageMapLink.cpp \
     page/AccessibilityObject.cpp \    
     page/AccessibilityList.cpp \    
@@ -825,6 +833,7 @@ SOURCES += \
     page/Console.cpp \
     page/ContextMenuController.cpp \
     page/DOMSelection.cpp \
+    page/DOMTimer.cpp \
     page/DOMWindow.cpp \
     page/Navigator.cpp \
     page/NavigatorBase.cpp \
@@ -904,6 +913,7 @@ SOURCES += \
     platform/network/Credential.cpp \
     platform/network/FormData.cpp \
     platform/network/FormDataBuilder.cpp \
+    platform/network/HTTPHeaderMap.cpp \
     platform/network/HTTPParsers.cpp \
     platform/network/NetworkStateNotifier.cpp \
     platform/network/ProtectionSpace.cpp \
@@ -930,6 +940,7 @@ SOURCES += \
     platform/text/TextEncodingRegistry.cpp \
     platform/text/TextStream.cpp \
     platform/ThreadGlobalData.cpp \
+    platform/ThreadTimers.cpp \
     platform/Timer.cpp \
     platform/text/UnicodeRange.cpp \
     platform/Widget.cpp \
@@ -954,14 +965,13 @@ SOURCES += \
     rendering/RenderArena.cpp \
     rendering/RenderBlock.cpp \
     rendering/RenderBox.cpp \
+    rendering/RenderBoxModelObject.cpp \
     rendering/RenderBR.cpp \
     rendering/RenderButton.cpp \
-    rendering/RenderContainer.cpp \
     rendering/RenderCounter.cpp \
     rendering/RenderFieldset.cpp \
     rendering/RenderFileUploadControl.cpp \
     rendering/RenderFlexibleBox.cpp \
-    rendering/RenderFlow.cpp \
     rendering/RenderFrame.cpp \
     rendering/RenderFrameSet.cpp \
     rendering/RenderHTMLCanvas.cpp \
@@ -970,12 +980,14 @@ SOURCES += \
     rendering/RenderInline.cpp \
     rendering/RenderLayer.cpp \
     rendering/RenderLegend.cpp \
+    rendering/RenderLineBoxList.cpp \
     rendering/RenderListBox.cpp \
     rendering/RenderListItem.cpp \
     rendering/RenderListMarker.cpp \
     rendering/RenderMarquee.cpp \
     rendering/RenderMenuList.cpp \
     rendering/RenderObject.cpp \
+    rendering/RenderObjectChildList.cpp \
     rendering/RenderPart.cpp \
     rendering/RenderPartObject.cpp \
     rendering/RenderReplaced.cpp \
@@ -1157,6 +1169,8 @@ SOURCES += \
     ../WebKit/qt/Api/qwebsecurityorigin.cpp \
     ../WebKit/qt/Api/qwebdatabase.cpp
 
+
+    win32-*|wince*: SOURCES += platform/win/SystemTimeWin.cpp
 
     mac {
         SOURCES += \
@@ -1412,6 +1426,7 @@ contains(DEFINES, ENABLE_WML=1) {
         wml/WMLElement.cpp \
         wml/WMLErrorHandling.cpp \
         wml/WMLEventHandlingElement.cpp \
+        wml/WMLFormControlElement.cpp \
         wml/WMLFieldSetElement.cpp \
         wml/WMLGoElement.cpp \
         wml/WMLImageElement.cpp \
@@ -1424,6 +1439,8 @@ contains(DEFINES, ENABLE_WML=1) {
         wml/WMLNoopElement.cpp \
         wml/WMLOnEventElement.cpp \
         wml/WMLPElement.cpp \
+        wml/WMLOptGroupElement.cpp \
+        wml/WMLOptionElement.cpp \
         wml/WMLPageState.cpp \
         wml/WMLPostfieldElement.cpp \
         wml/WMLPrevElement.cpp \
@@ -1799,7 +1816,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/SVGRootInlineBox.cpp
 
 SOURCES += \
-        svg/graphics/qt/SVGPaintServerQt.cpp \
         svg/graphics/qt/SVGResourceFilterQt.cpp \
         svg/graphics/qt/SVGResourceMaskerQt.cpp
 

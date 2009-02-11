@@ -219,10 +219,26 @@ QWebSettings *QWebSettings::globalSettings()
     family, the location of a custom stylesheet, and generic attributes like java
     script, plugins, etc. The \l{QWebSettings::WebAttribute}{WebAttribute}
     enum further describes this.
-    
+
     QWebSettings also configures global properties such as the web page memory
     cache and the web page icon database, local database storage and offline
     applications storage.
+
+    \section1 Web Application Support
+
+    WebKit provides support for features specified in \l{HTML 5} that improve the
+    performance and capabilities of Web applications. These include client-side
+    (offline) storage and the use of a Web application cache.
+
+    Client-side (offline) storage is an improvement over the use of cookies to
+    store persistent data in Web applications. Applications can configure and
+    enable the use of an offline storage database by calling the
+    setOfflineStoragePath() with an appropriate file path, and can limit the quota
+    for each application by calling setOfflineStorageDefaultQuota().
+
+    The performance of Web applications can be enhanced with the use of an
+    offline cache. This can be enabled by calling setOfflineWebApplicationCache()
+    with an appropriate file path.
 
     \sa QWebPage::settings(), QWebView::settings(), {Browser}
 */
@@ -695,7 +711,7 @@ qint64 QWebSettings::offlineStorageDefaultQuota()
 }
 
 /*!
-    \since 4.5
+    \internal
 
     Sets the path for HTML5 offline web application cache storage to \a path.
 
@@ -705,7 +721,7 @@ qint64 QWebSettings::offlineStorageDefaultQuota()
 
     \sa offlineWebApplicationCachePath()
 */
-void QWebSettings::setOfflineWebApplicationCachePath(const QString& path)
+void QWEBKIT_EXPORT qt_websettings_setOfflineWebApplicationCachePath(const QString& path)
 {
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
     WebCore::cacheStorage().setCacheDirectory(path);
@@ -713,14 +729,14 @@ void QWebSettings::setOfflineWebApplicationCachePath(const QString& path)
 }
 
 /*!
-    \since 4.5
+    \internal
 
     Returns the path of the HTML5 offline web application cache storage
     or an empty string if the feature is disabled.
 
     \sa setOfflineWebApplicationCachePath()
 */
-QString QWebSettings::offlineWebApplicationCachePath()
+QString QWEBKIT_EXPORT qt_websettings_offlineWebApplicationCachePath()
 {
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
     return WebCore::cacheStorage().cacheDirectory();

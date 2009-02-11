@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace WKAL {
+namespace WebCore {
 
 auto_ptr<ImageBuffer> ImageBuffer::create(const IntSize& size, bool)
 {

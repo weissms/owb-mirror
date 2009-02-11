@@ -37,8 +37,6 @@ class ScrollbarGtk : public Scrollbar {
 public:
     friend class Scrollbar;
 
-    virtual ~ScrollbarGtk();
-
     virtual void setFrameRect(const IntRect&);
     
     virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
@@ -48,14 +46,13 @@ public:
 
     virtual void setEnabled(bool);
 
-    virtual void frameRectsChanged() const;
+    virtual void frameRectsChanged();
 
 protected:
     ScrollbarGtk(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
 
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
-    virtual void frameRectsChanged();
     
 private:
     static void gtkValueChanged(GtkAdjustment*, ScrollbarGtk*);

@@ -70,17 +70,12 @@ void RenderForeignObject::paint(PaintInfo& paintInfo, int parentX, int parentY)
     paintInfo.context->restore();
 }
 
-void RenderForeignObject::computeAbsoluteRepaintRect(IntRect& r, bool f)
+void RenderForeignObject::computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect& rect, bool fixed)
 {
     TransformationMatrix transform = translationForAttributes() * localTransform();
-    r = transform.mapRect(r);
+    rect = transform.mapRect(rect);
 
-    RenderBlock::computeAbsoluteRepaintRect(r, f);
-}
-
-bool RenderForeignObject::requiresLayer()
-{
-    return false;
+    RenderBlock::computeRectForRepaint(repaintContainer, rect, fixed);
 }
 
 bool RenderForeignObject::calculateLocalTransform()
@@ -97,13 +92,8 @@ void RenderForeignObject::layout()
     // Arbitrary affine transforms are incompatible with LayoutState.
     view()->disableLayoutState();
 
-    IntRect oldBounds;
-    IntRect oldOutlineBox;
-    bool checkForRepaint = checkForRepaintDuringLayout();
-    if (checkForRepaint) {
-        oldBounds = m_absoluteBounds;
-        oldOutlineBox = absoluteOutlineBounds();
-    }
+    // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
+    LayoutRepainter repainter(*this, checkForRepaintDuringLayout(), &m_absoluteBounds);
     
     calculateLocalTransform();
     
@@ -111,8 +101,7 @@ void RenderForeignObject::layout()
 
     m_absoluteBounds = absoluteClippedOverflowRect();
 
-    if (checkForRepaint)
-        repaintAfterLayoutIfNeeded(oldBounds, oldOutlineBox);
+    repainter.repaintAfterLayout();
 
     view()->enableLayoutState();
     setNeedsLayout(false);
@@ -123,7 +112,7 @@ bool RenderForeignObject::nodeAtPoint(const HitTestRequest& request, HitTestResu
     TransformationMatrix totalTransform = absoluteTransform();
     totalTransform *= translationForAttributes();
     double localX, localY;
-    totalTransform.inverse().map(x, y, &localX, &localY);
+    totalTransform.inverse().map(x, y, localX, localY);
     return RenderBlock::nodeAtPoint(request, result, static_cast<int>(localX), static_cast<int>(localY), tx, ty, hitTestAction);
 }
 

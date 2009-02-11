@@ -32,7 +32,7 @@
 #include "BIRenderPath.h"
 
 
-namespace WKAL {
+namespace WebCore {
     class BIRenderPath : public BCRenderPath {
     public:
     };

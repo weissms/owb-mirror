@@ -73,7 +73,7 @@ namespace WTF {
     template<typename ValueArg> struct ListHashSetNodeAllocator;
     template<typename ValueArg, typename HashArg> struct ListHashSetNodeHashFunctions;
 
-    template<typename ValueArg, typename HashArg = typename DefaultHash<ValueArg>: public OWBALBase, Hash> class ListHashSet {
+    template<typename ValueArg, typename HashArg = typename DefaultHash<ValueArg>, Hash> class ListHashSet {
     private:
         typedef ListHashSetNode<ValueArg> Node;
         typedef ListHashSetNodeAllocator<ValueArg> NodeAllocator;
@@ -474,7 +474,7 @@ namespace WTF {
         static const bool safeToCompareToEmptyOrDeleted = false;
     };
 
-    template<typename ValueArg, typename HashArg> class ListHashSetIterator : public OWBALBase {
+    template<typename ValueArg, typename HashArg> class ListHashSetIterator {
     private:
         typedef ListHashSet<ValueArg, HashArg> ListHashSetType;
         typedef ListHashSetIterator<ValueArg, HashArg> iterator;
@@ -594,7 +594,7 @@ namespace WTF {
         const_iterator m_iterator;
     };
 
-    template<typename ValueArg, typename HashArg> class ListHashSetConstIterator : public OWBALBase {
+    template<typename ValueArg, typename HashArg> class ListHashSetConstIterator {
     private:
         typedef ListHashSet<ValueArg, HashArg> ListHashSetType;
         typedef ListHashSetIterator<ValueArg, HashArg> iterator;

@@ -36,7 +36,7 @@
 #include "PlatformMenuDescription.h"
 #include "PlatformString.h"
 
-namespace WKAL {
+namespace WebCore {
 class MenuEventProxy;
 
     class ContextMenuController;

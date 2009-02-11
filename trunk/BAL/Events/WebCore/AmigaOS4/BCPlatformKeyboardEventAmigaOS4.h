@@ -33,9 +33,9 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
-    class PlatformKeyboardEvent : public WKALBase {
+    class PlatformKeyboardEvent  {
     public:
         enum Type {
             // KeyDown is sent by platforms such as Mac OS X, gtk and Qt, and has information about both physical pressed key, and its translation.

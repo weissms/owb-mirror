@@ -77,7 +77,7 @@ WebPreferences* WebPreferences::createInstance()
 
 void WebPreferences::postPreferencesChangesNotification()
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesChangedNotification(), "", this);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesChangedNotification(), "", this);
 }
 
 WebPreferences* WebPreferences::getInstanceForIdentifier(String identifier)
@@ -731,5 +731,5 @@ void WebPreferences::didRemoveFromWebView()
 {
     ASSERT(m_numWebViews);
     if (--m_numWebViews == 0)
-        OWBAL::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesRemovedNotification(), "", this);
+        WebCore::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesRemovedNotification(), "", this);
 }

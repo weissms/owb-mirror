@@ -50,7 +50,7 @@
 #include "runtime/DateMath.cpp"
 #include "runtime/DatePrototype.cpp"
 #include "runtime/DateInstance.cpp"
-#if PLATFORM(GTK) || PLATFORM(BAL)
+#if PLATFORM(GTK) || PLATFORM(BAL) || PLATFORM(QT)
 #include "BCdtoaWTF.cpp"
 #else
 #include "wtf/dtoa.cpp"

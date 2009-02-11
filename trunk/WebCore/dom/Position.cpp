@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,14 +29,12 @@
 #include "CSSComputedStyleDeclaration.h"
 #include "CString.h"
 #include "CharacterNames.h"
-#include "Document.h"
-#include "Element.h"
-#include "HTMLNames.h"
 #include "Logging.h"
 #include "PositionIterator.h"
 #include "RenderBlock.h"
 #include "Text.h"
 #include "TextIterator.h"
+#include "VisiblePosition.h"
 #include "htmlediting.h"
 #include "visible_units.h"
 #include <stdio.h>
@@ -54,7 +52,7 @@ static Node *nextRenderedEditable(Node *node)
         RenderObject* renderer = node->renderer();
         if (!renderer)
             continue;
-        if (renderer->inlineBoxWrapper() || renderer->isText() && static_cast<RenderText*>(renderer)->firstTextBox())
+        if (renderer->inlineBoxWrapper() || renderer->isText() && toRenderText(renderer)->firstTextBox())
             return node;
     }
     return 0;
@@ -69,7 +67,7 @@ static Node *previousRenderedEditable(Node *node)
         RenderObject* renderer = node->renderer();
         if (!renderer)
             continue;
-        if (renderer->inlineBoxWrapper() || renderer->isText() && static_cast<RenderText*>(renderer)->firstTextBox())
+        if (renderer->inlineBoxWrapper() || renderer->isText() && toRenderText(renderer)->firstTextBox())
             return node;
     }
     return 0;
@@ -99,9 +97,9 @@ PassRefPtr<CSSComputedStyleDeclaration> Position::computedStyle() const
     return WebCore::computedStyle(elem);
 }
 
-Position Position::previous(EUsingComposedCharacters usingComposedCharacters) const
+Position Position::previous(PositionMoveType moveType) const
 {
-    Node *n = node();
+    Node* n = node();
     if (!n)
         return *this;
     
@@ -110,28 +108,37 @@ Position Position::previous(EUsingComposedCharacters usingComposedCharacters) co
     ASSERT(o >= 0);
 
     if (o > 0) {
-        Node *child = n->childNode(o - 1);
-        if (child) {
+        Node* child = n->childNode(o - 1);
+        if (child)
             return Position(child, maxDeepOffset(child));
-        }
+
         // There are two reasons child might be 0:
         //   1) The node is node like a text node that is not an element, and therefore has no children.
         //      Going backward one character at a time is correct.
         //   2) The old offset was a bogus offset like (<br>, 1), and there is no child.
         //      Going from 1 to 0 is correct.
-        return Position(n, usingComposedCharacters ? uncheckedPreviousOffset(n, o) : o - 1);
+        switch (moveType) {
+        case CodePoint:
+            return Position(n, o - 1);
+        case Character:
+            return Position(n, uncheckedPreviousOffset(n, o));
+        case BackwardDeletion:
+            return Position(n, uncheckedPreviousOffsetForBackwardDeletion(n, o));
+        }
     }
 
-    Node *parent = n->parentNode();
+    Node* parent = n->parentNode();
     if (!parent)
         return *this;
 
     return Position(parent, n->nodeIndex());
 }
 
-Position Position::next(EUsingComposedCharacters usingComposedCharacters) const
+Position Position::next(PositionMoveType moveType) const
 {
-    Node *n = node();
+    ASSERT(moveType != BackwardDeletion);
+
+    Node* n = node();
     if (!n)
         return *this;
     
@@ -149,10 +156,10 @@ Position Position::next(EUsingComposedCharacters usingComposedCharacters) const
         //      Going forward one character at a time is correct.
         //   2) The new offset is a bogus offset like (<br>, 1), and there is no child.
         //      Going from 0 to 1 is correct.
-        return Position(n, usingComposedCharacters ? uncheckedNextOffset(n, o) : o + 1);
+        return Position(n, (moveType == Character) ? uncheckedNextOffset(n, o) : o + 1);
     }
 
-    Node *parent = n->parentNode();
+    Node* parent = n->parentNode();
     if (!parent)
         return *this;
 
@@ -162,6 +169,11 @@ Position Position::next(EUsingComposedCharacters usingComposedCharacters) const
 int Position::uncheckedPreviousOffset(const Node* n, int current)
 {
     return n->renderer() ? n->renderer()->previousOffset(current) : current - 1;
+}
+
+int Position::uncheckedPreviousOffsetForBackwardDeletion(const Node* n, int current)
+{
+    return n->renderer() ? n->renderer()->previousOffsetForBackwardDeletion(current) : current - 1;
 }
 
 int Position::uncheckedNextOffset(const Node* n, int current)
@@ -196,17 +208,17 @@ int Position::renderedOffset() const
         return offset();
                     
     int result = 0;
-    RenderText *textRenderer = static_cast<RenderText *>(node()->renderer());
+    RenderText *textRenderer = toRenderText(node()->renderer());
     for (InlineTextBox *box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
-        int start = box->m_start;
-        int end = box->m_start + box->m_len;
+        int start = box->start();
+        int end = box->start() + box->len();
         if (offset() < start)
             return result;
         if (offset() <= end) {
             result += offset() - start;
             return result;
         }
-        result += box->m_len;
+        result += box->len();
     }
     return result;
 }
@@ -284,7 +296,7 @@ static bool endsOfNodeAreVisuallyDistinctPositions(Node* node)
         return false;
     
     // There is a VisiblePosition inside an empty inline-block container.
-    return node->renderer()->isReplaced() && canHaveChildrenForEditing(node) && node->renderer()->height() != 0 && !node->firstChild();
+    return node->renderer()->isReplaced() && canHaveChildrenForEditing(node) && toRenderBox(node->renderer())->height() != 0 && !node->firstChild();
 }
 
 static Node* enclosingVisualBoundary(Node* node)
@@ -366,7 +378,7 @@ Position Position::upstream() const
         }
 
         // return current position if it is in rendered text
-        if (renderer->isText() && static_cast<RenderText*>(renderer)->firstTextBox()) {
+        if (renderer->isText() && toRenderText(renderer)->firstTextBox()) {
             if (currentNode != startNode) {
                 // This assertion fires in layout tests in the case-transform.html test because
                 // of a mix-up between offsets in the text in the DOM tree with text in the
@@ -377,7 +389,7 @@ Position Position::upstream() const
             }
 
             unsigned textOffset = currentPos.offsetInLeafNode();
-            RenderText* textRenderer = static_cast<RenderText*>(renderer);
+            RenderText* textRenderer = toRenderText(renderer);
             InlineTextBox* lastTextBox = textRenderer->lastTextBox();
             for (InlineTextBox* box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
                 if (textOffset <= box->start() + box->len()) {
@@ -482,14 +494,14 @@ Position Position::downstream() const
         }
 
         // return current position if it is in rendered text
-        if (renderer->isText() && static_cast<RenderText*>(renderer)->firstTextBox()) {
+        if (renderer->isText() && toRenderText(renderer)->firstTextBox()) {
             if (currentNode != startNode) {
                 ASSERT(currentPos.atStartOfNode());
                 return Position(currentNode, renderer->caretMinOffset());
             }
 
             unsigned textOffset = currentPos.offsetInLeafNode();
-            RenderText* textRenderer = static_cast<RenderText*>(renderer);
+            RenderText* textRenderer = toRenderText(renderer);
             InlineTextBox* lastTextBox = textRenderer->lastTextBox();
             for (InlineTextBox* box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
                 if (textOffset <= box->end()) {
@@ -536,9 +548,11 @@ bool Position::hasRenderedNonAnonymousDescendantsWithHeight(RenderObject* render
 {
     RenderObject* stop = renderer->nextInPreOrderAfterChildren();
     for (RenderObject *o = renderer->firstChild(); o && o != stop; o = o->nextInPreOrder())
-        if (o->element() && o->height())
-            return true;
-            
+        if (o->element()) {
+            if ((o->isText() && toRenderText(o)->linesBoundingBox().height()) ||
+                (o->isBox() && toRenderBox(o)->borderBoundingBox().height()))
+                return true;
+        }
     return false;
 }
 
@@ -569,7 +583,7 @@ bool Position::isCandidate() const
         return (offset() == 0 || offset() == maxDeepOffset(node())) && !nodeIsUserSelectNone(node()->parent());
 
     if (!node()->hasTagName(htmlTag) && renderer->isBlockFlow() && !hasRenderedNonAnonymousDescendantsWithHeight(renderer) &&
-       (renderer->height() || node()->hasTagName(bodyTag)))
+       (toRenderBox(renderer)->height() || node()->hasTagName(bodyTag)))
         return offset() == 0 && !nodeIsUserSelectNone(node());
     
     return false;
@@ -584,9 +598,9 @@ bool Position::inRenderedText() const
     if (!renderer)
         return false;
     
-    RenderText *textRenderer = static_cast<RenderText *>(renderer);
+    RenderText *textRenderer = toRenderText(renderer);
     for (InlineTextBox *box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
-        if (offset() < box->m_start && !textRenderer->containsReversedText()) {
+        if (offset() < static_cast<int>(box->start()) && !textRenderer->containsReversedText()) {
             // The offset we're looking for is before this node
             // this means the offset must be in content that is
             // not rendered. Return false.
@@ -616,19 +630,19 @@ bool Position::isRenderedCharacter() const
     if (isNull() || !node()->isTextNode())
         return false;
         
-    RenderObject *renderer = node()->renderer();
+    RenderObject* renderer = node()->renderer();
     if (!renderer)
         return false;
     
-    RenderText *textRenderer = static_cast<RenderText *>(renderer);
-    for (InlineTextBox *box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
-        if (offset() < box->m_start && !textRenderer->containsReversedText()) {
+    RenderText* textRenderer = toRenderText(renderer);
+    for (InlineTextBox* box = textRenderer->firstTextBox(); box; box = box->nextTextBox()) {
+        if (offset() < static_cast<int>(box->start()) && !textRenderer->containsReversedText()) {
             // The offset we're looking for is before this node
             // this means the offset must be in content that is
             // not rendered. Return false.
             return false;
         }
-        if (offset() >= box->m_start && offset() < box->m_start + box->m_len)
+        if (offset() >= static_cast<int>(box->start()) && offset() < static_cast<int>(box->start() + box->len()))
             return true;
     }
     
@@ -795,7 +809,7 @@ static InlineTextBox* searchAheadForBetterMatch(RenderObject* renderer)
         if (isNonTextLeafChild(next))
             break;
         if (next->isText()) {
-            for (InlineTextBox* box = static_cast<RenderText*>(next)->firstTextBox(); box; box = box->nextTextBox()) {
+            for (InlineTextBox* box = toRenderText(next)->firstTextBox(); box; box = box->nextTextBox()) {
                 int caretMinOffset = box->caretMinOffset();
                 if (caretMinOffset < minOffset) {
                     match = box;
@@ -816,7 +830,7 @@ void Position::getInlineBoxAndOffset(EAffinity affinity, TextDirection primaryDi
         if (!inlineBox || caretOffset > inlineBox->caretMinOffset() && caretOffset < inlineBox->caretMaxOffset())
             return;
     } else {
-        RenderText* textRenderer = static_cast<RenderText*>(renderer);
+        RenderText* textRenderer = toRenderText(renderer);
 
         InlineTextBox* box;
         InlineTextBox* candidate = 0;

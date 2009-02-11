@@ -41,7 +41,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/PassRefPtr.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 // The BidiStatus at a given position (typically the end of a line) can
 // be cached and then used to restart bidi resolution at that position.
@@ -149,7 +149,7 @@ struct BidiCharacterRun {
     BidiCharacterRun* m_next;
 };
 
-template <class Iterator, class Run> class BidiResolver : public OWBALBase, public Noncopyable {
+template <class Iterator, class Run> class BidiResolver : public WebCoreBase, public Noncopyable {
 public :
     /**
      * BidiResolver default constructor
@@ -411,7 +411,7 @@ template <class Iterator, class Run> void BidiResolver<Iterator, Run>::reverseRu
 
 template <class Iterator, class Run> void BidiResolver<Iterator, Run>::createBidiRunsForLine(const Iterator& end, bool visualOrder, bool hardLineBreak);
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // BidiResolver_h
 

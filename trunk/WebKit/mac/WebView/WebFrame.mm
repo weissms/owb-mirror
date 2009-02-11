@@ -188,11 +188,6 @@ DOMNode *kit(Node* node)
     return [DOMNode _wrapNode:node];
 }
 
-DOMNode *kit(PassRefPtr<Node> node)
-{
-    return [DOMNode _wrapNode:node.get()];
-}
-
 Document* core(DOMDocument *document)
 {
     return [document _document];
@@ -616,7 +611,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     // We need to give the part the opportunity to adjust the page height at each step.
     for (float i = 0; i < docHeight; i += currPageHeight) {
         float proposedBottom = min(docHeight, i + printHeight);
-        _private->coreFrame->adjustPageHeight(&proposedBottom, i, proposedBottom, i);
+        view->adjustPageHeight(&proposedBottom, i, proposedBottom, i);
         currPageHeight = max(1.0f, proposedBottom - i);
         for (float j = 0; j < docWidth; j += printWidth) {
             NSValue* val = [NSValue valueWithRect: NSMakeRect(j, i, printWidth, currPageHeight)];
@@ -627,7 +622,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     return pages;
 }
 
-- (BOOL)_getVisibleRect:(NSRect*)rect;
+- (BOOL)_getVisibleRect:(NSRect*)rect
 {
     ASSERT_ARG(rect, rect);
     if (RenderPart* ownerRenderer = _private->coreFrame->ownerRenderer()) {
@@ -720,7 +715,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     SelectionController selection;
     selection.setSelection(_private->coreFrame->selection()->selection());
     selection.modify(alteration, direction, granularity);
-    return [DOMRange _wrapRange:selection.toRange().get()];
+    return [DOMRange _wrapRange:selection.toNormalizedRange().get()];
 }
 
 - (TextGranularity)_selectionGranularity
@@ -798,7 +793,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
 - (DOMRange *)_markDOMRange
 {
-    return [DOMRange _wrapRange:_private->coreFrame->mark().toRange().get()];
+    return [DOMRange _wrapRange:_private->coreFrame->mark().toNormalizedRange().get()];
 }
 
 // Given proposedRange, returns an extended range that includes adjacent whitespace that should
@@ -938,7 +933,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
 - (void)_replaceSelectionWithText:(NSString *)text selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace
 {
-    [self _replaceSelectionWithFragment:kit(createFragmentFromText(_private->coreFrame->selection()->toRange().get(), text).get())
+    [self _replaceSelectionWithFragment:kit(createFragmentFromText(_private->coreFrame->selection()->toNormalizedRange().get(), text).get())
         selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:YES];
 }
 
@@ -1099,7 +1094,8 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
 - (BOOL)_isFrameSet
 {
-    return _private->coreFrame->isFrameSet();
+    Document* document = _private->coreFrame->document();
+    return document && document->isFrameSet();
 }
 
 - (BOOL)_firstLayoutDone
@@ -1114,7 +1110,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
 - (NSRange)_selectedNSRange
 {
-    return [self _convertToNSRange:_private->coreFrame->selection()->toRange().get()];
+    return [self _convertToNSRange:_private->coreFrame->selection()->toNormalizedRange().get()];
 }
 
 - (void)_selectNSRange:(NSRange)range
@@ -1313,7 +1309,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
 - (void)loadRequest:(NSURLRequest *)request
 {
-    _private->coreFrame->loader()->load(request);
+    _private->coreFrame->loader()->load(request, false);
 }
 
 static NSURL *createUniqueWebDataURL()
@@ -1341,7 +1337,7 @@ static NSURL *createUniqueWebDataURL()
 
     SubstituteData substituteData(WebCore::SharedBuffer::wrapNSData(data), MIMEType, encodingName, [unreachableURL absoluteURL], responseURL);
 
-    _private->coreFrame->loader()->load(request, substituteData);
+    _private->coreFrame->loader()->load(request, substituteData, false);
 }
 
 

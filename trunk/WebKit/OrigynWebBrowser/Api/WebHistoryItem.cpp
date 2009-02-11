@@ -105,12 +105,12 @@ void WebHistoryItem::setTitle(WebCore::String title)
 
 WebCore::String WebHistoryItem::RSSFeedReferrer()
 {
-    return m_historyItem->rssFeedReferrer();
+    return m_historyItem->referrer();
 }
 
 void WebHistoryItem::setRSSFeedReferrer(WebCore::String url)
 {
-    m_historyItem->setRSSFeedReferrer(url);
+    m_historyItem->setReferrer(url);
 }
 
 bool WebHistoryItem::hasPageCache()

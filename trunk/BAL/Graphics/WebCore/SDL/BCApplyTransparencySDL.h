@@ -30,7 +30,7 @@
 
 #include <SDL.h>
 
-namespace WKAL {
+namespace WebCore {
 
 static SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
 {

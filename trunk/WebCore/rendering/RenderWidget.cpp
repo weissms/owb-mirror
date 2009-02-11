@@ -75,9 +75,10 @@ void RenderWidget::destroy()
     if (RenderView* v = view())
         v->removeWidget(this);
 
-    if (AXObjectCache::accessibilityEnabled())
+    if (AXObjectCache::accessibilityEnabled()) {
+        document()->axObjectCache()->childrenChanged(this->parent());
         document()->axObjectCache()->remove(this);
-
+    }
     remove();
 
     if (m_widget) {
@@ -90,20 +91,20 @@ void RenderWidget::destroy()
     if (hasOverrideSize())
         setOverrideSize(-1);
 
-    RenderLayer* layer = m_layer;
     RenderArena* arena = renderArena();
 
-    if (layer)
-        layer->clearClipRects();
+    if (hasLayer())
+        layer()->clearClipRects();
 
     if (style() && (style()->height().isPercent() || style()->minHeight().isPercent() || style()->maxHeight().isPercent()))
         RenderBlock::removePercentHeightDescendant(this);
 
     setNode(0);
-    deref(arena);
 
-    if (layer)
-        layer->destroy(arena);
+    if (hasLayer())
+        layer()->destroy(arena);
+
+    deref(arena);
 }
 
 RenderWidget::~RenderWidget()
@@ -156,7 +157,7 @@ void RenderWidget::layout()
     setNeedsLayout(false);
 }
 
-void RenderWidget::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderWidget::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderReplaced::styleDidChange(diff, oldStyle);
     if (m_widget) {
@@ -172,8 +173,8 @@ void RenderWidget::paint(PaintInfo& paintInfo, int tx, int ty)
     if (!shouldPaint(paintInfo, tx, ty))
         return;
 
-    tx += m_x;
-    ty += m_y;
+    tx += x();
+    ty += y();
 
     if (hasBoxDecorations() && (paintInfo.phase == PaintPhaseForeground || paintInfo.phase == PaintPhaseSelection))
         paintBoxDecorations(paintInfo, tx, ty);
@@ -188,7 +189,7 @@ void RenderWidget::paint(PaintInfo& paintInfo, int tx, int ty)
 
 #if PLATFORM(MAC)
     if (style()->highlight() != nullAtom && !paintInfo.context->paintingDisabled())
-        paintCustomHighlight(tx - m_x, ty - m_y, style()->highlight(), true);
+        paintCustomHighlight(tx - x(), ty - y(), style()->highlight(), true);
 #endif
 
     if (m_widget) {
@@ -203,8 +204,10 @@ void RenderWidget::paint(PaintInfo& paintInfo, int tx, int ty)
     }
 
     // Paint a partially transparent wash over selected widgets.
-    if (isSelected() && !document()->printing())
+    if (isSelected() && !document()->printing()) {
+        // FIXME: selectionRect() is in absolute, not painting coordinates.
         paintInfo.context->fillRect(selectionRect(), selectionBackgroundColor());
+    }
 }
 
 void RenderWidget::deref(RenderArena *arena)
@@ -222,18 +225,19 @@ void RenderWidget::updateWidgetPosition()
     FloatPoint absPos = localToAbsolute();
     absPos.move(borderLeft() + paddingLeft(), borderTop() + paddingTop());
 
-    int width = m_width - borderLeft() - borderRight() - paddingLeft() - paddingRight();
-    int height = m_height - borderTop() - borderBottom() - paddingTop() - paddingBottom();
+    int w = width() - borderLeft() - borderRight() - paddingLeft() - paddingRight();
+    int h = height() - borderTop() - borderBottom() - paddingTop() - paddingBottom();
 
-    IntRect newBounds(absPos.x(), absPos.y(), width, height);
+    IntRect newBounds(absPos.x(), absPos.y(), w, h);
     IntRect oldBounds(m_widget->frameRect());
     if (newBounds != oldBounds) {
         // The widget changed positions.  Update the frame geometry.
         if (checkForRepaintDuringLayout()) {
             RenderView* v = view();
             if (!v->printing()) {
-                v->repaintViewRectangle(oldBounds);
-                v->repaintViewRectangle(newBounds);
+                // FIXME: do container-relative repaint
+                v->repaintRectangleInViewAndCompositedLayers(oldBounds);
+                v->repaintRectangleInViewAndCompositedLayers(newBounds);
             }
         }
 
@@ -271,7 +275,7 @@ bool RenderWidget::nodeAtPoint(const HitTestRequest& request, HitTestResult& res
     
     // Check to see if we are really over the widget itself (and not just in the border/padding area).
     if (inside && !hadResult && result.innerNode() == element())
-        result.setIsOverWidget(contentBox().contains(result.localPoint()));
+        result.setIsOverWidget(contentBoxRect().contains(result.localPoint()));
     return inside;
 }
 

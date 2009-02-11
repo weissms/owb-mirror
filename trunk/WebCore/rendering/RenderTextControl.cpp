@@ -31,6 +31,7 @@
 #include "HTMLFormControlElement.h"
 #include "HTMLNames.h"
 #include "HitTestResult.h"
+#include "RenderText.h"
 #include "ScrollbarTheme.h"
 #include "SelectionController.h"
 #include "TextControlInnerElements.h"
@@ -79,12 +80,12 @@ RenderTextControl::~RenderTextControl()
         m_innerText->detach();
 }
 
-void RenderTextControl::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderTextControl::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderBlock::styleDidChange(diff, oldStyle);
 
     if (m_innerText) {
-        RenderBlock* textBlockRenderer = static_cast<RenderBlock*>(m_innerText->renderer());
+        RenderBlock* textBlockRenderer = toRenderBlock(m_innerText->renderer());
         RefPtr<RenderStyle> textBlockStyle = createInnerTextStyle(style());
         // We may have set the width and the height in the old style in layout().
         // Reset them now to avoid getting a spurious layout hint.
@@ -101,14 +102,31 @@ void RenderTextControl::styleDidChange(RenderStyle::Diff diff, const RenderStyle
     setReplaced(isInline());
 }
 
+static inline bool updateUserModifyProperty(Node* node, RenderStyle* style)
+{
+    bool isEnabled = true;
+    bool isReadOnlyControl = false;
+
+    if (node->isElementNode()) {
+        FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(node));
+        ASSERT(formControlElement);
+
+        isEnabled = formControlElement->isEnabled();
+        isReadOnlyControl = formControlElement->isReadOnlyControl();
+    }
+
+    style->setUserModify((isReadOnlyControl || !isEnabled) ? READ_ONLY : READ_WRITE_PLAINTEXT_ONLY);
+    return !isEnabled;
+}
+
 void RenderTextControl::adjustInnerTextStyle(const RenderStyle* startStyle, RenderStyle* textBlockStyle) const
 {
     // The inner block, if present, always has its direction set to LTR,
     // so we need to inherit the direction from the element.
     textBlockStyle->setDirection(style()->direction());
-    textBlockStyle->setUserModify((node()->isReadOnlyControl() || !node()->isEnabled()) ? READ_ONLY : READ_WRITE_PLAINTEXT_ONLY);
 
-    if (!node()->isEnabled())
+    bool disabled = updateUserModifyProperty(node(), textBlockStyle);
+    if (disabled)
         textBlockStyle->setColor(disabledTextColor(textBlockStyle->color(), startStyle->backgroundColor()));
 }
 
@@ -126,18 +144,18 @@ void RenderTextControl::createSubtreeIfNeeded(TextControlInnerElement* innerBloc
 
 int RenderTextControl::textBlockHeight() const
 {
-    return m_height - paddingTop() - paddingBottom() - borderTop() - borderBottom();
+    return height() - paddingTop() - paddingBottom() - borderTop() - borderBottom();
 }
 
 int RenderTextControl::textBlockWidth() const
 {
-    return m_width - paddingLeft() - paddingRight() - borderLeft() - borderRight()
-           - m_innerText->renderer()->paddingLeft() - m_innerText->renderer()->paddingRight();
+    return width() - paddingLeft() - paddingRight() - borderLeft() - borderRight()
+           - m_innerText->renderBox()->paddingLeft() - m_innerText->renderBox()->paddingRight();
 }
 
 void RenderTextControl::updateFromElement()
 {
-    m_innerText->renderer()->style()->setUserModify((node()->isReadOnlyControl() || !node()->isEnabled()) ? READ_ONLY : READ_WRITE_PLAINTEXT_ONLY); 
+    updateUserModifyProperty(node(), m_innerText->renderer()->style());
 }
 
 void RenderTextControl::setInnerTextValue(const String& innerTextValue)
@@ -217,7 +235,7 @@ void RenderTextControl::setSelectionRange(int start, int end)
 
     document()->updateLayout();
 
-    if (style()->visibility() == HIDDEN || !m_innerText || !m_innerText->renderer() || !m_innerText->renderer()->height()) {
+    if (style()->visibility() == HIDDEN || !m_innerText || !m_innerText->renderer() || !m_innerText->renderBox()->height()) {
         cacheSelection(start, end);
         return;
     }
@@ -359,7 +377,7 @@ String RenderTextControl::textWithHardLineBreaks()
     if (!renderer)
         return "";
 
-    InlineBox* box = renderer->isText() ? static_cast<RenderText*>(renderer)->firstTextBox() : renderer->inlineBoxWrapper();
+    InlineBox* box = renderer->isText() ? toRenderText(renderer)->firstTextBox() : renderer->inlineBoxWrapper();
     if (!box)
         return "";
 
@@ -418,25 +436,25 @@ int RenderTextControl::scrollbarThickness() const
 
 void RenderTextControl::calcHeight()
 {
-    m_height = m_innerText->renderer()->borderTop() + m_innerText->renderer()->borderBottom() +
-               m_innerText->renderer()->paddingTop() + m_innerText->renderer()->paddingBottom() +
-               m_innerText->renderer()->marginTop() + m_innerText->renderer()->marginBottom();
+    setHeight(m_innerText->renderBox()->borderTop() + m_innerText->renderBox()->borderBottom() +
+              m_innerText->renderBox()->paddingTop() + m_innerText->renderBox()->paddingBottom() +
+              m_innerText->renderBox()->marginTop() + m_innerText->renderBox()->marginBottom());
 
     adjustControlHeightBasedOnLineHeight(m_innerText->renderer()->lineHeight(true, true));
-    m_height += paddingTop() + paddingBottom() + borderTop() + borderBottom();
+    setHeight(height() + paddingTop() + paddingBottom() + borderTop() + borderBottom());
 
     // We are able to have a horizontal scrollbar if the overflow style is scroll, or if its auto and there's no word wrap.
     if (m_innerText->renderer()->style()->overflowX() == OSCROLL ||  (m_innerText->renderer()->style()->overflowX() == OAUTO && m_innerText->renderer()->style()->wordWrap() == NormalWordWrap))
-        m_height += scrollbarThickness();
+        setHeight(height() + scrollbarThickness());
 
     RenderBlock::calcHeight();
 }
 
-void RenderTextControl::hitInnerTextBlock(HitTestResult& result, int x, int y, int tx, int ty)
+void RenderTextControl::hitInnerTextBlock(HitTestResult& result, int xPos, int yPos, int tx, int ty)
 {
     result.setInnerNode(m_innerText.get());
-    result.setLocalPoint(IntPoint(x - tx - m_x - m_innerText->renderer()->xPos(),
-                                  y - ty - m_y - m_innerText->renderer()->yPos()));
+    result.setLocalPoint(IntPoint(xPos - tx - x() - m_innerText->renderBox()->x(),
+                                  yPos - ty - y() - m_innerText->renderBox()->y()));
 }
 
 void RenderTextControl::forwardEvent(Event* event)
@@ -448,7 +466,7 @@ void RenderTextControl::forwardEvent(Event* event)
 
 IntRect RenderTextControl::controlClipRect(int tx, int ty) const
 {
-    IntRect clipRect = contentBox();
+    IntRect clipRect = contentBoxRect();
     clipRect.move(tx, ty);
     return clipRect;
 }
@@ -467,7 +485,7 @@ void RenderTextControl::calcPrefWidths()
         // (using "0" as the nominal character).
         const UChar ch = '0';
         float charWidth = style()->font().floatWidth(TextRun(&ch, 1, false, 0, 0, false, false, false));
-        m_maxPrefWidth = preferredContentWidth(charWidth) + m_innerText->renderer()->paddingLeft() + m_innerText->renderer()->paddingRight();
+        m_maxPrefWidth = preferredContentWidth(charWidth) + m_innerText->renderBox()->paddingLeft() + m_innerText->renderBox()->paddingRight();
     }
 
     if (style()->minWidth().isFixed() && style()->minWidth().value() > 0) {
@@ -497,7 +515,7 @@ void RenderTextControl::selectionChanged(bool userTriggered)
 
     if (Frame* frame = document()->frame()) {
         if (frame->selection()->isRange() && userTriggered)
-            static_cast<EventTargetNode*>(node())->dispatchEventForType(eventNames().selectEvent, true, false);
+            node()->dispatchEventForType(eventNames().selectEvent, true, false);
     }
 }
 
@@ -508,7 +526,7 @@ void RenderTextControl::addFocusRingRects(GraphicsContext* graphicsContext, int 
 
 void RenderTextControl::autoscroll()
 {
-    RenderLayer* layer = m_innerText->renderer()->layer();
+    RenderLayer* layer = m_innerText->renderBox()->layer();
     if (layer)
         layer->autoscroll();
 }
@@ -555,17 +573,10 @@ void RenderTextControl::setScrollTop(int newTop)
 
 bool RenderTextControl::scroll(ScrollDirection direction, ScrollGranularity granularity, float multiplier)
 {
-    RenderLayer* layer = m_innerText->renderer()->layer();
+    RenderLayer* layer = m_innerText->renderBox()->layer();
     if (layer && layer->scroll(direction, granularity, multiplier))
         return true;
-    return RenderObject::scroll(direction, granularity, multiplier);
-}
-
-bool RenderTextControl::isScrollable() const
-{
-    if (m_innerText && m_innerText->renderer()->isScrollable())
-        return true;
-    return RenderObject::isScrollable();
+    return RenderBlock::scroll(direction, granularity, multiplier);
 }
 
 HTMLElement* RenderTextControl::innerTextElement() const
@@ -575,7 +586,7 @@ HTMLElement* RenderTextControl::innerTextElement() const
 
 FormControlElement* RenderTextControl::formControlElement() const
 {
-    return formControlElementForElement(static_cast<Element*>(node()));
+    return toFormControlElement(static_cast<Element*>(node()));
 }
 
 } // namespace WebCore

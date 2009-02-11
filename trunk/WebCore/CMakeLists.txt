@@ -151,17 +151,24 @@ if(ENABLE_VIDEO)
 endif(ENABLE_VIDEO)
 
 set(WEBCORE_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebCore)
+if(NOT EXISTS ${WEBCORE_GENERATED_DIR})
+	execute_process(
+		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
+		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/wml
+		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/xml
+	)
+endif(NOT EXISTS ${WEBCORE_GENERATED_DIR})
+
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/ColorData.c
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND echo ARGS '\#include <string.h>' > ColorData.c
     COMMAND ${GPERF_EXECUTABLE} ARGS -CDEot -L ANSI-C -k \"*\" -N findColor -D -s 2 < ${OWB_SOURCE_DIR}/WebCore/platform/ColorData.gperf >> ColorData.c
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-    DEPENDS ${OWB_SOURCE_DIR}/WebCore/platform/ColorData.gperf)
+    DEPENDS ${OWB_SOURCE_DIR}/WebCore/platform/ColorData.gperf
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp ${WEBCORE_GENERATED_DIR}/CSSGrammar.h
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND rm -f ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp.h ${WEBCORE_GENERATED_DIR}/CSSGrammar.hpp
     COMMAND ${BISON_EXECUTABLE} -d -p cssyy ${OWB_SOURCE_DIR}/WebCore/css/CSSGrammar.y -o ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp
     COMMAND touch ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp.h ${WEBCORE_GENERATED_DIR}/CSSGrammar.hpp
@@ -172,64 +179,64 @@ add_custom_command(
     COMMAND rm -f ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp.h ${WEBCORE_GENERATED_DIR}/CSSGrammar.hpp
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/css/CSSGrammar.y
-    VERBATIM)
+    VERBATIM
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/CSSPropertyNames.h
     #COMMAND if sort ${WEBCORE_CSS_PROPERTY_NAMES} | uniq -d | grep -E '^[^#]'; then echo 'Duplicate value!'; exit 1; fi
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND cat ${WEBCORE_CSS_PROPERTY_NAMES} > ${WEBCORE_GENERATED_DIR}/CSSPropertyNames.in
     COMMAND ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/makeprop.pl
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${WEBCORE_CSS_PROPERTY_NAMES}
-    VERBATIM)
+    VERBATIM
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/CSSValueKeywords.h
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND ${PERL_EXECUTABLE} -ne 'print lc' ${WEBCORE_CSS_VALUE_KEYWORDS} > ${WEBCORE_GENERATED_DIR}/CSSValueKeywords.in
     #COMMAND if sort CSSValueKeywords.in | uniq -d | grep -E '^[^#]'; then echo 'Duplicate value!'; exit 1; fi
     COMMAND ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/makevalues.pl
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-    DEPENDS ${WEBCORE_CSS_VALUE_KEYWORDS})
+    DEPENDS ${WEBCORE_CSS_VALUE_KEYWORDS}
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/DocTypeStrings.cpp
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
     COMMAND echo '\#include <string.h>' > html/DocTypeStrings.cpp
     COMMAND ${GPERF_EXECUTABLE} -CEot -L ANSI-C -k \"*\" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${OWB_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf >> html/DocTypeStrings.cpp
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-    DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf)
+    DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf
+)
 
 add_custom_command(
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLEntityNames.c
     COMMAND echo '\#include <string.h>' > html/HTMLEntityNames.c
     COMMAND ${GPERF_EXECUTABLE} -a -L ANSI-C -C -G -c -o -t --key-positions="*" -N findEntity -D -s 2 < ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf >> html/HTMLEntityNames.c
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-    DEPENDS ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf)
+    DEPENDS ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp ${WEBCORE_GENERATED_DIR}/html/HTMLNames.h ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.h
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
     COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${HTML_FEATURES} --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
-    VERBATIM)
+    VERBATIM
+)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/tokenizer.cpp
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND ${FLEX_EXECUTABLE} -t ${OWB_SOURCE_DIR}/WebCore/css/tokenizer.flex | ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/maketokenizer > tokenizer.cpp
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/css/tokenizer.flex ${OWB_SOURCE_DIR}/WebCore/css/maketokenizer
-    VERBATIM)
+    VERBATIM
+)
 
 if(ENABLE_SVG)
     if(SVG_FLAGS)
         add_custom_command(
             OUTPUT ${WEBCORE_GENERATED_DIR}/JSSVGElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/JSSVGElementWrapperFactory.h ${WEBCORE_GENERATED_DIR}/SVGElementFactory.cpp ${WEBCORE_GENERATED_DIR}/SVGElementFactory.h ${WEBCORE_GENERATED_DIR}/SVGNames.cpp ${WEBCORE_GENERATED_DIR}/SVGNames.h
-            COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
             COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/svg/svgtags.in --attrs ${OWB_SOURCE_DIR}/WebCore/svg/svgattrs.in --extraDefines \"${SVG_FEATURES}\" --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}
             WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
             DEPENDS ${OWB_SOURCE_DIR}/WebCore/svg/svgtags.in ${OWB_SOURCE_DIR}/WebCore/svg/svgattrs.in
@@ -237,7 +244,6 @@ if(ENABLE_SVG)
     else(SVG_FLAGS)
         add_custom_command(
             OUTPUT ${WEBCORE_GENERATED_DIR}/JSSVGElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/JSSVGElementWrapperFactory.h ${WEBCORE_GENERATED_DIR}/SVGElementFactory.cpp ${WEBCORE_GENERATED_DIR}/SVGElementFactory.h ${WEBCORE_GENERATED_DIR}/SVGNames.cpp ${WEBCORE_GENERATED_DIR}/SVGNames.h
-            COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
             COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/svg/svgtags.in --attrs ${OWB_SOURCE_DIR}/WebCore/svg/svgattrs.in --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}
             WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
             DEPENDS ${OWB_SOURCE_DIR}/WebCore/svg/svgtags.in ${OWB_SOURCE_DIR}/WebCore/svg/svgattrs.in
@@ -246,7 +252,6 @@ if(ENABLE_SVG)
     endif(SVG_FLAGS)
     add_custom_command(
         OUTPUT ${WEBCORE_GENERATED_DIR}/XLinkNames.cpp ${WEBCORE_GENERATED_DIR}/XLinkNames.h
-        COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
         COMMAND ${PERL_EXECUTABLE}
         -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${OWB_SOURCE_DIR}/WebCore/svg/xlinkattrs.in --outputDir ${WEBCORE_GENERATED_DIR}
         WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
@@ -257,31 +262,30 @@ endif(ENABLE_SVG)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/UserAgentStyleSheetsData.cpp ${WEBCORE_GENERATED_DIR}/UserAgentStyleSheets.h
-    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/make-css-file-arrays.pl UserAgentStyleSheets.h UserAgentStyleSheetsData.cpp ${USER_AGENT_STYLE_SHEETS}
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/css/make-css-file-arrays.pl ${USER_AGENT_STYLE_SHEETS}
-    VERBATIM)
+    VERBATIM
+)
 
 add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/xml/XMLNames.cpp ${WEBCORE_GENERATED_DIR}/xml/XMLNames.h
-    COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/xml
     COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${OWB_SOURCE_DIR}/WebCore/xml/xmlattrs.in --output xml
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/xml/xmlattrs.in
-    VERBATIM)
+    VERBATIM
+)
 
 if(ENABLE_WML)
     add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/wml/WMLNames.cpp ${WEBCORE_GENERATED_DIR}/wml/WMLNames.h ${WEBCORE_GENERATED_DIR}/wml/WMLElementFactory.cpp
-        COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/wml
         COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/wml/WMLTagNames.in --attrs ${OWB_SOURCE_DIR}/WebCore/wml/WMLAttributeNames.in --factory --wrapperFactory --output wml
         WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
         DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/wml/WMLTagNames.in ${OWB_SOURCE_DIR}/WebCore/wml/WMLAttributeNames.in
-        VERBATIM)
+        VERBATIM
+	)
 endif(ENABLE_WML)
 
 if(ENABLE_XPATH)
     add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/XPathGrammar.cpp ${WEBCORE_GENERATED_DIR}/XPathGrammar.h
-        COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
         COMMAND ${BISON_EXECUTABLE} -d -p xpathyy ${OWB_SOURCE_DIR}/WebCore/xml/XPathGrammar.y -o XPathGrammar.cpp
         COMMAND touch XPathGrammar.cpp.h XPathGrammar.hpp
         COMMAND echo '\#ifndef XPathGrammar_h' > XPathGrammar.h
@@ -290,7 +294,8 @@ if(ENABLE_XPATH)
         COMMAND echo '\#endif' >> XPathGrammar.h
         COMMAND rm -f XPathGrammar.cpp.h XPathGrammar.hpp
         WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y)
+        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y
+	)
 endif(ENABLE_XPATH)
 
 ##################################################

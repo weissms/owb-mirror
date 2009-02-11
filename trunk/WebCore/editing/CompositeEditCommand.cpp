@@ -51,6 +51,8 @@
 #include "RemoveNodeCommand.h"
 #include "RemoveNodePreservingChildrenCommand.h"
 #include "ReplaceSelectionCommand.h"
+#include "RenderBlock.h"
+#include "RenderText.h"
 #include "SetNodeAttributeCommand.h"
 #include "SplitElementCommand.h"
 #include "SplitTextNodeCommand.h"
@@ -356,7 +358,7 @@ void CompositeEditCommand::removeCSSProperty(PassRefPtr<CSSMutableStyleDeclarati
 
 void CompositeEditCommand::removeNodeAttribute(PassRefPtr<Element> element, const QualifiedName& attribute)
 {
-    setNodeAttribute(element, attribute, AtomicString());;
+    setNodeAttribute(element, attribute, AtomicString());
 }
 
 void CompositeEditCommand::setNodeAttribute(PassRefPtr<Element> element, const QualifiedName& attribute, const AtomicString& value)
@@ -464,7 +466,7 @@ void CompositeEditCommand::deleteInsignificantText(PassRefPtr<Text> textNode, un
     if (!textNode || start >= end)
         return;
 
-    RenderText* textRenderer = static_cast<RenderText*>(textNode->renderer());
+    RenderText* textRenderer = toRenderText(textNode->renderer());
     if (!textRenderer)
         return;
 
@@ -486,12 +488,12 @@ void CompositeEditCommand::deleteInsignificantText(PassRefPtr<Text> textNode, un
     // This loop structure works to process all gaps preceding a box,
     // and also will look at the gap after the last box.
     while (prevBox || box) {
-        unsigned gapStart = prevBox ? prevBox->m_start + prevBox->m_len : 0;
+        unsigned gapStart = prevBox ? prevBox->start() + prevBox->len() : 0;
         if (end < gapStart)
             // No more chance for any intersections
             break;
 
-        unsigned gapEnd = box ? box->m_start : length;
+        unsigned gapEnd = box ? box->start() : length;
         bool indicesIntersect = start <= gapEnd && end >= gapStart;
         int gapLen = gapEnd - gapStart;
         if (indicesIntersect && gapLen > 0) {
@@ -590,7 +592,8 @@ PassRefPtr<Node> CompositeEditCommand::addBlockPlaceholderIfNeeded(Element* cont
     
     // append the placeholder to make sure it follows
     // any unrendered blocks
-    if (renderer->height() == 0 || (renderer->isListItem() && renderer->isEmpty()))
+    RenderBlock* block = toRenderBlock(renderer);
+    if (block->height() == 0 || (block->isListItem() && block->isEmpty()))
         return appendBlockPlaceholder(container);
 
     return 0;

@@ -35,7 +35,7 @@
 #include <wtf/HashSet.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class PlatformWheelEvent;
 class Scrollbar;

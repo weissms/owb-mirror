@@ -5,7 +5,7 @@
  * Copyright (C) 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Alexey Proskuryakov <ap@webkit.org>
  * Copyright (C) 2007, 2008 Eric Seidel <eric@webkit.org>
- * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
+ * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -683,10 +683,10 @@ void CSSStyleSelector::matchRulesForList(CSSRuleDataList* rules, int& firstRuleI
             
             // If we're matching normal rules, set a pseudo bit if 
             // we really just matched a pseudo-element.
-            if (m_dynamicPseudo != RenderStyle::NOPSEUDO && m_checker.m_pseudoStyle == RenderStyle::NOPSEUDO) {
+            if (m_dynamicPseudo != NOPSEUDO && m_checker.m_pseudoStyle == NOPSEUDO) {
                 if (m_checker.m_collectRulesOnly)
                     return;
-                if (m_dynamicPseudo < RenderStyle::FIRST_INTERNAL_PSEUDOID)
+                if (m_dynamicPseudo < FIRST_INTERNAL_PSEUDOID)
                     m_style->setHasPseudoStyle(m_dynamicPseudo);
             } else {
                 // Update our first/last rule indices in the matched rules array.
@@ -701,13 +701,14 @@ void CSSStyleSelector::matchRulesForList(CSSRuleDataList* rules, int& firstRuleI
     }
 }
 
-bool operator >(CSSRuleData& r1, CSSRuleData& r2)
+static bool operator >(CSSRuleData& r1, CSSRuleData& r2)
 {
     int spec1 = r1.selector()->specificity();
     int spec2 = r2.selector()->specificity();
     return (spec1 == spec2) ? r1.position() > r2.position() : spec1 > spec2; 
 }
-bool operator <=(CSSRuleData& r1, CSSRuleData& r2)
+    
+static bool operator <=(CSSRuleData& r1, CSSRuleData& r2)
 {
     return !(r1 > r2);
 }
@@ -752,7 +753,7 @@ void CSSStyleSelector::sortMatchedRules(unsigned start, unsigned end)
     // We have to merge sort.  Ensure our merge buffer is big enough to hold
     // all the items.
     Vector<CSSRuleData*> rulesMergeBuffer;
-    rulesMergeBuffer.reserveCapacity(end - start); 
+    rulesMergeBuffer.reserveInitialCapacity(end - start); 
 
     unsigned i1 = start;
     unsigned i2 = mid;
@@ -786,7 +787,7 @@ void CSSStyleSelector::initElementAndPseudoState(Element* e)
     pseudoState = PseudoUnknown;
 }
 
-void CSSStyleSelector::initForStyleResolve(Element* e, RenderStyle* parentStyle, RenderStyle::PseudoId pseudoID)
+void CSSStyleSelector::initForStyleResolve(Element* e, RenderStyle* parentStyle, PseudoId pseudoID)
 {
     m_checker.m_pseudoStyle = pseudoID;
 
@@ -844,7 +845,7 @@ CSSStyleSelector::SelectorChecker::SelectorChecker(Document* document, bool stri
     : m_document(document)
     , m_strictParsing(strictParsing)
     , m_collectRulesOnly(false)
-    , m_pseudoStyle(RenderStyle::NOPSEUDO)
+    , m_pseudoStyle(NOPSEUDO)
     , m_documentIsHTML(document->isHTMLDocument())
 {
 }
@@ -877,7 +878,7 @@ PseudoState CSSStyleSelector::SelectorChecker::checkPseudoState(Element* element
 bool CSSStyleSelector::SelectorChecker::checkSelector(CSSSelector* sel, Element* element) const
 {
     pseudoState = PseudoUnknown;
-    RenderStyle::PseudoId dynamicPseudo = RenderStyle::NOPSEUDO;
+    PseudoId dynamicPseudo = NOPSEUDO;
 
     return checkSelector(sel, element, 0, dynamicPseudo, true, false) == SelectorMatches;
 }
@@ -932,21 +933,35 @@ bool CSSStyleSelector::canShareStyleWithElement(Node* n)
             (s->hovered() == m_element->hovered()) &&
             (s->active() == m_element->active()) &&
             (s->focused() == m_element->focused()) &&
-            (s != s->document()->getCSSTarget() && m_element != m_element->document()->getCSSTarget()) &&
+            (s != s->document()->cssTarget() && m_element != m_element->document()->cssTarget()) &&
             (s->getAttribute(typeAttr) == m_element->getAttribute(typeAttr)) &&
             (s->getAttribute(XMLNames::langAttr) == m_element->getAttribute(XMLNames::langAttr)) &&
             (s->getAttribute(langAttr) == m_element->getAttribute(langAttr)) &&
             (s->getAttribute(readonlyAttr) == m_element->getAttribute(readonlyAttr)) &&
             (s->getAttribute(cellpaddingAttr) == m_element->getAttribute(cellpaddingAttr))) {
-            bool isControl = s->isControl();
-            if (isControl != m_element->isControl())
+            bool isControl = s->isFormControlElement();
+            if (isControl != m_element->isFormControlElement())
                 return false;
-            if (isControl && (s->isEnabled() != m_element->isEnabled()) ||
-                             (s->isIndeterminate() != m_element->isIndeterminate()) ||
-                             (s->isChecked() != m_element->isChecked()) ||
-                             (s->isAutofilled() != m_element->isAutofilled()))
-                return false;
-            
+            if (isControl) {
+                InputElement* thisInputElement = toInputElement(s);
+                InputElement* otherInputElement = toInputElement(m_element);
+                if (thisInputElement && otherInputElement) {
+                    if ((thisInputElement->isAutofilled() != otherInputElement->isAutofilled()) ||
+                        (thisInputElement->isChecked() != otherInputElement->isChecked()) ||
+                        (thisInputElement->isIndeterminate() != otherInputElement->isIndeterminate()))
+                    return false;
+                } else
+                    return false;
+
+                FormControlElement* thisFormControlElement = toFormControlElement(s);
+                FormControlElement* otherFormControlElement = toFormControlElement(m_element);
+                if (thisFormControlElement && otherFormControlElement) {
+                    if (thisFormControlElement->isEnabled() != otherFormControlElement->isEnabled())
+                        return false;
+                } else
+                    return false;
+            }
+
             if (style->transitions() || style->animations())
                 return false;
 
@@ -1210,7 +1225,7 @@ PassRefPtr<RenderStyle> CSSStyleSelector::styleForElement(Element* e, RenderStyl
         m_style->setPseudoState(pseudoState);
 
     // If we have first-letter pseudo style, do not share this style
-    if (m_style->hasPseudoStyle(RenderStyle::FIRST_LETTER))
+    if (m_style->hasPseudoStyle(FIRST_LETTER))
         m_style->setUnique();
 
     // Now return the style.
@@ -1292,7 +1307,7 @@ void CSSStyleSelector::keyframeStylesForAnimation(Element* e, const RenderStyle*
         list.clear();
 }
 
-PassRefPtr<RenderStyle> CSSStyleSelector::pseudoStyleForElement(RenderStyle::PseudoId pseudo, Element* e, RenderStyle* parentStyle)
+PassRefPtr<RenderStyle> CSSStyleSelector::pseudoStyleForElement(PseudoId pseudo, Element* e, RenderStyle* parentStyle)
 {
     if (!e)
         return 0;
@@ -1525,7 +1540,7 @@ void CSSStyleSelector::adjustRenderStyle(RenderStyle* style, Element *e)
 
     // Important: Intrinsic margins get added to controls before the theme has adjusted the style, since the theme will
     // alter fonts and heights/widths.
-    if (e && e->isControl() && style->fontSize() >= 11) {
+    if (e && e->isFormControlElement() && style->fontSize() >= 11) {
         // Don't apply intrinsic margins to image buttons.  The designer knows how big the images are,
         // so we have to treat all image buttons as though they were explicitly sized.
         if (!e->hasTagName(inputTag) || static_cast<HTMLInputElement*>(e)->inputType() != HTMLInputElement::IMAGE)
@@ -1616,14 +1631,14 @@ PassRefPtr<CSSRuleList> CSSStyleSelector::pseudoStyleRulesForElement(Element*, c
 
 bool CSSStyleSelector::checkSelector(CSSSelector* sel)
 {
-    m_dynamicPseudo = RenderStyle::NOPSEUDO;
+    m_dynamicPseudo = NOPSEUDO;
 
     // Check the selector
     SelectorMatch match = m_checker.checkSelector(sel, m_element, &m_selectorAttrs, m_dynamicPseudo, true, false, style(), m_parentStyle);
     if (match != SelectorMatches)
         return false;
 
-    if (m_checker.m_pseudoStyle != RenderStyle::NOPSEUDO && m_checker.m_pseudoStyle != m_dynamicPseudo)
+    if (m_checker.m_pseudoStyle != NOPSEUDO && m_checker.m_pseudoStyle != m_dynamicPseudo)
         return false;
 
     return true;
@@ -1634,7 +1649,7 @@ bool CSSStyleSelector::checkSelector(CSSSelector* sel)
 // * SelectorMatches         - the selector matches the element e
 // * SelectorFailsLocally    - the selector fails for the element e
 // * SelectorFailsCompletely - the selector fails for e and any sibling or ancestor of e
-CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector(CSSSelector* sel, Element* e, HashSet<AtomicStringImpl*>* selectorAttrs, RenderStyle::PseudoId& dynamicPseudo, bool isAncestor, bool isSubSelector, RenderStyle* elementStyle, RenderStyle* elementParentStyle) const
+CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector(CSSSelector* sel, Element* e, HashSet<AtomicStringImpl*>* selectorAttrs, PseudoId& dynamicPseudo, bool isAncestor, bool isSubSelector, RenderStyle* elementStyle, RenderStyle* elementParentStyle) const
 {
 #if ENABLE(SVG)
     // Spec: CSS2 selectors cannot be applied to the (conceptually) cloned DOM tree
@@ -1657,7 +1672,7 @@ CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector
 
     if (relation != CSSSelector::SubSelector)
         // Bail-out if this selector is irrelevant for the pseudoStyle
-        if (m_pseudoStyle != RenderStyle::NOPSEUDO && m_pseudoStyle != dynamicPseudo)
+        if (m_pseudoStyle != NOPSEUDO && m_pseudoStyle != dynamicPseudo)
             return SelectorFailsCompletely;
 
     switch (relation) {
@@ -1717,8 +1732,8 @@ CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector
             // a selector is invalid if something follows a pseudo-element
             // We make an exception for scrollbar pseudo elements and allow a set of pseudo classes (but nothing else)
             // to follow the pseudo elements.
-            if (elementStyle && dynamicPseudo != RenderStyle::NOPSEUDO && 
-                !((RenderScrollbar::scrollbarForStyleResolve() || dynamicPseudo == RenderStyle::SCROLLBAR_CORNER || dynamicPseudo == RenderStyle::RESIZER) && sel->m_match == CSSSelector::PseudoClass))
+            if (elementStyle && dynamicPseudo != NOPSEUDO && 
+                !((RenderScrollbar::scrollbarForStyleResolve() || dynamicPseudo == SCROLLBAR_CORNER || dynamicPseudo == RESIZER) && sel->m_match == CSSSelector::PseudoClass))
                 return SelectorFailsCompletely;
             return checkSelector(sel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle);
     }
@@ -1793,7 +1808,7 @@ static bool htmlAttributeHasCaseInsensitiveValue(const QualifiedName& attr)
     return isPossibleHTMLAttr && htmlCaseInsensitiveAttributesSet->contains(attr.localName().impl());
 }
 
-bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Element* e, HashSet<AtomicStringImpl*>* selectorAttrs, RenderStyle::PseudoId& dynamicPseudo, bool isAncestor, bool isSubSelector, RenderStyle* elementStyle, RenderStyle* elementParentStyle) const
+bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Element* e, HashSet<AtomicStringImpl*>* selectorAttrs, PseudoId& dynamicPseudo, bool isAncestor, bool isSubSelector, RenderStyle* elementStyle, RenderStyle* elementParentStyle) const
 {
     if (!e)
         return false;
@@ -1896,7 +1911,7 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 if (!checkOneSelector(subSel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle))
                     return true;
             }
-        } else if (dynamicPseudo != RenderStyle::NOPSEUDO && (RenderScrollbar::scrollbarForStyleResolve() || dynamicPseudo == RenderStyle::SCROLLBAR_CORNER || dynamicPseudo == RenderStyle::RESIZER)) {
+        } else if (dynamicPseudo != NOPSEUDO && (RenderScrollbar::scrollbarForStyleResolve() || dynamicPseudo == SCROLLBAR_CORNER || dynamicPseudo == RESIZER)) {
             // CSS scrollbars match a specific subset of pseudo classes, and they have specialized rules for each
             // (since there are no elements involved).
             return checkScrollbarPseudoClass(sel, dynamicPseudo);
@@ -2194,7 +2209,7 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 break;
             }
             case CSSSelector::PseudoTarget:
-                if (e == e->document()->getCSSTarget())
+                if (e == e->document()->cssTarget())
                     return true;
                 break;
             case CSSSelector::PseudoAnyLink:
@@ -2203,10 +2218,13 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 if (pseudoState == PseudoAnyLink || pseudoState == PseudoLink || pseudoState == PseudoVisited)
                     return true;
                 break;
-            case CSSSelector::PseudoAutofill:
-                if (e)
-                    return e->isAutofilled();
+            case CSSSelector::PseudoAutofill: {
+                if (!e || !e->isFormControlElement())
+                    break;
+                if (InputElement* inputElement = toInputElement(e))
+                    return inputElement->isAutofilled();
                 break;
+            }
             case CSSSelector::PseudoLink:
                 if (pseudoState == PseudoUnknown || pseudoState == PseudoAnyLink)
                     pseudoState = checkPseudoState(e);
@@ -2258,37 +2276,62 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 }
                 break;
             case CSSSelector::PseudoEnabled:
-                if (e && e->isControl() && !e->isInputTypeHidden())
+                if (e && e->isFormControlElement()) {
+                    InputElement* inputElement = toInputElement(e);
+                    if (inputElement && inputElement->isInputTypeHidden())
+                        break;
                     // The UI spec states that you can't match :enabled unless you are an object that can
                     // "receive focus and be activated."  We will limit matching of this pseudo-class to elements
                     // that are non-"hidden" controls.
-                    return e->isEnabled();                    
+                    return toFormControlElement(e)->isEnabled();
+                }
                 break;
             case CSSSelector::PseudoFullPageMedia:
                 return e && e->document() && e->document()->isMediaDocument();
                 break;
             case CSSSelector::PseudoDisabled:
-                if (e && e->isControl() && !e->isInputTypeHidden())
+                if (e && e->isFormControlElement()) {
+                    InputElement* inputElement = toInputElement(e);
+                    if (inputElement && inputElement->isInputTypeHidden())
+                        break;
+
                     // The UI spec states that you can't match :enabled unless you are an object that can
                     // "receive focus and be activated."  We will limit matching of this pseudo-class to elements
                     // that are non-"hidden" controls.
-                    return !e->isEnabled();                    
+                    return !toFormControlElement(e)->isEnabled();
+                }
                 break;
-            case CSSSelector::PseudoReadOnly:
-                return e && e->isTextControl() && e->isReadOnlyControl();
-            case CSSSelector::PseudoReadWrite:
-                return e && e->isTextControl() && !e->isReadOnlyControl();
-            case CSSSelector::PseudoChecked:
+            case CSSSelector::PseudoReadOnly: {
+                if (!e || !e->isFormControlElement())
+                    return false;
+                FormControlElement* formControlElement = toFormControlElement(e);
+                return formControlElement->isTextControl() && formControlElement->isReadOnlyControl();
+            }
+            case CSSSelector::PseudoReadWrite: {
+                if (!e || !e->isFormControlElement())
+                    return false;
+                FormControlElement* formControlElement = toFormControlElement(e);
+                return formControlElement->isTextControl() && !formControlElement->isReadOnlyControl();
+            }
+            case CSSSelector::PseudoChecked: {
+                if (!e || !e->isFormControlElement())
+                    break;
                 // Even though WinIE allows checked and indeterminate to co-exist, the CSS selector spec says that
                 // you can't be both checked and indeterminate.  We will behave like WinIE behind the scenes and just
                 // obey the CSS spec here in the test for matching the pseudo.
-                if (e && e->isChecked() && !e->isIndeterminate())
+                InputElement* inputElement = toInputElement(e);
+                if (inputElement && inputElement->isChecked() && !inputElement->isIndeterminate())
                     return true;
                 break;
-            case CSSSelector::PseudoIndeterminate:
-                if (e && e->isIndeterminate())
+            }
+            case CSSSelector::PseudoIndeterminate: {
+                if (!e || !e->isFormControlElement())
+                    break;
+                InputElement* inputElement = toInputElement(e);
+                if (inputElement && inputElement->isIndeterminate())
                     return true;
                 break;
+            }
             case CSSSelector::PseudoRoot:
                 if (e == e->document()->documentElement())
                     return true;
@@ -2332,93 +2375,93 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
         switch (sel->pseudoType()) {
             // Pseudo-elements:
             case CSSSelector::PseudoFirstLine:
-                dynamicPseudo = RenderStyle::FIRST_LINE;
+                dynamicPseudo = FIRST_LINE;
                 return true;
             case CSSSelector::PseudoFirstLetter:
-                dynamicPseudo = RenderStyle::FIRST_LETTER;
+                dynamicPseudo = FIRST_LETTER;
                 if (Document* doc = e->document())
                     doc->setUsesFirstLetterRules(true);
                 return true;
             case CSSSelector::PseudoSelection:
-                dynamicPseudo = RenderStyle::SELECTION;
+                dynamicPseudo = SELECTION;
                 return true;
             case CSSSelector::PseudoBefore:
-                dynamicPseudo = RenderStyle::BEFORE;
+                dynamicPseudo = BEFORE;
                 return true;
             case CSSSelector::PseudoAfter:
-                dynamicPseudo = RenderStyle::AFTER;
+                dynamicPseudo = AFTER;
                 return true;
             case CSSSelector::PseudoFileUploadButton:
-                dynamicPseudo = RenderStyle::FILE_UPLOAD_BUTTON;
+                dynamicPseudo = FILE_UPLOAD_BUTTON;
                 return true;
             case CSSSelector::PseudoInputPlaceholder:
-                dynamicPseudo = RenderStyle::INPUT_PLACEHOLDER;
+                dynamicPseudo = INPUT_PLACEHOLDER;
                 return true;
             case CSSSelector::PseudoSliderThumb:
-                dynamicPseudo = RenderStyle::SLIDER_THUMB;
+                dynamicPseudo = SLIDER_THUMB;
                 return true; 
             case CSSSelector::PseudoSearchCancelButton:
-                dynamicPseudo = RenderStyle::SEARCH_CANCEL_BUTTON;
+                dynamicPseudo = SEARCH_CANCEL_BUTTON;
                 return true; 
             case CSSSelector::PseudoSearchDecoration:
-                dynamicPseudo = RenderStyle::SEARCH_DECORATION;
+                dynamicPseudo = SEARCH_DECORATION;
                 return true;
             case CSSSelector::PseudoSearchResultsDecoration:
-                dynamicPseudo = RenderStyle::SEARCH_RESULTS_DECORATION;
+                dynamicPseudo = SEARCH_RESULTS_DECORATION;
                 return true;
             case CSSSelector::PseudoSearchResultsButton:
-                dynamicPseudo = RenderStyle::SEARCH_RESULTS_BUTTON;
+                dynamicPseudo = SEARCH_RESULTS_BUTTON;
                 return true;
             case CSSSelector::PseudoMediaControlsPanel:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_PANEL;
+                dynamicPseudo = MEDIA_CONTROLS_PANEL;
                 return true;
             case CSSSelector::PseudoMediaControlsMuteButton:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_MUTE_BUTTON;
+                dynamicPseudo = MEDIA_CONTROLS_MUTE_BUTTON;
                 return true;
             case CSSSelector::PseudoMediaControlsPlayButton:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_PLAY_BUTTON;
+                dynamicPseudo = MEDIA_CONTROLS_PLAY_BUTTON;
                 return true;
             case CSSSelector::PseudoMediaControlsTimelineContainer:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_TIMELINE_CONTAINER;
+                dynamicPseudo = MEDIA_CONTROLS_TIMELINE_CONTAINER;
                  return true;
             case CSSSelector::PseudoMediaControlsCurrentTimeDisplay:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_CURRENT_TIME_DISPLAY;
+                dynamicPseudo = MEDIA_CONTROLS_CURRENT_TIME_DISPLAY;
                 return true;
             case CSSSelector::PseudoMediaControlsTimeRemainingDisplay:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_TIME_REMAINING_DISPLAY;
+                dynamicPseudo = MEDIA_CONTROLS_TIME_REMAINING_DISPLAY;
                 return true;
             case CSSSelector::PseudoMediaControlsTimeline:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_TIMELINE;
+                dynamicPseudo = MEDIA_CONTROLS_TIMELINE;
                 return true;
             case CSSSelector::PseudoMediaControlsSeekBackButton:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_SEEK_BACK_BUTTON;
+                dynamicPseudo = MEDIA_CONTROLS_SEEK_BACK_BUTTON;
                 return true;
             case CSSSelector::PseudoMediaControlsSeekForwardButton:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_SEEK_FORWARD_BUTTON;
+                dynamicPseudo = MEDIA_CONTROLS_SEEK_FORWARD_BUTTON;
                 return true;
             case CSSSelector::PseudoMediaControlsFullscreenButton:
-                dynamicPseudo = RenderStyle::MEDIA_CONTROLS_FULLSCREEN_BUTTON;
+                dynamicPseudo = MEDIA_CONTROLS_FULLSCREEN_BUTTON;
                 return true;
             case CSSSelector::PseudoScrollbar:
-                dynamicPseudo = RenderStyle::SCROLLBAR;
+                dynamicPseudo = SCROLLBAR;
                 return true;
             case CSSSelector::PseudoScrollbarButton:
-                dynamicPseudo = RenderStyle::SCROLLBAR_BUTTON;
+                dynamicPseudo = SCROLLBAR_BUTTON;
                 return true;
             case CSSSelector::PseudoScrollbarCorner:
-                dynamicPseudo = RenderStyle::SCROLLBAR_CORNER;
+                dynamicPseudo = SCROLLBAR_CORNER;
                 return true;
             case CSSSelector::PseudoScrollbarThumb:
-                dynamicPseudo = RenderStyle::SCROLLBAR_THUMB;
+                dynamicPseudo = SCROLLBAR_THUMB;
                 return true;
             case CSSSelector::PseudoScrollbarTrack:
-                dynamicPseudo = RenderStyle::SCROLLBAR_TRACK;
+                dynamicPseudo = SCROLLBAR_TRACK;
                 return true;
             case CSSSelector::PseudoScrollbarTrackPiece:
-                dynamicPseudo = RenderStyle::SCROLLBAR_TRACK_PIECE;
+                dynamicPseudo = SCROLLBAR_TRACK_PIECE;
                 return true;
             case CSSSelector::PseudoResizer:
-                dynamicPseudo = RenderStyle::RESIZER;
+                dynamicPseudo = RESIZER;
                 return true;
             case CSSSelector::PseudoUnknown:
             case CSSSelector::PseudoNotParsed:
@@ -2432,7 +2475,7 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
     return true;
 }
 
-bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, RenderStyle::PseudoId&) const
+bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, PseudoId&) const
 {
     RenderScrollbar* scrollbar = RenderScrollbar::scrollbarForStyleResolve();
     ScrollbarPart part = RenderScrollbar::partForStyleResolve();
@@ -3947,7 +3990,7 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
                     break;
                 case CSSPrimitiveValue::CSS_ATTR: {
                     // FIXME: Can a namespace be specified for an attr(foo)?
-                    if (m_style->styleType() == RenderStyle::NOPSEUDO)
+                    if (m_style->styleType() == NOPSEUDO)
                         m_style->setUnique();
                     else
                         m_parentStyle->setUnique();
@@ -4990,9 +5033,6 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyWebkitAnimationName:
         HANDLE_ANIMATION_VALUE(name, Name, value)
         return;
-    case CSSPropertyWebkitAnimationPlayState:
-        HANDLE_ANIMATION_VALUE(playState, PlayState, value)
-        return;
     case CSSPropertyWebkitAnimationTimingFunction:
         HANDLE_ANIMATION_VALUE(timingFunction, TimingFunction, value)
         return;
@@ -5345,17 +5385,6 @@ void CSSStyleSelector::mapAnimationName(Animation* layer, CSSValue* value)
         layer->setIsNoneAnimation(true);
     else
         layer->setName(primitiveValue->getStringValue());
-}
-
-void CSSStyleSelector::mapAnimationPlayState(Animation* layer, CSSValue* value)
-{
-    if (value->cssValueType() == CSSValue::CSS_INITIAL) {
-        layer->setPlayState(Animation::initialAnimationPlayState());
-        return;
-    }
-
-    CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
-    layer->setPlayState((primitiveValue->getIdent() == CSSValuePaused) ? AnimPlayStatePaused : AnimPlayStatePlaying);
 }
 
 void CSSStyleSelector::mapAnimationProperty(Animation* animation, CSSValue* value)
@@ -5761,7 +5790,7 @@ void CSSStyleSelector::SelectorChecker::visitedStateChanged(LinkHash visitedHash
     }
 }
 
-TransformOperation::OperationType getTransformOperationType(WebKitCSSTransformValue::TransformOperationType type)
+static TransformOperation::OperationType getTransformOperationType(WebKitCSSTransformValue::TransformOperationType type)
 {
     switch (type) {
         case WebKitCSSTransformValue::ScaleTransformOperation:          return TransformOperation::SCALE;

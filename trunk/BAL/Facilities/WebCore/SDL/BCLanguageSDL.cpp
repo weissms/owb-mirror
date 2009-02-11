@@ -33,7 +33,7 @@
 #include "PlatformString.h"
 
 
-namespace OWBAL {
+namespace WebCore {
 
 String defaultLanguage()
 {

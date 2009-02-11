@@ -123,7 +123,9 @@ String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String &ch
 float userIdleTime() { notImplemented(); return FLT_MAX; } // return an arbitrarily high userIdleTime so that releasing pages from the page cache isn't postponed
 #endif
 
+#if !USE(CURL)
 void prefetchDNS(const String& hostname) { notImplemented(); }
+#endif
 
 }
 

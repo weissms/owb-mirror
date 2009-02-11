@@ -36,7 +36,7 @@
 #include "Widget.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 int screenDepth(Widget* widget)
 {

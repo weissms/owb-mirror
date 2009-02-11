@@ -33,10 +33,10 @@ This file contains the list of files needed to build WebCore.
 
 <makefile>
     <set append="1" var="WEBCORE_SOURCES_JS">
-        bindings/js/DOMTimer.cpp
         bindings/js/GCController.cpp
         bindings/js/JSAttrCustom.cpp
         bindings/js/JSAudioConstructor.cpp
+        bindings/js/JSCDATASectionCustom.cpp
         bindings/js/JSCanvasRenderingContext2DCustom.cpp
         bindings/js/JSClipboardCustom.cpp
         bindings/js/JSConsoleCustom.cpp
@@ -63,7 +63,6 @@ This file contains the list of files needed to build WebCore.
         bindings/js/JSElementCustom.cpp
         bindings/js/JSEventCustom.cpp
         bindings/js/JSEventTarget.cpp
-        bindings/js/JSEventTargetNodeCustom.cpp
         bindings/js/JSGeolocationCustom.cpp
         bindings/js/JSHTMLAllCollection.cpp
         bindings/js/JSHistoryCustom.cpp
@@ -108,6 +107,7 @@ This file contains the list of files needed to build WebCore.
         bindings/js/JSStorageCustom.cpp
         bindings/js/JSStyleSheetCustom.cpp
         bindings/js/JSStyleSheetListCustom.cpp
+        bindings/js/JSTextCustom.cpp
         bindings/js/JSTreeWalkerCustom.cpp
         bindings/js/JSXMLHttpRequestConstructor.cpp
         bindings/js/JSXMLHttpRequestCustom.cpp
@@ -117,7 +117,7 @@ This file contains the list of files needed to build WebCore.
         bindings/js/JSDOMBinding.cpp
         bindings/js/JSEventListener.cpp
         bindings/js/JSPluginElementFunctions.cpp
-        bindings/js/ScriptCachedPageData.cpp
+        bindings/js/ScriptCachedFrameData.cpp
         bindings/js/ScriptCallFrame.cpp
         bindings/js/ScriptCallStack.cpp
         bindings/js/ScriptController.cpp
@@ -127,11 +127,12 @@ This file contains the list of files needed to build WebCore.
     </set>
 
     <set append="1" var="WEBCORE_SOURCES_BRIDGE">
+        bridge/IdentifierRep.cpp
+        bridge/NP_jsobject.cpp
         bridge/c/c_class.cpp
         bridge/c/c_instance.cpp
         bridge/c/c_runtime.cpp
         bridge/c/c_utility.cpp
-        bridge/NP_jsobject.cpp
         bridge/npruntime.cpp
         bridge/runtime.cpp
         bridge/runtime_array.cpp
@@ -247,7 +248,6 @@ This file contains the list of files needed to build WebCore.
         DerivedSources/WebCore/JSEntityReference.cpp
         DerivedSources/WebCore/JSEvent.cpp
         DerivedSources/WebCore/JSEventException.cpp
-        DerivedSources/WebCore/JSEventTargetNode.cpp
         DerivedSources/WebCore/JSFile.cpp
         DerivedSources/WebCore/JSFileList.cpp
         DerivedSources/WebCore/JSGeolocation.cpp
@@ -396,6 +396,7 @@ This file contains the list of files needed to build WebCore.
         dom/ClipboardEvent.cpp
         dom/Comment.cpp
         dom/ContainerNode.cpp
+        dom/CrossThreadCopier.cpp
         dom/DOMImplementation.cpp
         dom/DOMStringList.cpp
         dom/Document.cpp
@@ -409,9 +410,9 @@ This file contains the list of files needed to build WebCore.
         dom/Event.cpp
         dom/EventNames.cpp
         dom/EventTarget.cpp
-        dom/EventTargetNode.cpp
         dom/ExceptionBase.cpp
         dom/ExceptionCode.cpp
+        dom/FormControlElementWithState.cpp
         dom/FormControlElement.cpp
         dom/InputElement.cpp
         dom/KeyboardEvent.cpp
@@ -430,6 +431,8 @@ This file contains the list of files needed to build WebCore.
         dom/NodeFilterCondition.cpp
         dom/NodeIterator.cpp
         dom/Notation.cpp
+        dom/OptionGroupElement.cpp
+        dom/OptionElement.cpp
         dom/OverflowEvent.cpp
         dom/Position.cpp
         dom/PositionIterator.cpp
@@ -487,7 +490,6 @@ This file contains the list of files needed to build WebCore.
         editing/MoveSelectionCommand.cpp
         editing/RemoveCSSPropertyCommand.cpp
         editing/RemoveFormatCommand.cpp
-        editing/RemoveNodeAttributeCommand.cpp
         editing/RemoveNodeCommand.cpp
         editing/RemoveNodePreservingChildrenCommand.cpp
         editing/ReplaceSelectionCommand.cpp
@@ -511,6 +513,7 @@ This file contains the list of files needed to build WebCore.
     
     <set append="1" var="WEBCORE_SOURCES_HISTORY">
         history/BackForwardList.cpp
+        history/CachedFrame.cpp
         history/CachedPage.cpp
         history/PageCache.cpp
         history/HistoryItem.cpp
@@ -519,6 +522,7 @@ This file contains the list of files needed to build WebCore.
     <set append="1" var="WEBCORE_SOURCES_HTML">
         html/CanvasGradient.cpp
         html/CanvasPattern.cpp
+        html/CanvasPixelArray.cpp
         html/CanvasRenderingContext2D.cpp
         html/CanvasStyle.cpp
         html/File.cpp
@@ -632,9 +636,9 @@ This file contains the list of files needed to build WebCore.
         loader/CachedXSLStyleSheet.cpp
         loader/DocLoader.cpp
         loader/DocumentLoader.cpp
+        loader/DocumentThreadableLoader.cpp
         loader/FormState.cpp
         loader/FrameLoader.cpp
-        loader/FrameLoaderClient.cpp
         loader/FTPDirectoryDocument.cpp
         loader/FTPDirectoryParser.cpp
         loader/ImageDocument.cpp
@@ -650,6 +654,8 @@ This file contains the list of files needed to build WebCore.
         loader/SubresourceLoader.cpp
         loader/TextDocument.cpp
         loader/TextResourceDecoder.cpp
+        loader/ThreadableLoader.cpp
+        loader/WorkerThreadableLoader.cpp
         loader/loader.cpp
     </set>
     
@@ -683,6 +689,7 @@ This file contains the list of files needed to build WebCore.
         page/Console.cpp
         page/ContextMenuController.cpp
         page/DOMSelection.cpp
+        page/DOMTimer.cpp
         page/DOMWindow.cpp
         page/DragController.cpp
         page/EventHandler.cpp
@@ -755,6 +762,7 @@ This file contains the list of files needed to build WebCore.
         platform/text/TextEncodingRegistry.cpp
         platform/text/TextStream.cpp
         platform/ThreadGlobalData.cpp
+        platform/ThreadTimers.cpp
         platform/Timer.cpp
         platform/Widget.cpp
         platform/graphics/BitmapImage.cpp
@@ -782,6 +790,7 @@ This file contains the list of files needed to build WebCore.
         platform/graphics/transforms/TranslateTransformOperation.cpp
         platform/network/AuthenticationChallengeBase.cpp
         platform/network/Credential.cpp
+        platform/network/HTTPHeaderMap.cpp
         platform/network/HTTPParsers.cpp
         platform/network/FormData.cpp
         platform/network/FormDataBuilder.cpp
@@ -872,13 +881,12 @@ This file contains the list of files needed to build WebCore.
         rendering/RenderBR.cpp
         rendering/RenderBlock.cpp
         rendering/RenderBox.cpp
+        rendering/RenderBoxModelObject.cpp
         rendering/RenderButton.cpp
-        rendering/RenderContainer.cpp
         rendering/RenderCounter.cpp
         rendering/RenderFieldset.cpp
         rendering/RenderFileUploadControl.cpp
         rendering/RenderFlexibleBox.cpp
-        rendering/RenderFlow.cpp
         rendering/RenderFrame.cpp
         rendering/RenderFrameSet.cpp
         rendering/RenderHTMLCanvas.cpp
@@ -887,12 +895,14 @@ This file contains the list of files needed to build WebCore.
         rendering/RenderInline.cpp
         rendering/RenderLayer.cpp
         rendering/RenderLegend.cpp
+        rendering/RenderLineBoxList.cpp
         rendering/RenderListBox.cpp
         rendering/RenderListItem.cpp
         rendering/RenderListMarker.cpp
         rendering/RenderMarquee.cpp
         rendering/RenderMenuList.cpp
         rendering/RenderObject.cpp
+        rendering/RenderObjectChildList.cpp
         rendering/RenderPart.cpp
         rendering/RenderPartObject.cpp
         rendering/RenderReplaced.cpp

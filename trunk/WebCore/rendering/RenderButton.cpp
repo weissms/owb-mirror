@@ -69,7 +69,7 @@ void RenderButton::removeChild(RenderObject* oldChild)
         m_inner->removeChild(oldChild);
 }
 
-void RenderButton::styleWillChange(RenderStyle::Diff diff, const RenderStyle* newStyle)
+void RenderButton::styleWillChange(StyleDifference diff, const RenderStyle* newStyle)
 {
     if (m_inner) {
         // RenderBlock::setStyle is going to apply a new style to the inner block, which
@@ -81,7 +81,7 @@ void RenderButton::styleWillChange(RenderStyle::Diff diff, const RenderStyle* ne
     RenderBlock::styleWillChange(diff, newStyle);
 }
 
-void RenderButton::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderButton::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderBlock::styleDidChange(diff, oldStyle);
 
@@ -161,18 +161,18 @@ void RenderButton::setText(const String& str)
     }
 }
 
-void RenderButton::updateBeforeAfterContent(RenderStyle::PseudoId type)
+void RenderButton::updateBeforeAfterContent(PseudoId type)
 {
     if (m_inner)
-        m_inner->updateBeforeAfterContentForContainer(type, this);
+        m_inner->children()->updateBeforeAfterContent(m_inner, type, this);
     else
-        updateBeforeAfterContentForContainer(type, this);
+        children()->updateBeforeAfterContent(this, type);
 }
 
 IntRect RenderButton::controlClipRect(int tx, int ty) const
 {
     // Clip to the padding box to at least give content the extra padding space.
-    return IntRect(tx + borderLeft(), ty + borderTop(), m_width - borderLeft() - borderRight(), m_height - borderTop() - borderBottom());
+    return IntRect(tx + borderLeft(), ty + borderTop(), width() - borderLeft() - borderRight(), height() - borderTop() - borderBottom());
 }
 
 void RenderButton::timerFired(Timer<RenderButton>*)

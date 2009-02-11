@@ -33,12 +33,12 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
     class Image;
     class IntPoint;
 
-    class Cursor : public WKALBase {
+    class Cursor {
     public:
         Cursor()
         { }

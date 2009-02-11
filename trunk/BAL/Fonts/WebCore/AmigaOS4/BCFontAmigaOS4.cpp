@@ -35,7 +35,7 @@
 #include <proto/diskfont.h>
 #include <diskfont/diskfonttag.h>
 
-namespace WKAL {
+namespace WebCore {
 
 #define IS_HIGH_SURROGATE(u)  ((UChar)(u) >= (UChar)0xd800 && (UChar)(u) <= (UChar)0xdbff)
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
@@ -67,16 +67,10 @@ FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& 
     return FloatRect();
 }
 
-void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
-                      int from, int numGlyphs, const FloatPoint& point) const
+static void drawglyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
+                      int from, int numGlyphs, const FloatPoint& point, float height, float ascent,
+                      uint32 penalpha, uint32 penr, uint32 peng, uint32 penb, int shadowx, int shadowy)
 {
-    // Set the text color to use for drawing.
-    Color penColor = context->fillColor();
-    uint32 penalpha = penColor.alpha();
-    uint32 penr = penColor.red();
-    uint32 peng = penColor.green();
-    uint32 penb = penColor.blue();
-
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
     struct OutlineFont *face = font->m_font.m_face;
     uint32 ysize = font->m_font.m_size;
@@ -97,7 +91,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     imagewidth += 2 * (ysize * amigaConfig.fontXDPI / 72);
 
-    Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(imagewidth * height());
+    Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(imagewidth * height);
     if (!glyphRGBABuffer)
         return;
 
@@ -194,7 +188,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                 imgoffsetx = 0;
         }
 
-        int32 imgoffsety = ascent() - y0 + top;
+        int32 imgoffsety = ascent - y0 + top;
 
         if (imgoffsety < 0)
             imgoffsety = 0;
@@ -206,8 +200,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
             width = signedwidth;
         }
 
-        if (imgoffsety + gheight > (int)height())
-            gheight = height() - imgoffsety;
+        if (imgoffsety + gheight > (int)height)
+            gheight = height - imgoffsety;
 
         for (int32 y = 0; y < gheight ; y++) {
             uint32 top_mod_left = (y + top) * modulo + left;
@@ -229,17 +223,45 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
         IDiskfont->EReleaseInfo(&curface->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
     }
 
-    cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *)glyphRGBABuffer->data(), CAIRO_FORMAT_ARGB32, imagewidth, height(), imagewidth * 4);
+    cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *)glyphRGBABuffer->data(), CAIRO_FORMAT_ARGB32, imagewidth, height, imagewidth * 4);
     if (surface) {
         cairo_t* cr = context->platformContext();
 
-        cairo_set_source_surface(cr, surface, point.x() - shiftleft, point.y() - ascent());
+        cairo_set_source_surface(cr, surface, point.x() - shiftleft + shadowx, point.y() - ascent + shadowy);
         cairo_paint(cr);
 
         cairo_surface_destroy(surface);
     }
 
     delete glyphRGBABuffer;
+}
+
+void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
+                      int from, int numGlyphs, const FloatPoint& point) const
+{
+    // Set the text color to use for drawing.
+    Color penColor = context->fillColor();
+    uint32 penalpha = penColor.alpha();
+    uint32 penr = penColor.red();
+    uint32 peng = penColor.green();
+    uint32 penb = penColor.blue();
+
+    IntSize shadowSize;
+    int shadowBlur = 0;
+    Color shadowColor;
+    bool hasShadow = context->textDrawingMode() == cTextFill &&
+        context->getShadow(shadowSize, shadowBlur, shadowColor);
+
+    if (hasShadow) {
+        uint32 shadowalpha = shadowColor.alpha() * penColor.alpha() / 255;
+        uint32 shadowr = shadowColor.red();
+        uint32 shadowg = shadowColor.green();
+        uint32 shadowb = shadowColor.blue();
+
+        drawglyphs(context, font, glyphBuffer, from, numGlyphs, point, height(), ascent(), shadowalpha, shadowr, shadowg, shadowb, shadowSize.width(), shadowSize.height());
+    }
+
+    drawglyphs(context, font, glyphBuffer, from, numGlyphs, point, height(), ascent(), penalpha, penr, peng, penb, 0, 0);
 }
 
 }

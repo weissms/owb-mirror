@@ -33,9 +33,9 @@
 #include "BALBase.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
-class GraphicsContextPlatformPrivate : public WKALBase {
+class GraphicsContextPlatformPrivate {
 public:
     GraphicsContextPlatformPrivate()
     : surface(0)

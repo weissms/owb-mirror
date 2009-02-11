@@ -3,8 +3,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/BAL/Base
     ${CMAKE_SOURCE_DIR}/BAL/Base/wtf
-    ${CMAKE_BINARY_DIR}/generated_link/OWBAL
-    ${CMAKE_BINARY_DIR}/generated_link/WKAL
+    ${CMAKE_BINARY_DIR}/generated_link/BAL
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore

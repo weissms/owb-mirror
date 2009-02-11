@@ -42,7 +42,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 /* FIXME: we must get rid of this and use the enum in webkitwebview.h someway */
 typedef enum

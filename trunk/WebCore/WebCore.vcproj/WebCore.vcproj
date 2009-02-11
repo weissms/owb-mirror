@@ -2671,6 +2671,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\page\DOMTimer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\page\DOMTimer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\page\DOMWindow.cpp"
 				>
 			</File>
@@ -2979,6 +2987,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\loader\DocumentThreadableLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\DocumentThreadableLoader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\loader\FormState.cpp"
 				>
 			</File>
@@ -3120,6 +3136,26 @@
 			</File>
 			<File
 				RelativePath="..\loader\TextResourceDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\ThreadableLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\ThreadableLoader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\ThreadableLoaderClient.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\WorkerThreadableLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\WorkerThreadableLoader.h"
 				>
 			</File>
 			<Filter
@@ -3400,6 +3436,14 @@
 			</File>
 			<File
 				RelativePath="..\platform\ThreadGlobalData.h"
+				>
+			</File>
+			<File
+				RelativePath="..\platform\ThreadTimers.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\platform\ThreadTimers.h"
 				>
 			</File>
 			<File
@@ -4142,6 +4186,10 @@
 				</File>
 				<File
 					RelativePath="..\platform\network\FormDataBuilder.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\HTTPHeaderMap.cpp"
 					>
 				</File>
 				<File
@@ -5709,6 +5757,14 @@
 				RelativePath="..\rendering\RenderBox.h"
 				>
 			</File>
+                        <File
+				RelativePath="..\rendering\RenderBoxModelObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderBoxModelObject.h"
+				>
+			</File>
 			<File
 				RelativePath="..\rendering\RenderBR.cpp"
 				>
@@ -5723,14 +5779,6 @@
 			</File>
 			<File
 				RelativePath="..\rendering\RenderButton.h"
-				>
-			</File>
-			<File
-				RelativePath="..\rendering\RenderContainer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\rendering\RenderContainer.h"
 				>
 			</File>
 			<File
@@ -5838,6 +5886,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderLineBoxList.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderLineBoxList.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderListBox.cpp"
 				>
 			</File>
@@ -5915,6 +5979,10 @@
 			</File>
 			<File
 				RelativePath="..\rendering\RenderReplaced.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSelectionInfo.h"
 				>
 			</File>
 			<File
@@ -6613,6 +6681,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\CrossThreadCopier.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\CrossThreadCopier.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\CSSMappedAttributeDeclaration.cpp"
 				>
 			</File>
@@ -6793,6 +6877,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\FormControlElementWithState.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\FormControlElementWithState.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\GenericWorkerTask.h"
 				>
 			</File>
@@ -6930,6 +7030,38 @@
 			</File>
 			<File
 				RelativePath="..\dom\Notation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\OptionElement.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\OptionElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\OptionGroupElement.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\OptionGroupElement.h"
 				>
 			</File>
 			<File
@@ -7365,14 +7497,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\editing\RemoveNodeAttributeCommand.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\editing\RemoveNodeAttributeCommand.h"
-				>
-			</File>
-			<File
 				RelativePath="..\editing\RemoveNodeCommand.cpp"
 				>
 			</File>
@@ -7535,6 +7659,22 @@
 			<File
 				RelativePath="..\html\CanvasPixelArray.cpp"
 				>
+			</File>
+			<File
+				RelativePath="..\html\CanvasPixelArray.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\CanvasPixelArray.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\html\CanvasPixelArray.h"
@@ -9930,6 +10070,18 @@
 			</File>
 			<File
 				RelativePath="..\history\BackForwardList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\history\CachedFrame.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\history\CachedFrame.h"
+				>
+			</File>
+			<File
+				RelativePath="..\history\CachedFramePlatformData.h"
 				>
 			</File>
 			<File

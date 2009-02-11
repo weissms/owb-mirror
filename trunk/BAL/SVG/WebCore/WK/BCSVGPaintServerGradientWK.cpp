@@ -49,7 +49,7 @@ using namespace std;
 
 namespace WebCore {
 
-TextStream& operator<<(TextStream& ts, GradientSpreadMethod m)
+static TextStream& operator<<(TextStream& ts, GradientSpreadMethod m)
 {
     switch (m) {
         case SpreadMethodPad:
@@ -63,7 +63,7 @@ TextStream& operator<<(TextStream& ts, GradientSpreadMethod m)
     return ts;
 }
 
-TextStream& operator<<(TextStream& ts, const Vector<SVGGradientStop>& l)
+static TextStream& operator<<(TextStream& ts, const Vector<SVGGradientStop>& l)
 {
     ts << "[";
     for (Vector<SVGGradientStop>::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -76,8 +76,7 @@ TextStream& operator<<(TextStream& ts, const Vector<SVGGradientStop>& l)
 }
 
 SVGPaintServerGradient::SVGPaintServerGradient(const SVGGradientElement* owner)
-    : m_spreadMethod(SpreadMethodPad)
-    , m_boundingBoxMode(true)
+    : m_boundingBoxMode(true)
     , m_ownerElement(owner)
 
 #if PLATFORM(CG)
@@ -100,16 +99,6 @@ Gradient* SVGPaintServerGradient::gradient() const
 void SVGPaintServerGradient::setGradient(PassRefPtr<Gradient> gradient)
 {
     m_gradient = gradient;
-}
-
-GradientSpreadMethod SVGPaintServerGradient::spreadMethod() const
-{
-    return m_spreadMethod;
-}
-
-void SVGPaintServerGradient::setGradientSpreadMethod(const GradientSpreadMethod& method)
-{
-    m_spreadMethod = method;
 }
 
 bool SVGPaintServerGradient::boundingBoxMode() const
@@ -252,20 +241,8 @@ bool SVGPaintServerGradient::setup(GraphicsContext*& context, const RenderObject
         context->setStrokeThickness(strokeThickness);
     }
     context->concatCTM(gradientTransform());
-    context->setSpreadMethod(spreadMethod());
 
     return true;
-}
-
-void SVGPaintServerGradient::renderPath(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
-{
-    const SVGRenderStyle* style = path->style()->svgStyle();
-
-    if ((type & ApplyToFillTargetType) && style->hasFill())
-        context->fillPath();
-
-    if ((type & ApplyToStrokeTargetType) && style->hasStroke())
-        context->strokePath();
 }
 
 void SVGPaintServerGradient::teardown(GraphicsContext*& context, const RenderObject* object, SVGPaintTargetType, bool isPaintingText) const
@@ -295,8 +272,8 @@ TextStream& SVGPaintServerGradient::externalRepresentation(TextStream& ts) const
 
     // abstract, don't stream type
     ts  << "[stops=" << gradientStops() << "]";
-    if (spreadMethod() != SpreadMethodPad)
-        ts << "[method=" << spreadMethod() << "]";
+    if (m_gradient->spreadMethod() != SpreadMethodPad)
+        ts << "[method=" << m_gradient->spreadMethod() << "]";
     if (!boundingBoxMode())
         ts << " [bounding box mode=" << boundingBoxMode() << "]";
     if (!gradientTransform().isIdentity())

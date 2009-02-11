@@ -32,9 +32,6 @@
 #include "CSSStyleSelector.h"
 #include "CString.h"
 #include "Chrome.h"
-#if ENABLE(INSPECTOR)
-#include "Console.h"
-#endif
 #include "DOMSelection.h"
 #include "Document.h"
 #include "Element.h"
@@ -74,6 +71,11 @@
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
 #include "DOMApplicationCache.h"
+#endif
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#include "InspectorController.h"
 #endif
 
 using std::min;
@@ -333,6 +335,8 @@ Storage* DOMWindow::sessionStorage() const
         return 0;
 
     RefPtr<StorageArea> storageArea = page->sessionStorage()->storageArea(document->securityOrigin());
+    page->inspectorController()->didUseDOMStorage(storageArea.get(), false, m_frame);
+
     m_sessionStorage = Storage::create(m_frame, storageArea.release());
     return m_sessionStorage.get();
 }
@@ -353,8 +357,10 @@ Storage* DOMWindow::localStorage() const
 
     LocalStorage* localStorage = page->group().localStorage();
     RefPtr<StorageArea> storageArea = localStorage ? localStorage->storageArea(document->securityOrigin()) : 0; 
-    if (storageArea)
+    if (storageArea) {
+        page->inspectorController()->didUseDOMStorage(storageArea.get(), true, m_frame);
         m_localStorage = Storage::create(m_frame, storageArea.release());
+    }
 
     return m_localStorage.get();
 }
@@ -369,7 +375,7 @@ void DOMWindow::postMessage(const String& message, MessagePort* messagePort, con
     // to generate the SYNTAX_ERR exception correctly.
     RefPtr<SecurityOrigin> target;
     if (targetOrigin != "*") {
-        target = SecurityOrigin::create(KURL(targetOrigin));
+        target = SecurityOrigin::createFromString(targetOrigin);
         if (target->isEmpty()) {
             ec = SYNTAX_ERR;
             return;
@@ -457,7 +463,20 @@ void DOMWindow::close()
     if (!m_frame)
         return;
 
-    if (m_frame->loader()->openedByDOM() || m_frame->loader()->getHistoryLength() <= 1)
+    Page* page = m_frame->page();
+    if (!page)
+        return;
+
+    if (m_frame != page->mainFrame())
+        return;
+
+    Settings* settings = m_frame->settings();
+    bool allowScriptsToCloseWindows =
+        settings && settings->allowScriptsToCloseWindows();
+
+    if (m_frame->loader()->openedByDOM()
+        || m_frame->loader()->getHistoryLength() <= 1
+        || allowScriptsToCloseWindows)
         m_frame->scheduleClose();
 }
 

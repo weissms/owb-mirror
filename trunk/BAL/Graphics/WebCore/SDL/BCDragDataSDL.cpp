@@ -32,7 +32,7 @@
 #include "Document.h"
 #include "DocumentFragment.h"
 
-namespace WKAL {
+namespace WebCore {
 
 bool DragData::canSmartReplace() const
 {

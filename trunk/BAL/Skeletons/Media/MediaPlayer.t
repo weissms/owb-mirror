@@ -44,7 +44,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class FrameView;
 class GraphicsContext;
@@ -53,7 +53,7 @@ class MediaPlayer;
 class MediaPlayerPrivate;
 class String;
 
-class MediaPlayerClient : public OWBALBase {
+class MediaPlayerClient : public WebCoreBase {
 public:
     /**
      * MediaPlayerClient destructor
@@ -106,7 +106,7 @@ public:
     virtual void mediaPlayerRepaint(MediaPlayer*) ;
 };
 
-class MediaPlayer : public OWBALBase, Noncopyable {
+class MediaPlayer : public WebCoreBase, Noncopyable {
 public:
     /**
      * MediaPlayer constructor

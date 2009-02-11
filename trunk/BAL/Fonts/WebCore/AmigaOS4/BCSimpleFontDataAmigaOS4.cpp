@@ -43,7 +43,7 @@
 #include <diskfont/diskfonttag.h>
 #include <diskfont/oterrors.h>
 
-namespace WKAL {
+namespace WebCore {
 
 void SimpleFontData::platformInit()
 {

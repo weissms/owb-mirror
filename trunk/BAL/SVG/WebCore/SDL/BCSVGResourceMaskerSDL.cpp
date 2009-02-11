@@ -34,7 +34,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 void SVGResourceMasker::applyMask(GraphicsContext* context, const FloatRect& boundingBox)
 {

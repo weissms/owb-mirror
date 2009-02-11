@@ -35,6 +35,7 @@
 #include "EventNames.h"
 #include "ExceptionCode.h"
 #include "FocusController.h"
+#include "FloatQuad.h"
 #include "Frame.h"
 #include "FrameTree.h"
 #include "FrameView.h"
@@ -111,9 +112,16 @@ void SelectionController::setSelection(const Selection& s, bool closeTyping, boo
         m_sel = s;
         return;
     }
+
+    Node* baseNode = s.base().node();
+    Document* document = 0;
+    if (baseNode)
+        document = baseNode->document();
     
-    if (s.base().node() && s.base().node()->document() != m_frame->document()) {
-        s.base().node()->document()->frame()->selection()->setSelection(s, closeTyping, clearTypingStyle, userTriggered);
+    // <http://bugs.webkit.org/show_bug.cgi?id=23464>: Infinite recursion at SelectionController::setSelection
+    // if document->frame() == m_frame we can get into an infinite loop
+    if (document && document->frame() != m_frame && document != m_frame->document()) {
+        document->frame()->selection()->setSelection(s, closeTyping, clearTypingStyle, userTriggered);
         return;
     }
     
@@ -207,7 +215,7 @@ void SelectionController::nodeWillBeRemoved(Node *node)
     if (clearRenderTreeSelection) {
         RefPtr<Document> document = m_sel.start().node()->document();
         document->updateRendering();
-        if (RenderView* view = static_cast<RenderView*>(document->renderer()))
+        if (RenderView* view = toRenderView(document->renderer()))
             view->clearSelection();
     }
 
@@ -845,9 +853,10 @@ bool SelectionController::recomputeCaretRect()
     if (oldAbsRepaintRect == m_absCaretBounds)
         return false;
     
-    if (RenderView* view = static_cast<RenderView*>(m_frame->document()->renderer())) {
-        view->repaintViewRectangle(oldAbsRepaintRect, false);
-        view->repaintViewRectangle(m_absCaretBounds, false);
+    if (RenderView* view = toRenderView(m_frame->document()->renderer())) {
+        // FIXME: make caret repainting container-aware.
+        view->repaintRectangleInViewAndCompositedLayers(oldAbsRepaintRect, false);
+        view->repaintRectangleInViewAndCompositedLayers(m_absCaretBounds, false);
     }
 
     return true;
@@ -878,8 +887,8 @@ void SelectionController::invalidateCaretRect()
     m_needsLayout = true;
 
     if (!caretRectChanged) {
-        if (RenderView* view = static_cast<RenderView*>(d->renderer()))
-            view->repaintViewRectangle(caretRepaintRect(), false);
+        if (RenderView* view = toRenderView(d->renderer()))
+            view->repaintRectangleInViewAndCompositedLayers(caretRepaintRect(), false);
     }
 }
 
@@ -911,7 +920,7 @@ void SelectionController::debugRenderer(RenderObject *r, bool selected) const
         fprintf(stderr, "%s%s\n", selected ? "==> " : "    ", element->localName().string().utf8().data());
     }
     else if (r->isText()) {
-        RenderText* textRenderer = static_cast<RenderText*>(r);
+        RenderText* textRenderer = toRenderText(r);
         if (textRenderer->textLength() == 0 || !textRenderer->firstTextBox()) {
             fprintf(stderr, "%s#text (empty)\n", selected ? "==> " : "    ");
             return;
@@ -929,7 +938,7 @@ void SelectionController::debugRenderer(RenderObject *r, bool selected) const
                 
             int pos;
             InlineTextBox *box = textRenderer->findNextInlineTextBox(offset, pos);
-            text = text.substring(box->m_start, box->m_len);
+            text = text.substring(box->start(), box->len());
             
             String show;
             int mid = max / 2;
@@ -987,9 +996,10 @@ bool SelectionController::contains(const IntPoint& point)
     if (!document->renderer()) 
         return false;
     
-    HitTestRequest request(true, true);
+    HitTestRequest request(HitTestRequest::ReadOnly |
+                           HitTestRequest::Active);
     HitTestResult result(point);
-    document->renderer()->layer()->hitTest(request, result);
+    document->renderView()->layer()->hitTest(request, result);
     Node* innerNode = result.innerNode();
     if (!innerNode || !innerNode->renderer())
         return false;
@@ -1158,8 +1168,8 @@ void SelectionController::focusedOrActiveStateChanged()
     // Because RenderObject::selectionBackgroundColor() and
     // RenderObject::selectionForegroundColor() check if the frame is active,
     // we have to update places those colors were painted.
-    if (RenderView* view = static_cast<RenderView*>(m_frame->document()->renderer()))
-        view->repaintViewRectangle(enclosingIntRect(m_frame->selectionBounds()));
+    if (RenderView* view = toRenderView(m_frame->document()->renderer()))
+        view->repaintRectangleInViewAndCompositedLayers(enclosingIntRect(m_frame->selectionBounds()));
 
     // Caret appears in the active frame.
     if (activeAndFocused)

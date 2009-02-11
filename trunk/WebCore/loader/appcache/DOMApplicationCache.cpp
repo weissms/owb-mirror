@@ -92,7 +92,7 @@ void DOMApplicationCache::update(ExceptionCode& ec)
         return;
     }
     
-    cache->group()->update(m_frame);
+    cache->group()->update(m_frame, ApplicationCacheUpdateWithoutBrowsingContext);
 }
 
 bool DOMApplicationCache::swapCache()
@@ -132,7 +132,7 @@ PassRefPtr<DOMStringList> DOMApplicationCache::items()
     Vector<String> result;
     if (ApplicationCache* cache = associatedCache()) {
         unsigned numEntries = cache->numDynamicEntries();
-        result.reserveCapacity(numEntries);
+        result.reserveInitialCapacity(numEntries);
         for (unsigned i = 0; i < numEntries; ++i)
             result.append(cache->dynamicEntry(i));
     }

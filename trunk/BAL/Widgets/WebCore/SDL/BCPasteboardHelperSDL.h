@@ -38,9 +38,9 @@
 #include "Frame.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
-class PasteboardHelper : public WKALBase {
+class PasteboardHelper {
 public:
     virtual ~PasteboardHelper() {};
 

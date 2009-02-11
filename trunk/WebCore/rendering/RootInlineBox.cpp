@@ -74,6 +74,11 @@ void RootInlineBox::detachEllipsisBox(RenderArena* arena)
     }
 }
 
+RenderLineBoxList* RootInlineBox::rendererLineBoxes() const
+{
+    return block()->lineBoxes();
+}
+
 void RootInlineBox::clearTruncation()
 {
     if (m_hasEllipsisBox) {
@@ -326,10 +331,10 @@ int RootInlineBox::selectionTop()
         // This line has actually been moved further down, probably from a large line-height, but possibly because the
         // line was forced to clear floats.  If so, let's check the offsets, and only be willing to use the previous
         // line's bottom overflow if the offsets are greater on both sides.
-        int prevLeft = block()->leftOffset(prevBottom);
-        int prevRight = block()->rightOffset(prevBottom);
-        int newLeft = block()->leftOffset(selectionTop);
-        int newRight = block()->rightOffset(selectionTop);
+        int prevLeft = block()->leftOffset(prevBottom, !prevRootBox());
+        int prevRight = block()->rightOffset(prevBottom, !prevRootBox());
+        int newLeft = block()->leftOffset(selectionTop, !prevRootBox());
+        int newRight = block()->rightOffset(selectionTop, !prevRootBox());
         if (prevLeft > newLeft || prevRight < newRight)
             return selectionTop;
     }
@@ -339,10 +344,10 @@ int RootInlineBox::selectionTop()
 
 RenderBlock* RootInlineBox::block() const
 {
-    return static_cast<RenderBlock*>(m_object);
+    return toRenderBlock(m_object);
 }
 
-bool isEditableLeaf(InlineBox* leaf)
+static bool isEditableLeaf(InlineBox* leaf)
 {
     return leaf && leaf->object() && leaf->object()->element() && leaf->object()->element()->isContentEditable();
 }
@@ -410,6 +415,21 @@ void RootInlineBox::setVerticalOverflowPositions(int top, int bottom)
     }
     m_overflow->m_topOverflow = top; 
     m_overflow->m_bottomOverflow = bottom; 
+}
+
+void RootInlineBox::removeLineBoxFromRenderObject()
+{
+    block()->lineBoxes()->removeLineBox(this);
+}
+
+void RootInlineBox::extractLineBoxFromRenderObject()
+{
+    block()->lineBoxes()->extractLineBox(this);
+}
+
+void RootInlineBox::attachLineBoxToRenderObject()
+{
+    block()->lineBoxes()->attachLineBox(this);
 }
 
 } // namespace WebCore

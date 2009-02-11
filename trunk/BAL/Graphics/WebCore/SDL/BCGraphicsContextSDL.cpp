@@ -55,7 +55,7 @@
 using std::min;
 using std::max;
 
-namespace WKAL {
+namespace WebCore {
 
 GraphicsContext::GraphicsContext(PlatformGraphicsContext* cr)
     : m_common(createGraphicsContextPrivate())

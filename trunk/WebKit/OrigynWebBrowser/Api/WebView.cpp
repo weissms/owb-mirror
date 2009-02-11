@@ -79,7 +79,6 @@
 #include <IntPoint.h>
 #include <IntRect.h>
 #include <KeyboardEvent.h>
-#include <Language.h>
 #include <MIMETypeRegistry.h>
 #include <NotImplemented.h>
 #include <Page.h>
@@ -116,6 +115,7 @@
 #elif PLATFORM(AMIGAOS4)
 #include <proto/exec.h>
 #include <proto/intuition.h>
+#include <proto/layout.h>
 #include <intuition/gadgetclass.h>
 #else
 #include <sys/sysinfo.h>
@@ -268,8 +268,8 @@ WebView::WebView()
 
     initializeStaticObservers();
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuShow", m_webViewObserver);
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuHide", m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->registerObserver("PopupMenuShow", m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->registerObserver("PopupMenuHide", m_webViewObserver);
 
     WebPreferences* sharedPreferences = WebPreferences::sharedStandardPreferences();
     continuousSpellCheckingEnabled = sharedPreferences->continuousSpellCheckingEnabled();
@@ -299,7 +299,7 @@ WebView::WebView()
     initializeToolTipWindow();
     windowAncestryDidChange();
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
     
     m_preferences->postPreferencesChangesNotification();
 
@@ -338,8 +338,8 @@ void initializeStaticObservers()
         return;
     initialized = true;
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesRemovedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
+    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
+    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesRemovedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
 
 }
 
@@ -556,9 +556,9 @@ void WebView::close()
 /*#if ENABLE(ICONDATABASE)
     registerForIconNotification(false);
 #endif*/
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuShow", m_webViewObserver);
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuHide", m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->removeObserver("PopupMenuShow", m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->removeObserver("PopupMenuHide", m_webViewObserver);
     const String& identifier = m_preferences ? m_preferences->identifier() : String();
     if (identifier != String())
         WebPreferences::removeReferenceForIdentifier(identifier);
@@ -719,13 +719,15 @@ void WebView::paint()
 
 BalRectangle WebView::frameRect()
 {
-    IntRect r(d->frameRect());
     return d->frameRect();
 }
 
 void WebView::closeWindowSoon()
 {
 //    m_closeWindowTimer.startOneShot(0);
+#if PLATFORM(AMIGAOS4)
+    closeWindow();
+#endif    
 }
 
 /*void WebView::closeWindowTimerFired(WebCore::Timer<WebView>*)
@@ -735,6 +737,11 @@ void WebView::closeWindowSoon()
 
 void WebView::closeWindow()
 {
+#if PLATFORM(AMIGAOS4)
+    extern void closeAmigaWindow(BalWidget *owbwindow);
+
+    closeAmigaWindow(viewWindow());
+#endif    
 }
 
 bool WebView::canHandleRequest(const WebCore::ResourceRequest& request)
@@ -1056,6 +1063,8 @@ dsf
 void WebView::setToolTip(const char* toolTip)
 {
 #if PLATFORM(AMIGAOS4)
+    extern char* utf8ToAmiga(const char* utf8);
+
     if (toolTip == m_toolTip)
         return;
 
@@ -1063,14 +1072,18 @@ void WebView::setToolTip(const char* toolTip)
 
     BalWidget *widget = m_viewWindow;
     if (widget && widget->gad_status) {
-        snprintf(widget->toolTipText, sizeof(widget->toolTipText), "%s", toolTip);
+        char* toolTipAmiga = utf8ToAmiga(toolTip);
+        snprintf(widget->toolTipText, sizeof(widget->toolTipText), "%s", toolTipAmiga);
+        free(toolTipAmiga);
         if (widget->statusBarText[0] && widget->toolTipText[0])
             snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s | %s", widget->statusBarText, widget->toolTipText);
         else
             snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s", widget->statusBarText[0] ? widget->statusBarText : widget->toolTipText);
-        IIntuition->RefreshSetGadgetAttrs(widget->gad_status, widget->window, NULL,
-                                          GA_Text, widget->statusToolTipText,
-                                          TAG_DONE);
+        if (ILayout->SetPageGadgetAttrs(widget->gad_status, widget->page,
+                                        widget->window, NULL,
+                                        GA_Text, widget->statusToolTipText,
+                                        TAG_DONE))
+            ILayout->RefreshPageGadget(widget->gad_status, widget->page, widget->window, NULL);
     }
 #endif
     /*if (!m_toolTipHwnd)
@@ -1102,9 +1115,9 @@ void WebView::notifyDidAddIcon()
 void WebView::registerForIconNotification(bool listen)
 {
     if (listen)
-        OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), this);
+        WebCore::ObserverServiceData::createObserverService()->registerObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), this);
     else
-        OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), this);
+        WebCore::ObserverServiceData::createObserverService()->removeObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), this);
 }
 
 void WebView::dispatchDidReceiveIconFromWebFrame(WebFrame* frame)
@@ -1338,7 +1351,7 @@ void WebView::setCustomTextEncodingName(const char* encodingName)
 
     if (oldEncoding != encodingName) {
         if (Frame* coreFrame = core(m_mainFrame))
-            coreFrame->loader()->reloadAllowingStaleData(encodingName);
+            coreFrame->loader()->reloadWithOverrideEncoding(encodingName);
     }
 }
 
@@ -1399,7 +1412,7 @@ void WebView::setPreferences(WebPreferences* prefs)
 
     WebPreferences *oldPrefs = m_preferences;
 
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
 
     String identifier = oldPrefs->identifier();
     oldPrefs->didRemoveFromWebView();
@@ -1409,7 +1422,7 @@ void WebView::setPreferences(WebPreferences* prefs)
 
     m_preferences = prefs;
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
 
     m_preferences->postPreferencesChangesNotification();
 }

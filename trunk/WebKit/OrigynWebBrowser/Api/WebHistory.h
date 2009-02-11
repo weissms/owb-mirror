@@ -109,6 +109,7 @@ public:
      */
     virtual void addItems(int itemCount, WebHistoryItem** items);
 
+
     /**
         @method removeItems:
         @param items An array of WebHistoryItems to remove from the WebHistory.
@@ -178,10 +179,11 @@ public:
     static WebHistory* sharedHistory();
 
     /**
-       @method addItem adds an Item to History
-       @param[in]: URL and Name to save
+       @method visitedURL
      */
-    void addItem(const WebCore::KURL&, const WebCore::String& title, const WebCore::String& httpMethod, bool wasFailure);
+    void visitedURL(const WebCore::KURL&, const WebCore::String& title, const WebCore::String& httpMethod, bool wasFailure);
+
+    WebHistoryItem* itemForURLString(const WebCore::String&) const;
 
     /**
      * @method adds a PageGroup to history

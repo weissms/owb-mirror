@@ -37,7 +37,7 @@
 #include <libgen.h>
 #include <unistd.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 bool fileExists(const String& path)
 {

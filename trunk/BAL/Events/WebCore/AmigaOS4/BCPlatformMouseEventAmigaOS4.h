@@ -34,7 +34,7 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
     
     // These button numbers match the ones used in the DOM API, 0 through 2, except for NoButton which isn't specified.
     enum MouseButton { NoButton = -1, LeftButton, MiddleButton, RightButton };

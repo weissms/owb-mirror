@@ -186,7 +186,7 @@ bool WebEditorClient::shouldDeleteRange(Range* /*range*/)
     //return !!result;
 }
 
-bool WebEditorClient::shouldInsertNode(Node* /*node*/, Range* /*replacingRange*/, EditorInsertAction /*givenAction*/)
+bool WebEditorClient::shouldInsertNode(WebCore::Node* /*node*/, Range* /*replacingRange*/, EditorInsertAction /*givenAction*/)
 { 
     notImplemented(); 
     return true; 

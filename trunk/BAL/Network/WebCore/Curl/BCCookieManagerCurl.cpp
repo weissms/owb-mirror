@@ -34,7 +34,7 @@
 #include "SQLiteStatement.h"
 #endif
 
-namespace WKAL {
+namespace WebCore {
 
 static CookieManager* sharedManager = 0;
 
@@ -410,4 +410,4 @@ void CookieManager::removeCookieFromDatabase(const Cookie* cookie)
 
 #endif // ENABLE(DATABASE)
 
-} // namespace WKAL
+} // namespace WebCore

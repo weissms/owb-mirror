@@ -33,7 +33,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 SearchPopupMenu::SearchPopupMenu(PopupMenuClient* client)
     : PopupMenu(client)

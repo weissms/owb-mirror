@@ -40,11 +40,11 @@
 #include <wtf/Vector.h>
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class String;
 
-class TextStream : public OWBALBase {
+class TextStream {
 public:
     /**
      * operator<<

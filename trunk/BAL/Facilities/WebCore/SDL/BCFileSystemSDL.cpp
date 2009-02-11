@@ -32,7 +32,7 @@
 #include "NotImplemented.h"
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 Vector<String> listDirectory(const String& path, const String& filter)
 {

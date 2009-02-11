@@ -31,7 +31,7 @@
 
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     void findWordBoundary(const UChar*, int len, int position, int* start, int* end);
     int findNextWordFromIndex(const UChar*, int len, int position, bool forward);

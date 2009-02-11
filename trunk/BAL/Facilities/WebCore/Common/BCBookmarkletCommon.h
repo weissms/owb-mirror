@@ -44,7 +44,7 @@
 #include "BALBase.h"
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 /**
  * The BIBookmarklet implementation for Linux

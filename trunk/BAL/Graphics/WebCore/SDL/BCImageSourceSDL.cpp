@@ -37,7 +37,7 @@
 #include "SharedBuffer.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 ImageDecoder* createDecoder(const Vector<char>& data)
 {

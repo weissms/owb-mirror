@@ -1,3 +1,359 @@
+2009-02-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::updateGlobalHistoryRedirectLinks):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-02-06  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc - made 2 functions internal as they are not part of the API anymore (and this fixes 2 qdoc warnings)
+
+        * Api/qwebsettings.cpp:
+
+2009-02-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Added an overload of QWebFrame::addToJavaScriptWindowObject that takes a QScriptEngine::ValueOwnership parameter.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJavaScriptWindowObject): New overload.
+        * Api/qwebframe.h:
+        * tests/qwebframe/tst_qwebframe.cpp: Added unit tests for ownership
+        models.
+
+2009-02-06  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Holger Freyther.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::documentElementAvailable):)
+        Fix compile error in Qt build introduced by the below change (r40694).
+
+2009-02-05  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23708
+        Adds documentElementAvailable() callback to FrameLoaderClient.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClient::documentElementAvailable):
+        Stub out documentElementAvailable().
+        * WebCoreSupport/FrameLoaderClientQt.h:
+        Ditto.
+
+2009-02-04  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc: Documented the return value of the evaluateJavaScript() function.
+
+        * Api/qwebframe.cpp:
+
+2009-02-04  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Added a unit test to verify the succesful conversion from QByteArray to
+        JSByteArray and back to QByteArray.
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::QWebFrame):
+        (QWebFrame::load):
+        (QWebFrame::setHtml):
+        (QWebFrame::setContent):
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::createFrame):
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Track redirects in global history.
+
+        Keep Qt building.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::updateGlobalHistoryForRedirectWithoutHistoryItem):
+        (WebCore::FrameLoaderClientQt::createFrame):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-02-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Update for changes to WebCore.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::createPlugin):
+        (WebCore::FrameLoaderClientQt::createJavaAppletWidget):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-02-02  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Nikolas Zimmermann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23587
+        Refactor HitTestRequest to eliminate all the ugly boolean arguments and
+        use an enum bitflag instead.  Cleanup all the code that constructs the
+        various HitTestRequests to make the code more readable.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hitTestContent):
+
+2009-02-02  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix the Qt build to call forceLayout on the view instead.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::setFixedLayoutSize):
+        (QWebPage::setUseFixedLayout):
+
+2009-02-02  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        Move Frame::forceLayout, Frame::adjustPageHeight and Frame::forceLayoutWithPageWidthRange to FrameView
+
+        https://bugs.webkit.org/show_bug.cgi?id=23428
+
+        FrameView::forceLayout could be killed but the comment might
+        contain a value over the the plain FrameView::layout...
+
+        Adjust the WebCore/WebKit consumers of these methods.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::setViewportSize):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::forceLayout):
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::createFrame):
+
+2009-01-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22056
+
+        Kill FrameLoaderClient.cpp, move the code over to Frame::createView
+
+        FrameLoaderClient is supposed to be an interface, move the
+        to be shared code to Frame which is a controller and is
+        allowed to create a FrameView.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::transitionToCommittedForNewPage):
+
+2009-01-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Split "lockHistory" into "lockHistory" and "lockBackForwardList" in
+        preparation for setting them differently during a redirect.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::triggerAction):
+
+2009-01-30  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Remove FrameLoaderClient code that is now handled by FrameLoader itself
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::frameLoadCompleted):
+
+2009-01-30  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Hide the Offline Web Application Cache path API from the public API
+        for now.
+
+        * Api/qwebsettings.cpp:
+        (qt_websettings_setOfflineWebApplicationCachePath):
+        (qt_websettings_offlineWebApplicationCachePath):
+        * Api/qwebsettings.h:
+
+2009-01-30  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Nikolas Zimmermann and George Staikos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23557
+        Do not clip the QWebFrame::hitTestContent method to the visible viewport
+        and add a regression test to make sure it works.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hitTestContent):
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-01-28  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Provide default implementations of JavaScript dialog boxes like in
+        most web browsers, i.e. indicate that is from JavaScript and show the
+        frame URL.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::javaScriptAlert):
+        (QWebPage::javaScriptConfirm):
+        (QWebPage::javaScriptPrompt):
+
+2009-01-28  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        http://www.qtsoftware.com/developer/task-tracker/index_html?id=238391&method=entry
+
+        [Qt] If QPainter fails to start on a QPrinter instance, do not
+        continue printing.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::print):
+
+2009-01-27  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Rework FrameLoaderClient to work on a CachedFrame basis instead of CachedPage
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::savePlatformDataToCachedFrame):
+        (WebCore::FrameLoaderClientQt::transitionToCommittedFromCachedFrame):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-01-26  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by David Hyatt
+        
+        Back out r40285, because it was checked in with no bug number, no
+        testcase, is rendering change that did not get thorough review,
+        and broke the Mac build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hitTestContent):
+
+2009-01-26  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Do not clip the QWebFrame::hitTestContent method to the visible viewport.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hitTestContent):
+
+2009-01-26  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc: qdoc fix for a link to a property and added a basic description of the offline caching and storage features from HTML 5.
+
+        * Api/qwebpage.cpp:
+        * Api/qwebsettings.cpp:
+
+2009-01-25  Urs Wolfer  <uwolfer@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        Add QWebPage::SelectAll to WebAction enum to select all content.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22946
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::editorActionForKeyEvent):
+        * Api/qwebpage.h:
+
+2009-01-25  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc: Fixed the terminology used.
+
+        * Api/qwebpage.cpp:
+
+2009-01-25  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Rename links from trolltech.com to qtsoftware.com
+
+        * Api/qwebpluginfactory.cpp:
+
+2009-01-25  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Make QWebPage auto-test more robust by cleaning up generated files
+
+        Sometimes the auto-test may segfault, leaving behind files because the
+        call to cleanupTestCase() never happens, so we also clean up the files
+        at initTestCase() just to make sure we're running in a clean environment.
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::cleanupFiles):
+        (tst_QWebPage::initTestCase):
+        (tst_QWebPage::cleanupTestCase):
+
+2008-12-20  Urs Wolfer  <uwolfer@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        Fix: compile qwebhistory.h with pendantic comiler flag.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22947
+
+        * Api/qwebhistory.h:
+
+2009-01-24  Adam Treat  <adam.treat@torchmobile.com>
+
+        Oops, fix the Qt build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::render):
+
+2009-01-24  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Add QWebFrame::renderContents() method which allows arbitary rendering
+        of any content region within the QWebFrame.  It also does not draw any
+        scrollbars.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::renderContents):
+        * Api/qwebframe.h:
+
+2009-01-23  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Make the test more robust by taking into account the platform-specific
+        cursor flashing time.
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
 2009-01-21  Friedemann Kleint  <Friedemann.Kleint@nokia.com>
 
         Reviewed by Simon Hausmann.

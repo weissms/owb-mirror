@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer.
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,11 @@
 #include "SelectionController.h"
 #include "KURL.h"
 #include "markup.h"
-#include "proto/iffparse.h"
+#include <proto/datatypes.h>
+#include <proto/iffparse.h>
 #include <proto/intuition.h>
 #include <datatypes/textclass.h>
+#include <datatypes/pictureclass.h>
 #ifndef ID_CSET
     #define ID_CSET MAKE_ID('C','S','E','T')
 #endif
@@ -55,7 +57,7 @@ struct IFFCodeSet
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 /* FIXME: we must get rid of this and use the enum in webkitwebview.h someway */
 typedef enum
@@ -108,12 +110,9 @@ void Pasteboard::setHelper(PasteboardHelper* helper)
     m_helper = helper;
 }
 
-void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
+static void writeUTF8(const char* data, size_t len)
 {
     IFFHandle *ih;
-    CString utf8 = frame->selectedText().utf8(); //selectedRange->text().utf8();
-    const char *data = utf8.data();
-    size_t len = utf8.length();
 
     bool copied = false;
 
@@ -147,16 +146,68 @@ void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete,
         IIntuition->DisplayBeep(NULL);
 }
 
-void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
+void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
-    printf("Pasteboard::writeURL\n");
+    CString utf8 = frame->selectedText().utf8(); //selectedRange->text().utf8();
+    const char *data = utf8.data();
+    size_t len = utf8.length();
 
+    writeUTF8(data, len);
 }
 
-void Pasteboard::writeImage(Node* node, const KURL&, const String&)
+void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
 {
-    printf("Pasteboard::writeImage\n");
-    NotImplemented();
+    CString utf8 = url.prettyURL().utf8();
+    const char *data = utf8.data();
+    size_t len = utf8.length();
+
+    writeUTF8(data, len);
+}
+
+void Pasteboard::writeImage(Node* node, const KURL&, const String& title)
+{
+    bool copied = false;
+
+    RenderImage* renderer = static_cast<RenderImage*>(node->renderer());
+    CachedImage* cachedImage = static_cast<CachedImage*>(renderer->cachedImage());
+    WebCore::Image* image = cachedImage->image();
+
+    Object* dto = IDataTypes->NewDTObject(NULL,
+                                          DTA_SourceType, DTST_RAM,
+                                          DTA_GroupID, GID_PICTURE,
+                                          PDTA_DestMode, PMODE_V43,
+                                          TAG_DONE);
+    if (dto) {
+        BitMapHeader *bmh;
+        if (IDataTypes->GetDTAttrs(dto, PDTA_BitMapHeader, &bmh, TAG_DONE)) {
+            bmh->bmh_Width = image->width();
+            bmh->bmh_Height = image->height();
+            bmh->bmh_Depth = 32;
+            bmh->bmh_Masking = mskHasAlpha;
+
+            IDataTypes->SetDTAttrs(dto, NULL, NULL,
+                                   DTA_ObjName, title.utf8().data(),
+                                   DTA_NominalHoriz, image->width(),
+                                   DTA_NominalVert, image->height(),
+                                   PDTA_SourceMode, PMODE_V43,
+                                   TAG_DONE);
+
+            cairo_surface_t* nativeImage = image->nativeImageForCurrentFrame();
+            if (nativeImage)
+                if (IIntuition->IDoMethod(dto, PDTM_WRITEPIXELARRAY,
+                                          cairo_image_surface_get_data(nativeImage),
+                                          PBPAFMT_ARGB,
+                                          cairo_image_surface_get_stride(nativeImage),
+                                          0, 0,
+                                          image->width(), image->height()))
+                    if (IDataTypes->DoDTMethod(dto, NULL, NULL, DTM_COPY, NULL))
+                        copied = true;
+        }
+        IDataTypes->DisposeDTObject(dto);
+    }
+
+    if (!copied)
+        IIntuition->DisplayBeep(NULL);
 }
 
 void Pasteboard::clear()
@@ -174,6 +225,15 @@ bool Pasteboard::canSmartReplace()
 PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefPtr<Range> context,
                                                           bool allowPlainText, bool& chosePlainText)
 {
+    if (allowPlainText) {
+        String text = plainText(frame);
+
+        chosePlainText = true;
+        RefPtr<DocumentFragment> fragment = createFragmentFromText(context.get(), text);
+        if (fragment)
+            return fragment.release();
+    }
+
     printf("Pasteboard::documentFragment\n");
     return 0;
 }

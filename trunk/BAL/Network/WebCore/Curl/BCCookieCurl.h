@@ -29,7 +29,7 @@
 #include "KURL.h"
 #include "PlatformString.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class Cookie {
 public:
@@ -105,6 +105,6 @@ private:
     static const int max_length = 4096; // Cookie size limit 4kB per RFC2109
 };
 
-} // Namespace WKAL
+} // Namespace WebCore
 
 #endif

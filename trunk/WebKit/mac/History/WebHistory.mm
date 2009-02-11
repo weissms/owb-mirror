@@ -135,7 +135,7 @@ NSString *DatesArrayKey = @"WebHistoryDates";
 
 #pragma mark MODIFYING CONTENTS
 
-WebHistoryDateKey timeIntervalForBeginningOfDay(NSTimeInterval interval)
+static WebHistoryDateKey timeIntervalForBeginningOfDay(NSTimeInterval interval)
 {
     CFTimeZoneRef timeZone = CFTimeZoneCopyDefault();
     CFGregorianDate date = CFAbsoluteTimeGetGregorianDate(interval, timeZone);
@@ -271,7 +271,7 @@ WebHistoryDateKey timeIntervalForBeginningOfDay(NSTimeInterval interval)
     } else {
         LOG(History, "Adding new global history entry for %@", url);
         entry = [[WebHistoryItem alloc] initWithURLString:URLString title:title lastVisitedTimeInterval:[NSDate timeIntervalSinceReferenceDate]];
-        [entry _setVisitCount:1];
+        [entry _recordInitialVisit];
         [_entriesByURL setObject:entry forKey:URLString];
         [entry release];
     }
@@ -794,14 +794,17 @@ WebHistoryDateKey timeIntervalForBeginningOfDay(NSTimeInterval interval)
 
 @implementation WebHistory (WebInternal)
 
-- (void)_visitedURL:(NSURL *)URL withTitle:(NSString *)title method:(NSString *)method wasFailure:(BOOL)wasFailure
+- (void)_visitedURL:(NSURL *)url withTitle:(NSString *)title method:(NSString *)method wasFailure:(BOOL)wasFailure
 {
-    WebHistoryItem *entry = [_historyPrivate visitedURL:URL withTitle:title];
+    WebHistoryItem *entry = [_historyPrivate visitedURL:url withTitle:title];
+
     HistoryItem* item = core(entry);
     item->setLastVisitWasFailure(wasFailure);
 
     if ([method length])
         item->setLastVisitWasHTTPNonGet([method caseInsensitiveCompare:@"GET"]);
+
+    item->setRedirectURLs(std::auto_ptr<Vector<String> >());
 
     NSArray *entries = [[NSArray alloc] initWithObjects:entry, nil];
     [self _sendNotification:WebHistoryItemsAddedNotification entries:entries];

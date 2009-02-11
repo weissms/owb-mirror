@@ -41,7 +41,7 @@
 
 namespace WTF {
 
-template <typename T> class Locker : public OWBALBase, Noncopyable {
+template <typename T> class Locker : Noncopyable {
 public:
     /**
      *  Locker description

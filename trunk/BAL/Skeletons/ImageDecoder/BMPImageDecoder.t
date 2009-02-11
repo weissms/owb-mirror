@@ -39,7 +39,7 @@
 
 #include "ImageDecoder.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 class BMPImageReader;
 

@@ -31,7 +31,7 @@
 #include "CachedImage.h"
 #include "Image.h"
 
-namespace WKAL {
+namespace WebCore {
 
 IntSize dragImageSize(DragImageRef)
 {

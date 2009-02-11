@@ -39,7 +39,6 @@
 #import "WebDatabaseManagerInternal.h"
 #import "WebDefaultEditingDelegate.h"
 #import "WebDefaultPolicyDelegate.h"
-#import "WebDefaultScriptDebugDelegate.h"
 #import "WebDefaultUIDelegate.h"
 #import "WebDocument.h"
 #import "WebDocumentInternal.h"
@@ -84,6 +83,7 @@
 #import "WebPolicyDelegate.h"
 #import "WebPreferenceKeysPrivate.h"
 #import "WebPreferencesPrivate.h"
+#import "WebScriptDebugDelegate.h"
 #import "WebTextIterator.h"
 #import "WebUIDelegate.h"
 #import "WebUIDelegatePrivate.h"
@@ -340,7 +340,6 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     id editingDelegate;
     id editingDelegateForwarder;
     id scriptDebugDelegate;
-    id scriptDebugDelegateForwarder;
 
     WebInspector *inspector;
     WebNodeHighlight *currentNodeHighlight;
@@ -362,6 +361,7 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     
     WebResourceDelegateImplementationCache resourceLoadDelegateImplementations;
     WebFrameLoadDelegateImplementationCache frameLoadDelegateImplementations;
+    WebScriptDebugDelegateImplementationCache scriptDebugDelegateImplementations;
 
     void *observationInfo;
     
@@ -406,6 +406,12 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     
     // When this flag is set, we will not make any subviews underneath this WebView.  This means no WebFrameViews and no WebHTMLViews.
     BOOL useDocumentViews;
+
+#if USE(ACCELERATED_COMPOSITING)
+    // When this flag is set, next time a WebHTMLView draws, it needs to temporarily disable screen updates
+    // so that the NSView drawing is visually synchronized with CALayer updates.
+    BOOL needsOneShotDrawingSynchronization;
+#endif    
 }
 @end
 
@@ -535,7 +541,6 @@ static BOOL grammarCheckingEnabled;
     [UIDelegateForwarder release];
     [frameLoadDelegateForwarder release];
     [editingDelegateForwarder release];
-    [scriptDebugDelegateForwarder release];
     
     [mediaStyle release];
     
@@ -905,7 +910,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     return uniqueExtensions;
 }
 
-+ (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType;
++ (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType
 {
     MIMEType = [MIMEType lowercaseString];
     Class viewClass = [[WebFrameView _viewTypesAllowImageTypeOmission:YES] _webkit_objectForMIMEType:MIMEType];
@@ -938,7 +943,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     return NO;
 }
 
-- (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType;
+- (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType
 {
     if ([[self class] _viewClass:vClass andRepresentationClass:rClass forMIMEType:MIMEType])
         return YES;
@@ -1303,6 +1308,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     settings->setLocalStorageDatabasePath([preferences _localStorageDatabasePath]);
     settings->setJavaEnabled([preferences isJavaEnabled]);
     settings->setJavaScriptEnabled([preferences isJavaScriptEnabled]);
+    settings->setWebSecurityEnabled([preferences isWebSecurityEnabled]);
     settings->setJavaScriptCanOpenWindowsAutomatically([preferences javaScriptCanOpenWindowsAutomatically]);
     settings->setMinimumFontSize([preferences minimumFontSize]);
     settings->setMinimumLogicalFontSize([preferences minimumLogicalFontSize]);
@@ -1415,6 +1421,37 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
     return &webView->_private->frameLoadDelegateImplementations;
 }
 
+- (void)_cacheScriptDebugDelegateImplementations
+{
+    WebScriptDebugDelegateImplementationCache *cache = &_private->scriptDebugDelegateImplementations;
+    id delegate = _private->scriptDebugDelegate;
+
+    if (!delegate) {
+        bzero(cache, sizeof(WebScriptDebugDelegateImplementationCache));
+        return;
+    }
+
+    cache->didParseSourceFunc = getMethod(delegate, @selector(webView:didParseSource:baseLineNumber:fromURL:sourceId:forWebFrame:));
+    if (cache->didParseSourceFunc)
+        cache->didParseSourceExpectsBaseLineNumber = YES;
+    else
+        cache->didParseSourceFunc = getMethod(delegate, @selector(webView:didParseSource:fromURL:sourceId:forWebFrame:));
+
+    cache->failedToParseSourceFunc = getMethod(delegate, @selector(webView:failedToParseSource:baseLineNumber:fromURL:withError:forWebFrame:));
+    cache->didEnterCallFrameFunc = getMethod(delegate, @selector(webView:didEnterCallFrame:sourceId:line:forWebFrame:));
+    cache->willExecuteStatementFunc = getMethod(delegate, @selector(webView:willExecuteStatement:sourceId:line:forWebFrame:));
+    cache->willLeaveCallFrameFunc = getMethod(delegate, @selector(webView:willLeaveCallFrame:sourceId:line:forWebFrame:));
+    cache->exceptionWasRaisedFunc = getMethod(delegate, @selector(webView:exceptionWasRaised:sourceId:line:forWebFrame:));
+}
+
+WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplementations(WebView *webView)
+{
+    static WebScriptDebugDelegateImplementationCache empty;
+    if (!webView)
+        return &empty;
+    return &webView->_private->scriptDebugDelegateImplementations;
+}
+
 - (id)_policyDelegateForwarder
 {
     if (!_private->policyDelegateForwarder)
@@ -1441,19 +1478,12 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
     return _private->editingDelegateForwarder;
 }
 
-- (id)_scriptDebugDelegateForwarder
-{
-    if (!_private->scriptDebugDelegateForwarder)
-        _private->scriptDebugDelegateForwarder = [[_WebSafeForwarder alloc] initWithTarget:_private->scriptDebugDelegate defaultTarget:[WebDefaultScriptDebugDelegate sharedScriptDebugDelegate] catchExceptions:_private->catchesDelegateExceptions];
-    return _private->scriptDebugDelegateForwarder;
-}
-
 - (void)_closeWindow
 {
     [[self _UIDelegateForwarder] webViewClose:self];
 }
 
-+ (void)_unregisterViewClassAndRepresentationClassForMIMEType:(NSString *)MIMEType;
++ (void)_unregisterViewClassAndRepresentationClassForMIMEType:(NSString *)MIMEType
 {
     [[WebFrameView _viewTypesAllowImageTypeOmission:NO] removeObjectForKey:MIMEType];
     [[WebDataSource _repTypesAllowImageTypeOmission:NO] removeObjectForKey:MIMEType];
@@ -1464,7 +1494,7 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
     MIMETypeRegistry::getSupportedNonImageMIMETypes().remove(MIMEType);
 }
 
-+ (void)_registerViewClass:(Class)viewClass representationClass:(Class)representationClass forURLScheme:(NSString *)URLScheme;
++ (void)_registerViewClass:(Class)viewClass representationClass:(Class)representationClass forURLScheme:(NSString *)URLScheme
 {
     NSString *MIMEType = [self _generatedMIMETypeForURLScheme:URLScheme];
     [self registerViewClass:viewClass representationClass:representationClass forMIMEType:MIMEType];
@@ -1993,7 +2023,7 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
     
     Selection selectionInsideRect(coreFrame->visiblePositionForPoint(rectStart), coreFrame->visiblePositionForPoint(rectEnd));
     
-    return [[[WebTextIterator alloc] initWithRange:[DOMRange _wrapRange:selectionInsideRect.toRange().get()]] autorelease];
+    return [[[WebTextIterator alloc] initWithRange:[DOMRange _wrapRange:selectionInsideRect.toNormalizedRange().get()]] autorelease];
 }
 
 - (void)handleAuthenticationForResource:(id)identifier challenge:(NSURLAuthenticationChallenge *)challenge fromDataSource:(WebDataSource *)dataSource 
@@ -2067,6 +2097,18 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
 {
     return _private->page->areMemoryCacheClientCallsEnabled();
 }
+
+#if USE(ACCELERATED_COMPOSITING)
+- (BOOL)_needsOneShotDrawingSynchronization
+{
+    return _private->needsOneShotDrawingSynchronization;
+}
+
+- (void)_setNeedsOneShotDrawingSynchronization:(BOOL)needsSynchronization
+{
+    _private->needsOneShotDrawingSynchronization = needsSynchronization;
+}
+#endif    
 
 @end
 
@@ -2279,18 +2321,8 @@ static bool needsWebViewInitThreadWorkaround()
 
 - (id)initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName
 {
-    if (needsWebViewInitThreadWorkaround()) {
-        NSMutableDictionary *arguments = [[NSMutableDictionary alloc] initWithCapacity:3];
-        [arguments setObject:[NSValue valueWithRect:f] forKey:@"frame"];
-        if (frameName)
-            [arguments setObject:frameName forKey:@"frameName"];
-        if (groupName)
-            [arguments setObject:groupName forKey:@"groupName"];
-
-        self = [self _webkit_performSelectorOnMainThread:@selector(_initWithArguments:) withObject:arguments];
-        [arguments release];
-        return self;
-    }
+    if (needsWebViewInitThreadWorkaround())
+        return [[self _webkit_invokeOnMainThread] initWithFrame:f frameName:frameName groupName:groupName];
 
     WebCoreThreadViolationCheck();
     return [self _initWithFrame:f frameName:frameName groupName:groupName usesDocumentViews:YES];
@@ -2298,12 +2330,8 @@ static bool needsWebViewInitThreadWorkaround()
 
 - (id)initWithCoder:(NSCoder *)decoder
 {
-    if (needsWebViewInitThreadWorkaround()) {
-        NSDictionary *arguments = [[NSDictionary alloc] initWithObjectsAndKeys:decoder, @"decoder", nil];
-        self = [self _webkit_performSelectorOnMainThread:@selector(_initWithArguments:) withObject:arguments];
-        [arguments release];
-        return self;
-    }
+    if (needsWebViewInitThreadWorkaround())
+        return [[self _webkit_invokeOnMainThread] initWithCoder:decoder];
 
     WebCoreThreadViolationCheck();
     WebView *result = nil;
@@ -2511,7 +2539,8 @@ static bool needsWebViewInitThreadWorkaround()
         
         [self removeWindowObservers];
         [self removeSizeObservers];
-    }
+    } else
+        _private->page->willMoveOffscreen();
 }
 
 - (void)viewDidMoveToWindow
@@ -2526,6 +2555,7 @@ static bool needsWebViewInitThreadWorkaround()
     if ([self window]) {
         [self addWindowObservers];
         [self addSizeObservers];
+        _private->page->didMoveOnscreen();
     }
 }
 
@@ -2938,7 +2968,7 @@ static bool needsWebViewInitThreadWorkaround()
     if (encoding == oldEncoding || [encoding isEqualToString:oldEncoding])
         return;
     if (Frame* mainFrame = core([self mainFrame]))
-        mainFrame->loader()->reloadAllowingStaleData(encoding);
+        mainFrame->loader()->reloadWithOverrideEncoding(encoding);
 }
 
 - (NSString *)_mainFrameOverrideEncoding
@@ -3671,8 +3701,8 @@ static WebFrame *incrementFrame(WebFrame *curr, BOOL forward, BOOL wrapFlag)
 - (void)setScriptDebugDelegate:(id)delegate
 {
     _private->scriptDebugDelegate = delegate;
-    [_private->scriptDebugDelegateForwarder release];
-    _private->scriptDebugDelegateForwarder = nil;
+    [self _cacheScriptDebugDelegateImplementations];
+
     if (delegate)
         [self _attachScriptDebuggerToAllFrames];
     else
@@ -4069,7 +4099,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsV
     return kit(page->mainFrame()->editor()->rangeForPoint(IntPoint([self convertPoint:point toView:nil])).get());
 }
 
-- (BOOL)_shouldChangeSelectedDOMRange:(DOMRange *)currentRange toDOMRange:(DOMRange *)proposedRange affinity:(NSSelectionAffinity)selectionAffinity stillSelecting:(BOOL)flag;
+- (BOOL)_shouldChangeSelectedDOMRange:(DOMRange *)currentRange toDOMRange:(DOMRange *)proposedRange affinity:(NSSelectionAffinity)selectionAffinity stillSelecting:(BOOL)flag
 {
     // FIXME: This quirk is needed due to <rdar://problem/4985321> - We can phase it out once Aperture can adopt the new behavior on their end
     if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_APERTURE_QUIRK) && [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.Aperture"])
@@ -4107,7 +4137,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsV
     Frame* coreFrame = core([self _selectedOrMainFrame]);
     if (!coreFrame)
         return nil;
-    return kit(coreFrame->selection()->toRange().get());
+    return kit(coreFrame->selection()->toNormalizedRange().get());
 }
 
 - (NSSelectionAffinity)selectionAffinity
@@ -4381,7 +4411,7 @@ FOR_EACH_RESPONDER_SELECTOR(FORWARD)
 
 @implementation WebView (WebViewEditingInMail)
 
-- (void)_insertNewlineInQuotedContent;
+- (void)_insertNewlineInQuotedContent
 {
     [[self _selectedOrMainFrame] _insertParagraphSeparatorInQuotedContent];
 }
@@ -5159,6 +5189,20 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     return nil;
 }
 
+static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SEL selector, id object1, NSInteger integer1, NSInteger integer2, id object2)
+{
+    if (!delegate)
+        return nil;
+    if (!self->_private->catchesDelegateExceptions)
+        return implementation(delegate, selector, self, object1, integer1, integer2, object2);
+    @try {
+        return implementation(delegate, selector, self, object1, integer1, integer2, object2);
+    } @catch(id exception) {
+        ReportDiscardedDelegateException(selector, exception);
+    }
+    return nil;
+}
+
 static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SEL selector, id object1, id object2, NSInteger integer, id object3)
 {
     if (!delegate)
@@ -5167,6 +5211,34 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
         return implementation(delegate, selector, self, object1, object2, integer, object3);
     @try {
         return implementation(delegate, selector, self, object1, object2, integer, object3);
+    } @catch(id exception) {
+        ReportDiscardedDelegateException(selector, exception);
+    }
+    return nil;
+}
+
+static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SEL selector, id object1, NSInteger integer1, id object2, NSInteger integer2, id object3)
+{
+    if (!delegate)
+        return nil;
+    if (!self->_private->catchesDelegateExceptions)
+        return implementation(delegate, selector, self, object1, integer1, object2, integer2, object3);
+    @try {
+        return implementation(delegate, selector, self, object1, integer1, object2, integer2, object3);
+    } @catch(id exception) {
+        ReportDiscardedDelegateException(selector, exception);
+    }
+    return nil;
+}
+
+static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SEL selector, id object1, NSInteger integer, id object2, id object3, id object4)
+{
+    if (!delegate)
+        return nil;
+    if (!self->_private->catchesDelegateExceptions)
+        return implementation(delegate, selector, self, object1, integer, object2, object3, object4);
+    @try {
+        return implementation(delegate, selector, self, object1, integer, object2, object3, object4);
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
     }
@@ -5312,6 +5384,26 @@ BOOL CallResourceLoadDelegateReturningBoolean(BOOL result, IMP implementation, W
         ReportDiscardedDelegateException(selector, exception);
     }
     return result;
+}
+
+id CallScriptDebugDelegate(IMP implementation, WebView *self, SEL selector, id object1, id object2, NSInteger integer, id object3)
+{
+    return CallDelegate(implementation, self, self->_private->scriptDebugDelegate, selector, object1, object2, integer, object3);
+}
+
+id CallScriptDebugDelegate(IMP implementation, WebView *self, SEL selector, id object1, NSInteger integer1, id object2, NSInteger integer2, id object3)
+{
+    return CallDelegate(implementation, self, self->_private->scriptDebugDelegate, selector, object1, integer1, object2, integer2, object3);
+}
+
+id CallScriptDebugDelegate(IMP implementation, WebView *self, SEL selector, id object1, NSInteger integer, id object2, id object3, id object4)
+{
+    return CallDelegate(implementation, self, self->_private->scriptDebugDelegate, selector, object1, integer, object2, object3, object4);
+}
+
+id CallScriptDebugDelegate(IMP implementation, WebView *self, SEL selector, id object1, NSInteger integer1, NSInteger integer2, id object2)
+{
+    return CallDelegate(implementation, self, self->_private->scriptDebugDelegate, selector, object1, integer1, integer2, object2);
 }
 
 // The form delegate needs to have it's own implementation, because the first argument is never the WebView

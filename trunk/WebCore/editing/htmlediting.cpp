@@ -222,7 +222,7 @@ Position nextVisuallyDistinctCandidate(const Position& position)
     Position p = position;
     Position downstreamStart = p.downstream();
     while (!p.atEnd()) {
-        p = p.next(UsingComposedCharacters);
+        p = p.next(Character);
         if (p.isCandidate() && p.downstream() != downstreamStart)
             return p;
     }
@@ -245,7 +245,7 @@ Position previousVisuallyDistinctCandidate(const Position& position)
     Position p = position;
     Position downstreamStart = p.downstream();
     while (!p.atStart()) {
-        p = p.previous(UsingComposedCharacters);
+        p = p.previous(Character);
         if (p.isCandidate() && p.downstream() != downstreamStart)
             return p;
     }
@@ -309,27 +309,32 @@ Node* enclosingBlock(Node* node)
     return static_cast<Element*>(enclosingNodeOfType(Position(node, 0), isBlock));
 }
 
+// Internally editing uses "invalid" positions for historical reasons.  For
+// example, in <div><img /></div>, Editing might use (img, 1) for the position
+// after <img>, but we have to convert that to (div, 1) before handing the
+// position to a Range object.  Ideally all internal positions should
+// be "range compliant" for simplicity.
 Position rangeCompliantEquivalent(const Position& pos)
 {
     if (pos.isNull())
         return Position();
 
-    Node *node = pos.node();
-    
+    Node* node = pos.node();
+
     if (pos.offset() <= 0) {
         if (node->parentNode() && (editingIgnoresContent(node) || isTableElement(node)))
             return positionBeforeNode(node);
         return Position(node, 0);
     }
-    
+
     if (node->offsetInCharacters())
         return Position(node, min(node->maxCharacterOffset(), pos.offset()));
-    
+
     int maxCompliantOffset = node->childNodeCount();
     if (pos.offset() > maxCompliantOffset) {
         if (node->parentNode())
             return positionAfterNode(node);
-        
+
         // there is no other option at this point than to
         // use the highest allowed position in the node
         return Position(node, maxCompliantOffset);
@@ -713,15 +718,6 @@ Node* enclosingEmptyListItem(const VisiblePosition& visiblePos)
     return listChildNode;
 }
 
-Node* outermostEnclosingListChild(Node* node)
-{
-    Node* listNode = 0;
-    Node* nextNode = node;
-    while ((nextNode = enclosingListChild(nextNode)))
-        listNode = nextNode;
-    return listNode;
-}
-
 HTMLElement* outermostEnclosingList(Node* node)
 {
     HTMLElement* list = enclosingList(node);
@@ -785,9 +781,14 @@ PassRefPtr<HTMLElement> createListItemElement(Document* document)
     return new HTMLLIElement(liTag, document);
 }
 
+PassRefPtr<HTMLElement> createHTMLElement(Document* document, const QualifiedName& name)
+{
+    return HTMLElementFactory::createHTMLElement(name, document, 0, false);
+}
+
 PassRefPtr<HTMLElement> createHTMLElement(Document* document, const AtomicString& tagName)
 {
-    return HTMLElementFactory::createHTMLElement(QualifiedName(nullAtom, tagName, xhtmlNamespaceURI), document, 0, false);
+    return createHTMLElement(document, QualifiedName(nullAtom, tagName, xhtmlNamespaceURI));
 }
 
 bool isTabSpanNode(const Node *node)

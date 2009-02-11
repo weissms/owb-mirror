@@ -23,6 +23,14 @@ if(USE_GRAPHICS_GTK)
     add_executable(owb EXCLUDE_FROM_ALL gtk/main.cpp)
 endif(USE_GRAPHICS_GTK)
 
+if(USE_GRAPHICS_QT)
+    list(APPEND OWB_SRC
+        Qt/main.cpp
+    )
+    owb_generate_moc(OWB_SRC ${OWB_SOURCE_DIR}/WebKitTools/OWBLauncher/Qt/main.cpp main.moc)
+    add_executable(owb EXCLUDE_FROM_ALL ${OWB_SRC})
+endif(USE_GRAPHICS_QT)
+
 if(USE_GRAPHICS_SDL)
     add_executable(owb EXCLUDE_FROM_ALL SDL/main.cpp)
 endif(USE_GRAPHICS_SDL)

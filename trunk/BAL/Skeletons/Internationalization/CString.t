@@ -43,9 +43,9 @@
 #include <wtf/RefCounted.h>
 #include <wtf/Vector.h>
 
-namespace OWBAL {
+namespace WebCore {
 
-    class CStringBuffer : public OWBALBase, public RefCounted<CStringBuffer> {
+    class CStringBuffer : public WebCoreBase, public RefCounted<CStringBuffer> {
     public:
     /**
      * create CString Buffer
@@ -96,7 +96,7 @@ namespace OWBAL {
 
     // A container for a null-terminated char array supporting copy-on-write
     // assignment.  The contained char array may be null.
-    class CString : public OWBALBase {
+    class CString : public WebCoreBase {
     public:
     /**
      * CString default constructor
@@ -194,7 +194,7 @@ namespace OWBAL {
      */
     inline bool operator!=(const CString& a, const CString& b) ;
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // CString_h
 

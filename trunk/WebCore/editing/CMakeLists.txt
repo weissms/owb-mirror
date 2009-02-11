@@ -28,7 +28,6 @@ list(APPEND WEBCORE_SRC
     editing/MoveSelectionCommand.cpp
     editing/RemoveCSSPropertyCommand.cpp
     editing/RemoveFormatCommand.cpp
-    editing/RemoveNodeAttributeCommand.cpp
     editing/RemoveNodeCommand.cpp
     editing/RemoveNodePreservingChildrenCommand.cpp
     editing/ReplaceSelectionCommand.cpp
@@ -52,3 +51,9 @@ if(USE_I18N_ICU)
         editing/SmartReplaceICU.cpp
     )
 endif(USE_I18N_ICU)
+
+if(USE_I18N_QT)
+    list(APPEND WEBCORE_SRC
+        editing/qt/EditorQt.cpp
+    )
+endif(USE_I18N_QT)

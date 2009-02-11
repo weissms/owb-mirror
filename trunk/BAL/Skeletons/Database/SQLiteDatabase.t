@@ -46,7 +46,7 @@
 
 struct sqlite3;
 
-namespace OWBAL {
+namespace WebCore {
 
 class SQLiteAuthorizer;
 class SQLiteStatement;
@@ -59,7 +59,7 @@ extern const int SQLResultRow;
 extern const int SQLResultSchema;
 extern const int SQLResultFull;
 
-class SQLiteDatabase : public OWBALBase, public Noncopyable {
+class SQLiteDatabase : public WebCoreBase, public Noncopyable {
     friend class SQLiteTransaction;
 public:
     /**
@@ -319,7 +319,7 @@ private:
     
 }; // class SQLiteDatabase
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif
 

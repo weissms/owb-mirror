@@ -64,10 +64,4 @@
 class BALBase {
 };
 
-class WKALBase : public BALBase {
-};
-
-class OWBALBase : public BALBase {
-};
-
 #endif

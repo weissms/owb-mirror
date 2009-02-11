@@ -1,3 +1,36 @@
+2009-01-30  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Added support for using tabs instead of multiple windows
+        in the AmigaOS4 port.
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (rxFunc):
+        (initARexx):
+        (closeAmigaWindowWithoutSurface):
+        (closeAmigaWindow):
+        (openAmigaWindow):
+        (createAmigaWindow):
+        (iconifyWindow):
+        (copyToClipboard):
+        (confirmQuit):
+        (resizeWebView):
+        (waitEvent):
+        (amigaToUnicodeChar):
+        (utf8ToAmiga):
+        (main):
+
+2009-01-29  Mario Bensi  <mbensi@pleyo.com>
+
+        close the window on escape and now the sizeHint equal the frameRect.
+
+        * OWBLauncher/Qt/main.cpp:
+        (QWebView::QWebView):
+        (QWebView::event):
+        (QWebView::sizeHint):
+        (MainWindow::MainWindow):
+
 2009-01-21  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -29,7 +29,7 @@
 #ifndef LocalizedStrings_h
 #define LocalizedStrings_h
 
-namespace OWBAL {
+namespace WebCore {
 
     class String;
     class IntSize;

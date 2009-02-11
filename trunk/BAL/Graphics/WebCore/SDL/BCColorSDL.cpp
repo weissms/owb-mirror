@@ -22,7 +22,7 @@
 
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 Color focusRingColor()
 {

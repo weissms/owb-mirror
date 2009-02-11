@@ -178,6 +178,8 @@ static const char* editorCommandWebActions[] =
     "InsertNewline", // InsertParagraphSeparator
     "InsertLineBreak", // InsertLineSeparator
 
+    "SelectAll", // SelectAll
+
     0 // WebActionCount
 };
 
@@ -750,6 +752,7 @@ QWebPage::WebAction QWebPagePrivate::editorActionForKeyEvent(QKeyEvent* event)
         { QKeySequence::InsertParagraphSeparator, QWebPage::InsertParagraphSeparator },
         { QKeySequence::InsertLineSeparator, QWebPage::InsertLineSeparator },
 #endif
+        { QKeySequence::SelectAll, QWebPage::SelectAll },
         { QKeySequence::UnknownKey, QWebPage::NoWebAction }
     };
 
@@ -1117,7 +1120,7 @@ QVariant QWebPage::inputMethodQuery(Qt::InputMethodQuery property) const
 
     This enum describes the types of action which can be performed on the web page.
     Actions which are related to text editing, cursor movement, and text selection
-    only have an effect if \l{QWebPage::contentEditable()}{contentEditable} is true.
+    only have an effect if \l contentEditable is true.
 
     \value NoWebAction No action is triggered.
     \value OpenLink Open the current link.
@@ -1172,6 +1175,7 @@ QVariant QWebPage::inputMethodQuery(Qt::InputMethodQuery property) const
     \value InspectElement Show the Web Inspector with the currently highlighted HTML element.
     \value InsertParagraphSeparator Insert a new paragraph.
     \value InsertLineSeparator Insert a new line.
+    \value SelectAll Selects all content.
     \omitvalue WebActionCount
 
 */
@@ -1336,7 +1340,7 @@ void QWebPage::javaScriptConsoleMessage(const QString& message, int lineNumber, 
 void QWebPage::javaScriptAlert(QWebFrame *frame, const QString& msg)
 {
 #ifndef QT_NO_MESSAGEBOX
-    QMessageBox::information(d->view, mainFrame()->title(), msg, QMessageBox::Ok);
+    QMessageBox::information(d->view, tr("JavaScript Alert - %1").arg(mainFrame()->url().host()), msg, QMessageBox::Ok);
 #endif
 }
 
@@ -1351,7 +1355,7 @@ bool QWebPage::javaScriptConfirm(QWebFrame *frame, const QString& msg)
 #ifdef QT_NO_MESSAGEBOX
     return true;
 #else
-    return QMessageBox::Yes == QMessageBox::information(d->view, mainFrame()->title(), msg, QMessageBox::Yes, QMessageBox::No);
+    return QMessageBox::Yes == QMessageBox::information(d->view, tr("JavaScript Confirm - %1").arg(mainFrame()->url().host()), msg, QMessageBox::Yes, QMessageBox::No);
 #endif
 }
 
@@ -1368,7 +1372,7 @@ bool QWebPage::javaScriptPrompt(QWebFrame *frame, const QString& msg, const QStr
 {
     bool ok = false;
 #ifndef QT_NO_INPUTDIALOG
-    QString x = QInputDialog::getText(d->view, mainFrame()->title(), msg, QLineEdit::Normal, defaultValue, &ok);
+    QString x = QInputDialog::getText(d->view, tr("JavaScript Prompt - %1").arg(mainFrame()->url().host()), msg, QLineEdit::Normal, defaultValue, &ok);
     if (ok && result) {
         *result = x;
     }
@@ -1451,7 +1455,7 @@ void QWebPage::triggerAction(WebAction action, bool checked)
             if (QWebFrame *targetFrame = d->hitTestResult.linkTargetFrame()) {
                 WTF::RefPtr<WebCore::Frame> wcFrame = targetFrame->d->frame;
                 targetFrame->d->frame->loader()->loadFrameRequestWithFormAndValues(frameLoadRequest(d->hitTestResult.linkUrl(), wcFrame.get()),
-                                                                                   /*lockHistory*/ false, /*event*/ 0,
+                                                                                   /*lockHistory*/ false, /*lockBackForwardList*/ false, /*event*/ 0,
                                                                                    /*HTMLFormElement*/ 0, /*formValues*/
                                                                                    WTF::HashMap<String, String>());
                 break;
@@ -1546,7 +1550,7 @@ void QWebPage::setViewportSize(const QSize &size) const
     if (frame->d->frame && frame->d->frame->view()) {
         WebCore::FrameView* view = frame->d->frame->view();
         view->setFrameRect(QRect(QPoint(0, 0), size));
-        frame->d->frame->forceLayout();
+        view->forceLayout();
         view->adjustViewSize();
     }
 }
@@ -1576,7 +1580,7 @@ void QWebPage::setFixedLayoutSize(const QSize &size) const
     if (frame->d->frame && frame->d->frame->view()) {
         WebCore::FrameView* view = frame->d->frame->view();
         view->setFixedLayoutSize(size);
-        frame->d->frame->forceLayout();
+        view->forceLayout();
     }
 }
 
@@ -1598,7 +1602,7 @@ void QWebPage::setUseFixedLayout(bool useFixedLayout)
     if (frame->d->frame && frame->d->frame->view()) {
         WebCore::FrameView* view = frame->d->frame->view();
         view->setUseFixedLayout(useFixedLayout);
-        frame->d->frame->forceLayout();
+        view->forceLayout();
     }
 }
 
@@ -2374,8 +2378,8 @@ QWebPluginFactory *QWebPage::pluginFactory() const
 }
 
 /*!
-    This function is called when a user agent for HTTP requests is needed. You can re-implement this
-    function to dynamically return different user agent's for different urls, based on the \a url parameter.
+    This function is called when a user agent for HTTP requests is needed. You can reimplement this
+    function to dynamically return different user agents for different URLs, based on the \a url parameter.
 
     The default implementation returns the following value:
 

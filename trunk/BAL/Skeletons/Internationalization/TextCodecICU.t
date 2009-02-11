@@ -42,9 +42,9 @@
 
 typedef struct UConverter UConverter;
 
-namespace OWBAL {
+namespace WebCore {
 
-    class TextCodecICU : public OWBALBase, public TextCodec {
+    class TextCodecICU : public WebCoreBase, public TextCodec {
     public:
     /**
      * registerBaseEncodingNames
@@ -137,7 +137,7 @@ namespace OWBAL {
         mutable bool m_needsGBKFallbacks;
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextCodecICU_h
 

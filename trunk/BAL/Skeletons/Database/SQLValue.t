@@ -40,9 +40,9 @@
 #include "PlatformString.h"
 #include <wtf/Threading.h>
 
-namespace OWBAL {
+namespace WebCore {
 
-    class SQLValue : public OWBALBase {
+    class SQLValue : public WebCoreBase {
     public:
         enum Type { NullValue, NumberValue, StringValue };
 

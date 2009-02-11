@@ -357,7 +357,7 @@ void CanvasRenderingContext2D::scale(float sx, float sy)
         return;
 
     TransformationMatrix newTransform = state().m_transform;
-    newTransform.scale(sx, sy);
+    newTransform.scaleNonUniform(sx, sy);
     if (!newTransform.isInvertible()) {
         state().m_invertibleCTM = false;
         return;
@@ -365,7 +365,7 @@ void CanvasRenderingContext2D::scale(float sx, float sy)
 
     state().m_transform = newTransform;
     c->scale(FloatSize(sx, sy));
-    m_path.transform(TransformationMatrix().scale(1.0/sx, 1.0/sy));
+    m_path.transform(TransformationMatrix().scaleNonUniform(1.0/sx, 1.0/sy));
 }
 
 void CanvasRenderingContext2D::rotate(float angleInRadians)
@@ -867,7 +867,6 @@ void CanvasRenderingContext2D::setShadow(float width, float height, float blur, 
     GraphicsContext* dc = drawingContext();
     if (!dc)
         return;
-    // FIXME: Do this through platform-independent GraphicsContext API.
 #if PLATFORM(CG)
     const CGFloat components[5] = { c, m, y, k, a };
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceCMYK();
@@ -875,6 +874,8 @@ void CanvasRenderingContext2D::setShadow(float width, float height, float blur, 
     CGColorSpaceRelease(colorSpace);
     CGContextSetShadowWithColor(dc->platformContext(), adjustedShadowSize(width, -height), blur, shadowColor);
     CGColorRelease(shadowColor);
+#else
+    dc->setShadow(IntSize(width, -height), blur, Color(c, m, y, k, a));
 #endif
 }
 
@@ -1110,8 +1111,7 @@ PassRefPtr<CanvasPattern> CanvasRenderingContext2D::createPattern(HTMLImageEleme
     if (!cachedImage || !image->cachedImage()->image())
         return CanvasPattern::create(Image::nullImage(), repeatX, repeatY, true);
 
-    KURL url(cachedImage->url());
-    RefPtr<SecurityOrigin> origin = SecurityOrigin::create(url);
+    RefPtr<SecurityOrigin> origin = SecurityOrigin::createFromString(cachedImage->url());
     bool originClean = m_canvas->document()->securityOrigin()->canAccess(origin.get());
     return CanvasPattern::create(cachedImage->image(), repeatX, repeatY, originClean);
 }
@@ -1170,9 +1170,9 @@ GraphicsContext* CanvasRenderingContext2D::drawingContext() const
 
 static PassRefPtr<ImageData> createEmptyImageData(const IntSize& size)
 {
-    PassRefPtr<ImageData> data = ImageData::create(size.width(), size.height());
-    memset(data->data()->data(), 0, data->data()->length());
-    return data;
+    RefPtr<ImageData> data = ImageData::create(size.width(), size.height());
+    memset(data->data()->data()->data(), 0, data->data()->data()->length());
+    return data.get();
 }
 
 PassRefPtr<ImageData> CanvasRenderingContext2D::createImageData(float sw, float sh) const

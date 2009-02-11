@@ -28,7 +28,7 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * @brief the BCObserver

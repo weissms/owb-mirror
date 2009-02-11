@@ -152,6 +152,7 @@ DocumentLoader::DocumentLoader(const ResourceRequest& req, const SubstituteData&
     , m_loadingFromCachedPage(false)
     , m_stopRecordingResponses(false)
     , m_substituteResourceDeliveryTimer(this, &DocumentLoader::substituteResourceDeliveryTimerFired)
+    , m_didCreateGlobalHistoryEntry(false)
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
     , m_candidateApplicationCacheGroup(0)
 #endif
@@ -255,10 +256,14 @@ void DocumentLoader::clearErrors()
 
 void DocumentLoader::mainReceivedError(const ResourceError& error, bool isComplete)
 {
+    ASSERT(!error.isNull());
+
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
     ApplicationCacheGroup* group = m_candidateApplicationCacheGroup;
-    if (!group && m_applicationCache && !mainResourceApplicationCache())
+    if (!group && m_applicationCache) {
+        ASSERT(!mainResourceApplicationCache()); // If the main resource were loaded from a cache, it wouldn't fail.
         group = m_applicationCache->group();
+    }
     
     if (group)
         group->failedLoadingMainResource(this);
@@ -866,7 +871,7 @@ ApplicationCache* DocumentLoader::mainResourceApplicationCache() const
 bool DocumentLoader::shouldLoadResourceFromApplicationCache(const ResourceRequest& request, ApplicationCacheResource*& resource)
 {
     ApplicationCache* cache = applicationCache();
-    if (!cache)
+    if (!cache || !cache->isComplete())
         return false;
 
     // If the resource is not a HTTP/HTTPS GET, then abort
@@ -894,6 +899,8 @@ bool DocumentLoader::getApplicationCacheFallbackResource(const ResourceRequest& 
         if (!cache)
             return false;
     }
+    if (!cache->isComplete())
+        return false;
     
     // If the resource is not a HTTP/HTTPS GET, then abort
     if (!ApplicationCache::requestIsHTTPOrHTTPSGet(request))

@@ -41,14 +41,21 @@ enum LoadURLFlags {
     AllowHeadersInPostData = 1 << 2,
     CurrentEventIsUserGesture = 1 << 3,
 };
-    
+ 
+enum InvokeType {
+    Invoke,
+    InvokeDefault,
+    Construct
+};
+
 enum ValueType {
     VoidValueType,
     NullValueType,
     BoolValueType,
     DoubleValueType,
     StringValueType,
-    ObjectValueType
+    JSObjectValueType,
+    NPObjectValueType
 };
 
 #endif // WebKitPluginHostTypes_h

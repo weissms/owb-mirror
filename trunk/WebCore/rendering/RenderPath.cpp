@@ -26,9 +26,8 @@
 #if ENABLE(SVG)
 #include "RenderPath.h"
 
-#include <math.h>
-
 #include "FloatPoint.h"
+#include "FloatQuad.h"
 #include "GraphicsContext.h"
 #include "PointerEventsHitRules.h"
 #include "RenderSVGContainer.h"
@@ -41,7 +40,6 @@
 #include "SVGStyledTransformableElement.h"
 #include "SVGTransformList.h"
 #include "SVGURIReference.h"
-
 #include <wtf/MathExtras.h>
 
 namespace WebCore {
@@ -83,7 +81,7 @@ FloatPoint RenderPath::mapAbsolutePointToLocal(const FloatPoint& point) const
     // absolute transform? 
     double localX;
     double localY;
-    absoluteTransform().inverse().map(point.x(), point.y(), &localX, &localY);
+    absoluteTransform().inverse().map(point.x(), point.y(), localX, localY);
     return FloatPoint::narrowPrecision(localX, localY);
 }
 
@@ -158,31 +156,23 @@ bool RenderPath::calculateLocalTransform()
 
 void RenderPath::layout()
 {
-    IntRect oldBounds;
-    IntRect oldOutlineBox;
-    bool checkForRepaint = checkForRepaintDuringLayout() && selfNeedsLayout();
-    if (checkForRepaint) {
-        oldBounds = m_absoluteBounds;
-        oldOutlineBox = absoluteOutlineBounds();
-    }
-        
+    // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
+    LayoutRepainter repainter(*this, checkForRepaintDuringLayout() && selfNeedsLayout(), &m_absoluteBounds);
+    
     calculateLocalTransform();
 
     setPath(static_cast<SVGStyledTransformableElement*>(element())->toPathData());
 
     m_absoluteBounds = absoluteClippedOverflowRect();
 
-    setWidth(m_absoluteBounds.width());
-    setHeight(m_absoluteBounds.height());
-
-    if (checkForRepaint)
-        repaintAfterLayoutIfNeeded(oldBounds, oldOutlineBox);
+    repainter.repaintAfterLayout();
 
     setNeedsLayout(false);
 }
 
-IntRect RenderPath::absoluteClippedOverflowRect()
+IntRect RenderPath::clippedOverflowRectForRepaint(RenderBoxModelObject* /*repaintContainer*/)
 {
+    // FIXME: handle non-root repaintContainer
     FloatRect repaintRect = absoluteTransform().mapRect(relativeBBox(true));
 
     // Markers can expand the bounding box
@@ -199,11 +189,6 @@ IntRect RenderPath::absoluteClippedOverflowRect()
         repaintRect.inflate(1); // inflate 1 pixel for antialiasing
 
     return enclosingIntRect(repaintRect);
-}
-
-bool RenderPath::requiresLayer()
-{
-    return false;
 }
 
 int RenderPath::lineHeight(bool, bool) const
@@ -483,6 +468,14 @@ FloatRect RenderPath::drawMarkersIfNeeded(GraphicsContext* context, const FloatR
         bounds.unite(endMarker->cachedBounds());
 
     return bounds;
+}
+
+IntRect RenderPath::outlineBoundsForRepaint(RenderBoxModelObject* /*repaintContainer*/) const
+{
+    // FIXME: handle non-root repaintContainer
+    IntRect result = m_absoluteBounds;
+    adjustRectForOutlineAndShadow(result);
+    return result;
 }
 
 }

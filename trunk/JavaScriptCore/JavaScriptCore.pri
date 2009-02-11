@@ -51,6 +51,7 @@ SOURCES += \
     wtf/MainThread.cpp \
     wtf/RandomNumber.cpp \
     wtf/RefCountedLeakCounter.cpp \
+    wtf/TypeTraits.cpp \
     wtf/unicode/CollatorDefault.cpp \
     wtf/unicode/icu/CollatorICU.cpp \
     wtf/unicode/UTF8.cpp \
@@ -117,6 +118,7 @@ SOURCES += \
     runtime/DatePrototype.cpp \
     debugger/Debugger.cpp \
     debugger/DebuggerCallFrame.cpp \
+    debugger/DebuggerActivation.cpp \
     wtf/dtoa.cpp \
     runtime/Error.cpp \
     runtime/ErrorConstructor.cpp \

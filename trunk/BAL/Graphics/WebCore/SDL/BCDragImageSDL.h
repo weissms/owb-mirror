@@ -36,7 +36,7 @@
 //We need to #define YOffset as it needs to be shared with WebKit
 #define DragLabelBorderYOffset 2
 
-namespace WKAL {
+namespace WebCore {
     
     class CachedImage;
     class Frame;

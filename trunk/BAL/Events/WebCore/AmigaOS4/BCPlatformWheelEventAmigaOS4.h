@@ -33,7 +33,7 @@
 #include "BALBase.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
     // Wheel events come in three flavors:
     // The ScrollByPixelWheelEvent is a fine-grained event that specifies the precise number of pixels to scroll.  It is sent by MacBook touchpads on OS X.
@@ -52,7 +52,7 @@ namespace WKAL {
     // get when doing other kinds of line stepping.
     const int cLineMultiplier = 3;
 
-    class PlatformWheelEvent : public WKALBase {
+    class PlatformWheelEvent {
     public:
         const IntPoint& pos() const { return m_position; } // PlatformWindow coordinates.
         const IntPoint& globalPos() const { return m_globalPosition; } // Screen coordinates.
@@ -95,6 +95,6 @@ namespace WKAL {
 
     };
 
-} // namespace WKAL
+} // namespace WebCore
 
 #endif // PlatformWheelEvent_h

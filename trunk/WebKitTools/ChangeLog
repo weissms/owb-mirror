@@ -1,3 +1,137 @@
+2009-02-06  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix the #include file order, per review comments.
+
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+
+2009-02-05  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=23362
+
+        If the WebHTMLView uses accelerated compositing, we need for force
+        the on-screen capture path and also force animations to start with -display
+        since the DRT window has autodisplay disabled.
+
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (createBitmapContextFromWebView):
+
+2009-02-04  miggilin  <mr.diggilin@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Change the way wxWidgets build gets arguments.
+        Change "checkForArgumentAndRemoveFromARGV" in build-webkit to check if the
+        argument passed matches one in ARGV exactly (allows, ie, --wx-args not to be
+        removed when --wx is checked for).
+
+        https://bugs.webkit.org/show_bug.cgi?id=23701
+
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
+2009-02-02  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Catch exceptions thrown by AppKit when accessing an attribute than an element
+        doesn't return.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (attributesOfElement):
+
+2009-01-30  David Kilzer  <ddkilzer@apple.com>
+
+        Remove semi-colons from the end of ObjC method implementations
+
+        Rubber-stamped by Adam Roben.
+
+        $ find WebKitTools -name \*.m -o -name \*.mm -exec perl -e 'undef $/; $s = <>; while ($s =~ m/[\n\r][-+].*;[\s\r\n]+\{/g) { print "$ARGV: $&\n"; }' {} \;
+
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate webView:didFailLoadWithError:forFrame:]):
+        (-[FrameLoadDelegate webView:windowScriptObjectAvailable:]):
+        (-[FrameLoadDelegate webView:didFinishDocumentLoadForFrame:]):
+        (-[FrameLoadDelegate webView:didHandleOnloadEventsForFrame:]):
+        * DumpRenderTree/mac/UIDelegate.mm:
+        (-[UIDelegate webViewFrame:]):
+
+2009-01-28  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix for GTK.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::webHistoryItemCount):
+
+2009-01-28  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Added support for querying how many history items were created during a
+        layout test.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (getWebHistoryItemCountCallback):
+        (LayoutTestController::staticValues):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::webHistoryItemCount):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::webHistoryItemCount):
+
+2009-01-28  Pierre-Olivier Latour  <pol@apple.com>
+
+        Tweaked again earlier fix, this time just to print a warning and not abort if
+        attempting to generate pixel results and Perian is installed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22615
+
+        * Scripts/run-webkit-tests:
+
+2009-01-26  Christian Dywan  <christian@twotoasts.de>
+
+        Rubber stamped by Holger Freyther.
+
+        * GtkLauncher/main.c:
+        (main): Initialize threads, which is required for libSoup.
+
+2009-01-23  David Kilzer  <ddkilzer@apple.com>
+
+        * Scripts/do-webcore-rename: Removed 10 header guard renames that
+        had already been fixed, and updated 4 renames whose original values
+        had changed.
+
+2009-01-22  Anders Carlsson  <andersca@apple.com>
+
+        Fix Windows build.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+
+2009-01-22  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Clean up the test plug-in code. We now always use the CG drawing model and the
+        Cocoa event model. It is however possible to revert to the old Carbon event model by
+        specifying forcecarbon=true in the embed/object tag.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (handleEventCarbon):
+        (handleEventCocoa):
+        (NPP_HandleEvent):
+
+2009-01-21  Pierre-Olivier Latour  <pol@apple.com>
+
+        Tweaked earlier fix to only print a warning when Perian is installed,
+        and fail completely only if attempting to generate new pixel test results.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23392
+
+        * Scripts/run-webkit-tests:
+
 2009-01-21  Darin Adler  <darin@apple.com>
 
         Reviewed by Alexey Proskuryakov.

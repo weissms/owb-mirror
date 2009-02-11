@@ -371,9 +371,11 @@ bool RenderTheme::paintDecorations(RenderObject* o, const RenderObject::PaintInf
 #if ENABLE(VIDEO)
 bool RenderTheme::hitTestMediaControlPart(RenderObject* o, const IntPoint& absPoint)
 {
-    FloatPoint localPoint = o->absoluteToLocal(absPoint, false, true);  // respect transforms
+    if (!o->isBox())
+        return false;
 
-    return o->borderBox().contains(roundedIntPoint(localPoint));
+    FloatPoint localPoint = o->absoluteToLocal(absPoint, false, true);  // respect transforms
+    return toRenderBox(o)->borderBoxRect().contains(roundedIntPoint(localPoint));
 }
 #endif
 
@@ -408,28 +410,28 @@ Color RenderTheme::inactiveSelectionForegroundColor() const
 Color RenderTheme::activeListBoxSelectionBackgroundColor() const
 {
     if (!m_activeListBoxSelectionBackgroundColor.isValid())
-        m_activeListBoxSelectionBackgroundColor = platformActiveSelectionBackgroundColor();
+        m_activeListBoxSelectionBackgroundColor = platformActiveListBoxSelectionBackgroundColor();
     return m_activeListBoxSelectionBackgroundColor;
 }
 
 Color RenderTheme::inactiveListBoxSelectionBackgroundColor() const
 {
     if (!m_inactiveListBoxSelectionBackgroundColor.isValid())
-        m_inactiveListBoxSelectionBackgroundColor = platformInactiveSelectionBackgroundColor();
+        m_inactiveListBoxSelectionBackgroundColor = platformInactiveListBoxSelectionBackgroundColor();
     return m_inactiveListBoxSelectionBackgroundColor;
 }
 
 Color RenderTheme::activeListBoxSelectionForegroundColor() const
 {
     if (!m_activeListBoxSelectionForegroundColor.isValid() && supportsListBoxSelectionForegroundColors())
-        m_activeListBoxSelectionForegroundColor = platformActiveSelectionForegroundColor();
+        m_activeListBoxSelectionForegroundColor = platformActiveListBoxSelectionForegroundColor();
     return m_activeListBoxSelectionForegroundColor;
 }
 
 Color RenderTheme::inactiveListBoxSelectionForegroundColor() const
 {
     if (!m_inactiveListBoxSelectionForegroundColor.isValid() && supportsListBoxSelectionForegroundColors())
-        m_inactiveListBoxSelectionForegroundColor = platformInactiveSelectionForegroundColor();
+        m_inactiveListBoxSelectionForegroundColor = platformInactiveListBoxSelectionForegroundColor();
     return m_inactiveListBoxSelectionForegroundColor;
 }
 
@@ -480,10 +482,15 @@ Color RenderTheme::platformInactiveListBoxSelectionForegroundColor() const
 
 int RenderTheme::baselinePosition(const RenderObject* o) const
 {
+    if (!o->isBox())
+        return 0;
+
+    const RenderBox* box = toRenderBox(o);
+
 #if USE(NEW_THEME)
-    return o->height() + o->marginTop() + m_theme->baselinePositionAdjustment(o->style()->appearance()) * o->style()->effectiveZoom();
+    return box->height() + box->marginTop() + m_theme->baselinePositionAdjustment(o->style()->appearance()) * o->style()->effectiveZoom();
 #else
-    return o->height() + o->marginTop();
+    return box->height() + box->marginTop();
 #endif
 }
 
@@ -587,23 +594,38 @@ bool RenderTheme::isActive(const RenderObject* o) const
 
 bool RenderTheme::isChecked(const RenderObject* o) const
 {
-    if (!o->element())
+    if (!o->element() || !o->element()->isElementNode())
         return false;
-    return o->element()->isChecked();
+
+    InputElement* inputElement = toInputElement(static_cast<Element*>(o->element()));
+    if (!inputElement)
+        return false;
+
+    return inputElement->isChecked();
 }
 
 bool RenderTheme::isIndeterminate(const RenderObject* o) const
 {
-    if (!o->element())
+    if (!o->element() || !o->element()->isElementNode())
         return false;
-    return o->element()->isIndeterminate();
+
+    InputElement* inputElement = toInputElement(static_cast<Element*>(o->element()));
+    if (!inputElement)
+        return false;
+
+    return inputElement->isIndeterminate();
 }
 
 bool RenderTheme::isEnabled(const RenderObject* o) const
 {
-    if (!o->element())
+    if (!o->element() || !o->element()->isElementNode())
         return true;
-    return o->element()->isEnabled();
+
+    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(o->element()));
+    if (!formControlElement)
+        return true;
+
+    return formControlElement->isEnabled();
 }
 
 bool RenderTheme::isFocused(const RenderObject* o) const
@@ -625,9 +647,14 @@ bool RenderTheme::isPressed(const RenderObject* o) const
 
 bool RenderTheme::isReadOnlyControl(const RenderObject* o) const
 {
-    if (!o->element())
+    if (!o->element() || !o->element()->isElementNode())
         return false;
-    return o->element()->isReadOnlyControl();
+
+    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(o->element()));
+    if (!formControlElement)
+        return false;
+
+    return formControlElement->isReadOnlyControl();
 }
 
 bool RenderTheme::isHovered(const RenderObject* o) const

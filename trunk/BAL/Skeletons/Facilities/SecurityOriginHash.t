@@ -41,7 +41,7 @@
 #include "SecurityOrigin.h"
 #include <wtf/RefPtr.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 struct SecurityOriginHash {
     /**
@@ -111,7 +111,7 @@ struct SecurityOriginHash {
     static const bool safeToCompareToEmptyOrDeleted = false;
 };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif
 

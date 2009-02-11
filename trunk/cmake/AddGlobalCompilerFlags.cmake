@@ -12,10 +12,17 @@ else(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Flag for Windows compiler is not implemented")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-add_definitions(-DOWBAL=WebCore -DWKAL=WebCore)
 add_definitions(-DWTF_CHANGES)
-add_definitions(-DWTF_USE_ICU_UNICODE=1)
-add_definitions(-DWTF_USE_CURL=1)
+
+if(USE_I18N_QT)
+    add_definitions(-DWTF_USE_QT4_UNICODE=1)
+else(USE_I18N_QT)
+    add_definitions(-DWTF_USE_ICU_UNICODE=1)
+endif(USE_I18N_QT)
+
+if(USE_NETWORK_CURL)
+    add_definitions(-DWTF_USE_CURL=1)
+endif(USE_NETWORK_CURL)
 
 #FIXME
 add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
@@ -83,6 +90,11 @@ if(USE_GRAPHICS_GTK)
     add_definitions(-DBUILDING_GTK__=1)
     add_definitions(-DBUILDING_CAIRO__=1)
 endif(USE_GRAPHICS_GTK)
+
+if(USE_GRAPHICS_QT)
+    add_definitions(-DBUILDING_QT__=1)
+#    add_definitions(-DQT_NO_CURSOR=1)
+endif(USE_GRAPHICS_QT)
 
 if(USE_GRAPHICS_SDL)
     add_definitions(-DWTF_PLATFORM_SDL=1)

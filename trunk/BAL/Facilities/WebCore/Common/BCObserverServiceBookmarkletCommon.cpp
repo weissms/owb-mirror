@@ -38,7 +38,7 @@
 #include "Bookmarklet.h"
 #include "CString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 ObserverServiceBookmarklet* ObserverServiceBookmarklet::createObserverService()
 {

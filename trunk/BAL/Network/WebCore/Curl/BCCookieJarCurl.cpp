@@ -23,7 +23,7 @@
 
 #include <wtf/HashMap.h>
 
-namespace WKAL {
+namespace WebCore {
 
 static HashMap<String, String> cookieJar;
 

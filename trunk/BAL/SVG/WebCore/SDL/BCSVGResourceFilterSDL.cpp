@@ -34,7 +34,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 SVGResourceFilterPlatformData* SVGResourceFilter::createPlatformData()
 {

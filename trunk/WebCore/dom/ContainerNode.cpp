@@ -2,7 +2,7 @@
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -25,8 +25,6 @@
 
 #include "ContainerNodeAlgorithms.h"
 #include "DeleteButtonController.h"
-#include "Document.h"
-#include "Editor.h"
 #include "EventNames.h"
 #include "ExceptionCode.h"
 #include "FloatRect.h"
@@ -37,7 +35,6 @@
 #include "RenderTheme.h"
 #include "RootInlineBox.h"
 #include <wtf/CurrentTime.h>
-#include <wtf/Vector.h>
 
 namespace WebCore {
 
@@ -48,13 +45,6 @@ typedef Vector<std::pair<NodeCallback, RefPtr<Node> > > NodeCallbackQueue;
 static NodeCallbackQueue* s_postAttachCallbackQueue = 0;
 
 static size_t s_attachDepth = 0;
-
-ContainerNode::ContainerNode(Document* doc, bool isElement)
-    : EventTargetNode(doc, isElement, true)
-    , m_firstChild(0)
-    , m_lastChild(0)
-{
-}
 
 void ContainerNode::removeAllChildren()
 {
@@ -291,7 +281,7 @@ void ContainerNode::willRemove()
 {
     for (Node *n = m_firstChild; n != 0; n = n->nextSibling())
         n->willRemove();
-    EventTargetNode::willRemove();
+    Node::willRemove();
 }
 
 static ExceptionCode willRemoveChild(Node *child)
@@ -580,7 +570,7 @@ void ContainerNode::attach()
 
     for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->attach();
-    EventTargetNode::attach();
+    Node::attach();
 
     if (s_attachDepth == 1 && s_postAttachCallbackQueue)
         dispatchPostAttachCallbacks();
@@ -592,39 +582,40 @@ void ContainerNode::detach()
     for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->detach();
     setHasChangedChild(false);
-    EventTargetNode::detach();
+    Node::detach();
 }
 
 void ContainerNode::insertedIntoDocument()
 {
-    EventTargetNode::insertedIntoDocument();
-    for (Node *child = m_firstChild; child; child = child->nextSibling())
+    Node::insertedIntoDocument();
+    insertedIntoTree(false);
+    for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->insertedIntoDocument();
 }
 
 void ContainerNode::removedFromDocument()
 {
-    EventTargetNode::removedFromDocument();
-    for (Node *child = m_firstChild; child; child = child->nextSibling())
+    Node::removedFromDocument();
+    setInDocument(false);
+    removedFromTree(false);
+    for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->removedFromDocument();
 }
 
 void ContainerNode::insertedIntoTree(bool deep)
 {
-    EventTargetNode::insertedIntoTree(deep);
-    if (deep) {
-        for (Node *child = m_firstChild; child; child = child->nextSibling())
-            child->insertedIntoTree(deep);
-    }
+    if (!deep)
+        return;
+    for (Node* child = m_firstChild; child; child = child->nextSibling())
+        child->insertedIntoTree(true);
 }
 
 void ContainerNode::removedFromTree(bool deep)
 {
-    EventTargetNode::removedFromTree(deep);
-    if (deep) {
-        for (Node *child = m_firstChild; child; child = child->nextSibling())
-            child->removedFromTree(deep);
-    }
+    if (!deep)
+        return;
+    for (Node* child = m_firstChild; child; child = child->nextSibling())
+        child->removedFromTree(true);
 }
 
 void ContainerNode::childrenChanged(bool changedByParser, Node* beforeChange, Node* afterChange, int childCountDelta)
@@ -686,15 +677,17 @@ bool ContainerNode::getUpperLeftCorner(FloatPoint& point) const
             return true;
         }
 
-        if (p->element() && p->element() == this && o->isText() && !o->isBR() && !static_cast<RenderText*>(o)->firstTextBox()) {
+        if (p->element() && p->element() == this && o->isText() && !o->isBR() && !toRenderText(o)->firstTextBox()) {
                 // do nothing - skip unrendered whitespace that is a child or next sibling of the anchor
         } else if ((o->isText() && !o->isBR()) || o->isReplaced()) {
             point = o->container()->localToAbsolute();
-            if (o->isText() && static_cast<RenderText *>(o)->firstTextBox()) {
-                point.move(static_cast<RenderText *>(o)->minXPos(),
-                           static_cast<RenderText *>(o)->firstTextBox()->root()->topOverflow());
-            } else
-                point.move(o->xPos(), o->yPos());
+            if (o->isText() && toRenderText(o)->firstTextBox()) {
+                point.move(toRenderText(o)->linesBoundingBox().x(),
+                           toRenderText(o)->firstTextBox()->root()->topOverflow());
+            } else if (o->isBox()) {
+                RenderBox* box = toRenderBox(o);
+                point.move(box->x(), box->y());
+            }
             return true;
         }
     }
@@ -717,9 +710,9 @@ bool ContainerNode::getLowerRightCorner(FloatPoint& point) const
     RenderObject *o = renderer();
     if (!o->isInline() || o->isReplaced())
     {
+        RenderBox* box = toRenderBox(o);
         point = o->localToAbsolute();
-        point.move(o->width(),
-                   o->height() + o->borderTopExtra() + o->borderBottomExtra());
+        point.move(box->width(), box->height());
         return true;
     }
 
@@ -741,13 +734,14 @@ bool ContainerNode::getLowerRightCorner(FloatPoint& point) const
         }
         if (o->isText() || o->isReplaced()) {
             point = o->container()->localToAbsolute();
-            int xOffset;
-            if (o->isText())
-                xOffset = static_cast<RenderText *>(o)->minXPos() + o->width();
-            else
-                xOffset = o->xPos() + o->width();
-            
-            point.move(xOffset, o->yPos() + o->height());
+            if (o->isText()) {
+                RenderText* text = toRenderText(o);
+                IntRect linesBox = text->linesBoundingBox();
+                point.move(linesBox.x() + linesBox.width(), linesBox.height());
+            } else {
+                RenderBox* box = toRenderBox(o);
+                point.move(box->x() + box->width(), box->y() + box->height());
+            }
             return true;
         }
     }
@@ -781,7 +775,7 @@ void ContainerNode::setFocus(bool received)
     if (focused() == received)
         return;
 
-    EventTargetNode::setFocus(received);
+    Node::setFocus(received);
 
     // note that we need to recalc the style
     setChanged();
@@ -791,7 +785,7 @@ void ContainerNode::setActive(bool down, bool pause)
 {
     if (down == active()) return;
 
-    EventTargetNode::setActive(down);
+    Node::setActive(down);
 
     // note that we need to recalc the style
     // FIXME: Move to Element
@@ -834,7 +828,7 @@ void ContainerNode::setHovered(bool over)
 {
     if (over == hovered()) return;
 
-    EventTargetNode::setHovered(over);
+    Node::setHovered(over);
 
     // note that we need to recalc the style
     // FIXME: Move to Element
@@ -876,11 +870,9 @@ static void dispatchChildInsertionEvents(Node* child, ExceptionCode& ec)
     else
         c->insertedIntoTree(true);
 
-    if (c->parentNode() && 
-        doc->hasListenerType(Document::DOMNODEINSERTED_LISTENER) &&
-        c->isEventTargetNode()) {
+    if (c->parentNode() && doc->hasListenerType(Document::DOMNODEINSERTED_LISTENER)) {
         ec = 0;
-        EventTargetNodeCast(c.get())->dispatchEvent(MutationEvent::create(eventNames().DOMNodeInsertedEvent, true, false,
+        c->dispatchEvent(MutationEvent::create(eventNames().DOMNodeInsertedEvent, true, false,
             c->parentNode(), String(), String(), String(), 0), ec);
         if (ec)
             return;
@@ -889,11 +881,8 @@ static void dispatchChildInsertionEvents(Node* child, ExceptionCode& ec)
     // dispatch the DOMNodeInsertedIntoDocument event to all descendants
     if (c->inDocument() && doc->hasListenerType(Document::DOMNODEINSERTEDINTODOCUMENT_LISTENER))
         for (; c; c = c->traverseNextNode(child)) {
-            if (!c->isEventTargetNode())
-                continue;
-          
             ec = 0;
-            EventTargetNodeCast(c.get())->dispatchEvent(MutationEvent::create(eventNames().DOMNodeInsertedIntoDocumentEvent, false, false,
+            c->dispatchEvent(MutationEvent::create(eventNames().DOMNodeInsertedIntoDocumentEvent, false, false,
                 0, String(), String(), String(), 0), ec);
             if (ec)
                 return;
@@ -909,11 +898,9 @@ static void dispatchChildRemovalEvents(Node* child, ExceptionCode& ec)
     doc->nodeWillBeRemoved(child);
 
     // dispatch pre-removal mutation events
-    if (c->parentNode() && 
-        doc->hasListenerType(Document::DOMNODEREMOVED_LISTENER) &&
-        c->isEventTargetNode()) {
+    if (c->parentNode() && doc->hasListenerType(Document::DOMNODEREMOVED_LISTENER)) {
         ec = 0;
-        EventTargetNodeCast(c.get())->dispatchEvent(MutationEvent::create(eventNames().DOMNodeRemovedEvent, true, false,
+        c->dispatchEvent(MutationEvent::create(eventNames().DOMNodeRemovedEvent, true, false,
             c->parentNode(), String(), String(), String(), 0), ec);
         if (ec)
             return;
@@ -922,10 +909,8 @@ static void dispatchChildRemovalEvents(Node* child, ExceptionCode& ec)
     // dispatch the DOMNodeRemovedFromDocument event to all descendants
     if (c->inDocument() && doc->hasListenerType(Document::DOMNODEREMOVEDFROMDOCUMENT_LISTENER))
         for (; c; c = c->traverseNextNode(child)) {
-            if (!c->isEventTargetNode())
-                continue;
             ec = 0;
-            EventTargetNodeCast(c.get())->dispatchEvent(MutationEvent::create(eventNames().DOMNodeRemovedFromDocumentEvent, false, false,
+            c->dispatchEvent(MutationEvent::create(eventNames().DOMNodeRemovedFromDocumentEvent, false, false,
                 0, String(), String(), String(), 0), ec);
             if (ec)
                 return;

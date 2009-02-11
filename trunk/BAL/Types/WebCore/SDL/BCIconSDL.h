@@ -36,13 +36,13 @@
 #include <wtf/Vector.h>
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 class GraphicsContext;
 class IntRect;
 class String;
     
-class Icon : public RefCounted<Icon>, public OWBALBase {
+class Icon : public RefCounted<Icon> {
 public:
     Icon();
     ~Icon();

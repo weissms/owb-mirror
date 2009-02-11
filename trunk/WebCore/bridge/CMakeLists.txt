@@ -1,4 +1,5 @@
 list(APPEND WEBCORE_SRC
+    bridge/IdentifierRep.cpp
     bridge/runtime_array.cpp
     bridge/runtime_method.cpp
     bridge/runtime_object.cpp

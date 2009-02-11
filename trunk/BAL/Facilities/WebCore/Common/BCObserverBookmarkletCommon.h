@@ -33,7 +33,7 @@
 
 class BalObject;
 
-namespace OWBAL {
+namespace WebCore {
 
     using WebCore::String;
     class Bookmarklet;

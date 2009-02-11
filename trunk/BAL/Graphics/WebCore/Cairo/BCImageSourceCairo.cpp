@@ -43,7 +43,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 ImageDecoder* createDecoder(const Vector<char>& data)
 {
@@ -113,7 +113,7 @@ void ImageSource::clear(bool destroyAll, size_t clearBeforeFrame, SharedBuffer* 
     delete m_decoder;
     m_decoder = 0;
     if (data)
-      setData(data, allDataReceived);
+        setData(data, allDataReceived);
 }
 
 bool ImageSource::initialized() const

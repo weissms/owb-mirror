@@ -33,7 +33,7 @@
 #include <proto/diskfont.h>
 #include <diskfont/diskfonttag.h>
 
-namespace WKAL {
+namespace WebCore {
 
 bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned bufferLength, const SimpleFontData* fontData)
 {

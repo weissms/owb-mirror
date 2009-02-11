@@ -40,7 +40,7 @@
 
 #include <fontconfig/fontconfig.h>
 
-namespace WKAL {
+namespace WebCore {
 
 #define IS_HIGH_SURROGATE(u)  ((UChar)(u) >= (UChar)0xd800 && (UChar)(u) <= (UChar)0xdbff)
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
@@ -194,9 +194,31 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     // FIXME: It should be xMax - xMin but with it, we would assert in acid3.
     uint16_t width = xMin < 0 ? xMax + 1 : xMax + xMin;
 
-    Vector<unsigned>* glyphRGBABuffer = new Vector<unsigned>(width * height);
-    glyphRGBABuffer->fill(0);
+    SDL_Surface* img;
+    Uint32 rmask, gmask, bmask, amask;
 
+#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x00ff0000;
+    gmask = 0x0000ff00;
+    bmask = 0x000000ff;
+    amask = 0xff000000;
+#endif
+   
+    img = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, width, height, 
+                               32, rmask, gmask, bmask, amask);
+    //the surface can be null if the width or the height are too big, it's a sdl limitation.
+    if (!img) {
+        for (int i = 0; i < numGlyphs; i++)
+            FT_Done_Glyph((FT_Glyph) ftBitmapGlyph[i]);
+        return;
+    }
+
+    uint32_t *data = (uint32_t*)img->pixels;
     bool isMono = (ftBitmapGlyph[0]->bitmap.pixel_mode == FT_PIXEL_MODE_MONO); 
     // Set the text color to use for drawing.
     Color penColor = context->fillColor();
@@ -220,7 +242,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                     unsigned int index = static_cast<unsigned int>(baseIndex + j * width + k);
 
                     if ((*bitmapAddr) & (1 << (7 - k % 8)))
-                        (*glyphRGBABuffer)[index] = pixelColor;
+                        data[index] = pixelColor;
 
                     if (k > 0 && (k % 8) == 0)
                         *bitmapAddr++;
@@ -232,29 +254,12 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
                     // We can safely cast to unsigned int as we have already checked this glyph.
                     unsigned int index = static_cast<unsigned int>(baseIndex + j * width + k);
-                    (*glyphRGBABuffer)[index] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+                    data[index] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
                 }
         }
         FT_Done_Glyph((FT_Glyph) ftBitmapGlyph[i]);
     }
 
-    SDL_Surface* img;
-    Uint32 rmask, gmask, bmask, amask;
-
-#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-#else
-    rmask = 0x00ff0000;
-    gmask = 0x0000ff00;
-    bmask = 0x000000ff;
-    amask = 0xff000000;
-#endif
-        
-    img = SDL_CreateRGBSurfaceFrom((void*)glyphRGBABuffer->data(), width, height,
-                                    32, width * 4, rmask, gmask, bmask, amask);
     SDL_Rect sdlSrc, sdlDest;
     sdlDest.x = static_cast<int>(point.x()) + x_offset + context->origin().x();
     sdlDest.y = static_cast<int>(point.y()) - yMax + context->origin().y();
@@ -274,7 +279,6 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     }
 
     SDL_FreeSurface(img);
-    delete glyphRGBABuffer;
 }
 
-} // namespace WKAL
+} // namespace WebCore

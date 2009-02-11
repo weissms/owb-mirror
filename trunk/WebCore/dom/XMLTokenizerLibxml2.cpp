@@ -82,12 +82,12 @@ public:
         callback->xmlPrefix = xmlStrdup(xmlPrefix);
         callback->xmlURI = xmlStrdup(xmlURI);
         callback->nb_namespaces = nb_namespaces;
-        callback->namespaces = reinterpret_cast<xmlChar**>(xmlMalloc(sizeof(xmlChar*) * nb_namespaces * 2));
+        callback->namespaces = static_cast<xmlChar**>(xmlMalloc(sizeof(xmlChar*) * nb_namespaces * 2));
         for (int i = 0; i < nb_namespaces * 2 ; i++)
             callback->namespaces[i] = xmlStrdup(namespaces[i]);
         callback->nb_attributes = nb_attributes;
         callback->nb_defaulted = nb_defaulted;
-        callback->attributes = reinterpret_cast<xmlChar**>(xmlMalloc(sizeof(xmlChar*) * nb_attributes * 5));
+        callback->attributes = static_cast<xmlChar**>(xmlMalloc(sizeof(xmlChar*) * nb_attributes * 5));
         for (int i = 0; i < nb_attributes; i++) {
             // Each attribute has 5 elements in the array:
             // name, prefix, uri, value and an end pointer.
@@ -204,8 +204,8 @@ private:
         
         virtual void call(XMLTokenizer* tokenizer) {
             tokenizer->startElementNs(xmlLocalName, xmlPrefix, xmlURI, 
-                                      nb_namespaces, (const xmlChar**)namespaces,
-                                      nb_attributes, nb_defaulted, (const xmlChar**)(attributes));
+                                      nb_namespaces, const_cast<const xmlChar**>(namespaces),
+                                      nb_attributes, nb_defaulted, const_cast<const xmlChar**>(attributes));
         }
 
         xmlChar* xmlLocalName;
@@ -706,7 +706,8 @@ void XMLTokenizer::startElementNs(const xmlChar* xmlLocalName, const xmlChar* xm
                                                          nb_attributes, nb_defaulted, libxmlAttributes);
         return;
     }
-    
+
+    bool isFirstElement = !m_sawFirstElement;
     m_sawFirstElement = true;
 
     exitText();
@@ -751,7 +752,8 @@ void XMLTokenizer::startElementNs(const xmlChar* xmlLocalName, const xmlChar* xm
 
     newElement->beginParsingChildren();
 
-    if (isScriptElement(newElement.get()))
+    ScriptElement* scriptElement = toScriptElement(newElement.get());
+    if (scriptElement)
         m_scriptStartLine = lineNumber();
 
     if (!m_currentNode->addChild(newElement.get())) {
@@ -762,6 +764,9 @@ void XMLTokenizer::startElementNs(const xmlChar* xmlLocalName, const xmlChar* xm
     setCurrentNode(newElement.get());
     if (m_view && !newElement->attached())
         newElement->attach();
+
+    if (isFirstElement && m_doc->frame())
+        m_doc->frame()->loader()->dispatchDocumentElementAvailable();
 }
 
 void XMLTokenizer::endElementNs()
@@ -779,34 +784,40 @@ void XMLTokenizer::endElementNs()
     Node* n = m_currentNode;
     RefPtr<Node> parent = n->parentNode();
     n->finishParsingChildren();
-    
-    // don't load external scripts for standalone documents (for now)
-    if (n->isElementNode() && m_view && isScriptElement(static_cast<Element*>(n))) {
-        ASSERT(!m_pendingScript);
-        m_requestingScript = true;
 
-        Element* element = static_cast<Element*>(n); 
-        ScriptElement* scriptElement = castToScriptElement(element);
-
-        String scriptHref = scriptElement->sourceAttributeValue();
-        if (!scriptHref.isEmpty()) {
-            // we have a src attribute 
-            String scriptCharset = scriptElement->scriptCharset();
-            if ((m_pendingScript = m_doc->docLoader()->requestScript(scriptHref, scriptCharset))) {
-                m_scriptElement = element;
-                m_pendingScript->addClient(this);
-
-                // m_pendingScript will be 0 if script was already loaded and ref() executed it
-                if (m_pendingScript)
-                    pauseParsing();
-            } else 
-                m_scriptElement = 0;
-        } else
-            m_view->frame()->loader()->executeScript(ScriptSourceCode(scriptElement->scriptContent(), m_doc->url(), m_scriptStartLine));
-
-        m_requestingScript = false;
+    if (!n->isElementNode() || !m_view) {
+        setCurrentNode(parent.get());
+        return;
     }
 
+    Element* element = static_cast<Element*>(n);
+    ScriptElement* scriptElement = toScriptElement(element);
+    if (!scriptElement) {
+        setCurrentNode(parent.get());
+        return;
+    }
+
+    // don't load external scripts for standalone documents (for now)
+    ASSERT(!m_pendingScript);
+    m_requestingScript = true;
+
+    String scriptHref = scriptElement->sourceAttributeValue();
+    if (!scriptHref.isEmpty()) {
+        // we have a src attribute 
+        String scriptCharset = scriptElement->scriptCharset();
+        if ((m_pendingScript = m_doc->docLoader()->requestScript(scriptHref, scriptCharset))) {
+            m_scriptElement = element;
+            m_pendingScript->addClient(this);
+
+            // m_pendingScript will be 0 if script was already loaded and ref() executed it
+            if (m_pendingScript)
+                pauseParsing();
+        } else 
+            m_scriptElement = 0;
+    } else
+        m_view->frame()->loader()->executeScript(ScriptSourceCode(scriptElement->scriptContent(), m_doc->url(), m_scriptStartLine));
+
+    m_requestingScript = false;
     setCurrentNode(parent.get());
 }
 

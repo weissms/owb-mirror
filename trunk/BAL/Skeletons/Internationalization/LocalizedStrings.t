@@ -37,7 +37,7 @@
  */
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     class String;
     class IntSize;

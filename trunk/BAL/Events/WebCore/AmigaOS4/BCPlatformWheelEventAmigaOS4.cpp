@@ -32,7 +32,7 @@
 #include <cstdio>
 #include <intuition/intuition.h>
 
-namespace WKAL {
+namespace WebCore {
 
 // Keep this in sync with the other platform event constructors
 PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)

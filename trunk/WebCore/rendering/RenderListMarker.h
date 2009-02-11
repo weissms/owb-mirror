@@ -60,16 +60,15 @@ public:
 
     bool isInside() const;
 
-    virtual SelectionState selectionState() const { return m_selectionState; }
     virtual void setSelectionState(SelectionState);
-    virtual IntRect selectionRect(bool clipToVisibleContent = true);
+    virtual IntRect selectionRectForRepaint(RenderBoxModelObject* repaintContainer, bool clipToVisibleContent = true);
     virtual bool canBeSelectionLeaf() const { return true; }
 
     void updateMargins();
 
 protected:
-    virtual void styleWillChange(RenderStyle::Diff, const RenderStyle* newStyle);
-    virtual void styleDidChange(RenderStyle::Diff, const RenderStyle* oldStyle);
+    virtual void styleWillChange(StyleDifference, const RenderStyle* newStyle);
+    virtual void styleDidChange(StyleDifference, const RenderStyle* oldStyle);
 
 private:
     IntRect getRelativeMarkerRect();
@@ -77,7 +76,6 @@ private:
     String m_text;
     RefPtr<StyleImage> m_image;
     RenderListItem* m_listItem;
-    SelectionState m_selectionState;
 };
 
 } // namespace WebCore

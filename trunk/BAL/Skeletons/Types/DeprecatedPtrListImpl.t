@@ -37,7 +37,7 @@
  */
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 class DeprecatedListNode;
 class DeprecatedPtrListImplIterator;
@@ -340,7 +340,7 @@ public:
 };
 
 
-class DeprecatedPtrListImplIterator : public OWBALBase {
+class DeprecatedPtrListImplIterator {
 public:
     /**
      *  DeprecatedPtrListImplIterator description

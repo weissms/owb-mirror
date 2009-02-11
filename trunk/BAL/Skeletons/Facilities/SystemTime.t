@@ -37,7 +37,7 @@
  */
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * Return the current system time in seconds, using the classic POSIX epoch of January 1, 1970.

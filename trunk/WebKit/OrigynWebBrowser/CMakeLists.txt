@@ -23,6 +23,15 @@ if(USE_GRAPHICS_GTK)
     )
 endif(USE_GRAPHICS_GTK)
 
+if(USE_GRAPHICS_QT)
+    list(APPEND WEBKIT_SRC
+        Api/Qt/WebViewPrivate.cpp
+    )
+    include_directories(
+        Api/Qt
+    )
+endif(USE_GRAPHICS_QT)
+
 if(USE_GRAPHICS_SDL)
     list(APPEND WEBKIT_SRC
         Api/SDL/WebViewPrivate.cpp

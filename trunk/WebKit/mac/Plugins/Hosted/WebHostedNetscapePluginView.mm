@@ -34,6 +34,7 @@
 #import "WebUIDelegate.h"
 
 #import <CoreFoundation/CoreFoundation.h>
+#import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/runtime.h>
 #import <WebCore/runtime_root.h>
 #import <WebCore/WebCoreObjCExtras.h>
@@ -66,9 +67,9 @@ extern "C" {
       attributeKeys:(NSArray *)keys
     attributeValues:(NSArray *)values
        loadManually:(BOOL)loadManually
-         DOMElement:(DOMElement *)element
+            element:(PassRefPtr<WebCore::HTMLPlugInElement>)element
 {
-    self = [super initWithFrame:frame pluginPackage:pluginPackage URL:URL baseURL:baseURL MIMEType:MIME attributeKeys:keys attributeValues:values loadManually:loadManually DOMElement:element];
+    self = [super initWithFrame:frame pluginPackage:pluginPackage URL:URL baseURL:baseURL MIMEType:MIME attributeKeys:keys attributeValues:values loadManually:loadManually element:element];
     if (!self)
         return nil;
     
@@ -280,14 +281,29 @@ extern "C" {
     }
     
     if (_pluginHostDied) {
-        // Fill the area with a nice red color for now.
-        [[NSColor redColor] set];
-        NSRectFill(rect);
+        static NSImage *nullPlugInImage;
+        if (!nullPlugInImage) {
+            NSBundle *bundle = [NSBundle bundleForClass:[WebHostedNetscapePluginView class]];
+            nullPlugInImage = [[NSImage alloc] initWithContentsOfFile:[bundle pathForResource:@"nullplugin" ofType:@"tiff"]];
+            [nullPlugInImage setFlipped:YES];
+        }
+        
+        if (!nullPlugInImage)
+            return;
+        
+        NSSize imageSize = [nullPlugInImage size];
+        NSSize viewSize = [self bounds].size;
+        
+        NSPoint point = NSMakePoint((viewSize.width - imageSize.width) / 2.0, (viewSize.height - imageSize.height) / 2.0);
+        [nullPlugInImage drawAtPoint:point fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
     }
 }
 
 - (PassRefPtr<JSC::Bindings::Instance>)createPluginBindingsInstance:(PassRefPtr<JSC::Bindings::RootObject>)rootObject
 {
+    if (!_proxy)
+        return 0;
+    
     return _proxy->createBindingsInstance(rootObject);
 }
 

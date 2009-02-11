@@ -88,7 +88,7 @@ namespace JSC {
         bool sawError() const { return m_error; }
 
         void clear();
-        SourceCode sourceCode(int openBrace, int closeBrace, int firstLine) { return SourceCode(m_source->provider(), openBrace + 1, closeBrace, firstLine); }
+        SourceCode sourceCode(int openBrace, int closeBrace, int firstLine) { return SourceCode(m_source->provider(), openBrace, closeBrace + 1, firstLine); }
 
     private:
         friend class JSGlobalData;
@@ -104,7 +104,7 @@ namespace JSC {
         bool isLineTerminator();
         static bool isOctalDigit(int);
 
-        int matchPunctuator(int& charPos, int c1, int c2, int c3, int c4);
+        ALWAYS_INLINE int matchPunctuator(int& charPos, int c1, int c2, int c3, int c4);
         static unsigned short singleEscape(unsigned short);
         static unsigned short convertOctal(int c1, int c2, int c3);
 

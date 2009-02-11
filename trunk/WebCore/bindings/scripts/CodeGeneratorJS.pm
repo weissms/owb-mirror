@@ -386,9 +386,6 @@ sub GenerateHeader
         push(@headerContentHeader, "#include <runtime/JSGlobalObject.h>\n");
         push(@headerContentHeader, "#include <runtime/ObjectPrototype.h>\n");
     }
-    if ($interfaceName eq "Node") {
-        push(@headerContentHeader, "#include \"EventTargetNode.h\"\n");
-    }
 
     if ($dataNode->extendedAttributes->{"CustomCall"}) {
         push(@headerContentHeader, "#include <runtime/CallData.h>\n");
@@ -536,7 +533,7 @@ sub GenerateHeader
     if ($numAttributes > 0) {
         foreach (@{$dataNode->attributes}) {
             my $attribute = $_;
-            $numCustomAttributes++ if $attribute->signature->extendedAttributes->{"Custom"};
+            $numCustomAttributes++ if $attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"JSCCustom"};
             $numCustomAttributes++ if $attribute->signature->extendedAttributes->{"CustomGetter"};
             $numCustomAttributes++ if $attribute->signature->extendedAttributes->{"CustomSetter"};
         }
@@ -546,7 +543,7 @@ sub GenerateHeader
         push(@headerContent, "\n    // Custom attributes\n");
 
         foreach my $attribute (@{$dataNode->attributes}) {
-            if ($attribute->signature->extendedAttributes->{"Custom"}) {
+            if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"JSCCustom"}) {
                 push(@headerContent, "    JSC::JSValuePtr " . $codeGenerator->WK_lcfirst($attribute->signature->name) . "(JSC::ExecState*) const;\n");
                 if ($attribute->type !~ /^readonly/) {
                     push(@headerContent, "    void set" . $codeGenerator->WK_ucfirst($attribute->signature->name) . "(JSC::ExecState*, JSC::JSValuePtr);\n");
@@ -562,13 +559,13 @@ sub GenerateHeader
     }
 
     foreach my $function (@{$dataNode->functions}) {
-        $numCustomFunctions++ if $function->signature->extendedAttributes->{"Custom"};
+        $numCustomFunctions++ if $function->signature->extendedAttributes->{"Custom"} || $function->signature->extendedAttributes->{"JSCCustom"};
     }
 
     if ($numCustomFunctions > 0) {
         push(@headerContent, "\n    // Custom functions\n");
         foreach my $function (@{$dataNode->functions}) {
-            if ($function->signature->extendedAttributes->{"Custom"}) {
+            if ($function->signature->extendedAttributes->{"Custom"} || $function->signature->extendedAttributes->{"JSCCustom"}) {
                 my $functionImplementationName = $function->signature->extendedAttributes->{"ImplementationFunction"} || $codeGenerator->WK_lcfirst($function->signature->name);
                 push(@headerContent, "    JSC::JSValuePtr " . $functionImplementationName . "(JSC::ExecState*, const JSC::ArgList&);\n");
             }
@@ -636,11 +633,6 @@ sub GenerateHeader
         } else {
             push(@headerContent, "JSC::JSValuePtr toJS(JSC::ExecState*, $implType*);\n");
         }
-
-        # Resolve ambiguity with EventTarget that otherwise exists.
-        if ($interfaceName eq "Node") {
-            push(@headerContent, "inline JSC::JSValuePtr toJS(JSC::ExecState* exec, EventTargetNode* node) { return toJS(exec, static_cast<Node*>(node)); }\n");
-        }
     }
     if (!$hasParent || $dataNode->extendedAttributes->{"GenerateNativeConverter"}) {
         if ($podType) {
@@ -650,10 +642,11 @@ sub GenerateHeader
         } else {
             push(@headerContent, "$implClassName* to${interfaceName}(JSC::JSValuePtr);\n");
         }
-        if ($interfaceName eq "Node" or $interfaceName eq "Element" or $interfaceName eq "Text") {
-            push(@headerContent, "JSC::JSValuePtr toJSNewlyCreated(JSC::ExecState*, $interfaceName*);\n");
-        }
     }
+    if ($interfaceName eq "Node" or $interfaceName eq "Element" or $interfaceName eq "Text" or $interfaceName eq "CDATASection") {
+        push(@headerContent, "JSC::JSValuePtr toJSNewlyCreated(JSC::ExecState*, $interfaceName*);\n");
+    }
+    
     push(@headerContent, "\n");
 
     # Add prototype declaration.
@@ -1079,7 +1072,7 @@ sub GenerateImplementation
                     push(@implContent, "        return jsUndefined();\n");
                 }
 
-                if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"CustomGetter"}) {
+                if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"JSCCustom"} || $attribute->signature->extendedAttributes->{"CustomGetter"}) {
                     push(@implContent, "    return static_cast<$className*>(asObject(slot.slotBase()))->$implGetterFunctionName(exec);\n");
                 } elsif ($attribute->signature->extendedAttributes->{"CheckNodeSecurity"}) {
                     $implIncludes{"JSDOMBinding.h"} = 1;
@@ -1219,7 +1212,7 @@ sub GenerateImplementation
                             push(@implContent, "        return;\n");
                         }
 
-                        if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"CustomSetter"}) {
+                        if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"JSCCustom"} || $attribute->signature->extendedAttributes->{"CustomSetter"}) {
                             push(@implContent, "    static_cast<$className*>(thisObject)->set$implSetterFunctionName(exec, value);\n");
                         } elsif ($type eq "EventListener") {
                             $implIncludes{"JSEventListener.h"} = 1;
@@ -1330,7 +1323,7 @@ sub GenerateImplementation
                 push(@implContent, "        return jsUndefined();\n");
             }
 
-            if ($function->signature->extendedAttributes->{"Custom"}) {
+            if ($function->signature->extendedAttributes->{"Custom"} || $function->signature->extendedAttributes->{"JSCCustom"}) {
                 push(@implContent, "    return castedThisObj->" . $functionImplementationName . "(exec, args);\n");
             } else {
                 if ($podType) {
@@ -1530,7 +1523,9 @@ sub GenerateImplementationFunctionCall()
         push(@implContent, "\n" . $indent . "JSC::JSValuePtr result = " . NativeToJSValue($function->signature, 1, $implClassName, "", $functionString, "castedThisObj") . ";\n");
         push(@implContent, $indent . "setDOMException(exec, ec);\n") if @{$function->raisesExceptions};
 
-        if ($podType) {
+        if ($podType and not $function->signature->extendedAttributes->{"Immutable"}) {
+            # Immutable methods do not commit changes back to the instance, thus producing
+            # a new instance rather than mutating existing one.
             push(@implContent, $indent . "wrapper->commitChange(imp, castedThisObj->context());\n");
         }
 
@@ -1554,7 +1549,6 @@ sub GetNativeTypeFromSignature
 my %nativeType = (
     "CompareHow" => "Range::CompareHow",
     "DOMString" => "const UString&",
-    "EventTarget" => "EventTargetNode*",
     "NodeFilter" => "RefPtr<NodeFilter>",
     "SVGLength" => "SVGLength",
     "SVGMatrix" => "TransformationMatrix",
@@ -1600,11 +1594,6 @@ sub JSValueToNative
         return "valueToStringWithNullCheck(exec, $value)" if $signature->extendedAttributes->{"ConvertNullToNullString"};
         return "valueToStringWithUndefinedOrNullCheck(exec, $value)" if $signature->extendedAttributes->{"ConvertUndefinedOrNullToNullString"};
         return "$value.toString(exec)";
-    }
-
-    if ($type eq "EventTarget") {
-        $implIncludes{"JSEventTargetNode.h"} = 1;
-        return "toEventTargetNode($value)";
     }
 
     $implIncludes{"FloatPoint.h"} = 1 if $type eq "SVGPoint";

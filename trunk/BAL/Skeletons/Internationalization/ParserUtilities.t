@@ -39,7 +39,7 @@
 
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * skip string

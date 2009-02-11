@@ -69,10 +69,12 @@
 #include <WebCore/GDIObjectCounter.h>
 #include <WebCore/GraphicsContext.h>
 #include <WebCore/HistoryItem.h>
+#include <WebCore/HTMLAppletElement.h>
 #include <WebCore/HTMLFormElement.h>
 #include <WebCore/HTMLFormControlElement.h>
 #include <WebCore/HTMLInputElement.h>
 #include <WebCore/HTMLNames.h>
+#include <WebCore/HTMLPlugInElement.h>
 #include <WebCore/JSDOMWindow.h>
 #include <WebCore/KeyboardEvent.h>
 #include <WebCore/MIMETypeRegistry.h>
@@ -313,6 +315,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::paintDocumentRectToContext(
 
     HDC dc = (HDC)(ULONG64)deviceContext;
     GraphicsContext gc(dc);
+    gc.setShouldIncludeChildWindows(true);
     gc.save();
     LONG width = rect.right - rect.left;
     LONG height = rect.bottom - rect.top;
@@ -475,7 +478,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::loadRequest(
     if (!coreFrame)
         return E_FAIL;
 
-    coreFrame->loader()->load(requestImpl->resourceRequest());
+    coreFrame->loader()->load(requestImpl->resourceRequest(), false);
     return S_OK;
 }
 
@@ -486,15 +489,20 @@ void WebFrame::loadData(PassRefPtr<WebCore::SharedBuffer> data, BSTR mimeType, B
         mimeTypeString = "text/html";
 
     String encodingString(textEncodingName, SysStringLen(textEncodingName));
-    KURL baseKURL(String(baseURL ? baseURL : L"", SysStringLen(baseURL)));
-    KURL failingKURL(String(failingURL, SysStringLen(failingURL)));
+
+    // FIXME: We should really be using MarshallingHelpers::BSTRToKURL here,
+    // but that would turn a null BSTR into a null KURL, and we crash inside of
+    // WebCore if we use a null KURL in constructing the ResourceRequest.
+    KURL baseKURL = KURL(KURL(), String(baseURL ? baseURL : L"", SysStringLen(baseURL)));
+
+    KURL failingKURL = MarshallingHelpers::BSTRToKURL(failingURL);
 
     ResourceRequest request(baseKURL);
     SubstituteData substituteData(data, mimeTypeString, encodingString, failingKURL);
 
     // This method is only called from IWebFrame methods, so don't ASSERT that the Frame pointer isn't null.
     if (Frame* coreFrame = core(this))
-        coreFrame->loader()->load(request, substituteData);
+        coreFrame->loader()->load(request, substituteData, false);
 }
 
 
@@ -1282,8 +1290,6 @@ String WebFrame::generatedMIMETypeForURLScheme(const String& /*URLScheme*/) cons
 
 void WebFrame::frameLoadCompleted()
 {
-    if (Frame* coreFrame = core(this))
-        coreFrame->loader()->setPreviousHistoryItem(0);
 }
 
 void WebFrame::restoreViewState()
@@ -1319,10 +1325,6 @@ void WebFrame::prepareForDataSourceReplacement()
 String WebFrame::userAgent(const KURL& url)
 {
     return d->webView->userAgentForKURL(url);
-}
-
-void WebFrame::transitionToCommittedFromCachedPage(CachedPage*)
-{
 }
 
 void WebFrame::saveViewStateToItem(HistoryItem*)
@@ -1521,7 +1523,7 @@ void WebFrame::startDownload(const ResourceRequest&)
     notImplemented();
 }
 
-Widget* WebFrame::createJavaAppletWidget(const IntSize& pluginSize, Element* element, const KURL& /*baseURL*/, const Vector<String>& paramNames, const Vector<String>& paramValues)
+Widget* WebFrame::createJavaAppletWidget(const IntSize& pluginSize, HTMLAppletElement* element, const KURL& /*baseURL*/, const Vector<String>& paramNames, const Vector<String>& paramValues)
 {
     PluginView* pluginView = PluginView::create(core(this), pluginSize, element, KURL(), paramNames, paramValues, "application/x-java-applet", false);
 
@@ -1593,6 +1595,10 @@ void WebFrame::windowObjectCleared()
     }
 }
 
+void WebFrame::documentElementAvailable()
+{
+}
+
 void WebFrame::didPerformFirstNavigation() const
 {
     COMPtr<IWebPreferences> preferences;
@@ -1641,7 +1647,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::setInPrintingMode(
         return S_OK;
 
     Frame* coreFrame = core(this);
-    if (!coreFrame)
+    if (!coreFrame || !coreFrame->document())
         return E_FAIL;
 
     m_inPrintingMode = !!value;
@@ -1650,7 +1656,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::setInPrintingMode(
     // according to the paper size
     float minLayoutWidth = 0.0f;
     float maxLayoutWidth = 0.0f;
-    if (m_inPrintingMode && !coreFrame->isFrameSet()) {
+    if (m_inPrintingMode && !coreFrame->document()->isFrameSet()) {
         if (!printDC) {
             ASSERT_NOT_REACHED();
             return E_POINTER;
@@ -1811,6 +1817,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::spoolPages(
     float headerHeight = 0, footerHeight = 0;
     headerAndFooterHeights(&headerHeight, &footerHeight);
     GraphicsContext spoolCtx(pctx);
+    spoolCtx.setShouldIncludeChildWindows(true);
 
     for (UINT ii = startPage; ii < endPage; ii++) {
         IntRect pageRect = m_pageRects[ii];
@@ -1865,10 +1872,10 @@ HRESULT STDMETHODCALLTYPE WebFrame::isFrameSet(
     *result = FALSE;
 
     Frame* coreFrame = core(this);
-    if (!coreFrame)
+    if (!coreFrame || !coreFrame->document())
         return E_FAIL;
 
-    *result = coreFrame->isFrameSet() ? TRUE : FALSE;
+    *result = coreFrame->document()->isFrameSet() ? TRUE : FALSE;
     return S_OK;
 }
 

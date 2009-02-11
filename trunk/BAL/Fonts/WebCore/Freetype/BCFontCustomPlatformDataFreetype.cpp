@@ -35,7 +35,7 @@
 
 #include <fontconfig/fontconfig.h>
 
-namespace WKAL {
+namespace WebCore {
 
 FontCustomPlatformData::~FontCustomPlatformData()
 {

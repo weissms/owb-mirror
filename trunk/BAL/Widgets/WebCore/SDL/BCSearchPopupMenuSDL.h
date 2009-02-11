@@ -35,11 +35,11 @@
 #include <wtf/Vector.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class AtomicString;
 
-class SearchPopupMenu : public PopupMenu, public WKALBase {
+class SearchPopupMenu : public PopupMenu {
 public:
     static PassRefPtr<SearchPopupMenu> create(PopupMenuClient* client) { return new SearchPopupMenu(client); }
 

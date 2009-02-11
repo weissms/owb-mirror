@@ -98,8 +98,12 @@ void HTMLFormControlElement::attach()
     // Focus the element if it should honour its autofocus attribute.
     // We have to determine if the element is a TextArea/Input/Button/Select,
     // if input type hidden ignore autofocus. So if disabled or readonly.
+    bool isInputTypeHidden = false;
+    if (hasTagName(inputTag))
+        isInputTypeHidden = static_cast<HTMLInputElement*>(this)->isInputTypeHidden();
+
     if (autofocus() && renderer() && !document()->ignoreAutofocus() && !isReadOnlyControl() &&
-            ((hasTagName(inputTag) && !isInputTypeHidden()) || hasTagName(selectTag) ||
+            ((hasTagName(inputTag) && !isInputTypeHidden) || hasTagName(selectTag) ||
               hasTagName(buttonTag) || hasTagName(textareaTag)))
          focus();
 }
@@ -199,7 +203,7 @@ bool HTMLFormControlElement::isFocusable() const
 {
     if (disabled() || !renderer() || 
         (renderer()->style() && renderer()->style()->visibility() != VISIBLE) || 
-        renderer()->width() == 0 || renderer()->height() == 0)
+        !renderer()->isBox() || toRenderBox(renderer())->size().isEmpty())
         return false;
     return true;
 }
@@ -257,23 +261,23 @@ void HTMLFormControlElement::removeFromForm()
 HTMLFormControlElementWithState::HTMLFormControlElementWithState(const QualifiedName& tagName, Document* doc, HTMLFormElement* f)
     : HTMLFormControlElement(tagName, doc, f)
 {
-    doc->registerFormElementWithState(this);
+    FormControlElementWithState::registerFormControlElementWithState(this, document());
 }
 
 HTMLFormControlElementWithState::~HTMLFormControlElementWithState()
 {
-    document()->unregisterFormElementWithState(this);
+    FormControlElementWithState::unregisterFormControlElementWithState(this, document());
 }
 
 void HTMLFormControlElementWithState::willMoveToNewOwnerDocument()
 {
-    document()->unregisterFormElementWithState(this);
+    FormControlElementWithState::unregisterFormControlElementWithState(this, document());
     HTMLFormControlElement::willMoveToNewOwnerDocument();
 }
 
 void HTMLFormControlElementWithState::didMoveToNewOwnerDocument()
 {
-    document()->registerFormElementWithState(this);
+    FormControlElementWithState::registerFormControlElementWithState(this, document());
     HTMLFormControlElement::didMoveToNewOwnerDocument();
 }
 

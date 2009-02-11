@@ -31,7 +31,7 @@
 
 #include "DefaultPolicyDelegate.h"
 #include "WebActionPropertyBag.h"
-#include "WebCachedPagePlatformData.h"
+#include "WebCachedFramePlatformData.h"
 #include "WebChromeClient.h"
 #include "WebDocumentLoader.h"
 #include "WebDownload.h"
@@ -58,15 +58,17 @@
 #include "OrigynServer.h"
 #endif
 
-#include <CachedPage.h>
+#include <CachedFrame.h>
 #include <DocumentLoader.h>
 #include <Frame.h>
 #include <FrameLoader.h>
 #include <FrameTree.h>
 #include <FrameView.h>
+#include <HTMLAppletElement.h>
 #include <HTMLFrameElement.h>
 #include <HTMLFrameOwnerElement.h>
 #include <HTMLNames.h>
+#include <HTMLPlugInElement.h>
 #include <HistoryItem.h>
 #include <Logging.h>
 #include <MIMETypeRegistry.h>
@@ -78,7 +80,10 @@
 #include <ResourceHandle.h>
 #include <Settings.h>
 #if PLATFORM(AMIGAOS4)
+#include <proto/clicktab.h>
 #include <proto/intuition.h>
+#include <proto/layout.h>
+#include <gadgets/clicktab.h>
 #include <intuition/gadgetclass.h>
 #endif
 
@@ -119,7 +124,9 @@ bool WebFrameLoaderClient::hasWebView() const
 
 void WebFrameLoaderClient::forceLayout()
 {
-    core(m_webFrame)->forceLayout(true);
+    FrameView* view = core(m_webFrame)->view();
+    if (view)
+        view->forceLayout(true);
 }
 
 void WebFrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identifier, DocumentLoader* loader, const ResourceRequest& request)
@@ -135,7 +142,7 @@ void WebFrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identi
 
 void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge& challenge)
 {
-    ASSERT(challenge.sourceHandle());
+    //ASSERT(challenge.sourceHandle());
 
     /*WebView* webView = m_webFrame->webView();
     COMPtr<IWebResourceLoadDelegate> resourceLoadDelegate;
@@ -448,7 +455,7 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 #endif
 
 
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
     WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
     if (webNotificationDelegate)
         webNotificationDelegate->startLoadNotification(m_webFrame);
@@ -456,7 +463,7 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 
 void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
     WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
     if (webNotificationDelegate)
         webNotificationDelegate->progressNotification(m_webFrame);
@@ -464,7 +471,7 @@ void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 
 void WebFrameLoaderClient::postProgressFinishedNotification()
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
     WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
     if (webNotificationDelegate)
         webNotificationDelegate->finishedLoadNotification(m_webFrame);
@@ -475,7 +482,7 @@ void WebFrameLoaderClient::postProgressFinishedNotification()
 #endif
 
     //FIXME : remove this notification
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
 
     printf("postProgressFinishedNotification\n");
 #ifdef BENCH_LOAD_TIME
@@ -558,7 +565,29 @@ void WebFrameLoaderClient::updateGlobalHistory()
     if (!history)
         return;
     DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
-    history->addItem(loader->urlForHistory(), loader->title(), loader->request().httpMethod(), loader->urlForHistoryReflectsFailure());
+
+    history->visitedURL(loader->urlForHistory(), loader->title(), loader->request().httpMethod(), loader->urlForHistoryReflectsFailure());                 
+    updateGlobalHistoryRedirectLinks();
+}
+
+void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
+{                                                                                                                                                          
+    WebHistory* history = WebHistory::sharedHistory();                                                                                                     
+    if (!history)                                                                                                                                          
+        return;                                                                                                                                            
+    DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
+
+    if (!loader->clientRedirectSourceForHistory().isNull()) {
+        if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory())) {
+            webHistoryItem->historyItem()->addRedirectURL(loader->clientRedirectDestinationForHistory());
+        }
+    }
+                                                                                              
+    if (!loader->serverRedirectSourceForHistory().isNull()) {                               
+        if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory())) {
+            webHistoryItem->historyItem()->addRedirectURL(loader->serverRedirectDestinationForHistory());
+        }
+    }
 }
 
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const
@@ -581,21 +610,38 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     if (!m_webFrame->parentFrame()) {
         BalWidget* viewWindow = m_webFrame->webView()->viewWindow();
         if (viewWindow && viewWindow->window) {
-            CString titleLatin1 = title.latin1();
-            const char *titlestr = titleLatin1.data();
+            extern char* utf8ToAmiga(const char* utf8);
+
+            char *titlestr = utf8ToAmiga(title.utf8().data());
             if (titlestr && titlestr[0])
-                snprintf(viewWindow->title, sizeof(viewWindow->title), "OWB: %s", titlestr);
+                snprintf(viewWindow->title, sizeof(viewWindow->title), viewWindow->clickTabNode ? "%s" : "OWB: %s", titlestr);
             else
                 strcpy(viewWindow->title, "Origyn Web Browser");
-            IIntuition->SetWindowTitles(viewWindow->window, viewWindow->title, (STRPTR)~0UL);
+            free(titlestr);
+
+            if (amigaConfig.tabs) {
+                IIntuition->SetGadgetAttrs(viewWindow->gad_clicktab, viewWindow->window, NULL,
+                                           CLICKTAB_Labels, ~0,
+                                           TAG_DONE);
+
+                IClickTab->SetClickTabNodeAttrs(viewWindow->clickTabNode, TNA_Text, viewWindow->title, TAG_DONE);
+
+                IIntuition->RefreshSetGadgetAttrs(viewWindow->gad_clicktab, viewWindow->window, NULL,
+                                                  CLICKTAB_Labels, viewWindow->clickTabList,
+                                                  TAG_DONE);
+            }
+            else
+                IIntuition->SetWindowTitles(viewWindow->window, viewWindow->title, (STRPTR)~0UL);
 
             CString urlLatin1 = url.prettyURL().latin1();
             const char *urlstr = urlLatin1.data();
             if (urlstr && urlstr[0] && viewWindow->gad_url) {
                 snprintf(viewWindow->url, sizeof(viewWindow->url), "%s", urlstr);
-                IIntuition->RefreshSetGadgetAttrs(viewWindow->gad_url, viewWindow->window, NULL,
-                                                  STRINGA_TextVal, viewWindow->url,
-                                                  TAG_DONE);
+                if (ILayout->SetPageGadgetAttrs(viewWindow->gad_url, viewWindow->page,
+                                                viewWindow->window, NULL,
+                                                STRINGA_TextVal, viewWindow->url,
+                                                TAG_DONE))
+                    ILayout->RefreshPageGadget(viewWindow->gad_url, viewWindow->page, viewWindow->window, NULL);
             }
         }
     }
@@ -619,59 +665,30 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     item->setTitle(title);
 }
 
-void WebFrameLoaderClient::savePlatformDataToCachedPage(CachedPage* cachedPage)
+void WebFrameLoaderClient::savePlatformDataToCachedFrame(WebCore::CachedFrame* cachedFrame)
 {
     Frame* coreFrame = core(m_webFrame);
     if (!coreFrame)
         return;
 
-    ASSERT(coreFrame->loader()->documentLoader() == cachedPage->documentLoader());
+    ASSERT(coreFrame->loader()->documentLoader() == cachedFrame->documentLoader());
 
-    WebCachedPagePlatformData* webPlatformData = new WebCachedPagePlatformData(static_cast<WebDataSource*>(getWebDataSource(coreFrame->loader()->documentLoader())));
-    cachedPage->setCachedPagePlatformData(webPlatformData);
+    WebCachedFramePlatformData* webPlatformData = new WebCachedFramePlatformData(getWebDataSource(coreFrame->loader()->documentLoader()));
+    cachedFrame->setCachedFramePlatformData(webPlatformData);
+}
+
+void WebFrameLoaderClient::transitionToCommittedFromCachedFrame(CachedFrame*)                                                                              
+{                                                                                                                                                          
 }
 
 void WebFrameLoaderClient::transitionToCommittedForNewPage()
 {
-    Frame* frame = core(m_webFrame);
-    ASSERT(frame);
+    WebView* view = m_webFrame->webView();
 
-    Page* page = frame->page();
-    ASSERT(page);
-
-    bool isMainFrame = frame == page->mainFrame();
-
-/*    if (isMainFrame && frame->view())
-        frame->view()->setParentVisible(false);*/
-
-    frame->setView(0);
-
-    m_webFrame->updateBackground();
-
-    WebView* webView = m_webFrame->webView();
-
-    FrameView* frameView;
-    if (isMainFrame) {
-        IntRect rect = webView->frameRect();
-        frameView = new FrameView(frame, rect.size());
-    } else
-        frameView = new FrameView(frame);
-
-    frame->setView(frameView);
-    frameView->deref(); // FrameViews are created with a ref count of 1. Release this ref since we've assigned it to frame.
-
-    /*BalWidget* viewWindow = webView->viewWindow();
-    if (viewWindow)
-        frameView->setContainingWindow(viewWindow);*/
-
-    /*if (isMainFrame)
-        frameView->setParentVisible(true);*/
-
-    if (frame->ownerRenderer())
-        frame->ownerRenderer()->setWidget(frameView);
-
-    if (HTMLFrameOwnerElement* owner = frame->ownerElement())
-        frame->view()->setCanHaveScrollbars(owner->scrollingMode() != ScrollbarAlwaysOff);
+    BalRectangle rect = view->frameRect();
+    bool transparent = view->transparent();
+    Color backgroundColor = transparent ? Color::transparent : Color::white;
+    core(m_webFrame)->createView(IntRect(rect).size(), backgroundColor, transparent, IntSize(), false);
 }
 
 bool WebFrameLoaderClient::canCachePage() const
@@ -721,18 +738,14 @@ void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const Strin
 
     HistoryItem* parentItem = coreFrame->loader()->currentHistoryItem();
     FrameLoadType loadType = coreFrame->loader()->loadType();
-    FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedHistory;
+    FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedBackForwardList;
 
     KURL url = originalURL;
 
     // If we're moving in the backforward list, we might want to replace the content
     // of this child frame with whatever was there at that point.
     // Reload will maintain the frame contents, LoadSame will not.
-    if (parentItem && parentItem->children().size() &&
-        (isBackForwardLoadType(loadType)
-         || loadType == FrameLoadTypeReload
-         || loadType == FrameLoadTypeReloadAllowingStaleData))
-    {
+    if (parentItem && parentItem->children().size() && isBackForwardLoadType(loadType)) {
         if (HistoryItem* childItem = parentItem->childItemWithName(core(childFrame)->tree()->name())) {
             // Use the original URL to ensure we get all the side-effects, such as
             // onLoad handlers, of any redirects that happened. An example of where
@@ -752,10 +765,10 @@ void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const Strin
 
     // FIXME: Handle loading WebArchives here
     String frameName = core(childFrame)->tree()->name();
-    core(childFrame)->loader()->loadURL(url, referrer, frameName, childLoadType, 0, 0);
+    core(childFrame)->loader()->loadURL(url, referrer, frameName, false, childLoadType, 0, 0);
 }
 
-Widget* WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
+Widget* WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
     Frame* frame = core(m_webFrame);
     PluginView* pluginView = PluginView::create(frame, pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
@@ -1145,7 +1158,7 @@ void WebFrameLoaderClient::startDownload(const ResourceRequest&)
     BalNotImplemented();
 }
 
-Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& pluginSize, Element* element, const KURL& /*baseURL*/, const Vector<String>& paramNames, const Vector<String>& paramValues)
+Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& pluginSize, HTMLAppletElement* element, const KURL& /*baseURL*/, const Vector<String>& paramNames, const Vector<String>& paramValues)
 {
     PluginView* pluginView = PluginView::create(core(m_webFrame), pluginSize, element, KURL(), paramNames, paramValues, "application/x-java-applet", false);
 
@@ -1208,6 +1221,10 @@ void WebFrameLoaderClient::windowObjectCleared()
     if (m_webFrame->bindingJS())
         m_webFrame->bindingJS()->registerBinding();
 #endif
+}
+
+void WebFrameLoaderClient::documentElementAvailable()
+{                                             
 }
 
 void WebFrameLoaderClient::didPerformFirstNavigation() const

@@ -34,9 +34,9 @@
 
 typedef struct PixelFont PixelFontType;
 
-namespace WKAL {
+namespace WebCore {
 
-class FontPlatformData : public WKALBase {
+class FontPlatformData {
 public:
     FontPlatformData(WTF::HashTableDeletedValueType);
 

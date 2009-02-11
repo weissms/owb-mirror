@@ -40,9 +40,9 @@
 #include <wtf/Assertions.h>
 #include <wtf/Noncopyable.h>
 
-namespace OWBAL {
+namespace WebCore {
 
-template<class T> class TreeShared : public OWBALBase, Noncopyable {
+template<class T> class TreeShared : public WebCoreBase, Noncopyable {
 public:
     /**
      *  TreeShared description

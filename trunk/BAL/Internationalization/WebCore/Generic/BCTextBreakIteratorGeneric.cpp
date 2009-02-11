@@ -35,7 +35,7 @@
 #include <wtf/Assertions.h>
 #include "BALBase.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     class TextBreakIterator
     {

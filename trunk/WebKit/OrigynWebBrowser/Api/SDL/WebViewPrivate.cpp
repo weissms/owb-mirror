@@ -77,7 +77,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
     if(!isInitialized) {
         isInitialized = true;
         frame->view()->resize(m_rect.width(), m_rect.height());
-        frame->forceLayout();
+        frame->view()->forceLayout();
         frame->view()->adjustViewSize();
     }
 
@@ -266,7 +266,7 @@ void WebViewPrivate::onResize(BalResizeEvent event)
     m_rect.setWidth(event.w);
     m_rect.setHeight(event.h);
     frame->view()->resize(event.w, event.h);
-    frame->forceLayout();
+    frame->view()->forceLayout();
     frame->view()->adjustViewSize();
 }
 
@@ -286,62 +286,6 @@ void WebViewPrivate::popupMenuHide()
 
 void WebViewPrivate::popupMenuShow(void *popupInfo)
 {
-#if 0
-    PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
-    if (!pop)
-        return;
-    //printf("pop %d %d %d %d\n", pop->windowRect().x(), pop->windowRect().y(), pop->windowRect().width(), pop->windowRect().height());
-    int itemCount = pop->client()->listSize();
-
-    String tabIndex = "var myTabId1 = new Array(";
-    String tabName = "var myTabName1 = new Array(";
-    for (int i = 0; i < itemCount; ++i) {
-        String text = pop->client()->itemText(i);
-        if (text.isEmpty())
-            continue;
-        if (i == 0) {
-            tabName += "\"";
-            tabIndex += "\"";
-        } else {
-            tabName += ", \"";
-            tabIndex += ", \"";
-        }
-
-        tabName += text;
-        tabName += "\"";
-        tabIndex += String::number(i+1);
-        tabIndex += "\"";
-    }
-    tabIndex += ");";
-    tabName += ");";
-    String path = BOOKMARKLET_INSTALL_PATH;
-    path +=  "popup.js";
-
-    File *f = new File(path);
-    if (!f)
-        return;
-    if (f->open('r') == -1)
-        return ;
-    String buffer(f->read(f->getSize()));
-    f->close();
-    delete f;
-
-    String callCreateTab = "createTabs(myTabId1 ,myTabName1 ,";
-    callCreateTab += String::number(pop->windowRect().x());
-    callCreateTab += ", ";
-    callCreateTab += String::number(pop->windowRect().y());
-    callCreateTab += ", ";
-    callCreateTab += String::number(pop->windowRect().width());
-    callCreateTab += ");";
-
-    buffer = buffer.replace("@TabIndexDefinition", tabIndex);
-    buffer = buffer.replace("@TabNameDefinition", tabName);
-    buffer = buffer.replace("@callCreateTab", callCreateTab);
-    
-//    printf("popup = %s \n", buffer.utf8().data());
-
-    m_webView->stringByEvaluatingJavaScriptFromString(buffer);
-#endif
 }
 
 void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)

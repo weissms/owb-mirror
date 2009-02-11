@@ -214,14 +214,14 @@ public:
     virtual void committedLoad(DocumentLoader*, const char*, int) { }
     virtual void finishedLoading(DocumentLoader*) { }
 
-    virtual ResourceError cancelledError(const ResourceRequest&) { return ResourceError(); }
-    virtual ResourceError blockedError(const ResourceRequest&) { return ResourceError(); }
-    virtual ResourceError cannotShowURLError(const ResourceRequest&) { return ResourceError(); }
-    virtual ResourceError interruptForPolicyChangeError(const ResourceRequest&) { return ResourceError(); }
+    virtual ResourceError cancelledError(const ResourceRequest&) { ResourceError error("", 0, "", ""); error.setIsCancellation(true); return error; }
+    virtual ResourceError blockedError(const ResourceRequest&) { return ResourceError("", 0, "", ""); }
+    virtual ResourceError cannotShowURLError(const ResourceRequest&) { return ResourceError("", 0, "", ""); }
+    virtual ResourceError interruptForPolicyChangeError(const ResourceRequest&) { return ResourceError("", 0, "", ""); }
 
-    virtual ResourceError cannotShowMIMETypeError(const ResourceResponse&) { return ResourceError(); }
-    virtual ResourceError fileDoesNotExistError(const ResourceResponse&) { return ResourceError(); }
-    virtual ResourceError pluginWillHandleLoadError(const ResourceResponse&) { return ResourceError(); }
+    virtual ResourceError cannotShowMIMETypeError(const ResourceResponse&) { return ResourceError("", 0, "", ""); }
+    virtual ResourceError fileDoesNotExistError(const ResourceResponse&) { return ResourceError("", 0, "", ""); }
+    virtual ResourceError pluginWillHandleLoadError(const ResourceResponse&) { return ResourceError("", 0, "", ""); }
 
     virtual bool shouldFallBack(const ResourceError&) { return false; }
 
@@ -242,24 +242,26 @@ public:
 
     virtual String userAgent(const KURL&) { return ""; }
 
-    virtual void savePlatformDataToCachedPage(CachedPage*) { }
-    virtual void transitionToCommittedFromCachedPage(CachedPage*) { }
+    virtual void savePlatformDataToCachedFrame(CachedFrame*) { }
+    virtual void transitionToCommittedFromCachedFrame(CachedFrame*) { }
     virtual void transitionToCommittedForNewPage() { }    
 
     virtual void updateGlobalHistory() { }
+    virtual void updateGlobalHistoryRedirectLinks() { }
     virtual bool shouldGoToHistoryItem(HistoryItem*) const { return false; }
     virtual void saveViewStateToItem(HistoryItem*) { }
     virtual bool canCachePage() const { return false; }
 
     virtual PassRefPtr<Frame> createFrame(const KURL&, const String&, HTMLFrameOwnerElement*, const String&, bool, int, int) { return 0; }
-    virtual Widget* createPlugin(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool) { return 0; }
-    virtual Widget* createJavaAppletWidget(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&) { return 0; }
+    virtual Widget* createPlugin(const IntSize&, HTMLPlugInElement*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool) { return 0; }
+    virtual Widget* createJavaAppletWidget(const IntSize&, HTMLAppletElement*, const KURL&, const Vector<String>&, const Vector<String>&) { return 0; }
 
     virtual ObjectContentType objectContentType(const KURL&, const String&) { return ObjectContentType(); }
     virtual String overrideMediaType() const { return String(); }
 
     virtual void redirectDataToPlugin(Widget*) { }
     virtual void windowObjectCleared() { }
+    virtual void documentElementAvailable() { }
     virtual void didPerformFirstNavigation() const { }
 
     virtual void registerForIconNotification(bool) { }

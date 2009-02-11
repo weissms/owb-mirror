@@ -40,7 +40,7 @@
 #include <memory>
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     class TextCodec;
     class TextEncoding;

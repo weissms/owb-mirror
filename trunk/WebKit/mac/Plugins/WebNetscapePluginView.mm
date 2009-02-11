@@ -35,6 +35,7 @@
 #import "WebFrameInternal.h" 
 #import "WebFrameView.h"
 #import "WebGraphicsExtras.h"
+#import "WebKitErrorsPrivate.h"
 #import "WebKitLogging.h"
 #import "WebKitNSStringExtras.h"
 #import "WebKitSystemInterface.h"
@@ -59,7 +60,8 @@
 #import <WebCore/Element.h>
 #import <WebCore/Frame.h> 
 #import <WebCore/FrameLoader.h> 
-#import <WebCore/FrameTree.h> 
+#import <WebCore/FrameTree.h>
+#import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/Page.h> 
 #import <WebCore/PluginMainThreadScheduler.h>
 #import <WebCore/ScriptController.h>
@@ -91,6 +93,7 @@ static inline bool isDrawingModelQuickDraw(NPDrawingModel drawingModel)
 - (void)_destroyPlugin;
 - (NSBitmapImageRep *)_printedPluginBitmap;
 - (void)_redeliverStream;
+- (BOOL)_shouldCancelSrcStream;
 @end
 
 static WebNetscapePluginView *currentPluginView = nil;
@@ -1076,14 +1079,19 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 - (void)setLayer:(CALayer *)newLayer
 {
     [super setLayer:newLayer];
-    
-    if (_pluginLayer)
+
+    if (_pluginLayer) {
+        _pluginLayer.get().autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
         [newLayer addSublayer:_pluginLayer.get()];
+    }
 }
 #endif
 
 - (void)loadStream
 {
+    if ([self _shouldCancelSrcStream])
+        return;
+    
     if (_loadManually) {
         [self _redeliverStream];
         return;
@@ -1150,7 +1158,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     return plugin;
 }
 
-- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values;
+- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values
 {
     ASSERT([keys count] == [values count]);
     
@@ -1203,9 +1211,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
       attributeKeys:(NSArray *)keys
     attributeValues:(NSArray *)values
        loadManually:(BOOL)loadManually
-         DOMElement:(DOMElement *)element
+            element:(PassRefPtr<WebCore::HTMLPlugInElement>)element
 {
-    self = [super initWithFrame:frame pluginPackage:pluginPackage URL:URL baseURL:baseURL MIMEType:MIME attributeKeys:keys attributeValues:values loadManually:loadManually DOMElement:element];
+    self = [super initWithFrame:frame pluginPackage:pluginPackage URL:URL baseURL:baseURL MIMEType:MIME attributeKeys:keys attributeValues:values loadManually:loadManually element:element];
     if (!self)
         return nil;
  
@@ -1358,7 +1366,20 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         return;
 
     if (!_manualStream->plugin()) {
-
+        // Check if the load should be cancelled
+        if ([self _shouldCancelSrcStream]) {
+            NSURLResponse *response = [[self dataSource] response];
+            
+            NSError *error = [[NSError alloc] _initWithPluginErrorCode:WebKitErrorPlugInWillHandleLoad
+                                                            contentURL:[response URL]
+                                                         pluginPageURL:nil
+                                                            pluginName:nil // FIXME: Get this from somewhere
+                                                              MIMEType:[response MIMEType]];
+            [[self dataSource] _documentLoader]->cancelMainResourceLoad(error);
+            [error release];
+            return;
+        }
+        
         _manualStream->setRequestURL([[[self dataSource] request] URL]);
         _manualStream->setPlugin([self plugin]);
         ASSERT(_manualStream->plugin());
@@ -1936,11 +1957,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         (float)invalidRect->right - invalidRect->left, (float)invalidRect->bottom - invalidRect->top)];
 }
 
--(BOOL)isOpaque
-{
-    return YES;
-}
-
 - (void)invalidateRegion:(NPRegion)invalidRegion
 {
     LOG(Plugins, "NPN_InvalidateRegion");
@@ -2012,7 +2028,7 @@ static NPBrowserTextInputFuncs *browserTextInputFuncs()
             if (!_element)
                 return NPERR_GENERIC_ERROR;
             
-            NPObject *plugInScriptObject = (NPObject *)[_element.get() _NPObject];
+            NPObject *plugInScriptObject = _element->getNPObject();
 
             // Return value is expected to be retained, as described here: <http://www.mozilla.org/projects/plugins/npruntime.html#browseraccess>
             if (plugInScriptObject)
@@ -2195,6 +2211,19 @@ static NPBrowserTextInputFuncs *browserTextInputFuncs()
 @end
 
 @implementation WebNetscapePluginView (Internal)
+
+- (BOOL)_shouldCancelSrcStream
+{
+    ASSERT(_isStarted);
+    
+    // Check if we should cancel the load
+    NPBool cancelSrcStream = 0;
+    if ([_pluginPackage.get() pluginFuncs]->getvalue &&
+        [_pluginPackage.get() pluginFuncs]->getvalue(plugin, NPPVpluginCancelSrcStream, &cancelSrcStream) == NPERR_NO_ERROR && cancelSrcStream)
+        return YES;
+    
+    return NO;
+}
 
 - (NPError)_createPlugin
 {

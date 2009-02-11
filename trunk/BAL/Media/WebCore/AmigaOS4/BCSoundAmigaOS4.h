@@ -29,7 +29,7 @@
 #ifndef Sound_h
 #define Sound_h
 
-namespace OWBAL {
+namespace WebCore {
 
     void systemBeep();
 

@@ -118,3 +118,15 @@ macro(create_include_link _in_FILE _link_FILE)
         COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/${_in_FILE} generated_link/${_link_FILE}
         WORKING_DIRECTORY ${OWB_BINARY_DIR})
 endmacro(create_include_link)
+
+##################################################
+# Create moc file                                #
+##################################################
+
+macro(owb_generate_moc _srcs_LIST _in_FILE _out_FILE)
+    execute_process(
+        COMMAND mkdir -p ${OWB_BINARY_DIR}/generated_sources/moc/
+    )
+    qt4_generate_moc(${_in_FILE} ${OWB_BINARY_DIR}/generated_sources/moc/${_out_FILE})
+    list(APPEND ${_srcs_LIST} ${OWB_BINARY_DIR}/generated_sources/moc/${_out_FILE})
+endmacro(owb_generate_moc)

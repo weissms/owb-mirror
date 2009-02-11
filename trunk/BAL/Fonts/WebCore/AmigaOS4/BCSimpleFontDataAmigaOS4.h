@@ -31,7 +31,7 @@
 
 #define DOUBLE_FROM_26_6(t) ((double)(t) / 64.0)
 
-namespace WKAL {
+namespace WebCore {
 
 class FontDescription;
 class FontPlatformData;

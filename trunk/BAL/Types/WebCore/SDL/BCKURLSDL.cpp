@@ -31,7 +31,7 @@
 
 #include "NotImplemented.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 String KURL::fileSystemPath() const
 {

@@ -38,12 +38,10 @@
 #include "SDL.h"
 #endif
 
-namespace WKAL {
+namespace WebCore {
 
 #define IS_HIGH_SURROGATE(u)  ((UChar)(u) >= (UChar)0xd800 && (UChar)(u) <= (UChar)0xdbff)
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
-
-
 
 void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
@@ -103,6 +101,10 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 #endif
     /* Use SWSURFACE to improve the performance of pixel level access. */
     SDL_Surface* imgBuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * numGlyphs, h, 32, rmask, gmask, bmask, amask);
+    //the surface can be null if the width or the height are too big, it's a sdl limitation.
+    if (!imgBuffer)
+        return;
+
     SDL_LockSurface(imgBuffer);
     uint32_t* baseAddr = (uint32_t*) imgBuffer->pixels;
     //Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(h * w * numGlyphs);

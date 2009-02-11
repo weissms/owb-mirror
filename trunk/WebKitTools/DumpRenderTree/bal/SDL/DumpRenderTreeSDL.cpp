@@ -7,8 +7,6 @@
 #include "IntRect.h"
 
 using namespace WebCore;
-using namespace OWBAL;
-using namespace WKAL;
 
 static WebView* webView;
 volatile bool done;

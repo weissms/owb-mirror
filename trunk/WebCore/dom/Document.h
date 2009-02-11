@@ -3,7 +3,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  *           (C) 2006 Alexey Proskuryakov (ap@webkit.org)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * This library is free software; you can redistribute it and/or
@@ -63,7 +63,6 @@ namespace WebCore {
     class Database;
     class DOMImplementation;
     class DOMSelection;
-    class DOMTimer;
     class DOMWindow;
     class DatabaseThread;
     class DocLoader;
@@ -74,12 +73,13 @@ namespace WebCore {
     class EntityReference;
     class Event;
     class EventListener;
+    class FormControlElementWithState;
     class Frame;
     class FrameView;
+    class HitTestRequest;
     class HTMLCanvasElement;
     class HTMLDocument;
     class HTMLElement;
-    class HTMLFormControlElementWithState;
     class HTMLFormElement;
     class HTMLHeadElement;
     class HTMLInputElement;
@@ -96,6 +96,7 @@ namespace WebCore {
     class Range;
     class RegisteredEventListener;
     class RenderArena;
+    class RenderView;
     class SecurityOrigin;
     class Settings;
     class StyleSheet;
@@ -124,7 +125,6 @@ namespace WebCore {
 #if ENABLE(DASHBOARD_SUPPORT)
     struct DashboardRegionValue;
 #endif
-    struct HitTestRequest;
 
     typedef int ExceptionCode;
 
@@ -313,6 +313,7 @@ public:
 #if ENABLE(WML)
     virtual bool isWMLDocument() const { return false; }
 #endif
+    virtual bool isFrameSet() const { return false; }
     
     CSSStyleSelector* styleSelector() const { return m_styleSelector; }
 
@@ -373,8 +374,8 @@ public:
     void setUsesBeforeAfterRules(bool b) { m_usesBeforeAfterRules = b; }
 
     // Machinery for saving and restoring state when you leave and then go back to a page.
-    void registerFormElementWithState(HTMLFormControlElementWithState* e) { m_formElementsWithState.add(e); }
-    void unregisterFormElementWithState(HTMLFormControlElementWithState* e) { m_formElementsWithState.remove(e); }
+    void registerFormElementWithState(FormControlElementWithState* e) { m_formElementsWithState.add(e); }
+    void unregisterFormElementWithState(FormControlElementWithState* e) { m_formElementsWithState.remove(e); }
     Vector<String> formElementsState() const;
     void setStateForNewFormElements(const Vector<String>&);
     bool hasStateForNewFormElements() const;
@@ -410,6 +411,8 @@ public:
     void clearFramePointer();
 
     RenderArena* renderArena() { return m_renderArena; }
+
+    RenderView* renderView() const;
 
     void clearAXObjectCache();
     AXObjectCache* axObjectCache() const;
@@ -529,8 +532,8 @@ public:
     void activeChainNodeDetached(Node*);
 
     // Updates for :target (CSS3 selector).
-    void setCSSTarget(Node*);
-    Node* getCSSTarget() const;
+    void setCSSTarget(Element*);
+    Element* cssTarget() const { return m_cssTarget; }
     
     void setDocumentChanged(bool);
 
@@ -681,7 +684,7 @@ public:
     void removeImageMap(HTMLMapElement*);
     HTMLMapElement* getImageMap(const String& url) const;
 
-    HTMLElement* body();
+    HTMLElement* body() const;
     void setBody(PassRefPtr<HTMLElement>, ExceptionCode&);
 
     HTMLHeadElement* head();
@@ -795,10 +798,6 @@ public:
     virtual void resourceRetrievedByXMLHttpRequest(unsigned long identifier, const ScriptString& sourceString);
     virtual void postTask(PassRefPtr<Task>); // Executes the task on context's thread asynchronously.
 
-    void addTimeout(int timeoutId, DOMTimer*);
-    void removeTimeout(int timeoutId);
-    DOMTimer* findTimeout(int timeoutId);
-    
 protected:
     Document(Frame*, bool isXHTML);
 
@@ -887,7 +886,7 @@ private:
     RegisteredEventListenerVector m_windowEventListeners;
 
     typedef HashMap<FormElementKey, Vector<String>, FormElementKeyHash, FormElementKeyHashTraits> FormElementStateMap;
-    ListHashSet<HTMLFormControlElementWithState*> m_formElementsWithState;
+    ListHashSet<FormControlElementWithState*> m_formElementsWithState;
     FormElementStateMap m_stateForNewFormElements;
     
     Color m_linkColor;
@@ -931,7 +930,7 @@ private:
 
     Timer<Document> m_updateFocusAppearanceTimer;
 
-    Node* m_cssTarget;
+    Element* m_cssTarget;
     
     bool m_processingLoadEvent;
     double m_startTime;
@@ -1129,8 +1128,6 @@ private:
     bool m_inLowBandwidthDisplay;
 #endif
 
-    typedef HashMap<int, DOMTimer*> TimeoutsMap;
-    TimeoutsMap m_timeouts;
 };
 
 inline bool Document::hasElementWithId(AtomicStringImpl* id) const

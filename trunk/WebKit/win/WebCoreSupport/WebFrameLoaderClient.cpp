@@ -35,12 +35,13 @@
 #include "EmbeddedWidget.h"
 #include "MarshallingHelpers.h"
 #include "NotImplemented.h"
-#include "WebCachedPagePlatformData.h"
+#include "WebCachedFramePlatformData.h"
 #include "WebChromeClient.h"
 #include "WebDocumentLoader.h"
 #include "WebError.h"
 #include "WebFrame.h"
 #include "WebHistory.h"
+#include "WebHistoryItem.h"
 #include "WebMutableURLRequest.h"
 #include "WebNotificationCenter.h"
 #include "WebScriptDebugServer.h"
@@ -48,14 +49,16 @@
 #include "WebURLResponse.h"
 #include "WebView.h"
 #pragma warning(push, 0)
-#include <WebCore/CachedPage.h>
+#include <WebCore/CachedFrame.h>
 #include <WebCore/DocumentLoader.h>
 #include <WebCore/FrameLoader.h>
 #include <WebCore/FrameTree.h>
 #include <WebCore/FrameView.h>
+#include <WebCore/HTMLAppletElement.h>
 #include <WebCore/HTMLFrameElement.h>
 #include <WebCore/HTMLFrameOwnerElement.h>
 #include <WebCore/HTMLNames.h>
+#include <WebCore/HTMLPlugInElement.h>
 #include <WebCore/HistoryItem.h>
 #include <WebCore/Page.h>
 #include <WebCore/PluginPackage.h>
@@ -91,7 +94,9 @@ bool WebFrameLoaderClient::hasWebView() const
 
 void WebFrameLoaderClient::forceLayout()
 {
-    core(m_webFrame)->forceLayout(true);
+    FrameView* view = core(m_webFrame)->view();
+    if (view)
+        view->forceLayout(true);
 }
 
 void WebFrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identifier, DocumentLoader* loader, const ResourceRequest& request)
@@ -455,8 +460,33 @@ void WebFrameLoaderClient::updateGlobalHistory()
     WebHistory* history = WebHistory::sharedHistory();
     if (!history)
         return;
+
     DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
-    history->addItem(loader->urlForHistory(), loader->title(), loader->request().httpMethod(), loader->urlForHistoryReflectsFailure());                 
+    history->visitedURL(loader->urlForHistory(), loader->title(), loader->request().httpMethod(), loader->urlForHistoryReflectsFailure());
+    updateGlobalHistoryRedirectLinks();
+}
+
+void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
+{
+    WebHistory* history = WebHistory::sharedHistory();
+    if (!history)
+        return;
+
+    DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
+
+    if (!loader->clientRedirectSourceForHistory().isNull()) {
+        if (COMPtr<IWebHistoryItem> iWebHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory())) {
+            COMPtr<WebHistoryItem> webHistoryItem(Query, iWebHistoryItem);
+            webHistoryItem->historyItem()->addRedirectURL(loader->clientRedirectDestinationForHistory());
+        }
+    }
+
+    if (!loader->serverRedirectSourceForHistory().isNull()) {
+        if (COMPtr<IWebHistoryItem> iWebHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory())) {
+            COMPtr<WebHistoryItem> webHistoryItem(Query, iWebHistoryItem);
+            webHistoryItem->historyItem()->addRedirectURL(loader->serverRedirectDestinationForHistory());
+        }
+    }
 }
 
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const
@@ -499,20 +529,24 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     itemPrivate->setTitle(BString(title));
 }
 
-void WebFrameLoaderClient::savePlatformDataToCachedPage(CachedPage* cachedPage)
+void WebFrameLoaderClient::savePlatformDataToCachedFrame(CachedFrame* cachedFrame)
 {
 #if USE(CFNETWORK)
     Frame* coreFrame = core(m_webFrame);
     if (!coreFrame)
         return;
 
-    ASSERT(coreFrame->loader()->documentLoader() == cachedPage->documentLoader());
+    ASSERT(coreFrame->loader()->documentLoader() == cachedFrame->documentLoader());
 
-    WebCachedPagePlatformData* webPlatformData = new WebCachedPagePlatformData(static_cast<IWebDataSource*>(getWebDataSource(coreFrame->loader()->documentLoader())));
-    cachedPage->setCachedPagePlatformData(webPlatformData);
+    WebCachedFramePlatformData* webPlatformData = new WebCachedFramePlatformData(static_cast<IWebDataSource*>(getWebDataSource(coreFrame->loader()->documentLoader())));
+    cachedFrame->setCachedFramePlatformData(webPlatformData);
 #else
     notImplemented();
 #endif
+}
+
+void WebFrameLoaderClient::transitionToCommittedFromCachedFrame(CachedFrame*)
+{
 }
 
 void WebFrameLoaderClient::transitionToCommittedForNewPage()
@@ -523,7 +557,7 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     view->frameRect(&rect);
     bool transparent = view->transparent();
     Color backgroundColor = transparent ? Color::transparent : Color::white;
-    WebCore::FrameLoaderClient::transitionToCommittedForNewPage(core(m_webFrame), IntRect(rect).size(), backgroundColor, transparent, IntSize(), false);
+    core(m_webFrame)->createView(IntRect(rect).size(), backgroundColor, transparent, IntSize(), false);
 }
 
 bool WebFrameLoaderClient::canCachePage() const
@@ -572,17 +606,14 @@ void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const Strin
 
     HistoryItem* parentItem = coreFrame->loader()->currentHistoryItem();
     FrameLoadType loadType = coreFrame->loader()->loadType();
-    FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedHistory;
+    FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedBackForwardList;
 
     KURL url = originalURL;
 
     // If we're moving in the backforward list, we might want to replace the content
     // of this child frame with whatever was there at that point.
     // Reload will maintain the frame contents, LoadSame will not.
-    if (parentItem && parentItem->children().size() &&
-        (isBackForwardLoadType(loadType)
-         || loadType == FrameLoadTypeReloadAllowingStaleData))
-    {
+    if (parentItem && parentItem->children().size() && isBackForwardLoadType(loadType)) {
         if (HistoryItem* childItem = parentItem->childItemWithName(core(childFrame)->tree()->name())) {
             // Use the original URL to ensure we get all the side-effects, such as
             // onLoad handlers, of any redirects that happened. An example of where
@@ -602,10 +633,10 @@ void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const Strin
 
     // FIXME: Handle loading WebArchives here
     String frameName = core(childFrame)->tree()->name();
-    core(childFrame)->loader()->loadURL(url, referrer, frameName, childLoadType, 0, 0);
+    core(childFrame)->loader()->loadURL(url, referrer, frameName, false, childLoadType, 0, 0);
 }
 
-Widget* WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
+Widget* WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
     WebView* webView = m_webFrame->webView();
 

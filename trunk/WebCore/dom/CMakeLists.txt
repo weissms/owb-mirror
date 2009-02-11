@@ -14,6 +14,7 @@ list(APPEND WEBCORE_SRC
     dom/ClipboardEvent.cpp
     dom/Comment.cpp
     dom/ContainerNode.cpp
+    dom/CrossThreadCopier.cpp
     dom/DOMImplementation.cpp
     dom/DOMStringList.cpp
     dom/Document.cpp
@@ -27,10 +28,10 @@ list(APPEND WEBCORE_SRC
     dom/Event.cpp
     dom/EventNames.cpp
     dom/EventTarget.cpp
-    dom/EventTargetNode.cpp
     dom/ExceptionBase.cpp
     dom/ExceptionCode.cpp
     dom/FormControlElement.cpp
+    dom/FormControlElementWithState.cpp
     dom/InputElement.cpp
     dom/KeyboardEvent.cpp
     dom/MappedAttribute.cpp
@@ -48,6 +49,8 @@ list(APPEND WEBCORE_SRC
     dom/NodeFilterCondition.cpp
     dom/NodeIterator.cpp
     dom/Notation.cpp
+    dom/OptionElement.cpp
+    dom/OptionGroupElement.cpp
     dom/OverflowEvent.cpp
     dom/Position.cpp
     dom/PositionIterator.cpp
@@ -73,9 +76,20 @@ list(APPEND WEBCORE_SRC
     dom/WebKitAnimationEvent.cpp
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp
+    dom/WorkerRunLoop.cpp
     dom/XMLTokenizer.cpp
-    dom/XMLTokenizerLibxml2.cpp
 )
+
+if(USE_GRAPHICS_QT)
+    list(APPEND WEBCORE_SRC
+        dom/XMLTokenizerQt.cpp
+    )
+else(USE_GRAPHICS_QT)
+    list(APPEND WEBCORE_SRC 
+        dom/XMLTokenizerLibxml2.cpp
+    )
+endif(USE_GRAPHICS_QT)
+
 list(APPEND IDL_SRC
     dom/Attr.idl
     dom/CharacterData.idl
@@ -93,7 +107,6 @@ list(APPEND IDL_SRC
     dom/EntityReference.idl
     dom/Event.idl
     dom/EventException.idl
-    dom/EventTargetNode.idl
     dom/KeyboardEvent.idl
     dom/MessageChannel.idl
     dom/MessageEvent.idl
@@ -126,7 +139,6 @@ if(ENABLE_WORKERS)
         dom/WorkerContext.cpp
         dom/WorkerLocation.cpp
         dom/WorkerMessagingProxy.cpp
-        dom/WorkerTask.cpp
         dom/WorkerThread.cpp
     )
     list(APPEND IDL_SRC

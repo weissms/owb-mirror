@@ -51,8 +51,8 @@
 
 namespace WebCore {
 
-class TransformationMatrix;
 class CachedResource;
+class HitTestRequest;
 class HitTestResult;
 class RenderFrameSet;
 class RenderMarquee;
@@ -63,8 +63,12 @@ class RenderTable;
 class RenderText;
 class RenderView;
 class Scrollbar;
+class TransformationMatrix;
 
-struct HitTestRequest;
+#if USE(ACCELERATED_COMPOSITING)
+class RenderLayerBacking;
+class RenderLayerCompositor;
+#endif
 
 class ClipRects {
 public:
@@ -182,10 +186,11 @@ public:
     static ScrollBehavior getPartialBehavior(const ScrollAlignment& s) { return s.m_rectPartial; }
     static ScrollBehavior getHiddenBehavior(const ScrollAlignment& s) { return s.m_rectHidden; }
 
-    RenderLayer(RenderBox*);
+    RenderLayer(RenderBoxModelObject*);
     ~RenderLayer();
 
-    RenderBox* renderer() const { return m_renderer; }
+    RenderBoxModelObject* renderer() const { return m_renderer; }
+    RenderBox* renderBox() const { return m_renderer && m_renderer->isBox() ? toRenderBox(m_renderer) : 0; }
     RenderLayer* parent() const { return m_parent; }
     RenderLayer* previousSibling() const { return m_previous; }
     RenderLayer* nextSibling() const { return m_next; }
@@ -200,7 +205,14 @@ public:
 
     void repaintIncludingDescendants();
 
-    void styleChanged(RenderStyle::Diff, const RenderStyle*);
+#if USE(ACCELERATED_COMPOSITING)
+    // Indicate that the layer contents need to be repainted. Only has an effect
+    // if layer compositing is being used,
+    void setBackingNeedsRepaint();
+    void setBackingNeedsRepaintInRect(const IntRect& r); // r is in the coordinate space of the layer's render object
+#endif
+
+    void styleChanged(StyleDifference, const RenderStyle*);
 
     RenderMarquee* marquee() const { return m_marquee; }
     void suspendMarquees();
@@ -210,7 +222,7 @@ public:
     bool requiresSlowRepaints() const;
 
     bool isTransparent() const;
-    RenderLayer* transparentAncestor();
+    RenderLayer* transparentPaintingAncestor();
     void beginTransparencyLayers(GraphicsContext*, const RenderLayer* rootLayer);
 
     bool hasReflection() const { return renderer()->hasReflection(); }
@@ -288,6 +300,13 @@ public:
     void resize(const PlatformMouseEvent&, const IntSize&);
     bool inResizeMode() const { return m_inResizeMode; }
     void setInResizeMode(bool b) { m_inResizeMode = b; }
+
+    // Can't just check !parent() because we might be unrooted.
+    bool isRootLayer() const { return renderer()->node()->isDocumentNode(); }
+    
+#if USE(ACCELERATED_COMPOSITING)
+    RenderLayerCompositor* compositor() const;
+#endif
     
     void updateLayerPosition();
     void updateLayerPositions(bool doFullRepaint = false, bool checkForRepaint = true);
@@ -353,20 +372,26 @@ public:
 
     bool intersectsDamageRect(const IntRect& layerBounds, const IntRect& damageRect, const RenderLayer* rootLayer) const;
 
-    // Returns a bounding box for this layer only.
+    // Bounding box relative to some ancestor layer.
     IntRect boundingBox(const RenderLayer* rootLayer) const;
+    // Bounding box in the coordinates of this layer.
+    IntRect localBoundingBox() const;
+    // Bounding box relative to the root.
+    IntRect absoluteBoundingBox() const;
 
     void updateHoverActiveState(const HitTestRequest&, HitTestResult&);
 
+    // Return a cached repaint rect, computed relative to the layer renderer's containerForRepaint.
     IntRect repaintRect() const { return m_repaintRect; }
     void setNeedsFullRepaint(bool f = true) { m_needsFullRepaint = f; }
     
     int staticX() const { return m_staticX; }
     int staticY() const { return m_staticY; }
     void setStaticX(int staticX) { m_staticX = staticX; }
-    void setStaticY(int staticY) { m_staticY = staticY; }
+    void setStaticY(int staticY);
 
     bool hasTransform() const { return renderer()->hasTransform(); }
+    // Note that this transform has the transform-origin baked in.
     TransformationMatrix* transform() const { return m_transform.get(); }
 
     void destroy(RenderArena*);
@@ -378,6 +403,25 @@ public:
     // Overridden to prevent the normal delete from being called.
     void operator delete(void*, size_t);
 
+#if USE(ACCELERATED_COMPOSITING)
+    bool isComposited() const { return m_backing != 0; }
+    RenderLayerBacking* backing() const { return m_backing.get(); }
+    RenderLayerBacking* ensureBacking();
+    void clearBacking();
+#else
+    bool isComposited() const { return false; }
+#endif
+
+    bool paintsWithTransparency() const
+    {
+        return isTransparent() && !isComposited();
+    }
+
+    bool paintsWithTransform() const
+    {
+        return transform() && !isComposited();
+    }
+
 private:
     // The normal operator new is disallowed on all render objects.
     void* operator new(size_t) throw();
@@ -385,16 +429,22 @@ private:
 private:
     void setNextSibling(RenderLayer* next) { m_next = next; }
     void setPreviousSibling(RenderLayer* prev) { m_previous = prev; }
-    void setParent(RenderLayer* parent) { m_parent = parent; }
+    void setParent(RenderLayer* parent);
     void setFirstChild(RenderLayer* first) { m_first = first; }
     void setLastChild(RenderLayer* last) { m_last = last; }
 
+    int renderBoxX() const { return renderer()->isBox() ? toRenderBox(renderer())->x() : 0; }
+    int renderBoxY() const { return renderer()->isBox() ? toRenderBox(renderer())->y() : 0; }
+
     void collectLayers(Vector<RenderLayer*>*&, Vector<RenderLayer*>*&);
 
+    void updateLayerListsIfNeeded();
+    
     void paintLayer(RenderLayer* rootLayer, GraphicsContext*, const IntRect& paintDirtyRect,
                     bool haveTransparency, PaintRestriction, RenderObject* paintingRoot,
                     bool appliedTransform = false, bool temporaryClipRects = false);
     RenderLayer* hitTestLayer(RenderLayer* rootLayer, const HitTestRequest&, HitTestResult&, const IntRect& hitTestRect, const IntPoint& hitTestPoint, bool appliedTransform = false);
+
     void computeScrollDimensions(bool* needHBar = 0, bool* needVBar = 0);
 
     bool shouldBeOverflowOnly() const;
@@ -424,8 +474,17 @@ private:
     void updateScrollCornerStyle();
     void updateResizerStyle();
 
-protected:   
-    RenderBox* m_renderer;
+#if USE(ACCELERATED_COMPOSITING)    
+    bool hasCompositingDescendant() const { return m_hasCompositingDescendant; }
+    void setHasCompositingDescendant(bool b)  { m_hasCompositingDescendant = b; }
+#endif
+
+private:
+    friend class RenderLayerBacking;
+    friend class RenderLayerCompositor;
+
+protected:
+    RenderBoxModelObject* m_renderer;
 
     RenderLayer* m_parent;
     RenderLayer* m_previous;
@@ -501,6 +560,10 @@ protected:
     bool m_visibleDescendantStatusDirty : 1;
     bool m_hasVisibleDescendant : 1;
 
+#if USE(ACCELERATED_COMPOSITING)
+    bool m_hasCompositingDescendant : 1;
+#endif
+
     RenderMarquee* m_marquee; // Used by layers with overflow:marquee
     
     // Cached normal flow values for absolute positioned elements with static left/top values.
@@ -515,6 +578,10 @@ protected:
     // Renderers to hold our custom scroll corner and resizer.
     RenderScrollbarPart* m_scrollCorner;
     RenderScrollbarPart* m_resizer;
+
+#if USE(ACCELERATED_COMPOSITING)
+    OwnPtr<RenderLayerBacking> m_backing;
+#endif
 };
 
 } // namespace WebCore

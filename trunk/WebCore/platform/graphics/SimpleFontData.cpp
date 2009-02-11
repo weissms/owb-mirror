@@ -124,31 +124,17 @@ void SimpleFontData::platformGlyphInit()
 
 SimpleFontData::~SimpleFontData()
 {
+#if ENABLE(SVG_FONTS)
+    if (!m_svgFontData || !m_svgFontData->svgFontFaceElement())
+#endif
+        platformDestroy();
+
     if (!isCustomFont()) {
         if (m_smallCapsFontData)
             fontCache()->releaseFontData(m_smallCapsFontData);
         GlyphPageTreeNode::pruneTreeFontData(this);
     }
-
-#if ENABLE(SVG_FONTS)
-    if (!m_svgFontData || !m_svgFontData->svgFontFaceElement())
-#endif
-        platformDestroy();
 }
-
-#if !PLATFORM(QT)
-float SimpleFontData::widthForGlyph(Glyph glyph) const
-{
-    float width = m_glyphToWidthMap.widthForGlyph(glyph);
-    if (width != cGlyphWidthUnknown)
-        return width;
-    
-    width = platformWidthForGlyph(glyph);
-    m_glyphToWidthMap.setWidthForGlyph(glyph, width);
-    
-    return width;
-}
-#endif
 
 const SimpleFontData* SimpleFontData::fontDataForCharacter(UChar32) const
 {

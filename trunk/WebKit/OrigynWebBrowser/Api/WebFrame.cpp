@@ -60,6 +60,8 @@
 #include <Frame.h>
 #include <GraphicsContext.h>
 #include <HistoryItem.h>
+#include <HTMLAppletElement.h>
+#include <HTMLPlugInElement.h> 
 #include <JSDOMWindow.h>
 #include <KeyboardEvent.h>
 #include <MIMETypeRegistry.h>
@@ -205,12 +207,12 @@ WebFrame::WebFrame()
 #if ENABLE(JS_ADDONS)
     m_bindingJS = new BindingJS(this);
 #endif
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
+    WebCore::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 }
 
 WebFrame::~WebFrame()
 {
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
+    WebCore::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 #if ENABLE(JS_ADDONS)
     if (m_bindingJS)
         delete m_bindingJS;
@@ -268,17 +270,12 @@ const char* WebFrame::name()
     if (!coreFrame->document())
         return strdup("");
 
-#if PLATFORM(AMIGAOS4)
-    strlcpy(m_title, coreFrame->loader()->documentLoader()->title().utf8().data(), sizeof(m_title));
-    return m_title;
-#else
     const AtomicString& frameName = coreFrame->tree()->name();
     if (!frameName.isEmpty())
         return strdup(frameName.string().utf8().data());
 
     const CString& frameTitle = coreFrame->loader()->documentLoader()->title().utf8();
     return strdup(frameTitle.data());
-#endif
 }
 
 void WebFrame::setName(const char* frameName)
@@ -340,7 +337,7 @@ void WebFrame::loadRequest(WebMutableURLRequest* request)
     if (!coreFrame)
         return;
 
-    coreFrame->loader()->load(request->resourceRequest());
+    coreFrame->loader()->load(request->resourceRequest(), false);
 }
 
 void WebFrame::loadHTMLString(const char* string, const char* baseURL, const char* unreachableURL)
@@ -356,7 +353,7 @@ void WebFrame::loadHTMLString(const char* string, const char* baseURL, const cha
     SubstituteData substituteData(data.release(), mimeType, utf8Encoding, failingKURL);
 
     if (Frame* coreFrame = core(this))
-        coreFrame->loader()->load(request, substituteData);
+        coreFrame->loader()->load(request, substituteData, false);
 }
 
 void WebFrame::loadHTMLString(const char* string, const char* baseURL)
@@ -397,22 +394,13 @@ WebDataSource* WebFrame::provisionalDataSource()
     return getWebDataSource(coreFrame->loader()->provisionalDocumentLoader());
 }
 
-#if PLATFORM(AMIGAOS4)
-const char* WebFrame::url()
-#else
 const char* WebFrame::url() const
-#endif
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
         return strdup("");
 
-#if PLATFORM(AMIGAOS4)
-    strlcpy(m_url, coreFrame->loader()->url().string().utf8().data(), sizeof(m_url));
-    return m_url;
-#else
     return strdup(coreFrame->loader()->url().string().utf8().data());
-#endif
 }
 
 void WebFrame::stopLoading()
@@ -556,7 +544,7 @@ void WebFrame::invalidate()
     ASSERT(coreFrame);
 
     if (Document* document = coreFrame->document())
-        document->recalcStyle(Node::Force);
+        document->recalcStyle(WebCore::Node::Force);
 }
 
 void WebFrame::setTextSizeMultiplier(float multiplier)
@@ -997,10 +985,10 @@ void* WebFrame::spoolPages(HDC printDC, UINT startPage, UINT endPage)
 bool WebFrame::isFrameSet()
 {
     Frame* coreFrame = core(this);
-    if (!coreFrame)
+    if (!coreFrame || !coreFrame->document())
         return false;
 
-    return coreFrame->isFrameSet() ? true : false;
+    return coreFrame->document()->isFrameSet() ? true : false;
 }
 
 const char* WebFrame::string()
@@ -1099,18 +1087,13 @@ void WebFrame::unmarkAllBadGrammar()
 
 void WebFrame::updateBackground()
 {
-    // FIXME: should use Color for a cleaner code.
-    //Color backgroundColor = webView()->transparent() ? Color::transparent : Color::white;
-    Color backgroundColor = webView()->transparent() ? 0x00000000 : 0xffffffff;
+    Color backgroundColor = webView()->transparent() ? Color::transparent : Color::white;
     Frame* coreFrame = core(this);
-    for (Frame* frame = coreFrame; frame; frame = frame->tree()->traverseNext(coreFrame)) {
-        FrameView* view = frame->view();
-        if (!view)
-            continue;
 
-        view->setTransparent(webView()->transparent());
-        view->setBaseBackgroundColor(backgroundColor);
-    }
+    if (!coreFrame || !coreFrame->view())
+        return;
+
+    coreFrame->view()->updateBackgroundRecursively(backgroundColor, webView()->transparent());
 }
 
 void WebFrame::addHistoryItemForFragmentScroll()

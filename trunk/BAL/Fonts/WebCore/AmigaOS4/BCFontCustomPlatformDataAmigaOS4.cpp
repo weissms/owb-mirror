@@ -33,7 +33,7 @@
 #include "FontPlatformData.h"
 #include <proto/diskfont.h>
 
-namespace WKAL {
+namespace WebCore {
 
 FontCustomPlatformData::~FontCustomPlatformData()
 {

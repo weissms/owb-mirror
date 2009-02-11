@@ -33,7 +33,7 @@
 #include "Color.h"
 #include "IntSize.h"
 
-namespace WKAL {
+namespace WebCore {
     struct FrameData;
 }
 
@@ -44,7 +44,7 @@ namespace WTF {
     template<> class VectorTraits<WebCore::FrameData> : public SimpleClassVectorTraits {};
 }
 
-namespace WKAL {
+namespace WebCore {
 
 template <typename T> class Timer;
 

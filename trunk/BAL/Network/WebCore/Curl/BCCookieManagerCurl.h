@@ -38,7 +38,7 @@
 #include "SQLiteDatabase.h"
 #endif
 
-namespace WKAL {
+namespace WebCore {
 
 class CookieManager {
 public:
@@ -94,6 +94,6 @@ private:
     static const int max_count = 300;
 };
 
-} // namespace WKAL
+} // namespace WebCore
 
 #endif

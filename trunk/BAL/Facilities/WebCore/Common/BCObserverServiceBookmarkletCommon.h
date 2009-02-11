@@ -37,7 +37,7 @@
 
 using WebCore::String;
 
-namespace OWBAL {
+namespace WebCore {
 
 
     class ObserverBookmarklet;

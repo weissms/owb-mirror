@@ -39,7 +39,7 @@
 
 #include <wtf/Noncopyable.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class SQLiteDatabase;
 
@@ -103,7 +103,7 @@ private:
 
 };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // SQLiteTransation_H
 

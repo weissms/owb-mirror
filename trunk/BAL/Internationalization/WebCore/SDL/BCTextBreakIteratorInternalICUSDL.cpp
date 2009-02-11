@@ -29,7 +29,7 @@
 #include "config.h"
 #include "TextBreakIteratorInternalICU.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 const char* currentTextBreakLocaleID()
 {

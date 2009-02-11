@@ -2,6 +2,7 @@
  * This file is part of the select element renderer in WebCore.
  *
  * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
+ *               2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,10 +42,10 @@
 #include "FrameView.h"
 #include "GraphicsContext.h"
 #include "HTMLNames.h"
-#include "HTMLOptGroupElement.h"
-#include "HTMLOptionElement.h"
 #include "HTMLSelectElement.h"
 #include "HitTestResult.h"
+#include "OptionGroupElement.h"
+#include "OptionElement.h"
 #include "Page.h"
 #include "RenderScrollbar.h"
 #include "RenderTheme.h"
@@ -86,7 +87,7 @@ RenderListBox::~RenderListBox()
     setHasVerticalScrollbar(false);
 }
 
-void RenderListBox::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderListBox::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderBlock::styleDidChange(diff, oldStyle);
     setReplaced(isInline());
@@ -103,10 +104,10 @@ void RenderListBox::updateFromElement()
             HTMLElement* element = listItems[i];
             String text;
             Font itemFont = style()->font();
-            if (element->hasTagName(optionTag))
-                text = static_cast<HTMLOptionElement*>(element)->optionText();
-            else if (element->hasTagName(optgroupTag)) {
-                text = static_cast<HTMLOptGroupElement*>(element)->groupLabelText();
+            if (OptionElement* optionElement = toOptionElement(element))
+                text = optionElement->textIndentedToRespectGroupLabel();
+            else if (OptionGroupElement* optionGroupElement = toOptionGroupElement(element)) {
+                text = optionGroupElement->groupLabelText();
                 FontDescription d = itemFont.fontDescription();
                 d.setWeight(d.bolderWeight());
                 itemFont = Font(d, itemFont.letterSpacing(), itemFont.wordSpacing());
@@ -223,7 +224,7 @@ void RenderListBox::calcHeight()
     int toAdd = paddingTop() + paddingBottom() + borderTop() + borderBottom();
  
     int itemHeight = RenderListBox::itemHeight();
-    m_height = itemHeight * size() - rowSpacing + toAdd;
+    setHeight(itemHeight * size() - rowSpacing + toAdd);
     
     RenderBlock::calcHeight();
     
@@ -295,13 +296,14 @@ void RenderListBox::paintItemForeground(PaintInfo& paintInfo, int tx, int ty, in
     HTMLSelectElement* select = static_cast<HTMLSelectElement*>(node());
     const Vector<HTMLElement*>& listItems = select->listItems();
     HTMLElement* element = listItems[listIndex];
+    OptionElement* optionElement = toOptionElement(element);
 
     String itemText;
-    if (element->hasTagName(optionTag))
-        itemText = static_cast<HTMLOptionElement*>(element)->optionText();
-    else if (element->hasTagName(optgroupTag))
-        itemText = static_cast<HTMLOptGroupElement*>(element)->groupLabelText();
-       
+    if (optionElement)
+        itemText = optionElement->textIndentedToRespectGroupLabel();
+    else if (OptionGroupElement* optionGroupElement = toOptionGroupElement(element))
+        itemText = optionGroupElement->groupLabelText();      
+
     // Determine where the item text should be placed
     IntRect r = itemBoundingBoxRect(tx, ty, listIndex);
     r.move(optionsSpacingHorizontal, style()->font().ascent());
@@ -311,7 +313,7 @@ void RenderListBox::paintItemForeground(PaintInfo& paintInfo, int tx, int ty, in
         itemStyle = style();
     
     Color textColor = element->renderStyle() ? element->renderStyle()->color() : style()->color();
-    if (element->hasTagName(optionTag) && static_cast<HTMLOptionElement*>(element)->selected()) {
+    if (optionElement && optionElement->selected()) {
         if (document()->frame()->selection()->isFocusedAndActive() && document()->focusedNode() == node())
             textColor = theme()->activeListBoxSelectionForegroundColor();
         // Honor the foreground color for disabled items
@@ -343,9 +345,10 @@ void RenderListBox::paintItemBackground(PaintInfo& paintInfo, int tx, int ty, in
     HTMLSelectElement* select = static_cast<HTMLSelectElement*>(node());
     const Vector<HTMLElement*>& listItems = select->listItems();
     HTMLElement* element = listItems[listIndex];
+    OptionElement* optionElement = toOptionElement(element);
 
     Color backColor;
-    if (element->hasTagName(optionTag) && static_cast<HTMLOptionElement*>(element)->selected()) {
+    if (optionElement && optionElement->selected()) {
         if (document()->frame()->selection()->isFocusedAndActive() && document()->focusedNode() == node())
             backColor = theme()->activeListBoxSelectionBackgroundColor();
         else
@@ -367,9 +370,9 @@ bool RenderListBox::isPointInOverflowControl(HitTestResult& result, int _x, int 
         return false;
 
     IntRect vertRect(_tx + width() - borderRight() - m_vBar->width(),
-                   _ty + borderTop() - borderTopExtra(),
-                   m_vBar->width(),
-                   height() + borderTopExtra() + borderBottomExtra() - borderTop() - borderBottom());
+                     _ty,
+                     m_vBar->width(),
+                     height() - borderTop() - borderBottom());
 
     if (vertRect.contains(_x, _y)) {
         result.setScrollbar(m_vBar.get());
@@ -524,7 +527,7 @@ void RenderListBox::valueChanged(Scrollbar*)
         m_indexOffset = newOffset;
         repaint();
         // Fire the scroll DOM event.
-        EventTargetNodeCast(node())->dispatchEventForType(eventNames().scrollEvent, false, false);
+        node()->dispatchEventForType(eventNames().scrollEvent, false, false);
     }
 }
 
@@ -576,9 +579,32 @@ void RenderListBox::setScrollTop(int newTop)
         m_vBar->setValue(index);
 }
 
+bool RenderListBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int x, int y, int tx, int ty, HitTestAction hitTestAction)
+{
+    if (!RenderBlock::nodeAtPoint(request, result, x, y, tx, ty, hitTestAction))
+        return false;
+    const Vector<HTMLElement*>& listItems = static_cast<HTMLSelectElement*>(node())->listItems();
+    int size = numItems();
+    tx += this->x();
+    ty += this->y();
+    for (int i = 0; i < size; ++i) {
+        if (itemBoundingBoxRect(tx, ty, i).contains(x, y)) {
+            if (HTMLElement* node = listItems[i]) {
+                result.setInnerNode(node);
+                if (!result.innerNonSharedNode())
+                    result.setInnerNonSharedNode(node);
+                result.setLocalPoint(IntPoint(x - tx, y - ty));
+                break;
+            }
+        }
+    }
+
+    return true;
+}
+
 IntRect RenderListBox::controlClipRect(int tx, int ty) const
 {
-    IntRect clipRect = contentBox();
+    IntRect clipRect = contentBoxRect();
     clipRect.move(tx, ty);
     return clipRect;
 }
@@ -596,17 +622,10 @@ void RenderListBox::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect&
     repaintRectangle(scrollRect);
 }
 
-bool RenderListBox::isScrollable() const
-{
-    if (numVisibleItems() < numItems())
-        return true;
-    return RenderObject::isScrollable();
-}
-
 PassRefPtr<Scrollbar> RenderListBox::createScrollbar()
 {
     RefPtr<Scrollbar> widget;
-    bool hasCustomScrollbarStyle = style()->hasPseudoStyle(RenderStyle::SCROLLBAR);
+    bool hasCustomScrollbarStyle = style()->hasPseudoStyle(SCROLLBAR);
     if (hasCustomScrollbarStyle)
         widget = RenderScrollbar::createCustomScrollbar(this, VerticalScrollbar, this);
     else

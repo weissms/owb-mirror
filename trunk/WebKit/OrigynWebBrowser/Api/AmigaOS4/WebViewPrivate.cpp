@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include "cairo.h"
 #include "GraphicsContext.h"
 #include "Page.h"
+#include "ProgressTracker.h"
 #include "EventHandler.h"
 #include "FocusController.h"
 #include <MainThread.h>
@@ -51,22 +52,138 @@
 #include "WebFrame.h"
 #include "WebView.h"
 
+#include <proto/exec.h>
+#include <proto/clicktab.h>
+#include <proto/fuelgauge.h>
 #include <proto/graphics.h>
 #include <proto/intuition.h>
 #include <proto/layers.h>
+#include <proto/layout.h>
 #include <proto/popupmenu.h>
 #include <proto/requester.h>
 #include <classes/requester.h>
+#include <gadgets/clicktab.h>
+#include <gadgets/fuelgauge.h>
 #include <reaction/reaction_macros.h>
 #include <graphics/blitattr.h>
 #include <libraries/keymap.h>
 
 using namespace WebCore;
 
-WebViewPrivate::WebViewPrivate(WebView *webView)
+AmigaWebNotificationDelegate::AmigaWebNotificationDelegate()
+{
+    m_OS41 = IExec->Data.LibBase->lib_Version >= 53;
+}
+
+AmigaWebNotificationDelegate::~AmigaWebNotificationDelegate()
+{
+}
+
+void AmigaWebNotificationDelegate::startLoadNotification(WebFrame* webFrame)
+{
+    WebView* webView = webFrame->webView();
+    if (webView->mainFrame() != webFrame)
+        return;
+
+    BalWidget* owbwindow = webView->viewWindow();
+    if (m_OS41 && owbwindow && owbwindow->window && owbwindow->gad_fuelgauge) {
+        if (amigaConfig.tabs) {
+            if (ILayout->SetPageGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->page,
+                                            owbwindow->window, NULL,
+                                            FUELGAUGE_Level, 10,
+                                            GA_Text, "",
+                                            TAG_DONE))
+                ILayout->RefreshPageGadget(owbwindow->gad_fuelgauge, owbwindow->page, owbwindow->window, NULL);
+        }
+        else
+            if (IIntuition->SetAttrs(owbwindow->gad_fuelgauge,
+                                     FUELGAUGE_Level, 10,
+                                     GA_Text, "",
+                                     TAG_DONE))
+                ILayout->RefreshPageGadget(owbwindow->gad_hlayout, owbwindow->page, owbwindow->window, NULL);
+    }
+}
+
+void AmigaWebNotificationDelegate::progressNotification(WebFrame* webFrame)
+{
+    WebView* webView = webFrame->webView();
+    if (webView->mainFrame() != webFrame)
+        return;
+
+    BalWidget* owbwindow = webView->viewWindow();
+    if (m_OS41 && owbwindow && owbwindow->window && owbwindow->gad_fuelgauge) {
+        uint32 oldprogress = 0;
+        IIntuition->GetAttr(FUELGAUGE_Level, owbwindow->gad_fuelgauge, &oldprogress);
+        uint32 newprogress = (uint32)(webView->estimatedProgress() * 1000);
+
+        if (oldprogress != newprogress) {
+            owbwindow->fuelGaugeArgs[0] = (uint32)(webView->page()->progress()->totalBytesReceived() / 1024);
+            owbwindow->fuelGaugeArgs[1] = (uint32)(webView->page()->progress()->totalPageAndResourceBytesToLoad() / 1024);
+            if (amigaConfig.tabs) {
+                if (ILayout->SetPageGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->page,
+                                                owbwindow->window, NULL,
+                                                FUELGAUGE_Level, newprogress,
+                                                GA_Text, "%lU / %lU KB",
+                                                FUELGAUGE_VarArgs, owbwindow->fuelGaugeArgs,
+                                                TAG_DONE))
+                    ILayout->RefreshPageGadget(owbwindow->gad_fuelgauge, owbwindow->page, owbwindow->window, NULL);
+            }
+            else
+                if (IIntuition->SetAttrs(owbwindow->gad_fuelgauge,
+                                         FUELGAUGE_Level, newprogress,
+                                         GA_Text, "%lU / %lU KB",
+                                         FUELGAUGE_VarArgs, owbwindow->fuelGaugeArgs,
+                                         TAG_DONE))
+                    ILayout->RefreshPageGadget(owbwindow->gad_hlayout, owbwindow->page, owbwindow->window, NULL);
+        }
+    }
+}
+
+void AmigaWebNotificationDelegate::finishedLoadNotification(WebFrame* webFrame)
+{
+    WebView* webView = webFrame->webView();
+    BalWidget* owbwindow = webView->viewWindow();
+    WebFrame* mainFrame = webView->mainFrame();
+    Frame* frame = core(mainFrame);
+    if (frame->view()) {
+        webView->addToDirtyRegion(IntRect(0, 0, frame->view()->visibleWidth(), frame->view()->visibleHeight()));
+        owbwindow->expose = true;
+    }
+
+    if (mainFrame != webFrame)
+        return;
+
+    if (m_OS41 && owbwindow && owbwindow->window && owbwindow->gad_fuelgauge) {
+        if (amigaConfig.tabs) {
+            if (ILayout->SetPageGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->page,
+                                            owbwindow->window, NULL,
+                                            FUELGAUGE_Level, 0,
+                                            GA_Text, "",
+                                            TAG_DONE))
+                ILayout->RefreshPageGadget(owbwindow->gad_fuelgauge, owbwindow->page, owbwindow->window, NULL);
+        }
+        else
+            if (IIntuition->SetAttrs(owbwindow->gad_fuelgauge,
+                                     FUELGAUGE_Level, 0,
+                                     GA_Text, "",
+                                     TAG_DONE))
+                ILayout->RefreshPageGadget(owbwindow->gad_hlayout, owbwindow->page, owbwindow->window, NULL);
+    }
+}
+
+
+
+WebViewPrivate::WebViewPrivate(WebView* webView)
     : m_webView(webView)
     , isInitialized(false)
+    , m_amigaWebNotificationDelegate(new AmigaWebNotificationDelegate())
 {
+    webView->setWebNotificationDelegate(m_amigaWebNotificationDelegate);
+}
+
+WebViewPrivate::~WebViewPrivate()
+{
+    delete m_amigaWebNotificationDelegate;
 }
 
 void WebViewPrivate::fireWebKitEvents()
@@ -93,12 +210,12 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         return;
 
     GraphicsContext ctx(widget->cr);
-    IntRect rect(m_webView->dirtyRegion());
+    IntRect rect(dirtyRegion());
     if (frame->contentRenderer() && frame->view() && !rect.isEmpty()) {
-        m_webView->clearDirtyRegion();
         frame->view()->layoutIfNeededRecursive();
         frame->view()->paint(&ctx, rect);
         updateView(widget, rect);
+        clearDirtyRegion();
     }
 }
 
@@ -160,7 +277,7 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
                 frame->view()->layoutIfNeededRecursive();
                 IntRect dirty(0, 0, m_rect.width(), m_rect.height());
                 frame->view()->paint(&ctx, dirty);
-                m_webView->clearDirtyRegion();
+                clearDirtyRegion();
             }
             return;
         }
@@ -172,7 +289,7 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
                 frame->view()->layoutIfNeededRecursive();
                 IntRect dirty(0, 0, m_rect.width(), m_rect.height());
                 frame->view()->paint(&ctx, dirty);
-                m_webView->clearDirtyRegion();
+                clearDirtyRegion();
             }
             return;
         }
@@ -222,8 +339,19 @@ void WebViewPrivate::onMouseButtonDown(BalEventButton event)
     if (!frame)
         return;
 
-    if (IECODE_MBUTTON == event.Code)
-        return ;//webkit_web_view_forward_context_menu_event(webView, PlatformMouseEvent(event));
+    if (amigaConfig.contextMenuRMB) {
+        if (IECODE_RBUTTON == event.Code) {
+            frame->eventHandler()->sendContextMenuEvent(PlatformMouseEvent(&event));
+            return;
+        }
+    }
+    else {
+        if (IECODE_MBUTTON == event.Code) {
+            frame->eventHandler()->sendContextMenuEvent(PlatformMouseEvent(&event));
+            return;
+        }
+    }
+
     frame->eventHandler()->handleMousePressEvent(PlatformMouseEvent(&event));
 }
 
@@ -274,61 +402,121 @@ void WebViewPrivate::popupMenuHide()
 }
 
 
-void WebViewPrivate::popupMenuShow(void *popupInfo)
+void WebViewPrivate::popupMenuShow(void* popupInfo)
 {
-    PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
+    extern char* utf8ToAmiga(const char* utf8);
+
+    PopupMenu* pop = static_cast<PopupMenu*>(popupInfo);
     if (!pop)
         return;
 
-    BalWidget *widget = m_webView->viewWindow();
+    BalWidget* widget = pop->client()->hostWindow()->platformWindow();
     if (!widget)
         return;
 
-    int itemCount = pop->client()->listSize();
-    if (itemCount > 25)
+    if (widget != m_webView->viewWindow())
         return;
 
-    Object *menu, *items[itemCount];
+    int itemCount = pop->client()->listSize();
+    if (itemCount > 25 * 25)
+        return;
 
-    menu = (Object *)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetClass(), NULL,
-                                           PMA_Left, pop->windowRect().x() + widget->offsetx,
-                                           PMA_Top, pop->windowRect().y() + widget->offsety,
-                                           TAG_DONE);
+    Object *menu, *items[itemCount], *subMenu[25], *subMenuItems[25];
+    String subMenuTitles[25];
+    memset(subMenu, 0, sizeof(subMenu));
+
+    menu = (Object*)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetClass(), NULL,
+                                          PMA_Left, pop->windowRect().x() + widget->offsetx,
+                                          PMA_Top, pop->windowRect().y() + widget->offsety,
+                                          TAG_DONE);
     if (!menu)
         return;
 
     bool gotAllItems = true;
 
-    for (int i = 0; i < itemCount; ++i) {
-        CString text = pop->client()->itemText(i).latin1();
-        items[i] = (Object *)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetItemClass(), NULL,
-                                                   PMIA_Title, pop->client()->itemIsSeparator(i) ? (const char *)~0 : text.data() ?: "",
-                                                   PMIA_Hidden, !pop->client()->itemIsEnabled(i),
-                                                   PMIA_FillPen, pop->client()->itemIsSelected(i),
-                                                   TAG_DONE);
-        if (!items[i])
-            gotAllItems = false;
-        else
-            IIntuition->IDoMethod(menu, OM_ADDMEMBER, items[i]);
+    if (itemCount <= 25) {
+        for (int i = 0; i < itemCount; ++i) {
+            char* text = utf8ToAmiga(pop->client()->itemText(i).utf8().data());
+            items[i] = (Object*)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetItemClass(), NULL,
+                                                      PMIA_Title, pop->client()->itemIsSeparator(i) ? (const char *)~0 : text ?: "",
+                                                      PMIA_Hidden, !pop->client()->itemIsEnabled(i),
+                                                      PMIA_FillPen, pop->client()->itemIsSelected(i),
+                                                      TAG_DONE);
+            free(text);
+            if (!items[i])
+                gotAllItems = false;
+            else
+                IIntuition->IDoMethod(menu, OM_ADDMEMBER, items[i]);
+        }
+    }
+    else {
+        for (int i = 0; i < (itemCount + 24) / 25; i++) {
+            subMenu[i] = (Object*)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetClass(), NULL, TAG_DONE);
+            if (!subMenu[i])
+                gotAllItems = false;
+            else {
+                int j;
+                for (j = 0; i * 25 + j < itemCount && j < 25 ; j++) {
+                    char* text = utf8ToAmiga(pop->client()->itemText(i * 25 + j).utf8().data());
+                    items[i * 25 + j] = (Object*)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetItemClass(), NULL,
+                                                                       PMIA_Title, pop->client()->itemIsSeparator(i * 25 + j) ? (const char *)~0 : text ?: "",
+                                                                       PMIA_Hidden, !pop->client()->itemIsEnabled(i * 25 + j),
+                                                                       PMIA_FillPen, pop->client()->itemIsSelected(i * 25 + j),
+                                                                       TAG_DONE);
+                    free(text);
+                    if (!items[i * 25 + j])
+                        gotAllItems = false;
+                    else
+                        IIntuition->IDoMethod(subMenu[i], OM_ADDMEMBER, items[i * 25 + j]);
+                }
+
+                subMenuTitles[i] = pop->client()->itemText(i * 25);
+                if (j > 0) {
+                    subMenuTitles[i] += " ... ";
+                    subMenuTitles[i] += pop->client()->itemText(i * 25 + j - 1);
+                }
+                char* text = utf8ToAmiga(subMenuTitles[i].utf8().data());
+                subMenuItems[i] = (Object*)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetItemClass(), NULL,
+                                                                 PMIA_Title, text ?: "...",
+                                                                 PMIA_SubMenu, subMenu[i],
+                                                                 TAG_DONE);
+                free(text);
+                if (!subMenuItems[i])
+                    gotAllItems = false;
+                else
+                    IIntuition->IDoMethod(menu, OM_ADDMEMBER, subMenuItems[i]);
+            }
+        }
     }
 
     if (gotAllItems) {
-        Object *selected = (Object *)IIntuition->IDoMethod(menu, PM_OPEN, widget->window);
+        Object* selected = (Object*)IIntuition->IDoMethod(menu, PM_OPEN, widget->window);
         for (int i = 0; i < itemCount; ++i)
             if (selected == items[i]) {
                 pop->client()->setTextFromItem(i);
                 pop->client()->valueChanged(i);
                 break;
             }
+
+        pop->client()->hidePopup();
     }
 
     IIntuition->DisposeObject(menu);
 }
 
-void WebViewPrivate::updateView(BalWidget *widget, IntRect rect)
+void WebViewPrivate::updateView(BalWidget* widget, IntRect rect)
 {
     if (!widget || !widget->window || rect.isEmpty())
         return;
+
+    if (amigaConfig.tabs) {
+        ::Node* node;
+        BalWidget* activeWidget = widget;
+        IIntuition->GetAttr(CLICKTAB_CurrentNode, widget->gad_clicktab, (uint32*)(void*)&node);
+        IClickTab->GetClickTabNodeAttrs(node, TNA_UserData, &activeWidget, TAG_DONE);
+        if (widget != activeWidget)
+            return;
+    }
 
     int x = rect.x();
     int y = rect.y();
@@ -366,7 +554,7 @@ void WebViewPrivate::sendExposeEvent(IntRect)
 void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
     if (contentChanged)
-        m_webView->addToDirtyRegion(windowRect);
+        addToDirtyRegion(windowRect);
     sendExposeEvent(windowRect);
 }
 
@@ -380,12 +568,17 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
 
     IntRect updateRect = clipRect;
     updateRect.intersect(scrollViewRect);
-    
+
     int x = updateRect.x();
     int y = updateRect.y();
     int width = updateRect.width();
     int height = updateRect.height();
     int dirtyX = 0, dirtyY = 0, dirtyW = 0, dirtyH = 0;
+
+    if (width > widget->webViewWidth - x)
+        width = widget->webViewWidth - x;
+    if (height > widget->webViewHeight - y)
+        height = widget->webViewHeight - y;
 
     dx = -dx;
     dy = -dy;
@@ -416,33 +609,35 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
     }
 
     if (dirtyX || dirtyY || dirtyW || dirtyH) {
-        RastPort *RPort = widget->window->RPort;
-        Layer *Layer = RPort->Layer;
-        struct Hook *oldhook = ILayers->InstallLayerHook(Layer, LAYERS_NOBACKFILL);
+        RastPort* RPort = widget->window->RPort;
+        Layer* Layer = RPort->Layer;
+        Hook* oldhook = ILayers->InstallLayerHook(Layer, LAYERS_NOBACKFILL);
         x += widget->offsetx;
         y += widget->offsety;
         IGraphics->ScrollRasterBF(RPort, dx, dy, x, y, x + width - 1, y + height - 1);
         ILayers->InstallLayerHook(Layer, oldhook);
 
-        m_webView->addToDirtyRegion(IntRect(dirtyX, dirtyY, dirtyW, dirtyH));
+        addToDirtyRegion(IntRect(dirtyX, dirtyY, dirtyW, dirtyH));
     }
     else
-        m_webView->addToDirtyRegion(updateRect);
+        addToDirtyRegion(updateRect);
 
     sendExposeEvent(IntRect());
 }
 
 void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
 {
-    Object* requester = (Object *)RequesterObject,
-                                      REQ_CharSet, 4,
-                                      REQ_TitleText, "OWB Javascript Alert",
-                                      REQ_BodyText, message,
-                                      REQ_GadgetText, "Ok",
-                                  End;
+    extern char* utf8ToAmiga(const char* utf8);
+
+    char* messageAmiga = utf8ToAmiga(message);
+    Object* requester = (Object*)RequesterObject,
+                                     REQ_TitleText, "OWB Javascript Alert",
+                                     REQ_BodyText, messageAmiga,
+                                     REQ_GadgetText, "Ok",
+                                 End;
     if (requester) {
-        struct Window* window = m_webView->viewWindow()->window;
-        struct Requester dummyRequester;
+        Window* window = m_webView->viewWindow()->window;
+        Requester dummyRequester;
 
         if (window) {
             IIntuition->InitRequester(&dummyRequester);
@@ -459,4 +654,5 @@ void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
 
         IIntuition->DisposeObject(requester);
     }
+    free(messageAmiga);
 }

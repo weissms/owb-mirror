@@ -35,7 +35,7 @@
 #include <wtf/OwnPtr.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
     class ContextMenu;
 

@@ -44,7 +44,7 @@ using namespace std;
 namespace WebCore {
 
 RenderSVGRoot::RenderSVGRoot(SVGStyledElement* node)
-    : RenderContainer(node)
+    : RenderBox(node)
 {
     setReplaced(true);
 }
@@ -91,30 +91,26 @@ void RenderSVGRoot::layout()
     // Arbitrary affine transforms are incompatible with LayoutState.
     view()->disableLayoutState();
 
-    IntRect oldBounds = m_absoluteBounds;
-    IntRect oldOutlineBox;
-    bool checkForRepaint = checkForRepaintDuringLayout() && selfNeedsLayout();
-    if (checkForRepaint)
-        oldOutlineBox = absoluteOutlineBounds();
+    // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
+    LayoutRepainter repainter(*this, checkForRepaintDuringLayout() && selfNeedsLayout(), &m_absoluteBounds);
 
     calcWidth();
     calcHeight();
 
     m_absoluteBounds = absoluteClippedOverflowRect();
     SVGSVGElement* svg = static_cast<SVGSVGElement*>(element());
-    m_width = static_cast<int>(m_width * svg->currentScale());
-    m_height = static_cast<int>(m_height * svg->currentScale());
+    setWidth(static_cast<int>(width() * svg->currentScale()));
+    setHeight(static_cast<int>(height() * svg->currentScale()));
     
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
         if (selfNeedsLayout()) // either bounds or transform changed, force kids to relayout
-            child->setNeedsLayout(true);
+            child->setNeedsLayout(true, false);
         
         child->layoutIfNeeded();
         ASSERT(!child->needsLayout());
     }
 
-    if (checkForRepaint)
-        repaintAfterLayoutIfNeeded(oldBounds, oldOutlineBox);
+    repainter.repaintAfterLayout();
 
     view()->enableLayoutState();
     setNeedsLayout(false);
@@ -125,7 +121,7 @@ void RenderSVGRoot::applyContentTransforms(PaintInfo& paintInfo, int parentX, in
     // Translate from parent offsets (html renderers) to a relative transform (svg renderers)
     IntPoint origin;
     origin.move(parentX, parentY);
-    origin.move(m_x, m_y);
+    origin.move(x(), y());
     origin.move(borderLeft(), borderTop());
     origin.move(paddingLeft(), paddingTop());
 
@@ -135,7 +131,7 @@ void RenderSVGRoot::applyContentTransforms(PaintInfo& paintInfo, int parentX, in
     }
 
     // Respect scroll offset caused by html parents
-    TransformationMatrix ctm = RenderContainer::absoluteTransform();
+    TransformationMatrix ctm = RenderBox::absoluteTransform();
     paintInfo.rect.move(static_cast<int>(ctm.e()), static_cast<int>(ctm.f()));
 
     SVGSVGElement* svg = static_cast<SVGSVGElement*>(element());
@@ -165,7 +161,7 @@ void RenderSVGRoot::paint(PaintInfo& paintInfo, int parentX, int parentY)
 
     // This should only exist for <svg> renderers
     if (hasBoxDecorations() && (paintInfo.phase == PaintPhaseForeground || paintInfo.phase == PaintPhaseSelection)) 
-        paintBoxDecorations(paintInfo, m_x + parentX, m_y + parentY);
+        paintBoxDecorations(paintInfo, x() + parentX, y() + parentY);
 
     if (!firstChild()) {
 #if ENABLE(SVG_FILTERS)
@@ -189,7 +185,7 @@ void RenderSVGRoot::paint(PaintInfo& paintInfo, int parentX, int parentY)
         prepareToRenderSVGContent(this, childPaintInfo, boundingBox, filter);        
 
     childPaintInfo.context->concatCTM(svg->viewBoxToViewTransform(width(), height()));
-    RenderContainer::paint(childPaintInfo, 0, 0);
+    RenderBox::paint(childPaintInfo, 0, 0);
 
     if (childPaintInfo.phase == PaintPhaseForeground)
         finishRenderSVGContent(this, childPaintInfo, boundingBox, filter, paintInfo.context);
@@ -231,12 +227,12 @@ void RenderSVGRoot::calcViewport()
     }
 }
 
-IntRect RenderSVGRoot::absoluteClippedOverflowRect()
+IntRect RenderSVGRoot::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
 {
     IntRect repaintRect;
 
     for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
-        repaintRect.unite(current->absoluteClippedOverflowRect());
+        repaintRect.unite(current->clippedOverflowRectForRepaint(repaintContainer));
 
 #if ENABLE(SVG_FILTERS)
     // Filters can expand the bounding box
@@ -267,8 +263,8 @@ void RenderSVGRoot::absoluteQuads(Vector<FloatQuad>& quads, bool)
 
 TransformationMatrix RenderSVGRoot::absoluteTransform() const
 {
-    TransformationMatrix ctm = RenderContainer::absoluteTransform();
-    ctm.translate(m_x, m_y);
+    TransformationMatrix ctm = RenderBox::absoluteTransform();
+    ctm.translate(x(), y());
     SVGSVGElement* svg = static_cast<SVGSVGElement*>(element());
     ctm.scale(svg->currentScale());
     ctm.translate(svg->currentTranslate().x(), svg->currentTranslate().y());
@@ -300,7 +296,7 @@ TransformationMatrix RenderSVGRoot::localTransform() const
 
 bool RenderSVGRoot::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int _tx, int _ty, HitTestAction hitTestAction)
 {
-    TransformationMatrix ctm = RenderContainer::absoluteTransform();
+    TransformationMatrix ctm = RenderBox::absoluteTransform();
 
     int sx = (_tx - static_cast<int>(ctm.e())); // scroll offset
     int sy = (_ty - static_cast<int>(ctm.f())); // scroll offset
@@ -308,15 +304,15 @@ bool RenderSVGRoot::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
     if (!viewport().isEmpty()
         && style()->overflowX() == OHIDDEN
         && style()->overflowY() == OHIDDEN) {
-        int tx = m_x - _tx + sx;
-        int ty = m_y - _ty + sy;
+        int tx = x() - _tx + sx;
+        int ty = y() - _ty + sy;
 
         // Check if we need to do anything at all.
         IntRect overflowBox = overflowRect(false);
         overflowBox.move(tx, ty);
         ctm.translate(viewport().x(), viewport().y());
         double localX, localY;
-        ctm.inverse().map(_x - _tx, _y - _ty, &localX, &localY);
+        ctm.inverse().map(_x - _tx, _y - _ty, localX, localY);
         if (!overflowBox.contains((int)localX, (int)localY))
             return false;
     }
@@ -335,7 +331,7 @@ bool RenderSVGRoot::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
 
 void RenderSVGRoot::position(InlineBox* box)
 {
-    RenderContainer::position(box);
+    RenderBox::position(box);
     if (m_absoluteBounds.isEmpty())
         setNeedsLayout(true, false);
 }

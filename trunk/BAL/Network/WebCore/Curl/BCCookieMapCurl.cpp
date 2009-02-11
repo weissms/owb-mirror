@@ -29,7 +29,7 @@
 #include "CookieManager.h"
 #include <stdio.h>
 
-namespace WKAL {
+namespace WebCore {
 
 CookieMap::~CookieMap()
 {
@@ -105,4 +105,4 @@ void CookieMap::updateOldestCookie()
     }
 }
 
-} // Namespace WKAL
+} // Namespace WebCore

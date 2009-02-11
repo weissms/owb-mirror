@@ -43,11 +43,11 @@
 
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     class KURL;
     
-    class SecurityOrigin : public OWBALBase, public ThreadSafeShared<SecurityOrigin> {
+    class SecurityOrigin : public WebCoreBase, public ThreadSafeShared<SecurityOrigin> {
     public:
     /**
      * create from database identifier
@@ -267,7 +267,7 @@ namespace OWBAL {
         bool m_domainWasSetInDOM;
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // SecurityOrigin_h
 

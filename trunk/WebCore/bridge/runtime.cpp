@@ -30,10 +30,6 @@
 #include "runtime_root.h"
 #include <runtime/JSLock.h>
 
-#if PLATFORM(QT)
-#include "qt_instance.h"
-#endif
-
 namespace JSC { namespace Bindings {
 
 Array::Array(PassRefPtr<RootObject> rootObject)

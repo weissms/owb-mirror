@@ -36,7 +36,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 } // namespace WebCore
 

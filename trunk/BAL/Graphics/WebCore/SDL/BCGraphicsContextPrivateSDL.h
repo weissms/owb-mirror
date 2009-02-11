@@ -30,7 +30,7 @@
 #include "Gradient.h"                                                                                                                    
 #include "Pattern.h"
 
-namespace WKAL {
+namespace WebCore {
 
 // FIXME: This is a place-holder until we decide to add
 // real color space support to WebCore.  At that time, ColorSpace will be a

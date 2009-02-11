@@ -186,13 +186,13 @@ static bool expandSelectionToGranularity(Frame* frame, TextGranularity granulari
 {
     Selection selection = frame->selection()->selection();
     selection.expandUsingGranularity(granularity);
-    RefPtr<Range> newRange = selection.toRange();
+    RefPtr<Range> newRange = selection.toNormalizedRange();
     if (!newRange)
         return false;
     ExceptionCode ec = 0;
     if (newRange->collapsed(ec))
         return false;
-    RefPtr<Range> oldRange = frame->selection()->selection().toRange();
+    RefPtr<Range> oldRange = frame->selection()->selection().toNormalizedRange();
     EAffinity affinity = frame->selection()->affinity();
     if (!frame->editor()->client()->shouldChangeSelectedRange(oldRange.get(), newRange.get(), affinity, false))
         return false;
@@ -225,14 +225,14 @@ static int verticalScrollDistance(Frame* frame)
     if (!focusedNode)
         return 0;
     RenderObject* renderer = focusedNode->renderer();
-    if (!renderer)
+    if (!renderer || !renderer->isBox())
         return 0;
     RenderStyle* style = renderer->style();
     if (!style)
         return 0;
     if (!(style->overflowY() == OSCROLL || style->overflowY() == OAUTO || renderer->isTextArea()))
         return 0;
-    int height = renderer->clientHeight();
+    int height = toRenderBox(renderer)->clientHeight();
     return max((height + 1) / 2, height - cAmountToKeepWhenPaging);
 }
 
@@ -342,7 +342,7 @@ static bool executeDeleteToEndOfParagraph(Frame* frame, Event*, EditorCommandSou
 
 static bool executeDeleteToMark(Frame* frame, Event*, EditorCommandSource, const String&)
 {
-    RefPtr<Range> mark = frame->mark().toRange();
+    RefPtr<Range> mark = frame->mark().toNormalizedRange();
     if (mark) {
         SelectionController* selection = frame->selection();
         bool selected = selection->setSelectedRange(unionDOMRanges(mark.get(), frame->editor()->selectedRange().get()).get(), DOWNSTREAM, true);
@@ -888,7 +888,7 @@ static bool executeSelectSentence(Frame* frame, Event*, EditorCommandSource, con
 
 static bool executeSelectToMark(Frame* frame, Event*, EditorCommandSource, const String&)
 {
-    RefPtr<Range> mark = frame->mark().toRange();
+    RefPtr<Range> mark = frame->mark().toNormalizedRange();
     RefPtr<Range> selection = frame->editor()->selectedRange();
     if (!mark || !selection) {
         systemBeep();
@@ -914,14 +914,23 @@ static bool executeStrikethrough(Frame* frame, Event*, EditorCommandSource sourc
     return executeToggleStyle(frame, source, EditActionChangeAttributes, CSSPropertyWebkitTextDecorationsInEffect, "none", "line-through");
 }
 
+static bool executeStyleWithCSS(Frame* frame, Event*, EditorCommandSource, const String& value)
+{
+    if (value != "false" && value != "true")
+        return false;
+    
+    frame->editor()->setShouldStyleWithCSS(value == "true" ? true : false);
+    return true;
+}
+
 static bool executeSubscript(Frame* frame, Event*, EditorCommandSource source, const String&)
 {
-    return executeApplyStyle(frame, source, EditActionSubscript, CSSPropertyVerticalAlign, "sub");
+    return executeToggleStyle(frame, source, EditActionSubscript, CSSPropertyVerticalAlign, "baseline", "sub");
 }
 
 static bool executeSuperscript(Frame* frame, Event*, EditorCommandSource source, const String&)
 {
-    return executeApplyStyle(frame, source, EditActionSuperscript, CSSPropertyVerticalAlign, "super");
+    return executeToggleStyle(frame, source, EditActionSuperscript, CSSPropertyVerticalAlign, "baseline", "super");
 }
 
 static bool executeSwapWithMark(Frame* frame, Event*, EditorCommandSource, const String&)
@@ -1138,6 +1147,11 @@ static TriState stateStrikethrough(Frame* frame, Event*)
     return stateStyle(frame, CSSPropertyTextDecoration, "line-through");
 }
 
+static TriState stateStyleWithCSS(Frame* frame, Event*)
+{
+    return frame->editor()->shouldStyleWithCSS() ? TrueTriState : FalseTriState;
+}
+
 static TriState stateSubscript(Frame* frame, Event*)
 {
     return stateStyle(frame, CSSPropertyVerticalAlign, "sub");
@@ -1180,27 +1194,27 @@ static String valueNull(Frame*, Event*)
     return String();
 }
 
-String valueBackColor(Frame* frame, Event*)
+static String valueBackColor(Frame* frame, Event*)
 {
     return valueStyle(frame, CSSPropertyBackgroundColor);
 }
 
-String valueFontName(Frame* frame, Event*)
+static String valueFontName(Frame* frame, Event*)
 {
     return valueStyle(frame, CSSPropertyFontFamily);
 }
 
-String valueFontSize(Frame* frame, Event*)
+static String valueFontSize(Frame* frame, Event*)
 {
     return valueStyle(frame, CSSPropertyFontSize);
 }
 
-String valueFontSizeDelta(Frame* frame, Event*)
+static String valueFontSizeDelta(Frame* frame, Event*)
 {
     return valueStyle(frame, CSSPropertyWebkitFontSizeDelta);
 }
 
-String valueForeColor(Frame* frame, Event*)
+static String valueForeColor(Frame* frame, Event*)
 {
     return valueStyle(frame, CSSPropertyColor);
 }
@@ -1320,6 +1334,7 @@ static const CommandMap& createCommandMap()
         { "SelectWord", { executeSelectWord, supportedFromMenuOrKeyBinding, enabledVisibleSelection, stateNone, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
         { "SetMark", { executeSetMark, supportedFromMenuOrKeyBinding, enabledVisibleSelection, stateNone, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
         { "Strikethrough", { executeStrikethrough, supported, enabledInRichlyEditableText, stateStrikethrough, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
+        { "StyleWithCSS", { executeStyleWithCSS, supported, enabledInRichlyEditableText, stateStyleWithCSS, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
         { "Subscript", { executeSubscript, supported, enabledInRichlyEditableText, stateSubscript, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
         { "Superscript", { executeSuperscript, supported, enabledInRichlyEditableText, stateSuperscript, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },
         { "SwapWithMark", { executeSwapWithMark, supportedFromMenuOrKeyBinding, enabledVisibleSelectionAndMark, stateNone, valueNull, notTextInsertion, doNotAllowExecutionWhenDisabled } },

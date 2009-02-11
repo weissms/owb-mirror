@@ -58,8 +58,6 @@ namespace WebKit {
         virtual void detachedFromParent2();
         virtual void detachedFromParent3();
 
-        virtual void loadedFromCachedPage();
-
         virtual void assignIdentifierToInitialRequest(unsigned long identifier, WebCore::DocumentLoader*, const WebCore::ResourceRequest&);
 
         virtual void dispatchWillSendRequest(WebCore::DocumentLoader*, unsigned long  identifier, WebCore::ResourceRequest&, const WebCore::ResourceResponse& redirectResponse);
@@ -111,11 +109,12 @@ namespace WebKit {
 
         virtual PassRefPtr<WebCore::Frame> createFrame(const WebCore::KURL& url, const WebCore::String& name, WebCore::HTMLFrameOwnerElement* ownerElement,
                                    const WebCore::String& referrer, bool allowsScrolling, int marginWidth, int marginHeight);
-        virtual WebCore::Widget* createPlugin(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL&, const WTF::Vector<WebCore::String>&, const WTF::Vector<WebCore::String>&, const WebCore::String&, bool);
+        virtual WebCore::Widget* createPlugin(const WebCore::IntSize&, WebCore::HTMLPlugInElement*, const WebCore::KURL&, const WTF::Vector<WebCore::String>&, const WTF::Vector<WebCore::String>&, const WebCore::String&, bool);
         virtual void redirectDataToPlugin(WebCore::Widget* pluginWidget);
-        virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL& baseURL, const WTF::Vector<WebCore::String>& paramNames, const WTF::Vector<WebCore::String>& paramValues);
+        virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::HTMLAppletElement*, const WebCore::KURL& baseURL, const WTF::Vector<WebCore::String>& paramNames, const WTF::Vector<WebCore::String>& paramValues);
         virtual WebCore::String overrideMediaType() const;
         virtual void windowObjectCleared();
+        virtual void documentElementAvailable();
         virtual void didPerformFirstNavigation() const;
 
         virtual void registerForIconNotification(bool);
@@ -133,6 +132,7 @@ namespace WebKit {
         virtual void finishedLoading(WebCore::DocumentLoader*);
 
         virtual void updateGlobalHistory();
+        virtual void updateGlobalHistoryRedirectLinks();
         virtual bool shouldGoToHistoryItem(WebCore::HistoryItem*) const;
 
         virtual WebCore::ResourceError cancelledError(const WebCore::ResourceRequest&);
@@ -163,8 +163,8 @@ namespace WebKit {
 
         virtual WebCore::String userAgent(const WebCore::KURL&);
 
-        virtual void savePlatformDataToCachedPage(WebCore::CachedPage*);
-        virtual void transitionToCommittedFromCachedPage(WebCore::CachedPage*);
+        virtual void savePlatformDataToCachedFrame(WebCore::CachedFrame*);
+        virtual void transitionToCommittedFromCachedFrame(WebCore::CachedFrame*);
         virtual void transitionToCommittedForNewPage();
 
         virtual bool canCachePage() const;

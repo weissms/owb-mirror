@@ -41,7 +41,7 @@
 #include <wtf/MathExtras.h>
 #include "fonts/pixelfont.h"
 
-namespace WKAL {
+namespace WebCore {
 
 void SimpleFontData::platformInit()
 {

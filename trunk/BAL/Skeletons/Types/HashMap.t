@@ -44,7 +44,7 @@ namespace WTF {
     template<typename PairType> struct PairFirstExtractor;
 
     template<typename KeyArg, typename MappedArg, typename HashArg = typename DefaultHash<KeyArg>::Hash,         typename KeyTraitsArg = HashTraits<KeyArg>, typename MappedTraitsArg = HashTraits<MappedArg> >
-    class HashMap : public OWBALBase {
+    class HashMap {
     private:
         typedef KeyTraitsArg KeyTraits;
         typedef MappedTraitsArg MappedTraits;

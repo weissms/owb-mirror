@@ -29,8 +29,59 @@
 #define ProxyInstance_h
 
 #include <WebCore/runtime.h>
+#include <WebCore/runtime_root.h>
+#include <wtf/OwnPtr.h>
+#include "WebKitPluginHostTypes.h"
 
 namespace WebKit {
+
+class ProxyClass;
+class NetscapePluginInstanceProxy;
+    
+class ProxyInstance : public JSC::Bindings::Instance {
+public:
+    static PassRefPtr<ProxyInstance> create(PassRefPtr<JSC::Bindings::RootObject> rootObject, NetscapePluginInstanceProxy* instanceProxy, uint32_t objectID)
+    {
+        return adoptRef(new ProxyInstance(rootObject, instanceProxy, objectID));
+    }
+    ~ProxyInstance();
+
+    JSC::Bindings::MethodList methodsNamed(const JSC::Identifier&);
+    JSC::Bindings::Field* fieldNamed(const JSC::Identifier&);
+
+    JSC::JSValuePtr fieldValue(JSC::ExecState*, const JSC::Bindings::Field*) const;
+    void setFieldValue(JSC::ExecState*, const JSC::Bindings::Field*, JSC::JSValuePtr) const;
+    
+    void invalidate();
+    
+private:
+    ProxyInstance(PassRefPtr<JSC::Bindings::RootObject>, NetscapePluginInstanceProxy*, uint32_t objectID);
+    
+    virtual JSC::Bindings::Class *getClass() const;
+
+    virtual JSC::JSValuePtr invokeMethod(JSC::ExecState*, const JSC::Bindings::MethodList&, const JSC::ArgList& args);
+
+    virtual bool supportsInvokeDefaultMethod() const;
+    virtual JSC::JSValuePtr invokeDefaultMethod(JSC::ExecState*, const JSC::ArgList&);
+
+    virtual bool supportsConstruct() const;
+    virtual JSC::JSValuePtr invokeConstruct(JSC::ExecState*, const JSC::ArgList&);
+
+    virtual JSC::JSValuePtr defaultValue(JSC::ExecState*, JSC::PreferredPrimitiveType) const;
+    virtual JSC::JSValuePtr valueOf(JSC::ExecState*) const;
+    
+    JSC::JSValuePtr stringValue(JSC::ExecState*) const;
+    JSC::JSValuePtr numberValue(JSC::ExecState*) const;
+    JSC::JSValuePtr booleanValue() const;
+    
+    JSC::JSValuePtr invoke(JSC::ExecState*, InvokeType, uint64_t identifier, const JSC::ArgList& args);
+    
+    NetscapePluginInstanceProxy* m_instanceProxy;
+    uint32_t m_objectID;
+    JSC::Bindings::FieldMap m_fields;
+    JSC::Bindings::MethodMap m_methods;
+};
+    
 }
 
 #endif // ProxyInstance_h

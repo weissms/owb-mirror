@@ -39,11 +39,11 @@
 
 #include <wtf/RefPtr.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 class String;
 
-class RegularExpression : public OWBALBase {
+class RegularExpression : public WebCoreBase {
 public:
     /**
      * RegularExpression default constructor
@@ -150,7 +150,7 @@ private:
      */
 void replace(String&, const RegularExpression&, const String&);
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // RegularExpression_h
 

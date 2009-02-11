@@ -32,7 +32,7 @@
 #include "BALBase.h"
 #include <algorithm>
 
-namespace WKAL {
+namespace WebCore {
 
     class FloatPoint;
     class FloatRect;
@@ -61,7 +61,7 @@ namespace WKAL {
 
     typedef void (*PathApplierFunction)(void* info, const PathElement*);
 
-    class Path : public WKALBase {
+    class Path {
     public:
         Path();
         ~Path();

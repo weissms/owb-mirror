@@ -45,13 +45,13 @@
 
 
 
-namespace OWBAL {
+namespace WebCore {
 
 class CString;
 class SharedBuffer;
 struct StringHash;
 
-class String : public OWBALBase {
+class String : public WebCoreBase {
 public:
     /**
      * String default constructor
@@ -972,7 +972,7 @@ inline void append(Vector<UChar>& vector, const String& string);
      */
 PassRefPtr<SharedBuffer> utf8Buffer(const String&);
 
-} // namespace OWBAL
+} // namespace WebCore
 
 namespace WTF {
 

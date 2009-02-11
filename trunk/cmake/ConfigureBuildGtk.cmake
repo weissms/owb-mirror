@@ -1,11 +1,11 @@
-set(ENABLE_DEBUG ON CACHE BOOLEAN "Enable debug support" FORCE)
+set(ENABLE_DEBUG OFF CACHE BOOLEAN "Enable debug support" FORCE)
 
 set(ENABLE_DATABASE ON CACHE BOOLEAN "Enable HTML5 client-side database storage support" FORCE)
 set(ENABLE_DOM_STORAGE ON CACHE BOOLEAN "Enable HTML5 client-side session and persistent storage support" FORCE)
 set(ENABLE_ICONDATABASE ON CACHE BOOLEAN "Enable icon database support" FORCE)
 set(ENABLE_OFFLINE_WEB_APPLICATIONS ON CACHE BOOLEAN "Enable HTML5 offline web applications support" FORCE)
 
-set(ENABLE_GEOLOCATION ON CACHE BOOLEAN "Enable geoposition support" FORCE)
+set(ENABLE_GEOLOCATION OFF CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)
 
 set(ENABLE_JIT_JSC OFF CACHE BOOLEAN "Enable JavascriptCore JIT compilation (for x86 only)" FORCE)

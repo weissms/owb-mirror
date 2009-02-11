@@ -31,7 +31,7 @@
 #include "Sound.h"
 #include "stdio.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 void systemBeep()
 {

@@ -8,9 +8,9 @@ JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthre
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
-WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bindings/js/ScheduledAction.cpp
 WebCore/bridge/c/c_instance.cpp
+WebCore/bridge/runtime.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
@@ -41,6 +41,10 @@ WebCore/page/Page.h
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/graphics/cairo/ImageSourceCairo.cpp BAL/Graphics/WebCore/Cairo/BCImageSourceCairo.cpp
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
+WebCore/platform/graphics/qt/FontPlatformDataQt.cpp BAL/Fonts/WebCore/Qt/BCFontPlatformDataQt.cpp
+WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
+WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
+WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp BAL/ImageDecoder/WebCore/BMP/WK/BCBMPImageDecoderWK.cpp
 WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageDecoderWK.cpp
@@ -52,9 +56,14 @@ WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
 WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
-WebCore/platform/network/curl/CookieJarCurl.cpp BAL/Network/WebCore/Curl/BCCookieJarCurl.cpp
+WebCore/platform/network/qt/QNetworkReplyHandler.h BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
+WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp
+WebCore/platform/network/qt/ResourceHandleQt.cpp BAL/Network/WebCore/Qt/BCResourceHandleQt.cpp
 WebCore/platform/posix/FileSystemPOSIX.cpp BAL/Facilities/WebCore/Posix/BCFileSystemPosix.cpp
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
+WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
+WebCore/platform/qt/RenderThemeQt.cpp BAL/Widgets/WebCore/Qt/BCRenderThemeQt.cpp
+WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/plugins/PluginView.h

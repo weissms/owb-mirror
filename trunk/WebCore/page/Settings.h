@@ -89,6 +89,9 @@ namespace WebCore {
         void setJavaScriptEnabled(bool);
         bool isJavaScriptEnabled() const { return m_isJavaScriptEnabled; }
 
+        void setWebSecurityEnabled(bool);
+        bool isWebSecurityEnabled() const { return m_isWebSecurityEnabled; }
+
         void setJavaScriptCanOpenWindowsAutomatically(bool);
         bool JavaScriptCanOpenWindowsAutomatically() const { return m_javaScriptCanOpenWindowsAutomatically; }
 
@@ -199,6 +202,9 @@ namespace WebCore {
         static bool shouldPaintNativeControls() { return gShouldPaintNativeControls; }
 #endif
 
+        void setAllowScriptsToCloseWindows(bool);
+        bool allowScriptsToCloseWindows() const { return m_allowScriptsToCloseWindows; }
+
     private:
         Page* m_page;
         
@@ -225,6 +231,7 @@ namespace WebCore {
         bool m_databasesEnabled : 1;
         bool m_localStorageEnabled : 1;
         bool m_isJavaScriptEnabled : 1;
+        bool m_isWebSecurityEnabled : 1;
         bool m_javaScriptCanOpenWindowsAutomatically : 1;
         bool m_shouldPrintBackgrounds : 1;
         bool m_textAreasAreResizable : 1;
@@ -250,6 +257,7 @@ namespace WebCore {
         bool m_zoomsTextOnly : 1;
         bool m_enforceCSSMIMETypeInStrictMode : 1;
         size_t m_maximumDecodedImageSize;
+        bool m_allowScriptsToCloseWindows : 1;
 
 #if USE(SAFARI_THEME)
         static bool gShouldPaintNativeControls;

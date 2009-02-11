@@ -73,7 +73,7 @@ RenderFileUploadControl::~RenderFileUploadControl()
     m_fileChooser->disconnectClient();
 }
 
-void RenderFileUploadControl::styleDidChange(RenderStyle::Diff diff, const RenderStyle* oldStyle)
+void RenderFileUploadControl::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle)
 {
     RenderBlock::styleDidChange(diff, oldStyle);
     if (m_button)
@@ -147,13 +147,13 @@ void RenderFileUploadControl::updateFromElement()
 
 int RenderFileUploadControl::maxFilenameWidth() const
 {
-    return max(0, contentWidth() - m_button->renderer()->width() - afterButtonSpacing
+    return max(0, contentWidth() - m_button->renderBox()->width() - afterButtonSpacing
         - (m_fileChooser->icon() ? iconWidth + iconFilenameSpacing : 0));
 }
 
 PassRefPtr<RenderStyle> RenderFileUploadControl::createButtonStyle(const RenderStyle* parentStyle) const
 {
-    RefPtr<RenderStyle> style = getCachedPseudoStyle(RenderStyle::FILE_UPLOAD_BUTTON);
+    RefPtr<RenderStyle> style = getCachedPseudoStyle(FILE_UPLOAD_BUTTON);
     if (!style) {
         style = RenderStyle::create();
         if (parentStyle)
@@ -190,7 +190,7 @@ void RenderFileUploadControl::paintObject(PaintInfo& paintInfo, int tx, int ty)
         
         // Determine where the filename should be placed
         int contentLeft = tx + borderLeft() + paddingLeft();
-        int buttonAndIconWidth = m_button->renderer()->width() + afterButtonSpacing
+        int buttonAndIconWidth = m_button->renderBox()->width() + afterButtonSpacing
             + (m_fileChooser->icon() ? iconWidth + iconFilenameSpacing : 0);
         int textX;
         if (style()->direction() == LTR)
@@ -198,7 +198,7 @@ void RenderFileUploadControl::paintObject(PaintInfo& paintInfo, int tx, int ty)
         else
             textX = contentLeft + contentWidth() - buttonAndIconWidth - style()->font().width(textRun);
         // We want to match the button's baseline
-        RenderButton* buttonRenderer = static_cast<RenderButton*>(m_button->renderer());
+        RenderButton* buttonRenderer = toRenderButton(m_button->renderer());
         int textY = buttonRenderer->absoluteBoundingBoxRect().y()
             + buttonRenderer->marginTop() + buttonRenderer->borderTop() + buttonRenderer->paddingTop()
             + buttonRenderer->baselinePosition(true, false);
@@ -213,9 +213,9 @@ void RenderFileUploadControl::paintObject(PaintInfo& paintInfo, int tx, int ty)
             int iconY = ty + borderTop() + paddingTop() + (contentHeight() - iconHeight) / 2;
             int iconX;
             if (style()->direction() == LTR)
-                iconX = contentLeft + m_button->renderer()->width() + afterButtonSpacing;
+                iconX = contentLeft + m_button->renderBox()->width() + afterButtonSpacing;
             else
-                iconX = contentLeft + contentWidth() - m_button->renderer()->width() - afterButtonSpacing - iconWidth;
+                iconX = contentLeft + contentWidth() - m_button->renderBox()->width() - afterButtonSpacing - iconWidth;
 
             // Draw the file icon
             m_fileChooser->icon()->paint(paintInfo.context, IntRect(iconX, iconY, iconWidth, iconHeight));

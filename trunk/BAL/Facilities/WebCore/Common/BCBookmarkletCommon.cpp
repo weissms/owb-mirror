@@ -34,7 +34,7 @@
 #include "ObserverServiceBookmarklet.h"
 
 
-namespace OWBAL {
+namespace WebCore {
 
 Bookmarklet::Bookmarklet(String filename)
 {
@@ -56,7 +56,7 @@ void Bookmarklet::replacePattern(String remove, String replace)
 
 void Bookmarklet::run()
 {
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->notifyObserver("ExecuteBookmarklet", this);
+    WebCore::ObserverServiceBookmarklet::createObserverService()->notifyObserver("ExecuteBookmarklet", this);
 }
 
 }

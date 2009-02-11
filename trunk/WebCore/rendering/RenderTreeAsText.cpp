@@ -34,6 +34,7 @@
 #include "HTMLNames.h"
 #include "InlineTextBox.h"
 #include "RenderBR.h"
+#include "RenderInline.h"
 #include "RenderListMarker.h"
 #include "RenderTableCell.h"
 #include "RenderView.h"
@@ -180,7 +181,35 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
         }
     }
 
-    IntRect r(o.xPos(), o.yPos(), o.width(), o.height());
+    bool adjustForTableCells = o.containingBlock()->isTableCell();
+
+    IntRect r;
+    if (o.isText()) {
+        // FIXME: Would be better to dump the bounding box x and y rather than the first run's x and y, but that would involve updating
+        // many test results.
+        const RenderText& text = *toRenderText(&o);
+        IntRect linesBox = text.linesBoundingBox();
+        r = IntRect(text.firstRunX(), text.firstRunY(), linesBox.width(), linesBox.height());
+        if (adjustForTableCells && !text.firstTextBox())
+            adjustForTableCells = false;
+    } else if (o.isRenderInline()) {
+        // FIXME: Would be better not to just dump 0, 0 as the x and y here.
+        const RenderInline& inlineFlow = *toRenderInline(&o);
+        r = IntRect(0, 0, inlineFlow.linesBoundingBox().width(), inlineFlow.linesBoundingBox().height());
+        adjustForTableCells = false;
+    } else if (o.isTableCell()) {
+        // FIXME: Deliberately dump the "inner" box of table cells, since that is what current results reflect.  We'd like
+        // to clean up the results to dump both the outer box and the intrinsic padding so that both bits of information are
+        // captured by the results.
+        const RenderTableCell& cell = static_cast<const RenderTableCell&>(o);
+        r = IntRect(cell.x(), cell.y() + cell.intrinsicPaddingTop(), cell.width(), cell.height() - cell.intrinsicPaddingTop() - cell.intrinsicPaddingBottom());
+    } else if (o.isBox())
+        r = toRenderBox(&o)->frameRect();
+
+    // FIXME: Temporary in order to ensure compatibility with existing layout test results.
+    if (adjustForTableCells)
+        r.move(0, -static_cast<RenderTableCell*>(o.containingBlock())->intrinsicPaddingTop());
+
     ts << " " << r;
 
     if (!(o.isText() && !o.isBR())) {
@@ -206,16 +235,20 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
             o.style()->textStrokeWidth() > 0)
             ts << " [textStrokeWidth=" << o.style()->textStrokeWidth() << "]";
 
-        if (o.borderTop() || o.borderRight() || o.borderBottom() || o.borderLeft()) {
+        if (!o.isBoxModelObject())
+            return ts;
+
+        const RenderBoxModelObject& box = *toRenderBoxModelObject(&o);
+        if (box.borderTop() || box.borderRight() || box.borderBottom() || box.borderLeft()) {
             ts << " [border:";
 
             BorderValue prevBorder;
             if (o.style()->borderTop() != prevBorder) {
                 prevBorder = o.style()->borderTop();
-                if (!o.borderTop())
+                if (!box.borderTop())
                     ts << " none";
                 else {
-                    ts << " (" << o.borderTop() << "px ";
+                    ts << " (" << box.borderTop() << "px ";
                     printBorderStyle(ts, o.style()->borderTopStyle());
                     Color col = o.style()->borderTopColor();
                     if (!col.isValid())
@@ -226,10 +259,10 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
 
             if (o.style()->borderRight() != prevBorder) {
                 prevBorder = o.style()->borderRight();
-                if (!o.borderRight())
+                if (!box.borderRight())
                     ts << " none";
                 else {
-                    ts << " (" << o.borderRight() << "px ";
+                    ts << " (" << box.borderRight() << "px ";
                     printBorderStyle(ts, o.style()->borderRightStyle());
                     Color col = o.style()->borderRightColor();
                     if (!col.isValid())
@@ -239,11 +272,11 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
             }
 
             if (o.style()->borderBottom() != prevBorder) {
-                prevBorder = o.style()->borderBottom();
-                if (!o.borderBottom())
+                prevBorder = box.style()->borderBottom();
+                if (!box.borderBottom())
                     ts << " none";
                 else {
-                    ts << " (" << o.borderBottom() << "px ";
+                    ts << " (" << box.borderBottom() << "px ";
                     printBorderStyle(ts, o.style()->borderBottomStyle());
                     Color col = o.style()->borderBottomColor();
                     if (!col.isValid())
@@ -254,10 +287,10 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
 
             if (o.style()->borderLeft() != prevBorder) {
                 prevBorder = o.style()->borderLeft();
-                if (!o.borderLeft())
+                if (!box.borderLeft())
                     ts << " none";
                 else {
-                    ts << " (" << o.borderLeft() << "px ";
+                    ts << " (" << box.borderLeft() << "px ";
                     printBorderStyle(ts, o.style()->borderLeftStyle());
                     Color col = o.style()->borderLeftColor();
                     if (!col.isValid())
@@ -304,14 +337,18 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
 
 static void writeTextRun(TextStream& ts, const RenderText& o, const InlineTextBox& run)
 {
-    ts << "text run at (" << run.m_x << "," << run.m_y << ") width " << run.m_width;
+    // FIXME: Table cell adjustment is temporary until results can be updated.
+    int y = run.m_y;
+    if (o.containingBlock()->isTableCell())
+        y -= static_cast<RenderTableCell*>(o.containingBlock())->intrinsicPaddingTop();
+    ts << "text run at (" << run.m_x << "," << y << ") width " << run.m_width;
     if (run.direction() == RTL || run.m_dirOverride) {
         ts << (run.direction() == RTL ? " RTL" : " LTR");
         if (run.m_dirOverride)
             ts << " override";
     }
     ts << ": "
-        << quoteAndEscapeNonPrintables(String(o.text()).substring(run.m_start, run.m_len))
+        << quoteAndEscapeNonPrintables(String(o.text()).substring(run.start(), run.len()))
         << "\n";
 }
 
@@ -344,7 +381,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
     ts << o << "\n";
 
     if (o.isText() && !o.isBR()) {
-        const RenderText& text = static_cast<const RenderText&>(o);
+        const RenderText& text = *toRenderText(&o);
         for (InlineTextBox* box = text.firstTextBox(); box; box = box->nextTextBox()) {
             writeIndent(ts, indent + 1);
             writeTextRun(ts, text, *box);
@@ -361,7 +398,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
         Widget* widget = static_cast<const RenderWidget&>(o).widget();
         if (widget && widget->isFrameView()) {
             FrameView* view = static_cast<FrameView*>(widget);
-            RenderObject* root = view->frame()->contentRenderer();
+            RenderView* root = view->frame()->contentRenderer();
             if (root) {
                 view->layout();
                 RenderLayer* l = root->layer();
@@ -394,9 +431,9 @@ static void write(TextStream& ts, RenderLayer& l,
             ts << " scrollX " << l.scrollXOffset();
         if (l.scrollYOffset())
             ts << " scrollY " << l.scrollYOffset();
-        if (l.renderer()->clientWidth() != l.scrollWidth())
+        if (l.renderBox() && l.renderBox()->clientWidth() != l.scrollWidth())
             ts << " scrollWidth " << l.scrollWidth();
-        if (l.renderer()->clientHeight() != l.scrollHeight())
+        if (l.renderBox() && l.renderBox()->clientHeight() != l.scrollHeight())
             ts << " scrollHeight " << l.scrollHeight();
     }
 
@@ -501,8 +538,8 @@ String externalRepresentation(RenderObject* o)
 #endif
     if (o->view()->frameView())
         o->view()->frameView()->layout();
-    RenderLayer* l = o->layer();
-    if (l) {
+    if (o->hasLayer()) {
+        RenderLayer* l = toRenderBox(o)->layer();
         writeLayers(ts, l, l, IntRect(l->xPos(), l->yPos(), l->width(), l->height()));
         writeSelection(ts, o);
     }

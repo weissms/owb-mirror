@@ -34,7 +34,7 @@
 #include <wtf/Vector.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 typedef unsigned short Glyph;
 class SimpleFontData;

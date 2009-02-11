@@ -28,7 +28,7 @@
 #include "config.h"
 #include "IntRect.h"
 #include "SDL.h"
-namespace WKAL {
+namespace WebCore {
 
 IntRect::IntRect(const BalRectangle& r)
     : m_location(IntPoint(r.x, r.y))

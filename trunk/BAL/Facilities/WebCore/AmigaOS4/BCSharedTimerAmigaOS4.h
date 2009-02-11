@@ -32,7 +32,7 @@
 
 #include "wtf/Platform.h"
 
-namespace OWBAL {
+namespace WebCore {
 
     // Single timer, shared to implement all the timers managed by the Timer class.
     // Not intended to be used directly; use the Timer class instead.

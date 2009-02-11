@@ -31,7 +31,7 @@
 
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     const char* currentTextBreakLocaleID();
 

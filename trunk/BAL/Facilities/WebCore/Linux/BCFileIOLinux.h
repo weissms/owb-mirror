@@ -43,7 +43,7 @@
 #include "config.h"
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 
 class File {

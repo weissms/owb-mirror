@@ -41,7 +41,7 @@
 
 using namespace std;
 
-namespace OWBAL {
+namespace WebCore {
 
 MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     : m_player(player)

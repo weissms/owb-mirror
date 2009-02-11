@@ -42,11 +42,11 @@
 #include "TextEncoding.h"
 #include <wtf/OwnPtr.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     class TextCodec;
 
-    class TextDecoder : public OWBALBase {
+    class TextDecoder : public WebCoreBase {
     public:
     /**
      * TextDecoder constructor
@@ -100,7 +100,7 @@ namespace OWBAL {
         unsigned char m_bufferedBytes[3];
     };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // TextDecoder_h
 

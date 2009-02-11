@@ -39,7 +39,7 @@
 #include "PlatformWheelEvent.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 void ScrollView::setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj)
 {

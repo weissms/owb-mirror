@@ -30,11 +30,11 @@
 #include "config.h"
 #include "PlatformMouseEvent.h"
 
-#include "SystemTime.h"
+#include "CurrentTime.h"
 #include "Assertions.h"
-#include <intuition/intuition.h>
+#include <proto/intuition.h>
 
-namespace WKAL {
+namespace WebCore {
 
 // FIXME: Would be even better to figure out which modifier is Alt instead of always using GDK_MOD1_MASK.
 
@@ -42,7 +42,7 @@ namespace WKAL {
 PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
 {
     //printf("PlatformMouseEvent eventbutton x=%d y=%d\n", (int)event->x, (int)event->y);
-    m_timestamp = WebCore::currentTime();
+    m_timestamp = WTF::currentTime();
     m_position = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_globalPosition = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_shiftKey = event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT);
@@ -66,9 +66,26 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
             if (event->Code & IECODE_UP_PREFIX) {
                 m_eventType = MouseEventReleased;
                 m_clickCount = 0;
-            } else {
+            }
+            else {
                 m_eventType = MouseEventPressed;
-                m_clickCount = 1;
+
+                static uint32 prevSeconds[2], prevMicros[2];
+                uint32 currentSeconds, currentMicros;
+                IIntuition->CurrentTime(&currentSeconds, &currentMicros);
+
+                if (IIntuition->DoubleClick(prevSeconds[0], prevMicros[0], currentSeconds, currentMicros))
+                    if (IIntuition->DoubleClick(prevSeconds[1], prevMicros[1], prevSeconds[0], prevMicros[0]))
+                        m_clickCount = 3;
+                    else
+                        m_clickCount = 2;
+                else
+                    m_clickCount = 1;
+
+                prevSeconds[1] = prevSeconds[0];
+                prevMicros[1]  = prevMicros[0];
+                prevSeconds[0] = currentSeconds;
+                prevMicros[0]  = currentMicros;
             }
         }
     }

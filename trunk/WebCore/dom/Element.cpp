@@ -217,7 +217,7 @@ void Element::scrollByUnits(int units, ScrollGranularity granularity)
                 direction = ScrollUp;
                 units = -units;
             }
-            rend->layer()->scroll(direction, granularity, units);
+            toRenderBox(rend)->layer()->scroll(direction, granularity, units);
         }
     }
 }
@@ -274,7 +274,7 @@ static int adjustForAbsoluteZoom(int value, RenderObject* renderer)
 int Element::offsetLeft()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBoxModelObject* rend = renderBoxModelObject())
         return adjustForLocalZoom(rend->offsetLeft(), rend);
     return 0;
 }
@@ -282,7 +282,7 @@ int Element::offsetLeft()
 int Element::offsetTop()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBoxModelObject* rend = renderBoxModelObject())
         return adjustForLocalZoom(rend->offsetTop(), rend);
     return 0;
 }
@@ -290,7 +290,7 @@ int Element::offsetTop()
 int Element::offsetWidth()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBoxModelObject* rend = renderBoxModelObject())
         return adjustForAbsoluteZoom(rend->offsetWidth(), rend);
     return 0;
 }
@@ -298,7 +298,7 @@ int Element::offsetWidth()
 int Element::offsetHeight()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBoxModelObject* rend = renderBoxModelObject())
         return adjustForAbsoluteZoom(rend->offsetHeight(), rend);
     return 0;
 }
@@ -316,7 +316,7 @@ int Element::clientLeft()
 {
     document()->updateLayoutIgnorePendingStylesheets();
 
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->clientLeft(), rend);
     return 0;
 }
@@ -325,7 +325,7 @@ int Element::clientTop()
 {
     document()->updateLayoutIgnorePendingStylesheets();
 
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->clientTop(), rend);
     return 0;
 }
@@ -343,8 +343,7 @@ int Element::clientWidth()
             return view->layoutWidth();
     }
     
-
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->clientWidth(), rend);
     return 0;
 }
@@ -363,7 +362,7 @@ int Element::clientHeight()
             return view->layoutHeight();
     }
     
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->clientHeight(), rend);
     return 0;
 }
@@ -371,7 +370,7 @@ int Element::clientHeight()
 int Element::scrollLeft()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->scrollLeft(), rend);
     return 0;
 }
@@ -379,7 +378,7 @@ int Element::scrollLeft()
 int Element::scrollTop()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->scrollTop(), rend);
     return 0;
 }
@@ -387,21 +386,21 @@ int Element::scrollTop()
 void Element::setScrollLeft(int newLeft)
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         rend->setScrollLeft(static_cast<int>(newLeft * rend->style()->effectiveZoom()));
 }
 
 void Element::setScrollTop(int newTop)
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         rend->setScrollTop(static_cast<int>(newTop * rend->style()->effectiveZoom()));
 }
 
 int Element::scrollWidth()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->scrollWidth(), rend);
     return 0;
 }
@@ -409,7 +408,7 @@ int Element::scrollWidth()
 int Element::scrollHeight()
 {
     document()->updateLayoutIgnorePendingStylesheets();
-    if (RenderObject* rend = renderer())
+    if (RenderBox* rend = renderBox())
         return adjustForAbsoluteZoom(rend->scrollHeight(), rend);
     return 0;
 }
@@ -1103,8 +1102,13 @@ void Element::updateFocusAppearance(bool /*restorePreviousSelection*/)
             frame->selection()->setSelection(newSelection);
             frame->revealSelection();
         }
-    } else if (renderer() && !renderer()->isWidget())
+    }
+    // FIXME: I'm not sure all devices will want this off, but this is
+    // currently turned off for Andriod.
+#if !ENABLE(DIRECTIONAL_PAD_NAVIGATION)
+    else if (renderer() && !renderer()->isWidget())
         renderer()->enclosingLayer()->scrollRectToVisible(getRect());
+#endif
 }
 
 void Element::blur()

@@ -31,7 +31,7 @@
 #define PlatformMenuDescription_h
 
 #include "BALBase.h"
-namespace WKAL {
+namespace WebCore {
 
     typedef BalMenu* PlatformMenuDescription;
 

@@ -47,7 +47,7 @@
 
 
 
-namespace OWBAL {
+namespace WebCore {
 
 class AtomicString;
 class StringBuffer;
@@ -58,7 +58,7 @@ struct Length;
 struct StringHash;
 struct UCharBufferTranslator;
 
-class StringImpl : public OWBALBase, public RefCounted<StringImpl> {
+class StringImpl : public WebCoreBase, public RefCounted<StringImpl> {
     friend class AtomicString;
     friend struct CStringTranslator;
     friend struct HashAndCharactersTranslator;

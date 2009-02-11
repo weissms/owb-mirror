@@ -35,37 +35,12 @@
 #include "TextEncoding.h"
 #include "Unicode.h"
 #include "CString.h"
-#include <proto/locale.h>
-#include <proto/diskfont.h>
-#include <diskfont/diskfonttag.h>
 #include <intuition/intuition.h>
 #include <libraries/keymap.h>
 
-namespace WKAL {
+extern uint32 amigaToUnicodeChar(uint32 c);
 
-static struct Locale *locale;
-static uint32 *unicode_map;
-
-static __attribute__((constructor)) void unicode_map_init(void)
-{
-    locale = ILocale->OpenLocale(NULL);
-    if (locale)
-        unicode_map = (uint32*)IDiskfont->ObtainCharsetInfo(DFCS_NUMBER, locale->loc_CodeSet, DFCS_MAPTABLE);
-}
-
-static uint32 local2unicode(uint32 c)
-{
-    if (unicode_map && c <= 255 && unicode_map[c] <= 65535)
-        return unicode_map[c];
-
-    return c;
-}
-
-static __attribute__((destructor)) void unicode_map_exit(void)
-{
-    if (locale)
-        ILocale->CloseLocale(locale);
-}
+namespace WebCore {
 
 static int ConvertAmigaKeyToVirtualKey(struct IntuiMessage *im)
 {
@@ -115,16 +90,28 @@ static int ConvertAmigaKeyToVirtualKey(struct IntuiMessage *im)
         }
     } else {
         switch (im->Code) {
-        case   8: return VK_BACK;           break;
-        case   9: return VK_TAB;            break;
-        case  13: return 0 /* VK_RETURN */; break;
-        case  27: return VK_ESCAPE;         break;
-        case  32: return VK_SPACE;          break;
-        case 127: return VK_DELETE;         break;
-        case   1: return VK_A;              break;
-        case   3: return VK_C;              break;
-        case  22: return VK_V;              break;
-        case  24: return VK_X;              break;
+        case   8: return VK_BACK;   break;
+        case   9: return VK_TAB;    break;
+        case  13: return VK_RETURN; break;
+        case  27: return VK_ESCAPE; break;
+        case  32: return VK_SPACE;  break;
+        case 127: return VK_DELETE; break;
+        case   1: return VK_A;      break;
+        case   3: return VK_C;      break;
+        case  22: return VK_V;      break;
+        case  24: return VK_X;      break;
+
+        case '0' ... '9':
+            return VK_0 + im->Code - '0';
+        break;
+
+        case 'a' ... 'z':
+            return VK_A + im->Code - 'a';
+        break;
+
+        case 'A' ... 'Z':
+            return VK_A + im->Code - 'A';
+        break;
 
         default:
         {
@@ -198,7 +185,7 @@ static WebCore::String keyIdentifierForAmigaKeyCode(struct IntuiMessage *im)
                 else if (bMeta && 'x' == im->Code)
                    return "U+0018";
                 else
-                   return WebCore::String::format("U+%04X", WTF::Unicode::toUpper(local2unicode(im->Code)));
+                   return WebCore::String::format("U+%04X", WTF::Unicode::toUpper(amigaToUnicodeChar(im->Code)));
             }
             break;
         }
@@ -208,7 +195,6 @@ static WebCore::String keyIdentifierForAmigaKeyCode(struct IntuiMessage *im)
 PlatformKeyboardEvent::PlatformKeyboardEvent(BalEventKey* event)
     : m_type(KeyDown)
     , m_autoRepeat(false)
-    , m_windowsVirtualKeyCode(ConvertAmigaKeyToVirtualKey(event))
     , m_isKeypad(event->Qualifier & IEQUALIFIER_NUMERICPAD)
     , m_shiftKey(event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
     , m_ctrlKey(event->Qualifier & IEQUALIFIER_CONTROL)
@@ -216,14 +202,21 @@ PlatformKeyboardEvent::PlatformKeyboardEvent(BalEventKey* event)
     , m_metaKey(event->Qualifier & (IEQUALIFIER_LCOMMAND | IEQUALIFIER_RCOMMAND))
     , m_balEventKey(event)
 {
-    UChar aSrc[2];
+    UChar aSrc[2] = { 0, 0 };
     if (IDCMP_RAWKEY == event->Class) {
         if (event->Code & IECODE_UP_PREFIX)
             m_type = KeyUp;
-        aSrc[0] = 0;
-    } else
-        aSrc[0] = local2unicode(event->Code);
-    aSrc[1] = 0;
+    }
+    else
+        if (event->Code & 0x100) {
+            // fake KeyUp event with impossible code
+            event->Code &= ~0x100;
+            m_type = KeyUp;
+        }
+        else
+            aSrc[0] = amigaToUnicodeChar(event->Code);
+
+    m_windowsVirtualKeyCode = ConvertAmigaKeyToVirtualKey(event);
 
     WebCore::String aText(aSrc);
     WebCore::String aUnmodifiedText(aSrc);

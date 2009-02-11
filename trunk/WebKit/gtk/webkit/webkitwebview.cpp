@@ -47,6 +47,7 @@
 #include "Editor.h"
 #include "EditorClientGtk.h"
 #include "EventHandler.h"
+#include "FloatQuad.h"
 #include "FocusController.h"
 #include "FrameLoaderTypes.h"
 #include "HitTestRequest.h"
@@ -535,7 +536,7 @@ static void webkit_web_view_size_allocate(GtkWidget* widget, GtkAllocation* allo
         return;
 
     frame->view()->resize(allocation->width, allocation->height);
-    frame->forceLayout();
+    frame->view()->forceLayout();
     frame->view()->adjustViewSize();
 }
 
@@ -1657,7 +1658,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setJavaScriptEnabled(enableScripts);
     settings->setPluginsEnabled(enablePlugins);
     settings->setTextAreasAreResizable(resizableTextAreas);
-    settings->setUserStyleSheetLocation(KURL(userStylesheetUri));
+    settings->setUserStyleSheetLocation(KURL(KURL(), userStylesheetUri));
     settings->setDeveloperExtrasEnabled(enableDeveloperExtras);
 
     g_free(defaultEncoding);
@@ -1724,7 +1725,7 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
     else if (name == g_intern_string("resizable-text-areas"))
         settings->setTextAreasAreResizable(g_value_get_boolean(&value));
     else if (name == g_intern_string("user-stylesheet-uri"))
-        settings->setUserStyleSheetLocation(KURL(g_value_get_string(&value)));
+        settings->setUserStyleSheetLocation(KURL(KURL(), g_value_get_string(&value)));
     else if (name == g_intern_string("enable-developer-extras"))
         settings->setDeveloperExtrasEnabled(g_value_get_boolean(&value));
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
@@ -2053,7 +2054,7 @@ void webkit_web_view_open(WebKitWebView* webView, const gchar* uri)
     g_return_if_fail(uri);
 
     Frame* frame = core(webView)->mainFrame();
-    frame->loader()->load(ResourceRequest(KURL(String::fromUTF8(uri))));
+    frame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(uri))), false);
 }
 
 void webkit_web_view_reload(WebKitWebView* webView)
@@ -2085,11 +2086,11 @@ void webkit_web_view_load_string(WebKitWebView* webView, const gchar* content, c
 
     Frame* frame = core(webView)->mainFrame();
 
-    KURL url(baseUri ? String::fromUTF8(baseUri) : "");
+    KURL url(KURL(), baseUri ? String::fromUTF8(baseUri) : "");
     RefPtr<SharedBuffer> sharedBuffer = SharedBuffer::create(content, strlen(content));
-    SubstituteData substituteData(sharedBuffer.release(), contentMimeType ? String(contentMimeType) : "text/html", contentEncoding ? String(contentEncoding) : "UTF-8", KURL("about:blank"), url);
+    SubstituteData substituteData(sharedBuffer.release(), contentMimeType ? String(contentMimeType) : "text/html", contentEncoding ? String(contentEncoding) : "UTF-8", blankURL(), url);
 
-    frame->loader()->load(ResourceRequest(url), substituteData);
+    frame->loader()->load(ResourceRequest(url), substituteData, false);
 }
 
 void webkit_web_view_load_html_string(WebKitWebView* webView, const gchar* content, const gchar* baseUri)

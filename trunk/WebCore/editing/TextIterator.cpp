@@ -38,9 +38,10 @@
 #include "RenderTableCell.h"
 #include "RenderTableRow.h"
 #include "RenderTextControl.h"
+#include "VisiblePosition.h"
 #include "visible_units.h"
 
-#if USE(ICU_UNICODE) && !USE(BALI18N)
+#if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION && !USE(BALI18N)
 #include <unicode/usearch.h>
 #endif
 
@@ -65,7 +66,7 @@ public:
     void reachedBreak();
 
     // Result is the size in characters of what was found.
-    // And <startOffset> is the number of charactesrs back to the start of what was found.
+    // And <startOffset> is the number of characters back to the start of what was found.
     size_t search(size_t& startOffset);
     bool atBreak() const;
 
@@ -223,7 +224,9 @@ void TextIterator::advance()
             if (!m_handledNode) {
                 if (renderer->isText() && m_node->nodeType() == Node::TEXT_NODE) // FIXME: What about CDATA_SECTION_NODE?
                     m_handledNode = handleTextNode();
-                else if (renderer && (renderer->isImage() || renderer->isWidget() || (renderer->element() && renderer->element()->isControl())))
+                else if (renderer && (renderer->isImage() || renderer->isWidget() ||
+                         (renderer->element() && renderer->element()->isElementNode() &&
+                          static_cast<Element*>(renderer->element())->isFormControlElement())))
                     m_handledNode = handleReplacedElement();
                 else
                     m_handledNode = handleNonTextNode();
@@ -285,7 +288,7 @@ static inline bool compareBoxStart(const InlineTextBox *first, const InlineTextB
 
 bool TextIterator::handleTextNode()
 {
-    RenderText* renderer = static_cast<RenderText*>(m_node->renderer());
+    RenderText* renderer = toRenderText(m_node->renderer());
     if (renderer->style()->visibility() != VISIBLE)
         return false;
         
@@ -332,12 +335,12 @@ bool TextIterator::handleTextNode()
 
 void TextIterator::handleTextBox()
 {    
-    RenderText *renderer = static_cast<RenderText *>(m_node->renderer());
+    RenderText *renderer = toRenderText(m_node->renderer());
     String str = renderer->text();
     int start = m_offset;
     int end = (m_node == m_endContainer) ? m_endOffset : INT_MAX;
     while (m_textBox) {
-        int textBoxStart = m_textBox->m_start;
+        int textBoxStart = m_textBox->start();
         int runStart = max(textBoxStart, start);
 
         // Check for collapsed space at the start of this run.
@@ -354,7 +357,7 @@ void TextIterator::handleTextBox()
                 emitCharacter(' ', m_node, 0, runStart, runStart);
             return;
         }
-        int textBoxEnd = textBoxStart + m_textBox->m_len;
+        int textBoxEnd = textBoxStart + m_textBox->len();
         int runEnd = min(textBoxEnd, end);
         
         // Determine what the next text box will be, but don't advance yet
@@ -387,7 +390,7 @@ void TextIterator::handleTextBox()
                 return;
 
             // Advance and return
-            int nextRunStart = nextTextBox ? nextTextBox->m_start : str.length();
+            int nextRunStart = nextTextBox ? nextTextBox->start() : str.length();
             if (nextRunStart > runEnd)
                 m_lastTextNodeEndedWithCollapsedSpace = true; // collapsed space between runs or at the end
             m_textBox = nextTextBox;
@@ -535,7 +538,7 @@ static bool shouldEmitExtraNewlineForNode(Node* node)
     // result even without margin collapsing. For example: <div><p>text</p></div>
     // will work right even if both the <div> and the <p> have bottom margins.
     RenderObject* r = node->renderer();
-    if (!r)
+    if (!r || !r->isBox())
         return false;
     
     // NOTE: We only do this for a select set of nodes, and fwiw WinIE appears
@@ -549,7 +552,7 @@ static bool shouldEmitExtraNewlineForNode(Node* node)
         || node->hasTagName(pTag)) {
         RenderStyle* style = r->style();
         if (style) {
-            int bottomMargin = r->collapsedMarginBottom();
+            int bottomMargin = toRenderBox(r)->collapsedMarginBottom();
             int fontSize = style->fontDescription().computedPixelSize();
             if (bottomMargin * 2 >= fontSize)
                 return true;
@@ -712,7 +715,7 @@ void TextIterator::emitCharacter(UChar c, Node *textNode, Node *offsetBaseNode, 
 
 void TextIterator::emitText(Node* textNode, int textStartOffset, int textEndOffset)
 {
-    RenderText* renderer = static_cast<RenderText*>(m_node->renderer());
+    RenderText* renderer = toRenderText(m_node->renderer());
     String str = renderer->text();
     ASSERT(str.characters());
 
@@ -895,7 +898,7 @@ bool SimplifiedBackwardsTextIterator::handleTextNode()
 {
     m_lastTextNode = m_node;
 
-    RenderText *renderer = static_cast<RenderText *>(m_node->renderer());
+    RenderText *renderer = toRenderText(m_node->renderer());
     String str = renderer->text();
 
     if (!renderer->firstTextBox() && str.length() > 0)
@@ -1056,7 +1059,7 @@ void CharacterIterator::advance(int count)
 String CharacterIterator::string(int numChars)
 {
     Vector<UChar> result;
-    result.reserveCapacity(numChars);
+    result.reserveInitialCapacity(numChars);
     while (numChars > 0 && !atEnd()) {
         int runSize = min(numChars, length());
         result.append(characters(), runSize);
@@ -1224,7 +1227,7 @@ inline SearchBuffer::SearchBuffer(const String& target, bool isCaseSensitive)
     ASSERT(!m_target.isEmpty());
 
     size_t targetLength = target.length();
-    m_buffer.reserveCapacity(max(targetLength * 8, minimumSearchBufferSize));
+    m_buffer.reserveInitialCapacity(max(targetLength * 8, minimumSearchBufferSize));
     m_overlap = m_buffer.capacity() / 4;
 
     // Grab the single global searcher.
@@ -1396,6 +1399,14 @@ inline size_t SearchBuffer::search(size_t& start)
         return 0;
 
     start = length();
+
+    // Now that we've found a match once, we don't want to find it again, because those
+    // are the SearchBuffer semantics, allowing for a buffer where you append more than one
+    // character at a time. To do this we take advantage of m_isCharacterStartBuffer, but if
+    // we want to get rid of that in the future we could track this with a separate boolean
+    // or even move the characters to the start of the buffer and set m_isBufferFull to false.
+    m_isCharacterStartBuffer[m_cursor] = false;
+
     return start;
 }
 
@@ -1533,7 +1544,7 @@ UChar* plainTextToMallocAllocatedBuffer(const Range* r, unsigned& bufferLength, 
     typedef pair<UChar*, unsigned> TextSegment;
     Vector<TextSegment>* textSegments = 0;
     Vector<UChar> textBuffer;
-    textBuffer.reserveCapacity(cMaxSegmentSize);
+    textBuffer.reserveInitialCapacity(cMaxSegmentSize);
     for (TextIterator it(r); !it.atEnd(); it.advance()) {
         if (textBuffer.size() && textBuffer.size() + it.length() > cMaxSegmentSize) {
             UChar* newSegmentBuffer = static_cast<UChar*>(malloc(textBuffer.size() * sizeof(UChar)));

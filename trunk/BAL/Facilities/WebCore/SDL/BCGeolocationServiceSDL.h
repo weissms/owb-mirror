@@ -22,7 +22,7 @@
 
 #include "GeolocationService.h"
 
-namespace OWBAL {
+namespace WebCore {
     class GeolocationServiceBAL : public GeolocationService {
     public:
         GeolocationServiceBAL(GeolocationServiceClient*);

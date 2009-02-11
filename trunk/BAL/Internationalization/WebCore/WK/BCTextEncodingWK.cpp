@@ -41,7 +41,7 @@
 #include <wtf/OwnPtr.h>
 #include <wtf/StdLibExtras.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 static void addEncodingName(HashSet<const char*>& set, const char* name)
 {

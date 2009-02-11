@@ -45,6 +45,8 @@
 - (void)setRSSFeedReferrer:(NSString *)referrer;
 - (NSCalendarDate *)_lastVisitedDate;
 
+- (NSArray *)_redirectURLs;
+
 - (WebHistoryItem *)targetItem;
 - (NSString *)target;
 - (BOOL)isTargetItem;
@@ -58,5 +60,8 @@
 // The properties will not be persisted; when the history item is removed, the properties will be lost.
 - (id)_transientPropertyForKey:(NSString *)key;
 - (void)_setTransientProperty:(id)property forKey:(NSString *)key;
+
+- (size_t)_getDailyVisitCounts:(const int**)counts;
+- (size_t)_getWeeklyVisitCounts:(const int**)counts;
 
 @end

@@ -39,7 +39,7 @@
 
 #include <wtf/Platform.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     /**
      * narrow precision to float template
@@ -57,7 +57,7 @@ namespace OWBAL {
     template<>     inline float narrowPrecisionToFloat(double number);
 
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // FloatConversion_h
 

@@ -35,9 +35,9 @@
 
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
-class RenderThemeBal : public RenderTheme, public WKALBase {
+class RenderThemeBal : public RenderTheme {
 public:
     RenderThemeBal();
 

@@ -36,7 +36,7 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 PassRefPtr<Clipboard> Editor::newGeneralClipboard(ClipboardAccessPolicy policy)
 {
     printf("Editor::newGeneralClipboard\n");

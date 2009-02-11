@@ -41,7 +41,7 @@
 #include "BALBase.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 Cursor::Cursor(const Cursor& other)
     : m_impl(other.m_impl)

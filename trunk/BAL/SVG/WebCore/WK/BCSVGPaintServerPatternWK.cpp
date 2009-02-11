@@ -115,8 +115,6 @@ bool SVGPaintServerPattern::setup(GraphicsContext*& context, const RenderObject*
         return false;
 
     context->save();
-    context->translate(patternBoundaries().x(), patternBoundaries().y());
-    context->concatCTM(patternTransform());
 
     ASSERT(!m_pattern);
 
@@ -160,6 +158,11 @@ bool SVGPaintServerPattern::setup(GraphicsContext*& context, const RenderObject*
         applyStrokeStyleToContext(context, object->style(), object);
     }
 
+    TransformationMatrix matrix;
+    matrix.translate(patternBoundaries().x(), patternBoundaries().y());
+    matrix.multiply(patternTransform());
+    m_pattern->setPatternSpaceTransform(matrix);
+
     if (isPaintingText) {
         context->setTextDrawingMode(isFilled ? cTextFill : cTextStroke);
 #if PLATFORM(CG)
@@ -171,17 +174,6 @@ bool SVGPaintServerPattern::setup(GraphicsContext*& context, const RenderObject*
     }
 
     return true;
-}
-
-void SVGPaintServerPattern::renderPath(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
-{
-    const SVGRenderStyle* style = path->style()->svgStyle();
-
-    if ((type & ApplyToFillTargetType) && style->hasFill())
-        context->fillPath();
-
-    if ((type & ApplyToStrokeTargetType) && style->hasStroke())
-        context->strokePath();
 }
 
 void SVGPaintServerPattern::teardown(GraphicsContext*& context, const RenderObject*, SVGPaintTargetType, bool) const

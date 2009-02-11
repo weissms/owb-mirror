@@ -37,3 +37,15 @@ def configureSDLMini(path):
     os.chdir(current)
     logging.debug('configure build for SDL mini done, you can compile WebKit-owb SDL mini in ' + path + "/build_merge_sdl_mini")
     print 'configure build for SDL mini done, you can compile WebKit-owb SDL mini in ' + path + "/build_merge_sdl_mini"
+
+def configureQt(path):
+    logging.debug('configure build for Qt')
+    if os.path.exists(path + "/build_merge_qt") :
+        shutil.rmtree(path + "/build_merge_qt")
+    os.mkdir(path + "/build_merge_qt")
+    current = os.getcwd()
+    os.chdir(path + "/build_merge_qt")
+    os.system("cmake -C " + path + "/cmake/ConfigureBuildQt.cmake ..")
+    os.chdir(current)
+    logging.debug('configure build for qt done, you can compile WebKit-owb qt in ' + path + "/build_merge_qt")
+    print 'configure build for qt done, you can compile WebKit-owb qt in ' + path + "/build_merge_qt"

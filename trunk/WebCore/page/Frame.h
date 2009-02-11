@@ -65,7 +65,6 @@ class Editor;
 class EventHandler;
 class FrameLoader;
 class FrameLoaderClient;
-class FramePrivate;
 class FrameTree;
 class HTMLFrameOwnerElement;
 class HTMLTableCellElement;
@@ -122,7 +121,9 @@ public:
     bool excludeFromTextSearch() const;
     void setExcludeFromTextSearch(bool);
 
-    friend class FramePrivate;
+    void createView(const IntSize&, const Color&, bool, const IntSize &, bool,
+                    ScrollbarMode = ScrollbarAuto, ScrollbarMode = ScrollbarAuto);
+
 
 private:
     Frame(Page*, HTMLFrameOwnerElement*, FrameLoaderClient*);
@@ -172,25 +173,9 @@ public:
 private:
     void lifeSupportTimerFired(Timer<Frame>*);
 
-// === to be moved into Document
-
-public:
-    bool isFrameSet() const;
-
-// === to be moved into EventHandler
-
-public:
-    void sendResizeEvent();
-    void sendScrollEvent();
-
 // === to be moved into FrameView
 
 public: 
-    void forceLayout(bool allowSubtree = false);
-    void forceLayoutWithPageWidthRange(float minPageWidth, float maxPageWidth, bool adjustViewSize);
-
-    void adjustPageHeight(float* newBottom, float oldTop, float oldBottom, float bottomLimit);
-
     void setZoomFactor(float scale, bool isTextOnly);
     float zoomFactor() const;
     bool isZoomFactorTextOnly() const;

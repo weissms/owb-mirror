@@ -46,6 +46,7 @@
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
 #import <WebCore/FrameTree.h>
+#import <WebCore/runtime_object.h>
 #import <WebCore/ScriptController.h>
 #import <WebCore/ScriptValue.h>
 #include <runtime/JSLock.h>
@@ -125,16 +126,32 @@ void NetscapePluginInstanceProxy::stopAllStreams()
         streamsCopy[i]->stop();
 }
 
-void NetscapePluginInstanceProxy::destroy()
+void NetscapePluginInstanceProxy::cleanup()
 {
     stopAllStreams();
-    
-    _WKPHDestroyPluginInstance(m_pluginHostProxy->port(), m_pluginID);
     
     // Clear the object map, this will cause any outstanding JS objects that the plug-in had a reference to 
     // to go away when the next garbage collection takes place.
     m_objects.clear();
     
+    if (Frame* frame = core([m_pluginView webFrame]))
+        frame->script()->cleanupScriptObjectsForPlugin(m_pluginView);
+    
+    ProxyInstanceSet instances;
+    instances.swap(m_instances);
+    
+    // Invalidate all proxy instances.
+    ProxyInstanceSet::const_iterator end = instances.end();
+    for (ProxyInstanceSet::const_iterator it = instances.begin(); it != end; ++it)
+        (*it)->invalidate();
+}
+
+void NetscapePluginInstanceProxy::destroy()
+{
+    _WKPHDestroyPluginInstance(m_pluginHostProxy->port(), m_pluginID);
+
+    cleanup();
+
     m_pluginHostProxy->removePluginInstance(this);
     m_pluginHostProxy = 0;
 }
@@ -151,9 +168,9 @@ void NetscapePluginInstanceProxy::disconnectStream(HostedNetscapePluginStream* s
     
 void NetscapePluginInstanceProxy::pluginHostDied()
 {
-    stopAllStreams();
-
     m_pluginHostProxy = 0;
+
+    cleanup();
     
     [m_pluginView pluginHostDied];
     m_pluginView = nil;
@@ -328,8 +345,10 @@ void NetscapePluginInstanceProxy::performRequest(PluginRequest* pluginRequest)
                                                                   windowFeatures:features];
             [features release];
 
-            if (!newWebView)
+            if (!newWebView) {
+                _WKPHLoadURLNotify(m_pluginHostProxy->port(), m_pluginID, pluginRequest->requestID(), NPERR_GENERIC_ERROR);
                 return;
+            }
             
             frame = [newWebView mainFrame];
             core(frame)->tree()->setName(frameName);
@@ -453,15 +472,14 @@ NPError NetscapePluginInstanceProxy::loadRequest(NSURLRequest *request, const ch
 void NetscapePluginInstanceProxy::processRequestsAndWaitForReply()
 {
     while (!m_currentReply.get()) {
-        kern_return_t kr = mach_msg_server_once(WebKitPluginClient_server, WKPCWebKitPluginClient_subsystem.maxsize + MAX_TRAILER_SIZE, m_pluginHostProxy->clientPort(), 0);
-        if (kr != KERN_SUCCESS) {
+        if (!m_pluginHostProxy->processRequests()) {
             m_currentReply.reset();
             break;
         }
     }
 }
     
-uint32_t NetscapePluginInstanceProxy::idForObject(JSC::JSObject* object)
+uint32_t NetscapePluginInstanceProxy::idForObject(JSObject* object)
 {
     uint32_t objectID = 0;
     
@@ -489,7 +507,21 @@ bool NetscapePluginInstanceProxy::getWindowNPObject(uint32_t& objectID)
         
     return true;
 }
+
+bool NetscapePluginInstanceProxy::getPluginElementNPObject(uint32_t& objectID)
+{
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
     
+    if (JSObject* object = frame->script()->jsObjectForPluginElement([m_pluginView element]))
+        objectID = idForObject(object);
+    else
+        objectID = 0;
+    
+    return true;
+}
+
 void NetscapePluginInstanceProxy::releaseObject(uint32_t objectID)
 {
     m_objects.remove(objectID);
@@ -610,7 +642,7 @@ bool NetscapePluginInstanceProxy::construct(uint32_t objectID, data_t argumentsD
     return true;
 }
 
-bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, const JSC::Identifier& propertyName, data_t &resultData, mach_msg_type_number_t& resultLength)
+bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, const Identifier& propertyName, data_t& resultData, mach_msg_type_number_t& resultLength)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -629,7 +661,7 @@ bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, const JSC::Iden
     return true;
 }
     
-bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, unsigned propertyName, data_t &resultData, mach_msg_type_number_t& resultLength)
+bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, unsigned propertyName, data_t& resultData, mach_msg_type_number_t& resultLength)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -648,7 +680,7 @@ bool NetscapePluginInstanceProxy::getProperty(uint32_t objectID, unsigned proper
     return true;
 }
 
-bool NetscapePluginInstanceProxy::setProperty(uint32_t objectID, const JSC::Identifier& propertyName, data_t valueData, mach_msg_type_number_t valueLength)
+bool NetscapePluginInstanceProxy::setProperty(uint32_t objectID, const Identifier& propertyName, data_t valueData, mach_msg_type_number_t valueLength)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -689,7 +721,7 @@ bool NetscapePluginInstanceProxy::setProperty(uint32_t objectID, unsigned proper
     return true;
 }
 
-bool NetscapePluginInstanceProxy::removeProperty(uint32_t objectID, const JSC::Identifier& propertyName)
+bool NetscapePluginInstanceProxy::removeProperty(uint32_t objectID, const Identifier& propertyName)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -733,7 +765,7 @@ bool NetscapePluginInstanceProxy::removeProperty(uint32_t objectID, unsigned pro
     return true;
 }
 
-bool NetscapePluginInstanceProxy::hasProperty(uint32_t objectID, const JSC::Identifier& propertyName)
+bool NetscapePluginInstanceProxy::hasProperty(uint32_t objectID, const Identifier& propertyName)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -767,7 +799,7 @@ bool NetscapePluginInstanceProxy::hasProperty(uint32_t objectID, unsigned proper
     return result;
 }
     
-bool NetscapePluginInstanceProxy::hasMethod(uint32_t objectID, const JSC::Identifier& methodName)
+bool NetscapePluginInstanceProxy::hasMethod(uint32_t objectID, const Identifier& methodName)
 {
     JSObject* object = m_objects.get(objectID);
     if (!object)
@@ -784,30 +816,41 @@ bool NetscapePluginInstanceProxy::hasMethod(uint32_t objectID, const JSC::Identi
     return !func.isUndefined();
 }
 
+void NetscapePluginInstanceProxy::addValueToArray(NSMutableArray *array, ExecState* exec, JSValuePtr value)
+{
+    JSLock lock(false);
+
+    if (value.isString()) {
+        [array addObject:[NSNumber numberWithInt:StringValueType]];
+        [array addObject:String(value.toString(exec))];
+    } else if (value.isNumber()) {
+        [array addObject:[NSNumber numberWithInt:DoubleValueType]];
+        [array addObject:[NSNumber numberWithDouble:value.toNumber(exec)]];
+    } else if (value.isBoolean()) {
+        [array addObject:[NSNumber numberWithInt:BoolValueType]];
+        [array addObject:[NSNumber numberWithBool:value.toBoolean(exec)]];
+    } else if (value.isNull())
+        [array addObject:[NSNumber numberWithInt:NullValueType]];
+    else if (value.isObject()) {
+        JSObject* object = asObject(value);
+        if (object->classInfo() == &RuntimeObjectImp::s_info) {
+            // FIXME: Handle ProxyInstance objects.
+            ASSERT_NOT_REACHED();
+        } else {
+            [array addObject:[NSNumber numberWithInt:JSObjectValueType]];
+            [array addObject:[NSNumber numberWithInt:idForObject(object)]];
+        }
+    } else
+        [array addObject:[NSNumber numberWithInt:VoidValueType]];
+}
+
 void NetscapePluginInstanceProxy::marshalValue(ExecState* exec, JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength)
 {
     RetainPtr<NSMutableArray*> array(AdoptNS, [[NSMutableArray alloc] init]);
     
-    JSLock lock(false);
+    addValueToArray(array.get(), exec, value);
 
-    if (value.isString()) {
-        [array.get() addObject:[NSNumber numberWithInt:StringValueType]];
-        [array.get() addObject:String(value.toString(exec))];
-    } else if (value.isNumber()) {
-        [array.get() addObject:[NSNumber numberWithInt:DoubleValueType]];
-        [array.get() addObject:[NSNumber numberWithDouble:value.toNumber(exec)]];
-    } else if (value.isBoolean()) {
-        [array.get() addObject:[NSNumber numberWithInt:BoolValueType]];
-        [array.get() addObject:[NSNumber numberWithDouble:value.toBoolean(exec)]];
-    } else if (value.isNull())
-        [array.get() addObject:[NSNumber numberWithInt:NullValueType]];
-    else if (value.isObject()) {
-        [array.get() addObject:[NSNumber numberWithInt:ObjectValueType]];
-        [array.get() addObject:[NSNumber numberWithInt:idForObject(asObject(value))]];
-    } else
-        [array.get() addObject:[NSNumber numberWithInt:VoidValueType]];
-
-    RetainPtr<NSData*> data = [NSPropertyListSerialization dataFromPropertyList:array.get() format:NSPropertyListBinaryFormat_v1_0 errorDescription:0];
+    RetainPtr<NSData *> data = [NSPropertyListSerialization dataFromPropertyList:array.get() format:NSPropertyListBinaryFormat_v1_0 errorDescription:0];
     ASSERT(data);
     
     resultLength = [data.get() length];
@@ -815,6 +858,19 @@ void NetscapePluginInstanceProxy::marshalValue(ExecState* exec, JSValuePtr value
     
     memcpy(resultData, [data.get() bytes], resultLength);
 }
+
+RetainPtr<NSData *> NetscapePluginInstanceProxy::marshalValues(ExecState* exec, const ArgList& args)
+{
+    RetainPtr<NSMutableArray*> array(AdoptNS, [[NSMutableArray alloc] init]);
+
+    for (unsigned i = 0; i < args.size(); i++)
+        addValueToArray(array.get(), exec, args.at(exec, i));
+
+    RetainPtr<NSData *> data = [NSPropertyListSerialization dataFromPropertyList:array.get() format:NSPropertyListBinaryFormat_v1_0 errorDescription:0];
+    ASSERT(data);
+
+    return data;
+}    
 
 bool NetscapePluginInstanceProxy::demarshalValueFromArray(ExecState* exec, NSArray *array, NSUInteger& index, JSValuePtr& result)
 {
@@ -841,20 +897,39 @@ bool NetscapePluginInstanceProxy::demarshalValueFromArray(ExecState* exec, NSArr
             result = jsString(exec, String(string));
             return true;
         }
-        case ObjectValueType: {
+        case JSObjectValueType: {
             uint32_t objectID = [[array objectAtIndex:index++] intValue];
             
             result = m_objects.get(objectID);
+            ASSERT(result);
+            return true;
+        }
+        case NPObjectValueType: {
+            uint32_t objectID = [[array objectAtIndex:index++] intValue];
+
+            Frame* frame = core([m_pluginView webFrame]);
+            if (!frame)
+                return false;
+            
+            if (!frame->script()->isEnabled())
+                return false;
+
+            RefPtr<RootObject> rootObject = frame->script()->createRootObject(m_pluginView);
+            if (!rootObject)
+                return false;
+            
+            result = ProxyInstance::create(rootObject.release(), this, objectID)->createRuntimeObject(exec);
             return true;
         }
         default:
+            ASSERT_NOT_REACHED();
             return false;
     }
 }
 
-JSValuePtr NetscapePluginInstanceProxy::demarshalValue(ExecState* exec, data_t valueData, mach_msg_type_number_t valueLength)
+JSValuePtr NetscapePluginInstanceProxy::demarshalValue(ExecState* exec, const char* valueData, mach_msg_type_number_t valueLength)
 {
-    RetainPtr<NSData*> data(AdoptNS, [[NSData alloc] initWithBytesNoCopy:valueData length:valueLength freeWhenDone:NO]);
+    RetainPtr<NSData*> data(AdoptNS, [[NSData alloc] initWithBytesNoCopy:(void*)valueData length:valueLength freeWhenDone:NO]);
 
     RetainPtr<NSArray*> array = [NSPropertyListSerialization propertyListFromData:data.get()
                                                                  mutabilityOption:NSPropertyListImmutable
@@ -882,7 +957,7 @@ void NetscapePluginInstanceProxy::demarshalValues(ExecState* exec, data_t values
         result.append(value);
 }
 
-PassRefPtr<Instance> NetscapePluginInstanceProxy::createBindingsInstance(PassRefPtr<RootObject>)
+PassRefPtr<Instance> NetscapePluginInstanceProxy::createBindingsInstance(PassRefPtr<RootObject> rootObject)
 {
     if (_WKPHGetScriptableNPObject(m_pluginHostProxy->port(), m_pluginID) != KERN_SUCCESS)
         return 0;
@@ -890,11 +965,27 @@ PassRefPtr<Instance> NetscapePluginInstanceProxy::createBindingsInstance(PassRef
     auto_ptr<GetScriptableNPObjectReply> reply = waitForReply<GetScriptableNPObjectReply>();
     if (!reply.get())
         return 0;
-    
-    // FIXME: Implement
-    return 0;
+
+    if (!reply->m_objectID)
+        return 0;
+
+    return ProxyInstance::create(rootObject, this, reply->m_objectID);
 }
 
+void NetscapePluginInstanceProxy::addInstance(ProxyInstance* instance)
+{
+    ASSERT(!m_instances.contains(instance));
+    
+    m_instances.add(instance);
+}
+    
+void NetscapePluginInstanceProxy::removeInstance(ProxyInstance* instance)
+{
+    ASSERT(m_instances.contains(instance));
+    
+    m_instances.remove(instance);
+}
+    
 } // namespace WebKit
 
 #endif // USE(PLUGIN_HOST_PROCESS)

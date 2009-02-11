@@ -43,7 +43,7 @@
 #include "SDL.h"
 #endif
 
-namespace WKAL {
+namespace WebCore {
 
 #if PLATFORM(AMIGAOS4)
 typedef void BalCursor;

@@ -13,9 +13,9 @@ list(APPEND WEBCORE_SRC
     loader/CachedXSLStyleSheet.cpp
     loader/DocLoader.cpp
     loader/DocumentLoader.cpp
+    loader/DocumentThreadableLoader.cpp
     loader/FormState.cpp
     loader/FrameLoader.cpp
-    loader/FrameLoaderClient.cpp
     loader/FTPDirectoryDocument.cpp
     loader/FTPDirectoryParser.cpp
     loader/ImageDocument.cpp
@@ -31,7 +31,9 @@ list(APPEND WEBCORE_SRC
     loader/SubresourceLoader.cpp
     loader/TextDocument.cpp
     loader/TextResourceDecoder.cpp
+    loader/ThreadableLoader.cpp
     loader/UserStyleSheetLoader.cpp
+    loader/WorkerThreadableLoader.cpp
 )
 
 if(ENABLE_OFFLINE_WEB_APPLICATIONS)

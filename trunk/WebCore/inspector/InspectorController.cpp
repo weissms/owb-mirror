@@ -39,6 +39,7 @@
 #include "DocumentLoader.h"
 #include "Element.h"
 #include "FloatConversion.h"
+#include "FloatQuad.h"
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameLoader.h"
@@ -64,6 +65,7 @@
 #include "TextEncoding.h"
 #include "TextIterator.h"
 #include "ScriptController.h"
+#include "SecurityOrigin.h"
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSRetainPtr.h>
 #include <JavaScriptCore/JSStringRef.h>
@@ -80,6 +82,12 @@
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "JSDatabase.h"
+#endif
+
+#if ENABLE(DOM_STORAGE)
+#include "Storage.h"
+#include "StorageArea.h"
+#include "JSStorage.h"
 #endif
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
@@ -449,6 +457,44 @@ private:
         , domain(domain)
         , name(name)
         , version(version)
+        , scriptContext(0)
+        , scriptObject(0)
+    {
+    }
+};
+#endif
+
+#if ENABLE(DOM_STORAGE)
+struct InspectorDOMStorageResource : public RefCounted<InspectorDOMStorageResource> {
+    static PassRefPtr<InspectorDOMStorageResource> create(Storage* domStorage, bool isLocalStorage, Frame* frame)
+    {
+        return adoptRef(new InspectorDOMStorageResource(domStorage, isLocalStorage, frame));
+    }
+
+    void setScriptObject(JSContextRef context, JSObjectRef newScriptObject)
+    {
+        if (scriptContext && scriptObject)
+            JSValueUnprotect(scriptContext, scriptObject);
+
+        scriptObject = newScriptObject;
+        scriptContext = context;
+
+        ASSERT((context && newScriptObject) || (!context && !newScriptObject));
+        if (context && newScriptObject)
+            JSValueProtect(context, newScriptObject);
+    }
+
+    RefPtr<Storage> domStorage;
+    bool isLocalStorage;
+    RefPtr<Frame> frame;
+    JSContextRef scriptContext;
+    JSObjectRef scriptObject;
+    
+private:
+    InspectorDOMStorageResource(Storage* domStorage, bool isLocalStorage, Frame* frame)
+        : domStorage(domStorage)
+        , isLocalStorage(isLocalStorage)
+        , frame(frame)
         , scriptContext(0)
         , scriptObject(0)
     {
@@ -2111,6 +2157,11 @@ void InspectorController::populateScriptObjects()
     for (DatabaseResourcesSet::iterator it = m_databaseResources.begin(); it != databasesEnd; ++it)
         addDatabaseScriptResource((*it).get());
 #endif
+#if ENABLE(DOM_STORAGE)
+    DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
+    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
+        addDOMStorageScriptResource(it->get());
+#endif
 
     callSimpleFunction(m_scriptContext, m_scriptObject, "populateInterface");
 }
@@ -2189,6 +2240,78 @@ void InspectorController::removeDatabaseScriptResource(InspectorDatabaseResource
 
     JSValueRef exception = 0;
     callFunction(m_scriptContext, m_scriptObject, "removeDatabase", 1, &scriptObject, exception);
+}
+#endif
+
+#if ENABLE(DOM_STORAGE)
+JSObjectRef InspectorController::addDOMStorageScriptResource(InspectorDOMStorageResource* resource)
+{
+    ASSERT_ARG(resource, resource);
+
+    if (resource->scriptObject)
+        return resource->scriptObject;
+
+    ASSERT(m_scriptContext);
+    ASSERT(m_scriptObject);
+    if (!m_scriptContext || !m_scriptObject)
+        return 0;
+
+    JSValueRef exception = 0;
+
+    JSValueRef domStorageProperty = JSObjectGetProperty(m_scriptContext, m_scriptObject, jsStringRef("DOMStorage").get(), &exception);
+    if (HANDLE_EXCEPTION(m_scriptContext, exception))
+        return 0;
+
+    JSObjectRef domStorageConstructor = JSValueToObject(m_scriptContext, domStorageProperty, &exception);
+    if (HANDLE_EXCEPTION(m_scriptContext, exception))
+        return 0;
+
+    ExecState* exec = toJSDOMWindow(resource->frame.get())->globalExec();
+
+    JSValueRef domStorage;
+
+    {
+        JSC::JSLock lock(false);
+        domStorage = toRef(JSInspectedObjectWrapper::wrap(exec, toJS(exec, resource->domStorage.get())));
+    }
+
+    JSValueRef domainValue = JSValueMakeString(m_scriptContext, jsStringRef(resource->frame->document()->securityOrigin()->domain()).get());
+    JSValueRef isLocalStorageValue = JSValueMakeBoolean(m_scriptContext, resource->isLocalStorage);
+
+    JSValueRef arguments[] = { domStorage, domainValue, isLocalStorageValue };
+    JSObjectRef result = JSObjectCallAsConstructor(m_scriptContext, domStorageConstructor, 3, arguments, &exception);
+    if (HANDLE_EXCEPTION(m_scriptContext, exception))
+        return 0;
+
+    ASSERT(result);
+
+    callFunction(m_scriptContext, m_scriptObject, "addDOMStorage", 1, &result, exception);
+
+    if (exception)
+        return 0;
+
+    resource->setScriptObject(m_scriptContext, result);
+
+    return result;
+}
+
+void InspectorController::removeDOMStorageScriptResource(InspectorDOMStorageResource* resource)
+{
+    ASSERT(m_scriptContext);
+    ASSERT(m_scriptObject);
+    if (!m_scriptContext || !m_scriptObject)
+        return;
+
+    ASSERT(resource);
+    ASSERT(resource->scriptObject);
+    if (!resource || !resource->scriptObject)
+        return;
+
+    JSObjectRef scriptObject = resource->scriptObject;
+    resource->setScriptObject(0, 0);
+
+    JSValueRef exception = 0;
+    callFunction(m_scriptContext, m_scriptObject, "removeDOMStorage", 1, &scriptObject, exception);
 }
 #endif
 
@@ -2271,6 +2394,13 @@ void InspectorController::resetScriptObjects()
         resource->setScriptObject(0, 0);
     }
 #endif
+#if ENABLE(DOM_STORAGE)
+    DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
+    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it) {
+        InspectorDOMStorageResource* resource = it->get();
+        resource->setScriptObject(0, 0);
+    }
+#endif
 
     callSimpleFunction(m_scriptContext, m_scriptObject, "reset");
 }
@@ -2312,6 +2442,9 @@ void InspectorController::didCommitLoad(DocumentLoader* loader)
 
 #if ENABLE(DATABASE)
         m_databaseResources.clear();
+#endif
+#if ENABLE(DOM_STORAGE)
+        m_domStorageResources.clear();
 #endif
 
         if (windowVisible()) {
@@ -2572,6 +2705,27 @@ void InspectorController::didOpenDatabase(Database* database, const String& doma
 }
 #endif
 
+#if ENABLE(DOM_STORAGE)
+void InspectorController::didUseDOMStorage(StorageArea* storageArea, bool isLocalStorage, Frame* frame)
+{
+    if (!enabled())
+        return;
+
+    DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
+    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it) {
+        InspectorDOMStorageResource* resource = it->get();
+        if (equalIgnoringCase(resource->frame->document()->securityOrigin()->domain(), frame->document()->securityOrigin()->domain()) && resource->isLocalStorage == isLocalStorage)
+            return;
+    }
+    RefPtr<Storage> domStorage = Storage::create(frame, storageArea);
+    RefPtr<InspectorDOMStorageResource> resource = InspectorDOMStorageResource::create(domStorage.get(), isLocalStorage, frame);
+
+    m_domStorageResources.add(resource);
+    if (windowVisible())
+        addDOMStorageScriptResource(resource.get());
+}
+#endif
+
 void InspectorController::moveWindowBy(float x, float y) const
 {
     if (!m_page || !enabled())
@@ -2762,12 +2916,12 @@ void InspectorController::drawNodeHighlight(GraphicsContext& context) const
     if (!m_highlightedNode)
         return;
 
-    RenderObject* renderer = m_highlightedNode->renderer();
+    RenderBox* renderer = m_highlightedNode->renderBox();
     Frame* containingFrame = m_highlightedNode->document()->frame();
     if (!renderer || !containingFrame)
         return;
 
-    IntRect contentBox = renderer->contentBox();
+    IntRect contentBox = renderer->contentBoxRect();
 
     // FIXME: Should we add methods to RenderObject to obtain these rects?
     IntRect paddingBox(contentBox.x() - renderer->paddingLeft(), contentBox.y() - renderer->paddingTop(),
@@ -2796,7 +2950,7 @@ void InspectorController::drawNodeHighlight(GraphicsContext& context) const
     Vector<FloatQuad> lineBoxQuads;
     if (renderer->isInline() || (renderer->isText() && !m_highlightedNode->isSVGElement())) {
         // FIXME: We should show margins/padding/border for inlines.
-        renderer->collectAbsoluteLineBoxQuads(lineBoxQuads);
+        renderer->absoluteQuadsForRange(lineBoxQuads);
     }
 
     for (unsigned i = 0; i < lineBoxQuads.size(); ++i)

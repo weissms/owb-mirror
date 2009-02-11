@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
+    Copyright (C) 2008,2009 Nokia Corporation and/or its subsidiary(-ies)
     Copyright (C) 2007 Staikos Computing Services Inc.
 
     This library is free software; you can redistribute it and/or
@@ -145,6 +145,37 @@ WebCore::Scrollbar* QWebFramePrivate::verticalScrollBar() const
     return frame->view()->verticalScrollbar();
 }
 
+void QWebFramePrivate::renderPrivate(QPainter *painter, const QRegion &clip, bool contents)
+{
+    if (!frame->view() || !frame->contentRenderer())
+        return;
+
+    QVector<QRect> vector = clip.rects();
+    if (vector.isEmpty())
+        return;
+
+    WebCore::FrameView* view = frame->view();
+    view->layoutIfNeededRecursive();
+
+    GraphicsContext context(painter);
+
+    if (!contents)
+        view->paint(&context, vector.first());
+    else
+        view->paintContents(&context, vector.first());
+
+    for (int i = 1; i < vector.size(); ++i) {
+        const QRect& clipRect = vector.at(i);
+        painter->save();
+        painter->setClipRect(clipRect, Qt::IntersectClip);
+        if (!contents)
+            view->paint(&context, clipRect);
+        else
+            view->paintContents(&context, clipRect);
+        painter->restore();
+    }
+}
+
 /*!
     \class QWebFrame
     \since 4.4
@@ -193,7 +224,7 @@ QWebFrame::QWebFrame(QWebPage *parent, QWebFrameData *frameData)
 
     if (!frameData->url.isEmpty()) {
         WebCore::ResourceRequest request(frameData->url, frameData->referrer);
-        d->frame->loader()->load(request, frameData->name);
+        d->frame->loader()->load(request, frameData->name, false);
     }
 }
 
@@ -224,24 +255,48 @@ QWebFrame::~QWebFrame()
     If you want to ensure that your QObjects remain accessible after loading a
     new URL, you should add them in a slot connected to the
     javaScriptWindowObjectCleared() signal.
+
+    The \a object will never be explicitly deleted by QtWebKit.
 */
 void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object)
 {
-      JSC::JSLock lock(false);
-      JSDOMWindow *window = toJSDOMWindow(d->frame);
-      JSC::Bindings::RootObject *root = d->frame->script()->bindingRootObject();
-      if (!window) {
-          qDebug() << "Warning: couldn't get window object";
-          return;
-      }
+    addToJavaScriptWindowObject(name, object, QScriptEngine::QtOwnership);
+}
 
-      JSC::ExecState* exec = window->globalExec();
+/*!
+    \fn void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object, QScriptEngine::ValueOwnership own)
+    \overload
 
-      JSC::JSObject *runtimeObject =
-          JSC::Bindings::QtInstance::getQtInstance(object, root)->createRuntimeObject(exec);
+    Make \a object available under \a name from within the frame's JavaScript
+    context. The \a object will be inserted as a child of the frame's window
+    object.
 
-      JSC::PutPropertySlot slot;
-      window->put(exec, JSC::Identifier(exec, (const UChar *) name.constData(), name.length()), runtimeObject, slot);
+    Qt properties will be exposed as JavaScript properties and slots as
+    JavaScript methods.
+
+    If you want to ensure that your QObjects remain accessible after loading a
+    new URL, you should add them in a slot connected to the
+    javaScriptWindowObjectCleared() signal.
+
+    The ownership of \a object is specified using \a own.
+*/
+void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object, QScriptEngine::ValueOwnership ownership)
+{
+    JSC::JSLock lock(false);
+    JSDOMWindow* window = toJSDOMWindow(d->frame);
+    JSC::Bindings::RootObject* root = d->frame->script()->bindingRootObject();
+    if (!window) {
+        qDebug() << "Warning: couldn't get window object";
+        return;
+    }
+
+    JSC::ExecState* exec = window->globalExec();
+
+    JSC::JSObject* runtimeObject =
+            JSC::Bindings::QtInstance::getQtInstance(object, root, ownership)->createRuntimeObject(exec);
+
+    JSC::PutPropertySlot slot;
+    window->put(exec, JSC::Identifier(exec, (const UChar *) name.constData(), name.length()), runtimeObject, slot);
 }
 
 /*!
@@ -444,7 +499,7 @@ void QWebFrame::load(const QWebNetworkRequest &req)
     if (!postData.isEmpty())
         request.setHTTPBody(WebCore::FormData::create(postData.constData(), postData.size()));
 
-    d->frame->loader()->load(request);
+    d->frame->loader()->load(request, false);
 
     if (d->parentFrame())
         d->page->d->insideOpenCall = false;
@@ -500,7 +555,7 @@ void QWebFrame::load(const QNetworkRequest &req,
     if (!body.isEmpty())
         request.setHTTPBody(WebCore::FormData::create(body.constData(), body.size()));
 
-    d->frame->loader()->load(request);
+    d->frame->loader()->load(request, false);
 
     if (d->parentFrame())
         d->page->d->insideOpenCall = false;
@@ -525,7 +580,7 @@ void QWebFrame::setHtml(const QString &html, const QUrl &baseUrl)
     const QByteArray utf8 = html.toUtf8();
     WTF::RefPtr<WebCore::SharedBuffer> data = WebCore::SharedBuffer::create(utf8.constData(), utf8.length());
     WebCore::SubstituteData substituteData(data, WebCore::String("text/html"), WebCore::String("utf-8"), kurl);
-    d->frame->loader()->load(request, substituteData);
+    d->frame->loader()->load(request, substituteData, false);
 }
 
 /*!
@@ -546,7 +601,7 @@ void QWebFrame::setContent(const QByteArray &data, const QString &mimeType, cons
     if (actualMimeType.isEmpty())
         actualMimeType = QLatin1String("text/html");
     WebCore::SubstituteData substituteData(buffer, WebCore::String(actualMimeType), WebCore::String(), kurl);
-    d->frame->loader()->load(request, substituteData);
+    d->frame->loader()->load(request, substituteData, false);
 }
 
 
@@ -744,25 +799,7 @@ void QWebFrame::setScrollPosition(const QPoint &pos)
 */
 void QWebFrame::render(QPainter *painter, const QRegion &clip)
 {
-    if (!d->frame->view() || !d->frame->contentRenderer())
-        return;
-
-    d->frame->view()->layoutIfNeededRecursive();
-
-    GraphicsContext ctx(painter);
-    QVector<QRect> vector = clip.rects();
-    WebCore::FrameView* view = d->frame->view();
-    for (int i = 0; i < vector.size(); ++i) {
-        if (i > 0) {
-            painter->save();
-            painter->setClipRect(vector.at(i), Qt::IntersectClip);
-        }
-
-        view->paint(&ctx, vector.at(i));
-
-        if (i > 0)
-            painter->restore();
-    }
+    d->renderPrivate(painter, clip);
 }
 
 /*!
@@ -770,14 +807,19 @@ void QWebFrame::render(QPainter *painter, const QRegion &clip)
 */
 void QWebFrame::render(QPainter *painter)
 {
-    if (!d->frame->view() || !d->frame->contentRenderer())
+    if (!d->frame->view())
         return;
 
-    d->frame->view()->layoutIfNeededRecursive();
+    d->renderPrivate(painter, QRegion(d->frame->view()->frameRect()));
+}
 
-    GraphicsContext ctx(painter);
-    WebCore::FrameView* view = d->frame->view();
-    view->paint(&ctx, view->frameRect());
+/*!
+  \since 4.6
+  Render the frame's \a contents into \a painter while clipping to \a contents.
+*/
+void QWebFrame::renderContents(QPainter *painter, const QRegion &contents)
+{
+    d->renderPrivate(painter, contents, true);
 }
 
 /*!
@@ -868,7 +910,7 @@ QWebHitTestResult QWebFrame::hitTestContent(const QPoint &pos) const
     if (!d->frame->view() || !d->frame->contentRenderer())
         return QWebHitTestResult();
 
-    HitTestResult result = d->frame->eventHandler()->hitTestResultAtPoint(d->frame->view()->windowToContents(pos), /*allowShadowContent*/ false);
+    HitTestResult result = d->frame->eventHandler()->hitTestResultAtPoint(d->frame->view()->windowToContents(pos), /*allowShadowContent*/ false, /*ignoreClipping*/ true);
     return QWebHitTestResult(new QWebHitTestResultPrivate(result));
 }
 
@@ -887,6 +929,10 @@ bool QWebFrame::event(QEvent *e)
 */
 void QWebFrame::print(QPrinter *printer) const
 {
+    QPainter painter;
+    if (!painter.begin(printer))
+        return;
+
     const qreal zoomFactorX = printer->logicalDpiX() / qt_defaultDpi();
     const qreal zoomFactorY = printer->logicalDpiY() / qt_defaultDpi();
 
@@ -932,7 +978,6 @@ void QWebFrame::print(QPrinter *printer) const
         ascending = false;
     }
 
-    QPainter painter(printer);
     painter.scale(zoomFactorX, zoomFactorY);
     GraphicsContext ctx(&painter);
 
@@ -970,7 +1015,8 @@ void QWebFrame::print(QPrinter *printer) const
 #endif // QT_NO_PRINTER
 
 /*!
-    Evaluate JavaScript defined by \a scriptSource using this frame as context.
+    Evaluates the JavaScript defined by \a scriptSource using this frame as context
+    and returns the result of the last executed statement.
 
     \sa addToJavaScriptWindowObject(), javaScriptWindowObjectCleared()
 */

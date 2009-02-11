@@ -32,7 +32,7 @@
 #include "UserStyleSheetLoader.h"
 #include "NotImplemented.h"
 
-namespace WKAL {
+namespace WebCore {
 
 DragImageRef Frame::dragImageForSelection()
 {

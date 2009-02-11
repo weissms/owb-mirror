@@ -45,7 +45,7 @@
 
 namespace WTF {
 
-template<typename T> class ThreadSpecific : public OWBALBase, Noncopyable {
+template<typename T> class ThreadSpecific : Noncopyable {
 public:
     /**
      *  ThreadSpecific description

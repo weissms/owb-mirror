@@ -31,7 +31,7 @@
 #include "Color.h"
 #include "SVGPaintServer.h"
 
-namespace WKAL {
+namespace WebCore {
 
     class SVGPaintServerSolid : public SVGPaintServer {
     public:
@@ -46,7 +46,6 @@ namespace WKAL {
         virtual TextStream& externalRepresentation(TextStream&) const;
 
         virtual bool setup(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText) const;
-	virtual void renderPath(GraphicsContext*&, const RenderObject*, SVGPaintTargetType) const;
 
     private:
         SVGPaintServerSolid();

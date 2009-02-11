@@ -11,6 +11,7 @@ if(ENABLE_WML)
         wml/WMLErrorHandling.cpp
         wml/WMLEventHandlingElement.cpp
         wml/WMLFieldSetElement.cpp
+        wml/WMLFormControlElement.cpp
         wml/WMLGoElement.cpp
         wml/WMLImageElement.cpp
         wml/WMLImageLoader.cpp
@@ -20,6 +21,8 @@ if(ENABLE_WML)
         wml/WMLIntrinsicEventHandler.cpp
         wml/WMLNoopElement.cpp
         wml/WMLOnEventElement.cpp
+        wml/WMLOptGroupElement.cpp
+        wml/WMLOptionElement.cpp
         wml/WMLMetaElement.cpp
         wml/WMLPageState.cpp
         wml/WMLPElement.cpp

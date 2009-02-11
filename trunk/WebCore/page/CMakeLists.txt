@@ -20,6 +20,7 @@ list(APPEND WEBCORE_SRC
     page/Chrome.cpp
     page/ContextMenuController.cpp
     page/DOMSelection.cpp
+    page/DOMTimer.cpp
     page/DOMWindow.cpp
     page/DragController.cpp
     page/EventHandler.cpp

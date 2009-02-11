@@ -40,7 +40,7 @@
 #include <intuition/pointerclass.h>
 #include <workbench/icon.h>
 
-namespace WKAL {
+namespace WebCore {
 
 static const CONST_STRPTR pointerFiles[en_SIZE][2] =
 {

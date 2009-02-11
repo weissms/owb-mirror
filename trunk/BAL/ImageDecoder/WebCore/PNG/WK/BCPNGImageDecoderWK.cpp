@@ -47,7 +47,7 @@
 #pragma warning(disable : 4611) // warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
-namespace OWBAL {
+namespace WebCore {
 
 // Gamma constants.
 const double cMaxGamma = 21474.83;

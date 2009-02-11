@@ -78,6 +78,7 @@ sources['dom'] = [
     'dom/ClipboardEvent.cpp',
     'dom/Comment.cpp',
     'dom/ContainerNode.cpp',
+    'dom/CrossThreadCopier.cpp',
     'dom/CSSMappedAttributeDeclaration.cpp',
     'dom/Document.cpp',
     'dom/DocumentFragment.cpp',
@@ -92,9 +93,9 @@ sources['dom'] = [
     'dom/Event.cpp',
     'dom/EventNames.cpp',
     'dom/EventTarget.cpp',
-    'dom/EventTargetNode.cpp',
     'dom/ExceptionBase.cpp',
     'dom/ExceptionCode.cpp',
+    'dom/FormControlElementWithState.cpp',
     'dom/FormControlElement.cpp',
     'dom/InputElement.cpp',
     'dom/KeyboardEvent.cpp',
@@ -113,6 +114,8 @@ sources['dom'] = [
     'dom/NodeFilterCondition.cpp',
     'dom/NodeIterator.cpp',
     'dom/Notation.cpp',
+    'dom/OptionGroupElement.cpp',
+    'dom/OptionElement.cpp',
     'dom/OverflowEvent.cpp',
     'dom/Position.cpp',
     'dom/PositionIterator.cpp',
@@ -174,7 +177,6 @@ sources['editing'] = [
     'editing/MoveSelectionCommand.cpp',
     'editing/RemoveCSSPropertyCommand.cpp',
     'editing/RemoveFormatCommand.cpp',
-    'editing/RemoveNodeAttributeCommand.cpp',
     'editing/RemoveNodeCommand.cpp',
     'editing/RemoveNodePreservingChildrenCommand.cpp',
     'editing/ReplaceSelectionCommand.cpp',
@@ -196,6 +198,7 @@ sources['editing'] = [
 ]
 sources['history'] = [
     'history/BackForwardList.cpp',
+    'history/CachedFrame.cpp',
     'history/CachedPage.cpp',
     'history/HistoryItem.cpp',
     'history/PageCache.cpp'
@@ -333,6 +336,7 @@ sources['loader'] = [
     'loader/CachedXSLStyleSheet.cpp',
     'loader/DocLoader.cpp',
     'loader/DocumentLoader.cpp',
+    'loader/DocumentThreadableLoader.cpp',
     'loader/FormState.cpp',
     'loader/FrameLoader.cpp',
     'loader/FTPDirectoryDocument.cpp',
@@ -351,7 +355,9 @@ sources['loader'] = [
     'loader/SubresourceLoader.cpp',
     'loader/TextDocument.cpp',
     'loader/TextResourceDecoder.cpp',
+    'loader/ThreadableLoader.cpp',
     'loader/UserStyleSheetLoader.cpp',
+    'loader/WorkerThreadableLoader.cpp',
 ]
 sources['page'] = [
     'page/AccessibilityImageMapLink.cpp',
@@ -371,6 +377,7 @@ sources['page'] = [
     'page/Console.cpp',
     'page/ContextMenuController.cpp',
     'page/DOMSelection.cpp',
+    'page/DOMTimer.cpp',
     'page/DOMWindow.cpp',
     'page/DragController.cpp',
     'page/EventHandler.cpp',
@@ -597,10 +604,10 @@ sources['xml'] = [
 
 # Using JavaScriptCore for now, eventually this needs to be configurable (and in separate file)
 sources['bindings/js'] = [
-    "bindings/js/DOMTimer.cpp",
     "bindings/js/GCController.cpp",
     "bindings/js/JSAttrCustom.cpp",
     "bindings/js/JSAudioConstructor.cpp",
+    "bindings/js/JSCDATASectionCustom.cpp",
     "bindings/js/JSCSSRuleCustom.cpp",
     "bindings/js/JSCSSStyleDeclarationCustom.cpp",
     "bindings/js/JSCSSValueCustom.cpp",
@@ -629,7 +636,6 @@ sources['bindings/js'] = [
     "bindings/js/JSEventCustom.cpp",
     "bindings/js/JSEventListener.cpp",
     "bindings/js/JSEventTarget.cpp",
-    "bindings/js/JSEventTargetNodeCustom.cpp",
     "bindings/js/JSGeolocationCustom.cpp",
     "bindings/js/JSHTMLAllCollection.cpp",
     "bindings/js/JSHTMLAppletElementCustom.cpp",
@@ -701,6 +707,7 @@ sources['bindings/js'] = [
     "bindings/js/WorkerScriptController.cpp",
 ]
 sources['bridge'] = [
+    'bridge/IdentifierRep.cpp',
     'bridge/NP_jsobject.cpp',
     'bridge/npruntime.cpp',
     'bridge/runtime.cpp',
@@ -736,6 +743,7 @@ sources['platform'] = [
     'platform/SharedBuffer.cpp',
     'platform/Theme.cpp',
     'platform/ThreadGlobalData.cpp',
+    'platform/ThreadTimers.cpp',
     'platform/Timer.cpp',
     'platform/Widget.cpp'
 ]
@@ -795,6 +803,7 @@ sources['platform/network'] = [
     'platform/network/Credential.cpp',
     'platform/network/FormData.cpp',
     'platform/network/FormDataBuilder.cpp',
+    'platform/network/HTTPHeaderMap.cpp',
     'platform/network/HTTPParsers.cpp',
     'platform/network/mac/NetworkStateNotifierMac.cpp',
     'platform/network/NetworkStateNotifier.cpp',

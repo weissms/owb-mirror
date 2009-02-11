@@ -1,3 +1,209 @@
+2009-02-09  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix Use toNormalizedRange().
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::clipboard_get_contents_cb):
+
+2009-02-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::updateGlobalHistoryRedirectLinks):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-02-06  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        Reported by Daniel Macks.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20412
+
+        Use positive numbers for the target info IDs, gtk_target_list_add
+        casts them to 'guint'. Also just start them from 0, since the
+        values are not relevant or magic in any way, they are just used as
+        tokens for the user of the API.
+
+        * webkit/webkitwebview.h:
+
+2009-02-06  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23769
+
+        Do not use empty ResourceError errors.
+
+        Rather create bogus but non-null errors, since some codepaths
+        expect these. For example, see DocumentLoader::mainReceivedError.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::cancelledError):
+        (WebKit::FrameLoaderClient::blockedError):
+        (WebKit::FrameLoaderClient::cannotShowURLError):
+        (WebKit::FrameLoaderClient::interruptForPolicyChangeError):
+        (WebKit::FrameLoaderClient::cannotShowMIMETypeError):
+        (WebKit::FrameLoaderClient::fileDoesNotExistError):
+        (WebKit::FrameLoaderClient::pluginWillHandleLoadError):
+
+2009-02-06  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23761
+
+        Use two-arg KURL ctor.
+
+        We are using the one-arg ctor currently, but:
+
+        - It assumes the strings are already encoded, which is not
+        necesarily the case for us.
+
+        - The single-argument KURL ctors expect their input to already be
+        the output of a previous KURL::parse call, so for the general
+        case (ie, random user input) we need to use the two-arg ctor
+        anyway.
+
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebview.cpp:
+
+2009-02-05  Aaron Boodman <aa@chromium.org> 
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23708
+        Adds documentElementAvailable() callback to FrameLoaderClient.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::documentElementAvailable):
+        Stub out documentElementAvailable()
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+        Ditto.
+
+2009-02-04  Hiroyuki Ikezoe  <poincare@ikezoe.net>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22988
+        [GTK] Need a public method to add a WebKitWebHistoryItem to
+        WebKitWebBackForwardList.
+
+        Wrap WebCore::BackForwardList::addItem.
+
+        * tests/main.c:
+        (test_webkit_web_back_forward_list_add_item):
+        (main):
+        * webkit/webkitwebbackforwardlist.cpp:
+        (_WebKitWebBackForwardListPrivate::webkit_web_back_forward_list_add_item):
+        * webkit/webkitwebbackforwardlist.h:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * webkit/webkitwebview.cpp:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * webkit/webkitwebframe.cpp:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createFrame):
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Track redirects in global history.
+
+        Keep GTK building.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createFrame):
+        (WebKit::FrameLoaderClient::updateGlobalHistoryForRedirectWithoutHistoryItem):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-02-02  Anders Carlsson  <andersca@apple.com>
+
+        Build fix.
+        
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-02-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Update for changes to WebCore.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createPlugin):
+        (WebKit::FrameLoaderClient::createJavaAppletWidget):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-02-02  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        Move Frame::forceLayout, Frame::adjustPageHeight and Frame::forceLayoutWithPageWidthRange to FrameView
+
+        https://bugs.webkit.org/show_bug.cgi?id=23428
+
+        FrameView::forceLayout could be killed but the comment might
+        contain a value over the the plain FrameView::layout...
+
+        Adjust the WebCore/WebKit consumers of these methods.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::forceLayout):
+        * webkit/webkitwebview.cpp:
+
+2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createFrame):
+
+2009-01-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22056
+
+        Kill FrameLoaderClient.cpp, move the code over to Frame::createView
+
+        FrameLoaderClient is supposed to be an interface, move the
+        to be shared code to Frame which is a controller and is
+        allowed to create a FrameView.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::transitionToCommittedForNewPage):
+
+2009-01-28  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Rework FrameLoaderClient to work on a CachedFrame basis instead of CachedPage
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::savePlatformDataToCachedFrame):
+        (WebKit::FrameLoaderClient::transitionToCommittedFromCachedFrame):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-01-25  Darin Adler  <darin@apple.com>
+
+        Try to fix GTK build.
+
+        * webkit/webkitwebview.cpp: Added include of FloatQuad.h.
+
 2009-01-14  Alexander V. Butenko  <alex@digiqube.com>
 
         Reviewed by Holger Freyther.

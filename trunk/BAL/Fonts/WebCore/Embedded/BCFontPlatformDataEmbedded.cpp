@@ -34,7 +34,7 @@
 #include "FontDescription.h"
 #include "fonts/pixelfont.h"
 
-namespace WKAL {
+namespace WebCore {
 
 FontPlatformData::FontPlatformData(WTF::HashTableDeletedValueType)
         : m_pattern(hashTableDeletedFontValue())

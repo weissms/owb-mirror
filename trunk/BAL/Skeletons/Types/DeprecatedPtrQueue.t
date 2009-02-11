@@ -39,7 +39,7 @@
 
 #include "DeprecatedPtrList.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 template<class T> class DeprecatedPtrQueue {
 public:

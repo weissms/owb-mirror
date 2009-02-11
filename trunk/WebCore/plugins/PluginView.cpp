@@ -57,6 +57,7 @@
 #include "PluginDebug.h"
 #include "PluginMainThreadScheduler.h"
 #include "PluginPackage.h"
+#include "RenderBox.h"
 #include "RenderObject.h"
 #include "c_instance.h"
 #include "npruntime_impl.h"
@@ -238,7 +239,7 @@ void PluginView::performRequest(PluginRequest* request)
             m_streams.add(stream);
             stream->start();
         } else {
-            m_parentFrame->loader()->load(request->frameLoadRequest().resourceRequest(), targetFrameName);
+            m_parentFrame->loader()->load(request->frameLoadRequest().resourceRequest(), targetFrameName, false);
       
             // FIXME: <rdar://problem/4807469> This should be sent when the document has finished loading
             if (request->sendNotification()) {
@@ -564,6 +565,7 @@ PluginView::PluginView(Frame* parentFrame, const IntSize& size, PluginPackage* p
     , m_pluginWndProc(0)
     , m_lastMessage(0)
     , m_isCallingPluginWndProc(false)
+    , m_wmPrintHDC(0)
 #endif
 #if (PLATFORM(QT) && PLATFORM(WIN_OS)) || defined(XP_MACOSX)
     , m_window(0)
@@ -905,9 +907,9 @@ void PluginView::invalidateWindowlessPluginRect(const IntRect& rect)
     if (!isVisible())
         return;
     
-    RenderObject* renderer = m_element->renderer();
-    if (!renderer)
+    if (!m_element->renderer())
         return;
+    RenderBox* renderer = toRenderBox(m_element->renderer());
     
     IntRect dirtyRect = rect;
     dirtyRect.move(renderer->borderLeft() + renderer->paddingLeft(), renderer->borderTop() + renderer->paddingTop());

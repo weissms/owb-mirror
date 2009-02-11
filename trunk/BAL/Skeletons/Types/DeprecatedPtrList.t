@@ -39,11 +39,11 @@
 
 #include "DeprecatedPtrListImpl.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 template <class T> class DeprecatedPtrListIterator;
 
-template <class T> class DeprecatedPtrList : public OWBALBase {
+template <class T> class DeprecatedPtrList : public WebCoreBase {
 public:
     /**
      *  DeprecatedPtrList description
@@ -345,7 +345,7 @@ public:
     bool del_item;
 };
 
-template <class T> class DeprecatedPtrListIterator : public OWBALBase {
+template <class T> class DeprecatedPtrListIterator : public WebCoreBase {
 public:
     /**
      *  DeprecatedPtrListIterator description

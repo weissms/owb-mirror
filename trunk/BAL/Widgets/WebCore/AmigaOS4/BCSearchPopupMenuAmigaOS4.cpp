@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer.
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,31 +35,54 @@
 
 #include <cstdio>
 
-namespace WKAL {
+namespace WebCore {
 
 SearchPopupMenu::SearchPopupMenu(PopupMenuClient* client)
     : PopupMenu(client)
 {
-    fprintf(stderr, "SearchPopupMenu::SearchPopupMenu\n");
-    NotImplemented();
 }
 
 void SearchPopupMenu::saveRecentSearches(const AtomicString& name, const Vector<String>& searchItems)
 {
-    fprintf(stderr, "SearchPopupMenu::saveRecentSearches '%s'\n", name.string().latin1().data());
-    NotImplemented();
+    String fileName = String("PROGDIR:Searches");
+    if (!name.isEmpty())
+        fileName = fileName + "_" + name;
+
+    FILE *file = fopen(fileName.latin1().data(), "w");
+    if (file) {
+        Vector<String>::iterator end = (Vector<String>::iterator)searchItems.end();
+        for (Vector<String>::iterator it = (Vector<String>::iterator)searchItems.begin(); it < end; it++)
+            fprintf(file, "%s\n", (*it).utf8().data());
+
+        fclose(file);
+    }
 }
 
 void SearchPopupMenu::loadRecentSearches(const AtomicString& name, Vector<String>& searchItems)
 {
-    fprintf(stderr, "SearchPopupMenu::loadRecentSearches '%s'\n", name.string().latin1().data());
-    NotImplemented();
+    String fileName = String("PROGDIR:Searches");
+    if (!name.isEmpty())
+        fileName = fileName + "_" + name;
+
+    searchItems.clear();
+
+    FILE *file = fopen(fileName.latin1().data(), "r");
+    if (file) {
+        char item[4096];
+
+        while (fgets(item, 4096, file)) {
+            size_t len = strlen(item);
+            if (len)
+                item[len-1] = 0;
+            searchItems.append(String(item));
+        }
+
+        fclose(file);
+    }
 }
 
 bool SearchPopupMenu::enabled()
 {
-    fprintf(stderr, "SearchPopupMenu::enabled\n");
-    NotImplemented();
     return true;
 }
 

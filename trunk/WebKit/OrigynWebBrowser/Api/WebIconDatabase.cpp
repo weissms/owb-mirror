@@ -214,12 +214,12 @@ String WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification()
 
 static void postDidRemoveAllIconsNotification(WebIconDatabase* iconDB)
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification(), "", iconDB);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification(), "", iconDB);
 }
 
 static void postDidAddIconNotification(const String& pageURL, WebIconDatabase* iconDB)
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), pageURL, iconDB);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), pageURL, iconDB);
 }
 
 void WebIconDatabase::deliverNotifications(void*)

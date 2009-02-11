@@ -28,10 +28,12 @@
 #include "FrameLoader.h"
 #include "FrameView.h"
 #include "FrameTree.h"
+#include "HTMLAppletElement.h"
 #include "HTMLFormElement.h"
 #include "HTMLFrameElement.h"
 #include "HTMLFrameOwnerElement.h"
 #include "HTMLNames.h"
+#include "HTMLPlugInElement.h"
 #include "JSDOMWindow.h"
 #include "Language.h"
 #include "MIMETypeRegistry.h"
@@ -370,7 +372,7 @@ void FrameLoaderClient::dispatchDecidePolicyForNavigationAction(FramePolicyFunct
         webkit_web_policy_decision_use(m_policyDecision);
 }
 
-Widget* FrameLoaderClient::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
+Widget* FrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
     PluginView* pluginView = PluginView::create(core(m_frame), pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
 
@@ -393,7 +395,7 @@ PassRefPtr<Frame> FrameLoaderClient::createFrame(const KURL& url, const String& 
 
     childFrame->tree()->setName(name);
     childFrame->init();
-    childFrame->loader()->loadURL(url, referrer, String(), FrameLoadTypeRedirectWithLockedHistory, 0, 0);
+    childFrame->loader()->loadURL(url, referrer, String(), false, FrameLoadTypeRedirectWithLockedBackForwardList, 0, 0);
 
     // The frame's onload handler may have removed it from the document.
     if (!childFrame->tree()->parent())
@@ -409,7 +411,7 @@ void FrameLoaderClient::redirectDataToPlugin(Widget* pluginWidget)
     m_hasSentResponseToPlugin = false;
 }
 
-Widget* FrameLoaderClient::createJavaAppletWidget(const IntSize&, Element*, const KURL& baseURL,
+Widget* FrameLoaderClient::createJavaAppletWidget(const IntSize&, HTMLAppletElement*, const KURL& baseURL,
                                                   const Vector<String>& paramNames, const Vector<String>& paramValues)
 {
     notImplemented();
@@ -469,6 +471,10 @@ void FrameLoaderClient::windowObjectCleared()
     // The Win port has an example of how we might do this.
 }
 
+void FrameLoaderClient::documentElementAvailable()
+{
+}
+
 void FrameLoaderClient::didPerformFirstNavigation() const
 {
 }
@@ -524,7 +530,9 @@ void FrameLoaderClient::makeRepresentation(DocumentLoader*)
 
 void FrameLoaderClient::forceLayout()
 {
-    core(m_frame)->forceLayout(true);
+    FrameView* view = core(m_frame)->view();
+    if (view)
+        view->forceLayout(true);
 }
 
 void FrameLoaderClient::forceLayoutForNonHTML()
@@ -543,11 +551,6 @@ void FrameLoaderClient::detachedFromParent2()
 }
 
 void FrameLoaderClient::detachedFromParent3()
-{
-    notImplemented();
-}
-
-void FrameLoaderClient::loadedFromCachedPage()
 {
     notImplemented();
 }
@@ -759,43 +762,45 @@ void FrameLoaderClient::download(ResourceHandle*, const ResourceRequest&, const 
 ResourceError FrameLoaderClient::cancelledError(const ResourceRequest&)
 {
     notImplemented();
-    return ResourceError();
+    ResourceError error("", 0, "", "");
+    error.setIsCancellation(true);
+    return error;
 }
 
 ResourceError FrameLoaderClient::blockedError(const ResourceRequest&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 ResourceError FrameLoaderClient::cannotShowURLError(const ResourceRequest&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 ResourceError FrameLoaderClient::interruptForPolicyChangeError(const ResourceRequest&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 ResourceError FrameLoaderClient::cannotShowMIMETypeError(const ResourceResponse&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 ResourceError FrameLoaderClient::fileDoesNotExistError(const ResourceResponse&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 ResourceError FrameLoaderClient::pluginWillHandleLoadError(const ResourceResponse&)
 {
     notImplemented();
-    return ResourceError();
+    return ResourceError("", 0, "", "");
 }
 
 bool FrameLoaderClient::shouldFallBack(const ResourceError&)
@@ -847,11 +852,16 @@ void FrameLoaderClient::updateGlobalHistory()
     notImplemented();
 }
 
-void FrameLoaderClient::savePlatformDataToCachedPage(CachedPage*)
+void FrameLoaderClient::updateGlobalHistoryRedirectLinks()
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::savePlatformDataToCachedFrame(CachedFrame*)
 {
 }
 
-void FrameLoaderClient::transitionToCommittedFromCachedPage(CachedPage*)
+void FrameLoaderClient::transitionToCommittedFromCachedFrame(CachedFrame*)
 {
 }
 
@@ -865,7 +875,7 @@ void FrameLoaderClient::transitionToCommittedForNewPage()
     Frame* frame = core(m_frame);
     ASSERT(frame);
 
-    WebCore::FrameLoaderClient::transitionToCommittedForNewPage(frame, size, backgroundColor, transparent, IntSize(), false);
+    frame->createView(size, backgroundColor, transparent, IntSize(), false);
 
     // We need to do further manipulation on the FrameView if it was the mainFrame
     if (frame != frame->page()->mainFrame())

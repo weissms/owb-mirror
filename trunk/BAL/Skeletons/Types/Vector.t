@@ -302,7 +302,7 @@ namespace WTF {
         static bool compare(const T* a, const T* b, size_t size);
     };
 
-    template<typename T>     class VectorBufferBase : public OWBALBase, Noncopyable {
+    template<typename T>     class VectorBufferBase : Noncopyable {
     public:
     /**
      *  allocateBuffer description
@@ -398,7 +398,7 @@ namespace WTF {
 
     template<typename T, size_t inlineCapacity>     class VectorBuffer;
 
-    template<typename T>     class VectorBuffer<T, 0> : public OWBALBase, private VectorBufferBase<T> {
+    template<typename T>     class VectorBuffer<T, 0> :  private VectorBufferBase<T> {
     private:
         typedef VectorBufferBase<T> Base;
     public:
@@ -451,7 +451,7 @@ namespace WTF {
         using Base::m_capacity;
     };
 
-    template<typename T, size_t inlineCapacity>     class VectorBuffer : public OWBALBase, private VectorBufferBase<T> {
+    template<typename T, size_t inlineCapacity>     class VectorBuffer : private VectorBufferBase<T> {
     private:
         typedef VectorBufferBase<T> Base;
     public:
@@ -538,7 +538,7 @@ namespace WTF {
         char m_inlineBuffer[m_inlineBufferSize];
     };
 
-    template<typename T, size_t inlineCapacity = 0>     class Vector : public OWBALBase {
+    template<typename T, size_t inlineCapacity = 0>     class Vector  {
     private:
         typedef VectorBuffer<T, inlineCapacity> Buffer;
         typedef VectorTypeOperations<T> TypeOperations;

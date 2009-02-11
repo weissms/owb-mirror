@@ -29,6 +29,7 @@
 
 #include "CFDictionaryPropertyBag.h"
 #include "DOMCoreClasses.h"
+#include "MarshallingHelpers.h"
 #include "WebDatabaseManager.h"
 #include "WebDocumentLoader.h"
 #include "WebEditorClient.h"
@@ -67,6 +68,7 @@
 #include <WebCore/EventNames.h>
 #include <WebCore/FileSystem.h>
 #include <WebCore/FocusController.h>
+#include <WebCore/FloatQuad.h>
 #include <WebCore/FrameLoader.h>
 #include <WebCore/FrameTree.h>
 #include <WebCore/FrameView.h>
@@ -817,7 +819,7 @@ static void getUpdateRects(HRGN region, const IntRect& dirtyRect, Vector<IntRect
         rects.append(*rect);
 }
 
-void WebView::updateBackingStore(FrameView* frameView, HDC dc, bool backingStoreCompletelyDirty)
+void WebView::updateBackingStore(FrameView* frameView, HDC dc, bool backingStoreCompletelyDirty, WindowsToPaint windowsToPaint)
 {
     LOCAL_GDI_COUNTER(0, __FUNCTION__);
 
@@ -847,7 +849,7 @@ void WebView::updateBackingStore(FrameView* frameView, HDC dc, bool backingStore
         }
 
         for (unsigned i = 0; i < paintRects.size(); ++i)
-            paintIntoBackingStore(frameView, bitmapDC, paintRects[i]);
+            paintIntoBackingStore(frameView, bitmapDC, paintRects[i], windowsToPaint);
 
         if (m_uiDelegatePrivate) {
             COMPtr<IWebUIDelegatePrivate2> uiDelegatePrivate2(Query, m_uiDelegatePrivate);
@@ -882,16 +884,23 @@ void WebView::paint(HDC dc, LPARAM options)
     OwnPtr<HRGN> region;
     int regionType = NULLREGION;
     PAINTSTRUCT ps;
+    WindowsToPaint windowsToPaint;
     if (!dc) {
         region.set(CreateRectRgn(0,0,0,0));
         regionType = GetUpdateRgn(m_viewWindow, region.get(), false);
         hdc = BeginPaint(m_viewWindow, &ps);
         rcPaint = ps.rcPaint;
+        // We're painting to the screen, and our child windows can handle
+        // painting themselves to the screen.
+        windowsToPaint = PaintWebViewOnly;
     } else {
         hdc = dc;
         ::GetClientRect(m_viewWindow, &rcPaint);
         if (options & PRF_ERASEBKGND)
             ::FillRect(hdc, &rcPaint, (HBRUSH)GetStockObject(WHITE_BRUSH));
+        // Since we aren't painting to the screen, we want to paint all our
+        // children into the HDC.
+        windowsToPaint = PaintWebViewAndChildren;
     }
 
     HDC bitmapDC = ::CreateCompatibleDC(hdc);
@@ -899,7 +908,7 @@ void WebView::paint(HDC dc, LPARAM options)
     ::SelectObject(bitmapDC, m_backingStoreBitmap.get());
 
     // Update our backing store if needed.
-    updateBackingStore(frameView, bitmapDC, backingStoreCompletelyDirty);
+    updateBackingStore(frameView, bitmapDC, backingStoreCompletelyDirty, windowsToPaint);
 
     // Now we blit the updated backing store
     IntRect windowDirtyRect = rcPaint;
@@ -940,7 +949,7 @@ void WebView::paint(HDC dc, LPARAM options)
         deleteBackingStoreSoon();
 }
 
-void WebView::paintIntoBackingStore(FrameView* frameView, HDC bitmapDC, const IntRect& dirtyRect)
+void WebView::paintIntoBackingStore(FrameView* frameView, HDC bitmapDC, const IntRect& dirtyRect, WindowsToPaint windowsToPaint)
 {
     LOCAL_GDI_COUNTER(0, __FUNCTION__);
 
@@ -957,6 +966,7 @@ void WebView::paintIntoBackingStore(FrameView* frameView, HDC bitmapDC, const In
 #endif
 
     GraphicsContext gc(bitmapDC, m_transparent);
+    gc.setShouldIncludeChildWindows(windowsToPaint == PaintWebViewAndChildren);
     gc.save();
     if (m_transparent)
         gc.clearRect(dirtyRect);
@@ -2576,8 +2586,7 @@ HRESULT STDMETHODCALLTYPE WebView::userAgentForURL(
     /* [in] */ BSTR url,
     /* [retval][out] */ BSTR* userAgent)
 {
-    String urlStr(url, SysStringLen(url));
-    String userAgentString = this->userAgentForKURL(KURL(urlStr));
+    String userAgentString = userAgentForKURL(MarshallingHelpers::BSTRToKURL(url));
     *userAgent = SysAllocStringLen(userAgentString.characters(), userAgentString.length());
     if (!*userAgent && userAgentString.length())
         return E_OUTOFMEMORY;
@@ -2605,7 +2614,7 @@ HRESULT STDMETHODCALLTYPE WebView::setCustomTextEncodingName(
 
     if (oldEncoding != encodingName && (!oldEncoding || !encodingName || _tcscmp(oldEncoding, encodingName))) {
         if (Frame* coreFrame = core(m_mainFrame))
-            coreFrame->loader()->reloadAllowingStaleData(String(encodingName, SysStringLen(encodingName)));
+            coreFrame->loader()->reloadWithOverrideEncoding(String(encodingName, SysStringLen(encodingName)));
     }
 
     return S_OK;
@@ -3805,8 +3814,7 @@ HRESULT STDMETHODCALLTYPE WebView::paste(
 HRESULT STDMETHODCALLTYPE WebView::copyURL( 
         /* [in] */ BSTR url)
 {
-    String temp(url, SysStringLen(url));
-    m_page->focusController()->focusedOrMainFrame()->editor()->copyURL(KURL(temp), "");
+    m_page->focusController()->focusedOrMainFrame()->editor()->copyURL(MarshallingHelpers::BSTRToKURL(url), "");
     return S_OK;
 }
 
@@ -4195,6 +4203,11 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
     if (FAILED(hr))
         return hr;
     settings->setLocalStorageEnabled(enabled);
+
+    hr = prefsPrivate->isWebSecurityEnabled(&enabled);
+    if (FAILED(hr))
+        return hr;
+    settings->setWebSecurityEnabled(!!enabled);
 
 #if USE(SAFARI_THEME)
     hr = prefsPrivate->shouldPaintNativeControls(&enabled);
@@ -4672,7 +4685,7 @@ void WebView::releaseIMMContext(HIMC hIMC)
 void WebView::prepareCandidateWindow(Frame* targetFrame, HIMC hInputContext) 
 {
     IntRect caret;
-    if (RefPtr<Range> range = targetFrame->selection()->selection().toRange()) {
+    if (RefPtr<Range> range = targetFrame->selection()->selection().toNormalizedRange()) {
         ExceptionCode ec = 0;
         RefPtr<Range> tempRange = range->cloneRange(ec);
         caret = targetFrame->firstRectForRange(tempRange.get());
@@ -4835,7 +4848,7 @@ bool WebView::onIMERequestCharPosition(Frame* targetFrame, IMECHARPOSITION* char
 {
     IntRect caret;
     ASSERT(charPos->dwCharPos == 0 || targetFrame->editor()->hasComposition());
-    if (RefPtr<Range> range = targetFrame->editor()->hasComposition() ? targetFrame->editor()->compositionRange() : targetFrame->selection()->selection().toRange()) {
+    if (RefPtr<Range> range = targetFrame->editor()->hasComposition() ? targetFrame->editor()->compositionRange() : targetFrame->selection()->selection().toNormalizedRange()) {
         ExceptionCode ec = 0;
         RefPtr<Range> tempRange = range->cloneRange(ec);
         tempRange->setStart(tempRange->startContainer(ec), tempRange->startOffset(ec) + charPos->dwCharPos, ec);
@@ -4853,7 +4866,7 @@ bool WebView::onIMERequestCharPosition(Frame* targetFrame, IMECHARPOSITION* char
 
 bool WebView::onIMERequestReconvertString(Frame* targetFrame, RECONVERTSTRING* reconvertString, LRESULT* result)
 {
-    RefPtr<Range> selectedRange = targetFrame->selection()->toRange();
+    RefPtr<Range> selectedRange = targetFrame->selection()->toNormalizedRange();
     String text = selectedRange->text();
     if (!reconvertString) {
         *result = sizeof(RECONVERTSTRING) + text.length() * sizeof(UChar);

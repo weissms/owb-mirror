@@ -33,7 +33,7 @@
 #include <wtf/Assertions.h>
 #include "CString.h"
 
-namespace WKAL {
+namespace WebCore {
 
 void FontCache::platformInit()
 {

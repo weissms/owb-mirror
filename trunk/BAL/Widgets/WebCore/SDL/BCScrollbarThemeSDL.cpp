@@ -39,7 +39,7 @@
 #include "ScrollbarClient.h"
 #include "Settings.h"
 
-namespace WKAL {
+namespace WebCore {
 
 ScrollbarTheme* ScrollbarTheme::nativeTheme()
 {
@@ -117,25 +117,46 @@ IntRect ScrollbarThemeBal::trackRect(Scrollbar* scrollbar, bool)
 void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart part)
 {
     context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::gray);
-
     bool start = (part == BackButtonStartPart);
-    if (start) {
-        if (scrollbar->orientation() == HorizontalScrollbar) {
-            context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));
-            context->drawLine(IntPoint(rect.right(), rect.bottom()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));
+    RefPtr<WebCore::Image> left = Image::loadPlatformResource("/ScrollbarTheme/left");
+    if (!left->isNull()) {
+        IntPoint startPos(rect.location());
+        if (start) {
+            if (scrollbar->orientation() == HorizontalScrollbar) 
+                context->drawImage(left.get(), startPos);
+            else {
+                RefPtr<WebCore::Image> up = Image::loadPlatformResource("/ScrollbarTheme/up");
+                context->drawImage(up.get(), startPos);
+            }
         } else {
-            context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y()));
-            context->drawLine(IntPoint(rect.right(), rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y()));
+            if (scrollbar->orientation() == HorizontalScrollbar) {
+                RefPtr<WebCore::Image> right = Image::loadPlatformResource("/ScrollbarTheme/right");
+                context->drawImage(right.get(), startPos);
+            } else {
+                RefPtr<WebCore::Image> down = Image::loadPlatformResource("/ScrollbarTheme/down");
+                context->drawImage(down.get(), startPos);
+            }
         }
-    } else {
-        if (scrollbar->orientation() == HorizontalScrollbar) {
-            context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint(rect.right(), (rect.bottom() + rect.y())/2));
-            context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint(rect.right(), (rect.bottom() + rect.y())/2));
+    } else {    
+        context->drawRect(rect);
+        context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+
+        if (start) {
+            if (scrollbar->orientation() == HorizontalScrollbar) {
+                context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint(rect.x() - 1, (rect.bottom() + rect.y())/2));
+                context->drawLine(IntPoint(rect.right(), rect.bottom()), IntPoint(rect.x() - 1, (rect.bottom() + rect.y())/2));
+            } else {
+                context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y() + 1));
+                context->drawLine(IntPoint(rect.right() - 1, rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y() + 1));
+            }
         } else {
-            context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom()));
-            context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom()));
+            if (scrollbar->orientation() == HorizontalScrollbar) {
+                context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint(rect.right() - 1, (rect.bottom() + rect.y())/2));
+                context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint(rect.right() - 1, (rect.bottom() + rect.y())/2));
+            } else {
+                context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom() - 1));
+                context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom() - 1));
+            }
         }
     }
     context->restore();
@@ -144,8 +165,40 @@ void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollb
 void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect)
 {
     context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::gray);
+    if (scrollbar->orientation() == HorizontalScrollbar) {
+        RefPtr<WebCore::Image> thumbH = Image::loadPlatformResource("/ScrollbarTheme/thumbH");
+        if (!thumbH->isNull()) {
+            RefPtr<WebCore::Image> thumbHL = Image::loadPlatformResource("/ScrollbarTheme/thumbHL");
+            RefPtr<WebCore::Image> thumbHR = Image::loadPlatformResource("/ScrollbarTheme/thumbHR");
+            IntPoint startPos(rect.location());
+            IntPoint endPos(rect.right() - thumbHR->width(), rect.y());
+            IntRect destRect(rect.x() + thumbHL->width() - 1, rect.y(), rect.width() - thumbHR->width() - thumbHL->width() + 1, rect.height());
+
+            context->drawImage(thumbHL.get(), startPos);
+            context->drawTiledImage(thumbH.get(), destRect, IntPoint(0, 0), IntSize(thumbH->width(), thumbH->height()));
+            context->drawImage(thumbHR.get(), endPos);
+
+        } else {
+            context->drawRect(rect);
+            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+        }
+    } else {
+        RefPtr<WebCore::Image> thumbV = Image::loadPlatformResource("/ScrollbarTheme/thumbV");
+        if (!thumbV->isNull()) {
+            RefPtr<WebCore::Image> thumbVU = Image::loadPlatformResource("/ScrollbarTheme/thumbVU");
+            RefPtr<WebCore::Image> thumbVD = Image::loadPlatformResource("/ScrollbarTheme/thumbVD");
+            IntPoint startPos(rect.location());
+            IntPoint endPos(rect.x(), rect.bottom() - thumbVD->height());
+            IntRect destRect(rect.x(), rect.y() + thumbVU->height(), rect.width(), rect.height() - thumbVU->height() - thumbVD->height());
+
+            context->drawImage(thumbVU.get(), startPos);
+            context->drawTiledImage(thumbV.get(), destRect, IntPoint(0, 0), IntSize(thumbV->width(), thumbV->height()));
+            context->drawImage(thumbVD.get(), endPos);
+        } else {
+            context->drawRect(rect);
+            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+        }
+    }
     context->restore();
 }
 
@@ -174,8 +227,24 @@ bool ScrollbarThemeBal::shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent
 void ScrollbarThemeBal::paintTrackPiece(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart partType)
 {
     context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::darkGray);
+    
+    RefPtr<WebCore::Image> bg = Image::loadPlatformResource("/ScrollbarTheme/bg");
+    if (!bg->isNull()) {
+        if (scrollbar->orientation() == HorizontalScrollbar) {
+            RefPtr<WebCore::Image> bgh = Image::loadPlatformResource("/ScrollbarTheme/bgh");
+            IntRect destRect(rect.x() - 1, rect.y(), rect.width() + 2, rect.height());
+            context->drawTiledImage(bgh.get(), destRect, IntPoint(0, 0), IntSize(bgh->width(), bgh->height()));
+        } else {
+            IntRect destRect(rect.x(), rect.y() - 1, rect.width(), rect.height() + 2 );
+            context->drawTiledImage(bg.get(), destRect, IntPoint(0, 0), IntSize(bg->width(), bg->height()));
+        }
+    } else {
+        context->fillRect(rect, Color::white);
+        if (scrollbar->orientation() == HorizontalScrollbar)
+            context->drawLine(IntPoint(rect.x(), (rect.bottom() + rect.y()) / 2), IntPoint(rect.right(), (rect.bottom() + rect.y()) / 2));
+        else
+            context->drawLine(IntPoint((rect.right() + rect.x()) / 2, rect.y()), IntPoint((rect.right() + rect.x()) / 2, rect.bottom()));
+    }
     context->restore();
 }
 

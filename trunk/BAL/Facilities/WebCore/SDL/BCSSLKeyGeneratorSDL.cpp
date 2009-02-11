@@ -31,7 +31,7 @@
 
 #include "NotImplemented.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 Vector<String> supportedKeySizes()
 { 

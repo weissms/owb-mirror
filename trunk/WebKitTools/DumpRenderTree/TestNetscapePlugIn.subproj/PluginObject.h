@@ -29,6 +29,7 @@ extern NPNetscapeFuncs *browser;
 
 typedef struct {
     NPObject header;
+
     NPP npp;
     NPBool eventLogging;
     NPBool logSetWindow;
@@ -43,6 +44,9 @@ typedef struct {
     char* firstHeaders;
     char* lastUrl;
     char* lastHeaders;
+#ifdef XP_MACOSX
+    NPEventModel eventModel;
+#endif
 } PluginObject;
 
 extern NPClass *getPluginClass(void);

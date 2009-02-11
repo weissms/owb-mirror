@@ -33,7 +33,7 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
     enum enPointers
     {
@@ -86,7 +86,7 @@ namespace WKAL {
     class Image;
     class IntPoint;
 
-    class Cursor : public WKALBase {
+    class Cursor {
     public:
         Cursor()
         : m_impl(0)

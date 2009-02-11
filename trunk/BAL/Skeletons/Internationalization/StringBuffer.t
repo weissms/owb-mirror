@@ -41,9 +41,9 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
-class StringBuffer : public OWBALBase, Noncopyable {
+class StringBuffer : Noncopyable {
 public:
     /**
      * StringBuffer constructor

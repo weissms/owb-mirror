@@ -147,7 +147,7 @@ void WebDatabaseManager::deleteDatabase(WebCore::String databaseName, WebSecurit
 void WebDatabaseManager::dispatchDidModifyOrigin(SecurityOrigin* origin)
 {
     WebSecurityOrigin* securityOrigin = WebSecurityOrigin::createInstance(origin);
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyOriginNotification, "", securityOrigin);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyOriginNotification, "", securityOrigin);
 
     delete securityOrigin;
 }
@@ -156,7 +156,7 @@ void WebDatabaseManager::dispatchDidModifyDatabase(SecurityOrigin* origin, const
 {
     WebSecurityOrigin* securityOrigin = WebSecurityOrigin::createInstance(origin);
 
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyDatabaseNotification, "", securityOrigin);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyDatabaseNotification, "", securityOrigin);
 
     delete securityOrigin;
 }

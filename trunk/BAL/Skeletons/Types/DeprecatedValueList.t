@@ -39,12 +39,12 @@
 
 #include "DeprecatedValueListImpl.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 template <class T> class DeprecatedValueList;
 template <class T> class DeprecatedValueListConstIterator;
 
-template<class T> class DeprecatedValueListNode : public OWBALBase, private DeprecatedValueListImplNode {
+template<class T> class DeprecatedValueListNode : public WebCoreBase, private DeprecatedValueListImplNode {
 public:
     /**
      *  DeprecatedValueListNode description
@@ -58,7 +58,7 @@ public:
     friend class DeprecatedValueList<T>;
 };
 
-template<class T> class DeprecatedValueListIterator : public OWBALBase {
+template<class T> class DeprecatedValueListIterator : public WebCoreBase {
 public: 
     /**
      *  DeprecatedValueListIterator description
@@ -136,7 +136,7 @@ private:
     friend class DeprecatedValueListConstIterator<T>;
 };
 
-template<class T> class DeprecatedValueListConstIterator : public OWBALBase {
+template<class T> class DeprecatedValueListConstIterator : public WebCoreBase {
 public:
     /**
      *  DeprecatedValueListConstIterator description
@@ -223,7 +223,7 @@ private:
 
 template<class T> bool operator==(const DeprecatedValueList<T> &a, const DeprecatedValueList<T> &b);
 
-template <class T> class DeprecatedValueList : public OWBALBase {
+template <class T> class DeprecatedValueList : public WebCoreBase {
 public:
     typedef DeprecatedValueListIterator<T> Iterator;
     typedef DeprecatedValueListIterator<T> iterator;

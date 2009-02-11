@@ -36,9 +36,9 @@ typedef struct FT_FaceRec_*  FT_Face;
 typedef struct FT_LibraryRec_  *FT_Library;
 typedef struct _FcFontSet FcFontSet;
 
-namespace WKAL {
+namespace WebCore {
 
-class FontPlatformData : public WKALBase {
+class FontPlatformData {
 public:
     FontPlatformData(WTF::HashTableDeletedValueType)
         : m_pattern(hashTableDeletedFontValue())

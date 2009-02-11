@@ -50,6 +50,7 @@ class Node;
 class RenderObject;
 class RenderListBox;
 class RenderTextControl;
+class RenderView;
 class Selection;
 class String;
 class Widget;
@@ -147,7 +148,7 @@ public:
     
     void setRenderer(RenderObject* renderer) { m_renderer = renderer; }
     RenderObject* renderer() const { return m_renderer; }
-    RenderObject* topRenderer() const;
+    RenderView* topRenderer() const;
     RenderTextControl* textControl() const;
     Document* document() const;
     FrameView* topDocumentFrameView() const;  
@@ -209,9 +210,12 @@ public:
     virtual String doAXStringForRange(const PlainTextRange&) const;
     virtual IntRect doAXBoundsForRange(const PlainTextRange&) const;
     
+    virtual void updateBackingStore();
+    
 protected:
     RenderObject* m_renderer;
     AccessibilityRole m_ariaRole;
+    mutable bool m_childrenDirty;
     
     void setRenderObject(RenderObject* renderer) { m_renderer = renderer; }
     virtual void removeAXObjectID();
@@ -231,6 +235,7 @@ private:
     AccessibilityObject* internalLinkElement() const;
     AccessibilityObject* accessibilityParentForImageMap(HTMLMapElement* map) const;
 
+    void markChildrenDirty() const { m_childrenDirty = true; }
 };
     
 } // namespace WebCore

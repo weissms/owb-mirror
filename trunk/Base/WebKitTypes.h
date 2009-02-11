@@ -56,6 +56,8 @@ struct Window;
 struct Gadget;
 struct Hook;
 struct AppIcon;
+struct Node;
+struct List;
 class WebView;
 
 struct AmigaOWBWindow
@@ -70,12 +72,13 @@ struct AmigaOWBWindow
     _cairo_surface* surface;
     void *img_back, *img_forward, *img_stop,
          *img_search, *img_home, *img_reload,
-         *img_iconify;
+         *img_iconify, *img_bookmark, *img_bookmarkadd;
     Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
            *gad_url, *gad_fuelgauge, *gad_stop,
            *gad_back, *gad_forward, *gad_iconify,
            *gad_search, *gad_status, *gad_webview,
-           *gad_page, *gad_hlayout;
+           *gad_statuspage, *gad_hlayout, *gad_bookmark,
+           *gad_bookmarkadd, *gad_clicktab, *gad_vlayout;
     Hook* backfill_hook;
     char title[256];
     char url[2000];
@@ -87,6 +90,10 @@ struct AmigaOWBWindow
     void* curentCursor;
     unsigned int fuelGaugeArgs[2];
     const char* arexxPortName;
+    void* bookmark;
+    unsigned long* page;
+    List* clickTabList;
+    Node* clickTabNode;
     bool expose;
 };
 
@@ -114,6 +121,30 @@ typedef struct _BalRectangle{
     int x, y;
     int w, h;
 } BalRectangle;
+
+#elif PLATFORM(QT)
+
+#include <QWidget>
+#include <QRect>
+#include <QPoint>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include <QKeyEvent>
+#include <QFocusEvent>
+#include <QEvent>
+
+typedef QWidget BalWidget;
+typedef QPaintEvent* BalEventExpose;
+typedef QResizeEvent* BalResizeEvent;
+typedef QEvent* BalQuitEvent;
+typedef struct _BalUserEvent{} BalUserEvent;
+typedef QKeyEvent* BalEventKey;
+typedef QMouseEvent* BalEventButton;
+typedef QMouseEvent* BalEventMotion;
+typedef QWheelEvent* BalEventScroll;
+
+typedef QPoint BalPoint;
+typedef QRect BalRectangle;
 
 #elif PLATFORM(SDL)
 

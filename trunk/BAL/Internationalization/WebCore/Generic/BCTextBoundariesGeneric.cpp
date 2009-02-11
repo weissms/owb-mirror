@@ -37,7 +37,7 @@
 //include for printf with gcc-4.3
 #include <stdio.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 int findNextWordFromIndex(const UChar* chars, int len, int position, bool forward)
 {

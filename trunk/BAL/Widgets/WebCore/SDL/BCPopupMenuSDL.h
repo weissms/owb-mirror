@@ -42,7 +42,7 @@
 
 #include <wtf/HashMap.h>
 
-namespace WKAL {
+namespace WebCore {
 
 class FrameView;
 class Scrollbar;

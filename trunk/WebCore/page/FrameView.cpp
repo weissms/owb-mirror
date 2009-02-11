@@ -51,6 +51,10 @@
 #include "Settings.h"
 #include <wtf/CurrentTime.h>
 
+#if USE(ACCELERATED_COMPOSITING)
+#include "RenderLayerCompositor.h"
+#endif
+
 namespace WebCore {
 
 using namespace HTMLNames;
@@ -59,7 +63,7 @@ double FrameView::sCurrentPaintTimeStamp = 0.0;
 
 struct ScheduledEvent {
     RefPtr<Event> m_event;
-    RefPtr<EventTargetNode> m_eventTarget;
+    RefPtr<Node> m_eventTarget;
 };
 
 FrameView::FrameView(Frame* frame)
@@ -287,17 +291,17 @@ PassRefPtr<Scrollbar> FrameView::createScrollbar(ScrollbarOrientation orientatio
 
     // Try the <body> element first as a scrollbar source.
     Element* body = doc->body();
-    if (body && body->renderer() && body->renderer()->style()->hasPseudoStyle(RenderStyle::SCROLLBAR))
-        return RenderScrollbar::createCustomScrollbar(this, orientation, body->renderer());
+    if (body && body->renderer() && body->renderer()->style()->hasPseudoStyle(SCROLLBAR))
+        return RenderScrollbar::createCustomScrollbar(this, orientation, body->renderBox());
     
     // If the <body> didn't have a custom style, then the root element might.
     Element* docElement = doc->documentElement();
-    if (docElement && docElement->renderer() && docElement->renderer()->style()->hasPseudoStyle(RenderStyle::SCROLLBAR))
-        return RenderScrollbar::createCustomScrollbar(this, orientation, docElement->renderer());
+    if (docElement && docElement->renderer() && docElement->renderer()->style()->hasPseudoStyle(SCROLLBAR))
+        return RenderScrollbar::createCustomScrollbar(this, orientation, docElement->renderBox());
         
     // If we have an owning iframe/frame element, then it can set the custom scrollbar also.
     RenderPart* frameRenderer = m_frame->ownerRenderer();
-    if (frameRenderer && frameRenderer->style()->hasPseudoStyle(RenderStyle::SCROLLBAR))
+    if (frameRenderer && frameRenderer->style()->hasPseudoStyle(SCROLLBAR))
         return RenderScrollbar::createCustomScrollbar(this, orientation, frameRenderer);
     
     // Nobody set a custom style, so we just use a native scrollbar.
@@ -361,6 +365,41 @@ void FrameView::applyOverflowToViewport(RenderObject* o, ScrollbarMode& hMode, S
     }
 
     m_viewportRenderer = o;
+}
+
+#if USE(ACCELERATED_COMPOSITING)
+void FrameView::updateCompositingLayers(CompositingUpdate updateType)
+{
+    RenderView* view = m_frame->contentRenderer();
+    if (!view || !view->usesCompositing())
+        return;
+
+    if (updateType == ForcedCompositingUpdate)
+        view->compositor()->setCompositingLayersNeedUpdate();
+    
+    view->compositor()->updateCompositingLayers();
+}
+
+void FrameView::setNeedsOneShotDrawingSynchronization()
+{
+    Page* page = frame() ? frame()->page() : 0;
+    if (page)
+        page->chrome()->client()->setNeedsOneShotDrawingSynchronization();
+}
+#endif // USE(ACCELERATED_COMPOSITING)
+
+void FrameView::didMoveOnscreen()
+{
+    RenderView* view = m_frame->contentRenderer();
+    if (view)
+        view->didMoveOnscreen();
+}
+
+void FrameView::willMoveOffscreen()
+{
+    RenderView* view = m_frame->contentRenderer();
+    if (view)
+        view->willMoveOffscreen();
 }
 
 RenderObject* FrameView::layoutRoot(bool onlyDuringLayout) const
@@ -460,7 +499,7 @@ void FrameView::layout(bool allowSubtree)
                 hMode = ScrollbarAlwaysOff;
             } else if (body->hasTagName(bodyTag)) {
                 if (!m_firstLayout && m_size.height() != layoutHeight()
-                        && static_cast<RenderBox*>(body->renderer())->stretchesToViewHeight())
+                        && toRenderBox(body->renderer())->stretchesToViewHeight())
                     body->renderer()->setChildNeedsLayout(true);
                 // It's sufficient to just check the X overflow,
                 // since it's illegal to have visible in only one direction.
@@ -475,7 +514,7 @@ void FrameView::layout(bool allowSubtree)
 #endif
     }
 
-    m_doFullRepaint = !subtree && (m_firstLayout || static_cast<RenderView*>(root)->printing());
+    m_doFullRepaint = !subtree && (m_firstLayout || toRenderView(root)->printing());
 
     if (!subtree) {
         // Now set our scrollbar state for the layout.
@@ -530,13 +569,17 @@ void FrameView::layout(bool allowSubtree)
    
     m_layoutSchedulingEnabled = true;
 
-    if (!subtree && !static_cast<RenderView*>(root)->printing())
+    if (!subtree && !toRenderView(root)->printing())
         adjustViewSize();
 
     // Now update the positions of all layers.
     beginDeferredRepaints();
     layer->updateLayerPositions(m_doFullRepaint);
     endDeferredRepaints();
+
+#if USE(ACCELERATED_COMPOSITING)
+    updateCompositingLayers();
+#endif
     
     m_layoutCount++;
 
@@ -891,7 +934,7 @@ void FrameView::setShouldUpdateWhileOffscreen(bool shouldUpdateWhileOffscreen)
     m_shouldUpdateWhileOffscreen = shouldUpdateWhileOffscreen;
 }
 
-void FrameView::scheduleEvent(PassRefPtr<Event> event, PassRefPtr<EventTargetNode> eventTarget)
+void FrameView::scheduleEvent(PassRefPtr<Event> event, PassRefPtr<Node> eventTarget)
 {
     if (!m_enqueueEvents) {
         ExceptionCode ec = 0;
@@ -959,7 +1002,7 @@ void FrameView::performPostLayoutTasks()
         m_lastLayoutSize = currentSize;
         m_lastZoomFactor = currentZoomFactor;
         if (resized)
-            m_frame->sendResizeEvent();
+            m_frame->eventHandler()->sendResizeEvent();
     }
 }
 
@@ -989,7 +1032,7 @@ void FrameView::updateOverflowStatus(bool horizontalOverflow, bool verticalOverf
         
         scheduleEvent(OverflowEvent::create(horizontalOverflowChanged, horizontalOverflow,
             verticalOverflowChanged, verticalOverflow),
-            EventTargetNodeCast(m_viewportRenderer->element()));
+            m_viewportRenderer->element());
     }
     
 }
@@ -1064,7 +1107,7 @@ void FrameView::valueChanged(Scrollbar* bar)
     IntSize offset = scrollOffset();
     ScrollView::valueChanged(bar);
     if (offset != scrollOffset())
-        frame()->sendScrollEvent();
+        frame()->eventHandler()->sendScrollEvent();
 }
 
 void FrameView::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect& rect)
@@ -1095,7 +1138,7 @@ void FrameView::updateDashboardRegions()
     if (!document->hasDashboardRegions())
         return;
     Vector<DashboardRegionValue> newRegions;
-    document->renderer()->collectDashboardRegions(newRegions);
+    document->renderBox()->collectDashboardRegions(newRegions);
     if (newRegions == document->dashboardRegions())
         return;
     document->setDashboardRegions(newRegions);
@@ -1237,6 +1280,62 @@ void FrameView::layoutIfNeededRecursive()
     for (HashSet<Widget*>::const_iterator current = viewChildren->begin(); current != end; ++current)
         if ((*current)->isFrameView())
             static_cast<FrameView*>(*current)->layoutIfNeededRecursive();
+}
+
+void FrameView::forceLayout(bool allowSubtree)
+{
+    layout(allowSubtree);
+    // We cannot unschedule a pending relayout, since the force can be called with
+    // a tiny rectangle from a drawRect update.  By unscheduling we in effect
+    // "validate" and stop the necessary full repaint from occurring.  Basically any basic
+    // append/remove DHTML is broken by this call.  For now, I have removed the optimization
+    // until we have a better invalidation stategy. -dwh
+    //unscheduleRelayout();
+}
+
+void FrameView::forceLayoutWithPageWidthRange(float minPageWidth, float maxPageWidth, bool _adjustViewSize)
+{
+    // Dumping externalRepresentation(m_frame->renderer()).ascii() is a good trick to see
+    // the state of things before and after the layout
+    RenderView *root = toRenderView(m_frame->document()->renderer());
+    if (root) {
+        // This magic is basically copied from khtmlview::print
+        int pageW = (int)ceilf(minPageWidth);
+        root->setWidth(pageW);
+        root->setNeedsLayoutAndPrefWidthsRecalc();
+        forceLayout();
+
+        // If we don't fit in the minimum page width, we'll lay out again. If we don't fit in the
+        // maximum page width, we will lay out to the maximum page width and clip extra content.
+        // FIXME: We are assuming a shrink-to-fit printing implementation.  A cropping
+        // implementation should not do this!
+        int rightmostPos = root->rightmostPosition();
+        if (rightmostPos > minPageWidth) {
+            pageW = std::min(rightmostPos, (int)ceilf(maxPageWidth));
+            root->setWidth(pageW);
+            root->setNeedsLayoutAndPrefWidthsRecalc();
+            forceLayout();
+        }
+    }
+
+    if (_adjustViewSize)
+        adjustViewSize();
+}
+
+void FrameView::adjustPageHeight(float *newBottom, float oldTop, float oldBottom, float /*bottomLimit*/)
+{
+    RenderView* root = m_frame->contentRenderer();
+    if (root) {
+        // Use a context with painting disabled.
+        GraphicsContext context((PlatformGraphicsContext*)0);
+        root->setTruncatedAt((int)floorf(oldBottom));
+        IntRect dirtyRect(0, (int)floorf(oldTop), root->docWidth(), (int)ceilf(oldBottom - oldTop));
+        root->layer()->paint(&context, dirtyRect);
+        *newBottom = root->bestTruncatedAt();
+        if (*newBottom == 0)
+            *newBottom = oldBottom;
+    } else
+        *newBottom = oldBottom;
 }
 
 } // namespace WebCore

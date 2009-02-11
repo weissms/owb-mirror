@@ -54,6 +54,7 @@ namespace WebCore {
     class Frame;
     class FrameLoaderClient;
     class HistoryItem;
+    class HTMLAppletElement;
     class HTMLFormElement;
     class HTMLFrameOwnerElement;
     class IconLoader;
@@ -136,21 +137,21 @@ namespace WebCore {
         void load(DocumentLoader*);                                                                 // Calls loadWithDocumentLoader   
 
         void loadWithNavigationAction(const ResourceRequest&, const NavigationAction&,              // Calls loadWithDocumentLoader()
-            FrameLoadType, PassRefPtr<FormState>);
+            bool lockHistory, FrameLoadType, PassRefPtr<FormState>);
 
-        void loadPostRequest(const ResourceRequest& inRequest, const String& referrer,              // Called by loadFrameRequestWithFormAndValues(), calls loadWithNavigationAction
-            const String& frameName, Event* event, PassRefPtr<FormState> prpFormState);
+        void loadPostRequest(const ResourceRequest&, const String& referrer,                        // Called by loadFrameRequestWithFormAndValues(), calls loadWithNavigationAction
+            const String& frameName, bool lockHistory, FrameLoadType, Event*, PassRefPtr<FormState>);
 
         void loadURL(const KURL& newURL, const String& referrer, const String& frameName,           // Called by loadFrameRequestWithFormAndValues(), calls loadWithNavigationAction or else dispatches to navigation policy delegate    
-            FrameLoadType, Event* event, PassRefPtr<FormState> prpFormState);                                                         
+            bool lockHistory, FrameLoadType, Event*, PassRefPtr<FormState>);                                                         
         void loadURLIntoChildFrame(const KURL&, const String& referer, Frame*);
 
-        void loadFrameRequestWithFormAndValues(const FrameLoadRequest&, bool lockHistory,           // Called by submitForm, calls loadPostRequest()
+        void loadFrameRequestWithFormAndValues(const FrameLoadRequest&, bool lockHistory, bool lockBackForwardList,           // Called by submitForm, calls loadPostRequest()
             Event*, HTMLFormElement*, const HashMap<String, String>& formValues);
 
-        void load(const ResourceRequest&);                                                          // Called by WebFrame, calls (ResourceRequest, SubstituteData)
-        void load(const ResourceRequest&, const SubstituteData&);                                   // Called both by WebFrame and internally, calls (DocumentLoader*)
-        void load(const ResourceRequest&, const String& frameName);                                 // Called by WebPluginController
+        void load(const ResourceRequest&, bool lockHistory);                                                          // Called by WebFrame, calls (ResourceRequest, SubstituteData)
+        void load(const ResourceRequest&, const SubstituteData&, bool lockHistory);                                   // Called both by WebFrame and internally, calls (DocumentLoader*)
+        void load(const ResourceRequest&, const String& frameName, bool lockHistory);                                 // Called by WebPluginController
         
         void loadArchive(PassRefPtr<Archive> archive);
 
@@ -183,10 +184,10 @@ namespace WebCore {
         void loadEmptyDocumentSynchronously();
 
         DocumentLoader* activeDocumentLoader() const;
-        DocumentLoader* documentLoader() const;
-        DocumentLoader* policyDocumentLoader() const;
-        DocumentLoader* provisionalDocumentLoader() const;
-        FrameState state() const;
+        DocumentLoader* documentLoader() const { return m_documentLoader.get(); }
+        DocumentLoader* policyDocumentLoader() const { return m_policyDocumentLoader.get(); }
+        DocumentLoader* provisionalDocumentLoader() const { return m_provisionalDocumentLoader.get(); }
+        FrameState state() const { return m_state; }
         static double timeOfLastCompletedLoad();
 
         bool shouldUseCredentialStorage(ResourceLoader*);
@@ -230,7 +231,7 @@ namespace WebCore {
         void cancelContentPolicyCheck();
 
         void reload(bool endToEndReload = false);
-        void reloadAllowingStaleData(const String& overrideEncoding);
+        void reloadWithOverrideEncoding(const String& overrideEncoding);
 
         void didReceiveServerRedirectForProvisionalLoadForFrame();
         void finishedLoadingDocument(DocumentLoader*);
@@ -253,7 +254,7 @@ namespace WebCore {
         void didFirstVisuallyNonEmptyLayout();
 
         void clientRedirectCancelledOrFinished(bool cancelWithLoadInProgress);
-        void clientRedirected(const KURL&, double delay, double fireDate, bool lockHistory, bool isJavaScriptFormAction);
+        void clientRedirected(const KURL&, double delay, double fireDate, bool lockBackForwardList, bool isJavaScriptFormAction);
         bool shouldReload(const KURL& currentURL, const KURL& destinationURL);
 #if ENABLE(WML)
         void setForceReloadWmlDeck(bool);
@@ -280,17 +281,17 @@ namespace WebCore {
 
         void setDefersLoading(bool);
 
-        void changeLocation(const String& url, const String& referrer, bool lockHistory = true, bool userGesture = false, bool refresh = false);
-        void changeLocation(const KURL&, const String& referrer, bool lockHistory = true, bool userGesture = false, bool refresh = false);
-        void urlSelected(const ResourceRequest&, const String& target, Event*, bool lockHistory, bool userGesture);
-        void urlSelected(const FrameLoadRequest&, Event*, bool lockHistory);
+        void changeLocation(const String& url, const String& referrer, bool lockHistory = true, bool lockBackForwardList = true, bool userGesture = false, bool refresh = false);
+        void changeLocation(const KURL&, const String& referrer, bool lockHistory = true, bool lockBackForwardList = true, bool userGesture = false, bool refresh = false);
+        void urlSelected(const ResourceRequest&, const String& target, Event*, bool lockHistory, bool lockBackForwardList, bool userGesture);
+        void urlSelected(const FrameLoadRequest&, Event*, bool lockHistory, bool lockBackForwardList);
       
         bool requestFrame(HTMLFrameOwnerElement*, const String& url, const AtomicString& frameName);
         Frame* loadSubframe(HTMLFrameOwnerElement*, const KURL&, const String& name, const String& referrer);
 
-        void submitForm(const char* action, const String& url, PassRefPtr<FormData>, const String& target, const String& contentType, const String& boundary, Event*);
+        void submitForm(const char* action, const String& url, PassRefPtr<FormData>, const String& target, const String& contentType, const String& boundary, Event*, bool lockHistory, bool lockBackForwardList);
         void submitFormAgain();
-        void submitForm(const FrameLoadRequest&, Event*);
+        void submitForm(const FrameLoadRequest&, Event*, bool lockHistory, bool lockBackForwardList);
 
         void stop();
         void stopLoading(bool sendUnload);
@@ -307,7 +308,7 @@ namespace WebCore {
 
         bool isScheduledLocationChangePending() const { return m_scheduledRedirection && isLocationChange(*m_scheduledRedirection); }
         void scheduleHTTPRedirection(double delay, const String& url);
-        void scheduleLocationChange(const String& url, const String& referrer, bool lockHistory = true, bool userGesture = false);
+        void scheduleLocationChange(const String& url, const String& referrer, bool lockHistory = true, bool lockBackForwardList = true, bool userGesture = false);
         void scheduleRefresh(bool userGesture = false);
         void scheduleHistoryNavigation(int steps);
 
@@ -342,9 +343,10 @@ namespace WebCore {
         void handledOnloadEvents();
         String userAgent(const KURL&) const;
 
-        Widget* createJavaAppletWidget(const IntSize&, Element*, const HashMap<String, String>& args);
+        Widget* createJavaAppletWidget(const IntSize&, HTMLAppletElement*, const HashMap<String, String>& args);
 
         void dispatchWindowObjectAvailable();
+        void dispatchDocumentElementAvailable();
         void restoreDocumentState();
 
         Frame* opener();
@@ -460,7 +462,7 @@ namespace WebCore {
         bool canCachePageContainingThisFrame();
 #ifndef NDEBUG
         void logCanCachePageDecision();
-        bool logCanCacheFrameDecision();
+        bool logCanCacheFrameDecision(int indentLevel);
 #endif
 
         void addBackForwardItemClippedAtTarget(bool doClip);
@@ -475,7 +477,7 @@ namespace WebCore {
         void updateHistoryForBackForwardNavigation();
         void updateHistoryForReload();
         void updateHistoryForStandardLoad();
-        void updateHistoryForRedirectWithLockedHistory();
+        void updateHistoryForRedirectWithLockedBackForwardList();
         void updateHistoryForClientRedirect();
         void updateHistoryForCommit();
         void updateHistoryForAnchorScroll();

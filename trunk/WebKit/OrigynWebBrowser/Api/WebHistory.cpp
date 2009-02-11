@@ -34,6 +34,7 @@
 #include <wtf/Vector.h>
 #include <KURL.h>
 #include <PageGroup.h>
+#include <HistoryItem.h>
 
 using namespace WebCore;
 
@@ -135,10 +136,15 @@ int WebHistory::historyAgeInDaysLimit()
 }
 
 
-void WebHistory::addItem(const KURL& url, const String& title, const WebCore::String& httpMethod, bool wasFailure)
+void WebHistory::visitedURL(const KURL& url, const String& title, const String& httpMethod, bool wasFailure)
 {
 }
 
 void WebHistory::addVisitedLinksToPageGroup(PageGroup& group)
 {
+}
+
+WebHistoryItem* WebHistory::itemForURLString(const String& urlString) const
+{
+    return 0;
 }

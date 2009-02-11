@@ -35,7 +35,7 @@
 #include <wtf/RefPtr.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
     class FloatRect;
     class Widget;

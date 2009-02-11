@@ -75,7 +75,7 @@ void LayoutTestController::notifyDone()
 {
     // FIXME: The frame might not be finished loading yet
     if (m_waitToDump && !WorkQueue::shared()->count()) {
-        OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "notifyDone", NULL);
+        WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "notifyDone", NULL);
     }
     m_waitToDump = false;
 }
@@ -151,7 +151,7 @@ void LayoutTestController::setWaitToDump(bool waitUntilDone)
     m_waitToDump = waitUntilDone;
     // FIXME: Should have some sort of watchdog timer here
     //if (waitUntilDone)
-        OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "waitUntilDone", NULL);
+        WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "waitUntilDone", NULL);
     // FIXME: Should have some sort of watchdog timer here
 }
 

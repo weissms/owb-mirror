@@ -32,7 +32,7 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class IntPoint {
 public:

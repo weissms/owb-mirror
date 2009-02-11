@@ -31,6 +31,7 @@
 #include "Frame.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
+#include "FormControlElement.h"
 #include "HTMLInputElement.h"
 #include "HTMLMediaElement.h"
 #include "HTMLNames.h"
@@ -272,8 +273,14 @@ IntRect RenderThemeSafari::inflateRect(const IntRect& r, const IntSize& size, co
 
 int RenderThemeSafari::baselinePosition(const RenderObject* o) const
 {
-    if (o->style()->appearance() == CheckboxPart || o->style()->appearance() == RadioPart)
-        return o->marginTop() + o->height() - 2; // The baseline is 2px up from the bottom of the checkbox/radio in AppKit.
+    if (!o->isBox())
+        return 0;
+
+    if (o->style()->appearance() == CheckboxPart || o->style()->appearance() == RadioPart) {
+        const RenderBox* box = toRenderBox(o);
+        return box->marginTop() + box->height() - 2; // The baseline is 2px up from the bottom of the checkbox/radio in AppKit.
+    }
+
     return RenderTheme::baselinePosition(o);
 }
 
@@ -828,7 +835,7 @@ void RenderThemeSafari::adjustMenuListStyle(CSSStyleSelector* selector, RenderSt
 
     // Set the foreground color to black or gray when we have the aqua look.
     // Cast to RGB32 is to work around a compiler bug.
-    style->setColor(e->isEnabled() ? static_cast<RGBA32>(Color::black) : Color::darkGray);
+    style->setColor(e->isFormControlElement() && toFormControlElement(e)->isEnabled() ? static_cast<RGBA32>(Color::black) : Color::darkGray);
 
     // Set the button's vertical size.
     setButtonSize(style);

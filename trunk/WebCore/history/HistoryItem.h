@@ -28,6 +28,7 @@
 
 #include "IntPoint.h"
 #include "PlatformString.h"
+#include <wtf/OwnPtr.h>
 
 #if PLATFORM(MAC)
 #import <wtf/RetainPtr.h>
@@ -78,8 +79,7 @@ public:
     const String& urlString() const;
     const String& title() const;
     
-    void setInPageCache(bool inPageCache) { m_isInPageCache = inPageCache; }
-    bool isInPageCache() const { return m_isInPageCache; }
+    bool isInPageCache() const { return m_cachedPage; }
     
     double lastVisitedTime() const;
     
@@ -91,13 +91,12 @@ public:
     const String& parent() const;
     KURL url() const;
     KURL originalURL() const;
+    const String& referrer() const;
     const String& target() const;
     bool isTargetItem() const;
     
     FormData* formData();
     String formContentType() const;
-    String formReferrer() const;
-    String rssFeedReferrer() const;
     
     int visitCount() const;
     bool lastVisitWasFailure() const { return m_lastVisitWasFailure; }
@@ -115,6 +114,7 @@ public:
     void setURL(const KURL&);
     void setURLString(const String&);
     void setOriginalURLString(const String&);
+    void setReferrer(const String&);
     void setTarget(const String&);
     void setParent(const String&);
     void setTitle(const String&);
@@ -122,7 +122,8 @@ public:
     
     void setFormInfoFromRequest(const ResourceRequest&);
 
-    void setRSSFeedReferrer(const String&);
+    void recordInitialVisit();
+
     void setVisitCount(int);
     void setLastVisitWasFailure(bool wasFailure) { m_lastVisitWasFailure = wasFailure; }
     void setLastVisitWasHTTPNonGet(bool wasNotGet) { m_lastVisitWasHTTPNonGet = wasNotGet; }
@@ -138,7 +139,11 @@ public:
     // in GlobalHistory. The WebKit api for this is to use -[WebHistory setLastVisitedTimeInterval:forItem:] instead.
     void setLastVisitedTime(double);
     void visited(const String& title, double time);
-    
+
+    void addRedirectURL(const String&);
+    Vector<String>* redirectURLs() const;
+    void setRedirectURLs(std::auto_ptr<Vector<String> >);
+
     bool isCurrentDocument(Document*) const;
     
 #if PLATFORM(MAC)
@@ -161,6 +166,10 @@ public:
     int showTreeWithIndent(unsigned indentLevel) const;
 #endif
 
+    void adoptVisitCounts(Vector<int>& dailyCounts, Vector<int>& weeklyCounts);
+    const Vector<int>& dailyVisitCounts() { return m_dailyVisitCounts; }
+    const Vector<int>& weeklyVisitCounts() { return m_weeklyVisitCounts; }
+
 private:
     HistoryItem();
     HistoryItem(const String& urlString, const String& title, double lastVisited);
@@ -169,8 +178,13 @@ private:
 
     HistoryItem(const HistoryItem&);
 
+    void padDailyCountsForNewVisit(double time);
+    void collapseDailyVisitsToWeekly();
+    void recordVisitAtTime(double);
+
     String m_urlString;
     String m_originalURLString;
+    String m_referrer;
     String m_target;
     String m_parent;
     String m_title;
@@ -185,17 +199,16 @@ private:
     HistoryItemVector m_subItems;
     
     bool m_lastVisitWasFailure;
-    bool m_isInPageCache;
     bool m_isTargetItem;
     int m_visitCount;
-    
+    Vector<int> m_dailyVisitCounts;
+    Vector<int> m_weeklyVisitCounts;
+
+    OwnPtr<Vector<String> > m_redirectURLs;
+
     // info used to repost form data
     RefPtr<FormData> m_formData;
     String m_formContentType;
-    String m_formReferrer;
-    
-    // info used to support RSS feeds
-    String m_rssFeedReferrer;
 
     // PageCache controls these fields.
     HistoryItem* m_next;

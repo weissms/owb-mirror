@@ -28,7 +28,7 @@
 
 #include <wtf/Noncopyable.h>
 
-namespace WKAL {
+namespace WebCore {
 
     class EventLoop : Noncopyable {
     public:

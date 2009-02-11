@@ -71,8 +71,6 @@
 
 
 using namespace WebCore;
-using namespace OWBAL;
-using namespace WKAL;
 
 void startEventLoop(BalWidget *view);
 void stopEventLoop();
@@ -113,11 +111,11 @@ DumpRenderTree::DumpRenderTree()
 {
     m_layoutTestController = new LayoutTestController( false, false);
     m_gcController = new GCController();
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver("layoutTestController", this);
+    WebCore::ObserverServiceData::createObserverService()->registerObserver("layoutTestController", this);
 }
 DumpRenderTree::~DumpRenderTree()
 {
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver("layoutTestController", this);
+    WebCore::ObserverServiceData::createObserverService()->removeObserver("layoutTestController", this);
 }
 
 void DumpRenderTree::observe(const String& topic, const String& data, void*)

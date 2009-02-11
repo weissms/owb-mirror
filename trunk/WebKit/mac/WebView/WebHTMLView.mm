@@ -48,7 +48,6 @@
 #import "WebHTMLViewInternal.h"
 #import "WebKitLogging.h"
 #import "WebKitNSStringExtras.h"
-#import "WebKitPluginContainerView.h"
 #import "WebKitVersionChecks.h"
 #import "WebLocalizableStrings.h"
 #import "WebNodeHighlight.h"
@@ -113,6 +112,10 @@
 #import <WebKitSystemInterface.h>
 #import <limits>
 #import <runtime/InitializeThreading.h>
+
+#if USE(ACCELERATED_COMPOSITING)
+#import <QuartzCore/QuartzCore.h>
+#endif
 
 using namespace WebCore;
 using namespace HTMLNames;
@@ -289,6 +292,9 @@ static CachedResourceClient* promisedDataClient()
 - (NSString *)_plainTextFromPasteboard:(NSPasteboard *)pasteboard;
 - (void)_pasteWithPasteboard:(NSPasteboard *)pasteboard allowPlainText:(BOOL)allowPlainText;
 - (void)_pasteAsPlainTextWithPasteboard:(NSPasteboard *)pasteboard;
+- (void)_removeMouseMovedObserverUnconditionally;
+- (void)_removeSuperviewObservers;
+- (void)_removeWindowObservers;
 - (BOOL)_shouldInsertFragment:(DOMDocumentFragment *)fragment replacingDOMRange:(DOMRange *)range givenAction:(WebViewInsertAction)action;
 - (BOOL)_shouldInsertText:(NSString *)text replacingDOMRange:(DOMRange *)range givenAction:(WebViewInsertAction)action;
 - (BOOL)_shouldReplaceSelectionWithText:(NSString *)text givenAction:(WebViewInsertAction)action;
@@ -372,9 +378,16 @@ struct WebHTMLViewInterpretKeyEventsParameters {
     BOOL ignoringMouseDraggedEvents;
     BOOL printing;
     BOOL avoidingPrintOrphan;
+    BOOL observingMouseMovedNotifications;
+    BOOL observingSuperviewNotifications;
+    BOOL observingWindowNotifications;
     
     id savedSubviews;
     BOOL subviewsSetAside;
+    
+#if USE(ACCELERATED_COMPOSITING)
+    NSView *layerHostingView;
+#endif
 
     NSEvent *mouseDownEvent; // Kept after handling the event.
     BOOL handlingMouseDownEvent;
@@ -523,6 +536,10 @@ static NSCellStateValue kit(TriState state)
     dataSource = nil;
     highlighters = nil;
     promisedDragTIFFDataSource = 0;
+
+#if USE(ACCELERATED_COMPOSITING)
+    layerHostingView = nil;
+#endif    
 }
 
 @end
@@ -755,6 +772,49 @@ static NSURL* uniqueURLWithRelativePart(NSString *relativePart)
         [[self _frame] _replaceSelectionWithText:text selectReplacement:NO smartReplace:[self _canSmartReplaceWithPasteboard:pasteboard]];
 }
 
+- (void)_removeMouseMovedObserverUnconditionally
+{
+    if (!_private->observingMouseMovedNotifications)
+        return;
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:WKMouseMovedNotification() object:nil];
+    _private->observingMouseMovedNotifications = false;
+}
+
+- (void)_removeSuperviewObservers
+{
+    if (!_private->observingSuperviewNotifications)
+        return;
+    
+    NSView *superview = [self superview];
+    if (!superview || ![self window])
+        return;
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:self name:NSViewFrameDidChangeNotification object:superview];
+    [notificationCenter removeObserver:self name:NSViewBoundsDidChangeNotification object:superview];
+    
+    _private->observingSuperviewNotifications = false;
+}
+
+- (void)_removeWindowObservers
+{
+    if (!_private->observingWindowNotifications)
+        return;
+    
+    NSWindow *window = [self window];
+    if (!window)
+        return;
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
+    [notificationCenter removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+    [notificationCenter removeObserver:self name:NSWindowWillCloseNotification object:window];
+    [notificationCenter removeObserver:self name:WKWindowWillOrderOnScreenNotification() object:window];
+    
+    _private->observingWindowNotifications = false;
+}
+
 - (BOOL)_shouldInsertFragment:(DOMDocumentFragment *)fragment replacingDOMRange:(DOMRange *)range givenAction:(WebViewInsertAction)action
 {
     WebView *webView = [self _webView];
@@ -789,7 +849,7 @@ static NSURL* uniqueURLWithRelativePart(NSString *relativePart)
 - (DOMRange *)_selectedRange
 {
     Frame* coreFrame = core([self _frame]);
-    return coreFrame ? kit(coreFrame->selection()->toRange().get()) : nil;
+    return coreFrame ? kit(coreFrame->selection()->toNormalizedRange().get()) : nil;
 }
 
 - (BOOL)_shouldDeleteRange:(DOMRange *)range
@@ -1064,7 +1124,7 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     NSPoint origin = [[self superview] bounds].origin;
     if (!NSEqualPoints(_private->lastScrollPosition, origin)) {
         if (Frame* coreFrame = core([self _frame]))
-            coreFrame->sendScrollEvent();
+            coreFrame->eventHandler()->sendScrollEvent();
         [_private->compController endRevertingChange:NO moveLeft:NO];
         
         WebView *webView = [self _webView];
@@ -1088,15 +1148,34 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     ASSERT(!_private->subviewsSetAside);
     ASSERT(_private->savedSubviews == nil);
     _private->savedSubviews = _subviews;
+#if USE(ACCELERATED_COMPOSITING)
+    // We need to keep the layer-hosting view in the subviews, otherwise the layers flash.
+    if (_private->layerHostingView) {
+        NSArray* newSubviews = [[NSArray alloc] initWithObjects:_private->layerHostingView, nil];
+        _subviews = newSubviews;
+    } else
+        _subviews = nil;
+#else
     _subviews = nil;
+#endif    
     _private->subviewsSetAside = YES;
  }
  
  - (void)_restoreSubviews
  {
     ASSERT(_private->subviewsSetAside);
+#if USE(ACCELERATED_COMPOSITING)
+    if (_private->layerHostingView) {
+        [_subviews release];
+        _subviews = _private->savedSubviews;
+    } else {
+        ASSERT(_subviews == nil);
+        _subviews = _private->savedSubviews;
+    }
+#else
     ASSERT(_subviews == nil);
     _subviews = _private->savedSubviews;
+#endif    
     _private->savedSubviews = nil;
     _private->subviewsSetAside = NO;
 }
@@ -1111,7 +1190,9 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 
 - (void)willRemoveSubview:(NSView *)subview
 {
-    if (_private->enumeratingSubviews)
+    // Have to null-check _private, since this can be called via -dealloc when
+    // cleaning up the the layerHostingView.
+    if (_private && _private->enumeratingSubviews)
         LOG(View, "A view of class %s was removed during subview enumeration for layout or printing mode change. We will still do layout or the printing mode change even though this view is no longer in the view hierarchy.", object_getClassName([subview class]));
 }
 
@@ -1843,8 +1924,9 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     [self _cancelUpdateMouseoverTimer];
     [self _cancelUpdateFocusedAndActiveStateTimer];
     [self _clearLastHitViewIfSelf];
-    // FIXME: This is slow; should remove individual observers instead.
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [self _removeMouseMovedObserverUnconditionally];
+    [self _removeWindowObservers];
+    [self _removeSuperviewObservers];
     [_private->pluginController destroyAllPlugins];
     [_private->pluginController setDataSource:nil];
     // remove tooltips before clearing _private so removeTrackingRect: will work correctly
@@ -2022,6 +2104,15 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 } 
 #endif 
 
+- (BOOL)_isUsingAcceleratedCompositing
+{
+#if USE(ACCELERATED_COMPOSITING)
+    return _private->layerHostingView != nil;
+#else
+    return NO;
+#endif
+}
+
 @end
 
 @implementation NSView (WebHTMLViewFileInternal)
@@ -2167,8 +2258,8 @@ static String commandNameForSelector(SEL selector)
     // Remove the trailing colon.
     const char* selectorName = sel_getName(selector);
     size_t selectorNameLength = strlen(selectorName);
-    ASSERT(selectorNameLength >= 2);
-    ASSERT(selectorName[selectorNameLength - 1] == ':');
+    if (selectorNameLength < 2 || selectorName[selectorNameLength - 1] != ':')
+        return String();
     return String(selectorName, selectorNameLength - 1);
 }
 
@@ -2566,7 +2657,7 @@ WEBCORE_COMMAND(yankAndSelect)
 
 - (void)addMouseMovedObserver
 {
-    if (!_private->dataSource || ![self _isTopHTMLView])
+    if (!_private->dataSource || ![self _isTopHTMLView] || _private->observingMouseMovedNotifications)
         return;
 
     // Unless the Dashboard asks us to do this for all windows, keep an observer going only for the key window.
@@ -2580,12 +2671,7 @@ WEBCORE_COMMAND(yankAndSelect)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mouseMovedNotification:)
         name:WKMouseMovedNotification() object:nil];
     [self _frameOrBoundsChanged];
-}
-
-- (void)removeMouseMovedObserverUnconditionally
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-        name:WKMouseMovedNotification() object:nil];
+    _private->observingMouseMovedNotifications = true;
 }
 
 - (void)removeMouseMovedObserver
@@ -2597,7 +2683,7 @@ WEBCORE_COMMAND(yankAndSelect)
 #endif
 
     [[self _webView] _mouseDidMoveOverElement:nil modifierFlags:0];
-    [self removeMouseMovedObserverUnconditionally];
+    [self _removeMouseMovedObserverUnconditionally];
 }
 
 - (void)addSuperviewObservers
@@ -2610,66 +2696,48 @@ WEBCORE_COMMAND(yankAndSelect)
     // to extend the background the full height of the space and because some elements have
     // sizes that are based on the total size of the view.
     
-    NSView *superview = [self superview];
-    if (superview && [self window]) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_frameOrBoundsChanged) 
-            name:NSViewFrameDidChangeNotification object:superview];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_frameOrBoundsChanged) 
-            name:NSViewBoundsDidChangeNotification object:superview];
+    if (_private->observingSuperviewNotifications)
+        return;
 
-        // In addition to registering for frame/bounds change notifications, call -_frameOrBoundsChanged.
-        // It will check the current size/scroll against the previous layout's size/scroll.  We need to
-        // do this here to catch the case where the WebView is laid out at one size, removed from its
-        // window, resized, and inserted into another window.  Our frame/bounds changed notifications
-        // will not be sent in that situation, since we only watch for changes while in the view hierarchy.
-        [self _frameOrBoundsChanged];
-    }
-}
-
-- (void)removeSuperviewObservers
-{
     NSView *superview = [self superview];
-    if (superview && [self window]) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSViewFrameDidChangeNotification object:superview];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSViewBoundsDidChangeNotification object:superview];
-    }
+    if (!superview || ![self window])
+        return;
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter addObserver:self selector:@selector(_frameOrBoundsChanged) name:NSViewFrameDidChangeNotification object:superview];
+    [notificationCenter addObserver:self selector:@selector(_frameOrBoundsChanged) name:NSViewBoundsDidChangeNotification object:superview];
+    
+    // In addition to registering for frame/bounds change notifications, call -_frameOrBoundsChanged.
+    // It will check the current size/scroll against the previous layout's size/scroll.  We need to
+    // do this here to catch the case where the WebView is laid out at one size, removed from its
+    // window, resized, and inserted into another window.  Our frame/bounds changed notifications
+    // will not be sent in that situation, since we only watch for changes while in the view hierarchy.
+    [self _frameOrBoundsChanged];
+    
+    _private->observingSuperviewNotifications = true;
 }
 
 - (void)addWindowObservers
 {
+    if (_private->observingWindowNotifications)
+        return;
+    
     NSWindow *window = [self window];
-    if (window) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowDidBecomeKey:)
-            name:NSWindowDidBecomeKeyNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowDidResignKey:)
-            name:NSWindowDidResignKeyNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowWillClose:)
-            name:NSWindowWillCloseNotification object:window];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowWillOrderOnScreen:)
-            name:WKWindowWillOrderOnScreenNotification() object:window];
-    }
-}
-
-- (void)removeWindowObservers
-{
-    NSWindow *window = [self window];
-    if (window) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSWindowDidBecomeKeyNotification object:nil];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSWindowDidResignKeyNotification object:nil];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSWindowWillCloseNotification object:window];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:WKWindowWillOrderOnScreenNotification() object:window];
-    }
+    if (!window)
+        return;
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter addObserver:self selector:@selector(windowDidBecomeKey:) name:NSWindowDidBecomeKeyNotification object:nil];
+    [notificationCenter addObserver:self selector:@selector(windowDidResignKey:) name:NSWindowDidResignKeyNotification object:nil];
+    [notificationCenter addObserver:self selector:@selector(windowWillClose:) name:NSWindowWillCloseNotification object:window];
+    [notificationCenter addObserver:self selector:@selector(windowWillOrderOnScreen:) name:WKWindowWillOrderOnScreenNotification() object:window];
+    
+    _private->observingWindowNotifications = true;
 }
 
 - (void)viewWillMoveToSuperview:(NSView *)newSuperview
 {
-    [self removeSuperviewObservers];
+    [self _removeSuperviewObservers];
 }
 
 - (void)viewDidMoveToSuperview
@@ -2694,9 +2762,9 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
         return;
 
     // FIXME: Some of these calls may not work because this view may be already removed from it's superview.
-    [self removeMouseMovedObserverUnconditionally];
-    [self removeWindowObservers];
-    [self removeSuperviewObservers];
+    [self _removeMouseMovedObserverUnconditionally];
+    [self _removeWindowObservers];
+    [self _removeSuperviewObservers];
     [self _cancelUpdateMouseoverTimer];
     [self _cancelUpdateFocusedAndActiveStateTimer];
     
@@ -2811,12 +2879,14 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
         return;
     }
 
-    if (minPageWidth > 0.0)
-        coreFrame->forceLayoutWithPageWidthRange(minPageWidth, maxPageWidth, adjustViewSize);
-    else {
-        coreFrame->forceLayout(!adjustViewSize);
-        if (adjustViewSize)
-            coreFrame->view()->adjustViewSize();
+    if (FrameView* coreView = coreFrame->view()) {
+        if (minPageWidth > 0.0)
+            coreView->forceLayoutWithPageWidthRange(minPageWidth, maxPageWidth, adjustViewSize);
+        else {
+            coreView->forceLayout(!adjustViewSize);
+            if (adjustViewSize)
+                coreView->adjustViewSize();
+        }
     }
     _private->needsLayout = NO;
     
@@ -2993,6 +3063,16 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 
     if (subviewsWereSetAside)
         [self _setAsideSubviews];
+        
+#if USE(ACCELERATED_COMPOSITING)
+    if ([[self _webView] _needsOneShotDrawingSynchronization]) {
+        // Disable screen updates so that drawing into the NSView and
+        // CALayer updates appear on the screen at the same time.
+        [[self window] disableScreenUpdatesUntilFlush];
+        [CATransaction flush];
+        [[self _webView] _setNeedsOneShotDrawingSynchronization:NO];
+    }
+#endif
 }
 
 // Turn off the additional clip while computing our visibleRect.
@@ -3443,7 +3523,8 @@ noPromisedData:
         [self _setPrinting:YES minimumPageWidth:0.0f maximumPageWidth:0.0f adjustViewSize:NO];
 
     float newBottomFloat = *newBottom;
-    core([self _frame])->adjustPageHeight(&newBottomFloat, oldTop, oldBottom, bottomLimit);
+    if (FrameView* view = core([self _frame])->view())
+        view->adjustPageHeight(&newBottomFloat, oldTop, oldBottom, bottomLimit);
 
 #ifdef __LP64__
     // If the new bottom is equal to the old bottom (when both are treated as floats), we just copy
@@ -3548,7 +3629,7 @@ noPromisedData:
     Frame* frame = core([self _frame]);
     if (!frame)
         return NO;
-    if (!frame->isFrameSet()) {
+    if (!frame->document() || !frame->document()->isFrameSet()) {
         float paperWidth = [self _availablePaperWidthForPrintOperation:[NSPrintOperation currentOperation]];
         minLayoutWidth = paperWidth * PrintingMinimumShrinkFactor;
         maxLayoutWidth = paperWidth * PrintingMaximumShrinkFactor;
@@ -4889,7 +4970,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
     return (!_private->receivedNOOP && parameters.eventWasHandled) || parameters.consumedByIM;
 }
 
-- (WebCore::CachedImage*)promisedDragTIFFDataSource 
+- (WebCore::CachedImage*)promisedDragTIFFDataSource
 {
     return _private->promisedDragTIFFDataSource;
 }
@@ -4943,6 +5024,38 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
 {
     [[self _pluginController] destroyAllPlugins];
 }
+
+#if USE(ACCELERATED_COMPOSITING)
+- (void)attachRootLayer:(CALayer*)layer
+{
+    if (!_private->layerHostingView) {
+        NSView* hostingView = [[NSView alloc] initWithFrame:[self bounds]];
+        [hostingView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+        [self addSubview:hostingView];
+        [hostingView release];
+        // hostingView is owned by being a subview of self
+        _private->layerHostingView = hostingView;
+    }
+
+    // Make a container layer, which will get sized/positioned by AppKit and CA
+    CALayer* viewLayer = [CALayer layer];
+    [_private->layerHostingView setLayer:viewLayer];
+    [_private->layerHostingView setWantsLayer:YES];
+    
+    // Parent our root layer in the container layer
+    [viewLayer addSublayer:layer];
+}
+
+- (void)detachRootLayer
+{
+    if (_private->layerHostingView) {
+        [_private->layerHostingView setLayer:nil];
+        [_private->layerHostingView setWantsLayer:NO];
+        [_private->layerHostingView removeFromSuperview];
+        _private->layerHostingView = nil;
+    }
+}
+#endif
 
 @end
 
@@ -5474,7 +5587,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
 
         // Get preceeding word stem
         WebFrame *frame = [_view _frame];
-        DOMRange *selection = kit(core(frame)->selection()->toRange().get());
+        DOMRange *selection = kit(core(frame)->selection()->toNormalizedRange().get());
         DOMRange *wholeWord = [frame _rangeByAlteringCurrentSelection:SelectionController::EXTEND
             direction:SelectionController::BACKWARD granularity:WordGranularity];
         DOMRange *prefix = [wholeWord cloneRange];
@@ -5744,7 +5857,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
     if (!attributedString) {
         Frame* coreFrame = core([self _frame]);
         if (coreFrame) {
-            RefPtr<Range> range = coreFrame->selection()->selection().toRange();
+            RefPtr<Range> range = coreFrame->selection()->selection().toNormalizedRange();
             attributedString = [NSAttributedString _web_attributedStringFromRange:range.get()];
         }
     }
@@ -5773,7 +5886,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
     return [self elementAtPoint:point allowShadowContent:NO];
 }
 
-- (NSDictionary *)elementAtPoint:(NSPoint)point allowShadowContent:(BOOL)allow;
+- (NSDictionary *)elementAtPoint:(NSPoint)point allowShadowContent:(BOOL)allow
 {
     Frame* coreFrame = core([self _frame]);
     if (!coreFrame)

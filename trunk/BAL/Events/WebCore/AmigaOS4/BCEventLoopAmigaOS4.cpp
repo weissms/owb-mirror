@@ -21,7 +21,7 @@
 #include "EventLoop.h"
 
 
-namespace WKAL {
+namespace WebCore {
 
 void EventLoop::cycle()
 {

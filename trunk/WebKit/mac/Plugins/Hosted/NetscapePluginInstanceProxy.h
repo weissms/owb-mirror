@@ -54,6 +54,7 @@ namespace WebKit {
 
 class HostedNetscapePluginStream;
 class NetscapePluginHostProxy;
+class ProxyInstance;
     
 class NetscapePluginInstanceProxy : public RefCounted<NetscapePluginInstanceProxy> {
 public:
@@ -91,6 +92,7 @@ public:
     
     // NPRuntime
     bool getWindowNPObject(uint32_t& objectID);
+    bool getPluginElementNPObject(uint32_t& objectID);
     void releaseObject(uint32_t objectID);
     
     bool evaluate(uint32_t objectID, const WebCore::String& script, data_t& resultData, mach_msg_type_number_t& resultLength);
@@ -112,12 +114,20 @@ public:
     NPError loadURL(const char* url, const char* target, const char* postData, uint32_t postDataLength, LoadURLFlags, uint32_t& requestID);
 
     PassRefPtr<JSC::Bindings::Instance> createBindingsInstance(PassRefPtr<JSC::Bindings::RootObject>);
+    RetainPtr<NSData *> marshalValues(JSC::ExecState*, const JSC::ArgList& args);
+    void marshalValue(JSC::ExecState*, JSC::JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength);
+    JSC::JSValuePtr demarshalValue(JSC::ExecState*, const char* valueData, mach_msg_type_number_t valueLength);
+
+    void addInstance(ProxyInstance*);
+    void removeInstance(ProxyInstance*);
     
     // Reply structs
     struct Reply {
         enum Type {
             InstantiatePlugin,
-            GetScriptableNPObject
+            GetScriptableNPObject,
+            BooleanAndData,
+            Boolean
         };
         
         Reply(Type type) : m_type(type) { }
@@ -143,15 +153,41 @@ public:
     };
 
     struct GetScriptableNPObjectReply : public Reply {
-        static const int ReplyType = GetScriptableNPObject;
+        static const Reply::Type ReplyType = GetScriptableNPObject;
         
         GetScriptableNPObjectReply(uint32_t objectID)
-            : Reply(GetScriptableNPObject)
+            : Reply(ReplyType)
             , m_objectID(objectID)
         {
         }
             
         uint32_t m_objectID;
+    };
+    
+    struct BooleanReply : public Reply {
+        static const Reply::Type ReplyType = Boolean;
+        
+        BooleanReply(boolean_t result)
+            : Reply(ReplyType)
+            , m_result(result)
+        {
+        }
+        
+        boolean_t m_result;
+    };
+
+    struct BooleanAndDataReply : public Reply {
+        static const Reply::Type ReplyType = BooleanAndData;
+        
+        BooleanAndDataReply(boolean_t returnValue, RetainPtr<CFDataRef> result)
+            : Reply(ReplyType)
+            , m_returnValue(returnValue)
+            , m_result(result)
+        {
+        }
+        
+        boolean_t m_returnValue;
+        RetainPtr<CFDataRef> m_result;
     };
     
     void setCurrentReply(Reply* reply)
@@ -186,6 +222,8 @@ private:
     void stopAllStreams();
     void processRequestsAndWaitForReply();
     
+    void cleanup();
+    
     NetscapePluginHostProxy* m_pluginHostProxy;
     WebHostedNetscapePluginView *m_pluginView;
 
@@ -206,14 +244,18 @@ private:
     
     // NPRuntime
     uint32_t idForObject(JSC::JSObject*);
-    void marshalValue(JSC::ExecState*, JSC::JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength);
+    
+    void addValueToArray(NSMutableArray *, JSC::ExecState* exec, JSC::JSValuePtr value);
+    
     bool demarshalValueFromArray(JSC::ExecState*, NSArray *array, NSUInteger& index, JSC::JSValuePtr& result);
     void demarshalValues(JSC::ExecState*, data_t valuesData, mach_msg_type_number_t valuesLength, JSC::ArgList& result);
-    JSC::JSValuePtr demarshalValue(JSC::ExecState*, data_t valueData, mach_msg_type_number_t valueLength);
 
     uint32_t m_objectIDCounter;
     typedef HashMap<uint32_t, JSC::ProtectedPtr<JSC::JSObject> > ObjectMap;
     ObjectMap m_objects;
+    
+    typedef HashSet<ProxyInstance*> ProxyInstanceSet;
+    ProxyInstanceSet m_instances;
 };
     
 } // namespace WebKit

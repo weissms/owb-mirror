@@ -30,7 +30,7 @@
 #include "PlatformWheelEvent.h"
 #include "SDL.h"
 
-namespace WKAL {
+namespace WebCore {
 
 // Keep this in sync with the other platform event constructors
 PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)

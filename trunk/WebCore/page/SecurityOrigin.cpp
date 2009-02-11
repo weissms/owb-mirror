@@ -58,6 +58,7 @@ SecurityOrigin::SecurityOrigin(const KURL& url)
     , m_host(url.host().isNull() ? "" : url.host().lower())
     , m_port(url.port())
     , m_noAccess(false)
+    , m_universalAccess(false)
     , m_domainWasSetInDOM(false)
 {
     // These protocols do not create security origins; the owner frame provides the origin
@@ -74,6 +75,9 @@ SecurityOrigin::SecurityOrigin(const KURL& url)
     // By default, only local SecurityOrigins can load local resources.
     m_canLoadLocalResources = isLocal();
 
+    // By default, grant universalAccess to local SecurityOrigins
+    m_universalAccess = isLocal();
+
     if (isDefaultPortForProtocol(m_port, m_protocol))
         m_port = 0;
 }
@@ -84,6 +88,7 @@ SecurityOrigin::SecurityOrigin(const SecurityOrigin* other)
     , m_domain(other->m_domain.copy())
     , m_port(other->m_port)
     , m_noAccess(other->m_noAccess)
+    , m_universalAccess(other->m_universalAccess)
     , m_domainWasSetInDOM(other->m_domainWasSetInDOM)
     , m_canLoadLocalResources(other->m_canLoadLocalResources)
 {
@@ -96,6 +101,8 @@ bool SecurityOrigin::isEmpty() const
 
 PassRefPtr<SecurityOrigin> SecurityOrigin::create(const KURL& url)
 {
+    if (!url.isValid())
+        return adoptRef(new SecurityOrigin(KURL()));
     return adoptRef(new SecurityOrigin(url));
 }
 
@@ -117,7 +124,7 @@ void SecurityOrigin::setDomainFromDOM(const String& newDomain)
 
 bool SecurityOrigin::canAccess(const SecurityOrigin* other) const
 {  
-    if (isLocal())
+    if (m_universalAccess)
         return true;
 
     if (m_noAccess || other->m_noAccess)
@@ -158,7 +165,7 @@ bool SecurityOrigin::canAccess(const SecurityOrigin* other) const
 
 bool SecurityOrigin::canRequest(const KURL& url) const
 {
-    if (isLocal())
+    if (m_universalAccess)
         return true;
 
     if (m_noAccess)
@@ -180,6 +187,11 @@ void SecurityOrigin::grantLoadLocalResources()
     // documents that have been granted the privilege.
     ASSERT(FrameLoader::allowSubstituteDataAccessToLocal());
     m_canLoadLocalResources = true;
+}
+
+void SecurityOrigin::grantUniversalAccess()
+{
+    m_universalAccess = true;
 }
 
 bool SecurityOrigin::isLocal() const
@@ -209,7 +221,7 @@ String SecurityOrigin::toString() const
         return String("file://");
 
     Vector<UChar> result;
-    result.reserveCapacity(m_protocol.length() + m_host.length() + 10);
+    result.reserveInitialCapacity(m_protocol.length() + m_host.length() + 10);
     append(result, m_protocol);
     append(result, "://");
     append(result, m_host);
@@ -224,7 +236,7 @@ String SecurityOrigin::toString() const
 
 PassRefPtr<SecurityOrigin> SecurityOrigin::createFromString(const String& originString)
 {
-    return SecurityOrigin::create(KURL(originString));
+    return SecurityOrigin::create(KURL(KURL(), originString));
 }
 
 static const char SeparatorCharacter = '_';
@@ -257,7 +269,7 @@ PassRefPtr<SecurityOrigin> SecurityOrigin::createFromDatabaseIdentifier(const St
     // Split out the 3 sections of data
     String protocol = databaseIdentifier.substring(0, separator1);
     String host = databaseIdentifier.substring(separator1 + 1, separator2 - separator1 - 1);
-    return create(KURL(protocol + "://" + host + ":" + String::number(port)));
+    return create(KURL(KURL(), protocol + "://" + host + ":" + String::number(port)));
 }
 
 String SecurityOrigin::databaseIdentifier() const 

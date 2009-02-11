@@ -28,7 +28,7 @@
 
 #if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX) || PLATFORM(BAL)
 
-namespace OWBAL{
+namespace WebCore {
 
 bool ICOImageDecoder::isSizeAvailable() const
 {

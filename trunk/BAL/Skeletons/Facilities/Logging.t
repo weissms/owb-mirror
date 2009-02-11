@@ -43,7 +43,7 @@
 #define LOG_CHANNEL_PREFIX Log
 #endif
 
-namespace OWBAL {
+namespace WebCore {
 
     extern WTFLogChannel LogNotYetImplemented;
     extern WTFLogChannel LogFrames;

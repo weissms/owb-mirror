@@ -39,7 +39,7 @@
 
 //const char *too = "/usr/share/fonts/arphicfonts/bkai00mp.ttf";
 
-namespace WKAL {
+namespace WebCore {
 FT_Library FontPlatformData::m_library = 0;
 
 FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const AtomicString& familyName)

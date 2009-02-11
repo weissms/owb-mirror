@@ -36,7 +36,7 @@
 #include "CString.h"
 
 
-namespace OWBAL {
+namespace WebCore {
 
 File::File(const String path)
     : m_fd(0)

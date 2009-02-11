@@ -42,13 +42,16 @@
 #pragma warning( pop )
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <CoreGraphics/CoreGraphics.h>
 #include <shlobj.h>
 #include <shfolder.h>
 #include <tchar.h>
-#include <WebKitSystemInterface/WebKitSystemInterface.h>
 #include <wtf/HashMap.h>
 #include <wtf/OwnArrayPtr.h>
+
+#if PLATFORM(CG)
+#include <CoreGraphics/CoreGraphics.h>
+#include <WebKitSystemInterface/WebKitSystemInterface.h>
+#endif
 
 using namespace WebCore;
 
@@ -200,6 +203,7 @@ void WebPreferences::initializeDefaultSettings()
     CFDictionaryAddValue(defaults, CFSTR(WebKitTextAreasAreResizablePreferenceKey), kCFBooleanFalse);
     CFDictionaryAddValue(defaults, CFSTR(WebKitJavaEnabledPreferenceKey), kCFBooleanTrue);
     CFDictionaryAddValue(defaults, CFSTR(WebKitJavaScriptEnabledPreferenceKey), kCFBooleanTrue);
+    CFDictionaryAddValue(defaults, CFSTR(WebKitWebSecurityEnabledPreferenceKey), kCFBooleanTrue);
     CFDictionaryAddValue(defaults, CFSTR(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey), kCFBooleanTrue);
     CFDictionaryAddValue(defaults, CFSTR(WebKitPluginsEnabledPreferenceKey), kCFBooleanTrue);
     CFDictionaryAddValue(defaults, CFSTR(WebKitDatabasesEnabledPreferenceKey), kCFBooleanTrue);
@@ -748,6 +752,20 @@ HRESULT STDMETHODCALLTYPE WebPreferences::setJavaScriptEnabled(
     return S_OK;
 }
 
+HRESULT STDMETHODCALLTYPE WebPreferences::isWebSecurityEnabled( 
+    /* [retval][out] */ BOOL* enabled)
+{
+    *enabled = boolValueForKey(CFSTR(WebKitWebSecurityEnabledPreferenceKey));
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebPreferences::setWebSecurityEnabled( 
+    /* [in] */ BOOL enabled)
+{
+    setBoolValue(CFSTR(WebKitWebSecurityEnabledPreferenceKey), enabled);
+    return S_OK;
+}
+
 HRESULT STDMETHODCALLTYPE WebPreferences::javaScriptCanOpenWindowsAutomatically( 
     /* [retval][out] */ BOOL* enabled)
 {
@@ -977,7 +995,9 @@ HRESULT STDMETHODCALLTYPE WebPreferences::setFontSmoothing(
     setIntegerValue(CFSTR(WebKitFontSmoothingTypePreferenceKey), smoothingType);
     if (smoothingType == FontSmoothingTypeWindows)
         smoothingType = FontSmoothingTypeMedium;
+#if PLATFORM(CG)
     wkSetFontSmoothingLevel((int)smoothingType);
+#endif
     return S_OK;
 }
 
@@ -992,7 +1012,9 @@ HRESULT STDMETHODCALLTYPE WebPreferences::setFontSmoothingContrast(
     /* [in] */ float contrast)
 {
     setFloatValue(CFSTR(WebKitFontSmoothingContrastPreferenceKey), contrast);
+#if PLATFORM(CG)
     wkSetFontSmoothingContrast(contrast);
+#endif
     return S_OK;
 }
 

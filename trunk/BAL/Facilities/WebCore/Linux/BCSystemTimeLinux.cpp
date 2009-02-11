@@ -31,7 +31,7 @@
 
 #include <float.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 float userIdleTime() 
 { 

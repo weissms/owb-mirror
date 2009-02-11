@@ -53,7 +53,7 @@
 
 using std::min;
 
-namespace WKAL {
+namespace WebCore {
 
 using namespace HTMLNames;
 
@@ -88,10 +88,8 @@ PopupMenu::PopupMenu(PopupMenuClient* client)
 
 PopupMenu::~PopupMenu()
 {
+#if !PLATFORM(AMIGAOS4)
     if (m_popup)
-#if PLATFORM(AMIGAOS4)
-        cairo_surface_destroy(m_popup);
-#else
         SDL_FreeSurface(m_popup);
 #endif
 }
@@ -104,12 +102,12 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     if (clientRect().isEmpty())
         return;
 
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuShow", "", this);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuShow", "", this);
 }
 
 void PopupMenu::hide()
 {
-    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuHide", "", this);
+    WebCore::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuHide", "", this);
 }
 
 const int endOfLinePadding = 2;

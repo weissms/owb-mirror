@@ -2,6 +2,24 @@
 # Fonts support part.                            #
 ##################################################
 
+aux_source_directory(${BAL_DIR}/Fonts/WebCore/WK WEBCORE_SRC)
+
+if(USE_FONTS_QT)
+    create_include_link(${BAL_DIR}/Fonts/WebCore/Qt/BCFontCustomPlatformDataQt.h BAL/FontCustomPlatformData.h)
+    create_include_link(${BAL_DIR}/Fonts/WebCore/Qt/BCFontPlatformDataQt.h BAL/FontPlatformData.h)
+    create_include_link(${BAL_DIR}/Fonts/WebCore/WK/BCSimpleFontDataWK.h BAL/SimpleFontData.h)
+    create_include_link(${BAL_DIR}/Fonts/WebCore/WK/BCGlyphBufferWK.h BAL/GlyphBuffer.h)
+
+    list(REMOVE_ITEM WEBCORE_SRC
+        ${BAL_DIR}/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
+	${BAL_DIR}/Fonts/WebCore/WK/BCFontCacheWK.cpp
+	${BAL_DIR}/Fonts/WebCore/WK/BCFontFallbackListWK.cpp
+	${BAL_DIR}/Fonts/WebCore/WK/BCFontFastPathWK.cpp
+	${BAL_DIR}/Fonts/WebCore/WK/BCGlyphPageTreeNodeWK.cpp
+    )
+    aux_source_directory(${BAL_DIR}/Fonts/WebCore/Qt WEBCORE_SRC)
+endif(USE_FONTS_QT)
+
 if(USE_FONTS_GTK)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Gtk/BCFontCustomPlatformDataGtk.h BAL/FontCustomPlatformData.h)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.h BAL/FontPlatformData.h)
@@ -47,4 +65,3 @@ create_include_link(${BAL_DIR}/Fonts/WebCore/WK/BCFontTraitsMaskWK.h BAL/FontTra
 create_include_link(${BAL_DIR}/Fonts/WebCore/WK/BCTextRunWK.h BAL/TextRun.h)
 create_include_link(${BAL_DIR}/Fonts/WebCore/WK/BCWidthIteratorWK.h BAL/WidthIterator.h)
 
-aux_source_directory(${BAL_DIR}/Fonts/WebCore/WK WEBCORE_SRC)

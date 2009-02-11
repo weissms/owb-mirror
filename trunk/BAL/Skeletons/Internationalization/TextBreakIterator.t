@@ -39,7 +39,7 @@
 
 #include <wtf/unicode/Unicode.h>
 
-namespace OWBAL {
+namespace WebCore {
 
     class TextBreakIterator;
 

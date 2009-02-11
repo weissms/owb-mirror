@@ -29,11 +29,13 @@
 
 #include "config.h"
 #include "Logging.h"
+#include "InputElement.h"
 #include "RenderObject.h"
 #include "RenderThemeSDL.h"
 
 #include "GraphicsContext.h"
 #include "Pen.h"
+#include "RenderBox.h"
 
 #include <cstdio>
 
@@ -57,7 +59,7 @@
 #define TFS_READONLY  6
 
 
-namespace WKAL {
+namespace WebCore {
 
 void RenderThemeBal::addIntrinsicMargins(RenderStyle* style) const
 {
@@ -114,7 +116,7 @@ int RenderThemeBal::baselinePosition(const RenderObject* o) const
     // FIXME: This strategy is possibly incorrect for the GTK+ port.
     if (o->style()->appearance() == CheckboxPart ||
         o->style()->appearance() == RadioPart)
-        return o->marginTop() + o->height() - 2;
+        return toRenderBox(o)->marginTop() + toRenderBox(o)->height() - 2;
     return RenderTheme::baselinePosition(o);
 }
 
@@ -156,7 +158,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     style->setBorderRightWidth(borderWidth);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
@@ -178,12 +180,13 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
         style->setBorderRightWidth(borderWidth);
         o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
         o->paintBorder(i.context,
             r.x(), r.y(), r.width(), r.height(),
             style.get(), true, true);
     }
-    if(o->element()->isChecked()) {
+    InputElement *input = toInputElement(static_cast<Element*>(o->element()));
+    if(input && input->isChecked()) {
         i.context->setStrokeColor(Color::black);
         i.context->setStrokeStyle(SolidStroke);
         IntRect r2(r);
@@ -223,11 +226,12 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
 
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
-    if(o->element()->isChecked()) {
+    InputElement *input = toInputElement(static_cast<Element*>(o->element()));
+    if(input && input->isChecked()) {
         IntRect r2(r);
 #if PLATFORM(AMIGAOS4)
         r2.inflate(-borderWidth - 1);
@@ -250,7 +254,7 @@ bool RenderThemeBal::paintButton(RenderObject* o, const RenderObject::PaintInfo&
 {
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         o->style(), true, true);
@@ -281,7 +285,7 @@ bool RenderThemeBal::paintMenuList(RenderObject* o, const RenderObject::PaintInf
     style->setBorderRightWidth(1);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
@@ -317,7 +321,7 @@ bool RenderThemeBal::paintTextField(RenderObject* o, const RenderObject::PaintIn
     style->setBorderRightWidth(borderWidth);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
+        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);

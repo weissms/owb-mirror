@@ -1,3 +1,11 @@
+2009-02-03  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix cmake : creation of webcore directory is ok
+
+
+        * CMakeLists.txt:
+
 2009-01-21  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.

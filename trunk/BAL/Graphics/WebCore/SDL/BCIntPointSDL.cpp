@@ -29,7 +29,7 @@
 #include "IntPoint.h"
 #include "stdio.h"
 
-namespace WKAL {
+namespace WebCore {
 
 IntPoint::IntPoint(const BalPoint& p)
     : m_x(p.x)

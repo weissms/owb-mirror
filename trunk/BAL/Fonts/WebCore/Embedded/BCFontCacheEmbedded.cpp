@@ -32,7 +32,7 @@
 #include "SimpleFontData.h"
 #include <wtf/Assertions.h>
 
-namespace WKAL {
+namespace WebCore {
 
 void FontCache::platformInit()
 {

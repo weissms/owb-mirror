@@ -258,8 +258,14 @@
 #endif
 #endif
 
+/* COMPILER(RVCT) */
+#if defined(__CC_ARM) || defined(__ARMCC__)
+#define WTF_COMPILER_RVCT 1
+#endif
+
 /* COMPILER(GCC) */
-#if defined(__GNUC__)
+/* --gnu option of the RVCT compiler also defines __GNUC__ */
+#if defined(__GNUC__) && !COMPILER(RVCT)
 #define WTF_COMPILER_GCC 1
 #endif
 
@@ -278,11 +284,6 @@
 /* not really fully supported - is this relevant any more? */
 #if defined(__CYGWIN__)
 #define WTF_COMPILER_CYGWIN 1
-#endif
-
-/* COMPILER(RVCT) */
-#if defined(__CC_ARM) || defined(__ARMCC__)
-#define WTF_COMPILER_RVCT 1
 #endif
 
 /* COMPILER(WINSCW) */
@@ -458,14 +459,18 @@
 #define ENABLE_TEXT_CARET 1
 #endif
 
+#if !defined(ENABLE_ON_FIRST_TEXTAREA_FOCUS_SELECT_ALL)
+#define ENABLE_ON_FIRST_TEXTAREA_FOCUS_SELECT_ALL 0
+#endif
+
 #if !defined(WTF_USE_ALTERNATE_JSIMMEDIATE) && PLATFORM(X86_64) && PLATFORM(MAC)
 #define WTF_USE_ALTERNATE_JSIMMEDIATE 1
 #endif
 
 #if !defined(ENABLE_JIT)
-/* x86-64 support is under development. */
+/* The JIT is tested & working on x86_64 Mac */
 #if PLATFORM(X86_64) && PLATFORM(MAC)
-    #define ENABLE_JIT 0
+    #define ENABLE_JIT 1
     #define WTF_USE_JIT_STUB_ARGUMENT_REGISTER 1
 /* The JIT is tested & working on x86 Mac */
 #elif PLATFORM(X86) && PLATFORM(MAC)

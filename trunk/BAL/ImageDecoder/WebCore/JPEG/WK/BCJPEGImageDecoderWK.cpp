@@ -68,7 +68,7 @@ extern "C" {
 
 #include <setjmp.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 struct decoder_error_mgr {
     struct jpeg_error_mgr pub;  /* "public" fields for IJG library*/

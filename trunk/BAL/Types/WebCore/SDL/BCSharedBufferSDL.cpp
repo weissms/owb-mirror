@@ -31,7 +31,7 @@
 #include "FileIO.h"
 #include "CString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
 {

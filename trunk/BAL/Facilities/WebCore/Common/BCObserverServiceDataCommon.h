@@ -38,7 +38,7 @@
 using WebCore::String;
 
 class BalObject;
-namespace OWBAL {
+namespace WebCore {
 
 
     class ObserverData;

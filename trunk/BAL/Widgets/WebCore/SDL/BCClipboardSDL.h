@@ -33,7 +33,7 @@
 #include "Clipboard.h"
 #include "BALBase.h"
 
-namespace WKAL {
+namespace WebCore {
     class CachedImage;
 
     // State available during IE's events for drag and drop and copy/paste

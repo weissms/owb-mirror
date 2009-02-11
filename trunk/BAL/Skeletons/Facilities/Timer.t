@@ -40,13 +40,13 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Vector.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 // Time intervals are all in seconds.
 
 class TimerHeapElement;
 
-class TimerBase : public OWBALBase, Noncopyable {
+class TimerBase : public WebCoreBase, Noncopyable {
 public:
     /**
      * TimerBase default constructor
@@ -239,7 +239,7 @@ private:
     friend bool operator<(const TimerHeapElement&, const TimerHeapElement&);
 };
 
-template <typename TimerFiredClass> class Timer : public OWBALBase, public TimerBase {
+template <typename TimerFiredClass> class Timer : public WebCoreBase, public TimerBase {
 public:
     /**
      * timer function template

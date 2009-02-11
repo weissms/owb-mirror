@@ -116,7 +116,7 @@ void HTMLFormElement::removedFromDocument()
 
 void HTMLFormElement::handleLocalEvents(Event* event, bool useCapture)
 {
-    EventTargetNode* targetNode = event->target()->toNode();
+    Node* targetNode = event->target()->toNode();
     if (!useCapture && targetNode && targetNode != this && (event->type() == eventNames().submitEvent || event->type() == eventNames().resetEvent)) {
         event->stopPropagation();
         return;
@@ -268,12 +268,7 @@ bool HTMLFormElement::prepareSubmit(Event* event)
     return m_doingsubmit;
 }
 
-void HTMLFormElement::submit()
-{
-    submit(0, false);
-}
-
-void HTMLFormElement::submit(Event* event, bool activateSubmitButton)
+void HTMLFormElement::submit(Event* event, bool activateSubmitButton, bool lockHistory, bool lockBackForwardList)
 {
     FrameView* view = document()->view();
     Frame* frame = document()->frame();
@@ -335,14 +330,14 @@ void HTMLFormElement::submit(Event* event, bool activateSubmitButton)
                 FormDataBuilder::encodeStringAsFormData(bodyData, body.utf8());
                 data = FormData::create(String(bodyData.data(), bodyData.size()).replace('+', "%20").latin1());
             }
-            frame->loader()->submitForm("POST", m_url, data, m_target, m_formDataBuilder.encodingType(), String(), event);
+            frame->loader()->submitForm("POST", m_url, data, m_target, m_formDataBuilder.encodingType(), String(), event, lockHistory, lockBackForwardList);
         } else {
             Vector<char> boundary = m_formDataBuilder.generateUniqueBoundaryString();
-            frame->loader()->submitForm("POST", m_url, createFormData(boundary.data()), m_target, m_formDataBuilder.encodingType(), boundary.data(), event);
+            frame->loader()->submitForm("POST", m_url, createFormData(boundary.data()), m_target, m_formDataBuilder.encodingType(), boundary.data(), event, lockHistory, lockBackForwardList);
         }
     } else {
         m_formDataBuilder.setIsMultiPartForm(false);
-        frame->loader()->submitForm("GET", m_url, createFormData(CString()), m_target, String(), String(), event);
+        frame->loader()->submitForm("GET", m_url, createFormData(CString()), m_target, String(), String(), event, lockHistory, lockBackForwardList);
     }
 
     if (needButtonActivation && firstSuccessfulSubmitButton)
@@ -432,7 +427,7 @@ unsigned HTMLFormElement::formElementIndex(HTMLFormControlElement* e)
             if (node == e)
                 return i;
             if (node->isHTMLElement()
-                    && static_cast<HTMLElement*>(node)->isGenericFormElement()
+                    && static_cast<Element*>(node)->isFormControlElement()
                     && static_cast<HTMLFormControlElement*>(node)->form() == this)
                 ++i;
         }
@@ -630,9 +625,11 @@ void HTMLFormElement::CheckedRadioButtons::removeButton(HTMLFormControlElement* 
     if (it == m_nameToCheckedRadioButtonMap->end() || it->second != element)
         return;
     
+    InputElement* inputElement = toInputElement(element);
+    ASSERT_UNUSED(inputElement, inputElement);
+    ASSERT(inputElement->isChecked());
     ASSERT(element->isRadioButton());
-    ASSERT(element->isChecked());
-    
+
     m_nameToCheckedRadioButtonMap->remove(it);
     if (m_nameToCheckedRadioButtonMap->isEmpty())
         m_nameToCheckedRadioButtonMap.clear();

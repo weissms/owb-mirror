@@ -1,6 +1,7 @@
 list(APPEND WEBCORE_SRC
     html/CanvasGradient.cpp
     html/CanvasPattern.cpp
+    html/CanvasPixelArray.cpp
     html/CanvasRenderingContext2D.cpp
     html/CanvasStyle.cpp
     html/File.cpp

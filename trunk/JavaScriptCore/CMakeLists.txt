@@ -60,13 +60,8 @@ include_directories(
     ${JAVASCRIPTCORE_INCLUDE_DIRS}
     ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore
     ${I18N_INCLUDE_DIRS}
+    ${THREADS_INCLUDE_DIRS}
 )
-
-if(USE_THREADS_GTHREADS)
-    include_directories(
-        ${THREADS_INCLUDE_DIRS}
-    )
-endif(USE_THREADS_GTHREADS)
 
 if(NOT ENABLE_DEBUG)
     include_directories(

@@ -40,9 +40,9 @@
 #include "AtomicStringImpl.h"
 #include "PlatformString.h"
 
-namespace OWBAL {
+namespace WebCore {
 
-class AtomicString : public OWBALBase {
+class AtomicString : public WebCoreBase {
 public:
     /**
      * init atomic string
@@ -472,7 +472,7 @@ inline bool equalIgnoringCase(const String& a, const AtomicString& b) ;
     extern const AtomicString starAtom;
 #endif
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // AtomicString_h
 

@@ -26,6 +26,15 @@ if(ENABLE_NPAPI)
             plugins/gtk/gtk2xtbin.c
         )
     endif(USE_GRAPHICS_GTK)
+
+    if(USE_GRAPHICS_QT)
+        list(APPEND WEBCORE_SRC
+            plugins/qt/PluginPackageQt.cpp
+            plugins/qt/PluginDataQt.cpp
+            plugins/qt/PluginViewQt.cpp
+        )
+    endif(USE_GRAPHICS_QT)
+
     if(USE_GRAPHICS_SDL)
         list(APPEND WEBCORE_SRC
             plugins/SDL/PluginPackageSDL.cpp

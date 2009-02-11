@@ -42,9 +42,9 @@
 #include <wtf/HashSet.h>
 #include <wtf/Vector.h>
 
-namespace OWBAL {
+namespace WebCore {
 
-class MIMETypeRegistry : public OWBALBase {
+class MIMETypeRegistry : public WebCoreBase {
 public:
     /**
      * get MIMEType for extension
@@ -206,7 +206,7 @@ public:
     static HashSet<String>& getSupportedMediaMIMETypes();
 };
 
-} // namespace OWBAL
+} // namespace WebCore
 
 #endif // MIMETypeRegistry_h
 

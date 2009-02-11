@@ -77,7 +77,6 @@ public:
     virtual void setScrollLeft(int);
     virtual void setScrollTop(int);
     virtual bool scroll(ScrollDirection, ScrollGranularity, float multiplier = 1.0f);
-    virtual bool isScrollable() const;
 
     VisiblePosition visiblePositionForIndex(int index);
     int indexForVisiblePosition(const VisiblePosition&);
@@ -89,7 +88,7 @@ protected:
     void adjustInnerTextStyle(const RenderStyle* startStyle, RenderStyle* textBlockStyle) const;
     void setInnerTextValue(const String&);
 
-    virtual void styleDidChange(RenderStyle::Diff, const RenderStyle* oldStyle);
+    virtual void styleDidChange(StyleDifference, const RenderStyle* oldStyle);
 
     void createSubtreeIfNeeded(TextControlInnerElement* innerBlock);
     void hitInnerTextBlock(HitTestResult&, int x, int y, int tx, int ty);

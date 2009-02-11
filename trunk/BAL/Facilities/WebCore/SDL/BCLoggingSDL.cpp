@@ -29,7 +29,7 @@
 #include "config.h"
 #include "Logging.h"
 
-namespace OWBAL {
+namespace WebCore {
 
 void InitializeLoggingChannelsIfNecessary()
 {

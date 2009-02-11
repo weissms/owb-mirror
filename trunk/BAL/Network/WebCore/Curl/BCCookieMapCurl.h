@@ -32,7 +32,7 @@
 #include "StringHash.h"
 #include "PlatformString.h"
 
-namespace WKAL {
+namespace WebCore {
 
 class CookieMap {
 public:
@@ -79,6 +79,6 @@ private:
     // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
 };
 
-} // Namespace WKAL
+} // Namespace WebCore
 
 #endif // CookieMap_h
