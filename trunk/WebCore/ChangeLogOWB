@@ -1,3 +1,11 @@
+2009-02-13  Olivier DOLE  <odole@pleyo.com>
+
+        Build fix when DOM_STORAGE is enabled and INSPECTOR disabled.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::sessionStorage):
+        (WebCore::DOMWindow::localStorage):
+
 2009-02-03  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
