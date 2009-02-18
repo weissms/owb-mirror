@@ -82,18 +82,15 @@ add_dependencies(jsc wtf)
 # Tests compilation.                             #
 ##################################################
 
-if(ENABLE_TESTS)
-    add_executable(jshell jsc.cpp)
-    target_link_libraries(jshell
-        ${KJS_LD_FLAGS}
-        ${I18N_LIBRARIES}
-        ${THREADS_LIBRARIES}
-        jsc)
-    add_custom_target(kjstests
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/export_test_kjs
-        COMMAND cd KjsTests/mozilla/ && ${PERL_EXECUTABLE} mklistpage.pl > menubody.html
-        COMMAND cd KjsTests/mozilla/ && cat menuhead.html menubody.html menufoot.html > menu.html
-        COMMAND cd KjsTests/mozilla/ && SYMROOTS=${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore ./jsDriver.pl -e kjs -s ${OWB_BINARY_DIR}/bin/jsc -f results.html
-        WORKING_DIRECTORY ${OWB_BINARY_DIR})
-    add_dependencies(kjstests jshell)
-endif(ENABLE_TESTS)
+add_executable(jshell jsc.cpp)
+target_link_libraries(jshell
+    ${KJS_LD_FLAGS}
+    ${I18N_LIBRARIES}
+    ${THREADS_LIBRARIES}
+    jsc
+)
+add_custom_target(jsctests
+    COMMAND ${PERL_EXECUTABLE} jsDriver.pl -e squirrelfish -s ${OWB_BINARY_DIR}/bin/jshell -f results.html
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/mozilla
+)
+add_dependencies(jsctests jshell)
