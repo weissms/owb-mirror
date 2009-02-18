@@ -90,7 +90,10 @@ target_link_libraries(jshell
     jsc
 )
 add_custom_target(jsctests
+    COMMAND ${PERL_EXECUTABLE} mklistpage.pl > menubody.html
+    COMMAND cat menuhead.html menubody.html menufoot.html > menu.html
     COMMAND ${PERL_EXECUTABLE} jsDriver.pl -e squirrelfish -s ${OWB_BINARY_DIR}/bin/jshell -f results.html
+    COMMAND ${PERL_EXECUTABLE} report.pl
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/mozilla
 )
 add_dependencies(jsctests jshell)

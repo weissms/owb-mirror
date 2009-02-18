@@ -1,5 +1,12 @@
 2009-02-18  Olivier DOLE  <odole@pleyo.com>
 
+        improve jsctests to better match WebKit method.
+
+        * CMakeLists.txt:
+        * tests/mozilla/report.pl: Added.
+
+2009-02-18  Olivier DOLE  <odole@pleyo.com>
+
         Fix jsctests. Now simply run "make jsctests" to run JavaScriptCore
         tests.
 
