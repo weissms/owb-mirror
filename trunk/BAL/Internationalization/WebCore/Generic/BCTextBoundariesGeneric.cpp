@@ -41,7 +41,6 @@ namespace WebCore {
 
 int findNextWordFromIndex(const UChar* chars, int len, int position, bool forward)
 {
-    printf("findNextWordFromIndex\n");
     /*UBreakIterator* it = wordBreakIterator(chars, len);
 
     if (forward) {
@@ -74,7 +73,6 @@ int findNextWordFromIndex(const UChar* chars, int len, int position, bool forwar
 
 void findWordBoundary(const UChar* chars, int len, int position, int* start, int* end)
 {
-    printf("findWordBoundary\n");
     /*UBreakIterator* it = wordBreakIterator(chars, len);
     *end = ubrk_following(it, position);
     if (*end < 0)

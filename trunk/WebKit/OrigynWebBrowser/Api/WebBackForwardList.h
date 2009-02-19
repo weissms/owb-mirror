@@ -38,21 +38,13 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include "WebHistoryItem.h"
-#include "WebHistoryItem.h"
 
-#include <wtf/PassRefPtr.h>
-#include <wtf/RefPtr.h>
-
-namespace WebCore {
-    class BackForwardList;
-}
+class WebBackForwardListPrivate;
+class WebHistoryItem;
 
 class WebBackForwardList
 {
 public:
-
     /**
      * create new instance of WebBackForwardList
      * @param[in]: BackForwardList
@@ -61,14 +53,14 @@ public:
      * WebBackForwardList *wbfl = WebBackForwardList::createInstance(bfl);
      * @endcode
      */
-    static WebBackForwardList* createInstance(PassRefPtr<WebCore::BackForwardList>);
-protected:
+    static WebBackForwardList* createInstance(WebBackForwardListPrivate*);
 
+protected:
     /**
      * WebBackForwardList constructor
      * @param[in]: BackForwardList
      */
-    WebBackForwardList(PassRefPtr<WebCore::BackForwardList>);
+    WebBackForwardList(WebBackForwardListPrivate*);
 
 public:
 
@@ -179,7 +171,7 @@ public:
     virtual void removeItem(WebHistoryItem* item);
 
 protected:
-    RefPtr<WebCore::BackForwardList> m_backForwardList;
+    WebBackForwardListPrivate *d;
 };
 
 #endif

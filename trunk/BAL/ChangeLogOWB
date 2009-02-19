@@ -1,3 +1,173 @@
+2009-02-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Remove some printf.
+
+        * Facilities/WebCore/SDL/BCFileChooserSDL.cpp:
+        (WebCore::FileChooser::basenameForWidth):
+        * Fonts/WebCore/Embedded/BCFontEmbedded.cpp:
+        (WebCore::Font::drawComplexText):
+        (WebCore::Font::floatWidthForComplexText):
+        (WebCore::Font::offsetForPositionForComplexText):
+        (WebCore::Font::selectionRectForComplexText):
+        * Fonts/WebCore/Freetype/BCFontCustomPlatformDataFreetype.cpp:
+        (WebCore::createFontCustomPlatformData):
+        * Graphics/WebCore/SDL/BCGradientSDL.cpp:
+        (WebCore::Gradient::platformDestroy):
+        (WebCore::Gradient::platformGradient):
+        (WebCore::Gradient::fill):
+        * Graphics/WebCore/SDL/BCImageBufferSDL.cpp:
+        (WebCore::ImageBuffer::putImageData):
+        (WebCore::ImageBuffer::toDataURL):
+        * Internationalization/WTF/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::toUpper):
+        (WTF::Unicode::toTitleCase):
+        (WTF::Unicode::isArabicChar):
+        (WTF::Unicode::category):
+        (WTF::Unicode::isFormatChar):
+        (WTF::Unicode::isSeparatorSpace):
+        (WTF::Unicode::isPrintableChar):
+        (WTF::Unicode::isDigit):
+        (WTF::Unicode::isPunct):
+        (WTF::Unicode::mirroredChar):
+        (WTF::Unicode::direction):
+        (WTF::Unicode::isLower):
+        (WTF::Unicode::digitValue):
+        (WTF::Unicode::combiningClass):
+        (WTF::Unicode::decompositionType):
+        (WTF::Unicode::umemcasecmp):
+        * Internationalization/WebCore/Generic/BCSmartReplaceGeneric.cpp:
+        (WebCore::isCharacterSmartReplaceExempt):
+        * Internationalization/WebCore/Generic/BCTextBoundariesGeneric.cpp:
+        (WebCore::findNextWordFromIndex):
+        (WebCore::findWordBoundary):
+        * Media/WebCore/SDL/BCMediaPlayerPrivateSDL.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate):
+        (WebCore::MediaPlayerPrivate::~MediaPlayerPrivate):
+        (WebCore::MediaPlayerPrivate::load):
+        (WebCore::MediaPlayerPrivate::play):
+        (WebCore::MediaPlayerPrivate::pause):
+        (WebCore::MediaPlayerPrivate::duration):
+        (WebCore::MediaPlayerPrivate::currentTime):
+        (WebCore::MediaPlayerPrivate::seek):
+        (WebCore::MediaPlayerPrivate::setEndTime):
+        (WebCore::MediaPlayerPrivate::startEndPointTimerIfNeeded):
+        (WebCore::MediaPlayerPrivate::cancelSeek):
+        (WebCore::MediaPlayerPrivate::endPointTimerFired):
+        (WebCore::MediaPlayerPrivate::paused):
+        (WebCore::MediaPlayerPrivate::seeking):
+        (WebCore::MediaPlayerPrivate::naturalSize):
+        (WebCore::MediaPlayerPrivate::hasVideo):
+        (WebCore::MediaPlayerPrivate::setVolume):
+        (WebCore::MediaPlayerPrivate::setMuted):
+        (WebCore::MediaPlayerPrivate::setRate):
+        (WebCore::MediaPlayerPrivate::dataRate):
+        (WebCore::MediaPlayerPrivate::networkState):
+        (WebCore::MediaPlayerPrivate::readyState):
+        (WebCore::MediaPlayerPrivate::maxTimeBuffered):
+        (WebCore::MediaPlayerPrivate::maxTimeSeekable):
+        (WebCore::MediaPlayerPrivate::maxTimeLoaded):
+        (WebCore::MediaPlayerPrivate::bytesLoaded):
+        (WebCore::MediaPlayerPrivate::totalBytesKnown):
+        (WebCore::MediaPlayerPrivate::totalBytes):
+        (WebCore::MediaPlayerPrivate::cancelLoad):
+        (WebCore::MediaPlayerPrivate::updateStates):
+        (WebCore::MediaPlayerPrivate::loadStateChanged):
+        (WebCore::MediaPlayerPrivate::rateChanged):
+        (WebCore::MediaPlayerPrivate::sizeChanged):
+        (WebCore::MediaPlayerPrivate::timeChanged):
+        (WebCore::MediaPlayerPrivate::volumeChanged):
+        (WebCore::MediaPlayerPrivate::didEnd):
+        (WebCore::MediaPlayerPrivate::loadingFailed):
+        (WebCore::MediaPlayerPrivate::setRect):
+        (WebCore::MediaPlayerPrivate::setVisible):
+        (WebCore::MediaPlayerPrivate::repaint):
+        (WebCore::MediaPlayerPrivate::paint):
+        (WebCore::MediaPlayerPrivate::getSupportedTypes):
+        (WebCore::MediaPlayerPrivate::createGSTPlayBin):
+        * Media/WebCore/SDL/BCSoundSDL.cpp:
+        (WebCore::systemBeep):
+        * SVG/WebCore/SDL/BCSVGResourceFilterSDL.cpp:
+        (WebCore::SVGResourceFilter::createPlatformData):
+        (WebCore::SVGResourceFilter::prepareFilter):
+        (WebCore::SVGResourceFilter::applyFilter):
+        * SVG/WebCore/SDL/BCSVGResourceMaskerSDL.cpp:
+        (WebCore::SVGResourceMasker::applyMask):
+        * Types/WebCore/SDL/BCIconSDL.cpp:
+        (WebCore::Icon::Icon):
+        (WebCore::Icon::createIconForFile):
+        (WebCore::Icon::createIconForFiles):
+        (WebCore::Icon::paint):
+        * Widgets/WebCore/SDL/BCClipboardSDL.cpp:
+        (WebCore::Editor::newGeneralClipboard):
+        (WebCore::ClipboardBal::ClipboardBal):
+        (WebCore::ClipboardBal::~ClipboardBal):
+        (WebCore::ClipboardBal::clearData):
+        (WebCore::ClipboardBal::clearAllData):
+        (WebCore::ClipboardBal::getData):
+        (WebCore::ClipboardBal::setData):
+        (WebCore::ClipboardBal::types):
+        (WebCore::ClipboardBal::dragLocation):
+        (WebCore::ClipboardBal::dragImage):
+        (WebCore::ClipboardBal::setDragImage):
+        (WebCore::ClipboardBal::dragImageElement):
+        (WebCore::ClipboardBal::setDragImageElement):
+        (WebCore::ClipboardBal::createDragImage):
+        (WebCore::ClipboardBal::declareAndWriteDragImage):
+        (WebCore::ClipboardBal::writeURL):
+        (WebCore::ClipboardBal::writeRange):
+        (WebCore::ClipboardBal::hasData):
+        * Widgets/WebCore/SDL/BCContextMenuItemSDL.cpp:
+        (WebCore::ContextMenuItem::ContextMenuItem):
+        (WebCore::ContextMenuItem::~ContextMenuItem):
+        (WebCore::ContextMenuItem::createNativeMenuItem):
+        (WebCore::ContextMenuItem::releasePlatformDescription):
+        (WebCore::ContextMenuItem::type):
+        (WebCore::ContextMenuItem::setType):
+        (WebCore::ContextMenuItem::action):
+        (WebCore::ContextMenuItem::setAction):
+        (WebCore::ContextMenuItem::title):
+        (WebCore::ContextMenuItem::setTitle):
+        (WebCore::ContextMenuItem::platformSubMenu):
+        (WebCore::ContextMenuItem::setSubMenu):
+        (WebCore::ContextMenuItem::setChecked):
+        (WebCore::ContextMenuItem::setEnabled):
+        * Widgets/WebCore/SDL/BCContextMenuSDL.cpp:
+        (WebCore::ContextMenu::ContextMenu):
+        (WebCore::ContextMenu::~ContextMenu):
+        (WebCore::ContextMenu::appendItem):
+        (WebCore::ContextMenu::setPlatformDescription):
+        (WebCore::ContextMenu::platformDescription):
+        (WebCore::ContextMenu::releasePlatformDescription):
+        * Widgets/WebCore/SDL/BCCursorSDL.cpp:
+        (WebCore::Cursor::~Cursor):
+        * Widgets/WebCore/SDL/BCDragControllerSDL.cpp:
+        (WebCore::DragController::isCopyKeyDown):
+        (WebCore::DragController::dragOperation):
+        (WebCore::DragController::maxDragImageSize):
+        * Widgets/WebCore/SDL/BCPasteboardSDL.cpp:
+        (WebCore::Pasteboard::generalPasteboard):
+        (WebCore::Pasteboard::Pasteboard):
+        (WebCore::Pasteboard::~Pasteboard):
+        (WebCore::Pasteboard::setHelper):
+        (WebCore::Pasteboard::writeSelection):
+        (WebCore::Pasteboard::writeURL):
+        (WebCore::Pasteboard::writeImage):
+        (WebCore::Pasteboard::clear):
+        (WebCore::Pasteboard::canSmartReplace):
+        (WebCore::Pasteboard::documentFragment):
+        (WebCore::Pasteboard::plainText):
+        * Widgets/WebCore/SDL/BCSearchPopupMenuSDL.cpp:
+        (WebCore::SearchPopupMenu::SearchPopupMenu):
+        (WebCore::SearchPopupMenu::saveRecentSearches):
+        (WebCore::SearchPopupMenu::loadRecentSearches):
+        (WebCore::SearchPopupMenu::enabled):
+        * Widgets/WebCore/SDL/BCWidgetSDL.cpp:
+        (WebCore::Widget::paint):
+        * Widgets/WebCore/SDL/PasteboardHelperSDL.cpp:
+        (WebKit::PasteboardHelperBal::getClipboard):
+        (WebKit::PasteboardHelperBal::getCopyTargetList):
+        (WebKit::PasteboardHelperBal::getPasteTargetList):
+
 2009-02-11  Mario Bensi  <mbensi@pleyo.com>
 
         Fix crash on exit on qt port.

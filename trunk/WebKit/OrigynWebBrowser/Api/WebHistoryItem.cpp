@@ -27,7 +27,9 @@
  */
 #include "config.h"
 #include "WebHistoryItem.h"
+#include "WebHistoryItem_p.h"
 
+#include <CString.h>
 #include <PlatformString.h>
 #include <HistoryItem.h>
 
@@ -39,50 +41,52 @@ static HashMap<HistoryItem*, WebHistoryItem*>& historyItemWrappers()
     return staticHistoryItemWrappers;
 }
 
-WebHistoryItem::WebHistoryItem(PassRefPtr<HistoryItem> historyItem)
-: m_historyItem(historyItem)
+WebHistoryItem::WebHistoryItem(WebHistoryItemPrivate *priv)
+: d(priv)
 {
-    ASSERT(!historyItemWrappers().contains(m_historyItem.get()));
-    historyItemWrappers().set(m_historyItem.get(), this);
+    ASSERT(!historyItemWrappers().contains(d->m_historyItem.get()));
+    historyItemWrappers().set(d->m_historyItem.get(), this);
 }
 
 WebHistoryItem::~WebHistoryItem()
 {
-    ASSERT(historyItemWrappers().contains(m_historyItem.get()));
-    historyItemWrappers().remove(m_historyItem.get());
+    ASSERT(historyItemWrappers().contains(d->m_historyItem.get()));
+    historyItemWrappers().remove(d->m_historyItem.get());
+    delete d;
 }
 
 WebHistoryItem* WebHistoryItem::createInstance()
 {
-    WebHistoryItem* instance = new WebHistoryItem(HistoryItem::create());
+    WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(HistoryItem::create());
+    WebHistoryItem* instance = new WebHistoryItem(priv);
     return instance;
 }
 
-WebHistoryItem* WebHistoryItem::createInstance(PassRefPtr<HistoryItem> historyItem)
+WebHistoryItem* WebHistoryItem::createInstance(WebHistoryItemPrivate *priv)
 {
     WebHistoryItem* instance;
 
-    instance = historyItemWrappers().get(historyItem.get());
+    instance = historyItemWrappers().get(priv->m_historyItem.get());
 
     if (!instance)
-        instance = new WebHistoryItem(historyItem);
+        instance = new WebHistoryItem(priv);
 
     return instance;
 }
 
 bool WebHistoryItem::hasURLString()
 {
-    return m_historyItem->urlString().isEmpty() ? false : true;
+    return d->m_historyItem->urlString().isEmpty() ? false : true;
 }
 
 int WebHistoryItem::visitCount()
 {
-    return m_historyItem->visitCount();
+    return d->m_historyItem->visitCount();
 }
 
 void WebHistoryItem::setVisitCount(int count)
 {
-    m_historyItem->setVisitCount(count);
+    d->m_historyItem->setVisitCount(count);
 }
 
 void WebHistoryItem::mergeAutoCompleteHints(WebHistoryItem* otherItem)
@@ -90,27 +94,27 @@ void WebHistoryItem::mergeAutoCompleteHints(WebHistoryItem* otherItem)
     if (!otherItem)
         return;
 
-    m_historyItem->mergeAutoCompleteHints(otherItem->historyItem());
+    d->m_historyItem->mergeAutoCompleteHints(otherItem->getPrivateItem()->m_historyItem.get());
 }
 
 void WebHistoryItem::setLastVisitedTimeInterval(double time)
 {
-    m_historyItem->setLastVisitedTime(time);
+    d->m_historyItem->setLastVisitedTime(time);
 }
 
-void WebHistoryItem::setTitle(WebCore::String title)
+void WebHistoryItem::setTitle(const char* title)
 {
-    m_historyItem->setTitle(title);
+    d->m_historyItem->setTitle(title);
 }
 
-WebCore::String WebHistoryItem::RSSFeedReferrer()
+const char* WebHistoryItem::RSSFeedReferrer()
 {
-    return m_historyItem->referrer();
+    return d->m_historyItem->referrer().utf8().data();
 }
 
-void WebHistoryItem::setRSSFeedReferrer(WebCore::String url)
+void WebHistoryItem::setRSSFeedReferrer(const char* url)
 {
-    m_historyItem->setReferrer(url);
+    d->m_historyItem->setReferrer(url);
 }
 
 bool WebHistoryItem::hasPageCache()
@@ -124,96 +128,93 @@ void WebHistoryItem::setHasPageCache(bool /*hasCache*/)
     // FIXME - TODO
 }
 
-WebCore::String WebHistoryItem::target()
+const char* WebHistoryItem::target()
 {
-    return m_historyItem->target();
+    return d->m_historyItem->target().utf8().data();
 }
 
 bool WebHistoryItem::isTargetItem()
 {
-    return m_historyItem->isTargetItem() ? true : false;
+    return d->m_historyItem->isTargetItem() ? true : false;
 }
 
-Vector<WebHistoryItem*> WebHistoryItem::children()
+std::vector<WebHistoryItem*> WebHistoryItem::children()
 {
-    Vector<WebHistoryItem*> child;
-    const HistoryItemVector& coreChildren = m_historyItem->children();
+    std::vector<WebHistoryItem*> child;
+    const HistoryItemVector& coreChildren = d->m_historyItem->children();
     if (coreChildren.isEmpty())
         return child;
     size_t childCount = coreChildren.size();
 
     for (unsigned i = 0; i < childCount; ++i) {
-        WebHistoryItem* item = WebHistoryItem::createInstance(coreChildren[i]);
-        child.append(item);
+        WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(coreChildren[i]);
+        WebHistoryItem* item = WebHistoryItem::createInstance(priv);
+        child.push_back(item);
     }
 
     return child;
 }
 
-void WebHistoryItem::initWithURLString(WebCore::String urlString, WebCore::String title, double lastVisited)
+void WebHistoryItem::initWithURLString(const char* urlString, const char* title, double lastVisited)
 {
-    historyItemWrappers().remove(m_historyItem.get());
-    m_historyItem = HistoryItem::create(urlString, title, lastVisited);
-    historyItemWrappers().set(m_historyItem.get(), this);
+    historyItemWrappers().remove(d->m_historyItem.get());
+    d->m_historyItem = HistoryItem::create(urlString, title, lastVisited);
+    historyItemWrappers().set(d->m_historyItem.get(), this);
 }
 
-WebCore::String WebHistoryItem::originalURLString()
+const char* WebHistoryItem::originalURLString()
 {
-    return m_historyItem->originalURLString();
+    return strdup(d->m_historyItem->originalURLString().utf8().data());
 }
 
-WebCore::String WebHistoryItem::URLString()
+const char* WebHistoryItem::URLString()
 {
-    return m_historyItem->urlString();
+    return strdup(d->m_historyItem->urlString().utf8().data());
 }
 
-WebCore::String WebHistoryItem::title()
+const char* WebHistoryItem::title()
 {
-    return m_historyItem->title();
+    return strdup(d->m_historyItem->title().utf8().data());
 }
 
 double WebHistoryItem::lastVisitedTimeInterval()
 {
-    return m_historyItem->lastVisitedTime();
+    return d->m_historyItem->lastVisitedTime();
 }
 
-void WebHistoryItem::setAlternateTitle(WebCore::String title)
+void WebHistoryItem::setAlternateTitle(const char* title)
 {
     m_alternateTitle = title;
 }
 
-WebCore::String WebHistoryItem::alternateTitle()
+const char* WebHistoryItem::alternateTitle()
 {
-    return m_alternateTitle;
+    return m_alternateTitle.c_str();
 }
 
-Image* WebHistoryItem::icon()
+/*Image* WebHistoryItem::icon()
 {
     return 0;
-}
+}*/
 
-HistoryItem* WebHistoryItem::historyItem() const
-{
-    return m_historyItem.get();
-}
 
 bool WebHistoryItem::lastVisitWasFailure()
 {
-    return m_historyItem->lastVisitWasFailure();
+    return d->m_historyItem->lastVisitWasFailure();
 }
 
 void WebHistoryItem::setLastVisitWasFailure(bool wasFailure)
 {
-    m_historyItem->setLastVisitWasFailure(wasFailure);
+    d->m_historyItem->setLastVisitWasFailure(wasFailure);
 }
 
 bool WebHistoryItem::lastVisitWasHTTPNonGet() const
 {
-    return m_historyItem->lastVisitWasHTTPNonGet();
+    return d->m_historyItem->lastVisitWasHTTPNonGet();
 }
 
 void WebHistoryItem::setLastVisitWasHTTPNonGet(bool wasHttpNonGet)
 {
-    m_historyItem->setLastVisitWasHTTPNonGet(wasHttpNonGet);
+    d->m_historyItem->setLastVisitWasHTTPNonGet(wasHttpNonGet);
 }
 

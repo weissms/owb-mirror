@@ -29,6 +29,8 @@
 #ifndef WebHistoryItem_H
 #define WebHistoryItem_H
 
+#include <string>
+#include <vector>
 
 /**
  *  @file  WebHistoryItem.h
@@ -38,16 +40,8 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <PlatformString.h>
-#include <PlatformString.h>
-#include <wtf/PassRefPtr.h>
-#include <wtf/RefPtr.h>
 
-namespace WebCore {
-    class HistoryItem;
-    class Image;
-}
+class WebHistoryItemPrivate;
 
 class WebHistoryItem
 {
@@ -65,7 +59,7 @@ public:
      * @param[in]: HistoryItem from WebCore
      * @param[out]: WebHistoryItem
      */
-    static WebHistoryItem* createInstance(PassRefPtr<WebCore::HistoryItem>);
+    static WebHistoryItem* createInstance(WebHistoryItemPrivate*);
 protected:
 
     /**
@@ -73,7 +67,7 @@ protected:
      * @param[in]: WebCore History Item
      * @param[out]: 
      */
-    WebHistoryItem(PassRefPtr<WebCore::HistoryItem>);
+    WebHistoryItem(WebHistoryItemPrivate*);
 
 public:
 
@@ -93,7 +87,7 @@ public:
         'artificial' items to add to a WebBackForwardList.  When first initialized
         the URLString and originalURLString will be the same.
      */
-    virtual void initWithURLString(WebCore::String urlString, WebCore::String title, double lastVisited);
+    virtual void initWithURLString(const char* urlString, const char* title, double lastVisited);
 
     /**
         @method originalURLString
@@ -102,7 +96,7 @@ public:
         @result The string corresponding to the initial URL of this item.
 
      */
-    virtual WebCore::String originalURLString();
+    virtual const char* originalURLString();
 
     /**
         @method URLString
@@ -112,7 +106,7 @@ public:
         @result The string corresponding to the final URL of this item.
 
      */
-    virtual WebCore::String URLString();
+    virtual const char* URLString();
 
     /**
         @method title
@@ -122,7 +116,7 @@ public:
         @result The title of this item.
 
      */
-    virtual WebCore::String title();
+    virtual const char* title();
 
     /**
         @method lastVisitedTimeInterval
@@ -140,7 +134,7 @@ public:
         @abstract A title that may be used by the client to display this item.
 
      */
-    virtual void setAlternateTitle(WebCore::String title);
+    virtual void setAlternateTitle(const char* title);
 
     /**
         @method title
@@ -148,7 +142,7 @@ public:
         @result The alternate title for this item.
 
      */
-    virtual WebCore::String alternateTitle();
+    virtual const char* alternateTitle();
 
     /**
         @method icon
@@ -157,7 +151,7 @@ public:
         @result The icon associated with this item's URL.
 
      */
-    virtual WebCore::Image* icon();
+//    virtual WebCore::Image* icon();
 
 
     /**
@@ -196,21 +190,21 @@ public:
      * @param[in]: time
      * @param[out]: 
      */
-    virtual void setTitle(WebCore::String title);
+    virtual void setTitle(const char* title);
 
     /**
      *  RSSFeedReferrer  returns the Feed Referred
      * @param[in]: 
      * @param[out]: 
      */
-    virtual WebCore::String RSSFeedReferrer();
+    virtual const char* RSSFeedReferrer();
 
     /**
      *  setRSSFeedReferrer sets the feed referrer
      * @param[in]: url 
      * @param[out]: 
      */
-    virtual void setRSSFeedReferrer(WebCore::String url);
+    virtual void setRSSFeedReferrer(const char* url);
 
     /**
      *  hasPageCache determines if a page exists in cache
@@ -231,7 +225,7 @@ public:
      * @param[in]: 
      * @param[out]: name of the target
      */
-    virtual WebCore::String target();
+    virtual const char* target();
 
     /**
      *  isTargetItem tells if the item is a target
@@ -245,7 +239,7 @@ public:
      * @param[in]: 
      * @param[out]: 
      */
-    virtual Vector<WebHistoryItem*> children();
+    virtual std::vector<WebHistoryItem*> children();
 
     /**
      * lastVisitWasFailure
@@ -267,10 +261,11 @@ public:
      */
     virtual void setLastVisitWasHTTPNonGet(bool wasHttpNonGet);
 
-    WebCore::HistoryItem* historyItem() const;
+    WebHistoryItemPrivate *getPrivateItem() { return d; }
+
 protected:
-    RefPtr<WebCore::HistoryItem> m_historyItem;
-    WebCore::String m_alternateTitle;
+    WebHistoryItemPrivate *d;
+    std::string m_alternateTitle;
 };
 
 #endif

@@ -96,7 +96,6 @@ Cursor::Cursor(char* xpmCursor[])
 
 Cursor::~Cursor()
 {
-    //printf("Cursor::~Cursor\n");
 }
 
 Cursor& Cursor::operator=(const Cursor& other)

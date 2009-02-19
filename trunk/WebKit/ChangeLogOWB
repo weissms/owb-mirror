@@ -1,3 +1,94 @@
+2009-02-19  Mario Bensi  <mbensi@pleyo.com>
+
+        add some methods in api for DRT and expose WebBackForwardList and
+        WebHistoryItem.
+
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.cpp:
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/WebBackForwardList.cpp:
+        (WebBackForwardList::WebBackForwardList):
+        (WebBackForwardList::~WebBackForwardList):
+        (WebBackForwardList::createInstance):
+        (WebBackForwardList::addItem):
+        (WebBackForwardList::goBack):
+        (WebBackForwardList::goForward):
+        (WebBackForwardList::goToItem):
+        (WebBackForwardList::backItem):
+        (WebBackForwardList::currentItem):
+        (WebBackForwardList::forwardItem):
+        (WebBackForwardList::backListWithLimit):
+        (WebBackForwardList::forwardListWithLimit):
+        (WebBackForwardList::capacity):
+        (WebBackForwardList::setCapacity):
+        (WebBackForwardList::backListCount):
+        (WebBackForwardList::forwardListCount):
+        (WebBackForwardList::containsItem):
+        (WebBackForwardList::itemAtIndex):
+        (WebBackForwardList::removeItem):
+        * OrigynWebBrowser/Api/WebBackForwardList.h:
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::findFrameNamed):
+        (WebFrame::children):
+        (WebFrame::toString):
+        (WebFrame::renderTreeDump):
+        (WebFrame::numberOfActiveAnimations):
+        (WebFrame::pauseAnimation):
+        (WebFrame::pauseTransition):
+        (WebFrame::setEditable):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebHistoryItem.cpp:
+        (WebHistoryItem::WebHistoryItem):
+        (WebHistoryItem::~WebHistoryItem):
+        (WebHistoryItem::createInstance):
+        (WebHistoryItem::hasURLString):
+        (WebHistoryItem::visitCount):
+        (WebHistoryItem::setVisitCount):
+        (WebHistoryItem::mergeAutoCompleteHints):
+        (WebHistoryItem::setLastVisitedTimeInterval):
+        (WebHistoryItem::setTitle):
+        (WebHistoryItem::RSSFeedReferrer):
+        (WebHistoryItem::setRSSFeedReferrer):
+        (WebHistoryItem::target):
+        (WebHistoryItem::isTargetItem):
+        (WebHistoryItem::children):
+        (WebHistoryItem::initWithURLString):
+        (WebHistoryItem::originalURLString):
+        (WebHistoryItem::URLString):
+        (WebHistoryItem::title):
+        (WebHistoryItem::lastVisitedTimeInterval):
+        (WebHistoryItem::setAlternateTitle):
+        (WebHistoryItem::alternateTitle):
+        (WebHistoryItem::lastVisitWasFailure):
+        (WebHistoryItem::setLastVisitWasFailure):
+        (WebHistoryItem::lastVisitWasHTTPNonGet):
+        (WebHistoryItem::setLastVisitWasHTTPNonGet):
+        * OrigynWebBrowser/Api/WebHistoryItem.h:
+        (WebHistoryItem::getPrivateItem):
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebNotificationDelegate.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::backForwardList):
+        (WebView::goBackOrForward):
+        (WebView::goToBackForwardItem):
+        (WebView::executeScript):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.cpp: Removed.
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.h:
+        (WebViewPrivate::fireWebKitEvents):
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::addMessageToConsole):
+        (WebChromeClient::runJavaScriptAlert):
+        (WebChromeClient::runJavaScriptConfirm):
+        (WebChromeClient::runJavaScriptPrompt):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidReceiveTitle):
+        (WebFrameLoaderClient::postProgressFinishedNotification):
+        (WebFrameLoaderClient::updateGlobalHistoryRedirectLinks):
+        (WebFrameLoaderClient::setTitle):
+        (WebFrameLoaderClient::windowObjectCleared):
+
 2009-02-05  Olivier DOLE  <odole@pleyo.com>
 
         Code cleaning.

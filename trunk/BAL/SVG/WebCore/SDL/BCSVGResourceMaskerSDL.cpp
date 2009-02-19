@@ -38,7 +38,6 @@ namespace WebCore {
 
 void SVGResourceMasker::applyMask(GraphicsContext* context, const FloatRect& boundingBox)
 {
-    printf("SVGResourceMasker::applyMask\n");
 }
 
 } // namespace WebCore

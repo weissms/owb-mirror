@@ -38,19 +38,16 @@ namespace WebKit{
 
 BalClipboard* PasteboardHelperBal::getClipboard(Frame* frame) const 
 {
-    printf("PasteboardHelperBal::getClipboard\n");
     return 0;
 }
 
 BalTargetList* PasteboardHelperBal::getCopyTargetList(Frame* frame) const 
 {
-    printf("PasteboardHelperBal::getCopyTargetList\n");
     return 0;
 }
 
 BalTargetList* PasteboardHelperBal::getPasteTargetList(Frame* frame) const 
 {
-    printf("PasteboardHelperBal::getPasteTargetList\n");
     return 0;
 }
 

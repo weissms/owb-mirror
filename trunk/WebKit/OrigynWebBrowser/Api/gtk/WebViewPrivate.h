@@ -159,7 +159,6 @@ public:
     }
 
     void fireWebKitEvents() {}
-    void runJavaScriptAlert(WebFrame*, char const*) {}
 
 private:
     WebCore::IntRect m_rect;

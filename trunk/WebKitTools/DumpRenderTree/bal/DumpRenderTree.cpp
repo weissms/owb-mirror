@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Eric Seidel <eric@webkit.org>
+ * Copyright (C) 2009 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,14 +10,14 @@
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ * 3.  Neither the name of Pleyo nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -26,157 +26,276 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+//#include "config.h"
+#include "DumpRenderTree.h"
 
-/*
- *          Copyright 2006 Origyn
- */
-#include "config.h"
-
-#include "CString.h"
-#include "Document.h"
-#include "Frame.h"
-#include "WebFrameLoaderClient.h"
-#include "HTMLElement.h"
-#include "KURL.h"
-#include "markup.h"
-#include "Page.h"
-#include "RenderTreeAsText.h"
-#include "RenderView.h"
-#include <iostream> // NOTE log define interferes with iostream
-#include <signal.h>
-#include "SystemTime.h"
-#include "ObserverData.h"
-#include "ObserverServiceData.h"
-
-#include "runtime.h"
-#include "runtime_root.h"
-#include "ExecState.h"
-#include "kjs/JSGlobalObject.h"
-//#include "kjs_window.h"
-#include "JavaScriptCore/APICast.h"
 #include "LayoutTestController.h"
-#include "GCController.h"
-#include "EventSender.h"
-#include "JSObject.h"
 #include "WorkQueue.h"
-#include "API/JSStringRef.h"
+#include "WorkQueueItem.h"
 
-#include "BCGraphicsContext.h"
-#include <Api/WebFrame.h>
-#include <Api/WebView.h>
-#include "Page.h"
-#include "Frame.h"
-#include "FrameView.h"
-#include "ScriptController.h"
+#include <WebKit.h>
+#include <string>
+
+#include "signal.h"
+#include <unistd.h>
+#include <cassert>
+#include <getopt.h>
+#include <stdlib.h>
 
 
-using namespace WebCore;
+using namespace std;
+
 
 void startEventLoop(BalWidget *view);
 void stopEventLoop();
-BalWidget* createWindow(WebView *webView);
+BalRectangle clientRect(bool);
+BalWidget* createWindow(WebView *webView, BalRectangle rect);
+
+volatile bool done;
 static WebView *webView = 0;
+WebFrame* topLoadingFrame = 0;
+LayoutTestController* gLayoutTestController = 0;
 
-/**
- * The BIWebView implementation for DumpRenderTree
- *
- * @see Font, FontData
- */
-class DumpRenderTree : public ObserverData {
+static bool printSeparators;
+static int dumpPixels;
+static int dumpTree = 1;
+
+
+WebView *getWebView()
+{
+    return webView;
+}
+
+bool getDone()
+{
+    return done;
+}
+
+void setDone(bool d)
+{
+    done = d;
+}
+
+// FIXME : move this in openURL
+static char* autocorrectURL(const char* url)
+{
+    if (strncmp("http://", url, 7) != 0 && strncmp("https://", url, 8) != 0) {
+        string s = "file://";
+        s += url;
+        return strdup(s.c_str());
+    }
+
+    return strdup(url);
+}
+
+static bool shouldLogFrameLoadDelegates(const char* pathOrURL)
+{
+    return strstr(pathOrURL, "loading/");
+}
+
+
+static bool processWork()
+{
+    // quit doing work once a load is in progress
+    while (WorkQueue::shared()->count() > 0 && !topLoadingFrame) {
+        WorkQueueItem* item = WorkQueue::shared()->dequeue();
+        ASSERT(item);
+        item->invoke();
+        delete item;
+    }
+
+    // if we didn't start a new load, then we finished all the commands, so we're ready to dump state
+    if (!topLoadingFrame && !gLayoutTestController->waitToDump())
+        dump();
+
+    return false;
+}
+
+class Notification : public WebNotificationDelegate {
 public:
-    DumpRenderTree();
-    ~DumpRenderTree();
+    Notification(){}
+    ~Notification() {}
 
-    void handleEvent();
-    void initJSObjects(WebCore::Frame* frame);
-    /**
-     * JSLayoutTestController notifies us.
-     * @param(in) "layoutTestController"
-     * @param(in) notifyDone, waitUntilDone
-     */
-    void observe(const String&, const String&, void*);
-protected:
-    void dump();
+    virtual void startLoadNotification(WebFrame *frame)
+    {
+        if (!topLoadingFrame && !done)
+            topLoadingFrame = frame;
+    }
 
-    bool                    m_waitUntilDone;
-    Frame*                  m_mainFrame;
-    LayoutTestController*   m_layoutTestController;
-    GCController*           m_gcController;
+    virtual void progressNotification(WebFrame* webFrame)
+    {
+    }
+
+    virtual void finishedLoadNotification(WebFrame *frame)
+    {
+        if (frame != topLoadingFrame)
+            return;
+
+        topLoadingFrame = 0;
+
+        if (!webView)
+            return;
+
+        WorkQueue::shared()->setFrozen(true); // first complete load freezes the queue for the rest of this test
+        if (gLayoutTestController->waitToDump())
+            return;
+
+        if (WorkQueue::shared()->count())
+            processWork();
+         else
+            dump();
+    }
+
+    virtual void windowObjectClearNotification(WebFrame*, void *context, void *windowObject)
+    {
+        JSValueRef exception = 0;
+        assert(gLayoutTestController);
+
+        gLayoutTestController->makeWindowObject((JSGlobalContextRef)context, (JSObjectRef)windowObject, &exception);
+        assert(!exception);
+    }
+
+    virtual void consoleMessage(WebFrame *frame, int line, const char *message)
+    {
+        fprintf(stdout, "CONSOLE MESSAGE: line %d: %s\n", line, message);
+    }
+
+    virtual bool jsAlert(WebFrame*, const char *message)
+    {
+        fprintf(stdout, "ALERT: %s\n", message);
+        return true;
+    }
+
+    virtual bool jsConfirm(WebFrame *, const char *message)
+    {
+        fprintf(stdout, "CONFIRM: %s\n", message);
+        return true;
+    }
+
+    virtual bool jsPrompt(WebFrame *, const char *message, const char *defaultValue, char **value)
+    {
+        fprintf(stdout, "PROMPT: %s, default text: %s\n", message, defaultValue);
+        *value = strdup(defaultValue);
+        return true;
+    }
+
+    virtual void titleChange(WebFrame*, const char *title)
+    {
+        if (gLayoutTestController->dumpTitleChanges() && !done)
+            printf("TITLE CHANGED: %s\n", title ? title : "");
+    }
+
 };
 
-DumpRenderTree::DumpRenderTree()
-    : m_waitUntilDone(false)
-    , m_mainFrame(NULL)
-    , m_layoutTestController(NULL)
+void dumpFrameScrollPosition(WebFrame* frame)
 {
-    m_layoutTestController = new LayoutTestController( false, false);
-    m_gcController = new GCController();
-    WebCore::ObserverServiceData::createObserverService()->registerObserver("layoutTestController", this);
-}
-DumpRenderTree::~DumpRenderTree()
-{
-    WebCore::ObserverServiceData::createObserverService()->removeObserver("layoutTestController", this);
 }
 
-void DumpRenderTree::observe(const String& topic, const String& data, void*)
+void displayWebView()
 {
-    // for now implement callbacks with an observer
-    if ((data == "loadDone") && !m_waitUntilDone)
-        dump();
-    else if (data == "waitUntilDone")
-        //m_waitUntilDone = true;
-        dump();
-    else if (data == "notifyDone")
-        dump();
 }
 
-
-void DumpRenderTree::dump()
+const char* dumpFramesAsText(WebFrame* frame)
 {
-    Document* my_doc;
-    my_doc = m_mainFrame->contentRenderer()->document();
-    bool dumpAsText = false;
+    if (!frame)
+        return "";
 
-    dumpAsText = m_layoutTestController->dumpAsText();
-
-    if (dumpAsText)
-    {
-        printf("%s\n", my_doc->body()->innerText().utf8().data());
+    // Add header for all but the main frame.
+    bool isMainFrame = (webView->mainFrame() == frame);
+    string innerText = frame->toString();
+    string result;
+    if (isMainFrame) {
+        result = innerText;
+        result += "\n";
+    } else {
+        result.append("\n--------\nFrame: '");
+        result.append(frame->name());
+        result.append("'\n--------\n");
     }
-    else
-    {
-        String txt = externalRepresentation(m_mainFrame->contentRenderer());
-        CString utf8Str = txt.utf8();
-        const char *utf8 = utf8Str.data();
-        if (utf8)
-            printf("%s", utf8);
-        else
-            printf("FrameBal::dumpRenderTree() no data\n");
+    
+    if (gLayoutTestController->dumpChildFramesAsText()) {
+        vector<WebFrame *> children = frame->children();
+        for (size_t i = 0; i < children.size(); ++i)
+            result += dumpFramesAsText(children.at(i));
     }
+
+    return strdup(result.c_str());
+}
+
+static void invalidateAnyPreviousWaitToDumpWatchdog()
+{
+    if (waitToDumpWatchdog) {
+        removeTimer();
+        waitToDumpWatchdog = 0;
+    }
+}
+
+void dump()
+{
+    if (!webView)
+        return;
+
+    invalidateAnyPreviousWaitToDumpWatchdog();
+    if (dumpTree) {
+
+        WebFrame *frame = webView->mainFrame();
+        string renderDump;
+        bool dumpAsText = gLayoutTestController->dumpAsText();
+
+        // FIXME: Also dump text resuls as text.
+        gLayoutTestController->setDumpAsText(dumpAsText);
+        if (gLayoutTestController->dumpAsText()) {
+            renderDump = dumpFramesAsText(frame);
+        } else {
+            renderDump = frame->renderTreeDump();
+        }
+
+        if (renderDump.empty()) {
+            const char* errorMessage;
+            if (gLayoutTestController->dumpAsText())
+                errorMessage = "[documentElement innerText]";
+            else if (gLayoutTestController->dumpDOMAsWebArchive())
+                errorMessage = "[[mainFrame DOMDocument] webArchive]";
+            else if (gLayoutTestController->dumpSourceAsWebArchive())
+                errorMessage = "[[mainFrame dataSource] webArchive]";
+            else
+                errorMessage = "[mainFrame renderTreeAsExternalRepresentation]";
+            printf("ERROR: nil result from %s", errorMessage);
+        } else {
+            printf("%s", renderDump.c_str());
+            if (!gLayoutTestController->dumpAsText() && !gLayoutTestController->dumpDOMAsWebArchive() && !gLayoutTestController->dumpSourceAsWebArchive())
+                dumpFrameScrollPosition(frame);
+        
+        }
+
+        if (gLayoutTestController->dumpBackForwardList()) {
+            // FIXME: not implemented
+        }
+
+        if (printSeparators) {
+            puts("#EOF"); // terminate the content block
+            fputs("#EOF\n", stderr);
+            fflush(stdout);
+            fflush(stderr);
+        }
+    }
+
+    if (dumpPixels) {
+        if (!gLayoutTestController->dumpAsText() && !gLayoutTestController->dumpDOMAsWebArchive() && !gLayoutTestController->dumpSourceAsWebArchive()) {
+            // FIXME: Add support for dumping pixels
+        }
+    }
+
+    // FIXME: call displayWebView here when we support --paint
+
+    puts("#EOF"); // terminate the (possibly empty) pixels block
+
+    fflush(stdout);
+    fflush(stderr);
+
     stopEventLoop();
+    done = true;
 }
-void DumpRenderTree::initJSObjects(WebCore::Frame* frame)
-{
-    m_mainFrame = frame;
-
-    JSValueRef exception = 0;
-
-    JSContextRef context = toRef(frame->script()->globalObject()->globalExec());
-    JSObjectRef windowObject = toRef(frame->script()->globalObject());
-    ASSERT(windowObject);
-    m_layoutTestController->makeWindowObject(context, windowObject, &exception);
-    m_gcController->makeWindowObject(context, windowObject, &exception);
-
-    JSStringRef eventSenderStr = JSStringCreateWithUTF8CString("eventSender");
-    JSValueRef eventSender = makeEventSender(context);
-    JSObjectSetProperty(context, windowObject, eventSenderStr, eventSender, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete, 0);
-    JSStringRelease(eventSenderStr);
-}
-
-void DumpRenderTree::handleEvent() {
-    //printf("DumpRenderTree::handleEvent\n");
-}
-
 
 static void crashHandler(int sig)
 {
@@ -184,44 +303,67 @@ static void crashHandler(int sig)
     exit(128 + sig);
 }
 
-void runTest(const char* filename)
+
+void runTest(const string& testPathOrURL)
 {
-    DumpRenderTree dumpRenderTree;
+    string pathOrURL(testPathOrURL);
+    string expectedPixelHash;
 
-    webView = WebView::createInstance();
+    size_t separatorPos = pathOrURL.find("'");
+    if (separatorPos != string::npos) {
+        pathOrURL = string(testPathOrURL, 0, separatorPos);
+        expectedPixelHash = string(testPathOrURL, separatorPos + 1);
+    }
 
-    IntRect clientRect(0, 0, 800, 600);
-   
-    webView->initWithFrame(clientRect,"", "");
+    char* url = autocorrectURL(pathOrURL.c_str());
+    const string testURL(url);
+    done = false;
 
-    BalWidget *view = createWindow(webView);
-
-    dumpRenderTree.initJSObjects(core(webView->mainFrame()));
-
+    gLayoutTestController = new LayoutTestController(testURL, expectedPixelHash);
+    topLoadingFrame = 0;
+    gLayoutTestController->setIconDatabaseEnabled(false);
+    
+    if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
+        gLayoutTestController->setDumpFrameLoadCallbacks(true);    
+    
     WorkQueue::shared()->clear();
     WorkQueue::shared()->setFrozen(false);
 
-    webView->mainFrame()->loadURL(filename);
+    bool isSVGW3CTest = (gLayoutTestController->testPathOrURL().find("svg/W3C-SVG-1.1") != string::npos);
+    webView = WebView::createInstance();
+    BalRectangle rect = clientRect(isSVGW3CTest);
+    webView->initWithFrame(rect,"", "");
+    BalWidget *view = createWindow(webView, rect);
 
-    dumpRenderTree.handleEvent();
-    
+    Notification *notification = new Notification();
+    webView->setWebNotificationDelegate(notification); 
+    // FIXME : fix preferences
+    // FIXME : add ExtraPluginDirectory
+    //PluginDatabase::installedPlugins()->addExtraPluginDirectory(filenameToString(directory));
+
+    webView->mainFrame()->loadURL(url);
+
+    free(url);
+    url = NULL;
+
     startEventLoop(view);
+    // A blank load seems to be necessary to reset state after certain tests.
+    webView->mainFrame()->loadURL("about:blank");
     
-    WorkQueue::shared()->clear();
+    //WorkQueue::shared()->clear();
 
+    gLayoutTestController->deref();
+    gLayoutTestController = 0;
     delete webView;
+    delete notification;
+    webView = 0;
 }
 
 void init(int argc, char *argv[]);
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     init(argc, argv);
-#ifdef BAL_LOG // logger is not defined in NDEBUG
-    // disable logging
-    //BALFacilities::logger.setIsActive(false);
-#endif
 
     signal(SIGILL, crashHandler);    /* 4:   illegal instruction (not reset when caught) */
     signal(SIGTRAP, crashHandler);   /* 5:   trace trap (not reset when caught) */
@@ -233,19 +375,25 @@ main(int argc, char *argv[])
     signal(SIGXCPU, crashHandler);   /* 24:  exceeded CPU time limit */
     signal(SIGXFSZ, crashHandler);   /* 25:  exceeded file size limit */
 
-    // mandatory but do not overwrite
-    // the following disables some outputs
-    setenv("LAYOUT_TEST", "1", 0);
-    // this disables the GraphicsDevice and doesn't display anything
-    setenv("DISABLE_DISPLAY", "1", 0);
+    struct option options[] = {
+        {"notree", no_argument, &dumpTree, false},
+        {"pixel-tests", no_argument, &dumpPixels, true},
+        {"tree", no_argument, &dumpTree, true},
+        {NULL, 0, NULL, 0}
+    };
 
-    if( argc > 2 ) {
-        printf("Usage: %s /absolute/file/path/or/url\n", argv[0] );
-    } else if (argc == 2 && strcmp(argv[1], "-")) {
-        runTest(argv[1]);
-        printf("#EOF\n");
-    } else {
+    int option;
+    while ((option = getopt_long(argc, (char* const*)argv, "", options, NULL)) != -1)
+        switch (option) {
+            case '?':   // unknown or ambiguous option
+            case ':':   // missing argument
+                exit(1);
+                break;
+        }
+
+    if (argc == optind+1 && strcmp(argv[optind], "-") == 0) {
         char filenameBuffer[2048];
+        printSeparators = true;
         while (fgets(filenameBuffer, sizeof(filenameBuffer), stdin)) {
             char* newLineCharacter = strchr(filenameBuffer, '\n');
             if (newLineCharacter)
@@ -255,16 +403,14 @@ main(int argc, char *argv[])
                 continue;
 
             runTest(filenameBuffer);
-
-            fprintf(stdout, "#EOF\n");
-            fflush(stdout);
-
-            fprintf(stderr, "#EOF\n");
-            fflush(stderr);
+        }
+    } else {
+        printSeparators = (optind < argc-1 || (dumpPixels && dumpTree));
+        for (int i = optind; i != argc; ++i) {
+            runTest(argv[i]);
         }
     }
 
-    // ENV var set will be removed
     return 0;
 }
 

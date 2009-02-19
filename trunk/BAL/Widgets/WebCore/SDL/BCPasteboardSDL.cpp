@@ -72,54 +72,45 @@ private:
 
 Pasteboard* Pasteboard::generalPasteboard()
 {
-    printf("Pasteboard::generalPasteboard\n");
     static Pasteboard* pasteboard = new Pasteboard();
     return pasteboard;
 }
 
 Pasteboard::Pasteboard()
 {
-    printf("Pasteboard::generalPasteboard\n");
     NotImplemented();
 }
 
 Pasteboard::~Pasteboard()
 {
-    printf("Pasteboard::~Pasteboard\n");
     delete m_helper;
 }
 
 void Pasteboard::setHelper(PasteboardHelper* helper)
 {
-    printf("Pasteboard::setHelper\n");
     m_helper = helper;
 }
 
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
-    printf("Pasteboard::writeSelection\n");
 }
 
 void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
 {
-    printf("Pasteboard::writeURL\n");
 
 }
 
 void Pasteboard::writeImage(Node* node, const KURL&, const String&)
 {
-    printf("Pasteboard::writeImage\n");
     NotImplemented();
 }
 
 void Pasteboard::clear()
 {
-    printf("Pasteboard::clear\n");
 }
 
 bool Pasteboard::canSmartReplace()
 {
-    printf("Pasteboard::canSmartReplace\n");
     NotImplemented();
     return false;
 }
@@ -127,13 +118,11 @@ bool Pasteboard::canSmartReplace()
 PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefPtr<Range> context,
                                                           bool allowPlainText, bool& chosePlainText)
 {
-    printf("Pasteboard::documentFragment\n");
     return 0;
 }
 
 String Pasteboard::plainText(Frame* frame)
 {
-    printf("Pasteboard::plainText\n");
     return String();
 }
 

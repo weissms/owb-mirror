@@ -120,7 +120,6 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
     if (!context->balExposeEvent())
         return;
     
-    printf("Widget::paint(\n");
     BalWidget* widget = platformWidget();
     SDL_Event ev;
     ev.type = SDL_VIDEOEXPOSE;

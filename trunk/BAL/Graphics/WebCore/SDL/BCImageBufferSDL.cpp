@@ -103,13 +103,11 @@ PassRefPtr<ImageData> ImageBuffer::getImageData(const IntRect&) const
 
 void ImageBuffer::putImageData(ImageData*, const IntRect&, const IntPoint&)
 {
-    printf("ImageBuffer::putImageData\n");
     notImplemented();
 }
 
 String ImageBuffer::toDataURL(const String&) const
 {
-    printf("ImageBuffer::toDataURL\n");
     notImplemented();
     return String();
 }

@@ -29,9 +29,11 @@
 #ifndef WebKit_h
 #define WebKit_h
 
+#include <WebBackForwardList.h>
 #include <WebFrame.h>
+#include <WebHistoryItem.h>
+#include <WebNotificationDelegate.h>
 #include <WebView.h>
 
-#include <WebNotificationDelegate.h>
 
 #endif //WebKit_h

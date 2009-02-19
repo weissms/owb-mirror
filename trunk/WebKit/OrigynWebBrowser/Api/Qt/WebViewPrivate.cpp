@@ -284,8 +284,4 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* frameView, int dx, i
     //emit view->scroll(dx, dy, scrollViewRect);
 }
 
-void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
-{
-    printf("Javascript Alert: %s (from frame %p)\n", message, frame);
-}
 

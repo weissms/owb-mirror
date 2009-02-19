@@ -55,6 +55,36 @@ public:
      *              time for the same WebView.
      */
     virtual void finishedLoadNotification(WebFrame*) = 0;
+
+    /**
+     * windowObjectClearNotification
+     */
+    virtual void windowObjectClearNotification(WebFrame*, void*, void*) = 0;
+
+    /**
+     *  consoleMessage : send a message to the console
+     */
+    virtual void consoleMessage(WebFrame*, int, const char*) = 0;
+
+    /**
+     * jsAlert : call a js alert window
+     */
+    virtual bool jsAlert(WebFrame*, const char*) = 0;
+
+    /**
+     * jsConfirm : call a js confirm window
+     */
+    virtual bool jsConfirm(WebFrame*, const char*) = 0;
+
+    /**
+     * jsPrompt : call a js prompt window
+     */
+    virtual bool jsPrompt(WebFrame*, const char*, const char*, char**) = 0;
+
+    /**
+     * titleChange : call when the title change
+     */
+    virtual void titleChange(WebFrame*, const char*) = 0;
 };
 
 #endif // WebNotificationDelegate_h

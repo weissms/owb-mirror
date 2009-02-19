@@ -29,11 +29,24 @@
 #include <gtk/gtk.h>
 #include <cairo.h>
 #include <WebKit.h>
+#include <string>
 
 static GtkWidget* main_window;
 static WebView* webView = NULL;
 
 using namespace WebCore;
+
+
+static char* autocorrectURL(const char* url)
+{
+    if (strncmp("http://", url, 7) != 0 && strncmp("https://", url, 8) != 0) {
+        string s = "file://";
+        s += url;
+        return strdup(s.c_str());
+    }
+
+    return strdup(url);
+}
 
 static void destroy_cb (GtkWidget* widget, gpointer data)
 {
@@ -73,6 +86,38 @@ public:
     virtual void finishedLoadNotification(WebFrame*)
     {
     }
+
+    virtual void windowObjectClearNotification(WebFrame*, void*, void*)
+    {
+    }
+
+    virtual void consoleMessage(WebFrame*, int line, const char *message)
+    {
+        printf("CONSOLE MESSAGE: line %d: %s\n", line, message);
+    }
+
+    virtual bool jsAlert(WebFrame *frame, const char *message)
+    {
+        printf("Javascript Alert: %s (from frame %p)\n", message, frame);
+        return true;
+    }
+
+    virtual bool jsConfirm(WebFrame *frame, const char *message)
+    {
+        printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message, frame);
+        return true;
+    }
+
+    virtual bool jsPrompt(WebFrame *frame, const char *message, const char *defaultValue, char **value)
+    {
+        printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message, frame);
+        *value = strdup(defaultValue);
+        return true;
+    }
+
+    virtual void titleChange(WebFrame*, const char*)
+    {
+    }
 };
 
 int main (int argc, char* argv[])
@@ -96,8 +141,14 @@ int main (int argc, char* argv[])
 
     MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
     webView->setWebNotificationDelegate(mainWebNotificationDelegate);
-    gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
-    webView->mainFrame()->loadURL(uri);
+//    gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
+    if (argc > 1) {
+        char* url = autocorrectURL(argv[1]);
+        const std::string stringURL(url);
+        webView->mainFrame()->loadURL(stringURL.c_str());
+        free(url);
+    } else 
+        webView->mainFrame()->loadURL("http://www.google.com/");
 
     /*if(webView->canZoomPageIn()) {
         printf("canZoomPageIn\n");

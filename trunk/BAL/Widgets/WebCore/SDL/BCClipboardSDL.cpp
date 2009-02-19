@@ -39,38 +39,32 @@
 namespace WebCore {
 PassRefPtr<Clipboard> Editor::newGeneralClipboard(ClipboardAccessPolicy policy)
 {
-    printf("Editor::newGeneralClipboard\n");
     return ClipboardBal::create(policy, false);
 }
 
 ClipboardBal::ClipboardBal(ClipboardAccessPolicy policy, bool forDragging)
     : Clipboard(policy, forDragging)
 {
-    printf("ClipboardBal::ClipboardBal\n");
     NotImplemented();
 }
 
 ClipboardBal::~ClipboardBal()
 {
-    printf("ClipboardBal::~ClipboardBa\n");
     NotImplemented();
 }
 
 void ClipboardBal::clearData(const String&)
 {
-    printf("ClipboardBal::clearData\n");
     NotImplemented();
 }
 
 void ClipboardBal::clearAllData()
 {
-    printf("ClipboardBal::clearAllDat\n");
     NotImplemented();
 }
 
 String ClipboardBal::getData(const String&, bool &success) const
 {
-    printf("ClipboardBal::getData\n");
     NotImplemented();
     success = false;
     return String();
@@ -78,79 +72,67 @@ String ClipboardBal::getData(const String&, bool &success) const
 
 bool ClipboardBal::setData(const String&, const String&)
 {
-    printf("ClipboardBal::setData\n");
     NotImplemented();
     return false;
 }
 
 HashSet<String> ClipboardBal::types() const
 {
-    printf("ClipboardBal::types\n");
     NotImplemented();
     return HashSet<String>();
 }
 
 IntPoint ClipboardBal::dragLocation() const
 {
-    printf("ClipboardBal::dragLocation\n");
     NotImplemented();
     return IntPoint(0, 0);
 }
 
 CachedImage* ClipboardBal::dragImage() const
 {
-    printf("ClipboardBal::dragImage\n");
     NotImplemented();
     return 0;
 }
 
 void ClipboardBal::setDragImage(CachedImage*, const IntPoint&)
 {
-    printf("ClipboardBal::setDragImage\n");
     NotImplemented();
 }
 
 Node* ClipboardBal::dragImageElement()
 {
-    printf("ClipboardBal::dragImageElement\n");
     NotImplemented();
     return 0;
 }
 
 void ClipboardBal::setDragImageElement(Node*, const IntPoint&)
 {
-    printf("ClipboardBal::setDragImageElement\n");
     NotImplemented();
 }
 
 DragImageRef ClipboardBal::createDragImage(IntPoint&) const
 {
-    printf("ClipboardBal::createDragImage\n");
     NotImplemented();
     return 0;
 }
 
 void ClipboardBal::declareAndWriteDragImage(Element*, const KURL&, const String&, Frame*)
 {
-    printf("ClipboardBal::declareAndWriteDragImage\n");
     NotImplemented();
 }
 
 void ClipboardBal::writeURL(const KURL&, const String&, Frame*)
 {
-    printf("ClipboardBal::writeURL\n");
     NotImplemented();
 }
 
 void ClipboardBal::writeRange(Range*, Frame*)
 {
-    printf("ClipboardBal::writeRange\n");
     NotImplemented();
 }
 
 bool ClipboardBal::hasData()
 {
-    printf("ClipboardBal::hasData\n");
     NotImplemented();
     return false;
 }

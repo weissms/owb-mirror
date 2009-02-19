@@ -56,134 +56,111 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     , m_rect(IntRect())
     , m_visible(true)
 {
-    printf("MediaPlayerPrivate::MediaPlayerPrivate\n");
 
 }
 
 MediaPlayerPrivate::~MediaPlayerPrivate()
 {
-    printf("MediaPlayerPrivate::~MediaPlayerPrivate\n");
 }
 
 void MediaPlayerPrivate::load(String url)
 {
-    printf("MediaPlayerPrivate::load\n");
 }
 
 void MediaPlayerPrivate::play()
 {
-    printf("MediaPlayerPrivate::play\n");
 }
 
 void MediaPlayerPrivate::pause()
 {
-    printf("MediaPlayerPrivate::pause\n");
 }
 
 float MediaPlayerPrivate::duration()
 {
-    printf("MediaPlayerPrivate::duration\n");
     return 0.0;
 }
 
 float MediaPlayerPrivate::currentTime() const
 {
-    printf("MediaPlayerPrivate::currentTime\n");
     return 0.0;
 }
 
 void MediaPlayerPrivate::seek(float time)
 {
-    printf("MediaPlayerPrivate::seek\n");
 }
 
 void MediaPlayerPrivate::setEndTime(float time)
 {
-    printf("MediaPlayerPrivate::setEndTime\n");
 }
 
 void MediaPlayerPrivate::startEndPointTimerIfNeeded()
 {
-    printf("MediaPlayerPrivate::startEndPointTimerIfNeeded\n");
     notImplemented();
 }
 
 void MediaPlayerPrivate::cancelSeek()
 {
-    printf("MediaPlayerPrivate::cancelSeek\n");
     notImplemented();
 }
 
 void MediaPlayerPrivate::endPointTimerFired(Timer<MediaPlayerPrivate>*)
 {
-    printf("MediaPlayerPrivate::endPointTimerFired\n");
     notImplemented();
 }
 
 bool MediaPlayerPrivate::paused() const
 {
-    printf("MediaPlayerPrivate::paused\n");
     return !m_startedPlaying;
 }
 
 bool MediaPlayerPrivate::seeking() const
 {
-    printf("MediaPlayerPrivate::seeking\n");
     return false;
 }
 
 // Returns the size of the video
 IntSize MediaPlayerPrivate::naturalSize()
 {
-    printf("MediaPlayerPrivate::naturalSize\n");
     return IntSize();
 }
 
 bool MediaPlayerPrivate::hasVideo()
 {
-    printf("MediaPlayerPrivate::hasVideo\n");
     return false;
 }
 
 void MediaPlayerPrivate::setVolume(float volume)
 {
-    printf("MediaPlayerPrivate::setVolume\n");
 }
 
 void MediaPlayerPrivate::setMuted(bool b)
 {
-    printf("MediaPlayerPrivate::setMuted\n");
 
 }
 
 void MediaPlayerPrivate::setRate(float rate)
 {
-    printf("MediaPlayerPrivate::setRate\n");
 
 }
 
 int MediaPlayerPrivate::dataRate() const
 {
-    printf("MediaPlayerPrivate::dataRate\n");
     notImplemented();
     return 1;
 }
 
 MediaPlayer::NetworkState MediaPlayerPrivate::networkState()
 {
-    printf("MediaPlayerPrivate::networkState\n");
     return m_networkState;
 }
 
 MediaPlayer::ReadyState MediaPlayerPrivate::readyState()
 {
-    printf("MediaPlayerPrivate::readyState\n");
     return m_readyState;
 }
 
 float MediaPlayerPrivate::maxTimeBuffered()
 {
-    printf("MediaPlayerPrivate::maxTimeBuffered\n");
     notImplemented();
     // rtsp streams are not buffered
     return m_isStreaming ? 0 : maxTimeLoaded();
@@ -191,7 +168,6 @@ float MediaPlayerPrivate::maxTimeBuffered()
 
 float MediaPlayerPrivate::maxTimeSeekable()
 {
-    printf("MediaPlayerPrivate::maxTimeSeekable\n");
     // TODO
     if (m_isStreaming)
         return numeric_limits<float>::infinity();
@@ -201,7 +177,6 @@ float MediaPlayerPrivate::maxTimeSeekable()
 
 float MediaPlayerPrivate::maxTimeLoaded()
 {
-    printf("MediaPlayerPrivate::maxTimeLoaded\n");
     // TODO
     notImplemented();
     return duration();
@@ -209,7 +184,6 @@ float MediaPlayerPrivate::maxTimeLoaded()
 
 unsigned MediaPlayerPrivate::bytesLoaded()
 {
-    printf("MediaPlayerPrivate::bytesLoaded\n");
     notImplemented();
     /*if (!m_playBin)
         return 0;
@@ -222,14 +196,12 @@ unsigned MediaPlayerPrivate::bytesLoaded()
 
 bool MediaPlayerPrivate::totalBytesKnown()
 {
-    printf("MediaPlayerPrivate::totalBytesKnown\n");
     notImplemented();
     return totalBytes() > 0;
 }
 
 unsigned MediaPlayerPrivate::totalBytes()
 {
-    printf("MediaPlayerPrivate::totalBytes\n");
     notImplemented();
 
     // Do something with m_source to get the total bytes of the media
@@ -239,49 +211,41 @@ unsigned MediaPlayerPrivate::totalBytes()
 
 void MediaPlayerPrivate::cancelLoad()
 {
-    printf("MediaPlayerPrivate::cancelLoad\n");
     notImplemented();
 }
 
 void MediaPlayerPrivate::updateStates()
 {
-        printf("MediaPlayerPrivate::updateStates\n");
 }
 
 void MediaPlayerPrivate::loadStateChanged()
 {
-    printf("MediaPlayerPrivate::loadStateChanged\n");
     updateStates();
 }
 
 void MediaPlayerPrivate::rateChanged()
 {
-    printf("MediaPlayerPrivate::rateChanged\n");
     updateStates();
 }
 
 void MediaPlayerPrivate::sizeChanged()
 {
-    printf("MediaPlayerPrivate::sizeChanged\n");
     notImplemented();
 }
 
 void MediaPlayerPrivate::timeChanged()
 {
-    printf("MediaPlayerPrivate::timeChanged\n");
     updateStates();
     m_player->timeChanged();
 }
 
 void MediaPlayerPrivate::volumeChanged()
 {
-    printf("MediaPlayerPrivate::volumeChanged\n");
     m_player->volumeChanged();
 }
 
 void MediaPlayerPrivate::didEnd()
 {
-    printf("MediaPlayerPrivate::didEnd\n");
     m_isEndReached = true;
     pause();
     timeChanged();
@@ -289,7 +253,6 @@ void MediaPlayerPrivate::didEnd()
 
 void MediaPlayerPrivate::loadingFailed()
 {
-    printf("MediaPlayerPrivate::loadingFailed\n");
     if (m_networkState != MediaPlayer::LoadFailed) {
         m_networkState = MediaPlayer::LoadFailed;
         m_player->networkStateChanged();
@@ -302,30 +265,25 @@ void MediaPlayerPrivate::loadingFailed()
 
 void MediaPlayerPrivate::setRect(const IntRect& rect)
 {
-    printf("MediaPlayerPrivate::setRect\n");
     m_rect = rect;
 }
 
 void MediaPlayerPrivate::setVisible(bool visible)
 {
-    printf("MediaPlayerPrivate::setVisible\n");
     m_visible = visible;
 }
 
 void MediaPlayerPrivate::repaint()
 {
-    printf("MediaPlayerPrivate::repaint\n");
     m_player->repaint();
 }
 
 void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
 {
-        printf("MediaPlayerPrivate::paint\n");
 }
 
 void MediaPlayerPrivate::getSupportedTypes(HashSet<String>& types)
 {
-    printf("MediaPlayerPrivate::getSupportedTypes\n");
     // FIXME: do the real thing
     notImplemented();
     types.add(String("video/x-theora+ogg"));
@@ -333,7 +291,6 @@ void MediaPlayerPrivate::getSupportedTypes(HashSet<String>& types)
 
 void MediaPlayerPrivate::createGSTPlayBin(String url)
 {
-    printf("MediaPlayerPrivate::createGSTPlayBin\n");
 }
 
 }

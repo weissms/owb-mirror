@@ -114,7 +114,6 @@ public:
     void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
 
     void fireWebKitEvents();
-    void runJavaScriptAlert(WebFrame* frame, const char* message);
     
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);

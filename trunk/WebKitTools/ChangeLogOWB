@@ -1,3 +1,223 @@
+2009-02-19  Mario Bensi  <mbensi@pleyo.com>
+
+        add DumpRenderTree.
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/DumpRenderTree.h:
+        * DumpRenderTree/bal/AccessibilityControllerBal.cpp: Removed.
+        * DumpRenderTree/bal/AccessibilityUIElementBal.cpp: Removed.
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (getWebView):
+        (getDone):
+        (setDone):
+        (autocorrectURL):
+        (shouldLogFrameLoadDelegates):
+        (processWork):
+        (Notification::Notification):
+        (Notification::~Notification):
+        (Notification::startLoadNotification):
+        (Notification::progressNotification):
+        (Notification::finishedLoadNotification):
+        (Notification::windowObjectClearNotification):
+        (Notification::consoleMessage):
+        (Notification::jsAlert):
+        (Notification::jsConfirm):
+        (Notification::jsPrompt):
+        (Notification::titleChange):
+        (dumpFrameScrollPosition):
+        (displayWebView):
+        (dumpFramesAsText):
+        (invalidateAnyPreviousWaitToDumpWatchdog):
+        (dump):
+        (runTest):
+        (main):
+        * DumpRenderTree/bal/DumpRenderTreeBal.h: Added.
+        * DumpRenderTree/bal/EventSender.cpp: Removed.
+        * DumpRenderTree/bal/GCControllerBal.cpp:
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::clearBackForwardList):
+        (LayoutTestController::display):
+        (LayoutTestController::webHistoryItemCount):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::pathToLocalResource):
+        (LayoutTestController::setAcceptsEditing):
+        (LayoutTestController::setCustomPolicyDelegate):
+        (LayoutTestController::setUserStyleSheetEnabled):
+        (LayoutTestController::setUserStyleSheetLocation):
+        (LayoutTestController::setSmartInsertDeleteEnabled):
+        (LayoutTestController::setWaitToDump):
+        (LayoutTestController::windowCount):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        (LayoutTestController::setAuthorAndUserStylesEnabled):
+        (LayoutTestController::setIconDatabaseEnabled):
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setSelectTrailingWhitespaceEnabled):
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
+        (LayoutTestController::execCommand):
+        (LayoutTestController::isCommandEnabled):
+        (LayoutTestController::setPersistentUserStyleSheetLocation):
+        (LayoutTestController::setDatabaseQuota):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        (LayoutTestController::numberOfActiveAnimations):
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (clientRect):
+        (createWindow):
+        (waitEvent):
+        (startEventLoop):
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+        * DumpRenderTree/bal/WorkQueueItemBal.cpp:
+        (JSStringCopyUTF8CString):
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        * DumpRenderTree/bal/gtk/DumpRenderTreeGtk.cpp:
+        (clientRect):
+        (create_window):
+        (createWindow):
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+        * OWBLauncher/SDL/main.cpp:
+        (MainWebNotificationDelegate::windowObjectClearNotification):
+        (MainWebNotificationDelegate::consoleMessage):
+        (MainWebNotificationDelegate::jsAlert):
+        (MainWebNotificationDelegate::jsConfirm):
+        (MainWebNotificationDelegate::jsPrompt):
+        (MainWebNotificationDelegate::titleChange):
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.cpp:
+        (TestNotificationDelegate::windowObjectClearNotification):
+        (TestNotificationDelegate::consoleMessage):
+        (TestNotificationDelegate::jsAlert):
+        (TestNotificationDelegate::jsConfirm):
+        (TestNotificationDelegate::jsPrompt):
+        (TestNotificationDelegate::titleChange):
+        * OWBLauncher/gtk/main.cpp:
+        (autocorrectURL):
+        (MainWebNotificationDelegate::windowObjectClearNotification):
+        (MainWebNotificationDelegate::consoleMessage):
+        (MainWebNotificationDelegate::jsAlert):
+        (MainWebNotificationDelegate::jsConfirm):
+        (MainWebNotificationDelegate::jsPrompt):
+        (MainWebNotificationDelegate::titleChange):
+        (main):
+
+2009-02-19  set REAL_NAME environment variable  <set EMAIL_ADDRESS environment variable>
+
+        Reviewed by NOBODY (OOPS!).
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/DumpRenderTree.h:
+        * DumpRenderTree/bal/AccessibilityControllerBal.cpp: Removed.
+        * DumpRenderTree/bal/AccessibilityUIElementBal.cpp: Removed.
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (getWebView):
+        (getDone):
+        (setDone):
+        (autocorrectURL):
+        (shouldLogFrameLoadDelegates):
+        (processWork):
+        (Notification::Notification):
+        (Notification::~Notification):
+        (Notification::startLoadNotification):
+        (Notification::progressNotification):
+        (Notification::finishedLoadNotification):
+        (Notification::windowObjectClearNotification):
+        (Notification::consoleMessage):
+        (Notification::jsAlert):
+        (Notification::jsConfirm):
+        (Notification::jsPrompt):
+        (Notification::titleChange):
+        (dumpFrameScrollPosition):
+        (displayWebView):
+        (dumpFramesAsText):
+        (invalidateAnyPreviousWaitToDumpWatchdog):
+        (dump):
+        (runTest):
+        (main):
+        * DumpRenderTree/bal/DumpRenderTreeBal.h: Added.
+        * DumpRenderTree/bal/EventSender.cpp: Removed.
+        * DumpRenderTree/bal/GCControllerBal.cpp:
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::clearBackForwardList):
+        (LayoutTestController::display):
+        (LayoutTestController::webHistoryItemCount):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::pathToLocalResource):
+        (LayoutTestController::setAcceptsEditing):
+        (LayoutTestController::setCustomPolicyDelegate):
+        (LayoutTestController::setUserStyleSheetEnabled):
+        (LayoutTestController::setUserStyleSheetLocation):
+        (LayoutTestController::setSmartInsertDeleteEnabled):
+        (LayoutTestController::setWaitToDump):
+        (LayoutTestController::windowCount):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        (LayoutTestController::setAuthorAndUserStylesEnabled):
+        (LayoutTestController::setIconDatabaseEnabled):
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setSelectTrailingWhitespaceEnabled):
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
+        (LayoutTestController::execCommand):
+        (LayoutTestController::isCommandEnabled):
+        (LayoutTestController::setPersistentUserStyleSheetLocation):
+        (LayoutTestController::setDatabaseQuota):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        (LayoutTestController::numberOfActiveAnimations):
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (clientRect):
+        (createWindow):
+        (waitEvent):
+        (startEventLoop):
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+        * DumpRenderTree/bal/WorkQueueItemBal.cpp:
+        (JSStringCopyUTF8CString):
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        * DumpRenderTree/bal/gtk/DumpRenderTreeGtk.cpp:
+        (clientRect):
+        (create_window):
+        (createWindow):
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+        * OWBLauncher/SDL/main.cpp:
+        (MainWebNotificationDelegate::windowObjectClearNotification):
+        (MainWebNotificationDelegate::consoleMessage):
+        (MainWebNotificationDelegate::jsAlert):
+        (MainWebNotificationDelegate::jsConfirm):
+        (MainWebNotificationDelegate::jsPrompt):
+        (MainWebNotificationDelegate::titleChange):
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.cpp:
+        (TestNotificationDelegate::windowObjectClearNotification):
+        (TestNotificationDelegate::consoleMessage):
+        (TestNotificationDelegate::jsAlert):
+        (TestNotificationDelegate::jsConfirm):
+        (TestNotificationDelegate::jsPrompt):
+        (TestNotificationDelegate::titleChange):
+        * OWBLauncher/gtk/main.cpp:
+        (autocorrectURL):
+        (MainWebNotificationDelegate::windowObjectClearNotification):
+        (MainWebNotificationDelegate::consoleMessage):
+        (MainWebNotificationDelegate::jsAlert):
+        (MainWebNotificationDelegate::jsConfirm):
+        (MainWebNotificationDelegate::jsPrompt):
+        (MainWebNotificationDelegate::titleChange):
+        (main):
+
 2009-01-30  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

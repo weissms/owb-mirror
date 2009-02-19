@@ -42,33 +42,27 @@ namespace WebCore {
 ContextMenu::ContextMenu(const HitTestResult& result)
     : m_hitTestResult(result)
 {
-    printf("ContextMenu::ContextMenu\n");
 }
 
 ContextMenu::~ContextMenu()
 {
-    printf("ContextMenu::~ContextMenu\n");
 }
 
 void ContextMenu::appendItem(ContextMenuItem& item)
 {
-    printf("ContextMenu::appendItem\n");
 }
 
 void ContextMenu::setPlatformDescription(PlatformMenuDescription menu)
 {
-    printf("ContextMenu::setPlatformDescription\n");
 }
 
 PlatformMenuDescription ContextMenu::platformDescription() const
 {
-    printf("ContextMenu::platformDescription\n");
     return m_platformDescription;
 }
 
 PlatformMenuDescription ContextMenu::releasePlatformDescription()
 {
-    printf("ContextMenu::releasePlatformDescriptio\n");
     PlatformMenuDescription description = m_platformDescription;
     m_platformDescription = 0;
 

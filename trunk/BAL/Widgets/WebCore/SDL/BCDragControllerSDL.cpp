@@ -50,13 +50,11 @@ const float DragController::DragImageAlpha = 0.75f;
 
 bool DragController::isCopyKeyDown()
 {
-    printf("DragController::isCopyKeyDown\n");
     return false;
 }
 
 DragOperation DragController::dragOperation(DragData* dragData)
 {
-    printf("DragController::dragOperation\n");
     //FIXME: This logic is incomplete
      if (dragData->containsURL())
         return DragOperationCopy;
@@ -66,7 +64,6 @@ DragOperation DragController::dragOperation(DragData* dragData)
 
 const IntSize& DragController::maxDragImageSize()
 {
-    printf("DragController::maxDragImageSize\n");
     static const IntSize maxDragImageSize(400, 400);
 
     return maxDragImageSize;

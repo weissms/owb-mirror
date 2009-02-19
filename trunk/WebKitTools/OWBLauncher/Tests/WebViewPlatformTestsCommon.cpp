@@ -71,6 +71,39 @@ public:
         m_seenFinishedLoadNotification = true;
     }
 
+    virtual void windowObjectClearNotification(WebFrame*, void*, void*)
+    {
+    }
+
+    virtual void consoleMessage(WebFrame*, int line, const char *message)
+    {
+        printf("CONSOLE MESSAGE: line %d: %s\n", line, message);
+    }
+
+    virtual bool jsAlert(WebFrame *frame, const char *message)
+    {
+        printf("Javascript Alert: %s (from frame %p)\n", message, frame);
+        return true;
+    }
+
+    virtual bool jsConfirm(WebFrame *frame, const char *message)
+    {
+        printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message, frame);
+        return true;
+    }
+
+    virtual bool jsPrompt(WebFrame *frame, const char *message, const char *defaultValue, char **value)
+    {
+        printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message, frame);
+        *value = strdup(defaultValue);
+        return true;
+    }
+
+    virtual void titleChange(WebFrame*, const char*)
+    {
+    }
+
+
     bool m_seenStartLoadNotification;
     bool m_seenLastProgressNotification;
     bool m_seenFinishedLoadNotification;

@@ -28,6 +28,9 @@
 
 #include "config.h"
 #include "WebBackForwardList.h"
+#include "WebBackForwardList_p.h"
+#include "WebHistoryItem.h"
+#include "WebHistoryItem_p.h"
 
 #include "WebFrame.h"
 #include "WebPreferences.h"
@@ -44,91 +47,97 @@ static HashMap<BackForwardList*, WebBackForwardList*>& backForwardListWrappers()
     return staticBackForwardListWrappers;
 }
 
-WebBackForwardList::WebBackForwardList(PassRefPtr<BackForwardList> backForwardList)
-    : m_backForwardList(backForwardList)
+WebBackForwardList::WebBackForwardList(WebBackForwardListPrivate *priv)
+    : d(priv)
 {
-    ASSERT(!backForwardListWrappers().contains(m_backForwardList.get()));
-    backForwardListWrappers().set(m_backForwardList.get(), this);
+    ASSERT(!backForwardListWrappers().contains(d->m_backForwardList.get()));
+    backForwardListWrappers().set(d->m_backForwardList.get(), this);
 }
 
 WebBackForwardList::~WebBackForwardList()
 {
-    ASSERT(m_backForwardList->closed());
+    ASSERT(d->m_backForwardList->closed());
 
-    ASSERT(backForwardListWrappers().contains(m_backForwardList.get()));
-    backForwardListWrappers().remove(m_backForwardList.get());
+    ASSERT(backForwardListWrappers().contains(d->m_backForwardList.get()));
+    backForwardListWrappers().remove(d->m_backForwardList.get());
+    delete d;
 }
 
-WebBackForwardList* WebBackForwardList::createInstance(PassRefPtr<BackForwardList> backForwardList)
+WebBackForwardList* WebBackForwardList::createInstance(WebBackForwardListPrivate *priv)
 {
     WebBackForwardList* instance;
 
-    instance = backForwardListWrappers().get(backForwardList.get());
+    instance = backForwardListWrappers().get(priv->m_backForwardList.get());
 
     if (!instance)
-        instance = new WebBackForwardList(backForwardList);
+        instance = new WebBackForwardList(priv);
 
     return instance;
 }
 
 void WebBackForwardList::addItem(WebHistoryItem* item)
 {
-    m_backForwardList->addItem(item->historyItem());
+    d->m_backForwardList->addItem(item->getPrivateItem()->m_historyItem.get());
 }
 
 void WebBackForwardList::goBack()
 {
-    m_backForwardList->goBack();
+    d->m_backForwardList->goBack();
 }
 
 void WebBackForwardList::goForward()
 {
-    m_backForwardList->goForward();
+    d->m_backForwardList->goForward();
 }
 
 void WebBackForwardList::goToItem(WebHistoryItem* item)
 {
-    m_backForwardList->goToItem(item->historyItem());
+    d->m_backForwardList->goToItem(item->getPrivateItem()->m_historyItem.get());
 }
 
 WebHistoryItem* WebBackForwardList::backItem()
 {
-    HistoryItem* historyItem = m_backForwardList->backItem();
+    HistoryItem* historyItem = d->m_backForwardList->backItem();
 
     if (!historyItem)
         return 0;
 
-    return WebHistoryItem::createInstance(historyItem);
+    WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItem);
+    return WebHistoryItem::createInstance(priv);
 }
 
 WebHistoryItem* WebBackForwardList::currentItem()
 {
-    HistoryItem* historyItem = m_backForwardList->currentItem();
+    HistoryItem* historyItem = d->m_backForwardList->currentItem();
 
     if (!historyItem)
         return 0;
 
-    return WebHistoryItem::createInstance(historyItem);
+    WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItem);
+    return WebHistoryItem::createInstance(priv);
 }
 
 WebHistoryItem* WebBackForwardList::forwardItem()
 {
-    HistoryItem* historyItem = m_backForwardList->forwardItem();
+    HistoryItem* historyItem = d->m_backForwardList->forwardItem();
 
     if (!historyItem)
         return 0;
 
-    return WebHistoryItem::createInstance(historyItem);
+    WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItem);
+    return WebHistoryItem::createInstance(priv);
 }
 
 int WebBackForwardList::backListWithLimit(int limit, WebHistoryItem** list)
 {
     HistoryItemVector historyItemVector;
-    m_backForwardList->backListWithLimit(limit, historyItemVector);
+    d->m_backForwardList->backListWithLimit(limit, historyItemVector);
 
     if (list)
-        for (unsigned i = 0; i < historyItemVector.size(); i++)
-            list[i] = WebHistoryItem::createInstance(historyItemVector[i].get());
+        for (unsigned i = 0; i < historyItemVector.size(); i++) {
+            WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItemVector[i].get());
+            list[i] = WebHistoryItem::createInstance(priv);
+        }
 
     return static_cast<int>(historyItemVector.size());
 }
@@ -136,18 +145,20 @@ int WebBackForwardList::backListWithLimit(int limit, WebHistoryItem** list)
 int WebBackForwardList::forwardListWithLimit(int limit, WebHistoryItem** list)
 {
     HistoryItemVector historyItemVector;
-    m_backForwardList->forwardListWithLimit(limit, historyItemVector);
+    d->m_backForwardList->forwardListWithLimit(limit, historyItemVector);
 
     if (list)
-        for (unsigned i = 0; i < historyItemVector.size(); i++)
-            list[i] = WebHistoryItem::createInstance(historyItemVector[i].get());
+        for (unsigned i = 0; i < historyItemVector.size(); i++) {
+            WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItemVector[i].get());
+            list[i] = WebHistoryItem::createInstance(priv);
+        }
 
     return static_cast<int>(historyItemVector.size());
 }
 
 int WebBackForwardList::capacity()
 {
-    return (int)m_backForwardList->capacity();
+    return (int)d->m_backForwardList->capacity();
 }
 
 void WebBackForwardList::setCapacity(int size)
@@ -155,17 +166,17 @@ void WebBackForwardList::setCapacity(int size)
     if (size < 0)
         return;
     
-    m_backForwardList->setCapacity(size);
+    d->m_backForwardList->setCapacity(size);
 }
 
 int WebBackForwardList::backListCount()
 {
-    return m_backForwardList->backListCount();
+    return d->m_backForwardList->backListCount();
 }
 
 int WebBackForwardList::forwardListCount()
 {
-    return m_backForwardList->forwardListCount();
+    return d->m_backForwardList->forwardListCount();
 }
 
 bool WebBackForwardList::containsItem(WebHistoryItem* item)
@@ -173,17 +184,18 @@ bool WebBackForwardList::containsItem(WebHistoryItem* item)
     if (!item)
         return false;
 
-    return m_backForwardList->containsItem(item->historyItem());
+    return d->m_backForwardList->containsItem(item->getPrivateItem()->m_historyItem.get());
 }
 
 WebHistoryItem* WebBackForwardList::itemAtIndex(int index)
 {
-    HistoryItem* historyItem = m_backForwardList->itemAtIndex(index);
+    HistoryItem* historyItem = d->m_backForwardList->itemAtIndex(index);
 
     if (!historyItem)
         return 0;
 
-    return WebHistoryItem::createInstance(historyItem);
+    WebHistoryItemPrivate *priv = new WebHistoryItemPrivate(historyItem);
+    return WebHistoryItem::createInstance(priv);
 }
 
 void WebBackForwardList::removeItem(WebHistoryItem* item)
@@ -191,5 +203,5 @@ void WebBackForwardList::removeItem(WebHistoryItem* item)
     if (!item)
         return;
 
-    m_backForwardList->removeItem(item->historyItem());
+    d->m_backForwardList->removeItem(item->getPrivateItem()->m_historyItem.get());
 }

@@ -42,7 +42,6 @@ namespace WebCore {
 
 String FileChooser::basenameForWidth(const Font& font, int width) const
 {
-    printf("FileChooser::basenameForWidth\n");
     return String();
 }
 }

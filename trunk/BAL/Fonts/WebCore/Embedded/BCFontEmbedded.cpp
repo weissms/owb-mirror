@@ -45,28 +45,24 @@ namespace WebCore {
 
 void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
-    printf("Font::drawComplexText\n");
     BalNotImplemented();
 }
 
 
 float Font::floatWidthForComplexText(const TextRun& run) const
 {
-    printf("Font::floatWidthForComplexText\n");
     BalNotImplemented();
     return 0.0;
 }
 
 int Font::offsetForPositionForComplexText(const TextRun& run, int x, bool includePartialGlyphs) const
 {
-    printf("Font::offsetForPositionForComplexText\n");
     BalNotImplemented();
     return 0;
 }
 
 FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& point, int h, int from, int to) const
 {
-    printf("Font::selectionRectForComplexText\n");
     BalNotImplemented();
     return FloatRect();
 }

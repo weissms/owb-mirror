@@ -1,3 +1,10 @@
+2009-02-19  Mario Bensi  <mbensi@pleyo.com>
+
+        add DumpRenderTree.
+
+        * CMakeLists.txt:
+        * cmake/SetCMakeVars.cmake:
+
 2009-02-12  Olivier DOLE  <odole@pleyo.com>
 
         Remove unused gnome-vfs support from cmake.

@@ -1,19 +1,20 @@
 /*
  * Copyright (C) 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Eric Seidel <eric@webkit.org>
+ * Copyright (C) 2008 Nuanti Ltd.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer. 
+ *     notice, this list of conditions and the following disclaimer.
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution. 
+ *     documentation and/or other materials provided with the distribution.
  * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission. 
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,13 +28,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+//#include "config.h"
 #include "LayoutTestController.h"
 
-#include "ObserverServiceData.h"
+#include "DumpRenderTree.h"
 #include "WorkQueue.h"
 #include "WorkQueueItem.h"
 #include <JavaScriptCore/JSRetainPtr.h>
 #include <JavaScriptCore/JSStringRef.h>
+
+#include <stdio.h>
+#include <WebKit.h>
 
 LayoutTestController::~LayoutTestController()
 {
@@ -47,7 +52,24 @@ void LayoutTestController::addDisallowedURL(JSStringRef url)
 
 void LayoutTestController::clearBackForwardList()
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+
+    WebBackForwardList* backForwardList = webView->backForwardList();
+    if (!backForwardList)
+        return;
+
+    WebHistoryItem* item = backForwardList->currentItem();
+    if (item)
+        return;
+
+    // We clear the history by setting the back/forward list's capacity to 0
+    // then restoring it back and adding back the current item.
+    int capacity = backForwardList->capacity();
+
+    backForwardList->setCapacity(0);
+    backForwardList->setCapacity(capacity);
+    backForwardList->addItem(item);
+    backForwardList->goToItem(item);
 }
 
 JSStringRef LayoutTestController::copyDecodedHostName(JSStringRef name)
@@ -64,6 +86,7 @@ JSStringRef LayoutTestController::copyEncodedHostName(JSStringRef name)
 
 void LayoutTestController::display()
 {
+    displayWebView();
 }
 
 void LayoutTestController::keepWebHistory()
@@ -71,13 +94,24 @@ void LayoutTestController::keepWebHistory()
     // FIXME: implement
 }
 
+size_t LayoutTestController::webHistoryItemCount()
+{
+    // FIXME: implement
+    return 0;
+}
+
 void LayoutTestController::notifyDone()
 {
-    // FIXME: The frame might not be finished loading yet
-    if (m_waitToDump && !WorkQueue::shared()->count()) {
-        WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "notifyDone", NULL);
-    }
+    if (m_waitToDump && !topLoadingFrame && !WorkQueue::shared()->count())
+        dump();
+    
     m_waitToDump = false;
+}
+
+JSStringRef LayoutTestController::pathToLocalResource(JSContextRef context, JSStringRef url)
+{
+    // Function introduced in r28690. This may need special-casing on Windows.
+    return JSStringRetain(url); // Do nothing on Unix.
 }
 
 void LayoutTestController::queueBackNavigation(int howFarBack)
@@ -106,12 +140,12 @@ void LayoutTestController::queueScript(JSStringRef script)
     WorkQueue::shared()->queue(new ScriptItem(script));
 }
 
-void LayoutTestController::setAcceptsEditing(bool newAcceptsEditing)
+void LayoutTestController::setAcceptsEditing(bool acceptsEditing)
 {
-    // FIXME: implement
+    getWebView()->mainFrame()->setEditable(acceptsEditing);
 }
 
-void LayoutTestController::setCustomPolicyDelegate(bool setDelegate)
+void LayoutTestController::setCustomPolicyDelegate(bool setDelegate, bool permissive)
 {
     // FIXME: implement
 }
@@ -131,14 +165,25 @@ void LayoutTestController::setUseDashboardCompatibilityMode(bool flag)
     // FIXME: implement
 }
 
+static char* userStyleSheet = NULL;
+static bool userStyleSheetEnabled = true;
+
 void LayoutTestController::setUserStyleSheetEnabled(bool flag)
 {
-    // FIXME: implement
+    userStyleSheetEnabled = flag;
+
+    if (flag && userStyleSheet)
+        getWebView()->setCustomUserAgent(userStyleSheet);
+    else
+        getWebView()->setCustomUserAgent("");
 }
 
 void LayoutTestController::setUserStyleSheetLocation(JSStringRef path)
 {
-    // FIXME: implement
+    free(userStyleSheet);
+    userStyleSheet = JSStringCopyUTF8CString(path);
+    if (userStyleSheetEnabled)
+        setUserStyleSheetEnabled(true);
 }
 
 void LayoutTestController::setWindowIsKey(bool windowIsKey)
@@ -146,26 +191,24 @@ void LayoutTestController::setWindowIsKey(bool windowIsKey)
     // FIXME: implement
 }
 
+void LayoutTestController::setSmartInsertDeleteEnabled(bool flag)
+{
+    // FIXME: implement
+}
+
 void LayoutTestController::setWaitToDump(bool waitUntilDone)
 {
+    static const int timeoutSeconds = 10;
+
     m_waitToDump = waitUntilDone;
-    // FIXME: Should have some sort of watchdog timer here
-    //if (waitUntilDone)
-        WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "waitUntilDone", NULL);
-    // FIXME: Should have some sort of watchdog timer here
+    if (m_waitToDump && !waitToDumpWatchdog)
+        addTimetoDump(timeoutSeconds);
 }
 
 int LayoutTestController::windowCount()
 {
     // FIXME: implement
-    return 0;
-}
-
-bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef id)
-{
-    // FIXME: Implement this almost exactly like the Mac version
-
-    return false;
+    return 1;
 }
 
 void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
@@ -178,28 +221,44 @@ void LayoutTestController::setAuthorAndUserStylesEnabled(bool flag)
     // FIXME: implement
 }
 
+void LayoutTestController::setIconDatabaseEnabled(bool flag)
+{
+    // FIXME: implement
+}
+
+void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
+{
+    // FIXME: implement
+}
+
+void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool flag)
+{
+    // FIXME: implement
+}
+
 void LayoutTestController::setPopupBlockingEnabled(bool popupBlockingEnabled)
 {
     // FIXME: implement
 }
 
-void LayoutTestController::setPersistentUserStyleSheetLocation(JSStringRef jsURL)
+bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef id) 
 {
     // FIXME: implement
-}
-
-void LayoutTestController::setDatabaseQuota(unsigned long long quota)
-{
-    // FIXME: implement
-}
-
-JSStringRef LayoutTestController::pathToLocalResource(JSContextRef context, JSStringRef url)
-{
-    // Function introduced in r28690. This may need special-casing on Windows.
-    return url; // Do nothing on Unix.
+    return false;
 }
 
 void LayoutTestController::execCommand(JSStringRef name, JSStringRef value)
+{
+    // FIXME: implement
+}
+
+bool LayoutTestController::isCommandEnabled(JSStringRef /*name*/)
+{
+    // FIXME: implement
+    return false;
+}
+
+void LayoutTestController::setPersistentUserStyleSheetLocation(JSStringRef jsURL)
 {
     // FIXME: implement
 }
@@ -213,4 +272,27 @@ void LayoutTestController::clearAllDatabases()
 {
     // FIXME: implement
 }
+ 
+void LayoutTestController::setDatabaseQuota(unsigned long long quota)
+{    
+    // FIXME: implement
+}
 
+bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(JSStringRef animationName, double time, JSStringRef elementId)
+{    
+    char* name = JSStringCopyUTF8CString(animationName);
+    char* element = JSStringCopyUTF8CString(elementId);
+    return getWebView()->mainFrame()->pauseAnimation(name, time, element);
+}
+
+bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef propertyName, double time, JSStringRef elementId)
+{    
+    char* name = JSStringCopyUTF8CString(propertyName);
+    char* element = JSStringCopyUTF8CString(elementId);
+    return getWebView()->mainFrame()->pauseTransition(name, time, element);
+}
+
+unsigned LayoutTestController::numberOfActiveAnimations() const
+{
+    return getWebView()->mainFrame()->numberOfActiveAnimations();
+}

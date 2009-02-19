@@ -40,6 +40,7 @@
 #include "WebFramePolicyListener.h"
 #include "WebHistory.h"
 #include "WebHistoryItem.h"
+#include "WebHistoryItem_p.h"
 #include "WebMutableURLRequest.h"
 #include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
@@ -79,6 +80,7 @@
 #include <RenderPart.h>
 #include <ResourceHandle.h>
 #include <Settings.h>
+#include <APICast.h>
 #if PLATFORM(AMIGAOS4)
 #include <proto/clicktab.h>
 #include <proto/intuition.h>
@@ -333,10 +335,9 @@ void WebFrameLoaderClient::dispatchDidStartProvisionalLoad()
 
 void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didReceiveTitle(webView, BString(title), m_webFrame);*/
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->titleChange(m_webFrame, title.utf8().data());
 }
 
 void WebFrameLoaderClient::dispatchDidCommitLoad()
@@ -484,7 +485,6 @@ void WebFrameLoaderClient::postProgressFinishedNotification()
     //FIXME : remove this notification
     WebCore::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
 
-    printf("postProgressFinishedNotification\n");
 #ifdef BENCH_LOAD_TIME
     gettimeofday(&m_timerStop, NULL);
     if (m_timerStart.tv_sec == m_timerStop.tv_sec)
@@ -579,13 +579,13 @@ void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
 
     if (!loader->clientRedirectSourceForHistory().isNull()) {
         if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory())) {
-            webHistoryItem->historyItem()->addRedirectURL(loader->clientRedirectDestinationForHistory());
+            webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->clientRedirectDestinationForHistory());
         }
     }
                                                                                               
     if (!loader->serverRedirectSourceForHistory().isNull()) {                               
         if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory())) {
-            webHistoryItem->historyItem()->addRedirectURL(loader->serverRedirectDestinationForHistory());
+            webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->serverRedirectDestinationForHistory());
         }
     }
 }
@@ -662,7 +662,7 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     if (!item)
         return;
 
-    item->setTitle(title);
+    item->setTitle(title.utf8().data());
 }
 
 void WebFrameLoaderClient::savePlatformDataToCachedFrame(WebCore::CachedFrame* cachedFrame)
@@ -1221,6 +1221,15 @@ void WebFrameLoaderClient::windowObjectCleared()
     if (m_webFrame->bindingJS())
         m_webFrame->bindingJS()->registerBinding();
 #endif
+   
+
+    JSGlobalContextRef context = toGlobalRef(coreFrame->script()->globalObject()->globalExec());
+    JSObjectRef windowObject = toRef(coreFrame->script()->globalObject());
+    ASSERT(windowObject);
+
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->windowObjectClearNotification(m_webFrame, (void*)context, (void*)windowObject);
 }
 
 void WebFrameLoaderClient::documentElementAvailable()

@@ -460,8 +460,3 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
 #endif
 }
 
-void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
-{
-    printf("Javascript Alert: %s (from frame %p)\n", message, frame);
-}
-

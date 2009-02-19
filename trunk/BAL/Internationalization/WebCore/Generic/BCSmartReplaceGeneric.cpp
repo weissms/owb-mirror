@@ -36,7 +36,6 @@ namespace WebCore {
 
 bool isCharacterSmartReplaceExempt(UChar32 c, bool isPreviousCharacter)
 {
-    printf("isCharacterSmartReplaceExempt\n");
     return false;
 }
 

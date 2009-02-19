@@ -78,7 +78,6 @@ FontCustomPlatformData* createFontCustomPlatformData(SharedBuffer* buffer)
 
     //buffer->ref();
 
-    printf("new FontCustomPlatformData fontFace = %p\n", fontFace);
     return new FontCustomPlatformData(fontFace);
 }
 

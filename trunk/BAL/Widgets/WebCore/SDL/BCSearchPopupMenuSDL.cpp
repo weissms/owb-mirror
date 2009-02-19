@@ -38,25 +38,21 @@ namespace WebCore {
 SearchPopupMenu::SearchPopupMenu(PopupMenuClient* client)
     : PopupMenu(client)
 {
-    printf("SearchPopupMenu::SearchPopupMenu\n");
     NotImplemented();
 }
 
 void SearchPopupMenu::saveRecentSearches(const AtomicString&, const Vector<String>&)
 {
-    printf("SearchPopupMenu::saveRecentSearches\n");
     NotImplemented();
 }
 
 void SearchPopupMenu::loadRecentSearches(const AtomicString&, Vector<String>&)
 {
-    printf("SearchPopupMenu::loadRecentSearches\n");
     NotImplemented();
 }
 
 bool SearchPopupMenu::enabled()
 {
-    printf("SearchPopupMenu::enabled\n");
     NotImplemented();
     return true;
 }

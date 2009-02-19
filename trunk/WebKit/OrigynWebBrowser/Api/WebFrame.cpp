@@ -424,7 +424,8 @@ WebFrame* WebFrame::findFrameNamed(const char* name)
     if (!coreFrame)
         return 0;
 
-    Frame* foundFrame = coreFrame->tree()->find(name);
+    String nameString = String::fromUTF8(name);
+    Frame* foundFrame = coreFrame->tree()->find(AtomicString(nameString));
     if (!foundFrame)
         return 0;
 
@@ -443,6 +444,23 @@ WebFrame* WebFrame::parentFrame()
 
     return 0;
 }
+
+std::vector<WebFrame*> WebFrame::children()
+{
+    std::vector<WebFrame*> rc;
+    if (Frame* frame = core(this)) {
+        FrameTree *tree = frame->tree();
+        for (Frame *child = tree->firstChild(); child; child = child->tree()->nextSibling()) {
+            FrameLoader *loader = child->loader();
+            WebFrameLoaderClient *client = static_cast<WebFrameLoaderClient*>(loader->client());
+            if (client)
+                rc.push_back(client->webFrame());
+        }
+
+    }
+    return rc; 
+}
+
 
 const char* WebFrame::renderTreeAsExternalRepresentation()
 {
@@ -991,14 +1009,27 @@ bool WebFrame::isFrameSet()
     return coreFrame->document()->isFrameSet() ? true : false;
 }
 
-const char* WebFrame::string()
+const char* WebFrame::toString()
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
         return "";
+    if (coreFrame->view() && coreFrame->view()->layoutPending())
+        coreFrame->view()->layout();
 
-    RefPtr<Range> allRange(rangeOfContents(coreFrame->document()));
-    return plainText(allRange.get()).utf8().data();
+    Element *documentElement = coreFrame->document()->documentElement();
+    String string =  documentElement->innerText();
+    return strdup(string.utf8().data());
+}
+
+const char* WebFrame::renderTreeDump() const
+{
+    Frame* coreFrame = core(this);
+    if (coreFrame->view() && coreFrame->view()->layoutPending())
+        coreFrame->view()->layout();
+
+    String string = externalRepresentation(coreFrame->contentRenderer());
+    return strdup(string.utf8().data());
 }
 
 BalPoint WebFrame::size()
@@ -1105,6 +1136,47 @@ bool WebFrame::shouldTreatURLAsSameAsCurrent(const char*) const
 {
     BalNotImplemented();
     return false;
+}
+
+int WebFrame::numberOfActiveAnimations()
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return 0;
+
+    AnimationController* controller = coreFrame->animation();
+    if (!controller)
+        return 0;
+
+    return controller->numberOfActiveAnimations();
+}
+
+bool WebFrame::pauseAnimation(const char* name, double time, const char* element)
+{
+    Element* coreElement = core(this)->document()->getElementById(AtomicString(element));
+    if (!coreElement || !coreElement->renderer())
+        return false;
+    return core(this)->animation()->pauseAnimationAtTime(coreElement->renderer(), AtomicString(name), time);
+}
+
+bool WebFrame::pauseTransition(const char* name, double time, const char* element)
+{
+    Element* coreElement = core(this)->document()->getElementById(AtomicString(element));
+    if (!coreElement || !coreElement->renderer())
+        return false;
+    return core(this)->animation()->pauseTransitionAtTime(coreElement->renderer(), AtomicString(name), time);
+}
+
+void WebFrame::setEditable(bool flag)
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return;
+    
+    if (flag)
+        frame->applyEditingStyleToBodyElement();
+    else
+        frame->removeEditingStyleFromBodyElement();
 }
 
 WebView* WebFrame::webView() const

@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007 Alp Toker <alp@atoker.com>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
@@ -15,29 +17,57 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//#include "config.h"
 #include "WorkQueueItem.h"
+
 #include "DumpRenderTree.h"
+
+#include <JavaScriptCore/JSStringRef.h>
+#include <WebKit.h>
+#include <string.h>
+
+// Returns a newly allocated UTF-8 character buffer which must be freed with g_free()
+char* JSStringCopyUTF8CString(JSStringRef jsString)
+{
+    size_t dataSize = JSStringGetMaximumUTF8CStringSize(jsString);
+    char* utf8 = (char*)malloc(dataSize);
+    JSStringGetUTF8CString(jsString, utf8, dataSize);
+
+    return utf8;
+}
 
 void LoadItem::invoke() const
 {
-    printf("LoadItem::invoke()\n");
-    // FIXME Not Implemented
+    char* targetString = JSStringCopyUTF8CString(target());
+
+    WebFrame* targetFrame;
+    if (!strlen(targetString))
+        targetFrame = getWebView()->mainFrame();
+    else
+        targetFrame = getWebView()->mainFrame()->findFrameNamed(targetString);
+    free(targetString);
+
+    char* urlString = JSStringCopyUTF8CString(url());
+    targetFrame->loadURL(urlString);
+//    WebKitNetworkRequest* request = webkit_network_request_new(urlString);
+    free(urlString);
+//    webkit_web_frame_load_request(targetFrame, request);
+//    g_object_unref(request);
 }
 
 void ReloadItem::invoke() const
 {
-    printf("ReloadItem::invoke()\n");
-    // FIXME Not Implemented
+    getWebView()->mainFrame()->reload();
 }
 
 void ScriptItem::invoke() const
 {
-    printf("ScriptItem::invoke()\n");
-    // FIXME Not Implemented
+    char* scriptString = JSStringCopyUTF8CString(script());
+    getWebView()->executeScript(scriptString);
+    free(scriptString);
 }
 
 void BackForwardItem::invoke() const
 {
-    printf("BackForwardItem::invoke()\n");
-    // FIXME Not Implemented
+    getWebView()->goBackOrForward(m_howFar);
 }

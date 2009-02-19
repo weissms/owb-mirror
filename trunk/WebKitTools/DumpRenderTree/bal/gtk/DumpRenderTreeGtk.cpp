@@ -1,45 +1,44 @@
-#include "config.h"
 #include <gtk/gtk.h>
 #include "cairo.h"
-#include <Api/WebFrame.h>
-#include <Api/WebView.h>
-#include "Page.h"
-#include "Frame.h"
-#include "FrameView.h"
+#include <WebKit.h>
+#include <DumpRenderTree.h>
+
+// Choose some default values.
+const unsigned int maxViewWidth = 800;
+const unsigned int maxViewHeight = 600;
+unsigned int waitToDumpWatchdog = 0;
 
 static GtkWidget* main_window;
-volatile bool done;
 
 static void destroy_cb (GtkWidget* widget, gpointer data)
 {
     gtk_main_quit ();
 }
 
-static GtkWidget* create_window ()
+BalRectangle clientRect(bool isSVGW3CTest)
+{
+    GdkRectangle clientRect = {0, 0, isSVGW3CTest ? 480 : maxViewWidth, isSVGW3CTest ? 360 : maxViewHeight};
+    return clientRect;
+}
+
+static GtkWidget* create_window (BalRectangle rect)
 {
     GtkWidget* window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
+    gtk_window_set_default_size (GTK_WINDOW (window), rect.width, rect.height);
     gtk_widget_set_name (window, "GtkLauncher");
     g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (destroy_cb), NULL);
 
     return window;
-
-//     GtkWidget* window = gtk_window_new(GTK_WINDOW_POPUP);
-//     gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
-//     GtkContainer* container = GTK_CONTAINER(gtk_fixed_new());
-//     gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(container));
-//     gtk_widget_realize(window);
-// 
-//     return window;
 }
+
 void init(int argc, char *argv[])
 {
     gtk_init (&argc, &argv);
 }
 
-BalWidget* createWindow(WebView *webView)
+BalWidget* createWindow(WebView *webView, BalRectangle rect)
 {
-    main_window = create_window ();
+    main_window = create_window(rect);
 
     GtkWidget* scrolled_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -66,4 +65,29 @@ void startEventLoop(BalWidget *view)
 void stopEventLoop()
 {
     done = true;
+}
+
+static gboolean waitToDumpWatchdogFired(void*)
+{
+    const char* message = "FAIL: Timed out waiting for notifyDone to be called\n";
+    fprintf(stderr, "%s", message);
+    fprintf(stdout, "%s", message);
+    waitToDumpWatchdog = 0;
+    dump();
+    return FALSE;
+}
+
+
+void addTimetoDump(int timeoutSeconds)
+{
+#if GLIB_CHECK_VERSION(2,14,0)
+    waitToDumpWatchdog = g_timeout_add_seconds(timeoutSeconds, waitToDumpWatchdogFired, 0);
+#else
+    waitToDumpWatchdog = g_timeout_add(timeoutSeconds * 1000, waitToDumpWatchdogFired, 0);
+#endif
+}
+
+void removeTimer()
+{
+    g_source_remove(waitToDumpWatchdog);
 }

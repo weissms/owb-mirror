@@ -42,7 +42,6 @@ namespace WebCore {
 Icon::Icon()
     :  m_icon(0)
 {
-    printf("Icon::Icon()\n");
     BalNotImplemented();
 }
 
@@ -53,20 +52,17 @@ Icon::~Icon()
 
 PassRefPtr<Icon> Icon::createIconForFile(const String& filename)
 {
-    printf("Icon::newIconForFile()\n");
     return 0;
 }
 
 PassRefPtr<Icon> Icon::createIconForFiles(const Vector<String>& filenames)
 {
-    printf("Icon::newIconForFiles()\n");
     return 0;
 }
 
 
 void Icon::paint(GraphicsContext* context, const IntRect& rect)
 {
-    printf("Icon::paint()\n");
 }
 
 }

@@ -38,20 +38,17 @@ namespace WebCore {
 
 SVGResourceFilterPlatformData* SVGResourceFilter::createPlatformData()
 {
-    printf("SVGResourceFilter::createPlatformData\n");
     notImplemented();
     return 0;
 }
 
 void SVGResourceFilter::prepareFilter(GraphicsContext*&, const FloatRect&)
 {
-    printf("SVGResourceFilter::prepareFilter\n");
     notImplemented();
 }
 
 void SVGResourceFilter::applyFilter(GraphicsContext*&, const FloatRect&)
 {
-    printf("SVGResourceFilter::applyFilter\n");
     notImplemented();
 }
 

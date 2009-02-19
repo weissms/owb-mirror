@@ -249,6 +249,12 @@ public:
     virtual bool goForward();
 
     /**
+     * goBackOrForward
+     * go back or forward to the steps.
+     */
+    virtual void goBackOrForward(int steps);
+
+    /**
      *  goToBackForwardItem 
      * Go back or forward to an item in the backforward list.
         @result true if able to go to the item, false otherwise.
@@ -356,6 +362,11 @@ public:
         @result The result of the script, converted to a string, or nil for failure.
      */
     virtual const char* stringByEvaluatingJavaScriptFromString(const char* script);
+
+    /**
+     * executeScript
+     */
+    virtual void executeScript(const char* script);
 
     /**
      * windowScriptObject 
@@ -1251,13 +1262,11 @@ public:
      */
     //static STDMETHODIMP AccessibleObjectFromWindow(HWND, DWORD objectID, REFIID, void** ppObject);
 
-    // Implemented by the platforms.
-    void runJavaScriptAlert(WebFrame*, const char*);
-
     void popupMenuHide();
     void popupMenuShow(void* userData);
 
     void fireWebKitEvents();
+
 
 private:
 

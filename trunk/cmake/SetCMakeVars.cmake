@@ -1,8 +1,10 @@
 list(APPEND API_HEADER
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebBackForwardList.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrame.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebHistoryItem.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebKit.h
-    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebView.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebNotificationDelegate.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebView.h
     ${OWB_SOURCE_DIR}/Base/WebKitDefines.h
     ${OWB_SOURCE_DIR}/Base/WebKitTypes.h
 )

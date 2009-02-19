@@ -38,9 +38,12 @@
 #include "WebElementPropertyBag.h"
 #include "WebFrame.h"
 #include "WebBackForwardList.h"
+#include "WebBackForwardList_p.h"
 #include "WebChromeClient.h"
 #include "WebContextMenuClient.h"
 #include "WebDragClient.h"
+#include "WebHistoryItem.h"
+#include "WebHistoryItem_p.h"
 #if ENABLE(ICONDATABASE)
 #include "WebIconDatabase.h"
 #endif
@@ -1172,7 +1175,8 @@ WebFrame* WebView::focusedFrame()
 }
 WebBackForwardList* WebView::backForwardList()
 {
-    return WebBackForwardList::createInstance(m_page->backForwardList());
+    WebBackForwardListPrivate *p = new WebBackForwardListPrivate(m_page->backForwardList());
+    return WebBackForwardList::createInstance(p);
 }
 
 void WebView::setMaintainsBackForwardList(bool flag)
@@ -1190,9 +1194,19 @@ bool WebView::goForward()
     return m_page->goForward();
 }
 
+void WebView::goBackOrForward(int steps)
+{
+    Frame* coreFrame = core(m_mainFrame);
+    if (!coreFrame)
+        return ; 
+
+    coreFrame->loader()->goBackOrForward(steps);
+}
+
 bool WebView::goToBackForwardItem(WebHistoryItem* item)
 {
-    m_page->goToItem(item->historyItem(), FrameLoadTypeIndexedBackForward);
+    WebHistoryItemPrivate *priv = item->getPrivateItem(); 
+    m_page->goToItem(priv->m_historyItem.get(), FrameLoadTypeIndexedBackForward);
     return true;
 }
 
@@ -1393,6 +1407,19 @@ const char* WebView::stringByEvaluatingJavaScriptFromString(const char* script)
     else if (scriptExecutionResult.isString())
         return scriptExecutionResult.getString().ascii();
     return NULL;
+}
+
+void WebView::executeScript(const char* script)
+{
+    if (!script)
+        return;
+
+    Frame* coreFrame = core(m_mainFrame);
+    if (!coreFrame)
+        return ;
+
+    if (FrameLoader* loader = coreFrame->loader())
+        loader->executeScript(String::fromUTF8(script), true);
 }
 
 WebScriptObject* WebView::windowScriptObject()
@@ -2420,11 +2447,6 @@ void WebView::popupMenuShow(void* userData)
 void WebView::fireWebKitEvents()
 {
     d->fireWebKitEvents();
-}
-
-void WebView::runJavaScriptAlert(WebFrame* wf, char const* message)
-{
-    d->runJavaScriptAlert(wf, message);
 }
 
 Page* core(WebView* webView)

@@ -43,18 +43,15 @@ namespace WebCore {
 ContextMenuItem::ContextMenuItem(BalMenuItem* item)
     : m_platformDescription()
 {
-    printf("ContextMenuItem::ContextMenuItem\n");
 }
 
 ContextMenuItem::ContextMenuItem(ContextMenu*)
 {
-    printf("ContextMenuItem::ContextMenuItem\n");
     NotImplemented();
 }
 
 ContextMenuItem::ContextMenuItem(ContextMenuItemType type, ContextMenuAction action, const String& title, ContextMenu* subMenu)
 {
-    printf("ContextMenuItem::ContextMenuItem\n");
     m_platformDescription.type = type;
     m_platformDescription.action = action;
     m_platformDescription.title = title;
@@ -64,18 +61,15 @@ ContextMenuItem::ContextMenuItem(ContextMenuItemType type, ContextMenuAction act
 
 ContextMenuItem::~ContextMenuItem()
 {
-    printf("ContextMenuItem::~ContextMenuItem\n");
 }
 
 BalMenuItem* ContextMenuItem::createNativeMenuItem(const PlatformMenuItemDescription& menu)
 {
-    printf("ContextMenuItem::createNativeMenuItem\n");
     return 0;
 }
 
 PlatformMenuItemDescription ContextMenuItem::releasePlatformDescription()
 {
-    printf("ContextMenuItem::releasePlatformDescription\n");
     PlatformMenuItemDescription description = m_platformDescription;
     m_platformDescription = PlatformMenuItemDescription();
     return description;
@@ -83,61 +77,51 @@ PlatformMenuItemDescription ContextMenuItem::releasePlatformDescription()
 
 ContextMenuItemType ContextMenuItem::type() const
 {
-    printf("ContextMenuItem::type\n");
     return m_platformDescription.type;
 }
 
 void ContextMenuItem::setType(ContextMenuItemType type)
 {
-    printf("ContextMenuItem::setType\n");
     m_platformDescription.type = type;
 }
 
 ContextMenuAction ContextMenuItem::action() const
 {
-    printf("ContextMenuItem::action\n");
     return m_platformDescription.action;
 }
 
 void ContextMenuItem::setAction(ContextMenuAction action)
 {
-    printf("ContextMenuItem::setAction\n");
     m_platformDescription.action = action;
 }
 
 String ContextMenuItem::title() const
 {
-    printf("ContextMenuItem::title\n");
     NotImplemented();
     return String();
 }
 
 void ContextMenuItem::setTitle(const String&)
 {
-    printf("ContextMenuItem::setTitle\n");
     NotImplemented();
 }
 
 PlatformMenuDescription ContextMenuItem::platformSubMenu() const
 {
-    printf("ContextMenuItem::platformSubMenu\n");
     return m_platformDescription.subMenu;
 }
 
 void ContextMenuItem::setSubMenu(ContextMenu* menu)
 {
-    printf("ContextMenuItem::setSubMenu\n");
 }
 
 void ContextMenuItem::setChecked(bool shouldCheck)
 {
-    printf("ContextMenuItem::setChecked\n");
     m_platformDescription.checked = shouldCheck;
 }
 
 void ContextMenuItem::setEnabled(bool shouldEnable)
 {
-    printf("ContextMenuItem::setEnabled\n");
     m_platformDescription.enabled = shouldEnable;
 }
 

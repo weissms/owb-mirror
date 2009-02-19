@@ -39,7 +39,9 @@
 #elif PLATFORM(WIN)
 #include "DumpRenderTreeWin.h"
 #elif PLATFORM(GTK)
-//#include "DumpRenderTreeGtk.h"
+#include "DumpRenderTreeBal.h"
+#elif PLATFORM(BAL)
+#include "DumpRenderTreeBal.h"
 #endif
 
 #if PLATFORM(CF)

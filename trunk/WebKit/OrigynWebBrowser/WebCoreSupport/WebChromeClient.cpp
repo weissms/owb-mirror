@@ -33,6 +33,7 @@
 #include "WebFrame.h"
 #include "WebHistory.h"
 #include "WebMutableURLRequest.h"
+#include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
 #include "WebSecurityOrigin.h"
 #include "WebView.h"
@@ -255,7 +256,9 @@ void WebChromeClient::addMessageToConsole(const String& message, unsigned line, 
 #if PLATFORM(AMIGAOS4)
     printf("JavaScript '%s' line %u: %s\n", url.latin1().data(), line, message.latin1().data());
 #else
-    printf("CONSOLE MESSAGE: line %d: %s\n", line, message.utf8().data());
+    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->consoleMessage(m_webView->mainFrame(), line, message.utf8().data());
 #endif
 }
 
@@ -292,7 +295,9 @@ void WebChromeClient::closeWindowSoon()
 
 void WebChromeClient::runJavaScriptAlert(Frame* frame, const String& message)
 {
-    m_webView->runJavaScriptAlert(kit(frame), message.utf8().data());
+    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->jsAlert(m_webView->mainFrame(), message.utf8().data());
 }
 
 bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
@@ -329,8 +334,11 @@ bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
         return 1 == result;
     }
     free (messageAmiga);
+#else
+    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
+    if (webNotificationDelegate)
+        return webNotificationDelegate->jsConfirm(m_webView->mainFrame(), message.utf8().data());
 #endif
-    printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message.utf8().data(), frame);
     return false;
 }
 
@@ -387,8 +395,12 @@ bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, c
         return false;
     }
     free (messageAmiga);
+#else
+    char* value = 0;
+    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
+    if (webNotificationDelegate)
+        return webNotificationDelegate->jsPrompt(m_webView->mainFrame(), message.utf8().data(), defaultValue.utf8().data(), &value);
 #endif
-    printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message.utf8().data(), frame);
     return false;
 }
 

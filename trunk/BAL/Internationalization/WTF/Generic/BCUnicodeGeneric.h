@@ -175,7 +175,6 @@ namespace WTF {
 
     inline int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error)
     {
-        //printf("toUpper\n");
         *error = false;
         if (resultLength < srcLength) {
             *error = true;
@@ -188,20 +187,17 @@ namespace WTF {
 
     inline UChar32 toTitleCase(UChar32 c)
     {
-        //printf("toTitleCase\n");
         return toUpper(c);
     }
 
     inline bool isArabicChar(UChar32 c)
     {
-        //printf("isArabicChar\n");
         //BalNotImplemented();
         return false;
     }
 
     inline CharCategory category(UChar32 c)
     {
-        //printf("category\n");
         if (c == 0x0D)
             return WTF::Unicode::Separator_Line;
         else if (c < 0x20)
@@ -235,32 +231,27 @@ namespace WTF {
 
     inline bool isFormatChar(UChar32 c)
     {
-        //printf("isFormatChar\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Other_Format;
     }
 
     inline bool isSeparatorSpace(UChar32 c)
     {
-        //printf("isSeparatorSpace\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Separator_Space;
     }
 
     inline bool isPrintableChar(UChar32 c)
     {
-        //printf("isPrintableChar c=%x\n",c);
         //BalNotImplemented();
         return false;
     }
     
     inline bool isDigit(UChar32 c)
     {
-        //printf("isDigit\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Number_DecimalDigit;
     }
 
     inline bool isPunct(UChar32 c)
     {
-        //printf("isPunct\n");
         return (c & 0xffff0000) == 0 && (category(c) == WTF::Unicode::Punctuation_Dash
                                     || category(c) == WTF::Unicode::Punctuation_Open
                                     || category(c) == WTF::Unicode::Punctuation_Close
@@ -272,47 +263,40 @@ namespace WTF {
 
     inline UChar32 mirroredChar(UChar32 c)
     {
-        //printf("mirroredChar\n");
         //BalNotImplemented();
         return c;
     }
 
     inline Direction direction(UChar32 c)
     {
-        //printf("direction\n");
         //BalNotImplemented();
         return WTF::Unicode::LeftToRight;
     }
 
     inline bool isLower(UChar32 c)
     {
-        //printf("isLower\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Letter_Lowercase;
     }
 
     inline int digitValue(UChar32 c)
     {
-        //printf("digitValue\n");
         return c-0x30;
     }
 
     inline unsigned char combiningClass(UChar32 c)
     {
-        //printf("combiningClass\n");
         //BalNotImplemented();
         return c;
     }
 
     inline DecompositionType decompositionType(UChar32 c)
     {
-        //printf("decompositionType\n");
         //BalNotImplemented();
         return WTF::Unicode::DecompositionNone;
     }
 
     inline int umemcasecmp(const UChar* a, const UChar* b, int len)
     {
-        //printf("umemcasecmp len =%d\n", len);
         for (int i = 0; i < len; ++i) {
             UChar32 c1 = toLower(a[i]);
             UChar32 c2 = toLower(b[i]);

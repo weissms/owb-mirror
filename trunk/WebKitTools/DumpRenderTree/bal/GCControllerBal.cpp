@@ -26,22 +26,18 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "DumpRenderTree.h"
+//#include "config.h"
 #include "GCController.h"
-#include "bindings/js/GCController.h"
 
 void GCController::collect() const
 {
-    //WebCore::gcController().garbageCollectNow();
 }
 
 void GCController::collectOnAlternateThread(bool waitUntilDone) const
 {
-    //WebCore::gcController().garbageCollectOnAlternateThreadForDebugging(!!(waitUntilDone ? true : false));
 }
 
 size_t GCController::getJSObjectCount() const
 {
-    //return Collector::size();
     return 0;
 }

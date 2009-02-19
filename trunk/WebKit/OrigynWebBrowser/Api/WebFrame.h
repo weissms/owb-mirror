@@ -39,6 +39,7 @@
  * - $Date$
  */
 #include "WebKitTypes.h"
+#include <vector>
 
 namespace WebCore {
     class AuthenticationChallenge;
@@ -246,6 +247,12 @@ public:
     virtual WebFrame* parentFrame();
 
     /**
+     * children
+     * @result list of children contains by this frame
+     */
+    virtual std::vector<WebFrame*> children();
+
+    /**
      * get current form element
      */
     virtual DOMElement* currentForm();
@@ -306,7 +313,12 @@ public:
     /**
      * get string representation
      */
-    virtual const char* string();
+    virtual const char* toString();
+
+    /**
+     * get tree dump
+     */
+    virtual const char* renderTreeDump() const;
 
     /**
      * get size
@@ -487,6 +499,26 @@ public:
      * @discussion: the returned string should be freed by the caller or it will leaks.
      */
      const char* url() const;
+
+    /**
+     * return  the number of active animations
+     */
+    int numberOfActiveAnimations();
+
+    /**
+     * pause Animation
+     */
+    bool pauseAnimation(const char* name, double time, const char* element);
+
+    /**
+     * pause Transition
+     */
+    bool pauseTransition(const char* name, double time, const char* element);
+
+    /**
+     * set frame editable
+     */
+    void setEditable(bool flag);
 
     /**
      * get webview

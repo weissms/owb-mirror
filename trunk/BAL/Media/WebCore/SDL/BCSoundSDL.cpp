@@ -35,7 +35,6 @@ namespace WebCore {
 
 void systemBeep()
 {
-	printf("systemBeep\n");
     //beep
 }
 

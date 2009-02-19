@@ -38,13 +38,11 @@ namespace WebCore {
 
 void Gradient::platformDestroy()
 {
-    printf("Gradient::platformDestroy\n");
     BalNotImplemented();
 }
 
 PlatformGradient Gradient::platformGradient()
 {
-    printf("Gradient::platformGradient\n");
     if (m_gradient)
         return m_gradient;
 
@@ -55,7 +53,6 @@ PlatformGradient Gradient::platformGradient()
 
 void Gradient::fill(GraphicsContext* context, const FloatRect& rect)
 {
-    printf("Gradient::platformGradient\n");
     BalNotImplemented();
 }
 
