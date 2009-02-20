@@ -81,7 +81,7 @@ def createWebkitPatch(path, lastMergeVersion, currentMergeVersion) :
     logging.debug('create webKit patch rev last merge ' + str(lastMergeVersion) + ' rev current merge ' + str(currentMergeVersion) )
     client = pysvn.Client()
 
-    dir = ["WebCore", "JavaScriptCore", "WebKit", "WebKitTools"]
+    dir = ["WebCore", "JavaScriptCore", "SunSpider", "WebKit", "WebKitTools"]
     for d in dir :
         logging.debug('create patch for ' + d)
         diff_text = client.diff("/tmp/merge.tmp", "http://svn.webkit.org/repository/webkit/trunk/" + d, revision1=pysvn.Revision(pysvn.opt_revision_kind.number, lastMergeVersion), revision2=pysvn.Revision(pysvn.opt_revision_kind.number, currentMergeVersion))
