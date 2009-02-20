@@ -451,9 +451,14 @@ void PlatformContextSkia::setUseAntialiasing(bool enable)
     m_state->m_useAntialiasing = enable;
 }
 
-SkColor PlatformContextSkia::fillColor() const
+SkColor PlatformContextSkia::effectiveFillColor() const
 {
-    return m_state->m_fillColor;
+    return m_state->applyAlpha(m_state->m_fillColor);
+}
+
+SkColor PlatformContextSkia::effectiveStrokeColor() const
+{
+    return m_state->applyAlpha(m_state->m_strokeColor);
 }
 
 void PlatformContextSkia::beginPath()
@@ -463,7 +468,17 @@ void PlatformContextSkia::beginPath()
 
 void PlatformContextSkia::addPath(const SkPath& path)
 {
-    m_path.addPath(path);
+    m_path.addPath(path, m_canvas->getTotalMatrix());
+}
+
+SkPath PlatformContextSkia::currentPathInLocalCoordinates() const
+{
+    SkPath localPath = m_path;
+    const SkMatrix& matrix = m_canvas->getTotalMatrix();
+    SkMatrix inverseMatrix;
+    matrix.invert(&inverseMatrix);
+    localPath.transform(inverseMatrix);
+    return localPath;
 }
 
 void PlatformContextSkia::setFillRule(SkPath::FillType fr)

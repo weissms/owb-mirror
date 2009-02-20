@@ -301,6 +301,22 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\HTMLElementFactory.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\HTMLElementFactory.h"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\HTMLNames.cpp"
 				>
 			</File>
@@ -2537,6 +2553,10 @@
 				>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\SVGElementFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\SVGElementFactory.h"
 				>
 			</File>
@@ -4338,122 +4358,30 @@
 					<File
 						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.h"
 						>
 					</File>
 					<File
+						RelativePath="..\platform\graphics\transforms\Matrix3DTransformOperation.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\Matrix3DTransformOperation.h"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\PerspectiveTransformOperation.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\PerspectiveTransformOperation.h"
+						>
+					</File>
+					<File
 						RelativePath="..\platform\graphics\transforms\RotateTransformOperation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\RotateTransformOperation.h"
@@ -4462,60 +4390,6 @@
 					<File
 						RelativePath="..\platform\graphics\transforms\ScaleTransformOperation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\ScaleTransformOperation.h"
@@ -4524,60 +4398,6 @@
 					<File
 						RelativePath="..\platform\graphics\transforms\SkewTransformOperation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\SkewTransformOperation.h"
@@ -4598,60 +4418,6 @@
 					<File
 						RelativePath="..\platform\graphics\transforms\TransformOperations.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\TransformOperations.h"
@@ -4660,60 +4426,6 @@
 					<File
 						RelativePath="..\platform\graphics\transforms\TranslateTransformOperation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_Cairo|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release_PGO|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\$(InputName)1.obj"
-								XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\TranslateTransformOperation.h"
@@ -5757,7 +5469,7 @@
 				RelativePath="..\rendering\RenderBox.h"
 				>
 			</File>
-                        <File
+			<File
 				RelativePath="..\rendering\RenderBoxModelObject.cpp"
 				>
 			</File>
@@ -6645,6 +6357,38 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\ClientRect.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\ClientRect.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\ClientRectList.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\dom\ClientRectList.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\Clipboard.cpp"
 				>
 			</File>
@@ -7521,14 +7265,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\editing\Selection.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\editing\Selection.h"
-				>
-			</File>
-			<File
 				RelativePath="..\editing\SelectionController.cpp"
 				>
 			</File>
@@ -7626,6 +7362,14 @@
 			</File>
 			<File
 				RelativePath="..\editing\VisiblePosition.h"
+				>
+			</File>
+			<File
+				RelativePath="..\editing\VisibleSelection.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\editing\VisibleSelection.h"
 				>
 			</File>
 			<File

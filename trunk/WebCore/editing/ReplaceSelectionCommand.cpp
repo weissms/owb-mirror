@@ -61,7 +61,7 @@ enum EFragmentType { EmptyFragment, SingleTextNodeFragment, TreeFragment };
 
 class ReplacementFragment : Noncopyable {
 public:
-    ReplacementFragment(Document*, DocumentFragment*, bool matchStyle, const Selection&);
+    ReplacementFragment(Document*, DocumentFragment*, bool matchStyle, const VisibleSelection&);
 
     Node* firstChild() const;
     Node* lastChild() const;
@@ -103,7 +103,7 @@ static bool isInterchangeConvertedSpaceSpan(const Node *node)
            static_cast<const HTMLElement *>(node)->getAttribute(classAttr) == convertedSpaceSpanClassString;
 }
 
-ReplacementFragment::ReplacementFragment(Document* document, DocumentFragment* fragment, bool matchStyle, const Selection& selection)
+ReplacementFragment::ReplacementFragment(Document* document, DocumentFragment* fragment, bool matchStyle, const VisibleSelection& selection)
     : m_document(document),
       m_fragment(fragment),
       m_matchStyle(matchStyle), 
@@ -126,8 +126,7 @@ ReplacementFragment::ReplacementFragment(Document* document, DocumentFragment* f
     
     if (!editableRoot->inlineEventListenerForType(eventNames().webkitBeforeTextInsertedEvent) &&
         // FIXME: Remove these checks once textareas and textfields actually register an event handler.
-        !(shadowAncestorNode && shadowAncestorNode->renderer() && shadowAncestorNode->renderer()->isTextField()) &&
-        !(shadowAncestorNode && shadowAncestorNode->renderer() && shadowAncestorNode->renderer()->isTextArea()) &&
+        !(shadowAncestorNode && shadowAncestorNode->renderer() && shadowAncestorNode->renderer()->isTextControl()) &&
         editableRoot->isContentRichlyEditable()) {
         removeInterchangeNodes(m_fragment.get());
         return;
@@ -136,7 +135,7 @@ ReplacementFragment::ReplacementFragment(Document* document, DocumentFragment* f
     Node* styleNode = selection.base().node();
     RefPtr<Node> holder = insertFragmentForTestRendering(styleNode);
     
-    RefPtr<Range> range = Selection::selectionFromContentsOfNode(holder.get()).toNormalizedRange();
+    RefPtr<Range> range = VisibleSelection::selectionFromContentsOfNode(holder.get()).toNormalizedRange();
     String text = plainText(range.get());
     // Give the root a chance to change the text.
     RefPtr<BeforeTextInsertedEvent> evt = BeforeTextInsertedEvent::create(text);
@@ -405,7 +404,8 @@ void ReplaceSelectionCommand::removeNodeAndPruneAncestors(Node* node)
     if (m_firstNodeInserted && !m_firstNodeInserted->inDocument())
         m_firstNodeInserted = m_lastLeafInserted && m_lastLeafInserted->inDocument() ? afterFirst : 0;
 }
-bool isHeaderElement(Node* a)
+
+static bool isHeaderElement(Node* a)
 {
     if (!a)
         return false;
@@ -417,7 +417,7 @@ bool isHeaderElement(Node* a)
            a->hasTagName(h5Tag);
 }
 
-bool haveSameTagName(Node* a, Node* b)
+static bool haveSameTagName(Node* a, Node* b)
 {
     return a && b && a->isElementNode() && b->isElementNode() && static_cast<Element*>(a)->tagName() == static_cast<Element*>(b)->tagName();
 }
@@ -697,7 +697,7 @@ void ReplaceSelectionCommand::mergeEndIfNeeded()
 
 void ReplaceSelectionCommand::doApply()
 {
-    Selection selection = endingSelection();
+    VisibleSelection selection = endingSelection();
     ASSERT(selection.isCaretOrRange());
     ASSERT(selection.start().node());
     if (selection.isNone() || !selection.start().node())
@@ -1031,9 +1031,9 @@ void ReplaceSelectionCommand::completeHTMLReplacement(const Position &lastPositi
         return;
     
     if (m_selectReplacement)
-        setEndingSelection(Selection(start, end, SEL_DEFAULT_AFFINITY));
+        setEndingSelection(VisibleSelection(start, end, SEL_DEFAULT_AFFINITY));
     else
-        setEndingSelection(Selection(end, SEL_DEFAULT_AFFINITY));
+        setEndingSelection(VisibleSelection(end, SEL_DEFAULT_AFFINITY));
 }
 
 EditAction ReplaceSelectionCommand::editingAction() const

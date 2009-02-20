@@ -790,7 +790,7 @@ void WebFrameLoaderClient::updateGlobalHistory()
     DocumentLoader* loader = core(m_webFrame.get())->loader()->documentLoader();
     [[WebHistory optionalSharedHistory] _visitedURL:loader->urlForHistory() 
                                           withTitle:loader->title()
-                                             method:loader->request().httpMethod()
+                                             method:loader->originalRequestCopy().httpMethod()
                                          wasFailure:loader->urlForHistoryReflectsFailure()];
 
     updateGlobalHistoryRedirectLinks();
@@ -1427,6 +1427,12 @@ Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, HTMLPlugInElemen
     }
     
     NSString *extension = [[URL path] pathExtension];
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    // don't allow proxy plug-in selection by file extension
+    if (element->hasTagName(videoTag) || element->hasTagName(audioTag))
+        extension = @"";
+#endif
+
     if (!pluginPackage && [extension length] != 0) {
         pluginPackage = [webView _pluginForExtension:extension];
         if (pluginPackage) {

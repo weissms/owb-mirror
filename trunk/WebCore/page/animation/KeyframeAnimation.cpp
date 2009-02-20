@@ -47,8 +47,8 @@ KeyframeAnimation::KeyframeAnimation(const Animation* animation, RenderObject* r
     , m_unanimatedStyle(unanimatedStyle)
 {
     // Get the keyframe RenderStyles
-    if (m_object && m_object->element() && m_object->element()->isElementNode())
-        m_object->document()->styleSelector()->keyframeStylesForAnimation(static_cast<Element*>(m_object->element()), unanimatedStyle, m_keyframes);
+    if (m_object && m_object->node() && m_object->node()->isElementNode())
+        m_object->document()->styleSelector()->keyframeStylesForAnimation(static_cast<Element*>(m_object->node()), unanimatedStyle, m_keyframes);
 
     // Update the m_transformFunctionListValid flag based on whether the function lists in the keyframes match.
     validateTransformFunctionList();
@@ -145,7 +145,7 @@ void KeyframeAnimation::animate(CompositeAnimation*, RenderObject*, const Render
     HashSet<int>::const_iterator endProperties = m_keyframes.endProperties();
     for (HashSet<int>::const_iterator it = m_keyframes.beginProperties(); it != endProperties; ++it) {
         bool needsAnim = blendProperties(this, *it, animatedStyle.get(), fromStyle, toStyle, progress);
-        if (needsAnim || m_fallbackAnimating)
+        if (needsAnim)
             setAnimating();
     }
 }
@@ -208,7 +208,7 @@ void KeyframeAnimation::endAnimation(bool reset)
         UNUSED_PARAM(reset);
 #endif
         // Restore the original (unanimated) style
-        setChanged(m_object->element());
+        setChanged(m_object->node());
     }
 }
 
@@ -357,7 +357,7 @@ double KeyframeAnimation::willNeedService()
     bool acceleratedPropertiesOnly = true;
     
     for (HashSet<int>::const_iterator it = m_keyframes.beginProperties(); it != endProperties; ++it) {
-        if (!animationOfPropertyIsAccelerated(*it)) {
+        if (!animationOfPropertyIsAccelerated(*it) || isFallbackAnimating()) {
             acceleratedPropertiesOnly = false;
             break;
         }

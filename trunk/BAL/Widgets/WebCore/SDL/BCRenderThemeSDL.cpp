@@ -156,14 +156,14 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     style->setBorderLeftWidth(borderWidth);
     style->setBorderBottomWidth(borderWidth);
     style->setBorderRightWidth(borderWidth);
-    o->paintFillLayerExtended(i,
+    toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-    o->paintBorder(i.context,
+    toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
 
-    if( o->element()->active() ) {
+    if( o->node()->active() ) {
         IntRect r2(r);
         r2.inflate(-2);
         i.context->setFillColor(WebCore::Color(0xc0,0xc0,0xc0));
@@ -178,14 +178,14 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
         style->setBorderLeftWidth(borderWidth);
         style->setBorderBottomWidth(borderWidth);
         style->setBorderRightWidth(borderWidth);
-        o->paintFillLayerExtended(i,
+        toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-        o->paintBorder(i.context,
+        toRenderBox(o)->paintBorder(i.context,
             r.x(), r.y(), r.width(), r.height(),
             style.get(), true, true);
     }
-    InputElement *input = toInputElement(static_cast<Element*>(o->element()));
+    InputElement *input = toInputElement(static_cast<Element*>(o->node()));
     if(input && input->isChecked()) {
         i.context->setStrokeColor(Color::black);
         i.context->setStrokeStyle(SolidStroke);
@@ -224,13 +224,13 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
     style->setBorderBottomWidth(borderWidth);
     style->setBorderRightWidth(borderWidth);
 
-    o->paintFillLayerExtended(i,
+    toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-    o->paintBorder(i.context,
+    toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
-    InputElement *input = toInputElement(static_cast<Element*>(o->element()));
+    InputElement *input = toInputElement(static_cast<Element*>(o->node()));
     if(input && input->isChecked()) {
         IntRect r2(r);
 #if PLATFORM(AMIGAOS4)
@@ -252,10 +252,10 @@ void RenderThemeBal::adjustButtonStyle(CSSStyleSelector* selector, RenderStyle* 
 
 bool RenderThemeBal::paintButton(RenderObject* o, const RenderObject::PaintInfo& i, const IntRect& r)
 {
-    o->paintFillLayerExtended(i,
+    toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-    o->paintBorder(i.context,
+    toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         o->style(), true, true);
     return false;
@@ -283,10 +283,10 @@ bool RenderThemeBal::paintMenuList(RenderObject* o, const RenderObject::PaintInf
     style->setBorderLeftWidth(1);
     style->setBorderBottomWidth(1);
     style->setBorderRightWidth(1);
-    o->paintFillLayerExtended(i,
+    toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-    o->paintBorder(i.context,
+    toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
     return false;
@@ -319,10 +319,10 @@ bool RenderThemeBal::paintTextField(RenderObject* o, const RenderObject::PaintIn
     style->setBorderLeftWidth(borderWidth);
     style->setBorderBottomWidth(borderWidth);
     style->setBorderRightWidth(borderWidth);
-    o->paintFillLayerExtended(i,
+    toRenderBox(o)->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
-    o->paintBorder(i.context,
+    toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
 

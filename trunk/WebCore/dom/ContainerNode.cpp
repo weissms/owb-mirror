@@ -32,6 +32,7 @@
 #include "FrameView.h"
 #include "InlineTextBox.h"
 #include "MutationEvent.h"
+#include "Page.h"
 #include "RenderTheme.h"
 #include "RootInlineBox.h"
 #include <wtf/CurrentTime.h>
@@ -42,9 +43,10 @@ static void dispatchChildInsertionEvents(Node*, ExceptionCode&);
 static void dispatchChildRemovalEvents(Node*, ExceptionCode&);
 
 typedef Vector<std::pair<NodeCallback, RefPtr<Node> > > NodeCallbackQueue;
-static NodeCallbackQueue* s_postAttachCallbackQueue = 0;
+static NodeCallbackQueue* s_postAttachCallbackQueue;
 
-static size_t s_attachDepth = 0;
+static size_t s_attachDepth;
+static bool s_shouldReEnableMemoryCacheCallsAfterAttach;
 
 void ContainerNode::removeAllChildren()
 {
@@ -215,7 +217,7 @@ bool ContainerNode::replaceChild(PassRefPtr<Node> newChild, Node* oldChild, Exce
         if (Node* oldParent = child->parentNode())
             oldParent->removeChild(child.get(), ec);
         if (ec)
-            return 0;
+            return false;
 
         // Due to arbitrary code running in response to a DOM mutation event it's
         // possible that "prev" is no longer a child of "this".
@@ -532,13 +534,29 @@ ContainerNode* ContainerNode::addChild(PassRefPtr<Node> newChild)
 
 void ContainerNode::suspendPostAttachCallbacks()
 {
+    if (!s_attachDepth) {
+        ASSERT(!s_shouldReEnableMemoryCacheCallsAfterAttach);
+        if (Page* page = document()->page()) {
+            if (page->areMemoryCacheClientCallsEnabled()) {
+                page->setMemoryCacheClientCallsEnabled(false);
+                s_shouldReEnableMemoryCacheCallsAfterAttach = true;
+            }
+        }
+    }
     ++s_attachDepth;
 }
 
 void ContainerNode::resumePostAttachCallbacks()
 {
-    if (s_attachDepth == 1 && s_postAttachCallbackQueue)
-        dispatchPostAttachCallbacks();
+    if (s_attachDepth == 1) {
+        if (s_postAttachCallbackQueue)
+            dispatchPostAttachCallbacks();
+        if (s_shouldReEnableMemoryCacheCallsAfterAttach) {
+            s_shouldReEnableMemoryCacheCallsAfterAttach = false;
+            if (Page* page = document()->page())
+                page->setMemoryCacheClientCallsEnabled(true);
+        }
+    }
     --s_attachDepth;
 }
 
@@ -566,15 +584,13 @@ void ContainerNode::dispatchPostAttachCallbacks()
 
 void ContainerNode::attach()
 {
-    ++s_attachDepth;
+    suspendPostAttachCallbacks();
 
     for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->attach();
     Node::attach();
 
-    if (s_attachDepth == 1 && s_postAttachCallbackQueue)
-        dispatchPostAttachCallbacks();
-    --s_attachDepth;
+    resumePostAttachCallbacks();
 }
 
 void ContainerNode::detach()
@@ -677,7 +693,7 @@ bool ContainerNode::getUpperLeftCorner(FloatPoint& point) const
             return true;
         }
 
-        if (p->element() && p->element() == this && o->isText() && !o->isBR() && !toRenderText(o)->firstTextBox()) {
+        if (p->node() && p->node() == this && o->isText() && !o->isBR() && !toRenderText(o)->firstTextBox()) {
                 // do nothing - skip unrendered whitespace that is a child or next sibling of the anchor
         } else if ((o->isText() && !o->isBR()) || o->isReplaced()) {
             point = o->container()->localToAbsolute();
@@ -737,7 +753,7 @@ bool ContainerNode::getLowerRightCorner(FloatPoint& point) const
             if (o->isText()) {
                 RenderText* text = toRenderText(o);
                 IntRect linesBox = text->linesBoundingBox();
-                point.move(linesBox.x() + linesBox.width(), linesBox.height());
+                point.move(linesBox.x() + linesBox.width(), linesBox.y() + linesBox.height());
             } else {
                 RenderBox* box = toRenderBox(o);
                 point.move(box->x() + box->width(), box->y() + box->height());

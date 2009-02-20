@@ -119,25 +119,6 @@ public:
             m_assembler.shll_CLr(dest);
     }
     
-    // Take the value from dividend, divide it by divisor, and put the remainder in remainder.
-    // For now, this operation has specific register requirements, and the three register must
-    // be unique.  It is unfortunate to expose this in the MacroAssembler interface, however
-    // given the complexity to fix, the fact that it is not uncommmon  for processors to have
-    // specific register requirements on this operation (e.g. Mips result in 'hi'), or to not
-    // support a hardware divide at all, it may not be 
-    void mod32(RegisterID divisor, RegisterID dividend, RegisterID remainder)
-    {
-#ifdef NDEBUG
-#pragma unused(dividend,remainder)
-#else
-        ASSERT((dividend == X86::eax) && (remainder == X86::edx));
-        ASSERT((dividend != divisor) && (remainder != divisor));
-#endif
-
-        m_assembler.cdq();
-        m_assembler.idivl_r(divisor);
-    }
-
     void mul32(RegisterID src, RegisterID dest)
     {
         m_assembler.imull_rr(src, dest);
@@ -548,24 +529,14 @@ public:
         m_assembler.int3();
     }
 
-    Jump call()
+    Call nearCall()
     {
-        return Jump(m_assembler.call());
+        return Call(m_assembler.call(), Call::LinkableNear);
     }
 
-    // FIXME: why does this return a Jump object? - it can't be linked.
-    // This may be to get a reference to the return address of the call.
-    //
-    // This should probably be handled by a separate label type to a regular
-    // jump.  Todo: add a CallLabel type, for the regular call - can be linked
-    // like a jump (possibly a subclass of jump?, or possibly casts to a Jump).
-    // Also add a CallReturnLabel type for this to return (just a more JmpDsty
-    // form of label, can get the void* after the code has been linked, but can't
-    // try to link it like a Jump object), and let the CallLabel be cast into a
-    // CallReturnLabel.
-    Jump call(RegisterID target)
+    Call call(RegisterID target)
     {
-        return Jump(m_assembler.call(target));
+        return Call(m_assembler.call(target), Call::None);
     }
 
     void ret()

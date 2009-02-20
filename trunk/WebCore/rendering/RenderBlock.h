@@ -77,7 +77,6 @@ public:
     InlineFlowBox* lastLineBox() const { return m_lineBoxes.lastLineBox(); }
 
     void deleteLineBoxTree();
-    virtual void dirtyLineBoxes(bool fullLayout, bool isRootLineBox = false);
     virtual void dirtyLinesFromChangedChild(RenderObject* child) { m_lineBoxes.dirtyLinesFromChangedChild(this, child); }
 
     // The height (and width) of a block when you include overflow spillage out of the bottom
@@ -139,7 +138,7 @@ public:
 
     virtual void updateBeforeAfterContent(PseudoId);
 
-    virtual InlineBox* createInlineBox(bool makePlaceHolderBox, bool isRootLineBox, bool isOnlyRun=false);
+    RootInlineBox* createRootInlineBox();
 
     // Called to lay out the legend for a fieldset.
     virtual RenderObject* layoutLegend(bool /*relayoutChildren*/) { return 0; }
@@ -198,12 +197,12 @@ public:
     void markAllDescendantsWithFloatsForLayout(RenderBox* floatToRemove = 0, bool inLayout = true);
     void markPositionedObjectsForLayout();
 
-    virtual bool containsFloats() { return m_floatingObjects && !m_floatingObjects->isEmpty(); }
-    virtual bool containsFloat(RenderObject*);
+    bool containsFloats() { return m_floatingObjects && !m_floatingObjects->isEmpty(); }
+    bool containsFloat(RenderObject*);
 
     virtual bool avoidsFloats() const;
 
-    virtual bool hasOverhangingFloats() { return !hasColumns() && floatBottom() > height(); }
+    bool hasOverhangingFloats() { return parent() && !hasColumns() && floatBottom() > height(); }
     void addIntrudingFloats(RenderBlock* prev, int xoffset, int yoffset);
     int addOverhangingFloats(RenderBlock* child, int xoffset, int yoffset, bool makeChildPaintOtherFloats);
 
@@ -241,8 +240,8 @@ public:
     void calcInlinePrefWidths();
     void calcBlockPrefWidths();
 
-    virtual int getBaselineOfFirstLineBox() const;
-    virtual int getBaselineOfLastLineBox() const;
+    virtual int firstLineBoxBaseline() const;
+    virtual int lastLineBoxBaseline() const;
 
     RootInlineBox* firstRootBox() const { return static_cast<RootInlineBox*>(firstLineBox()); }
     RootInlineBox* lastRootBox() const { return static_cast<RootInlineBox*>(lastLineBox()); }
@@ -319,6 +318,10 @@ public:
 
     virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
+    // This function is a convenience helper for creating an anonymous block that inherits its
+    // style from this RenderBlock.
+    RenderBlock* createAnonymousBlock() const;
+
 private:
     void adjustPointToColumnContents(IntPoint&) const;
     void adjustForBorderFit(int x, int& left, int& right) const; // Helper function for borderFitAdjust
@@ -333,6 +336,8 @@ protected:
     virtual bool hasLineIfEmpty() const;
     bool layoutOnlyPositionedObjects();
 
+    virtual RootInlineBox* createRootBox(); // Subclassed by SVG.
+    
 private:
     Position positionForBox(InlineBox*, bool start = true) const;
     Position positionForRenderer(RenderObject*, bool start = true) const;

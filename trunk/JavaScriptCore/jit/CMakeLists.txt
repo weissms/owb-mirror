@@ -4,6 +4,7 @@ list(APPEND JSC_SRC
     jit/JITArithmetic.cpp
     jit/JITCall.cpp
     jit/JITPropertyAccess.cpp
+    jit/JITStubs.cpp
     jit/ExecutableAllocatorPosix.cpp
 )
 

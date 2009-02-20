@@ -367,6 +367,8 @@ void CSSParser::addProperty(int propId, PassRefPtr<CSSValue> value, bool importa
     CSSProperty* prop = new CSSProperty(propId, value, important, m_currentShorthand, m_implicitShorthand);
     if (m_numParsedProperties >= m_maxParsedProperties) {
         m_maxParsedProperties += 32;
+        if (m_maxParsedProperties > UINT_MAX / sizeof(CSSProperty*))
+            return;
         m_parsedProperties = static_cast<CSSProperty**>(fastRealloc(m_parsedProperties,
                                                        m_maxParsedProperties * sizeof(CSSProperty*)));
     }
@@ -376,7 +378,7 @@ void CSSParser::addProperty(int propId, PassRefPtr<CSSValue> value, bool importa
 void CSSParser::rollbackLastProperties(int num)
 {
     ASSERT(num >= 0);
-    ASSERT(m_numParsedProperties >= num);
+    ASSERT(m_numParsedProperties >= static_cast<unsigned>(num));
 
     for (int i = 0; i < num; ++i)
         delete m_parsedProperties[--m_numParsedProperties];
@@ -384,7 +386,7 @@ void CSSParser::rollbackLastProperties(int num)
 
 void CSSParser::clearProperties()
 {
-    for (int i = 0; i < m_numParsedProperties; i++)
+    for (unsigned i = 0; i < m_numParsedProperties; i++)
         delete m_parsedProperties[i];
     m_numParsedProperties = 0;
     m_hasFontFaceOnlyValues = false;
@@ -1299,11 +1301,51 @@ bool CSSParser::parseValue(int propId, bool important)
         break;
     case CSSPropertyWebkitTransformOrigin:
     case CSSPropertyWebkitTransformOriginX:
-    case CSSPropertyWebkitTransformOriginY: {
+    case CSSPropertyWebkitTransformOriginY:
+    case CSSPropertyWebkitTransformOriginZ: {
+        RefPtr<CSSValue> val1;
+        RefPtr<CSSValue> val2;
+        RefPtr<CSSValue> val3;
+        int propId1, propId2, propId3;
+        if (parseTransformOrigin(propId, propId1, propId2, propId3, val1, val2, val3)) {
+            addProperty(propId1, val1.release(), important);
+            if (val2)
+                addProperty(propId2, val2.release(), important);
+            if (val3)
+                addProperty(propId3, val3.release(), important);
+            return true;
+        }
+        return false;
+    }
+    case CSSPropertyWebkitTransformStyle:
+        if (value->id == CSSValueFlat || value->id == CSSValuePreserve3d)
+            valid_primitive = true;
+        break;
+    case CSSPropertyWebkitBackfaceVisibility:
+        if (value->id == CSSValueVisible || value->id == CSSValueHidden)
+            valid_primitive = true;
+        break;
+    case CSSPropertyWebkitPerspective:
+        if (id == CSSValueNone)
+            valid_primitive = true;
+        else {
+            if (validUnit(value, FNumber|FNonNeg, m_strict)) {
+                RefPtr<CSSValue> val = CSSPrimitiveValue::create(value->fValue, (CSSPrimitiveValue::UnitTypes)value->unit);
+                if (val) {
+                    addProperty(propId, val.release(), important);
+                    return true;
+                }
+                return false;
+            }
+        }
+        break;
+    case CSSPropertyWebkitPerspectiveOrigin:
+    case CSSPropertyWebkitPerspectiveOriginX:
+    case CSSPropertyWebkitPerspectiveOriginY: {
         RefPtr<CSSValue> val1;
         RefPtr<CSSValue> val2;
         int propId1, propId2;
-        if (parseTransformOrigin(propId, propId1, propId2, val1, val2)) {
+        if (parsePerspectiveOrigin(propId, propId1, propId2, val1, val2)) {
             addProperty(propId1, val1.release(), important);
             if (val2)
                 addProperty(propId2, val2.release(), important);
@@ -2227,7 +2269,7 @@ bool CSSParser::parseFillProperty(int propId, int& propId1, int& propId2,
                 case CSSPropertyBackgroundPosition:
                 case CSSPropertyWebkitMaskPosition:
                     parseFillPosition(currValue, currValue2);
-                    // unlike the other functions, parseFillPosition advances the m_valueList pointer
+                    // parseFillPosition advances the m_valueList pointer
                     break;
                 case CSSPropertyBackgroundPositionX:
                 case CSSPropertyWebkitMaskPositionX: {
@@ -2372,6 +2414,18 @@ PassRefPtr<CSSValue> CSSParser::parseAnimationProperty()
     if (equalIgnoringCase(value->string, "none"))
         return CSSPrimitiveValue::createIdentifier(CSSValueNone);
     return 0;
+}
+
+void CSSParser::parseTransformOriginShorthand(RefPtr<CSSValue>& value1, RefPtr<CSSValue>& value2, RefPtr<CSSValue>& value3)
+{
+    parseFillPosition(value1, value2);
+
+    // now get z
+    if (m_valueList->current() && validUnit(m_valueList->current(), FLength, m_strict))
+        value3 = CSSPrimitiveValue::create(m_valueList->current()->fValue,
+                                         (CSSPrimitiveValue::UnitTypes)m_valueList->current()->unit);
+    if (value3)
+        m_valueList->next();
 }
 
 bool CSSParser::parseTimingFunctionValue(CSSParserValueList*& args, double& result)
@@ -4004,17 +4058,37 @@ public:
     , m_allowSingleArgument(false)
     , m_unit(CSSParser::FUnknown)
     {
-        if (equalIgnoringCase(name, "scale(") || equalIgnoringCase(name, "scalex(") || equalIgnoringCase(name, "scaley(")) {
+        if (equalIgnoringCase(name, "scale(") || equalIgnoringCase(name, "scalex(") || equalIgnoringCase(name, "scaley(") || equalIgnoringCase(name, "scalez(")) {
             m_unit = CSSParser::FNumber;
             if (equalIgnoringCase(name, "scale("))
                 m_type = WebKitCSSTransformValue::ScaleTransformOperation;
             else if (equalIgnoringCase(name, "scalex("))
                 m_type = WebKitCSSTransformValue::ScaleXTransformOperation;
-            else
+            else if (equalIgnoringCase(name, "scaley("))
                 m_type = WebKitCSSTransformValue::ScaleYTransformOperation;
+            else
+                m_type = WebKitCSSTransformValue::ScaleZTransformOperation;
+        } else if (equalIgnoringCase(name, "scale3d(")) {
+            m_type = WebKitCSSTransformValue::Scale3DTransformOperation;
+            m_argCount = 5;
+            m_unit = CSSParser::FNumber;
         } else if (equalIgnoringCase(name, "rotate(")) {
             m_type = WebKitCSSTransformValue::RotateTransformOperation;
             m_unit = CSSParser::FAngle;
+        } else if (equalIgnoringCase(name, "rotatex(") ||
+                   equalIgnoringCase(name, "rotatey(") ||
+                   equalIgnoringCase(name, "rotatez(")) {
+            m_unit = CSSParser::FAngle;
+            if (equalIgnoringCase(name, "rotatex("))
+                m_type = WebKitCSSTransformValue::RotateXTransformOperation;
+            else if (equalIgnoringCase(name, "rotatey("))
+                m_type = WebKitCSSTransformValue::RotateYTransformOperation;
+            else
+                m_type = WebKitCSSTransformValue::RotateZTransformOperation;
+        } else if (equalIgnoringCase(name, "rotate3d(")) {
+            m_type = WebKitCSSTransformValue::Rotate3DTransformOperation;
+            m_argCount = 7;
+            m_unit = CSSParser::FNumber;
         } else if (equalIgnoringCase(name, "skew(") || equalIgnoringCase(name, "skewx(") || equalIgnoringCase(name, "skewy(")) {
             m_unit = CSSParser::FAngle;
             if (equalIgnoringCase(name, "skew("))
@@ -4023,20 +4097,33 @@ public:
                 m_type = WebKitCSSTransformValue::SkewXTransformOperation;
             else
                 m_type = WebKitCSSTransformValue::SkewYTransformOperation;
-        } else if (equalIgnoringCase(name, "translate(") || equalIgnoringCase(name, "translatex(") || equalIgnoringCase(name, "translatey(")) {
+        } else if (equalIgnoringCase(name, "translate(") || equalIgnoringCase(name, "translatex(") || equalIgnoringCase(name, "translatey(") || equalIgnoringCase(name, "translatez(")) {
             m_unit = CSSParser::FLength | CSSParser::FPercent;
             if (equalIgnoringCase(name, "translate("))
                 m_type = WebKitCSSTransformValue::TranslateTransformOperation;
             else if (equalIgnoringCase(name, "translatex("))
                 m_type = WebKitCSSTransformValue::TranslateXTransformOperation;
-            else
+            else if (equalIgnoringCase(name, "translatey("))
                 m_type = WebKitCSSTransformValue::TranslateYTransformOperation;
+            else
+                m_type = WebKitCSSTransformValue::TranslateZTransformOperation;
+        } else if (equalIgnoringCase(name, "translate3d(")) {
+            m_type = WebKitCSSTransformValue::Translate3DTransformOperation;
+            m_argCount = 5;
+            m_unit = CSSParser::FLength | CSSParser::FPercent;
         } else if (equalIgnoringCase(name, "matrix(")) {
             m_type = WebKitCSSTransformValue::MatrixTransformOperation;
             m_argCount = 11;
             m_unit = CSSParser::FNumber;
+        } else if (equalIgnoringCase(name, "matrix3d(")) {
+            m_type = WebKitCSSTransformValue::Matrix3DTransformOperation;
+            m_argCount = 31;
+            m_unit = CSSParser::FNumber;
+        } else if (equalIgnoringCase(name, "perspective(")) {
+            m_type = WebKitCSSTransformValue::PerspectiveTransformOperation;
+            m_unit = CSSParser::FNumber;
         }
-        
+
         if (equalIgnoringCase(name, "scale(") || equalIgnoringCase(name, "skew(") || equalIgnoringCase(name, "translate(")) {
             m_allowSingleArgument = true;
             m_argCount = 3;
@@ -4092,7 +4179,11 @@ PassRefPtr<CSSValueList> CSSParser::parseTransform()
         while (a) {
             CSSParser::Units unit = info.unit();
 
-            if (!validUnit(a, unit, true))
+            // 4th param of rotate3d() is an angle rather than a bare number, validate it as such
+            if (info.type() == WebKitCSSTransformValue::Rotate3DTransformOperation && argNumber == 3) {
+                if (!validUnit(a, FAngle, true))
+                    return 0;
+            } else if (!validUnit(a, unit, true))
                 return 0;
             
             // Add the value to the current transform operation.
@@ -4112,19 +4203,21 @@ PassRefPtr<CSSValueList> CSSParser::parseTransform()
     return list.release();
 }
 
-bool CSSParser::parseTransformOrigin(int propId, int& propId1, int& propId2, RefPtr<CSSValue>& value, RefPtr<CSSValue>& value2)
+bool CSSParser::parseTransformOrigin(int propId, int& propId1, int& propId2, int& propId3, RefPtr<CSSValue>& value, RefPtr<CSSValue>& value2, RefPtr<CSSValue>& value3)
 {
     propId1 = propId;
     propId2 = propId;
+    propId3 = propId;
     if (propId == CSSPropertyWebkitTransformOrigin) {
         propId1 = CSSPropertyWebkitTransformOriginX;
         propId2 = CSSPropertyWebkitTransformOriginY;
+        propId3 = CSSPropertyWebkitTransformOriginZ;
     }
 
     switch (propId) {
         case CSSPropertyWebkitTransformOrigin:
-            parseFillPosition(value, value2);
-            // Unlike the other functions, parseFillPosition advances the m_valueList pointer
+            parseTransformOriginShorthand(value, value2, value3);
+            // parseTransformOriginShorthand advances the m_valueList pointer
             break;
         case CSSPropertyWebkitTransformOriginX: {
             bool xFound = false, yFound = true;
@@ -4134,6 +4227,45 @@ bool CSSParser::parseTransformOrigin(int propId, int& propId1, int& propId2, Ref
             break;
         }
         case CSSPropertyWebkitTransformOriginY: {
+            bool xFound = true, yFound = false;
+            value = parseFillPositionXY(xFound, yFound);
+            if (value)
+                m_valueList->next();
+            break;
+        }
+        case CSSPropertyWebkitTransformOriginZ: {
+            if (validUnit(m_valueList->current(), FLength, m_strict))
+            value = CSSPrimitiveValue::create(m_valueList->current()->fValue, (CSSPrimitiveValue::UnitTypes)m_valueList->current()->unit);
+            if (value)
+                m_valueList->next();
+            break;
+        }
+    }
+    
+    return value;
+}
+
+bool CSSParser::parsePerspectiveOrigin(int propId, int& propId1, int& propId2, RefPtr<CSSValue>& value, RefPtr<CSSValue>& value2)
+{
+    propId1 = propId;
+    propId2 = propId;
+    if (propId == CSSPropertyWebkitPerspectiveOrigin) {
+        propId1 = CSSPropertyWebkitPerspectiveOriginX;
+        propId2 = CSSPropertyWebkitPerspectiveOriginY;
+    }
+
+    switch (propId) {
+        case CSSPropertyWebkitPerspectiveOrigin:
+            parseFillPosition(value, value2);
+            break;
+        case CSSPropertyWebkitPerspectiveOriginX: {
+            bool xFound = false, yFound = true;
+            value = parseFillPositionXY(xFound, yFound);
+            if (value)
+                m_valueList->next();
+            break;
+        }
+        case CSSPropertyWebkitPerspectiveOriginY: {
             bool xFound = true, yFound = false;
             value = parseFillPositionXY(xFound, yFound);
             if (value)
@@ -4556,7 +4688,7 @@ CSSRule* CSSParser::createStyleRule(Vector<CSSSelector*>* selectors)
 CSSRule* CSSParser::createFontFaceRule()
 {
     RefPtr<CSSFontFaceRule> rule = CSSFontFaceRule::create(m_styleSheet);
-    for (int i = 0; i < m_numParsedProperties; ++i) {
+    for (unsigned i = 0; i < m_numParsedProperties; ++i) {
         CSSProperty* property = m_parsedProperties[i];
         int id = property->id();
         if ((id == CSSPropertyFontWeight || id == CSSPropertyFontStyle || id == CSSPropertyFontVariant) && property->value()->isPrimitiveValue()) {
@@ -4697,7 +4829,7 @@ void CSSParser::deleteFontFaceOnlyValues()
     ASSERT(m_hasFontFaceOnlyValues);
     int deletedProperties = 0;
 
-    for (int i = 0; i < m_numParsedProperties; ++i) {
+    for (unsigned i = 0; i < m_numParsedProperties; ++i) {
         CSSProperty* property = m_parsedProperties[i];
         int id = property->id();
         if ((id == CSSPropertyFontWeight || id == CSSPropertyFontStyle || id == CSSPropertyFontVariant) && property->value()->isValueList()) {

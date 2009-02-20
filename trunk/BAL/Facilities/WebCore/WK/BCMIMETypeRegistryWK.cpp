@@ -28,7 +28,6 @@
 #include "MIMETypeRegistry.h"
 
 #include "ArchiveFactory.h"
-#include "MediaPlayer.h"
 #include "StringHash.h"
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
@@ -42,6 +41,11 @@
 #include <qimagereader.h>
 #include <qimagewriter.h>
 #endif
+
+#if ENABLE(VIDEO)
+#include "MediaPlayer.h"
+#endif
+
 
 namespace WebCore {
 
@@ -238,6 +242,42 @@ String MIMETypeRegistry::getMIMETypeForPath(const String& path)
     }
     return "application/octet-stream";
 }
+
+String MIMETypeRegistry::getParameterFromMIMEType(const String& type, const String& parameterName)
+{
+    String parameterValue;
+
+    // a MIME type can have one or more "param=value" after a semi-colon, and separated from each other by semi-colons
+    int semi = type.find(';');
+    if (semi != -1) {
+        int start = type.find(parameterName, semi + 1, false);
+        if (start != -1) {
+            start = type.find('=', start + 6);
+            if (start != -1) {
+                int end = type.find(';', start + 6);
+                if (end == -1)
+                    end = type.length();
+                parameterValue = type.substring(start + 1, end - (start + 1)).stripWhiteSpace();
+            }
+        }
+    }
+
+    return parameterValue;
+}
+
+String MIMETypeRegistry::stripParametersFromMIMEType(const String& mimeType)
+{
+    String strippedType = mimeType.stripWhiteSpace();
+
+    // "type" can have parameters after a semi-colon, strip them
+    int semi = strippedType.find(';');
+    if (semi != -1)
+        strippedType = strippedType.left(semi).stripWhiteSpace();
+
+    return strippedType;
+}
+
+
 
 bool MIMETypeRegistry::isSupportedImageMIMEType(const String& mimeType)
 {

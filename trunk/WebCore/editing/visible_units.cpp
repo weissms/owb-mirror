@@ -301,11 +301,11 @@ static VisiblePosition startPositionForLine(const VisiblePosition& c)
         if (!startBox)
             return VisiblePosition();
 
-        RenderObject *startRenderer = startBox->object();
+        RenderObject *startRenderer = startBox->renderer();
         if (!startRenderer)
             return VisiblePosition();
 
-        startNode = startRenderer->element();
+        startNode = startRenderer->node();
         if (startNode)
             break;
         
@@ -368,11 +368,11 @@ static VisiblePosition endPositionForLine(const VisiblePosition& c)
         if (!endBox)
             return VisiblePosition();
 
-        RenderObject *endRenderer = endBox->object();
+        RenderObject *endRenderer = endBox->renderer();
         if (!endRenderer)
             return VisiblePosition();
 
-        endNode = endRenderer->element();
+        endNode = endRenderer->node();
         if (endNode)
             break;
         
@@ -498,7 +498,7 @@ VisiblePosition previousLinePosition(const VisiblePosition &visiblePosition, int
         FloatPoint absPos = containingBlock->localToAbsolute(FloatPoint());
         if (containingBlock->hasOverflowClip())
             absPos -= containingBlock->layer()->scrolledContentOffset();
-        RenderObject *renderer = root->closestLeafChildForXPos(x - absPos.x(), isEditablePosition(p))->object();
+        RenderObject* renderer = root->closestLeafChildForXPos(x - absPos.x(), isEditablePosition(p))->renderer();
         Node* node = renderer->node();
         if (editingIgnoresContent(node))
             return Position(node->parent(), node->nodeIndex());
@@ -599,7 +599,7 @@ VisiblePosition nextLinePosition(const VisiblePosition &visiblePosition, int x)
         FloatPoint absPos = containingBlock->localToAbsolute(FloatPoint());
         if (containingBlock->hasOverflowClip())
             absPos -= containingBlock->layer()->scrolledContentOffset();
-        RenderObject *renderer = root->closestLeafChildForXPos(x - absPos.x(), isEditablePosition(p))->object();
+        RenderObject* renderer = root->closestLeafChildForXPos(x - absPos.x(), isEditablePosition(p))->renderer();
         Node* node = renderer->node();
         if (editingIgnoresContent(node))
             return Position(node->parent(), node->nodeIndex());

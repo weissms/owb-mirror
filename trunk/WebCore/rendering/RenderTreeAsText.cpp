@@ -170,13 +170,13 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
     if (o.style() && o.style()->zIndex())
         ts << " zI: " << o.style()->zIndex();
 
-    if (o.element()) {
-        String tagName = getTagName(o.element());
+    if (o.node()) {
+        String tagName = getTagName(o.node());
         if (!tagName.isEmpty()) {
             ts << " {" << tagName << "}";
             // flag empty or unstyled AppleStyleSpan because we never
             // want to leave them in the DOM
-            if (isEmptyOrUnstyledAppleStyleSpan(o.element()))
+            if (isEmptyOrUnstyledAppleStyleSpan(o.node()))
                 ts << " *empty or unstyled AppleStyleSpan*";
         }
     }
@@ -403,7 +403,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
                 view->layout();
                 RenderLayer* l = root->layer();
                 if (l)
-                    writeLayers(ts, l, l, IntRect(l->xPos(), l->yPos(), l->width(), l->height()), indent + 1);
+                    writeLayers(ts, l, l, IntRect(l->x(), l->y(), l->width(), l->height()), indent + 1);
             }
         }
     }
@@ -507,7 +507,7 @@ static String nodePosition(Node* node)
 
 static void writeSelection(TextStream& ts, const RenderObject* o)
 {
-    Node* n = o->element();
+    Node* n = o->node();
     if (!n || !n->isDocumentNode())
         return;
 
@@ -516,7 +516,7 @@ static void writeSelection(TextStream& ts, const RenderObject* o)
     if (!frame)
         return;
 
-    Selection selection = frame->selection()->selection();
+    VisibleSelection selection = frame->selection()->selection();
     if (selection.isCaret()) {
         ts << "caret: position " << selection.start().offset() << " of " << nodePosition(selection.start().node());
         if (selection.affinity() == UPSTREAM)
@@ -540,7 +540,7 @@ String externalRepresentation(RenderObject* o)
         o->view()->frameView()->layout();
     if (o->hasLayer()) {
         RenderLayer* l = toRenderBox(o)->layer();
-        writeLayers(ts, l, l, IntRect(l->xPos(), l->yPos(), l->width(), l->height()));
+        writeLayers(ts, l, l, IntRect(l->x(), l->y(), l->width(), l->height()));
         writeSelection(ts, o);
     }
     return ts.release();

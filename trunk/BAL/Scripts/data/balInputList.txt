@@ -210,7 +210,9 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/MatrixTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/PerspectiveTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/RotateTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/ScaleTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/SkewTransformOperation.h
@@ -319,8 +321,12 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/Generator.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/UnitBezier.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/IdentityTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/PerspectiveTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/PerspectiveTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/RotateTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/RotateTransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/ScaleTransformOperation.cpp
@@ -464,7 +470,7 @@ BAL/Internationalization/WebCore/WK WebCore/platform/text/AtomicStringHash.h
 
 BAL/Skeletons/Media	WebCore/platform/Sound.h
 BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h
-BAL/Skeletons/Media	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h	BIMediaPlayerPrivate.h
+BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
 
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
@@ -476,6 +482,7 @@ BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h
 BAL/Media/WebCore/Qt	WebCore/platform/qt/SoundQt.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.h
+BAL/Media/WebCore/WK    WebCore/platform/graphics/MediaPlayerPrivate.h
 BAL/Media/WebCore/WK	WebCore/platform/Sound.h
 
 

@@ -1,3 +1,326 @@
+2009-02-20  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebKit part of fixing https://bugs.webkit.org/show_bug.cgi?id=24027
+          Do not send loader callbacks during CSS styling
+
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]): Reverted the
+        iChat-specific quirk added in <http://trac.webkit.org/changeset/41071>.
+
+2009-02-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        - WebKit part of fixing <rdar://problem/6507512> Crash in iChat at CSSStyleSelector::adjustRenderStyle
+
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]): Activate the WebCore
+        workaround for this crash in iChat.
+
+2009-02-18  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix for <rdar://problem/6542390>
+        
+        There's no need to call setDefersLoading here - we already defer anything a plug-in can do that
+        would cause a load to begin.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView sendEvent:isDrawRect:]):
+
+2009-02-18  Adam Roben  <aroben@apple.com>
+
+        Add SPI to get WebKit's custom pointing-hand cursor
+
+        Reviewed by John Sullivan.
+
+        * WebView/WebView.mm:
+        (+[WebView _pointingHandCursor]): Added. Returns the custom
+        pointing-hand cursor that WebKit uses.
+        * WebView/WebViewPrivate.h: Added +_pointingHandCursor.
+
+2009-02-17  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23917
+        Allow a WebKit plug-in to act as a proxy for the <audio> and <video>
+        element.
+
+        * Plugins/WebPluginContainerPrivate.h:
+        * Plugins/WebPluginController.mm:
+        (mediaProxyClient): New, cast to HTMLMediaElement if it is a video or audio element
+        (-[WebPluginController _setMediaPlayerProxy:forElement:]): New, pass proxy to HTMLMediaElement
+        (-[WebPluginController _postMediaPlayerNotification:forElement:]): New, deliver event to HTMLMediaElement
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::createPlugin): Don't allow a media player proxy plug-in to be chosen by
+        file extension, only want a match for the new MIME type proxy plug-ins should have.
+
+2009-02-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        <rdar://problem/6584834> ESPN radio live stream link hangs Safari 
+
+        When a plug-in invokes JavaScript code that will destroy the plug-in, we need to
+        defer destruction until we're done executing the script.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::PluginDestroyDeferrer::PluginDestroyDeferrer):
+        (WebKit::PluginDestroyDeferrer::~PluginDestroyDeferrer):
+        Add a simple RAII object for deferring destruction of the plug-in instance.
+        
+        (WKPCEvaluate):
+        (WKPCInvoke):
+        (WKPCInvokeDefault):
+        (WKPCConstruct):
+        (WKPCGetProperty):
+        (WKPCSetProperty):
+        (WKPCRemoveProperty):
+        (WKPCHasProperty):
+        (WKPCHasMethod):
+        Use the PluginDestroyDeferrer.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::pluginID):
+        Assert that the plug-in ID is not 0 here.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        Initialize the call depth.
+        
+        (WebKit::NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy):
+        Set the plug-in ID to 0 to aid debugging.
+        
+        (WebKit::NetscapePluginInstanceProxy::willCallPluginFunction):
+        Increment the call depth.
+        
+        (WebKit::NetscapePluginInstanceProxy::didCallPluginFunction):
+        Decrement the call depth, if it's 0 and we should stop the plug-in, do so.
+        
+        (WebKit::NetscapePluginInstanceProxy::shouldStop):
+        If we're called this with a non-zero call depth, set shouldStopSoon to true.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView shouldStop]):
+        Call the proxy.
+
+2009-02-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Kevin Decker
+
+        <rdar://problem/6582180> - Wrong HTTP method applied to history item.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::updateGlobalHistory): Check the original request, not any
+          redirected request.
+
+2009-02-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        <rdar://problem/6579412> 
+        REGRESSION (3.2.1-ToT): Crash in Silverlight viewing streaming lecture
+        
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView userAgent]):
+        Apply workaround for Silverlight workaround.
+        
+        (-[WebNetscapePluginView _createPlugin]):
+        Check if the plug-in that we're creating is the silverlight plug-in.
+
+2009-02-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        Fix potential ref-count or null-deref problems with C++ objects as Obj-C members.
+
+        * History/WebBackForwardList.mm:
+        (-[WebBackForwardList dealloc]): Null check before deref()'ing.
+        (-[WebBackForwardList finalize]): Ditto.
+
+        * Misc/WebIconFetcher.mm:
+        (-[WebIconFetcher dealloc]): Null check before deref()'ing.
+        (-[WebIconFetcher finalize]): Ditto.
+
+        * WebCoreSupport/WebEditorClient.mm: Change to use RefPtr<> instead of ref()/deref().
+        (-[WebEditCommand initWithEditCommand:]):
+        (-[WebEditCommand dealloc]):
+        (-[WebEditCommand finalize]):
+        (-[WebEditCommand command]):
+
+        * WebView/WebArchive.mm: Change to use RefPtr<> instead of ref()/deref().
+        (-[WebArchivePrivate init]):
+        (-[WebArchivePrivate initWithCoreArchive:]):
+        (-[WebArchivePrivate coreArchive]):
+        (-[WebArchivePrivate setCoreArchive:]):
+        (-[WebArchivePrivate dealloc]):
+        (-[WebArchivePrivate finalize]):
+
+        * WebView/WebDataSource.mm: 
+        (-[WebDataSourcePrivate dealloc]): Null check before deref()'ing.
+        (-[WebDataSourcePrivate finalize]): Ditto.
+
+2009-02-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Kevin Decker
+
+        <rdar://problem/6579750> - Crash in WebArchivePrivate in Tiger TextEdit
+
+        NSHTMLReader tries to create a WebArchive from a random chunk of data.  Previously, WebArchive creation would
+        fail and return nil and NSHTMLReader would try something else.  When we changed the behavior to return an invalid
+        WebArchive object, things started getting weird.
+
+        * WebView/WebArchive.mm:
+        (-[WebArchivePrivate setCoreArchive:]): Null check the pointer before calling ->deref()
+        (-[WebArchivePrivate dealloc]): Remove the ASSERT which is now invalid, and null check the pointer before ->deref().
+        (-[WebArchivePrivate finalize]): Ditto
+        (-[WebArchive initWithData:]): If the LegacyWebArchive cannot be created, return nil instead of an invalid object.
+
+2009-02-11  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build.
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate visitedURL:withTitle:]): Use ASSERT_UNUSED in a manner that makes sense.
+
+2009-02-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mark Rowe
+
+        <rdar://problem/6570573> Some visit counts in History.plist have insanely high values, can roll over to negative
+
+        Remove the item from the date caches before registering the visit.  Otherwise it might not be successfully removed 
+        and when we add it back later it will exist in the list twice.  This will cause the entry to be written out twice,
+        which would lead to doubling (or more!) the visit count on next launch when these multiple items are merged.
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate visitedURL:withTitle:]): Swap the removeItemFromDateCaches and visitedWithTitle calls.
+        (-[WebHistoryPrivate addItem:discardDuplicate:]): Add a mode that allows the entry being added to be discarded
+          if an entry for the URL already exists.  Use that mode when reading the History.plist so only the most
+          recent entry for a given URL will be used.
+        (-[WebHistoryPrivate addItems:]):
+        (-[WebHistoryPrivate loadHistoryGutsFromURL:savedItemsCount:collectDiscardedItemsInto:error:]): 
+
+2009-02-11  Dimitri Dupuis-latour  <dupuislatour@apple.com>
+
+        Added a preference to disable some Inspector's panels (rdar://6419624, rdar://6419645).
+        This is controlled via the 'WebKitInspectorHiddenPanels' key; if nothing is specified, all panels are shown.
+
+        Reviewed by Timothy Hatcher.
+
+        * WebCoreSupport/WebInspectorClient.h:
+        * WebCoreSupport/WebInspectorClient.mm:
+        (WebInspectorClient::hiddenPanels):
+
+2009-02-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6562920> Pasted text should be normalized to NFC
+
+        * Misc/WebNSURLExtras.mm: (-[NSURL _web_userVisibleString]): Route the URL string through
+        -[NSString precomposedStringWithCanonicalMapping].
+
+        * WebCoreSupport/WebPasteboardHelper.mm:
+        (WebPasteboardHelper::plainTextFromPasteboard): Ditto. 
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _documentFragmentFromPasteboard:forType:inContext:subresources:]):
+        Ditto. The affected cases are all plain text ones - RTF, RTFD and HTML are assumed to be
+        precomposed already, and the conversion is performed outside WebKit for those anyway.
+
+2009-02-10  John Sullivan  <sullivan@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        <https://bugs.webkit.org/show_bug.cgi?id=23889>, <rdar://problem/6572300>
+        Negative visit counts stored in History.plist aren't corrected.
+        
+        It's not clear how a huge negative visit count ended up in History.plist, but we can't
+        trust data read from disk so we can at least reset this to something sane. WebCore has
+        no guard against a visit count overflowing an int, but that seems very unlikely to have
+        caused this.
+
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem initFromDictionaryRepresentation:]):
+        If a negative visit count is in the dictionary, replace it with 1. If a negative daily or
+        weekly visit count is in the dictionary, replace it with 0. 
+
+2009-02-10  John Sullivan  <sullivan@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        <https://bugs.webkit.org/show_bug.cgi?id=23891>
+        [WebHistoryItem _setVisitCount:] is unused and should be removed
+
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem _setVisitCount:]):
+        removed this unused method, which is a synonym for setVisitCount: that was introduced
+        recently and abandoned even more recently
+
+        * History/WebHistoryItemInternal.h:
+        removed declaration of _setVisitCount:
+
+2009-02-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6573916> 
+        CrashTracer: [USER] 1 crash in Safari at com.apple.WebKit • WebKit::NetscapePluginInstanceProxy::pluginHostDied + 25.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        If we failed to instantiate the plug-in, invalidate the instance proxy.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invalidate):
+        Remove the instance from the plug-in host's set.
+        
+        (WebKit::NetscapePluginInstanceProxy::destroy):
+        Call invalidate().
+
+2009-02-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=23863> / <rdar://problem/6571390>.
+        Bug 23863: Reproducible crash in Mail with TOT WebKit when creating a new message
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _removeMouseMovedObserverUnconditionally]): Nil-check _private as it may have not
+        yet been initialized if this WebHTMLView was loaded from a nib.
+        (-[WebHTMLView _removeSuperviewObservers]): Ditto.
+
+2009-02-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Hyatt.
+
+        Rename Selection to VisibleSelection to allow us to separate
+        the selections the user works with from the ones used by
+        the JS editing APIs.
+        https://bugs.webkit.org/show_bug.cgi?id=23852
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _selectNSRange:]):
+        * WebView/WebView.mm:
+        (-[WebView textIteratorForRect:]):
+
+2009-02-06  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+        
+        Fix crash when plug-in host dies.
+        
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::didFail):
+
 2009-02-09  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Justin Garcia.

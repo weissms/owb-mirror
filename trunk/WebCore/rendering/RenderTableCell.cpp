@@ -63,9 +63,9 @@ void RenderTableCell::destroy()
 
 void RenderTableCell::updateFromElement()
 {
-    Node* node = element();
-    if (node && (node->hasTagName(tdTag) || node->hasTagName(thTag))) {
-        HTMLTableCellElement* tc = static_cast<HTMLTableCellElement*>(node);
+    Node* n = node();
+    if (n && (n->hasTagName(tdTag) || n->hasTagName(thTag))) {
+        HTMLTableCellElement* tc = static_cast<HTMLTableCellElement*>(n);
         int oldRSpan = m_rowSpan;
         int oldCSpan = m_columnSpan;
 
@@ -105,10 +105,10 @@ void RenderTableCell::calcPrefWidths()
     table()->recalcSectionsIfNeeded();
 
     RenderBlock::calcPrefWidths();
-    if (element() && style()->autoWrap()) {
+    if (node() && style()->autoWrap()) {
         // See if nowrap was set.
         Length w = styleOrColWidth();
-        String nowrap = static_cast<Element*>(element())->getAttribute(nowrapAttr);
+        String nowrap = static_cast<Element*>(node())->getAttribute(nowrapAttr);
         if (!nowrap.isNull() && w.isFixed())
             // Nowrap is set, but we didn't actually use it because of the
             // fixed width set on the cell.  Even so, it is a WinIE/Moz trait
@@ -249,12 +249,15 @@ FloatQuad RenderTableCell::localToContainerQuad(const FloatQuad& localQuad, Rend
     return RenderBlock::localToContainerQuad(quad, repaintContainer, fixed);
 }
 
-int RenderTableCell::baselinePosition(bool /*firstLine*/, bool /*isRootLineBox*/) const
+int RenderTableCell::baselinePosition(bool firstLine, bool isRootLineBox) const
 {
+    if (isRootLineBox)
+        return RenderBox::baselinePosition(firstLine, isRootLineBox);
+
     // <http://www.w3.org/TR/2007/CR-CSS21-20070719/tables.html#height-layout>: The baseline of a cell is the baseline of
     // the first in-flow line box in the cell, or the first in-flow table-row in the cell, whichever comes first. If there
     // is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
-    int firstLineBaseline = getBaselineOfFirstLineBox();
+    int firstLineBaseline = firstLineBoxBaseline();
     if (firstLineBaseline != -1)
         return firstLineBaseline;
     return paddingTop() + borderTop() + contentHeight();
@@ -675,7 +678,7 @@ static EBorderStyle collapsedBorderStyle(EBorderStyle style)
 
 struct CollapsedBorder {
     CollapsedBorderValue borderValue;
-    RenderObject::BorderSide side;
+    BoxSide side;
     bool shouldPaint;
     int x1;
     int y1;
@@ -691,7 +694,7 @@ public:
     {
     }
     
-    void addBorder(const CollapsedBorderValue& borderValue, RenderObject::BorderSide borderSide, bool shouldPaint,
+    void addBorder(const CollapsedBorderValue& borderValue, BoxSide borderSide, bool shouldPaint,
                    int x1, int y1, int x2, int y2, EBorderStyle borderStyle)
     {
         if (borderValue.exists() && shouldPaint) {
@@ -803,8 +806,8 @@ void RenderTableCell::paintCollapsedBorder(GraphicsContext* graphicsContext, int
     
     for (CollapsedBorder* border = borders.nextBorder(); border; border = borders.nextBorder()) {
         if (border->borderValue == *table()->currentBorderStyle())
-            drawBorder(graphicsContext, border->x1, border->y1, border->x2, border->y2, border->side, 
-                       border->borderValue.color(), style()->color(), border->style, 0, 0);
+            drawLineForBoxSide(graphicsContext, border->x1, border->y1, border->x2, border->y2, border->side, 
+                               border->borderValue.color(), style()->color(), border->style, 0, 0);
     }
 }
 

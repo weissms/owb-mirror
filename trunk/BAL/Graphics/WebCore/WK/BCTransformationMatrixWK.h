@@ -32,6 +32,10 @@
 #include <cairo.h>
 #elif PLATFORM(QT)
 #include <QMatrix>
+#elif PLATFORM(SKIA)
+#include <SkMatrix.h>
+#elif PLATFORM(WX) && USE(WXGC)
+#include <wx/graphics.h>
 #endif
 
 #include <string.h> //for memcpy
@@ -103,7 +107,9 @@ public:
     void map(double x, double y, double& x2, double& y2) const { multVecMatrix(x, y, x2, y2); }
 
     // Map a 3D point through the transform, returning a 3D point.
+#if ENABLE(SVG)
     FloatPoint3D mapPoint(const FloatPoint3D&) const;
+#endif
 
     // Map a 2D point through the transform, returning a 2D point.
     // Note that this ignores the z component, effectively projecting the point into the z=0 plane.
@@ -281,11 +287,13 @@ public:
     operator cairo_matrix_t() const;
 #elif PLATFORM(QT)
     operator QMatrix() const;
+#elif PLATFORM(SKIA)
+    operator SkMatrix() const;
+#elif PLATFORM(WX) && USE(WXGC)
+    operator wxGraphicsMatrix() const;
 #endif
 
 private:
-    TransformationMatrix makeMapBetweenRects(const FloatRect& source, const FloatRect& dest);
-
     // multiply passed 2D point by matrix (assume z=0)
     void multVecMatrix(double x, double y, double& dstX, double& dstY) const;
     

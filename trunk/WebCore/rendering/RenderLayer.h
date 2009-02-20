@@ -237,12 +237,12 @@ public:
         return curr;
     }
     
-    int xPos() const { return m_x; }
-    int yPos() const { return m_y; }
-    void setPos(int xPos, int yPos)
+    int x() const { return m_x; }
+    int y() const { return m_y; }
+    void setLocation(int x, int y)
     {
-        m_x = xPos;
-        m_y = yPos;
+        m_x = x;
+        m_y = y;
     }
 
     int width() const { return m_width; }
@@ -301,8 +301,7 @@ public:
     bool inResizeMode() const { return m_inResizeMode; }
     void setInResizeMode(bool b) { m_inResizeMode = b; }
 
-    // Can't just check !parent() because we might be unrooted.
-    bool isRootLayer() const { return renderer()->node()->isDocumentNode(); }
+    bool isRootLayer() const { return renderer()->isRenderView(); }
     
 #if USE(ACCELERATED_COMPOSITING)
     RenderLayerCompositor* compositor() const;
@@ -341,6 +340,13 @@ public:
     // Gets the nearest enclosing positioned ancestor layer (also includes
     // the <html> layer and the root layer).
     RenderLayer* enclosingPositionedAncestor() const;
+
+#if USE(ACCELERATED_COMPOSITING)
+    // Enclosing compositing layer; if includeSelf is true, may return this.
+    RenderLayer* enclosingCompositingLayer(bool includeSelf = true) const;
+    // Ancestor compositing layer, excluding this.
+    RenderLayer* ancestorCompositingLayer() const { return enclosingCompositingLayer(false); }
+#endif
 
     void convertToLayerCoords(const RenderLayer* ancestorLayer, int& x, int& y) const;
 
@@ -393,6 +399,10 @@ public:
     bool hasTransform() const { return renderer()->hasTransform(); }
     // Note that this transform has the transform-origin baked in.
     TransformationMatrix* transform() const { return m_transform.get(); }
+    // Get the perspective transform, which is applied to transformed sublayers.
+    // Returns true if the layer has a -webkit-perspective.
+    // Note that this transform has the perspective-origin baked in.
+    TransformationMatrix perspectiveTransform() const;
 
     void destroy(RenderArena*);
 

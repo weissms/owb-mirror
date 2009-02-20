@@ -80,7 +80,7 @@ public:
     virtual void layout();
     virtual void calcPrefWidths();
 
-    virtual int getBaselineOfFirstLineBox() const;
+    virtual int firstLineBoxBaseline() const;
 
     virtual RenderBlock* firstLineBlock() const;
     virtual void updateFirstLetter();
@@ -161,7 +161,7 @@ public:
     
     bool hasSections() const { return m_head || m_foot || m_firstBody; }
 
-    virtual IntRect getOverflowClipRect(int tx, int ty);
+    virtual IntRect overflowClipRect(int tx, int ty);
 
     void recalcSectionsIfNeeded() const
     {

@@ -368,9 +368,10 @@ void RenderFlexibleBox::layoutHorizontalBox(bool relayoutChildren)
     
             // Update our height and overflow height.
             if (style()->boxAlign() == BBASELINE) {
-                int ascent = child->marginTop() + child->getBaselineOfFirstLineBox();
+                int ascent = child->firstLineBoxBaseline();
                 if (ascent == -1)
-                    ascent = child->marginTop() + child->height() + child->marginBottom();
+                    ascent = child->height() + child->marginBottom();
+                ascent += child->marginTop();
                 int descent = (child->marginTop() + child->height() + child->marginBottom()) - ascent;
                 
                 // Update our maximum ascent.
@@ -438,9 +439,10 @@ void RenderFlexibleBox::layoutHorizontalBox(bool relayoutChildren)
                     childY += child->marginTop() + max(0, (contentHeight() - (child->height() + child->marginTop() + child->marginBottom()))/2);
                     break;
                 case BBASELINE: {
-                    int ascent = child->marginTop() + child->getBaselineOfFirstLineBox();
+                    int ascent = child->firstLineBoxBaseline();
                     if (ascent == -1)
-                        ascent = child->marginTop() + child->height() + child->marginBottom();
+                        ascent = child->height() + child->marginBottom();
+                    ascent += child->marginTop();
                     childY += child->marginTop() + (maxAscent - ascent);
                     break;
                 }
@@ -742,9 +744,9 @@ void RenderFlexibleBox::layoutVerticalBox(bool relayoutChildren)
                 InlineBox* anchorBox = lastLine->lastChild();
                 if (!anchorBox)
                     continue;
-                if (!anchorBox->object()->element())
+                if (!anchorBox->renderer()->node())
                     continue;
-                if (!anchorBox->object()->element()->isLink())
+                if (!anchorBox->renderer()->node()->isLink())
                     continue;
                 
                 RootInlineBox* lastVisibleLine = blockChild->lineAtIndex(numVisibleLines-1);
@@ -761,8 +763,8 @@ void RenderFlexibleBox::layoutVerticalBox(bool relayoutChildren)
                 int totalWidth = ellipsisAndSpaceWidth + anchorBox->width();
                 
                 // See if this width can be accommodated on the last visible line
-                RenderBlock* destBlock = toRenderBlock(lastVisibleLine->object());
-                RenderBlock* srcBlock = toRenderBlock(lastLine->object());
+                RenderBlock* destBlock = toRenderBlock(lastVisibleLine->renderer());
+                RenderBlock* srcBlock = toRenderBlock(lastLine->renderer());
                 
                 // FIXME: Directions of src/destBlock could be different from our direction and from one another.
                 if (srcBlock->style()->direction() != LTR)
@@ -770,9 +772,9 @@ void RenderFlexibleBox::layoutVerticalBox(bool relayoutChildren)
                 if (destBlock->style()->direction() != LTR)
                     continue;
 
-                int blockEdge = destBlock->rightOffset(lastVisibleLine->yPos(), false);
+                int blockEdge = destBlock->rightOffset(lastVisibleLine->y(), false);
                 if (!lastVisibleLine->canAccommodateEllipsis(true, blockEdge, 
-                                                             lastVisibleLine->xPos() + lastVisibleLine->width(),
+                                                             lastVisibleLine->x() + lastVisibleLine->width(),
                                                              totalWidth))
                     continue;
 

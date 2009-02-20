@@ -1,3 +1,110 @@
+2009-02-20  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Kevin Decker
+
+        <rdar://problem/6582180> - Wrong HTTP method applied to history item.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory): Check the original request, not any
+          redirected request.
+
+2009-02-11  Brady Eidson  <beidson@apple.com>
+
+        Fix my last checkin for more effect.
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation):
+
+2009-02-11  Adam Roben  <aroben@apple.com>
+
+        Windows fix for Bug 22239: Implement missing animation & transition
+        APIs on LayoutTestController for non-mac platforms
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22239>
+
+        Reviewed by Simon Fraser.
+
+        * Interfaces/IWebFramePrivate.idl: Added pauseAnimation,
+        pauseTransition, and numberOfActiveAnimations.
+
+        * WebFrame.cpp:
+        (WebFrame::pauseAnimation):
+        (WebFrame::pauseTransition):
+        (WebFrame::numberOfActiveAnimation):
+        Added. These all call through to AnimationController.
+
+        * WebFrame.h: Added pauseAnimation, pauseTransition, and
+        numberOfActiveAnimations.
+
+2009-02-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mark Rowe
+
+        <rdar://problem/6570573> Some visit counts in History.plist have insanely high values, can roll over to negative
+
+        Remove the item from the date caches before registering the visit.  Otherwise it might not be successfully removed 
+        and when we add it back later it will exist in the list twice.  This will cause the entry to be written out twice,
+        which would lead to doubling (or more!) the visit count on next launch when these multiple items are merged.
+
+        * WebHistory.cpp:
+        (WebHistory::loadHistoryGutsFromURL):
+        (WebHistory::addItems):
+        (WebHistory::addItem): Add a mode that allows the entry being added to be discarded if an entry for the URL already 
+          exists.  Use that mode when reading the History.plist so only the most recent entry for a given URL will be used.
+        (WebHistory::visitedURL): Swap the removeItemFromDateCaches and visitedWithTitle calls.
+        * WebHistory.h:
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::initFromDictionaryRepresentation):  Add the negative-visit-count-correction-logic as implemented
+          for Mac in http://trac.webkit.org/changeset/40851.
+
+2009-02-11  Dimitri Dupuis-latour  <dupuislatour@apple.com>
+
+        Stub out WebInspectorClient::hiddenPanels.
+
+        Reviewed by Timothy Hatcher.
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::hiddenPanels):
+        * WebCoreSupport/WebInspectorClient.h:
+
+2009-02-11  Adam Roben  <aroben@apple.com>
+
+        Don't release the shared WebHistory instance on quit
+
+        This matches Mac, and prevents a race condition when the process exits
+        that depends on the order in which global destructors are invoked.
+
+        Reviewed by Alexey Proskuryakov.
+
+        * WebHistory.cpp:
+        (sharedHistoryStorage): Changed to use DEFINE_STATIC_LOCAL so the
+        destructor is never called.
+
+2009-02-10  Adam Roben  <aroben@apple.com>
+
+        Fix recursive WebView destruction when running DumpRenderTree
+
+        DumpRenderTree would call DestroyWindow on a WebView's host window,
+        which would send a WM_DESTROY message to the WebView's window. Inside
+        the WebView's WndProc, we would hold a ref to the WebView, then call
+        close() and revokeDragDrop(), which would release all remaining
+        references to the WebView other than the ref we held in the WndProc.
+        When the WndProc exited, the final ref to the WebView would be
+        released, invoking WebView's destructor. At this point,
+        IsWindow(m_viewWindow) would return true, since we were still in the
+        process of handling WM_DESTROY, so we would call DestroyWindow on the
+        WebView's window again, re-entering the WndProc and re-reffing the
+        WebView, leading to recursive destruction.
+
+        Reviewed by Alexey Proskuryakov.
+
+        * WebView.cpp:
+        (WebView::~WebView): Don't call DestroyWindow if our window is already
+        being destroyed.
+        (WebViewWndProc): Only hold an extra ref to the WebView when we're not
+        being destroyed.
+
 2009-02-09  Adam Roben  <aroben@apple.com>
 
         Build fix

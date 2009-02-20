@@ -67,6 +67,8 @@ DOM_CLASSES = \
     CanvasPattern \
     CanvasRenderingContext2D \
     CharacterData \
+    ClientRect \
+    ClientRectList \
     Clipboard \
     Comment \
     Console \
@@ -391,6 +393,7 @@ all : \
     CSSValueKeywords.h \
     ColorData.c \
     DocTypeStrings.cpp \
+    HTMLElementFactory.cpp \
     HTMLEntityNames.c \
     HTMLNames.cpp \
     WMLElementFactory.cpp \
@@ -549,15 +552,17 @@ endif
 
 ifdef HTML_FLAGS
 
-HTMLNames.cpp : dom/make_names.pl html/HTMLTagNames.in html/HTMLAttributeNames.in
-	perl -I $(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --wrapperFactory --extraDefines "$(HTML_FLAGS)"
+HTMLElementFactory.cpp HTMLNames.cpp : dom/make_names.pl html/HTMLTagNames.in html/HTMLAttributeNames.in
+	perl -I $(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --factory --wrapperFactory --extraDefines "$(HTML_FLAGS)"
 
 else
 
-HTMLNames.cpp : dom/make_names.pl html/HTMLTagNames.in html/HTMLAttributeNames.in
-	perl -I $(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --wrapperFactory
+HTMLElementFactory.cpp HTMLNames.cpp : dom/make_names.pl html/HTMLTagNames.in html/HTMLAttributeNames.in
+	perl -I $(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --factory --wrapperFactory
 
 endif
+
+JSHTMLElementWrapperFactory.cpp : HTMLNames.cpp
 
 XMLNames.cpp : dom/make_names.pl xml/xmlattrs.in
 	perl -I $(WebCore)/bindings/scripts $< --attrs $(WebCore)/xml/xmlattrs.in
@@ -706,6 +711,10 @@ endif
 
 ifeq ($(findstring 10.4,$(MACOSX_DEPLOYMENT_TARGET)), 10.4)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.Tiger.exp
+endif
+
+ifeq ($(findstring ENABLE_PLUGIN_PROXY_FOR_VIDEO,$(FEATURE_DEFINES)), ENABLE_PLUGIN_PROXY_FOR_VIDEO)
+     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.VideoProxy.exp
 endif
 
 WebCore.exp : WebCore.base.exp $(WEBCORE_EXPORT_DEPENDENCIES)

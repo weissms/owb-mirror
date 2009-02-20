@@ -265,6 +265,8 @@ IDL_BINDINGS += \
     css/WebKitCSSTransformValue.idl \
     dom/Attr.idl \
     dom/CharacterData.idl \
+    dom/ClientRect.idl \
+    dom/ClientRectList.idl \
     dom/Clipboard.idl \
     dom/CDATASection.idl \
     dom/Comment.idl \
@@ -563,6 +565,8 @@ SOURCES += \
     dom/ChildNodeList.cpp \
     dom/ClassNames.cpp \
     dom/ClassNodeList.cpp \
+    dom/ClientRect.cpp \
+    dom/ClientRectList.cpp \
     dom/Clipboard.cpp \
     dom/ClipboardEvent.cpp \
     dom/Comment.cpp \
@@ -665,7 +669,6 @@ SOURCES += \
     editing/RemoveNodePreservingChildrenCommand.cpp \
     editing/ReplaceSelectionCommand.cpp \
     editing/SelectionController.cpp \
-    editing/Selection.cpp \
     editing/SetNodeAttributeCommand.cpp \
     editing/SmartReplace.cpp \
     editing/SmartReplaceICU.cpp \
@@ -676,6 +679,7 @@ SOURCES += \
     editing/TypingCommand.cpp \
     editing/UnlinkCommand.cpp \
     editing/VisiblePosition.cpp \
+    editing/VisibleSelection.cpp \
     editing/visible_units.cpp \
     editing/WrapContentsInDummySpanCommand.cpp \
     history/BackForwardList.cpp \
@@ -707,7 +711,6 @@ SOURCES += \
     html/HTMLDListElement.cpp \
     html/HTMLDocument.cpp \
     html/HTMLElement.cpp \
-    html/HTMLElementFactory.cpp \
     html/HTMLEmbedElement.cpp \
     html/HTMLFieldSetElement.cpp \
     html/HTMLFontElement.cpp \
@@ -899,6 +902,8 @@ SOURCES += \
     platform/graphics/SimpleFontData.cpp \
     platform/graphics/transforms/TransformationMatrix.cpp \
     platform/graphics/transforms/MatrixTransformOperation.cpp \
+    platform/graphics/transforms/Matrix3DTransformOperation.cpp \
+    platform/graphics/transforms/PerspectiveTransformOperation.cpp \
     platform/graphics/transforms/RotateTransformOperation.cpp \
     platform/graphics/transforms/ScaleTransformOperation.cpp \
     platform/graphics/transforms/SkewTransformOperation.cpp \
@@ -979,7 +984,6 @@ SOURCES += \
     rendering/RenderImageGeneratedContent.cpp \
     rendering/RenderInline.cpp \
     rendering/RenderLayer.cpp \
-    rendering/RenderLegend.cpp \
     rendering/RenderLineBoxList.cpp \
     rendering/RenderListBox.cpp \
     rendering/RenderListItem.cpp \
@@ -1944,12 +1948,21 @@ addExtraCompilerWithHeader(cssbison)
 
 # GENERATOR 5-A:
 htmlnames.output = $$GENERATED_SOURCES_DIR/HTMLNames.cpp
-htmlnames.commands = perl -I$$PWD/bindings/scripts $$PWD/dom/make_names.pl --tags $$PWD/html/HTMLTagNames.in --attrs $$PWD/html/HTMLAttributeNames.in --extraDefines \"$${DEFINES}\" --preprocessor \"$${QMAKE_MOC} -E\"  --wrapperFactory --outputDir $$GENERATED_SOURCES_DIR
+htmlnames.commands = perl -I$$PWD/bindings/scripts $$PWD/dom/make_names.pl --tags $$PWD/html/HTMLTagNames.in --attrs $$PWD/html/HTMLAttributeNames.in --extraDefines \"$${DEFINES}\" --preprocessor \"$${QMAKE_MOC} -E\"  --factory --wrapperFactory --outputDir $$GENERATED_SOURCES_DIR
 htmlnames.input = HTML_NAMES
 htmlnames.dependency_type = TYPE_C
 htmlnames.CONFIG = target_predeps
 htmlnames.variable_out = GENERATED_SOURCES
 addExtraCompilerWithHeader(htmlnames)
+
+htmlelementfactory.output = $$GENERATED_SOURCES_DIR/HTMLElementFactory.cpp
+htmlelementfactory.commands = @echo -n ''
+htmlelementfactory.input = HTML_NAMES
+htmlelementfactory.depends = $$GENERATED_SOURCES_DIR/HTMLNames.cpp
+htmlelementfactory.CONFIG = target_predeps
+htmlelementfactory.variable_out = GENERATED_SOURCES
+htmlelementfactory.clean += ${QMAKE_FILE_OUT}
+addExtraCompilerWithHeader(htmlelementfactory)
 
 elementwrapperfactory.output = $$GENERATED_SOURCES_DIR/JSHTMLElementWrapperFactory.cpp
 elementwrapperfactory.commands = @echo -n ''

@@ -85,10 +85,10 @@ void RenderTableSection::addChild(RenderObject* child, RenderObject* beforeChild
     if (!beforeChild && isAfterContent(lastChild()))
         beforeChild = lastChild();
 
-    bool isTableSection = element() && (element()->hasTagName(theadTag) || element()->hasTagName(tbodyTag) || element()->hasTagName(tfootTag));
+    bool isTableSection = node() && (node()->hasTagName(theadTag) || node()->hasTagName(tbodyTag) || node()->hasTagName(tfootTag));
 
     if (!child->isTableRow()) {
-        if (isTableSection && child->element() && child->element()->hasTagName(formTag) && document()->isHTMLDocument()) {
+        if (isTableSection && child->node() && child->node()->hasTagName(formTag) && document()->isHTMLDocument()) {
             RenderBox::addChild(child, beforeChild);
             return;
         }
@@ -143,7 +143,7 @@ void RenderTableSection::addChild(RenderObject* child, RenderObject* beforeChild
     while (beforeChild && beforeChild->parent() != this)
         beforeChild = beforeChild->parent();
 
-    ASSERT(!beforeChild || beforeChild->isTableRow() || isTableSection && beforeChild->element() && beforeChild->element()->hasTagName(formTag) && document()->isHTMLDocument());
+    ASSERT(!beforeChild || beforeChild->isTableRow() || isTableSection && beforeChild->node() && beforeChild->node()->hasTagName(formTag) && document()->isHTMLDocument());
     RenderBox::addChild(child, beforeChild);
 }
 
@@ -646,9 +646,11 @@ int RenderTableSection::lowestPosition(bool includeOverflowInterior, bool includ
         return bottom;
 
     for (RenderObject* row = firstChild(); row; row = row->nextSibling()) {
-        for (RenderObject* cell = row->firstChild(); cell; cell = cell->nextSibling()) {
-            if (cell->isTableCell())
-                bottom = max(bottom, static_cast<RenderTableCell*>(cell)->y() + cell->lowestPosition(false));
+        for (RenderObject* curr = row->firstChild(); curr; curr = curr->nextSibling()) {
+            if (curr->isTableCell()) {
+                RenderTableCell* cell = static_cast<RenderTableCell*>(curr);
+                bottom = max(bottom, cell->y() + cell->lowestPosition(false));
+            }
         }
     }
     
@@ -662,9 +664,11 @@ int RenderTableSection::rightmostPosition(bool includeOverflowInterior, bool inc
         return right;
 
     for (RenderObject* row = firstChild(); row; row = row->nextSibling()) {
-        for (RenderObject* cell = row->firstChild(); cell; cell = cell->nextSibling()) {
-            if (cell->isTableCell())
-                right = max(right, static_cast<RenderTableCell*>(cell)->x() + cell->rightmostPosition(false));
+        for (RenderObject* curr = row->firstChild(); curr; curr = curr->nextSibling()) {
+            if (curr->isTableCell()) {
+                RenderTableCell* cell = static_cast<RenderTableCell*>(curr);
+                right = max(right, cell->x() + cell->rightmostPosition(false));
+            }
         }
     }
     
@@ -678,9 +682,11 @@ int RenderTableSection::leftmostPosition(bool includeOverflowInterior, bool incl
         return left;
     
     for (RenderObject* row = firstChild(); row; row = row->nextSibling()) {
-        for (RenderObject* cell = row->firstChild(); cell; cell = cell->nextSibling()) {
-            if (cell->isTableCell())
-                left = min(left, static_cast<RenderTableCell*>(cell)->x() + cell->leftmostPosition(false));
+        for (RenderObject* curr = row->firstChild(); curr; curr = curr->nextSibling()) {
+            if (curr->isTableCell()) {
+                RenderTableCell* cell = static_cast<RenderTableCell*>(curr);
+                left = min(left, cell->x() + cell->leftmostPosition(false));
+            }
         }
     }
     
@@ -896,7 +902,7 @@ void RenderTableSection::recalcOuterBorder()
     m_outerBorderRight = calcOuterBorderRight(rtl);
 }
 
-int RenderTableSection::getBaselineOfFirstLineBox() const
+int RenderTableSection::firstLineBoxBaseline() const
 {
     if (!m_gridRows)
         return -1;

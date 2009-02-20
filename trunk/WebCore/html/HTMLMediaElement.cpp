@@ -34,6 +34,8 @@
 #include "Event.h"
 #include "EventNames.h"
 #include "ExceptionCode.h"
+#include "Frame.h"
+#include "FrameLoader.h"
 #include "HTMLDocument.h"
 #include "HTMLNames.h"
 #include "HTMLSourceElement.h"
@@ -46,7 +48,13 @@
 #include "MediaPlayer.h"
 #include "Page.h"
 #include "RenderVideo.h"
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "RenderPartObject.h"
+#endif
 #include "TimeRanges.h"
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "Widget.h"
+#endif
 #include <wtf/CurrentTime.h>
 #include <wtf/MathExtras.h>
 
@@ -82,6 +90,12 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document* doc)
     , m_pausedInternal(false)
     , m_inActiveDocument(true)
     , m_player(0)
+    , m_loadRestrictions(NoLoadRestriction)
+    , m_processingMediaPlayerCallback(0)
+    , m_sendProgressEvents(true)
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    , m_needWidgetUpdate(false)
+#endif
 {
     document()->registerForDocumentActivationCallbacks(this);
     document()->registerForMediaVolumeCallbacks(this);
@@ -108,7 +122,9 @@ void HTMLMediaElement::attributeChanged(Attribute* attr, bool preserveDecls)
         // change to src attribute triggers load()
         if (inDocument() && m_networkState == EMPTY)
             scheduleLoad();
-    } if (attrName == controlsAttr) {
+    } 
+#if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    else if (attrName == controlsAttr) {
         if (!isVideo() && attached() && (controls() != (renderer() != 0))) {
             detach();
             attach();
@@ -116,16 +132,30 @@ void HTMLMediaElement::attributeChanged(Attribute* attr, bool preserveDecls)
         if (renderer())
             renderer()->updateFromElement();
     }
+#endif
 }
     
 bool HTMLMediaElement::rendererIsNeeded(RenderStyle* style)
 {
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    UNUSED_PARAM(style);
+    Frame* frame = document()->frame();
+    if (!frame)
+        return false;
+
+    return true;
+#else
     return controls() ? HTMLElement::rendererIsNeeded(style) : false;
+#endif
 }
 
 RenderObject* HTMLMediaElement::createRenderer(RenderArena* arena, RenderStyle*)
 {
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    return new (arena) RenderPartObject(this);
+#else
     return new (arena) RenderMedia(this);
+#endif
 }
  
 void HTMLMediaElement::insertedIntoDocument()
@@ -148,6 +178,10 @@ void HTMLMediaElement::attach()
 {
     ASSERT(!attached());
 
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    m_needWidgetUpdate = true;
+#endif
+
     HTMLElement::attach();
 
     if (renderer())
@@ -169,6 +203,9 @@ void HTMLMediaElement::scheduleLoad()
 
 void HTMLMediaElement::initAndDispatchProgressEvent(const AtomicString& eventName)
 {
+    if (!m_sendProgressEvents)
+        return;
+
     bool totalKnown = m_player && m_player->totalBytesKnown();
     unsigned loaded = m_player ? m_player->bytesLoaded() : 0;
     unsigned total = m_player ? m_player->totalBytes() : 0;
@@ -270,8 +307,14 @@ float HTMLMediaElement::bufferingRate()
 
 void HTMLMediaElement::load(ExceptionCode& ec)
 {
+    if ((m_loadRestrictions & RequireUserGestureLoadRestriction) && !processingUserGesture()) {
+        ec = INVALID_STATE_ERR;
+        return;
+    }
+
     String mediaSrc;
-    
+    String mediaMIMEType;
+
     // 3.14.9.4. Loading the media resource
     // 1
     // if an event generated during load() ends up re-entering load(), terminate previous instances
@@ -288,7 +331,8 @@ void HTMLMediaElement::load(ExceptionCode& ec)
     if (m_begun) {
         m_begun = false;
         m_error = MediaError::create(MediaError::MEDIA_ERR_ABORTED);
-        initAndDispatchProgressEvent(eventNames().abortEvent);
+        if (m_sendProgressEvents)
+            initAndDispatchProgressEvent(eventNames().abortEvent);
         if (m_loadNestingLevel < m_terminateLoadBelowNestingLevel)
             goto end;
     }
@@ -297,7 +341,7 @@ void HTMLMediaElement::load(ExceptionCode& ec)
     m_error = 0;
     m_loadedFirstFrame = false;
     m_autoplaying = true;
-    
+
     // 4
     setPlaybackRate(defaultPlaybackRate(), ec);
     
@@ -318,7 +362,7 @@ void HTMLMediaElement::load(ExceptionCode& ec)
     }
     
     // 6
-    mediaSrc = pickMedia();
+    mediaSrc = selectMediaURL(mediaMIMEType);
     if (mediaSrc.isEmpty()) {
         ec = INVALID_STATE_ERR;
         goto end;
@@ -329,18 +373,22 @@ void HTMLMediaElement::load(ExceptionCode& ec)
     
     // 8
     m_currentSrc = mediaSrc;
-    
+
     // 9
     m_begun = true;        
-    dispatchProgressEvent(eventNames().loadstartEvent, false, 0, 0);
+    if (m_sendProgressEvents)
+        dispatchProgressEvent(eventNames().loadstartEvent, false, 0, 0);
     if (m_loadNestingLevel < m_terminateLoadBelowNestingLevel)
         goto end;
     
     // 10, 11, 12, 13
+#if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
     m_player.clear();
     m_player.set(new MediaPlayer(this));
+#endif
+
     updateVolume();
-    m_player->load(m_currentSrc);
+    m_player->load(m_currentSrc, mediaMIMEType);
     if (m_loadNestingLevel < m_terminateLoadBelowNestingLevel)
         goto end;
     
@@ -348,24 +396,39 @@ void HTMLMediaElement::load(ExceptionCode& ec)
         renderer()->updateFromElement();
     
     // 14
-    m_previousProgressTime = WTF::currentTime();
-    m_previousProgress = 0;
-    if (m_begun)
-        // 350ms is not magic, it is in the spec!
-        m_progressEventTimer.startRepeating(0.350);
+    if (m_sendProgressEvents) {
+        m_previousProgressTime = WTF::currentTime();
+        m_previousProgress = 0;
+        if (m_begun)
+            // 350ms is not magic, it is in the spec!
+            m_progressEventTimer.startRepeating(0.350);
+    }
+
 end:
     ASSERT(m_loadNestingLevel);
     m_loadNestingLevel--;
 }
 
+
 void HTMLMediaElement::mediaPlayerNetworkStateChanged(MediaPlayer*)
 {
-    if (!m_begun || m_networkState == EMPTY)
+    if (!m_begun)
         return;
     
-    m_terminateLoadBelowNestingLevel = m_loadNestingLevel;
+    beginProcessingMediaPlayerCallback();
+    setNetworkState(m_player->networkState());
+    endProcessingMediaPlayerCallback();
+}
 
-    MediaPlayer::NetworkState state = m_player->networkState();
+void HTMLMediaElement::setNetworkState(MediaPlayer::NetworkState state)
+{
+    if (m_networkState == EMPTY) {
+        // just update the cached state and leave, we can't do anything 
+        m_networkState = EMPTY;
+        return;
+    }
+    
+    m_terminateLoadBelowNestingLevel = m_loadNestingLevel;
     
     // 3.14.9.4. Loading the media resource
     // 14
@@ -383,7 +446,7 @@ void HTMLMediaElement::mediaPlayerNetworkStateChanged(MediaPlayer*)
             return;
         
         m_networkState = EMPTY;
-        
+
         if (isVideo())
             static_cast<HTMLVideoElement*>(this)->updatePosterImage();
 
@@ -414,7 +477,7 @@ void HTMLMediaElement::mediaPlayerNetworkStateChanged(MediaPlayer*)
         
         if (isVideo())
             static_cast<HTMLVideoElement*>(this)->updatePosterImage();
-        
+
         if (m_loadNestingLevel < m_terminateLoadBelowNestingLevel)
             return;
         
@@ -445,8 +508,12 @@ void HTMLMediaElement::mediaPlayerNetworkStateChanged(MediaPlayer*)
 
 void HTMLMediaElement::mediaPlayerReadyStateChanged(MediaPlayer*)
 {
+    beginProcessingMediaPlayerCallback();
+
     MediaPlayer::ReadyState state = m_player->readyState();
     setReadyState((ReadyState)state);
+
+    endProcessingMediaPlayerCallback();
 }
 
 void HTMLMediaElement::setReadyState(ReadyState state)
@@ -668,7 +735,7 @@ void HTMLMediaElement::play(ExceptionCode& ec)
     }
 
     m_autoplaying = false;
-    
+
     updatePlayState();
 }
 
@@ -766,6 +833,12 @@ void HTMLMediaElement::setCurrentLoop(unsigned currentLoop)
 
 bool HTMLMediaElement::controls() const
 {
+    Frame* frame = document()->frame();
+
+    // always show controls when scripting is disabled
+    if (frame && !frame->script()->isEnabled())
+        return true;
+
     return hasAttribute(controlsAttr);
 }
 
@@ -807,12 +880,44 @@ void HTMLMediaElement::setMuted(bool muted)
     }
 }
 
+void HTMLMediaElement::togglePlayState(ExceptionCode& ec)
+{
+    if (canPlay())
+        play(ec);
+    else 
+        pause(ec);
+}
+
+void HTMLMediaElement::beginScrubbing()
+{
+    if (!paused()) {
+        if (ended()) {
+            // because a media element stays in non-paused state when it reaches end, playback resumes 
+            //  when the slider is dragged from the end to another position unless we pause first. do 
+            //  a "hard pause" so an event is generated, since we want to stay paused after scrubbing finishes
+            ExceptionCode ec;
+            pause(ec);
+        } else {
+            // not at the end but we still want to pause playback so the media engine doesn't try to
+            //  continue playing during scrubbing. pause without generating an event as we will 
+            //  unpause after scrubbing finishes
+            setPausedInternal(true);
+        }
+    }
+}
+
+void HTMLMediaElement::endScrubbing()
+{
+    if (m_pausedInternal)
+        setPausedInternal(false);
+}
+
 bool HTMLMediaElement::canPlay() const
 {
     return paused() || ended() || networkState() < LOADED_METADATA;
 }
 
-String HTMLMediaElement::pickMedia()
+String HTMLMediaElement::selectMediaURL(String& mediaMIMEType)
 {
     // 3.14.9.2. Location of the media resource
     String mediaSrc = getAttribute(srcAttr);
@@ -830,14 +935,14 @@ String HTMLMediaElement::pickMedia()
                 }
                 if (source->hasAttribute(typeAttr)) {
                     String type = source->type().stripWhiteSpace();
+                    String codecs = MIMETypeRegistry::getParameterFromMIMEType(type, "codecs");
+                    String simpleType = MIMETypeRegistry::stripParametersFromMIMEType(type);
 
-                    // "type" can have parameters after a semi-colon, strip them before checking with the type registry
-                    int semi = type.find(';');
-                    if (semi != -1)
-                        type = type.left(semi).stripWhiteSpace();
-
-                    if (!MIMETypeRegistry::isSupportedMediaMIMEType(type))
+                    if (!MediaPlayer::supportsType(simpleType, codecs))
                         continue;
+
+                    // return type with all parameters in place so the media engine can use them
+                    mediaMIMEType = type;
                 }
                 mediaSrc = source->src().string();
                 break;
@@ -885,28 +990,42 @@ void HTMLMediaElement::checkIfSeekNeeded()
 
 void HTMLMediaElement::mediaPlayerTimeChanged(MediaPlayer*)
 {
+    beginProcessingMediaPlayerCallback();
+
     if (readyState() >= CAN_PLAY)
         m_seeking = false;
     
-    if (m_currentLoop < playCount() - 1 && currentTime() >= effectiveLoopEnd()) {
+    float now = currentTime();
+    if (m_currentLoop < playCount() - 1 && now >= effectiveLoopEnd()) {
         ExceptionCode ec;
         seek(effectiveLoopStart(), ec);
         m_currentLoop++;
         dispatchEventForType(eventNames().timeupdateEvent, false, true);
     }
     
-    if (m_currentLoop == playCount() - 1 && currentTime() >= effectiveEnd()) {
+    if (m_currentLoop == playCount() - 1 && now >= effectiveEnd()) {
         dispatchEventForType(eventNames().timeupdateEvent, false, true);
         dispatchEventForType(eventNames().endedEvent, false, true);
     }
 
     updatePlayState();
+
+    endProcessingMediaPlayerCallback();
 }
 
 void HTMLMediaElement::mediaPlayerRepaint(MediaPlayer*)
 {
+    beginProcessingMediaPlayerCallback();
     if (renderer())
         renderer()->repaint();
+    endProcessingMediaPlayerCallback();
+}
+
+void HTMLMediaElement::mediaPlayerVolumeChanged(MediaPlayer*)
+{
+    beginProcessingMediaPlayerCallback();
+    updateVolume();
+    endProcessingMediaPlayerCallback();
 }
 
 PassRefPtr<TimeRanges> HTMLMediaElement::buffered() const
@@ -974,10 +1093,13 @@ void HTMLMediaElement::updateVolume()
     if (!m_player)
         return;
 
-    Page* page = document()->page();
-    float volumeMultiplier = page ? page->mediaVolume() : 1;
-
-    m_player->setVolume(m_muted ? 0 : m_volume * volumeMultiplier);
+    // Avoid recursion when the player reports volume changes.
+    if (!processingMediaPlayerCallback()) {
+        Page* page = document()->page();
+        float volumeMultiplier = page ? page->mediaVolume() : 1;
+    
+        m_player->setVolume(m_muted ? 0 : m_volume * volumeMultiplier);
+    }
     
     if (renderer())
         renderer()->updateFromElement();
@@ -1061,12 +1183,70 @@ void HTMLMediaElement::mediaVolumeDidChange()
 
 void HTMLMediaElement::defaultEventHandler(Event* event)
 {
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    RenderObject* r = renderer();
+    if (!r || !r->isWidget())
+        return;
+
+    Widget* widget = static_cast<RenderWidget*>(r)->widget();
+    if (widget)
+        widget->handleEvent(event);
+#else
     if (renderer() && renderer()->isMedia())
         static_cast<RenderMedia*>(renderer())->forwardEvent(event);
     if (event->defaultHandled())
         return;
     HTMLElement::defaultEventHandler(event);
+#endif
 }
+
+bool HTMLMediaElement::processingUserGesture() const
+{
+    Frame* frame = document()->frame();
+    FrameLoader* loader = frame ? frame->loader() : 0;
+
+    // return 'true' for safety if we don't know the answer 
+    return loader ? loader->userGestureHint() : true;
+}
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+void HTMLMediaElement::deliverNotification(MediaPlayerProxyNotificationType notification)
+{
+    if (notification == MediaPlayerNotificationPlayPauseButtonPressed) {
+        ExceptionCode ec;
+        togglePlayState(ec);
+         return;
+    }
+
+    if (m_player)
+        m_player->deliverNotification(notification);
+}
+
+void HTMLMediaElement::setMediaPlayerProxy(WebMediaPlayerProxy* proxy)
+{
+    if (m_player)
+        m_player->setMediaPlayerProxy(proxy);
+}
+
+String HTMLMediaElement::initialURL()
+{
+    String ignoredType;
+    String initialSrc = selectMediaURL(ignoredType);
+    m_currentSrc = initialSrc;
+    return initialSrc;
+}
+
+void HTMLMediaElement::finishParsingChildren()
+{
+    HTMLElement::finishParsingChildren();
+    if (!m_player)
+        m_player.set(new MediaPlayer(this));
+    
+    document()->updateRendering();
+    if (m_needWidgetUpdate && renderer())
+        static_cast<RenderPartObject*>(renderer())->updateWidget(true);
+}
+#endif
 
 }
 

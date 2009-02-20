@@ -1,3 +1,4222 @@
+2009-02-20  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24017
+        Remove some usage of Document in Worker.
+
+        * dom/WorkerContext.h:
+        (WebCore::WorkerContext::userAgent):
+        * dom/Document.cpp:
+        (WebCore::Document::userAgent):
+        * dom/Document.h:
+        * dom/ScriptExecutionContext.h:
+        Added virtual ScriptExecutionContext::userAgent(const KURL&).
+        Document implementation uses FrameLoader::userAgent and
+        WorkerContext receives the string on creation and stores it in a member.
+
+        * dom/Worker.cpp:
+        (WebCore::Worker::Worker):
+        (WebCore::Worker::notifyFinished):
+        * dom/Worker.h:
+        (WebCore::Worker::create):
+        Instead of Document the Worker constructor now gets a ScriptExecutionContext.
+        Start using some methods on SEC (like completeURL() and userAgent()).
+        For others, explicitly case to Document and add a FIXME.
+        Remove Worker::document() too.
+
+2009-02-20  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Rubber-stamped by Holger Freyther.
+
+        Do not set httpStatus to SOUP_STATUS_OK when serving local files
+        to match other ports' behavior, fixing xmlhttprequest test
+        regressions.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::queryInfoCallback):
+
+2009-02-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebCore part of fixing https://bugs.webkit.org/show_bug.cgi?id=24027
+          Do not send loader callbacks during CSS styling
+
+        Undo the iChat-specific quirk added in
+        <http://trac.webkit.org/changeset/41071>. Instead, always suspend memory
+        cache client callbacks during attach() and recalcStyle().
+
+        * WebCore.base.exp: Removed
+        Settings::setNeedsIChatMemoryCacheCallsQuirk().
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::suspendPostAttachCallbacks): Disable memory
+        cache client callbacks and remember to enable them afterwards if needed.
+        (WebCore::ContainerNode::resumePostAttachCallbacks): Re-enable memory
+        cache client callbacks if they were disabled in
+        suspendPostAttachCallbacks().
+        (WebCore::ContainerNode::attach): Use suspendPostAttachCallbacks() and
+        resumePostAttachCallbacks().
+        * dom/ContainerNode.h: Made suspendPostAttachCallbacks()
+        and resumePostAttachCallbacks() non-static.
+        * dom/Document.cpp:
+        (WebCore::Document::dispatchImageLoadEventsNow): Reverted iChat-specific
+        workaround.
+        * page/Settings.cpp: Removed m_needsIChatMemoryCacheCallsQuirk and
+        related code.
+        (WebCore::Settings::Settings):
+        * page/Settings.h:
+
+2009-02-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix.
+
+        Build fix after r41092. Make the memoryUsage method
+        public. It will be shadowed by cf/mac and for curl/soup/qt
+        the implementation from ResourceResponseBase will be used.
+
+        * platform/network/ResourceResponseBase.h:
+        (WebCore::ResourceResponseBase::memoryUsage):
+
+2009-02-19  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for <rdar://problem/6077775> Should be able to specify 
+        inactive ::selection color
+
+        This patch makes the ::selction pseudo-element work with 
+        the :window-inactive pseudo type. This was, a user can specify a 
+        different ::selection style when a window is inactive.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::selectionBackgroundColor):
+        (WebCore::RenderObject::selectionForegroundColor):
+
+2009-02-19  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Beth Dakin.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=24044
+        Update querySelector/querySelectorAll to match the latest spec
+
+        Update querySelector and querySelectorAll to match the latest version
+        of the Selectors API spec.  We now stringify null and undefined to "null"
+        and "undefined" respectively instead of to "".
+
+        Test: fast/dom/SelectorAPI/undefined-null-stringify.html
+
+        * dom/Document.idl:
+        * dom/DocumentFragment.idl:
+        * dom/Element.idl:
+
+2009-02-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23732
+        Rework CachedResource overhead accounting to allow platforms to diverge
+        in numbers.
+
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::overheadSize): Changed to ask ResourceResponse
+        for its size and to use actual URL size.
+        * platform/network/ResourceResponseBase.h:
+        (WebCore::ResourceResponseBase::size): Added default size method.
+        * platform/network/cf/ResourceResponse.h:
+        (WebCore::ResourceResponse::size): Added Win/CF size method
+        * platform/network/mac/ResourceResponse.h:
+        (WebCore::ResourceResponse::size): Added Mac size method.
+
+2009-02-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        - Fix for <rdar://problem/6604968>
+
+        On Tiger, create an autorelease pool before creating the NSGraphicsContext and drain it immediately
+        after the call to -[NSView displayRectIgnoringOpacity:inContext:].
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::paint):
+
+2009-02-19  David Hyatt  <hyatt@apple.com>
+
+        Fix a bug where reflections didn't work properly if opacity was < 1.  Make sure that replaced elements
+        also consider reflections to be part of their visual overflow.  This had already been done for blocks
+        and lines, but it wasn't being done yet for replaced elements.
+
+        Also make sure that when the object being reflected has opacity < 1 that we don't end up popping the outer
+        transparency layer early.  Since the reflected object paints twice, we don't want to end the transparency
+        layer it pushed until we're done painting the real object (rather than the reflection).
+
+        Reviewed by Dan Bernstein
+
+        Added fast/reflections/reflection-masks-opacity.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintLayer):
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::layout):
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::layout):
+        (WebCore::RenderReplaced::adjustOverflowForBoxShadowAndReflect):
+        * rendering/RenderReplaced.h:
+
+2009-02-19  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 23980: WorkerRunLoop needs a way to run in a given mode similar to CFRunLoopInMode.
+        <https://bugs.webkit.org/show_bug.cgi?id=23980>
+
+        WorkerRunLoop has the ability to run in a mode which filters the tasks to be run.
+        * When WorkerRunLoop::runInMode is called, only task for that mode will run.
+        * When WorkerRunLoop::run is called (or the default mode is used), then all tasks
+          will run regardless of their posted mode.
+
+        Here's a demonstration of the api:
+
+            RefPtr<NameResolution> nameResolution = NameResolution::create(workerRunLoop);
+
+            //  Internally nameResolution will do workerRunLoop.postTaskForMode(task, "MyCoolMode")
+            //  for any tasks that need to be run during this loop.
+            nameResolution->setTaskMode("MyCoolMode");
+
+            nameResolution->start();
+            while (!nameResolution->done()) {
+                // Only tasks which are posted for "MyCoolMode" will run.
+                workerRunLoop.runInMode(context, "MyCoolMode");
+            }
+
+        No observable change in behavior, so no test.
+
+        * dom/WorkerRunLoop.cpp:
+        (WebCore::ModePredicate::ModePredicate):
+        (WebCore::ModePredicate::operator()):
+        (WebCore::WorkerRunLoop::WorkerRunLoop):
+        (WebCore::WorkerRunLoop::~WorkerRunLoop):
+        (WebCore::WorkerRunLoop::setSharedTimer):
+        (WebCore::WorkerRunLoop::resetSharedTimer):
+        (WebCore::WorkerRunLoop::run):
+        (WebCore::WorkerRunLoop::runInMode):
+        (WebCore::WorkerRunLoop::postTask):
+        (WebCore::WorkerRunLoop::postTaskForMode):
+        * dom/WorkerRunLoop.h:
+        (WebCore::WorkerRunLoop::Task::create):
+        (WebCore::WorkerRunLoop::Task::mode):
+        (WebCore::WorkerRunLoop::Task::performTask):
+        (WebCore::WorkerRunLoop::Task::Task):
+
+2009-02-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24034
+        Fix up Selection->VisibleSelection change.
+
+        * page/chromium/EventHandlerChromium.cpp:
+        (WebCore::EventHandler::passMousePressEventToSubframe): Renamed Selection
+        to VisibleSelection.
+
+2009-02-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24041
+        Correct Skia type conversion issues, fix Chromium Linux build.
+
+        * platform/graphics/chromium/FontLinux.cpp:
+        (WebCore::Font::drawGlyphs): changed parameters to RGBA32, not WebCore::Color.
+
+2009-02-19  Jungshik Shin <jshin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20531
+        Chromium-part follow-up to the patch landed in r40636
+        for bug 20531.
+        Remove a static member function alternateFamilyName
+        from Chromium's Win/Linux ports of FontCache. In r40636,
+        alternateFamilyName was customized using #ifdef PLATFORM(WIN_OS).
+        So, there's no more need for the static member function per
+        platform.
+
+        * platform/graphics/chromium/FontCacheChromiumWin.cpp:
+        * platform/graphics/chromium/FontCacheLinux.cpp:
+
+2009-02-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Adele Peterson.
+        
+        Call documentWillBecomeInactive() from Document::detach to ensure that
+        media elements are shut down, because they may be kept alive by references
+        from JS past document teardown.
+        
+        documentWillBecomeInactive() calls  renderView()->willMoveOffscreen(), so no
+        need to do that in detach() as well.
+        
+        We no longer need to call documentWillBecomeInactive() from ~Page() (which
+        was added for <https://bugs.webkit.org/show_bug.cgi?id=21116>), since this
+        supersedes that change.
+
+        * dom/Document.cpp:
+        (WebCore::Document::detach):
+        * page/Page.cpp:
+        (WebCore::Page::~Page):
+
+2009-02-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24028
+        Fix up Skia path changes.
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::strokePath): Removed illegal indirection.
+        * platform/graphics/skia/PathSkia.cpp:
+        (WebCore::boundingBoxForCurrentStroke): Changed call name.
+
+2009-02-19  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Ignore ports on local URLs. This fixes a regression in
+        fast/loader/file-URL-with-port-number.html
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startGio):
+
+2009-02-19  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Make setPort remove port if 0 is given to it, as promised by the
+        comment in KURL's header.
+
+        * platform/KURL.cpp:
+        (WebCore::KURL::setPort):
+
+2009-02-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        - WebCore part of fixing <rdar://problem/6507512> Crash in iChat at CSSStyleSelector::adjustRenderStyle
+
+        The crash results from re-entry into
+        CSSMutableStyleDeclaration::setCssText, which in turn is caused by
+        the first style change causing a cached image to load from the memory
+        cache, causing load delegate dispatch, and iChat's delegate method
+        calling back into WebKit.
+
+        The workaround is to use defer delegate callbacks for memory cache. In
+        this case, deferring callbacks during image load event dispatch was
+        found to be sufficient.
+
+        The crash is a regression. See also the discussion in
+        <https://bugs.webkit.org/show_bug.cgi?id=22521>.
+
+        * WebCore.base.exp: Added
+        Settings::setNeedsIChatMemoryCacheCallsQuirk().
+        * dom/Document.cpp:
+        (WebCore::Document::dispatchImageLoadEventsNow): If the quirk is
+        enabled, defer memory cache callbacks during image load event dispatch.
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Initialize
+        m_needsIChatMemoryCacheCallsQuirk.
+        (WebCore::Settings::setNeedsIChatMemoryCacheCallsQuirk): Added this
+        setter.
+        * page/Settings.h:
+        (WebCore::Settings::needsIChatMemoryCacheCallsQuirk): Added this getter.
+
+2009-02-18  Adam Roben  <aroben@apple.com>
+
+        Export WebCore::handCursor and Cursor.h
+
+        Reviewed by John Sullivan.
+
+        * WebCore.base.exp: Added WebCore::handCursor.
+        * WebCore.xcodeproj/project.pbxproj: Made Cursor.h private.
+
+2009-02-18  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23992
+        REGRESSION: crash on windows loading http://www.stickam.com/liveStreams.do
+
+        Unable to reduce to a layout test.
+
+        * page/Frame.cpp:
+        (WebCore::Frame::contentRenderer):
+
+2009-02-18  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23861
+        Stroke font outlines on chromium linux
+
+        TEST=LayoutTests/svg/custom/pointer-events-text.svg
+
+        * platform/graphics/chromium/FontLinux.cpp:
+        (WebCore::Font::drawGlyphs):
+
+2009-02-18  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23860
+        Resync some graphics/skia files with their chromium counterparts
+
+        This comes from chromium patches <http://codereview.chromium.org/17633>
+        and <http://codereview.chromium.org/17454>
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::clipPath):
+        (WebCore::GraphicsContext::fillPath):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::addPath):
+        (PlatformContextSkia::currentPath):
+        * platform/graphics/skia/PlatformContextSkia.h:
+
+2009-02-18  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Unreviewed.
+
+        Build fix after r41060.
+
+        * GNUmakefile.am:
+
+2009-02-18  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24005
+        Add an include to fix Chromium build.
+
+        * page/animation/AnimationController.cpp: Add UnusedParam.h include.
+
+2009-02-18  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        Fix symbols.filter location, and add other missing files to the
+        autotools build, so that make dist works.
+
+        * GNUmakefile.am:
+
+2009-02-18  Zan Dobersek  <zandobersek@gmail.com>
+
+        Rubber-stamped by Holger Hans Peter Freyther.
+
+        Allow POST method for local requests.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startGio):
+
+2009-02-18  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Holger Hans Peter Freyther.
+
+        Use KURL in startGio instead of passing a string with the URL, so
+        that we can handle removing refs and queries more elegantly. This
+        is fixing more regressions that came from the curl->soup switch.
+
+        Original work by Zan Dobersek.
+
+        * platform/network/ResourceHandle.h:
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::start):
+        (WebCore::ResourceHandle::startGio):
+
+2009-02-18  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Implement ResourceHandle::loadResourceSynchronously in ResourceHandleSoup.cpp
+
+        The implementation is needed to have synchronous loading, e.g. for
+        JavaScript interaction. This is fixing various regressions that
+        came from the curl->soup switch.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::WebCoreSynchronousLoader::WebCoreSynchronousLoader):
+        (WebCore::WebCoreSynchronousLoader::~WebCoreSynchronousLoader):
+        (WebCore::WebCoreSynchronousLoader::didReceiveResponse):
+        (WebCore::WebCoreSynchronousLoader::didReceiveData):
+        (WebCore::WebCoreSynchronousLoader::didFinishLoading):
+        (WebCore::WebCoreSynchronousLoader::didFail):
+        (WebCore::WebCoreSynchronousLoader::run):
+        (WebCore::ResourceHandle::loadResourceSynchronously):
+
+2009-02-18  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23989
+
+        Based on a patch by Bo Yang  <techrazy.yang@gmail.com>
+
+        Make the cursor cache global, that's all we really need and
+        otherwise we can miss cursor transitions in some situations (see
+        the bug for one testcase). Also remove some now useless code.
+
+        * platform/Widget.h:
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::setCursor):
+
+2009-02-17  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * loader/FrameLoader.cpp:
+        (WebCore::toPlugInElement): Don't rely on #if being processed before
+        ASSERT.
+
+2009-02-17  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 23977: Unnecessary timer related headers in files.
+        <https://bugs.webkit.org/show_bug.cgi?id=23977>
+
+        No observable change in behavior, so no test.
+
+        * dom/Document.cpp:
+        * dom/WorkerRunLoop.cpp:
+        * dom/WorkerRunLoop.h:
+
+2009-02-17  Peter Abrahamsen  <rainhead@gmail.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23958
+        <rdar://problem/6587815>
+
+        Updated XMLHttpRequest with new header names from the latest Access
+        Control draft: http://www.w3.org/TR/access-control/
+        - Access-Control-Origin becomes Access-Control-Allow-Origin
+        - Access-Control-Credentials becomes Access-Control-Allow-Credentials
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::accessControlCheck):
+
+2009-02-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Add missing constructor used for empty values.
+
+        * platform/graphics/wx/FontPlatformData.h:
+        (WebCore::FontPlatformData::FontPlatformData):
+
+2009-02-17  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Kilzer.
+
+        <rdar://problem/6592446> dynamically updating page doesn't seem to draw when updated
+        
+        Need update after callback.
+
+        * bindings/js/JSCustomPositionCallback.cpp:
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+
+2009-02-17  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23917
+        Allow a WebKit plug-in to act as a proxy for the <audio> and <video>
+        element.
+
+        * DerivedSources.make: add media element proxy exports to .exp file when feature is defined.
+
+        * WebCore.VideoProxy.exp: New, define the informal protocol exported by a media element proxy.
+
+        * WebCore.xcodeproj/project.pbxproj: Add MediaPlayerProxy.h.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Initialize m_needWidgetUpdate.
+        (WebCore::HTMLMediaElement::attributeChanged): Don't detach+attach when PLUGIN_PROXY_FOR_VIDEO, the
+        proxy plug-in handles the poster frame.
+        (WebCore::HTMLMediaElement::rendererIsNeeded): New logic for PLUGIN_PROXY_FOR_VIDEO.
+        (WebCore::HTMLMediaElement::createRenderer): Create RenderPartObject when PLUGIN_PROXY_FOR_VIDEO.
+        (WebCore::HTMLMediaElement::attach): Set m_needWidgetUpdate when PLUGIN_PROXY_FOR_VIDEO
+        (WebCore::HTMLMediaElement::load): Don't reallocate MediaPlayer when PLUGIN_PROXY_FOR_VIDEO, we keep the
+        same plug-in for the life of the element.
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged): update m_networkState when media player
+        network state changes to EMPTY, otherwise we can get out of sync with engine.
+        (WebCore::HTMLMediaElement::defaultEventHandler): pass event to widget when PLUGIN_PROXY_FOR_VIDEO
+        (WebCore::HTMLMediaElement::deliverNotification): New, deliver notification from proxy plug-in to
+        media player.
+        (WebCore::HTMLMediaElement::setMediaPlayerProxy): New, pass proxy object to media player.
+        (WebCore::HTMLMediaElement::initialURL): New, return the url from the "src" attr or the appropriate
+        <source> element to be used as the initial url for the proxy.
+        (WebCore::HTMLMediaElement::finishParsingChildren): New, allocate MediaPlayer and update widget.
+        * html/HTMLMediaElement.h: Declare new methods for proxy, add m_needWidgetUpdate.
+        (WebCore::HTMLMediaElement::setNeedWidgetUpdate): 
+
+        * html/HTMLVideoElement.cpp:
+        (WebCore::HTMLVideoElement::attach): Poster image is handled by proxy when PLUGIN_PROXY_FOR_VIDEO.
+        (WebCore::HTMLVideoElement::parseMappedAttribute): Ditto.
+        * html/HTMLVideoElement.h:
+
+        * loader/FrameLoader.cpp:
+        (WebCore::toPlugInElement): Allow cast if element is <video> or <audio>
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::MediaPlayer): Remove white space.
+        (WebCore::MediaPlayer::setPoster): New, forward call to private player.
+        (WebCore::MediaPlayer::deliverNotification): Ditto.
+        (WebCore::MediaPlayer::setMediaPlayerProxy): Ditto.
+        * platform/graphics/MediaPlayer.h:
+        (WebCore::MediaPlayer::mediaPlayerClient):
+
+        * platform/graphics/mac/MediaPlayerProxy.h: New, defines media player proxy interface.
+
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::RenderPart): Change constructor to take Element* instead of Node* as a
+        non-element node doesn't need a renderer
+        * rendering/RenderPart.h: Ditto.
+
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::RenderPartObject): Ditto.
+        (WebCore::RenderPartObject::updateWidget): Package params for proxy plug-in when element is 
+        <video> or <audio>.
+        * rendering/RenderPartObject.h:
+
+2009-02-17  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23985
+
+        Don't allow legends to be anything but display:block.
+
+        Added fast/forms/inline-ignored-on-legend.html
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * css/html4.css:
+        * html/HTMLLegendElement.cpp:
+        * html/HTMLLegendElement.h:
+        * rendering/RenderLegend.cpp: Removed.
+        * rendering/RenderLegend.h: Removed.
+        * wml/WMLInsertedLegendElement.cpp:
+        * wml/WMLInsertedLegendElement.h:
+
+2009-02-13  Brett Wilson  <brettw@dhcp-172-22-71-167.mtv.corp.google.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/attachment.cgi?id=27666 
+        Fix Chromium build build: forgotten include in RenderObject, sync
+        RenderTheme to the recent changes in RenderObject.
+
+        * rendering/RenderObject.cpp:
+        * rendering/RenderThemeChromiumMac.mm:
+        (WebCore::RenderThemeChromiumMac::updatePressedState):
+
+2009-02-17  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22966
+        crash when destroying a webview that opened a page containing <script>
+        tags
+
+        Fix m_group being set to 0 instead of to m_singlePageGroup when
+        GroupName is set to empty
+
+        * page/Page.cpp:
+        (WebCore::Page::setGroupName):
+
+2009-02-16  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix for <rdar://problem/6386623>
+
+        I made m_numParsedProperties and m_maxParsedProperties unsigned 
+        instead of int, and then added an early return from addPropery() if 
+        m_maxParsedProperties exceeds the max value.
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::addProperty):
+        (WebCore::CSSParser::rollbackLastProperties):
+        (WebCore::CSSParser::clearProperties):
+        (WebCore::CSSParser::createFontFaceRule):
+        (WebCore::CSSParser::deleteFontFaceOnlyValues):
+        * css/CSSParser.h:
+
+2009-02-16  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=16309
+        HTML5: The third execCommand argument for insert{un}orderedlist should be ignored
+        
+        When we originally implemented this command, MSDN documentation said that IE set the
+        id attribute of inserted lists to the third argument to execCommand, but IE doesn't
+        do this nor do any other browsers.
+
+        * editing/EditorCommand.cpp:
+        (WebCore::executeInsertOrderedList):
+        (WebCore::executeInsertUnorderedList):
+        * editing/IndentOutdentCommand.cpp:
+        (WebCore::IndentOutdentCommand::outdentParagraph):
+        * editing/InsertListCommand.cpp:
+        (WebCore::InsertListCommand::insertList):
+        (WebCore::InsertListCommand::InsertListCommand):
+        (WebCore::InsertListCommand::doApply):
+        * editing/InsertListCommand.h:
+        (WebCore::InsertListCommand::create):
+
+2009-02-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        - fix <rdar://problem/6561077> REGRESSION (r39634): Unable to select an item in stocks widget with the mouse
+
+        Test: platform/mac/fast/events/pointer-events-dashboard.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty): Do not apply the
+        pointer-events property in Dashboard backwards compatibility mode,
+        in order to work around misuse of that property by the Stocks widget.
+
+2009-02-16  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15381
+        execCommand justify modifies the contentEditable node
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary): Avoid modifying not just
+        the body element, but any root editable element.
+        
+2009-02-16  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Adele Peterson.
+ 
+        Bug 23979: AX: alt tag not returned for <input type="image">
+        https://bugs.webkit.org/show_bug.cgi?id=23979
+
+        Test: accessibility/input-image-alt.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::accessibilityDescription):
+
+2009-02-16  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        The ref data is not properly set unless we use the CreateMatrix function.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23978
+
+        * platform/graphics/wx/TransformationMatrixWx.cpp:
+        (WebCore::TransformationMatrix::operator wxGraphicsMatrix):
+
+2009-02-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6516829> FontPlatformData constructor passes NULL to CTFontCopyGraphicsFont and CTFontGetPlatformFont
+
+        * platform/graphics/FontCache.cpp:
+        (WebCore::FontDataCacheKeyTraits::emptyValue): Changed to use the
+        FontPlatformData(float, bool, bool) constructor.
+        * platform/graphics/mac/FontCacheMac.mm:
+        (WebCore::FontCache::createFontPlatformData): Changed to pass a valid
+        NSFont to the FontPlatformData constructor, instead of implicitly
+        passing 0 and then calling setFont().
+        * platform/graphics/mac/FontPlatformData.h: Made the NSFont parameter
+        of the constructor mandatory.
+
+2009-02-15  David Kilzer  <ddkilzer@apple.com>
+
+        Move duplicate caretWidth constants to RenderObject.h
+
+        Reviewed by Dan Bernstein.
+
+        No test since no change in behavior.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::localCaretRect): Removed caretWidth.
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::localCaretRect): Ditto.
+        * rendering/RenderObject.h: Added caretWidth definition.
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::localCaretRect): Removed caretWidth.
+
+2009-02-13  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23955
+        V8HTMLPlugInCustom returns undefined, which fools interceptors.
+
+        * bindings/v8/custom/V8HTMLPlugInElementCustom.cpp:
+        (WebCore::NAMED_PROPERTY_GETTER): Use deferToInterceptor() return value.
+        (WebCore::NAMED_PROPERTY_SETTER): Ditto.
+        (WebCore::INDEXED_PROPERTY_GETTER): Ditto.
+        (WebCore::INDEXED_PROPERTY_SETTER): Ditto.
+
+2009-02-13  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23954
+        Add V8 custom bindings for CanvasRenderingContext2D.
+
+        * bindings/v8/custom/V8CanvasRenderingContext2DCustom.cpp: Added.
+        (WebCore::toV8):
+        (WebCore::toCanvasStyle):
+        (WebCore::ACCESSOR_GETTER):
+        (WebCore::ACCESSOR_SETTER):
+
+2009-02-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler and Dan Bernstein.
+
+        <rdar://problem/6583187>
+        
+        * page/NavigatorBase.cpp:
+        Handle PPC64 and X86_64 as well.
+
+2009-02-13  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix broken tokenizer regression test that reflected a lifetime bug
+        in the document.write optimization. The test failure was trivial to
+        reproduce in COLLECT_ON_EVERY_ALLOCATION mode.
+
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::documentWrite): Convert strings to String rather than passing
+        the pointer and length to SegmentedString. The optimization is thus
+        mostly gone. However, there are two ways to bring it back: 1) Apply
+        the patch that makes UString and String share the same buffers.
+        2) Add a UString feature to SegmentedString; simple to do but might
+        risk slowing down normal document parsing.
+
+2009-02-13  Adam Treat  <adam.treat@torchmobile.com>
+
+        Caught by Darin Adler.
+
+        No reason to check m_tokenizer twice for 0 in a row.
+
+        * dom/Document.cpp:
+        (WebCore::Document::write):
+
+2009-02-13  Lyon Chen  <lyon.chen@torchmobile.com>
+
+        Reviewed by Dave Hyatt.
+
+        Take into account y() + height() when calculating getLowerRightCorner.
+
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::getLowerRightCorner):
+
+2009-02-13  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Most of this code was in RenderBox, restore the copyright lines.
+
+        * rendering/RenderBoxModelObject.cpp:
+        * rendering/RenderBoxModelObject.h:
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Get rid of printBoxDecorations, since it is dead code.
+
+        Reviewed by Dan Bernstein
+
+        * rendering/RenderObject.h:
+
+2009-02-13  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23952
+        Add Document::write overload which takes a SegmentedString since this
+        is what the tokenizer expects anyway.  Modified JSHTMLDocument so it once
+        again calls Document::write instead of injecting the string directly into
+        the tokenizer.  This ensures that all document.write's are funneled through
+        one method again, but should still be just as fast for JSHTMLDocumentCustom.
+
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::documentWrite):
+        * dom/Document.cpp:
+        (WebCore::Document::write):
+        * dom/Document.h:
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        Remove updateWidgetPosition on RenderObject.  Change RenderView's set of widgets
+        to have a tighter type: RenderWidget instead of RenderObject.  Devirtualize
+        updateWidgetPosition, since all RenderWidgets (except for applets) are now
+        RenderParts also.
+        
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+        * rendering/RenderPart.cpp:
+        * rendering/RenderPart.h:
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::updateWidgetPositions):
+        (WebCore::RenderView::addWidget):
+        (WebCore::RenderView::removeWidget):
+        * rendering/RenderView.h:
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::updateWidgetPosition):
+        * rendering/RenderWidget.h:
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Remove isEditable() on RenderObject.  It is dead code.
+
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Add isTextControl() to RenderObject.  Patch call sites thats asked isTextField() || isTextArea() to just use
+        isTextControl() instead.
+        
+        Add a toRenderTextControl converter for doing checked casting to RenderTextControls.
+
+        * dom/Document.cpp:
+        (WebCore::Document::setFocusedNode):
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::updateSelectionRange):
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        * editing/TextIterator.cpp:
+        (WebCore::TextIterator::handleReplacedElement):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::selectionStart):
+        (WebCore::HTMLInputElement::selectionEnd):
+        (WebCore::HTMLInputElement::setSelectionStart):
+        (WebCore::HTMLInputElement::setSelectionEnd):
+        (WebCore::HTMLInputElement::select):
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        (WebCore::HTMLInputElement::selection):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::selectionStart):
+        (WebCore::HTMLTextAreaElement::selectionEnd):
+        (WebCore::HTMLTextAreaElement::setSelectionStart):
+        (WebCore::HTMLTextAreaElement::setSelectionEnd):
+        (WebCore::HTMLTextAreaElement::select):
+        (WebCore::HTMLTextAreaElement::setSelectionRange):
+        (WebCore::HTMLTextAreaElement::appendFormData):
+        (WebCore::HTMLTextAreaElement::updateValue):
+        (WebCore::HTMLTextAreaElement::selection):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::isNativeTextControl):
+        (WebCore::AccessibilityRenderObject::text):
+        (WebCore::AccessibilityRenderObject::selectedText):
+        (WebCore::AccessibilityRenderObject::selectedTextRange):
+        (WebCore::AccessibilityRenderObject::setSelectedTextRange):
+        (WebCore::AccessibilityRenderObject::visiblePositionForIndex):
+        (WebCore::AccessibilityRenderObject::indexForVisiblePosition):
+        (WebCore::AccessibilityRenderObject::observableObject):
+        * page/Frame.cpp:
+        (WebCore::Frame::notifyRendererOfSelectionChange):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isTextControl):
+        (WebCore::objectIsRelayoutBoundary):
+        * rendering/RenderTextControl.h:
+        (WebCore::RenderTextControl::isTextControl):
+        (WebCore::toRenderTextControl):
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::TextControlInnerTextElement::defaultEventHandler):
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::select):
+        (WebCore::WMLInputElement::defaultEventHandler):
+        (WebCore::WMLInputElement::isConformedToInputMask):
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Get rid of isEdited/setEdited on RenderObject.  Devirtualize isEdited/setEdited on RenderTextControl.
+        Callers were already asking if the renderer was a text field (or a text area), so it was especially
+        pointless to waste a second virtual function call after making one just to determine the object type.
+    
+        Reviewed by Simon Fraser
+
+        * dom/Document.cpp:
+        (WebCore::Document::setFocusedNode):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        * rendering/RenderObject.h:
+        * rendering/RenderTextControl.h:
+        (WebCore::RenderTextControl::isEdited):
+        (WebCore::RenderTextControl::setEdited):
+
+2009-02-13  Scott Violet  <sky@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23934
+        Skia platform doesn't render text decoration shadows.
+
+        Makes Skia render text decoration shadows correctly. We weren't
+        preparing the SkPaint correctly and didn't have a couple of checks
+        CG has. Additionally makes the fillColor/strokeColor methods
+        consistent.
+
+        This behavior is covered by existing layout tests (see bug for list).
+
+        * platform/graphics/chromium/FontChromiumWin.cpp:
+        (WebCore::Font::drawGlyphs):
+        (WebCore::Font::drawComplexText):
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::drawLineForText):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::effectiveFillColor):
+        (PlatformContextSkia::effectiveStrokeColor):
+        * platform/graphics/skia/PlatformContextSkia.h:
+
+2009-02-12  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23944
+        KURLGoogle's pre-parsed canonicalSpec constructor should take a CString
+
+        * platform/KURL.h:
+        * platform/KURLGoogle.cpp:
+        (WebCore::KURLGooglePrivate::setUtf8):
+        (WebCore::KURLGooglePrivate::setAscii):
+        (WebCore::KURLGooglePrivate::init):
+        (WebCore::KURLGooglePrivate::replaceComponents):
+        (WebCore::KURL::KURL):
+        * platform/KURLGooglePrivate.h:
+
+2009-02-13  David Hyatt  <hyatt@apple.com>
+
+        Remove leftmost/rightmost/lowestPosition from RenderObject.  They only need to be called on boxes.
+
+        Reviewed by Dan Bernstein
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::lowestPosition):
+        (WebCore::RenderBlock::rightmostPosition):
+        (WebCore::RenderBlock::leftmostPosition):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::computeScrollDimensions):
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::lowestPosition):
+        (WebCore::RenderMedia::rightmostPosition):
+        (WebCore::RenderMedia::leftmostPosition):
+        * rendering/RenderObject.h:
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::lowestPosition):
+        (WebCore::RenderTableSection::rightmostPosition):
+        (WebCore::RenderTableSection::leftmostPosition):
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix build with ACCELERATED_COMPOSITING turned on.
+
+        toRenderBox()->x() asserts for a layer on an inline; use
+        m_owningLayer->renderBoxX() instead.
+        
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::paintIntoLayer):
+
+2009-02-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Speed up document.write a bit.
+
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::documentWrite): Added. Uses SegmentedString to avoid conversion from
+        UString to String and to avoid appending strings. Also added code to handle
+        newlines efficiently.
+        (WebCore::JSHTMLDocument::write): Changed to use documentWrite.
+        (WebCore::JSHTMLDocument::writeln): Ditto.
+
+        * dom/Document.cpp:
+        (WebCore::Document::prepareToWrite): Added. Refactored the initialization part
+        of write into a separate function for use in the JavaScript binding.
+        (WebCore::Document::write): Changed to call prepareToWrite.
+
+        * dom/Document.h: Added declaration for prepareToWrite.
+
+2009-02-13  Prasanth Ullattil  <pullatti@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fixes crash in the Qt port on Windows with comboboxes
+
+        The focusWidget in the input context is not reset properly.
+        The QApplication::setFocusWidget() wont reset the IC if the reason is
+        PopupFocusReason, this is not ideal. For the time being we are going
+        to do this from webkit itself.
+
+        * platform/qt/QWebPopup.cpp:
+        (WebCore::QWebPopup::hidePopup):
+
+2009-02-12  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, typo while tweaking last patch for commit.
+
+        * platform/wx/wxcode/gtk/fontprops.cpp:
+        (GetTextExtent):
+
+2009-02-12  miggilin  <mr.diggilin@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Use Cairo/PANGO to fix text measurements and implement proper
+        non-kerned text drawing on wxGTK.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17727
+
+        * platform/graphics/GlyphBuffer.h:
+        * platform/graphics/wx/FontPlatformDataWx.cpp:
+        (WebCore::fontWeightToWxFontWeight):
+        * platform/graphics/wx/SimpleFontDataWx.cpp:
+        (WebCore::SimpleFontData::platformWidthForGlyph):
+        * platform/wx/wxcode/fontprops.h:
+        * platform/wx/wxcode/gtk/fontprops.cpp:
+        (wxFontProperties::wxFontProperties):
+        (GetTextExtent):
+        * platform/wx/wxcode/gtk/non-kerned-drawing.cpp:
+        (WebCore::pangoFontMap):
+        (WebCore::createPangoFontForFont):
+        (WebCore::createScaledFontForFont):
+        (WebCore::pango_font_get_glyph):
+        (WebCore::drawTextWithSpacing):
+        * platform/wx/wxcode/non-kerned-drawing.h:
+
+2009-02-12  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=23942
+
+        Hook up 3D CSS transforms to the accelerated compositor backend.
+        Not enabled by default.
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+        (WebCore::ensurePropertyMap):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::updateTransitions):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::willNeedService):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::willNeedService):
+        * platform/graphics/GraphicsLayer.cpp:
+        (WebCore::GraphicsLayer::TransformValueList::makeFunctionList):
+        (WebCore::GraphicsLayer::dumpProperties):
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::copyTransform):
+        (WebCore::getValueFunctionNameForTransformOperation):
+        (WebCore::GraphicsLayerCA::animateTransform):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::updateBoxModelInfoFromStyle):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateTransform):
+        (WebCore::RenderLayer::hasTransformStyle3D):
+        (WebCore::RenderLayer::hasPerspective):
+        (WebCore::RenderLayer::perspectiveTransform):
+        * rendering/RenderLayer.h:
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateGraphicsLayers):
+        (WebCore::RenderLayerBacking::updateGraphicsLayerGeometry):
+        (WebCore::RenderLayerBacking::computeTransformOrigin):
+        (WebCore::RenderLayerBacking::computePerspectiveOrigin):
+        * rendering/RenderLayerBacking.h:
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::has3DContent):
+        (WebCore::requiresCompositingLayerForTransform):
+        (WebCore::RenderLayerCompositor::requiresCompositingLayer):
+        (WebCore::RenderLayerCompositor::layerHas3DContent):
+        * rendering/RenderLayerCompositor.h:
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Get rid of containingBlockHeight(), since it had only one implementation (despite being virtual) and just returned
+        containingBlock()->availableHeight().  The latter reads better anyway.  Rename containingBlockWidth() to
+        containingBlockWidthForContent() and move it to RenderBoxModelObject.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::localCaretRect):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::containingBlockWidthForContent):
+        (WebCore::RenderBox::calcWidth):
+        (WebCore::RenderBox::calcReplacedWidthUsing):
+        * rendering/RenderBox.h:
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::relativePositionOffsetX):
+        (WebCore::RenderBoxModelObject::relativePositionOffsetY):
+        (WebCore::RenderBoxModelObject::containingBlockWidthForContent):
+        * rendering/RenderBoxModelObject.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::marginLeft):
+        (WebCore::RenderInline::marginRight):
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::calcReplacedWidth):
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix non-Mac builds by adding Matrix3DTransformOperation.* and
+        PerspectiveTransformOperation.*. Cleaned out some cruft in 
+        the WebCore.vcproj fle.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+
+2009-02-12  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Dave Hyatt.
+        
+        Fix https://bugs.webkit.org/show_bug.cgi?id=23935
+        Nested :not() and non-simple selectors in :not() should be invalid
+
+        * css/CSSGrammar.y: Reject nested :not()
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector): ASSERT() rather than checking, since the parser enforces it now
+
+2009-02-12  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes.
+
+        * WebCoreSources.bkl:
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix build with ACCELERATED_COMPOSITING turned on.
+        
+        Need to cast toRenderBox() in order to call overflowClipRect().
+
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateGraphicsLayerGeometry):
+
+2009-02-12  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix windows build.
+
+        * css/CSSParser.h:
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Rename getOverflowClipRect and getClipRect to overflowClipRect and clipRect.  Move them to RenderBox, since these methods
+        only apply to boxes.  Devirtualize clipRect, since it was not subclassed.  Move controlClip stuff to RenderBox also.
+
+        Reviewed by Simon Fraser
+
+        * editing/Editor.cpp:
+        (WebCore::Editor::insideVisibleArea):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::overflowClipRect):
+        (WebCore::RenderBox::clipRect):
+        * rendering/RenderBox.h:
+        (WebCore::RenderBox::hasControlClip):
+        (WebCore::RenderBox::controlClipRect):
+        * rendering/RenderForeignObject.cpp:
+        (WebCore::RenderForeignObject::paint):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::calculateClipRects):
+        (WebCore::RenderLayer::calculateRects):
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateGraphicsLayerGeometry):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::hasClip):
+        (WebCore::RenderObject::hasOverflowClip):
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::overflowClipRect):
+        * rendering/RenderTable.h:
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix build with ACCELERATED_COMPOSITING turned on (simple copy/paste error)
+
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::GraphicsLayerCA::setBasicAnimation):
+
+2009-02-12  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Not reviewed.
+
+        Release build fix when VIDEO is disabled (it should also
+        help the builds with WORKERS or XSLT disabled).
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (jsDOMWindowBaseAudio): Added an UNUSED_PARAM for exec and slot when
+        VIDEO is disabled.
+        (jsDOMWindowBaseWorker): Ditto for WORKERS.
+        (jsDOMWindowBaseXSLTProcessor): Ditto for XSLT.
+
+2009-02-12  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23923
+        Implement mediaPlayerVolumeChanged so a media engine can report autonomous volume changes.
+        Supporting this requires that we know when we are processing a media engine callback so
+        we don't turn around and tell the media player to change the volume when it is reporting
+        a volume change.
+        
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): initialize m_processingMediaPlayerCallback
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged): call begin/endProcessingMediaPlayerCallback
+        (WebCore::HTMLMediaElement::setNetworkState): logic split out of mediaPlayerNetworkStateChanged 
+        to make it easier to maintain m_processingMediaPlayerCallback.
+        (WebCore::HTMLMediaElement::mediaPlayerReadyStateChanged): call begin/endProcessingMediaPlayerCallback
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged): Ditto.
+        (WebCore::HTMLMediaElement::mediaPlayerRepaint): Ditto.
+        (WebCore::HTMLMediaElement::mediaPlayerVolumeChanged): New
+        (WebCore::HTMLMediaElement::updateVolume): Don't change media engine volume if we are processing
+        a callback from the engine.
+        * html/HTMLMediaElement.h:
+        (WebCore::HTMLMediaElement::processingMediaPlayerCallback): New, return true if (m_processingMediaPlayerCallback>0)
+        (WebCore::HTMLMediaElement::beginProcessingMediaPlayerCallback): New, increment m_processingMediaPlayerCallback
+        (WebCore::HTMLMediaElement::endProcessingMediaPlayerCallback): New, decrement m_processingMediaPlayerCallback
+
+2009-02-12  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Support MPEG content on Mac and Windows.
+        <rdar://problem/5917509>
+        https://bugs.webkit.org/show_bug.cgi?id=23495
+
+        Test: media/audio-mpeg-supported.html
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::disableUnsupportedTracks):
+
+        * platform/graphics/win/QTMovieWin.cpp:
+        (QTMovieWin::disableUnsupportedTracks):
+
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.h: fix typo added in r40925 
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Move containsFloats, hasOverhangingFloats, shrinkToAvoidFloats and avoidsFloats down to
+        RenderBox, since these methods only apply to boxes.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::collapseMargins):
+        (WebCore::RenderBlock::clearFloatsIfNeeded):
+        (WebCore::RenderBlock::layoutBlockChildren):
+        (WebCore::RenderBlock::clearFloats):
+        (WebCore::RenderBlock::markAllDescendantsWithFloatsForLayout):
+        (WebCore::RenderBlock::calcBlockPrefWidths):
+        * rendering/RenderBlock.h:
+        (WebCore::RenderBlock::containsFloats):
+        (WebCore::RenderBlock::hasOverhangingFloats):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::shrinkToAvoidFloats):
+        (WebCore::RenderBox::avoidsFloats):
+        * rendering/RenderBox.h:
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isFloatingOrPositioned):
+        * rendering/RenderView.h:
+
+2009-02-12  Chris Marrin  <cmarrin@apple.com>        
+
+        Reviewed by Dave Hyatt
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23908
+        
+        Added parsing of 3d transform functions and properties
+        (perspective, perspective-origin, transform-style-3d, 
+        and backface-visibility).   
+        
+        Test: transforms/3d/cssmatrix-3d-interface.xhtml
+        
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::):
+        (WebCore::computedTransform):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSMutableStyleDeclaration.cpp:
+        (WebCore::CSSMutableStyleDeclaration::getPropertyValue):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        (WebCore::CSSParser::parseFillProperty):
+        (WebCore::CSSParser::parseTransformOriginShorthand):
+        (WebCore::TransformOperationInfo::TransformOperationInfo):
+        (WebCore::CSSParser::parseTransform):
+        (WebCore::CSSParser::parseTransformOrigin):
+        (WebCore::CSSParser::parsePerspectiveOrigin):
+        * css/CSSParser.h:
+        * css/CSSPrimitiveValue.h:
+        (WebCore::CSSPrimitiveValue::isUnitTypeLength):
+        * css/CSSPropertyNames.in:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        (WebCore::convertToLength):
+        (WebCore::CSSStyleSelector::applyProperty):
+        (WebCore::CSSStyleSelector::mapFillSize):
+        (WebCore::CSSStyleSelector::mapFillXPosition):
+        (WebCore::CSSStyleSelector::mapFillYPosition):
+        (WebCore::getTransformOperationType):
+        (WebCore::CSSStyleSelector::createTransformOperations):
+        * css/CSSValueKeywords.in:
+        * css/WebKitCSSTransformValue.cpp:
+        (WebCore::WebKitCSSTransformValue::cssText):
+        * css/WebKitCSSTransformValue.h:
+        (WebCore::WebKitCSSTransformValue::):
+        * css/WebKitCSSTransformValue.idl:
+        * platform/graphics/transforms/Matrix3DTransformOperation.cpp:
+        * platform/graphics/transforms/Matrix3DTransformOperation.h:
+        * platform/graphics/transforms/PerspectiveTransformOperation.cpp:
+        * platform/graphics/transforms/PerspectiveTransformOperation.h:
+        * platform/graphics/transforms/RotateTransformOperation.cpp:
+        (WebCore::RotateTransformOperation::blend):
+        * platform/graphics/transforms/RotateTransformOperation.h:
+        (WebCore::RotateTransformOperation::RotateTransformOperation):
+        * platform/graphics/transforms/ScaleTransformOperation.h:
+        (WebCore::ScaleTransformOperation::ScaleTransformOperation):
+        * platform/graphics/transforms/TransformOperation.h:
+        (WebCore::TransformOperation::is3DOperation):
+        * platform/graphics/transforms/TransformOperations.h:
+        (WebCore::TransformOperations::has3DOperation):
+        * platform/graphics/transforms/TranslateTransformOperation.h:
+        (WebCore::TranslateTransformOperation::TranslateTransformOperation):
+        
+2009-02-12  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix.
+
+        * webcore-base.bkl:
+
+2009-02-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        Fix potential ref-count or null-deref problems with C++ objects as Obj-C members.
+
+        * platform/mac/SharedBufferMac.mm: Change to use RefPtr<> instead of ref()/deref().
+        (-[WebCoreSharedBufferData dealloc]):
+        (-[WebCoreSharedBufferData finalize]):
+        (-[WebCoreSharedBufferData initWithSharedBuffer:]):
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Remove calcWidth from RenderObject.  Nobody ever called it on RenderObjects.
+
+        Reviewed by Sam Weinig
+
+        * rendering/RenderObject.h:
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Mark Rowe
+
+        Fix for regression where form controls would paint yellow highlights.  The containsComposition check needs to
+        null check node() now.
+
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paint):
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Build fix
+
+        Change Animation::setDirection() to take the new enum value, and fix
+        the single caller.
+
+        Fix build error in MediaPlayerPrivateQTKit.h.
+        
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::mapAnimationDirection):
+        * platform/animation/Animation.h:
+        (WebCore::Animation::setDirection):
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        Remove the overrideSize methods from RenderObject.  Devirtualize all of the accessors on RenderBox.
+
+        * rendering/RenderBox.h:
+        * rendering/RenderObject.h:
+
+2009-02-12  Eric Carlson  <eric.carlson@apple.com>
+
+        Darin Adler, Antti Koivisto, Holger Hans Peter Freyther
+        
+        Bug 23797: A platform should be able to use more than one media engine for <video> and <audio>
+        https://bugs.webkit.org/show_bug.cgi?id=23797
+
+        * WebCore.xcodeproj/project.pbxproj: add MediaPlayerPrivate.h
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::load): selectMediaURL now also returns a MIME type, pass it to
+        MediaPlayer::load so it can choose the right media engine
+        (WebCore::HTMLMediaElement::selectMediaURL): renamed from pickMedia. use MIMETypeRegistry
+        functions to strip params from the url and extract the codecs parameter. call 
+        MediaPlayer::supportsType to see if we can open the file since only a media engine can
+        answer questions about supported type+codecs.
+        * html/HTMLMediaElement.h:
+
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::MIMETypeRegistry::getParameterFromMIMEType): New, find and return a MIME type parameter
+        (WebCore::MIMETypeRegistry::stripParametersFromMIMEType): New, strip all parameters from a MIME type
+        * platform/MIMETypeRegistry.h:
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::NullMediaPlayerPrivate::NullMediaPlayerPrivate):
+        (WebCore::NullMediaPlayerPrivate::load):
+        (WebCore::NullMediaPlayerPrivate::cancelLoad):
+        (WebCore::NullMediaPlayerPrivate::play):
+        (WebCore::NullMediaPlayerPrivate::pause):
+        (WebCore::NullMediaPlayerPrivate::naturalSize):
+        (WebCore::NullMediaPlayerPrivate::hasVideo):
+        (WebCore::NullMediaPlayerPrivate::setVisible):
+        (WebCore::NullMediaPlayerPrivate::duration):
+        (WebCore::NullMediaPlayerPrivate::currentTime):
+        (WebCore::NullMediaPlayerPrivate::seek):
+        (WebCore::NullMediaPlayerPrivate::seeking):
+        (WebCore::NullMediaPlayerPrivate::setEndTime):
+        (WebCore::NullMediaPlayerPrivate::setRate):
+        (WebCore::NullMediaPlayerPrivate::paused):
+        (WebCore::NullMediaPlayerPrivate::setVolume):
+        (WebCore::NullMediaPlayerPrivate::networkState):
+        (WebCore::NullMediaPlayerPrivate::readyState):
+        (WebCore::NullMediaPlayerPrivate::maxTimeSeekable):
+        (WebCore::NullMediaPlayerPrivate::maxTimeBuffered):
+        (WebCore::NullMediaPlayerPrivate::dataRate):
+        (WebCore::NullMediaPlayerPrivate::totalBytesKnown):
+        (WebCore::NullMediaPlayerPrivate::totalBytes):
+        (WebCore::NullMediaPlayerPrivate::bytesLoaded):
+        (WebCore::NullMediaPlayerPrivate::setRect):
+        (WebCore::NullMediaPlayerPrivate::paint):
+        (WebCore::createNullMediaPlayer):
+        Do nothing media player so MediaPlayer doesn't have to NULL check before calling current engine.
+
+        (WebCore::MediaPlayerFactory::MediaPlayerFactory): New, factory constructor.
+        (WebCore::installedMediaEngines): New, returns vector of all installed engines.
+        (WebCore::addMediaEngine): New, add a media engine to the cache.
+        (WebCore::chooseBestEngineForTypeAndCodecs): New, return an engine that might support a MIME type.
+        (WebCore::MediaPlayer::MediaPlayer): create NULL media player so we have a default. Initialize m_currentMediaEngine.
+        (WebCore::MediaPlayer::~MediaPlayer): don't need to delete m_private, it is now an OwnPtr.
+        (WebCore::MediaPlayer::load): Take MIME type as well as url, since we need it to find the right
+          media engine. If no MIME type is provided, try to devine one from the url. Choose a media engine
+          based on the MIME type and codecs parameter.
+        (WebCore::MediaPlayer::currentTime): Remove excess white space.
+        (WebCore::MediaPlayer::supportsType): Take codecs param as well as MIME type. Return enum so we can
+        indicate "maybe" condition.
+        (WebCore::MediaPlayer::getSupportedTypes): Build up list of MIME types by consulting all engines.
+        (WebCore::MediaPlayer::isAvailable): return true if any media engine is installed.
+
+        * platform/graphics/MediaPlayer.h:
+        (WebCore::MediaPlayer::):
+        (WebCore::MediaPlayer::frameView): accessor function.
+
+        * platform/graphics/MediaPlayerPrivate.h: New, declares abstract interface for media engines.
+        (WebCore::MediaPlayerPrivateInterface::~MediaPlayerPrivateInterface):
+        (WebCore::MediaPlayerPrivateInterface::totalBytesKnown):
+
+        * platform/graphics/chromium/MediaPlayerPrivateChromium.h: Add support for engine factory 
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::MediaPlayerPrivate::create): New, media engine factory function
+        (WebCore::MediaPlayerPrivate::registerMediaEngine): Register engine with MediaPlayer factory
+        (WebCore::MediaPlayerPrivate::load): URL is a const String.
+        (WebCore::MediaPlayerPrivate::duration): Declare const.
+        (WebCore::MediaPlayerPrivate::naturalSize): Ditto.
+        (WebCore::MediaPlayerPrivate::hasVideo): Ditto.
+        (WebCore::MediaPlayerPrivate::networkState): Ditto.
+        (WebCore::MediaPlayerPrivate::readyState): Ditto.
+        (WebCore::MediaPlayerPrivate::maxTimeBuffered): Ditto.
+        (WebCore::MediaPlayerPrivate::maxTimeSeekable): Ditto.
+        (WebCore::MediaPlayerPrivate::maxTimeLoaded): Ditto.
+        (WebCore::MediaPlayerPrivate::bytesLoaded): Ditto.
+        (WebCore::MediaPlayerPrivate::totalBytesKnown): Ditto.
+        (WebCore::MediaPlayerPrivate::totalBytes): Ditto.
+        (WebCore::MediaPlayerPrivate::supportsType): Return MediaPlayer::SupportsType enum instead of bool.
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.h:
+        (WebCore::MediaPlayerPrivate::isAvailable):
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivateQTKit::create): New, media engine factory function
+        (WebCore::MediaPlayerPrivateQTKit::registerMediaEngine): Register engine with MediaPlayer factory
+        (WebCore::MediaPlayerPrivate::createQTMovieView): don't access MediaPlayer->m_frameView directly,
+        use accessor function.
+        (WebCore::MediaPlayerPrivate::setUpVideoRendering): Ditto.
+        (WebCore::MediaPlayerPrivate::paint): Ditto.
+        (WebCore::mimeTypeCache): New.
+        (WebCore::MediaPlayerPrivate::getSupportedTypes): New, media engine factory function.
+        (WebCore::MediaPlayerPrivate::supportsType): return MediaPlayer::SupportsType enum instead of bool
+        (-[WebCoreMovieObserver initWithCallback:]): fix formatting
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::create):
+        (WebCore::MediaPlayerPrivate::registerMediaEngine):
+        (WebCore::MediaPlayerPrivate::supportsType):
+        (WebCore::MediaPlayerPrivate::load): URL is a const String.
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.h:
+        (WebCore::MediaPlayerPrivate::isAvailable):
+
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp:
+        (WebCore::MediaPlayerPrivate::create): New, media engine factory function
+        (WebCore::MediaPlayerPrivate::registerMediaEngine): New, register engine with MediaPlayer factory
+        (WebCore::MediaPlayerPrivate::load): URL is a const String.
+        (WebCore::MediaPlayerPrivate::paint): don't access MediaPlayer->m_frameView directly,
+        use accessor function.
+        (WebCore::mimeTypeCache): New.
+        (WebCore::MediaPlayerPrivateQTWin::getSupportedTypes): New, media engine factory function.
+        (WebCore::MediaPlayerPrivateQTWin::supportsType): return MediaPlayer::SupportsType enum instead of bool
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.h:
+
+2009-02-12  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Test: fast/dom/prefixed-image-tag.xhtml
+
+        Bug 23915: Remove setPrefix work-around in Document::createElement(QualifiedName, bool)
+
+        Instead we now directly propage the QualifiedName inside the generated Factory.
+
+        Test: fast/dom/prefixed-image-tag.xhtml
+
+        * dom/Document.cpp:
+        (WebCore::Document::createElement): Removed the setPrefix work-around
+        and replaced it with an ASSERT to catch mistakes inside the Factory code.
+        Remove the unneeded ExceptionCode argument.
+
+        (WebCore::Document::createElementNS): Removed ExceptionCode argument.
+        * dom/Document.h: Updated the signature.
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::startElementNs): Removed ExceptionCode argument.
+        * dom/XMLTokenizerQt.cpp: Ditto.
+        (WebCore::XMLTokenizer::parseStartElement): Ditto.
+
+        * dom/make_names.pl: Implemented the QualifiedName propogation logic
+        in the Factory.
+
+2009-02-12  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=23188
+        
+        Define enum values for Animation::direction(), and one for
+        IterationCountInfinite to make the code more self-documenting.
+        
+        Order the member vars of Animation to optimize packing.
+        
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * platform/animation/Animation.cpp:
+        (WebCore::Animation::Animation):
+        (WebCore::Animation::operator=):
+        (WebCore::Animation::animationsMatch):
+        * platform/animation/Animation.h:
+        (WebCore::Animation::):
+        (WebCore::Animation::direction):
+        (WebCore::Animation::initialAnimationDirection):
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::GraphicsLayerCA::setBasicAnimation):
+        (WebCore::GraphicsLayerCA::setKeyframeAnimation):
+
+2009-02-12  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Holger Freyther.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startHttp): Don't use O_CLOEXEC for now.
+
+2009-02-12  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 23826: Potential bug with before/after rule while moving element from one document to another
+
+        Moved the document before/after toggle from the constructor to insertedIntoDocument.
+
+        Test: fast/css-generated-content/beforeAfter-interdocument.html
+
+        * html/HTMLQuoteElement.cpp:
+        (WebCore::HTMLQuoteElement::HTMLQuoteElement):
+        (WebCore::HTMLQuoteElement::insertedIntoDocument):
+        * html/HTMLQuoteElement.h:
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23912
+
+        I have no idea why this broke.  As far as I can tell the old code never should have worked in
+        the first place.  Add code to handleWheelEvent that will find an enclosing renderer for a node
+        in order to attempt a wheel scroll.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleWheelEvent):
+
+2009-02-12  David Hyatt  <hyatt@apple.com>
+
+        Move the functions that paint borders, box shadows and border images into RenderBoxModelObject.  drawBorder and drawBorderArc, because they are used
+        for outlines as well as borders, need to stay in RenderObject.  Rename them to drawLineForBoxSide and drawArcForBoxSide in order to reflect their
+        more generic use.  Rename the BorderSide struct to BoxSide, since the concept of "side" is just a rectangle concept and not a border concept.
+
+        Reviewed by Simon Fraser
+
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::paintFillLayer):
+        (WebCore::InlineFlowBox::paintBoxShadow):
+        (WebCore::InlineFlowBox::paintBoxDecorations):
+        (WebCore::InlineFlowBox::paintMask):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::paintColumns):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintNinePieceImage):
+        (WebCore::RenderBoxModelObject::paintBorder):
+        (WebCore::RenderBoxModelObject::paintBoxShadow):
+        * rendering/RenderBoxModelObject.h:
+        * rendering/RenderFieldset.cpp:
+        (WebCore::RenderFieldset::paintBorderMinusLegend):
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::paintOutlineForLine):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::drawLineForBoxSide):
+        (WebCore::RenderObject::drawArcForBoxSide):
+        (WebCore::RenderObject::paintOutline):
+        * rendering/RenderObject.h:
+        (WebCore::):
+        (WebCore::RenderObject::hasBoxDecorations):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::CollapsedBorders::addBorder):
+        (WebCore::RenderTableCell::paintCollapsedBorder):
+
+2009-02-12  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser
+
+        Bug 18322: video element should have ui when scripting is disabled
+        https://bugs.webkit.org/show_bug.cgi?id=18322
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::controls): always return 'true' when JavaScript is disabled.
+        * manual-tests/media-controls-when-javascript-disabled.html: Added.
+
+2009-02-12  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23906
+        Add custom V8 bindings for HTMLPlugInElement.
+
+        * bindings/v8/custom/V8HTMLPlugInElementCustom.cpp: Added.
+        (WebCore::NAMED_PROPERTY_GETTER):
+        (WebCore::NAMED_PROPERTY_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+        (WebCore::INDEXED_PROPERTY_GETTER):
+        (WebCore::INDEXED_PROPERTY_SETTER):
+
+2009-02-12  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        [GTK] Soup backend must handle upload of multiple files
+        https://bugs.webkit.org/show_bug.cgi?id=18343
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::):
+        (WebCore::freeFileMapping):
+        (WebCore::ResourceHandle::startHttp): Support multipart request bodies
+        mmap'ing files to be uploaded.
+
+2009-02-12  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix the Qt build following r40871 which changed RenderObject::element()
+        into RenderObject::node().
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::getMediaElementFromRenderObject):
+        (WebCore::RenderThemeQt::getMediaControlForegroundColor):
+
+2009-02-12  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix.
+
+        * platform/graphics/transforms/RotateTransformOperation.cpp: Include <algorithm>.
+
+2009-02-12  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Change worker code to use different proxy class pointers.
+        https://bugs.webkit.org/show_bug.cgi?id=23859
+
+        This is a step towards using separate proxies in multi-process implementation.
+
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::evaluate):
+        * dom/Worker.cpp:
+        (WebCore::Worker::Worker):
+        (WebCore::Worker::~Worker):
+        (WebCore::Worker::postMessage):
+        (WebCore::Worker::terminate):
+        (WebCore::Worker::hasPendingActivity):
+        (WebCore::Worker::notifyFinished):
+        (WebCore::Worker::dispatchMessage):
+        * dom/Worker.h:
+        * dom/WorkerContext.cpp:
+        (WebCore::WorkerContext::~WorkerContext):
+        (WebCore::WorkerContext::reportException):
+        (WebCore::WorkerContext::addMessage):
+        (WebCore::WorkerContext::postMessage):
+        (WebCore::WorkerContext::dispatchMessage):
+        * dom/WorkerContext.h:
+        * dom/WorkerContextProxy.h:
+        * dom/WorkerMessagingProxy.cpp:
+        (WebCore::MessageWorkerContextTask::performTask):
+        (WebCore::MessageWorkerTask::performTask):
+        (WebCore::WorkerContextProxy::create):
+        (WebCore::WorkerMessagingProxy::WorkerMessagingProxy):
+        (WebCore::WorkerMessagingProxy::~WorkerMessagingProxy):
+        (WebCore::WorkerMessagingProxy::startWorkerContext):
+        (WebCore::postConsoleMessageTask):
+        (WebCore::WorkerMessagingProxy::postConsoleMessageToWorkerObject):
+        (WebCore::WorkerMessagingProxy::workerThreadCreated):
+        * dom/WorkerMessagingProxy.h:
+        * dom/WorkerObjectProxy.h:
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * dom/WorkerThread.h:
+        (WebCore::WorkerThread::workerObjectProxy):
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::WorkerThreadableLoader):
+
+2009-02-12  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 23688: ThreadableLoader needs a sync implementation for Workers.
+        <https://bugs.webkit.org/show_bug.cgi?id=23688>
+
+        Add ResourceError to ThreadableLoaderClient.
+
+        No observable change in behavior, so no test.
+
+        * loader/DocumentThreadableLoader.cpp:
+        (WebCore::DocumentThreadableLoader::create):
+        (WebCore::DocumentThreadableLoader::willSendRequest):
+        (WebCore::DocumentThreadableLoader::didFail):
+        * loader/ThreadableLoaderClient.h:
+        (WebCore::ThreadableLoaderClient::didFail):
+        (WebCore::ThreadableLoaderClient::didFailWillSendRequestCheck):
+        * loader/ThreadableLoaderClientWrapper.h:
+        (WebCore::ThreadableLoaderClientWrapper::didFail):
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::mainThreadCreateLoader):
+        (WebCore::workerContextDidFail):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didFail):
+        * loader/WorkerThreadableLoader.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFail):
+        (WebCore::XMLHttpRequest::didFailWillSendRequestCheck):
+        * xml/XMLHttpRequest.h:
+
+2009-02-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Fix the build on Leopard with ACCELERATED_COMPOSITING turned on.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        FloatPoint3D needs to be a private header, since it's included by GraphicsLayer.h
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::getTransformFunctionValue):
+        (WebCore::caValueFunctionSupported):
+        (WebCore::GraphicsLayerCA::setAnchorPoint):
+        (WebCore::GraphicsLayerCA::setPreserves3D):
+        (WebCore::GraphicsLayerCA::setContentsToImage):
+        (WebCore::GraphicsLayerCA::setBasicAnimation):
+        (WebCore::GraphicsLayerCA::setKeyframeAnimation):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::isRootLayer):
+        Fix isRootLayer to return true for the renderView's layer, not the root
+        renderer's layer.
+
+2009-02-11  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23910
+        <rdar://problem/6160546> REGRESSION: In Full page mode, movie controller hides when I drag the knob if movie is playing
+
+        * rendering/RenderMedia.cpp: (WebCore::RenderMedia::forwardEvent):
+        When we get a mouseOut event, consider the mouse as still within the RenderMedia if the relatedTarget is a descendant.
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Remove all of the inline box wrapper functions from RenderObject, since they only apply to RenderBox.  Devirtualize the functions.
+        Patch all of the call sites to convert to a RenderBox.
+
+        Reviewed by Simon Fraser
+
+        * dom/Position.cpp:
+        (WebCore::nextRenderedEditable):
+        (WebCore::previousRenderedEditable):
+        (WebCore::Position::getInlineBoxAndOffset):
+        * rendering/InlineBox.cpp:
+        (WebCore::InlineBox::deleteLine):
+        (WebCore::InlineBox::extractLine):
+        (WebCore::InlineBox::attachLine):
+        * rendering/RenderLineBoxList.cpp:
+        (WebCore::RenderLineBoxList::dirtyLinesFromChangedChild):
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+        * rendering/RenderObjectChildList.cpp:
+        (WebCore::RenderObjectChildList::removeChildNode):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::textWithHardLineBreaks):
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Eliminate createInlineBox and dirtyLineBoxes from RenderObject.  These functions have been devirtualized.
+        The single call site now calls a helper function that just bit checks and casts before calling the correct
+        type.  RenderBlock's dirtyLineBoxes function was dead code (caused by the RenderFlow deletion), so it has
+        just been removed.
+
+        Reviewed by Eric Seidel
+
+        * rendering/RenderBR.cpp:
+        * rendering/RenderBR.h:
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::createRootInlineBox):
+        * rendering/RenderBlock.h:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::createInlineBox):
+        * rendering/RenderBox.h:
+        * rendering/RenderCounter.cpp:
+        * rendering/RenderCounter.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::createInlineFlowBox):
+        * rendering/RenderInline.h:
+        * rendering/RenderObject.cpp:
+        * rendering/RenderObject.h:
+        * rendering/RenderSVGInlineText.cpp:
+        (WebCore::RenderSVGInlineText::createTextBox):
+        * rendering/RenderSVGInlineText.h:
+        (WebCore::RenderSVGInlineText::isSVGText):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::createTextBox):
+        (WebCore::RenderText::createInlineTextBox):
+        * rendering/RenderText.h:
+        * rendering/bidi.cpp:
+        (WebCore::createInlineBoxForRenderer):
+        (WebCore::RenderBlock::createLineBoxes):
+        (WebCore::RenderBlock::constructLine):
+        (WebCore::RenderBlock::layoutInlineChildren):
+
+2009-02-11  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23905
+
+        Adds support for 3D CSS properties (transform-style-3d, perspective, 
+        perspective-origin, and backface-visibility) to RenderStyle and friends
+
+        * platform/graphics/transforms/TransformOperation.h
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::diff):
+        (WebCore::RenderStyle::applyTransform):
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::transformOriginZ):
+        (WebCore::InheritedFlags::hasTransformRelatedProperty):
+        (WebCore::InheritedFlags::transformStyle3D):
+        (WebCore::InheritedFlags::backfaceVisibility):
+        (WebCore::InheritedFlags::perspective):
+        (WebCore::InheritedFlags::perspectiveOriginX):
+        (WebCore::InheritedFlags::perspectiveOriginY):
+        (WebCore::InheritedFlags::setTransformOriginZ):
+        (WebCore::InheritedFlags::setTransformStyle3D):
+        (WebCore::InheritedFlags::setBackfaceVisibility):
+        (WebCore::InheritedFlags::setPerspective):
+        (WebCore::InheritedFlags::setPerspectiveOriginX):
+        (WebCore::InheritedFlags::setPerspectiveOriginY):
+        (WebCore::InheritedFlags::initialTransformOriginZ):
+        (WebCore::InheritedFlags::initialTransformStyle3D):
+        (WebCore::InheritedFlags::initialBackfaceVisibility):
+        (WebCore::InheritedFlags::initialPerspective):
+        (WebCore::InheritedFlags::initialPerspectiveOriginX):
+        (WebCore::InheritedFlags::initialPerspectiveOriginY):
+        * rendering/style/RenderStyleConstants.h:
+        (WebCore::):
+        * rendering/style/StyleRareNonInheritedData.cpp:
+        (WebCore::StyleRareNonInheritedData::StyleRareNonInheritedData):
+        (WebCore::StyleRareNonInheritedData::operator==):
+        * rendering/style/StyleRareNonInheritedData.h:
+        * rendering/style/StyleTransformData.cpp:
+        (WebCore::StyleTransformData::StyleTransformData):
+        (WebCore::StyleTransformData::operator==):
+        * rendering/style/StyleTransformData.h:
+
+2009-02-11  Simon Fraser  <simon.fraser@apple.com>
+
+        No review.
+
+        Fix ACCELERATED_COMPOSITING build.
+
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::createGraphicsLayer):
+        (WebCore::RenderLayerBacking::updateGraphicsLayerGeometry):
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::updateLayerCompositingState):
+
+2009-02-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=23862
+        
+        Add a bit on RenderStyle that gets set when running accelerated
+        transitions of transform or opacity. These ensure that styles
+        compare as different during the transition, so that interruption
+        can be detected reliably.
+
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::animate):
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::isRunningAcceleratedAnimation):
+        (WebCore::InheritedFlags::setIsRunningAcceleratedAnimation):
+        * rendering/style/StyleRareNonInheritedData.cpp:
+        (WebCore::StyleRareNonInheritedData::StyleRareNonInheritedData):
+        (WebCore::StyleRareNonInheritedData::operator==):
+        * rendering/style/StyleRareNonInheritedData.h:
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Eliminate the virtual position() function from RenderObject.  Rename the position() overrides
+        in RenderText and RenderBox to positionLineBox and devirtualize them.
+        
+        Patch the one call site to just check for isText() and isBox() and call the methods directly.
+        
+        Remove some unnecessary overrides of position() on table sections and rows.
+    
+        Reviewed by Simon Fraser
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::positionLineBox):
+        * rendering/RenderBox.h:
+        * rendering/RenderObject.h:
+        * rendering/RenderSVGRoot.cpp:
+        * rendering/RenderSVGRoot.h:
+        * rendering/RenderTableRow.h:
+        (WebCore::RenderTableRow::lineHeight):
+        * rendering/RenderTableSection.h:
+        (WebCore::RenderTableSection::lineHeight):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::positionLineBox):
+        * rendering/RenderText.h:
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::computeVerticalPositionsForLine):
+
+2009-02-11  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23901
+        Add HTML options/collections V8 custom bindings.
+
+        * bindings/v8/custom/V8HTMLCollectionCustom.cpp: Added.
+        (WebCore::getNamedItems):
+        (WebCore::getItem):
+        (WebCore::NAMED_PROPERTY_GETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8HTMLFormElementCustom.cpp: Added.
+        (WebCore::NAMED_PROPERTY_GETTER):
+        * bindings/v8/custom/V8HTMLInputElementCustom.cpp:
+        (WebCore::ACCESSOR_GETTER):
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8HTMLOptionsCollectionCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+        (WebCore::ACCESSOR_SETTER):
+        * bindings/v8/custom/V8HTMLSelectElementCustom.cpp: Added.
+        (WebCore::CALLBACK_FUNC_DECL):
+        (WebCore::removeElement):
+        * bindings/v8/custom/V8HTMLSelectElementCustom.h: Added.
+        * bindings/v8/custom/V8NamedNodesCollection.cpp: Added.
+        (WebCore::V8NamedNodesCollection::item):
+        (WebCore::V8NamedNodesCollection::itemWithName):
+        * bindings/v8/custom/V8NamedNodesCollection.h: Added.
+        (WebCore::V8NamedNodesCollection::V8NamedNodesCollection):
+        (WebCore::V8NamedNodesCollection::length):
+
+2009-02-11  Dimitri Dupuis-latour  <dupuislatour@apple.com>
+
+        Added a preference to disable some Inspector's panels (rdar://6419624, rdar://6419645).
+        This is controlled via the 'WebKitInspectorHiddenPanels' key; if nothing is specified, all panels are shown.
+
+        Reviewed by Timothy Hatcher.
+
+        * inspector/InspectorClient.h:
+        * inspector/InspectorController.cpp:
+        (WebCore::hiddenPanels):
+        (WebCore::InspectorController::hiddenPanels):
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        * inspector/InspectorController.h:
+        * inspector/front-end/inspector.js:
+        (WebInspector.loaded):
+        * loader/EmptyClients.h:
+        (WebCore::EmptyInspectorClient::hiddenPanels):
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Combine RenderObject::element() and RenderObject::node() into a single function.  
+        node() now has the "anonymous bit" checking behavior of element() and will
+        return 0 for anonymous content.  This patch switches all callers of element() 
+        to node() and patches old callers of node() to deal with situations where they
+        did not expect node() to be 0.  A bunch of node() calls were calling stuff on 
+        Document that they clearly didn't intend, so overall this is a nice improvement.
+    
+        Reviewed by Sam Weinig
+
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::getUpperLeftCorner):
+        * dom/Element.cpp:
+        (WebCore::Element::offsetParent):
+        * dom/Position.cpp:
+        (WebCore::Position::hasRenderedNonAnonymousDescendantsWithHeight):
+        * editing/ModifySelectionListLevel.cpp:
+        (WebCore::getStartEndListChildren):
+        (WebCore::IncreaseSelectionListLevelCommand::doApply):
+        (WebCore::DecreaseSelectionListLevelCommand::doApply):
+        * editing/TextIterator.cpp:
+        (WebCore::TextIterator::advance):
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::leftVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::rightVisuallyDistinctCandidate):
+        * editing/visible_units.cpp:
+        (WebCore::startPositionForLine):
+        (WebCore::endPositionForLine):
+        * page/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::get):
+        * page/AccessibilityList.cpp:
+        (WebCore::AccessibilityList::isUnorderedList):
+        (WebCore::AccessibilityList::isOrderedList):
+        (WebCore::AccessibilityList::isDefinitionList):
+        * page/AccessibilityListBox.cpp:
+        (WebCore::AccessibilityListBox::doAccessibilityHitTest):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::isPasswordField):
+        (WebCore::AccessibilityRenderObject::isFileUploadButton):
+        (WebCore::AccessibilityRenderObject::isInputImage):
+        (WebCore::AccessibilityRenderObject::isMultiSelect):
+        (WebCore::AccessibilityRenderObject::isControl):
+        (WebCore::AccessibilityRenderObject::getAttribute):
+        (WebCore::AccessibilityRenderObject::anchorElement):
+        (WebCore::AccessibilityRenderObject::actionElement):
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        (WebCore::AccessibilityRenderObject::helpText):
+        (WebCore::AccessibilityRenderObject::textUnderElement):
+        (WebCore::AccessibilityRenderObject::hasIntValue):
+        (WebCore::AccessibilityRenderObject::intValue):
+        (WebCore::AccessibilityRenderObject::labelElementContainer):
+        (WebCore::AccessibilityRenderObject::title):
+        (WebCore::AccessibilityRenderObject::accessibilityDescription):
+        (WebCore::AccessibilityRenderObject::boundingBoxRect):
+        (WebCore::AccessibilityRenderObject::checkboxOrRadioRect):
+        (WebCore::AccessibilityRenderObject::titleUIElement):
+        (WebCore::AccessibilityRenderObject::accessibilityIsIgnored):
+        (WebCore::AccessibilityRenderObject::text):
+        (WebCore::AccessibilityRenderObject::ariaSelectedTextDOMRange):
+        (WebCore::AccessibilityRenderObject::accessKey):
+        (WebCore::AccessibilityRenderObject::setSelectedTextRange):
+        (WebCore::AccessibilityRenderObject::url):
+        (WebCore::AccessibilityRenderObject::isFocused):
+        (WebCore::AccessibilityRenderObject::setFocused):
+        (WebCore::AccessibilityRenderObject::setValue):
+        (WebCore::AccessibilityRenderObject::isEnabled):
+        (WebCore::AccessibilityRenderObject::visiblePositionRange):
+        (WebCore::AccessibilityRenderObject::index):
+        (WebCore::AccessibilityRenderObject::activeDescendant):
+        (WebCore::AccessibilityRenderObject::handleActiveDescendantChanged):
+        (WebCore::AccessibilityRenderObject::observableObject):
+        (WebCore::AccessibilityRenderObject::roleValue):
+        (WebCore::AccessibilityRenderObject::canSetFocusAttribute):
+        (WebCore::AccessibilityRenderObject::ariaListboxSelectedChildren):
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+        (WebCore::AccessibilityTable::title):
+        * page/AccessibilityTableCell.cpp:
+        (WebCore::AccessibilityTableCell::titleUIElement):
+        * page/AccessibilityTableColumn.cpp:
+        (WebCore::AccessibilityTableColumn::headerObjectForSection):
+        * page/AccessibilityTableRow.cpp:
+        (WebCore::AccessibilityTableRow::headerObject):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::dispatchMouseEvent):
+        (WebCore::EventHandler::canMouseDownStartSelect):
+        (WebCore::EventHandler::canMouseDragExtendSelect):
+        (WebCore::EventHandler::shouldDragAutoNode):
+        * page/Frame.cpp:
+        (WebCore::Frame::searchForLabelsAboveCell):
+        (WebCore::Frame::setFocusedNodeIfNeeded):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::updateOverflowStatus):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::updateStateMachine):
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::updateAnimationTimer):
+        (WebCore::AnimationController::cancelAnimations):
+        (WebCore::AnimationController::updateAnimations):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::KeyframeAnimation):
+        (WebCore::KeyframeAnimation::endAnimation):
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (blockquoteLevel):
+        (AXAttributeStringSetHeadingLevel):
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::searchForNSLabelsAboveCell):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::verticallyAlignBoxes):
+        (WebCore::InlineFlowBox::paint):
+        (WebCore::shouldDrawTextDecoration):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paintDocumentMarkers):
+        * rendering/RenderBR.cpp:
+        (WebCore::RenderBR::positionForCoordinates):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlock):
+        (WebCore::RenderBlock::handleRunInChild):
+        (WebCore::RenderBlock::paintObject):
+        (WebCore::RenderBlock::isSelectionRoot):
+        (WebCore::RenderBlock::rightmostPosition):
+        (WebCore::RenderBlock::positionForBox):
+        (WebCore::RenderBlock::positionForRenderer):
+        (WebCore::RenderBlock::positionForCoordinates):
+        (WebCore::RenderBlock::hasLineIfEmpty):
+        (WebCore::RenderBlock::updateFirstLetter):
+        (WebCore::RenderBlock::updateHitTestResult):
+        (WebCore::RenderBlock::addFocusRingRects):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::styleWillChange):
+        (WebCore::RenderBox::updateBoxModelInfoFromStyle):
+        (WebCore::RenderBox::paintRootBoxDecorations):
+        (WebCore::RenderBox::positionForCoordinates):
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::updateFromElement):
+        (WebCore::RenderButton::canHaveChildren):
+        * rendering/RenderCounter.cpp:
+        (WebCore::planCounter):
+        * rendering/RenderFieldset.cpp:
+        (WebCore::RenderFieldset::findLegend):
+        * rendering/RenderFlexibleBox.cpp:
+        (WebCore::RenderFlexibleBox::layoutVerticalBox):
+        * rendering/RenderForeignObject.cpp:
+        (WebCore::RenderForeignObject::translationForAttributes):
+        (WebCore::RenderForeignObject::calculateLocalTransform):
+        * rendering/RenderFrame.h:
+        (WebCore::RenderFrame::element):
+        * rendering/RenderImage.cpp:
+        (WebCore::RenderImage::paintReplaced):
+        (WebCore::RenderImage::imageMap):
+        (WebCore::RenderImage::nodeAtPoint):
+        (WebCore::RenderImage::updateAltText):
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::cloneInline):
+        (WebCore::RenderInline::updateHitTestResult):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::isTransparent):
+        (WebCore::RenderLayer::scrollToOffset):
+        (WebCore::RenderLayer::resize):
+        (WebCore::RenderLayer::createScrollbar):
+        (WebCore::RenderLayer::updateOverflowStatus):
+        (WebCore::RenderLayer::updateScrollInfoAfterLayout):
+        (WebCore::RenderLayer::enclosingElement):
+        (WebCore::RenderLayer::updateHoverActiveState):
+        (WebCore::RenderLayer::updateScrollCornerStyle):
+        (WebCore::RenderLayer::updateResizerStyle):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::isRootLayer):
+        * rendering/RenderListItem.cpp:
+        (WebCore::getParentOfFirstLineBox):
+        * rendering/RenderMarquee.cpp:
+        (WebCore::RenderMarquee::marqueeSpeed):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::RenderObject):
+        (WebCore::RenderObject::isBody):
+        (WebCore::RenderObject::isHR):
+        (WebCore::RenderObject::isHTMLMarquee):
+        (WebCore::RenderObject::isEditable):
+        (WebCore::RenderObject::addPDFURLRect):
+        (WebCore::RenderObject::showTreeForThis):
+        (WebCore::RenderObject::draggableNode):
+        (WebCore::RenderObject::hasOutlineAnnotation):
+        (WebCore::RenderObject::positionForCoordinates):
+        (WebCore::RenderObject::updateDragState):
+        (WebCore::RenderObject::updateHitTestResult):
+        (WebCore::RenderObject::getUncachedPseudoStyle):
+        (WebCore::RenderObject::getTextDecorationColors):
+        (WebCore::RenderObject::caretMaxOffset):
+        (WebCore::RenderObject::offsetParent):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isRoot):
+        (WebCore::RenderObject::isInlineContinuation):
+        (WebCore::RenderObject::node):
+        (WebCore::RenderObject::setNode):
+        * rendering/RenderObjectChildList.cpp:
+        (WebCore::RenderObjectChildList::destroyLeftoverChildren):
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::updateWidgetPosition):
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::updateWidget):
+        (WebCore::RenderPartObject::viewCleared):
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::calculateLocalTransform):
+        (WebCore::RenderPath::layout):
+        (WebCore::RenderPath::paint):
+        (WebCore::RenderPath::drawMarkersIfNeeded):
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::positionForCoordinates):
+        (WebCore::RenderReplaced::isSelected):
+        * rendering/RenderSVGGradientStop.cpp:
+        (WebCore::RenderSVGGradientStop::gradientElement):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::calculateLocalTransform):
+        * rendering/RenderSVGInlineText.cpp:
+        (WebCore::RenderSVGInlineText::positionForCoordinates):
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::layout):
+        (WebCore::RenderSVGRoot::applyContentTransforms):
+        (WebCore::RenderSVGRoot::paint):
+        (WebCore::RenderSVGRoot::calcViewport):
+        (WebCore::RenderSVGRoot::absoluteTransform):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::calculateLocalTransform):
+        (WebCore::RenderSVGText::layout):
+        * rendering/RenderSVGTextPath.cpp:
+        (WebCore::RenderSVGTextPath::layoutPath):
+        (WebCore::RenderSVGTextPath::startOffset):
+        (WebCore::RenderSVGTextPath::exactAlignment):
+        (WebCore::RenderSVGTextPath::stretchMethod):
+        * rendering/RenderSVGTransformableContainer.cpp:
+        (WebCore::RenderSVGTransformableContainer::calculateLocalTransform):
+        * rendering/RenderSVGViewportContainer.cpp:
+        (WebCore::RenderSVGViewportContainer::calcViewport):
+        (WebCore::RenderSVGViewportContainer::viewportTransform):
+        (WebCore::RenderSVGViewportContainer::nodeAtPoint):
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::addChild):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::updateFromElement):
+        (WebCore::RenderTableCell::calcPrefWidths):
+        * rendering/RenderTableCol.cpp:
+        (WebCore::RenderTableCol::updateFromElement):
+        * rendering/RenderTableRow.cpp:
+        (WebCore::RenderTableRow::addChild):
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::addChild):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::originalText):
+        (WebCore::RenderText::positionForCoordinates):
+        * rendering/RenderTextControlMultiLine.cpp:
+        (WebCore::RenderTextControlMultiLine::nodeAtPoint):
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::nodeAtPoint):
+        * rendering/RenderTextFragment.cpp:
+        (WebCore::RenderTextFragment::originalText):
+        (WebCore::RenderTextFragment::previousCharacter):
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::isActive):
+        (WebCore::RenderTheme::isChecked):
+        (WebCore::RenderTheme::isIndeterminate):
+        (WebCore::RenderTheme::isEnabled):
+        (WebCore::RenderTheme::isFocused):
+        (WebCore::RenderTheme::isPressed):
+        (WebCore::RenderTheme::isReadOnlyControl):
+        (WebCore::RenderTheme::isHovered):
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::updatePressedState):
+        (WebCore::RenderThemeMac::paintMediaFullscreenButton):
+        (WebCore::RenderThemeMac::paintMediaMuteButton):
+        (WebCore::RenderThemeMac::paintMediaPlayButton):
+        (WebCore::RenderThemeMac::paintMediaSeekBackButton):
+        (WebCore::RenderThemeMac::paintMediaSeekForwardButton):
+        (WebCore::RenderThemeMac::paintMediaSliderTrack):
+        (WebCore::RenderThemeMac::paintMediaSliderThumb):
+        (WebCore::RenderThemeMac::paintMediaTimelineContainer):
+        (WebCore::RenderThemeMac::paintMediaCurrentTime):
+        (WebCore::RenderThemeMac::paintMediaTimeRemaining):
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderThemeSafari::paintMediaMuteButton):
+        (WebCore::RenderThemeSafari::paintMediaPlayButton):
+        (WebCore::RenderThemeSafari::paintMediaSliderTrack):
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::operator<<):
+        (WebCore::writeSelection):
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::setWidgetGeometry):
+        (WebCore::RenderWidget::updateWidgetPosition):
+        (WebCore::RenderWidget::nodeAtPoint):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::isEditableLeaf):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::prepareToRenderSVGContent):
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::write):
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBox::buildLayoutInformation):
+        (WebCore::SVGRootInlineBox::layoutInlineBoxes):
+        (WebCore::SVGRootInlineBox::buildLayoutInformationForTextBox):
+        (WebCore::SVGRootInlineBox::buildTextChunks):
+        * rendering/style/SVGRenderStyle.cpp:
+        (WebCore::SVGRenderStyle::cssPrimitiveToLength):
+        * svg/SVGFont.cpp:
+        (WebCore::SVGTextRunWalker::walk):
+        (WebCore::floatWidthOfSubStringUsingSVGFont):
+        (WebCore::Font::drawTextUsingSVGFont):
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::findInlineTextBoxInTextChunks):
+        * svg/graphics/SVGPaintServer.cpp:
+        (WebCore::SVGPaintServer::fillPaintServer):
+        (WebCore::SVGPaintServer::strokePaintServer):
+
+2009-02-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        <rdar://problem/3541409> - Further FrameLoader and page cache cleanup
+
+        * history/CachedFrame.cpp:
+        (WebCore::CachedFrame::restore): Moved updatePlatformScriptObjects() here.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::commitProvisionalLoad): Rolled opened() into this method.  This method was
+          the only caller and - in the future - will benefit from doing parts of opened()'s work differently.
+        (WebCore::FrameLoader::open): Split off per-frame logic into open(CachedFrame&) method.
+        (WebCore::FrameLoader::closeAndRemoveChild): Added.  Do the non-tree related cleanup that
+          FrameTree::removeChild() used to do.
+        (WebCore::FrameLoader::detachFromParent): Call ::closeAndRemoveChild() instead.
+        (WebCore::FrameLoader::cachePageForHistoryItem): Perform the "can cache page" check here.
+        * loader/FrameLoader.h:
+
+        * page/FrameTree.cpp:
+        (WebCore::FrameTree::removeChild): Just remove the Frame from the tree.  Closing it and other
+          cleanup is the responsibility of the FrameLoader.
+        * page/FrameTree.h:
+        (WebCore::FrameTree::detachFromParent): Added to just clear a Frame's parent pointer
+
+2009-02-11  Scott Violet  <sky@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23882
+        GraphicsContextSkia draws round rects as solid rects
+
+        Fixes two bugs in Skia's GraphicsContext::fillRoundedRect:
+        . fillRoundedRect had an extra call to fillRect, resulting in always
+          drawing a solid rectangle.
+        . if the total radius along a given axis is greater than the size of
+          the axis to draw, a solid rect should be drawn.
+
+        The layout tests LayoutTests/fast/css/shadow-multiple.html and
+        LayoutTests/fast/box-shadow/basic-shadows.html cover this.
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::fillRoundedRect):
+
+2009-02-11  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 23536: Auto-generate HTMLElementFactory
+
+        Remove the HTMLElementFactory files. Farewell.
+
+        * html/HTMLElementFactory.cpp: Removed.
+        * html/HTMLElementFactory.h: Removed.
+
+2009-02-11  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 23536: Auto-generate HTMLElementFactory
+
+        Make the platform auto-generate the HTMLElementFactory.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * webcore-base.bkl:
+
+2009-02-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Remove unneeded ASSERTS.
+
+        * rendering/RenderBox.h:
+        (WebCore::RenderBox::width):
+        (WebCore::RenderBox::height):
+        (WebCore::RenderBox::size):
+        (WebCore::RenderBox::frameRect):
+
+2009-02-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Add function to RenderStyle to ask whether a background image has been specified.
+
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::hasBackgroundImage):
+
+2009-02-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=23548
+
+        When opacity or transform change on an object which has a compositing layer,
+        avoid repainting the layer.
+        
+        Added a new StyleDifference value, StyleDifferenceRecompositeLayer, which indicates
+        that the only thing styleChanged() has to do is to update composited properties of
+        the layer. RenderStyle::diff() now has an out param for a bitmask of "context sensitive"
+        properties, currently for opacity and transform. When one of these changes, we need
+        to see if we have a compositing layer before we decide whether to layout/repaint,
+        or just update the composited layer, via adjustStyleDifference().
+        
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::adjustStyleDifference):
+        (WebCore::RenderObject::setStyle):
+        (WebCore::RenderObject::styleDidChange):
+        * rendering/RenderObject.h:
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::diff):
+        * rendering/style/RenderStyle.h:
+        * rendering/style/RenderStyleConstants.h:
+        (WebCore::):
+
+2009-02-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6562920> Pasted text should be normalized to NFC
+
+        Testing requires putting non-HTML content in pasteboard, so it cannot be done with WebKit alone.
+
+        * platform/mac/PasteboardMac.mm: (WebCore::Pasteboard::plainText): Route the text through
+        -[NSString precomposedStringWithCanonicalMapping].
+
+2009-02-10  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23883
+
+        Added new TransformOperation subclasses and methods to existing ones
+        to support 3D.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/transforms/IdentityTransformOperation.h:
+        (WebCore::IdentityTransformOperation::isAffine):
+        * platform/graphics/transforms/Matrix3DTransformOperation.cpp: Added.
+        (WebCore::Matrix3DTransformOperation::blend):
+        * platform/graphics/transforms/Matrix3DTransformOperation.h: Added.
+        (WebCore::Matrix3DTransformOperation::create):
+        (WebCore::Matrix3DTransformOperation::isIdentity):
+        (WebCore::Matrix3DTransformOperation::isAffine):
+        (WebCore::Matrix3DTransformOperation::getOperationType):
+        (WebCore::Matrix3DTransformOperation::isSameType):
+        (WebCore::Matrix3DTransformOperation::operator==):
+        (WebCore::Matrix3DTransformOperation::apply):
+        (WebCore::Matrix3DTransformOperation::Matrix3DTransformOperation):
+        * platform/graphics/transforms/MatrixTransformOperation.h:
+        (WebCore::MatrixTransformOperation::isAffine):
+        (WebCore::MatrixTransformOperation::apply):
+        * platform/graphics/transforms/PerspectiveTransformOperation.cpp: Added.
+        (WebCore::PerspectiveTransformOperation::blend):
+        * platform/graphics/transforms/PerspectiveTransformOperation.h: Added.
+        (WebCore::PerspectiveTransformOperation::create):
+        (WebCore::PerspectiveTransformOperation::isIdentity):
+        (WebCore::PerspectiveTransformOperation::isAffine):
+        (WebCore::PerspectiveTransformOperation::getOperationType):
+        (WebCore::PerspectiveTransformOperation::isSameType):
+        (WebCore::PerspectiveTransformOperation::operator==):
+        (WebCore::PerspectiveTransformOperation::apply):
+        (WebCore::PerspectiveTransformOperation::PerspectiveTransformOperation):
+        * platform/graphics/transforms/RotateTransformOperation.cpp:
+        (WebCore::RotateTransformOperation::blend):
+        * platform/graphics/transforms/RotateTransformOperation.h:
+        (WebCore::RotateTransformOperation::create):
+        (WebCore::RotateTransformOperation::angle):
+        (WebCore::RotateTransformOperation::isAffine):
+        (WebCore::RotateTransformOperation::operator==):
+        (WebCore::RotateTransformOperation::apply):
+        (WebCore::RotateTransformOperation::RotateTransformOperation):
+        * platform/graphics/transforms/ScaleTransformOperation.cpp:
+        (WebCore::ScaleTransformOperation::blend):
+        * platform/graphics/transforms/ScaleTransformOperation.h:
+        (WebCore::ScaleTransformOperation::create):
+        (WebCore::ScaleTransformOperation::z):
+        (WebCore::ScaleTransformOperation::isIdentity):
+        (WebCore::ScaleTransformOperation::isAffine):
+        (WebCore::ScaleTransformOperation::operator==):
+        (WebCore::ScaleTransformOperation::apply):
+        (WebCore::ScaleTransformOperation::ScaleTransformOperation):
+        * platform/graphics/transforms/SkewTransformOperation.h:
+        (WebCore::SkewTransformOperation::isAffine):
+        * platform/graphics/transforms/TransformOperation.h:
+        (WebCore::TransformOperation::):
+        (WebCore::TransformOperation::is3DOperation):
+        * platform/graphics/transforms/TransformOperations.h:
+        (WebCore::TransformOperations::isAffine):
+        (WebCore::TransformOperations::has3DOperation):
+        * platform/graphics/transforms/TranslateTransformOperation.cpp:
+        (WebCore::TranslateTransformOperation::blend):
+        * platform/graphics/transforms/TranslateTransformOperation.h:
+        (WebCore::TranslateTransformOperation::create):
+        (WebCore::TranslateTransformOperation::z):
+        (WebCore::TranslateTransformOperation::isIdentity):
+        (WebCore::TranslateTransformOperation::isAffine):
+        (WebCore::TranslateTransformOperation::operator==):
+        (WebCore::TranslateTransformOperation::apply):
+        (WebCore::TranslateTransformOperation::TranslateTransformOperation):
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Move createAnonymousBlock() to RenderBlock.  Since anonymous blocks are always parented to some other block,
+        we can move this function to RenderBlock.  Fix a couple of call sites as a result of this restriction.
+
+        Reviewed by Simon Fraser
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::createAnonymousBlock):
+        * rendering/RenderBlock.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::childBecameNonInline):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::handleDynamicFloatPositionChange):
+        * rendering/RenderObject.h:
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=23895
+
+        Remove two complete nonsense lines that I accidentally added from a cut and paste error.  This
+        restores the original logic.
+
+        Reviewed by Simon Fraser
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::calcAbsoluteHorizontalReplaced):
+
+2009-02-11  David Hyatt  <hyatt@apple.com>
+
+        Rename getBaselineOfFirstLineBox to firstLineBoxBaseline.  Rename getBaselineOfLastLineBox to
+        lastLineBoxBaseline.  Remove the functions from RenderObject and add them to RenderBox instead.
+
+        Reviewed by Eric Seidel
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::baselinePosition):
+        (WebCore::RenderBlock::firstLineBoxBaseline):
+        (WebCore::RenderBlock::lastLineBoxBaseline):
+        * rendering/RenderBlock.h:
+        * rendering/RenderBox.h:
+        (WebCore::RenderBox::firstLineBoxBaseline):
+        (WebCore::RenderBox::lastLineBoxBaseline):
+        * rendering/RenderFlexibleBox.cpp:
+        (WebCore::RenderFlexibleBox::layoutHorizontalBox):
+        * rendering/RenderObject.h:
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::firstLineBoxBaseline):
+        * rendering/RenderTable.h:
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::baselinePosition):
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::firstLineBoxBaseline):
+        * rendering/RenderTableSection.h:
+
+2009-02-11  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=23877
+        Allow port to disable progress events from <video> and <audio> elements
+
+        * html/HTMLMediaElement.cpp: Initialize m_sendProgressEvents.
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Don't post progress events if m_sendProgressEvents is false.
+        (WebCore::HTMLMediaElement::initAndDispatchProgressEvent): Ditto.
+        (WebCore::HTMLMediaElement::load): Ditto.
+        * html/HTMLMediaElement.h: Add m_sendProgressEvents
+
+2009-02-11  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * DerivedSources.cpp: Removed SVGElementFactory.cpp, since including
+        it leads to ambiguities for symbols like "aTag", which exist in both
+        the HTMLNames and SVGNames namespaces.
+
+        * WebCore.vcproj/WebCore.vcproj: Added SVGElementFactory.cpp to the
+        project directly. VS also decided to reformat this file a little bit.
+
+2009-02-10  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 23536: Auto-generate HTMLElementFactory
+
+        Those are the last auto-generation bits needed to have a working generated HTMLElementFactory:
+
+        - Added a new option mapToTagName that enables a tag to use another's options and tagName (<image>
+          uses imgTag for example) and wired the code generation to be consistent with the current factory.
+
+        - Disabled dashboard compatibility check for HTMLElementFactory as it would make at least one test case fail.
+
+        - Pass the QualifiedName down to the Element constructor for shared constructors to make the generated code as
+          close as possible to the current one. We will pass the QualifiedName for all Element in a forthcoming patch.
+
+        * dom/make_names.pl: Did all the above points and tweaked the code generation to match the current HTMLElementFactory
+          as closely as possible.
+
+        * html/HTMLElementFactory.cpp:
+        (WebCore::quoteConstructor):
+        * html/HTMLQuoteElement.cpp:
+        (WebCore::HTMLQuoteElement::HTMLQuoteElement): Moved setUsesBeforeAfterRules to HTMLQuoteElement' constructor because some
+        part of the code creates elements without using the HTMLElementFactory. Also added a FIXME as it is not the right place.
+
+        * html/HTMLTagNames.in: Corrected <image> parameters.
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Fix for pixel test regression in fast/text.  Make sure not to add in
+        the borderTop and paddingTop of the block to the baseline when painting
+        strict mode text decorations.
+        
+        Reviewed by Mark Rowe
+    
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::paintTextDecorations):
+        * rendering/InlineFlowBox.h:
+
+2009-02-10  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Windows build fix after r40837.
+
+        Not reviewed.
+
+        * DerivedSources.cpp:
+
+2009-02-10  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        <rdar://6349412> REGRESSION(r37204): Page is not repainted during and
+        after pan scrolling
+
+        Reviewed by Steve Falkenburg.
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollContents): Don't repaint the pan scroll
+        icon rect immediately; we will paint after the view has been scrolled.
+
+2009-02-10  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6156755> onMouseOver events do not fire properly for cross frame drag and drop
+
+        This problem was caused by incorrectly ignoring whether or not the
+        default behaviour of the mousedown event was suppressed.  If a
+        mousedown handler in a frame prevents default handling then the
+        subsequent mousemove events fired for the drag should not be
+        captured by that frame, should the mouse move out of its bounds.
+
+        Test: fast/events/mouse-drag-from-frame.html
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::EventHandler):
+        (WebCore::EventHandler::clear):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+            Reset new m_capturesDragging flag
+
+        (WebCore::EventHandler::handleMousePressEvent):
+            Respect the m_capturesDragging flag when we propagate
+            a mousedown event to a subframe.
+
+        * page/EventHandler.h:
+        (WebCore::EventHandler::capturesDragging):
+
+2009-02-10  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes for recent changes to TransformationMatrix and DOMElement.
+
+        * WebCoreSources.bkl:
+        * dom/Element.cpp:
+        * platform/graphics/transforms/TransformationMatrix.h:
+        * platform/graphics/wx/TransformationMatrixWx.cpp:
+        (WebCore::TransformationMatrix::operator wxGraphicsMatrix):
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Some renames on line boxes.  xPos()/yPos() -> x()/y().  setXPos()/setYPos() -> setX()/setY().  m_object/object() -> m_renderer/renderer().  textObject() -> textRenderer().
+        
+        Reviewed by Sam Weinig
+
+        * dom/Position.cpp:
+        (WebCore::Position::upstream):
+        (WebCore::Position::downstream):
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::leftVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::rightVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::localCaretRect):
+        * editing/visible_units.cpp:
+        (WebCore::startPositionForLine):
+        (WebCore::endPositionForLine):
+        (WebCore::previousLinePosition):
+        (WebCore::nextLinePosition):
+        * rendering/EllipsisBox.cpp:
+        (WebCore::EllipsisBox::paint):
+        (WebCore::EllipsisBox::nodeAtPoint):
+        * rendering/InlineBox.cpp:
+        (WebCore::InlineBox::showTreeForThis):
+        (WebCore::InlineBox::height):
+        (WebCore::InlineBox::caretMinOffset):
+        (WebCore::InlineBox::caretMaxOffset):
+        (WebCore::InlineBox::deleteLine):
+        (WebCore::InlineBox::extractLine):
+        (WebCore::InlineBox::attachLine):
+        (WebCore::InlineBox::adjustPosition):
+        (WebCore::InlineBox::paint):
+        (WebCore::InlineBox::nodeAtPoint):
+        (WebCore::InlineBox::selectionState):
+        (WebCore::InlineBox::canAccommodateEllipsis):
+        * rendering/InlineBox.h:
+        (WebCore::InlineBox::InlineBox):
+        (WebCore::InlineBox::renderer):
+        (WebCore::InlineBox::setX):
+        (WebCore::InlineBox::x):
+        (WebCore::InlineBox::setY):
+        (WebCore::InlineBox::y):
+        (WebCore::InlineBox::topOverflow):
+        (WebCore::InlineBox::bottomOverflow):
+        (WebCore::InlineBox::leftOverflow):
+        (WebCore::InlineBox::rightOverflow):
+        (WebCore::InlineBox::visibleToHitTesting):
+        (WebCore::InlineBox::boxModelObject):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::height):
+        (WebCore::InlineFlowBox::addToLine):
+        (WebCore::InlineFlowBox::removeLineBoxFromRenderObject):
+        (WebCore::InlineFlowBox::extractLineBoxFromRenderObject):
+        (WebCore::InlineFlowBox::attachLineBoxToRenderObject):
+        (WebCore::InlineFlowBox::rendererLineBoxes):
+        (WebCore::InlineFlowBox::onEndChain):
+        (WebCore::InlineFlowBox::determineSpacingForFlowBoxes):
+        (WebCore::InlineFlowBox::placeBoxesHorizontally):
+        (WebCore::InlineFlowBox::verticallyAlignBoxes):
+        (WebCore::InlineFlowBox::adjustMaxAscentAndDescent):
+        (WebCore::verticalPositionForBox):
+        (WebCore::InlineFlowBox::computeLogicalBoxHeights):
+        (WebCore::InlineFlowBox::placeBoxesVertically):
+        (WebCore::InlineFlowBox::nodeAtPoint):
+        (WebCore::InlineFlowBox::paint):
+        (WebCore::InlineFlowBox::paintFillLayer):
+        (WebCore::InlineFlowBox::paintBoxShadow):
+        (WebCore::InlineFlowBox::paintBoxDecorations):
+        (WebCore::InlineFlowBox::paintMask):
+        (WebCore::InlineFlowBox::paintTextDecorations):
+        * rendering/InlineFlowBox.h:
+        (WebCore::InlineFlowBox::borderLeft):
+        (WebCore::InlineFlowBox::borderRight):
+        (WebCore::InlineFlowBox::borderTop):
+        (WebCore::InlineFlowBox::borderBottom):
+        (WebCore::InlineFlowBox::baseline):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::height):
+        (WebCore::InlineTextBox::selectionState):
+        (WebCore::InlineTextBox::selectionRect):
+        (WebCore::InlineTextBox::deleteLine):
+        (WebCore::InlineTextBox::extractLine):
+        (WebCore::InlineTextBox::attachLine):
+        (WebCore::InlineTextBox::placeEllipsisBox):
+        (WebCore::InlineTextBox::isLineBreak):
+        (WebCore::InlineTextBox::nodeAtPoint):
+        (WebCore::InlineTextBox::paint):
+        (WebCore::InlineTextBox::selectionStartEnd):
+        (WebCore::InlineTextBox::paintSelection):
+        (WebCore::InlineTextBox::paintCompositionBackground):
+        (WebCore::InlineTextBox::paintCustomHighlight):
+        (WebCore::InlineTextBox::paintDecoration):
+        (WebCore::InlineTextBox::paintSpellingOrGrammarMarker):
+        (WebCore::InlineTextBox::paintTextMatchMarker):
+        (WebCore::InlineTextBox::paintDocumentMarkers):
+        (WebCore::InlineTextBox::paintCompositionUnderline):
+        (WebCore::InlineTextBox::textPos):
+        (WebCore::InlineTextBox::offsetForPosition):
+        (WebCore::InlineTextBox::positionForOffset):
+        * rendering/InlineTextBox.h:
+        (WebCore::InlineTextBox::textRenderer):
+        * rendering/ListMarkerBox.cpp:
+        (WebCore::ListMarkerBox::isText):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::paintEllipsisBoxes):
+        (WebCore::RenderBlock::lowestPosition):
+        (WebCore::RenderBlock::rightmostPosition):
+        (WebCore::RenderBlock::leftmostPosition):
+        (WebCore::RenderBlock::positionForBox):
+        (WebCore::RenderBlock::positionForCoordinates):
+        (WebCore::RenderBlock::getBaselineOfFirstLineBox):
+        (WebCore::RenderBlock::getBaselineOfLastLineBox):
+        (WebCore::RenderBlock::adjustForBorderFit):
+        (WebCore::RenderBlock::addFocusRingRects):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::paintCustomHighlight):
+        (WebCore::RenderBox::position):
+        (WebCore::RenderBox::containingBlockWidthForPositioned):
+        (WebCore::RenderBox::calcAbsoluteHorizontalValues):
+        (WebCore::RenderBox::calcAbsoluteHorizontalReplaced):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+        * rendering/RenderFlexibleBox.cpp:
+        (WebCore::RenderFlexibleBox::layoutVerticalBox):
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::absoluteRects):
+        (WebCore::RenderInline::absoluteQuads):
+        (WebCore::RenderInline::offsetLeft):
+        (WebCore::RenderInline::offsetTop):
+        (WebCore::RenderInline::linesBoundingBox):
+        (WebCore::RenderInline::relativePositionedInlineOffset):
+        (WebCore::RenderInline::addFocusRingRects):
+        (WebCore::RenderInline::paintOutline):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::localBoundingBox):
+        * rendering/RenderSVGTSpan.cpp:
+        (WebCore::RenderSVGTSpan::absoluteRects):
+        (WebCore::RenderSVGTSpan::absoluteQuads):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::absoluteRects):
+        (WebCore::RenderSVGText::absoluteQuads):
+        (WebCore::RenderSVGText::relativeBBox):
+        * rendering/RenderSVGTextPath.cpp:
+        (WebCore::RenderSVGTextPath::absoluteRects):
+        (WebCore::RenderSVGTextPath::absoluteQuads):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::absoluteRects):
+        (WebCore::RenderText::absoluteRectsForRange):
+        (WebCore::RenderText::absoluteQuads):
+        (WebCore::RenderText::absoluteQuadsForRange):
+        (WebCore::RenderText::localCaretRect):
+        (WebCore::RenderText::linesBoundingBox):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::height):
+        (WebCore::RootInlineBox::clearTruncation):
+        (WebCore::RootInlineBox::placeEllipsis):
+        (WebCore::RootInlineBox::paintEllipsisBox):
+        (WebCore::RootInlineBox::addHighlightOverflow):
+        (WebCore::RootInlineBox::paintCustomHighlight):
+        (WebCore::RootInlineBox::paint):
+        (WebCore::RootInlineBox::nodeAtPoint):
+        (WebCore::RootInlineBox::childRemoved):
+        (WebCore::RootInlineBox::fillLineSelectionGap):
+        (WebCore::RootInlineBox::block):
+        (WebCore::isEditableLeaf):
+        (WebCore::RootInlineBox::closestLeafChildForXPos):
+        (WebCore::RootInlineBox::setVerticalOverflowPositions):
+        * rendering/RootInlineBox.h:
+        (WebCore::RootInlineBox::bottomOverflow):
+        (WebCore::RootInlineBox::floats):
+        (WebCore::RootInlineBox::setHorizontalOverflowPositions):
+        (WebCore::RootInlineBox::setVerticalSelectionPositions):
+        * rendering/SVGCharacterLayoutInfo.cpp:
+        (WebCore::SVGCharacterLayoutInfo::addLayoutInformation):
+        * rendering/SVGInlineTextBox.cpp:
+        (WebCore::SVGInlineTextBox::calculateGlyphWidth):
+        (WebCore::SVGInlineTextBoxClosestCharacterToPositionWalker::chunkPortionCallback):
+        (WebCore::SVGInlineTextBoxSelectionRectWalker::chunkPortionCallback):
+        (WebCore::SVGInlineTextBox::svgCharacterHitsPosition):
+        (WebCore::SVGInlineTextBox::nodeAtPoint):
+        (WebCore::SVGInlineTextBox::paintCharacters):
+        (WebCore::SVGInlineTextBox::paintSelection):
+        (WebCore::SVGInlineTextBox::paintDecoration):
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::writeSVGInlineTextBox):
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBoxPaintWalker::SVGRootInlineBoxPaintWalker):
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkStartCallback):
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkEndCallback):
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkSetupFillCallback):
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkSetupStrokeCallback):
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkPortionCallback):
+        (WebCore::SVGRootInlineBox::paint):
+        (WebCore::cummulatedWidthOfInlineBoxCharacterRange):
+        (WebCore::cummulatedHeightOfInlineBoxCharacterRange):
+        (WebCore::svgTextRunForInlineTextBox):
+        (WebCore::cummulatedWidthOrHeightOfTextChunk):
+        (WebCore::applyTextAnchorToTextChunk):
+        (WebCore::SVGRootInlineBox::buildLayoutInformation):
+        (WebCore::SVGRootInlineBox::layoutInlineBoxes):
+        (WebCore::SVGRootInlineBox::buildLayoutInformationForTextBox):
+        (WebCore::SVGRootInlineBox::buildTextChunks):
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::constructLine):
+        (WebCore::RenderBlock::computeVerticalPositionsForLine):
+        (WebCore::RenderBlock::layoutInlineChildren):
+        (WebCore::RenderBlock::checkLinesForTextOverflow):
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::cumulativeCharacterRangeLength):
+        (WebCore::SVGInlineTextBoxQueryWalker::chunkPortionCallback):
+        (WebCore::findInlineTextBoxInTextChunks):
+
+2009-02-10  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Clean up "fallbackAnimating" logic in AnimationBase. This flag indicates
+        that animation of an accelerated property must run in software for some reason.
+        
+        Also remove use of private headers in GraphicsLayerCA related to a case
+        where we may have to fall back on software animation of transform.
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::blendProperties):
+        * page/animation/AnimationBase.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::animate):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::animate):
+        * platform/graphics/mac/GraphicsLayerCA.h:
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::getValueFunctionNameForTransformOperation):
+        (WebCore::caValueFunctionSupported):
+        (WebCore::GraphicsLayerCA::setBackgroundColor):
+        (WebCore::GraphicsLayerCA::setOpacity):
+        (WebCore::GraphicsLayerCA::animateTransform):
+        (WebCore::GraphicsLayerCA::animateFloat):
+        (WebCore::GraphicsLayerCA::setBasicAnimation):
+        (WebCore::GraphicsLayerCA::setKeyframeAnimation):
+
+2009-02-10  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Move enclosingCompositingLayer() from RenderObject to RenderLayer, since it
+        relates to the RenderLayer z-order/overflow structure, rather than the render tree
+        parent chain. Add a convenience method, ancestorCompositingLayer(), which finds
+        the enclosing layer excluding self.
+        
+        Fix enclosingCompositingLayer() to correctly look at stacking context and overflow
+        lists.
+        
+        Check for documentBeingDestroyed() in a few places to avoid work on document
+        teardown.
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::enclosingCompositingLayer):
+        (WebCore::RenderLayer::setParent):
+        (WebCore::RenderLayer::dirtyZOrderLists):
+        (WebCore::RenderLayer::dirtyOverflowList):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::ancestorCompositingLayer):
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateGraphicsLayerGeometry):
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::updateLayerCompositingState):
+        (WebCore::RenderLayerCompositor::calculateCompositedBounds):
+        (WebCore::RenderLayerCompositor::layerWillBeRemoved):
+        (WebCore::RenderLayerCompositor::clippedByAncestor):
+        * rendering/RenderLayerCompositor.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::containerForRepaint):
+        * rendering/RenderObject.h:
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Rename xPos() and yPos() on RenderLayer to x() and y() to match RenderBox.  Rename setPos to setLocation.
+
+        Reviewed by Simon Fraser
+
+        * dom/MouseRelatedEvent.cpp:
+        (WebCore::MouseRelatedEvent::receivedTarget):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateLayerPosition):
+        (WebCore::RenderLayer::convertToLayerCoords):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::x):
+        (WebCore::RenderLayer::y):
+        (WebCore::RenderLayer::setLocation):
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::write):
+        (WebCore::externalRepresentation):
+
+2009-02-10  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23879
+        Add missing PLATFORM(SKIA) changes to TransformationMatrix.h
+
+        * platform/graphics/transforms/TransformationMatrix.h:
+
+2009-02-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=15897
+        Please implement getBoundingClientRect and getClientRects
+        <rdar://problem/6139669>
+
+        Cursory implementation of Element.getBoundingClientRect and
+        Element.getClientRects. Adds necessary infrastructure classes
+        ClientRect and ClientRectList.
+
+        Tests: fast/dom/getBoundingClientRect.html
+               fast/dom/getClientRects.html
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * dom/ClientRect.cpp: Added.
+        (WebCore::ClientRect::ClientRect):
+        * dom/ClientRect.h: Added.
+        (WebCore::ClientRect::create):
+        (WebCore::ClientRect::top):
+        (WebCore::ClientRect::right):
+        (WebCore::ClientRect::bottom):
+        (WebCore::ClientRect::left):
+        (WebCore::ClientRect::width):
+        (WebCore::ClientRect::height):
+        * dom/ClientRect.idl: Added.
+        * dom/ClientRectList.cpp: Added.
+        (WebCore::ClientRectList::ClientRectList):
+        (WebCore::ClientRectList::~ClientRectList):
+        (WebCore::ClientRectList::length):
+        (WebCore::ClientRectList::item):
+        * dom/ClientRectList.h: Added.
+        (WebCore::ClientRectList::create):
+        * dom/ClientRectList.idl: Added.
+        * dom/Element.cpp:
+        (WebCore::Element::getClientRects):
+        (WebCore::Element::getBoundingClientRect):
+        * dom/Element.h:
+        * dom/Element.idl:
+        * page/DOMWindow.idl:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::absoluteRects):
+        (WebCore::RenderInline::absoluteQuads):
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Get rid of capsLockStateMayHaveChanged on RenderObject.  It is only implemented by one class (text fields),
+        so devirtualize and just query at the single call site.
+
+        Reviewed by Eric Seidel
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::capsLockStateMayHaveChanged):
+        * rendering/RenderObject.h:
+        * rendering/RenderTextControlSingleLine.h:
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Shrink the size of all RenderObjects (except for RenderInlines) by 4 bytes.  This patch moves the cached vertical position member to RenderInlines,
+        since they were the only objects being queried across multiple lines.
+        
+        Reviewed by Sam Weinig
+
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::verticalPositionForBox):
+        (WebCore::InlineFlowBox::computeLogicalBoxHeights):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::verticalPosition):
+        * rendering/RenderBoxModelObject.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::RenderInline):
+        (WebCore::RenderInline::verticalPositionFromCache):
+        * rendering/RenderInline.h:
+        (WebCore::RenderInline::invalidateVerticalPosition):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::RenderObject):
+        * rendering/RenderObject.h:
+        * rendering/RenderText.cpp:
+        * rendering/RenderText.h:
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::layoutInlineChildren):
+
+2009-02-10  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23868
+        Fix code style issues: removed 80-col wrapping, incorrect include style, if statement body on same line.
+
+        * bindings/v8/custom/V8HTMLInputElementCustom.cpp:
+        * bindings/v8/custom/V8HTMLOptionsCollectionCustom.cpp:
+
+2009-02-10  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23868
+        Add HTMLInputElement and HTMLOptionsCollection V8 custom bindings.
+
+        * bindings/v8/custom/V8HTMLInputElementCustom.cpp: Added.
+        (WebCore::ACCESSOR_GETTER):
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8HTMLOptionsCollectionCustom.cpp: Added.
+        (WebCore::ACCESSOR_GETTER):
+        (WebCore::ACCESSOR_SETTER):
+
+2009-02-10  Adam Roben  <aroben@apple.com>
+
+        Fix Bug 23871: Assertion failure beneath WebCore::openFunc when
+        running http/tests/security/xss-DENIED-xsl-document-redirect.xml
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23871>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Covered by existing tests.
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::openFunc): Use the two-parameter KURL constructor so that
+        the string will be parsed. libxml2 gives us a UTF-8-encoded string
+        that needs to be parsed.
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Shrink the size of all replaced elements (images, form controls, plugins) by 4 bytes by packing the
+        overflow boolean into the RenderObject base class.
+
+        Reviewed by Sam Weinig
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::RenderObject):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::replacedHasOverflow):
+        (WebCore::RenderObject::setReplacedHasOverflow):
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::RenderReplaced):
+        (WebCore::RenderReplaced::~RenderReplaced):
+        (WebCore::RenderReplaced::adjustOverflowForBoxShadow):
+        (WebCore::RenderReplaced::overflowHeight):
+        (WebCore::RenderReplaced::overflowWidth):
+        (WebCore::RenderReplaced::overflowLeft):
+        (WebCore::RenderReplaced::overflowTop):
+        (WebCore::RenderReplaced::overflowRect):
+        * rendering/RenderReplaced.h:
+
+2009-02-10  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23870
+        Make it possible for a port to require a user gesture for an <audio> or <video> element
+        to load a url.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Initialize m_loadRestrictions.
+        (WebCore::HTMLMediaElement::attributeChanged): Only one attribute can change so put an "else" between tests.
+        (WebCore::HTMLMediaElement::load): Return INVALID_STATE_ERR if RequireUserGestureLoadRestriction is set 
+        and we are not preocessing a user gesture.
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged): Remove unnecessary white space.
+        (WebCore::HTMLMediaElement::play): Ditto.
+        (WebCore::HTMLMediaElement::endScrubbing): Remove unnecessary braces added in r40789.
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged): Cache currentTime() in a local instead of calling it
+        multiple times.
+        (WebCore::HTMLMediaElement::processingUserGesture): New.
+        * html/HTMLMediaElement.h:
+        (WebCore::HTMLMediaElement::): Define LoadRestrictions, add m_loadRestrictions.
+
+2009-02-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Sam Weinig.
+
+        Remove the SVG checks from FloatPoint3D as it is used
+        by TransformationMatrix.
+
+        * platform/graphics/FloatPoint3D.cpp:
+        * platform/graphics/FloatPoint3D.h:
+
+2009-02-10  David Hyatt  <hyatt@apple.com>
+
+        Remove the m_baseline member variable from all line boxes, since it can easily be computed when needed and did not need to be cached.
+
+        Reviewed by Sam Weinig
+
+        * rendering/EllipsisBox.cpp:
+        (WebCore::EllipsisBox::paint):
+        (WebCore::EllipsisBox::nodeAtPoint):
+        * rendering/EllipsisBox.h:
+        (WebCore::EllipsisBox::EllipsisBox):
+        * rendering/InlineBox.h:
+        (WebCore::InlineBox::InlineBox):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::verticallyAlignBoxes):
+        (WebCore::InlineFlowBox::computeLogicalBoxHeights):
+        (WebCore::InlineFlowBox::placeBoxesVertically):
+        (WebCore::InlineFlowBox::paintTextDecorations):
+        * rendering/InlineFlowBox.h:
+        (WebCore::InlineFlowBox::marginBorderPaddingLeft):
+        (WebCore::InlineFlowBox::marginBorderPaddingRight):
+        (WebCore::InlineFlowBox::marginLeft):
+        (WebCore::InlineFlowBox::marginRight):
+        (WebCore::InlineFlowBox::borderLeft):
+        (WebCore::InlineFlowBox::borderRight):
+        (WebCore::InlineFlowBox::borderTop):
+        (WebCore::InlineFlowBox::borderBottom):
+        (WebCore::InlineFlowBox::paddingLeft):
+        (WebCore::InlineFlowBox::paddingRight):
+        (WebCore::InlineFlowBox::paddingTop):
+        (WebCore::InlineFlowBox::paddingBottom):
+        (WebCore::InlineFlowBox::includeLeftEdge):
+        (WebCore::InlineFlowBox::includeRightEdge):
+        (WebCore::InlineFlowBox::baseline):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paint):
+        (WebCore::InlineTextBox::paintDecoration):
+        (WebCore::InlineTextBox::paintSpellingOrGrammarMarker):
+        (WebCore::InlineTextBox::paintCompositionUnderline):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::getBaselineOfFirstLineBox):
+        (WebCore::RenderBlock::getBaselineOfLastLineBox):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::baselinePosition):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::placeEllipsis):
+        * rendering/SVGInlineTextBox.cpp:
+        (WebCore::SVGInlineTextBox::paintDecoration):
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::applyTextAnchorToTextChunk):
+        (WebCore::SVGRootInlineBox::layoutInlineBoxes):
+
+2009-02-10  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23867
+        Eliminate obsolete frame->document() checks
+
+        * page/FrameView.cpp: (WebCore::FrameView::paintContents): Apparently due to a typo
+        (document vs. !document), fillWithRed was always set to false, and other branches were
+        never taken. Removing the check for document restores debug-only red color filling.
+
+        * loader/FrameLoader.cpp: (WebCore::FrameLoader::begin): Only call dispatchWindowObjectAvailable()
+        after a document is created. A client can do anything in its delegate method, so we'd need
+        to have frame->document() checks otherwise. DumpRenderTree uses this delegate to add its
+        custom property, and it was crashing due to null document in JSDOMWindowBase::getOwnPropertySlot().
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::getOwnPropertySlot):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::addEventListener):
+        (WebCore::JSDOMWindow::removeEventListener):
+        * bindings/js/JSNavigatorCustom.cpp:
+        (WebCore::needsYouTubeQuirk):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute):
+        * bindings/js/ScriptControllerMac.mm:
+        (WebCore::updateRenderingForBindings):
+        * dom/Document.cpp:
+        (WebCore::Document::initSecurityContext):
+        * editing/Editor.cpp:
+        (WebCore::Editor::deleteWithDirection):
+        (WebCore::Editor::dispatchCPPEvent):
+        (WebCore::Editor::applyStyle):
+        (WebCore::Editor::applyParagraphStyle):
+        * editing/EditorCommand.cpp:
+        (WebCore::Editor::Command::execute):
+        (WebCore::Editor::Command::isEnabled):
+        (WebCore::Editor::Command::state):
+        (WebCore::Editor::Command::value):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::recomputeCaretRect):
+        (WebCore::SelectionController::selectFrameElementInParentIfFullySelected):
+        (WebCore::SelectionController::selectAll):
+        (WebCore::SelectionController::setFocused):
+        * inspector/InspectorController.cpp:
+        (WebCore::getResourceDocumentNode):
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::setJavaScriptPaused):
+        * loader/DocumentLoader.cpp:
+        (WebCore::canonicalizedTitle):
+        (WebCore::DocumentLoader::stopLoading):
+        (WebCore::DocumentLoader::isLoadingInAPISense):
+        (WebCore::DocumentLoader::subresource):
+        (WebCore::DocumentLoader::getSubresources):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::urlSelected):
+        (WebCore::FrameLoader::stop):
+        (WebCore::FrameLoader::iconURL):
+        (WebCore::FrameLoader::executeIfJavaScriptURL):
+        (WebCore::FrameLoader::clear):
+        (WebCore::FrameLoader::endIfNotLoadingMainResource):
+        (WebCore::FrameLoader::restoreDocumentState):
+        (WebCore::FrameLoader::gotoAnchor):
+        (WebCore::FrameLoader::loadDone):
+        (WebCore::FrameLoader::checkCompleted):
+        (WebCore::FrameLoader::checkCallImplicitClose):
+        (WebCore::FrameLoader::scheduleRefresh):
+        (WebCore::FrameLoader::outgoingOrigin):
+        (WebCore::FrameLoader::canCachePageContainingThisFrame):
+        (WebCore::FrameLoader::logCanCacheFrameDecision):
+        (WebCore::FrameLoader::updatePolicyBaseURL):
+        (WebCore::FrameLoader::setPolicyBaseURL):
+        (WebCore::FrameLoader::frameDetached):
+        (WebCore::FrameLoader::shouldScrollToAnchor):
+        (WebCore::FrameLoader::saveDocumentState):
+        * loader/archive/cf/LegacyWebArchive.cpp:
+        (WebCore::LegacyWebArchive::create):
+        * loader/icon/IconFetcher.cpp:
+        (WebCore::IconFetcher::create):
+        * loader/icon/IconLoader.cpp:
+        (WebCore::IconLoader::startLoading):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::visiblePositionForPoint):
+        * page/Chrome.cpp:
+        (WebCore::PageGroupLoadDeferrer::PageGroupLoadDeferrer):
+        (WebCore::PageGroupLoadDeferrer::~PageGroupLoadDeferrer):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::sessionStorage):
+        (WebCore::DOMWindow::alert):
+        (WebCore::DOMWindow::confirm):
+        (WebCore::DOMWindow::prompt):
+        (WebCore::DOMWindow::scrollX):
+        (WebCore::DOMWindow::scrollY):
+        (WebCore::DOMWindow::getMatchedCSSRules):
+        (WebCore::DOMWindow::openDatabase):
+        (WebCore::DOMWindow::scrollBy):
+        (WebCore::DOMWindow::scrollTo):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::allowDHTMLDrag):
+        (WebCore::EventHandler::scrollOverflow):
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::handleMouseDoubleClickEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+        (WebCore::EventHandler::updateDragAndDrop):
+        (WebCore::EventHandler::handleWheelEvent):
+        (WebCore::EventHandler::sendContextMenuEvent):
+        (WebCore::EventHandler::capsLockStateMayHaveChanged):
+        (WebCore::EventHandler::sendResizeEvent):
+        (WebCore::EventHandler::sendScrollEvent):
+        * page/FocusController.cpp:
+        (WebCore::deepFocusableNode):
+        (WebCore::FocusController::advanceFocus):
+        * page/Frame.cpp:
+        (WebCore::Frame::setFocusedNodeIfNeeded):
+        (WebCore::Frame::shouldApplyTextZoom):
+        (WebCore::Frame::shouldApplyPageZoom):
+        (WebCore::Frame::setZoomFactor):
+        (WebCore::Frame::setPrinting):
+        (WebCore::Frame::reapplyStyles):
+        (WebCore::Frame::isContentEditable):
+        (WebCore::Frame::computeAndSetTypingStyle):
+        (WebCore::Frame::selectionComputedStyle):
+        (WebCore::Frame::applyEditingStyleToBodyElement):
+        (WebCore::Frame::removeEditingStyleFromBodyElement):
+        (WebCore::Frame::contentRenderer):
+        (WebCore::Frame::styleForSelectionStart):
+        (WebCore::Frame::setSelectionFromNone):
+        (WebCore::Frame::findString):
+        (WebCore::Frame::markAllMatchesForText):
+        (WebCore::Frame::setMarkedTextMatchesAreHighlighted):
+        (WebCore::Frame::documentTypeString):
+        (WebCore::Frame::shouldClose):
+        (WebCore::Frame::respondToChangedSelection):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::~FrameView):
+        (WebCore::FrameView::createScrollbar):
+        (WebCore::FrameView::layout):
+        (WebCore::FrameView::layoutTimerFired):
+        (WebCore::FrameView::scheduleRelayout):
+        (WebCore::FrameView::needsLayout):
+        (WebCore::FrameView::unscheduleRelayout):
+        (WebCore::FrameView::windowClipRect):
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::disconnectFrame):
+        * page/Page.cpp:
+        (WebCore::networkStateChanged):
+        (WebCore::Page::~Page):
+        (WebCore::Page::unmarkAllTextMatches):
+        (WebCore::Page::setMediaVolume):
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::updateRenderingDispatcherFired):
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::currentKeyboardEvent):
+        (WebCore::EventHandler::needsKeyboardEventDisambiguationQuirks):
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::dashboardRegionsDictionary):
+        (WebCore::Frame::setUserStyleSheetLocation):
+        (WebCore::Frame::setUserStyleSheet):
+        * storage/LocalStorageArea.cpp:
+        (WebCore::LocalStorageArea::dispatchStorageEvent):
+        * storage/SessionStorageArea.cpp:
+        (WebCore::SessionStorageArea::dispatchStorageEvent):
+        * svg/graphics/SVGImage.cpp:
+        (WebCore::SVGImage::setContainerSize):
+        (WebCore::SVGImage::usesContainerSize):
+        (WebCore::SVGImage::size):
+        (WebCore::SVGImage::hasRelativeWidth):
+        (WebCore::SVGImage::hasRelativeHeight):
+        Removed frame->document() checks.
+
+2009-02-10  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Attempt to fix the Qt build after r40791.
+
+        * rendering/RenderSVGRoot.cpp:
+
+2009-02-10  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Minor code cleanup.
+
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::replaceChild):
+
+2009-02-10  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix Qt build following r40793.
+
+        * editing/qt/EditorQt.cpp:
+
+2009-02-10  Feng Qian <feng@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix crashes when accessing navigator object of a deleted frame.
+        https://bugs.webkit.org/show_bug.cgi?id=23626
+        A layout test is added: fast/dom/navigator-detached-no-crash.html
+
+        * page/Navigator.cpp:
+        (WebCore::Navigator::cookieEnabled):
+        (WebCore::Navigator::javaEnabled):
+
+2009-02-10  Sverrir Berg  <sverrir@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23630
+        Add complex font rendering using Skia instead of Windows ScriptTextOut.
+        This adds support for enhanced webkit styles when drawing complex
+        glyphs.
+
+        * platform/graphics/chromium/FontChromiumWin.cpp:
+        (WebCore::Font::drawGlyphs):
+        (WebCore::Font::drawComplexText):
+        * platform/graphics/chromium/UniscribeHelper.cpp:
+        (WebCore::containsMissingGlyphs):
+        (WebCore::UniscribeHelper::draw):
+        (WebCore::UniscribeHelper::shape):
+        * platform/graphics/chromium/UniscribeHelper.h:
+        * platform/graphics/skia/SkiaFontWin.cpp:
+        (WebCore::windowsCanHandleTextDrawing):
+        (WebCore::skiaDrawText):
+        (WebCore::paintSkiaText):
+        * platform/graphics/skia/SkiaFontWin.h:
+
+2009-02-10  Darin Fisher  <darin@chromium.org>
+
+        Revert r40797 as requested by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23809
+
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * dom/Document.idl:
+        * html/HTMLCanvasElement.idl:
+
+2009-02-09  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23855
+        Fix TransformationMatrixSkia.cpp and GraphicsContextSkia.cpp bustage
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::getCTM):
+        * platform/graphics/skia/TransformationMatrixSkia.cpp:
+        (WebCore::TransformationMatrix::operator SkMatrix):
+
+2009-02-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6568942> REGRESSION: Font rendering in Wikipedia input field is incorrect (default GDI text mode)
+
+        * platform/graphics/win/SimpleFontDataWin.cpp:
+        (WebCore::SimpleFontData::widthForGDIGlyph): Make sure that the DC is
+        in the advanced graphics mode before calling GetCharWidthI(), because
+        otherwise that function returns incorrect results for the default UI
+        font at a certain size.
+
+2009-02-09  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=23689
+
+        Added 3D functions to WebKitCSSMatrix. This depends on the 3D functions
+        added to TransformationMatrix in https://bugs.webkit.org/show_bug.cgi?id=6868
+
+        Test: transforms/3d/cssmatrix-3d-interface.xhtml
+
+        * css/WebKitCSSMatrix.cpp:
+        * css/WebKitCSSMatrix.h:
+        * css/WebKitCSSMatrix.idl:
+
+2009-02-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=23858>
+        Bug 23858: Crash when removing a HTMLSelectElement from the document from inside its focus event handler
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::menuListDefaultEventHandler): Don't store the renderer in a local variable
+        as it can be invalidated by any of the calls to focus() within the function.  Instead, retrieve it and
+        null-check it when it is needed.
+
+2009-02-09  David Hyatt  <hyatt@apple.com>
+
+        Remove the m_height member from InlineBox.  This shaves 4 bytes off of all inline boxes.  Unfortunately SVG
+        sets heights that are independent of the renderer or of the font, and so all SVG boxes have to retain m_height
+        member variables.
+
+        height() on InlineBox is now a virtual function that does a dynamic computation (including shrinking boxes
+        with no text children).  For SVG boxes there is also a non-virtual setHeight function for updating the
+        m_height member variable like before.
+    
+        Reviewed by Darin Adler
+
+        * rendering/EllipsisBox.cpp:
+        (WebCore::EllipsisBox::nodeAtPoint):
+        * rendering/EllipsisBox.h:
+        (WebCore::EllipsisBox::EllipsisBox):
+        * rendering/InlineBox.cpp:
+        (WebCore::InlineBox::height):
+        (WebCore::InlineBox::root):
+        * rendering/InlineBox.h:
+        (WebCore::InlineBox::InlineBox):
+        (WebCore::InlineBox::isInlineFlowBox):
+        (WebCore::InlineBox::isRootInlineBox):
+        (WebCore::InlineBox::topOverflow):
+        (WebCore::InlineBox::bottomOverflow):
+        (WebCore::InlineBox::leftOverflow):
+        (WebCore::InlineBox::rightOverflow):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::height):
+        (WebCore::InlineFlowBox::adjustMaxAscentAndDescent):
+        (WebCore::InlineFlowBox::computeLogicalBoxHeights):
+        (WebCore::InlineFlowBox::placeBoxesVertically):
+        (WebCore::InlineFlowBox::shrinkBoxesWithNoTextChildren):
+        (WebCore::InlineFlowBox::nodeAtPoint):
+        * rendering/InlineFlowBox.h:
+        (WebCore::InlineFlowBox::isInlineFlowBox):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::height):
+        (WebCore::InlineTextBox::nodeAtPoint):
+        (WebCore::InlineTextBox::paintSpellingOrGrammarMarker):
+        (WebCore::InlineTextBox::paintCompositionUnderline):
+        * rendering/InlineTextBox.h:
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::height):
+        (WebCore::RootInlineBox::placeEllipsis):
+        (WebCore::RootInlineBox::setVerticalOverflowPositions):
+        * rendering/RootInlineBox.h:
+        (WebCore::RootInlineBox::isRootInlineBox):
+        (WebCore::RootInlineBox::topOverflow):
+        (WebCore::RootInlineBox::bottomOverflow):
+        (WebCore::RootInlineBox::leftOverflow):
+        (WebCore::RootInlineBox::rightOverflow):
+        (WebCore::RootInlineBox::selectionBottom):
+        (WebCore::RootInlineBox::Overflow::Overflow):
+        (WebCore::RootInlineBox::setVerticalSelectionPositions):
+        * rendering/SVGInlineFlowBox.h:
+        (WebCore::SVGInlineFlowBox::SVGInlineFlowBox):
+        (WebCore::SVGInlineFlowBox::height):
+        (WebCore::SVGInlineFlowBox::setHeight):
+        * rendering/SVGInlineTextBox.cpp:
+        (WebCore::SVGInlineTextBox::SVGInlineTextBox):
+        * rendering/SVGInlineTextBox.h:
+        (WebCore::SVGInlineTextBox::height):
+        (WebCore::SVGInlineTextBox::setHeight):
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBox::layoutInlineBoxes):
+        * rendering/SVGRootInlineBox.h:
+        (WebCore::SVGRootInlineBox::SVGRootInlineBox):
+        (WebCore::SVGRootInlineBox::height):
+        (WebCore::SVGRootInlineBox::setHeight):
+
+2009-02-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Document our Selection DOM extensions
+        (in preparation for re-writing Selection to work with ranges)
+
+        * page/DOMSelection.cpp:
+        (WebCore::DOMSelection::type):
+        * page/DOMSelection.h:
+        * page/DOMSelection.idl:
+
+2009-02-09  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix wx build
+
+        * WebCoreSources.bkl: change Selection to VisibleSelection
+
+2009-02-06  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23809
+        Return CanvasRenderingContext2D instead of DOMObject in IDL to avoid V8 #ifdefs
+
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * dom/Document.idl:
+        * html/HTMLCanvasElement.idl:
+
+2009-02-09  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Transform the gradient instead of the context for most platforms and
+        transform the context after CGContextReplacePathWithStrokedPath for CG.
+
+        REGRESSION: SVG gradient transformation/BoundingBox can cause ugly stroke thickness
+        https://bugs.webkit.org/show_bug.cgi?id=23547
+
+        * platform/graphics/Gradient.h:
+        (WebCore::Gradient::setGradientSpaceTransform):
+        (WebCore::Gradient::gradientSpaceTransform):
+        * platform/graphics/cairo/GradientCairo.cpp:
+        (WebCore::Gradient::platformGradient):
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        * platform/graphics/skia/GradientSkia.cpp:
+        (WebCore::Gradient::platformGradient):
+        * svg/graphics/SVGPaintServerGradient.cpp:
+        (WebCore::SVGPaintServerGradient::SVGPaintServerGradient):
+        (WebCore::clipToTextMask):
+        (WebCore::SVGPaintServerGradient::setup):
+        (WebCore::SVGPaintServerGradient::teardown):
+
+2009-02-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Fix the highlight when inspecting inline elements.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::drawHighlightForBox):
+        (WebCore::drawHighlightForLineBoxes):
+        (WebCore::InspectorController::drawNodeHighlight):
+
+2009-02-09  Eric Seidel  <eric@webkit.org>
+
+        Fix the gtk build by adding VisibleSelection and removing Selection.
+
+        * GNUmakefile.am:
+
+2009-02-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Hyatt.
+
+        Rename Selection to VisibleSelection to allow us to separate
+        the selections the user works with from the ones used by
+        the JS editing APIs.
+        https://bugs.webkit.org/show_bug.cgi?id=23852
+
+        No functional changes, thus no tests.
+
+        * WebCore.base.exp:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/Element.cpp:
+        (WebCore::Element::updateFocusAppearance):
+        * editing/ApplyStyleCommand.cpp:
+        (WebCore::ApplyStyleCommand::updateStartEnd):
+        (WebCore::ApplyStyleCommand::surroundNodeRangeWithElement):
+        * editing/BreakBlockquoteCommand.cpp:
+        (WebCore::BreakBlockquoteCommand::doApply):
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::inputText):
+        (WebCore::CompositeEditCommand::deleteSelection):
+        (WebCore::CompositeEditCommand::rebalanceWhitespace):
+        (WebCore::CompositeEditCommand::pushAnchorElementDown):
+        (WebCore::CompositeEditCommand::pushPartiallySelectedAnchorElementsDown):
+        (WebCore::CompositeEditCommand::moveParagraphs):
+        (WebCore::CompositeEditCommand::breakOutOfEmptyListItem):
+        (WebCore::CompositeEditCommand::breakOutOfEmptyMailBlockquotedParagraph):
+        * editing/CompositeEditCommand.h:
+        * editing/CreateLinkCommand.cpp:
+        (WebCore::CreateLinkCommand::doApply):
+        * editing/DeleteButtonController.cpp:
+        (WebCore::enclosingDeletableElement):
+        (WebCore::DeleteButtonController::respondToChangedSelection):
+        * editing/DeleteButtonController.h:
+        * editing/DeleteSelectionCommand.cpp:
+        (WebCore::DeleteSelectionCommand::DeleteSelectionCommand):
+        (WebCore::DeleteSelectionCommand::clearTransientState):
+        (WebCore::DeleteSelectionCommand::doApply):
+        * editing/DeleteSelectionCommand.h:
+        (WebCore::DeleteSelectionCommand::create):
+        * editing/EditCommand.cpp:
+        (WebCore::EditCommand::setStartingSelection):
+        (WebCore::EditCommand::setEndingSelection):
+        * editing/EditCommand.h:
+        (WebCore::EditCommand::startingSelection):
+        (WebCore::EditCommand::endingSelection):
+        * editing/Editor.cpp:
+        (WebCore::Editor::selectionForCommand):
+        (WebCore::Editor::respondToChangedSelection):
+        (WebCore::Editor::respondToChangedContents):
+        (WebCore::Editor::applyStyle):
+        (WebCore::Editor::applyParagraphStyle):
+        (WebCore::Editor::appliedEditing):
+        (WebCore::Editor::unappliedEditing):
+        (WebCore::Editor::reappliedEditing):
+        (WebCore::Editor::insertTextWithoutSendingTextEvent):
+        (WebCore::Editor::selectComposition):
+        (WebCore::Editor::confirmComposition):
+        (WebCore::Editor::advanceToNextMisspelling):
+        (WebCore::Editor::markMisspellingsAfterTypingToPosition):
+        (WebCore::markMisspellingsOrBadGrammar):
+        (WebCore::Editor::markMisspellings):
+        (WebCore::Editor::markBadGrammar):
+        (WebCore::Editor::rangeForPoint):
+        (WebCore::Editor::transpose):
+        * editing/Editor.h:
+        * editing/EditorCommand.cpp:
+        (WebCore::expandSelectionToGranularity):
+        (WebCore::executeSwapWithMark):
+        (WebCore::enabledVisibleSelection):
+        (WebCore::enabledVisibleSelectionAndMark):
+        (WebCore::enableCaretInEditableText):
+        * editing/FormatBlockCommand.cpp:
+        (WebCore::FormatBlockCommand::modifyRange):
+        (WebCore::FormatBlockCommand::doApply):
+        * editing/IndentOutdentCommand.cpp:
+        (WebCore::IndentOutdentCommand::indentRegion):
+        (WebCore::IndentOutdentCommand::outdentRegion):
+        (WebCore::IndentOutdentCommand::doApply):
+        * editing/InsertLineBreakCommand.cpp:
+        (WebCore::InsertLineBreakCommand::doApply):
+        * editing/InsertListCommand.cpp:
+        (WebCore::InsertListCommand::modifyRange):
+        (WebCore::InsertListCommand::doApply):
+        * editing/InsertParagraphSeparatorCommand.cpp:
+        (WebCore::InsertParagraphSeparatorCommand::doApply):
+        * editing/InsertTextCommand.cpp:
+        (WebCore::InsertTextCommand::performTrivialReplace):
+        (WebCore::InsertTextCommand::input):
+        * editing/ModifySelectionListLevel.cpp:
+        (WebCore::getStartEndListChildren):
+        (WebCore::canIncreaseListLevel):
+        (WebCore::canDecreaseListLevel):
+        * editing/MoveSelectionCommand.cpp:
+        (WebCore::MoveSelectionCommand::doApply):
+        * editing/RemoveFormatCommand.cpp:
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        (WebCore::ReplaceSelectionCommand::doApply):
+        (WebCore::ReplaceSelectionCommand::completeHTMLReplacement):
+        * editing/Selection.cpp: Removed.
+        * editing/Selection.h: Removed.
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::moveTo):
+        (WebCore::SelectionController::setSelection):
+        (WebCore::SelectionController::nodeWillBeRemoved):
+        (WebCore::SelectionController::clear):
+        (WebCore::SelectionController::setBase):
+        (WebCore::SelectionController::setExtent):
+        (WebCore::SelectionController::selectFrameElementInParentIfFullySelected):
+        (WebCore::SelectionController::selectAll):
+        (WebCore::SelectionController::setSelectedRange):
+        * editing/SelectionController.h:
+        (WebCore::SelectionController::selection):
+        (WebCore::SelectionController::selectionType):
+        * editing/TypingCommand.cpp:
+        (WebCore::TypingCommand::insertText):
+        (WebCore::TypingCommand::deleteKeyPressed):
+        (WebCore::TypingCommand::forwardDeleteKeyPressed):
+        * editing/TypingCommand.h:
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::honorEditableBoundaryAtOrBefore):
+        (WebCore::VisiblePosition::honorEditableBoundaryAtOrAfter):
+        * editing/VisibleSelection.cpp: Added.
+        (WebCore::VisibleSelection::VisibleSelection):
+        (WebCore::VisibleSelection::selectionFromContentsOfNode):
+        (WebCore::VisibleSelection::setBase):
+        (WebCore::VisibleSelection::setExtent):
+        (WebCore::VisibleSelection::firstRange):
+        (WebCore::VisibleSelection::toNormalizedRange):
+        (WebCore::VisibleSelection::expandUsingGranularity):
+        (WebCore::makeSearchRange):
+        (WebCore::VisibleSelection::appendTrailingWhitespace):
+        (WebCore::VisibleSelection::setBaseAndExtentToDeepEquivalents):
+        (WebCore::VisibleSelection::setStartAndEndFromBaseAndExtentRespectingGranularity):
+        (WebCore::VisibleSelection::updateSelectionType):
+        (WebCore::VisibleSelection::validate):
+        (WebCore::VisibleSelection::setWithoutValidation):
+        (WebCore::VisibleSelection::adjustSelectionToAvoidCrossingEditingBoundaries):
+        (WebCore::VisibleSelection::isContentEditable):
+        (WebCore::VisibleSelection::isContentRichlyEditable):
+        (WebCore::VisibleSelection::rootEditableElement):
+        (WebCore::VisibleSelection::shadowTreeRootNode):
+        (WebCore::VisibleSelection::debugPosition):
+        (WebCore::VisibleSelection::formatForDebugger):
+        (WebCore::VisibleSelection::showTreeForThis):
+        (showTree):
+        * editing/VisibleSelection.h: Added.
+        (WebCore::VisibleSelection::):
+        (WebCore::VisibleSelection::selectionType):
+        (WebCore::VisibleSelection::setAffinity):
+        (WebCore::VisibleSelection::affinity):
+        (WebCore::VisibleSelection::base):
+        (WebCore::VisibleSelection::extent):
+        (WebCore::VisibleSelection::start):
+        (WebCore::VisibleSelection::end):
+        (WebCore::VisibleSelection::visibleStart):
+        (WebCore::VisibleSelection::visibleEnd):
+        (WebCore::VisibleSelection::isNone):
+        (WebCore::VisibleSelection::isCaret):
+        (WebCore::VisibleSelection::isRange):
+        (WebCore::VisibleSelection::isCaretOrRange):
+        (WebCore::VisibleSelection::isBaseFirst):
+        (WebCore::VisibleSelection::granularity):
+        (WebCore::operator==):
+        (WebCore::operator!=):
+        * editing/htmlediting.cpp:
+        (WebCore::selectionForParagraphIteration):
+        (WebCore::avoidIntersectionWithNode):
+        * editing/htmlediting.h:
+        * editing/markup.cpp:
+        (WebCore::createMarkup):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::selection):
+        * html/HTMLInputElement.h:
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::selection):
+        * html/HTMLTextAreaElement.h:
+        * page/AccessibilityObject.cpp:
+        (WebCore::AccessibilityObject::selection):
+        (WebCore::AccessibilityObject::visiblePositionRangeForUnorderedPositions):
+        * page/AccessibilityObject.h:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::selection):
+        (WebCore::AccessibilityRenderObject::setSelectedTextRange):
+        (WebCore::AccessibilityRenderObject::visiblePositionRangeForLine):
+        (WebCore::AccessibilityRenderObject::setSelectedVisiblePositionRange):
+        (WebCore::AccessibilityRenderObject::doAXRangeForLine):
+        * page/AccessibilityRenderObject.h:
+        * page/DOMSelection.cpp:
+        (WebCore::DOMSelection::anchorNode):
+        (WebCore::DOMSelection::anchorOffset):
+        (WebCore::DOMSelection::focusNode):
+        (WebCore::DOMSelection::focusOffset):
+        (WebCore::DOMSelection::collapseToEnd):
+        (WebCore::DOMSelection::collapseToStart):
+        (WebCore::DOMSelection::getRangeAt):
+        (WebCore::DOMSelection::addRange):
+        * page/DOMSelection.h:
+        * page/DragController.cpp:
+        (WebCore::DragController::tryDocumentDrag):
+        (WebCore::setSelectionToDragCaret):
+        (WebCore::DragController::concludeEditDrag):
+        (WebCore::prepareClipboardForImageDrag):
+        (WebCore::DragController::startDrag):
+        (WebCore::DragController::placeDragCaret):
+        * page/EditorClient.h:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::selectClosestWordFromMouseEvent):
+        (WebCore::EventHandler::selectClosestWordOrLinkFromMouseEvent):
+        (WebCore::EventHandler::handleMousePressEventTripleClick):
+        (WebCore::EventHandler::handleMousePressEventSingleClick):
+        (WebCore::EventHandler::updateSelectionForMouseDrag):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+        * page/Frame.cpp:
+        (WebCore::Frame::mark):
+        (WebCore::Frame::setMark):
+        (WebCore::Frame::selectionLayoutChanged):
+        (WebCore::Frame::shouldChangeSelection):
+        (WebCore::Frame::shouldDeleteSelection):
+        (WebCore::Frame::revealSelection):
+        (WebCore::Frame::setSelectionFromNone):
+        (WebCore::Frame::findString):
+        (WebCore::Frame::respondToChangedSelection):
+        * page/Frame.h:
+        * page/Page.cpp:
+        (WebCore::Page::selection):
+        * page/Page.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper textMarkerRangeForSelection]):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::fillInlineSelectionGaps):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::setSelectionRange):
+        (WebCore::RenderTextControl::selection):
+        * rendering/RenderTextControl.h:
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::writeSelection):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::fillLineSelectionGap):
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGTextContentElement::selectSubString):
+
+2009-02-09  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23806
+        Fix a regression crash where an empty src value and a "text/html" type
+        on an EMBED element did not finish ResourceRequest initialization due to
+        an early return.
+
+        Test: fast/loader/empty-embed-src-attribute.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::addExtraFieldsToRequest):
+
+2009-02-09  Rob Buis  <rwlbuis@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23816
+        Clean up RenderSVGRoot.cpp
+
+        Clean up RenderSVGRoot.cpp.
+
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::paint):
+        (WebCore::RenderSVGRoot::calcViewport):
+
+2009-02-09  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23737
+        Make it possible to control media element playback without knowing so many
+        internal implementation details.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::togglePlayState): New, toggle between playing and paused state.
+        (WebCore::HTMLMediaElement::beginScrubbing): New, pause as necessary for scrubbing mode.
+        (WebCore::HTMLMediaElement::endScrubbing): New, resume playback if paused for scrubbing mode.
+        * html/HTMLMediaElement.h:
+
+        (WebCore::HTMLMediaElement::hasVideo): New, added so clients don't need to access MediaPlayer directly.
+        * html/HTMLVideoElement.h:
+
+        (WebCore::HTMLVideoElement::hasVideo): New.
+
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlPlayButtonElement::defaultEventHandler): Use new media element 
+        togglePlayState method.
+        (WebCore::MediaControlTimelineElement::defaultEventHandler): Tell media element when scrubbing
+        begins and ends so it can deal with pausing logic. Don't call setCurrentTime unless the time
+        will change.
+
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::updateControls): Ask media element if it is able to play instead of including
+        internal logic here.
+        (WebCore::RenderMedia::updateControlVisibility): Ditto.
+
+2009-02-09  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto
+
+        Change RenderPart and RenderPartObject constructors to take a Node*
+        instead of a HTMLFrameOwnerElement* since that is all then need.
+
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::RenderPart): take Node* instead of HTMLFrameOwnerElement*
+        * rendering/RenderPart.h:
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::RenderPartObject):  take Node* instead of HTMLFrameOwnerElement*
+        * rendering/RenderPartObject.h:
+
+2009-02-09  Dan Bernstein  <mitz@apple.com>
+
+        - fix -Wmissing-prototypes builds
+
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::isHeaderElement): Marked this function static.
+        (WebCore::haveSameTagName): Ditto.
+        * editing/markup.cpp:
+        (WebCore::isSpecialAncestorBlock): Ditto.
+        * platform/graphics/transforms/TransformationMatrix.cpp:
+        (WebCore::makeMapBetweenRects): Removed unused function.
+        * platform/graphics/transforms/TransformationMatrix.h: Removed unused
+        declaration of private member makeMapBetweenRects().
+
+2009-02-09  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23850
+        Code cleanup of HTMLParser class which was using a mix of m_* and bare
+        class member variable names which helps to obfuscate the code.  Also
+        changed a few of the static helper functions to take a const pointer type
+        as they should not be modifying the node.
+
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::HTMLParser):
+        (WebCore::HTMLParser::~HTMLParser):
+        (WebCore::HTMLParser::reset):
+        (WebCore::HTMLParser::setCurrent):
+        (WebCore::HTMLParser::parseToken):
+        (WebCore::HTMLParser::parseDoctypeToken):
+        (WebCore::isTableSection):
+        (WebCore::isTablePart):
+        (WebCore::isTableRelated):
+        (WebCore::HTMLParser::insertNode):
+        (WebCore::HTMLParser::handleError):
+        (WebCore::HTMLParser::textCreateErrorCheck):
+        (WebCore::HTMLParser::commentCreateErrorCheck):
+        (WebCore::HTMLParser::headCreateErrorCheck):
+        (WebCore::HTMLParser::bodyCreateErrorCheck):
+        (WebCore::HTMLParser::framesetCreateErrorCheck):
+        (WebCore::HTMLParser::formCreateErrorCheck):
+        (WebCore::HTMLParser::isindexCreateErrorCheck):
+        (WebCore::HTMLParser::noscriptCreateErrorCheck):
+        (WebCore::HTMLParser::pCloserStrictCreateErrorCheck):
+        (WebCore::HTMLParser::mapCreateErrorCheck):
+        (WebCore::HTMLParser::getNode):
+        (WebCore::HTMLParser::allowNestedRedundantTag):
+        (WebCore::HTMLParser::processCloseTag):
+        (WebCore::HTMLParser::isInline):
+        (WebCore::HTMLParser::handleResidualStyleCloseTagAcrossBlocks):
+        (WebCore::HTMLParser::reopenResidualStyleTags):
+        (WebCore::HTMLParser::pushBlock):
+        (WebCore::HTMLParser::popBlock):
+        (WebCore::HTMLParser::popOneBlockCommon):
+        (WebCore::HTMLParser::popOneBlock):
+        (WebCore::HTMLParser::moveOneBlockToStack):
+        (WebCore::HTMLParser::checkIfHasPElementInScope):
+        (WebCore::HTMLParser::popInlineBlocks):
+        (WebCore::HTMLParser::freeBlock):
+        (WebCore::HTMLParser::createHead):
+        (WebCore::HTMLParser::handleIsindex):
+        (WebCore::HTMLParser::startBody):
+        (WebCore::HTMLParser::finished):
+        (WebCore::HTMLParser::reportErrorToConsole):
+        * html/HTMLParser.h:
+
+2009-02-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Applying review comment on a second location.
+
+        * rendering/RenderText.cpp: (WebCore::RenderText::nextOffset):
+        Use "ifdef BUILDING_ON_TIGER".
+
+2009-02-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23845
+        editing/deleting/backward-deletion.html fails on Tiger
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::previousOffset):
+        (WebCore::RenderText::nextOffset):
+        Work around a bug in older ICU versions by hardcoding narrow voiced marks.
+
+2009-02-09  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Fix the XML syntax.
+
+2009-02-09  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Make WorkerMessagingProxy derive from two base proxy classes.
+        https://bugs.webkit.org/show_bug.cgi?id=23777
+
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::evaluate):
+        * dom/Worker.cpp:
+        (WebCore::Worker::terminate):
+        (WebCore::Worker::hasPendingActivity):
+        * dom/WorkerContext.cpp:
+        (WebCore::WorkerContext::reportException):
+        * dom/WorkerMessagingProxy.cpp:
+        (WebCore::WorkerThreadActivityReportTask::performTask):
+        (WebCore::WorkerMessagingProxy::postExceptionToWorkerObject):
+        (WebCore::WorkerMessagingProxy::workerObjectDestroyed):
+        (WebCore::WorkerMessagingProxy::terminateWorkerContext):
+        (WebCore::WorkerMessagingProxy::confirmWorkerThreadMessage):
+        (WebCore::WorkerMessagingProxy::reportPendingActivity):
+        (WebCore::WorkerMessagingProxy::reportPendingActivityInternal):
+        (WebCore::WorkerMessagingProxy::hasPendingActivity):
+        * dom/WorkerMessagingProxy.h:
+
+2009-02-09  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Introduce 2 base classes to split WorkerMessagingProxy.
+        https://bugs.webkit.org/show_bug.cgi?id=23776
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/WorkerContextProxy.h: Added.
+        (WebCore::WorkerContextProxy::~WorkerContextProxy):
+        * dom/WorkerObjectProxy.h: Added.
+        (WebCore::WorkerObjectProxy::~WorkerObjectProxy):
+
 2009-02-09  David Hyatt  <hyatt@apple.com>
 
         Fix for https://bugs.webkit.org/show_bug.cgi?id=23839

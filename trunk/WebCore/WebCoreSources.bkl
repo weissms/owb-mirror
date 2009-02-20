@@ -205,6 +205,7 @@ This file contains the list of files needed to build WebCore.
     <set append="1" var="WEBCORE_SOURCES_DERIVEDSOURCES">
         DerivedSources/WebCore/CSSGrammar.cpp
         DerivedSources/WebCore/ColorData.c
+        DerivedSources/WebCore/HTMLElementFactory.cpp
         DerivedSources/WebCore/HTMLEntityNames.c
         DerivedSources/WebCore/HTMLNames.cpp
         DerivedSources/WebCore/JSAttr.cpp
@@ -229,6 +230,8 @@ This file contains the list of files needed to build WebCore.
         DerivedSources/WebCore/JSCanvasPattern.cpp
         DerivedSources/WebCore/JSCanvasRenderingContext2D.cpp
         DerivedSources/WebCore/JSCharacterData.cpp
+        DerivedSources/WebCore/JSClientRect.cpp
+        DerivedSources/WebCore/JSClientRectList.cpp
         DerivedSources/WebCore/JSClipboard.cpp
         DerivedSources/WebCore/JSComment.cpp
         DerivedSources/WebCore/JSConsole.cpp
@@ -392,6 +395,8 @@ This file contains the list of files needed to build WebCore.
         dom/ChildNodeList.cpp
         dom/ClassNames.cpp
         dom/ClassNodeList.cpp
+        dom/ClientRect.cpp
+        dom/ClientRectList.cpp
         dom/Clipboard.cpp
         dom/ClipboardEvent.cpp
         dom/Comment.cpp
@@ -493,7 +498,6 @@ This file contains the list of files needed to build WebCore.
         editing/RemoveNodeCommand.cpp
         editing/RemoveNodePreservingChildrenCommand.cpp
         editing/ReplaceSelectionCommand.cpp
-        editing/Selection.cpp
         editing/SelectionController.cpp
         editing/SmartReplace.cpp
         editing/SmartReplaceICU.cpp
@@ -505,6 +509,7 @@ This file contains the list of files needed to build WebCore.
         editing/TypingCommand.cpp
         editing/UnlinkCommand.cpp
         editing/VisiblePosition.cpp
+        editing/VisibleSelection.cpp
         editing/WrapContentsInDummySpanCommand.cpp
         editing/htmlediting.cpp
         editing/markup.cpp
@@ -544,7 +549,6 @@ This file contains the list of files needed to build WebCore.
         html/HTMLDivElement.cpp
         html/HTMLDocument.cpp
         html/HTMLElement.cpp
-        html/HTMLElementFactory.cpp
         html/HTMLEmbedElement.cpp
         html/HTMLFieldSetElement.cpp
         html/HTMLFontElement.cpp
@@ -725,6 +729,7 @@ This file contains the list of files needed to build WebCore.
         platform/DragImage.cpp
         platform/FileChooser.cpp
         platform/GeolocationService.cpp
+        platform/graphics/FloatPoint3D.cpp
         platform/graphics/Font.cpp
         platform/graphics/FontCache.cpp
         platform/graphics/FontData.cpp
@@ -783,6 +788,8 @@ This file contains the list of files needed to build WebCore.
         platform/graphics/Pen.cpp
         platform/graphics/transforms/TransformationMatrix.cpp
         platform/graphics/transforms/MatrixTransformOperation.cpp
+        platform/graphics/transforms/Matrix3DTransformOperation.cpp
+        platform/graphics/transforms/PerspectiveTransformOperation.cpp
         platform/graphics/transforms/RotateTransformOperation.cpp
         platform/graphics/transforms/ScaleTransformOperation.cpp
         platform/graphics/transforms/SkewTransformOperation.cpp
@@ -894,7 +901,6 @@ This file contains the list of files needed to build WebCore.
         rendering/RenderImageGeneratedContent.cpp
         rendering/RenderInline.cpp
         rendering/RenderLayer.cpp
-        rendering/RenderLegend.cpp
         rendering/RenderLineBoxList.cpp
         rendering/RenderListBox.cpp
         rendering/RenderListItem.cpp

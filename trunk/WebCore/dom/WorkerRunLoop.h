@@ -34,13 +34,13 @@
 #if ENABLE(WORKERS)
 
 #include "ScriptExecutionContext.h"
-#include "SharedTimer.h"
 #include <wtf/MessageQueue.h>
 #include <wtf/OwnPtr.h>
 #include <wtf/PassRefPtr.h>
 
 namespace WebCore {
 
+    class ModePredicate;
     class WorkerContext;
     class WorkerSharedTimer;
 
@@ -51,15 +51,25 @@ namespace WebCore {
         
         // Blocking call. Waits for tasks and timers, invokes the callbacks.
         void run(WorkerContext*);
-        
+
+        // Waits for a single task and returns.
+        MessageQueueWaitResult runInMode(WorkerContext*, const String& mode);
+
         void terminate();
         bool terminated() { return m_messageQueue.killed(); }
 
         void postTask(PassRefPtr<ScriptExecutionContext::Task>);
+        void postTaskForMode(PassRefPtr<ScriptExecutionContext::Task>, const String& mode);
 
+        static String defaultMode();
+        class Task;
     private:
-        MessageQueue<RefPtr<ScriptExecutionContext::Task> > m_messageQueue;
+        friend class RunLoopSetup;
+        MessageQueueWaitResult runInMode(WorkerContext*, ModePredicate&);
+
+        MessageQueue<RefPtr<Task> > m_messageQueue;
         OwnPtr<WorkerSharedTimer> m_sharedTimer;
+        int m_nestedCount;
     };
 
 } // namespace WebCore

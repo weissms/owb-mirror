@@ -4,6 +4,7 @@
 
 create_include_link(${BAL_DIR}/Media/WebCore/WK/BCSoundWK.h BAL/Sound.h)
 create_include_link(${BAL_DIR}/Media/WebCore/WK/BCMediaPlayerWK.h BAL/MediaPlayer.h)
+create_include_link(${BAL_DIR}/Media/WebCore/WK/BCMediaPlayerPrivateWK.h BAL/MediaPlayerPrivate.h)
 
 if(USE_GRAPHICS_GTK)
     if(ENABLE_VIDEO)
@@ -25,9 +26,6 @@ if(USE_GRAPHICS_QT)
 endif(USE_GRAPHICS_QT)
 
 if(USE_GRAPHICS_SDL)
-    create_include_link(${BAL_DIR}/Media/WebCore/SDL/BCSoundSDL.h BAL/Sound.h)
-    create_include_link(${BAL_DIR}/Media/WebCore/SDL/BCMediaPlayerSDL.h BAL/MediaPlayer.h)
-
     if(ENABLE_VIDEO)
         create_include_link(${BAL_DIR}/Media/WebCore/SDL/BCMediaPlayerPrivateSDL.h BAL/MediaPlayerPrivateSDL.h)
         aux_source_directory(${BAL_DIR}/Media/WebCore/WK WEBCORE_SRC)

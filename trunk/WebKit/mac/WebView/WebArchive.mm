@@ -53,7 +53,7 @@ static NSString * const WebSubframeArchivesKey = @"WebSubframeArchives";
     NSArray *cachedSubresources;
     NSArray *cachedSubframeArchives;
 @private
-    LegacyWebArchive* coreArchive;
+    RefPtr<LegacyWebArchive> coreArchive;
 }
 
 - (id)initWithCoreArchive:(PassRefPtr<LegacyWebArchive>)coreArchive;
@@ -76,7 +76,7 @@ static NSString * const WebSubframeArchivesKey = @"WebSubframeArchives";
     self = [super init];
     if (!self)
         return nil;
-    coreArchive = LegacyWebArchive::create().releaseRef();
+    coreArchive = LegacyWebArchive::create();
     return self;
 }
 
@@ -87,46 +87,32 @@ static NSString * const WebSubframeArchivesKey = @"WebSubframeArchives";
         [self release];
         return nil;
     }
-    coreArchive = _coreArchive.releaseRef();
+    coreArchive = _coreArchive;
     return self;
 }
 
 - (LegacyWebArchive*)coreArchive
 {
-    return coreArchive;
+    return coreArchive.get();
 }
 
 - (void)setCoreArchive:(PassRefPtr<LegacyWebArchive>)newCoreArchive
 {
     ASSERT(coreArchive);
     ASSERT(newCoreArchive);
-    coreArchive->deref();
-    coreArchive = newCoreArchive.releaseRef();
+    coreArchive = newCoreArchive;
 }
 
 - (void)dealloc
 {
     if (WebCoreObjCScheduleDeallocateOnMainThread([WebArchivePrivate class], self))
         return;
-
-    ASSERT(coreArchive);
-    coreArchive->deref();
-    coreArchive = 0;
     
     [cachedMainResource release];
     [cachedSubresources release];
     [cachedSubframeArchives release];
     
     [super dealloc];
-}
-
-- (void)finalize
-{
-    ASSERT(coreArchive);
-    coreArchive->deref();
-    coreArchive = 0;
-    
-    [super finalize];
 }
 
 @end
@@ -227,7 +213,13 @@ static BOOL isArrayOfClass(id object, Class elementClass)
 #endif
 
     _private = [[WebArchivePrivate alloc] init];
-    [_private setCoreArchive:LegacyWebArchive::create(SharedBuffer::wrapNSData(data).get())];
+    RefPtr<LegacyWebArchive> coreArchive = LegacyWebArchive::create(SharedBuffer::wrapNSData(data).get());
+    if (!coreArchive) {
+        [self release];
+        return nil;
+    }
+        
+    [_private setCoreArchive:coreArchive.release()];
         
 #if !LOG_DISABLED
     CFAbsoluteTime end = CFAbsoluteTimeGetCurrent();

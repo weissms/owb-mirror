@@ -23,7 +23,6 @@ list(APPEND WEBCORE_SRC
     html/HTMLDivElement.cpp
     html/HTMLDocument.cpp
     html/HTMLElement.cpp
-    html/HTMLElementFactory.cpp
     html/HTMLEmbedElement.cpp
     html/HTMLFieldSetElement.cpp
     html/HTMLFontElement.cpp

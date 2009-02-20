@@ -413,7 +413,7 @@ void FrameLoader::urlSelected(const ResourceRequest& request, const String& _tar
         return;
 
     String target = _target;
-    if (target.isEmpty() && m_frame->document())
+    if (target.isEmpty())
         target = m_frame->document()->baseTarget();
 
     FrameLoadRequest frameRequest(request, target);
@@ -648,16 +648,10 @@ void FrameLoader::stop()
     // The frame's last ref may be removed and it will be deleted by checkCompleted().
     RefPtr<Frame> protector(m_frame);
     
-    if (m_frame->document()) {
-        if (m_frame->document()->tokenizer())
-            m_frame->document()->tokenizer()->stopParsing();
-        m_frame->document()->finishParsing();
-    } else
-        // WebKit partially uses WebCore when loading non-HTML docs.  In these cases doc==nil, but
-        // WebCore is enough involved that we need to checkCompleted() in order for m_bComplete to
-        // become true. An example is when a subframe is a pure text doc, and that subframe is the
-        // last one to complete.
-        checkCompleted();
+    if (m_frame->document()->tokenizer())
+        m_frame->document()->tokenizer()->stopParsing();
+    m_frame->document()->finishParsing();
+
     if (m_iconLoader)
         m_iconLoader->stopLoading();
 }
@@ -686,7 +680,7 @@ KURL FrameLoader::iconURL()
         return KURL();
 
     // If we have an iconURL from a Link element, return that
-    if (m_frame->document() && !m_frame->document()->iconURL().isEmpty())
+    if (!m_frame->document()->iconURL().isEmpty())
         return KURL(m_frame->document()->iconURL());
 
     // Don't return a favicon iconURL unless we're http or https
@@ -760,8 +754,7 @@ bool FrameLoader::executeIfJavaScriptURL(const KURL& url, bool userGesture, bool
         return true;
 
     SecurityOrigin* currentSecurityOrigin = 0;
-    if (m_frame->document())
-        currentSecurityOrigin = m_frame->document()->securityOrigin();
+    currentSecurityOrigin = m_frame->document()->securityOrigin();
 
     // FIXME: We should always replace the document, but doing so
     //        synchronously can cause crashes:
@@ -818,7 +811,7 @@ void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects)
         return;
     m_needsClear = false;
     
-    if (m_frame->document() && !m_frame->document()->inPageCache()) {
+    if (!m_frame->document()->inPageCache()) {
         m_frame->document()->cancelParsing();
         m_frame->document()->stopActiveDOMObjects();
         if (m_frame->document()->attached()) {
@@ -915,12 +908,10 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     // might destroy the document that owns it.
     RefPtr<SecurityOrigin> forcedSecurityOrigin = origin;
 
-    bool resetScripting = !(m_isDisplayingInitialEmptyDocument && m_frame->document() && m_frame->document()->securityOrigin()->isSecureTransitionTo(url));
+    bool resetScripting = !(m_isDisplayingInitialEmptyDocument && m_frame->document()->securityOrigin()->isSecureTransitionTo(url));
     clear(resetScripting, resetScripting);
     if (resetScripting)
         m_frame->script()->updatePlatformScriptObjects();
-    if (dispatch)
-        dispatchWindowObjectAvailable();
 
     m_needsClear = true;
     m_isComplete = false;
@@ -942,6 +933,9 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     else
         document = DOMImplementation::createDocument(m_responseMIMEType, m_frame, m_frame->inViewSourceMode());
     m_frame->setDocument(document);
+
+    if (dispatch)
+        dispatchWindowObjectAvailable();
 
     document->setURL(m_URL);
     if (m_decoder)
@@ -1064,7 +1058,7 @@ void FrameLoader::end()
 
 void FrameLoader::endIfNotLoadingMainResource()
 {
-    if (m_isLoadingMainResource || !m_frame->page())
+    if (m_isLoadingMainResource || !m_frame->page() || !m_frame->document())
         return;
 
     // http://bugs.webkit.org/show_bug.cgi?id=10854
@@ -1073,21 +1067,14 @@ void FrameLoader::endIfNotLoadingMainResource()
     RefPtr<Frame> protector(m_frame);
 
     // make sure nothing's left in there
-    if (m_frame->document()) {
-        write(0, 0, true);
-        m_frame->document()->finishParsing();
+    write(0, 0, true);
+    m_frame->document()->finishParsing();
 #if USE(LOW_BANDWIDTH_DISPLAY)
-        if (m_frame->document()->inLowBandwidthDisplay()) {
-            m_finishedParsingDuringLowBandwidthDisplay = true;
-            switchOutLowBandwidthDisplayIfReady();
-        }
+    if (m_frame->document()->inLowBandwidthDisplay()) {
+        m_finishedParsingDuringLowBandwidthDisplay = true;
+        switchOutLowBandwidthDisplayIfReady();
+    }
 #endif            
-    } else
-        // WebKit partially uses WebCore when loading non-HTML docs.  In these cases doc==nil, but
-        // WebCore is enough involved that we need to checkCompleted() in order for m_bComplete to
-        // become true.  An example is when a subframe is a pure text doc, and that subframe is the
-        // last one to complete.
-        checkCompleted();
 }
 
 void FrameLoader::iconLoadDecisionAvailable()
@@ -1199,8 +1186,6 @@ void FrameLoader::commitIconURLToIconDatabase(const KURL& icon)
 void FrameLoader::restoreDocumentState()
 {
     Document* doc = m_frame->document();
-    if (!doc)
-        return;
         
     HistoryItem* itemToRestore = 0;
     
@@ -1231,7 +1216,7 @@ void FrameLoader::gotoAnchor()
     // OTOH If CSS target was set previously, we want to set it to 0, recalc
     // and possibly repaint because :target pseudo class may have been
     // set (see bug 11321).
-    if (!m_URL.hasRef() && !(m_frame->document() && m_frame->document()->cssTarget()))
+    if (!m_URL.hasRef() && !m_frame->document()->cssTarget())
         return;
 
     String ref = m_URL.ref();
@@ -1269,8 +1254,7 @@ void FrameLoader::finishedParsing()
 
 void FrameLoader::loadDone()
 {
-    if (m_frame->document())
-        checkCompleted();
+    checkCompleted();
 }
 
 void FrameLoader::checkCompleted()
@@ -1285,17 +1269,16 @@ void FrameLoader::checkCompleted()
         return;
 
     // Are we still parsing?
-    if (m_frame->document() && m_frame->document()->parsing())
+    if (m_frame->document()->parsing())
         return;
 
     // Still waiting for images/scripts?
-    if (m_frame->document())
-        if (numRequests(m_frame->document()))
-            return;
+    if (numRequests(m_frame->document()))
+        return;
 
 #if USE(LOW_BANDWIDTH_DISPLAY)
     // as switch will be called, don't complete yet
-    if (m_frame->document() && m_frame->document()->inLowBandwidthDisplay() && m_needToSwitchOutLowBandwidthDisplay)
+    if (m_frame->document()->inLowBandwidthDisplay() && m_needToSwitchOutLowBandwidthDisplay)
         return;
 #endif
 
@@ -1341,7 +1324,7 @@ void FrameLoader::scheduleCheckLoadComplete()
 
 void FrameLoader::checkCallImplicitClose()
 {
-    if (m_didCallImplicitClose || !m_frame->document() || m_frame->document()->parsing())
+    if (m_didCallImplicitClose || m_frame->document()->parsing())
         return;
 
     for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
@@ -1350,8 +1333,7 @@ void FrameLoader::checkCallImplicitClose()
 
     m_didCallImplicitClose = true;
     m_wasUnloadEventEmitted = false;
-    if (m_frame->document())
-        m_frame->document()->implicitClose();
+    m_frame->document()->implicitClose();
 }
 
 KURL FrameLoader::baseURL() const
@@ -1421,18 +1403,7 @@ void FrameLoader::scheduleRefresh(bool wasUserGesture)
     if (!m_frame->page())
         return;
 
-    // Handle a location change of a page with no document as a special case.
-    // This may happen when a frame requests a refresh of another frame.
-    bool duringLoad = !m_frame->document();
-    
-    // If a refresh was scheduled during a load, then stop the current load.
-    // Otherwise when the current load transitions from a provisional to a 
-    // committed state, pending redirects may be cancelled. 
-    if (duringLoad)
-        stopLoading(true);   
-
-    ScheduledRedirection::Type type = duringLoad
-        ? ScheduledRedirection::locationChangeDuringLoad : ScheduledRedirection::locationChange;
+    ScheduledRedirection::Type type = ScheduledRedirection::locationChange;
     scheduleRedirection(new ScheduledRedirection(type, m_URL.string(), m_outgoingReferrer, true, true, wasUserGesture, true));
 }
 
@@ -1646,12 +1617,10 @@ bool FrameLoader::gotoAnchor(const String& name)
 
     // We need to update the layout before scrolling, otherwise we could
     // really mess things up if an anchor scroll comes at a bad moment.
-    if (m_frame->document()) {
-        m_frame->document()->updateRendering();
-        // Only do a layout if changes have occurred that make it necessary.
-        if (m_frame->view() && m_frame->contentRenderer() && m_frame->contentRenderer()->needsLayout())
-            m_frame->view()->layout();
-    }
+    m_frame->document()->updateRendering();
+    // Only do a layout if changes have occurred that make it necessary.
+    if (m_frame->view() && m_frame->contentRenderer() && m_frame->contentRenderer()->needsLayout())
+        m_frame->view()->layout();
   
     // Scroll nested layers and frames to reveal the anchor.
     // Align to the top and to the closest side (this matches other browsers).
@@ -1731,8 +1700,15 @@ static HTMLPlugInElement* toPlugInElement(Node* node)
     if (!node)
         return 0;
 
-    ASSERT(node->hasTagName(objectTag) || node->hasTagName(embedTag) || node->hasTagName(appletTag));
-    
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    ASSERT(node->hasTagName(objectTag) || node->hasTagName(embedTag) 
+        || node->hasTagName(videoTag) || node->hasTagName(audioTag)
+        || node->hasTagName(appletTag));
+#else
+    ASSERT(node->hasTagName(objectTag) || node->hasTagName(embedTag) 
+        || node->hasTagName(appletTag));
+#endif
+
     return static_cast<HTMLPlugInElement*>(node);
 }
     
@@ -1790,10 +1766,7 @@ String FrameLoader::outgoingReferrer() const
 
 String FrameLoader::outgoingOrigin() const
 {
-    if (m_frame->document())
-        return m_frame->document()->securityOrigin()->toString();
-
-    return SecurityOrigin::createEmpty()->toString();
+    return m_frame->document()->securityOrigin()->toString();
 }
 
 Frame* FrameLoader::opener()
@@ -1897,7 +1870,6 @@ bool FrameLoader::canCachePageContainingThisFrame()
         // the right NPObjects. See <rdar://problem/5197041> for more information.
         && !m_containsPlugIns
         && !m_URL.protocolIs("https")
-        && m_frame->document()
         && !m_frame->document()->hasWindowEventListener(eventNames().unloadEvent)
 #if ENABLE(DATABASE)
         && !m_frame->document()->hasOpenDatabases()
@@ -2040,11 +2012,6 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
             { PCLOG("   -Frame contains plugins"); cannotCache = true; }
         if (m_URL.protocolIs("https"))
             { PCLOG("   -Frame is HTTPS"); cannotCache = true; }
-        if (!m_frame->document()) {
-            PCLOG("   -There is no Document object");
-            cannotCache = true;
-            break;
-        }
         if (m_frame->document()->hasWindowEventListener(eventNames().unloadEvent))
             { PCLOG("   -Frame has an unload event listener"); cannotCache = true; }
 #if ENABLE(DATABASE)
@@ -2086,7 +2053,7 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
 
 void FrameLoader::updatePolicyBaseURL()
 {
-    if (m_frame->tree()->parent() && m_frame->tree()->parent()->document())
+    if (m_frame->tree()->parent())
         setPolicyBaseURL(m_frame->tree()->parent()->document()->policyBaseURL());
     else
         setPolicyBaseURL(m_URL);
@@ -2094,8 +2061,7 @@ void FrameLoader::updatePolicyBaseURL()
 
 void FrameLoader::setPolicyBaseURL(const KURL& url)
 {
-    if (m_frame->document())
-        m_frame->document()->setPolicyBaseURL(url);
+    m_frame->document()->setPolicyBaseURL(url);
     for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
         child->loader()->setPolicyBaseURL(url);
 }
@@ -2830,8 +2796,7 @@ void FrameLoader::commitProvisionalLoad(PassRefPtr<CachedPage> prpCachedPage)
 
     // Check to see if we need to cache the page we are navigating away from into the back/forward cache.
     // We are doing this here because we know for sure that a new page is about to be loaded.
-    if (canCachePage() && !m_currentHistoryItem->isInPageCache())
-        cachePageForHistoryItem(m_currentHistoryItem.get());
+    cachePageForHistoryItem(m_currentHistoryItem.get());
     
     if (m_loadType != FrameLoadTypeReplace)
         closeOldDataSources();
@@ -2865,7 +2830,37 @@ void FrameLoader::commitProvisionalLoad(PassRefPtr<CachedPage> prpCachedPage)
 
     LOG(Loading, "WebCoreLoading %s: Finished committing provisional load to URL %s", m_frame->tree()->name().string().utf8().data(), m_URL.string().utf8().data());
 
-    opened();
+    if (m_loadType == FrameLoadTypeStandard && m_documentLoader->isClientRedirect())
+        updateHistoryForClientRedirect();
+
+    if (m_documentLoader->isLoadingFromCachedPage()) {
+        m_frame->document()->documentDidBecomeActive();
+        
+        // Force a layout to update view size and thereby update scrollbars.
+        m_client->forceLayout();
+
+        const ResponseVector& responses = m_documentLoader->responses();
+        size_t count = responses.size();
+        for (size_t i = 0; i < count; i++) {
+            const ResourceResponse& response = responses[i];
+            // FIXME: If the WebKit client changes or cancels the request, this is not respected.
+            ResourceError error;
+            unsigned long identifier;
+            ResourceRequest request(response.url());
+            requestFromDelegate(request, identifier, error);
+            // FIXME: If we get a resource with more than 2B bytes, this code won't do the right thing.
+            // However, with today's computers and networking speeds, this won't happen in practice.
+            // Could be an issue with a giant local file.
+            sendRemainingDelegateMessages(identifier, response, static_cast<int>(response.expectedContentLength()), error);
+        }
+        
+        pageCache()->remove(m_currentHistoryItem.get());
+
+        m_documentLoader->setPrimaryLoadComplete(true);
+
+        // FIXME: Why only this frame and not parent frames?
+        checkLoadCompleteForThisFrame();
+    }
 }
 
 void FrameLoader::transitionToCommitted(PassRefPtr<CachedPage> cachedPage)
@@ -3038,6 +3033,7 @@ void FrameLoader::closeOldDataSources()
 
 void FrameLoader::open(CachedPage& cachedPage)
 {
+    ASSERT(!m_frame->tree()->parent());
     ASSERT(m_frame->page());
     ASSERT(m_frame->page()->mainFrame() == m_frame);
 
@@ -3045,11 +3041,6 @@ void FrameLoader::open(CachedPage& cachedPage)
 
     // We still have to close the previous part page.
     closeURL();
-
-    m_isComplete = false;
-    
-    // Don't re-emit the load event.
-    m_didCallImplicitClose = true;
     
     // Delete old status bar messages (if it _was_ activated on last URL).
     if (m_frame->script()->isEnabled()) {
@@ -3057,7 +3048,19 @@ void FrameLoader::open(CachedPage& cachedPage)
         m_frame->setJSDefaultStatusBarText(String());
     }
 
-    KURL url = cachedPage.url();
+    open(*cachedPage.cachedMainFrame());
+
+    checkCompleted();
+}
+
+void FrameLoader::open(CachedFrame& cachedFrame)
+{
+    m_isComplete = false;
+    
+    // Don't re-emit the load event.
+    m_didCallImplicitClose = true;
+
+    KURL url = cachedFrame.url();
 
     if ((url.protocolIs("http") || url.protocolIs("https")) && !url.host().isEmpty() && url.path().isEmpty())
         url.setPath("/");
@@ -3069,7 +3072,7 @@ void FrameLoader::open(CachedPage& cachedPage)
 
     clear();
 
-    Document* document = cachedPage.document();
+    Document* document = cachedFrame.document();
     ASSERT(document);
     document->setInPageCache(false);
 
@@ -3078,13 +3081,16 @@ void FrameLoader::open(CachedPage& cachedPage)
     m_didCallImplicitClose = false;
     m_outgoingReferrer = url.string();
 
-    FrameView* view = cachedPage.mainFrameView();
+    FrameView* view = cachedFrame.view();
+    
+    // When navigating to a CachedFrame its FrameView should never be null.  If it is we'll crash in creative ways downstream.
+    ASSERT(view);
     if (view)
         view->setWasScrolledByUser(false);
     m_frame->setView(view);
     
     m_frame->setDocument(document);
-    m_frame->setDOMWindow(cachedPage.domWindow());
+    m_frame->setDOMWindow(cachedFrame.domWindow());
     m_frame->domWindow()->setURL(document->url());
     m_frame->domWindow()->setSecurityOrigin(document->securityOrigin());
 
@@ -3092,13 +3098,7 @@ void FrameLoader::open(CachedPage& cachedPage)
 
     updatePolicyBaseURL();
 
-    cachedPage.restore(m_frame->page());
-
-    // It is necessary to update any platform script objects after restoring the
-    // cached page.
-    m_frame->script()->updatePlatformScriptObjects();
-
-    checkCompleted();
+    cachedFrame.restore();
 }
 
 bool FrameLoader::isStopping() const
@@ -3448,6 +3448,18 @@ void FrameLoader::detachChildren()
     }
 }
 
+void FrameLoader::closeAndRemoveChild(Frame* child)
+{
+    child->tree()->detachFromParent();
+
+    child->setView(0);
+    if (child->ownerElement())
+        child->page()->decrementFrameCount();
+    child->pageDestroyed();
+
+    m_frame->tree()->removeChild(child);
+}
+
 void FrameLoader::recursiveCheckLoadComplete()
 {
     Vector<RefPtr<Frame>, 10> frames;
@@ -3529,8 +3541,7 @@ void FrameLoader::handledOnloadEvents()
 void FrameLoader::frameDetached()
 {
     stopAllLoaders();
-    if (Document* document = m_frame->document())
-        document->stopActiveDOMObjects();
+    m_frame->document()->stopActiveDOMObjects();
     detachFromParent();
 }
 
@@ -3552,7 +3563,7 @@ void FrameLoader::detachFromParent()
     setDocumentLoader(0);
     m_client->detachedFromParent3();
     if (Frame* parent = m_frame->tree()->parent()) {
-        parent->tree()->removeChild(m_frame);
+        parent->loader()->closeAndRemoveChild(m_frame);
         parent->loader()->scheduleCheckCompleted();
     } else {
         m_frame->setView(0);
@@ -3573,7 +3584,7 @@ void FrameLoader::addExtraFieldsToMainResourceRequest(ResourceRequest& request)
 void FrameLoader::addExtraFieldsToRequest(ResourceRequest& request, FrameLoadType loadType, bool mainResource, bool cookiePolicyURLFromRequest)
 {
     // These modifications are only necessary for HTTP and HTTPS.
-    if (!request.url().protocolInHTTPFamily())
+    if (!request.url().isEmpty() && !request.url().protocolInHTTPFamily())
         return;
 
     applyUserAgent(request);
@@ -3889,42 +3900,7 @@ bool FrameLoader::shouldScrollToAnchor(bool isFormSubmission, FrameLoadType load
         && !shouldReload(this->url(), url)
         // We don't want to just scroll if a link from within a
         // frameset is trying to reload the frameset into _top.
-        && (!m_frame->document() || !m_frame->document()->isFrameSet());
-}
-
-void FrameLoader::opened()
-{
-    if (m_loadType == FrameLoadTypeStandard && m_documentLoader->isClientRedirect())
-        updateHistoryForClientRedirect();
-
-    if (m_documentLoader->isLoadingFromCachedPage()) {
-        m_frame->document()->documentDidBecomeActive();
-        
-        // Force a layout to update view size and thereby update scrollbars.
-        m_client->forceLayout();
-
-        const ResponseVector& responses = m_documentLoader->responses();
-        size_t count = responses.size();
-        for (size_t i = 0; i < count; i++) {
-            const ResourceResponse& response = responses[i];
-            // FIXME: If the WebKit client changes or cancels the request, this is not respected.
-            ResourceError error;
-            unsigned long identifier;
-            ResourceRequest request(response.url());
-            requestFromDelegate(request, identifier, error);
-            // FIXME: If we get a resource with more than 2B bytes, this code won't do the right thing.
-            // However, with today's computers and networking speeds, this won't happen in practice.
-            // Could be an issue with a giant local file.
-            sendRemainingDelegateMessages(identifier, response, static_cast<int>(response.expectedContentLength()), error);
-        }
-        
-        pageCache()->remove(m_currentHistoryItem.get());
-
-        m_documentLoader->setPrimaryLoadComplete(true);
-
-        // FIXME: Why only this frame and not parent frames?
-        checkLoadCompleteForThisFrame();
-    }
+        && !m_frame->document()->isFrameSet();
 }
 
 void FrameLoader::checkNewWindowPolicy(const NavigationAction& action, const ResourceRequest& request,
@@ -4250,6 +4226,9 @@ bool FrameLoader::loadProvisionalItemFromCachedPage()
 
 void FrameLoader::cachePageForHistoryItem(HistoryItem* item)
 {
+    if (!canCachePage() || item->isInPageCache())
+        return;
+
     if (Page* page = m_frame->page()) {
         RefPtr<CachedPage> cachedPage = CachedPage::create(page);
         pageCache()->add(item, cachedPage.release());
@@ -4463,7 +4442,7 @@ void FrameLoader::saveDocumentState()
     Document* document = m_frame->document();
     ASSERT(document);
     
-    if (document && item->isCurrentDocument(document)) {
+    if (item->isCurrentDocument(document)) {
         LOG(Loading, "WebCoreLoading %s: saving form state to %p", m_frame->tree()->name().string().utf8().data(), item);
         item->setDocumentState(document->formElementsState());
     }

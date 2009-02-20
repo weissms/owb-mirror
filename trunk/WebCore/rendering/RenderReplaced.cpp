@@ -42,7 +42,6 @@ const int cDefaultHeight = 150;
 RenderReplaced::RenderReplaced(Node* node)
     : RenderBox(node)
     , m_intrinsicSize(cDefaultWidth, cDefaultHeight)
-    , m_hasOverflow(false)
 {
     setReplaced(true);
 }
@@ -50,14 +49,13 @@ RenderReplaced::RenderReplaced(Node* node)
 RenderReplaced::RenderReplaced(Node* node, const IntSize& intrinsicSize)
     : RenderBox(node)
     , m_intrinsicSize(intrinsicSize)
-    , m_hasOverflow(false)
 {
     setReplaced(true);
 }
 
 RenderReplaced::~RenderReplaced()
 {
-    if (m_hasOverflow)
+    if (replacedHasOverflow())
         gOverflowRectMap->remove(this);
 }
 
@@ -81,7 +79,7 @@ void RenderReplaced::layout()
     
     calcWidth();
     calcHeight();
-    adjustOverflowForBoxShadow();
+    adjustOverflowForBoxShadowAndReflect();
     
     repainter.repaintAfterLayout();    
 
@@ -210,7 +208,7 @@ VisiblePosition RenderReplaced::positionForCoordinates(int xPos, int yPos)
 {
     InlineBox* box = inlineBoxWrapper();
     if (!box)
-        return VisiblePosition(element(), 0, DOWNSTREAM);
+        return VisiblePosition(node(), 0, DOWNSTREAM);
 
     // FIXME: This code is buggy if the replaced element is relative positioned.
 
@@ -220,15 +218,15 @@ VisiblePosition RenderReplaced::positionForCoordinates(int xPos, int yPos)
     int bottom = root->nextRootBox() ? root->nextRootBox()->topOverflow() : root->bottomOverflow();
 
     if (yPos + y() < top)
-        return VisiblePosition(element(), caretMinOffset(), DOWNSTREAM); // coordinates are above
+        return VisiblePosition(node(), caretMinOffset(), DOWNSTREAM); // coordinates are above
     
     if (yPos + y() >= bottom)
-        return VisiblePosition(element(), caretMaxOffset(), DOWNSTREAM); // coordinates are below
+        return VisiblePosition(node(), caretMaxOffset(), DOWNSTREAM); // coordinates are below
     
-    if (element()) {
+    if (node()) {
         if (xPos <= width() / 2)
-            return VisiblePosition(element(), 0, DOWNSTREAM);
-        return VisiblePosition(element(), 1, DOWNSTREAM);
+            return VisiblePosition(node(), 0, DOWNSTREAM);
+        return VisiblePosition(node(), 1, DOWNSTREAM);
     }
 
     return RenderBox::positionForCoordinates(xPos, yPos);
@@ -292,7 +290,7 @@ bool RenderReplaced::isSelected() const
     if (s == SelectionStart)
         return selectionStart == 0;
         
-    int end = element()->hasChildNodes() ? element()->childNodeCount() : 1;
+    int end = node()->hasChildNodes() ? node()->childNodeCount() : 1;
     if (s == SelectionEnd)
         return selectionEnd == end;
     if (s == SelectionBoth)
@@ -312,7 +310,7 @@ void RenderReplaced::setIntrinsicSize(const IntSize& size)
     m_intrinsicSize = size;
 }
 
-void RenderReplaced::adjustOverflowForBoxShadow()
+void RenderReplaced::adjustOverflowForBoxShadowAndReflect()
 {
     IntRect overflow;
     for (ShadowData* boxShadow = style()->boxShadow(); boxShadow; boxShadow = boxShadow->next) {
@@ -322,21 +320,29 @@ void RenderReplaced::adjustOverflowForBoxShadow()
         overflow.unite(shadow);
     }
 
+    // Now that we have an overflow rect including shadow, let's make sure that
+    // the reflection (which can also include the shadow) is also included.
+    if (hasReflection()) {
+        if (overflow.isEmpty())
+            overflow = borderBoxRect();
+        overflow.unite(reflectedRect(overflow));
+    }
+
     if (!overflow.isEmpty()) {
         if (!gOverflowRectMap)
             gOverflowRectMap = new OverflowRectMap();
         overflow.unite(borderBoxRect());
         gOverflowRectMap->set(this, overflow);
-        m_hasOverflow = true;
-    } else if (m_hasOverflow) {
+        setReplacedHasOverflow(true);
+    } else if (replacedHasOverflow()) {
         gOverflowRectMap->remove(this);
-        m_hasOverflow = false;
+        setReplacedHasOverflow(false);
     }
 }
 
 int RenderReplaced::overflowHeight(bool) const
 {
-    if (m_hasOverflow) {
+    if (replacedHasOverflow()) {
         IntRect *r = &gOverflowRectMap->find(this)->second;
         return r->height() + r->y();
     }
@@ -346,7 +352,7 @@ int RenderReplaced::overflowHeight(bool) const
 
 int RenderReplaced::overflowWidth(bool) const
 {
-    if (m_hasOverflow) {
+    if (replacedHasOverflow()) {
         IntRect *r = &gOverflowRectMap->find(this)->second;
         return r->width() + r->x();
     }
@@ -356,7 +362,7 @@ int RenderReplaced::overflowWidth(bool) const
 
 int RenderReplaced::overflowLeft(bool) const
 {
-    if (m_hasOverflow)
+    if (replacedHasOverflow())
         return gOverflowRectMap->get(this).x();
 
     return 0;
@@ -364,7 +370,7 @@ int RenderReplaced::overflowLeft(bool) const
 
 int RenderReplaced::overflowTop(bool) const
 {
-    if (m_hasOverflow)
+    if (replacedHasOverflow())
         return gOverflowRectMap->get(this).y();
 
     return 0;
@@ -372,7 +378,7 @@ int RenderReplaced::overflowTop(bool) const
 
 IntRect RenderReplaced::overflowRect(bool) const
 {
-    if (m_hasOverflow)
+    if (replacedHasOverflow())
         return gOverflowRectMap->find(this)->second;
 
     return borderBoxRect();

@@ -43,6 +43,7 @@
 #include "ImplicitAnimation.h"
 #include "KeyframeAnimation.h"
 #include "MatrixTransformOperation.h"
+#include "Matrix3DTransformOperation.h"
 #include "RenderBox.h"
 #include "RenderStyle.h"
 #include "UnitBezier.h"
@@ -147,7 +148,7 @@ static inline TransformOperations blendFunc(const AnimationBase* anim, const Tra
         toT.blend(fromT, progress);
         
         // Append the result
-        result.operations().append(MatrixTransformOperation::create(toT.a(), toT.b(), toT.c(), toT.d(), toT.e(), toT.f()));
+        result.operations().append(Matrix3DTransformOperation::create(toT));
     }
     return result;
 }
@@ -426,8 +427,12 @@ static void ensurePropertyMap()
         gPropertyWrappers->append(new PropertyWrapper<unsigned short>(CSSPropertyOutlineWidth, &RenderStyle::outlineWidth, &RenderStyle::setOutlineWidth));
         gPropertyWrappers->append(new PropertyWrapper<int>(CSSPropertyLetterSpacing, &RenderStyle::letterSpacing, &RenderStyle::setLetterSpacing));
         gPropertyWrappers->append(new PropertyWrapper<int>(CSSPropertyWordSpacing, &RenderStyle::wordSpacing, &RenderStyle::setWordSpacing));
+        gPropertyWrappers->append(new PropertyWrapper<float>(CSSPropertyWebkitPerspective, &RenderStyle::perspective, &RenderStyle::setPerspective));
+        gPropertyWrappers->append(new PropertyWrapper<Length>(CSSPropertyWebkitPerspectiveOriginX, &RenderStyle::perspectiveOriginX, &RenderStyle::setPerspectiveOriginX));
+        gPropertyWrappers->append(new PropertyWrapper<Length>(CSSPropertyWebkitPerspectiveOriginY, &RenderStyle::perspectiveOriginY, &RenderStyle::setPerspectiveOriginY));
         gPropertyWrappers->append(new PropertyWrapper<Length>(CSSPropertyWebkitTransformOriginX, &RenderStyle::transformOriginX, &RenderStyle::setTransformOriginX));
         gPropertyWrappers->append(new PropertyWrapper<Length>(CSSPropertyWebkitTransformOriginY, &RenderStyle::transformOriginY, &RenderStyle::setTransformOriginY));
+        gPropertyWrappers->append(new PropertyWrapper<float>(CSSPropertyWebkitTransformOriginZ, &RenderStyle::transformOriginZ, &RenderStyle::setTransformOriginZ));
         gPropertyWrappers->append(new PropertyWrapper<const IntSize&>(CSSPropertyWebkitBorderTopLeftRadius, &RenderStyle::borderTopLeftRadius, &RenderStyle::setBorderTopLeftRadius));
         gPropertyWrappers->append(new PropertyWrapper<const IntSize&>(CSSPropertyWebkitBorderTopRightRadius, &RenderStyle::borderTopRightRadius, &RenderStyle::setBorderTopRightRadius));
         gPropertyWrappers->append(new PropertyWrapper<const IntSize&>(CSSPropertyWebkitBorderBottomLeftRadius, &RenderStyle::borderBottomLeftRadius, &RenderStyle::setBorderBottomLeftRadius));
@@ -626,7 +631,7 @@ bool AnimationBase::blendProperties(const AnimationBase* anim, int prop, RenderS
     if (wrapper) {
         wrapper->blend(anim, dst, a, b, progress);
 #if USE(ACCELERATED_COMPOSITING)
-        return !wrapper->animationIsAccelerated();
+        return !wrapper->animationIsAccelerated() || anim->isFallbackAnimating();
 #else
         return true;
 #endif
@@ -742,7 +747,7 @@ void AnimationBase::updateStateMachine(AnimStateInput input, double param)
 
                 // Trigger a render so we can start the animation
                 if (m_object)
-                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->element());
+                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->node());
             } else {
                 ASSERT(!paused());
                 // We're waiting for the start timer to fire and we got a pause. Cancel the timer, pause and wait
@@ -789,7 +794,7 @@ void AnimationBase::updateStateMachine(AnimStateInput input, double param)
 
                 // Dispatch updateRendering so we can start the animation
                 if (m_object)
-                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->element());
+                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->node());
             } else {
                 // We are pausing while waiting for a start response. Cancel the animation and wait. When 
                 // we unpause, we will act as though the start timer just fired
@@ -829,7 +834,7 @@ void AnimationBase::updateStateMachine(AnimStateInput input, double param)
                     resumeOverriddenAnimations();
 
                     // Fire off another style change so we can set the final value
-                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->element());
+                    m_compAnim->animationControllerPriv()->addNodeChangeToDispatch(m_object->node());
                 }
             } else {
                 // We are pausing while running. Cancel the animation and wait

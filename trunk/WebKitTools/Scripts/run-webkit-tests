@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (C) 2005, 2006, 2007 Apple Inc. All rights reserved.
+# Copyright (C) 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
 # Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
 # Copyright (C) 2007 Matt Lilek (pewtermoose@gmail.com)
 # Copyright (C) 2007 Eric Seidel <eric@webkit.org>
@@ -76,7 +76,7 @@ sub fileNameWithNumber($$);
 sub numericcmp($$);
 sub openHTTPDIfNeeded();
 sub pathcmp($$);
-sub processIgnoreTests($);
+sub processIgnoreTests($$);
 sub slowestcmp($$);
 sub splitpath($);
 sub stripExtension($);
@@ -371,8 +371,17 @@ if (!$testMedia) {
     $ignoredDirectories{'http/tests/media'} = 1;
 }
 
+if (!checkWebCoreAcceleratedCompositingSupport(0)) {
+    $ignoredDirectories{'compositing'} = 1;
+}
+
+if (!checkWebCore3DTransformsSupport(0)) {
+    $ignoredDirectories{'animations/3d'} = 1;
+    $ignoredDirectories{'transforms/3d'} = 1;
+}
+
 if ($ignoreTests) {
-    processIgnoreTests($ignoreTests);
+    processIgnoreTests($ignoreTests, "ignore-tests");
 }
 
 if (!$ignoreSkipped) {
@@ -395,7 +404,7 @@ if (!$ignoreSkipped) {
                         if ($verbose) {
                             print "    $skipped\n";
                         }
-                        processIgnoreTests($skipped);
+                        processIgnoreTests($skipped, "Skipped");
                     }
                 }
             }
@@ -1014,7 +1023,7 @@ close HTML;
 my @configurationArgs = argumentsForConfiguration();
 
 if (isQt() || isGtk()) {
-  system "WebKitTools/Scripts/run-launcher", @configurationArgs, $testResults if $launchSafari;
+  system "WebKitTools/Scripts/run-launcher", @configurationArgs, "file://".$testResults if $launchSafari;
 } elsif (isCygwin()) {
   system "cygstart", $testResults if $launchSafari;
 } else {
@@ -1386,8 +1395,12 @@ sub fileNameWithNumber($$)
     return $base;
 }
 
-sub processIgnoreTests($) {
+sub processIgnoreTests($$) {
     my @ignoreList = split(/\s*,\s*/, shift);
+    my $listName = shift;
+
+    my $disabledSuffix = "-disabled";
+
     my $addIgnoredDirectories = sub {
         return () if exists $ignoredLocalDirectories{basename($File::Find::dir)};
         $ignoredDirectories{File::Spec->abs2rel($File::Find::dir, $testDirectory)} = 1;
@@ -1401,9 +1414,10 @@ sub processIgnoreTests($) {
         }
         elsif (-f $path) {
             $ignoredFiles{$item} = 1;
-        }
-        else {
-            print "ignoring '$item' on ignore-tests list\n";
+        } elsif (-f $path . $disabledSuffix) {
+            # The test is disabled, so do nothing.
+        } else {
+            print "$listName list contained '$item', but no file of that name could be found\n";
         }
     }
 }

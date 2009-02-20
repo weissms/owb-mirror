@@ -58,26 +58,18 @@ public:
 };
 
 Widget::Widget(PlatformWidget widget)
-    : m_data(new WidgetPrivate)
 {
     init(widget);
-    m_data->cursor = 0;
 }
 
 Widget::~Widget()
 {
     ASSERT(!parent());
-    delete m_data;
 }
 
 void Widget::setFocus()
 {
     NotImplemented();
-}
-
-Cursor Widget::cursor()
-{
-    return Cursor(m_data->cursor);
 }
 
 void Widget::setCursor(const Cursor& cursor)

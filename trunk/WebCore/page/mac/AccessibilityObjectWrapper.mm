@@ -376,7 +376,7 @@ static int blockquoteLevel(RenderObject* renderer)
         return 0;
     
     int result = 0;
-    for (Node* node = renderer->element(); node; node = node->parent()) {
+    for (Node* node = renderer->node(); node; node = node->parent()) {
         if (node->hasTagName(blockquoteTag))
             result += 1;
     }
@@ -425,7 +425,7 @@ static void AXAttributeStringSetSpelling(NSMutableAttributedString* attrString, 
 
 static void AXAttributeStringSetHeadingLevel(NSMutableAttributedString* attrString, RenderObject* renderer, NSRange range)
 {
-    int parentHeadingLevel = AccessibilityRenderObject::headingLevel(renderer->parent()->element());
+    int parentHeadingLevel = AccessibilityRenderObject::headingLevel(renderer->parent()->node());
     
     if (parentHeadingLevel)
         [attrString addAttribute:@"AXHeadingLevel" value:[NSNumber numberWithInt:parentHeadingLevel] range:range];
@@ -902,7 +902,7 @@ static NSMutableArray* convertToNSArray(const AccessibilityObject::Accessibility
 
 - (WebCoreTextMarkerRange*)textMarkerRangeForSelection
 {
-    Selection selection = m_object->selection();
+    VisibleSelection selection = m_object->selection();
     if (selection.isNone())
         return nil;
     return textMarkerRangeFromVisiblePositions(selection.visibleStart(), selection.visibleEnd());

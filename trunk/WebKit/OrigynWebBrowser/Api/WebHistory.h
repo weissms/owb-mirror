@@ -109,7 +109,6 @@ public:
      */
     virtual void addItems(int itemCount, WebHistoryItem** items);
 
-
     /**
         @method removeItems:
         @param items An array of WebHistoryItems to remove from the WebHistory.

@@ -42,7 +42,6 @@
 #endif
 #include "CookieJar.h"
 #include "DOMImplementation.h"
-#include "DOMTimer.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
 #include "DocumentFragment.h"
@@ -97,6 +96,7 @@
 #include "ProgressEvent.h"
 #include "RegisteredEventListener.h"
 #include "RenderArena.h"
+#include "RenderTextControl.h"
 #include "RenderView.h"
 #include "RenderWidget.h"
 #include "ScriptController.h"
@@ -535,7 +535,7 @@ PassRefPtr<Element> Document::createElement(const AtomicString& name, ExceptionC
     if (m_isXHTML)
         return HTMLElementFactory::createHTMLElement(QualifiedName(nullAtom, name, xhtmlNamespaceURI), this, 0, false);
 
-    return createElement(QualifiedName(nullAtom, name, nullAtom), false, ec);
+    return createElement(QualifiedName(nullAtom, name, nullAtom), false);
 }
 
 PassRefPtr<DocumentFragment> Document::createDocumentFragment()
@@ -752,7 +752,7 @@ bool Document::hasPrefixNamespaceMismatch(const QualifiedName& qName)
 }
 
 // FIXME: This should really be in a possible ElementFactory class
-PassRefPtr<Element> Document::createElement(const QualifiedName& qName, bool createdByParser, ExceptionCode& ec)
+PassRefPtr<Element> Document::createElement(const QualifiedName& qName, bool createdByParser)
 {
     RefPtr<Element> e;
 
@@ -770,19 +770,10 @@ PassRefPtr<Element> Document::createElement(const QualifiedName& qName, bool cre
     
     if (!e)
         e = new Element(qName, document());
-    
-    // FIXME: The element factories should be fixed to not ignore qName.prefix()
-    // Instead they should pass the entire qName into element creation so we don't
-    // need to manually set the prefix after creation.
-    // Then this code can become ASSERT(qName == e.qname());
-    // and Document::createElement can stop taking ExceptionCode& as well.
-    if (e && !qName.prefix().isNull()) {
-        ec = 0;
-        e->setPrefix(qName.prefix(), ec);
-        if (ec)
-            return 0;
-    }
-    
+
+    // <image> uses imgTag so we need a special rule.
+    ASSERT((qName.matches(imageTag) && e->tagQName().matches(imgTag) && e->tagQName().prefix() == qName.prefix()) || qName == e->tagQName());
+
     return e.release();
 }
 
@@ -798,7 +789,7 @@ PassRefPtr<Element> Document::createElementNS(const String& namespaceURI, const 
         return 0;
     }
 
-    return createElement(qName, false, ec);
+    return createElement(qName, false);
 }
 
 Element* Document::getElementById(const AtomicString& elementId) const
@@ -1301,11 +1292,10 @@ void Document::detach()
     
     RenderObject* render = renderer();
 
-#if USE(ACCELERATED_COMPOSITING)
-    if (render)
-        renderView()->willMoveOffscreen();
-#endif
-
+    // Send out documentWillBecomeInactive() notifications to registered elements,
+    // in order to stop media elements
+    documentWillBecomeInactive();
+    
     // indicate destruction mode,  i.e. attached() but renderer == 0
     setRenderer(0);
     
@@ -1698,26 +1688,33 @@ int Document::elapsedTime() const
     return static_cast<int>((currentTime() - m_startTime) * 1000);
 }
 
-void Document::write(const String& text, Document* ownerDocument)
+void Document::write(const SegmentedString& text, Document* ownerDocument)
 {
 #ifdef INSTRUMENT_LAYOUT_SCHEDULING
     if (!ownerElement())
         printf("Beginning a document.write at %d\n", elapsedTime());
 #endif
-    
+
     if (!m_tokenizer) {
         open(ownerDocument);
         ASSERT(m_tokenizer);
         if (!m_tokenizer)
             return;
-        write("<html>", ownerDocument);
+        UChar documentPrefix[] = { '<', 'h', 't', 'm', 'l', '>' };
+        m_tokenizer->write(SegmentedString(documentPrefix, sizeof(documentPrefix) / sizeof(documentPrefix[0])), false);
     }
+
     m_tokenizer->write(text, false);
-    
+
 #ifdef INSTRUMENT_LAYOUT_SCHEDULING
     if (!ownerElement())
         printf("Ending a document.write at %d\n", elapsedTime());
 #endif    
+}
+
+void Document::write(const String& text, Document* ownerDocument)
+{
+    write(SegmentedString(text), ownerDocument);
 }
 
 void Document::writeln(const String& text, Document* ownerDocument)
@@ -1800,6 +1797,11 @@ void Document::updateBaseURL()
         m_elemSheet->setHref(m_baseURL.string());
     if (m_mappedElementSheet)
         m_mappedElementSheet->setHref(m_baseURL.string());
+}
+
+String Document::userAgent(const KURL& url) const
+{
+    return frame() ? frame()->loader()->userAgent(url) : String();
 }
 
 void Document::setCSSStyleSheet(const String& url, const String& charset, const CachedCSSStyleSheet* sheet)
@@ -2480,10 +2482,12 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
                 
         // Dispatch a change event for text fields or textareas that have been edited
         RenderObject* r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer());
-        if (r && (r->isTextArea() || r->isTextField()) && r->isEdited()) {
+        if (r && r->isTextControl() && toRenderTextControl(r)->isEdited()) {
             oldFocusedNode->dispatchEventForType(eventNames().changeEvent, true, false);
-            if ((r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer())))
-                r->setEdited(false);
+            if ((r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer()))) {
+                if (r->isTextControl())
+                    toRenderTextControl(r)->setEdited(false);
+            }
         }
 
         // Dispatch the blur event and let the node do any other blur related activities (important for text fields)
@@ -4160,7 +4164,7 @@ void Document::initSecurityContext()
     if (!ownerFrame)
         ownerFrame = m_frame->loader()->opener();
 
-    if (ownerFrame && ownerFrame->document()) {
+    if (ownerFrame) {
         m_cookieURL = ownerFrame->document()->cookieURL();
         // We alias the SecurityOrigins to match Firefox, see Bug 15313
         // https://bugs.webkit.org/show_bug.cgi?id=15313

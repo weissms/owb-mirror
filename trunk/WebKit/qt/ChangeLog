@@ -1,3 +1,73 @@
+2009-02-20  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Avoid loading plugins when they're disabled in the settings.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::canShowMIMEType): Don't call into the
+        PluginDatabase if plugins are disabled in the settings.
+
+2009-02-13  Benjamin C Meyer  <benjamin.meyer@torchmobile.com>
+
+        Reviewed by Nikolas Zimmermann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23738
+        Expose the url elements target frame string.  This is the sister function
+        to the existing linkTargetFrame which returns the QWebFrame*.  When the
+        linkTargetFrame is 0 it is useful to know what the target was to be.
+
+        * Api/qwebframe.cpp:
+        (QWebHitTestResultPrivate::QWebHitTestResultPrivate):
+        (QWebHitTestResult::linkTarget):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-02-13  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Removed documentation for internal functions.
+
+        * Api/qwebsettings.cpp:
+
+2009-02-13  Martin Smith  <msmith@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Corrected some minor qdoc errors.
+
+        * Api/qwebsettings.cpp:
+
+2009-02-11  Dimitri Dupuis-latour  <dupuislatour@apple.com>
+
+        Stub out InspectorClientQt::hiddenPanels.
+
+        Reviewed by Timothy Hatcher.
+
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::hiddenPanels):
+        * WebCoreSupport/InspectorClientQt.h:
+
+2009-02-10  Karsten Heimrich  <kheimric@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fixes missing navigation/url update while clicking on anchor inside
+        webpage.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::dispatchDidChangeLocationWithinPage):
+        update and emit in case we navigate inside a webpage
+
+2009-02-10  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix the Qt build as class Selection is now VisibleSelection.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::inputMethodQuery):
+
 2009-02-09  Geoffrey Garen  <ggaren@apple.com>
 
         Build fix.

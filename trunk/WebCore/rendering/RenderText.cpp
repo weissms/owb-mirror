@@ -199,14 +199,14 @@ void RenderText::deleteTextBoxes()
 
 PassRefPtr<StringImpl> RenderText::originalText() const
 {
-    Node* e = element();
+    Node* e = node();
     return e ? static_cast<Text*>(e)->string() : 0;
 }
 
 void RenderText::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool)
 {
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
-        rects.append(IntRect(tx + box->xPos(), ty + box->yPos(), box->width(), box->height()));
+        rects.append(IntRect(tx + box->x(), ty + box->y(), box->width(), box->height()));
 }
 
 void RenderText::absoluteRectsForRange(Vector<IntRect>& rects, unsigned start, unsigned end, bool useSelectionHeight)
@@ -226,7 +226,7 @@ void RenderText::absoluteRectsForRange(Vector<IntRect>& rects, unsigned start, u
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox()) {
         // Note: box->end() returns the index of the last character, not the index past it
         if (start <= box->start() && box->end() < end) {
-            IntRect r = IntRect(absPos.x() + box->xPos(), absPos.y() + box->yPos(), box->width(), box->height());
+            IntRect r = IntRect(absPos.x() + box->x(), absPos.y() + box->y(), box->width(), box->height());
             if (useSelectionHeight) {
                 IntRect selectionRect = box->selectionRect(absPos.x(), absPos.y(), start, end);
                 r.setHeight(selectionRect.height());
@@ -240,7 +240,7 @@ void RenderText::absoluteRectsForRange(Vector<IntRect>& rects, unsigned start, u
                 if (!useSelectionHeight) {
                     // change the height and y position because selectionRect uses selection-specific values
                     r.setHeight(box->height());
-                    r.setY(absPos.y() + box->yPos());
+                    r.setY(absPos.y() + box->y());
                 }
                 rects.append(r);
             }
@@ -251,7 +251,7 @@ void RenderText::absoluteRectsForRange(Vector<IntRect>& rects, unsigned start, u
 void RenderText::absoluteQuads(Vector<FloatQuad>& quads, bool)
 {
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
-        quads.append(localToAbsoluteQuad(FloatRect(box->xPos(), box->yPos(), box->width(), box->height())));
+        quads.append(localToAbsoluteQuad(FloatRect(box->x(), box->y(), box->width(), box->height())));
 }
 
 void RenderText::absoluteQuadsForRange(Vector<FloatQuad>& quads, unsigned start, unsigned end, bool useSelectionHeight)
@@ -269,7 +269,7 @@ void RenderText::absoluteQuadsForRange(Vector<FloatQuad>& quads, unsigned start,
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox()) {
         // Note: box->end() returns the index of the last character, not the index past it
         if (start <= box->start() && box->end() < end) {
-            IntRect r = IntRect(box->xPos(), box->yPos(), box->width(), box->height());
+            IntRect r = IntRect(box->x(), box->y(), box->width(), box->height());
             if (useSelectionHeight) {
                 IntRect selectionRect = box->selectionRect(0, 0, start, end);
                 r.setHeight(selectionRect.height());
@@ -283,7 +283,7 @@ void RenderText::absoluteQuadsForRange(Vector<FloatQuad>& quads, unsigned start,
                 if (!useSelectionHeight) {
                     // change the height and y position because selectionRect uses selection-specific values
                     r.setHeight(box->height());
-                    r.setY(box->yPos());
+                    r.setY(box->y());
                 }
                 quads.append(localToAbsoluteQuad(FloatRect(r)));
             }
@@ -315,7 +315,7 @@ InlineTextBox* RenderText::findNextInlineTextBox(int offset, int& pos) const
 VisiblePosition RenderText::positionForCoordinates(int x, int y)
 {
     if (!firstTextBox() || textLength() == 0)
-        return VisiblePosition(element(), 0, DOWNSTREAM);
+        return VisiblePosition(node(), 0, DOWNSTREAM);
 
     // Get the offset for the position, since this will take rtl text into account.
     int offset;
@@ -325,13 +325,13 @@ VisiblePosition RenderText::positionForCoordinates(int x, int y)
         // at the y coordinate of the first line or above
         // and the x coordinate is to the left of the first text box left edge
         offset = firstTextBox()->offsetForPosition(x);
-        return VisiblePosition(element(), offset + firstTextBox()->start(), DOWNSTREAM);
+        return VisiblePosition(node(), offset + firstTextBox()->start(), DOWNSTREAM);
     }
     if (lastTextBox() && y >= lastTextBox()->root()->topOverflow() && x >= lastTextBox()->m_x + lastTextBox()->m_width) {
         // at the y coordinate of the last line or below
         // and the x coordinate is to the right of the last text box right edge
         offset = lastTextBox()->offsetForPosition(x);
-        return VisiblePosition(element(), offset + lastTextBox()->start(), DOWNSTREAM);
+        return VisiblePosition(node(), offset + lastTextBox()->start(), DOWNSTREAM);
     }
 
     InlineTextBox* lastBoxAbove = 0;
@@ -344,29 +344,29 @@ VisiblePosition RenderText::positionForCoordinates(int x, int y)
                 if (x == box->m_x)
                     // the x coordinate is equal to the left edge of this box
                     // the affinity must be downstream so the position doesn't jump back to the previous line
-                    return VisiblePosition(element(), offset + box->start(), DOWNSTREAM);
+                    return VisiblePosition(node(), offset + box->start(), DOWNSTREAM);
 
                 if (x < box->m_x + box->m_width)
                     // and the x coordinate is to the left of the right edge of this box
                     // check to see if position goes in this box
-                    return VisiblePosition(element(), offset + box->start(), offset > 0 ? VP_UPSTREAM_IF_POSSIBLE : DOWNSTREAM);
+                    return VisiblePosition(node(), offset + box->start(), offset > 0 ? VP_UPSTREAM_IF_POSSIBLE : DOWNSTREAM);
 
                 if (!box->prevOnLine() && x < box->m_x)
                     // box is first on line
                     // and the x coordinate is to the left of the first text box left edge
-                    return VisiblePosition(element(), offset + box->start(), DOWNSTREAM);
+                    return VisiblePosition(node(), offset + box->start(), DOWNSTREAM);
 
                 if (!box->nextOnLine())
                     // box is last on line
                     // and the x coordinate is to the right of the last text box right edge
                     // generate VisiblePosition, use UPSTREAM affinity if possible
-                    return VisiblePosition(element(), offset + box->start(), offset > 0 ? VP_UPSTREAM_IF_POSSIBLE : DOWNSTREAM);
+                    return VisiblePosition(node(), offset + box->start(), offset > 0 ? VP_UPSTREAM_IF_POSSIBLE : DOWNSTREAM);
             }
             lastBoxAbove = box;
         }
     }
 
-    return VisiblePosition(element(), lastBoxAbove ? lastBoxAbove->start() + lastBoxAbove->len() : 0, DOWNSTREAM);
+    return VisiblePosition(node(), lastBoxAbove ? lastBoxAbove->start() + lastBoxAbove->len() : 0, DOWNSTREAM);
 }
 
 IntRect RenderText::localCaretRect(InlineBox* inlineBox, int caretOffset, int* extraWidthToEndOfLine)
@@ -385,7 +385,7 @@ IntRect RenderText::localCaretRect(InlineBox* inlineBox, int caretOffset, int* e
 
     int left = box->positionForOffset(caretOffset);
 
-    int rootLeft = box->root()->xPos();
+    int rootLeft = box->root()->x();
     // FIXME: should we use the width of the root inline box or the
     // width of the containing block for this?
     if (extraWidthToEndOfLine)
@@ -400,7 +400,6 @@ IntRect RenderText::localCaretRect(InlineBox* inlineBox, int caretOffset, int* e
             left = max(left, rootLeft);
     }
 
-    const int caretWidth = 1;
     return IntRect(left, top, caretWidth, height);
 }
 
@@ -967,7 +966,7 @@ int RenderText::lineHeight(bool firstLine, bool) const
     return parent()->lineHeight(firstLine, true);
 }
 
-void RenderText::dirtyLineBoxes(bool fullLayout, bool)
+void RenderText::dirtyLineBoxes(bool fullLayout)
 {
     if (fullLayout)
         deleteTextBoxes();
@@ -978,16 +977,14 @@ void RenderText::dirtyLineBoxes(bool fullLayout, bool)
     m_linesDirty = false;
 }
 
-InlineTextBox* RenderText::createInlineTextBox()
+InlineTextBox* RenderText::createTextBox()
 {
     return new (renderArena()) InlineTextBox(this);
 }
 
-InlineBox* RenderText::createInlineBox(bool, bool unusedIsRootLineBox, bool)
+InlineTextBox* RenderText::createInlineTextBox()
 {
-    ASSERT_UNUSED(unusedIsRootLineBox, !unusedIsRootLineBox);
-
-    InlineTextBox* textBox = createInlineTextBox();
+    InlineTextBox* textBox = createTextBox();
     if (!m_firstTextBox)
         m_firstTextBox = m_lastTextBox = textBox;
     else {
@@ -998,7 +995,7 @@ InlineBox* RenderText::createInlineBox(bool, bool unusedIsRootLineBox, bool)
     return textBox;
 }
 
-void RenderText::position(InlineBox* box)
+void RenderText::positionLineBox(InlineBox* box)
 {
     InlineTextBox* s = static_cast<InlineTextBox*>(box);
 
@@ -1053,15 +1050,15 @@ IntRect RenderText::linesBoundingBox() const
         int leftSide = 0;
         int rightSide = 0;
         for (InlineTextBox* curr = firstTextBox(); curr; curr = curr->nextTextBox()) {
-            if (curr == firstTextBox() || curr->xPos() < leftSide)
-                leftSide = curr->xPos();
-            if (curr == firstTextBox() || curr->xPos() + curr->width() > rightSide)
-                rightSide = curr->xPos() + curr->width();
+            if (curr == firstTextBox() || curr->x() < leftSide)
+                leftSide = curr->x();
+            if (curr == firstTextBox() || curr->x() + curr->width() > rightSide)
+                rightSide = curr->x() + curr->width();
         }
         result.setWidth(rightSide - leftSide);
         result.setX(leftSide);
-        result.setHeight(lastTextBox()->yPos() + lastTextBox()->height() - firstTextBox()->yPos());
-        result.setY(firstTextBox()->yPos());
+        result.setHeight(lastTextBox()->y() + lastTextBox()->height() - firstTextBox()->y());
+        result.setY(firstTextBox()->y());
     }
 
     return result;
@@ -1117,13 +1114,6 @@ IntRect RenderText::selectionRectForRepaint(RenderBoxModelObject* repaintContain
     return rect;
 }
 
-int RenderText::verticalPositionHint(bool firstLine) const
-{
-    if (parent()->isReplaced())
-        return 0; // Treat inline blocks just like blocks.  There can't be any vertical position hint.
-    return parent()->verticalPositionHint(firstLine);
-}
-
 int RenderText::caretMinOffset() const
 {
     InlineTextBox* box = firstTextBox();
@@ -1164,6 +1154,15 @@ int RenderText::previousOffset(int current) const
     long result = textBreakPreceding(iterator, current);
     if (result == TextBreakDone)
         result = current - 1;
+
+#ifdef BUILDING_ON_TIGER
+    // ICU 3.2 allows character breaks before a half-width Katakana voiced mark.
+    if (static_cast<unsigned>(result) < si->length()) {
+        UChar character = (*si)[result];
+        if (character == 0xFF9E || character == 0xFF9F)
+            --result;
+    }
+#endif
 
     return result;
 }
@@ -1278,6 +1277,15 @@ int RenderText::nextOffset(int current) const
     long result = textBreakFollowing(iterator, current);
     if (result == TextBreakDone)
         result = current + 1;
+
+#ifdef BUILDING_ON_TIGER
+    // ICU 3.2 allows character breaks before a half-width Katakana voiced mark.
+    if (static_cast<unsigned>(result) < si->length()) {
+        UChar character = (*si)[result];
+        if (character == 0xFF9E || character == 0xFF9F)
+            ++result;
+    }
+#endif
 
     return result;
 }

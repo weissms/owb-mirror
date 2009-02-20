@@ -62,6 +62,8 @@ namespace WebCore {
         const KURL& url() const { return m_url; }
         KURL completeURL(const String&) const;
 
+        virtual String userAgent(const KURL&) const;
+
         WorkerLocation* location() const { return m_location.get(); }
         WorkerNavigator* navigator() const;
 
@@ -79,10 +81,11 @@ namespace WebCore {
 
         void postMessage(const String& message);
         virtual void postTask(PassRefPtr<Task>); // Executes the task on context's thread asynchronously.
-        void postTaskToWorkerObject(PassRefPtr<Task>); // Executes the task on the worker object's thread asynchronously.
 
         int installTimeout(ScheduledAction*, int timeout, bool singleShot);
         void removeTimeout(int timeoutId);
+
+        void dispatchMessage(const String&);
 
         virtual void addEventListener(const AtomicString& eventType, PassRefPtr<EventListener>, bool useCapture);
         virtual void removeEventListener(const AtomicString& eventType, EventListener*, bool useCapture);

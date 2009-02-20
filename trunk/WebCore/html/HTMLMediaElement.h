@@ -31,7 +31,10 @@
 #include "HTMLElement.h"
 #include "MediaPlayer.h"
 #include "Timer.h"
-#include "VoidCallback.h"
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "MediaPlayerProxy.h"
+#endif
 
 namespace WebCore {
 
@@ -58,6 +61,7 @@ public:
     MediaPlayer* player() const { return m_player.get(); }
     
     virtual bool isVideo() const { return false; }
+    virtual bool hasVideo() const { return false; }
     
     void scheduleLoad();
     
@@ -126,8 +130,19 @@ public:
     void setVolume(float, ExceptionCode&);
     bool muted() const;
     void setMuted(bool);
+    void togglePlayState(ExceptionCode& ec);
+    void beginScrubbing();
+    void endScrubbing();
 
     bool canPlay() const;
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    void setNeedWidgetUpdate(bool needWidgetUpdate) { m_needWidgetUpdate = needWidgetUpdate; }
+    void deliverNotification(MediaPlayerProxyNotificationType notification);
+    void setMediaPlayerProxy(WebMediaPlayerProxy* proxy);
+    String initialURL();
+    virtual void finishParsingChildren();
+#endif
 
 protected:
     float getTimeOffsetAttribute(const QualifiedName&, float valueOnError) const;
@@ -141,12 +156,15 @@ protected:
     void dispatchEventAsync(const AtomicString& eventName);
     
     void setReadyState(ReadyState);
+    void setNetworkState(MediaPlayer::NetworkState state);
+
     
 private: // MediaPlayerObserver
     virtual void mediaPlayerNetworkStateChanged(MediaPlayer*);
     virtual void mediaPlayerReadyStateChanged(MediaPlayer*);
     virtual void mediaPlayerTimeChanged(MediaPlayer*);
     virtual void mediaPlayerRepaint(MediaPlayer*);
+    virtual void mediaPlayerVolumeChanged(MediaPlayer*);
 
 private:
     void loadTimerFired(Timer<HTMLMediaElement>*);
@@ -155,7 +173,12 @@ private:
     void seek(float time, ExceptionCode& ec);
     void checkIfSeekNeeded();
     
-    String pickMedia();
+    bool processingUserGesture() const;
+    bool processingMediaPlayerCallback() const { return m_processingMediaPlayerCallback > 0; }
+    void beginProcessingMediaPlayerCallback() { ++m_processingMediaPlayerCallback; }
+    void endProcessingMediaPlayerCallback() { ASSERT(m_processingMediaPlayerCallback); --m_processingMediaPlayerCallback; }
+
+    String selectMediaURL(String& mediaMIMEType);
     void updateVolume();
     void updatePlayState();
     float effectiveStart() const;
@@ -164,7 +187,16 @@ private:
     float effectiveLoopEnd() const;
     bool activelyPlaying() const;
     bool endedPlayback() const;
-    
+
+    // Control media load restrictions. This is a effectively a compile time choice at the moment
+    //  because there are no accessor methods.
+    enum LoadRestrictions 
+    { 
+        NoLoadRestriction = 0,
+        RequireUserGestureLoadRestriction = 1 << 0, 
+    };
+
+
 protected:
     Timer<HTMLMediaElement> m_loadTimer;
     Timer<HTMLMediaElement> m_asyncEventTimer;
@@ -204,6 +236,20 @@ protected:
     bool m_inActiveDocument;
 
     OwnPtr<MediaPlayer> m_player;
+
+    LoadRestrictions m_loadRestrictions;
+
+    // counter incremented while processing a callback from the media player, so we can avoid
+    //  calling the media engine recursively
+    int m_processingMediaPlayerCallback;
+
+    // Not all media engines provide enough information about a file to be able to
+    // support progress events so setting m_sendProgressEvents disables them 
+    bool m_sendProgressEvents;
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    bool m_needWidgetUpdate;
+#endif
 };
 
 } //namespace

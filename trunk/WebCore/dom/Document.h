@@ -98,6 +98,7 @@ namespace WebCore {
     class RenderArena;
     class RenderView;
     class SecurityOrigin;
+    class SegmentedString;
     class Settings;
     class StyleSheet;
     class StyleSheetList;
@@ -234,7 +235,7 @@ public:
     PassRefPtr<EntityReference> createEntityReference(const String& name, ExceptionCode&);
     PassRefPtr<Node> importNode(Node* importedNode, bool deep, ExceptionCode&);
     virtual PassRefPtr<Element> createElementNS(const String& namespaceURI, const String& qualifiedName, ExceptionCode&);
-    PassRefPtr<Element> createElement(const QualifiedName&, bool createdByParser, ExceptionCode& ec);
+    PassRefPtr<Element> createElement(const QualifiedName&, bool createdByParser);
     Element* getElementById(const AtomicString&) const;
     bool hasElementWithId(AtomicStringImpl* id) const;
     bool containsMultipleElementsWithId(const AtomicString& elementId) { return m_duplicateIds.contains(elementId.impl()); }
@@ -426,6 +427,7 @@ public:
     void implicitClose();
     void cancelParsing();
 
+    void write(const SegmentedString& text, Document* ownerDocument = 0);
     void write(const String& text, Document* ownerDocument = 0);
     void writeln(const String& text, Document* ownerDocument = 0);
     void finishParsing();
@@ -445,6 +447,8 @@ public:
     void setBaseElementTarget(const String& baseTarget) { m_baseTarget = baseTarget; }
 
     KURL completeURL(const String&) const;
+
+    virtual String userAgent(const KURL&) const;
 
     // from cachedObjectClient
     virtual void setCSSStyleSheet(const String& url, const String& charset, const CachedCSSStyleSheet*);

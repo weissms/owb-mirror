@@ -42,6 +42,7 @@ RenderInline::RenderInline(Node* node)
     : RenderBoxModelObject(node)
     , m_continuation(0)
     , m_lineHeight(-1)
+    , m_verticalPosition(PositionUndefined)
 {
     setChildrenInline(true);
 }
@@ -224,7 +225,7 @@ void RenderInline::addChildIgnoringContinuation(RenderObject* newChild, RenderOb
 
 RenderInline* RenderInline::cloneInline(RenderInline* src)
 {
-    RenderInline* o = new (src->renderArena()) RenderInline(src->element());
+    RenderInline* o = new (src->renderArena()) RenderInline(src->node());
     o->setStyle(src->style());
     return o;
 }
@@ -418,15 +419,7 @@ void RenderInline::paint(PaintInfo& paintInfo, int tx, int ty)
 void RenderInline::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool topLevel)
 {
     for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox())
-        rects.append(IntRect(tx + curr->xPos(), ty + curr->yPos(), curr->width(), curr->height()));
-
-    for (RenderObject* curr = firstChild(); curr; curr = curr->nextSibling()) {
-        if (curr->isBox()) {
-            RenderBox* box = toRenderBox(curr);
-            curr->absoluteRects(rects, tx + box->x(), ty + box->y(), false);
-        } else
-            curr->absoluteRects(rects, tx, ty, false);
-    }
+        rects.append(IntRect(tx + curr->x(), ty + curr->y(), curr->width(), curr->height()));
 
     if (continuation() && topLevel) {
         if (continuation()->isBox()) {
@@ -443,15 +436,10 @@ void RenderInline::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool to
 void RenderInline::absoluteQuads(Vector<FloatQuad>& quads, bool topLevel)
 {
     for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox()) {
-        FloatRect localRect(curr->xPos(), curr->yPos(), curr->width(), curr->height());
+        FloatRect localRect(curr->x(), curr->y(), curr->width(), curr->height());
         quads.append(localToAbsoluteQuad(localRect));
     }
     
-    for (RenderObject* curr = firstChild(); curr; curr = curr->nextSibling()) {
-        if (!curr->isText())
-            curr->absoluteQuads(quads, false);
-    }
-
     if (continuation() && topLevel)
         continuation()->absoluteQuads(quads, topLevel);
 }
@@ -460,7 +448,7 @@ int RenderInline::offsetLeft() const
 {
     int x = RenderBoxModelObject::offsetLeft();
     if (firstLineBox())
-        x += firstLineBox()->xPos();
+        x += firstLineBox()->x();
     return x;
 }
 
@@ -468,7 +456,7 @@ int RenderInline::offsetTop() const
 {
     int y = RenderBoxModelObject::offsetTop();
     if (firstLineBox())
-        y += firstLineBox()->yPos();
+        y += firstLineBox()->y();
     return y;
 }
 
@@ -480,7 +468,7 @@ int RenderInline::marginLeft() const
     if (margin.isFixed())
         return margin.value();
     if (margin.isPercent())
-        return margin.calcMinValue(max(0, containingBlockWidth()));
+        return margin.calcMinValue(max(0, containingBlock()->availableWidth()));
     return 0;
 }
 
@@ -492,7 +480,7 @@ int RenderInline::marginRight() const
     if (margin.isFixed())
         return margin.value();
     if (margin.isPercent())
-        return margin.calcMinValue(max(0, containingBlockWidth()));
+        return margin.calcMinValue(max(0, containingBlock()->availableWidth()));
     return 0;
 }
 
@@ -550,15 +538,15 @@ IntRect RenderInline::linesBoundingBox() const
         int leftSide = 0;
         int rightSide = 0;
         for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox()) {
-            if (curr == firstLineBox() || curr->xPos() < leftSide)
-                leftSide = curr->xPos();
-            if (curr == firstLineBox() || curr->xPos() + curr->width() > rightSide)
-                rightSide = curr->xPos() + curr->width();
+            if (curr == firstLineBox() || curr->x() < leftSide)
+                leftSide = curr->x();
+            if (curr == firstLineBox() || curr->x() + curr->width() > rightSide)
+                rightSide = curr->x() + curr->width();
         }
         result.setWidth(rightSide - leftSide);
         result.setX(leftSide);
-        result.setHeight(lastLineBox()->yPos() + lastLineBox()->height() - firstLineBox()->yPos());
-        result.setY(firstLineBox()->yPos());
+        result.setHeight(lastLineBox()->y() + lastLineBox()->height() - firstLineBox()->y());
+        result.setY(firstLineBox()->y());
     }
 
     return result;
@@ -710,7 +698,7 @@ void RenderInline::updateDragState(bool dragOn)
 void RenderInline::childBecameNonInline(RenderObject* child)
 {
     // We have to split the parent flow.
-    RenderBlock* newBox = createAnonymousBlock();
+    RenderBlock* newBox = containingBlock()->createAnonymousBlock();
     RenderBoxModelObject* oldContinuation = continuation();
     setContinuation(newBox);
     RenderObject* beforeChild = child->nextSibling();
@@ -723,27 +711,27 @@ void RenderInline::updateHitTestResult(HitTestResult& result, const IntPoint& po
     if (result.innerNode())
         return;
 
-    Node* node = element();
+    Node* n = node();
     IntPoint localPoint(point);
-    if (node) {
+    if (n) {
         if (isInlineContinuation()) {
             // We're in the continuation of a split inline.  Adjust our local point to be in the coordinate space
             // of the principal renderer's containing block.  This will end up being the innerNonSharedNode.
-            RenderBlock* firstBlock = node->renderer()->containingBlock();
+            RenderBlock* firstBlock = n->renderer()->containingBlock();
             
             // Get our containing block.
             RenderBox* block = containingBlock();
             localPoint.move(block->x() - firstBlock->x(), block->y() - firstBlock->y());
         }
 
-        result.setInnerNode(node);
+        result.setInnerNode(n);
         if (!result.innerNonSharedNode())
-            result.setInnerNonSharedNode(node);
+            result.setInnerNonSharedNode(n);
         result.setLocalPoint(localPoint);
     }
 }
 
-void RenderInline::dirtyLineBoxes(bool fullLayout, bool)
+void RenderInline::dirtyLineBoxes(bool fullLayout)
 {
     if (fullLayout)
         m_lineBoxes.deleteLineBoxes(renderArena());
@@ -751,9 +739,14 @@ void RenderInline::dirtyLineBoxes(bool fullLayout, bool)
         m_lineBoxes.dirtyLineBoxes();
 }
 
-InlineBox* RenderInline::createInlineBox(bool, bool, bool)
+InlineFlowBox* RenderInline::createFlowBox()
 {
-    InlineFlowBox* flowBox = new (renderArena()) InlineFlowBox(this);
+    return new (renderArena()) InlineFlowBox(this);
+}
+
+InlineFlowBox* RenderInline::createInlineFlowBox()
+{
+    InlineFlowBox* flowBox = createFlowBox();
     m_lineBoxes.appendLineBox(flowBox);
     return flowBox;
 }
@@ -772,6 +765,19 @@ int RenderInline::lineHeight(bool firstLine, bool /*isRootLineBox*/) const
     return m_lineHeight;
 }
 
+int RenderInline::verticalPositionFromCache(bool firstLine) const
+{
+    if (firstLine) // We're only really a first-line style if the document actually uses first-line rules.
+        firstLine = document()->usesFirstLineRules();
+    int vpos = m_verticalPosition;
+    if (m_verticalPosition == PositionUndefined || firstLine) {
+        vpos = verticalPosition(firstLine);
+        if (!firstLine)
+            m_verticalPosition = vpos;
+    }
+    return vpos;
+}
+
 IntSize RenderInline::relativePositionedInlineOffset(const RenderBox* child) const
 {
     ASSERT(isRelPositioned());
@@ -786,8 +792,8 @@ IntSize RenderInline::relativePositionedInlineOffset(const RenderBox* child) con
     int sx;
     int sy;
     if (firstLineBox()) {
-        sx = firstLineBox()->xPos();
-        sy = firstLineBox()->yPos();
+        sx = firstLineBox()->x();
+        sy = firstLineBox()->y();
     } else {
         sx = layer()->staticX();
         sy = layer()->staticY();
@@ -821,7 +827,7 @@ void RenderInline::imageChanged(WrappedImagePtr, const IntRect*)
 void RenderInline::addFocusRingRects(GraphicsContext* graphicsContext, int tx, int ty)
 {
     for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox())
-        graphicsContext->addFocusRingRect(IntRect(tx + curr->xPos(), ty + curr->yPos(), curr->width(), curr->height()));
+        graphicsContext->addFocusRingRect(IntRect(tx + curr->x(), ty + curr->y(), curr->width(), curr->height()));
 
     for (RenderObject* curr = firstChild(); curr; curr = curr->nextSibling()) {
         if (!curr->isText() && !curr->isListMarker()) {
@@ -874,7 +880,7 @@ void RenderInline::paintOutline(GraphicsContext* graphicsContext, int tx, int ty
 
     rects.append(IntRect());
     for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox())
-        rects.append(IntRect(curr->xPos(), curr->yPos(), curr->width(), curr->height()));
+        rects.append(IntRect(curr->x(), curr->y(), curr->width(), curr->height()));
 
     rects.append(IntRect());
 
@@ -899,7 +905,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
     int r = tx + thisline.right() + offset;
     
     // left edge
-    drawBorder(graphicsContext,
+    drawLineForBoxSide(graphicsContext,
                l - ow,
                t - (lastline.isEmpty() || thisline.x() < lastline.x() || (lastline.right() - 1) <= thisline.x() ? ow : 0),
                l,
@@ -910,7 +916,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
                (nextline.isEmpty() || thisline.x() <= nextline.x() || (nextline.right() - 1) <= thisline.x() ? ow : -ow));
     
     // right edge
-    drawBorder(graphicsContext,
+    drawLineForBoxSide(graphicsContext,
                r,
                t - (lastline.isEmpty() || lastline.right() < thisline.right() || (thisline.right() - 1) <= lastline.x() ? ow : 0),
                r + ow,
@@ -921,7 +927,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
                (nextline.isEmpty() || nextline.right() <= thisline.right() || (thisline.right() - 1) <= nextline.x() ? ow : -ow));
     // upper edge
     if (thisline.x() < lastline.x())
-        drawBorder(graphicsContext,
+        drawLineForBoxSide(graphicsContext,
                    l - ow,
                    t - ow,
                    min(r+ow, (lastline.isEmpty() ? 1000000 : tx + lastline.x())),
@@ -931,7 +937,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
                    (!lastline.isEmpty() && tx + lastline.x() + 1 < r + ow) ? -ow : ow);
     
     if (lastline.right() < thisline.right())
-        drawBorder(graphicsContext,
+        drawLineForBoxSide(graphicsContext,
                    max(lastline.isEmpty() ? -1000000 : tx + lastline.right(), l - ow),
                    t - ow,
                    r + ow,
@@ -942,7 +948,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
     
     // lower edge
     if (thisline.x() < nextline.x())
-        drawBorder(graphicsContext,
+        drawLineForBoxSide(graphicsContext,
                    l - ow,
                    b,
                    min(r + ow, !nextline.isEmpty() ? tx + nextline.x() + 1 : 1000000),
@@ -952,7 +958,7 @@ void RenderInline::paintOutlineForLine(GraphicsContext* graphicsContext, int tx,
                    (!nextline.isEmpty() && tx + nextline.x() + 1 < r + ow) ? -ow : ow);
     
     if (nextline.right() < thisline.right())
-        drawBorder(graphicsContext,
+        drawLineForBoxSide(graphicsContext,
                    max(!nextline.isEmpty() ? tx + nextline.right() : -1000000, l - ow),
                    b,
                    r + ow,

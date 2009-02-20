@@ -31,7 +31,6 @@ list(APPEND WEBCORE_SRC
     rendering/RenderLayer.cpp
     rendering/RenderLayerBacking.cpp
     rendering/RenderLayerCompositor.cpp
-    rendering/RenderLegend.cpp
     rendering/RenderLineBoxList.cpp
     rendering/RenderListBox.cpp
     rendering/RenderListItem.cpp

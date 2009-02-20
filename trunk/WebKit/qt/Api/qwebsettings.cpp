@@ -236,10 +236,6 @@ QWebSettings *QWebSettings::globalSettings()
     setOfflineStoragePath() with an appropriate file path, and can limit the quota
     for each application by calling setOfflineStorageDefaultQuota().
 
-    The performance of Web applications can be enhanced with the use of an
-    offline cache. This can be enabled by calling setOfflineWebApplicationCache()
-    with an appropriate file path.
-
     \sa QWebPage::settings(), QWebView::settings(), {Browser}
 */
 
@@ -710,9 +706,10 @@ qint64 QWebSettings::offlineStorageDefaultQuota()
     return QWebSettings::globalSettings()->d->offlineStorageDefaultQuota;
 }
 
-/*!
+/*
     \internal
-
+    \relates QWebSettings
+    
     Sets the path for HTML5 offline web application cache storage to \a path.
 
     \a path must point to an existing directory where the cache is stored.
@@ -728,9 +725,10 @@ void QWEBKIT_EXPORT qt_websettings_setOfflineWebApplicationCachePath(const QStri
 #endif
 }
 
-/*!
+/*
     \internal
-
+    \relates QWebSettings
+    
     Returns the path of the HTML5 offline web application cache storage
     or an empty string if the feature is disabled.
 
@@ -747,6 +745,7 @@ QString QWEBKIT_EXPORT qt_websettings_offlineWebApplicationCachePath()
 
 /*
     \since 4.5
+    \relates QWebSettings
 
     Sets the path for HTML5 local storage databases to \a path.
 
@@ -756,7 +755,6 @@ QString QWEBKIT_EXPORT qt_websettings_offlineWebApplicationCachePath()
 
     \sa localStorageDatabasePath()
 */
-
 void QWEBKIT_EXPORT qt_websettings_setLocalStorageDatabasePath(QWebSettings* settings, const QString& path)
 {
     QWebSettingsPrivate *d = settings->handle();
@@ -766,6 +764,7 @@ void QWEBKIT_EXPORT qt_websettings_setLocalStorageDatabasePath(QWebSettings* set
 
 /*
     \since 4.5
+    \relates QWebSettings
 
     Returns the path for HTML5 local storage databases
     or an empty string if the feature is disabled.

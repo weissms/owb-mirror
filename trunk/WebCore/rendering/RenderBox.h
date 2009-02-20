@@ -41,8 +41,8 @@ public:
 
     int x() const { return m_frameRect.x(); }
     int y() const { return m_frameRect.y(); }
-    int width() const { ASSERT(!isRenderInline()); return m_frameRect.width(); }
-    int height() const { ASSERT(!isRenderInline()); return m_frameRect.height(); }
+    int width() const { return m_frameRect.width(); }
+    int height() const { return m_frameRect.height(); }
     
     void setX(int x) { m_frameRect.setX(x); }
     void setY(int y) { m_frameRect.setY(y); }
@@ -50,7 +50,7 @@ public:
     void setHeight(int height) { m_frameRect.setHeight(height); }
     
     IntPoint location() const { return m_frameRect.location(); }
-    IntSize size() const { ASSERT(!isRenderInline()); return m_frameRect.size(); }
+    IntSize size() const { return m_frameRect.size(); }
 
     void setLocation(const IntPoint& location) { m_frameRect.setLocation(location); }
     void setLocation(int x, int y) { setLocation(IntPoint(x, y)); }
@@ -58,7 +58,7 @@ public:
     void setSize(const IntSize& size) { m_frameRect.setSize(size); }
     void move(int dx, int dy) { m_frameRect.move(dx, dy); }
 
-    IntRect frameRect() const { ASSERT(!isRenderInline()); return m_frameRect; }
+    IntRect frameRect() const { return m_frameRect; }
     void setFrameRect(const IntRect& rect) { m_frameRect = rect; }
 
     IntRect borderBoxRect() const { return IntRect(0, 0, width(), height()); }
@@ -156,9 +156,9 @@ public:
     virtual int minPrefWidth() const;
     virtual int maxPrefWidth() const;
 
-    virtual int overrideSize() const;
-    virtual int overrideWidth() const;
-    virtual int overrideHeight() const;
+    int overrideSize() const;
+    int overrideWidth() const;
+    int overrideHeight() const;
     virtual void setOverrideSize(int);
 
     virtual IntSize offsetFromContainer(RenderObject*) const;
@@ -176,16 +176,17 @@ public:
     // shifted. -dwh
     void calcHorizontalMargins(const Length& marginLeft, const Length& marginRight, int containerWidth);
 
-    virtual void position(InlineBox*);
+    void positionLineBox(InlineBox*);
 
-    virtual void dirtyLineBoxes(bool fullLayout, bool isRootLineBox = false);
+    InlineBox* createInlineBox();
+    void dirtyLineBoxes(bool fullLayout);
 
     // For inline replaced elements, this function returns the inline box that owns us.  Enables
     // the replaced RenderObject to quickly determine what line it is contained on and to easily
     // iterate over structures on the line.
-    virtual InlineBox* inlineBoxWrapper() const { return m_inlineBoxWrapper; }
-    virtual void setInlineBoxWrapper(InlineBox* boxWrapper) { m_inlineBoxWrapper = boxWrapper; }
-    virtual void deleteLineBoxWrapper();
+    InlineBox* inlineBoxWrapper() const { return m_inlineBoxWrapper; }
+    void setInlineBoxWrapper(InlineBox* boxWrapper) { m_inlineBoxWrapper = boxWrapper; }
+    void deleteLineBoxWrapper();
 
     virtual int lowestPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
     virtual int rightmostPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
@@ -196,7 +197,7 @@ public:
 
     virtual void repaintDuringLayoutIfMoved(const IntRect&);
 
-    virtual int containingBlockWidth() const;
+    virtual int containingBlockWidthForContent() const;
 
     virtual void calcWidth();
     virtual void calcHeight();
@@ -245,8 +246,10 @@ public:
     
     virtual IntRect localCaretRect(InlineBox*, int caretOffset, int* extraWidthToEndOfLine = 0);
 
-    virtual IntRect getOverflowClipRect(int tx, int ty);
-    virtual IntRect getClipRect(int tx, int ty);
+    virtual IntRect overflowClipRect(int tx, int ty);
+    IntRect clipRect(int tx, int ty);
+    virtual bool hasControlClip() const { return false; }
+    virtual IntRect controlClipRect(int /*tx*/, int /*ty*/) const { return IntRect(); }
 
     virtual void paintBoxDecorations(PaintInfo&, int tx, int ty);
     virtual void paintMask(PaintInfo& paintInfo, int tx, int ty);
@@ -270,6 +273,12 @@ public:
     virtual VisiblePosition positionForCoordinates(int x, int y);
 
     void removeFloatingOrPositionedChildFromBlockLists();
+    
+    virtual int firstLineBoxBaseline() const { return -1; }
+    virtual int lastLineBoxBaseline() const { return -1; }
+
+    bool shrinkToAvoidFloats() const;
+    virtual bool avoidsFloats() const;
 
 #if ENABLE(SVG)
     virtual TransformationMatrix localTransform() const;

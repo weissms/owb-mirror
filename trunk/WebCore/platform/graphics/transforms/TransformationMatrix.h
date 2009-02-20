@@ -32,6 +32,10 @@
 #include <cairo.h>
 #elif PLATFORM(QT)
 #include <QMatrix>
+#elif PLATFORM(SKIA)
+#include <SkMatrix.h>
+#elif PLATFORM(WX) && USE(WXGC)
+#include <wx/graphics.h>
 #endif
 
 #include <string.h> //for memcpy
@@ -281,11 +285,13 @@ public:
     operator cairo_matrix_t() const;
 #elif PLATFORM(QT)
     operator QMatrix() const;
+#elif PLATFORM(SKIA)
+    operator SkMatrix() const;
+#elif PLATFORM(WX) && USE(WXGC)
+    operator wxGraphicsMatrix() const;
 #endif
 
 private:
-    TransformationMatrix makeMapBetweenRects(const FloatRect& source, const FloatRect& dest);
-
     // multiply passed 2D point by matrix (assume z=0)
     void multVecMatrix(double x, double y, double& dstX, double& dstY) const;
     

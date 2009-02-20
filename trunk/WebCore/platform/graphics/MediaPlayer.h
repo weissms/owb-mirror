@@ -28,18 +28,24 @@
 
 #if ENABLE(VIDEO)
 
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "MediaPlayerProxy.h"
+#endif
+
 #include "IntRect.h"
 #include "StringHash.h"
 #include <wtf/HashSet.h>
+#include <wtf/OwnPtr.h>
 #include <wtf/Noncopyable.h>
 
 namespace WebCore {
 
 class FrameView;
 class GraphicsContext;
+class IntRect;
 class IntSize;
 class MediaPlayer;
-class MediaPlayerPrivate;
+class MediaPlayerPrivateInterface;
 class String;
 
 class MediaPlayerClient {
@@ -56,15 +62,18 @@ class MediaPlayer : Noncopyable {
 public:
     MediaPlayer(MediaPlayerClient*);
     virtual ~MediaPlayer();
-    
-    static bool isAvailable();
-    static bool supportsType(const String&);
+
+    // media engine support
+    enum SupportsType { IsNotSupported, IsSupported, MayBeSupported };
+    static MediaPlayer::SupportsType supportsType(const String& type, const String& codecs = "");
     static void getSupportedTypes(HashSet<String>&);
+    static bool isAvailable();
     
     IntSize naturalSize();
     bool hasVideo();
     
     void setFrameView(FrameView* frameView) { m_frameView = frameView; }
+    FrameView* frameView() { return m_frameView; }
     bool inMediaDocument();
     
     // FIXME: it would be better to just have a getter and setter for size.
@@ -73,7 +82,7 @@ public:
     IntRect rect() const { return m_rect; }
     void setRect(const IntRect& r);
     
-    void load(const String& url);
+    void load(const String& url, const String& mimeType);
     void cancelLoad();
     
     bool visible() const;
@@ -96,7 +105,7 @@ public:
     
     float maxTimeBuffered();
     float maxTimeSeekable();
-    
+
     unsigned bytesLoaded();
     bool totalBytesKnown();
     unsigned totalBytes();
@@ -120,13 +129,21 @@ public:
     void timeChanged();
 
     void repaint();
-    
+
+    MediaPlayerClient* mediaPlayerClient() const { return m_mediaPlayerClient; }
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    void setPoster(const String& url);
+    void deliverNotification(MediaPlayerProxyNotificationType notification);
+    void setMediaPlayerProxy(WebMediaPlayerProxy* proxy);
+#endif
+
 private:
-        
-    friend class MediaPlayerPrivate;
-    
+    static void initializeMediaEngines();
+
     MediaPlayerClient* m_mediaPlayerClient;
-    MediaPlayerPrivate* m_private;
+    OwnPtr<MediaPlayerPrivateInterface*> m_private;
+    void* m_currentMediaEngine;
     FrameView* m_frameView;
     IntRect m_rect;
     bool m_visible;
@@ -134,7 +151,15 @@ private:
     float m_volume;
 };
 
+typedef MediaPlayerPrivateInterface* (*CreateMediaEnginePlayer)(MediaPlayer*);
+typedef void (*MediaEngineSupportedTypes)(HashSet<String>& types);
+typedef MediaPlayer::SupportsType (*MediaEngineSupportsType)(const String& type, const String& codecs);
+
+typedef void (*MediaEngineRegistrar)(CreateMediaEnginePlayer, MediaEngineSupportedTypes, MediaEngineSupportsType); 
+
+
 }
 
-#endif
+#endif // ENABLE(VIDEO)
+
 #endif

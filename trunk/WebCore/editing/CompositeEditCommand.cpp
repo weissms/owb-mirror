@@ -296,7 +296,7 @@ void CompositeEditCommand::inputText(const String& text, bool selectInsertedText
     
     if (selectInsertedText) {
         RefPtr<Range> selectedRange = TextIterator::rangeFromLocationAndLength(document()->documentElement(), startIndex, length);
-        setEndingSelection(Selection(selectedRange.get()));
+        setEndingSelection(VisibleSelection(selectedRange.get()));
     }
 }
 
@@ -345,7 +345,7 @@ void CompositeEditCommand::deleteSelection(bool smartDelete, bool mergeBlocksAft
         applyCommandToComposite(DeleteSelectionCommand::create(document(), smartDelete, mergeBlocksAfterDelete, replace, expandForSpecialElements));
 }
 
-void CompositeEditCommand::deleteSelection(const Selection &selection, bool smartDelete, bool mergeBlocksAfterDelete, bool replace, bool expandForSpecialElements)
+void CompositeEditCommand::deleteSelection(const VisibleSelection &selection, bool smartDelete, bool mergeBlocksAfterDelete, bool replace, bool expandForSpecialElements)
 {
     if (selection.isRange())
         applyCommandToComposite(DeleteSelectionCommand::create(selection, smartDelete, mergeBlocksAfterDelete, replace, expandForSpecialElements));
@@ -452,7 +452,7 @@ void CompositeEditCommand::prepareWhitespaceAtPositionForSplit(Position& positio
 
 void CompositeEditCommand::rebalanceWhitespace()
 {
-    Selection selection = endingSelection();
+    VisibleSelection selection = endingSelection();
     if (selection.isNone())
         return;
         
@@ -655,11 +655,10 @@ PassRefPtr<Node> CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessar
 
     // Perform some checks to see if we need to perform work in this function.
     if (isBlock(upstreamStart.node())) {
-        // If the block is the body element, always move content to a new block, so that
-        // we avoid adding styles to the body element, since Mail's Make Plain Text feature
-        // can't handle those.
-        if (upstreamStart.node()->hasTagName(bodyTag)) {
-            // If the block is the body element and there is nothing insde of it, create a new
+        // If the block is the root editable element, always move content to a new block,
+        // since it is illegal to modify attributes on the root editable element for editing.
+        if (upstreamStart.node() == editableRootForPosition(upstreamStart)) {
+            // If the block is the root editable element and there is nothing insde of it, create a new
             // block but don't try and move content into it, since there's nothing to move.
             if (upstreamStart == upstreamEnd)
                 return insertNewDefaultParagraphElementAt(upstreamStart);
@@ -696,7 +695,7 @@ void CompositeEditCommand::pushAnchorElementDown(Node* anchorNode)
     
     ASSERT(anchorNode->isLink());
     
-    setEndingSelection(Selection::selectionFromContentsOfNode(anchorNode));
+    setEndingSelection(VisibleSelection::selectionFromContentsOfNode(anchorNode));
     applyStyledElement(static_cast<Element*>(anchorNode));
     // Clones of anchorNode have been pushed down, now remove it.
     if (anchorNode->inDocument())
@@ -709,7 +708,7 @@ void CompositeEditCommand::pushAnchorElementDown(Node* anchorNode)
 // Anchors cannot be nested.
 void CompositeEditCommand::pushPartiallySelectedAnchorElementsDown()
 {
-    Selection originalSelection = endingSelection();
+    VisibleSelection originalSelection = endingSelection();
     VisiblePosition visibleStart(originalSelection.start());
     VisiblePosition visibleEnd(originalSelection.end());
     
@@ -797,7 +796,7 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
     
     // FIXME (5098931): We should add a new insert action "WebViewInsertActionMoved" and call shouldInsertFragment here.
     
-    setEndingSelection(Selection(start, end, DOWNSTREAM));
+    setEndingSelection(VisibleSelection(start, end, DOWNSTREAM));
     deleteSelection(false, false, false, false);
 
     ASSERT(destination.deepEquivalent().node()->inDocument());
@@ -866,7 +865,7 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
         RefPtr<Range> start = TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + startIndex, 0, true);
         RefPtr<Range> end = TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + endIndex, 0, true);
         if (start && end)
-            setEndingSelection(Selection(start->startPosition(), end->startPosition(), DOWNSTREAM));
+            setEndingSelection(VisibleSelection(start->startPosition(), end->startPosition(), DOWNSTREAM));
     }
 }
 
@@ -897,7 +896,7 @@ bool CompositeEditCommand::breakOutOfEmptyListItem()
     }
     
     appendBlockPlaceholder(newBlock);
-    setEndingSelection(Selection(Position(newBlock.get(), 0), DOWNSTREAM));
+    setEndingSelection(VisibleSelection(Position(newBlock.get(), 0), DOWNSTREAM));
     
     computedStyle(endingSelection().start().node())->diff(style.get());
     if (style->length() > 0)
@@ -935,7 +934,7 @@ bool CompositeEditCommand::breakOutOfEmptyMailBlockquotedParagraph()
     // a second one.
     if (!isStartOfParagraph(atBR))
         insertNodeBefore(createBreakElement(document()), br);
-    setEndingSelection(Selection(atBR));
+    setEndingSelection(VisibleSelection(atBR));
     
     // If this is an empty paragraph there must be a line break here.
     if (!lineBreakExistsAtPosition(caret))

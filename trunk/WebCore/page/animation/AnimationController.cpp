@@ -35,6 +35,7 @@
 #include "EventNames.h"
 #include "Frame.h"
 #include <wtf/CurrentTime.h>
+#include <wtf/UnusedParam.h>
 
 namespace WebCore {
 
@@ -93,7 +94,7 @@ void AnimationControllerPrivate::updateAnimationTimer(bool callSetChanged/* = fa
                 needsService = t;
             if (needsService == 0) {
                 if (callSetChanged) {
-                    Node* node = it->first->element();
+                    Node* node = it->first->node();
                     ASSERT(!node || (node->document() && !node->document()->inPageCache()));
                     node->setChanged(AnimationStyleChange);
                     calledSetChanged = true;
@@ -147,7 +148,7 @@ void AnimationControllerPrivate::updateRenderingDispatcherFired(Timer<AnimationC
     
     m_nodeChangesToDispatch.clear();
     
-    if (m_frame && m_frame->document())
+    if (m_frame)
         m_frame->document()->updateRendering();
 }
 
@@ -422,7 +423,7 @@ void AnimationController::cancelAnimations(RenderObject* renderer)
         return;
 
     if (m_data->clear(renderer)) {
-        Node* node = renderer->element();
+        Node* node = renderer->node();
         ASSERT(!node || (node->document() && !node->document()->inPageCache()));
         node->setChanged(AnimationStyleChange);
     }
@@ -443,7 +444,7 @@ PassRefPtr<RenderStyle> AnimationController::updateAnimations(RenderObject* rend
     // against the animations in the style and make sure we're in sync.  If destination values
     // have changed, we reset the animation.  We then do a blend to get new values and we return
     // a new style.
-    ASSERT(renderer->element()); // FIXME: We do not animate generated content yet.
+    ASSERT(renderer->node()); // FIXME: We do not animate generated content yet.
 
     RefPtr<CompositeAnimation> rendererAnimations = m_data->accessCompositeAnimation(renderer);
     RefPtr<RenderStyle> blendedStyle = rendererAnimations->animate(renderer, oldStyle, newStyle);

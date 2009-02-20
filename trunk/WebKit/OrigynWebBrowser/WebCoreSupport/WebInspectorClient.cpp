@@ -62,6 +62,12 @@ String WebInspectorClient::localizedStringsURL()
     return String();
 }
 
+String WebInspectorClient::hiddenPanels()
+{
+    // FIXME: implement this
+    return String();
+}
+
 void WebInspectorClient::showWindow()
 {
     notImplemented();

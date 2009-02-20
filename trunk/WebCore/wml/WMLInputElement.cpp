@@ -174,7 +174,7 @@ void WMLInputElement::restoreState(const String& state)
 
 void WMLInputElement::select()
 {
-    if (RenderTextControl* r = static_cast<RenderTextControl*>(renderer()))
+    if (RenderTextControl* r = toRenderTextControl(renderer()))
         r->select();
 }
 
@@ -271,7 +271,7 @@ void WMLInputElement::defaultEventHandler(Event* evt)
         TextEvent* textEvent = static_cast<TextEvent*>(evt);
         if (textEvent->data() == "\n")
             clickDefaultFormButton = true;
-        else if (renderer() && !isConformedToInputMask(textEvent->data()[0], static_cast<RenderTextControl*>(renderer())->text().length() + 1))
+        else if (renderer() && !isConformedToInputMask(textEvent->data()[0], toRenderTextControl(renderer())->text().length() + 1))
             // If the inputed char doesn't conform to the input mask, stop handling 
             return;
     }
@@ -300,13 +300,13 @@ void WMLInputElement::defaultEventHandler(Event* evt)
     if (clickDefaultFormButton) {
         // Fire onChange for text fields.
         RenderObject* r = renderer();
-        if (r && r->isEdited()) {
+        if (r && toRenderTextControl(r)->isEdited()) {
             dispatchEventForType(eventNames().changeEvent, true, false);
             
             // Refetch the renderer since arbitrary JS code run during onchange can do anything, including destroying it.
             r = renderer();
             if (r)
-                r->setEdited(false);
+                toRenderTextControl(r)->setEdited(false);
         }
 
         evt->setDefaultHandled();
@@ -460,7 +460,7 @@ bool WMLInputElement::isConformedToInputMask(UChar inChar, unsigned inputCharCou
     if (isUserInput) {
         unsigned cursorPosition = 0;
         if (renderer())
-            cursorPosition = static_cast<RenderTextControl*>(renderer())->selectionStart(); 
+            cursorPosition = toRenderTextControl(renderer())->selectionStart(); 
         else
             cursorPosition = m_data.cachedSelectionStart();
 

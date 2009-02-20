@@ -10,6 +10,8 @@ list(APPEND WEBCORE_SRC
     dom/ChildNodeList.cpp
     dom/ClassNames.cpp
     dom/ClassNodeList.cpp
+    dom/ClientRect.cpp
+    dom/ClientRectList.cpp
     dom/Clipboard.cpp
     dom/ClipboardEvent.cpp
     dom/Comment.cpp
@@ -93,6 +95,8 @@ endif(USE_GRAPHICS_QT)
 list(APPEND IDL_SRC
     dom/Attr.idl
     dom/CharacterData.idl
+    dom/ClientRect.idl
+    dom/ClientRectList.idl
     dom/Clipboard.idl
     dom/CDATASection.idl
     dom/Comment.idl

@@ -1,3 +1,13 @@
+2009-02-20  Dimitri Dupuis-latour  <dupuislatour@apple.com>
+
+        Stub out InspectorClientWx::hiddenPanels.
+
+        Reviewed by Timothy Hatcher.
+
+        * WebKitSupport/InspectorClientWx.cpp:
+        (WebCore::InspectorClientWx::hiddenPanels):
+        * WebKitSupport/InspectorClientWx.h:
+
 2009-02-09  Geoffrey Garen  <ggaren@apple.com>
 
         Build fix.

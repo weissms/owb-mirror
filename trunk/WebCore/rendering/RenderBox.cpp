@@ -140,8 +140,8 @@ void RenderBox::styleWillChange(StyleDifference diff, const RenderStyle* newStyl
         
         // The background of the root element or the body element could propagate up to
         // the canvas.  Just dirty the entire canvas when our style changes substantially.
-        if (diff >= StyleDifferenceRepaint && element() &&
-                (element()->hasTagName(htmlTag) || element()->hasTagName(bodyTag)))
+        if (diff >= StyleDifferenceRepaint && node() &&
+                (node()->hasTagName(htmlTag) || node()->hasTagName(bodyTag)))
             view()->repaint();
         else if (parent() && !isText()) {
             // Do a repaint with the old style first, e.g., for example if we go from
@@ -237,7 +237,7 @@ void RenderBox::updateBoxModelInfoFromStyle()
             // (2) We are the primary <body> (can be checked by looking at document.body).
             // (3) The root element has visible overflow.
             if (document()->documentElement()->hasTagName(htmlTag) &&
-                document()->body() == element() &&
+                document()->body() == node() &&
                 document()->documentElement()->renderer()->style()->overflowX() == OVISIBLE)
                 boxHasOverflowClip = false;
         }
@@ -252,7 +252,7 @@ void RenderBox::updateBoxModelInfoFromStyle()
         }
     }
 
-    setHasTransform(style()->hasTransform());
+    setHasTransform(style()->hasTransformRelatedProperty());
     setHasReflection(style()->boxReflect());
 }
 
@@ -593,7 +593,7 @@ void RenderBox::paintRootBoxDecorations(PaintInfo& paintInfo, int tx, int ty)
 {
     const FillLayer* bgLayer = style()->backgroundLayers();
     Color bgColor = style()->backgroundColor();
-    if (!style()->hasBackground() && element() && element()->hasTagName(HTMLNames::htmlTag)) {
+    if (!style()->hasBackground() && node() && node()->hasTagName(HTMLNames::htmlTag)) {
         // Locate the <body> element using the DOM.  This is easier than trying
         // to crawl around a render tree with potential :before/:after content and
         // anonymous blocks created by inline <body> tags etc.  We can locate the <body>
@@ -841,7 +841,7 @@ void RenderBox::paintCustomHighlight(int tx, int ty, const AtomicString& type, b
     InlineBox* boxWrap = inlineBoxWrapper();
     RootInlineBox* r = boxWrap ? boxWrap->root() : 0;
     if (r) {
-        FloatRect rootRect(tx + r->xPos(), ty + r->selectionTop(), r->width(), r->selectionHeight());
+        FloatRect rootRect(tx + r->x(), ty + r->selectionTop(), r->width(), r->selectionHeight());
         FloatRect imageRect(tx + x(), rootRect.y(), width(), rootRect.height());
         page->chrome()->client()->paintCustomHighlight(node(), type, imageRect, rootRect, behindText, false);
     } else {
@@ -852,7 +852,7 @@ void RenderBox::paintCustomHighlight(int tx, int ty, const AtomicString& type, b
 
 #endif
 
-IntRect RenderBox::getOverflowClipRect(int tx, int ty)
+IntRect RenderBox::overflowClipRect(int tx, int ty)
 {
     // FIXME: When overflow-clip (CSS3) is implemented, we'll obtain the property
     // here.
@@ -874,7 +874,7 @@ IntRect RenderBox::getOverflowClipRect(int tx, int ty)
     return IntRect(clipX, clipY, clipWidth, clipHeight);
 }
 
-IntRect RenderBox::getClipRect(int tx, int ty)
+IntRect RenderBox::clipRect(int tx, int ty)
 {
     int clipX = tx;
     int clipY = ty;
@@ -902,11 +902,9 @@ IntRect RenderBox::getClipRect(int tx, int ty)
     return IntRect(clipX, clipY, clipWidth, clipHeight);
 }
 
-int RenderBox::containingBlockWidth() const
+int RenderBox::containingBlockWidthForContent() const
 {
     RenderBlock* cb = containingBlock();
-    if (!cb)
-        return 0;
     if (shrinkToAvoidFloats())
         return cb->lineWidth(y(), false);
     return cb->availableWidth();
@@ -1017,7 +1015,12 @@ IntSize RenderBox::offsetFromContainer(RenderObject* o) const
     return offset;
 }
 
-void RenderBox::dirtyLineBoxes(bool fullLayout, bool /*isRootLineBox*/)
+InlineBox* RenderBox::createInlineBox()
+{
+    return new (renderArena()) InlineBox(this);
+}
+
+void RenderBox::dirtyLineBoxes(bool fullLayout)
 {
     if (m_inlineBoxWrapper) {
         if (fullLayout) {
@@ -1028,7 +1031,7 @@ void RenderBox::dirtyLineBoxes(bool fullLayout, bool /*isRootLineBox*/)
     }
 }
 
-void RenderBox::position(InlineBox* box)
+void RenderBox::positionLineBox(InlineBox* box)
 {
     if (isPositioned()) {
         // Cache the x position only if we were an INLINE type originally.
@@ -1037,14 +1040,14 @@ void RenderBox::position(InlineBox* box)
             // The value is cached in the xPos of the box.  We only need this value if
             // our object was inline originally, since otherwise it would have ended up underneath
             // the inlines.
-            layer()->setStaticX(box->xPos());
+            layer()->setStaticX(box->x());
             setChildNeedsLayout(true, false); // Just go ahead and mark the positioned object as needing layout, so it will update its position properly.
         } else if (!wasInline && style()->hasStaticY()) {
             // Our object was a block originally, so we make our normal flow position be
             // just below the line box (as though all the inlines that came before us got
             // wrapped in an anonymous block, which is what would have happened had we been
-            // in flow).  This value was cached in the yPos() of the box.
-            layer()->setStaticY(box->yPos());
+            // in flow).  This value was cached in the y() of the box.
+            layer()->setStaticY(box->y());
             setChildNeedsLayout(true, false); // Just go ahead and mark the positioned object as needing layout, so it will update its position properly.
         }
 
@@ -1052,7 +1055,7 @@ void RenderBox::position(InlineBox* box)
         box->remove();
         box->destroy(renderArena());
     } else if (isReplaced()) {
-        setLocation(box->xPos(), box->yPos());
+        setLocation(box->x(), box->y());
         m_inlineBoxWrapper = box;
     }
 }
@@ -1225,7 +1228,7 @@ void RenderBox::calcWidth()
     Length w = (treatAsReplaced) ? Length(calcReplacedWidth(), Fixed) : style()->width();
 
     RenderBlock* cb = containingBlock();
-    int containerWidth = max(0, containingBlockWidth());
+    int containerWidth = max(0, containingBlockWidthForContent());
 
     Length marginLeft = style()->marginLeft();
     Length marginRight = style()->marginRight();
@@ -1556,7 +1559,7 @@ int RenderBox::calcReplacedWidthUsing(Length width) const
         case Fixed:
             return calcContentBoxWidth(width.value());
         case Percent: {
-            const int cw = isPositioned() ? containingBlockWidthForPositioned(toRenderBoxModelObject(container())) : containingBlockWidth();
+            const int cw = isPositioned() ? containingBlockWidthForPositioned(toRenderBoxModelObject(container())) : containingBlockWidthForContent();
             if (cw > 0)
                 return calcContentBoxWidth(width.calcMinValue(cw));
         }
@@ -1688,11 +1691,11 @@ int RenderBox::containingBlockWidthForPositioned(const RenderBoxModelObject* con
     int fromLeft;
     int fromRight;
     if (containingBlock->style()->direction() == LTR) {
-        fromLeft = first->xPos() + first->borderLeft();
-        fromRight = last->xPos() + last->width() - last->borderRight();
+        fromLeft = first->x() + first->borderLeft();
+        fromRight = last->x() + last->width() - last->borderRight();
     } else {
-        fromRight = first->xPos() + first->width() - first->borderRight();
-        fromLeft = last->xPos() + last->borderLeft();
+        fromRight = first->x() + first->width() - first->borderRight();
+        fromLeft = last->x() + last->borderLeft();
     }
 
     return max(0, (fromRight - fromLeft));
@@ -2034,7 +2037,7 @@ void RenderBox::calcAbsoluteHorizontalValues(Length width, const RenderBoxModelO
         InlineFlowBox* firstLine = flow->firstLineBox();
         InlineFlowBox* lastLine = flow->lastLineBox();
         if (firstLine && lastLine && firstLine != lastLine) {
-            xPos = leftValue + marginLeftValue + lastLine->borderLeft() + (lastLine->xPos() - firstLine->xPos());
+            xPos = leftValue + marginLeftValue + lastLine->borderLeft() + (lastLine->x() - firstLine->x());
             return;
         }
     }
@@ -2325,8 +2328,6 @@ void RenderBox::calcAbsoluteHorizontalReplaced()
             RenderObject* po = parent();
             // 'staticX' should already have been set through layout of the parent.
             int staticPosition = layer()->staticX() + containerWidth + toRenderBoxModelObject(containerBlock)->borderRight();
-            if (po->isBox())
-                po -= toRenderBox(po)->width();
             for ( ; po && po != containerBlock; po = po->parent()) {
                 if (po->isBox())
                     staticPosition += toRenderBox(po)->x();
@@ -2442,7 +2443,7 @@ void RenderBox::calcAbsoluteHorizontalReplaced()
         InlineFlowBox* firstLine = flow->firstLineBox();
         InlineFlowBox* lastLine = flow->lastLineBox();
         if (firstLine && lastLine && firstLine != lastLine) {
-            m_frameRect.setX(leftValue + m_marginLeft + lastLine->borderLeft() + (lastLine->xPos() - firstLine->xPos()));
+            m_frameRect.setX(leftValue + m_marginLeft + lastLine->borderLeft() + (lastLine->x() - firstLine->x()));
             return;
         }
     }
@@ -2590,7 +2591,6 @@ IntRect RenderBox::localCaretRect(InlineBox* box, int caretOffset, int* extraWid
     // FIXME: Paint the carets inside empty blocks differently than the carets before/after elements.
 
     // FIXME: What about border and padding?
-    const int caretWidth = 1;
     IntRect rect(x(), y(), caretWidth, height());
     TextDirection direction = box ? box->direction() : style()->direction();
 
@@ -2663,17 +2663,17 @@ VisiblePosition RenderBox::positionForCoordinates(int xPos, int yPos)
 {
     // no children...return this render object's element, if there is one, and offset 0
     if (!firstChild())
-        return VisiblePosition(element(), 0, DOWNSTREAM);
+        return VisiblePosition(node(), 0, DOWNSTREAM);
         
-    if (isTable() && element()) {
+    if (isTable() && node()) {
         int right = contentWidth() + borderRight() + paddingRight() + borderLeft() + paddingLeft();
         int bottom = contentHeight() + borderTop() + paddingTop() + borderBottom() + paddingBottom();
         
         if (xPos < 0 || xPos > right || yPos < 0 || yPos > bottom) {
             if (xPos <= right / 2)
-                return VisiblePosition(Position(element(), 0));
+                return VisiblePosition(Position(node(), 0));
             else
-                return VisiblePosition(Position(element(), maxDeepOffset(element())));
+                return VisiblePosition(Position(node(), maxDeepOffset(node())));
         }
     }
 
@@ -2744,7 +2744,24 @@ VisiblePosition RenderBox::positionForCoordinates(int xPos, int yPos)
     if (closestRenderer)
         return closestRenderer->positionForCoordinates(newX - closestRenderer->x(), newY - closestRenderer->y());
     
-    return VisiblePosition(element(), 0, DOWNSTREAM);
+    return VisiblePosition(node(), 0, DOWNSTREAM);
+}
+
+bool RenderBox::shrinkToAvoidFloats() const
+{
+    // FIXME: Technically we should be able to shrink replaced elements on a line, but this is difficult to accomplish, since this
+    // involves doing a relayout during findNextLineBreak and somehow overriding the containingBlockWidth method to return the
+    // current remaining width on a line.
+    if (isInline() && !isHTMLMarquee() || !avoidsFloats())
+        return false;
+
+    // All auto-width objects that avoid floats should always use lineWidth.
+    return style()->width().isAuto();
+}
+
+bool RenderBox::avoidsFloats() const
+{
+    return isReplaced() || hasOverflowClip() || isHR();
 }
 
 #if ENABLE(SVG)

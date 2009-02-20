@@ -32,7 +32,6 @@ list(APPEND WEBCORE_SRC
     editing/RemoveNodePreservingChildrenCommand.cpp
     editing/ReplaceSelectionCommand.cpp
     editing/SelectionController.cpp
-    editing/Selection.cpp
     editing/SetNodeAttributeCommand.cpp
     editing/SmartReplace.cpp
     editing/SplitElementCommand.cpp
@@ -42,6 +41,7 @@ list(APPEND WEBCORE_SRC
     editing/TypingCommand.cpp
     editing/UnlinkCommand.cpp
     editing/VisiblePosition.cpp
+    editing/VisibleSelection.cpp
     editing/visible_units.cpp
     editing/WrapContentsInDummySpanCommand.cpp
 )

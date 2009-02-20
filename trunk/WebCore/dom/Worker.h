@@ -43,26 +43,27 @@ namespace WebCore {
 
     class CachedResource;
     class CachedScript;
-    class Document;
     class ScriptExecutionContext;
     class String;
-    class WorkerMessagingProxy;
+    class WorkerContextProxy;
 
     typedef int ExceptionCode;
 
     class Worker : public RefCounted<Worker>, public ActiveDOMObject, private CachedResourceClient, public EventTarget {
     public:
-        static PassRefPtr<Worker> create(const String& url, Document* document, ExceptionCode& ec) { return adoptRef(new Worker(url, document, ec)); }
+        static PassRefPtr<Worker> create(const String& url, ScriptExecutionContext* context, ExceptionCode& ec) { return adoptRef(new Worker(url, context, ec)); }
         ~Worker();
 
         virtual ScriptExecutionContext* scriptExecutionContext() const { return ActiveDOMObject::scriptExecutionContext(); }
-        Document* document() const;
 
         virtual Worker* toWorker() { return this; }
 
         void postMessage(const String& message);
 
         void terminate();
+
+        void dispatchMessage(const String&);
+        void dispatchErrorEvent();
 
         virtual bool canSuspend() const;
         virtual void stop();
@@ -86,11 +87,9 @@ namespace WebCore {
         EventListener* onerror() const { return m_onErrorListener.get(); }
 
     private:
-        Worker(const String&, Document*, ExceptionCode&);
+        Worker(const String&, ScriptExecutionContext*, ExceptionCode&);
 
         virtual void notifyFinished(CachedResource*);
-
-        void dispatchErrorEvent();
 
         virtual void refEventTarget() { ref(); }
         virtual void derefEventTarget() { deref(); }
@@ -98,7 +97,7 @@ namespace WebCore {
         KURL m_scriptURL;
         CachedResourceHandle<CachedScript> m_cachedScript;
 
-        WorkerMessagingProxy* m_messagingProxy; // The proxy outlives the worker to perform thread shutdown.
+        WorkerContextProxy* m_contextProxy; // The proxy outlives the worker to perform thread shutdown.
 
         RefPtr<EventListener> m_onMessageListener;
         RefPtr<EventListener> m_onErrorListener;

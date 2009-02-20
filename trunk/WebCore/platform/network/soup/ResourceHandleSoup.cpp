@@ -3,6 +3,7 @@
  * Copyright (C) 2008 Xan Lopez <xan@gnome.org>
  * Copyright (C) 2008 Collabora Ltd.
  * Copyright (C) 2009 Holger Hans Peter Freyther
+ * Copyright (C) 2009 Gustavo Noronha Silva <gns@gnome.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,11 +22,11 @@
  */
 
 #include "config.h"
-#include "CString.h"
 #include "ResourceHandle.h"
 
 #include "Base64.h"
 #include "CookieJarSoup.h"
+#include "CString.h"
 #include "DocLoader.h"
 #include "Frame.h"
 #include "HTTPParsers.h"
@@ -37,9 +38,14 @@
 #include "ResourceResponse.h"
 #include "TextEncoding.h"
 
+#include <errno.h>
+#include <fcntl.h>
 #include <gio/gio.h>
 #include <libsoup/soup.h>
 #include <libsoup/soup-message.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #if PLATFORM(GTK)
     #if GLIB_CHECK_VERSION(2,12,0)
@@ -51,12 +57,89 @@ namespace WebCore {
 
 static SoupSession* session = 0;
 
+class WebCoreSynchronousLoader : public ResourceHandleClient, Noncopyable {
+public:
+    WebCoreSynchronousLoader(ResourceError&, ResourceResponse &, Vector<char>&);
+    ~WebCoreSynchronousLoader();
+
+    virtual void didReceiveResponse(ResourceHandle*, const ResourceResponse&);
+    virtual void didReceiveData(ResourceHandle*, const char*, int, int lengthReceived);
+    virtual void didFinishLoading(ResourceHandle*);
+    virtual void didFail(ResourceHandle*, const ResourceError&);
+
+    void run();
+
+private:
+    ResourceError& m_error;
+    ResourceResponse& m_response;
+    Vector<char>& m_data;
+    bool m_finished;
+    GMainLoop* m_mainLoop;
+};
+
+WebCoreSynchronousLoader::WebCoreSynchronousLoader(ResourceError& error, ResourceResponse& response, Vector<char>& data)
+    : m_error(error)
+    , m_response(response)
+    , m_data(data)
+    , m_finished(false)
+{
+    m_mainLoop = g_main_loop_new(NULL, false);
+}
+
+WebCoreSynchronousLoader::~WebCoreSynchronousLoader()
+{
+    g_main_loop_unref(m_mainLoop);
+}
+
+void WebCoreSynchronousLoader::didReceiveResponse(ResourceHandle*, const ResourceResponse& response)
+{
+    m_response = response;
+}
+
+void WebCoreSynchronousLoader::didReceiveData(ResourceHandle*, const char* data, int length, int)
+{
+    m_data.append(data, length);
+}
+
+void WebCoreSynchronousLoader::didFinishLoading(ResourceHandle*)
+{
+    g_main_loop_quit(m_mainLoop);
+    m_finished = true;
+}
+
+void WebCoreSynchronousLoader::didFail(ResourceHandle* handle, const ResourceError& error)
+{
+    m_error = error;
+    didFinishLoading(handle);
+}
+
+void WebCoreSynchronousLoader::run()
+{
+    if (!m_finished)
+        g_main_loop_run(m_mainLoop);
+}
+
 enum
 {
     ERROR_TRANSPORT,
     ERROR_UNKNOWN_PROTOCOL,
-    ERROR_BAD_NON_HTTP_METHOD
+    ERROR_BAD_NON_HTTP_METHOD,
+    ERROR_UNABLE_TO_OPEN_FILE,
 };
+
+struct FileMapping
+{
+    gpointer ptr;
+    gsize length;
+};
+
+static void freeFileMapping(gpointer data)
+{
+    FileMapping* fileMapping = static_cast<FileMapping*>(data);
+    if (fileMapping->ptr != MAP_FAILED)
+        munmap(fileMapping->ptr, fileMapping->length);
+    g_slice_free(FileMapping, fileMapping);
+}
 
 static void cleanupGioOperation(ResourceHandleInternal* handle);
 
@@ -315,17 +398,71 @@ bool ResourceHandle::startHttp(String urlString)
 
     FormData* httpBody = d->m_request.httpBody();
     if (httpBody && !httpBody->isEmpty()) {
-        // Making a copy of the request body isn't the most efficient way to
-        // serialize it, but by far the most simple. Dealing with individual
-        // FormData elements and shared buffers should be more memory
-        // efficient.
-        //
-        // This possibly isn't handling file uploads/attachments, for which
-        // shared buffers or streaming should definitely be used.
-        Vector<char> body;
-        httpBody->flatten(body);
-        soup_message_set_request(msg, d->m_request.httpContentType().utf8().data(),
-                                 SOUP_MEMORY_COPY, body.data(), body.size());
+        size_t numElements = httpBody->elements().size();
+
+        // handle the most common case (i.e. no file upload)
+        if (numElements < 2) {
+            Vector<char> body;
+            httpBody->flatten(body);
+            soup_message_set_request(msg, d->m_request.httpContentType().utf8().data(),
+                                     SOUP_MEMORY_COPY, body.data(), body.size());
+        } else {
+            /*
+             * we have more than one element to upload, and some may
+             * be (big) files, which we will want to mmap instead of
+             * copying into memory; TODO: support upload of non-local
+             * (think sftp://) files by using GIO?
+             *
+             * TODO: we can avoid appending all the buffers to the
+             * request_body variable with the following call, but we
+             * need to depend on libsoup > 2.25.4
+             *
+             * soup_message_body_set_accumulate(msg->request_body, FALSE);
+             */
+            for (size_t i = 0; i < numElements; i++) {
+                const FormDataElement& element = httpBody->elements()[i];
+
+                if (element.m_type == FormDataElement::data)
+                    soup_message_body_append(msg->request_body, SOUP_MEMORY_TEMPORARY, element.m_data.data(), element.m_data.size());
+                else {
+                    /*
+                     * mapping for uploaded files code inspired by technique used in
+                     * libsoup's simple-httpd test
+                     */
+                    /* FIXME: Since Linux 2.6.23 we should also use O_CLOEXEC */
+                    int fd = open(element.m_filename.utf8().data(), O_RDONLY);
+
+                    if (fd == -1) {
+                        ResourceError error("webkit-network-error", ERROR_UNABLE_TO_OPEN_FILE, urlString, strerror(errno));
+                        d->client()->didFail(this, error);
+                        g_object_unref(msg);
+                        return false;
+                    }
+
+                    struct stat statBuf;
+                    fstat(fd, &statBuf);
+
+                    FileMapping* fileMapping = g_slice_new(FileMapping);
+
+                    fileMapping->ptr = mmap(NULL, statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+                    if (fileMapping->ptr == MAP_FAILED) {
+                        ResourceError error("webkit-network-error", ERROR_UNABLE_TO_OPEN_FILE, urlString, strerror(errno));
+                        d->client()->didFail(this, error);
+                        freeFileMapping(fileMapping);
+                        g_object_unref(msg);
+                        close(fd);
+                        return false;
+                    }
+                    fileMapping->length = statBuf.st_size;
+
+                    close(fd);
+
+                    SoupBuffer* soupBuffer = soup_buffer_new_with_owner(fileMapping->ptr, fileMapping->length, fileMapping, freeFileMapping);
+                    soup_message_body_append_buffer(msg->request_body, soupBuffer);
+                    soup_buffer_free(soupBuffer);
+                }
+            }
+        }
     }
 
     d->m_msg = static_cast<SoupMessage*>(g_object_ref(msg));
@@ -353,7 +490,7 @@ bool ResourceHandle::start(Frame* frame)
         return startHttp(urlString);
     else if (equalIgnoringCase(protocol, "file") || equalIgnoringCase(protocol, "ftp") || equalIgnoringCase(protocol, "ftps"))
         // FIXME: should we be doing any other protocols here?
-        return startGio(urlString);
+        return startGio(url);
     else {
         // If we don't call didFail the job is not complete for webkit even false is returned.
         if (d->client()) {
@@ -409,9 +546,13 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&)
     return false;
 }
 
-void ResourceHandle::loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>&, Frame*)
+void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, ResourceError& error, ResourceResponse& response, Vector<char>& data, Frame* frame)
 {
-    notImplemented();
+    WebCoreSynchronousLoader syncLoader(error, response, data);
+    ResourceHandle handle(request, &syncLoader, true, false, true);
+
+    handle.start(frame);
+    syncLoader.run();
 }
 
 // GIO-based loader
@@ -581,7 +722,6 @@ static void queryInfoCallback(GObject* source, GAsyncResult* res, gpointer)
 
     response.setMimeType(g_file_info_get_content_type(info));
     response.setExpectedContentLength(g_file_info_get_size(info));
-    response.setHTTPStatusCode(SOUP_STATUS_OK);
 
     GTimeVal tv;
     g_file_info_get_modification_time(info, &tv);
@@ -593,20 +733,22 @@ static void queryInfoCallback(GObject* source, GAsyncResult* res, gpointer)
                       openCallback, NULL);
 }
 
-bool ResourceHandle::startGio(String urlString)
+bool ResourceHandle::startGio(KURL url)
 {
-    if (request().httpMethod() != "GET") {
-        ResourceError error("webkit-network-error", ERROR_BAD_NON_HTTP_METHOD, urlString, request().httpMethod());
+    if (request().httpMethod() != "GET" && request().httpMethod() != "POST") {
+        ResourceError error("webkit-network-error", ERROR_BAD_NON_HTTP_METHOD, url.string(), request().httpMethod());
         d->client()->didFail(this, error);
         return false;
     }
 
-    // Remove the fragment part of the URL since the file backend doesn't deal with it
-    int fragPos;
-    if ((fragPos = urlString.find("#")) != -1)
-        urlString = urlString.left(fragPos);
+    // GIO doesn't know how to handle refs and queries, so remove them
+    // TODO: use KURL.fileSystemPath after KURLGtk and FileSystemGtk are
+    // using GIO internally, and providing URIs instead of file paths
+    url.removeRef();
+    url.setQuery(String());
+    url.setPort(0);
 
-    d->m_gfile = g_file_new_for_uri(urlString.utf8().data());
+    d->m_gfile = g_file_new_for_uri(url.string().utf8().data());
     g_object_set_data(G_OBJECT(d->m_gfile), "webkit-resource", this);
     d->m_cancellable = g_cancellable_new();
     g_file_query_info_async(d->m_gfile,

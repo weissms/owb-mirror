@@ -176,7 +176,7 @@ ThreadIdentifier currentThread()
 
 bool isMainThread()
 {
-#if PLATFORM(DARWIN)
+#if PLATFORM(DARWIN) && !PLATFORM(CHROMIUM)
     return pthread_main_np();
 #else
     return currentThread() == mainThreadIdentifier;

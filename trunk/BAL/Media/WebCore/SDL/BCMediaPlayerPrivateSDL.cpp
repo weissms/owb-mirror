@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Apple Inc.  All rights reserved.
+ * Copyright (C) 2007, 2009 Apple Inc.  All rights reserved.
  * Copyright (C) 2007 Collabora Ltd.  All rights reserved.
  * Copyright (C) 2007 Alp Toker <alp@atoker.com>
  *
@@ -35,13 +35,21 @@
 #include "ScrollView.h"
 #include "Widget.h"
 
-#include <cstdio>
 #include <limits>
-#include <math.h>
 
 using namespace std;
-
 namespace WebCore {
+
+MediaPlayerPrivateInterface* MediaPlayerPrivate::create(MediaPlayer* player) 
+{ 
+    return new MediaPlayerPrivate(player);
+}
+
+void MediaPlayerPrivate::registerMediaEngine(MediaEngineRegistrar registrar)
+{
+    if (isAvailable())
+        registrar(create, getSupportedTypes, supportsType);
+}
 
 MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     : m_player(player)
@@ -56,33 +64,52 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     , m_rect(IntRect())
     , m_visible(true)
 {
-
 }
 
 MediaPlayerPrivate::~MediaPlayerPrivate()
 {
 }
 
-void MediaPlayerPrivate::load(String url)
+void MediaPlayerPrivate::load(const String& url)
 {
+    LOG_VERBOSE(Media, "Load %s", url.utf8().data());
+    if (m_networkState != MediaPlayer::Loading) {
+        m_networkState = MediaPlayer::Loading;
+        m_player->networkStateChanged();
+    }
+    if (m_readyState != MediaPlayer::DataUnavailable) {
+        m_readyState = MediaPlayer::DataUnavailable;
+        m_player->readyStateChanged();
+    }
+
+    pause();
 }
 
 void MediaPlayerPrivate::play()
 {
+    LOG_VERBOSE(Media, "Play");
+    // When end reached, rewind for Test video-seek-past-end-playing
+    if (m_isEndReached)
+        seek(0);
+    m_isEndReached = false;
+
+    m_startedPlaying = true;
 }
 
 void MediaPlayerPrivate::pause()
 {
+    LOG_VERBOSE(Media, "Pause");
+    m_startedPlaying = false;
 }
 
-float MediaPlayerPrivate::duration()
+float MediaPlayerPrivate::duration() const
 {
     return 0.0;
 }
 
 float MediaPlayerPrivate::currentTime() const
 {
-    return 0.0;
+    return 0;
 }
 
 void MediaPlayerPrivate::seek(float time)
@@ -119,28 +146,33 @@ bool MediaPlayerPrivate::seeking() const
 }
 
 // Returns the size of the video
-IntSize MediaPlayerPrivate::naturalSize()
+IntSize MediaPlayerPrivate::naturalSize() const
 {
+    if (!hasVideo())
+        return IntSize();
+
     return IntSize();
 }
 
-bool MediaPlayerPrivate::hasVideo()
+bool MediaPlayerPrivate::hasVideo() const
 {
     return false;
 }
 
 void MediaPlayerPrivate::setVolume(float volume)
 {
+    m_volume = volume;
+    LOG_VERBOSE(Media, "Volume to %f", volume);
+    setMuted(false);
 }
 
 void MediaPlayerPrivate::setMuted(bool b)
 {
-
 }
 
 void MediaPlayerPrivate::setRate(float rate)
 {
-
+    LOG_VERBOSE(Media, "Set Rate to %f", rate);
 }
 
 int MediaPlayerPrivate::dataRate() const
@@ -149,60 +181,60 @@ int MediaPlayerPrivate::dataRate() const
     return 1;
 }
 
-MediaPlayer::NetworkState MediaPlayerPrivate::networkState()
+MediaPlayer::NetworkState MediaPlayerPrivate::networkState() const
 {
     return m_networkState;
 }
 
-MediaPlayer::ReadyState MediaPlayerPrivate::readyState()
+MediaPlayer::ReadyState MediaPlayerPrivate::readyState() const
 {
     return m_readyState;
 }
 
-float MediaPlayerPrivate::maxTimeBuffered()
+float MediaPlayerPrivate::maxTimeBuffered() const
 {
     notImplemented();
+    LOG_VERBOSE(Media, "maxTimeBuffered");
     // rtsp streams are not buffered
     return m_isStreaming ? 0 : maxTimeLoaded();
 }
 
-float MediaPlayerPrivate::maxTimeSeekable()
+float MediaPlayerPrivate::maxTimeSeekable() const
 {
     // TODO
+    LOG_VERBOSE(Media, "maxTimeSeekable");
     if (m_isStreaming)
         return numeric_limits<float>::infinity();
     // infinite duration means live stream
     return maxTimeLoaded();
 }
 
-float MediaPlayerPrivate::maxTimeLoaded()
+float MediaPlayerPrivate::maxTimeLoaded() const
 {
     // TODO
+    LOG_VERBOSE(Media, "maxTimeLoaded");
     notImplemented();
     return duration();
 }
 
-unsigned MediaPlayerPrivate::bytesLoaded()
+unsigned MediaPlayerPrivate::bytesLoaded() const
 {
     notImplemented();
-    /*if (!m_playBin)
-        return 0;
-    float dur = duration();
-    float maxTime = maxTimeLoaded();
-    if (!dur)
-        return 0;*/
+    LOG_VERBOSE(Media, "bytesLoaded");
     return 1;//totalBytes() * maxTime / dur;
 }
 
-bool MediaPlayerPrivate::totalBytesKnown()
+bool MediaPlayerPrivate::totalBytesKnown() const
 {
     notImplemented();
+    LOG_VERBOSE(Media, "totalBytesKnown");
     return totalBytes() > 0;
 }
 
-unsigned MediaPlayerPrivate::totalBytes()
+unsigned MediaPlayerPrivate::totalBytes() const
 {
     notImplemented();
+    LOG_VERBOSE(Media, "totalBytes");
 
     // Do something with m_source to get the total bytes of the media
 
@@ -280,19 +312,29 @@ void MediaPlayerPrivate::repaint()
 
 void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
 {
+    if (context->paintingDisabled())
+        return;
+
+    if (!m_visible)
+        return;
+
 }
 
 void MediaPlayerPrivate::getSupportedTypes(HashSet<String>& types)
 {
-    // FIXME: do the real thing
+    // FIXME: query the engine to see what types are supported
     notImplemented();
     types.add(String("video/x-theora+ogg"));
 }
 
-void MediaPlayerPrivate::createGSTPlayBin(String url)
+MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& type, const String& codecs)
 {
+    // FIXME: query the engine to see what types are supported
+    notImplemented();
+    return type == "video/x-theora+ogg" ? (!codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported) : MediaPlayer::IsNotSupported;
 }
 
 }
 
 #endif
+

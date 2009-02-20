@@ -92,6 +92,7 @@
 #import <WebCore/ApplicationCacheStorage.h>
 #import <WebCore/Cache.h>
 #import <WebCore/ColorMac.h>
+#import <WebCore/Cursor.h>
 #import <WebCore/Document.h>
 #import <WebCore/DocumentLoader.h>
 #import <WebCore/DragController.h>
@@ -2021,7 +2022,7 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
     if (!coreFrame)
         return nil;
     
-    Selection selectionInsideRect(coreFrame->visiblePositionForPoint(rectStart), coreFrame->visiblePositionForPoint(rectEnd));
+    VisibleSelection selectionInsideRect(coreFrame->visiblePositionForPoint(rectStart), coreFrame->visiblePositionForPoint(rectEnd));
     
     return [[[WebTextIterator alloc] initWithRange:[DOMRange _wrapRange:selectionInsideRect.toNormalizedRange().get()]] autorelease];
 }
@@ -2096,6 +2097,11 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
 - (BOOL)areMemoryCacheDelegateCallsEnabled
 {
     return _private->page->areMemoryCacheClientCallsEnabled();
+}
+
++ (NSCursor *)_pointingHandCursor
+{
+    return handCursor().impl();
 }
 
 #if USE(ACCELERATED_COMPOSITING)

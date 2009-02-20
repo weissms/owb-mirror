@@ -84,6 +84,7 @@
 		1482B74E0A43032800517CFC /* JSStringRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1482B74C0A43032800517CFC /* JSStringRef.cpp */; };
 		1482B7E40A43076000517CFC /* JSObjectRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1482B7E20A43076000517CFC /* JSObjectRef.cpp */; };
 		149559EE0DDCDDF700648087 /* DebuggerCallFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 149559ED0DDCDDF700648087 /* DebuggerCallFrame.cpp */; };
+		14A23D750F4E1ABB0023CDAD /* JITStubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14A23D6C0F4E19CE0023CDAD /* JITStubs.cpp */; };
 		14ABDF600A437FEF00ECCA01 /* JSCallbackObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14ABDF5E0A437FEF00ECCA01 /* JSCallbackObject.cpp */; };
 		14B8EC720A5652090062BE54 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6560A4CF04B3B3E7008AE952 /* CoreFoundation.framework */; };
 		14BD59C50A3E8F9F00BAF59C /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 932F5BD90822A1C700736975 /* JavaScriptCore.framework */; };
@@ -120,6 +121,7 @@
 		86CC85A10EE79A4700288682 /* JITInlineMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 86CC85A00EE79A4700288682 /* JITInlineMethods.h */; };
 		86CC85A30EE79B7400288682 /* JITCall.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 86CC85A20EE79B7400288682 /* JITCall.cpp */; };
 		86CC85C40EE7A89400288682 /* JITPropertyAccess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 86CC85C30EE7A89400288682 /* JITPropertyAccess.cpp */; };
+		86CCEFDE0F413F8900FD7F9E /* JITCode.h in Headers */ = {isa = PBXBuildFile; fileRef = 86CCEFDD0F413F8900FD7F9E /* JITCode.h */; };
 		905B02AE0E28640F006DF882 /* RefCountedLeakCounter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 905B02AD0E28640F006DF882 /* RefCountedLeakCounter.cpp */; };
 		90D3469C0E285280009492EE /* RefCountedLeakCounter.h in Headers */ = {isa = PBXBuildFile; fileRef = 90D3469B0E285280009492EE /* RefCountedLeakCounter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		930754C108B0F68000AB3056 /* pcre_compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 930754BF08B0F68000AB3056 /* pcre_compile.cpp */; };
@@ -491,7 +493,9 @@
 		148A1ECD0D10C23B0069A47C /* RefPtrHashMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RefPtrHashMap.h; sourceTree = "<group>"; };
 		149559ED0DDCDDF700648087 /* DebuggerCallFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DebuggerCallFrame.cpp; sourceTree = "<group>"; };
 		149B24FF0D8AF6D1009CB8C7 /* Register.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Register.h; sourceTree = "<group>"; };
+		14A23D6C0F4E19CE0023CDAD /* JITStubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JITStubs.cpp; sourceTree = "<group>"; };
 		14A396A60CD2933100B5B4FF /* SymbolTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SymbolTable.h; sourceTree = "<group>"; };
+		14A6581A0F4E36F4000150FD /* JITStubs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JITStubs.h; sourceTree = "<group>"; };
 		14ABB36E099C076400E2A24F /* JSValue.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSValue.h; sourceTree = "<group>"; };
 		14ABB454099C2A0F00E2A24F /* JSType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSType.h; sourceTree = "<group>"; };
 		14ABDF5D0A437FEF00ECCA01 /* JSCallbackObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCallbackObject.h; sourceTree = "<group>"; };
@@ -595,6 +599,7 @@
 		86CC85A00EE79A4700288682 /* JITInlineMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JITInlineMethods.h; sourceTree = "<group>"; };
 		86CC85A20EE79B7400288682 /* JITCall.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JITCall.cpp; sourceTree = "<group>"; };
 		86CC85C30EE7A89400288682 /* JITPropertyAccess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JITPropertyAccess.cpp; sourceTree = "<group>"; };
+		86CCEFDD0F413F8900FD7F9E /* JITCode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JITCode.h; sourceTree = "<group>"; };
 		905B02AD0E28640F006DF882 /* RefCountedLeakCounter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RefCountedLeakCounter.cpp; sourceTree = "<group>"; };
 		90D3469B0E285280009492EE /* RefCountedLeakCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RefCountedLeakCounter.h; sourceTree = "<group>"; };
 		9303F567099118FA00AD71B8 /* OwnPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OwnPtr.h; sourceTree = "<group>"; };
@@ -972,6 +977,9 @@
 		1429D92C0ED22D7000B89619 /* jit */ = {
 			isa = PBXGroup;
 			children = (
+				14A6581A0F4E36F4000150FD /* JITStubs.h */,
+				14A23D6C0F4E19CE0023CDAD /* JITStubs.cpp */,
+				86CCEFDD0F413F8900FD7F9E /* JITCode.h */,
 				A7B48DB60EE74CFC00DCBDB6 /* ExecutableAllocator.cpp */,
 				A7B48DB50EE74CFC00DCBDB6 /* ExecutableAllocator.h */,
 				A782F1A40EEC9FA20036273F /* ExecutableAllocatorPosix.cpp */,
@@ -1730,6 +1738,7 @@
 				860161E40F3A83C100F84710 /* MacroAssemblerX86.h in Headers */,
 				860161E50F3A83C100F84710 /* MacroAssemblerX86_64.h in Headers */,
 				860161E60F3A83C100F84710 /* MacroAssemblerX86Common.h in Headers */,
+				86CCEFDE0F413F8900FD7F9E /* JITCode.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2034,6 +2043,7 @@
 				86A90ED00EE7D51F00AB350D /* JITArithmetic.cpp in Sources */,
 				86CC85A30EE79B7400288682 /* JITCall.cpp in Sources */,
 				86CC85C40EE7A89400288682 /* JITPropertyAccess.cpp in Sources */,
+				14A23D750F4E1ABB0023CDAD /* JITStubs.cpp in Sources */,
 				140B7D1D0DC69AF7009C42B8 /* JSActivation.cpp in Sources */,
 				1421359B0A677F4F00A8195E /* JSBase.cpp in Sources */,
 				A791EF290F11E07900AE1F68 /* JSByteArray.cpp in Sources */,

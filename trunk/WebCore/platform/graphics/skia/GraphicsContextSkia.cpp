@@ -407,8 +407,7 @@ void GraphicsContext::clipPath(WindRule clipRule)
     if (paintingDisabled())
         return;
 
-    const SkPath* oldPath = platformContext()->currentPath();
-    SkPath path(*oldPath);
+    SkPath path = platformContext()->currentPathInLocalCoordinates();
     path.setFillType(clipRule == RULE_EVENODD ? SkPath::kEvenOdd_FillType : SkPath::kWinding_FillType);
     platformContext()->canvas()->clipPath(path);
 }
@@ -647,6 +646,9 @@ void GraphicsContext::drawLineForText(const IntPoint& pt,
     if (paintingDisabled())
         return;
 
+    if (width <= 0)
+        return;
+
     int thickness = SkMax32(static_cast<int>(strokeThickness()), 1);
     SkRect r;
     r.fLeft = SkIntToScalar(pt.x());
@@ -655,7 +657,9 @@ void GraphicsContext::drawLineForText(const IntPoint& pt,
     r.fBottom = r.fTop + SkIntToScalar(thickness);
 
     SkPaint paint;
-    paint.setColor(strokeColor().rgb());
+    platformContext()->setupPaintForFilling(&paint);
+    // Text lines are drawn using the stroke color.
+    paint.setColor(platformContext()->effectiveStrokeColor());
     platformContext()->canvas()->drawRect(r, paint);
 }
 
@@ -678,7 +682,7 @@ void GraphicsContext::fillPath()
     if (paintingDisabled())
         return;
 
-    const SkPath& path = *platformContext()->currentPath();
+    SkPath path = platformContext()->currentPathInLocalCoordinates();
     if (!isPathSkiaSafe(getCTM(), path))
       return;
 
@@ -688,7 +692,7 @@ void GraphicsContext::fillPath()
     if (colorSpace == SolidColorSpace && !fillColor().alpha())
         return;
 
-    platformContext()->setFillRule(state.fillRule == RULE_EVENODD ?
+    path.setFillType(state.fillRule == RULE_EVENODD ?
         SkPath::kEvenOdd_FillType : SkPath::kWinding_FillType);
 
     SkPaint paint;
@@ -777,6 +781,17 @@ void GraphicsContext::fillRoundedRect(const IntRect& rect,
         // See fillRect().
         ClipRectToCanvas(*platformContext()->canvas(), r, &r);
 
+    if (topLeft.width() + topRight.width() > rect.width()
+            || bottomLeft.width() + bottomRight.width() > rect.width()
+            || topLeft.height() + bottomLeft.height() > rect.height()
+            || topRight.height() + bottomRight.height() > rect.height()) {
+        // Not all the radii fit, return a rect. This matches the behavior of
+        // Path::createRoundedRectangle. Without this we attempt to draw a round
+        // shadow for a square box.
+        fillRect(rect, color);
+        return;
+    }
+
     SkPath path;
     addCornerArc(&path, r, topRight, 270);
     addCornerArc(&path, r, bottomRight, 0);
@@ -786,12 +801,17 @@ void GraphicsContext::fillRoundedRect(const IntRect& rect,
     SkPaint paint;
     platformContext()->setupPaintForFilling(&paint);
     platformContext()->canvas()->drawPath(path, paint);
-    return fillRect(rect, color);
 }
 
 TransformationMatrix GraphicsContext::getCTM() const
 {
-    return platformContext()->canvas()->getTotalMatrix();
+    const SkMatrix& m = platformContext()->canvas()->getTotalMatrix();
+    return TransformationMatrix(SkScalarToDouble(m.getScaleX()),      // a
+                                SkScalarToDouble(m.getSkewY()),       // b
+                                SkScalarToDouble(m.getSkewX()),       // c
+                                SkScalarToDouble(m.getScaleY()),      // d
+                                SkScalarToDouble(m.getTranslateX()),  // e
+                                SkScalarToDouble(m.getTranslateY())); // f
 }
 
 FloatRect GraphicsContext::roundToDevicePixels(const FloatRect& rect)
@@ -1052,7 +1072,7 @@ void GraphicsContext::strokePath()
     if (paintingDisabled())
         return;
 
-    const SkPath& path = *platformContext()->currentPath();
+    SkPath path = platformContext()->currentPathInLocalCoordinates();
     if (!isPathSkiaSafe(getCTM(), path))
         return;
 

@@ -71,9 +71,6 @@ public:
     void layerWasAdded(RenderLayer* parent, RenderLayer* child);
     void layerWillBeRemoved(RenderLayer* parent, RenderLayer* child);
 
-    // Ancestor layer of the given layer that is composited, excluding the layer itself.
-    RenderLayer* ancestorCompositingLayer(const RenderLayer*) const;
-
     // Get the nearest ancestor layer that has overflow or clip, but is not a stacking context
     RenderLayer* enclosingNonStackingClippingLayer(const RenderLayer* layer) const;
 
@@ -87,6 +84,10 @@ public:
     void willMoveOffscreen();
 
     void updateRootLayerPosition();
+
+    // Walk the tree looking for layers with 3d transforms. Useful in case you need
+    // to know if there is non-affine content, e.g. for drawing into an image.
+    bool has3DContent() const;
 
 private:
     // Whether the given RL needs a compositing layer.
@@ -119,6 +120,8 @@ private:
     void removeCompositedChildren(RenderLayer*);
 
     void parentInRootLayer(RenderLayer*);
+
+    bool layerHas3DContent(const RenderLayer*) const;
 
     void ensureRootPlatformLayer();
 

@@ -1,7 +1,9 @@
 JavaScriptCore/AllInOneFile.cpp
-JavaScriptCore/runtime/Collector.cpp
+JavaScriptCore/bytecode/Instruction.h
+JavaScriptCore/bytecode/JumpTable.h
 JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
+JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
@@ -46,6 +48,8 @@ WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
+WebCore/platform/graphics/transforms/TransformationMatrix.h BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.h
+WebCore/platform/graphics/transforms/TransformationMatrix.cpp BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp
 WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp BAL/ImageDecoder/WebCore/BMP/WK/BCBMPImageDecoderWK.cpp
 WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageDecoderWK.cpp
 WebCore/platform/image-decoders/gif/GIFImageReader.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageReaderWK.cpp
@@ -56,6 +60,7 @@ WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
 WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
+WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp
 WebCore/platform/network/qt/QNetworkReplyHandler.h BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
 WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp
 WebCore/platform/network/qt/ResourceHandleQt.cpp BAL/Network/WebCore/Qt/BCResourceHandleQt.cpp

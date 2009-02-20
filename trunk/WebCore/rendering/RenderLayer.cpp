@@ -326,7 +326,7 @@ void RenderLayer::updateTransform()
         RenderBox* box = renderBox();
         ASSERT(box);
         m_transform->makeIdentity();
-        box->style()->applyTransform(*m_transform, box->borderBoxRect().size());
+        box->style()->applyTransform(*m_transform, box->borderBoxRect().size(), RenderStyle::IncludeTransformOrigin);
     }
 }
 
@@ -478,7 +478,7 @@ void RenderLayer::updateLayerPosition()
     
     // FIXME: We'd really like to just get rid of the concept of a layer rectangle and rely on the renderers.
 
-    setPos(x, y);
+    setLocation(x, y);
 
     if (renderer()->isRenderInline()) {
         RenderInline* inlineFlow = toRenderInline(renderer());
@@ -496,6 +496,34 @@ void RenderLayer::updateLayerPosition()
                 setHeight(box->overflowHeight());
         }
     }
+}
+
+TransformationMatrix RenderLayer::perspectiveTransform() const
+{
+    if (!renderer()->hasTransform())
+        return TransformationMatrix();
+
+    RenderStyle* style = renderer()->style();
+    if (!style->perspective())
+        return TransformationMatrix();
+
+    // Maybe fetch the perspective from the backing?
+    const IntRect borderBox = toRenderBox(renderer())->borderBoxRect();
+    const float boxWidth = borderBox.width();
+    const float boxHeight = borderBox.height();
+
+    float perspectiveOriginX = style->perspectiveOriginX().calcFloatValue(boxWidth);
+    float perspectiveOriginY = style->perspectiveOriginY().calcFloatValue(boxHeight);
+
+    perspectiveOriginX -= boxWidth / 2.0f;
+    perspectiveOriginY -= boxHeight / 2.0f;
+    
+    TransformationMatrix t;
+    t.translate(perspectiveOriginX, perspectiveOriginY);
+    t.applyPerspective(style->perspective());
+    t.translate(-perspectiveOriginX, -perspectiveOriginY);
+    
+    return t;
 }
 
 RenderLayer *RenderLayer::stackingContext() const
@@ -523,6 +551,27 @@ RenderLayer* RenderLayer::enclosingTransformedAncestor() const
     return curr;
 }
 
+#if USE(ACCELERATED_COMPOSITING)
+RenderLayer* RenderLayer::enclosingCompositingLayer(bool includeSelf) const
+{
+    if (includeSelf && isComposited())
+        return const_cast<RenderLayer*>(this);
+
+    // Compositing layers are parented according to stacking order and overflow list,
+    // so we have to check whether the parent is a stacking context, or whether 
+    // the child is overflow-only.
+    bool inOverflowList = isOverflowOnly();
+    for (RenderLayer* curr = parent(); curr; curr = curr->parent()) {
+        if (curr->isComposited() && (inOverflowList || curr->isStackingContext()))
+            return curr;
+        
+        inOverflowList = curr->isOverflowOnly();
+    }
+         
+    return 0;
+}
+#endif
+
 IntPoint RenderLayer::absoluteToContents(const IntPoint& absolutePoint) const
 {
     // We don't use convertToLayerCoords because it doesn't know about transforms
@@ -541,7 +590,7 @@ bool RenderLayer::requiresSlowRepaints() const
 bool RenderLayer::isTransparent() const
 {
 #if ENABLE(SVG)
-    if (renderer()->node()->namespaceURI() == SVGNames::svgNamespaceURI)
+    if (renderer()->node() && renderer()->node()->namespaceURI() == SVGNames::svgNamespaceURI)
         return false;
 #endif
     return renderer()->isTransparent() || renderer()->hasMask();
@@ -771,7 +820,7 @@ void RenderLayer::insertOnlyThisLayer()
 }
 
 void 
-RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& x, int& y) const
+RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& xPos, int& yPos) const
 {
     if (ancestorLayer == this)
         return;
@@ -780,8 +829,8 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& x, int&
         // Add in the offset of the view.  We can obtain this by calling
         // localToAbsolute() on the RenderView.
         FloatPoint absPos = renderer()->localToAbsolute(FloatPoint(), true);
-        x += absPos.x();
-        y += absPos.y();
+        xPos += absPos.x();
+        yPos += absPos.y();
         return;
     }
  
@@ -793,10 +842,10 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& x, int&
     
     if (!parentLayer) return;
     
-    parentLayer->convertToLayerCoords(ancestorLayer, x, y);
+    parentLayer->convertToLayerCoords(ancestorLayer, xPos, yPos);
 
-    x += xPos();
-    y += yPos();
+    xPos += x();
+    yPos += y();
 }
 
 void RenderLayer::panScrollFromPoint(const IntPoint& sourcePoint) 
@@ -947,7 +996,7 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
     // Schedule the scroll DOM event.
     if (view) {
         if (FrameView* frameView = view->frameView())
-            frameView->scheduleEvent(Event::create(eventNames().scrollEvent, false, false), renderer()->element());
+            frameView->scheduleEvent(Event::create(eventNames().scrollEvent, false, false), renderer()->node());
     }
 }
 
@@ -1121,7 +1170,8 @@ void RenderLayer::autoscroll()
 
 void RenderLayer::resize(const PlatformMouseEvent& evt, const IntSize& oldOffset)
 {
-    if (!inResizeMode() || !renderer()->hasOverflowClip())
+    // FIXME: This should be possible on generated content but is not right now.
+    if (!inResizeMode() || !renderer()->hasOverflowClip() || !renderer()->node())
         return;
 
     // Set the width and height of the shadow ancestor node if there is one.
@@ -1283,9 +1333,10 @@ void RenderLayer::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect& r
 PassRefPtr<Scrollbar> RenderLayer::createScrollbar(ScrollbarOrientation orientation)
 {
     RefPtr<Scrollbar> widget;
-    bool hasCustomScrollbarStyle = renderer()->node()->shadowAncestorNode()->renderer()->style()->hasPseudoStyle(SCROLLBAR);
+    RenderObject* actualRenderer = renderer()->node() ? renderer()->node()->shadowAncestorNode()->renderer() : renderer();
+    bool hasCustomScrollbarStyle = actualRenderer->isBox() && actualRenderer->style()->hasPseudoStyle(SCROLLBAR);
     if (hasCustomScrollbarStyle)
-        widget = RenderScrollbar::createCustomScrollbar(this, orientation, renderer()->node()->shadowAncestorNode()->renderBox());
+        widget = RenderScrollbar::createCustomScrollbar(this, orientation, toRenderBox(actualRenderer));
     else
         widget = Scrollbar::createNativeScrollbar(this, orientation, RegularScrollbar);
     renderer()->document()->view()->addChild(widget.get());        
@@ -1431,7 +1482,7 @@ void RenderLayer::computeScrollDimensions(bool* needHBar, bool* needVBar)
     int rightPos = ltr ?
                     box->rightmostPosition(true, false) - box->borderLeft() :
                     clientWidth - m_scrollLeftOverflow;
-    int bottomPos = renderer()->lowestPosition(true, false) - box->borderTop();
+    int bottomPos = box->lowestPosition(true, false) - box->borderTop();
 
     m_scrollWidth = max(rightPos, clientWidth);
     m_scrollHeight = max(bottomPos, clientHeight);
@@ -1463,7 +1514,7 @@ void RenderLayer::updateOverflowStatus(bool horizontalOverflow, bool verticalOve
         
         if (FrameView* frameView = renderer()->document()->view()) {
             frameView->scheduleEvent(OverflowEvent::create(horizontalOverflowChanged, horizontalOverflow, verticalOverflowChanged, verticalOverflow),
-                renderer()->element());
+                renderer()->node());
         }
     }
 }
@@ -1569,7 +1620,7 @@ RenderLayer::updateScrollInfoAfterLayout()
         m_vBar->setProportion(clientHeight, m_scrollHeight);
     }
  
-    if (renderer()->element() && renderer()->document()->hasListenerType(Document::OVERFLOWCHANGED_LISTENER))
+    if (renderer()->node() && renderer()->document()->hasListenerType(Document::OVERFLOWCHANGED_LISTENER))
         updateOverflowStatus(horizontalOverflow, verticalOverflow);
 }
 
@@ -1956,7 +2007,7 @@ RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     }
 
     // End our transparency layer
-    if (haveTransparency && m_usedTransparency) {
+    if (haveTransparency && m_usedTransparency && !m_paintingInsideReflection) {
         p->endTransparencyLayer();
         p->restore();
         m_usedTransparency = false;
@@ -2003,7 +2054,7 @@ bool RenderLayer::hitTest(const HitTestRequest& request, HitTestResult& result)
 Node* RenderLayer::enclosingElement() const
 {
     for (RenderObject* r = renderer(); r; r = r->parent()) {
-        if (Node* e = r->element())
+        if (Node* e = r->node())
             return e;
     }
     ASSERT_NOT_REACHED();
@@ -2208,13 +2259,13 @@ void RenderLayer::calculateClipRects(const RenderLayer* rootLayer, ClipRects& cl
         }
         
         if (renderer()->hasOverflowClip()) {
-            IntRect newOverflowClip = renderer()->getOverflowClipRect(x,y);
+            IntRect newOverflowClip = toRenderBox(renderer())->overflowClipRect(x,y);
             clipRects.setOverflowClipRect(intersection(newOverflowClip, clipRects.overflowClipRect()));
             if (renderer()->isPositioned() || renderer()->isRelPositioned())
                 clipRects.setPosClipRect(intersection(newOverflowClip, clipRects.posClipRect()));
         }
         if (renderer()->hasClip()) {
-            IntRect newPosClip = renderer()->getClipRect(x,y);
+            IntRect newPosClip = toRenderBox(renderer())->clipRect(x,y);
             clipRects.setPosClipRect(intersection(newPosClip, clipRects.posClipRect()));
             clipRects.setOverflowClipRect(intersection(newPosClip, clipRects.overflowClipRect()));
             clipRects.setFixedClipRect(intersection(newPosClip, clipRects.fixedClipRect()));
@@ -2258,10 +2309,10 @@ void RenderLayer::calculateRects(const RenderLayer* rootLayer, const IntRect& pa
     if (renderer()->hasOverflowClip() || renderer()->hasClip()) {
         // This layer establishes a clip of some kind.
         if (renderer()->hasOverflowClip())
-            foregroundRect.intersect(renderer()->getOverflowClipRect(x,y));
+            foregroundRect.intersect(toRenderBox(renderer())->overflowClipRect(x,y));
         if (renderer()->hasClip()) {
             // Clip applies to *us* as well, so go ahead and update the damageRect.
-            IntRect newPosClip = renderer()->getClipRect(x,y);
+            IntRect newPosClip = toRenderBox(renderer())->clipRect(x,y);
             backgroundRect.intersect(newPosClip);
             foregroundRect.intersect(newPosClip);
             outlineRect.intersect(newPosClip);
@@ -2344,9 +2395,9 @@ IntRect RenderLayer::localBoundingBox() const
             return result;
         int top = firstBox->root()->topOverflow();
         int bottom = inlineFlow->lastLineBox()->root()->bottomOverflow();
-        int left = firstBox->xPos();
+        int left = firstBox->x();
         for (InlineRunBox* curr = firstBox->nextLineBox(); curr; curr = curr->nextLineBox())
-            left = min(left, curr->xPos());
+            left = min(left, curr->x());
         result = IntRect(left, top, width(), bottom - top);
     } else if (renderer()->isTableRow()) {
         // Our bounding box is just the union of all of our cells' border/overflow rects.
@@ -2438,14 +2489,14 @@ void RenderLayer::setParent(RenderLayer* parent)
         return;
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (m_parent && compositor())
+    if (m_parent && !renderer()->documentBeingDestroyed())
         compositor()->layerWillBeRemoved(m_parent, this);
 #endif
     
     m_parent = parent;
     
 #if USE(ACCELERATED_COMPOSITING)
-    if (m_parent)
+    if (m_parent && !renderer()->documentBeingDestroyed())
         compositor()->layerWasAdded(m_parent, this);
 #endif
 }
@@ -2475,8 +2526,8 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
     if (activeNode && !request.active()) {
         // We are clearing the :active chain because the mouse has been released.
         for (RenderObject* curr = activeNode->renderer(); curr; curr = curr->parent()) {
-            if (curr->element() && !curr->isText())
-                curr->element()->setInActiveChain(false);
+            if (curr->node() && !curr->isText())
+                curr->node()->setInActiveChain(false);
         }
         doc->setActiveNode(0);
     } else {
@@ -2485,8 +2536,8 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
             // We are setting the :active chain and freezing it. If future moves happen, they
             // will need to reference this chain.
             for (RenderObject* curr = newActiveNode->renderer(); curr; curr = curr->parent()) {
-                if (curr->element() && !curr->isText()) {
-                    curr->element()->setInActiveChain(true);
+                if (curr->node() && !curr->isText()) {
+                    curr->node()->setInActiveChain(true);
                 }
             }
             doc->setActiveNode(newActiveNode);
@@ -2516,18 +2567,18 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
     if (oldHoverObj != newHoverObj) {
         // The old hover path only needs to be cleared up to (and not including) the common ancestor;
         for (RenderObject* curr = oldHoverObj; curr && curr != ancestor; curr = curr->hoverAncestor()) {
-            if (curr->element() && !curr->isText() && (!mustBeInActiveChain || curr->element()->inActiveChain())) {
-                curr->element()->setActive(false);
-                curr->element()->setHovered(false);
+            if (curr->node() && !curr->isText() && (!mustBeInActiveChain || curr->node()->inActiveChain())) {
+                curr->node()->setActive(false);
+                curr->node()->setHovered(false);
             }
         }
     }
 
     // Now set the hover state for our new object up to the root.
     for (RenderObject* curr = newHoverObj; curr; curr = curr->hoverAncestor()) {
-        if (curr->element() && !curr->isText() && (!mustBeInActiveChain || curr->element()->inActiveChain())) {
-            curr->element()->setActive(request.active());
-            curr->element()->setHovered(true);
+        if (curr->node() && !curr->isText() && (!mustBeInActiveChain || curr->node()->inActiveChain())) {
+            curr->node()->setActive(request.active());
+            curr->node()->setHovered(true);
         }
     }
 }
@@ -2547,7 +2598,7 @@ void RenderLayer::dirtyZOrderLists()
     m_zOrderListsDirty = true;
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (compositor())
+    if (!renderer()->documentBeingDestroyed())
         compositor()->setCompositingLayersNeedUpdate();
 #endif
 }
@@ -2566,7 +2617,7 @@ void RenderLayer::dirtyOverflowList()
     m_overflowListDirty = true;
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (compositor())
+    if (!renderer()->documentBeingDestroyed())
         compositor()->setCompositingLayersNeedUpdate();
 #endif
 }
@@ -2749,7 +2800,7 @@ void RenderLayer::styleChanged(StyleDifference diff, const RenderStyle*)
 
 void RenderLayer::updateScrollCornerStyle()
 {
-    RenderObject* actualRenderer = renderer()->node()->isElementNode() ? renderer()->node()->shadowAncestorNode()->renderer() : renderer();
+    RenderObject* actualRenderer = renderer()->node() ? renderer()->node()->shadowAncestorNode()->renderer() : renderer();
     RefPtr<RenderStyle> corner = renderer()->hasOverflowClip() ? actualRenderer->getUncachedPseudoStyle(SCROLLBAR_CORNER, actualRenderer->style()) : 0;
     if (corner) {
         if (!m_scrollCorner) {
@@ -2765,7 +2816,7 @@ void RenderLayer::updateScrollCornerStyle()
 
 void RenderLayer::updateResizerStyle()
 {
-    RenderObject* actualRenderer = renderer()->node()->isElementNode() ? renderer()->node()->shadowAncestorNode()->renderer() : renderer();
+    RenderObject* actualRenderer = renderer()->node() ? renderer()->node()->shadowAncestorNode()->renderer() : renderer();
     RefPtr<RenderStyle> resizer = renderer()->hasOverflowClip() ? actualRenderer->getUncachedPseudoStyle(RESIZER, actualRenderer->style()) : 0;
     if (resizer) {
         if (!m_resizer) {

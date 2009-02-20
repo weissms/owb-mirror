@@ -93,8 +93,8 @@ public:
         return IntRect(0, 0, boundingBox.width(), boundingBox.height());
     }
 
-    virtual InlineBox* createInlineBox(bool makePlaceHolderBox, bool isRootLineBox, bool isOnlyRun=false);    
-    virtual void dirtyLineBoxes(bool fullLayout, bool isRootLineBox = false);
+    InlineFlowBox* createInlineFlowBox();    
+    void dirtyLineBoxes(bool fullLayout);
     virtual void dirtyLinesFromChangedChild(RenderObject* child) { m_lineBoxes.dirtyLinesFromChangedChild(this, child); }
 
     RenderLineBoxList* lineBoxes() { return &m_lineBoxes; }
@@ -122,6 +122,9 @@ public:
 
     virtual void imageChanged(WrappedImagePtr, const IntRect* = 0);
 
+    int verticalPositionFromCache(bool firstLine) const;
+    void invalidateVerticalPosition() { m_verticalPosition = PositionUndefined; }
+
 #if ENABLE(DASHBOARD_SUPPORT)
     virtual void addDashboardRegions(Vector<DashboardRegionValue>&);
 #endif
@@ -129,7 +132,8 @@ public:
 protected:
     virtual void styleDidChange(StyleDifference, const RenderStyle* oldStyle);
     virtual void updateBoxModelInfoFromStyle();
-
+    virtual InlineFlowBox* createFlowBox(); // Subclassed by SVG
+    
     static RenderInline* cloneInline(RenderInline* src);
 
 private:
@@ -144,6 +148,7 @@ private:
     RenderBoxModelObject* m_continuation; // Can be either a block or an inline. <b><i><p>Hello</p></i></b>. In this example the <i> will have a block as its continuation but the
                                           // <b> will just have an inline as its continuation.
     mutable int m_lineHeight;
+    mutable int m_verticalPosition;
 };
 
 inline RenderInline* toRenderInline(RenderObject* o)

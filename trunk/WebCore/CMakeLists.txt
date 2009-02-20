@@ -218,8 +218,8 @@ add_custom_command(
 )
 
 add_custom_command(
-    OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp ${WEBCORE_GENERATED_DIR}/html/HTMLNames.h ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.h
-    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${HTML_FEATURES} --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
+    OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp ${WEBCORE_GENERATED_DIR}/html/HTMLNames.h ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.cpp
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${HTML_FEATURES} --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
     VERBATIM
@@ -308,6 +308,7 @@ list(APPEND WEBCORE_SRC
     ${WEBCORE_GENERATED_DIR}/CSSPropertyNames.h
     ${WEBCORE_GENERATED_DIR}/CSSValueKeywords.h
     ${WEBCORE_GENERATED_DIR}/html/DocTypeStrings.cpp
+    ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.cpp
     ${WEBCORE_GENERATED_DIR}/html/HTMLEntityNames.c
     ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp
     ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp

@@ -96,9 +96,6 @@ static void networkStateChanged()
     for (unsigned i = 0; i < frames.size(); i++) {
         Document* document = frames[i]->document();
         
-        if (!document)
-            continue;
-
         // If the document does not have a body the event should be dispatched to the document
         Node* eventTarget = document->body();
         if (!eventTarget)
@@ -164,11 +161,9 @@ Page::~Page()
     setGroupName(String());
     allPages->remove(this);
     
-    for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext()) {
-        if (frame->document())
-            frame->document()->documentWillBecomeInactive();
+    for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext())
         frame->pageDestroyed();
-    }
+
     m_editorClient->pageDestroyed();
 #if ENABLE(INSPECTOR)
     if (m_parentInspectorController)
@@ -242,7 +237,7 @@ void Page::setGroupName(const String& name)
     }
 
     if (name.isEmpty())
-        m_group = 0;
+        m_group = m_singlePageGroup.get();
     else {
         m_singlePageGroup.clear();
         m_group = PageGroup::pageGroup(name);
@@ -367,13 +362,12 @@ void Page::unmarkAllTextMatches()
 
     Frame* frame = mainFrame();
     do {
-        if (Document* document = frame->document())
-            document->removeMarkers(DocumentMarker::TextMatch);
+        frame->document()->removeMarkers(DocumentMarker::TextMatch);
         frame = incrementFrame(frame, true, false);
     } while (frame);
 }
 
-const Selection& Page::selection() const
+const VisibleSelection& Page::selection() const
 {
     return focusController()->focusedOrMainFrame()->selection()->selection();
 }
@@ -413,8 +407,7 @@ void Page::setMediaVolume(float volume)
 
     m_mediaVolume = volume;
     for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext()) {
-        if (frame->document())
-            frame->document()->mediaVolumeDidChange();
+        frame->document()->mediaVolumeDidChange();
     }
 }
 

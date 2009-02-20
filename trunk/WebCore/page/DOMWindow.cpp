@@ -331,8 +331,6 @@ Storage* DOMWindow::sessionStorage() const
         return 0;
 
     Document* document = m_frame->document();
-    if (!document)
-        return 0;
 
     RefPtr<StorageArea> storageArea = page->sessionStorage()->storageArea(document->securityOrigin());
 #if ENABLE(INSPECTOR)
@@ -511,10 +509,7 @@ void DOMWindow::alert(const String& message)
     if (!m_frame)
         return;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateRendering();
+    m_frame->document()->updateRendering();
 
     Page* page = m_frame->page();
     if (!page)
@@ -528,10 +523,7 @@ bool DOMWindow::confirm(const String& message)
     if (!m_frame)
         return false;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateRendering();
+    m_frame->document()->updateRendering();
 
     Page* page = m_frame->page();
     if (!page)
@@ -545,10 +537,7 @@ String DOMWindow::prompt(const String& message, const String& defaultValue)
     if (!m_frame)
         return String();
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateRendering();
+    m_frame->document()->updateRendering();
 
     Page* page = m_frame->page();
     if (!page)
@@ -656,10 +645,7 @@ int DOMWindow::scrollX() const
     if (!view)
         return 0;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateLayoutIgnorePendingStylesheets();
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
     return static_cast<int>(view->scrollX() / m_frame->pageZoomFactor());
 }
@@ -673,10 +659,7 @@ int DOMWindow::scrollY() const
     if (!view)
         return 0;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateLayoutIgnorePendingStylesheets();
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
     return static_cast<int>(view->scrollY() / m_frame->pageZoomFactor());
 }
@@ -810,9 +793,6 @@ PassRefPtr<CSSRuleList> DOMWindow::getMatchedCSSRules(Element* elt, const String
         return 0;
 
     Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (!doc)
-        return 0;
 
     if (!pseudoElt.isEmpty())
         return doc->styleSelector()->pseudoStyleRulesForElement(elt, pseudoElt, authorOnly);
@@ -838,9 +818,6 @@ PassRefPtr<Database> DOMWindow::openDatabase(const String& name, const String& v
         return 0;
 
     Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (!doc)
-        return 0;
 
     Settings* settings = m_frame->settings();
     if (!settings || !settings->databasesEnabled())
@@ -855,10 +832,7 @@ void DOMWindow::scrollBy(int x, int y) const
     if (!m_frame)
         return;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateLayoutIgnorePendingStylesheets();
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
     FrameView* view = m_frame->view();
     if (!view)
@@ -872,10 +846,7 @@ void DOMWindow::scrollTo(int x, int y) const
     if (!m_frame)
         return;
 
-    Document* doc = m_frame->document();
-    ASSERT(doc);
-    if (doc)
-        doc->updateLayoutIgnorePendingStylesheets();
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
     FrameView* view = m_frame->view();
     if (!view)

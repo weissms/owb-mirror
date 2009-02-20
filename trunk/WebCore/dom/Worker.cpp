@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Google Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,59 +43,56 @@
 #include "FrameLoader.h"
 #include "MessageEvent.h"
 #include "SecurityOrigin.h"
-#include "WorkerContext.h"
-#include "WorkerMessagingProxy.h"
+#include "WorkerContextProxy.h"
 #include "WorkerThread.h"
 #include <wtf/MainThread.h>
 
 namespace WebCore {
 
-Worker::Worker(const String& url, Document* doc, ExceptionCode& ec)
-    : ActiveDOMObject(doc, this)
-    , m_messagingProxy(new WorkerMessagingProxy(doc, this))
+Worker::Worker(const String& url, ScriptExecutionContext* context, ExceptionCode& ec)
+    : ActiveDOMObject(context, this)
+    , m_contextProxy(WorkerContextProxy::create(this))
 {
-    m_scriptURL = doc->completeURL(url);
+    m_scriptURL = context->completeURL(url);
     if (url.isEmpty() || !m_scriptURL.isValid()) {
         ec = SYNTAX_ERR;
         return;
     }
 
-    if (!doc->securityOrigin()->canAccess(SecurityOrigin::create(m_scriptURL).get())) {
+    if (!context->securityOrigin()->canAccess(SecurityOrigin::create(m_scriptURL).get())) {
         ec = SECURITY_ERR;
         return;
     }
 
-    m_cachedScript = doc->docLoader()->requestScript(m_scriptURL, document()->charset());
+    // FIXME: 'inherit' charset and actual loading support from original document to enable nested workers.
+    ASSERT(scriptExecutionContext()->isDocument());
+    Document* document = static_cast<Document*>(scriptExecutionContext());
+
+    m_cachedScript = document->docLoader()->requestScript(m_scriptURL, document->charset());
     if (!m_cachedScript) {
         dispatchErrorEvent();
         return;
     }
 
-    setPendingActivity(this);  // The worker context does not exist while loading, so we much ensure that the worker object is not collected, as well as its event listeners.
+    setPendingActivity(this);  // The worker context does not exist while loading, so we must ensure that the worker object is not collected, as well as its event listeners.
     m_cachedScript->addClient(this);
 }
 
 Worker::~Worker()
 {
     ASSERT(isMainThread());
-    ASSERT(scriptExecutionContext()); // The context is protected by messaging proxy, so it cannot be destroyed while a Worker exists.
-    m_messagingProxy->workerObjectDestroyed();
-}
-
-Document* Worker::document() const
-{
-    ASSERT(scriptExecutionContext()->isDocument());
-    return static_cast<Document*>(scriptExecutionContext());
+    ASSERT(scriptExecutionContext()); // The context is protected by worker context proxy, so it cannot be destroyed while a Worker exists.
+    m_contextProxy->workerObjectDestroyed();
 }
 
 void Worker::postMessage(const String& message)
 {
-    m_messagingProxy->postMessageToWorkerContext(message);
+    m_contextProxy->postMessageToWorkerContext(message);
 }
 
 void Worker::terminate()
 {
-    m_messagingProxy->terminate();
+    m_contextProxy->terminateWorkerContext();
 }
 
 bool Worker::canSuspend() const
@@ -110,7 +108,7 @@ void Worker::stop()
 
 bool Worker::hasPendingActivity() const
 {
-    return m_messagingProxy->workerThreadHasPendingActivity() || ActiveDOMObject::hasPendingActivity();
+    return m_contextProxy->hasPendingActivity() || ActiveDOMObject::hasPendingActivity();
 }
 
 void Worker::notifyFinished(CachedResource* unusedResource)
@@ -119,12 +117,8 @@ void Worker::notifyFinished(CachedResource* unusedResource)
 
     if (m_cachedScript->errorOccurred())
         dispatchErrorEvent();
-    else {
-        String userAgent = document()->frame() ? document()->frame()->loader()->userAgent(m_scriptURL) : String();
-        RefPtr<WorkerThread> thread = WorkerThread::create(m_scriptURL, userAgent, m_cachedScript->script(), m_messagingProxy);
-        m_messagingProxy->workerThreadCreated(thread);
-        thread->start();
-    }
+    else
+        m_contextProxy->startWorkerContext(m_scriptURL, scriptExecutionContext()->userAgent(m_scriptURL), m_cachedScript->script());
 
     m_cachedScript->removeClient(this);
     m_cachedScript = 0;
@@ -195,6 +189,21 @@ bool Worker::dispatchEvent(PassRefPtr<Event> event, ExceptionCode& ec)
     }
 
     return !event->defaultPrevented();
+}
+
+void Worker::dispatchMessage(const String& message)
+{
+    RefPtr<Event> evt = MessageEvent::create(message, "", "", 0, 0);
+
+    if (m_onMessageListener.get()) {
+        evt->setTarget(this);
+        evt->setCurrentTarget(this);
+        m_onMessageListener->handleEvent(evt.get(), false);
+    }
+
+    ExceptionCode ec = 0;
+    dispatchEvent(evt.release(), ec);
+    ASSERT(!ec);
 }
 
 } // namespace WebCore
