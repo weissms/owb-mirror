@@ -25,7 +25,6 @@ WebCore/page/DOMWindow.h
 WebCore/page/DOMWindow.idl
 WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLDocument.cpp
-WebCore/html/HTMLElementFactory.cpp
 WebCore/html/HTMLParser.cpp
 WebCore/inspector/InspectorController.cpp
 WebCore/loader/CachedFont.cpp
