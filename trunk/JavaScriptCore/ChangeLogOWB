@@ -1,5 +1,11 @@
 2009-02-23  Olivier DOLE  <odole@pleyo.com>
 
+        build fix for jshell
+
+        * CMakeLists.txt:
+
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
         Fix test compilation in release.
 
         * CMakeLists.txt:

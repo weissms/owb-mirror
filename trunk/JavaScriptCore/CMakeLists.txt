@@ -86,6 +86,9 @@ add_dependencies(jsc wtf)
 ##################################################
 
 add_executable(jshell EXCLUDE_FROM_ALL jsc.cpp)
+set_target_properties(jshell
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 target_link_libraries(jshell
     ${KJS_LD_FLAGS}
     ${I18N_LIBRARIES}
