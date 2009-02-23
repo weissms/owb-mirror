@@ -635,8 +635,8 @@ BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/AVLTree.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
-BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/ByteArray.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/GetPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/HashCountedSet.h
@@ -672,6 +672,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/Threading.h
 BAL/Skeletons/Types JavaScriptCore/wtf/TypeTraits.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Vector.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/VectorTraits.h
+BAL/Skeletons/Types WebCore/platform/ContentType.h
 BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrList.h
 BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrListImpl.h
 BAL/Skeletons/Types	WebCore/platform/KURL.h
@@ -758,6 +759,8 @@ BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/graphics/qt/IconQt.cpp       BCIconQt.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/qt/KURLQt.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/qt/SharedBufferQt.cpp
+BAL/Types/WebCore/WK    WebCore/platform/ContentType.h
+BAL/Types/WebCore/WK    WebCore/platform/ContentType.cpp
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrList.h
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.cpp
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.h

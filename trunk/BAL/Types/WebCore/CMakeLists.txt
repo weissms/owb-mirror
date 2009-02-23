@@ -8,6 +8,7 @@ if(USE_GRAPHICS_SDL)
     create_include_link(${TYPES_DIR}/SDL/BCIconSDL.h BAL/Icon.h)
 endif(USE_GRAPHICS_SDL)
 
+create_include_link(${TYPES_DIR}/WK/BCContentTypeWK.h BAL/ContentType.h)
 create_include_link(${TYPES_DIR}/WK/BCDeprecatedPtrListWK.h BAL/DeprecatedPtrList.h)
 create_include_link(${TYPES_DIR}/WK/BCDeprecatedPtrListImplWK.h BAL/DeprecatedPtrListImpl.h)
 create_include_link(${TYPES_DIR}/WK/BCHTTPHeaderMapWK.h BAL/HTTPHeaderMap.h)

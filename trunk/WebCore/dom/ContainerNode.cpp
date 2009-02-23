@@ -387,25 +387,25 @@ bool ContainerNode::removeChildren()
     if (!m_firstChild)
         return false;
 
-    Node* n;
+    // The container node can be removed from event handlers.
+    RefPtr<Node> protect(this);
     
-    // do any prep work needed before actually starting to detach
-    // and remove... e.g. stop loading frames, fire unload events
-    for (n = m_firstChild; n; n = n->nextSibling())
-        willRemoveChild(n);
+    // Do any prep work needed before actually starting to detach
+    // and remove... e.g. stop loading frames, fire unload events.
+    // FIXME: Adding new children from event handlers can cause an infinite loop here.
+    for (RefPtr<Node> n = m_firstChild; n; n = n->nextSibling())
+        willRemoveChild(n.get());
     
     // exclude this node when looking for removed focusedNode since only children will be removed
     document()->removeFocusedNodeOfSubtree(this, true);
 
     forbidEventDispatch();
     int childCountDelta = 0;
-    while ((n = m_firstChild) != 0) {
+    while (RefPtr<Node> n = m_firstChild) {
         childCountDelta--;
 
-        Node *next = n->nextSibling();
+        Node* next = n->nextSibling();
         
-        n->ref();
-
         // Remove the node from the tree before calling detach or removedFromDocument (4427024, 4129744)
         n->setPreviousSibling(0);
         n->setNextSibling(0);
@@ -420,8 +420,6 @@ bool ContainerNode::removeChildren()
         
         if (n->inDocument())
             n->removedFromDocument();
-
-        n->deref();
     }
     allowEventDispatch();
 

@@ -139,9 +139,6 @@ JSDOMWindowBase::JSDOMWindowBaseData::JSDOMWindowBaseData(PassRefPtr<DOMWindow> 
 JSDOMWindowBase::JSDOMWindowBase(PassRefPtr<Structure> structure, PassRefPtr<DOMWindow> window, JSDOMWindowShell* shell)
     : JSDOMGlobalObject(structure, new JSDOMWindowBaseData(window, shell), shell)
 {
-    // Time in milliseconds before the script timeout handler kicks in.
-    setTimeoutTime(10000);
-
     GlobalPropertyInfo staticGlobals[] = {
         GlobalPropertyInfo(Identifier(globalExec(), "document"), jsNull(), DontDelete | ReadOnly),
         GlobalPropertyInfo(Identifier(globalExec(), "window"), d()->shell, DontDelete | ReadOnly)
@@ -747,7 +744,12 @@ JSDOMWindowShell* JSDOMWindowBase::shell() const
 
 JSGlobalData* JSDOMWindowBase::commonJSGlobalData()
 {
-    static JSGlobalData* globalData = JSGlobalData::createLeaked().releaseRef();
+    static JSGlobalData* globalData;
+    if (!globalData) {
+        globalData = JSGlobalData::createLeaked().releaseRef();
+        globalData->timeoutChecker.setTimeoutInterval(10000); // 10 seconds
+    }
+
     return globalData;
 }
 

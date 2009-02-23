@@ -17,6 +17,7 @@ list(APPEND JSC_SRC
     runtime/SmallStrings.cpp
     runtime/Structure.cpp
     runtime/StructureChain.cpp
+    runtime/TimeoutChecker.cpp
 )
 
 if(ENABLE_DEBUG)

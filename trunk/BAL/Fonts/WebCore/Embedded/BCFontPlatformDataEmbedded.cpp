@@ -40,12 +40,14 @@ FontPlatformData::FontPlatformData(WTF::HashTableDeletedValueType)
         : m_pattern(hashTableDeletedFontValue())
         , m_scaledFont(0)
 {
+    m_pixelFont = &NormalPixelFont;
 }
 
 FontPlatformData::FontPlatformData()
         : m_pattern(0)
         , m_scaledFont(0)
 {
+    m_pixelFont = &NormalPixelFont;
 }
 
 FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const AtomicString& familyName)
@@ -121,6 +123,11 @@ void FontPlatformData::setFont(BalFont* cr) const
 
 bool FontPlatformData::operator==(const FontPlatformData& other) const
 {
+    // FIXME : this test is always true, 
+    // normaly we should use only the m_pixelFont test 
+    // but if we use only this we have a infinite loop
+    if (m_pattern == other.m_pattern)
+        return true;
     if (m_pixelFont == 0 && other.m_pixelFont == 0)
         return true;
     if (m_pixelFont == 0 || other.m_pixelFont == 0)

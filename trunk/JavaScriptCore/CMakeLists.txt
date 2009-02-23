@@ -82,7 +82,7 @@ add_dependencies(jsc wtf)
 # Tests compilation.                             #
 ##################################################
 
-add_executable(jshell jsc.cpp)
+add_executable(jshell EXCLUDE_FROM_ALL jsc.cpp)
 target_link_libraries(jshell
     ${KJS_LD_FLAGS}
     ${I18N_LIBRARIES}

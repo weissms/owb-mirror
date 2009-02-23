@@ -1,3 +1,50 @@
+2009-02-23  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build after r41126.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::invokeDefault):
+        (WebKit::NetscapePluginInstanceProxy::construct):
+
+2009-02-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/5966123> REGRESSION (r30741): Generic Sun Applet loading logo appears half off screen
+
+        * WebCoreSupport/WebFrameLoaderClient.mm: Correct a copy & paste error
+        in r30741, and assign the height value, rather than the width, to the
+        "height" parameter.
+
+2009-02-21  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+        
+        * Plugins/Hosted/WebTextInputWindowController.m:
+
+2009-02-20  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Add a shared floating text input window implementation, to be used by the hosted plug-in view.
+        
+        * Plugins/Hosted/WebTextInputWindowController.h: Added.
+        * Plugins/Hosted/WebTextInputWindowController.m: Added.
+
+2009-02-20  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by andersca.
+    
+        <rdar://problem/6496140> Safari sometimes hangs in WKSetMetadataURL for several seconds after downloading a file
+         
+         Spawn a background thread for WKSetMetadataURL because this function will not return until mds has journaled the data
+         we are trying to set. Depending on what other I/O is going on, it can take some time. 
+
+        * Misc/WebNSFileManagerExtras.m: Import pthread.h and FoundationExtras.h
+        (setMetaData): Added. Calls WKSetMetadataURL().
+        (-[NSFileManager _webkit_setMetadataURL:referrer:atPath:]): Call setMetaData on a background thread 
+ 
 2009-02-20  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Sam Weinig.

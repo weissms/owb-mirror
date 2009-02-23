@@ -1,3 +1,391 @@
+2009-02-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20184
+        SELECT with no name generates invalid query string
+
+        Test: fast/forms/select-no-name.html
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::appendFormData): Added a check for empty name.
+
+2009-02-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Apply review comments for the previous check-in (forgot to save the file, oops).
+
+        * dom/ContainerNode.cpp: (WebCore::ContainerNode::removeChildren):
+
+2009-02-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15707
+        Crash when manipulating document from within an iframe onload function
+
+        Test: fast/dom/onload-open.html
+
+        * dom/ContainerNode.cpp: (WebCore::ContainerNode::removeChildren): Protect the container and
+        the current node, because anything can happen when dispatching events.
+
+2009-02-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=18970
+        Numerically named input fields cause document.forms loop problems
+
+        Test: fast/forms/numeric-input-name.html
+
+        * bindings/scripts/CodeGeneratorJS.pm: Try index getter before name getter, even if the
+        latter overrides properties.
+
+2009-02-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24059
+        Tokenizer::write() return value is never used
+
+        * dom/Tokenizer.h:
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::write):
+        * dom/XMLTokenizer.h:
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::write):
+        * html/HTMLTokenizer.h:
+        * loader/FTPDirectoryDocument.cpp:
+        (WebCore::FTPDirectoryTokenizer::write):
+        * loader/ImageDocument.cpp:
+        (WebCore::ImageTokenizer::write):
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaTokenizer::write):
+        * loader/PluginDocument.cpp:
+        (WebCore::PluginTokenizer::write):
+        * loader/TextDocument.cpp:
+        (WebCore::TextTokenizer::write):
+        Made write() return void, not bool.
+
+2009-02-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Updated for JavaScriptCore changes to timeout checking.
+
+        * bindings/js/JSCustomPositionCallback.cpp:
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBase):
+        (WebCore::JSDOMWindowBase::commonJSGlobalData):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::executeFunctionInContext):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::evaluate):
+        (WebCore::WorkerScriptController::forbidExecution):
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject callWebScriptMethod:withArguments:]):
+        (-[WebScriptObject evaluateWebScript:]):
+        * bridge/NP_jsobject.cpp:
+        (_NPN_InvokeDefault):
+        (_NPN_Invoke):
+        (_NPN_Evaluate):
+        (_NPN_Construct):
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::call):
+        (JavaJSObject::eval):
+
+2009-02-21  Hironori Bono  <hbono@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23786
+        [Chromium] line-break characters in a complex text are treated as zero-width spaces
+
+        This change prevents the UniscribeHelper class from treating the line-break characters
+        as whitespaces.
+
+        Tests: fast/text/international/bidi-linebreak-001.html
+               fast/text/international/bidi-linebreak-002.html
+               fast/text/international/bidi-linebreak-003.html
+
+        * platform/graphics/chromium/UniscribeHelper.cpp:
+        (WebCore::UniscribeHelper::adjustSpaceAdvances):
+        Make the UniscribeHelper::adjustSpaceAdvances() function treat all characters in
+        the treatAsSpace() function (e.g. U+0020, U+000A, U+000D, U+00A0) as whitespaces,
+        so does when Chromium renders a simple text.
+
+2009-02-20  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 23940: Use Document::createElement(const QualifiedName&, bool) when creating a known element inside WebCore
+
+        Document::createElement(const QualifiedName&, bool) does not check for the prefix as opposed the the one taking an AtomicString
+        or Document::createElementNS. This is perfectly fine internally because we know the type of element created and the check is
+        unneeded.
+
+        It also removes the use of an ExceptionCode argument which was here only to check that the prefix check was fine. Finally it
+        enables us to use some generated QualifiedName.
+
+        * bindings/js/JSOptionConstructor.cpp:
+        (WebCore::constructHTMLOptionElement):
+        * dom/Document.cpp:
+        (WebCore::Document::setTitle):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::createXHTMLParserErrorHeader):
+        (WebCore::XMLTokenizer::insertErrorMessageBlock):
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::createBlockPlaceholderElement):
+        * editing/htmlediting.cpp:
+        (WebCore::createTabSpanElement):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setLength):
+        * loader/FTPDirectoryDocument.cpp:
+        (WebCore::FTPDirectoryTokenizer::appendEntry):
+        (WebCore::FTPDirectoryTokenizer::createTDForFilename):
+        (WebCore::FTPDirectoryTokenizer::loadDocumentTemplate):
+        (WebCore::FTPDirectoryTokenizer::createBasicDocument):
+        * loader/ImageDocument.cpp:
+        (WebCore::ImageDocument::createDocumentStructure):
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaTokenizer::createDocumentStructure):
+        * loader/PluginDocument.cpp:
+        (WebCore::PluginTokenizer::createDocumentStructure):
+        * loader/TextDocument.cpp:
+        (WebCore::TextTokenizer::write):
+        * page/Frame.cpp:
+        (WebCore::Frame::selectionComputedStyle):
+        (WebCore::Frame::styleForSelectionStart):
+        Document::createElement(const AtomicString&, ...) to Document::createElement(const QualifiedName&, ...) switch.
+
+        * xml/XPathFunctions.cpp:
+        (WebCore::XPath::FunLang::evaluate): Re-use langAttr instead of creating a new attribute.
+        * page/DragController.cpp:
+        (WebCore::documentFragmentFromDragData): Use the HTMLAnchorElement directly to get rid of the static cast.
+
+2009-02-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24060
+        Fix up to accommodate for CanvasPixelArray return.
+
+        * platform/graphics/skia/ImageBufferSkia.cpp:
+        (WebCore::ImageBuffer::getImageData): Added an extra data() to call.
+        (WebCore::ImageBuffer::putImageData): Ditto.
+
+2009-02-20  Eric Carlson  <eric.carlson@apple.com>
+
+        Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=24042
+        Bug 24042: MediaPlayer should cache plug-in proxy
+        
+        The changes in https://bugs.webkit.org/show_bug.cgi?id=23917 assume that
+        MediaPlayer will always have created the private media player object before
+        the plug-in is instantiated and calls back with the proxy object. This is not
+        true on all platforms because of threading latency, so MediaPlayer should
+        cache the plug-in proxy so it can pass it to the media engine at a later time.
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::NullMediaPlayerPrivate::setPoster): Null media engine implementation of proxy methods.
+        (WebCore::NullMediaPlayerPrivate::deliverNotification): Ditto.
+        (WebCore::NullMediaPlayerPrivate::setMediaPlayerProxy): Ditto.
+        (WebCore::MediaPlayer::MediaPlayer): Initialize m_playerProxy.
+        (WebCore::MediaPlayer::load): Pass m_playerProxy to newly created engine.
+        (WebCore::MediaPlayer::setMediaPlayerProxy): Cache m_playerProxy.
+        * platform/graphics/MediaPlayer.h: Declare m_playerProxy.
+
+2009-02-20  Eric Carlson  <eric.carlson@apple.com>
+
+        Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24063
+        Make it possible for a port to require a user gesture to play/pause an <audio> or <video> element
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement):  Rename m_loadRestrictions to m_Restrictions. 
+        Initialize m_internalCall.
+        (WebCore::HTMLMediaElement::loadTimerFired): Increment m_internalCall around call to load().
+        (WebCore::HTMLMediaElement::load): Call loadInternal if restrictions check out.
+        (WebCore::HTMLMediaElement::loadInternal): New, guts of old load()
+        (WebCore::HTMLMediaElement::setNetworkState): Fix bug introduced in r40943
+        (WebCore::HTMLMediaElement::play): Call playInternal if restrictions check out.
+        (WebCore::HTMLMediaElement::playInternal): New, guts of old play()
+        (WebCore::HTMLMediaElement::pause): Call pauseInternal if restrictions check out.
+        (WebCore::HTMLMediaElement::pauseInternal): New, guts of old pause()
+        (WebCore::HTMLMediaElement::togglePlayState): Call playInternal/pauseInternal
+        (WebCore::HTMLMediaElement::deliverNotification): Remove unnecessary white space.
+        * html/HTMLMediaElement.h: Rename m_loadRestrictions to m_Restrictions, add m_internalCall,
+        add RequireUserGestureRateChangeRestriction.
+
+2009-02-20  Darin Fisher  <darin@chromium.org>
+
+        Fix build bustage in FileSystemWin.cpp.
+
+        Need to return CString() instead of 0 since there are now two CString
+        constructors that take a pointer type.
+
+        * platform/win/FileSystemWin.cpp:
+        (WebCore::openTemporaryFile):
+
+2009-02-20  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23999
+        Change license headers to accurately reflect code history.
+
+        * platform/ContentType.cpp:
+        * platform/ContentType.h:
+
+2009-02-18  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23999
+        Split off MIME type parsing into its own class.
+
+        * GNUmakefile.am: Added ContentType sources.
+        * WebCore.pro: Ditto.
+        * WebCore.scons: Ditto. 
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Ditto.
+        * html/HTMLMediaElement.cpp: Changed to use ContentType.
+        (WebCore::HTMLMediaElement::selectMediaURL):
+        * platform/ContentType.cpp: Added.
+        (WebCore::ContentType::ContentType):
+        (WebCore::ContentType::parameter):
+        (WebCore::ContentType::type):
+        * platform/ContentType.h: Added.
+        (WebCore::ContentType::raw):
+        * platform/MIMETypeRegistry.cpp:
+        * platform/MIMETypeRegistry.h:
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::load):
+        * rendering/style/ContentData.h: Renamed ContentType to StyleContentType.
+        * rendering/style/RenderStyleConstants.h: Ditto.
+        (WebCore::):
+
+2009-02-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix.
+
+        Use CString() instead of 0.
+
+        * platform/gtk/FileSystemGtk.cpp:
+        (WebCore::openTemporaryFile):
+        * platform/qt/FileSystemQt.cpp:
+        (WebCore::openTemporaryFile):
+
+2009-02-20  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        When dealing with local files, use a path instead of an URI. GFile
+        has problems decoding URIs with percent signs on them.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startGio):
+
+2009-02-20  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        Protect the ResourceHandle instance from being destroyed by
+        didReceiveData inside the GIO readCallback call, so that
+        cancelling caused by scripts is handled correctly.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::readCallback):
+
+2009-02-20  David Kilzer  <ddkilzer@apple.com>
+
+        Make IconDatabaseNone.cpp compile with -Wunused and pass check-for-exit-time-destructors
+
+        Reviewed by Sam Weinig.
+
+        * loader/icon/IconDatabaseNone.cpp:
+        (WebCore::IconDatabase::defaultDatabaseFilename): Use DEFINE_STATIC_LOCAL().
+        (WebCore::IconDatabase::open): Commented out unused parameter.
+        (WebCore::IconDatabase::setPrivateBrowsingEnabled): Ditto.
+        (WebCore::IconDatabase::iconForPageURL): Ditto.
+        (WebCore::IconDatabase::iconURLForPageURL): Ditto.
+        (WebCore::IconDatabase::defaultIcon): Ditto.
+        (WebCore::IconDatabase::retainIconForPageURL): Ditto.
+        (WebCore::IconDatabase::releaseIconForPageURL): Ditto.
+        (WebCore::IconDatabase::setIconDataForIconURL): Ditto.
+        (WebCore::IconDatabase::setIconURLForPageURL): Ditto.
+        (WebCore::IconDatabase::setEnabled): Ditto.
+        (WebCore::IconDatabase::pageURLMappingCount): Added stub.
+        (WebCore::IconDatabase::retainedPageURLCount): Ditto.
+        (WebCore::IconDatabase::iconRecordCount): Ditto.
+        (WebCore::IconDatabase::iconRecordCountWithData): Ditto.
+
+2009-02-20  David Kilzer  <ddkilzer@apple.com>
+
+        Add comment to generated code when shadowing a built-in object
+
+        Reviewed by Sam Weinig.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Added comment to
+        generated code output.
+
+2009-02-20  Avi Drissman  <avi@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24036
+        Keyboard events need disambiguation on the Linux platform too.
+
+        * platform/chromium/PlatformKeyboardEventChromium.cpp:
+        (WebCore::PlatformKeyboardEvent::disambiguateKeyDownEvent):
+
+2009-02-19  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24046
+
+        Several improvements to CString:
+        1- Make it possible to initialize a CString from a CStringBuffer
+        2- Make it possible to get a CStringBuffer from a CString
+        3- Change CStringBuffer::data() to return a const pointer to ward off mutation
+        4- Remove unused releaseBuffer() methods.
+        5- Make CStringBuffer::create() private to force consumers to get a CStringBuffer from a CString.
+
+        * platform/text/CString.cpp:
+        (WebCore::CString::init):
+        (WebCore::CString::mutableData):
+        (WebCore::CString::newUninitialized):
+        (WebCore::CString::copyBufferIfNeeded):
+        * platform/text/CString.h:
+        (WebCore::CStringBuffer::data):
+        (WebCore::CStringBuffer::length):
+        (WebCore::CStringBuffer::create):
+        (WebCore::CStringBuffer::mutableData):
+        (WebCore::CString::CString):
+        (WebCore::CString::buffer):
+
 2009-02-20  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by Alexey Proskuryakov.

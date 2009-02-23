@@ -8,6 +8,7 @@ if(UNIX)
 endif(UNIX)
 
 set(ENABLE_DEBUG ON CACHE BOOLEAN "Enable debug support" FORCE)
+set(ENABLE_TESTS ON CACHE BOOLEAN "Enable tests" FORCE)
 
 set(ENABLE_DATABASE ON CACHE BOOLEAN "Enable HTML5 client-side database storage support" FORCE)
 set(ENABLE_DOM_STORAGE ON CACHE BOOLEAN "Enable HTML5 client-side session and persistent storage support" FORCE)

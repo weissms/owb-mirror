@@ -42,6 +42,7 @@ WebCore/page/Page.h
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/graphics/cairo/ImageSourceCairo.cpp BAL/Graphics/WebCore/Cairo/BCImageSourceCairo.cpp
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
+WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.cpp
 WebCore/platform/graphics/qt/FontPlatformDataQt.cpp BAL/Fonts/WebCore/Qt/BCFontPlatformDataQt.cpp
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
@@ -69,7 +70,6 @@ WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
 WebCore/platform/qt/RenderThemeQt.cpp BAL/Widgets/WebCore/Qt/BCRenderThemeQt.cpp
 WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
-WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/plugins/PluginView.h
 WebCore/storage/Database.cpp
 WebCore/svg/graphics/SVGImage.cpp BAL/SVG/WebCore/WK/BCSVGImageWK.cpp

@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef MediaPlayerPrivateGStreamer_h
-#define MediaPlayerPrivateGStreamer_h
+#ifndef MediaPlayerPrivateSDL_h
+#define MediaPlayerPrivateSDL_h
 
 #if ENABLE(VIDEO)
 
