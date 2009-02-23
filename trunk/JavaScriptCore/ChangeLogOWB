@@ -1,3 +1,10 @@
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix test compilation in release.
+
+        * CMakeLists.txt:
+        * wtf/CMakeLists.txt:
+
 2009-02-18  Olivier DOLE  <odole@pleyo.com>
 
         improve jsctests to better match WebKit method.

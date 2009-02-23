@@ -1,3 +1,9 @@
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix test compilation in release.
+
+        * OrigynWebBrowser/CMakeLists.txt:
+
 2009-02-19  Mario Bensi  <mbensi@pleyo.com>
 
         add some methods in api for DRT and expose WebBackForwardList and

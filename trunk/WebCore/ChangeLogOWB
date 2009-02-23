@@ -1,3 +1,9 @@
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix test compilation in release.
+
+        * CMakeLists.txt:
+
 2009-02-13  Olivier DOLE  <odole@pleyo.com>
 
         Build fix when DOM_STORAGE is enabled and INSPECTOR disabled.

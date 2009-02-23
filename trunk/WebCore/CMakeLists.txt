@@ -413,5 +413,8 @@ include_directories(
 
 include(AddWebCoreCompilerFlags)
 
+set_source_files_properties(${WEBCORE_SRC}
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 add_library(webcore STATIC ${WEBCORE_SRC})
 add_dependencies(webcore jsc)

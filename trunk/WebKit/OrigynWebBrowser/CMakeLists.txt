@@ -69,6 +69,9 @@ include(Customer/CMakeLists.txt OPTIONAL)
 
 include(AddWebKitCompilerFlags)
 
+set_source_files_properties(${WEBKIT_SRC}
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 add_library(webkit-owb SHARED ${WEBKIT_SRC})
 add_dependencies(webkit-owb webcore)
 

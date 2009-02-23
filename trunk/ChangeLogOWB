@@ -1,3 +1,9 @@
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix tests compilation in release.
+
+        * cmake/AddGlobalCompilerFlags.cmake:
+
 2009-02-20  Olivier DOLE  <odole@pleyo.com>
 
         Add SunSpider directory

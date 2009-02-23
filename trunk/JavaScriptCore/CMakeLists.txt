@@ -74,6 +74,9 @@ endif(NOT ENABLE_DEBUG)
 
 include(AddJavaScriptCoreCompilerFlags)
 
+set_source_files_properties(${JSC_SRC}
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 add_library(jsc STATIC ${JSC_SRC})
 add_dependencies(jsc wtf)
 

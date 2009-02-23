@@ -15,4 +15,7 @@ include_directories(
 
 include(AddJavaScriptCoreCompilerFlags)
 
+set_source_files_properties(${WTF_SRC}
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 add_library(wtf STATIC ${WTF_SRC})

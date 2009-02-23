@@ -24,15 +24,17 @@ if(USE_GRAPHICS_GTK)
     list(APPEND DUMPRENDERTREE_SRC
         bal/gtk/DumpRenderTreeGtk.cpp
     )
-elseif(USE_GRAPHICS_SDL)
+endif(USE_GRAPHICS_GTK)
+
+if(USE_GRAPHICS_SDL)
     list(APPEND DUMPRENDERTREE_SRC
         bal/SDL/DumpRenderTreeSDL.cpp
     )
-endif(USE_GRAPHICS_GTK)
+endif(USE_GRAPHICS_SDL)
 
-INCLUDE (bal/Customer/CMakeLists.txt OPTIONAL)
-
+set_source_files_properties(${DUMPRENDERTREE_SRC}
+    PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
+)
 add_executable(DumpRenderTree ${DUMPRENDERTREE_SRC})
 target_link_libraries(DumpRenderTree webkit-owb ${GRAPHICS_LIBRARIES} ${EXTERNAL_DEPS_LIBRARIES})
 
-INCLUDE (bal/Customer/CMakeLinks.txt OPTIONAL)
