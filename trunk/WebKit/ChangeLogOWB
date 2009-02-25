@@ -1,3 +1,10 @@
+2009-02-25  Mario Bensi  <mbensi@pleyo.com>
+
+        fix broken url in http (debug version)
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::loadURL):
+
 2009-02-23  Olivier DOLE  <odole@pleyo.com>
 
         Fix test compilation in release.

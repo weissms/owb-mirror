@@ -321,14 +321,11 @@ JSGlobalContextRef WebFrame::globalContext()
 
 void WebFrame::loadURL(const char* url)
 {
-    String method("GET");
-    String webkitUrl(url);
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return;
 
-    WebMutableURLRequest* request = WebMutableURLRequest::createInstance();
-    request->initWithURL(webkitUrl.stripWhiteSpace(), (WebCore::ResourceRequestCachePolicy)WebURLRequestUseProtocolCachePolicy, 0);
-    request->setHTTPMethod(method);
-    loadRequest(request);
-    delete request;
+    coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(url))), false);
 }
 
 void WebFrame::loadRequest(WebMutableURLRequest* request)
