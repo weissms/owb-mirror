@@ -2449,6 +2449,11 @@ void WebView::fireWebKitEvents()
     d->fireWebKitEvents();
 }
 
+void WebView::setJavaScriptURLsAreAllowed(bool areAllowed)
+{
+    m_page->setJavaScriptURLsAreAllowed(areAllowed);
+}
+
 Page* core(WebView* webView)
 {
     Page* page = 0;

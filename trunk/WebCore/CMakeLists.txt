@@ -357,6 +357,7 @@ include(rendering/CMakeLists.txt)
 include(rendering/style/CMakeLists.txt)
 include(storage/CMakeLists.txt)
 include(svg/CMakeLists.txt)
+include(workers/CMakeLists.txt)
 include(wml/CMakeLists.txt)
 include(xml/CMakeLists.txt)
 

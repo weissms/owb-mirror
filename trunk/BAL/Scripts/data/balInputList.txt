@@ -50,6 +50,7 @@ BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
 
 
 
+BAL/Skeletons/Facilities    WebCore/platform/CrossThreadCopier.h
 BAL/Skeletons/Facilities	WebCore/platform/FileChooser.h
 BAL/Skeletons/Facilities	WebCore/platform/FileSystem.h
 BAL/Skeletons/Facilities	WebCore/platform/FloatConversion.h
@@ -80,6 +81,8 @@ BAL/Facilities/WebCore/Qt	WebCore/platform/qt/FileSystemQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/LoggingQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/MIMETypeRegistryQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/SharedTimerQt.cpp
+BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.h
+BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.h
 BAL/Facilities/WebCore/WK	WebCore/platform/FileSystem.h

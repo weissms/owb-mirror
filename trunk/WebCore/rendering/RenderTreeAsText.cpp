@@ -457,7 +457,7 @@ static void writeLayers(TextStream& ts, const RenderLayer* rootLayer, RenderLaye
 
     // Ensure our lists are up-to-date.
     l->updateZOrderLists();
-    l->updateOverflowList();
+    l->updateNormalFlowList();
 
     bool shouldPaint = l->intersectsDamageRect(layerBounds, damageRect, rootLayer);
     Vector<RenderLayer*>* negList = l->negZOrderList();
@@ -472,10 +472,10 @@ static void writeLayers(TextStream& ts, const RenderLayer* rootLayer, RenderLaye
     if (shouldPaint)
         write(ts, *l, layerBounds, damageRect, clipRectToApply, outlineRect, negList && negList->size() > 0, indent);
 
-    Vector<RenderLayer*>* overflowList = l->overflowList();
-    if (overflowList) {
-        for (unsigned i = 0; i != overflowList->size(); ++i)
-            writeLayers(ts, rootLayer, overflowList->at(i), paintDirtyRect, indent);
+    Vector<RenderLayer*>* normalFlowList = l->normalFlowList();
+    if (normalFlowList) {
+        for (unsigned i = 0; i != normalFlowList->size(); ++i)
+            writeLayers(ts, rootLayer, normalFlowList->at(i), paintDirtyRect, indent);
     }
 
     Vector<RenderLayer*>* posList = l->posZOrderList();

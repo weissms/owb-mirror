@@ -16,7 +16,6 @@ list(APPEND WEBCORE_SRC
     dom/ClipboardEvent.cpp
     dom/Comment.cpp
     dom/ContainerNode.cpp
-    dom/CrossThreadCopier.cpp
     dom/DOMImplementation.cpp
     dom/DOMStringList.cpp
     dom/Document.cpp
@@ -78,7 +77,6 @@ list(APPEND WEBCORE_SRC
     dom/WebKitAnimationEvent.cpp
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp
-    dom/WorkerRunLoop.cpp
     dom/XMLTokenizer.cpp
 )
 
@@ -136,18 +134,3 @@ list(APPEND IDL_SRC
     dom/WebKitTransitionEvent.idl
     dom/WheelEvent.idl
 )
-
-if(ENABLE_WORKERS)
-    list(APPEND WEBCORE_SRC
-        dom/Worker.cpp
-        dom/WorkerContext.cpp
-        dom/WorkerLocation.cpp
-        dom/WorkerMessagingProxy.cpp
-        dom/WorkerThread.cpp
-    )
-    list(APPEND IDL_SRC
-        dom/Worker.idl
-        dom/WorkerContext.idl
-        dom/WorkerLocation.idl
-    )
-endif(ENABLE_WORKERS)

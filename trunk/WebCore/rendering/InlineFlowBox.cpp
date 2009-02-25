@@ -553,7 +553,7 @@ bool InlineFlowBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
 {
     // Check children first.
     for (InlineBox* curr = lastChild(); curr; curr = curr->prevOnLine()) {
-        if (!curr->renderer()->hasLayer() && curr->nodeAtPoint(request, result, x, y, tx, ty)) {
+        if ((curr->renderer()->isText() || !curr->boxModelObject()->hasSelfPaintingLayer()) && curr->nodeAtPoint(request, result, x, y, tx, ty)) {
             renderer()->updateHitTestResult(result, IntPoint(x - tx, y - ty));
             return true;
         }
@@ -593,7 +593,7 @@ void InlineFlowBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
             // outlines.
             if (renderer()->style()->visibility() == VISIBLE && renderer()->hasOutline() && !isRootInlineBox()) {
                 RenderInline* inlineFlow = toRenderInline(renderer());
-                if ((inlineFlow->continuation() || inlineFlow->isInlineContinuation()) && !renderer()->hasLayer()) {
+                if ((inlineFlow->continuation() || inlineFlow->isInlineContinuation()) && !boxModelObject()->hasSelfPaintingLayer()) {
                     // Add ourselves to the containing block of the entire continuation so that it can
                     // paint us atomically.
                     RenderBlock* block = renderer()->containingBlock()->containingBlock();
@@ -624,7 +624,7 @@ void InlineFlowBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
     // 3. Paint our children.
     if (paintPhase != PaintPhaseSelfOutline) {
         for (InlineBox* curr = firstChild(); curr; curr = curr->nextOnLine()) {
-            if (!curr->renderer()->hasLayer())
+            if (curr->renderer()->isText() || !curr->boxModelObject()->hasSelfPaintingLayer())
                 curr->paint(childInfo, tx, ty);
         }
     }
@@ -931,15 +931,18 @@ void InlineFlowBox::paintTextDecorations(RenderObject::PaintInfo& paintInfo, int
 
             if (paintUnderline) {
                 context->setStrokeColor(underline);
+                context->setStrokeStyle(SolidStroke);
                 // Leave one pixel of white between the baseline and the underline.
                 context->drawLineForText(IntPoint(tx, ty + baselinePos + 1), w, isPrinting);
             }
             if (paintOverline) {
                 context->setStrokeColor(overline);
+                context->setStrokeStyle(SolidStroke);
                 context->drawLineForText(IntPoint(tx, ty), w, isPrinting);
             }
             if (paintLineThrough) {
                 context->setStrokeColor(linethrough);
+                context->setStrokeStyle(SolidStroke);
                 context->drawLineForText(IntPoint(tx, ty + 2 * baselinePos / 3), w, isPrinting);
             }
         } while (shadow);

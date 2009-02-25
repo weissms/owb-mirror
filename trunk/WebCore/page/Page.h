@@ -206,6 +206,9 @@ namespace WebCore {
         void setMemoryCacheClientCallsEnabled(bool);
         bool areMemoryCacheClientCallsEnabled() const { return m_areMemoryCacheClientCallsEnabled; }
 
+        void setJavaScriptURLsAreAllowed(bool);
+        bool javaScriptURLsAreAllowed() const;
+
     private:
         void initGroup();
 
@@ -239,7 +242,9 @@ namespace WebCore {
         bool m_cookieEnabled;
         bool m_areMemoryCacheClientCallsEnabled;
         float m_mediaVolume;
-    
+
+        bool m_javaScriptURLsAreAllowed;
+
 #if ENABLE(INSPECTOR)
         InspectorController* m_parentInspectorController;
 #endif

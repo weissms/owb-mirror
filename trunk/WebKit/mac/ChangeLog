@@ -1,3 +1,82 @@
+2009-02-25  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Related to <rdar://problem/6590295>
+        Allow disabling javascript: urls.
+
+        * WebView/WebView.mm:
+        (-[WebView _setJavaScriptURLsAreAllowed:]):
+        * WebView/WebViewPrivate.h:
+
+2009-02-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6259220> Rename AVAILABLE_AFTER_WEBKIT_VERSION_3_1 (etc.) to match the other macros
+
+        * Carbon/CarbonUtils.h:
+        * Carbon/HIWebView.h:
+        * Plugins/WebPlugin.h:
+        * Plugins/WebPluginViewFactory.h:
+        * WebView/WebUIDelegate.h:
+
+2009-02-24  Peter Ammon  <pammon@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix <rdar://problem/6251410> Services can modify non-editable content in Safari
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validRequestorForSendType:returnType:]): Return self only if we can handle
+        both the send and return type.  We should also handle a nil send or return type by ignoring
+        the argument and returning whether we can handle the other type passed in.
+
+2009-02-23  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoffrey Garen and Darin Adler.
+
+        WebKit side of <rdar://problem/6613151>.
+        
+        Make sure to vm_deallocate all memory we get from MIG callbacks.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (DataDeallocator::DataDeallocator):
+        (DataDeallocator::~DataDeallocator):
+        Add a simple deallocator class.
+        
+        (WKPCStatusText):
+        (WKPCLoadURL):
+        (WKPCBooleanAndDataReply):
+        (WKPCEvaluate):
+        (WKPCGetStringIdentifier):
+        (WKPCInvoke):
+        (WKPCInvokeDefault):
+        (WKPCConstruct):
+        (WKPCSetProperty):
+        Use the new deallocator class.
+
+2009-02-23  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <rdar://problem/6450656>.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::insertText):
+        Add insert text which just calls the new WKPH function.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView inputContext]):
+        Get the input context from the shared input panel.
+        
+        (-[WebHostedNetscapePluginView keyDown:]):
+        Let the shared input panel have a go at the event first.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add new InsertText function.
+
 2009-02-23  Mark Rowe  <mrowe@apple.com>
 
         Fix the build after r41126.

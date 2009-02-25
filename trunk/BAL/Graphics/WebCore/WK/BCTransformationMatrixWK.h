@@ -208,6 +208,9 @@ public:
     
     TransformationMatrix& translate(double tx, double ty);
     TransformationMatrix& translate3d(double tx, double ty, double tz);
+
+    // translation added with a post-multiply
+    TransformationMatrix& translateRight3d(double tx, double ty, double tz);
     
     TransformationMatrix& flipX();
     TransformationMatrix& flipY();

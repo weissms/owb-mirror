@@ -64,6 +64,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderWordBreak.cpp
     rendering/RootInlineBox.cpp
     rendering/TextControlInnerElements.cpp
+    rendering/TransformState.cpp
 )
 
 if(ENABLE_SVG)

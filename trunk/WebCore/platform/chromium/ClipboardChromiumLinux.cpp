@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Apple Inc.  All rights reserved.
+ * Copyright (C) 2009 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,66 +21,21 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- *
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
+#include "ClipboardChromium.h"
 
-#if ENABLE(WORKERS)
-
-#include "WorkerLocation.h"
-
-#include "PlatformString.h"
+#include "ChromiumDataObject.h"
+#include "NotImplemented.h"
 
 namespace WebCore {
 
-String WorkerLocation::href() const
+String ClipboardChromium::validateFileName(const String& title, ChromiumDataObject* dataObject)
 {
-    return m_url.hasPath() ? m_url.prettyURL() : m_url.prettyURL() + "/";
+    notImplemented();
+    return title;
 }
 
-String WorkerLocation::protocol() const
-{
-    return m_url.protocol() + ":";
-}
-
-String WorkerLocation::host() const
-{
-    return m_url.port() ? m_url.host() + ":" + String::number((static_cast<int>(m_url.port()))) : m_url.host();
-}
-
-String WorkerLocation::hostname() const
-{
-    return m_url.host();
-}
-
-String WorkerLocation::port() const
-{
-    return m_url.port() ? String::number(static_cast<int>(m_url.port())) : "";
-}
-
-String WorkerLocation::pathname() const
-{
-    return m_url.path().isEmpty() ? "/" : m_url.path();
-}
-
-String WorkerLocation::search() const
-{
-    return m_url.query();
-}
-
-String WorkerLocation::hash() const
-{
-    return m_url.ref().isNull() ? "" : "#" + m_url.ref();
-}
-
-String WorkerLocation::toString() const
-{
-    return m_url.hasPath() ? m_url.prettyURL() : m_url.prettyURL() + "/";
-}
-
-
-} // namespace WebCore
-
-#endif // ENABLE(WORKERS)
+}  // namespace WebCore

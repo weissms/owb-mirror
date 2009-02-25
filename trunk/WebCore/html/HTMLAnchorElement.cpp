@@ -38,6 +38,7 @@
 #include "KeyboardEvent.h"
 #include "MouseEvent.h"
 #include "MutationEvent.h"
+#include "Page.h"
 #include "RenderBox.h"
 #include "RenderImage.h"
 #include "ResourceRequest.h"
@@ -280,10 +281,16 @@ void HTMLAnchorElement::parseMappedAttribute(MappedAttribute *attr)
         setIsLink(!attr->isNull());
         if (wasLink != isLink())
             setChanged();
-        if (isLink() && document()->isDNSPrefetchEnabled()) {
-            String value = attr->value();
-            if (protocolIs(value, "http") || protocolIs(value, "https") || value.startsWith("//"))
-                prefetchDNS(document()->completeURL(value).host());
+        if (isLink()) {
+            String parsedURL = parseURL(attr->value());
+            if (document()->isDNSPrefetchEnabled()) {
+                if (protocolIs(parsedURL, "http") || protocolIs(parsedURL, "https") || parsedURL.startsWith("//"))
+                    prefetchDNS(document()->completeURL(parsedURL).host());
+            }
+            if (document()->page() && !document()->page()->javaScriptURLsAreAllowed() && protocolIs(parsedURL, "javascript")) {
+                setIsLink(false);
+                attr->setValue(nullAtom);
+            }
         }
     } else if (attr->name() == nameAttr ||
              attr->name() == titleAttr ||
@@ -430,7 +437,8 @@ void HTMLAnchorElement::setType(const AtomicString& value)
 
 String HTMLAnchorElement::hash() const
 {
-    return "#" + href().ref();
+    String ref = href().ref();
+    return ref.isEmpty() ? "" : "#" + ref;
 }
 
 String HTMLAnchorElement::host() const
@@ -463,7 +471,8 @@ String HTMLAnchorElement::protocol() const
 
 String HTMLAnchorElement::search() const
 {
-    return href().query();
+    String query = href().query();
+    return query.isEmpty() ? "" : "?" + query;
 }
 
 String HTMLAnchorElement::text() const

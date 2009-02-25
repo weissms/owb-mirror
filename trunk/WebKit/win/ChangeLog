@@ -1,3 +1,23 @@
+2009-02-25  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Related to <rdar://problem/6590295>
+        Allow disabling javascript: urls.
+
+        * Interfaces/IWebViewPrivate.idl:
+        * WebView.cpp:
+        (WebView::setJavaScriptURLsAreAllowed):
+        * WebView.h:
+
+2009-02-24  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+        Export WTF::ThreadCondition::timedWait.
+
 2009-02-20  Brady Eidson  <beidson@apple.com>
 
         Reviewed by Kevin Decker

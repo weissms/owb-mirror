@@ -1021,7 +1021,11 @@ public:
      * enable memory cache delegate calls
      */
     void setMemoryCacheDelegateCallsEnabled(bool enabled);
-    
+   
+    /**
+     * enable javascript urls
+     */
+    void setJavaScriptURLsAreAllowed(bool areAllowed);
 
     /**
      *  give on expose event to the webview

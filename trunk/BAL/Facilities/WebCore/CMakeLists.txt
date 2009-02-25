@@ -9,6 +9,7 @@ create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverDataCommon.h 
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceBookmarkletCommon.h BAL/ObserverServiceBookmarklet.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceCommon.h BAL/ObserverService.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceDataCommon.h BAL/ObserverServiceData.h)
+create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCCrossThreadCopierWK.h BAL/CrossThreadCopier.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCFileChooserWK.h BAL/FileChooser.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCFloatConversionWK.h BAL/FloatConversion.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCGeolocationServiceWK.h BAL/GeolocationService.h)
