@@ -256,6 +256,8 @@ WebView *createWebViewAndOffscreenWindow()
     [[window contentView] addSubview:webView];
     [window orderBack:nil];
     [window setAutodisplay:NO];
+
+    [window startObservingWebView];
     
     // For reasons that are not entirely clear, the following pair of calls makes WebView handle its
     // dynamic scrollbars properly. Without it, every frame will always have scrollbars.
@@ -511,6 +513,7 @@ void dumpRenderTree(int argc, const char *argv[])
     if (threaded)
         stopJavaScriptThreads();
 
+    NSWindow *window = [webView window];
     [webView close];
     mainFrame = nil;
 
@@ -518,7 +521,6 @@ void dumpRenderTree(int argc, const char *argv[])
     // "perform selector" on the window, which retains the window. It's a bit
     // inelegant and perhaps dangerous to just blow them all away, but in practice
     // it probably won't cause any trouble (and this is just a test tool, after all).
-    NSWindow *window = [webView window];
     [NSObject cancelPreviousPerformRequestsWithTarget:window];
     
     [window close]; // releases when closed

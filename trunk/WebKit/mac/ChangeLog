@@ -1,3 +1,102 @@
+2009-02-27  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Fix for <rdar://problem/6618166>
+        https://bugs.webkit.org/show_bug.cgi?id=24216
+        (REGRESSION r36919) Safari 4 Beta causes MSN Messenger's text entry field to lose focus after entering a message
+
+        During a series of firstResponder changes, at some point while the WebHTMLView was losing first responder status,
+        we incorrectly marked the page as active, and then when the WebHTMLView became first responder again, setActive did nothing.
+        This change restores behavior from before r36919 to check if the WebHTMLView is in the middle of losing first responder when calling setActive.
+
+        In addition to updating editing/selection/designmode-no-caret.html results, I also made sure the test cases that were 
+        fixed in r36919 and r38570 are still fixed.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView resignFirstResponder]): Keep track if we're in the process of resigning first responder.
+        (-[WebHTMLView _isResigningFirstResponder]): Added.
+        * WebView/WebHTMLViewInternal.h:
+        * WebView/WebView.mm: (-[WebView _updateFocusedAndActiveStateForFrame:]): Don't set the page to be active
+        if the document view is currently resigning first responder.
+
+2009-02-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Fix <rdar://problem/6623697>.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::print):
+        Ask the plug-in host to print, create a CGImage of the returned bytes and draw
+        the image into the passed in context.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView drawRect:]):
+        When printing, call NetscapePluginInstanceProxy::print.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2009-02-19  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24024
+        REGRESSION (r39845): Assertion failure in -[WebHistoryItem dictionaryRepresentation] when
+        archiving a submission to about:blank
+
+        I don't know how to make an automated test for this bug.
+
+        * History/WebHistory.mm: (-[WebHistory _visitedURL:withTitle:method:wasFailure:]):
+        Account for the fact that HTTP method may be non-empty for non-HTTP requests.
+
+2009-02-25  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Naming change from
+        Bug 24143: Crash occurs at WebCore::AccessibilityTable::isTableExposableThroughAccessibility() when applying a link in GMail
+        https://bugs.webkit.org/show_bug.cgi?id=24143
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _accessibilityTree]):
+
+2009-02-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Build fix with ACCELERATED_COMPOSITING turned on.
+        
+        I missed a spot in my last commit in renaming to
+        _stoppedAcceleratedCompositingForFrame:
+        
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView close]):
+
+2009-02-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=23854
+
+        Make an observable property, _isUsingAcceleratedCompositing, on
+        WebView that DumpRenderTree can use to specialize behavior.
+        
+        This is implemented via a count of Frames that are using
+        accelerated compositing.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLViewPrivate clear]):
+        (-[WebHTMLView close]):
+        (-[WebHTMLView attachRootLayer:]):
+        (-[WebHTMLView detachRootLayer]):
+        * WebView/WebView.mm:
+        (+[WebView automaticallyNotifiesObserversForKey:]):
+        (-[WebView _startedAcceleratedCompositingForFrame:]):
+        (-[WebView _stoppedAcceleratedCompositingForFrame:]):
+        (-[WebView _isUsingAcceleratedCompositing]):
+        * WebView/WebViewInternal.h:
+        * WebView/WebViewPrivate.h:
+
 2009-02-25  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Geoffrey Garen.

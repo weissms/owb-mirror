@@ -55,6 +55,7 @@
 #include "Screen.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
+#include "WebKitPoint.h"
 #include <algorithm>
 #include <wtf/MathExtras.h>
 
@@ -797,6 +798,26 @@ PassRefPtr<CSSRuleList> DOMWindow::getMatchedCSSRules(Element* elt, const String
     if (!pseudoElt.isEmpty())
         return doc->styleSelector()->pseudoStyleRulesForElement(elt, pseudoElt, authorOnly);
     return doc->styleSelector()->styleRulesForElement(elt, authorOnly);
+}
+
+PassRefPtr<WebKitPoint> DOMWindow::webkitConvertPointFromNodeToPage(Node* node, const WebKitPoint* p) const
+{
+    if (!node || !p)
+        return 0;
+        
+    FloatPoint pagePoint(p->x(), p->y());
+    pagePoint = node->convertToPage(pagePoint);
+    return WebKitPoint::create(pagePoint.x(), pagePoint.y());
+}
+
+PassRefPtr<WebKitPoint> DOMWindow::webkitConvertPointFromPageToNode(Node* node, const WebKitPoint* p) const
+{
+    if (!node || !p)
+        return 0;
+        
+    FloatPoint nodePoint(p->x(), p->y());
+    nodePoint = node->convertFromPage(nodePoint);
+    return WebKitPoint::create(nodePoint.x(), nodePoint.y());
 }
 
 double DOMWindow::devicePixelRatio() const

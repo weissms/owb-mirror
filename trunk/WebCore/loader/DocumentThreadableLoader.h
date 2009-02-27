@@ -39,11 +39,12 @@
 
 namespace WebCore {
     class Document;
-    class ResourceRequest;
+    struct ResourceRequest;
     class ThreadableLoaderClient;
 
     class DocumentThreadableLoader : public RefCounted<DocumentThreadableLoader>, public ThreadableLoader, private SubresourceLoaderClient  {
     public:
+        static void loadResourceSynchronously(Document*, const ResourceRequest&, ThreadableLoaderClient&);
         static PassRefPtr<DocumentThreadableLoader> create(Document*, ThreadableLoaderClient*, const ResourceRequest&, LoadCallbacks, ContentSniff);
         virtual ~DocumentThreadableLoader();
 

@@ -28,21 +28,25 @@
 
 #include "Base64.h"
 #include "CookieJarSoup.h"
+#include "ChromeClient.h"
 #include "CString.h"
 #include "DocLoader.h"
 #include "Frame.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "NotImplemented.h"
+#include "Page.h"
 #include "ResourceError.h"
 #include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
 #include "ResourceResponse.h"
 #include "TextEncoding.h"
+#include "webkit-soup-auth-dialog.h"
 
 #include <errno.h>
 #include <fcntl.h>
 #include <gio/gio.h>
+#include <gtk/gtk.h>
 #include <libsoup/soup.h>
 #include <libsoup/soup-message.h>
 #include <sys/types.h>
@@ -370,6 +374,31 @@ static SoupSession* createSoupSession()
     return soup_session_async_new();
 }
 
+static GtkWidget* currentToplevelCallback(WebKitSoupAuthDialog* feature, SoupMessage* message, gpointer userData)
+{
+    gpointer messageData = g_object_get_data(G_OBJECT(message), "resourceHandle");
+    if (!messageData)
+        return NULL;
+
+    ResourceHandle* handle = static_cast<ResourceHandle*>(messageData);
+    if (!handle)
+        return NULL;
+
+    ResourceHandleInternal* d = handle->getInternal();
+    if (!d)
+        return NULL;
+
+    Frame* frame = d->m_frame;
+    if (!frame)
+        return NULL;
+
+    GtkWidget* toplevel =  gtk_widget_get_toplevel(GTK_WIDGET(frame->page()->chrome()->platformWindow()));
+    if (GTK_WIDGET_TOPLEVEL(toplevel))
+        return toplevel;
+    else
+        return NULL;
+}
+
 static void ensureSessionIsInitialized(SoupSession* session)
 {
     if (g_object_get_data(G_OBJECT(session), "webkit-init"))
@@ -380,6 +409,11 @@ static void ensureSessionIsInitialized(SoupSession* session)
         soup_session_add_feature(session, SOUP_SESSION_FEATURE(defaultCookieJar()));
     else
         setDefaultCookieJar(jar);
+
+    SoupSessionFeature* authDialog = static_cast<SoupSessionFeature*>(g_object_new(WEBKIT_TYPE_SOUP_AUTH_DIALOG, NULL));
+    g_signal_connect(authDialog, "current-toplevel", G_CALLBACK(currentToplevelCallback), NULL);
+    soup_session_add_feature(session, authDialog);
+    g_object_unref(authDialog);
 
     const char* webkit_debug = g_getenv("WEBKIT_DEBUG"); 
     if (!soup_session_get_feature(session, SOUP_TYPE_LOGGER)
@@ -400,9 +434,10 @@ bool ResourceHandle::startHttp(String urlString)
     SoupMessage* msg;
     msg = soup_message_new(request().httpMethod().utf8().data(), urlString.utf8().data());
     g_signal_connect(msg, "restarted", G_CALLBACK(restartedCallback), this);
-
     g_signal_connect(msg, "got-headers", G_CALLBACK(gotHeadersCallback), this);
     g_signal_connect(msg, "got-chunk", G_CALLBACK(gotChunkCallback), this);
+
+    g_object_set_data(G_OBJECT(msg), "resourceHandle", reinterpret_cast<void*>(this));
 
     HTTPHeaderMap customHeaders = d->m_request.httpHeaderFields();
     if (!customHeaders.isEmpty()) {
@@ -486,6 +521,25 @@ bool ResourceHandle::startHttp(String urlString)
     return true;
 }
 
+static gboolean reportUnknownProtocolError(gpointer callback_data)
+{
+    ResourceHandle* handle = static_cast<ResourceHandle*>(callback_data);
+    ResourceHandleInternal* d = handle->getInternal();
+    ResourceHandleClient* client = handle->client();
+
+    if (d->m_cancelled || !client) {
+        handle->deref();
+        return FALSE;
+    }
+
+    KURL url = handle->request().url();
+    ResourceError error("webkit-network-error", ERROR_UNKNOWN_PROTOCOL, url.string(), url.protocol());
+    client->didFail(handle, error);
+
+    handle->deref();
+    return FALSE;
+}
+
 bool ResourceHandle::start(Frame* frame)
 {
     ASSERT(!d->m_msg);
@@ -499,6 +553,9 @@ bool ResourceHandle::start(Frame* frame)
     String urlString = url.string();
     String protocol = url.protocol();
 
+    // Used to set the authentication dialog toplevel; may be NULL
+    d->m_frame = frame;
+
     if (equalIgnoringCase(protocol, "data"))
         return startData(urlString);
     else if ((equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https")) && SOUP_URI_VALID_FOR_HTTP(soup_uri_new(urlString.utf8().data())))
@@ -507,12 +564,12 @@ bool ResourceHandle::start(Frame* frame)
         // FIXME: should we be doing any other protocols here?
         return startGio(url);
     else {
-        // If we don't call didFail the job is not complete for webkit even false is returned.
-        if (d->client()) {
-            ResourceError error("webkit-network-error", ERROR_UNKNOWN_PROTOCOL, urlString, protocol);
-            d->client()->didFail(this, error);
-        }
-        return false;
+        // Error must not be reported immediately, but through an idle function.
+        // Despite error, we should return true so a proper handle is created,
+        // to which this failure can be reported.
+        ref();
+        d->m_idleHandler = g_idle_add(reportUnknownProtocolError, this);
+        return true;
     }
 }
 

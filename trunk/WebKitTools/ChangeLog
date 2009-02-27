@@ -1,3 +1,87 @@
+2009-02-27  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Fix spew about a WebView being deallocated while key value observers are
+        still registered with it by making sure that we always stop observing
+        _isUsingAcceleratedCompositing in -[DumpRenderTreeWindow close].
+        
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dumpRenderTree):
+        * DumpRenderTree/mac/DumpRenderTreeWindow.mm:
+        (-[DumpRenderTreeWindow close]):
+
+2009-02-25  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Do not queue the calls to 'DumpRenderTree::dump()' as this can result
+        in more than one call as a test that calls 'notifyDone()' can then be
+        subsequently fully loaded and initiate a second dump.  Also make sure
+        to stop any existing page load that is happening before running the next
+        test.  Combined this serves to produce 217 more passing tests for the
+        Qt port or roughly 5% at this point.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::open):
+
+2009-02-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=23854
+
+        Have the DumpRenderTreeWindow observe the -_isUsingAcceleratedCompositing
+        property of the WebView, and use that to turn -autodisplay on and off.
+        This is necessary so that accelerated animations start correctly.
+        We can thus remove the -display hack in createBitmapContextFromWebView().
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (createWebViewAndOffscreenWindow):
+        (dumpRenderTree):
+        * DumpRenderTree/mac/DumpRenderTreeWindow.h:
+        * DumpRenderTree/mac/DumpRenderTreeWindow.mm:
+        (-[DumpRenderTreeWindow close]):
+        (-[DumpRenderTreeWindow webView]):
+        (-[DumpRenderTreeWindow startObservingWebView]):
+        (-[DumpRenderTreeWindow stopObservingWebView]):
+        (-[DumpRenderTreeWindow observeValueForKeyPath:ofObject:change:context:]):
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (createBitmapContextFromWebView):
+
+2009-02-25  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Zack Rusin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24158
+        Implement the queue*() methods of the layoutTestController and begin
+        implementing the dump of the back/forward list.  This results in 2% more
+        tests passing as well as 23 currently skipped tests now passing.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::dumpBackForwardList):
+        (WebCore::DumpRenderTree::dump):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (findFrameNamed):
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        (LayoutTestController::reset):
+        (LayoutTestController::processWork):
+        (LayoutTestController::maybeDump):
+        (LayoutTestController::queueBackNavigation):
+        (LayoutTestController::queueForwardNavigation):
+        (LayoutTestController::queueLoad):
+        (LayoutTestController::queueReload):
+        (LayoutTestController::queueScript):
+        * DumpRenderTree/qt/jsobjects.h:
+        (LayoutTestController::shouldDumpBackForwardList):
+        (LayoutTestController::dumpBackForwardList):
+
 2009-02-25  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by Alexey Proskuryakov.

@@ -50,6 +50,7 @@
 #include "JSNode.h"
 #include "JSWebKitCSSMatrixConstructor.h"
 #include "JSOptionConstructor.h"
+#include "JSWebKitPointConstructor.h"
 #include "JSWorkerConstructor.h"
 #include "JSXMLHttpRequestConstructor.h"
 #include "JSXSLTProcessorConstructor.h"
@@ -93,6 +94,8 @@ static JSValuePtr jsDOMWindowBaseOption(ExecState*, const Identifier&, const Pro
 static void setJSDOMWindowBaseOption(ExecState*, JSObject*, JSValuePtr);
 static JSValuePtr jsDOMWindowBaseWebKitCSSMatrix(ExecState*, const Identifier&, const PropertySlot&);
 static void setJSDOMWindowBaseWebKitCSSMatrix(ExecState*, JSObject*, JSValuePtr);
+static JSValuePtr jsDOMWindowBaseWebKitPoint(ExecState*, const Identifier&, const PropertySlot&);
+static void setJSDOMWindowBaseWebKitPoint(ExecState*, JSObject*, JSValuePtr);
 static JSValuePtr jsDOMWindowBaseXMLHttpRequest(ExecState*, const Identifier&, const PropertySlot&);
 static void setJSDOMWindowBaseXMLHttpRequest(ExecState*, JSObject*, JSValuePtr);
 static JSValuePtr jsDOMWindowBaseXSLTProcessor(ExecState*, const Identifier&, const PropertySlot&);
@@ -123,6 +126,7 @@ const ClassInfo JSDOMWindowBase::s_info = { "Window", 0, &JSDOMWindowBaseTable, 
   MessageChannel                jsDOMWindowBaseMessageChannel               DontDelete
   Option                        jsDOMWindowBaseOption                       DontDelete
   WebKitCSSMatrix               jsDOMWindowBaseWebKitCSSMatrix              DontDelete
+  WebKitPoint                   jsDOMWindowBaseWebKitPoint                  DontDelete
   Worker                        jsDOMWindowBaseWorker                       DontDelete
   XMLHttpRequest                jsDOMWindowBaseXMLHttpRequest               DontDelete
   XSLTProcessor                 jsDOMWindowBaseXSLTProcessor                DontDelete
@@ -433,6 +437,13 @@ JSValuePtr jsDOMWindowBaseAudio(ExecState* exec, const Identifier&, const Proper
 #endif
 }
 
+JSValuePtr jsDOMWindowBaseWebKitPoint(ExecState* exec, const Identifier&, const PropertySlot& slot)
+{
+    if (!static_cast<JSDOMWindowBase*>(asObject(slot.slotBase()))->allowsAccessFrom(exec))
+        return jsUndefined();
+    return getDOMConstructor<JSWebKitPointConstructor>(exec);
+}
+
 JSValuePtr jsDOMWindowBaseWorker(ExecState* exec, const Identifier&, const PropertySlot& slot)
 {
 #if ENABLE(WORKERS)
@@ -513,6 +524,14 @@ void setJSDOMWindowBaseWebKitCSSMatrix(ExecState* exec, JSObject* thisObject, JS
         return;
     // Shadowing a built-in constructor
     static_cast<JSDOMWindowBase*>(thisObject)->putDirect(Identifier(exec, "WebKitCSSMatrix"), value);
+}
+
+void setJSDOMWindowBaseWebKitPoint(ExecState* exec, JSObject* thisObject, JSValuePtr value)
+{
+    if (!static_cast<JSDOMWindowBase*>(thisObject)->allowsAccessFrom(exec))
+        return;
+    // Shadowing a built-in constructor
+    static_cast<JSDOMWindowBase*>(thisObject)->putDirect(Identifier(exec, "WebKitPoint"), value);
 }
 
 void setJSDOMWindowBaseXMLHttpRequest(ExecState* exec, JSObject* thisObject, JSValuePtr value)

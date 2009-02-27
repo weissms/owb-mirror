@@ -2859,6 +2859,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\page\WebKitPoint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\page\WindowFeatures.cpp"
 				>
 			</File>
@@ -4380,19 +4384,19 @@
 						>
 					</File>
 					<File
-						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.h"
-						>
-					</File>
-					<File
 						RelativePath="..\platform\graphics\transforms\Matrix3DTransformOperation.cpp"
 						>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\Matrix3DTransformOperation.h"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\MatrixTransformOperation.h"
 						>
 					</File>
 					<File

@@ -381,6 +381,7 @@ struct WebHTMLViewInterpretKeyEventsParameters {
     BOOL observingMouseMovedNotifications;
     BOOL observingSuperviewNotifications;
     BOOL observingWindowNotifications;
+    BOOL resigningFirstResponder;
     
     id savedSubviews;
     BOOL subviewsSetAside;
@@ -539,7 +540,7 @@ static NSCellStateValue kit(TriState state)
 
 #if USE(ACCELERATED_COMPOSITING)
     layerHostingView = nil;
-#endif    
+#endif
 }
 
 @end
@@ -1914,7 +1915,7 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 
 - (void)close
 {
-    // Check for a nil _private here incase we were created with initWithCoder. In that case, the WebView is just throwing
+    // Check for a nil _private here in case we were created with initWithCoder. In that case, the WebView is just throwing
     // out the archived WebHTMLView and recreating a new one if needed. So close doesn't need to do anything in that case.
     if (!_private || _private->closed)
         return;
@@ -1931,8 +1932,14 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     [_private->pluginController setDataSource:nil];
     // remove tooltips before clearing _private so removeTrackingRect: will work correctly
     [self removeAllToolTips];
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (_private->layerHostingView)
+        [[self _webView] _stoppedAcceleratedCompositingForFrame:[self _frame]];
+#endif
+
     [_private clear];
-    
+
     Page* page = core([self _webView]);
     if (page)
         page->dragController()->setDraggingImageURL(KURL());
@@ -3435,6 +3442,7 @@ noPromisedData:
 {
     BOOL resign = [super resignFirstResponder];
     if (resign) {
+        _private->resigningFirstResponder = YES;
         [_private->compController endRevertingChange:NO moveLeft:NO];
         if (![self maintainsInactiveSelection]) { 
             [self deselectAll];
@@ -3442,6 +3450,7 @@ noPromisedData:
                 [self clearFocus];
         }
         [self _updateFocusedAndActiveState];
+        _private->resigningFirstResponder = NO;
     }
     return resign;
 }
@@ -5024,6 +5033,11 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
     [[self _pluginController] destroyAllPlugins];
 }
 
+- (BOOL)_isResigningFirstResponder
+{
+    return _private->resigningFirstResponder;
+}
+
 #if USE(ACCELERATED_COMPOSITING)
 - (void)attachRootLayer:(CALayer*)layer
 {
@@ -5034,6 +5048,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
         [hostingView release];
         // hostingView is owned by being a subview of self
         _private->layerHostingView = hostingView;
+        [[self _webView] _startedAcceleratedCompositingForFrame:[self _frame]];
     }
 
     // Make a container layer, which will get sized/positioned by AppKit and CA
@@ -5052,6 +5067,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
         [_private->layerHostingView setWantsLayer:NO];
         [_private->layerHostingView removeFromSuperview];
         _private->layerHostingView = nil;
+        [[self _webView] _stoppedAcceleratedCompositingForFrame:[self _frame]];
     }
 }
 #endif

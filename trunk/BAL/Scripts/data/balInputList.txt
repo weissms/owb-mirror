@@ -598,9 +598,7 @@ BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMarker.h
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMasker.h
 
 BAL/SVG/WebCore/Cairo	WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp
-BAL/SVG/WebCore/Cairo	WebCore/svg/graphics/cairo/SVGResourceMaskerCairo.cpp
 BAL/SVG/WebCore/Qt	WebCore/svg/graphics/qt/SVGResourceFilterQt.cpp
-BAL/SVG/WebCore/Qt	WebCore/svg/graphics/qt/SVGResourceMaskerQt.cpp
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEBlend.cpp
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEBlend.h
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEColorMatrix.cpp

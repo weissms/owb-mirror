@@ -92,7 +92,9 @@ namespace WebCore {
         Color strokeColor() const;
         void setStrokeColor(const Color&);
         void setStrokePattern(PassRefPtr<Pattern>);
+        Pattern* strokePattern() const;
         void setStrokeGradient(PassRefPtr<Gradient>);
+        Gradient* strokeGradient() const;
 
         WindRule fillRule() const;
         void setFillRule(WindRule);
@@ -101,7 +103,9 @@ namespace WebCore {
         Color fillColor() const;
         void setFillColor(const Color&);
         void setFillPattern(PassRefPtr<Pattern>);
+        Pattern* fillPattern() const;
         void setFillGradient(PassRefPtr<Gradient>);
+        Gradient* fillGradient() const;
         void setShadowsIgnoreTransforms(bool);
 
         void setShouldAntialias(bool);

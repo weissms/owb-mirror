@@ -288,6 +288,11 @@ macro(yankAndSelect) \
 #define AppleKeyboardUIMode CFSTR("AppleKeyboardUIMode")
 #define UniversalAccessDomain CFSTR("com.apple.universalaccess")
 
+#if USE(ACCELERATED_COMPOSITING)
+#define UsingAcceleratedCompositingProperty @"_isUsingAcceleratedCompositing"
+#endif            
+
+
 static BOOL s_didSetCacheModel;
 static WebCacheModel s_cacheModel = WebCacheModelDocumentViewer;
 
@@ -412,6 +417,8 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     // When this flag is set, next time a WebHTMLView draws, it needs to temporarily disable screen updates
     // so that the NSView drawing is visually synchronized with CALayer updates.
     BOOL needsOneShotDrawingSynchronization;
+    // Number of WebHTMLViews using accelerated compositing. Used to implement _isUsingAcceleratedCompositing.
+    int acceleratedFramesCount;
 #endif    
 }
 @end
@@ -1587,7 +1594,11 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
     static NSSet *manualNotifyKeys = nil;
     if (!manualNotifyKeys)
         manualNotifyKeys = [[NSSet alloc] initWithObjects:_WebMainFrameURLKey, _WebIsLoadingKey, _WebEstimatedProgressKey,
-            _WebCanGoBackKey, _WebCanGoForwardKey, _WebMainFrameTitleKey, _WebMainFrameIconKey, _WebMainFrameDocumentKey, nil];
+            _WebCanGoBackKey, _WebCanGoForwardKey, _WebMainFrameTitleKey, _WebMainFrameIconKey, _WebMainFrameDocumentKey,
+#if USE(ACCELERATED_COMPOSITING)
+            UsingAcceleratedCompositingProperty, // used by DRT
+#endif            
+            nil];
     if ([manualNotifyKeys containsObject:key])
         return NO;
     return YES;
@@ -2119,7 +2130,38 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
 {
     _private->needsOneShotDrawingSynchronization = needsSynchronization;
 }
+
+- (void)_startedAcceleratedCompositingForFrame:(WebFrame*)webFrame
+{
+    BOOL entering = _private->acceleratedFramesCount == 0;
+    if (entering)
+        [self willChangeValueForKey:UsingAcceleratedCompositingProperty];
+    ++_private->acceleratedFramesCount;
+    if (entering)
+        [self didChangeValueForKey:UsingAcceleratedCompositingProperty];
+}
+
+- (void)_stoppedAcceleratedCompositingForFrame:(WebFrame*)webFrame
+{
+    BOOL leaving = _private->acceleratedFramesCount == 1;
+    ASSERT(_private->acceleratedFramesCount > 0);
+    
+    if (leaving)
+        [self willChangeValueForKey:UsingAcceleratedCompositingProperty];
+    --_private->acceleratedFramesCount;
+    if (leaving)
+        [self didChangeValueForKey:UsingAcceleratedCompositingProperty];
+}
 #endif    
+
+- (BOOL)_isUsingAcceleratedCompositing
+{
+#if USE(ACCELERATED_COMPOSITING)
+    return _private->acceleratedFramesCount > 0;
+#else
+    return NO;
+#endif
+}
 
 @end
 
@@ -2590,10 +2632,14 @@ static bool needsWebViewInitThreadWorkaround()
     BOOL windowIsKey = [window isKeyWindow];
     BOOL windowOrSheetIsKey = windowIsKey || [[window attachedSheet] isKeyWindow];
 
-    NSResponder *firstResponder = [window firstResponder]; 
+    WebFrameView *mainFrameView = [[self mainFrame] frameView];
+    id <WebDocumentView> documentView = [mainFrameView documentView];
+    BOOL documentViewIsResigningFirstResponder = [documentView isKindOfClass:[WebHTMLView class]] && [(WebHTMLView *)documentView _isResigningFirstResponder];
+        
+    NSResponder *firstResponder = [window firstResponder];
     if ([firstResponder isKindOfClass:[NSView class]] 
-        && [(NSView*)firstResponder isDescendantOf:[[self mainFrame] frameView]])
-        page->focusController()->setActive(windowIsKey);
+        && [(NSView *)firstResponder isDescendantOf:mainFrameView])
+        page->focusController()->setActive(windowIsKey && !documentViewIsResigningFirstResponder);
 
     Frame* focusedFrame = page->focusController()->focusedOrMainFrame();
     frame->selection()->setFocused(frame == focusedFrame && windowOrSheetIsKey);

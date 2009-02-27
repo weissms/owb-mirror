@@ -1,3 +1,61 @@
+2009-02-27  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=16947
+        [GTK] Missing HTTP Auth challenge
+
+        Add new marshalers list.
+
+        * webkitmarshal.list: Added.
+
+2009-02-26  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24193
+        [GTK] Checkbuttons not activated with space
+
+        Do not swallow key events with GtkIMContext for non-editable
+        content.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::handleInputMethodKeydown):
+
+2009-02-26  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24103
+        [GTK] Use correct return value for WebView button-release handler
+
+        We are returning whatever the core code tells us it did, but this
+        does not play well with the GTK+ model. GTK+ in general expects it
+        will see a button-release if it saw a button-press and no
+        motion/leave/etc events in between. EventHandler.cpp will, in some
+        cases, not handle press but handle release, confusing the parent
+        container of the WebView.
+
+        As a workaround return always FALSE for button-release (this is
+        the same than the Windows port does).
+
+        * webkit/webkitwebview.cpp:
+
+2009-02-26  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17585
+        [gtk] get|set encoding api
+
+        Add functions to get and set a custom encoding an a view.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_set_custom_encoding):
+        (webkit_web_view_get_custom_encoding):
+        * webkit/webkitwebview.h:
+
 2009-02-25  Xan Lopez  <xan@gnome.org>
 
         Reviewed by Alexey Proskuryakov.

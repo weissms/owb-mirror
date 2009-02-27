@@ -54,6 +54,7 @@ list(APPEND IDL_SRC
     page/Navigator.idl
     page/PositionError.idl
     page/Screen.idl
+    page/WebKitPoint.idl
 )
 
 if(ENABLE_WORKERS)
