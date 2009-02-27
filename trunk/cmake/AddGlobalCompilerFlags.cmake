@@ -51,6 +51,7 @@ if(ENABLE_MULTIPLE_THREADS)
 endif(ENABLE_MULTIPLE_THREADS)
 
 if(ENABLE_NPAPI)
+    add_definitions(-DWTF_PLATFORM_X11=1)
     add_definitions(-DXP_UNIX)
 endif(ENABLE_NPAPI)
 
