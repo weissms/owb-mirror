@@ -138,8 +138,10 @@ bool ImageSource::isSizeAvailable()
 
 String ImageSource::filenameExtension() const
 {
-    // not implemented
-    return String();
+    if (!m_decoder)
+        return String();
+
+    return m_decoder->filenameExtension();
 }
 
 

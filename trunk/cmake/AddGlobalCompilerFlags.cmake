@@ -24,6 +24,10 @@ if(USE_NETWORK_CURL)
     add_definitions(-DWTF_USE_CURL=1)
 endif(USE_NETWORK_CURL)
 
+if(USE_NETWORK_SOUP)
+    add_definitions(-DWTF_USE_SOUP=1)
+endif(USE_NETWORK_SOUP)
+
 #FIXME
 add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
 
@@ -53,6 +57,7 @@ endif(ENABLE_MULTIPLE_THREADS)
 if(ENABLE_NPAPI)
     add_definitions(-DWTF_PLATFORM_X11=1)
     add_definitions(-DXP_UNIX)
+    add_definitions(-DWTF_PLATFORM_X11)
 endif(ENABLE_NPAPI)
 
 if(ENABLE_SVG)

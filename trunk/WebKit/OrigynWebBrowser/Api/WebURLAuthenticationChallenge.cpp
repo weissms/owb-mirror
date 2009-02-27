@@ -111,7 +111,7 @@ WebURLProtectionSpace* WebURLAuthenticationChallenge::protectionSpace()
 WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
 {
     if (!m_sender) {
-#if PLATFORM(QT)
+#if PLATFORM(QT) || USE(SOUP)
         // FIXME : implement this 
         ResourceHandle* handle = 0;
 #else

@@ -1,3 +1,11 @@
+2009-02-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Soup network support.
+
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake:
+        * cmake/CheckPlatformNetwork.cmake:
+
 2009-02-27  Olivier DOLE  <odole@pleyo.com>
 
         Fix NPAPI support for gtk.

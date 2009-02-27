@@ -1,3 +1,16 @@
+2009-02-27  Mario Bensi  <mbensi@pleyo.com>
+
+        fix assert on image drag and add soup support
+
+        * Graphics/WebCore/SDL/BCImageSourceSDL.cpp:
+        (WebCore::ImageSource::filenameExtension):
+        * Network/WebCore/CMakeLists.txt:
+        * Network/WebCore/Soup/BCCookieJarSoup.h: Added.
+        * Network/WebCore/Soup/BCResourceHandleSoup.cpp:
+        (WebCore::ensureSessionIsInitialized):
+        * Scripts/data/WebKitFiles.txt:
+        * Scripts/data/balInputList.txt:
+
 2009-02-20  Olivier DOLE  <odole@pleyo.com>
 
         Fix merge script to also merge SunSpider directory.

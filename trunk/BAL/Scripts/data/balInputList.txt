@@ -537,12 +537,13 @@ BAL/Network/WebCore/Curl	WebCore/platform/network/curl/CookieJarCurl.cpp
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.cpp
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/AuthenticationChallenge.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceResponse.h
-BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
-BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.h

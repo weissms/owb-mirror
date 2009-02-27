@@ -46,4 +46,13 @@ if(USE_NETWORK_QT)
     )
 endif(USE_NETWORK_QT)
 
+if(USE_NETWORK_SOUP)
+    create_include_link(${BAL_DIR}/Network/WebCore/Soup/BCAuthenticationChallengeSoup.h BAL/AuthenticationChallenge.h)
+    create_include_link(${BAL_DIR}/Network/WebCore/Soup/BCCookieJarSoup.h BAL/CookieJarSoup.h)
+    create_include_link(${BAL_DIR}/Network/WebCore/Soup/BCResourceErrorSoup.h BAL/ResourceError.h)
+    create_include_link(${BAL_DIR}/Network/WebCore/Soup/BCResourceRequestSoup.h BAL/ResourceRequest.h)
+    create_include_link(${BAL_DIR}/Network/WebCore/Soup/BCResourceResponseSoup.h BAL/ResourceResponse.h)
+
+    aux_source_directory(${BAL_DIR}/Network/WebCore/Soup WEBCORE_SRC)
+endif(USE_NETWORK_SOUP)
 aux_source_directory(${BAL_DIR}/Network/WebCore/WK WEBCORE_SRC)

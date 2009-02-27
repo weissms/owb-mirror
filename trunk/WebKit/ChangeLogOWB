@@ -1,3 +1,10 @@
+2009-02-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Soup network support.
+
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallenge.cpp:
+        (WebURLAuthenticationChallenge::sender):
+
 2009-02-25  Mario Bensi  <mbensi@pleyo.com>
 
         fix broken url in http (debug version)

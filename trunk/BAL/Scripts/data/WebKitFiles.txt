@@ -63,6 +63,7 @@ WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegist
 WebCore/platform/network/qt/QNetworkReplyHandler.h BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
 WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp
 WebCore/platform/network/qt/ResourceHandleQt.cpp BAL/Network/WebCore/Qt/BCResourceHandleQt.cpp
+WebCore/platform/network/soup/ResourceHandleSoup.cpp BAL/Network/WebCore/Soup/BCResourceHandleSoup.cpp
 WebCore/platform/posix/FileSystemPOSIX.cpp BAL/Facilities/WebCore/Posix/BCFileSystemPosix.cpp
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
