@@ -38,18 +38,6 @@ static WebView* webView = NULL;
 
 using namespace WebCore;
 
-
-static char* autocorrectURL(const char* url)
-{
-    if (strncmp("http://", url, 7) != 0 && strncmp("https://", url, 8) != 0) {
-        string s = "file://";
-        s += url;
-        return strdup(s.c_str());
-    }
-
-    return strdup(url);
-}
-
 static void destroy_cb (GtkWidget* widget, gpointer data)
 {
     gtk_main_quit ();
@@ -143,14 +131,8 @@ int main (int argc, char* argv[])
 
     MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
     webView->setWebNotificationDelegate(mainWebNotificationDelegate);
-//    gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
-    if (argc > 1) {
-        char* url = autocorrectURL(argv[1]);
-        const std::string stringURL(url);
-        webView->mainFrame()->loadURL(stringURL.c_str());
-        free(url);
-    } else 
-        webView->mainFrame()->loadURL("http://www.google.com/");
+    gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
+    webView->mainFrame()->loadURL(uri);
 
     /*if(webView->canZoomPageIn()) {
         printf("canZoomPageIn\n");

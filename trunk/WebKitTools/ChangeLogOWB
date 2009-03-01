@@ -1,3 +1,10 @@
+2009-03-01  Mario Bensi  <mbensi@pleyo.com>
+
+        use the new loadURL
+
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
 2009-02-23  Olivier DOLE  <odole@pleyo.com>
 
         Fix test compilation in release.

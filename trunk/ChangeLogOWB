@@ -1,3 +1,9 @@
+2009-03-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Add soup to build gtk.
+
+        * cmake/ConfigureBuildGtk.cmake:
+
 2009-02-27  Mario Bensi  <mbensi@pleyo.com>
 
         Add Soup network support.

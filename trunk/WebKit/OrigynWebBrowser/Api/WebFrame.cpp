@@ -319,13 +319,27 @@ JSGlobalContextRef WebFrame::globalContext()
     return toGlobalRef(coreFrame->script()->globalObject()->globalExec());
 }
 
+bool isAbsolute(const char *url)
+{
+    if (!url)
+        return false;
+    if (url[0] == '/')
+        return true;
+    return false;
+}
+
 void WebFrame::loadURL(const char* url)
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
         return;
 
-    coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(url))), false);
+    if (isAbsolute(url)) {
+        string u = "file://";
+        u += url;
+        coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(u.c_str()))), false);
+    } else
+        coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(url))), false);
 }
 
 void WebFrame::loadRequest(WebMutableURLRequest* request)

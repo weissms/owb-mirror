@@ -1,3 +1,11 @@
+2009-03-01  Mario Bensi  <mbensi@pleyo.com>
+
+        add file:// for a local file if it's not present
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (isAbsolute):
+        (WebFrame::loadURL):
+
 2009-02-27  Mario Bensi  <mbensi@pleyo.com>
 
         Add Soup network support.
