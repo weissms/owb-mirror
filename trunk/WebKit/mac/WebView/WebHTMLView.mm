@@ -145,7 +145,7 @@ static void resetCursorRects(NSWindow* self, SEL cmd)
     if ([view isKindOfClass:[WebHTMLView class]]) {
         WebHTMLView *htmlView = (WebHTMLView*)view;
         NSPoint localPoint = [htmlView convertPoint:point fromView:nil];
-        NSDictionary *dict = [htmlView elementAtPoint:point allowShadowContent:NO];
+        NSDictionary *dict = [htmlView elementAtPoint:localPoint allowShadowContent:NO];
         DOMElement *element = [dict objectForKey:WebElementDOMNodeKey];
         if (![element isKindOfClass:[DOMHTMLAppletElement class]] && ![element isKindOfClass:[DOMHTMLObjectElement class]] &&
             ![element isKindOfClass:[DOMHTMLEmbedElement class]])
@@ -167,7 +167,7 @@ static void setCursor(NSWindow* self, SEL cmd, NSPoint point)
     if ([view isKindOfClass:[WebHTMLView class]]) {
         WebHTMLView *htmlView = (WebHTMLView*)view;
         NSPoint localPoint = [htmlView convertPoint:point fromView:nil];
-        NSDictionary *dict = [htmlView elementAtPoint:point allowShadowContent:NO];
+        NSDictionary *dict = [htmlView elementAtPoint:localPoint allowShadowContent:NO];
         DOMElement *element = [dict objectForKey:WebElementDOMNodeKey];
         if (![element isKindOfClass:[DOMHTMLAppletElement class]] && ![element isKindOfClass:[DOMHTMLObjectElement class]] &&
             ![element isKindOfClass:[DOMHTMLEmbedElement class]])
@@ -2150,6 +2150,23 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 
 @end
 
+@interface NSString (WebHTMLViewFileInternal)
+- (BOOL)matchesExtensionEquivalent:(NSString *)extension;
+@end
+
+@implementation NSString (WebHTMLViewFileInternal)
+
+- (BOOL)matchesExtensionEquivalent:(NSString *)extension
+{
+    if ([self hasSuffix:extension])
+        return YES;
+    else if ([extension isEqualToString:@"jpeg"] && [self hasSuffix:@"jpg"])
+        return YES;
+    return NO;
+}
+
+@end
+
 #ifdef BUILDING_ON_TIGER
 
 // The following is a workaround for
@@ -3336,8 +3353,8 @@ done:
         draggingImageURL = [response URL];
         wrapper = [[[NSFileWrapper alloc] initRegularFileWithContents:data] autorelease];
         NSString* filename = [response suggestedFilename];
-        String trueExtension = tiffResource->image()->filenameExtension();
-        if (![filename hasSuffix:trueExtension])
+        NSString* trueExtension(tiffResource->image()->filenameExtension());
+        if (![filename matchesExtensionEquivalent:trueExtension])
             filename = [[filename stringByAppendingString:@"."] stringByAppendingString:trueExtension];
         [wrapper setPreferredFilename:filename];
     }

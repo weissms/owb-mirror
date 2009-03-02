@@ -4211,6 +4211,11 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
         return hr;
     settings->setWebSecurityEnabled(!!enabled);
 
+    hr = prefsPrivate->allowUniversalAccessFromFileUrls(&enabled);
+    if (FAILED(hr))
+        return hr;
+    settings->setAllowUniversalAccessFromFileUrls(!!enabled);
+
 #if USE(SAFARI_THEME)
     hr = prefsPrivate->shouldPaintNativeControls(&enabled);
     if (FAILED(hr))

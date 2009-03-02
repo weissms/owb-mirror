@@ -1317,6 +1317,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     settings->setJavaEnabled([preferences isJavaEnabled]);
     settings->setJavaScriptEnabled([preferences isJavaScriptEnabled]);
     settings->setWebSecurityEnabled([preferences isWebSecurityEnabled]);
+    settings->setAllowUniversalAccessFromFileUrls([preferences allowUniversalAccessFromFileUrls]);
     settings->setJavaScriptCanOpenWindowsAutomatically([preferences javaScriptCanOpenWindowsAutomatically]);
     settings->setMinimumFontSize([preferences minimumFontSize]);
     settings->setMinimumLogicalFontSize([preferences minimumLogicalFontSize]);
@@ -2362,9 +2363,10 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
 
 static bool needsWebViewInitThreadWorkaround()
 {
-    static BOOL isOldInstaller = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_WEBVIEW_INIT_THREAD_WORKAROUND)
-        && [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.installer"];
-    return isOldInstaller && !pthread_main_np();
+    static BOOL isOldClient = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_WEBVIEW_INIT_THREAD_WORKAROUND)
+        && ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.installer"] ||
+            [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.Automator"]);
+    return isOldClient && !pthread_main_np();
 }
 
 - (id)initWithFrame:(NSRect)f

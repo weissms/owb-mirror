@@ -247,8 +247,12 @@ void FrameLoaderClient::postProgressEstimateChangedNotification()
 void FrameLoaderClient::postProgressFinishedNotification()
 {
     WebKitWebView* webView = getViewFromFrame(m_frame);
+    WebKitWebViewPrivate* privateData = WEBKIT_WEB_VIEW_GET_PRIVATE(webView);
 
-    g_signal_emit_by_name(webView, "load-finished", m_frame);
+    // We can get a stopLoad() from dispose when the object is being
+    // destroyed, don't emit the signal in that case.
+    if (!privateData->disposing)
+        g_signal_emit_by_name(webView, "load-finished", m_frame);
 }
 
 void FrameLoaderClient::frameLoaderDestroyed()
@@ -269,6 +273,11 @@ void FrameLoaderClient::dispatchDecidePolicyForMIMEType(FramePolicyFunction poli
     ASSERT(policyFunction);
     if (!policyFunction)
         return;
+
+    if (resourceRequest.isNull()) {
+        (core(m_frame)->loader()->*policyFunction)(PolicyIgnore);
+        return;
+    }
 
     WebKitWebView* page = getViewFromFrame(m_frame);
     WebKitNetworkRequest* request = webkit_network_request_new(resourceRequest.url().string().utf8().data());
@@ -297,6 +306,12 @@ void FrameLoaderClient::dispatchDecidePolicyForNewWindowAction(FramePolicyFuncti
     ASSERT(policyFunction);
     if (!policyFunction)
         return;
+
+    if (resourceRequest.isNull()) {
+        (core(m_frame)->loader()->*policyFunction)(PolicyIgnore);
+        return;
+    }
+
     // FIXME: I think Qt version marshals this to another thread so when we
     // have multi-threaded download, we might need to do the same
     (core(m_frame)->loader()->*policyFunction)(PolicyUse);
@@ -307,6 +322,11 @@ void FrameLoaderClient::dispatchDecidePolicyForNavigationAction(FramePolicyFunct
     ASSERT(policyFunction);
     if (!policyFunction)
         return;
+
+    if (resourceRequest.isNull()) {
+        (core(m_frame)->loader()->*policyFunction)(PolicyIgnore);
+        return;
+    }
 
     WebKitWebView* webView = getViewFromFrame(m_frame);
     WebKitNetworkRequest* request = webkit_network_request_new(resourceRequest.url().string().utf8().data());

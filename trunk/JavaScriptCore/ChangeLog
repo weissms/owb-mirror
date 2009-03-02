@@ -1,3 +1,54 @@
+2009-03-02  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6635688> Move HAVE_DTRACE check to Base.xcconfig
+
+        Reviewed by Mark Rowe.
+
+        * Configurations/Base.xcconfig: Set HAVE_DTRACE Xcode variable
+        based on PLATFORM_NAME and MAC_OS_X_VERSION_MAJOR.  Also define
+        it as a preprocessor macro by modifying
+        GCC_PREPROCESSOR_DEFINITIONS.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Changed "Generate
+        DTrace header" script phase to check for HAVE_DTRACE instead of
+        MACOSX_DEPLOYMENT_TARGET.
+        * wtf/Platform.h: Removed definition of HAVE_DTRACE macro since
+        it's defined in Base.xcconfig now.
+
+2009-03-01  Horia Olaru  <olaru@adobe.com>
+
+        By looking in grammar.y there are only a few types of statement nodes
+        on which the debugger should stop. 
+
+        Removed isBlock and isLoop virtual calls. No need to emit debug hooks in
+        the "statementListEmitCode" method as long as the necessary hooks can be
+        added in each "emitCode".
+
+        https://bugs.webkit.org/show_bug.cgi?id=21073
+
+        Reviewed by Kevin McCullough.
+
+        * parser/Nodes.cpp:
+        (JSC::ConstStatementNode::emitBytecode):
+        (JSC::statementListEmitCode):
+        (JSC::EmptyStatementNode::emitBytecode):
+        (JSC::ExprStatementNode::emitBytecode):
+        (JSC::VarStatementNode::emitBytecode):
+        (JSC::IfNode::emitBytecode):
+        (JSC::IfElseNode::emitBytecode):
+        (JSC::DoWhileNode::emitBytecode):
+        (JSC::WhileNode::emitBytecode):
+        (JSC::ForNode::emitBytecode):
+        (JSC::ForInNode::emitBytecode):
+        (JSC::ContinueNode::emitBytecode):
+        (JSC::BreakNode::emitBytecode):
+        (JSC::ReturnNode::emitBytecode):
+        (JSC::WithNode::emitBytecode):
+        (JSC::SwitchNode::emitBytecode):
+        (JSC::LabelNode::emitBytecode):
+        (JSC::ThrowNode::emitBytecode):
+        (JSC::TryNode::emitBytecode):
+        * parser/Nodes.h:
+
 2009-02-27  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Geoff Garen.

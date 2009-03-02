@@ -521,6 +521,16 @@ public:
      */
     virtual bool zoomsTextOnly();
 
+    /**
+     * get allow universal access from File Urls status
+     */
+    virtual bool allowUniversalAccessFromFileUrls();
+
+    /**
+     * allow universal access from File Urls
+     */
+    virtual void setAllowUniversalAccessFromFileUrls(bool);
+
     // WebPreferences
 
     // This method accesses a different preference key than developerExtrasEnabled.

@@ -47,6 +47,7 @@
 #define WebKitTextAreasAreResizablePreferenceKey "WebKitTextAreasAreResizable"
 #define WebKitJavaEnabledPreferenceKey "WebKitJavaEnabled"
 #define WebKitJavaScriptEnabledPreferenceKey "WebKitJavaScriptEnabled"
+#define WebKitAllowUniversalAccessFromFileUrlsPreferenceKey "WebKitAllowUniversalAccessFromFileUrls"
 #define WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey "WebKitJavaScriptCanOpenWindowsAutomatically"
 #define WebKitPluginsEnabledPreferenceKey "WebKitPluginsEnabled"
 #define WebKitAllowAnimatedImagesPreferenceKey "WebKitAllowAnimatedImagesPreferenceKey"

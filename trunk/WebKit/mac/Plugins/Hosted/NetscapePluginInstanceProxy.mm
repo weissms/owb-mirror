@@ -576,11 +576,25 @@ bool NetscapePluginInstanceProxy::evaluate(uint32_t objectID, const String& scri
     Frame* frame = core([m_pluginView webFrame]);
     if (!frame)
         return false;
+
+    JSLock lock(false);
     
-    ExecState* exec = frame->script()->globalObject()->globalExec();
-    JSValuePtr value = frame->loader()->executeScript(script).jsValue();
+    ProtectedPtr<JSGlobalObject> globalObject = frame->script()->globalObject();
+    ExecState* exec = globalObject->globalExec();
+
+    globalObject->globalData()->timeoutChecker.start();
+    Completion completion = JSC::evaluate(exec, globalObject->globalScopeChain(), makeSource(script));
+    globalObject->globalData()->timeoutChecker.stop();
+    ComplType type = completion.complType();
     
-    marshalValue(exec, value, resultData, resultLength);
+    JSValuePtr result;
+    if (type == Normal)
+        result = completion.value();
+    
+    if (!result)
+        result = jsUndefined();
+    
+    marshalValue(exec, result, resultData, resultLength);
     exec->clearException();
     return true;
 }
@@ -872,8 +886,11 @@ void NetscapePluginInstanceProxy::addValueToArray(NSMutableArray *array, ExecSta
     else if (value.isObject()) {
         JSObject* object = asObject(value);
         if (object->classInfo() == &RuntimeObjectImp::s_info) {
-            // FIXME: Handle ProxyInstance objects.
-            ASSERT_NOT_REACHED();
+            RuntimeObjectImp* imp = static_cast<RuntimeObjectImp*>(object);
+            if (ProxyInstance* instance = static_cast<ProxyInstance*>(imp->getInternalInstance())) {
+                [array addObject:[NSNumber numberWithInt:NPObjectValueType]];
+                [array addObject:[NSNumber numberWithInt:instance->objectID()]];
+            }
         } else {
             [array addObject:[NSNumber numberWithInt:JSObjectValueType]];
             [array addObject:[NSNumber numberWithInt:idForObject(object)]];

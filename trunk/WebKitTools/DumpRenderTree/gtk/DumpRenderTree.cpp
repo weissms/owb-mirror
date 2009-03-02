@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2007 Eric Seidel <eric@webkit.org>
  * Copyright (C) 2008 Alp Toker <alp@nuanti.com>
+ * Copyright (C) 2009 Jan Alonzo <jmalonzo@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,10 +50,14 @@ using namespace std;
 
 extern "C" {
 // This API is not yet public.
+extern G_CONST_RETURN gchar* webkit_web_history_item_get_target(WebKitWebHistoryItem*);
+extern gboolean webkit_web_history_item_is_target_item(WebKitWebHistoryItem*);
+extern GList* webkit_web_history_item_get_children(WebKitWebHistoryItem*);
 extern GSList* webkit_web_frame_get_children(WebKitWebFrame* frame);
 extern gchar* webkit_web_frame_get_inner_text(WebKitWebFrame* frame);
 extern gchar* webkit_web_frame_dump_render_tree(WebKitWebFrame* frame);
 extern void webkit_web_settings_add_extra_plugin_directory(WebKitWebView* view, const gchar* directory);
+extern gchar* webkit_web_frame_get_response_mime_type(WebKitWebFrame* frame);
 }
 
 volatile bool done;
@@ -66,8 +71,12 @@ WebKitWebFrame* mainFrame = 0;
 WebKitWebFrame* topLoadingFrame = 0;
 guint waitToDumpWatchdog = 0;
 
+// current b/f item at the end of the previous test
+static WebKitWebHistoryItem* prevTestBFItem = NULL;
+
 const unsigned maxViewHeight = 600;
 const unsigned maxViewWidth = 800;
+const unsigned historyItemIndent = 8;
 
 static gchar* autocorrectURL(const gchar* url)
 {
@@ -128,6 +137,81 @@ static gchar* dumpFramesAsText(WebKitWebFrame* frame)
     return result;
 }
 
+static gint compareHistoryItems(gpointer* item1, gpointer* item2)
+{
+    return g_ascii_strcasecmp(webkit_web_history_item_get_target(WEBKIT_WEB_HISTORY_ITEM(item1)),
+                              webkit_web_history_item_get_target(WEBKIT_WEB_HISTORY_ITEM(item2)));
+}
+
+static void dumpHistoryItem(WebKitWebHistoryItem* item, int indent, bool current)
+{
+    ASSERT(item != NULL);
+    int start = 0;
+    g_object_ref(item);
+    if (current) {
+        printf("curr->");
+        start = 6;
+    }
+    for (int i = start; i < indent; i++)
+        putchar(' ');
+    printf("%s", webkit_web_history_item_get_uri(item));
+    const gchar* target = webkit_web_history_item_get_target(item);
+    if (target && g_utf8_strlen(target, 0) > 0)
+        printf(" (in frame \"%s\")", target);
+    if (webkit_web_history_item_is_target_item(item))
+        printf("  **nav target**");
+    putchar('\n');
+    GList* kids = webkit_web_history_item_get_children(item);
+    if (kids) {
+        // must sort to eliminate arbitrary result ordering which defeats reproducible testing
+        kids = g_list_sort(kids, (GCompareFunc) compareHistoryItems);
+        for (unsigned i = 0; i < g_list_length(kids); i++)
+            dumpHistoryItem(WEBKIT_WEB_HISTORY_ITEM(g_list_nth_data(kids, i)), indent+4, FALSE);
+    }
+    g_object_unref(item);
+}
+
+static void dumpBackForwardListForWebView(WebKitWebView* view)
+{
+    printf("\n============== Back Forward List ==============\n");
+    WebKitWebBackForwardList* bfList = webkit_web_view_get_back_forward_list(view);
+
+    // Print out all items in the list after prevTestBFItem, which was from the previous test
+    // Gather items from the end of the list, the print them out from oldest to newest
+    GList* itemsToPrint = NULL;
+    gint forwardListCount = webkit_web_back_forward_list_get_forward_length(bfList);
+    for (int i = forwardListCount; i > 0; i--) {
+        WebKitWebHistoryItem* item = webkit_web_back_forward_list_get_nth_item(bfList, i);
+        // something is wrong if the item from the last test is in the forward part of the b/f list
+        ASSERT(item != prevTestBFItem);
+        g_object_ref(item);
+        itemsToPrint = g_list_append(itemsToPrint, item);
+    }
+
+    WebKitWebHistoryItem* currentItem = webkit_web_back_forward_list_get_current_item(bfList);
+
+    g_object_ref(currentItem);
+    itemsToPrint = g_list_append(itemsToPrint, currentItem);
+
+    gint backListCount = webkit_web_back_forward_list_get_back_length(bfList);
+    for (int i = -1; i >= -(backListCount); i--) {
+        WebKitWebHistoryItem* item = webkit_web_back_forward_list_get_nth_item(bfList, i);
+        if (item == prevTestBFItem)
+            break;
+        g_object_ref(item);
+        itemsToPrint = g_list_append(itemsToPrint, item);
+    }
+
+    gint currentItemIndex = g_list_length(itemsToPrint) - 1;
+    for (int i = currentItemIndex; i >= 0; i--) {
+        WebKitWebHistoryItem* item = WEBKIT_WEB_HISTORY_ITEM(g_list_nth_data(itemsToPrint, i));
+        dumpHistoryItem(item, historyItemIndent, i == currentItemIndex);
+        g_object_unref(item);
+    }
+    g_list_free(itemsToPrint);
+    printf("===============================================\n");
+}
+
 static void invalidateAnyPreviousWaitToDumpWatchdog()
 {
     if (waitToDumpWatchdog) {
@@ -139,11 +223,15 @@ static void invalidateAnyPreviousWaitToDumpWatchdog()
 void dump()
 {
     invalidateAnyPreviousWaitToDumpWatchdog();
+
+    bool dumpAsText = gLayoutTestController->dumpAsText();
     if (dumpTree) {
         char* result = 0;
+        gchar* responseMimeType = webkit_web_frame_get_response_mime_type(mainFrame);
 
-        bool dumpAsText = gLayoutTestController->dumpAsText();
-        // FIXME: Also dump text resuls as text.
+        dumpAsText = g_ascii_strcasecmp(responseMimeType, "text/plain");
+        g_free(responseMimeType);
+
         gLayoutTestController->setDumpAsText(dumpAsText);
         if (gLayoutTestController->dumpAsText())
             result = dumpFramesAsText(mainFrame);
@@ -166,10 +254,12 @@ void dump()
             g_free(result);
             if (!gLayoutTestController->dumpAsText() && !gLayoutTestController->dumpDOMAsWebArchive() && !gLayoutTestController->dumpSourceAsWebArchive())
                 dumpFrameScrollPosition(mainFrame);
-        }
 
-        if (gLayoutTestController->dumpBackForwardList()) {
-            // FIXME: not implemented
+            if (gLayoutTestController->dumpBackForwardList()) {
+                // FIXME: multiple windows support
+                dumpBackForwardListForWebView(webView);
+
+            }
         }
 
         if (printSeparators) {
@@ -198,8 +288,9 @@ void dump()
 
 static void setDefaultsToConsistentStateValuesForTesting()
 {
-    WebKitWebSettings *settings = webkit_web_view_get_settings(webView);
+    gdk_screen_set_resolution(gdk_screen_get_default(), 72.0);
 
+    WebKitWebSettings* settings = webkit_web_view_get_settings(webView);
     g_object_set(G_OBJECT(settings),
                  "default-font-family", "Times",
                  "monospace-font-family", "Courier",
@@ -247,6 +338,14 @@ static void runTest(const string& testPathOrURL)
     size.width = isSVGW3CTest ? 480 : maxViewWidth;
     size.height = isSVGW3CTest ? 360 : maxViewHeight;
     gtk_widget_size_allocate(GTK_WIDGET(webView), &size);
+
+    if (prevTestBFItem)
+        g_object_unref(prevTestBFItem);
+    WebKitWebBackForwardList* bfList = webkit_web_view_get_back_forward_list(webView);
+    prevTestBFItem = webkit_web_back_forward_list_get_current_item(bfList);
+    if (prevTestBFItem)
+        g_object_ref(prevTestBFItem);
+
 
     webkit_web_view_open(webView, url);
 

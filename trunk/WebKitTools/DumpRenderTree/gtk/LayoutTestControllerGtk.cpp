@@ -69,8 +69,7 @@ void LayoutTestController::clearBackForwardList()
     gint limit = webkit_web_back_forward_list_get_limit(list);
     webkit_web_back_forward_list_set_limit(list, 0);
     webkit_web_back_forward_list_set_limit(list, limit);
-    // FIXME: implement add_item()
-    //webkit_web_back_forward_list_add_item(list, item);
+    webkit_web_back_forward_list_add_item(list, item);
     webkit_web_back_forward_list_go_to_item(list, item);
     g_object_unref(item);
 }
@@ -217,11 +216,7 @@ void LayoutTestController::setWaitToDump(bool waitUntilDone)
 
     m_waitToDump = waitUntilDone;
     if (m_waitToDump && !waitToDumpWatchdog)
-#if GLIB_CHECK_VERSION(2,14,0)
         waitToDumpWatchdog = g_timeout_add_seconds(timeoutSeconds, waitToDumpWatchdogFired, 0);
-#else
-        waitToDumpWatchdog = g_timeout_add(timeoutSeconds * 1000, waitToDumpWatchdogFired, 0);
-#endif
 }
 
 int LayoutTestController::windowCount()
