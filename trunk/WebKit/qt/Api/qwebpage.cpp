@@ -490,6 +490,7 @@ void QWebPagePrivate::updateAction(QWebPage::WebAction action)
         case QWebPage::MoveToEndOfBlock:
         case QWebPage::MoveToStartOfDocument:
         case QWebPage::MoveToEndOfDocument:
+        case QWebPage::SelectAll:
         case QWebPage::SelectNextChar:
         case QWebPage::SelectPreviousChar:
         case QWebPage::SelectNextWord:
@@ -550,6 +551,7 @@ void QWebPagePrivate::updateEditorActions()
     updateAction(QWebPage::MoveToEndOfBlock);
     updateAction(QWebPage::MoveToStartOfDocument);
     updateAction(QWebPage::MoveToEndOfDocument);
+    updateAction(QWebPage::SelectAll);
     updateAction(QWebPage::SelectNextChar);
     updateAction(QWebPage::SelectPreviousChar);
     updateAction(QWebPage::SelectNextWord);
@@ -1483,9 +1485,16 @@ void QWebPage::triggerAction(WebAction action, bool checked)
             openNewWindow(url, frame);
             break;
         }
-        case CopyLinkToClipboard:
+        case CopyLinkToClipboard: {
+#if defined(Q_WS_X11)
+            bool oldSelectionMode = Pasteboard::generalPasteboard()->isSelectionMode();
+            Pasteboard::generalPasteboard()->setSelectionMode(true);
+            editor->copyURL(d->hitTestResult.linkUrl(), d->hitTestResult.linkText());
+            Pasteboard::generalPasteboard()->setSelectionMode(oldSelectionMode);
+#endif
             editor->copyURL(d->hitTestResult.linkUrl(), d->hitTestResult.linkText());
             break;
+        }
         case OpenImageInNewWindow:
             openNewWindow(d->hitTestResult.imageUrl(), frame);
             break;
@@ -1801,6 +1810,9 @@ QAction *QWebPage::action(WebAction action) const
             break;
         case MoveToEndOfDocument:
             text = tr("Move the cursor to the end of the document");
+            break;
+        case SelectAll:
+            text = tr("Select all");
             break;
         case SelectNextChar:
             text = tr("Select to the next character");

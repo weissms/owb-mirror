@@ -1,3 +1,128 @@
+2009-03-04  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6581203> WebCore and WebKit should install the same set of headers during installhdrs phase as build phase
+
+        Reviewed by Mark Rowe.
+
+        The fix is to add INSTALLHDRS_COPY_PHASE = YES and
+        INSTALLHDRS_SCRIPT_PHASE = YES to WebKit.xcconfig, then to
+        make sure various build phase scripts work with the installhdrs
+        build phase.
+
+        * Configurations/Base.xcconfig: Defined REAL_PLATFORM_NAME
+        based on PLATFORM_NAME to work around the missing definition on
+        Tiger.
+        * Configurations/WebKit.xcconfig: Added
+        WEBCORE_PRIVATE_HEADERS_DIR variable to remove definition of
+        UMBRELLA_FRAMEWORKS_DIR for Debug and Release builds in the
+        Xcode project file.  Added INSTALLHDRS_COPY_PHASE = YES and
+        INSTALLHDRS_SCRIPT_PHASE = YES.
+
+2009-03-03  David Kilzer  <ddkilzer@apple.com>
+
+        Remove last vestiges of JAVASCRIPTCORE_PRIVATE_HEADERS_DIR from WebKit
+
+        Reviewed by Adam Roben.
+
+        Use of JAVASCRIPTCORE_PRIVATE_HEADERS_DIR was removed in r37465
+        since NPAPI headers had migrated from JavaScriptCore to WebCore
+        before that.
+
+        * Configurations/WebKit.xcconfig: Removed definition of
+        JAVASCRIPTCORE_PRIVATE_HEADERS_DIR used in Production builds.
+
+2009-03-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <rdar://problem/6633834>.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        Create a new plug-in instance if the plug-in host has crashed.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invalidate):
+        Add a null check for the plug-in host proxy.
+
+2009-03-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Enable Geolocation (except on Tiger and Leopard).
+
+        * Configurations/WebKit.xcconfig:
+
+2009-03-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        WebKit part of <rdar://problem/6638658>.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::createPropertyListFile):
+        Spawn the plug-in host and wait for it to create the property list.
+        
+        * Plugins/WebBasePluginPackage.mm:
+        (-[WebBasePluginPackage createPropertyListFile]):
+        Factor code out into a new method.
+        
+        (-[WebBasePluginPackage pListForPath:createFile:]):
+        Call the newly added createPropertyListFile method.
+        
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage createPropertyListFile]):
+        Tell the plug-in host manager to create a property list file for us.
+
+2009-03-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix for <rdar://problem/6507404> Add Geolocation support.
+
+        This is not yet turned on for any Mac platform.
+
+        Add SPI to ask the embedding application whether to allow
+        Geolocation for an origin.
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::shouldAllowGeolocationForFrame):
+        * WebView/WebUIDelegatePrivate.h:
+
+2009-03-02  Anders Carlsson  <andersca@apple.com>
+
+        Fix PowerPC build.
+
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _tryLoad]):
+
+2009-03-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by John Sullivan, Ada Chan.
+
+        Factor loading code out into its own method and get rid of a bunch of gotos.
+        
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _tryLoad]):
+        (-[WebNetscapePluginPackage load]):
+
+2009-03-02  Anders Carlsson  <andersca@apple.com>
+
+        Build fix.
+
+        * Plugins/WebNetscapeDeprecatedFunctions.h:
+
+2009-03-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Rename WebNetscapePluginPackage.m to WebNetscapePluginPackage.mm
+
+        * Plugins/WebNetscapePluginPackage.m: Removed.
+        * Plugins/WebNetscapePluginPackage.mm: Copied from mac/Plugins/WebNetscapePluginPackage.m.
+
 2009-03-02  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Sam Weinig.

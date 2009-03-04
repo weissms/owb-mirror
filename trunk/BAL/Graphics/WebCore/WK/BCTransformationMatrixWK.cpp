@@ -26,15 +26,12 @@
 #include "config.h"
 #include "TransformationMatrix.h"
 
+#include "FloatPoint3D.h"
 #include "FloatRect.h"
 #include "FloatQuad.h"
 #include "IntRect.h"
 
 #include <wtf/MathExtras.h>
-
-#if ENABLE(SVG)
-#include "FloatPoint3D.h"
-#endif
 
 namespace WebCore {
 
@@ -554,14 +551,12 @@ FloatPoint TransformationMatrix::mapPoint(const FloatPoint& p) const
     return FloatPoint(static_cast<float>(x), static_cast<float>(y));
 }
 
-#if ENABLE(SVG)
 FloatPoint3D TransformationMatrix::mapPoint(const FloatPoint3D& p) const
 {
     double x, y, z;
     multVecMatrix(p.x(), p.y(), p.z(), x, y, z);
     return FloatPoint3D(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 }
-#endif
 
 IntPoint TransformationMatrix::mapPoint(const IntPoint& point) const
 {

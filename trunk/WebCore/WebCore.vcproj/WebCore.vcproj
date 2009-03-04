@@ -4004,6 +4004,14 @@
 					Name="win"
 					>
 					<File
+						RelativePath="..\platform\graphics\opentype\OpenTypeUtilities.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\opentype\OpenTypeUtilities.h"
+						>
+					</File>
+					<File
 						RelativePath="..\platform\graphics\win\ColorSafari.cpp"
 						>
 					</File>

@@ -107,9 +107,7 @@ public:
     void map(double x, double y, double& x2, double& y2) const { multVecMatrix(x, y, x2, y2); }
 
     // Map a 3D point through the transform, returning a 3D point.
-#if ENABLE(SVG)
     FloatPoint3D mapPoint(const FloatPoint3D&) const;
-#endif
 
     // Map a 2D point through the transform, returning a 2D point.
     // Note that this ignores the z component, effectively projecting the point into the z=0 plane.

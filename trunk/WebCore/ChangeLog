@@ -1,3 +1,738 @@
+2009-03-04  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21939
+        Uninitialized ExceptionCode in DOMWindow::postMessage
+
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::postMessage):
+
+2009-03-03  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6581203> WebCore and WebKit should install the same set of headers during installhdrs phase as build phase
+
+        Reviewed by Mark Rowe.
+
+        The fix is to add INSTALLHDRS_COPY_PHASE = YES and
+        INSTALLHDRS_SCRIPT_PHASE = YES to WebCore.xcconfig, then to make
+        sure various build phase scripts work with the installhdrs build
+        phase.
+
+        * Configurations/Base.xcconfig: Defined REAL_PLATFORM_NAME
+        based on PLATFORM_NAME to work around the missing definition on
+        Tiger.
+        * Configurations/WebCore.xcconfig: Added
+        JAVASCRIPTCORE_PRIVATE_HEADERS_DIR variable to simplify logic in
+        the "Generate Derived Sources" script.  Added
+        INSTALLHDRS_COPY_PHASE = YES and INSTALLHDRS_SCRIPT_PHASE = YES.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        - Added shell code to prevent running "Check For Global
+          Initializers", "Check For Exit Time Destructors" and "Check
+          For Weak VTables" scripts during the installhdrs build phase.
+        - Made "Generate Derived Sources" work for the installhdrs build
+          phase.  Also simplified setting of CREATE_HASH_TABLE by using
+          JAVASCRIPTCORE_PRIVATE_HEADERS_DIR.
+
+2009-03-02  Adam Langley  <agl@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Chromium Linux: Switch to using Skia to render widgets.
+
+        In order to sandbox the Chromium renderer on Linux we need to remove
+        the X connection. GTK cannot render without an X connection so, for
+        now, we render widgets ourselves.
+
+        Previously didn't use anti-alias fonts in order to match Windows font
+        rendering exactly. This was helpful when bootstrapping our layout
+        tests. Now, however, we are ready to enable it.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24244
+
+        * platform/chromium/ScrollbarThemeChromium.cpp:
+        (WebCore::ScrollbarThemeChromium::buttonSize):
+        * platform/chromium/ScrollbarThemeChromiumLinux.cpp:
+        (WebCore::ScrollbarThemeChromium::scrollbarThickness):
+        (WebCore::ScrollbarThemeChromium::paintTrackPiece):
+        (WebCore::ScrollbarThemeChromium::paintButton):
+        (WebCore::ScrollbarThemeChromium::paintThumb):
+        * platform/graphics/chromium/FontPlatformDataLinux.cpp:
+        (WebCore::FontPlatformData::setupPaint):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::PlatformContextSkia):
+        (PlatformContextSkia::~PlatformContextSkia):
+        * platform/graphics/skia/PlatformContextSkia.h:
+        * rendering/RenderThemeChromiumGtk.cpp: Removed.
+        * rendering/RenderThemeChromiumGtk.h: Removed.
+        * rendering/RenderThemeChromiumLinux.cpp: Added.
+        * rendering/RenderThemeChromiumLinux.h: Added.
+
+2009-03-03  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24261
+        Fix return types.
+
+        Test: LayoutTests/dom/svg/level3/xpath/XPathEvaluator_evaluate_TYPE_ERR.svg
+
+        * bindings/v8/V8Binding.h:
+        (WebCore::toInt32): change return type to int
+        (WebCore::toFloat): change return type to float.
+
+2009-03-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by John Sullivan.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22884
+        <rdar://problem/6449783>
+        modified layout test crashes Safari
+
+        Null check NPStream before dereferencing it.
+        
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::destroyStream):
+
+2009-03-03  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Fix for <rdar://problem/6641045>
+        Don't call QTKit to get movie properties until movie metadata has been loaded.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        (WebCore::MediaPlayerPrivate::metaDataAvailable): defined
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTTime): return default if !metaDataAvailable.
+        (WebCore::MediaPlayerPrivate::play): Ditto.
+        (WebCore::MediaPlayerPrivate::pause): Ditto.
+        (WebCore::MediaPlayerPrivate::duration): Ditto.
+        (WebCore::MediaPlayerPrivate::currentTime): Ditto.
+        (WebCore::MediaPlayerPrivate::seek): Ditto.
+        (WebCore::MediaPlayerPrivate::seekTimerFired): Ditto.
+        (WebCore::MediaPlayerPrivate::paused): Ditto.
+        (WebCore::MediaPlayerPrivate::seeking): Ditto.
+        (WebCore::MediaPlayerPrivate::naturalSize): Ditto.
+        (WebCore::MediaPlayerPrivate::hasVideo): Ditto.
+        (WebCore::MediaPlayerPrivate::setVolume): Ditto.
+        (WebCore::MediaPlayerPrivate::setRate): Ditto.
+        (WebCore::MediaPlayerPrivate::dataRate): Ditto.
+        (WebCore::MediaPlayerPrivate::maxTimeLoaded): Ditto.
+        (WebCore::MediaPlayerPrivate::totalBytes): Ditto.
+
+2009-03-03  Kevin McCullough  <kmccullough@apple.com>
+
+        - Spelling fix.
+
+        * page/Console.cpp:
+        (WebCore::Console::profile):
+
+2009-03-03  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23657
+        Remove Database API callback IDLs from the project. 
+        They were removed in r40633.
+
+        * WebCore.xcodeproj/project.pbxproj: Removed IDL files from the project.
+
+2009-03-03  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6639110> console.profile() doesn't work without a title
+
+        * page/Console.cpp:
+        (WebCore::Console::profile): If there is no title assume this is a user
+        initiated profile and give it the next incremented title name.
+
+2009-03-03  Timothy Hatcher  <timothy@apple.com>
+
+        Fix a regression that broke dirxml and caused an ASSERT in debug builds. Also simplified
+        the console code and refactored things to have fewer code paths and duplication.
+
+        rdar://problem/6367127
+        https://bugs.webkit.org/show_bug.cgi?id=24329
+
+        Reviewed by Kevin McCullough.
+
+        Test: manual-tests/inspector/console-dir.html
+
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        (WebCore::JSInspectedObjectWrapper::wrap): Use the lexicalGlobalObject instead of dynamicGlobalObject
+        to fix an ASSERT about using a wrapper from the wrong ExecState.
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::JSQuarantinedObjectWrapper): Ditto.
+        (WebCore::JSQuarantinedObjectWrapper::allowsUnwrappedAccessFrom): Ditto.
+        * inspector/front-end/Console.js:
+        (WebInspector.Console.prototype._format): Remove the inline argument and add forceObjectFormat.
+        When forceObjectFormat is true, the only formatter used is _formatobject.
+        (WebInspector.Console.prototype._formatvalue): Remove the inline argument.
+        (WebInspector.Console.prototype._formatstring): Ditto.
+        (WebInspector.Console.prototype._formatregexp): Ditto.
+        (WebInspector.Console.prototype._formatarray): Ditto.
+        (WebInspector.Console.prototype._formatnode): Remove the inline argument and make a DOM tree instead of an anchor.
+        (WebInspector.Console.prototype._formatobject): Remove the inline argument and always make a property graph.
+        (WebInspector.Console.prototype._formaterror): Remove the inline argument.
+        (WebInspector.ConsoleMessage): Remove the case for MessageLevel.Node and
+        simplify the case for MessageLevel.Object to use the normal _format code path with the %O formatter.
+        (WebInspector.ConsoleMessage.prototype._format.formatForConsole): Don't pass an additional true argument for inline.
+        (WebInspector.ConsoleMessage.prototype._format.formatAsObjectForConsole): Added. Pass a true argument for forceObjectFormat.
+        (WebInspector.ConsoleMessage.prototype._format): Added support for the %O formatter. Use formatForConsole for all arguments.
+        (WebInspector.ConsoleMessage.prototype.toString): Add the other message levels.
+        * inspector/front-end/inspector.css: Tweak styles to look and work correctly.
+        * inspector/front-end/utilities.js:
+        (Object.type): Return "node" for Node objects.
+        (Object.describe): Handle the "node" type.
+        * page/Console.cpp:
+        (WebCore::printMessageSourceAndLevelPrefix): Fix an assert by adding the other message level types.
+        (WebCore::Console::dirxml): Use the standard log fuction since it prints a DOM tree for nodes by default.
+        * page/Console.h:
+        (WebCore::enum MessageLevel): Removed NodeMessageLevel. Added a FIXME.
+
+2009-03-03  Scott Violet  <sky@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24325
+        Crash on replacing document contents during drop.
+
+        Makes sure a node is in the document during a move before using it.
+
+        Test: fast/events/crash-on-mutate-during-drop.html
+
+        * editing/MoveSelectionCommand.cpp:
+        (WebCore::MoveSelectionCommand::doApply):
+
+2009-03-03  Jungshik Shin <jshin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23028
+        Enable dynamic web font support to Chromium on Windows.
+        Files that were omitted by mistake in the latest patch
+        that was landed.
+
+        * loader/CachedFont.cpp:
+        (WebCore::CachedFont::~CachedFont):
+        (WebCore::CachedFont::ensureCustomFontData):
+        (WebCore::CachedFont::platformDataFromCustomData):
+        (WebCore::CachedFont::allClientsRemoved):
+        * platform/graphics/chromium/FontCustomPlatformData.cpp:
+        (WebCore::EOTStream::EOTStream):
+        (WebCore::createFontCustomPlatformData):
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::EOTStream::EOTStream):
+        (WebCore::createFontCustomPlatformData):
+
+2009-03-03  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=16826
+        [Gtk] Implement WebKitDownload
+
+        Make the Soup backend able to handle requests without a frame,
+        since we may have such things now that we support downloads.
+
+        * platform/network/ResourceHandleInternal.h:
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::start):
+
+2009-03-03  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24331
+        Add custom V8 bindings for Element, Attr, HTMLFrame, and HTMLIFrame.
+
+        * bindings/v8/custom/V8AttrCustom.cpp: Added.
+        * bindings/v8/custom/V8CustomBinding.cpp: Added.
+        * bindings/v8/custom/V8CustomBinding.h: Added attribute-checking helpers.
+        * bindings/v8/custom/V8ElementCustom.cpp: Added.
+        * bindings/v8/custom/V8HTMLFrameElementCustom.cpp: Added.
+        * bindings/v8/custom/V8HTMLIFrameElementCustom.cpp: Added.
+
+2009-03-03  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        <rdar://problem/6616664> - Quick looks of various file types is broken
+
+        In http://trac.webkit.org/changeset/40553 there was an attempt to prevent NSURLRequest churn
+        for non-HTTP loads when the underlying ResourceRequest changed.  Unfortunately it was a little
+        overzealous as the mainDocumentURL is relevant for all loads, not only HTTP/HTTPS loads.
+
+        Partially reverted behavior to always set the mainDocumentURL in situations when we would've
+        before that patch.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::addExtraFieldsToRequest):
+
+        * platform/network/ResourceRequestBase.cpp:
+        (WebCore::ResourceRequestBase::setMainDocumentURL):
+
+2009-03-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24256
+
+        Added a WebCoreForceSoftwareAnimation flag.
+
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::forceSoftwareAnimation):
+        (WebCore::GraphicsLayerCA::setOpacity):
+        (WebCore::GraphicsLayerCA::animateTransform):
+        (WebCore::GraphicsLayerCA::animateFloat):
+
+2009-03-02  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24257
+
+        Added prototype properties for several classes with constructors that
+        were missing them, including the one mentioned in the bug.
+
+        Test: fast/dom/Window/custom-constructors.html
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor):
+        * bindings/js/JSDOMWindowBase.cpp:
+        (jsDOMWindowBaseWebKitCSSMatrix):
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor):
+        * bindings/js/JSOptionConstructor.cpp:
+        (WebCore::JSOptionConstructor::JSOptionConstructor):
+        * bindings/js/JSWebKitCSSMatrixConstructor.cpp:
+        (WebCore::JSWebKitCSSMatrixConstructor::JSWebKitCSSMatrixConstructor):
+        * bindings/js/JSWebKitCSSMatrixConstructor.h:
+        * bindings/js/JSWebKitPointConstructor.cpp:
+        (WebCore::JSWebKitPointConstructor::JSWebKitPointConstructor):
+        * bindings/js/JSWorkerConstructor.cpp:
+        (WebCore::JSWorkerConstructor::JSWorkerConstructor):
+
+2009-03-03  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24321
+        Add V8 bindings headers.
+
+        * bindings/v8/V8Binding.h: Added.
+        * bindings/v8/V8Proxy.h: Added.
+        * bindings/v8/custom/V8CustomBinding.h: Added.
+        * bindings/v8/custom/V8CustomEventListener.h: Added.
+
+2009-03-03  Jungshik Shin <jshin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23803
+        Fix an 'off-by-1' error in ChromiumWin's font fallback.
+
+        * platform/graphics/chromium/FontCacheChromiumWin.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+
+2009-03-03  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        http://bugs.webkit.org/show_bug.cgi?id=23028
+        Enable dynamic web font support to Chromium on Windows: Part 1
+        - Move OpenTypeUtilities.{cpp,h} to platform/graphics/opentype
+          from platform/graphics/win because both Windows port and Chromium Windows
+          port will use them.
+        - Adjust WebCore.vcproj accordingly.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/graphics/opentype: Added.
+        * platform/graphics/opentype/OpenTypeUtilities.cpp: Copied from WebCore/platform/graphics/win/OpenTypeUtilities.cpp.
+        * platform/graphics/opentype/OpenTypeUtilities.h: Copied from WebCore/platform/graphics/win/OpenTypeUtilities.h.
+        * platform/graphics/win/OpenTypeUtilities.cpp: Removed.
+        * platform/graphics/win/OpenTypeUtilities.h: Removed.
+
+2009-03-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24312
+        
+        Take 3D transforms into account when hit testing:
+        
+        1. Maintain a bit on each RenderLayer that is set when the layer
+           has 3d descendants, so that we know when to fall into the slow
+           hit testing path.
+           
+        2. Make a ref-counted HitTestingTransformState, which is used to store
+           an accumulated transform, and the hit test point, and hitTestRect
+           in the plane of the ancestor non-3d ('flattening') layer.
+           
+           It's ref-counted so we can heap allocate it (to avoid stack bloat),
+           and avoid copying when hitTestLayer calls itself after applying the transform.
+           
+        3. Add logic to hitTestLayer to depth-test just direct descendants, if any have
+           3D transforms, or to do deep depth-testing when traversing a preserves-3d
+           hierarchy. When hit, layers compute a z-offset from the ancestor flattening
+           layer, which allows for correct depth testing.
+           
+           The existing early-return codepath is unaffected when there are no 3d transforms
+           and no preserve-3d.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::RenderLayer):
+        (WebCore::RenderLayer::updateTransform):
+        (WebCore::RenderLayer::dirty3DTransformedDescendantStatus):
+        (WebCore::RenderLayer::update3DTransformedDescendantStatus):
+        (WebCore::RenderLayer::hitTest):
+        (WebCore::computeZOffset):
+        (WebCore::RenderLayer::createLocalTransformState):
+        (WebCore::RenderLayer::hitTestLayer):
+        (WebCore::RenderLayer::hitTestContents):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::preserves3D):
+        (WebCore::RenderLayer::has3DTransform):
+        (WebCore::RenderLayer::setHas3DTransformedDescendant):
+        (WebCore::RenderLayer::has3DTransformedDescendant):
+        * rendering/RenderLayerBacking.cpp:
+        * rendering/TransformState.cpp:
+        (WebCore::TransformState::flatten):
+        (WebCore::TransformState::mappedPoint):
+        (WebCore::HitTestingTransformState::move):
+        (WebCore::HitTestingTransformState::applyTransform):
+        (WebCore::HitTestingTransformState::flatten):
+        (WebCore::HitTestingTransformState::mappedPoint):
+        (WebCore::HitTestingTransformState::mappedQuad):
+        * rendering/TransformState.h:
+        (WebCore::TransformState::TransformState):
+        (WebCore::HitTestingTransformState::create):
+        (WebCore::HitTestingTransformState::move):
+        (WebCore::HitTestingTransformState::HitTestingTransformState):
+
+2009-03-03  Brett Wilson  <brettw@chromium.org>
+
+        Fix uninitialized memory reads in the Chromium Windows transparency
+        code that were identified by Purify,
+
+        Reviewed by Darin Fisher.
+
+        * platform/graphics/chromium/TransparencyWin.cpp:
+        (WebCore::TransparencyWin::OwnedBuffers::OwnedBuffers):
+        (WebCore::TransparencyWin::initializeNewContext):
+
+2009-03-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24312
+        
+        Factor the code that compute a transform relative to the container
+        into RenderObject::transformFromContainer().
+        
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::mapLocalToAbsolutePoint):
+        (WebCore::RenderBox::mapAbsoluteToLocalPoint):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::transformFromContainer):
+        * rendering/RenderObject.h:
+
+2009-03-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24317
+        
+        Always return |true| from RenderTextControlMultiLine::nodeAtPoint() if
+        the superclass found a node, otherwise we set the innerNode of the
+        HitTestResult, but don't actually report that we found a hit.
+
+        * rendering/RenderTextControlMultiLine.cpp:
+        (WebCore::RenderTextControlMultiLine::nodeAtPoint):
+
+2009-03-03  Onne Gorter  <onne.gorter@avinity.net>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23707
+        resizing plugins does not work, because the plugin never gets informed
+
+        Make gtk plugins resize correctly, by sending them the setwindow event
+        correctly. Also ensure that all plugin eventing is done with correct
+        locking/calling. Mostly copied from mac implementation.
+
+        manual test: manual-tests/gtk/plugin-resize-scroll.html
+
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::dispatchNPEvent):
+        ensure locking/calling for NPEvents
+        (WebCore::PluginView::updatePluginWidget):
+        if something changed, let setNPWindowIfNeeded handle it
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        ensure calling conventions
+        (WebCore::PluginView::setNPWindowRect):
+        just pass control to setNPWindowIfNeeded
+        (WebCore::PluginView::setNPWindowIfNeeded):
+        event the plugin correctly of new window
+        (WebCore::PluginView::init):
+        init through the new setup
+
+2009-03-03  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24311
+        Make IDL returning DOMObject use [V8Custom]
+
+        * dom/Document.idl:
+        * html/HTMLCanvasElement.idl:
+
+2009-03-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Adele Peterson
+
+        https://bugs.webkit.org/show_bug.cgi?id=24313
+        
+        If RenderTextControlSingleLine::nodeAtPoint() pokes a node into the
+        HitTestResult, then it had better well return |true|. And m_innerBlock
+        could never have been set as the hit node by the superclass, because
+        the superclass knows nothing about m_innerBlock.
+        
+        Test: fast/forms/input-hit-test-border.html
+
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::nodeAtPoint):
+
+2009-03-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Enable Geolocation (except on Tiger and Leopard).
+
+        * Configurations/WebCore.xcconfig:
+
+2009-03-02  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=24307
+        Null out m_highlightedNode on hideHighlight().
+        Ran WebCore/manual-tests/inspector/highlight-nodes.html.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::hideHighlight):
+
+2009-03-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix for <rdar://problem/6507404> Add Geolocation support.
+
+        This is not yet turned on for any Mac platform.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/Chrome.cpp:
+        (WebCore::Chrome::shouldAllowGeolocationForFrame):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::shouldAllowGeolocationForFrame):
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::Geolocation):
+        (WebCore::Geolocation::disconnectFrame): Remove call to setUsingGeolocation as the document
+        will not be alive at this point.
+        (WebCore::Geolocation::getCurrentPosition): Check if the embedding app allows geolocation and
+        return a PERMISSION_DENIED if not.
+        (WebCore::Geolocation::watchPosition): Ditto.
+        (WebCore::Geolocation::shouldAllowGeolocation): Perform request to embedding layer of whether
+        to allow geolocation and cache the result. 
+        * page/Geolocation.h:
+        (WebCore::Geolocation::):
+        * platform/GeolocationService.cpp:
+        * platform/GeolocationService.h:
+        (WebCore::GeolocationService::~GeolocationService):
+        (WebCore::GeolocationService::stopUpdating):
+        * platform/mac/GeolocationServiceMac.h: Added.
+        (WebCore::GeolocationServiceMac::lastPosition):
+        (WebCore::GeolocationServiceMac::lastError):
+        * platform/mac/GeolocationServiceMac.mm: Added.
+        (WebCore::GeolocationService::create):
+        (WebCore::GeolocationServiceMac::GeolocationServiceMac):
+        (WebCore::GeolocationServiceMac::~GeolocationServiceMac):
+        (WebCore::GeolocationServiceMac::startUpdating):
+        (WebCore::GeolocationServiceMac::stopUpdating):
+        (WebCore::GeolocationServiceMac::suspend):
+        (WebCore::GeolocationServiceMac::resume):
+        (WebCore::GeolocationServiceMac::positionChanged):
+        (WebCore::GeolocationServiceMac::errorOccurred):
+        (-[WebCoreCoreLocationObserver initWithCallback:]):
+        (-[WebCoreCoreLocationObserver locationManager:didUpdateToLocation:fromLocation:]):
+        (-[WebCoreCoreLocationObserver locationManager:didFailWithError:]):
+
+2009-03-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Build fixes for wxWidgets Mac trunk build.
+
+        * platform/wx/wxcode/mac/carbon/fontprops.cpp:
+        (wxFontProperties::wxFontProperties):
+        (GetTextExtent):
+        * webcore-wx.bkl:
+
+2009-03-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxGTK missing header build fix.
+
+        * platform/wx/wxcode/gtk/fontprops.cpp:
+
+2009-03-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21811
+          REGRESSION: Windows Build Not Selecting Proper Font
+
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::createGDIFont): Added back code to verify that the created
+        HFONT has the requested face name.
+
+2009-03-02  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a regression caused by splitting the input and output of console commands.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24293
+
+        Reviewed by Kevin McCullough.
+
+        * inspector/front-end/Console.js:
+        (WebInspector.Console.prototype.addMessage): Don't treat ConsoleCommandResult as a
+        normal ConsoleMessage when appending. This prevents resetting repeatCounts incorrectly.
+
+2009-03-02  Timothy Hatcher  <timothy@apple.com>
+
+        Make exception messages and logged Error objects display consistently.
+
+        https://bugs.webkit.org/show_bug.cgi?id=18983
+
+        Reviewed by Adam Roben.
+
+        * English.lproj/localizedStrings.js: Remove a string for line numbers.
+        * inspector/front-end/Console.js:
+        (WebInspector.Console.prototype._enterKeyPressed): Pass the exception
+        boolean to the ConsoleCommandResult constructor and don't pass level.
+        (WebInspector.Console.prototype._formatnode): Fix a className typo.
+        (WebInspector.Console.prototype._formaterror): Add an error-message
+        classed span around the message to show in red and remove the
+        console-message-url class from the link so it doesn't float right.
+        Instead enclose the link in parentheses and use displayNameForURL
+        to shorten the URL in the link.
+        (WebInspector.ConsoleMessage.prototype.toMessageElement): Simplify
+        how line numbers are shown since link underlining a string with
+        parentheses looks bad.
+        (WebInspector.ConsoleCommandResult): Take an exception boolean flag
+        instead of a level and get line and URL based on that flag.
+        * inspector/front-end/inspector.css: Tweaks to the styles.
+
+2009-03-02  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        Bug 24048: extra windows button padding doesn't apply when there's no appearance
+        <https://bugs.webkit.org/show_bug.cgi?id=24048>
+
+        Replace adjustButtonInnerStyle with buttonInternalPaddingLeft/Right/Top/Bottom.
+
+        No tests added as existing tests already cover this behavior.
+
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::setupInnerStyle):
+        * rendering/RenderTheme.cpp:
+        * rendering/RenderTheme.h:
+        (WebCore::RenderTheme::buttonInternalPaddingLeft):
+        (WebCore::RenderTheme::buttonInternalPaddingRight):
+        (WebCore::RenderTheme::buttonInternalPaddingTop):
+        * rendering/RenderThemeChromiumGtk.cpp:
+        (WebCore::RenderThemeWin::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeWin::buttonInternalPaddingRight):
+        (WebCore::RenderThemeWin::buttonInternalPaddingTop):
+        (WebCore::RenderThemeWin::buttonInternalPaddingBottom):
+        * rendering/RenderThemeChromiumGtk.h:
+        * rendering/RenderThemeChromiumWin.cpp:
+        (WebCore::RenderThemeChromiumWin::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumWin::buttonInternalPaddingRight):
+        (WebCore::RenderThemeChromiumWin::buttonInternalPaddingTop):
+        (WebCore::RenderThemeChromiumWin::buttonInternalPaddingBottom):
+        * rendering/RenderThemeChromiumWin.h:
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeWin::buttonInternalPaddingRight):
+        (WebCore::RenderThemeWin::buttonInternalPaddingTop):
+        (WebCore::RenderThemeWin::buttonInternalPaddingBottom):
+        * rendering/RenderThemeWin.h:
+
+2009-03-02  Adam Treat  <adam.treat@torchmobile.com>
+
+        Build fix for Qt port.  Remove unnecessary assert.
+
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        (WebCore::ImageBuffer::putImageData):
+
+2009-03-02  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Adam Roben and previously by Eric Seidel and Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24227
+        Ensure that the checkForSolidColor() optimization is correctly triggered
+        for all cases of drawPattern.  Currently, the optimization was not triggered
+        when the check had not been previously performed via a request for the
+        image's NativeImagePtr.
+
+        Implement the Qt version of the checkForSolidColor() method.  Combined with
+        the bug fix this reduces the time it takes to draw a repeating background
+        of a 1x1 image from ~50msecs to ~0msecs on my machine.
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+        * platform/graphics/BitmapImage.h:
+        (WebCore::BitmapImage::mayFillWithSolidColor):
+        * platform/graphics/Image.h:
+        (WebCore::Image::mayFillWithSolidColor):
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::checkForSolidColor):
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::checkForSolidColor):
+        * platform/graphics/qt/ImageQt.cpp:
+        (WebCore::BitmapImage::checkForSolidColor):
+        * platform/graphics/skia/ImageSkia.cpp:
+        (WebCore::BitmapImage::checkForSolidColor):
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::BitmapImage::checkForSolidColor):
+
+2009-03-02  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Unreviewed build fix; adding missing files to EXTRA_DIST, so that
+        they show up in the tarball.
+
+        * GNUmakefile.am:
+
+2009-03-02  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Added putImageData to Qt. Discussed with Ariya Hidayat.
+
+        [Qt] lacks putImageData support in Canvas
+        https://bugs.webkit.org/show_bug.cgi?id=22186
+
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        (WebCore::ImageBuffer::putImageData):
+
 2009-03-02  Timothy Hatcher  <timothy@apple.com>
 
         Show exception messages again when evaluating bad expressions in the

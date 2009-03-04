@@ -25,19 +25,17 @@
  *
  */
 
-#ifndef RenderThemeChromiumGtk_h
-#define RenderThemeChromiumGtk_h
+#ifndef RenderThemeChromiumLinux_h
+#define RenderThemeChromiumLinux_h
 
 #include "RenderTheme.h"
 
-#include <gtk/gtk.h>
-
 namespace WebCore {
 
-    class RenderThemeChromiumGtk : public RenderTheme {
+    class RenderThemeChromiumLinux : public RenderTheme {
     public:
-        RenderThemeChromiumGtk();
-        ~RenderThemeChromiumGtk() { }
+        RenderThemeChromiumLinux();
+        ~RenderThemeChromiumLinux() { }
 
         virtual String extraDefaultStyleSheet();
         virtual String extraQuirksStyleSheet();
@@ -100,7 +98,10 @@ namespace WebCore {
         virtual int popupInternalPaddingTop(RenderStyle*) const;
         virtual int popupInternalPaddingBottom(RenderStyle*) const;
 
-        virtual void adjustButtonInnerStyle(RenderStyle* style) const;
+        virtual int buttonInternalPaddingLeft() const;
+        virtual int buttonInternalPaddingRight() const;
+        virtual int buttonInternalPaddingTop() const;
+        virtual int buttonInternalPaddingBottom() const;
 
         // A method asking if the control changes its tint when the window has focus or not.
         virtual bool controlSupportsTints(const RenderObject*) const;
@@ -115,20 +116,7 @@ namespace WebCore {
         virtual Color inactiveListBoxSelectionForegroundColor() const;
 
     private:
-        // Hold the state
-        GtkWidget* gtkEntry() const;
-        GtkWidget* gtkTreeView() const;
-
-        // Unmapped GdkWindow having a container. This is holding all our fake widgets
-        GtkContainer* gtkContainer() const;
-
-    private:
         int menuListInternalPadding(RenderStyle*, int paddingType) const;
-
-        mutable GtkWidget* m_gtkWindow;
-        mutable GtkContainer* m_gtkContainer;
-        mutable GtkWidget* m_gtkEntry;
-        mutable GtkWidget* m_gtkTreeView;
     };
 
 } // namespace WebCore
