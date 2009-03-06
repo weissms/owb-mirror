@@ -1,3 +1,35 @@
+2009-03-06  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [Qt] NPAPI plugins are supported, adjust the API documentation.
+
+        * Api/qwebsettings.cpp:
+
+2009-03-04  Adam Barth  <abath@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24356
+
+        Fix WebKit style for allowUniversalAccessFromFileURLs.
+
+        * Api/qwebsettings.cpp:
+        (QWebSettingsPrivate::apply):
+
+2009-03-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24340
+
+        Expose AllowUniversalAccessFromFileUrls to Qt clients.
+
+        * Api/qwebsettings.cpp:
+        (QWebSettingsPrivate::apply):
+        (QWebSettings::QWebSettings):
+        * Api/qwebsettings.h:
+
 2009-03-04  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Rubber-stamped by Simon Hausmann.

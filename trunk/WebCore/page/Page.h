@@ -218,7 +218,7 @@ namespace WebCore {
         OwnPtr<FocusController> m_focusController;
         OwnPtr<ContextMenuController> m_contextMenuController;
 #if ENABLE(INSPECTOR)
-        OwnPtr<InspectorController> m_inspectorController;
+        RefPtr<InspectorController> m_inspectorController;
 #endif
         OwnPtr<Settings> m_settings;
         OwnPtr<ProgressTracker> m_progress;

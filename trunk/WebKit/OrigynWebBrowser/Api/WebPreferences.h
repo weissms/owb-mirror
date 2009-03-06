@@ -524,12 +524,12 @@ public:
     /**
      * get allow universal access from File Urls status
      */
-    virtual bool allowUniversalAccessFromFileUrls();
+    virtual bool allowUniversalAccessFromFileURLs();
 
     /**
      * allow universal access from File Urls
      */
-    virtual void setAllowUniversalAccessFromFileUrls(bool);
+    virtual void setAllowUniversalAccessFromFileURLs(bool);
 
     // WebPreferences
 

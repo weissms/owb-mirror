@@ -116,6 +116,7 @@ if(ENABLE_INSPECTOR)
         bindings/js/JSConsoleCustom.cpp
         bindings/js/JSInspectedObjectWrapper.cpp
         bindings/js/JSInspectorCallbackWrapper.cpp
+        bindings/js/JSInspectorControllerCustom.cpp
         bindings/js/JSJavaScriptCallFrameCustom.cpp
     )
 endif(ENABLE_INSPECTOR)

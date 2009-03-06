@@ -341,6 +341,23 @@ void RenderLayer::updateTransform()
         dirty3DTransformedDescendantStatus();
 }
 
+TransformationMatrix RenderLayer::currentTransform() const
+{
+    if (!m_transform)
+        return TransformationMatrix();
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (renderer()->style()->isRunningAcceleratedAnimation()) {
+        TransformationMatrix currTransform;
+        RefPtr<RenderStyle> style = renderer()->animation()->getAnimatedStyleForRenderer(renderer());
+        style->applyTransform(currTransform, renderBox()->borderBoxRect().size(), RenderStyle::IncludeTransformOrigin);
+        return currTransform;
+    }
+#endif
+
+    return *m_transform;
+}
+
 void RenderLayer::setHasVisibleContent(bool b)
 { 
     if (m_hasVisibleContent == b && !m_visibleContentStatusDirty)
@@ -593,13 +610,12 @@ FloatPoint RenderLayer::perspectiveOrigin() const
                       style->perspectiveOriginY().calcFloatValue(borderBox.height()));
 }
 
-RenderLayer *RenderLayer::stackingContext() const
+RenderLayer* RenderLayer::stackingContext() const
 {
-    RenderLayer* curr = parent();
-    for ( ; curr && !curr->renderer()->isRenderView() && !curr->renderer()->isRoot() &&
-          curr->renderer()->style()->hasAutoZIndex();
-          curr = curr->parent()) { }
-    return curr;
+    RenderLayer* layer = parent();
+    while (layer && !layer->renderer()->isRenderView() && !layer->renderer()->isRoot() && layer->renderer()->style()->hasAutoZIndex())
+        layer = layer->parent();
+    return layer;
 }
 
 RenderLayer* RenderLayer::enclosingPositionedAncestor() const
@@ -753,7 +769,7 @@ void RenderLayer::operator delete(void* ptr, size_t sz)
 }
 
 void RenderLayer::destroy(RenderArena* renderArena)
-{    
+{
     delete this;
 
     // Recover the size left there for us by operator delete and free the memory.
@@ -863,8 +879,8 @@ void RenderLayer::removeOnlyThisLayer()
         current->updateLayerPositions();
         current = next;
     }
-    
-    destroy(renderer()->renderArena());
+
+    m_renderer->destroyLayer();
 }
 
 void RenderLayer::insertOnlyThisLayer()
@@ -1771,6 +1787,7 @@ void RenderLayer::paintResizer(GraphicsContext* context, int tx, int ty, const I
     // Clipping will exclude the right and bottom edges of this frame.
     if (m_hBar || m_vBar) {
         context->save();
+        context->clip(absRect);
         IntRect largerCorner = absRect;
         largerCorner.setSize(IntSize(largerCorner.width() + 1, largerCorner.height() + 1));
         context->setStrokeColor(Color(makeRGB(217, 217, 217)));
@@ -2209,6 +2226,14 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
         if (!newTransformState->m_accumulatedTransform.isInvertible())
             return 0;
 
+        // Check for hit test on backface if backface-visibility is 'hidden'
+        if (renderer()->style()->backfaceVisibility() == BackfaceVisibilityHidden) {
+            TransformationMatrix invertedMatrix = newTransformState->m_accumulatedTransform.inverse();
+            // If the z-vector of the matrix is negative, the back is facing towards the viewer.
+            if (invertedMatrix.m33() < 0)
+                return 0;
+        }
+
         // Compute the point and the hit test rect in the coords of this layer by using the values
         // from the transformState, which store the point and quad in the coords of the last flattened
         // layer, and the accumulated transform which lets up map through preserve-3d layers.
@@ -2218,18 +2243,20 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
         IntPoint localPoint = roundedIntPoint(newTransformState->mappedPoint());
         IntRect localHitTestRect = newTransformState->mappedQuad().enclosingBoundingBox();
 
-        // FIXME: check for hit test on backface if backface-visibility is 'hidden'
-        
         // Now do a hit test with the root layer shifted to be us.
         return hitTestLayer(this, containerLayer, request, result, localHitTestRect, localPoint, true, newTransformState.get(), zOffset);
     }
+
+    // Ensure our lists and 3d status are up-to-date.
+    updateLayerListsIfNeeded();
+    update3DTransformedDescendantStatus();
     
     RefPtr<HitTestingTransformState> localTransformState;
     if (appliedTransform) {
         // We computed the correct state in the caller (above code), so just reference it.
         ASSERT(transformState);
         localTransformState = const_cast<HitTestingTransformState*>(transformState);
-    } else if (transformState || m_has3DTransformedDescendant) {
+    } else if (transformState || m_has3DTransformedDescendant || preserves3D()) {
         // We need transform state for the first time, or to offset the container state, so create it here.
         localTransformState = createLocalTransformState(rootLayer, containerLayer, hitTestRect, hitTestPoint, transformState);
     }
@@ -2249,10 +2276,6 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
     IntRect outlineRect;
     calculateRects(rootLayer, hitTestRect, layerBounds, bgRect, fgRect, outlineRect);
     
-    // Ensure our lists and 3d status are up-to-date.
-    updateLayerListsIfNeeded();
-    update3DTransformedDescendantStatus();
-
     // The following are used for keeping track of the z-depth of the hit point of 3d-transformed
     // descendants.
     double localZOffset = -numeric_limits<double>::infinity();
@@ -2382,10 +2405,25 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
 
 bool RenderLayer::hitTestContents(const HitTestRequest& request, HitTestResult& result, const IntRect& layerBounds, const IntPoint& hitTestPoint, HitTestFilter hitTestFilter) const
 {
-    return renderer()->hitTest(request, result, hitTestPoint,
+    if (!renderer()->hitTest(request, result, hitTestPoint,
                             layerBounds.x() - renderBoxX(),
                             layerBounds.y() - renderBoxY(), 
-                            hitTestFilter);
+                            hitTestFilter))
+        return false;
+
+    // For positioned generated content, we might still not have a
+    // node by the time we get to the layer level, since none of
+    // the content in the layer has an element. So just walk up
+    // the tree.
+    if (!result.innerNode() || !result.innerNonSharedNode()) {
+        Node* e = enclosingElement();
+        if (!result.innerNode())
+            result.setInnerNode(e);
+        if (!result.innerNonSharedNode())
+            result.setInnerNonSharedNode(e);
+    }
+        
+    return true;
 }
 
 void RenderLayer::updateClipRects(const RenderLayer* rootLayer)

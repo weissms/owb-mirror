@@ -2080,8 +2080,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->isJavaScriptEnabled();
     settings->setJavaScriptEnabled(!!enabled);
 
-    enabled = preferences->allowUniversalAccessFromFileUrls();
-    settings->setAllowUniversalAccessFromFileUrls(!!enabled);
+    enabled = preferences->allowUniversalAccessFromFileURLs();
+    settings->setAllowUniversalAccessFromFileURLs(!!enabled);
 
     enabled = preferences->javaScriptCanOpenWindowsAutomatically();
     settings->setJavaScriptCanOpenWindowsAutomatically(!!enabled);

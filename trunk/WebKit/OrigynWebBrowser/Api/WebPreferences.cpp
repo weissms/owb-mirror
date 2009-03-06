@@ -125,7 +125,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitTextAreasAreResizablePreferenceKey, "0"); //FALSE
     m_privatePrefs.add(WebKitJavaEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptEnabledPreferenceKey, "1"); //TRUE
-    m_privatePrefs.add(WebKitAllowUniversalAccessFromFileUrlsPreferenceKey, "1");//TRUE
+    m_privatePrefs.add(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
@@ -389,14 +389,14 @@ void WebPreferences::setDefaultTextEncodingName(String name)
     setStringValue(WebKitDefaultTextEncodingNamePreferenceKey, name);
 }
 
-bool WebPreferences::allowUniversalAccessFromFileUrls()
+bool WebPreferences::allowUniversalAccessFromFileURLs()
 {
-    return boolValueForKey(WebKitAllowUniversalAccessFromFileUrlsPreferenceKey);
+    return boolValueForKey(WebKitAllowUniversalAccessFromFileURLsPreferenceKey);
 }
 
-void WebPreferences::setAllowUniversalAccessFromFileUrls(bool allowAccess)
+void WebPreferences::setAllowUniversalAccessFromFileURLs(bool allowAccess)
 {
-    setBoolValue(WebKitAllowUniversalAccessFromFileUrlsPreferenceKey, allowAccess);
+    setBoolValue(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, allowAccess);
 }
 
 bool WebPreferences::userStyleSheetEnabled()

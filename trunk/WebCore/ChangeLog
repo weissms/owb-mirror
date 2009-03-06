@@ -1,3 +1,707 @@
+2009-03-06  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6621701> Safari 4 Beta Breaks XMLHttpRequest Response Text With Special
+        Characters (a compatibility issue with widgets).
+
+        Test: http/tests/xmlhttprequest/broken-xml-encoding.html
+
+        Revert part of an Acid 3 fix - now we are no longer strict when decoding XMLHttpRequest XML
+        responses.
+
+        * loader/TextResourceDecoder.cpp:
+        (WebCore::TextResourceDecoder::TextResourceDecoder):
+        (WebCore::TextResourceDecoder::decode):
+        (WebCore::TextResourceDecoder::flush):
+        * loader/TextResourceDecoder.h:
+        (WebCore::TextResourceDecoder::useLenientXMLDecoding):
+        Don't stop on XML decoding errors if useLenientXMLDecoding() was called.
+
+        * xml/XMLHttpRequest.cpp: (WebCore::XMLHttpRequest::didReceiveData): Don't stop on XML
+        decoding errors. This behavior is now limited to other kinds of XML content.
+
+2009-03-05  Simone Fiorentino  <simone.fiorentino@consulenti.fastweb.it>
+
+        Bug 24382: request to add SH4 platform
+
+        <https://bugs.webkit.org/show_bug.cgi?id=24382>
+
+        Reviewed by David Kilzer.
+
+        * platform/text/AtomicString.cpp:
+        (WebCore::equal): Aligned memory access on SH4 platform.
+
+2009-03-05  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Simon Fraser.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24215
+
+        Gears expects an object tag with display:none to instantiate the plugin,
+        so we add a workaround to make this work and fix Gears on WebKit trunk.
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::rendererIsNeeded):
+
+2009-03-05  Avi Drissman  <avi@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Need to have Chromium Mac match Safari Mac's accesskey handling
+        https://bugs.webkit.org/show_bug.cgi?id=24404
+
+        * page/chromium/EventHandlerChromium.cpp:
+        (WebCore::EventHandler::accessKeyModifiers): Share access key modifiers with Mac Safari when building for the Mac.
+
+2009-03-05  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24412
+        
+        Fix crash when hit-testing elements with -webkit-transform-style: preserve-3d
+        but no transform. We need to make localTransformState if we see preserve-3d.
+        Also need to call update3DTransformedDescendantStatus() before we test
+        m_has3DTransformedDescendant.
+
+        Test: transforms/3d/hit-testing/hit-preserves-3d.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestLayer):
+
+2009-03-05  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Changes to RenderLayer destruction to hopefully help catch an elusive crasher
+        https://bugs.webkit.org/show_bug.cgi?id=24409
+        
+        Added a new RenderBoxModelObject::destroyLayer() call which is
+        now the only way which RenderLayers should ever be destroyed.
+        This ensures that the pointer to the layer is cleared in the
+        RenderObject after destruction, allowing us to ASSERT in the
+        RenderBoxModelObject destructor.
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::calcAbsoluteHorizontalReplaced):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::~RenderBoxModelObject):
+        (WebCore::RenderBoxModelObject::destroyLayer):
+        (WebCore::RenderBoxModelObject::destroy):
+        (WebCore::RenderBoxModelObject::styleDidChange):
+        * rendering/RenderBoxModelObject.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::stackingContext):
+        (WebCore::RenderLayer::destroy):
+        (WebCore::RenderLayer::removeOnlyThisLayer):
+        * rendering/RenderLayer.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::destroy):
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::destroy):
+
+2009-03-05  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Remove old, unused IE 5.5 scrollbar-* CSS properties.
+        Sort the unimplemented getComputedStyle properties so it's
+        easier to see which ones actually need implementation.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSPropertyNames.in:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+
+2009-03-05  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        WebViewDidChangeSelectionNotifications weren't being sent for commands that change the selection's position
+        within the document without changing its position in the DOM.  For example, pressing return in (caret marked by ^):
+        <div contentEditable="true"><div>^Hello</div></div>
+        Undo was being enabled, shouldDeleteDOMRange called, etc. when doing no-op deletes (a delete in an empty document 
+        for example). 
+
+        Changes to layout tests demonstrate fix.
+        
+        * editing/EditCommand.cpp:
+        (WebCore::EditCommand::apply): Don't call applyEditing for a TypingCommand.  The TypingCommand knows whether or
+        not it did work that needs to be applied.
+        * editing/Editor.cpp:
+        (WebCore::Editor::appliedEditing): Moved code (but did not alter) to changeSelectionAfterCommand.
+        (WebCore::Editor::unappliedEditing): Ditto.
+        (WebCore::Editor::reappliedEditing): Ditto.
+        (WebCore::Editor::changeSelectionAfterCommand): Moved code from *appliedEditing into here.  Also call out to
+        EditorClient::respondToChangedSelection() for commands that changed the selection's position in the document
+        even if they did not change it's position in the DOM.  Any TypingCommand that gets this far changed it's position
+        in the document.
+        * editing/Editor.h:
+        * editing/TypingCommand.cpp:
+        (WebCore::TypingCommand::TypingCommand): Removed unused m_appliedEditing.
+        (WebCore::TypingCommand::typingAddedToOpenCommand): Always apply editing.  We won't get this far if we don't need to.
+        (WebCore::TypingCommand::deleteKeyPressed): Don't do any of the things that only make sense for Range selections, like
+        adding to the killring and responding to a change in selections if the delete was a no-op.
+        (WebCore::TypingCommand::forwardDeleteKeyPressed): Ditto.
+        * editing/TypingCommand.h:
+
+2009-03-05  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Eliminate a ref-counting leak in InspectorController.
+
+        * inspector/InspectorController.h: Made constructor private, added static create method.
+        * page/Page.cpp:
+        (WebCore::Page::Page): Change initializer to use static create method.
+
+2009-03-05  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24355
+        Add InspectorController.idl and convert InspectorController.cpp to use
+        JSC bindings.
+
+        * DerivedSources.make: Added InspectorController.idl
+        * WebCore.xcodeproj/project.pbxproj: Added idl, bindings files.
+        * bindings/js/JSInspectorControllerCustom.cpp: Added.
+        * bindings/scripts/CodeGeneratorJS.pm: Added Array to no-header types.
+        * inspector/InspectorController.cpp: Removed hand-rolled bindings.
+        * inspector/InspectorController.h: Added platform and addSourceToFrame methods.
+        * inspector/InspectorController.idl: Added.
+        * page/Page.h: Changed member to RefPtr since InspectorController is now ref-counted.
+
+2009-03-05  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24400
+        Bug 24400: Remove "start", "end", "loopStart", "loopEnd", "currentLoop", and "playCount" 
+        media element attributes
+
+        Test: media/video-loop.html
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement):
+        (WebCore::HTMLMediaElement::loadInternal):
+        (WebCore::HTMLMediaElement::setNetworkState):
+        (WebCore::HTMLMediaElement::seek):
+        (WebCore::HTMLMediaElement::playInternal):
+        (WebCore::HTMLMediaElement::loop):
+        (WebCore::HTMLMediaElement::setLoop):
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged):
+        (WebCore::HTMLMediaElement::endedPlayback):
+        (WebCore::HTMLMediaElement::updatePlayState):
+        * html/HTMLMediaElement.h:
+        * html/HTMLMediaElement.idl:
+
+2009-03-05  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6651112> Safari asks about re-posting a form even when page is cached
+        
+        Reviewed by Ada Chan.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::ResourceHandle::willLoadFromCache): Ported from Mac version.
+
+2009-03-05  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        https://bugs.webkit.org/show_bug.cgi?id=24248
+
+        Make sure painting of overflow controls checks that visibility:visible is set on the block before
+        painting.  Pixel tests caught this regression.
+
+        Make sure resizer painting pushes a clip of the corner rect.  It was relying on the clip layers happened
+        to do to their bounds (which had nothing to do with overflow).
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::paint):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintResizer):
+
+2009-03-05  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24386
+        A faster implementation of extractMIMETypeFromMediaType.
+
+        * platform/network/HTTPParsers.cpp:
+        (WebCore::extractMIMETypeFromMediaType):
+
+2009-03-05  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24392
+        Do not get the current time for unless we're doing PRELOAD_DEBUG as this
+        can be unnecessarily expensive.
+
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::write):
+
+2009-03-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24327
+        
+        When mapping points and hit testing through transforms, work
+        correctly when acclerated animations of transforms are running.
+        
+        Tested by LayoutTests/animations/animation-hit-test-transform.html,
+        which only failed when ACCELERATED_COMPOSITING was turned on.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::currentTransform):
+        * rendering/RenderLayer.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::transformFromContainer):
+
+2009-03-05  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24391
+        Frame.cpp uses JSC specific includes
+
+        * page/Frame.cpp:
+
+2009-03-05  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24389
+        WebKitGTK+ crashes when cancelling plugin loads
+
+        Remove bogus calls to the client's didFinishLoading method from
+        our ResourceHandle::cancel implementation. Calling
+        didFinishLoading here is mostly inoffensive for most loads, but
+        causes crashes when plugin loads are cancelled.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::cancel):
+
+2009-03-05  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+        
+        * WebCore.vcproj/QTMovieWin.vcproj:
+
+2009-03-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Build fix for when ENABLE_NETSCAPE_PLUGIN_API = 0.  The method
+        ScriptController::jsObjectForPluginElement(HTMLPlugInElement*); is not
+        protected by an #if and uses HTMLPlugInElement so it must be included.
+
+        * bindings/js/ScriptController.cpp:
+
+2009-03-05  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        GTK Build fix.
+
+        * inspector/ConsoleMessage.h: Use proper header.
+
+2009-03-05  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24376
+        Split InspectorController.cpp file into separate classes.
+
+        * GNUmakefile.am: Modified to include new files.
+        * WebCore.pro: Ditto.
+        * WebCore.scons: Ditto.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Ditto.
+        * inspector/ConsoleMessage.cpp: Added.
+        * inspector/ConsoleMessage.h: Added.
+        * inspector/InspectorController.cpp:
+        * inspector/InspectorDOMStorageResource.cpp: Added.
+        * inspector/InspectorDOMStorageResource.h: Added.
+        * inspector/InspectorDatabaseResource.cpp: Added.
+        * inspector/InspectorDatabaseResource.h: Added.
+        * inspector/InspectorResource.cpp: Added.
+        * inspector/InspectorResource.h: Added.
+
+2009-03-05  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24387
+        Remove media element bufferingRate attribute. No test necessary as there
+        were none for this attribute.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Don't initialize m_bufferingRate.
+        (WebCore::HTMLMediaElement::loadInternal): Ditto.
+        (WebCore::HTMLMediaElement::setNetworkState): Ditto.
+        (WebCore::HTMLMediaElement::progressEventTimerFired): Don't calculate m_bufferingRate.
+        * html/HTMLMediaElement.h: Remove m_bufferingRate.
+        * html/HTMLMediaElement.idl: Ditto.
+
+2009-03-05  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24377
+        [GTK] Comply better with coding style guidelines in ResourceHandleSoup
+
+        Use C++ booleans, 0 instead of NULL, prefix boolean variables with
+        'is', do not use 'else if' if the previous if had a return, delete
+        trailing whitespace, etc.
+
+        * platform/network/ResourceHandleInternal.h:
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::WebCoreSynchronousLoader::WebCoreSynchronousLoader):
+        (WebCore::fillResponseFromMessage):
+        (WebCore::restartedCallback):
+        (WebCore::finishedCallback):
+        (WebCore::parseDataUrl):
+        (WebCore::ensureSessionIsInitialized):
+        (WebCore::ResourceHandle::startHttp):
+        (WebCore::reportUnknownProtocolError):
+        (WebCore::ResourceHandle::start):
+        (WebCore::cleanupGioOperation):
+        (WebCore::closeCallback):
+        (WebCore::readCallback):
+        (WebCore::openCallback):
+        (WebCore::queryInfoCallback):
+        (WebCore::ResourceHandle::startGio):
+
+2009-03-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        https://bugs.webkit.org/show_bug.cgi?id=24328
+        
+        If an element has backface-visibility: hidden, hit testing should not
+        hit the back sides of elements. Test for that by inverting the accumulated
+        transform and looking at the z vector.
+
+        Tested by transforms/3d/hit-testing/backface-hit-test.html
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestLayer):
+
+2009-03-04  Adam Langley  <agl@google.com>
+
+        Reviewed by Darin Fisher.
+
+        r41362 mistakenly added functions "RenderThemeWin::" into
+        RenderThemeChromiumGtk.cpp. When correcting this, I somehow changed
+        them to void return types. This patch switches them back to ints.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24360
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumLinux::buttonInternalPaddingRight):
+        (WebCore::RenderThemeChromiumLinux::buttonInternalPaddingTop):
+        (WebCore::RenderThemeChromiumLinux::buttonInternalPaddingBottom):
+
+2009-03-04  Adam Langley  <agl@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Chromium Linux: change some metrics to better match Windows after
+        r41416. Aesthetically this may be worse, but web-compat is king.
+
+        Also, the previous code had an off by one error when drawing
+        scrollbars which caused the scrollbar to overflow it's bounds by 1px
+        at the right and bottom edges.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24369
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::):
+        (WebCore::RenderThemeChromiumLinux::systemFont):
+        * platform/chromium/ScrollbarThemeChromiumLinux.cpp:
+        (WebCore::ScrollbarThemeChromium::paintTrackPiece):
+
+2009-03-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add an ASSERT to better demonstrate the cause of the crash in
+        https://bugs.webkit.org/show_bug.cgi?id=23736
+
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::~DocLoader):
+
+2009-03-04  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 24337: Assert when doing sync XHR in a worker for a cacheable response.
+        <https://bugs.webkit.org/show_bug.cgi?id=24337>
+
+        Tests: http/tests/xmlhttprequest/access-control-basic-denied-preflight-cache.html
+               http/tests/xmlhttprequest/workers/xmlhttprequest-file-not-found.html
+
+        * loader/mac/ResourceLoaderMac.mm:
+        (WebCore::ResourceLoader::willCacheResponse):
+        An identifier is only asssigned if resource load callbacks are done.  So don't send
+        willCacheResponse which uses identifier if resource load callbacks aren't being sent.
+
+2009-03-04  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 24330: Sync xhr in workers should send an abort exception when the worker is terminated.
+        <https://bugs.webkit.org/show_bug.cgi?id=24330>
+
+        Test: http/tests/xmlhttprequest/workers/abort-exception-assert.html
+
+        * dom/ExceptionCode.cpp:
+        (WebCore::xmlHttpRequestExceptionNames):
+        Added missing ABORT_ERR whose absence caused an assert.
+
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::loadResourceSynchronously):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::cancel):
+        Add more logic to handle the termination case for sync xhr.
+
+2009-03-04  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24364
+        Add support for HTMLMediaElement canPlayType method. Make
+        MediaPlayer::supportsType take a ContentType instead of a
+        separate mime type and codecs parameter.
+
+        Test: media/video-can-play-type.html
+
+        * dom/DOMImplementation.cpp:
+        (WebCore::DOMImplementation::createDocument):
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::canPlayType): Add canPlayType method.
+        (WebCore::HTMLMediaElement::loadInternal): selectMediaURL returns a ContentType.
+        (WebCore::HTMLMediaElement::selectMediaURL): Return a ContentType instead of raw MIME type.
+        (WebCore::HTMLMediaElement::initialURL): selectMediaURL returns a ContentType.
+        * html/HTMLMediaElement.h: Add prototype.
+        * html/HTMLMediaElement.idl: Ditto.
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::load): Take a ContentType instead of raw MIME type.
+        (WebCore::MediaPlayer::supportsType): Ditto.
+        * platform/graphics/MediaPlayer.h:
+
+2009-03-04  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24359
+        Repaint throttling mechanism
+        
+        Excessive repainting can slow down page loadind. This implements a timer
+        based throttling mechanism. It is behind ENABLE(REPAINT_THROTTLING) and not 
+        enabled by default.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::checkCompleted):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::dispatchDragEvent):
+        (WebCore::EventHandler::dispatchMouseEvent):
+        (WebCore::EventHandler::keyEvent):
+        (WebCore::EventHandler::handleTextInputEvent):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::FrameView):
+        (WebCore::FrameView::reset):
+        (WebCore::FrameView::repaintContentRectangle):
+        (WebCore::FrameView::beginDeferredRepaints):
+        (WebCore::FrameView::endDeferredRepaints):
+        (WebCore::FrameView::checkStopDelayingDeferredRepaints):
+        (WebCore::FrameView::doDeferredRepaints):
+        (WebCore::FrameView::updateDeferredRepaintDelay):
+        (WebCore::FrameView::resetDeferredRepaintDelay):
+        (WebCore::FrameView::adjustedDeferredRepaintDelay):
+        (WebCore::FrameView::deferredRepaintTimerFired):
+        (WebCore::FrameView::paintContents):
+        * page/FrameView.h:
+
+2009-03-04  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Antti Koivisto.
+
+        Remove LOW_BANDWIDTH_DISPLAY as it is not being used by any platforms.
+
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        * dom/Document.h:
+        (WebCore::Document::haveStylesheetsLoaded):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::scriptHandler):
+        * loader/Cache.cpp:
+        (WebCore::Cache::requestResource):
+        * loader/CachedCSSStyleSheet.cpp:
+        (WebCore::CachedCSSStyleSheet::checkNotify):
+        * loader/DocLoader.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::FrameLoader):
+        (WebCore::FrameLoader::requestFrame):
+        (WebCore::FrameLoader::stopLoading):
+        (WebCore::FrameLoader::begin):
+        (WebCore::FrameLoader::write):
+        (WebCore::FrameLoader::endIfNotLoadingMainResource):
+        (WebCore::FrameLoader::checkCompleted):
+        (WebCore::FrameLoader::requestObject):
+        (WebCore::FrameLoader::loadItem):
+        * loader/FrameLoader.h:
+
+2009-03-02  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24287
+        [GTK] Move auth dialog feature to WebKit/
+
+        Remove WebKitSoupAuthDialog files from build and stop using it.
+
+        * GNUmakefile.am:
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ensureSessionIsInitialized):
+        * platform/network/soup/webkit-soup-auth-dialog.c: Removed.
+        * platform/network/soup/webkit-soup-auth-dialog.h: Removed.
+
+2009-03-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24361
+        
+        Reinstate code that sets result.innerNode when hitTest() returns true,
+        but never filled in the innerNode. Fixes hit testing of generated content.
+
+        Test: fast/css-generated-content/hit-test-generated-content.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestContents):
+
+2009-03-04  Adam Barth  <abath@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24356
+
+        Fix WebKit style for allowUniversalAccessFromFileURLs.
+
+        * WebCore.base.exp:
+        * dom/Document.cpp:
+        (WebCore::Document::initSecurityContext):
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings):
+        (WebCore::Settings::setAllowUniversalAccessFromFileURLs):
+        * page/Settings.h:
+        (WebCore::Settings::allowUniversalAccessFromFileURLs):
+
+2009-03-04  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        <rdar://problem/6619630> Quick Look of vCards stuck on image of first card opened.
+
+        I narrowed this down to http://trac.webkit.org/changeset/39304 which, among other things,
+        consolidated some of the various decision making pieces of the Cache into the new method
+        FrameLoader::cachePolicy().
+
+        Before 39304, when deciding whether to use an existing CachedResource, we checked if the FrameLoader 
+        is reloading.  If it is, we'd evict any existing resource then recreate it.  Quick looks uses the
+        same URL for this image every time and expects it to be reloaded with each new card.
+
+        The FrameLoader::isReloading() check did one thing - Ask the DocumentLoader if it's cache policy
+        is "ReloadIgnoringCacheData".  This check was lost in the consolidation to the new method.  
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::cachePolicy): Restore the DocumentLoader's cachePolicy check as a possible
+          condition for returning CachePolicyReload.
+
+2009-03-04  Timothy Hatcher  <timothy@apple.com>
+
+        * English.lproj/localizedStrings.js: Update strings to include "DATABASES",
+        "LOCAL STORAGE" and "SESSION STORAGE".
+
+2009-03-04  Timothy Hatcher  <timothy@apple.com>
+
+        Fix a regression where the Web Inspector console would not animate
+        in or out correctly.
+
+        Reviewed by Anders Carlsson.
+
+        * inspector/front-end/inspector.css: Move a z-index to a child element
+        to get the correct stacking order during the animation.
+
+2009-03-03  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=24201, pathologically bad block layout.
+
+        Make sure to factor clear deltas into y position estimates.  Also avoid doing the comparison of
+        the final position against the y position estimate until after the clear has happened.  This gets rid
+        of some duplicated cut/pasted code and also ensures a layout delta only has to be put in once.
+
+        Reviewed by Dan Bernstein
+
+        Added fast/block/float/nested-clearance.html
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::collapseMargins):
+        (WebCore::RenderBlock::clearFloatsIfNeeded):
+        (WebCore::RenderBlock::estimateVerticalPosition):
+        (WebCore::RenderBlock::layoutBlockChildren):
+        (WebCore::RenderBlock::getClearDelta):
+        * rendering/RenderBlock.h:
+
+2009-03-02  Kim Grönholm  <kim.gronholm@nomovok.com>
+
+        Reviewed by Simon Hausmann.
+
+        Improvement to 3d transformations rendering in QtWebKit. QTransform is used
+        instead of QMatrix. This allows perspective transformations since QTransform is
+        a true 3x3 matrix.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp: Use QTransform instead of QMatrix everywhere.
+        (WebCore::GraphicsContext::getCTM):
+        (WebCore::GraphicsContext::restorePlatformState):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::translate):
+        (WebCore::GraphicsContext::rotate):
+        (WebCore::GraphicsContext::scale):
+        (WebCore::GraphicsContext::concatCTM):
+        * platform/graphics/qt/ImageQt.cpp:
+        (WebCore::Image::drawPattern):
+        * platform/graphics/qt/PathQt.cpp:
+        (WebCore::Path::translate):
+        (WebCore::Path::transform):
+        * platform/graphics/qt/PatternQt.cpp:
+        (WebCore::Pattern::createPlatformPattern):
+        * platform/graphics/qt/TransformationMatrixQt.cpp:
+        (WebCore::TransformationMatrix::operator QTransform): Replace the conversion operator
+        to QMatrix with one to QTransform.
+        * platform/graphics/transforms/TransformationMatrix.h:
+        * platform/graphics/qt/FontQt.cpp:
+
+2009-02-24  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24151
+        Fix Qt/S60 build break
+
+        * platform/FileSystem.h: Create a default case for non-win and non-mac Qt builds
+        * platform/qt/FileSystemQt.cpp: Ditto
+        (WebCore::unloadModule):
+
 2009-03-04  Mike Belshe  <mike@belshe.com>
 
         Reviewed by Alexey Proskuryakov.
@@ -899,7 +1603,7 @@
         (WebCore::JSXMLHttpRequestConstructor::scriptExecutionContext):
         * dom/EventException.idl:
         * dom/EventListener.idl:
-        Chnage to have the NoStaticTables attribute since they are used from XHR.
+        Change to have the NoStaticTables attribute since they are used from XHR.
 
         * loader/WorkerThreadableLoader.cpp:
         (WebCore::workerContextDidFinishLoading):
@@ -917,7 +1621,7 @@
         * xml/XMLHttpRequestException.idl:
         * xml/XMLHttpRequestProgressEvent.idl:
         * xml/XMLHttpRequestUpload.idl:
-        Chnage to have the NoStaticTables attribute since they are used from XHR.
+        Change to have the NoStaticTables attribute since they are used from XHR.
 
 2009-03-01  Horia Olaru  <olaru@adobe.com>
 
@@ -11923,7 +12627,7 @@
 
         Rubber-stamped by Ada Chan.
 
-        * dom/Document.h: Chnaged HitTestRequest to a class from a struct.
+        * dom/Document.h: Changed HitTestRequest to a class from a struct.
         * page/EventHandler.h: Ditto.
         * rendering/EllipsisBox.h: Ditto.
         * rendering/InlineBox.h: Ditto.

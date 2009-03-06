@@ -1337,6 +1337,8 @@ bool EventHandler::handleMouseReleaseEvent(const PlatformMouseEvent& mouseEvent)
 
 bool EventHandler::dispatchDragEvent(const AtomicString& eventType, Node* dragTarget, const PlatformMouseEvent& event, Clipboard* clipboard)
 {
+    m_frame->view()->resetDeferredRepaintDelay();
+
     IntPoint contentsPos = m_frame->view()->windowToContents(event.pos());
     
     RefPtr<MouseEvent> me = MouseEvent::create(eventType,
@@ -1544,6 +1546,8 @@ void EventHandler::updateMouseEventTargetNode(Node* targetNode, const PlatformMo
 
 bool EventHandler::dispatchMouseEvent(const AtomicString& eventType, Node* targetNode, bool /*cancelable*/, int clickCount, const PlatformMouseEvent& mouseEvent, bool setUnder)
 {
+    m_frame->view()->resetDeferredRepaintDelay();
+
     updateMouseEventTargetNode(targetNode, mouseEvent, setUnder);
 
     bool swallowEvent = false;
@@ -1800,6 +1804,8 @@ bool EventHandler::keyEvent(const PlatformKeyboardEvent& initialKeyEvent)
     RefPtr<Node> node = eventTargetNodeForDocument(m_frame->document());
     if (!node)
         return false;
+    
+    m_frame->view()->resetDeferredRepaintDelay();
 
     // FIXME: what is this doing here, in keyboard event handler?
     m_frame->loader()->resetMultipleFormSubmissionProtection();
@@ -2134,6 +2140,8 @@ bool EventHandler::handleTextInputEvent(const String& text, Event* underlyingEve
         target = eventTargetNodeForDocument(m_frame->document());
     if (!target)
         return false;
+    
+    m_frame->view()->resetDeferredRepaintDelay();
 
     RefPtr<TextEvent> event = TextEvent::create(m_frame->domWindow(), text);
     event->setUnderlyingEvent(underlyingEvent);

@@ -86,6 +86,7 @@ LIST (APPEND WEBKIT_SRC
     webkit/webkitwebsettings.cpp
     webkit/webkitwebview.cpp
     #webkit/webkitversion.cpp
+    webkit/webkitsoupauthdialog.c
 
     ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
 )

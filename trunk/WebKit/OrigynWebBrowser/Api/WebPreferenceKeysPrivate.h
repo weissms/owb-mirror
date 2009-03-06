@@ -1,23 +1,23 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
+ *     notice, this list of conditions and the following disclaimer. 
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Pleyo nor the names of
+ *     documentation and/or other materials provided with the distribution. 
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple" nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     from this software without specific prior written permission. 
  *
- * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 // These are private because callers should be using the cover methods. They are in
 // a Private (as opposed to Internal) header file because Safari uses some of them
 // for managed preferences.
-
 #define WebKitLogLevelPreferenceKey "WebKitLogLevel"
 #define WebKitStandardFontPreferenceKey "WebKitStandardFont"
 #define WebKitFixedFontPreferenceKey "WebKitFixedFont"
@@ -47,9 +47,12 @@
 #define WebKitTextAreasAreResizablePreferenceKey "WebKitTextAreasAreResizable"
 #define WebKitJavaEnabledPreferenceKey "WebKitJavaEnabled"
 #define WebKitJavaScriptEnabledPreferenceKey "WebKitJavaScriptEnabled"
-#define WebKitAllowUniversalAccessFromFileUrlsPreferenceKey "WebKitAllowUniversalAccessFromFileUrls"
+#define WebKitWebSecurityEnabledPreferenceKey "WebKitWebSecurityEnabled"
+#define WebKitAllowUniversalAccessFromFileURLsPreferenceKey "WebKitAllowUniversalAccessFromFileURLs"
 #define WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey "WebKitJavaScriptCanOpenWindowsAutomatically"
 #define WebKitPluginsEnabledPreferenceKey "WebKitPluginsEnabled"
+#define WebKitDatabasesEnabledPreferenceKey "WebKitDatabasesEnabled"
+#define WebKitLocalStorageEnabledPreferenceKey "WebKitLocalStorageEnabled"
 #define WebKitAllowAnimatedImagesPreferenceKey "WebKitAllowAnimatedImagesPreferenceKey"
 #define WebKitAllowAnimatedImageLoopingPreferenceKey "WebKitAllowAnimatedImageLoopingPreferenceKey"
 #define WebKitDisplayImagesKey "WebKitDisplayImagesKey"
@@ -60,6 +63,7 @@
 #define WebKitIconDatabaseEnabledPreferenceKey "WebKitIconDatabaseEnabled"
 #define WebKitUsesPageCachePreferenceKey "WebKitUsesPageCachePreferenceKey"
 #define WebKitCacheModelPreferenceKey "WebKitCacheModelPreferenceKey"
+#define WebKitLocalStorageDatabasePathPreferenceKey "WebKitLocalStorageDatabasePath"
 
 // These are private both because callers should be using the cover methods and because the
 // cover methods themselves are private.
@@ -89,6 +93,7 @@
 
 // Windows-specific keys
 #define WebKitFontSmoothingTypePreferenceKey "WebKitFontSmoothingType" // default: FontSmoothingTypeMedium (2)
+#define WebKitFontSmoothingContrastPreferenceKey "WebKitFontSmoothingContrast" // default: "2"
 #define WebKitCookieStorageAcceptPolicyPreferenceKey "WebKitCookieStorageAcceptPolicy" // default: WebKitCookieStorageAcceptPolicyOnlyFromMainDocumentDomain
 
 #define WebContinuousSpellCheckingEnabledPreferenceKey "WebContinuousSpellCheckingEnabled" // default: false
@@ -97,6 +102,10 @@
 #define AllowContinuousSpellCheckingPreferenceKey "AllowContinuousSpellCheckingPreferenceKey" // default: true
 
 #define WebKitDOMPasteAllowedPreferenceKey "WebKitDOMPasteAllowedPreferenceKey" // default: false
+
+#define WebKitApplicationChromeModePreferenceKey "WebKitApplicationChromeMode" // default: false
+
+#define WebKitOfflineWebApplicationCacheEnabledPreferenceKey "WebKitOfflineWebApplicationCacheEnabled" // default: false
 
 // If this key is present and has a value of true, we have already removed the default values from the user's preferences <rdar://problem/5214504>
 #define WebKitDidMigrateDefaultSettingsFromSafari3BetaPreferenceKey "WebKitDidMigrateDefaultSettingsFromSafari3BetaPreferenceKey"
@@ -110,4 +119,7 @@
 
 #define WebKitPaintCustomScrollbarsPreferenceKey "WebKitPaintCustomScrollbars"
 
+#define WebKitPaintNativeControlsPreferenceKey "WebKitPaintNativeControls"
+
 #define WebKitZoomsTextOnlyPreferenceKey "WebKitZoomsTextOnly"
+

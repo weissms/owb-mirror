@@ -112,7 +112,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_focusController(new FocusController(this))
     , m_contextMenuController(new ContextMenuController(this, contextMenuClient))
 #if ENABLE(INSPECTOR)
-    , m_inspectorController(new InspectorController(this, inspectorClient))
+    , m_inspectorController(InspectorController::create(this, inspectorClient))
 #endif
     , m_settings(new Settings(this))
     , m_progress(new ProgressTracker)

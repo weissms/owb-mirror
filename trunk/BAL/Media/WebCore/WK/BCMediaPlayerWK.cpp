@@ -195,11 +195,14 @@ MediaPlayer::~MediaPlayer()
 {
 }
 
-void MediaPlayer::load(const String& url, const String& mimeType)
+void MediaPlayer::load(const String& url, const ContentType& contentType)
 {
+    String type = contentType.type();
+    String codecs = contentType.parameter("codecs");
+
     // if we don't know the MIME type, see if the path can help
-    String type = mimeType.isEmpty() ? MIMETypeRegistry::getMIMETypeForPath(url) : mimeType;
-    String codecs = ContentType(type).parameter("codecs");
+    if (type.isEmpty()) 
+        type = MIMETypeRegistry::getMIMETypeForPath(url);
 
     MediaPlayerFactory* engine = chooseBestEngineForTypeAndCodecs(type, codecs);
 
@@ -378,8 +381,10 @@ void MediaPlayer::paint(GraphicsContext* p, const IntRect& r)
     m_private->paint(p, r);
 }
 
-MediaPlayer::SupportsType MediaPlayer::supportsType(const String& type, const String& codecs)
+MediaPlayer::SupportsType MediaPlayer::supportsType(ContentType contentType)
 {
+    String type = contentType.type();
+    String codecs = contentType.parameter("codecs");
     MediaPlayerFactory* engine = chooseBestEngineForTypeAndCodecs(type, codecs);
 
     if (!engine)

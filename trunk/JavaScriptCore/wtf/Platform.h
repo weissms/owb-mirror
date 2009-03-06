@@ -212,6 +212,11 @@
 #define WTF_PLATFORM_X86_64 1
 #endif
 
+/* PLATFORM(SH4) */
+#if defined(__SH4__)
+#define WTF_PLATFORM_SH4 1
+#endif
+
 /* PLATFORM(SPARC64) */
 #if defined(__sparc64__)
 #define WTF_PLATFORM_SPARC64 1
@@ -439,6 +444,10 @@
 
 #if !defined(WTF_USE_ALTERNATE_JSIMMEDIATE) && PLATFORM(X86_64) && PLATFORM(MAC)
 #define WTF_USE_ALTERNATE_JSIMMEDIATE 1
+#endif
+
+#if !defined(ENABLE_REPAINT_THROTTLING)
+#define ENABLE_REPAINT_THROTTLING 0
 #endif
 
 #if !defined(ENABLE_JIT)
