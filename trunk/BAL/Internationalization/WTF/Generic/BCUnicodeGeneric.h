@@ -29,17 +29,18 @@
 #ifndef KJS_UNICODE_ICU_H
 #define KJS_UNICODE_ICU_H
 
-
 #include <stdlib.h>
 
 #include <unicode/uchar.h>
 #include <unicode/ustring.h>
 #include <unicode/utf16.h>
 
+#include "UnicodeGenericTable.h"
 
 
 namespace WTF {
   namespace Unicode {
+
 
     enum Direction {
       LeftToRight = U_LEFT_TO_RIGHT,
@@ -128,7 +129,7 @@ namespace WTF {
     inline UChar32 toLower(UChar32 c)
     {
         if ((c >= 0x41 && c <= 0x5A) || (c >= 0xC0 && c <= 0xDE))
-            return c+0x20;
+            return (c + 0x20);
         else if (c == 0xB5)
             return 0x3BC;
         return c;
@@ -167,7 +168,7 @@ namespace WTF {
     inline UChar32 toUpper(UChar32 c)
     {
         if ((c >= 0x61 && c <= 0x7A) || (c >= 0xE0 && c <= 0xFE))
-            return c-0x20;
+            return (c - 0x20);
         else if (c == 0x3BC)
             return 0xB5;
         return c;
@@ -192,8 +193,8 @@ namespace WTF {
 
     inline bool isArabicChar(UChar32 c)
     {
-        //BalNotImplemented();
-        return false;
+        // According to unicode 5.1 Arabic belongs range 0x600 to 0x6ff
+        return (c >= 0x600 && c <= 0x6ff);
     }
 
     inline CharCategory category(UChar32 c)
@@ -204,25 +205,25 @@ namespace WTF {
             return WTF::Unicode::NoCategory;
         else if (c == 0x20)
             return WTF::Unicode::Separator_Space;
-        else if ((c >= 0x21 && c<=0x27)
+        else if ((c >= 0x21 && c <= 0x27)
                 || c == 0x2E
-                || (c >= 0x3A && c<=0x3B)
+                || (c >= 0x3A && c <= 0x3B)
                 || c == 0x3F
                 || c == 0x40
-                || (c >= 0x5B && c<=0x60)
-                || (c >= 0x7B && c<=0x7E))
+                || (c >= 0x5B && c <= 0x60)
+                || (c >= 0x7B && c <= 0x7E))
             return WTF::Unicode::Punctuation_Other;
         else if (c == 0x28)
             return WTF::Unicode::Punctuation_Open;
         else if (c == 0x29)
             return WTF::Unicode::Punctuation_Close;
-        else if ((c >= 0x2A && c<=0x2F) || (c >= 0x3C && c<=0x3E))
+        else if ((c >= 0x2A && c <= 0x2F) || (c >= 0x3C && c <= 0x3E))
             return WTF::Unicode::Symbol_Math;
-        else if (c >= 0x30 && c<=0x39)
+        else if (c >= 0x30 && c <= 0x39)
             return WTF::Unicode::Number_DecimalDigit;
-        else if (c >= 0x41 && c<=0x5A)
+        else if (c >= 0x41 && c <= 0x5A)
             return WTF::Unicode::Letter_Uppercase;
-        else if (c >= 0x61 && c<=0x7A)
+        else if (c >= 0x61 && c <= 0x7A)
             return WTF::Unicode::Letter_Lowercase;
         else
             return WTF::Unicode::NoCategory;
@@ -241,7 +242,6 @@ namespace WTF {
 
     inline bool isPrintableChar(UChar32 c)
     {
-        //BalNotImplemented();
         return false;
     }
     
@@ -263,14 +263,15 @@ namespace WTF {
 
     inline UChar32 mirroredChar(UChar32 c)
     {
-        //BalNotImplemented();
         return c;
     }
-
+    
     inline Direction direction(UChar32 c)
     {
-        //BalNotImplemented();
-        return WTF::Unicode::LeftToRight;
+        uint32_t props;
+        const generic_Props* bdp = &generic_props_singleton;
+        GENERIC_GET_PROPS(bdp, c, props);
+        return (Direction)GENERIC_GET_CLASS(props);
     }
 
     inline bool isLower(UChar32 c)
@@ -285,13 +286,11 @@ namespace WTF {
 
     inline unsigned char combiningClass(UChar32 c)
     {
-        //BalNotImplemented();
         return c;
     }
 
     inline DecompositionType decompositionType(UChar32 c)
     {
-        //BalNotImplemented();
         return WTF::Unicode::DecompositionNone;
     }
 
@@ -301,12 +300,10 @@ namespace WTF {
             UChar32 c1 = toLower(a[i]);
             UChar32 c2 = toLower(b[i]);
             if (c1 != c2)
-                return -1;
+                return (c1 - c2);
         }
         return 0;
     }
-
-
   }
 }
 

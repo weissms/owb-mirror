@@ -106,16 +106,9 @@ endmacro(create_generated_cpp_helper _inlName)
 # WKAL.                                          #
 ##################################################
 
-macro(create_include_link _in_FILE _link_FILE)
-    get_filename_component(_dirname ${_link_FILE} PATH)
-    if(EXISTS generated_link/${_link_FILE})
-        execute_process(
-            COMMAND unlink generated_link/${_link_FILE}
-            WORKING_DIRECTORY ${OWB_BINARY_DIR})
-    endif(EXISTS generated_link/${_link_FILE})
+macro(create_include_link _src_dir _dst_dir)
     execute_process(
-        COMMAND mkdir -p generated_link/${_dirname}
-        COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/${_in_FILE} generated_link/${_link_FILE}
+        COMMAND ${OWB_SOURCE_DIR}/BAL/Scripts/createLink.py ${CMAKE_CURRENT_SOURCE_DIR}/${_src_dir} generated_link/${_dst_dir}
         WORKING_DIRECTORY ${OWB_BINARY_DIR})
 endmacro(create_include_link)
 

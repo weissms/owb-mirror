@@ -1,3 +1,9 @@
+2009-03-09  Olivier DOLE  <odole@pleyo.com>
+
+        Fix macro create_include_link in cmake.
+
+        * cmake/DefineOwbMacros.cmake:
+
 2009-03-01  Mario Bensi  <mbensi@pleyo.com>
 
         Add soup to build gtk.

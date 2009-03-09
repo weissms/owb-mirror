@@ -48,61 +48,48 @@ BAL/Events/WebCore/WK	WebCore/platform/PlatformMouseEvent.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
 
 
-
-
 BAL/Skeletons/Facilities    WebCore/platform/CrossThreadCopier.h
 BAL/Skeletons/Facilities	WebCore/platform/FileChooser.h
-BAL/Skeletons/Facilities	WebCore/platform/FileSystem.h
 BAL/Skeletons/Facilities	WebCore/platform/FloatConversion.h
 BAL/Skeletons/Facilities	WebCore/platform/Language.h
 BAL/Skeletons/Facilities	WebCore/platform/Logging.h
 BAL/Skeletons/Facilities	WebCore/platform/MIMETypeRegistry.h
 BAL/Skeletons/Facilities	WebCore/platform/SSLKeyGenerator.h
-BAL/Skeletons/Facilities	WebCore/platform/SharedTimer.h
-BAL/Skeletons/Facilities	WebCore/platform/SystemTime.h
 BAL/Skeletons/Facilities	WebCore/platform/ThreadGlobalData.h
-BAL/Skeletons/Facilities	WebCore/platform/Timer.h
 BAL/Skeletons/Facilities	WebCore/platform/network/HTTPParsers.h
-BAL/Skeletons/Facilities	WebCore/platform/GeolocationService.h
 
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/FileChooserGtk.cpp	BCFileChooserGtk.cpp
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/FileSystemGtk.cpp	BCFileSystemGtk.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/Language.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/LoggingGtk.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETypeRegistryGtk.cpp
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/SharedTimerGtk.cpp	BCSharedTimerGtk.cpp
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/GeolocationServiceGtk.cpp
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/GeolocationServiceGtk.h
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/guriescape.c
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/guriescape.h
-BAL/Facilities/WebCore/Posix	WebCore/platform/posix/FileSystemPOSIX.cpp BCFileSystemPosix.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/FileChooserQt.cpp
-BAL/Facilities/WebCore/Qt	WebCore/platform/qt/FileSystemQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/LoggingQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/MIMETypeRegistryQt.cpp
-BAL/Facilities/WebCore/Qt	WebCore/platform/qt/SharedTimerQt.cpp
 BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.h
 BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.h
-BAL/Facilities/WebCore/WK	WebCore/platform/FileSystem.h
 BAL/Facilities/WebCore/WK	WebCore/platform/FloatConversion.h
 BAL/Facilities/WebCore/WK	WebCore/platform/Language.h
 BAL/Facilities/WebCore/WK	WebCore/platform/Logging.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/Logging.h
 BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.h
-BAL/Facilities/WebCore/WK	WebCore/platform/SharedTimer.h
 BAL/Facilities/WebCore/WK	WebCore/platform/SSLKeyGenerator.h
-BAL/Facilities/WebCore/WK	WebCore/platform/SystemTime.h
 BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.h
-BAL/Facilities/WebCore/WK	WebCore/platform/Timer.cpp
-BAL/Facilities/WebCore/WK	WebCore/platform/Timer.h
 BAL/Facilities/WebCore/WK	WebCore/platform/network/HTTPParsers.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/network/HTTPParsers.h
-BAL/Facilities/WebCore/WK	WebCore/platform/GeolocationService.cpp
-BAL/Facilities/WebCore/WK	WebCore/platform/GeolocationService.h
+
+
+BAL/Skeletons/Filesystem	WebCore/platform/FileSystem.h
+
+BAL/Filesystem/WebCore/Gtk	WebCore/platform/gtk/FileSystemGtk.cpp	BCFileSystemGtk.cpp
+BAL/Filesystem/WebCore/Posix	WebCore/platform/posix/FileSystemPOSIX.cpp BCFileSystemPosix.cpp
+BAL/Filesystem/WebCore/Qt	WebCore/platform/qt/FileSystemQt.cpp
+BAL/Filesystem/WebCore/WK	WebCore/platform/FileSystem.h
 
 
 BAL/Skeletons/Fonts	WebCore/platform/graphics/Font.h
@@ -177,6 +164,14 @@ BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/TextRun.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.h
+
+
+BAL/Skeletons/Geolocation   WebCore/platform/GeolocationService.h
+
+BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.cpp
+BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.h
+BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.cpp
+BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.h
 
 
 BAL/Skeletons/Graphics	WebCore/platform/DragData.h
@@ -633,6 +628,19 @@ BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMarker.cpp
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMarker.h
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.cpp
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.h
+
+
+BAL/Skeletons/Timer WebCore/platform/SharedTimer.h
+BAL/Skeletons/Timer WebCore/platform/SystemTime.h
+BAL/Skeletons/Timer WebCore/platform/Timer.h
+
+BAL/Timer/WebCore/Gtk   WebCore/platform/gtk/SharedTimerGtk.cpp BCSharedTimerGtk.cpp
+BAL/Timer/WebCore/Qt	WebCore/platform/qt/SharedTimerQt.cpp
+BAL/Timer/WebCore/WK	WebCore/platform/SharedTimer.h
+BAL/Timer/WebCore/WK	WebCore/platform/SystemTime.h
+BAL/Timer/WebCore/WK	WebCore/platform/Timer.cpp
+BAL/Timer/WebCore/WK	WebCore/platform/Timer.h
+
 
 BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/AVLTree.h

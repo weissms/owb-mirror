@@ -31,6 +31,10 @@
 
 namespace WTF {
 
+void initializeMainThreadPlatform()
+{
+}
+
 void scheduleDispatchFunctionsOnMainThread()
 {
 }

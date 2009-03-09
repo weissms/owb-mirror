@@ -1,3 +1,154 @@
+2009-03-09  Olivier DOLE  <odole@pleyo.com>
+
+        Fix create_include_link problem by using a python script.
+        Create Geolocation, Timer and Filesystem BAL directories.
+
+        * CMakeLists.txt:
+        * Database/WebCore/CMakeLists.txt:
+        * Events/WebCore/CMakeLists.txt:
+        * Facilities/WebCore/CMakeLists.txt:
+        * Facilities/WebCore/Gtk/BCFileSystemGtk.cpp: Removed.
+        * Facilities/WebCore/Gtk/BCGeolocationServiceGtk.cpp: Removed.
+        * Facilities/WebCore/Gtk/BCGeolocationServiceGtk.h: Removed.
+        * Facilities/WebCore/Gtk/BCSharedTimerGtk.cpp: Removed.
+        * Facilities/WebCore/Linux/BCSharedTimerLinux.cpp: Removed.
+        * Facilities/WebCore/Linux/BCSharedTimerLinux.h: Removed.
+        * Facilities/WebCore/Linux/BCSystemTimeLinux.cpp: Removed.
+        * Facilities/WebCore/Posix: Removed.
+        * Facilities/WebCore/Posix/BCFileSystemPosix.cpp: Removed.
+        * Facilities/WebCore/Qt/BCFileSystemQt.cpp: Removed.
+        * Facilities/WebCore/Qt/BCSharedTimerQt.cpp: Removed.
+        * Facilities/WebCore/SDL/BCFileSystemSDL.cpp: Removed.
+        * Facilities/WebCore/SDL/BCGeolocationServiceSDL.cpp: Removed.
+        * Facilities/WebCore/SDL/BCGeolocationServiceSDL.h: Removed.
+        * Facilities/WebCore/WK/BCFileSystemWK.h: Removed.
+        * Facilities/WebCore/WK/BCGeolocationServiceWK.cpp: Removed.
+        * Facilities/WebCore/WK/BCGeolocationServiceWK.h: Removed.
+        * Facilities/WebCore/WK/BCSharedTimerWK.h: Removed.
+        * Facilities/WebCore/WK/BCSystemTimeWK.h: Removed.
+        * Facilities/WebCore/WK/BCTimerWK.cpp: Removed.
+        * Facilities/WebCore/WK/BCTimerWK.h: Removed.
+        * Filesystem: Added.
+        * Filesystem/WebCore: Added.
+        * Filesystem/WebCore/CMakeLists.txt: Added.
+        * Filesystem/WebCore/Gtk: Added.
+        * Filesystem/WebCore/Gtk/BCFileSystemGtk.cpp: Added.
+        * Filesystem/WebCore/Posix: Added.
+        * Filesystem/WebCore/Qt: Added.
+        * Filesystem/WebCore/Qt/BCFileSystemQt.cpp: Added.
+        * Filesystem/WebCore/SDL: Added.
+        * Filesystem/WebCore/SDL/BCFileSystemSDL.cpp: Added.
+        * Filesystem/WebCore/WK: Added.
+        * Filesystem/WebCore/WK/BCFileSystemWK.h: Added.
+        * Fonts/WebCore/CMakeLists.txt:
+        * Geolocation: Added.
+        * Geolocation/WebCore: Added.
+        * Geolocation/WebCore/CMakeLists.txt: Added.
+        * Geolocation/WebCore/Gtk: Added.
+        * Geolocation/WebCore/Gtk/BCGeolocationServiceGtk.cpp: Added.
+        * Geolocation/WebCore/Gtk/BCGeolocationServiceGtk.h: Added.
+        * Geolocation/WebCore/Gtk/exceptions.txt: Added.
+        * Geolocation/WebCore/SDL: Added.
+        * Geolocation/WebCore/SDL/BCGeolocationServiceSDL.cpp: Added.
+        * Geolocation/WebCore/SDL/BCGeolocationServiceSDL.h: Added.
+        * Geolocation/WebCore/SDL/exceptions.txt: Added.
+        * Geolocation/WebCore/WK: Added.
+        * Geolocation/WebCore/WK/BCGeolocationServiceWK.cpp: Added.
+        * Geolocation/WebCore/WK/BCGeolocationServiceWK.h: Added.
+        * Graphics/WebCore/CMakeLists.txt:
+        * Graphics/WebCore/Cairo/BCCairoPath.h: Added.
+        * Graphics/WebCore/Cairo/BCCairoPathCairo.h: Removed.
+        * Graphics/WebCore/Cairo/CairoPath.h: Removed.
+        * Graphics/WebCore/Cairo/exceptions.txt: Added.
+        * Graphics/WebCore/Qt/exceptions.txt: Added.
+        * Graphics/WebCore/SDL/exceptions.txt: Added.
+        * Graphics/WebCore/WK/BCIdentifyTransformOperationWK.h: Removed.
+        * ImageDecoder/WebCore/CMakeLists.txt:
+        * Internationalization/WTF/CMakeLists.txt:
+        * Internationalization/WTF/Generic/BCUnicodeGeneric.h: Replaced.
+        (WTF::Unicode::isPrintableChar):
+        (WTF::Unicode::mirroredChar):
+        (WTF::Unicode::combiningClass):
+        (WTF::Unicode::decompositionType):
+        * Internationalization/WTF/Generic/BCUnicodeGenericTable.h: Added.
+        * Internationalization/WTF/Generic/exceptions.txt: Added.
+        * Internationalization/WebCore/CMakeLists.txt:
+        * Internationalization/WebCore/Generic/BCUnicodeGeneric.h: Removed.
+        * Internationalization/WebCore/Generic/BCUnicodeGenericTable.h: Removed.
+        * Internationalization/WebCore/Generic/exceptions.txt: Added.
+        * Internationalization/WebCore/ICU/exceptions.txt: Added.
+        * Internationalization/WebCore/Qt/exceptions.txt: Added.
+        * Media/WebCore/CMakeLists.txt:
+        * Media/WebCore/GStreamer/exceptions.txt: Added.
+        * Media/WebCore/Phonon/exceptions.txt: Added.
+        * Media/WebCore/SDL/exceptions.txt: Added.
+        * Memory/WTF/CMakeLists.txt:
+        * Memory/WebCore/CMakeLists.txt:
+        * Network/WebCore/CMakeLists.txt:
+        * Network/WebCore/Curl/exceptions.txt: Added.
+        * Network/WebCore/Soup/exceptions.txt: Added.
+        * SVG/WebCore/CMakeLists.txt:
+        * SVG/WebCore/Cairo/BCRenderPathCairo.h: Removed.
+        * Scripts/createLink.py: Added.
+        * Scripts/data/balInputList.txt:
+        * Skeletons/Facilities/FileSystem.t: Removed.
+        * Skeletons/Facilities/SharedTimer.t: Removed.
+        * Skeletons/Facilities/SystemTime.t: Removed.
+        * Skeletons/Facilities/Timer.t: Removed.
+        * Skeletons/Filesystem: Added.
+        * Skeletons/Filesystem/FileSystem.t: Added.
+        * Skeletons/Geolocation: Added.
+        * Skeletons/Timer: Added.
+        * Skeletons/Timer/SharedTimer.t: Added.
+        * Skeletons/Timer/SystemTime.t: Added.
+        * Skeletons/Timer/Timer.t: Added.
+        * Tests/Facilities/FileSystemTest.cpp: Removed.
+        * Tests/Facilities/FileSystemTest.h: Removed.
+        * Tests/Facilities/SharedTimerTest.cpp: Removed.
+        * Tests/Facilities/SharedTimerTest.h: Removed.
+        * Tests/Facilities/SystemTimeTest.cpp: Removed.
+        * Tests/Facilities/SystemTimeTest.h: Removed.
+        * Tests/Facilities/TimerTest.cpp: Removed.
+        * Tests/Facilities/TimerTest.h: Removed.
+        * Tests/Filesystem: Added.
+        * Tests/Filesystem/FileSystemTest.cpp: Added.
+        * Tests/Filesystem/FileSystemTest.h: Added.
+        * Tests/Geolocation: Added.
+        * Tests/Timer: Added.
+        * Tests/Timer/SharedTimerTest.cpp: Added.
+        * Tests/Timer/SharedTimerTest.h: Added.
+        * Tests/Timer/SystemTimeTest.cpp: Added.
+        * Tests/Timer/SystemTimeTest.h: Added.
+        * Tests/Timer/TimerTest.cpp: Added.
+        * Tests/Timer/TimerTest.h: Added.
+        * Timer: Added.
+        * Timer/WebCore: Added.
+        * Timer/WebCore/CMakeLists.txt: Added.
+        * Timer/WebCore/Gtk: Added.
+        * Timer/WebCore/Gtk/BCSharedTimerGtk.cpp: Added.
+        * Timer/WebCore/Linux: Added.
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp: Added.
+        * Timer/WebCore/Linux/BCSharedTimerLinux.h: Added.
+        * Timer/WebCore/Linux/BCSystemTimeLinux.cpp: Added.
+        * Timer/WebCore/Qt: Added.
+        * Timer/WebCore/Qt/BCSharedTimerQt.cpp: Added.
+        * Timer/WebCore/WK: Added.
+        * Timer/WebCore/WK/BCSharedTimerWK.h: Added.
+        * Timer/WebCore/WK/BCSystemTimeWK.h: Added.
+        * Timer/WebCore/WK/BCTimerWK.cpp: Added.
+        * Timer/WebCore/WK/BCTimerWK.h: Added.
+        * Types/WTF/CMakeLists.txt:
+        * Types/WTF/None/BCMainThreadNone.cpp:
+        (WTF::initializeMainThreadPlatform):
+        * Types/WebCore/CMakeLists.txt:
+        * Types/WebCore/Common: Removed.
+        * Types/WebCore/None: Removed.
+        * Types/WebCore/Pthreads: Removed.
+        * Widgets/WebCore/CMakeLists.txt:
+        * Widgets/WebCore/Gtk/exceptions.txt: Added.
+        * Widgets/WebCore/Qt/exceptions.txt: Added.
+        * Widgets/WebCore/SDL/exceptions.txt: Added.
+
 2009-02-27  Mario Bensi  <mbensi@pleyo.com>
 
         fix assert on image drag and add soup support
