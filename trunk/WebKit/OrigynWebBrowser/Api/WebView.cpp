@@ -1731,7 +1731,7 @@ void WebView::centerSelectionInVisibleArea()
     if (!coreFrame)
         return ;
 
-    coreFrame->revealSelection(RenderLayer::gAlignCenterAlways);
+    coreFrame->revealSelection(ScrollAlignment::alignCenterAlways);
 }
 
 

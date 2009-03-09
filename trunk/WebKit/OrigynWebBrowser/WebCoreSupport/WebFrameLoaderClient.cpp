@@ -932,8 +932,6 @@ String WebFrameLoaderClient::generatedMIMETypeForURLScheme(const String& /*URLSc
 
 void WebFrameLoaderClient::frameLoadCompleted()
 {
-    if (Frame* coreFrame = core(m_webFrame))
-        coreFrame->loader()->setPreviousHistoryItem(0);
 }
 
 void WebFrameLoaderClient::restoreViewState()

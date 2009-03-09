@@ -159,6 +159,11 @@ TextBreakIterator* characterBreakIterator(const UChar* string, int length)
     return iterator;
 }
 
+TextBreakIterator* cursorMovementIterator(const UChar* string, int length)
+{
+    return characterBreakIterator(string, length);
+}
+
 TextBreakIterator* lineBreakIterator(const UChar*, int)
 {
     BalNotImplemented();

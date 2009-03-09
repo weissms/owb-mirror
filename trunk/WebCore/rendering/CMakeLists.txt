@@ -63,6 +63,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderWidget.cpp
     rendering/RenderWordBreak.cpp
     rendering/RootInlineBox.cpp
+    rendering/ScrollBehavior.cpp
     rendering/TextControlInnerElements.cpp
     rendering/TransformState.cpp
 )

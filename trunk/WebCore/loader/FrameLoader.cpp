@@ -147,15 +147,16 @@ struct FormSubmission {
 
 struct ScheduledRedirection {
     enum Type { redirection, locationChange, historyNavigation, locationChangeDuringLoad };
-    Type type;
-    double delay;
-    String url;
-    String referrer;
-    int historySteps;
-    bool lockHistory;
-    bool lockBackForwardList;
-    bool wasUserGesture;
-    bool wasRefresh;
+
+    const Type type;
+    const double delay;
+    const String url;
+    const String referrer;
+    const int historySteps;
+    const bool lockHistory;
+    const bool lockBackForwardList;
+    const bool wasUserGesture;
+    const bool wasRefresh;
 
     ScheduledRedirection(double delay, const String& url, bool lockHistory, bool lockBackForwardList, bool wasUserGesture, bool refresh)
         : type(redirection)
@@ -167,6 +168,7 @@ struct ScheduledRedirection {
         , wasUserGesture(wasUserGesture)
         , wasRefresh(refresh)
     {
+        ASSERT(!url.isEmpty());
     }
 
     ScheduledRedirection(Type locationChangeType, const String& url, const String& referrer, bool lockHistory, bool lockBackForwardList, bool wasUserGesture, bool refresh)
@@ -180,6 +182,8 @@ struct ScheduledRedirection {
         , wasUserGesture(wasUserGesture)
         , wasRefresh(refresh)
     {
+        ASSERT(locationChangeType == locationChange || locationChangeType == locationChangeDuringLoad);
+        ASSERT(!url.isEmpty());
     }
 
     explicit ScheduledRedirection(int historyNavigationSteps)
@@ -187,6 +191,7 @@ struct ScheduledRedirection {
         , delay(0)
         , historySteps(historyNavigationSteps)
         , lockHistory(false)
+        , lockBackForwardList(false)
         , wasUserGesture(false)
         , wasRefresh(false)
     {
@@ -374,7 +379,6 @@ void FrameLoader::changeLocation(const String& url, const String& referrer, bool
 {
     changeLocation(completeURL(url), referrer, lockHistory, lockBackForwardList, userGesture, refresh);
 }
-
 
 void FrameLoader::changeLocation(const KURL& url, const String& referrer, bool lockHistory, bool lockBackForwardList, bool userGesture, bool refresh)
 {
@@ -1316,6 +1320,9 @@ void FrameLoader::scheduleHTTPRedirection(double delay, const String& url)
     if (!m_frame->page())
         return;
 
+    if (url.isEmpty())
+        return;
+
     // We want a new history item if the refresh timeout is > 1 second.
     if (!m_scheduledRedirection || delay <= m_scheduledRedirection->delay)
         scheduleRedirection(new ScheduledRedirection(delay, url, true, delay <= 1, false, false));
@@ -1324,6 +1331,9 @@ void FrameLoader::scheduleHTTPRedirection(double delay, const String& url)
 void FrameLoader::scheduleLocationChange(const String& url, const String& referrer, bool lockHistory, bool lockBackForwardList, bool wasUserGesture)
 {
     if (!m_frame->page())
+        return;
+
+    if (url.isEmpty())
         return;
 
     // If the URL we're going to navigate to is the same as the current one, except for the
@@ -1355,6 +1365,9 @@ void FrameLoader::scheduleLocationChange(const String& url, const String& referr
 void FrameLoader::scheduleRefresh(bool wasUserGesture)
 {
     if (!m_frame->page())
+        return;
+
+    if (m_URL.isEmpty())
         return;
 
     ScheduledRedirection::Type type = ScheduledRedirection::locationChange;
@@ -1468,13 +1481,14 @@ void FrameLoader::redirectionTimerFired(Timer<FrameLoader>*)
 void FrameLoader::loadURLIntoChildFrame(const KURL& url, const String& referer, Frame* childFrame)
 {
     ASSERT(childFrame);
+
     HistoryItem* parentItem = currentHistoryItem();
     FrameLoadType loadType = this->loadType();
     FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedBackForwardList;
 
     KURL workingURL = url;
     
-    // If we're moving in the backforward list, we might want to replace the content
+    // If we're moving in the back/forward list, we might want to replace the content
     // of this child frame with whatever was there at that point.
     if (parentItem && parentItem->children().size() && isBackForwardLoadType(loadType)) {
         HistoryItem* childItem = parentItem->childItemWithName(childFrame->tree()->name());
@@ -1587,7 +1601,7 @@ bool FrameLoader::gotoAnchor(const String& name)
         rect = anchorNode->getRect();
     }
     if (renderer)
-        renderer->enclosingLayer()->scrollRectToVisible(rect, true, RenderLayer::gAlignToEdgeIfNeeded, RenderLayer::gAlignTopAlways);
+        renderer->enclosingLayer()->scrollRectToVisible(rect, true, ScrollAlignment::alignToEdgeIfNeeded, ScrollAlignment::alignTopAlways);
 
     return true;
 }
@@ -3366,7 +3380,7 @@ void FrameLoader::frameLoadCompleted()
 
     // Even if already complete, we might have set a previous item on a frame that
     // didn't do any data loading on the past transaction. Make sure to clear these out.
-    setPreviousHistoryItem(0);
+    m_previousHistoryItem = 0;
 
     // After a canceled provisional load, firstLayoutDone is false.
     // Reset it to true if we're displaying a page.
@@ -4848,31 +4862,16 @@ void FrameLoader::saveDocumentAndScrollState()
     }
 }
 
-// FIXME: These 6 setter/getters are here for a dwindling number of users in WebKit, WebFrame
+// FIXME: These 3 setter/getters are here for a dwindling number of users in WebKit, WebFrame
 // being the primary one.  After they're no longer needed there, they can be removed!
 HistoryItem* FrameLoader::currentHistoryItem()
 {
     return m_currentHistoryItem.get();
 }
 
-HistoryItem* FrameLoader::previousHistoryItem()
-{
-    return m_previousHistoryItem.get();
-}
-
-HistoryItem* FrameLoader::provisionalHistoryItem()
-{
-    return m_provisionalHistoryItem.get();
-}
-
 void FrameLoader::setCurrentHistoryItem(PassRefPtr<HistoryItem> item)
 {
     m_currentHistoryItem = item;
-}
-
-void FrameLoader::setPreviousHistoryItem(PassRefPtr<HistoryItem> item)
-{
-    m_previousHistoryItem = item;
 }
 
 void FrameLoader::setProvisionalHistoryItem(PassRefPtr<HistoryItem> item)

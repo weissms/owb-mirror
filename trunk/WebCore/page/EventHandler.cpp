@@ -115,8 +115,6 @@ static inline void scrollAndAcceptEvent(float delta, ScrollDirection positiveDir
         return;
     } 
     float pixelsToScroll = delta > 0 ? delta : -delta;
-    if (e.granularity() == ScrollByLineWheelEvent)
-        pixelsToScroll *= cMouseWheelPixelsPerLineStep;
     if (enclosingBox->scroll(delta < 0 ? negativeDirection : positiveDirection, ScrollByPixel, pixelsToScroll))
         e.accept();
 }
@@ -1750,14 +1748,10 @@ static Node* eventTargetNodeForDocument(Document* doc)
     if (!doc)
         return 0;
     Node* node = doc->focusedNode();
-    if (!node) {
-        if (doc->isHTMLDocument())
-            node = doc->body();
-        else
-            node = doc->documentElement();
-        if (!node)
-            return 0;
-    }
+    if (!node && doc->isHTMLDocument())
+        node = doc->body();
+    if (!node)
+        node = doc->documentElement();
     return node;
 }
 

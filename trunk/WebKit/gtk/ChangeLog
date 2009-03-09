@@ -1,3 +1,44 @@
+2009-03-09  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark Rowe.
+
+        Add javascript-profiling-enabled property and implement it. This
+        will enable/disable the profiler on the InstpectorController.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebinspector.cpp:
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_class_init):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_set_property):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_get_property):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_set_inspector_client):
+        * webkit/webkitwebview.cpp:
+
+2009-03-05  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Olliej.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24295
+        webkit_web_back_forward_list_add_item needs a Since tag
+
+        Add missing Since tag to webkit_web_back_forward_list_add_item
+        documentation.
+
+        * webkit/webkitwebbackforwardlist.cpp:
+
+2009-03-05  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24417
+        [GTK] WebKitDownload's _cancel and _dispose methods may emit warnings
+
+        NULL-check for timer on _cancel and _dispose, to avoid bad
+        warnings.
+
+        * webkit/webkitdownload.cpp:
+        (_WebKitDownloadPrivate::webkit_download_finalize):
+        (_WebKitDownloadPrivate::webkit_download_cancel):
+
 2009-03-06  Xan Lopez  <xan@gnome.org>
 
         Reviewed by Mark Rowe.

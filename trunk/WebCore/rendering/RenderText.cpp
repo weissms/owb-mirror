@@ -36,6 +36,7 @@
 #include "RenderView.h"
 #include "Text.h"
 #include "TextBreakIterator.h"
+#include "VisiblePosition.h"
 #include "break_lines.h"
 #include <wtf/AlwaysInline.h>
 
@@ -1147,7 +1148,7 @@ unsigned RenderText::caretMaxRenderedOffset() const
 int RenderText::previousOffset(int current) const
 {
     StringImpl* si = m_text.get();
-    TextBreakIterator* iterator = characterBreakIterator(si->characters(), si->length());
+    TextBreakIterator* iterator = cursorMovementIterator(si->characters(), si->length());
     if (!iterator)
         return current - 1;
 
@@ -1270,7 +1271,7 @@ int RenderText::previousOffsetForBackwardDeletion(int current) const
 int RenderText::nextOffset(int current) const
 {
     StringImpl* si = m_text.get();
-    TextBreakIterator* iterator = characterBreakIterator(si->characters(), si->length());
+    TextBreakIterator* iterator = cursorMovementIterator(si->characters(), si->length());
     if (!iterator)
         return current + 1;
 

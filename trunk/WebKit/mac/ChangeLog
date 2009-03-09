@@ -1,3 +1,44 @@
+2009-03-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Split ScrollAlignment and ScrollBehavior out of RenderLayer.h so that
+        Frame.h no longer needs to include it.  This cuts the size of the symbols
+        for a debug build by around 3%.
+
+        * Plugins/WebNetscapePluginView.mm:
+        * WebView/WebFrame.mm:
+        (-[WebFrame _scrollDOMRangeToVisible:]):
+        (-[WebFrame _insertParagraphSeparatorInQuotedContent]):
+        (-[WebFrame _replaceSelectionWithFragment:selectReplacement:smartReplace:matchStyle:]):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView jumpToSelection:]):
+        (-[WebHTMLView centerSelectionInVisibleArea:]):
+
+2009-03-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix a bug where debug builds were clearing the HTML5 application cache
+          on application termination
+
+        * WebView/WebView.mm:
+        (-[WebView _close]): Call -[WebCache setDisabled:YES] instead of
+        -[WebCache empty].
+
+2009-03-06  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Reviewed by Justin Garcia.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24108
+
+        Update spelling and grammar checking to use the new combined text 
+        checking (with automatic language identification) on Snow Leopard. 
+
+        * WebCoreSupport/WebEditorClient.h:
+        * WebCoreSupport/WebEditorClient.mm:
+        (WebEditorClient::checkSpellingAndGrammarOfParagraph):
+
 2009-03-06  Adele Peterson  <adele@apple.com>
 
         Reviewed by Darin Adler.

@@ -74,7 +74,7 @@ namespace WebCore {
         unsigned totalBytes() const;
 
         void setVisible(bool);
-        void setRect(const IntRect&);
+        void setSize(const IntSize&);
 
         void loadStateChanged();
         void rateChanged();
@@ -112,7 +112,7 @@ namespace WebCore {
         MediaPlayer::ReadyState m_readyState;
         bool m_startedPlaying;
         mutable bool m_isStreaming;
-        IntRect m_rect;
+        IntSize m_size;
         bool m_visible;
     };
 }
