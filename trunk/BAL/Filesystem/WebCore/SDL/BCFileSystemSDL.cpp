@@ -31,63 +31,13 @@
 
 #include "NotImplemented.h"
 #include "PlatformString.h"
-#include "CString.h"
-#include <sys/types.h>
-#include <regex.h>
-#include <dirent.h>
-#include <string>
-using namespace std;
 
 namespace WebCore {
-
-char* filenameFromString(const String& string)
-{
-    return strdup(string.utf8().data());
-}
-
-String filenameToString(const char* filename)
-{
-    if (!filename)
-        return String();
-
-    return String::fromUTF8(filename);
-}
-
 
 Vector<String> listDirectory(const String& path, const String& filter)
 {
     Vector<String> entries;
-
-    char* filename = filenameFromString(path);
-    DIR* dir = opendir(filename);
-    if (!dir)
-        return entries;
-
-    int err;
-    regex_t preg;
-    char *str_regex = strdup(filter.utf8().data());
-    err = regcomp (&preg, str_regex, REG_NOSUB | REG_EXTENDED | REG_NEWLINE);
-    if (err != 0) {
-        return entries;
-    }
-
-    struct dirent* file;
-    int match;
-    while ((file = readdir(dir))) {
-        match = regexec (&preg, file->d_name, 0, NULL, 0);
-        if (match != 0)
-            continue;
-
-        string s = filename;
-        s += "/";
-        s += file->d_name;
-        entries.append(filenameToString(s.c_str()));
-    }
-    regfree (&preg);
-    free(str_regex);
-    closedir(dir);
-    free(filename);
-
+    notImplemented();
     return entries;
 }
 

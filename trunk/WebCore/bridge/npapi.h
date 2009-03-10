@@ -94,10 +94,8 @@
 #endif
 
 #ifdef XP_UNIX
-#if !PLATFORM(SDL)
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
-#endif
     #include <stdio.h>
 #endif
 
@@ -251,11 +249,9 @@ typedef struct
 typedef struct
 {
     int32           type;
-#if !PLATFORM(SDL)
     Display*        display;
     Visual*         visual;
     Colormap        colormap;
-#endif
     unsigned int    depth;
 } NPSetWindowCallbackStruct;
 
@@ -565,7 +561,7 @@ typedef struct _NPEvent
     uint32   wParam;
     uint32   lParam;
 } NPEvent;
-#elif defined (XP_UNIX) && !PLATFORM(SDL)
+#elif defined (XP_UNIX)
 typedef XEvent NPEvent;
 #else
 typedef void*            NPEvent;
@@ -586,7 +582,7 @@ typedef RgnHandle NPQDRegion;
 typedef CGPathRef NPCGRegion;
 #elif defined(XP_WIN)
 typedef HRGN NPRegion;
-#elif defined(XP_UNIX) && !PLATFORM(SDL)
+#elif defined(XP_UNIX)
 typedef Region NPRegion;
 #else
 typedef void *NPRegion;

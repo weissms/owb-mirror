@@ -90,6 +90,5 @@ void WebDocumentLoader::detachFromFrame()
         // source to be deleted - which ends up calling loader->detachDataSource() which makes the assumption that the loader no 
         // longer holds a reference to the data source.
         m_dataSource = 0;
-        delete dataSourceToBeReleased;
     }
 }
