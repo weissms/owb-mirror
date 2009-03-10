@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include "PlatformWheelEvent.h"
+#include "Scrollbar.h"
 #include "SDL.h"
 
 namespace WebCore {
@@ -51,33 +52,33 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     switch (event->button) {
         case SDL_BUTTON_WHEELUP: {
             //if(!m_ctrlKey)
-                m_deltaY = delta;
-    int verticalMultiplier = verticalLineMultiplier();
-    // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
-    m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
-    if (m_granularity == ScrollByLineWheelEvent)
-        m_deltaY *= verticalMultiplier;
-            /*else
-                m_deltaX = delta;*/
+            m_deltaY = delta;
+/*            int verticalMultiplier = verticalLineMultiplier();
+            // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
+            m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
+            if (m_granularity == ScrollByLineWheelEvent)
+                m_deltaY *= verticalMultiplier;*/
             break;
         }
         case SDL_BUTTON_WHEELDOWN: {
             //if(m_ctrlKey)
-                m_deltaY = -delta;
-    int verticalMultiplier = verticalLineMultiplier();
-    // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
-    m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
-    if (m_granularity == ScrollByLineWheelEvent)
-        m_deltaY *= verticalMultiplier;
-            /*else
-                m_deltaX = -delta;*/
+            m_deltaY = -delta;
+            /*int verticalMultiplier = verticalLineMultiplier();
+            // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
+            m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
+            if (m_granularity == ScrollByLineWheelEvent)
+                m_deltaY *= verticalMultiplier;*/
             break;
     }
         default:
             break;
     }
 
+    
     //printf("m_deltaY = %f m_deltaX=%f delta=%f\n", m_deltaY, m_deltaX, delta);
+    // FIXME: retrieve the user setting for the number of lines to scroll on each wheel event
+    m_deltaX *= static_cast<float>(cScrollbarPixelsPerLineStep);
+    m_deltaY *= static_cast<float>(cScrollbarPixelsPerLineStep);
 
     m_position = IntPoint((int)event->x, (int)event->y);
     m_globalPosition = IntPoint((int)event->x, (int)event->y);
