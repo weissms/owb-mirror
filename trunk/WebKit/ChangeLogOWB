@@ -1,3 +1,13 @@
+2009-03-10  Sebastien Roret  <sroret@pleyo.com>
+
+        Fixed a WebDataSource leak, seen when repeatedly changing page.
+
+        Reviewed by Mario Bensi.
+
+        * OrigynWebBrowser/Api/WebDocumentLoader.cpp: delete WebDataSource
+        when use ends.
+        (WebDocumentLoader::detachFromFrame):
+
 2009-03-01  Mario Bensi  <mbensi@pleyo.com>
 
         add file:// for a local file if it's not present

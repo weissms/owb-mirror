@@ -526,6 +526,7 @@ void WebView::close()
         return;
 
     m_didClose = true;
+    cache()->setDisabled(true);
 
 #ifndef NDEBUG
     Cache::Statistics stats = cache()->getStatistics();

@@ -54,6 +54,8 @@
 #include "npruntime_impl.h"
 #include "runtime.h"
 #include "runtime_root.h"
+#include <runtime/JSLock.h>
+#include <runtime/JSValue.h>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -74,6 +76,7 @@ using namespace HTMLNames;
 
 void PluginView::updatePluginWidget()
 {
+    // TODO
     if (!parent() || !m_isWindowed)
         return;
 
@@ -86,73 +89,85 @@ void PluginView::updatePluginWidget()
     m_windowRect = IntRect(frameView->contentsToWindow(frameRect().location()), frameRect().size());
     m_clipRect = windowClipRect();
     m_clipRect.move(-m_windowRect.x(), -m_windowRect.y());
+    if (m_npWindow.x != m_windowRect.x()
+     || m_npWindow.y != m_windowRect.y()
+     || m_npWindow.width != m_windowRect.width()
+     || m_npWindow.height != m_windowRect.height()) {
+        m_npWindow.x = m_windowRect.x();
+        m_npWindow.y = m_windowRect.y();
+        m_npWindow.width = m_windowRect.width();
+        m_npWindow.height = m_windowRect.height();
+        SDL_Surface *old = platformWidget();
+        SDL_Surface *surface = 0;
+        Uint32 rmask, gmask, bmask, amask;
+        /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+           on the endianness (byte order) of the machine */
+        rmask = 0x00ff0000;
+        gmask = 0x0000ff00;
+        bmask = 0x000000ff;
+        amask = 0xff000000;
+        surface = SDL_CreateRGBSurfaceFrom(old->pixels, frameRect().width(), frameRect().height(), 32, old->pitch,
+                                       rmask, gmask, bmask, amask);
+        setPlatformWidget(surface);
+        m_npWindow.window = (void*)surface;
+        SDL_FreeSurface(old);
+    }
+    
+    SDL_Rect src = {0, 0, m_windowRect.width(), m_windowRect.height()}; 
+    SDL_Rect dest = m_windowRect;
+    SDL_BlitSurface(platformWidget(), &src, m_parentFrame->view()->hostWindow()->platformWindow(), &dest);
+    SDL_UpdateRect(m_parentFrame->view()->hostWindow()->platformWindow(), m_windowRect.x(), m_windowRect.y(), m_windowRect.width(), m_windowRect.height()); 
 }
 
 void PluginView::setFocus()
 {
+    //TODO
 }
 
 void PluginView::show()
 {
+    SDL_Rect src = {0, 0, m_windowRect.width(), m_windowRect.height()}; 
+    SDL_Rect dest = m_windowRect;
+    SDL_BlitSurface(platformWidget(), &src, m_parentFrame->view()->hostWindow()->platformWindow(), &dest);
+    SDL_UpdateRect(m_parentFrame->view()->hostWindow()->platformWindow(), m_windowRect.x(), m_windowRect.y(), m_windowRect.width(), m_windowRect.height()); 
 }
 
 void PluginView::hide()
 {
 }
 
-/*void PluginView::paintMissingPluginIcon(GraphicsContext* context, const IntRect& rect)
-{
-    
-    if (m_status !=  PluginStatusLoadedSuccessfully) {
-        static PassRefPtr<WebCore::Image> image;
-        if (!image)
-            image = Image::loadPlatformResource("missing-plugin");
-        
-        IntRect imageRect(x(), y(), image->width(), image->height());
-        int xOffset = (width() - imageRect.width()) / 2;
-        int yOffset = (height() - imageRect.height()) / 2;
-        imageRect.move(xOffset, yOffset);
-        
-        context->save();
-        context->clip(windowClipRect());
-        context->drawImage(image.get(), imageRect.location());
-        context->restore();
-    } else {
-        static RefPtr<Image> nullPluginImage;
-        if (!nullPluginImage)
-            nullPluginImage = Image::loadPlatformResource("nullPlugin");
-
-        IntRect imageRect(x(), y(), nullPluginImage->width(), nullPluginImage->height());
-
-        int xOffset = (width() - imageRect.width()) / 2;
-        int yOffset = (height() - imageRect.height()) / 2;
-
-        imageRect.move(xOffset, yOffset);
-
-        if (!rect.intersects(imageRect))
-            return;
-
-        context->save();
-        context->clip(windowClipRect());
-        context->drawImage(nullPluginImage.get(), imageRect.location());
-        context->restore();
-    }
-}*/
-
 void PluginView::paint(GraphicsContext* context, const IntRect& rect)
 {
-    if (!m_isStarted || m_status !=  PluginStatusLoadedSuccessfully) {
-        // Draw the "missing plugin" image
+    if (!m_isStarted) {
         paintMissingPluginIcon(context, rect);
         return;
     }
+
+    if (m_isWindowed || context->paintingDisabled())
+        return;
+
+    NPEvent npEvent;
+    /* Need to synthesize Xevents here */
+
+    m_npWindow.type = NPWindowTypeDrawable;
+
+    ASSERT(parent()->isFrameView());
+
+    if (m_plugin->pluginFuncs()->event) {
+        JSC::JSLock::DropAllLocks dropAllLocks(false);
+        m_plugin->pluginFuncs()->event(m_instance, &npEvent);
+    }
+
+    setNPWindowRect(frameRect());
 }
 
 void PluginView::handleKeyboardEvent(KeyboardEvent* event)
 {
     NPEvent npEvent;
-    
-    //FIXME: Synthesize a SDLEvent to pass through
+
+    /* FIXME: Synthesize an XEvent to pass through */
+
+    JSC::JSLock::DropAllLocks dropAllLocks(false);
     if (!m_plugin->pluginFuncs()->event(m_instance, &npEvent))
         event->setDefaultHandled();
 }
@@ -162,11 +177,12 @@ void PluginView::handleMouseEvent(MouseEvent* event)
     NPEvent npEvent;
 
     if (!m_isWindowed)
-        return;
+      return;
 
-    //FIXME: Synthesize a SDLEvent to pass through
+    /* FIXME: Synthesize an XEvent to pass through */
     IntPoint p = static_cast<FrameView*>(parent())->contentsToWindow(IntPoint(event->pageX(), event->pageY()));
 
+    JSC::JSLock::DropAllLocks dropAllLocks(false);
     if (!m_plugin->pluginFuncs()->event(m_instance, &npEvent))
         event->setDefaultHandled();
 }
@@ -177,6 +193,10 @@ void PluginView::setParent(ScrollView* parent)
 
     if (parent)
         init();
+    else {
+        if (!platformPluginWidget())
+            return;
+    }
 }
 
 void PluginView::setNPWindowRect(const IntRect& rect)
@@ -202,6 +222,7 @@ void PluginView::setNPWindowRect(const IntRect& rect)
 
     if (m_plugin->pluginFuncs()->setwindow) {
         PluginView::setCurrentPluginView(this);
+        JSC::JSLock::DropAllLocks dropAllLocks(false);
         setCallingPlugin(true);
         m_plugin->pluginFuncs()->setwindow(m_instance, &m_npWindow);
         setCallingPlugin(false);
@@ -210,8 +231,25 @@ void PluginView::setNPWindowRect(const IntRect& rect)
         if (!m_isWindowed)
             return;
 
+        ASSERT(platformPluginWidget());
     }
 }
+
+void PluginView::setParentVisible(bool visible)
+{
+    if (isParentVisible() == visible)
+        return;
+
+    Widget::setParentVisible(visible);
+
+    if (isSelfVisible() && platformPluginWidget()) {
+/*        if (visible)
+            gtk_widget_show(platformPluginWidget());
+        else
+            gtk_widget_hide(platformPluginWidget());*/
+    }
+}
+
 
 void PluginView::stop()
 {
@@ -228,14 +266,10 @@ void PluginView::stop()
     ASSERT(m_streams.isEmpty());
 
     m_isStarted = false;
+    JSC::JSLock::DropAllLocks dropAllLocks(false);
 
     // Clear the window
     m_npWindow.window = 0;
-#ifdef XP_UNIX
-    if (m_isWindowed && m_npWindow.ws_info)
-           delete (NPSetWindowCallbackStruct *)m_npWindow.ws_info;
-    m_npWindow.ws_info = 0;
-#endif
     if (m_plugin->pluginFuncs()->setwindow && !m_plugin->quirks().contains(PluginQuirkDontSetNullWindowHandleOnDestroy)) {
         PluginView::setCurrentPluginView(this);
         setCallingPlugin(true);
@@ -243,6 +277,12 @@ void PluginView::stop()
         setCallingPlugin(false);
         PluginView::setCurrentPluginView(0);
     }
+
+#ifdef XP_UNIX
+    if (m_isWindowed && m_npWindow.ws_info)
+           delete (NPSetWindowCallbackStruct *)m_npWindow.ws_info;
+    m_npWindow.ws_info = 0;
+#endif
 
     // Destroy the plugin
     {
@@ -272,8 +312,7 @@ const char* PluginView::userAgent()
 const char* PluginView::userAgentStatic()
 {
     //FIXME - Lie and say we are Mozilla
-    //    return MozillaUserAgent;
-    return "";
+    return MozillaUserAgent;
 }
 
 void PluginView::invalidateRegion(NPRegion)
@@ -283,17 +322,147 @@ void PluginView::invalidateRegion(NPRegion)
 
 NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const char* buf)
 {
+    String filename(buf, len);
+
+    if (filename.startsWith("file:///"))
+        filename = filename.substring(8);
+
+    // Get file info
+/*    if (!g_file_test ((filename.utf8()).data(), (GFileTest)(G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)))
+        return NPERR_FILE_NOT_FOUND;*/
+
+    //FIXME - read the file data into buffer
+    FILE* fileHandle = fopen((filename.utf8()).data(), "r");
+
+    if (fileHandle == 0)
+        return NPERR_FILE_NOT_FOUND;
+
+    //buffer.resize();
+
+    int bytesRead = fread(buffer.data(), 1, 0, fileHandle);
+
+    fclose(fileHandle);
+
+    if (bytesRead <= 0)
+        return NPERR_FILE_NOT_FOUND;
+
     return NPERR_NO_ERROR;
+}
+
+
+NPError PluginView::getValueStatic(NPNVariable variable, void* value)
+{
+    switch (variable) {
+    case NPNVToolkit:
+#if PLATFORM(GTK)
+        *static_cast<uint32*>(value) = 2;
+#else
+        *static_cast<uint32*>(value) = 0;
+#endif
+        return NPERR_NO_ERROR;
+
+    case NPNVSupportsXEmbedBool:
+#if PLATFORM(X11)
+        *static_cast<NPBool*>(value) = true;
+#else
+        *static_cast<NPBool*>(value) = false;
+#endif
+        return NPERR_NO_ERROR;
+
+    case NPNVjavascriptEnabledBool:
+        *static_cast<NPBool*>(value) = true;
+        return NPERR_NO_ERROR;
+
+    default:
+        return NPERR_GENERIC_ERROR;
+    }
 }
 
 NPError PluginView::getValue(NPNVariable variable, void* value)
 {
-    return NPERR_NO_ERROR;
+        switch (variable) {
+    case NPNVxDisplay:
+#if PLATFORM(X11)
+/*        if (m_needsXEmbed)
+            *(void **)value = (void *)GDK_DISPLAY();
+        else
+            *(void **)value = (void *)GTK_XTBIN(platformPluginWidget())->xtclient.xtdisplay;*/
+        return NPERR_NO_ERROR;
+#else
+        return NPERR_GENERIC_ERROR;
+#endif
+
+#if PLATFORM(X11)
+    case NPNVxtAppContext:
+        if (!m_needsXEmbed) {
+//            *(void **)value = XtDisplayToApplicationContext (GTK_XTBIN(platformPluginWidget())->xtclient.xtdisplay);
+
+            return NPERR_NO_ERROR;
+        } else
+            return NPERR_GENERIC_ERROR;
+#endif
+#if ENABLE(NETSCAPE_PLUGIN_API)
+        case NPNVWindowNPObject: {
+            if (m_isJavaScriptPaused)
+                return NPERR_GENERIC_ERROR;
+
+            NPObject* windowScriptObject = m_parentFrame->script()->windowScriptNPObject();
+
+            // Return value is expected to be retained, as described here: <http://www.mozilla.org/projects/plugin/npruntime.html>
+            if (windowScriptObject)
+                _NPN_RetainObject(windowScriptObject);
+
+            void** v = (void**)value;
+            *v = windowScriptObject;
+
+            return NPERR_NO_ERROR;
+        }
+
+        case NPNVPluginElementNPObject: {
+            if (m_isJavaScriptPaused)
+                return NPERR_GENERIC_ERROR;
+
+            NPObject* pluginScriptObject = 0;
+
+            if (m_element->hasTagName(appletTag) || m_element->hasTagName(embedTag) || m_element->hasTagName(objectTag))
+                pluginScriptObject = static_cast<HTMLPlugInElement*>(m_element)->getNPObject();
+
+            // Return value is expected to be retained, as described here: <http://www.mozilla.org/projects/plugin/npruntime.html>
+            if (pluginScriptObject)
+                _NPN_RetainObject(pluginScriptObject);
+
+            void** v = (void**)value;
+            *v = pluginScriptObject;
+
+            return NPERR_NO_ERROR;
+        }
+#endif
+
+        case NPNVnetscapeWindow: {
+#if PLATFORM(X11)
+            //void* w = reinterpret_cast<void*>(value);
+//            *((XID *)w) = GDK_WINDOW_XWINDOW(m_parentFrame->view()->hostWindow()->platformWindow()->window);
+#endif
+/*#ifdef GDK_WINDOWING_WIN32
+            HGDIOBJ* w = reinterpret_cast<HGDIOBJ*>(value);
+            *w = GDK_WINDOW_HWND(m_parentFrame->view()->hostWindow()->platformWindow()->window);
+#endif*/
+            return NPERR_NO_ERROR;
+        }
+
+        default:
+            return getValueStatic(variable, value);
+    }
 }
 
-NPError PluginView::getValueStatic(NPNVariable variable, void* value)
+void PluginView::invalidateRect(const IntRect& rect)
 {
-    return NPERR_GENERIC_ERROR;
+    if (m_isWindowed) {
+        //gtk_widget_queue_draw_area(GTK_WIDGET(platformPluginWidget()), rect.x(), rect.y(), rect.width(), rect.height());
+        return;
+    }
+
+    invalidateWindowlessPluginRect(rect);
 }
 
 void PluginView::invalidateRect(NPRect* rect)
@@ -309,6 +478,10 @@ void PluginView::invalidateRect(NPRect* rect)
 
 void PluginView::forceRedraw()
 {
+/*    if (m_isWindowed)
+        gtk_widget_queue_draw(platformPluginWidget());
+    else
+        gtk_widget_queue_draw(m_parentFrame->view()->hostWindow()->platformWindow());*/
 }
 
 PluginView::~PluginView()
@@ -349,32 +522,77 @@ void PluginView::init()
     }
 
     if (m_plugin->pluginFuncs()->getvalue) {
-        /*PluginView::setCurrentPluginView(this);
+        PluginView::setCurrentPluginView(this);
+        JSC::JSLock::DropAllLocks dropAllLocks(false);
         setCallingPlugin(true);
         m_plugin->pluginFuncs()->getvalue(m_instance, NPPVpluginNeedsXEmbed, &m_needsXEmbed);
         setCallingPlugin(false);
-        PluginView::setCurrentPluginView(0);*/
+        PluginView::setCurrentPluginView(0);
     }
+#if PLATFORM(X11)
+    
+    SDL_Surface* surface = 0;
+    if (m_needsXEmbed) {
+//        setPlatformWidget(gtk_socket_new());
+//        gtk_container_add(GTK_CONTAINER(m_parentFrame->view()->hostWindow()->platformWindow()), platformPluginWidget());
+//        g_signal_connect(platformPluginWidget(), "plug_removed", G_CALLBACK(plug_removed_cb), NULL);
+    } else if (m_isWindowed) {
+//        setPlatformWidget(gtk_xtbin_new(m_parentFrame->view()->hostWindow()->platformWindow()->window, 0));
+        Uint32 rmask, gmask, bmask, amask;
+        /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+           on the endianness (byte order) of the machine */
+        rmask = 0x00ff0000;
+        gmask = 0x0000ff00;
+        bmask = 0x000000ff;
+        amask = 0xff000000;
+        surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, frameRect().width(), frameRect().height(), 32,
+                                       rmask, gmask, bmask, amask); 
+        setPlatformWidget(surface);
+    }
+#else
+//    setPlatformWidget(gtk_socket_new());
+//    gtk_container_add(GTK_CONTAINER(m_parentFrame->view()->hostWindow()->platformWindow()), platformPluginWidget());
+#endif
+    
+    show();
 
-    if (m_isWindowed)
+    if (m_isWindowed) {
         m_npWindow.type = NPWindowTypeWindow;
-    else {
+#if PLATFORM(X11)
+        NPSetWindowCallbackStruct *ws = new NPSetWindowCallbackStruct();
+
+        ws->type = 0;
+
+        if (m_needsXEmbed) {
+//            gtk_widget_realize(platformPluginWidget());
+//            m_npWindow.window = (void*)gtk_socket_get_id(GTK_SOCKET(platformPluginWidget()));
+//            ws->display = GDK_WINDOW_XDISPLAY(platformPluginWidget()->window);
+//            ws->visual = GDK_VISUAL_XVISUAL(gdk_drawable_get_visual(GDK_DRAWABLE(platformPluginWidget()->window)));
+//            ws->depth = gdk_drawable_get_visual(GDK_DRAWABLE(platformPluginWidget()->window))->depth;
+//            ws->colormap = GDK_COLORMAP_XCOLORMAP(gdk_drawable_get_colormap(GDK_DRAWABLE(platformPluginWidget()->window)));
+        } else {
+            m_npWindow.window = (void*)surface;
+//            m_npWindow.window = (void*)GTK_XTBIN(platformPluginWidget())->xtwindow;
+//            ws->display = GTK_XTBIN(platformPluginWidget())->xtdisplay;
+//            ws->visual = GTK_XTBIN(platformPluginWidget())->xtclient.xtvisual;
+//            ws->depth = GTK_XTBIN(platformPluginWidget())->xtclient.xtdepth;
+//            ws->colormap = GTK_XTBIN(platformPluginWidget())->xtclient.xtcolormap;
+        }
+//        XFlush (ws->display);
+
+        m_npWindow.ws_info = ws;
+/*#elif defined(GDK_WINDOWING_WIN32)
+        m_npWindow.window = (void*)GDK_WINDOW_HWND(platformPluginWidget()->window);*/
+#endif
+    } else {
         m_npWindow.type = NPWindowTypeDrawable;
         m_npWindow.window = 0;
     }
 
-/*    if (!(m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall)))
-        setNPWindowRect(frameGeometry());*/
+    if (!(m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall)))
+        setNPWindowRect(frameRect());
 
     m_status = PluginStatusLoadedSuccessfully;
-}
-
-void PluginView::invalidateRect(const IntRect& rect)
-{
-}
-
-void PluginView::setParentVisible(bool visible)
-{
 }
 
 } // namespace WebCore

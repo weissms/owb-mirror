@@ -351,8 +351,10 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
     // FIXME: This should be a case insensitive set.
     HashSet<String> uniqueFilenames;
 
-#if defined(XP_UNIX)
+#if defined(XP_UNIX) && !PLATFORM(SDL)
     String fileNameFilter("*.so");
+#elif PLATFORM(SDL)
+    String fileNameFilter(".*\\.so");
 #else
     String fileNameFilter("");
 #endif
@@ -364,7 +366,6 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
         for (Vector<String>::const_iterator pIt = pluginPaths.begin(); pIt != pluginsEnd; ++pIt) {
             if (!fileExists(*pIt))
                 continue;
-
             paths.add(*pIt);
         }
     }
