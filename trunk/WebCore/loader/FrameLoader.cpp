@@ -55,6 +55,7 @@
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "HTMLAnchorElement.h"
+#include "HTMLAppletElement.h"
 #include "HTMLFormElement.h"
 #include "HTMLFrameElement.h"
 #include "HTMLNames.h"
@@ -116,7 +117,34 @@ using namespace SVGNames;
 #endif
 using namespace HTMLNames;
 
-typedef HashSet<String, CaseFoldingHash> LocalSchemesMap;
+typedef HashSet<String, CaseFoldingHash> URLSchemesMap;
+
+static URLSchemesMap& localSchemes()
+{
+    DEFINE_STATIC_LOCAL(URLSchemesMap, localSchemes, ());
+
+    if (localSchemes.isEmpty()) {
+        localSchemes.add("file");
+#if PLATFORM(MAC)
+        localSchemes.add("applewebdata");
+#endif
+#if PLATFORM(QT)
+        localSchemes.add("qrc");
+#endif
+    }
+
+    return localSchemes;
+}
+
+static URLSchemesMap& noAccessSchemes()
+{
+    DEFINE_STATIC_LOCAL(URLSchemesMap, noAccessSchemes, ());
+
+    if (noAccessSchemes.isEmpty())
+        noAccessSchemes.add("data");
+
+    return noAccessSchemes;
+}
 
 struct FormSubmission {
     FormSubmission(const char* action, const String& url, PassRefPtr<FormData> formData,
@@ -742,6 +770,7 @@ bool FrameLoader::executeIfJavaScriptURL(const KURL& url, bool userGesture, bool
     //        synchronously can cause crashes:
     //        http://bugs.webkit.org/show_bug.cgi?id=16782
     if (replaceDocument) {
+        stopAllLoaders();
         begin(m_URL, true, currentSecurityOrigin);
         write(scriptResult);
         end();
@@ -1117,23 +1146,6 @@ bool FrameLoader::restrictAccessToLocal()
 bool FrameLoader::allowSubstituteDataAccessToLocal()
 {
     return localLoadPolicy != FrameLoader::AllowLocalLoadsForLocalOnly;
-}
-
-static LocalSchemesMap& localSchemes()
-{
-    DEFINE_STATIC_LOCAL(LocalSchemesMap, localSchemes, ());
-
-    if (localSchemes.isEmpty()) {
-        localSchemes.add("file");
-#if PLATFORM(MAC)
-        localSchemes.add("applewebdata");
-#endif
-#if PLATFORM(QT)
-        localSchemes.add("qrc");
-#endif
-    }
-
-    return localSchemes;
 }
 
 void FrameLoader::commitIconURLToIconDatabase(const KURL& icon)
@@ -5070,12 +5082,15 @@ void FrameLoader::dispatchWindowObjectAvailable()
 Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, HTMLAppletElement* element, const HashMap<String, String>& args)
 {
     String baseURLString;
+    String codeBaseURLString;
     Vector<String> paramNames;
     Vector<String> paramValues;
     HashMap<String, String>::const_iterator end = args.end();
     for (HashMap<String, String>::const_iterator it = args.begin(); it != end; ++it) {
         if (equalIgnoringCase(it->first, "baseurl"))
             baseURLString = it->second;
+        else if (equalIgnoringCase(it->first, "codebase"))
+            codeBaseURLString = it->second;
         paramNames.append(it->first);
         paramValues.append(it->second);
     }
@@ -5084,10 +5099,14 @@ Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, HTMLAppletEleme
         baseURLString = m_frame->document()->baseURL().string();
     KURL baseURL = completeURL(baseURLString);
 
-    Widget* widget = m_client->createJavaAppletWidget(size, element, baseURL, paramNames, paramValues);
-    if (widget)
-        m_containsPlugIns = true;
-    
+    Widget* widget = 0;
+    KURL codeBaseURL = completeURL(codeBaseURLString);
+    if (canLoad(codeBaseURL, String(), element->document())) {
+        widget = m_client->createJavaAppletWidget(size, element, baseURL, paramNames, paramValues);
+        if (widget)
+            m_containsPlugIns = true;
+    }
+
     return widget;
 }
 
@@ -5150,7 +5169,7 @@ bool FrameLoader::shouldTreatURLAsLocal(const String& url)
     return localSchemes().contains(scheme);
 }
 
-bool FrameLoader::shouldTreatSchemeAsLocal(const String& scheme)
+bool FrameLoader::shouldTreatURLSchemeAsLocal(const String& scheme)
 {
     // This avoids an allocation of another String and the HashSet contains()
     // call for the file: and http: schemes.
@@ -5166,6 +5185,16 @@ bool FrameLoader::shouldTreatSchemeAsLocal(const String& scheme)
         return false;
 
     return localSchemes().contains(scheme);
+}
+
+void FrameLoader::registerURLSchemeAsNoAccess(const String& scheme)
+{
+    noAccessSchemes().add(scheme);
+}
+
+bool FrameLoader::shouldTreatURLSchemeAsNoAccess(const String& scheme)
+{
+    return noAccessSchemes().contains(scheme);
 }
 
 void FrameLoader::dispatchDidCommitLoad()

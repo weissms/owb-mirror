@@ -293,7 +293,7 @@ int RenderTextControl::indexForVisiblePosition(const VisiblePosition& pos)
     RefPtr<Range> range = Range::create(document());
     range->setStart(m_innerText.get(), 0, ec);
     ASSERT(!ec);
-    range->setEnd(indexPosition.node(), indexPosition.offset(), ec);
+    range->setEnd(indexPosition.node(), indexPosition.m_offset, ec);
     ASSERT(!ec);
     return TextIterator::rangeLength(range.get());
 }
@@ -451,7 +451,7 @@ void RenderTextControl::calcHeight()
     RenderBlock::calcHeight();
 }
 
-void RenderTextControl::hitInnerTextBlock(HitTestResult& result, int xPos, int yPos, int tx, int ty)
+void RenderTextControl::hitInnerTextElement(HitTestResult& result, int xPos, int yPos, int tx, int ty)
 {
     result.setInnerNode(m_innerText.get());
     result.setLocalPoint(IntPoint(xPos - tx - x() - m_innerText->renderBox()->x(),

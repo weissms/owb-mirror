@@ -648,7 +648,7 @@ void Frame::selectionLayoutChanged()
         if (startPos.isNotNull() && endPos.isNotNull() && selection.visibleStart() != selection.visibleEnd()) {
             RenderObject *startRenderer = startPos.node()->renderer();
             RenderObject *endRenderer = endPos.node()->renderer();
-            view->setSelection(startRenderer, startPos.offset(), endRenderer, endPos.offset());
+            view->setSelection(startRenderer, startPos.m_offset, endRenderer, endPos.m_offset);
         }
     }
 }
@@ -1235,7 +1235,7 @@ HTMLFormElement *Frame::currentForm() const
     return start ? scanForForm(start) : 0;
 }
 
-void Frame::revealSelection(const ScrollAlignment& alignment) const
+void Frame::revealSelection(const ScrollAlignment& alignment, bool revealExtent)
 {
     IntRect rect;
 
@@ -1246,7 +1246,7 @@ void Frame::revealSelection(const ScrollAlignment& alignment) const
             rect = selection()->absoluteCaretBounds();
             break;
         case VisibleSelection::RangeSelection:
-            rect = enclosingIntRect(selectionBounds(false));
+            rect = revealExtent ? VisiblePosition(selection()->extent()).absoluteCaretBounds() : enclosingIntRect(selectionBounds(false));
             break;
     }
 
@@ -1258,20 +1258,6 @@ void Frame::revealSelection(const ScrollAlignment& alignment) const
         // See <rdar://problem/4799899>.
         if (RenderLayer* layer = start.node()->renderer()->enclosingLayer())
             layer->scrollRectToVisible(rect, false, alignment, alignment);
-    }
-}
-
-void Frame::revealCaret(const ScrollAlignment& alignment) const
-{
-    if (selection()->isNone())
-        return;
-
-    Position extent = selection()->extent();
-    if (extent.node() && extent.node()->renderer()) {
-        IntRect extentRect = VisiblePosition(extent).absoluteCaretBounds();
-        RenderLayer* layer = extent.node()->renderer()->enclosingLayer();
-        if (layer)
-            layer->scrollRectToVisible(extentRect, false, alignment, alignment);
     }
 }
 

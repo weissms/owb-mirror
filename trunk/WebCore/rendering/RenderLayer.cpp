@@ -1401,7 +1401,7 @@ void RenderLayer::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect& r
     RenderBox* box = renderBox();
     ASSERT(box);
     if (scrollbar == m_vBar.get())
-        scrollRect.move(box->width() - box->borderRight() - box->width(), box->borderTop());
+        scrollRect.move(box->width() - box->borderRight() - scrollbar->width(), box->borderTop());
     else
         scrollRect.move(box->borderLeft(), box->height() - box->borderBottom() - scrollbar->height());
     renderer()->repaintRectangle(scrollRect);
@@ -2180,8 +2180,6 @@ PassRefPtr<HitTestingTransformState> RenderLayer::createLocalTransformState(Rend
         convertToLayerCoords(rootLayer, offsetX, offsetY);
     }
     
-    // FIXME: need to have transformFromContainer be able to use getAnimatedStyleForRenderer()
-    // when doing accelerated animations.
     TransformationMatrix containerTransform = renderer()->transformFromContainer(containerLayer ? containerLayer->renderer() : 0, IntSize(offsetX, offsetY));
     transformState->applyTransform(containerTransform, true);
     return transformState;
@@ -2220,14 +2218,6 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
         if (!newTransformState->m_accumulatedTransform.isInvertible())
             return 0;
 
-        // Check for hit test on backface if backface-visibility is 'hidden'
-        if (renderer()->style()->backfaceVisibility() == BackfaceVisibilityHidden) {
-            TransformationMatrix invertedMatrix = newTransformState->m_accumulatedTransform.inverse();
-            // If the z-vector of the matrix is negative, the back is facing towards the viewer.
-            if (invertedMatrix.m33() < 0)
-                return 0;
-        }
-
         // Compute the point and the hit test rect in the coords of this layer by using the values
         // from the transformState, which store the point and quad in the coords of the last flattened
         // layer, and the accumulated transform which lets up map through preserve-3d layers.
@@ -2253,6 +2243,14 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
     } else if (transformState || m_has3DTransformedDescendant || preserves3D()) {
         // We need transform state for the first time, or to offset the container state, so create it here.
         localTransformState = createLocalTransformState(rootLayer, containerLayer, hitTestRect, hitTestPoint, transformState);
+    }
+
+    // Check for hit test on backface if backface-visibility is 'hidden'
+    if (localTransformState && renderer()->style()->backfaceVisibility() == BackfaceVisibilityHidden) {
+        TransformationMatrix invertedMatrix = localTransformState->m_accumulatedTransform.inverse();
+        // If the z-vector of the matrix is negative, the back is facing towards the viewer.
+        if (invertedMatrix.m33() < 0)
+            return 0;
     }
 
     RefPtr<HitTestingTransformState> unflattenedTransformState = localTransformState;
@@ -2402,8 +2400,11 @@ bool RenderLayer::hitTestContents(const HitTestRequest& request, HitTestResult& 
     if (!renderer()->hitTest(request, result, hitTestPoint,
                             layerBounds.x() - renderBoxX(),
                             layerBounds.y() - renderBoxY(), 
-                            hitTestFilter))
+                            hitTestFilter)) {
+        // It's wrong to set innerNode, but then claim that you didn't hit anything.
+        ASSERT(!result.innerNode());
         return false;
+    }
 
     // For positioned generated content, we might still not have a
     // node by the time we get to the layer level, since none of

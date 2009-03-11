@@ -666,6 +666,9 @@ void InspectorController::windowScriptObjectAvailable()
     if (!m_page || !enabled())
         return;
 
+    // Grant the inspector the ability to script the inspected page.
+    m_page->mainFrame()->document()->securityOrigin()->grantUniversalAccess();
+
     // FIXME: This should be cleaned up. API Mix-up.
     JSGlobalObject* globalObject = m_page->mainFrame()->script()->globalObject();
     ExecState* exec = globalObject->globalExec();
@@ -1716,6 +1719,21 @@ void InspectorController::resourceRetrievedByXMLHttpRequest(unsigned long identi
 
     resource->setXMLHttpRequestProperties(sourceString);
 
+    if (windowVisible() && resource->scriptObject)
+        updateScriptResourceType(resource);
+}
+
+void InspectorController::scriptImported(unsigned long identifier, const JSC::UString& sourceString)
+{
+    if (!enabled())
+        return;
+    
+    InspectorResource* resource = m_resources.get(identifier).get();
+    if (!resource)
+        return;
+    
+    resource->setXMLHttpRequestProperties(sourceString);
+    
     if (windowVisible() && resource->scriptObject)
         updateScriptResourceType(resource);
 }

@@ -2995,6 +2995,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\loader\CrossOriginAccessControl.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\CrossOriginAccessControl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\CrossOriginPreflightResultCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\CrossOriginPreflightResultCache.h"
+				>
+			</File>
+			<File
 				RelativePath="..\loader\DocLoader.cpp"
 				>
 			</File>
@@ -4690,14 +4706,6 @@
 				</File>
 				<File
 					RelativePath="..\platform\text\TextCodecUTF16.h"
-					>
-				</File>
-				<File
-					RelativePath="..\platform\text\TextDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\platform\text\TextDecoder.h"
 					>
 				</File>
 				<File
@@ -9910,6 +9918,14 @@
 			</File>
 			<File
 				RelativePath="..\history\PageCache.h"
+				>
+			</File>
+			<File
+				RelativePath="..\workers\WorkerImportScriptsClient.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\workers\WorkerImportScriptsClient.h"
 				>
 			</File>
 		</Filter>

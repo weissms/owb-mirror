@@ -89,7 +89,7 @@ PassRefPtr<Range> Range::create(PassRefPtr<Document> ownerDocument, PassRefPtr<N
 
 PassRefPtr<Range> Range::create(PassRefPtr<Document> ownerDocument, const Position& start, const Position& end)
 {
-    return adoptRef(new Range(ownerDocument, start.container.get(), start.posOffset, end.container.get(), end.posOffset));
+    return adoptRef(new Range(ownerDocument, start.container.get(), start.m_offset, end.container.get(), end.m_offset));
 }
 
 Range::~Range()
@@ -436,11 +436,14 @@ short Range::compareBoundaryPoints(CompareHow how, const Range* sourceRange, Exc
 
 short Range::compareBoundaryPoints(Node* containerA, int offsetA, Node* containerB, int offsetB)
 {
-    ASSERT(containerA && containerB);
+    ASSERT(containerA);
+    ASSERT(containerB);
+
     if (!containerA)
         return -1;
     if (!containerB)
         return 1;
+
     // see DOM2 traversal & range section 2.5
 
     // case 1: both points have the same container
@@ -524,7 +527,7 @@ short Range::compareBoundaryPoints(Node* containerA, int offsetA, Node* containe
 
 short Range::compareBoundaryPoints(const Position& a, const Position& b)
 {
-    return compareBoundaryPoints(a.container.get(), a.posOffset, b.container.get(), b.posOffset);
+    return compareBoundaryPoints(a.container.get(), a.m_offset, b.container.get(), b.m_offset);
 }
 
 bool Range::boundaryPointsValid() const
@@ -1587,7 +1590,10 @@ void Range::addLineBoxRects(Vector<IntRect>& rects, bool useSelectionHeight)
     if (!start || !end)
         return;
 
-    RenderObject* stop = end->nextInPreOrderAfterChildren();
+    RenderObject* stop = end->childAt(m_end.offset());
+    if (!stop)
+        stop = end->nextInPreOrderAfterChildren();
+    
     for (RenderObject* r = start; r && r != stop; r = r->nextInPreOrder()) {
         // only ask leaf render objects for their line box rects
         if (!r->firstChild()) {

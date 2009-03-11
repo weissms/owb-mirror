@@ -11,6 +11,8 @@ list(APPEND WEBCORE_SRC
     loader/CachedResourceHandle.cpp
     loader/CachedScript.cpp
     loader/CachedXSLStyleSheet.cpp
+    loader/CrossOriginAccessControl.cpp
+    loader/CrossOriginPreflightResultCache.cpp
     loader/DocLoader.cpp
     loader/DocumentLoader.cpp
     loader/DocumentThreadableLoader.cpp

@@ -30,7 +30,6 @@
 #include "CString.h"
 #include "PlatformString.h"
 #include "TextCodec.h"
-#include "TextDecoder.h"
 #include "TextEncodingRegistry.h"
 #if USE(ICU_UNICODE)
 #include <unicode/unorm.h>
@@ -73,7 +72,7 @@ String TextEncoding::decode(const char* data, size_t length, bool stopOnError, b
     if (!m_name)
         return String();
 
-    return TextDecoder(*this).decode(data, length, true, stopOnError, sawError);
+    return newTextCodec(*this)->decode(data, length, true, stopOnError, sawError);
 }
 
 CString TextEncoding::encode(const UChar* characters, size_t length, UnencodableHandling handling) const
@@ -168,6 +167,10 @@ UChar TextEncoding::backslashAsCurrencySymbol() const
 
 bool TextEncoding::isNonByteBasedEncoding() const
 {
+    if (noExtendedTextEncodingNameUsed()) {
+        return *this == UTF16LittleEndianEncoding()
+               || *this == UTF16BigEndianEncoding();
+    }
     return *this == UTF16LittleEndianEncoding()
            || *this == UTF16BigEndianEncoding()
            || *this == UTF32BigEndianEncoding()

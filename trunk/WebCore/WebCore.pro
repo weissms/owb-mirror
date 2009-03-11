@@ -110,14 +110,18 @@ CONFIG(QTDIR_build) {
 !contains(DEFINES, ENABLE_SVG_USE=.): DEFINES += ENABLE_SVG_USE=1
 
 # HTML5 media support
-contains(QT_CONFIG, phonon):DEFINES += ENABLE_VIDEO=1
-else:DEFINES += ENABLE_VIDEO=0
+!contains(DEFINES, ENABLE_VIDEO=.) {
+    contains(QT_CONFIG, phonon):DEFINES += ENABLE_VIDEO=1
+    else:DEFINES += ENABLE_VIDEO=0
+}
 
 # Nescape plugins support (NPAPI)
-unix|win32-*:!embedded:!wince*:!symbian {
-    DEFINES += ENABLE_NETSCAPE_PLUGIN_API=1
-} else {
-    DEFINES += ENABLE_NETSCAPE_PLUGIN_API=0
+!contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=.) {
+    unix|win32-*:!embedded:!wince*:!symbian {
+        DEFINES += ENABLE_NETSCAPE_PLUGIN_API=1
+    } else {
+        DEFINES += ENABLE_NETSCAPE_PLUGIN_API=0
+    }
 }
 
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
@@ -798,6 +802,8 @@ SOURCES += \
     loader/CachedResource.cpp \
     loader/CachedScript.cpp \
     loader/CachedXSLStyleSheet.cpp \
+    loader/CrossOriginAccessControl.cpp \
+    loader/CrossOriginPreflightResultCache.cpp \
     loader/DocLoader.cpp \
     loader/DocumentLoader.cpp \
     loader/DocumentThreadableLoader.cpp \
@@ -950,7 +956,6 @@ SOURCES += \
     platform/text/TextCodecLatin1.cpp \
     platform/text/TextCodecUserDefined.cpp \
     platform/text/TextCodecUTF16.cpp \
-    platform/text/TextDecoder.cpp \
     platform/text/TextEncoding.cpp \
     platform/text/TextEncodingRegistry.cpp \
     platform/text/TextStream.cpp \

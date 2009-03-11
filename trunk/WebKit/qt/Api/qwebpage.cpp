@@ -1065,7 +1065,7 @@ QVariant QWebPage::inputMethodQuery(Qt::InputMethodQuery property) const
         if (frame) {
             VisibleSelection selection = frame->selection()->selection();
             if (selection.isCaret()) {
-                return QVariant(selection.start().offset());
+                return QVariant(selection.start().m_offset);
             }
         }
         return QVariant();
@@ -1653,7 +1653,7 @@ bool QWebPage::acceptNavigationRequest(QWebFrame *frame, const QWebNetworkReques
                 return true;
 
             case DelegateExternalLinks:
-                if (WebCore::FrameLoader::shouldTreatSchemeAsLocal(request.url().scheme()))
+                if (WebCore::FrameLoader::shouldTreatURLSchemeAsLocal(request.url().scheme()))
                     return true;
                 emit linkClicked(request.url());
                 return false;

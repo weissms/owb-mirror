@@ -2,6 +2,7 @@ if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
         workers/Worker.cpp
         workers/WorkerContext.cpp
+        workers/WorkerImportScriptsClient.cpp
         workers/WorkerLocation.cpp
         workers/WorkerMessagingProxy.cpp
         workers/WorkerRunLoop.cpp

@@ -221,7 +221,7 @@ BAL/Skeletons/Graphics	WebCore/platform/animation/Animation.h
 BAL/Skeletons/Graphics	WebCore/platform/animation/AnimationList.h
 BAL/Skeletons/Graphics	WebCore/platform/animation/TimingFunction.h
 
-BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/CairoPath.h
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/CairoPath.h BCCairoPath.h
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GradientCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
@@ -451,8 +451,6 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUTF16.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUTF16.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUserDefined.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUserDefined.h
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextDecoder.cpp
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextDecoder.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextDirection.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.h
@@ -646,6 +644,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/AVLTree.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/ByteArray.h
+BAL/Skeletons/Types JavaScriptCore/wtf/CrossThreadRefCounted.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/GetPtr.h
@@ -705,6 +704,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/Assertions.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/Assertions.h
 BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.h
+BAL/Types/WTF   JavaScriptCore/wtf/CrossThreadRefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
 BAL/Types/WTF	JavaScriptCore/wtf/Deque.h
