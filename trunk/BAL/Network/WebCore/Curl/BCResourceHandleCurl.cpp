@@ -28,6 +28,8 @@
 #include "config.h"
 #include "ResourceHandle.h"
 
+#include "CookieManager.h"
+#include "CString.h"
 #include "DocLoader.h"
 #include "NotImplemented.h"
 #include "ResourceHandleInternal.h"
@@ -183,6 +185,51 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&)
 {
     notImplemented();
     return false;
+}
+
+void ResourceHandle::setCookies()
+{
+    CookieManager* manager = CookieManager::getCookieManager();
+    KURL url = getInternal()->m_response.url();
+
+    if (manager)
+        manager->setCookies(url, KURL(), getInternal()->m_response.httpHeaderField("Set-Cookie"));
+
+    checkAndSendCookies(url);
+}
+
+void ResourceHandle::checkAndSendCookies(KURL& url)
+{
+    // Cookies are a part of the http protocol only
+    if (!String(d->m_url).startsWith("http"))
+        return;
+
+    if (url.isEmpty())
+        url = KURL(d->m_url);
+
+    CookieManager* manager = CookieManager::getCookieManager();
+
+    if (!manager)
+        return;
+
+    // Prepare a cookie header if there are cookies related to this url.
+    String cookiePairs = manager->getCookie(url);
+
+    // Cookie size should not be above 81920 (per construction and also because we
+    // do not want to  cookie).
+    ASSERT(cookiePairs.length() <= 81920);
+
+    // We choose a max size of 81921 caracters because a cookie max size is 4096 and a domain can have at max 20 cookies so 20 * 4096 + 1 ('\0') = 81921
+    static char cookieChar[81921];
+    strncpy(cookieChar, cookiePairs.utf8().data(), 81920);
+
+    // Force the string to be zero-terminated as required by libCURL.
+    cookieChar[81920] = '\0';
+
+    if (!cookiePairs.isEmpty() && d->m_handle) {
+        LOG(Network, "CURL POST Cookie : %s \n", cookieChar);
+        curl_easy_setopt(d->m_handle, CURLOPT_COOKIE, cookieChar);
+    }
 }
 
 bool ResourceHandle::loadsBlocked()

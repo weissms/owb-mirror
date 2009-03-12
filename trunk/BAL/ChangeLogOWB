@@ -1,3 +1,24 @@
+2009-03-12  Olivier DOLE  <odole@pleyo.com>
+
+        Re-enable cookie storage in database if database is enabled.
+        This commit is just a backport of changeset 636 :
+        http://www.sand-labs.org/owb/changeset/636
+
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::takePrevious):
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setCookies):
+        (WebCore::ResourceHandle::checkAndSendCookies):
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::ResourceHandleManager::ResourceHandleManager):
+        (WebCore::ResourceHandleManager::~ResourceHandleManager):
+        (WebCore::ResourceHandleManager::setCookieJarFileName):
+        (WebCore::headerCallback):
+        (WebCore::ResourceHandleManager::initializeHandle):
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.h:
+        * Network/WebCore/WK/BCResourceHandleWK.h:
+        * Scripts/data/WebKitFiles.txt:
+
 2009-03-11  Olivier DOLE  <odole@pleyo.com>
 
         Fix for merge due to previous commit.

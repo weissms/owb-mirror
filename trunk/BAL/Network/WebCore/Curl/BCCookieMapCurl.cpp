@@ -29,6 +29,10 @@
 #include "CookieManager.h"
 #include <stdio.h>
 
+#ifndef NDEBUG
+#include "Logging.h"
+#endif
+
 namespace WebCore {
 
 CookieMap::~CookieMap()
@@ -43,7 +47,7 @@ Cookie* CookieMap::takePrevious(const Cookie* cookie)
     String key = cookie->name() + cookie->path();
 
 #ifndef NDEBUG
-    printf("Key : %s\n", key.ascii().data());
+    LOG(Network, "Key : %s\n", key.ascii().data());
 #endif
 
     return m_cookieMap.take(key);

@@ -167,6 +167,11 @@ public:
     static SoupSession* defaultSession();
 #endif
 
+#if USE(CURL)
+    void checkAndSendCookies(KURL& url);
+    void setCookies();
+#endif
+
     // Used to work around the fact that you don't get any more NSURLConnection callbacks until you return from the one you're in.
     static bool loadsBlocked();    
     

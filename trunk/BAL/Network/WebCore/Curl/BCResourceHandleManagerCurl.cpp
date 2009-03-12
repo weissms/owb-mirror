@@ -33,6 +33,7 @@
 #include "ResourceHandleManager.h"
 
 #include "Base64.h"
+#include "CookieManager.h"
 #include "CString.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
@@ -62,7 +63,6 @@ static const bool ignoreSSLErrors = getenv("WEBKIT_IGNORE_SSL_ERRORS");
 
 ResourceHandleManager::ResourceHandleManager()
     : m_downloadTimer(this, &ResourceHandleManager::downloadTimerCallback)
-    , m_cookieJarFileName(0)
     , m_runningJobs(0)
 {
     curl_global_init(CURL_GLOBAL_ALL);
@@ -76,14 +76,14 @@ ResourceHandleManager::~ResourceHandleManager()
 {
     curl_multi_cleanup(m_curlMultiHandle);
     curl_share_cleanup(m_curlShareHandle);
-    if (m_cookieJarFileName)
-        free(m_cookieJarFileName);
     curl_global_cleanup();
 }
 
 void ResourceHandleManager::setCookieJarFileName(const char* cookieJarFileName)
 {
-    m_cookieJarFileName = strdup(cookieJarFileName);
+    CookieManager* manager = CookieManager::getCookieManager();
+    if (manager)
+        manager->setCookieJar(strdup(cookieJarFileName));
 }
 
 ResourceHandleManager* ResourceHandleManager::sharedInstance()
@@ -213,8 +213,26 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
 
     } else {
         int splitPos = header.find(":");
-        if (splitPos != -1)
-            d->m_response.setHTTPHeaderField(header.left(splitPos), header.substring(splitPos+1).stripWhiteSpace());
+        if (splitPos != -1) {
+            d->m_response.setHTTPHeaderField(header.left(splitPos), header.substring(splitPos + 1).stripWhiteSpace());
+
+            // Handle cookie
+            if (header.contains("Set-Cookie: ", false)) {
+                // We need to set the url if not already done
+                if (d->m_response.url().isEmpty()) {
+                    CURLcode err;
+                    const char* hdr;
+                    err = curl_easy_getinfo(d->m_handle, CURLINFO_EFFECTIVE_URL, &hdr);
+                    if (err != CURLE_OK) {
+                        LOG_ERROR("Cannot determine URL - cookie rejected");
+                        return totalSize;
+                    }
+                    d->m_response.setUrl(KURL(hdr));
+                }
+                LOG(Network, "Received cookie value : %s !!\n", d->m_response.httpHeaderField("Set-Cookie").utf8().data());
+                job->setCookies();
+            }
+        }
     }
 
     return totalSize;
@@ -652,11 +670,6 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
     d->m_url = strdup(url.latin1().data());
     curl_easy_setopt(d->m_handle, CURLOPT_URL, d->m_url);
 
-    if (m_cookieJarFileName) {
-        curl_easy_setopt(d->m_handle, CURLOPT_COOKIEFILE, m_cookieJarFileName);
-        curl_easy_setopt(d->m_handle, CURLOPT_COOKIEJAR, m_cookieJarFileName);
-    }
-
     struct curl_slist* headers = 0;
     if (job->request().httpHeaderFields().size() > 0) {
         HTTPHeaderMap customHeaders = job->request().httpHeaderFields();
@@ -685,6 +698,9 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
         curl_easy_setopt(d->m_handle, CURLOPT_HTTPHEADER, headers);
         d->m_customHeaders = headers;
     }
+
+    // Set cookies.
+    job->checkAndSendCookies(kurl);
 }
 
 void ResourceHandleManager::cancel(ResourceHandle* job)

@@ -63,7 +63,6 @@ private:
     Timer<ResourceHandleManager> m_downloadTimer;
     CURLM* m_curlMultiHandle;
     CURLSH* m_curlShareHandle;
-    char* m_cookieJarFileName;
     char m_curlErrorBuffer[CURL_ERROR_SIZE];
     Vector<ResourceHandle*> m_resourceHandleList;
     int m_runningJobs;
