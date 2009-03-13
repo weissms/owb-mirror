@@ -1,3 +1,9 @@
+2009-03-13  Olivier DOLE  <odole@pleyo.com>
+
+        build fix.
+
+        * wtf/CMakeLists.txt:
+
 2009-02-23  Olivier DOLE  <odole@pleyo.com>
 
         build fix for jshell

@@ -11,6 +11,7 @@ include_directories(
     ${BAL_INCLUDE_DIRS}
     ${I18N_INCLUDE_DIRS}
     ${THREADS_INCLUDE_DIRS}
+    ${TIMER_INCLUDE_DIRS}
 )
 
 include(AddJavaScriptCoreCompilerFlags)
