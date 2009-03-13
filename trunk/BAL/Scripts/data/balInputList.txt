@@ -389,7 +389,6 @@ BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecICU.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecLatin1.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUTF16.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUserDefined.h
-BAL/Skeletons/Internationalization	WebCore/platform/text/TextDecoder.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncoding.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncodingRegistry.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextStream.h
