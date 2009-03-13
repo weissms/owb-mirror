@@ -71,7 +71,7 @@ static void printSourceURLAndLine(const String& sourceURL, unsigned lineNumber)
     }
 }
 
-static bool getFirstArgumentAsString(const ScriptCallFrame& callFrame, String& result, bool checkForNullOrUndefined = false)
+static bool getFirstArgumentAsString(ScriptState* scriptState, const ScriptCallFrame& callFrame, String& result, bool checkForNullOrUndefined = false)
 {
     if (!callFrame.argumentCount())
         return false;
@@ -80,7 +80,8 @@ static bool getFirstArgumentAsString(const ScriptCallFrame& callFrame, String& r
     if (checkForNullOrUndefined && (value.isNull() || value.isUndefined()))
         return false;
 
-    return value.getString(result);
+    result = value.toString(scriptState);
+    return true;
 }
 
 static void printMessageSourceAndLevelPrefix(MessageSource source, MessageLevel level)
@@ -179,7 +180,7 @@ void Console::addMessage(MessageLevel level, ScriptCallStack* callStack, bool ac
         return;
 
     String message;
-    if (getFirstArgumentAsString(lastCaller, message))
+    if (getFirstArgumentAsString(callStack->state(), lastCaller, message))
         page->chrome()->client()->addMessageToConsole(message, lastCaller.lineNumber(), lastCaller.sourceURL().prettyURL());
 
 #if ENABLE(INSPECTOR)
@@ -265,7 +266,7 @@ void Console::count(ScriptCallStack* callStack)
     // Follow Firebug's behavior of counting with null and undefined title in
     // the same bucket as no argument
     String title;
-    getFirstArgumentAsString(lastCaller, title);
+    getFirstArgumentAsString(callStack->state(), lastCaller, title);
 
 #if ENABLE(INSPECTOR)
     page->inspectorController()->count(title, lastCaller.lineNumber(), lastCaller.sourceURL().string());

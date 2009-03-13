@@ -450,11 +450,23 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
     case GDK_Left:
         view->scrollBy(IntSize(-cScrollbarPixelsPerLineStep, 0));
         return TRUE;
+    case GDK_space:
+        if ((event->state & GDK_SHIFT_MASK) == GDK_SHIFT_MASK)
+            view->scrollBy(IntSize(0, -view->visibleHeight()));
+        else
+            view->scrollBy(IntSize(0, view->visibleHeight()));
+        return TRUE;
+    case GDK_Page_Up:
+        view->scrollBy(IntSize(0, -view->visibleHeight()));
+        return TRUE;
+    case GDK_Page_Down:
+        view->scrollBy(IntSize(0, view->visibleHeight()));
+        return TRUE;
     case GDK_Home:
-        frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);
+        view->scrollBy(IntSize(0, -view->contentsHeight()));
         return TRUE;
     case GDK_End:
-        frame->selection()->modify(alteration, SelectionController::FORWARD, DocumentBoundary, true);
+        view->scrollBy(IntSize(0, view->contentsHeight()));
         return TRUE;
     }
 
@@ -1121,11 +1133,18 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     /**
      * WebKitWebView::download-requested:
      * @web_view: the object on which the signal is emitted
-     * @download: the message text
-     * @return: TRUE if the download was handled.
+     * @download: a #WebKitDownload object that lets you control the
+     * download process
+     * @return: %TRUE if the download should be performed, %FALSE to cancel it.
      *
      * A new Download is being requested. By default, if the signal is
-     * not handled, the download is cancelled.
+     * not handled, the download is cancelled. Notice that while
+     * handling this signal you must set the target URI using
+     * webkit_download_set_target_uri().
+     *
+     * If you intend to handle downloads yourself rather than using
+     * the #WebKitDownload helper object you must handle this signal,
+     * and return %FALSE.
      *
      * Since: 1.1.2
      */
@@ -1709,7 +1728,9 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     Settings* settings = core(webView)->settings();
 
     gchar* defaultEncoding, *cursiveFontFamily, *defaultFontFamily, *fantasyFontFamily, *monospaceFontFamily, *sansSerifFontFamily, *serifFontFamily, *userStylesheetUri;
-    gboolean autoLoadImages, autoShrinkImages, printBackgrounds, enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas;
+    gboolean autoLoadImages, autoShrinkImages, printBackgrounds,
+        enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
+        enablePrivateBrowsing;
 
     g_object_get(webSettings,
                  "default-encoding", &defaultEncoding,
@@ -1727,6 +1748,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "resizable-text-areas", &resizableTextAreas,
                  "user-stylesheet-uri", &userStylesheetUri,
                  "enable-developer-extras", &enableDeveloperExtras,
+                 "enable-private-browsing", &enablePrivateBrowsing,
                  NULL);
 
     settings->setDefaultTextEncodingName(defaultEncoding);
@@ -1744,6 +1766,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setTextAreasAreResizable(resizableTextAreas);
     settings->setUserStyleSheetLocation(KURL(KURL(), userStylesheetUri));
     settings->setDeveloperExtrasEnabled(enableDeveloperExtras);
+    settings->setPrivateBrowsingEnabled(enablePrivateBrowsing);
 
     g_free(defaultEncoding);
     g_free(cursiveFontFamily);
@@ -1812,6 +1835,8 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setUserStyleSheetLocation(KURL(KURL(), g_value_get_string(&value)));
     else if (name == g_intern_string("enable-developer-extras"))
         settings->setDeveloperExtrasEnabled(g_value_get_boolean(&value));
+    else if (name == g_intern_string("enable-private-browsing"))
+        settings->setPrivateBrowsingEnabled(g_value_get_boolean(&value));
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
         g_warning("Unexpected setting '%s'", name);
     g_value_unset(&value);

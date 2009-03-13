@@ -377,6 +377,7 @@ sources['page'] = [
     'page/Chrome.cpp',
     'page/Console.cpp',
     'page/ContextMenuController.cpp',
+    'page/Coordinates.cpp',
     'page/DOMSelection.cpp',
     'page/DOMTimer.cpp',
     'page/DOMWindow.cpp',
@@ -515,8 +516,8 @@ sources['rendering'] = [
     'rendering/SVGRenderTreeAsText.cpp',
     'rendering/SVGRootInlineBox.cpp',
     'rendering/ScrollBehavior.cpp',
-    'rendering/TextControlInnerElements.cpp'
-    'rendering/TransformState.cpp'
+    'rendering/TextControlInnerElements.cpp',
+    'rendering/TransformState.cpp',
     'rendering/bidi.cpp',
     'rendering/break_lines.cpp',
 ]

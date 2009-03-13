@@ -19,6 +19,7 @@ list(APPEND WEBCORE_SRC
     page/BarInfo.cpp
     page/Chrome.cpp
     page/ContextMenuController.cpp
+    page/Coordinates.cpp
     page/DOMSelection.cpp
     page/DOMTimer.cpp
     page/DOMWindow.cpp
@@ -45,6 +46,7 @@ list(APPEND WEBCORE_SRC
 )
 list(APPEND IDL_SRC
     page/BarInfo.idl
+    page/Coordinates.idl
     page/DOMSelection.idl
     page/DOMWindow.idl
     page/Geoposition.idl

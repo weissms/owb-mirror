@@ -279,6 +279,12 @@ namespace WTF {
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Letter_Lowercase;
     }
 
+    inline bool hasLineBreakingPropertyComplexContext(UChar32)
+    {
+        // FIXME: Implement this to return whether the character has line breaking property SA (Complex Context).
+        return false;
+    }
+
     inline int digitValue(UChar32 c)
     {
         return c-0x30;

@@ -1,3 +1,35 @@
+2009-03-13  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24502
+        Make horizontal scrolling on Windows always go the correct direction.
+
+        * WebView.cpp:
+        (WebView::mouseWheel):
+        (WebViewWndProc):
+        * WebView.h:
+
+2009-03-12  Adam Roben  <aroben@apple.com>
+
+        Implement DOMHTMLDocument::title
+
+        Reviewed by Dan Bernstein.
+
+        * DOMHTMLClasses.cpp:
+        (DOMHTMLDocument::title): Call through to WebCore::Document (with
+        obligatory COM error checking/type conversions).
+
+2009-03-11  Adam Roben  <aroben@apple.com>
+
+        Export functions needed by ThreadSpecific from WebKit
+
+        Reviewed by John Sullivan.
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+        Export WTF::tlsKeyCount and WTF::tlsKeys.
+
 2009-03-11  Steve Falkenburg  <sfalken@apple.com>
 
         <rdar://problem/6662167> When clicking in Top Sites search field, WebHistory::findIndex fails causing crash in BookmarksSearcher::collectHistorySearchResults

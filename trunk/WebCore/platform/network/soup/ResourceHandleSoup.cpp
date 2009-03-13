@@ -31,6 +31,7 @@
 #include "ChromeClient.h"
 #include "CString.h"
 #include "DocLoader.h"
+#include "FileSystem.h"
 #include "Frame.h"
 #include "HTTPParsers.h"
 #include "Logging.h"
@@ -128,20 +129,6 @@ enum
     ERROR_UNABLE_TO_OPEN_FILE,
 };
 
-struct FileMapping
-{
-    gpointer ptr;
-    gsize length;
-};
-
-static void freeFileMapping(gpointer data)
-{
-    FileMapping* fileMapping = static_cast<FileMapping*>(data);
-    if (fileMapping->ptr != MAP_FAILED)
-        munmap(fileMapping->ptr, fileMapping->length);
-    g_slice_free(FileMapping, fileMapping);
-}
-
 static void cleanupGioOperation(ResourceHandleInternal* handle);
 
 ResourceHandleInternal::~ResourceHandleInternal()
@@ -174,7 +161,7 @@ static void fillResponseFromMessage(SoupMessage* msg, ResourceResponse* response
 
     String contentType = soup_message_headers_get(msg->response_headers, "Content-Type");
     char* uri = soup_uri_to_string(soup_message_get_uri(msg), false);
-    response->setUrl(KURL(uri));
+    response->setURL(KURL(KURL(), uri));
     g_free(uri);
     response->setMimeType(extractMIMETypeFromMediaType(contentType));
     response->setTextEncodingName(extractCharsetFromMediaType(contentType));
@@ -459,35 +446,25 @@ bool ResourceHandle::startHttp(String urlString)
                      * mapping for uploaded files code inspired by technique used in
                      * libsoup's simple-httpd test
                      */
-                    /* FIXME: Since Linux 2.6.23 we should also use O_CLOEXEC */
-                    int fd = open(element.m_filename.utf8().data(), O_RDONLY);
+                    GError* error = 0;
+                    gchar* fileName = filenameFromString(element.m_filename);
+                    GMappedFile* fileMapping = g_mapped_file_new(fileName, false, &error);
 
-                    if (fd == -1) {
-                        ResourceError error("webkit-network-error", ERROR_UNABLE_TO_OPEN_FILE, urlString, strerror(errno));
-                        d->client()->didFail(this, error);
+                    g_free(fileName);
+
+                    if (error) {
+                        ResourceError resourceError("webkit-network-error", ERROR_UNABLE_TO_OPEN_FILE, urlString, error->message);
+                        g_error_free(error);
+
+                        d->client()->didFail(this, resourceError);
+
                         g_object_unref(msg);
                         return false;
                     }
 
-                    struct stat statBuf;
-                    fstat(fd, &statBuf);
-
-                    FileMapping* fileMapping = g_slice_new(FileMapping);
-
-                    fileMapping->ptr = mmap(0, statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-                    if (fileMapping->ptr == MAP_FAILED) {
-                        ResourceError error("webkit-network-error", ERROR_UNABLE_TO_OPEN_FILE, urlString, strerror(errno));
-                        d->client()->didFail(this, error);
-                        freeFileMapping(fileMapping);
-                        g_object_unref(msg);
-                        close(fd);
-                        return false;
-                    }
-                    fileMapping->length = statBuf.st_size;
-
-                    close(fd);
-
-                    SoupBuffer* soupBuffer = soup_buffer_new_with_owner(fileMapping->ptr, fileMapping->length, fileMapping, freeFileMapping);
+                    SoupBuffer* soupBuffer = soup_buffer_new_with_owner(g_mapped_file_get_contents(fileMapping),
+                                                                        g_mapped_file_get_length(fileMapping),
+                                                                        fileMapping, reinterpret_cast<GDestroyNotify>(g_mapped_file_free));
                     soup_message_body_append_buffer(msg->request_body, soupBuffer);
                     soup_buffer_free(soupBuffer);
                 }
@@ -757,7 +734,7 @@ static void queryInfoCallback(GObject* source, GAsyncResult* res, gpointer)
     ResourceResponse response;
 
     char* uri = g_file_get_uri(d->m_gfile);
-    response.setUrl(KURL(uri));
+    response.setURL(KURL(KURL(), uri));
     g_free(uri);
 
     GError *error = 0;

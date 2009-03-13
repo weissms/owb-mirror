@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2009 Google Inc. All rights reserved.
- * 
+ * Copyright (C) 2006, 2007, 2008, 2009 Google Inc. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -31,8 +31,38 @@
 #ifndef V8CustomEventListener_h
 #define V8CustomEventListener_h
 
-// FIXME: This is a temporary forwarding header until all bindings have migrated
-// over and v8_events actually becomes V8CustomEventListener.
-#include "v8_events.h"
+#include "V8AbstractEventListener.h"
+#include <v8.h>
+#include <wtf/PassRefPtr.h>
+
+namespace WebCore {
+
+    class Event;
+    class Frame;
+
+    // V8EventListener is a wrapper of a JS object implements EventListener interface (has handleEvent(event) method), or a JS function
+    // that can handle the event.
+    class V8EventListener : public V8AbstractEventListener {
+    public:
+        static PassRefPtr<V8EventListener> create(Frame* frame, v8::Local<v8::Object> listener, bool isInline)
+        {
+            return adoptRef(new V8EventListener(frame, listener, isInline));
+        }
+
+        virtual bool isInline() const { return m_isInline; }
+
+        // Detach the listener from its owner frame.
+        void disconnectFrame() { m_frame = 0; }
+
+    protected:
+        V8EventListener(Frame*, v8::Local<v8::Object> listener, bool isInline);
+        virtual ~V8EventListener();
+        v8::Local<v8::Function> getListenerFunction();
+
+    private:
+        virtual v8::Local<v8::Value> callListenerFunction(v8::Handle<v8::Value> jsEvent, Event*, bool isWindowEvent);
+    };
+
+} // namespace WebCore
 
 #endif // V8CustomEventListener_h

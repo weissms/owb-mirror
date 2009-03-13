@@ -1,3 +1,121 @@
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mike Thole and Mark Rowe.
+
+        Fix <rdar://problem/6624105>.
+        
+        Make sure to process incoming messages for the NSEventTrackingRunLoopMode as well.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+
+2009-03-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        WebKit side of <rdar://problem/6607801>
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::destroy):
+        Pass a requestID to _WKPCDestroyPluginInstance and wait until we get a reply back.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add requestID parameter.
+
+2009-03-12  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _unloadWithShutdown:]): Simply a small SUPPORT_CFM code block.
+
+2009-03-12  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fixed: <rdar://problem/5815862> Opening a subclassed NSWindow from a Safari plugin causes Safari to crash on Quit
+        
+        This fix addresses crashes in both Silverlight and ChemDraw.  This type of crash would occur because AppKit still
+        had a reference to open windows that the plugin created (which no longer exist). 
+        
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _unloadWithShutdown:]): Do not unload the plug-in bundle on browser shutdown. 
+        
+2009-03-11  David Kilzer  <ddkilzer@apple.com>
+
+        Remove duplicate header include
+
+        Rubber-stamped by Mark Rowe.
+
+        * WebView/WebView.mm: Remove duplicate #include <runtime/InitializeThreading.h>.
+        Also realphabetized lowercase #include statements.
+
+2009-03-11  David Kilzer  <ddkilzer@apple.com>
+
+        Clarify comments regarding order of FEATURE_DEFINES
+
+        Rubber-stamped by Mark Rowe.
+
+        * Configurations/WebKit.xcconfig: Added warning about the
+        consequences when FEATURE_DEFINES are not kept in sync.
+
+2009-03-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        WebKit side of <rdar://problem/6656147>.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        Pass the requestID to _WKPHInstantiatePlugin.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        Pass the requestID to setCurrentReply.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::setCurrentReply):
+        Store the reply in a map with the requestID as the key.
+        
+        (WebKit::NetscapePluginInstanceProxy::waitForReply):
+        Wait for a reply that matches the given requestID.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        Initialize member variables.
+        
+        (WebKit::NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy):
+        Delete all requests.
+        
+        (WebKit::NetscapePluginInstanceProxy::print):
+        Pass the requestID to _WKPHPluginInstancePrint.
+        
+        (WebKit::NetscapePluginInstanceProxy::loadRequest):
+        Rename m_currentRequestID to m_currentURLRequestID.
+        
+        (WebKit::NetscapePluginInstanceProxy::processRequestsAndWaitForReply):
+        Process requests until we find a reply with the right requestID.
+        
+        (WebKit::NetscapePluginInstanceProxy::createBindingsInstance):
+        Pass a requestID to the _WKPH function.
+        
+        (WebKit::NetscapePluginInstanceProxy::nextRequestID):
+        Ditto.
+        
+        * Plugins/Hosted/ProxyInstance.mm:
+        Pass a requestID to the _WKPH functions.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add requestID parameters.
+
+2009-03-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <rdar://problem/6620064>.
+        
+        * Plugins/WebPluginContainerPrivate.h:
+
 2009-03-11  Xan Lopez  <xlopez@igalia.com>
 
         Build fix, no review.
