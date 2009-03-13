@@ -1,3 +1,19 @@
+2009-03-13  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Olivier DOLE.
+
+        Added new methods in WebNotificationDelegate providing information
+        about frame loader state: didStartLoad(), didCommitLoad(),
+        didFinishLoad() and didFailLoad().
+
+        * OrigynWebBrowser/Api/WebNotificationDelegate.h: 
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidStartProvisionalLoad):
+        (WebFrameLoaderClient::dispatchDidCommitLoad):
+        (WebFrameLoaderClient::dispatchDidFinishLoad):
+        (WebFrameLoaderClient::dispatchDidFailProvisionalLoad):
+        (WebFrameLoaderClient::dispatchDidFailLoad):
+
 2009-03-10  Sebastien Roret  <sroret@pleyo.com>
 
         Fixed a WebDataSource leak, seen when repeatedly changing page.

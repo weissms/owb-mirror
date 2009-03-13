@@ -327,10 +327,9 @@ void WebFrameLoaderClient::dispatchDidReceiveIcon()
 
 void WebFrameLoaderClient::dispatchDidStartProvisionalLoad()
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didStartProvisionalLoadForFrame(webView, m_webFrame);*/
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->didStartLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)
@@ -342,10 +341,9 @@ void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)
 
 void WebFrameLoaderClient::dispatchDidCommitLoad()
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didCommitLoadForFrame(webView, m_webFrame);*/
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->didCommitLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFinishDocumentLoad()
@@ -358,10 +356,9 @@ void WebFrameLoaderClient::dispatchDidFinishDocumentLoad()
 
 void WebFrameLoaderClient::dispatchDidFinishLoad()
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didFinishLoadForFrame(webView, m_webFrame);*/
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->didFinishLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFirstLayout()
@@ -1143,12 +1140,16 @@ bool WebFrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader
 
 void WebFrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
-    BalNotImplemented();
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->didFailLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
 {
-    BalNotImplemented();
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->didFailLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::startDownload(const ResourceRequest&)

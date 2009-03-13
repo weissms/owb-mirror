@@ -108,6 +108,22 @@ public:
     virtual void titleChange(WebFrame*, const char*)
     {
     }
+
+    virtual void didStartLoad(WebFrame*)
+    {
+    }
+
+    virtual void didCommitLoad(WebFrame*)
+    {
+    }
+    
+    virtual void didFinishLoad(WebFrame*)
+    {
+    }
+
+    virtual void didFailLoad(WebFrame*)
+    {
+    }
 };
 
 int main (int argc, char* argv[])

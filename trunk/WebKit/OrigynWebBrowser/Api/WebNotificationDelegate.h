@@ -85,6 +85,26 @@ public:
      * titleChange : call when the title change
      */
     virtual void titleChange(WebFrame*, const char*) = 0;
+
+    /**
+     * didStartLoad : called when a frame starts loading
+     */
+    virtual void didStartLoad(WebFrame*) = 0;
+
+    /**
+     * didCommitLoad : called when a frame data source transitions from provisional state to committed
+     */
+    virtual void didCommitLoad(WebFrame*) = 0;
+
+    /**
+     * didFinishLoad : called when a frame has finished loading itself and its resources
+     */
+    virtual void didFinishLoad(WebFrame*) = 0;
+
+    /**
+     * didFailLoad : called if a frame loading failed
+     */
+    virtual void didFailLoad(WebFrame*) = 0;
 };
 
 #endif // WebNotificationDelegate_h

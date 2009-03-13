@@ -1,3 +1,20 @@
+2009-03-13  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Olivier DOLE.
+
+        Added stubs for new WebNotificationDelegate methods
+
+        * OWBLauncher/SDL/main.cpp:
+        (MainWebNotificationDelegate::didStartLoad):
+        (MainWebNotificationDelegate::didCommitLoad):
+        (MainWebNotificationDelegate::didFinishLoad):
+        (MainWebNotificationDelegate::didFailLoad):
+        * OWBLauncher/gtk/main.cpp:
+        (MainWebNotificationDelegate::didStartLoad):
+        (MainWebNotificationDelegate::didCommitLoad):
+        (MainWebNotificationDelegate::didFinishLoad):
+        (MainWebNotificationDelegate::didFailLoad):
+
 2009-03-01  Mario Bensi  <mbensi@pleyo.com>
 
         use the new loadURL
