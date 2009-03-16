@@ -31,7 +31,6 @@
 #ifndef ScriptObjectQuarantine_h
 #define ScriptObjectQuarantine_h
 
-#if ENABLE(DATABASE)
 namespace WebCore {
 
     class Database;
@@ -40,5 +39,4 @@ namespace WebCore {
     bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
 
 }
-#endif
 #endif // ScriptObjectQuarantine_h

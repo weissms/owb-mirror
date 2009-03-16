@@ -29,7 +29,6 @@
  */
 
 #include "config.h"
-#if ENABLE(DATABASE)
 #include "ScriptObjectQuarantine.h"
 
 #include "Database.h"
@@ -64,4 +63,3 @@ bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObj
 }
 
 } // namespace WebCore
-#endif

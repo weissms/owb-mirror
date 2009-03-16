@@ -86,7 +86,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/ScriptController.cpp
     bindings/js/ScriptFunctionCall.cpp
     bindings/js/ScriptObject.cpp
-    bindings/js/ScriptObjectQuarantine.cpp
     bindings/js/ScriptValue.cpp
 )
 
@@ -99,6 +98,7 @@ if(ENABLE_DATABASE)
         bindings/js/JSDatabaseCustom.cpp
         bindings/js/JSSQLResultSetRowListCustom.cpp
         bindings/js/JSSQLTransactionCustom.cpp
+        bindings/js/ScriptObjectQuarantine.cpp
     )
 endif(ENABLE_DATABASE)
 

@@ -1,3 +1,13 @@
+2009-03-16  Mario Bensi  <mbensi@pleyo.com>
+
+        remove #if ENABLE(DATABASE) in ScriptObjectQuarantine
+        and compile ScriptObjectQuarantine.cpp when DATABASE is enabled by
+        cmake.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        * bindings/js/ScriptObjectQuarantine.h:
+
 2009-02-23  Olivier DOLE  <odole@pleyo.com>
 
         Fix test compilation in release.
