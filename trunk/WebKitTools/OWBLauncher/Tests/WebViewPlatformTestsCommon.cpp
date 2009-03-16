@@ -103,6 +103,22 @@ public:
     {
     }
 
+    virtual void didStartLoad(WebFrame*)
+    {
+    }
+
+    virtual void didCommitLoad(WebFrame*)
+    {
+    }
+
+    virtual void didFinishLoad(WebFrame*)
+    {
+    }
+
+    virtual void didFailLoad(WebFrame*)
+    {
+    }
+
 
     bool m_seenStartLoadNotification;
     bool m_seenLastProgressNotification;

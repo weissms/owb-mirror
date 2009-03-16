@@ -1,3 +1,128 @@
+2009-03-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        - fix <rdar://problem/6607773> WebKit should support the "Default"
+          paragraph writing direction -- or at least validate the menu item
+          appropriately
+
+        Made WebHTMLView validate user interface items with the selector
+        -makeBaseWritingDirectionNatural: by returning NO and, if the item is
+        a menu item, setting its state to "off".
+
+        Strictly speaking, since -makeBaseWritingDirectionNatural: is never
+        valid for WebViews, WebHTMLView should not need to respond to it and
+        validate it, however because other responders respond to all three
+        -makeBaseWritingDirection*: messages and set the menu item state, having
+        WebHTMLView do the same makes application developers' lives easier.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]):
+        (-[WebHTMLView makeBaseWritingDirectionNatural:]):
+
+2009-03-13  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Take advantage of the ability of recent versions of Xcode to easily switch the active
+        architecture.
+
+        * Configurations/DebugRelease.xcconfig:
+
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker and Geoffrey Garen.
+
+        <rdar://problem/6590384>
+        REGRESSION (Safari 3-4): Tiger-only Crash occurs at WebView hostWindow () after reloading a set of tabs then quitting
+        
+        When we're doing fast teardown, plug-in views can be destroyed from -[WebView dealloc]'s [super dealloc] call, 
+        and thus calling -[WebView hostWindow] will crash since _private is nil.
+        
+        * WebView/WebView.mm:
+        (-[WebView hostWindow]):
+
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        And yet another attempt...
+        
+        * Plugins/WebNetscapePluginEventHandlerCocoa.h:
+        (WebNetscapePluginEventHandlerCocoa::installKeyEventHandler):
+        (WebNetscapePluginEventHandlerCocoa::removeKeyEventHandler):
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        Another attempt at fixing the build.
+        
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::WebNetscapePluginEventHandlerCocoa):
+
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        Try to fix the SL build.
+
+        * Plugins/WebNetscapePluginEventHandlerCocoa.h:
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::keyDown):
+
+2009-03-13  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Update Geolocation perimission dialogs to be asynchronous.
+        https://bugs.webkit.org/show_bug.cgi?id=24505
+
+        WebGeolocation is a wrapper around WebCore::Geolocation. It mimics the
+        coding style set by WebSecurityOrigin.
+        
+        WebChromeClient now calls the private UI delegate method 
+        -webView:frame:requestGeolocationPermission:securityOrigin:
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::requestGeolocationPermissionForFrame):
+        * WebCoreSupport/WebGeolocation.mm: Added.
+        (WebCore::if):
+        (-[WebGeolocation shouldClearCache]):
+        (-[WebGeolocation setIsAllowed:]):
+        (-[WebGeolocation dealloc]):
+        * WebCoreSupport/WebGeolocationInternal.h: Added.
+        * WebCoreSupport/WebGeolocationPrivate.h: Added.
+        * WebView/WebUIDelegatePrivate.h:
+
+2009-03-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6610666> Revise the Cocoa event model text API
+
+        Replace the text input API with a simpler API that uses a separate text input window.
+        
+        * Plugins/WebNetscapePluginEventHandlerCocoa.h:
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::WebNetscapePluginEventHandlerCocoa):
+        Initialize m_keyEventHandler to 0.
+        
+        (WebNetscapePluginEventHandlerCocoa::keyDown):
+        If the plug-in returns 0 from NPP_HandleEvent, pass the event to the TSM machinery.
+        
+        (WebNetscapePluginEventHandlerCocoa::focusChanged):
+        Install/remove the key event handler as needed.
+        
+        (WebNetscapePluginEventHandlerCocoa::handleTSMEvent):
+        Get the text and send a TextInput event.
+        
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        Remove the old text input API.
+        
+        (-[WebNetscapePluginView inputContext]):
+        Always return nil here.
+        
+        * Plugins/npapi.mm:
+        * Plugins/nptextinput.h: Removed.
+
 2009-03-13  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Mike Thole and Mark Rowe.

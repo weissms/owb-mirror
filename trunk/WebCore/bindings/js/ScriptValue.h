@@ -42,6 +42,7 @@ class String;
 class ScriptValue {
 public:
     ScriptValue(JSC::JSValuePtr value = JSC::noValue()) : m_value(value) {}
+    virtual ~ScriptValue() {}
 
     JSC::JSValuePtr jsValue() const { return m_value.get(); }
     bool getString(String& result) const;

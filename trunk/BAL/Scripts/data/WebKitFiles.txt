@@ -11,6 +11,8 @@ WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/ScheduledAction.cpp
+WebCore/bindings/js/ScriptObjectQuarantine.cpp
+WebCore/bindings/js/ScriptObjectQuarantine.h
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/css/CSSParser.cpp

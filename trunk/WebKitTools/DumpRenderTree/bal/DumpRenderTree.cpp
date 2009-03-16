@@ -185,6 +185,22 @@ public:
             printf("TITLE CHANGED: %s\n", title ? title : "");
     }
 
+    virtual void didStartLoad(WebFrame*)
+    {
+    }
+    
+    virtual void didCommitLoad(WebFrame*)
+    {
+    }
+
+    virtual void didFinishLoad(WebFrame*)
+    {
+    }
+    
+    virtual void didFailLoad(WebFrame*)
+    {
+    }
+
 };
 
 void dumpFrameScrollPosition(WebFrame* frame)
