@@ -601,6 +601,16 @@ void WebFrame::setInViewSourceMode(bool flag)
     coreFrame->setInViewSourceMode(!!flag);
 }
 
+bool WebFrame::isDisplayingStandaloneImage()
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return false;
+
+    Document* document = frame->document();
+    return (document && document->isImageDocument());
+}
+
 /*HRESULT WebFrame::elementWithName(BSTR name, IDOMElement* form, IDOMElement** element)
 {
     if (!form)

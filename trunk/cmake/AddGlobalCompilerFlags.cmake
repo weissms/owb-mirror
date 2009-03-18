@@ -28,9 +28,6 @@ if(USE_NETWORK_SOUP)
     add_definitions(-DWTF_USE_SOUP=1)
 endif(USE_NETWORK_SOUP)
 
-#FIXME
-add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
-
 if(ENABLE_DEBUG)
     add_definitions(-DUSE_SYSTEM_MALLOC)
 else (ENABLE_DEBUG)
@@ -58,6 +55,7 @@ if(ENABLE_NPAPI)
     add_definitions(-DWTF_PLATFORM_X11=1)
     add_definitions(-DXP_UNIX)
     add_definitions(-DWTF_PLATFORM_X11)
+    add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
 endif(ENABLE_NPAPI)
 
 if(ENABLE_SVG)

@@ -10,7 +10,7 @@ list(APPEND WEBCORE_SRC
     plugins/PluginPackage.cpp
     plugins/PluginStream.cpp
     plugins/PluginView.cpp
-    plugins/npapi.cpp)
+)
 list(APPEND IDL_SRC
     plugins/MimeType.idl
     plugins/MimeTypeArray.idl
@@ -18,6 +18,9 @@ list(APPEND IDL_SRC
     plugins/PluginArray.idl)
 
 if(ENABLE_NPAPI)
+    list(APPEND WEBCORE_SRC
+        plugins/npapi.cpp
+    )
     if(USE_GRAPHICS_GTK)
         list(APPEND WEBCORE_SRC
             plugins/gtk/PluginPackageGtk.cpp
@@ -44,9 +47,9 @@ if(ENABLE_NPAPI)
     endif(USE_GRAPHICS_SDL)
 else(ENABLE_NPAPI)
      list(APPEND WEBCORE_SRC
-         plugins/Empty/PluginDataEmpty.cpp
-         plugins/Empty/PluginPackageEmpty.cpp
-         plugins/Empty/PluginViewEmpty.cpp
+         plugins/PluginDataNone.cpp
+         plugins/PluginPackageNone.cpp
+         plugins/PluginViewNone.cpp
      )
 endif(ENABLE_NPAPI) 
 

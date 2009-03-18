@@ -41,6 +41,7 @@
 #import <WebCore/PlatformString.h>
 #import <WebCore/ResourceRequest.h>
 #import <WebCore/ScriptController.h>
+#import <WebCore/WebCoreURLResponse.h>
 #import <WebKit/WebDataSourceInternal.h>
 #import <WebKit/WebFrameInternal.h>
 #import <WebKit/WebFrameView.h>
@@ -190,6 +191,10 @@ static NSMutableSet *pluginViews = nil;
         [_views addObject:view];
         [[_documentView _webView] addPluginInstanceView:view];
 
+        BOOL oldDefersCallbacks = [[self webView] defersCallbacks];
+        if (!oldDefersCallbacks)
+            [[self webView] setDefersCallbacks:YES];
+        
         LOG(Plugins, "initializing plug-in %@", view);
         if ([view respondsToSelector:@selector(webPlugInInitialize)]) {
             JSC::JSLock::DropAllLocks dropAllLocks(false);
@@ -199,6 +204,9 @@ static NSMutableSet *pluginViews = nil;
             [view pluginInitialize];
         }
 
+        if (!oldDefersCallbacks)
+            [[self webView] setDefersCallbacks:NO];
+        
         if (_started) {
             LOG(Plugins, "starting plug-in %@", view);
             if ([view respondsToSelector:@selector(webPlugInStart)]) {
@@ -411,7 +419,7 @@ static void cancelOutstandingCheck(const void *item, void *context)
                                                         contentURL:[response URL]
                                                      pluginPageURL:nil
                                                         pluginName:nil // FIXME: Get this from somewhere
-                                                          MIMEType:[response MIMEType]];
+                                                          MIMEType:[response _webcore_MIMEType]];
         [_dataSource _documentLoader]->cancelMainResourceLoad(error);
         [error release];
     }        

@@ -1,3 +1,130 @@
+2009-03-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6687005> Need support for new move-left/right selectors.
+
+        * WebView/WebHTMLView.mm: Added the four new selectors to the command-forwarding list.
+        * WebView/WebView.mm: Ditto.
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Bug 24477: REGRESSION (r41467): Page Down key scrolls two pages
+        https://bugs.webkit.org/show_bug.cgi?id=24477
+        rdar://problem/6674184
+
+        * WebView/WebHTMLView.mm:
+        (responderChainRespondsToSelector): Added.
+        (-[WebHTMLView doCommandBySelector:]): Set eventWasHandled based on whether we
+        can find a responder that responds to this selector rather than always assuming
+        the selector will not be handled.
+
+2009-03-17  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build.
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+
+2009-03-17  David Kilzer  <ddkilzer@apple.com>
+
+        Use -[NSURLResponse(WebCoreURLResponse) _webcore_MIMEType] consistently
+
+        Reviewed by Darin Adler.
+
+        WebKit r30323 added -_webcore_MIMEType to fix issues with
+        incorrect MIME types in NS[HTTP]URLResponse objects.  However,
+        uses of -[NSURLResponse MIMEType] still persist in WebKit that
+        should be switched to use -_webcore_MIMEType.  Note that
+        -[WebDataSource _responseMIMEType] calls back into WebCore to
+        get the MIME type from the ResourceResponse object, which has
+        already retrieved it via -_webcore_MIMEType.
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::didReceiveResponse): Use
+        -_webcore_MIMEType.
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::didReceiveResponse): Ditto.
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView pluginView:receivedData:]): Ditto.
+        * Plugins/WebPluginController.mm:
+        (-[WebPluginController pluginView:receivedResponse:]): Ditto.
+        * WebView/WebHTMLRepresentation.mm:
+        (-[WebHTMLRepresentation _isDisplayingWebArchive]): Use
+        -[WebDataSource _responseMIMEType] instead.
+        * WebView/WebPDFRepresentation.m:
+        (-[WebPDFRepresentation finishedLoadingWithDataSource:]): Ditto.
+        * WebView/WebPDFView.mm:
+        (-[WebPDFView menuForEvent:]): Ditto.
+
+2009-03-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24396
+        
+        Add WTF_USE_ACCELERATED_COMPOSITING, defined to 0 for now.
+
+        * WebKitPrefix.h:
+
+2009-03-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Mark Rowe.
+
+        Get BUILDING_ON_* defines from Platform.h.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24630
+
+        * WebKitPrefix.h:
+
+2009-03-16  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6577174> Rename the text directionality submenus to “Paragraph Direction” and “Selection Direction”
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory contextMenuItemTagParagraphDirectionMenu]): Changed string here, but only
+        post-Leopard, since we want this to match the Mac OS X menu on Tiger and Leopard.
+        (-[WebViewFactory contextMenuItemTagSelectionDirectionMenu]): Changed string here.
+
+2009-03-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Don't mig_deallocate random data in case an instance proxy method returns false.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        (WKPCInvoke):
+        (WKPCInvokeDefault):
+        (WKPCGetProperty):
+        (WKPCEnumerate):
+
+2009-03-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6633944> 
+        REGRESSION (Safari 4 PB): Many crashes in Flip4Mac involving loading the plugin
+        
+        Defer loading while calling webPlugInInitialize since it can end up spinning the run loop.
+        
+        * Plugins/WebPluginController.mm:
+        (-[WebPluginController addPlugin:]):
+
+2009-03-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix <rdar://problem/6622601>
+        
+        Make sure to update both the window frame and the plug-in frame.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView addWindowObservers]):
+
 2009-03-16  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Adele Peterson.

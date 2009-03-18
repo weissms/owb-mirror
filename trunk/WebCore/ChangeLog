@@ -1,3 +1,805 @@
+2009-03-18  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix fast/encoding/char-decoding.html with recent ICU.
+
+        * platform/text/TextCodecICU.cpp:
+        (WebCore::TextCodecICU::decode): Look for gb18030 case-insensitively,
+        as newer versions of ICU use GB18030 as the canonical name.
+
+2009-03-17  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24662
+        Chromium build fixes.
+
+        Bug https://bugs.webkit.org/show_bug.cgi?id=24663 tracks
+        the invalid implementation of ScriptCallStack.
+
+        No change in behavior, so no test.
+
+        * bindings/v8/ScriptCallStack.h:
+        (WebCore::ScriptCallStack::state):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::drawRect):
+
+2009-03-17  David Carson  <dacarson@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Add anchor elements to the simple style sheet so that applications that 
+        are using WebKit just for simple text and links will also take advantage
+        of the fast path.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::elementCanUseSimpleDefaultStyle):
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6687005> Need support for new move-left/right selectors.
+
+        * editing/EditorCommand.cpp:
+        (WebCore::executeMoveToLeftEndOfLine): Added.
+        (WebCore::executeMoveToLeftEndOfLineAndModifySelection): Added.
+        (WebCore::executeMoveToRightEndOfLine): Added.
+        (WebCore::executeMoveToRightEndOfLineAndModifySelection): Added.
+        Added command entries for the functions above.
+
+2009-03-17  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        Put the padding inside scrollbars on textareas.
+        https://bugs.webkit.org/show_bug.cgi?id=24370
+        
+        Put the padding inside the scrollbars on textareas. This is done by moving the
+        overflow from the shadowNode to the RenderTextControlMultiline. As a result,
+        all of the scroll handing methods that RenderTextControl overrides can be moved
+        down into RenderTextControlSingleLine since RenderTextControlMultiline can now
+        just use RenderBlock's versions. This also allows RenderTextControlMultiLine to
+        no longer need a custom layout method since the shadowNode can now just size
+        like a regular DIV.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::styleDidChange):
+        (WebCore::RenderTextControl::selection):
+        (WebCore::RenderTextControl::calcHeight):
+        (WebCore::RenderTextControl::hitInnerTextElement):
+        * rendering/RenderTextControl.h:
+        * rendering/RenderTextControlMultiLine.cpp:
+        (WebCore::RenderTextControlMultiLine::nodeAtPoint):
+        (WebCore::RenderTextControlMultiLine::createInnerTextStyle):
+        * rendering/RenderTextControlMultiLine.h:
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::styleDidChange):
+        (WebCore::RenderTextControlSingleLine::autoscroll):
+        (WebCore::RenderTextControlSingleLine::scrollWidth):
+        (WebCore::RenderTextControlSingleLine::scrollHeight):
+        (WebCore::RenderTextControlSingleLine::scrollLeft):
+        (WebCore::RenderTextControlSingleLine::scrollTop):
+        (WebCore::RenderTextControlSingleLine::setScrollLeft):
+        (WebCore::RenderTextControlSingleLine::setScrollTop):
+        (WebCore::RenderTextControlSingleLine::scroll):
+        * rendering/RenderTextControlSingleLine.h:
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::RenderTextControlInnerBlock::RenderTextControlInnerBlock):
+        (WebCore::RenderTextControlInnerBlock::positionForPoint):
+        (WebCore::TextControlInnerTextElement::createRenderer):
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Bug 24517: REGRESSION (r41552): innerHTML does an updateLayout -- unneeded and can be slow
+        https://bugs.webkit.org/show_bug.cgi?id=24517
+
+        * editing/DeleteButtonController.cpp:
+        (WebCore::DeleteButtonController::enable): Added a call to updateRendering, since
+        determining whether to display the delete button involves style and updateRendering
+        also updates style (should probably be named updateStyle, in fact). Not needed to fix
+        this bug, but would have prevented the crash that led to this bug in the first place.
+
+        * editing/EditCommand.cpp:
+        (WebCore::EditCommand::EditCommand): Get rid of unneeded null check. All frames have
+        delete button controllers.
+        * editing/Editor.cpp:
+        (WebCore::Editor::rangeForPoint): Ditto.
+
+        * editing/markup.cpp:
+        (WebCore::appendStartMarkup): Changed a "&" to a "&&" so that generating markup
+        doesn't depend on renderers at all when the convertBlocksToInlines boolean is false.
+        This allows us to omit the call to updateLayoutIgnorePendingStylesheets in the
+        createMarkup function that's called by innerHTML.
+        (WebCore::MarkupAccumulator::appendMarkup): Turned this into a class with a member
+        function. Added a feature where the accumulator will skip a node. Moved arguments
+        that don't change during recursion into an object. This function still is a bit
+        inefficient, since it creates a new HashMap at every level as it recurses, but for now
+        I did not tackle that. Also replaced the onlyIncludeChildren boolean with EChildrenOnly
+        for consistency and clarity.
+        (WebCore::createMarkup): Removed the call to updateLayoutIgnorePendingStylesheets.
+        Instead of calling disable/enable on the delete button controller's container element,
+        pass it in to the markup accumulator as a node to skip.
+
+2009-03-17  Scott Violet  <sky@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24651
+        Skia does not always render text fill/stroke pattern/gradient/color correctly
+
+        Changes Skia's font rendering to only render gradient/pattern if current
+        color space indicates the gradient/pattern should be used.
+        This is covered by LayoutTests/fast/canvas/canvas-text-alignment.html .
+    
+        * platform/graphics/GraphicsContext.cpp:
+        (WebCore::GraphicsContext::strokeColorSpace):
+        (WebCore::GraphicsContext::fillColorSpace):
+        * platform/graphics/GraphicsContext.h:
+        (WebCore::):
+        * platform/graphics/GraphicsContextPrivate.h:
+        * platform/graphics/skia/SkiaFontWin.cpp:
+        (WebCore::paintSkiaText):
+
+2009-03-17  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24655
+        <rdar://problem/6633727> Hitting return at the end of a line with an anchor jumps me to the bottom of the message
+
+        Test: editing/inserting/6633727.html
+
+        This changes does a few things:
+        1) Renames pos to insertionPosition.
+        2) Eliminates "startNode".  It doesn't work well to consider the node separately from the insertionPosition.  
+           The insertionPosition gets updated at various times, and it seems likely that startNode can get out of sync.
+        3) Before building up a list of ancestors to move around when we insert the new block, make sure to use the deepest
+           representation of the insertionPosition, so all ancestor nodes are correctly included.
+
+        * editing/InsertParagraphSeparatorCommand.cpp: (WebCore::InsertParagraphSeparatorCommand::doApply):
+
+2009-03-17  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kevin Ollivier.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24115
+        Introduce platform independent stubs for plugins.
+
+        * plugins/PluginDataNone.cpp: Copied from WebCore/plugins/wx/PluginDataWx.cpp.
+        * plugins/PluginPackageNone.cpp: Copied from WebCore/plugins/wx/PluginPackageWx.cpp.
+        * plugins/PluginViewNone.cpp: Copied from WebCore/plugins/wx/PluginViewWx.cpp.
+        * plugins/wx/PluginDataWx.cpp: Removed.
+        * plugins/wx/PluginPackageWx.cpp: Removed.
+        * plugins/wx/PluginViewWx.cpp: Removed.
+        * webcore-wx.bkl:
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Earlier version reviewed by Adele Peterson.
+
+        Bug 24304: REGRESSION (r39864): Hitting the space bar to select an <input type=radio>
+        or push an <input type=button> or <button> causes the page to scroll down.
+
+        Would be best to add a regression test for Windows eventually; tested that this has
+        no effect on the Mac OS X platform.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::defaultEventHandler): Added FIXMEs and tweaked formatting.
+        Use the code that calls the base class's defaultEventHandler early only in the cases
+        where it's needed: keydown and keypress events in text fields. In other cases, do the
+        more typical thing and call the default handler only at the end of the function.
+        This function already had code to make sure the keypress event for space never gets
+        through, but it was running too late since the scrolling code was moved into the
+        base class default event handler.
+
+2009-03-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24632
+
+        Fix repaint issues when composited layers come and go (only applies
+        when ACCELERATED_COMPOSITING is turned on).
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::RenderLayer):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::mustOverlayCompositedLayers):
+        (WebCore::RenderLayer::setMustOverlayCompositedLayers):
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::RenderLayerBacking):
+        * rendering/RenderLayerBacking.h:
+
+        Move what used to be the 'forceCompositingLayer' flag from RenderLayerBacking
+        to RenderLayer, because we don't want the side-effects of creating RenderLayerBacking
+        when setting this flag.
+        
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::updateLayerCompositingState):
+        When a RenderLayer flips into or out of compositing mode, compute a repaint
+        rect relative to the containerForRepaint, and repaint it.
+        
+        (WebCore::RenderLayerCompositor::computeCompositingRequirements):
+        Call layer->setMustOverlayCompositedLayers() rather than setForcedCompositingLayer().
+        
+        (WebCore::RenderLayerCompositor::needsToBeComposited):
+        (WebCore::RenderLayerCompositor::requiresCompositingLayer):
+        (WebCore::RenderLayerCompositor::requiresCompositingForTransform):
+        (WebCore::RenderLayerCompositor::requiresCompositingForAnimation):
+        * rendering/RenderLayerCompositor.h:
+        
+        Rename requiresCompositingLayerForTransform() to requiresCompositingForTransform()
+        and make it a class static method to match requiresCompositingForAnimation(). Both
+        now take RenderObjects, rathern than RenderLayers.
+        
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::hasTransformRelatedProperty):
+        Minor tidyup using convenience methods added in an earlier commit.
+
+2009-03-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24396
+
+        * config.h:
+        Add WTF_USE_ACCELERATED_COMPOSITING, defined to 0 for now, and add some
+        comments to make the #ifdefs more readable.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+        Add a comment to mention that we don't flatten the matrix.
+        
+        * css/MediaQueryEvaluator.cpp:
+        (WebCore::transform_3dMediaFeatureEval):
+        Have the 'transform-3d' media query evaluate to 'true' if 3d-rendering
+        is supported.
+        
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::GraphicsLayerCA::animateTransform):
+        No need for the #ifdef here. If we don't support 3d, we will have already flattened
+        the matrix.
+        
+        * platform/graphics/transforms/TransformationMatrix.cpp:
+        (WebCore::TransformationMatrix::makeAffine):
+        * platform/graphics/transforms/TransformationMatrix.h:
+        New method to convert the matrix to an affine matrix by throwing a way the non-affine
+        parts.
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateTransform):
+        (WebCore::RenderLayer::currentTransform):
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateLayerTransform):
+        If 3d rendering is not supported, convert the matrix to an affine matrix
+        which can be rendered, and used for hit testing.
+        
+        * rendering/RenderLayerCompositor.cpp:
+        Change the name of the exported symbol that webkitdirs.pm uses to know if
+        3d rendering is supported. There is no other 3d-rendering-specific symbol we can sniff.
+        
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::transformFromContainer):
+        Only take perspective into account if 3d rendering is supported.
+
+        * rendering/RenderObject.h:
+        (WebCore::makeMatrixRenderable):
+        Utility method that flattens a matrix if 3d rendering is not supported.
+
+2009-03-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Fix typo after mouse wheel changes.
+
+        * platform/wx/MouseWheelEventWx.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::isEqual): Fix build, remove stray parenthesis.
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Fix crash seen right away when running run-webkit-tests.
+
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::isEqual): Restore assertion to its behavior pre-refactoring.
+        Also tweaked formatting a bit.
+
+2009-03-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        HTMLSelectElement::add() doesn't look at exception code returned from insertBefore(), so 
+        it doesn't need to zero it out before calling.
+
+        * html/HTMLSelectElement.cpp: (WebCore::HTMLSelectElement::add): Removed "ec = 0" line.
+
+2009-03-17  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - WebCore part of adding a mechanism for controlling the caching of
+          responses through WebFrameLoaderClient
+
+        Mac already has such a mechanism, and this adds one for CFNetwork ports.
+
+        * WebCore.vcproj/WebCore.vcproj: Added EmptyClients.h
+        and ResourceLoaderCFNet.cpp.
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyFrameLoaderClient::shouldCacheResponse): Added an
+        implementation that always returns true.
+
+        * loader/FrameLoaderClient.h: Declared shouldCacheResponse().
+
+        * loader/ResourceLoader.h: Ditto.
+
+        * loader/cf/ResourceLoaderCFNet.cpp: Added.
+        (WebCore::ResourceLoader::shouldCacheResponse): Added. Calls through to
+        FrameLoaderClient::shouldCacheResponse().
+
+        * platform/network/ResourceHandleClient.h:
+        (WebCore::ResourceHandleClient::shouldCacheResponse): Added an
+        implementation that always returns true.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::willCacheResponse): Added a call to
+        ResourceHandleClient::shouldCacheResponse(). If the client returns
+        false, return 0, which will prevent CFNetwork from caching the response.
+
+2009-03-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=13287
+        Cannot change SELECT to a dynamically created option
+
+        Tests: fast/forms/add-and-remove-option.html
+               fast/forms/add-remove-option-modification-event.html
+               fast/forms/add-selected-option.html
+               fast/forms/select-cache-desynchronization.html
+
+        * dom/ContainerNode.cpp:
+        (WebCore::dispatchChildInsertionEvents): Increment DOM tree version. This will happen when
+        dispatching DOMSubtreeModified again, but the version should be incremented for event
+        listeners to have an up to date view of the DOM.
+        (WebCore::dispatchChildRemovalEvents): Ditto.
+
+        * html/HTMLOptionElement.cpp: (WebCore::HTMLOptionElement::insertedIntoTree):
+        Make sure that the select element knows about its new selected option.
+
+        * html/HTMLOptionElement.h: Use insertedIntoTree() instead of insertedIntoDocument(),
+        because DOM also needs to be updated for forms that are not in document yet. Similar
+        problems exist for node removing, but removedFromTree() is called at a wrong time, so
+        those problems cannot be fixed without deeper refactoring.
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setRecalcListItems): Reset m_activeSelectionAnchorIndex - it
+        doesn't make sense to keep the anchor after programmatically changing the selection, and
+        keeping it was causing a failure in fast/forms/listbox-selection.html.
+
+        * html/HTMLSelectElement.h: Removed overrides for ContainerNode methods that only called
+        base class versions.
+
+2009-03-17  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6690324> Accessing FTP sites reads unallocated memory, can result in garbled entries or crashes
+        
+        Reviewed by Darin Adler.
+
+        * loader/FTPDirectoryDocument.cpp:
+        (WebCore::FTPDirectoryTokenizer::parseAndAppendOneLine): Assign CString to a local while we hold pointers into it.
+
+2009-03-16  David Hyatt  <hyatt@apple.com>
+
+        <rdar://problem/6648411> REGRESSION: Layout of page is wrong at http://www.popcap.com/
+
+        Make sure that the initial shouldPaint check that looks at enclosingLayers properly skips over
+        layers that don't paint themselves.  This is done by adding a new enclosingSelfPaintingLayer method
+        so that RenderObjects can walk up the enclosing layer chain and skip any layers that don't paint
+        themselves.
+
+        Reviewed by Darin Adler.
+
+        Added fast/block/float/overlapping-floats-with-overflow-hidden.html
+
+        * WebCore.base.exp:
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::addOverhangingFloats):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::enclosingSelfPaintingLayer):
+        * rendering/RenderObject.h:
+
+2009-03-17  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24592
+        [GTK] Crash in FcPatternHash
+
+        Style fixes.
+
+        * platform/graphics/gtk/FontPlatformDataGtk.cpp:
+        (WebCore::FontPlatformData::operator=):
+        * platform/graphics/gtk/FontPlatformDataPango.cpp:
+
+2009-03-17  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24592
+        [GTK] Crash in FcPatternHash
+
+        Sanitize memory management in pango fonts.
+
+        Release memory allocated by FontPlatformDataPango in its own
+        destructor instead of doing it from other classes, and add copy
+        constructor and '=' operator to be able to track referenced
+        objects properly.
+
+        * platform/graphics/gtk/FontPlatformDataPango.cpp:
+        (WebCore::FontPlatformData::~FontPlatformData):
+        (WebCore::FontPlatformData::operator=):
+        (WebCore::FontPlatformData::FontPlatformData):
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+
+2009-03-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 24624: Crash in imageLoadEventTimerFired after adoptNode used on <img>,
+        seen with inspector, which uses adoptNode
+        https://bugs.webkit.org/show_bug.cgi?id=24624
+        rdar://problem/6422850
+
+        Test: fast/dom/HTMLImageElement/image-load-cross-document.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::Document): Removed m_imageLoadEventTimer.
+        (WebCore::Document::detach): Removed m_imageLoadEventDispatchSoonList and
+        m_imageLoadEventDispatchingList.
+        (WebCore::Document::implicitClose): Called ImageLoader::dispatchPendingLoadEvents
+        instead of dispatchImageLoadEventsNow.
+
+        * dom/Document.h: Removed ImageLoader, dispatchImageLoadEventSoon,
+        dispatchImageLoadEventsNow, removeImage, m_imageLoadEventDispatchSoonList,
+        m_imageLoadEventDispatchingList, m_imageLoadEventTimer, and imageLoadEventTimerFired.
+
+        * loader/ImageLoader.cpp:
+        (WebCore::loadEventSender): Added. Returns the single global ImageLoadEventSender
+        object used privately as the target of the load event timer.
+        (WebCore::ImageLoader::~ImageLoader): Call ImageLoadEventSender::cancelLoadEvent
+        rather than Document::removeImage.
+        (WebCore::ImageLoader::setImage): Use m_element directly, not element().
+        (WebCore::ImageLoader::updateFromElement): Ditto. Also name the local variable
+        document instead of doc.
+        (WebCore::ImageLoader::notifyFinished): Call ImageLoadEventSender::dispatchLoadEventSoon
+        rather than Document::dispatchImageLoadEventSoon.
+        (WebCore::ImageLoader::dispatchPendingLoadEvent): Added. Handles the common logic
+        about when load events can be dispatched so that dispatchLoadEvent only has to
+        have the specific part for each derived class. This includes a check that the
+        document is attached, which used to be handled by having documents empty out the
+        image load event vectors in the detach function.
+        (WebCore::ImageLoader::dispatchPendingLoadEvents): Added. Calls the appropriate
+        function on the ImageLoadEventSender, which avoids the need to have that class be
+        public in the ImageLoader header.
+        (WebCore::ImageLoadEventSender::ImageLoadEventSender): Added. Has the code that
+        was previously in the Document constructor.
+        (WebCore::ImageLoadEventSender::dispatchLoadEventSoon): Added. Has the code that
+        was previously in Document::dispatchImageLoadEventSoon.
+        (WebCore::ImageLoadEventSender::cancelLoadEvent): Added. Has the code that was
+        previously in Document::removeImage.
+        (WebCore::ImageLoadEventSender::dispatchPendingLoadEvents): Added. Has the code
+        that was previously in Document::dispatchImageLoadEventsNow.
+        (WebCore::ImageLoadEventSender::timerFired): Added. Calls dispatchPendingLoadEvents.
+
+        * loader/ImageLoader.h: Improved comments. Made the virtual functions private
+        or protected rather than public. Added static dispatchPendingLoadEvents function
+        for use by Document and private dispatchPendingLoadEvent function for use by
+        ImageLoadEventSender. Made setLoadingImage private and eliminated
+        setHaveFiredLoadEvent since that can all be done inside the class without any
+        member functions.
+
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::dispatchLoadEvent): Removed logic to check whether a
+        load event already fired and whether image() is 0. These are now both base class
+        responsibilities.
+        * svg/SVGImageLoader.cpp:
+        (WebCore::SVGImageLoader::dispatchLoadEvent): Ditto.
+        * wml/WMLImageLoader.cpp:
+        (WebCore::WMLImageLoader::dispatchLoadEvent): Ditto.
+
+2009-03-17  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24623
+        Refactor ConsoleMessage to use ScriptFuncitonCall and eliminate JSC
+        dependencies.
+
+        * bindings/js/ScriptFunctionCall.cpp:
+        (WebCore::ScriptFunctionCall::appendArgument): Added uint and ScriptString-taking methods.
+        * bindings/js/ScriptFunctionCall.h:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        (WebCore::quarantineValue): Added generic ScriptValue quarantine helper.
+        * bindings/js/ScriptObjectQuarantine.h:
+        * bindings/js/ScriptValue.cpp:
+        (WebCore::ScriptValue::isEqual): Added.
+        * bindings/js/ScriptValue.h:
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::ConsoleMessage):
+        (WebCore::ConsoleMessage::addToConsole): Added.
+        (WebCore::ConsoleMessage::isEqual): Changed to use ScriptValue::isEqual.
+        * inspector/ConsoleMessage.h:
+        (WebCore::ConsoleMessage::incrementCount): Added.
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::addConsoleMessage): Changed to use ConsoleMessage::addToConsole.
+        (WebCore::InspectorController::populateScriptObjects): Ditto.
+        * inspector/InspectorController.h:
+
+2009-03-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Mark Rowe.
+
+        Get BUILDING_ON_* defines from Platform.h.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24630
+
+        * WebCorePrefix.h:
+
+2009-03-16  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24592
+        [GTK] Crash in FcPatternHash
+
+        Sanitize memory management in gtk fonts.
+
+        Release memory allocated by FontPlatformDataGtk in its own
+        destructor instead of doing it from other classes, and add copy
+        constructor and '=' operator to be able to track referenced
+        objects properly.
+
+        * platform/graphics/gtk/FontPlatformData.h:
+        * platform/graphics/gtk/FontPlatformDataGtk.cpp:
+        (WebCore::FontPlatformData::operator=):
+        (WebCore::FontPlatformData::FontPlatformData):
+        (WebCore::FontPlatformData::~FontPlatformData):
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        (WebCore::SimpleFontData::platformDestroy):
+
+2009-03-17  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Build fix for Qt < 4.5.
+
+        As reported by Yael Aharon  <yael.aharon@nokia.com>
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::drawLine):
+
+2009-03-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24614
+        Access control checks are different in cached and uncached cases
+
+        Test: http/tests/xmlhttprequest/access-control-basic-non-simple-deny-cached.html
+
+        * loader/CrossOriginAccessControl.cpp:
+        (WebCore::isOnAccessControlSimpleRequestMethodWhitelist): Factored out simple method
+        check for use in both cached and uncached cases. In cached case, an old definition that
+        omitted HEAD was still used.
+        (WebCore::isOnAccessControlSimpleRequestHeaderWhitelist): Check that content type has an
+        allowed value. This is needed in all call sites. Also changed to compare MIME type, not
+        content type.
+        (WebCore::isSimpleCrossOriginAccessRequest): Use the above methods.
+
+        * loader/CrossOriginAccessControl.h: Expose isOnAccessControlSimpleRequestMethodWhitelist.
+
+        * loader/CrossOriginPreflightResultCache.cpp:
+        (WebCore::CrossOriginPreflightResultCacheItem::allowsCrossOriginMethod):
+        (WebCore::CrossOriginPreflightResultCacheItem::allowsCrossOriginHeaders):
+        Use the new checks for simple method and header.
+
+2009-03-16  Gustavo Noronha Silva  <gns@gnome.org> and Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24638
+        [GTK] HTML5 media tags do not work
+
+        Add a repaint-requested signal to the video sink, and use it to
+        call MediaPlayerPrivate::repaint, so that the video actually
+        plays.
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mediaPlayerPrivateRepaintCallback):
+        (WebCore::MediaPlayerPrivate::createGSTPlayBin):
+        * platform/graphics/gtk/VideoSinkGStreamer.cpp:
+        (webkit_video_sink_idle_func):
+        (webkit_video_sink_render):
+        (webkit_video_sink_class_init):
+
+2009-03-16  Gustavo Noronha Silva  <gns@gnome.org> and Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24638
+        [GTK] HTML5 media tags do not work
+
+        Work-around the fact that gst_element_query_duration returns true even
+        though it is unable to figure out the duration when in stream (push)
+        mode.
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::MediaPlayerPrivate::duration):
+
+2009-03-16  Darin Adler  <darin@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        <rdar://problem/6642742> Top Sites malfunction when switching text zoom mode
+
+        * page/Frame.cpp:
+        (WebCore::Frame::setNeedsReapplyStyles): Don’t do anything if the frame is
+        currently showing a non-HTML view.
+
+2009-03-16  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Bug 24629: moving forward or backward a paragraph fails at edge of document
+        https://bugs.webkit.org/show_bug.cgi?id=24629
+        rdar://problem/6544413
+
+        Test: editing/selection/move-paragraph-document-edges.html
+
+        * editing/visible_units.cpp:
+        (WebCore::previousParagraphPosition): Use the last result from
+        previousLinePosition rather than going all the way back to what was originally
+        passed in when we hit exception cases like null or not moving. This correctly
+        inherits the behavior of previousLinePosition when we are in a paragraph at the
+        edge of a document.
+        (WebCore::nextParagraphPosition): Ditto.
+
+2009-03-16  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Bug 24619: RenderObject::selectionStartEnd does not need to be a virtual function
+        https://bugs.webkit.org/show_bug.cgi?id=24619
+
+        * rendering/RenderObject.h: Remove virtual keyword from selectionStartEnd declaration.
+        * rendering/RenderView.h: Ditto.
+
+2009-03-16  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24368
+        DOM scroll events should be based off the actual number of wheel
+        ticks, not off the number of lines scrolled.  This matches IE.
+
+        * dom/Node.cpp:
+        (WebCore::Node::dispatchWheelEvent):
+        * dom/WheelEvent.cpp:
+        (WebCore::WheelEvent::WheelEvent):
+        * dom/WheelEvent.h:
+        (WebCore::WheelEvent::create):
+        * platform/PlatformWheelEvent.h:
+        (WebCore::PlatformWheelEvent::wheelTicksX):
+        (WebCore::PlatformWheelEvent::wheelTicksY):
+        * platform/gtk/WheelEventGtk.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/mac/WheelEventMac.mm:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/qt/WheelEventQt.cpp:
+        * platform/win/WheelEventWin.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/wx/MouseWheelEventWx.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
+2009-03-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+        
+        Clean up a few issues in the Animation code:
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::updateStateMachine):
+        Whitespace
+        
+        (WebCore::AnimationBase::willNeedService):
+        Don't round to float, use std::max
+
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::startTimeResponse):
+        Fix erroneously copied line to null out m_lastResponseWaiter.
+
+2009-03-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Eric Seidel
+
+        https://bugs.webkit.org/show_bug.cgi?id=13632
+
+        Overflow scrolling needs to account for the bottom/right padding on the object itself as well
+        as for bottom/right margins on children.
+
+        Existing tests cover this.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::lowestPosition):
+        (WebCore::RenderBlock::rightmostPosition):
+
+2009-03-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for <rdar://problem/6320555>
+        Add an upper limit for setting HTMLSelectElement.length.
+
+        Test: fast/forms/select-max-length.html
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setOption):
+        (WebCore::HTMLSelectElement::setLength):
+
+2009-03-16  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/6686721> Media document crash in 64-bit WebKit
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTMovieView): QTMovieContentViewClass is only used when
+        rendering inline with old versions of QuickTime, so don't look for it when we are in a 
+        media document.
+
+2009-03-16  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24590
+        Refactor InspectorDOMStorageResource to use ScriptFunctionCall.
+
+        * bindings/js/ScriptFunctionCall.cpp:
+        (WebCore::ScriptFunctionCall::appendArgument): Added method for bool argument.
+        * bindings/js/ScriptFunctionCall.h: Ditto, also cleaned up.
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        (WebCore::getQuarantinedScriptObject): Added Storage helper.
+        * bindings/js/ScriptObjectQuarantine.h: Ditto.
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::populateScriptObjects): Changed to use bind method.
+        (WebCore::InspectorController::resetScriptObjects): Changed to use unbind method.
+        (WebCore::InspectorController::didUseDOMStorage): Changed to use isSameHostAndType and bind methods.
+        * inspector/InspectorController.h: Removed add/remove methods for DOM storage.
+        * inspector/InspectorDOMStorageResource.cpp:
+        (WebCore::InspectorDOMStorageResource::InspectorDOMStorageResource):
+        (WebCore::InspectorDOMStorageResource::isSameHostAndType): Added.
+        (WebCore::InspectorDOMStorageResource::bind): Added.
+        (WebCore::InspectorDOMStorageResource::unbind): Added.
+        * inspector/InspectorDOMStorageResource.h:
+
+2009-03-16   Mike Belshe  <mike@belse.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24580
+        Fix query() to match KURL behavior, this time with the code that
+        compiles.
+
+        * platform/KURLGoogle.cpp:
+        (WebCore::KURL::query): Fix copy/paste mistake.
+
 2009-03-16  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Darin Adler.

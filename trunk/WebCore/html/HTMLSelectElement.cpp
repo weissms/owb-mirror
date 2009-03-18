@@ -2,7 +2,7 @@
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2009 Apple Inc. All rights reserved.
  *           (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  *
  * This library is free software; you can redistribute it and/or
@@ -66,6 +66,9 @@ namespace WebCore {
 using namespace HTMLNames;
 
 static const DOMTimeStamp typeAheadTimeout = 1000;
+
+// Upper limit agreed upon with representatives of Opera and Mozilla.
+static const unsigned maxSelectItems = 10000;
 
 HTMLSelectElement::HTMLSelectElement(const QualifiedName& tagName, Document* doc, HTMLFormElement* f)
     : HTMLFormControlElementWithState(tagName, doc, f)
@@ -218,7 +221,6 @@ void HTMLSelectElement::add(HTMLElement *element, HTMLElement *before, Exception
     if (!element || !(element->hasLocalName(optionTag) || element->hasLocalName(hrTag)))
         return;
 
-    ec = 0;
     insertBefore(element, before, ec);
 }
 
@@ -290,36 +292,6 @@ void HTMLSelectElement::restoreState(const String& state)
             static_cast<HTMLOptionElement*>(items[i])->setSelectedState(state[i] == 'X');
             
     setChanged();
-}
-
-bool HTMLSelectElement::insertBefore(PassRefPtr<Node> newChild, Node* refChild, ExceptionCode& ec, bool shouldLazyAttach)
-{
-    bool result = HTMLFormControlElementWithState::insertBefore(newChild, refChild, ec, shouldLazyAttach);
-    return result;
-}
-
-bool HTMLSelectElement::replaceChild(PassRefPtr<Node> newChild, Node *oldChild, ExceptionCode& ec, bool shouldLazyAttach)
-{
-    bool result = HTMLFormControlElementWithState::replaceChild(newChild, oldChild, ec, shouldLazyAttach);
-    return result;
-}
-
-bool HTMLSelectElement::removeChild(Node* oldChild, ExceptionCode& ec)
-{
-    bool result = HTMLFormControlElementWithState::removeChild(oldChild, ec);
-    return result;
-}
-
-bool HTMLSelectElement::appendChild(PassRefPtr<Node> newChild, ExceptionCode& ec, bool shouldLazyAttach)
-{
-    bool result = HTMLFormControlElementWithState::appendChild(newChild, ec, shouldLazyAttach);
-    return result;
-}
-
-bool HTMLSelectElement::removeChildren()
-{
-    bool result = HTMLFormControlElementWithState::removeChildren();
-    return result;
 }
 
 void HTMLSelectElement::parseMappedAttribute(MappedAttribute *attr)
@@ -525,6 +497,7 @@ void HTMLSelectElement::childrenChanged(bool changedByParser, Node* beforeChange
 void HTMLSelectElement::setRecalcListItems()
 {
     m_recalcListItems = true;
+    m_activeSelectionAnchorIndex = -1; // Manual selection anchor is reset when manipulating the select programmatically.
     if (renderer()) {
         if (usesMenuList())
             static_cast<RenderMenuList*>(renderer())->setOptionsChanged(true);
@@ -1063,8 +1036,8 @@ Node* HTMLSelectElement::item(unsigned index)
 void HTMLSelectElement::setOption(unsigned index, HTMLOptionElement* option, ExceptionCode& ec)
 {
     ec = 0;
-    if (index > INT_MAX)
-        index = INT_MAX;
+    if (index > maxSelectItems - 1)
+        index = maxSelectItems - 1;
     int diff = index  - length();
     HTMLElement* before = 0;
     // out of array bounds ? first insert empty dummies
@@ -1086,8 +1059,8 @@ void HTMLSelectElement::setOption(unsigned index, HTMLOptionElement* option, Exc
 void HTMLSelectElement::setLength(unsigned newLen, ExceptionCode& ec)
 {
     ec = 0;
-    if (newLen > INT_MAX)
-        newLen = INT_MAX;
+    if (newLen > maxSelectItems)
+        newLen = maxSelectItems;
     int diff = length() - newLen;
 
     if (diff < 0) { // add dummy elements

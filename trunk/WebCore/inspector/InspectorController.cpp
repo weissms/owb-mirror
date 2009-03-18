@@ -504,7 +504,7 @@ void InspectorController::addConsoleMessage(ExecState* exec, ConsoleMessage* con
     ASSERT_ARG(consoleMessage, consoleMessage);
 
     if (m_previousMessage && m_previousMessage->isEqual(exec, consoleMessage)) {
-        ++m_previousMessage->repeatCount;
+        m_previousMessage->incrementCount();
         delete consoleMessage;
     } else {
         m_previousMessage = consoleMessage;
@@ -512,7 +512,7 @@ void InspectorController::addConsoleMessage(ExecState* exec, ConsoleMessage* con
     }
 
     if (windowVisible())
-        addScriptConsoleMessage(m_previousMessage);
+        m_previousMessage->addToConsole(toJS(m_scriptContext), ScriptObject(toJS(m_scriptObject)));
 }
 
 void InspectorController::clearConsoleMessages()
@@ -1182,7 +1182,7 @@ void InspectorController::populateScriptObjects()
 
     unsigned messageCount = m_consoleMessages.size();
     for (unsigned i = 0; i < messageCount; ++i)
-        addScriptConsoleMessage(m_consoleMessages[i]);
+        m_consoleMessages[i]->addToConsole(toJS(m_scriptContext), ScriptObject(toJS(m_scriptObject)));
 
 #if ENABLE(DATABASE)
     DatabaseResourcesSet::iterator databasesEnd = m_databaseResources.end();
@@ -1192,135 +1192,10 @@ void InspectorController::populateScriptObjects()
 #if ENABLE(DOM_STORAGE)
     DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
     for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
-        addDOMStorageScriptResource(it->get());
+        (*it)->bind(toJS(m_scriptContext), ScriptObject(toJS(m_scriptObject)));
 #endif
 
     callSimpleFunction(m_scriptContext, m_scriptObject, "populateInterface");
-}
-
-#if ENABLE(DOM_STORAGE)
-JSObjectRef InspectorController::addDOMStorageScriptResource(InspectorDOMStorageResource* resource)
-{
-    ASSERT_ARG(resource, resource);
-
-    if (resource->scriptObject)
-        return resource->scriptObject;
-
-    ASSERT(m_scriptContext);
-    ASSERT(m_scriptObject);
-    if (!m_scriptContext || !m_scriptObject)
-        return 0;
-
-    JSValueRef exception = 0;
-
-    JSValueRef domStorageProperty = JSObjectGetProperty(m_scriptContext, m_scriptObject, jsStringRef("DOMStorage").get(), &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return 0;
-
-    JSObjectRef domStorageConstructor = JSValueToObject(m_scriptContext, domStorageProperty, &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return 0;
-
-    ExecState* exec = toJSDOMWindow(resource->frame.get())->globalExec();
-
-    JSValueRef domStorage;
-
-    {
-        JSC::JSLock lock(false);
-        domStorage = toRef(JSInspectedObjectWrapper::wrap(exec, toJS(exec, resource->domStorage.get())));
-    }
-
-    JSValueRef domainValue = JSValueMakeString(m_scriptContext, jsStringRef(resource->frame->document()->securityOrigin()->host()).get());
-    JSValueRef isLocalStorageValue = JSValueMakeBoolean(m_scriptContext, resource->isLocalStorage);
-
-    JSValueRef arguments[] = { domStorage, domainValue, isLocalStorageValue };
-    JSObjectRef result = JSObjectCallAsConstructor(m_scriptContext, domStorageConstructor, 3, arguments, &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return 0;
-
-    ASSERT(result);
-
-    callFunction(m_scriptContext, m_scriptObject, "addDOMStorage", 1, &result, exception);
-
-    if (exception)
-        return 0;
-
-    resource->setScriptObject(m_scriptContext, result);
-
-    return result;
-}
-
-void InspectorController::removeDOMStorageScriptResource(InspectorDOMStorageResource* resource)
-{
-    ASSERT(m_scriptContext);
-    ASSERT(m_scriptObject);
-    if (!m_scriptContext || !m_scriptObject)
-        return;
-
-    ASSERT(resource);
-    ASSERT(resource->scriptObject);
-    if (!resource || !resource->scriptObject)
-        return;
-
-    JSObjectRef scriptObject = resource->scriptObject;
-    resource->setScriptObject(0, 0);
-
-    JSValueRef exception = 0;
-    callFunction(m_scriptContext, m_scriptObject, "removeDOMStorage", 1, &scriptObject, exception);
-}
-#endif
-
-void InspectorController::addScriptConsoleMessage(const ConsoleMessage* message)
-{
-    ASSERT_ARG(message, message);
-
-    JSValueRef exception = 0;
-
-    JSValueRef messageConstructorProperty = JSObjectGetProperty(m_scriptContext, m_scriptObject, jsStringRef("ConsoleMessage").get(), &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return;
-
-    JSObjectRef messageConstructor = JSValueToObject(m_scriptContext, messageConstructorProperty, &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return;
-
-    JSValueRef sourceValue = JSValueMakeNumber(m_scriptContext, message->source);
-    JSValueRef levelValue = JSValueMakeNumber(m_scriptContext, message->level);
-    JSValueRef lineValue = JSValueMakeNumber(m_scriptContext, message->line);
-    JSValueRef urlValue = JSValueMakeString(m_scriptContext, jsStringRef(message->url).get());
-    JSValueRef groupLevelValue = JSValueMakeNumber(m_scriptContext, message->groupLevel);
-    JSValueRef repeatCountValue = JSValueMakeNumber(m_scriptContext, message->repeatCount);
-
-    static const unsigned maximumMessageArguments = 256;
-    JSValueRef arguments[maximumMessageArguments];
-    unsigned argumentCount = 0;
-    arguments[argumentCount++] = sourceValue;
-    arguments[argumentCount++] = levelValue;
-    arguments[argumentCount++] = lineValue;
-    arguments[argumentCount++] = urlValue;
-    arguments[argumentCount++] = groupLevelValue;
-    arguments[argumentCount++] = repeatCountValue;
-
-    if (!message->frames.isEmpty()) {
-        unsigned remainingSpaceInArguments = maximumMessageArguments - argumentCount;
-        unsigned argumentsToAdd = min(remainingSpaceInArguments, static_cast<unsigned>(message->frames.size()));
-        for (unsigned i = 0; i < argumentsToAdd; ++i)
-            arguments[argumentCount++] = JSValueMakeString(m_scriptContext, jsStringRef(message->frames[i]).get());
-    } else if (!message->wrappedArguments.isEmpty()) {
-        unsigned remainingSpaceInArguments = maximumMessageArguments - argumentCount;
-        unsigned argumentsToAdd = min(remainingSpaceInArguments, static_cast<unsigned>(message->wrappedArguments.size()));
-        for (unsigned i = 0; i < argumentsToAdd; ++i)
-            arguments[argumentCount++] = toRef(message->wrappedArguments[i]);
-    } else {
-        JSValueRef messageValue = JSValueMakeString(m_scriptContext, jsStringRef(message->message).get());
-        arguments[argumentCount++] = messageValue;
-    }
-
-    JSObjectRef messageObject = JSObjectCallAsConstructor(m_scriptContext, messageConstructor, argumentCount, arguments, &exception);
-    if (HANDLE_EXCEPTION(m_scriptContext, exception))
-        return;
-
-    callFunction(m_scriptContext, m_scriptObject, "addMessageToConsole", 1, &messageObject, exception);
 }
 
 void InspectorController::addScriptProfile(Profile* profile)
@@ -1349,10 +1224,8 @@ void InspectorController::resetScriptObjects()
 #endif
 #if ENABLE(DOM_STORAGE)
     DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
-    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it) {
-        InspectorDOMStorageResource* resource = it->get();
-        resource->setScriptObject(0, 0);
-    }
+    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
+        (*it)->unbind();
 #endif
 
     callSimpleFunction(m_scriptContext, m_scriptObject, "reset");
@@ -1680,17 +1553,16 @@ void InspectorController::didUseDOMStorage(StorageArea* storageArea, bool isLoca
         return;
 
     DOMStorageResourcesSet::iterator domStorageEnd = m_domStorageResources.end();
-    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it) {
-        InspectorDOMStorageResource* resource = it->get();
-        if (equalIgnoringCase(resource->frame->document()->securityOrigin()->host(), frame->document()->securityOrigin()->host()) && resource->isLocalStorage == isLocalStorage)
+    for (DOMStorageResourcesSet::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
+        if ((*it)->isSameHostAndType(frame, isLocalStorage))
             return;
-    }
+
     RefPtr<Storage> domStorage = Storage::create(frame, storageArea);
     RefPtr<InspectorDOMStorageResource> resource = InspectorDOMStorageResource::create(domStorage.get(), isLocalStorage, frame);
 
     m_domStorageResources.add(resource);
     if (windowVisible())
-        addDOMStorageScriptResource(resource.get());
+        resource->bind(toJS(m_scriptContext), ScriptObject(toJS(m_scriptObject)));
 }
 #endif
 

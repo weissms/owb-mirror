@@ -79,6 +79,8 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     // FIXME: retrieve the user setting for the number of lines to scroll on each wheel event
     m_deltaX *= static_cast<float>(cScrollbarPixelsPerLineStep);
     m_deltaY *= static_cast<float>(cScrollbarPixelsPerLineStep);
+    m_wheelTicksX = m_deltaX;
+    m_wheelTicksY = m_deltaY;
 
     m_position = IntPoint((int)event->x, (int)event->y);
     m_globalPosition = IntPoint((int)event->x, (int)event->y);

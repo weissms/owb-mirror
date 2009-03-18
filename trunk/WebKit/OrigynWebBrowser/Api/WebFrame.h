@@ -506,6 +506,11 @@ public:
     int numberOfActiveAnimations();
 
     /**
+     * return true if the document only contains a standalone image to display
+     */
+    bool isDisplayingStandaloneImage();
+
+    /**
      * pause Animation
      */
     bool pauseAnimation(const char* name, double time, const char* element);

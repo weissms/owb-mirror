@@ -161,6 +161,11 @@ public:
 
 
     /**
+     * is equal
+     */
+    //virtual bool isEqual(WebURLRequest*);
+
+    /**
      * add value
      */
     virtual void addValue(WebCore::String value, WebCore::String field);

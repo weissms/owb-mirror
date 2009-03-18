@@ -144,6 +144,13 @@ bool WebMutableURLRequest::isEmpty()
     return m_request.isEmpty();
 }
 
+/*
+bool isEqual(WebURLRequest*)
+{
+    return false;
+}
+*/
+
 void WebMutableURLRequest::addValue(String /*value*/, String /*field*/)
 {
 }
@@ -187,8 +194,11 @@ void WebMutableURLRequest::setURL(String url)
     m_request.setURL(KURL(url));
 }
 
-void WebMutableURLRequest::setValue(String /*value*/, String /*field*/)
+void WebMutableURLRequest::setValue(String value, String field)
 {
+    //String valueString(value, SysStringLen(value));
+    //String fieldString(field, SysStringLen(field));
+    m_request.setHTTPHeaderField(field, value);
 }
 
 void WebMutableURLRequest::setAllowsAnyHTTPSCertificate()
