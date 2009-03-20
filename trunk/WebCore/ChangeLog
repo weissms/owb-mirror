@@ -1,3 +1,326 @@
+2009-03-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24122
+        <rdar://problem/6674179>
+        REGRESSION: DOM Range extractContents/deleteContents failures seen on Moxiecode tests
+
+        Test: fast/dom/Range/deleted-range-endpoints.html
+
+        * dom/Range.cpp: (WebCore::Range::processContents): Set the final range in accordance
+        to the specification.
+
+2009-03-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6682554> Flash content not being rendered (Shockwave Flash 10.0 r22)
+        
+        If calling updateWidget for some reason resulted in another widget being added to m_widgetUpdateSet, then
+        that object would never be updated.
+        
+        * page/FrameView.cpp:
+        (WebCore::FrameView::updateWidgets):
+        Factor the widget updating code out into this method. Return true if the update set is empty.
+        
+        (WebCore::FrameView::performPostLayoutTasks):
+        Loop over the update set multiple times until all widgets have been updated or until we reach the cap.
+        
+        * page/FrameView.h:
+
+2009-03-18  Timothy Hatcher  <timothy@apple.com>
+
+        Make the defered data loading timer honor the Page's scheduled runloop pairs.
+        Introduces a new RunLoopTimer class that has an API mimicking Timer but
+        allows it to be scheduled with one or more SchedulePairs.
+
+        <rdar://problem/6687342> -[WebView scheduleInRunLoop:forMode:] has no affect on timers
+
+        Reviewed by Darin Adler.
+
+        * WebCore.xcodeproj/project.pbxproj: Adds the new RunLoopTimer.{cpp,h} files.
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::handleDataLoadNow): Use the MainResourceLoaderTimer typedef.
+        (WebCore::MainResourceLoader::startDataLoadTimer): Added. Start the timer and on
+        Mac platforms also schedule with the Page's SchedulePairs.
+        (WebCore::MainResourceLoader::handleDataLoadSoon): Call startDataLoadTimer().
+        (WebCore::MainResourceLoader::setDefersLoading): Ditto.
+        * loader/MainResourceLoader.h:
+        * platform/cf/RunLoopTimerCF.cpp: Added.
+        (WebCore::RunLoopTimerBase::~RunLoopTimerBase):
+        (WebCore::timerFired):
+        (WebCore::RunLoopTimerBase::start):
+        (WebCore::RunLoopTimerBase::schedule):
+        (WebCore::RunLoopTimerBase::stop):
+        (WebCore::RunLoopTimerBase::isActive):
+        * platform/RunLoopTimer.h: Added.
+        (WebCore::RunLoopTimerBase::RunLoopTimerBase):
+        (WebCore::RunLoopTimerBase::startRepeating):
+        (WebCore::RunLoopTimerBase::startOneShot):
+        (WebCore::RunLoopTimer::RunLoopTimer):
+        (WebCore::RunLoopTimer::fired):
+
+2009-03-19  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24702
+        Upstream miscellaneous bindings changes.
+
+        * bindings/v8/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute): Changed to call lower-case evaluate.
+        * bindings/v8/ScriptCallStack.h: Added an extra include.
+
+2009-03-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24686
+        
+        When hit testing a RenderLayer whose parent lives in a preserves-3D hierarchy,
+        we need to compare the computed z-offset with the depth-test z-offset before
+        deciding that such a RenderLayer was hit. This fixes an issue, tested by the
+        3d-point-mapping-overlapping.html test, where the child of a transformed element
+        is found by hit testing, even when some other element with greater Z overlaps
+        them both.
+        
+        Improved the code by adding a utility method, isHitCandidate(), which computes and tests
+        z-depth when necessary.
+
+        Tests: transforms/3d/point-mapping/3d-point-mapping-coplanar.html
+               transforms/3d/point-mapping/3d-point-mapping-overlapping.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::isHitCandidate):
+        (WebCore::RenderLayer::hitTestLayer):
+
+2009-03-19  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24456
+        Split ColorChromium.cpp into Mac & Windows variants.
+        Remove Chromium Dependency on platform/graphics/mac/ColorMac.mm since we
+        ultimately need to take a different approach.  For now, createCGColor()
+        is copied from ColorMac.mm.
+
+        No observable change in behavior, so no test.
+
+        * platform/graphics/chromium/ColorChromium.cpp:
+        (WebCore::focusRingColor):
+        * platform/graphics/chromium/ColorChromiumMac.mm: Added.
+
+2009-03-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24675
+        Unforking frontend: add custom InspectorController methods
+        implementation.
+
+        * bindings/v8/custom/V8InspectorControllerCustom.cpp: Added.
+
+2009-03-19  Jay Campan  <jcampan@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24625
+        Adding an accessor to the currently selected index in the PopupMenuChromium.
+        This is required for implementing the deletion of an autocomplete entry in Chromium.
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupContainer::selectedIndex):
+        * platform/chromium/PopupMenuChromium.h:
+
+2009-03-19  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24526
+        Improve windows skia text stroking.
+
+        Test: LayoutTests/svg/custom/struct-use-09-b.svg
+
+        * platform/graphics/skia/SkiaFontWin.cpp: Close the path representing
+        each font glyph polygon, rather than only closing the path once per
+        letter. This fixes stroking for letters with multiple polygons, such
+        as 'A' or 'D'.
+        (WebCore::getPathForGlyph):
+        (WebCore::skiaDrawText):
+
+2009-03-19  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fixed support for doing calls from JavaScript into NPAPI Plugins for the Qt port on Windows.
+
+        Removed dead code for distinguishing between Widget and PluginView in the Qt port.
+
+        * bindings/js/ScriptControllerQt.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget): Removed incorrect isNPAPI check.
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView): Removed m_isNPAPIPlugin variable.
+        * plugins/PluginView.h: Removed setter/getter.
+        * plugins/mac/PluginViewMac.cpp:
+        (WebCore::PluginView::init): Removed call to setIsNPAPIPlugin.
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::init): Ditto.
+
+2009-03-19  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 24596: ASSERT in JSC::PropertySlot::slotBase @ iGoogle homepage
+        <https://bugs.webkit.org/show_bug.cgi?id=24596>
+        <rdar://problem/6686493>
+
+        JSDOMWindow::customGetOwnPropertySlot() does an access check after calling
+        JSGlobalObject::getOwnPropertySlot(). This causes the PropertySlot to be
+        set twice, once to the value that is illegal to access, and then to undefined
+        This causes an assertion failure in property access caching code.
+
+        The fix is to do the access check before calling JSGlobalObject::getOwnPropertySlot().
+
+        * bindings/js/JSDOMWindowCustom.h:
+        (WebCore::JSDOMWindow::customGetOwnPropertySlot):
+
+2009-03-18  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24676
+        Simple cross-origin requests shouldn't dispatch upload progress events
+
+        Test: http/tests/xmlhttprequest/simple-cross-origin-progress-events.html
+
+        * loader/CrossOriginAccessControl.cpp: (WebCore::passesAccessControlCheck): Added a comment
+        explaining the somewhat unexpected behavior of this function.
+
+        * xml/XMLHttpRequestUpload.cpp: (WebCore::XMLHttpRequestUpload::hasListeners):
+        * xml/XMLHttpRequestUpload.h:
+        Report whether there are any event listeners registered.
+
+        * xml/XMLHttpRequest.h: Added m_uploadEventsAllowed.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::createRequest): Set m_uploadEventsAllowed flag.
+        (WebCore::XMLHttpRequest::makeSameOriginRequest): Ditto.
+        (WebCore::XMLHttpRequest::makeCrossOriginAccessRequest): Ditto.
+        (WebCore::XMLHttpRequest::makeSimpleCrossOriginAccessRequest): Set request body - it can be
+        non-empty for POST requests.
+        (WebCore::XMLHttpRequest::makeCrossOriginAccessRequestWithPreflight): Set m_uploadEventsAllowed flag.
+        (WebCore::XMLHttpRequest::handleAsynchronousPreflightResult): Ditto.
+        (WebCore::XMLHttpRequest::abort): Only dispatch upload progress events if allowed.
+        (WebCore::XMLHttpRequest::networkError): Ditto.
+        (WebCore::XMLHttpRequest::abortError): Ditto.
+        (WebCore::XMLHttpRequest::didSendData): Ditto.
+
+2009-03-18  Marc-Antoine Ruel  <maruel@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24398
+        Fix a crash when loading a svg file in Chromium's test_shell and
+        then reloading the page.
+
+        * history/BackForwardListChromium.cpp:
+        (WebCore::BackForwardList::BackForwardList):
+        (WebCore::BackForwardList::close):
+
+2009-03-18  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Fix for <rdar://problem/6685235>
+        <video> element poster cannot be set dynamically if not originally set up in HTML
+        
+        Allocate the media engine immediately so the plug-in proxy is available for
+        scripting right away.
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::MediaPlayer):
+
+2009-03-18  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for <rdar://problem/6636747> REGRESSION (Safari 4 PB-r41326): 
+        Popup menu appears at the wrong location on page at http://
+        www.signonsandiego.com/
+
+        This was a regression from http://trac.webkit.org/changeset/40769, 
+        which changed the base class of RenderInline to 
+        RenderBoxModelObject rather than RenderBox.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::offsetParent): offsetParent should return a 
+        RenderBoxModelObject rather than just a RenderBox, which is more 
+        restrictive. 
+
+2009-03-18  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6504776> 
+        CrashTracer: [USER] 188 crashes in Safari at com.apple.WebCore • WTF::HashTableIterator<WTF::RefPtr<WebCore::ResourceLoader>, ...
+
+        Return early in case calling the client ends up spinning the run loop and completing/cancelling the load.
+        
+        * loader/NetscapePlugInStreamLoader.cpp:
+        (WebCore::NetscapePlugInStreamLoader::didCancel):
+
+2009-03-18  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24664
+        Upstreaming v8 collection.h
+
+        No change in behavior, so no test.
+
+        * bindings/v8/V8Collection.h: Added.
+
+2009-03-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23966
+        REGRESSION: Custom arrow navigation functionality doesn't work at dropular.net
+        <rdar://problem/6589657>
+
+        Match the CSSOM spec for getClientRects and getBoundingClientRect by
+        returning a 0x0 rect at the correct top/left position for empty inline
+        boxes.
+
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::absoluteRects):
+        (WebCore::RenderInline::absoluteQuads):
+
+2009-03-18  David Levin  <levin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Match the changes done for windows in the bug
+        https://bugs.webkit.org/show_bug.cgi?id=24530.
+
+        No change in behavior, so no test.
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::extraDefaultStyleSheet):
+
+2009-03-18  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Added support for SVG's stroked texts to Qt.
+
+        [Qt] SVGs stroked text support missing
+        https://bugs.webkit.org/show_bug.cgi?id=24262
+
+        * platform/graphics/qt/FontQt.cpp:
+        (WebCore::Font::drawComplexText):
+
 2009-03-18  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Alexey Proskuryakov.

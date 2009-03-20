@@ -630,6 +630,7 @@ BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.h
 BAL/Skeletons/Timer WebCore/platform/SharedTimer.h
 BAL/Skeletons/Timer WebCore/platform/SystemTime.h
 BAL/Skeletons/Timer WebCore/platform/Timer.h
+BAL/Skeletons/Timer WebCore/platform/RunLoopTimer.h
 
 BAL/Timer/WebCore/Gtk   WebCore/platform/gtk/SharedTimerGtk.cpp BCSharedTimerGtk.cpp
 BAL/Timer/WebCore/Qt	WebCore/platform/qt/SharedTimerQt.cpp
@@ -637,6 +638,7 @@ BAL/Timer/WebCore/WK	WebCore/platform/SharedTimer.h
 BAL/Timer/WebCore/WK	WebCore/platform/SystemTime.h
 BAL/Timer/WebCore/WK	WebCore/platform/Timer.cpp
 BAL/Timer/WebCore/WK	WebCore/platform/Timer.h
+BAL/Timer/WebCore/WK	WebCore/platform/RunLoopTimer.h
 
 
 BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h

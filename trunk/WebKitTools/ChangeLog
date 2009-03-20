@@ -1,3 +1,41 @@
+2009-03-20  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        Make determinePassedArchitecture always consume the --32-bit
+        option, also in non-AppleMacWebkit platforms. Solution pointed out
+        by Mark Rowe.
+
+        * Scripts/webkitdirs.pm:
+
+2009-03-19  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Work around <rdar://problem/6698023> by activating fonts from disk.
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj: Copy fonts into DumpRenderTree.resources
+        in the built products directory.
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (activateFonts): Activate the fonts from disk.
+
+2009-03-18  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6693300> Don't rely on printf from TestNetscapePlugIn appearing in test results
+
+        Switch from using printf to using the NPAPI to invoke console.log so that plug-in messages appear
+        in test results even when the plug-in's stdout differs from DumpRenderTree's stdout.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (log): Invoke console.log via the NPAPI.
+        (NPP_Destroy): Call log instead of printf.
+        (NPP_SetWindow): Ditto.
+        (handleEventCarbon): Ditto.
+        (handleEventCocoa): Ditto.
+        (NPP_HandleEvent): Pass the instance in to the event handler.
+
 2009-03-18  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Oliver Hunt.

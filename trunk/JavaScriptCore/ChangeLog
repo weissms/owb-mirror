@@ -1,3 +1,137 @@
+2009-03-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fixed <rdar://problem/6033712> -- a little bit of hardening in the Collector.
+        
+        SunSpider reports no change. I also verified in the disassembly that
+        we end up with a single compare to constant.
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::heapAllocate):
+
+2009-03-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich and Oliver Hunt.
+
+        Fixed <rdar://problem/6406045> REGRESSION: Stack overflow on PowerPC on
+        fast/workers/use-machine-stack.html (22531)
+
+        Dialed down the re-entry allowance to 64 (from 128).
+        
+        On a 512K stack, this leaves about 64K for other code on the stack while
+        JavaScript is running. Not perfect, but it solves our crash on PPC.
+
+        Different platforms may want to dial this down even more.
+
+        Also, substantially shrunk BytecodeGenerator. Since we allocate one on
+        the stack in order to throw a stack overflow exception -- well, let's
+        just say the old code had an appreciation for irony.
+
+        SunSpider reports no change.
+
+        * bytecompiler/BytecodeGenerator.h:
+        * interpreter/Interpreter.h:
+        (JSC::):
+
+2009-03-19  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 24350: REGRESSION: Safari 4 breaks SPAW wysiwyg editor multiple instances
+        <https://bugs.webkit.org/show_bug.cgi?id=24350>
+        <rdar://problem/6674182>
+
+        The SPAW editor's JavaScript assumes that toString() on a function
+        constructed with the Function constructor produces a function with
+        a newline after the opening brace.
+
+        * runtime/FunctionConstructor.cpp:
+        (JSC::constructFunction): Add a newline after the opening brace of the
+        function's source code.
+
+2009-03-19  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Geoff Garen.
+
+        Bug 23771: REGRESSION (r36016): JSObjectHasProperty freezes on global class without kJSClassAttributeNoAutomaticPrototype
+        <https://bugs.webkit.org/show_bug.cgi?id=23771>
+        <rdar://problem/6561016>
+
+        * API/tests/testapi.c:
+        (main): Add a test for this bug.
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::resetPrototype): Don't set the prototype of the
+        last object in the prototype chain to the object prototype when the
+        object prototype is already the last object in the prototype chain.
+
+2009-03-19  Timothy Hatcher  <timothy@apple.com>
+
+        <rdar://problem/6687342> -[WebView scheduleInRunLoop:forMode:] has no affect on timers
+
+        Reviewed by Darin Adler.
+
+        * wtf/Platform.h: Added HAVE_RUNLOOP_TIMER for PLATFORM(MAC).
+
+2009-03-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fixed <rdar://problem/6279213> Regular expression run-time complexity
+        limit too low for long inputs (21485)
+        
+        I raised PCRE's "matchLimit" (limit on backtracking) by an order of
+        magnitude. This fixes all the reported examples of timing out on legitimate
+        regular expression matches.
+        
+        In my testing on a Core Duo MacBook Pro, the longest you can get stuck
+        trying to match a string is still under 1s, so this seems like a safe change.
+        
+        I can think of a number of better solutions that are more complicated,
+        but this is a good improvement for now.
+
+        * pcre/pcre_exec.cpp:
+
+2009-03-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Fixed <rdar://problem/6603562> REGRESSION (Safari 4): regular expression
+        pattern size limit lower than Safari 3.2, other browsers, breaks SAP (14873)
+        
+        Bumped the pattern size limit to 1MB, and standardized it between PCRE
+        and WREC. (Empirical testing says that we can easily compile a 1MB regular
+        expression without risking a hang. Other browsers support bigger regular
+        expressions, but also hang.)
+        
+        SunSpider reports no change.
+        
+        I started with a patch posted to Bugzilla by Erik Corry (erikcorry@google.com).
+        
+        * pcre/pcre_internal.h:
+        (put3ByteValue):
+        (get3ByteValue):
+        (put3ByteValueAndAdvance):
+        (putLinkValueAllowZero):
+        (getLinkValueAllowZero): Made PCRE's "LINK_SIZE" (the number of bytes
+        used to record jumps between bytecodes) 3, to accomodate larger potential
+        jumps. Bumped PCRE's "MAX_PATTERN_SIZE" to 1MB. (Technically, at this
+        LINK_SIZE, we can support even larger patterns, but we risk a hang during
+        compilation, and it's not clear that such large patterns are important
+        on the web.)
+
+        * wrec/WREC.cpp:
+        (JSC::WREC::Generator::compileRegExp): Match PCRE's maximum pattern size,
+        to avoid quirks between platforms.
+
+2009-03-18  Ada Chan  <adachan@apple.com>
+
+        Rolling out r41818 since it broke the windows build.
+        Error: ..\..\runtime\DatePrototype.cpp(30) : fatal error C1083: Cannot open include file: 'langinfo.h': No such file or directory
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+
 2009-03-18  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Cameron Zwarich.

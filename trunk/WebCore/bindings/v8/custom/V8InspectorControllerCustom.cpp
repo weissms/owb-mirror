@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2007-2009 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -28,36 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ScriptCallStack_h
-#define ScriptCallStack_h
+#include "config.h"
+#include "InspectorController.h"
 
-#include "ScriptCallFrame.h"
-#include "ScriptState.h"
-#include "ScriptValue.h"
-#include <wtf/Noncopyable.h>
+#include "ExceptionCode.h"
 
-namespace v8 {
-    class Arguments;
-}
+#include "V8Binding.h"
+#include "V8CustomBinding.h"
+#include "V8Proxy.h"
 
 namespace WebCore {
 
-    class ScriptCallStack : public Noncopyable {
-    public:
-        ScriptCallStack(const v8::Arguments&, unsigned skipArgumentCount = 0);
-        ~ScriptCallStack();
+CALLBACK_FUNC_DECL(InspectorControllerDebuggerEnabled)
+{
+    INC_STATS("InspectorController.debuggerEnabled()");
+    return v8::False();
+}
 
-        const ScriptCallFrame& at(unsigned) const;
-        // FIXME: implement retrieving and storing call stack trace
-        unsigned size() const { return 1; }
+CALLBACK_FUNC_DECL(InspectorControllerPauseOnExceptions)
+{
+    INC_STATS("InspectorController.pauseOnExceptions()");
+    return v8::False();
+}
 
-        // FIXME: This method is obviously not implemented.
-        ScriptState* state() const { return 0; }
+CALLBACK_FUNC_DECL(InspectorControllerProfilerEnabled)
+{
+    INC_STATS("InspectorController.profilerEnabled()");
+    return v8::False();
+}
 
-    private:
-        ScriptCallFrame m_lastCaller;
-    };
+#if ENABLE(DATABASE)
+CALLBACK_FUNC_DECL(InspectorControllerDatabaseTableNames)
+{
+    INC_STATS("InspectorController.databaseTableNames()");
+    v8::Local<v8::Array> result = v8::Array::New(0);
+    return result;
+}
+#endif
+
+CALLBACK_FUNC_DECL(InspectorControllerWrapCallback)
+{
+    INC_STATS("InspectorController.wrapCallback()");
+    return args[0];
+}
 
 } // namespace WebCore
-
-#endif // ScriptCallStack_h
