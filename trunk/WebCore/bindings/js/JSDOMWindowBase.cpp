@@ -27,14 +27,9 @@
 #include "DOMTimer.h"
 #include "DOMWindow.h"
 #include "Element.h"
-#include "EventListener.h"
-#include "ExceptionCode.h"
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameLoadRequest.h"
-#include "FrameLoader.h"
-#include "FrameTree.h"
-#include "GCController.h"
 #include "HTMLDocument.h"
 #if ENABLE(INSPECTOR)
 #include "Console.h"
@@ -43,7 +38,6 @@
 #include "JSAudioConstructor.h"
 #include "JSDOMWindowCustom.h"
 #include "JSEvent.h"
-#include "JSEventListener.h"
 #include "JSHTMLCollection.h"
 #include "JSImageConstructor.h"
 #include "JSMessageChannelConstructor.h"
@@ -65,10 +59,7 @@
 #include "SecurityOrigin.h"
 #include "Settings.h"
 #include "WindowFeatures.h"
-#include "htmlediting.h"
-#include <runtime/Error.h>
 #include <runtime/JSLock.h>
-#include <wtf/AlwaysInline.h>
 #include <wtf/MathExtras.h>
 
 using namespace JSC;

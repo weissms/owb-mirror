@@ -694,7 +694,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 
 - (void)_commonInitializationWithFrameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
 {
-    WebCoreThreadViolationCheck();
+    WebCoreThreadViolationCheckRoundTwo();
 
 #ifndef NDEBUG
     WTF::RefCountedLeakCounter::suppressMessages(webViewIsOpen);
@@ -737,10 +737,16 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 
     [WebFrame _createMainFrameWithPage:_private->page frameName:frameName frameView:frameView];
 
+#ifndef BUILDING_ON_TIGER
+    NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
+#else
+    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+#endif
+
     if (WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_LOADING_DURING_COMMON_RUNLOOP_MODES))
-        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+        [self scheduleInRunLoop:runLoop forMode:(NSString *)kCFRunLoopCommonModes];
     else
-        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+        [self scheduleInRunLoop:runLoop forMode:NSDefaultRunLoopMode];
 
     [self _addToAllWebViewsSet];
     [self setGroupName:groupName];
@@ -2380,7 +2386,7 @@ static bool needsWebViewInitThreadWorkaround()
     if (needsWebViewInitThreadWorkaround())
         return [[self _webkit_invokeOnMainThread] initWithFrame:f frameName:frameName groupName:groupName];
 
-    WebCoreThreadViolationCheck();
+    WebCoreThreadViolationCheckRoundTwo();
     return [self _initWithFrame:f frameName:frameName groupName:groupName usesDocumentViews:YES];
 }
 
@@ -2389,7 +2395,7 @@ static bool needsWebViewInitThreadWorkaround()
     if (needsWebViewInitThreadWorkaround())
         return [[self _webkit_invokeOnMainThread] initWithCoder:decoder];
 
-    WebCoreThreadViolationCheck();
+    WebCoreThreadViolationCheckRoundTwo();
     WebView *result = nil;
 
     @try {

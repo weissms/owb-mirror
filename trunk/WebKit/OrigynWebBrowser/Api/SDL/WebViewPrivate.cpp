@@ -85,6 +85,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     IntRect rect(m_webView->dirtyRegion());
     if (frame->contentRenderer() && frame->view() && !rect.isEmpty()) {
+        m_webView->clearDirtyRegion();
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = rect;
         IntRect d = rect;
@@ -119,7 +120,6 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         }
 
         updateView(ctx.platformContext(), dirty);
-        m_webView->clearDirtyRegion();
     }
 }
 
@@ -323,7 +323,8 @@ void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentCha
 
     if (contentChanged) {
         m_webView->addToDirtyRegion(rect);
-        /*Frame* focusedFrame = m_webView->page()->focusController()->focusedFrame();
+#if 0
+        Frame* focusedFrame = m_webView->page()->focusController()->focusedFrame();
         if (focusedFrame) {
             Scrollbar* hBar = focusedFrame->view()->horizontalScrollbar();
             Scrollbar* vBar = focusedFrame->view()->verticalScrollbar();
@@ -335,7 +336,8 @@ void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentCha
             //if (dy && vBar)
             if (vBar)
                 m_webView->addToDirtyRegion(IntRect(focusedFrame->view()->windowClipRect().x() + vBar->x(), focusedFrame->view()->windowClipRect().y() + vBar->y(), vBar->width(), vBar->height()));
-        }*/
+        }
+#endif
     }
     if (!repaintContentOnly)
         sendExposeEvent(rect);

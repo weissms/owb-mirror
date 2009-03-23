@@ -1,3 +1,136 @@
+2009-03-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix exception handling in API
+
+        We can't just use the ExecState exception slot for returning exceptions
+        from class introspection functions provided through the API as many JSC
+        functions will explicitly clear the ExecState exception when returning.
+
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::JSCallbackObject<Base>::getOwnPropertySlot):
+        (JSC::JSCallbackObject<Base>::put):
+        (JSC::JSCallbackObject<Base>::deleteProperty):
+        (JSC::JSCallbackObject<Base>::construct):
+        (JSC::JSCallbackObject<Base>::hasInstance):
+        (JSC::JSCallbackObject<Base>::call):
+        (JSC::JSCallbackObject<Base>::toNumber):
+        (JSC::JSCallbackObject<Base>::toString):
+        (JSC::JSCallbackObject<Base>::staticValueGetter):
+        (JSC::JSCallbackObject<Base>::callbackGetter):
+        * API/tests/testapi.c:
+        (MyObject_hasProperty):
+        (MyObject_getProperty):
+        (MyObject_setProperty):
+        (MyObject_deleteProperty):
+        (MyObject_callAsFunction):
+        (MyObject_callAsConstructor):
+        (MyObject_hasInstance):
+        (EvilExceptionObject_hasInstance):
+        (EvilExceptionObject_convertToType):
+        (EvilExceptionObject_class):
+        (main):
+        * API/tests/testapi.js:
+        (EvilExceptionObject.hasInstance):
+        (EvilExceptionObject.toNumber):
+        (EvilExceptionObject.toStringExplicit):
+
+2009-03-21  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20049: testapi failure: MyObject - 0 should be NaN but instead is 1.
+        <https://bugs.webkit.org/show_bug.cgi?id=20049>
+        <rdar://problem/6079127>
+
+        In this case, the test is wrong. According to the ECMA spec, subtraction
+        uses ToNumber, not ToPrimitive. Change the test to match the spec.
+
+        * API/tests/testapi.js:
+
+2009-03-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Ensure that JSObjectMakeFunction doesn't produce incorrect line numbers.
+
+        Also make test api correctly propagate failures.
+
+        * API/tests/testapi.c:
+        (main):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::constructFunction):
+
+2009-03-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Improve testapi by making it report failures in a way we can pick up
+        from our test scripts.
+
+        * API/tests/testapi.c:
+        (assertEqualsAsBoolean):
+        (assertEqualsAsNumber):
+        (assertEqualsAsUTF8String):
+        (assertEqualsAsCharactersPtr):
+        (main):
+        * API/tests/testapi.js:
+        (pass):
+        (fail):
+        (shouldBe):
+        (shouldThrow):
+
+2009-03-20  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24535
+
+        Fixes missing line terminator character (;) after macro call.
+        It is common practice to add the trailing ";" where macros are substituted
+        and not where they are defined with #define.
+        This change is consistent with other macro declarations across webkit,
+        and it also solves compilation failure with symbian compilers. 
+ 
+        * runtime/UString.cpp:
+        * wtf/Assertions.h:
+
+2009-03-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fixed a JavaScriptCore crash on the Windows buildbot.
+
+        * bytecompiler/BytecodeGenerator.h: Reduced the AST recursion limit.
+        Apparently, Windows has small stacks.
+
+2009-03-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        A little cleanup in the RegisterFile code.
+        
+        Moved large inline functions out of the class declaration, to make it
+        more readable.
+        
+        Switched over to using the roundUpAllocationSize function to avoid
+        duplicate code and subtle bugs.
+        
+        Renamed m_maxCommitted to m_commitEnd, to match m_end.
+        
+        Renamed allocationSize to commitSize because it's the chunk size for
+        committing memory, not allocating memory.
+        
+        SunSpider reports no change.
+
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        (JSC::RegisterFile::shrink):
+        (JSC::RegisterFile::grow):
+        * jit/ExecutableAllocator.h:
+        (JSC::roundUpAllocationSize):
+
 2009-03-20  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.

@@ -1,3 +1,486 @@
+2009-03-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxGTK build fix. Add missing header.
+
+        * platform/wx/wxcode/gtk/non-kerned-drawing.cpp:
+
+2009-03-22  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24665
+        
+        Image-map code in RenderImage could result in RenderImage::nodeAtPoint()
+        setting HitTestResult::innerNode(), but returning false, which violates
+        hit testing rules. Use a temporary HitTestResult so that we only fill in
+        result when we know we've hit.
+
+        * rendering/RenderImage.cpp:
+        (WebCore::RenderImage::nodeAtPoint):
+
+2009-03-22  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24743
+        
+        Fix hit testing regression from r41840. We need to pass the temporary
+        HitTestResult when testing sublayers, then only copy to 'result' when
+        the layer is known to have been hit.
+
+        Test: fast/layers/zindex-hit-test.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestLayer):
+
+2009-03-20  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24733
+        
+        Fix hit testing on video controls after full page zoom by fixing wider issue
+        with event->pageX(), pageY() with zooming. pageX and pageY are "fixed" to be
+        invariant under zooming (for JavaScript), so we keep an actual page point around
+        in MouseEvent::absoluteLocation() to avoid the need to factor in zooming everywhere.
+
+        * dom/MouseRelatedEvent.cpp:
+        (WebCore::MouseRelatedEvent::initCoordinates):
+        (WebCore::MouseRelatedEvent::computePageLocation):
+        * dom/MouseRelatedEvent.h:
+        (WebCore::MouseRelatedEvent::absoluteLocation):
+        (WebCore::MouseRelatedEvent::setAbsoluteLocation):
+        Member var, and getter and setter for absoluteLocation.
+        New method, computePageLocation(), to compute the actual page point,
+        and call it when creating and initting mouse-related events.
+
+        * dom/Node.cpp:
+        (WebCore::Node::dispatchMouseEvent):
+        (WebCore::Node::dispatchWheelEvent):
+        Keep non-adjusted pageX and pageY around, and call setAbsoluteLocation()
+        on the event to replace a potentially rounded point.
+        
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        Clean up slider handling code.
+        
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::listBoxDefaultEventHandler):
+        Add FIXME comment for use of offsetX/offsetY.
+        
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::handleContextMenuEvent):
+        Use absoluteLocation() when hit testing for context menus.
+        
+        * rendering/RenderFrameSet.cpp:
+        (WebCore::RenderFrameSet::userResize):
+        Use absoluteLocation() when resizing frames.
+        
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::forwardEvent):
+        Use absoluteLocation() when hit testing media controls.
+
+        * rendering/RenderSlider.cpp:
+        (WebCore::HTMLSliderThumbElement::defaultEventHandler):
+        (WebCore::RenderSlider::mouseEventIsInThumb):
+        Use absoluteLocation() when handling slider events.
+
+        (WebCore::RenderSlider::forwardEvent):
+        Factor some code out of HTMLInputElement::defaultEventHandler().
+        
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::forwardEvent):
+        Use absoluteLocation() when hit testing search field buttons, which fixees
+        bugs in the search field with zooming.
+
+2009-03-21  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24727
+        Add V8XMLHttpRequest*.
+
+        * bindings/v8/V8XMLHttpRequestUtilities.cpp: Added.
+        * bindings/v8/V8XMLHttpRequestUtilities.h: Added.
+        * bindings/v8/custom/V8XMLHttpRequestConstructor.cpp: Added.
+        * bindings/v8/custom/V8XMLHttpRequestCustom.cpp: Added.
+        * bindings/v8/custom/V8XMLHttpRequestUploadCustom.cpp: Added.
+
+2009-03-21  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24725
+        Add V8NodeFilter.
+
+        * bindings/v8/V8NodeFilter.cpp: Added.
+        * bindings/v8/V8NodeFilter.h: Added.
+
+2009-03-21  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Kevin Decker
+
+        - remove some redundant #include statements
+
+        * bindings/js/JSDOMWindowBase.cpp:
+
+2009-03-20  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix <rdar://problem/6574185> REGRESSION (3.2.2-TOT): hang in text drawing code
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::drawGDIGlyphs): Changed glyph stroking to fill and stroke each
+        glyph as a separate path, instead of all glyphs as a single path. This
+        matches what CGContextShowGlyphsWithAdvances() does, and has comparable
+        performance.
+
+2009-03-20  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Simon Fraser
+
+        Build fix for ENABLE(3D_RENDERING)
+
+        * rendering/RenderObject.h:
+        (WebCore::makeMatrixRenderable):
+
+2009-03-20  Dave Moore  <davemoore@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24705
+
+        A bug in the V8 bindings is preventing chromium from setting the href on the
+        location object...any attempt throws a security error, not just for javascript
+        protocol
+
+        * page/Location.idl:
+
+2009-03-20  Craig Schlenter  <craig.schlenter@gmail.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24608
+
+        Include stdio.h needed for printf on gcc 4.4.0
+
+        * platform/KURLGoogle.cpp:
+
+2009-03-20  Mike Belshe <mike@belshe.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24577
+
+        Don't let comments at the end of an event handler
+        break the event handler.
+
+        No change in behavior, so no test.
+
+        * bindings/v8/V8LazyEventListener.cpp:
+        (WebCore::V8LazyEventListener::getWrappedListenerFunction):
+
+2009-03-20  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24535
+
+        Fixes missing line terminator character (;) after macro call.
+        It is common practice to add the trailing ";" where macros are substituted
+        and not where they are defined with #define.
+        This change is consistent with other macro declarations across webkit,
+        and it also solves compilation failure with symbian compilers. 
+ 
+        No change in behavior, so no test.
+
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSImageConstructor.cpp:
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        * bindings/js/JSNamedNodesCollection.cpp:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        * bindings/js/JSOptionConstructor.cpp:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        * bindings/js/JSRGBColor.cpp:
+        * bindings/js/JSWorkerContextBase.cpp:
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2009-03-20  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Dimitri Glazkov and Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24324
+
+        Make the minimum timer configurable for different platforms.
+
+        * page/DOMTimer.cpp:
+        (WebCore::DOMTimer::DOMTimer):
+        (WebCore::DOMTimer::fired):
+        * page/DOMTimer.h:
+        (WebCore::DOMTimer::minTimerInterval):
+        (WebCore::DOMTimer::setMinTimerInterval):
+
+2009-03-20  Dean McNamee  <deanm@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22834
+
+        Make sure to consistently match new/delete and fastMalloc/fastFree.
+
+        * css/CSSSelectorList.cpp:
+        (WebCore::CSSSelectorList::adoptSelectorVector):
+        (WebCore::CSSSelectorList::deleteSelectors):
+
+2009-03-20  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=23739
+          <rdar://problem/6556371> REGRESSION (r36513): iframe isn't sized properly upon load
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::percentHeightDescendants): Added this accessor.
+        * rendering/RenderBlock.h:
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::layoutRows): Extended the check for
+        children that flex to include other descendants with percent height
+        which is relative to the cell.
+
+2009-03-20  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24706
+        Remove ScriptExecutionContext::encoding() since Workers do not need it.
+        WorkerContext::encoding() is simply removed, while Document::encoding()
+        made non-virtual and private. Workers use UTF-8 now except when instructed
+        otherwise by http header. Also updated test.
+
+        * dom/Document.h: Made encoding() non-virtual and private.
+        * dom/ScriptExecutionContext.h: removed encoding().
+
+        * workers/Worker.cpp:
+        (WebCore::Worker::Worker):
+        (WebCore::Worker::notifyFinished):
+        * workers/WorkerContext.cpp: removed encoding() implementation.
+        (WebCore::WorkerContext::WorkerContext):
+        (WebCore::WorkerContext::completeURL):
+        * workers/WorkerContext.h: removed encoding()
+        (WebCore::WorkerContext::create):
+        * workers/WorkerContextProxy.h:
+        * workers/WorkerImportScriptsClient.cpp:
+        (WebCore::WorkerImportScriptsClient::didReceiveData):
+        * workers/WorkerMessagingProxy.cpp:
+        (WebCore::WorkerMessagingProxy::startWorkerContext):
+        * workers/WorkerMessagingProxy.h:
+        * workers/WorkerThread.cpp:
+        (WebCore::WorkerThreadStartupData::create):
+        (WebCore::WorkerThreadStartupData::WorkerThreadStartupData):
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * workers/WorkerThread.h:
+        In all these, removed storing encoding and 'inheriting' it from the parent.
+        Instead, they are all using UTF-8 now.
+
+2009-03-20  Timothy Hatcher  <timothy@apple.com>
+
+        Change how threading exceptions are checked so they are reported
+        by what round they were added. That way WebKit can decided the
+        behavior per-round based on linked-on-or-after checks.
+
+        <rdar://problem/6626741&6648478&6635474&6674079>
+
+        Reviewed by Darin Adler.
+
+        * WebCore.base.exp: Export the new symbols.
+        * bindings/objc/DOMAbstractView.mm: Use the new WebCoreThreadViolationCheckRoundOne macro.
+        * bindings/scripts/CodeGeneratorObjC.pm: Ditto.
+        * platform/ThreadCheck.h:
+        * platform/mac/ThreadCheck.mm:
+        (WebCore::readThreadViolationBehaviorFromUserDefaults): Refactor how the default is read.
+        (WebCore::setDefaultThreadViolationBehavior): Take a round argument.
+        (WebCore::reportThreadViolation): Ditto.
+        (WebCoreReportThreadViolation): Ditto.
+
+2009-03-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixed up an out-of-date comment.
+
+        * bindings/js/JSDOMWindowCustom.h:
+        (WebCore::JSDOMWindow::customPut):
+
+2009-03-20  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20909 REGRESSION 
+        (r35318): A press release at pfizer.com does not display correctly
+        - and corresponding -
+        <rdar://problem/6680073>
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::invalidateContainerPrefWidths):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::markContainingBlocksForLayout):
+
+2009-03-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Justin Garcia.
+
+        maxDeepOffset is confusing and should be removed
+        https://bugs.webkit.org/show_bug.cgi?id=24586
+
+        Abstract some hard-to-read (but shared) logic into a new renderedAsNonInlineTableOrHR function.
+        Add first/lastDeepEditingPositionForNode Position creation functions
+        and deploy them to places we used to call maxDeepOffset.
+
+        Rename Position::atStart and atEnd to atStartOfTree atEndOfTree
+        Add a new Position::atFirst/atLastEditingPositionForNode() and use these
+        to replace a few more callers for maxDeepOffset()
+        
+        Rename maxDeepOffset to lastEditingOffsetForNode (so that we mere mortals have some clue what it does)
+
+        "Editing positions" are confusing because they have one
+        of two behaviors, depending on if the container node is ignored
+        by editing (if editingIgnoresContent(node) returns true) or not.
+        Positions referring to nodes ignored by editing are
+        neighbor-relative (they are before or after the node) where as
+        positions reffering to other nodes are container-relative
+        (they are between two child nodes of the container, identified
+        by the offset() member).  I will be fixing this confusion in
+        future patches.  These renames hopefully make the current behavior clearer.
+
+        * dom/Position.cpp:
+        (WebCore::Position::previous):
+        (WebCore::Position::next):
+        (WebCore::Position::atFirstEditingPositionForNode):
+        (WebCore::Position::atLastEditingPositionForNode):
+        (WebCore::Position::atStartOfTree):
+        (WebCore::Position::atEndOfTree):
+        (WebCore::Position::previousCharacterPosition):
+        (WebCore::Position::nextCharacterPosition):
+        (WebCore::Position::upstream):
+        (WebCore::Position::isCandidate):
+        (WebCore::firstDeepEditingPositionForNode):
+        (WebCore::lastDeepEditingPositionForNode):
+        * dom/Position.h:
+        * dom/PositionIterator.cpp:
+        (WebCore::PositionIterator::operator Position):
+        (WebCore::PositionIterator::increment):
+        (WebCore::PositionIterator::decrement):
+        (WebCore::PositionIterator::atEnd):
+        (WebCore::PositionIterator::atEndOfNode):
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::positionAvoidingSpecialElementBoundary):
+        * editing/DeleteSelectionCommand.cpp:
+        (WebCore::isTableCellEmpty):
+        (WebCore::DeleteSelectionCommand::removeNode):
+        (WebCore::DeleteSelectionCommand::handleGeneralDelete):
+        * editing/Editor.cpp:
+        (WebCore::Editor::advanceToNextMisspelling):
+        * editing/InsertLineBreakCommand.cpp:
+        (WebCore::InsertLineBreakCommand::doApply):
+        * editing/InsertListCommand.cpp:
+        (WebCore::InsertListCommand::doApply):
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplaceSelectionCommand::positionAtEndOfInsertedContent):
+        * editing/TypingCommand.cpp:
+        (WebCore::TypingCommand::forwardDeleteKeyPressed):
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::previous):
+        (WebCore::VisiblePosition::leftVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::left):
+        (WebCore::VisiblePosition::rightVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::right):
+        * editing/VisibleSelection.cpp:
+        (WebCore::VisibleSelection::selectionFromContentsOfNode):
+        (WebCore::VisibleSelection::adjustSelectionToAvoidCrossingEditingBoundaries):
+        * editing/htmlediting.cpp:
+        (WebCore::nextVisuallyDistinctCandidate):
+        (WebCore::previousVisuallyDistinctCandidate):
+        (WebCore::firstEditablePositionAfterPositionInRoot):
+        (WebCore::lastEditablePositionBeforePositionInRoot):
+        (WebCore::lastOffsetForEditing):
+        (WebCore::isFirstPositionAfterTable):
+        (WebCore::isLastPositionBeforeTable):
+        (WebCore::positionBeforeNode):
+        (WebCore::positionAfterNode):
+        (WebCore::enclosingEmptyListItem):
+        (WebCore::caretMaxOffset):
+        * editing/htmlediting.h:
+        * editing/visible_units.cpp:
+        (WebCore::renderedAsNonInlineTableOrHR):
+        (WebCore::startOfParagraph):
+        (WebCore::endOfParagraph):
+        (WebCore::startOfEditableContent):
+        (WebCore::endOfEditableContent):
+        * page/AccessibilityObject.cpp:
+        (WebCore::endOfStyleRange):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::visiblePositionRange):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::positionForPoint):
+
+2009-03-20  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24689
+        Add (upstream) V8 bindings for Workers. Mostly style cleaning.
+
+        * bindings/v8/WorkerContextExecutionProxy.cpp: Added.
+        * bindings/v8/WorkerContextExecutionProxy.h: Added.
+        * bindings/v8/WorkerScriptController.cpp: Added.
+        * bindings/v8/WorkerScriptController.h: Added.
+        * bindings/v8/V8Index.h: Added. This is just a wrapper for v8_index.h, like V8Proxy.h
+        * bindings/v8/V8Proxy.h: Added domObjectMap() function that wraps GetDOMObjectMap().
+        * bindings/v8/V8WorkerContextEventListener.cpp:
+        (WebCore::V8WorkerContextEventListener::callListenerFunction): TrackEvent() renamed trackEvent()
+
+2009-03-20  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix for LayoutTests/fast/canvas/canvas-text-alignment.html
+        on chromium/skia.  The problem was that the gradient matrix
+        for text was being applied twice.  Fixed by reverting some of
+        https://bugs.webkit.org/show_bug.cgi?id=23957, so that skiaDrawText
+        is no longer responsible for measuring the text and scaling up
+        the gradient matrix.  Instead, the text bounding box is passed
+        in from SVGPaintServerGradient.  I didn't make this change for CG,
+        since it uses a different method (the gradient is drawn using the
+        text as a pre-rendered mask).
+        https://bugs.webkit.org/show_bug.cgi?id=24687
+
+        * platform/graphics/skia/SkiaFontWin.cpp:
+        (WebCore::skiaDrawText):
+        * svg/graphics/SVGPaintServerGradient.cpp:
+        (WebCore::SVGPaintServerGradient::setup):
+
+2009-03-20  Xan Lopez  <xlopez@igalia.com>
+
+        Rubber-stamped by Holger Freyther.
+
+        There seems to be some rounding error in cairo (or in how we use
+        cairo) with some fonts, like DejaVu Sans Mono, which makes cairo
+        report a height smaller than ascent + descent, which is wrong and
+        confuses WebCore's layout system. Workaround this while we figure
+        out what's going on.
+
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        (WebCore::SimpleFontData::platformInit):
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        (WebCore::SimpleFontData::platformInit):
+
 2009-03-20  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Darin Adler.
@@ -1793,7 +2276,7 @@
 
 2009-03-12  David Levin  <levin@chromium.org>
 
-        Reviewed by  Darin Fisher.
+        Reviewed by Darin Fisher.
 
         Bug 24530: width100percent-searchfield.html should be fixed for chromium.
         <https://bugs.webkit.org/show_bug.cgi?id=24530>
@@ -12809,7 +13292,7 @@
 
         Reviewed by Eric Seidel.
 
-        Bug 23792: unused param is used in RenderLayer.cp but not #include'd
+        Bug 23792: unused param is used in RenderLayer.cpp but not #include'd
         <https://bugs.webkit.org/show_bug.cgi?id=23792>
 
         Add include file for UnusedParam which is used in this file.
