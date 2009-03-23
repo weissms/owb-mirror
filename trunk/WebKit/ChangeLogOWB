@@ -1,3 +1,11 @@
+2009-03-23  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+        fix layout on V8 test.
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+
 2009-03-13  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Olivier DOLE.
