@@ -18,7 +18,10 @@ include_directories(
     ${EXTERNAL_DEPS_INCLUDE_DIRS}
 )
 #FIXME
-link_directories(${LIBRARY_OUTPUT_PATH})
+link_directories(
+    ${LIBRARY_OUTPUT_PATH}
+    ${GRAPHICS_LIBRARY_DIRS}
+)
 if(USE_GRAPHICS_GTK)
     add_executable(owb EXCLUDE_FROM_ALL gtk/main.cpp)
 endif(USE_GRAPHICS_GTK)
