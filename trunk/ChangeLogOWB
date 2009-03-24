@@ -1,5 +1,11 @@
 2009-03-24  Olivier DOLE  <odole@pleyo.com>
 
+        Print not implemented methods only in debug.
+
+        * Base/BALBase.h.in:
+
+2009-03-24  Olivier DOLE  <odole@pleyo.com>
+
         Quick and dirty fix for WebKitTypes for customer.
 
         * Base/CMakeLists.txt:

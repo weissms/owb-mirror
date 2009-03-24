@@ -33,7 +33,11 @@
 #include "Platform.h"
 #include "WebKitTypes.h"
 
+#ifdef NDEBUG
+#define supressNotImplementedWarning() true
+#else
 #define supressNotImplementedWarning() false
+#endif
 //#undef NotImplemented()
 #define NotImplemented() do { \
         static bool havePrinted = false; \
@@ -58,7 +62,7 @@
 #endif
 
 #if PLATFORM(@CUSTOMER@)
-#include "@PLATFORM_CUSTOMER_INCLUDE@"
+#include "@BAL_TYPES_CUSTOMER_INCLUDE@"
 #endif
 
 class BALBase {
