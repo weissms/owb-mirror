@@ -167,6 +167,9 @@ typedef struct _BalPoint{
 } BalPoint;
 typedef SDL_Rect BalRectangle;
 
+#elif PLATFORM(@CUSTOMER@)
+#include "@WEBKIT_TYPES_CUSTOMER_INCLUDE@"
+
 #endif
 
 typedef enum WebCacheModel {

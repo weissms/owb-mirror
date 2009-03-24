@@ -1,3 +1,11 @@
+2009-03-24  Olivier DOLE  <odole@pleyo.com>
+
+        Quick and dirty fix for WebKitTypes for customer.
+
+        * Base/CMakeLists.txt:
+        * Base/WebKitTypes.h: Removed.
+        * Base/WebKitTypes.h.in: Added.
+
 2009-03-09  Olivier DOLE  <odole@pleyo.com>
 
         Fix macro create_include_link in cmake.
