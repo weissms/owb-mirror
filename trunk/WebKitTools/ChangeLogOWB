@@ -1,3 +1,9 @@
+2009-03-24  Olivier DOLE  <odole@pleyo.com>
+
+        Fix CMakeLists for owb for some specific cross compilation cases.
+
+        * OWBLauncher/CMakeLists.txt:
+
 2009-03-13  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Olivier DOLE.
