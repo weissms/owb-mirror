@@ -16,6 +16,7 @@ if(USE_FONTS_FREETYPE)
 endif(USE_FONTS_FREETYPE)
 
 if(USE_FONTS_GTK)
+    create_include_link(${BAL_DIR}/Fonts/WebCore/Cairo BAL)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Gtk BAL)
     aux_source_directory(${BAL_DIR}/Fonts/WebCore/Gtk WEBCORE_SRC)
     aux_source_directory(${BAL_DIR}/Fonts/WebCore/Cairo WEBCORE_SRC)

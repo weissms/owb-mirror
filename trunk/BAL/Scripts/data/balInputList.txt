@@ -113,14 +113,14 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontPlatformData.h
 
 BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCairo.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontCacheGtk.cpp	BCFontCacheGtk.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontCustomPlatformData.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCacheGtk.cpp	BCFontCacheCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
 BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontGtk.cpp	BCFontGtk.cpp
 BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformData.h
 BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp	BCFontPlatformDataGtk.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/GlyphPageTreeNodeGtk.cpp	BCGlyphPageTreeNodeGtk.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/SimpleFontDataGtk.cpp	BCSimpleFontDataGtk.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/GlyphPageTreeNodeGtk.cpp	BCGlyphPageTreeNodeCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/SimpleFontDataGtk.cpp	BCSimpleFontDataCairo.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontCustomPlatformDataPango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontPlatformDataPango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp
