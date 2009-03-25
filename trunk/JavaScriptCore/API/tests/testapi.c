@@ -26,6 +26,7 @@
 #include "JavaScriptCore.h"
 #include "JSBasePrivate.h"
 #include <math.h>
+#define ASSERT_DISABLED 0
 #include <wtf/Assertions.h>
 #include <wtf/UnusedParam.h>
 
@@ -342,7 +343,8 @@ static bool EvilExceptionObject_hasInstance(JSContextRef context, JSObjectRef co
     JSStringRef hasInstanceName = JSStringCreateWithUTF8CString("hasInstance");
     JSValueRef hasInstance = JSObjectGetProperty(context, constructor, hasInstanceName, exception);
     JSStringRelease(hasInstanceName);
-    
+    if (!hasInstance)
+        return false;
     JSObjectRef function = JSValueToObject(context, hasInstance, exception);
     JSValueRef result = JSObjectCallAsFunction(context, function, constructor, 1, &possibleValue, exception);
     return result && JSValueToBoolean(context, result);
@@ -406,6 +408,40 @@ static JSClassRef EvilExceptionObject_class(JSContextRef context)
     static JSClassRef jsClass;
     if (!jsClass)
         jsClass = JSClassCreate(&EvilExceptionObject_definition);
+    
+    return jsClass;
+}
+
+JSClassDefinition EmptyObject_definition = {
+    0,
+    kJSClassAttributeNone,
+    
+    NULL,
+    NULL,
+    
+    NULL,
+    NULL,
+    
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
+static JSClassRef EmptyObject_class(JSContextRef context)
+{
+    UNUSED_PARAM(context);
+    
+    static JSClassRef jsClass;
+    if (!jsClass)
+        jsClass = JSClassCreate(&EmptyObject_definition);
     
     return jsClass;
 }
@@ -774,6 +810,11 @@ int main(int argc, char* argv[])
     JSStringRef EvilExceptionObjectIString = JSStringCreateWithUTF8CString("EvilExceptionObject");
     JSObjectSetProperty(context, globalObject, EvilExceptionObjectIString, EvilExceptionObject, kJSPropertyAttributeNone, NULL);
     JSStringRelease(EvilExceptionObjectIString);
+    
+    JSObjectRef EmptyObject = JSObjectMake(context, EmptyObject_class(context), NULL);
+    JSStringRef EmptyObjectIString = JSStringCreateWithUTF8CString("EmptyObject");
+    JSObjectSetProperty(context, globalObject, EmptyObjectIString, EmptyObject, kJSPropertyAttributeNone, NULL);
+    JSStringRelease(EmptyObjectIString);
     
     JSValueRef exception;
 

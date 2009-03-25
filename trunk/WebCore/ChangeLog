@@ -1,3 +1,884 @@
+2009-03-25  Eli Fidler  <eli.fidler@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Move variable into proper platform block to quiet warning.
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::drawTextInternal):
+
+2009-03-24  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        Fix for <rdar://problem/6719375> Deal with QTKit loadstate changes when playing streaming movies
+
+        *  WebCore/html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setNetworkState): Deal with media engine reviving after having
+        network state of NETWORK_NO_SOURCE.
+
+        *  WebCore/platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::updateStates): Reset m_readyState at each state change since
+        some types of movies currently cause QTKit's load state to bounce around. QTMovieLoadStatePlaythroughOK
+        corresponds to HaveFutureData, not HaveEnoughData.
+
+2009-03-24  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24707
+        <rdar://problem/6593021> Deleting with a caret in a blank, quoted line decreases the quoting, but does not delete the line
+
+        * editing/TypingCommand.cpp: (WebCore::TypingCommand::deleteKeyPressed):
+        After breaking out of an empty mail blockquote, we still want continue with the deletion
+        so actual content will get deleted, and not just the quote style.
+
+2009-03-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        <rdar://problem/6624662> REGRESSION (r39904): can't save certain web pages as web archive (ones without favicons!)
+
+        * loader/archive/cf/LegacyWebArchive.cpp:
+        (WebCore::LegacyWebArchive::create): Added a null check.
+
+2009-03-24  Adam Langley  <agl@google.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24685
+
+        The Skia drawLine function takes subpixel values and attempts to draw
+        a line with subpixel precision. This is complex and slow for drawing
+        scrollbars which use only vertical and horizontal lines.
+
+        This changes the Chromium Linux scrollbar code to use drawIRect.
+
+        * platform/chromium/ScrollbarThemeChromiumLinux.cpp:
+        (WebCore::ScrollbarThemeChromium::invalidateOnMouseEnterExit):
+        (WebCore::drawVertLine):
+        (WebCore::drawHorizLine):
+        (WebCore::drawBox):
+        (WebCore::ScrollbarThemeChromium::paintTrackPiece):
+        (WebCore::ScrollbarThemeChromium::paintThumb):
+
+2009-03-24  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 23310: Setting an absolute path (/abs) on an <iframe> with no src doesn't resolve the URL properly
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23310>
+
+        Reviewed by Darin Adler.
+
+        Test: fast/frames/iframe-no-src-set-location.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::completeURL): If m_baseURL is empty or is
+        about:blank and we have a parent document, use the parent
+        document's URL for the base when completing a new URL.
+
+2009-03-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24659
+        
+        When hit-testing 3d-transformed layers, it doesn't make sense to project the hitTestRect
+        into the coordinate space of the layer, and doing so can result in pathalogical quads
+        that break hit testing. In that case, simply use the same bounds as used for painting,
+        which are the composited bounds for this layer.
+
+        Test: transforms/3d/hit-testing/rotated-hit-test.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestLayer):
+
+2009-03-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24436
+        
+        When compositing is enabled, painting and hit testing end up using different
+        clipping roots, because, for painting, every composited layer is a clipping root,
+        but for hit testing only layers with transforms are. To fix this, we use
+        temporary clip rects for hit testing, if the page is in compositing mode.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintLayer):
+        (WebCore::RenderLayer::hitTestLayer):
+        (WebCore::RenderLayer::parentClipRects):
+        (WebCore::RenderLayer::calculateRects):
+        * rendering/RenderLayer.h:
+
+2009-03-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24782
+
+        Fix regression with CSS clip rects with non-length values, by reverting to
+        the original code, but passing the zoom multiplier through convertToLength().
+        
+        Also make stylistic change in createTransformOperations(), renaming 'inStyle'
+        to 'style.
+        
+        Tested by existing tests.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::convertToLength):
+        (WebCore::CSSStyleSelector::applyProperty):
+        (WebCore::CSSStyleSelector::createTransformOperations):
+
+2009-03-24  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=21789, overflow:hidden elements should clip their foreground contents
+        to a border-radius.
+
+        This patch makes non-self-painting overflow layers and control clips work with border-radius.  RenderLayers
+        that should be clipped by overflow ancestors with border-radius are still broken.
+
+        Added fast/clip/overflow-border-radius-clip.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::pushContentsClip):
+
+2009-03-24  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=21789, overflow:hidden elements should clip their foreground contents.
+        
+        This first patch makes overflow:hidden properly clip the foreground contents of overflow:hidden replaced elements.  Common
+        replaced elements now default to overflow:hidden in the UA stylesheet (this is what the spec specifically recommends be
+        done).
+    
+        Added fast/replaced/border-radius-clip.html
+
+        * css/html4.css:
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::paint):
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::paint):
+
+2009-03-24  Adele Peterson  <adele@apple.com>
+
+        RS by Mark Rowe.
+
+        Only build these Mail quirks checks in on the Mac.
+
+        * dom/Document.cpp: (WebCore::disableRangeMutation):
+        * html/HTMLElement.cpp: (WebCore::HTMLElement::inEitherTagList):
+
+2009-03-24  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix, no review.
+
+        Remove ResourceLoaderCFNet.cpp from build list for Cairo Releas
+        and Debug targets.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2009-03-24  Eric Carlson  <eric.carlson@apple.com>
+
+        Fix layout tests broken by r41907.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setReadyState): Don't set "was playing" based on the new ready state
+
+2009-03-24  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24689
+        Fix Chromium compilation errors.
+
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::FindOrCreateEventListener):
+        (WebCore::WorkerContextExecutionProxy::RemoveEventListener):
+
+2009-03-24  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24759
+        Add missing methods Element.prototype.removeMatchingStyleClasses and
+        Node.prototype.enclosingNodeOrSelfWithNodeNameInArray to SourceFrame content
+        iframe. These methods are called by Element.prototype.removeStyleClass and
+        Node.prototype.enclosingNodeOrSelfWithNodeName.
+
+        * inspector/front-end/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype._loaded):
+
+2009-03-24  Mark Mentovai  <mark@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24653
+        WebKit should be buildable without prefix header injection.
+        Adds missing #includes and forward declarations as needed.
+
+        * editing/SmartReplaceCF.cpp:
+        * platform/graphics/mac/ColorMac.mm:
+        * platform/graphics/mac/FontCacheMac.mm:
+        * platform/graphics/mac/FontCustomPlatformData.h:
+        * platform/graphics/mac/FontMac.mm:
+        * platform/graphics/mac/FontMacATSUI.mm:
+        * platform/graphics/mac/FontPlatformData.h:
+        * platform/graphics/mac/FontPlatformDataMac.mm:
+        * platform/graphics/mac/GraphicsContextMac.mm:
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        * platform/mac/FoundationExtras.h:
+        * platform/mac/LocalCurrentGraphicsContext.h:
+        * platform/mac/WebCoreSystemInterface.h:
+        * platform/mac/WebCoreSystemInterface.mm:
+        * platform/mac/WebCoreTextRenderer.h:
+        * platform/mac/WebCoreTextRenderer.mm:
+        * platform/mac/WebFontCache.h:
+        * platform/mac/WebFontCache.mm:
+        * platform/text/PlatformString.h:
+        * platform/text/mac/ShapeArabic.c:
+        * platform/text/mac/StringMac.mm:
+        * rendering/RenderThemeChromiumMac.h:
+
+2009-03-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6107874> by capping the nesting depth of
+          "block-level" elements generated by the parser
+
+        Test: fast/parser/block-nesting-cap.html
+
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::HTMLParser):
+        (WebCore::HTMLParser::insertNode):
+        (WebCore::HTMLParser::pushBlock):
+        (WebCore::HTMLParser::popOneBlockCommon):
+        (WebCore::HTMLParser::freeBlock):
+        * html/HTMLParser.h:
+
+2009-03-23  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24771
+        
+        DOMTimeStamps are based upon 1970.
+
+        * platform/mac/GeolocationServiceMac.mm:
+        (-[WebCoreCoreLocationObserver locationManager:didUpdateToLocation:fromLocation:]):
+
+2009-03-23  Eric Seidel  <eric@webkit.org>
+
+        Build fix, no review.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::createVisiblePosition): change .container to .isNotNull()
+
+2009-03-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Rename Position::container to m_anchorNode and make it private
+        https://bugs.webkit.org/show_bug.cgi?id=24760
+
+        More code cleanup for Position.
+
+        Change all uses of m_container to node()
+        Eventually most uses of node() should change to anchorNode() to designate
+        that it's the node the Position is anchored to, but not necessarily the
+        container of the position (it could be the before/after neighbor).
+
+        Remove any code which sets m_container, and change it to use a new
+        Position::moveToPosition function which takes a node and offset.
+        It never makes sense to change the node and leave the offset.
+
+        * dom/Position.h:
+        (WebCore::Position::Position):
+        (WebCore::Position::clear):
+        (WebCore::Position::anchorNode):
+        (WebCore::Position::node):
+        (WebCore::Position::moveToPosition):
+        (WebCore::Position::moveToOffset):
+        (WebCore::Position::isNull):
+        (WebCore::Position::isNotNull):
+        (WebCore::operator==):
+        * dom/Range.cpp:
+        (WebCore::Range::create):
+        (WebCore::Range::compareBoundaryPoints):
+        * dom/RangeBoundaryPoint.h:
+        (WebCore::RangeBoundaryPoint::container):
+        (WebCore::RangeBoundaryPoint::set):
+        (WebCore::RangeBoundaryPoint::setOffset):
+        (WebCore::RangeBoundaryPoint::setToChild):
+        (WebCore::RangeBoundaryPoint::setToStart):
+        (WebCore::RangeBoundaryPoint::setToEnd):
+
+2009-03-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        document.write() should be able to make a document strict mode
+        https://bugs.webkit.org/show_bug.cgi?id=24336
+
+        Remove an implicit write of "<html>" on the first document.write call
+        this was added as part of a KDE import http://trac.webkit.org/changeset/798
+        with no layout test or explanation.  I can't think of any reason why
+        an implicit <html> write is necessary (or correct), so I'm removing it and
+        adding a test for the correct behavior.  The parser will add any necessary
+        HTMLHTMLElements during the write() anyway.
+
+        Our behavior is now tested by fast/dom/Document/document-write-doctype
+        and matches IE, FF fails this new test.  Mozilla bug filed:
+        https://bugzilla.mozilla.org/show_bug.cgi?id=483908
+
+        * dom/Document.cpp:
+        (WebCore::Document::write):
+
+2009-03-23  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/6140966>
+        Empty Caches does not clear the Cross-site XMLHttpRequest preflight cache
+
+        * WebCore.base.exp:
+        * WebCore.xcodeproj/project.pbxproj:
+        * loader/CrossOriginPreflightResultCache.cpp:
+        (WebCore::CrossOriginPreflightResultCache::empty):
+        * loader/CrossOriginPreflightResultCache.h:
+
+2009-03-23  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Bug 24726: hit testing doesn't work right when the click is on anonymous content
+        https://bugs.webkit.org/show_bug.cgi?id=24726
+        rdar://problem/6696992
+
+        Test: editing/selection/hit-test-anonymous.html
+
+        * rendering/RenderBR.cpp:
+        (WebCore::RenderBR::positionForPoint): Call createVisiblePosition instead of
+        creating a VisiblePosition directly. It will handle finding non-anonymous
+        content nearby if node() is 0.
+        * rendering/RenderBlock.cpp:
+        (WebCore::positionForPointRespectingEditingBoundaries): Ditto.
+        (WebCore::positionForPointWithInlineChildren): Ditto.
+        (WebCore::RenderBlock::positionForPoint): Ditto.
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::positionForPoint): Ditto.
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::positionForPoint): Ditto.
+        (WebCore::RenderObject::createVisiblePosition): Added.
+        * rendering/RenderObject.h: Added createVisiblePosition.
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::positionForPoint): Call createVisiblePosition.
+        * rendering/RenderSVGInlineText.cpp:
+        (WebCore::RenderSVGInlineText::positionForPoint): Ditto.
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::positionForPoint): Ditto.
+
+2009-03-23  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler & Dave Hyatt.
+
+        Fix for <rdar://problem/6621310> REGRESSION(35185): Apple Travel HTML emails missing some style after Safari 4 upgrade
+
+        Leopard Mail doesn't expect <style> to be in the body.  This change reverts back to the old behavior of
+        moving <style> to <head> for that version of Mail.
+
+        * html/HTMLElement.cpp: (WebCore::HTMLElement::inEitherTagList):
+
+2009-03-23  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Mark Rowe & Dave Hyatt.
+
+        Merge some of the individual Mail quirks into two settings that we can check for future quirks.
+
+        * WebCore.base.exp:
+        * dom/Document.cpp:
+        (WebCore::disableRangeMutation):
+        (WebCore::Document::nodeChildrenChanged):
+        (WebCore::Document::nodeWillBeRemoved):
+        (WebCore::Document::textInserted):
+        (WebCore::Document::textRemoved):
+        (WebCore::Document::textNodesMerged):
+        (WebCore::Document::textNodeSplit):
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings):
+        (WebCore::Settings::setNeedsLeopardMailQuirks):
+        (WebCore::Settings::setNeedsTigerMailQuirks):
+        * page/Settings.h:
+        (WebCore::Settings::needsLeopardMailQuirks):
+        (WebCore::Settings::needsTigerMailQuirks):
+
+2009-03-23  Ada Chan  <adachan@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=24762
+        Support text-indent in <option> elements on windows platform.
+
+        Reviewed by Adele Peterson.
+
+        * css/themeWin.css:
+        * platform/PopupMenuStyle.h: We don't honor font specified on <option> elements right now.  Make this
+        explicit via windows themed default stylesheet.
+        (WebCore::PopupMenuStyle::PopupMenuStyle): Also store text-indent and text-direction.
+        (WebCore::PopupMenuStyle::textIndent):
+        (WebCore::PopupMenuStyle::textDirection):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::paint): Adjust the text's x-coordinate if text-indent is supported for options and 
+        text-indent is specified with LTR direction.
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::updateOptionsWidth): Take text-indent into account if theme supports text-indent for options.
+        (WebCore::RenderMenuList::itemStyle): Use new PopupMenuStyle constructor on windows.
+        (WebCore::RenderMenuList::menuStyle): Ditto.
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::menuStyle): Ditto.
+        * rendering/RenderTheme.h:
+        (WebCore::RenderTheme::popupOptionSupportsTextIndent): Added.  Default is false since we are only supporting it in windows for now.
+        * rendering/RenderThemeWin.h:
+        (WebCore::RenderThemeWin::popupOptionSupportsTextIndent): Returns true for windows.
+
+2009-03-23  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24699
+        REGRESSION: Java Applets broken
+        <rdar://problem/6707494>
+
+        Fix loading Java applets without a codeBase. Only pass the base (up to the
+        the last path component) of the baseURL to the plug-in.
+
+        * html/HTMLAppletElement.cpp:
+        (WebCore::HTMLAppletElement::createRenderer):
+        * platform/KURL.cpp:
+        (WebCore::KURL::baseAsString):
+        * platform/KURL.h:
+
+2009-03-23  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * platform/KURL.h: Removed now-incorrect comments.
+        None of the parts include the separator characters any more, now that
+        query doesn't include the "?", so the comments explaining which do and do
+        not are no-longer helpful.
+
+2009-03-23  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24764
+
+        Renamed files V8NodeFilter -> V8NodeFilterCondition to reflect
+        class names.  Also fixed some headers that got mangled in search/replace
+        operations.
+
+        No change in behavior, so no test.
+
+        * bindings/v8/V8NodeFilter.h: Removed.
+        * bindings/v8/V8NodeFilterCondition.cpp: Renamed from WebCore/bindings/v8/V8NodeFilter.cpp.
+        * bindings/v8/V8NodeFilterCondition.h: Added.
+        * bindings/v8/custom/V8ClipboardCustom.cpp:
+        * bindings/v8/custom/V8DocumentCustom.cpp:
+        * bindings/v8/custom/V8ElementCustom.cpp:
+        * bindings/v8/custom/V8HTMLCanvasElementCustom.cpp:
+        * bindings/v8/custom/V8NavigatorCustom.cpp:
+
+2009-03-23  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24741
+
+        Adds a unique across-browser-sessions identifier to FormData, which may
+        be used by ResourceHandle as a secondary cache key to enable cached
+        form submissions.
+
+        At issue: two otherwise identical form submissions may result in
+        completely independent responses, which may each be appropriate to
+        store and reuse from cache.
+
+        * html/HTMLFormElement.cpp: Added call to FormData::setIdentifier so that
+        we only enable cached form submissions for those generated by HTML.  This
+        way we do not bother with POSTs generated by XMLHttpRequest.
+        (WebCore::generateFormDataIdentifier):
+        (WebCore::HTMLFormElement::createFormData):
+        * platform/network/FormData.cpp: Initialize m_identifier to 0, which means
+        the unspecified identifier.  So by default there is no identifier and
+        nothing changes.
+        (WebCore::FormData::FormData):
+        * platform/network/FormData.h: Added m_identifier with setter and getter.
+        (WebCore::FormData::setIdentifier):
+        (WebCore::FormData::identifier):
+
+2009-03-23  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Antti Koivisto
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24733
+        
+        Fix media controller with full-page zoom. Previously, the media controller
+        shadow nodes never saw style changes on the RenderMedia, so did not respond
+        to zooming at all. Now, we update the style on the shadow renderers
+        whenever RenderMedia gets a style change. Also fix the video thumb in
+        the theme to be scaled properly.
+
+        Test: media/video-controls-zoomed.html
+
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlShadowRootElement::updateStyle):
+        (WebCore::MediaTextDisplayElement::MediaTextDisplayElement):
+        (WebCore::MediaTextDisplayElement::updateStyle):
+        (WebCore::MediaControlInputElement::MediaControlInputElement):
+        (WebCore::MediaControlInputElement::updateStyle):
+        * rendering/MediaControlElements.h:
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::styleDidChange):
+        * rendering/RenderMedia.h:
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::adjustSliderThumbSize):
+
+2009-03-23  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24739
+
+        Rework StringImpl::create methods to try to allocate a single buffer
+        rather than allocating both the StringImpl class and a separate data
+        buffer.
+
+        * platform/text/StringImpl.cpp:
+        * platform/text/StringImpl.h:
+
+2009-03-23  Darin Adler  <darin@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        Based on a patch by Nico Weber <nicolasweber@gmx.de>
+
+        Bug 24755: LayoutTests/http/tests/misc/url-in-utf16le.html regression
+        https://bugs.webkit.org/show_bug.cgi?id=24755
+
+        * platform/text/TextEncoding.cpp:
+        (WebCore::TextEncoding::isUTF7Encoding): Added. Checks if the current encoding
+        is UTF7 without loading extended codecs.
+        (WebCore::TextEncoding::encodingForFormSubmission): Use isUTF7Encoding() instead
+        of comparing with UTF7Encoding(). Eliminate the explicit check of
+        noExtendedTextEncodingNameUsed() because that's now handled by the functions
+        that this function calls instead.
+
+        * platform/text/TextEncoding.h: Added isUTF7Encoding function.
+        Also tweaked formatting a bit.
+
+2009-03-20  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24720
+        RenderThemeChromium should draw something for Slider parts instead of
+        dropping them on the floor.
+
+        * platform/chromium/ChromiumBridge.h:
+        * rendering/RenderThemeChromiumWin.cpp:
+        (WebCore::RenderThemeChromiumWin::adjustSliderThumbSize):
+        (WebCore::RenderThemeChromiumWin::paintSliderTrack):
+        (WebCore::RenderThemeChromiumWin::determineSliderThumbState):
+        (WebCore::RenderThemeChromiumWin::getThemeData):
+        * rendering/RenderThemeChromiumWin.h:
+        (WebCore::RenderThemeChromiumWin::paintSliderThumb):
+
+2009-03-23  Glen Murphy  <glen@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24657
+
+        Fix Skia drawing of highly scaled bitmaps; the conversion to
+        IntRect produced visible layout test failures in highly scaled 
+        coordinate systems.
+
+        Test: svg/custom/image-small-width-height.svg
+
+        * WebCore\platform\graphics\skia\ImageSkia.cpp:
+
+2009-03-23  David Kilzer  <ddkilzer@apple.com>
+
+        Provide JavaScript exception information after slow script timeout
+
+        Reviewed by Oliver Hunt.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate): Changed to report
+        exceptions for the Interrupted completion type as well.
+
+2009-03-23  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24736
+        
+        Fix three mostly-unrelated problems with full-page zoom:
+        
+        * dom/Document.cpp:
+        (WebCore::Document::elementFromPoint):
+        Document::elementFromPoint() needs to take full-page zoom into account.
+        
+        * dom/MouseRelatedEvent.cpp:
+        (WebCore::MouseRelatedEvent::receivedTarget):
+        Take full-page zoom into account when computing offsetX/offsetY.
+        
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::listBoxDefaultEventHandler):
+        Don't use offsetX/offsetY when hit testing list boxes; offsets were broken
+        with full-page zoom, and using pageX/pageY is easier because we don't
+        have to worry about the event target, and we already have a point in
+        absolute coordinates.
+
+        Tests: fast/forms/listbox-hit-test-zoomed.html
+               fast/forms/search-zoomed.html
+               fast/forms/slider-zoomed.html
+
+2009-03-23  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=24753
+        
+        The rect for CSS 'clip' needs to have zooming applied to it.
+
+        Test: fast/css/clip-zooming.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+
+2009-03-23  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/6704282>
+        https://bugs.webkit.org/show_bug.cgi?id=24719
+        QTMovieWinTimer logic inversion
+
+        Fix logic inversion in the Win32 timer used by QTMovieWin that caused it to always
+        use SetTimer, even when the intervals was below USER_TIMER_MINIMUM. A side effect of
+        this was that a movie timer would sometimes be blocked for significant amounts of time 
+        because WM_TIMER messages are not processed when the thread's message queue has any
+        higher priority messages, and WebCore/Win's timer uses PostMessage for low interval
+        timers. Also change SetTimer call to use HWND and custom message instead of 
+        timer function since the timer already has an HWND for processing PostMessage.
+
+        Not possible to make a test for this because it is so timing dependant.
+
+        * platform/graphics/win/QTMovieWinTimer.cpp:
+        (TimerWindowWndProc):
+        (setSharedTimerFireDelay):
+
+2009-03-23  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24588
+        
+        Update media element implementation to current HTML5 spec
+
+        New tests: 
+               media/media-constants.html
+               media/video-seek-no-src-exception.html
+               media/video-source-add-src.html
+               media/video-src-invalid-remove.html
+               media/video-src-plus-source.html
+               media/video-timeupdate-during-playback.html
+
+        * dom/EventNames.h: Remove obsolute events, add new ones.
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Initialize new member vars.
+        (WebCore::HTMLMediaElement::attributeChanged): Trigger load() only when we don't
+        have a source.
+        (WebCore::HTMLMediaElement::removedFromDocument): Deal with state name changes.
+        (WebCore::HTMLMediaElement::scheduleProgressEvent): New, create a progress event and 
+        add it to the event queue to be dispatch when the timer fires.
+        (WebCore::HTMLMediaElement::scheduleEvent): New, create a generic event and add
+        it to the event queue to be dispatch when the timer fires.
+        (WebCore::HTMLMediaElement::enqueueEvent): Add an event to the queue and ticke the 
+        asynch event timer.
+        (WebCore::HTMLMediaElement::asyncEventTimerFired): Dispatch all pending events.
+        (WebCore::HTMLMediaElement::loadTimerFired): Either trigger the initial load or
+        try to load the next <source> url.
+        (WebCore::HTMLMediaElement::load): Minor style change.
+        (WebCore::HTMLMediaElement::loadInternal): The first part of the spec load algorithm, cleanup
+        the current load (if any) and set up state for a new load.
+        (WebCore::HTMLMediaElement::selectMediaResource): Deal with no 'src' or <source>, post 'loadstart'
+        event, and initiate load from 'src' if present.
+        (WebCore::HTMLMediaElement::loadNextSourceChild): Initiate load from next <source> url, or trigger
+        noneSupported() if no more to consider.
+        (WebCore::HTMLMediaElement::loadResource): Instantiate a new MediaPlayer and ask it to load a url.
+        (WebCore::HTMLMediaElement::startProgressEventTimer): Start the repeating progress event timer.
+        (WebCore::HTMLMediaElement::noneSupported): Post error event and set up state when no valid 
+        media url was found.
+        (WebCore::HTMLMediaElement::mediaEngineError): Post error event and set up state when no valid 
+        media engine failed with a decode error or a network error.
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged):
+        (WebCore::HTMLMediaElement::setNetworkState): Updated for new spec network states.
+        (WebCore::HTMLMediaElement::mediaPlayerReadyStateChanged):
+        (WebCore::HTMLMediaElement::setReadyState): Updated for new spec ready state.
+        (WebCore::HTMLMediaElement::progressEventTimerFired): Bail if the network is not active.
+        (WebCore::HTMLMediaElement::seek): Return INVALID_STATE_ERR exception if state is too low or
+        if player hasn't been set up yet. This is necessary becase load() is async. Clear the flag
+        we use to guard against sending 'ended' more than once.
+        (WebCore::HTMLMediaElement::duration): Don't bother calling media engine before it has metadata.
+        (WebCore::HTMLMediaElement::setDefaultPlaybackRate): Remove exception param, 0 is no longer an
+        invalid rate. 
+        (WebCore::HTMLMediaElement::setPlaybackRate): Remove exception param, 0 is no longer an
+        invalid rate. Cache rate being set so we can use it later if media engine isn't ready now.
+        (WebCore::HTMLMediaElement::play): Remove exception param, play() before load() now just
+        starts loading asynchronously.
+        (WebCore::HTMLMediaElement::playInternal): Remove exception param. Fire 'waiting' or 'playing'
+        event depending on current state.
+        (WebCore::HTMLMediaElement::pause): Remove exception param, pause() before load() now just
+        starts loading asynchronously.
+        (WebCore::HTMLMediaElement::pauseInternal): Remove exception param.
+        (WebCore::HTMLMediaElement::setVolume): dispatchEventAsync -> scheduleEvent
+        (WebCore::HTMLMediaElement::setMuted): dispatchEventAsync -> scheduleEvent
+        (WebCore::HTMLMediaElement::togglePlayState): Remove exception param.
+        (WebCore::HTMLMediaElement::beginScrubbing): pause() doesn't take an exception param.
+        (WebCore::HTMLMediaElement::startPlaybackProgressTimer): New, starts timer that fires 4 times per
+        second when the movie is playing to timeupdate so we can post 'timeupdate' events.
+        (WebCore::HTMLMediaElement::playbackProgressTimerFired): Timer proc.
+        (WebCore::HTMLMediaElement::scheduleTimeupdateEvent): Bottleneck around scheduling a 'timeupdate'
+        event because we both fire them them when the spec says we should and when the media engine
+        says that time has jumped, but we don't want to fire more than one at a given movie time. We also
+        use this bottleneck to keep track of the last time one was posted so we won't fire too often
+        during playback.
+        (WebCore::HTMLMediaElement::canPlay): readyState now tracks whether or not we have metadata.
+        (WebCore::HTMLMediaElement::havePotentialSourceChild): New, checks to see if there are a <source>
+        element with a 'src' attribute that we have not tried to load yet.
+        (WebCore::HTMLMediaElement::nextSourceChild): New, returns the url and content type of the next
+        <source> element that we haven't tried to load.
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged): Schedule 'seeked' event when seeking completes.
+        Set a flag when we post the 'ended' event, clear it when time changed and we aren't at the end since
+        some media engines call this proc more than once when playback reaches the end and stops, but we
+        don't want to post 'ended' more than once.
+        (WebCore::HTMLMediaElement::mediaPlayerDurationChanged): New, added so media engine can inform
+        when the movie duration changes and we can post 'durationchanged' event.
+        (WebCore::HTMLMediaElement::mediaPlayerRateChanged): New, added so media engine can inform when
+        the rate changed and we can updated our cached rate. This is useful because we only want to know
+        post periodic 'timeupdate' events when the movie is actually playing, and because we want to know
+        the actual playback rate when it differs from what we tried to set.
+        (WebCore::HTMLMediaElement::mediaPlayerSizeChanged): New, added so media engine can inform when
+        a movie's intrinsic size changes and we can inform the renderer.
+        (WebCore::HTMLMediaElement::potentiallyPlaying): Renamed from activelyPlaying since the spec now
+        uses "actively playing" for this concept. Update logic for new state names and un-comment calls
+        to stoppedDueToErrors() and pausedForUserInteraction() since the spec says those condiditons
+        are part of the answer.
+        (WebCore::HTMLMediaElement::endedPlayback): Update logic for new state names. 
+        (WebCore::HTMLMediaElement::stoppedDueToErrors): New, spec says this logic should be part of
+        the determination of "potentially playing".
+        (WebCore::HTMLMediaElement::pausedForUserInteraction): New, placeholder for when (if) user
+        agent supports this spec concept.
+        (WebCore::HTMLMediaElement::updatePlayState): Stop timer used to fire periodic 'timeupdate' 
+        events when we pauses the movie. Set the media engine rate before calling play() in case it
+        wasn't set up when the rate was changed.
+        (WebCore::HTMLMediaElement::stopPeriodicTimers): New, stop the progress event and 'timeupate'
+        event timers.
+        (WebCore::HTMLMediaElement::userCancelledLoad): New, logic pulled out of documentWillBecomeInactive
+        and updated for the current spec.
+        (WebCore::HTMLMediaElement::documentWillBecomeInactive): Moved some logic to userCancelledLoad.
+        (WebCore::HTMLMediaElement::documentDidBecomeActive): Update comments.
+        (WebCore::HTMLMediaElement::initialURL): Update for refactoring of code that determines the 
+        initial url.
+        * html/HTMLMediaElement.h: Change ReadyState and NetworkState enums to match names in the spec,
+        update for changes in .cpp.
+        (WebCore::HTMLMediaElement::):
+
+        * html/HTMLMediaElement.idl: Update ready state and network state constants for spec changes.
+        defaultPlaybackRate, playbackRate, play(), and pause() no longer raise exceptions.
+
+        * html/HTMLSourceElement.cpp:
+        (WebCore::HTMLSourceElement::insertedIntoDocument): Update for network state name changes.
+
+        * html/HTMLVideoElement.cpp:
+        (WebCore::HTMLVideoElement::updatePosterImage): Update for ready state name changes.
+
+        * html/MediaError.h:
+        (WebCore::MediaError::): add MEDIA_ERR_NONE_SUPPORTED.
+
+        * html/MediaError.idl: add MEDIA_ERR_NONE_SUPPORTED.
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::defaultEventHandler): play() and pause() don't take an exception.
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::NullMediaPlayerPrivate::readyState): Update for newtork state name changes.
+        (WebCore::MediaPlayer::sizeChanged): New, so engine can report intrinsic size changes.
+        (WebCore::MediaPlayer::rateChanged): New, so engine can report rate changes.
+        (WebCore::MediaPlayer::durationChanged): New, so engine can report duration changes.
+        * platform/graphics/MediaPlayer.h: Update NetworkState and ReadyState enum names to match spec
+        states.
+        (WebCore::MediaPlayerClient::mediaPlayerDurationChanged): New.
+        (WebCore::MediaPlayerClient::mediaPlayerRateChanged): New.
+        (WebCore::MediaPlayerClient::mediaPlayerSizeChanged): New.
+        (WebCore::MediaPlayer::):
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate): Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::load): Ditto.
+        (WebCore::MediaPlayerPrivate::updateStates): Ditto.
+        (WebCore::MediaPlayerPrivate::loadingFailed): Ditto.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h: Update for network/ready state name changes.
+        Remove endPointTimer, it is no longer necessary. Add m_enabledTrackCount and m_duration.
+        (WebCore::MediaPlayerPrivate::metaDataAvailable):
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate): No more m_endPointTimer or m_endTime. Initialize
+        m_enabledTrackCount and m_duration. Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::load): Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::play): No more m_endPointTimer.
+        (WebCore::MediaPlayerPrivate::pause): Ditto.
+        (WebCore::MediaPlayerPrivate::currentTime): No more m_endTime.
+        (WebCore::MediaPlayerPrivate::seek): Ditto.
+        (WebCore::MediaPlayerPrivate::doSeek): Ditto, plus don't call setRate(0) when the rate is
+        already zero.
+        (WebCore::MediaPlayerPrivate::setEndTime): No more m_endTime.
+        (WebCore::MediaPlayerPrivate::updateStates): Update for network/ready state name changes. Return
+        different errors depending on what causes a failure. Watch for and report duration changes.
+        (WebCore::MediaPlayerPrivate::rateChanged): Report rate changes.
+        (WebCore::MediaPlayerPrivate::sizeChanged): Report size changes.
+        (WebCore::MediaPlayerPrivate::didEnd): No more endpoint timer.
+        (WebCore::MediaPlayerPrivate::setVisible): Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::disableUnsupportedTracks): Don't return number of unsupported
+        tracks, store in m_enabledTrackCount so we can use it to help determine causes of failure.
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate): Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::load): Ditto.
+        (WebCore::MediaPlayerPrivate::duration): Ditto.
+        (WebCore::MediaPlayerPrivate::updateStates): Ditto.
+        (WebCore::MediaPlayerPrivate::naturalSize): Ditto.
+
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate): No more m_endPointTimer. Update for 
+        network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::load): Update for network/ready state name changes. No more
+        m_endPointTimer.
+        (WebCore::MediaPlayerPrivate::play): No more m_endPointTimer.
+        (WebCore::MediaPlayerPrivate::pause): Ditto. 
+        (WebCore::MediaPlayerPrivate::setEndTime): Ditto.
+        (WebCore::MediaPlayerPrivate::updateStates): Update for network/ready state name changes.
+        (WebCore::MediaPlayerPrivate::didEnd): No more m_endPointTimer.
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.h:
+
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlPlayButtonElement::defaultEventHandler): Update for network/ready state 
+        name changes.
+        (WebCore::MediaControlSeekButtonElement::defaultEventHandler): Ditto.
+
 2009-03-23  Kevin Ollivier  <kevino@theolliviers.com>
 
         wxGTK build fix. Add missing header.

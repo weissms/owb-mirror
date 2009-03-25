@@ -127,8 +127,24 @@ void RenderReplaced::paint(PaintInfo& paintInfo, int tx, int ty)
         drawSelectionTint = false;
     }
 
+    bool clipToBorderRadius = style()->overflowX() != OVISIBLE && style()->hasBorderRadius(); 
+    if (clipToBorderRadius) {
+        // Push a clip if we have a border radius, since we want to round the foreground content that gets painted.
+        paintInfo.context->save();
+        paintInfo.context->addRoundedRectClip(IntRect(tx, ty, width(), height()),
+                                              style()->borderTopLeftRadius(),
+                                              style()->borderTopRightRadius(), 
+                                              style()->borderBottomLeftRadius(),
+                                              style()->borderBottomRightRadius());
+    }
+
     paintReplaced(paintInfo, tx, ty);
-    
+
+    if (clipToBorderRadius)
+        paintInfo.context->restore();
+        
+    // The selection tint never gets clipped by border-radius rounding, since we want it to run right up to the edges of
+    // surrounding content.
     if (drawSelectionTint) {
         IntRect selectionPaintingRect = localSelectionRect();
         selectionPaintingRect.move(tx, ty);
@@ -209,7 +225,7 @@ VisiblePosition RenderReplaced::positionForPoint(const IntPoint& point)
 {
     InlineBox* box = inlineBoxWrapper();
     if (!box)
-        return VisiblePosition(node(), 0, DOWNSTREAM);
+        return createVisiblePosition(0, DOWNSTREAM);
 
     // FIXME: This code is buggy if the replaced element is relative positioned.
 
@@ -219,15 +235,15 @@ VisiblePosition RenderReplaced::positionForPoint(const IntPoint& point)
     int bottom = root->nextRootBox() ? root->nextRootBox()->topOverflow() : root->bottomOverflow();
 
     if (point.y() + y() < top)
-        return VisiblePosition(node(), caretMinOffset(), DOWNSTREAM); // coordinates are above
+        return createVisiblePosition(caretMinOffset(), DOWNSTREAM); // coordinates are above
     
     if (point.y() + y() >= bottom)
-        return VisiblePosition(node(), caretMaxOffset(), DOWNSTREAM); // coordinates are below
+        return createVisiblePosition(caretMaxOffset(), DOWNSTREAM); // coordinates are below
     
     if (node()) {
         if (point.x() <= width() / 2)
-            return VisiblePosition(node(), 0, DOWNSTREAM);
-        return VisiblePosition(node(), 1, DOWNSTREAM);
+            return createVisiblePosition(0, DOWNSTREAM);
+        return createVisiblePosition(1, DOWNSTREAM);
     }
 
     return RenderBox::positionForPoint(point);

@@ -55,6 +55,9 @@
 #include "WebPreferences.h"
 #include "WebViewPrivate.h"
 
+#if ENABLE(STORAGE)
+#include <ApplicationCacheStorage.h>
+#endif
 #include <AXObjectCache.h>
 #include "ObserverData.h"
 #include "ObserverServiceData.h"
@@ -63,6 +66,7 @@
 #include <Cache.h>
 #include <ContextMenu.h>
 #include <ContextMenuController.h>
+#include <CrossOriginPreflightResultCache.h>
 #include <CString.h>
 #include <Cursor.h>
 #include <DragController.h>
@@ -548,6 +552,19 @@ void WebView::close()
         m_page->settings()->setUsesPageCache(false);
     
     removeFromAllWebViewsSet();
+
+    if (!WebCore::cache()->disabled()) {
+        WebCore::cache()->setDisabled(true);
+        WebCore::cache()->setDisabled(false);
+
+#if ENABLE(STORAGE)
+        // Empty the application cache.
+        WebCore::cacheStorage().empty();
+#endif
+
+        // Empty the Cross-Origin Preflight cache
+        WebCore::CrossOriginPreflightResultCache::shared().empty();
+    }
 
     Frame* frame = m_page->mainFrame();
     if (frame)

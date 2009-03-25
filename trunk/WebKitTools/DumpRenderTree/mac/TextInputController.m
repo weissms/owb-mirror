@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import "DumpRenderTreeMac.h"
 #import "TextInputController.h"
 
 #import <AppKit/NSInputManager.h>
@@ -34,6 +35,7 @@
 #import <WebKit/WebFrameView.h>
 #import <WebKit/WebHTMLViewPrivate.h>
 #import <WebKit/WebScriptObject.h>
+#import <WebKit/WebTypesInternal.h>
 #import <WebKit/WebView.h>
 
 @interface TextInputController (DumpRenderTreeInputMethodHandler)
@@ -338,7 +340,7 @@
     return nil;
 }
 
-- (int)characterIndexForPointX:(float)x Y:(float)y
+- (NSInteger)characterIndexForPointX:(float)x Y:(float)y
 {
     NSObject <NSTextInput> *textInput = [self textInput];
 
@@ -346,7 +348,11 @@
         NSPoint point = NSMakePoint(x, y);
         point = [webView convertPoint:point toView:nil];
         point = [[webView window] convertBaseToScreen:point];
-        return [textInput characterIndexForPoint:point];
+        NSInteger index = [textInput characterIndexForPoint:point];
+        if (index == NSNotFound)
+            return -1;
+
+        return index;
     }
 
     return 0;

@@ -277,6 +277,17 @@ static bool acceptsEditingFocus(Node *node)
     return frame->editor()->shouldBeginEditing(rangeOfContents(root).get());
 }
 
+static bool disableRangeMutation(Page* page)
+{
+#if PLATFORM(MAC)
+    // Disable Range mutation on document modifications in Tiger and Leopard Mail
+    // See <rdar://problem/5865171>
+    return page && (page->settings()->needsLeopardMailQuirks() || page->settings()->needsTigerMailQuirks());
+#else
+    return false;
+#endif
+}
+
 static HashSet<Document*>* changedDocuments = 0;
 
 Document::Document(Frame* frame, bool isXHTML)
@@ -889,7 +900,10 @@ Element* Document::elementFromPoint(int x, int y) const
 
     HitTestRequest request(HitTestRequest::ReadOnly |
                            HitTestRequest::Active);
-    HitTestResult result(IntPoint(x, y));
+
+    float zoomFactor = frame() ? frame()->pageZoomFactor() : 1.0f;
+
+    HitTestResult result(roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)));
     renderView()->layer()->hitTest(request, result); 
 
     Node* n = result.innerNode();
@@ -1688,15 +1702,10 @@ void Document::write(const SegmentedString& text, Document* ownerDocument)
         printf("Beginning a document.write at %d\n", elapsedTime());
 #endif
 
-    if (!m_tokenizer) {
+    if (!m_tokenizer)
         open(ownerDocument);
-        ASSERT(m_tokenizer);
-        if (!m_tokenizer)
-            return;
-        UChar documentPrefix[] = { '<', 'h', 't', 'm', 'l', '>' };
-        m_tokenizer->write(SegmentedString(documentPrefix, sizeof(documentPrefix) / sizeof(documentPrefix[0])), false);
-    }
 
+    ASSERT(m_tokenizer);
     m_tokenizer->write(text, false);
 
 #ifdef INSTRUMENT_LAYOUT_SCHEDULING
@@ -2582,7 +2591,7 @@ void Document::detachNodeIterator(NodeIterator *ni)
 
 void Document::nodeChildrenChanged(ContainerNode* container)
 {
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         HashSet<Range*>::const_iterator end = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != end; ++it)
             (*it)->nodeChildrenChanged(container);
@@ -2595,7 +2604,7 @@ void Document::nodeWillBeRemoved(Node* n)
     for (HashSet<NodeIterator*>::const_iterator it = m_nodeIterators.begin(); it != nodeIteratorsEnd; ++it)
         (*it)->nodeWillBeRemoved(n);
 
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         HashSet<Range*>::const_iterator rangesEnd = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != rangesEnd; ++it)
             (*it)->nodeWillBeRemoved(n);
@@ -2609,7 +2618,7 @@ void Document::nodeWillBeRemoved(Node* n)
 
 void Document::textInserted(Node* text, unsigned offset, unsigned length)
 {
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         HashSet<Range*>::const_iterator end = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != end; ++it)
             (*it)->textInserted(text, offset, length);
@@ -2621,7 +2630,7 @@ void Document::textInserted(Node* text, unsigned offset, unsigned length)
 
 void Document::textRemoved(Node* text, unsigned offset, unsigned length)
 {
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         HashSet<Range*>::const_iterator end = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != end; ++it)
             (*it)->textRemoved(text, offset, length);
@@ -2634,7 +2643,7 @@ void Document::textRemoved(Node* text, unsigned offset, unsigned length)
 
 void Document::textNodesMerged(Text* oldNode, unsigned offset)
 {
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         NodeWithIndex oldNodeWithIndex(oldNode);
         HashSet<Range*>::const_iterator end = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != end; ++it)
@@ -2646,7 +2655,7 @@ void Document::textNodesMerged(Text* oldNode, unsigned offset)
 
 void Document::textNodeSplit(Text* oldNode)
 {
-    if (!page() || !page()->settings()->rangeMutationDisabledForOldAppleMail()) {
+    if (!disableRangeMutation(page())) {
         HashSet<Range*>::const_iterator end = m_ranges.end();
         for (HashSet<Range*>::const_iterator it = m_ranges.begin(); it != end; ++it)
             (*it)->textNodeSplit(oldNode);
@@ -3117,9 +3126,10 @@ KURL Document::completeURL(const String& url) const
     // See also [CSS]StyleSheet::completeURL(const String&)
     if (url.isNull())
         return KURL();
+    const KURL& baseURL = ((m_baseURL.isEmpty() || m_baseURL == blankURL()) && parentDocument()) ? parentDocument()->baseURL() : m_baseURL;
     if (!m_decoder)
-        return KURL(m_baseURL, url);
-    return KURL(m_baseURL, url, m_decoder->encoding());
+        return KURL(baseURL, url);
+    return KURL(baseURL, url, m_decoder->encoding());
 }
 
 void Document::setInPageCache(bool flag)

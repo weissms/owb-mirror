@@ -803,6 +803,7 @@ BAL/Skeletons/Widgets	WebCore/platform/Pasteboard.h
 BAL/Skeletons/Widgets	WebCore/platform/PlatformScreen.h
 BAL/Skeletons/Widgets	WebCore/platform/PopupMenu.h
 BAL/Skeletons/Widgets	WebCore/platform/PopupMenuClient.h
+BAL/Skeletons/Widgets   WebCore/platform/PopupMenuStyle.h
 BAL/Skeletons/Widgets	WebCore/platform/ScrollView.h
 BAL/Skeletons/Widgets	WebCore/platform/Scrollbar.h
 BAL/Skeletons/Widgets	WebCore/platform/ScrollbarClient.h
@@ -872,6 +873,7 @@ BAL/Widgets/WebCore/WK	WebCore/platform/Pasteboard.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PlatformMenuDescription.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PlatformScreen.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PopupMenu.h
+BAL/Widgets/WebCore/WK  WebCore/platform/PopupMenuStyle.h
 BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.cpp
 BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.h
 BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarClient.h

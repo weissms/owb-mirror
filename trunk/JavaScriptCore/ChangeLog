@@ -1,3 +1,83 @@
+2009-03-25  Eli Fidler  <eli.fidler@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Correct warnings which in some environments are treated as errors.
+
+        * wtf/dtoa.cpp:
+        (WTF::b2d):
+        (WTF::d2b):
+        (WTF::strtod):
+        (WTF::dtoa):
+
+2009-03-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Darin Adler.
+        
+        Explicitly define HAVE_LANGINFO_H on Darwin. Fixes the wx build bot jscore 
+        test failure. 
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24780
+
+        * wtf/Platform.h:
+
+2009-03-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix className() for API defined class
+
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::className):
+        * API/tests/testapi.c:
+        (EmptyObject_class):
+        (main):
+        * API/tests/testapi.js:
+
+2009-03-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Make testapi assertions run in release builds, so that testapi actually
+        works in a release build.
+
+        Many of the testapi assertions have side effects that are necessary, and
+        given testapi is a testing program, perf impact of an assertion is not
+        important, so it makes sense to apply the assertions in release builds
+        anyway.
+
+        * API/tests/testapi.c:
+        (EvilExceptionObject_hasInstance):
+
+2009-03-23  David Kilzer  <ddkilzer@apple.com>
+
+        Provide JavaScript exception information after slow script timeout
+
+        Reviewed by Oliver Hunt.
+
+        * runtime/Completion.cpp:
+        (JSC::evaluate): Set the exception object as the Completion
+        object's value for slow script timeouts.  This is used in
+        WebCore when reporting the exception.
+        * runtime/ExceptionHelpers.cpp:
+        (JSC::InterruptedExecutionError::toString): Added.  Provides a
+        description message for the exception when it is reported.
+
+2009-03-23  Gustavo Noronha Silva  <gns@gnome.org> and Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24674
+        Crashes in !PLATFORM(MAC)'s formatLocaleDate, in very specific situations
+
+        Make sure strftime never returns 2-digits years to avoid ambiguity
+        and a crash. We wrap this new code option in HAVE_LANGINFO_H,
+        since it is apparently not available in all platforms.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        * wtf/Platform.h:
+
 2009-03-23  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Cameron Zwarich.

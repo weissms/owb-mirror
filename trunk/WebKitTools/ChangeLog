@@ -1,3 +1,62 @@
+2009-03-25  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Tiger build some more.
+
+        * DumpRenderTree/mac/TextInputController.m:
+
+2009-03-24  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Tiger build.
+
+        * DumpRenderTree/mac/TextInputController.m:
+
+2009-03-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon "The Most Boring Man in the World" Honeycutt.
+
+        Explicitly map NSNotFound to -1 so that the result of-characterIndexForPointX:Y: does
+        not differ between 32- and 64-bit.
+
+        * DumpRenderTree/mac/TextInputController.m:
+        (-[TextInputController characterIndexForPointX:Y:]):
+
+2009-03-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Use a different platform search path for tests and skip lists, so that Tiger doesn't end up
+        using the Leopard skip list.  Tests and skip lists are now looked for in the directory for
+        the current OS and the generic "mac" directory.  Tests and skip lists for newer OS versions are
+        ignored.
+
+        * Scripts/run-webkit-tests:
+
+2009-03-23  Stephanie  <slewis@apple.com>
+
+        Fix root build.
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+
+2009-03-23  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Add production configuration for creating roots of WebKitTools.
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+
+2009-03-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Make testapi run as part of the standard JavaScriptCore tests.
+
+        We only run testapi on the mac as currently windows webkit doesn't
+        place all the necessary files for testapi, and we also test the
+        JSC/CF APIs as well.
+
+        * Scripts/run-javascriptcore-tests:
+
 2009-03-23  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Mark Rowe.

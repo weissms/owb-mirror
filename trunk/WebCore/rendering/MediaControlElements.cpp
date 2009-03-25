@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008, 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,13 +68,22 @@ MediaControlShadowRootElement::MediaControlShadowRootElement(Document* doc, HTML
     setInDocument(true);
 }
 
+void MediaControlShadowRootElement::updateStyle()
+{
+    if (renderer()) {
+        RenderStyle* timelineContainerStyle = m_mediaElement->renderer()->getCachedPseudoStyle(MEDIA_CONTROLS_TIMELINE_CONTAINER);
+        renderer()->setStyle(timelineContainerStyle);
+    }
+}
+
 // ----------------------------
 
 MediaTextDisplayElement::MediaTextDisplayElement(Document* doc, PseudoId pseudo, HTMLMediaElement* mediaElement) 
     : HTMLDivElement(divTag, doc)
     , m_mediaElement(mediaElement)
+    , m_pseudoStyleId(pseudo)
 {
-    RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(pseudo);
+    RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(m_pseudoStyleId);
     RenderObject* renderer = createRenderer(m_mediaElement->renderer()->renderArena(), style);
     if (renderer) {
         setRenderer(renderer);
@@ -97,6 +106,14 @@ void MediaTextDisplayElement::update()
         renderer()->updateFromElement();
 }
 
+void MediaTextDisplayElement::updateStyle()
+{
+    if (renderer() && m_mediaElement->renderer()) {
+        RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(m_pseudoStyleId);
+        renderer()->setStyle(style);
+    }
+}
+
 MediaTimeDisplayElement::MediaTimeDisplayElement(Document* doc, HTMLMediaElement* element, bool currentTime)
     : MediaTextDisplayElement(doc, currentTime ? MEDIA_CONTROLS_CURRENT_TIME_DISPLAY : MEDIA_CONTROLS_TIME_REMAINING_DISPLAY, element)
 {
@@ -107,9 +124,10 @@ MediaTimeDisplayElement::MediaTimeDisplayElement(Document* doc, HTMLMediaElement
 MediaControlInputElement::MediaControlInputElement(Document* doc, PseudoId pseudo, const String& type, HTMLMediaElement* mediaElement) 
     : HTMLInputElement(inputTag, doc)
     , m_mediaElement(mediaElement)
+    , m_pseudoStyleId(pseudo)
 {
     setInputType(type);
-    RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(pseudo);
+    RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(m_pseudoStyleId);
     RenderObject* renderer = createRenderer(m_mediaElement->renderer()->renderArena(), style);
     if (renderer) {
         setRenderer(renderer);
@@ -129,6 +147,14 @@ void MediaControlInputElement::update()
 {
     if (renderer())
         renderer()->updateFromElement();
+}
+
+void MediaControlInputElement::updateStyle()
+{
+    if (renderer() && m_mediaElement->renderer()) {
+        RenderStyle* style = m_mediaElement->renderer()->getCachedPseudoStyle(m_pseudoStyleId);
+        renderer()->setStyle(style);
+    }
 }
 
 bool MediaControlInputElement::hitTest(const IntPoint& absPoint)
@@ -165,8 +191,7 @@ MediaControlPlayButtonElement::MediaControlPlayButtonElement(Document* doc, HTML
 void MediaControlPlayButtonElement::defaultEventHandler(Event* event)
 {
     if (event->type() == eventNames().clickEvent) {
-        ExceptionCode ec;
-        m_mediaElement->togglePlayState(ec);
+        m_mediaElement->togglePlayState();
         event->setDefaultHandled();
     }
     HTMLInputElement::defaultEventHandler(event);
@@ -190,8 +215,7 @@ void MediaControlSeekButtonElement::defaultEventHandler(Event* event)
             m_capturing = true;
             frame->eventHandler()->setCapturingMouseEventsNode(this);
         }
-        ExceptionCode ec;
-        m_mediaElement->pause(ec);
+        m_mediaElement->pause();
         m_seekTimer.startRepeating(cSeekRepeatDelay);
         event->setDefaultHandled();
     } else if (event->type() == eventNames().mouseupEvent) {
