@@ -31,6 +31,11 @@
 
 class WebFrame;
 
+// This is a custom extension
+// It is kept for compatibility reason but should be rolled out someday.
+// WARNING: IF YOU WANT TO ADD A METHOD HERE, THINK TWICE AS IT SHOULD NOT BE
+// THE RIGHT PLACE.
+
 class WebNotificationDelegate {
 
 public:
@@ -40,6 +45,7 @@ public:
      * startLoadNotification: called when a frame starts loading its resources.
      * @discussion: This is called for each frame so it can be called several
      *              time for the same WebView.
+     * @discussion: Deprecated, use WebFrameLoad::didStartLoad instead.
      */
     virtual void startLoadNotification(WebFrame*) = 0;
 
@@ -53,58 +59,10 @@ public:
      * finishedLoadNotification: called when a frame has finished loading its resources.
      * @discussion: This is called for each frame so it can be called several
      *              time for the same WebView.
+     * @discussion: Deprecated, use WebFrameLoad::didFinishLoad instead.
      */
     virtual void finishedLoadNotification(WebFrame*) = 0;
 
-    /**
-     * windowObjectClearNotification
-     */
-    virtual void windowObjectClearNotification(WebFrame*, void*, void*) = 0;
-
-    /**
-     *  consoleMessage : send a message to the console
-     */
-    virtual void consoleMessage(WebFrame*, int, const char*) = 0;
-
-    /**
-     * jsAlert : call a js alert window
-     */
-    virtual bool jsAlert(WebFrame*, const char*) = 0;
-
-    /**
-     * jsConfirm : call a js confirm window
-     */
-    virtual bool jsConfirm(WebFrame*, const char*) = 0;
-
-    /**
-     * jsPrompt : call a js prompt window
-     */
-    virtual bool jsPrompt(WebFrame*, const char*, const char*, char**) = 0;
-
-    /**
-     * titleChange : call when the title change
-     */
-    virtual void titleChange(WebFrame*, const char*) = 0;
-
-    /**
-     * didStartLoad : called when a frame starts loading
-     */
-    virtual void didStartLoad(WebFrame*) = 0;
-
-    /**
-     * didCommitLoad : called when a frame data source transitions from provisional state to committed
-     */
-    virtual void didCommitLoad(WebFrame*) = 0;
-
-    /**
-     * didFinishLoad : called when a frame has finished loading itself and its resources
-     */
-    virtual void didFinishLoad(WebFrame*) = 0;
-
-    /**
-     * didFailLoad : called if a frame loading failed
-     */
-    virtual void didFailLoad(WebFrame*) = 0;
 };
 
 #endif // WebNotificationDelegate_h

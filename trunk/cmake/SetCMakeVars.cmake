@@ -1,6 +1,8 @@
 list(APPEND API_HEADER
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/JSActionDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebBackForwardList.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrame.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrameLoadDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebHistoryItem.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebKit.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebNotificationDelegate.h

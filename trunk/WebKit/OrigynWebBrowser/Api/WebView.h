@@ -44,10 +44,12 @@
 class DefaultDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
+class JSActionDelegate;
 class WebArchive;
 class WebBackForwardList;
 class WebElementPropertyBag;
 class WebFrame;
+class WebFrameLoadDelegate;
 class WebHistoryItem;
 class WebMutableURLRequest;
 class WebNotificationDelegate;
@@ -210,16 +212,40 @@ public:
     WebNotificationDelegate* webNotificationDelegate();
 
     /**
+     *  setWebFrameLoadDelegate
+     *  Set the WebView's WebFrameLoadDelegate. It is used to keep track of the FrameLoader's status.
+     */
+    virtual void setWebFrameLoadDelegate(WebFrameLoadDelegate*);
+
+    /**
+     *  webFrameLoadDelegate
+     *  get the WebView's WebFrameLoadDelegate.
+     */
+    WebFrameLoadDelegate* webFrameLoadDelegate();
+
+    /**
+     *  setJSActionDelegate
+     *  Set the WebView's JSActionDelegate. It is used to handle JS action such as alert or confirm windows.
+     */
+    virtual void setJSActionDelegate(JSActionDelegate*);
+
+    /**
+     *  jsActionDelegate
+     *  get the WebView's JSActionDelegate.
+     */
+    JSActionDelegate* jsActionDelegate();
+
+    /**
      * mainFrame 
      * Return the frame that has the current focus
      */
-    virtual WebFrame *mainFrame();
+    virtual WebFrame* mainFrame();
 
     /**
      * focusedFrame 
      * Return the frame that has the current focus.
      */
-    virtual WebFrame *focusedFrame();
+    virtual WebFrame* focusedFrame();
 
     /**
      * backForwardList 
@@ -1454,6 +1480,8 @@ protected:
     DefaultPolicyDelegate* m_policyDelegate;
     DefaultDownloadDelegate* m_downloadDelegate;
     WebNotificationDelegate* m_webNotificationDelegate;
+    WebFrameLoadDelegate* m_webFrameLoadDelegate;
+    JSActionDelegate* m_jsActionDelegate;
     WebPreferences* m_preferences;
 
     bool m_userAgentOverridden;

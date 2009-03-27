@@ -1,3 +1,54 @@
+2009-03-27  Julien Chaffraix  <julien.chaffraix@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #332: Split WebNotificationDelegate
+
+        Spread WebNotificationDelegate's methods in 2 new delegates:
+
+            - WebNotificationDelegate keeps our custom extensions but it should be rolled out once replacement for these methods
+              are introduced. I have added a warning about this and about adding methods to this delegate.
+
+            - WebFrameLoadDelegate gets all methods related to frame load status.
+
+            - JSActionDelegate gets all the JS-related methods (JS confirm, alert and prompt) as well as addMessageToConsole for
+              which I did not find another solution.
+
+        * OrigynWebBrowser/Api/JSActionDelegate.h: Copied from WebKit/OrigynWebBrowser/Api/WebNotificationDelegate.h.
+        (JSActionDelegate::~JSActionDelegate):
+        * OrigynWebBrowser/Api/WebFrameLoadDelegate.h: Copied from WebKit/OrigynWebBrowser/Api/WebNotificationDelegate.h.
+        (WebFrameLoadDelegate::~WebFrameLoadDelegate):
+        * OrigynWebBrowser/Api/WebNotificationDelegate.h:
+        Moved the methods from WebNotificationDelegate into the 2 new delegates. Added a warning in WebNotificationDelegate.
+
+        * OrigynWebBrowser/Api/WebKit.h: Added the 2 new delegates' headers.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (WebView::setWebFrameLoadDelegate):
+        (WebView::webFrameLoadDelegate):
+        (WebView::setJSActionDelegate):
+        (WebView::jsActionDelegate):
+        * OrigynWebBrowser/Api/WebView.h:
+        Added getter / setter for the new delegates.
+
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::addMessageToConsole):
+        (WebChromeClient::runJavaScriptAlert):
+        (WebChromeClient::runJavaScriptConfirm):
+        (WebChromeClient::runJavaScriptPrompt):
+        Updated to use the JSActionDelegate.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidStartProvisionalLoad):
+        (WebFrameLoaderClient::dispatchDidReceiveTitle):
+        (WebFrameLoaderClient::dispatchDidCommitLoad):
+        (WebFrameLoaderClient::dispatchDidFinishLoad):
+        (WebFrameLoaderClient::dispatchDidFailProvisionalLoad):
+        (WebFrameLoaderClient::dispatchDidFailLoad):
+        (WebFrameLoaderClient::windowObjectCleared):
+        Updated to use the WebFrameLoadDelegate when necessary.
+
 2009-03-23  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Sebastien Roret.

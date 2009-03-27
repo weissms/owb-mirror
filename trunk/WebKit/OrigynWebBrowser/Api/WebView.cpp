@@ -244,6 +244,8 @@ WebView::WebView()
     , m_policyDelegate(0)
     , m_downloadDelegate(0)
     , m_webNotificationDelegate(0)
+    , m_webFrameLoadDelegate(0)
+    , m_jsActionDelegate(0)
     , m_preferences(0)
     , m_userAgentOverridden(false)
     , m_useBackForwardList(true)
@@ -1174,6 +1176,27 @@ void WebView::setWebNotificationDelegate(WebNotificationDelegate* notificationDe
 WebNotificationDelegate* WebView::webNotificationDelegate()
 {
     return m_webNotificationDelegate;
+}
+
+void WebView::setWebFrameLoadDelegate(WebFrameLoadDelegate* webFrameLoadDelegate)
+{
+    m_webFrameLoadDelegate = webFrameLoadDelegate;
+
+}
+
+WebFrameLoadDelegate* WebView::webFrameLoadDelegate()
+{
+    return m_webFrameLoadDelegate;
+}
+
+void WebView::setJSActionDelegate(JSActionDelegate* newJSActionDelegate)
+{
+    m_jsActionDelegate = newJSActionDelegate;
+}
+
+JSActionDelegate* WebView::jsActionDelegate()
+{
+    return m_jsActionDelegate;
 }
 
 WebFrame* WebView::mainFrame()

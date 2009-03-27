@@ -111,22 +111,21 @@ static bool processWork()
     return false;
 }
 
-class Notification : public WebNotificationDelegate {
-public:
-    Notification(){}
-    ~Notification() {}
+class FrameLoadDelegate : public WebFrameLoadDelegate {
 
-    virtual void startLoadNotification(WebFrame *frame)
+public:
+    FrameLoadDelegate() { }
+    ~FrameLoadDelegate() { }
+
+    virtual void didStartLoad(WebFrame* frame)
     {
         if (!topLoadingFrame && !done)
             topLoadingFrame = frame;
     }
 
-    virtual void progressNotification(WebFrame* webFrame)
-    {
-    }
+    virtual void didCommitLoad(WebFrame*) { }
 
-    virtual void finishedLoadNotification(WebFrame *frame)
+    virtual void didFinishLoad(WebFrame* frame)
     {
         if (frame != topLoadingFrame)
             return;
@@ -146,6 +145,8 @@ public:
             dump();
     }
 
+    virtual void didFailLoad(WebFrame*) { }
+
     virtual void windowObjectClearNotification(WebFrame*, void *context, void *windowObject)
     {
         JSValueRef exception = 0;
@@ -154,6 +155,20 @@ public:
         gLayoutTestController->makeWindowObject((JSGlobalContextRef)context, (JSObjectRef)windowObject, &exception);
         assert(!exception);
     }
+
+
+    virtual void titleChange(WebFrame*, const char *title)
+    {
+        if (gLayoutTestController->dumpTitleChanges() && !done)
+            printf("TITLE CHANGED: %s\n", title ? title : "");
+    }
+};
+
+class JSDelegate : public JSActionDelegate {
+
+public:
+    JSDelegate() { }
+    ~JSDelegate() { }
 
     virtual void consoleMessage(WebFrame *frame, int line, const char *message)
     {
@@ -178,29 +193,6 @@ public:
         *value = strdup(defaultValue);
         return true;
     }
-
-    virtual void titleChange(WebFrame*, const char *title)
-    {
-        if (gLayoutTestController->dumpTitleChanges() && !done)
-            printf("TITLE CHANGED: %s\n", title ? title : "");
-    }
-
-    virtual void didStartLoad(WebFrame*)
-    {
-    }
-    
-    virtual void didCommitLoad(WebFrame*)
-    {
-    }
-
-    virtual void didFinishLoad(WebFrame*)
-    {
-    }
-    
-    virtual void didFailLoad(WebFrame*)
-    {
-    }
-
 };
 
 void dumpFrameScrollPosition(WebFrame* frame)
@@ -351,8 +343,12 @@ void runTest(const string& testPathOrURL)
     webView->initWithFrame(rect,"", "");
     BalWidget *view = createWindow(webView, rect);
 
-    Notification *notification = new Notification();
-    webView->setWebNotificationDelegate(notification); 
+    FrameLoadDelegate* frameLoadDelegate = new FrameLoadDelegate();
+    webView->setWebFrameLoadDelegate(frameLoadDelegate);
+
+    JSDelegate* jsActionDelegate = new JSDelegate();
+    webView->setJSActionDelegate(jsActionDelegate);
+
     // FIXME : fix preferences
     // FIXME : add ExtraPluginDirectory
     //PluginDatabase::installedPlugins()->addExtraPluginDirectory(filenameToString(directory));
@@ -371,7 +367,8 @@ void runTest(const string& testPathOrURL)
     gLayoutTestController->deref();
     gLayoutTestController = 0;
     delete webView;
-    delete notification;
+    delete frameLoadDelegate;
+    delete jsActionDelegate;
     webView = 0;
 }
 

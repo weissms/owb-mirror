@@ -53,8 +53,9 @@ static GtkWidget* create_window ()
     return window;
 }
 
-class MainWebNotificationDelegate : public WebNotificationDelegate
-{
+// Used to print the notifications.
+class MainWebNotificationDelegate : public WebNotificationDelegate {
+
 public:
     MainWebNotificationDelegate()
     {
@@ -76,6 +77,14 @@ public:
     virtual void finishedLoadNotification(WebFrame*)
     {
     }
+
+};
+
+class MainJSActionDelegate : public JSActionDelegate {
+
+public:
+    MainJSActionDelegate() { }
+    ~MainJSActionDelegate() { }
 
     virtual void windowObjectClearNotification(WebFrame*, void*, void*)
     {
@@ -104,27 +113,8 @@ public:
         *value = strdup(defaultValue);
         return true;
     }
-
-    virtual void titleChange(WebFrame*, const char*)
-    {
-    }
-
-    virtual void didStartLoad(WebFrame*)
-    {
-    }
-
-    virtual void didCommitLoad(WebFrame*)
-    {
-    }
-    
-    virtual void didFinishLoad(WebFrame*)
-    {
-    }
-
-    virtual void didFailLoad(WebFrame*)
-    {
-    }
 };
+
 
 int main (int argc, char* argv[])
 {
@@ -147,6 +137,9 @@ int main (int argc, char* argv[])
 
     MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
     webView->setWebNotificationDelegate(mainWebNotificationDelegate);
+    MainJSActionDelegate* mainJSActionDelegate = new MainJSActionDelegate();
+    webView->setJSActionDelegate(mainJSActionDelegate);
+
     gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 
@@ -165,6 +158,7 @@ int main (int argc, char* argv[])
     gtk_main ();
 
     delete mainWebNotificationDelegate;
+    delete mainJSActionDelegate;
     delete webView;
     return 0;
 }

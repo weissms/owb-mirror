@@ -1,3 +1,13 @@
+2009-03-27  Julien Chaffraix  <julien.chaffraix@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #332: Split WebNotificationDelegate
+
+        Added the 2 new delegates to the API_HEADERS.
+        
+        * cmake/SetCMakeVars.cmake:
+
 2009-03-24  Olivier DOLE  <odole@pleyo.com>
 
         Print not implemented methods only in debug.

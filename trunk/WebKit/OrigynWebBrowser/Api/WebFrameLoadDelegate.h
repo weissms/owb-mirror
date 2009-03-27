@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2009 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,16 +26,46 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebKit_h
-#define WebKit_h
+#ifndef WebFrameLoadDelegate_h
+#define WebFrameLoadDelegate_h
 
-#include <JSActionDelegate.h>
-#include <WebBackForwardList.h>
-#include <WebFrame.h>
-#include <WebFrameLoadDelegate.h>
-#include <WebHistoryItem.h>
-#include <WebNotificationDelegate.h>
-#include <WebView.h>
+class WebFrame;
 
+class WebFrameLoadDelegate {
 
-#endif //WebKit_h
+public:
+    virtual ~WebFrameLoadDelegate() { }
+
+    /**
+     * windowObjectClearNotification
+     */
+    virtual void windowObjectClearNotification(WebFrame*, void*, void*) = 0;
+
+    /**
+     * titleChange : call when the title change
+     */
+    virtual void titleChange(WebFrame*, const char*) = 0;
+
+    /**
+     * didStartLoad : called when a frame starts loading
+     */
+    virtual void didStartLoad(WebFrame*) = 0;
+
+    /**
+     * didCommitLoad : called when a frame data source transitions from provisional state to committed
+     */
+    virtual void didCommitLoad(WebFrame*) = 0;
+
+    /**
+     * didFinishLoad : called when a frame has finished loading itself and its resources
+     */
+    virtual void didFinishLoad(WebFrame*) = 0;
+
+    /**
+     * didFailLoad : called if a frame loading failed
+     */
+    // FIXME: We should use a WebError argument once it is exported to third party application.
+    virtual void didFailLoad(WebFrame*) = 0;
+};
+
+#endif // WebFrameLoadDelegate_h

@@ -37,6 +37,7 @@
 #include "WebDownload.h"
 #include "WebError.h"
 #include "WebFrame.h"
+#include "WebFrameLoadDelegate.h"
 #include "WebFramePolicyListener.h"
 #include "WebHistory.h"
 #include "WebHistoryItem.h"
@@ -348,23 +349,23 @@ void WebFrameLoaderClient::dispatchDidReceiveIcon()
 
 void WebFrameLoaderClient::dispatchDidStartProvisionalLoad()
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->didStartLoad(m_webFrame);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didStartLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->titleChange(m_webFrame, title.utf8().data());
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->titleChange(m_webFrame, title.utf8().data());
 }
 
 void WebFrameLoaderClient::dispatchDidCommitLoad()
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->didCommitLoad(m_webFrame);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didCommitLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFinishDocumentLoad()
@@ -377,9 +378,9 @@ void WebFrameLoaderClient::dispatchDidFinishDocumentLoad()
 
 void WebFrameLoaderClient::dispatchDidFinishLoad()
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->didFinishLoad(m_webFrame);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didFinishLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFirstLayout()
@@ -1161,16 +1162,16 @@ bool WebFrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader
 
 void WebFrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->didFailLoad(m_webFrame);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didFailLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->didFailLoad(m_webFrame);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didFailLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::startDownload(const ResourceRequest&)
@@ -1247,9 +1248,9 @@ void WebFrameLoaderClient::windowObjectCleared()
     JSObjectRef windowObject = toRef(coreFrame->script()->globalObject());
     ASSERT(windowObject);
 
-    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->windowObjectClearNotification(m_webFrame, (void*)context, (void*)windowObject);
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->windowObjectClearNotification(m_webFrame, (void*)context, (void*)windowObject);
 }
 
 void WebFrameLoaderClient::documentElementAvailable()

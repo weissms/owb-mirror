@@ -188,8 +188,8 @@ void usage()
 }
 
 // Used to print the notifications.
-class MainWebNotificationDelegate : public WebNotificationDelegate
-{
+class MainWebNotificationDelegate : public WebNotificationDelegate {
+
 public:
     MainWebNotificationDelegate()
     {
@@ -211,6 +211,14 @@ public:
     virtual void finishedLoadNotification(WebFrame*)
     {
     }
+
+};
+
+class MainJSActionDelegate : public JSActionDelegate {
+
+public:
+    MainJSActionDelegate() { }
+    ~MainJSActionDelegate() { }
 
     virtual void windowObjectClearNotification(WebFrame*, void*, void*)
     {
@@ -238,26 +246,6 @@ public:
         printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message, frame);
         *value = strdup(defaultValue);
         return true;
-    }
-
-    virtual void titleChange(WebFrame*, const char*)
-    {
-    }
-
-    virtual void didStartLoad(WebFrame*)
-    {
-    }
-
-    virtual void didCommitLoad(WebFrame*)
-    {
-    }
-    
-    virtual void didFinishLoad(WebFrame*)
-    {
-    }
-
-    virtual void didFailLoad(WebFrame*)
-    {
     }
 };
 
@@ -325,6 +313,9 @@ int main (int argc, char* argv[])
 
     MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
     webView->setWebNotificationDelegate(mainWebNotificationDelegate);
+    MainJSActionDelegate* mainJSActionDelegate = new MainJSActionDelegate();
+    webView->setJSActionDelegate(mainJSActionDelegate);
+
     char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 
@@ -343,6 +334,7 @@ int main (int argc, char* argv[])
     SDL_Quit();
 
     delete mainWebNotificationDelegate;
+    delete mainJSActionDelegate;
     delete webView;
     return 0;
 }

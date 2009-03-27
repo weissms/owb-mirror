@@ -33,7 +33,7 @@
 #include "WebFrame.h"
 #include "WebHistory.h"
 #include "WebMutableURLRequest.h"
-#include "WebNotificationDelegate.h"
+#include "JSActionDelegate.h"
 #include "WebPreferences.h"
 #include "WebSecurityOrigin.h"
 #include "WebView.h"
@@ -256,9 +256,9 @@ void WebChromeClient::addMessageToConsole(const String& message, unsigned line, 
 #if PLATFORM(AMIGAOS4)
     printf("JavaScript '%s' line %u: %s\n", url.latin1().data(), line, message.latin1().data());
 #else
-    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->consoleMessage(m_webView->mainFrame(), line, message.utf8().data());
+    JSActionDelegate* jsActionDelegate = m_webView->jsActionDelegate();
+    if (jsActionDelegate)
+        jsActionDelegate->consoleMessage(m_webView->mainFrame(), line, message.utf8().data());
 #endif
 }
 
@@ -295,9 +295,9 @@ void WebChromeClient::closeWindowSoon()
 
 void WebChromeClient::runJavaScriptAlert(Frame* frame, const String& message)
 {
-    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
-    if (webNotificationDelegate)
-        webNotificationDelegate->jsAlert(m_webView->mainFrame(), message.utf8().data());
+    JSActionDelegate* jsActionDelegate = m_webView->jsActionDelegate();
+    if (jsActionDelegate)
+        jsActionDelegate->jsAlert(m_webView->mainFrame(), message.utf8().data());
 }
 
 bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
@@ -335,9 +335,9 @@ bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
     }
     free (messageAmiga);
 #else
-    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
-    if (webNotificationDelegate)
-        return webNotificationDelegate->jsConfirm(m_webView->mainFrame(), message.utf8().data());
+    JSActionDelegate* jsActionDelegate = m_webView->jsActionDelegate();
+    if (jsActionDelegate)
+        return jsActionDelegate->jsConfirm(m_webView->mainFrame(), message.utf8().data());
 #endif
     return false;
 }
@@ -397,9 +397,9 @@ bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, c
     free (messageAmiga);
 #else
     char* value = 0;
-    WebNotificationDelegate* webNotificationDelegate = m_webView->webNotificationDelegate();
-    if (webNotificationDelegate)
-        return webNotificationDelegate->jsPrompt(m_webView->mainFrame(), message.utf8().data(), defaultValue.utf8().data(), &value);
+    JSActionDelegate* jsActionDelegate = m_webView->jsActionDelegate();
+    if (jsActionDelegate)
+        return jsActionDelegate->jsPrompt(m_webView->mainFrame(), message.utf8().data(), defaultValue.utf8().data(), &value);
 #endif
     return false;
 }

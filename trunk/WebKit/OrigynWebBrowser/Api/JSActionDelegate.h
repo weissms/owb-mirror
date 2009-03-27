@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2009 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,16 +26,36 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebKit_h
-#define WebKit_h
+#ifndef JSActionDelegate_h
+#define JSActionDelegate_h
 
-#include <JSActionDelegate.h>
-#include <WebBackForwardList.h>
-#include <WebFrame.h>
-#include <WebFrameLoadDelegate.h>
-#include <WebHistoryItem.h>
-#include <WebNotificationDelegate.h>
-#include <WebView.h>
+class WebFrame;
 
+class JSActionDelegate {
 
-#endif //WebKit_h
+public:
+    virtual ~JSActionDelegate() { }
+
+    /**
+     *  consoleMessage : send a message to the console
+     */
+    // FIXME: This should be moved somewhere else, but for now let's keep it here.
+    virtual void consoleMessage(WebFrame*, int, const char*) = 0;
+
+    /**
+     * jsAlert : call a js alert window
+     */
+    virtual bool jsAlert(WebFrame*, const char*) = 0;
+
+    /**
+     * jsConfirm : call a js confirm window
+     */
+    virtual bool jsConfirm(WebFrame*, const char*) = 0;
+
+    /**
+     * jsPrompt : call a js prompt window
+     */
+    virtual bool jsPrompt(WebFrame*, const char*, const char*, char**) = 0;
+};
+
+#endif // JSActionDelegate_h
