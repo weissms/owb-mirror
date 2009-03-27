@@ -145,7 +145,9 @@ public:
         m_fixed = other.fixed();
         return *this;
     }
-        
+    
+    static IntRect infiniteRect() { return IntRect(INT_MIN/2, INT_MIN/2, INT_MAX, INT_MAX); }
+
 private:
     // The normal operator new is disallowed on all render objects.
     void* operator new(size_t) throw();
@@ -282,6 +284,10 @@ public:
     
 #if USE(ACCELERATED_COMPOSITING)
     RenderLayerCompositor* compositor() const;
+    
+    // Notification from the renderer that its content changed (e.g. current frame of image changed).
+    // Allows updates of layer content without repainting.
+    void rendererContentChanged();
 #endif
     
     void updateLayerPosition();

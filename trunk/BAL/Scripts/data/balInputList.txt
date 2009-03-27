@@ -390,6 +390,7 @@ BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecLatin1.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUTF16.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUserDefined.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncoding.h
+BAL/Skeletons/Internationalization  WebCore/platform/text/TextEncodingDetector.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncodingRegistry.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/TextStream.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/UnicodeRange.h
@@ -410,12 +411,14 @@ BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBoundariesICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.h
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextEncodingDetectorICU.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/qt/Localizations.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/StringQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBoundaries.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBreakIteratorQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.h
+BAL/Internationalization/WebCore/None WebCore/platform/text/TextEncodingDetectorNone.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/LocalizedStrings.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.h
@@ -453,6 +456,7 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUserDefined.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextDirection.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.h
+BAL/Internationalization/WebCore/WK WebCore/platform/text/TextEncodingDetector.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncodingRegistry.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncodingRegistry.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextStream.cpp

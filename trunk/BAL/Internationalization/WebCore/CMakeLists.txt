@@ -20,6 +20,8 @@ if(USE_I18N_ICU)
 
         aux_source_directory(${BAL_DIR}/Internationalization/WebCore/SDL WEBCORE_SRC)
     endif(USE_GRAPHICS_SDL)
+else(USE_I18N_ICU)
+    aux_source_directory(${BAL_DIR}/Internationalization/WebCore/None WEBCORE_SRC)
 endif(USE_I18N_ICU)
 
 if(USE_I18N_GENERIC)

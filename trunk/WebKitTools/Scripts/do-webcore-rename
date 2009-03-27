@@ -68,6 +68,12 @@ sub wanted
 }
 
 my %renames = (
+    "JSUnprotectedEventListener" => "JSEventListener",
+    "findJSUnprotectedEventListener" => "findJSEventListener",
+    "findOrCreateJSUnprotectedEventListener" => "findOrCreateJSEventListener",
+    "UnprotectedListenersMap" => "JSListenersMap",
+    "jsUnprotectedEventListeners" => "jsEventListeners",
+    "jsUnprotectedInlineEventListeners" => "jsInlineEventListeners",
 );
 
 my %renamesContemplatedForTheFuture = (

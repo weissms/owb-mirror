@@ -159,11 +159,37 @@ static void fillResponseFromMessage(SoupMessage* msg, ResourceResponse* response
     while (soup_message_headers_iter_next(&iter, &name, &value))
         response->setHTTPHeaderField(name, value);
 
-    String contentType = soup_message_headers_get(msg->response_headers, "Content-Type");
+    GHashTable* contentTypeParameters = 0;
+    String contentType = soup_message_headers_get_content_type(msg->response_headers, &contentTypeParameters);
+
+    // When the server sends multiple Content-Type headers, soup will
+    // give us their values concatenated with commas as a separator;
+    // we need to handle this and use only one value. We use the first
+    // value, and add all the parameters, afterwards, if any.
+    Vector<String> contentTypes;
+    contentType.split(',', true, contentTypes);
+    contentType = contentTypes[0];
+
+    if (contentTypeParameters) {
+        GHashTableIter hashTableIter;
+        gpointer hashKey;
+        gpointer hashValue;
+
+        g_hash_table_iter_init(&hashTableIter, contentTypeParameters);
+        while (g_hash_table_iter_next(&hashTableIter, &hashKey, &hashValue)) {
+            contentType += String("; ");
+            contentType += String(static_cast<char*>(hashKey));
+            contentType += String("=");
+            contentType += String(static_cast<char*>(hashValue));
+        }
+        g_hash_table_destroy(contentTypeParameters);
+    }
+
+    response->setMimeType(extractMIMETypeFromMediaType(contentType));
+
     char* uri = soup_uri_to_string(soup_message_get_uri(msg), false);
     response->setURL(KURL(KURL(), uri));
     g_free(uri);
-    response->setMimeType(extractMIMETypeFromMediaType(contentType));
     response->setTextEncodingName(extractCharsetFromMediaType(contentType));
     response->setExpectedContentLength(soup_message_headers_get_content_length(msg->response_headers));
     response->setHTTPStatusCode(msg->status_code);
@@ -208,13 +234,32 @@ static void restartedCallback(SoupMessage* msg, gpointer data)
 
 static void gotHeadersCallback(SoupMessage* msg, gpointer data)
 {
-    if (!SOUP_STATUS_IS_SUCCESSFUL(msg->status_code))
+    // For 401, we will accumulate the resource body, and only use it
+    // in case authentication with the soup feature doesn't happen
+    if (msg->status_code == SOUP_STATUS_UNAUTHORIZED) {
+        soup_message_body_set_accumulate(msg->response_body, TRUE);
+        return;
+    }
+
+    // For all the other responses, we handle each chunk ourselves,
+    // and we don't need msg->response_body to contain all of the data
+    // we got, when we finish downloading.
+    soup_message_body_set_accumulate(msg->response_body, FALSE);
+
+    // The 304 status code (SOUP_STATUS_NOT_MODIFIED) needs to be fed
+    // into WebCore, as opposed to other kinds of redirections, which
+    // are handled by soup directly, so we special-case it here and in
+    // gotChunk.
+    if (SOUP_STATUS_IS_TRANSPORT_ERROR(msg->status_code)
+        || (SOUP_STATUS_IS_REDIRECTION(msg->status_code) && (msg->status_code != SOUP_STATUS_NOT_MODIFIED)))
         return;
 
     // We still don't know anything about Content-Type, so we will try
     // sniffing the contents of the file, and then report that we got
-    // headers
-    if (!soup_message_headers_get_content_type(msg->response_headers, NULL))
+    // headers; we will not do content sniffing for 304 responses,
+    // though, since they do not have a body.
+    if ((msg->status_code != SOUP_STATUS_NOT_MODIFIED)
+        && !soup_message_headers_get_content_type(msg->response_headers, NULL))
         return;
 
     ResourceHandle* handle = static_cast<ResourceHandle*>(data);
@@ -234,7 +279,9 @@ static void gotHeadersCallback(SoupMessage* msg, gpointer data)
 
 static void gotChunkCallback(SoupMessage* msg, SoupBuffer* chunk, gpointer data)
 {
-    if (!SOUP_STATUS_IS_SUCCESSFUL(msg->status_code))
+    if (SOUP_STATUS_IS_TRANSPORT_ERROR(msg->status_code)
+        || (SOUP_STATUS_IS_REDIRECTION(msg->status_code) && (msg->status_code != SOUP_STATUS_NOT_MODIFIED))
+        || (msg->status_code == SOUP_STATUS_UNAUTHORIZED))
         return;
 
     ResourceHandle* handle = static_cast<ResourceHandle*>(data);
@@ -287,7 +334,7 @@ static void finishedCallback(SoupSession *session, SoupMessage* msg, gpointer da
         return;
     }
 
-    if (!SOUP_STATUS_IS_SUCCESSFUL(msg->status_code)) {
+    if (msg->status_code == SOUP_STATUS_UNAUTHORIZED) {
         fillResponseFromMessage(msg, &d->m_response);
         client->didReceiveResponse(handle.get(), d->m_response);
 
@@ -485,9 +532,6 @@ bool ResourceHandle::startHttp(String urlString)
     // balanced by a deref() in finishedCallback, which should always run
     ref();
 
-    // We handle each chunk ourselves, and we don't need msg->response_body
-    // to contain all of the data we got, when we finish downloading.
-    soup_message_body_set_accumulate(msg->response_body, FALSE);
     soup_session_queue_message(session, d->m_msg, finishedCallback, this);
 
     return true;

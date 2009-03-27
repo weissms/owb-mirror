@@ -51,6 +51,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSHistoryCustom.cpp
     bindings/js/JSImageConstructor.cpp
     bindings/js/JSImageDataCustom.cpp
+    bindings/js/JSLazyEventListener.cpp
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMessageChannelConstructor.cpp
     bindings/js/JSMessageChannelCustom.cpp

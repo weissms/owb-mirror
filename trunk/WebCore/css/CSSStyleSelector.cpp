@@ -4338,6 +4338,9 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
                 m_fontDirty = true;
         } else if (isInitial) {
             Settings* settings = m_checker.m_document->settings();
+            ASSERT(settings); // If we're doing style resolution, this document should always be in a frame and thus have settings
+            if (!settings)
+                return;
             FontDescription fontDescription;
             fontDescription.setGenericFamily(FontDescription::StandardFamily);
             fontDescription.setRenderingMode(settings->fontRenderingMode());
@@ -4364,6 +4367,9 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
             if (fontDescription.isAbsoluteSize()) {
                 // Make sure the rendering mode and printer font settings are updated.
                 Settings* settings = m_checker.m_document->settings();
+                ASSERT(settings); // If we're doing style resolution, this document should always be in a frame and thus have settings
+                if (!settings)
+                    return;
                 fontDescription.setRenderingMode(settings->fontRenderingMode());
                 fontDescription.setUsePrinterFont(m_checker.m_document->printing());
            
@@ -5905,6 +5911,8 @@ static TransformOperation::OperationType getTransformOperationType(WebKitCSSTran
 
 bool CSSStyleSelector::createTransformOperations(CSSValue* inValue, RenderStyle* style, TransformOperations& outOperations)
 {
+    float zoomFactor = style ? style->effectiveZoom() : 1;
+
     TransformOperations operations;
     if (inValue && !inValue->isPrimitiveValue()) {
         CSSValueList* list = static_cast<CSSValueList*>(inValue);
@@ -5968,13 +5976,13 @@ bool CSSStyleSelector::createTransformOperations(CSSValue* inValue, RenderStyle*
                     Length tx = Length(0, Fixed);
                     Length ty = Length(0, Fixed);
                     if (val->operationType() == WebKitCSSTransformValue::TranslateYTransformOperation)
-                        ty = convertToLength(firstValue, style, 1, &ok);
+                        ty = convertToLength(firstValue, style, zoomFactor, &ok);
                     else { 
-                        tx = convertToLength(firstValue, style, 1, &ok);
+                        tx = convertToLength(firstValue, style, zoomFactor, &ok);
                         if (val->operationType() != WebKitCSSTransformValue::TranslateXTransformOperation) {
                             if (val->length() > 1) {
                                 CSSPrimitiveValue* secondValue = static_cast<CSSPrimitiveValue*>(val->itemWithoutBoundsCheck(1));
-                                ty = convertToLength(secondValue, style, 1, &ok);
+                                ty = convertToLength(secondValue, style, zoomFactor, &ok);
                             }
                         }
                     }
@@ -5992,19 +6000,19 @@ bool CSSStyleSelector::createTransformOperations(CSSValue* inValue, RenderStyle*
                     Length ty = Length(0, Fixed);
                     Length tz = Length(0, Fixed);
                     if (val->operationType() == WebKitCSSTransformValue::TranslateZTransformOperation)
-                        tz = convertToLength(firstValue, style, 1, &ok);
+                        tz = convertToLength(firstValue, style, zoomFactor, &ok);
                     else if (val->operationType() == WebKitCSSTransformValue::TranslateYTransformOperation)
-                        ty = convertToLength(firstValue, style, 1, &ok);
+                        ty = convertToLength(firstValue, style, zoomFactor, &ok);
                     else { 
-                        tx = convertToLength(firstValue, style, 1, &ok);
+                        tx = convertToLength(firstValue, style, zoomFactor, &ok);
                         if (val->operationType() != WebKitCSSTransformValue::TranslateXTransformOperation) {
                             if (val->length() > 2) {
                                 CSSPrimitiveValue* thirdValue = static_cast<CSSPrimitiveValue*>(val->itemWithoutBoundsCheck(2));
-                                tz = convertToLength(thirdValue, style, 1, &ok);
+                                tz = convertToLength(thirdValue, style, zoomFactor, &ok);
                             }
                             if (val->length() > 1) {
                                 CSSPrimitiveValue* secondValue = static_cast<CSSPrimitiveValue*>(val->itemWithoutBoundsCheck(1));
-                                ty = convertToLength(secondValue, style, 1, &ok);
+                                ty = convertToLength(secondValue, style, zoomFactor, &ok);
                             }
                         }
                     }

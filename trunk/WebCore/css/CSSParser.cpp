@@ -792,7 +792,7 @@ bool CSSParser::parseValue(int propId, bool important)
                                     // since we use this in our UA sheets.
         else if (id == CSSValueCurrentcolor)
             valid_primitive = true;
-        else if (id >= CSSValueAqua && id <= CSSValueWindowtext || id == CSSValueMenu ||
+        else if ((id >= CSSValueAqua && id <= CSSValueWindowtext) || id == CSSValueMenu ||
              (id >= CSSValueWebkitFocusRingColor && id < CSSValueWebkitText && !m_strict)) {
             valid_primitive = true;
         } else {
@@ -2251,7 +2251,10 @@ bool CSSParser::parseFillProperty(int propId, int& propId1, int& propId2,
                 case CSSPropertyWebkitBackgroundOrigin:
                 case CSSPropertyWebkitMaskClip:
                 case CSSPropertyWebkitMaskOrigin:
-                    if (val->id == CSSValueBorder || val->id == CSSValuePadding || val->id == CSSValueContent || val->id == CSSValueText) {
+                    // The first three values here are deprecated and should not be allowed to apply when we drop the -webkit-
+                    // from the property names.
+                    if (val->id == CSSValueBorder || val->id == CSSValuePadding || val->id == CSSValueContent ||
+                        val->id == CSSValueBorderBox || val->id == CSSValuePaddingBox || val->id == CSSValueContentBox || val->id == CSSValueText) {
                         currValue = CSSPrimitiveValue::createIdentifier(val->id);
                         m_valueList->next();
                     }
@@ -3509,7 +3512,7 @@ bool CSSParser::parseShadow(int propId, bool important)
         else {
             // The only other type of value that's ok is a color value.
             RefPtr<CSSPrimitiveValue> parsedColor;
-            bool isColor = (val->id >= CSSValueAqua && val->id <= CSSValueWindowtext || val->id == CSSValueMenu ||
+            bool isColor = ((val->id >= CSSValueAqua && val->id <= CSSValueWindowtext) || val->id == CSSValueMenu ||
                             (val->id >= CSSValueWebkitFocusRingColor && val->id <= CSSValueWebkitText && !m_strict));
             if (isColor) {
                 if (!context.allowColor)

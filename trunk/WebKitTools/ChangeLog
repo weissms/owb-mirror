@@ -1,3 +1,76 @@
+2009-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        * Scripts/do-webcore-rename:Update for rename of JSUnprotectedEventListener to
+        JSEventListener.
+
+2009-03-26  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        * Scripts/do-webcore-rename: Update for rename of JSEventListener to
+        JSProtectedEventListener. This includes all the related renames, but
+        not that one because that one renames the file.
+
+2009-03-26  Adam Roben  <aroben@apple.com>
+
+        Reduce run-webkit-tests's time out limit to 15 seconds (or 2.5 minutes
+        under GuardMalloc)
+
+        The previous limit was 60 seconds (or 10 minutes under GuardMalloc).
+        There's no evidence that we need the limit to be this long, and having
+        it be so long just makes timed-out tests take forever to complete.
+        DRT's watchdog timer is 10 seconds, so still has time to fire before
+        run-webkit-tests will cut it off.
+
+        Reviewed by Simon Fraser.
+
+        * Scripts/run-webkit-tests:
+        (sub readFromDumpToolWithTimer): Reduced the limit to 15 seconds (or
+        2.5 mintues under GuardMalloc).
+
+2009-03-26  Adam Roben  <aroben@apple.com>
+
+        Make DRT's watchdog timer actually work on Windows
+
+        We were previously trying to use a CFRunLoopTimer for the watchdog
+        timer on Windows. This doesn't work because we don't use a CFRunLoop
+        on the main thread on Windows.
+
+        This patch changes the watchdog timer on Windows be a normal Windows
+        timer.
+
+        Reviewed by Simon Fraser.
+
+        * DumpRenderTree/DumpRenderTree.h: Moved declaration of
+        waitToDumpWatchdog from here...
+        * DumpRenderTree/mac/DumpRenderTreeMac.h: ...to here.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (invalidateAnyPreviousWaitToDumpWatchdog): Added. This function
+        cancels an existing watchdog timer.
+        (dump): Call invalidateAnyPreviousWaitToDumpWatchdog. This will
+        prevent watchdogs from previous tests firing during subsequent ones.
+        This matches Mac's behavior.
+
+        * DumpRenderTree/win/DumpRenderTreeWin.h: Added a declaration of
+        waitToDumpWatchdog.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (waitUntilDoneWatchdogFired): Converted this to be a Windows
+        TIMERPROC.
+        (LayoutTestController::setWaitToDump): Changed to use SetTimer instead
+        of CFRunLoopAddTimer.
+
+2009-03-25  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Steve Falkenburg.
+
+        Update test result search path for Windows now that it has updated versions of ICU, libxml2, and friends.
+
+        * Scripts/run-webkit-tests:
+
 2009-03-25  Mark Rowe  <mrowe@apple.com>
 
         Fix the Tiger build some more.

@@ -1,4 +1,60 @@
-2009-03-23  Erik L. Bunce  <elbunce@xendom.com>
+2009-03-27  Erik L. Bunce  <elbunce@xendom.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24869
+
+        Fixes an incorrect case in tst_qwebpage.
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::cursorMovements):
+
+2009-03-27  Erik L. Bunce  <elbunce@xendom.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24746
+
+        Add new editing related QWebPage::WebActions
+        * Clipboard: PasteAndMatchStyle
+        * Formatting: RemoveFormat, ToggleStrikethrough, ToggleSubscript, and
+          ToggleSuperscript
+        * List Editing: InsertUnorderedList, InsertOrderedList, Indent, Outdent
+        * Paragraph Justification: AlignCenter, AlignJustified, AlignLeft, AlignRight 
+
+        Improved selection and editing tests.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::updateEditorActions):
+        (QWebPage::action):
+        * Api/qwebpage.h:
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::textSelection):
+        (tst_QWebPage::textEditing):
+
+2009-03-26  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Fix the documentation of the QLocale usage in userAgentForUrl.
+
+        * Api/qwebpage.cpp:
+
+2009-03-20  Erik L. Bunce  <elbunce@xendom.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix for InsertParagraphSeparator and InsertLineSeparator so that
+        QWebPage::action() creates QActions for them. Also make sure they get
+        updated appropriately.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::updateEditorActions):
+        (QWebPage::action):
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::textEditing):
+
+2009-03-20  Erik L. Bunce  <elbunce@xendom.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -19,7 +75,7 @@
         * tests/qwebpage/tst_qwebpage.cpp:
         (tst_QWebPage::textSelection):
 
-2009-03-20  Ariya Hidayat <ariya.hidayat@trolltech.com>
+2009-03-19  Ariya Hidayat <ariya.hidayat@trolltech.com>
 
         Reviewed by Simon Hausmann.
 
@@ -49,7 +105,7 @@
         * WebCoreSupport/ChromeClientQt.cpp:
         (WebCore::ChromeClientQt::setToolTip):
 
-2009-03-11  Adam Treat  <adam.treat@torchmobile.com>
+2009-03-10  Adam Treat  <adam.treat@torchmobile.com>
 
         Build fix for Qt after r41555.
 
@@ -63,7 +119,7 @@
         * Api/qwebpage.cpp:
         (QWebPage::inputMethodQuery):
 
-2009-03-09  Adam Treat  <adam.treat@torchmobile.com>
+2009-03-07  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by Cameron Zwarich.
 
@@ -74,7 +130,7 @@
         (QWebPage::totalBytes):
         (QWebPage::bytesReceived):
 
-2009-03-06  Ariya Hidayat  <ariya.hidayat@nokia.com>
+2009-03-05  Ariya Hidayat  <ariya.hidayat@nokia.com>
 
         Rubber-stamped by Simon Hausmann.
 
@@ -106,7 +162,7 @@
         (QWebSettings::QWebSettings):
         * Api/qwebsettings.h:
 
-2009-03-04  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2009-03-03  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Rubber-stamped by Simon Hausmann.
 
@@ -142,7 +198,7 @@
         * Api/qwebpage.cpp:
         (QWebPage::triggerAction):
 
-2009-02-27  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+2009-02-25  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
 
         Reviewed by Simon Hausmann.
 
@@ -150,7 +206,7 @@
 
         * Api/qwebpage.cpp:
 
-2009-02-25  Adam Treat  <adam.treat@torchmobile.com>
+2009-02-23  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by Darin Adler.
 
@@ -174,7 +230,7 @@
 
         * WebKit_pch.h:
 
-2009-02-20  Simon Hausmann  <simon.hausmann@nokia.com>
+2009-02-16  Simon Hausmann  <simon.hausmann@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -244,7 +300,7 @@
         * Api/qwebpage.cpp:
         (QWebPage::inputMethodQuery):
 
-2009-02-09  Geoffrey Garen  <ggaren@apple.com>
+2009-02-06  Geoffrey Garen  <ggaren@apple.com>
 
         Build fix.
 
@@ -301,7 +357,7 @@
 
         * Api/qwebframe.cpp:
 
-2009-02-04  Simon Hausmann  <simon.hausmann@nokia.com>
+2009-02-03  Simon Hausmann  <simon.hausmann@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -389,7 +445,7 @@
         * WebCoreSupport/FrameLoaderClientQt.cpp:
         (WebCore::FrameLoaderClientQt::forceLayout):
 
-2009-02-02  Geoffrey Garen  <ggaren@apple.com>
+2009-01-30  Geoffrey Garen  <ggaren@apple.com>
 
         Build fix.
 
@@ -442,7 +498,7 @@
         (qt_websettings_offlineWebApplicationCachePath):
         * Api/qwebsettings.h:
 
-2009-01-30  Adam Treat  <adam.treat@torchmobile.com>
+2009-01-28  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by Nikolas Zimmermann and George Staikos.
 
@@ -467,7 +523,7 @@
         (QWebPage::javaScriptConfirm):
         (QWebPage::javaScriptPrompt):
 
-2009-01-28  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2009-01-27  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Reviewed by Simon Hausmann.
 
@@ -600,7 +656,7 @@
 
         * tests/qwebframe/tst_qwebframe.cpp:
 
-2009-01-21  Friedemann Kleint  <Friedemann.Kleint@nokia.com>
+2009-01-20  Friedemann Kleint  <Friedemann.Kleint@nokia.com>
 
         Reviewed by Simon Hausmann.
 
@@ -633,7 +689,7 @@
         (WebCore::EditorClientQt::handleKeyboardEvent): Don't execute
         text inserting commands on RawKeyPressDown.
 
-2009-01-19  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Rubber-stamped by Simon Hausmann.
 
@@ -677,7 +733,7 @@
         * Api/qwebframe.cpp:
         (QWebFrame::addToJavaScriptWindowObject):
 
-2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2009-01-14  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -747,7 +803,7 @@
         (CursorTrackedPage::isSelectionCollapsed):
         (tst_QWebPage::cursorMovements):
 
-2009-01-14  Yongjun Zhang  <yongjun.zhang@nokia.com>
+2009-01-08  Yongjun Zhang  <yongjun.zhang@nokia.com>
 
         Reviewed by Simon Hausmann.
 
@@ -982,7 +1038,51 @@
         * Api/qwebframe.cpp:
         (QWebFrame::evaluateJavaScript):
 
-2009-01-05  Adam Treat  <treat@kde.org>
+2009-01-06  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Holger Freyther.
+
+        Allow building QtWebKit statically (within Qt).
+
+        http://trolltech.com/developer/task-tracker/index_html?id=211273&method=entry
+
+        * Api/qwebkitglobal.h:
+
+2009-01-06  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Simon Hausmann.
+
+        Update the documentation to reflect when these API changes will land in
+        upstream Qt
+
+        * Api/qwebframe.cpp:
+        * Api/qwebpage.cpp:
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Add Qt API for QWebFrame::contentsSizeChanged signal
+
+        * Api/qwebframe.cpp:
+        * Api/qwebframe.h:
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::contentsSizeChanged):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes QWebFrame::setScrollBarPolicy(..) to actually work.  Also happens
+        to fix 192 layout tests that were previously failing for Qt.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::setScrollBarPolicy):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::transitionToCommittedForNewPage):
+
+2009-01-04  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by George Staikos.
 
@@ -1012,7 +1112,7 @@
         * WebCoreSupport/FrameLoaderClientQt.cpp:
         (WebCore::FrameLoaderClientQt::transitionToCommittedForNewPage):
 
-2008-12-22  Jade Han <jade.han@nokia.com>
+2008-12-19  Jade Han <jade.han@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -1023,7 +1123,7 @@
         * tests/qwebframe/tst_qwebframe.cpp:
         (MyQObject::myInvokableWithBoolArg):
 
-2008-12-19  Yael Aharon  <yael.aharon@nokia.com>
+2008-12-18  Yael Aharon  <yael.aharon@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
 
@@ -1053,7 +1153,7 @@
         (WebCore::FrameLoaderClientQt::dispatchDidFirstVisuallyNonEmptyLayout):
         * WebCoreSupport/FrameLoaderClientQt.h:
 
-2008-12-18  Simon Hausmann  <hausmann@webkit.org>
+2008-12-16  Simon Hausmann  <hausmann@webkit.org>
 
         Reviewed by Holger Freyther.
 
@@ -1069,7 +1169,7 @@
         (WebCore::FrameLoaderClientQt::dispatchDidFinishDocumentLoad): Add DRT
         output for unload event handler counting.
 
-2008-12-16  Holger Hans Peter Freyther  <zecke@selfish.org>
+2008-12-15  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Simon Hausmann.
 
@@ -1271,7 +1371,7 @@
 
         * Api/qwebsettings.cpp:
 
-2008-12-09  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2008-12-08  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Reviewed by Simon Hausmann.
 
@@ -2228,7 +2328,7 @@
         * tests/qwebpage/tst_qwebpage.cpp:
         (tst_QWebPage::userStyleSheet):
 
-2008-09-10  Joerg Bornemann  <joerg.bornemann@trolltech.com>
+2008-09-09  Joerg Bornemann  <joerg.bornemann@trolltech.com>
 
         Reviewed by Simon.
 

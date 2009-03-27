@@ -488,6 +488,7 @@ SOURCES += \
     bindings/js/JSMimeTypeArrayCustom.cpp \
     bindings/js/JSDOMBinding.cpp \
     bindings/js/JSEventListener.cpp \
+    bindings/js/JSLazyEventListener.cpp \
     bindings/js/JSPluginElementFunctions.cpp \
     bindings/js/ScriptCachedFrameData.cpp \
     bindings/js/ScriptCallFrame.cpp \
@@ -962,6 +963,7 @@ SOURCES += \
     platform/text/TextCodecUserDefined.cpp \
     platform/text/TextCodecUTF16.cpp \
     platform/text/TextEncoding.cpp \
+    platform/text/TextEncodingDetectorNone.cpp \
     platform/text/TextEncodingRegistry.cpp \
     platform/text/TextStream.cpp \
     platform/ThreadGlobalData.cpp \

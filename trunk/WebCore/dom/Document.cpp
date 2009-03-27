@@ -1151,8 +1151,6 @@ void Document::recalcStyle(StyleChange change)
         StyleChange ch = diff(documentStyle.get(), renderer()->style());
         if (renderer() && ch != NoChange)
             renderer()->setStyle(documentStyle.release());
-        if (change != Force)
-            change = ch;
     }
 
     for (Node* n = firstChild(); n; n = n->nextSibling())
@@ -1674,8 +1672,8 @@ bool Document::shouldScheduleLayout()
     //    (a) Only schedule a layout once the stylesheets are loaded.
     //    (b) Only schedule layout once we have a body element.
 
-    return haveStylesheetsLoaded()
-        && body() || (documentElement() && !documentElement()->hasTagName(htmlTag));
+    return (haveStylesheetsLoaded() && body()) ||
+        (documentElement() && !documentElement()->hasTagName(htmlTag));
 }
 
 int Document::minimumLayoutDelay()

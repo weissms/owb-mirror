@@ -1366,12 +1366,13 @@ bool EventHandler::updateDragAndDrop(const PlatformMouseEvent& event, Clipboard*
         // FIXME: this ordering was explicitly chosen to match WinIE. However,
         // it is sometimes incorrect when dragging within subframes, as seen with
         // LayoutTests/fast/events/drag-in-frames.html.
-        if (newTarget)
+        if (newTarget) {
             if (newTarget->hasTagName(frameTag) || newTarget->hasTagName(iframeTag))
                 accept = static_cast<HTMLFrameElementBase*>(newTarget)->contentFrame()->eventHandler()->updateDragAndDrop(event, clipboard);
             else
                 accept = dispatchDragEvent(eventNames().dragenterEvent, newTarget, event, clipboard);
-        
+        }
+
         if (m_dragTarget) {
             Frame* frame = (m_dragTarget->hasTagName(frameTag) || m_dragTarget->hasTagName(iframeTag)) 
                             ? static_cast<HTMLFrameElementBase*>(m_dragTarget.get())->contentFrame() : 0;
@@ -1381,11 +1382,12 @@ bool EventHandler::updateDragAndDrop(const PlatformMouseEvent& event, Clipboard*
                 dispatchDragEvent(eventNames().dragleaveEvent, m_dragTarget.get(), event, clipboard);
         }
     } else {
-        if (newTarget)
+        if (newTarget) {
             if (newTarget->hasTagName(frameTag) || newTarget->hasTagName(iframeTag))
                 accept = static_cast<HTMLFrameElementBase*>(newTarget)->contentFrame()->eventHandler()->updateDragAndDrop(event, clipboard);
             else
                 accept = dispatchDragEvent(eventNames().dragoverEvent, newTarget, event, clipboard);
+        }
     }
     m_dragTarget = newTarget;
 
@@ -1664,7 +1666,7 @@ bool EventHandler::sendContextMenuEvent(const PlatformMouseEvent& event)
         // FIXME: In the editable case, word selection sometimes selects content that isn't underneath the mouse.
         // If the selection is non-editable, we do word selection to make it easier to use the contextual menu items
         // available for text selections.  But only if we're above text.
-        (m_frame->selection()->isContentEditable() || mev.targetNode() && mev.targetNode()->isTextNode())) {
+        (m_frame->selection()->isContentEditable() || (mev.targetNode() && mev.targetNode()->isTextNode()))) {
         m_mouseDownMayStartSelect = true; // context menu events are always allowed to perform a selection
         selectClosestWordOrLinkFromMouseEvent(mev);
     }

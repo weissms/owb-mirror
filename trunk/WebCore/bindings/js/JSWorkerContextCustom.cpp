@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2008, 2009 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,17 +53,14 @@ void JSWorkerContext::mark()
 
     markActiveObjectsForContext(*globalData(), scriptExecutionContext());
 
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onmessage()))
-        listener->mark();
+    markIfNotNull(impl()->onmessage());
 
     typedef WorkerContext::EventListenersMap EventListenersMap;
     typedef WorkerContext::ListenerVector ListenerVector;
     EventListenersMap& eventListeners = impl()->eventListeners();
     for (EventListenersMap::iterator mapIter = eventListeners.begin(); mapIter != eventListeners.end(); ++mapIter) {
-        for (ListenerVector::iterator vecIter = mapIter->second.begin(); vecIter != mapIter->second.end(); ++vecIter) {
-            JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(vecIter->get());
-            listener->mark();
-        }
+        for (ListenerVector::iterator vecIter = mapIter->second.begin(); vecIter != mapIter->second.end(); ++vecIter)
+            (*vecIter)->mark();
     }
 }
 
@@ -102,7 +99,7 @@ JSValuePtr JSWorkerContext::importScripts(ExecState* exec, const ArgList& args)
 
 JSValuePtr JSWorkerContext::addEventListener(ExecState* exec, const ArgList& args)
 {
-    RefPtr<JSUnprotectedEventListener> listener = findOrCreateJSUnprotectedEventListener(exec, args.at(exec, 1));
+    RefPtr<JSEventListener> listener = findOrCreateJSEventListener(exec, args.at(exec, 1));
     if (!listener)
         return jsUndefined();
     impl()->addEventListener(args.at(exec, 0).toString(exec), listener.release(), args.at(exec, 2).toBoolean(exec));
@@ -111,7 +108,7 @@ JSValuePtr JSWorkerContext::addEventListener(ExecState* exec, const ArgList& arg
 
 JSValuePtr JSWorkerContext::removeEventListener(ExecState* exec, const ArgList& args)
 {
-    JSUnprotectedEventListener* listener = findJSUnprotectedEventListener(exec, args.at(exec, 1));
+    JSEventListener* listener = findJSEventListener(exec, args.at(exec, 1));
     if (!listener)
         return jsUndefined();
     impl()->removeEventListener(args.at(exec, 0).toString(exec), listener, args.at(exec, 2).toBoolean(exec));
