@@ -62,11 +62,13 @@
 
 #include <CachedFrame.h>
 #include <DocumentLoader.h>
+#include <FormState.h>
 #include <Frame.h>
 #include <FrameLoader.h>
 #include <FrameTree.h>
 #include <FrameView.h>
 #include <HTMLAppletElement.h>
+#include <HTMLFormElement.h>
 #include <HTMLFrameElement.h>
 #include <HTMLFrameOwnerElement.h>
 #include <HTMLNames.h>
@@ -290,6 +292,7 @@ bool WebFrameLoaderClient::shouldCacheResponse(DocumentLoader* loader, unsigned 
 
     return true;
 */
+    return false;
 }
 
 void WebFrameLoaderClient::dispatchDidHandleOnloadEvents()
@@ -586,7 +589,6 @@ void WebFrameLoaderClient::updateGlobalHistory()
     DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
 
     history->visitedURL(loader->urlForHistory(), loader->title(), loader->originalRequestCopy().httpMethod(), loader->urlForHistoryReflectsFailure());
-    updateGlobalHistoryRedirectLinks();
 }
 
 void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
@@ -595,6 +597,7 @@ void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
     if (!history)                                                                                                                                          
         return;                                                                                                                                            
     DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
+    ASSERT(loader->unreachableURL().isEmpty());
 
     if (!loader->clientRedirectSourceForHistory().isNull()) {
         if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory())) {
@@ -724,7 +727,7 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
     return result.release();
 }
 
-PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& URL, const String& name, HTMLFrameOwnerElement* ownerElement, const String& referrer)
+PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement, const String& referrer)
 {
     Frame* coreFrame = core(m_webFrame);
     ASSERT(coreFrame);
@@ -738,7 +741,8 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& URL, const Strin
     childFrame->tree()->setName(name);
     childFrame->init();
 
-    loadURLIntoChild(URL, referrer, webFrame);
+//    loadURLIntoChild(URL, referrer, webFrame);
+    childFrame->loader()->loadURLIntoChildFrame(url, referrer, childFrame.get());
 
     // The frame's onload handler may have removed it from the document.
     if (!childFrame->tree()->parent())
@@ -747,7 +751,7 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& URL, const Strin
     return childFrame.release();
 }
 
-void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const String& referrer, WebFrame* childFrame)
+/*void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const String& referrer, WebFrame* childFrame)
 {
     ASSERT(childFrame);
     ASSERT(core(childFrame));
@@ -784,8 +788,8 @@ void WebFrameLoaderClient::loadURLIntoChild(const KURL& originalURL, const Strin
 
     // FIXME: Handle loading WebArchives here
     String frameName = core(childFrame)->tree()->name();
-    core(childFrame)->loader()->loadURL(url, referrer, frameName, false, childLoadType, 0, 0);
-}
+    core(childFrame)->loader()->loadUrl(url, referrer, frameName, false, childLoadType, 0, 0);
+}*/
 
 Widget* WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {

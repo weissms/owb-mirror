@@ -31,6 +31,7 @@
 #include "BytecodeGenerator.h"
 
 #include "BatchedTransitionOptimizer.h"
+#include "PrototypeFunction.h"
 #include "JSFunction.h"
 #include "Interpreter.h"
 #include "UString.h"
@@ -691,6 +692,15 @@ PassRefPtr<Label> BytecodeGenerator::emitJumpIfFalse(RegisterID* cond, Label* ta
 
     emitOpcode(op_jfalse);
     instructions().append(cond->index());
+    instructions().append(target->offsetFrom(instructions().size()));
+    return target;
+}
+
+PassRefPtr<Label> BytecodeGenerator::emitJumpIfNotFunctionCall(RegisterID* cond, Label* target)
+{
+    emitOpcode(op_jneq_ptr);
+    instructions().append(cond->index());
+    instructions().append(m_scopeChain->globalObject()->d()->callFunction);
     instructions().append(target->offsetFrom(instructions().size()));
     return target;
 }

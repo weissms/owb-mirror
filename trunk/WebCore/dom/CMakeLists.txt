@@ -7,6 +7,7 @@ list(APPEND WEBCORE_SRC
     dom/CDATASection.cpp
     dom/CSSMappedAttributeDeclaration.cpp
     dom/CharacterData.cpp
+    dom/CheckedRadioButtons.cpp
     dom/ChildNodeList.cpp
     dom/ClassNames.cpp
     dom/ClassNodeList.cpp

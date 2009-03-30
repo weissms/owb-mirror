@@ -36,9 +36,9 @@ char* JSStringCopyUTF8CString(JSStringRef jsString)
     return utf8;
 }
 
-void LoadItem::invoke() const
+bool LoadItem::invoke() const
 {
-    char* targetString = JSStringCopyUTF8CString(target());
+    char* targetString = JSStringCopyUTF8CString(m_target.get());
 
     WebFrame* targetFrame;
     if (!strlen(targetString))
@@ -47,27 +47,31 @@ void LoadItem::invoke() const
         targetFrame = getWebView()->mainFrame()->findFrameNamed(targetString);
     free(targetString);
 
-    char* urlString = JSStringCopyUTF8CString(url());
+    char* urlString = JSStringCopyUTF8CString(m_url.get());
     targetFrame->loadURL(urlString);
 //    WebKitNetworkRequest* request = webkit_network_request_new(urlString);
     free(urlString);
 //    webkit_web_frame_load_request(targetFrame, request);
 //    g_object_unref(request);
+    return true;
 }
 
-void ReloadItem::invoke() const
+bool ReloadItem::invoke() const
 {
     getWebView()->mainFrame()->reload();
+    return true;
 }
 
-void ScriptItem::invoke() const
+bool ScriptItem::invoke() const
 {
-    char* scriptString = JSStringCopyUTF8CString(script());
+    char* scriptString = JSStringCopyUTF8CString(m_script.get());
     getWebView()->executeScript(scriptString);
     free(scriptString);
+    return true;
 }
 
-void BackForwardItem::invoke() const
+bool BackForwardItem::invoke() const
 {
     getWebView()->goBackOrForward(m_howFar);
+    return true;
 }

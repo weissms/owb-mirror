@@ -333,8 +333,9 @@ int main (int argc, char* argv[])
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 
+    delete webView;
+    //delete the delegate after webView or set the delegate to 0
     delete mainWebNotificationDelegate;
     delete mainJSActionDelegate;
-    delete webView;
     return 0;
 }

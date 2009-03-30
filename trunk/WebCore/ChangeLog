@@ -1,3 +1,607 @@
+2009-03-30  Darin Adler  <darin@apple.com>
+
+        Requested by Antti Koivisto.
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::subresource): Tweaked code to be a little clearer and added
+        a better comment.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 23445: Copying certain hidden text causes a crash
+        https://bugs.webkit.org/show_bug.cgi?id=23445
+        rdar://problem/6512520
+
+        Test: editing/pasteboard/copy-display-none.html
+
+        * editing/markup.cpp:
+        (WebCore::createMarkup): Added a check for the case where adjusting the start node moves
+        the start of the selection past the end of the range entirely. If we try to iterate we'll
+        never hit the end of the range and will probably crash iterating the rest of the document.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 24672: ASSERTION FAILURE: !m_purgeableData in WebCore::CachedResource::data() saving a WebArchive
+        https://bugs.webkit.org/show_bug.cgi?id=24672
+        rdar://problem/6574263
+
+        I couldn't create a test case for this. In fact, the case in the bug doesn't exist any more,
+        but there is an Apple-internal website I was able to use to reproduce and fix.
+
+        * loader/CachedResource.h: Made makePurgeable public.
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::subresource): Call makePurgeable to make the resource non-purgeable
+        so we can get its data if it hasn't yet been purged.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Fix build again.
+
+        * loader/EmptyClients.h: Fix typo in name of FormState.h.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Try to fix the release build.
+
+        * history/CachedPage.cpp: Make include unconditional, not debug-only.
+
+2009-03-29  Greg Bolsinga  <bolsinga@apple.com>
+
+        Undo that last build fix, since it turned out the file wasn't deleted.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2009-03-29  Greg Bolsinga  <bolsinga@apple.com>
+
+        Fix build break by removing references to deleted header files.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Try to fix the Windows build.
+
+        * loader/EmptyClients.h: Added include of FormState.h.
+        * loader/MainResourceLoader.cpp: Ditto.
+
+2009-03-29  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24926
+        Fix Chromium build break.
+
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL(DOMWindowShowModalDialog)): renamed 'features' into 'windowFeatures'.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Another attempt to fix the Qt build.
+
+        * WebCore.pro: Added CheckedRadioButtons.cpp.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 24921: remove include of HTMLFormElement.h from Document.h
+        https://bugs.webkit.org/show_bug.cgi?id=24921
+
+        * GNUmakefile.am: Added CheckedRadioButtons source files.
+        * WebCore.scons: Ditto.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Ditto.
+
+        * bindings/objc/PublicDOMInterfaces.h: Changed type of parentElement to Element.
+
+        * dom/CheckedRadioButtons.cpp: Copied from WebCore/html/HTMLFormElement.cpp.
+        Removed all the code except for CheckedRadioButtons, and moved that out to be
+        a namespace-level class instead of a member of HTMLFormElement.
+
+        * dom/CheckedRadioButtons.h: Copied from WebCore/html/HTMLFormElement.h.
+        Removed all the code except for CheckedRadioButtons, and moved that out to be
+        a namespace-level class instead of a member of HTMLFormElement.
+
+        * dom/Document.h: Removed unneeded includes, including HTMLFormElement.h.
+        Added include of CheckedRadioButtons.h. Changed uses of CheckedRadioButtons
+        class to use a namespace-level class instead of a member of HTMLFormElement.
+
+        * dom/Node.idl: Changed the type of parentElement from Node to Element for
+        two reasons. 1) Node was incorrect, since parentElement returns an Element.
+        2) The bindings won't compile any more unless they know parentElement's
+        return value is an Element due to include changes.
+
+        * html/HTMLFormElement.cpp: Moved definitions of the functions in the
+        CheckedRadioButtons class to the new CheckedRadioButtons.cpp.
+
+        * html/HTMLFormElement.h: Moved definition of the CheckedRadioButtons
+        class to the new CheckedRadioButtons.h.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::checkedRadioButtons): Changed use of CheckedRadioButtons
+        class to use a namespace-level class instead of a member of HTMLFormElement.
+
+        * page/Chrome.cpp:
+        (WebCore::Chrome::createWindow): Tweaked formatting.
+
+        * css/CSSGrammar.y: Added newly-needed include.
+        * dom/Range.cpp: Ditto.
+        * editing/BreakBlockquoteCommand.cpp: Ditto.
+        * editing/CompositeEditCommand.cpp: Ditto.
+        * editing/InsertLineBreakCommand.cpp: Ditto.
+        * editing/ModifySelectionListLevel.cpp: Ditto.
+        * editing/RemoveFormatCommand.cpp: Ditto.
+        * editing/TextIterator.cpp: Ditto.
+        * editing/VisiblePosition.cpp: Ditto.
+        * loader/DocLoader.cpp: Ditto.
+        * page/AccessibilityRenderObject.cpp: Ditto.
+        * page/Page.cpp: Ditto.
+        * rendering/RenderBlock.cpp: Ditto.
+        * rendering/RenderLayer.cpp: Ditto.
+        * rendering/RenderObject.h: Ditto.
+        * storage/LocalStorageArea.cpp: Ditto.
+        * storage/SessionStorageArea.cpp: Ditto.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6015407> attr parsing should allow only identifiers
+
+        Test: fast/css/attr-parsing.html
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseContent): Allow only CSS_IDENT, and filter out
+        identifiers that start with "-".
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cssText): Added a case for CSS_ATTR so the test
+        case works. This has the pleasant side effect of fixing a bug too.
+
+2009-03-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        <rdar://problem/6492712> Cross-origin redirects are not handled correctly.
+
+        Forgot to save the file after applying changes for review comments.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::willSendRequest):
+        (WebCore::didReceiveResponse):
+        (WebCore::didReceiveData):
+        (WebCore::didSendBodyData):
+        (WebCore::didFinishLoading):
+        (WebCore::didFail):
+        (WebCore::willCacheResponse):
+        (WebCore::didReceiveChallenge):
+        (WebCore::WebCoreSynchronousLoader::willSendRequest):
+        (WebCore::WebCoreSynchronousLoader::didReceiveResponse):
+        (WebCore::WebCoreSynchronousLoader::didReceiveData):
+        (WebCore::WebCoreSynchronousLoader::didFinishLoading):
+        (WebCore::WebCoreSynchronousLoader::didFail):
+        (WebCore::WebCoreSynchronousLoader::didReceiveChallenge):
+
+2009-03-28  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6492712> Cross-origin redirects are not handled correctly.
+
+        Test: http/tests/xmlhttprequest/redirect-cross-origin-tripmine.html
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::WebCoreSynchronousLoader::WebCoreSynchronousLoader):
+        (WebCore::ResourceHandle::loadResourceSynchronously):
+        (WebCore::WebCoreSynchronousLoader::willSendRequest):
+        (WebCore::WebCoreSynchronousLoader::didReceiveResponse):
+        (WebCore::WebCoreSynchronousLoader::didReceiveData):
+        (WebCore::WebCoreSynchronousLoader::didFinishLoading):
+        (WebCore::WebCoreSynchronousLoader::didFail):
+        (WebCore::WebCoreSynchronousLoader::didReceiveChallenge):
+        (WebCore::WebCoreSynchronousLoader::load):
+        Match Mac behavior more closely - we shouldn't rely on underlying library handling of
+        synchronous requests.
+
+        * loader/DocumentThreadableLoader.cpp: (WebCore::DocumentThreadableLoader::willSendRequest):
+        -[NSURLConnection cancel] doesn't fully cancel the connection if called from willSendRequest
+        delegate method for a redirect.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+        (-[WebCoreSynchronousLoader connection:willSendRequest:redirectResponse:]):
+        Match async behavior more closely.
+
+2009-03-28  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 24914: empty-string assertion crash when running storage tests
+        https://bugs.webkit.org/show_bug.cgi?id=24914
+
+        * storage/Database.cpp:
+        (WebCore::Database::performOpenAndVerify): Don't store empty version strings
+        in the map, since empty strings are per-thread.
+
+2009-03-28  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24910
+        Fixes for Chromium build.
+
+        * bindings/v8/V8LazyEventListener.h: renamed IsInline() into virtualIsInline()
+        * bindings/v8/custom/V8CustomEventListener.h: ditto.
+        * dom/EventListener.h: used #if USE(JSC) to fix the build on non-JSC platform.
+
+2009-03-28  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Not reviewed, correcting landing error.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24812
+        Custom bindings should be in v8/custom, not v8.
+
+        * bindings/v8/V8HTMLDocumentCustom.cpp: Removed.
+        * bindings/v8/custom/V8HTMLDocumentCustom.cpp: Moved from parent dir.
+
+2009-03-28  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24616
+        Add V8 custom bindings for DOMWindow.
+
+        * bindings/v8/custom/V8DOMWindowCustom.cpp: Added.
+
+2009-03-28  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24812
+        Add V8 custom bindings for HTMLDocument.
+
+        * bindings/v8/V8HTMLDocumentCustom.cpp: Added.
+
+2009-03-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix two SVG test failures in 64-bit.
+
+        getSubStringLength's arguments were declared as unsigned in the IDL and as signed long in the implementation.
+        This led to a value of -1 in JavaScript being converted to MAX_UINT in the bindings.  In 32-bit this was
+        identical to -1 when interpeted as signed long, but in 64-bit it was still equal to MAX_UINT.
+
+        The solution for this is to use the IsIndex attribute on arguments that the SVG spec declares as "unsigned long"
+        but requires an exception be thrown when a negative value is passed.  This results in the JS bindings handling the
+        check for a negative value and lets the implementation treat the arguments purely as unsigned values.
+
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGTextContentElement::getNumberOfChars):
+        (WebCore::SVGTextContentElement::getSubStringLength):
+        (WebCore::SVGTextContentElement::getStartPositionOfChar):
+        (WebCore::SVGTextContentElement::getEndPositionOfChar):
+        (WebCore::SVGTextContentElement::getExtentOfChar):
+        (WebCore::SVGTextContentElement::getRotationOfChar):
+        (WebCore::SVGTextContentElement::getCharNumAtPosition):
+        (WebCore::SVGTextContentElement::selectSubString):
+        * svg/SVGTextContentElement.h:
+        * svg/SVGTextContentElement.idl:
+
+2009-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Get mailto code out of FrameLoader.
+
+        * html/HTMLFormElement.cpp:
+        (WebCore::transferMailtoPostFormDataToURL): Added. Factored out the mailto
+        logic so HTMLFormElement::submit isn't full of ugly bits. This includes the
+        part of the logic that involves transformeing the URL that was previously
+        inside FrameLoader.
+        (WebCore::HTMLFormElement::submit): Call transferMailtoPostFormDataToURL and
+        also release the data for slightly less refcount churn.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::submitForm): Removed all the special casing for mailto,
+        since HTMLFormElement now properly prepares both the URL and the form data.
+
+2009-03-27  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix <rdar://problem/6724514> A bit of OpenTypeUtilities cleanup
+
+        * platform/graphics/chromium/FontCustomPlatformData.cpp:
+        (WebCore::EOTStream::EOTStream): Changed to use EOTHeader.
+        (WebCore::createFontCustomPlatformData): Ditto.
+        * platform/graphics/opentype/OpenTypeUtilities.cpp:
+        (WebCore::EOTHeader::EOTHeader): Added. Initializes the buffer size to
+        the size of an EOTPrefix.
+        (WebCore::EOTHeader::updateEOTSize): Added. Updates the size field in
+        the prefix.
+        (WebCore::EOTHeader::appendBigEndianString): Changed the static
+        appendBigEndianStringToEOTHeader() into this member function.
+        (WebCore::EOTHeader::appendPaddingShort): Added.
+        (WebCore::getEOTHeader): Changed to use EOTHeader.
+        * platform/graphics/opentype/OpenTypeUtilities.h:
+        (WebCore::EOTHeader::size):
+        (WebCore::EOTHeader::data):
+        (WebCore::EOTHeader::prefix):
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::EOTStream::EOTStream): Changed to use EOTHeader.
+        (WebCore::createFontCustomPlatformData): Ditto.
+
+2009-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        To prepare for work on a form loading fix, remove some unused functions,
+        consolidate some functions, and make many more functions private in
+        FrameLoader.
+
+        * WebCore.base.exp: Remove some unused entry points, update another.
+
+        * dom/Document.cpp:
+        (WebCore::Document::detach): Clear m_frame directly instead of using
+        clearFramePointer.
+        * dom/Document.h: Ditto.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::urlSelected): Consolidate the two functions
+        of this name into a single function. Also changed the event argument
+        to be PassRefPtr<Event>.
+        (WebCore::FrameLoader::submitForm): Changed the event argument to
+        be PassRefPtr<Event>.
+        (WebCore::FrameLoader::scheduleLocationChange): Call completeURL
+        explicitly so we can remove the version of changeLocation that does
+        completeURL for us.
+        (WebCore::FrameLoader::redirectionTimerFired): Ditto.
+        (WebCore::FrameLoader::loadURLIntoChildFrame): Set m_provisionalHistoryItem
+        directly so we don't need a setProvisionalHistoryItem function.
+        (WebCore::FrameLoader::canCachePageContainingThisFrame): Get at
+        m_quickRedirectComing directly so we don't need a isQuickRedirectComing
+        function.
+        (WebCore::FrameLoader::logCanCacheFrameDecision): Ditto.
+        (WebCore::FrameLoader::loadFrameRequestWithFormAndValues): Changed the
+        event argument to be PassRefPtr<Event>.
+        (WebCore::FrameLoader::loadURL): Move the logic of the continueLoadWithData
+        function here because this is the only caller. If we want to make the
+        resulting function smaller we should refactor some other way. Also
+        streamlined the user-chosen encoding logic, but did not change what it does.
+        (WebCore::FrameLoader::finishedLoadingDocument): Changed the event argument
+        to be PassRefPtr<Event>.
+        (WebCore::FrameLoader::loadPostRequest): Ditto.
+        (WebCore::FrameLoader::receivedMainResourceError): Moved the logic from
+        the didNotOpenURL function here, since this was the only caller.
+
+        * loader/FrameLoader.h: Removed include of FormState.h and used a forward
+        declaration instead. Removed unneeded forward declation of Element.
+        Moved many functions into the private section, and removed some other
+        unused or uneeded functions.
+
+2009-03-27  Xiaomei Ji  <xji@chromium.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=24303
+        Using keyboard select RTL text, Highlights goes to opposite direction from Firefox and IE.
+
+        Test: editing/selection/extend-selection.html
+
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::directionOfEnclosingBlock): Added
+        (WebCore::SelectionController::modifyExtendingRight): Added. Currenctly 
+        implemented for character and word granularity, all other granularities
+        are treated as "forward".
+        (WebCore::SelectionController::modifyExtendingForward): Renamed 
+        modifyExtendingRightForward() to this.
+        (WebCore::SelectionController::modifyExtendingLeft): Added. Currenctly
+        implemented for character and word granularity, all other granularities
+        are treated as "backward".
+        (WebCore::SelectionController::modifyExtendingBackward): Renamed
+        modifyExtendingLeftBackward() to this.
+        (WebCore::SelectionController::modify): Change to call either the 
+        left/right or backward/forward methods depending on the 'dir' argument
+        for extends.
+        * editing/SelectionController.h:
+
+2009-03-27  John Abd-El-Malek  <jam@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24836
+        Fix navigator.plugins.refresh(false) in Chromium.
+
+        * plugins/chromium/PluginDataChromium.cpp:
+        (WebCore::PluginData::refresh):
+
+2009-03-27  Timothy Hatcher  <timothy@apple.com>
+
+        Make scrollLeft, scrollTop, scrollWidth, and scrollHeight
+        virtual to fix the broken layout tests from my last commit.
+
+        Reviewed by Mark Rowe.
+
+        * dom/Element.cpp:
+        (WebCore::Element::scrollLeft):
+        (WebCore::Element::scrollTop):
+        (WebCore::Element::scrollWidth):
+        (WebCore::Element::scrollHeight):
+        * dom/Element.h:
+        * html/HTMLBodyElement.h:
+
+2009-03-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=24876>.
+        Bug 24876: fast/forms/select-max-length.html times out in debug builds due to HTMLSelectElement::setLength being O(N^2)
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setLength): Repeatedly calling remove to remove elements causes us to recalculate the list
+        items after each node is removed, leading to O(N^2) behaviour.  By inlining the batch removal in to setLength we can avoid
+        this gratuitous recalcuation.
+
+2009-03-27  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        We don't support images for GtkCursors yet. We need a  placeholder to avoid crashes.
+        I took crosshair to have a common behavior with firefox.
+
+        [GTK] SVG - Crash on setting the cursor icon
+        https://bugs.webkit.org/show_bug.cgi?id=24565
+
+        * platform/gtk/CursorGtk.cpp:
+        (WebCore::Cursor::Cursor):
+
+2009-03-27  Timothy Hatcher  <timothy@apple.com>
+
+        Remove redundant attributes and functions from IDL files that have the
+        same attributes and functions defined in the super class.
+
+        Reviewed by Simon Fraser.
+
+        * WebCore.xcodeproj/project.pbxproj: Remove DOMHTMLBodyElementPrivate.h.
+        * bindings/objc/PublicDOMInterfaces.h: Remove focus and blur from DOMHTMLElement.
+        * html/HTMLBodyElement.idl: Remove scrollLeft, scrollTop, scrollWidth
+        and scrollHeight.
+        * html/HTMLElement.idl: Remove blur and focus.
+
+2009-03-27  Adam Roben  <aroben@apple.com>
+
+        Don't include substitute data URLs in global history redirect chains
+
+        <rdar://6690169>
+
+        Reviewed by Darin Adler.
+
+        This might be testable if:
+          - support were added to DRT for providing substitute data on failed
+            loads
+          - support were added to DRT for dumping redirect chains
+
+        I tried doing the above and was still unable to make a test.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::updateHistoryForStandardLoad):
+        (WebCore::FrameLoader::updateHistoryForRedirectWithLockedBackForwardList):
+        Call updateGlobalHistoryRedirectLinks only if the load succeeded
+        (i.e., there is no unreachableURL). Previous the FrameLoaderClient
+        implementations were unconditionally calling
+        updateGlobalHistoryRedirectLinks from within updateGlobalHistory.
+
+2009-03-27  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24861
+        Chromium port did not render decorations for <input type="search">.
+        This copies RenderThemeWin.*.
+
+        * css/themeChromiumWin.css: Removed.
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::extraDefaultStyleSheet):
+        (WebCore::RenderThemeChromiumLinux::adjustSearchFieldCancelButtonStyle):
+        (WebCore::RenderThemeChromiumLinux::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeChromiumLinux::adjustSearchFieldDecorationStyle):
+        (WebCore::RenderThemeChromiumLinux::adjustSearchFieldResultsDecorationStyle):
+        (WebCore::RenderThemeChromiumLinux::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeChromiumLinux::adjustSearchFieldResultsButtonStyle):
+        (WebCore::RenderThemeChromiumLinux::paintSearchFieldResultsButton):
+        * rendering/RenderThemeChromiumLinux.h:
+        (WebCore::RenderThemeChromiumLinux::paintSearchField):
+        * rendering/RenderThemeChromiumWin.cpp:
+        (WebCore::):
+        (WebCore::RenderThemeChromiumWin::extraDefaultStyleSheet):
+        (WebCore::RenderThemeChromiumWin::adjustSearchFieldCancelButtonStyle):
+        (WebCore::RenderThemeChromiumWin::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeChromiumWin::adjustSearchFieldDecorationStyle):
+        (WebCore::RenderThemeChromiumWin::adjustSearchFieldResultsDecorationStyle):
+        (WebCore::RenderThemeChromiumWin::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeChromiumWin::adjustSearchFieldResultsButtonStyle):
+        (WebCore::RenderThemeChromiumWin::paintSearchFieldResultsButton):
+        * rendering/RenderThemeChromiumWin.h:
+        (WebCore::RenderThemeChromiumWin::paintSearchField):
+
+2009-03-27  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser
+
+        If an object has a self-painting layer, don't count it as part of a block's visual overflow.
+        This fix has only been made for block-level children.   The inline-level case is still broken
+        (and covered by an existing bug).
+
+        Added fast/block/positioning/negative-rel-position.html
+
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::placeBoxesVertically):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlockChildren):
+        (WebCore::RenderBlock::lowestPosition):
+        (WebCore::RenderBlock::rightmostPosition):
+        (WebCore::RenderBlock::leftmostPosition):
+
+2009-03-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6642221>
+        REGRESSION: With the Movie widget, movie trailer fails to load if movie had been previously viewed
+        
+        Add a dashboard specific workaround so that we always create renderers for object elements, even if display:none is set.
+        
+        I've filed <rdar://problem/6731022> against the Movies widget.
+        
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::rendererIsNeeded):
+
+2009-03-25  Timothy Hatcher  <timothy@apple.com>
+
+        Expose new DOM methods as public Objective-C API.
+
+        <rdar://problem/5837350> Expose new DOM classes and methods
+        as public API (match the additions to the JavaScript DOM)
+
+        Reviewed by Mark Rowe and Darin Adler.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/objc/DOMHTML.h:
+        * bindings/objc/DOMPrivate.h:
+        * bindings/objc/PublicDOMInterfaces.h:
+
+2009-03-27  Zack Rusin <zack@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24280
+
+        Fix propagation of fill rules when rendering paths in the Qt build.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::toQtFillRule):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+
+2009-03-27  Zack Rusin <zack@kde.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24275
+
+        Fix text field theming in the Qt build with the KDE 4 Oxygen
+        style by adjusting the size vertically and horizontally to
+        set padding on the element equal to the width of the style painted border.
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::RenderThemeQt):
+        (WebCore::RenderThemeQt::computeSizeBasedOnStyle):
+        (WebCore::RenderThemeQt::adjustTextFieldStyle):
+        (WebCore::RenderThemeQt::paintTextField):
+        * platform/qt/RenderThemeQt.h:
+
 2009-03-27  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Simon Hausmann.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  *           (C) 2006, 2007 Graham Dennis (graham.dennis@gmail.com)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 #import "DOMNodeInternal.h"
 #import "DOMRangeInternal.h"
 #import "WebArchive.h"
-#import "WebNetscapePluginView.h"
 #import "WebClipView.h"
 #import "WebDOMOperationsPrivate.h"
 #import "WebDataSourceInternal.h"
@@ -50,7 +49,6 @@
 #import "WebKitNSStringExtras.h"
 #import "WebKitVersionChecks.h"
 #import "WebLocalizableStrings.h"
-#import "WebNodeHighlight.h"
 #import "WebNSAttributedStringExtras.h"
 #import "WebNSEventExtras.h"
 #import "WebNSFileManagerExtras.h"
@@ -60,6 +58,8 @@
 #import "WebNSPrintOperationExtras.h"
 #import "WebNSURLExtras.h"
 #import "WebNSViewExtras.h"
+#import "WebNetscapePluginView.h"
+#import "WebNodeHighlight.h"
 #import "WebPluginController.h"
 #import "WebPreferences.h"
 #import "WebPreferencesPrivate.h"
@@ -70,7 +70,7 @@
 #import "WebViewInternal.h"
 #import <AppKit/NSAccessibility.h>
 #import <ApplicationServices/ApplicationServices.h>
-#import <dlfcn.h>
+#import <WebCore/CSSMutableStyleDeclaration.h>
 #import <WebCore/CachedImage.h>
 #import <WebCore/CachedResourceClient.h>
 #import <WebCore/ColorMac.h>
@@ -78,19 +78,19 @@
 #import <WebCore/ContextMenuController.h>
 #import <WebCore/Document.h>
 #import <WebCore/DocumentFragment.h>
+#import <WebCore/DragController.h>
 #import <WebCore/Editor.h>
 #import <WebCore/EditorDeleteAction.h>
 #import <WebCore/Element.h>
 #import <WebCore/EventHandler.h>
 #import <WebCore/ExceptionHandlers.h>
-#import <WebCore/DragController.h>
 #import <WebCore/FloatRect.h>
 #import <WebCore/FocusController.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
 #import <WebCore/FrameView.h>
-#import <WebCore/HitTestResult.h>
 #import <WebCore/HTMLNames.h>
+#import <WebCore/HitTestResult.h>
 #import <WebCore/Image.h>
 #import <WebCore/KeyboardEvent.h>
 #import <WebCore/LegacyWebArchive.h>
@@ -110,6 +110,7 @@
 #import <WebKit/DOMExtensions.h>
 #import <WebKit/DOMPrivate.h>
 #import <WebKitSystemInterface.h>
+#import <dlfcn.h>
 #import <limits>
 #import <runtime/InitializeThreading.h>
 
@@ -780,20 +781,29 @@ static NSURL* uniqueURLWithRelativePart(NSString *relativePart)
 
 - (void)_pasteWithPasteboard:(NSPasteboard *)pasteboard allowPlainText:(BOOL)allowPlainText
 {
+    WebView *webView = [[self _webView] retain];
+    [webView _setInsertionPasteboard:pasteboard];
+
     DOMRange *range = [self _selectedRange];
-    DOMDocumentFragment *fragment = [self _documentFragmentFromPasteboard:pasteboard
-        inContext:range allowPlainText:allowPlainText];
-    WebFrame *frame = [self _frame];
-    if (fragment && [self _shouldInsertFragment:fragment replacingDOMRange:[self _selectedRange] givenAction:WebViewInsertActionPasted]) {
-        [frame _replaceSelectionWithFragment:fragment selectReplacement:NO smartReplace:[self _canSmartReplaceWithPasteboard:pasteboard] matchStyle:NO];
-    }
+    DOMDocumentFragment *fragment = [self _documentFragmentFromPasteboard:pasteboard inContext:range allowPlainText:allowPlainText];
+    if (fragment && [self _shouldInsertFragment:fragment replacingDOMRange:range givenAction:WebViewInsertActionPasted])
+        [[self _frame] _replaceSelectionWithFragment:fragment selectReplacement:NO smartReplace:[self _canSmartReplaceWithPasteboard:pasteboard] matchStyle:NO];
+
+    [webView _setInsertionPasteboard:nil];
+    [webView release];
 }
 
 - (void)_pasteAsPlainTextWithPasteboard:(NSPasteboard *)pasteboard
 {
+    WebView *webView = [[self _webView] retain];
+    [webView _setInsertionPasteboard:pasteboard];
+
     NSString *text = [self _plainTextFromPasteboard:pasteboard];
     if ([self _shouldReplaceSelectionWithText:text givenAction:WebViewInsertActionPasted])
         [[self _frame] _replaceSelectionWithText:text selectReplacement:NO smartReplace:[self _canSmartReplaceWithPasteboard:pasteboard]];
+
+    [webView _setInsertionPasteboard:nil];
+    [webView release];
 }
 
 - (void)_removeMouseMovedObserverUnconditionally
@@ -4630,7 +4640,13 @@ static BOOL writingDirectionKeyBindingsEnabled()
 // support them via the key bindings mechanism.
 - (BOOL)_wantsKeyDownForEvent:(NSEvent *)event
 {
-    return YES;
+    bool haveWebCoreFrame = core([self _frame]);
+
+    // If we have a frame, our keyDown method will handle key bindings after sending
+    // the event through the DOM, so ask AppKit not to do its early special key binding
+    // mapping. If we don't have a frame, just let things work the normal way without
+    // a keyDown.
+    return haveWebCoreFrame;
 }
 
 #else

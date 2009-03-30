@@ -61,6 +61,7 @@
 #include <GraphicsContext.h>
 #include <HistoryItem.h>
 #include <HTMLAppletElement.h>
+#include <HTMLFormElement.h>
 #include <HTMLPlugInElement.h> 
 #include <JSDOMWindow.h>
 #include <KeyboardEvent.h>

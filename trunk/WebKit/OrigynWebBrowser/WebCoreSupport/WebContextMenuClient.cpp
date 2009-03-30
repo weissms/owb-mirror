@@ -34,6 +34,7 @@
 #include "WebView.h"
 
 #include <ContextMenu.h>
+#include <Event.h>
 #include <Frame.h>
 #include <FrameLoader.h>
 #include <FrameLoadRequest.h>
@@ -149,7 +150,7 @@ void WebContextMenuClient::searchWithGoogle(const Frame* frame)
 
     ResourceRequest request = ResourceRequest(url);
     if (Page* page = frame->page())
-        page->mainFrame()->loader()->urlSelected(FrameLoadRequest(request), 0, false, false);
+        page->mainFrame()->loader()->urlSelected(request, frame->document()->baseTarget(), 0, false, false, false);
 }
 
 void WebContextMenuClient::lookUpInDictionary(Frame*)

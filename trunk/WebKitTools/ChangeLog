@@ -1,3 +1,161 @@
+2009-03-30  Darin Adler  <darin@apple.com>
+
+        * DumpRenderTree/qt/jsobjects.cpp: Rolled out changes to this file. Maybe this will fix
+        Qt building of DumpRenderTree.
+
+2009-03-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 24922: change WorkQueue-based navigation tests to not depend on synchronous form submission
+        https://bugs.webkit.org/show_bug.cgi?id=24922
+
+        Don't rely on delegate methods to guess whether a queued step starts a load or not, because
+        script-triggered loads can't be detected that way. Instead have the steps themselves indicate
+        whether or not a load was triggered.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (queueLoadingScriptCallback): Added. Version for scripts that perform loads.
+        (queueNonLoadingScriptCallback): Added. Version for scripts that do not perform loads.
+        (LayoutTestController::staticFunctions): Replaced queueScript with queueLoadingScript and
+        queueNonLoadingScript.
+        (LayoutTestController::queueBackNavigation): Moved here since it's platform-independent now.
+        (LayoutTestController::queueForwardNavigation): Ditto.
+        (LayoutTestController::queueLoadingScript): Replacement for queueScript. Here since it's
+        platform-independent.
+        (LayoutTestController::queueNonLoadingScript): Ditto.
+        (LayoutTestController::queueReload): Moved here since it's platform-independent now.
+        * DumpRenderTree/LayoutTestController.h: Ditto.
+
+        * DumpRenderTree/WorkQueue.cpp:
+        (WorkQueue::processWork): Added. Shared by the different platform's work queue implementations.
+        * DumpRenderTree/WorkQueue.h: Ditto.
+
+        * DumpRenderTree/WorkQueueItem.h: Changed the invoke function to return true if the item
+        started a load. Removed unused getter functions. Made invoke functions private.
+        Added LoadingScriptItem and NonLoadingScriptItem, making ScriptItem an abstract base.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (processWork): Use the new WorkQueue::processWork function to implement the new rule.
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp: Removed queue functions that are now
+        platform-independent and in LayoutTestController.cpp.
+        * DumpRenderTree/gtk/WorkQueueItemGtk.cpp:
+        (LoadItem::invoke): Return true.
+        (ReloadItem::invoke): Ditto.
+        (ScriptItem::invoke): Ditto.
+        (BackForwardItem::invoke): Ditto.
+
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate processWork:]): Use the new WorkQueue::processWork function to implement
+        the new rule.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm: Removed queue functions that are now
+        platform-independent and in LayoutTestController.cpp.
+        * DumpRenderTree/mac/WorkQueueItemMac.mm:
+        (LoadItem::invoke): Return true.
+        (ReloadItem::invoke): Ditto.
+        (ScriptItem::invoke): Ditto.
+        (BackForwardItem::invoke): Ditto.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::processWork): Use the new WorkQueue::processWork function to implement
+        the new rule. Removed queue functions that are now platform-independent and in
+        LayoutTestController.cpp.
+
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::processWork): Use the new WorkQueue::processWork function to implement
+        the new rule.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp: Removed queue functions that are now
+        platform-independent and in LayoutTestController.cpp.
+        * DumpRenderTree/win/WorkQueueItemWin.cpp:
+        (LoadItem::invoke): Return false when we fail, true when we succeed.
+        (ReloadItem::invoke): Ditto.
+        (ScriptItem::invoke): Ditto.
+        (BackForwardItem::invoke): Ditto.
+
+2009-03-28  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Eric Seidel.
+        
+        Always use wxGraphicsContext on Mac to ensure path, matrix, etc. support.
+
+        * wx/build-wxwebkit:
+
+2009-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * Scripts/extract-localizable-strings: Fixed version check for perl 5.10 compatibility.
+
+2009-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Added waitForPolicyDelegate, a more-reliable way to make our mailto form submission
+        tests work.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (getFocusedElementCallback): Use static_cast instead of reinterpret_cast because there's
+        no reason to use reinterpret_cast just to get from void* to a specific type.
+        (getRootElementCallback): Ditto.
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (toAXElement): Ditto.
+        * DumpRenderTree/GCController.cpp:
+        (collectCallback): Ditto.
+        (collectOnAlternateThreadCallback): Ditto.
+        (getJSObjectCountCallback): Ditto.
+        * DumpRenderTree/LayoutTestController.cpp:
+        (many functions):  Ditto.
+        (waitForPolicyDelegateCallback): Added.
+        (LayoutTestController::staticFunctions): Sorted functions by name.
+        Added waitForPolicyDelegate.
+
+        * DumpRenderTree/LayoutTestController.h: Sorted functions by name.
+        Added waitForPolicyDelegate.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting): Added code to reset the state of the
+        policy delegate.
+        (runTest): Added an additional call to resetWebViewToConsistentStateBeforeTesting just
+        before loading an empty page. This prevents extra policy delegate calls from being logged.
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::waitForPolicyDelegate): Added. Puts us into wait mode, and then
+        tells the policy delegate to notify when done, then points the web view at the policy delegate.
+
+        * DumpRenderTree/mac/PolicyDelegate.h: Added setControllerToNotifyDone: method.
+
+        * DumpRenderTree/mac/PolicyDelegate.mm:
+        (-[PolicyDelegate webView:decidePolicyForNavigationAction:request:frame:decisionListener:]):
+        Added code to do notifyDone if controllerToNotifyDone is set.
+        (-[PolicyDelegate setControllerToNotifyDone:]): Added.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting): Added code to reset the state of the
+        policy delegate. Also moved the call to resetUndoManager in here.
+        (runTest): Removed the call to resetUndoManager (see above). Added an additional call to
+        resetWebViewToConsistentStateBeforeTesting to match the Mac code.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setCustomPolicyDelegate): 0, not NULL.
+
+        * DumpRenderTree/win/PolicyDelegate.cpp:
+        (PolicyDelegate::PolicyDelegate): Initialize m_controllerToNotifyDone to 0.
+        (PolicyDelegate::decidePolicyForNavigationAction): Added code to do notifyDone if
+        m_controllerToNotifyDone is set.
+
+        * DumpRenderTree/win/PolicyDelegate.h: Added setControllerToNotifyDone and
+        m_controllerToNotifyDone.
+
+2009-03-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24765
+        prepare-ChangeLog and svn-create-patch doesn't work with svn 1.6
+
+        * Scripts/prepare-ChangeLog:
+        * Scripts/svn-create-patch:
+
 2009-03-27  Darin Adler  <darin@apple.com>
 
         Reviewed by Geoff Garen.

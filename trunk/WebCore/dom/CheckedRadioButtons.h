@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
- * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
+ * Copyright (C) 2007, 2008, 2009 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,21 +15,33 @@
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
+ *
  */
 
-module html {
+#ifndef CheckedRadioButtons_h
+#define CheckedRadioButtons_h
 
-    interface [
-        GenerateConstructor,
-        InterfaceUUID=4789afc6-2d9e-4f3b-8c27-12abc9d4a014,
-        ImplementationUUID=d2e16911-2f7e-4d58-a92c-94700d445b38
-    ] HTMLBodyElement : HTMLElement {
-        attribute [ConvertNullToNullString] DOMString aLink;
-        attribute [ConvertNullToNullString] DOMString background;
-        attribute [ConvertNullToNullString] DOMString bgColor;
-        attribute [ConvertNullToNullString] DOMString link;
-        attribute [ConvertNullToNullString] DOMString text;
-        attribute [ConvertNullToNullString] DOMString vLink; 
-    };
+#include <wtf/HashMap.h>
+#include <wtf/OwnPtr.h>
 
-}
+namespace WebCore {
+
+class AtomicString;
+class AtomicStringImpl;
+class HTMLInputElement;
+class HTMLFormControlElement;
+
+class CheckedRadioButtons {
+public:
+    void addButton(HTMLFormControlElement*);
+    void removeButton(HTMLFormControlElement*);
+    HTMLInputElement* checkedButtonForGroup(const AtomicString& groupName) const;
+
+private:
+    typedef HashMap<AtomicStringImpl*, HTMLInputElement*> NameToInputMap;
+    OwnPtr<NameToInputMap> m_nameToCheckedRadioButtonMap;
+};
+
+} // namespace WebCore
+
+#endif // CheckedRadioButtons_h

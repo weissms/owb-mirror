@@ -549,13 +549,20 @@ PassRefPtr<ArchiveResource> DocumentLoader::subresource(const KURL& url) const
     if (!isCommitted())
         return 0;
     
-    Document* doc = m_frame->document();
-        
-    CachedResource* resource = doc->docLoader()->cachedResource(url);
+    CachedResource* resource = m_frame->document()->docLoader()->cachedResource(url);
     if (!resource || resource->preloadResult() == CachedResource::PreloadReferenced)
         return archiveResourceForURL(url);
-        
-    return ArchiveResource::create(resource->data(), url, resource->response());
+
+    // FIXME: This has the side effect of making the resource non-purgeable.
+    // It would be better if it didn't have this permanent affect.
+    if (!resource->makePurgeable(false))
+        return 0;
+
+    RefPtr<SharedBuffer> data = resource->data();
+    if (!data)
+        return 0;
+
+    return ArchiveResource::create(data.release(), url, resource->response());
 }
 
 void DocumentLoader::getSubresources(Vector<PassRefPtr<ArchiveResource> >& subresources) const
