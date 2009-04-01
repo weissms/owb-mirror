@@ -1,3 +1,15 @@
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Change ResourceHandle object ownership to avoid destroying it
+        during error handling.
+
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::continueAfterContentPolicy):
+
 2009-03-16  Mario Bensi  <mbensi@pleyo.com>
 
         remove #if ENABLE(DATABASE) in ScriptObjectQuarantine

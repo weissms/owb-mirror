@@ -25,62 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef DefaultDownloadDelegate_h
-#define DefaultDownloadDelegate_h
+#ifndef WebDownloadDelegate_h
+#define WebDownloadDelegate_h
 
 
 /**
- *  @file  DefaultDownloadDelegate.h
- *  DefaultDownloadDelegate description
+ *  @file  WebDownloadDelegate.h
+ *  WebDownloadDelegate description
  *  Repository informations :
  * - $URL$
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <wtf/HashSet.h>
-#include <wtf/HashSet.h>
-#include "PlatformString.h"
+
+#include "WebKitTypes.h"
+#include "WebDownload.h"
+#include <set>
+
+namespace WebCore {
+    class String;
+}
 
 class WebError;
-class WebMutableURLResponse;
+class WebURLResponse;
 class WebMutableURLRequest;
-class WebDownload;
 class WebURLAuthenticationChallenge;
 
-class DefaultDownloadDelegate
+class WEBKIT_OWB_API WebDownloadDelegate
 {
 public:
-
     /**
-     * get shared instance
-     * @param[out]: DefaultDownloadDelegate
-     * @code
-     * DefaultDownloadDelegate *d = DefaultDownloadDelegate::sharedInstance();
-     * @endcode
+     *  WebDownloadDelegate default constructor
      */
-    static DefaultDownloadDelegate* sharedInstance();
-
-    /**
-     * create a new instance of DefaultDownloadDelegate
-     * @param[out]: DefaultDownloadDelegate
-     * @code
-     * DefaultDownloadDelegate *d = DefaultDownloadDelegate::sharedInstance();
-     * @endcode
-     */
-    static DefaultDownloadDelegate* createInstance();
-private:
-
-    /**
-     *  DefaultDownloadDelegate default constructor
-     */
-    DefaultDownloadDelegate();
+    WebDownloadDelegate() { };
 public:
 
     /**
-     * DefaultDownloadDelegate destructor
+     * WebDownloadDelegate destructor
      */
-    virtual ~DefaultDownloadDelegate();
+    virtual ~WebDownloadDelegate() {
+        std::set<WebDownload*>::iterator i = m_downloads.begin();
+        for (;i != m_downloads.end(); ++i)
+            delete (*i);
+    };
 
     /**
      * set destination of download with the suggested filename
@@ -91,7 +78,7 @@ public:
      * d->decideDestinationWithSuggestedFilename(download, filename);
      * @endcode
      */
-    virtual void decideDestinationWithSuggestedFilename(WebDownload *download, WebCore::String filename);
+    virtual void decideDestinationWithSuggestedFilename(WebDownload* download, const char* filename) = 0;
 
     /**
      * did cancel authentication challenge
@@ -102,7 +89,7 @@ public:
      * d->didCancelAuthenticationChallenge(download, challenge);
      * @endcode
      */
-    virtual void didCancelAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge);
+    virtual void didCancelAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge) = 0;
 
     /**
      * did create destination
@@ -113,7 +100,7 @@ public:
      * d->didCreateDestination(download, destination);
      * @endcode
      */
-    virtual void didCreateDestination(WebDownload* download,  WebCore::String destination);
+    virtual void didCreateDestination(WebDownload* download, const char* destination) = 0;
 
     /**
      * did fail with error
@@ -124,7 +111,7 @@ public:
      * d->didFailWithError(download, error);
      * @endcode
      */
-    virtual void didFailWithError(WebDownload* download, WebError* error);
+    virtual void didFailWithError(WebDownload* download, WebError* error) = 0;
 
     /**
      * did receive authentication challenge
@@ -135,7 +122,7 @@ public:
      * d->didReceiveAuthenticationChallenge(download, challenge);
      * @endcode
      */
-    virtual void didReceiveAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge);
+    virtual void didReceiveAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge) = 0;
 
     /**
      * did receive data of length
@@ -146,7 +133,7 @@ public:
      * d->didReceiveDataOfLength(download, length);
      * @endcode
      */
-    virtual void didReceiveDataOfLength(WebDownload* download, unsigned length);
+    virtual void didReceiveDataOfLength(WebDownload* download, unsigned length) = 0;
 
     /**
      * did receive response
@@ -157,7 +144,7 @@ public:
      * d->didReceiveResponse(download, response);
      * @endcode
      */
-    virtual void didReceiveResponse(WebDownload* download, WebMutableURLResponse* response);
+    virtual void didReceiveResponse(WebDownload* download, WebURLResponse* response) = 0;
 
     /**
      * should decode source data of MIMEType
@@ -168,7 +155,7 @@ public:
      * bool s = d->shouldDecodeSourceDataOfMIMEType(download, encodingType);
      * @endcode
      */
-    virtual bool shouldDecodeSourceDataOfMIMEType(WebDownload* download, WebCore::String encodingType);
+    virtual bool shouldDecodeSourceDataOfMIMEType(WebDownload* download, const char *encodingType) = 0;
 
     /**
      * will resume with response
@@ -180,20 +167,20 @@ public:
      * d->willResumeWithResponse(download, response, fromByte);
      * @endcode
      */
-    virtual void willResumeWithResponse(WebDownload* download, WebMutableURLResponse* response, long long fromByte);
+    virtual void willResumeWithResponse(WebDownload* download, WebURLResponse* response, long long fromByte) = 0;
 
     /**
      * will send request
      * Not Implemented
      * @param[in]: WebDownload
      * @param[in]: WebMutableURLRequest
-     * @param[in]: WebMutableURLResponse
+     * @param[in]: WebURLResponse
      * @param[out]: WebMutableURLRequest
      * @code
      * WebMutableURLRequest *w = d->willSendRequest(download, request, redirectResponse);
      * @endcode
      */
-    virtual WebMutableURLRequest* willSendRequest(WebDownload* download, WebMutableURLRequest* request,  WebMutableURLResponse* redirectResponse);
+    virtual WebMutableURLRequest* willSendRequest(WebDownload* download, WebMutableURLRequest* request,  WebURLResponse* redirectResponse) = 0;
 
     /**
      * did begin
@@ -202,7 +189,7 @@ public:
      * d->didBegin(download);
      * @endcode
      */
-    virtual void didBegin(WebDownload* download);
+    virtual void didBegin(WebDownload* download) = 0;
 
     /**
      * did finish
@@ -211,9 +198,9 @@ public:
      * d->didFinish(download);
      * @endcode
      */
-    virtual void didFinish(WebDownload* download);
+    virtual void didFinish(WebDownload* download) = 0;
 
-    // DefaultDownloadDelegate
+    // WebDownloadDelegate
 
     /**
      * register download
@@ -222,7 +209,12 @@ public:
      * d->registerDownload(download);
      * @endcode
      */
-    void registerDownload(WebDownload*);
+    void registerDownload(WebDownload* download)
+    {
+        if (m_downloads.find(download) != m_downloads.end())
+            return;
+        m_downloads.insert(download);
+    }
 
     /**
      * unregister download
@@ -231,9 +223,15 @@ public:
      * d->unregisterDownload(download);
      * @endcode
      */
-    void unregisterDownload(WebDownload*);
+    void unregisterDownload(WebDownload* download)
+    {
+        if (m_downloads.find(download) != m_downloads.end()) {
+            m_downloads.erase(download);
+        }
+    }
+
 protected:
-    HashSet<WebDownload*> m_downloads;
+    std::set<WebDownload*> m_downloads;
 };
 
 #endif

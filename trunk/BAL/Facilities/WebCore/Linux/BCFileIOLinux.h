@@ -57,6 +57,7 @@ public:
 
     virtual char* read(size_t size);
     virtual void write(String dataToWrite);
+    virtual void write(const void *data, size_t length);
 
     virtual int getSize();
 private:

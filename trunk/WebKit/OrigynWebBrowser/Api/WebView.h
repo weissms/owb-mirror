@@ -41,7 +41,7 @@
 #include "WebKitTypes.h"
 #include <string>
 
-class DefaultDownloadDelegate;
+class WebDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
 class JSActionDelegate;
@@ -173,17 +173,17 @@ public:
      *  setDownloadDelegate 
      *  Set the WebView's WebDownloadDelegate.
      *  @discussion The download delegate is retained by WebDownload when any downloads are in progress.
-     *              It is up to the application to take care of the correct deletion of the DefaultDownloadDelegate pointer.
+     *              It is up to the application to take care of the correct deletion of the WebDownloadDelegate pointer.
      *  @param delegate The WebDownloadDelegate to set as the download delegate.
      */
-    virtual void setDownloadDelegate(DefaultDownloadDelegate* d);
+    virtual void setDownloadDelegate(WebDownloadDelegate* d);
 
     /**
      *  downloadDelegate 
      *  Return the WebView's WebDownloadDelegate.
      *  @result The WebView's WebDownloadDelegate.
      */
-    virtual DefaultDownloadDelegate* downloadDelegate();
+    virtual WebDownloadDelegate* downloadDelegate();
 
     /**
      *  setPolicyDelegate 
@@ -201,7 +201,7 @@ public:
 
     /**
      *  setWebNotificationDelegate
-     *  Set the WebView's WebNotificationDelegate. It is up to the application to take care of the correct deletion of the DefaultDownloadDelegate pointer.
+     *  Set the WebView's WebNotificationDelegate. It is up to the application to take care of the correct deletion of the WebDownloadDelegate pointer.
      */
     virtual void setWebNotificationDelegate(WebNotificationDelegate*);
 
@@ -1478,7 +1478,7 @@ protected:
 //    BalRectangle m_backingStoreDirtyRegion;
 
     DefaultPolicyDelegate* m_policyDelegate;
-    DefaultDownloadDelegate* m_downloadDelegate;
+    WebDownloadDelegate* m_downloadDelegate;
     WebNotificationDelegate* m_webNotificationDelegate;
     WebFrameLoadDelegate* m_webFrameLoadDelegate;
     JSActionDelegate* m_jsActionDelegate;

@@ -122,8 +122,9 @@ void DefaultPolicyDelegate::decidePolicyForMIMEType(
     /*[in]*/ WebFramePolicyListener* listener)
 {
     bool canShowMIMEType = webView->canShowMIMEType(type);
-    if (canShowMIMEType)
-        canShowMIMEType = false;
+
+    if (!canShowMIMEType && type && 0 == strlen(type))
+        canShowMIMEType = true;
 
     String url = request->URL();
 
@@ -142,7 +143,7 @@ void DefaultPolicyDelegate::decidePolicyForMIMEType(
     } else if (canShowMIMEType)
         listener->use();
     else
-        listener->ignore();
+        listener->download();
 }
 
 void DefaultPolicyDelegate::unableToImplementPolicyWithError(

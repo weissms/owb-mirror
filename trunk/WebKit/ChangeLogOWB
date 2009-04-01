@@ -1,3 +1,67 @@
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Implemented file download feature.
+
+        * OrigynWebBrowser/Api/DefaultDownloadDelegate.cpp: Removed.
+        * OrigynWebBrowser/Api/DefaultDownloadDelegate.h: Replaced by
+        WebDownloadDelegate.
+        * OrigynWebBrowser/Api/DefaultPolicyDelegate.cpp:
+        (DefaultPolicyDelegate::decidePolicyForMIMEType): Download files
+        with unknown MIME types instead of displaying them.
+        * OrigynWebBrowser/Api/WebDownload.cpp: Implemented WebDownload.
+        (DownloadClient::DownloadClient):
+        (DownloadClient::didStart):
+        (DownloadClient::didReceiveResponse):
+        (DownloadClient::didReceiveData):
+        (DownloadClient::didFinishLoading):
+        (DownloadClient::didFail):
+        (DownloadClient::wasBlocked):
+        (DownloadClient::cannotShowURL):
+        (WebDownload::WebDownload):
+        (WebDownload::init):
+        (WebDownload::~WebDownload):
+        (WebDownload::createInstance):
+        (WebDownload::initWithRequest):
+        (WebDownload::initToResumeWithBundle):
+        (WebDownload::canResumeDownloadDecodedWithEncodingMIMEType):
+        (WebDownload::start):
+        (WebDownload::cancel):
+        (WebDownload::cancelForResume):
+        (WebDownload::deletesFileUponFailure):
+        (WebDownload::bundlePathForTargetPath):
+        (WebDownload::setDeletesFileUponFailure):
+        (WebDownload::setDestination):
+        (WebDownload::cancelAuthenticationChallenge):
+        (WebDownload::continueWithoutCredentialForAuthenticationChallenge):
+        (WebDownload::useCredential):
+        * OrigynWebBrowser/Api/WebDownload.h: Exposed WebDownload interface.
+        * OrigynWebBrowser/Api/WebDownloadDelegate.h: Added.
+        * OrigynWebBrowser/Api/WebDownloadPrivate.h: Added.
+        * OrigynWebBrowser/Api/WebKit.h: Included WebDownloadDelegate.h
+        and WebDownload.h headers.
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setDownloadDelegate): Replaced DefaultDownloadDelegate
+        usage with WebDownloadDelegate.
+        (WebView::downloadDelegate): Replaced DefaultDownloadDelegate usage
+        with WebDownloadDelegate.
+        (WebView::canHandleRequest): Fixed buggy implementation.
+        * OrigynWebBrowser/Api/WebView.h: Replaced DefaultDownloadDelegate
+        usage with WebDownloadDelegate.
+        * OrigynWebBrowser/WebCoreSupport/WebContextMenuClient.cpp:
+        (WebContextMenuClient::downloadURL): Start download only if download
+        delegate object is present.
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDecidePolicyForMIMEType): Re-enabled
+        commented PolicyDelegate usage.
+        (WebFrameLoaderClient::dispatchDecidePolicyForNavigationAction):
+        Re-enabled commented PolicyDelegate usage.
+        (WebFrameLoaderClient::download): Start download only if download
+        delegate object is present.
+
 2009-03-27  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mario Bensi.

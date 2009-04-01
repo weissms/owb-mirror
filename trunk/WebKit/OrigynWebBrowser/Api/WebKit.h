@@ -35,6 +35,8 @@
 #include <WebFrameLoadDelegate.h>
 #include <WebHistoryItem.h>
 #include <WebNotificationDelegate.h>
+#include <WebDownloadDelegate.h>
+#include <WebDownload.h>
 #include <WebView.h>
 
 

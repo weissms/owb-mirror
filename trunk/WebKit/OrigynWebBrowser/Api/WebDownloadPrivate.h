@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2009 Fabien Coeurjoly
+ * Copyright (C) 2009 Stanislaw Szymczyk
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,81 +26,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "config.h"
-#include "BCFileIOLinux.h"
 
-#include "owb-config.h"
+#ifndef WebDownloadPrivate_h
+#define WebDownloadPrivate_h
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include "CString.h"
 
+/**
+ *  @file  WebDownloadPrivate.h
+ *  WebDownloadPrivate description
+ *  Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date$
+ */
+
+#include "BALBase.h"
+#include "PlatformString.h"
 
 namespace WebCore {
+    class String;
+    class KURL;
+    class ResourceHandle;
+    struct ResourceRequest;
+    class ResourceResponse;
+    class File;
+}
 
-File::File(const String path)
-    : m_fd(0)
-    , m_filePath(path)
+class DefaultDownloadDelegate;
+class WebURLAuthenticationChallenge;
+class WebURLCredential;
+class WebMutableURLRequest;
+
+typedef enum
 {
-}
+    WEBKIT_WEB_DOWNLOAD_STATE_ERROR = -1,
+    WEBKIT_WEB_DOWNLOAD_STATE_CREATED = 0,
+    WEBKIT_WEB_DOWNLOAD_STATE_STARTED,
+    WEBKIT_WEB_DOWNLOAD_STATE_CANCELLED,
+    WEBKIT_WEB_DOWNLOAD_STATE_FINISHED
+} WebDownloadState;
 
-File::~File()
+class WebDownloadPrivate
 {
-    close();
-}
+public:
+    WebCore::String requestUri;
+    WebCore::String destinationPath;
+    bool allowOverwrite;
+    unsigned long long currentSize;
+    WebDownloadState state;
+    WebCore::File* outputChannel;
+    DownloadClient* downloadClient;
+    RefPtr<WebCore::ResourceHandle> resourceHandle;
+};
 
-int File::open(char openType)
-{
-    if (openType == 'w')
-        m_fd = ::open(m_filePath.utf8().data(), O_WRONLY|O_CREAT|O_TRUNC, 0666);
-    else if (openType == 'r')
-        m_fd = ::open(m_filePath.utf8().data(), O_RDONLY);
-
-    return m_fd;
-}
-
-void File::close()
-{
-    if (m_fd >= 0) {
-        ::fsync(m_fd);
-        ::close(m_fd);
-    }
-    m_fd = -1;
-}
-
-char* File::read(size_t size)
-{
-    char* readData = new char[size + 1];
-    ::read(m_fd, readData, size);
-    readData[size] = '\0';
-    return readData;
-}
-
-void File::write(String dataToWrite)
-{
-    ::write(m_fd, dataToWrite.utf8().data(), dataToWrite.length());
-}
-
-void File::write(const void *data, size_t length)
-{
-    ::write(m_fd, data, length);
-}
-
-int File::getSize()
-{
-    int fileSize, current;
-
-    //save the current offset
-    current = lseek(m_fd, 0, SEEK_CUR);
-
-    //save the size
-    fileSize = lseek(m_fd, 0, SEEK_END);
-
-    //go back to the previous offset
-    lseek(m_fd, current, SEEK_SET);
-
-    return fileSize;
-}
-
-}
+#endif

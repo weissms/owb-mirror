@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2009 Fabien Coeurjoly
+ * Copyright (C) 2009 Stanislaw Szymczyk
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,9 +30,10 @@
 
 #include "config.h"
 #include "WebDownload.h"
+#include "WebDownloadPrivate.h"
 
 #include "CString.h"
-#include "DefaultDownloadDelegate.h"
+#include "WebDownloadDelegate.h"
 #include "WebError.h"
 #include "WebMutableURLRequest.h"
 #include "WebURLAuthenticationChallenge.h"
@@ -45,74 +48,207 @@
 #include <ResourceError.h>
 #include <ResourceHandle.h>
 #include <ResourceRequest.h>
+#include <ResourceHandleClient.h>
 #include <ResourceResponse.h>
 #include <SystemTime.h>
+#include <FileIO.h>
+
+#if PLATFORM(AROS)
+#include <aros/debug.h>
+#endif
 
 using namespace WebCore;
 
-WebDownload::WebDownload()
+/*****************************************************************************************************/
+
+class DownloadClient : Noncopyable, public ResourceHandleClient
+{
+public:
+    DownloadClient(WebDownload*);
+
+    void didStart();
+    virtual void didReceiveResponse(ResourceHandle*, const WebCore::ResourceResponse&);
+    virtual void didReceiveData(ResourceHandle*, const char*, int, int);
+    virtual void didFinishLoading(ResourceHandle*);
+    virtual void didFail(ResourceHandle*, const ResourceError&);
+    virtual void wasBlocked(ResourceHandle*);
+    virtual void cannotShowURL(ResourceHandle*);
+private:
+    WebDownload* m_download;
+};
+
+DownloadClient::DownloadClient(WebDownload* download)
+        : m_download(download)
 {
 }
 
-void WebDownload::init(ResourceHandle* handle, const ResourceRequest& request, const ResourceResponse& response, DefaultDownloadDelegate* delegate)
+void DownloadClient::didStart()
 {
-    m_delegate = delegate ? delegate : DefaultDownloadDelegate::sharedInstance();
-    /*CFURLConnectionRef connection = handle->connection();
-    if (!connection) {
-        LOG_ERROR("WebDownload::WebDownload(ResourceHandle*,...) called with an inactive ResourceHandle");    
+    WebDownloadPrivate* priv = m_download->getWebDownloadPrivate();
+
+    priv->state = WEBKIT_WEB_DOWNLOAD_STATE_STARTED;
+    m_download->downloadDelegate()->didBegin(m_download);
+}
+
+void DownloadClient::didReceiveResponse(ResourceHandle*, const WebCore::ResourceResponse& response)
+{
+    WebDownloadPrivate* priv = m_download->getWebDownloadPrivate();
+
+    WebURLResponse *webResponse = WebURLResponse::createInstance(response);
+    m_download->downloadDelegate()->didReceiveResponse(m_download, webResponse);
+
+    WebCore::String suggestedFilename = webResponse->suggestedFilename();
+    if(suggestedFilename.length() == 0)
+    {
+        suggestedFilename = response.url().string().substring(response.url().pathAfterLastSlash());
+    }
+
+    m_download->downloadDelegate()->decideDestinationWithSuggestedFilename(m_download, suggestedFilename.utf8().data());
+    delete webResponse;
+
+    // Fail if destination file path is not set
+    if(priv->destinationPath == NULL)
+    {
+        ResourceError resourceError(String(WebKitErrorDomain), WebURLErrorCannotCreateFile, String(), String());
+        didFail(priv->resourceHandle.get(), resourceError);
         return;
     }
 
-    CFURLDownloadClient client = {0, this, 0, 0, 0, didStartCallback, willSendRequestCallback, didReceiveAuthenticationChallengeCallback, 
-        didReceiveResponseCallback, willResumeWithResponseCallback, didReceiveDataCallback, shouldDecodeDataOfMIMETypeCallback,
-        decideDestinationWithSuggestedObjectNameCallback, didCreateDestinationCallback, didFinishCallback, didFailCallback};
+    priv->outputChannel = new File(priv->destinationPath);
 
-    m_request.adoptRef(WebMutableURLRequest::createInstance(request));
-    m_download.adoptCF(CFURLDownloadCreateAndStartWithLoadingConnection(0, connection, request.cfURLRequest(), response.cfURLResponse(), &client));
+    // Fail if destination file already exists and can't be overwritten
+    if(!priv->allowOverwrite && priv->outputChannel->open('r') != -1)
+    {
+        ResourceError resourceError(String(WebKitErrorDomain), WebURLErrorCannotCreateFile, String(), String());
+        didFail(priv->resourceHandle.get(), resourceError);
+        return;
+    }
+    else
+        priv->outputChannel->close();
 
-    // It is possible for CFURLDownloadCreateAndStartWithLoadingConnection() to fail if the passed in CFURLConnection is not in a "downloadable state"
-    // However, we should never hit that case
-    if (!m_download) {
-        ASSERT_NOT_REACHED();
-        LOG_ERROR("WebDownload - Failed to create WebDownload from existing connection (%s)", request.url().string().utf8().data());
-    } else
-        LOG(Download, "WebDownload - Created WebDownload %p from existing connection (%s)", this, request.url().string().utf8().data());
+    // Fail if not possible to open destination file to writing
+    if(priv->outputChannel->open('w') == -1)
+    {
+        ResourceError resourceError(String(WebKitErrorDomain), WebURLErrorCannotCreateFile, String(), String());
+        didFail(priv->resourceHandle.get(), resourceError);
+        return;
+    }
 
-    // The CFURLDownload either starts successfully and retains the CFURLConnection, 
-    // or it fails to creating and we have a now-useless connection with a dangling ref. 
-    // Either way, we need to release the connection to balance out ref counts
-    handle->releaseConnectionForDownload();
-    CFRelease(connection);*/
+    m_download->downloadDelegate()->didCreateDestination(m_download, priv->destinationPath.utf8().data());
 }
 
-void WebDownload::init(const KURL& url, DefaultDownloadDelegate* delegate)
+void DownloadClient::didReceiveData(ResourceHandle*, const char* data, int length, int lengthReceived)
 {
-    m_delegate = delegate ? delegate : DefaultDownloadDelegate::sharedInstance();
-    //LOG_ERROR("Delegate is %p", m_delegate.get());
+    WebDownloadPrivate* priv = m_download->getWebDownloadPrivate();
 
-    ResourceRequest request(url);
-    /*CFURLRequestRef cfRequest = request.cfURLRequest();
+    m_download->downloadDelegate()->didReceiveDataOfLength(m_download, length);
 
-    CFURLDownloadClient client = {0, this, 0, 0, 0, didStartCallback, willSendRequestCallback, didReceiveAuthenticationChallengeCallback, 
-                                  didReceiveResponseCallback, willResumeWithResponseCallback, didReceiveDataCallback, shouldDecodeDataOfMIMETypeCallback, 
-                                  decideDestinationWithSuggestedObjectNameCallback, didCreateDestinationCallback, didFinishCallback, didFailCallback};
-    m_request.adoptRef(WebMutableURLRequest::createInstance(request));
-    m_download.adoptCF(CFURLDownloadCreate(0, cfRequest, &client));
+    // FIXME: handle write errors somehow
+    priv->outputChannel->write(data, length);
 
-    CFURLDownloadScheduleWithCurrentMessageQueue(m_download.get());
-    CFURLDownloadScheduleDownloadWithRunLoop(m_download.get(), ResourceHandle::loaderRunLoop(), kCFRunLoopDefaultMode);
+    priv->currentSize += length;
+}
 
-    LOG(Download, "WebDownload - Initialized download of url %s in WebDownload %p", url.string().utf8().data(), this);*/
+void DownloadClient::didFinishLoading(ResourceHandle*)
+{
+    WebDownloadPrivate* priv = m_download->getWebDownloadPrivate();
+
+    priv->state = WEBKIT_WEB_DOWNLOAD_STATE_FINISHED;
+
+    priv->outputChannel->close();
+    delete priv->outputChannel;
+    priv->outputChannel = NULL;
+
+    m_download->downloadDelegate()->didFinish(m_download);
+}
+
+void DownloadClient::didFail(ResourceHandle*, const ResourceError& resourceError)
+{
+    WebDownloadPrivate* priv = m_download->getWebDownloadPrivate();
+    priv->state = WEBKIT_WEB_DOWNLOAD_STATE_ERROR;
+
+    priv->resourceHandle->setClient(0);
+    priv->resourceHandle->cancel();
+
+    WebError *error = WebError::createInstance(resourceError);
+    m_download->downloadDelegate()->didFailWithError(m_download, error);
+}
+
+void DownloadClient::wasBlocked(ResourceHandle*)
+{
+    notImplemented();
+}
+
+void DownloadClient::cannotShowURL(ResourceHandle*)
+{
+    notImplemented();
+}
+
+/*********************************************************************************************/
+
+WebDownload::WebDownload()
+{
+    m_request = 0;
+    m_priv = new WebDownloadPrivate();
+}
+
+void WebDownload::init(ResourceHandle* handle, const ResourceRequest* request, const WebCore::ResourceResponse* response, WebDownloadDelegate* delegate)
+{
+    m_delegate = delegate;
+
+    m_priv->downloadClient = new DownloadClient(this);
+    m_priv->state = WEBKIT_WEB_DOWNLOAD_STATE_CREATED;
+    m_priv->currentSize = 0;
+    m_priv->outputChannel = NULL;
+
+    m_request = WebMutableURLRequest::createInstance(*request);
+    m_response = WebURLResponse::createInstance(*response);
+    m_priv->resourceHandle = handle;
+}
+
+void WebDownload::init(const KURL* url, WebDownloadDelegate* delegate)
+{
+    m_delegate = delegate;
+
+    m_request = WebMutableURLRequest::createInstance(ResourceRequest(*url));
+
+    m_priv->downloadClient = new DownloadClient(this);
+    m_priv->currentSize = 0;
+    m_priv->outputChannel = NULL;
+    m_priv->state = WEBKIT_WEB_DOWNLOAD_STATE_CREATED;
+    m_priv->resourceHandle = NULL;
 }
 
 WebDownload::~WebDownload()
 {
-    //LOG(Download, "WebDownload - Destroying download (%p)", this);
-    cancel();
+    if(m_priv->resourceHandle)
+    {
+        if(m_priv->state == WEBKIT_WEB_DOWNLOAD_STATE_CREATED || m_priv->state == WEBKIT_WEB_DOWNLOAD_STATE_STARTED)
+        {
+            m_priv->resourceHandle->setClient(0);
+            m_priv->resourceHandle->cancel();
+        }
+
+        m_priv->resourceHandle.release();
+        m_priv->resourceHandle = NULL;
+    }
+
+    delete m_priv->downloadClient;
+
+    if(m_priv->outputChannel)
+    {
+        m_priv->outputChannel->close();
+        delete m_priv->outputChannel;
+    }
+
+    delete m_priv;
+
     if(m_delegate)
         m_delegate = 0;
     if(m_request)
         delete m_request;
+    if(m_response)
+        delete m_response;
 }
 
 WebDownload* WebDownload::createInstance()
@@ -121,14 +257,14 @@ WebDownload* WebDownload::createInstance()
     return instance;
 }
 
-WebDownload* WebDownload::createInstance(ResourceHandle* handle, const ResourceRequest& request, const ResourceResponse& response, DefaultDownloadDelegate* delegate)
+WebDownload* WebDownload::createInstance(ResourceHandle* handle, const ResourceRequest* request, const WebCore::ResourceResponse* response, WebDownloadDelegate* delegate)
 {
     WebDownload* instance = new WebDownload();
     instance->init(handle, request, response, delegate);
     return instance;
 }
 
-WebDownload* WebDownload::createInstance(const KURL& url, DefaultDownloadDelegate* delegate)
+WebDownload* WebDownload::createInstance(const KURL* url, WebDownloadDelegate* delegate)
 {
     WebDownload* instance = new WebDownload();
     instance->init(url, delegate);
@@ -136,84 +272,21 @@ WebDownload* WebDownload::createInstance(const KURL& url, DefaultDownloadDelegat
 }
 
 void WebDownload::initWithRequest(
-        /* [in] */ WebMutableURLRequest* request, 
-        /* [in] */ DefaultDownloadDelegate* delegate)
+        /* [in] */ WebMutableURLRequest* request,
+        /* [in] */ WebDownloadDelegate* delegate)
 {
-    WebMutableURLRequest *webRequest;
-    m_delegate = delegate;
-
-/*    LOG(Download, "Delegate is %p", m_delegate.get());
-
-    RetainPtr<CFURLRequestRef> cfRequest = webRequest->resourceRequest().cfURLRequest();
-
-    CFURLDownloadClient client = {0, this, 0, 0, 0, didStartCallback, willSendRequestCallback, didReceiveAuthenticationChallengeCallback, 
-                                  didReceiveResponseCallback, willResumeWithResponseCallback, didReceiveDataCallback, shouldDecodeDataOfMIMETypeCallback, 
-                                  decideDestinationWithSuggestedObjectNameCallback, didCreateDestinationCallback, didFinishCallback, didFailCallback};
-    m_request.adoptRef(WebMutableURLRequest::createInstance(webRequest.get()));
-    m_download.adoptCF(CFURLDownloadCreate(0, cfRequest.get(), &client));
-
-    // If for some reason the download failed to create, 
-    // we have particular cleanup to do
-    if (!m_download) {
-        m_request = 0;    
-        return E_FAIL;
-    }
-
-    CFURLDownloadScheduleWithCurrentMessageQueue(m_download.get());
-    CFURLDownloadScheduleDownloadWithRunLoop(m_download.get(), ResourceHandle::loaderRunLoop(), kCFRunLoopDefaultMode);
-
-    LOG(Download, "WebDownload - initWithRequest complete, started download of url %s", webRequest->resourceRequest().url().string().utf8().data());
-    return S_OK;*/
+    notImplemented();
 }
 
 void WebDownload::initToResumeWithBundle(
-        /* [in] */ String bundlePath, 
-        /* [in] */ DefaultDownloadDelegate* delegate)
+        /* [in] */ const char* bundlePath,
+        /* [in] */ WebDownloadDelegate* delegate)
 {
-    /*LOG(Download, "Attempting resume of download bundle %s", String(bundlePath, SysStringLen(bundlePath)).ascii().data());
-
-    RetainPtr<CFDataRef> resumeData(AdoptCF, extractResumeDataFromBundle(String(bundlePath, SysStringLen(bundlePath))));
-    
-    if (!resumeData)
-        return E_FAIL;
-
-    if (!delegate)
-        return E_FAIL;
-    m_delegate = delegate;
-    LOG(Download, "Delegate is %p", m_delegate.get());
-
-    CFURLDownloadClient client = {0, this, 0, 0, 0, didStartCallback, willSendRequestCallback, didReceiveAuthenticationChallengeCallback, 
-                                  didReceiveResponseCallback, willResumeWithResponseCallback, didReceiveDataCallback, shouldDecodeDataOfMIMETypeCallback, 
-                                  decideDestinationWithSuggestedObjectNameCallback, didCreateDestinationCallback, didFinishCallback, didFailCallback};
-    
-    RetainPtr<CFURLRef> pathURL(AdoptCF, MarshallingHelpers::PathStringToFileCFURLRef(String(bundlePath, SysStringLen(bundlePath))));
-    ASSERT(pathURL);
-
-    m_download.adoptCF(CFURLDownloadCreateWithResumeData(0, resumeData.get(), pathURL.get(), &client));
-
-    if (!m_download) {
-        LOG(Download, "Failed to create CFURLDownloadRef for resume");    
-        return E_FAIL;
-    }
-    
-    m_bundlePath = String(bundlePath, SysStringLen(bundlePath));
-    // Attempt to remove the ".download" extension from the bundle for the final file destination
-    // Failing that, we clear m_destination and will ask the delegate later once the download starts
-    if (m_bundlePath.endsWith(BundleExtension, false)) {
-        m_destination = m_bundlePath.copy();
-        m_destination.truncate(m_destination.length() - BundleExtension.length());
-    } else
-        m_destination = String();
-    
-    CFURLDownloadScheduleWithCurrentMessageQueue(m_download.get());
-    CFURLDownloadScheduleDownloadWithRunLoop(m_download.get(), ResourceHandle::loaderRunLoop(), kCFRunLoopDefaultMode);
-
-    LOG(Download, "WebDownload - initWithRequest complete, resumed download of bundle %s", String(bundlePath, SysStringLen(bundlePath)).ascii().data());
-    return S_OK;*/
+    notImplemented();
 }
 
 bool WebDownload::canResumeDownloadDecodedWithEncodingMIMEType(
-        /* [in] */ String)
+        /* [in] */ const char*)
 {
     notImplemented();
     return false;
@@ -221,86 +294,47 @@ bool WebDownload::canResumeDownloadDecodedWithEncodingMIMEType(
 
 void WebDownload::start()
 {
-    /*LOG(Download, "WebDownload - Starting download (%p)", this);
-    if (!m_download)
-        return E_FAIL;
+    if (m_priv->state != WEBKIT_WEB_DOWNLOAD_STATE_CREATED)
+        return;
 
-    CFURLDownloadStart(m_download.get());
-    // FIXME: 4950477 - CFURLDownload neglects to make the didStart() client call upon starting the download.
-    // This is a somewhat critical call, so we'll fake it for now!
-    didStart();
-
-    return S_OK;*/
+    if (m_priv->resourceHandle)
+    {
+        m_priv->resourceHandle->setClient(m_priv->downloadClient);
+        m_priv->downloadClient->didStart();
+        m_priv->downloadClient->didReceiveResponse(m_priv->resourceHandle.get(), m_response->resourceResponse());
+    }
+    else
+    {
+        m_priv->downloadClient->didStart();
+        m_priv->resourceHandle = ResourceHandle::create(m_request->resourceRequest(), m_priv->downloadClient, 0, false, false, false);
+    }
 }
 
 void WebDownload::cancel()
 {
-    /*LOG(Download, "WebDownload - Cancelling download (%p)", this);
-    if (!m_download)
-        return E_FAIL;
+    if (!(m_priv->state == WEBKIT_WEB_DOWNLOAD_STATE_CREATED || m_priv->state == WEBKIT_WEB_DOWNLOAD_STATE_STARTED))
+        return;
 
-    CFURLDownloadCancel(m_download.get());
-    m_download = 0;
-    return S_OK;*/
+    if (m_priv->resourceHandle)
+        m_priv->resourceHandle->cancel();
+
+    m_priv->state = WEBKIT_WEB_DOWNLOAD_STATE_CANCELLED;
 }
 
 void WebDownload::cancelForResume()
 {
-    /*LOG(Download, "WebDownload - Cancelling download (%p), writing resume information to file if possible", this);
-    ASSERT(m_download);
-    if (!m_download)
-        return E_FAIL;
-
-    HRESULT hr = S_OK;
-    RetainPtr<CFDataRef> resumeData;
-    if (m_destination.isEmpty()) {
-        CFURLDownloadCancel(m_download.get());
-        goto exit;
-    }
-
-    CFURLDownloadSetDeletesUponFailure(m_download.get(), false);
-    CFURLDownloadCancel(m_download.get());
-
-    resumeData = CFURLDownloadCopyResumeData(m_download.get());
-    if (!resumeData) {
-        LOG(Download, "WebDownload - Unable to create resume data for download (%p)", this);
-        goto exit;
-    }
-
-    appendResumeDataToBundle(resumeData.get(), m_bundlePath);
-   
-exit:
-    m_download = 0;
-    return hr;*/
+    notImplemented();
 }
 
 bool WebDownload::deletesFileUponFailure()
 {
-    /*if (!m_download)
-        return E_FAIL;
-    *result = CFURLDownloadDeletesUponFailure(m_download.get());
-    return S_OK;*/
     return false;
 }
 
-String WebDownload::bundlePathForTargetPath(String targetPath)
+char* WebDownload::bundlePathForTargetPath(const char* targetPath)
 {
-    /*if (!targetPath)
-        return E_INVALIDARG;
-
-    String bundle(targetPath, SysStringLen(targetPath));
-    if (bundle.isEmpty())
-        return E_INVALIDARG;
-
-    if (bundle[bundle.length()-1] == '/')
-        bundle.truncate(1);
-
-    bundle += BundleExtension;
-    *bundlePath = SysAllocStringLen(bundle.characters(), bundle.length());
-    if (!*bundlePath)
-        return E_FAIL;
-    return S_OK;*/
-    return String();
+    notImplemented();
+    return NULL;
 }
 
 WebMutableURLRequest* WebDownload::request()
@@ -310,69 +344,26 @@ WebMutableURLRequest* WebDownload::request()
 
 void WebDownload::setDeletesFileUponFailure(bool deletesFileUponFailure)
 {
-    /*if (!m_download)
-        return E_FAIL;
-    CFURLDownloadSetDeletesUponFailure(m_download.get(), !!deletesFileUponFailure);
-    return S_OK;*/
+    notImplemented();
 }
 
-void WebDownload::setDestination(String path, bool allowOverwrite)
+void WebDownload::setDestination(const char* path, bool allowOverwrite)
 {
-    /*if (!m_download)
-        return E_FAIL;
-
-    m_destination = String(path, SysStringLen(path));
-    m_bundlePath = m_destination + BundleExtension;
-
-    CFURLRef pathURL = MarshallingHelpers::PathStringToFileCFURLRef(m_bundlePath);
-    CFURLDownloadSetDestination(m_download.get(), pathURL, !!allowOverwrite);
-    CFRelease(pathURL);
-
-    LOG(Download, "WebDownload - Set destination to %s", m_bundlePath.ascii().data());
-
-    return S_OK;*/
+    m_priv->destinationPath = path;
+    m_priv->allowOverwrite = allowOverwrite;
 }
 
 void WebDownload::cancelAuthenticationChallenge(WebURLAuthenticationChallenge*)
 {
-    /*if (m_download) {
-        CFURLDownloadCancel(m_download.get());
-        m_download = 0;
-    }
-
-    // FIXME: Do we need a URL or description for this error code?
-    ResourceError error(String(WebURLErrorDomain), WebURLErrorUserCancelledAuthentication, "", "");
-    COMPtr<WebError> webError(AdoptCOM, WebError::createInstance(error));
-    m_delegate->didFailWithError(this, webError.get());
-
-    return S_OK;*/
+    notImplemented();
 }
 
 void WebDownload::continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    /*COMPtr<WebURLAuthenticationChallenge> webChallenge(Query, challenge);
-    if (!webChallenge)
-        return E_NOINTERFACE;
-
-    if (m_download)
-        CFURLDownloadUseCredential(m_download.get(), 0, webChallenge->authenticationChallenge().cfURLAuthChallengeRef());
-    return S_OK;*/
+    notImplemented();
 }
 
 void WebDownload::useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge)
 {
-    /*COMPtr<WebURLAuthenticationChallenge> webChallenge(Query, challenge);
-    if (!webChallenge)
-        return E_NOINTERFACE;
-
-    COMPtr<WebURLCredential> webCredential(Query, credential);
-    if (!webCredential)
-        return E_NOINTERFACE;
-
-    RetainPtr<CFURLCredentialRef> cfCredential(AdoptCF, createCF(webCredential->credential()));
-
-    if (m_download)
-        CFURLDownloadUseCredential(m_download.get(), cfCredential.get(), webChallenge->authenticationChallenge().cfURLAuthChallengeRef());
-    return S_OK;*/
+    notImplemented();
 }
-

@@ -122,13 +122,13 @@ void WebContextMenuClient::contextMenuItemSelected(ContextMenuItem* item, const 
 
 void WebContextMenuClient::downloadURL(const KURL& url)
 {
-    DefaultDownloadDelegate* downloadDelegate = m_webView->downloadDelegate();
+    WebDownloadDelegate* downloadDelegate = m_webView->downloadDelegate();
 
-    // Its the delegate's job to ref the WebDownload to keep it alive - otherwise it will be destroyed
-    // when this method returns
-    WebDownload* download = WebDownload::createInstance(url, downloadDelegate);
-    download->start();
-    delete download;
+    if(downloadDelegate)
+    {
+        WebDownload* download = WebDownload::createInstance(&url, downloadDelegate);
+        download->start();
+    }
 }
 
 void WebContextMenuClient::copyImageToClipboard(const HitTestResult&)

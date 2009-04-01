@@ -1,3 +1,12 @@
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        * cmake/SetCMakeVars.cmake: Added WebDownloadDelegate.h and
+        WebDownload.h to the list of installed headers.
+
 2009-03-27  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mario Bensi.

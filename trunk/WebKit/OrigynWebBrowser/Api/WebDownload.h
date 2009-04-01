@@ -38,41 +38,51 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include "PlatformString.h"
-#include "PlatformString.h"
+#include "WebKitTypes.h"
 
 namespace WebCore {
+    class String;
     class KURL;
     class ResourceHandle;
-    struct ResourceRequest;
+    class ResourceRequest;
     class ResourceResponse;
 }
 
-class DefaultDownloadDelegate;
+class WebDownloadDelegate;
 class WebURLAuthenticationChallenge;
 class WebURLCredential;
 class WebMutableURLRequest;
+class WebURLResponse;
 
-class WebDownload
+typedef enum
+{
+    WEBKIT_WEB_DOWNLOAD_ERROR_CANCELLED_BY_USER,
+    WEBKIT_WEB_DOWNLOAD_ERROR_NETWORK
+} WebDownloadError;
+
+class DownloadClient;
+
+class WebDownloadPrivate;
+
+class WEBKIT_OWB_API WebDownload
 {
 public:
 
     /**
      * create new instance of WebDownload
      * @param[in]: url
-     * @param[in]: DefaultDownloadDelegate
+     * @param[in]: WebDownloadDelegate
      */
-    static WebDownload* createInstance(const WebCore::KURL&, DefaultDownloadDelegate*);
+    static WebDownload* createInstance(const WebCore::KURL*, WebDownloadDelegate*);
 
     /**
      * create new instance of WebDownload
      * @param[in]: resource handle
      * @param[in]: resource request
      * @param[in]: resource response
-     * @param[in]: DefaultDownloadDelegate
+     * @param[in]: WebDownloadDelegate
      */
-    static WebDownload* createInstance(WebCore::ResourceHandle*, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&, DefaultDownloadDelegate*);
+    static WebDownload* createInstance(WebCore::ResourceHandle*, const WebCore::ResourceRequest*, const WebCore::ResourceResponse*, WebDownloadDelegate*);
 
     /**
      * create new instance of WebDownload
@@ -90,14 +100,14 @@ private:
      * @param[in]: resource handle
      * @param[in]: resource request
      * @param[in]: resource response     */
-    void init(WebCore::ResourceHandle*, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&, DefaultDownloadDelegate*);
+    void init(WebCore::ResourceHandle*, const WebCore::ResourceRequest*, const WebCore::ResourceResponse*, WebDownloadDelegate*);
 
     /**
      * initialise WebDownload
      * @param[in]: url
-     * @param[in]: DefaultDownloadDelegate
+     * @param[in]: WebDownloadDelegate
      */
-    void init(const WebCore::KURL&, DefaultDownloadDelegate*);
+    void init(const WebCore::KURL*, WebDownloadDelegate*);
 public:
 
     /**
@@ -109,9 +119,9 @@ public:
      * initialise with request
      * Not Implemented
      * @param[in]: WebMutableURLRequest
-     * @param[in]: DefaultDownloadDelegate
+     * @param[in]: WebDownloadDelegate
      */
-    virtual void initWithRequest(WebMutableURLRequest* request, DefaultDownloadDelegate* delegate);
+    virtual void initWithRequest(WebMutableURLRequest* request, WebDownloadDelegate* delegate);
 
     /**
      *  initialise to resume with bundle
@@ -119,7 +129,7 @@ public:
      * @param[in]: bundle path
      * @param[in]: DefaultDownloadDelegate
      */
-    virtual void initToResumeWithBundle(WebCore::String bundlePath, DefaultDownloadDelegate* delegate);
+    virtual void initToResumeWithBundle(const char* bundlePath, WebDownloadDelegate* delegate);
 
     /**
      * can resume download decoded with encoding MIMEType
@@ -127,7 +137,7 @@ public:
      * @param[in]: MIMEType
      * @param[out] : status
      */
-    virtual bool canResumeDownloadDecodedWithEncodingMIMEType(WebCore::String mimeType);
+    virtual bool canResumeDownloadDecodedWithEncodingMIMEType(const char* mimeType);
 
     /**
      * start
@@ -160,10 +170,10 @@ public:
      * @param[in]: target path
      * @param[out]: bundle path
      */
-    virtual WebCore::String bundlePathForTargetPath(WebCore::String target);
+    virtual char* bundlePathForTargetPath(const char* target);
 
     /**
-     * get request 
+     * get request
      * Not Implemented
      * @param[out]: WebMutableURLRequest
      */
@@ -182,7 +192,7 @@ public:
      * @param[in]: path
      * @param[in]: allow overwrite
      */
-    virtual void setDestination(WebCore::String path, bool allowOverwrite);
+    virtual void setDestination(const char* path, bool allowOverwrite);
 
     /**
      * cancel authentication challenge
@@ -206,11 +216,15 @@ public:
      */
     virtual void useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge);
 
+    WebDownloadPrivate* getWebDownloadPrivate() { return m_priv; }
+
+    WebDownloadDelegate* downloadDelegate() { return m_delegate; }
+
 protected:
-    WebCore::String m_destination;
-    WebCore::String m_bundlePath;
     WebMutableURLRequest* m_request;
-    DefaultDownloadDelegate* m_delegate;
+    WebURLResponse *m_response;
+    WebDownloadDelegate* m_delegate;
+    WebDownloadPrivate *m_priv;
 
 #ifndef NDEBUG
     double m_startTime;

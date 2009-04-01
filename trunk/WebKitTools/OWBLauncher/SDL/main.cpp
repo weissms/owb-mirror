@@ -249,6 +249,89 @@ public:
     }
 };
 
+class MainDownloadDelegate : public WebDownloadDelegate {
+
+    public:
+    MainDownloadDelegate()
+    {
+        printf("MainDownloadDelegate::MainDownloadDelegate()\n");
+    }
+
+    ~MainDownloadDelegate()
+    {
+        printf("MainDownloadDelegate::~MainDownloadDelegate()\n");
+    }
+
+    void decideDestinationWithSuggestedFilename(WebDownload *download, const char* filename)
+    {
+        printf("MainDownloadDelegate::decideDestinationWithSuggestedFilename(%p, %s)\n", download, filename);
+        char destination[1024];
+        snprintf(destination, sizeof(destination), "/tmp/%s", filename);
+        download->setDestination(destination, false);
+    }
+
+    void didCancelAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge)
+    {
+        printf("MainDownloadDelegate::didCancelAuthenticationChallenge(%p, %p)\n", download, challenge);
+    }
+
+    void didCreateDestination(WebDownload* download, const char* destination)
+    {
+        printf("MainDownloadDelegate::didCreateDestination(%p, %s)\n", download, destination);
+    }
+
+    void didReceiveAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge)
+    {
+        printf("MainDownloadDelegate::didReceiveAuthenticationChallenge(%p, %p)\n", download, challenge);
+    }
+
+    void didReceiveDataOfLength(WebDownload* download, unsigned length)
+    {
+        printf("MainDownloadDelegate::didReceiveDataOfLength(%p, %d)\n", download, length);
+    }
+
+    void didReceiveResponse(WebDownload* download, WebURLResponse* response)
+    {
+        printf("MainDownloadDelegate::didReceiveResponse(%p, %p)\n", download, response);
+    }
+
+    void willResumeWithResponse(WebDownload* download, WebURLResponse* response, long long fromByte)
+    {
+        printf("MainDownloadDelegate::willResumeWithResponse(%p, %p, %lld)\n", download, response, fromByte);
+    }
+
+    WebMutableURLRequest* willSendRequest(WebDownload* download, WebMutableURLRequest* request, WebURLResponse* redirectResponse)
+    {
+        printf("MainDownloadDelegate::willSendRequest(%p, %p, %p)\n", download, request, redirectResponse);
+        return request;
+    }
+
+    bool shouldDecodeSourceDataOfMIMEType(WebDownload* download, const char* type)
+    {
+        printf("MainDownloadDelegate::shouldDecodeSourceDataOfMIMEType(%p, %s)\n", download, type);
+        return false;
+    }
+
+    void didBegin(WebDownload* download)
+    {
+        printf("MainDownloadDelegate::didBegin(%p)\n", download);
+        registerDownload(download);
+    }
+
+    void didFinish(WebDownload* download)
+    {
+        printf("MainDownloadDelegate::didFinish(%p)\n", download);
+        unregisterDownload(download);
+        delete download;
+    }
+
+    void didFailWithError(WebDownload* download, WebError* error)
+    {
+        printf("MainDownloadDelegate::didFailWithError(%p, %p)\n", download, error);
+        unregisterDownload(download);
+        delete download;
+    }
+};
 
 int main (int argc, char* argv[])
 {
@@ -315,6 +398,8 @@ int main (int argc, char* argv[])
     webView->setWebNotificationDelegate(mainWebNotificationDelegate);
     MainJSActionDelegate* mainJSActionDelegate = new MainJSActionDelegate();
     webView->setJSActionDelegate(mainJSActionDelegate);
+    MainDownloadDelegate* mainDownloadDelegate = new MainDownloadDelegate();
+    webView->setDownloadDelegate(mainDownloadDelegate);
 
     char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
@@ -337,5 +422,6 @@ int main (int argc, char* argv[])
     //delete the delegate after webView or set the delegate to 0
     delete mainWebNotificationDelegate;
     delete mainJSActionDelegate;
+    delete mainDownloadDelegate;
     return 0;
 }

@@ -1080,9 +1080,8 @@ void WebFrameLoaderClient::dispatchDecidePolicyForMIMEType(FramePolicyFunction f
 
     WebMutableURLRequest* urlRequest = WebMutableURLRequest::createInstance(request);
 
-//    policyDelegate->decidePolicyForMIMEType(d->webView, mimeType, urlRequest, this, setUpPolicyListener(function));
+    policyDelegate->decidePolicyForMIMEType(m_webFrame->webView(), mimeType.utf8().data(), urlRequest, m_webFrame, setUpPolicyListener(function));
 
-    (coreFrame->loader()->*function)(PolicyUse);
     delete urlRequest;
 }
 
@@ -1119,10 +1118,8 @@ void WebFrameLoaderClient::dispatchDecidePolicyForNavigationAction(FramePolicyFu
     WebMutableURLRequest* urlRequest =  WebMutableURLRequest::createInstance(request);
     WebActionPropertyBag* actionInformation = WebActionPropertyBag::createInstance(action, coreFrame);
 
-//FIXME
-//    policyDelegate->decidePolicyForNavigationAction(d->webView, actionInformation, urlRequest, this, setUpPolicyListener(function));
+    policyDelegate->decidePolicyForNavigationAction(m_webFrame->webView(), actionInformation, urlRequest, m_webFrame, setUpPolicyListener(function));
 
-    (coreFrame->loader()->*function)(PolicyUse);
     delete urlRequest;
     delete actionInformation;
 }
@@ -1141,21 +1138,14 @@ void WebFrameLoaderClient::dispatchUnableToImplementPolicy(const ResourceError& 
 
 void WebFrameLoaderClient::download(ResourceHandle* handle, const ResourceRequest& request, const ResourceRequest&, const ResourceResponse& response)
 {
-    DefaultDownloadDelegate* downloadDelegate;
+    WebDownloadDelegate* downloadDelegate;
     WebView* webView = m_webFrame->webView();
     downloadDelegate = webView->downloadDelegate();
-    if(!downloadDelegate)
+    if(downloadDelegate)
     {
-        // If the WebView doesn't successfully provide a download delegate we'll pass a null one
-        // into the WebDownload - which may or may not decide to use a DefaultDownloadDelegate
-        //LOG_ERROR("Failed to get downloadDelegate from WebView");
-        downloadDelegate = 0;
+        WebDownload* download = WebDownload::createInstance(handle, &request, &response, downloadDelegate);
+        download->start();
     }
-
-    // Its the delegate's job to ref the WebDownload to keep it alive - otherwise it will be destroyed
-    // when this method returns
-    WebDownload* download = WebDownload::createInstance(handle, request, response, downloadDelegate);
-    delete download;
 }
 
 bool WebFrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int /*length*/)

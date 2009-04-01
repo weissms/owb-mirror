@@ -1,3 +1,29 @@
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Implemented WebDownloadDelegate interface in MainDownloadDelegate
+        class.
+
+        * OWBLauncher/SDL/main.cpp:
+        (MainDownloadDelegate::MainDownloadDelegate):
+        (MainDownloadDelegate::~MainDownloadDelegate):
+        (MainDownloadDelegate::decideDestinationWithSuggestedFilename):
+        (MainDownloadDelegate::didCancelAuthenticationChallenge):
+        (MainDownloadDelegate::didCreateDestination):
+        (MainDownloadDelegate::didReceiveAuthenticationChallenge):
+        (MainDownloadDelegate::didReceiveDataOfLength):
+        (MainDownloadDelegate::didReceiveResponse):
+        (MainDownloadDelegate::willResumeWithResponse):
+        (MainDownloadDelegate::willSendRequest):
+        (MainDownloadDelegate::shouldDecodeSourceDataOfMIMEType):
+        (MainDownloadDelegate::didBegin):
+        (MainDownloadDelegate::didFinish):
+        (MainDownloadDelegate::didFailWithError):
+        (main):
+
 2009-03-27  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mario Bensi.

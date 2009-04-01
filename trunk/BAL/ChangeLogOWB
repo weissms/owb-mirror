@@ -1,3 +1,15 @@
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Added overloaded write() method for writing raw data.
+
+        * Facilities/WebCore/Linux/BCFileIOLinux.cpp:
+        (WebCore::File::write):
+        * Facilities/WebCore/Linux/BCFileIOLinux.h:
+
 2009-03-16  Mario Bensi  <mbensi@pleyo.com>
 
         remove ScriptObjectQuarantine in WebKitFiles.txt.

@@ -30,7 +30,7 @@
 #include "WebView.h"
 
 #include "DefaultPolicyDelegate.h"
-#include "DefaultDownloadDelegate.h"
+#include "WebDownloadDelegate.h"
 #include "DOMCoreClasses.h"
 #include "WebDatabaseManager.h"
 #include "WebDocumentLoader.h"
@@ -1148,12 +1148,12 @@ void WebView::dispatchDidReceiveIconFromWebFrame(WebFrame* frame)
 }
 #endif*/
 
-void WebView::setDownloadDelegate(DefaultDownloadDelegate* d)
+void WebView::setDownloadDelegate(WebDownloadDelegate* d)
 {
     m_downloadDelegate = d;
 }
 
-DefaultDownloadDelegate* WebView::downloadDelegate()
+WebDownloadDelegate* WebView::downloadDelegate()
 {
     return m_downloadDelegate;
 }
@@ -2265,9 +2265,7 @@ BalRectangle WebView::visibleContentRect()
 
 bool WebView::canHandleRequest(WebMutableURLRequest *request)
 {
-    WebMutableURLRequest* requestImpl;
-
-    return !!canHandleRequest(requestImpl->resourceRequest());
+    return !!canHandleRequest(request->resourceRequest());
 }
 
 void WebView::clearFocusNode()
