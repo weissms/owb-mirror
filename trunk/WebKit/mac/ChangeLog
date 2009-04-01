@@ -1,3 +1,45 @@
+2009-04-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam Roben.
+
+        WebKit side of <rdar://problem/6500266>.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::wheelEvent):
+        Send the event.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView scrollWheel:]):
+        Call NetscapePluginInstanceProxy::wheelEvent. If the plug-in processed the event, don't
+        call super.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add definition.
+
+2009-03-31  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6740581> REGRESSION (r41793): Page Down and Page Up don’t work in Leopard Mail
+
+        * WebView/WebHTMLView.mm:
+        (-[WebResponderChainSink tryToPerform:with:]): Added. Without this we would think we had
+        handled an event when we actually hadn't. Specifically, when -[WebFrameView scrollPageDown:]
+        calls tryToPerform on the next responder.
+
+2009-03-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24938
+        
+        Build fixes when building --no-svg
+        
+        DOMHTMLFrameElementPrivate.h and DOMHTMLIFrameElementPrivate.h are only available with ENABLE_SVG.
+
+        * MigrateHeaders.make:
+
 2009-03-30  Darin Adler  <darin@apple.com>
 
         Reviewed by Cameron Zwarich.

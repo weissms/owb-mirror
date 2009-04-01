@@ -1315,7 +1315,12 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         case CSSPropertyWebkitMarqueeSpeed:
         case CSSPropertyWebkitMask:
         case CSSPropertyWebkitPaddingStart:
+        case CSSPropertyWebkitPerspectiveOriginX:
+        case CSSPropertyWebkitPerspectiveOriginY:
         case CSSPropertyWebkitTextStroke:
+        case CSSPropertyWebkitTransformOriginX:
+        case CSSPropertyWebkitTransformOriginY:
+        case CSSPropertyWebkitTransformOriginZ:
         case CSSPropertyWebkitTransition:
         case CSSPropertyWebkitVariableDeclarationBlock:
             break;

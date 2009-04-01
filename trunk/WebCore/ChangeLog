@@ -1,3 +1,439 @@
+2009-04-01  Darin Adler  <darin@apple.com>
+
+        Rolled out that last change until I can investigate the regression test failures it seems
+        to have caused.
+
+        * dom/PositionIterator.cpp:
+        (WebCore::PositionIterator::decrement):
+        * dom/PositionIterator.h:
+        (WebCore::PositionIterator::PositionIterator):
+
+2009-03-31  Darin Adler  <darin@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Bug 24621: PositionIterator doesn't iterate "after last child" positions when going backwards
+        https://bugs.webkit.org/show_bug.cgi?id=24621
+
+        * dom/PositionIterator.cpp:
+        (WebCore::PositionIterator::decrement): Make sure that when the parent has no children, we
+        don't ever use Position::uncheckedPreviousOffset. This is consistent with the forward
+        iterator, but also should never arise because of the fix below.
+        * dom/PositionIterator.h:
+        (WebCore::PositionIterator::PositionIterator): Fixed so m_offset will always be 0 when
+        the passed-in node has no children. Like the change above, this is consistent with the rest
+        of the class, although in the long run I think it's a bit strange to treat a <p> element
+        with no children differently than a <p> element with children.
+
+2009-03-31  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24965
+        Bug 24965: HTMLMediaElement: network state changes can be missed
+        
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setNetworkState): Always update m_networkState when the
+        state changes, even when no event needs to be fired.
+
+2009-03-31  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24964
+        Bug 24964: HTMLMediaElement: 'waiting' event may fire twice
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setReadyState): Only fire 'waiting' event once when ready state
+        drops below HAVE_FUTURE_DATA.
+
+2009-03-31  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24846
+        Bug 24846: HTMLMediaElement should implement 'autobuffer' attribute
+
+        Add 'autobuffer' attrubute to media element. 'autobuffer' is a hint that
+        the author recommends downloading the entire resource optimistically, so the
+        attribute is made available to the media engine to use if it is able.
+
+        Test: media/video-dom-autobuffer.html
+
+        * html/HTMLAttributeNames.in: Add autobuffer.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::parseMappedAttribute): New.
+        (WebCore::HTMLMediaElement::autobuffer): Ditto.
+        (WebCore::HTMLMediaElement::setAutobuffer): Ditto.
+
+        * html/HTMLMediaElement.h: Declare autobuffer and setAutobuffer.
+
+        * html/HTMLMediaElement.idl: Add autobuffer.
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::MediaPlayer): Initialize m_autobuffer.
+        (WebCore::MediaPlayer::autobuffer): New.
+        (WebCore::MediaPlayer::setAutobuffer): Ditto.
+        * platform/graphics/MediaPlayer.h: Declare m_autobuffer, autobuffer and setAutobuffer
+
+        * platform/graphics/MediaPlayerPrivate.h:
+        (WebCore::MediaPlayerPrivateInterface::setAutobuffer): Declare setAutobuffer.
+
+2009-03-31  Craig Schlenter  <craig.schlenter@gmail.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24550
+        Check return value of vasprintf. This should keep gcc 4.3.3
+        happy rather than have it complain about attribute warn_unused_result.
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::error):
+
+2009-03-31  Dean Jackson  <dino@apple.com>
+
+        Style guide violation!
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::defaultEventHandler):
+
+2009-03-31  Dean Jackson  <dino@apple.com>
+
+        Fix Tiger build.
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::defaultEventHandler):
+
+2009-03-31  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstream V8DOMMap for v8 bindings.
+        https://bugs.webkit.org/show_bug.cgi?id=24951
+
+        * bindings/v8/V8DOMMap.cpp: Added.
+        * bindings/v8/V8DOMMap.h: Added.
+
+2009-03-31  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24955
+
+        Spacebar didn't play/pause in standalone MediaDocument
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::defaultEventHandler):
+
+2009-03-31  Alpha Lam  <hclam@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24901
+        Added the following methods to MediaPlayerPrivate for Chromium port.
+        void sizeChanged();
+        void rateChanged();
+        void durationChanged();
+
+        The above changes are to reflect changes in MediaPlayer.cpp.
+        More details can be found in the original changeset.
+        http://trac.webkit.org/changeset/41907
+
+        * platform/graphics/chromium/MediaPlayerPrivateChromium.h:
+
+2009-03-31  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24947
+
+        Special-case drawing text-shadow on win32, to let GDI draw in cases
+        when both fill & shadow color are opaque and the shadow has no blur.
+
+        * platform/graphics/chromium/FontChromiumWin.cpp:
+        (WebCore::TransparencyAwareFontPainter::TransparencyAwareGlyphPainter::drawGlyphs):
+        (WebCore::Font::drawComplexText):
+        * platform/graphics/skia/SkiaFontWin.cpp:
+        (WebCore::windowsCanHandleDrawTextShadow):
+        (WebCore::windowsCanHandleTextDrawing):
+        * platform/graphics/skia/SkiaFontWin.h:
+
+2009-03-31  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        r42055 removed some functions in FrameLoader used by Chrome,
+        this CL backs out some of those changes to unbreak the Chrome build.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24949
+
+        * WebCore.base.exp:
+        * loader/FrameLoader.cpp:
+        * loader/FrameLoader.h:
+
+2009-03-31  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Build fixes for Chromium.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24945
+
+        * dom/Document.h:
+        * platform/chromium/ClipboardChromium.cpp:
+        (WebCore::imageToMarkup):
+
+2009-03-31  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Fix the Qt build.
+
+        * dom/XMLTokenizerQt.cpp:
+        (WebCore::XMLTokenizer::XMLTokenizer): Use NamedNodeMap instead of NamedAttrMap.
+
+2009-03-30  Steve Falkenburg  <sfalken@apple.com>
+
+        Don't create CFDataRef with a fixed size.
+        Fixes synchronous XMLHTTPRequests on Windows.
+        
+        Reviewed by Ada Chan.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::WebCoreSynchronousLoader::didReceiveData):
+
+2009-03-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 24594: PolicyDelegate NavigationAction is WebNavigationTypeOther instead of WebNavigationTypeReload
+        https://bugs.webkit.org/show_bug.cgi?id=24594
+        rdar://problem/6682110
+
+        Test: fast/loader/reload-policy-delegate.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadWithDocumentLoader): Set the triggering action here where we know it's
+        the policy loader and can use m_policyLoadType rather than letting it get set inside
+        checkNavigationPolicy.
+
+2009-03-30  Timothy Hatcher  <timothy@apple.com>
+
+        <rdar://problem/5838871> CrashTracer: 1483 crashes Quicklooking
+        in Finder (painting without up to date layout)
+
+        Reviewed by Dan Bernstein.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::paintContents): Add an early return when
+        painting is attempted when layout is needed.
+
+2009-03-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24938
+        
+        Sort alphabetically.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+
+2009-03-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24938
+        
+        Build fixes for building --3d-rendering and --no-svg
+
+        * rendering/RenderLayerBacking.cpp:
+
+2009-03-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24938
+
+        Build fixes when building --no-svg
+        
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): Add missing CSS properties
+        * css/CSSCursorImageValue.cpp:
+        (WebCore::CSSCursorImageValue::updateIfSVGCursorIsUsed): Handle unused param
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue): Add missing CSS properties
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty): Add missing CSS properties
+        * dom/Node.cpp:
+        (WebCore::updateSVGElementInstancesAfterEventListenerChange): Handle unused param
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::floatWidth): Handle unused param
+        * platform/graphics/SimpleFontData.cpp:
+        (WebCore::SimpleFontData::SimpleFontData): Handle unused param
+
+2009-03-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Bug 24916: REGRESSION: NavigationAction policy dispatch broken
+        https://bugs.webkit.org/show_bug.cgi?id=24916
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadURL): Rearrange the code so that the "event" PassRefPtr
+        is not used twice. This also optimizes the case where a frame name is specified,
+        but it's the name of the frame being loaded. Also called release in all the final
+        uses of FormState.
+
+2009-03-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Bug 24937: NamedNodeMap and NamedAttrMap should not be separate classes
+        https://bugs.webkit.org/show_bug.cgi?id=24937
+
+        Also should fix the Windows COM bindings build.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Removed special case for NamedNodeMap.
+        * bindings/scripts/CodeGeneratorObjC.pm: Ditto.
+
+        * dom/NamedAttrMap.h: Renamed class from NamedAttrMap to
+        NamedNodeMap and removed NamedNodeMap base class. Made the NamedNodeMap
+        functions all public and non-virtual. Removed virtualLength.
+
+        * dom/NamedNodeMap.h: Replaced file with just an include
+        of NamedAttrMap.h. As a follow up we will rename the NamedAttrMap
+        files and remove this file.
+
+        * bindings/js/JSNamedNodesCollection.cpp: Renamed from NamedAttrMap to NamedNodeMap.
+        * dom/Attr.h: Ditto.
+        * dom/Attribute.h: Ditto.
+        * dom/Document.cpp:
+        (WebCore::Document::importNode): Ditto.
+        * dom/Element.cpp:
+        (WebCore::Element::attributes): Ditto.
+        (WebCore::Element::setAttributeMap): Ditto.
+        (WebCore::Element::createAttributeMap): Ditto.
+        (WebCore::Element::insertedIntoDocument): Ditto.
+        (WebCore::Element::removedFromDocument): Ditto.
+        (WebCore::Element::openTagStartToString): Ditto.
+        (WebCore::Element::removeAttributeNode): Ditto.
+        (WebCore::Element::getAttributeNode): Ditto.
+        (WebCore::Element::getAttributeNodeNS): Ditto.
+        (WebCore::Element::hasAttribute): Ditto.
+        (WebCore::Element::hasAttributeNS): Ditto.
+        (WebCore::Element::normalizeAttributes): Ditto.
+        * dom/Element.h: Ditto.
+        * dom/NamedAttrMap.cpp:
+        (WebCore::NamedNodeMap::detachAttributesFromElement): Ditto.
+        (WebCore::NamedNodeMap::~NamedNodeMap): Ditto.
+        (WebCore::NamedNodeMap::isMappedAttributeMap): Ditto.
+        (WebCore::NamedNodeMap::getNamedItem): Ditto.
+        (WebCore::NamedNodeMap::getNamedItemNS): Ditto.
+        (WebCore::NamedNodeMap::removeNamedItem): Ditto.
+        (WebCore::NamedNodeMap::removeNamedItemNS): Ditto.
+        (WebCore::NamedNodeMap::setNamedItem): Ditto.
+        (WebCore::NamedNodeMap::item): Ditto.
+        (WebCore::NamedNodeMap::getAttributeItem): Ditto.
+        (WebCore::NamedNodeMap::clearAttributes): Ditto.
+        (WebCore::NamedNodeMap::detachFromElement): Ditto.
+        (WebCore::NamedNodeMap::setAttributes): Ditto.
+        (WebCore::NamedNodeMap::addAttribute): Ditto.
+        (WebCore::NamedNodeMap::removeAttribute): Ditto.
+        (WebCore::NamedNodeMap::mapsEquivalent): Ditto.
+        * dom/NamedMappedAttrMap.cpp:
+        (WebCore::NamedMappedAttrMap::clearAttributes): Ditto.
+        * dom/NamedMappedAttrMap.h:
+        (WebCore::NamedMappedAttrMap::NamedMappedAttrMap): Ditto.
+        * dom/Node.cpp:
+        (WebCore::Node::dumpStatistics): Ditto.
+        (WebCore::Node::isEqualNode): Ditto.
+        (WebCore::Node::isDefaultNamespace): Ditto.
+        (WebCore::Node::lookupNamespaceURI): Ditto.
+        (WebCore::Node::lookupNamespacePrefix): Ditto.
+        (WebCore::Node::compareDocumentPosition): Ditto.
+        * dom/Node.h: Ditto.
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::XMLTokenizer): Ditto.
+        * editing/ApplyStyleCommand.cpp:
+        (WebCore::isSpanWithoutAttributesOrUnstyleStyleSpan): Ditto.
+        (WebCore::isEmptyFontTag): Ditto.
+        (WebCore::areIdenticalElements): Ditto.
+        * editing/markup.cpp:
+        (WebCore::appendStartMarkup): Ditto.
+        (WebCore::completeURLs): Ditto.
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::handleError): Ditto.
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::updateWidget): Ditto.
+        * svg/SVGAnimatedProperty.h:
+        (WebCore::synchronizeProperty): Ditto.
+        * xml/XPathFunctions.cpp:
+        (WebCore::XPath::FunLang::evaluate): Ditto.
+        * xml/XPathStep.cpp:
+        (WebCore::XPath::Step::nodesInAxis): Ditto.
+
+2009-03-30  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24750
+        [GTK] requests download instead of displaying page
+
+        Use soup facilities to append parameters to the content type, to
+        make that more robust;
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::fillResponseFromMessage):
+
+2009-03-30  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6735683> Move SECTORDER_FLAGS from Xcode project to WebCore.xcconfig
+
+        Reviewed by Timothy Hatcher, Mark Rowe and Darin Adler.
+
+        * Configurations/Base.xcconfig: Moved Production definition of
+        SECTORDER_FLAGS to here from Xcode project file.
+        * Configurations/DebugRelease.xcconfig: Override SECTORDER_FLAGS
+        in Base.xcconfig to the empty string since it is not used for
+        Debug and Release configurations.
+        * WebCore.xcodeproj/project.pbxproj: Removed SECTORDER_FLAGS.
+
+2009-03-30  Adam Roben  <aroben@apple.com>
+
+        Windows build fix after recent Node.idl changes
+
+        * bindings/scripts/CodeGeneratorCOM.pm: Touched this to force sources
+        of classes that derive from Node to rebuild.
+
+2009-03-30  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * svg/graphics/SVGImage.cpp: Added a missing #include.
+
+2009-03-30  Mads Ager  <ager@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24879
+        Add frame accessor to Screen, Console, and BarInfo objects. Add type 
+        accessor to BarInfo objects.
+
+        In the V8 JavaScript bindings, we need access to the frame and
+        type for already created Screen, Console, and BarInfo objects in
+        order to keep their wrappers alive across GCs.
+
+        * page/BarInfo.cpp:
+        (WebCore::BarInfo::frame): Added.
+        (WebCore::BarInfo::type): Added.
+        * page/BarInfo.h:
+        * page/Console.cpp:
+        (WebCore::Console::frame): Added.
+        * page/Console.h:
+        * page/Screen.cpp:
+        (WebCore::Screen::frame): Added.
+        * page/Screen.h:
+
 2009-03-30  Darin Adler  <darin@apple.com>
 
         Requested by Antti Koivisto.

@@ -325,7 +325,7 @@ WebView::~WebView()
     if (m_policyDelegate)
         m_policyDelegate = 0;
     if (m_downloadDelegate)
-        delete m_downloadDelegate;
+        m_downloadDelegate = 0;
     if (m_webNotificationDelegate)
         m_webNotificationDelegate = 0;
     if (d)

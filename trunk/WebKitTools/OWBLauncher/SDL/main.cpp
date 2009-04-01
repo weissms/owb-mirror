@@ -254,12 +254,10 @@ class MainDownloadDelegate : public WebDownloadDelegate {
     public:
     MainDownloadDelegate()
     {
-        printf("MainDownloadDelegate::MainDownloadDelegate()\n");
     }
 
     ~MainDownloadDelegate()
     {
-        printf("MainDownloadDelegate::~MainDownloadDelegate()\n");
     }
 
     void decideDestinationWithSuggestedFilename(WebDownload *download, const char* filename)
