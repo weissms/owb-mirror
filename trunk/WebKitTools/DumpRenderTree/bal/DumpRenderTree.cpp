@@ -108,11 +108,17 @@ public:
     FrameLoadDelegate() { }
     ~FrameLoadDelegate() { }
 
-    virtual void didStartLoad(WebFrame* frame)
+    virtual void didStartProvisionalLoad(WebFrame* frame)
     {
         if (!topLoadingFrame && !done)
             topLoadingFrame = frame;
     }
+
+    virtual void didReceiveServerRedirectForProvisionalLoadForFrame(WebFrame*) { }
+
+    virtual void willPerformClientRedirectToURL(WebFrame*, const char* url, double delaySeconds, double fireDate) { }
+
+    virtual void didCancelClientRedirectForFrame(WebFrame*) { }
 
     virtual void didCommitLoad(WebFrame*) { }
 

@@ -49,7 +49,22 @@ public:
     /**
      * didStartLoad : called when a frame starts loading
      */
-    virtual void didStartLoad(WebFrame*) = 0;
+    virtual void didStartProvisionalLoad(WebFrame*) = 0;
+
+    /**
+     * didReceiveServerRedirectForProvisionalLoadForFrame: called when a server-side redirection occurs.
+     */
+    virtual void didReceiveServerRedirectForProvisionalLoadForFrame(WebFrame*) = 0;
+
+    /**
+     * willPerformClientRedirectToURL: called when a client-side will occur.
+     */
+    virtual void willPerformClientRedirectToURL(WebFrame*, const char* url, double delaySeconds, double fireDate) = 0;
+
+    /**
+     * didCancelClientRedirectForFrame: called when a client-side redirection was cancelled before it occurred.
+     */
+    virtual void didCancelClientRedirectForFrame(WebFrame*) = 0;
 
     /**
      * didCommitLoad : called when a frame data source transitions from provisional state to committed

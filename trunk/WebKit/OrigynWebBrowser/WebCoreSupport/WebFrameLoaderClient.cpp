@@ -305,26 +305,23 @@ void WebFrameLoaderClient::dispatchDidHandleOnloadEvents()
 
 void WebFrameLoaderClient::dispatchDidReceiveServerRedirectForProvisionalLoad()
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didReceiveServerRedirectForProvisionalLoadForFrame(webView, m_webFrame);*/
+    WebFrameLoadDelegate* frameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (frameLoadDelegate)
+        frameLoadDelegate->didReceiveServerRedirectForProvisionalLoadForFrame(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidCancelClientRedirect()
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->didCancelClientRedirectForFrame(webView, m_webFrame);*/
+    WebFrameLoadDelegate* frameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (frameLoadDelegate)
+        frameLoadDelegate->didCancelClientRedirectForFrame(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchWillPerformClientRedirect(const KURL& url, double delay, double fireDate)
 {
-    /*WebView* webView = m_webFrame->webView();
-    COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(webView->frameLoadDelegate(&frameLoadDelegate)))
-        frameLoadDelegate->willPerformClientRedirectToURL(webView, BString(url.string()), delay, MarshallingHelpers::CFAbsoluteTimeToDATE(fireDate), m_webFrame);*/
+    WebFrameLoadDelegate* frameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (frameLoadDelegate)
+        frameLoadDelegate->willPerformClientRedirectToURL(m_webFrame, url.string().utf8().data(), delay, fireDate);
 }
 
 void WebFrameLoaderClient::dispatchDidChangeLocationWithinPage()
@@ -354,7 +351,7 @@ void WebFrameLoaderClient::dispatchDidStartProvisionalLoad()
 {
     WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
     if (webFrameLoadDelegate)
-        webFrameLoadDelegate->didStartLoad(m_webFrame);
+        webFrameLoadDelegate->didStartProvisionalLoad(m_webFrame);
 }
 
 void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)

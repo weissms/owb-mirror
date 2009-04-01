@@ -1,3 +1,19 @@
+2009-04-01  Julien Chaffraix  <julien.chaffraix@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #335: Add redirection support to WebFrameLoadDelegated
+
+        * OrigynWebBrowser/Api/WebFrameLoadDelegate.h: Added 3 methods to handle redirection, also renamed
+        didStartLoad to didStartProvisionalLoad (to better match the win port and because the name is more
+        accurate).
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidReceiveServerRedirectForProvisionalLoad): Implemented.
+        (WebFrameLoaderClient::dispatchDidCancelClientRedirect): Implemented.
+        (WebFrameLoaderClient::dispatchWillPerformClientRedirect): Implemented.
+        (WebFrameLoaderClient::dispatchDidStartProvisionalLoad): Call didStartProvisionalLoad now.
+
 2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Mario Bensi.
