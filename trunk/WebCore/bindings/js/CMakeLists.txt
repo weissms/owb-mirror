@@ -99,13 +99,13 @@ if(ENABLE_DATABASE)
         bindings/js/JSDatabaseCustom.cpp
         bindings/js/JSSQLResultSetRowListCustom.cpp
         bindings/js/JSSQLTransactionCustom.cpp
-        bindings/js/ScriptObjectQuarantine.cpp
     )
 endif(ENABLE_DATABASE)
 
 if(ENABLE_DOM_STORAGE)
     list(APPEND WEBCORE_SRC
         bindings/js/JSStorageCustom.cpp
+        bindings/js/ScriptObjectQuarantine.cpp
     )
 endif(ENABLE_DOM_STORAGE)
 

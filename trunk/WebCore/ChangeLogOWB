@@ -1,3 +1,9 @@
+2009-04-02  Mario Bensi  <mbensi@pleyo.com>
+
+        fix compilation ScriptObjectQuarantine.cpp depend of storage and database.
+
+        * bindings/js/CMakeLists.txt:
+
 2009-04-02  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Olivier Dole
