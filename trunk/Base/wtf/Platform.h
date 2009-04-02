@@ -58,9 +58,8 @@
 #endif
 #endif
 
-#if defined(__OWBAL_PLATFORM_APPLE__)
+#if PLATFORM(MACPORT)
 #undef WTF_PLATFORM_MAC
-#define WTF_PLATFORM_MACPORT 1
 #endif
 
 /* PLATFORM(WIN_OS) */
@@ -123,10 +122,10 @@
    || PLATFORM(FREEBSD)    \
    || PLATFORM(S60)        \
    || PLATFORM(NETBSD)     \
+   || PLATFORM(MACPORT)    \
    || defined(unix)        \
    || defined(__unix)      \
    || defined(__unix__)    \
-   || defined (__OWBAL_PLATFORM_APPLE__) \
    || defined(_AIX)
 #define WTF_PLATFORM_UNIX 1
 #endif
@@ -152,7 +151,7 @@
 #define WTF_PLATFORM_WX 1
 #elif defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1
-#elif PLATFORM(DARWIN) && !defined(__OWBAL_PLATFORM_APPLE__)
+#elif PLATFORM(DARWIN) && !PLATFORM(MACPORT)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1

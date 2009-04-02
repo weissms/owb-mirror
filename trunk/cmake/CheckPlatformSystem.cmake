@@ -13,10 +13,6 @@ if(UNIX)
 
     if(APPLE)
         set(WITH_MACPORT_DIR "/opt/local" CACHE STRING "Set macport directory")
-        #FIXME: try to remove these lines
-        include_directories(${WITH_MACPORT_DIR}/include)
-        link_directories(${WITH_MACPORT_DIR}/lib)
-        add_definitions (-D__OWBAL_PLATFORM_APPLE__)
-
+        add_definitions(-DWTF_PLATFORM_MACPORT=1)
     endif(APPLE)
 endif(UNIX)

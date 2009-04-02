@@ -1,3 +1,11 @@
+2009-04-02  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        * Base/wtf/Platform.h:
+        * cmake/CheckPlatformSystem.cmake:
+        Fix mac compilation
+
 2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Mario Bensi.

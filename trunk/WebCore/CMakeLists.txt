@@ -121,7 +121,6 @@ if(ENABLE_SVG)
 endif(ENABLE_SVG)
 list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/html4.css
-    ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
     ${OWB_SOURCE_DIR}/WebCore/css/quirks.css
     ${OWB_SOURCE_DIR}/WebCore/css/view-source.css
 )
@@ -153,9 +152,9 @@ endif(ENABLE_VIDEO)
 set(WEBCORE_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebCore)
 if(NOT EXISTS ${WEBCORE_GENERATED_DIR})
 	execute_process(
-		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
-		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/wml
-		COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/xml
+		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/html
+		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/wml
+		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/xml
 	)
 endif(NOT EXISTS ${WEBCORE_GENERATED_DIR})
 
