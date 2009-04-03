@@ -1,3 +1,9 @@
+2009-04-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix drt script.
+
+        * Scripts/Drt/runtests.py:
+
 2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Mario Bensi.
