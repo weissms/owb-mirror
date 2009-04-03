@@ -173,13 +173,18 @@ static void fillResponseFromMessage(SoupMessage* msg, ResourceResponse* response
     if (contentTypeParameters) {
         GString* parametersString = g_string_new(0);
         GHashTableIter hashTableIter;
-        gpointer hashKey;
-        gpointer hashValue;
+        const char* hashKey;
+        const char* hashValue;
 
         g_hash_table_iter_init(&hashTableIter, contentTypeParameters);
-        while (g_hash_table_iter_next(&hashTableIter, &hashKey, &hashValue)) {
+        while (g_hash_table_iter_next(&hashTableIter, reinterpret_cast<void**>(const_cast<char**>(&hashKey)), reinterpret_cast<void**>(const_cast<char**>(&hashValue)))) {
+            // Work-around bug in soup which causes a crash;
+            // See http://bugzilla.gnome.org/show_bug.cgi?id=577728
+            if (!hashValue)
+                hashValue = "";
+
             g_string_append(parametersString, "; ");
-            soup_header_g_string_append_param(parametersString, static_cast<char*>(hashKey), static_cast<char*>(hashValue));
+            soup_header_g_string_append_param(parametersString, hashKey, hashValue);
         }
         contentType += String(parametersString->str);
 
@@ -260,8 +265,9 @@ static void gotHeadersCallback(SoupMessage* msg, gpointer data)
     // sniffing the contents of the file, and then report that we got
     // headers; we will not do content sniffing for 304 responses,
     // though, since they do not have a body.
+    const char* contentType = soup_message_headers_get_content_type(msg->response_headers, NULL);
     if ((msg->status_code != SOUP_STATUS_NOT_MODIFIED)
-        && !soup_message_headers_get_content_type(msg->response_headers, NULL))
+        && (!contentType || !g_ascii_strcasecmp(contentType, "text/plain")))
         return;
 
     ResourceHandle* handle = static_cast<ResourceHandle*>(data);
@@ -286,7 +292,7 @@ static void gotChunkCallback(SoupMessage* msg, SoupBuffer* chunk, gpointer data)
         || (msg->status_code == SOUP_STATUS_UNAUTHORIZED))
         return;
 
-    ResourceHandle* handle = static_cast<ResourceHandle*>(data);
+    RefPtr<ResourceHandle> handle = static_cast<ResourceHandle*>(data);
     if (!handle)
         return;
     ResourceHandleInternal* d = handle->getInternal();
@@ -303,11 +309,15 @@ static void gotChunkCallback(SoupMessage* msg, SoupBuffer* chunk, gpointer data)
         g_free(contentType);
 
         fillResponseFromMessage(msg, &d->m_response);
-        client->didReceiveResponse(handle, d->m_response);
+        client->didReceiveResponse(handle.get(), d->m_response);
         d->m_reportedHeaders = true;
+
+        // the didReceiveResponse call above may have cancelled the request
+        if (d->m_cancelled)
+            return;
     }
 
-    client->didReceiveData(handle, chunk->data, chunk->length, false);
+    client->didReceiveData(handle.get(), chunk->data, chunk->length, false);
 }
 
 // Called at the end of the message, with all the necessary about the last informations.

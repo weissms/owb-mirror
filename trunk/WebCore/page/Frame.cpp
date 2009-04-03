@@ -173,7 +173,6 @@ Frame::Frame(Page* page, HTMLFrameOwnerElement* ownerElement, FrameLoaderClient*
 Frame::~Frame()
 {
     setView(0);
-    loader()->clearRecordedFormValues();
     loader()->cancelAndClear();
     
     // FIXME: We should not be doing all this work inside the destructor
@@ -1286,8 +1285,6 @@ void Frame::clearTimers(FrameView *view, Document *document)
     if (view) {
         view->unscheduleRelayout();
         if (view->frame()) {
-            if (document && document->renderer() && document->renderer()->hasLayer())
-                document->renderView()->layer()->suspendMarquees();
             view->frame()->animation()->suspendAnimations(document);
             view->frame()->eventHandler()->stopAutoscrollTimer();
         }

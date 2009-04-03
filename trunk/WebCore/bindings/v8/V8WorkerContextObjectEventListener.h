@@ -28,27 +28,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ScriptObjectQuarantine_h
-#define ScriptObjectQuarantine_h
+#ifndef V8WorkerContextObjectEventListener_h
+#define V8WorkerContextObjectEventListener_h
 
-#include "ScriptState.h"
+#if ENABLE(WORKERS)
+
+#include "V8WorkerContextEventListener.h"
+#include <v8.h>
+#include <wtf/PassRefPtr.h>
 
 namespace WebCore {
 
-    class Database;
-    class DOMWindow;
-    class Frame;
-    class Node;
-    class ScriptObject;
-    class ScriptValue;
-    class Storage;
+    class WorkerContextExecutionProxy;
 
-    ScriptValue quarantineValue(ScriptState*, const ScriptValue&);
+    class V8WorkerContextObjectEventListener : public V8WorkerContextEventListener {
+    public:
+        static PassRefPtr<V8WorkerContextObjectEventListener> create(WorkerContextExecutionProxy* proxy, v8::Local<v8::Object> listener, bool isInline)
+        {
+            return adoptRef(new V8WorkerContextObjectEventListener(proxy, listener, isInline));
+        }
 
-    bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Frame* frame, Storage* storage, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Node* node, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
+    private:
+        V8WorkerContextObjectEventListener(WorkerContextExecutionProxy*, v8::Local<v8::Object> listener, bool isInline);
+    };
 
-}
-#endif // ScriptObjectQuarantine_h
+} // namespace WebCore
+
+#endif // WORKERS
+
+#endif // V8WorkerContextObjectEventListener_h

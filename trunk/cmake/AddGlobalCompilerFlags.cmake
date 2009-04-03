@@ -56,6 +56,9 @@ if(ENABLE_NPAPI)
     add_definitions(-DXP_UNIX)
     add_definitions(-DWTF_PLATFORM_X11)
     add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
+else(ENABLE_NPAPI)
+    #ugly hack due to a definition in wtf/Platform.h
+    add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=0)
 endif(ENABLE_NPAPI)
 
 if(ENABLE_SVG)

@@ -1,3 +1,733 @@
+2009-04-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=25021
+        
+        Fix repainting an element with a reflection and transform after layout.
+        Telling the reflection to repaint directly is wrong, because, with
+        LayoutState enabled, it only takes the reflection's transform into account,
+        not that of the element. We can fix this, and keep the benefits of LayoutState,
+        by computing the reflected repaint rect, and repainting that using the original
+        renderer.
+
+        Test: fast/repaint/reflection-repaint-test.html
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlock):
+
+2009-04-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23307
+        
+        When repainting during layout (when LayoutState is enabled), we need
+        to apply the transform to the dirty rect, before applying x(), y() and
+        the offset storted in the LayoutState.
+        
+        Also bypass LayoutState in mapLocalToContainer() if we have a repaintContainer,
+        since LayoutState is always root-relative.
+
+        Test: fast/repaint/transform-layout-repaint.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::mapLocalToContainer):
+        (WebCore::RenderBox::computeRectForRepaint):
+
+2009-04-02  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Mac build after r42191.
+
+        * WebCore.base.exp:
+
+2009-04-02  Mark Rowe  <mrowe@apple.com>
+
+        Fix Windows build after r42190.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent):  Update to use the new name of the constant.
+
+2009-04-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        <rdar://problem/6625840> Previous Page isn't loaded after hitting back button at http://www.breakingnews.ie/
+
+        Test: http/tests/navigation/onload-navigation-iframe-2.html
+
+        * html/HTMLFrameElement.cpp:
+        (WebCore::HTMLFrameElement::HTMLFrameElement): Removed unneeded createdByParser flag.
+        * html/HTMLFrameElement.h: Ditto.
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::HTMLFrameElementBase): Ditto.
+        * html/HTMLFrameElementBase.h: Ditto.
+        * html/HTMLFrameOwnerElement.cpp:
+        (WebCore::HTMLFrameOwnerElement::HTMLFrameOwnerElement): Ditto.
+        * html/HTMLFrameOwnerElement.h: Ditto.
+        * html/HTMLIFrameElement.cpp:
+        (WebCore::HTMLIFrameElement::HTMLIFrameElement): Ditto.
+        * html/HTMLIFrameElement.h: Ditto.
+        * html/HTMLPlugInElement.cpp:
+        (WebCore::HTMLPlugInElement::HTMLPlugInElement): Ditto.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::submitForm): Removed unneeded check of the createdByParser flag.
+        The original change that introduced this, http://trac.webkit.org/changeset/25410, does
+        not make it clear why this check was needed. And it seems it is needed.
+
+2009-04-02  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Add a way to get a list of focusable nodes.
+
+        * dom/Document.cpp:
+        (WebCore::Document::setFocusedNode):
+        (WebCore::Document::getFocusableNodes):
+        * dom/Document.h:
+
+2009-04-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6654255> crash due to null FrameView in EventHandler
+
+        Lots of code was added to EventHandler that used view() and page() without
+        null checking, but both of those can become null due to the frame lifetime.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEventSingleClick):
+        (WebCore::EventHandler::eventMayStartDrag):
+        (WebCore::EventHandler::handleAutoscroll):
+        (WebCore::EventHandler::autoscrollTimerFired):
+        (WebCore::EventHandler::setPanScrollCursor):
+        (WebCore::EventHandler::allowDHTMLDrag):
+        (WebCore::EventHandler::hitTestResultAtPoint):
+        (WebCore::EventHandler::stopAutoscrollTimer):
+        (WebCore::EventHandler::selectCursor):
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        (WebCore::EventHandler::dispatchDragEvent):
+        (WebCore::EventHandler::prepareMouseEvent):
+        (WebCore::EventHandler::dispatchMouseEvent):
+        (WebCore::EventHandler::handleWheelEvent):
+        (WebCore::EventHandler::hoverTimerFired):
+        (WebCore::EventHandler::keyEvent):
+        (WebCore::EventHandler::dragHysteresisExceeded):
+        (WebCore::EventHandler::shouldDragAutoNode):
+        (WebCore::EventHandler::handleDrag):
+        (WebCore::EventHandler::handleTextInputEvent):
+        (WebCore::EventHandler::addPendingFrameUnloadEventCount):
+        (WebCore::EventHandler::removePendingFrameUnloadEventCount):
+        (WebCore::EventHandler::clearPendingFrameUnloadEventCount):
+        (WebCore::EventHandler::addPendingFrameBeforeUnloadEventCount):
+        (WebCore::EventHandler::removePendingFrameBeforeUnloadEventCount):
+        (WebCore::EventHandler::clearPendingFrameBeforeUnloadEventCount):
+        Added null checks for view() and page(). Made minor code cleanups.
+
+2009-04-02  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix regression in <object> layout test.  Make sure that even though a 404 image loads, that <object>
+        still considers it an error for the purposes of firing onerror.
+
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::dispatchLoadEvent):
+
+2009-04-02  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25010
+        Refactor InspectorController to replace all JS function invocations with
+        ScriptFunctionCall.
+
+        * bindings/js/ScriptFunctionCall.cpp:
+        (WebCore::ScriptFunctionCall::appendArgument): Added int, UString,
+            and JSValuePtr methods.
+        (WebCore::ScriptFunctionCall::call): Added simplified, exception-eating
+            method.
+        * bindings/js/ScriptFunctionCall.h: Decls for above.
+        * bindings/js/ScriptObjectQuarantine.cpp: Added helper for Node and DOMWindow.
+        (WebCore::getQuarantinedScriptObject):
+        * bindings/js/ScriptObjectQuarantine.h: Decls for above.
+        * inspector/InspectorController.cpp:
+        (WebCore::callSimpleFunction): Made into a static.
+        (WebCore::InspectorController::focusNode): Refactored to use ScriptFunctionCall.
+        (WebCore::InspectorController::toggleRecordButton): Ditto.
+        (WebCore::InspectorController::startGroup): Ditto.
+        (WebCore::InspectorController::setAttachedWindow): Ditto.
+        (WebCore::InspectorController::inspectedWindowScriptObjectCleared): Ditto.
+        (WebCore::InspectorController::addScriptProfile): Ditto.
+        (WebCore::InspectorController::didParseSource): Ditto.
+        (WebCore::InspectorController::failedToParseSource): Ditto.
+        (WebCore::InspectorController::didPause): Ditto.
+        * inspector/InspectorController.h: Removed callFunction and callSimpleFunction
+            decls.
+
+2009-04-02  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstream changes to V8WorkerContextEventListener for V8 bindings.
+        https://bugs.webkit.org/show_bug.cgi?id=25007
+
+        * bindings/v8/V8ObjectEventListener.h:
+        * bindings/v8/V8WorkerContextEventListener.cpp:
+
+2009-04-02  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstream V8WorkerContextObjectEventListener for V8 bindings.
+        https://bugs.webkit.org/show_bug.cgi?id=25005
+
+        * bindings/v8/V8WorkerContextObjectEventListener.cpp: Added.
+        * bindings/v8/V8WorkerContextObjectEventListener.h: Added.
+
+2009-04-02  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstream V8EventListenerList for V8 bindings.
+        https://bugs.webkit.org/show_bug.cgi?id=25004
+
+        * bindings/v8/V8EventListenerList.cpp: Added.
+        * bindings/v8/V8EventListenerList.h: Added.
+
+2009-04-02  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Chromium's ResourceRequest and ResourceResponse structs need some new data members.
+        https://bugs.webkit.org/show_bug.cgi?id=24897
+
+        These fields are needed to facilitate Chromium's implementation of the HTML5
+        ApplicationCache feature. We need to know what frame (or context) is doing the
+        requesting, and from what cache the resulting resource was retrieved.
+
+        No change in functionality, so no tests.
+
+        * platform/network/chromium/ResourceRequest.h:
+        (WebCore::ResourceRequest::ResourceRequest):
+        (WebCore::ResourceRequest::appCacheContextID):
+        (WebCore::ResourceRequest::setAppCacheContextID):
+        * platform/network/chromium/ResourceResponse.h:
+        (WebCore::ResourceResponse::ResourceResponse):
+        (WebCore::ResourceResponse::getAppCacheID):
+        (WebCore::ResourceResponse::setAppCacheID):
+
+2009-04-02  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin Adler
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=24643.
+        
+        Make sure images just ignore HTTP error codes and keep loading anyway.  Only <object> checks http error codes and falls back.  Everyone
+        else just ignores it and displays the image anyway.
+
+        Added http/tests/misc/image-error.html
+
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::notifyFinished):
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::CachedImage):
+        * loader/CachedImage.h:
+        (WebCore::CachedImage::httpStatusCodeError):
+        (WebCore::CachedImage::httpStatusCodeErrorOccurred):
+        * loader/CachedResource.h:
+        (WebCore::CachedResource::httpStatusCodeError):
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::didReceiveData):
+
+2009-04-02  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add XHR constructor in WorkerContext.idl for V8 bindings.
+        https://bugs.webkit.org/show_bug.cgi?id=24962
+
+        * workers/WorkerContext.idl:
+
+2009-04-02  Ben Murdoch  <benm@google.com>
+
+        Fix Bug 19743: Release build fails on 32-bit Windows
+
+        <https://bugs.webkit.org/show_bug.cgi?id=19743>
+
+        Combines all the HTML element cpp files into one to help reduce the
+        size of WebCore.lib so we can build in release mode on 32bit Windows.
+
+        Reviewed by Adam Roben.
+
+        * WebCore.vcproj/WebCore.vcproj: Excluded all the separate
+        HTML*Element.cpp files from the build. Added HTMLElementsAllInOne.cpp
+        to the build.
+        * html/HTMLElementsAllInOne.cpp: Added.
+
+2009-04-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=24999
+        
+        Optimize hit testing with transforms.
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::mapLocalToContainer):
+        (WebCore::RenderBox::mapAbsoluteToLocalPoint):
+        getTransformFromContainer() change to return the matrix by reference.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::update3DTransformedDescendantStatus):
+        The method failed to set m_3DTransformedDescendantStatusDirty to false,
+        so did the work every time.
+
+        (WebCore::RenderLayer::createLocalTransformState):
+        Only call the expensive getTransformFromContainer() if there is a transform,
+        otherwise we just have a translation.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::getTransformFromContainer):
+        * rendering/RenderObject.h:
+        Change transformFromContainer() to getTransformFromContainer(), and return
+        the matrix by reference to reduce copying.
+        New enum values for arguments for readability.
+
+        * rendering/TransformState.cpp:
+        (WebCore::TransformState::move):
+        (WebCore::TransformState::applyTransform):
+        (WebCore::HitTestingTransformState::translate):
+        New method that adds a translation to the accumulated matrix, optionally
+        without flattening. Cheaper than applyTransform().
+
+        (WebCore::HitTestingTransformState::applyTransform):
+        (WebCore::HitTestingTransformState::flatten):
+        (WebCore::HitTestingTransformState::flattenWithTransform):
+        Add flattenWithTransform(), which is a helper that allows us to
+        avoid doing the inverse() twice.
+
+        * rendering/TransformState.h:
+        (WebCore::TransformState::):
+        (WebCore::TransformState::move):
+        (WebCore::HitTestingTransformState::):
+        New method on HitTestingTransformState that adds a translation to the
+        accumulated matrix, optionally without flattening. Cheaper than applyTransform().
+        New enum values for arguments for readability.
+
+2009-04-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24648
+        
+        Optimize common code paths in TransformationMatrix.
+
+        * platform/graphics/transforms/TransformationMatrix.cpp:
+        (WebCore::TransformationMatrix::translate):
+        (WebCore::TransformationMatrix::translate3d):
+        Optimize to avoid matrix copy.
+        
+        (WebCore::TransformationMatrix::isInvertible):
+        Test for identity and translation matrices before computing
+        the determinant.
+        
+        (WebCore::TransformationMatrix::inverse):
+        Optimize for identity matrix and translations.
+        
+        * platform/graphics/transforms/TransformationMatrix.h:
+        (WebCore::TransformationMatrix::isIdentityOrTranslation):
+        Utility method.
+
+2009-04-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24930
+        [Gtk] ISO files content is displayed inside the webview instead of being downloaded
+
+        Also sniff content of types declared as text/plain. This is
+        justified by the fact that it is common to have Apache HTTP
+        servers configured to send text/plain as Content-Type by default.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::gotHeadersCallback):
+
+2009-04-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Protect the handle when notifying the client that the response was
+        received also in gotChunkCallback, or we crash in didReceiveData
+        when the load is cancelled in didReceiveResponse.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::gotChunkCallback):
+
+2009-04-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25001
+        Crash when content type parameters have no value
+
+        Handle the case where a Content-Type header parameter has no
+        value (i.e. no = character), to work-around a bug in libsoup.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::fillResponseFromMessage):
+
+2009-04-02  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24490
+
+        Enable web workers in Qt.
+
+        * WebCore.pro:
+
+2009-04-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler. Based on work of Julien Chaffraix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22475
+        REGRESSION: Async XMLHttpRequest never finishes on nonexistent files anymore
+
+        https://bugs.webkit.org/show_bug.cgi?id=24886
+        XHR requests opened when offline never return
+
+        Tests: fast/xmlhttprequest/xmlhttprequest-nonexistent-file.html
+               http/tests/xmlhttprequest/state-after-network-error.html
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::callReadyStateChangeListener): Only dispatch load event if this
+        wasn't an error.
+        (WebCore::XMLHttpRequest::abort): Fixed formatting.
+        (WebCore::XMLHttpRequest::genericError): Change state to DONE and dispatch readystatechange.
+        The comment saying that this doesn't match Firefox was added in r33559 without explanation
+        or tests, and I don't think that it's accurate. Also, Firefox and Safari 3 both change state
+        to HEADERS_RECEIVED before DONE on error - this doesn't match the spec, and I doubt
+        that any code depends on this, so I went with the spec here.
+
+2009-04-01  Steve Falkenburg  <sfalken@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=24997
+        Race conditions in icon database threading code
+        
+        m_syncThreadRunning set was mistakenly eliminated in r27717.
+        This reintroduces it.
+
+        Reviewed by Oliver Hunt.
+
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::IconDatabase::open): Set m_syncThreadRunning.
+
+2009-04-01  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6748609> Use ActiveDOMObject to suspend marquees
+        
+        Make marquees ActiveDOMObjects, get rid of the special suspension code.
+
+        * html/HTMLMarqueeElement.cpp:
+        (WebCore::HTMLMarqueeElement::HTMLMarqueeElement):
+        (WebCore::HTMLMarqueeElement::canSuspend):
+        (WebCore::HTMLMarqueeElement::suspend):
+        (WebCore::HTMLMarqueeElement::resume):
+        * html/HTMLMarqueeElement.h:
+        * page/Frame.cpp:
+        (WebCore::Frame::clearTimers):
+        * rendering/RenderLayer.cpp:
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::marquee):
+
+2009-04-01  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Darin Adler
+
+        Make constant values static in previous commit, as suggested
+        by Darin.
+
+        * rendering/RenderVideo.cpp:
+
+2009-04-01  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Simon Fraser
+
+        https://bugs.webkit.org/show_bug.cgi?id=24993
+
+        Standalone media should have a smaller instrinsic
+        height.
+
+        * rendering/RenderVideo.cpp:
+        (WebCore::RenderVideo::RenderVideo):
+
+2009-04-01  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 22378: Crash submitting a form when parsing an XHTML document
+        https://bugs.webkit.org/show_bug.cgi?id=22378
+        rdar://problem/6388377
+
+        Tests: fast/loader/submit-form-while-parsing-1.xhtml
+               fast/loader/submit-form-while-parsing-2.html
+
+        * WebCore.base.exp: Updated.
+
+        * history/HistoryItem.cpp:
+        (WebCore::HistoryItem::HistoryItem): Renamed m_subItems to m_children.
+        Used uncheckedAppend because we reserveInitialCapacity.
+        (WebCore::HistoryItem::addChildItem): Renamed m_subItems to m_children.
+        Added an assertion that this is only used to add items that don't have
+        duplicate frame names.
+        (WebCore::HistoryItem::setChildItem): Added. Replaces an existing item
+        if any, preserving the isTargetItem flag.
+        (WebCore::HistoryItem::childItemWithTarget): Renamed from childItemWithName
+        for consistency with the other functions here that all call the frame name the
+        "target". Also updated for rename of m_subItems to m_children.
+        (WebCore::HistoryItem::findTargetItem): Renamed from recurseToFindTargetItem.
+        Removed unneeded size check.
+        (WebCore::HistoryItem::targetItem): Changed to always return the top item
+        if no item has the isTargetItem flag set. The old version would instead return
+        0 in some cases, but return the top item if it had no children.
+        (WebCore::HistoryItem::children): Renamed m_subItems to m_children.
+        (WebCore::HistoryItem::hasChildren): Ditto.
+        (WebCore::HistoryItem::showTreeWithIndent): Ditto.
+
+        * history/HistoryItem.h: Name changes.
+
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::submit): Create and pass a FormState instead of
+        attaching "recorded form values" and "form about to be submitted" to the frame
+        loader. Parameter work fine for this; there's no need to store state on the
+        FrameLoader.
+
+        * loader/FormState.cpp:
+        (WebCore::FormState::FormState): Adopt a vector instead of copying a hash map.
+        (WebCore::FormState::create): Ditto.
+        * loader/FormState.h: Update to use a vector that we adopt instead of hash map
+        that we copy for auto-fill text field values.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::ScheduledRedirection::ScheduledRedirection): Added a new case for
+        form submissions and turned the "wasDuringLoad" state into a separate boolean
+        instead of using a special redirection type to track it.
+        (WebCore::FrameLoader::createWindow): Updated for name and argument change of
+        loadFrameRequest.
+        (WebCore::FrameLoader::urlSelected): Ditto.
+        (WebCore::FrameLoader::submitForm): Removed the "deferred form submission"
+        machinery, replacing it with the "scheduled redirection" mechanism, shared
+        with other kinds of redirection and navigation. Moved frame targeting here
+        so we can schedule the redirection on the right frame. Moved the multiple
+        form submission protection here. Moved the code to implement the rule that
+        m_navigationDuringLoad was used for here too.
+        (WebCore::FrameLoader::didOpenURL): Use the new wasDuringLoad flag instead
+        of the locationChangeDuringLoad type to detect location change during a load.
+        (WebCore::FrameLoader::executeScript): Removed call to now-obsolete function,
+        submitFormAgain.
+        (WebCore::FrameLoader::scheduleLocationChange): Moved the code to stop loading
+        out of this function into scheduleRedirection, so it can be shared with the
+        new scheduleFormSubmission function.
+        (WebCore::FrameLoader::scheduleFormSubmission): Added. Almost the same as
+        scheduleLocationChange, but with the arguments for a form submission.
+        (WebCore::FrameLoader::scheduleRefresh): Updated for the change to the
+        duringLoad flag.
+        (WebCore::FrameLoader::isLocationChange): Added case for formSubmission
+        and removed case for locationChangeDuringLoad.
+        (WebCore::FrameLoader::redirectionTimerFired): Ditto. Also removed unneeded
+        completeURL call and just use KURL constructor to match the other cases.
+        (WebCore::FrameLoader::provisionalLoadStarted): Removed the code to set up
+        the m_navigationDuringLoad, which is no longer needed. The new version of
+        this is in the submitForm function and sets the lockHistory boolean.
+        (WebCore::FrameLoader::scheduleRedirection): Moved the code to stop a load
+        in here that used to be in scheduleLocationChange.
+        (WebCore::FrameLoader::startRedirectionTimer): Added case for formSubmission
+        and removed case for locationChangeDuringLoad.
+        (WebCore::FrameLoader::stopRedirectionTimer): Ditto.
+        (WebCore::FrameLoader::completed): Removed call to now-obsolete function,
+        submitFormAgain.
+        (WebCore::FrameLoader::loadFrameRequest): Renamed from
+        loadFrameRequestWithFormAndValues. Replaced form element and form values
+        argument with a single FormState argument. Changed frame targeting code
+        to use the source frame in the case of a form submission to better match
+        the actual target frame.
+        (WebCore::FrameLoader::loadURL): Don't search for existing frames in the
+        form submission case since we already did that in the submitForm function.
+        (WebCore::FrameLoader::clientRedirected): Changed to work with the
+        m_isExecutingJavaScriptFormAction data member directly instead of taking
+        it as a function parameter.
+        (WebCore::FrameLoader::loadPostRequest): Don't search for existing frames
+        in the form submission case since we already did that in the submitForm
+        function.
+        (WebCore::FrameLoader::addBackForwardItemClippedAtTarget): Moved comment
+        in here that was misplaced elsewhere in the file.
+        (WebCore::FrameLoader::findFrameForNavigation): Changed to use the early
+        return idiom.
+        (WebCore::FrameLoader::recursiveGoToItem): Updated for HistoryItem changes.
+        (WebCore::FrameLoader::childFramesMatchItem): Ditto.
+        (WebCore::FrameLoader::updateHistoryForStandardLoad): Removed the
+        m_navigationDuringLoad logic; that's now handled by setting lockHistory
+        to true in the submitForm function.
+        (WebCore::FrameLoader::updateHistoryForRedirectWithLockedBackForwardList):
+        Use the new setChildItem function so we don't get multiple items for the
+        same frame name in the history item tree in the back/forward list.
+
+        * loader/FrameLoader.h: Renamed loadFrameRequestWithFormAndValues to
+        loadFrameRequest and made it take a form state object instead of the
+        form element and form values. Removed the unused functions
+        loadEmptyDocumentSynchronously, provisionalDocumentLoader,
+        notifyIconChnaged, and updateBaseURLForEmptyDocument. Changed the
+        submitForm function to take a form state argument. Eliminated the
+        clearRecordedFormValues, setFormAboutToBeSubmitted, and recordFormValue
+        functions, which are replaced by the form state arguments to submitForm
+        and loadFrameRequest. Removed the isJavaScriptFormAction argument from
+        the clientRedirected function; instead it looks at a data member directly.
+        Eliminated the submitFormAgain and overload of the submitForm function;
+        these are now subsumed into the remaining submitForm function and the
+        scheduleFormSubmission function. Removed unused and obsolete data
+        members m_navigationDuringLoad, m_deferredFormSubmission,
+        m_formAboutToBeSubmitted and m_formValuesAboutToBeSubmitted.
+
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        Updated for name and argument change of loadFrameRequest.
+
+        * page/Frame.cpp:
+        (WebCore::Frame::~Frame): Removed call to the now-unneeded
+        clearRecordedFormValues function.
+
+2009-04-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, fixing previous commit.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24994
+        Revert V8DOMMap.cpp change which accidentally snuck into the previous
+        commit.
+
+        * bindings/v8/V8DOMMap.cpp: Revert change in previous commit.
+
+2009-04-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24994
+        Fix miscellaneous merge/upstreaming divergencies in Chromium port.
+
+        * bindings/v8/V8Collection.h: Added an include.
+        * platform/KURLGoogle.cpp:
+        (WebCore::KURL::baseAsString): Added to match KURL.cpp.
+        * platform/chromium/ClipboardChromium.cpp: Added an include.
+
+2009-04-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24989
+        Refactor InspectorResource to use ScriptObject/FunctionCall.
+
+        * bindings/js/JSInspectorControllerCustom.cpp:
+        (WebCore::JSInspectorController::addResourceSourceToFrame): Tweaked to use
+            a more appropriate type conversion.
+        (WebCore::JSInspectorController::getResourceDocumentNode): Tweaked to
+            accommodate for InspectorResource refactoring.
+        * bindings/js/ScriptFunctionCall.cpp:
+        (WebCore::ScriptFunctionCall::appendArgument): Added long long type to match
+            existing jsNumber call signature.
+        * bindings/js/ScriptFunctionCall.h: Declaration for above.
+        * bindings/js/ScriptObject.cpp:
+        (WebCore::createEmptyObject): Added.
+        (WebCore::ScriptObject::ScriptObject):
+        (WebCore::ScriptObject::set): Added a bunch of property setters.
+        * bindings/js/ScriptObject.h: Declarations for above.
+        * inspector/InspectorController.cpp: Moved all InspectorResource-managing code
+            to InspectorResource.cpp
+        (WebCore::InspectorController::populateScriptObjects): Changed to use
+            refactored InspectorResource.
+        (WebCore::InspectorController::resetScriptObjects): Ditto.
+        (WebCore::InspectorController::pruneResources): Ditto.
+        (WebCore::InspectorController::didCommitLoad): Ditto.
+        (WebCore::InspectorController::addResource): Ditto.
+        (WebCore::InspectorController::removeResource): Ditto.
+        (WebCore::InspectorController::didLoadResourceFromMemoryCache): Ditto.
+        (WebCore::InspectorController::identifierForInitialRequest): Ditto.
+        (WebCore::InspectorController::willSendRequest): Ditto.
+        (WebCore::InspectorController::didReceiveResponse): Ditto.
+        (WebCore::InspectorController::didReceiveContentLength): Ditto.
+        (WebCore::InspectorController::didFinishLoading): Ditto.
+        (WebCore::InspectorController::didFailLoading): Ditto,
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest): Ditto.
+        (WebCore::InspectorController::scriptImported): Ditto.
+        * inspector/InspectorController.h: Removed InspectorResource-managing code decls
+            and tweaked some signatures to use ScriptString and long long for identifier.
+        * inspector/InspectorController.idl: Changed to use long long for identifier.
+        * inspector/InspectorResource.cpp: Refactored to use ScriptObject/FunctionCall.
+        (WebCore::InspectorResource::InspectorResource): Ditto.
+        (WebCore::InspectorResource::~InspectorResource): Ditto.
+        (WebCore::InspectorResource::createCached): Added.
+        (WebCore::InspectorResource::updateRequest): Added.
+        (WebCore::InspectorResource::updateResponse): Added.
+        (WebCore::createHeadersObject): Added.
+        (WebCore::InspectorResource::createScriptObject): Added.
+        (WebCore::InspectorResource::updateScriptObject): Added.
+        (WebCore::InspectorResource::releaseScriptObject): Added.
+        (WebCore::InspectorResource::type): Tweaked to use ScriptString.
+        (WebCore::InspectorResource::setXMLHttpResponseText): Added.
+        (WebCore::InspectorResource::sourceString): Tweaked to use ScriptString.
+        (WebCore::InspectorResource::startTiming): Added.
+        (WebCore::InspectorResource::markResponseReceivedTime): Added.
+        (WebCore::InspectorResource::endTiming): Added.
+        (WebCore::InspectorResource::markFailed): Added.
+        (WebCore::InspectorResource::addLength): Added.
+        * inspector/InspectorResource.h: Added decls for newly refactored-in methods.
+        (WebCore::InspectorResource::create): Added.
+        (WebCore::InspectorResource::isSameLoader): Added.
+        (WebCore::InspectorResource::markMainResource): Added.
+        (WebCore::InspectorResource::identifier): Added.
+        (WebCore::InspectorResource::requestURL): Added.
+        (WebCore::InspectorResource::frame): Added.
+        (WebCore::InspectorResource::mimeType): Added.
+        (WebCore::InspectorResource::Changes::Changes): Added new class to track
+            resource changes.
+        (WebCore::InspectorResource::Changes::hasChange): Added.
+        (WebCore::InspectorResource::Changes::set): Added.
+        (WebCore::InspectorResource::Changes::clear): Added.
+        (WebCore::InspectorResource::Changes::setAll): Added.
+        (WebCore::InspectorResource::Changes::clearAll): Added.
+
+2009-04-01  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Ensure the right click doesn't deselect text under it.  This was
+        happening in the Chromium and GTK+ ports because they don't select
+        the text under the cursor on right click.
+        
+        This was regressed in r41715, https://bugs.webkit.org/show_bug.cgi?id=19737
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24946
+
+        Test: fast/events/context-no-deselect.html
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+
+2009-04-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=24991
+        
+        Need to use toRenderBoxModelObject(), not toRenderBox(), to test for layer()
+        when getting the transform.
+        
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::transformFromContainer):
+
 2009-04-01  Darin Adler  <darin@apple.com>
 
         Rolled out that last change until I can investigate the regression test failures it seems

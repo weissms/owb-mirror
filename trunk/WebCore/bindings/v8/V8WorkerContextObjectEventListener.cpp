@@ -28,27 +28,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ScriptObjectQuarantine_h
-#define ScriptObjectQuarantine_h
+#include "config.h"
 
-#include "ScriptState.h"
+#if ENABLE(WORKERS)
+
+#include "V8WorkerContextObjectEventListener.h"
+
+#include "WorkerContextExecutionProxy.h"
 
 namespace WebCore {
 
-    class Database;
-    class DOMWindow;
-    class Frame;
-    class Node;
-    class ScriptObject;
-    class ScriptValue;
-    class Storage;
+static void weakObjectEventListenerCallback(v8::Persistent<v8::Value>, void* parameter)
+{
+    V8WorkerContextObjectEventListener* listener = static_cast<V8WorkerContextObjectEventListener*>(parameter);
 
-    ScriptValue quarantineValue(ScriptState*, const ScriptValue&);
+    // Remove the wrapper
+    listener->proxy()->RemoveEventListener(listener);
 
-    bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Frame* frame, Storage* storage, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Node* node, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
-
+    listener->disposeListenerObject();
 }
-#endif // ScriptObjectQuarantine_h
+
+V8WorkerContextObjectEventListener::V8WorkerContextObjectEventListener(WorkerContextExecutionProxy* proxy, v8::Local<v8::Object> listener, bool isInline)
+    : V8WorkerContextEventListener(proxy, listener, isInline)
+{
+    m_listener.MakeWeak(this, weakObjectEventListenerCallback);
+}
+
+} // namespace WebCore
+
+#endif // WORKERS

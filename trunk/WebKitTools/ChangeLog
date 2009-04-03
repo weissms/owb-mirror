@@ -1,3 +1,27 @@
+2009-04-03  Adam Roben  <aroben@apple.com>
+
+        Build fix for Windows machines that don't have WebKitTools/Scipts in
+        their PATH
+
+        * Scripts/pdevenv: Add WebKitTools/Scripts to PATH when launching
+        Visual Studio/VC++ Express.
+
+2009-04-02  Adam Roben  <aroben@apple.com>
+
+        Use pdevenv when building .vcproj files via our scripts
+
+        Reviewed by Mark Rowe.
+
+        * Scripts/webkitdirs.pm:
+        (sub buildVisualStudioProject): Use pdevenv instead of invoking Visual
+        Studio/VC++ Express directly.
+
+2009-04-01  Mark Rowe  <mrowe@apple.com>
+
+        Windows support for built-product-archive.
+
+        * BuildSlaveSupport/built-product-archive:
+
 2009-04-01  Adam Roben  <aroben@apple.com>
 
         Make resolve-ChangeLogs -f work when the working tree has spaces in

@@ -56,7 +56,7 @@ Vector<char> loadResourceIntoArray(const char* resourceName)
 /* Completely empty stubs (mostly to allow DRT to run): */
 /********************************************************/
 
-#if !ENABLE(NETSCAPE_PLUGIN_API)
+#if ENABLE(NETSCAPE_PLUGIN_API)
 void PluginView::invalidateRegion(NPRegion) { notImplemented(); }
 #endif
 

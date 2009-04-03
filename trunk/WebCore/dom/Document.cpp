@@ -2562,7 +2562,17 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
 SetFocusedNodeDone:
     updateRendering();
     return !focusChangeBlocked;
-  }
+}
+    
+void Document::getFocusableNodes(Vector<RefPtr<Node> >& nodes)
+{
+    updateLayout();
+
+    for (Node* node = firstChild(); node; node = node->traverseNextNode()) {
+        if (node->isFocusable())
+            nodes.append(node);
+    }
+}
   
 void Document::setCSSTarget(Element* n)
 {

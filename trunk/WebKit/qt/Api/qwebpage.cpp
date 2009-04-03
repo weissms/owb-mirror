@@ -34,6 +34,7 @@
 #include "FrameLoader.h"
 #include "FrameLoaderClientQt.h"
 #include "FrameView.h"
+#include "FormState.h"
 #include "ChromeClientQt.h"
 #include "ContextMenu.h"
 #include "ContextMenuClientQt.h"
@@ -61,6 +62,7 @@
 #include "ProgressTracker.h"
 #include "RefPtr.h"
 #include "HashMap.h"
+#include "HTMLFormElement.h"
 #include "HitTestResult.h"
 #include "WindowFeatures.h"
 #include "LocalizedStrings.h"
@@ -936,14 +938,14 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
         return;
     }
 
-    if (!ev->preeditString().isEmpty()) {
+    if (!ev->commitString().isEmpty())
+        editor->confirmComposition(ev->commitString());
+    else {
         QString preedit = ev->preeditString();
         // ### FIXME: use the provided QTextCharFormat (use color at least)
         Vector<CompositionUnderline> underlines;
         underlines.append(CompositionUnderline(0, preedit.length(), Color(0,0,0), false));
         editor->setComposition(preedit, underlines, preedit.length(), 0);
-    } else if (!ev->commitString().isEmpty()) {
-        editor->confirmComposition(ev->commitString());
     }
     ev->accept();
 }
@@ -1491,10 +1493,9 @@ void QWebPage::triggerAction(WebAction action, bool checked)
         case OpenLink:
             if (QWebFrame *targetFrame = d->hitTestResult.linkTargetFrame()) {
                 WTF::RefPtr<WebCore::Frame> wcFrame = targetFrame->d->frame;
-                targetFrame->d->frame->loader()->loadFrameRequestWithFormAndValues(frameLoadRequest(d->hitTestResult.linkUrl(), wcFrame.get()),
-                                                                                   /*lockHistory*/ false, /*lockBackForwardList*/ false, /*event*/ 0,
-                                                                                   /*HTMLFormElement*/ 0, /*formValues*/
-                                                                                   WTF::HashMap<String, String>());
+                targetFrame->d->frame->loader()->loadFrameRequest(frameLoadRequest(d->hitTestResult.linkUrl(), wcFrame.get()),
+                                                                  /*lockHistory*/ false, /*lockBackForwardList*/ false, /*event*/ 0,
+                                                                  /*FormState*/ 0);
                 break;
             }
             // fall through

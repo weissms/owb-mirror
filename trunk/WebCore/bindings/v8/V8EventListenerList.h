@@ -28,27 +28,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ScriptObjectQuarantine_h
-#define ScriptObjectQuarantine_h
+#ifndef V8EventListenerList_h
+#define V8EventListenerList_h
 
-#include "ScriptState.h"
+#include <v8.h>
+#include <wtf/Vector.h>
 
 namespace WebCore {
+    class V8EventListener;
 
-    class Database;
-    class DOMWindow;
-    class Frame;
-    class Node;
-    class ScriptObject;
-    class ScriptValue;
-    class Storage;
+    // This is a container for V8EventListener objects that also does some caching to speed up finding entries by v8::Object.
+    class V8EventListenerList {
+    public:
+        static const size_t maxKeyNameLength = 254;
 
-    ScriptValue quarantineValue(ScriptState*, const ScriptValue&);
+        // The name should be distinct from any other V8EventListenerList within the same process, and <= maxKeyNameLength characters.
+        explicit V8EventListenerList(const char* name);
+        ~V8EventListenerList();
 
-    bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Frame* frame, Storage* storage, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Node* node, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
+        typedef Vector<V8EventListener*>::iterator iterator;
+        V8EventListenerList::iterator begin();
+        iterator end();
 
-}
-#endif // ScriptObjectQuarantine_h
+        // In addition to adding the listener to this list, this also caches the V8EventListener as a hidden property on its wrapped
+        // v8 listener object, so we can quickly look it up later.
+        void add(V8EventListener*);
+        void remove(V8EventListener*);
+        V8EventListener* find(v8::Local<v8::Object>, bool isInline);
+        void clear();
+
+    private:
+        v8::Handle<v8::String> getKey(bool isInline);
+        v8::Persistent<v8::String> m_inlineKey;
+        v8::Persistent<v8::String> m_nonInlineKey;
+        Vector<V8EventListener*> m_list;
+    };
+
+} // namespace WebCore
+
+#endif // V8EventListenerList_h

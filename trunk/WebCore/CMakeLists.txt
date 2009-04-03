@@ -138,15 +138,14 @@ list(APPEND USER_AGENT_STYLE_SHEETS
 endif(ENABLE_WML)
 
 if(ENABLE_VIDEO)
-    if(APPLE)
-        list(APPEND USER_AGENT_STYLE_SHEETS
-            ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
-        )
-    else(APPLE)
+    list(APPEND USER_AGENT_STYLE_SHEETS
+        ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
+    )
+    if(USE_GRAPHICS_QT)
         list(APPEND USER_AGENT_STYLE_SHEETS
             ${OWB_SOURCE_DIR}/WebCore/css/mediaControlsQT.css
         )
-    endif(APPLE)
+    endif(USE_GRAPHICS_QT)
 endif(ENABLE_VIDEO)
 
 set(WEBCORE_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebCore)

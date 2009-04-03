@@ -1,3 +1,19 @@
+2009-04-03  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        * WebKit.xcodeproj/project.pbxproj: 
+        Add WebDOMOperationsInternal.h and make WebDOMOperationsPrivate.h private. 
+
+2009-04-01  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24990
+        Put SECTORDER_FLAGS into xcconfig files.
+
+        * WebKit.xcodeproj/project.pbxproj:
+
 2009-03-30  Darin Adler  <darin@apple.com>
 
         * StringsNotToBeLocalized.txt: Updated for recent changes.

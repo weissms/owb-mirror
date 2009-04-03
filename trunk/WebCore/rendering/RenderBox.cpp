@@ -944,7 +944,7 @@ void RenderBox::mapLocalToContainer(RenderBoxModelObject* repaintContainer, bool
         return;
 
     if (RenderView* v = view()) {
-        if (v->layoutStateEnabled()) {
+        if (v->layoutStateEnabled() && !repaintContainer) {
             LayoutState* layoutState = v->layoutState();
             IntSize offset = layoutState->m_offset;
             offset.expand(x(), y());
@@ -969,10 +969,12 @@ void RenderBox::mapLocalToContainer(RenderBoxModelObject* repaintContainer, bool
     IntSize containerOffset = offsetFromContainer(o);
 
     bool preserve3D = useTransforms && (o->style()->preserves3D() || style()->preserves3D());
-    if (useTransforms && hasTransform)
-        transformState.applyTransform(transformFromContainer(o, containerOffset), preserve3D);
-    else
-        transformState.move(containerOffset.width(), containerOffset.height(), preserve3D);
+    if (useTransforms && hasTransform) {
+        TransformationMatrix t;
+        getTransformFromContainer(o, containerOffset, t);
+        transformState.applyTransform(t, preserve3D ? TransformState::AccumulateTransform : TransformState::FlattenTransform);
+    } else
+        transformState.move(containerOffset.width(), containerOffset.height(), preserve3D ? TransformState::AccumulateTransform : TransformState::FlattenTransform);
 
     o->mapLocalToContainer(repaintContainer, fixed, useTransforms, transformState);
 }
@@ -998,10 +1000,12 @@ void RenderBox::mapAbsoluteToLocalPoint(bool fixed, bool useTransforms, Transfor
     IntSize containerOffset = offsetFromContainer(o);
 
     bool preserve3D = useTransforms && (o->style()->preserves3D() || style()->preserves3D());
-    if (useTransforms && hasTransform)
-        transformState.applyTransform(transformFromContainer(o, containerOffset), preserve3D);
-    else
-        transformState.move(-containerOffset.width(), -containerOffset.height(), preserve3D);
+    if (useTransforms && hasTransform) {
+        TransformationMatrix t;
+        getTransformFromContainer(o, containerOffset, t);
+        transformState.applyTransform(t, preserve3D ? TransformState::AccumulateTransform : TransformState::FlattenTransform);
+    } else
+        transformState.move(-containerOffset.width(), -containerOffset.height(), preserve3D ? TransformState::AccumulateTransform : TransformState::FlattenTransform);
 }
 
 IntSize RenderBox::offsetFromContainer(RenderObject* o) const
@@ -1123,6 +1127,10 @@ void RenderBox::computeRectForRepaint(RenderBoxModelObject* repaintContainer, In
         // LayoutState is only valid for root-relative repainting
         if (v->layoutStateEnabled() && !repaintContainer) {
             LayoutState* layoutState = v->layoutState();
+
+            if (layer() && layer()->transform())
+                rect = layer()->transform()->mapRect(rect);
+
             if (style()->position() == RelativePosition && layer())
                 rect.move(layer()->relativePositionOffset());
 

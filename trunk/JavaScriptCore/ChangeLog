@@ -1,3 +1,35 @@
+2009-04-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        <rdar://problem/6744471> crash in GC due to uninitialized callFunction pointer
+
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObjectData::JSGlobalObjectData): Initialize
+        callFunction as we do the other data members that are used in the mark function.
+
+2009-04-02  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Simon Hausmann
+
+        https://bugs.webkit.org/show_bug.cgi?id=24490
+
+        Implement WTF::ThreadSpecific in the Qt build using
+        QThreadStorage.
+
+        * wtf/ThreadSpecific.h:
+
+2009-04-01  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24990
+        Put SECTORDER_FLAGS into xcconfig files.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
 2009-03-30  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by NOBODY (Build fix).
