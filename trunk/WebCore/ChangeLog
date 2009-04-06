@@ -16,6 +16,517 @@
         * rendering/RenderBlock.cpp:
         (WebCore::RenderBlock::layoutBlock):
 
+2009-04-06  Geoffrey Garen  <ggaren@apple.com>
+
+        [Originally] Reviewed by Sam Weinig.
+
+        Rolled back in r42214 with crashes fixed.
+
+        [Removed irrelevant ExecState* parameter from event handler registration code.]
+        
+        [No change in behavior.]
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::findOrCreateJSProtectedEventListener):
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::addEventListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::addEventListener):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::addEventListener):
+        (WebCore::JSWorkerContext::removeEventListener):
+        * bindings/js/JSWorkerCustom.cpp:
+        (WebCore::JSWorker::addEventListener):
+        (WebCore::JSWorker::removeEventListener):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2009-04-05  Erik L. Bunce  <elbunce@xendom.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25050
+
+        Fix an assert failure when dropping an 'empty' text/uri-list on a QWebView. 
+
+        * platform/qt/DragDataQt.cpp:
+        (WebCore::DragData::asURL):
+
+2009-04-05  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * bridge/qt/qt_runtime.h:
+        (JSC::Bindings::QtRuntimeMethod::createPrototype): Take the JSGlobalObject
+        as second argument.
+
+2009-04-04  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Build fixes for wxMac/Tiger.
+
+        * platform/wx/wxcode/mac/carbon/fontprops.cpp:
+        (wxFontProperties::wxFontProperties):
+        * rendering/break_lines.cpp:
+        (WebCore::nextBreakablePosition):
+        * webcore-wx.bkl:
+
+2009-04-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Cameron Zwarich
+
+        https://bugs.webkit.org/show_bug.cgi?id=24648
+        
+        Ensure that mapPoint(const IntPoint&) calls the FloatPoint
+        version to avoid infinite recursion.
+        
+        No test because mapPoint(const IntPoint&) isn't ever called
+        on Mac, so I can't reproduce.
+        
+        * platform/graphics/transforms/TransformationMatrix.h:
+        (WebCore::TransformationMatrix::mapPoint):
+
+2009-04-04  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix <rdar://problem/6757862> REGRESSION: Cannot use the mouse to place
+          the insertion point inside a Thai character
+
+        Test: fast/text/international/thai-offsetForPosition-inside-character.html
+
+        * platform/graphics/mac/CoreTextController.cpp:
+        (WebCore::CoreTextController::offsetForPosition): Changed to use
+        cursorMovementIterator instead of characterBreakIterator, allowing this
+        function to return a valid cursor position even if it is not at
+        a character boundary.
+
+2009-04-04  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix an assertion failure when clicking at the beginning of a
+          glyph cluster at the beginning of a text run
+
+        Test: fast/text/offsetForPosition-cluster-at-zero.html
+
+        * platform/graphics/mac/CoreTextController.cpp:
+        (WebCore::CoreTextController::offsetForPosition): Corrected the bound
+        check on firstGlyphBeforeCluster, letting it be 0 or -1, but not less
+        than -1.
+
+2009-04-03  Brian Weinstein  <bweinstein@gmail.com>
+
+        Allows 16 HTML/CSS standard colors to be shown as swatch backgrounds
+        when the names are given.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25044
+
+        Reviewed by Timothy Hatcher.
+
+        * inspector/front-end/StylesSidebarPane.js:
+        (WebInspector.StylePropertyTreeElement.prototype.updateTitle):
+
+2009-04-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6330929>
+        https://bugs.webkit.org/show_bug.cgi?id=21456
+
+        Don't update the document pointer for all inactive windows on navigations.
+        This change causes us to differ slightly from Firefox when accessing the
+        document from within a closure tied to a navigated context, but as all
+        browsers differ on this edge case, I don't foresee compatibility issues.
+
+        Test: http/tests/security/cross-frame-access-document-direct.html
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::~JSDOMWindowBase):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::clearWindowShell):
+        (WebCore::ScriptController::initScript):
+        (WebCore::ScriptController::updateDocument):
+        * bindings/js/ScriptController.h:
+
+2009-04-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Test: transitions/bad-transition-shorthand-crash.html
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=24787.
+
+        We were starting transitions with 0 duration and delay, which is 
+        useless. With accelerated compositing on, this went through a code
+        path that tried to use m_toStyle, which never got set because the 
+        transitions was short circuited before it had a chance to. So I
+        both protect against using that null pointer and avoid starting
+        the transition in the first place.
+
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::updateTransitions):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::blendPropertyValueInStyle):
+
+2009-04-03  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where you could not type any more in the Web Inspector's
+        search field after the first match is selected in the Resources panel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23982
+        rdar://problem/6592367
+
+        Reviewed by Darin Adler.
+
+        * inspector/front-end/SourceView.js:
+        (WebInspector.SourceView.prototype._jumpToSearchResult): Use the
+        window object of the frame to set the selection, not the main window.
+
+2009-04-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22081
+        <rdar://problem/6346030>
+        Don't allow overriding the return value of window.location.
+
+        Tests: fast/dom/Window/Location/location-override-toString-on-proto-using-defineGetter.html
+               fast/dom/Window/Location/location-override-toString-on-proto-using-with.html
+               fast/dom/Window/Location/location-override-toString-on-proto.html
+               fast/dom/Window/Location/location-override-toString-using-defineGetter.html
+               fast/dom/Window/Location/location-override-toString-using-with.html
+               fast/dom/Window/Location/location-override-toString.html
+               fast/dom/Window/Location/location-override-valueOf-on-proto-using-defineGetter.html
+               fast/dom/Window/Location/location-override-valueOf-on-proto-using-with.html
+               fast/dom/Window/Location/location-override-valueOf-on-proto.html
+               fast/dom/Window/Location/location-override-valueOf-using-defineGetter.html
+               fast/dom/Window/Location/location-override-valueOf-using-with.html
+               fast/dom/Window/Location/location-override-valueOf.html
+               fast/dom/Window/Location/window-override-location-using-defineGetter.html
+               fast/dom/Window/Location/window-override-window-using-defineGetter.html
+               fast/dom/Window/Location/window-shadow-location-using-js-object-with-toString.html
+               fast/dom/Window/Location/window-shadow-location-using-string.html
+               fast/dom/Window/Location/window-shadow-window-using-js-object-with-location-field.html
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::defineGetter):
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::JSLocation::customPut):
+        (WebCore::JSLocation::defineGetter):
+        (WebCore::JSLocationPrototype::customPut):
+        (WebCore::JSLocationPrototype::defineGetter):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * page/Location.idl:
+
+2009-04-03  Geoffrey Garen  <ggaren@apple.com>
+
+        Rolled out r42214 since it seems to have caused crashes on the buildbot.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::findOrCreateJSProtectedEventListener):
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::addEventListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::addEventListener):
+        (WebCore::JSNode::removeEventListener):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::addEventListener):
+        (WebCore::JSWorkerContext::removeEventListener):
+        * bindings/js/JSWorkerCustom.cpp:
+        (WebCore::JSWorker::addEventListener):
+        (WebCore::JSWorker::removeEventListener):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2009-04-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for <rdar://problem/6476356>
+        https://bugs.webkit.org/show_bug.cgi?id=23148
+
+        - Use the window object the Location and History objects are directly associated with
+          instead of the lexical global object to pick the object prototype to serve as the
+          base of the their respective prototype chains.
+        - Re-factor as necessary to allow passing the correct global object to the createPrototype
+          functions.
+
+        Tests: http/tests/security/cross-frame-access-history-prototype.html
+               http/tests/security/cross-frame-access-location-prototype.html
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::getCachedDOMStructure):
+        (WebCore::cacheDOMStructure):
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::getDOMStructure):
+        (WebCore::getDOMPrototype):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::history):
+        (WebCore::JSDOMWindow::location):
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::location):
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor):
+        * bindings/js/JSMessageChannelConstructor.cpp:
+        (WebCore::JSMessageChannelConstructor::JSMessageChannelConstructor):
+        * bindings/js/JSNamedNodesCollection.h:
+        (WebCore::JSNamedNodesCollection::createPrototype):
+        * bindings/js/JSOptionConstructor.cpp:
+        (WebCore::JSOptionConstructor::JSOptionConstructor):
+        * bindings/js/JSRGBColor.h:
+        (WebCore::JSRGBColor::createPrototype):
+        * bindings/js/JSWebKitCSSMatrixConstructor.cpp:
+        (WebCore::JSWebKitCSSMatrixConstructor::JSWebKitCSSMatrixConstructor):
+        * bindings/js/JSWebKitPointConstructor.cpp:
+        (WebCore::JSWebKitPointConstructor::JSWebKitPointConstructor):
+        * bindings/js/JSWorkerConstructor.cpp:
+        (WebCore::JSWorkerConstructor::JSWorkerConstructor):
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor):
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        (WebCore::JSXSLTProcessorConstructor::JSXSLTProcessorConstructor):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/objc/objc_runtime.h:
+        (JSC::Bindings::ObjcFallbackObjectImp::createPrototype):
+        * bridge/runtime_array.h:
+        (JSC::RuntimeArray::createPrototype):
+        * bridge/runtime_method.h:
+        (JSC::RuntimeMethod::createPrototype):
+        * bridge/runtime_object.h:
+        (JSC::RuntimeObjectImp::createPrototype):
+        * page/DOMWindow.idl:
+
+2009-04-03  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25009
+        Upstream changes to WorkerContextExecutionProxy for V8 bindings in order to use V8EventListenerList as container.
+
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::WorkerContextExecutionProxy):
+        (WebCore::WorkerContextExecutionProxy::dispose):
+        (WebCore::WorkerContextExecutionProxy::FindOrCreateEventListener):
+        (WebCore::WorkerContextExecutionProxy::RemoveEventListener):
+        * bindings/v8/WorkerContextExecutionProxy.h:
+
+2009-04-03  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Removed irrelevant ExecState* parameter from event handler registration code.
+        
+        No change in behavior.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::findOrCreateJSProtectedEventListener):
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::addEventListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::addEventListener):
+        (WebCore::JSNode::removeEventListener):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::addEventListener):
+        (WebCore::JSWorkerContext::removeEventListener):
+        * bindings/js/JSWorkerCustom.cpp:
+        (WebCore::JSWorker::addEventListener):
+        (WebCore::JSWorker::removeEventListener):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2009-04-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        - fix <rdar://problem/6634771> Under full-page zoom, cannot scroll
+          MobileMe contact list
+
+        Test: fast/css/zoom-in-length-round-trip.html
+
+        * dom/Element.cpp:
+        (WebCore::adjustForLocalZoom): For zoom factors greater than 1, ensure
+        that the returned value is equal to the original unscaled value.
+        (WebCore::adjustForAbsoluteZoom): Ditto.
+
+2009-04-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=24941
+
+        This fix essentially does a -viewWillDraw call for layout. It adds 
+        a CFRunLoopObserver which performs layout just before drawing on the 
+        Mac platform. This makes sure layout is complete before rendering and 
+        avoids a flash.
+
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::scheduleViewUpdate):
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::setCompositingLayersNeedUpdate):
+        (WebCore::RenderLayerCompositor::scheduleViewUpdate):
+        * rendering/RenderLayerCompositor.h:
+
+2009-04-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=24648
+
+        Optimize mapPoint(), mapRect() and mapQuad() for identity matrix and translations.
+        
+        * platform/graphics/transforms/TransformationMatrix.cpp:
+        (WebCore::TransformationMatrix::mapPoint):
+        (WebCore::TransformationMatrix::mapRect):
+        (WebCore::TransformationMatrix::mapQuad):
+        * platform/graphics/transforms/TransformationMatrix.h:
+        (WebCore::TransformationMatrix::mapPoint):
+
+2009-04-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=25018
+        
+        Add containsPoint() and containsQuad() methods to FloatQuad.
+
+        * platform/graphics/FloatQuad.cpp:
+        (WebCore::dot):
+        (WebCore::isPointInTriangle):
+        (WebCore::FloatQuad::containsPoint):
+        (WebCore::FloatQuad::containsQuad):
+        * platform/graphics/FloatQuad.h:
+
+2009-04-03  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Darin.
+
+        *  loader/ProgressTracker.cpp: Included DocumentLoader.h
+        (WebCore::ProgressTracker::incrementProgress): Limit the 50%-clamp rule to 
+        documents that use WebCore's layout system.
+
+2009-04-03  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/6336092> REGRESSION: movie does not resize correctly
+
+        Test: media/video-size-intrinsic-scale.html
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::naturalSize): Use QTMovieCurrentSizeAttribute instead 
+        of QTMovieNaturalSizeAttribute so we return the correct size for movies saved
+        with a non-default matrix.
+        (WebCore::MediaPlayerPrivate::setSize): Don't resize the QTMovieView
+        because [QTMovieView setFrame] also resizes the movie itself, and as
+        the renderer calls setSize immediately when a movie reports a size change
+        (QTMovieSizeDidChangeNotification) we can get into a feedback loop
+        observing the size change and resetting the size, and this can cause
+        QuickTime to miss correctly setting a movie's size when the media size
+        changes after opening (as happens with an rtsp movie once the server sends
+        the track sizes). Instead, remember the size passed to paint() and 
+        resize the view when it changes.
+        (WebCore::MediaPlayerPrivate::paint): Resize the view when passed a new size.
+
+        * platform/graphics/win/QTMovieWin.cpp:
+        (QTMovieWin::getNaturalSize): Use GetMovieBox instead of GetMovieNaturalBoundsRect
+        so we return the correct size for movies saved with non-default matrix.
+
+2009-04-03  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Restore FrameLoader::policyDocumentLoader to fix the Chromium build.
+        https://bugs.webkit.org/show_bug.cgi?id=25028
+
+        * loader/FrameLoader.h:
+        (WebCore::FrameLoader::policyDocumentLoader):
+
+2009-04-02  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Use long long, not int64, when working in webcore (sorry).
+        https://bugs.webkit.org/show_bug.cgi?id=25011
+
+        No change in functionality, so no tests.
+
+        * platform/network/chromium/ResourceResponse.h:
+        (WebCore::ResourceResponse::getAppCacheID):
+        (WebCore::ResourceResponse::setAppCacheID):
+
+2009-04-03  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        Remove pre-processor checks for GTK+ >= 2.10, since we now require
+        at least that version.
+
+        * platform/graphics/gtk/FontPlatformDataGtk.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+        * platform/gtk/ContextMenuItemGtk.cpp:
+        (WebCore::gtkStockIDFromContextMenuAction):
+        * platform/gtk/KeyEventGtk.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * platform/gtk/LocalizedStringsGtk.cpp:
+        (WebCore::contextMenuItemTagSelectAll):
+        * platform/gtk/MouseEventGtk.cpp:
+        (WebCore::PlatformMouseEvent::PlatformMouseEvent):
+        * platform/gtk/PasteboardGtk.cpp:
+        (WebCore::Pasteboard::writeSelection):
+        (WebCore::Pasteboard::documentFragment):
+        * platform/gtk/WheelEventGtk.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
 2009-04-02  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Dan Bernstein
@@ -74,7 +585,7 @@
         * loader/FrameLoader.cpp:
         (WebCore::FrameLoader::submitForm): Removed unneeded check of the createdByParser flag.
         The original change that introduced this, http://trac.webkit.org/changeset/25410, does
-        not make it clear why this check was needed. And it seems it is needed.
+        not make it clear why this check was needed. And it seems it is not needed.
 
 2009-04-02  Adele Peterson  <adele@apple.com>
 

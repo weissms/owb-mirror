@@ -28,9 +28,13 @@
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameTree.h"
+#include "History.h"
 #include "JSDOMWindowShell.h"
 #include "JSEventListener.h"
+#include "JSHistory.h"
+#include "JSLocation.h"
 #include "JSMessagePort.h"
+#include "Location.h"
 #include "MessagePort.h"
 #include "ScriptController.h"
 #include "Settings.h"
@@ -99,6 +103,11 @@ void JSDOMWindow::defineGetter(ExecState* exec, const Identifier& propertyName, 
     // Only allow defining getters by frames in the same origin.
     if (!allowsAccessFrom(exec))
         return;
+
+    // Don't allow shadowing location using defineGetter.
+    if (propertyName == "location")
+        return;
+
     Base::defineGetter(exec, propertyName, getterFunction);
 }
 
@@ -124,6 +133,28 @@ JSValuePtr JSDOMWindow::lookupSetter(ExecState* exec, const Identifier& property
     if (!allowsAccessFrom(exec))
         return jsUndefined();
     return Base::lookupSetter(exec, propertyName);
+}
+
+JSValuePtr JSDOMWindow::history(ExecState* exec) const
+{
+    History* history = impl()->history();
+    if (DOMObject* wrapper = getCachedDOMObjectWrapper(exec->globalData(), history))
+        return wrapper;
+
+    JSHistory* jsHistory = new (exec) JSHistory(getDOMStructure<JSHistory>(exec, const_cast<JSDOMWindow*>(this)), history);
+    cacheDOMObjectWrapper(exec->globalData(), history, jsHistory);
+    return jsHistory;
+}
+
+JSValuePtr JSDOMWindow::location(ExecState* exec) const
+{
+    Location* location = impl()->location();
+    if (DOMObject* wrapper = getCachedDOMObjectWrapper(exec->globalData(), location))
+        return wrapper;
+
+    JSLocation* jsLocation = new (exec) JSLocation(getDOMStructure<JSLocation>(exec, const_cast<JSDOMWindow*>(this)), location);
+    cacheDOMObjectWrapper(exec->globalData(), location, jsLocation);
+    return jsLocation;
 }
 
 void JSDOMWindow::setLocation(ExecState* exec, JSValuePtr value)
@@ -270,7 +301,7 @@ JSValuePtr JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
     if (!frame)
         return jsUndefined();
 
-    if (RefPtr<JSProtectedEventListener> listener = findOrCreateJSProtectedEventListener(exec, args.at(exec, 1)))
+    if (RefPtr<JSProtectedEventListener> listener = findOrCreateJSProtectedEventListener(args.at(exec, 1)))
         frame->document()->addWindowEventListener(AtomicString(args.at(exec, 0).toString(exec)), listener.release(), args.at(exec, 2).toBoolean(exec));
 
     return jsUndefined();

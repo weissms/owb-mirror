@@ -1,3 +1,71 @@
+2009-04-06  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/6756512>
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::spawnPluginHost): Tweaked the visibleName property.
+
+2009-04-03  John Sullivan  <sullivan@apple.com>
+
+        Reviewed by Ada Chan
+        
+        <rdar://problem/6755838> Removing all icons can delete other items from disk.
+
+        * Misc/WebIconDatabase.mm:
+        (importToWebCoreFormat):
+        When snooping around in various directories looking for a directory full of Safari-2-style
+        icon database information to convert and delete, bail out without doing the delete part if
+        we didn't actually find any Safari-2-style icon database information.
+
+2009-04-03  John Sullivan  <sullivan@apple.com>
+
+        fixed <rdar://problem/6355573> [WebView _setCacheModel:] leaks the result of _CFURLCacheCopyCacheDirectory
+
+        Reviewed by Adam Roben
+
+        * WebView/WebView.mm:
+        (+[WebView _setCacheModel:]):
+        use WebCFAutorelease rather than autorelease on result of method that returns CFStringRef
+
+2009-04-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=24941
+
+        This fix essentially does a -viewWillDraw call for layout. It adds 
+        a CFRunLoopObserver which performs layout just before drawing on the 
+        Mac platform. This makes sure layout is complete before rendering and 
+        avoids a flash.
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::attachRootGraphicsLayer):
+        (WebChromeClient::setNeedsOneShotDrawingSynchronization):
+        (WebChromeClient::scheduleViewUpdate):
+        * WebView/WebView.mm:
+        (-[WebViewPrivate _clearViewUpdateRunLoopObserver]):
+        (-[WebView _viewWillDrawInternal]):
+        (-[WebView viewWillDraw]):
+        (-[WebView close]):
+        (viewUpdateRunLoopObserverCallBack):
+        (-[WebView _scheduleViewUpdate]):
+        * WebView/WebViewInternal.h:
+
+2009-04-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        WebKit side of <rdar://problem/6752953>.
+        
+        Pass the clip rect to the plug-in host.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::resize):
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
 2009-04-03  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Dan Bernstein and Timothy Hatcher.

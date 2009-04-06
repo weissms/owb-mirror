@@ -156,12 +156,12 @@ int CoreTextController::offsetForPosition(int h, bool includePartialGlyphs)
             if (x <= adjustedAdvance) {
                 CFIndex hitIndex = coreTextRun.indexAt(j);
                 int stringLength = coreTextRun.stringLength();
-                TextBreakIterator* characterIterator = characterBreakIterator(coreTextRun.characters(), stringLength);
+                TextBreakIterator* cursorPositionIterator = cursorMovementIterator(coreTextRun.characters(), stringLength);
                 int clusterStart;
-                if (isTextBreak(characterIterator, hitIndex))
+                if (isTextBreak(cursorPositionIterator, hitIndex))
                     clusterStart = hitIndex;
                 else {
-                    clusterStart = textBreakPreceding(characterIterator, hitIndex);
+                    clusterStart = textBreakPreceding(cursorPositionIterator, hitIndex);
                     if (clusterStart == TextBreakDone)
                         clusterStart = 0;
                 }
@@ -169,7 +169,7 @@ int CoreTextController::offsetForPosition(int h, bool includePartialGlyphs)
                 if (!includePartialGlyphs)
                     return coreTextRun.stringLocation() + clusterStart;
 
-                int clusterEnd = textBreakFollowing(characterIterator, hitIndex);
+                int clusterEnd = textBreakFollowing(cursorPositionIterator, hitIndex);
                 if (clusterEnd == TextBreakDone)
                     clusterEnd = stringLength;
 
@@ -179,7 +179,7 @@ int CoreTextController::offsetForPosition(int h, bool includePartialGlyphs)
                 // reordering and on font fallback should occur within a CTLine.
                 if (clusterEnd - clusterStart > 1) {
                     int firstGlyphBeforeCluster = j - 1;
-                    while (firstGlyphBeforeCluster && coreTextRun.indexAt(firstGlyphBeforeCluster) >= clusterStart && coreTextRun.indexAt(firstGlyphBeforeCluster) < clusterEnd) {
+                    while (firstGlyphBeforeCluster >= 0 && coreTextRun.indexAt(firstGlyphBeforeCluster) >= clusterStart && coreTextRun.indexAt(firstGlyphBeforeCluster) < clusterEnd) {
                         CGFloat width = m_adjustedAdvances[offsetIntoAdjustedGlyphs + firstGlyphBeforeCluster].width;
                         clusterWidth += width;
                         x += width;

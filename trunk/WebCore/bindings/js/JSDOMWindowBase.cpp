@@ -151,8 +151,6 @@ void JSDOMWindowBase::updateDocument()
 
 JSDOMWindowBase::~JSDOMWindowBase()
 {
-    if (d()->impl->frame())
-        d()->impl->frame()->script()->clearFormerWindow(asJSDOMWindow(this));
 }
 
 ScriptExecutionContext* JSDOMWindowBase::scriptExecutionContext() const

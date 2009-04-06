@@ -112,11 +112,10 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     cairo_matrix_init_identity(&ctm);
 
 #if !PLATFORM(SDLCAIRO)
-#if GTK_CHECK_VERSION(2,10,0)
     if (GdkScreen* screen = gdk_screen_get_default())
         options = gdk_screen_get_font_options(screen);
 #endif
-#endif
+
     // gdk_screen_get_font_options() returns NULL if no default options are
     // set, so we always have to check.
     if (!options)
@@ -155,11 +154,10 @@ FontPlatformData::FontPlatformData(cairo_font_face_t* fontFace, int size, bool b
     const cairo_font_options_t* options = NULL;
 
 #if !PLATFORM(SDLCAIRO)
-#if GTK_CHECK_VERSION(2,10,0)
     if (GdkScreen* screen = gdk_screen_get_default())
         options = gdk_screen_get_font_options(screen);
 #endif
-#endif
+
     // gdk_screen_get_font_options() returns NULL if no default options are
     // set, so we always have to check.
     if (!options)

@@ -437,7 +437,7 @@ sub GenerateHeader
     push(@headerContent, "    virtual ~$className();\n") if (!$hasParent or $interfaceName eq "Document");
 
     # Prototype
-    push(@headerContent, "    static JSC::JSObject* createPrototype(JSC::ExecState*);\n") unless ($dataNode->extendedAttributes->{"ExtendsDOMGlobalObject"});
+    push(@headerContent, "    static JSC::JSObject* createPrototype(JSC::ExecState*, JSC::JSGlobalObject*);\n") unless ($dataNode->extendedAttributes->{"ExtendsDOMGlobalObject"});
 
     $implIncludes{"${className}Custom.h"} = 1 if $dataNode->extendedAttributes->{"CustomHeader"} || $dataNode->extendedAttributes->{"CustomPutFunction"};
 
@@ -653,24 +653,35 @@ sub GenerateHeader
 
     # Add prototype declaration.
     push(@headerContent, "class ${className}Prototype : public JSC::JSObject {\n");
+    push(@headerContent, "    typedef JSC::JSObject Base;\n");
     push(@headerContent, "public:\n");
     if ($interfaceName eq "DOMWindow") {
         push(@headerContent, "    void* operator new(size_t);\n");
     } elsif ($interfaceName eq "WorkerContext") {
         push(@headerContent, "    void* operator new(size_t, JSC::JSGlobalData*);\n");
     } else {
-        push(@headerContent, "    static JSC::JSObject* self(JSC::ExecState*);\n");
+        push(@headerContent, "    static JSC::JSObject* self(JSC::ExecState*, JSC::JSGlobalObject*);\n");
     }
     push(@headerContent, "    virtual const JSC::ClassInfo* classInfo() const { return &s_info; }\n");
     push(@headerContent, "    static const JSC::ClassInfo s_info;\n");
-    if ($numFunctions > 0 || $numConstants > 0) {
+    if ($numFunctions > 0 || $numConstants > 0 || $dataNode->extendedAttributes->{"CustomPrototypeGetOwnPropertySlot"}) {
         push(@headerContent, "    virtual bool getOwnPropertySlot(JSC::ExecState*, const JSC::Identifier&, JSC::PropertySlot&);\n");
+        push(@headerContent, "    bool customGetOwnPropertySlot(JSC::ExecState*, const JSC::Identifier&, JSC::PropertySlot&);\n") if $dataNode->extendedAttributes->{"CustomPrototypeGetOwnPropertySlot"};
+
         push(@headerContent,
             "    static PassRefPtr<JSC::Structure> createStructure(JSC::JSValuePtr prototype)\n" .
             "    {\n" .
             "        return JSC::Structure::create(prototype, JSC::TypeInfo(JSC::ObjectType));\n" .
             "    }\n");
     }
+    if ($dataNode->extendedAttributes->{"CustomPrototypePutFunction"}) {
+        push(@headerContent, "    virtual void put(JSC::ExecState*, const JSC::Identifier& propertyName, JSC::JSValuePtr, JSC::PutPropertySlot&);\n");
+        push(@headerContent, "    bool customPut(JSC::ExecState*, const JSC::Identifier&, JSC::JSValuePtr, JSC::PutPropertySlot&);\n");
+    }
+
+    # Custom defineGetter function
+    push(@headerContent, "    virtual void defineGetter(JSC::ExecState*, const JSC::Identifier& propertyName, JSC::JSObject* getterFunction);\n") if $dataNode->extendedAttributes->{"CustomPrototypeDefineGetter"};
+
     push(@headerContent, "    ${className}Prototype(PassRefPtr<JSC::Structure> structure) : JSC::JSObject(structure) { }\n");
 
     push(@headerContent, "};\n\n");
@@ -872,7 +883,7 @@ sub GenerateImplementation
         my @specials = ();
         push(@specials, "DontDelete") unless $function->signature->extendedAttributes->{"Deletable"};
         push(@specials, "DontEnum") if $function->signature->extendedAttributes->{"DontEnum"};
-        push(@specials, "Function");        
+        push(@specials, "Function");
         my $special = (@specials > 0) ? join("|", @specials) : "0";
         push(@hashSpecials, $special);
     }
@@ -901,21 +912,38 @@ sub GenerateImplementation
         push(@implContent, "    return globalData->heap.allocate(size);\n");
         push(@implContent, "}\n\n");
     } else {
-        push(@implContent, "JSObject* ${className}Prototype::self(ExecState* exec)\n");
+        push(@implContent, "JSObject* ${className}Prototype::self(ExecState* exec, JSGlobalObject* globalObject)\n");
         push(@implContent, "{\n");
-        push(@implContent, "    return getDOMPrototype<${className}>(exec);\n");
+        push(@implContent, "    return getDOMPrototype<${className}>(exec, globalObject);\n");
         push(@implContent, "}\n\n");
     }
-    if ($numConstants > 0 || $numFunctions > 0) {
+    if ($numConstants > 0 || $numFunctions > 0 || $dataNode->extendedAttributes->{"CustomPrototypeGetOwnPropertySlot"}) {
         push(@implContent, "bool ${className}Prototype::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)\n");
         push(@implContent, "{\n");
-        if ($numConstants eq 0) {
+
+        if ($dataNode->extendedAttributes->{"CustomPrototypeGetOwnPropertySlot"}) {
+            push(@implContent, "    if (customGetOwnPropertySlot(exec, propertyName, slot))\n");
+            push(@implContent, "        return true;\n");
+        }
+
+        if ($numConstants eq 0 && $numFunctions eq 0) {
+            push(@implContent, "    return Base::getOwnPropertySlot(exec, propertyName, slot);\n");        
+        } elsif ($numConstants eq 0) {
             push(@implContent, "    return getStaticFunctionSlot<JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         } elsif ($numFunctions eq 0) {
             push(@implContent, "    return getStaticValueSlot<${className}Prototype, JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         } else {
             push(@implContent, "    return getStaticPropertySlot<${className}Prototype, JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         }
+        push(@implContent, "}\n\n");
+    }
+
+    if ($dataNode->extendedAttributes->{"CustomPrototypePutFunction"}) {
+        push(@implContent, "void ${className}Prototype::put(ExecState* exec, const Identifier& propertyName, JSValuePtr value, PutPropertySlot& slot)\n");
+        push(@implContent, "{\n");
+        push(@implContent, "    if (customPut(exec, propertyName, value, slot))\n");
+        push(@implContent, "        return;\n");
+        push(@implContent, "    Base::put(exec, propertyName, value, slot);\n");
         push(@implContent, "}\n\n");
     }
 
@@ -1009,12 +1037,12 @@ sub GenerateImplementation
     }
 
     if (!$dataNode->extendedAttributes->{"ExtendsDOMGlobalObject"}) {
-        push(@implContent, "JSObject* ${className}::createPrototype(ExecState* exec)\n");
+        push(@implContent, "JSObject* ${className}::createPrototype(ExecState* exec, JSGlobalObject* globalObject)\n");
         push(@implContent, "{\n");
         if ($hasParent && $parentClassName ne "JSC::DOMNodeFilter") {
-            push(@implContent, "    return new (exec) ${className}Prototype(${className}Prototype::createStructure(${parentClassName}Prototype::self(exec)));\n");
+            push(@implContent, "    return new (exec) ${className}Prototype(${className}Prototype::createStructure(${parentClassName}Prototype::self(exec, globalObject)));\n");
         } else {
-            push(@implContent, "    return new (exec) ${className}Prototype(${className}Prototype::createStructure(exec->lexicalGlobalObject()->objectPrototype()));\n");
+            push(@implContent, "    return new (exec) ${className}Prototype(${className}Prototype::createStructure(globalObject->objectPrototype()));\n");
         }
         push(@implContent, "}\n\n");
     }
@@ -1211,6 +1239,7 @@ sub GenerateImplementation
                             push(@implContent, "    static_cast<$className*>(thisObject)->set$implSetterFunctionName(exec, value);\n");
                         } elsif ($type eq "EventListener") {
                             $implIncludes{"JSEventListener.h"} = 1;
+                            push(@implContent, "    UNUSED_PARAM(exec);\n");
                             push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(thisObject)->impl());\n");
                             my $listenerType;
                             if ($attribute->signature->extendedAttributes->{"ProtectedListener"}) {
@@ -1227,7 +1256,7 @@ sub GenerateImplementation
                                 push(@implContent, "    if (!globalObject)\n");
                                 push(@implContent, "        return;\n");
                             }
-                            push(@implContent, "    imp->set$implSetterFunctionName(globalObject->findOrCreate${listenerType}(exec, value, true));\n");
+                            push(@implContent, "    imp->set$implSetterFunctionName(globalObject->findOrCreate${listenerType}(value, true));\n");
                         } elsif ($attribute->signature->type =~ /Constructor$/) {
                             my $constructorType = $attribute->signature->type;
                             $constructorType =~ s/Constructor$//;
@@ -1959,7 +1988,7 @@ public:
     ${className}Constructor(ExecState* exec)
         : DOMObject(${className}Constructor::createStructure(exec->lexicalGlobalObject()->objectPrototype()))
     {
-        putDirect(exec->propertyNames().prototype, ${protoClassName}::self(exec), None);
+        putDirect(exec->propertyNames().prototype, ${protoClassName}::self(exec, exec->lexicalGlobalObject()), None);
     }
     virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
     virtual const ClassInfo* classInfo() const { return &s_info; }
