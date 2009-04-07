@@ -1,14 +1,3 @@
-2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
-
-        Reviewed by Sebastien Roret. 
-
-        Build fix when DATABASE is enabled but not INSPECTOR.
-        ScriptObjectQuarantine is a wrapper used only by the
-        WebInspector so I added an #if guard.
-
-        * bindings/js/ScriptObjectQuarantine.cpp:
-        * bindings/js/ScriptObjectQuarantine.h:
-
 2009-04-02  Mario Bensi  <mbensi@pleyo.com>
 
         fix compilation ScriptObjectQuarantine.cpp depend of storage and database.

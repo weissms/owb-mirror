@@ -31,8 +31,6 @@
 #include "config.h"
 #include "ScriptObjectQuarantine.h"
 
-#if ENABLE(INSPECTOR)
-
 #include "Database.h"
 #include "Document.h"
 #include "Frame.h"
@@ -113,5 +111,3 @@ bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedO
 
 
 } // namespace WebCore
-
-#endif // ENABLE(INSPECTOR)
