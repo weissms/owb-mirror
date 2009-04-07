@@ -31,6 +31,8 @@
 #ifndef ScriptObjectQuarantine_h
 #define ScriptObjectQuarantine_h
 
+#if ENABLE(INSPECTOR)
+
 #include "ScriptState.h"
 
 namespace WebCore {
@@ -51,4 +53,7 @@ namespace WebCore {
     bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
 
 }
+
+#endif // ENABLE(INSPECTOR)
+
 #endif // ScriptObjectQuarantine_h
