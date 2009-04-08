@@ -1,3 +1,79 @@
+2009-04-08  Mark Rowe  <mrowe@apple.com>
+
+        Land the current build.webkit.org configuration for safekeeping.
+
+        * BuildSlaveSupport/build.webkit.org-config/README: Added.
+        * BuildSlaveSupport/build.webkit.org-config/Makefile:
+        * BuildSlaveSupport/build.webkit.org-config/buildbot.tac:
+        * BuildSlaveSupport/build.webkit.org-config/config.json: Added.
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+        * BuildSlaveSupport/build.webkit.org-config/public_html/buildbot.css: Renamed from BuildSlaveSupport/build.webkit.org-config/buildbot.css.
+        * BuildSlaveSupport/build.webkit.org-config/public_html/index.html: Added.
+        * BuildSlaveSupport/build.webkit.org-config/public_html/robots.txt: Added.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/__init__.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/auth.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/basesteps.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/builders.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/factories.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/schedulers.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/status.py: Removed.
+        * BuildSlaveSupport/build.webkit.org-config/webkit/steps.py: Removed.
+
+2009-04-07  Mark Rowe  <mrowe@apple.com>
+
+        Ignore the mysterious exception that Cygwin's Python is throwing when attempting
+        to remove the layout-test-results directory.
+
+        * BuildSlaveSupport/test-result-archive:
+
+2009-04-07  Mark Rowe  <mrowe@apple.com>
+
+        Change the working directory before removing the test result directory
+        in the hopes of making the Windows build slaves happier.
+
+        * BuildSlaveSupport/test-result-archive:
+
+2009-04-07  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Make the links to tests in the uploaded results.html files on build.webkit.org point to the test files.
+
+        * Scripts/VCSUtils.pm: Add a function that will return the location of a file relative to the root of the working copy.
+        * Scripts/run-webkit-tests: Convert the path in to a remote URL if the path is below the layout tests directory.
+
+2009-04-07  Mark Rowe  <mrowe@apple.com>
+
+        Remove the layout-test-results directory after we have archived it so that
+        log files and results are reset between runs of the tests.
+
+        * BuildSlaveSupport/test-result-archive:
+
+2009-04-07  Mark Rowe  <mrowe@apple.com>
+
+        Helper script for uploading layout test results for display on build.webkit.org.
+
+        * BuildSlaveSupport/test-result-archive: Copied from WebKitTools/BuildSlaveSupport/built-product-archive.
+
+2009-04-11  Brian Weinstein  <bweinstein@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24908
+
+        Allows timeout to be set in run-webkit-tests as a command line argument.
+
+        * Scripts/run-webkit-tests:
+
+2009-04-06  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Add /Programs to the productDir for GTK+, instead of adding
+        /JavaScriptCore, when running jsc.
+
+        * Scripts/run-sunspider:
+
 2009-04-06  Kevin Ollivier  <kevino@theolliviers.com>
 
         Build fixes for wxMac/Tiger and PPC builds.

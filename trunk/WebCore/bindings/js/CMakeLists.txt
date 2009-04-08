@@ -87,6 +87,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/ScriptController.cpp
     bindings/js/ScriptFunctionCall.cpp
     bindings/js/ScriptObject.cpp
+    bindings/js/ScriptState.cpp
     bindings/js/ScriptValue.cpp
 )
 

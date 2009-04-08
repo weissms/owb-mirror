@@ -1,3 +1,75 @@
+2009-04-08  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25073
+        JavaScriptCore tests don't run if time zone is not PST
+
+        * API/tests/testapi.c:
+        (timeZoneIsPST): Added a function that checks whether the time zone is PST, using the same
+        method as functions in DateMath.cpp do for formatting the result.
+        (main): Skip date string format test if the time zone is not PST.
+
+2009-04-07  David Levin  <levin@chromium.org>
+
+        Reviewed by Sam Weinig and Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25039
+        UString refactoring to support UChar* sharing.
+
+        No change in sunspider perf.
+
+        * runtime/SmallStrings.cpp:
+        (JSC::SmallStringsStorage::SmallStringsStorage):
+        * runtime/UString.cpp:
+        (JSC::initializeStaticBaseString):
+        (JSC::initializeUString):
+        (JSC::UString::BaseString::isShared):
+        Encapsulate the meaning behind the refcount == 1 checks because
+        this needs to do slightly more when sharing is added.
+        (JSC::concatenate):
+        (JSC::UString::append):
+        (JSC::UString::operator=):
+        * runtime/UString.h:
+        Make m_baseString part of a union to get rid of casts, but make it protected because
+        it is tricky to use it correctly since it is only valid when the Rep is not a BaseString.
+        The void* will be filled in when sharing is added.
+
+        Add constructors due to the making members protected and it make ensuring proper
+        initialization work better (like in SmallStringsStorage).
+        (JSC::UString::Rep::create):
+        (JSC::UString::Rep::Rep):
+        (JSC::UString::Rep::):
+        (JSC::UString::BaseString::BaseString):
+        (JSC::UString::Rep::setBaseString):
+        (JSC::UString::Rep::baseString):
+
+2009-04-04  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25033
+        dtoa.cpp segfaults with g++ 4.4.0
+
+        g++ 4.4.0 seems to be more strict about aliasing rules, so it
+        produces incorrect code if dtoa.cpp is compiled with
+        -fstrict-aliasing (it also emits a ton of warnings, so fair enough
+        I guess). The problem was that we were only casting variables to
+        union types in order to do type punning, but GCC and the C
+        standard require that we actually use a union to store the value.
+
+        This patch does just that, the code is mostly copied from the dtoa
+        version in GCC:
+        http://gcc.gnu.org/viewcvs/trunk/libjava/classpath/native/fdlibm/dtoa.c?view=markup.
+
+        * wtf/dtoa.cpp:
+        (WTF::ulp):
+        (WTF::b2d):
+        (WTF::ratio):
+        (WTF::hexnan):
+        (WTF::strtod):
+        (WTF::dtoa):
+
 2009-04-06  Kevin Ollivier  <kevino@theolliviers.com>
 
         wx build fix for Win port. Build the assembler sources to get missing functions.

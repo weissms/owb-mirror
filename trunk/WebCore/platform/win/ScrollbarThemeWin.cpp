@@ -30,6 +30,7 @@
 #include "PlatformMouseEvent.h"
 #include "Scrollbar.h"
 #include "SoftLinking.h"
+#include "SystemInfo.h"
 
 // Generic state constants
 #define TS_NORMAL    1
@@ -61,7 +62,6 @@ using namespace std;
 namespace WebCore {
 
 static HANDLE scrollbarTheme;
-static bool haveTheme;
 static bool runningVista;
 
 // FIXME:  Refactor the soft-linking code so that it can be shared with RenderThemeWin
@@ -72,27 +72,10 @@ SOFT_LINK(uxtheme, DrawThemeBackground, HRESULT, WINAPI, (HANDLE hTheme, HDC hdc
 SOFT_LINK(uxtheme, IsThemeActive, BOOL, WINAPI, (), ())
 SOFT_LINK(uxtheme, IsThemeBackgroundPartiallyTransparent, BOOL, WINAPI, (HANDLE hTheme, int iPartId, int iStateId), (hTheme, iPartId, iStateId))
 
-static bool isRunningOnVistaOrLater()
-{
-    static bool os = false;
-    static bool initialized = false;
-    if (!initialized) {
-        OSVERSIONINFOEX vi = {sizeof(vi), 0};
-        GetVersionEx((OSVERSIONINFO*)&vi);
-
-        // NOTE: This does not work under a debugger - Vista shims Visual Studio, 
-        // making it believe it is xpsp2, which is inherited by debugged applications
-        os = vi.dwMajorVersion >= 6;
-        initialized = true;
-    }
-    return os;
-}
-
 static void checkAndInitScrollbarTheme()
 {
-    if (uxthemeLibrary() && !scrollbarTheme)
+    if (uxthemeLibrary() && !scrollbarTheme && IsThemeActive())
         scrollbarTheme = OpenThemeData(0, L"Scrollbar");
-    haveTheme = scrollbarTheme && IsThemeActive();
 }
 
 #if !USE(SAFARI_THEME)
@@ -127,8 +110,11 @@ int ScrollbarThemeWin::scrollbarThickness(ScrollbarControlSize)
 
 void ScrollbarThemeWin::themeChanged()
 {
-    if (haveTheme)
-        CloseThemeData(scrollbarTheme);
+    if (!scrollbarTheme)
+        return;
+
+    CloseThemeData(scrollbarTheme);
+    scrollbarTheme = 0;
 }
 
 bool ScrollbarThemeWin::invalidateOnMouseEnterExit()

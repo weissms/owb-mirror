@@ -61,8 +61,9 @@ void SimpleFontData::platformInit()
         m_ascent = metrics.fVDMXAscent;
         m_descent = metrics.fVDMXDescent;
     } else {
+        SkScalar height = metrics.fAscent + metrics.fDescent + metrics.fLeading;
         m_ascent = SkScalarRound(-metrics.fAscent);
-        m_descent = SkScalarRound(metrics.fHeight) - m_ascent;
+        m_descent = SkScalarRound(height) - m_ascent;
     }
 
     if (metrics.fXHeight)
@@ -79,7 +80,8 @@ void SimpleFontData::platformInit()
     // calculated for us, but we need to calculate m_maxCharWidth and
     // m_avgCharWidth in order for text entry widgets to be sized correctly.
 
-    m_maxCharWidth = SkScalarRound(metrics.fXRange * SkScalarRound(m_font.size()));
+    SkScalar xRange = metrics.fXMax - metrics.fXMin;
+    m_maxCharWidth = SkScalarRound(xRange * SkScalarRound(m_font.size()));
 
     if (metrics.fAvgCharWidth)
         m_avgCharWidth = SkScalarRound(metrics.fAvgCharWidth);

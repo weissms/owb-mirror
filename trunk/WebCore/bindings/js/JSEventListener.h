@@ -21,6 +21,7 @@
 #define JSEventListener_h
 
 #include "EventListener.h"
+#include "JSDOMWindow.h"
 #include <runtime/Protect.h>
 
 namespace WebCore {
@@ -56,34 +57,44 @@ namespace WebCore {
         void clearGlobalObject();
 
     private:
-        JSEventListener(JSC::JSObject* listener, JSDOMGlobalObject*, bool isInline);
+        JSEventListener(JSC::JSObject* function, JSDOMGlobalObject*, bool isInline);
 
-        virtual JSC::JSObject* function() const;
-        virtual void mark();
+        virtual JSC::JSObject* jsFunction() const;
+        virtual void clearJSFunction();
+        virtual void markJSFunction();
         virtual JSDOMGlobalObject* globalObject() const;
 
-        JSC::JSObject* m_listener;
+        void clearJSFunctionInline()
+        {
+            if (m_jsFunction && m_globalObject) {
+                JSDOMWindow::JSListenersMap& listeners = isInline()
+                    ? m_globalObject->jsInlineEventListeners() : m_globalObject->jsEventListeners();
+                listeners.remove(m_jsFunction);
+            }
+        }
+
+        JSC::JSObject* m_jsFunction;
         JSDOMGlobalObject* m_globalObject;
     };
 
     class JSProtectedEventListener : public JSAbstractEventListener {
     public:
-        static PassRefPtr<JSProtectedEventListener> create(JSC::JSObject* listener, JSDOMGlobalObject* globalObject, bool isInline)
+        static PassRefPtr<JSProtectedEventListener> create(JSC::JSObject* function, JSDOMGlobalObject* globalObject, bool isInline)
         {
-            return adoptRef(new JSProtectedEventListener(listener, globalObject, isInline));
+            return adoptRef(new JSProtectedEventListener(function, globalObject, isInline));
         }
         virtual ~JSProtectedEventListener();
 
         void clearGlobalObject();
 
     protected:
-        JSProtectedEventListener(JSC::JSObject* listener, JSDOMGlobalObject*, bool isInline);
+        JSProtectedEventListener(JSC::JSObject* function, JSDOMGlobalObject*, bool isInline);
 
-        mutable JSC::ProtectedPtr<JSC::JSObject> m_listener;
+        mutable JSC::ProtectedPtr<JSC::JSObject> m_jsFunction;
         JSC::ProtectedPtr<JSDOMGlobalObject> m_globalObject;
 
     private:
-        virtual JSC::JSObject* function() const;
+        virtual JSC::JSObject* jsFunction() const;
         virtual JSDOMGlobalObject* globalObject() const;
     };
 

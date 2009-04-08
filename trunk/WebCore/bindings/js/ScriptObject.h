@@ -38,6 +38,7 @@
 #include <runtime/Protect.h>
 
 namespace WebCore {
+    class InspectorController;
 
     class ScriptObject : public ScriptValue {
     public:
@@ -53,6 +54,17 @@ namespace WebCore {
         bool set(ScriptState*, const char* name, long long);
         bool set(ScriptState*, const char* name, int);
         bool set(ScriptState*, const char* name, bool);
+    };
+
+    class ScriptGlobalObject {
+    public:
+        static bool set(ScriptState*, const char* name, const ScriptObject&);
+#if ENABLE(INSPECTOR)
+        static bool set(ScriptState*, const char* name, InspectorController*);
+#endif
+        static bool getObject(ScriptState*, const char* name, ScriptObject&);
+    private:
+        ScriptGlobalObject() { }
     };
 
 }

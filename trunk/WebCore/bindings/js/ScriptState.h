@@ -37,12 +37,15 @@ namespace JSC {
 }
 
 namespace WebCore {
+    class Page;
 
     // The idea is to expose "state-like" methods (hadException, and any other
     // methods where ExecState just dips into globalData) of JSC::ExecState as a
     // separate abstraction.
     // For now, the separation is purely by convention.
     typedef JSC::ExecState ScriptState;
+
+    ScriptState* scriptStateFromPage(Page* page);
 
 } // namespace WebCore
 

@@ -225,12 +225,12 @@ RenderLayerCompositor* RenderLayer::compositor() const
     ASSERT(renderer()->view());
     return renderer()->view()->compositor();
 }
-    
+
 void RenderLayer::rendererContentChanged()
 {
     if (m_backing)
         m_backing->rendererContentChanged();
-}    
+}
 #endif // USE(ACCELERATED_COMPOSITING)
 
 void RenderLayer::setStaticY(int staticY)
@@ -3008,6 +3008,17 @@ void RenderLayer::setBackingNeedsRepaintInRect(const IntRect& r)
     } else
         backing()->setContentsNeedDisplayInRect(r);
 }
+
+// Since we're only painting non-composited layers, we know that they all share the same repaintContainer.
+void RenderLayer::repaintIncludingNonCompositingDescendants(RenderBoxModelObject* repaintContainer)
+{
+    renderer()->repaintUsingContainer(repaintContainer, renderer()->clippedOverflowRectForRepaint(repaintContainer));
+
+    for (RenderLayer* curr = firstChild(); curr; curr = curr->nextSibling()) {
+        if (!curr->isComposited())
+            curr->repaintIncludingNonCompositingDescendants(repaintContainer);
+    }
+}
 #endif
 
 bool RenderLayer::shouldBeNormalFlowOnly() const
@@ -3066,8 +3077,13 @@ void RenderLayer::styleChanged(StyleDifference diff, const RenderStyle*)
 #if USE(ACCELERATED_COMPOSITING)
     updateTransform();
 
-    if (compositor()->updateLayerCompositingState(this, diff))
+    if (compositor()->updateLayerCompositingState(this))
         compositor()->setCompositingLayersNeedUpdate();
+    else if (m_backing)
+        m_backing->updateGraphicsLayerGeometry();
+
+    if (m_backing && diff >= StyleDifferenceRepaint)
+        m_backing->setContentsNeedDisplay();
 #else
     UNUSED_PARAM(diff);
 #endif

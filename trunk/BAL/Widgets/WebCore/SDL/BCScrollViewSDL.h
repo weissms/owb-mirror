@@ -112,6 +112,7 @@ public:
     // Methods for getting/setting the size of the document contained inside the ScrollView (as an IntSize or as individual width and height
     // values).
     IntSize contentsSize() const;
+    virtual IntSize minimumContentsSize() const { return contentsSize(); } // Allows a subclass to indicate a smaller size than the viewport (used for scrollbar checking).
     int contentsWidth() const { return contentsSize().width(); }
     int contentsHeight() const { return contentsSize().height(); }
     void setContentsSize(const IntSize&);
