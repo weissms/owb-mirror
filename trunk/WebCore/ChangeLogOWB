@@ -1,3 +1,15 @@
+2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Better build fix when DOM_STORAGE is enabled but not INSPECTOR.
+        ScriptObjectQuarantine is a wrapper used only by the
+        WebInspector so I added an #if guard in the header and compile
+        the cpp file when both option are provided.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.h:
+
 2009-04-02  Mario Bensi  <mbensi@pleyo.com>
 
         fix compilation ScriptObjectQuarantine.cpp depend of storage and database.

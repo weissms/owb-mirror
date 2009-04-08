@@ -1,3 +1,11 @@
+2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi. 
+
+        Add ScriptObjectQuarantine to the list of modified WebKit files.
+
+        * Scripts/data/WebKitFiles.txt:
+
 2009-04-02  Mario Bensi  <mbensi@pleyo.com>
 
         Fix drt script.
