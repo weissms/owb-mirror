@@ -85,6 +85,7 @@ add_dependencies(jsc wtf)
 # Tests compilation.                             #
 ##################################################
 
+link_directories(${THREADS_LIBRARY_DIRS})
 add_executable(jshell EXCLUDE_FROM_ALL jsc.cpp)
 set_target_properties(jshell
     PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
