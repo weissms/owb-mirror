@@ -276,6 +276,7 @@ FrameLoader::FrameLoader(Frame* frame, FrameLoaderClient* client)
     , m_isRunningScript(false)
     , m_didCallImplicitClose(false)
     , m_wasUnloadEventEmitted(false)
+    , m_unloadEventBeingDispatched(false)
     , m_isComplete(false)
     , m_isLoadingMainResource(false)
     , m_cancellingWithLoadInProgress(false)
@@ -610,9 +611,11 @@ void FrameLoader::stopLoading(bool sendUnload)
                 Node* currentFocusedNode = m_frame->document()->focusedNode();
                 if (currentFocusedNode)
                     currentFocusedNode->aboutToUnload();
+                m_unloadEventBeingDispatched = true;
                 m_frame->document()->dispatchWindowEvent(eventNames().unloadEvent, false, false);
+                m_unloadEventBeingDispatched = false;
                 if (m_frame->document())
-                    m_frame->document()->updateRendering();
+                    m_frame->document()->updateStyleIfNeeded();
                 m_wasUnloadEventEmitted = true;
                 if (m_frame->eventHandler()->pendingFrameUnloadEventCount())
                     m_frame->eventHandler()->clearPendingFrameUnloadEventCount();
@@ -799,7 +802,7 @@ ScriptValue FrameLoader::executeScript(const ScriptSourceCode& sourceCode)
 
     if (!wasRunningScript) {
         m_isRunningScript = false;
-        Document::updateDocumentsRendering();
+        Document::updateStyleForAllDocuments();
     }
 
     return result;
@@ -1616,7 +1619,7 @@ bool FrameLoader::gotoAnchor(const String& name)
 
     // We need to update the layout before scrolling, otherwise we could
     // really mess things up if an anchor scroll comes at a bad moment.
-    m_frame->document()->updateRendering();
+    m_frame->document()->updateStyleIfNeeded();
     // Only do a layout if changes have occurred that make it necessary.
     if (m_frame->view() && m_frame->contentRenderer() && m_frame->contentRenderer()->needsLayout())
         m_frame->view()->layout();
@@ -2640,6 +2643,9 @@ void FrameLoader::stopLoadingSubframes()
 
 void FrameLoader::stopAllLoaders()
 {
+    if (m_unloadEventBeingDispatched)
+        return;
+
     // If this method is called from within this method, infinite recursion can occur (3442218). Avoid this.
     if (m_inStopAllLoaders)
         return;
@@ -4121,6 +4127,24 @@ void FrameLoader::applyUserAgent(ResourceRequest& request)
     String userAgent = client()->userAgent(request.url());
     ASSERT(!userAgent.isNull());
     request.setHTTPUserAgent(userAgent);
+}
+
+bool FrameLoader::shouldInterruptLoadForXFrameOptions(const String& content, const KURL& url)
+{
+    Frame* topFrame = m_frame->tree()->top();
+    if (m_frame == topFrame)
+        return false;
+
+    if (equalIgnoringCase(content, "deny"))
+        return true;
+
+    if (equalIgnoringCase(content, "sameorigin")) {
+        RefPtr<SecurityOrigin> origin = SecurityOrigin::create(url);
+        if (!origin->isSameSchemeHostPort(topFrame->document()->securityOrigin()))
+            return true;
+    }
+
+    return false;
 }
 
 bool FrameLoader::canGoBackOrForward(int distance) const

@@ -167,11 +167,11 @@ bool ImplicitAnimation::sendTransitionEvent(const AtomicString& eventType, doubl
                 return false;
 
             // Schedule event handling
-            m_compAnim->animationControllerPriv()->addEventToDispatch(element, eventType, propertyName, elapsedTime);
+            m_compAnim->animationController()->addEventToDispatch(element, eventType, propertyName, elapsedTime);
 
             // Restore the original (unanimated) style
             if (eventType == eventNames().webkitTransitionEndEvent && element->renderer())
-                setChanged(element.get());
+                setNeedsStyleRecalc(element.get());
 
             return true; // Did dispatch an event
         }
@@ -261,9 +261,9 @@ void ImplicitAnimation::validateTransformFunctionList()
     m_transformFunctionListValid = true;
 }
 
-double ImplicitAnimation::willNeedService()
+double ImplicitAnimation::timeToNextService()
 {
-    double t = AnimationBase::willNeedService();
+    double t = AnimationBase::timeToNextService();
 #if USE(ACCELERATED_COMPOSITING)
     if (t != 0 || preActive())
         return t;

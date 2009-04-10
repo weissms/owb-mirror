@@ -315,12 +315,12 @@ PassRefPtr<Scrollbar> FrameView::createScrollbar(ScrollbarOrientation orientatio
     Document* doc = m_frame->document();
 
     // Try the <body> element first as a scrollbar source.
-    Element* body = doc->body();
+    Element* body = doc ? doc->body() : 0;
     if (body && body->renderer() && body->renderer()->style()->hasPseudoStyle(SCROLLBAR))
         return RenderScrollbar::createCustomScrollbar(this, orientation, body->renderBox());
     
     // If the <body> didn't have a custom style, then the root element might.
-    Element* docElement = doc->documentElement();
+    Element* docElement = doc ? doc->documentElement() : 0;
     if (docElement && docElement->renderer() && docElement->renderer()->style()->hasPseudoStyle(SCROLLBAR))
         return RenderScrollbar::createCustomScrollbar(this, orientation, docElement->renderBox());
         
@@ -487,7 +487,7 @@ void FrameView::layout(bool allowSubtree)
     // the layout beats any sort of style recalc update that needs to occur.
     if (m_frame->needsReapplyStyles())
         m_frame->reapplyStyles();
-    else if (document->hasChangedChild())
+    else if (document->childNeedsStyleRecalc())
         document->recalcStyle();
     
     bool subtree = m_layoutRoot;
@@ -960,7 +960,7 @@ bool FrameView::needsLayout() const
     return layoutPending()
         || (root && root->needsLayout())
         || m_layoutRoot
-        || document->hasChangedChild() // can occur when using WebKit ObjC interface
+        || document->childNeedsStyleRecalc() // can occur when using WebKit ObjC interface
         || m_frame->needsReapplyStyles();
 }
 
@@ -1390,6 +1390,13 @@ void FrameView::layoutIfNeededRecursive()
     for (HashSet<Widget*>::const_iterator current = viewChildren->begin(); current != end; ++current)
         if ((*current)->isFrameView())
             static_cast<FrameView*>(*current)->layoutIfNeededRecursive();
+
+    // layoutIfNeededRecursive is called when we need to make sure layout is up-to-date before
+    // painting, so we need to flush out any deferred repaints too.
+    if (m_deferredRepaintTimer.isActive()) {
+        m_deferredRepaintTimer.stop();
+        doDeferredRepaints();
+    }
 }
 
 void FrameView::forceLayout(bool allowSubtree)
@@ -1439,21 +1446,13 @@ void FrameView::adjustPageHeight(float *newBottom, float oldTop, float oldBottom
         // Use a context with painting disabled.
         GraphicsContext context((PlatformGraphicsContext*)0);
         root->setTruncatedAt((int)floorf(oldBottom));
-        IntRect dirtyRect(0, (int)floorf(oldTop), root->docWidth(), (int)ceilf(oldBottom - oldTop));
+        IntRect dirtyRect(0, (int)floorf(oldTop), root->overflowWidth(), (int)ceilf(oldBottom - oldTop));
         root->layer()->paint(&context, dirtyRect);
         *newBottom = root->bestTruncatedAt();
         if (*newBottom == 0)
             *newBottom = oldBottom;
     } else
         *newBottom = oldBottom;
-}
-
-IntSize FrameView::minimumContentsSize() const
-{
-    RenderView* root = m_frame->contentRenderer();
-    if (!root)
-        return ScrollView::minimumContentsSize();
-    return IntSize(root->docWidth(), root->docHeight());
 }
 
 } // namespace WebCore

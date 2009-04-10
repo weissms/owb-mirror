@@ -1,3 +1,1052 @@
+2009-04-10  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt
+
+        Add a timer for style recalc (similar to the one used for scheduling layouts).  For now in order
+        to reduce the risk of regressions, I have left in all the synchronous machinery for updating style
+        following DOM events and JavaScript timeouts.  Eventually these calls will be removed.
+
+        Where the timer will really kick in and be useful is for clients that do style changes from
+        Objective-C DOM bindings or that execute JavaScript to manipulate style from the JavaScriptCore C API.
+
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::insertBefore):
+        (WebCore::ContainerNode::replaceChild):
+        (WebCore::ContainerNode::removeChild):
+        (WebCore::ContainerNode::appendChild):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::~Document):
+        (WebCore::Document::scheduleStyleRecalc):
+        (WebCore::Document::unscheduleStyleRecalc):
+        (WebCore::Document::styleRecalcTimerFired):
+        (WebCore::Document::updateStyleForAllDocuments):
+        (WebCore::Document::detach):
+        * dom/Document.h:
+        * dom/Node.cpp:
+        (WebCore::Node::setNeedsStyleRecalc):
+        (WebCore::Node::lazyAttach):
+
+2009-04-09  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        <rdar://problem/6586787> JS debugger does not work in 64-bit
+
+        Don't truncate the source id in JSCallFrame
+
+        * inspector/JavaScriptCallFrame.h:
+
+2009-04-09  Adam Roben  <aroben@apple.com>
+
+        Start compiling HistoryPropertyList on Windows
+
+        Reviewed by Darin Adler.
+
+        * WebCore.vcproj/WebCore.vcproj: Added HistoryPropertyList and its
+        dependencies to the project. Copy headers from history/cf to
+        $WebKitOutputDir.
+        * history/cf/HistoryPropertyList.cpp: Added StringExtras.h so that
+        this file will compile on Windows.
+
+2009-04-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6166612> Text boxes' metrics should be based on
+          the actual fonts used in them, not just the primary font
+
+        Covered by many existing layout tests
+
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::floatWidth): Added a fallbackFonts parameter. If the
+        platform supports collecting fallback fonts in its complex font path
+        and fallbackFonts is not null, all fallback fonts used for the text run
+        will be added to it.
+
+        * platform/graphics/Font.h:
+        (WebCore::Font::width): Ditto.
+
+        * platform/graphics/FontFastPath.cpp:
+        (WebCore::Font::glyphDataForCharacter): Removed an unnecessary namespace
+        qualifier.
+        (WebCore::Font::floatWidthForSimpleText): Added a fallbackFonts
+        parameter, which is passed down to WidthIterator.
+
+        * platform/graphics/WidthIterator.cpp:
+        (WebCore::WidthIterator::WidthIterator): Added a fallbackFonts parameter
+        and used it to initialize the m_fallbackFonts member.
+        (WebCore::WidthIterator::advance): Track the fonts being used and add
+        any fallback fonts to the m_fallbackFonts set. Make sure to only add
+        non-small-caps fonts.
+
+        * platform/graphics/WidthIterator.h:
+
+        * platform/graphics/chromium/FontChromiumWin.cpp:
+        (WebCore::Font::canReturnFallbackFontsForComplexText): Added an
+        implementation that returns false, meaning this platform's
+        implementation of floatWidthForComplexText() does not populate the
+        fallbackFonts set.
+        (WebCore::Font::floatWidthForComplexText): Updated for the new
+        prototype.
+
+        * platform/graphics/chromium/FontLinux.cpp: Ditto.
+
+        * platform/graphics/gtk/FontGtk.cpp: Ditto.
+
+        * platform/graphics/mac/CoreTextController.cpp:
+        (WebCore::CoreTextController::CoreTextController): Added a fallbackFonts
+        parameter and used it to initialize the m_fallbackFonts member.
+        (WebCore::CoreTextController::collectCoreTextRunsForCharacters): Add
+        fallback fonts to m_fallbackFonts.
+
+        * platform/graphics/mac/CoreTextController.h:
+
+        * platform/graphics/mac/FontMac.mm:
+        (WebCore::Font::canReturnFallbackFontsForComplexText): Added an
+        implementation that returns true, indicating that the Mac
+        implementations of floatWidthForComplexText() populate the fallbackFonts
+        set.
+        * platform/graphics/mac/FontMacATSUI.mm:
+        (WebCore::ATSULayoutParameters::ATSULayoutParameters): Added a
+        fallbackFonts parameter and used it to initialize the m_fallbackFonts
+        member.
+        (WebCore::ATSULayoutParameters::initialize): Add fallback fonts to
+        m_fallbackFonts.
+        (WebCore::Font::floatWidthForComplexText): Added a fallbackFonts
+        parameter, which is passed down to ATSULayoutParameters.
+
+        * platform/graphics/mac/FontMacCoreText.cpp:
+        (WebCore::Font::floatWidthForComplexText): Added a fallbackFonts
+        parameter, which is passed down to CoreTextController.
+
+        * platform/graphics/win/FontWin.cpp:
+        (WebCore::Font::canReturnFallbackFontsForComplexText): Added an
+        implementation that returns true, indicating that the
+        UniscribeController-based implementations of floatWidthForComplexText()
+        populate the fallbackFonts set.
+        (WebCore::Font::floatWidthForComplexText): Added a fallbackFonts
+        parameter, which is passed down to UniscribeController.
+
+        * platform/graphics/win/UniscribeController.cpp:
+        (WebCore::UniscribeController::UniscribeController): Added a
+        fallbackfonts parameter and used it to initialize m_fallbackFonts.
+        (WebCore::UniscribeController::advance): Add fallback fonts to
+        m_fallbackFonts.
+
+        * platform/graphics/win/UniscribeController.h:
+        
+        * platform/graphics/wx/FontWx.cpp:
+        (WebCore::Font::canReturnFallbackFontsForComplexText): Added an
+        implementation that returns false, meaning this platform's
+        implementation of floatWidthForComplexText() does not populate the
+        fallbackFonts set.
+        (WebCore::Font::floatWidthForComplexText): Updated for the new
+        prototype.
+
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::computeLogicalBoxHeights): For an InlineTextBox
+        with multiple fonts, compute a common baseline and line height by
+        considering all fonts' ascents and descents (and line spacing, if
+        applicable).
+
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::setFallbackFonts): Added. Temporarily stores
+        the set of fallback fonts in a vector.
+        (WebCore::InlineTextBox::takeFallbackFonts): Added. Returns the fallback
+        fonts previously stored and removes them from storage.
+
+        * rendering/InlineTextBox.h:
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::RenderText): Initialized the
+        m_knownNotToUseFallbackFonts to false.
+        (WebCore::RenderText::styleDidChange): Reset
+        m_knownNotToUseFallbackFonts to false if the style difference is such that
+        affects layout.
+        (WebCore::RenderText::widthFromCache): Added a fallbackFonts parameter,
+        which is passed down to Font::width().
+        (WebCore::RenderText::trimmedPrefWidths): Updated for the change to
+        widthFromCache().
+        (WebCore::RenderText::calcPrefWidths): Made this call a private version
+        of calcPrefWidths() that takes a fallbackFonts parameter and set the
+        m_knownNotToUseFallbackFonts to true if the set comes back empty.
+        The private version passes the fallbackFonts set to widthFromCache().
+        (WebCore::RenderText::setText): Reset m_knownNotToUseFallbackFonts to
+        false.
+        (WebCore::RenderText::createFallbackFontMetricsBox): Added.
+        (WebCore::RenderText::width): Added a fallbackFonts parameter, which is
+        passed down to calcPrefWidths(), widthFromCache() and Font::width().
+        Set m_knownNotToUseFallbackFonts to true when appropriate.
+
+        * rendering/RenderText.h:
+
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::constructLine): Added an assertion and a continue
+        statement to remove one level of indentation.
+        (WebCore::RenderBlock::computeHorizontalPositionsForLine): Temporarily
+        store the set of fallback fonts in the InlineTextBox.
+        (WebCore::RenderBlock::computeVerticalPositionsForLine): Added an
+        assertion.
+
+2009-04-09  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben
+
+        Rename all of the changed()/setChanged()/setDocumentChanged() methods to mention style recalc
+        explicitly instead.
+
+        * bindings/js/JSCustomPositionCallback.cpp:
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute):
+        * bindings/js/ScriptControllerMac.mm:
+        (WebCore::updateStyleIfNeededForBindings):
+        (WebCore::ScriptController::initJavaJSBindings):
+        * css/CSSMutableStyleDeclaration.cpp:
+        (WebCore::CSSMutableStyleDeclaration::removeProperty):
+        (WebCore::CSSMutableStyleDeclaration::setNeedsStyleRecalc):
+        (WebCore::CSSMutableStyleDeclaration::setProperty):
+        (WebCore::CSSMutableStyleDeclaration::setStringProperty):
+        (WebCore::CSSMutableStyleDeclaration::setImageProperty):
+        (WebCore::CSSMutableStyleDeclaration::parseDeclaration):
+        (WebCore::CSSMutableStyleDeclaration::addParsedProperties):
+        (WebCore::CSSMutableStyleDeclaration::setCssText):
+        (WebCore::CSSMutableStyleDeclaration::merge):
+        (WebCore::CSSMutableStyleDeclaration::removePropertiesInSet):
+        * css/CSSMutableStyleDeclaration.h:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::allVisitedStateChanged):
+        (WebCore::CSSStyleSelector::SelectorChecker::visitedStateChanged):
+        * css/CSSVariablesDeclaration.cpp:
+        (WebCore::CSSVariablesDeclaration::removeVariable):
+        (WebCore::CSSVariablesDeclaration::setVariable):
+        (WebCore::CSSVariablesDeclaration::setNeedsStyleRecalc):
+        * css/CSSVariablesDeclaration.h:
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::insertBefore):
+        (WebCore::ContainerNode::replaceChild):
+        (WebCore::ContainerNode::removeChild):
+        (WebCore::ContainerNode::appendChild):
+        (WebCore::ContainerNode::detach):
+        (WebCore::ContainerNode::setFocus):
+        (WebCore::ContainerNode::setActive):
+        (WebCore::ContainerNode::setHovered):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::~Document):
+        (WebCore::Document::scheduleStyleRecalc):
+        (WebCore::Document::unscheduleStyleRecalc):
+        (WebCore::Document::recalcStyle):
+        (WebCore::Document::updateStyleIfNeeded):
+        (WebCore::Document::updateStyleForAllDocuments):
+        (WebCore::Document::updateLayout):
+        (WebCore::Document::implicitClose):
+        (WebCore::Document::prepareMouseEvent):
+        (WebCore::Document::setFocusedNode):
+        (WebCore::Document::setCSSTarget):
+        * dom/Document.h:
+        * dom/Element.cpp:
+        (WebCore::Element::recalcStyle):
+        (WebCore::checkForSiblingStyleChanges):
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::parseMaxLengthAttribute):
+        * dom/MouseRelatedEvent.cpp:
+        (WebCore::MouseRelatedEvent::receivedTarget):
+        * dom/Node.cpp:
+        (WebCore::Node::Node):
+        (WebCore::Node::setNeedsStyleRecalc):
+        (WebCore::Node::lazyAttach):
+        (WebCore::Node::dispatchGenericEvent):
+        * dom/Node.h:
+        (WebCore::Node::needsStyleRecalc):
+        (WebCore::Node::childNeedsStyleRecalc):
+        (WebCore::Node::setChildNeedsStyleRecalc):
+        * dom/OptionElement.cpp:
+        (WebCore::OptionElement::setSelectedState):
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::evaluateScript):
+        * dom/StyledElement.cpp:
+        (WebCore::StyledElement::attributeChanged):
+        (WebCore::StyledElement::classAttributeChanged):
+        (WebCore::StyledElement::parseMappedAttribute):
+        * dom/Text.cpp:
+        (WebCore::Text::recalcStyle):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::insertErrorMessageBlock):
+        * editing/DeleteButtonController.cpp:
+        (WebCore::DeleteButtonController::enable):
+        * editing/Editor.cpp:
+        (WebCore::Editor::setBaseWritingDirection):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::nodeWillBeRemoved):
+        (WebCore::SelectionController::layout):
+        (WebCore::SelectionController::focusedOrActiveStateChanged):
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::parseMappedAttribute):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::setInnerText):
+        (WebCore::HTMLElement::isContentEditable):
+        (WebCore::HTMLElement::isContentRichlyEditable):
+        (WebCore::HTMLElement::contentEditable):
+        * html/HTMLEmbedElement.cpp:
+        (WebCore::HTMLEmbedElement::updateWidget):
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        (WebCore::HTMLFrameSetElement::recalcStyle):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        (WebCore::HTMLInputElement::setChecked):
+        (WebCore::HTMLInputElement::setIndeterminate):
+        (WebCore::HTMLInputElement::setValue):
+        (WebCore::HTMLInputElement::setAutofilled):
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::finishParsingChildren):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::updateWidget):
+        (WebCore::HTMLObjectElement::finishParsingChildren):
+        (WebCore::HTMLObjectElement::childrenChanged):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::recalcStyle):
+        (WebCore::HTMLSelectElement::restoreState):
+        (WebCore::HTMLSelectElement::setRecalcListItems):
+        (WebCore::HTMLSelectElement::reset):
+        (WebCore::HTMLSelectElement::typeAheadFind):
+        * html/HTMLTableElement.cpp:
+        (WebCore::setTableCellsChanged):
+        (WebCore::HTMLTableElement::parseMappedAttribute):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::setValue):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopLoading):
+        (WebCore::FrameLoader::executeScript):
+        (WebCore::FrameLoader::gotoAnchor):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::alert):
+        (WebCore::DOMWindow::confirm):
+        (WebCore::DOMWindow::prompt):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::hoverTimerFired):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+        (WebCore::FrameView::needsLayout):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::setNeedsStyleRecalc):
+        (WebCore::AnimationBase::updateStateMachine):
+        * page/animation/AnimationBase.h:
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::AnimationControllerPrivate):
+        (WebCore::AnimationControllerPrivate::clear):
+        (WebCore::AnimationControllerPrivate::updateAnimationTimer):
+        (WebCore::AnimationControllerPrivate::updateStyleIfNeededDispatcherFired):
+        (WebCore::AnimationControllerPrivate::startupdateStyleIfNeededDispatcher):
+        (WebCore::AnimationControllerPrivate::addEventToDispatch):
+        (WebCore::AnimationControllerPrivate::addNodeChangeToDispatch):
+        (WebCore::AnimationControllerPrivate::animationTimerFired):
+        (WebCore::AnimationControllerPrivate::pauseAnimationAtTime):
+        (WebCore::AnimationControllerPrivate::pauseTransitionAtTime):
+        (WebCore::AnimationControllerPrivate::addToStartTimeResponseWaitList):
+        (WebCore::AnimationController::cancelAnimations):
+        * page/animation/AnimationControllerPrivate.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::endAnimation):
+        (WebCore::KeyframeAnimation::sendAnimationEvent):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::updateDragState):
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::selectionBounds):
+        * svg/SVGAElement.cpp:
+        (WebCore::SVGAElement::svgAttributeChanged):
+        * svg/SVGAnimationElement.cpp:
+        (WebCore::SVGAnimationElement::setTargetAttributeAnimatedValue):
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::svgAttributeChanged):
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::setNeedsUpdate):
+        * svg/SVGForeignObjectElement.cpp:
+        (WebCore::addCSSPropertyAndNotifyAttributeMap):
+        * svg/SVGStopElement.cpp:
+        (WebCore::SVGStopElement::parseMappedAttribute):
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::parseMappedAttribute):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::svgAttributeChanged):
+        (WebCore::SVGUseElement::childrenChanged):
+        (WebCore::SVGUseElement::recalcStyle):
+        * svg/animation/SMILTimeContainer.cpp:
+        (WebCore::SMILTimeContainer::updateAnimations):
+        * wml/WMLAElement.cpp:
+        (WebCore::WMLAElement::parseMappedAttribute):
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::setValue):
+        (WebCore::WMLInputElement::parseMappedAttribute):
+        * wml/WMLNoopElement.cpp:
+        (WebCore::WMLNoopElement::insertedIntoDocument):
+
+2009-04-09  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        When there is a shadow set but it specifies "no shadow", clear the
+        shadow shader. This will prevent Chromium from thinking there's a
+        shadow and using the Skia codepath rather than Windows.
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::setPlatformShadow):
+
+2009-04-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Crash when accessing svg.viewport on a detached SVGSVGElement
+        https://bugs.webkit.org/show_bug.cgi?id=25105
+
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::isOutermostSVG): return "true" that we are the "outermost" SVG element if we have no parent.  (The spec is unclear as to what behavior we should have in this case, and I doubt anyone cares for now).
+
+2009-04-09  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25084
+        Upstream changes to V8 bindings for XHR so that it can work under either DOMWindow or WorkerContext.
+
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::dispose):
+        (WebCore::WorkerContextExecutionProxy::retrieve):
+        (WebCore::WorkerContextExecutionProxy::initContextIfNeeded):
+        (WebCore::WorkerContextExecutionProxy::findOrCreateEventListenerHelper):
+        (WebCore::WorkerContextExecutionProxy::FindOrCreateEventListener):
+        (WebCore::WorkerContextExecutionProxy::findOrCreateObjectEventListener):
+        * bindings/v8/WorkerContextExecutionProxy.h:
+        * bindings/v8/custom/V8XMLHttpRequestConstructor.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8XMLHttpRequestCustom.cpp:
+        (WebCore::getEventListener):
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-04-09  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson and Sam Weinig.
+
+        Part of <rdar://problem/5438063> Saving history containing 100,000 entries causes pauses of 2s while browsing
+
+        Longer term solution is to change the design so Safari doesn't read and write all of history.
+        This patch is step one: Do the serializing, which is done on the main thread, much faster.
+
+        * WebCore.base.exp: Added new entry points.
+        * WebCore.xcodeproj/project.pbxproj: Added new source files.
+
+        * history/cf: Added.
+
+        * history/cf/HistoryPropertyList.cpp: Added.
+        * history/cf/HistoryPropertyList.h: Added. Code to write history files. In the future we'll also
+        have code for reading here too.
+
+        * platform/cf/BinaryPropertyList.cpp: Added.
+        * platform/cf/BinaryPropertyList.h: Added. Code to write binary property list files.
+
+2009-04-09  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Antti Koivisto
+
+        https://bugs.webkit.org/show_bug.cgi?id=25122
+
+        If deferred repainting is active, we need to ensure that there are no repaints
+        pending at the end of layoutIfNeededRecursive, which is called just before
+        painting via -viewWillDraw.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layoutIfNeededRecursive):
+
+2009-04-09  John Grabowski  <jrg@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25117
+        Fix Mac Chromium form controls.
+
+        * rendering/RenderThemeChromiumMac.mm:
+        When rendering native controls in Mac Chromium, use a clean NSGraphicsContext.
+        Properly save and restore native graphics context.
+        (WebCore::RenderThemeChromiumMac::paintCheckbox):
+        (WebCore::RenderThemeChromiumMac::paintRadio):
+        (WebCore::RenderThemeChromiumMac::paintMenuList):
+        (WebCore::RenderThemeChromiumMac::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeChromiumMac::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeChromiumMac::paintSearchFieldResultsButton):
+
+2009-04-09  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25030
+        Refactor MessagePort code to enable Chrome to use a MessagePortProxy object
+        instead of a real MessagePort for the entangledPort, since it could
+        theoretically live in a separate process.
+
+        The goal of this refactoring is to remove all assumptions that the object
+        representing the entangled port is actually of type MessagePort. All
+        operations that were previously directly modifying private MessagePort member
+        variables in the entangled port (i.e. entangle(), postMessage()) have been changed
+        to invoke functions in the  MessagePortProxy interface instead which will allow
+        the Chrome bindings to proxy these calls to another process.
+
+        No new layout tests, as this is just a refactoring with no bug fixes
+        or new functionality.
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::mark):
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::clone):
+        (WebCore::MessagePort::postMessage):
+        (WebCore::MessagePort::deliverMessage):
+        (WebCore::MessagePort::startConversation):
+        (WebCore::MessagePort::close):
+        (WebCore::MessagePort::entangle):
+        (WebCore::MessagePort::unentangle):
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::entangledPort):
+        * dom/MessagePortProxy.h: Added.
+        (WebCore::MessagePortProxy::~MessagePortProxy):
+
+2009-04-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey "Big Boy" Garen.
+
+        Fix for <rdar://problem/5745677> Possible to stop load during an unload event
+        Also fixes https://bugs.webkit.org/show_bug.cgi?id=20605
+
+        Tests: fast/events/stop-load-in-unload-handler-using-document-write.html
+               fast/events/stop-load-in-unload-handler-using-window-stop.html
+
+        Don't allow calling methods that would stop the new load inside the unload
+        event.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::FrameLoader):
+        (WebCore::FrameLoader::stopLoading):
+        (WebCore::FrameLoader::stopAllLoaders):
+        * loader/FrameLoader.h:
+
+2009-04-09  David Kilzer  <ddkilzer@apple.com>
+
+        Reinstating <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Rolled r42345 back in.  The build failure was caused by an
+        internal script which had not been updated the same way that
+        build-webkit was updated.
+
+        * Configurations/WebCore.xcconfig:
+        * DerivedSources.make:
+        * bindings/objc/DOM.mm:
+        (WebCore::createElementClassMap):
+        (+[DOMNode _wrapNode:WebCore::]):
+        * bindings/objc/DOMCSS.mm:
+        (+[DOMCSSValue _wrapCSSValue:WebCore::]):
+        * bindings/objc/DOMEvents.mm:
+        (+[DOMEvent _wrapEvent:WebCore::]):
+        * bindings/objc/DOMInternal.h:
+        * bindings/objc/ExceptionHandlers.mm:
+        (WebCore::raiseDOMException):
+        * html/HTMLEmbedElement.idl:
+        * html/HTMLFrameElement.idl:
+        * html/HTMLIFrameElement.idl:
+        * html/HTMLObjectElement.idl:
+
+2009-04-09  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=25109
+
+        Eliminate CompositeAnimationPrivate, which was a needless level
+        of abstraction. Remove the methods like addToStyleAvailableWaitList()
+        that simply turn around and call the animation controller.
+        
+        Rename animationControllerPriv() to animationController().
+        Rename willNeedService() to timeToNextService().
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::~AnimationBase):
+        (WebCore::AnimationBase::updateStateMachine):
+        (WebCore::AnimationBase::timeToNextService):
+        (WebCore::AnimationBase::beginAnimationUpdateTime):
+        * page/animation/AnimationBase.h:
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::updateAnimationTimer):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::~CompositeAnimation):
+        (WebCore::CompositeAnimation::clearRenderer):
+        (WebCore::CompositeAnimation::updateTransitions):
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        (WebCore::CompositeAnimation::animate):
+        (WebCore::CompositeAnimation::getAnimatedStyle):
+        (WebCore::CompositeAnimation::setAnimating):
+        (WebCore::CompositeAnimation::timeToNextService):
+        (WebCore::CompositeAnimation::getAnimationForProperty):
+        (WebCore::CompositeAnimation::cleanupFinishedAnimations):
+        (WebCore::CompositeAnimation::suspendAnimations):
+        (WebCore::CompositeAnimation::resumeAnimations):
+        (WebCore::CompositeAnimation::overrideImplicitAnimations):
+        (WebCore::CompositeAnimation::resumeOverriddenImplicitAnimations):
+        (WebCore::CompositeAnimation::isAnimatingProperty):
+        (WebCore::CompositeAnimation::pauseAnimationAtTime):
+        (WebCore::CompositeAnimation::pauseTransitionAtTime):
+        (WebCore::CompositeAnimation::numberOfActiveAnimations):
+        * page/animation/CompositeAnimation.h:
+        (WebCore::CompositeAnimation::animationController):
+        (WebCore::CompositeAnimation::isSuspended):
+        (WebCore::CompositeAnimation::hasAnimations):
+        (WebCore::CompositeAnimation::CompositeAnimation):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+        (WebCore::ImplicitAnimation::timeToNextService):
+        * page/animation/ImplicitAnimation.h:
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::sendAnimationEvent):
+        (WebCore::KeyframeAnimation::timeToNextService):
+        * page/animation/KeyframeAnimation.h:
+
+2009-04-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reverting <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings.
+        It broke Mac build, and I don't know how to fix it.
+
+        * Configurations/WebCore.xcconfig:
+        * DerivedSources.make:
+        * bindings/objc/DOM.mm:
+        (WebCore::createElementClassMap):
+        (+[DOMNode _wrapNode:WebCore::]):
+        * bindings/objc/DOMCSS.mm:
+        (+[DOMCSSValue _wrapCSSValue:WebCore::]):
+        * bindings/objc/DOMEvents.mm:
+        (+[DOMEvent _wrapEvent:WebCore::]):
+        * bindings/objc/DOMInternal.h:
+        * bindings/objc/ExceptionHandlers.mm:
+        (WebCore::raiseDOMException):
+        * html/HTMLEmbedElement.idl:
+        * html/HTMLFrameElement.idl:
+        * html/HTMLIFrameElement.idl:
+        * html/HTMLObjectElement.idl:
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed build fix.
+
+        RenderView::docWidth() was made private by r42334. That commit
+        changes its usage for overflowWidth(), so do that here too.
+
+        * page/PrintContext.cpp:
+        (WebCore::PrintContext::computePageRects):
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Based on a patch by Alp Toker.
+
+        Implement AtkObject::ref_state_set. Still quite a few states not
+        implemented.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Based on a patch by Alp Toker.
+
+        Move fallback object creation to its own function, as it will be
+        used in several places.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (fallbackObject):
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Based on a patch by Alp Toker.
+
+        Move AccessibilityObject methods to their file.
+
+        * page/gtk/AccessibilityObjectAtk.cpp:
+        (WebCore::AccessibilityObject::wrapper):
+        (WebCore::AccessibilityObject::setWrapper):
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Rework accessibility type generation code, based on Mozilla a11y
+        implementation.
+
+        Have one base a11y type, and generate derived types that implement
+        only the necessary interfaces at runtime, based on the specific
+        object we are wrapping. This allows to save a lot of code while
+        covering all possible cases.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+
+2009-04-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix document.implementation.createDocument(null, "a:b") not to crash!
+        https://bugs.webkit.org/show_bug.cgi?id=25096
+
+        Test: fast/dom/DOMImplementation/createDocument-namespace-err.html
+
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::addChild): add ASSERT() to give a better crash next time
+        * dom/DOMImplementation.cpp:
+        (WebCore::DOMImplementation::createDocument): check the exception code before using the result
+
+2009-04-08  Adam Roben  <aroben@apple.com>
+
+        Make <select>s in application chrome documents match the Vista system
+        dialog look
+
+        Reviewed by Dave Hyatt.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::documentIsInApplicationChromeMode): Added this simple helper
+        function.
+        (WebCore::RenderThemeWin::getThemeData): In application chrome mode,
+        the drop down button never uses any look but the "normal" look.
+        (WebCore::RenderThemeWin::paintMenuList): In application chrome mode,
+        use the "readonly" style to match system dialogs.
+
+2009-04-08  Adam Roben  <aroben@apple.com>
+
+        Fix <rdar://6592515> Crash closing tab with Top Sites or Cover Flow
+        showing after clicking "Go Back" in phishing alert
+
+        RenderButton's m_timer is not stopped when its Document enters the
+        page cache. When the WebView was torn down, the timer would fire after
+        the Frame's Page had been destroyed, leading to a crash. This patch
+        just makes the timer do nothing when it fires. Making the timer not
+        fire when in the page cache is covered by bug 25110.
+
+        Reviewed by Dave Hyatt.
+
+        No test possible.
+
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::timerFired): Do nothing when we're in the page
+        cache.
+
+2009-04-09  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben
+
+        Fix bugs where we would mistakenly turn off blitting for iframes if an external paint
+        caused the checks to be triggered too early in the loading process of the frame.
+
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+
+2009-04-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Cameron Zwarich
+
+        https://bugs.webkit.org/show_bug.cgi?id=25106
+        
+        Fix signature of virtual function on AnimationBase so that it matches
+        those in the derived classes, by removing unused parameter.
+        
+        * page/animation/AnimationBase.h:
+        (WebCore::AnimationBase::endAnimation):
+
+2009-04-08  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Reviewed by Darin Adler and Maciej Stachowiak.
+
+        Introduce the ENABLE_SVG_DOM_OBJC_BINDINGS feature define so
+        that SVG DOM Objective-C bindings may be optionally disabled.
+
+        * Configurations/WebCore.xcconfig: Added
+        ENABLE_SVG_DOM_OBJC_BINDINGS variable and use it in
+        FEATURE_DEFINES and EXCLUDED_SOURCE_FILE_NAMES.  When SVG DOM
+        Objective-C bindings are disabled, two generated header files no
+        longer exist and none of the generated DOMSVG*.mm files should
+        be compiled.
+        * DerivedSources.make: All of the WebCore.SVG*.exp files contain
+        SVG DOM Objective-C bindings classes, so exclude them unless
+        ENABLE_SVG_DOM_OBJC_BINDINGS is set.
+        * bindings/objc/DOM.mm: Switched from using ENABLE(SVG) to using
+        ENABLE(SVG_DOM_OBJC_BINDINGS).
+        (WebCore::createElementClassMap):
+        (+[DOMNode _wrapNode:WebCore::]):
+        * bindings/objc/DOMCSS.mm: Ditto.
+        (+[DOMCSSValue _wrapCSSValue:WebCore::]):
+        * bindings/objc/DOMEvents.mm: Ditto.
+        (+[DOMEvent _wrapEvent:WebCore::]):
+        * bindings/objc/DOMInternal.h: Ditto.
+        * bindings/objc/ExceptionHandlers.mm: Added use of
+        ENABLE(SVG_DOM_OBJC_BINDINGS).
+        (WebCore::raiseDOMException):
+        * html/HTMLEmbedElement.idl: Excluded -getSVGDocument method
+        in generated Objective-C DOM classes if SVG DOM Objective-C
+        bindings are disabled.
+        * html/HTMLFrameElement.idl: Ditto.
+        * html/HTMLIFrameElement.idl: Ditto.
+        * html/HTMLObjectElement.idl: Ditto.
+
+2009-04-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - limit the workaround for <rdar://problem/5781372> to Mac OS X versions
+          that need it
+
+        * platform/mac/WebFontCache.mm:
+        (fixUpWeight): Changed this function to be a no-op post-Leopard.
+
+2009-04-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6771547> Appending to a RenderText causes all its
+          lines to be dirtied
+
+        Test: fast/repaint/text-append-dirty-lines.html
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::setTextWithOffset): If no text boxes intersected
+        with or came after the new text, dirty the last root box, since the new
+        text may begin there. Having at least one dirty line prevents the
+        incorrect dirtying of all lines later during layoutInlineChildren().
+
+2009-04-08  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25100
+
+        Fixes a Chromium-specific crash in WebCore::ImageBuffer::context that
+        occurs when rendering semi-transparent RTL text.
+
+        Test: fast/text/complex-text-opacity.html
+
+        * platform/graphics/chromium/FontChromiumWin.cpp: Handle RTL when computing text bounds.
+        (WebCore::TransparencyAwareFontPainter::TransparencyAwareUniscribePainter::estimateTextBounds):
+
+2009-04-08  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Beth Dakin
+
+        Fix a porting error in my previous patch.  A != was supposed to be an ==.
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+
+2009-04-08  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben and Darin Adler
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=12440, repaints inconsistent for
+        fixed positioned elements.
+
+        Rewrite the updateScrollers method to be more correct in its results.
+
+        Test: fast/block/positioning/fixed-positioning-scrollbar-bug.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::recalcStyle):
+        (WebCore::Document::implicitClose):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::createScrollbar):
+        (WebCore::FrameView::layout):
+        (WebCore::FrameView::adjustPageHeight):
+        * page/FrameView.h:
+        * page/win/FrameWin.cpp:
+        (WebCore::computePageRectsForFrame):
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/ScrollView.h:
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::layout):
+        (WebCore::RenderView::docHeight):
+        (WebCore::RenderView::docWidth):
+        * rendering/RenderView.h:
+
+2009-04-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for <rdar://problem/6226200> Implement Microsoft's X-FRAME-OPTIONS anti-framing defense
+
+        Tests: http/tests/security/XFrameOptions/x-frame-options-deny-meta-tag-in-body.html
+               http/tests/security/XFrameOptions/x-frame-options-deny-meta-tag-parent-same-origin-allow.html
+               http/tests/security/XFrameOptions/x-frame-options-deny-meta-tag-parent-same-origin-deny.html
+               http/tests/security/XFrameOptions/x-frame-options-deny-meta-tag.html
+               http/tests/security/XFrameOptions/x-frame-options-deny.html
+               http/tests/security/XFrameOptions/x-frame-options-parent-same-origin-allow.html
+               http/tests/security/XFrameOptions/x-frame-options-parent-same-origin-deny.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::processHttpEquiv): Stop the current load and redirect to about:blank
+        if an X-FRAME-OPTIONS <meta> tag http-equiq dictates we should.
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::shouldInterruptLoadForXFrameOptions): Add logic to parse
+        the X-FRAME-OPTIONS parameter.
+        * loader/FrameLoader.h:
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::didReceiveResponse): Stop the current load if framed and
+        a X-FRAME-OPTIONS header and its parameter dictate that we should.
+
+2009-04-08  Adam Roben  <aroben@apple.com>
+
+        Fix http/tests/xmlhttprequest/xmlhttprequest-unsafe-redirect.html on Windows
+
+        Reviewed by Sam Weinig.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::ResourceHandle::loadResourceSynchronously): Mimic the
+        ResourceHandleMac code by propagating the CFError's error code for
+        kCFErrorDomainCFNetwork errors to the ResourceResponse.
+
+2009-04-08  Anders Carlsson  <andersca@apple.com>
+
+        Try to fix the PPC build.
+        
+        * plugins/npfunctions.h:
+
+2009-04-08  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/5908616> tokenizer resizer should handle edge cases consistently
+
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::enlargeBuffer): Handle edge cases the same way as a failed fastMalloc.
+        (WebCore::HTMLTokenizer::enlargeScriptBuffer): Ditto.
+
+2009-04-08  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin Adler
+
+        Make sure that cloneNode works with SVG attributes that require synchronization.  This fixes
+        issues with <use> element shadow tree cloning where the clones can end up not obtaining the
+        correct attribute values.
+
+        A subsequent patch of mine will expose this problem and cause it to be covered by existing
+        layout tests, so no test is required at this time for this problem.
+
+        * dom/Element.cpp:
+        (WebCore::Element::cloneElementWithoutChildren):
+
+2009-04-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25093
+        REGRESSION: some scripts are showing in the Inspector with only "true"
+        as the source.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didParseSource): Fixed conversion issue.
+        (WebCore::InspectorController::failedToParseSource): Ditto.
+
+2009-04-08  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24904
+
+        Verify the MIME type of stylesheets (in standards mode) by looking
+        at the Content-Type header directly.  This bypasses any content
+        sniffing that might be confusing the issue.
+
+        Test: http/tests/mime/standard-mode-loads-stylesheet-without-content-type-header.html
+
+        * loader/CachedCSSStyleSheet.cpp:
+        (WebCore::CachedCSSStyleSheet::canUseSheet):
+
+2009-04-08  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25041
+        <rdar://problem/6697754>
+        Bug 25041: HTMLMediaElement: OSX autoplay broken by r41907
+        
+        OSX media player should set readyState to HAVE_ENOUGH_DATA when the movie's load state
+        reaches QTMovieLoadStatePlaythroughOK, not when the entire file has been downloaded,
+        so autoplay can begin when it should.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::updateStates): Set readState to 
+        HAVE_ENOUGH_DATA when QTMovie load state reaches QTMovieLoadStatePlaythroughOK.
+        (WebCore::MediaPlayerPrivate::paint): Add braces missed in r42203.
+
+2009-04-08  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by David Kilzer. Based on a patch by Grace Kloba.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24656
+        cacheControlContainsNoCache() in ResourceResponseBase.h is wrong
+
+        * platform/network/ResourceResponseBase.cpp:
+        (WebCore::ResourceResponseBase::parseCacheControlDirectives): Removed misused code for
+        parsing directive values, fixing parsing of directives that we care about.
+
+        * platform/network/ResourceResponseBase.h:
+        (WebCore::ResourceResponseBase::cacheControlContainsNoCache): Fixed a copy/paste mistake,
+        m_cacheControlContainsMustRevalidate was returned instead of m_cacheControlContainsNoCache.
+
+2009-04-08  Adam Roben  <aroben@apple.com>
+
+        Make text fields match the system look on Vista
+
+        Reviewed by Dave Hyatt.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::getThemeData): Use the new-to-Vista
+        EP_EDITBORDER_NOSCROLL part for text fields.
+
 2009-04-08  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Maciej Stachowiak.
@@ -1360,6 +2409,7 @@
 
         Reviewed by Simon Fraser.
 
+        https://bugs.webkit.org/show_bug.cgi?id=25029
         <rdar://problem/6336092> REGRESSION: movie does not resize correctly
 
         Test: media/video-size-intrinsic-scale.html

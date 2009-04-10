@@ -513,7 +513,7 @@ void DOMWindow::alert(const String& message)
     if (!m_frame)
         return;
 
-    m_frame->document()->updateRendering();
+    m_frame->document()->updateStyleIfNeeded();
 
     Page* page = m_frame->page();
     if (!page)
@@ -527,7 +527,7 @@ bool DOMWindow::confirm(const String& message)
     if (!m_frame)
         return false;
 
-    m_frame->document()->updateRendering();
+    m_frame->document()->updateStyleIfNeeded();
 
     Page* page = m_frame->page();
     if (!page)
@@ -541,7 +541,7 @@ String DOMWindow::prompt(const String& message, const String& defaultValue)
     if (!m_frame)
         return String();
 
-    m_frame->document()->updateRendering();
+    m_frame->document()->updateStyleIfNeeded();
 
     Page* page = m_frame->page();
     if (!page)

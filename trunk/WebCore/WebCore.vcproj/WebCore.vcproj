@@ -3809,6 +3809,14 @@
 				Name="cf"
 				>
 				<File
+					RelativePath="..\platform\cf\BinaryPropertyList.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\cf\BinaryPropertyList.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\cf\KURLCFNet.cpp"
 					>
 				</File>
@@ -6810,6 +6818,10 @@
 			</File>
 			<File
 				RelativePath="..\dom\MessageEvent.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\MessagePortProxy.h"
 				>
 			</File>
 			<File
@@ -10077,6 +10089,18 @@
 				RelativePath="..\history\PageCache.h"
 				>
 			</File>
+			<Filter
+				Name="cf"
+				>
+				<File
+					RelativePath="..\history\cf\HistoryPropertyList.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\history\cf\HistoryPropertyList.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="storage"

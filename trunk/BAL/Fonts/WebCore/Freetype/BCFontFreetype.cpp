@@ -88,7 +88,10 @@ SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
     return final;
 }
 
-
+bool Font::canReturnFallbackFontsForComplexText()
+{
+    return false;
+}
 
 void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
@@ -96,7 +99,7 @@ void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const F
 }
 
 
-float Font::floatWidthForComplexText(const TextRun& run) const
+float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* fallbackFonts) const
 {
     BalNotImplemented();
     return 0.0;

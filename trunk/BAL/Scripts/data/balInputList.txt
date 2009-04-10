@@ -486,11 +486,13 @@ BAL/Media/WebCore/WK	WebCore/platform/Sound.h
 
 
 BAL/Skeletons/Memory	JavaScriptCore/wtf/FastMalloc.h
+BAL/Skeletons/Memory    JavaScriptCore/wtf/FastAllocBase.h
 BAL/Skeletons/Memory	JavaScriptCore/wtf/MallocZoneSupport.h
 BAL/Skeletons/Memory	JavaScriptCore/wtf/TCSystemAlloc.h
 BAL/Skeletons/Memory	WebCore/platform/Arena.h
 BAL/Skeletons/Memory	WebCore/platform/AutodrainedPool.h
 
+BAL/Memory/WTF  JavaScriptCore/wtf/FastAllocBase.h
 BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.cpp
 BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.h
 BAL/Memory/WTF	JavaScriptCore/wtf/MallocZoneSupport.h

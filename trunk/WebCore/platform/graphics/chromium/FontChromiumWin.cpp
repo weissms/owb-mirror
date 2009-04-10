@@ -323,6 +323,10 @@ IntRect TransparencyAwareUniscribePainter::estimateTextBounds()
     UniscribeHelperTextRun state(m_run, *m_font);
     int left = lroundf(m_point.x()) + state.characterToX(m_from);
     int right = lroundf(m_point.x()) + state.characterToX(m_to);
+    
+    // Adjust for RTL script since we just want to know the text bounds.
+    if (left > right)
+        std::swap(left, right);
 
     // This algorithm for estimating how much extra space we need (the text may
     // go outside the selection rect) is based roughly on
@@ -334,6 +338,11 @@ IntRect TransparencyAwareUniscribePainter::estimateTextBounds()
 }
 
 }  // namespace
+
+bool Font::canReturnFallbackFontsForComplexText()
+{
+    return false;
+}
 
 void Font::drawGlyphs(GraphicsContext* graphicsContext,
                       const SimpleFontData* font,
@@ -456,7 +465,7 @@ void Font::drawComplexText(GraphicsContext* graphicsContext,
     context->canvas()->endPlatformPaint();
 }
 
-float Font::floatWidthForComplexText(const TextRun& run) const
+float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* /* fallbackFonts */) const
 {
     UniscribeHelperTextRun state(run, *this);
     return static_cast<float>(state.width());

@@ -29,6 +29,7 @@
 #include "HTMLSelectElement.h"
 #include "Icon.h"
 #include "RenderSlider.h"
+#include "Settings.h"
 #include "SoftLinking.h"
 #include "SystemInfo.h"
 #include "UserAgentStyleSheets.h"
@@ -55,11 +56,13 @@
 
 // Textfield constants
 #define TFP_TEXTFIELD 1
+#define EP_EDITBORDER_NOSCROLL 6
 #define TFS_READONLY  6
 
 // ComboBox constants (from vsstyle.h)
 #define CP_DROPDOWNBUTTON 1
 #define CP_BORDER 4
+#define CP_READONLY 5
 #define CP_DROPDOWNBUTTONRIGHT 6
 
 // TrackBar (slider) parts
@@ -118,6 +121,12 @@ static const float maxSearchFieldResultsDecorationSize = 30;
 static const float defaultSearchFieldResultsButtonWidth = 18;
 
 static bool gWebKitIsBeingUnloaded;
+
+static bool documentIsInApplicationChromeMode(const Document* document)
+{
+    Settings* settings = document->settings();
+    return settings && settings->inApplicationChromeMode();
+}
 
 void RenderThemeWin::setWebKitIsBeingUnloaded()
 {
@@ -499,7 +508,12 @@ ThemeData RenderThemeWin::getThemeData(RenderObject* o)
         case MenulistPart:
         case MenulistButtonPart:
             result.m_part = isRunningOnVistaOrLater() ? CP_DROPDOWNBUTTONRIGHT : CP_DROPDOWNBUTTON;
-            result.m_state = determineState(o);
+            if (isRunningOnVistaOrLater() && documentIsInApplicationChromeMode(o->document())) {
+                // The "readonly" look we use in application chrome mode
+                // only uses a "normal" look for the drop down button.
+                result.m_state = TS_NORMAL;
+            } else
+                result.m_state = determineState(o);
             break;
         case RadioPart:
             result.m_part = BP_RADIO;
@@ -508,7 +522,7 @@ ThemeData RenderThemeWin::getThemeData(RenderObject* o)
         case SearchFieldPart:
         case TextFieldPart:
         case TextAreaPart:
-            result.m_part = TFP_TEXTFIELD;
+            result.m_part = isRunningOnVistaOrLater() ? EP_EDITBORDER_NOSCROLL : TFP_TEXTFIELD;
             result.m_state = determineState(o);
             break;
         case SliderHorizontalPart:
@@ -624,7 +638,10 @@ bool RenderThemeWin::paintMenuList(RenderObject* o, const RenderObject::PaintInf
     int part;
     if (isRunningOnVistaOrLater()) {
         theme = menuListTheme();
-        part = CP_BORDER;
+        if (documentIsInApplicationChromeMode(o->document()))
+            part = CP_READONLY;
+        else
+            part = CP_BORDER;
     } else {
         theme = textFieldTheme();
         part = TFP_TEXTFIELD;

@@ -41,7 +41,10 @@ namespace WebCore {
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
 
 
-
+bool Font::canReturnFallbackFontsForComplexText()
+{
+    return false;
+}
 
 void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
@@ -49,7 +52,7 @@ void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const F
 }
 
 
-float Font::floatWidthForComplexText(const TextRun& run) const
+float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* fallbackFonts) const
 {
     BalNotImplemented();
     return 0.0;

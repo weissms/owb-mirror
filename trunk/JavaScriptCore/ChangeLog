@@ -1,3 +1,154 @@
+2009-04-10  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25091
+        The Android platform requires threads to be registered with the VM.
+        This patch implements this behaviour inside ThreadingPthreads.cpp.
+
+        * wtf/ThreadingPthreads.cpp: Add a level above threadEntryPoint that takes care of (un)registering threads with the VM.
+        (WTF::runThreadWithRegistration): register the thread and run entryPoint. Unregister the thread afterwards.
+        (WTF::createThreadInternal): call runThreadWithRegistration instead of entryPoint directly.
+
+2009-04-09  David Kilzer  <ddkilzer@apple.com>
+
+        Reinstating <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Rolled r42345 back in.  The build failure was caused by an
+        internal script which had not been updated the same way that
+        build-webkit was updated.
+
+        * Configurations/JavaScriptCore.xcconfig:
+
+2009-04-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reverting <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings.
+        It broke Mac build, and I don't know how to fix it.
+
+        * Configurations/JavaScriptCore.xcconfig:
+
+2009-04-09  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed build fix.
+
+        Checking for __GLIBCXX__ being bigger than some date is not enough
+        to get std::tr1, C++0x has to be in use too. Add another check for
+        __GXX_EXPERIMENTAL_CXX0X__.
+
+        * wtf/TypeTraits.h:
+
+2009-04-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix assertion failure in function.apply
+
+        The result of excess arguments to function.apply is irrelevant
+        so we don't need to provide a result register.  We were providing
+        temporary result register but not ref'ing it resulting in an
+        assertion failure.
+
+        * parser/Nodes.cpp:
+        (JSC::ApplyFunctionCallDotNode::emitBytecode):
+
+2009-04-08  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Reviewed by Darin Adler and Maciej Stachowiak.
+
+        Introduce the ENABLE_SVG_DOM_OBJC_BINDINGS feature define so
+        that SVG DOM Objective-C bindings may be optionally disabled.
+
+        * Configurations/JavaScriptCore.xcconfig: Added
+        ENABLE_SVG_DOM_OBJC_BINDINGS variable and use it in
+        FEATURE_DEFINES.
+
+2009-04-08  Paul Pedriana <ppedriana@ea.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20422
+        Allow custom memory allocation control.
+        
+        * wtf/FastAllocBase.h:
+        New added file. Implements allocation base class.
+        * wtf/TypeTraits.h:
+        Augments existing type traits support as needed by FastAllocBase.
+        * wtf/FastMalloc.h:
+        Changed to support FastMalloc match validation.
+        * wtf/FastMalloc.cpp:
+        Changed to support FastMalloc match validation.
+        * wtf/Platform.h:
+        Added ENABLE_FAST_MALLOC_MATCH_VALIDATION; defaults to 0.
+        * GNUmakefile.am:
+        Updated to include added FastAllocBase.h.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        Updated to include added FastAllocBase.h.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        Updated to include added FastAllocBase.h.
+
+2009-04-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Improve function.apply performance
+
+        Jump through a few hoops to improve performance of function.apply in the general case.
+
+        In the case of zero or one arguments, or if there are only two arguments and the
+        second is an array literal we treat function.apply as function.call.
+
+        Otherwise we use the new opcodes op_load_varargs and op_call_varargs to do the .apply call
+        without re-entering the virtual machine.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitJumpIfNotFunctionApply):
+        (JSC::BytecodeGenerator::emitLoadVarargs):
+        (JSC::BytecodeGenerator::emitCallVarargs):
+        * bytecompiler/BytecodeGenerator.h:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallSetupArgs):
+        (JSC::JIT::compileOpCallVarargsSetupArgs):
+        (JSC::JIT::compileOpCallVarargs):
+        (JSC::JIT::compileOpCallVarargsSlowCase):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_load_varargs):
+        * jit/JITStubs.h:
+        * parser/Grammar.y:
+        * parser/Nodes.cpp:
+        (JSC::ArrayNode::isSimpleArray):
+        (JSC::ArrayNode::toArgumentList):
+        (JSC::CallFunctionCallDotNode::emitBytecode):
+        (JSC::ApplyFunctionCallDotNode::emitBytecode):
+        * parser/Nodes.h:
+        (JSC::ExpressionNode::):
+        (JSC::ApplyFunctionCallDotNode::):
+        * runtime/Arguments.cpp:
+        (JSC::Arguments::copyToRegisters):
+        (JSC::Arguments::fillArgList):
+        * runtime/Arguments.h:
+        (JSC::Arguments::numProvidedArguments):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::addFunctionProperties):
+        * runtime/FunctionPrototype.h:
+        * runtime/JSArray.cpp:
+        (JSC::JSArray::copyToRegisters):
+        * runtime/JSArray.h:
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+        (JSC::JSGlobalObject::mark):
+        * runtime/JSGlobalObject.h:
+
 2009-04-08  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Darin Adler.

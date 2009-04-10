@@ -113,7 +113,7 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
             result = retval.toString(exec);
     }
 
-    Document::updateDocumentsRendering();
+    Document::updateStyleForAllDocuments();
 
     return result;
 }

@@ -1,3 +1,126 @@
+2009-04-10  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Hyatt.
+
+        <rdar://problem/4680397> tearing seen because deferred updates are disabled
+        
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView initWithFrame:]): Don't call WKDisableCGDeferredUpdates on post-Leopard if 
+        NSAppKitVersionNumberWithDeferredWindowDisplaySupport is defined.
+
+2009-04-09  John Sullivan  <sullivan@apple.com>
+
+        <rdar://problem/6775682> WebKit's support for SnowLeopard sudden termination for 
+        downloads is broken and should be removed
+
+        Reviewed by Darin Adler
+
+        * Misc/WebDownload.m:
+        (-[WebDownloadInternal downloadDidBegin:]):
+        remove disableSuddenTermination call
+        (-[WebDownloadInternal downloadDidFinish:]):
+        remove enableSuddenTermination call
+        (-[WebDownloadInternal download:didFailWithError:]):
+        remove enableSuddenTermination call
+
+2009-04-09  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson and Sam Weinig.
+
+        Part of <rdar://problem/5438063> Saving history containing 100,000 entries causes pauses of 2s while browsing
+
+        Longer term solution is to change the design so Safari doesn't read and write all of history.
+        This patch is step one: Do the serializing, which is done on the main thread, much faster.
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate data]): Added. Returns the NSData object containing serialized history.
+        For creating new SPI so you can get the data in memory instead of on disk. Uses WebHistoryWriter.
+        (-[WebHistoryPrivate saveToURL:error:]): Changed to call [self data
+        (-[WebHistory _data]): Added.
+        (WebHistoryWriter::WebHistoryWriter): Added.
+        (WebHistoryWriter::writeHistoryItems): Added.
+
+        * History/WebHistoryPrivate.h: Added a new _data method.
+
+2009-04-09  Mike Thole  <mthole@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        Fix 64-bit build
+
+        * Panels/WebAuthenticationPanel.h:
+            Declare the 'separateRealmLabel' IBOutlet as an NSTextField instead of 'id'.
+            This fixes a duplicate method warning (setAutoresizingMask: on NSView and CALayer)
+
+2009-04-09  Mike Thole  <mthole@apple.com>
+
+        Reviewed by Ada Chan.
+
+        <rdar://problem/5697111> Basic authentication dialog spoofing vulnerability
+
+        * Panels/WebAuthenticationPanel.h:
+            Added IBOutlet for separateRealmLabel
+        * Panels/WebAuthenticationPanel.m:
+        (-[WebAuthenticationPanel setUpForChallenge:]):
+            In the realm case, decide if it is a simple or complex realm name.  A realm name
+            is considered complex if it has any whitespace or newline characters.  Present
+            alternative text and layout for the complex case, where the realm name isn't inline
+            with the rest of the sheet's text.
+        
+        * Panels/English.lproj/WebAuthenticationPanel.nib/designable.nib:
+        * Panels/English.lproj/WebAuthenticationPanel.nib/keyedobjects.nib:
+            Updated the nib with a new 'separateRealmLabel' outlet. 
+            Updated the File's Owner to correctly be WebAuthenticationPanel.  
+            Fixed springs on the sheet's icon to keep it from moving during a resize.
+
+2009-04-09  David Kilzer  <ddkilzer@apple.com>
+
+        Reinstating <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Rolled r42345 back in.  The build failure was caused by an
+        internal script which had not been updated the same way that
+        build-webkit was updated.
+
+        * Configurations/WebKit.xcconfig:
+        * DOM/WebDOMOperations.mm:
+        * MigrateHeaders.make:
+
+2009-04-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reverting <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings.
+        It broke Mac build, and I don't know how to fix it.
+
+        * Configurations/WebKit.xcconfig:
+        * DOM/WebDOMOperations.mm:
+        * MigrateHeaders.make:
+
+2009-04-08  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6718589> Option to turn off SVG DOM Objective-C bindings
+
+        Reviewed by Darin Adler and Maciej Stachowiak.
+
+        Introduce the ENABLE_SVG_DOM_OBJC_BINDINGS feature define so
+        that SVG DOM Objective-C bindings may be optionally disabled.
+
+        * Configurations/WebKit.xcconfig: Added
+        ENABLE_SVG_DOM_OBJC_BINDINGS variable and use it in
+        FEATURE_DEFINES.
+        * DOM/WebDOMOperations.mm: Removed unused header.
+        * MigrateHeaders.make: Switched from using ENABLE_SVG to using
+        ENABLE_SVG_DOM_OBJC_BINDINGS.
+
+2009-04-08  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben and Darin Adler
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=12440, fixed positioned elements end up in
+        inconsistent positions.  Rewrite updateScrollers to improve the correctness.
+
+        * WebView/WebDynamicScrollBarsView.h:
+        * WebView/WebDynamicScrollBarsView.m:
+        (-[WebDynamicScrollBarsView updateScrollers]):
+
 2009-04-08  Anders Carlsson  <andersca@apple.com>
 
         Fix Tiger build for real this time.
