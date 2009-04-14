@@ -29,8 +29,11 @@
 #include "Document.h"
 #include "JSDocument.h"
 #include "JSMessageChannel.h"
-#include "JSWorkerContextBase.h"
 #include "MessageChannel.h"
+
+#if ENABLE(WORKERS)
+#include "JSWorkerContextBase.h"
+#endif
 
 using namespace JSC;
 

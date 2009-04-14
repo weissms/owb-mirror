@@ -67,6 +67,7 @@ SOFT_LINK(QTKit, QTMakeTime, QTTime, (long long timeValue, long timeScale), (tim
 SOFT_LINK_CLASS(QTKit, QTMovie)
 SOFT_LINK_CLASS(QTKit, QTMovieView)
 
+SOFT_LINK_POINTER(QTKit, QTTrackMediaTypeAttribute, NSString *)
 SOFT_LINK_POINTER(QTKit, QTMediaTypeAttribute, NSString *)
 SOFT_LINK_POINTER(QTKit, QTMediaTypeBase, NSString *)
 SOFT_LINK_POINTER(QTKit, QTMediaTypeMPEG, NSString *)
@@ -95,6 +96,7 @@ SOFT_LINK_POINTER(QTKit, QTVideoRendererWebKitOnlyNewImageAvailableNotification,
 #define QTMovie getQTMovieClass()
 #define QTMovieView getQTMovieViewClass()
 
+#define QTTrackMediaTypeAttribute getQTTrackMediaTypeAttribute()
 #define QTMediaTypeAttribute getQTMediaTypeAttribute()
 #define QTMediaTypeBase getQTMediaTypeBase()
 #define QTMediaTypeMPEG getQTMediaTypeMPEG()
@@ -678,18 +680,17 @@ void MediaPlayerPrivate::updateStates()
         m_readyState = MediaPlayer::HaveMetadata;
         m_networkState = MediaPlayer::Loading;
     } else if (loadState > QTMovieLoadStateError) {
+        m_readyState = MediaPlayer::HaveNothing;
+        m_networkState = MediaPlayer::Loading;
+    } else {
         if (m_player->inMediaDocument()) {
             // Something went wrong in the loading of media within a standalone file. 
             // This can occur with chained refmovies pointing to streamed media.
             sawUnsupportedTracks();
             return;
-        } else {
-            m_readyState = MediaPlayer::HaveNothing;
-            m_networkState = MediaPlayer::Loading;
         }
-    } else {
-        float loaded = maxTimeLoaded();
 
+        float loaded = maxTimeLoaded();
         if (!loaded)
             m_readyState = MediaPlayer::HaveNothing;
 
@@ -874,25 +875,44 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& r)
     [m_objcObserver.get() setDelayCallbacks:NO];
 }
 
-static HashSet<String> mimeTypeCache()
+static void addFileTypesToCache(NSArray * fileTypes, HashSet<String> &cache)
+{
+    int count = [fileTypes count];
+    for (int n = 0; n < count; n++) {
+        CFStringRef ext = reinterpret_cast<CFStringRef>([fileTypes objectAtIndex:n]);
+        RetainPtr<CFStringRef> uti(AdoptCF, UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, ext, NULL));
+        if (!uti)
+            continue;
+        RetainPtr<CFStringRef> mime(AdoptCF, UTTypeCopyPreferredTagWithClass(uti.get(), kUTTagClassMIMEType));
+        if (!mime)
+            continue;
+        cache.add(mime.get());
+    }    
+}
+
+static HashSet<String> mimeCommonTypesCache()
 {
     DEFINE_STATIC_LOCAL(HashSet<String>, cache, ());
     static bool typeListInitialized = false;
 
     if (!typeListInitialized) {
-        NSArray* fileTypes = [QTMovie movieFileTypes:QTIncludeCommonTypes];
-        int count = [fileTypes count];
-        for (int n = 0; n < count; n++) {
-            CFStringRef ext = reinterpret_cast<CFStringRef>([fileTypes objectAtIndex:n]);
-            RetainPtr<CFStringRef> uti(AdoptCF, UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, ext, NULL));
-            if (!uti)
-                continue;
-            RetainPtr<CFStringRef> mime(AdoptCF, UTTypeCopyPreferredTagWithClass(uti.get(), kUTTagClassMIMEType));
-            if (!mime)
-                continue;
-            cache.add(mime.get());
-        }
         typeListInitialized = true;
+        NSArray* fileTypes = [QTMovie movieFileTypes:QTIncludeCommonTypes];
+        addFileTypesToCache(fileTypes, cache);
+    }
+    
+    return cache;
+} 
+
+static HashSet<String> mimeModernTypesCache()
+{
+    DEFINE_STATIC_LOCAL(HashSet<String>, cache, ());
+    static bool typeListInitialized = false;
+    
+    if (!typeListInitialized) {
+        typeListInitialized = true;
+        NSArray* fileTypes = [QTMovie movieFileTypes:(QTMovieFileTypeOptions)wkQTIncludeOnlyModernMediaFileTypes()];
+        addFileTypesToCache(fileTypes, cache);
     }
     
     return cache;
@@ -900,14 +920,21 @@ static HashSet<String> mimeTypeCache()
 
 void MediaPlayerPrivate::getSupportedTypes(HashSet<String>& types)
 {
-    types = mimeTypeCache();
+    // Note: this method starts QTKitServer if it isn't already running when in 64-bit because it has to return the list 
+    // of every MIME type supported by QTKit.
+    types = mimeCommonTypesCache();
 } 
 
 MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& type, const String& codecs)
 {
-    // only return "IsSupported" if there is no codecs parameter for now as there is no way to ask QT if it supports an
-    //  extended MIME type yet
-    return mimeTypeCache().contains(type) ? (codecs && !codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported) : MediaPlayer::IsNotSupported;
+    // Only return "IsSupported" if there is no codecs parameter for now as there is no way to ask QT if it supports an
+    // extended MIME type yet.
+
+    // We check the "modern" type cache first, as it doesn't require QTKitServer to start.
+    if (mimeModernTypesCache().contains(type) || mimeCommonTypesCache().contains(type))
+        return (codecs && !codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported);
+
+    return MediaPlayer::IsNotSupported;
 }
 
 bool MediaPlayerPrivate::isAvailable()
@@ -967,24 +994,18 @@ void MediaPlayerPrivate::disableUnsupportedTracks()
         if (![track isEnabled])
             continue;
         
-        // Grab the track's media. We're going to check to see if we need to
-        // disable the tracks. They could be unsupported.
-        QTMedia *trackMedia = [track media];
-        if (!trackMedia)
-            continue;
-        
-        // Grab the media type for this track.
-        NSString *mediaType = [trackMedia attributeForKey:QTMediaTypeAttribute];
+        // Get the track's media type.
+        NSString *mediaType = [track attributeForKey:QTTrackMediaTypeAttribute];
         if (!mediaType)
             continue;
-        
+
         // Test whether the media type is in our white list.
         if (!allowedTrackTypes->contains(mediaType)) {
             // If this track type is not allowed, then we need to disable it.
             [track setEnabled:NO];
             --m_enabledTrackCount;
         }
-        
+
         // Disable chapter tracks. These are most likely to lead to trouble, as
         // they will be composited under the video tracks, forcing QT to do extra
         // work.

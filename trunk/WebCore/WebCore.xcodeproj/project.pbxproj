@@ -136,7 +136,7 @@
 		0B8C56D40F28627F000502E1 /* HTTPHeaderMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B8C56D30F28627F000502E1 /* HTTPHeaderMap.cpp */; };
 		0B9056190F2578BE0095FF6A /* DocumentThreadableLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B9056150F2578BE0095FF6A /* DocumentThreadableLoader.cpp */; };
 		0B90561A0F2578BF0095FF6A /* DocumentThreadableLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B9056160F2578BE0095FF6A /* DocumentThreadableLoader.h */; settings = {ATTRIBUTES = (); }; };
-		0B90561B0F2578BF0095FF6A /* ThreadableLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B9056170F2578BE0095FF6A /* ThreadableLoader.h */; settings = {ATTRIBUTES = (); }; };
+		0B90561B0F2578BF0095FF6A /* ThreadableLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B9056170F2578BE0095FF6A /* ThreadableLoader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0B90561C0F2578BF0095FF6A /* ThreadableLoaderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B9056180F2578BE0095FF6A /* ThreadableLoaderClient.h */; settings = {ATTRIBUTES = (); }; };
 		0B90561E0F257E930095FF6A /* ThreadableLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B90561D0F257E930095FF6A /* ThreadableLoader.cpp */; };
 		0B9056F80F2685F30095FF6A /* WorkerThreadableLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B9056F60F2685F30095FF6A /* WorkerThreadableLoader.cpp */; };
@@ -1087,7 +1087,7 @@
 		85031B490A44EFC700F992E0 /* MutationEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85031B330A44EFC700F992E0 /* MutationEvent.cpp */; };
 		85031B4A0A44EFC700F992E0 /* MutationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 85031B340A44EFC700F992E0 /* MutationEvent.h */; };
 		85031B4B0A44EFC700F992E0 /* RegisteredEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85031B350A44EFC700F992E0 /* RegisteredEventListener.cpp */; };
-		85031B4C0A44EFC700F992E0 /* RegisteredEventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 85031B360A44EFC700F992E0 /* RegisteredEventListener.h */; };
+		85031B4C0A44EFC700F992E0 /* RegisteredEventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 85031B360A44EFC700F992E0 /* RegisteredEventListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		85031B4D0A44EFC700F992E0 /* UIEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85031B370A44EFC700F992E0 /* UIEvent.cpp */; };
 		85031B4E0A44EFC700F992E0 /* UIEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 85031B380A44EFC700F992E0 /* UIEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		85031B4F0A44EFC700F992E0 /* UIEventWithKeyState.h in Headers */ = {isa = PBXBuildFile; fileRef = 85031B390A44EFC700F992E0 /* UIEventWithKeyState.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1971,7 +1971,7 @@
 		935C477509AC4D8E00A6AAB4 /* GapRects.h in Headers */ = {isa = PBXBuildFile; fileRef = 935C477409AC4D8D00A6AAB4 /* GapRects.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		935F45420F7C3B5F00D7C1FB /* JSLazyEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 935F45400F7C3B5F00D7C1FB /* JSLazyEventListener.cpp */; };
 		935F45430F7C3B5F00D7C1FB /* JSLazyEventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 935F45410F7C3B5F00D7C1FB /* JSLazyEventListener.h */; };
-		935FBC4509BA00B900E230B1 /* EventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBC4409BA00B900E230B1 /* EventListener.h */; };
+		935FBC4509BA00B900E230B1 /* EventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBC4409BA00B900E230B1 /* EventListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		935FBCF209BA143B00E230B1 /* ExceptionCode.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBCF109BA143B00E230B1 /* ExceptionCode.h */; };
 		9362640B0DE1137D009D5A00 /* CSSReflectionDirection.h in Headers */ = {isa = PBXBuildFile; fileRef = 9362640A0DE1137D009D5A00 /* CSSReflectionDirection.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9363B62C0F8E8FE000803810 /* HistoryPropertyList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9363B62A0F8E8FE000803810 /* HistoryPropertyList.cpp */; };
@@ -4257,7 +4257,6 @@
 		BCEFE1E50DCA5F3300739219 /* JSXSLTProcessorCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEFE1E40DCA5F3300739219 /* JSXSLTProcessorCustom.cpp */; };
 		BCEFE1EA0DCA5F6400739219 /* JSXSLTProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEFE1E80DCA5F6400739219 /* JSXSLTProcessor.cpp */; };
 		BCEFE1EB0DCA5F6400739219 /* JSXSLTProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEFE1E90DCA5F6400739219 /* JSXSLTProcessor.h */; };
-		BCF937E70E8B2E95005C7AB7 /* JSDOMWindowBase.lut.h in Headers */ = {isa = PBXBuildFile; fileRef = BCF937E60E8B2E95005C7AB7 /* JSDOMWindowBase.lut.h */; };
 		BCFB2E5E0979E46400BA703D /* CachedResourceClient.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFB2E5D0979E46400BA703D /* CachedResourceClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFB2F76097A2E1A00BA703D /* Arena.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCFB2F74097A2E1A00BA703D /* Arena.cpp */; };
 		BCFB2F77097A2E1A00BA703D /* Arena.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFB2F75097A2E1A00BA703D /* Arena.h */; };
@@ -4441,6 +4440,7 @@
 		FE6FD4890F676E5700092873 /* Coordinates.idl in Resources */ = {isa = PBXBuildFile; fileRef = FE6FD4860F676E5700092873 /* Coordinates.idl */; };
 		FE6FD48D0F676E9300092873 /* JSCoordinates.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE6FD48B0F676E9300092873 /* JSCoordinates.cpp */; };
 		FE6FD48E0F676E9300092873 /* JSCoordinates.h in Headers */ = {isa = PBXBuildFile; fileRef = FE6FD48C0F676E9300092873 /* JSCoordinates.h */; };
+		FE700DD10F92D81A008E2BFE /* JSCoordinatesCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE700DD00F92D81A008E2BFE /* JSCoordinatesCustom.cpp */; };
 		FE80D7A70E9C1ED2000D6F75 /* JSCustomPositionCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE80D7A20E9C1ED2000D6F75 /* JSCustomPositionCallback.cpp */; };
 		FE80D7A80E9C1ED2000D6F75 /* JSCustomPositionCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = FE80D7A30E9C1ED2000D6F75 /* JSCustomPositionCallback.h */; };
 		FE80D7A90E9C1ED2000D6F75 /* JSCustomPositionErrorCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE80D7A40E9C1ED2000D6F75 /* JSCustomPositionErrorCallback.cpp */; };
@@ -4904,10 +4904,10 @@
 		066C772F0AB603FD00238CC4 /* RenderFileUploadControl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderFileUploadControl.h; sourceTree = "<group>"; };
 		06E81ED60AB5D5E900C87837 /* LocalCurrentGraphicsContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalCurrentGraphicsContext.h; sourceTree = "<group>"; };
 		06E81EEB0AB5DA9700C87837 /* LocalCurrentGraphicsContext.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = LocalCurrentGraphicsContext.mm; sourceTree = "<group>"; };
-		070DD8F50F01868000727DEB /* mediaControls.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = mediaControls.css; sourceTree = "<group>"; };
+		070DD8F50F01868000727DEB /* mediaControls.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mediaControls.css; sourceTree = "<group>"; };
 		0735EE690F40C5E4004A2604 /* MediaPlayerProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaPlayerProxy.h; sourceTree = "<group>"; };
 		079F5E4B0F3BEBEA005E0782 /* MediaPlayerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaPlayerPrivate.h; sourceTree = "<group>"; };
-		07AFE5900F1446BD00841617 /* mediaControlsQT.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = mediaControlsQT.css; sourceTree = "<group>"; };
+		07AFE5900F1446BD00841617 /* mediaControlsQT.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mediaControlsQT.css; sourceTree = "<group>"; };
 		080081940ED3B2DD00C53BC0 /* WMLAnchorElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WMLAnchorElement.cpp; sourceTree = "<group>"; };
 		080081950ED3B2DD00C53BC0 /* WMLAnchorElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WMLAnchorElement.h; sourceTree = "<group>"; };
 		0804BF6C0EE09C3B0006C000 /* WMLDoElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WMLDoElement.cpp; sourceTree = "<group>"; };
@@ -9058,7 +9058,6 @@
 		BCEFE1E40DCA5F3300739219 /* JSXSLTProcessorCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSXSLTProcessorCustom.cpp; sourceTree = "<group>"; };
 		BCEFE1E80DCA5F6400739219 /* JSXSLTProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSXSLTProcessor.cpp; sourceTree = "<group>"; };
 		BCEFE1E90DCA5F6400739219 /* JSXSLTProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSXSLTProcessor.h; sourceTree = "<group>"; };
-		BCF937E60E8B2E95005C7AB7 /* JSDOMWindowBase.lut.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMWindowBase.lut.h; sourceTree = "<group>"; };
 		BCFB2E5D0979E46400BA703D /* CachedResourceClient.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CachedResourceClient.h; sourceTree = "<group>"; };
 		BCFB2F74097A2E1A00BA703D /* Arena.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Arena.cpp; sourceTree = "<group>"; };
 		BCFB2F75097A2E1A00BA703D /* Arena.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Arena.h; sourceTree = "<group>"; };
@@ -9290,6 +9289,7 @@
 		FE6FD4860F676E5700092873 /* Coordinates.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Coordinates.idl; sourceTree = "<group>"; };
 		FE6FD48B0F676E9300092873 /* JSCoordinates.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCoordinates.cpp; sourceTree = "<group>"; };
 		FE6FD48C0F676E9300092873 /* JSCoordinates.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCoordinates.h; sourceTree = "<group>"; };
+		FE700DD00F92D81A008E2BFE /* JSCoordinatesCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCoordinatesCustom.cpp; sourceTree = "<group>"; };
 		FE80D7A20E9C1ED2000D6F75 /* JSCustomPositionCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCustomPositionCallback.cpp; sourceTree = "<group>"; };
 		FE80D7A30E9C1ED2000D6F75 /* JSCustomPositionCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCustomPositionCallback.h; sourceTree = "<group>"; };
 		FE80D7A40E9C1ED2000D6F75 /* JSCustomPositionErrorCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCustomPositionErrorCallback.cpp; sourceTree = "<group>"; };
@@ -13453,6 +13453,7 @@
 				BCA83E510D7CE205003421A8 /* JSClipboardCustom.cpp */,
 				C0DFC86F0DB6841A003EAE7C /* JSConsoleCustom.cpp */,
 				FE80D7A20E9C1ED2000D6F75 /* JSCustomPositionCallback.cpp */,
+				FE700DD00F92D81A008E2BFE /* JSCoordinatesCustom.cpp */,
 				FE80D7A30E9C1ED2000D6F75 /* JSCustomPositionCallback.h */,
 				FE80D7A40E9C1ED2000D6F75 /* JSCustomPositionErrorCallback.cpp */,
 				FE80D7A50E9C1ED2000D6F75 /* JSCustomPositionErrorCallback.h */,
@@ -13605,7 +13606,6 @@
 				BC5A86B40C3367E800EEA649 /* JSDOMSelection.h */,
 				1403BA0B09EB18C700797C7F /* JSDOMWindow.cpp */,
 				1403BA0E09EB18F800797C7F /* JSDOMWindow.h */,
-				BCF937E60E8B2E95005C7AB7 /* JSDOMWindowBase.lut.h */,
 				BC94D14C0C275C68006BC617 /* JSHistory.cpp */,
 				BC94D14D0C275C68006BC617 /* JSHistory.h */,
 				BCE1C4390D9830D3003B02F2 /* JSLocation.cpp */,
@@ -15775,7 +15775,6 @@
 				E10BB3860F14B95000560E13 /* JSDOMStringList.h in Headers */,
 				E10BB3860F14B95000560E13 /* JSDOMStringList.h in Headers */,
 				BC6932740D7E293900AE44D1 /* JSDOMWindowBase.h in Headers */,
-				BCF937E70E8B2E95005C7AB7 /* JSDOMWindowBase.lut.h in Headers */,
 				652FBBBC0DE27CB60001D386 /* JSDOMWindowCustom.h in Headers */,
 				BCBFB53D0DCD29CF0019B3E5 /* JSDOMWindowShell.h in Headers */,
 				1AE82F900CAAFA9D002237AE /* JSDatabase.h in Headers */,
@@ -18837,6 +18836,7 @@
 				93F925440F7EF5B8007E37C9 /* CheckedRadioButtons.cpp in Sources */,
 				938192030F87E1E600D5352A /* BinaryPropertyList.cpp in Sources */,
 				9363B62C0F8E8FE000803810 /* HistoryPropertyList.cpp in Sources */,
+				FE700DD10F92D81A008E2BFE /* JSCoordinatesCustom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

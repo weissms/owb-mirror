@@ -96,13 +96,15 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
 
     JSLock lock(false);
 
-    // Evaluating the JavaScript could cause the frame to be deallocated
-    // so we start the keep alive timer here.
-    m_frame->keepAlive();
+    RefPtr<Frame> protect = m_frame;
 
     m_windowShell->window()->globalData()->timeoutChecker.start();
     Completion comp = JSC::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), jsSourceCode, m_windowShell);
     m_windowShell->window()->globalData()->timeoutChecker.stop();
+
+    // Evaluating the JavaScript could cause the frame to be deallocated
+    // so we start the keep alive timer here.
+    m_frame->keepAlive();
 
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
         m_sourceURL = savedSourceURL;
@@ -122,8 +124,13 @@ void ScriptController::clearWindowShell()
         return;
 
     JSLock lock(false);
+
+    // Clear the debugger from the current window before setting the new window.
+    attachDebugger(0);
+
     m_windowShell->window()->clear();
     m_windowShell->setWindow(m_frame->domWindow());
+
     if (Page* page = m_frame->page()) {
         attachDebugger(page->debugger());
         m_windowShell->window()->setProfileGroup(page->group().identifier());

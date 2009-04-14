@@ -106,7 +106,7 @@ void InspectorResource::updateResponse(const ResourceResponse& response)
 
 static ScriptObject createHeadersObject(ScriptState* scriptState, const HTTPHeaderMap& headers, bool hadException)
 {
-    ScriptObject object(scriptState);
+    ScriptObject object = ScriptObject::createNew(scriptState);
     HTTPHeaderMap::const_iterator end = headers.end();
     for (HTTPHeaderMap::const_iterator it = headers.begin(); it != end; ++it) {
         if (!object.set(scriptState, it->first.string(), it->second)) {
@@ -173,7 +173,7 @@ void InspectorResource::updateScriptObject(ScriptState* scriptState)
         if (!m_scriptObject.set(scriptState, "path", m_requestURL.path()))
             return;
 
-        if (!m_scriptObject.set(scriptState, "lasPathComponent", m_requestURL.lastPathComponent()))
+        if (!m_scriptObject.set(scriptState, "lastPathComponent", m_requestURL.lastPathComponent()))
             return;
 
         ScriptObject requestHeaders = createHeadersObject(scriptState, m_requestHeaderFields, hadException);

@@ -13,6 +13,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/GCController.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
+    bindings/js/JSCoordinatesCustom.cpp
     bindings/js/JSCSSRuleCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp

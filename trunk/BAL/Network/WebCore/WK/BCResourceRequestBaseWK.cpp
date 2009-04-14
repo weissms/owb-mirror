@@ -117,6 +117,16 @@ void ResourceRequestBase::setURL(const KURL& url)
     m_platformRequestUpdated = false;
 }
 
+void ResourceRequestBase::removeCredentials()
+{
+    updateResourceRequest(); 
+
+    m_url.setUser(String());
+    m_url.setPass(String());
+
+    m_platformRequestUpdated = false;
+}
+
 ResourceRequestCachePolicy ResourceRequestBase::cachePolicy() const
 {
     updateResourceRequest(); 
@@ -344,5 +354,14 @@ void ResourceRequestBase::updateResourceRequest() const
     const_cast<ResourceRequest&>(asResourceRequest()).doUpdateResourceRequest();
     m_resourceRequestUpdated = true;
 }
+
+#if !PLATFORM(MAC)
+unsigned initializeMaximumHTTPConnectionCountPerHost()
+{
+    // This is used by the loader to control the number of issued parallel load requests. 
+    // Four seems to be a common default in HTTP frameworks.
+    return 4;
+}
+#endif
 
 }

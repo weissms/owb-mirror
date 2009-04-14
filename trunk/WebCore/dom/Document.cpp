@@ -1078,7 +1078,7 @@ PassRefPtr<TreeWalker> Document::createTreeWalker(Node *root, unsigned whatToSho
 
 void Document::scheduleStyleRecalc()
 {
-    if (m_styleRecalcTimer.isActive())
+    if (m_styleRecalcTimer.isActive() || inPageCache())
         return;
 
     ASSERT(childNeedsStyleRecalc());
@@ -1344,12 +1344,10 @@ void Document::detach()
     }
 }
 
-void Document::removeAllEventListenersFromAllNodes()
+void Document::removeAllEventListeners()
 {
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i)
-        m_windowEventListeners[i]->setRemoved(true);
-    m_windowEventListeners.clear();
+    if (DOMWindow* domWindow = this->domWindow())
+        domWindow->removeAllEventListeners();
     removeAllDisconnectedNodeEventListeners();
     for (Node* node = this; node; node = node->traverseNextNode())
         node->removeAllEventListeners();
@@ -1485,6 +1483,11 @@ void Document::implicitOpen()
     clear();
     m_tokenizer = createTokenizer();
     setParsing(true);
+
+    // If we reload, the animation controller sticks around and has
+    // a stale animation time. We need to update it here.
+    if (m_frame && m_frame->animation())
+        m_frame->animation()->beginAnimationUpdate();
 }
 
 HTMLElement* Document::body() const
@@ -1744,11 +1747,8 @@ void Document::clear()
     m_tokenizer = 0;
 
     removeChildren();
-
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i)
-        m_windowEventListeners[i]->setRemoved(true);
-    m_windowEventListeners.clear();
+    if (DOMWindow* domWindow = this->domWindow())
+        domWindow->removeAllEventListeners();
 }
 
 const KURL& Document::virtualURL() const
@@ -2759,121 +2759,6 @@ CSSStyleDeclaration* Document::getOverrideStyle(Element*, const String&)
     return 0;
 }
 
-void Document::handleWindowEvent(Event* event, bool useCapture)
-{
-    if (m_windowEventListeners.isEmpty())
-        return;
-        
-    // If any HTML event listeners are registered on the window, dispatch them here.
-    RegisteredEventListenerVector listenersCopy = m_windowEventListeners;
-    size_t size = listenersCopy.size();
-    for (size_t i = 0; i < size; ++i) {
-        RegisteredEventListener& r = *listenersCopy[i];
-        if (r.eventType() == event->type() && r.useCapture() == useCapture && !r.removed())
-            r.listener()->handleEvent(event, true);
-    }
-}
-
-void Document::setWindowInlineEventListenerForType(const AtomicString& eventType, PassRefPtr<EventListener> listener)
-{
-    // If we already have it we don't want removeWindowEventListener to delete it
-    removeWindowInlineEventListenerForType(eventType);
-    if (listener)
-        addWindowEventListener(eventType, listener, false);
-}
-
-EventListener* Document::windowInlineEventListenerForType(const AtomicString& eventType)
-{
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i) {
-        RegisteredEventListener& r = *m_windowEventListeners[i];
-        if (r.eventType() == eventType && r.listener()->isInline())
-            return r.listener();
-    }
-    return 0;
-}
-
-void Document::removeWindowInlineEventListenerForType(const AtomicString& eventType)
-{
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i) {
-        RegisteredEventListener& r = *m_windowEventListeners[i];
-        if (r.eventType() == eventType && r.listener()->isInline()) {
-            if (eventType == eventNames().unloadEvent)
-                removePendingFrameUnloadEventCount();
-            else if (eventType == eventNames().beforeunloadEvent)
-                removePendingFrameBeforeUnloadEventCount();
-            r.setRemoved(true);
-            m_windowEventListeners.remove(i);
-            return;
-        }
-    }
-}
-
-void Document::addWindowEventListener(const AtomicString& eventType, PassRefPtr<EventListener> listener, bool useCapture)
-{
-    if (eventType == eventNames().unloadEvent)
-        addPendingFrameUnloadEventCount();
-    else if (eventType == eventNames().beforeunloadEvent)
-        addPendingFrameBeforeUnloadEventCount();
-    // Remove existing identical listener set with identical arguments.
-    // The DOM 2 spec says that "duplicate instances are discarded" in this case.
-    removeWindowEventListener(eventType, listener.get(), useCapture);
-    addListenerTypeIfNeeded(eventType);
-    m_windowEventListeners.append(RegisteredEventListener::create(eventType, listener, useCapture));
-}
-
-void Document::removeWindowEventListener(const AtomicString& eventType, EventListener* listener, bool useCapture)
-{
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i) {
-        RegisteredEventListener& r = *m_windowEventListeners[i];
-        if (r.eventType() == eventType && r.listener() == listener && r.useCapture() == useCapture) {
-            if (eventType == eventNames().unloadEvent)
-                removePendingFrameUnloadEventCount();
-            else if (eventType == eventNames().beforeunloadEvent)
-                removePendingFrameBeforeUnloadEventCount();
-            r.setRemoved(true);
-            m_windowEventListeners.remove(i);
-            return;
-        }
-    }
-}
-
-bool Document::hasWindowEventListener(const AtomicString& eventType)
-{
-    size_t size = m_windowEventListeners.size();
-    for (size_t i = 0; i < size; ++i) {
-        if (m_windowEventListeners[i]->eventType() == eventType)
-            return true;
-    }
-    return false;
-}
-
-void Document::addPendingFrameUnloadEventCount() 
-{
-    if (m_frame)
-         m_frame->eventHandler()->addPendingFrameUnloadEventCount();
-}
-
-void Document::removePendingFrameUnloadEventCount() 
-{
-    if (m_frame)
-        m_frame->eventHandler()->removePendingFrameUnloadEventCount();
-}
-
-void Document::addPendingFrameBeforeUnloadEventCount() 
-{
-    if (m_frame)
-         m_frame->eventHandler()->addPendingFrameBeforeUnloadEventCount();
-}
-
-void Document::removePendingFrameBeforeUnloadEventCount() 
-{
-    if (m_frame)
-        m_frame->eventHandler()->removePendingFrameBeforeUnloadEventCount();
-}
-
 PassRefPtr<EventListener> Document::createEventListener(const String& functionName, const String& code, Node* node)
 {
     Frame* frm = frame();
@@ -2891,7 +2776,10 @@ PassRefPtr<EventListener> Document::createEventListener(const String& functionNa
 
 void Document::setWindowInlineEventListenerForTypeAndAttribute(const AtomicString& eventType, Attribute* attr)
 {
-    setWindowInlineEventListenerForType(eventType, createEventListener(attr->localName().string(), attr->value(), 0));
+    DOMWindow* domWindow = this->domWindow();
+    if (!domWindow)
+        return;
+    domWindow->setInlineEventListenerForType(eventType, createEventListener(attr->localName().string(), attr->value(), 0));
 }
 
 Element* Document::ownerElement() const
@@ -3157,11 +3045,14 @@ void Document::setInPageCache(bool flag)
         m_savedRenderer = renderer();
         if (FrameView* v = view())
             v->resetScrollbars();
+        unscheduleStyleRecalc();
     } else {
         ASSERT(renderer() == 0 || renderer() == m_savedRenderer);
         ASSERT(m_renderArena);
         setRenderer(m_savedRenderer);
         m_savedRenderer = 0;
+        if (childNeedsStyleRecalc())
+            scheduleStyleRecalc();
     }
 }
 
@@ -3278,7 +3169,7 @@ void Document::addMarker(Range *range, DocumentMarker::MarkerType type, String d
     for (TextIterator markedText(range); !markedText.atEnd(); markedText.advance()) {
         RefPtr<Range> textPiece = markedText.range();
         int exception = 0;
-        DocumentMarker marker = {type, textPiece->startOffset(exception), textPiece->endOffset(exception), description};
+        DocumentMarker marker = {type, textPiece->startOffset(exception), textPiece->endOffset(exception), description, false};
         addMarker(textPiece->startContainer(exception), marker);
     }
 }
@@ -3698,6 +3589,53 @@ void Document::shiftMarkers(Node *node, unsigned startOffset, int delta, Documen
         }
     }
     
+    // repaint the affected node
+    if (docDirty && node->renderer())
+        node->renderer()->repaint();
+}
+
+void Document::setMarkersActive(Range* range, bool active)
+{
+    if (m_markers.isEmpty())
+        return;
+
+    ExceptionCode ec = 0;
+    Node* startContainer = range->startContainer(ec);
+    Node* endContainer = range->endContainer(ec);
+
+    Node* pastLastNode = range->pastLastNode();
+    for (Node* node = range->firstNode(); node != pastLastNode; node = node->traverseNextNode()) {
+        int startOffset = node == startContainer ? range->startOffset(ec) : 0;
+        int endOffset = node == endContainer ? range->endOffset(ec) : INT_MAX;
+        setMarkersActive(node, startOffset, endOffset, active);
+    }
+}
+
+void Document::setMarkersActive(Node* node, unsigned startOffset, unsigned endOffset, bool active)
+{
+    MarkerMapVectorPair* vectorPair = m_markers.get(node);
+    if (!vectorPair)
+        return;
+
+    Vector<DocumentMarker>& markers = vectorPair->first;
+    ASSERT(markers.size() == vectorPair->second.size());
+
+    bool docDirty = false;
+    for (size_t i = 0; i != markers.size(); ++i) {
+        DocumentMarker &marker = markers[i];
+
+        // Markers are returned in order, so stop if we are now past the specified range.
+        if (marker.startOffset >= endOffset)
+            break;
+
+        // Skip marker that is wrong type or before target.
+        if (marker.endOffset < startOffset || marker.type != DocumentMarker::TextMatch)
+            continue;
+
+        marker.activeMatch = active;
+        docDirty = true;
+    }
+
     // repaint the affected node
     if (docDirty && node->renderer())
         node->renderer()->repaint();

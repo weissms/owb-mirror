@@ -236,7 +236,7 @@ private:
     int m_scrollbarsAvoidingResizer;
     bool m_scrollbarsSuppressed;
     
-    bool m_updatingScrollbarAttributes;
+    bool m_inUpdateScrollbars;
     unsigned m_updateScrollbarsPass;
 
     IntPoint m_panScrollIconPoint;

@@ -350,7 +350,7 @@ bool ReplaceSelectionCommand::shouldMergeStart(bool selectionStartWasStartOfPara
     if (prev.isNull())
         return false;
     
-    if (!m_movingParagraph && hasMatchingQuoteLevel(prev, positionAtEndOfInsertedContent()))
+    if (!m_movingParagraph && isStartOfParagraph(startOfInsertedContent) && hasMatchingQuoteLevel(prev, positionAtEndOfInsertedContent()))
         return true;
 
     return !selectionStartWasStartOfParagraph && 
@@ -772,9 +772,10 @@ void ReplaceSelectionCommand::doApply()
         insertionPos = endingSelection().start();
     }
     
-    if (startIsInsideMailBlockquote && m_preventNesting) { 
-        // We don't want any of the pasted content to end up nested in a Mail blockquote, so first break 
-        // out of any surrounding Mail blockquotes. 
+    // We don't want any of the pasted content to end up nested in a Mail blockquote, so first break 
+    // out of any surrounding Mail blockquotes. Unless we're inserting in a table, in which case
+    // breaking the blockquote will prevent the content from actually being inserted in the table.
+    if (startIsInsideMailBlockquote && m_preventNesting && !(enclosingNodeOfType(insertionPos, &isTableStructureNode))) { 
         applyCommandToComposite(BreakBlockquoteCommand::create(document())); 
         // This will leave a br between the split. 
         Node* br = endingSelection().start().node(); 

@@ -30,8 +30,11 @@
 #include "Document.h"
 #include "JSDOMWindow.h"
 #include "JSEventListener.h"
+
+#if ENABLE(WORKERS)
 #include "JSWorkerContextBase.h"
 #include "WorkerContext.h"
+#endif
 
 using namespace JSC;
 
@@ -153,7 +156,7 @@ void JSDOMGlobalObject::setCurrentEvent(Event* evt)
     d()->evt = evt;
 }
 
-Event* JSDOMGlobalObject::currentEvent()
+Event* JSDOMGlobalObject::currentEvent() const
 {
     return d()->evt;
 }

@@ -46,9 +46,6 @@ typedef struct _GtkAdjustment GtkAdjustment;
 class wxScrollWinEvent;
 #endif
 
-// DANGER WILL ROBINSON! THIS FILE IS UNDERGOING HEAVY REFACTORING.
-// Everything is changing!
-// Port authors should wait until this refactoring is complete before attempting to implement this interface.
 namespace WebCore {
 
 class HostWindow;
@@ -253,7 +250,7 @@ private:
     int m_scrollbarsAvoidingResizer;
     bool m_scrollbarsSuppressed;
 
-    bool m_updatingScrollbarAttributes;
+    bool m_inUpdateScrollbars;
     unsigned m_updateScrollbarsPass;
 
     IntPoint m_panScrollIconPoint;

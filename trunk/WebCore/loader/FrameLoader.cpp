@@ -624,7 +624,7 @@ void FrameLoader::stopLoading(bool sendUnload)
             }
         }
         if (m_frame->document() && !m_frame->document()->inPageCache())
-            m_frame->document()->removeAllEventListenersFromAllNodes();
+            m_frame->document()->removeAllEventListeners();
     }
 
     m_isComplete = true; // to avoid calling completed() in finishedParsing() (David)
@@ -1832,7 +1832,7 @@ bool FrameLoader::canCachePageContainingThisFrame()
         // the right NPObjects. See <rdar://problem/5197041> for more information.
         && !m_containsPlugIns
         && !m_URL.protocolIs("https")
-        && !m_frame->document()->hasWindowEventListener(eventNames().unloadEvent)
+        && (!m_frame->domWindow() || !m_frame->domWindow()->hasEventListener(eventNames().unloadEvent))
 #if ENABLE(DATABASE)
         && !m_frame->document()->hasOpenDatabases()
 #endif
@@ -1974,7 +1974,7 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
             { PCLOG("   -Frame contains plugins"); cannotCache = true; }
         if (m_URL.protocolIs("https"))
             { PCLOG("   -Frame is HTTPS"); cannotCache = true; }
-        if (m_frame->document()->hasWindowEventListener(eventNames().unloadEvent))
+        if (m_frame->domWindow() && m_frame->domWindow()->hasEventListener(eventNames().unloadEvent))
             { PCLOG("   -Frame has an unload event listener"); cannotCache = true; }
 #if ENABLE(DATABASE)
         if (m_frame->document()->hasOpenDatabases())
@@ -3658,10 +3658,8 @@ void FrameLoader::loadPostRequest(const ResourceRequest& inRequest, const String
         loadWithNavigationAction(workingResourceRequest, action, lockHistory, loadType, formState.release());    
 }
 
-unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& request, ResourceError& error, ResourceResponse& response, Vector<char>& data)
+unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& request, StoredCredentials storedCredentials, ResourceError& error, ResourceResponse& response, Vector<char>& data)
 {
-    // Since this is a subresource, we can load any URL (we ignore the return value).
-    // But we still want to know whether we should hide the referrer or not, so we call the canLoad method.
     String referrer = m_outgoingReferrer;
     if (shouldHideReferrer(request.url(), referrer))
         referrer = String();
@@ -3699,7 +3697,7 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
                 error = cannotShowURLError(newRequest);
         } else {
 #endif
-            ResourceHandle::loadResourceSynchronously(newRequest, error, response, data, m_frame);
+            ResourceHandle::loadResourceSynchronously(newRequest, storedCredentials, error, response, data, m_frame);
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
             // If normal loading results in a redirect to a resource with another origin (indicative of a captive portal), or a 4xx or 5xx status code or equivalent,
@@ -4012,7 +4010,14 @@ void FrameLoader::continueLoadAfterNavigationPolicy(const ResourceRequest&, Pass
     // might detach the current FrameLoader, in which case we should bail on this newly defunct load. 
     if (!m_frame->page())
         return;
-        
+
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+    if (Page* page = m_frame->page()) {
+        if (page->mainFrame() == m_frame)
+            page->inspectorController()->resumeDebugger();
+    }
+#endif
+
     setProvisionalDocumentLoader(m_policyDocumentLoader.get());
     m_loadType = type;
     setState(FrameStateProvisional);

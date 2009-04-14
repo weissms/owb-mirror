@@ -397,7 +397,6 @@ struct WebHTMLViewInterpretKeyEventsParameters {
 @interface WebHTMLViewPrivate : NSObject {
 @public
     BOOL closed;
-    BOOL needsLayout;
     BOOL needsToApplyStyles;
     BOOL ignoringMouseDraggedEvents;
     BOOL printing;
@@ -1149,9 +1148,10 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 
 - (void)_frameOrBoundsChanged
 {
-    if (!NSEqualSizes(_private->lastLayoutSize, [(NSClipView *)[self superview] documentVisibleRect].size)) {
+    if (!NSEqualSizes(_private->lastLayoutSize, [[self superview] bounds].size)) {
         [self setNeedsLayout:YES];
         [self setNeedsDisplay:YES];
+        _private->lastLayoutSize = [[self superview] bounds].size;
         [_private->compController endRevertingChange:NO moveLeft:NO];
     }
 
@@ -2255,7 +2255,6 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     _private = [[WebHTMLViewPrivate alloc] init];
 
     _private->pluginController = [[WebPluginController alloc] initWithDocumentView:self];
-    _private->needsLayout = YES;
     
     return self;
 }
@@ -2931,7 +2930,7 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 {
     [self reapplyStyles];
     
-    if (!_private->needsLayout && ![[self _frame] _needsLayout])
+    if (![self _needsLayout])
         return;
 
 #ifdef LOG_TIMES        
@@ -2941,10 +2940,8 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
     LOG(View, "%@ doing layout", self);
 
     Frame* coreFrame = core([self _frame]);
-    if (!coreFrame) {
-        _private->needsLayout = NO;
+    if (!coreFrame)
         return;
-    }
 
     if (FrameView* coreView = coreFrame->view()) {
         if (minPageWidth > 0.0)
@@ -2955,11 +2952,7 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
                 coreView->adjustViewSize();
         }
     }
-    _private->needsLayout = NO;
     
-    if (!_private->printing)
-        _private->lastLayoutSize = [(NSClipView *)[self superview] documentVisibleRect].size;
-
 #ifdef LOG_TIMES        
     double thisTime = CFAbsoluteTimeGetCurrent() - start;
     LOG(Timing, "%s layout seconds = %f", [self URL], thisTime);
@@ -3051,7 +3044,14 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 - (void)setNeedsLayout: (BOOL)flag
 {
     LOG(View, "%@ setNeedsLayout:%@", self, flag ? @"YES" : @"NO");
-    _private->needsLayout = flag;
+    if (!flag)
+        return; // There's no way to say you don't need a layout.
+    if (Frame* frame = core([self _frame])) {
+        if (frame->document() && frame->document()->inPageCache())
+            return;
+        if (FrameView* view = frame->view())
+            view->setNeedsLayout();
+    }
 }
 
 - (void)setNeedsToApplyStyles: (BOOL)flag
@@ -3169,6 +3169,11 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
+    if (!pthread_main_np()) {
+        [self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+        return;
+    }
+
     NSWindow *keyWindow = [notification object];
 
     if (keyWindow == [self window])
@@ -3180,6 +3185,11 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 
 - (void)windowDidResignKey:(NSNotification *)notification
 {
+    if (!pthread_main_np()) {
+        [self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+        return;
+    }
+
     NSWindow *formerKeyWindow = [notification object];
 
     if (formerKeyWindow == [self window])
@@ -3193,6 +3203,11 @@ static void _updateFocusedAndActiveStateTimerCallback(CFRunLoopTimerRef timer, v
 
 - (void)windowWillClose:(NSNotification *)notification
 {
+    if (!pthread_main_np()) {
+        [self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+        return;
+    }
+
     [_private->compController endRevertingChange:NO moveLeft:NO];
     [[self _pluginController] destroyAllPlugins];
 }
@@ -4720,15 +4735,28 @@ static BOOL writingDirectionKeyBindingsEnabled()
 
 #endif
 
+- (void)_updateControlTints
+{
+    Frame* frame = core([self _frame]);
+    if (!frame)
+        return;
+    FrameView* view = frame->view();
+    if (!view)
+        return;
+    view->updateControlTints();
+}
+
 // Despite its name, this is called at different times than windowDidBecomeKey is.
 // It takes into account all the other factors that determine when NSCell draws
 // with different tints, so it's the right call to use for control tints. We'd prefer
 // to do this with API. <rdar://problem/5136760>
 - (void)_windowChangedKeyState
 {
-    if (Frame* frame = core([self _frame]))
-        if (FrameView* view = frame->view())
-            view->updateControlTints();
+    if (pthread_main_np())
+        [self _updateControlTints];
+    else
+        [self performSelectorOnMainThread:@selector(_updateControlTints) withObject:nil waitUntilDone:NO];
+
     [super _windowChangedKeyState];
 }
 
@@ -5081,9 +5109,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
 {
     ASSERT(!_private->subviewsSetAside);
 
-    if ([[self _frame] _needsLayout])
-        _private->needsLayout = YES;
-    if (_private->needsToApplyStyles || _private->needsLayout)
+    if (_private->needsToApplyStyles || [self _needsLayout])
         [self layout];
 }
 
@@ -5118,6 +5144,11 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
 - (BOOL)_isResigningFirstResponder
 {
     return _private->resigningFirstResponder;
+}
+
+- (BOOL)_needsLayout
+{
+    return [[self _frame] _needsLayout];
 }
 
 #if USE(ACCELERATED_COMPOSITING)

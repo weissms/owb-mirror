@@ -28,6 +28,7 @@
 
 #include "KURL.h"
 #include "PlatformString.h"
+#include "RegisteredEventListener.h"
 #include "SecurityOrigin.h"
 #include <wtf/Forward.h>
 #include <wtf/RefCounted.h>
@@ -45,6 +46,7 @@ namespace WebCore {
     class Database;
     class Document;
     class Element;
+    class Event;
     class EventListener;
     class FloatRect;
     class Frame;
@@ -85,6 +87,11 @@ namespace WebCore {
         KURL url() const { return m_url; }
 
         static void adjustWindowRect(const FloatRect& screen, FloatRect& window, const FloatRect& pendingChanges);
+        static void parseModalDialogFeatures(const String& featuresArg, HashMap<String, String>& map);
+
+        static bool allowPopUp(Frame* activeFrame);
+        static bool canShowModalDialog(const Frame*);
+        static bool canShowModalDialogNow(const Frame*);
 
         // DOM Level 0
         Screen* screen() const;
@@ -199,6 +206,16 @@ namespace WebCore {
         void resizeBy(float x, float y) const;
         void resizeTo(float width, float height) const;
 
+        void handleEvent(Event*, bool useCapture);
+
+        void addEventListener(const AtomicString& eventType, PassRefPtr<EventListener>, bool useCapture);
+        void removeEventListener(const AtomicString& eventType, EventListener*, bool useCapture);
+        bool hasEventListener(const AtomicString& eventType);
+        void removeAllEventListeners();
+        const RegisteredEventListenerVector& eventListeners() const { return m_eventListeners; }
+
+        void setInlineEventListenerForType(const AtomicString& eventType, PassRefPtr<EventListener>);
+        
         EventListener* onabort() const;
         void setOnabort(PassRefPtr<EventListener>);
         EventListener* onblur() const;
@@ -285,8 +302,13 @@ namespace WebCore {
     private:
         DOMWindow(Frame*);
 
-        void setInlineEventListenerForType(const AtomicString& eventType, PassRefPtr<EventListener>);
+        void removeInlineEventListenerForType(const AtomicString& eventType);
         EventListener* inlineEventListenerForType(const AtomicString& eventType) const;
+
+        void addPendingFrameUnloadEventCount();
+        void removePendingFrameUnloadEventCount();
+        void addPendingFrameBeforeUnloadEventCount();
+        void removePendingFrameBeforeUnloadEventCount();
 
         RefPtr<SecurityOrigin> m_securityOrigin;
         KURL m_url;
@@ -313,6 +335,8 @@ namespace WebCore {
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         mutable RefPtr<DOMApplicationCache> m_applicationCache;
 #endif
+
+        RegisteredEventListenerVector m_eventListeners;
     };
 
 } // namespace WebCore

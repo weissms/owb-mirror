@@ -1,3 +1,44 @@
+2009-04-14  Adam Roben  <aroben@apple.com>
+
+        Windows part 2 of <rdar://5438063> Saving history containing 100,000
+        entries causes pauses of 2s while browsing
+
+        Reviewed by Brady Eidson.
+
+        * Interfaces/IWebHistoryPrivate.idl: Added data, analagous to
+        WebKit/mac's -[WebHistory _data] method.
+
+        * WebHistory.cpp:
+        (WebHistory::saveHistoryGuts): Changed to call data() to get the data for
+        saving.
+        (WebHistory::data): Added. Returns the data for saving as an IStream.
+        (WebHistory::data): Added. Returns the data for saving as a CFDataRef.
+
+        * WebHistory.h: Added data.
+
+2009-04-10  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6676024> REGRESSION (PB-40B1): Safari crashes on launch on tablet PC
+        
+        r21436 changed the semantics of AXObjectCache::get() to not create
+        objects on demand. Changing this get() call into a getOrCreate() call
+        fixes the crash.
+        
+        Rubber stamped by Jon Honeycutt.
+
+        * AccessibleDocument.cpp:
+        (AccessibleDocument::AccessibleDocument):
+
+2009-04-10  Adam Roben  <aroben@apple.com>
+
+        Add our invidual IDL files back to Interfaces.vcproj, but disable them
+
+        This allows the IDL files to be found in Solution Explorer.
+
+        Rubber-stamped in advance by Steve Falkenburg.
+
+        * WebKit.vcproj/Interfaces.vcproj:
+
 2009-04-10  Adam Roben  <aroben@apple.com>
 
         Windows part 1 of <rdar://problem/5438063> Saving history containing

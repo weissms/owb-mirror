@@ -55,6 +55,7 @@
 #include "FrameLoaderTypes.h"
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
+#include <glib/gi18n-lib.h>
 #include "GraphicsContext.h"
 #include "InspectorClientGtk.h"
 #include "FrameLoader.h"
@@ -138,6 +139,7 @@ enum {
     CUT_CLIPBOARD,
     DOWNLOAD_REQUESTED,
     MOVE_CURSOR,
+    PRINT_REQUESTED,
     LAST_SIGNAL
 };
 
@@ -1374,6 +1376,35 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             G_TYPE_NONE, 1,
             GTK_TYPE_MENU);
 
+    /**
+     * WebKitWebView::print-requested
+     * @web_view: the object in which the signal is emitted
+     * @web_frame: the frame that is requesting to be printed
+     * @return: %TRUE if the print request has been handled, %FALSE if
+     * the default handler should run
+     *
+     * Emitted when printing is requested by the frame, usually
+     * because of a javascript call. When handling this signal you
+     * should call webkit_web_frame_print_full() or
+     * webkit_web_frame_print() to do the actual printing.
+     *
+     * The default handler will present a print dialog and carry a
+     * print operation. Notice that this means that if you intend to
+     * ignore a print request you must connect to this signal, and
+     * return %TRUE.
+     *
+     * Since: 1.1.5
+     */
+    webkit_web_view_signals[PRINT_REQUESTED] = g_signal_new("print-requested",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            0,
+            g_signal_accumulator_true_handled,
+            NULL,
+            webkit_marshal_BOOLEAN__OBJECT,
+            G_TYPE_BOOLEAN, 1,
+            WEBKIT_TYPE_WEB_FRAME);
+
     webkit_web_view_signals[STATUS_BAR_TEXT_CHANGED] = g_signal_new("status-bar-text-changed",
             G_TYPE_FROM_CLASS(webViewClass),
             (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
@@ -1711,8 +1742,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_TITLE,
                                     g_param_spec_string("title",
-                                                        "Title",
-                                                        "Returns the @web_view's document title",
+                                                        _("Title"),
+                                                        _("Returns the @web_view's document title"),
                                                         NULL,
                                                         WEBKIT_PARAM_READABLE));
 
@@ -1725,8 +1756,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_URI,
                                     g_param_spec_string("uri",
-                                                        "URI",
-                                                        "Returns the current URI of the contents displayed by the @web_view",
+                                                        _("URI"),
+                                                        _("Returns the current URI of the contents displayed by the @web_view"),
                                                         NULL,
                                                         WEBKIT_PARAM_READABLE));
 
@@ -1739,8 +1770,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_COPY_TARGET_LIST,
                                     g_param_spec_boxed("copy-target-list",
-                                                       "Copy target list",
-                                                       "The list of targets this web view supports for clipboard copying",
+                                                       _("Copy target list"),
+                                                       _("The list of targets this web view supports for clipboard copying"),
                                                        GTK_TYPE_TARGET_LIST,
                                                        WEBKIT_PARAM_READABLE));
 
@@ -1753,15 +1784,15 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_PASTE_TARGET_LIST,
                                     g_param_spec_boxed("paste-target-list",
-                                                       "Paste target list",
-                                                       "The list of targets this web view supports for clipboard pasting",
+                                                       _("Paste target list"),
+                                                       _("The list of targets this web view supports for clipboard pasting"),
                                                        GTK_TYPE_TARGET_LIST,
                                                        WEBKIT_PARAM_READABLE));
 
     g_object_class_install_property(objectClass, PROP_SETTINGS,
                                     g_param_spec_object("settings",
-                                                        "Settings",
-                                                        "An associated WebKitWebSettings instance",
+                                                        _("Settings"),
+                                                        _("An associated WebKitWebSettings instance"),
                                                         WEBKIT_TYPE_WEB_SETTINGS,
                                                         WEBKIT_PARAM_READWRITE));
 
@@ -1774,8 +1805,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_WEB_INSPECTOR,
                                     g_param_spec_object("web-inspector",
-                                                        "Web Inspector",
-                                                        "The associated WebKitWebInspector instance",
+                                                        _("Web Inspector"),
+                                                        _("The associated WebKitWebInspector instance"),
                                                         WEBKIT_TYPE_WEB_INSPECTOR,
                                                         WEBKIT_PARAM_READABLE));
 
@@ -1795,15 +1826,15 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
 
     g_object_class_install_property(objectClass, PROP_EDITABLE,
                                     g_param_spec_boolean("editable",
-                                                         "Editable",
-                                                         "Whether content can be modified by the user",
+                                                         _("Editable"),
+                                                         _("Whether content can be modified by the user"),
                                                          FALSE,
                                                          WEBKIT_PARAM_READWRITE));
 
     g_object_class_install_property(objectClass, PROP_TRANSPARENT,
                                     g_param_spec_boolean("transparent",
-                                                         "Transparent",
-                                                         "Whether content has a transparent background",
+                                                         _("Transparent"),
+                                                         _("Whether content has a transparent background"),
                                                          FALSE,
                                                          WEBKIT_PARAM_READWRITE));
 
@@ -1816,8 +1847,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_ZOOM_LEVEL,
                                     g_param_spec_float("zoom-level",
-                                                       "Zoom level",
-                                                       "The level of zoom of the content",
+                                                       _("Zoom level"),
+                                                       _("The level of zoom of the content"),
                                                        G_MINFLOAT,
                                                        G_MAXFLOAT,
                                                        1.0f,
@@ -1832,8 +1863,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     */
     g_object_class_install_property(objectClass, PROP_FULL_CONTENT_ZOOM,
                                     g_param_spec_boolean("full-content-zoom",
-                                                         "Full content zoom",
-                                                         "Whether the full content is scaled when zooming",
+                                                         _("Full content zoom"),
+                                                         _("Whether the full content is scaled when zooming"),
                                                          FALSE,
                                                          WEBKIT_PARAM_READWRITE));
 
@@ -1846,8 +1877,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     g_object_class_install_property(objectClass, PROP_ENCODING,
                                     g_param_spec_string("encoding",
-                                                        "Encoding",
-                                                        "The default encoding of the web view",
+                                                        _("Encoding"),
+                                                        _("The default encoding of the web view"),
                                                         NULL,
                                                         WEBKIT_PARAM_READABLE));
 
@@ -1860,8 +1891,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     g_object_class_install_property(objectClass, PROP_CUSTOM_ENCODING,
                                     g_param_spec_string("custom-encoding",
-                                                        "Custom Encoding",
-                                                        "The custom encoding of the web view",
+                                                        _("Custom Encoding"),
+                                                        _("The custom encoding of the web view"),
                                                         NULL,
                                                         WEBKIT_PARAM_READWRITE));
 

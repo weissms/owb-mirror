@@ -1,3 +1,134 @@
+2009-04-14  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/6784955> REGRESSION: closing a tab containing a PDF causes world leaks
+        
+        Simplify the _trackFirstResponder method by just caching the value instead of retaining
+        a Cocoa object.
+        
+        * WebView/WebPDFView.h: Eliminated trackedFirstResponder object and replaced it with
+        a firstResponderIsPDFDocumentView boolean.
+        * WebView/WebPDFView.mm: 
+        (-[WebPDFView dealloc]): Removed no longer necessary ASSERT.
+        (-[WebPDFView viewWillMoveToWindow:]): Removed call to release and nil-out trackedFirstResponder,
+        which no longer exists. In the new code all we do now is set firstResponderIsPDFDocumentView to NO.
+        (-[WebPDFView _trackFirstResponder]): Rewrote this method to just cache the value instead
+        of retaining an object.
+
+2009-04-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25125.  Rework scrolling so that a layout happens first when
+        it's already needed so that the code doesn't end up making bad decisions based off invalid document sizes.
+
+        This patch also eliminates WebHTMLView's separate notion of needing a layout and just consolidates it with
+        WebCore's notion of needing layout.
+
+        * WebView/WebDynamicScrollBarsView.m:
+        (-[WebDynamicScrollBarsView updateScrollers]):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _frameOrBoundsChanged]):
+        (-[WebHTMLView initWithFrame:]):
+        (-[WebHTMLView layoutToMinimumPageWidth:maximumPageWidth:adjustingViewSize:]):
+        (-[WebHTMLView setNeedsLayout:]):
+        (-[WebHTMLView _layoutIfNeeded]):
+        (-[WebHTMLView _needsLayout]):
+        * WebView/WebHTMLViewInternal.h:
+
+2009-04-13  Darin Adler  <darin@apple.com>
+
+        * WebView/WebViewPrivate.h: Updated comments.
+
+2009-04-13  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        <rdar://problem/6740294> Increase the connection count per host
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface):
+
+2009-04-13  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher
+
+        Tweak my last check-in, moving the thread violation check up to the API-level calls so the logging is more
+        useful to developers/users.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _loadData:MIMEType:textEncodingName:baseURL:unreachableURL:]): If not on the main thread, only
+          perform the "call on main thead" workaround, as the log/exception raising is now up at the API level.
+        (-[WebFrame loadData:MIMEType:textEncodingName:baseURL:]): Perform a thread violation check here so logging
+          is more meaningful.
+        (-[WebFrame loadHTMLString:baseURL:]): Ditto.
+        (-[WebFrame loadAlternateHTMLString:baseURL:forUnreachableURL:]): Ditto.
+
+2009-04-13  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Kevin Decker
+
+        <rdar://problem/6712063> Garmin WebUpdater crashes
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _loadData:MIMEType:textEncodingName:baseURL:unreachableURL:]):  If not called on the main thread,
+          add a ThreadViolationCheckRoundTwo() call to either log or raise an exception.  In the case where it's
+          only a log, reschedule the _loadData call to occur on the main thread.
+
+2009-04-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        - fix <rdar://problem/6752340> Light blue-green background in content
+          area in Mail
+
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+        Use device white, rather than calibrated white, as the default
+        background color.
+
+2009-04-10  Darin Adler  <darin@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        <rdar://problem/6773515> crash in push_heap inside WebCore when printing
+
+        The crash was due to manipulating a timer on a different thread than the one it was created on.
+
+        * History/WebHistoryItem.mm:
+        (-[WebWindowWatcher windowWillClose:]): Call later on main thread, if called on non-main thread.
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView windowDidBecomeKey:]): Ditto.
+        (-[WebHTMLView windowDidResignKey:]): Ditto.
+        (-[WebHTMLView windowWillClose:]): Ditto.
+        (-[WebHTMLView _updateControlTints]): Added. Factored out the non-thread-safe part of
+        our override of _windowChangedKeyState.
+        (-[WebHTMLView _windowChangedKeyState]): Call _updateControlTints later on main thread, if
+        called on non-main thread.
+        * WebView/WebPreferences.mm:
+        (-[WebPreferences _postPreferencesChangesNotification]): Call later on main thread, if called
+        on non-main thread
+
+2009-04-10  Timothy Hatcher  <timothy@apple.com>
+
+        Remove DOMDocumentPrivate.h now that <rdar://problem/6730996> is fixed.
+
+        Rubber-stamped by Mark Rowe.
+
+        * Misc/DOMDocumentPrivate.h: Removed.
+
+2009-04-10  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6646998> Avoid starting QTKitServer if possible
+        Add the requires symbol in the WebSystemInterface. It is used by
+        WebCore.
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface): Add wkQTIncludeOnlyModernMediaFileTypes.
+
 2009-04-10  Kevin Decker  <kdecker@apple.com>
 
         Reviewed by Hyatt.

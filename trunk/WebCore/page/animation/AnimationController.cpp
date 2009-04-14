@@ -89,7 +89,7 @@ void AnimationControllerPrivate::updateAnimationTimer(bool callSetChanged/* = fa
 
     RenderObjectAnimationMap::const_iterator animationsEnd = m_compositeAnimations.end();
     for (RenderObjectAnimationMap::const_iterator it = m_compositeAnimations.begin(); it != animationsEnd; ++it) {
-        RefPtr<CompositeAnimation> compAnim = it->second;
+        CompositeAnimation* compAnim = it->second.get();
         if (!compAnim->isSuspended() && compAnim->hasAnimations()) {
             double t = compAnim->timeToNextService();
             if (t != -1 && (t < needsService || needsService == -1))
@@ -152,6 +152,20 @@ void AnimationControllerPrivate::updateStyleIfNeededDispatcherFired(Timer<Animat
     
     if (m_frame)
         m_frame->document()->updateStyleIfNeeded();
+
+    // We can now safely remove any animations or transitions that are finished.
+    // We can't remove them any earlier because we might get a false restart of
+    // a transition. This can happen because we have not yet set the final property
+    // value until we call the rendering dispatcher. So this can make the current
+    // style slightly different from the desired final style (because our last 
+    // animation step was, say 0.9999 or something). And we need to remove them
+    // here because if there are no more animations running we'll never get back
+    // into the animation code to clean them up.
+    RenderObjectAnimationMap::const_iterator animationsEnd = m_compositeAnimations.end();
+    for (RenderObjectAnimationMap::const_iterator it = m_compositeAnimations.begin(); it != animationsEnd; ++it) {
+        CompositeAnimation* compAnim = it->second.get();
+        compAnim->cleanupFinishedAnimations(); // will not modify m_compositeAnimations, so OK to call while iterating
+    }
 }
 
 void AnimationControllerPrivate::startupdateStyleIfNeededDispatcher()
@@ -204,12 +218,15 @@ bool AnimationControllerPrivate::isAnimatingPropertyOnRenderer(RenderObject* ren
 
 void AnimationControllerPrivate::suspendAnimations(Document* document)
 {
+    setBeginAnimationUpdateTime(cBeginAnimationUpdateTimeNotSet);
+    
     RenderObjectAnimationMap::const_iterator animationsEnd = m_compositeAnimations.end();
     for (RenderObjectAnimationMap::const_iterator it = m_compositeAnimations.begin(); it != animationsEnd; ++it) {
         RenderObject* renderer = it->first;
-        RefPtr<CompositeAnimation> compAnim = it->second;
-        if (renderer->document() == document)
+        if (renderer->document() == document) {
+            CompositeAnimation* compAnim = it->second.get();
             compAnim->suspendAnimations();
+        }
     }
     
     updateAnimationTimer();
@@ -217,12 +234,15 @@ void AnimationControllerPrivate::suspendAnimations(Document* document)
 
 void AnimationControllerPrivate::resumeAnimations(Document* document)
 {
+    setBeginAnimationUpdateTime(cBeginAnimationUpdateTimeNotSet);
+    
     RenderObjectAnimationMap::const_iterator animationsEnd = m_compositeAnimations.end();
     for (RenderObjectAnimationMap::const_iterator it = m_compositeAnimations.begin(); it != animationsEnd; ++it) {
         RenderObject* renderer = it->first;
-        RefPtr<CompositeAnimation> compAnim = it->second;
-        if (renderer->document() == document)
+        if (renderer->document() == document) {
+            CompositeAnimation* compAnim = it->second.get();
             compAnim->resumeAnimations();
+        }
     }
     
     updateAnimationTimer();

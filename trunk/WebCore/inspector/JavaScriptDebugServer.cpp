@@ -431,6 +431,8 @@ void JavaScriptDebugServer::pauseIfNeeded(Page* page)
     setJavaScriptPaused(page->group(), false);
 
     m_paused = false;
+
+    dispatchFunctionToListeners(&JavaScriptDebugListener::didContinue, page);
 }
 
 void JavaScriptDebugServer::callEvent(const DebuggerCallFrame& debuggerCallFrame, intptr_t sourceID, int lineNumber)
@@ -580,7 +582,7 @@ void JavaScriptDebugServer::recompileAllJSFunctions(Timer<JavaScriptDebugServer>
         result.first->second = newBody;
         function->setBody(newBody.release());
 
-        if (hasListeners())
+        if (hasListeners() && function->scope().globalObject()->debugger() == this)
             sourceProviders.add(sourceCode.provider(), exec);
     }
 
