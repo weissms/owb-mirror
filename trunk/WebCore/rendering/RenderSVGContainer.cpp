@@ -2,8 +2,7 @@
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2007, 2008 Rob Buis <buis@kde.org>
                   2007 Eric Seidel <eric@webkit.org>
-
-    This file is part of the KDE project
+    Copyright (C) 2009 Google, Inc.  All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -38,9 +37,7 @@
 namespace WebCore {
 
 RenderSVGContainer::RenderSVGContainer(SVGStyledElement* node)
-    : RenderObject(node)
-    , m_width(0)
-    , m_height(0)
+    : RenderSVGModelObject(node)
     , m_drawsContents(true)
 {
 }
@@ -59,21 +56,6 @@ void RenderSVGContainer::setDrawsContents(bool drawsContents)
     m_drawsContents = drawsContents;
 }
 
-TransformationMatrix RenderSVGContainer::localTransform() const
-{
-    return m_localTransform;
-}
-
-int RenderSVGContainer::lineHeight(bool, bool) const
-{
-    return height();
-}
-
-int RenderSVGContainer::baselinePosition(bool, bool) const
-{
-    return height();
-}
-
 bool RenderSVGContainer::calculateLocalTransform()
 {
     // subclasses can override this to add transform support
@@ -89,7 +71,7 @@ void RenderSVGContainer::layout()
 
     // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
     LayoutRepainter repainter(*this, checkForRepaintDuringLayout() && selfWillPaint(), &m_absoluteBounds);
-    
+
     calculateLocalTransform();
 
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
@@ -104,42 +86,12 @@ void RenderSVGContainer::layout()
         ASSERT(!child->needsLayout());
     }
 
-    calcBounds();
+    m_absoluteBounds = absoluteClippedOverflowRect();
 
     repainter.repaintAfterLayout();
 
     view()->enableLayoutState();
     setNeedsLayout(false);
-}
-
-int RenderSVGContainer::calcReplacedWidth() const
-{
-    switch (style()->width().type()) {
-    case Fixed:
-        return max(0, style()->width().value());
-    case Percent:
-    {
-        const int cw = containingBlock()->availableWidth();
-        return cw > 0 ? max(0, style()->width().calcMinValue(cw)) : 0;
-    }
-    default:
-        return 0;
-    }
-}
-
-int RenderSVGContainer::calcReplacedHeight() const
-{
-    switch (style()->height().type()) {
-    case Fixed:
-        return max(0, style()->height().value());
-    case Percent:
-    {
-        RenderBlock* cb = containingBlock();
-        return style()->height().calcValue(cb->availableHeight());
-    }
-    default:
-        return 0;
-    }
 }
 
 void RenderSVGContainer::applyContentTransforms(PaintInfo& paintInfo)
@@ -151,13 +103,6 @@ void RenderSVGContainer::applyContentTransforms(PaintInfo& paintInfo)
 void RenderSVGContainer::applyAdditionalTransforms(PaintInfo&)
 {
     // no-op
-}
-
-void RenderSVGContainer::calcBounds()
-{
-    m_width = calcReplacedWidth();
-    m_height = calcReplacedHeight();
-    m_absoluteBounds = absoluteClippedOverflowRect();
 }
 
 bool RenderSVGContainer::selfWillPaint() const
@@ -186,7 +131,7 @@ void RenderSVGContainer::paint(PaintInfo& paintInfo, int, int)
     SVGResourceFilter* filter = 0;
     PaintInfo savedInfo(paintInfo);
 
-    FloatRect boundingBox = relativeBBox(true);
+    FloatRect boundingBox = repaintRectInLocalCoordinates();
     if (paintInfo.phase == PaintPhaseForeground)
         prepareToRenderSVGContent(this, paintInfo, boundingBox, filter); 
 
@@ -207,11 +152,6 @@ void RenderSVGContainer::paint(PaintInfo& paintInfo, int, int)
         paintOutline(paintInfo.context, m_absoluteBounds.x(), m_absoluteBounds.y(), m_absoluteBounds.width(), m_absoluteBounds.height(), style());
 }
 
-TransformationMatrix RenderSVGContainer::viewportTransform() const
-{
-     return TransformationMatrix();
-}
-
 IntRect RenderSVGContainer::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
 {
     FloatRect repaintRect;
@@ -219,12 +159,8 @@ IntRect RenderSVGContainer::clippedOverflowRectForRepaint(RenderBoxModelObject* 
     for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
         repaintRect.unite(current->clippedOverflowRectForRepaint(repaintContainer));
 
-#if ENABLE(SVG_FILTERS)
-    // Filters can expand the bounding box
-    SVGResourceFilter* filter = getFilterById(document(), style()->svgStyle()->filter());
-    if (filter)
-        repaintRect.unite(filter->filterBBoxForItemBBox(repaintRect));
-#endif
+    // Filters can paint anywhere.  If we have one, expand our rect so we are sure to repaint it.
+    repaintRect.unite(filterBoundingBox());
 
     if (!repaintRect.isEmpty())
         repaintRect.inflate(1); // inflate 1 pixel for antialiasing
@@ -247,23 +183,16 @@ void RenderSVGContainer::absoluteQuads(Vector<FloatQuad>& quads, bool)
     quads.append(absoluteClippedOverflowRect());
 }
 
-FloatRect RenderSVGContainer::relativeBBox(bool includeStroke) const
+FloatRect RenderSVGContainer::objectBoundingBox() const
 {
-    FloatRect rect;
-    
-    RenderObject* current = firstChild();
-    for (; current != 0; current = current->nextSibling()) {
-        FloatRect childBBox = current->relativeBBox(includeStroke);
-        FloatRect mappedBBox = current->localTransform().mapRect(childBBox);
+    return computeContainerBoundingBox(this, false);
+}
 
-        // <svg> can have a viewBox contributing to the bbox
-        if (current->isSVGContainer())
-            mappedBBox = static_cast<RenderSVGContainer*>(current)->viewportTransform().mapRect(mappedBBox);
-
-        rect.unite(mappedBBox);
-    }
-
-    return rect;
+// RenderSVGContainer is used for <g> elements which do not themselves have a
+// width or height, so we union all of our child rects as our repaint rect.
+FloatRect RenderSVGContainer::repaintRectInLocalCoordinates() const
+{
+    return computeContainerBoundingBox(this, true);
 }
 
 bool RenderSVGContainer::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int _tx, int _ty, HitTestAction hitTestAction)

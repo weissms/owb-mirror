@@ -1,3 +1,36 @@
+2009-04-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=25157
+        
+        Move the run loop observer cleanup from -close
+        to -_close.
+
+        * WebView/WebView.mm:
+        (-[WebView _close]):
+        (-[WebView close]):
+
+2009-04-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - Speculative fix for <rdar://problem/6781422> 
+
+        Protect the plug-in instance proxy in case it's deleted while waiting for a reply.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::wheelEvent):
+
+2009-04-14  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin.
+
+        Initialize WebKitSystemInterface in class methods that could get called before a WebView/WebFrame is set up.  This was causing Mail to crash on launch.
+
+        * Misc/WebCache.mm: (+[WebCache initialize]):
+        * WebView/WebView.mm: (+[WebView initialize]):
+
 2009-04-14  Kevin Decker  <kdecker@apple.com>
 
         Reviewed by Darin.

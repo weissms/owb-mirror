@@ -2689,14 +2689,6 @@
 			<File
 				RelativePath="..\page\Coordinates.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\page\Coordinates.h"
@@ -2837,14 +2829,6 @@
 			<File
 				RelativePath="..\page\NavigatorBase.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\page\NavigatorBase.h"
@@ -2893,14 +2877,6 @@
 			<File
 				RelativePath="..\page\WorkerNavigator.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\page\WorkerNavigator.h"
@@ -3325,14 +3301,6 @@
 			<File
 				RelativePath="..\platform\CrossThreadCopier.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\platform\CrossThreadCopier.h"
@@ -5136,14 +5104,6 @@
 			<File
 				RelativePath="..\css\CSSPropertyLonghand.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\css\CSSPropertyLonghand.h"
@@ -5704,14 +5664,6 @@
 			<File
 				RelativePath="..\rendering\RenderLineBoxList.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\rendering\RenderLineBoxList.h"
@@ -5976,14 +5928,6 @@
 			<File
 				RelativePath="..\rendering\RenderTextControlMultiLine.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\rendering\RenderTextControlMultiLine.h"
@@ -5992,14 +5936,6 @@
 			<File
 				RelativePath="..\rendering\RenderTextControlSingleLine.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\rendering\RenderTextControlSingleLine.h"
@@ -6080,14 +6016,6 @@
 			<File
 				RelativePath="..\rendering\ScrollBehavior.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\rendering\ScrollBehavior.h"
@@ -6455,14 +6383,6 @@
 			<File
 				RelativePath="..\dom\CheckedRadioButtons.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\CheckedRadioButtons.h"
@@ -6495,14 +6415,6 @@
 			<File
 				RelativePath="..\dom\ClientRect.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\ClientRect.h"
@@ -6511,14 +6423,6 @@
 			<File
 				RelativePath="..\dom\ClientRectList.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\ClientRectList.h"
@@ -6563,14 +6467,6 @@
 			<File
 				RelativePath="..\dom\CrossThreadCopier.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\CrossThreadCopier.h"
@@ -6631,14 +6527,6 @@
 			<File
 				RelativePath="..\dom\DOMStringList.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\DOMStringList.h"
@@ -6743,14 +6631,6 @@
 			<File
 				RelativePath="..\dom\FormControlElement.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\FormControlElement.h"
@@ -6759,14 +6639,6 @@
 			<File
 				RelativePath="..\dom\FormControlElementWithState.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\FormControlElementWithState.h"
@@ -6779,14 +6651,6 @@
 			<File
 				RelativePath="..\dom\InputElement.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\InputElement.h"
@@ -6919,14 +6783,6 @@
 			<File
 				RelativePath="..\dom\OptionElement.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\OptionElement.h"
@@ -6935,14 +6791,6 @@
 			<File
 				RelativePath="..\dom\OptionGroupElement.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\OptionGroupElement.h"
@@ -7035,14 +6883,6 @@
 			<File
 				RelativePath="..\dom\StaticStringList.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\dom\StaticStringList.h"
@@ -7591,15 +7431,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\html\CanvasPixelArray.h"
@@ -7842,14 +7673,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release_Cairo|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -8374,6 +8197,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCanvasRenderingContext2DCustom.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSCoordinatesCustom.cpp"
 					>
 				</File>
 				<File

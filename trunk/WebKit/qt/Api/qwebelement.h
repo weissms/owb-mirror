@@ -42,19 +42,24 @@ public:
     QWebElement &operator=(const QWebElement &);
     ~QWebElement();
 
-    inline bool operator==(const QWebElement& o) const { return m_element == o.m_element; }
-    inline bool operator!=(const QWebElement& o) const { return m_element != o.m_element; }
+    bool operator==(const QWebElement& o) const;
+    bool operator!=(const QWebElement& o) const;
 
     bool isNull() const;
 
     QWebElementSelection findAll(const QString &query) const;
     QWebElement findFirst(const QString &query) const;
 
-    void setText(const QString &text);
-    QString text() const;
+    void setPlainText(const QString &text);
+    QString toPlainText() const;
 
-    void setHtml(const QString &html);
-    QString html() const;
+    enum XmlScope {
+        InnerXml,
+        OuterXml
+    };
+
+    void setXml(XmlScope scope, const QString &markup);
+    QString toXml(XmlScope scope) const;
 
     void setAttribute(const QString &name, const QString &value);
     void setAttributeNS(const QString &namespaceUri, const QString &name, const QString &value);
@@ -146,10 +151,10 @@ public:
     QWebElementSelection operator+(const QWebElementSelection &other) const;
     inline QWebElementSelection &operator+=(const QWebElementSelection &other)
     {
-        extend(other); return *this;
+        append(other); return *this;
     }
 
-    void extend(const QWebElementSelection &selection);
+    void append(const QWebElementSelection &selection);
 
     int count() const;
     QWebElement at(int i) const;

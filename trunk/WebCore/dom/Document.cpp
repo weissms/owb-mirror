@@ -80,6 +80,7 @@
 #include "HitTestResult.h"
 #include "ImageLoader.h"
 #include "JSDOMBinding.h"
+#include "JSLazyEventListener.h"
 #include "KeyboardEvent.h"
 #include "Logging.h"
 #include "MessageEvent.h"
@@ -2765,13 +2766,15 @@ PassRefPtr<EventListener> Document::createEventListener(const String& functionNa
     if (!frm || !frm->script()->isEnabled())
         return 0;
 
+    DEFINE_STATIC_LOCAL(const String, eventString, ("event"));
+
 #if ENABLE(SVG)
+    DEFINE_STATIC_LOCAL(const String, evtString, ("evt"));
     if (node ? node->isSVGElement() : isSVGDocument())
-        return frm->script()->createSVGEventHandler(functionName, code, node);
+        return JSLazyEventListener::create(functionName, evtString, code, frm->script()->globalObject(), node, frm->script()->eventHandlerLineNumber());
 #endif
 
-    // We may want to treat compound document event handlers in a different way, in future.
-    return frm->script()->createInlineEventListener(functionName, code, node);
+    return JSLazyEventListener::create(functionName, eventString, code, frm->script()->globalObject(), node, frm->script()->eventHandlerLineNumber());
 }
 
 void Document::setWindowInlineEventListenerForTypeAndAttribute(const AtomicString& eventType, Attribute* attr)

@@ -39,16 +39,6 @@ RenderSVGHiddenContainer::~RenderSVGHiddenContainer()
 {
 }
 
-int RenderSVGHiddenContainer::lineHeight(bool, bool) const
-{
-    return 0;
-}
-
-int RenderSVGHiddenContainer::baselinePosition(bool, bool) const
-{
-    return 0;
-}
-
 void RenderSVGHiddenContainer::layout()
 {
     ASSERT(needsLayout());
@@ -86,22 +76,17 @@ void RenderSVGHiddenContainer::absoluteQuads(Vector<FloatQuad>&, bool)
     // This subtree does not take up space or paint
 }
 
-TransformationMatrix RenderSVGHiddenContainer::absoluteTransform() const
-{
-    return TransformationMatrix();
-}
-
-TransformationMatrix RenderSVGHiddenContainer::localTransform() const
-{
-    return TransformationMatrix();
-}
-
 bool RenderSVGHiddenContainer::nodeAtPoint(const HitTestRequest&, HitTestResult&, int, int, int, int, HitTestAction)
 {
     return false;
 }
 
-FloatRect RenderSVGHiddenContainer::relativeBBox(bool) const
+FloatRect RenderSVGHiddenContainer::objectBoundingBox() const
+{
+    return FloatRect();
+}
+
+FloatRect RenderSVGHiddenContainer::repaintRectInLocalCoordinates() const
 {
     return FloatRect();
 }

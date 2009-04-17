@@ -80,6 +80,7 @@ if(ENABLE_SVG)
         rendering/RenderSVGImage.cpp
         rendering/RenderSVGInline.cpp
         rendering/RenderSVGInlineText.cpp
+        rendering/RenderSVGModelObject.cpp
         rendering/RenderSVGRoot.cpp
         rendering/RenderSVGTSpan.cpp
         rendering/RenderSVGText.cpp

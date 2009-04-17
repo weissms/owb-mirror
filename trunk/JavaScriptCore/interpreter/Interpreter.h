@@ -51,6 +51,7 @@ namespace JSC {
     class Register;
     class ScopeChainNode;
     class SamplingTool;
+    struct CallFrameClosure;
     struct HandlerInfo;
 
     enum DebugHookID {
@@ -67,7 +68,7 @@ namespace JSC {
     class Interpreter {
         friend class JIT;
         friend class JITStubs;
-
+        friend class CachedCall;
     public:
         Interpreter();
 
@@ -109,6 +110,10 @@ namespace JSC {
 
     private:
         enum ExecutionFlag { Normal, InitializeAndReturn };
+
+        CallFrameClosure prepareForRepeatCall(FunctionBodyNode*, CallFrame*, JSFunction*, int argCount, ScopeChainNode*, JSValuePtr* exception);
+        void endRepeatCall(CallFrameClosure&);
+        JSValuePtr execute(CallFrameClosure&, JSValuePtr* exception);
 
         NEVER_INLINE JSValuePtr callEval(CallFrame*, RegisterFile*, Register* argv, int argc, int registerOffset, JSValuePtr& exceptionValue);
         JSValuePtr execute(EvalNode*, CallFrame*, JSObject* thisObject, int globalRegisterOffset, ScopeChainNode*, JSValuePtr* exception);
@@ -153,7 +158,7 @@ namespace JSC {
         HashMap<Opcode, OpcodeID> m_opcodeIDTable; // Maps Opcode => OpcodeID for decompiling
 #endif
     };
-
+    
 } // namespace JSC
 
 #endif // Interpreter_h

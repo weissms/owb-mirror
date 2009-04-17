@@ -209,6 +209,8 @@ namespace WebCore {
 #endif
         QWebFrame* m_frame;
 #endif
+
+        // FIXME: The platform challenge is almost identical to the one stored in m_currentWebChallenge, but it has a different sender. We only need to store a sender reference here.
 #if PLATFORM(MAC)
         NSURLAuthenticationChallenge *m_currentMacChallenge;
 #endif

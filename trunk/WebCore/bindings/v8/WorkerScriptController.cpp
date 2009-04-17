@@ -39,6 +39,7 @@
 #include "ScriptSourceCode.h"
 #include "ScriptValue.h"
 #include "DOMTimer.h"
+#include "V8DOMMap.h"
 #include "WorkerContext.h"
 #include "WorkerContextExecutionProxy.h"
 #include "WorkerObjectProxy.h"
@@ -55,6 +56,7 @@ WorkerScriptController::WorkerScriptController(WorkerContext* workerContext)
 
 WorkerScriptController::~WorkerScriptController()
 {
+    removeAllDOMObjectsInCurrentThread();
 }
 
 ScriptValue WorkerScriptController::evaluate(const ScriptSourceCode& sourceCode)

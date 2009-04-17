@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2003, 2007, 2008 Apple Inc. All rights reserved.
+ *  Copyright (C) 2003, 2007, 2008, 2009 Apple Inc. All rights reserved.
  *  Copyright (C) 2003 Peter Kelly (pmk@post.com)
  *  Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  *
@@ -25,6 +25,7 @@
 #include "ArrayPrototype.h"
 
 #include "CodeBlock.h"
+#include "CachedCall.h"
 #include "Interpreter.h"
 #include "JIT.h"
 #include "ObjectPrototype.h"
@@ -56,6 +57,8 @@ static JSValuePtr arrayProtoFuncSome(ExecState*, JSObject*, JSValuePtr, const Ar
 static JSValuePtr arrayProtoFuncIndexOf(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 static JSValuePtr arrayProtoFuncFilter(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 static JSValuePtr arrayProtoFuncMap(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr arrayProtoFuncReduce(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr arrayProtoFuncReduceRight(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 static JSValuePtr arrayProtoFuncLastIndexOf(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 
 }
@@ -104,6 +107,8 @@ const ClassInfo ArrayPrototype::info = {"Array", &JSArray::info, 0, ExecState::a
   indexOf        arrayProtoFuncIndexOf        DontEnum|Function 1
   lastIndexOf    arrayProtoFuncLastIndexOf    DontEnum|Function 1
   filter         arrayProtoFuncFilter         DontEnum|Function 1
+  reduce         arrayProtoFuncReduce         DontEnum|Function 1
+  reduceRight    arrayProtoFuncReduceRight    DontEnum|Function 1
   map            arrayProtoFuncMap            DontEnum|Function 1
 @end
 */
@@ -585,7 +590,28 @@ JSValuePtr arrayProtoFuncFilter(ExecState* exec, JSObject*, JSValuePtr thisValue
 
     unsigned filterIndex = 0;
     unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
-    for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
+    unsigned k = 0;
+    if (callType == CallTypeJS && isJSArray(&exec->globalData(), thisObj)) {
+        JSFunction* f = asFunction(function);
+        JSArray* array = asArray(thisObj);
+        CachedCall cachedCall(exec, f, 3, exec->exceptionSlot());
+        for (; k < length && !exec->hadException(); ++k) {
+            if (!array->canGetIndex(k))
+                break;
+            JSValuePtr v = array->getIndex(k);
+            cachedCall.setThis(applyThis);
+            cachedCall.setArgument(0, v);
+            cachedCall.setArgument(1, jsNumber(exec, k));
+            cachedCall.setArgument(2, thisObj);
+            
+            JSValuePtr result = cachedCall.call();
+            if (result.toBoolean(exec))
+                resultArray->put(exec, filterIndex++, v);
+        }
+        if (k == length)
+            return resultArray;
+    }
+    for (; k < length && !exec->hadException(); ++k) {
         PropertySlot slot(thisObj);
 
         if (!thisObj->getPropertySlot(exec, k, slot))
@@ -622,8 +648,24 @@ JSValuePtr arrayProtoFuncMap(ExecState* exec, JSObject*, JSValuePtr thisValue, c
     unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
 
     JSArray* resultArray = constructEmptyArray(exec, length);
+    unsigned k = 0;
+    if (callType == CallTypeJS && isJSArray(&exec->globalData(), thisObj)) {
+        JSFunction* f = asFunction(function);
+        JSArray* array = asArray(thisObj);
+        CachedCall cachedCall(exec, f, 3, exec->exceptionSlot());
+        for (; k < length && !exec->hadException(); ++k) {
+            if (UNLIKELY(!array->canGetIndex(k)))
+                break;
 
-    for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
+            cachedCall.setThis(applyThis);
+            cachedCall.setArgument(0, array->getIndex(k));
+            cachedCall.setArgument(1, jsNumber(exec, k));
+            cachedCall.setArgument(2, thisObj);
+
+            resultArray->JSArray::put(exec, k, cachedCall.call());
+        }
+    }
+    for (; k < length && !exec->hadException(); ++k) {
         PropertySlot slot(thisObj);
         if (!thisObj->getPropertySlot(exec, k, slot))
             continue;
@@ -663,7 +705,25 @@ JSValuePtr arrayProtoFuncEvery(ExecState* exec, JSObject*, JSValuePtr thisValue,
     JSValuePtr result = jsBoolean(true);
 
     unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
-    for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
+    unsigned k = 0;
+    if (callType == CallTypeJS && isJSArray(&exec->globalData(), thisObj)) {
+        JSFunction* f = asFunction(function);
+        JSArray* array = asArray(thisObj);
+        CachedCall cachedCall(exec, f, 3, exec->exceptionSlot());
+        for (; k < length && !exec->hadException(); ++k) {
+            if (UNLIKELY(!array->canGetIndex(k)))
+                break;
+            
+            cachedCall.setThis(applyThis);
+            cachedCall.setArgument(0, array->getIndex(k));
+            cachedCall.setArgument(1, jsNumber(exec, k));
+            cachedCall.setArgument(2, thisObj);
+            
+            if (!cachedCall.call().toBoolean(exec))
+                return jsBoolean(false);
+        }
+    }
+    for (; k < length && !exec->hadException(); ++k) {
         PropertySlot slot(thisObj);
 
         if (!thisObj->getPropertySlot(exec, k, slot))
@@ -699,7 +759,24 @@ JSValuePtr arrayProtoFuncForEach(ExecState* exec, JSObject*, JSValuePtr thisValu
     JSObject* applyThis = args.at(exec, 1).isUndefinedOrNull() ? exec->globalThisValue() : args.at(exec, 1).toObject(exec);
 
     unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
-    for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
+    unsigned k = 0;
+    if (callType == CallTypeJS && isJSArray(&exec->globalData(), thisObj)) {
+        JSFunction* f = asFunction(function);
+        JSArray* array = asArray(thisObj);
+        CachedCall cachedCall(exec, f, 3, exec->exceptionSlot());
+        for (; k < length && !exec->hadException(); ++k) {
+            if (UNLIKELY(!array->canGetIndex(k)))
+                break;
+
+            cachedCall.setThis(applyThis);
+            cachedCall.setArgument(0, array->getIndex(k));
+            cachedCall.setArgument(1, jsNumber(exec, k));
+            cachedCall.setArgument(2, thisObj);
+
+            cachedCall.call();
+        }
+    }
+    for (; k < length && !exec->hadException(); ++k) {
         PropertySlot slot(thisObj);
         if (!thisObj->getPropertySlot(exec, k, slot))
             continue;
@@ -729,7 +806,25 @@ JSValuePtr arrayProtoFuncSome(ExecState* exec, JSObject*, JSValuePtr thisValue, 
     JSValuePtr result = jsBoolean(false);
 
     unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
-    for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
+    unsigned k = 0;
+    if (callType == CallTypeJS && isJSArray(&exec->globalData(), thisObj)) {
+        JSFunction* f = asFunction(function);
+        JSArray* array = asArray(thisObj);
+        CachedCall cachedCall(exec, f, 3, exec->exceptionSlot());
+        for (; k < length && !exec->hadException(); ++k) {
+            if (UNLIKELY(!array->canGetIndex(k)))
+                break;
+            
+            cachedCall.setThis(applyThis);
+            cachedCall.setArgument(0, array->getIndex(k));
+            cachedCall.setArgument(1, jsNumber(exec, k));
+            cachedCall.setArgument(2, thisObj);
+            
+            if (cachedCall.call().toBoolean(exec))
+                return jsBoolean(true);
+        }
+    }
+    for (; k < length && !exec->hadException(); ++k) {
         PropertySlot slot(thisObj);
         if (!thisObj->getPropertySlot(exec, k, slot))
             continue;
@@ -747,6 +842,145 @@ JSValuePtr arrayProtoFuncSome(ExecState* exec, JSObject*, JSValuePtr thisValue, 
         }
     }
     return result;
+}
+
+JSValuePtr arrayProtoFuncReduce(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)
+{
+    JSObject* thisObj = thisValue.toThisObject(exec);
+    
+    JSValuePtr function = args.at(exec, 0);
+    CallData callData;
+    CallType callType = function.getCallData(callData);
+    if (callType == CallTypeNone)
+        return throwError(exec, TypeError);
+
+    unsigned i = 0;
+    JSValuePtr rv;
+    unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
+    if (!length && args.size() == 1)
+        return throwError(exec, TypeError);
+    JSArray* array = 0;
+    if (isJSArray(&exec->globalData(), thisObj))
+        array = asArray(thisObj);
+
+    if (args.size() >= 2)
+        rv = args.at(exec, 1);
+    else if (array && array->canGetIndex(0)){
+        rv = array->getIndex(0);
+        i = 1;
+    } else {
+        for (i = 0; i < length; i++) {
+            rv = getProperty(exec, thisObj, i);
+            if (rv)
+                break;
+        }
+        if (!rv)
+            return throwError(exec, TypeError);
+        i++;
+    }
+
+    if (callType == CallTypeJS && array) {
+        CachedCall cachedCall(exec, asFunction(function), 4, exec->exceptionSlot());
+        for (; i < length && !exec->hadException(); ++i) {
+            cachedCall.setThis(jsNull());
+            cachedCall.setArgument(0, rv);
+            JSValuePtr v;
+            if (LIKELY(array->canGetIndex(i)))
+                v = array->getIndex(i);
+            else
+                break; // length has been made unsafe while we enumerate fallback to slow path
+            cachedCall.setArgument(1, v);
+            cachedCall.setArgument(2, jsNumber(exec, i));
+            cachedCall.setArgument(3, array);
+            rv = cachedCall.call();
+        }
+        if (i == length) // only return if we reached the end of the array
+            return rv;
+    }
+
+    for (; i < length && !exec->hadException(); ++i) {
+        JSValuePtr prop = getProperty(exec, thisObj, i);
+        if (!prop)
+            continue;
+        
+        ArgList eachArguments;
+        eachArguments.append(rv);
+        eachArguments.append(prop);
+        eachArguments.append(jsNumber(exec, i));
+        eachArguments.append(thisObj);
+        
+        rv = call(exec, function, callType, callData, jsNull(), eachArguments);
+    }
+    return rv;
+}
+
+JSValuePtr arrayProtoFuncReduceRight(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)
+{
+    JSObject* thisObj = thisValue.toThisObject(exec);
+    
+    JSValuePtr function = args.at(exec, 0);
+    CallData callData;
+    CallType callType = function.getCallData(callData);
+    if (callType == CallTypeNone)
+        return throwError(exec, TypeError);
+    
+    unsigned i = 0;
+    JSValuePtr rv;
+    unsigned length = thisObj->get(exec, exec->propertyNames().length).toUInt32(exec);
+    if (!length && args.size() == 1)
+        return throwError(exec, TypeError);
+    JSArray* array = 0;
+    if (isJSArray(&exec->globalData(), thisObj))
+        array = asArray(thisObj);
+    
+    if (args.size() >= 2)
+        rv = args.at(exec, 1);
+    else if (array && array->canGetIndex(length - 1)){
+        rv = array->getIndex(length - 1);
+        i = 1;
+    } else {
+        for (i = 0; i < length; i++) {
+            rv = getProperty(exec, thisObj, length - i - 1);
+            if (rv)
+                break;
+        }
+        if (!rv)
+            return throwError(exec, TypeError);
+        i++;
+    }
+    
+    if (callType == CallTypeJS && array) {
+        CachedCall cachedCall(exec, asFunction(function), 4, exec->exceptionSlot());
+        for (; i < length && !exec->hadException(); ++i) {
+            unsigned idx = length - i - 1;
+            cachedCall.setThis(jsNull());
+            cachedCall.setArgument(0, rv);
+            if (UNLIKELY(!array->canGetIndex(idx)))
+                break; // length has been made unsafe while we enumerate fallback to slow path
+            cachedCall.setArgument(1, array->getIndex(idx));
+            cachedCall.setArgument(2, jsNumber(exec, idx));
+            cachedCall.setArgument(3, array);
+            rv = cachedCall.call();
+        }
+        if (i == length) // only return if we reached the end of the array
+            return rv;
+    }
+    
+    for (; i < length && !exec->hadException(); ++i) {
+        unsigned idx = length - i - 1;
+        JSValuePtr prop = getProperty(exec, thisObj, idx);
+        if (!prop)
+            continue;
+        
+        ArgList eachArguments;
+        eachArguments.append(rv);
+        eachArguments.append(prop);
+        eachArguments.append(jsNumber(exec, idx));
+        eachArguments.append(thisObj);
+        
+        rv = call(exec, function, callType, callData, jsNull(), eachArguments);
+    }
+    return rv;        
 }
 
 JSValuePtr arrayProtoFuncIndexOf(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)

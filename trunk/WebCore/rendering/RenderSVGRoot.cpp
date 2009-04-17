@@ -178,7 +178,7 @@ void RenderSVGRoot::paint(PaintInfo& paintInfo, int parentX, int parentY)
 
     SVGResourceFilter* filter = 0;
 
-    FloatRect boundingBox = relativeBBox(true);
+    FloatRect boundingBox = repaintRectInLocalCoordinates();
     if (childPaintInfo.phase == PaintPhaseForeground)
         prepareToRenderSVGContent(this, childPaintInfo, boundingBox, filter);
 
@@ -219,43 +219,9 @@ void RenderSVGRoot::calcViewport()
                                  svg->relativeHeightValue() : height.value(svg));
 }
 
-IntRect RenderSVGRoot::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
+TransformationMatrix RenderSVGRoot::localToParentTransform() const
 {
-    IntRect repaintRect;
-
-    for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
-        repaintRect.unite(current->clippedOverflowRectForRepaint(repaintContainer));
-
-#if ENABLE(SVG_FILTERS)
-    // Filters can expand the bounding box
-    SVGResourceFilter* filter = getFilterById(document(), style()->svgStyle()->filter());
-    if (filter)
-        repaintRect.unite(enclosingIntRect(filter->filterBBoxForItemBBox(repaintRect)));
-#endif
-
-    return repaintRect;
-}
-
-void RenderSVGRoot::addFocusRingRects(GraphicsContext* graphicsContext, int, int)
-{
-    graphicsContext->addFocusRingRect(m_absoluteBounds);
-}
-
-void RenderSVGRoot::absoluteRects(Vector<IntRect>& rects, int, int)
-{
-    for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
-        current->absoluteRects(rects, 0, 0);
-}
-
-void RenderSVGRoot::absoluteQuads(Vector<FloatQuad>& quads, bool)
-{
-    for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
-        current->absoluteQuads(quads);
-}
-
-TransformationMatrix RenderSVGRoot::absoluteTransform() const
-{
-    TransformationMatrix ctm = RenderBox::absoluteTransform();
+    TransformationMatrix ctm;
     ctm.translate(x(), y());
     SVGSVGElement* svg = static_cast<SVGSVGElement*>(node());
     ctm.scale(svg->currentScale());
@@ -264,21 +230,22 @@ TransformationMatrix RenderSVGRoot::absoluteTransform() const
     return svg->viewBoxToViewTransform(width(), height()) * ctm;
 }
 
-FloatRect RenderSVGRoot::relativeBBox(bool includeStroke) const
+// FIXME: This method should be removed as soon as callers to RenderBox::absoluteTransform() can be removed.
+TransformationMatrix RenderSVGRoot::absoluteTransform() const
 {
-    FloatRect rect;
-    
-    RenderObject* current = firstChild();
-    for (; current != 0; current = current->nextSibling()) {
-        FloatRect childBBox = current->relativeBBox(includeStroke);
-        FloatRect mappedBBox = current->localTransform().mapRect(childBBox);
-        // <svg> can have a viewBox contributing to the bbox
-        if (current->isSVGContainer())
-            mappedBBox = static_cast<RenderSVGContainer*>(current)->viewportTransform().mapRect(mappedBBox);
-        rect.unite(mappedBBox);
-    }
+    // This would apply localTransform() twice if localTransform() were not the identity.
+    return localToParentTransform() * RenderBox::absoluteTransform();
+}
 
-    return rect;
+FloatRect RenderSVGRoot::objectBoundingBox() const
+{
+    return computeContainerBoundingBox(this, false);
+}
+
+FloatRect RenderSVGRoot::repaintRectInLocalCoordinates() const
+{
+    // FIXME: This does not include the border but it should!
+    return computeContainerBoundingBox(this, true);
 }
 
 TransformationMatrix RenderSVGRoot::localTransform() const

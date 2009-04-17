@@ -27,10 +27,9 @@
 
 #if ENABLE(SVG)
 
-#include "TransformationMatrix.h"
 #include "FloatRect.h"
-
-#include "RenderObject.h"
+#include "RenderSVGModelObject.h"
+#include "TransformationMatrix.h"
 
 namespace WebCore {
 
@@ -38,7 +37,7 @@ class FloatPoint;
 class RenderSVGContainer;
 class SVGStyledTransformableElement;
 
-class RenderPath : public RenderObject {
+class RenderPath : public RenderSVGModelObject {
 public:
     RenderPath(SVGStyledTransformableElement*);
 
@@ -46,11 +45,11 @@ public:
     bool fillContains(const FloatPoint&, bool requiresFill = true) const;
     bool strokeContains(const FloatPoint&, bool requiresStroke = true) const;
 
-    // Returns an unscaled bounding box (not even including localTransform()) for this vector path
-    virtual FloatRect relativeBBox(bool includeStroke = true) const;
+    virtual FloatRect objectBoundingBox() const;
+    virtual FloatRect repaintRectInLocalCoordinates() const;
 
     const Path& path() const;
-    void setPath(const Path& newPath);
+    void setPath(const Path&);
 
     virtual bool isRenderPath() const { return true; }
     virtual const char* renderName() const { return "RenderPath"; }

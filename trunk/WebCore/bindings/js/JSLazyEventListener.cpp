@@ -23,19 +23,25 @@
 #include "Frame.h"
 #include "JSNode.h"
 #include <runtime/FunctionConstructor.h>
+#include <wtf/RefCountedLeakCounter.h>
 
 using namespace JSC;
 
 namespace WebCore {
 
-JSLazyEventListener::JSLazyEventListener(LazyEventListenerType type, const String& functionName, const String& code, JSDOMGlobalObject* globalObject, Node* node, int lineNumber)
-    : JSProtectedEventListener(0, globalObject, true)
+#ifndef NDEBUG
+static WTF::RefCountedLeakCounter eventListenerCounter("JSLazyEventListener");
+#endif
+
+JSLazyEventListener::JSLazyEventListener(const String& functionName, const String& eventParameterName, const String& code, JSDOMGlobalObject* globalObject, Node* node, int lineNumber)
+    : JSAbstractEventListener(true)
+    , m_globalObject(globalObject)
     , m_functionName(functionName)
+    , m_eventParameterName(eventParameterName)
     , m_code(code)
     , m_parsed(false)
     , m_lineNumber(lineNumber)
     , m_originalNode(node)
-    , m_type(type)
 {
     // We don't retain the original node because we assume it
     // will stay alive as long as this handler object is around
@@ -47,26 +53,33 @@ JSLazyEventListener::JSLazyEventListener(LazyEventListenerType type, const Strin
     // a setAttribute call from JavaScript, so make the line number 1 in that case.
     if (m_lineNumber == 0)
         m_lineNumber = 1;
+
+    if (m_jsFunction) {
+        JSDOMWindow::ProtectedListenersMap& listeners = isInline()
+            ? m_globalObject->jsProtectedInlineEventListeners() : m_globalObject->jsProtectedEventListeners();
+        listeners.set(m_jsFunction, this);
+    }
+#ifndef NDEBUG
+    eventListenerCounter.increment();
+#endif
+}
+
+JSLazyEventListener::~JSLazyEventListener()
+{
+    if (m_jsFunction && m_globalObject) {
+        JSDOMWindow::ProtectedListenersMap& listeners = isInline()
+            ? m_globalObject->jsProtectedInlineEventListeners() : m_globalObject->jsProtectedEventListeners();
+        listeners.remove(m_jsFunction);
+    }
+#ifndef NDEBUG
+    eventListenerCounter.decrement();
+#endif
 }
 
 JSObject* JSLazyEventListener::jsFunction() const
 {
     parseCode();
     return m_jsFunction;
-}
-
-static inline JSValuePtr eventParameterName(JSLazyEventListener::LazyEventListenerType type, ExecState* exec)
-{
-    switch (type) {
-        case JSLazyEventListener::HTMLLazyEventListener:
-            return jsNontrivialString(exec, "event");
-#if ENABLE(SVG)
-        case JSLazyEventListener::SVGLazyEventListener:
-            return jsNontrivialString(exec, "evt");
-#endif
-    }
-    ASSERT_NOT_REACHED();
-    return jsUndefined();
 }
 
 void JSLazyEventListener::parseCode() const
@@ -91,7 +104,7 @@ void JSLazyEventListener::parseCode() const
 
     ArgList args;
     UString sourceURL(m_globalObject->scriptExecutionContext()->url().string());
-    args.append(eventParameterName(m_type, exec));
+    args.append(jsNontrivialString(exec, m_eventParameterName));
     args.append(jsString(exec, m_code));
 
     // FIXME: Passing the document's URL to construct is not always correct, since this event listener might
@@ -117,15 +130,21 @@ void JSLazyEventListener::parseCode() const
         }
     }
 
-    // no more need to keep the unparsed code around
+    // Since we only parse once, there's no need to keep data used for parsing around anymore.
     m_functionName = String();
     m_code = String();
+    m_eventParameterName = String();
 
     if (m_jsFunction) {
         ASSERT(isInline());
         JSDOMWindow::ProtectedListenersMap& listeners = m_globalObject->jsProtectedInlineEventListeners();
         listeners.set(m_jsFunction, const_cast<JSLazyEventListener*>(this));
     }
+}
+
+JSDOMGlobalObject* JSLazyEventListener::globalObject() const
+{
+    return m_globalObject;
 }
 
 } // namespace WebCore

@@ -26,15 +26,27 @@
 #include "config.h"
 
 #if ENABLE(SVG)
-#include "SVGElementInstance.h"
 #include "JSSVGElementInstance.h"
 
-#include "JSEventListener.h"
 #include "JSDOMWindow.h"
+#include "JSEventListener.h"
+#include "JSSVGElement.h"
+#include "SVGElementInstance.h"
 
 using namespace JSC;
 
 namespace WebCore {
+
+void JSSVGElementInstance::mark()
+{
+    DOMObject::mark();
+
+    // Mark the wrapper for our corresponding element, so it can mark its event handlers.
+    JSNode* correspondingWrapper = getCachedDOMNodeWrapper(impl()->correspondingElement()->document(), impl()->correspondingElement());
+    ASSERT(correspondingWrapper);
+    if (!correspondingWrapper->marked())
+        correspondingWrapper->mark();
+}
 
 JSValuePtr JSSVGElementInstance::addEventListener(ExecState* exec, const ArgList& args)
 {
@@ -42,7 +54,7 @@ JSValuePtr JSSVGElementInstance::addEventListener(ExecState* exec, const ArgList
     if (!globalObject)
         return jsUndefined();
 
-    if (RefPtr<JSProtectedEventListener> listener = globalObject->findOrCreateJSProtectedEventListener(args.at(exec, 1)))
+    if (RefPtr<JSEventListener> listener = globalObject->findOrCreateJSEventListener(args.at(exec, 1)))
         impl()->addEventListener(args.at(exec, 0).toString(exec), listener.release(), args.at(exec, 2).toBoolean(exec));
 
     return jsUndefined();
@@ -54,7 +66,7 @@ JSValuePtr JSSVGElementInstance::removeEventListener(ExecState* exec, const ArgL
     if (!globalObject)
         return jsUndefined();
 
-    if (JSProtectedEventListener* listener = globalObject->findJSProtectedEventListener(args.at(exec, 1)))
+    if (JSEventListener* listener = globalObject->findJSEventListener(args.at(exec, 1)))
         impl()->removeEventListener(args.at(exec, 0).toString(exec), listener, args.at(exec, 2).toBoolean(exec));
 
     return jsUndefined();
@@ -64,6 +76,17 @@ void JSSVGElementInstance::pushEventHandlerScope(ExecState*, ScopeChain&) const
 {
 }
 
+JSC::JSValuePtr toJS(JSC::ExecState* exec, SVGElementInstance* object)
+{
+    JSValuePtr result = getDOMObjectWrapper<JSSVGElementInstance>(exec, object);
+
+    // Ensure that our corresponding element has a JavaScript wrapper to keep its event handlers alive.
+    if (object)
+        toJS(exec, object->correspondingElement());
+
+    return result;
 }
 
-#endif
+} // namespace WebCore
+
+#endif // ENABLE(SVG)

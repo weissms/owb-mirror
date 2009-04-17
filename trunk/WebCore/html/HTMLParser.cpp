@@ -128,7 +128,6 @@ HTMLParser::HTMLParser(HTMLDocument* doc, bool reportErrors)
     , m_blockStack(0)
     , m_blocksInStack(0)
     , m_hasPElementInScope(NotInScope)
-    , m_head(0)
     , m_inBody(false)
     , m_haveContent(false)
     , m_haveFrameSet(false)
@@ -146,7 +145,6 @@ HTMLParser::HTMLParser(DocumentFragment* frag)
     , m_blockStack(0)
     , m_blocksInStack(0)
     , m_hasPElementInScope(NotInScope)
-    , m_head(0)
     , m_inBody(true)
     , m_haveContent(false)
     , m_haveFrameSet(false)
@@ -349,6 +347,8 @@ bool HTMLParser::insertNode(Node* n, bool flat)
             // This case should only be hit when a demoted <form> is placed inside a table.
             ASSERT(localName == formTag);
             reportError(FormInsideTablePartError, &m_current->localName());
+            HTMLFormElement* form = static_cast<HTMLFormElement*>(n);
+            form->setDemoted(true);
         } else {
             // The pushBlock function transfers ownership of current to the block stack
             // so we're guaranteed that m_didRefCurrent is false. The code below is an
@@ -508,8 +508,7 @@ bool HTMLParser::handleError(Node* n, bool flat, const AtomicString& localName, 
                 elt->hasLocalName(baseTag))) {
                 if (!m_head) {
                     m_head = new HTMLHeadElement(headTag, m_document);
-                    e = m_head;
-                    insertNode(e);
+                    insertNode(m_head.get());
                     handled = true;
                 }
             } else {
@@ -1518,14 +1517,14 @@ void HTMLParser::createHead()
     m_head = new HTMLHeadElement(headTag, m_document);
     HTMLElement* body = m_document->body();
     ExceptionCode ec = 0;
-    m_document->documentElement()->insertBefore(m_head, body, ec);
+    m_document->documentElement()->insertBefore(m_head.get(), body, ec);
     if (ec)
         m_head = 0;
         
     // If the body does not exist yet, then the <head> should be pushed as the current block.
     if (m_head && !body) {
         pushBlock(m_head->localName(), m_head->tagPriority());
-        setCurrent(m_head);
+        setCurrent(m_head.get());
     }
 }
 

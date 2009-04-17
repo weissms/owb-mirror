@@ -1,8 +1,7 @@
 /*
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2007 Rob Buis <buis@kde.org>
-
-    This file is part of the KDE project
+    Copyright (C) 2009 Google, Inc.  All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -25,14 +24,13 @@
 
 #if ENABLE(SVG)
 
-#include "RenderPath.h"
-#include "SVGPreserveAspectRatio.h"
+#include "RenderSVGModelObject.h"
 
 namespace WebCore {
 
 class SVGElement;
 
-class RenderSVGContainer : public RenderObject {
+class RenderSVGContainer : public RenderSVGModelObject {
 public:
     RenderSVGContainer(SVGStyledElement*);
     ~RenderSVGContainer();
@@ -41,9 +39,6 @@ public:
     virtual const RenderObjectChildList* virtualChildren() const { return children(); }
     const RenderObjectChildList* children() const { return &m_children; }
     RenderObjectChildList* children() { return &m_children; }
-
-    int width() const { return m_width; }
-    int height() const { return m_height; }
 
     // Some containers do not want it's children
     // to be drawn, because they may be 'referenced'
@@ -54,10 +49,6 @@ public:
     virtual bool isSVGContainer() const { return true; }
     virtual const char* renderName() const { return "RenderSVGContainer"; }
 
-    virtual bool requiresLayer() const { return false; }
-    virtual int lineHeight(bool b, bool isRootLineBox = false) const;
-    virtual int baselinePosition(bool b, bool isRootLineBox = false) const;
-
     virtual void layout();
     virtual void paint(PaintInfo&, int parentX, int parentY);
 
@@ -66,30 +57,20 @@ public:
     virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
     virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
-    FloatRect relativeBBox(bool includeStroke = true) const;
-
-    virtual bool calculateLocalTransform();
-    virtual TransformationMatrix localTransform() const;
-    virtual TransformationMatrix viewportTransform() const;
+    virtual FloatRect objectBoundingBox() const;
+    virtual FloatRect repaintRectInLocalCoordinates() const;
 
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 
 protected:
+    virtual bool calculateLocalTransform();
     virtual void applyContentTransforms(PaintInfo&);
     virtual void applyAdditionalTransforms(PaintInfo&);
-
-    void calcBounds();
 
     virtual IntRect outlineBoundsForRepaint(RenderBoxModelObject* /*repaintContainer*/) const;
 
 private:
-    int calcReplacedWidth() const;
-    int calcReplacedHeight() const;
-
     RenderObjectChildList m_children;
-
-    int m_width;
-    int m_height;
     
     bool selfWillPaint() const;
 
@@ -97,7 +78,6 @@ private:
     
 protected:    
     IntRect m_absoluteBounds;
-    TransformationMatrix m_localTransform;
 };
   
 } // namespace WebCore

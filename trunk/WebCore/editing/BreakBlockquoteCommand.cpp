@@ -82,13 +82,13 @@ void BreakBlockquoteCommand::doApply()
     // If we're inserting the break at the end of the quoted content, we don't need to break the quote.
     if (isLastVisiblePositionInNode(visiblePos, topBlockquote)) {
         setEndingSelection(VisibleSelection(Position(breakNode.get(), 0), DOWNSTREAM));
-        rebalanceWhitespace();   
+        rebalanceWhitespace();
         return;
     }
     
     // Don't move a line break just after the caret.  Doing so would create an extra, empty paragraph
     // in the new blockquote.
-    if (lineBreakExistsAtPosition(visiblePos))
+    if (lineBreakExistsAtVisiblePosition(visiblePos))
         pos = pos.next();
         
     // Adjust the position so we don't split at the beginning of a quote.  
@@ -157,10 +157,7 @@ void BreakBlockquoteCommand::doApply()
         moveNode = next;
     }
 
-    // Hold open startNode's original parent if we emptied it
     if (!ancestors.isEmpty()) {
-        addBlockPlaceholderIfNeeded(ancestors.first());
-
         // Split the tree up the ancestor chain until the topBlockquote
         // Throughout this loop, clonedParent is the clone of ancestor's parent.
         // This is so we can clone ancestor's siblings and place the clones
@@ -178,6 +175,11 @@ void BreakBlockquoteCommand::doApply()
                 moveNode = next;
             }
         }
+        
+        // If the startNode's original parent is now empty, remove it
+        Node* originalParent = ancestors.first();
+        if (!originalParent->hasChildNodes())
+            removeNode(originalParent);
     }
     
     // Make sure the cloned block quote renders.

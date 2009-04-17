@@ -938,15 +938,6 @@
 							DisableSpecificWarnings="4701"
 						/>
 					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_PGO|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							WholeProgramOptimization="false"
-							DisableSpecificWarnings="4701"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\grammar.h"
@@ -1212,14 +1203,6 @@
 			<File
 				RelativePath="..\..\kjs\nodes.cpp"
 				>
-				<FileConfiguration
-					Name="Release_PGO|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WholeProgramOptimization="false"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\kjs\nodes.h"
@@ -1339,6 +1322,22 @@
 			</File>
 			<File
 				RelativePath="..\..\kjs\DebuggerCallFrame.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\bytecode\StructureStubInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\bytecode\StructureStubInfo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\runtime\TimeoutChecker.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\runtime\TimeoutChecker.h"
 				>
 			</File>
 		</Filter>

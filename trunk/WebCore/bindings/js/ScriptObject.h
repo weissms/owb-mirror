@@ -63,7 +63,9 @@ namespace WebCore {
 #if ENABLE(INSPECTOR)
         static bool set(ScriptState*, const char* name, InspectorController*);
 #endif
-        static bool getObject(ScriptState*, const char* name, ScriptObject&);
+        static bool get(ScriptState*, const char* name, ScriptObject&);
+        static bool remove(ScriptState*, const char* name);
+
     private:
         ScriptGlobalObject() { }
     };

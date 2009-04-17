@@ -1,3 +1,38 @@
+2009-04-17  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix for heavy leakage of WebURLResponses seen during the stress test 
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::shouldCacheResponse):
+
+2009-04-16  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed build fix.
+
+        * WebView.cpp:
+
+2009-04-16  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25241
+        Remove superfluous NotImplemented.h includes
+
+        * WebDownloadCFNet.cpp:
+        * WebURLAuthenticationChallengeSender.cpp:
+        * WebView.cpp:
+
+2009-04-14  Adam Roben  <aroben@apple.com>
+
+        Remove support for profile-guided optimization on Windows
+
+        Rubber-stamped by Steve Falkenburg.
+
+        * WebKit.vcproj/WebKit.vcproj: Removed the Release_PGOInstrument and
+        Release_PGOOptimize configurations.
+
 2009-04-14  Adam Roben  <aroben@apple.com>
 
         Windows part 2 of <rdar://5438063> Saving history containing 100,000

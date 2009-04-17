@@ -82,11 +82,6 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
 #endif
 
     if (!child->isTableCell()) {
-        if (isTableRow && child->node() && child->node()->hasTagName(formTag) && document()->isHTMLDocument()) {
-            RenderBox::addChild(child, beforeChild);
-            return;
-        }
-
         RenderObject* last = beforeChild;
         if (!last)
             last = lastChild();
@@ -121,7 +116,7 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
     if (parent())
         section()->addCell(cell, this);
 
-    ASSERT(!beforeChild || beforeChild->isTableCell() || isTableRow && beforeChild->node() && beforeChild->node()->hasTagName(formTag) && document()->isHTMLDocument());
+    ASSERT(!beforeChild || beforeChild->isTableCell());
     RenderBox::addChild(cell, beforeChild);
 
     if (beforeChild || nextSibling())

@@ -292,9 +292,6 @@ static AtkStateSet* webkit_accessible_ref_state_set(AtkObject* object)
 
 static void webkit_accessible_init(AtkObject* object, gpointer data)
 {
-    g_return_if_fail(WEBKIT_IS_ACCESSIBLE(object));
-    g_return_if_fail(data);
-
     if (ATK_OBJECT_CLASS(webkit_accessible_parent_class)->initialize)
         ATK_OBJECT_CLASS(webkit_accessible_parent_class)->initialize(object, data);
 
@@ -389,8 +386,6 @@ static const gchar* webkit_accessible_action_get_name(AtkAction* action, gint i)
 
 static void atk_action_interface_init(AtkActionIface* iface)
 {
-    g_return_if_fail(iface);
-
     iface->do_action = webkit_accessible_action_do_action;
     iface->get_n_actions = webkit_accessible_action_get_n_actions;
     iface->get_description = webkit_accessible_action_get_description;
@@ -400,10 +395,18 @@ static void atk_action_interface_init(AtkActionIface* iface)
 
 // Text
 
-static gchar* webkit_accessible_text_get_text(AtkText* text, gint start_offset, gint end_offset)
+static gchar* webkit_accessible_text_get_text(AtkText* text, gint startOffset, gint endOffset)
 {
-    String ret = core(text)->doAXStringForRange(PlainTextRange(start_offset, end_offset - start_offset));
-    // TODO: Intentionally copied?
+    AccessibilityObject* coreObject = core(text);
+    String ret;
+    unsigned start = startOffset;
+    int length = endOffset - startOffset;
+
+    if (coreObject->isTextControl())
+        ret = coreObject->doAXStringForRange(PlainTextRange(start, length));
+    else
+        ret = coreObject->textUnderElement().substring(start, length);
+
     return g_strdup(ret.utf8().data());
 }
 
@@ -474,7 +477,12 @@ static void webkit_accessible_text_get_character_extents(AtkText* text, gint off
 
 static gint webkit_accessible_text_get_character_count(AtkText* text)
 {
-    return core(text)->textLength();
+    AccessibilityObject* coreObject = core(text);
+
+    if (coreObject->isTextControl())
+        return coreObject->textLength();
+    else
+        return coreObject->textUnderElement().length();
 }
 
 static gint webkit_accessible_text_get_offset_at_point(AtkText* text, gint x, gint y, AtkCoordType coords)
@@ -525,37 +533,8 @@ static gboolean webkit_accessible_text_set_caret_offset(AtkText* text, gint offs
     return TRUE;
 }
 
-#if 0
-// Signal handlers
-static void webkit_accessible_text_text_changed(AtkText* text, gint position, gint length)
-{
-}
-
-static void webkit_accessible_text_text_caret_moved(AtkText* text, gint location)
-{
-}
-
-static void webkit_accessible_text_text_selection_changed(AtkText* text)
-{
-}
-
-static void webkit_accessible_text_text_attributes_changed(AtkText* text)
-{
-}
-
-static void webkit_accessible_text_get_range_extents(AtkText* text, gint start_offset, gint end_offset, AtkCoordType coord_type, AtkTextRectangle* rect)
-{
-}
-
-static AtkTextRange** webkit_accessible_text_get_bounded_ranges(AtkText* text, AtkTextRectangle* rect, AtkCoordType coord_type, AtkTextClipType x_clip_type, AtkTextClipType y_clip_type)
-{
-}
-#endif
-
 static void atk_text_interface_init(AtkTextIface* iface)
 {
-    g_return_if_fail(iface);
-
     iface->get_text = webkit_accessible_text_get_text;
     iface->get_text_after_offset = webkit_accessible_text_get_text_after_offset;
     iface->get_text_at_offset = webkit_accessible_text_get_text_at_offset;
@@ -565,7 +544,6 @@ static void atk_text_interface_init(AtkTextIface* iface)
     iface->get_run_attributes = webkit_accessible_text_get_run_attributes;
     iface->get_default_attributes = webkit_accessible_text_get_default_attributes;
     iface->get_character_extents = webkit_accessible_text_get_character_extents;
-    //iface->get_range_extents = ;
     iface->get_character_count = webkit_accessible_text_get_character_count;
     iface->get_offset_at_point = webkit_accessible_text_get_offset_at_point;
     iface->get_n_selections = webkit_accessible_text_get_n_selections;
@@ -641,8 +619,6 @@ static void webkit_accessible_editable_text_paste_text(AtkEditableText* text, gi
 
 static void atk_editable_text_interface_init(AtkEditableTextIface* iface)
 {
-    g_return_if_fail(iface);
-
     iface->set_run_attributes = webkit_accessible_editable_text_set_run_attributes;
     iface->set_text_contents = webkit_accessible_editable_text_set_text_contents;
     iface->insert_text = webkit_accessible_editable_text_insert_text;
@@ -680,8 +656,6 @@ static G_CONST_RETURN gchar* webkit_accessible_streamable_content_get_uri(AtkStr
 
 static void atk_streamable_content_interface_init(AtkStreamableContentIface* iface)
 {
-    g_return_if_fail(iface);
-
     iface->get_n_mime_types = webkit_accessible_streamable_content_get_n_mime_types;
     iface->get_mime_type = webkit_accessible_streamable_content_get_mime_type;
     iface->get_stream = webkit_accessible_streamable_content_get_stream;
@@ -731,6 +705,11 @@ static guint16 getInterfaceMaskFromObject(AccessibilityObject* coreObject)
     interfaceMask |= 1 << WAI_STREAMABLE;
 
     // Text & Editable Text
+    AccessibilityRole role = coreObject->roleValue();
+
+    if (role == StaticTextRole)
+        interfaceMask |= 1 << WAI_TEXT;
+
     if (coreObject->isAccessibilityRenderObject() && coreObject->isTextControl()) {
         if (coreObject->isReadOnly())
             interfaceMask |= 1 << WAI_TEXT;

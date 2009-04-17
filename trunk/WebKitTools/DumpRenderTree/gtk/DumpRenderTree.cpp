@@ -241,10 +241,15 @@ void dump()
         char* result = 0;
         gchar* responseMimeType = webkit_web_frame_get_response_mime_type(mainFrame);
 
-        dumpAsText = g_ascii_strcasecmp(responseMimeType, "text/plain");
+        dumpAsText = g_str_equal(responseMimeType, "text/plain");
         g_free(responseMimeType);
 
-        gLayoutTestController->setDumpAsText(dumpAsText);
+        // Test can request controller to be dumped as text even
+        // while test's response mime type is not text/plain.
+        // Overriding this behavior with dumpAsText being false is a bad idea.
+        if (dumpAsText)
+            gLayoutTestController->setDumpAsText(dumpAsText);
+
         if (gLayoutTestController->dumpAsText())
             result = dumpFramesAsText(mainFrame);
         else
@@ -312,6 +317,11 @@ static void setDefaultsToConsistentStateValuesForTesting()
                  "default-monospace-font-size", 13,
                  "minimum-font-size", 1,
                  NULL);
+
+    /* Disable the default auth dialog for testing */
+    SoupSession* session = webkit_get_default_session();
+    soup_session_remove_feature_by_type(session, WEBKIT_TYPE_SOUP_AUTH_DIALOG);
+
 #if PLATFORM(X11)
     webkit_web_settings_add_extra_plugin_directory(webView, TEST_PLUGIN_DIR);
 #endif

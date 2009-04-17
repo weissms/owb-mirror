@@ -2,8 +2,7 @@
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2007 Rob Buis <buis@kde.org>
                   2007 Eric Seidel <eric@webkit.org>
-
-    This file is part of the KDE project
+                  2009 Google, Inc.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -55,7 +54,7 @@ void RenderSVGViewportContainer::layout()
     // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
     LayoutRepainter repainter(*this, checkForRepaintDuringLayout() && selfNeedsLayout(), &m_absoluteBounds);
     
-    calcBounds();    
+    m_absoluteBounds = absoluteClippedOverflowRect();
     
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
         if (selfNeedsLayout())
@@ -137,15 +136,24 @@ TransformationMatrix RenderSVGViewportContainer::viewportTransform() const
         SVGMarkerElement* marker = static_cast<SVGMarkerElement*>(node());
         return marker->viewBoxToViewTransform(viewport().width(), viewport().height());
     }
- 
-     return TransformationMatrix();
+
+    return TransformationMatrix();
 }
 
+TransformationMatrix RenderSVGViewportContainer::localToParentTransform() const
+{
+    TransformationMatrix viewportTranslation;
+    viewportTranslation.translate(viewport().x(), viewport().y());
+    return viewportTransform() * viewportTranslation;
+    // If this class were ever given a localTransform(), then the above would read:
+    // return viewportTransform() * localTransform() * viewportTranslation;
+}
+
+// FIXME: This method should be removed as soon as callers to RenderBox::absoluteTransform() can be removed.
 TransformationMatrix RenderSVGViewportContainer::absoluteTransform() const
 {
-    TransformationMatrix ctm = RenderObject::absoluteTransform();
-    ctm.translate(viewport().x(), viewport().y());
-    return viewportTransform() * ctm;
+    // This would apply localTransform() twice if localTransform() were not the identity.
+    return localToParentTransform() * RenderSVGContainer::absoluteTransform();
 }
 
 bool RenderSVGViewportContainer::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int _tx, int _ty, HitTestAction hitTestAction)
@@ -153,8 +161,9 @@ bool RenderSVGViewportContainer::nodeAtPoint(const HitTestRequest& request, HitT
     if (!viewport().isEmpty()
         && style()->overflowX() == OHIDDEN
         && style()->overflowY() == OHIDDEN) {
-        // Check if we need to do anything at all.
-        IntRect overflowBox = IntRect(0, 0, width(), height());
+        // Check to see if the region is outside of our viewport (and thus can't hit our kids)
+        // FIXME: This code seems needlessly complicated (and thus likely wrong)
+        IntRect overflowBox = IntRect(0, 0, viewport().width(), viewport().height());
         overflowBox.move(_tx, _ty);
         TransformationMatrix ctm = RenderObject::absoluteTransform();
         ctm.translate(viewport().x(), viewport().y());

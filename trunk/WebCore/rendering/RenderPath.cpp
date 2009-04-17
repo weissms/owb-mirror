@@ -64,9 +64,8 @@ private:
     RenderStyle* m_style;
 };
 
-// RenderPath
 RenderPath::RenderPath(SVGStyledTransformableElement* node)
-    : RenderObject(node)
+    : RenderSVGModelObject(node)
 {
 }
 
@@ -108,31 +107,32 @@ bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) co
     return m_path.strokeContains(&strokeStyle, point);
 }
 
-FloatRect RenderPath::relativeBBox(bool includeStroke) const
+FloatRect RenderPath::objectBoundingBox() const
 {
     if (m_path.isEmpty())
         return FloatRect();
-
-    if (includeStroke) {
-        if (m_strokeBbox.isEmpty()) {
-            if (style()->svgStyle()->hasStroke()) {
-                BoundingRectStrokeStyleApplier strokeStyle(this, style());
-                m_strokeBbox = m_path.strokeBoundingRect(&strokeStyle);
-            } else {
-                if (m_fillBBox.isEmpty())
-                    m_fillBBox = m_path.boundingRect();
-
-                m_strokeBbox = m_fillBBox;
-            }
-        }
-
-        return m_strokeBbox;
-    }
 
     if (m_fillBBox.isEmpty())
         m_fillBBox = m_path.boundingRect();
 
     return m_fillBBox;
+}
+
+FloatRect RenderPath::repaintRectInLocalCoordinates() const
+{
+    if (m_path.isEmpty())
+        return FloatRect();
+
+    if (m_strokeBbox.isEmpty()) {
+        if (!style()->svgStyle()->hasStroke())
+            return objectBoundingBox();
+
+        BoundingRectStrokeStyleApplier strokeStyle(this, style());
+        m_strokeBbox = m_path.strokeBoundingRect(&strokeStyle);
+    }
+    // FIXME: This should include filter and marker content too.
+
+    return m_strokeBbox;
 }
 
 void RenderPath::setPath(const Path& newPath)
@@ -173,17 +173,13 @@ void RenderPath::layout()
 IntRect RenderPath::clippedOverflowRectForRepaint(RenderBoxModelObject* /*repaintContainer*/)
 {
     // FIXME: handle non-root repaintContainer
-    FloatRect repaintRect = absoluteTransform().mapRect(relativeBBox(true));
+    FloatRect repaintRect = absoluteTransform().mapRect(repaintRectInLocalCoordinates());
 
     // Markers can expand the bounding box
     repaintRect.unite(m_markerBounds);
 
-#if ENABLE(SVG_FILTERS)
-    // Filters can expand the bounding box
-    SVGResourceFilter* filter = getFilterById(document(), style()->svgStyle()->filter());
-    if (filter)
-        repaintRect.unite(filter->filterBBoxForItemBBox(repaintRect));
-#endif
+    // Filters can paint anywhere.  If we have one, expand our rect so we are sure to repaint it.
+    repaintRect.unite(filterBoundingBox());
 
     if (!repaintRect.isEmpty())
         repaintRect.inflate(1); // inflate 1 pixel for antialiasing
@@ -193,12 +189,12 @@ IntRect RenderPath::clippedOverflowRectForRepaint(RenderBoxModelObject* /*repain
 
 int RenderPath::lineHeight(bool, bool) const
 {
-    return relativeBBox(true).height();
+    return repaintRectInLocalCoordinates().height();
 }
 
 int RenderPath::baselinePosition(bool, bool) const
 {
-    return relativeBBox(true).height();
+    return repaintRectInLocalCoordinates().height();
 }
 
 static inline void fillAndStrokePath(const Path& path, GraphicsContext* context, RenderStyle* style, RenderPath* object)
@@ -228,7 +224,7 @@ void RenderPath::paint(PaintInfo& paintInfo, int, int)
 
     SVGResourceFilter* filter = 0;
 
-    FloatRect boundingBox = relativeBBox(true);
+    FloatRect boundingBox = repaintRectInLocalCoordinates();
     if (paintInfo.phase == PaintPhaseForeground) {
         PaintInfo savedInfo(paintInfo);
 
@@ -252,7 +248,7 @@ void RenderPath::paint(PaintInfo& paintInfo, int, int)
 
 void RenderPath::addFocusRingRects(GraphicsContext* graphicsContext, int, int) 
 {
-    graphicsContext->addFocusRingRect(enclosingIntRect(relativeBBox(true)));
+    graphicsContext->addFocusRingRect(enclosingIntRect(repaintRectInLocalCoordinates()));
 }
 
 void RenderPath::absoluteRects(Vector<IntRect>& rects, int, int, bool)

@@ -2350,8 +2350,17 @@ VisiblePosition RenderObject::createVisiblePosition(const Position& position)
 
 #if ENABLE(SVG)
 
-FloatRect RenderObject::relativeBBox(bool) const
+FloatRect RenderObject::objectBoundingBox() const
 {
+    ASSERT_NOT_REACHED();
+    return FloatRect();
+}
+
+// Returns the smallest rectangle enclosing all of the painted content
+// respecting clipping, masking, filters, opacity, stroke-width and markers
+FloatRect RenderObject::repaintRectInLocalCoordinates() const
+{
+    ASSERT_NOT_REACHED();
     return FloatRect();
 }
 
@@ -2360,8 +2369,17 @@ TransformationMatrix RenderObject::localTransform() const
     return TransformationMatrix();
 }
 
+TransformationMatrix RenderObject::localToParentTransform() const
+{
+    // FIXME: This double virtual call indirection is temporary until I can land the
+    // rest of the of the localToParentTransform() support for SVG.
+    return localTransform();
+}
+
 TransformationMatrix RenderObject::absoluteTransform() const
 {
+    // FIXME: This should use localToParentTransform(), but much of the SVG code
+    // depends on RenderBox::absoluteTransform() being the sum of the localTransform()s of all parent renderers.
     if (parent())
         return localTransform() * parent()->absoluteTransform();
     return localTransform();

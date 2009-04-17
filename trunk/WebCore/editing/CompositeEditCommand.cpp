@@ -603,24 +603,18 @@ PassRefPtr<Node> CompositeEditCommand::addBlockPlaceholderIfNeeded(Element* cont
     return 0;
 }
 
-// Removes '\n's and brs that will collapse when content is inserted just before them.
-// FIXME: We shouldn't really have to remove placeholders, but removing them is a workaround for 9661.
-void CompositeEditCommand::removePlaceholderAt(const VisiblePosition& visiblePosition)
+// Assumes that the position is at a placeholder and does the removal without much checking.
+void CompositeEditCommand::removePlaceholderAt(const Position& p)
 {
-    if (visiblePosition.isNull())
+    ASSERT(lineBreakExistsAtPosition(p));
+    
+    // We are certain that the position is at a line break, but it may be a br or a preserved newline.
+    if (p.anchorNode()->hasTagName(brTag)) {
+        removeNode(p.anchorNode());
         return;
-        
-    Position p = visiblePosition.deepEquivalent().downstream();
-    // If a br or '\n' is at the end of a block and not at the start of a paragraph,
-    // then it is superfluous, so adding content before a br or '\n' that is at
-    // the start of a paragraph will render it superfluous.
-    // FIXME: This doesn't remove placeholders at the end of anonymous blocks.
-    if (isEndOfBlock(visiblePosition) && isStartOfParagraph(visiblePosition)) {
-        if (p.node()->hasTagName(brTag) && p.m_offset == 0)
-            removeNode(p.node());
-        else if (lineBreakExistsAtPosition(visiblePosition))
-            deleteTextFromNode(static_cast<Text*>(p.node()), p.m_offset, 1);
     }
+    
+    deleteTextFromNode(static_cast<Text*>(p.anchorNode()), p.offsetInContainerNode(), 1);
 }
 
 PassRefPtr<Node> CompositeEditCommand::insertNewDefaultParagraphElementAt(const Position& position)
@@ -662,9 +656,9 @@ PassRefPtr<Node> CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessar
         // If the block is the root editable element, always move content to a new block,
         // since it is illegal to modify attributes on the root editable element for editing.
         if (upstreamStart.node() == editableRootForPosition(upstreamStart)) {
-            // If the block is the root editable element and there is nothing insde of it, create a new
+            // If the block is the root editable element and it contains no rendered content, create a new
             // block but don't try and move content into it, since there's nothing to move.
-            if (upstreamStart == upstreamEnd)
+            if (!hasARenderedDescendant(upstreamStart.node()))
                 return insertNewDefaultParagraphElementAt(upstreamStart);
         } else if (isBlock(upstreamEnd.node())) {
             if (!upstreamEnd.node()->isDescendantOf(upstreamStart.node())) {
@@ -825,7 +819,7 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
         // expects this behavior).
         else if (isBlock(node))
             removeNodeAndPruneAncestors(node);
-        else if (lineBreakExistsAtPosition(caretAfterDelete)) {
+        else if (lineBreakExistsAtVisiblePosition(caretAfterDelete)) {
             // There is a preserved '\n' at caretAfterDelete.
             Text* textNode = static_cast<Text*>(node);
             if (textNode->length() == 1)
@@ -941,7 +935,7 @@ bool CompositeEditCommand::breakOutOfEmptyMailBlockquotedParagraph()
     setEndingSelection(VisibleSelection(atBR));
     
     // If this is an empty paragraph there must be a line break here.
-    if (!lineBreakExistsAtPosition(caret))
+    if (!lineBreakExistsAtVisiblePosition(caret))
         return false;
     
     Position caretPos(caret.deepEquivalent());
@@ -995,7 +989,7 @@ Position CompositeEditCommand::positionAvoidingSpecialElementBoundary(const Posi
             // Don't insert outside an anchor if doing so would skip over a line break.  It would
             // probably be safe to move the line break so that we could still avoid the anchor here.
             Position downstream(visiblePos.deepEquivalent().downstream());
-            if (lineBreakExistsAtPosition(visiblePos) && downstream.node()->isDescendantOf(enclosingAnchor))
+            if (lineBreakExistsAtVisiblePosition(visiblePos) && downstream.node()->isDescendantOf(enclosingAnchor))
                 return original;
             
             result = positionAfterNode(enclosingAnchor);

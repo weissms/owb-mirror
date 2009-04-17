@@ -84,6 +84,7 @@
 #import "WebPreferenceKeysPrivate.h"
 #import "WebPreferencesPrivate.h"
 #import "WebScriptDebugDelegate.h"
+#import "WebSystemInterface.h"
 #import "WebTextIterator.h"
 #import "WebUIDelegate.h"
 #import "WebUIDelegatePrivate.h"
@@ -1133,6 +1134,10 @@ static bool runningTigerMail()
         [[NSSpellChecker sharedSpellChecker] closeSpellDocumentWithTag:_private->spellCheckerDocumentTag];
         _private->hasSpellCheckerDocumentTag = NO;
     }
+
+#if USE(ACCELERATED_COMPOSITING)
+    [_private _clearViewUpdateRunLoopObserver];
+#endif
     
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -2273,6 +2278,8 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
         return;
     initialized = YES;
 
+    InitWebCoreSystemInterface();
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_applicationWillTerminate) name:NSApplicationWillTerminateNotification object:NSApp];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_preferencesChangedNotification:) name:WebPreferencesChangedNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_preferencesRemovedNotification:) name:WebPreferencesRemovedNotification object:nil];    
@@ -2566,10 +2573,6 @@ static bool needsWebViewInitThreadWorkaround()
 {
     // _close existed first, and some clients might be calling or overriding it, so call through.
     [self _close];
-
-#if USE(ACCELERATED_COMPOSITING)
-    [_private _clearViewUpdateRunLoopObserver];
-#endif
 }
 
 - (void)setShouldCloseWithWindow:(BOOL)close

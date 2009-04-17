@@ -58,8 +58,8 @@ public:
 
     The element's attributes can be read using attribute() and changed using setAttribute().
 
-    The content of the child elements can be converted to text() and html(), and it is possible to
-    replace the content using setText() and setHtml().
+    The content of the child elements can be converted to plain text using toPlainText() and to 
+    x(html) using toXml(), and it is possible to replace the content using setPlainText() and setXml().
 
     Depending on the type of the underlying element there may be extra functionality available, not
     covered through QWebElement's API. For example a HTML form element can be triggered to submit the
@@ -122,6 +122,16 @@ QWebElement::~QWebElement()
         m_element->deref();
 }
 
+bool QWebElement::operator==(const QWebElement& o) const
+{
+    return m_element == o.m_element;
+}
+
+bool QWebElement::operator!=(const QWebElement& o) const
+{
+    return m_element != o.m_element;
+}
+
 /*!
     Returns true if the element is a null element; false otherwise.
 */
@@ -155,7 +165,7 @@ QWebElement QWebElement::findFirst(const QString &query) const
 
     This is equivalent to setting the HTML innerText property.
 */
-void QWebElement::setText(const QString &text)
+void QWebElement::setPlainText(const QString &text)
 {
     if (!m_element || !m_element->isHTMLElement())
         return;
@@ -169,7 +179,7 @@ void QWebElement::setText(const QString &text)
 
     This is equivalent to reading the HTML innerText property.
 */
-QString QWebElement::text() const
+QString QWebElement::toPlainText() const
 {
     if (!m_element || !m_element->isHTMLElement())
         return QString();
@@ -177,31 +187,52 @@ QString QWebElement::text() const
 }
 
 /*!
-    Replaces the existing content of this element with \a html.
-    The string may contain HTML tags, which is parsed and formatted
+    Replaces the existing content of this element with \a markup.
+    The string may contain HTML or XML tags, which is parsed and formatted
     before insertion into the document.
 
-    This is equivalent to settng the HTML innerHTML property.
+    If \a scope is InnerXml this is equivalent to setting the HTML innerHTML
+    property, and similarily for OuterXml.
+
+    \note This is currently only implemented for (X)HTML elements.
 */
-void QWebElement::setHtml(const QString &html)
+void QWebElement::setXml(XmlScope scope, const QString &markup)
 {
     if (!m_element || !m_element->isHTMLElement())
         return;
+
     ExceptionCode exception = 0;
-    static_cast<HTMLElement*>(m_element)->setInnerHTML(html, exception);
+
+    switch (scope) {
+    case InnerXml:
+        static_cast<HTMLElement*>(m_element)->setInnerHTML(markup, exception);
+        break;
+    case OuterXml:
+        static_cast<HTMLElement*>(m_element)->setOuterHTML(markup, exception);
+        break;
+    }
 }
 
 /*!
-    Returns the HTML between the start and the end tag of this
+    Returns the XML between the start and the end tag of this
     element.
 
-    This is equivalent to reading the HTML innerHTML property.
+    If \a scope is InnerXml this is equivalent to reading the HTML
+    innerHTML property, and similarily for OuterXml.
+
+    \note This is currently only implemented for (X)HTML elements.
 */
-QString QWebElement::html() const
+QString QWebElement::toXml(XmlScope scope) const
 {
     if (!m_element || !m_element->isHTMLElement())
         return QString();
-    return static_cast<HTMLElement*>(m_element)->innerHTML();
+
+    switch (scope) {
+    case InnerXml:
+        return static_cast<HTMLElement*>(m_element)->innerHTML();
+    case OuterXml:
+        return static_cast<HTMLElement*>(m_element)->outerHTML();
+    }
 }
 
 /*!
@@ -1290,7 +1321,7 @@ QWebElementSelection::~QWebElementSelection()
     Appends the items of the \a other list to this list and returns a
     reference to this list.
 
-    \sa operator+(), extend()
+    \sa operator+(), append()
 */
 
 /*!
@@ -1311,7 +1342,7 @@ QWebElementSelection QWebElementSelection::operator+(const QWebElementSelection 
 
     \sa operator+=()
 */
-void QWebElementSelection::extend(const QWebElementSelection &other)
+void QWebElementSelection::append(const QWebElementSelection &other)
 {
     if (!d) {
         *this = other;

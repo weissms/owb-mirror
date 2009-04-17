@@ -1,3 +1,110 @@
+2009-04-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: updated check-for-global-initializers to account for code motion.
+
+        * Scripts/check-for-global-initializers:
+
+2009-04-16  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Adam Roben.
+
+        Compare test's response mime type and dump test as text properly.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dump):
+
+
+2009-04-16  Adam Roben  <aroben@apple.com>
+
+        Skip yet another JavaScriptCore test that sometimes fails on Windows
+
+        See Bug 25160: Various ecma/Date tests sometimes fail on Windows (but
+        not Mac)
+        <https://bugs.webkit.org/show_bug.cgi?id=25160>
+
+        * Scripts/run-javascriptcore-tests: Skip ecma/Date/15.9.2.2-6.js.
+
+2009-04-15  Steve Falkenburg  <sfalken@apple.com>
+
+        Redo last build fix in a more straightforward way.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (sharedCFURLCache):
+
+2009-04-15  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix Windows build of DumpRenderTree.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (sharedCFURLCache):
+        (main):
+
+2009-04-15  Adam Roben  <aroben@apple.com>
+
+        Skip yet another JavaScriptCore test that sometimes fails on Windows
+
+        See Bug 25160: Various ecma/Date tests sometimes fail on Windows (but
+        not Mac)
+        <https://bugs.webkit.org/show_bug.cgi?id=25160>
+
+        * Scripts/run-javascriptcore-tests: Skip ecma/Date/15.9.2.2-2.js (who
+        didn't see it coming?).
+
+2009-04-14  Adam Roben  <aroben@apple.com>
+
+        Skip another JavaScriptCore test that sometimes fails on Windows
+
+        See Bug 25160: Various ecma/Date tests sometimes fail on Windows (but
+        not Mac)
+        <https://bugs.webkit.org/show_bug.cgi?id=25160>
+
+        Rubber-stamped by Geoff Garen.
+
+        * Scripts/run-javascriptcore-tests: Skip ecma/Date/15.9.2.2-3.js.
+
+2009-04-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Move the DerivedSources.make calls into build-wxwebkit so that
+        the FEATURE_DEFINES are parsed properly.
+
+        * wx/build-wxwebkit:
+
+2009-04-14  Adam Roben  <aroben@apple.com>
+
+        Small run-javascriptcore-tests cleanup
+
+        Reviewed by Cameron Zwarich.
+
+        * Scripts/run-javascriptcore-tests: Move the list of tests to skip
+        into its own variable, annotated with the bugs that are filed about
+        the various failures.
+
+2009-04-14  Adam Roben  <aroben@apple.com>
+
+        Skip another sometimes-failing ecma/Date test on Windows
+
+        These failing tests are covered by Bug 25160: Various ecma/Date tests
+        sometimes fail on Windows (but not Mac)
+        <https://bugs.webkit.org/show_bug.cgi?id=25160>
+
+        Reviewed by Cameron Zwarich.
+
+        * Scripts/run-javascriptcore-tests: Added ecma/Date/15.9.2.1.js to the
+        list of tests to skip.
+
+2009-04-14  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Gtk] disable soup auth dialog when running DRT
+        https://bugs.webkit.org/show_bug.cgi?id=24598
+
+        Disable soup's auth dialog when running the tests.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (setDefaultsToConsistentStateValuesForTesting):
+        * GNUmakefile.am:
+
 2009-04-14  Darin Adler  <darin@apple.com>
 
         Reviewed by Mark Rowe.

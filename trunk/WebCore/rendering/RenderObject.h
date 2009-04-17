@@ -294,9 +294,30 @@ public:
     virtual bool isRenderPath() const { return false; }
     virtual bool isSVGText() const { return false; }
 
-    virtual FloatRect relativeBBox(bool includeStroke = true) const;
+    // Per SVG 1.1 objectBoundingBox ignores clipping, masking, filter effects, opacity and stroke-width.
+    // This is used for all computation of objectBoundingBox relative units and by SVGLocateable::getBBox().
+    // NOTE: Markers are not specifically ignored here by SVG 1.1 spec, but we ignore them
+    // since stroke-width is ignored (and marker size can depend on stroke-width).
+    // objectBoundingBox is returned local coordinates.
+    // The name objectBoundingBox is taken from the SVG 1.1 spec.
+    virtual FloatRect objectBoundingBox() const;
 
+    // Returns the smallest rectangle enclosing all of the painted content
+    // respecting clipping, masking, filters, opacity, stroke-width and markers
+    virtual FloatRect repaintRectInLocalCoordinates() const;
+
+    // FIXME: This accessor is deprecated and mostly around for SVGRenderTreeAsText.
+    // This only returns the transform="" value from the element
+    // most callsites want localToParentTransform() instead.
     virtual TransformationMatrix localTransform() const;
+
+    // Returns the full transform mapping from local coordinates to local coords for the parent SVG renderer
+    // This includes any viewport transforms and x/y offsets as well as the transform="" value off the element.
+    virtual TransformationMatrix localToParentTransform() const;
+
+    // Walks up the parent chain to create a transform which maps from local to document coords
+    // NOTE: This method is deprecated!  It doesn't respect scroll offsets or repaint containers.
+    // FIXME: This is only virtual so that RenderSVGHiddenContainer can override it to match old LayoutTest results.
     virtual TransformationMatrix absoluteTransform() const;
 #endif
 

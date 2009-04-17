@@ -144,6 +144,18 @@ JSEventListener::JSEventListener(JSObject* function, JSDOMGlobalObject* globalOb
     }
 }
 
+inline void JSEventListener::clearJSFunctionInline()
+{
+    if (m_jsFunction && m_globalObject) {
+        JSDOMWindow::JSListenersMap& listeners = isInline()
+            ? m_globalObject->jsInlineEventListeners() : m_globalObject->jsEventListeners();
+        listeners.remove(m_jsFunction);
+    }
+    
+    m_jsFunction = 0;
+    m_globalObject = 0;
+}
+
 JSEventListener::~JSEventListener()
 {
     clearJSFunctionInline();
@@ -164,63 +176,12 @@ JSDOMGlobalObject* JSEventListener::globalObject() const
     return m_globalObject;
 }
 
-void JSEventListener::clearGlobalObject()
-{
-    m_globalObject = 0;
-}
-
 void JSEventListener::markJSFunction()
 {
     if (m_jsFunction && !m_jsFunction->marked())
         m_jsFunction->mark();
-}
-
-#ifndef NDEBUG
-static WTF::RefCountedLeakCounter eventListenerCounter("EventListener");
-#endif
-
-// -------------------------------------------------------------------------
-
-JSProtectedEventListener::JSProtectedEventListener(JSObject* listener, JSDOMGlobalObject* globalObject, bool isInline)
-    : JSAbstractEventListener(isInline)
-    , m_jsFunction(listener)
-    , m_globalObject(globalObject)
-{
-    if (m_jsFunction) {
-        JSDOMWindow::ProtectedListenersMap& listeners = isInline
-            ? m_globalObject->jsProtectedInlineEventListeners() : m_globalObject->jsProtectedEventListeners();
-        listeners.set(m_jsFunction, this);
-    }
-#ifndef NDEBUG
-    eventListenerCounter.increment();
-#endif
-}
-
-JSProtectedEventListener::~JSProtectedEventListener()
-{
-    if (m_jsFunction && m_globalObject) {
-        JSDOMWindow::ProtectedListenersMap& listeners = isInline()
-            ? m_globalObject->jsProtectedInlineEventListeners() : m_globalObject->jsProtectedEventListeners();
-        listeners.remove(m_jsFunction);
-    }
-#ifndef NDEBUG
-    eventListenerCounter.decrement();
-#endif
-}
-
-JSObject* JSProtectedEventListener::jsFunction() const
-{
-    return m_jsFunction;
-}
-
-JSDOMGlobalObject* JSProtectedEventListener::globalObject() const
-{
-    return m_globalObject;
-}
-
-void JSProtectedEventListener::clearGlobalObject()
-{
-    m_globalObject = 0;
+    if (m_globalObject && !m_globalObject->marked())
+        m_globalObject->mark();
 }
 
 } // namespace WebCore
