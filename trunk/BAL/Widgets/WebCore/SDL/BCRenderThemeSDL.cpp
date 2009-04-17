@@ -472,7 +472,7 @@ Color RenderThemeBal::inactiveListBoxSelectionForegroundColor() const
     return c;
 }
 
-double RenderThemeBal::caretBlinkFrequency() const
+double RenderThemeBal::caretBlinkInterval() const
 {
     return 1.0;
 }

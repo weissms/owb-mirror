@@ -1,3 +1,14 @@
+2009-04-17  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Renamed caretBlinkFrequency to caredBlinkInterval to
+        match other ports.
+
+        * Widgets/WebCore/SDL/BCRenderThemeSDL.cpp:
+        (WebCore::RenderThemeBal::caretBlinkInterval):
+        * Widgets/WebCore/SDL/BCRenderThemeSDL.h:
+
 2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi. 
