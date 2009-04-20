@@ -704,6 +704,7 @@ BAL/Skeletons/Types	WebCore/platform/LengthBox.h
 BAL/Skeletons/Types	WebCore/platform/LengthSize.h
 BAL/Skeletons/Types	WebCore/platform/LinkHash.h
 BAL/Skeletons/Types	WebCore/platform/PurgeableBuffer.h
+BAL/Skeletons/Types WebCore/platform/SuddenTermination.h
 
 BAL/Types/WTF	JavaScriptCore/wtf/ASCIICType.h
 BAL/Types/WTF	JavaScriptCore/wtf/AVLTree.h
@@ -785,12 +786,6 @@ BAL/Types/WebCore/WK	WebCore/platform/graphics/Icon.h
 BAL/Types/WebCore/WK	WebCore/platform/KURL.cpp
 BAL/Types/WebCore/WK	WebCore/platform/KURL.h
 BAL/Types/WebCore/WK	WebCore/platform/KURLHash.h
-BAL/Types/WebCore/WK	WebCore/platform/ScrollTypes.h
-BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.cpp
-BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.h
-BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.h
-BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.cpp
-BAL/Types/WebCore/WK	WebCore/platform/TreeShared.h
 BAL/Types/WebCore/WK	WebCore/platform/network/HTTPHeaderMap.h
 BAL/Types/WebCore/WK    WebCore/platform/Length.cpp
 BAL/Types/WebCore/WK    WebCore/platform/Length.h
@@ -799,6 +794,13 @@ BAL/Types/WebCore/WK    WebCore/platform/LengthSize.h
 BAL/Types/WebCore/WK    WebCore/platform/LinkHash.cpp
 BAL/Types/WebCore/WK    WebCore/platform/LinkHash.h
 BAL/Types/WebCore/WK    WebCore/platform/PurgeableBuffer.h
+BAL/Types/WebCore/WK	WebCore/platform/ScrollTypes.h
+BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.cpp
+BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.h
+BAL/Types/WebCore/WK    WebCore/platform/SuddenTermination.h
+BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.h
+BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.cpp
+BAL/Types/WebCore/WK	WebCore/platform/TreeShared.h
 
 
 BAL/Skeletons/Widgets	WebCore/platform/ContextMenu.h

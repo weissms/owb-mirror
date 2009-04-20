@@ -1,3 +1,31 @@
+2009-04-20  Ada Chan  <adachan@apple.com>
+
+        <rdar://problem/6803905> Lots of ASSERTs firing when trying to clear history
+
+        Reviewed by Steve Falkenburg.
+
+        * WebHistory.cpp:
+        (WebHistory::data): Return null if there are no history items.
+
+2009-04-17  Ada Chan  <adachan@apple.com>
+
+        - Fix a leak in WebHistoryItem::children() by adopting the created instance of WebHistoryItem.
+        - Remove the unnecessary call to QueryInterface() which is not related to the leak.
+
+        Reviewed by Adam Roben.
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::children):
+
+2009-04-17  Ada Chan  <adachan@apple.com>
+
+        Fix a leak in WebHistory::data().
+
+        Reviewed by Adam Roben.
+
+        * WebHistory.cpp:
+        (WebHistory::data):
+
 2009-04-17  Alice Liu  <alice.liu@apple.com>
 
         Reviewed by Mark Rowe.

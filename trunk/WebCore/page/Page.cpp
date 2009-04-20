@@ -102,7 +102,7 @@ static void networkStateChanged()
         if (!eventTarget)
             eventTarget = document;
         
-        eventTarget->dispatchEventForType(eventName, false, false);
+        eventTarget->dispatchEvent(eventName, false, false);
     }
 }
 

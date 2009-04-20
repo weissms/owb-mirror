@@ -147,40 +147,22 @@ void RenderSVGContainer::paint(PaintInfo& paintInfo, int, int)
         finishRenderSVGContent(this, paintInfo, boundingBox, filter, savedInfo.context);
 
     paintInfo.context->restore();
-    
+
+    // FIXME: This really should be drawn from local coordinates, but currently we hack it
+    // to avoid our clip killing our outline rect.  Thus we translate our
+    // outline rect into parent coords before drawing.
+    // FIXME: This means our focus ring won't share our rotation like it should.
+    // We should instead disable our clip during PaintPhaseOutline
+    IntRect paintRectInParent = enclosingIntRect(localToParentTransform().mapRect(repaintRectInLocalCoordinates()));
     if ((paintInfo.phase == PaintPhaseOutline || paintInfo.phase == PaintPhaseSelfOutline) && style()->outlineWidth() && style()->visibility() == VISIBLE)
-        paintOutline(paintInfo.context, m_absoluteBounds.x(), m_absoluteBounds.y(), m_absoluteBounds.width(), m_absoluteBounds.height(), style());
+        paintOutline(paintInfo.context, paintRectInParent.x(), paintRectInParent.y(), paintRectInParent.width(), paintRectInParent.height(), style());
 }
 
-IntRect RenderSVGContainer::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
-{
-    FloatRect repaintRect;
-
-    for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
-        repaintRect.unite(current->clippedOverflowRectForRepaint(repaintContainer));
-
-    // Filters can paint anywhere.  If we have one, expand our rect so we are sure to repaint it.
-    repaintRect.unite(filterBoundingBox());
-
-    if (!repaintRect.isEmpty())
-        repaintRect.inflate(1); // inflate 1 pixel for antialiasing
-
-    return enclosingIntRect(repaintRect);
-}
-
+// addFocusRingRects is called from paintOutline and needs to be in the same coordinates as the paintOuline call
 void RenderSVGContainer::addFocusRingRects(GraphicsContext* graphicsContext, int, int)
 {
-    graphicsContext->addFocusRingRect(m_absoluteBounds);
-}
-
-void RenderSVGContainer::absoluteRects(Vector<IntRect>& rects, int, int, bool)
-{
-    rects.append(absoluteClippedOverflowRect());
-}
-
-void RenderSVGContainer::absoluteQuads(Vector<FloatQuad>& quads, bool)
-{
-    quads.append(absoluteClippedOverflowRect());
+    IntRect paintRectInParent = enclosingIntRect(localToParentTransform().mapRect(repaintRectInLocalCoordinates()));
+    graphicsContext->addFocusRingRect(paintRectInParent);
 }
 
 FloatRect RenderSVGContainer::objectBoundingBox() const
@@ -192,7 +174,12 @@ FloatRect RenderSVGContainer::objectBoundingBox() const
 // width or height, so we union all of our child rects as our repaint rect.
 FloatRect RenderSVGContainer::repaintRectInLocalCoordinates() const
 {
-    return computeContainerBoundingBox(this, true);
+    FloatRect repaintRect = computeContainerBoundingBox(this, true);
+
+    // A filter on this container can paint outside of the union of the child repaint rects
+    repaintRect.unite(filterBoundingBox());
+
+    return repaintRect;
 }
 
 bool RenderSVGContainer::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int _tx, int _ty, HitTestAction hitTestAction)

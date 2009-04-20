@@ -3,8 +3,7 @@
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric@webkit.org>
                   2006 Apple Computer, Inc
-
-    This file is part of the KDE project
+                  2009 Google, Inc.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -53,32 +52,26 @@ public:
 
     virtual bool isRenderPath() const { return true; }
     virtual const char* renderName() const { return "RenderPath"; }
-    
+
     bool calculateLocalTransform();
     virtual TransformationMatrix localTransform() const;
-    
+
     virtual void layout();
-    virtual IntRect clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer);
-    virtual bool requiresLayer() const { return false; }
-    virtual int lineHeight(bool b, bool isRootLineBox = false) const;
-    virtual int baselinePosition(bool b, bool isRootLineBox = false) const;
     virtual void paint(PaintInfo&, int parentX, int parentY);
 
-    virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
-    virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
     virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 
     FloatRect drawMarkersIfNeeded(GraphicsContext*, const FloatRect&, const Path&) const;
-    
+
 private:
     FloatPoint mapAbsolutePointToLocal(const FloatPoint&) const;
     virtual IntRect outlineBoundsForRepaint(RenderBoxModelObject* repaintContainer) const;
 
     mutable Path m_path;
-    mutable FloatRect m_fillBBox;
-    mutable FloatRect m_strokeBbox;
+    mutable FloatRect m_cachedLocalFillBBox;
+    mutable FloatRect m_cachedLocalRepaintRect;
     FloatRect m_markerBounds;
     TransformationMatrix m_localTransform;
     IntRect m_absoluteBounds;

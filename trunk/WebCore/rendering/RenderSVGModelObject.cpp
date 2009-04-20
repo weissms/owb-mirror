@@ -29,17 +29,53 @@
  */
 
 #include "config.h"
+
 #if ENABLE(SVG)
 #include "RenderSVGModelObject.h"
 
-#include "SVGResourceFilter.h"
+#include "GraphicsContext.h"
+#include "RenderLayer.h"
 #include "SVGStyledElement.h"
+
+#if ENABLE(SVG_FILTERS)
+#include "SVGResourceFilter.h"
+#endif
 
 namespace WebCore {
 
 RenderSVGModelObject::RenderSVGModelObject(SVGStyledElement* node)
     : RenderObject(node)
 {
+}
+
+IntRect RenderSVGModelObject::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
+{
+    // Return early for any cases where we don't actually paint
+    if (style()->visibility() != VISIBLE && !enclosingLayer()->hasVisibleContent())
+        return IntRect();
+
+    // Pass our local paint rect to computeRectForRepaint() which will
+    // map to parent coords and recurse up the parent chain.
+    IntRect repaintRect = enclosingIntRect(repaintRectInLocalCoordinates());
+    computeRectForRepaint(repaintContainer, repaintRect);
+    return repaintRect;
+}
+
+void RenderSVGModelObject::computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect& repaintRect, bool fixed)
+{
+    // Translate to coords in our parent renderer, and then call computeRectForRepaint on our parent
+    repaintRect = localToParentTransform().mapRect(repaintRect);
+    parent()->computeRectForRepaint(repaintContainer, repaintRect, fixed);
+}
+
+void RenderSVGModelObject::absoluteRects(Vector<IntRect>& rects, int, int, bool)
+{
+    rects.append(absoluteClippedOverflowRect());
+}
+
+void RenderSVGModelObject::absoluteQuads(Vector<FloatQuad>& quads, bool)
+{
+    quads.append(absoluteClippedOverflowRect());
 }
 
 FloatRect RenderSVGModelObject::filterBoundingBox() const

@@ -1,3 +1,885 @@
+2009-04-20  Dan Bernstein  <mitz@apple.com>
+
+        - maybe fix release builds
+
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::notifyFinished):
+
+2009-04-19  Dan Bernstein  <mitz@apple.com>
+
+        - not fix release builds
+
+        * dom/Document.cpp:
+        (WebCore::Document::executeScriptSoonTimerFired):
+
+2009-04-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix <rdar://problem/6734365> REGRESSION eBay "Save this search" link
+          does nothing the second time search results are opened
+
+        Test: fast/dom/HTMLScriptElement/nested-execution.html
+
+        Instead of executing scripts as soon as they finish loading, which may
+        happen synchronously during execution of another script, defer their
+        execution until the next run loop iteration, using a queue that is
+        similar to the HTML5 notion of the "list of scripts that will execute as
+        soon as possible", and in my testing was consistent with how Firefox
+        behaved.
+
+        * dom/Document.cpp:
+        (WebCore::Document::Document): Initialize m_executeScriptSoonTimer.
+        (WebCore::Document::~Document): deref() script elements in
+        m_scriptsToExecuteSoon.
+        (WebCore::Document::executeScriptSoonTimerFired): Added. Executes the
+        scripts in m_scriptsToExecuteSoon and deref()s them.
+        (WebCore::Document::executeScriptSoon): Added. Appends to
+        m_scriptsToExecuteSoon and ref()s the script element, which keeps the
+        ScriptElementData alive as well.
+        * dom/Document.h:
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::ScriptElementData): Initialize m_requested.
+        (WebCore::ScriptElementData::requestScript): Set m_requested to true, to
+        prevent further load requests.
+        (WebCore::ScriptElementData::execute): Added. Moved the code from
+        notifyFinished() which should not execute synchronously here, to be
+        called by the Document on a 0-interval timer.
+        (WebCore::ScriptElementData::notifyFinished): Moved the code to
+        dispatch events and evaluate the script, which should not execute
+        synchronously, out of here.
+        (WebCore::ScriptElementData::ignoresLoadRequest): Changed to test for
+        m_requested instead of m_cachedScript, because the latter is cleared
+        before the script is evaluated.
+        * dom/ScriptElement.h:
+
+2009-04-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Antti Koivisto and Darin Adler.
+
+        <rdar://problem/6127705> Excessive memory consumption on image load failure
+
+        When we fail to decode an image we clear most of the image data, but not the
+        input data itself, which can be backed by a CFData object that itself holds onto
+        a few hundred Kbs of memory.  This patch merely ensures that this buffer gets
+        cleared.
+
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::error):
+
+2009-04-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add hooks so sudden termination will not cause loss of icons or local storage.
+        rdar://problem/5951701
+
+        * loader/icon/IconDatabase.cpp: Marked various constants static to give them
+        internal linkage.
+        (WebCore::IconDatabase::IconDatabase): Added initial value for m_syncTimer.
+        Removed unneeded initial value for m_defaultIconRecord. Changed assertion to
+        work cross-platform.
+        (WebCore::IconDatabase::wakeSyncThread): Added disableSuddenTermination, so
+        we won't terminate until the sync thread has done its thing.
+        (WebCore::IconDatabase::scheduleOrDeferSyncTimer): Added disableSuddenTermination,
+        so we won't terminate if we have an outstanding sync timer.
+        (WebCore::IconDatabase::syncTimerFired): Added enableSuddenTermination, to
+        balance the one in scheduleOrDeferSyncTimer.
+        (WebCore::IconDatabase::syncThreadMainLoop): Added enableSuddenTermination, to
+        balance the one in wakeSyncThread.
+        (WebCore::IconDatabase::deleteAllPreparedStatements): Use clear() instead of set(0).
+
+        * loader/icon/IconDatabase.h: Use a Timer instead of an OwnPtr<Timer>.
+
+        * storage/LocalStorageArea.cpp:
+        (WebCore::LocalStorageArea::scheduleFinalSync): Added disableSuddenTermination.
+        (WebCore::LocalStorageArea::scheduleItemForSync): Ditto.
+        (WebCore::LocalStorageArea::scheduleClear): Ditto.
+        (WebCore::LocalStorageArea::syncTimerFired): Added a disableSuddenTermination if
+        we schedule a performSync callback for later and an unconditional
+        enableSuddenTermination to balance the ones in the schedule calls above.
+        (WebCore::LocalStorageArea::sync): Factored out the work of the sync function so it
+        can continue to use early return idiom.
+        (WebCore::LocalStorageArea::performSync): Added a call to enableSuddenTermination.
+
+        * storage/LocalStorageArea.h: Added declaration of the sync function.
+
+2009-04-19  David Kilzer  <ddkilzer@apple.com>
+
+        Make FEATURE_DEFINES completely dynamic
+
+        Reviewed by Darin Adler.
+
+        Make FEATURE_DEFINES depend on individual ENABLE_FEATURE_NAME
+        variables for each feature, making it possible to remove all
+        knowledge of FEATURE_DEFINES from build-webkit.
+
+        * Configurations/FeatureDefines.xcconfig: Extract a variable
+        from FEATURE_DEFINES for each feature setting.
+
+2009-04-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        More fix for https://bugs.webkit.org/show_bug.cgi?id=21260
+        Unbounded memory growth when churning elements with anonymous event handler functions
+        
+        Removed a little more complexity from event handler creation and destruction.
+        
+        Removed the jsProtectedEventListeners, jsProtectedInlineEventListeners,
+        and jsInlineEventListeners maps, and all the code for managing them.
+        
+        ProtectedEventListeners don't exist anymore, so they're easy to nix.
+        
+        Inline EventListeners do still exist, but there's no reason to track
+        them in a map. The map exists to enable 'removeEventListener' to associate
+        a unique JSEventListener with a given JavaScript function. But the
+        'removeEventListener' API only works with non-inline event listeners!
+        
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::~JSDOMGlobalObject):
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        (WebCore::JSDOMGlobalObject::createJSInlineEventListener):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::clearJSFunctionInline):
+        * bindings/js/JSLazyEventListener.cpp:
+        (WebCore::JSLazyEventListener::~JSLazyEventListener):
+        (WebCore::JSLazyEventListener::parseCode):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2009-04-18  Dan Bernstein  <mitz@apple.com>
+
+        - try to fix the Windows build
+
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::characterAfter):
+
+2009-04-18  Dan Bernstein  <mitz@apple.com>
+
+        - revert the previous change, which was to a file that the Windows
+          port does not even use
+
+        * icu/unicode/utf16.h:
+
+2009-04-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        - try to fix the Windows build
+
+        * icu/unicode/utf16.h:
+
+2009-04-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Antti Koivisto.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=25066
+        
+        When a <video> element gained a RenderLayer via opacity, reflection etc., the
+        layer hierarchy was not correctly updated because RenderMedia skipped a level
+        when asked for its children; it skipped m_controlsShadowRoot's renderer, which
+        actually has a layer.
+
+        Test: fast/layers/video-layer.html
+
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlShadowRootElement::MediaControlShadowRootElement):
+        Don't manually call setParent() on the renderer. It will happen later
+        as a result of addChild().
+        
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::createControlsShadowRoot):
+        Add m_controlsShadowRoot's renderer as a child. 
+
+        * rendering/RenderMedia.h:
+        (WebCore::RenderMedia::children):
+        Now maintain a RenderObjectChildList, m_children, and remove the unneeded
+        removeChild() method. Make the two children() methods inline.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::moveLayers):
+        Assert if moveLayers() is called with an oldParent that is not the
+        layer's actual parent (which would have revealed this bug).
+
+2009-04-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixed a layout test failure, caused by my last check-in
+        (fast/dom/script-element-gc.html).
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::isObservableThroughDOM):
+        * html/HTMLScriptElement.h:
+        (WebCore::HTMLScriptElement::haveFiredLoadEvent): Treat script elements
+        just like image elements: if a script element is loading, mark its JS
+        wrapper, even if the element is not in the document.
+
+2009-04-18  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25170
+        Upstream V8WorkerCustom.cpp and V8WorkerContextCustom.cpp for V8 bindings.
+
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::findOrCreateEventListener):
+        * bindings/v8/WorkerContextExecutionProxy.h:
+        * bindings/v8/custom/V8WorkerContextCustom.cpp: Added.
+        * bindings/v8/custom/V8WorkerCustom.cpp: Added.
+
+2009-04-18  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/post_bug.cg://bugs.webkit.org/show_bug.cgi?id=25167 
+        Change createHiddenXHRDependency and removeHiddenXHRDependency so that they can be used by other custom code in V8 bindings.
+
+        * bindings/v8/V8Utilities.cpp: Renamed from WebCore/bindings/v8/V8XMLHttpRequestUtilities.cpp.
+        (WebCore::createHiddenDependency):
+        (WebCore::removeHiddenDependency):
+        * bindings/v8/V8Utilities.h: Renamed from WebCore/bindings/v8/V8XMLHttpRequestUtilities.h.
+        * bindings/v8/custom/V8XMLHttpRequestCustom.cpp:
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8XMLHttpRequestUploadCustom.cpp:
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-04-18  Drew Wilson  <amw@apple.com>
+
+        <rdar://problem/6781407> VisiblePosition.characterAfter should return UChar32
+
+        Reviewed by Dan Bernstein.
+
+        No test case since there is no change in behavior.
+
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::characterAfter): Now handles surrogate
+        pairs correctly and returns a UChar32.
+        * editing/VisiblePosition.h:
+        (WebCore::VisiblePosition::characterBefore): Now returns a UChar32.
+        * editing/visible_units.cpp:
+        (WebCore::endOfFirstWordBoundaryContext): Renamed
+        firstNonComplexContextLineBreak() to this. Changed it to use the
+        generic requiresContextForWordBoundary() instead of
+        hasLineBreakingPropertyComplexContext().
+        (WebCore::startOfLastWordBoundaryContext): Replaces
+        lastNonComplexContextLineBreak(), but returns the offset of
+        the character after the last character that does not require
+        context for word breaking. Also changed to use
+        requiresContextForWordBoundary().
+        (WebCore::previousBoundary): Updated for the above changes in
+        names and semantics, and changed to use
+        requiresContextForWordBoundary().
+        (WebCore::nextBoundary): Ditto.
+        (WebCore::startWordBoundary): Ditto.
+        (WebCore::endWordBoundary): Ditto.
+        (WebCore::previousWordPositionBoundary): Ditto.
+        (WebCore::nextWordPositionBoundary): Ditto.
+        * platform/text/TextBoundaries.h:
+        (WebCore::requiresContextForWordBoundary): Added.
+        * platform/text/mac/TextBoundaries.mm:
+
+2009-04-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixed <rdar://problem/6797442> | https://bugs.webkit.org/show_bug.cgi?id=25285
+        REGRESSION (r42569): Profiles cannot be selected in inspector profiler
+        
+        EventListeners are shared; RegisteredEventListeners are not. Therefore,
+        when a node wrapper needs to invalidate the node's JS event listeners,
+        it should invalidate its RegisteredEventListeners, not its EventListeners.
+        Otherwise, it might invalidate an EventListener shared by another node.
+
+        * dom/RegisteredEventListener.h:
+        (WebCore::invalidateEventListeners): ditto
+
+2009-04-18  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6781295> video.buffered and video.seekable are not
+        the same. video.buffered should return only what is buffered and
+        not what is seekable
+
+        * WebCore.base.exp: Added wkQTMovieMaxTimeSeekable.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::maxTimeSeekable): Return wkQTMovieMaxTimeSeekable.
+
+        * platform/mac/WebCoreSystemInterface.h: Add wkQTMovieMaxTimeSeekable.
+        * platform/mac/WebCoreSystemInterface.mm: Ditto.
+
+2009-04-18  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6747241> work around QTKit no longer reaching
+        QTMovieLoadStateComplete
+
+        * WebCore.base.exp: Export wkQTMovieMaxTimeLoadedChangeNotification.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTMovie): observe QTMovieMaxTimeLoadedChangeNotification.
+        (WebCore::MediaPlayerPrivate::updateStates): compare duuration() with maxTimeLoaded() instead of
+        using QTMovieLoadStateComplete to determine if a movie are fully loaded.
+
+        * platform/mac/WebCoreSystemInterface.h: Add wkQTMovieMaxTimeLoadedChangeNotification.
+        * platform/mac/WebCoreSystemInterface.mm: Ditto.
+
+2009-04-18  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Make WML work again, most regressions test were failing.
+
+        * dom/Document.cpp: Be sure to create WML elements in WML namespace. Otherwhise hasTagName() comparisions fail.
+        (WebCore::Document::createElement):
+        * wml/WMLCardElement.cpp: Add ASSERT(hasTagName(cardTag)) to catch errors like this in future.
+        (WebCore::WMLCardElement::WMLCardElement):
+        * wml/WMLTagNames.in: Wrap comment in #if 0/#endif blocks, to silence the generation script.
+
+2009-04-17  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25277
+        If there is no line wrapping, a caret can leave its containing block but it shouldn't leave its root line box
+        
+        Also added code to handle a caret wider than one pixel.
+        
+        Added fast/inline/25277.html and fast/inline/25277-2.html
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::localCaretRect): Distribute a caret's width to either side of the offset,
+        so that a caret between two characters doesn't hang over one character more than the other.
+        If there is no wrapping, the caret can leave its containing block, but not its root line box.
+
+2009-04-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        More fix for https://bugs.webkit.org/show_bug.cgi?id=21260
+        Unbounded memory growth when churning elements with anonymous event handler functions
+        
+        Some refactoring of "inline" event listeners.
+        
+        Renames:
+            dispatchEventForType => dispatchEvent
+            setWindowInlineEventListenerForTypeAndAttribute => setWindowInlineEventListener
+            removeInlineEventListenerForType => clearInlineEventListener
+            setInlineEventListenerForType => setInlineEventListener
+            inlineEventListenerForType => getInlineEventListener
+
+        * bindings/js/JSLazyEventListener.cpp:
+        (WebCore::eventParameterName):
+        (WebCore::JSLazyEventListener::JSLazyEventListener):
+        (WebCore::createInlineEventListener):
+        * bindings/js/JSLazyEventListener.h: Added two helper functions for
+        creating "inline" event listeners. These replace Document::createEventListener,
+        and abstract the creation of JS event listeners for DOM attributes out
+        of the DOM. Removed legacy JSProtectedEventListener constructor code for
+        adding the event listener's function to a map, since lazy event listeners
+        don't have functions at construction time.
+
+        * dom/Document.cpp:
+        (WebCore::Document::setFocusedNode):
+        * dom/Document.h:
+        (WebCore::Document::isSVGDocument):
+        * dom/Element.cpp:
+        (WebCore::Element::setWindowInlineEventListener):
+        * dom/Element.h: Updated for renames. Nixed Document::createEventListener,
+        mentioned above. Moved setWindowInlineEventListenerForTypeAndAttribute
+        to Element, for simplicity.
+
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::setValueFromRenderer):
+        * dom/Node.cpp:
+        (WebCore::Node::dispatchFocusEvent):
+        (WebCore::Node::dispatchBlurEvent):
+        (WebCore::Node::dispatchEvent):
+        (WebCore::Node::clearInlineEventListener):
+        (WebCore::Node::setInlineEventListener):
+        (WebCore::Node::getInlineEventListener):
+        (WebCore::Node::onabort):
+        (WebCore::Node::setOnabort):
+        (WebCore::Node::etc.):
+        * dom/Node.h: Updated for renames.
+        
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment): Updated for renames.
+        
+        Updated these files for renames, and to use the new createInlineEventListener
+        helper function:
+
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::parseMappedAttribute):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::onChange):
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::prepareSubmit):
+        (WebCore::HTMLFormElement::reset):
+        (WebCore::HTMLFormElement::parseMappedAttribute):
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::dispatchLoadEvent):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        (WebCore::HTMLInputElement::onSearch):
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::loadInternal):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        (WebCore::HTMLScriptElement::dispatchLoadEvent):
+        (WebCore::HTMLScriptElement::dispatchErrorEvent):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::parseMappedAttribute):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        * page/DOMWindow.cpp:
+        * page/DOMWindow.h:
+        (WebCore::DOMWindow::eventListeners):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::canMouseDownStartSelect):
+        (WebCore::EventHandler::canMouseDragExtendSelect):
+        (WebCore::EventHandler::sendScrollEvent):
+        * page/Page.cpp:
+        (WebCore::networkStateChanged):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::valueChanged):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::selectionChanged):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::parseMappedAttribute):
+        * svg/SVGElementInstance.cpp:
+        * svg/SVGImageLoader.cpp:
+        (WebCore::SVGImageLoader::dispatchLoadEvent):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+        * svg/SVGScriptElement.cpp:
+        (WebCore::SVGScriptElement::dispatchErrorEvent):
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::defaultEventHandler):
+
+2009-04-17  David Kilzer  <ddkilzer@apple.com>
+
+        Simplify FEATURE_DEFINES definition
+
+        Reviewed by Darin Adler.
+
+        This moves FEATURE_DEFINES and its related ENABLE_FEATURE_NAME
+        variables to their own FeatureDefines.xcconfig file.  It also
+        extracts a new ENABLE_GEOLOCATION variable so that
+        FEATURE_DEFINES only needs to be defined once.
+
+        * Configurations/FeatureDefines.xcconfig: Added.
+        * Configurations/WebCore.xcconfig: Removed definition of
+        ENABLE_SVG_DOM_OBJC_BINDINGS and FEATURE_DEFINES.  Added include
+        of FeatureDefines.xcconfig.
+        * WebCore.xcodeproj/project.pbxproj: Added
+        FeatureDefines.xcconfig file.
+        * bindings/scripts/CodeGeneratorObjC.pm: When creating a list of
+        command-line macro definitions, split on one-or-more spaces
+        instead of a single space since the FEATURE_DEFINES macro may
+        now contain more than one space between macros if some macros
+        aren't defined.
+
+2009-04-17  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mark Rowe
+
+        <rdar://problem/6786999> Tiger WebKit shouldn't try to POST on back/forward without nagging.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::willLoadFromCache):
+
+2009-04-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Added sudden termination functions that can be called without involving
+        the page or client.
+
+        * GNUmakefile.am: Added SuddenTermination.h.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto. Also added SuddenTermination.mm.
+
+        * platform/SuddenTermination.h: Added.
+        * platform/mac/SuddenTermination.mm: Added.
+
+2009-04-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Move more code into RenderSVGModelObject
+
+        needsLayer() already returns false from RenderSVGModelObject
+        lineHeight and baselinePosition are from days of RenderPath having RenderBox parents.
+
+        I also added comments to explain how focus rings work (now that I understand)
+        I got rid of two more uses of m_absoluteBounds (nearly dead!)
+
+        * rendering/RenderPath.cpp:
+        * rendering/RenderPath.h:
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::paint):
+        (WebCore::RenderSVGContainer::addFocusRingRects):
+        * rendering/RenderSVGContainer.h:
+        * rendering/RenderSVGModelObject.cpp:
+        (WebCore::RenderSVGModelObject::absoluteRects):
+        (WebCore::RenderSVGModelObject::absoluteQuads):
+        * rendering/RenderSVGModelObject.h:
+
+2009-04-16  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Adele Peterson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25238
+        Invalidate the hovered scrollbar part when resetting the pressed part,
+        since once there is no pressed part we can draw a hovered state.
+
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::setHoveredPart):
+        (WebCore::Scrollbar::setPressedPart):
+
+2009-04-16  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25223
+        REGRESSION: Back button after form submission to the same URL fails to navigate.
+
+        Test: http/tests/navigation/post-goback-same-url.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadItem): Check if the page we are leaving has
+        FormData.
+
+2009-04-17  Nikolas Zimmermann  <nikolas.zimmerman@torchmobile.com>
+
+        Not reviewed. Fix WML enabled builds.
+
+        * rendering/RenderTableRow.cpp: Remove dead code, which is no longer necessary.
+        (WebCore::RenderTableRow::addChild):
+        * wml/WMLInputElement.cpp: Apply same fix HTMLInputElement received. Covert RenderObject's to RenderTextControl where needed.
+        (WebCore::WMLInputElement::defaultEventHandler):
+
+2009-04-17  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Add support for the media element 'played' attribute.
+        This involves support of "normalized TimeRanges" as described by
+        the spec.
+
+        Test: media/video-played.html
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::HTMLMediaElement): Renamed 
+        m_currentTimeDuringSeek->m_lastSeekTime. Added m_playing and m_playedTimeRanges.
+        (WebCore::HTMLMediaElement::loadInternal): Reset m_playing, m_lastSeekTime, and
+        m_playedTimeRanges
+        (WebCore::HTMLMediaElement::seek): Set current time to m_playedTimeRanges
+        (WebCore::HTMLMediaElement::currentTime): m_currentTimeDuringSeek -> m_lastSeekTime
+        (WebCore::HTMLMediaElement::played): Returns m_playedTimeRanges.
+        (WebCore::HTMLMediaElement::updatePlayState): Add the new played time ranges when pausing. 
+        Set the m_playing flag.
+        * html/HTMLMediaElement.h:
+
+        * html/TimeRanges.cpp:
+        (TimeRanges::add): Merge range(s) if overlap.
+        * html/TimeRanges.h: Add various helpers (below).
+        (WebCore::TimeRanges::Range::isPointInRange): Added.
+        (WebCore::TimeRanges::Range::isOverlappingRange): Ditto.
+        (WebCore::TimeRanges::Range::unionWithOverlappingRange): Ditto.
+        (WebCore::TimeRanges::Range::isBeforeRange): Ditto.
+
+2009-04-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        Bug 25210: don't use ObjC methods to wrap/unwrap DOM objects with ObjC
+        https://bugs.webkit.org/show_bug.cgi?id=25210
+
+        * WebCore.base.exp: Export the core and kit function overloads that are used
+        in WebKit. Also resorted this file.
+
+        * WebCore.xcodeproj/project.pbxproj: Re-added DOMHTMLCanvasElement.h to fix
+        a strange problem with the file type.
+
+        * bindings/objc/DOM.mm: Removed the many extraneous includes. Added new includes
+        so we can use and implement the new core and kit functions. Import DOMInternal.h
+        first so it can do its public/private magic.
+        (-[DOMNode _rootObject]): Changed to use early-return style.
+        (kitClass): Added. Tells the wrapper generator what kind of node class to create
+        to wrap DOM nodes. This has the code that used to be in the _wrapNode method.
+        (kit): Added. Takes an EventTarget and makes the appropriate type of wrapper,
+        dpending on whether it's a Node or an SVGElementInstance. This replace methods
+        that used to be on both of those classes.
+        (-[DOMNode boundingBox]): Changed to use early return, and the core function.
+        (-[DOMNode lineBoxRects]): Ditto.
+        (-[DOMNode renderedImage]): Ditto.
+        (-[DOMRange boundingBox]): Ditto.
+        (-[DOMRange lineBoxRects]): Ditto.
+        (-[DOMElement image]): Ditto.
+        (-[DOMElement _font]): Ditto.
+        (-[DOMElement _imageTIFFRepresentation]): Ditto.
+        (-[DOMElement _getURLAttribute:]): Ditto.
+        (-[DOMElement isFocused]): Ditto.
+        (kit): Hand-wrote the version of this for NodeFilter, since it's a protocol,
+        not a class in the binding.
+        (core): Ditto.
+        (-[DOMNodeFilter acceptNode:]): Use core.
+
+        * bindings/objc/DOMAbstractView.mm:
+        (-[DOMAbstractView document]): Use kit.
+        (-[DOMAbstractView _disconnectFrame]): Call removeDOMWrapper, which is no longer
+        in the WebCore namespace, since it's headed for WebKit in the future.
+        (core): Hand-wrote the version of this for DOMAbstractView.mm, since we store
+        a pointer to the Frame, not the DMWindow.
+        (kit): Ditto.
+
+        * bindings/objc/DOMCSS.mm:
+        (kitClass): Added. Tells the wrapper generator what kind of node class to create
+        to wrap CSS objects. This has the code that used to be in the _wrapStyleSheet,
+        _wrapCSSRule, and _wrapCSSValue methods.
+
+        * bindings/objc/DOMEvents.mm:
+        (kitClass): Added. Tells the wrapper generator what kind of node class to create
+        to wrap event objects. This has the code that used to be in the _wrapEvent methods.
+
+        * bindings/objc/DOMHTML.mm:
+        (-[DOMHTMLDocument createDocumentFragmentWithMarkupString:baseURL:]): Use kit and core.
+        (-[DOMHTMLDocument createDocumentFragmentWithText:]): Ditto.
+        (-[DOMHTMLDocument _createDocumentFragmentWithMarkupString:baseURLString:]): Ditto.
+        (-[DOMHTMLInputElement _rectOnScreen]): Ditto.
+        (-[DOMHTMLInputElement _replaceCharactersInRange:withString:selectingFromIndex:]): Ditto.
+        (-[DOMHTMLInputElement _selectedRange]): Ditto.
+        (-[DOMHTMLInputElement _setAutofilled:]): Ditto.
+        (-[DOMHTMLSelectElement _activateItemAtIndex:]): Ditto.
+        (-[DOMHTMLInputElement _isEdited]): Ditto.
+        (-[DOMHTMLTextAreaElement _isEdited]): Ditto.
+        (kitClass): Added. Gives HTMLOptionCollection objects an appropriate wrapper.
+
+        * bindings/objc/DOMInternal.h: Removed most of the imports. There's no reason
+        to have this header include all the other internal DOM headers. Removed unneeded
+        interfaces, including the redeclaration of _init in DOMObject, since it's already
+        inherited from WebScriptObject. Moved all the functions out of the WebCore
+        namespace since this code is destined for WebKit, which doesn't use a namespace.
+        Added kit and core functions for the two classes that live in this header.
+
+        * bindings/objc/DOMInternal.mm:
+        (-[WebScriptObject _initializeScriptDOMNodeImp]): Use core.
+
+        * bindings/objc/DOMObject.h: Made the _internal field be private instead of
+        protected. This also allows the "#define private public" trick to be used to
+        make the field accessible inside the bindings code.
+
+        * bindings/objc/DOMObject.mm:
+        (-[DOMObject dealloc]): Updated for namespace change.
+        (-[DOMObject sheet]): Use core and kit functions.
+
+        * bindings/objc/DOMRGBColor.mm:
+        (-[DOMRGBColor dealloc]): Updated for namespace change.
+        (-[DOMRGBColor red]): Use kit function.
+        (-[DOMRGBColor green]): Ditto.
+        (-[DOMRGBColor blue]): Ditto.
+        (-[DOMRGBColor alpha]): Ditto.
+        (core): Added. Replaces the _RGBColor method.
+        (kit): Added. Replaces the _wrapRGBColor method.
+
+        * bindings/objc/DOMSVGPathSegInternal.mm:
+        (kitClass): Added. Replaces the _wrapSVGPathSeg method.
+
+        * bindings/objc/DOMUtility.mm:
+        (JSC::createDOMWrapper): Use kit function.
+        (createDOMWrapper): Ditto.
+
+        * bindings/objc/DOMXPath.mm:
+        (core): Added. Replaces the _xpathNSResolver method.
+        (kit): Added. Replaces the _wrapXPathNSResolver method.
+
+        * bindings/objc/ObjCEventListener.mm:
+        (WebCore::ObjCEventListener::find): Changed to use early return.
+        (WebCore::ObjCEventListener::handleEvent): Use kit function.
+
+        * bindings/objc/ObjCNodeFilterCondition.mm:
+        (WebCore::ObjCNodeFilterCondition::acceptNode): Use kit function.
+
+        * bindings/objc/WebScriptObject.mm:
+        (+[WebScriptObject scriptObjectForJSObject:originRootObject:rootObject:]):
+        Updated for namespace change.
+
+        * bindings/scripts/CodeGeneratorObjC.pm: Changed spelling of "license"
+        to U.S. spelling. Removed GetObjCTypeMaker, GetObjCTypeGetterName,
+        GetInternalTypeGetterSignature, and GetInternalTypeMakerSignature.
+        Changed includes to conform to new scheme. Generate core and kit
+        functions instead of methods and calls to those functions. Added a new
+        attribute, Polymorphic, to indicate classes that have derived subclasses.
+        Removed the old ObjCCustomInternalImpl attribute.
+
+        * css/CSSRule.idl: Use Polymorphic attribute, so core and kit functions
+        will be generated, with kit calling kitClass. This requires less hand-
+        written code than the old ObjCCustomInternalImpl.
+        * css/CSSValue.idl: Ditto.
+        * css/StyleSheet.idl: Ditto.
+        * dom/Event.idl: Ditto.
+        * dom/Node.idl: Ditto.
+        * html/HTMLCollection.idl: Ditto.
+        * svg/SVGPathSeg.idl: Ditto.
+
+        * editing/TextAffinity.h: Moved kit and core functions out of the
+        WebCore namespace since this code is destined for WebKit, which
+        doesn't use a namespace
+
+        * platform/mac/ClipboardMac.mm:
+        (WebCore::ClipboardMac::declareAndWriteDragImage): Use kit function.
+
+        * platform/mac/DragDataMac.mm:
+        (WebCore::DragData::asFragment): Use core function.
+
+        * platform/mac/PasteboardMac.mm:
+        (WebCore::Pasteboard::writeSelection): Use kit function.
+
+        * svg/SVGElementInstance.idl: Removed now-unneeded ObjCCustomInternalImpl
+        function. This can be generated in a standard way now.
+        * svg/SVGViewSpec.idl: Ditto.
+
+2009-04-17  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Maciej Stachowiak
+
+        <rdar://problem/5753299> "Private Browsing" doesn't affect HTML 5 Database storage
+
+        If the Page is in private browsing mode when a statement is queued up, flag that 
+        statement as read-only.
+
+        It would be better to set the read-only flag on the database thread when it actually
+        executes, but that would either require making Settings access a lock-protected operation
+        or involve a synchronous callback to the WebCore thread, neither of which seem worth it.
+        If it becomes an issue in practice, we can revisit this later.
+
+        Test: storage/private-browsing-readonly.html
+
+        * storage/Database.cpp:
+        (WebCore::Database::setAuthorizerReadOnly):
+        * storage/Database.h:
+
+        * storage/DatabaseAuthorizer.cpp:  For all action types that would alter the database,
+          deny when in read-only mode.
+        (WebCore::DatabaseAuthorizer::reset):
+        (WebCore::DatabaseAuthorizer::createTable):
+        (WebCore::DatabaseAuthorizer::dropTable):
+        (WebCore::DatabaseAuthorizer::allowAlterTable):
+        (WebCore::DatabaseAuthorizer::createIndex):
+        (WebCore::DatabaseAuthorizer::dropIndex):
+        (WebCore::DatabaseAuthorizer::createTrigger):
+        (WebCore::DatabaseAuthorizer::dropTrigger):
+        (WebCore::DatabaseAuthorizer::createVTable):
+        (WebCore::DatabaseAuthorizer::dropVTable):
+        (WebCore::DatabaseAuthorizer::allowDelete):
+        (WebCore::DatabaseAuthorizer::allowInsert):
+        (WebCore::DatabaseAuthorizer::allowUpdate):
+        (WebCore::DatabaseAuthorizer::setReadOnly):
+        * storage/DatabaseAuthorizer.h:
+
+        * storage/SQLStatement.cpp:
+        (WebCore::SQLStatement::create): Add a m_readOnly flag.
+        (WebCore::SQLStatement::SQLStatement): Ditto.
+        (WebCore::SQLStatement::execute): If m_readOnly is set, tell the authorizer to change
+          to read-only mode.
+        * storage/SQLStatement.h:
+
+        * storage/SQLTransaction.cpp:
+        (WebCore::SQLTransaction::executeSQL): Flag the statement as read-only if the Page is
+          currently in private browsing mode.
+
+2009-04-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Move RenderPath and RenderSVGContainer onto a unified clippedOverflowRectForRepaint
+        https://bugs.webkit.org/show_bug.cgi?id=25268
+
+        Lots of minus lines.  Now we're sharing more sane code
+        (which will respect -webkit-transforms! and scroll offsets correctly)
+
+        Which means this fixes:
+        https://bugs.webkit.org/show_bug.cgi?id=20769 and
+        https://bugs.webkit.org/show_bug.cgi?id=21968 too!
+
+        We're no longer expanding the paint rect "for anti-aliasing", since
+        I can't find a case where that's required.  If it is, repaintRectInLocalCoordinates()
+        should be fixed to handle those cases instead of here.
+
+        This fixes svg/custom/scroll-hit-test (now that we respect scroll offsets when repainting)
+        as well as improves our focus ring drawing seen in svg/custom/focus-ring
+        focus rings are now closer to transformed content by a couple pixels (they were needlessly outset by the antialiasing hack)
+        Also, it fixes the dumped rects for markers, causing a progression in svg/custom/marker-overflow-clip
+
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::repaintRectInLocalCoordinates):
+        (WebCore::RenderPath::setPath):
+        * rendering/RenderPath.h:
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::repaintRectInLocalCoordinates):
+        * rendering/RenderSVGContainer.h:
+        * rendering/RenderSVGModelObject.cpp:
+        (WebCore::RenderSVGModelObject::clippedOverflowRectForRepaint):
+        (WebCore::RenderSVGModelObject::computeRectForRepaint):
+        * rendering/RenderSVGModelObject.h:
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::computeRectForRepaint):
+        * rendering/RenderSVGRoot.h:
+
+2009-04-17  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 25259: AX: VoiceOver cmd-cntl-space does not follow the google.com->more link
+        https://bugs.webkit.org/show_bug.cgi?id=25259
+  
+        When a node becomes visible or hidden, accessibility needs to be told to update.
+
+        Test: accessibility/visible-elements.html
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::styleWillChange):
+
+2009-04-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, added missing header.
+
+        * platform/graphics/wx/TransformationMatrixWx.cpp:
+
+2009-04-17  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Unreviewed build fix.
+
+        Fix the build with enabled SVG filters
+
+        * rendering/RenderSVGModelObject.cpp: Include SVGResourceFilter.h.
+
 2009-04-17  Eric Roman  <eroman@chromium.org>
 
         Reviewed by Dimitri Glazkov.

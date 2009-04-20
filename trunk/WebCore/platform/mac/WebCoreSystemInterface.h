@@ -120,6 +120,8 @@ extern void (*wkPopupMenu)(NSMenu*, NSPoint location, float width, NSView*, int 
 extern unsigned (*wkQTIncludeOnlyModernMediaFileTypes)(void);
 extern int (*wkQTMovieDataRate)(QTMovie*);
 extern float (*wkQTMovieMaxTimeLoaded)(QTMovie*);
+extern NSString *(*wkQTMovieMaxTimeLoadedChangeNotification)(void);
+extern float (*wkQTMovieMaxTimeSeekable)(QTMovie*);
 extern void (*wkQTMovieViewSetDrawSynchronously)(QTMovieView*, BOOL);
 extern void (*wkSetCGFontRenderingMode)(CGContextRef, NSFont*);
 extern void (*wkSetDragImage)(NSImage*, NSPoint offset);

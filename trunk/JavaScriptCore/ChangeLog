@@ -1,3 +1,172 @@
+2009-04-20  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Build fix for Qt port (after r42646). Not reviewed.
+
+        * wtf/unicode/qt4/UnicodeQt4.h: Added U16_PREV.
+
+2009-04-19  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Better fix for JSStringCreateWithCFString hardening.
+
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+
+2009-04-19  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/5860954>
+        Harden JSStringCreateWithCFString against malformed CFStringRefs.
+
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+
+2009-04-19  David Kilzer  <ddkilzer@apple.com>
+
+        Make FEATURE_DEFINES completely dynamic
+
+        Reviewed by Darin Adler.
+
+        Make FEATURE_DEFINES depend on individual ENABLE_FEATURE_NAME
+        variables for each feature, making it possible to remove all
+        knowledge of FEATURE_DEFINES from build-webkit.
+
+        * Configurations/FeatureDefines.xcconfig: Extract a variable
+        from FEATURE_DEFINES for each feature setting.
+
+2009-04-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix typo.  s/VM_MEMORY_JAVASCRIPT_JIT_REGISTER_FILE/VM_MEMORY_JAVASCRIPT_CORE/
+
+        * runtime/Collector.cpp:
+        (JSC::allocateBlock): Fix bozo typo.
+
+2009-04-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for <rdar://problem/6801555> Tag JavaScript memory on SnowLeopard
+
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        * jit/ExecutableAllocatorPosix.cpp:
+        (JSC::ExecutablePool::systemAlloc):
+        * runtime/Collector.cpp:
+        (JSC::allocateBlock):
+
+2009-04-18  Drew Wilson  <amw@apple.com>
+
+        <rdar://problem/6781407> VisiblePosition.characterAfter should return UChar32
+
+        Reviewed by Dan Bernstein.
+
+        * wtf/unicode/icu/UnicodeIcu.h:
+        (WTF::Unicode::hasLineBreakingPropertyComplexContextOrIdeographic): Added.
+
+2009-04-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix for <rdar://problem/5861045>
+        A little bit of hardening for UString.
+
+        * runtime/UString.cpp:
+        (JSC::concatenate):
+        (JSC::UString::append):
+
+2009-04-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe and Dan Bernstein.
+
+        Fix for <rdar://problem/5861188>
+        A little bit of hardening for Vector.
+
+        * wtf/Vector.h:
+        (WTF::Vector<T, inlineCapacity>::append):
+        (WTF::Vector<T, inlineCapacity>::insert):
+
+2009-04-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        On x86_64, make all JIT-code allocations from a new heap, managed
+        by FixedVMPoolAllocator.  This class allocates a single large (2Gb)
+        pool of virtual memory from which all further allocations take place.
+        Since all JIT code is allocated from this pool, we can continue to
+        safely assume (as is already asserted) that it will always be possible
+        to link any JIT-code to JIT-code jumps and calls.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+            Add new file.
+        * jit/ExecutableAllocatorFixedVMPool.cpp: Added.
+        (JSC::FreeListEntry::FreeListEntry):
+        (JSC::AVLTreeAbstractorForFreeList::get_less):
+        (JSC::AVLTreeAbstractorForFreeList::set_less):
+        (JSC::AVLTreeAbstractorForFreeList::get_greater):
+        (JSC::AVLTreeAbstractorForFreeList::set_greater):
+        (JSC::AVLTreeAbstractorForFreeList::get_balance_factor):
+        (JSC::AVLTreeAbstractorForFreeList::set_balance_factor):
+        (JSC::AVLTreeAbstractorForFreeList::null):
+        (JSC::AVLTreeAbstractorForFreeList::compare_key_key):
+        (JSC::AVLTreeAbstractorForFreeList::compare_key_node):
+        (JSC::AVLTreeAbstractorForFreeList::compare_node_node):
+        (JSC::sortFreeListEntriesByPointer):
+        (JSC::sortCommonSizedAllocations):
+        (JSC::FixedVMPoolAllocator::release):
+        (JSC::FixedVMPoolAllocator::reuse):
+        (JSC::FixedVMPoolAllocator::addToFreeList):
+        (JSC::FixedVMPoolAllocator::coalesceFreeSpace):
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        (JSC::FixedVMPoolAllocator::alloc):
+        (JSC::FixedVMPoolAllocator::free):
+        (JSC::ExecutableAllocator::intializePageSize):
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+            The new 2Gb heap class!
+        * jit/ExecutableAllocatorPosix.cpp:
+            Disable use of this implementation on x86_64.
+        * wtf/AVLTree.h:
+            Add missing variable initialization.
+        (WTF::::remove):
+
+2009-04-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix bug where the VM reentry cache would not correctly unroll the cached callframe
+
+        Fix a check that was intended to mark a cached call as invalid when the callframe could
+        not be constructed.  Instead it was just checking that there was a place to put the
+        exception.  This eventually results in a non-recoverable RegisterFile starvation.
+
+        * interpreter/CachedCall.h:
+        (JSC::CachedCall::CachedCall):
+        (JSC::CachedCall::call): add assertion to ensure we don't use a bad callframe
+
+2009-04-17  David Kilzer  <ddkilzer@apple.com>
+
+        Simplify FEATURE_DEFINES definition
+
+        Reviewed by Darin Adler.
+
+        This moves FEATURE_DEFINES and its related ENABLE_FEATURE_NAME
+        variables to their own FeatureDefines.xcconfig file.  It also
+        extracts a new ENABLE_GEOLOCATION variable so that
+        FEATURE_DEFINES only needs to be defined once.
+
+        * Configurations/FeatureDefines.xcconfig: Added.
+        * Configurations/JavaScriptCore.xcconfig: Removed definition of
+        ENABLE_SVG_DOM_OBJC_BINDINGS and FEATURE_DEFINES.  Added include
+        of FeatureDefines.xcconfig.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added
+        FeatureDefines.xcconfig file.
+
 2009-04-17  Mihnea Ovidenie  <mihnea@adobe.com>
 
         Reviewed by Oliver Hunt.

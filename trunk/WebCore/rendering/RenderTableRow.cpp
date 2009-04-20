@@ -33,10 +33,6 @@
 #include "RenderTableCell.h"
 #include "RenderView.h"
 
-#if ENABLE(WML)
-#include "WMLNames.h"
-#endif
-
 namespace WebCore {
 
 using namespace HTMLNames;
@@ -75,11 +71,6 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
         beforeChild = lastChild();
 
     bool isTableRow = node() && node()->hasTagName(trTag);
-
-#if ENABLE(WML)
-    if (!isTableRow && node() && node()->isWMLElement())
-        isTableRow = node()->hasTagName(WMLNames::trTag);
-#endif
 
     if (!child->isTableCell()) {
         RenderObject* last = beforeChild;

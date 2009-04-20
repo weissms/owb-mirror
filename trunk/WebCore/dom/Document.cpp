@@ -102,6 +102,7 @@
 #include "RenderView.h"
 #include "RenderWidget.h"
 #include "ScriptController.h"
+#include "ScriptElement.h"
 #include "SecurityOrigin.h"
 #include "SegmentedString.h"
 #include "SelectionController.h"
@@ -299,6 +300,7 @@ Document::Document(Frame* frame, bool isXHTML)
     , m_title("")
     , m_titleSetExplicitly(false)
     , m_updateFocusAppearanceTimer(this, &Document::updateFocusAppearanceTimerFired)
+    , m_executeScriptSoonTimer(this, &Document::executeScriptSoonTimerFired)
 #if ENABLE(XSLT)
     , m_transformSource(0)
 #endif
@@ -433,6 +435,9 @@ Document::~Document()
     ASSERT(!m_savedRenderer);
     ASSERT(m_ranges.isEmpty());
     ASSERT(!m_styleRecalcTimer.isActive());
+
+    for (size_t i = 0; i < m_scriptsToExecuteSoon.size(); ++i)
+        m_scriptsToExecuteSoon[i].first->element()->deref(); // Balances ref() in executeScriptSoon().
 
     removeAllEventListeners();
 
@@ -770,14 +775,19 @@ PassRefPtr<Element> Document::createElement(const QualifiedName& qName, bool cre
         e = SVGElementFactory::createSVGElement(qName, this, createdByParser);
 #endif
 #if ENABLE(WML)
-    else if (qName.namespaceURI() == WMLNames::wmlNamespaceURI || isWMLDocument())
+    else if (qName.namespaceURI() == WMLNames::wmlNamespaceURI)
         e = WMLElementFactory::createWMLElement(qName, this, createdByParser);
+    else if (isWMLDocument())
+        e = WMLElementFactory::createWMLElement(QualifiedName(nullAtom, qName.localName(), WMLNames::wmlNamespaceURI), this, createdByParser);
 #endif
     
     if (!e)
         e = new Element(qName, document());
 
     // <image> uses imgTag so we need a special rule.
+#if ENABLE(WML)
+    if (!isWMLDocument())
+#endif
     ASSERT((qName.matches(imageTag) && e->tagQName().matches(imgTag) && e->tagQName().prefix() == qName.prefix()) || qName == e->tagQName());
 
     return e.release();
@@ -2490,7 +2500,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         // Dispatch a change event for text fields or textareas that have been edited
         RenderObject* r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer());
         if (r && r->isTextControl() && toRenderTextControl(r)->isEdited()) {
-            oldFocusedNode->dispatchEventForType(eventNames().changeEvent, true, false);
+            oldFocusedNode->dispatchEvent(eventNames().changeEvent, true, false);
             if ((r = static_cast<RenderObject*>(oldFocusedNode.get()->renderer()))) {
                 if (r->isTextControl())
                     toRenderTextControl(r)->setEdited(false);
@@ -2758,31 +2768,6 @@ void Document::addListenerTypeIfNeeded(const AtomicString& eventType)
 CSSStyleDeclaration* Document::getOverrideStyle(Element*, const String&)
 {
     return 0;
-}
-
-PassRefPtr<EventListener> Document::createEventListener(const String& functionName, const String& code, Node* node)
-{
-    Frame* frm = frame();
-    if (!frm || !frm->script()->isEnabled())
-        return 0;
-
-    DEFINE_STATIC_LOCAL(const String, eventString, ("event"));
-
-#if ENABLE(SVG)
-    DEFINE_STATIC_LOCAL(const String, evtString, ("evt"));
-    if (node ? node->isSVGElement() : isSVGDocument())
-        return JSLazyEventListener::create(functionName, evtString, code, frm->script()->globalObject(), node, frm->script()->eventHandlerLineNumber());
-#endif
-
-    return JSLazyEventListener::create(functionName, eventString, code, frm->script()->globalObject(), node, frm->script()->eventHandlerLineNumber());
-}
-
-void Document::setWindowInlineEventListenerForTypeAndAttribute(const AtomicString& eventType, Attribute* attr)
-{
-    DOMWindow* domWindow = this->domWindow();
-    if (!domWindow)
-        return;
-    domWindow->setInlineEventListenerForType(eventType, createEventListener(attr->localName().string(), attr->value(), 0));
 }
 
 Element* Document::ownerElement() const
@@ -4119,6 +4104,34 @@ void Document::updateFocusAppearanceTimerFired(Timer<Document>*)
     Element* element = static_cast<Element*>(node);
     if (element->isFocusable())
         element->updateFocusAppearance(false);
+}
+
+void Document::executeScriptSoonTimerFired(Timer<Document>* timer)
+{
+    ASSERT_UNUSED(timer, timer == &m_executeScriptSoonTimer);
+
+    Vector<pair<ScriptElementData*, CachedResourceHandle<CachedScript> > > scripts;
+    scripts.swap(m_scriptsToExecuteSoon);
+    size_t size = scripts.size();
+    for (size_t i = 0; i < size; ++i) {
+        scripts[i].first->execute(scripts[i].second.get());
+        scripts[i].first->element()->deref(); // Balances ref() in executeScriptSoon().
+    }
+}
+
+void Document::executeScriptSoon(ScriptElementData* data, CachedResourceHandle<CachedScript> cachedScript)
+{
+    ASSERT_ARG(data, data);
+
+    Element* element = data->element();
+    ASSERT(element);
+    ASSERT(element->document() == this);
+    ASSERT(element->inDocument());
+
+    m_scriptsToExecuteSoon.append(make_pair(data, cachedScript));
+    element->ref(); // Balanced by deref()s in executeScriptSoonTimerFired() and ~Document().
+    if (!m_executeScriptSoonTimer.isActive())
+        m_executeScriptSoonTimer.startOneShot(0);
 }
 
 // FF method for accessing the selection added for compatability.

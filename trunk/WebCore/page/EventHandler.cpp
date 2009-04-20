@@ -1780,7 +1780,7 @@ bool EventHandler::canMouseDownStartSelect(Node* node)
             
     for (RenderObject* curr = node->renderer(); curr; curr = curr->parent()) {
         if (Node* node = curr->node())
-            return node->dispatchEventForType(eventNames().selectstartEvent, true, true);
+            return node->dispatchEvent(eventNames().selectstartEvent, true, true);
     }
 
     return true;
@@ -1793,7 +1793,7 @@ bool EventHandler::canMouseDragExtendSelect(Node* node)
             
     for (RenderObject* curr = node->renderer(); curr; curr = curr->parent()) {
         if (Node* node = curr->node())
-            return node->dispatchEventForType(eventNames().selectstartEvent, true, true);
+            return node->dispatchEvent(eventNames().selectstartEvent, true, true);
     }
 
     return true;
@@ -2379,7 +2379,7 @@ void EventHandler::sendScrollEvent()
     if (!v)
         return;
     v->setWasScrolledByUser(true);
-    m_frame->document()->dispatchEventForType(eventNames().scrollEvent, true, false);
+    m_frame->document()->dispatchEvent(eventNames().scrollEvent, true, false);
 }
 
 unsigned EventHandler::pendingFrameBeforeUnloadEventCount()

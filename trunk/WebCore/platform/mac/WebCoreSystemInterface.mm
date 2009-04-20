@@ -54,6 +54,8 @@ void (*wkPopupMenu)(NSMenu*, NSPoint location, float width, NSView*, int selecte
 unsigned (*wkQTIncludeOnlyModernMediaFileTypes)(void);
 int (*wkQTMovieDataRate)(QTMovie*);
 float (*wkQTMovieMaxTimeLoaded)(QTMovie*);
+NSString *(*wkQTMovieMaxTimeLoadedChangeNotification)(void);
+float (*wkQTMovieMaxTimeSeekable)(QTMovie*);
 void (*wkQTMovieViewSetDrawSynchronously)(QTMovieView*, BOOL);
 void (*wkSetCGFontRenderingMode)(CGContextRef, NSFont*);
 void (*wkSetDragImage)(NSImage*, NSPoint offset);

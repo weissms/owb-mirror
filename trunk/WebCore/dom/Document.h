@@ -27,6 +27,7 @@
 #define Document_h
 
 #include "Attr.h"
+#include "CachedResourceHandle.h"
 #include "CheckedRadioButtons.h"
 #include "Color.h"
 #include "DocumentMarker.h"
@@ -49,6 +50,7 @@ namespace WebCore {
     class AXObjectCache;
     class CDATASection;
     class CachedCSSStyleSheet;
+    class CachedScript;
     class CanvasRenderingContext2D;
     class CharacterData;
     class CSSStyleDeclaration;
@@ -91,6 +93,7 @@ namespace WebCore {
     class RegisteredEventListener;
     class RenderArena;
     class RenderView;
+    class ScriptElementData;
     class SecurityOrigin;
     class SegmentedString;
     class Settings;
@@ -303,6 +306,8 @@ public:
     virtual bool isHTMLDocument() const { return false; }
     virtual bool isImageDocument() const { return false; }
 #if ENABLE(SVG)
+    virtual bool isSVGDocument() const { return false; }
+#else
     virtual bool isSVGDocument() const { return false; }
 #endif
     virtual bool isPluginDocument() const { return false; }
@@ -575,10 +580,6 @@ public:
     void addListenerType(ListenerType listenerType) { m_listenerTypes = m_listenerTypes | listenerType; }
     void addListenerTypeIfNeeded(const AtomicString& eventType);
 
-    void setWindowInlineEventListenerForTypeAndAttribute(const AtomicString& eventType, Attribute*);
-
-    PassRefPtr<EventListener> createEventListener(const String& functionName, const String& code, Node*);
-
     CSSStyleDeclaration* getOverrideStyle(Element*, const String& pseudoElt);
 
     /**
@@ -705,6 +706,8 @@ public:
 
     int docID() const { return m_docID; }
 
+    void executeScriptSoon(ScriptElementData*, CachedResourceHandle<CachedScript>);
+
 #if ENABLE(XSLT)
     void applyXSLTransform(ProcessingInstruction* pi);
     void setTransformSource(void* doc);
@@ -786,6 +789,8 @@ private:
     virtual KURL virtualCompleteURL(const String&) const; // Same as completeURL() for the same reason as above.
 
     String encoding() const;
+
+    void executeScriptSoonTimerFired(Timer<Document>*);
 
     CSSStyleSelector* m_styleSelector;
     bool m_didCalculateStyleSelector;
@@ -908,6 +913,9 @@ private:
     bool m_processingLoadEvent;
     double m_startTime;
     bool m_overMinimumLayoutThreshold;
+
+    Vector<std::pair<ScriptElementData*, CachedResourceHandle<CachedScript> > > m_scriptsToExecuteSoon;
+    Timer<Document> m_executeScriptSoonTimer;
     
 #if ENABLE(XSLT)
     void* m_transformSource;

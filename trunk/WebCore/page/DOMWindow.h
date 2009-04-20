@@ -208,13 +208,18 @@ namespace WebCore {
 
         void handleEvent(Event*, bool useCapture);
 
+        // Used for standard DOM addEventListener / removeEventListener APIs.
         void addEventListener(const AtomicString& eventType, PassRefPtr<EventListener>, bool useCapture);
         void removeEventListener(const AtomicString& eventType, EventListener*, bool useCapture);
+
+        // Used for legacy "onEvent" property APIs.
+        void setInlineEventListener(const AtomicString& eventType, PassRefPtr<EventListener>);
+        void clearInlineEventListener(const AtomicString& eventType);
+        EventListener* getInlineEventListener(const AtomicString& eventType) const;
+
+        const RegisteredEventListenerVector& eventListeners() const { return m_eventListeners; }
         bool hasEventListener(const AtomicString& eventType);
         void removeAllEventListeners();
-        const RegisteredEventListenerVector& eventListeners() const { return m_eventListeners; }
-
-        void setInlineEventListenerForType(const AtomicString& eventType, PassRefPtr<EventListener>);
         
         EventListener* onabort() const;
         void setOnabort(PassRefPtr<EventListener>);
@@ -298,9 +303,6 @@ namespace WebCore {
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         DOMApplicationCache* optionalApplicationCache() const { return m_applicationCache.get(); }
 #endif
-
-        void removeInlineEventListenerForType(const AtomicString& eventType);
-        EventListener* inlineEventListenerForType(const AtomicString& eventType) const;
 
     private:
         DOMWindow(Frame*);
