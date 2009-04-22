@@ -53,6 +53,22 @@ static const int popupTilePixels = 10;
 
 namespace WebCore {
 
+ACCESSOR_GETTER(DOMWindowEvent)
+{
+    v8::Local<v8::String> eventSymbol = v8::String::NewSymbol("event");
+    v8::Local<v8::Context> context = v8::Context::GetCurrent();
+    v8::Handle<v8::Value> jsEvent = context->Global()->GetHiddenValue(eventSymbol);
+    if (jsEvent.IsEmpty())
+        return v8::Undefined();
+    return jsEvent;
+}
+
+ACCESSOR_GETTER(DOMWindowCrypto)
+{
+    // TODO: Implement me.
+    return v8::Undefined();
+}
+
 ACCESSOR_SETTER(DOMWindowLocation)
 {
     v8::Handle<v8::Object> holder = V8Proxy::LookupDOMWrapper(V8ClassIndex::DOMWINDOW, info.This());
@@ -524,9 +540,6 @@ INDEXED_PROPERTY_GETTER(DOMWindow)
 NAMED_PROPERTY_GETTER(DOMWindow)
 {
     INC_STATS("DOM.DOMWindow.NamedPropertyGetter");
-    // The key must be a string.
-    if (!name->IsString())
-        return notHandledByInterceptor();
 
     v8::Handle<v8::Object> holder = V8Proxy::LookupDOMWrapper(V8ClassIndex::DOMWINDOW, info.This());
     if (holder.IsEmpty())
@@ -536,14 +549,13 @@ NAMED_PROPERTY_GETTER(DOMWindow)
     if (!window)
         return notHandledByInterceptor();
 
-    String propName = toWebCoreString(name);
-
     Frame* frame = window->frame();
     // window is detached from a frame.
     if (!frame)
         return notHandledByInterceptor();
 
     // Search sub-frames.
+    AtomicString propName = v8StringToAtomicWebCoreString(name);
     Frame* child = frame->tree()->child(propName);
     if (child)
         return V8Proxy::ToV8Object(V8ClassIndex::DOMWINDOW, child->domWindow());
@@ -606,7 +618,7 @@ NAMED_PROPERTY_GETTER(DOMWindow)
         // TODO(ager): We probably should implement the Has method
         // for the interceptor instead of using the default Has method
         // that calls Get.
-        context->Global()->Set(v8String(propName), v8::Undefined());
+        context->Global()->Set(name, v8::Undefined());
         V8Proxy* proxy = V8Proxy::retrieve(window->frame());
         ASSERT(proxy);
 

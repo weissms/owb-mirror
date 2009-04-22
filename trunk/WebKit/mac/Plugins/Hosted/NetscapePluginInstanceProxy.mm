@@ -53,6 +53,7 @@
 #import <WebCore/runtime_object.h>
 #import <WebCore/ScriptController.h>
 #import <WebCore/ScriptValue.h>
+#import <WebKitSystemInterface.h>
 #import <runtime/JSLock.h>
 #import <runtime/PropertyNameArray.h>
 #import <utility>
@@ -130,11 +131,19 @@ NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy()
     deleteAllValues(m_replies);
 }
 
-void NetscapePluginInstanceProxy::resize(NSRect size, NSRect clipRect)
+void NetscapePluginInstanceProxy::resize(NSRect size, NSRect clipRect, bool sync)
 {
-    _WKPHResizePluginInstance(m_pluginHostProxy->port(), m_pluginID, 
+    uint32_t requestID = 0;
+    
+    if (sync)
+        requestID = nextRequestID();
+
+    _WKPHResizePluginInstance(m_pluginHostProxy->port(), m_pluginID, requestID,
                               size.origin.x, size.origin.y, size.size.width, size.size.height,
                               clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height);
+    
+    if (sync)
+        waitForReply<NetscapePluginInstanceProxy::BooleanReply>(requestID);
 }
 
 void NetscapePluginInstanceProxy::stopAllStreams()
@@ -284,7 +293,7 @@ void NetscapePluginInstanceProxy::keyEvent(NSView *pluginView, NSEvent *event, N
                                      type, [event modifierFlags], 
                                      const_cast<char*>(reinterpret_cast<const char*>([charactersData bytes])), [charactersData length], 
                                      const_cast<char*>(reinterpret_cast<const char*>([charactersIgnoringModifiersData bytes])), [charactersIgnoringModifiersData length], 
-                                     [event isARepeat], [event keyCode]);
+                                     [event isARepeat], [event keyCode], WKGetNSEventKeyChar(event));
 }
 
 void NetscapePluginInstanceProxy::syntheticKeyDownWithCommandModifier(int keyCode, char character)
@@ -296,7 +305,14 @@ void NetscapePluginInstanceProxy::syntheticKeyDownWithCommandModifier(int keyCod
                                      NPCocoaEventKeyDown, NSCommandKeyMask,
                                      const_cast<char*>(reinterpret_cast<const char*>([charactersData bytes])), [charactersData length], 
                                      const_cast<char*>(reinterpret_cast<const char*>([charactersData bytes])), [charactersData length], 
-                                     false, keyCode);
+                                     false, keyCode, character);
+}
+
+void NetscapePluginInstanceProxy::flagsChanged(NSEvent *event)
+{
+    _WKPHPluginInstanceKeyboardEvent(m_pluginHostProxy->port(), m_pluginID, 
+                                     [event timestamp], NPCocoaEventFlagsChanged, 
+                                     [event modifierFlags], 0, 0, 0, 0, false, [event keyCode], 0);
 }
 
 void NetscapePluginInstanceProxy::insertText(NSString *text)
@@ -1288,6 +1304,14 @@ bool NetscapePluginInstanceProxy::getAuthenticationInfo(data_t protocolData, dat
     memcpy(passwordData, password.data(), passwordLength);
     
     return true;
+}
+
+bool NetscapePluginInstanceProxy::convertPoint(double sourceX, double sourceY, NPCoordinateSpace sourceSpace, 
+                                               double& destX, double& destY, NPCoordinateSpace destSpace)
+{
+    ASSERT(m_pluginView);
+
+    return [m_pluginView convertFromX:sourceX andY:sourceY space:sourceSpace toX:&destX andY:&destY space:destSpace];
 }
 
 } // namespace WebKit

@@ -79,6 +79,7 @@ list(APPEND WEBCORE_SRC
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp
     dom/XMLTokenizer.cpp
+    dom/XMLTokenizerScope.cpp
 )
 
 if(USE_GRAPHICS_QT)

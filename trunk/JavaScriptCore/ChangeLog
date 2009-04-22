@@ -1,3 +1,170 @@
+2009-04-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Buildfix).
+
+        * interpreter/CachedCall.h:
+
+2009-04-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        * runtime/StringPrototype.cpp:
+
+2009-04-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Improve String.replace performance slightly
+
+        Apply our vm reentry caching logic to String.replace with global
+        regexes.
+
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+
+2009-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich and Oliver Hunt.
+        
+        Re-Fixed <rdar://problem/6406045> REGRESSION: Stack overflow on PowerPC on
+        fast/workers/use-machine-stack.html (22531)
+        
+        SunSpider reports no change.
+        
+        Use a larger recursion limit on the main thread (because we can, and
+        there's some evidence that it may improve compatibility), and a smaller
+        recursion limit on secondary threads (because they tend to have smaller
+        stacks).
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        (JSC::Interpreter::prepareForRepeatCall):
+        * interpreter/Interpreter.h:
+        (JSC::): Ditto. I wrote the recursion test slightly funny, so that the
+        common case remains a simple compare to constant.
+
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        (JSC::arrayProtoFuncToLocaleString):
+        (JSC::arrayProtoFuncJoin): Conservatively, set the array recursion limits
+        to the lower, secondary thread limit. We can do something fancier if
+        compatibility moves us, but this seems sufficient for now.
+
+2009-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber-stamped by Adam Roben.
+        
+        Disabled one more Mozilla JS test because it fails intermittently on Windows.
+        (See https://bugs.webkit.org/show_bug.cgi?id=25160.)
+
+        * tests/mozilla/expected.html:
+
+2009-04-21  Adam Roben  <aroben@apple.com>
+
+        Rename JavaScriptCore_debug.dll to JavaScriptCore.dll in the Debug
+        configuration
+
+        This matches the naming scheme for WebKit.dll, and will be necessary
+        once Safari links against JavaScriptCore.dll. This change also causes
+        run-safari not to fail (because the launcher printed by FindSafari was
+        always looking for JavaScriptCore.dll, never
+        JavaScriptCore_debug.dll).
+
+        Part of Bug 25305: can't run safari or drt on windows
+        <https://bugs.webkit.org/show_bug.cgi?id=25305>
+
+        Reviewed by Steve Falkenburg and Sam Weinig.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj:
+        Use $(WebKitDLLConfigSuffix) for naming JavaScriptCore.{dll,lib}.
+
+2009-04-21  Adam Roben  <aroben@apple.com>
+
+        Fix JavaScriptCore build on VC++ Express
+
+        Reviewed by Steve Falkenburg and Sam Weinig.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Link
+        explicitly against gdi32.lib and oleaut32.lib.
+
+2009-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        Tiger crash fix: Put VM tags in their own header file, and fixed up the
+        #ifdefs so they're not used on Tiger.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        * jit/ExecutableAllocatorPosix.cpp:
+        (JSC::ExecutablePool::systemAlloc):
+        * runtime/Collector.cpp:
+        (JSC::allocateBlock):
+        * wtf/VMTags.h: Added.
+
+2009-04-20  Steve Falkenburg  <sfalken@apple.com>
+
+        More Windows build fixes.
+
+        * JavaScriptCore.vcproj/JavaScriptCore.make: Copy DLLs, PDBs.
+        * JavaScriptCore.vcproj/JavaScriptCore.resources: Added.
+        * JavaScriptCore.vcproj/JavaScriptCore.resources/Info.plist: Added.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.rc: Added.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Add version stamping, resource copying.
+
+2009-04-20  Steve Falkenburg  <sfalken@apple.com>
+
+        Separate JavaScriptCore.dll from WebKit.dll.
+        Slight performance improvement or no change on benchmarks.
+        
+        Allows us to break a circular dependency between CFNetwork and WebKit on Windows,
+        and simplifies standalone JavaScriptCore builds.
+
+        Reviewed by Oliver Hunt.
+
+        * API/JSBase.h: Export symbols with JS_EXPORT when using MSVC.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Build JavaScriptCore as a DLL instead of a static library.
+        * config.h: Specify __declspec(dllexport/dllimport) appropriately when exporting data.
+        * runtime/InternalFunction.h: Specify JS_EXPORTDATA on exported data.
+        * runtime/JSArray.h: Specify JS_EXPORTDATA on exported data.
+        * runtime/JSFunction.h: Specify JS_EXPORTDATA on exported data.
+        * runtime/StringObject.h: Specify JS_EXPORTDATA on exported data.
+        * runtime/UString.h: Specify JS_EXPORTDATA on exported data.
+
+2009-04-20  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Kevin McCullough.
+
+        Always tag mmaped memory on darwin and clean up #defines
+        now that they are a little bigger.
+
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        * jit/ExecutableAllocatorPosix.cpp:
+        (JSC::ExecutablePool::systemAlloc):
+        * runtime/Collector.cpp:
+        (JSC::allocateBlock):
+
+2009-04-20  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Tim Hatcher.
+
+        Add licenses for xcconfig files.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/FeatureDefines.xcconfig:
+        * Configurations/JavaScriptCore.xcconfig:
+        * Configurations/Version.xcconfig:
+
 2009-04-20  Ariya Hidayat  <ariya.hidayat@nokia.com>
 
         Build fix for Qt port (after r42646). Not reviewed.

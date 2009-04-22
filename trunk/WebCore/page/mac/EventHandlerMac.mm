@@ -43,7 +43,17 @@
 #include "RenderWidget.h"
 #include "Scrollbar.h"
 #include "Settings.h"
+#include <objc/objc-runtime.h>
 #include <wtf/StdLibExtras.h>
+
+#if !(defined(OBJC_API_VERSION) && OBJC_API_VERSION > 0)
+static inline IMP method_setImplementation(Method m, IMP i)
+{
+    IMP oi = m->method_imp;
+    m->method_imp = i;
+    return oi;
+}
+#endif
 
 namespace WebCore {
 
@@ -443,6 +453,40 @@ bool EventHandler::passSubframeEventToSubframe(MouseEventWithHitTestResults& eve
     return false;
 }
 
+static IMP originalNSScrollViewScrollWheel;
+static bool _nsScrollViewScrollWheelShouldRetainSelf;
+static void selfRetainingNSScrollViewScrollWheel(NSScrollView *, SEL, NSEvent *);
+
+static bool nsScrollViewScrollWheelShouldRetainSelf()
+{
+    ASSERT(isMainThread());
+
+    return _nsScrollViewScrollWheelShouldRetainSelf;
+}
+
+static void setNSScrollViewScrollWheelShouldRetainSelf(bool shouldRetain)
+{
+    ASSERT(isMainThread());
+
+    if (!originalNSScrollViewScrollWheel) {
+        Method method = class_getInstanceMethod(objc_getRequiredClass("NSScrollView"), @selector(scrollWheel:));
+        originalNSScrollViewScrollWheel = method_setImplementation(method, reinterpret_cast<IMP>(selfRetainingNSScrollViewScrollWheel));
+    }
+
+    _nsScrollViewScrollWheelShouldRetainSelf = shouldRetain;
+}
+
+static void selfRetainingNSScrollViewScrollWheel(NSScrollView *self, SEL selector, NSEvent *event)
+{
+    bool shouldRetainSelf = isMainThread() && nsScrollViewScrollWheelShouldRetainSelf();
+
+    if (shouldRetainSelf)
+        [self retain];
+    originalNSScrollViewScrollWheel(self, selector, event);
+    if (shouldRetainSelf)
+        [self release];
+}
+
 bool EventHandler::passWheelEventToWidget(PlatformWheelEvent&, Widget* widget)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
@@ -459,7 +503,12 @@ bool EventHandler::passWheelEventToWidget(PlatformWheelEvent&, Widget* widget)
         return false;
 
     m_sendingEventToSubview = true;
+    // Work around <rdar://problem/6806810> which can cause -[NSScrollView scrollWheel:] to
+    // crash if the NSScrollView is released during timer or network callback dispatch
+    // in the nested tracking runloop that -[NSScrollView scrollWheel:] runs.
+    setNSScrollViewScrollWheelShouldRetainSelf(true);
     [view scrollWheel:currentEvent().get()];
+    setNSScrollViewScrollWheelShouldRetainSelf(false);
     m_sendingEventToSubview = false;
     return true;
             

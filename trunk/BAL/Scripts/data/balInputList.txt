@@ -820,6 +820,7 @@ BAL/Skeletons/Widgets	WebCore/platform/ThemeTypes.h
 BAL/Skeletons/Widgets	WebCore/platform/Widget.h
 BAL/Skeletons/Widgets	WebCore/platform/gtk/ClipboardGtk.h
 BAL/Skeletons/Widgets	WebCore/platform/gtk/RenderThemeGtk.h
+BAL/Skeletons/Widgets   WebCore/platform/ScrollbarTheme.h
 BAL/Skeletons/Widgets   WebCore/platform/ScrollbarThemeComposite.h
 BAL/Skeletons/Widgets   WebCore/platform/Theme.h
 
@@ -891,10 +892,11 @@ BAL/Widgets/WebCore/WK	WebCore/platform/ThemeTypes.h
 BAL/Widgets/WebCore/WK	WebCore/platform/Widget.cpp
 BAL/Widgets/WebCore/WK	WebCore/platform/Widget.h
 BAL/Widgets/WebCore/WK  WebCore/platform/ScrollView.cpp
-BAL/Widgets/WebCore/WK  WebCore/platform/Theme.cpp
-BAL/Widgets/WebCore/WK  WebCore/platform/Theme.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarTheme.h
 BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarThemeComposite.cpp
 BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarThemeComposite.h
+BAL/Widgets/WebCore/WK  WebCore/platform/Theme.cpp
+BAL/Widgets/WebCore/WK  WebCore/platform/Theme.h
 
 
 Base	WebCore/platform/NotImplemented.h	NotImplemented.h

@@ -34,10 +34,10 @@
 #include "TCSpinLock.h"
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
-#include <mach/vm_statistics.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <wtf/AVLTree.h>
+#include <wtf/VMTags.h>
 
 using namespace WTF;
 
@@ -281,15 +281,8 @@ public:
         : commonSize(commonSize)
         , countFreedSinceLastCoalesce(0)
     {
-
-        #if defined(VM_MEMORY_JAVASCRIPT_JIT_EXECUTABLE_ALLOCATOR)
-            #define OPTIONAL_TAG VM_MAKE_TAG(VM_MEMORY_JAVASCRIPT_JIT_EXECUTABLE_ALLOCATOR)
-        #else
-            #define OPTIONAL_TAG -1
-        #endif
-
         // Allocate two gigabytes of memory.
-        void* base = mmap(NULL, totalHeapSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, OPTIONAL_TAG, 0);
+        void* base = mmap(NULL, totalHeapSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, VM_TAG_FOR_EXECUTABLEALLOCATOR_MEMORY, 0);
         if (!base)
             CRASH();
 

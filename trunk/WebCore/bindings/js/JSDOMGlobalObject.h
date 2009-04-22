@@ -61,7 +61,7 @@ namespace WebCore {
 
         // Creates a GC-protected JS EventListener for an "onXXX" event attribute.
         // These listeners cannot be removed through the removeEventListener API.
-        PassRefPtr<JSEventListener> createJSInlineEventListener(JSC::JSValuePtr);
+        PassRefPtr<JSEventListener> createJSAttributeEventListener(JSC::JSValuePtr);
 
         typedef HashMap<JSC::JSObject*, JSEventListener*> JSListenersMap;
 
@@ -103,7 +103,7 @@ namespace WebCore {
     {
         if (JSC::JSObject* constructor = globalObject->constructors().get(&ConstructorClass::s_info))
             return constructor;
-        JSC::JSObject* constructor = new (exec) ConstructorClass(exec, globalObject->scriptExecutionContext());
+        JSC::JSObject* constructor = new (exec) ConstructorClass(exec, const_cast<JSDOMGlobalObject*>(globalObject));
         ASSERT(!globalObject->constructors().contains(&ConstructorClass::s_info));
         globalObject->constructors().set(&ConstructorClass::s_info, constructor);
         return constructor;

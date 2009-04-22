@@ -17,14 +17,13 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(WebKitOutputDir)\lib"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			InheritedPropertySheets="$(WebKitLibrariesDir)\tools\vsprops\debug.vsprops;$(WebKitLibrariesDir)\tools\vsprops\common.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="set PATH=%SystemDrive%\cygwin\bin;%PATH%&#x0D;&#x0A;if exist &quot;$(WebKitOutputDir)\buildfailed&quot; grep XX$(ProjectName)XX &quot;$(WebKitOutputDir)\buildfailed&quot;&#x0D;&#x0A;if errorlevel 1 exit 1&#x0D;&#x0A;echo XX$(ProjectName)XX &gt; &quot;$(WebKitOutputDir)\buildfailed&quot;&#x0D;&#x0A;"
+				CommandLine="set PATH=%SystemDrive%\cygwin\bin;%PATH%&#x0D;&#x0A;if exist &quot;$(WebKitOutputDir)\buildfailed&quot; grep XX$(ProjectName)XX &quot;$(WebKitOutputDir)\buildfailed&quot;&#x0D;&#x0A;if errorlevel 1 exit 1&#x0D;&#x0A;echo XX$(ProjectName)XX &gt; &quot;$(WebKitOutputDir)\buildfailed&quot;&#x0D;&#x0A;&#x0D;&#x0A;bash &quot;$(WebKitLibrariesDir)\tools\scripts\auto-version.sh&quot; &quot;$(IntDir)&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -54,13 +53,19 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine="if not exist &quot;$(WebKitOutputDir)\public\sym&quot; mkdir &quot;$(WebKitOutputDir)\public\sym&quot;"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				AdditionalDependencies="winmm.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="gdi32.lib oleaut32.lib winmm.lib icuin$(LibraryConfigSuffix).lib icuuc$(LibraryConfigSuffix).lib pthreadVC2$(LibraryConfigSuffix).lib CoreFoundation$(LibraryConfigSuffix).lib WTF$(WebKitConfigSuffix).lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(WebKitDLLConfigSuffix).dll"
+				ModuleDefinitionFile="JavaScriptCore$(WebKitDLLConfigSuffix).def"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -116,13 +121,19 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine="if not exist &quot;$(WebKitOutputDir)\public\sym&quot; mkdir &quot;$(WebKitOutputDir)\public\sym&quot;"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				AdditionalDependencies="winmm.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="gdi32.lib oleaut32.lib winmm.lib icuin$(LibraryConfigSuffix).lib icuuc$(LibraryConfigSuffix).lib pthreadVC2$(LibraryConfigSuffix).lib CoreFoundation$(LibraryConfigSuffix).lib WTF$(WebKitConfigSuffix).lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(WebKitDLLConfigSuffix).dll"
+				ModuleDefinitionFile="JavaScriptCore$(WebKitDLLConfigSuffix).def"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -177,13 +188,19 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine="if not exist &quot;$(WebKitOutputDir)\public\sym&quot; mkdir &quot;$(WebKitOutputDir)\public\sym&quot;"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				AdditionalDependencies="winmm.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="gdi32.lib oleaut32.lib winmm.lib icuin$(LibraryConfigSuffix).lib icuuc$(LibraryConfigSuffix).lib pthreadVC2$(LibraryConfigSuffix).lib CoreFoundation$(LibraryConfigSuffix).lib WTF$(WebKitConfigSuffix).lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(WebKitDLLConfigSuffix).dll"
+				ModuleDefinitionFile="JavaScriptCore$(WebKitDLLConfigSuffix).def"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -1366,6 +1383,14 @@
 			</File>
 			<File
 				RelativePath="..\..\wrec\WREC.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resources"
+			>
+			<File
+				RelativePath=".\JavaScriptCore.rc"
 				>
 			</File>
 		</Filter>

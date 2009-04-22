@@ -29,19 +29,16 @@
 #ifndef RegisterFile_h
 #define RegisterFile_h
 
+#include "Collector.h"
 #include "ExecutableAllocator.h"
 #include "Register.h"
-#include "Collector.h"
 #include <wtf/Noncopyable.h>
+#include <wtf/VMTags.h>
 
 #if HAVE(MMAP)
 #include <errno.h>
 #include <stdio.h>
 #include <sys/mman.h>
-#endif
-
-#if PLATFORM(DARWIN)
-#include <mach/vm_statistics.h>
 #endif
 
 namespace JSC {
@@ -165,12 +162,7 @@ namespace JSC {
     {
         size_t bufferLength = (capacity + maxGlobals) * sizeof(Register);
     #if HAVE(MMAP)
-    #if PLATFORM(DARWIN) && defined(VM_MEMORY_JAVASCRIPT_JIT_REGISTER_FILE)
-        #define OPTIONAL_TAG VM_MAKE_TAG(VM_MEMORY_JAVASCRIPT_JIT_REGISTER_FILE)
-    #else
-        #define OPTIONAL_TAG -1
-    #endif
-        m_buffer = static_cast<Register*>(mmap(0, bufferLength, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, OPTIONAL_TAG, 0));
+        m_buffer = static_cast<Register*>(mmap(0, bufferLength, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, VM_TAG_FOR_REGISTERFILE_MEMORY, 0));
         if (m_buffer == MAP_FAILED) {
             fprintf(stderr, "Could not allocate register file: %d\n", errno);
             CRASH();

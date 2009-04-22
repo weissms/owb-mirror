@@ -28,47 +28,32 @@ namespace WebCore {
 
     class JSDOMGlobalObject;
 
-    class JSAbstractEventListener : public EventListener {
+    class JSEventListener : public EventListener {
     public:
-        bool isInline() const { return m_isInline; }
-
-    protected:
-        JSAbstractEventListener(bool isInline)
-            : m_isInline(isInline)
+        static PassRefPtr<JSEventListener> create(JSC::JSObject* listener, JSDOMGlobalObject* globalObject, bool isAttribute)
         {
-        }
-
-    private:
-        virtual void handleEvent(Event*, bool isWindowEvent);
-        virtual JSDOMGlobalObject* globalObject() const = 0;
-        virtual bool virtualIsInline() const;
-
-        bool m_isInline;
-    };
-
-    class JSEventListener : public JSAbstractEventListener {
-    public:
-        static PassRefPtr<JSEventListener> create(JSC::JSObject* listener, JSDOMGlobalObject* globalObject, bool isInline)
-        {
-            return adoptRef(new JSEventListener(listener, globalObject, isInline));
+            return adoptRef(new JSEventListener(listener, globalObject, isAttribute));
         }
         virtual ~JSEventListener();
-
         void clearGlobalObject() { m_globalObject = 0; }
 
+        // Returns true if this event listener was created for an event handler attribute, like "onload" or "onclick".
+        bool isAttribute() const { return m_isAttribute; }
+
         virtual JSC::JSObject* jsFunction() const;
-        virtual void clearJSFunction();
-        virtual void markJSFunction();
 
     private:
-        JSEventListener(JSC::JSObject* function, JSDOMGlobalObject*, bool isInline);
-
-        virtual JSDOMGlobalObject* globalObject() const;
-
+        virtual void markJSFunction();
+        virtual void handleEvent(Event*, bool isWindowEvent);
+        virtual bool virtualisAttribute() const;
         void clearJSFunctionInline();
 
-        JSC::JSObject* m_jsFunction;
+    protected:
+        JSEventListener(JSC::JSObject* function, JSDOMGlobalObject*, bool isAttribute);
+
+        mutable JSC::JSObject* m_jsFunction;
         JSDOMGlobalObject* m_globalObject;
+        bool m_isAttribute;
     };
 
 } // namespace WebCore

@@ -1,3 +1,939 @@
+2009-04-22  John Abd-El-Malek  <jam@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add a method to purge the Chromium plugin list cache.
+        https://bugs.webkit.org/show_bug.cgi?id=25318
+
+        * plugins/chromium/PluginDataChromium.cpp:
+        (WebCore::resetChromiumPluginCache):
+
+2009-04-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=25164> / <rdar://problem/6786319>.
+
+        We need to ensure that XMLTokenizer sets the current DocLoader before calling in to
+        any libxml2 methods that may trigger a load.  The presence of a DocLoader indicates
+        that the load was originated by WebCore's use of libxml2 and that we should enforce
+        the same-origin policy on it.  XMLTokenizer::initializeParserContext,
+        XMLTokenizer::doWrite and XMLTokenizer::doEnd were three methods that were not setting
+        the current DocLoader when they should have.
+
+        The XMLTokenizerScope class is introduced to simplify the pattern of saving, setting and
+        restoring the current DocLoader and libxml2 error handlers.  The DocLoader and error handlers
+        are saved and set when the scope is allocated, and restored to their previous values when
+        the scope is exited.
+
+        Test: http/tests/security/xss-DENIED-xml-external-entity.xhtml
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/XMLTokenizer.cpp:
+        * dom/XMLTokenizer.h:
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::matchFunc):
+        (WebCore::shouldAllowExternalLoad):
+        (WebCore::openFunc):
+        (WebCore::XMLTokenizer::doWrite):
+        (WebCore::XMLTokenizer::initializeParserContext):
+        (WebCore::XMLTokenizer::doEnd):
+        (WebCore::xmlDocPtrForString):
+        * dom/XMLTokenizerScope.cpp:
+        (WebCore::XMLTokenizerScope::XMLTokenizerScope):
+        (WebCore::XMLTokenizerScope::~XMLTokenizerScope):
+        * dom/XMLTokenizerScope.h:
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessor.cpp:
+
+2009-04-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/5874009>
+        Add port 3659 (apple-sasl / PasswordServer) to the list of blocked ports.
+
+        * platform/network/ResourceHandle.cpp:
+        (WebCore::portAllowed):
+
+2009-04-21  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25320
+        Crash when changing block styles in a root that contains no visible content (but contains nodes with renderers)
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary): If the enclosing block is the 
+        root editable element and it contains no visible content, create a new block but don't try and move 
+        content into it, since there's nothing for moveParagraphs to move.
+        
+
+2009-04-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 25162: REGRESSION (r41176-r41242): Drag-selection above/below the line does not select to beginning/end
+        https://bugs.webkit.org/show_bug.cgi?id=25162
+        rdar://problem/6764354
+
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Initialize editing behavior to Mac-style for PLATFORM(MAC).
+        Later we may want to change this default to encompass other versions running on Mac.
+
+        * page/Settings.h: Added EditingBehavior, setEditingBehavior, editingBehavior, and
+        m_editingBehavior. Also moved m_maximumDecodedImageSize out of the middle of all
+        the bit fields.
+
+        * platform/graphics/IntPoint.h: Added a constructor to turn an IntSize into an IntPoint.
+        I'm not sure the distinction here is serving us well at the moment. When converting from
+        global to local coordinates you want to do IntPoint - IntPoint and have the result be
+        another IntPoint, not an IntSize. And so on.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::positionForPointRespectingEditingBoundaries): Changed to use pointers more and
+        separate coordinates less.
+        (WebCore::RenderBlock::positionForPointWithInlineChildren): Turned into a member function.
+        Added separate cases to support the Mac and Windows behavior.
+        (WebCore::RenderBlock::positionForPoint): Updated for the change above. Also moved the
+        computation of pointInContents closer to the place it's used.
+
+        * rendering/RenderBlock.h: Updated for the new private member function.
+
+2009-04-17  Timothy Hatcher  <timothy@apple.com>
+
+        Change pending unload and beforeunload counts to store the listeners
+        in a single data structure that can be quickly iterated for dispatch.
+
+        <rdar://problem/6383352&6383379&6383940>
+
+        Reviewed by Darin Adler.
+
+        * WebCore.base.exp: Change what symbols are exported.
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopLoading): Remove count updating code
+        and move an if inside a block already checking m_frame->document().
+        * page/Chrome.cpp: Remove disableSuddenTermination/enableSuddenTermination.
+        * page/Chrome.h: Ditto.
+        * page/ChromeClient.h: Ditto.
+        * page/DOMWindow.cpp:
+        (WebCore::pendingUnloadEventListenerMap): Create a static map.
+        (WebCore::pendingBeforeUnloadEventListenerMap): Ditto.
+        (WebCore::addPendingEventListener): Add the event listener to the map.
+        (WebCore::removePendingEventListener): Remove the event listener from the map.
+        (WebCore::removePendingEventListeners): Remove all listeners for the window.
+        (WebCore::dispatchWindowEventToListeners): Dispatch the event to the given listeners.
+        (WebCore::DOMWindow::dispatchAllPendingBeforeUnloadEvents): Send the beforeunload event.
+        (WebCore::DOMWindow::pendingUnloadEventListeners): Return a count of pending listeners.
+        (WebCore::DOMWindow::dispatchAllPendingUnloadEvents): Send the unload event.
+        (WebCore::DOMWindow::~DOMWindow): Remove the window from both event listener maps.
+        (WebCore::DOMWindow::addEventListener): Call addPendingEventListener when needed.
+        (WebCore::DOMWindow::removeEventListener): Call removePendingEventListener when needed.
+        (WebCore::DOMWindow::removeAllEventListeners): Call removePendingEventListeners.
+        (WebCore::DOMWindow::removeInlineEventListenerForType): Call removePendingEventListener when needed.
+        * page/DOMWindow.h:
+        (WebCore::DOMWindow::frame): Changed to be const.
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::EventHandler): Remove count tracking code.
+        * page/EventHandler.h: Ditto.
+        * page/Page.cpp:
+        (WebCore::Page::Page): Ditto.
+        * page/Page.h: Ditto.
+
+2009-04-21  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19644
+        Text copied with Select All pastes with a indent but shouldn't
+        <rdar://problem/6102483> 
+        Pasting the content of an HTML message in Mail causes addition nested <div> elements to be added
+        
+        To improve selectall/copy/paste fidelity of certain pages, we began wrapping copied content with
+        a div that held properties and attributes from the fully selected body.  To fix the above issues, 
+        only do this if if the body has certain properties or attributes.  We'll begin adding to this list as 
+        necessary.  For now it's just background colors and images.  Tested copy/paste of nytimes, wired,
+        arstechnica, and several others.
+        
+        Massive nesting can still happen, it will just be much less common.
+
+        * editing/markup.cpp:
+        (WebCore::createMarkup): 
+
+2009-04-21  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25250
+        Allow platforms to snap the scroll thumb back to the drag origin
+        during a drag.  Implement functions for Safari/Win and Chromium/Win
+        to do this snapping at distances approximating the native ones.
+
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        (WebCore::Scrollbar::setValue):
+        (WebCore::Scrollbar::scroll):
+        (WebCore::Scrollbar::moveThumb):
+        (WebCore::Scrollbar::setCurrentPos):
+        (WebCore::Scrollbar::mouseMoved):
+        (WebCore::Scrollbar::mouseDown):
+        * platform/Scrollbar.h:
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::shouldSnapBackToDragOrigin):
+        * platform/chromium/ScrollbarThemeChromium.h:
+        * platform/chromium/ScrollbarThemeChromiumLinux.cpp:
+        (WebCore::ScrollbarThemeChromium::shouldSnapBackToDragOrigin):
+        * platform/chromium/ScrollbarThemeChromiumWin.cpp:
+        (WebCore::ScrollbarThemeChromium::shouldSnapBackToDragOrigin):
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::shouldCenterOnThumb):
+        (WebCore::ScrollbarThemeWin::shouldSnapBackToDragOrigin):
+        * platform/win/ScrollbarThemeWin.h:
+
+2009-04-21  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * bindings/js/JSLazyEventListener.cpp:
+        (WebCore::eventParameterName): Remove unreachable code when SVG is
+        enabled.
+
+2009-04-21  Kevin Ollivier  <kevino@theolliviers.com>
+
+        !ENABLE(SVG) build fix.
+        
+        * bindings/js/JSLazyEventListener.cpp:
+        (WebCore::eventParameterName):
+
+2009-04-21  Dave Moore  <davemoore@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25309
+        Better use AtomicStrings when calling from the V8
+        bindings into WebCore code.
+
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        * bindings/v8/custom/V8HTMLCollectionCustom.cpp:
+        * bindings/v8/custom/V8HTMLFormElementCustom.cpp:
+        * bindings/v8/custom/V8HTMLFrameSetElementCustom.cpp:
+
+2009-04-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+ 
+        Bug 25304: AX: Safari not identifying a secure text field
+        https://bugs.webkit.org/show_bug.cgi?id=25304
+
+        Secure text fields need to be able to return AXTitleUIElements.
+
+        Test: accessibility/secure-textfield-title-ui.html
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeNames]):
+
+2009-04-21  Dan Bernstein  <mitz@apple.com>
+
+        - fix the Tiger build
+
+        * page/mac/EventHandlerMac.mm:
+        (method_setImplementation):
+
+2009-04-21   Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25271
+
+        Fix the build with disabled DOM storage or disabled database support.
+
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-04-21  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix.
+
+        Compile fix for r42633. const qualifier does not work
+        on a static method.
+
+        * dom/Document.h:
+        (WebCore::Document::isSVGDocument):
+
+2009-04-21  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler and John Sullivan.
+
+        - fix <rdar://problem/5914146> Crash at -[NSScrollView scrollWheel:]
+
+        -[NSScrollView scrollWheel:] runs a nested event-tracking run loop
+        in a mode that allows WebCore timers to fire and NSURLConnection
+        callbacks to be dispatched, which can release the NSScrollView and
+        cause it to be deallocated (one example is a DOM timer callback that
+        removes a subframe from the document). This leads to a crash in
+        -scrollView:.
+
+        The fix is to replace the implementation of -[NSScrollView scrollWheel:]
+        with one that optionally retains the receiver for the duration of the
+        call.
+
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::nsScrollViewScrollWheelShouldRetainSelf): Added.
+        (WebCore::setNSScrollViewScrollWheelShouldRetainSelf): Added. Replaces
+        the implementation of -[NSScrollView scrollWheel:] with the
+        self-retaining one, and sets a static boolean that tells it whether to
+        retain the receiver around the call to the original implementation.
+        (WebCore::selfRetainingNSScrollViewScrollWheel): Added. If
+        setNSScrollViewScrollWheelShouldRetainSelf(true) was called and this
+        function is executing on the main thread, it retains the NSScrollView,
+        invokes the original -[NSScrollView scrollWheel:], then releases the
+        view. Otherwise it just calls through to the original implementation.
+        (WebCore::EventHandler::passWheelEventToWidget): Added calls to
+        setNSScrollViewScrollWheelShouldRetainSelf() around the call to
+        -scrollWheel:.
+
+2009-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Tiger crash fix: Put VM tags in their own header file, and fixed up the
+        #ifdefs so they're not used on Tiger.
+
+        * ForwardingHeaders/wtf/VMTags.h: Copied from WebCore/ForwardingHeaders/wtf/HashTraits.h.
+
+2009-04-21  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Based on a patch by Alp Toker.
+
+        Implement AtkComponent interface.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (core):
+
+2009-04-21  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21546
+        [GTK] ATK accessibility enhancements
+
+        Only implement AtkAction interface if we actually have an action.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+
+2009-04-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25290
+        REGRESSION(r41732): Crash when constructing XMLHttpRequest in a detached document
+
+        Test: fast/dom/xmlhttprequest-constructor-in-detached-document.html
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor):
+        * bindings/js/JSAudioConstructor.h:
+        * bindings/js/JSDOMGlobalObject.h:
+        (WebCore::getDOMConstructor):
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor):
+        * bindings/js/JSImageConstructor.h:
+        * bindings/js/JSMessageChannelConstructor.cpp:
+        (WebCore::JSMessageChannelConstructor::JSMessageChannelConstructor):
+        * bindings/js/JSMessageChannelConstructor.h:
+        * bindings/js/JSOptionConstructor.cpp:
+        (WebCore::JSOptionConstructor::JSOptionConstructor):
+        * bindings/js/JSOptionConstructor.h:
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor):
+        * bindings/js/JSXMLHttpRequestConstructor.h:
+        Avoid accessing JSDOMGlobalObject via ScriptExecutionContext, since it may not
+        work during frame teardown.
+
+2009-04-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber stamped by Darin Adler and Sam Weinig.
+
+        Renamed "*InlineEventListener*" => "*AttributeEventListener*", and
+        "isInline" => "isAttribute".
+
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::createJSAttributeEventListener):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        (WebCore::JSEventListener::handleEvent):
+        (WebCore::JSEventListener::virtualisAttribute):
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSEventListener::create):
+        (WebCore::JSEventListener::isAttribute):
+        * bindings/js/JSLazyEventListener.cpp:
+        (WebCore::createAttributeEventListener):
+        * bindings/js/JSLazyEventListener.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * dom/Element.cpp:
+        (WebCore::Element::setWindowAttributeEventListener):
+        * dom/Element.h:
+        * dom/EventListener.h:
+        (WebCore::EventListener::isAttribute):
+        (WebCore::EventListener::virtualisAttribute):
+        * dom/Node.cpp:
+        (WebCore::Node::clearAttributeEventListener):
+        (WebCore::Node::setAttributeEventListener):
+        (WebCore::Node::getAttributeEventListener):
+        (WebCore::Node::onabort):
+        (WebCore::Node::setOnabort):
+        (WebCore::Node::onblur):
+        (WebCore::Node::setOnblur):
+        (WebCore::Node::onchange):
+        (WebCore::Node::setOnchange):
+        (WebCore::Node::onclick):
+        (WebCore::Node::setOnclick):
+        (WebCore::Node::oncontextmenu):
+        (WebCore::Node::setOncontextmenu):
+        (WebCore::Node::ondblclick):
+        (WebCore::Node::setOndblclick):
+        (WebCore::Node::onerror):
+        (WebCore::Node::setOnerror):
+        (WebCore::Node::onfocus):
+        (WebCore::Node::setOnfocus):
+        (WebCore::Node::oninput):
+        (WebCore::Node::setOninput):
+        (WebCore::Node::onkeydown):
+        (WebCore::Node::setOnkeydown):
+        (WebCore::Node::onkeypress):
+        (WebCore::Node::setOnkeypress):
+        (WebCore::Node::onkeyup):
+        (WebCore::Node::setOnkeyup):
+        (WebCore::Node::onload):
+        (WebCore::Node::setOnload):
+        (WebCore::Node::onmousedown):
+        (WebCore::Node::setOnmousedown):
+        (WebCore::Node::onmousemove):
+        (WebCore::Node::setOnmousemove):
+        (WebCore::Node::onmouseout):
+        (WebCore::Node::setOnmouseout):
+        (WebCore::Node::onmouseover):
+        (WebCore::Node::setOnmouseover):
+        (WebCore::Node::onmouseup):
+        (WebCore::Node::setOnmouseup):
+        (WebCore::Node::onmousewheel):
+        (WebCore::Node::setOnmousewheel):
+        (WebCore::Node::onbeforecut):
+        (WebCore::Node::setOnbeforecut):
+        (WebCore::Node::oncut):
+        (WebCore::Node::setOncut):
+        (WebCore::Node::onbeforecopy):
+        (WebCore::Node::setOnbeforecopy):
+        (WebCore::Node::oncopy):
+        (WebCore::Node::setOncopy):
+        (WebCore::Node::onbeforepaste):
+        (WebCore::Node::setOnbeforepaste):
+        (WebCore::Node::onpaste):
+        (WebCore::Node::setOnpaste):
+        (WebCore::Node::ondragenter):
+        (WebCore::Node::setOndragenter):
+        (WebCore::Node::ondragover):
+        (WebCore::Node::setOndragover):
+        (WebCore::Node::ondragleave):
+        (WebCore::Node::setOndragleave):
+        (WebCore::Node::ondrop):
+        (WebCore::Node::setOndrop):
+        (WebCore::Node::ondragstart):
+        (WebCore::Node::setOndragstart):
+        (WebCore::Node::ondrag):
+        (WebCore::Node::setOndrag):
+        (WebCore::Node::ondragend):
+        (WebCore::Node::setOndragend):
+        (WebCore::Node::onreset):
+        (WebCore::Node::setOnreset):
+        (WebCore::Node::onresize):
+        (WebCore::Node::setOnresize):
+        (WebCore::Node::onscroll):
+        (WebCore::Node::setOnscroll):
+        (WebCore::Node::onsearch):
+        (WebCore::Node::setOnsearch):
+        (WebCore::Node::onselect):
+        (WebCore::Node::setOnselect):
+        (WebCore::Node::onselectstart):
+        (WebCore::Node::setOnselectstart):
+        (WebCore::Node::onsubmit):
+        (WebCore::Node::setOnsubmit):
+        (WebCore::Node::onunload):
+        (WebCore::Node::setOnunload):
+        * dom/Node.h:
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::parseMappedAttribute):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::parseMappedAttribute):
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::parseMappedAttribute):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::setAttributeEventListener):
+        (WebCore::DOMWindow::clearAttributeEventListener):
+        (WebCore::DOMWindow::getAttributeEventListener):
+        (WebCore::DOMWindow::onabort):
+        (WebCore::DOMWindow::setOnabort):
+        (WebCore::DOMWindow::onblur):
+        (WebCore::DOMWindow::setOnblur):
+        (WebCore::DOMWindow::onchange):
+        (WebCore::DOMWindow::setOnchange):
+        (WebCore::DOMWindow::onclick):
+        (WebCore::DOMWindow::setOnclick):
+        (WebCore::DOMWindow::ondblclick):
+        (WebCore::DOMWindow::setOndblclick):
+        (WebCore::DOMWindow::onerror):
+        (WebCore::DOMWindow::setOnerror):
+        (WebCore::DOMWindow::onfocus):
+        (WebCore::DOMWindow::setOnfocus):
+        (WebCore::DOMWindow::onkeydown):
+        (WebCore::DOMWindow::setOnkeydown):
+        (WebCore::DOMWindow::onkeypress):
+        (WebCore::DOMWindow::setOnkeypress):
+        (WebCore::DOMWindow::onkeyup):
+        (WebCore::DOMWindow::setOnkeyup):
+        (WebCore::DOMWindow::onload):
+        (WebCore::DOMWindow::setOnload):
+        (WebCore::DOMWindow::onmousedown):
+        (WebCore::DOMWindow::setOnmousedown):
+        (WebCore::DOMWindow::onmousemove):
+        (WebCore::DOMWindow::setOnmousemove):
+        (WebCore::DOMWindow::onmouseout):
+        (WebCore::DOMWindow::setOnmouseout):
+        (WebCore::DOMWindow::onmouseover):
+        (WebCore::DOMWindow::setOnmouseover):
+        (WebCore::DOMWindow::onmouseup):
+        (WebCore::DOMWindow::setOnmouseup):
+        (WebCore::DOMWindow::onmousewheel):
+        (WebCore::DOMWindow::setOnmousewheel):
+        (WebCore::DOMWindow::onreset):
+        (WebCore::DOMWindow::setOnreset):
+        (WebCore::DOMWindow::onresize):
+        (WebCore::DOMWindow::setOnresize):
+        (WebCore::DOMWindow::onscroll):
+        (WebCore::DOMWindow::setOnscroll):
+        (WebCore::DOMWindow::onsearch):
+        (WebCore::DOMWindow::setOnsearch):
+        (WebCore::DOMWindow::onselect):
+        (WebCore::DOMWindow::setOnselect):
+        (WebCore::DOMWindow::onsubmit):
+        (WebCore::DOMWindow::setOnsubmit):
+        (WebCore::DOMWindow::onunload):
+        (WebCore::DOMWindow::setOnunload):
+        (WebCore::DOMWindow::onbeforeunload):
+        (WebCore::DOMWindow::setOnbeforeunload):
+        (WebCore::DOMWindow::onwebkitanimationstart):
+        (WebCore::DOMWindow::setOnwebkitanimationstart):
+        (WebCore::DOMWindow::onwebkitanimationiteration):
+        (WebCore::DOMWindow::setOnwebkitanimationiteration):
+        (WebCore::DOMWindow::onwebkitanimationend):
+        (WebCore::DOMWindow::setOnwebkitanimationend):
+        (WebCore::DOMWindow::onwebkittransitionend):
+        (WebCore::DOMWindow::setOnwebkittransitionend):
+        * page/DOMWindow.h:
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::parseMappedAttribute):
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::onabort):
+        (WebCore::SVGElementInstance::setOnabort):
+        (WebCore::SVGElementInstance::onblur):
+        (WebCore::SVGElementInstance::setOnblur):
+        (WebCore::SVGElementInstance::onchange):
+        (WebCore::SVGElementInstance::setOnchange):
+        (WebCore::SVGElementInstance::onclick):
+        (WebCore::SVGElementInstance::setOnclick):
+        (WebCore::SVGElementInstance::oncontextmenu):
+        (WebCore::SVGElementInstance::setOncontextmenu):
+        (WebCore::SVGElementInstance::ondblclick):
+        (WebCore::SVGElementInstance::setOndblclick):
+        (WebCore::SVGElementInstance::onerror):
+        (WebCore::SVGElementInstance::setOnerror):
+        (WebCore::SVGElementInstance::onfocus):
+        (WebCore::SVGElementInstance::setOnfocus):
+        (WebCore::SVGElementInstance::oninput):
+        (WebCore::SVGElementInstance::setOninput):
+        (WebCore::SVGElementInstance::onkeydown):
+        (WebCore::SVGElementInstance::setOnkeydown):
+        (WebCore::SVGElementInstance::onkeypress):
+        (WebCore::SVGElementInstance::setOnkeypress):
+        (WebCore::SVGElementInstance::onkeyup):
+        (WebCore::SVGElementInstance::setOnkeyup):
+        (WebCore::SVGElementInstance::onload):
+        (WebCore::SVGElementInstance::setOnload):
+        (WebCore::SVGElementInstance::onmousedown):
+        (WebCore::SVGElementInstance::setOnmousedown):
+        (WebCore::SVGElementInstance::onmousemove):
+        (WebCore::SVGElementInstance::setOnmousemove):
+        (WebCore::SVGElementInstance::onmouseout):
+        (WebCore::SVGElementInstance::setOnmouseout):
+        (WebCore::SVGElementInstance::onmouseover):
+        (WebCore::SVGElementInstance::setOnmouseover):
+        (WebCore::SVGElementInstance::onmouseup):
+        (WebCore::SVGElementInstance::setOnmouseup):
+        (WebCore::SVGElementInstance::onmousewheel):
+        (WebCore::SVGElementInstance::setOnmousewheel):
+        (WebCore::SVGElementInstance::onbeforecut):
+        (WebCore::SVGElementInstance::setOnbeforecut):
+        (WebCore::SVGElementInstance::oncut):
+        (WebCore::SVGElementInstance::setOncut):
+        (WebCore::SVGElementInstance::onbeforecopy):
+        (WebCore::SVGElementInstance::setOnbeforecopy):
+        (WebCore::SVGElementInstance::oncopy):
+        (WebCore::SVGElementInstance::setOncopy):
+        (WebCore::SVGElementInstance::onbeforepaste):
+        (WebCore::SVGElementInstance::setOnbeforepaste):
+        (WebCore::SVGElementInstance::onpaste):
+        (WebCore::SVGElementInstance::setOnpaste):
+        (WebCore::SVGElementInstance::ondragenter):
+        (WebCore::SVGElementInstance::setOndragenter):
+        (WebCore::SVGElementInstance::ondragover):
+        (WebCore::SVGElementInstance::setOndragover):
+        (WebCore::SVGElementInstance::ondragleave):
+        (WebCore::SVGElementInstance::setOndragleave):
+        (WebCore::SVGElementInstance::ondrop):
+        (WebCore::SVGElementInstance::setOndrop):
+        (WebCore::SVGElementInstance::ondragstart):
+        (WebCore::SVGElementInstance::setOndragstart):
+        (WebCore::SVGElementInstance::ondrag):
+        (WebCore::SVGElementInstance::setOndrag):
+        (WebCore::SVGElementInstance::ondragend):
+        (WebCore::SVGElementInstance::setOndragend):
+        (WebCore::SVGElementInstance::onreset):
+        (WebCore::SVGElementInstance::setOnreset):
+        (WebCore::SVGElementInstance::onresize):
+        (WebCore::SVGElementInstance::setOnresize):
+        (WebCore::SVGElementInstance::onscroll):
+        (WebCore::SVGElementInstance::setOnscroll):
+        (WebCore::SVGElementInstance::onsearch):
+        (WebCore::SVGElementInstance::setOnsearch):
+        (WebCore::SVGElementInstance::onselect):
+        (WebCore::SVGElementInstance::setOnselect):
+        (WebCore::SVGElementInstance::onselectstart):
+        (WebCore::SVGElementInstance::setOnselectstart):
+        (WebCore::SVGElementInstance::onsubmit):
+        (WebCore::SVGElementInstance::setOnsubmit):
+        (WebCore::SVGElementInstance::onunload):
+        (WebCore::SVGElementInstance::setOnunload):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+
+2009-04-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Approved by Mark Rowe, Cameron Zwarich, Oliver Hunt, and Ojan Vafai.
+        
+        Used svn merge to roll out revisions 42678, 42690, 42694, 42697 because
+        they broke the Tiger and Windows buildbots.
+
+        * css/html4.css:
+        * css/themeWin.css:
+        * platform/graphics/SimpleFontData.cpp:
+        * platform/graphics/SimpleFontData.h:
+        * platform/graphics/chromium/SimpleFontDataChromiumWin.cpp:
+        * platform/graphics/chromium/SimpleFontDataLinux.cpp:
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        * platform/graphics/qt/SimpleFontDataQt.cpp:
+        * platform/graphics/win/SimpleFontDataCGWin.cpp:
+        * platform/graphics/win/SimpleFontDataCairoWin.cpp:
+        * platform/graphics/win/SimpleFontDataWin.cpp:
+        * platform/graphics/wx/SimpleFontDataWx.cpp:
+        * rendering/RenderTextControl.cpp:
+        * rendering/RenderTextControlMultiLine.cpp:
+        * rendering/RenderTextControlSingleLine.cpp:
+
+2009-04-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Adam Roben.
+
+        One last loose end, discovered using COLLECT_ON_EVERY_ALLOCATION, for
+        https://bugs.webkit.org/show_bug.cgi?id=21260
+        Unbounded memory growth when churning elements with anonymous event handler functions
+        
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::mark): Don't ASSERT that an ElementInstance's
+        correspondingElement has a JS wrapper. If a GC falls exactly between the
+        allocation of the ElementInstance wrapper and the correspondingElement
+        wrapper, the correspondingElement won't have a wrapper at the time we
+        mark the ElementInstance's wrapper.
+
+2009-04-20  Brady Eidson  <beidson@apple.com>
+
+        Rubberstamped by Mark Rowe
+
+        Clean builds are broken on case-sensitive filesystems.  Let's fix, shall we?
+
+        * platform/graphics/SimpleFontData.cpp: Remove "String.h" include.  Ojan probably intended to include
+          "PlatformString.h" which was unnecessary because it is pulled in through other headers.  This wasn't a 
+          build failure on case-insensitive file systems because those systems would find the system <string.h>, averting
+          the warning.
+
+2009-04-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Last patch for https://bugs.webkit.org/show_bug.cgi?id=21260
+        Unbounded memory growth when churning elements with anonymous event handler functions
+        
+        Converted "lazy" event listeners to be unprotected, just like all the others.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        (WebCore::JSEventListener::jsFunction):
+        (WebCore::JSEventListener::markJSFunction):
+        (WebCore::JSEventListener::handleEvent):
+        (WebCore::JSEventListener::virtualIsInline):
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSEventListener::isInline): Merged JSAbstractEventListener
+        into JSEventListener. Now that the only difference between JSEventListener
+        and JSLazyEventListener is that JSLazyEventListener compiles lazily,
+        there's no need for an abstract base class.
+
+        * bindings/js/JSLazyEventListener.cpp: Converted JSLazyEventListener to
+        inherit from JSEventListener and match its un-GC-protected behavior.
+        (WebCore::JSLazyEventListener::JSLazyEventListener): ditto
+        (WebCore::JSLazyEventListener::parseCode): ditto
+        (WebCore::createInlineEventListener): When creating a lazy event listener,
+        ensure that the related node has a JS wrapper to mark the listener. Since
+        the parser makes these listeners, it's possible that no JS reference has
+        been made to the node yet.
+        * bindings/js/JSLazyEventListener.h: ditto
+
+        * dom/EventListener.h:
+        (WebCore::EventListener::clearJSFunction): Removed an usused function.
+
+2009-04-20  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25299
+        Don't bound caret to root line box if it is still inside its containing block
+        
+        Can't yet write tests for behavior of non-standard caret widths.
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::localCaretRect):
+
+2009-04-20  Steve Falkenburg  <sfalken@apple.com>
+
+        Separate JavaScriptCore.dll from WebKit.dll.
+        Slight performance improvement or no change on benchmarks.
+        
+        Allows us to break a circular dependency between CFNetwork and WebKit on Windows,
+        and simplifies standalone JavaScriptCore builds.
+
+        Reviewed by Oliver Hunt.
+
+        * config.h: Specify __declspec(dllexport/dllimport) appropriately when exporting data.
+
+2009-04-20  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6722845> In the Cocoa event model, NPWindow's window field should be null
+
+        * bridge/npapi.h:
+        (_NPCocoaEvent::):
+        Add a CGContextRef member to the draw struct. Add an NPCoordinateSpace enum.
+        
+        * plugins/npfunctions.h:
+        Add a prototype for NPN_ConvertPoint.
+
+2009-04-10  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Dan Bernstein.
+
+        Make textarea and text input metrics more closely match IEs.
+        https://bugs.webkit.org/show_bug.cgi?id=15312
+
+        This involves:
+        -set text input width to size*avgCharWidth + maxCharWidth - avgCharWidth
+        -set textarea width to cols*avgCharWidth
+        -Make default CSS match IEs
+        -Correctly initializing m_avgCharWidth and m_maxCharWidth for each platform and SVG.
+
+        Those values for textarea and inputs were derived by doing a ton of manual
+        testing of IE's width values for various textareas and fonts.
+
+        To get the average and max character width of a font, we do the following
+        for each platform:
+        -Win: TextMetrics expose avgCharWidth and maxCharWidth
+        -SVG: avgCharWidth = width of an '0', fallback on width of a space glyph, then m_xHeight
+            maxCharWidth = width of a 'W' for roman fonts, fallback on m_ascent
+        -Linux: avgCharWidth = width of an '0', fallback on m_xHeight
+            maxCharWidth = max of avgCharWidth and m_ascent
+        -Mac: look in the OS/2 table for avgCharWidth and grab the maxCharWidth off the font.
+            If either one is not there, then calculate the value using the Linux approach.
+
+        Linux ports could probably dig into the OS/2 table as well, but I'll leave
+        that up to them to implement.
+
+        Tests: fast/forms/text-control-intrinsic-widths.html
+               fast/forms/textarea-metrics.html
+               svg/custom/svg-fonts-in-text-controls.html
+
+        * css/html4.css:
+        * css/themeWin.css:
+        * platform/graphics/SimpleFontData.cpp:
+        (WebCore::SimpleFontData::SimpleFontData):
+        (WebCore::SimpleFontData::initCharWidths):
+        * platform/graphics/SimpleFontData.h:
+        (WebCore::SimpleFontData::maxCharWidth):
+        (WebCore::SimpleFontData::avgCharWidth):
+        * platform/graphics/chromium/SimpleFontDataChromiumWin.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/chromium/SimpleFontDataLinux.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/qt/SimpleFontDataQt.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/win/SimpleFontDataCGWin.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/win/SimpleFontDataCairoWin.cpp:
+        (WebCore::SimpleFontData::platformInit):
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * platform/graphics/win/SimpleFontDataWin.cpp:
+        (WebCore::SimpleFontData::initGDIFont):
+        * platform/graphics/wx/SimpleFontDataWx.cpp:
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::calcPrefWidths):
+        * rendering/RenderTextControlMultiLine.cpp:
+        (WebCore::RenderTextControlMultiLine::createInnerTextStyle):
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::preferredContentWidth):
+
+2009-04-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Remove m_absoluteBounds hack from SVG renderers and move outlineBoundsForRepaint into RenderSVGModelObject
+        https://bugs.webkit.org/show_bug.cgi?id=25276
+
+        This also exposed a buggy paint check in RenderSVGContainer::layout()
+        we should repaint if we are self painting OR if our kids changed, not AND.
+
+        Writing real outlineBoundsForRepaint required writing a mapLocalToContainer() function
+
+        No functional changes, thus no tests.
+
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::localToParentTransform):
+        (WebCore::RenderPath::layout):
+        * rendering/RenderPath.h:
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::layout):
+        * rendering/RenderSVGContainer.h:
+        * rendering/RenderSVGModelObject.cpp:
+        (WebCore::RenderSVGModelObject::mapLocalToContainer):
+        (WebCore::RenderSVGModelObject::outlineBoundsForRepaint):
+        * rendering/RenderSVGModelObject.h:
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::layout):
+        (WebCore::RenderSVGRoot::paint):
+        (WebCore::RenderSVGRoot::localToParentTransformWithoutCSSParentOffset):
+        (WebCore::RenderSVGRoot::localToParentTransform):
+        (WebCore::RenderSVGRoot::computeRectForRepaint):
+        * rendering/RenderSVGRoot.h:
+        * rendering/RenderSVGViewportContainer.cpp:
+        (WebCore::RenderSVGViewportContainer::layout):
+
+2009-04-20  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        https://bugs.webkit.org/show_bug.cgi?id=25282
+        
+        outlineBoundsForRepaint() should compute a quad relative to the
+        repaintContainer. This fixes the repaint issues originally fixed in
+        https://bugs.webkit.org/show_bug.cgi?id=12885 for elements in compositing layers.
+        Failure was only apparent when building with ACCELERATED_COMPOSITING enabled.
+
+        Tests: compositing/repaint/content-into-overflow.html
+               compositing/repaint/overflow-into-content.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::outlineBoundsForRepaint):
+
+2009-04-20  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Tim Hatcher.
+
+        Add licenses for xcconfig files.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/FeatureDefines.xcconfig:
+        * Configurations/Version.xcconfig:
+        * Configurations/WebCore.xcconfig:
+
+2009-04-20  Eric Roman  <eroman@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25261
+        Implement the V8 binding for DOMWindow.event similarly to JSC, by using
+        the custom getter boilerplate from the IDL file. 
+        Also, stub out DOMWindow.crypto which is defined by the idl.
+
+        * bindings/v8/V8AbstractEventListener.cpp:
+        (WebCore::V8AbstractEventListener::invokeEventHandler):
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::ACCESSOR_GETTER):
+
+2009-04-20  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25243
+        Crash when data:// loads are cancelled
+
+        Properly handle cancellation of the load for data:// loads. This
+        fixes crashing in the followin test:
+
+        plugins/return-error-from-new-stream-callback-in-full-frame-plugin.html
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::parseDataUrl):
+
 2009-04-20  Dan Bernstein  <mitz@apple.com>
 
         - maybe fix release builds

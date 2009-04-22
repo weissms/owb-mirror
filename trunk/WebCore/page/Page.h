@@ -165,11 +165,6 @@ namespace WebCore {
 
         void userStyleSheetLocationChanged();
         const String& userStyleSheet() const;
-        
-        void changePendingUnloadEventCount(int delta);
-        unsigned pendingUnloadEventCount();
-        void changePendingBeforeUnloadEventCount(int delta);
-        unsigned pendingBeforeUnloadEventCount();
 
         static void setDebuggerForAllPages(JSC::Debugger*);
         void setDebugger(JSC::Debugger*);
@@ -258,9 +253,6 @@ namespace WebCore {
         PageGroup* m_group;
 
         JSC::Debugger* m_debugger;
-        
-        unsigned m_pendingUnloadEventCount;
-        unsigned m_pendingBeforeUnloadEventCount;
 
         double m_customHTMLTokenizerTimeDelay;
         int m_customHTMLTokenizerChunkSize;

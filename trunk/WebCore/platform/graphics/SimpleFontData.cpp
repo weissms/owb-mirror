@@ -32,9 +32,11 @@
 
 #include "Font.h"
 #include "FontCache.h"
+
 #if ENABLE(SVG_FONTS)
 #include "SVGFontData.h"
 #include "SVGFontFaceElement.h"
+#include "SVGGlyphElement.h"
 #endif
 
 #include <wtf/MathExtras.h>

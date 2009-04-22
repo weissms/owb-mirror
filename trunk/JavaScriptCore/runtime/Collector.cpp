@@ -37,6 +37,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/HashCountedSet.h>
 #include <wtf/UnusedParam.h>
+#include <wtf/VMTags.h>
 
 #if PLATFORM(DARWIN)
 
@@ -45,7 +46,6 @@
 #include <mach/task.h>
 #include <mach/thread_act.h>
 #include <mach/vm_map.h>
-#include <mach/vm_statistics.h>
 
 #elif PLATFORM(WIN_OS)
 
@@ -282,14 +282,9 @@ template <HeapType heapType>
 static NEVER_INLINE CollectorBlock* allocateBlock()
 {
 #if PLATFORM(DARWIN)
-    #if defined(VM_MEMORY_JAVASCRIPT_CORE)
-        #define TAG VM_MAKE_TAG(VM_MEMORY_JAVASCRIPT_CORE)
-    #else
-        #define TAG 0
-    #endif
     vm_address_t address = 0;
     // FIXME: tag the region as a JavaScriptCore heap when we get a registered VM tag: <rdar://problem/6054788>.
-    vm_map(current_task(), &address, BLOCK_SIZE, BLOCK_OFFSET_MASK, VM_FLAGS_ANYWHERE|TAG, MEMORY_OBJECT_NULL, 0, FALSE, VM_PROT_DEFAULT, VM_PROT_DEFAULT, VM_INHERIT_DEFAULT);
+    vm_map(current_task(), &address, BLOCK_SIZE, BLOCK_OFFSET_MASK, VM_FLAGS_ANYWHERE | VM_TAG_FOR_COLLECTOR_MEMORY, MEMORY_OBJECT_NULL, 0, FALSE, VM_PROT_DEFAULT, VM_PROT_DEFAULT, VM_INHERIT_DEFAULT);
 #elif PLATFORM(SYMBIAN)
     // no memory map in symbian, need to hack with fastMalloc
     void* address = fastMalloc(BLOCK_SIZE);

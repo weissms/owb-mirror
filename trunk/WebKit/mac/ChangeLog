@@ -1,3 +1,151 @@
+2009-04-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        - Mac part of fixing for <rdar://problem/6755137> Action dictionary for
+          policy decision is missing keys when full-page zoom is used
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::actionDictionary): Use absoluteLocation() instead
+        of pageX() and pageY(), which are adjusted for zoom.
+
+2009-04-21  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler and Kevin Decker.
+
+        WebKit side of <rdar://problem/6781642>.
+        
+        When we call resize with an actual changed size, block until the plug-in host is done.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::resize):
+        * Plugins/Hosted/WebHostedNetscapePluginView.h:
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView updateAndSetWindow]):
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2009-04-17  Timothy Hatcher  <timothy@apple.com>
+
+        Change how sudden termination works with WebView teardown.
+
+        <rdar://problem/6383352&6383379&6383940>
+
+        Reviewed by Darin Adler.
+
+        * WebCoreSupport/WebChromeClient.h: Remove disableSuddenTermination/enableSuddenTermination.
+        * WebCoreSupport/WebChromeClient.mm: Ditto.
+        * WebView/WebFrame.mm:
+        (-[WebFrame _pendingFrameUnloadEventCount]): Ask the DOMWindow.
+        * WebView/WebView.mm:
+        (+[WebView canCloseAllWebViews]): Call DOMWindow::dispatchAllPendingBeforeUnloadEvents.
+        (+[WebView closeAllWebViews]): Call DOMWindow::dispatchAllPendingUnloadEvents and
+        call close on all the WebViews.
+        (-[WebView _closeWithFastTeardown]): Remove code for unload event dispatch.
+        (-[WebView _close]): Correct a comment.
+        (+[WebView _applicationWillTerminate]): Call closeAllWebViews.
+        * WebView/WebViewPrivate.h: Add canCloseAllWebViews and closeAllWebViews.
+
+2009-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Tiger crash fix: Put VM tags in their own header file, and fixed up the
+        #ifdefs so they're not used on Tiger.
+
+        * ForwardingHeaders/wtf/VMTags.h: Copied from ForwardingHeaders/wtf/HashTraits.h.
+
+2009-04-17  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6722845>
+        In the Cocoa event model, NPWindow's window field should be null
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCConvertPoint):
+        Get the instance proxy and call it's convertPoint function.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::convertPoint):
+        Call convertPoint on the plug-in view.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add PCConvertPoint.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        Add a declaration for convertFromX:andY:space:toX:andY:space:.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView convertFromX:andY:space:toX:andY:space:]):
+        Convert a point from one coordinate system to another.
+        
+        * Plugins/WebNetscapePluginEventHandler.h:
+        * Plugins/WebNetscapePluginEventHandlerCarbon.h:
+        * Plugins/WebNetscapePluginEventHandlerCarbon.mm:
+        (WebNetscapePluginEventHandlerCarbon::drawRect):
+        * Plugins/WebNetscapePluginEventHandlerCocoa.h:
+        Add CGContextRef to drawRect.
+
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::drawRect):
+        Set the passed in context.
+        
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _tryLoad]):
+        Add NPN_ConvertPoint to the browserFuncs vtable.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        Only set the window for the Carbon event model.
+        
+        (-[WebNetscapePluginView restorePortState:]):
+        It's OK for the window context to be null.
+        
+        (-[WebNetscapePluginView sendDrawRectEvent:]):
+        Pass the CGContextRef to drawRect.
+
+        * Plugins/npapi.mm:
+        (NPN_ConvertPoint):
+        Call the plug-in view method.
+
+2009-04-20  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Tim Hatcher.
+
+        Add licenses for xcconfig files.
+        
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/FeatureDefines.xcconfig:
+        * Configurations/Version.xcconfig:
+        * Configurations/WebKit.xcconfig:
+
+2009-04-20  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        WebKit side of <rdar://problem/6781302>
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::keyEvent):
+        Pass the event keyChar.
+        
+        (WebKit::NetscapePluginInstanceProxy::syntheticKeyDownWithCommandModifier):
+        Ditto.
+        
+        (WebKit::NetscapePluginInstanceProxy::flagsChanged):
+        Pass a 0 keyChar.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView flagsChanged:]):
+        Call NetscapePluginInstanceProxy::flagsChanged.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add a keyChar argument.
+
 2009-04-20  Adele Peterson  <adele@apple.com>
 
         Reviewed by Darin Adler.

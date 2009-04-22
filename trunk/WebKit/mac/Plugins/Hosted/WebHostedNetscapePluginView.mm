@@ -143,7 +143,10 @@ extern "C" {
     boundsInWindow.origin.y = borderViewHeight - NSMaxY(boundsInWindow);
     visibleRectInWindow.origin.y = borderViewHeight - NSMaxY(visibleRectInWindow);
 
-    _proxy->resize(boundsInWindow, visibleRectInWindow);
+    BOOL sizeChanged = !NSEqualSizes(_previousSize, boundsInWindow.size);
+    _previousSize = boundsInWindow.size;
+    
+    _proxy->resize(boundsInWindow, visibleRectInWindow, sizeChanged);
 }
 
 - (void)windowFocusChanged:(BOOL)hasFocus
@@ -292,6 +295,12 @@ extern "C" {
 {
     if (_isStarted && _proxy)
         _proxy->keyEvent(self, event, NPCocoaEventKeyUp);
+}
+
+- (void)flagsChanged:(NSEvent *)event
+{
+    if (_isStarted && _proxy)
+        _proxy->flagsChanged(event);
 }
 
 - (void)sendModifierEventWithKeyCode:(int)keyCode character:(char)character

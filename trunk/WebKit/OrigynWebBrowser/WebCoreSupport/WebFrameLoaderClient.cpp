@@ -45,9 +45,6 @@
 #include "WebMutableURLRequest.h"
 #include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
-#if ENABLE(INSPECTOR)
-#include "WebScriptDebugServer.h"
-#endif
 #include "WebURLAuthenticationChallenge.h"
 #include "WebURLResponse.h"
 #include "WebView.h"

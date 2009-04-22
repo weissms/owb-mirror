@@ -8168,6 +8168,14 @@
 				RelativePath="..\html\VoidCallback.h"
 				>
 			</File>
+			<File
+				RelativePath="..\dom\XMLTokenizerScope.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\XMLTokenizerScope.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="bindings"
