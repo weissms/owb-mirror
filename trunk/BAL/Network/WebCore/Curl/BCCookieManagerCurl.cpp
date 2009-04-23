@@ -24,15 +24,11 @@
  */
 
 #include "config.h"
-
 #include "CookieManager.h"
 
-#include "Logging.h"
+#include "CookieDatabaseBackingStore.h"
 #include "CurrentTime.h"
-
-#if ENABLE(DATABASE)
-#include "SQLiteStatement.h"
-#endif
+#include "Logging.h"
 
 namespace WebCore {
 
@@ -151,7 +147,7 @@ String CookieManager::getCookie(const KURL& url)
                     LOG(Network, "Cookie name: %s value: %s path: %s  expired", curCookie->name().ascii().data(), curCookie->value().ascii().data(), curCookie->path().ascii().data());
                     curMap.take(itCookie->first);
 #if ENABLE(DATABASE)
-                    removeCookieFromDatabase(curCookie);
+                    cookieDatabaseBackingStore().remove(curCookie);
 #endif
                     removedCookie();
                     delete curCookie;
@@ -176,7 +172,7 @@ void CookieManager::removeAllCookies(bool shouldRemoveFromDatabase)
         for (HashMap<String, Cookie*>::iterator itCookie = curMap.begin(); itCookie != curMap.end(); ++itCookie) {
 #if ENABLE(DATABASE)
             if (shouldRemoveFromDatabase && !itCookie->second->isSession())
-                removeCookieFromDatabase(itCookie->second);
+                cookieDatabaseBackingStore().remove(itCookie->second);
 #endif
             delete itCookie->second;
         }
@@ -205,7 +201,7 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
             Cookie* prevCookie = curMap->takePrevious(cookie);
             if (prevCookie) {
 #if ENABLE(DATABASE)
-                removeCookieFromDatabase(cookie);
+                cookieDatabaseBackingStore().remove(cookie);
 #endif
                 removedCookie();
                 delete cookie;
@@ -236,7 +232,7 @@ void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
     if (!map->canInsertCookie() || m_count >= max_count) {
         Cookie* rmCookie = map->removeOldestCookie();
 #if ENABLE(DATABASE)
-        removeCookieFromDatabase(rmCookie);
+        cookieDatabaseBackingStore().remove(rmCookie);
 #endif
         removedCookie();
         delete rmCookie;
@@ -246,7 +242,7 @@ void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
 #if ENABLE(DATABASE)
     // Only add non session cookie to the database.
     if (!cookie->isSession())
-        insertCookieIntoDatabase(cookie);
+        cookieDatabaseBackingStore().insert(cookie);
 #endif
     m_count++;
 }
@@ -256,50 +252,19 @@ void CookieManager::update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie
     ASSERT(!map->takePrevious(prevCookie));
     map->add(newCookie);
 #if ENABLE(DATABASE)
-    updateDatabaseEntry(newCookie);
+    cookieDatabaseBackingStore().update(newCookie);
 #endif
 }
 
 #if ENABLE(DATABASE)
 void CookieManager::getDatabaseCookies()
 {
-    if (!m_db.isOpen() && !m_db.open(m_cookieJarFileName)) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
+    Vector<Cookie*> cookies = cookieDatabaseBackingStore().getAllCookies();
 
-    // Check that the database is correctly initialized.
-    if (!m_db.tableExists(String("cookies"))) {
-        m_db.close();
-        return;
-    }
+    for (size_t i = 0; i < cookies.size(); ++i) {
+        Cookie* newCookie = cookies[i];
 
-    // Problem if the database is not connected
-    SQLiteStatement select(m_db, "SELECT name, value, host, path, expiry, lastAccessed, isSecure FROM cookies;");
-
-    if (select.prepare()) {
-        LOG_ERROR("Cannot retrieved cookies in the database");
-        return;
-    }
-
-    while (select.step() == SQLResultRow) {
-        // There is a row to fetch
-
-        String name, value, domain, path;
-        double expiry, lastAccessed;
-        bool isSecure;
-
-        name = select.getColumnText(0);
-        value = select.getColumnText(1);
-        domain = select.getColumnText(2);
-        path = select.getColumnText(3);
-        expiry = select.getColumnDouble(4);
-        lastAccessed = select.getColumnDouble(5);
-        isSecure = (select.getColumnInt(6) != 0);
-
-        Cookie* newCookie = new Cookie(name, value, domain, path, expiry, lastAccessed, isSecure);
-
-        if (expiry > currentTime()) {
+        if (newCookie->expiry() > currentTime()) {
 
             CookieMap* curMap = m_managerMap.get(newCookie->domain());
             if (!curMap) {
@@ -310,101 +275,9 @@ void CookieManager::getDatabaseCookies()
             curMap->add(newCookie);
             m_count++;
         } else {
-#if ENABLE(DATABASE)
-            removeCookieFromDatabase(newCookie);
-#endif
+            cookieDatabaseBackingStore().remove(newCookie);
             delete newCookie;
         }
-    }
-}
-
-// We have to be careful as we do not know if the entry already existed, which could induce m_count leaks
-void CookieManager::insertCookieIntoDatabase(const Cookie* cookie)
-{
-    if (!m_db.isOpen() && !m_db.open(m_cookieJarFileName)) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
-
-    if (!m_db.tableExists(String("cookies")))
-        // Mozilla uses isHttpOnly which is not included as we do not use it
-        m_db.executeCommand(String("CREATE TABLE cookies (name TEXT, value TEXT, host TEXT, path TEXT, expiry DOUBLE, lastAccessed DOUBLE, isSecure INTEGER);"));
-
-    SQLiteStatement insert(m_db, String("INSERT INTO cookies (name, value, host, path, expiry, lastAccessed, isSecure) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);"));
-
-    if (insert.prepare()) {
-        LOG_ERROR("Cannot save cookie");
-        return;
-    }
-
-    // Binds all the values
-    if (insert.bindText(1, cookie->name()) || insert.bindText(2, cookie->value()) || insert.bindText(3, cookie->domain()) || insert.bindText(4, cookie->path()) || insert.bindDouble(5, cookie->expiry()) || insert.bindDouble(6, cookie->lastAccessed()) || insert.bindInt64(7, cookie->isSecure())) {
-        LOG_ERROR("Cannot save cookie");
-        return;
-    }
-
-    if (!insert.executeCommand()) {
-        LOG_ERROR("Cannot save cookie");
-        return;
-    }
-}
-
-void CookieManager::updateDatabaseEntry(const Cookie* cookie)
-{
-    if (!m_db.isOpen() && !m_db.open(m_cookieJarFileName)) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
-
-    ASSERT(m_db.tableExists(String("cookies")));
-
-    // the where statement is chosen to match CookieMap key
-    SQLiteStatement update(m_db, String("UPDATE cookies SET name = ?1, value = ?2, host = ?3, path = ?4, expiry = ?5, lastAccessed = ?6, isSecure = ?7 where name = ?1 and host = ?3 and path = ?4;"));
-
-    if (update.prepare()) {
-        LOG_ERROR("Cannot update cookie");
-        return;
-    }
-
-    // Binds all the values
-    if (update.bindText(1, cookie->name()) || update.bindText(2, cookie->value()) || update.bindText(3, cookie->path()) || update.bindText(4, cookie->domain()) || update.bindDouble(5, cookie->expiry()) || update.bindDouble(6, cookie->lastAccessed()) || update.bindInt64(7, cookie->isSecure())) {
-        LOG_ERROR("Cannot update cookie");
-        return;
-    }
-
-    if (!update.executeCommand()) {
-        LOG_ERROR("Cannot update cookie");
-        return;
-    }
-}
-
-void CookieManager::removeCookieFromDatabase(const Cookie* cookie)
-{
-    if (!m_db.isOpen() && !m_db.open(m_cookieJarFileName)) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
-
-    if(!m_db.tableExists(String("cookies")))
-        return;
-
-    // the where statement is chosen to match CookieMap key
-    SQLiteStatement deleteStmt(m_db, String("DELETE FROM cookies WHERE name=?1 and host=?2 and path=?3;"));
-
-    if (deleteStmt.prepare()) {
-        LOG_ERROR("Cannot delete cookie");
-        return;
-    }
-
-    // Binds all the values
-    if (deleteStmt.bindText(1, cookie->name()) || deleteStmt.bindText(2, cookie->domain()) || deleteStmt.bindText(3, cookie->path())) {
-        LOG_ERROR("Cannot delete cookie");
-        return;
-    }
-
-    if (!deleteStmt.executeCommand()) {
-        LOG_ERROR("Cannot delete cookie from database");
-        return;
     }
 }
 

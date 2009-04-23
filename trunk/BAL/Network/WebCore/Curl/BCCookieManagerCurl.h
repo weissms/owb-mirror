@@ -34,10 +34,6 @@
 #include "PlatformString.h"
 #include <wtf/HashMap.h>
 
-#if ENABLE(DATABASE)
-#include "SQLiteDatabase.h"
-#endif
-
 namespace WebCore {
 
 class CookieManager {
@@ -54,6 +50,7 @@ public:
     unsigned short cookiesCount() { return m_count; }
 
     void setCookieJar(const char *);
+    const String& cookieJar() { return m_cookieJarFileName; }
 
     ~CookieManager();
 
@@ -80,15 +77,9 @@ private:
     String m_cookieJarFileName;
 
 #if ENABLE(DATABASE)
-    // Internal database manipulation methods
-    void insertCookieIntoDatabase(const Cookie* cookie);
-    void updateDatabaseEntry(const Cookie* cookie);
-    void removeCookieFromDatabase(const Cookie* cookie);
-
-    void getDatabaseCookies();
-
-    SQLiteDatabase m_db;
-#endif
+    // FIXME: This method should be removed.
+    void getDatabaseCookies();    
+#endif // ENABLE(DATABASE)
 
     // Constants
     static const int max_count = 300;

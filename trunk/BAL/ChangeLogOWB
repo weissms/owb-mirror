@@ -1,3 +1,29 @@
+2009-04-22  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Factor the CookieManager's database handling to its own class:
+        CookieDatabaseBackingStore.
+
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp: Added.
+        (WebCore::cookieDatabaseBackingStore):
+        (WebCore::CookieDatabaseBackingStore::CookieDatabaseBackingStore):
+        (WebCore::CookieDatabaseBackingStore::~CookieDatabaseBackingStore):
+        (WebCore::CookieDatabaseBackingStore::insert):
+        (WebCore::CookieDatabaseBackingStore::update):
+        (WebCore::CookieDatabaseBackingStore::remove):
+        (WebCore::CookieDatabaseBackingStore::getAllCookies):
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h: Added.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::getCookie): Updated to call the
+        CookieDatabaseBackingStore.
+        (WebCore::CookieManager::removeAllCookies): Ditto.
+        (WebCore::CookieManager::checkAndTreatCookie): Ditto.
+        (WebCore::CookieManager::addCookieToMap): Ditto.
+        (WebCore::CookieManager::update): Ditto.
+        (WebCore::CookieManager::getDatabaseCookies): Ditto.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+
 2009-04-17  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.
