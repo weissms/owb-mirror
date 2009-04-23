@@ -62,7 +62,7 @@ CookieManager::~CookieManager()
         delete it->second;
 }
 
-bool CookieManager::is_cookie_sep(UChar c)
+static bool isCookieHeaderSeparator(UChar c)
 {
     return (c == '\r' || c =='\n');
 }
@@ -78,7 +78,7 @@ void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const Str
         cookieStart = cookieEnd;
 
         // Find a cookie separator.
-        while (cookieEnd <= value.length() && !is_cookie_sep(value[cookieEnd]))
+        while (cookieEnd <= value.length() && !isCookieHeaderSeparator(value[cookieEnd]))
             cookieEnd++;
 
         Cookie* cookie = Cookie::parse(url, value, cookieStart, cookieEnd - 1, curTime);

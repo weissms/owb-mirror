@@ -34,7 +34,7 @@
 
 namespace WebCore {
 
-bool Cookie::is_lws(UChar c)
+static bool isLightweightSpace(UChar c)
 {
    return (c == ' ' || c == '\t');
 }
@@ -69,11 +69,11 @@ Cookie* Cookie::parse(const KURL& url, const String& cookie, unsigned start, uns
         // There is a '=' so parse the NAME
         unsigned nameEnd = tokenEnd;
 
-        // Remove LWS
-        while (nameEnd && is_lws(cookie[nameEnd]))
+        // Remove lightweight spaces.
+        while (nameEnd && isLightweightSpace(cookie[nameEnd]))
             nameEnd--;
 
-        while (tokenStart < nameEnd && is_lws(cookie[tokenStart]))
+        while (tokenStart < nameEnd && isLightweightSpace(cookie[tokenStart]))
             tokenStart++;
 
         if (nameEnd == tokenStart) {
@@ -89,12 +89,12 @@ Cookie* Cookie::parse(const KURL& url, const String& cookie, unsigned start, uns
     // Now parse the VALUE
     tokenStart = tokenEnd + 1;
 
-    // Skip LWS in our token
-    while (tokenStart < pairEnd && is_lws(cookie[tokenStart]))
+    // Skip lightweight spaces in our token
+    while (tokenStart < pairEnd && isLightweightSpace(cookie[tokenStart]))
         tokenStart++;
 
     tokenEnd = pairEnd;
-    while (tokenEnd > tokenStart && is_lws(cookie[tokenEnd]))
+    while (tokenEnd > tokenStart && isLightweightSpace(cookie[tokenEnd]))
         tokenEnd--;
 
     String value;
@@ -107,9 +107,9 @@ Cookie* Cookie::parse(const KURL& url, const String& cookie, unsigned start, uns
     res->setValue(value);
 
     while (pairEnd < end) {
-        // Switch to the next pair as pairEnd is on the ';' and fast-forward any LWS
+        // Switch to the next pair as pairEnd is on the ';' and fast-forward any lightweight spaces.
         pairEnd++;
-        while (pairEnd < end && is_lws(cookie[pairEnd]))
+        while (pairEnd < end && isLightweightSpace(cookie[pairEnd]))
             pairEnd++;
 
         tokenStart = pairEnd;
@@ -121,20 +121,20 @@ Cookie* Cookie::parse(const KURL& url, const String& cookie, unsigned start, uns
             pairEnd++;
         }
 
-        // FIXME : should I skip LWS ?
+        // FIXME : should we skip lightweight spaces here ?
 
         unsigned length = tokenEnd - tokenStart;
         unsigned tokenStartSvg = tokenStart;
 
         String parsedValue;
         if (tokenStart != tokenEnd) {
-            // There is an equal sign so remove LWS in VALUE
+            // There is an equal sign so remove lightweight spaces in VALUE
             tokenStart = tokenEnd + 1;
-            while (tokenStart < pairEnd && is_lws(cookie[tokenStart]))
+            while (tokenStart < pairEnd && isLightweightSpace(cookie[tokenStart]))
                 tokenStart++;
 
             tokenEnd = pairEnd;
-            while (tokenEnd > tokenStart && is_lws(cookie[tokenEnd]))
+            while (tokenEnd > tokenStart && isLightweightSpace(cookie[tokenEnd]))
                 tokenEnd--;
 
             parsedValue = cookie.substring(tokenStart, tokenEnd - tokenStart);

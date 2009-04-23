@@ -57,8 +57,6 @@ public:
 private:
     CookieManager();
 
-    inline bool is_cookie_sep(UChar c);
-
     void checkAndTreatCookie(Cookie* cookie);
 
     bool shouldReject(const Cookie* cookie, const KURL& url);

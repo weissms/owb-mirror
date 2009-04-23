@@ -96,8 +96,6 @@ private:
 
     bool m_isSession;
 
-    static inline bool is_lws(UChar c);
-
     // to manage LRU replacement policy
     double m_lastAccessed;
 
