@@ -59,7 +59,7 @@ public:
     // Return Cookie to remove it from the database in the CookieManager
     Cookie* removeOldestCookie();
 
-    HashMap<String, Cookie*> getCookieMap() { return m_cookieMap; }
+    HashMap<String, Cookie*>& getCookieMap() { return m_cookieMap; }
 
 private:
 

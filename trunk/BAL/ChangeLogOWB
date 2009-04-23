@@ -1,3 +1,14 @@
+2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Fix a potential crasher if we removed a cookie from the
+        HashMap *copy*. Now we return a reference to it which solves the issue.
+        In the long run, we should remove the code that relies on CookieMap internals.
+
+        * Network/WebCore/Curl/BCCookieMapCurl.h:
+        (WebCore::CookieMap::getCookieMap):
+
 2009-04-22  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
