@@ -71,6 +71,7 @@ namespace WebCore {
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;
     typedef WebCore::FloatSize GlyphBufferAdvance;
+    typedef void* PlatformCursorHandle;
 }
 
 #endif

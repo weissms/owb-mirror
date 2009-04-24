@@ -722,6 +722,23 @@ using namespace WebCore;
     return TRUE;
 }
 
+
+- (uint32)checkIfAllowedToLoadURL:(const char*) url frame:(const char*) frame callbackFunc:(void (*)(NPP npp, uint32 checkID, NPBool allowed))callbackFunc
+{
+    // Not yet implemented
+    return 0;
+}
+
+- (void)cancelCheckIfAllowedToLoadURL:(uint32)checkID
+{
+    // Not yet implemented
+}
+   
+- (void)_webPluginContainerCancelCheckIfAllowedToLoadRequest:(id)checkIdentifier
+{
+  // Not yet implemented   
+}
+
 @end
 
 namespace WebKit {
@@ -827,7 +844,7 @@ bool getAuthenticationInfo(const char* protocolStr, const char* hostStr, int32_t
     
     return true;
 }
-
+    
 } // namespace WebKit
 
 #endif //  ENABLE(NETSCAPE_PLUGIN_API)

@@ -398,6 +398,12 @@ void Chrome::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> fileChooser)
 {
     m_client->runOpenPanel(frame, fileChooser);
 }
+
+bool Chrome::setCursor(PlatformCursorHandle cursor)
+{
+    return m_client->setCursor(cursor);
+}
+
 // --------
 
 #if ENABLE(DASHBOARD_SUPPORT)

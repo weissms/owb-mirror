@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2009 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,41 +26,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <WebKit/WebBasePluginPackage.h>
-#import "WebPluginContainerCheck.h"
+#ifndef WebNetscapeContainerCheckPrivate_h
+#define WebNetscapeContainerCheckPrivate_h
 
-@class WebFrame;
-@class WebHTMLView;
-@class WebPluginPackage;
-@class WebView;
-@class WebDataSource;
+#include <WebKit/npapi.h>
 
-@interface WebPluginController : NSObject <WebPluginManualLoader, WebPluginContainerCheckController>
-{
-    NSView *_documentView;
-    WebDataSource *_dataSource;
-    NSMutableArray *_views;
-    BOOL _started;
-    NSMutableSet *_checksInProgress;
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#define WKNVBrowserContainerCheckFuncs 1701
+
+typedef uint32 (*WKN_CheckIfAllowedToLoadURLProcPtr)(NPP npp, const char* url, const char* frame, void (*callbackFunc)(NPP npp, uint32, NPBool allowed));
+typedef void  (*WKN_CancelCheckIfAllowedToLoadURLProcPtr)(NPP npp, uint32);
+
+uint32 WKN_CheckIfAllowedToLoadURL(NPP npp, const char* url, const char* frame, void (*callbackFunc)(NPP npp, uint32, NPBool allowed));
+void WKN_CancelCheckIfAllowedToLoadURL(NPP npp, uint32);
+
+typedef struct _WKNBrowserContainerCheckFuncs {
+    uint16 size;
+    uint16 version;
+    
+    WKN_CheckIfAllowedToLoadURLProcPtr checkIfAllowedToLoadURL;
+    WKN_CancelCheckIfAllowedToLoadURLProcPtr cancelCheckIfAllowedToLoadURL;
+} WKNBrowserContainerCheckFuncs;
+
+#ifdef __cplusplus
 }
+#endif
 
-+ (NSView *)plugInViewWithArguments:(NSDictionary *)arguments fromPluginPackage:(WebPluginPackage *)plugin;
-+ (BOOL)isPlugInView:(NSView *)view;
-
-- (id)initWithDocumentView:(NSView *)view;
-
-- (void)setDataSource:(WebDataSource *)dataSource;
-
-- (void)addPlugin:(NSView *)view;
-- (void)destroyPlugin:(NSView *)view;
-
-- (void)startAllPlugins;
-- (void)stopAllPlugins;
-- (void)destroyAllPlugins;
-
-- (WebFrame *)webFrame;
-- (WebView *)webView;
-
-- (NSString *)URLPolicyCheckReferrer;
-
-@end
+#endif // WebNetscapeContainerCheckPrivate_h

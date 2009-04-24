@@ -192,6 +192,7 @@ void QNetworkReplyHandler::abort()
     if (m_reply) {
         QNetworkReply* reply = release();
         reply->abort();
+        reply->deleteLater();
         deleteLater();
     }
 }

@@ -92,7 +92,7 @@ public:
             return where;
         }
 
-        unsigned term;
+        int term;
         unsigned matchBegin;
         unsigned matchEnd;
         uintptr_t frame[1];
@@ -776,7 +776,6 @@ public:
     bool matchParentheses(ByteTerm& term, DisjunctionContext* context)
     {
         ASSERT(term.type == ByteTerm::TypeParenthesesSubpattern);
-        ASSERT(term.atom.quantityCount > 1);
 
         BackTrackInfoParentheses* backTrack = reinterpret_cast<BackTrackInfoParentheses*>(context->frame + term.frameLocation);
 
@@ -852,7 +851,6 @@ public:
     bool backtrackParentheses(ByteTerm& term, DisjunctionContext* context)
     {
         ASSERT(term.type == ByteTerm::TypeParenthesesSubpattern);
-        ASSERT(term.atom.quantityCount > 1);
 
         BackTrackInfoParentheses* backTrack = reinterpret_cast<BackTrackInfoParentheses*>(context->frame + term.frameLocation);
 
@@ -1079,7 +1077,7 @@ public:
         while (true) {
             do {
                 ++context->term;
-                ASSERT(context->term < disjunction->terms.size());
+                ASSERT(context->term < static_cast<int>(disjunction->terms.size()));
                 if (disjunction->terms[context->term].type == ByteTerm::TypePatternEnd)
                     return true;
             } while (matchTerm(disjunction, context));
@@ -1437,7 +1435,7 @@ public:
 
                 case PatternTerm::TypeParenthesesSubpattern: {
                     unsigned disjunctionAlreadyCheckedCount = 0;
-                    if (term.quantityCount == 1) {
+                    if ((term.quantityCount == 1) && !term.parentheses.isCopy) {
                         if (term.quantityType == QuantifierFixedCount) {
                             disjunctionAlreadyCheckedCount = term.parentheses.disjunction->m_minimumSize;
                             unsigned delegateEndInputOffset = term.inputPosition - currentCountAlreadyChecked;

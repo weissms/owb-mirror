@@ -1,3 +1,34 @@
+2009-04-24  Ada Chan  <adachan@apple.com>
+
+        <rdar://problem/5115298> Don't get error msg when download is interrupted and cannot resume due to server unavailability
+        If we fail to get an error description back from CFNetwork, try to get the localized description
+        based on the error code.
+
+        Reviewed by Darin Adler.
+
+        * WebError.cpp:
+        (WebError::localizedDescription):
+
+2009-04-21  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Allow the UI delegate to control cursor-setting.
+
+        Reviewed by Ada Chan.
+
+        * Interfaces/IWebUIDelegatePrivate.idl:
+        Added a function to the IWebUIDelegatePrivate5 interface.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::setCursor):
+        Try to call the UI delegate's webViewSetCursor() method. If it fails,
+        fall back to calling SetCursor() with the passed cursor.
+
+        * WebCoreSupport/WebChromeClient.h:
+
+        * WebView.cpp:
+        (WebViewWndProc):
+        Call the Chrome's setCursor() method with the last set cursor.
+
 2009-04-22  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Jon Honeycutt.

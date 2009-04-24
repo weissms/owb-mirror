@@ -533,6 +533,12 @@ void WebChromeClient::runOpenPanel(Frame*, PassRefPtr<FileChooser> prpFileChoose
 
 }
 
+bool WebChromeClient::setCursor(WebCore::PlatformCursorHandle cursor)
+{
+    //FIXME: implement me!
+    return false;
+}
+
 IntPoint WebChromeClient::screenToWindow(const WebCore::IntPoint& p) const 
 {
     return p;

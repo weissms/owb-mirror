@@ -1,3 +1,162 @@
+2009-04-24  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <rdar://problem/6333461> REGRESSION (r36864-r36869): 
+        Dragging stocks widget scrollbar drags the whole widget
+
+        Look for our new WebCore scrollbars in the WebHTMLView and add 
+        proper Dashboard regions for them.
+
+        * WebView/WebView.mm:
+        (-[WebView _addScrollerDashboardRegionsForFrameView:dashboardRegions:]):
+        (-[WebView _addScrollerDashboardRegions:from:]):
+
+2009-04-23  John Sullivan  <sullivan@apple.com>
+
+        fixed <rdar://problem/6822479> Assertion failure after Reset Safari in new history-writing code
+
+        Reviewed by Oliver Hunt
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate data]):
+        Return nil immediately if there are no entries; this matches a recent Windows-platform fix.
+
+2009-04-23  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25313
+        Missing scroll bars in GMail.
+
+        * WebView/WebDynamicScrollBarsView.m:
+        (-[WebDynamicScrollBarsView updateScrollers]): Added check for the ScrollbarAlwaysOn
+            scroll mode.
+
+2009-04-23  Kevin Decker  <kdecker@apple.com>
+
+        * Plugins/WebPluginContainerCheck.h: Fix the Tiger build.
+
+2009-04-23  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix <rdar://problem/6821992>
+
+        Add a new m_inDestroy member variable. Set it to true when in destroy, and have all NPRuntime functions return false
+        when m_inDestroy is true.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::destroy):
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::invokeDefault):
+        (WebKit::NetscapePluginInstanceProxy::construct):
+        (WebKit::NetscapePluginInstanceProxy::getProperty):
+        (WebKit::NetscapePluginInstanceProxy::setProperty):
+        (WebKit::NetscapePluginInstanceProxy::removeProperty):
+        (WebKit::NetscapePluginInstanceProxy::hasProperty):
+        (WebKit::NetscapePluginInstanceProxy::hasMethod):
+        (WebKit::NetscapePluginInstanceProxy::enumerate):
+
+2009-04-23  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Maciej.
+
+        Fix for <rdar://problem/6789879> REGRESSION (42464): Hitting assertion when loading message in Mail + TOT WebKit
+        
+        Make the Mac platform the same as all the other platforms.  Instead of (incorrectly) marking a FrameView for layout
+        when its underlying document view changes, just mark the outermost frame view for layout when the WebView's size changes.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _frameOrBoundsChanged]):
+        (-[WebHTMLView addSuperviewObservers]):
+        * WebView/WebView.mm:
+        (-[WebView _boundsChanged]):
+        (-[WebView removeSizeObservers]):
+        (-[WebView addSizeObservers]):
+
+2009-04-23  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Second part of the fix for <rdar://problem/6352982>
+
+        * Plugins/WebBaseNetscapePluginView.h: Make this class conform to WebPluginContainerCheckController
+        * Plugins/WebBaseNetscapePluginView.mm: Likewise.
+        (-[WebBaseNetscapePluginView _webPluginContainerCancelCheckIfAllowedToLoadRequest:]): Added skeleton method.
+        * Plugins/WebPluginContainerCheck.h: Added protocol for <WebPluginContainerCheckController>
+        * Plugins/WebPluginContainerCheck.mm:
+        (-[WebPluginContainerCheck initWithRequest:target:resultObject:selector:controller:]):
+        * Plugins/WebPluginController.h: Make this class conform to WebPluginContainerCheckController
+
+2009-04-23  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+        
+        First part of <rdar://problem/6352982>
+
+        * Plugins/WebBaseNetscapePluginView.h: Imported #WebNetscapeContainerCheckPrivate.h; Added two new method:
+        checkIfAllowedToLoadURL:url:frame:callbackFunc: and cancelCheckIfAllowedToLoadURL:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView checkIfAllowedToLoadURL:frame:callbackFunc:]): Added skeleton method, does nothing interesting
+        yet.
+        (-[WebBaseNetscapePluginView cancelCheckIfAllowedToLoadURL:]): Likewise.
+        * Plugins/WebNetscapeContainerCheckPrivate.h: Added.
+        * Plugins/WebNetscapeContainerCheckPrivate.mm: Added.
+        (browserContainerCheckFuncs): Added. 
+        * Plugins/WebNetscapePluginView.h: Imported #WebNetscapeContainerCheckPrivate.h;
+        * Plugins/WebNetscapePluginView.mm: Imported #WebNetscapeContainerCheckPrivate.h; added WKN_CheckIfAllowedToLoadURL
+        and WKN_CancelCheckIfAllowedToLoadURL functions.
+        (-[WebNetscapePluginView getVariable:value:]): Return vtable for container check functions.
+        * Plugins/npapi.mm:
+        (WKN_CheckIfAllowedToLoadURL): Added new private function.
+        (WKN_CancelCheckIfAllowedToLoadURL): Ditto.
+
+2009-04-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6757346> SAP: Prevent default on mouseDown does not stop iframe from capturing subsequent mouse moves
+        
+        Make mouseUP forward to the root view as we do for mouseMoves and mouseDragged:.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView mouseUp:]):
+
+2009-04-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6757346> SAP: Prevent default on mouseDown does not stop iframe from capturing subsequent mouse moves
+        
+        Make mouseDragged forward to the root view as we do for mouseMoves.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView mouseDragged:]):
+
+2009-04-22  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix <rdar://problem/6792694>
+        
+        When we're trying to instantiate a plug-in and the plug-in host has died, we need to invalidate the
+        instance so that it doesn't stick around and do bad things.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+
+2009-04-22  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Fix for <rdar://problem/6816957>
+        Turn off Geolocation by default
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2009-04-22  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Jon Honeycutt.

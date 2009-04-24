@@ -32,10 +32,12 @@ if(ENABLE_NPAPI)
 
     if(USE_GRAPHICS_QT)
         list(APPEND WEBCORE_SRC
+            plugins/qt/PluginContainerQt.cpp
             plugins/qt/PluginPackageQt.cpp
             plugins/qt/PluginDataQt.cpp
             plugins/qt/PluginViewQt.cpp
         )
+        owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/WebCore/plugins/qt/PluginContainerQt.h moc_PluginContainerQt.cpp)
     endif(USE_GRAPHICS_QT)
 
     if(USE_GRAPHICS_SDL)

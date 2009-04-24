@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2009 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,41 +26,18 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <WebKit/WebBasePluginPackage.h>
-#import "WebPluginContainerCheck.h"
+#import "WebNetscapeContainerCheckPrivate.h"
 
-@class WebFrame;
-@class WebHTMLView;
-@class WebPluginPackage;
-@class WebView;
-@class WebDataSource;
+#import "WebNetscapePluginView.h"
 
-@interface WebPluginController : NSObject <WebPluginManualLoader, WebPluginContainerCheckController>
+WKNBrowserContainerCheckFuncs *browserContainerCheckFuncs()
 {
-    NSView *_documentView;
-    WebDataSource *_dataSource;
-    NSMutableArray *_views;
-    BOOL _started;
-    NSMutableSet *_checksInProgress;
+    static WKNBrowserContainerCheckFuncs funcs = {
+        sizeof(WKNBrowserContainerCheckFuncs),
+        0,
+        WKN_CheckIfAllowedToLoadURL,
+        WKN_CancelCheckIfAllowedToLoadURL
+    };
+    
+    return &funcs;
 }
-
-+ (NSView *)plugInViewWithArguments:(NSDictionary *)arguments fromPluginPackage:(WebPluginPackage *)plugin;
-+ (BOOL)isPlugInView:(NSView *)view;
-
-- (id)initWithDocumentView:(NSView *)view;
-
-- (void)setDataSource:(WebDataSource *)dataSource;
-
-- (void)addPlugin:(NSView *)view;
-- (void)destroyPlugin:(NSView *)view;
-
-- (void)startAllPlugins;
-- (void)stopAllPlugins;
-- (void)destroyAllPlugins;
-
-- (WebFrame *)webFrame;
-- (WebView *)webView;
-
-- (NSString *)URLPolicyCheckReferrer;
-
-@end

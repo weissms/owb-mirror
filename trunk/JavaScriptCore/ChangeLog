@@ -1,3 +1,225 @@
+2009-04-24  Mark Rowe  <mrowe@apple.com>
+
+        With great sadness and a heavy heart I switch us back from YARR to WREC in
+        order to restore greenness to the world once more.
+
+        * wtf/Platform.h:
+
+2009-04-23  Mark Rowe  <mrowe@apple.com>
+
+        More Windows build fixage.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-04-23  Mark Rowe  <mrowe@apple.com>
+
+        Attempt to fix the Windows build.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:  Remove a symbol that no longer exists.
+
+2009-04-23  Francisco Tolmasky  <francisco@280north.com>
+
+        BUG 24604: WebKit profiler reports incorrect total times
+        <https://bugs.webkit.org/show_bug.cgi?id=24604>
+
+        Reviewed by Timothy Hatcher and Kevin McCullough.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * profiler/CallIdentifier.h:
+        (JSC::CallIdentifier::Hash::hash):
+        (JSC::CallIdentifier::Hash::equal):
+        (JSC::CallIdentifier::hash):
+        (WTF::):
+        * profiler/HeavyProfile.cpp: Removed.
+        * profiler/HeavyProfile.h: Removed.
+        * profiler/Profile.cpp: No more need for TreeProfile/HeavyProfile
+        (JSC::Profile::create):
+        * profiler/Profile.h:
+        * profiler/ProfileNode.cpp:
+        * profiler/ProfileNode.h:
+        * profiler/TreeProfile.cpp: Removed.
+        * profiler/TreeProfile.h: Removed.
+
+2009-04-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Not Reviewed.
+
+        Speculative Windows build fix II.
+
+        * yarr/RegexInterpreter.cpp:
+
+2009-04-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Not Reviewed.
+
+        Speculative Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * runtime/RegExp.cpp:
+
+2009-04-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by salty sea dogs Sam & Geoff.
+
+        Enable YARR_JIT by default (where supported), replacing WREC.
+
+        * wtf/Platform.h:
+
+2009-04-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff "Dread Pirate Roberts" Garen.
+
+        Various small fixes to YARR JIT, in preparation for enabling it by default.
+
+        * Correctly index into the callframe when storing restart addresses for
+          nested alternatives.
+        * Allow backtracking back into matched alternatives of parentheses.
+        * Fix callframe offset calculation for parenthetical assertions.
+        * When a set of parenthese are quantified with a fixed and variable portion,
+          and the variable portion is quantified once, this should not reset the
+          pattern match on failure to match (the last match from the firxed portion
+          should be preserved).
+        * Up the pattern size limit to match PCRE's new limit.
+        * Unlclosed parentheses should be reported with the message "missing )".
+
+        * wtf/Platform.h:
+        * yarr/RegexCompiler.cpp:
+        (JSC::Yarr::RegexPatternConstructor::quantifyAtom):
+        (JSC::Yarr::RegexPatternConstructor::setupAlternativeOffsets):
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::matchParentheses):
+        (JSC::Yarr::Interpreter::backtrackParentheses):
+        (JSC::Yarr::ByteCompiler::emitDisjunction):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::loadFromFrameAndJump):
+        (JSC::Yarr::RegexGenerator::generateParenthesesDisjunction):
+        (JSC::Yarr::RegexGenerator::generateParentheticalAssertion):
+        (JSC::Yarr::RegexGenerator::generateTerm):
+        (JSC::Yarr::executeRegex):
+        * yarr/RegexParser.h:
+        (JSC::Yarr::Parser::):
+        (JSC::Yarr::Parser::parseTokens):
+        (JSC::Yarr::Parser::parse):
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::PatternTerm::):
+        (JSC::Yarr::PatternTerm::PatternTerm):
+
+2009-04-22  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Gavin Barraclough.
+
+        Add the m_ prefix on FixedVMPoolAllocator's member variables, and fix typos in a few comments.
+
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::addToFreeList):
+        (JSC::FixedVMPoolAllocator::coalesceFreeSpace):
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        (JSC::FixedVMPoolAllocator::alloc):
+        (JSC::FixedVMPoolAllocator::free):
+        (JSC::FixedVMPoolAllocator::isWithinVMPool):
+
+2009-04-22  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Gavin Barraclough.
+
+        Add some assertions to FixedVMPoolAllocator to guard against cases where we
+        attempt to free memory that didn't originate from the pool, or we attempt to
+        hand out a bogus address from alloc.
+
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::release):
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        (JSC::FixedVMPoolAllocator::alloc):
+        (JSC::FixedVMPoolAllocator::free):
+        (JSC::FixedVMPoolAllocator::isWithinVMPool):
+
+2009-04-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam "Blackbeard" Weinig.
+
+        Although pirates do spell the word 'generate' as 'genertate',
+        webkit developers do not.  Fixerate.
+
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateAssertionBOL):
+        (JSC::Yarr::RegexGenerator::generateAssertionEOL):
+        (JSC::Yarr::RegexGenerator::generateAssertionWordBoundary):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterSingle):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterPair):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterFixed):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterGreedy):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterNonGreedy):
+        (JSC::Yarr::RegexGenerator::generateCharacterClassSingle):
+        (JSC::Yarr::RegexGenerator::generateCharacterClassFixed):
+        (JSC::Yarr::RegexGenerator::generateCharacterClassGreedy):
+        (JSC::Yarr::RegexGenerator::generateCharacterClassNonGreedy):
+        (JSC::Yarr::RegexGenerator::generateTerm):
+
+2009-04-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam "Blackbeard" Weinig.
+
+        Improvements to YARR JIT.  This patch expands support in three key areas:
+            * Add (temporary) support for falling back to PCRE for expressions not supported.
+            * Add support for x86_64 and Windows.
+            * Add support for singly quantified parentheses (? and ??), alternatives within
+              parentheses, and parenthetical assertions.
+
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::match):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::storeToFrame):
+        (JSC::Yarr::RegexGenerator::storeToFrameWithPatch):
+        (JSC::Yarr::RegexGenerator::loadFromFrameAndJump):
+        (JSC::Yarr::RegexGenerator::AlternativeBacktrackRecord::AlternativeBacktrackRecord):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::resetAlternative):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::resetTerm):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::jumpToBacktrack):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::plantJumpToBacktrackIfExists):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::addBacktrackJump):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::linkAlternativeBacktracks):
+        (JSC::Yarr::RegexGenerator::TermGenerationState::propagateBacktrackingFrom):
+        (JSC::Yarr::RegexGenerator::genertateAssertionBOL):
+        (JSC::Yarr::RegexGenerator::genertateAssertionEOL):
+        (JSC::Yarr::RegexGenerator::matchAssertionWordchar):
+        (JSC::Yarr::RegexGenerator::genertateAssertionWordBoundary):
+        (JSC::Yarr::RegexGenerator::genertatePatternCharacterSingle):
+        (JSC::Yarr::RegexGenerator::genertatePatternCharacterPair):
+        (JSC::Yarr::RegexGenerator::genertatePatternCharacterFixed):
+        (JSC::Yarr::RegexGenerator::genertatePatternCharacterGreedy):
+        (JSC::Yarr::RegexGenerator::genertatePatternCharacterNonGreedy):
+        (JSC::Yarr::RegexGenerator::genertateCharacterClassSingle):
+        (JSC::Yarr::RegexGenerator::genertateCharacterClassFixed):
+        (JSC::Yarr::RegexGenerator::genertateCharacterClassGreedy):
+        (JSC::Yarr::RegexGenerator::genertateCharacterClassNonGreedy):
+        (JSC::Yarr::RegexGenerator::generateParenthesesDisjunction):
+        (JSC::Yarr::RegexGenerator::generateParenthesesSingle):
+        (JSC::Yarr::RegexGenerator::generateParentheticalAssertion):
+        (JSC::Yarr::RegexGenerator::generateTerm):
+        (JSC::Yarr::RegexGenerator::generateDisjunction):
+        (JSC::Yarr::RegexGenerator::generateEnter):
+        (JSC::Yarr::RegexGenerator::generateReturn):
+        (JSC::Yarr::RegexGenerator::RegexGenerator):
+        (JSC::Yarr::RegexGenerator::generate):
+        (JSC::Yarr::RegexGenerator::compile):
+        (JSC::Yarr::RegexGenerator::generationFailed):
+        (JSC::Yarr::jitCompileRegex):
+        (JSC::Yarr::executeRegex):
+        * yarr/RegexJIT.h:
+        (JSC::Yarr::RegexCodeBlock::RegexCodeBlock):
+        (JSC::Yarr::RegexCodeBlock::~RegexCodeBlock):
+
+2009-04-22  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Fix for <rdar://problem/6816957>
+        Turn off Geolocation by default
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2009-04-22  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by NOBODY (Buildfix).

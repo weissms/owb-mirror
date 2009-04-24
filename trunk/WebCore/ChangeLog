@@ -1,3 +1,563 @@
+2009-04-24  Francisco Tolmasky  <francisco@280north.com>
+
+        BUG 24604: WebKit profiler reports incorrect total times
+        <https://bugs.webkit.org/show_bug.cgi?id=24604>
+
+        Reviewed by Timothy Hatcher and Kevin McCullough.
+
+        Made it so that most of the profiler functions now match the behavior of Shark. Most notably, in the
+        heavy view, child nodes now represent the statistics of the root node. Each root node of heavy view
+        displays flattened statistics for a particular function that ran during the profile, and each child
+        of these root nodes represents a callpath that lead to it. Thus, the statistics for each of these child
+        nodes should show how much of the root nodes values came from it. For example, if you had the following to
+        stacks take place during the profile:
+
+        A ->calls 1 times-> B ->calls 2 times-> C
+        D ->calls 4 times-> C
+
+        The tree for the C root node would look like this:
+
+        C -> B -> A
+          -> D
+
+        The number of calls values would look like this:
+
+        C (6) -> B (2) -> A(2)
+              -> D (4)
+
+        What this means is that "2 of the total 6 C calls came from B", "2 of the total C calls came from A", and
+        "4 of the total C calls came from D".  Notice that the "A ->calls 2 time->" is completely ignored. This becomes
+        particularly tricky during recursive calls, because each child note can represent multiple possible paths. This
+        is the reason that we would get things like 40000% previously with recursion.
+
+        This is also the way gprof works, and as close as we can get to Shark's behavior (Shark is not instrumented so it
+        can't know exactly how many calls came from where, etc).
+
+        * English.lproj/localizedStrings.js: Added "Average" for average times in the profile.
+        * inspector/JavaScriptProfile.cpp:
+        (WebCore::ProfileClass):
+        * inspector/JavaScriptProfileNode.cpp:
+        (WebCore::getParent):
+        (WebCore::getHead):
+        (WebCore::getCallUID):
+        (WebCore::ProfileNodeClass):
+        * inspector/front-end/BottomUpProfileDataGridTree.js: Added.
+        (WebInspector.BottomUpProfileDataGridTree):
+        (WebInspector.BottomUpProfileDataGridTree.prototype.focus):
+        (WebInspector.BottomUpProfileDataGridNode):
+        (WebInspector.BottomUpProfileDataGridNode.prototype._takePropertiesFromProfileDataGridNode):
+        (WebInspector.BottomUpProfileDataGridNode.prototype._keepOnlyChild):
+        (WebInspector.BottomUpProfileDataGridNode.prototype._exclude):
+        (WebInspector.BottomUpProfileDataGridNode.prototype._merge):
+        (WebInspector.BottomUpProfileDataGridNode.prototype._populate):
+        * inspector/front-end/DataGrid.js:
+        (WebInspector.DataGrid.prototype.insertChild):
+        (WebInspector.DataGrid.prototype.removeChild):
+        (WebInspector.DataGrid.prototype.removeChildren):
+        (WebInspector.DataGridNode.prototype.set hasChildren):
+        (WebInspector.DataGridNode.prototype.get hasChildren):
+        * inspector/front-end/ProfileDataGridTree.js: Added.
+        (WebInspector.ProfileDataGridNode):
+        (WebInspector.ProfileDataGridNode.prototype.get data.formatMilliseconds):
+        (WebInspector.ProfileDataGridNode.prototype.get data):
+        (WebInspector.ProfileDataGridNode.prototype.createCell):
+        (WebInspector.ProfileDataGridNode.prototype.select):
+        (WebInspector.ProfileDataGridNode.prototype.deselect):
+        (WebInspector.ProfileDataGridNode.prototype.expand):
+        (WebInspector.ProfileDataGridNode.prototype.insertChild):
+        (WebInspector.ProfileDataGridNode.prototype.removeChild):
+        (WebInspector.ProfileDataGridNode.prototype.removeChildren):
+        (WebInspector.ProfileDataGridNode.prototype.findChild):
+        (WebInspector.ProfileDataGridNode.prototype.get averageTime):
+        (WebInspector.ProfileDataGridNode.prototype.get averagePercent):
+        (WebInspector.ProfileDataGridNode.prototype.get selfPercent):
+        (WebInspector.ProfileDataGridNode.prototype.get totalPercent):
+        (WebInspector.ProfileDataGridNode.prototype._save):
+        (WebInspector.ProfileDataGridNode.prototype._restore):
+        (WebInspector.ProfileDataGridNode.prototype._merge):
+        (WebInspector.ProfileDataGridTree):
+        (WebInspector.ProfileDataGridTree.prototype.get expanded):
+        (WebInspector.ProfileDataGridTree.prototype.appendChild):
+        (WebInspector.ProfileDataGridTree.prototype.insertChild):
+        (WebInspector.ProfileDataGridTree.prototype.removeChildren):
+        (WebInspector.ProfileDataGridTree.prototype.findChild.WebInspector.ProfileDataGridNode.prototype.findChild.sort.WebInspector.ProfileDataGridNode.prototype.sort._save):
+        (WebInspector.ProfileDataGridTree.propertyComparator.comparator):
+        (WebInspector.ProfileDataGridTree.propertyComparator.else.comparator):
+        (WebInspector.ProfileDataGridTree.propertyComparator):
+        * inspector/front-end/ProfileView.js:
+        (WebInspector.ProfileView):
+        (WebInspector.ProfileView.prototype.set profile):
+        (WebInspector.ProfileView.prototype.get bottomUpProfileDataGridTree):
+        (WebInspector.ProfileView.prototype.get topDownProfileDataGridTree):
+        (WebInspector.ProfileView.prototype.get currentTree):
+        (WebInspector.ProfileView.prototype.set currentTree):
+        (WebInspector.ProfileView.prototype.get topDownTree):
+        (WebInspector.ProfileView.prototype.get bottomUpTree):
+        (WebInspector.ProfileView.prototype.refresh):
+        (WebInspector.ProfileView.prototype.refreshVisibleData):
+        (WebInspector.ProfileView.prototype.refreshShowAsPercents):
+        (WebInspector.ProfileView.prototype.performSearch.matchesQuery):
+        (WebInspector.ProfileView.prototype.performSearch):
+        (WebInspector.ProfileView.prototype._changeView):
+        (WebInspector.ProfileView.prototype._focusClicked):
+        (WebInspector.ProfileView.prototype._excludeClicked):
+        (WebInspector.ProfileView.prototype._resetClicked):
+        (WebInspector.ProfileView.prototype._sortProfile):
+        * inspector/front-end/ProfilesPanel.js:
+        (WebInspector.ProfilesPanel.prototype.showProfile):
+        (WebInspector.ProfilesPanel.prototype.showView):
+        (WebInspector.ProfilesPanel.prototype.searchMatchFound):
+        * inspector/front-end/TopDownProfileDataGridTree.js: Added.
+        (WebInspector.TopDownProfileDataGridNode):
+        (WebInspector.TopDownProfileDataGridNode.prototype._populate):
+        (WebInspector.TopDownProfileDataGridNode.prototype._exclude):
+        (WebInspector.TopDownProfileDataGridTree):
+        (WebInspector.TopDownProfileDataGridTree.prototype.focus):
+        (WebInspector.TopDownProfileDataGridTree.prototype.exclude):
+        * inspector/front-end/WebKit.qrc:
+        * inspector/front-end/inspector.css:
+        * inspector/front-end/inspector.html:
+
+2009-04-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Use static functions (and a couple templates)
+        to further reduce the amount of copy/paste code in SVGRenderTreeAsText
+
+        No test changes, only code cleanup.
+
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::writeNameValuePair):
+        (WebCore::writeNameAndQuotedValue):
+        (WebCore::writeIfNotEmpty):
+        (WebCore::writeIfNotDefault):
+        (WebCore::writeStyle):
+        (WebCore::writePositionAndStyle):
+        (WebCore::operator<<):
+
+2009-04-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        SVGRenderTreeAsText cleanup/code sharing.
+
+        No test changes, only code cleanup.
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::firstRunOrigin):
+        * rendering/RenderText.h:
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::writeStandardPrefix):
+        (WebCore::writeChildren):
+        (WebCore::write):
+        (WebCore::writeRenderResources):
+
+2009-04-23  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebCore part of fix for <rdar://problem/6333461> REGRESSION 
+        (r36864-r36869): Dragging stocks widget scrollbar drags the whole 
+        widget
+
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::isScrollbar):
+        * platform/Widget.h:
+        (WebCore::Widget::isScrollbar):
+
+2009-04-23  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/6808109> "Deletion UI" is not available for many
+        portions of HTML content
+
+        This patch makes the deletion UI show up in some new situations:
+        1) If a block's background color is different from its parent's
+        2) If a block has a background image.
+        3) If a block has a single visible border.
+        However the block must now not only be at least a minimum width and
+        height, but also exceed a minimum area.  In practice this has led to
+        much better element selection. 
+
+        * editing/DeleteButtonController.cpp:
+        (WebCore::isDeletableElement):
+
+2009-04-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Adding XMLTokenizerScope.cpp to the build.
+
+        * WebCoreSources.bkl:
+
+2009-04-23  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <rdar://problem/6788905> REGRESSION (41928?): hang in Position::upstream
+        https://bugs.webkit.org/show_bug.cgi?id=25312
+
+        I was unable to reproduce the problem, but I'm pretty sure this will fix it.
+
+        * rendering/RenderObject.cpp: (WebCore::RenderObject::createVisiblePosition):
+        Since VisiblePosition doesn't ensure the offset is good, we shouldn't pass max int as an offset.
+
+2009-04-23  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25313
+        Missing scroll bars in GMail.
+
+        Test: fast/overflow/overflow-y-scroll.html
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::updateScrollbars): Added check for the ScrollbarAlwaysOn
+        scroll mode.
+
+2009-04-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Justin Garcia.
+
+        - fix <rdar://problem/6081309> Mail crash when pressing down arrow in
+          some messages in WebCore::canHaveChildrenForEditing
+
+        Test: editing/selection/extend-by-line-anonymous-content-crash.html
+
+        * editing/visible_units.cpp:
+        (WebCore::previousLinePosition): Null-check node. If p is not an
+        editable position, then closestLeafChildForXPos() may have returned a
+        non-editable box, and in particular one belonging to anonymous content.
+        If node is 0, fall back on RenderObject::positionForPoint, which
+        finds the closest position in non-anonymous content.
+        (WebCore::nextLinePosition): Ditto.
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::createVisiblePosition): Fixed a typo.
+
+2009-04-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/6791439> REGRESSION: Get an error page instead of login page navigating back in gmail
+
+        Test: http/tests/history/back-to-post.php
+
+        * platform/network/cf/ResourceRequestCFNet.cpp: (WebCore::ResourceRequest::doUpdatePlatformRequest):
+        Apply a new cache policy if it changed after the platform request was first created.
+        While at it, also made sure to update timeout.
+
+2009-04-23  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        When creating a new drawable object, collect system's
+        information about the best depth it can provide and use it
+        in a new colormap that the new drawable requires.
+
+        * platform/graphics/gtk/ImageGtk.cpp:
+        (WebCore::BitmapImage::getGdkPixbuf):
+
+2009-04-23  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15654
+        GdkPixbuf support for ImageCairo
+
+        Add support for converting a Cairo surface to a GdkPixbuf.
+
+        * platform/graphics/BitmapImage.h:
+        * platform/graphics/Image.h:
+        (WebCore::Image::getGdkPixbuf):
+        * platform/graphics/gtk/ImageGtk.cpp:
+        (WebCore::BitmapImage::getGdkPixbuf):
+
+2009-04-23  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Make windowed plugins (on X11, Qt) behave nicer with wheel scrolling.
+
+        Basically, what we want is to send wheel events to the plugin *only*
+        when it has focus, or else send it to the parent frame.
+
+        This is a work around, and basically what we do, is to steal the
+        wheel events from the plugin, modify the window ID, and put the
+        event back into the Qt event loop.
+
+        * plugins/qt/PluginContainerQt.cpp:
+        (PluginClientWrapper::PluginClientWrapper):
+        (PluginClientWrapper::~PluginClientWrapper):
+        (PluginClientWrapper::x11Event):
+        (PluginContainerQt::PluginContainerQt):
+        (PluginContainerQt::~PluginContainerQt):
+        (PluginContainerQt::on_clientClosed):
+        (PluginContainerQt::on_clientIsEmbedded):
+        (PluginContainerQt::redirectWheelEventsToParent):
+        (PluginContainerQt::x11Event):
+        (PluginContainerQt::focusInEvent):
+        * plugins/qt/PluginContainerQt.h:
+
+2009-04-22  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Maciej Stachowiak
+
+        <rdar://problem/6786961> - "Are you sure you want to resubmit this form?" nag displays twice.
+
+        For most loads, we were consulting the navigation policy delegate twice.  Once from FrameLoader before
+        the load started and once from MainResourceLoader in its willSendRequest callback.
+
+        In the past we tried removing MainResourceLoader's call altogether.  This caused a regression where urls 
+        that redirect to a url handled by an external application would no longer work in Safari.  It probably 
+        also broke other WebKit apps in subtle ways.
+
+        Changing MainResourceLoader to make the check only on redirects fixes both bugs.  We now only call the 
+        policy delegate once for most standard loads, but we do correctly call it a second time for redirects.
+
+        Tests: http/tests/misc/policy-delegate-called-twice.html
+               http/tests/misc/redirect-to-external-url.html
+
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::willSendRequest): Call the navigation policy delegate only for redirects.
+
+2009-04-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix for <rdar://problem/6800695>
+
+        Add a hack to only allow navigating (via a link from a http page)
+        to feed: urls (same for feeds: and feedsearch:) that map to http:
+        or https: via their nested protocol. This includes both feed://example.com
+        and feed:http://example.com.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::isFeedWithNestedProtocolInHTTPFamily):
+        (WebCore::FrameLoader::loadFrameRequest):
+
+2009-04-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Autogenerate the XMLHttpRequest constructor getter/setter for the
+        WorkerContext and remove the now no longer needed JSWorkerContextBase.lut.h
+        file.
+
+        * DerivedSources.make: Remove JSWorkerContextBase.lut.h
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+
+        * bindings/js/JSWorkerContextBase.cpp:
+        * bindings/js/JSWorkerContextBase.h: Remove code to support hand written
+        code for XMLHttpRequest constructor lookup and shadowing.
+
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::customGetOwnPropertySlot): Remove JSC prefixes.
+        (WebCore::JSWorkerContext::xmlHttpRequest): Added. Custom implementation of
+        cached constructor lookup.
+        * workers/WorkerContext.idl: Make the XMLHttpRequestConstructor accessor not
+        V8 specific.
+
+2009-04-22  Darin Adler  <darin@apple.com>
+
+        * page/Navigator.idl: Touch this file to fix build since Geolocation
+        configuration was recently turned off.
+
+2009-04-22  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25322
+        Can't delete empty paragraph after a block image
+        
+        Empty paragraph removal would have been handled by mergeParagraphs, but we stopped short
+        because of some code that avoided problems that would arise from Positions that would go
+        bad during deletion.  
+        
+        We have several checks that prevent us from using bad Positions, this one in particular
+        was added to avoid bad Positions that result from text removal.  So, I removed the check
+        and started correctly updating m_downstreamEnd during text removal so that it doesn't go
+        bad.  m_upstreamStart doesn't need to be updated during text removal, since only text
+        after it will ever be removed.
+
+        * editing/DeleteSelectionCommand.cpp:
+        (WebCore::DeleteSelectionCommand::deleteTextFromNode):
+        (WebCore::DeleteSelectionCommand::handleGeneralDelete):
+        (WebCore::DeleteSelectionCommand::mergeParagraphs):
+
+2009-04-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6757346> SAP: Prevent default on mouseDown does not stop iframe from capturing subsequent mouse moves
+
+        Make mouseUp target the correct frame when the original
+        mousedown made the drag non-capturing.
+
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::passSubframeEventToSubframe):
+
+2009-04-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6757346> SAP: Prevent default on mouseDown does not stop iframe from capturing subsequent mouse moves
+
+        This is the first step of allowing drag events to match the behaviour
+        of mouse move events when the default action of the initial mouse down
+        is prevented.  Remaining issue is that the final mouse up event still
+        targets the original root frame.
+
+        Test: fast/events/mouse-drag-from-frame-to-other-frame.html
+
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::passSubframeEventToSubframe):
+
+2009-04-22  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Adele Peterson
+        
+        <rdar://problem/6702882> QT movie's video fails to be displayed after switching between tabs
+        <rdar://problem/6754957> Resizing Web browser window and hitting play will cause video blocks and artifacting
+
+        When in a media document, MediaPlayerPrivateQTKit uses a QTMovieView which may get
+        layer backing under some circumstances. However, drawing the view via
+        displayRectIgnoringOpacity:inContext: bypasses any layer setup that AppKit normally performs.
+        So when in the media document, we draw via displayRectIgnoringOpacity:.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::paint):
+
+2009-04-22  Timothy Hatcher  <timothy@apple.com>
+
+        Fix a crash in Mail when forwarding a specific HTML email.
+        Caused by the fix for <rdar://problem/6512520> (r42096).
+        Unable to create a test case that works outside of Mail.
+
+        <rdar://problem/6796069>
+
+        Reviewed by Ada Chan.
+
+        * editing/markup.cpp:
+        (WebCore::createMarkup): Null check pastEnd before trying to
+        call Range::compareBoundaryPoints.
+
+2009-04-22  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Fix for <rdar://problem/6816957>
+        Turn off Geolocation by default
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-04-22  Eric Seidel  <eric@webkit.org>
+
+        Rubber-stamped by David Hyatt.
+
+        Change RenderSVGImage to dump as RenderSVGImage instead of RenderImage
+
+        * rendering/RenderSVGImage.h:
+        (WebCore::RenderSVGImage::renderName):
+
+2009-04-21  Timothy Hatcher  <timothy@apple.com>
+
+        Fix a crash on Gmail when they remove a "before unload" event listener when
+        it was never added to the pending map in the first place.
+
+        <rdar://problem/6814144>
+
+        Reviewed by Darin Adler.
+
+        * page/DOMWindow.cpp:
+        (WebCore::allowsPendingBeforeUnloadListeners): Renamed from shouldAddPendingBeforeUnloadListener.
+        (WebCore::DOMWindow::addEventListener): Call allowsPendingBeforeUnloadListeners now.
+        (WebCore::DOMWindow::removeEventListener): Call allowsPendingBeforeUnloadListeners before
+        removing the before unload listener.
+        (WebCore::DOMWindow::clearAttributeEventListener): Ditto.
+
+2009-04-22  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Made windowed plugins move/resize synchronized with the painting, so
+        that windowed plugins are not moved before the rest of the parent
+        frame during scrolling.
+
+        * plugins/qt/PluginContainerQt.cpp:
+        (PluginContainerQt::PluginContainerQt):
+        (PluginContainerQt::requestGeometry):
+        (PluginContainerQt::adjustGeometry):
+        * plugins/qt/PluginContainerQt.h:
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::updatePluginWidget):
+        (WebCore::PluginView::paint):
+
+2009-04-22  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Fix various bugs in the X11 Qt plugin focus handling.
+
+        Notify the focus controller on activation/deactivation of the plugin and
+        set focus on the plugin's element when it receives the window system
+        focus.
+
+        * WebCore.pro: Added PluginContainerQt to the Qt build.
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::focusPluginElement): New helper function, moved from PluginViewWin.
+        * plugins/PluginView.h:
+        (WebCore::PluginView::parentFrame): Added parent frame accessor.
+        * plugins/qt/PluginContainerQt.cpp: Added.
+        (PluginContainerQt::PluginContainerQt):
+        (PluginContainerQt::focusInEvent): Set the focus controller active on focus in events.
+        (PluginContainerQt::focusOutEvent): Deactivate the focus controller when loosing the focus.
+        * plugins/qt/PluginContainerQt.h: Added.
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::init): Allocate a PluginContainerQt instead of QX11EmbedContainer.
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::handleMouseEvent): Moved the code to set focus on the plugin element
+        to PluginView::focusPluginElement.
+
+2009-04-22  Tamas Szirbucz  <szirbucz.tamas@stud.u-szeged.hu>
+
+        Reviewed by Ariya Hidayat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25023
+        Delete reply in QNetworkReplyHandler::abort() to avoid leak.
+
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+        (WebCore::QNetworkReplyHandler::abort):
+
+2009-04-21  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Allow the UI delegate to control cursor-setting.
+
+        Reviewed by Ada Chan.
+
+        * page/Chrome.cpp:
+        (WebCore::Chrome::setCursor):
+        Pass the call to the client.
+
+        * page/Chrome.h:
+
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::setCursor):
+        Stubbed; returns false.
+
+        * platform/Cursor.h:
+        Define PlatformCursorHandle for each platform.
+
+        * platform/win/WidgetWin.cpp:
+        Reordered some includes. Added an include of Page.h.
+        (WebCore::Widget::setCursor):
+        Fixed a typo in the comment about ignoreNextSetCursor. Get the Page, and
+        call its Chrome's setCursor() method with the passed cursor. Fall back
+        to SetCursor() if the Page is not available.
+
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::handleMouseEvent):
+        Remove an unused variable. Cleaned up some whitespace.
+
 2009-04-22  John Abd-El-Malek  <jam@google.com>
 
         Reviewed by Dimitri Glazkov.
@@ -1523,6 +2083,8 @@
 2009-04-17  Pierre d'Herbemont  <pdherbemont@apple.com>
 
         Reviewed by Simon Fraser.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24849
 
         Add support for the media element 'played' attribute.
         This involves support of "normalized TimeRanges" as described by
