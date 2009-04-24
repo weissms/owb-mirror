@@ -27,6 +27,7 @@
 #include "CookieManager.h"
 
 #include "CookieDatabaseBackingStore.h"
+#include "CookieParser.h"
 #include "CurrentTime.h"
 #include "Logging.h"
 
@@ -62,33 +63,13 @@ CookieManager::~CookieManager()
         delete it->second;
 }
 
-static bool isCookieHeaderSeparator(UChar c)
-{
-    return (c == '\r' || c =='\n');
-}
-
 void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const String& value)
 {
-    unsigned cookieStart, cookieEnd = 0;
+    CookieParser parser(url);
+    Vector<Cookie*> cookies = parser.parse(value);
 
-    double curTime = currentTime();
-
-    // Iterate over the header to parse all the cookies.
-    while (cookieEnd <= value.length()) {
-        cookieStart = cookieEnd;
-
-        // Find a cookie separator.
-        while (cookieEnd <= value.length() && !isCookieHeaderSeparator(value[cookieEnd]))
-            cookieEnd++;
-
-        Cookie* cookie = Cookie::parse(url, value, cookieStart, cookieEnd - 1, curTime);
-
-        if (!cookie) {
-            LOG_ERROR("Invalid cookie string");
-            continue;
-        }
-
-        // Security checks.
+    for (size_t i = 0; i < cookies.size(); ++i) {
+        Cookie* cookie = cookies[i];
         if (!shouldReject(cookie, url))
             checkAndTreatCookie(cookie);
         else {

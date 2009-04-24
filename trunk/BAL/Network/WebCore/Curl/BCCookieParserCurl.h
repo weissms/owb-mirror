@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2009 Julien Chaffraix <jchaffraix@pleyo.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,45 +23,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "Cookie.h"
+#ifndef CookieParser_h
+#define CookieParser_h
 
-#include "CString.h"
-#include "Logging.h"
-#include "CurrentTime.h"
-
-#include <curl/curl.h>
+#include "KURL.h"
+#include "Vector.h"
 
 namespace WebCore {
 
-void Cookie::setExpiry(const String& expiry)
-{
-    if (expiry.length()) {
+    class Cookie;
+    class String;
 
-        m_isSession = false;
+    class CookieParser {
+    public:
+        CookieParser(const KURL& /*defaultCookieURL*/);
+        ~CookieParser();
 
-        m_expiry = (double)curl_getdate(expiry.utf8().data(), NULL);
+        // Parses a sequence of "Cookie:" header and return the parsed cookies.
+        Vector<Cookie*> parse(const String& /*cookies*/);
 
-        if (m_expiry == -1) {
-            LOG_ERROR("Could not parse date");
-            // In this case, consider that the cookie is session only
-            m_isSession = true;
-        }
-    }
-}
+    private:
+        // FIXME: curTime, start, end parameters should be removed. And this method can be public.
+        Cookie* parseOneCookie(const String& /*cookie*/, unsigned /*start*/, unsigned /*end*/, double /*curTime*/);
 
-void Cookie::setMaxAge(const String& maxAge)
-{
-    bool ok;
-    m_expiry = maxAge.toDouble(&ok);
-    if (ok && m_expiry) {
-        m_isSession = false;
-
-        // if maxAge is null, keep the value so that it is discarded later
-        if (m_expiry)
-            m_expiry += currentTime();
-    } else
-        LOG_ERROR("Could not parse Max-Age : %s", maxAge.ascii().data());
-}
+        KURL m_defaultCookieURL;
+    };
 
 } // namespace WebCore
+
+#endif // CookieParser_h

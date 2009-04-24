@@ -2,6 +2,25 @@
 
         Reviewed by Mario Bensi.
 
+        Factor the Cookie parsing code into a CookieParser class.
+
+        * Network/WebCore/Curl/BCCookieCurl.cpp: Removed Cookie::parse
+        * Network/WebCore/Curl/BCCookieCurl.h: Ditto.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::setCookies): Use the CookieParser.
+
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp: Added.
+        (WebCore::isLightweightSpace): Moved from BCCookieCurl.cpp.
+        (WebCore::CookieParser::parseOneCookie): Ditto.
+
+        (WebCore::CookieParser::CookieParser):
+        (WebCore::CookieParser::~CookieParser):
+        * Network/WebCore/Curl/BCCookieParserCurl.h: Added.
+
+2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Update 2 methods to be static and use WebKit style.
 
         * Network/WebCore/Curl/BCCookieCurl.cpp:

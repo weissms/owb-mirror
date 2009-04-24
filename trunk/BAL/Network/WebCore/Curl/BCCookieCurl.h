@@ -84,8 +84,6 @@ public:
 
     bool isSession() const { return m_isSession; }
 
-    static Cookie* parse(const KURL& url, const String& cookie, unsigned start, unsigned end, double curTime);
-
 private:
     String m_name;
     String m_value;
@@ -98,9 +96,6 @@ private:
 
     // to manage LRU replacement policy
     double m_lastAccessed;
-
-    // Constants
-    static const int max_length = 4096; // Cookie size limit 4kB per RFC2109
 };
 
 } // Namespace WebCore
