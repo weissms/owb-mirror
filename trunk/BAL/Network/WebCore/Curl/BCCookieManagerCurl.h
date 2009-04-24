@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2008, 2009 Julien Chaffraix <julien.chaffraix@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,63 +26,66 @@
 #ifndef CookieManager_h
 #define CookieManager_h
 
-#include "config.h"
-
-#include "Cookie.h"
 #include "CookieMap.h"
-#include "KURL.h"
 #include "PlatformString.h"
 #include <wtf/HashMap.h>
 
 namespace WebCore {
 
-class CookieManager {
-public:
-    static CookieManager* getCookieManager();
+    class KURL;
+    class String;
+    class Cookie;
 
-    void setCookies(const KURL& url, const KURL& policyURL, const String& value);
+    class CookieManager {
+    public:
 
-    String getCookie(const KURL& url);
-    String getCookie(const String& url);
+        void setCookies(const KURL& url, const KURL& policyURL, const String& value);
 
-    void removeAllCookies(bool shouldRemoveFromDatabase = true);
+        String getCookie(const KURL& url);
+        String getCookie(const String& url);
 
-    unsigned short cookiesCount() { return m_count; }
+        void removeAllCookies(bool shouldRemoveFromDatabase = true);
 
-    void setCookieJar(const char *);
-    const String& cookieJar() { return m_cookieJarFileName; }
+        unsigned short cookiesCount() { return m_count; }
 
-    ~CookieManager();
+        void setCookieJar(const char *);
+        const String& cookieJar() { return m_cookieJarFileName; }
 
-private:
-    CookieManager();
+    private:
+        friend CookieManager& cookieManager();
 
-    void checkAndTreatCookie(Cookie* cookie);
+        CookieManager();
+        ~CookieManager();
 
-    bool shouldReject(const Cookie* cookie, const KURL& url);
+        void checkAndTreatCookie(Cookie* cookie);
 
-    void addCookieToMap(CookieMap* map, Cookie* cookie);
-    void update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie);
+        bool shouldReject(const Cookie* cookie, const KURL& url);
 
-    // Count update method
-    inline void removedCookie() { ASSERT(m_count > 0); m_count--; }
+        void addCookieToMap(CookieMap* map, Cookie* cookie);
+        void update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie);
 
-    HashMap<String, CookieMap*> m_managerMap;
+        // Count update method
+        inline void removedCookie() { ASSERT(m_count > 0); m_count--; }
 
-    // Count all cookies, cookies are limited by max_count
-    unsigned short m_count;
+        HashMap<String, CookieMap*> m_managerMap;
 
-    String m_cookieJarFileName;
+        // Count all cookies, cookies are limited by max_count
+        unsigned short m_count;
+
+        String m_cookieJarFileName;
 
 #if ENABLE(DATABASE)
-    // FIXME: This method should be removed.
-    void getDatabaseCookies();    
+        // FIXME: This method should be removed.
+        void getDatabaseCookies();    
 #endif // ENABLE(DATABASE)
 
-    // Constants
-    static const int max_count = 300;
-};
+        // Constants
+        static const int max_count = 300;
+    };
+
+    // Get the global instance.
+    CookieManager& cookieManager();
 
 } // namespace WebCore
 
-#endif
+#endif // CookieManager_h

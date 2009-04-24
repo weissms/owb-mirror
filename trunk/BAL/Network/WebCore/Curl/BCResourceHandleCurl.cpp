@@ -189,12 +189,8 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&)
 
 void ResourceHandle::setCookies()
 {
-    CookieManager* manager = CookieManager::getCookieManager();
     KURL url = getInternal()->m_response.url();
-
-    if (manager)
-        manager->setCookies(url, KURL(), getInternal()->m_response.httpHeaderField("Set-Cookie"));
-
+    cookieManager().setCookies(url, KURL(), getInternal()->m_response.httpHeaderField("Set-Cookie"));
     checkAndSendCookies(url);
 }
 
@@ -207,13 +203,8 @@ void ResourceHandle::checkAndSendCookies(KURL& url)
     if (url.isEmpty())
         url = KURL(d->m_url);
 
-    CookieManager* manager = CookieManager::getCookieManager();
-
-    if (!manager)
-        return;
-
     // Prepare a cookie header if there are cookies related to this url.
-    String cookiePairs = manager->getCookie(url);
+    String cookiePairs = cookieManager().getCookie(url);
 
     // Cookie size should not be above 81920 (per construction and also because we
     // do not want to  cookie).

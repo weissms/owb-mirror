@@ -81,9 +81,7 @@ ResourceHandleManager::~ResourceHandleManager()
 
 void ResourceHandleManager::setCookieJarFileName(const char* cookieJarFileName)
 {
-    CookieManager* manager = CookieManager::getCookieManager();
-    if (manager)
-        manager->setCookieJar(strdup(cookieJarFileName));
+    cookieManager().setCookieJar(strdup(cookieJarFileName));
 }
 
 ResourceHandleManager* ResourceHandleManager::sharedInstance()

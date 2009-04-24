@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2008, 2009 Julien Chaffraix <julien.chaffraix@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,20 +35,15 @@ namespace WebCore {
 
 static CookieManager* sharedManager = 0;
 
-CookieManager* CookieManager::getCookieManager()
+CookieManager& cookieManager()
 {
-    if (!sharedManager)
-        sharedManager = new CookieManager();
-    return sharedManager;
-}
+    static CookieManager cookieManager;
+    return cookieManager;
+} 
 
 CookieManager::CookieManager()
     : m_count(0)
 {
-    // Keep our instance as we may call CookieManager::getCookieManager later.
-    if (!sharedManager)
-        sharedManager = this;
-
     m_cookieJarFileName = String("cookieCollection.db");
 
 #if ENABLE(DATABASE)

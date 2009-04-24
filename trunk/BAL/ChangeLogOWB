@@ -2,6 +2,40 @@
 
         Reviewed by Mario Bensi.
 
+        Cleaned CookieManager.h
+
+        - switched to WebKit style.
+
+        - removed some include statements and sorted the remainings.
+
+        - added WebCore::cookieManager() to get the shared instance.
+
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp:
+        (WebCore::CookieDatabaseBackingStore::insert): Use
+        WebCore::cookieManager() to get the shared instance.
+        (WebCore::CookieDatabaseBackingStore::update): Ditto.
+        (WebCore::CookieDatabaseBackingStore::remove): Ditto.
+        (WebCore::CookieDatabaseBackingStore::getAllCookies): Ditto.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::cookieManager): return a reference to the
+        CookieManager's static instance.
+        (WebCore::CookieManager::CookieManager): Do not set the shared
+        instance.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h: Cleaned.
+        (WebCore::CookieManager::cookiesCount):
+        (WebCore::CookieManager::cookieJar):
+        (WebCore::CookieManager::removedCookie):
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setCookies): Use WebCore::cookieManager() to
+        get the shared instance.
+        (WebCore::ResourceHandle::checkAndSendCookies): Ditto.
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::ResourceHandleManager::setCookieJarFileName): Ditto.
+
+2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Factor the Cookie parsing code into a CookieParser class.
 
         * Network/WebCore/Curl/BCCookieCurl.cpp: Removed Cookie::parse

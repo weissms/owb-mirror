@@ -50,7 +50,7 @@ CookieDatabaseBackingStore::~CookieDatabaseBackingStore()
 
 void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 {
-   if (!m_db.isOpen() && !m_db.open(CookieManager::getCookieManager()->cookieJar())) {
+   if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
         LOG_ERROR("Cannot open the cookie database");
         return;
     }
@@ -80,7 +80,7 @@ void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::update(const Cookie* cookie)
 {
-    if (!m_db.isOpen() && !m_db.open(CookieManager::getCookieManager()->cookieJar())) {
+    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
         LOG_ERROR("Cannot open the cookie database");
         return;
     }
@@ -110,7 +110,7 @@ void CookieDatabaseBackingStore::update(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 {
-    if (!m_db.isOpen() && !m_db.open(CookieManager::getCookieManager()->cookieJar())) {
+    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
         LOG_ERROR("Cannot open the cookie database");
         return;
     }
@@ -141,7 +141,7 @@ void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
 {
     Vector<Cookie*, 16> cookies;
-    if (!m_db.isOpen() && !m_db.open(CookieManager::getCookieManager()->cookieJar())) {
+    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
         LOG_ERROR("Cannot open the cookie database");
         return cookies;
     }
