@@ -126,7 +126,7 @@ void WebContextMenuClient::downloadURL(const KURL& url)
 
     if(downloadDelegate)
     {
-        WebDownload* download = WebDownload::createInstance(&url, downloadDelegate);
+        WebDownload* download = WebDownload::createInstance(url, downloadDelegate);
         download->start();
     }
 }

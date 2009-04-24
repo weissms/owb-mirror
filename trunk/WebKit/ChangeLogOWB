@@ -1,3 +1,18 @@
+2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Use references to KURL instead of pointers in WebDownload. This is for
+        consistence with the rest of the Api and WebCore as well as it ensures
+        it will ever be NULL.
+
+        * OrigynWebBrowser/Api/WebDownload.cpp:
+        (WebDownload::init):
+        (WebDownload::createInstance):
+        * OrigynWebBrowser/Api/WebDownload.h:
+        * OrigynWebBrowser/WebCoreSupport/WebContextMenuClient.cpp:
+        (WebContextMenuClient::downloadURL):
+
 2009-04-01  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mario Bensi.

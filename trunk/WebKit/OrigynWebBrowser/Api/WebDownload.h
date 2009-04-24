@@ -73,7 +73,7 @@ public:
      * @param[in]: url
      * @param[in]: WebDownloadDelegate
      */
-    static WebDownload* createInstance(const WebCore::KURL*, WebDownloadDelegate*);
+    static WebDownload* createInstance(const WebCore::KURL&, WebDownloadDelegate*);
 
     /**
      * create new instance of WebDownload
@@ -107,7 +107,7 @@ private:
      * @param[in]: url
      * @param[in]: WebDownloadDelegate
      */
-    void init(const WebCore::KURL*, WebDownloadDelegate*);
+    void init(const WebCore::KURL&, WebDownloadDelegate*);
 public:
 
     /**

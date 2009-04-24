@@ -206,11 +206,11 @@ void WebDownload::init(ResourceHandle* handle, const ResourceRequest* request, c
     m_priv->resourceHandle = handle;
 }
 
-void WebDownload::init(const KURL* url, WebDownloadDelegate* delegate)
+void WebDownload::init(const KURL& url, WebDownloadDelegate* delegate)
 {
     m_delegate = delegate;
 
-    m_request = WebMutableURLRequest::createInstance(ResourceRequest(*url));
+    m_request = WebMutableURLRequest::createInstance(ResourceRequest(url));
 
     m_priv->downloadClient = new DownloadClient(this);
     m_priv->currentSize = 0;
@@ -264,7 +264,7 @@ WebDownload* WebDownload::createInstance(ResourceHandle* handle, const ResourceR
     return instance;
 }
 
-WebDownload* WebDownload::createInstance(const KURL* url, WebDownloadDelegate* delegate)
+WebDownload* WebDownload::createInstance(const KURL& url, WebDownloadDelegate* delegate)
 {
     WebDownload* instance = new WebDownload();
     instance->init(url, delegate);
