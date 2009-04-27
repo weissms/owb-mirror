@@ -1,3 +1,36 @@
+2009-04-27  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Xan Lopez.
+
+        Resolve relative URLs when queueing loads. This fixes
+        post-goback-same-url.html timing out.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::queueLoad):
+
+2009-04-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Switching JSCore from a static lib to a dynamic lib
+        to match the Apple build and fix symbol exports.
+
+        * wx/build-wxwebkit:
+
+2009-04-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add PrettyPatch support to run-webkit-tests
+
+        * Scripts/run-webkit-tests:
+
+2009-04-24  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix nightly for Windows x64 users.
+        Installed browser location is written to a slightly different registry key in that case.
+        
+        * FindSafari/FindSafari.cpp:
+        (getInstalledWebKitDirectory):
+
 2009-04-24  Mark Rowe  <mrowe@apple.com>
 
         Fix the Windows DRT build.

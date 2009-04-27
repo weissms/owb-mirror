@@ -29,6 +29,7 @@
 
 #include <webkit/webkitdefines.h>
 #include <webkit/webkitdownload.h>
+#include <webkit/webkitnetworkrequest.h>
 #include <webkit/webkitwebview.h>
 #include <webkit/webkitwebframe.h>
 #include <webkit/webkitwebpolicydecision.h>
@@ -38,6 +39,7 @@
 #include <webkit/webkitwebbackforwardlist.h>
 
 #include "BackForwardList.h"
+#include <enchant.h>
 #include "HistoryItem.h"
 #include "Settings.h"
 #include "Page.h"
@@ -69,6 +71,11 @@ namespace WebKit {
     WebKitWebNavigationReason kit(WebCore::NavigationType type);
     WebCore::NavigationType core(WebKitWebNavigationReason reason);
 }
+
+typedef struct {
+    EnchantBroker* config;
+    EnchantDict* speller;
+} SpellLanguage;
 
 extern "C" {
     void webkit_init();
@@ -158,6 +165,9 @@ extern "C" {
     void
     webkit_web_view_notify_ready (WebKitWebView* web_view);
 
+    void
+    webkit_web_view_request_download(WebKitWebView* web_view, WebKitNetworkRequest* request);
+
     WebKitWebPolicyDecision*
     webkit_web_policy_decision_new (WebKitWebFrame*, WebCore::FramePolicyFunction);
 
@@ -193,6 +203,9 @@ extern "C" {
 
     WEBKIT_API void
     webkit_web_settings_add_extra_plugin_directory (WebKitWebView *web_view, const gchar* directory);
+
+    GSList*
+    webkit_web_settings_get_spell_languages(WebKitWebView* web_view);
 }
 
 #endif

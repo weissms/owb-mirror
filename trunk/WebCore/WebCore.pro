@@ -496,6 +496,7 @@ SOURCES += \
     bindings/js/ScriptCallFrame.cpp \
     bindings/js/ScriptCallStack.cpp \
     bindings/js/ScriptController.cpp \
+    bindings/js/ScriptEventListener.cpp \
     bindings/js/ScriptFunctionCall.cpp \
     bindings/js/ScriptObject.cpp \
     bindings/js/ScriptObjectQuarantine.cpp \
@@ -992,7 +993,6 @@ SOURCES += \
     rendering/InlineFlowBox.cpp \
     rendering/InlineTextBox.cpp \
     rendering/LayoutState.cpp \
-    rendering/ListMarkerBox.cpp \
     rendering/RenderApplet.cpp \
     rendering/RenderArena.cpp \
     rendering/RenderBlock.cpp \

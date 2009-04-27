@@ -27,6 +27,7 @@ option(ENABLE_TESTS "Enable tests")
 
 # Database related options
 include(CMakeDependentOption)
+option(ENABLE_3D_RENDERING "Enable 3d rendering support")
 option(ENABLE_DATABASE "Enable HTML5 client-side database storage support")
 cmake_dependent_option(ENABLE_DOM_STORAGE "Enable HTML5 client-side session and persistent storage support" OFF ENABLE_DATABASE OFF)
 cmake_dependent_option(ENABLE_ICONDATABASE "Enable icon database support" OFF ENABLE_DATABASE OFF)

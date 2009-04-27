@@ -361,6 +361,8 @@
 #define HAVE_MADV_FREE_REUSE 1
 #endif
 
+#define HAVE_MADV_FREE 1
+
 #elif PLATFORM(WIN_OS)
 
 #define HAVE_FLOAT_H 1

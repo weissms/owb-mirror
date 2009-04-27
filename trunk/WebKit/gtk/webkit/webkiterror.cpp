@@ -1,9 +1,5 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
- * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
- *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2008 Luca Bruno <lethalman88@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -19,23 +15,27 @@
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
- *
  */
 
-#ifndef ListMarkerBox_h
-#define ListMarkerBox_h
+#include "config.h"
 
-#include "InlineBox.h"
+#include "webkiterror.h"
 
-namespace WebCore {
+extern "C" {
 
-class ListMarkerBox : public InlineBox {
-public:
-    ListMarkerBox(RenderObject*);
+GQuark webkit_network_error_quark(void)
+{
+    return g_quark_from_static_string("webkit-network-error-quark");
+}
 
-    virtual bool isText() const;
-};
+GQuark webkit_policy_error_quark(void)
+{
+    return g_quark_from_static_string("webkit-policy-error-quark");
+}
 
-} // namespace WebCore
+GQuark webkit_plugin_error_quark(void)
+{
+    return g_quark_from_static_string("webkit-plugin-error-quark");
+}
 
-#endif // ListMarkerBox_h
+}

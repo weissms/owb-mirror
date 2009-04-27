@@ -122,6 +122,7 @@ enum {
     LOAD_STARTED,
     LOAD_COMMITTED,
     LOAD_PROGRESS_CHANGED,
+    LOAD_ERROR,
     LOAD_FINISHED,
     TITLE_CHANGED,
     HOVERING_OVER_LINK,
@@ -168,13 +169,6 @@ G_DEFINE_TYPE(WebKitWebView, webkit_web_view, GTK_TYPE_CONTAINER)
 static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GParamSpec* pspec, WebKitWebView* webView);
 static void webkit_web_view_set_window_features(WebKitWebView* webView, WebKitWebWindowFeatures* webWindowFeatures);
 
-static void webkit_web_view_context_menu_position_func(GtkMenu*, gint* x, gint* y, gboolean* pushIn, WebKitWebViewPrivate* data)
-{
-    *pushIn = FALSE;
-    *x = data->lastPopupXPosition;
-    *y = data->lastPopupYPosition;
-}
-
 static gboolean webkit_web_view_forward_context_menu_event(WebKitWebView* webView, const PlatformMouseEvent& event)
 {
     Page* page = core(webView);
@@ -209,7 +203,7 @@ static gboolean webkit_web_view_forward_context_menu_event(WebKitWebView* webVie
     priv->lastPopupXPosition = event.globalX();
     priv->lastPopupYPosition = event.globalY();
     gtk_menu_popup(menu, NULL, NULL,
-                   reinterpret_cast<GtkMenuPositionFunc>(webkit_web_view_context_menu_position_func),
+                   NULL,
                    priv, event.button() + 1, gtk_get_current_event_time());
     return TRUE;
 }
@@ -1044,7 +1038,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[CREATE_WEB_VIEW] = g_signal_new("create-web-view",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (WebKitWebViewClass, create_web_view),
             webkit_create_web_view_request_handled,
             NULL,
@@ -1073,7 +1067,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[WEB_VIEW_READY] = g_signal_new("web-view-ready",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (WebKitWebViewClass, web_view_ready),
             g_signal_accumulator_true_handled,
             NULL,
@@ -1094,7 +1088,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[NAVIGATION_REQUESTED] = g_signal_new("navigation-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (WebKitWebViewClass, navigation_requested),
             webkit_navigation_request_handled,
             NULL,
@@ -1131,7 +1125,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     webkit_web_view_signals[NEW_WINDOW_POLICY_DECISION_REQUESTED] =
         g_signal_new("new-window-policy-decision-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             g_signal_accumulator_true_handled,
             NULL,
@@ -1160,7 +1154,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[NAVIGATION_POLICY_DECISION_REQUESTED] = g_signal_new("navigation-policy-decision-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             g_signal_accumulator_true_handled,
             NULL,
@@ -1191,7 +1185,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[MIME_TYPE_POLICY_DECISION_REQUESTED] = g_signal_new("mime-type-policy-decision-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             g_signal_accumulator_true_handled,
             NULL,
@@ -1219,7 +1213,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[WINDOW_OBJECT_CLEARED] = g_signal_new("window-object-cleared",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (WebKitWebViewClass, window_object_cleared),
             NULL,
             NULL,
@@ -1249,7 +1243,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[DOWNLOAD_REQUESTED] = g_signal_new("download-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             g_signal_accumulator_true_handled,
             NULL,
@@ -1266,7 +1260,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[LOAD_STARTED] = g_signal_new("load-started",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1283,7 +1277,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[LOAD_COMMITTED] = g_signal_new("load-committed",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1299,7 +1293,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[LOAD_PROGRESS_CHANGED] = g_signal_new("load-progress-changed",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1307,9 +1301,34 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             G_TYPE_NONE, 1,
             G_TYPE_INT);
 
+    /**
+     * WebKitWebView::load-error
+     * @web_view: the object on which the signal is emitted
+     * @web_frame: the #WebKitWebFrame
+     * @uri: the URI that triggered the error
+     * @web_error: the #GError that was triggered
+     *
+     * An error occurred while loading. By default, if the signal is not
+     * handled, the @web_view will display a stock error page. You need to
+     * handle the signal if you want to provide your own error page.
+     *
+     * Since: 1.1.6
+     */
+    webkit_web_view_signals[LOAD_ERROR] = g_signal_new("load-error",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST),
+            0,
+            g_signal_accumulator_true_handled,
+            NULL,
+            webkit_marshal_BOOLEAN__OBJECT_STRING_POINTER,
+            G_TYPE_BOOLEAN, 3,
+            WEBKIT_TYPE_WEB_FRAME,
+            G_TYPE_STRING,
+            G_TYPE_POINTER);
+
     webkit_web_view_signals[LOAD_FINISHED] = g_signal_new("load-finished",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1329,7 +1348,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[TITLE_CHANGED] = g_signal_new("title-changed",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1348,7 +1367,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[HOVERING_OVER_LINK] = g_signal_new("hovering-over-link",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1368,7 +1387,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[POPULATE_POPUP] = g_signal_new("populate-popup",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1397,7 +1416,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[PRINT_REQUESTED] = g_signal_new("print-requested",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             g_signal_accumulator_true_handled,
             NULL,
@@ -1407,7 +1426,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
 
     webkit_web_view_signals[STATUS_BAR_TEXT_CHANGED] = g_signal_new("status-bar-text-changed",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1417,7 +1436,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
 
     webkit_web_view_signals[ICOND_LOADED] = g_signal_new("icon-loaded",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1426,7 +1445,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
 
     webkit_web_view_signals[SELECTION_CHANGED] = g_signal_new("selection-changed",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             0,
             NULL,
             NULL,
@@ -1445,7 +1464,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[CONSOLE_MESSAGE] = g_signal_new("console-message",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET(WebKitWebViewClass, console_message),
             g_signal_accumulator_true_handled,
             NULL,
@@ -1464,7 +1483,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[SCRIPT_ALERT] = g_signal_new("script-alert",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET(WebKitWebViewClass, script_alert),
             g_signal_accumulator_true_handled,
             NULL,
@@ -1484,7 +1503,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[SCRIPT_CONFIRM] = g_signal_new("script-confirm",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET(WebKitWebViewClass, script_confirm),
             g_signal_accumulator_true_handled,
             NULL,
@@ -1505,7 +1524,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      */
     webkit_web_view_signals[SCRIPT_PROMPT] = g_signal_new("script-prompt",
             G_TYPE_FROM_CLASS(webViewClass),
-            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET(WebKitWebViewClass, script_prompt),
             g_signal_accumulator_true_handled,
             NULL,
@@ -2084,6 +2103,23 @@ void webkit_web_view_notify_ready(WebKitWebView* webView)
     g_signal_emit(webView, webkit_web_view_signals[WEB_VIEW_READY], 0, &isHandled);
 }
 
+void webkit_web_view_request_download(WebKitWebView* webView, WebKitNetworkRequest* request)
+{
+    g_return_if_fail(WEBKIT_IS_WEB_VIEW(webView));
+
+    WebKitDownload* download = webkit_download_new(request);
+
+    gboolean handled;
+    g_signal_emit(webView, webkit_web_view_signals[DOWNLOAD_REQUESTED], 0, download, &handled);
+
+    if (!handled) {
+        webkit_download_cancel(download);
+        g_object_unref(download);
+        return;
+    }
+
+    webkit_download_start(download);
+}
 
 void webkit_web_view_set_settings(WebKitWebView* webView, WebKitWebSettings* webSettings)
 {
@@ -3165,5 +3201,6 @@ void webkit_web_view_move_cursor(WebKitWebView* webView, GtkMovementStep step, g
                      step == GTK_MOVEMENT_BUFFER_ENDS);
     g_return_if_fail(count == 1 || count == -1);
 
-    g_signal_emit(webView, webkit_web_view_signals[MOVE_CURSOR], 0, step, count);
+    gboolean handled;
+    g_signal_emit(webView, webkit_web_view_signals[MOVE_CURSOR], 0, step, count, &handled);
 }

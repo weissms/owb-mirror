@@ -20,9 +20,9 @@
 #include "PasteboardHelperGtk.h"
 
 #include "Frame.h"
-/*#include "webkitwebframe.h"
-#include "webkitwebview.h"
-#include "webkitprivate.h"*/
+//#include "webkitwebframe.h"
+//#include "webkitwebview.h"
+//#include "webkitprivate.h"
 
 #include <gtk/gtk.h>
 
@@ -30,20 +30,31 @@ using namespace WebCore;
 
 namespace WebKit {
 
-GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const {
+GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const
+{
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
     return gtk_widget_get_clipboard(GTK_WIDGET (webView),
                                     GDK_SELECTION_CLIPBOARD);*/
     return 0;
 }
 
-GtkTargetList* PasteboardHelperGtk::getCopyTargetList(Frame* frame) const {
+GtkClipboard* PasteboardHelperGtk::getPrimary(Frame* frame) const
+{
+/*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
+    return gtk_widget_get_clipboard(GTK_WIDGET (webView),
+                                    GDK_SELECTION_PRIMARY);*/
+    return 0;
+}
+
+GtkTargetList* PasteboardHelperGtk::getCopyTargetList(Frame* frame) const
+{
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
     return webkit_web_view_get_copy_target_list(webView);*/
     return 0;
 }
 
-GtkTargetList* PasteboardHelperGtk::getPasteTargetList(Frame* frame) const {
+GtkTargetList* PasteboardHelperGtk::getPasteTargetList(Frame* frame) const
+{
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
     return webkit_web_view_get_paste_target_list(webView);*/
     return 0;

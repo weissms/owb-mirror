@@ -1,3 +1,161 @@
+2009-04-27  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Weinig Sam.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25416
+        "Cached prototype accesses unsafely hoist property storage load above structure checks."
+        
+        Do not hoist the load of the pointer to the property storage array.
+
+        No performance impact.
+
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+
+2009-04-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoffrey "Gaffe or energy?" Garen.
+
+        Randomize address requested by ExecutableAllocatorFixedVMPool.
+
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+
+2009-04-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove scons-based build system.
+
+        * JavaScriptCore.scons: Removed.
+
+2009-04-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Buildfix).
+
+        Make HAVE_MADV_FREE darwin only for now
+
+        * wtf/Platform.h:
+
+2009-04-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Gtk build fix - check if we have MADV_FREE before using it.
+
+        * interpreter/RegisterFile.cpp:
+        (JSC::RegisterFile::releaseExcessCapacity):
+        * wtf/Platform.h:
+
+2009-04-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Switching JSCore from a static lib to a dynamic lib
+        to match the Apple build and fix symbol exports.
+
+        * jscore.bkl:
+
+2009-04-24  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25337
+        Move ThreadingQt.cpp under the qt directory.
+
+        * JavaScriptCore.pri:
+        * wtf/ThreadingQt.cpp: Removed.
+        * wtf/qt/ThreadingQt.cpp: Copied from JavaScriptCore/wtf/ThreadingQt.cpp.
+
+2009-04-24  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25338
+        Move ThreadingGtk.cpp under the gtk directory.
+
+        * GNUmakefile.am:
+        * wtf/ThreadingGtk.cpp: Removed.
+        * wtf/gtk/ThreadingGtk.cpp: Copied from JavaScriptCore/wtf/ThreadingGtk.cpp.
+
+2009-04-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam "Wesley" Weinig.
+
+        Improve performance to YARR interpreter.
+        (From about 3x slower than PCRE on regex-dna to about 30% slower).
+
+        * yarr/RegexCompiler.cpp:
+        (JSC::Yarr::RegexPatternConstructor::setupAlternativeOffsets):
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::checkCharacter):
+        (JSC::Yarr::Interpreter::checkCasedCharacter):
+        (JSC::Yarr::Interpreter::backtrackPatternCharacter):
+        (JSC::Yarr::Interpreter::backtrackPatternCasedCharacter):
+        (JSC::Yarr::Interpreter::matchParentheticalAssertionBegin):
+        (JSC::Yarr::Interpreter::matchParentheticalAssertionEnd):
+        (JSC::Yarr::Interpreter::backtrackParentheticalAssertionBegin):
+        (JSC::Yarr::Interpreter::backtrackParentheticalAssertionEnd):
+        (JSC::Yarr::Interpreter::matchDisjunction):
+        (JSC::Yarr::Interpreter::interpret):
+        (JSC::Yarr::ByteCompiler::atomPatternCharacter):
+        (JSC::Yarr::ByteCompiler::atomParenthesesSubpatternBegin):
+        (JSC::Yarr::ByteCompiler::atomParentheticalAssertionBegin):
+        (JSC::Yarr::ByteCompiler::closeAlternative):
+        (JSC::Yarr::ByteCompiler::closeBodyAlternative):
+        (JSC::Yarr::ByteCompiler::atomParenthesesEnd):
+        (JSC::Yarr::ByteCompiler::regexBegin):
+        (JSC::Yarr::ByteCompiler::regexEnd):
+        (JSC::Yarr::ByteCompiler::alterantiveBodyDisjunction):
+        (JSC::Yarr::ByteCompiler::alterantiveDisjunction):
+        (JSC::Yarr::ByteCompiler::emitDisjunction):
+        * yarr/RegexInterpreter.h:
+        (JSC::Yarr::ByteTerm::):
+        (JSC::Yarr::ByteTerm::ByteTerm):
+        (JSC::Yarr::ByteTerm::BodyAlternativeBegin):
+        (JSC::Yarr::ByteTerm::BodyAlternativeDisjunction):
+        (JSC::Yarr::ByteTerm::BodyAlternativeEnd):
+        (JSC::Yarr::ByteTerm::AlternativeBegin):
+        (JSC::Yarr::ByteTerm::AlternativeDisjunction):
+        (JSC::Yarr::ByteTerm::AlternativeEnd):
+        (JSC::Yarr::ByteTerm::SubpatternBegin):
+        (JSC::Yarr::ByteTerm::SubpatternEnd):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateParentheticalAssertion):
+        * yarr/RegexPattern.h:
+
+2009-04-24  Rob Raguet-Schofield  <ragfield@gmail.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        * wtf/CurrentTime.h: Fix a typo in a comment.
+
+2009-04-24  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Add reinterpret_cast
+
+        * interpreter/RegisterFile.cpp:
+        (JSC::RegisterFile::releaseExcessCapacity):
+
+2009-04-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        <rdar://problem/6050421> JavaScript register file should remap to release physical pages accumulated during deep recursion
+
+        We now track the maximum extent of the RegisterFile, and when we reach the final
+        return from JS (so the stack portion of the registerfile becomes empty) we see
+        if that extent is greater than maxExcessCapacity.  If it is we use madvise or
+        VirtualFree to release the physical pages that were backing the excess.
+
+        * interpreter/RegisterFile.cpp:
+        (JSC::RegisterFile::releaseExcessCapacity):
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        (JSC::RegisterFile::shrink):
+        (JSC::RegisterFile::grow):
+
 2009-04-24  Mark Rowe  <mrowe@apple.com>
 
         With great sadness and a heavy heart I switch us back from YARR to WREC in
@@ -140,7 +298,7 @@
         Rubber stamped by Sam "Blackbeard" Weinig.
 
         Although pirates do spell the word 'generate' as 'genertate',
-        webkit developers do not.  Fixerate.
+        webkit developers do not.  Fixertate.
 
         * yarr/RegexJIT.cpp:
         (JSC::Yarr::RegexGenerator::generateAssertionBOL):

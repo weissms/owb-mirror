@@ -372,6 +372,8 @@ webcore_sources += \
 	WebCore/bindings/js/ScriptCallStack.h \
 	WebCore/bindings/js/ScriptController.cpp \
 	WebCore/bindings/js/ScriptController.h \
+	WebCore/bindings/js/ScriptEventListener.cpp \
+	WebCore/bindings/js/ScriptEventListener.h \
 	WebCore/bindings/js/ScriptFunctionCall.cpp \
 	WebCore/bindings/js/ScriptFunctionCall.h \
 	WebCore/bindings/js/ScriptInstance.h \
@@ -1559,8 +1561,6 @@ webcore_sources += \
 	WebCore/rendering/InlineTextBox.h \
 	WebCore/rendering/LayoutState.cpp \
 	WebCore/rendering/LayoutState.h \
-	WebCore/rendering/ListMarkerBox.cpp \
-	WebCore/rendering/ListMarkerBox.h \
 	WebCore/rendering/MediaControlElements.h \
 	WebCore/rendering/RenderApplet.cpp \
 	WebCore/rendering/RenderApplet.h \

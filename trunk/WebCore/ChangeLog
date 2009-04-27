@@ -1,3 +1,578 @@
+2009-04-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25412
+        The Window object should be an EventTarget
+
+        Test: fast/dom/Window/dispatchEvent.html
+
+        * bindings/js/JSEventTarget.cpp:
+        (WebCore::toJS): Add DOMWindow case.
+        (WebCore::toEventTarget): Ditto.
+
+        * dom/EventTarget.cpp:
+        (WebCore::EventTarget::toDOMWindow): Added.
+        * dom/EventTarget.h:
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::scriptExecutionContext): Added. Returns the document.
+        (WebCore::DOMWindow::dispatchEvent): Added.
+        * page/DOMWindow.h:
+        (WebCore::DOMWindow::toDOMWindow):
+        (WebCore::DOMWindow::refEventTarget):
+        (WebCore::DOMWindow::derefEventTarget):
+        * page/DOMWindow.idl:
+
+2009-04-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove scons-based build system.
+
+        * WebCore.scons: Removed.
+
+2009-04-26  Darin Adler  <darin@apple.com>
+
+        Suggested by Darin Fisher.
+
+        Improve the fix for bug 25355: Crash when Creating New Tab or New Window when set to open Same Page
+        https://bugs.webkit.org/show_bug.cgi?id=25355
+        rdar://problem/6823543
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadItem): Allow shouldScroll to be true even if m_currentHistoryItem is 0.
+        Not sure if when this case can really arise in practice, but it's good to match the original
+        logic more closely.
+
+2009-04-25  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        A width or height of zero for the destination or source rect of an
+        image causes a not invertible pattern matrix.
+        This crahes newer versions of Cairo and give some graphic gliches in
+        Canvas.
+        With this patch we check if there is something to draw and return if not.
+
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::draw):
+
+2009-04-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+        
+        https://bugs.webkit.org/show_bug.cgi?id=25390
+        
+        Fix point mapping and hit testing through transforms and perspective
+        with ENABLE_3D_RENDERING. Previously the code did the more efficient
+        move(), rather than getTransformFromContainer(), when the object had
+        no transform. However, this skipped the application of perspective
+        when the immediate child of the perspective element had no transform
+        itself.
+
+        Test: transforms/3d/point-mapping/3d-point-mapping-3.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::mapLocalToContainer):
+        (WebCore::RenderBox::mapAbsoluteToLocalPoint):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::createLocalTransformState):
+        Call shouldUseTransformFromContainer() to determine if we need to
+        go through the more expensive getTransformFromContainer() code
+        path.
+
+        * rendering/RenderObject.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::shouldUseTransformFromContainer):
+        New method that indicates whether we need use getTransformFromContainer()
+        when mapping points through renderers, and hit testing.
+
+2009-04-25  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for <rdar://problem/6712771> REGRESSION(34681): Text is no longer underlined after delete
+        https://bugs.webkit.org/show_bug.cgi?id=25396
+
+        Test: editing/deleting/delete-br-013.html
+
+        * editing/CompositeEditCommand.cpp: (WebCore::CompositeEditCommand::moveParagraphs):
+         Only preserve an empty paragraph's style when moving paragraphs around if the selection is still 
+         in an empty paragraph after the move occurs.  This was causing the empty paragraph's style to overwrite
+         the previous paragraph's style during a delete of an empty paragraph.
+
+2009-04-25  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6808171> REGRESSION (3-4): Standalone media documents don't 
+        properly display non-linear media
+
+        If a media engine claims it can support the MIME type, WebCore now creates a <video>
+        element for document mode media files instead of an <embed> element. Because WebCore's 
+        QuickTime backed media players do not support every kind of media the QuickTime plug-in
+        supports, and because it is not always possible to tell what type of media is in a file 
+        without opening and parsing it, some types of media that used to be displayed properly
+        by a plug-in are no longer supported properly. To fix this, if the media engine
+        sees that it can not completely support a media file it now informs the media 
+        document, which replaces the <video> element with an <embed>.
+        
+        r42301 landed support for OSX. This patch modifies those changes slighly and adds support
+        for Windows.
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::MediaDocument): Initialize m_replaceMediaElementTimer.
+        (WebCore::MediaDocument::mediaElementSawUnsupportedTracks): Don't replace the <video> 
+        element immediately.
+        (WebCore::MediaDocument::replaceMediaElementTimerFired): Renamed from replaceVideoWithEmbed.
+        Set body margin-width and margin-height to 0 as that is what a PluginDocument uses.
+        * loader/MediaDocument.h:
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::loadStateChanged): Don't do anything if m_hasUnsupportedTracks.
+        (WebCore::MediaPlayerPrivate::rateChanged): Ditto.
+        (WebCore::MediaPlayerPrivate::timeChanged): Ditto.
+        (WebCore::MediaPlayerPrivate::didEnd): Ditto.
+        (WebCore::MediaPlayerPrivate::repaint): Ditto.
+        (WebCore::MediaPlayerPrivate::paint): Ditto.
+        (WebCore::MediaPlayerPrivate::sawUnsupportedTracks): Set m_hasUnsupportedTracks before callback.
+
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate): Initialize m_totalTrackCount and m_hasUnsupportedTracks.
+        (WebCore::MediaPlayerPrivate::updateStates): Call sawUnsupportedTracks if the movie has unsupported
+        media type(s) or if it fails completely.
+        (WebCore::MediaPlayerPrivate::sawUnsupportedTracks): New, disable the movie object and tell the
+        media player client we won't play this movie correctly.
+        (WebCore::MediaPlayerPrivate::didEnd): Don't do anything if m_hasUnsupportedTracks.
+        (WebCore::MediaPlayerPrivate::setSize): Ditto.
+        (WebCore::MediaPlayerPrivate::setVisible): Ditto.
+        (WebCore::MediaPlayerPrivate::paint): Ditto.
+        (WebCore::MediaPlayerPrivate::movieEnded): Ditto.
+        (WebCore::MediaPlayerPrivate::movieLoadStateChanged): Ditto.
+        (WebCore::MediaPlayerPrivate::movieTimeChanged): Ditto.
+        (WebCore::MediaPlayerPrivate::movieNewImageAvailable): Ditto.
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.h:
+
+        * platform/graphics/win/QTMovieWin.cpp:
+        (QTMovieWinPrivate::task): Stop the task timer if we were disabled during the load state
+        change callback.
+        (QTMovieWinPrivate::drawingComplete): Don't do anything if disabled.
+        (QTMovieWin::QTMovieWin): Initialize m_disabled.
+        (QTMovieWin::disableUnsupportedTracks): Return total number of tracks.
+        (QTMovieWin::setDisabled): New, set m_disabled flag.
+        * platform/graphics/win/QTMovieWin.h:
+
+2009-04-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Error reporting
+        https://bugs.webkit.org/show_bug.cgi?id=18344
+
+        Fix the SOUP resource handle to report SOUP_HTTP_ERROR for Soup
+        errors and G_IO_ERROR for gio errors.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::finishedCallback):
+        (WebCore::ResourceHandle::startHttp):
+        (WebCore::ResourceHandle::start):
+        (WebCore::readCallback):
+        (WebCore::openCallback):
+        (WebCore::queryInfoCallback):
+        (WebCore::ResourceHandle::startGio):
+
+2009-04-25  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Mark Rowe.
+
+        Only set the new URL once for the request. Doing it a second time
+        after the call to willSendRequest was causing crashes when
+        redirected requests got cancelled.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::restartedCallback):
+
+2009-04-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Adding ScriptEventListener.cpp.
+
+        * WebCoreSources.bkl:
+
+2009-04-24  Sergio GarcÃ­a-Cuevas  <sergio_gcg@telefonica.net>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17267
+        [GTK] Primary selection/clipboard support
+
+        Copy the link location to the primary selection as well as the
+        clipboard selection when using the "copy link selection" context
+        menu entry.
+
+        * platform/gtk/PasteboardGtk.cpp:
+        (WebCore::Pasteboard::writeURL):
+        * platform/gtk/PasteboardHelper.h:
+
+2009-04-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25383
+        Changing SVG size via JS does not update CSS width/height
+
+        Add an ugly hack to fix CSS width/height updates from JS.
+
+        We can't easily call setAttribute when width/height changes
+        as that would cause infinite recursion (as we'd try to set
+        the animation storage from the attributes)
+
+        For now, when we get notification that JS changed width/height
+        we copy what parseMappedAttribute does and update the CSS values as well.
+
+        A better fix for this would be:
+        https://bugs.webkit.org/show_bug.cgi?id=25383
+
+        * svg/SVGSVGElement.cpp:
+        (WebCore::updateCSSForAttribute):
+        (WebCore::SVGSVGElement::svgAttributeChanged):
+
+2009-04-24  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        We should not show the deletion UI for blockquotes in mail but they do 
+        show now that we only check for one visible border.
+
+        * editing/DeleteButtonController.cpp:
+        (WebCore::isDeletableElement):
+
+2009-04-24  Dan Bernstein  <mitz@apple.com>
+
+        - address Hyatt's review comments on the last patch
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::performOverlapTests):
+        (WebCore::RenderLayer::paintLayer):
+
+2009-04-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=5909
+          <rdar://problem/5863349> overlapping element leaves trail when
+          scrolling iframe
+
+        * WebCore.xcodeproj/project.pbxproj: Added OverlapTestRequestClient.h.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::reset): Initialize m_isOverlapped.
+        (WebCore::FrameView::useSlowRepaints): Also check m_isOverlapped.
+        (WebCore::FrameView::removeSlowRepaintObject): Use useSlowRepaints()
+        so overlapping is taken into account.
+        (WebCore::FrameView::setIsOverlapped): Added. Sets m_isOverlapped and
+        enables or disables copy-on-scroll accordingly.
+
+        * page/FrameView.h:
+        Added setIsOverlapped() and m_isOverlapped.
+
+        * rendering/OverlapTestRequestClient.h: Added. During foreground painting,
+        an OverlapTestRequestClient can make a request to test if any subsequently-
+        painted layers overlap a rect. The test result is delivered to the
+        requestClient via setOverlapTestResult().
+        (WebCore::OverlapTestRequestClient::~OverlapTestRequestClient):
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paint): Pass an OverlapTestRequestMap to
+        paintLayer(). When done painting, inform any remaining requestClients that
+        they are not overlapped.
+
+        (WebCore::RenderLayer::paintLayer): Take an OverlapTestRequestMap and
+        pass it down to child and reflection layers. Inform requestClients if this
+        layer overlaps their requested rects.
+
+        * rendering/RenderLayer.h:
+
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::PaintInfo::PaintInfo): Added an
+        OverlapTestRequestMap member.
+
+        * rendering/RenderReplica.cpp:
+        (WebCore::RenderReplica::paint): For now, pass a 0 OverlapTestRequestMap
+        to paintLayer().
+
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::paint): For FrameViews, request an overlap test
+        with the frame.
+        (WebCore::RenderWidget::setOverlapTestResult): Call
+        FrameView::setIsOverlapped() with the result of the overlap test.
+
+        * rendering/RenderWidget.h: Made RenderWidget an OverlapTestRequestClient.
+
+2009-04-24  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Simon Fraser, Dan Bernstein.
+
+        Speed up the PLT by devirtualizing the height() function on InlineBox.  virtualizing it in order to make the height() computation dynamic caused
+        a ~0.5% slowdown.  This patch does the following to get the speed back:
+        
+        (a) Devirtualizes isText and forces inline box creators to set the bit as needed.  This actually resulted in simplified code, since ListMarkerBox could
+        then be removed.
+        (b) Reduces the height() call count.  In some cases the code was repeatedly calling height(), which used to be fine when the function was just an inline
+        member variable access.  The call sites have been patched to cut down on extra height() calls now that it is more expensive.
+        (c) Devirtualize height() except on SVG boxes.  For all non-SVG, the height() function on InlineBox handles the computation.  For SVG boxes, a new bit has
+        been set on InlineBoxes (isSVG()) that indicates that the virtual svgBoxHeight() function should be called to retrieve the height instead.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * rendering/InlineBox.cpp:
+        (WebCore::InlineBox::height):
+        * rendering/InlineBox.h:
+        (WebCore::InlineBox::InlineBox):
+        (WebCore::InlineBox::isSVG):
+        (WebCore::InlineBox::setIsSVG):
+        (WebCore::InlineBox::isText):
+        (WebCore::InlineBox::setIsText):
+        (WebCore::InlineBox::svgBoxHeight):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::placeBoxesVertically):
+        (WebCore::InlineFlowBox::paintBoxDecorations):
+        (WebCore::InlineFlowBox::paintMask):
+        * rendering/InlineFlowBox.h:
+        * rendering/InlineTextBox.cpp:
+        * rendering/InlineTextBox.h:
+        * rendering/ListMarkerBox.cpp: Removed.
+        * rendering/ListMarkerBox.h: Removed.
+        * rendering/RenderListMarker.cpp:
+        (WebCore::RenderListMarker::createInlineBox):
+        * rendering/RenderSVGInline.cpp:
+        (WebCore::RenderSVGInline::createFlowBox):
+        * rendering/RenderSVGInlineText.cpp:
+        (WebCore::RenderSVGInlineText::createTextBox):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::createRootBox):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::createInlineTextBox):
+        * rendering/RootInlineBox.cpp:
+        * rendering/RootInlineBox.h:
+        * rendering/SVGInlineFlowBox.h:
+        (WebCore::SVGInlineFlowBox::svgBoxHeight):
+        * rendering/SVGInlineTextBox.h:
+        (WebCore::SVGInlineTextBox::svgBoxHeight):
+        * rendering/SVGRootInlineBox.h:
+        (WebCore::SVGRootInlineBox::svgBoxHeight):
+
+2009-04-24  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25370
+        Introduce ScriptEventListener to refactor away direct references to
+        JSLazyEventListener in WebCore code.
+
+        * GNUmakefile.am: Added ScriptEventListener to project.
+        * WebCore.pro: Ditto.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * bindings/js/JSDOMGlobalObject.cpp: Removed unused JSLazyEventListener include.
+        * bindings/js/JSLazyEventListener.cpp: Moved createAttributeEventListener helpers
+            to ScriptEventListener.
+        * bindings/js/JSLazyEventListener.h: Ditto.
+        * bindings/js/ScriptController.cpp: Removed unused JSLazyEventListener include.
+        * bindings/js/ScriptEventListener.cpp: Added.
+        * bindings/js/ScriptEventListener.h: Added.
+        * bindings/v8/ScriptEventListener.cpp: Added.
+        * bindings/v8/ScriptEventListener.h: Added.
+        * dom/Document.cpp: Renamed JSLazyEventListener include to ScriptEventListener.
+        * html/HTMLBodyElement.cpp: Ditto.
+        * html/HTMLButtonElement.cpp: Ditto.
+        * html/HTMLElement.cpp: Ditto.
+        * html/HTMLFormElement.cpp: Ditto.
+        * html/HTMLFrameElementBase.cpp: Ditto.
+        * html/HTMLFrameSetElement.cpp: Ditto.
+        * html/HTMLImageElement.cpp: Ditto.
+        * html/HTMLInputElement.cpp: Ditto.
+        * html/HTMLObjectElement.cpp: Ditto.
+        * html/HTMLScriptElement.cpp: Ditto.
+        * html/HTMLSelectElement.cpp: Ditto.
+        * html/HTMLTextAreaElement.cpp: Ditto.
+        * svg/SVGElement.cpp: Ditto.
+        * svg/SVGSVGElement.cpp: Ditto.
+
+2009-04-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 25355: Crash when Creating New Tab or New Window when set to open Same Page
+        https://bugs.webkit.org/show_bug.cgi?id=25355
+        rdar://problem/6823543
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadItem): Added a null check.
+
+2009-04-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Fix RenderSVGImage to dump with full bounds and style information.
+        https://bugs.webkit.org/show_bug.cgi?id=25377
+        
+        No functional changes, we're just now including more info in render tree dumps.
+
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isSVGImage):
+        * rendering/RenderSVGImage.h:
+        (WebCore::RenderSVGImage::isSVGImage):
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::write):
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::operator<<):
+        (WebCore::write):
+        * rendering/SVGRenderTreeAsText.h:
+
+2009-04-24  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (chromium build fix).
+
+        Rename "isInline" => "isAttribute" in v8 bindings (jsc was done in r42699).
+
+        * bindings/v8/V8AbstractEventListener.cpp:
+        (WebCore::V8AbstractEventListener::V8AbstractEventListener):
+        (WebCore::V8AbstractEventListener::invokeEventHandler):
+        * bindings/v8/V8AbstractEventListener.h:
+        * bindings/v8/V8EventListenerList.cpp:
+        (WebCore::V8EventListenerList::add):
+        (WebCore::V8EventListenerList::remove):
+        (WebCore::V8EventListenerList::clear):
+        * bindings/v8/V8LazyEventListener.h:
+        (WebCore::V8LazyEventListener::virtualisAttribute):
+        * bindings/v8/custom/V8CustomEventListener.cpp:
+        (WebCore::V8EventListener::V8EventListener):
+        * bindings/v8/custom/V8CustomEventListener.h:
+        (WebCore::V8EventListener::create):
+        (WebCore::V8EventListener::virtualisAttribute):
+
+2009-04-24  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25343
+        Fix Chromium/Skia bug where -webkit-box-shadow with 0,0 offset 
+        ignores blur.
+
+        * WebCore\platform\graphics\skia\GraphicsContextSkia.cpp
+         (WebCore::GraphicsContext::setPlatformShadow): Add check against
+         blur before clearing looper.
+
+2009-04-24  Eric Roman  <eroman@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Initialize TextIterator::m_textLength to 0.
+
+        This assures that TextIterator::length() will return 0 for cases when TextIterator's constructor returns early (because there is nothing to iterate over in the range).
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25335>
+
+        Test: editing/selection/doubleclick-whitespace-img-crash.html
+
+        * editing/TextIterator.cpp:
+        (WebCore::TextIterator::TextIterator):
+
+2009-04-24  Fumitoshi Ukai  <ukai@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25329
+        Add indexed access method in v8 binding of ClientRectList.
+
+        * bindings/v8/custom/V8ClientRectListCustom.cpp: Added.
+
+2009-04-24  Fumitoshi Ukai  <ukai@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25257
+        Use null for unspecified event listener attributes of XMLHttpRequest
+        and XMLHttpRequestUpload in v8 binding.
+
+        cf. http://www.whatwg.org/specs/web-apps/current-work/#event-handler-attributes
+        An event handler attribute, unless otherwise specified, can either
+        have the value null or be set to a Function object.
+        Initially, an event handler attribute must be set to null.
+
+        Test: fast/xmlhttprequest/xmlhttprequest-default-attributes.html
+
+        * bindings/v8/custom/V8XMLHttpRequestCustom.cpp:
+        (WebCore::ACCESSOR_GETTER): Changed to use v8::Null().
+        * bindings/v8/custom/V8XMLHttpRequestUploadCustom.cpp:
+        (WebCore::ACCESSOR_GETTER): Ditto.
+
+2009-04-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/6663836> CrashTracer: crashes in Safari at com.apple.WebCore • WebCore::reportException + 1513
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::reportException): Added a null check.
+
+2009-04-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23219
+
+        Add support for transtions and animations of background-position, -webkit-background-size,
+        -webkit-mask-position and -webkit-mask-size.
+
+        Tests: transitions/background-transitions.html
+               transitions/mask-transitions.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+        Add a blend func for LengthSize.
+        
+        (WebCore::ensurePropertyMap):
+        Add wrappers for the new properties.
+        
+        (WebCore::addShorthandProperties):
+        Add a shorthand property for CSSPropertyBackgroundPosition to map to
+        CSSPropertyBackgroundPositionX and CSSPropertyBackgroundPositionY, 
+        add CSSPropertyWebkitMask for CSSPropertyWebkitMaskPosition, and add
+        CSSPropertyWebkitMaskPosition for CSSPropertyWebkitMaskPositionX and
+        CSSPropertyWebkitMaskPositionY.
+        
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::setBackgroundXPosition):
+        (WebCore::InheritedFlags::setBackgroundYPosition):
+        (WebCore::InheritedFlags::setBackgroundSize):
+        (WebCore::InheritedFlags::setMaskXPosition):
+        (WebCore::InheritedFlags::setMaskYPosition):
+        (WebCore::InheritedFlags::setMaskSize):
+        Add setters for the properties that can be animated now.
+
+2009-04-24  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <rdar://problem/5089327> Newline gets stripped when pasting whole lines in certain markup
+
+        Test: editing/pasteboard/paste-blockquote-after-blockquote.html
+
+        When we have matching quote levels, its ok to merge the starts of the inserted and existing blocks more frequently.
+        But we should only merge here if the selection start was inside a mail blockquote.  This prevents against removing a 
+        blockquote from newly pasted quoted content that was pasted into an unquoted position.  If that unquoted position happens 
+        to be right after another blockquote, we don't want to merge and risk stripping a valid block (and newline) from the pasted content.
+
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplaceSelectionCommand::shouldMergeStart): Also added an early return to always return false when we're already moving paragraphs.
+        (WebCore::ReplaceSelectionCommand::doApply): Removed redundant check for when we're moving paragraphs.
+        * editing/ReplaceSelectionCommand.h:
+
 2009-04-24  Francisco Tolmasky  <francisco@280north.com>
 
         BUG 24604: WebKit profiler reports incorrect total times

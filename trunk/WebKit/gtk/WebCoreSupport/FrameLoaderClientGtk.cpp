@@ -49,14 +49,18 @@
 #include "ProgressTracker.h"
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
-#include "webkitwebview.h"
+#include "webkiterror.h"
 #include "webkitnetworkrequest.h"
+#include "webkitprivate.h"
 #include "webkitwebframe.h"
 #include "webkitwebnavigationaction.h"
 #include "webkitwebpolicydecision.h"
-#include "webkitprivate.h"
+#include "webkitwebview.h"
 
 #include <JavaScriptCore/APICast.h>
+#include <gio/gio.h>
+#include <glib.h>
+#include <glib/gi18n-lib.h>
 #include <stdio.h>
 #if PLATFORM(UNIX)
 #include <sys/utsname.h>
@@ -811,8 +815,9 @@ void FrameLoaderClient::dispatchDidFinishLoading(DocumentLoader*, unsigned long 
     notImplemented();
 }
 
-void FrameLoaderClient::dispatchDidFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError&)
+void FrameLoaderClient::dispatchDidFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError& error)
 {
+    // FIXME: when does this occur and what should happen?
     notImplemented();
 }
 
@@ -822,13 +827,54 @@ bool FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, 
     return false;
 }
 
-void FrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceError&)
+void FrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
+    dispatchDidFailLoad(error);
+
+    // FIXME: load-done is deprecated. Please remove when signal's been removed.
     g_signal_emit_by_name(m_frame, "load-done", false);
 }
 
-void FrameLoaderClient::dispatchDidFailLoad(const ResourceError&)
+void FrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
 {
+    WebKitWebView* webView = getViewFromFrame(m_frame);
+    GError* webError = g_error_new_literal(g_quark_from_string(error.domain().utf8().data()),
+                                           error.errorCode(),
+                                           error.localizedDescription().utf8().data());
+    gboolean isHandled = false;
+    g_signal_emit_by_name(webView, "load-error", m_frame, error.failingURL().utf8().data(), webError, &isHandled);
+
+    if (isHandled) {
+        g_error_free(webError);
+        return;
+    }
+
+    String content;
+    gchar* fileContent = 0;
+    gchar* errorURI = g_filename_to_uri(DATA_DIR"/webkit-1.0/resources/error.html", NULL, NULL);
+    GFile* errorFile = g_file_new_for_uri(errorURI);
+    g_free(errorURI);
+
+    if (!errorFile)
+        content = String::format("<html><body>%s</body></html>", webError->message);
+    else {
+        gboolean loaded = g_file_load_contents(errorFile, 0, &fileContent, 0, 0, 0);
+        if (!loaded)
+            content = String::format("<html><body>%s</body></html>", webError->message);
+        else
+            content = String::format(fileContent, error.failingURL().utf8().data(), webError->message);
+    }
+
+    webkit_web_frame_load_alternate_string(m_frame, content.utf8().data(), 0, error.failingURL().utf8().data());
+
+    g_free(fileContent);
+
+    if (errorFile)
+        g_object_unref(errorFile);
+
+    g_error_free(webError);
+
+    // FIXME: load-done is deprecated. Please remove when signal's been removed.
     g_signal_emit_by_name(m_frame, "load-done", false);
 }
 
@@ -841,54 +887,54 @@ void FrameLoaderClient::download(ResourceHandle* handle, const ResourceRequest& 
     startDownload(request);
 }
 
-ResourceError FrameLoaderClient::cancelledError(const ResourceRequest&)
+ResourceError FrameLoaderClient::cancelledError(const ResourceRequest& request)
 {
-    notImplemented();
-    ResourceError error("", 0, "", "");
-    error.setIsCancellation(true);
-    return error;
+    return ResourceError(g_quark_to_string(WEBKIT_NETWORK_ERROR), WEBKIT_NETWORK_ERROR_CANCELLED,
+                         request.url().string(), _("Load request cancelled"));
 }
 
-ResourceError FrameLoaderClient::blockedError(const ResourceRequest&)
+ResourceError FrameLoaderClient::blockedError(const ResourceRequest& request)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_POLICY_ERROR), WEBKIT_POLICY_ERROR_CANNOT_USE_RESTRICTED_PORT,
+                         request.url().string(), _("Not allowed to use restricted network port"));
 }
 
-ResourceError FrameLoaderClient::cannotShowURLError(const ResourceRequest&)
+ResourceError FrameLoaderClient::cannotShowURLError(const ResourceRequest& request)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_POLICY_ERROR), WEBKIT_POLICY_ERROR_CANNOT_SHOW_URL,
+                         request.url().string(), _("URL cannot be shown"));
 }
 
-ResourceError FrameLoaderClient::interruptForPolicyChangeError(const ResourceRequest&)
+ResourceError FrameLoaderClient::interruptForPolicyChangeError(const ResourceRequest& request)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_POLICY_ERROR), WEBKIT_POLICY_ERROR_FRAME_LOAD_INTERRUPTED_BY_POLICY_CHANGE,
+                         request.url().string(), _("Frame load was interrupted"));
 }
 
-ResourceError FrameLoaderClient::cannotShowMIMETypeError(const ResourceResponse&)
+ResourceError FrameLoaderClient::cannotShowMIMETypeError(const ResourceResponse& response)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_POLICY_ERROR), WEBKIT_POLICY_ERROR_CANNOT_SHOW_MIME_TYPE,
+                         response.url().string(), _("Content with the specified MIME type cannot be shown"));
 }
 
-ResourceError FrameLoaderClient::fileDoesNotExistError(const ResourceResponse&)
+ResourceError FrameLoaderClient::fileDoesNotExistError(const ResourceResponse& response)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_NETWORK_ERROR), WEBKIT_NETWORK_ERROR_FILE_DOES_NOT_EXIST,
+                         response.url().string(), _("File does not exist"));
 }
 
-ResourceError FrameLoaderClient::pluginWillHandleLoadError(const ResourceResponse&)
+ResourceError FrameLoaderClient::pluginWillHandleLoadError(const ResourceResponse& response)
 {
-    notImplemented();
-    return ResourceError("", 0, "", "");
+    return ResourceError(g_quark_to_string(WEBKIT_PLUGIN_ERROR), WEBKIT_PLUGIN_ERROR_WILL_HANDLE_LOAD,
+                         response.url().string(), _("Plugin will handle load"));
 }
 
-bool FrameLoaderClient::shouldFallBack(const ResourceError&)
+bool FrameLoaderClient::shouldFallBack(const ResourceError& error)
 {
-    notImplemented();
-    return false;
+    // FIXME: Needs to check domain.
+    // FIXME: Mac checks for WebKitErrorPlugInWillHandleLoad here to avoid
+    // loading plugin content twice. Do we need it?
+    return error.errorCode() != WEBKIT_NETWORK_ERROR_CANCELLED;
 }
 
 bool FrameLoaderClient::canCachePage() const
@@ -927,20 +973,10 @@ void FrameLoaderClient::setMainDocumentError(DocumentLoader*, const ResourceErro
 void FrameLoaderClient::startDownload(const ResourceRequest& request)
 {
     WebKitNetworkRequest* networkRequest = webkit_network_request_new(request.url().string().utf8().data());
-    WebKitDownload* download = webkit_download_new(networkRequest);
-    g_object_unref(networkRequest);
-
     WebKitWebView* view = getViewFromFrame(m_frame);
-    gboolean handled;
-    g_signal_emit_by_name(view, "download-requested", download, &handled);
 
-    if (!handled) {
-        webkit_download_cancel(download);
-        g_object_unref(download);
-        return;
-    }
-
-    webkit_download_start(download);
+    webkit_web_view_request_download(view, networkRequest);
+    g_object_unref(networkRequest);
 }
 
 void FrameLoaderClient::updateGlobalHistory()

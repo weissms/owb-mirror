@@ -10,7 +10,6 @@ list(APPEND WEBCORE_SRC
     rendering/InlineFlowBox.cpp
     rendering/InlineTextBox.cpp
     rendering/LayoutState.cpp
-    rendering/ListMarkerBox.cpp
     rendering/RenderApplet.cpp
     rendering/RenderArena.cpp
     rendering/RenderBR.cpp

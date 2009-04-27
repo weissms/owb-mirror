@@ -1,3 +1,235 @@
+2009-04-27  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Mark Rowe.
+
+        Plug memory leak.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFailLoad):
+
+2009-04-26  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25391
+        G_SIGNAL_ACTION flag in WebKitWebView signals
+
+        Most of the signals in WebKitGTK+ have the G_SIGNAL_ACTION flag,
+        but I don't think this makes sense. The flag is meant for those
+        signals that can be emitted by the user to trigger some action in
+        the view, as if it were a normal API, which is not the case for
+        most of them.
+
+        * webkit/webkitdownload.cpp:
+        (_WebKitDownloadPrivate::webkit_download_class_init):
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebinspector.cpp:
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_class_init):
+        * webkit/webkitwebview.cpp:
+
+2009-04-26  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed, actually apply the right patch.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_move_cursor):
+
+2009-04-26  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Pass a variable to hold the return value of the 'move-cursor'
+        signal, otherwise a crash can happen.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_move_cursor):
+
+2009-04-25  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24786
+        WebKitDownload sometimes suggests peculiar filenames
+
+        Refactor the emission of the download-requested signal so that we
+        have less code duplication.
+
+        * WebCoreSupport/ContextMenuClientGtk.cpp:
+        (WebKit::ContextMenuClient::downloadURL):
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::startDownload):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+
+2009-04-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Error reporting
+        https://bugs.webkit.org/show_bug.cgi?id=18344
+
+        Update FrameLoad errors to use WebKitErrors.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::cancelledError):
+        (WebKit::FrameLoaderClient::blockedError):
+        (WebKit::FrameLoaderClient::cannotShowURLError):
+        (WebKit::FrameLoaderClient::interruptForPolicyChangeError):
+        (WebKit::FrameLoaderClient::cannotShowMIMETypeError):
+        (WebKit::FrameLoaderClient::fileDoesNotExistError):
+        (WebKit::FrameLoaderClient::pluginWillHandleLoadError):
+        (WebKit::FrameLoaderClient::shouldFallBack):
+        * webkit/webkiterror.h: Added.
+        * webkit/webkiterror.cpp: Added.
+
+2009-04-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Error reporting
+        https://bugs.webkit.org/show_bug.cgi?id=18344
+
+        Display a default error page for load errors.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFailLoad):
+        * resources/error.html: Added.
+
+2009-04-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+         Reviewed by Xan Lopez.
+
+         [GTK] Error reporting
+         https://bugs.webkit.org/show_bug.cgi?id=18344
+
+         Add a WebKitWebFrame API to load alternate content for unreachable URLs.
+         Also add a new signal "load-error" for handling load errors.
+
+         * WebCoreSupport/FrameLoaderClientGtk.cpp:
+         (WebKit::FrameLoaderClient::postProgressFinishedNotification):
+         (WebKit::FrameLoaderClient::dispatchDidFailLoading):
+         (WebKit::FrameLoaderClient::dispatchDidFailProvisionalLoad):
+         (WebKit::FrameLoaderClient::dispatchDidFailLoad):
+         * webkit/webkitwebframe.cpp:
+         * webkit/webkitwebframe.h:
+         * webkit/webkitwebview.cpp:
+
+2009-04-24  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Rubber-stamped by Gustavo Noronha.
+
+        Fix braces to comply with style guidelines.
+
+        * WebCoreSupport/PasteboardHelperGtk.cpp:
+        (WebKit::PasteboardHelperGtk::getClipboard):
+        (WebKit::PasteboardHelperGtk::getCopyTargetList):
+        (WebKit::PasteboardHelperGtk::getPasteTargetList):
+
+2009-04-24  Sergio García-Cuevas  <sergio_gcg@telefonica.net>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17267
+        [GTK] Primary selection/clipboard support
+
+        Add a method for getting the primary selection.
+
+        * WebCoreSupport/PasteboardHelperGtk.cpp:
+        (WebKit::PasteboardHelperGtk::getPrimary):
+        * WebCoreSupport/PasteboardHelperGtk.h:
+
+2009-04-24  Johan Bilien  <jobi@via.ecp.fr>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25373
+        Popup menu has the wrong size when popped up near the edge
+        of the screen
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_forward_context_menu_event): Let GTK place
+        the popup menu instead of trying to do better and failing
+
+2009-04-24  Christian Dywan  <christian@twotoasts.de>
+
+        Rubber-stamped by Gustavo Noronha.
+
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init): Reword the
+        description of the enable-spell-checking property and correct the
+        mentioning of the default language used.
+
+2009-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15616
+        [GTK] Add spell checking
+
+        Implement EditorClient::ignoreWordInSpellDocument,
+        EditorClient::learnWord and EditorClient::getGuessesForWord. This
+        enables the corresponding user actions.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::ignoreWordInSpellDocument):
+        (WebKit::EditorClient::learnWord):
+        (WebKit::EditorClient::getGuessesForWord):
+
+2009-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15616
+        [GTK] Add spell checking
+
+        Implement EditorClient::checkSpellingOfString; enabling spell checking
+        to actually happen, this is the basis for other spelling functions.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::checkSpellingOfString):
+
+2009-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15616
+        [GTK] Add spell checking
+
+        Add spell-checking-languages property to WebKitWebSettings.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_init):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_finalize):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_set_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_get_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_copy):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_get_spell_languages):
+
+2009-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15616
+        [GTK] Add spell checking
+
+        Add enable-spell-checking property to WebKitWebSettings and implement
+        EditorClient::isContinuousSpellCheckingEnabled and
+        EditorClient::toggleContinuousSpellChecking to allow the UI to
+        enable check as you type spell checking.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::isContinuousSpellCheckingEnabled):
+        (WebKit::EditorClient::toggleContinuousSpellChecking):
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_set_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_get_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_copy):
+
 2009-04-22  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Gustavo Noronha.
