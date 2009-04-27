@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <jchaffraix@pleyo.com>
+ * Copyright (C) 2009 Julien Chaffraix <jchaffraix@pleyo.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,12 +48,23 @@ CookieDatabaseBackingStore::~CookieDatabaseBackingStore()
 {
 }
 
+void CookieDatabaseBackingStore::open(const String& cookieJar)
+{
+    if (m_db.isOpen())
+        close();
+
+    if (!m_db.open(cookieJar))
+        LOG_ERROR("Could not open the cookie database");
+}
+
+void CookieDatabaseBackingStore::close()
+{
+    m_db.close();
+}
+
 void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 {
-   if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
+    ASSERT(m_db.isOpen());
     
     if (!m_db.tableExists(String("cookies")))
         // Mozilla uses isHttpOnly which is not included as we do not use it
@@ -80,11 +91,7 @@ void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::update(const Cookie* cookie)
 {
-    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
-
+    ASSERT(m_db.isOpen());
     ASSERT(m_db.tableExists(String("cookies")));
 
     // the where statement is chosen to match CookieMap key
@@ -110,10 +117,7 @@ void CookieDatabaseBackingStore::update(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 {
-    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
-        LOG_ERROR("Cannot open the cookie database");
-        return;
-    }
+    ASSERT(m_db.isOpen());
 
     if(!m_db.tableExists(String("cookies")))
         return;
@@ -140,17 +144,13 @@ void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 
 Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
 {
+    ASSERT(m_db.isOpen());
+
     Vector<Cookie*, 16> cookies;
-    if (!m_db.isOpen() && !m_db.open(cookieManager().cookieJar())) {
-        LOG_ERROR("Cannot open the cookie database");
-        return cookies;
-    }
 
     // Check that the database is correctly initialized.
-    if (!m_db.tableExists(String("cookies"))) {
-        m_db.close();
+    if (!m_db.tableExists(String("cookies")))
         return cookies;
-    }
 
     // Problem if the database is not connected
     SQLiteStatement select(m_db, "SELECT name, value, host, path, expiry, lastAccessed, isSecure FROM cookies;");

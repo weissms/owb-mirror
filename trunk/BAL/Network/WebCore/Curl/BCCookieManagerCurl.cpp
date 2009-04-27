@@ -47,6 +47,10 @@ CookieManager::CookieManager()
     m_cookieJarFileName = String("cookieCollection.db");
 
 #if ENABLE(DATABASE)
+    // We force the cookie database to be open with the cookie jar to avoid
+    // calling cookieManager() again and recursively calling this constructor.
+    cookieDatabaseBackingStore().open(cookieJar());
+
     getDatabaseCookies();
 #endif
 }
@@ -56,6 +60,9 @@ CookieManager::~CookieManager()
     // Destroy all CookieMaps.
     for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it)
         delete it->second;
+#if ENABLE(DATABASE)
+    cookieDatabaseBackingStore().close();
+#endif
 }
 
 void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const String& value)
@@ -161,6 +168,9 @@ void CookieManager::removeAllCookies(bool shouldRemoveFromDatabase)
 void CookieManager::setCookieJar(const char* fileName)
 {
     m_cookieJarFileName = String(fileName);
+#if ENABLE(DATABASE)
+    cookieDatabaseBackingStore().open(m_cookieJarFileName);
+#endif
 }
 
 void CookieManager::checkAndTreatCookie(Cookie* cookie)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <jchaffraix@pleyo.com>
+ * Copyright (C) 2009 Julien Chaffraix <jchaffraix@pleyo.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,9 @@ namespace WebCore {
 
     class CookieDatabaseBackingStore {
     public:
+        void open(const String& cookieJar);
+        void close();
+
         void insert(const Cookie* cookie);
         void update(const Cookie* cookie);
         void remove(const Cookie* cookie);

@@ -1,3 +1,27 @@
+2009-04-26  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        We were recursively calling the CookieManager constructor because
+        the CookieDatabaseBackingStore needed the cookie jar filename.
+        To avoid that, we explicitly open the database with the cookie jar
+        filename. This will also solve issue that we would have when setting
+        a new cookie jar filename.
+
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp:
+        (WebCore::CookieDatabaseBackingStore::~CookieDatabaseBackingStore):
+        (WebCore::CookieDatabaseBackingStore::open): Added.
+        (WebCore::CookieDatabaseBackingStore::close): Added.
+        (WebCore::CookieDatabaseBackingStore::insert): Added an ASSERT that
+        the database is open.
+        (WebCore::CookieDatabaseBackingStore::update): Ditto.
+        (WebCore::CookieDatabaseBackingStore::remove): Ditto.
+        (WebCore::CookieDatabaseBackingStore::getAllCookies): Ditto.
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h:
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::CookieManager):
+        (WebCore::CookieManager::setCookieJar): Call CookieDatabaseBackingStore::open.
+
 2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
