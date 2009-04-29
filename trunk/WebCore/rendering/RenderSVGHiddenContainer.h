@@ -49,8 +49,8 @@ namespace WebCore {
         virtual void paint(PaintInfo&, int parentX, int parentY);
         
         virtual IntRect clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer);
-        virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool topLevel = true);
-        virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
+        virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty);
+        virtual void absoluteQuads(Vector<FloatQuad>&);
 
         // FIXME: This override only exists to match existing LayoutTest results.
         virtual TransformationMatrix absoluteTransform() const { return TransformationMatrix(); }
@@ -58,7 +58,7 @@ namespace WebCore {
         virtual FloatRect objectBoundingBox() const;
         virtual FloatRect repaintRectInLocalCoordinates() const;
 
-        virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
+        virtual bool nodeAtFloatPoint(const HitTestRequest&, HitTestResult&, const FloatPoint& pointInParent, HitTestAction);
     };
 }
 

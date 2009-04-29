@@ -289,6 +289,8 @@ public:
     void setCellWidthChanged(bool b = true) { m_cellWidthChanged = b; }
 
 #if ENABLE(SVG)
+    // FIXME: Until all SVG renders can be subclasses of RenderSVGModelObject we have
+    // to add SVG renderer methods to RenderObject with an ASSERT_NOT_REACHED() default implementation.
     virtual bool isSVGRoot() const { return false; }
     virtual bool isSVGContainer() const { return false; }
     virtual bool isSVGHiddenContainer() const { return false; }
@@ -321,6 +323,11 @@ public:
     // NOTE: This method is deprecated!  It doesn't respect scroll offsets or repaint containers.
     // FIXME: This is only virtual so that RenderSVGHiddenContainer can override it to match old LayoutTest results.
     virtual TransformationMatrix absoluteTransform() const;
+
+    // SVG uses FloatPoint precise hit testing, and passes the point in parent
+    // coordinates instead of in repaint container coordinates.  Eventually the
+    // rest of the rendering tree will move to a similar model.
+    virtual bool nodeAtFloatPoint(const HitTestRequest&, HitTestResult&, const FloatPoint& pointInParent, HitTestAction);
 #endif
 
     bool isAnonymous() const { return m_isAnonymous; }
@@ -528,13 +535,13 @@ public:
 
     virtual void absoluteRectsForRange(Vector<IntRect>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX, bool useSelectionHeight = false);
     
-    virtual void absoluteRects(Vector<IntRect>&, int, int, bool = true) { }
+    virtual void absoluteRects(Vector<IntRect>&, int, int) { }
     // FIXME: useTransforms should go away eventually
     IntRect absoluteBoundingBoxRect(bool useTransforms = false);
 
     // Build an array of quads in absolute coords for line boxes
     virtual void absoluteQuadsForRange(Vector<FloatQuad>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX, bool useSelectionHeight = false);
-    virtual void absoluteQuads(Vector<FloatQuad>&, bool /*topLevel*/ = true) { }
+    virtual void absoluteQuads(Vector<FloatQuad>&) { }
 
     // the rect that will be painted if this object is passed as the paintingRoot
     IntRect paintingRootRect(IntRect& topLevelRect);

@@ -1,3 +1,311 @@
+2009-04-29  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber stamped by Beth Dakin.
+        
+        Removed scaffolding supporting dynamically converting between 32bit and
+        64bit value representations. 
+
+        * API/JSCallbackConstructor.cpp:
+        (JSC::constructJSCallback):
+        * API/JSCallbackFunction.cpp:
+        (JSC::JSCallbackFunction::call):
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::construct):
+        (JSC::::call):
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::getConstant):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitEqualityOp):
+        * interpreter/CallFrame.cpp:
+        (JSC::CallFrame::thisValue):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::callEval):
+        (JSC::Interpreter::throwException):
+        (JSC::Interpreter::createExceptionScope):
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::retrieveArguments):
+        * interpreter/Register.h:
+        (JSC::Register::):
+        (JSC::Register::Register):
+        (JSC::Register::jsValue):
+        (JSC::Register::marked):
+        (JSC::Register::mark):
+        (JSC::Register::i):
+        (JSC::Register::activation):
+        (JSC::Register::arguments):
+        (JSC::Register::callFrame):
+        (JSC::Register::codeBlock):
+        (JSC::Register::function):
+        (JSC::Register::propertyNameIterator):
+        (JSC::Register::scopeChain):
+        (JSC::Register::vPC):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_call_NotJSFunction):
+        (JSC::JITStubs::cti_op_load_varargs):
+        (JSC::JITStubs::cti_op_call_eval):
+        * jsc.cpp:
+        (functionPrint):
+        (functionDebug):
+        (functionRun):
+        (functionLoad):
+        * runtime/ArgList.h:
+        (JSC::ArgList::at):
+        * runtime/Arguments.cpp:
+        (JSC::Arguments::copyToRegisters):
+        (JSC::Arguments::fillArgList):
+        (JSC::Arguments::getOwnPropertySlot):
+        * runtime/ArrayConstructor.cpp:
+        (JSC::constructArrayWithSizeQuirk):
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncJoin):
+        (JSC::arrayProtoFuncConcat):
+        (JSC::arrayProtoFuncPush):
+        (JSC::arrayProtoFuncSlice):
+        (JSC::arrayProtoFuncSort):
+        (JSC::arrayProtoFuncSplice):
+        (JSC::arrayProtoFuncUnShift):
+        (JSC::arrayProtoFuncFilter):
+        (JSC::arrayProtoFuncMap):
+        (JSC::arrayProtoFuncEvery):
+        (JSC::arrayProtoFuncForEach):
+        (JSC::arrayProtoFuncSome):
+        (JSC::arrayProtoFuncReduce):
+        (JSC::arrayProtoFuncReduceRight):
+        (JSC::arrayProtoFuncIndexOf):
+        (JSC::arrayProtoFuncLastIndexOf):
+        * runtime/BooleanConstructor.cpp:
+        (JSC::constructBoolean):
+        (JSC::callBooleanConstructor):
+        * runtime/DateConstructor.cpp:
+        (JSC::constructDate):
+        (JSC::dateParse):
+        (JSC::dateUTC):
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        (JSC::fillStructuresUsingTimeArgs):
+        (JSC::fillStructuresUsingDateArgs):
+        (JSC::dateProtoFuncSetTime):
+        (JSC::dateProtoFuncSetYear):
+        * runtime/ErrorConstructor.cpp:
+        (JSC::constructError):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::constructFunction):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncApply):
+        (JSC::functionProtoFuncCall):
+        * runtime/JSArray.cpp:
+        (JSC::JSArray::JSArray):
+        (JSC::constructArray):
+        * runtime/JSArray.h:
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::encode):
+        (JSC::decode):
+        (JSC::globalFuncEval):
+        (JSC::globalFuncParseInt):
+        (JSC::globalFuncParseFloat):
+        (JSC::globalFuncIsNaN):
+        (JSC::globalFuncIsFinite):
+        (JSC::globalFuncEscape):
+        (JSC::globalFuncUnescape):
+        (JSC::globalFuncJSCPrint):
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncAbs):
+        (JSC::mathProtoFuncACos):
+        (JSC::mathProtoFuncASin):
+        (JSC::mathProtoFuncATan):
+        (JSC::mathProtoFuncATan2):
+        (JSC::mathProtoFuncCeil):
+        (JSC::mathProtoFuncCos):
+        (JSC::mathProtoFuncExp):
+        (JSC::mathProtoFuncFloor):
+        (JSC::mathProtoFuncLog):
+        (JSC::mathProtoFuncMax):
+        (JSC::mathProtoFuncMin):
+        (JSC::mathProtoFuncPow):
+        (JSC::mathProtoFuncRound):
+        (JSC::mathProtoFuncSin):
+        (JSC::mathProtoFuncSqrt):
+        (JSC::mathProtoFuncTan):
+        * runtime/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::construct):
+        * runtime/NumberConstructor.cpp:
+        (JSC::constructWithNumberConstructor):
+        (JSC::callNumberConstructor):
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToString):
+        (JSC::numberProtoFuncToFixed):
+        (JSC::numberProtoFuncToExponential):
+        (JSC::numberProtoFuncToPrecision):
+        * runtime/ObjectConstructor.cpp:
+        (JSC::constructObject):
+        * runtime/ObjectPrototype.cpp:
+        (JSC::objectProtoFuncHasOwnProperty):
+        (JSC::objectProtoFuncIsPrototypeOf):
+        (JSC::objectProtoFuncDefineGetter):
+        (JSC::objectProtoFuncDefineSetter):
+        (JSC::objectProtoFuncLookupGetter):
+        (JSC::objectProtoFuncLookupSetter):
+        (JSC::objectProtoFuncPropertyIsEnumerable):
+        * runtime/PropertySlot.h:
+        (JSC::PropertySlot::getValue):
+        * runtime/RegExpConstructor.cpp:
+        (JSC::constructRegExp):
+        * runtime/RegExpObject.cpp:
+        (JSC::RegExpObject::match):
+        * runtime/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncCompile):
+        * runtime/StringConstructor.cpp:
+        (JSC::stringFromCharCodeSlowCase):
+        (JSC::stringFromCharCode):
+        (JSC::constructWithStringConstructor):
+        (JSC::callStringConstructor):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+        (JSC::stringProtoFuncCharAt):
+        (JSC::stringProtoFuncCharCodeAt):
+        (JSC::stringProtoFuncConcat):
+        (JSC::stringProtoFuncIndexOf):
+        (JSC::stringProtoFuncLastIndexOf):
+        (JSC::stringProtoFuncMatch):
+        (JSC::stringProtoFuncSearch):
+        (JSC::stringProtoFuncSlice):
+        (JSC::stringProtoFuncSplit):
+        (JSC::stringProtoFuncSubstr):
+        (JSC::stringProtoFuncSubstring):
+        (JSC::stringProtoFuncLocaleCompare):
+        (JSC::stringProtoFuncFontcolor):
+        (JSC::stringProtoFuncFontsize):
+        (JSC::stringProtoFuncAnchor):
+        (JSC::stringProtoFuncLink):
+
+2009-04-28  David Kilzer  <ddkilzer@apple.com>
+
+        A little more hardening for UString
+
+        Reviewed by Maciej Stachowiak.
+
+        Revised fix for <rdar://problem/5861045> in r42644.
+
+        * runtime/UString.cpp:
+        (JSC::newCapacityWithOverflowCheck): Added.
+        (JSC::concatenate): Used newCapacityWithOverflowCheck().
+        (JSC::UString::append): Ditto.
+
+2009-04-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Bring back r42969, this time with correct codegen
+
+        Add logic to the codegen for right shift to avoid jumping to a helper function
+        when shifting a small floating point value.
+
+        * jit/JITArithmetic.cpp:
+        (isSSE2Present):
+        (JSC::JIT::compileFastArith_op_rshift):
+        (JSC::JIT::compileFastArithSlow_op_rshift):
+
+2009-04-28  Kevin Ollivier <kevino@theolliviers.com>
+
+        wxMSW build fix. Switch JSCore build back to static. 
+
+        * API/JSBase.h:
+        * config.h:
+        * jscore.bkl:
+
+2009-04-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Roll out r42969, due to hangs in build bot.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_rshift):
+        (JSC::JIT::compileFastArithSlow_op_rshift):
+        (JSC::isSSE2Present):
+
+2009-04-28  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed: fix distcheck build, add (even more) missing files to list.
+
+        * GNUmakefile.am:
+
+2009-04-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Improve performance of string indexing
+
+        Add a cti_get_by_val_string function to specialise indexing into a string object.
+        This gives us a slight performance win on a number of string tests.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_get_by_val):
+        (JSC::JITStubs::cti_op_get_by_val_string):
+        * jit/JITStubs.h:
+
+2009-04-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Improve performance of right shifts of large or otherwise floating point values.
+
+        Add logic to the codegen for right shift to avoid jumping to a helper function
+        when shifting a small floating point value.
+
+        * jit/JITArithmetic.cpp:
+        (isSSE2Present): Moved to the head of file.
+        (JSC::JIT::compileFastArith_op_rshift):
+        (JSC::JIT::compileFastArithSlow_op_rshift):
+
+2009-04-28  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed: fix distcheck build, add (more) missing files to list.
+
+        * GNUmakefile.am:
+
+2009-04-28  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed: fix distcheck build, add missing header to file list.
+
+        * GNUmakefile.am:
+
+2009-04-28  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Maciej "Henry Morgan" Stachowiak.
+
+        Enable YARR.
+        (Again.)
+
+        * wtf/Platform.h:
+
+2009-04-27  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Tweak a loop condition to keep GCC happy,
+        some GCCs seem to be having issues with this. :-/
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::breakTarget):
+        * wtf/Platform.h:
+
+2009-04-27  Adam Roben  <aroben@apple.com>
+
+        Windows Debug build fix
+
+        Not sure why the buildbots weren't affected by this problem.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Let VS
+        re-order the file list, and added JavaScriptCore[_debug].def to the
+        project. This was not necessary for the fix, but made making the fix
+        easier.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        Removed a function that no longer exists.
+
 2009-04-27  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Weinig Sam.

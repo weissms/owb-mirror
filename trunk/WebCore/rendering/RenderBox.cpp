@@ -317,12 +317,12 @@ void RenderBox::setScrollTop(int newTop)
         layer()->scrollToYOffset(newTop);
 }
 
-void RenderBox::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool)
+void RenderBox::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
 {
     rects.append(IntRect(tx, ty, width(), height()));
 }
 
-void RenderBox::absoluteQuads(Vector<FloatQuad>& quads, bool)
+void RenderBox::absoluteQuads(Vector<FloatQuad>& quads)
 {
     quads.append(localToAbsoluteQuad(FloatRect(0, 0, width(), height())));
 }
@@ -1452,21 +1452,22 @@ void RenderBox::calcHeight()
                 maxH = heightResult;
             heightResult = min(maxH, heightResult);
             heightResult = max(minH, heightResult);
-        } else
+        } else {
             // The only times we don't check min/max height are when a fixed length has
             // been given as an override.  Just use that.  The value has already been adjusted
             // for box-sizing.
             heightResult = h.value() + borderTop() + borderBottom() + paddingTop() + paddingBottom();
-
-            setHeight(heightResult);
         }
+
+        setHeight(heightResult);
+    }
 
     // WinIE quirk: The <html> block always fills the entire canvas in quirks mode.  The <body> always fills the
     // <html> block in quirks mode.  Only apply this quirk if the block is normal flow and no height
     // is specified.
-    if (stretchesToViewHeight() && !document()->printing()) {
+    if (stretchesToViewHeight()) {
         int margins = collapsedMarginTop() + collapsedMarginBottom();
-        int visHeight = view()->viewHeight();
+        int visHeight = document()->printing() ? view()->frameView()->visibleHeight() : view()->viewHeight();
         if (isRoot())
             setHeight(max(height(), visHeight - margins));
         else {

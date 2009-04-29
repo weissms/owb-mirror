@@ -54,7 +54,7 @@ static inline bool charactersAreAllASCII(StringImpl* text)
 
 RenderText::RenderText(Node* node, PassRefPtr<StringImpl> str)
      : RenderObject(node)
-     , m_text(str)
+     , m_text(document()->displayStringModifiedByEncoding(str))
      , m_firstTextBox(0)
      , m_lastTextBox(0)
      , m_minWidth(-1)
@@ -68,9 +68,12 @@ RenderText::RenderText(Node* node, PassRefPtr<StringImpl> str)
      , m_knownNotToUseFallbackFonts(false)
 {
     ASSERT(m_text);
-    setIsText();
-    m_text = document()->displayStringModifiedByEncoding(PassRefPtr<StringImpl>(m_text));
 
+    setIsText();
+
+    // FIXME: It would be better to call this only if !m_text->containsOnlyWhitespace().
+    // But that might slow things down, and maybe should only be done if visuallyNonEmpty
+    // is still false. Not making any change for now, but should consider in the future.
     view()->frameView()->setIsVisuallyNonEmpty();
 }
 
@@ -207,7 +210,7 @@ PassRefPtr<StringImpl> RenderText::originalText() const
     return e ? static_cast<Text*>(e)->string() : 0;
 }
 
-void RenderText::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool)
+void RenderText::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
 {
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
         rects.append(IntRect(tx + box->x(), ty + box->y(), box->width(), box->height()));
@@ -252,7 +255,7 @@ void RenderText::absoluteRectsForRange(Vector<IntRect>& rects, unsigned start, u
     }
 }
 
-void RenderText::absoluteQuads(Vector<FloatQuad>& quads, bool)
+void RenderText::absoluteQuads(Vector<FloatQuad>& quads)
 {
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
         quads.append(localToAbsoluteQuad(FloatRect(box->x(), box->y(), box->width(), box->height())));
@@ -917,10 +920,10 @@ UChar RenderText::previousCharacter()
 
 void RenderText::setTextInternal(PassRefPtr<StringImpl> text)
 {
-    m_text = text;
+    ASSERT(text);
+    m_text = document()->displayStringModifiedByEncoding(text);
     ASSERT(m_text);
 
-    m_text = document()->displayStringModifiedByEncoding(PassRefPtr<StringImpl>(m_text));
 #if ENABLE(SVG)
     if (isSVGText()) {
         if (style() && style()->whiteSpace() == PRE) {

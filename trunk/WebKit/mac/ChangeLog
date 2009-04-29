@@ -1,3 +1,226 @@
+2009-04-29  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber stamped by Beth Dakin.
+        
+        Removed scaffolding supporting dynamically converting between 32bit and
+        64bit value representations. 
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::marshalValues):
+
+2009-04-28  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker and Darin Adler.
+
+        Fix <rdar://problem/6836132>.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCCheckIfAllowedToLoadURL):
+        Call the instance proxy.
+        
+        (WKPCCancelCheckIfAllowedToLoadURL):
+        Ditto.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        Initialize the check ID counter.
+        
+        (WebKit::NetscapePluginInstanceProxy::checkIfAllowedToLoadURL):
+        Create a WebPluginContainerCheck, add it to the map, and start it.
+        
+        (WebKit::NetscapePluginInstanceProxy::cancelCheckIfAllowedToLoadURL):
+        Remove the check from the map.
+        
+        (WebKit::NetscapePluginInstanceProxy::checkIfAllowedToLoadURLResult):
+        Call the WKPH MIG callback.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.h:
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView _webPluginContainerCancelCheckIfAllowedToLoadRequest:]):
+        Call the instance proxy.
+        
+        (-[WebHostedNetscapePluginView _containerCheckResult:contextInfo:]):
+        Ditto.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add MIG declarations.
+
+2009-04-28  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6786360> Make PDF an insertable pasteboard type
+
+        * WebCoreSupport/WebPasteboardHelper.mm:
+        (WebPasteboardHelper::insertablePasteboardTypes):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _documentFragmentFromPasteboard:inContext:allowPlainText:]):
+        (+[WebHTMLView _insertablePasteboardTypes]):
+        (-[WebHTMLView _documentFragmentFromPasteboard:forType:inContext:subresources:]):
+
+2009-04-27  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Add the various switches and context menu items needed for
+        <rdar://problem/6724106> WebViews need to implement text checking
+        and adopt updatePanels in place of old SPI _updateGrammar.
+
+        Reviewed by Justin Garcia.
+
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (fixMenusReceivedFromOldClients):
+        * WebCoreSupport/WebEditorClient.h:
+        * WebCoreSupport/WebEditorClient.mm:
+        (WebEditorClient::uppercaseWord):
+        (WebEditorClient::lowercaseWord):
+        (WebEditorClient::capitalizeWord):
+        (WebEditorClient::showSubstitutionsPanel):
+        (WebEditorClient::substitutionsPanelIsShowing):
+        (WebEditorClient::toggleSmartInsertDelete):
+        (WebEditorClient::isAutomaticQuoteSubstitutionEnabled):
+        (WebEditorClient::toggleAutomaticQuoteSubstitution):
+        (WebEditorClient::isAutomaticLinkDetectionEnabled):
+        (WebEditorClient::toggleAutomaticLinkDetection):
+        (WebEditorClient::isAutomaticDashSubstitutionEnabled):
+        (WebEditorClient::toggleAutomaticDashSubstitution):
+        (WebEditorClient::isAutomaticTextReplacementEnabled):
+        (WebEditorClient::toggleAutomaticTextReplacement):
+        (WebEditorClient::isAutomaticSpellingCorrectionEnabled):
+        (WebEditorClient::toggleAutomaticSpellingCorrection):
+        (WebEditorClient::checkTextOfParagraph):
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory contextMenuItemTagShowColors]):
+        (-[WebViewFactory contextMenuItemTagCorrectSpellingAutomatically]):
+        (-[WebViewFactory contextMenuItemTagSubstitutionsMenu]):
+        (-[WebViewFactory contextMenuItemTagShowSubstitutions:]):
+        (-[WebViewFactory contextMenuItemTagSmartCopyPaste]):
+        (-[WebViewFactory contextMenuItemTagSmartQuotes]):
+        (-[WebViewFactory contextMenuItemTagSmartDashes]):
+        (-[WebViewFactory contextMenuItemTagSmartLinks]):
+        (-[WebViewFactory contextMenuItemTagTextReplacement]):
+        (-[WebViewFactory contextMenuItemTagTransformationsMenu]):
+        (-[WebViewFactory contextMenuItemTagMakeUpperCase]):
+        (-[WebViewFactory contextMenuItemTagMakeLowerCase]):
+        (-[WebViewFactory contextMenuItemTagCapitalize]):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]):
+        (-[WebHTMLView isAutomaticQuoteSubstitutionEnabled]):
+        (-[WebHTMLView setAutomaticQuoteSubstitutionEnabled:]):
+        (-[WebHTMLView toggleAutomaticQuoteSubstitution:]):
+        (-[WebHTMLView isAutomaticLinkDetectionEnabled]):
+        (-[WebHTMLView setAutomaticLinkDetectionEnabled:]):
+        (-[WebHTMLView toggleAutomaticLinkDetection:]):
+        (-[WebHTMLView isAutomaticDashSubstitutionEnabled]):
+        (-[WebHTMLView setAutomaticDashSubstitutionEnabled:]):
+        (-[WebHTMLView toggleAutomaticDashSubstitution:]):
+        (-[WebHTMLView isAutomaticTextReplacementEnabled]):
+        (-[WebHTMLView setAutomaticTextReplacementEnabled:]):
+        (-[WebHTMLView toggleAutomaticTextReplacement:]):
+        (-[WebHTMLView isAutomaticSpellingCorrectionEnabled]):
+        (-[WebHTMLView setAutomaticSpellingCorrectionEnabled:]):
+        (-[WebHTMLView toggleAutomaticSpellingCorrection:]):
+        * WebView/WebHTMLViewInternal.h:
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebUIDelegatePrivate.h:
+        * WebView/WebView.mm:
+        (-[WebViewPrivate init]):
+        (-[WebView validateUserInterfaceItemWithoutDelegate:]):
+        (-[WebView setGrammarCheckingEnabled:]):
+        (-[WebView isAutomaticQuoteSubstitutionEnabled]):
+        (-[WebView isAutomaticLinkDetectionEnabled]):
+        (-[WebView isAutomaticDashSubstitutionEnabled]):
+        (-[WebView isAutomaticTextReplacementEnabled]):
+        (-[WebView isAutomaticSpellingCorrectionEnabled]):
+        (-[WebView setAutomaticQuoteSubstitutionEnabled:]):
+        (-[WebView toggleAutomaticQuoteSubstitution:]):
+        (-[WebView setAutomaticLinkDetectionEnabled:]):
+        (-[WebView toggleAutomaticLinkDetection:]):
+        (-[WebView setAutomaticDashSubstitutionEnabled:]):
+        (-[WebView toggleAutomaticDashSubstitution:]):
+        (-[WebView setAutomaticTextReplacementEnabled:]):
+        (-[WebView toggleAutomaticTextReplacement:]):
+        (-[WebView setAutomaticSpellingCorrectionEnabled:]):
+        (-[WebView toggleAutomaticSpellingCorrection:]):
+        * WebView/WebViewPrivate.h:
+
+2009-04-27  David Kilzer  <ddkilzer@apple.com>
+
+        Consolidate runtime application checks for Apple Mail and Safari
+
+        Reviewed by Mark Rowe and Darin Adler.
+
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (isAppleMail): Removed.
+        (fixMenusToSendToOldClients): Switched to use
+        applicationIsAppleMail().
+        * WebView/WebFrame.mm:
+        (-[WebFrame reload]): Switched to use applicationIsSafari().
+        * WebView/WebPDFView.mm:
+        (-[WebPDFView menuForEvent:]): Ditto.
+        * WebView/WebResource.mm:
+        (+[WebResource _needMailThreadWorkaroundIfCalledOffMainThread]):
+        Switched to use applicationIsAppleMail().
+        * WebView/WebView.mm:
+        (runningLeopardMail): Ditto.
+        (runningTigerMail): Ditto.
+        (-[WebView _needsKeyboardEventDisambiguationQuirks]): Switched
+        to use applicationIsSafari().
+
+2009-04-27  Kevin Decker  <kdecker@apple.com>
+
+        Fix the Tiger build.
+        
+        * Plugins/WebNetscapePluginView.mm: The base class of WebNetscapePluginView.mm, WebBaseNetscapePluginView, already implemented 
+        the two methods below. But the Tiger compiler didn't know that. 
+        (-[WebNetscapePluginView webView]): 
+        (-[WebNetscapePluginView webFrame]):
+
+2009-04-27  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/6352982>
+        
+        * Plugins/WebBaseNetscapePluginView.mm: Removed checkIfAllowedToLoadURL:frame:callbackFunc, cancelCheckIfAllowedToLoadURL, and 
+        _webPluginContainerCancelCheckIfAllowedToLoadRequest from the base class. These methods now exist in the subclass WebNetscapePluginView.
+        
+        Added WebNetscapeContainerCheckContextInfo, which is used as a "contextInfo" object in 
+        -[WebNetscapePluginView checkIfAllowedToLoadURL:frame:callbackFunc:]
+        * Plugins/WebNetscapeContainerCheckContextInfo.h: Added.
+        * Plugins/WebNetscapeContainerCheckContextInfo.mm: Added.
+        (-[WebNetscapeContainerCheckContextInfo initWithCheckRequestID:callbackFunc:]): Added desiginated initializer.
+        (-[WebNetscapeContainerCheckContextInfo checkRequestID]): Added. Returns the checkRequestID.
+        (-[WebNetscapeContainerCheckContextInfo callback]): Added. Returns the callback.
+        
+        * Plugins/WebNetscapePluginView.h: Added two new ivars: _containerChecksInProgress and _currentContainerCheckRequestID.
+        * Plugins/WebNetscapePluginView.mm: #import both WebPluginContainerCheck.h and WebNetscapeContainerCheckContextInfo.h
+        
+        (-[WebNetscapePluginView checkIfAllowedToLoadURL:frame:callbackFunc:]): Added. This is the implementation of WKN_CheckIfAllowedToLoadURL.
+        Here, we increment the request ID and start the container check.
+        
+        (-[WebNetscapePluginView _containerCheckResult:contextInfo:]): Added. This is a callback method for WebPluginContainerCheck.
+        It's where we actually call into the plug-in and provide the allow-or-deny result.
+    
+        (-[WebNetscapePluginView cancelCheckIfAllowedToLoadURL:]): Added. This is the implementation of WKN_CancelCheckIfAllowedToLoadURL. 
+        Here we lookup the check, cancel it, and remove it from _containerChecksInProgress.
+        
+        (-[WebNetscapePluginView _webPluginContainerCancelCheckIfAllowedToLoadRequest:]): Added. WebPluginContainerCheck automatically calls
+        this method after invoking our _containerCheckResult: selector. It works this way because calling -[WebPluginContainerCheck cancel] allows
+        it to do it's teardown process.
+        
+        (-[WebNetscapePluginView fini]): Release _containerChecksInProgress ivar.
+        
+        * Plugins/WebPluginContainerCheck.h: Removed initWithRequest: method from header; no client was using this method directly.
+        * Plugins/WebPluginContainerCheck.mm: 
+        (+[WebPluginContainerCheck checkWithRequest:target:resultObject:selector:controller:contextInfo:]): Added optional contextInfo parameter.
+        (-[WebPluginContainerCheck _continueWithPolicy:]): If there's a contextInfo object, pass it as a parameter to resultSelector.
+        (-[WebPluginContainerCheck cancel]): Release _contextInfo ivar.
+        (-[WebPluginContainerCheck contextInfo]): Added new method. Returns the contextInfo object, if one so exists.
+        * Plugins/WebPluginController.mm:
+        (-[WebPluginController _webPluginContainerCheckIfAllowedToLoadRequest:inFrame:resultObject:selector:]): Pass nil for contextInfo. WebKit-style
+        plug-ins do not need additional context information.
+
 2009-04-27  Brady Eidson  <beidson@apple.com>
 
         Reviewed by Sam Weinig

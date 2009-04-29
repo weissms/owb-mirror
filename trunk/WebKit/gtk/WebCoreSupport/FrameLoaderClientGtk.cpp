@@ -849,6 +849,13 @@ void FrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
         return;
     }
 
+    if (!shouldFallBack(error)) {
+        g_error_free(webError);
+        // FIXME: load-done is deprecated. Please remove when signal's been removed.
+        g_signal_emit_by_name(m_frame, "load-done", false);
+        return;
+    }
+
     String content;
     gchar* fileContent = 0;
     gchar* errorURI = g_filename_to_uri(DATA_DIR"/webkit-1.0/resources/error.html", NULL, NULL);
@@ -931,10 +938,9 @@ ResourceError FrameLoaderClient::pluginWillHandleLoadError(const ResourceRespons
 
 bool FrameLoaderClient::shouldFallBack(const ResourceError& error)
 {
-    // FIXME: Needs to check domain.
     // FIXME: Mac checks for WebKitErrorPlugInWillHandleLoad here to avoid
     // loading plugin content twice. Do we need it?
-    return error.errorCode() != WEBKIT_NETWORK_ERROR_CANCELLED;
+    return !(error.isCancellation() || error.errorCode() == WEBKIT_POLICY_ERROR_FRAME_LOAD_INTERRUPTED_BY_POLICY_CHANGE);
 }
 
 bool FrameLoaderClient::canCachePage() const

@@ -48,6 +48,8 @@
 #import "WebNSViewExtras.h"
 #import "WebNetscapePluginPackage.h"
 #import "WebBaseNetscapePluginStream.h"
+#import "WebPluginContainerCheck.h"
+#import "WebNetscapeContainerCheckContextInfo.h"
 #import "WebNetscapePluginEventHandler.h"
 #import "WebNullPluginView.h"
 #import "WebPreferences.h"
@@ -1211,6 +1213,79 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     }
 }
 
+- (uint32)checkIfAllowedToLoadURL:(const char*)urlCString frame:(const char*)frameNameCString callbackFunc:(void (*)(NPP npp, uint32 checkID, NPBool allowed))callbackFunc
+{
+    if (!_containerChecksInProgress) 
+        _containerChecksInProgress = [[NSMutableDictionary alloc] init];
+    
+    NSString *frameName = frameNameCString ? [NSString stringWithCString:frameNameCString encoding:NSISOLatin1StringEncoding] : nil;
+    
+    ++_currentContainerCheckRequestID;
+    WebNetscapeContainerCheckContextInfo *contextInfo = [[WebNetscapeContainerCheckContextInfo alloc] initWithCheckRequestID:_currentContainerCheckRequestID callbackFunc:callbackFunc];
+    
+    WebPluginContainerCheck *check = [WebPluginContainerCheck checkWithRequest:[self requestWithURLCString:urlCString]
+                                                                        target:frameName
+                                                                  resultObject:self
+                                                                      selector:@selector(_containerCheckResult:contextInfo:)
+                                                                    controller:self 
+                                                                   contextInfo:contextInfo];
+    
+    [contextInfo release];
+    [_containerChecksInProgress setObject:check forKey:[NSNumber numberWithInt:_currentContainerCheckRequestID]];
+    [check start];
+    
+    return _currentContainerCheckRequestID;
+}
+
+- (void)_containerCheckResult:(PolicyAction)policy contextInfo:(id)contextInfo
+{
+    ASSERT([contextInfo isKindOfClass:[WebNetscapeContainerCheckContextInfo class]]);
+    void (*pluginCallback)(NPP npp, uint32, NPBool) = [contextInfo callback];
+    
+    if (!pluginCallback) {
+        ASSERT_NOT_REACHED();
+        return;
+    }
+    
+    pluginCallback([self plugin], [contextInfo checkRequestID], (policy == PolicyUse));
+}
+
+- (void)cancelCheckIfAllowedToLoadURL:(uint32)checkID
+{
+    WebPluginContainerCheck *check = (WebPluginContainerCheck *)[_containerChecksInProgress objectForKey:[NSNumber numberWithInt:checkID]];
+    
+    if (!check)
+        return;
+    
+    [check cancel];
+    [_containerChecksInProgress removeObjectForKey:[NSNumber numberWithInt:checkID]];
+}
+
+// WebPluginContainerCheck automatically calls this method after invoking our _containerCheckResult: selector.
+// It works this way because calling -[WebPluginContainerCheck cancel] allows it to do it's teardown process.
+- (void)_webPluginContainerCancelCheckIfAllowedToLoadRequest:(id)webPluginContainerCheck
+{
+    ASSERT([webPluginContainerCheck isKindOfClass:[WebPluginContainerCheck class]]);
+    WebPluginContainerCheck *check = (WebPluginContainerCheck *)webPluginContainerCheck;
+    ASSERT([check contextInfo] && [[check contextInfo] isKindOfClass:[WebNetscapeContainerCheckContextInfo class]]);
+    
+    [self cancelCheckIfAllowedToLoadURL:[[check contextInfo] checkRequestID]];
+}
+
+#ifdef BUILDING_ON_TIGER
+// The Tiger compiler requires these two methods be present. Otherwise it doesn't think WebNetscapePluginView
+// conforms to the WebPluginContainerCheckController protocol.
+- (WebView *)webView
+{
+    return [super webView];   
+}
+
+- (WebFrame *)webFrame
+{
+    return [super webFrame];   
+}
+#endif
+
 #pragma mark NSVIEW
 
 - (id)initWithFrame:(NSRect)frame
@@ -1263,7 +1338,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     if (timers) {
         deleteAllValues(*timers);
         delete timers;
-    }    
+    }  
+    
+    [_containerChecksInProgress release];
 }
 
 - (void)disconnectStream:(WebNetscapePluginStream*)stream

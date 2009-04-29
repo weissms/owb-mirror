@@ -846,8 +846,8 @@ RegisterID* BytecodeGenerator::emitEqualityOp(OpcodeID opcodeID, RegisterID* dst
         if (src1->index() == dstIndex
             && src1->isTemporary()
             && m_codeBlock->isConstantRegisterIndex(src2->index())
-            && m_codeBlock->constantRegister(src2->index() - m_codeBlock->m_numVars).jsValue(m_scopeChain->globalObject()->globalExec()).isString()) {
-            const UString& value = asString(m_codeBlock->constantRegister(src2->index() - m_codeBlock->m_numVars).jsValue(m_scopeChain->globalObject()->globalExec()))->value();
+            && m_codeBlock->constantRegister(src2->index() - m_codeBlock->m_numVars).jsValue().isString()) {
+            const UString& value = asString(m_codeBlock->constantRegister(src2->index() - m_codeBlock->m_numVars).jsValue())->value();
             if (value == "undefined") {
                 rewindUnaryOp();
                 emitOpcode(op_is_undefined);
@@ -1587,8 +1587,17 @@ void BytecodeGenerator::popFinallyContext()
 LabelScope* BytecodeGenerator::breakTarget(const Identifier& name)
 {
     // Reclaim free label scopes.
-    while (m_labelScopes.size() && !m_labelScopes.last().refCount())
+    //
+    // The condition was previously coded as 'm_labelScopes.size() && !m_labelScopes.last().refCount()',
+    // however sometimes this appears to lead to GCC going a little haywire and entering the loop with
+    // size 0, leading to segfaulty badness.  We are yet to identify a valid cause within our code to
+    // cause the GCC codegen to misbehave in this fashion, and as such the following refactoring of the
+    // loop condition is a workaround.
+    while (m_labelScopes.size()) {
+        if  (m_labelScopes.last().refCount())
+            break;
         m_labelScopes.removeLast();
+    }
 
     if (!m_labelScopes.size())
         return 0;

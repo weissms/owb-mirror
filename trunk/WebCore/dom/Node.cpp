@@ -401,18 +401,49 @@ Node::~Node()
         m_next->setPreviousSibling(0);
 }
 
-void Node::setDocument(Document* doc)
+#ifdef NDEBUG
+
+static inline void setWillMoveToNewOwnerDocumentWasCalled(bool)
 {
-    if (inDocument() || m_document == doc)
+}
+
+static inline void setDidMoveToNewOwnerDocumentWasCalled(bool)
+{
+}
+
+#else
+    
+static bool willMoveToNewOwnerDocumentWasCalled;
+static bool didMoveToNewOwnerDocumentWasCalled;
+
+static void setWillMoveToNewOwnerDocumentWasCalled(bool wasCalled)
+{
+    willMoveToNewOwnerDocumentWasCalled = wasCalled;
+}
+
+static void setDidMoveToNewOwnerDocumentWasCalled(bool wasCalled)
+{
+    didMoveToNewOwnerDocumentWasCalled = wasCalled;
+}
+    
+#endif
+    
+void Node::setDocument(Document* document)
+{
+    if (inDocument() || m_document == document)
         return;
 
+    setWillMoveToNewOwnerDocumentWasCalled(false);
     willMoveToNewOwnerDocument();
+    ASSERT(willMoveToNewOwnerDocumentWasCalled);
 
-    updateDOMNodeDocument(this, m_document.get(), doc);
+    updateDOMNodeDocument(this, m_document.get(), document);
 
-    m_document = doc;
+    m_document = document;
 
+    setDidMoveToNewOwnerDocumentWasCalled(false);
     didMoveToNewOwnerDocument();
+    ASSERT(didMoveToNewOwnerDocumentWasCalled);
 }
 
 NodeRareData* Node::rareData() const
@@ -2208,12 +2239,18 @@ void Node::willMoveToNewOwnerDocument()
 {
     if (!eventListeners().isEmpty())
         document()->unregisterDisconnectedNodeWithEventListeners(this);
+
+    ASSERT(!willMoveToNewOwnerDocumentWasCalled);
+    setWillMoveToNewOwnerDocumentWasCalled(true);
 }
 
 void Node::didMoveToNewOwnerDocument()
 {
     if (!eventListeners().isEmpty())
         document()->registerDisconnectedNodeWithEventListeners(this);
+
+    ASSERT(!didMoveToNewOwnerDocumentWasCalled);
+    setDidMoveToNewOwnerDocumentWasCalled(true);
 }
 
 static inline void updateSVGElementInstancesAfterEventListenerChange(Node* referenceNode)
@@ -2507,38 +2544,6 @@ void Node::dispatchSubtreeModifiedEvent()
 
     ExceptionCode ec = 0;
     dispatchMutationEvent(eventNames().DOMSubtreeModifiedEvent, true, 0, String(), String(), ec); 
-}
-
-void Node::dispatchWindowEvent(PassRefPtr<Event> e)
-{
-    ASSERT(!eventDispatchForbidden());
-    RefPtr<Event> evt(e);
-    RefPtr<Document> doc = document();
-    evt->setTarget(doc); // FIXME: The window should be the event target.
-    DOMWindow* domWindow = doc->domWindow();
-    if (!domWindow)
-        return;
-    domWindow->handleEvent(evt.get(), true);
-    domWindow->handleEvent(evt.get(), false);
-}
-
-void Node::dispatchWindowEvent(const AtomicString& eventType, bool canBubbleArg, bool cancelableArg)
-{
-    ASSERT(!eventDispatchForbidden());
-    RefPtr<Document> doc = document();
-    dispatchWindowEvent(Event::create(eventType, canBubbleArg, cancelableArg));
-    
-    if (eventType == eventNames().loadEvent) {
-        // For onload events, send a separate load event to the enclosing frame only.
-        // This is a DOM extension and is independent of bubbling/capturing rules of
-        // the DOM.
-        Element* ownerElement = doc->ownerElement();
-        if (ownerElement) {
-            RefPtr<Event> ownerEvent = Event::create(eventType, false, cancelableArg);
-            ownerEvent->setTarget(ownerElement);
-            ownerElement->dispatchGenericEvent(ownerEvent.release());
-        }
-    }
 }
 
 void Node::dispatchUIEvent(const AtomicString& eventType, int detail, PassRefPtr<Event> underlyingEvent)

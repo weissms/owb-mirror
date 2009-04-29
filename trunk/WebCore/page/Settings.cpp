@@ -59,6 +59,7 @@ Settings::Settings(Page* page)
     , m_isJavaEnabled(false)
     , m_loadsImagesAutomatically(false)
     , m_privateBrowsingEnabled(false)
+    , m_caretBrowsingEnabled(false)
     , m_arePluginsEnabled(false)
     , m_databasesEnabled(false)
     , m_localStorageEnabled(false)
@@ -442,6 +443,11 @@ void Settings::setUsesEncodingDetector(bool usesEncodingDetector)
 void Settings::setAllowScriptsToCloseWindows(bool allowScriptsToCloseWindows)
 {
     m_allowScriptsToCloseWindows = allowScriptsToCloseWindows;
+}
+
+void Settings::setCaretBrowsingEnabled(bool caretBrowsingEnabled)
+{
+    m_caretBrowsingEnabled = caretBrowsingEnabled;
 }
 
 } // namespace WebCore

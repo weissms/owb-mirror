@@ -54,14 +54,14 @@ public:
     virtual void computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect&, bool fixed = false);
     virtual IntRect outlineBoundsForRepaint(RenderBoxModelObject* repaintContainer) const;
 
-    virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool topLevel = true);
-    virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
+    virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty);
+    virtual void absoluteQuads(Vector<FloatQuad>&);
 
     virtual void mapLocalToContainer(RenderBoxModelObject* repaintContainer, bool useTransforms, bool fixed, TransformState&) const;
 
-protected:
-    // Returns the bounding box for the filter associated with this object (if any)
-    FloatRect filterBoundingBox() const;
+private:
+    // This method should never be called, SVG uses a different nodeAtPoint method
+    bool nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int xInContainer, int yInContainer, int dxParentToContainer, int dyParentToContainer, HitTestAction hitTestAction);
 };
 
 }

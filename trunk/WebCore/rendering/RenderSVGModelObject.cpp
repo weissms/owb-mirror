@@ -93,24 +93,20 @@ IntRect RenderSVGModelObject::outlineBoundsForRepaint(RenderBoxModelObject* repa
     return containerRelativeQuad.enclosingBoundingBox();
 }
 
-void RenderSVGModelObject::absoluteRects(Vector<IntRect>& rects, int, int, bool)
+void RenderSVGModelObject::absoluteRects(Vector<IntRect>& rects, int, int)
 {
     rects.append(absoluteClippedOverflowRect());
 }
 
-void RenderSVGModelObject::absoluteQuads(Vector<FloatQuad>& quads, bool)
+void RenderSVGModelObject::absoluteQuads(Vector<FloatQuad>& quads)
 {
     quads.append(absoluteClippedOverflowRect());
 }
 
-FloatRect RenderSVGModelObject::filterBoundingBox() const
+bool RenderSVGModelObject::nodeAtPoint(const HitTestRequest&, HitTestResult&, int, int, int, int, HitTestAction)
 {
-#if ENABLE(SVG_FILTERS)
-    SVGResourceFilter* filter = getFilterById(document(), style()->svgStyle()->filter());
-    if (filter)
-        return filter->filterBBoxForItemBBox(objectBoundingBox());
-#endif
-    return FloatRect();
+    ASSERT_NOT_REACHED();
+    return false;
 }
 
 } // namespace WebCore

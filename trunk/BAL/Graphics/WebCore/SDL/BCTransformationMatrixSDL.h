@@ -30,6 +30,8 @@
 #define TransformationMatrix_h
 
 #include "BALBase.h"
+#include "FloatPoint.h"
+#include "IntPoint.h"
 #include <string.h> //for memcpy
 
 namespace WebCore {
@@ -104,8 +106,10 @@ public:
     FloatPoint mapPoint(const FloatPoint&) const;
 
     // Like the version above, except that it rounds the mapped point to the nearest integer value.
-
-    IntPoint mapPoint(const IntPoint&) const;
+    IntPoint mapPoint(const IntPoint& p) const
+    {
+        return roundedIntPoint(mapPoint(FloatPoint(p)));
+    }
 
      // If the matrix has 3D components, the z component of the result is
     // dropped, effectively projecting the rect into the z=0 plane

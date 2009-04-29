@@ -25,7 +25,6 @@
 #include <runtime/Completion.h>
 #include <runtime/Lookup.h>
 #include <runtime/JSFunction.h>
-#include "ScriptState.h"
 #include <wtf/Noncopyable.h>
 
 namespace JSC {
@@ -186,8 +185,6 @@ namespace WebCore {
     bool allowsAccessFromFrame(JSC::ExecState*, Frame*, String& message);
     void printErrorMessageForFrame(Frame*, const String& message);
     JSC::JSValuePtr objectToStringFunctionGetter(JSC::ExecState*, const JSC::Identifier& propertyName, const JSC::PropertySlot&);
-
-    ScriptState* scriptStateFromNode(Node*);
 
 } // namespace WebCore
 

@@ -144,7 +144,7 @@ JSValuePtr BalInstance::invokeMethod(ExecState* exec, const MethodList& methodLi
 
     unsigned i;
     for (i = 0; i < count; i++) {
-        WebValuePrivate *priv = new WebValuePrivate(exec, args.at(exec, i));
+        WebValuePrivate *priv = new WebValuePrivate(exec, args.at(i));
         cArgs[i] = new WebValue(priv);
     }
 

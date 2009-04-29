@@ -1,3 +1,74 @@
+2009-04-29  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25462
+
+        Make sure "--pixel --add-platform-exceptions" produces platform
+        specific pixel test results.
+
+        * Scripts/run-webkit-tests: Support "--pixel
+        --add-platform-exceptions"
+
+2009-04-28  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix link warnings building TestNetscapePlugin on Windows due to mismatched
+        DLL name vs. LIBRARY directive name.
+        
+        Reviewed by Jon Honeycutt.
+
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.def:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin_debug.def: Added.
+
+2009-04-28  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix warnings about PRODUCTION and ARCHIVE_BUILD on Windows builds
+        of ImageDiff and DumpRenderTree.
+        
+        Rubber stamped by Adam Roben.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+
+2009-04-28  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Add ability to get the children count of an AX element.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getChildrenCountCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::childrenCount):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::childrenCount):
+
+2009-04-27  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] Make layout tests / jsc tests usable without build-webkit
+        https://bugs.webkit.org/show_bug.cgi?id=21784
+
+        This requires WEBKITOUTPUTDIR to be set to the build directory.
+        Set the location of the product dir to the location pointed to by
+        WEBKITOUTPUTDIR.
+
+        * Scripts/webkitdirs.pm:
+
+2009-04-27  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Adam Roben.
+
+        Use libsoup's facilities to resolve relative URLs, instead, since
+        it is a more robust method.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::queueLoad):
+
 2009-04-27  Gustavo Noronha Silva  <gns@gnome.org>
 
         Reviewed by Xan Lopez.

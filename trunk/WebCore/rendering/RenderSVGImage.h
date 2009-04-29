@@ -42,14 +42,16 @@ namespace WebCore {
         virtual const char* renderName() const { return "RenderSVGImage"; }
         virtual bool isSVGImage() const { return true; }
 
-        virtual TransformationMatrix localTransform() const { return m_localTransform; }
+        virtual TransformationMatrix localToParentTransform() const { return m_localTransform; }
 
         virtual FloatRect objectBoundingBox() const;
         virtual FloatRect repaintRectInLocalCoordinates() const;
 
         virtual IntRect clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer);
-        virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
-        virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
+        virtual void computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect&, bool fixed = false);
+    
+        virtual void absoluteRects(Vector<IntRect>&, int tx, int ty);
+        virtual void absoluteQuads(Vector<FloatQuad>&);
         virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
         virtual void imageChanged(WrappedImagePtr, const IntRect* = 0);
@@ -60,15 +62,15 @@ namespace WebCore {
 
         bool requiresLayer() const { return false; }
 
+        virtual bool nodeAtFloatPoint(const HitTestRequest&, HitTestResult&, const FloatPoint& pointInParent, HitTestAction);
         virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int _x, int _y, int _tx, int _ty, HitTestAction);
 
-        bool calculateLocalTransform();
-
     private:
-        void calculateAbsoluteBounds();
+        bool calculateLocalTransform();
+        virtual TransformationMatrix localTransform() const { return m_localTransform; }
+
         TransformationMatrix m_localTransform;
         FloatRect m_localBounds;
-        IntRect m_absoluteBounds;
     };
 
 } // namespace WebCore

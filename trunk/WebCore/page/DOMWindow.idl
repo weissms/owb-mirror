@@ -174,12 +174,13 @@ module window {
 
         // Timers
         [Custom] long setTimeout(in TimeoutHandler handler, in long timeout);
+        // [Custom] long setTimeout(in TimeoutHandler handler, in long timeout, arguments...);
         // [Custom] long setTimeout(in DOMString code, in long timeout);
-        [Custom] void clearTimeout(in long handle);
-
+        void clearTimeout(in long handle);
         [Custom] long setInterval(in TimeoutHandler handler, in long timeout);
+        // [Custom] long setInterval(in TimeoutHandler handler, in long timeout, arguments...);
         // [Custom] long setInterval(in DOMString code, in long timeout);
-        [Custom] void clearInterval(in long handle);
+        void clearInterval(in long handle);
 
         // Base64
         [Custom] DOMString atob(in DOMString string)
@@ -233,8 +234,8 @@ module window {
         boolean dispatchEvent(in Event evt)
             raises(EventException);
 
-        [JSCCustom, V8Custom=DOMWindowNOP] void captureEvents(in long eventFlags);
-        [JSCCustom, V8Custom=DOMWindowNOP] void releaseEvents(in long eventFlags);
+        [V8Custom=DOMWindowNOP] void captureEvents(/*in long eventFlags*/);
+        [V8Custom=DOMWindowNOP] void releaseEvents(/*in long eventFlags*/);
 
 #if defined(LANGUAGE_JAVASCRIPT)
         // Global constructors
@@ -477,10 +478,9 @@ module window {
 #endif // defined(LANGUAGE_JAVASCRIPT)
 
 #if defined(V8_BINDING)
-    // window.toString() requires special handling in V8
-    [V8DoNotCheckSignature, DoNotCheckDomainSecurity, Custom, DontEnum] DOMString toString();
+        // window.toString() requires special handling in V8
+        [V8DoNotCheckSignature, DoNotCheckDomainSecurity, Custom, DontEnum] DOMString toString();
 #endif // defined(V8_BINDING)
-  };
+    };
+
 }
-
-

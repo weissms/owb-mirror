@@ -87,7 +87,7 @@ JSValuePtr JSWorkerContext::importScripts(ExecState* exec, const ArgList& args)
 
     Vector<String> urls;
     for (unsigned i = 0; i < args.size(); i++) {
-        urls.append(args.at(exec, i).toString(exec));
+        urls.append(args.at(i).toString(exec));
         if (exec->hadException())
             return jsUndefined();
     }
@@ -105,56 +105,38 @@ JSValuePtr JSWorkerContext::importScripts(ExecState* exec, const ArgList& args)
 
 JSValuePtr JSWorkerContext::addEventListener(ExecState* exec, const ArgList& args)
 {
-    RefPtr<JSEventListener> listener = findOrCreateJSEventListener(args.at(exec, 1));
+    RefPtr<JSEventListener> listener = findOrCreateJSEventListener(args.at(1));
     if (!listener)
         return jsUndefined();
-    impl()->addEventListener(args.at(exec, 0).toString(exec), listener.release(), args.at(exec, 2).toBoolean(exec));
+    impl()->addEventListener(args.at(0).toString(exec), listener.release(), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 
 JSValuePtr JSWorkerContext::removeEventListener(ExecState* exec, const ArgList& args)
 {
-    JSEventListener* listener = findJSEventListener(args.at(exec, 1));
+    JSEventListener* listener = findJSEventListener(args.at(1));
     if (!listener)
         return jsUndefined();
-    impl()->removeEventListener(args.at(exec, 0).toString(exec), listener, args.at(exec, 2).toBoolean(exec));
+    impl()->removeEventListener(args.at(0).toString(exec), listener, args.at(2).toBoolean(exec));
     return jsUndefined();
-}
-
-static JSValuePtr setTimeoutOrInterval(ExecState* exec, WorkerContext* workerContext, const ArgList& args, bool singleShot)
-{
-    JSValuePtr v = args.at(exec, 0);
-    int delay = args.at(exec, 1).toInt32(exec);
-    if (v.isString())
-        return jsNumber(exec, workerContext->installTimeout(new ScheduledAction(asString(v)->value()), delay, singleShot));
-    CallData callData;
-    if (v.getCallData(callData) == CallTypeNone)
-        return jsUndefined();
-    ArgList argsTail;
-    args.getSlice(2, argsTail);
-    return jsNumber(exec, workerContext->installTimeout(new ScheduledAction(exec, v, argsTail), delay, singleShot));
 }
 
 JSValuePtr JSWorkerContext::setTimeout(ExecState* exec, const ArgList& args)
 {
-    return setTimeoutOrInterval(exec, impl(), args, true);
-}
-
-JSValuePtr JSWorkerContext::clearTimeout(ExecState* exec, const ArgList& args)
-{
-    impl()->removeTimeout(args.at(exec, 0).toInt32(exec));
-    return jsUndefined();
+    ScheduledAction* action = ScheduledAction::create(args);
+    if (!action)
+        return jsUndefined();
+    int delay = args.at(1).toInt32(exec);
+    return jsNumber(exec, impl()->setTimeout(action, delay));
 }
 
 JSValuePtr JSWorkerContext::setInterval(ExecState* exec, const ArgList& args)
 {
-    return setTimeoutOrInterval(exec, impl(), args, false);
-}
-
-JSValuePtr JSWorkerContext::clearInterval(ExecState* exec, const ArgList& args)
-{
-    impl()->removeTimeout(args.at(exec, 0).toInt32(exec));
-    return jsUndefined();
+    ScheduledAction* action = ScheduledAction::create(args);
+    if (!action)
+        return jsUndefined();
+    int delay = args.at(1).toInt32(exec);
+    return jsNumber(exec, impl()->setInterval(action, delay));
 }
 
 } // namespace WebCore

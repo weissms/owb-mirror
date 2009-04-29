@@ -27,12 +27,14 @@
 #include "DOMWindow.h"
 
 #include "BarInfo.h"
+#include "BeforeUnloadEvent.h"
 #include "CSSComputedStyleDeclaration.h"
 #include "CSSRuleList.h"
 #include "CSSStyleSelector.h"
 #include "CString.h"
 #include "Chrome.h"
 #include "DOMSelection.h"
+#include "DOMTimer.h"
 #include "Document.h"
 #include "Element.h"
 #include "EventException.h"
@@ -246,15 +248,8 @@ void DOMWindow::dispatchAllPendingUnloadEvents()
         RegisteredEventListenerVector* listeners = map.get(window);
         if (!listeners)
             continue;
-
         RegisteredEventListenerVector listenersCopy = *listeners;
-        Frame* frame = window->frame();
-
-        RefPtr<Event> unloadEvent = Event::create(eventNames().unloadEvent, false, false);
-        unloadEvent->setTarget(frame->document());
-
-        window->handleEvent(unloadEvent.get(), true, &listenersCopy);
-        window->handleEvent(unloadEvent.get(), false, &listenersCopy);
+        window->dispatchUnloadEvent(&listenersCopy);
     }
 
     enableSuddenTermination();
@@ -649,7 +644,8 @@ void DOMWindow::postMessageTimerFired(PostMessageTimer* t)
     if (messagePort)
         messagePort->attachToContext(document());
 
-    document()->dispatchWindowEvent(timer->event());
+    ExceptionCode ec = 0;
+    dispatchEvent(timer->event(), ec);
 }
 
 DOMSelection* DOMWindow::getSelection()
@@ -994,7 +990,13 @@ DOMWindow* DOMWindow::top() const
 
 Document* DOMWindow::document() const
 {
+    // FIXME: This function shouldn't need a frame to work.
     if (!m_frame)
+        return 0;
+
+    // The m_frame pointer is not zeroed out when the window is put into b/f cache, so it can hold an unrelated document/window pair.
+    // FIXME: We should always zero out the frame pointer on navigation to avoid accidentally accessing the new frame content.
+    if (m_frame->domWindow() != this)
         return 0;
 
     ASSERT(m_frame->document());
@@ -1180,6 +1182,26 @@ void DOMWindow::resizeTo(float width, float height) const
     page->chrome()->setWindowRect(fr);
 }
 
+int DOMWindow::setTimeout(ScheduledAction* action, int timeout)
+{
+    return DOMTimer::install(scriptExecutionContext(), action, timeout, true);
+}
+
+void DOMWindow::clearTimeout(int timeoutId)
+{
+    DOMTimer::removeById(scriptExecutionContext(), timeoutId);
+}
+
+int DOMWindow::setInterval(ScheduledAction* action, int timeout)
+{
+    return DOMTimer::install(scriptExecutionContext(), action, timeout, false);
+}
+
+void DOMWindow::clearInterval(int timeoutId)
+{
+    DOMTimer::removeById(scriptExecutionContext(), timeoutId);
+}
+
 void DOMWindow::handleEvent(Event* event, bool useCapture, RegisteredEventListenerVector* alternateListeners)
 {
     RegisteredEventListenerVector& listeners = (alternateListeners ? *alternateListeners : m_eventListeners);
@@ -1249,6 +1271,57 @@ bool DOMWindow::dispatchEvent(PassRefPtr<Event> e, ExceptionCode& ec)
     handleEvent(event.get(), false);
 
     return !event->defaultPrevented();
+}
+
+void DOMWindow::dispatchEvent(const AtomicString& eventType, bool canBubble, bool cancelable)
+{
+    ASSERT(!eventDispatchForbidden());
+    ExceptionCode ec = 0;
+    dispatchEvent(Event::create(eventType, canBubble, cancelable), ec);
+}
+
+// This function accommodates the Firefox quirk of dispatching the load, unload and
+// beforeunload events on the window, but setting event.target to be the Document. 
+inline void DOMWindow::dispatchEventWithDocumentAsTarget(PassRefPtr<Event> e, RegisteredEventListenerVector* alternateEventListeners)
+{
+    ASSERT(!eventDispatchForbidden());
+
+    RefPtr<Event> event = e;
+    RefPtr<DOMWindow> protect(this);
+    RefPtr<Document> document = this->document();
+
+    event->setTarget(document);
+    event->setCurrentTarget(this);
+
+    handleEvent(event.get(), true, alternateEventListeners);
+    handleEvent(event.get(), false, alternateEventListeners);
+}
+
+void DOMWindow::dispatchLoadEvent()
+{
+    dispatchEventWithDocumentAsTarget(Event::create(eventNames().loadEvent, false, false));
+
+    // For load events, send a separate load event to the enclosing frame only.
+    // This is a DOM extension and is independent of bubbling/capturing rules of
+    // the DOM.
+    Element* ownerElement = document()->ownerElement();
+    if (ownerElement) {
+        RefPtr<Event> ownerEvent = Event::create(eventNames().loadEvent, false, false);
+        ownerEvent->setTarget(ownerElement);
+        ownerElement->dispatchGenericEvent(ownerEvent.release());
+    }
+}
+
+void DOMWindow::dispatchUnloadEvent(RegisteredEventListenerVector* alternateEventListeners)
+{
+    dispatchEventWithDocumentAsTarget(Event::create(eventNames().unloadEvent, false, false), alternateEventListeners);
+}
+
+PassRefPtr<BeforeUnloadEvent> DOMWindow::dispatchBeforeUnloadEvent(RegisteredEventListenerVector* alternateEventListeners)
+{
+    RefPtr<BeforeUnloadEvent> beforeUnloadEvent = BeforeUnloadEvent::create();
+    dispatchEventWithDocumentAsTarget(beforeUnloadEvent.get(), alternateEventListeners);
+    return beforeUnloadEvent.release();
 }
 
 void DOMWindow::removeAllEventListeners()
@@ -1595,6 +1668,16 @@ EventListener* DOMWindow::onwebkittransitionend() const
 void DOMWindow::setOnwebkittransitionend(PassRefPtr<EventListener> eventListener)
 {
     setAttributeEventListener(eventNames().webkitTransitionEndEvent, eventListener);
+}
+
+void DOMWindow::captureEvents()
+{
+    // Not implemented.
+}
+
+void DOMWindow::releaseEvents()
+{
+    // Not implemented.
 }
 
 } // namespace WebCore

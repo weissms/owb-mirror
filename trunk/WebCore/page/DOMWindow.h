@@ -38,6 +38,7 @@
 namespace WebCore {
 
     class BarInfo;
+    class BeforeUnloadEvent;
     class CSSRuleList;
     class CSSStyleDeclaration;
 #if ENABLE(INSPECTOR)
@@ -55,10 +56,11 @@ namespace WebCore {
     class Location;
     class MessagePort;
     class Navigator;
+    class Node;
     class PostMessageTimer;
+    class ScheduledAction;
     class Screen;
     class WebKitPoint;
-    class Node;
 
 #if ENABLE(DOM_STORAGE)
     class SessionStorage;
@@ -215,11 +217,24 @@ namespace WebCore {
         void resizeBy(float x, float y) const;
         void resizeTo(float width, float height) const;
 
-        void handleEvent(Event*, bool useCapture, RegisteredEventListenerVector* = 0);
+        // Timers
+        int setTimeout(ScheduledAction*, int timeout);
+        void clearTimeout(int timeoutId);
+        int setInterval(ScheduledAction*, int timeout);
+        void clearInterval(int timeoutId);
 
+        // Events
+        // EventTarget API
         virtual void addEventListener(const AtomicString& eventType, PassRefPtr<EventListener>, bool useCapture);
         virtual void removeEventListener(const AtomicString& eventType, EventListener*, bool useCapture);
         virtual bool dispatchEvent(PassRefPtr<Event>, ExceptionCode&);
+
+        void handleEvent(Event*, bool useCapture, RegisteredEventListenerVector* = 0);
+
+        void dispatchEvent(const AtomicString& eventType, bool canBubble, bool cancelable);
+        void dispatchLoadEvent();
+        void dispatchUnloadEvent(RegisteredEventListenerVector* = 0);
+        PassRefPtr<BeforeUnloadEvent> dispatchBeforeUnloadEvent(RegisteredEventListenerVector* = 0);
 
         // Used for legacy "onEvent" property APIs.
         void setAttributeEventListener(const AtomicString& eventType, PassRefPtr<EventListener>);
@@ -289,6 +304,9 @@ namespace WebCore {
         EventListener* onwebkittransitionend() const;
         void setOnwebkittransitionend(PassRefPtr<EventListener>);
 
+        void captureEvents();
+        void releaseEvents();
+
         // These methods are used for GC marking. See JSDOMWindow::mark() in
         // JSDOMWindowCustom.cpp.
         Screen* optionalScreen() const { return m_screen.get(); }
@@ -321,6 +339,8 @@ namespace WebCore {
 
         virtual void refEventTarget() { ref(); }
         virtual void derefEventTarget() { deref(); }
+
+        void dispatchEventWithDocumentAsTarget(PassRefPtr<Event>, RegisteredEventListenerVector* = 0);
 
         RefPtr<SecurityOrigin> m_securityOrigin;
         KURL m_url;

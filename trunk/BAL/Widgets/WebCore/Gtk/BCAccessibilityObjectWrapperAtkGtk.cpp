@@ -112,25 +112,23 @@ static AccessibilityObject* core(AtkComponent* component)
     return core(ATK_OBJECT(component));
 }
 
+static AccessibilityObject* core(AtkImage* image)
+{
+    return core(ATK_OBJECT(image));
+}
+
 extern "C" {
 
 static const gchar* webkit_accessible_get_name(AtkObject* object)
 {
-    // TODO: Deal with later changes.
-    if (!object->name)
-        atk_object_set_name(object, core(object)->stringValue().utf8().data());
-    return object->name;
+    return returnString(core(object)->stringValue());
 }
 
 static const gchar* webkit_accessible_get_description(AtkObject* object)
 {
     // TODO: the Mozilla MSAA implementation prepends "Description: "
     // Should we do this too?
-
-    // TODO: Deal with later changes.
-    if (!object->description)
-        atk_object_set_description(object, core(object)->accessibilityDescription().utf8().data());
-    return object->description;
+    return returnString(core(object)->accessibilityDescription());
 }
 
 static AtkObject* webkit_accessible_get_parent(AtkObject* object)
@@ -178,40 +176,88 @@ static gint webkit_accessible_get_index_in_parent(AtkObject* object)
 static AtkRole atkRole(AccessibilityRole role)
 {
     switch (role) {
-    case WebCore::ButtonRole:
+    case UnknownRole:
+        return ATK_ROLE_UNKNOWN;
+    case ButtonRole:
         return ATK_ROLE_PUSH_BUTTON;
-    case WebCore::RadioButtonRole:
+    case RadioButtonRole:
         return ATK_ROLE_RADIO_BUTTON;
-    case WebCore::CheckBoxRole:
+    case CheckBoxRole:
         return ATK_ROLE_CHECK_BOX;
-    case WebCore::SliderRole:
+    case SliderRole:
         return ATK_ROLE_SLIDER;
-    case WebCore::TabGroupRole:
+    case TabGroupRole:
         return ATK_ROLE_PAGE_TAB_LIST;
-    case WebCore::TextFieldRole:
-    case WebCore::TextAreaRole:
-    case WebCore::ListMarkerRole:
+    case TextFieldRole:
+    case TextAreaRole:
         return ATK_ROLE_ENTRY;
-    case WebCore::StaticTextRole:
-        return ATK_ROLE_TEXT; //?
-    case WebCore::OutlineRole:
+    case StaticTextRole:
+        return ATK_ROLE_TEXT;
+    case OutlineRole:
         return ATK_ROLE_TREE;
-    case WebCore::ColumnRole:
-        return ATK_ROLE_UNKNOWN; //?
-    case WebCore::RowRole:
-        return ATK_ROLE_LIST_ITEM;
-    case WebCore::GroupRole:
-        return ATK_ROLE_UNKNOWN; //?
-    case WebCore::ListRole:
+    case MenuBarRole:
+        return ATK_ROLE_MENU_BAR;
+    case MenuRole:
+        return ATK_ROLE_MENU;
+    case MenuItemRole:
+        return ATK_ROLE_MENU_ITEM;
+    case ColumnRole:
+        //return ATK_ROLE_TABLE_COLUMN_HEADER; // Is this right?
+        return ATK_ROLE_UNKNOWN; // Matches Mozilla
+    case RowRole:
+        //return ATK_ROLE_TABLE_ROW_HEADER; // Is this right?
+        return ATK_ROLE_LIST_ITEM; // Matches Mozilla
+    case ToolbarRole:
+        return ATK_ROLE_TOOL_BAR;
+    case BusyIndicatorRole:
+        return ATK_ROLE_PROGRESS_BAR; // Is this right?
+    case ProgressIndicatorRole:
+        //return ATK_ROLE_SPIN_BUTTON; // Some confusion about this role in AccessibilityRenderObject.cpp
+        return ATK_ROLE_PROGRESS_BAR;
+    case WindowRole:
+        return ATK_ROLE_WINDOW;
+    case ComboBoxRole:
+        return ATK_ROLE_COMBO_BOX;
+    case SplitGroupRole:
+        return ATK_ROLE_SPLIT_PANE;
+    case SplitterRole:
+        return ATK_ROLE_SEPARATOR;
+    case ColorWellRole:
+        return ATK_ROLE_COLOR_CHOOSER;
+    case ListRole:
         return ATK_ROLE_LIST;
-    case WebCore::TableRole:
+    case ScrollBarRole:
+        return ATK_ROLE_SCROLL_BAR;
+    case GridRole: // Is this right?
+    case TableRole:
         return ATK_ROLE_TABLE;
-    case WebCore::LinkRole:
-    case WebCore::WebCoreLinkRole:
+    case ApplicationRole:
+        return ATK_ROLE_APPLICATION;
+    //case LabelRole: // TODO: should this be covered in the switch?
+    //    return ATK_ROLE_LABEL;
+    case GroupRole:
+    case RadioGroupRole:
+        return ATK_ROLE_PANEL;
+    case CellRole:
+        return ATK_ROLE_TABLE_CELL;
+    case LinkRole:
+    case WebCoreLinkRole:
+    case ImageMapLinkRole:
         return ATK_ROLE_LINK;
-    case WebCore::ImageMapRole:
-    case WebCore::ImageRole:
+    case ImageMapRole:
+    case ImageRole:
         return ATK_ROLE_IMAGE;
+    case ListMarkerRole:
+        return ATK_ROLE_ROW_HEADER;
+    case WebAreaRole:
+        //return ATK_ROLE_HTML_CONTAINER; // Is this right?
+        return ATK_ROLE_DOCUMENT_FRAME;
+    case HeadingRole:
+        return ATK_ROLE_HEADING;
+    case ListBoxRole:
+        return ATK_ROLE_LIST;
+    case ListBoxOptionRole:
+        return ATK_ROLE_LIST_ITEM;
     default:
         return ATK_ROLE_UNKNOWN;
     }
@@ -738,6 +784,36 @@ static void atk_component_interface_init(AtkComponentIface *iface)
     iface->grab_focus = webkit_accessible_component_grab_focus;
 }
 
+// Image
+
+static void webkit_accessible_image_get_image_position(AtkImage* image, gint* x, gint* y, AtkCoordType coordType)
+{
+    IntRect rect = core(image)->elementRect();
+    contentsToAtk(core(image), coordType, rect, x, y);
+}
+
+static const gchar* webkit_accessible_image_get_image_description(AtkImage* image)
+{
+    return returnString(core(image)->accessibilityDescription());
+}
+
+static void webkit_accessible_image_get_image_size(AtkImage* image, gint* width, gint* height)
+{
+    IntSize size = core(image)->size();
+
+    if (width)
+        *width = size.width();
+    if (height)
+        *height = size.height();
+}
+
+static void atk_image_interface_init(AtkImageIface* iface)
+{
+    iface->get_image_position = webkit_accessible_image_get_image_position;
+    iface->get_image_description = webkit_accessible_image_get_image_description;
+    iface->get_image_size = webkit_accessible_image_get_image_size;
+}
+
 static const GInterfaceInfo AtkInterfacesInitFunctions[] = {
     {(GInterfaceInitFunc)atk_action_interface_init,
      (GInterfaceFinalizeFunc) NULL, NULL},
@@ -749,6 +825,8 @@ static const GInterfaceInfo AtkInterfacesInitFunctions[] = {
      (GInterfaceFinalizeFunc) NULL, NULL},
     {(GInterfaceInitFunc)atk_component_interface_init,
      (GInterfaceFinalizeFunc) NULL, NULL},
+    {(GInterfaceInitFunc)atk_image_interface_init,
+     (GInterfaceFinalizeFunc) NULL, NULL}
 };
 
 enum WAIType {
@@ -756,7 +834,8 @@ enum WAIType {
     WAI_STREAMABLE,
     WAI_EDITABLE_TEXT,
     WAI_TEXT,
-    WAI_COMPONENT
+    WAI_COMPONENT,
+    WAI_IMAGE
 };
 
 static GType GetAtkInterfaceTypeFromWAIType(WAIType type)
@@ -772,6 +851,8 @@ static GType GetAtkInterfaceTypeFromWAIType(WAIType type)
       return ATK_TYPE_TEXT;
   case WAI_COMPONENT:
       return ATK_TYPE_COMPONENT;
+  case WAI_IMAGE:
+      return ATK_TYPE_IMAGE;
   }
 
   return G_TYPE_INVALID;
@@ -803,6 +884,10 @@ static guint16 getInterfaceMaskFromObject(AccessibilityObject* coreObject)
         else
             interfaceMask |= 1 << WAI_EDITABLE_TEXT;
     }
+
+    // Image
+    if (coreObject->isImage())
+        interfaceMask |= 1 << WAI_IMAGE;
 
     return interfaceMask;
 }

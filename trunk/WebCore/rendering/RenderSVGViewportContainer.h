@@ -41,8 +41,6 @@ public:
     virtual void layout();
     virtual void paint(PaintInfo&, int parentX, int parentY);
 
-    virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
-
     virtual TransformationMatrix localToParentTransform() const;
 
     // FIXME: This override should be removed once callers of RenderBox::absoluteTransform() can be removed.
@@ -56,9 +54,9 @@ public:
 private:
     void calcViewport();
 
-    virtual void applyContentTransforms(PaintInfo&);
-    virtual void applyAdditionalTransforms(PaintInfo&);
-    
+    virtual void applyViewportClip(PaintInfo&);
+    virtual bool pointIsInsideViewportClip(const FloatPoint& pointInParent);
+
     FloatRect m_viewport;
 };
   

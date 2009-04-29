@@ -37,6 +37,7 @@
 #include "HTMLNames.h"
 #include "LocalizedStrings.h"
 #include "MouseEvent.h"
+#include "NotImplemented.h"
 #include "Page.h"
 #include "SegmentedString.h"
 #include "Settings.h"
@@ -93,7 +94,8 @@ private:
 
 void ImageTokenizer::write(const SegmentedString&, bool)
 {
-    ASSERT_NOT_REACHED();
+    // <https://bugs.webkit.org/show_bug.cgi?id=25397>: JS code can always call document.write, we need to handle it.
+    notImplemented();
 }
 
 bool ImageTokenizer::writeRawData(const char*, int)
@@ -124,9 +126,9 @@ void ImageTokenizer::finish()
 
         IntSize size = cachedImage->imageSize(m_doc->frame()->pageZoomFactor());
         if (size.width()) {
-            // Compute the title, we use the filename of the resource, falling
-            // back on the hostname if there is no path.
-            String fileName = m_doc->url().lastPathComponent();
+            // Compute the title, we use the decoded filename of the resource, falling
+            // back on the (decoded) hostname if there is no path.
+            String fileName = decodeURLEscapeSequences(m_doc->url().lastPathComponent());
             if (fileName.isEmpty())
                 fileName = m_doc->url().host();
             m_doc->setTitle(imageTitle(fileName, size));
