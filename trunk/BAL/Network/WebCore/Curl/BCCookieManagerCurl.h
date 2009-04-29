@@ -51,6 +51,9 @@ namespace WebCore {
         void setCookieJar(const char *);
         const String& cookieJar() { return m_cookieJarFileName; }
 
+        // Count update method
+        void removedCookie() { ASSERT(m_count > 0); m_count--; }
+
     private:
         friend CookieManager& cookieManager();
 
@@ -63,9 +66,6 @@ namespace WebCore {
 
         void addCookieToMap(CookieMap* map, Cookie* cookie);
         void update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie);
-
-        // Count update method
-        inline void removedCookie() { ASSERT(m_count > 0); m_count--; }
 
         HashMap<String, CookieMap*> m_managerMap;
 

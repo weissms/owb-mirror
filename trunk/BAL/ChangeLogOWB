@@ -1,3 +1,28 @@
+2009-04-29  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Avoid exposing CookieMap's internals.
+
+        To do so, I have added 2 methods that loops over the CookieMap
+        cookies without exposing its internals to the CookieManager.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::getCookie): Call the CookieMap method
+        instead of asking for the HashMap and iterating here.
+        (WebCore::CookieManager::removeAllCookies): Ditto.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+        (WebCore::CookieManager::removedCookie): To move the 2 methods inside
+        the CookieMap, it was needed to expose this method so that the
+        CookieManager keeps its Cookie count updated.
+
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::removeAll): Remove all the cookies
+        from the CookieMap, updating the database if needed.
+        (WebCore::CookieMap::getCookies): Get a Vector of the non-expired cookies.
+        * Network/WebCore/Curl/BCCookieMapCurl.h:
+
 2009-04-26  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

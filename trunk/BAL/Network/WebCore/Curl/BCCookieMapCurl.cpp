@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2008, 2009 Julien Chaffraix <julien.chaffraix@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,12 +26,10 @@
 #include "config.h"
 #include "CookieMap.h"
 
+#include "CookieDatabaseBackingStore.h"
 #include "CookieManager.h"
-#include <stdio.h>
-
-#ifndef NDEBUG
+#include "CurrentTime.h"
 #include "Logging.h"
-#endif
 
 namespace WebCore {
 
@@ -74,6 +72,47 @@ void CookieMap::remove(const Cookie* cookie)
 
     ASSERT(prevCookie);
     delete prevCookie;
+}
+
+void CookieMap::removeAll(bool shouldRemoveFromDatabase)
+{
+    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
+    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
+    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
+#if ENABLE(DATABASE)
+        if (shouldRemoveFromDatabase && !cookieIterator->second->isSession())
+            cookieDatabaseBackingStore().remove(cookieIterator->second);
+#endif      
+        delete cookieIterator->second;
+    }
+}
+
+Vector<Cookie*> CookieMap::getCookies()
+{
+    Vector<Cookie*> cookies;
+
+    double now = currentTime();
+
+    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
+    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
+    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
+        Cookie* cookie = cookieIterator->second;
+        // Check for non session cookie expired.
+        if (!cookie->isSession() && cookie->expiry() < currentTime()) {
+            LOG(Network, "Cookie name: %s value: %s path: %s  expired", cookie->name().ascii().data(), cookie->value().ascii().data(), cookie->path().ascii().data());
+            m_cookieMap.take(cookieIterator->first);
+#if ENABLE(DATABASE)
+            cookieDatabaseBackingStore().remove(cookie);
+#endif
+            cookieManager().removedCookie();
+            delete cookie;
+        } else {
+            updateTime(cookie, now);
+            cookies.append(cookie);
+        }
+    }
+
+    return cookies;
 }
 
 Cookie* CookieMap::removeOldestCookie()

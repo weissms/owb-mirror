@@ -33,8 +33,6 @@
 
 namespace WebCore {
 
-static CookieManager* sharedManager = 0;
-
 CookieManager& cookieManager()
 {
     static CookieManager cookieManager;
@@ -110,37 +108,21 @@ String CookieManager::getCookie(const String& url)
 String CookieManager::getCookie(const KURL& url)
 {
     bool isConnectionSecure = false;
-
     if (url.string().startsWith(String("https:", false)))
         isConnectionSecure = true;
 
     String res = String();
-    double curTime = currentTime();
-
     for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
 
         // Handle sub-domain by only looking at the end of the host.
         if (it->first.endsWith(url.host()) || (it->first.startsWith(".", false) && ("." + url.host()).endsWith(it->first, false))) {
             // Get CookieMap to check for expired cookies.
-            HashMap<String, Cookie*> curMap = it->second->getCookieMap();
-            for (HashMap<String, Cookie*>::iterator itCookie = curMap.begin(); itCookie != curMap.end(); ++itCookie) {
-                Cookie* curCookie = itCookie->second;
-                // Check for non session cookie expired.
-                if (!curCookie->isSession() && curCookie->expiry() < curTime) {
-                    LOG(Network, "Cookie name: %s value: %s path: %s  expired", curCookie->name().ascii().data(), curCookie->value().ascii().data(), curCookie->path().ascii().data());
-                    curMap.take(itCookie->first);
-#if ENABLE(DATABASE)
-                    cookieDatabaseBackingStore().remove(curCookie);
-#endif
-                    removedCookie();
-                    delete curCookie;
-                } else {
-                    // Update last accessed time.
-                    it->second->updateTime(curCookie, curTime);
+            Vector<Cookie*> cookies = it->second->getCookies();
 
-                    if (url.path().startsWith(curCookie->path(), false) && (isConnectionSecure || !curCookie->isSecure()))
-                        res += curCookie->name() + "=" + curCookie->value() + ";";
-                }
+            for (size_t i = 0; i < cookies.size(); ++i) {
+                Cookie* cookie = cookies[i];
+                if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()))
+                    res += cookie->name() + "=" + cookie->value() + ";";
             }
         }
     }
@@ -151,14 +133,7 @@ String CookieManager::getCookie(const KURL& url)
 void CookieManager::removeAllCookies(bool shouldRemoveFromDatabase)
 {
     for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
-        HashMap<String, Cookie*> curMap = it->second->getCookieMap();
-        for (HashMap<String, Cookie*>::iterator itCookie = curMap.begin(); itCookie != curMap.end(); ++itCookie) {
-#if ENABLE(DATABASE)
-            if (shouldRemoveFromDatabase && !itCookie->second->isSession())
-                cookieDatabaseBackingStore().remove(itCookie->second);
-#endif
-            delete itCookie->second;
-        }
+        it->second->removeAll(shouldRemoveFromDatabase);
         delete it->second;
     }
 

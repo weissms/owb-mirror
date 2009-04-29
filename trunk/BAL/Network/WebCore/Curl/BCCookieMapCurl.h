@@ -49,6 +49,9 @@ public:
     void add(Cookie* cookie);
     void remove(const Cookie* cookie);
 
+    void removeAll(bool /*shouldRemoveFromDatabase*/);
+    Vector<Cookie*> getCookies();
+
     // Will take the cookie that match the paramater
     Cookie* takePrevious(const Cookie* cookie);
 
@@ -59,10 +62,7 @@ public:
     // Return Cookie to remove it from the database in the CookieManager
     Cookie* removeOldestCookie();
 
-    HashMap<String, Cookie*>& getCookieMap() { return m_cookieMap; }
-
 private:
-
     void updateOldestCookie();
 
     // The key is the tuple (name, path)
