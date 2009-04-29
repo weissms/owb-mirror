@@ -51,6 +51,8 @@ namespace WebCore {
         CookieDatabaseBackingStore();
         ~CookieDatabaseBackingStore();
 
+        bool tableExists();
+
         SQLiteDatabase m_db;
     };
 

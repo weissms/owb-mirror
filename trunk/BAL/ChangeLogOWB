@@ -2,6 +2,29 @@
 
         Reviewed by Sebastien Roret.
 
+        Cleaned up CookieDatabaseBackingStore class.
+
+        - now we create the table when we open the file.
+
+        - factored out the cookie table into tableExists() methods.
+
+        - added a static String holding the cookie table name.
+
+        - removed most of the ASSERT and fail gracefully if the database is not opened.
+
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp:
+        (WebCore::CookieDatabaseBackingStore::tableExists):
+        (WebCore::CookieDatabaseBackingStore::open):
+        (WebCore::CookieDatabaseBackingStore::insert):
+        (WebCore::CookieDatabaseBackingStore::update):
+        (WebCore::CookieDatabaseBackingStore::remove):
+        (WebCore::CookieDatabaseBackingStore::getAllCookies):
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h:
+
+2009-04-29  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
         Avoid exposing CookieMap's internals.
 
         To do so, I have added 2 methods that loops over the CookieMap

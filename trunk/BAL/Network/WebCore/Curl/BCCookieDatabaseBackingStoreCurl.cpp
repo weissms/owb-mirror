@@ -34,6 +34,9 @@
 
 namespace WebCore {
 
+// This is chosen to match Mozilla's table name.
+static String tableName = "cookies";
+
 CookieDatabaseBackingStore& cookieDatabaseBackingStore()
 {
     static CookieDatabaseBackingStore backingStore;
@@ -48,13 +51,30 @@ CookieDatabaseBackingStore::~CookieDatabaseBackingStore()
 {
 }
 
+bool CookieDatabaseBackingStore::tableExists()
+{
+    return m_db.isOpen() && m_db.tableExists(tableName);
+}
+
 void CookieDatabaseBackingStore::open(const String& cookieJar)
 {
     if (m_db.isOpen())
         close();
 
-    if (!m_db.open(cookieJar))
-        LOG_ERROR("Could not open the cookie database");
+    if (!m_db.open(cookieJar)) {
+        LOG_ERROR("Could not open the cookie database. No cookie will be stored!");
+        return;
+    }
+
+    String createTableQuery("CREATE TABLE ");
+    createTableQuery += tableName;
+    // FIXME: Mozilla uses isHttpOnly which is not included here but should be to have a similar table. 
+    createTableQuery +=" (name TEXT, value TEXT, host TEXT, path TEXT, expiry DOUBLE, lastAccessed DOUBLE, isSecure INTEGER);";
+
+    if (!tableExists() &&  m_db.executeCommand(createTableQuery)) {
+        LOG_ERROR("Could not create the table to store the cookies into. No cookie will be stored!");
+        close();
+    }
 }
 
 void CookieDatabaseBackingStore::close()
@@ -64,26 +84,29 @@ void CookieDatabaseBackingStore::close()
 
 void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 {
-    ASSERT(m_db.isOpen());
-    
-    if (!m_db.tableExists(String("cookies")))
-        // Mozilla uses isHttpOnly which is not included as we do not use it
-        m_db.executeCommand(String("CREATE TABLE cookies (name TEXT, value TEXT, host TEXT, path TEXT, expiry DOUBLE, lastAccessed DOUBLE, isSecure INTEGER);"));
+    if (!tableExists())
+        return;
  
-    SQLiteStatement insert(m_db, String("INSERT INTO cookies (name, value, host, path, expiry, lastAccessed, isSecure) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);"));
+    String insertQuery("INSERT INTO ");
+    insertQuery += tableName;
+    insertQuery += " (name, value, host, path, expiry, lastAccessed, isSecure) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
+    SQLiteStatement insertStatement(m_db, insertQuery);
 
-    if (insert.prepare()) {
+    if (insertStatement.prepare()) {
         LOG_ERROR("Cannot save cookie");
         return;
     }
 
     // Binds all the values
-    if (insert.bindText(1, cookie->name()) || insert.bindText(2, cookie->value()) || insert.bindText(3, cookie->domain()) || insert.bindText(4, cookie->path()) || insert.bindDouble(5, cookie->expiry()) || insert.bindDouble(6, cookie->lastAccessed()) || insert.bindInt64(7, cookie->isSecure())) {
+    if (insertStatement.bindText(1, cookie->name()) || insertStatement.bindText(2, cookie->value())
+        || insertStatement.bindText(3, cookie->domain()) || insertStatement.bindText(4, cookie->path())
+        || insertStatement.bindDouble(5, cookie->expiry()) || insertStatement.bindDouble(6, cookie->lastAccessed())
+        || insertStatement.bindInt64(7, cookie->isSecure())) {
         LOG_ERROR("Cannot save cookie");                                                                                                                                                          
         return;                                                                                                                                                                                   
     }
 
-    if (!insert.executeCommand()) {                                                                                                                                                               
+    if (!insertStatement.executeCommand()) {                                                                                                                                                               
         LOG_ERROR("Cannot save cookie");                                                                                                                                                          
         return;
     }
@@ -91,24 +114,30 @@ void CookieDatabaseBackingStore::insert(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::update(const Cookie* cookie)
 {
-    ASSERT(m_db.isOpen());
-    ASSERT(m_db.tableExists(String("cookies")));
+    if (!tableExists())
+        return;
 
-    // the where statement is chosen to match CookieMap key
-    SQLiteStatement update(m_db, String("UPDATE cookies SET name = ?1, value = ?2, host = ?3, path = ?4, expiry = ?5, lastAccessed = ?6, isSecure = ?7 where name = ?1 and host = ?3 and path = ?4;"));
+    String updateQuery("UPDATE ");
+    updateQuery += tableName;
+    // The where statement is chosen to match CookieMap key.
+    updateQuery += " SET name = ?1, value = ?2, host = ?3, path = ?4, expiry = ?5, lastAccessed = ?6, isSecure = ?7 where name = ?1 and host = ?3 and path = ?4;";
+    SQLiteStatement updateStatement(m_db, updateQuery);
 
-    if (update.prepare()) {
+    if (updateStatement.prepare()) {
         LOG_ERROR("Cannot update cookie");
         return;
     }
 
     // Binds all the values
-    if (update.bindText(1, cookie->name()) || update.bindText(2, cookie->value()) || update.bindText(3, cookie->path()) || update.bindText(4, cookie->domain()) || update.bindDouble(5, cookie->expiry()) || update.bindDouble(6, cookie->lastAccessed()) || update.bindInt64(7, cookie->isSecure())) {
+    if (updateStatement.bindText(1, cookie->name()) || updateStatement.bindText(2, cookie->value())
+        || updateStatement.bindText(3, cookie->path()) || updateStatement.bindText(4, cookie->domain())
+        || updateStatement.bindDouble(5, cookie->expiry()) || updateStatement.bindDouble(6, cookie->lastAccessed())
+        || updateStatement.bindInt64(7, cookie->isSecure())) {
         LOG_ERROR("Cannot update cookie");
         return;
     }
 
-    if (!update.executeCommand()) {
+    if (!updateStatement.executeCommand()) {
         LOG_ERROR("Cannot update cookie");
         return;
     }
@@ -117,26 +146,28 @@ void CookieDatabaseBackingStore::update(const Cookie* cookie)
 
 void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 {
-    ASSERT(m_db.isOpen());
-
-    if(!m_db.tableExists(String("cookies")))
+    if (!tableExists())
         return;
 
-    // the where statement is chosen to match CookieMap key
-    SQLiteStatement deleteStmt(m_db, String("DELETE FROM cookies WHERE name=?1 and host=?2 and path=?3;"));
+    String deleteQuery("DELETE FROM ");
+    deleteQuery += tableName;
+    // The where statement is chosen to match CookieMap key.
+    deleteQuery += " WHERE name=?1 and host=?2 and path=?3;";
+    SQLiteStatement deleteStatement(m_db, deleteQuery);
 
-    if (deleteStmt.prepare()) {
+    if (deleteStatement.prepare()) {
         LOG_ERROR("Cannot delete cookie");
         return;
     }
 
     // Binds all the values
-    if (deleteStmt.bindText(1, cookie->name()) || deleteStmt.bindText(2, cookie->domain()) || deleteStmt.bindText(3, cookie->path())) {
+    if (deleteStatement.bindText(1, cookie->name()) || deleteStatement.bindText(2, cookie->domain())
+        || deleteStatement.bindText(3, cookie->path())) {
         LOG_ERROR("Cannot delete cookie");
         return;
     }
 
-    if (!deleteStmt.executeCommand()) {
+    if (!deleteStatement.executeCommand()) {
         LOG_ERROR("Cannot delete cookie from database");
         return;
     }
@@ -144,35 +175,35 @@ void CookieDatabaseBackingStore::remove(const Cookie* cookie)
 
 Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
 {
-    ASSERT(m_db.isOpen());
+    Vector<Cookie*, 8> cookies;
 
-    Vector<Cookie*, 16> cookies;
-
-    // Check that the database is correctly initialized.
-    if (!m_db.tableExists(String("cookies")))
+    // Check that the table exists to avoid doing an unnecessary request.
+    if (!tableExists())
         return cookies;
 
-    // Problem if the database is not connected
-    SQLiteStatement select(m_db, "SELECT name, value, host, path, expiry, lastAccessed, isSecure FROM cookies;");
+    String selectQuery("SELECT name, value, host, path, expiry, lastAccessed, isSecure FROM ");
+    selectQuery += tableName;
 
-    if (select.prepare()) {
-        LOG_ERROR("Cannot retrieved cookies in the database");
+    SQLiteStatement selectStatement(m_db, selectQuery);
+
+    if (selectStatement.prepare()) {
+        LOG_ERROR("Cannot retrieved cookies from the database");
         return cookies;
     }
 
-    while (select.step() == SQLResultRow) {
+    while (selectStatement.step() == SQLResultRow) {
         // There is a row to fetch
         String name, value, domain, path;                                                                                                                                                         
         double expiry, lastAccessed;
         bool isSecure;
 
-        name = select.getColumnText(0);
-        value = select.getColumnText(1);
-        domain = select.getColumnText(2);
-        path = select.getColumnText(3);
-        expiry = select.getColumnDouble(4);
-        lastAccessed = select.getColumnDouble(5);
-        isSecure = (select.getColumnInt(6) != 0);
+        name = selectStatement.getColumnText(0);
+        value = selectStatement.getColumnText(1);
+        domain = selectStatement.getColumnText(2);
+        path = selectStatement.getColumnText(3);
+        expiry = selectStatement.getColumnDouble(4);
+        lastAccessed = selectStatement.getColumnDouble(5);
+        isSecure = (selectStatement.getColumnInt(6) != 0);
 
         cookies.append(new Cookie(name, value, domain, path, expiry, lastAccessed, isSecure));
     }
