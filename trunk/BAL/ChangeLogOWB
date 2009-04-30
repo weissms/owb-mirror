@@ -1,3 +1,15 @@
+2009-04-30  Sebastien Roret  <sroret@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        RefPtr<WebCore::Image> are now static to avoid multiple file loads.
+
+        * Widgets/WebCore/SDL/BCScrollbarThemeSDL.cpp:
+        (WebCore::ScrollbarThemeBal::forwardButtonRect): Added static to RefPtr<WebCore::Image>.
+        (WebCore::ScrollbarThemeBal::paintButton): ditto.
+        (WebCore::ScrollbarThemeBal::paintThumb): ditto.
+        (WebCore::ScrollbarThemeBal::paintTrackPiece): ditto.
+
 2009-04-29  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.

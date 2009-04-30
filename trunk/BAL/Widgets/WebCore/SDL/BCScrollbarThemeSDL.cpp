@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
@@ -93,7 +93,7 @@ IntRect ScrollbarThemeBal::forwardButtonRect(Scrollbar* scrollbar, ScrollbarPart
 {
     if (part == ForwardButtonStartPart)
         return IntRect();
-    
+
     // Our desired rect is essentially 17x17.
 
     // Our actual rect will shrink to half the available space when
@@ -126,26 +126,26 @@ void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollb
 {
     context->save();
     bool start = (part == BackButtonStartPart);
-    RefPtr<WebCore::Image> left = Image::loadPlatformResource("/ScrollbarTheme/left");
+    static RefPtr<WebCore::Image> left = Image::loadPlatformResource("/ScrollbarTheme/left");
     if (!left->isNull()) {
         IntPoint startPos(rect.location());
         if (start) {
-            if (scrollbar->orientation() == HorizontalScrollbar) 
+            if (scrollbar->orientation() == HorizontalScrollbar)
                 context->drawImage(left.get(), startPos);
             else {
-                RefPtr<WebCore::Image> up = Image::loadPlatformResource("/ScrollbarTheme/up");
+                static RefPtr<WebCore::Image> up = Image::loadPlatformResource("/ScrollbarTheme/up");
                 context->drawImage(up.get(), startPos);
             }
         } else {
             if (scrollbar->orientation() == HorizontalScrollbar) {
-                RefPtr<WebCore::Image> right = Image::loadPlatformResource("/ScrollbarTheme/right");
+                static RefPtr<WebCore::Image> right = Image::loadPlatformResource("/ScrollbarTheme/right");
                 context->drawImage(right.get(), startPos);
             } else {
-                RefPtr<WebCore::Image> down = Image::loadPlatformResource("/ScrollbarTheme/down");
+                static RefPtr<WebCore::Image> down = Image::loadPlatformResource("/ScrollbarTheme/down");
                 context->drawImage(down.get(), startPos);
             }
         }
-    } else {    
+    } else {
         context->drawRect(rect);
         context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
 
@@ -174,10 +174,10 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
 {
     context->save();
     if (scrollbar->orientation() == HorizontalScrollbar) {
-        RefPtr<WebCore::Image> thumbH = Image::loadPlatformResource("/ScrollbarTheme/thumbH");
+        static RefPtr<WebCore::Image> thumbH = Image::loadPlatformResource("/ScrollbarTheme/thumbH");
         if (!thumbH->isNull()) {
-            RefPtr<WebCore::Image> thumbHL = Image::loadPlatformResource("/ScrollbarTheme/thumbHL");
-            RefPtr<WebCore::Image> thumbHR = Image::loadPlatformResource("/ScrollbarTheme/thumbHR");
+            static RefPtr<WebCore::Image> thumbHL = Image::loadPlatformResource("/ScrollbarTheme/thumbHL");
+            static RefPtr<WebCore::Image> thumbHR = Image::loadPlatformResource("/ScrollbarTheme/thumbHR");
             IntPoint startPos(rect.location());
             IntPoint endPos(rect.right() - thumbHR->width(), rect.y());
             IntRect destRect(rect.x() + thumbHL->width() - 1, rect.y(), rect.width() - thumbHR->width() - thumbHL->width() + 1, rect.height());
@@ -191,10 +191,10 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
             context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
         }
     } else {
-        RefPtr<WebCore::Image> thumbV = Image::loadPlatformResource("/ScrollbarTheme/thumbV");
+        static RefPtr<WebCore::Image> thumbV = Image::loadPlatformResource("/ScrollbarTheme/thumbV");
         if (!thumbV->isNull()) {
-            RefPtr<WebCore::Image> thumbVU = Image::loadPlatformResource("/ScrollbarTheme/thumbVU");
-            RefPtr<WebCore::Image> thumbVD = Image::loadPlatformResource("/ScrollbarTheme/thumbVD");
+            static RefPtr<WebCore::Image> thumbVU = Image::loadPlatformResource("/ScrollbarTheme/thumbVU");
+            static RefPtr<WebCore::Image> thumbVD = Image::loadPlatformResource("/ScrollbarTheme/thumbVD");
             IntPoint startPos(rect.location());
             IntPoint endPos(rect.x(), rect.bottom() - thumbVD->height());
             IntRect destRect(rect.x(), rect.y() + thumbVU->height(), rect.width(), rect.height() - thumbVU->height() - thumbVD->height());
@@ -253,11 +253,11 @@ bool ScrollbarThemeBal::shouldSnapBackToDragOrigin(Scrollbar* scrollbar, const P
 void ScrollbarThemeBal::paintTrackPiece(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart partType)
 {
     context->save();
-    
-    RefPtr<WebCore::Image> bg = Image::loadPlatformResource("/ScrollbarTheme/bg");
+
+    static RefPtr<WebCore::Image> bg = Image::loadPlatformResource("/ScrollbarTheme/bg");
     if (!bg->isNull()) {
         if (scrollbar->orientation() == HorizontalScrollbar) {
-            RefPtr<WebCore::Image> bgh = Image::loadPlatformResource("/ScrollbarTheme/bgh");
+            static RefPtr<WebCore::Image> bgh = Image::loadPlatformResource("/ScrollbarTheme/bgh");
             IntRect destRect(rect.x() - 1, rect.y(), rect.width() + 2, rect.height());
             context->drawTiledImage(bgh.get(), destRect, IntPoint(0, 0), IntSize(bgh->width(), bgh->height()));
         } else {
