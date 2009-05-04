@@ -103,7 +103,7 @@ static inline void dispatchFunctionToProfiles(const Vector<RefPtr<ProfileGenerat
     }
 }
 
-void Profiler::willExecute(ExecState* exec, JSValuePtr function)
+void Profiler::willExecute(ExecState* exec, JSValue function)
 {
     ASSERT(!m_currentProfiles.isEmpty());
 
@@ -114,12 +114,12 @@ void Profiler::willExecute(ExecState* exec, const UString& sourceURL, int starti
 {
     ASSERT(!m_currentProfiles.isEmpty());
 
-    CallIdentifier callIdentifier = createCallIdentifier(&exec->globalData(), noValue(), sourceURL, startingLineNumber);
+    CallIdentifier callIdentifier = createCallIdentifier(&exec->globalData(), JSValue(), sourceURL, startingLineNumber);
 
     dispatchFunctionToProfiles(m_currentProfiles, &ProfileGenerator::willExecute, callIdentifier, exec->lexicalGlobalObject()->profileGroup());
 }
 
-void Profiler::didExecute(ExecState* exec, JSValuePtr function)
+void Profiler::didExecute(ExecState* exec, JSValue function)
 {
     ASSERT(!m_currentProfiles.isEmpty());
 
@@ -130,10 +130,10 @@ void Profiler::didExecute(ExecState* exec, const UString& sourceURL, int startin
 {
     ASSERT(!m_currentProfiles.isEmpty());
 
-    dispatchFunctionToProfiles(m_currentProfiles, &ProfileGenerator::didExecute, createCallIdentifier(&exec->globalData(), noValue(), sourceURL, startingLineNumber), exec->lexicalGlobalObject()->profileGroup());
+    dispatchFunctionToProfiles(m_currentProfiles, &ProfileGenerator::didExecute, createCallIdentifier(&exec->globalData(), JSValue(), sourceURL, startingLineNumber), exec->lexicalGlobalObject()->profileGroup());
 }
 
-CallIdentifier Profiler::createCallIdentifier(JSGlobalData* globalData, JSValuePtr function, const UString& defaultSourceURL, int defaultLineNumber)
+CallIdentifier Profiler::createCallIdentifier(JSGlobalData* globalData, JSValue function, const UString& defaultSourceURL, int defaultLineNumber)
 {
     if (!function)
         return CallIdentifier(GlobalCodeExecution, defaultSourceURL, defaultLineNumber);

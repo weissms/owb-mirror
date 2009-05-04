@@ -67,7 +67,8 @@ namespace WebKit {
 
         virtual void setResizable(bool);
 
-        virtual void addMessageToConsole(const WebCore::String& message, unsigned int lineNumber,
+        virtual void addMessageToConsole(WebCore::MessageSource source, WebCore::MessageLevel level,
+                                         const WebCore::String& message, unsigned int lineNumber,
                                          const WebCore::String& sourceID);
 
         virtual bool canRunBeforeUnloadConfirmPanel();
@@ -102,6 +103,8 @@ namespace WebKit {
         virtual void runOpenPanel(WebCore::Frame*, PassRefPtr<WebCore::FileChooser>);
 
         virtual void formStateDidChange(const WebCore::Node*) { }
+
+        virtual WebCore::HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
 
     private:
         WebKitWebView* m_webView;

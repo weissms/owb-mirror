@@ -821,6 +821,11 @@ void FrameLoaderClient::dispatchDidFailLoading(DocumentLoader*, unsigned long id
     notImplemented();
 }
 
+void FrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest(unsigned long, const ScriptString&)
+{
+    notImplemented();
+}
+
 bool FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int length)
 {
     notImplemented();

@@ -93,7 +93,7 @@ using namespace HTMLNames;
 
 using JSC::JSGlobalObject;
 using JSC::JSLock;
-using JSC::JSValuePtr;
+using JSC::JSValue;
 
 /*
 Here is the current behavior matrix for four types of navigations:
@@ -577,7 +577,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 {
     ASSERT(_private->coreFrame->document());
     
-    JSValuePtr result = _private->coreFrame->loader()->executeScript(string, forceUserGesture).jsValue();
+    JSValue result = _private->coreFrame->loader()->executeScript(string, forceUserGesture).jsValue();
 
     if (!_private->coreFrame) // In case the script removed our frame from the page.
         return @"";
@@ -757,8 +757,8 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
 
     RefPtr<Range> range = _private->coreFrame->document()->createRange();
     int exception = 0;
-    range->setStart(newStart.node(), newStart.m_offset, exception);
-    range->setEnd(newStart.node(), newStart.m_offset, exception);
+    range->setStart(newStart.node(), newStart.deprecatedEditingOffset(), exception);
+    range->setEnd(newStart.node(), newStart.deprecatedEditingOffset(), exception);
     return kit(range.get());
 }
 

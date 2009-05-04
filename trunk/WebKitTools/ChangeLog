@@ -1,3 +1,69 @@
+2009-05-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Don't pass an exception parameter if we don't care about the value.
+
+        * DumpRenderTree/win/EventSender.cpp:
+        (keyDownCallback):
+
+2009-05-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Another cut at getting tests passing on Windows again.
+
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::didStartProvisionalLoadForFrame): Tweak formatting.
+        (FrameLoadDelegate::didFailProvisionalLoadWithError): Ditto.
+        (FrameLoadDelegate::didCommitLoadForFrame): Ditto.
+        (FrameLoadDelegate::didFinishLoadForFrame): Ditto.
+        (FrameLoadDelegate::didFailLoadWithError): Added missing logging.
+
+2009-05-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Try to get tests passing on Windows again.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (shouldLogFrameLoadDelegates): Allow either "/" or "\" as a path
+        separator. Also require separator before as well as after path name.
+
+2009-04-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, define ENABLE_JAVASCRIPT_DEBUGGER.
+
+        * wx/build-wxwebkit:
+
+2009-04-30  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25470
+        Extend the cover of ENABLE_JAVASCRIPT_DEBUGGER to profiler.
+
+        * Scripts/build-webkit: Added ENABLE_JAVASCRIPT_DEBUGGER define.
+
+2009-04-29  Mark Rowe  <mrowe@apple.com>
+
+        Update build.webkit.org configuration for the addition of the new GTK buildbot.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2009-04-29  Mark Rowe  <mrowe@apple.com>
+
+        Ignore the --use-remote-links-to-tests option for GTK as it leads to
+        perl errors being spewed at the end of run-webkit-tests.
+
+        * Scripts/run-webkit-tests:
+
+2009-04-29  Mark Rowe  <mrowe@apple.com>
+
+        Implement test-result-archive for GTK.
+
+        * BuildSlaveSupport/test-result-archive:
+
 2009-04-29  Pierre d'Herbemont  <pdherbemont@apple.com>
 
         Reviewed by David Kilzer.

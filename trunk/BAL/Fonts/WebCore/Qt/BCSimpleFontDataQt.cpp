@@ -59,6 +59,13 @@ void SimpleFontData::platformGlyphInit()
     m_missingGlyphData.glyph = 0;
 }
 
+void SimpleFontData::platformCharWidthInit()
+{
+    QFontMetrics fm(m_font.font());
+    m_avgCharWidth = fm.averageCharWidth();
+    m_maxCharWidth = fm.maxWidth();
+}
+
 void SimpleFontData::platformDestroy()
 {
 }

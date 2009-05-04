@@ -54,6 +54,7 @@
 #include "ResourceHandleInternal.h"
 #include "ResourceHandle.h"
 #include "Settings.h"
+#include "ScriptString.h"
 
 #include "qwebpage.h"
 #include "qwebframe.h"
@@ -387,7 +388,7 @@ void FrameLoaderClientQt::dispatchDidFinishLoad()
 
     m_loadSucceeded = true;
 
-    if (m_frame->tree()->parent() || !m_webFrame)
+    if (!m_webFrame)
         return;
     m_webFrame->page()->d->updateNavigationActions();
 }
@@ -849,6 +850,11 @@ bool FrameLoaderClientQt::dispatchDidLoadResourceFromMemoryCache(WebCore::Docume
 {
     notImplemented();
     return false;
+}
+
+void FrameLoaderClientQt::dispatchDidLoadResourceByXMLHttpRequest(unsigned long, const WebCore::ScriptString&)
+{
+    notImplemented();
 }
 
 void FrameLoaderClientQt::dispatchDidFailProvisionalLoad(const WebCore::ResourceError&)

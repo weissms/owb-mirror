@@ -38,6 +38,7 @@ list(APPEND WEBCORE_SRC
     page/NavigatorBase.cpp
     page/Page.cpp
     page/PageGroup.cpp
+    page/PageGroupLoadDeferrer.cpp
     page/PrintContext.cpp
     page/Screen.cpp
     page/SecurityOrigin.cpp

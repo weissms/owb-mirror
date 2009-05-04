@@ -39,7 +39,7 @@
 
 namespace JSC {
     class UString;
-    class JSValuePtr;
+    class JSValue;
 }
 
 namespace WebCore {
@@ -56,7 +56,7 @@ namespace WebCore {
         void appendArgument(const ScriptValue&);
         void appendArgument(const String&);
         void appendArgument(const JSC::UString&);
-        void appendArgument(JSC::JSValuePtr);
+        void appendArgument(JSC::JSValue);
         void appendArgument(long long);
         void appendArgument(unsigned int);
         void appendArgument(int);
@@ -69,7 +69,7 @@ namespace WebCore {
         ScriptState* m_exec;
         ScriptObject m_thisObject;
         String m_name;
-        JSC::ArgList m_arguments;
+        JSC::MarkedArgumentBuffer m_arguments;
     };
 
 } // namespace WebCore

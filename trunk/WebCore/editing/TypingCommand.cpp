@@ -33,6 +33,7 @@
 #include "Editor.h"
 #include "Element.h"
 #include "Frame.h"
+#include "HTMLNames.h"
 #include "InsertLineBreakCommand.h"
 #include "InsertParagraphSeparatorCommand.h"
 #include "InsertTextCommand.h"
@@ -43,6 +44,8 @@
 #include "visible_units.h"
 
 namespace WebCore {
+
+using namespace HTMLNames;
 
 TypingCommand::TypingCommand(Document *document, ETypingCommand commandType, const String &textToInsert, bool selectInsertedText, TextGranularity granularity, bool killRing)
     : CompositeEditCommand(document), 
@@ -281,8 +284,17 @@ EditAction TypingCommand::editingAction() const
 
 void TypingCommand::markMisspellingsAfterTyping()
 {
+#if PLATFORM(MAC) && !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
+    if (!document()->frame()->editor()->isContinuousSpellCheckingEnabled()
+     && !document()->frame()->editor()->isAutomaticQuoteSubstitutionEnabled()
+     && !document()->frame()->editor()->isAutomaticLinkDetectionEnabled()
+     && !document()->frame()->editor()->isAutomaticDashSubstitutionEnabled()
+     && !document()->frame()->editor()->isAutomaticTextReplacementEnabled())
+        return;
+#else
     if (!document()->frame()->editor()->isContinuousSpellCheckingEnabled())
         return;
+#endif
     // Take a look at the selection that results after typing and determine whether we need to spellcheck. 
     // Since the word containing the current selection is never marked, this does a check to
     // see if typing made a new word that is not in the current selection. Basically, you
@@ -370,6 +382,27 @@ void TypingCommand::insertParagraphSeparatorInQuotedContent()
     typingAddedToOpenCommand();
 }
 
+bool TypingCommand::makeEditableRootEmpty()
+{
+    Element* root = endingSelection().rootEditableElement();
+    if (!root->firstChild())
+        return false;
+
+    if (root->firstChild() == root->lastChild() && root->firstElementChild() && root->firstElementChild()->hasTagName(brTag)) {
+        // If there is a single child and it could be a placeholder, leave it alone.
+        if (root->renderer() && root->renderer()->isBlockFlow())
+            return false;
+    }
+
+    while (Node* child = root->firstChild())
+        removeNode(child);
+
+    addBlockPlaceholderIfNeeded(root);
+    setEndingSelection(VisibleSelection(Position(root, 0), DOWNSTREAM));
+
+    return true;
+}
+
 void TypingCommand::deleteKeyPressed(TextGranularity granularity, bool killRing)
 {
     VisibleSelection selectionToDelete;
@@ -394,9 +427,14 @@ void TypingCommand::deleteKeyPressed(TextGranularity granularity, bool killRing)
             if (killRing && selection.isCaret() && granularity != CharacterGranularity) 
                 selection.modify(SelectionController::EXTEND, SelectionController::BACKWARD, CharacterGranularity); 
             
-            // When the caret is at the start of the editable area in an empty list item, break out of the list item.
             if (endingSelection().visibleStart().previous(true).isNull()) {
+                // When the caret is at the start of the editable area in an empty list item, break out of the list item.
                 if (breakOutOfEmptyListItem()) {
+                    typingAddedToOpenCommand();
+                    return;
+                }
+                // When there are no visible positions in the editing root, delete its entire contents.
+                if (endingSelection().visibleStart().next(true).isNull() && makeEditableRootEmpty()) {
                     typingAddedToOpenCommand();
                     return;
                 }
@@ -419,7 +457,7 @@ void TypingCommand::deleteKeyPressed(TextGranularity granularity, bool killRing)
 
             selectionToDelete = selection.selection();
 
-            if (granularity == CharacterGranularity && selectionToDelete.end().node() == selectionToDelete.start().node() && selectionToDelete.end().m_offset - selectionToDelete.start().m_offset > 1) {
+            if (granularity == CharacterGranularity && selectionToDelete.end().node() == selectionToDelete.start().node() && selectionToDelete.end().deprecatedEditingOffset() - selectionToDelete.start().deprecatedEditingOffset() > 1) {
                 // If there are multiple Unicode code points to be deleted, adjust the range to match platform conventions.
                 selectionToDelete.setWithoutValidation(selectionToDelete.end(), selectionToDelete.end().previous(BackwardDeletion));
             }
@@ -484,7 +522,7 @@ void TypingCommand::forwardDeleteKeyPressed(TextGranularity granularity, bool ki
             if (visibleEnd == endOfParagraph(visibleEnd))
                 downstreamEnd = visibleEnd.next(true).deepEquivalent().downstream();
             // When deleting tables: Select the table first, then perform the deletion
-            if (downstreamEnd.node() && downstreamEnd.node()->renderer() && downstreamEnd.node()->renderer()->isTable() && downstreamEnd.m_offset == 0) {
+            if (downstreamEnd.node() && downstreamEnd.node()->renderer() && downstreamEnd.node()->renderer()->isTable() && downstreamEnd.deprecatedEditingOffset() == 0) {
                 setEndingSelection(VisibleSelection(endingSelection().end(), lastDeepEditingPositionForNode(downstreamEnd.node()), DOWNSTREAM));
                 typingAddedToOpenCommand();
                 return;
@@ -507,10 +545,10 @@ void TypingCommand::forwardDeleteKeyPressed(TextGranularity granularity, bool ki
                 else {
                     int extraCharacters;
                     if (selectionToDelete.start().node() == selectionToDelete.end().node())
-                        extraCharacters = selectionToDelete.end().m_offset - selectionToDelete.start().m_offset;
+                        extraCharacters = selectionToDelete.end().deprecatedEditingOffset() - selectionToDelete.start().deprecatedEditingOffset();
                     else
-                        extraCharacters = selectionToDelete.end().m_offset;
-                    extent = Position(extent.node(), extent.m_offset + extraCharacters);
+                        extraCharacters = selectionToDelete.end().deprecatedEditingOffset();
+                    extent = Position(extent.node(), extent.deprecatedEditingOffset() + extraCharacters);
                 }
                 selectionAfterUndo.setWithoutValidation(startingSelection().start(), extent);
             }

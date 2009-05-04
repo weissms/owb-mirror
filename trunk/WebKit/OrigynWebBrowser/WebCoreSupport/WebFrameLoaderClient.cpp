@@ -79,6 +79,7 @@
 #include <PluginView.h>
 #include <RenderPart.h>
 #include <ResourceHandle.h>
+#include <ScriptString.h> 
 #include <Settings.h>
 #include <APICast.h>
 #if PLATFORM(AMIGAOS4)
@@ -269,6 +270,10 @@ void WebFrameLoaderClient::dispatchDidFailLoading(DocumentLoader* loader, unsign
     COMPtr<WebError> webError(AdoptCOM, WebError::createInstance(error));
     resourceLoadDelegate->didFailLoadingWithError(webView, identifier, webError.get(), getWebDataSource(loader));*/
 }
+
+void WebFrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest(unsigned long, const ScriptString&)                                                     
+{                                                                                                                                                          
+} 
 
 bool WebFrameLoaderClient::shouldCacheResponse(DocumentLoader* loader, unsigned long identifier, const ResourceResponse& response, const unsigned char* data, const unsigned long long length)                                                                                                                                                           
 {

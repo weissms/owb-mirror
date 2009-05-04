@@ -1441,7 +1441,7 @@ const char* WebView::stringByEvaluatingJavaScriptFromString(const char* script)
     if (!coreFrame)
         return NULL; 
 
-    JSC::JSValuePtr scriptExecutionResult = coreFrame->loader()->executeScript(script, false).jsValue();
+    JSC::JSValue scriptExecutionResult = coreFrame->loader()->executeScript(script, false).jsValue();
     if(!scriptExecutionResult)
         return NULL;
     else if (scriptExecutionResult.isString())

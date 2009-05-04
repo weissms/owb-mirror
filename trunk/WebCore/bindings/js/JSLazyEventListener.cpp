@@ -92,7 +92,7 @@ void JSLazyEventListener::parseCode() const
 
     ExecState* exec = m_globalObject->globalExec();
 
-    ArgList args;
+    MarkedArgumentBuffer args;
     UString sourceURL(m_globalObject->scriptExecutionContext()->url().string());
     args.append(jsNontrivialString(exec, m_eventParameterName));
     args.append(jsString(exec, m_code));
@@ -113,7 +113,7 @@ void JSLazyEventListener::parseCode() const
         // (and the document, and the form - see JSHTMLElement::eventHandlerScope)
         ScopeChain scope = listenerAsFunction->scope();
 
-        JSValuePtr thisObj = toJS(exec, m_originalNode);
+        JSValue thisObj = toJS(exec, m_originalNode);
         if (thisObj.isObject()) {
             static_cast<JSNode*>(asObject(thisObj))->pushEventHandlerScope(exec, scope);
             listenerAsFunction->setScope(scope);

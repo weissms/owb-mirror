@@ -139,7 +139,7 @@ void JSDOMWindow::defineSetter(ExecState* exec, const Identifier& propertyName, 
     Base::defineSetter(exec, propertyName, setterFunction);
 }
 
-JSValuePtr JSDOMWindow::lookupGetter(ExecState* exec, const Identifier& propertyName)
+JSValue JSDOMWindow::lookupGetter(ExecState* exec, const Identifier& propertyName)
 {
     // Only allow looking-up getters by frames in the same origin.
     if (!allowsAccessFrom(exec))
@@ -147,7 +147,7 @@ JSValuePtr JSDOMWindow::lookupGetter(ExecState* exec, const Identifier& property
     return Base::lookupGetter(exec, propertyName);
 }
 
-JSValuePtr JSDOMWindow::lookupSetter(ExecState* exec, const Identifier& propertyName)
+JSValue JSDOMWindow::lookupSetter(ExecState* exec, const Identifier& propertyName)
 {
     // Only allow looking-up setters by frames in the same origin.
     if (!allowsAccessFrom(exec))
@@ -157,7 +157,7 @@ JSValuePtr JSDOMWindow::lookupSetter(ExecState* exec, const Identifier& property
 
 // Custom Attributes
 
-JSValuePtr JSDOMWindow::history(ExecState* exec) const
+JSValue JSDOMWindow::history(ExecState* exec) const
 {
     History* history = impl()->history();
     if (DOMObject* wrapper = getCachedDOMObjectWrapper(exec->globalData(), history))
@@ -168,7 +168,7 @@ JSValuePtr JSDOMWindow::history(ExecState* exec) const
     return jsHistory;
 }
 
-JSValuePtr JSDOMWindow::location(ExecState* exec) const
+JSValue JSDOMWindow::location(ExecState* exec) const
 {
     Location* location = impl()->location();
     if (DOMObject* wrapper = getCachedDOMObjectWrapper(exec->globalData(), location))
@@ -179,7 +179,7 @@ JSValuePtr JSDOMWindow::location(ExecState* exec) const
     return jsLocation;
 }
 
-void JSDOMWindow::setLocation(ExecState* exec, JSValuePtr value)
+void JSDOMWindow::setLocation(ExecState* exec, JSValue value)
 {
     Frame* activeFrame = asJSDOMWindow(exec->dynamicGlobalObject())->impl()->frame();
     if (!activeFrame)
@@ -207,12 +207,12 @@ void JSDOMWindow::setLocation(ExecState* exec, JSValuePtr value)
     }
 }
 
-JSValuePtr JSDOMWindow::crypto(ExecState*) const
+JSValue JSDOMWindow::crypto(ExecState*) const
 {
     return jsUndefined();
 }
 
-JSValuePtr JSDOMWindow::event(ExecState* exec) const
+JSValue JSDOMWindow::event(ExecState* exec) const
 {
     Event* event = currentEvent();
     if (!event)
@@ -220,18 +220,18 @@ JSValuePtr JSDOMWindow::event(ExecState* exec) const
     return toJS(exec, event);
 }
 
-JSValuePtr JSDOMWindow::image(ExecState* exec) const
+JSValue JSDOMWindow::image(ExecState* exec) const
 {
     return getDOMConstructor<JSImageConstructor>(exec, this);
 }
 
-JSValuePtr JSDOMWindow::option(ExecState* exec) const
+JSValue JSDOMWindow::option(ExecState* exec) const
 {
     return getDOMConstructor<JSOptionConstructor>(exec, this);
 }
 
 #if ENABLE(VIDEO)
-JSValuePtr JSDOMWindow::audio(ExecState* exec) const
+JSValue JSDOMWindow::audio(ExecState* exec) const
 {
     if (!MediaPlayer::isAvailable())
         return jsUndefined();
@@ -239,37 +239,37 @@ JSValuePtr JSDOMWindow::audio(ExecState* exec) const
 }
 #endif
 
-JSValuePtr JSDOMWindow::webKitPoint(ExecState* exec) const
+JSValue JSDOMWindow::webKitPoint(ExecState* exec) const
 {
     return getDOMConstructor<JSWebKitPointConstructor>(exec);
 }
 
-JSValuePtr JSDOMWindow::webKitCSSMatrix(ExecState* exec) const
+JSValue JSDOMWindow::webKitCSSMatrix(ExecState* exec) const
 {
     return getDOMConstructor<JSWebKitCSSMatrixConstructor>(exec);
 }
  
-JSValuePtr JSDOMWindow::xmlHttpRequest(ExecState* exec) const
+JSValue JSDOMWindow::xmlHttpRequest(ExecState* exec) const
 {
     return getDOMConstructor<JSXMLHttpRequestConstructor>(exec, this);
 }
 
 #if ENABLE(XSLT)
-JSValuePtr JSDOMWindow::xsltProcessor(ExecState* exec) const
+JSValue JSDOMWindow::xsltProcessor(ExecState* exec) const
 {
     return getDOMConstructor<JSXSLTProcessorConstructor>(exec);
 }
 #endif
 
 #if ENABLE(CHANNEL_MESSAGING)
-JSValuePtr JSDOMWindow::messageChannel(ExecState* exec) const
+JSValue JSDOMWindow::messageChannel(ExecState* exec) const
 {
     return getDOMConstructor<JSMessageChannelConstructor>(exec, this);
 }
 #endif
 
 #if ENABLE(WORKERS)
-JSValuePtr JSDOMWindow::worker(ExecState* exec) const
+JSValue JSDOMWindow::worker(ExecState* exec) const
 {
     return getDOMConstructor<JSWorkerConstructor>(exec);
 }
@@ -280,7 +280,7 @@ JSValuePtr JSDOMWindow::worker(ExecState* exec) const
 // Helper for window.open() and window.showModalDialog()
 static Frame* createWindow(ExecState* exec, Frame* activeFrame, Frame* openerFrame, 
                            const String& url, const String& frameName, 
-                           const WindowFeatures& windowFeatures, JSValuePtr dialogArgs)
+                           const WindowFeatures& windowFeatures, JSValue dialogArgs)
 {
     ASSERT(activeFrame);
 
@@ -326,7 +326,7 @@ static Frame* createWindow(ExecState* exec, Frame* activeFrame, Frame* openerFra
     return newFrame;
 }
 
-JSValuePtr JSDOMWindow::open(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::open(ExecState* exec, const ArgList& args)
 {
     Frame* frame = impl()->frame();
     if (!frame)
@@ -383,7 +383,7 @@ JSValuePtr JSDOMWindow::open(ExecState* exec, const ArgList& args)
     windowFeatures.height = windowRect.height();
     windowFeatures.width = windowRect.width();
 
-    frame = createWindow(exec, activeFrame, frame, urlString, frameName, windowFeatures, noValue());
+    frame = createWindow(exec, activeFrame, frame, urlString, frameName, windowFeatures, JSValue());
 
     if (!frame)
         return jsUndefined();
@@ -391,7 +391,7 @@ JSValuePtr JSDOMWindow::open(ExecState* exec, const ArgList& args)
     return toJS(exec, frame->domWindow());
 }
 
-JSValuePtr JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
 {
     Frame* frame = impl()->frame();
     if (!frame)
@@ -403,7 +403,7 @@ JSValuePtr JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
         return jsUndefined();
 
     String url = valueToStringWithUndefinedOrNullCheck(exec, args.at(0));
-    JSValuePtr dialogArgs = args.at(1);
+    JSValue dialogArgs = args.at(1);
     String featureArgs = valueToStringWithUndefinedOrNullCheck(exec, args.at(2));
 
     HashMap<String, String> features;
@@ -460,7 +460,7 @@ JSValuePtr JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
 
     // Get the return value either just before clearing the dialog window's
     // properties (in JSDOMWindowBase::clear), or when on return from runModal.
-    JSValuePtr returnValue = noValue();
+    JSValue returnValue;
     dialogWindow->setReturnValueSlot(&returnValue);
     dialogFrame->page()->chrome()->runModal();
     dialogWindow->setReturnValueSlot(0);
@@ -474,7 +474,7 @@ JSValuePtr JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
     return returnValue ? returnValue : jsUndefined();
 }
 
-JSValuePtr JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)
 {
     DOMWindow* window = impl();
 
@@ -497,30 +497,30 @@ JSValuePtr JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)
     return jsUndefined();
 }
 
-JSValuePtr JSDOMWindow::setTimeout(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::setTimeout(ExecState* exec, const ArgList& args)
 {
-    ScheduledAction* action = ScheduledAction::create(args);
-    if (!action)
+    ScheduledAction* action = ScheduledAction::create(exec, args);
+    if (exec->hadException())
         return jsUndefined();
     int delay = args.at(1).toInt32(exec);
     return jsNumber(exec, impl()->setTimeout(action, delay));
 }
 
-JSValuePtr JSDOMWindow::setInterval(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::setInterval(ExecState* exec, const ArgList& args)
 {
-    ScheduledAction* action = ScheduledAction::create(args);
-    if (!action)
+    ScheduledAction* action = ScheduledAction::create(exec, args);
+    if (exec->hadException())
         return jsUndefined();
     int delay = args.at(1).toInt32(exec);
     return jsNumber(exec, impl()->setInterval(action, delay));
 }
 
-JSValuePtr JSDOMWindow::atob(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::atob(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return throwError(exec, SyntaxError, "Not enough arguments");
 
-    JSValuePtr v = args.at(0);
+    JSValue v = args.at(0);
     if (v.isNull())
         return jsEmptyString(exec);
 
@@ -541,12 +541,12 @@ JSValuePtr JSDOMWindow::atob(ExecState* exec, const ArgList& args)
     return jsString(exec, String(out.data(), out.size()));
 }
 
-JSValuePtr JSDOMWindow::btoa(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::btoa(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return throwError(exec, SyntaxError, "Not enough arguments");
 
-    JSValuePtr v = args.at(0);
+    JSValue v = args.at(0);
     if (v.isNull())
         return jsEmptyString(exec);
 
@@ -566,7 +566,7 @@ JSValuePtr JSDOMWindow::btoa(ExecState* exec, const ArgList& args)
     return jsString(exec, String(out.data(), out.size()));
 }
 
-JSValuePtr JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
 {
     Frame* frame = impl()->frame();
     if (!frame)
@@ -578,7 +578,7 @@ JSValuePtr JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
     return jsUndefined();
 }
 
-JSValuePtr JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
+JSValue JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
 {
     Frame* frame = impl()->frame();
     if (!frame)
@@ -590,7 +590,7 @@ JSValuePtr JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args
     return jsUndefined();
 }
 
-DOMWindow* toDOMWindow(JSValuePtr value)
+DOMWindow* toDOMWindow(JSValue value)
 {
     if (!value.isObject())
         return 0;

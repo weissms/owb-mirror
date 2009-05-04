@@ -1,3 +1,214 @@
+2009-05-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Simplified null-ish JSValues.
+        
+        Replaced calls to noValue() with calls to JSValue() (which is what
+        noValue() returned). Removed noValue().
+        
+        Removed "JSValue()" initialiazers, since default construction happens...
+        by default.
+
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame evaluateWebScript:]):
+
+2009-05-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6741615> REGRESSION (r38629): Shortcut "Flag/Junk" in MobileMe does not work
+        when Kotoeri is used.
+
+        * WebView/WebHTMLView.mm: (-[WebHTMLView inputContext]): Return a nil input context when
+        focus is not in editable content.
+
+2009-05-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber Stamped by Sam Weinig.
+        
+        Renamed JSValuePtr => JSValue.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::evaluate):
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::invokeDefault):
+        (WebKit::NetscapePluginInstanceProxy::construct):
+        (WebKit::NetscapePluginInstanceProxy::getProperty):
+        (WebKit::NetscapePluginInstanceProxy::setProperty):
+        (WebKit::NetscapePluginInstanceProxy::hasMethod):
+        (WebKit::NetscapePluginInstanceProxy::addValueToArray):
+        (WebKit::NetscapePluginInstanceProxy::marshalValue):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValueFromArray):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValue):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValues):
+        * Plugins/Hosted/ProxyInstance.h:
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyField::valueFromInstance):
+        (WebKit::ProxyField::setValueToInstance):
+        (WebKit::ProxyInstance::invoke):
+        (WebKit::ProxyInstance::invokeMethod):
+        (WebKit::ProxyInstance::invokeDefaultMethod):
+        (WebKit::ProxyInstance::invokeConstruct):
+        (WebKit::ProxyInstance::defaultValue):
+        (WebKit::ProxyInstance::stringValue):
+        (WebKit::ProxyInstance::numberValue):
+        (WebKit::ProxyInstance::booleanValue):
+        (WebKit::ProxyInstance::valueOf):
+        (WebKit::ProxyInstance::fieldValue):
+        (WebKit::ProxyInstance::setFieldValue):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame _convertValueToObjcValue:]):
+        (-[WebScriptCallFrame exception]):
+        (-[WebScriptCallFrame evaluateWebScript:]):
+        * WebView/WebView.mm:
+        (aeDescFromJSValue):
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]):
+
+2009-05-01  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Add a FrameLoaderClient callback for the ResourceRetrievedByXMLHttpRequest.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25347
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest):
+
+2009-04-30  David Kilzer  <ddkilzer@apple.com>
+
+        Provide a mechanism to create a quirks delegate for HTMLParser
+
+        Reviewed by David Hyatt.
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::createHTMLParserQuirks): Added.  The default
+        implementation of this factory method returns 0.
+
+2009-04-30  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25470
+        Extend the cover of ENABLE_JAVASCRIPT_DEBUGGER to profiler.
+
+        * Configurations/FeatureDefines.xcconfig: Added ENABLE_JAVASCRIPT_DEBUGGER define.
+
+2009-04-30  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlson.
+
+        <rdar://problem/6823049>
+        
+        Fix an issue where some plug-ins would cause the application icon to constantly bounce
+        up and down in the Dock.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.h: Change m_placeholderWindow ivar to be
+        a subclass of NSWindow, WebPlaceholderModalWindow.
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:  Added WebPlaceholderModalWindow NSWindow subclass.
+        (-[WebPlaceholderModalWindow _wantsUserAttention]): Prevent NSApp from calling requestUserAttention:
+         when the window is shown modally, even if the app is inactive.
+        (WebKit::NetscapePluginHostProxy::beginModal): NSWindow -> WebPlaceholderModalWindow.
+
+2009-04-30  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25342
+        Add MessageSource and MessageLevel parameters to the ChromeClient::addMessageToConsole.
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::addMessageToConsole):
+
+2009-04-29  Mark Rowe  <mrowe@apple.com>
+
+        More build fixing after r43037.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::invokeDefault):
+        (WebKit::NetscapePluginInstanceProxy::construct):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValues):
+
+2009-04-29  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        - WebKit part of <rdar://problem/6609509> Select All and then Delete
+          should put Mail editing back into the same state as a new message
+
+        * WebView/WebView.mm:
+        (-[WebView _selectionIsCaret]): Added.
+        (-[WebView _selectionIsAll]): Added. Returns whether the selection
+        encompasses the entire document.
+        * WebView/WebViewPrivate.h:
+
+2009-04-29  Douglas Davidson  <ddavidso@apple.com>
+
+        Reviewed by Justin Garcia.
+        
+        <rdar://problem/6836921> Mail exhibits issues with text checking, e.g. menu items not always validated correctly
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]):
+        (-[WebHTMLView orderFrontSubstitutionsPanel:]):
+        * WebView/WebView.mm:
+        (-[WebView validateUserInterfaceItemWithoutDelegate:]):
+
+2009-04-29  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix a bug in the bounds checking for setNeedsLayout dirtying when a WebView's size changes.  The superview
+        of the WebView was being incorrectly checked instead of the WebView itself.
+
+        * WebView/WebView.mm:
+        (-[WebView _boundsChanged]):
+
+2009-04-29  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlson.
+
+        Allow WKN_CheckIfAllowedToLoadURL() to take an optional void* context parameter.
+        
+        * Plugins/WebNetscapeContainerCheckContextInfo.h:
+        * Plugins/WebNetscapeContainerCheckContextInfo.mm:
+        (-[WebNetscapeContainerCheckContextInfo initWithCheckRequestID:callbackFunc:context:]):
+        (-[WebNetscapeContainerCheckContextInfo callback]):
+        (-[WebNetscapeContainerCheckContextInfo context]):
+        * Plugins/WebNetscapeContainerCheckPrivate.h:
+        * Plugins/WebNetscapeContainerCheckPrivate.mm:
+        (browserContainerCheckFuncs):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView checkIfAllowedToLoadURL:frame:callbackFunc:context:]):
+        (-[WebNetscapePluginView _containerCheckResult:contextInfo:]):
+        * Plugins/npapi.mm:
+        (WKN_CheckIfAllowedToLoadURL):
+
+2009-04-29  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Fix for <rdar://problem/6835573>, Find Banner turns invisible when WebView is resized.  Make sure
+        not to resize the interior views of a WebView in response to its bounds changing when not using
+        viewless WebKit.  Auto-resizing rules were already in place to handle size adjustments for us.
+        Just mark as needing layout and do nothing else.
+
+        This does mean viewless WebKit is broken with the Find Banner, and that will likely require a
+        Safari change (using a new API that will enable clients to define the edges of the content area as offsets
+        from the sides of the WebView).
+
+        * WebView/WebView.mm:
+        (-[WebView _boundsChanged]):
+
 2009-04-29  Geoffrey Garen  <ggaren@apple.com>
 
         Rubber stamped by Beth Dakin.

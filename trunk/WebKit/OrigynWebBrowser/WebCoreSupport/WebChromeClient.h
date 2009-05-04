@@ -74,7 +74,7 @@ public:
 
     virtual void setResizable(bool);
 
-    virtual void addMessageToConsole(const WebCore::String& message, unsigned line, const WebCore::String& url);
+    virtual void addMessageToConsole(WebCore::MessageSource source, WebCore::MessageLevel level, const WebCore::String& message, unsigned line, const WebCore::String& url);
 
     virtual bool canRunBeforeUnloadConfirmPanel();
     virtual bool runBeforeUnloadConfirmPanel(const WebCore::String& message, WebCore::Frame* frame);
@@ -123,6 +123,8 @@ public:
     WebView* webView() const { return m_webView; }
 
     virtual void formStateDidChange(const WebCore::Node*) { }
+
+    virtual WebCore::HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
 
 private:
     WebView* m_webView;

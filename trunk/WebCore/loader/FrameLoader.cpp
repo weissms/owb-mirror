@@ -80,6 +80,7 @@
 #include "ResourceRequest.h"
 #include "ScriptController.h"
 #include "ScriptSourceCode.h"
+#include "ScriptString.h"
 #include "ScriptValue.h"
 #include "SecurityOrigin.h"
 #include "SegmentedString.h"
@@ -3298,7 +3299,7 @@ void FrameLoader::checkLoadCompleteForThisFrame()
                     item = m_currentHistoryItem;
                 
             bool shouldReset = true;
-            if (!pdl->isLoadingInAPISense()) {
+            if (!(pdl->isLoadingInAPISense() && !pdl->isStopping())) {
                 m_delegateIsHandlingProvisionalLoadError = true;
                 m_client->dispatchDidFailProvisionalLoad(error);
                 m_delegateIsHandlingProvisionalLoadError = false;
@@ -3330,7 +3331,7 @@ void FrameLoader::checkLoadCompleteForThisFrame()
         
         case FrameStateCommittedPage: {
             DocumentLoader* dl = m_documentLoader.get();            
-            if (!dl || dl->isLoadingInAPISense())
+            if (!dl || (dl->isLoadingInAPISense() && !dl->isStopping()))
                 return;
 
             markLoadComplete();
@@ -3767,6 +3768,11 @@ void FrameLoader::didFailToLoad(ResourceLoader* loader, const ResourceError& err
         page->progress()->completeProgress(loader->identifier());
     if (!error.isNull())
         m_client->dispatchDidFailLoading(loader->documentLoader(), loader->identifier(), error);
+}
+
+void FrameLoader::didLoadResourceByXMLHttpRequest(unsigned long identifier, const ScriptString& sourceString)
+{
+    m_client->dispatchDidLoadResourceByXMLHttpRequest(identifier, sourceString);
 }
 
 const ResourceRequest& FrameLoader::originalRequest() const
@@ -5115,19 +5121,22 @@ Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, HTMLAppletEleme
         paramNames.append(it->first);
         paramValues.append(it->second);
     }
-    
+
+    KURL codeBaseURL = completeURL(codeBaseURLString);
+    if (!canLoad(codeBaseURL, String(), element->document())) {
+        FrameLoader::reportLocalLoadFailed(m_frame, codeBaseURL.string());
+        return 0;
+    }
+
     if (baseURLString.isEmpty())
         baseURLString = m_frame->document()->baseURL().string();
     KURL baseURL = completeURL(baseURLString);
 
-    Widget* widget = 0;
-    KURL codeBaseURL = completeURL(codeBaseURLString);
-    if (canLoad(codeBaseURL, String(), element->document())) {
-        widget = m_client->createJavaAppletWidget(size, element, baseURL, paramNames, paramValues);
-        if (widget)
-            m_containsPlugIns = true;
-    }
+    Widget* widget = m_client->createJavaAppletWidget(size, element, baseURL, paramNames, paramValues);
+    if (!widget)
+        return 0;
 
+    m_containsPlugIns = true;
     return widget;
 }
 

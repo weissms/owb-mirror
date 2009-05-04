@@ -97,6 +97,7 @@ QT_END_NAMESPACE
 
 void QWEBKIT_EXPORT qt_drt_setJavaScriptProfilingEnabled(QWebFrame* qframe, bool enabled)
 {
+#if ENABLE(JAVASCRIPT_DEBUGGER)
     Frame* frame = QWebFramePrivate::core(qframe);
     InspectorController* controller = frame->page()->inspectorController();
     if (!controller)
@@ -105,6 +106,7 @@ void QWEBKIT_EXPORT qt_drt_setJavaScriptProfilingEnabled(QWebFrame* qframe, bool
         controller->enableProfiler();
     else
         controller->disableProfiler();
+#endif
 }
 
 // Pause a given CSS animation or transition on the target node at a specific time.
@@ -985,7 +987,7 @@ QWebElement QWebFrame::documentElement() const
     Returns a new collection of elements that are children of the frame's
     document element and that match the given CSS selector \a selectorQuery.
 */
-QWebElementCollection QWebFrame::findAllElements(const QString &selectorQuery) const
+QList<QWebElement> QWebFrame::findAllElements(const QString &selectorQuery) const
 {
     return documentElement().findAll(selectorQuery);
 }
@@ -1124,7 +1126,7 @@ QVariant QWebFrame::evaluateJavaScript(const QString& scriptSource)
     ScriptController *proxy = d->frame->script();
     QVariant rc;
     if (proxy) {
-        JSC::JSValuePtr v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
+        JSC::JSValue v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
         if (v) {
             int distance = 0;
             rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);

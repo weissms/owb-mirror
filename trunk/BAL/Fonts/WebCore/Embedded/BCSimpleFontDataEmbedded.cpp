@@ -59,6 +59,14 @@ void SimpleFontData::platformDestroy()
     BalNotImplemented();
 }
 
+void SimpleFontData::platformCharWidthInit()
+{
+    m_avgCharWidth = 0.f;
+    m_maxCharWidth = 0.f;
+    initCharWidths();
+}
+
+
 SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDescription) const
 {
     if (!m_smallCapsFontData) {

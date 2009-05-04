@@ -83,8 +83,8 @@ namespace WebCore {
 
         virtual void setResizable(bool);
 
-        virtual void addMessageToConsole(const String& message, unsigned int lineNumber,
-                                         const String& sourceID);
+        virtual void addMessageToConsole(MessageSource, MessageLevel, const String& message,
+                                         unsigned int lineNumber, const String& sourceID);
 
         virtual bool canRunBeforeUnloadConfirmPanel();
         virtual bool runBeforeUnloadConfirmPanel(const String& message, Frame* frame);
@@ -119,6 +119,8 @@ namespace WebCore {
         virtual void runOpenPanel(Frame*, PassRefPtr<FileChooser>);
 
         virtual void formStateDidChange(const Node*) { }
+
+        virtual HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
 
         QWebPage* m_webPage;
         WebCore::KURL lastHoverURL;

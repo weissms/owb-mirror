@@ -618,12 +618,18 @@ PassRefPtr<UString::Rep> concatenate(UString::Rep* a, UString::Rep* b)
     b->checkConsistency();
 
     int aSize = a->size();
-    int aOffset = a->offset;
     int bSize = b->size();
-    int bOffset = b->offset;
-    int length = aSize + bSize;
+    int aOffset = a->offset;
 
     // possible cases:
+
+    UString::BaseString* aBase = a->baseString();
+    if (bSize == 1 && aOffset + aSize == aBase->usedCapacity && aOffset + aSize < aBase->capacity) {
+        // b is a single character (common fast case)
+        ++aBase->usedCapacity;
+        a->data()[aSize] = b->data()[0];
+        return UString::Rep::create(a, 0, aSize + 1);
+    }
 
     // a is empty
     if (aSize == 0)
@@ -632,13 +638,8 @@ PassRefPtr<UString::Rep> concatenate(UString::Rep* a, UString::Rep* b)
     if (bSize == 0)
         return a;
 
-    UString::BaseString* aBase = a->baseString();
-    if (bSize == 1 && aOffset + aSize == aBase->usedCapacity && aOffset + length <= aBase->capacity) {
-        // b is a single character (common fast case)
-        aBase->usedCapacity = aOffset + length;
-        a->data()[aSize] = b->data()[0];
-        return UString::Rep::create(a, 0, length);
-    }
+    int bOffset = b->offset;
+    int length = aSize + bSize;
 
     UString::BaseString* bBase = b->baseString();
     if (aOffset + aSize == aBase->usedCapacity && aSize >= minShareSize && 4 * aSize >= bSize
@@ -979,6 +980,28 @@ UString UString::spliceSubstringsWithSeparators(const Range* substringRanges, in
 
     return UString::Rep::create(buffer, totalLength);
 }
+
+UString UString::replaceRange(int rangeStart, int rangeLength, const UString& replacement) const
+{
+    m_rep->checkConsistency();
+
+    int replacementLength = replacement.size();
+    int totalLength = size() - rangeLength + replacementLength;
+    if (totalLength == 0)
+        return "";
+
+    UChar* buffer = allocChars(totalLength);
+    if (!buffer)
+        return null();
+
+    copyChars(buffer, data(), rangeStart);
+    copyChars(buffer + rangeStart, replacement.data(), replacementLength);
+    int rangeEnd = rangeStart + rangeLength;
+    copyChars(buffer + rangeStart + replacementLength, data() + rangeEnd, size() - rangeEnd);
+
+    return UString::Rep::create(buffer, totalLength);
+}
+
 
 UString& UString::append(const UString &t)
 {

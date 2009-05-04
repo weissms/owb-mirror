@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Eric Seidel (eric@webkit.org)
+ * Copyright (C) 2008, 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,6 +29,7 @@
 
 #include "ChromeClient.h"
 #include "ContextMenuClient.h"
+#include "Console.h"
 #include "DocumentLoader.h"
 #include "DragClient.h"
 #include "EditCommand.h"
@@ -96,7 +98,7 @@ public:
 
     virtual void setResizable(bool) { }
 
-    virtual void addMessageToConsole(const String&, unsigned, const String&) { }
+    virtual void addMessageToConsole(MessageSource, MessageLevel, const String&, unsigned, const String&) { }
 
     virtual bool canRunBeforeUnloadConfirmPanel() { return false; }
     virtual bool runBeforeUnloadConfirmPanel(const String&, Frame*) { return true; }
@@ -135,6 +137,8 @@ public:
     virtual void runOpenPanel(Frame*, PassRefPtr<FileChooser>) { }
 
     virtual void formStateDidChange(const Node*) { }
+
+    virtual HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
 };
 
 class EmptyFrameLoaderClient : public FrameLoaderClient {
@@ -165,6 +169,7 @@ public:
     virtual void dispatchDidFinishLoading(DocumentLoader*, unsigned long) { }
     virtual void dispatchDidFailLoading(DocumentLoader*, unsigned long, const ResourceError&) { }
     virtual bool dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int) { return false; }
+    virtual void dispatchDidLoadResourceByXMLHttpRequest(unsigned long, const ScriptString&) { }
 
     virtual void dispatchDidHandleOnloadEvents() { }
     virtual void dispatchDidReceiveServerRedirectForProvisionalLoad() { }

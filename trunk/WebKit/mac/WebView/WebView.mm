@@ -252,6 +252,7 @@ macro(moveWordLeftAndModifySelection) \
 macro(moveWordRight) \
 macro(moveWordRightAndModifySelection) \
 macro(outdent) \
+macro(orderFrontSubstitutionsPanel) \
 macro(pageDown) \
 macro(pageDownAndModifySelection) \
 macro(pageUp) \
@@ -864,10 +865,15 @@ static bool runningTigerMail()
 {
     if (!NSEqualSizes(_private->lastLayoutSize, [self bounds].size)) {
         Frame* frame = core([self mainFrame]);
-        frame->view()->resize([self bounds].size.width, [self bounds].size.height);
+        // FIXME: Viewless WebKit is broken with Safari banners (e.g., the Find banner).  We'll have to figure out a way for
+        // Safari to communicate that this space is being consumed.  For WebKit with document views, there's no
+        // need to do an explicit resize, since WebFrameViews have auto resizing turned on and will handle changing
+        // their bounds automatically. See <rdar://problem/6835573> for details.
+        if (!_private->useDocumentViews)
+            frame->view()->resize([self bounds].size.width, [self bounds].size.height);
         frame->view()->setNeedsLayout();
         [self setNeedsDisplay:YES];
-        _private->lastLayoutSize = [[self superview] bounds].size;
+        _private->lastLayoutSize = [self bounds].size;
     }
 }
 
@@ -3746,6 +3752,13 @@ static WebFrame *incrementFrame(WebFrame *curr, BOOL forward, BOOL wrapFlag)
             [menuItem setState:checkMark ? NSOnState : NSOffState];
         }
         return retVal;
+    } else if (action == @selector(toggleSmartInsertDelete:)) {
+        BOOL checkMark = [self smartInsertDeleteEnabled];
+        if ([(NSObject *)item isKindOfClass:[NSMenuItem class]]) {
+            NSMenuItem *menuItem = (NSMenuItem *)item;
+            [menuItem setState:checkMark ? NSOnState : NSOffState];
+        }
+        return YES;
 #ifndef BUILDING_ON_TIGER
     } else if (action == @selector(toggleGrammarChecking:)) {
         BOOL checkMark = [self isGrammarCheckingEnabled];
@@ -3965,7 +3978,7 @@ static WebFrame *incrementFrame(WebFrame *curr, BOOL forward, BOOL wrapFlag)
     return coreFrame->shouldClose();
 }
 
-static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsValue)
+static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue jsValue)
 {
     NSAppleEventDescriptor* aeDesc = 0;
     if (jsValue.isBoolean())
@@ -4007,7 +4020,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsV
                 return aeDesc;
             }
         }
-        JSValuePtr primitive = object->toPrimitive(exec);
+        JSValue primitive = object->toPrimitive(exec);
         if (exec->hadException()) {
             exec->clearException();
             return [NSAppleEventDescriptor nullDescriptor];
@@ -4027,7 +4040,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsV
         return nil;
     if (!coreFrame->document())
         return nil;
-    JSValuePtr result = coreFrame->loader()->executeScript(script, true).jsValue();
+    JSValue result = coreFrame->loader()->executeScript(script, true).jsValue();
     if (!result) // FIXME: pass errors
         return 0;
     JSLock lock(false);
@@ -4788,6 +4801,22 @@ FOR_EACH_RESPONDER_SELECTOR(FORWARD)
 - (void)_replaceSelectionWithNode:(DOMNode *)node matchStyle:(BOOL)matchStyle
 {
     [[self _selectedOrMainFrame] _replaceSelectionWithNode:node selectReplacement:YES smartReplace:NO matchStyle:matchStyle];
+}
+
+- (BOOL)_selectionIsCaret
+{
+    Frame* coreFrame = core([self _selectedOrMainFrame]);
+    if (!coreFrame)
+        return NO;
+    return coreFrame->selection()->isCaret();
+}
+
+- (BOOL)_selectionIsAll
+{
+    Frame* coreFrame = core([self _selectedOrMainFrame]);
+    if (!coreFrame)
+        return NO;
+    return coreFrame->selection()->isAll(MayLeaveEditableContent);
 }
 
 @end

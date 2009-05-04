@@ -95,18 +95,18 @@ void JSEventListener::handleEvent(Event* event, bool isWindowEvent)
 
     ExecState* exec = globalObject->globalExec();
 
-    JSValuePtr handleEventFunction = jsFunction->get(exec, Identifier(exec, "handleEvent"));
+    JSValue handleEventFunction = jsFunction->get(exec, Identifier(exec, "handleEvent"));
     CallData callData;
     CallType callType = handleEventFunction.getCallData(callData);
     if (callType == CallTypeNone) {
-        handleEventFunction = noValue();
+        handleEventFunction = JSValue();
         callType = jsFunction->getCallData(callData);
     }
 
     if (callType != CallTypeNone) {
         ref();
 
-        ArgList args;
+        MarkedArgumentBuffer args;
         args.append(toJS(exec, event));
 
         Event* savedEvent = globalObject->currentEvent();
@@ -118,12 +118,12 @@ void JSEventListener::handleEvent(Event* event, bool isWindowEvent)
         JSGlobalData* globalData = globalObject->globalData();
         DynamicGlobalObjectScope globalObjectScope(exec, globalData->dynamicGlobalObject ? globalData->dynamicGlobalObject : globalObject);
 
-        JSValuePtr retval;
+        JSValue retval;
         if (handleEventFunction) {
             globalObject->globalData()->timeoutChecker.start();
             retval = call(exec, handleEventFunction, callType, callData, jsFunction, args);
         } else {
-            JSValuePtr thisValue;
+            JSValue thisValue;
             if (isWindowEvent)
                 thisValue = globalObject->toThisObject(exec);
             else

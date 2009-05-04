@@ -41,7 +41,7 @@ namespace JSC  {
         CodeBlock* codeBlock() const { return this[RegisterFile::CodeBlock].Register::codeBlock(); }
         ScopeChainNode* scopeChain() const { return this[RegisterFile::ScopeChain].Register::scopeChain(); }
 
-        JSValuePtr thisValue();
+        JSValue thisValue();
 
         // Global object in which execution began.
         JSGlobalObject* dynamicGlobalObject();
@@ -73,17 +73,19 @@ namespace JSC  {
         // pointer, so these are inefficient, and should be used sparingly in new code.
         // But they're used in many places in legacy code, so they're not going away any time soon.
 
-        void setException(JSValuePtr exception) { globalData().exception = exception; }
-        void clearException() { globalData().exception = noValue(); }
-        JSValuePtr exception() const { return globalData().exception; }
-        JSValuePtr* exceptionSlot() { return &globalData().exception; }
+        void setException(JSValue exception) { globalData().exception = exception; }
+        void clearException() { globalData().exception = JSValue(); }
+        JSValue exception() const { return globalData().exception; }
+        JSValue* exceptionSlot() { return &globalData().exception; }
         bool hadException() const { return globalData().exception; }
 
         const CommonIdentifiers& propertyNames() const { return *globalData().propertyNames; }
-        const ArgList& emptyList() const { return *globalData().emptyList; }
+        const MarkedArgumentBuffer& emptyList() const { return *globalData().emptyList; }
         Interpreter* interpreter() { return globalData().interpreter; }
         Heap* heap() { return &globalData().heap; }
-
+#ifndef NDEBUG
+        void dumpCaller();
+#endif
         static const HashTable* arrayTable(CallFrame* callFrame) { return callFrame->globalData().arrayTable; }
         static const HashTable* dateTable(CallFrame* callFrame) { return callFrame->globalData().dateTable; }
         static const HashTable* mathTable(CallFrame* callFrame) { return callFrame->globalData().mathTable; }

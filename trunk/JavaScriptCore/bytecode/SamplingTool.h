@@ -38,6 +38,53 @@
 
 namespace JSC {
 
+    class SamplingFlags {
+    public:
+        static void start();
+        static void stop();
+
+#if ENABLE(SAMPLING_FLAGS)
+        static void setFlag(unsigned flag)
+        {
+            ASSERT(flag >= 1);
+            ASSERT(flag <= 32);
+            s_flags |= 1u << (flag - 1);
+        }
+
+        static void clearFlag(unsigned flag)
+        {
+            ASSERT(flag >= 1);
+            ASSERT(flag <= 32);
+            s_flags &= ~(1u << (flag - 1));
+        }
+
+        static void sample();
+
+        class ScopedFlag {
+        public:
+            ScopedFlag(int flag)
+                : m_flag(flag)
+            {
+                setFlag(flag);
+            }
+
+            ~ScopedFlag()
+            {
+                clearFlag(m_flag);
+            }
+
+        private:
+            int m_flag;
+        };
+    
+#endif
+    private:
+        static uint32_t s_flags;
+#if ENABLE(SAMPLING_FLAGS)
+        static uint64_t s_flagCounts[33];
+#endif
+    };
+
     class CodeBlock;
     class ExecState;
     class Interpreter;
@@ -72,6 +119,19 @@ namespace JSC {
     };
 
     typedef WTF::HashMap<ScopeNode*, ScopeSampleRecord*> ScopeSampleRecordMap;
+
+    class SamplingThread {
+    public:
+        // Sampling thread state.
+        static bool s_running;
+        static unsigned s_hertz;
+        static ThreadIdentifier s_samplingThread;
+
+        static void start(unsigned hertz=10000);
+        static void stop();
+
+        static void* threadStartFunc(void*);
+    };
 
     class SamplingTool {
     public:
@@ -127,7 +187,6 @@ namespace JSC {
 
         SamplingTool(Interpreter* interpreter)
             : m_interpreter(interpreter)
-            , m_running(false)
             , m_codeBlock(0)
             , m_sample(0)
             , m_sampleCount(0)
@@ -143,8 +202,7 @@ namespace JSC {
             deleteAllValues(*m_scopeSampleMap);
         }
 
-        void start(unsigned hertz=10000);
-        void stop();
+        void setup();
         void dump(ExecState*);
 
         void notifyOfScope(ScopeNode* scope);
@@ -165,6 +223,8 @@ namespace JSC {
             return reinterpret_cast<void*>(reinterpret_cast<intptr_t>(vPC) | (static_cast<intptr_t>(inCTIFunction) << 1) | static_cast<intptr_t>(inHostFunction));
         }
 
+        static void sample();
+
     private:
         class Sample {
         public:
@@ -174,7 +234,7 @@ namespace JSC {
             {
             }
             
-            bool isNull() { return !m_sample || !m_codeBlock; }
+            bool isNull() { return !m_sample; }
             CodeBlock* codeBlock() { return m_codeBlock; }
             Instruction* vPC() { return reinterpret_cast<Instruction*>(m_sample & ~0x3); }
             bool inHostFunction() { return m_sample & 0x1; }
@@ -184,17 +244,12 @@ namespace JSC {
             intptr_t m_sample;
             CodeBlock* m_codeBlock;
         };
-        
-        static void* threadStartFunc(void*);
-        void run();
+
+        void doRun();
+        static SamplingTool* s_samplingTool;
         
         Interpreter* m_interpreter;
         
-        // Sampling thread state.
-        bool m_running;
-        unsigned m_hertz;
-        ThreadIdentifier m_samplingThread;
-
         // State tracked by the main thread, used by the sampling thread.
         CodeBlock* m_codeBlock;
         intptr_t m_sample;

@@ -47,25 +47,27 @@ using namespace JSC;
 
 namespace WebCore {
 
-ScheduledAction* ScheduledAction::create(const ArgList& args)
+ScheduledAction* ScheduledAction::create(ExecState* exec, const ArgList& args)
 {
-    JSValuePtr v = args.at(0);
-    if (v.isString())
-        return new ScheduledAction(asString(v)->value());
+    JSValue v = args.at(0);
     CallData callData;
-    if (v.getCallData(callData) == CallTypeNone)
-        return 0;
+    if (v.getCallData(callData) == CallTypeNone) {
+        UString string = v.toString(exec);
+        if (exec->hadException())
+            return 0;
+        return new ScheduledAction(string);
+    }
     ArgList argsTail;
     args.getSlice(2, argsTail);
     return new ScheduledAction(v, argsTail);
 }
 
-ScheduledAction::ScheduledAction(JSValuePtr function, const ArgList& args)
+ScheduledAction::ScheduledAction(JSValue function, const ArgList& args)
     : m_function(function)
 {
     ArgList::const_iterator end = args.end();
     for (ArgList::const_iterator it = args.begin(); it != end; ++it)
-        m_args.append((*it).jsValue());
+        m_args.append(*it);
 }
 
 void ScheduledAction::execute(ScriptExecutionContext* context)
@@ -82,7 +84,7 @@ void ScheduledAction::execute(ScriptExecutionContext* context)
 #endif
 }
 
-void ScheduledAction::executeFunctionInContext(JSGlobalObject* globalObject, JSValuePtr thisValue)
+void ScheduledAction::executeFunctionInContext(JSGlobalObject* globalObject, JSValue thisValue)
 {
     ASSERT(m_function);
     JSLock lock(false);
@@ -94,7 +96,7 @@ void ScheduledAction::executeFunctionInContext(JSGlobalObject* globalObject, JSV
 
     ExecState* exec = globalObject->globalExec();
 
-    ArgList args;
+    MarkedArgumentBuffer args;
     size_t size = m_args.size();
     for (size_t i = 0; i < size; ++i)
         args.append(m_args[i]);

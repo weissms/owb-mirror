@@ -441,7 +441,9 @@ Document::~Document()
 
     removeAllEventListeners();
 
+#if USE(JSC)
     forgetAllDOMNodesForDocument(this);
+#endif
 
     delete m_tokenizer;
     m_document.resetSkippingRef(0);
@@ -2575,7 +2577,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         }
    }
 
-#if PLATFORM(MAC)
+#if PLATFORM(MAC) && !PLATFORM(CHROMIUM)
     if (!focusChangeBlocked && m_focusedNode && AXObjectCache::accessibilityEnabled())
         axObjectCache()->handleFocusedUIElementChanged();
 #endif
@@ -4310,6 +4312,11 @@ void Document::resourceRetrievedByXMLHttpRequest(unsigned long identifier, const
     if (page())
         page()->inspectorController()->resourceRetrievedByXMLHttpRequest(identifier, sourceString);
 #endif
+    Frame* frame = this->frame();
+    if (frame) {
+        FrameLoader* frameLoader = frame->loader();
+        frameLoader->didLoadResourceByXMLHttpRequest(identifier, sourceString);
+    }
 }
 
 void Document::scriptImported(unsigned long identifier, const String& sourceString)

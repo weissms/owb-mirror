@@ -20,11 +20,12 @@
 #ifndef ChromeClient_h
 #define ChromeClient_h
 
+#include "Console.h"
 #include "Cursor.h"
-#include "GraphicsContext.h"
 #include "FocusDirection.h"
-#include "ScrollTypes.h"
+#include "GraphicsContext.h"
 #include "HostWindow.h"
+#include "ScrollTypes.h"
 #include <wtf/Forward.h>
 #include <wtf/Vector.h>
 
@@ -44,6 +45,7 @@ namespace WebCore {
     class FloatRect;
     class Frame;
     class Geolocation;
+    class HTMLParserQuirks;
     class HitTestResult;
     class IntRect;
     class Node;
@@ -99,7 +101,7 @@ namespace WebCore {
 
         virtual void setResizable(bool) = 0;
         
-        virtual void addMessageToConsole(const String& message, unsigned int lineNumber, const String& sourceID) = 0;
+        virtual void addMessageToConsole(MessageSource, MessageLevel, const String& message, unsigned int lineNumber, const String& sourceID) = 0;
 
         virtual bool canRunBeforeUnloadConfirmPanel() = 0;
         virtual bool runBeforeUnloadConfirmPanel(const String& message, Frame* frame) = 0;
@@ -162,6 +164,8 @@ namespace WebCore {
         // Notification that the given form element has changed. This function
         // will be called frequently, so handling should be very fast.
         virtual void formStateDidChange(const Node*) = 0;
+
+        virtual HTMLParserQuirks* createHTMLParserQuirks() = 0;
 
 #if USE(ACCELERATED_COMPOSITING)
         // Pass 0 as the GraphicsLayer to detatch the root layer.

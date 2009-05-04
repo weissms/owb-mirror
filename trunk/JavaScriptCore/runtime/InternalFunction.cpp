@@ -50,9 +50,9 @@ const UString& InternalFunction::name(JSGlobalData* globalData)
 
 const UString InternalFunction::displayName(JSGlobalData* globalData)
 {
-    JSValuePtr displayName = getDirect(globalData->propertyNames->displayName);
+    JSValue displayName = getDirect(globalData->propertyNames->displayName);
     
-    if (displayName)
+    if (displayName && isJSString(globalData, displayName))
         return asString(displayName)->value();
     
     return UString::null();

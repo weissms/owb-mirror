@@ -58,7 +58,7 @@ void JSCustomSQLStatementCallback::handleEvent(SQLTransaction* transaction, SQLR
         
     JSC::JSLock lock(false);
 
-    JSValuePtr function = m_callback->get(exec, Identifier(exec, "handleEvent"));
+    JSValue function = m_callback->get(exec, Identifier(exec, "handleEvent"));
     CallData callData;
     CallType callType = function.getCallData(callData);
     if (callType == CallTypeNone) {
@@ -72,7 +72,7 @@ void JSCustomSQLStatementCallback::handleEvent(SQLTransaction* transaction, SQLR
 
     RefPtr<JSCustomSQLStatementCallback> protect(this);
 
-    ArgList args;
+    MarkedArgumentBuffer args;
     args.append(toJS(exec, transaction));
     args.append(toJS(exec, resultSet));
         

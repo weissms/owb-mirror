@@ -2659,6 +2659,16 @@ WEBCORE_COMMAND(yankAndSelect)
 #endif
 
 #if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
+    if (action == @selector(orderFrontSubstitutionsPanel:)) {
+        NSMenuItem *menuItem = (NSMenuItem *)item;
+        if ([menuItem isKindOfClass:[NSMenuItem class]]) {
+            BOOL panelShowing = [[[NSSpellChecker sharedSpellChecker] substitutionsPanel] isVisible];
+            [menuItem setTitle:panelShowing
+                ? UI_STRING("Hide Substitutions", "menu item title")
+                : UI_STRING("Show Substitutions", "menu item title")];
+        }
+        return [self _canEdit];
+    }
     // FIXME 4799134: WebView is the bottleneck for this logic, but we must validate 
     // the selector here because we implement it here, and we must implement it here because the AppKit 
     // code checks the first responder.
@@ -4992,6 +5002,24 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
 
 #if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
 
+- (void)orderFrontSubstitutionsPanel:(id)sender
+{
+    COMMAND_PROLOGUE
+
+    NSSpellChecker *checker = [NSSpellChecker sharedSpellChecker];
+    if (!checker) {
+        LOG_ERROR("No NSSpellChecker");
+        return;
+    }
+    
+    NSPanel *substitutionsPanel = [checker substitutionsPanel];
+    if ([substitutionsPanel isVisible]) {
+        [substitutionsPanel orderOut:sender];
+        return;
+    }
+    [substitutionsPanel orderFront:sender];
+}
+
 // FIXME 4799134: WebView is the bottleneck for this logic, but we must implement these methods here because
 // the AppKit code checks the first responder.
 
@@ -5343,6 +5371,14 @@ static BOOL isTextInput(Frame* coreFrame)
 static BOOL isInPasswordField(Frame* coreFrame)
 {
     return coreFrame && coreFrame->selection()->isInPasswordField();
+}
+
+- (NSTextInputContext *)inputContext
+{
+    Frame* coreFrame = core([self _frame]);
+    if (!isTextInput(coreFrame) || isInPasswordField(coreFrame))
+        return nil;
+    return [super inputContext];
 }
 
 - (NSAttributedString *)textStorage

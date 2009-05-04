@@ -1,3 +1,79 @@
+2009-05-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber Stamped by Sam Weinig.
+        
+        Renamed JSValuePtr => JSValue.
+
+        * WebView.cpp:
+        (WebView::stringByEvaluatingJavaScriptFromString):
+
+2009-05-01  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Add a FrameLoaderClient callback for the ResourceRetrievedByXMLHttpRequest.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25347
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest):
+        * WebCoreSupport/WebFrameLoaderClient.h:
+
+2009-04-30  David Kilzer  <ddkilzer@apple.com>
+
+        Provide a mechanism to create a quirks delegate for HTMLParser
+
+        Reviewed by David Hyatt.
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::createHTMLParserQuirks): Added.  The default
+        implementation of this factory method returns 0.
+
+2009-04-30  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25342
+        Add MessageSource and MessageLevel parameters to the ChromeClient::addMessageToConsole.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::addMessageToConsole):
+        * WebCoreSupport/WebChromeClient.h:
+
+2009-04-29  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out a patch.
+
+        Revert 43020 as it caused accessibility/lists.html to fail
+        and no one is around to tell me if it's a progression or not.
+
+        * AccessibleBase.cpp:
+        (MSAARole):
+
+2009-04-29  Sankar Aditya Tanguturi  <sankaraditya@gmail.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Add a new accessibility role for list items. Part of
+        http://bugs.webkit.org/show_id.cgi?id=20013
+
+        * win/AccessibleBase.cpp:
+        (MSAARole): Return ROLE_SYSTEM_LISTITEM for list item role.
+
+2009-04-29  Sankar Aditya Tanguturi  <sankaraditya@gmail.com>
+
+        Reviewed by Adele Peterson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23583
+        Populate role attribute for document objects correctly
+        on Windows platform.
+
+        * AccessibleDocument.cpp:
+        (AccessibleDocument::role): Return ROLE_SYSTEM_DOCUMENT for
+        document objects on windows. (Matching Firefox).
+        * AccessibleDocument.h: Add the role function prototype in
+        header file.
+
 2009-04-24  Ada Chan  <adachan@apple.com>
 
         <rdar://problem/5115298> Don't get error msg when download is interrupted and cannot resume due to server unavailability

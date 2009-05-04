@@ -69,19 +69,7 @@ using namespace JSC;
 
 namespace WebCore {
 
-JSValuePtr JSInspectorController::profiles(JSC::ExecState* exec, const JSC::ArgList&)
-{
-    JSLock lock(false);
-    ArgList result;
-    const Vector<RefPtr<Profile> >& profiles = impl()->profiles();
-
-    for (size_t i = 0; i < profiles.size(); ++i)
-        result.append(toJS(exec, profiles[i].get()));
-
-    return constructArray(exec, result);
-}
-
-JSValuePtr JSInspectorController::highlightDOMNode(JSC::ExecState*, const JSC::ArgList& args)
+JSValue JSInspectorController::highlightDOMNode(JSC::ExecState*, const JSC::ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
@@ -99,7 +87,7 @@ JSValuePtr JSInspectorController::highlightDOMNode(JSC::ExecState*, const JSC::A
     return jsUndefined();
 }
 
-JSValuePtr JSInspectorController::addResourceSourceToFrame(ExecState*, const ArgList& args)
+JSValue JSInspectorController::addResourceSourceToFrame(ExecState*, const ArgList& args)
 {
     if (args.size() < 2)
         return jsUndefined();
@@ -122,7 +110,7 @@ JSValuePtr JSInspectorController::addResourceSourceToFrame(ExecState*, const Arg
     return jsBoolean(impl()->addSourceToFrame(resource->mimeType(), sourceString, toNode(args.at(1))));
 }
 
-JSValuePtr JSInspectorController::addSourceToFrame(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::addSourceToFrame(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 3)
         return jsUndefined();
@@ -138,7 +126,7 @@ JSValuePtr JSInspectorController::addSourceToFrame(ExecState* exec, const ArgLis
     return jsBoolean(impl()->addSourceToFrame(mimeType, sourceString, toNode(args.at(2))));
 }
 
-JSValuePtr JSInspectorController::getResourceDocumentNode(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::getResourceDocumentNode(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
@@ -165,7 +153,7 @@ JSValuePtr JSInspectorController::getResourceDocumentNode(ExecState* exec, const
     return JSInspectedObjectWrapper::wrap(resourceExec, toJS(resourceExec, document));
 }
 
-JSValuePtr JSInspectorController::search(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::search(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 2)
         return jsUndefined();
@@ -178,7 +166,7 @@ JSValuePtr JSInspectorController::search(ExecState* exec, const ArgList& args)
     if (exec->hadException())
         return jsUndefined();
 
-    ArgList result;
+    MarkedArgumentBuffer result;
     RefPtr<Range> searchRange(rangeOfContents(node));
 
     ExceptionCode ec = 0;
@@ -202,7 +190,7 @@ JSValuePtr JSInspectorController::search(ExecState* exec, const ArgList& args)
 }
 
 #if ENABLE(DATABASE)
-JSValuePtr JSInspectorController::databaseTableNames(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::databaseTableNames(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
@@ -215,7 +203,7 @@ JSValuePtr JSInspectorController::databaseTableNames(ExecState* exec, const ArgL
     if (!database)
         return jsUndefined();
 
-    ArgList result;
+    MarkedArgumentBuffer result;
 
     Vector<String> tableNames = database->tableNames();
     unsigned length = tableNames.size();
@@ -226,13 +214,13 @@ JSValuePtr JSInspectorController::databaseTableNames(ExecState* exec, const ArgL
 }
 #endif
 
-JSValuePtr JSInspectorController::inspectedWindow(ExecState*, const ArgList&)
+JSValue JSInspectorController::inspectedWindow(ExecState*, const ArgList&)
 {
     JSDOMWindow* inspectedWindow = toJSDOMWindow(impl()->inspectedPage()->mainFrame());
     return JSInspectedObjectWrapper::wrap(inspectedWindow->globalExec(), inspectedWindow);
 }
 
-JSValuePtr JSInspectorController::setting(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::setting(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
@@ -256,7 +244,7 @@ JSValuePtr JSInspectorController::setting(ExecState* exec, const ArgList& args)
         case InspectorController::Setting::BooleanType:
             return jsBoolean(setting.booleanValue());
         case InspectorController::Setting::StringVectorType: {
-            ArgList stringsArray;
+            MarkedArgumentBuffer stringsArray;
             const Vector<String>& strings = setting.stringVector();
             const unsigned length = strings.size();
             for (unsigned i = 0; i < length; ++i)
@@ -266,7 +254,7 @@ JSValuePtr JSInspectorController::setting(ExecState* exec, const ArgList& args)
     }
 }
 
-JSValuePtr JSInspectorController::setSetting(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::setSetting(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 2)
         return jsUndefined();
@@ -277,7 +265,7 @@ JSValuePtr JSInspectorController::setSetting(ExecState* exec, const ArgList& arg
 
     InspectorController::Setting setting;
 
-    JSValuePtr value = args.at(1);
+    JSValue value = args.at(1);
     if (value.isUndefined() || value.isNull()) {
         // Do nothing. The setting is already NoType.
         ASSERT(setting.type() == InspectorController::Setting::NoType);
@@ -309,7 +297,7 @@ JSValuePtr JSInspectorController::setSetting(ExecState* exec, const ArgList& arg
     return jsUndefined();
 }
 
-JSValuePtr JSInspectorController::wrapCallback(ExecState* exec, const ArgList& args)
+JSValue JSInspectorController::wrapCallback(ExecState* exec, const ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
@@ -317,7 +305,9 @@ JSValuePtr JSInspectorController::wrapCallback(ExecState* exec, const ArgList& a
     return JSInspectorCallbackWrapper::wrap(exec, args.at(0));
 }
 
-JSValuePtr JSInspectorController::currentCallFrame(ExecState* exec, const ArgList&)
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+
+JSValue JSInspectorController::currentCallFrame(ExecState* exec, const ArgList&)
 {
     JavaScriptCallFrame* callFrame = impl()->currentCallFrame();
     if (!callFrame || !callFrame->isValid())
@@ -329,5 +319,19 @@ JSValuePtr JSInspectorController::currentCallFrame(ExecState* exec, const ArgLis
     JSLock lock(false);
     return JSInspectedObjectWrapper::wrap(globalExec, toJS(exec, callFrame));
 }
+
+JSValue JSInspectorController::profiles(JSC::ExecState* exec, const JSC::ArgList&)
+{
+    JSLock lock(false);
+    MarkedArgumentBuffer result;
+    const Vector<RefPtr<Profile> >& profiles = impl()->profiles();
+
+    for (size_t i = 0; i < profiles.size(); ++i)
+        result.append(toJS(exec, profiles[i].get()));
+
+    return constructArray(exec, result);
+}
+
+#endif
 
 } // namespace WebCore

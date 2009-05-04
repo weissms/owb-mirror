@@ -57,7 +57,7 @@ bool JSCustomSQLTransactionErrorCallback::handleEvent(SQLError* error)
         
     JSC::JSLock lock(false);
         
-    JSValuePtr function = m_callback->get(exec, Identifier(exec, "handleEvent"));
+    JSValue function = m_callback->get(exec, Identifier(exec, "handleEvent"));
     CallData callData;
     CallType callType = function.getCallData(callData);
     if (callType == CallTypeNone) {
@@ -71,10 +71,10 @@ bool JSCustomSQLTransactionErrorCallback::handleEvent(SQLError* error)
 
     RefPtr<JSCustomSQLTransactionErrorCallback> protect(this);
         
-    ArgList args;
+    MarkedArgumentBuffer args;
     args.append(toJS(exec, error));
 
-    JSValuePtr result;
+    JSValue result;
     globalObject->globalData()->timeoutChecker.start();
     result = call(exec, function, callType, callData, m_callback, args);
     globalObject->globalData()->timeoutChecker.stop();

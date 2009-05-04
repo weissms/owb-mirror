@@ -70,24 +70,23 @@ private slots:
     void attributesNS();
     void classes();
     void namespaceURI();
-    void iteration();
     void foreachManipulation();
+    void evaluateScript();
     void callFunction();
     void callFunctionSubmitForm();
     void functionNames();
     void documentElement();
     void frame();
-    void emptyCollection();
     void style();
     void computedStyle();
-    void appendCollection();
     void properties();
     void appendAndPrepend();
     void insertBeforeAndAfter();
     void remove();
     void clear();
     void replaceWith();
-    void wrap();
+    void encloseWith();
+    void encloseContentsWith();
     void nullSelect();
     void firstChildNextSibling();
     void lastChildPreviousSibling();
@@ -137,10 +136,7 @@ void tst_QWebElement::simpleCollection()
     m_mainFrame->setHtml(html);
     QWebElement body = m_mainFrame->documentElement();
 
-    QWebElementCollection paras = body.findAll("p");
-    QCOMPARE(paras.count(), 2);
-
-    QList<QWebElement> list = paras.toList();
+    QList<QWebElement> list = body.findAll("p");
     QCOMPARE(list.count(), 2);
     QCOMPARE(list.at(0).toPlainText(), QString("first para"));
     QCOMPARE(list.at(1).toPlainText(), QString("second para"));
@@ -265,47 +261,12 @@ void tst_QWebElement::namespaceURI()
     QWebElement body = m_mainFrame->documentElement();
     QCOMPARE(body.namespaceUri(), QLatin1String("http://www.w3.org/1999/xhtml"));
 
-    QWebElement svg = body.findAll("*#foobar").toList().at(0);
+    QWebElement svg = body.findAll("*#foobar").at(0);
     QCOMPARE(svg.prefix(), QLatin1String("svg"));
     QCOMPARE(svg.localName(), QLatin1String("svg"));
     QCOMPARE(svg.tagName(), QLatin1String("svg:svg"));
     QCOMPARE(svg.namespaceUri(), QLatin1String("http://www.w3.org/2000/svg"));
 
-}
-
-void tst_QWebElement::iteration()
-{
-    QString html = "<body><p>first para</p><p>second para</p></body>";
-    m_mainFrame->setHtml(html);
-    QWebElement body = m_mainFrame->documentElement();
-
-    QWebElementCollection paras = body.findAll("p");
-    QList<QWebElement> referenceList = paras.toList();
-
-    QList<QWebElement> foreachList;
-    foreach(QWebElement p, paras) {
-        foreachList.append(p);
-    }
-    QVERIFY(foreachList.count() == 2);
-    QCOMPARE(foreachList.count(), referenceList.count());
-    QCOMPARE(foreachList.at(0), referenceList.at(0));
-    QCOMPARE(foreachList.at(1), referenceList.at(1));
-
-    QList<QWebElement> forLoopList;
-    for (int i = 0; i < paras.count(); ++i) {
-        forLoopList.append(paras.at(i));
-    }
-    QVERIFY(foreachList.count() == 2);
-    QCOMPARE(foreachList.count(), referenceList.count());
-    QCOMPARE(foreachList.at(0), referenceList.at(0));
-    QCOMPARE(foreachList.at(1), referenceList.at(1));
-
-    for (int i = 0; i < paras.count(); ++i) {
-        QCOMPARE(paras.at(i), paras[i]);
-    }
-
-    QCOMPARE(paras.at(0), paras.first());
-    QCOMPARE(paras.at(1), paras.last());
 }
 
 void tst_QWebElement::foreachManipulation()
@@ -319,6 +280,32 @@ void tst_QWebElement::foreachManipulation()
     }
 
     QCOMPARE(body.findAll("div").count(), 4);
+}
+
+void tst_QWebElement::evaluateScript()
+{
+    QVariant result;
+    m_mainFrame->setHtml("<body><p>test");
+    QWebElement para = m_mainFrame->findFirstElement("p");
+
+    result = para.evaluateScript("this.tagName");
+    QVERIFY(result.isValid());
+    QVERIFY(result.type() == QVariant::String);
+    QCOMPARE(result.toString(), QLatin1String("P"));
+
+    QVERIFY(para.functions().contains("hasAttributes"));
+    result = para.evaluateScript("this.hasAttributes()");
+    QVERIFY(result.isValid());
+    QVERIFY(result.type() == QVariant::Bool);
+    QVERIFY(!result.toBool());
+
+    para.evaluateScript("this.setAttribute('align', 'left');");
+    QCOMPARE(para.attribute("align"), QLatin1String("left"));
+
+    result = para.evaluateScript("this.hasAttributes()");
+    QVERIFY(result.isValid());
+    QVERIFY(result.type() == QVariant::Bool);
+    QVERIFY(result.toBool());
 }
 
 void tst_QWebElement::callFunction()
@@ -395,12 +382,6 @@ void tst_QWebElement::frame()
     QVERIFY(secondPara.webFrame() == secondFrame);
 }
 
-void tst_QWebElement::emptyCollection()
-{
-    QWebElementCollection emptyCollection;
-    QCOMPARE(emptyCollection.count(), 0);
-}
-
 void tst_QWebElement::style()
 {
     QString html = "<body><p style=\"color: blue;\">some text</p></body>";
@@ -433,37 +414,6 @@ void tst_QWebElement::computedStyle()
     QCOMPARE(p.computedStyleProperty("cursor"), QLatin1String("text"));
     QCOMPARE(p.computedStyleProperty("color"), QLatin1String("rgb(255, 0, 0)"));
     QCOMPARE(p.styleProperty("color"), QLatin1String("red"));
-}
-
-void tst_QWebElement::appendCollection()
-{
-    QString html = "<body><span class='a'>aaa</span><p>first para</p><div>foo</div>"
-        "<span class='b'>bbb</span><p>second para</p><div>bar</div></body>";
-    m_mainFrame->setHtml(html);
-    QWebElement body = m_mainFrame->documentElement();
-
-    QWebElementCollection collection = body.findAll("p");
-    QCOMPARE(collection.count(), 2);
-
-    collection.append(body.findAll("div"));
-    QCOMPARE(collection.count(), 4);
-
-    collection += body.findAll("span.a");
-    QCOMPARE(collection.count(), 5);
-
-    QWebElementCollection all = collection + body.findAll("span.b");
-    QCOMPARE(all.count(), 6);
-    QCOMPARE(collection.count(), 5);
-
-    all += collection;
-    QCOMPARE(all.count(), 11);
-
-    QCOMPARE(collection.count(), 5);
-    QWebElementCollection test;
-    test.append(collection);
-    QCOMPARE(test.count(), 5);
-    test.append(QWebElementCollection());
-    QCOMPARE(test.count(), 5);
 }
 
 void tst_QWebElement::properties()
@@ -666,7 +616,42 @@ void tst_QWebElement::replaceWith()
     QCOMPARE(body.findFirst("p code").toPlainText(), QString("wow"));
 }
 
-void tst_QWebElement::wrap()
+void tst_QWebElement::encloseContentsWith()
+{
+    QString html = "<body>"
+        "<div>"
+            "<i>"
+                "yeah"
+            "</i>"
+            "<i>"
+                "hello"
+            "</i>"
+        "</div>"
+        "<p>"
+            "<span>foo</span>"
+            "<span>bar</span>"
+        "</p>"
+        "<u></u>"
+        "<b></b>"
+    "</body>";
+
+    m_mainFrame->setHtml(html);
+    QWebElement body = m_mainFrame->documentElement().findFirst("body");
+
+    body.findFirst("p").encloseContentsWith(body.findFirst("b"));
+    QCOMPARE(body.findAll("p b span").count(), 2);
+    QCOMPARE(body.findFirst("p b span").toPlainText(), QString("foo"));
+
+    body.findFirst("u").encloseContentsWith("<i></i>");
+    QCOMPARE(body.findAll("u i").count(), 1);
+    QCOMPARE(body.findFirst("u i").toPlainText(), QString());
+
+    body.findFirst("div").encloseContentsWith("<span></span>");
+    QCOMPARE(body.findAll("div span i").count(), 2);
+    QCOMPARE(body.findFirst("div span i").toPlainText(), QString("yeah"));
+}
+
+void tst_QWebElement::encloseWith()
 {
     QString html = "<body>"
         "<p>"
@@ -683,13 +668,16 @@ void tst_QWebElement::wrap()
     m_mainFrame->setHtml(html);
     QWebElement body = m_mainFrame->documentElement().findFirst("body");
 
+    body.findFirst("p").encloseWith("<br>");
+    QCOMPARE(body.findAll("br").count(), 0);
+
     QCOMPARE(body.findAll("div").count(), 1);
-    body.findFirst("div").wrap(body.findFirst("span").clone());
+    body.findFirst("div").encloseWith(body.findFirst("span").clone());
     QCOMPARE(body.findAll("div").count(), 1);
     QCOMPARE(body.findAll("span").count(), 2);
     QCOMPARE(body.findAll("p").count(), 2);
 
-    body.findFirst("div").wrap("<code></code>");
+    body.findFirst("div").encloseWith("<code></code>");
     QCOMPARE(body.findAll("code").count(), 1);
     QCOMPARE(body.findAll("code div").count(), 1);
     QCOMPARE(body.findFirst("code div").toPlainText(), QString("yeah"));
@@ -699,7 +687,7 @@ void tst_QWebElement::nullSelect()
 {
     m_mainFrame->setHtml("<body><p>Test");
 
-    QWebElementCollection collection = m_mainFrame->findAllElements("invalid{syn(tax;;%#$f223e>>");
+    QList<QWebElement> collection = m_mainFrame->findAllElements("invalid{syn(tax;;%#$f223e>>");
     QVERIFY(collection.count() == 0);
 }
 

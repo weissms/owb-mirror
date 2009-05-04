@@ -1,3 +1,167 @@
+2009-05-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber Stamped by Sam Weinig.
+        
+        Renamed JSValuePtr => JSValue.
+
+        * Api/qwebelement.cpp:
+        (setupScriptContext):
+        (setupScriptObject):
+        (QWebElement::evaluateScript):
+        (QWebElement::functions):
+        (QWebElement::scriptableProperty):
+        (QWebElement::setScriptableProperty):
+        (QWebElement::scriptableProperties):
+
+2009-05-01  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Add a FrameLoaderClient callback for the ResourceRetrievedByXMLHttpRequest.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25347
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::dispatchDidLoadResourceByXMLHttpRequest):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-04-30  David Kilzer  <ddkilzer@apple.com>
+
+        Provide a mechanism to create a quirks delegate for HTMLParser
+
+        Reviewed by David Hyatt.
+
+        * WebCoreSupport/ChromeClientQt.h:
+        (WebCore::ChromeClientQt::createHTMLParserQuirks): Added.  The
+        default implementation of this factory method returns 0.
+
+2009-04-30  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Unreviewed build fix after r43072.
+
+        * Api/qwebframe.cpp:
+        (qt_drt_setJavaScriptProfilingEnabled): Enclose with JAVASCRIPT_DEBUGGER.
+
+2009-04-30  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Unreviewed build fix after r43063.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::addMessageToConsole):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2009-04-30  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Implement encloseContentsWith and rename wrap to encloseWith.
+
+        Also in encloseWith, make sure that you cannot enclose with
+        non-enclosable elements.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::encloseContentsWith):
+        (QWebElement::encloseWith):
+        * Api/qwebelement.h:
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::encloseContentsWith):
+        (tst_QWebElement::encloseWith):
+
+2009-04-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        The Qt API exposes a global history patch CSSStyleSelector to make API consumers work again
+
+        https://bugs.webkit.org/show_bug.cgi?id=20952
+
+        The QtWebKit port made the mistake of exposing a global history. This broke
+        with the addition of PageGroup and LinkHash. This needs to be repaired
+        for Qt4.5.
+
+        Add a function to LinkHash.cpp that is resolving a URL. Use this
+        function from within CSSStyleSelector to forward the url to the
+        QWebHistoryInterface API.
+
+        It is sad that there is a path within visitedLinkHash which is now
+        doing a memcpy, it is sad to add a PLATFORM(QT) define to CSSStyleSelector
+        and using QtWebKit types within WebCore is a layering violation as well.
+
+        PageGroup::setShouldTrackVisitedLinks is currently not enabled. For
+        Qt4.6 a second version of the QWebHistoryInterface is going to be
+        added which will fix things up.
+
+        * Api/qwebhistoryinterface.cpp:
+        (QWebHistoryInterface::setDefaultInterface): Add note for Qt4.6
+        * Api/qwebpage.cpp: Remove PageGroup::setShouldTrackVisitedLinks(true)
+        (QWebPagePrivate::QWebPagePrivate):
+        * tests/qwebhistoryinterface/qwebhistoryinterface.pro: Added unit test.
+        * tests/qwebhistoryinterface/tst_qwebhistoryinterface.cpp: Added unit test.
+        (tst_QWebHistoryInterface::tst_QWebHistoryInterface):
+        (tst_QWebHistoryInterface::~tst_QWebHistoryInterface):
+        (tst_QWebHistoryInterface::init):
+        (tst_QWebHistoryInterface::cleanup):
+        (FakeHistoryImplementation::addHistoryEntry):
+        (FakeHistoryImplementation::historyContains):
+        (tst_QWebHistoryInterface::visitedLinks): Check the Qt4.4 behaviour.
+        * tests/tests.pro:
+
+2009-04-30  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Unreviewed build fix, after r43035.
+
+        Temporarily use Position::deprecatedEditingOffset().
+
+        * Api/qwebpage.cpp:
+        (QWebPage::inputMethodQuery):
+
+2009-03-27  Benjamin C Meyer  <benjamin.meyer@torchmobile.com>
+
+        Reviewed by Simon Hausmann.
+
+        Update the page actions when a finishing loading even if the frame is
+        not the top frame such as when browsing inside of a website with frames.
+        https://bugs.webkit.org/show_bug.cgi?id=24890
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::dispatchDidFinishLoad):
+        * tests/qwebpage/frametest/frame_a.html: Added.
+        * tests/qwebpage/frametest/index.html: Added.
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::backActionUpdate):
+
+2009-04-29  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Implement QWebElement::evaluateScript.
+
+        * Api/qwebelement.cpp:
+        (setupScriptContext):
+        (QWebElement::evaluateScript):
+        * Api/qwebelement.h:
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::evaluateScript):
+
+2009-04-29  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Replaced QWebElementCollection with QList<QWebElement>.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::findAll):
+        * Api/qwebelement.h:
+        * Api/qwebframe.cpp:
+        (QWebFrame::findAllElements):
+        * Api/qwebframe.h:
+        * QtLauncher/main.cpp:
+        (MainWindow::selectElements):
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::simpleCollection):
+        (tst_QWebElement::namespaceURI):
+        (tst_QWebElement::nullSelect):
+
 2009-04-29  Simon Hausmann  <simon.hausmann@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
