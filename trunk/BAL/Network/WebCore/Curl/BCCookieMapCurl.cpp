@@ -26,6 +26,7 @@
 #include "config.h"
 #include "CookieMap.h"
 
+#include "Cookie.h"
 #include "CookieDatabaseBackingStore.h"
 #include "CookieManager.h"
 #include "CurrentTime.h"
@@ -33,11 +34,17 @@
 
 namespace WebCore {
 
+CookieMap::CookieMap()
+    : m_oldestCookie(0)
+{
+}
+
 CookieMap::~CookieMap()
 {
-    // Remove all cookies
-    for (HashMap<String, Cookie*>::iterator it = m_cookieMap.begin(); it != m_cookieMap.end(); ++it)
-        delete it->second;
+    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
+    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
+    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator)
+        delete cookieIterator->second;
 }
 
 Cookie* CookieMap::takePrevious(const Cookie* cookie)
@@ -72,19 +79,6 @@ void CookieMap::remove(const Cookie* cookie)
 
     ASSERT(prevCookie);
     delete prevCookie;
-}
-
-void CookieMap::removeAll(bool shouldRemoveFromDatabase)
-{
-    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
-    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
-    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
-#if ENABLE(DATABASE)
-        if (shouldRemoveFromDatabase && !cookieIterator->second->isSession())
-            cookieDatabaseBackingStore().remove(cookieIterator->second);
-#endif      
-        delete cookieIterator->second;
-    }
 }
 
 Vector<Cookie*> CookieMap::getCookies()

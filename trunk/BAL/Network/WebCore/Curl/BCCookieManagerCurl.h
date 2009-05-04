@@ -36,6 +36,11 @@ namespace WebCore {
     class String;
     class Cookie;
 
+    enum DatabaseRemoval {
+        RemoveFromDatabase,
+        DoNotRemoveFromDatabase
+    };
+
     class CookieManager {
     public:
 
@@ -44,7 +49,7 @@ namespace WebCore {
         String getCookie(const KURL& url);
         String getCookie(const String& url);
 
-        void removeAllCookies(bool shouldRemoveFromDatabase = true);
+        void removeAllCookies(DatabaseRemoval);
 
         unsigned short cookiesCount() { return m_count; }
 

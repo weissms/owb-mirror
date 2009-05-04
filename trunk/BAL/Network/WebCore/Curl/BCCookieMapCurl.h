@@ -28,57 +28,53 @@
 
 #include "config.h"
 
-#include "Cookie.h"
 #include "StringHash.h"
 #include "PlatformString.h"
 
 namespace WebCore {
 
-class CookieMap {
-public:
+    class Cookie;
 
-    CookieMap()
-        : m_oldestCookie(0)
-    {
-    }
+    class CookieMap {
 
-    ~CookieMap();
+    public:
+        CookieMap();
+        ~CookieMap();
 
-    int count() { return m_cookieMap.size(); }
+        int count() { return m_cookieMap.size(); }
 
-    void add(Cookie* cookie);
-    void remove(const Cookie* cookie);
+        void add(Cookie* cookie);
+        void remove(const Cookie* cookie);
 
-    void removeAll(bool /*shouldRemoveFromDatabase*/);
-    Vector<Cookie*> getCookies();
+        Vector<Cookie*> getCookies();
 
-    // Will take the cookie that match the paramater
-    Cookie* takePrevious(const Cookie* cookie);
+        // Will take the cookie that match the paramater
+        Cookie* takePrevious(const Cookie* cookie);
 
-    bool canInsertCookie() { return (m_cookieMap.size() < max_count); }
+        bool canInsertCookie() { return (m_cookieMap.size() < max_count); }
 
-    void updateTime(Cookie* cookie, double newTime);
+        void updateTime(Cookie* cookie, double newTime);
 
-    // Return Cookie to remove it from the database in the CookieManager
-    Cookie* removeOldestCookie();
+        // Return Cookie to remove it from the database in the CookieManager
+        Cookie* removeOldestCookie();
 
-private:
-    void updateOldestCookie();
+    private:
+        void updateOldestCookie();
 
-    // The key is the tuple (name, path)
-    // The spec asks to have also domain, which is implied by choosing the CookieMap relevant to the domain
-    HashMap<String, Cookie*> m_cookieMap;
+        // The key is the tuple (name, path)
+        // The spec asks to have also domain, which is implied by choosing the CookieMap relevant to the domain
+        HashMap<String, Cookie*> m_cookieMap;
 
-    // Store the oldest cookie to speed up LRU checks
-    Cookie* m_oldestCookie;
+        // Store the oldest cookie to speed up LRU checks
+        Cookie* m_oldestCookie;
 
-    // Constants
-    // The number of cookie is limited to max_count (ie 20)
-    static const int max_count = 20;
+        // Constants
+        // The number of cookie is limited to max_count (ie 20)
+        static const int max_count = 20;
 
-    // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
-};
+        // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
+    };
 
-} // Namespace WebCore
+} // namespace WebCore
 
 #endif // CookieMap_h

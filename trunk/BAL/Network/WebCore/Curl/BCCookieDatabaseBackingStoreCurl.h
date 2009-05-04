@@ -43,6 +43,8 @@ namespace WebCore {
         void update(const Cookie* cookie);
         void remove(const Cookie* cookie);
 
+        void removeAll();
+
         Vector<Cookie*> getAllCookies();
 
     private:

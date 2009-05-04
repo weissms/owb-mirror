@@ -26,6 +26,7 @@
 #include "config.h"
 #include "CookieManager.h"
 
+#include "Cookie.h"
 #include "CookieDatabaseBackingStore.h"
 #include "CookieParser.h"
 #include "CurrentTime.h"
@@ -55,9 +56,7 @@ CookieManager::CookieManager()
 
 CookieManager::~CookieManager()
 {
-    // Destroy all CookieMaps.
-    for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it)
-        delete it->second;
+    removeAllCookies(DoNotRemoveFromDatabase);
 #if ENABLE(DATABASE)
     cookieDatabaseBackingStore().close();
 #endif
@@ -130,13 +129,17 @@ String CookieManager::getCookie(const KURL& url)
     return res;
 }
 
-void CookieManager::removeAllCookies(bool shouldRemoveFromDatabase)
+void CookieManager::removeAllCookies(DatabaseRemoval databaseRemoval)
 {
-    for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
-        it->second->removeAll(shouldRemoveFromDatabase);
+    HashMap<String, CookieMap*>::iterator first = m_managerMap.begin();
+    HashMap<String, CookieMap*>::iterator end = m_managerMap.end();
+    for (HashMap<String, CookieMap*>::iterator it = first; it != end; ++it)
         delete it->second;
-    }
 
+#if ENABLE(DATABASE)
+    if (databaseRemoval == RemoveFromDatabase)
+        cookieDatabaseBackingStore().removeAll();
+#endif
     m_count = 0;
 }
 

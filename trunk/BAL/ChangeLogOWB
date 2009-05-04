@@ -1,3 +1,35 @@
+2009-05-04  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Reworked the removeAll machinery:
+
+        - Avoid doing lots of DELETE in the database by exposing a removeAll
+        method on the CookieDatabaseBackingStore.
+
+        - Removed some duplicated call between a destructor and a removeAll
+        methods.
+
+        - Indented BCCookieMap.h while modifying this header.
+
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp:
+        (WebCore::CookieDatabaseBackingStore::removeAll):
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h:
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::~CookieManager): Call removeAll without
+        modifying the database.
+        (WebCore::CookieManager::removeAllCookies): Changed the parameter to a
+        custom enum as it is more readable this way.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+        (WebCore::): Added a parameter enum.
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::CookieMap): Added.
+        (WebCore::CookieMap::~CookieMap): Inline the removeAll code while we
+        remove this unused method.
+        * Network/WebCore/Curl/BCCookieMapCurl.h:
+        (WebCore::CookieMap::count):
+        (WebCore::CookieMap::canInsertCookie):
+
 2009-04-30  Sebastien Roret  <sroret@pleyo.com>
 
         Reviewed by Mario Bensi.

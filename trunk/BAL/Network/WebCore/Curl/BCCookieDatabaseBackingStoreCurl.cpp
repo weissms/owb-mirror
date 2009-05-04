@@ -173,6 +173,27 @@ void CookieDatabaseBackingStore::remove(const Cookie* cookie)
     }
 }
 
+void CookieDatabaseBackingStore::removeAll()
+{
+    if (!tableExists())
+        return;
+
+    String deleteQuery("DELETE * from ");
+    deleteQuery += tableName;
+    deleteQuery += ";";
+
+    SQLiteStatement deleteStatement(m_db, deleteQuery);
+    if (deleteStatement.prepare()) {
+        LOG_ERROR("Could not prepare DELETE * statement");
+        return;
+    }
+
+    if (!deleteStatement.executeCommand()) {
+        LOG_ERROR("Cannot delete cookie from database");
+        return;
+    }
+}
+
 Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
 {
     Vector<Cookie*, 8> cookies;
