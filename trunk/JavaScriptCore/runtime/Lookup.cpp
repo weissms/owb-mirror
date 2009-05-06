@@ -20,6 +20,7 @@
 #include "config.h"
 #include "Lookup.h"
 
+#include "JSFunction.h"
 #include "PrototypeFunction.h"
 
 namespace JSC {
@@ -69,7 +70,7 @@ void setUpStaticFunctionSlot(ExecState* exec, const HashEntry* entry, JSObject* 
     JSValue* location = thisObj->getDirectLocation(propertyName);
 
     if (!location) {
-        PrototypeFunction* function = new (exec) PrototypeFunction(exec, entry->functionLength(), propertyName, entry->function());
+        InternalFunction* function = new (exec) NativeFunctionWrapper(exec, exec->lexicalGlobalObject()->prototypeFunctionStructure(), entry->functionLength(), propertyName, entry->function());
         thisObj->putDirect(propertyName, function, entry->attributes());
         location = thisObj->getDirectLocation(propertyName);
     }

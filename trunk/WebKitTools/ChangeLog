@@ -1,3 +1,183 @@
+2009-05-06  Darin Adler  <darin@apple.com>
+
+        Try to fix Mac build.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp: (elementAtPointCallback): Initialize x and y.
+
+2009-05-05  Maclolm MacLeod  <mmacleod@webmail.co.za>
+
+        Reviewed by Kevin Ollivier.
+
+        Have wxWebkit make use of gcc(4 and greater) hidden visibility feature
+        
+        https://bugs.webkit.org/show_bug.cgi?id=24345
+
+        * wx/build-wxwebkit:
+
+2009-05-05  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 25574: AXImageMap children links don't respond properly to accessibilityHitTest:
+        https://bugs.webkit.org/show_bug.cgi?id=25574
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (elementAtPointCallback):
+        (getXCallback):
+        (getYCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (descriptionOfValue):
+        (AccessibilityUIElement::elementAtPoint):
+        (AccessibilityUIElement::role):
+        (AccessibilityUIElement::title):
+        (AccessibilityUIElement::description):
+        (AccessibilityUIElement::x):
+        (AccessibilityUIElement::y):
+        (AccessibilityUIElement::width):
+        (AccessibilityUIElement::height):
+        (AccessibilityUIElement::intValue):
+        (AccessibilityUIElement::minValue):
+        (AccessibilityUIElement::maxValue):
+        (AccessibilityUIElement::insertionPointLineNumber):
+        (AccessibilityUIElement::supportsPressAction):
+        (AccessibilityUIElement::lineForIndex):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::elementAtPoint):
+        (AccessibilityUIElement::x):
+        (AccessibilityUIElement::y):
+
+2009-05-06  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Gustavo Noronha.
+
+        http://bugs.webkit.org/show_bug.cgi?id=17066
+        [GTK] Improve frameloader signals
+
+        Update GtkLauncher to use the new load-status and progress properties
+        instead of the previous loading signals.
+
+        * GtkLauncher/main.c:
+        (update_title):
+        (notify_load_status_cb):
+        (notify_progress_cb):
+        (create_browser):
+        (create_window):
+
+2009-05-05  Adam Roben  <aroben@apple.com>
+
+        Don't use pdevenv when building with VC++ Express
+
+        Fixes Bug 25308: REGRESSION (r42182): Build fails after following
+        build instructions on webkit.org fail when using VC++ Express
+        <https://bugs.webkit.org/show_bug.cgi?id=25308>
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/webkitdirs.pm:
+        (setupCygwinEnv): When Visual Studio is installed, set $vcBuildPath to
+        point to pdevenv. When VC++ Express is installed, set $vcBuildPath to
+        point to VC++ Express, as before.
+        (buildVisualStudioProject): Use $vcBuildPath to build instead of
+        hard-coding pdevenv.
+
+2009-05-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Mention --qt as an option in the build-webkit help
+
+        * Scripts/build-webkit:
+
+2009-05-04  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Enable spell-checking in DumpRenderTree.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+
+2009-05-04  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Eric Seidel.
+        
+        Initial DRT implementation for wx.
+
+        * DumpRenderTree/DumpRenderTree.h:
+        * DumpRenderTree/wx: Added.
+        * DumpRenderTree/wx/DumpRenderTree.bkl: Added.
+        * DumpRenderTree/wx/DumpRenderTreeWx.cpp: Added.
+        (LayoutWebViewEventHandler::LayoutWebViewEventHandler):
+        (LayoutWebViewEventHandler::bindEvents):
+        (LayoutWebViewEventHandler::OnLoadEvent):
+        (LayoutWebViewEventHandler::OnAlertEvent):
+        (LayoutWebViewEventHandler::OnConfirmEvent):
+        (LayoutWebViewEventHandler::OnPromptEvent):
+        (LayoutWebViewEventHandler::OnConsoleMessageEvent):
+        (LayoutWebViewEventHandler::OnReceivedTitleEvent):
+        (LayoutWebViewEventHandler::OnWindowObjectClearedEvent):
+        (notifyDoneFired):
+        (dumpFramesAsText):
+        (dump):
+        (runTest):
+        (MyApp::OnInit):
+        * DumpRenderTree/wx/DumpRenderTreeWx.h: Added.
+        * DumpRenderTree/wx/GCControllerWx.cpp: Added.
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp: Added.
+        (LayoutTestController::~LayoutTestController):
+        (LayoutTestController::addDisallowedURL):
+        (LayoutTestController::clearBackForwardList):
+        (LayoutTestController::copyDecodedHostName):
+        (LayoutTestController::copyEncodedHostName):
+        (LayoutTestController::display):
+        (LayoutTestController::keepWebHistory):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::pathToLocalResource):
+        (LayoutTestController::queueLoad):
+        (LayoutTestController::setAcceptsEditing):
+        (LayoutTestController::setCustomPolicyDelegate):
+        (LayoutTestController::setMainFrameIsFirstResponder):
+        (LayoutTestController::setTabKeyCyclesThroughElements):
+        (LayoutTestController::setUseDashboardCompatibilityMode):
+        (LayoutTestController::setUserStyleSheetEnabled):
+        (LayoutTestController::setUserStyleSheetLocation):
+        (LayoutTestController::setWindowIsKey):
+        (LayoutTestController::setSmartInsertDeleteEnabled):
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setWaitToDump):
+        (LayoutTestController::windowCount):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        (LayoutTestController::setAuthorAndUserStylesEnabled):
+        (LayoutTestController::setPopupBlockingEnabled):
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
+        (LayoutTestController::execCommand):
+        (LayoutTestController::setPersistentUserStyleSheetLocation):
+        (LayoutTestController::clearPersistentUserStyleSheet):
+        (LayoutTestController::clearAllDatabases):
+        (LayoutTestController::setDatabaseQuota):
+        (LayoutTestController::numberOfActiveAnimations):
+        (LayoutTestController::setSelectTrailingWhitespaceEnabled):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        (LayoutTestController::setIconDatabaseEnabled):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::isCommandEnabled):
+        (LayoutTestController::webHistoryItemCount):
+        (LayoutTestController::waitForPolicyDelegate):
+        * DumpRenderTree/wx/WorkQueueItemWx.cpp: Added.
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        * Scripts/build-dumprendertree:
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+        * wx/build-wxwebkit:
+
 2009-05-04  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Geoffrey Garen.

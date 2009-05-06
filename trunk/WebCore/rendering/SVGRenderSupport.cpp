@@ -26,7 +26,6 @@
 #if ENABLE(SVG)
 #include "SVGRenderSupport.h"
 
-#include "TransformationMatrix.h"
 #include "ImageBuffer.h"
 #include "RenderObject.h"
 #include "RenderSVGContainer.h"
@@ -36,11 +35,41 @@
 #include "SVGResourceMasker.h"
 #include "SVGStyledElement.h"
 #include "SVGURIReference.h"
+#include "TransformState.h"
+#include "TransformationMatrix.h"
 #include <wtf/UnusedParam.h>
 
 namespace WebCore {
 
-void prepareToRenderSVGContent(RenderObject* object, RenderObject::PaintInfo& paintInfo, const FloatRect& boundingBox, SVGResourceFilter*& filter, SVGResourceFilter* rootFilter)
+IntRect SVGRenderBase::clippedOverflowRectForRepaint(RenderObject* object, RenderBoxModelObject* repaintContainer)
+{
+    // Return early for any cases where we don't actually paint
+    if (object->style()->visibility() != VISIBLE && !object->enclosingLayer()->hasVisibleContent())
+        return IntRect();
+
+    // Pass our local paint rect to computeRectForRepaint() which will
+    // map to parent coords and recurse up the parent chain.
+    IntRect repaintRect = enclosingIntRect(object->repaintRectInLocalCoordinates());
+    object->computeRectForRepaint(repaintContainer, repaintRect);
+    return repaintRect;
+}
+
+void SVGRenderBase::computeRectForRepaint(RenderObject* object, RenderBoxModelObject* repaintContainer, IntRect& repaintRect, bool fixed)
+{
+    // Translate to coords in our parent renderer, and then call computeRectForRepaint on our parent
+    repaintRect = object->localToParentTransform().mapRect(repaintRect);
+    object->parent()->computeRectForRepaint(repaintContainer, repaintRect, fixed);
+}
+
+void SVGRenderBase::mapLocalToContainer(const RenderObject* object, RenderBoxModelObject* repaintContainer, bool fixed , bool useTransforms, TransformState& transformState)
+{
+    ASSERT(!fixed); // We should have no fixed content in the SVG rendering tree.
+    ASSERT(useTransforms); // mapping a point through SVG w/o respecting trasnforms is useless.
+    transformState.applyTransform(object->localToParentTransform());
+    object->parent()->mapLocalToContainer(repaintContainer, fixed, useTransforms, transformState);
+}
+
+void SVGRenderBase::prepareToRenderSVGContent(RenderObject* object, RenderObject::PaintInfo& paintInfo, const FloatRect& boundingBox, SVGResourceFilter*& filter, SVGResourceFilter* rootFilter)
 {
 #if !ENABLE(SVG_FILTERS)
     UNUSED_PARAM(filter);
@@ -109,7 +138,7 @@ void prepareToRenderSVGContent(RenderObject* object, RenderObject::PaintInfo& pa
         svgElement->document()->accessSVGExtensions()->addPendingResource(maskerId, styledElement);
 }
 
-void finishRenderSVGContent(RenderObject* object, RenderObject::PaintInfo& paintInfo, const FloatRect& boundingBox, SVGResourceFilter*& filter, GraphicsContext* savedContext)
+void SVGRenderBase::finishRenderSVGContent(RenderObject* object, RenderObject::PaintInfo& paintInfo, const FloatRect& boundingBox, SVGResourceFilter*& filter, GraphicsContext* savedContext)
 {
 #if !ENABLE(SVG_FILTERS)
     UNUSED_PARAM(boundingBox);
@@ -156,17 +185,13 @@ void renderSubtreeToImage(ImageBuffer* image, RenderObject* item)
         svgContainer->setDrawsContents(false);
 }
 
-void clampImageBufferSizeToViewport(RenderObject* object, IntSize& size)
+void clampImageBufferSizeToViewport(FrameView* frameView, IntSize& size)
 {
-    if (!object || !object->isRenderView())
+    if (!frameView)
         return;
 
-    RenderView* view = toRenderView(object);
-    if (!view->frameView())
-        return;
-
-    int viewWidth = view->frameView()->visibleWidth();
-    int viewHeight = view->frameView()->visibleHeight();
+    int viewWidth = frameView->visibleWidth();
+    int viewHeight = frameView->visibleHeight();
 
     if (size.width() > viewWidth)
         size.setWidth(viewWidth);
@@ -175,7 +200,7 @@ void clampImageBufferSizeToViewport(RenderObject* object, IntSize& size)
         size.setHeight(viewHeight);
 }
 
-FloatRect computeContainerBoundingBox(const RenderObject* container, bool includeAllPaintedContent)
+FloatRect SVGRenderBase::computeContainerBoundingBox(const RenderObject* container, bool includeAllPaintedContent)
 {
     FloatRect boundingBox;
 
@@ -189,7 +214,7 @@ FloatRect computeContainerBoundingBox(const RenderObject* container, bool includ
     return boundingBox;
 }
 
-FloatRect filterBoundingBoxForRenderer(const RenderObject* object)
+FloatRect SVGRenderBase::filterBoundingBoxForRenderer(const RenderObject* object)
 {
 #if ENABLE(SVG_FILTERS)
     SVGResourceFilter* filter = getFilterById(object->document(), object->style()->svgStyle()->filter());

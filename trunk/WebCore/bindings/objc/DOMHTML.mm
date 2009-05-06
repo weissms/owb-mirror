@@ -37,6 +37,7 @@
 #import "DOMPrivate.h"
 #import "DocumentFragment.h"
 #import "FrameView.h"
+#import "HTMLCollection.h"
 #import "HTMLDocument.h"
 #import "HTMLInputElement.h"
 #import "HTMLSelectElement.h"
@@ -103,33 +104,7 @@
 
 - (BOOL)_isTextField
 {
-    // We could make this public API as-is, or we could change it into a method that returns whether
-    // the element is a text field or a button or ... ?
-    static NSArray *textInputTypes = nil;
-#ifndef NDEBUG
-    static NSArray *nonTextInputTypes = nil;
-#endif
-    
-    NSString *fieldType = [self type];
-    
-    // No type at all is treated as text type
-    if ([fieldType length] == 0)
-        return YES;
-    
-    if (textInputTypes == nil)
-        textInputTypes = [[NSSet alloc] initWithObjects:@"text", @"password", @"search", @"isindex", nil];
-    
-    BOOL isText = [textInputTypes containsObject:[fieldType lowercaseString]];
-    
-#ifndef NDEBUG
-    if (nonTextInputTypes == nil)
-        nonTextInputTypes = [[NSSet alloc] initWithObjects:@"checkbox", @"radio", @"submit", @"reset", @"file", @"hidden", @"image", @"button", @"range", nil];
-    
-    // Catch cases where a new input type has been added that's not in these lists.
-    ASSERT(isText || [nonTextInputTypes containsObject:[fieldType lowercaseString]]);
-#endif    
-    
-    return isText;
+    return core(self)->isTextField();
 }
 
 - (NSRect)_rectOnScreen
@@ -209,7 +184,7 @@
 
 Class kitClass(WebCore::HTMLCollection* collection)
 {
-    if (collection->type() == WebCore::HTMLCollection::SelectOptions)
+    if (collection->type() == WebCore::SelectOptions)
         return [DOMHTMLOptionsCollection class];
     return [DOMHTMLCollection class];
 }

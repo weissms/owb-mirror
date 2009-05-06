@@ -62,15 +62,12 @@ public:
     virtual FloatRect repaintRectInLocalCoordinates() const;
 
 private:
-    bool calculateLocalTransform();
-
     // FIXME: This can be removed when localTransform() is removed from RenderObject
     virtual TransformationMatrix localTransform() const { return m_localTransform; }
 
     virtual RootInlineBox* createRootBox();
 
     TransformationMatrix m_localTransform;
-    IntRect m_absoluteBounds;
 };
 
 }

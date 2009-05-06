@@ -26,16 +26,17 @@
 #include "config.h"
 #include "InsertParagraphSeparatorCommand.h"
 
-#include "Document.h"
-#include "Logging.h"
 #include "CSSComputedStyleDeclaration.h"
+#include "CSSMutableStyleDeclaration.h"
 #include "CSSPropertyNames.h"
-#include "Text.h"
-#include "htmlediting.h"
+#include "Document.h"
 #include "HTMLElement.h"
 #include "HTMLNames.h"
 #include "InsertLineBreakCommand.h"
+#include "Logging.h"
 #include "RenderObject.h"
+#include "Text.h"
+#include "htmlediting.h"
 #include "visible_units.h"
 
 namespace WebCore {
@@ -164,7 +165,7 @@ void InsertParagraphSeparatorCommand::doApply()
         blockToInsert = createDefaultParagraphElement(document());
     else
         blockToInsert = startBlock->cloneElementWithoutChildren();
-    
+
     //---------------------------------------------------------------------
     // Handle case when position is in the last visible position in its block,
     // including when the block is empty. 
@@ -178,8 +179,11 @@ void InsertParagraphSeparatorCommand::doApply()
                 appendBlockPlaceholder(extraBlock);
             }
             appendNode(blockToInsert, startBlock);
-        } else
-            insertNodeAfter(blockToInsert, startBlock);
+        } else {
+            // If we are pasting a mail blockquote in this, unquoted, area then we don't want the newline within the blockquote or else it will also be quoted.
+            Node* highestBlockquote = highestEnclosingNodeOfType(canonicalPos, &isMailBlockquote);
+            insertNodeAfter(blockToInsert, highestBlockquote ? highestBlockquote : startBlock);
+        }
 
         appendBlockPlaceholder(blockToInsert);
         setEndingSelection(VisibleSelection(Position(blockToInsert.get(), 0), DOWNSTREAM));

@@ -28,13 +28,14 @@
 #include "TransformationMatrix.h"
 #include "FloatRect.h"
 #include "RenderImage.h"
+#include "SVGRenderSupport.h"
 
 namespace WebCore {
 
     class SVGImageElement;
     class SVGPreserveAspectRatio;
 
-    class RenderSVGImage : public RenderImage {
+    class RenderSVGImage : public RenderImage, SVGRenderBase {
     public:
         RenderSVGImage(SVGImageElement*);
         virtual ~RenderSVGImage();
@@ -49,7 +50,9 @@ namespace WebCore {
 
         virtual IntRect clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer);
         virtual void computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect&, bool fixed = false);
-    
+
+        virtual void mapLocalToContainer(RenderBoxModelObject* repaintContainer, bool useTransforms, bool fixed, TransformState&) const;
+
         virtual void absoluteRects(Vector<IntRect>&, int tx, int ty);
         virtual void absoluteQuads(Vector<FloatQuad>&);
         virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
@@ -66,7 +69,6 @@ namespace WebCore {
         virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int _x, int _y, int _tx, int _ty, HitTestAction);
 
     private:
-        bool calculateLocalTransform();
         virtual TransformationMatrix localTransform() const { return m_localTransform; }
 
         TransformationMatrix m_localTransform;

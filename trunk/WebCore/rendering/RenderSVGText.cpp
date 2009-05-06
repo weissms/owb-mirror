@@ -43,7 +43,6 @@
 #include "SVGTransformList.h"
 #include "SVGURIReference.h"
 #include "SimpleFontData.h"
-#include "TransformState.h"
 
 namespace WebCore {
 
@@ -54,68 +53,39 @@ RenderSVGText::RenderSVGText(SVGTextElement* node)
 
 IntRect RenderSVGText::clippedOverflowRectForRepaint(RenderBoxModelObject* repaintContainer)
 {
-    // Return early for any cases where we don't actually paint
-    if (style()->visibility() != VISIBLE && !enclosingLayer()->hasVisibleContent())
-        return IntRect();
-
-    // Pass our local paint rect to computeRectForRepaint() which will
-    // map to parent coords and recurse up the parent chain.
-    IntRect repaintRect = enclosingIntRect(repaintRectInLocalCoordinates());
-    computeRectForRepaint(repaintContainer, repaintRect);
-    return repaintRect;
+    return SVGRenderBase::clippedOverflowRectForRepaint(this, repaintContainer);
 }
 
 void RenderSVGText::computeRectForRepaint(RenderBoxModelObject* repaintContainer, IntRect& repaintRect, bool fixed)
 {
-    // Translate to coords in our parent renderer, and then call computeRectForRepaint on our parent
-    repaintRect = localToParentTransform().mapRect(repaintRect);
-    parent()->computeRectForRepaint(repaintContainer, repaintRect, fixed);
+    SVGRenderBase::computeRectForRepaint(this, repaintContainer, repaintRect, fixed);
 }
 
 void RenderSVGText::mapLocalToContainer(RenderBoxModelObject* repaintContainer, bool fixed , bool useTransforms, TransformState& transformState) const
 {
-    ASSERT(!fixed); // We should have no fixed content in the SVG rendering tree.
-
-    // FIXME: If we don't respect useTransforms we break SVG text rendering.
-    // Seems RenderSVGInlineText has some own broken translation hacks which depend useTransforms=false
-    // This should instead be ASSERT(useTransforms) once we fix RenderSVGInlineText
-    if (useTransforms)
-        transformState.applyTransform(localToParentTransform());
-
-    parent()->mapLocalToContainer(repaintContainer, fixed, useTransforms, transformState);
-}
-
-bool RenderSVGText::calculateLocalTransform()
-{
-    TransformationMatrix oldTransform = m_localTransform;
-    m_localTransform = static_cast<SVGTextElement*>(node())->animatedLocalTransform();
-    return (oldTransform != m_localTransform);
+    SVGRenderBase::mapLocalToContainer(this, repaintContainer, fixed, useTransforms, transformState);
 }
 
 void RenderSVGText::layout()
 {
     ASSERT(needsLayout());
-    
+
     // FIXME: This is a hack to avoid the RenderBlock::layout() partial repainting code which is not (yet) SVG aware
     setNeedsLayout(true);
 
-    // FIXME: using m_absoluteBounds breaks if containerForRepaint() is not the root
-    LayoutRepainter repainter(*this, checkForRepaintDuringLayout(), &m_absoluteBounds);
+    LayoutRepainter repainter(*this, checkForRepaintDuringLayout());
 
     // Best guess for a relative starting point
     SVGTextElement* text = static_cast<SVGTextElement*>(node());
     int xOffset = (int)(text->x()->getFirst().value(text));
     int yOffset = (int)(text->y()->getFirst().value(text));
     setLocation(xOffset, yOffset);
-    
-    calculateLocalTransform();
+
+    m_localTransform = text->animatedLocalTransform();
 
     RenderBlock::layout();
 
-    m_absoluteBounds = absoluteClippedOverflowRect();
-
     repainter.repaintAfterLayout();
-        
     setNeedsLayout(false);
 }
 

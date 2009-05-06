@@ -62,6 +62,163 @@ using namespace std;
 
 namespace JSC {
 
+
+#if COMPILER(GCC) && PLATFORM(X86)
+
+COMPILE_ASSERT(STUB_ARGS_code == 0x0C, STUB_ARGS_code_is_0x0C);
+COMPILE_ASSERT(STUB_ARGS_callFrame == 0x0E, STUB_ARGS_callFrame_is_0x0E);
+
+#if PLATFORM(DARWIN)
+#define SYMBOL_STRING(name) "_" #name
+#else
+#define SYMBOL_STRING(name) #name
+#endif
+
+asm(
+".globl " SYMBOL_STRING(ctiTrampoline) "\n"
+SYMBOL_STRING(ctiTrampoline) ":" "\n"
+    "pushl %ebp" "\n"
+    "movl %esp, %ebp" "\n"
+    "pushl %esi" "\n"
+    "pushl %edi" "\n"
+    "pushl %ebx" "\n"
+    "subl $0x1c, %esp" "\n"
+    "movl $512, %esi" "\n"
+    "movl 0x38(%esp), %edi" "\n" // Ox38 = 0x0E * 4, 0x0E = STUB_ARGS_callFrame (see assertion above)
+    "call *0x30(%esp)" "\n" // Ox30 = 0x0C * 4, 0x0C = STUB_ARGS_code (see assertion above)
+    "addl $0x1c, %esp" "\n"
+    "popl %ebx" "\n"
+    "popl %edi" "\n"
+    "popl %esi" "\n"
+    "popl %ebp" "\n"
+    "ret" "\n"
+);
+
+asm(
+".globl " SYMBOL_STRING(ctiVMThrowTrampoline) "\n"
+SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
+#if USE(JIT_STUB_ARGUMENT_VA_LIST)
+    "call " SYMBOL_STRING(_ZN3JSC8JITStubs12cti_vm_throwEPvz) "\n"
+#else
+#if USE(JIT_STUB_ARGUMENT_REGISTER)
+    "movl %esp, %ecx" "\n"
+#else // JIT_STUB_ARGUMENT_STACK
+    "movl %esp, 0(%esp)" "\n"
+#endif
+    "call " SYMBOL_STRING(_ZN3JSC8JITStubs12cti_vm_throwEPPv) "\n"
+#endif
+    "addl $0x1c, %esp" "\n"
+    "popl %ebx" "\n"
+    "popl %edi" "\n"
+    "popl %esi" "\n"
+    "popl %ebp" "\n"
+    "ret" "\n"
+);
+    
+#elif COMPILER(GCC) && PLATFORM(X86_64)
+
+COMPILE_ASSERT(STUB_ARGS_code == 0x10, STUB_ARGS_code_is_0x10);
+COMPILE_ASSERT(STUB_ARGS_callFrame == 0x12, STUB_ARGS_callFrame_is_0x12);
+
+#if PLATFORM(DARWIN)
+#define SYMBOL_STRING(name) "_" #name
+#else
+#define SYMBOL_STRING(name) #name
+#endif
+
+asm(
+".globl " SYMBOL_STRING(ctiTrampoline) "\n"
+SYMBOL_STRING(ctiTrampoline) ":" "\n"
+    "pushq %rbp" "\n"
+    "movq %rsp, %rbp" "\n"
+    "pushq %r12" "\n"
+    "pushq %r13" "\n"
+    "pushq %r14" "\n"
+    "pushq %r15" "\n"
+    "pushq %rbx" "\n"
+    "subq $0x48, %rsp" "\n"
+    "movq $512, %r12" "\n"
+    "movq $0xFFFF000000000000, %r14" "\n"
+    "movq $0xFFFF000000000002, %r15" "\n"
+    "movq 0x90(%rsp), %r13" "\n" // Ox90 = 0x12 * 8, 0x12 = STUB_ARGS_callFrame (see assertion above)
+    "call *0x80(%rsp)" "\n" // Ox80 = 0x10 * 8, 0x10 = STUB_ARGS_code (see assertion above)
+    "addq $0x48, %rsp" "\n"
+    "popq %rbx" "\n"
+    "popq %r15" "\n"
+    "popq %r14" "\n"
+    "popq %r13" "\n"
+    "popq %r12" "\n"
+    "popq %rbp" "\n"
+    "ret" "\n"
+);
+
+asm(
+".globl " SYMBOL_STRING(ctiVMThrowTrampoline) "\n"
+SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
+#if USE(JIT_STUB_ARGUMENT_REGISTER)
+    "movq %rsp, %rdi" "\n"
+    "call " SYMBOL_STRING(_ZN3JSC8JITStubs12cti_vm_throwEPPv) "\n"
+#else // JIT_STUB_ARGUMENT_VA_LIST or JIT_STUB_ARGUMENT_STACK
+#error "JIT_STUB_ARGUMENT configuration not supported."
+#endif
+    "addq $0x48, %rsp" "\n"
+    "popq %rbx" "\n"
+    "popq %r15" "\n"
+    "popq %r14" "\n"
+    "popq %r13" "\n"
+    "popq %r12" "\n"
+    "popq %rbp" "\n"
+    "ret" "\n"
+);
+    
+#elif COMPILER(MSVC)
+
+extern "C" {
+    
+    __declspec(naked) EncodedJSValue ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValue* exception, Profiler**, JSGlobalData*)
+    {
+        __asm {
+            push ebp;
+            mov ebp, esp;
+            push esi;
+            push edi;
+            push ebx;
+            sub esp, 0x1c;
+            mov esi, 512;
+            mov ecx, esp;
+            mov edi, [esp + 0x38];
+            call [esp + 0x30]; // Ox30 = 0x0C * 4, 0x0C = STUB_ARGS_code (see assertion above)
+            add esp, 0x1c;
+            pop ebx;
+            pop edi;
+            pop esi;
+            pop ebp;
+            ret;
+        }
+    }
+    
+    __declspec(naked) void ctiVMThrowTrampoline()
+    {
+        __asm {
+#if USE(JIT_STUB_ARGUMENT_REGISTER)
+            mov ecx, esp;
+#else // JIT_STUB_ARGUMENT_VA_LIST or JIT_STUB_ARGUMENT_STACK
+#error "JIT_STUB_ARGUMENT configuration not supported."
+#endif
+            call JSC::JITStubs::cti_vm_throw;
+            add esp, 0x1c;
+            pop ebx;
+            pop edi;
+            pop esi;
+            pop ebp;
+            ret;
+        }
+    }
+    
+}
+
+#endif
+
 #if ENABLE(OPCODE_SAMPLING)
     #define CTI_SAMPLER ARG_globalData->interpreter->sampler()
 #else
@@ -74,8 +231,9 @@ JITStubs::JITStubs(JSGlobalData* globalData)
     , m_ctiVirtualCallPreLink(0)
     , m_ctiVirtualCallLink(0)
     , m_ctiVirtualCall(0)
+    , m_ctiNativeCallThunk(0)
 {
-    JIT::compileCTIMachineTrampolines(globalData, &m_executablePool, &m_ctiArrayLengthTrampoline, &m_ctiStringLengthTrampoline, &m_ctiVirtualCallPreLink, &m_ctiVirtualCallLink, &m_ctiVirtualCall);
+    JIT::compileCTIMachineTrampolines(globalData, &m_executablePool, &m_ctiArrayLengthTrampoline, &m_ctiStringLengthTrampoline, &m_ctiVirtualCallPreLink, &m_ctiVirtualCallLink, &m_ctiVirtualCall, &m_ctiNativeCallThunk);
 }
 
 #if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
@@ -819,13 +977,12 @@ void* JITStubs::cti_op_call_JSFunction(STUB_ARGS)
     ASSERT(ARG_src1.getCallData(callData) == CallTypeJS);
 #endif
 
-    ScopeChainNode* callDataScopeChain = asFunction(ARG_src1)->scope().node();
-    CodeBlock* newCodeBlock = &asFunction(ARG_src1)->body()->bytecode(callDataScopeChain);
+    JSFunction* function = asFunction(ARG_src1);
+    FunctionBodyNode* body = function->body();
+    ScopeChainNode* callDataScopeChain = function->scope().node();
+    body->jitCode(callDataScopeChain);
 
-    if (!newCodeBlock->jitCode())
-        JIT::compile(ARG_globalData, newCodeBlock);
-
-    return newCodeBlock;
+    return &(body->generatedBytecode());
 }
 
 VoidPtrPair JITStubs::cti_op_call_arityCheck(STUB_ARGS)
@@ -879,13 +1036,12 @@ void* JITStubs::cti_vm_dontLazyLinkCall(STUB_ARGS)
 
     JSGlobalData* globalData = ARG_globalData;
     JSFunction* callee = asFunction(ARG_src1);
-    CodeBlock* codeBlock = &callee->body()->bytecode(callee->scope().node());
-    if (!codeBlock->jitCode())
-        JIT::compile(globalData, codeBlock);
+    JITCode jitCode = callee->body()->generatedJITCode();
+    ASSERT(jitCode);
 
     ctiPatchNearCallByReturnAddress(ARG_returnAddress2, globalData->jitStubs.ctiVirtualCallLink());
 
-    return codeBlock->jitCode().addressForCall();
+    return jitCode.addressForCall();
 }
 
 void* JITStubs::cti_vm_lazyLinkCall(STUB_ARGS)
@@ -893,14 +1049,17 @@ void* JITStubs::cti_vm_lazyLinkCall(STUB_ARGS)
     BEGIN_STUB_FUNCTION();
 
     JSFunction* callee = asFunction(ARG_src1);
-    CodeBlock* codeBlock = &callee->body()->bytecode(callee->scope().node());
-    if (!codeBlock->jitCode())
-        JIT::compile(ARG_globalData, codeBlock);
+    JITCode jitCode = callee->body()->generatedJITCode();
+    ASSERT(jitCode);
+    
+    CodeBlock* codeBlock = 0;
+    if (!callee->isHostFunction())
+        codeBlock = &callee->body()->bytecode(callee->scope().node());
 
     CallLinkInfo* callLinkInfo = &ARG_callFrame->callerFrame()->codeBlock()->getCallLinkInfo(ARG_returnAddress2);
-    JIT::linkCall(callee, codeBlock, codeBlock->jitCode(), callLinkInfo, ARG_int3);
+    JIT::linkCall(callee, codeBlock, jitCode, callLinkInfo, ARG_int3);
 
-    return codeBlock->jitCode().addressForCall();
+    return jitCode.addressForCall();
 }
 
 JSObject* JITStubs::cti_op_push_activation(STUB_ARGS)
@@ -1059,16 +1218,25 @@ JSObject* JITStubs::cti_op_construct_JSConstruct(STUB_ARGS)
 {
     BEGIN_STUB_FUNCTION();
 
+    JSFunction* constructor = asFunction(ARG_src1);
+    if (constructor->isHostFunction()) {
+        CallFrame* callFrame = ARG_callFrame;
+        CodeBlock* codeBlock = callFrame->codeBlock();
+        unsigned vPCIndex = codeBlock->getBytecodeIndex(callFrame, STUB_RETURN_ADDRESS);
+        ARG_globalData->exception = createNotAConstructorError(callFrame, constructor, vPCIndex, codeBlock);
+        VM_THROW_EXCEPTION();
+    }
+
 #ifndef NDEBUG
     ConstructData constructData;
-    ASSERT(asFunction(ARG_src1)->getConstructData(constructData) == ConstructTypeJS);
+    ASSERT(constructor->getConstructData(constructData) == ConstructTypeJS);
 #endif
 
     Structure* structure;
     if (ARG_src4.isObject())
         structure = asObject(ARG_src4)->inheritorID();
     else
-        structure = asFunction(ARG_src1)->scope().node()->globalObject()->emptyObjectStructure();
+        structure = constructor->scope().node()->globalObject()->emptyObjectStructure();
     return new (ARG_globalData) JSObject(structure);
 }
 
@@ -2273,16 +2441,6 @@ EncodedJSValue JITStubs::cti_vm_throw(STUB_ARGS)
     STUB_SET_RETURN_ADDRESS(catchRoutine);
     return JSValue::encode(exceptionValue);
 }
-
-#undef STUB_RETURN_ADDRESS
-#undef STUB_SET_RETURN_ADDRESS
-#undef BEGIN_STUB_FUNCTION
-#undef CHECK_FOR_EXCEPTION
-#undef CHECK_FOR_EXCEPTION_AT_END
-#undef CHECK_FOR_EXCEPTION_VOID
-#undef VM_THROW_EXCEPTION
-#undef VM_THROW_EXCEPTION_2
-#undef VM_THROW_EXCEPTION_AT_END
 
 } // namespace JSC
 

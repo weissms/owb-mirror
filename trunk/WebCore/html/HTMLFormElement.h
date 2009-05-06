@@ -26,9 +26,7 @@
 
 #include "CheckedRadioButtons.h"
 #include "FormDataBuilder.h"
-#include "HTMLCollection.h" 
 #include "HTMLElement.h"
-
 #include <wtf/OwnPtr.h>
 
 namespace WebCore {
@@ -40,6 +38,8 @@ class HTMLImageElement;
 class HTMLInputElement;
 class HTMLFormCollection;
 class TextEncoding;
+
+struct CollectionCache;
 
 class HTMLFormElement : public HTMLElement { 
 public:
@@ -134,7 +134,7 @@ private:
 
     FormDataBuilder m_formDataBuilder;
     AliasMap* m_elementAliases;
-    HTMLCollection::CollectionInfo* collectionInfo;
+    CollectionCache* collectionInfo;
 
     CheckedRadioButtons m_checkedRadioButtons;
     

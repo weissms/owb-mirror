@@ -476,6 +476,9 @@ sub builtDylibPathForName
     if (isQt() or isChromium()) {
         return "$configurationProductDir/$libraryName";
     }
+    if (isWx()) {
+        return "$configurationProductDir/libwxwebkit.dylib";
+    }
     if (isGtk()) {
         return "$configurationProductDir/$libraryName/../.libs/libwebkit-1.0.so";
     }
@@ -513,6 +516,10 @@ sub hasSVGSupport
 
     if (isQt()) {
         return 1;
+    }
+    
+    if (isWx()) {
+        return 0;
     }
 
     my $hasSVGSupport = 0;
@@ -905,8 +912,11 @@ sub setupCygwinEnv()
     my $programFilesPath = `cygpath "$ENV{'PROGRAMFILES'}"`;
     chomp $programFilesPath;
     $vcBuildPath = "$programFilesPath/Microsoft Visual Studio 8/Common7/IDE/devenv.com";
-    if (! -e $vcBuildPath) {
-        # VC++ not found, try VC++ Express
+    if (-e $vcBuildPath) {
+        # Visual Studio is installed; we can use pdevenv to build.
+        $vcBuildPath = File::Spec->catfile(sourceDir(), qw(WebKitTools Scripts pdevenv));
+    } else {
+        # Visual Studio not found, try VC++ Express
         my $vsInstallDir;
         if ($ENV{'VSINSTALLDIR'}) {
             $vsInstallDir = $ENV{'VSINSTALLDIR'};
@@ -973,9 +983,7 @@ sub buildVisualStudioProject
         $action = "/clean";
     }
 
-    my $pdevenvPath = File::Spec->catfile(sourceDir(), qw(WebKitTools Scripts pdevenv));
-
-    my @command = ($pdevenvPath, $winProjectPath, $action, $config);
+    my @command = ($vcBuildPath, $winProjectPath, $action, $config);
 
     print join(" ", @command), "\n";
     return system @command;

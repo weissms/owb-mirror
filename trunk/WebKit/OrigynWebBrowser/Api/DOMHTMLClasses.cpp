@@ -33,6 +33,7 @@
 #include <Document.h>
 #include <Element.h>
 #include <FrameView.h>
+#include <HTMLCollection.h>
 #include <HTMLDocument.h>
 #include <HTMLFormElement.h>
 #include <HTMLInputElement.h>

@@ -441,7 +441,7 @@ bool HTMLParser::handleError(Node* n, bool flat, const AtomicString& localName, 
                 }
                 return false;
             }
-        } else if (h->hasLocalName(titleTag) || h->hasLocalName(styleTag)) {
+        } else if (h->hasLocalName(titleTag) || h->hasLocalName(styleTag) || h->hasLocalName(scriptTag)) {
             bool createdHead = false;
             if (!m_head) {
                 createHead();
@@ -529,6 +529,9 @@ bool HTMLParser::handleError(Node* n, bool flat, const AtomicString& localName, 
                         return false;
                 }
                 if (!m_haveFrameSet) {
+                    // Ensure that head exists.
+                    createHead();
+                    popBlock(headTag);
                     e = new HTMLBodyElement(bodyTag, m_document);
                     startBody();
                     insertNode(e);
@@ -542,6 +545,7 @@ bool HTMLParser::handleError(Node* n, bool flat, const AtomicString& localName, 
             else {
                 // This means the body starts here...
                 if (!m_haveFrameSet) {
+                    ASSERT(currentTagName == headTag);
                     popBlock(currentTagName);
                     e = new HTMLBodyElement(bodyTag, m_document);
                     startBody();
@@ -711,6 +715,8 @@ bool HTMLParser::bodyCreateErrorCheck(Token*, RefPtr<Node>&)
     // body no longer allowed if we have a frameset
     if (m_haveFrameSet)
         return false;
+    // Ensure that head exists.
+    createHead();
     popBlock(headTag);
     startBody();
     return true;
@@ -1525,8 +1531,13 @@ void HTMLParser::freeBlock()
 
 void HTMLParser::createHead()
 {
-    if (m_head || !m_document->documentElement())
+    if (m_head)
         return;
+
+    if (!m_document->documentElement()) {
+        insertNode(new HTMLHtmlElement(htmlTag, m_document));
+        ASSERT(m_document->documentElement());
+    }
 
     m_head = new HTMLHeadElement(headTag, m_document);
     HTMLElement* body = m_document->body();

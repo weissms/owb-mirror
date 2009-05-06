@@ -21,6 +21,7 @@
 #include "config.h"
 #include "ErrorPrototype.h"
 
+#include "JSFunction.h"
 #include "JSString.h"
 #include "ObjectPrototype.h"
 #include "PrototypeFunction.h"
@@ -41,7 +42,7 @@ ErrorPrototype::ErrorPrototype(ExecState* exec, PassRefPtr<Structure> structure,
     putDirectWithoutTransition(exec->propertyNames().name, jsNontrivialString(exec, "Error"), DontEnum);
     putDirectWithoutTransition(exec->propertyNames().message, jsNontrivialString(exec, "Unknown error"), DontEnum);
 
-    putDirectFunctionWithoutTransition(exec, new (exec) PrototypeFunction(exec, prototypeFunctionStructure, 0, exec->propertyNames().toString, errorProtoFuncToString), DontEnum);
+    putDirectFunctionWithoutTransition(exec, new (exec) NativeFunctionWrapper(exec, prototypeFunctionStructure, 0, exec->propertyNames().toString, errorProtoFuncToString), DontEnum);
 }
 
 JSValue errorProtoFuncToString(ExecState* exec, JSObject*, JSValue thisValue, const ArgList&)

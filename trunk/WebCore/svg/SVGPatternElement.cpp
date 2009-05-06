@@ -25,26 +25,26 @@
 #if ENABLE(SVG)
 #include "SVGPatternElement.h"
 
-#include "TransformationMatrix.h"
 #include "Document.h"
 #include "FloatConversion.h"
 #include "GraphicsContext.h"
 #include "ImageBuffer.h"
+#include "MappedAttribute.h"
 #include "PatternAttributes.h"
 #include "RenderSVGContainer.h"
 #include "SVGLength.h"
 #include "SVGNames.h"
 #include "SVGPaintServerPattern.h"
 #include "SVGRenderSupport.h"
-#include "SVGStyledTransformableElement.h"
 #include "SVGSVGElement.h"
+#include "SVGStyledTransformableElement.h"
 #include "SVGTransformList.h"
 #include "SVGTransformable.h"
 #include "SVGUnitTypes.h"
-
+#include "TransformationMatrix.h"
 #include <math.h>
-#include <wtf/OwnPtr.h>
 #include <wtf/MathExtras.h>
+#include <wtf/OwnPtr.h>
 
 using namespace std;
 
@@ -177,7 +177,7 @@ void SVGPatternElement::buildPattern(const FloatRect& targetRect) const
         patternBoundaries.setHeight(targetRect.height());
 
     IntSize patternSize(patternBoundaries.width(), patternBoundaries.height());
-    clampImageBufferSizeToViewport(document()->renderer(), patternSize);
+    clampImageBufferSizeToViewport(document()->view(), patternSize);
 
     if (patternSize.width() < static_cast<int>(patternBoundaries.width()))
         patternBoundaries.setWidth(patternSize.width());
@@ -212,7 +212,7 @@ void SVGPatternElement::buildPattern(const FloatRect& targetRect) const
     }
 
     IntSize imageSize(lroundf(patternBoundariesIncludingOverflow.width()), lroundf(patternBoundariesIncludingOverflow.height()));
-    clampImageBufferSizeToViewport(document()->renderer(), imageSize);
+    clampImageBufferSizeToViewport(document()->view(), imageSize);
 
     auto_ptr<ImageBuffer> patternImage = ImageBuffer::create(imageSize, false);
 

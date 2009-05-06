@@ -42,6 +42,8 @@
 #include "DumpRenderTreeBal.h"
 #elif PLATFORM(BAL)
 #include "DumpRenderTreeBal.h"
+#elif PLATFORM(WX)
+#include "DumpRenderTreeWx.h"
 #endif
 
 #include <string>

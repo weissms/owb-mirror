@@ -1,3 +1,53 @@
+2009-05-06  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Eric Seidel.
+        
+        Add #if ENABLE(DATABASE) guards around database code so toggling ENABLE_DATABASE off does not break builds.
+        https://bugs.webkit.org/show_bug.cgi?id=24776
+
+        * Storage/WebDatabaseManager.mm:
+        * Storage/WebDatabaseManagerInternal.h:
+        * Storage/WebDatabaseManagerPrivate.h:
+        * Storage/WebDatabaseTrackerClient.h:
+        * Storage/WebDatabaseTrackerClient.mm:
+        * Storage/WebSecurityOrigin.mm:
+        (-[WebSecurityOrigin usage]):
+        (-[WebSecurityOrigin quota]):
+        (-[WebSecurityOrigin setQuota:]):
+        * Storage/WebSecurityOriginPrivate.h:
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+
+2009-05-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Fix <rdar://problem/6797644>.
+        
+        Make sure to send a reply even when an instance proxy can't be found.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        (WKPCInvoke):
+        (WKPCInvokeDefault):
+        (WKPCGetProperty):
+        (WKPCHasProperty):
+        (WKPCHasMethod):
+        (WKPCEnumerate):
+
+2009-05-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Bug 24924: remove Document.h include of Attr.h and HTMLCollection.h,
+        and NamedMappedAttrMap.h include of MappedAttribute.h
+        https://bugs.webkit.org/show_bug.cgi?id=24924
+
+        * WebView/WebFrame.mm: Added include of CSSMutableStyleDeclaration.h
+        and ScriptValue.h.
+
 2009-05-04  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Sam Weinig.

@@ -28,6 +28,7 @@
 #include "DOMWindow.h"
 #include "Element.h"
 #include "Frame.h"
+#include "HTMLCollection.h"
 #include "HTMLDocument.h"
 #include "JSDOMWindowCustom.h"
 #include "JSHTMLCollection.h"
@@ -41,6 +42,7 @@
 #include <runtime/JSLock.h>
 
 #if ENABLE(INSPECTOR)
+#include "Console.h"
 #include "InspectorController.h"
 #endif
 

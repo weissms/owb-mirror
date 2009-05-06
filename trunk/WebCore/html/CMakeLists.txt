@@ -4,6 +4,7 @@ list(APPEND WEBCORE_SRC
     html/CanvasPixelArray.cpp
     html/CanvasRenderingContext2D.cpp
     html/CanvasStyle.cpp
+    html/CollectionCache.cpp
     html/File.cpp
     html/FileList.cpp
     html/FormDataList.cpp

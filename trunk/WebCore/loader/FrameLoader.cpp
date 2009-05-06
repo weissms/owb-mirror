@@ -881,10 +881,12 @@ void FrameLoader::receivedFirstData()
     dispatchDidCommitLoad();
     dispatchWindowObjectAvailable();
     
-    String ptitle = m_documentLoader->title();
-    // If we have a title let the WebView know about it.
-    if (!ptitle.isNull())
-        m_client->dispatchDidReceiveTitle(ptitle);
+    if (m_documentLoader) {
+        String ptitle = m_documentLoader->title();
+        // If we have a title let the WebView know about it.
+        if (!ptitle.isNull())
+            m_client->dispatchDidReceiveTitle(ptitle);
+    }
 
     m_workingURL = KURL();
 
@@ -1430,18 +1432,6 @@ void FrameLoader::scheduleHistoryNavigation(int steps)
         return;
     }
 
-    // If the steps to navigate is not zero (which needs to force a reload), and if we think the navigation is going to be a fragment load
-    // (when the URL we're going to navigate to is the same as the current one, except for the fragment part - but not exactly the same because that's a reload),
-    // then we don't need to schedule the navigation.
-    if (steps != 0) {
-        KURL destination = historyURL(steps);
-        // FIXME: This doesn't seem like a reliable way to tell whether or not the load will be a fragment load.
-        if (equalIgnoringRef(m_URL, destination) && m_URL != destination) {
-            goBackOrForward(steps);
-            return;
-        }
-    }
-    
     scheduleRedirection(new ScheduledRedirection(steps));
 }
 
@@ -1719,9 +1709,9 @@ bool FrameLoader::loadPlugin(RenderPart* renderer, const KURL& url, const String
             return false;
         }
 
-        widget = m_client->createPlugin(IntSize(renderer->contentWidth(), renderer->contentHeight()), 
+        widget = m_client->createPlugin(IntSize(renderer->contentWidth(), renderer->contentHeight()),
                                         element, url, paramNames, paramValues, mimeType,
-                                        m_frame->document()->isPluginDocument());
+                                        m_frame->document()->isPluginDocument() && !m_containsPlugIns);
         if (widget) {
             renderer->setWidget(widget);
             m_containsPlugIns = true;
@@ -4192,28 +4182,6 @@ int FrameLoader::getHistoryLength()
     return 0;
 }
 
-KURL FrameLoader::historyURL(int distance)
-{
-    if (Page* page = m_frame->page()) {
-        BackForwardList* list = page->backForwardList();
-        HistoryItem* item = list->itemAtIndex(distance);
-        if (!item) {
-            if (distance > 0) {
-                int forwardListCount = list->forwardListCount();
-                if (forwardListCount > 0)
-                    item = list->itemAtIndex(forwardListCount);
-            } else {
-                int backListCount = list->backListCount();
-                if (backListCount > 0)
-                    item = list->itemAtIndex(-backListCount);
-            }
-        }
-        if (item)
-            return item->url();
-    }
-    return KURL();
-}
-
 void FrameLoader::addHistoryItemForFragmentScroll()
 {
     addBackForwardItemClippedAtTarget(false);
@@ -5122,10 +5090,12 @@ Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, HTMLAppletEleme
         paramValues.append(it->second);
     }
 
-    KURL codeBaseURL = completeURL(codeBaseURLString);
-    if (!canLoad(codeBaseURL, String(), element->document())) {
-        FrameLoader::reportLocalLoadFailed(m_frame, codeBaseURL.string());
-        return 0;
+    if (!codeBaseURLString.isEmpty()) {
+        KURL codeBaseURL = completeURL(codeBaseURLString);
+        if (!canLoad(codeBaseURL, String(), element->document())) {
+            FrameLoader::reportLocalLoadFailed(m_frame, codeBaseURL.string());
+            return 0;
+        }
     }
 
     if (baseURLString.isEmpty())

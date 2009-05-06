@@ -986,6 +986,8 @@ QWebElement QWebFrame::documentElement() const
     \since 4.6
     Returns a new collection of elements that are children of the frame's
     document element and that match the given CSS selector \a selectorQuery.
+
+    \sa QWebElement::findAll()
 */
 QList<QWebElement> QWebFrame::findAllElements(const QString &selectorQuery) const
 {
@@ -997,6 +999,8 @@ QList<QWebElement> QWebFrame::findAllElements(const QString &selectorQuery) cons
     Returns the first element in the frame's document that matches the
     given CSS selector \a selectorQuery. Returns a null element if there is no
     match.
+
+    \sa QWebElement::findFirst()
 */
 QWebElement QWebFrame::findFirstElement(const QString &selectorQuery) const
 {
@@ -1127,10 +1131,8 @@ QVariant QWebFrame::evaluateJavaScript(const QString& scriptSource)
     QVariant rc;
     if (proxy) {
         JSC::JSValue v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
-        if (v) {
-            int distance = 0;
-            rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);
-        }
+        int distance = 0;
+        rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);
     }
     return rc;
 }

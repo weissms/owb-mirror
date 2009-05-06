@@ -29,6 +29,7 @@
 #include "CSSStyleSelector.h"
 #include "GraphicsContext.h"
 #include "ImageBuffer.h"
+#include "MappedAttribute.h"
 #include "RenderSVGContainer.h"
 #include "SVGLength.h"
 #include "SVGNames.h"
@@ -145,7 +146,7 @@ auto_ptr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& targetR
     } 
 
     IntSize imageSize(lroundf(widthValue), lroundf(heightValue));
-    clampImageBufferSizeToViewport(document()->renderer(), imageSize);
+    clampImageBufferSizeToViewport(document()->view(), imageSize);
 
     if (imageSize.width() < static_cast<int>(widthValue))
         widthValue = imageSize.width();

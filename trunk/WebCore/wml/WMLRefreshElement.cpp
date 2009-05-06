@@ -25,6 +25,7 @@
 
 #include "Frame.h"
 #include "FrameLoader.h"
+#include "MappedAttribute.h"
 #include "WMLCardElement.h"
 #include "WMLDocument.h"
 #include "WMLPageState.h"

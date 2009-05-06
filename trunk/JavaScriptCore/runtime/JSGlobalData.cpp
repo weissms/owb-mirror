@@ -38,6 +38,7 @@
 #include "JSArray.h"
 #include "JSByteArray.h"
 #include "JSClassRef.h"
+#include "JSFunction.h"
 #include "JSLock.h"
 #include "JSNotAnObject.h"
 #include "JSStaticScopeObject.h"
@@ -133,8 +134,6 @@ JSGlobalData::JSGlobalData(bool isShared, const VPtrSet& vptrSet)
 #endif
     , heap(this)
     , initializingLazyNumericCompareFunction(false)
-    , newParserObjects(0)
-    , parserObjectExtraRefCounts(0)
     , head(0)
     , dynamicGlobalObject(0)
     , scopeNodeBeingReparsed(0)
@@ -161,6 +160,10 @@ JSGlobalData::~JSGlobalData()
     regExpTable->deleteTable();
     regExpConstructorTable->deleteTable();
     stringTable->deleteTable();
+#if ENABLE(JIT)
+    lazyNativeFunctionThunk.clear();
+#endif
+
     delete arrayTable;
     delete dateTable;
     delete mathTable;
@@ -179,9 +182,6 @@ JSGlobalData::~JSGlobalData()
     delete propertyNames;
     deleteIdentifierTable(identifierTable);
 
-    delete newParserObjects;
-    delete parserObjectExtraRefCounts;
-    
     delete clientData;
 }
 
@@ -226,6 +226,13 @@ JSGlobalData*& JSGlobalData::sharedInstanceInternal()
     return sharedInstance;
 }
 
+void JSGlobalData::createNativeThunk()
+{
+#if ENABLE(JIT)
+    lazyNativeFunctionThunk = FunctionBodyNode::createNativeThunk(this);
+#endif
+}
+
 // FIXME: We can also detect forms like v1 < v2 ? -1 : 0, reverse comparison, etc.
 const Vector<Instruction>& JSGlobalData::numericCompareFunction(ExecState* exec)
 {
@@ -243,5 +250,6 @@ const Vector<Instruction>& JSGlobalData::numericCompareFunction(ExecState* exec)
 JSGlobalData::ClientData::~ClientData()
 {
 }
+
 
 } // namespace JSC
