@@ -1,3 +1,14 @@
+2009-05-06  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+        implement the FileSystemPosix listDirectory.
+
+        * Filesystem/WebCore/CMakeLists.txt:
+        * Filesystem/WebCore/Posix/BCFileSystemPosix.cpp:
+        (WebCore::filenameFromString):
+        (WebCore::filenameToString):
+        (WebCore::listDirectory):
+
 2009-05-04  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.

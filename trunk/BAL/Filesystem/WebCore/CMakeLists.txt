@@ -10,7 +10,6 @@ endif(USE_FILESYSTEM_ACCESS_GLIB)
 
 if(USE_FILESYSTEM_ACCESS_POSIX)
     aux_source_directory(${BAL_DIR}/Filesystem/WebCore/Posix WEBCORE_SRC)
-    aux_source_directory(${BAL_DIR}/Filesystem/WebCore/SDL WEBCORE_SRC)
 endif(USE_FILESYSTEM_ACCESS_POSIX)
 
 if(USE_FILESYSTEM_ACCESS_QT)
