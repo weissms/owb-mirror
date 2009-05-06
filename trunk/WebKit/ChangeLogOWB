@@ -1,3 +1,21 @@
+2009-05-06  Sebastien Roret  <sroret@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings): Enable offline web
+        application cache if OFFLINE_WEB_APPLICATIONS is enabled.
+        (WebPreferences::setOfflineWebApplicationCacheEnabled): Added.
+        (WebPreferences::offlineWebApplicationCacheEnabled): Added.
+        * OrigynWebBrowser/Api/WebPreferences.h: ditto.
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebKitSetApplicationCachePathIfNecessary): Added. Sets cache
+        directory.
+        (WebView::WebView): now calls
+        WebKitSetApplicationCachePathIfNecessary().
+        (WebView::notifyPreferencesChanged): Change settings according to
+        preferences->offlineWebApplicationCacheEnabled()
+
 2009-04-23  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

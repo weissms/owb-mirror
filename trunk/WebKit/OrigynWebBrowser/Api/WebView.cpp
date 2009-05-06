@@ -55,7 +55,7 @@
 #include "WebPreferences.h"
 #include "WebViewPrivate.h"
 
-#if ENABLE(STORAGE)
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
 #include <ApplicationCacheStorage.h>
 #endif
 #include <AXObjectCache.h>
@@ -237,6 +237,22 @@ enum {
 
 bool WebView::s_allowSiteSpecificHacks = false;
 
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+static void WebKitSetApplicationCachePathIfNecessary()
+{
+    static bool initialized = false;
+    if (initialized)
+        return;
+
+    WebCore::String path = WebCore::pathByAppendingComponent(WebCore::homeDirectoryPath(), "ApplicationCache");
+
+    if (!path.isNull())
+        cacheStorage().setCacheDirectory(path);
+
+    initialized = true;
+}
+#endif
+
 WebView::WebView()
     : /*m_hostWindow(0)
     ,*/ m_viewWindow(0)
@@ -301,6 +317,9 @@ WebView::WebView()
 
 #if ENABLE(DATABASE)
     WebKitSetWebDatabasesPathIfNecessary();
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+    WebKitSetApplicationCachePathIfNecessary();
+#endif
 #endif
 
     addToAllWebViewsSet();
@@ -2193,6 +2212,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 
     enabled = preferences->authorAndUserStylesEnabled();
     settings->setAuthorAndUserStylesEnabled(enabled);
+
+    enabled = preferences->offlineWebApplicationCacheEnabled();
+    settings->setOfflineWebApplicationCacheEnabled(enabled);
 
 /*    if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME*/

@@ -159,6 +159,12 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitCacheModelPreferenceKey, String::number(WebCacheModelDocumentViewer));
 
     m_privatePrefs.add(WebKitAuthorAndUserStylesEnabledPreferenceKey, "1");//TRUE
+
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+    m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "1");
+#else
+    m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "0");
+#endif
 }
 
 String WebPreferences::valueForKey(String key)
@@ -745,4 +751,13 @@ void WebPreferences::didRemoveFromWebView()
     ASSERT(m_numWebViews);
     if (--m_numWebViews == 0)
         WebCore::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesRemovedNotification(), "", this);
+}
+
+void WebPreferences::setOfflineWebApplicationCacheEnabled(bool enabled)
+{
+    setBoolValue(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, enabled);
+}
+bool WebPreferences::offlineWebApplicationCacheEnabled()
+{
+    return boolValueForKey(WebKitOfflineWebApplicationCacheEnabledPreferenceKey);
 }

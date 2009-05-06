@@ -617,6 +617,16 @@ public:
      */
     void postPreferencesChangesNotification();
 
+    /**
+     * Enable offline web application
+     */
+    void setOfflineWebApplicationCacheEnabled(bool enabled);
+
+    /**
+     * Tell if offline web application cache is enabled
+     */
+    bool offlineWebApplicationCacheEnabled();
+
 protected:
 
     /**
