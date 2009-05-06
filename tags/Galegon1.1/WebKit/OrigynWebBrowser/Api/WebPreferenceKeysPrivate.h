@@ -110,3 +110,5 @@
 #define WebKitPaintCustomScrollbarsPreferenceKey "WebKitPaintCustomScrollbars"
 
 #define WebKitZoomsTextOnlyPreferenceKey "WebKitZoomsTextOnly"
+
+#define WebKitOfflineWebApplicationCacheEnabledPreferenceKey "WebKitOfflineWebApplicationCacheEnabled" // default: false
