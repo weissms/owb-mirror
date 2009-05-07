@@ -31,6 +31,7 @@
 #include "KURL.h"
 #include "PluginPackage.h"
 #include <stdlib.h>
+#include "CString.h"
 
 namespace WebCore {
 
@@ -351,10 +352,10 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
     // FIXME: This should be a case insensitive set.
     HashSet<String> uniqueFilenames;
 
-#if defined(XP_UNIX)
+#if defined(XP_UNIX) && PLATFORM(X11)
     String fileNameFilter("*.so");
 #else
-    String fileNameFilter("");
+    String fileNameFilter(".*\\.so");
 #endif
 
     Vector<String>::const_iterator dirsEnd = m_pluginDirectories.end();
@@ -364,8 +365,8 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
         for (Vector<String>::const_iterator pIt = pluginPaths.begin(); pIt != pluginsEnd; ++pIt) {
             if (!fileExists(*pIt))
                 continue;
-
             paths.add(*pIt);
+printf("PluginDatabase adding %s\n", pIt->utf8().data());
         }
     }
 }

@@ -82,9 +82,6 @@ if(USE_FILESYSTEM_ACCESS_POSIX)
     create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCFileSystemWK.h BAL/FileSystem.h)
 
     aux_source_directory(${BAL_DIR}/Facilities/WebCore/Posix WEBCORE_SRC)
-    list(APPEND WEBCORE_SRC
-        ${BAL_DIR}/Facilities/WebCore/SDL/BCFileSystemSDL.cpp
-    )
 endif(USE_FILESYSTEM_ACCESS_POSIX)
 
 if(USE_FILESYSTEM_ACCESS_QT)

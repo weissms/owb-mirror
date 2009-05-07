@@ -1,3 +1,11 @@
+2009-05-07  Sebastien Roret  <sroret@pleyo.com>
+
+        Tuning to enable NPAPI plugins.
+
+        * cmake/AddGlobalCompilerFlags.cmake: Added -DWTF_PLATFORM_X11 for QT
+          and GTK.
+        * cmake/CheckNPAPI.cmake:
+
 2009-02-08  Mario Bensi  <mbensi@pleyo.com>
 
         Add Resources.

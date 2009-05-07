@@ -1,3 +1,16 @@
+2009-05-07  Sebastien Roret  <sroret@pleyo.com>
+
+        Enabling generic NPAPI support.
+
+        * Facilities/WebCore/CMakeLists.txt:
+        * Facilities/WebCore/Posix/BCFileSystemPosix.cpp:
+        (WebCore::filenameFromString):
+        (WebCore::filenameToString):
+        (WebCore::listDirectory):
+        * Facilities/WebCore/SDL/BCFileSystemSDL.cpp: Removed.
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::ResourceHandleManager::downloadTimerCallback):
+
 2009-03-12  Olivier DOLE  <odole@pleyo.com>
 
         Re-enable cookie storage in database if database is enabled.

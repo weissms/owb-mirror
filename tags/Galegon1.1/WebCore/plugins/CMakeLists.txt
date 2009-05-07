@@ -25,23 +25,25 @@ if(ENABLE_NPAPI)
             plugins/gtk/PluginViewGtk.cpp
             plugins/gtk/gtk2xtbin.c
         )
-    endif(USE_GRAPHICS_GTK)
-
-    if(USE_GRAPHICS_QT)
+    elseif(USE_GRAPHICS_QT)
         list(APPEND WEBCORE_SRC
             plugins/qt/PluginPackageQt.cpp
             plugins/qt/PluginDataQt.cpp
             plugins/qt/PluginViewQt.cpp
         )
-    endif(USE_GRAPHICS_QT)
-
-    if(USE_GRAPHICS_SDL)
+    elseif(USE_GRAPHICS_SDL)
         list(APPEND WEBCORE_SRC
             plugins/SDL/PluginPackageSDL.cpp
             plugins/SDL/PluginDataSDL.cpp
             plugins/SDL/PluginViewSDL.cpp
         )
-    endif(USE_GRAPHICS_SDL)
+    else(USE_GRAPHICS_GTK)
+        list(APPEND WEBCORE_SRC
+            plugins/Generic/PluginPackageGeneric.cpp
+            plugins/Generic/PluginDataGeneric.cpp
+            plugins/Generic/PluginViewGeneric.cpp
+        )
+    endif(USE_GRAPHICS_GTK)
 else(ENABLE_NPAPI)
      list(APPEND WEBCORE_SRC
          plugins/Empty/PluginDataEmpty.cpp
