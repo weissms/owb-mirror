@@ -94,7 +94,7 @@
 #endif
 
 #ifdef XP_UNIX
-#if !PLATFORM(SDL)
+#if PLATFORM(X11)
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
 #endif
@@ -251,7 +251,7 @@ typedef struct
 typedef struct
 {
     int32           type;
-#if !PLATFORM(SDL)
+#if PLATFORM(X11)
     Display*        display;
     Visual*         visual;
     Colormap        colormap;
