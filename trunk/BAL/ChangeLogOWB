@@ -1,3 +1,10 @@
+2009-05-08  Mario Bensi  <mbensi@pleyo.com>
+
+        fix drt script.
+
+        * Scripts/Drt/runtests.py:
+        * Scripts/Drt/testsList.py:
+
 2009-05-06  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Sebastien Roret.

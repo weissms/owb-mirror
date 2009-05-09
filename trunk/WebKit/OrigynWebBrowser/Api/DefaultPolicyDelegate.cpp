@@ -126,24 +126,10 @@ void DefaultPolicyDelegate::decidePolicyForMIMEType(
     if (!canShowMIMEType && type && 0 == strlen(type))
         canShowMIMEType = true;
 
-    String url = request->URL();
-
-    if (url.startsWith("file:")) {
-        bool isDirectory = false;
-        struct stat st;
-        if (stat(url.utf8().data(), &st))
-            isDirectory = S_ISDIR(st.st_mode);
-
-        if (isDirectory)
-            listener->ignore();
-        else if(canShowMIMEType)
-            listener->use();
-        else
-            listener->ignore();
-    } else if (canShowMIMEType)
+    if (canShowMIMEType)
         listener->use();
     else
-        listener->download();
+        listener->download(); 
 }
 
 void DefaultPolicyDelegate::unableToImplementPolicyWithError(

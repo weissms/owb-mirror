@@ -59,20 +59,17 @@ class RunTests :
 
     def __startTest(self, test) :
         self.startTime = time.time()       
-#        out = os.popen(self.drtPath + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp")
-#        out = subprocess.Popen(self.drtPath + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdout=subprocess.PIPE, close_fds=True)
         out = subprocess.Popen(self.drtPath + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         (child_stdin, child_stdout, child_stderr) = (out.stdin, out.stdout, out.stderr)
         self.pid = out.pid
+        out.wait()
         self.time += time.time() - self.startTime
-#        outprint = out.stdout.read()
-        outprint = child_stdout.read()
-        outprint = outprint[:outprint.find("#EOF")]
+        outprint = ""
+        if not self.timeout :
+            outprint = child_stdout.read()
+            outprint = outprint[:outprint.find("#EOF")]
         if outprint == "" :
             if not self.timeout :
-                #print child_stdin.read()
-                #print "----"
-                #print child_stderr.read()
                 print test[test.rfind("/") + 1:] + ": crashed"
                 self.resultCrashed[test] =  [self.time, "", ""]
                 return
@@ -128,7 +125,7 @@ class RunTests :
         self.time += time.time() - self.startTime
         self.timeout = True
         if self.pid != 0 :
-            os.kill(self.pid, 15)
+            os.kill(self.pid, 9)
             self.pid = 0
         print test[test.rfind("/") + 1:] + ": timeout"
 

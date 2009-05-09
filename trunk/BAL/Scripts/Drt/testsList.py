@@ -16,7 +16,7 @@ class TestsList :
                     for li in self.__createList(path + "/" + fname) :
                         testsList.append(li)
             else :
-                if fname.find(".html") != -1 :
+                if fname.find(".html") != -1 and fname.find("-disabled") == -1 :
                     testsList.append(path + "/" + fname)
         return testsList
 

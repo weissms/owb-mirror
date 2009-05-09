@@ -220,9 +220,14 @@ WebFrame::~WebFrame()
     m_bindingJS = 0;
 #endif
 
+    std::vector<WebFrame*> child = children();
+    std::vector<WebFrame*>::iterator it = child.begin();
+    for (; it != child.end(); ++it)
+        delete (*it);
+
     delete d;
-    if (m_loadClient)
-        delete m_loadClient;
+    /*if (m_loadClient)
+        delete m_loadClient;*/
 }
 
 WebFrame* WebFrame::createInstance()

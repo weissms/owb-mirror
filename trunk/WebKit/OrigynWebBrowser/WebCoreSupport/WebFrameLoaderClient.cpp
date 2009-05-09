@@ -735,16 +735,25 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
     //webFrame->ref();
 
     RefPtr<Frame> childFrame = webFrame->init(m_webFrame->webView(), coreFrame->page(), ownerElement);
+    childFrame->ref();
 
     coreFrame->tree()->appendChild(childFrame);
     childFrame->tree()->setName(name);
     childFrame->init();
 
+    // The creation of the frame may have run arbitrary JavaScript that removed it from the page already.
+    if (!childFrame->page()) {
+        delete webFrame;
+        return 0;
+    }
+
     childFrame->loader()->loadURLIntoChildFrame(url, referrer, childFrame.get());
 
     // The frame's onload handler may have removed it from the document.
-    if (!childFrame->tree()->parent())
+    if (!childFrame->tree()->parent()) {
+        delete webFrame;
         return 0;
+    }
 
     return childFrame.release();
 }
@@ -892,10 +901,10 @@ bool WebFrameLoaderClient::canHandleRequest(const ResourceRequest& request) cons
     return WebView::canHandleRequest(request);
 }
 
-bool WebFrameLoaderClient::canShowMIMEType(const String& /*MIMEType*/) const
+bool WebFrameLoaderClient::canShowMIMEType(const String& type) const
 {
-    BalNotImplemented();
-    return true;
+    return MIMETypeRegistry::isSupportedImageMIMEType(type) || MIMETypeRegistry::isSupportedNonImageMIMEType(type) ||
+            PluginDatabase::installedPlugins()->isMIMETypeRegistered(type);
 }
 
 bool WebFrameLoaderClient::representationExistsForURLScheme(const String& /*URLScheme*/) const
