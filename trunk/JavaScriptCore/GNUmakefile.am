@@ -138,6 +138,7 @@ javascriptcore_sources += \
 	JavaScriptCore/assembler/AssemblerBuffer.h \
 	JavaScriptCore/assembler/MacroAssembler.h \
 	JavaScriptCore/assembler/MacroAssemblerX86.h \
+	JavaScriptCore/assembler/MacroAssemblerX86_64.h \
 	JavaScriptCore/assembler/MacroAssemblerX86Common.h \
 	JavaScriptCore/os-win32/stdbool.h \
 	JavaScriptCore/os-win32/stdint.h \
@@ -180,6 +181,8 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/JSNotAnObject.h \
 	JavaScriptCore/runtime/JSPropertyNameIterator.cpp \
 	JavaScriptCore/runtime/JSPropertyNameIterator.h \
+	JavaScriptCore/runtime/LiteralParser.cpp \
+	JavaScriptCore/runtime/LiteralParser.h \
 	JavaScriptCore/runtime/SmallStrings.cpp \
 	JavaScriptCore/runtime/SmallStrings.h \
 	JavaScriptCore/runtime/Structure.cpp \
@@ -294,6 +297,7 @@ javascriptcore_sources += \
 	JavaScriptCore/debugger/Debugger.h \
 	JavaScriptCore/parser/Lexer.cpp \
 	JavaScriptCore/parser/Lexer.h \
+	JavaScriptCore/parser/NodeConstructors.h \
 	JavaScriptCore/parser/NodeInfo.h \
 	JavaScriptCore/parser/Nodes.cpp \
 	JavaScriptCore/parser/Nodes.h \
@@ -394,6 +398,7 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/NativeErrorConstructor.h \
 	JavaScriptCore/runtime/NativeErrorPrototype.cpp \
 	JavaScriptCore/runtime/NativeErrorPrototype.h \
+	JavaScriptCore/runtime/NativeFunctionWrapper.h \
 	JavaScriptCore/runtime/NumberConstructor.cpp \
 	JavaScriptCore/runtime/NumberConstructor.h \
 	JavaScriptCore/runtime/NumberObject.cpp \

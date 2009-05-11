@@ -37,6 +37,7 @@
 #import "ResourceError.h"
 #import "ResourceResponse.h"
 #import "SchedulePair.h"
+#import "Settings.h"
 #import "SharedBuffer.h"
 #import "SubresourceLoader.h"
 #import "WebCoreSystemInterface.h"
@@ -47,26 +48,6 @@ typedef int NSInteger;
 #endif
 
 using namespace WebCore;
-
-class WebCoreCredentialStorage {
-public:
-    static void set(NSURLCredential *credential, NSURLProtectionSpace *protectionSpace)
-    {
-        if (!m_storage)
-            m_storage = [[NSMutableDictionary alloc] init];
-        [m_storage setObject:credential forKey:protectionSpace];
-    }
-
-    static NSURLCredential *get(NSURLProtectionSpace *protectionSpace)
-    {
-        return static_cast<NSURLCredential *>([m_storage objectForKey:protectionSpace]);
-    }
-
-private:
-    static NSMutableDictionary* m_storage;
-};
-
-NSMutableDictionary* WebCoreCredentialStorage::m_storage;
 
 @interface WebCoreResourceHandleAsDelegate : NSObject <NSURLAuthenticationChallengeSender>
 {
@@ -172,6 +153,8 @@ bool ResourceHandle::start(Frame* frame)
 
     if (!ResourceHandle::didSendBodyDataDelegateExists())
         associateStreamWithResourceHandle([d->m_request.nsURLRequest() HTTPBodyStream], this);
+
+    d->m_needsSiteSpecificQuirks = frame->settings() && frame->settings()->needsSiteSpecificQuirks();
 
     NSURLConnection *connection;
     
@@ -474,9 +457,10 @@ void ResourceHandle::receivedCredential(const AuthenticationChallenge& challenge
         [[d->m_currentMacChallenge sender] useCredential:mac(webCredential) forAuthenticationChallenge:d->m_currentMacChallenge];
     } else
 #else
-    if (credential.persistence() == CredentialPersistenceForSession) {
+    if (credential.persistence() == CredentialPersistenceForSession && (!d->m_needsSiteSpecificQuirks || ![[[mac(challenge) protectionSpace] host] isEqualToString:@"gallery.me.com"])) {
         // Manage per-session credentials internally, because once NSURLCredentialPersistenceForSession is used, there is no way
         // to ignore it for a particular request (short of removing it altogether).
+        // <rdar://problem/6867598> gallery.me.com is temporarily whitelisted, so that QuickTime plug-in could see the credentials.
         Credential webCredential(credential.user(), credential.password(), CredentialPersistenceNone);
         WebCoreCredentialStorage::set(mac(webCredential), [d->m_currentMacChallenge protectionSpace]);
         [[d->m_currentMacChallenge sender] useCredential:mac(webCredential) forAuthenticationChallenge:d->m_currentMacChallenge];

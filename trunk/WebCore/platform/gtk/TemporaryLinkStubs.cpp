@@ -56,10 +56,6 @@ Vector<char> loadResourceIntoArray(const char* resourceName)
 /* Completely empty stubs (mostly to allow DRT to run): */
 /********************************************************/
 
-#if ENABLE(NETSCAPE_PLUGIN_API)
-void PluginView::invalidateRegion(NPRegion) { notImplemented(); }
-#endif
-
 namespace WebCore {
 void getSupportedKeySizes(Vector<String>&) { notImplemented(); }
 String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String &challengeString, const KURL &url) { return String(); }

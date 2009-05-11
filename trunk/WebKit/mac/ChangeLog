@@ -1,3 +1,58 @@
+2009-05-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6870383> Have to enter credentials twice when downloading from a protected page
+
+        * Misc/WebDownload.m: Removed.
+        * Misc/WebDownload.mm: Copied from WebKit/mac/Misc/WebDownload.m.
+        (-[WebDownloadInternal download:didReceiveAuthenticationChallenge:]): Try to use
+        credentials from WebCore storage.
+
+2009-05-08  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Not reviewed. Fix clean builds, forgot to land name() -> formControlName() rename patch in WebKit. Only landed the WebCore side.
+
+        * WebView/WebHTMLRepresentation.mm:
+        (-[WebHTMLRepresentation elementWithName:inForm:]):
+
+2009-05-08  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        - Fix <rdar://problem/6866712>.
+
+        Instead of just caching whether a plug-in object _has_ a field or method, also add an entry to the cache
+        if it _doesn't_ have a certain field or method. This way we have to make fewer calls to the plug-in host.
+        
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyInstance::methodsNamed):
+        (WebKit::ProxyInstance::fieldNamed):
+
+2009-05-08  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fixes for <rdar://problem/6852771>.
+        Disable text checking menu items if view is not editable.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]):
+        (-[WebHTMLView smartInsertDeleteEnabled]):
+        (-[WebHTMLView setSmartInsertDeleteEnabled:]):
+        (-[WebHTMLView toggleSmartInsertDelete:]):
+        * WebView/WebHTMLViewInternal.h:
+
+2009-05-08  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        <rdar://problem/6868773> NPN_GetAuthenticationInfo does not work with non-permanent credentials
+
+        * Plugins/WebBaseNetscapePluginView.mm: (WebKit::getAuthenticationInfo): Ask WebCore for
+        credentials first (but also ask NSURLCredentialStorage, because WebCore won't know about
+        permanent credentials).
+
 2009-05-06  Ben Murdoch  <benm@google.com>
 
         Reviewed by Eric Seidel.

@@ -57,3 +57,9 @@ if(USE_I18N_QT)
         editing/qt/EditorQt.cpp
     )
 endif(USE_I18N_QT)
+
+if(USE_GRAPHICS_GTK)
+    list(APPEND WEBCORE_SRC
+       editing/gtk/SelectionControllerGtk.cpp
+    )
+endif(USE_GRAPHICS_GTK)

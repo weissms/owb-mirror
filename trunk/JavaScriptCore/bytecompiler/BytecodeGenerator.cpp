@@ -262,7 +262,7 @@ BytecodeGenerator::BytecodeGenerator(ProgramNode* programNode, const Debugger* d
         m_nextGlobalIndex -= symbolTable->size();
 
         for (size_t i = 0; i < functionStack.size(); ++i) {
-            FuncDeclNode* funcDecl = functionStack[i].get();
+            FuncDeclNode* funcDecl = functionStack[i];
             globalObject->removeDirect(funcDecl->m_ident); // Make sure our new function is not shadowed by an old property.
             emitNewFunction(addGlobalVar(funcDecl->m_ident, false), funcDecl);
         }
@@ -278,7 +278,7 @@ BytecodeGenerator::BytecodeGenerator(ProgramNode* programNode, const Debugger* d
             emitLoad(newVars[i], jsUndefined());
     } else {
         for (size_t i = 0; i < functionStack.size(); ++i) {
-            FuncDeclNode* funcDecl = functionStack[i].get();
+            FuncDeclNode* funcDecl = functionStack[i];
             globalObject->putWithAttributes(exec, funcDecl->m_ident, funcDecl->makeFunction(exec, scopeChain.node()), DontDelete);
         }
         for (size_t i = 0; i < varStack.size(); ++i) {
@@ -337,7 +337,7 @@ BytecodeGenerator::BytecodeGenerator(FunctionBodyNode* functionBody, const Debug
 
     const DeclarationStacks::FunctionStack& functionStack = functionBody->functionStack();
     for (size_t i = 0; i < functionStack.size(); ++i) {
-        FuncDeclNode* funcDecl = functionStack[i].get();
+        FuncDeclNode* funcDecl = functionStack[i];
         const Identifier& ident = funcDecl->m_ident;
         m_functions.add(ident.ustring().rep());
         emitNewFunction(addVar(ident, false), funcDecl);
@@ -647,6 +647,21 @@ PassRefPtr<Label> BytecodeGenerator::emitJumpIfFalse(RegisterID* cond, Label* ta
         if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
             rewindBinaryOp();
             emitOpcode(op_jnless);
+            instructions().append(src1Index);
+            instructions().append(src2Index);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
+    } else if (m_lastOpcodeID == op_lesseq) {
+        int dstIndex;
+        int src1Index;
+        int src2Index;
+
+        retrieveLastBinaryOp(dstIndex, src1Index, src2Index);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindBinaryOp();
+            emitOpcode(op_jnlesseq);
             instructions().append(src1Index);
             instructions().append(src2Index);
             instructions().append(target->offsetFrom(instructions().size()));
@@ -1359,7 +1374,7 @@ RegisterID* BytecodeGenerator::emitCall(OpcodeID opcodeID, RegisterID* dst, Regi
     // Generate code for arguments.
     Vector<RefPtr<RegisterID>, 16> argv;
     argv.append(thisRegister);
-    for (ArgumentListNode* n = argumentsNode->m_listNode.get(); n; n = n->m_next.get()) {
+    for (ArgumentListNode* n = argumentsNode->m_listNode; n; n = n->m_next) {
         argv.append(newTemporary());
         // op_call requires the arguments to be a sequential range of registers
         ASSERT(argv[argv.size() - 1]->index() == argv[argv.size() - 2]->index() + 1);
@@ -1482,7 +1497,7 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
     // Generate code for arguments.
     Vector<RefPtr<RegisterID>, 16> argv;
     argv.append(newTemporary()); // reserve space for "this"
-    for (ArgumentListNode* n = argumentsNode ? argumentsNode->m_listNode.get() : 0; n; n = n->m_next.get()) {
+    for (ArgumentListNode* n = argumentsNode ? argumentsNode->m_listNode : 0; n; n = n->m_next) {
         argv.append(newTemporary());
         // op_construct requires the arguments to be a sequential range of registers
         ASSERT(argv[argv.size() - 1]->index() == argv[argv.size() - 2]->index() + 1);
@@ -1531,6 +1546,23 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
     }
 
     return dst;
+}
+
+RegisterID* BytecodeGenerator::emitStrcat(RegisterID* dst, RegisterID* src, int count)
+{
+    emitOpcode(op_strcat);
+    instructions().append(dst->index());
+    instructions().append(src->index());
+    instructions().append(count);
+
+    return dst;
+}
+
+void BytecodeGenerator::emitToPrimitive(RegisterID* dst, RegisterID* src)
+{
+    emitOpcode(op_to_primitive);
+    instructions().append(dst->index());
+    instructions().append(src->index());
 }
 
 RegisterID* BytecodeGenerator::emitPushScope(RegisterID* scope)
@@ -1694,14 +1726,10 @@ PassRefPtr<Label> BytecodeGenerator::emitComplexJumpScopes(Label* target, Contro
             emitLabel(nextInsn.get());
         }
 
-        // To get here there must be at least one finally block present
-        do {
-            ASSERT(topScope->isFinallyBlock);
+        while (topScope > bottomScope && topScope->isFinallyBlock) {
             emitJumpSubroutine(topScope->finallyContext.retAddrDst, topScope->finallyContext.finallyAddr);
             --topScope;
-            if (!topScope->isFinallyBlock)
-                break;
-        } while (topScope > bottomScope);
+        }
     }
     return emitJump(target);
 }

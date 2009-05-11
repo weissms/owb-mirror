@@ -7,3 +7,6 @@ if(ENABLE_DEBUG)
         parser/Parser.cpp
     )
 endif(ENABLE_DEBUG)
+list(APPEND JSC_SRC
+    parser/ParserArena.cpp
+)

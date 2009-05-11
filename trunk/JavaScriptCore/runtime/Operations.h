@@ -277,6 +277,58 @@ namespace JSC {
         return JSValue();
     }
 
+    ALWAYS_INLINE JSValue concatenateStrings(CallFrame* callFrame, Register* strings, unsigned count)
+    {
+        ASSERT(count >= 3);
+
+        // Estimate the amount of space required to hold the entire string.  If all
+        // arguments are strings, we can easily calculate the exact amount of space
+        // required.  For any other arguments, for now let's assume they may require
+        // 11 UChars of storage.  This is enouch to hold any int, and likely is also
+        // reasonable for the other immediates.  We may want to come back and tune
+        // this value at some point.
+        unsigned bufferSize = 0;
+        for (unsigned i = 0; i < count; ++i) {
+            JSValue v = strings[i].jsValue();
+            if (LIKELY(v.isString()))
+                bufferSize += asString(v)->value().size();
+            else
+                bufferSize += 11;
+        }
+
+        // Allocate an output string to store the result.
+        // If the first argument is a String, and if it has the capacity (or can grow
+        // its capacity) to hold the entire result then use this as a base to concatenate
+        // onto.  Otherwise, allocate a new empty output buffer.
+        JSValue firstValue = strings[0].jsValue();
+        RefPtr<UString::Rep> resultRep;
+        if (firstValue.isString() && (resultRep = asString(firstValue)->value().rep())->reserveCapacity(bufferSize)) {
+            // We're going to concatenate onto the first string - remove it from the list of items to be appended.
+            ++strings;
+            --count;
+        } else
+            resultRep = UString::Rep::createEmptyBuffer(bufferSize);
+        UString result(resultRep);
+
+        // Loop over the openards, writing them into the output buffer.
+        for (unsigned i = 0; i < count; ++i) {
+            JSValue v = strings[i].jsValue();
+            if (LIKELY(v.isString()))
+                result.append(asString(v)->value());
+            else if (v.isInt32Fast())
+                result.appendNumeric(v.getInt32Fast());
+            else {
+                double d;
+                if (v.getNumber(d))
+                    result.appendNumeric(d);
+                else
+                    result.append(v.toString(callFrame));
+            }
+        }
+
+        return jsString(callFrame, result);
+    }
+
 } // namespace JSC
 
 #endif // Operations_h

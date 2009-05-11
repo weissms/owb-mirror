@@ -84,6 +84,16 @@ namespace JSC {
                 return adoptRef(new BaseString(buffer, length));
             }
 
+            static PassRefPtr<Rep> createEmptyBuffer(size_t size)
+            {
+                // Guard against integer overflow
+                if (size < (std::numeric_limits<size_t>::max() / sizeof(UChar))) {
+                    if (void * buf = tryFastMalloc(size * sizeof(UChar)))
+                        return adoptRef(new BaseString(static_cast<UChar*>(buf), 0, size));
+                }
+                return adoptRef(new BaseString(0, 0, 0));
+            }
+
             static PassRefPtr<Rep> createCopying(const UChar*, int);
             static PassRefPtr<Rep> create(PassRefPtr<Rep> base, int offset, int length);
 
@@ -131,6 +141,8 @@ namespace JSC {
 
             static BaseString& null() { return *nullBaseString; }
             static BaseString& empty() { return *emptyBaseString; }
+
+            bool reserveCapacity(int capacity);
 
         protected:
             // constructor for use by BaseString subclass; they are their own bases
@@ -180,12 +192,12 @@ namespace JSC {
             size_t reportedCost;
 
         private:
-            BaseString(UChar* buffer, int length)
+            BaseString(UChar* buffer, int length, int additionalCapacity = 0)
                 : Rep(length)
                 , buf(buffer)
                 , preCapacity(0)
                 , usedPreCapacity(0)
-                , capacity(length)
+                , capacity(length + additionalCapacity)
                 , usedCapacity(length)
                 , reportedCost(0)
             {
@@ -251,6 +263,8 @@ namespace JSC {
         UString& append(UChar);
         UString& append(char c) { return append(static_cast<UChar>(static_cast<unsigned char>(c))); }
         UString& append(const UChar*, int size);
+        UString& appendNumeric(int);
+        UString& appendNumeric(double);
 
         bool getCString(CStringBuffer&) const;
 
@@ -313,6 +327,17 @@ namespace JSC {
         }
 
         size_t cost() const;
+
+        // Attempt to grow this string such that it can grow to a total length of 'capacity'
+        // without reallocation.  This may fail a number of reasons - if the BasicString is
+        // shared and another string is using part of the capacity beyond our end point, if
+        // the realloc fails, or if this string is empty and has no storage.
+        //
+        // This method returns a boolean indicating success.
+        bool reserveCapacity(int capacity)
+        {
+            return m_rep->reserveCapacity(capacity);
+        }
 
     private:
         void expandCapacity(int requiredLength);

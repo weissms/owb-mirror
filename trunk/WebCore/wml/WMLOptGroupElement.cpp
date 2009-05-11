@@ -24,6 +24,7 @@
 #include "WMLOptGroupElement.h"
 
 #include "Document.h"
+#include "MappedAttribute.h"
 #include "HTMLNames.h"
 #include "MappedAttribute.h"
 #include "NodeRenderStyle.h"
@@ -44,7 +45,7 @@ WMLOptGroupElement::~WMLOptGroupElement()
 {
 }
 
-const AtomicString& WMLOptGroupElement::type() const
+const AtomicString& WMLOptGroupElement::formControlType() const
 {
     DEFINE_STATIC_LOCAL(const AtomicString, optgroup, ("optgroup"));
     return optgroup;

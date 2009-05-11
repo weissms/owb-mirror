@@ -834,6 +834,7 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuGtk.cpp	BCContextMenuGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuItemGtk.cpp	BCContextMenuItemGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.h	CursorGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.cpp	BCCursorGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardGtk.cpp	BCPasteboardGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.h

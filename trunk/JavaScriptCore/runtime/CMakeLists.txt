@@ -14,6 +14,7 @@ list(APPEND JSC_SRC
     runtime/JSGlobalData.cpp
     runtime/JSNotAnObject.cpp
     runtime/JSPropertyNameIterator.cpp
+    runtime/LiteralParser.cpp
     runtime/SmallStrings.cpp
     runtime/Structure.cpp
     runtime/StructureChain.cpp

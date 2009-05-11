@@ -32,8 +32,6 @@ list(APPEND WEBCORE_SRC
     dom/EventTarget.cpp
     dom/ExceptionBase.cpp
     dom/ExceptionCode.cpp
-    dom/FormControlElement.cpp
-    dom/FormControlElementWithState.cpp
     dom/InputElement.cpp
     dom/KeyboardEvent.cpp
     dom/MappedAttribute.cpp

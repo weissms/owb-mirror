@@ -1,12 +1,19 @@
 # JavaScriptCore - Qt4 build info
 VPATH += $$PWD
 
-INCLUDEPATH += tmp
+CONFIG(debug, debug|release) {
+    isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = generated/debug
+    OBJECTS_DIR = obj/debug
+} else { # Release
+    isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = generated/release
+    OBJECTS_DIR = obj/release
+}
+
+INCLUDEPATH += $$GENERATED_SOURCES_DIR
 INCLUDEPATH += $$PWD $$PWD/parser $$PWD/bytecompiler $$PWD/debugger $$PWD/runtime $$PWD/wtf $$PWD/wtf/unicode $$PWD/interpreter $$PWD/jit $$PWD/profiler $$PWD/wrec $$PWD/API $$PWD/.. \
                $$PWD/ForwardingHeaders $$PWD/bytecode $$PWD/assembler
-DEFINES += BUILDING_QT__
+DEFINES += BUILDING_QT__ BUILDING_JavaScriptCore BUILDING_WTF
 
-isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = tmp
 GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR/
 win32-* {
     GENERATED_SOURCES_DIR_SLASH ~= s|/|\|
@@ -15,9 +22,9 @@ win32-* {
 
 # Default rules to turn JIT on/off
 !contains(DEFINES, ENABLE_JIT=.) {
-    CONFIG(release):isEqual(QT_ARCH,i386) {
+    isEqual(QT_ARCH,i386)|isEqual(QT_ARCH,windows) {
         # Require gcc >= 4.1
-        linux-g++*:greaterThan(QT_GCC_MAJOR_VERSION,3):greaterThan(QT_GCC_MINOR_VERSION,0) {
+        CONFIG(release):linux-g++*:greaterThan(QT_GCC_MAJOR_VERSION,3):greaterThan(QT_GCC_MINOR_VERSION,0) {
             DEFINES += ENABLE_JIT=1
         }
         win32-msvc* {
@@ -87,6 +94,7 @@ SOURCES += \
     runtime/JSVariableObject.cpp \
     runtime/JSActivation.cpp \
     runtime/JSNotAnObject.cpp \
+    runtime/LiteralParser.cpp \
     runtime/TimeoutChecker.cpp \
     bytecode/CodeBlock.cpp \
     bytecode/StructureStubInfo.cpp \
@@ -218,7 +226,7 @@ addExtraCompiler(keywordlut)
 
 # GENERATOR 2: bison grammar
 jscbison.output = $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.cpp
-jscbison.commands = bison -d -p jscyy ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_BASE}.tab.c && $(MOVE) ${QMAKE_FILE_BASE}.tab.c ${QMAKE_FILE_OUT} && $(MOVE) ${QMAKE_FILE_BASE}.tab.h $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.h
+jscbison.commands = bison -d -p jscyy ${QMAKE_FILE_NAME} -o $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.tab.c && $(MOVE) $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.tab.c ${QMAKE_FILE_OUT} && $(MOVE) $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.tab.h $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.h
 jscbison.depend = ${QMAKE_FILE_NAME}
 jscbison.input = JSCBISON
 jscbison.variable_out = GENERATED_SOURCES

@@ -897,9 +897,16 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
         }
         case op_jnless: {
             int r0 = (++it)->u.operand;
-            JSValue function = JSValue((++it)->u.jsCell);
+            int r1 = (++it)->u.operand;
             int offset = (++it)->u.operand;
-            printf("[%4d] jnless\t\t %s, %s, %d(->%d)\n", location, registerName(r0).c_str(), valueToSourceString(exec, function).ascii(), offset, locationForOffset(begin, it, offset));
+            printf("[%4d] jnless\t\t %s, %s, %d(->%d)\n", location, registerName(r0).c_str(), registerName(r1).c_str(), offset, locationForOffset(begin, it, offset));
+            break;
+        }
+        case op_jnlesseq: {
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            int offset = (++it)->u.operand;
+            printf("[%4d] jnlesseq\t\t %s, %s, %d(->%d)\n", location, registerName(r0).c_str(), registerName(r1).c_str(), offset, locationForOffset(begin, it, offset));
             break;
         }
         case op_loop_if_less: {
@@ -1005,6 +1012,19 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             int r0 = (++it)->u.operand;
             int r1 = (++it)->u.operand;
             printf("[%4d] construct_verify\t %s, %s\n", location, registerName(r0).c_str(), registerName(r1).c_str());
+            break;
+        }
+        case op_strcat: {
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            int count = (++it)->u.operand;
+            printf("[%4d] op_strcat\t %s, %s, %d\n", location, registerName(r0).c_str(), registerName(r1).c_str(), count);
+            break;
+        }
+        case op_to_primitive: {
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            printf("[%4d] op_to_primitive\t %s, %s\n", location, registerName(r0).c_str(), registerName(r1).c_str());
             break;
         }
         case op_get_pnames: {

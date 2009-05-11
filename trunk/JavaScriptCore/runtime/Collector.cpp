@@ -532,6 +532,17 @@ static inline void* currentThreadStackBase()
     stack_t stack;
     pthread_stackseg_np(thread, &stack);
     return stack.ss_sp;
+#elif PLATFORM(SYMBIAN)
+    static void* stackBase = 0;
+    if (stackBase == 0) {
+        TThreadStackInfo info;
+        RThread thread;
+        thread.StackInfo(info);
+        stackBase = (void*)info.iBase;
+    }
+    return (void*)stackBase;
+#elif PLATFORM(AMIGAOS4)
+    return (void*)IExec->FindTask(NULL)->tc_SPUpper;
 #elif PLATFORM(UNIX)
     static void* stackBase = 0;
     static size_t stackSize = 0;
@@ -561,19 +572,6 @@ static inline void* currentThreadStackBase()
 #endif
     }
     return static_cast<char*>(stackBase) + stackSize;
-#elif PLATFORM(SYMBIAN)
-    static void* stackBase = 0;
-    if (stackBase == 0) {
-        TThreadStackInfo info;
-        RThread thread;
-        thread.StackInfo(info);
-        stackBase = (void*)info.iBase;
-    }
-    return (void*)stackBase;
-#elif PLATFORM(AMIGAOS4)
-    return (void*)IExec->FindTask(NULL)->tc_SPUpper;
-#elif PLATFORM(BAL)
-    return (void*)&regs;
 #else
 #error Need a way to get the stack base on this platform
 #endif

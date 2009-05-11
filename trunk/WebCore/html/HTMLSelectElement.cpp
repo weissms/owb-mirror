@@ -109,7 +109,7 @@ void HTMLSelectElement::recalcStyle(StyleChange ch)
     HTMLFormControlElementWithState::recalcStyle(ch);
 }
 
-const AtomicString& HTMLSelectElement::type() const
+const AtomicString& HTMLSelectElement::formControlType() const
 {
     DEFINE_STATIC_LOCAL(const AtomicString, selectMultiple, ("select-multiple"));
     DEFINE_STATIC_LOCAL(const AtomicString, selectOne, ("select-one"));
@@ -270,7 +270,7 @@ void HTMLSelectElement::setValue(const String &value)
         }
 }
 
-bool HTMLSelectElement::saveState(String& value) const
+bool HTMLSelectElement::saveFormControlState(String& value) const
 {
     const Vector<HTMLElement*>& items = listItems();
     int l = items.size();
@@ -284,7 +284,7 @@ bool HTMLSelectElement::saveState(String& value) const
     return true;
 }
 
-void HTMLSelectElement::restoreState(const String& state)
+void HTMLSelectElement::restoreFormControlState(const String& state)
 {
     recalcListItems();
     
@@ -457,17 +457,16 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates) const
 {
     m_listItems.clear();
     HTMLOptionElement* foundSelected = 0;
-    for (Node* current = firstChild(); current; current = current->traverseNextSibling(this)) {
-        if (current->hasTagName(optgroupTag) && current->firstChild()) {
-            // FIXME: It doesn't make sense to add an optgroup to the list items,
-            // when it has children, but not to add it if it happens to have,
-            // children (say some comment nodes or text nodes), yet that's what
-            // this code does!
+    for (Node* current = firstChild(); current;) {
+        // optgroup tags may not nest. However, both FireFox and IE will
+        // flatten the tree automatically, so we follow suit.
+        // (http://www.w3.org/TR/html401/interact/forms.html#h-17.6)
+        if (current->hasTagName(optgroupTag)) {
             m_listItems.append(static_cast<HTMLElement*>(current));
-            current = current->firstChild();
-            // FIXME: It doesn't make sense to handle an <optgroup> inside another <optgroup>
-            // if it's not the first child, but not handle it if it happens to be the first
-            // child, yet that's what this code does!
+            if (current->firstChild()) {
+                current = current->firstChild();
+                continue;
+            }
         }
 
         if (current->hasTagName(optionTag)) {
@@ -484,6 +483,14 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates) const
         }
         if (current->hasTagName(hrTag))
             m_listItems.append(static_cast<HTMLElement*>(current));
+
+        // In conforming HTML code, only <optgroup> and <option> will be found
+        // within a <select>. We call traverseNextSibling so that we only step
+        // into those tags that we choose to. For web-compat, we should cope
+        // with the case where odd tags like a <div> have been added but we
+        // handle this because such tags have already been removed from the
+        // <select>'s subtree at this point.
+        current = current->traverseNextSibling(this);
     }
     m_recalcListItems = false;
 }

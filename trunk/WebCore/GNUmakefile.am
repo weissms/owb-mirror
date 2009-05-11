@@ -622,10 +622,6 @@ webcore_sources += \
 	WebCore/dom/ExceptionBase.h \
 	WebCore/dom/ExceptionCode.cpp \
 	WebCore/dom/ExceptionCode.h \
-	WebCore/dom/FormControlElementWithState.cpp \
-	WebCore/dom/FormControlElementWithState.h \
-	WebCore/dom/FormControlElement.cpp \
-	WebCore/dom/FormControlElement.h \
 	WebCore/dom/InputElement.cpp \
 	WebCore/dom/InputElement.h \
 	WebCore/dom/KeyboardEvent.cpp \
@@ -824,6 +820,7 @@ webcore_sources += \
 	WebCore/editing/markup.h \
 	WebCore/editing/visible_units.cpp \
 	WebCore/editing/visible_units.h \
+	WebCore/editing/gtk/SelectionControllerGtk.cpp \
 	WebCore/history/BackForwardList.cpp \
 	WebCore/history/BackForwardList.h \
 	WebCore/history/CachedFrame.cpp \
@@ -964,6 +961,7 @@ webcore_sources += \
 	WebCore/html/HTMLParser.h \
 	WebCore/html/HTMLParserErrorCodes.cpp \
 	WebCore/html/HTMLParserErrorCodes.h \
+	WebCore/html/HTMLParserQuirks.h \
 	WebCore/html/HTMLPlugInElement.cpp \
 	WebCore/html/HTMLPlugInElement.h \
 	WebCore/html/HTMLPlugInImageElement.cpp \
@@ -3187,6 +3185,7 @@ webcore_cppflags += -DDATA_DIR=\"${datadir}\"
 
 webinspectordir = ${datadir}/webkit-1.0/webinspector
 dist_webinspector_DATA = \
+	$(WebCore)/English.lproj/localizedStrings.js \
 	$(shell ls $(WebCore)/inspector/front-end/*.{js,html,css})
 
 webinspectorimagesdir = ${datadir}/webkit-1.0/webinspector/Images

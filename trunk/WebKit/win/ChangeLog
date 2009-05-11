@@ -1,3 +1,33 @@
+2009-05-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6870383> Have to enter credentials twice when downloading from a protected page
+
+        * WebDownloadCFNet.cpp: (WebDownload::didReceiveAuthenticationChallenge): Try to use
+        credentials from WebCore storage.
+
+2009-05-07  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=25640>.
+        Bug 25640: Crash on quit in r43384 nightly build on Leopard w/ Safari 4 beta installed
+        
+        Roll out r43366 as it removed symbols that Safari 4 Beta uses.
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+
+2009-05-06  Steve Falkenburg  <sfalken@apple.com>
+
+        Change default value of WebKitPaintNativeControls to true.
+        
+        Reviewed by Adam Roben.
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
 2009-05-06  Ben Murdoch  <benm@google.com>
 
         Reviewed by Eric Seidel.

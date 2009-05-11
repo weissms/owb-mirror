@@ -77,6 +77,13 @@
 #define WTF_PLATFORM_WIN_CE 1
 #endif
 
+/* PLATFORM(LINUX) */
+/* Operating system level dependencies for Linux-like systems that */
+/* should be used regardless of operating environment */
+#ifdef __linux__
+#define WTF_PLATFORM_LINUX 1
+#endif
+
 /* PLATFORM(FREEBSD) */
 /* Operating system level dependencies for FreeBSD-like systems that */
 /* should be used regardless of operating environment */
@@ -228,7 +235,6 @@
 
 /* PLATFORM(X86_64) */
 #if   defined(__x86_64__) \
-   || defined(__ia64__) \
    || defined(_M_X64)
 #define WTF_PLATFORM_X86_64 1
 #endif
@@ -519,6 +525,20 @@
    || (USE(JIT_STUB_ARGUMENT_REGISTER) && USE(JIT_STUB_ARGUMENT_STACK))
 #error Please do not define more than one of the JIT_STUB_ARGUMENT settings.
 #endif
+#endif
+
+#if PLATFORM(X86_64)
+    #define JSC_HOST_CALL
+#elif COMPILER(MSVC)
+    #define JSC_HOST_CALL __fastcall
+#elif COMPILER(GCC) && PLATFORM(X86)
+    #define JSC_HOST_CALL __attribute__ ((fastcall))
+#else
+    #if ENABLE(JIT)
+    #error Need to support register calling convention in this compiler
+    #else
+    #define JSC_HOST_CALL
+    #endif
 #endif
 
 /* Yet Another Regex Runtime. */

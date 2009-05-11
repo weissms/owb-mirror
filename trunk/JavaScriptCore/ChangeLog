@@ -1,3 +1,1793 @@
+2009-05-11  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Geoff Garen.
+        
+        - fixed REGRESSION(r43432): Many JavaScriptCore tests crash in 64-bit
+        https://bugs.webkit.org/show_bug.cgi?id=25680
+
+        Accound for the 64-bit instruction prefix when rewriting mov to lea on 64-bit.
+        
+        * jit/JIT.h:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchPutByIdReplace):
+
+2009-05-10  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 25674: syntax tree nodes should use arena allocation
+        https://bugs.webkit.org/show_bug.cgi?id=25674
+
+        Part two: Remove reference counting from most nodes.
+
+        * JavaScriptCore.exp: Updated.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added ParserArena.h and .cpp.
+
+        * parser/Grammar.y: Replaced uses of ParserRefCountedData with uses of
+        ParserArenaData. Took out now-nonfunctional code that tries to manually
+        release declaration list. Changed the new calls that create FuncDeclNode
+        and FuncExprNode so that they use the proper version of operator new for
+        the reference-counted idiom, not the deletion idiom.
+
+        * parser/NodeConstructors.h:
+        (JSC::ParserArenaDeletable::operator new): Added.
+        (JSC::ParserArenaRefCounted::ParserArenaRefCounted): Added.
+        (JSC::Node::Node): Removed ParserRefCounted initializer.
+        (JSC::ElementNode::ElementNode): Ditto.
+        (JSC::PropertyNode::PropertyNode): Ditto.
+        (JSC::ArgumentsNode::ArgumentsNode): Ditto.
+        (JSC::SourceElements::SourceElements): Ditto.
+        (JSC::ParameterNode::ParameterNode): Ditto.
+        (JSC::FuncExprNode::FuncExprNode): Added ParserArenaRefCounted initializer.
+        (JSC::FuncDeclNode::FuncDeclNode): Ditto.
+        (JSC::CaseClauseNode::CaseClauseNode): Removed ParserRefCounted initializer.
+        (JSC::ClauseListNode::ClauseListNode): Ditto.
+        (JSC::CaseBlockNode::CaseBlockNode): Ditto.
+
+        * parser/NodeInfo.h: Replaced uses of ParserRefCountedData with uses of
+        ParserArenaData.
+
+        * parser/Nodes.cpp:
+        (JSC::ScopeNode::ScopeNode): Added ParserArenaRefCounted initializer.
+        (JSC::ProgramNode::create): Use the proper version of operator new for
+        the reference-counted idiom, not the deletion idiom. Use the arena
+        contains function instead of the vecctor find function.
+        (JSC::EvalNode::create): Use the proper version of operator new for
+        the reference-counted idiom, not the deletion idiom. Use the arena
+        reset function instead of the vector shrink function.
+        (JSC::FunctionBodyNode::createNativeThunk): Use the proper version
+        of operator new for the reference-counted idiom, not the deletion idiom.
+        (JSC::FunctionBodyNode::create): More of the same.
+
+        * parser/Nodes.h: Added ParserArenaDeletable and ParserArenaRefCounted
+        to replace ParserRefCounted. Fixed inheritance so only the classes that
+        need reference counting inherit from ParserArenaRefCounted.
+
+        * parser/Parser.cpp:
+        (JSC::Parser::parse): Set m_sourceElements to 0 since it now starts
+        uninitialized. Just set it to 0 again in the failure case, since it's
+        now just a raw pointer, not an owning one.
+        (JSC::Parser::reparseInPlace): Removed now-unneeded get() function.
+        (JSC::Parser::didFinishParsing): Replaced uses of ParserRefCountedData
+        with uses of ParserArenaData.
+
+        * parser/Parser.h: Less RefPtr, more arena.
+
+        * parser/ParserArena.cpp: Added.
+        * parser/ParserArena.h: Added.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::~JSGlobalData): Removed arena-related code, since it's
+        now in the Parser.
+        (JSC::JSGlobalData::createLeaked): Removed unneeded #ifndef.
+        (JSC::JSGlobalData::createNativeThunk): Tweaked #if a bit.
+
+        * runtime/JSGlobalData.h: Removed parserArena, which is now in Parser.
+
+        * wtf/RefCounted.h: Added deletionHasBegun function, for use in
+        assertions to catch deletion not done by the deref function.
+
+2009-05-10  David Kilzer  <ddkilzer@apple.com>
+
+        Part 2: Try to fix the Windows build by adding a symbol which is really just a re-mangling of a changed method signature
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-05-10  David Kilzer  <ddkilzer@apple.com>
+
+        Try to fix the Windows build by removing an unknown symbol
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-05-10  David Kilzer  <ddkilzer@apple.com>
+
+        Touch Nodes.cpp to try to fix Windows build
+
+        * parser/Nodes.cpp: Removed whitespace.
+
+2009-05-10  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Quick fix for failures seen on buildbot. Maciej plans a better fix later.
+
+        * wtf/dtoa.cpp: Change the hardcoded number of 32-bit words in a BigInt
+        from 32 to 64. Parsing "1e500", for example, requires more than 32 words.
+
+2009-05-10  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 25674: syntax tree nodes should use arena allocation
+        Part one: Change lifetimes so we won't have to use reference
+        counting so much, but don't eliminate the reference counts
+        entirely yet.
+
+        * JavaScriptCore.exp: Updated.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator): Update for use of raw pointers
+        instead of RefPtr.
+        (JSC::BytecodeGenerator::emitCall): Ditto.
+        (JSC::BytecodeGenerator::emitConstruct): Ditto.
+
+        * parser/Grammar.y: Update node creating code to use new (JSGlobalData*)
+        instead of the plain new. At the moment this is just a hook for future
+        arena allocation; it's inline and JSGlobalData* is not used.
+
+        * parser/NodeConstructors.h: Updated for name change of parserObjects to
+        parserArena. Also added explicit initialization for raw pointers that used
+        to be RefPtr. Also removed some uses of get() that aren't needed now that
+        the pointers are raw pointers. Also eliminated m_parameter from FuncExprNode
+        and FuncDeclNode. Also changed node-creating code to use new (JSGlobalData*)
+        as above.
+
+        * parser/Nodes.cpp: Eliminated NodeReleaser and all use of it.
+        (JSC::ParserRefCounted::ParserRefCounted): Updated for name change of
+        parserObjects to parserArena.
+        (JSC::SourceElements::append): Use raw pointers.
+        (JSC::ArrayNode::emitBytecode): Ditto.
+        (JSC::ArrayNode::isSimpleArray): Ditto.
+        (JSC::ArrayNode::toArgumentList): Ditto.
+        (JSC::ObjectLiteralNode::emitBytecode): Ditto.
+        (JSC::PropertyListNode::emitBytecode): Ditto.
+        (JSC::BracketAccessorNode::emitBytecode): Ditto.
+        (JSC::DotAccessorNode::emitBytecode): Ditto.
+        (JSC::ArgumentListNode::emitBytecode): Ditto.
+        (JSC::NewExprNode::emitBytecode): Ditto.
+        (JSC::EvalFunctionCallNode::emitBytecode): Ditto.
+        (JSC::FunctionCallValueNode::emitBytecode): Ditto.
+        (JSC::FunctionCallResolveNode::emitBytecode): Ditto.
+        (JSC::FunctionCallBracketNode::emitBytecode): Ditto.
+        (JSC::FunctionCallDotNode::emitBytecode): Ditto.
+        (JSC::CallFunctionCallDotNode::emitBytecode): Ditto.
+        (JSC::ApplyFunctionCallDotNode::emitBytecode): Ditto.
+        (JSC::PostfixBracketNode::emitBytecode): Ditto.
+        (JSC::PostfixDotNode::emitBytecode): Ditto.
+        (JSC::DeleteBracketNode::emitBytecode): Ditto.
+        (JSC::DeleteDotNode::emitBytecode): Ditto.
+        (JSC::DeleteValueNode::emitBytecode): Ditto.
+        (JSC::VoidNode::emitBytecode): Ditto.
+        (JSC::TypeOfValueNode::emitBytecode): Ditto.
+        (JSC::PrefixBracketNode::emitBytecode): Ditto.
+        (JSC::PrefixDotNode::emitBytecode): Ditto.
+        (JSC::UnaryOpNode::emitBytecode): Ditto.
+        (JSC::BinaryOpNode::emitStrcat): Ditto.
+        (JSC::BinaryOpNode::emitBytecode): Ditto.
+        (JSC::EqualNode::emitBytecode): Ditto.
+        (JSC::StrictEqualNode::emitBytecode): Ditto.
+        (JSC::ReverseBinaryOpNode::emitBytecode): Ditto.
+        (JSC::ThrowableBinaryOpNode::emitBytecode): Ditto.
+        (JSC::InstanceOfNode::emitBytecode): Ditto.
+        (JSC::LogicalOpNode::emitBytecode): Ditto.
+        (JSC::ConditionalNode::emitBytecode): Ditto.
+        (JSC::ReadModifyResolveNode::emitBytecode): Ditto.
+        (JSC::AssignResolveNode::emitBytecode): Ditto.
+        (JSC::AssignDotNode::emitBytecode): Ditto.
+        (JSC::ReadModifyDotNode::emitBytecode): Ditto.
+        (JSC::AssignBracketNode::emitBytecode): Ditto.
+        (JSC::ReadModifyBracketNode::emitBytecode): Ditto.
+        (JSC::CommaNode::emitBytecode): Ditto.
+        (JSC::ConstDeclNode::emitCodeSingle): Ditto.
+        (JSC::ConstDeclNode::emitBytecode): Ditto.
+        (JSC::ConstStatementNode::emitBytecode): Ditto.
+        (JSC::statementListEmitCode): Ditto.
+        (JSC::BlockNode::emitBytecode): Ditto.
+        (JSC::ExprStatementNode::emitBytecode): Ditto.
+        (JSC::VarStatementNode::emitBytecode): Ditto.
+        (JSC::IfNode::emitBytecode): Ditto.
+        (JSC::IfElseNode::emitBytecode): Ditto.
+        (JSC::DoWhileNode::emitBytecode): Ditto.
+        (JSC::WhileNode::emitBytecode): Ditto.
+        (JSC::ForNode::emitBytecode): Ditto.
+        (JSC::ForInNode::emitBytecode): Ditto.
+        (JSC::ReturnNode::emitBytecode): Ditto.
+        (JSC::WithNode::emitBytecode): Ditto.
+        (JSC::CaseBlockNode::tryOptimizedSwitch): Ditto.
+        (JSC::CaseBlockNode::emitBytecodeForBlock): Ditto.
+        (JSC::SwitchNode::emitBytecode): Ditto.
+        (JSC::LabelNode::emitBytecode): Ditto.
+        (JSC::ThrowNode::emitBytecode): Ditto.
+        (JSC::TryNode::emitBytecode): Ditto.
+        (JSC::ScopeNodeData::ScopeNodeData): Use swap to transfer ownership
+        of the arena, varStack and functionStack.
+        (JSC::ScopeNode::ScopeNode): Pass in the arena when creating the
+        ScopeNodeData.
+        (JSC::ProgramNode::ProgramNode): Made this inline since it's used
+        in only one place.
+        (JSC::ProgramNode::create): Changed this to return a PassRefPtr since
+        we plan to have the scope nodes be outside the arena, so they will need
+        some kind of ownership transfer (maybe auto_ptr instead of PassRefPtr
+        in the future, though). Remove the node from the newly-created arena to
+        avoid a circular reference. Later we'll keep the node out of the arena
+        by using a different operator new, but for now it's the ParserRefCounted
+        constructor that puts the node into the arena, and there's no way to
+        bypass that.
+        (JSC::EvalNode::EvalNode): Ditto.
+        (JSC::EvalNode::create): Ditto.
+        (JSC::FunctionBodyNode::FunctionBodyNode): Ditto.
+        (JSC::FunctionBodyNode::createNativeThunk): Moved the code that
+        reseets the arena here instead of the caller.
+        (JSC::FunctionBodyNode::create): Same change as the other create
+        functions above.
+        (JSC::FunctionBodyNode::emitBytecode): Use raw pointers.
+
+        * parser/Nodes.h: Removed NodeReleaser. Changed FunctionStack to
+        use raw pointers. Removed the releaseNodes function. Added an override
+        of operator new that takes a JSGlobalData* to prepare for future arena use.
+        Use raw pointers instead of RefPtr everywhere possible.
+
+        * parser/Parser.cpp:
+        (JSC::Parser::reparseInPlace): Pass the arena in.
+
+        * parser/Parser.h:
+        (JSC::Parser::parse): Updated for name change of parserObjects to parserArena.
+        (JSC::Parser::reparse): Ditto.
+        * runtime/FunctionConstructor.cpp:
+        (JSC::extractFunctionBody): Ditto.
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::~JSGlobalData): Ditto.
+        (JSC::JSGlobalData::createNativeThunk): Moved arena manipulation into the
+        FunctionBodyNode::createNativeThunk function.
+
+        * runtime/JSGlobalData.h: Tweaked formatting and renamed parserObjects to
+        parserArena.
+
+        * wtf/NotFound.h: Added the usual "using WTF" to this header to match the
+        rest of WTF.
+
+2009-05-10  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25670
+        Remove no longer valid chunk of code from dtoa.
+
+        * wtf/dtoa.cpp:
+        (WTF::dtoa): Removed invalid code.
+
+2009-05-10  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        "Class const *" is the same as "const Class*", use the latter syntax consistently.
+
+        See <http://www.parashift.com/c++-faq-lite/const-correctness.html#faq-18.9>.
+
+        * pcre/pcre_compile.cpp:
+        (calculateCompiledPatternLength):
+        * runtime/JSObject.h:
+        (JSC::JSObject::offsetForLocation):
+        (JSC::JSObject::locationForOffset):
+
+2009-05-10  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+        
+        - speedup dtoa/strtod
+        
+        Added a bunch of inlining, and replaced malloc with stack allocation.
+        
+        0.5% SunSpider speedup (7% on string-tagcloud).
+
+        * runtime/NumberPrototype.cpp:
+        (JSC::integerPartNoExp):
+        (JSC::numberProtoFuncToExponential):
+        * runtime/UString.cpp:
+        (JSC::concatenate):
+        (JSC::UString::from):
+        * wtf/dtoa.cpp:
+        (WTF::BigInt::BigInt):
+        (WTF::BigInt::operator=):
+        (WTF::Balloc):
+        (WTF::Bfree):
+        (WTF::multadd):
+        (WTF::s2b):
+        (WTF::i2b):
+        (WTF::mult):
+        (WTF::pow5mult):
+        (WTF::lshift):
+        (WTF::cmp):
+        (WTF::diff):
+        (WTF::b2d):
+        (WTF::d2b):
+        (WTF::ratio):
+        (WTF::strtod):
+        (WTF::quorem):
+        (WTF::freedtoa):
+        (WTF::dtoa):
+        * wtf/dtoa.h:
+
+2009-05-09  Mike Hommey  <glandium@debian.org>
+
+        Reviewed by Geoffrey Garen. Landed by Jan Alonzo.
+
+        Enable JIT on x86-64 gtk+
+        https://bugs.webkit.org/show_bug.cgi?id=24724
+
+        * GNUmakefile.am:
+
+2009-05-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Removed the last non-call-related manually managed JIT stub call.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_rshift): Fully use the JITStubCall
+        abstraction, instead of emitPutJITStubArg.
+
+2009-05-09  Sebastian Andrzej Siewior  <sebastian@breakpoint.cc>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25653
+        PLATFORM(X86_64) inherits ia64
+
+        __ia64__ is defined by gcc in an IA64 arch and has completely
+        nothing in common with X86-64 exept both are from Intel and have
+        an 64bit address space. That's it. Since code seems to expect x86
+        here, ia64 has to go.
+
+        * wtf/Platform.h:
+
+2009-05-09  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Suggested by Geoffrey Garen.
+
+        Assume SSE2 is present on X86-64 and on MAC X86-32. This fixes a
+        build breakage on non-Mac X86-64 when JIT is enabled.
+
+        * jit/JITArithmetic.cpp:
+
+2009-05-09  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Build fix, adding missing files to make dist.
+
+        * GNUmakefile.am:
+
+2009-05-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix.
+
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::patchLoadToLEA):
+
+2009-05-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix.
+
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::patchLoadToLEA):
+
+2009-05-09  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Gavin Barraclough.
+        
+        Original patch by John McCall. Updated by Cameron Zwarich. Further refined by me.
+        
+        - Assorted speedups to property access
+        
+        ~.3%-1% speedup on SunSpider
+        
+        1) When we know from the structure ID that an object is using inline storage, plant direct
+        loads and stores against it; no need to indirect through storage pointer.
+        
+        2) Also because of the above, union the property storage pointer with the first inline property
+        slot and add an extra inline property slot.
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::CodeLocationInstruction):
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::patchLoadToLEA):
+        (JSC::::CodeLocationCommon::instructionAtOffset):
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::storePtr):
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::store32):
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::storePtr):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::movq_EAXm):
+        (JSC::X86Assembler::movl_rm):
+        (JSC::X86Assembler::patchLoadToLEA):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compilePutByIdHotPath):
+        (JSC::JIT::compilePutDirectOffset):
+        (JSC::JIT::compileGetDirectOffset):
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchPutByIdReplace):
+        (JSC::JIT::privateCompileGetByIdSelf):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        (JSC::JIT::privateCompilePutByIdReplace):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::mark):
+        (JSC::JSObject::removeDirect):
+        * runtime/JSObject.h:
+        (JSC::JSObject::propertyStorage):
+        (JSC::JSObject::getDirect):
+        (JSC::JSObject::getOffset):
+        (JSC::JSObject::offsetForLocation):
+        (JSC::JSObject::locationForOffset):
+        (JSC::JSObject::getDirectOffset):
+        (JSC::JSObject::putDirectOffset):
+        (JSC::JSObject::isUsingInlineStorage):
+        (JSC::JSObject::):
+        (JSC::JSObject::JSObject):
+        (JSC::JSObject::~JSObject):
+        (JSC::Structure::isUsingInlineStorage):
+        (JSC::JSObject::putDirect):
+        (JSC::JSObject::putDirectWithoutTransition):
+        (JSC::JSObject::allocatePropertyStorageInline):
+        * runtime/Structure.h:
+
+2009-05-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Changed all our JIT stubs so that they return a maximum of 1 JS value or
+        two non-JS pointers, and do all other value returning through out
+        parameters, in preparation for 64bit JS values on a 32bit system.
+
+        Stubs that used to return two JSValues now return one JSValue and take
+        and out parameter specifying where in the register array the second
+        value should go.
+        
+        SunSpider reports no change.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_post_inc):
+        (JSC::JIT::compileFastArithSlow_op_post_dec):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_call_arityCheck):
+        (JSC::JITStubs::cti_op_resolve_func):
+        (JSC::JITStubs::cti_op_post_inc):
+        (JSC::JITStubs::cti_op_resolve_with_base):
+        (JSC::JITStubs::cti_op_post_dec):
+        * jit/JITStubs.h:
+        (JSC::):
+
+2009-05-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed <rdar://problem/6634956> CrashTracer: [REGRESSION] >400 crashes
+        in Safari at com.apple.JavaScriptCore • JSC::BytecodeGenerator::emitComplexJumpScopes + 468
+        https://bugs.webkit.org/show_bug.cgi?id=25658
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitComplexJumpScopes): Guard the whole loop
+        with a bounds check. The old loop logic would decrement and read topScope
+        without a bounds check, which could cause crashes on page boundaries.
+
+2009-05-08  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by NOBODY (BuildFix).
+
+        Gtk fix: add LiteralParser to the build script per r43424.
+
+        Add LiteralParser to the Qt and Wx build scripts too.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCoreSources.bkl:
+
+2009-05-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough and Darin Adler.
+
+        Add a limited literal parser for eval to handle object and array literals fired at eval
+
+        This is a simplified parser and lexer that we can throw at strings passed to eval
+        in case a site is using eval to parse JSON (eg. json2.js).  The lexer is intentionally
+        limited (in effect it's whitelisting a limited "common" subset of the JSON grammar)
+        as this decreases the likelihood of us wating time attempting to parse any significant
+        amount of non-JSON content.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::callEval):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+        * runtime/LiteralParser.cpp: Added.
+        (JSC::isStringCharacter):
+        (JSC::LiteralParser::Lexer::lex):
+        (JSC::LiteralParser::Lexer::lexString):
+        (JSC::LiteralParser::Lexer::lexNumber):
+        (JSC::LiteralParser::parseStatement):
+        (JSC::LiteralParser::parseExpression):
+        (JSC::LiteralParser::parseArray):
+        (JSC::LiteralParser::parseObject):
+        (JSC::LiteralParser::StackGuard::StackGuard):
+        (JSC::LiteralParser::StackGuard::~StackGuard):
+        (JSC::LiteralParser::StackGuard::isSafe):
+        * runtime/LiteralParser.h: Added.
+        (JSC::LiteralParser::LiteralParser):
+        (JSC::LiteralParser::attemptJSONParse):
+        (JSC::LiteralParser::):
+        (JSC::LiteralParser::Lexer::Lexer):
+        (JSC::LiteralParser::Lexer::next):
+        (JSC::LiteralParser::Lexer::currentToken):
+        (JSC::LiteralParser::abortParse):
+
+2009-05-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Restored a Mozilla JS test I accidentally gutted.
+
+        * tests/mozilla/ecma/Array/15.4.4.2.js:
+        (getTestCases):
+        (test):
+
+2009-05-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+        
+        More abstraction for JITStub calls from JITed code.
+        
+        Added a JITStubCall class that automatically handles things like assigning
+        arguments to different stack slots and storing return values. Deployed
+        the class in about a billion places. A bunch more places remain to be
+        fixed up, but this is a good stopping point for now.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::emitTimeoutCheck):
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompile):
+        * jit/JIT.h:
+        (JSC::JIT::JSRInfo::JSRInfo):
+        (JSC::JITStubCall::JITStubCall):
+        (JSC::JITStubCall::addArgument):
+        (JSC::JITStubCall::call):
+        (JSC::JITStubCall::):
+        (JSC::CallEvalJITStub::CallEvalJITStub):
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_lshift):
+        (JSC::JIT::compileFastArithSlow_op_rshift):
+        (JSC::JIT::compileFastArithSlow_op_jnless):
+        (JSC::JIT::compileFastArithSlow_op_bitand):
+        (JSC::JIT::compileFastArithSlow_op_mod):
+        (JSC::JIT::compileFastArith_op_mod):
+        (JSC::JIT::compileFastArithSlow_op_post_inc):
+        (JSC::JIT::compileFastArithSlow_op_post_dec):
+        (JSC::JIT::compileFastArithSlow_op_pre_inc):
+        (JSC::JIT::compileFastArithSlow_op_pre_dec):
+        (JSC::JIT::compileFastArith_op_add):
+        (JSC::JIT::compileFastArith_op_mul):
+        (JSC::JIT::compileFastArith_op_sub):
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        (JSC::JIT::compileFastArithSlow_op_add):
+        (JSC::JIT::compileFastArithSlow_op_mul):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        (JSC::):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compilePutByIdHotPath):
+        (JSC::JIT::compileGetByIdSlowCase):
+        (JSC::JIT::compilePutByIdSlowCase):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_resolve_func):
+        (JSC::JITStubs::cti_op_resolve_with_base):
+
+2009-05-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add a new opcode jnlesseq, and optimize its compilation in the JIT using
+        techniques similar to what were used to optimize jnless in r43363.
+
+        This gives a 0.7% speedup on SunSpider, particularly on the tests 3d-cube,
+        control-flow-recursive, date-format-xparb, and string-base64.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Add support for dumping op_jnlesseq.
+        * bytecode/Opcode.h: Add op_jnlesseq to the list of opcodes.
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitJumpIfFalse): Add a peephole optimization
+        for op_jnlesseq when emitting lesseq followed by a jump.
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute): Add case for op_jnlesseq.
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass): Add case for op_jnlesseq.
+        (JSC::JIT::privateCompileSlowCases): Add case for op_jnlesseq.
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_jnlesseq): Added.
+        (JSC::JIT::compileFastArithSlow_op_jnlesseq): Added.
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_jlesseq): Added.
+        * jit/JITStubs.h:
+
+2009-05-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - fix test failures on 64-bit
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_jnless): Avoid accidentaly treating an
+        immediate int as an immediate float in the 64-bit value representation.
+
+2009-05-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Oliver Hunt.
+
+        Removing an empty constructor and an uncalled, empty function seems to be a
+        pretty solid 1% regeression on my machine, so I'm going to put them back.
+        Um.  Yeah, this this pretty pointles and makes no sense at all.  I officially
+        lose the will to live in 3... 2...
+
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingTool::notifyOfScope):
+        * bytecode/SamplingTool.h:
+        (JSC::SamplingTool::~SamplingTool):
+
+2009-05-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver "I see lots of ifdefs" Hunt.
+
+        Fix (kinda) for sampling tool breakage.  The codeblock sampling tool has become
+        b0rked due to recent changes in native function calling.  The initialization of
+        a ScopeNode appears to now occur before the sampling tool (or possibly the
+        interpreter has been brought into existence, wihich leads to crashyness).
+
+        This patch doesn't fix the problem.  The crash occurs when tracking a Scope, but
+        we shouldn't need to track scopes when we're just sampling opcodes, not
+        codeblocks.  Not retaining Scopes when just opcode sampling will reduce sampling
+        overhead reducing any instrumentation skew, which is a good thing.  As a side
+        benefit this patch also gets the opcode sampling going again, albeit in a bit of
+        a lame way.  Will come back later with a proper fix from codeblock sampling. 
+
+        * JavaScriptCore.exp:
+        * bytecode/SamplingTool.cpp:
+        (JSC::compareLineCountInfoSampling):
+        (JSC::SamplingTool::dump):
+        * bytecode/SamplingTool.h:
+        (JSC::SamplingTool::SamplingTool):
+        * parser/Nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+
+2009-05-07  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=25640>.
+        Bug 25640: Crash on quit in r43384 nightly build on Leopard w/ Safari 4 beta installed
+        
+        Roll out r43366 as it removed symbols that Safari 4 Beta uses.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingThread::start):
+        (JSC::SamplingThread::stop):
+        * bytecode/SamplingTool.h:
+        * wtf/CrossThreadRefCounted.h:
+        (WTF::CrossThreadRefCounted::CrossThreadRefCounted):
+        (WTF::::ref):
+        (WTF::::deref):
+        * wtf/Threading.h:
+        * wtf/ThreadingNone.cpp:
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::identifierByPthreadHandle):
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::pthreadHandleForIdentifier):
+        (WTF::clearPthreadHandleForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+        (WTF::currentThread):
+        * wtf/ThreadingWin.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::threadHandleForIdentifier):
+        (WTF::clearThreadHandleForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+        (WTF::currentThread):
+        * wtf/gtk/ThreadingGtk.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::identifierByGthreadHandle):
+        (WTF::establishIdentifierForThread):
+        (WTF::threadForIdentifier):
+        (WTF::clearThreadForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::threadMapMutex):
+        (WTF::threadMap):
+        (WTF::identifierByQthreadHandle):
+        (WTF::establishIdentifierForThread):
+        (WTF::clearThreadForIdentifier):
+        (WTF::threadForIdentifier):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+
+2009-05-07  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Suggested by Oliver Hunt.
+
+        Also check for Linux for the special-cased calling convention.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * wtf/Platform.h:
+
+2009-05-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Previously, when appending to an existing string and growing the underlying buffer,
+        we would actually allocate 110% of the required size in order to give us some space
+        to expand into.  Now we treat strings differently based on their size:
+
+        Small Strings (up to 4 pages):
+        Expand the allocation size to 112.5% of the amount requested.  This is largely sicking
+        to our previous policy, however 112.5% is cheaper to calculate.
+
+        Medium Strings (up to 128 pages):
+        For pages covering multiple pages over-allocation is less of a concern - any unused
+        space will not be paged in if it is not used, so this is purely a VM overhead.  For
+        these strings allocate 2x the requested size.
+
+        Large Strings (to infinity and beyond!):
+        Revert to our 112.5% policy - probably best to limit the amount of unused VM we allow
+        any individual string be responsible for.
+
+        Additionally, round small allocations up to a multiple of 16 bytes, and medium and
+        large allocations up to a multiple of page size.
+
+        ~1.5% progression on Sunspider, due to 5% improvement on tagcloud & 15% on validate.
+
+        * runtime/UString.cpp:
+        (JSC::expandedSize):
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed a minor sequencing error introduced by recent Parser speedups.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::createNativeThunk): Missed a spot in my last patch.
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+
+        * wtf/Platform.h: Reverted an accidental (and performance-catastrophic)
+        change.
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed a minor sequencing error introduced by recent Parser speedups.
+
+        * parser/Parser.cpp:
+        (JSC::Parser::reparseInPlace): Missed a spot in my last patch.
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed a minor sequencing error introduced by recent Parser speedups.
+
+        * parser/Parser.cpp:
+        (JSC::Parser::parse):
+        * parser/Parser.h:
+        (JSC::Parser::parse):
+        (JSC::Parser::reparse): Shrink the parsedObjects vector after allocating
+        the root node, to avoid leaving a stray node in the vector, since that's
+        a slight memory leak, and it causes problems during JSGlobalData teardown.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::~JSGlobalData): ASSERT that we're not being torn
+        down while we think we're still parsing, since that would cause lots of
+        bad memory references during our destruction.
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Replaced two more macros with references to the JITStackFrame structure.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReference):
+        * jit/JITStubs.cpp:
+        (JSC::):
+        * jit/JITStubs.h:
+
+2009-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Improve native call performance
+
+        Fix the windows build by adding calling convention declarations everywhere,
+        chose fastcall as that seemed most sensible given we were having to declare
+        the convention explicitly.  In addition switched to fastcall on mac in the
+        deluded belief that documented fastcall behavior on windows would match 
+        actual its actual behavior.
+
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.h:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::argumentCount):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jsc.cpp:
+        (functionPrint):
+        (functionDebug):
+        (functionGC):
+        (functionVersion):
+        (functionRun):
+        (functionLoad):
+        (functionSetSamplingFlags):
+        (functionClearSamplingFlags):
+        (functionReadline):
+        (functionQuit):
+        * runtime/ArrayConstructor.cpp:
+        (JSC::callArrayConstructor):
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        (JSC::arrayProtoFuncToLocaleString):
+        (JSC::arrayProtoFuncJoin):
+        (JSC::arrayProtoFuncConcat):
+        (JSC::arrayProtoFuncPop):
+        (JSC::arrayProtoFuncPush):
+        (JSC::arrayProtoFuncReverse):
+        (JSC::arrayProtoFuncShift):
+        (JSC::arrayProtoFuncSlice):
+        (JSC::arrayProtoFuncSort):
+        (JSC::arrayProtoFuncSplice):
+        (JSC::arrayProtoFuncUnShift):
+        (JSC::arrayProtoFuncFilter):
+        (JSC::arrayProtoFuncMap):
+        (JSC::arrayProtoFuncEvery):
+        (JSC::arrayProtoFuncForEach):
+        (JSC::arrayProtoFuncSome):
+        (JSC::arrayProtoFuncReduce):
+        (JSC::arrayProtoFuncReduceRight):
+        (JSC::arrayProtoFuncIndexOf):
+        (JSC::arrayProtoFuncLastIndexOf):
+        * runtime/BooleanConstructor.cpp:
+        (JSC::callBooleanConstructor):
+        * runtime/BooleanPrototype.cpp:
+        (JSC::booleanProtoFuncToString):
+        (JSC::booleanProtoFuncValueOf):
+        * runtime/CallData.h:
+        * runtime/DateConstructor.cpp:
+        (JSC::callDate):
+        (JSC::dateParse):
+        (JSC::dateNow):
+        (JSC::dateUTC):
+        * runtime/DatePrototype.cpp:
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncToLocaleString):
+        (JSC::dateProtoFuncToLocaleDateString):
+        (JSC::dateProtoFuncToLocaleTimeString):
+        (JSC::dateProtoFuncGetTime):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetMilliSeconds):
+        (JSC::dateProtoFuncGetUTCMilliseconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::dateProtoFuncSetTime):
+        (JSC::dateProtoFuncSetMilliSeconds):
+        (JSC::dateProtoFuncSetUTCMilliseconds):
+        (JSC::dateProtoFuncSetSeconds):
+        (JSC::dateProtoFuncSetUTCSeconds):
+        (JSC::dateProtoFuncSetMinutes):
+        (JSC::dateProtoFuncSetUTCMinutes):
+        (JSC::dateProtoFuncSetHours):
+        (JSC::dateProtoFuncSetUTCHours):
+        (JSC::dateProtoFuncSetDate):
+        (JSC::dateProtoFuncSetUTCDate):
+        (JSC::dateProtoFuncSetMonth):
+        (JSC::dateProtoFuncSetUTCMonth):
+        (JSC::dateProtoFuncSetFullYear):
+        (JSC::dateProtoFuncSetUTCFullYear):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear):
+        * runtime/ErrorConstructor.cpp:
+        (JSC::callErrorConstructor):
+        * runtime/ErrorPrototype.cpp:
+        (JSC::errorProtoFuncToString):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::callFunctionConstructor):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::callFunctionPrototype):
+        (JSC::functionProtoFuncToString):
+        (JSC::functionProtoFuncApply):
+        (JSC::functionProtoFuncCall):
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::nativeFunction):
+        (JSC::JSFunction::setScopeChain):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+        (JSC::globalFuncParseInt):
+        (JSC::globalFuncParseFloat):
+        (JSC::globalFuncIsNaN):
+        (JSC::globalFuncIsFinite):
+        (JSC::globalFuncDecodeURI):
+        (JSC::globalFuncDecodeURIComponent):
+        (JSC::globalFuncEncodeURI):
+        (JSC::globalFuncEncodeURIComponent):
+        (JSC::globalFuncEscape):
+        (JSC::globalFuncUnescape):
+        (JSC::globalFuncJSCPrint):
+        * runtime/JSGlobalObjectFunctions.h:
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncAbs):
+        (JSC::mathProtoFuncACos):
+        (JSC::mathProtoFuncASin):
+        (JSC::mathProtoFuncATan):
+        (JSC::mathProtoFuncATan2):
+        (JSC::mathProtoFuncCeil):
+        (JSC::mathProtoFuncCos):
+        (JSC::mathProtoFuncExp):
+        (JSC::mathProtoFuncFloor):
+        (JSC::mathProtoFuncLog):
+        (JSC::mathProtoFuncMax):
+        (JSC::mathProtoFuncMin):
+        (JSC::mathProtoFuncPow):
+        (JSC::mathProtoFuncRandom):
+        (JSC::mathProtoFuncRound):
+        (JSC::mathProtoFuncSin):
+        (JSC::mathProtoFuncSqrt):
+        (JSC::mathProtoFuncTan):
+        * runtime/NativeErrorConstructor.cpp:
+        (JSC::callNativeErrorConstructor):
+        * runtime/NativeFunctionWrapper.h:
+        * runtime/NumberConstructor.cpp:
+        (JSC::callNumberConstructor):
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToString):
+        (JSC::numberProtoFuncToLocaleString):
+        (JSC::numberProtoFuncValueOf):
+        (JSC::numberProtoFuncToFixed):
+        (JSC::numberProtoFuncToExponential):
+        (JSC::numberProtoFuncToPrecision):
+        * runtime/ObjectConstructor.cpp:
+        (JSC::callObjectConstructor):
+        * runtime/ObjectPrototype.cpp:
+        (JSC::objectProtoFuncValueOf):
+        (JSC::objectProtoFuncHasOwnProperty):
+        (JSC::objectProtoFuncIsPrototypeOf):
+        (JSC::objectProtoFuncDefineGetter):
+        (JSC::objectProtoFuncDefineSetter):
+        (JSC::objectProtoFuncLookupGetter):
+        (JSC::objectProtoFuncLookupSetter):
+        (JSC::objectProtoFuncPropertyIsEnumerable):
+        (JSC::objectProtoFuncToLocaleString):
+        (JSC::objectProtoFuncToString):
+        * runtime/ObjectPrototype.h:
+        * runtime/RegExpConstructor.cpp:
+        (JSC::callRegExpConstructor):
+        * runtime/RegExpObject.cpp:
+        (JSC::callRegExpObject):
+        * runtime/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncTest):
+        (JSC::regExpProtoFuncExec):
+        (JSC::regExpProtoFuncCompile):
+        (JSC::regExpProtoFuncToString):
+        * runtime/StringConstructor.cpp:
+        (JSC::stringFromCharCode):
+        (JSC::callStringConstructor):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+        (JSC::stringProtoFuncToString):
+        (JSC::stringProtoFuncCharAt):
+        (JSC::stringProtoFuncCharCodeAt):
+        (JSC::stringProtoFuncConcat):
+        (JSC::stringProtoFuncIndexOf):
+        (JSC::stringProtoFuncLastIndexOf):
+        (JSC::stringProtoFuncMatch):
+        (JSC::stringProtoFuncSearch):
+        (JSC::stringProtoFuncSlice):
+        (JSC::stringProtoFuncSplit):
+        (JSC::stringProtoFuncSubstr):
+        (JSC::stringProtoFuncSubstring):
+        (JSC::stringProtoFuncToLowerCase):
+        (JSC::stringProtoFuncToUpperCase):
+        (JSC::stringProtoFuncLocaleCompare):
+        (JSC::stringProtoFuncBig):
+        (JSC::stringProtoFuncSmall):
+        (JSC::stringProtoFuncBlink):
+        (JSC::stringProtoFuncBold):
+        (JSC::stringProtoFuncFixed):
+        (JSC::stringProtoFuncItalics):
+        (JSC::stringProtoFuncStrike):
+        (JSC::stringProtoFuncSub):
+        (JSC::stringProtoFuncSup):
+        (JSC::stringProtoFuncFontcolor):
+        (JSC::stringProtoFuncFontsize):
+        (JSC::stringProtoFuncAnchor):
+        (JSC::stringProtoFuncLink):
+        * wtf/Platform.h:
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Rolled out a portion of r43352 because it broke 64bit.
+
+        * jit/JITStubs.h:
+
+2009-05-07  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Build fix for functions reaturning ThreadIdentifier.
+
+        * wtf/ThreadingNone.cpp:
+        (WTF::createThreadInternal):
+        (WTF::currentThread):
+
+2009-05-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by John Honeycutt.
+        
+        - enable optimization case im the last patch that I accidentally had disabled.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_jnless):
+
+2009-05-07  Dmitry Titov  <dimich@chromium.org>
+
+        Attempt to fix Win build.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArithSlow_op_jnless):
+
+2009-05-07  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Alexey Proskuryakov and Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25348
+        Change WTF::ThreadIdentifier to be an actual (but wrapped) thread id, remove ThreadMap.
+
+        * wtf/Threading.h:
+        (WTF::ThreadIdentifier::ThreadIdentifier):
+        (WTF::ThreadIdentifier::isValid):
+        (WTF::ThreadIdentifier::invalidate):
+        (WTF::ThreadIdentifier::platformId):
+        ThreadIdentifier is now a class, containing a PlatformThreadIdentifier and
+        methods that are used across the code on thread ids: construction, comparisons,
+        check for 'valid' state etc. '0' is used as invalid id, which happens to just work
+        with all platform-specific thread id implementations.
+
+        All the following files repeatedly reflect the new ThreadIdentifier for each platform.
+        We remove ThreadMap and threadMapMutex from all of them, remove the functions that
+        populated/searched/cleared the map and add platform-specific comparison operators
+        for ThreadIdentifier.
+
+        * wtf/gtk/ThreadingGtk.cpp:
+        (WTF::ThreadIdentifier::operator==):
+        (WTF::ThreadIdentifier::operator!=):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+
+        * wtf/ThreadingNone.cpp:
+        (WTF::ThreadIdentifier::operator==):
+        (WTF::ThreadIdentifier::operator!=):
+
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::ThreadIdentifier::operator==):
+        (WTF::ThreadIdentifier::operator!=):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+        (WTF::currentThread):
+
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::ThreadIdentifier::operator==):
+        (WTF::ThreadIdentifier::operator!=):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+
+        * wtf/ThreadingWin.cpp:
+        (WTF::ThreadIdentifier::operator==):
+        (WTF::ThreadIdentifier::operator!=):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal): All the platforms (except Windows) used a sequential
+        counter as a thread ID and mapped it into platform ID. Windows was using native thread
+        id and mapped it into thread handle. Since we can always obtain a thread handle
+        by thread id, createThread now closes the handle.
+        (WTF::waitForThreadCompletion): obtains another one using OpenThread(id) API. If can not obtain a handle,
+        it means the thread already exited.
+        (WTF::detachThread):
+        (WTF::currentThread):
+        (WTF::detachThreadDeprecated): old function, renamed (for Win Safari 4 beta which uses it for now).
+        (WTF::waitForThreadCompletionDeprecated): same.
+        (WTF::currentThreadDeprecated): same.
+        (WTF::createThreadDeprecated): same.
+
+        * bytecode/SamplingTool.h:
+        * bytecode/SamplingTool.cpp: Use DEFINE_STATIC_LOCAL for a static ThreadIdentifier variable, to avoid static constructor.
+
+        * JavaScriptCore.exp: export lists - updated the WTF threading functions decorated names
+        since they now take a different type as a parameter.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def: ditto for Windows, plus added "deprecated" functions
+        that take old parameter type - turns out public beta of Safari 4 uses those, so they need to be kept along for a while.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def: ditto.
+
+2009-05-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        - optimize various cases of branch-fused less
+        
+        1% speedup on SunSpider overall
+        13% speedup on math-cordic
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        op_loop_if_less: Optimize case of constant as first operand, just as case of constant as
+        second operand.
+        op_jnless: Factored out into compileFastArith_op_jnless.
+        (JSC::JIT::privateCompileSlowCases):
+        op_jnless: Factored out into compileFastArithSlow_op_jnless.
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_jnless): Factored out from main compile loop.
+        - Generate inline code for comparison of constant immediate int as first operand to another
+        immediate int, as for loop_if_less
+
+        (JSC::JIT::compileFastArithSlow_op_jnless):
+        - Generate inline code for comparing two floating point numbers.
+        - Generate code for both cases of comparing a floating point number to a constant immediate 
+        int.
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Fix dumping of op_jnless (tangentially related bugfix).
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Added the return address of a stub function to the JITStackFrame abstraction.
+
+        * jit/JIT.cpp:
+        * jit/JIT.h:
+        * jit/JITStubs.cpp:
+        (JSC::):
+        (JSC::StackHack::StackHack):
+        (JSC::StackHack::~StackHack):
+        (JSC::returnToThrowTrampoline):
+        (JSC::JITStubs::cti_op_convert_this):
+        (JSC::JITStubs::cti_op_end):
+        (JSC::JITStubs::cti_op_add):
+        (JSC::JITStubs::cti_op_pre_inc):
+        (JSC::JITStubs::cti_timeout_check):
+        (JSC::JITStubs::cti_register_file_check):
+        (JSC::JITStubs::cti_op_loop_if_less):
+        (JSC::JITStubs::cti_op_loop_if_lesseq):
+        (JSC::JITStubs::cti_op_new_object):
+        (JSC::JITStubs::cti_op_put_by_id_generic):
+        (JSC::JITStubs::cti_op_get_by_id_generic):
+        (JSC::JITStubs::cti_op_put_by_id):
+        (JSC::JITStubs::cti_op_put_by_id_second):
+        (JSC::JITStubs::cti_op_put_by_id_fail):
+        (JSC::JITStubs::cti_op_get_by_id):
+        (JSC::JITStubs::cti_op_get_by_id_second):
+        (JSC::JITStubs::cti_op_get_by_id_self_fail):
+        (JSC::JITStubs::cti_op_get_by_id_proto_list):
+        (JSC::JITStubs::cti_op_get_by_id_proto_list_full):
+        (JSC::JITStubs::cti_op_get_by_id_proto_fail):
+        (JSC::JITStubs::cti_op_get_by_id_array_fail):
+        (JSC::JITStubs::cti_op_get_by_id_string_fail):
+        (JSC::JITStubs::cti_op_instanceof):
+        (JSC::JITStubs::cti_op_del_by_id):
+        (JSC::JITStubs::cti_op_mul):
+        (JSC::JITStubs::cti_op_new_func):
+        (JSC::JITStubs::cti_op_call_JSFunction):
+        (JSC::JITStubs::cti_op_call_arityCheck):
+        (JSC::JITStubs::cti_vm_dontLazyLinkCall):
+        (JSC::JITStubs::cti_vm_lazyLinkCall):
+        (JSC::JITStubs::cti_op_push_activation):
+        (JSC::JITStubs::cti_op_call_NotJSFunction):
+        (JSC::JITStubs::cti_op_create_arguments):
+        (JSC::JITStubs::cti_op_create_arguments_no_params):
+        (JSC::JITStubs::cti_op_tear_off_activation):
+        (JSC::JITStubs::cti_op_tear_off_arguments):
+        (JSC::JITStubs::cti_op_profile_will_call):
+        (JSC::JITStubs::cti_op_profile_did_call):
+        (JSC::JITStubs::cti_op_ret_scopeChain):
+        (JSC::JITStubs::cti_op_new_array):
+        (JSC::JITStubs::cti_op_resolve):
+        (JSC::JITStubs::cti_op_construct_JSConstruct):
+        (JSC::JITStubs::cti_op_construct_NotJSConstruct):
+        (JSC::JITStubs::cti_op_get_by_val):
+        (JSC::JITStubs::cti_op_get_by_val_string):
+        (JSC::JITStubs::cti_op_get_by_val_byte_array):
+        (JSC::JITStubs::cti_op_resolve_func):
+        (JSC::JITStubs::cti_op_sub):
+        (JSC::JITStubs::cti_op_put_by_val):
+        (JSC::JITStubs::cti_op_put_by_val_array):
+        (JSC::JITStubs::cti_op_put_by_val_byte_array):
+        (JSC::JITStubs::cti_op_lesseq):
+        (JSC::JITStubs::cti_op_loop_if_true):
+        (JSC::JITStubs::cti_op_load_varargs):
+        (JSC::JITStubs::cti_op_negate):
+        (JSC::JITStubs::cti_op_resolve_base):
+        (JSC::JITStubs::cti_op_resolve_skip):
+        (JSC::JITStubs::cti_op_resolve_global):
+        (JSC::JITStubs::cti_op_div):
+        (JSC::JITStubs::cti_op_pre_dec):
+        (JSC::JITStubs::cti_op_jless):
+        (JSC::JITStubs::cti_op_not):
+        (JSC::JITStubs::cti_op_jtrue):
+        (JSC::JITStubs::cti_op_post_inc):
+        (JSC::JITStubs::cti_op_eq):
+        (JSC::JITStubs::cti_op_lshift):
+        (JSC::JITStubs::cti_op_bitand):
+        (JSC::JITStubs::cti_op_rshift):
+        (JSC::JITStubs::cti_op_bitnot):
+        (JSC::JITStubs::cti_op_resolve_with_base):
+        (JSC::JITStubs::cti_op_new_func_exp):
+        (JSC::JITStubs::cti_op_mod):
+        (JSC::JITStubs::cti_op_less):
+        (JSC::JITStubs::cti_op_neq):
+        (JSC::JITStubs::cti_op_post_dec):
+        (JSC::JITStubs::cti_op_urshift):
+        (JSC::JITStubs::cti_op_bitxor):
+        (JSC::JITStubs::cti_op_new_regexp):
+        (JSC::JITStubs::cti_op_bitor):
+        (JSC::JITStubs::cti_op_call_eval):
+        (JSC::JITStubs::cti_op_throw):
+        (JSC::JITStubs::cti_op_get_pnames):
+        (JSC::JITStubs::cti_op_next_pname):
+        (JSC::JITStubs::cti_op_push_scope):
+        (JSC::JITStubs::cti_op_pop_scope):
+        (JSC::JITStubs::cti_op_typeof):
+        (JSC::JITStubs::cti_op_is_undefined):
+        (JSC::JITStubs::cti_op_is_boolean):
+        (JSC::JITStubs::cti_op_is_number):
+        (JSC::JITStubs::cti_op_is_string):
+        (JSC::JITStubs::cti_op_is_object):
+        (JSC::JITStubs::cti_op_is_function):
+        (JSC::JITStubs::cti_op_stricteq):
+        (JSC::JITStubs::cti_op_to_primitive):
+        (JSC::JITStubs::cti_op_strcat):
+        (JSC::JITStubs::cti_op_nstricteq):
+        (JSC::JITStubs::cti_op_to_jsnumber):
+        (JSC::JITStubs::cti_op_in):
+        (JSC::JITStubs::cti_op_push_new_scope):
+        (JSC::JITStubs::cti_op_jmp_scopes):
+        (JSC::JITStubs::cti_op_put_by_index):
+        (JSC::JITStubs::cti_op_switch_imm):
+        (JSC::JITStubs::cti_op_switch_char):
+        (JSC::JITStubs::cti_op_switch_string):
+        (JSC::JITStubs::cti_op_del_by_val):
+        (JSC::JITStubs::cti_op_put_getter):
+        (JSC::JITStubs::cti_op_put_setter):
+        (JSC::JITStubs::cti_op_new_error):
+        (JSC::JITStubs::cti_op_debug):
+        (JSC::JITStubs::cti_vm_throw):
+        * jit/JITStubs.h:
+        (JSC::JITStackFrame::returnAddressSlot):
+
+2009-05-07  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        * parser/Lexer.cpp:
+        (JSC::Lexer::lex): Fix missing braces. This would make us always
+        take the slower case for string parsing and Visual Studio correctly
+        noticed unreachable code.
+
+2009-05-07  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 25589: goto instead of state machine in lexer
+        https://bugs.webkit.org/show_bug.cgi?id=25589
+
+        SunSpider is 0.8% faster.
+
+        * parser/Lexer.cpp:
+        (JSC::Lexer::currentCharacter): Added.
+        (JSC::Lexer::currentOffset): Changed to call currentCharacter for clarity.
+        (JSC::Lexer::setCode): Removed code to set now-obsolete m_skipLineEnd.
+        (JSC::Lexer::shiftLineTerminator): Added. Handles line numbers and the
+        two-character line terminators.
+        (JSC::Lexer::makeIdentifier): Changed to take characters and length rather
+        than a vector, since we now make these directly out of the source buffer
+        when possible.
+        (JSC::Lexer::lastTokenWasRestrKeyword): Added.
+        (JSC::isNonASCIIIdentStart): Broke out the non-inline part.
+        (JSC::isIdentStart): Moved here.
+        (JSC::isNonASCIIIdentPart): Broke out the non-inline part.
+        (JSC::isIdentPart): Moved here.
+        (JSC::singleEscape): Moved here, and removed some unneeded cases.
+        (JSC::Lexer::record8): Moved here.
+        (JSC::Lexer::record16): Moved here.
+        (JSC::Lexer::lex): Rewrote this whole function to use goto and not use
+        a state machine. Got rid of most of the local variables. Also rolled the
+        matchPunctuator function in here.
+        (JSC::Lexer::scanRegExp): Changed to use the new version of isLineTerminator.
+        Clear m_buffer16 after using it instead of before.
+
+        * parser/Lexer.h: Removed State enum, setDone function, nextLine function,
+        lookupKeywordFunction, one of the isLineTerminator functions, m_done data member,
+        m_skipLineEnd data member, and m_state data member. Added shiftLineTerminator
+        function, currentCharacter function, and changed the arguments to the makeIdentifier
+        function. Removed one branch from the isLineTerminator function.
+
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace): Streamlined the case where we don't replace anything.
+
+2009-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Removed a few more special constants, and replaced them with uses of
+        the JITStackFrame struct.
+
+        Removed one of the two possible definitions of VoidPtrPair. The Mac
+        definition was more elegant, but SunSpider doesn't think it's any
+        faster, and it's net less elegant to have two ways of doing things.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompile):
+        * jit/JITStubs.h:
+        (JSC::):
+
+2009-05-07  Darin Adler  <darin@apple.com>
+
+        * runtime/ScopeChain.h:
+        (JSC::ScopeChainNode::~ScopeChainNode): Tweak formatting.
+
+2009-05-07  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fix the build thread stack base determination build on Symbian,
+        by moving the code block before PLATFORM(UNIX), which is also
+        enabled on Symbian builds.
+
+        * runtime/Collector.cpp:
+        (JSC::currentThreadStackBase):
+
+2009-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix crash due to incorrectly using an invalid scopechain 
+
+        stringProtoFuncReplace was checking for an exception on a CachedCall
+        by asking for the cached callframes exception.  Unfortunately this
+        could crash in certain circumstances as CachedCall does not guarantee
+        a valid callframe following a call.  Even more unfortunately the check
+        was entirely unnecessary as there is only a single exception slot per
+        global data, so it was already checked via the initial exec->hadException()
+        check.
+
+        To make bugs like this more obvious, i've added a debug only destructor
+        to ScopeChainNode that 0's all of its fields.  This exposed a crash in
+        the standard javascriptcore tests.
+
+        * runtime/ScopeChain.h:
+        (JSC::ScopeChainNode::~ScopeChainNode):
+        (JSC::ScopeChain::~ScopeChain):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+
+2009-05-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Enable op_strcat across += assignments.  This patch allows the lhs of a read/modify node
+        to be included within the concatenation operation, and also modifies the implementation
+        of the concatenation to attempt to reuse and cat onto the leftmost string, rather than
+        always allocating a new empty output string to copy into (as was previously the behaviour).
+
+        ~0.5% progression, due to a 3%-3.5% progression on the string tests (particularly validate).
+
+        * parser/Nodes.cpp:
+        (JSC::BinaryOpNode::emitStrcat):
+        (JSC::emitReadModifyAssignment):
+        (JSC::ReadModifyResolveNode::emitBytecode):
+        (JSC::ReadModifyDotNode::emitBytecode):
+        (JSC::ReadModifyBracketNode::emitBytecode):
+        * parser/Nodes.h:
+        * runtime/Operations.h:
+        (JSC::concatenateStrings):
+        * runtime/UString.cpp:
+        (JSC::UString::reserveCapacity):
+        * runtime/UString.h:
+
+2009-05-07  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix the build on Windows without JIT: interpreter/RegisterFile.h needs
+        roundUpAllocationSize, which is protected by #if ENABLED(ASSEMBLER).
+        Moved the #ifdef down and always offer the function.
+
+        * jit/ExecutableAllocator.h:
+
+2009-05-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin "++" Barraclough.
+        
+        Added some abstraction around the JIT stub calling convention by creating
+        a struct to represent the persistent stack frame JIT code shares with
+        JIT stubs.
+        
+        SunSpider reports no change.
+
+        * jit/JIT.h:
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_convert_this):
+        (JSC::JITStubs::cti_op_end):
+        (JSC::JITStubs::cti_op_add):
+        (JSC::JITStubs::cti_op_pre_inc):
+        (JSC::JITStubs::cti_timeout_check):
+        (JSC::JITStubs::cti_register_file_check):
+        (JSC::JITStubs::cti_op_loop_if_less):
+        (JSC::JITStubs::cti_op_loop_if_lesseq):
+        (JSC::JITStubs::cti_op_new_object):
+        (JSC::JITStubs::cti_op_put_by_id_generic):
+        (JSC::JITStubs::cti_op_get_by_id_generic):
+        (JSC::JITStubs::cti_op_put_by_id):
+        (JSC::JITStubs::cti_op_put_by_id_second):
+        (JSC::JITStubs::cti_op_put_by_id_fail):
+        (JSC::JITStubs::cti_op_get_by_id):
+        (JSC::JITStubs::cti_op_get_by_id_second):
+        (JSC::JITStubs::cti_op_get_by_id_self_fail):
+        (JSC::JITStubs::cti_op_get_by_id_proto_list):
+        (JSC::JITStubs::cti_op_get_by_id_proto_list_full):
+        (JSC::JITStubs::cti_op_get_by_id_proto_fail):
+        (JSC::JITStubs::cti_op_get_by_id_array_fail):
+        (JSC::JITStubs::cti_op_get_by_id_string_fail):
+        (JSC::JITStubs::cti_op_instanceof):
+        (JSC::JITStubs::cti_op_del_by_id):
+        (JSC::JITStubs::cti_op_mul):
+        (JSC::JITStubs::cti_op_new_func):
+        (JSC::JITStubs::cti_op_call_JSFunction):
+        (JSC::JITStubs::cti_op_call_arityCheck):
+        (JSC::JITStubs::cti_vm_dontLazyLinkCall):
+        (JSC::JITStubs::cti_vm_lazyLinkCall):
+        (JSC::JITStubs::cti_op_push_activation):
+        (JSC::JITStubs::cti_op_call_NotJSFunction):
+        (JSC::JITStubs::cti_op_create_arguments):
+        (JSC::JITStubs::cti_op_create_arguments_no_params):
+        (JSC::JITStubs::cti_op_tear_off_activation):
+        (JSC::JITStubs::cti_op_tear_off_arguments):
+        (JSC::JITStubs::cti_op_profile_will_call):
+        (JSC::JITStubs::cti_op_profile_did_call):
+        (JSC::JITStubs::cti_op_ret_scopeChain):
+        (JSC::JITStubs::cti_op_new_array):
+        (JSC::JITStubs::cti_op_resolve):
+        (JSC::JITStubs::cti_op_construct_JSConstruct):
+        (JSC::JITStubs::cti_op_construct_NotJSConstruct):
+        (JSC::JITStubs::cti_op_get_by_val):
+        (JSC::JITStubs::cti_op_get_by_val_string):
+        (JSC::JITStubs::cti_op_get_by_val_byte_array):
+        (JSC::JITStubs::cti_op_resolve_func):
+        (JSC::JITStubs::cti_op_sub):
+        (JSC::JITStubs::cti_op_put_by_val):
+        (JSC::JITStubs::cti_op_put_by_val_array):
+        (JSC::JITStubs::cti_op_put_by_val_byte_array):
+        (JSC::JITStubs::cti_op_lesseq):
+        (JSC::JITStubs::cti_op_loop_if_true):
+        (JSC::JITStubs::cti_op_load_varargs):
+        (JSC::JITStubs::cti_op_negate):
+        (JSC::JITStubs::cti_op_resolve_base):
+        (JSC::JITStubs::cti_op_resolve_skip):
+        (JSC::JITStubs::cti_op_resolve_global):
+        (JSC::JITStubs::cti_op_div):
+        (JSC::JITStubs::cti_op_pre_dec):
+        (JSC::JITStubs::cti_op_jless):
+        (JSC::JITStubs::cti_op_not):
+        (JSC::JITStubs::cti_op_jtrue):
+        (JSC::JITStubs::cti_op_post_inc):
+        (JSC::JITStubs::cti_op_eq):
+        (JSC::JITStubs::cti_op_lshift):
+        (JSC::JITStubs::cti_op_bitand):
+        (JSC::JITStubs::cti_op_rshift):
+        (JSC::JITStubs::cti_op_bitnot):
+        (JSC::JITStubs::cti_op_resolve_with_base):
+        (JSC::JITStubs::cti_op_new_func_exp):
+        (JSC::JITStubs::cti_op_mod):
+        (JSC::JITStubs::cti_op_less):
+        (JSC::JITStubs::cti_op_neq):
+        (JSC::JITStubs::cti_op_post_dec):
+        (JSC::JITStubs::cti_op_urshift):
+        (JSC::JITStubs::cti_op_bitxor):
+        (JSC::JITStubs::cti_op_new_regexp):
+        (JSC::JITStubs::cti_op_bitor):
+        (JSC::JITStubs::cti_op_call_eval):
+        (JSC::JITStubs::cti_op_throw):
+        (JSC::JITStubs::cti_op_get_pnames):
+        (JSC::JITStubs::cti_op_next_pname):
+        (JSC::JITStubs::cti_op_push_scope):
+        (JSC::JITStubs::cti_op_pop_scope):
+        (JSC::JITStubs::cti_op_typeof):
+        (JSC::JITStubs::cti_op_is_undefined):
+        (JSC::JITStubs::cti_op_is_boolean):
+        (JSC::JITStubs::cti_op_is_number):
+        (JSC::JITStubs::cti_op_is_string):
+        (JSC::JITStubs::cti_op_is_object):
+        (JSC::JITStubs::cti_op_is_function):
+        (JSC::JITStubs::cti_op_stricteq):
+        (JSC::JITStubs::cti_op_to_primitive):
+        (JSC::JITStubs::cti_op_strcat):
+        (JSC::JITStubs::cti_op_nstricteq):
+        (JSC::JITStubs::cti_op_to_jsnumber):
+        (JSC::JITStubs::cti_op_in):
+        (JSC::JITStubs::cti_op_push_new_scope):
+        (JSC::JITStubs::cti_op_jmp_scopes):
+        (JSC::JITStubs::cti_op_put_by_index):
+        (JSC::JITStubs::cti_op_switch_imm):
+        (JSC::JITStubs::cti_op_switch_char):
+        (JSC::JITStubs::cti_op_switch_string):
+        (JSC::JITStubs::cti_op_del_by_val):
+        (JSC::JITStubs::cti_op_put_getter):
+        (JSC::JITStubs::cti_op_put_setter):
+        (JSC::JITStubs::cti_op_new_error):
+        (JSC::JITStubs::cti_op_debug):
+        (JSC::JITStubs::cti_vm_throw):
+        * jit/JITStubs.h:
+        (JSC::):
+
+2009-05-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak & Darin Adler.
+
+        Improve string concatenation (as coded in JS as a sequence of adds).
+
+        Detect patterns corresponding to string concatenation, and change the bytecode
+        generation to emit a new op_strcat instruction.  By handling the full set of
+        additions within a single function we do not need allocate JSString wrappers
+        for intermediate results, and we can calculate the size of the output string
+        prior to allocating storage, in order to prevent reallocation of the buffer.
+
+        1.5%-2% progression on Sunspider, largely due to a 30% progression on date-format-xparb.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+            Add new opcodes.
+        * bytecode/Opcode.h:
+            Add new opcodes.
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitStrcat):
+        (JSC::BytecodeGenerator::emitToPrimitive):
+            Add generation of new opcodes.
+        * bytecompiler/BytecodeGenerator.h:
+            Add generation of new opcodes.
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+            Add implmentation of new opcodes.
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+            Add implmentation of new opcodes.
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_to_primitive):
+        (JSC::JITStubs::cti_op_strcat):
+            Add implmentation of new opcodes.
+        * jit/JITStubs.h:
+            Add implmentation of new opcodes.
+        * parser/Nodes.cpp:
+        (JSC::BinaryOpNode::emitStrcat):
+        (JSC::BinaryOpNode::emitBytecode):
+        (JSC::ReadModifyResolveNode::emitBytecode):
+            Add generation of new opcodes.
+        * parser/Nodes.h:
+        (JSC::ExpressionNode::):
+        (JSC::AddNode::):
+            Add methods to allow identification of add nodes.
+        * parser/ResultType.h:
+        (JSC::ResultType::definitelyIsString):
+        (JSC::ResultType::forAdd):
+            Fix error in detection of adds that will produce string results.
+        * runtime/Operations.h:
+        (JSC::concatenateStrings):
+            Add implmentation of new opcodes.
+        * runtime/UString.cpp:
+        (JSC::UString::appendNumeric):
+            Add methods to append numbers to an existing string.
+        * runtime/UString.h:
+        (JSC::UString::Rep::createEmptyBuffer):
+        (JSC::UString::BaseString::BaseString):
+            Add support for creating an empty string with a non-zero capacity available in the BaseString.
+
+2009-05-06  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Made RefCounted::m_refCount private.
+
+        * runtime/Structure.h: Removed addressOfCount.
+        * wtf/RefCounted.h: Made m_refCount private.
+        Added addressOfCount.
+
+2009-05-06  Darin Adler  <darin@apple.com>
+
+        Fixed assertion seen a lot!
+
+        * parser/Nodes.cpp:
+        (JSC::FunctionBodyNode::~FunctionBodyNode): Removed now-bogus assertion.
+
+2009-05-06  Darin Adler  <darin@apple.com>
+
+        Working with Sam Weinig.
+
+        Redo parse tree constructor optimization without breaking the Windows
+        build the way I did yesterday. The previous try broke the build by adding
+        an include of Lexer.h and all its dependencies that had to work outside
+        the JavaScriptCore project.
+
+        * GNUmakefile.am: Added NodeConstructors.h.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Ditto.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops:
+        Removed byteocde directory -- we no longer are trying to include Lexer.h
+        outside JavaScriptCore.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Change SegmentedVector.h
+        and Lexer.h back to internal files. Added NodeConstructors.h.
+
+        * parser/Grammar.y: Added include of NodeConstructors.h.
+        Changed use of ConstDeclNode to use public functions.
+
+        * parser/NodeConstructors.h: Copied from parser/Nodes.h.
+        Just contains the inlined constructors now.
+
+        * parser/Nodes.cpp: Added include of NodeConstructors.h.
+        Moved node constructors into the header.
+        (JSC::FunctionBodyNode::FunctionBodyNode): Removed m_refCount
+        initialization.
+
+        * parser/Nodes.h: Removed all the constructor definitions, and also
+        removed the JSC_FAST_CALL from them since these are all inlined, so the
+        calling convention is irrelevant. Made more things private. Used a data
+        member for operator opcodes instead of a virtual function. Removed the
+        special FunctionBodyNode::ref/deref functions since the default functions
+        are now just as fast.
+
+        * runtime/FunctionConstructor.cpp:
+        (JSC::extractFunctionBody): Fixed types here so we don't typecast until
+        after we do type checking.
+
+2009-05-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Fix the Qt build on Windows.
+
+        * JavaScriptCore.pri: Define BUILDING_JavaScriptCore/WTF to get the meaning
+        of the JS_EXPORTDATA macros correct
+
+2009-05-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Enable the JIT for the Qt build on Windows.
+
+        * JavaScriptCore.pri:
+
+2009-05-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Tweak JavaScriptCore.pri for being able to override the generated sources dir for the
+        generated_files target.
+
+        * JavaScriptCore.pri:
+
+2009-05-06  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Build QtWebKit as a framework on Mac
+
+        This implies both debug and release build by default, unless
+        one of the --debug or --release config options are passed to
+        the build-webkit script.
+
+        Frameworks can be disabled by passing CONFIG+=webkit_no_framework
+        to the build-webkit script.
+
+        To be able to build both debug and release targets in parallel
+        we have to use separate output directories for the generated
+        sources, which is not optimal, but required to avoid race conditions.
+
+        An optimization would be to only require this spit-up on Mac.
+
+        * JavaScriptCore.pri:
+        * JavaScriptCore.pro:
+        * jsc.pro:
+
+2009-05-06  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use $$GENERATED_SOURCES_DIR as output when running bison
+
+        A couple of the generators left the bison output file in the source
+        tree, and then moved it into $$GENERATED_SOURCES_DIR, which did not
+        work well when building release and debug configurations in parallel.
+
+        * JavaScriptCore.pri:
+
 2009-05-06  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Maciej Stachowiak.
@@ -28,13 +1818,6 @@
 
         * parser/Nodes.cpp: 
         * parser/Nodes.h:
-
-2009-05-05  Darin Adler  <darin@apple.com>
-
-        Try to fix Windows build.
-
-        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops: Added
-        bytecompiler to the list of directories where the headers get copied.
 
 2009-05-05  Darin Adler  <darin@apple.com>
 
@@ -1748,7 +3531,7 @@
 
         Reviewed by Geoff Garen.
 
-        Bug fix for rdar:/68455379.  If a case-insensitive regex contains
+        Bug fix for rdar:/6845379.  If a case-insensitive regex contains
         a character class containing a range with an upper bound of \uFFFF
         the parser will infinite-loop whist adding other-case characters
         for characters in the range that do have another case.

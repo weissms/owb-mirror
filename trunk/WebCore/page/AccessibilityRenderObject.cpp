@@ -1130,6 +1130,18 @@ void AccessibilityRenderObject::linkedUIElements(AccessibilityChildrenVector& li
         addRadioButtonGroupMembers(linkedUIElements);
 }
 
+bool AccessibilityRenderObject::exposesTitleUIElement() const
+{
+    if (!isControl())
+        return false;
+
+    // checkbox or radio buttons don't expose the title ui element unless it has a title already
+    if (isCheckboxOrRadio() && getAttribute(titleAttr).isEmpty())
+        return false;
+    
+    return true;
+}
+    
 AccessibilityObject* AccessibilityRenderObject::titleUIElement() const
 {
     if (!m_renderer)
@@ -1139,8 +1151,7 @@ AccessibilityObject* AccessibilityRenderObject::titleUIElement() const
     if (isFieldset())
         return axObjectCache()->getOrCreate(static_cast<RenderFieldset*>(m_renderer)->findLegend());
     
-    // checkbox and radio hide their labels. Only controls get titleUIElements for now
-    if (isCheckboxOrRadio() || !isControl())
+    if (!exposesTitleUIElement())
         return 0;
     
     Node* element = m_renderer->node();
@@ -1173,7 +1184,7 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
         HTMLElement* correspondingControl = labelElement->correspondingControl();
         if (correspondingControl && correspondingControl->renderer()) {
             AccessibilityObject* controlObject = axObjectCache()->getOrCreate(correspondingControl->renderer());
-            if (controlObject->isCheckboxOrRadio())
+            if (!controlObject->exposesTitleUIElement())
                 return true;
         }
     }
@@ -1496,14 +1507,11 @@ void AccessibilityRenderObject::setValue(const String& string)
 bool AccessibilityRenderObject::isEnabled() const
 {
     ASSERT(m_renderer);
-    if (!m_renderer->node() || !m_renderer->node()->isElementNode())
+    Node* node = m_renderer->node();
+    if (!node || !node->isElementNode())
         return true;
 
-    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(m_renderer->node()));
-    if (!formControlElement)
-        return true;
-
-    return formControlElement->isEnabled();    
+    return static_cast<Element*>(node)->isEnabledFormControl();
 }
 
 RenderView* AccessibilityRenderObject::topRenderer() const
@@ -2278,15 +2286,15 @@ bool AccessibilityRenderObject::ariaRoleHasPresentationalChildren() const
 bool AccessibilityRenderObject::canSetFocusAttribute() const
 {
     ASSERT(m_renderer);
+    Node* node = m_renderer->node();
 
     // NOTE: It would be more accurate to ask the document whether setFocusedNode() would
     // do anything.  For example, it setFocusedNode() will do nothing if the current focused
     // node will not relinquish the focus.
-    if (!m_renderer->node() || !m_renderer->node()->isElementNode())
+    if (!node || !node->isElementNode())
         return false;
 
-    FormControlElement* formControlElement = toFormControlElement(static_cast<Element*>(m_renderer->node()));
-    if (formControlElement && !formControlElement->isEnabled())
+    if (!static_cast<Element*>(node)->isEnabledFormControl())
         return false;
 
     switch (roleValue()) {

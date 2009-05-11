@@ -368,20 +368,50 @@ void UString::Rep::checkConsistency() const
 }
 #endif
 
-// put these early so they can be inlined
-static inline size_t expandedSize(size_t size, size_t otherSize)
+// Put these early so they can be inlined.
+static inline size_t expandedSize(size_t capacitySize, size_t precapacitySize)
 {
-    // Do the size calculation in two parts, returning overflowIndicator if
-    // we overflow the maximum value that we can handle.
-
-    if (size > maxUChars())
+    // Combine capacitySize & precapacitySize to produce a single size to allocate,
+    // check that doing so does not result in overflow.
+    size_t size = capacitySize + precapacitySize;
+    if (size < capacitySize)
         return overflowIndicator();
 
-    size_t expandedSize = ((size + 10) / 10 * 11) + 1;
-    if (maxUChars() - expandedSize < otherSize)
-        return overflowIndicator();
+    // Small Strings (up to 4 pages):
+    // Expand the allocation size to 112.5% of the amount requested.  This is largely sicking
+    // to our previous policy, however 112.5% is cheaper to calculate.
+    if (size < 0x4000) {
+        size_t expandedSize = ((size + (size >> 3)) | 15) + 1;
+        // Given the limited range within which we calculate the expansion in this
+        // fashion the above calculation should never overflow.
+        ASSERT(expandedSize >= size);
+        ASSERT(expandedSize < maxUChars());
+        return expandedSize;
+    }
 
-    return expandedSize + otherSize;
+    // Medium Strings (up to 128 pages):
+    // For pages covering multiple pages over-allocation is less of a concern - any unused
+    // space will not be paged in if it is not used, so this is purely a VM overhead.  For
+    // these strings allocate 2x the requested size.
+    if (size < 0x80000) {
+        size_t expandedSize = ((size + size) | 0xfff) + 1;
+        // Given the limited range within which we calculate the expansion in this
+        // fashion the above calculation should never overflow.
+        ASSERT(expandedSize >= size);
+        ASSERT(expandedSize < maxUChars());
+        return expandedSize;
+    }
+
+    // Large Strings (to infinity and beyond!):
+    // Revert to our 112.5% policy - probably best to limit the amount of unused VM we allow
+    // any individual string be responsible for.
+    size_t expandedSize = ((size + (size >> 3)) | 0xfff) + 1;
+
+    // Check for overflow - any result that is at least as large as requested (but
+    // still below the limit) is okay.
+    if ((expandedSize >= size) && (expandedSize < maxUChars()))
+        return expandedSize;
+    return overflowIndicator();
 }
 
 static inline bool expandCapacity(UString::Rep* rep, int requiredLength)
@@ -404,6 +434,33 @@ static inline bool expandCapacity(UString::Rep* rep, int requiredLength)
         base->usedCapacity = requiredLength;
 
     rep->checkConsistency();
+    return true;
+}
+
+bool UString::Rep::reserveCapacity(int capacity)
+{
+    // If this is an empty string there is no point 'growing' it - just allocate a new one.
+    // If the BaseString is shared with another string that is using more capacity than this
+    // string is, then growing the buffer won't help.
+    if (!m_baseString->buf || !m_baseString->capacity || (offset + len) != m_baseString->usedCapacity)
+        return false;
+    
+    // If there is already sufficient capacity, no need to grow!
+    if (capacity <= m_baseString->capacity)
+        return true;
+
+    checkConsistency();
+
+    size_t newCapacity = expandedSize(capacity, m_baseString->preCapacity);
+    UChar* oldBuf = m_baseString->buf;
+    m_baseString->buf = reallocChars(m_baseString->buf, newCapacity);
+    if (!m_baseString->buf) {
+        m_baseString->buf = oldBuf;
+        return false;
+    }
+    m_baseString->capacity = newCapacity - m_baseString->preCapacity;
+
+    checkConsistency();
     return true;
 }
 
@@ -741,7 +798,8 @@ PassRefPtr<UString::Rep> concatenate(UString::Rep* rep, double d)
     int decimalPoint;
     int sign;
 
-    char* result = WTF::dtoa(d, 0, &decimalPoint, &sign, NULL);
+    char result[80];
+    WTF::dtoa(result, d, 0, &decimalPoint, &sign, NULL);
     int length = static_cast<int>(strlen(result));
   
     int i = 0;
@@ -792,9 +850,7 @@ PassRefPtr<UString::Rep> concatenate(UString::Rep* rep, double d)
         buf[i++] = '\0';
     }
     
-  WTF::freedtoa(result);
-
-  return concatenate(rep, buf);
+    return concatenate(rep, buf);
 }
 
 UString UString::from(int i)
@@ -882,8 +938,9 @@ UString UString::from(double d)
     char buf[80];
     int decimalPoint;
     int sign;
-
-    char* result = WTF::dtoa(d, 0, &decimalPoint, &sign, NULL);
+    
+    char result[80];
+    WTF::dtoa(result, d, 0, &decimalPoint, &sign, NULL);
     int length = static_cast<int>(strlen(result));
   
     int i = 0;
@@ -934,9 +991,7 @@ UString UString::from(double d)
         buf[i++] = '\0';
     }
     
-  WTF::freedtoa(result);
-
-  return UString(buf);
+    return UString(buf);
 }
 
 UString UString::spliceSubstringsWithSeparators(const Range* substringRanges, int rangeCount, const UString* separators, int separatorCount) const
@@ -1058,6 +1113,18 @@ UString& UString::append(const UString &t)
 UString& UString::append(const UChar* tData, int tSize)
 {
     m_rep = concatenate(m_rep.release(), tData, tSize);
+    return *this;
+}
+
+UString& UString::appendNumeric(int i)
+{
+    m_rep = concatenate(rep(), i);
+    return *this;
+}
+
+UString& UString::appendNumeric(double d)
+{
+    m_rep = concatenate(rep(), d);
     return *this;
 }
 

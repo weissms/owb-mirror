@@ -530,7 +530,10 @@ bool HTMLParser::handleError(Node* n, bool flat, const AtomicString& localName, 
                 }
                 if (!m_haveFrameSet) {
                     // Ensure that head exists.
-                    createHead();
+                    // But not for older versions of Mail, where the implicit <head> isn't expected - <rdar://problem/6863795>
+                    if (shouldCreateImplicitHead(m_document))
+                        createHead();
+
                     popBlock(headTag);
                     e = new HTMLBodyElement(bodyTag, m_document);
                     startBody();
@@ -715,8 +718,12 @@ bool HTMLParser::bodyCreateErrorCheck(Token*, RefPtr<Node>&)
     // body no longer allowed if we have a frameset
     if (m_haveFrameSet)
         return false;
+    
     // Ensure that head exists.
-    createHead();
+    // But not for older versions of Mail, where the implicit <head> isn't expected - <rdar://problem/6863795>
+    if (shouldCreateImplicitHead(m_document))
+        createHead();
+    
     popBlock(headTag);
     startBody();
     return true;
@@ -1651,5 +1658,23 @@ void HTMLParser::reportErrorToConsole(HTMLParserErrorCode errorCode, const Atomi
         message, lineNumber, m_document->url().string());
 #endif
 }
+
+#ifdef BUILDING_ON_LEOPARD
+bool shouldCreateImplicitHead(Document* document)
+{
+    ASSERT(document);
+    
+    Settings* settings = document->page() ? document->page()->settings() : 0;
+    return settings ? !settings->needsLeopardMailQuirks() : true;
+}
+#elif defined(BUILDING_ON_TIGER)
+bool shouldCreateImplicitHead(Document* document)
+{
+    ASSERT(document);
+    
+    Settings* settings = document->page() ? document->page()->settings() : 0;
+    return settings ? !settings->needsTigerMailQuirks() : true;
+}
+#endif
 
 }

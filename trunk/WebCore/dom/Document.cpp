@@ -74,6 +74,7 @@
 #include "HTMLMapElement.h"
 #include "HTMLNameCollection.h"
 #include "HTMLNames.h"
+#include "HTMLParser.h"
 #include "HTMLStyleElement.h"
 #include "HTMLTitleElement.h"
 #include "HTTPParsers.h"
@@ -1597,7 +1598,9 @@ void Document::implicitClose()
     if (!this->body() && isHTMLDocument()) {
         if (Node* documentElement = this->documentElement()) {
             ExceptionCode ec = 0;
-            if (!head()) {
+            
+            // The implicit <head> isn't expected in older versions of Mail - <rdar://problem/6863795>
+            if (!head() && shouldCreateImplicitHead(this)) {
                 documentElement->appendChild(new HTMLHeadElement(headTag, this), ec);
                 ASSERT(!ec);
             }
@@ -3861,17 +3864,14 @@ Vector<String> Document::formElementsState() const
 {
     Vector<String> stateVector;
     stateVector.reserveInitialCapacity(m_formElementsWithState.size() * 3);
-    typedef ListHashSet<FormControlElementWithState*>::const_iterator Iterator;
+    typedef ListHashSet<Element*>::const_iterator Iterator;
     Iterator end = m_formElementsWithState.end();
     for (Iterator it = m_formElementsWithState.begin(); it != end; ++it) {
-        FormControlElementWithState* e = *it;
+        Element* e = *it;
         String value;
-        if (e->saveState(value)) {
-            FormControlElement* formControlElement = e->toFormControlElement();
-            ASSERT(formControlElement);
-
-            stateVector.append(formControlElement->name().string());
-            stateVector.append(formControlElement->type().string());
+        if (e->saveFormControlState(value)) {
+            stateVector.append(e->formControlName().string());
+            stateVector.append(e->formControlType().string());
             stateVector.append(value);
         }
     }

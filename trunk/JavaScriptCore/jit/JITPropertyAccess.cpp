@@ -55,12 +55,11 @@ void JIT::compileGetByIdHotPath(int resultVReg, int baseVReg, Identifier* ident,
 
     emitGetVirtualRegister(baseVReg, regT0);
 
-    emitPutJITStubArg(regT0, 1);
-    emitPutJITStubArgConstant(ident, 2);
-    emitCTICall(JITStubs::cti_op_get_by_id_generic);
-    emitPutVirtualRegister(resultVReg);
+    JITStubCall stubCall(this, JITStubs::cti_op_get_by_id_generic);
+    stubCall.addArgument(regT0);
+    stubCall.addArgument(ImmPtr(ident));
+    stubCall.call(resultVReg);
 }
-
 
 void JIT::compileGetByIdSlowCase(int, int, Identifier*, Vector<SlowCaseEntry>::iterator&, unsigned)
 {
@@ -75,10 +74,11 @@ void JIT::compilePutByIdHotPath(int baseVReg, Identifier* ident, int valueVReg, 
 
     emitGetVirtualRegisters(baseVReg, regT0, valueVReg, regT1);
 
-    emitPutJITStubArgConstant(ident, 2);
-    emitPutJITStubArg(regT0, 1);
-    emitPutJITStubArg(regT1, 3);
-    emitCTICall(JITStubs::cti_op_put_by_id_generic);
+    JITStubCall stubCall(this, JITStubs::cti_op_put_by_id_generic);
+    stubCall.addArgument(regT0);
+    stubCall.addArgument(ImmPtr(ident));
+    stubCall.addArgument(regT1);
+    stubCall.call(resultVReg);
 }
 
 void JIT::compilePutByIdSlowCase(int, Identifier*, int, Vector<SlowCaseEntry>::iterator&, unsigned)
@@ -108,7 +108,12 @@ void JIT::compileGetByIdHotPath(int resultVReg, int baseVReg, Identifier*, unsig
     ASSERT(differenceBetween(hotPathBegin, structureToCompare) == patchOffsetGetByIdStructure);
     ASSERT(differenceBetween(hotPathBegin, structureCheck) == patchOffsetGetByIdBranchToSlowCase);
 
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
+    Label externalLoad(this);
+    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_externalStorage)), regT0);
+    Label externalLoadComplete(this);
+    ASSERT(differenceBetween(hotPathBegin, externalLoad) == patchOffsetGetByIdExternalLoad);
+    ASSERT(differenceBetween(externalLoad, externalLoadComplete) == patchLengthGetByIdExternalLoad);
+
     DataLabel32 displacementLabel = loadPtrWithAddressOffsetPatch(Address(regT0, patchGetByIdDefaultOffset), regT0);
     ASSERT(differenceBetween(hotPathBegin, displacementLabel) == patchOffsetGetByIdPropertyMapOffset);
 
@@ -132,10 +137,10 @@ void JIT::compileGetByIdSlowCase(int resultVReg, int baseVReg, Identifier* ident
 #ifndef NDEBUG
     Label coldPathBegin(this);
 #endif
-    emitPutJITStubArg(regT0, 1);
-    emitPutJITStubArgConstant(ident, 2);
-    Call call = emitCTICall(JITStubs::cti_op_get_by_id);
-    emitPutVirtualRegister(resultVReg);
+    JITStubCall stubCall(this, JITStubs::cti_op_get_by_id);
+    stubCall.addArgument(regT0);
+    stubCall.addArgument(ImmPtr(ident));
+    Call call = stubCall.call(resultVReg);
 
     ASSERT(differenceBetween(coldPathBegin, call) == patchOffsetGetByIdSlowCaseCall);
 
@@ -163,7 +168,12 @@ void JIT::compilePutByIdHotPath(int baseVReg, Identifier*, int valueVReg, unsign
     ASSERT(differenceBetween(hotPathBegin, structureToCompare) == patchOffsetPutByIdStructure);
 
     // Plant a load from a bogus ofset in the object's property map; we will patch this later, if it is to be used.
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
+    Label externalLoad(this);
+    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_externalStorage)), regT0);
+    Label externalLoadComplete(this);
+    ASSERT(differenceBetween(hotPathBegin, externalLoad) == patchOffsetPutByIdExternalLoad);
+    ASSERT(differenceBetween(externalLoad, externalLoadComplete) == patchLengthPutByIdExternalLoad);
+
     DataLabel32 displacementLabel = storePtrWithAddressOffsetPatch(regT1, Address(regT0, patchGetByIdDefaultOffset));
     ASSERT(differenceBetween(hotPathBegin, displacementLabel) == patchOffsetPutByIdPropertyMapOffset);
 }
@@ -173,13 +183,48 @@ void JIT::compilePutByIdSlowCase(int baseVReg, Identifier* ident, int, Vector<Sl
     linkSlowCaseIfNotJSCell(iter, baseVReg);
     linkSlowCase(iter);
 
-    emitPutJITStubArgConstant(ident, 2);
-    emitPutJITStubArg(regT0, 1);
-    emitPutJITStubArg(regT1, 3);
-    Call call = emitCTICall(JITStubs::cti_op_put_by_id);
+    JITStubCall stubCall(this, JITStubs::cti_op_put_by_id);
+    stubCall.addArgument(regT0);
+    stubCall.addArgument(ImmPtr(ident));
+    stubCall.addArgument(regT1);
+    Call call = stubCall.call();
 
     // Track the location of the call; this will be used to recover patch information.
     m_propertyAccessCompilationInfo[propertyAccessInstructionIndex].callReturnLocation = call;
+}
+
+// Compile a store into an object's property storage.  May overwrite the
+// value in objectReg.
+void JIT::compilePutDirectOffset(RegisterID base, RegisterID value, Structure* structure, size_t cachedOffset)
+{
+    int offset = cachedOffset * sizeof(JSValue);
+    if (structure->isUsingInlineStorage())
+        offset += FIELD_OFFSET(JSObject, m_inlineStorage);
+    else
+        loadPtr(Address(base, FIELD_OFFSET(JSObject, m_externalStorage)), base);
+    storePtr(value, Address(base, offset));
+}
+
+// Compile a load from an object's property storage.  May overwrite base.
+void JIT::compileGetDirectOffset(RegisterID base, RegisterID result, Structure* structure, size_t cachedOffset)
+{
+    int offset = cachedOffset * sizeof(JSValue);
+    if (structure->isUsingInlineStorage())
+        offset += FIELD_OFFSET(JSObject, m_inlineStorage);
+    else
+        loadPtr(Address(base, FIELD_OFFSET(JSObject, m_externalStorage)), base);
+    loadPtr(Address(base, offset), result);
+}
+
+void JIT::compileGetDirectOffset(JSObject* base, RegisterID temp, RegisterID result, size_t cachedOffset)
+{
+    if (base->isUsingInlineStorage())
+        loadPtr(static_cast<void*>(&base->m_inlineStorage[cachedOffset]), result);
+    else {
+        PropertyStorage* protoPropertyStorage = &base->m_externalStorage;
+        loadPtr(static_cast<void*>(protoPropertyStorage), temp);
+        loadPtr(Address(temp, cachedOffset * sizeof(JSValue)), result);
+    } 
 }
 
 static JSObject* resizePropertyStorage(JSObject* baseObject, int32_t oldSize, int32_t newSize)
@@ -252,8 +297,7 @@ void JIT::privateCompilePutByIdTransition(StructureStubInfo* stubInfo, Structure
     storePtr(ImmPtr(newStructure), Address(regT0, FIELD_OFFSET(JSCell, m_structure)));
 
     // write the value
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
-    storePtr(regT1, Address(regT0, cachedOffset * sizeof(JSValue)));
+    compilePutDirectOffset(regT0, regT1, newStructure, cachedOffset);
 
     ret();
     
@@ -281,9 +325,16 @@ void JIT::patchGetByIdSelf(StructureStubInfo* stubInfo, Structure* structure, si
     // Should probably go to JITStubs::cti_op_get_by_id_fail, but that doesn't do anything interesting right now.
     returnAddress.relinkCallerToFunction(JITStubs::cti_op_get_by_id_self_fail);
 
+    int offset = sizeof(JSValue) * cachedOffset;
+
+    // If we're patching to use inline storage, convert the initial load to a lea; this avoids the extra load
+    // and makes the subsequent load's offset automatically correct
+    if (structure->isUsingInlineStorage())
+        stubInfo->hotPathBegin.instructionAtOffset(patchOffsetGetByIdExternalLoad + patchLengthGetByIdExternalLoadPrefix).patchLoadToLEA();
+
     // Patch the offset into the propoerty map to load from, then patch the Structure to look for.
     stubInfo->hotPathBegin.dataLabelPtrAtOffset(patchOffsetGetByIdStructure).repatch(structure);
-    stubInfo->hotPathBegin.dataLabel32AtOffset(patchOffsetGetByIdPropertyMapOffset).repatch(cachedOffset * sizeof(JSValue));
+    stubInfo->hotPathBegin.dataLabel32AtOffset(patchOffsetGetByIdPropertyMapOffset).repatch(offset);
 }
 
 void JIT::patchPutByIdReplace(StructureStubInfo* stubInfo, Structure* structure, size_t cachedOffset, ProcessorReturnAddress returnAddress)
@@ -292,9 +343,16 @@ void JIT::patchPutByIdReplace(StructureStubInfo* stubInfo, Structure* structure,
     // Should probably go to JITStubs::cti_op_put_by_id_fail, but that doesn't do anything interesting right now.
     returnAddress.relinkCallerToFunction(JITStubs::cti_op_put_by_id_generic);
 
+    int offset = sizeof(JSValue) * cachedOffset;
+
+    // If we're patching to use inline storage, convert the initial load to a lea; this avoids the extra load
+    // and makes the subsequent load's offset automatically correct
+    if (structure->isUsingInlineStorage())
+        stubInfo->hotPathBegin.instructionAtOffset(patchOffsetPutByIdExternalLoad + patchLengthPutByIdExternalLoadPrefix).patchLoadToLEA();
+
     // Patch the offset into the propoerty map to load from, then patch the Structure to look for.
     stubInfo->hotPathBegin.dataLabelPtrAtOffset(patchOffsetPutByIdStructure).repatch(structure);
-    stubInfo->hotPathBegin.dataLabel32AtOffset(patchOffsetPutByIdPropertyMapOffset).repatch(cachedOffset * sizeof(JSValue));
+    stubInfo->hotPathBegin.dataLabel32AtOffset(patchOffsetPutByIdPropertyMapOffset).repatch(offset);
 }
 
 void JIT::privateCompilePatchGetArrayLength(ProcessorReturnAddress returnAddress)
@@ -343,8 +401,7 @@ void JIT::privateCompileGetByIdSelf(StructureStubInfo* stubInfo, Structure* stru
     Jump failureCases2 = checkStructure(regT0, structure);
 
     // Checks out okay! - getDirectOffset
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
-    loadPtr(Address(regT0, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(regT0, regT0, structure, cachedOffset);
     ret();
 
     Call failureCases1Call = makeTailRecursiveCall(failureCases1);
@@ -384,9 +441,7 @@ void JIT::privateCompileGetByIdProto(StructureStubInfo* stubInfo, Structure* str
 #endif
 
     // Checks out okay! - getDirectOffset
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(static_cast<void*>(protoPropertyStorage), regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
 
     Jump success = jump();
 
@@ -422,9 +477,7 @@ void JIT::privateCompileGetByIdProto(StructureStubInfo* stubInfo, Structure* str
     Jump failureCases3 = branchPtr(NotEqual, AbsoluteAddress(prototypeStructureAddress), ImmPtr(prototypeStructure));
 
     // Checks out okay! - getDirectOffset
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(protoPropertyStorage, regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
 
     ret();
 
@@ -445,8 +498,7 @@ void JIT::privateCompileGetByIdProto(StructureStubInfo* stubInfo, Structure* str
 void JIT::privateCompileGetByIdSelfList(StructureStubInfo* stubInfo, PolymorphicAccessStructureList* polymorphicStructures, int currentIndex, Structure* structure, size_t cachedOffset)
 {
     Jump failureCase = checkStructure(regT0, structure);
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
-    loadPtr(Address(regT0, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(regT0, regT0, structure, cachedOffset);
     Jump success = jump();
 
     void* code = m_assembler.executableCopy(m_codeBlock->executablePool());
@@ -492,9 +544,7 @@ void JIT::privateCompileGetByIdProtoList(StructureStubInfo* stubInfo, Polymorphi
 #endif
 
     // Checks out okay! - getDirectOffset
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(protoPropertyStorage, regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
 
     Jump success = jump();
 
@@ -548,9 +598,7 @@ void JIT::privateCompileGetByIdChainList(StructureStubInfo* stubInfo, Polymorphi
     }
     ASSERT(protoObject);
 
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(protoPropertyStorage, regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
     Jump success = jump();
 
     void* code = m_assembler.executableCopy(m_codeBlock->executablePool());
@@ -608,9 +656,7 @@ void JIT::privateCompileGetByIdChain(StructureStubInfo* stubInfo, Structure* str
     }
     ASSERT(protoObject);
 
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(protoPropertyStorage, regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
     Jump success = jump();
 
     void* code = m_assembler.executableCopy(m_codeBlock->executablePool());
@@ -656,9 +702,8 @@ void JIT::privateCompileGetByIdChain(StructureStubInfo* stubInfo, Structure* str
     }
     ASSERT(protoObject);
 
-    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
-    loadPtr(protoPropertyStorage, regT1);
-    loadPtr(Address(regT1, cachedOffset * sizeof(JSValue)), regT0);
+    compileGetDirectOffset(protoObject, regT1, regT0, cachedOffset);
+    compilePutDirectOffset(regT0, regT1, structure, cachedOffset);
     ret();
 
     void* code = m_assembler.executableCopy(m_codeBlock->executablePool());
@@ -678,8 +723,7 @@ void JIT::privateCompilePutByIdReplace(StructureStubInfo* stubInfo, Structure* s
     Jump failureCases2 = checkStructure(regT0, structure);
 
     // checks out okay! - putDirectOffset
-    loadPtr(Address(regT0, FIELD_OFFSET(JSObject, m_propertyStorage)), regT0);
-    storePtr(regT1, Address(regT0, cachedOffset * sizeof(JSValue)));
+    compilePutDirectOffset(regT0, regT1, structure, cachedOffset);
     ret();
 
     Call failureCases1Call = makeTailRecursiveCall(failureCases1);

@@ -109,8 +109,6 @@ static const double defaultDPI = 96.0;
 using namespace WebKit;
 using namespace WebCore;
 
-extern "C" {
-
 enum {
     /* normal signals */
     NAVIGATION_REQUESTED,
@@ -836,9 +834,9 @@ static gboolean webkit_web_view_real_move_cursor (WebKitWebView* webView, GtkMov
         break;
     case GTK_MOVEMENT_PAGES:
         if (count == 1)
-            view->scrollBy(IntSize(0, view->visibleHeight() * 0.9));
+            view->scrollBy(IntSize(0, view->visibleHeight() - cAmountToKeepWhenPaging));
         else if (count == -1)
-            view->scrollBy(IntSize(0, -view->visibleHeight() * 0.9));
+            view->scrollBy(IntSize(0, -view->visibleHeight() + cAmountToKeepWhenPaging));
         break;
     case GTK_MOVEMENT_BUFFER_ENDS:
         if (count == 1)
@@ -2145,11 +2143,14 @@ void webkit_web_view_notify_ready(WebKitWebView* webView)
     g_signal_emit(webView, webkit_web_view_signals[WEB_VIEW_READY], 0, &isHandled);
 }
 
-void webkit_web_view_request_download(WebKitWebView* webView, WebKitNetworkRequest* request)
+void webkit_web_view_request_download(WebKitWebView* webView, WebKitNetworkRequest* request, const ResourceResponse& response)
 {
     g_return_if_fail(WEBKIT_IS_WEB_VIEW(webView));
 
     WebKitDownload* download = webkit_download_new(request);
+
+    if (!response.isNull() && !response.suggestedFilename().isEmpty())
+        webkit_download_set_suggested_filename(download, response.suggestedFilename().utf8().data());
 
     gboolean handled;
     g_signal_emit(webView, webkit_web_view_signals[DOWNLOAD_REQUESTED], 0, download, &handled);
@@ -3183,8 +3184,6 @@ gdouble webkit_web_view_get_progress(WebKitWebView* webView)
     g_return_val_if_fail(WEBKIT_IS_WEB_VIEW(webView), 1.0);
 
     return lround(core(webView)->progress()->estimatedProgress() * 100);
-}
-
 }
 
 /**

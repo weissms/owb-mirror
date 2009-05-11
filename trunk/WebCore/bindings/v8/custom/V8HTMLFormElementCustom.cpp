@@ -31,12 +31,25 @@
 #include "config.h"
 #include "HTMLFormElement.h"
 
+#include "HTMLCollection.h"
 #include "V8Binding.h"
 #include "V8CustomBinding.h"
 #include "V8NamedNodesCollection.h"
 #include "V8Proxy.h"
 
 namespace WebCore {
+
+INDEXED_PROPERTY_GETTER(HTMLFormElement)
+{
+    INC_STATS("DOM.HTMLFormElement.IndexedPropertyGetter");
+    HTMLFormElement* form = V8Proxy::DOMWrapperToNode<HTMLFormElement>(info.Holder());
+    
+    RefPtr<Node> formElement = form->elements()->item(index);
+    if (!formElement)
+        return notHandledByInterceptor();
+    return V8Proxy::NodeToV8Object(formElement.get());
+}
+
 
 NAMED_PROPERTY_GETTER(HTMLFormElement)
 {
@@ -51,7 +64,7 @@ NAMED_PROPERTY_GETTER(HTMLFormElement)
         Vector<RefPtr<Node> > elements;
         imp->getNamedElements(v, elements);
         if (elements.isEmpty())
-            return v8::Handle<v8::Value>();
+            return notHandledByInterceptor();
     }
 
     // Second call may return different results from the first call,
@@ -65,6 +78,13 @@ NAMED_PROPERTY_GETTER(HTMLFormElement)
 
     NodeList* collection = new V8NamedNodesCollection(elements);
     return V8Proxy::ToV8Object(V8ClassIndex::NODELIST, collection);
+}
+    
+CALLBACK_FUNC_DECL(HTMLFormElementSubmit) {
+    INC_STATS("DOM.HTMLFormElement.submit()");
+    HTMLFormElement* form = V8Proxy::DOMWrapperToNative<HTMLFormElement>(args.Holder());
+    form->submit(0, false, false);
+    return v8::Undefined();
 }
 
 } // namespace WebCore

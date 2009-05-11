@@ -1,3 +1,100 @@
+2009-05-11  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Make the scan program call g_thread_init(NULL) in addition to
+        g_type_init(), so that it actually works.
+
+        * docs/GNUmakefile.am:
+
+2009-05-08  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Unify scrolling code via adjustments and keys. Use the WebCore
+        defined constants, since that's what people are most used to at
+        this point.
+
+        * ChangeLog:
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_real_move_cursor):
+
+2009-05-07  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Gustavo Noronha.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidChangeLocationWithinPage):
+        (WebKit::FrameLoaderClient::dispatchDidCommitLoad): Add missing
+        call to notifyStatus in the committed case and a missing property notify.
+
+2009-05-06  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24786
+        WebKitDownload sometimes suggests peculiar filenames
+
+        When a download is requested by an ongoing request, use the already
+        provided response to set the suggested filename for the WebKitDownload
+        object, if available.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::download):
+        * webkit/webkitdownload.cpp:
+        (_WebKitDownloadPrivate::webkit_download_set_property):
+        (_WebKitDownloadPrivate::webkit_download_get_suggested_filename):
+        (_WebKitDownloadPrivate::webkit_download_set_suggested_filename):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+
+2009-05-06  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        GTK+ API implementation files have bogus extern "C" entries
+        https://bugs.webkit.org/show_bug.cgi?id=24322
+
+        Remove bogus extern "C" from the source files.
+
+        * webkit/webkitdownload.cpp:
+        (DownloadClient::cannotShowURL):
+        * webkit/webkiterror.cpp:
+        (webkit_plugin_error_quark):
+        * webkit/webkitnetworkrequest.cpp:
+        (webkit_network_request_get_uri):
+        * webkit/webkitprivate.cpp:
+        (webkit_init):
+        * webkit/webkitversion.cpp:
+        (webkit_micro_version):
+        * webkit/webkitwebbackforwardlist.cpp:
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_get_load_status):
+        * webkit/webkitwebhistoryitem.cpp:
+        * webkit/webkitwebinspector.cpp:
+        (webkit_web_inspector_set_inspector_client):
+        * webkit/webkitwebnavigationaction.cpp:
+        (webkit_web_navigation_action_get_modifier_state):
+        * webkit/webkitwebpolicydecision.cpp:
+        (webkit_web_policy_decision_cancel):
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_get_spell_languages):
+        * webkit/webkitwebview.cpp:
+        * webkit/webkitwebwindowfeatures.cpp:
+        (webkit_web_window_features_equal):
+
+2009-05-06  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Misc fixes to InspectorClientGtk.
+
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::InspectorClient::createPage): use g_filename_to_uri to
+        get the URI and use web_view_load_uri instead of the deprecated
+        web_view_open method for loading the URI.
+        (WebKit::InspectorClient::localizedStringsURL): implement.
+
 2009-05-06  Ben Murdoch  <benm@google.com>
 
         Reviewed by Eric Seidel.
