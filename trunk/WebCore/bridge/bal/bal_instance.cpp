@@ -152,6 +152,10 @@ JSValue BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList,
     {
         JSLock::DropAllLocks dropAllLocks(false);
         val = m_object->invoke(ident, cArgs);
+        if (!val) {
+            val = new WebValue();
+            val->balUndefined();
+        }
     }
 
     cArgs.clear();

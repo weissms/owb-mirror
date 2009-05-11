@@ -1,5 +1,18 @@
 2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Reviewed by Mario Bensi.
+
+        Avoid crashing when the client application returns 0.
+
+        Now we set the returned value to JS undefined.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Sebastien Roret. 
 
         Build fix when INSPECTOR is activated: 

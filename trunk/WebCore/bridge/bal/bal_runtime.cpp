@@ -50,7 +50,12 @@ JSValue BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
     {
         JSLock::DropAllLocks dropAllLocks(false);
         val = obj->getProperty(m_ident);
+        if (!val) {
+            val = new WebValue();
+            val->balUndefined();
+        }
     }
+
     JSValue v;
     if(val->m_obj != NULL)
         v = val->d->balObject(val->m_obj, exec);
