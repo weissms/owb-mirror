@@ -1,3 +1,15 @@
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret. 
+
+        Build fix when INSPECTOR is activated: 
+        ScriptObjectQuarantine.cpp is needed when INSPECTOR is ON 
+        but we were including Database.h which would break the build if 
+        DATABASE is OFF. 
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+
 2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -109,12 +109,6 @@ if(ENABLE_DOM_STORAGE)
     list(APPEND WEBCORE_SRC
         bindings/js/JSStorageCustom.cpp
     )
-    if (ENABLE_INSPECTOR)
-        list(APPEND WEBCORE_SRC
-            bindings/js/ScriptObjectQuarantine.cpp
-        )
-    endif(ENABLE_INSPECTOR)
-
 endif(ENABLE_DOM_STORAGE)
 
 if(ENABLE_OFFLINE_WEB_APPLICATIONS)
@@ -130,6 +124,7 @@ if(ENABLE_INSPECTOR)
         bindings/js/JSInspectorCallbackWrapper.cpp
         bindings/js/JSInspectorControllerCustom.cpp
         bindings/js/JSJavaScriptCallFrameCustom.cpp
+        bindings/js/ScriptObjectQuarantine.cpp
     )
 endif(ENABLE_INSPECTOR)
 
