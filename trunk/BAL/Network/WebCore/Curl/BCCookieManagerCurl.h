@@ -36,9 +36,9 @@ namespace WebCore {
     class String;
     class Cookie;
 
-    enum DatabaseRemoval {
-        RemoveFromDatabase,
-        DoNotRemoveFromDatabase
+    enum BackingStoreRemoval {
+        RemoveFromBackingStore,
+        DoNotRemoveFromBackingStore
     };
 
     class CookieManager {
@@ -49,7 +49,7 @@ namespace WebCore {
         String getCookie(const KURL& url);
         String getCookie(const String& url);
 
-        void removeAllCookies(DatabaseRemoval);
+        void removeAllCookies(BackingStoreRemoval);
 
         unsigned short cookiesCount() { return m_count; }
 
@@ -79,10 +79,8 @@ namespace WebCore {
 
         String m_cookieJarFileName;
 
-#if ENABLE(DATABASE)
         // FIXME: This method should be removed.
-        void getDatabaseCookies();    
-#endif // ENABLE(DATABASE)
+        void getBackingStoreCookies();    
 
         // Constants
         static const int max_count = 300;

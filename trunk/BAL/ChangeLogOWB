@@ -1,3 +1,72 @@
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi and Olivier DOLE.
+
+        Add an empty cookie backing store to avoid #if guarding backing store
+        when you have a database.
+
+        Added 2 directories inside Network/WebCore/Curl/ to hold the 2
+        implementations: one on the database, the other is empty.
+
+        Also updated the comments or methods and classes that mentioned the
+        database backing store to just mention the backing store.
+
+        * Network/WebCore/CMakeLists.txt: Add the backing store directory.
+        * Network/WebCore/Curl/BCCookieCurl.h: Updated the comment.
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp: Removed.
+        * Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h: Removed.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::CookieManager): Changed to call the new
+        cookieBackingStore method.
+        (WebCore::CookieManager::~CookieManager): Ditto.
+        (WebCore::CookieManager::removeAllCookies): Ditto.
+        (WebCore::CookieManager::setCookieJar): Ditto.
+        (WebCore::CookieManager::checkAndTreatCookie): Ditto.
+        (WebCore::CookieManager::addCookieToMap): Ditto.
+        (WebCore::CookieManager::update): Ditto.
+        (WebCore::CookieManager::getBackingStoreCookies):
+        * Network/WebCore/Curl/BCCookieManagerCurl.h: Updated the enum to not
+        mention the database. Removed a #ifdef guard.
+        (WebCore::):
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::getCookies): Changed to call the new
+        cookieBackingStore method.
+        * Network/WebCore/Curl/BCCookieMapCurl.h: Updated the comment.
+        * Network/WebCore/Curl/CookieDatabaseBackingStore: Added.
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCookieBackingStoreCurl.h: Copied from BAL/Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h.
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCookieDatabaseBackingStoreCurl.cpp: Copied from BAL/Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.cpp.
+        (WebCore::cookieBackingStore):
+        (WebCore::CookieBackingStore::CookieBackingStore):
+        (WebCore::CookieBackingStore::~CookieBackingStore):
+        (WebCore::CookieBackingStore::tableExists):
+        (WebCore::CookieBackingStore::open):
+        (WebCore::CookieBackingStore::close):
+        (WebCore::CookieBackingStore::insert):
+        (WebCore::CookieBackingStore::update):
+        (WebCore::CookieBackingStore::remove):
+        (WebCore::CookieBackingStore::removeAll):
+        (WebCore::CookieBackingStore::getAllCookies):
+        All those methods are taken from the CookieDatabaseBackingStore with
+        the CookieDatabaseBackingStore -> CookieBackingStore rename.
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/exceptions.txt: Added.
+        * Network/WebCore/Curl/CookieEmptyBackingStore: Added.
+        * Network/WebCore/Curl/CookieEmptyBackingStore/BCCookieBackingStoreCurl.h: Copied from BAL/Network/WebCore/Curl/BCCookieDatabaseBackingStoreCurl.h.
+        (WebCore::CookieBackingStore::open):
+        (WebCore::CookieBackingStore::close):
+        (WebCore::CookieBackingStore::insert):
+        (WebCore::CookieBackingStore::update):
+        (WebCore::CookieBackingStore::remove):
+        (WebCore::CookieBackingStore::removeAll):
+        (WebCore::CookieBackingStore::getAllCookies):
+        (WebCore::CookieBackingStore::CookieBackingStore):
+        (WebCore::CookieBackingStore::~CookieBackingStore):
+        Added an empty implementation of the previous methods.
+
+        * Network/WebCore/Curl/CookieEmptyBackingStore/BCCookieEmptyBackingStoreCurl.cpp: Added.
+        (WebCore::cookieBackingStore): Needed to define this one in his own
+        file to avoid multiple definitions each time the header is included.
+        * Network/WebCore/Curl/CookieEmptyBackingStore/exceptions.txt: Added.
+
 2009-05-08  Mario Bensi  <mbensi@pleyo.com>
 
         fix drt script.

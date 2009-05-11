@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2009 Julien Chaffraix <jchaffraix@pleyo.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,58 +23,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CookieMap_h
-#define CookieMap_h
+#ifndef CookieBackingStore_h
+#define CookieBackingStore_h
 
-#include "config.h"
-
-#include "StringHash.h"
+#include <wtf/Vector.h>
 #include "PlatformString.h"
 
 namespace WebCore {
 
     class Cookie;
 
-    class CookieMap {
-
+    class CookieBackingStore {
     public:
-        CookieMap();
-        ~CookieMap();
+        void open(const String& cookieJar) { }
+        void close() { }
 
-        int count() { return m_cookieMap.size(); }
+        void insert(const Cookie* cookie) { }
+        void update(const Cookie* cookie) { }
+        void remove(const Cookie* cookie) { }
 
-        void add(Cookie* cookie);
-        void remove(const Cookie* cookie);
+        void removeAll() { }
 
-        Vector<Cookie*> getCookies();
-
-        // Will take the cookie that match the paramater
-        Cookie* takePrevious(const Cookie* cookie);
-
-        bool canInsertCookie() { return (m_cookieMap.size() < max_count); }
-
-        void updateTime(Cookie* cookie, double newTime);
-
-        // Return Cookie to remove it from the backing store in the CookieManager
-        Cookie* removeOldestCookie();
+        Vector<Cookie*> getAllCookies() { return Vector<Cookie*>(); }
 
     private:
-        void updateOldestCookie();
+        friend CookieBackingStore& cookieBackingStore();
 
-        // The key is the tuple (name, path)
-        // The spec asks to have also domain, which is implied by choosing the CookieMap relevant to the domain
-        HashMap<String, Cookie*> m_cookieMap;
-
-        // Store the oldest cookie to speed up LRU checks
-        Cookie* m_oldestCookie;
-
-        // Constants
-        // The number of cookie is limited to max_count (ie 20)
-        static const int max_count = 20;
-
-        // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
+        CookieBackingStore() { }
+        ~CookieBackingStore() { }
     };
+
+CookieBackingStore& cookieBackingStore();
 
 } // namespace WebCore
 
-#endif // CookieMap_h
+#endif // CookieBackingStore_h

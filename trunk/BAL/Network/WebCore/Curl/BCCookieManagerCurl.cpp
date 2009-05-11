@@ -27,7 +27,7 @@
 #include "CookieManager.h"
 
 #include "Cookie.h"
-#include "CookieDatabaseBackingStore.h"
+#include "CookieBackingStore.h"
 #include "CookieParser.h"
 #include "CurrentTime.h"
 #include "Logging.h"
@@ -45,21 +45,16 @@ CookieManager::CookieManager()
 {
     m_cookieJarFileName = String("cookieCollection.db");
 
-#if ENABLE(DATABASE)
-    // We force the cookie database to be open with the cookie jar to avoid
+    // We force the cookie backing store to be open with the cookie jar to avoid
     // calling cookieManager() again and recursively calling this constructor.
-    cookieDatabaseBackingStore().open(cookieJar());
-
-    getDatabaseCookies();
-#endif
+    cookieBackingStore().open(cookieJar());
+    getBackingStoreCookies();
 }
 
 CookieManager::~CookieManager()
 {
-    removeAllCookies(DoNotRemoveFromDatabase);
-#if ENABLE(DATABASE)
-    cookieDatabaseBackingStore().close();
-#endif
+    removeAllCookies(DoNotRemoveFromBackingStore);
+    cookieBackingStore().close();
 }
 
 void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const String& value)
@@ -129,26 +124,22 @@ String CookieManager::getCookie(const KURL& url)
     return res;
 }
 
-void CookieManager::removeAllCookies(DatabaseRemoval databaseRemoval)
+void CookieManager::removeAllCookies(BackingStoreRemoval backingStoreRemoval)
 {
     HashMap<String, CookieMap*>::iterator first = m_managerMap.begin();
     HashMap<String, CookieMap*>::iterator end = m_managerMap.end();
     for (HashMap<String, CookieMap*>::iterator it = first; it != end; ++it)
         delete it->second;
 
-#if ENABLE(DATABASE)
-    if (databaseRemoval == RemoveFromDatabase)
-        cookieDatabaseBackingStore().removeAll();
-#endif
+    if (backingStoreRemoval == RemoveFromBackingStore)
+        cookieBackingStore().removeAll();
     m_count = 0;
 }
 
 void CookieManager::setCookieJar(const char* fileName)
 {
     m_cookieJarFileName = String(fileName);
-#if ENABLE(DATABASE)
-    cookieDatabaseBackingStore().open(m_cookieJarFileName);
-#endif
+    cookieBackingStore().open(m_cookieJarFileName);
 }
 
 void CookieManager::checkAndTreatCookie(Cookie* cookie)
@@ -164,9 +155,7 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
             // Check if we have a cookie to remove and update information accordingly.
             Cookie* prevCookie = curMap->takePrevious(cookie);
             if (prevCookie) {
-#if ENABLE(DATABASE)
-                cookieDatabaseBackingStore().remove(cookie);
-#endif
+                cookieBackingStore().remove(cookie);
                 removedCookie();
                 delete cookie;
             }
@@ -195,19 +184,17 @@ void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
     // FIXME : should split the case and remove one cookie among all the other if m_count >= max_count
     if (!map->canInsertCookie() || m_count >= max_count) {
         Cookie* rmCookie = map->removeOldestCookie();
-#if ENABLE(DATABASE)
-        cookieDatabaseBackingStore().remove(rmCookie);
-#endif
+        cookieBackingStore().remove(rmCookie);
         removedCookie();
         delete rmCookie;
     }
 
     map->add(cookie);
-#if ENABLE(DATABASE)
-    // Only add non session cookie to the database.
+
+    // Only add non session cookie to the backing store.
     if (!cookie->isSession())
-        cookieDatabaseBackingStore().insert(cookie);
-#endif
+        cookieBackingStore().insert(cookie);
+
     m_count++;
 }
 
@@ -215,15 +202,12 @@ void CookieManager::update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie
 {
     ASSERT(!map->takePrevious(prevCookie));
     map->add(newCookie);
-#if ENABLE(DATABASE)
-    cookieDatabaseBackingStore().update(newCookie);
-#endif
+    cookieBackingStore().update(newCookie);
 }
 
-#if ENABLE(DATABASE)
-void CookieManager::getDatabaseCookies()
+void CookieManager::getBackingStoreCookies()
 {
-    Vector<Cookie*> cookies = cookieDatabaseBackingStore().getAllCookies();
+    Vector<Cookie*> cookies = cookieBackingStore().getAllCookies();
 
     for (size_t i = 0; i < cookies.size(); ++i) {
         Cookie* newCookie = cookies[i];
@@ -239,12 +223,10 @@ void CookieManager::getDatabaseCookies()
             curMap->add(newCookie);
             m_count++;
         } else {
-            cookieDatabaseBackingStore().remove(newCookie);
+            cookieBackingStore().remove(newCookie);
             delete newCookie;
         }
     }
 }
-
-#endif // ENABLE(DATABASE)
 
 } // namespace WebCore

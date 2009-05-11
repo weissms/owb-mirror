@@ -43,7 +43,7 @@ public:
     {
     }
 
-    // For database cookies
+    // For backing store cookies
     Cookie(const String& name, const String& value, const String& domain, const String& path, double& expiry, double& lastAccessed, bool& isSecure)
         : m_name(name)
         , m_value(value)

@@ -27,7 +27,7 @@
 #include "CookieMap.h"
 
 #include "Cookie.h"
-#include "CookieDatabaseBackingStore.h"
+#include "CookieBackingStore.h"
 #include "CookieManager.h"
 #include "CurrentTime.h"
 #include "Logging.h"
@@ -95,9 +95,7 @@ Vector<Cookie*> CookieMap::getCookies()
         if (!cookie->isSession() && cookie->expiry() < currentTime()) {
             LOG(Network, "Cookie name: %s value: %s path: %s  expired", cookie->name().ascii().data(), cookie->value().ascii().data(), cookie->path().ascii().data());
             m_cookieMap.take(cookieIterator->first);
-#if ENABLE(DATABASE)
-            cookieDatabaseBackingStore().remove(cookie);
-#endif
+            cookieBackingStore().remove(cookie);
             cookieManager().removedCookie();
             delete cookie;
         } else {

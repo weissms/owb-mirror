@@ -23,10 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CookieDatabaseBackingStore_h
-#define CookieDatabaseBackingStore_h
-
-#if ENABLE(DATABASE)
+#ifndef CookieBackingStore_h
+#define CookieBackingStore_h
 
 #include "SQLiteDatabase.h"
 
@@ -34,7 +32,7 @@ namespace WebCore {
 
     class Cookie;
 
-    class CookieDatabaseBackingStore {
+    class CookieBackingStore {
     public:
         void open(const String& cookieJar);
         void close();
@@ -48,20 +46,18 @@ namespace WebCore {
         Vector<Cookie*> getAllCookies();
 
     private:
-        friend CookieDatabaseBackingStore& cookieDatabaseBackingStore();
+        friend CookieBackingStore& cookieBackingStore();
 
-        CookieDatabaseBackingStore();
-        ~CookieDatabaseBackingStore();
+        CookieBackingStore();
+        ~CookieBackingStore();
 
         bool tableExists();
 
         SQLiteDatabase m_db;
     };
 
-CookieDatabaseBackingStore& cookieDatabaseBackingStore();
+CookieBackingStore& cookieBackingStore();
 
 } // namespace WebCore
 
-#endif // ENABLE(DATABASE)
-
-#endif // CookieDatabaseBackingStore_h
+#endif // CookieBackingStore_h

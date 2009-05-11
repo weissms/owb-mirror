@@ -24,9 +24,7 @@
 */
 
 #include <config.h>
-#include "CookieDatabaseBackingStore.h"
-
-#if ENABLE(DATABASE)
+#include "CookieBackingStore.h"
 
 #include "Cookie.h"
 #include "CookieManager.h"
@@ -37,26 +35,26 @@ namespace WebCore {
 // This is chosen to match Mozilla's table name.
 static String tableName = "cookies";
 
-CookieDatabaseBackingStore& cookieDatabaseBackingStore()
+CookieBackingStore& cookieBackingStore()
 {
-    static CookieDatabaseBackingStore backingStore;
+    static CookieBackingStore backingStore;
     return backingStore;
 }
 
-CookieDatabaseBackingStore::CookieDatabaseBackingStore()
+CookieBackingStore::CookieBackingStore()
 {
 }
 
-CookieDatabaseBackingStore::~CookieDatabaseBackingStore()
+CookieBackingStore::~CookieBackingStore()
 {
 }
 
-bool CookieDatabaseBackingStore::tableExists()
+bool CookieBackingStore::tableExists()
 {
     return m_db.isOpen() && m_db.tableExists(tableName);
 }
 
-void CookieDatabaseBackingStore::open(const String& cookieJar)
+void CookieBackingStore::open(const String& cookieJar)
 {
     if (m_db.isOpen())
         close();
@@ -77,12 +75,12 @@ void CookieDatabaseBackingStore::open(const String& cookieJar)
     }
 }
 
-void CookieDatabaseBackingStore::close()
+void CookieBackingStore::close()
 {
     m_db.close();
 }
 
-void CookieDatabaseBackingStore::insert(const Cookie* cookie)
+void CookieBackingStore::insert(const Cookie* cookie)
 {
     if (!tableExists())
         return;
@@ -112,7 +110,7 @@ void CookieDatabaseBackingStore::insert(const Cookie* cookie)
     }
 }
 
-void CookieDatabaseBackingStore::update(const Cookie* cookie)
+void CookieBackingStore::update(const Cookie* cookie)
 {
     if (!tableExists())
         return;
@@ -144,7 +142,7 @@ void CookieDatabaseBackingStore::update(const Cookie* cookie)
  
 }
 
-void CookieDatabaseBackingStore::remove(const Cookie* cookie)
+void CookieBackingStore::remove(const Cookie* cookie)
 {
     if (!tableExists())
         return;
@@ -173,7 +171,7 @@ void CookieDatabaseBackingStore::remove(const Cookie* cookie)
     }
 }
 
-void CookieDatabaseBackingStore::removeAll()
+void CookieBackingStore::removeAll()
 {
     if (!tableExists())
         return;
@@ -194,7 +192,7 @@ void CookieDatabaseBackingStore::removeAll()
     }
 }
 
-Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
+Vector<Cookie*> CookieBackingStore::getAllCookies()
 {
     Vector<Cookie*, 8> cookies;
 
@@ -233,5 +231,3 @@ Vector<Cookie*> CookieDatabaseBackingStore::getAllCookies()
 }
 
 } // namespace WebCore
-
-#endif // ENABLE(DATABASE)

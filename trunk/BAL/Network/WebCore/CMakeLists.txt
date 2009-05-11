@@ -6,8 +6,16 @@ create_include_link(${BAL_DIR}/Network/WebCore/WK BAL)
 
 if(USE_NETWORK_CURL)
     create_include_link(${BAL_DIR}/Network/WebCore/Curl BAL)
-
     aux_source_directory(${BAL_DIR}/Network/WebCore/Curl WEBCORE_SRC)
+
+    # Choose the backing store for the cookies.
+    if(ENABLE_DATABASE)
+        create_include_link(${BAL_DIR}/Network/WebCore/Curl/CookieDatabaseBackingStore BAL)
+        aux_source_directory(${BAL_DIR}/Network/WebCore/Curl/CookieDatabaseBackingStore WEBCORE_SRC)
+    else(ENABLE_DATABASE)
+        create_include_link(${BAL_DIR}/Network/WebCore/Curl/CookieEmptyBackingStore BAL)
+        aux_source_directory(${BAL_DIR}/Network/WebCore/Curl/CookieEmptyBackingStore WEBCORE_SRC)
+    endif(ENABLE_DATABASE)
 endif(USE_NETWORK_CURL)
 
 if(USE_NETWORK_QT)
