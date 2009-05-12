@@ -1,3 +1,12 @@
+2009-05-12  Olivier DOLE  <odole@pleyo.com>
+
+        build fix for DRT and other tests when using gcc-4.3.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.cpp:
+        * OWBLauncher/Tests/WebViewTests.cpp:
+
 2009-05-11  Mario Bensi  <mbensi@pleyo.com>
 
         apply the change on children method.

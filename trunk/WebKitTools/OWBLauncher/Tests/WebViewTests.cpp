@@ -8,6 +8,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 
 #include <WebKit.h>
+#include <string.h>
 
 class WebViewTest : public CPPUNIT_NS::TestCase
 {

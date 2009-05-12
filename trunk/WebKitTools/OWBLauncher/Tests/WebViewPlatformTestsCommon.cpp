@@ -36,6 +36,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 
 #include "WebViewPlatformTestsCommon.h"
+#include <string.h>
 
 static WebView* webView;
 

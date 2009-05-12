@@ -36,6 +36,7 @@
 #include <WebKit.h>
 #include <string>
 
+#include <string.h>
 #include "signal.h"
 #include <unistd.h>
 #include <cassert>
