@@ -64,7 +64,7 @@ void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const Str
 
     for (size_t i = 0; i < cookies.size(); ++i) {
         Cookie* cookie = cookies[i];
-        if (!shouldReject(cookie, url))
+        if (!shouldRejectForSecurityReason(cookie, url))
             checkAndTreatCookie(cookie);
         else {
             LOG_ERROR("Cookie %s was rejected for security reason", value.ascii().data());
@@ -73,7 +73,7 @@ void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const Str
     }
 }
 
-bool CookieManager::shouldReject(const Cookie* cookie, const KURL& url)
+bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KURL& url)
 {
     // Check if path attribute is a prefix of the request URI.
     if (!cookie->path().endsWith(url.path()) == -1)
@@ -149,7 +149,7 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
     CookieMap* curMap = m_managerMap.get(cookie->domain());
 
     // Check for cookie to remove in case it is not a session cookie and it has expired.
-    if (!cookie->isSession() && cookie->expiry() < currentTime()) {
+    if (cookie->hasExpired()) {
         // The cookie has expired so check we have a valid HashMap so try delete it.
         if (curMap) {
             // Check if we have a cookie to remove and update information accordingly.
@@ -182,7 +182,7 @@ void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
 {
     // Check if we do not have reached the cookie's threshold.
     // FIXME : should split the case and remove one cookie among all the other if m_count >= max_count
-    if (!map->canInsertCookie() || m_count >= max_count) {
+    if (map->count() > s_maxCookieCountPerHost || m_count >= s_globalMaxCookieCount) {
         Cookie* rmCookie = map->removeOldestCookie();
         cookieBackingStore().remove(rmCookie);
         removedCookie();
@@ -212,8 +212,10 @@ void CookieManager::getBackingStoreCookies()
     for (size_t i = 0; i < cookies.size(); ++i) {
         Cookie* newCookie = cookies[i];
 
-        if (newCookie->expiry() > currentTime()) {
-
+        if (newCookie->hasExpired()) {
+            cookieBackingStore().remove(newCookie);
+            delete newCookie;
+        } else {
             CookieMap* curMap = m_managerMap.get(newCookie->domain());
             if (!curMap) {
                 curMap = new CookieMap();
@@ -222,9 +224,6 @@ void CookieManager::getBackingStoreCookies()
             // Use the straightforward add
             curMap->add(newCookie);
             m_count++;
-        } else {
-            cookieBackingStore().remove(newCookie);
-            delete newCookie;
         }
     }
 }

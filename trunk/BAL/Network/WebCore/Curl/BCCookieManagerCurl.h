@@ -67,7 +67,7 @@ namespace WebCore {
 
         void checkAndTreatCookie(Cookie* cookie);
 
-        bool shouldReject(const Cookie* cookie, const KURL& url);
+        bool shouldRejectForSecurityReason(const Cookie*, const KURL&);
 
         void addCookieToMap(CookieMap* map, Cookie* cookie);
         void update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie);
@@ -82,8 +82,9 @@ namespace WebCore {
         // FIXME: This method should be removed.
         void getBackingStoreCookies();    
 
-        // Constants
-        static const int max_count = 300;
+        // Max count constants.
+        static const unsigned int s_globalMaxCookieCount = 300;
+        static const unsigned int s_maxCookieCountPerHost = 20;
     };
 
     // Get the global instance.

@@ -41,7 +41,7 @@ namespace WebCore {
         CookieMap();
         ~CookieMap();
 
-        int count() { return m_cookieMap.size(); }
+        unsigned int count() const { return m_cookieMap.size(); }
 
         void add(Cookie* cookie);
         void remove(const Cookie* cookie);
@@ -50,8 +50,6 @@ namespace WebCore {
 
         // Will take the cookie that match the paramater
         Cookie* takePrevious(const Cookie* cookie);
-
-        bool canInsertCookie() { return (m_cookieMap.size() < max_count); }
 
         void updateTime(Cookie* cookie, double newTime);
 
@@ -67,10 +65,6 @@ namespace WebCore {
 
         // Store the oldest cookie to speed up LRU checks
         Cookie* m_oldestCookie;
-
-        // Constants
-        // The number of cookie is limited to max_count (ie 20)
-        static const int max_count = 20;
 
         // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
     };

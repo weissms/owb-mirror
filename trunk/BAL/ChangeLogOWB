@@ -1,3 +1,36 @@
+2009-05-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Clean-up the policy checks (expiry, security or
+        maximum cookie reached). Also cleaned up the Cookie
+        class.
+
+        * Network/WebCore/Curl/BCCookieCurl.cpp:
+        (WebCore::Cookie::Cookie): Moved here from the header.
+        (WebCore::Cookie::~Cookie): Ditto.
+        (WebCore::Cookie::setExpiry): Reworked.
+        (WebCore::Cookie::setMaxAge): Ditto.
+        (WebCore::Cookie::hasExpired): Added.
+        * Network/WebCore/Curl/BCCookieCurl.h:
+        Indented this header to match WebCore coding style.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::setCookies): Updated to call the right
+        methods.
+        (WebCore::CookieManager::shouldRejectForSecurityReason): Renamed from
+        shouldReject.
+        (WebCore::CookieManager::checkAndTreatCookie): Ditto.
+        (WebCore::CookieManager::addCookieToMap): Updated to call the right methods.
+        (WebCore::CookieManager::getBackingStoreCookies): Ditto.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h: Added all the constants
+        related to cookies limit here.
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::getCookies): Updated to call the right methods.
+        * Network/WebCore/Curl/BCCookieMapCurl.h:
+        (WebCore::CookieMap::count): Updated the signature to better match its
+        purpose.
+
 2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi and Olivier DOLE.

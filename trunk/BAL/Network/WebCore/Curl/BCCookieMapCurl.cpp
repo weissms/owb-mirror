@@ -92,7 +92,7 @@ Vector<Cookie*> CookieMap::getCookies()
     for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
         Cookie* cookie = cookieIterator->second;
         // Check for non session cookie expired.
-        if (!cookie->isSession() && cookie->expiry() < currentTime()) {
+        if (cookie->hasExpired()) {
             LOG(Network, "Cookie name: %s value: %s path: %s  expired", cookie->name().ascii().data(), cookie->value().ascii().data(), cookie->path().ascii().data());
             m_cookieMap.take(cookieIterator->first);
             cookieBackingStore().remove(cookie);
@@ -140,4 +140,4 @@ void CookieMap::updateOldestCookie()
     }
 }
 
-} // Namespace WebCore
+} // namespace WebCore

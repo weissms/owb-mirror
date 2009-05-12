@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2008, 2009 Julien Chaffraix <julien.chaffraix@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,26 +27,50 @@
 #include "Cookie.h"
 
 #include "CString.h"
-#include "Logging.h"
 #include "CurrentTime.h"
-
+#include "Logging.h"
 #include <curl/curl.h>
 
 namespace WebCore {
 
+Cookie::Cookie(double currentTime)
+    : m_domain(String())
+    , m_expiry(0)
+    , m_isSecure(false)
+    , m_isSession(true)
+    , m_lastAccessed(currentTime)
+{
+}
+
+Cookie::Cookie(const String& name, const String& value, const String& domain, const String& path, double expiry, double lastAccessed, bool isSecure)
+    : m_name(name)
+    , m_value(value)
+    , m_domain(domain)
+    , m_path(path)
+    , m_expiry(expiry)
+    , m_isSecure(isSecure)
+    , m_isSession(false)
+    , m_lastAccessed(lastAccessed)
+{
+}
+
+Cookie::~Cookie()
+{
+}
+
 void Cookie::setExpiry(const String& expiry)
 {
-    if (expiry.length()) {
+    if (expiry.isEmpty())
+        return;
 
-        m_isSession = false;
+    m_isSession = false;
 
-        m_expiry = (double)curl_getdate(expiry.utf8().data(), NULL);
+    m_expiry = (double)curl_getdate(expiry.utf8().data(), NULL);
 
-        if (m_expiry == -1) {
-            LOG_ERROR("Could not parse date");
-            // In this case, consider that the cookie is session only
-            m_isSession = true;
-        }
+    if (m_expiry == -1) {
+        LOG_ERROR("Could not parse date");
+        // In this case, consider that the cookie is session only
+        m_isSession = true;
     }
 }
 
@@ -54,14 +78,23 @@ void Cookie::setMaxAge(const String& maxAge)
 {
     bool ok;
     m_expiry = maxAge.toDouble(&ok);
-    if (ok && m_expiry) {
-        m_isSession = false;
-
-        // if maxAge is null, keep the value so that it is discarded later
-        if (m_expiry)
-            m_expiry += currentTime();
-    } else
+    if (!ok) {
         LOG_ERROR("Could not parse Max-Age : %s", maxAge.ascii().data());
+        return;
+    }
+
+    m_isSession = false;
+
+    // If maxAge is null, keep the value so that it is discarded later.
+    // FIXME: is this necessary?
+    if (m_expiry)
+        m_expiry += currentTime();
+}
+
+bool Cookie::hasExpired() const
+{
+    // Session cookies do not expires, they will just not be saved to the backing store.
+    return !m_isSession && m_expiry < currentTime();
 }
 
 } // namespace WebCore

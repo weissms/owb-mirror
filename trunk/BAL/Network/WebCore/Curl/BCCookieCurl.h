@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Julien Chaffraix <julien.chaffraix@gmail.com>
+ * Copyright (C) 2008, 2009 Julien Chaffraix <julien.chaffraix@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,78 +26,65 @@
 #ifndef Cookie_h
 #define Cookie_h
 
-#include "KURL.h"
 #include "PlatformString.h"
 
 namespace WebCore {
 
-class Cookie {
-public:
-    // Default cookie : empty domain, non secure and session
-    Cookie(double currentTime)
-        : m_domain(String())
-        , m_expiry(0)
-        , m_isSecure(false)
-        , m_isSession(true)
-        , m_lastAccessed(currentTime)
-    {
-    }
+    /**
+     * This class represents a cookie internally
+     * It can either be created by the CookieParser which will then fill it
+     * or it can be created by the backing store filling it in the constructor.
+     */
+    class Cookie {
+    public:
+        // Default cookie : empty domain, non secure and session
+        Cookie(double currentTime);
 
-    // For backing store cookies
-    Cookie(const String& name, const String& value, const String& domain, const String& path, double& expiry, double& lastAccessed, bool& isSecure)
-        : m_name(name)
-        , m_value(value)
-        , m_domain(domain)
-        , m_path(path)
-        , m_expiry(expiry)
-        , m_isSecure(isSecure)
-        , m_isSession(false)
-        , m_lastAccessed(lastAccessed)
-    {
-    }
+        // For backing store cookies (those cookies are never session cookies).
+        Cookie(const String& /*name*/, const String& /*value*/, const String& /*domain*/, const String& /*path*/, double /*expiry*/, double /*lastAccessed*/, bool /*isSecure*/);
+    
+        ~Cookie();
 
-    ~Cookie()
-    {
-    }
+        const String& name() const { return m_name; }
+        void setName(const String& name) { m_name = name; }
 
-    const String& name() const { return m_name; }
-    void setName(const String& name) { m_name = name; }
+        const String& value() const { return m_value; }
+        void setValue(const String& value) { m_value = value; }
 
-    const String& value() const { return m_value; }
-    void setValue(const String& value) { m_value = value; }
+        const String& path() const { return m_path; }
+        void setPath(const String& path) { m_path = path; }
 
-    const String& path() const { return m_path; }
-    void setPath(const String& path) { m_path = path; }
+        const String& domain() const { return m_domain; }
+        void setDomain(const String& domain) { m_domain = domain; }
 
-    const String& domain() const { return m_domain; }
-    void setDomain(const String& domain) { m_domain = domain; }
+        double expiry() const { return m_expiry; }
+        void setExpiry(const String& expiry);
+        void setMaxAge(const String& maxAge);
 
-    double expiry() const { return m_expiry; }
-    void setExpiry(const String& expiry);
-    void setMaxAge(const String& maxAge);
+        double lastAccessed() const { return m_lastAccessed; }
+        void setLastAccessed(double lastAccessed) { m_lastAccessed = lastAccessed;}
 
-    double lastAccessed() const { return m_lastAccessed; }
-    void setLastAccessed(double lastAccessed) { m_lastAccessed = lastAccessed;}
+        bool isSecure() const { return m_isSecure; }
+        void setSecureFlag(bool secure) { m_isSecure = secure; }
 
-    bool isSecure() const { return m_isSecure; }
-    void setSecureFlag(bool secure) { m_isSecure = secure; }
+        bool isSession() const { return m_isSession; }
 
-    bool isSession() const { return m_isSession; }
+        bool hasExpired() const;
 
-private:
-    String m_name;
-    String m_value;
-    String m_domain;
-    String m_path;
-    double m_expiry;
-    bool m_isSecure;
+    private:
+        String m_name;
+        String m_value;
+        String m_domain;
+        String m_path;
+        double m_expiry;
+        bool m_isSecure;
 
-    bool m_isSession;
+        bool m_isSession;
 
-    // to manage LRU replacement policy
-    double m_lastAccessed;
-};
+        // This is used for the LRU replacement policy.
+        double m_lastAccessed;
+    };
 
-} // Namespace WebCore
+} // namespace WebCore
 
-#endif
+#endif // Cookie_h
