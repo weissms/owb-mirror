@@ -219,9 +219,9 @@ const char* dumpFramesAsText(WebFrame* frame)
     }
     
     if (gLayoutTestController->dumpChildFramesAsText()) {
-        vector<WebFrame *> children = frame->children();
-        for (size_t i = 0; i < children.size(); ++i)
-            result += dumpFramesAsText(children.at(i));
+        vector<WebFrame *>* children = frame->children();
+        for (size_t i = 0; i < children->size(); ++i)
+            result += dumpFramesAsText(children->at(i));
     }
 
     return strdup(result.c_str());

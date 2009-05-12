@@ -1,3 +1,14 @@
+2009-05-11  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix crash in children method.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::~WebFrame):
+        (WebFrame::children):
+        (WebFrame::setEditable):
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
 2009-05-08  Mario Bensi  <mbensi@pleyo.com>
 
         Fix crash on createFrame and on policyDelegate.

@@ -248,9 +248,9 @@ public:
 
     /**
      * children
-     * @result list of children contains by this frame
+     * @result list of children contains by this frame, this content will be cleaned by owb
      */
-    virtual std::vector<WebFrame*> children();
+    virtual std::vector<WebFrame*>* children();
 
     /**
      * get current form element
@@ -532,7 +532,7 @@ public:
 
 #if ENABLE(JS_ADDONS)
     BindingJS *bindingJS() {return m_bindingJS;}
-#endif 
+#endif
     /**
      * add to JSWindow object
      * add an balObject to extend the javascript
@@ -602,6 +602,7 @@ protected:
     bool                m_inPrintingMode;
     int                 m_pageHeight;   // height of the page adjusted by margins
     WebFrameObserver*   m_webFrameObserver;
+    std::vector<WebFrame*>  m_rc;
 #if ENABLE(JS_ADDONS)
     BindingJS *m_bindingJS;
 #endif

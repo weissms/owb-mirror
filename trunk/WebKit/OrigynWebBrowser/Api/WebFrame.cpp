@@ -62,7 +62,7 @@
 #include <HistoryItem.h>
 #include <HTMLAppletElement.h>
 #include <HTMLFormElement.h>
-#include <HTMLPlugInElement.h> 
+#include <HTMLPlugInElement.h>
 #include <JSDOMWindow.h>
 #include <KeyboardEvent.h>
 #include <MIMETypeRegistry.h>
@@ -220,14 +220,14 @@ WebFrame::~WebFrame()
     m_bindingJS = 0;
 #endif
 
-    std::vector<WebFrame*> child = children();
-    std::vector<WebFrame*>::iterator it = child.begin();
-    for (; it != child.end(); ++it)
+    std::vector<WebFrame*>* child = children();
+    std::vector<WebFrame*>::iterator it = child->begin();
+    for (; it != child->end(); ++it)
         delete (*it);
 
     delete d;
-    /*if (m_loadClient)
-        delete m_loadClient;*/
+    if (m_loadClient)
+        delete m_loadClient;
 }
 
 WebFrame* WebFrame::createInstance()
@@ -462,20 +462,20 @@ WebFrame* WebFrame::parentFrame()
     return 0;
 }
 
-std::vector<WebFrame*> WebFrame::children()
+std::vector<WebFrame*>* WebFrame::children()
 {
-    std::vector<WebFrame*> rc;
+    m_rc.clear();
     if (Frame* frame = core(this)) {
         FrameTree *tree = frame->tree();
         for (Frame *child = tree->firstChild(); child; child = child->tree()->nextSibling()) {
             FrameLoader *loader = child->loader();
             WebFrameLoaderClient *client = static_cast<WebFrameLoaderClient*>(loader->client());
             if (client)
-                rc.push_back(client->webFrame());
+                m_rc.push_back(client->webFrame());
         }
 
     }
-    return rc; 
+    return &m_rc;
 }
 
 
@@ -1199,7 +1199,7 @@ void WebFrame::setEditable(bool flag)
     Frame* frame = core(this);
     if (!frame)
         return;
-    
+
     if (flag)
         frame->applyEditingStyleToBodyElement();
     else
@@ -1234,6 +1234,3 @@ void WebFrame::addToJSWindowObject(void* object)
         global->put(exec, JSC::Identifier(exec, obj->getName()), runtimeObject, prop);
     }
 }
-
-
-

@@ -1,3 +1,10 @@
+2009-05-11  Mario Bensi  <mbensi@pleyo.com>
+
+        apply the change on children method.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (dumpFramesAsText):
+
 2009-04-01  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mario Bensi.

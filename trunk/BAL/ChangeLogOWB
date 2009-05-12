@@ -1,3 +1,9 @@
+2009-05-11  Mario Bensi  <mbensi@pleyo.com>
+
+        now you can give a directory in param to drt script.
+
+        * Scripts/Drt/drt.py:
+
 2009-05-12  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

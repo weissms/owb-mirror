@@ -5,6 +5,7 @@ from configuration import configurationDRT
 from testsList import TestsList
 from runtests import RunTests
 import logging
+import os
 
 if len(sys.argv) < 2 :
     print "drt [options] path to build directory"
@@ -87,15 +88,36 @@ if layoutPath == "" or drtPath == "" or platform == "":
     showHelp()
     exit(0)
 
+
+def createList(path) :
+    dirList = os.listdir(path)
+    dirList.sort()
+    dirOut = [".svn", "resources"]
+    testsList = []
+    for fname in dirList :
+        if os.path.isdir(path + "/" + fname) == True :
+            if fname not in dirOut :
+                for li in createList(path + "/" + fname) :
+                    testsList.append(li)
+        else :
+            if fname.find(".html") != -1 and fname.find("-disabled") == -1 :
+                testsList.append(path + "/" + fname)
+    return testsList
+
 li = []
 if len(tests) == 0 :
     List = TestsList(conf)
     List.constructList(layoutPath)
     li = List.getList()
 else :
-    li = tests
+    for t in tests :
+        if os.path.isdir(t) :
+            for l in createList(t) :
+                li.append(l)
+        else :
+            li.append(t)
 
-#print
+#print li
 #print len(li) 
 
 if destResult != "" :
