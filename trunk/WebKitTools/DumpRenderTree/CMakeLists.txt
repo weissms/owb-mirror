@@ -26,6 +26,12 @@ if(USE_GRAPHICS_GTK)
     )
 endif(USE_GRAPHICS_GTK)
 
+if(USE_GRAPHICS_QT)
+    list(APPEND DUMPRENDERTREE_SRC
+        bal/qt/DumpRenderTreeQt.cpp
+    )
+endif(USE_GRAPHICS_QT)
+
 if(USE_GRAPHICS_SDL)
     list(APPEND DUMPRENDERTREE_SRC
         bal/SDL/DumpRenderTreeSDL.cpp

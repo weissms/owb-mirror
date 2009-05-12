@@ -1,5 +1,30 @@
 2009-05-12  Olivier DOLE  <odole@pleyo.com>
 
+        Fix DumpRenderTree and tests compilation for Qt build.
+        Note that Qt DumpRenderTree compiles but crashes for every tests as
+        there is no real implementation.
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/DumpRenderTree.h:
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/qt: Added.
+        * DumpRenderTree/bal/qt/DumpRenderTreeQt.cpp: Added.
+        (clientRect):
+        (init):
+        (createWindow):
+        (startEventLoop):
+        (stopEventLoop):
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/Tests/Qt: Added.
+        * OWBLauncher/Tests/Qt/WebViewPlatformTests.cpp: Added.
+        (waitEventUntilLoaded):
+        (createPlatformWebView):
+
+2009-05-12  Olivier DOLE  <odole@pleyo.com>
+
         build fix for DRT and other tests when using gcc-4.3.
 
         * DumpRenderTree/bal/DumpRenderTree.cpp:

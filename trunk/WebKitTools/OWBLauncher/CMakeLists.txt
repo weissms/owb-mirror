@@ -77,6 +77,10 @@ if(ENABLE_TESTS)
         add_executable(WebViewPlatformTestsCommon Tests/Gtk/WebViewPlatformTests.cpp Tests/WebViewPlatformTestsCommon.cpp)
     endif(USE_GRAPHICS_GTK)
 
+    if(USE_GRAPHICS_QT)
+        add_executable(WebViewPlatformTestsCommon Tests/Qt/WebViewPlatformTests.cpp Tests/WebViewPlatformTestsCommon.cpp)
+    endif(USE_GRAPHICS_QT)
+
     target_link_libraries(WebViewPlatformTestsCommon
         webkit-owb
         ${GRAPHICS_LIBRARIES}

@@ -38,9 +38,7 @@
 #include "DumpRenderTreeMac.h"
 #elif PLATFORM(WIN)
 #include "DumpRenderTreeWin.h"
-#elif PLATFORM(GTK)
-#include "DumpRenderTreeBal.h"
-#elif PLATFORM(BAL)
+#elif PLATFORM(BAL) || PLATFORM(GTK) || PLATFORM(QT)
 #include "DumpRenderTreeBal.h"
 #elif PLATFORM(WX)
 #include "DumpRenderTreeWx.h"
