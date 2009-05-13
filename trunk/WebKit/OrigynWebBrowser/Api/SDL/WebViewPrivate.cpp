@@ -72,7 +72,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
 {
     Frame* frame = core(m_webView->mainFrame());
     if (!frame)
-        return;
+        return; 
 
     if(!isInitialized) {
         isInitialized = true;
@@ -87,7 +87,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
     m_webView->clearDirtyRegion();
     if (frame->contentRenderer() && frame->view() && !rect.isEmpty()) {
         frame->view()->layoutIfNeededRecursive();
-        IntRect dirty = m_webView->dirtyRegion();
+        IntRect dirty = rect;
         IntRect d = dirty;
         if (!m_hUpdateRect.isEmpty()) {
             frame->view()->paint(&ctx, m_hUpdateRect);

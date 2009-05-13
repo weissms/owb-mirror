@@ -1,3 +1,10 @@
+2009-05-13  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix paint.
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+
 2009-05-11  Mario Bensi  <mbensi@pleyo.com>
 
         Fix crash in children method.
