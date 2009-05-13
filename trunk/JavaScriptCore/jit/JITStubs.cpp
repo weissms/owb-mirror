@@ -291,11 +291,7 @@ NEVER_INLINE void JITStubs::tryCachePutByID(CallFrame* callFrame, CodeBlock* cod
     
     stubInfo->initPutByIdReplace(structure);
 
-#if USE(CTI_REPATCH_PIC)
     JIT::patchPutByIdReplace(stubInfo, structure, slot.cachedOffset(), returnAddress);
-#else
-    JIT::compilePutByIdReplace(callFrame->scopeChain()->globalData, callFrame, codeBlock, stubInfo, structure, slot.cachedOffset(), returnAddress);
-#endif
 }
 
 NEVER_INLINE void JITStubs::tryCacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot& slot)
@@ -312,11 +308,7 @@ NEVER_INLINE void JITStubs::tryCacheGetByID(CallFrame* callFrame, CodeBlock* cod
     JSGlobalData* globalData = &callFrame->globalData();
 
     if (isJSArray(globalData, baseValue) && propertyName == callFrame->propertyNames().length) {
-#if USE(CTI_REPATCH_PIC)
         JIT::compilePatchGetArrayLength(callFrame->scopeChain()->globalData, codeBlock, returnAddress);
-#else
-        ctiPatchCallByReturnAddress(returnAddress, globalData->jitStubs.ctiArrayLengthTrampoline());
-#endif
         return;
     }
     
@@ -351,12 +343,8 @@ NEVER_INLINE void JITStubs::tryCacheGetByID(CallFrame* callFrame, CodeBlock* cod
     if (slot.slotBase() == baseValue) {
         // set this up, so derefStructures can do it's job.
         stubInfo->initGetByIdSelf(structure);
-        
-#if USE(CTI_REPATCH_PIC)
+
         JIT::patchGetByIdSelf(stubInfo, structure, slot.cachedOffset(), returnAddress);
-#else
-        JIT::compileGetByIdSelf(callFrame->scopeChain()->globalData, callFrame, codeBlock, stubInfo, structure, slot.cachedOffset(), returnAddress);
-#endif
         return;
     }
 
@@ -905,35 +893,35 @@ EncodedJSValue JITStubs::cti_op_instanceof(STUB_ARGS_DECLARATION)
     JSValue baseVal = stackFrame.args[1].jsValue();
     JSValue proto = stackFrame.args[2].jsValue();
 
-    // at least one of these checks must have failed to get to the slow case
+    // At least one of these checks must have failed to get to the slow case.
     ASSERT(!value.isCell() || !baseVal.isCell() || !proto.isCell()
            || !value.isObject() || !baseVal.isObject() || !proto.isObject() 
            || (asObject(baseVal)->structure()->typeInfo().flags() & (ImplementsHasInstance | OverridesHasInstance)) != ImplementsHasInstance);
 
-    if (!baseVal.isObject()) {
+
+    // ECMA-262 15.3.5.3:
+    // Throw an exception either if baseVal is not an object, or if it does not implement 'HasInstance' (i.e. is a function).
+    TypeInfo typeInfo(UnspecifiedType, 0);
+    if (!baseVal.isObject() || !(typeInfo = asObject(baseVal)->structure()->typeInfo()).implementsHasInstance()) {
         CallFrame* callFrame = stackFrame.callFrame;
         CodeBlock* codeBlock = callFrame->codeBlock();
         unsigned vPCIndex = codeBlock->getBytecodeIndex(callFrame, STUB_RETURN_ADDRESS);
         stackFrame.globalData->exception = createInvalidParamError(callFrame, "instanceof", baseVal, vPCIndex, codeBlock);
         VM_THROW_EXCEPTION();
     }
-
-    JSObject* baseObj = asObject(baseVal);
-    TypeInfo typeInfo = baseObj->structure()->typeInfo();
-    if (!typeInfo.implementsHasInstance())
-        return JSValue::encode(jsBoolean(false));
+    ASSERT(typeInfo.type() != UnspecifiedType);
 
     if (!typeInfo.overridesHasInstance()) {
+        if (!value.isObject())
+            return JSValue::encode(jsBoolean(false));
+
         if (!proto.isObject()) {
             throwError(callFrame, TypeError, "instanceof called on an object with an invalid prototype property.");
             VM_THROW_EXCEPTION();
         }
-
-        if (!value.isObject())
-            return JSValue::encode(jsBoolean(false));
     }
 
-    JSValue result = jsBoolean(baseObj->hasInstance(callFrame, value, proto));
+    JSValue result = jsBoolean(asObject(baseVal)->hasInstance(callFrame, value, proto));
     CHECK_FOR_EXCEPTION_AT_END();
 
     return JSValue::encode(result);
@@ -1160,7 +1148,8 @@ void JITStubs::cti_op_tear_off_arguments(STUB_ARGS_DECLARATION)
     STUB_INIT_STACK_FRAME(stackFrame);
 
     ASSERT(stackFrame.callFrame->codeBlock()->usesArguments() && !stackFrame.callFrame->codeBlock()->needsFullScopeChain());
-    stackFrame.callFrame->optionalCalleeArguments()->copyRegisters();
+    if (stackFrame.callFrame->optionalCalleeArguments())
+        stackFrame.callFrame->optionalCalleeArguments()->copyRegisters();
 }
 
 void JITStubs::cti_op_profile_will_call(STUB_ARGS_DECLARATION)
@@ -1595,7 +1584,27 @@ int JITStubs::cti_op_load_varargs(STUB_ARGS_DECLARATION)
     int argsOffset = stackFrame.args[0].int32();
     JSValue arguments = callFrame[argsOffset].jsValue();
     uint32_t argCount = 0;
-    if (!arguments.isUndefinedOrNull()) {
+    if (!arguments) {
+        int providedParams = callFrame[RegisterFile::ArgumentCount].u.i - 1;
+        argCount = providedParams;
+        int32_t sizeDelta = argsOffset + argCount + RegisterFile::CallFrameHeaderSize;
+        Register* newEnd = callFrame->registers() + sizeDelta;
+        if (!registerFile->grow(newEnd) || ((newEnd - callFrame->registers()) != sizeDelta)) {
+            stackFrame.globalData->exception = createStackOverflowError(callFrame);
+            VM_THROW_EXCEPTION();
+        }
+        int32_t expectedParams = asFunction(callFrame[RegisterFile::Callee].jsValue())->body()->parameterCount();
+        int32_t inplaceArgs = min(providedParams, expectedParams);
+        int32_t i = 0;
+        Register* argStore = callFrame->registers() + argsOffset;
+        
+        // First step is to copy the "expected" parameters from their normal location relative to the callframe
+        for (; i < inplaceArgs; i++)
+            argStore[i] = callFrame->registers()[i - RegisterFile::CallFrameHeaderSize - expectedParams];
+        // Then we copy any additional arguments that may be further up the stack ('-1' to account for 'this')
+        for (; i < providedParams; i++)
+            argStore[i] = callFrame->registers()[i - RegisterFile::CallFrameHeaderSize - expectedParams - providedParams - 1];
+    } else if (!arguments.isUndefinedOrNull()) {
         if (!arguments.isObject()) {
             CodeBlock* codeBlock = callFrame->codeBlock();
             unsigned vPCIndex = codeBlock->getBytecodeIndex(callFrame, STUB_RETURN_ADDRESS);

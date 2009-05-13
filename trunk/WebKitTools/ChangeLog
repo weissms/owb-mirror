@@ -1,3 +1,25 @@
+2009-05-13  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 21418: resolve-ChangeLogs should have a --continue option which does git rebase --continue
+
+        <https://bugs.webkit.org/show_bug.cgi?id=21418>
+
+        Reviewed by Darin Adler.
+
+        * Scripts/resolve-ChangeLogs: Added -c|--continue switch that
+        runs "git rebase --continue" before exiting the script.
+        (hasGitUnmergedFiles): Added.  Returns true if there are
+        unmerged files in the git repository.
+
+2009-05-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Make sure that public APIs are properly exported on all Qt platforms
+        https://bugs.webkit.org/show_bug.cgi?id=25601
+
+        * Scripts/webkitdirs.pm: Remove QT_SHARED define from Qt builds, define QT_MAKEDLL in WebCore.pro instead
+
 2009-05-11  Kevin Ollivier  <kevino@theolliviers.com>
 
         wx build fixes for Python extension and DRT.

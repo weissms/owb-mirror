@@ -21,7 +21,12 @@
 #include "qwebelement.h"
 
 #include "CSSComputedStyleDeclaration.h"
+#include "CSSMutableStyleDeclaration.h"
 #include "CSSParser.h"
+#include "CSSRuleList.h"
+#include "CSSRule.h"
+#include "CSSStyleRule.h"
+#include "CString.h"
 #include "Document.h"
 #include "DocumentFragment.h"
 #include "FrameView.h"
@@ -74,7 +79,7 @@ public:
 
     The element's attributes can be read using attribute() and changed using setAttribute().
 
-    The content of the child elements can be converted to plain text using toPlainText() and to 
+    The content of the child elements can be converted to plain text using toPlainText() and to
     x(html) using toXml(), and it is possible to replace the content using setPlainText() and setXml().
 
     Depending on the type of the underlying element there may be extra functionality available, not
@@ -857,25 +862,89 @@ QStringList QWebElement::scriptableProperties() const
 }
 
 /*!
-    Returns the value of the style named \a name or an empty string if the style has no such name.
+    Returns the value of the style named \a name or an empty string if such one
+    does not exist.
+
+    If \a rule is IgnoreCascadingStyles, the value defined inside the element
+    (inline in CSS terminology) is returned.
+
+    if \a rule is RespectCascadingStyles, the actual style applied to the
+    element is returned.
+
+    In CSS, the cascading part has to do with which CSS rule has priority and
+    is thus applied. Generally speaking, the last defined rule has priority,
+    thus an inline style rule has priority over an embedded block style rule,
+    which in return has priority over an external style rule.
+
+    If the !important declaration is set on one of those, the declaration gets
+    highest priority, unless other declarations also use the !important
+    declaration, in which the last !important declaration takes predecence.
 */
-QString QWebElement::styleProperty(const QString &name) const
+QString QWebElement::styleProperty(const QString &name, const ResolveRule rule) const
 {
     if (!m_element || !m_element->isStyledElement())
         return QString();
 
     int propID = cssPropertyID(name);
-    CSSStyleDeclaration* style = static_cast<StyledElement*>(m_element)->style();
-    if (!propID || !style)
+
+    if (!propID)
         return QString();
 
-    return style->getPropertyValue(propID);
+    CSSStyleDeclaration* style = static_cast<StyledElement*>(m_element)->style();
+
+    if (rule == IgnoreCascadingStyles)
+        return style->getPropertyValue(propID);
+
+    if (rule == RespectCascadingStyles) {
+        if (style->getPropertyPriority(propID))
+            return style->getPropertyValue(propID);
+
+        // We are going to resolve the style property by walking through the
+        // list of non-inline matched CSS rules for the element, looking for
+        // the highest priority definition.
+
+        // Get an array of matched CSS rules for the given element sorted
+        // by importance and inheritance order. This include external CSS
+        // declarations, as well as embedded and inline style declarations.
+
+        DOMWindow* domWindow = m_element->document()->frame()->domWindow();
+        RefPtr<CSSRuleList> rules = domWindow->getMatchedCSSRules(m_element, "");
+
+        for (int i = rules->length(); i > 0; --i) {
+            CSSStyleRule* rule = static_cast<CSSStyleRule*>(rules->item(i - 1));
+
+            if (rule->style()->getPropertyPriority(propID))
+                return rule->style()->getPropertyValue(propID);
+
+            if (style->getPropertyValue(propID).isEmpty())
+                style = rule->style();
+        }
+
+        return style->getPropertyValue(propID);
+    }
+
+    return QString();
 }
 
 /*!
     Sets the value of the style named \a name to \a value.
+
+    Setting a value, doesn't necessarily mean that it will become the applied
+    value, due to the fact that the style property's value might have been set
+    earlier with priority in external or embedded style declarations.
+
+    In order to ensure that the value will be applied, ImportantStylePriority
+    should be used as \a priority.
+
+    Following the CSS syntax for property values, this is equal to appending
+    "!important" to the value.
+
+    This syntax is supported when using DeclaredStylePriority as \a priority.
+
+    Using NormalStylePriority as \a priority, the property will have normal
+    priority, and any "!important" declaration will be ignored.
 */
-void QWebElement::setStyleProperty(const QString &name, const QString &value)
+void QWebElement::setStyleProperty(const QString &name, const QString &value, const StylePriority priority)
 {
     if (!m_element || !m_element->isStyledElement())
         return;
@@ -886,7 +955,25 @@ void QWebElement::setStyleProperty(const QString &name, const QString &value)
         return;
 
     ExceptionCode exception = 0;
-    style->setProperty(name, value, exception);
+
+    const QRegExp hasImportantTest(QLatin1String("!\\s*important"));
+    int index = value.indexOf(hasImportantTest);
+
+    QString newValue = (index != -1) ? value.left(index - 1) : value;
+
+    switch (priority) {
+    case NormalStylePriority:
+        style->setProperty(name, newValue, "", exception);
+        break;
+    case DeclaredStylePriority:
+        style->setProperty(name, newValue, (index != -1) ? "important" : "", exception);
+        break;
+    case ImportantStylePriority:
+        style->setProperty(name, newValue, "important", exception);
+        break;
+    default:
+        break;
+    }
 }
 
 /*!
@@ -1047,7 +1134,11 @@ void QWebElement::prependInside(const QWebElement &element)
         return;
 
     ExceptionCode exception = 0;
-    m_element->insertBefore(element.m_element, m_element->firstChild(), exception);
+
+    if (m_element->hasChildNodes())
+        m_element->insertBefore(element.m_element, m_element->firstChild(), exception);
+    else
+        m_element->appendChild(element.m_element, exception);
 }
 
 /*!
@@ -1069,7 +1160,11 @@ void QWebElement::prependInside(const QString &markup)
     RefPtr<DocumentFragment> fragment = htmlElement->createContextualFragment(markup);
 
     ExceptionCode exception = 0;
-    m_element->insertBefore(fragment, m_element->firstChild(), exception);
+
+    if (m_element->hasChildNodes())
+        m_element->insertBefore(fragment, m_element->firstChild(), exception);
+    else
+        m_element->appendChild(fragment, exception);
 }
 
 
@@ -1138,11 +1233,11 @@ void QWebElement::appendOutside(const QWebElement &element)
     if (!m_element->parent())
         return;
 
-    if (!m_element->nextSibling())
-        return;
-
     ExceptionCode exception = 0;
-    m_element->parent()->insertBefore(element.m_element, m_element->nextSibling(), exception);
+    if (!m_element->nextSibling())
+        m_element->parent()->appendChild(element.m_element, exception);
+    else
+        m_element->parent()->insertBefore(element.m_element, m_element->nextSibling(), exception);
 }
 
 /*!
@@ -1167,7 +1262,10 @@ void QWebElement::appendOutside(const QString &markup)
     RefPtr<DocumentFragment> fragment = htmlElement->createContextualFragment(markup);
 
     ExceptionCode exception = 0;
-    m_element->parent()->insertBefore(fragment, m_element->nextSibling(), exception);
+    if (!m_element->nextSibling())
+        m_element->parent()->appendChild(fragment, exception);
+    else
+        m_element->parent()->insertBefore(fragment, m_element->nextSibling(), exception);
 }
 
 /*!
@@ -1359,7 +1457,11 @@ void QWebElement::encloseWith(const QWebElement &element)
 
     ExceptionCode exception = 0;
     insertionPoint->appendChild(m_element, exception);
-    parentNode->insertBefore(element.m_element, siblingNode, exception);
+
+    if (!siblingNode)
+        parentNode->appendChild(element.m_element, exception);
+    else
+        parentNode->insertBefore(element.m_element, siblingNode, exception);
 }
 
 /*!
@@ -1399,7 +1501,11 @@ void QWebElement::encloseWith(const QString &markup)
 
     ExceptionCode exception = 0;
     insertionPoint->appendChild(m_element, exception);
-    parentNode->insertBefore(fragment, siblingNode, exception);
+
+    if (!siblingNode)
+        parentNode->appendChild(fragment, exception);
+    else
+        parentNode->insertBefore(fragment, siblingNode, exception);
 }
 
 /*!

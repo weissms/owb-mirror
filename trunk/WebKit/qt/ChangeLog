@@ -1,3 +1,72 @@
+2009-05-13  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Many methods were not considering the case of the element not having
+        siblings or children when inserting nodes, and thus broke in some
+        situations. This patch fixes that.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::prependInside):
+        (QWebElement::appendOutside):
+        (QWebElement::encloseWith):
+
+2009-05-08  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Make is possible to mark a style property as important while setting
+        it. Also support the normal CSS property syntax "!important", while
+        accepting spaces between the ! and the important keyword.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::setStyleProperty):
+        * Api/qwebelement.h:
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::style):
+
+2009-05-08  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Working with Antonio Gomes.
+
+        Add support for finding the style property actually applied to the element.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::styleProperty):
+        * Api/qwebelement.h:
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::style):
+
+2009-05-11  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 24538: class/struct mixup in forward declarations
+        https://bugs.webkit.org/show_bug.cgi?id=24538
+
+        * Api/qwebpage.h:
+
+2009-05-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        Fix Qt build when ENABLE_DATABASE is turned off
+
+        https://bugs.webkit.org/show_bug.cgi?id=25587
+
+        * Api/qwebdatabase.cpp:
+        (QWebDatabase::displayName):
+        (QWebDatabase::expectedSize):
+        (QWebDatabase::size):
+        (QWebDatabase::fileName):
+        (QWebDatabase::removeDatabase):
+        * Api/qwebdatabase_p.h:
+        * Api/qwebsecurityorigin.cpp:
+        (QWebSecurityOrigin::allOrigins):
+        (QWebSecurityOrigin::databases):
+
 2009-05-11  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
 
         Reviewed by Simon Hausmann.

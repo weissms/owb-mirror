@@ -3,6 +3,7 @@ list(APPEND JSC_SRC
     jit/JIT.cpp
     jit/JITArithmetic.cpp
     jit/JITCall.cpp
+    jit/JITOpcodes.cpp
     jit/JITPropertyAccess.cpp
     jit/JITStubs.cpp
     jit/ExecutableAllocatorPosix.cpp

@@ -1,3 +1,515 @@
+2009-05-13  Roland Steiner <rolandsteiner@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Bug 25738: Skia: CSS border style not cleared for SVG object
+        https://bugs.webkit.org/show_bug.cgi?id=25738
+
+        If no dashing is set, this change reverts to solid stroke
+        (previously the code bailed and left the old setting, whatever it was)
+
+        Test case listed in above bug entry.
+        (Additional complications due to each platform rendering dotted lines differently -
+        c.f. https://bugs.webkit.org/show_bug.cgi?id=25737)
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::setLineDash):
+
+2009-05-11  Erik Arvidsson  <arv@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 21903: Adds DOM bindings for the placeholder property of the
+        HTMLInputElement.
+        https://bugs.webkit.org/show_bug.cgi?id=21903
+
+        Test: fast/forms/placeholder-dom-property.html
+
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::updatePlaceholderVisibility):
+        * dom/InputElement.h:
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::placeholder):
+        (WebCore::HTMLInputElement::setPlaceholder):
+        * html/HTMLInputElement.h:
+        * html/HTMLInputElement.idl:
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::updateFromElement):
+        * wml/WMLInputElement.h:
+        (WebCore::WMLInputElement::placeholder):
+        (WebCore::WMLInputElement::setPlaceholder):
+
+2009-05-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25706
+
+        Change V8 bindings to match JSC bindings with respect to using
+        the lexical or dynamic global object.
+
+        Tests: http/tests/security/aboutBlank/security-context-grandchildren-lexical.html
+               http/tests/security/aboutBlank/security-context-grandchildren-write-lexical.html
+               http/tests/security/aboutBlank/security-context-grandchildren-writeln-lexical.html
+
+        * bindings/v8/custom/V8HTMLDocumentCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-03-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6702386> Incorrect bound check in SVGList::insertItemBefore
+
+        SVGList::insertItemBefore would not perform a bounds check on the
+        index it was provided, potentially leading to a buffer overflow. 
+
+        Test: svg/dom/svglist-exception-on-out-bounds-error.html
+
+        * svg/SVGList.h:
+        (WebCore::SVGList::insertItemBefore):
+
+2009-05-12  Paul Godavari  <paul@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 25708: Cannot choose menu items in popups with many entries in Chromium
+        https://bugs.webkit.org/show_bug.cgi?id=25708
+
+        This change sets the window size for popups on Mac to include all items
+        in the menu. This is required for hit testing on Mac, where we use native
+        controls to manage the popups and don't want to artificially limit the
+        valid hit testing region to a limited scroll window.
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupListBox::layout):
+
+2009-05-12  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fixes to build with latest skia:  SkTypeface::Create() is now
+        SkTypeface::CreateFromName(); computeBounds() has been reworked
+        as getBounds().  The changes are placed behind an #ifdef for now,
+        so that we can roll back the skia version in Chromium if necessary
+        without having to roll back this change.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25705
+
+        * platform/graphics/chromium/FontCacheLinux.cpp:
+        (WebCore::FontCache::createFontPlatformData):
+        * platform/graphics/skia/PathSkia.cpp:
+        (WebCore::Path::boundingRect):
+        (WebCore::boundingBoxForCurrentStroke):
+        * platform/graphics/skia/SkiaUtils.cpp:
+        (WebCore::SkPathContainsPoint):
+
+2009-05-12  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25732
+        Update V8ElementCustom.cpp to match the current API of V8Proxy.
+
+        (WebCore::ACCESSOR_SETTER): Change retrieveActiveFrame() to retrieveFrameForEnteredContext().
+
+2009-05-12  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25694
+        HTMLParser::createHead() ASSERT: Creating an element, calling  document.open() and writing
+        to the document NULL ptr
+
+        Test: fast/parser/implicit-head-in-fragment-crash.html
+
+        * html/HTMLParser.cpp: (WebCore::HTMLParser::bodyCreateErrorCheck): Do not try to implicitly
+        create <head> when parsing a fragment.
+
+2009-05-12  Soren Gjesse  <sgjesse@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25687
+        Missing check for valid function in V8 bindings for toString function for event listeners.
+
+        * bindings/v8/V8LazyEventListener.cpp:
+        (WebCore::V8LazyEventListener::getWrappedListenerFunction): Added empty handle checks.
+
+2009-05-11  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        Change Qt port to match the mac and windows ports, and unregister plugins when plugins are stopped.
+        Not doing that can cause assersion failure.
+        https://bugs.webkit.org/show_bug.cgi?id=25702
+
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::stop):
+
+2009-05-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        Bug 25714: [Qt] Decouple HTML5 Database support from the
+        SQLite/generic database support in the Qt port
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25714>
+
+        * WebCore.pro:
+
+2009-05-11  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 25713: AX: Control Elements not identified in HTML content
+        https://bugs.webkit.org/show_bug.cgi?id=25713
+
+        Test: accessibility/onclick-handlers.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+
+2009-05-11  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6276843> REGRESSION: TextIterator generates
+        an extra newline for ranges that start outside of body
+
+        * editing/TextIterator.cpp:
+        (WebCore::TextIterator::shouldRepresentNodeOffsetZero):
+        Check startPos for null, not just currPos.
+
+2009-05-11  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 25700: Regression:WebKit:cmd-left and cmd-right use to go to the beginning and end of a line in Mail
+        https://bugs.webkit.org/show_bug.cgi?id=25700
+
+        Keyboard selection movement handlers need to also watch for the Cmd key when Accessibility is enabled.
+        Note: This code is only used when accessibility is enabled.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleKeyboardSelectionMovement):
+
+2009-05-11  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 25087: Test for ENABLE_FOO macros consistently in IDL files
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25087>
+
+        Reviewed by Timothy Hatcher.
+
+        Change tests for ENABLE macros to check for both existence and
+        value:
+
+        - Negative:  #if !defined(ENABLE_FOO) || !ENABLE_FOO
+        - Positive:  #if defined(ENABLE_FOO) && ENABLE_FOO
+
+        * css/CSSCharsetRule.idl:
+        * css/CSSPrimitiveValue.idl:
+        * css/RGBColor.idl:
+        * dom/Attr.idl:
+        * dom/DOMCoreException.idl:
+        * dom/DOMImplementation.idl:
+        * dom/Document.idl:
+        * dom/Element.idl:
+        * dom/Event.idl:
+        * dom/EventException.idl:
+        * dom/KeyboardEvent.idl:
+        * dom/MessagePort.idl:
+        * dom/MouseEvent.idl:
+        * dom/Node.idl:
+        * dom/ProcessingInstruction.idl:
+        * dom/Range.idl:
+        * dom/RangeException.idl:
+        * dom/WheelEvent.idl:
+        * html/CanvasPixelArray.idl:
+        * html/HTMLAnchorElement.idl:
+        * html/HTMLAppletElement.idl:
+        * html/HTMLAreaElement.idl:
+        * html/HTMLBaseFontElement.idl:
+        * html/HTMLCanvasElement.idl:
+        * html/HTMLDocument.idl:
+        * html/HTMLElement.idl:
+        * html/HTMLEmbedElement.idl:
+        * html/HTMLFrameElement.idl:
+        * html/HTMLIFrameElement.idl:
+        * html/HTMLImageElement.idl:
+        * html/HTMLInputElement.idl:
+        * html/HTMLLinkElement.idl:
+        * html/HTMLObjectElement.idl:
+        * html/HTMLOptionElement.idl:
+        * html/HTMLOptionsCollection.idl:
+        * html/HTMLSelectElement.idl:
+        * html/HTMLStyleElement.idl:
+        * html/ImageData.idl:
+        * inspector/InspectorController.idl:
+        * loader/appcache/DOMApplicationCache.idl:
+        * page/Console.idl:
+        * page/Coordinates.idl:
+        * page/DOMSelection.idl:
+        * page/DOMWindow.idl:
+        * page/Geoposition.idl:
+        * page/History.idl:
+        * page/Location.idl:
+        * page/Navigator.idl:
+        * svg/SVGElementInstance.idl:
+        * svg/SVGException.idl:
+        * workers/WorkerContext.idl:
+        * xml/XMLHttpRequestException.idl:
+        * xml/XPathException.idl:
+
+2009-05-11  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 24538: class/struct mixup in forward declarations
+        https://bugs.webkit.org/show_bug.cgi?id=24538
+
+        * inspector/InspectorResource.h:
+        * loader/CachedFont.h:
+        * loader/appcache/ApplicationCache.h:
+        * rendering/RenderBlock.h:
+        * rendering/RootInlineBox.h:
+        * rendering/SVGInlineTextBox.h:
+        * svg/SVGGlyphElement.h:
+        * svg/SVGHKernElement.h:
+
+2009-05-11  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 24539: Unresolved CSSMutableStyleDeclaration
+        https://bugs.webkit.org/show_bug.cgi?id=24539
+
+        The Symbian tools can't compile and link this without this include.
+        It's not clear why this is different from other toolsets or why it affects
+        only this header file, but adding the include for now.
+
+        * editing/RemoveCSSPropertyCommand.h: Added include of CSSMutableStyleDeclaration.h.
+
+2009-05-11  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25701
+        REGRESSION(r38788 & r42020): styled searchfields look wrong on Windows, affects Facebook
+
+        Test: fast/forms/search-styled.html
+
+        * css/themeWin.css:
+        Remove the overriding of -webkit-appearance for searchfields. This will cause background
+        images to not be honored when styling searchfields
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::adjustSearchFieldStyle):
+        * rendering/RenderThemeWin.h:
+        Re-instate final adjustments to searchfield styling that were removed in r42020
+
+2009-05-11  Brady Eidson  <beidson@apple.com>
+
+        Fix Windows build
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::createCFURLResponseWithDefaultMIMEType):
+
+2009-05-11  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25626
+        Update V8ElementCustom.cpp to match the current API of Node.
+
+        * bindings/v8/custom/V8ElementCustom.cpp:
+        (WebCore::ACCESSOR_SETTER): Changed a couple of method names to match current names.
+        (WebCore::ACCESSOR_GETTER): Changed a method name to match current name.
+
+2009-05-11  Brady Eidson  <beidson@apple.com>
+
+        Fix Windows build
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::createCFURLResponseWithDefaultMIMEType):
+        (WebCore::WebCoreSynchronousLoader::load):
+
+2009-05-11  Brady Eidson  <beidson@apple.com>
+
+        Fix Windows build
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::createCFURLResponseWithDefaultMIMEType):
+
+2009-05-11  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        V8CustomBinding.cpp is missing a header file
+
+        https://bugs.webkit.org/show_bug.cgi?id=25644
+
+        * bindings/v8/custom/V8CustomBinding.cpp: Added #include "V8Proxy.h".
+
+2009-05-11  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25634
+        Change V8Proxy::retrieveActiveFrame() call sites to V8Proxy::retrieveFrameForEnteredContext().
+
+        Also, change instances of ScriptController::retrieveActiveFrame() to
+        V8::retrieveFrameForEnteredContext() for consistency.
+
+
+        See http://codereview.chromium.org/113085 for the corresponding Chromium change.
+
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::V8Custom::WindowSetLocation):
+        * bindings/v8/custom/V8HTMLDocumentCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8LocationCustom.cpp:
+        (WebCore::navigateIfAllowed):
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-05-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/5972751> Local image files (BMP, ico) can be misidentified as HTML.
+
+        First part of the fix - Disable content sniffing for file resources which never should've been happening anyways.
+        Second part of the fix - If the networking layer doesn't give us back a MIME type default to "application/octet-stream".
+
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::defaultMIMEType): "application/octet-stream"
+        * platform/MIMETypeRegistry.h:
+
+        * platform/network/ResourceHandle.cpp:
+        (WebCore::ResourceHandle::create): If content sniffing is true, double check with "shouldContentSniffRequest()" which
+          might override it to false.
+        (WebCore::ResourceHandle::shouldContentSniffURL): Return false for file:// urls, true for everything else.
+        * platform/network/ResourceHandle.h:
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::createCFURLResponseWithDefaultMIMEType): Create a copy of the CFURLRequest with the default MIME type instead
+          of null.
+        (WebCore::didReceiveResponse): If the MIME type for the response is null, create a copy with the default MIME type.
+        (WebCore::WebCoreSynchronousLoader::load): Use shouldContentSniffRequest() to make synchronous loads have the same 
+          sniffing policy as asynchronous loads.  Also, correct a null MIME type by creating a copy with the default type.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::loadResourceSynchronously): Use shouldContentSniffRequest() to make synchronous loads have the
+          same sniffing policy as asynchronous loads.
+        (-[WebCoreResourceHandleAsDelegate connection:didReceiveResponse:]): Set up the [NSURLResponse MIMEType] swizzling if
+          it hasn't been set up yet.
+        (_web_NSURLResponse_MIMEType): Either return the actual MIME type of the response, or the default MIME type if it's nil.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously): Remove the workaround added in r29370 as it will now be covered by
+          the new mechanism.
+
+2009-05-11  David Kilzer  <ddkilzer@apple.com>
+
+        Fix typo "APPLICATION_CAHE_DYNAMIC_ENTRIES" to "APPLICATION_CACHE_DYNAMIC_ENTRIES"
+
+        This was added in r39816 to disable dynamic entries.  They are
+        still disabled after fixing the typo since this feature define
+        is never set anywhere.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        * loader/appcache/DOMApplicationCache.idl:
+
+2009-05-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Alexey Proskuryakov and Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25348
+        Change WTF::ThreadIdentifier to be an actual (but wrapped) thread id, remove ThreadMap.
+
+        Most of the change is in WTF.
+        Unless noted, all the following files changed to use the new ThreadIdentifier::isValid()
+        method instead of just doing 'if(m_threadID)' kind of checks, since ThreadIdentifier
+        is now a class rather then an integer.
+        Also, there is no need to initialize threadID in constructors to 0 now.
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::libxmlLoaderThread): use DEFINE_STATIC_LOCAL and accessor function for static thread id,
+        since now ThreadIdentifier needs construction and we avoid having global initializers.
+        (WebCore::matchFunc): use the new accessor function.
+        (WebCore::openFunc): ditto.
+        (WebCore::createStringParser): ditto.
+        (WebCore::createMemoryParser): ditto.
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::IconDatabase::open):
+        * platform/sql/SQLiteDatabase.cpp:
+        (WebCore::SQLiteDatabase::SQLiteDatabase):
+        (WebCore::SQLiteDatabase::close):
+        * storage/DatabaseThread.cpp:
+        (WebCore::DatabaseThread::start):
+        (WebCore::DatabaseThread::databaseThread): remove m_threadID from debug output.
+        * storage/LocalStorageThread.cpp:
+        (WebCore::LocalStorageThread::start):
+        (WebCore::LocalStorageThread::scheduleImport):
+        (WebCore::LocalStorageThread::scheduleSync):
+        (WebCore::LocalStorageThread::terminate):
+        * workers/WorkerThread.cpp:
+        (WebCore::WorkerThread::start):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::start):
+
+2009-05-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Remove unused header that declared one function which was never defined anywhere.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/network/cf/ResourceResponseCFNet.cpp: Change to include ResourceResponse.h (which really means
+          platform/network/cf/ResourceResponse.h)
+        * platform/network/cf/ResourceResponseCFNet.h: Removed.
+
+2009-05-11  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25213
+        Fix assert during Inspector destruction.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::inspectedPageDestroyed): Moved closing
+            inspector above removing InspectorController object to fix JS errors,
+            added clearing inspector page ptr.
+
+2009-05-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Make sure that public APIs are properly exported on all Qt platforms
+        https://bugs.webkit.org/show_bug.cgi?id=25601
+
+        * WebCore.pro: Define QT_MAKEDLL for all non-static builds, not just for win
+
+2009-05-11  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24284
+
+        * WebCore.pro: duplicated values removed from INCLUDEPATH
+
+2009-05-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Build fix Symbian; clean Up WebKit/Qt if ENABLE_NETSCAPE_PLUGIN_API=0
+        https://bugs.webkit.org/show_bug.cgi?id=24688
+
+        * WebCore.pro: Use platform independent plugin stubs if ENABLE_NETSCAPE_PLUGIN_API=0
+        * platform/qt/TemporaryLinkStubs.cpp: Remove stub functions for plugins
+
 2009-05-04  Eric Seidel  <eric@webkit.org>
 
         Reviewed by George Staikos.

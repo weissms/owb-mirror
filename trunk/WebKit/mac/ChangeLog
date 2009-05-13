@@ -1,3 +1,23 @@
+2009-05-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <rdar://problem/6878105>.
+        
+        When instantiating the QT plug-in under Dashboard, force "kiosk mode". 
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:element:WebCore::]):
+
+2009-05-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - declare a forgotten method
+
+        * DOM/WebDOMOperationsPrivate.h: Declare -[DOMNode markupString] in the
+        WebDOMNodeOperationsPendingPublic category.
+
 2009-05-11  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Dan Bernstein.

@@ -76,6 +76,7 @@ javascriptcore_sources += \
 	JavaScriptCore/JavaScriptCorePrefix.h \
 	JavaScriptCore/jit/ExecutableAllocator.h \
 	JavaScriptCore/jit/JIT.cpp \
+	JavaScriptCore/jit/JITOpcodes.cpp \
 	JavaScriptCore/jit/JITCall.cpp \
 	JavaScriptCore/jit/JITCode.h \
 	JavaScriptCore/jit/JITPropertyAccess.cpp \
@@ -303,6 +304,8 @@ javascriptcore_sources += \
 	JavaScriptCore/parser/Nodes.h \
 	JavaScriptCore/parser/Parser.cpp \
 	JavaScriptCore/parser/Parser.h \
+	JavaScriptCore/parser/ParserArena.cpp \
+	JavaScriptCore/parser/ParserArena.h \
 	JavaScriptCore/parser/ResultType.h \
 	JavaScriptCore/parser/SourceCode.h \
 	JavaScriptCore/parser/SourceProvider.h \
@@ -458,7 +461,9 @@ javascriptcore_built_nosources += \
 	DerivedSources/Grammar.h
 
 javascriptcore_sources += \
-	JavaScriptCore/AllInOneFile.cpp
+	JavaScriptCore/AllInOneFile.cpp \
+	JavaScriptCore/parser/ParserArena.cpp \
+	JavaScriptCore/parser/ParserArena.h
 endif # END ENABLE_DEBUG
 
 DerivedSources/Grammar.h: DerivedSources/Grammar.cpp;

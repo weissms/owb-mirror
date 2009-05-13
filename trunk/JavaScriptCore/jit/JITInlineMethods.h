@@ -142,22 +142,6 @@ ALWAYS_INLINE void JIT::emitPutJITStubArgFromVirtualRegister(unsigned src, unsig
     killLastResultRegister();
 }
 
-ALWAYS_INLINE void JIT::emitPutCTIParam(void* value, unsigned name)
-{
-    poke(ImmPtr(value), name);
-}
-
-ALWAYS_INLINE void JIT::emitPutCTIParam(RegisterID from, unsigned name)
-{
-    poke(from, name);
-}
-
-ALWAYS_INLINE void JIT::emitGetCTIParam(unsigned name, RegisterID to)
-{
-    peek(to, name);
-    killLastResultRegister();
-}
-
 ALWAYS_INLINE void JIT::emitPutToCallFrameHeader(RegisterID from, RegisterFile::CallFrameHeaderEntry entry)
 {
     storePtr(from, Address(callFrameRegister, entry * sizeof(Register)));
@@ -168,15 +152,15 @@ ALWAYS_INLINE void JIT::emitPutImmediateToCallFrameHeader(void* value, RegisterF
     storePtr(ImmPtr(value), Address(callFrameRegister, entry * sizeof(Register)));
 }
 
-ALWAYS_INLINE void JIT::emitGetFromCallFrameHeader(RegisterFile::CallFrameHeaderEntry entry, RegisterID to, RegisterID from)
+ALWAYS_INLINE void JIT::emitGetFromCallFrameHeaderPtr(RegisterFile::CallFrameHeaderEntry entry, RegisterID to, RegisterID from)
 {
     loadPtr(Address(from, entry * sizeof(Register)), to);
     killLastResultRegister();
 }
 
-ALWAYS_INLINE void JIT::emitGetFromCallFrameHeader32(RegisterFile::CallFrameHeaderEntry entry, RegisterID to)
+ALWAYS_INLINE void JIT::emitGetFromCallFrameHeader32(RegisterFile::CallFrameHeaderEntry entry, RegisterID to, RegisterID from)
 {
-    load32(Address(callFrameRegister, entry * sizeof(Register)), to);
+    load32(Address(from, entry * sizeof(Register)), to);
     killLastResultRegister();
 }
 
@@ -206,7 +190,7 @@ ALWAYS_INLINE JIT::Call JIT::emitNakedCall(void* function)
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
     move(stackPointerRegister, firstArgumentRegister);
-    emitPutCTIParam(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
 {
@@ -220,13 +204,13 @@ ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
     poke(stackPointerRegister);
-    emitPutCTIParam(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
 #else // JIT_STUB_ARGUMENT_VA_LIST
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
-    emitPutCTIParam(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
 #endif
@@ -402,6 +386,55 @@ ALWAYS_INLINE void JIT::emitJumpSlowToHot(Jump jump, int relativeOffset)
     jump.linkTo(m_labels[m_bytecodeIndex + relativeOffset], this);
 }
 
+#if ENABLE(SAMPLING_FLAGS)
+ALWAYS_INLINE void JIT::setSamplingFlag(int flag, RegisterID scratch)
+{
+    ASSERT(flag >= 1);
+    ASSERT(flag <= 32);
+    load32(&SamplingFlags::s_flags, scratch);
+    or32(Imm32(1u << (flag - 1)), scratch);
+    store32(scratch, &SamplingFlags::s_flags);
+}
+
+ALWAYS_INLINE void JIT::clearSamplingFlag(int flag, RegisterID scratch)
+{
+    ASSERT(flag >= 1);
+    ASSERT(flag <= 32);
+    load32(&SamplingFlags::s_flags, scratch);
+    and32(Imm32(~(1u << (flag - 1))), scratch);
+    store32(scratch, &SamplingFlags::s_flags);
+}
+#endif
+
+#if ENABLE(OPCODE_SAMPLING)
+#if PLATFORM(X86_64)
+ALWAYS_INLINE void JIT::sampleInstruction(Instruction* instruction, bool inHostFunction)
+{
+    move(ImmPtr(m_interpreter->sampler()->sampleSlot()), X86::ecx);
+    storePtr(ImmPtr(m_interpreter->sampler()->encodeSample(instruction, inHostFunction)), X86::ecx);
+}
+#else
+ALWAYS_INLINE void JIT::sampleInstruction(Instruction* instruction, bool inHostFunction)
+{
+    storePtr(ImmPtr(m_interpreter->sampler()->encodeSample(instruction, inHostFunction)), m_interpreter->sampler()->sampleSlot());
+}
+#endif
+#endif
+
+#if ENABLE(CODEBLOCK_SAMPLING)
+#if PLATFORM(X86_64)
+ALWAYS_INLINE void JIT::sampleCodeBlock(CodeBlock* codeBlock)
+{
+    move(ImmPtr(m_interpreter->sampler()->codeBlockSlot()), X86::ecx);
+    storePtr(ImmPtr(codeBlock), X86::ecx);
+}
+#else
+ALWAYS_INLINE void JIT::sampleCodeBlock(CodeBlock* codeBlock)
+{
+    storePtr(ImmPtr(codeBlock), m_interpreter->sampler()->codeBlockSlot());
+}
+#endif
+#endif
 }
 
 #endif // ENABLE(JIT)

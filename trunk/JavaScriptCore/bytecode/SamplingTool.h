@@ -39,6 +39,7 @@
 namespace JSC {
 
     class SamplingFlags {
+        friend class JIT;
     public:
         static void start();
         static void stop();
@@ -125,7 +126,8 @@ namespace JSC {
         // Sampling thread state.
         static bool s_running;
         static unsigned s_hertz;
-        static ThreadIdentifier s_samplingThread;
+
+        static ThreadIdentifier& samplingThread();
 
         static void start(unsigned hertz=10000);
         static void stop();
