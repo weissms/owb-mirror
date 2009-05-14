@@ -1,3 +1,11 @@
+2009-05-14  Mario Bensi  <mbensi@pleyo.com>
+
+        fix test 97 of acid3.
+
+        * Internationalization/WebCore/WK/BCBase64WK.cpp:
+        (WebCore::base64Decode):
+        * Scripts/data/WebKitFiles.txt:
+
 2009-05-11  Mario Bensi  <mbensi@pleyo.com>
 
         now you can give a directory in param to drt script.

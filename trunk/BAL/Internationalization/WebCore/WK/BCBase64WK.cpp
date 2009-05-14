@@ -125,6 +125,7 @@ void base64Encode(const Vector<char>& in, Vector<char>& out, bool insertLFs)
 
 bool base64Decode(const Vector<char>& in, Vector<char>& out)
 {
+    
     out.clear();
 
     // If the input string is pathologically large, just return nothing.
@@ -144,13 +145,17 @@ bool base64Decode(const char* data, unsigned len, Vector<char>& out)
         --len;
 
     out.grow(len);
+    unsigned i = 0;
     for (unsigned idx = 0; idx < len; idx++) {
         unsigned char ch = data[idx];
-        if ((ch > 47 && ch < 58) || (ch > 64 && ch < 91) || (ch > 96 && ch < 123) || ch == '+' || ch == '/' || ch == '=')
-            out[idx] = base64DecMap[ch];
-        else
-            return false;
+        if ((ch > 47 && ch < 58) || (ch > 64 && ch < 91) || (ch > 96 && ch < 123) || ch == '+' || ch == '/' || ch == '=') {
+            out[i] = base64DecMap[ch];
+            i++;
+        }
     }
+
+    if (i != len)
+        len = i;
 
     // 4-byte to 3-byte conversion
     unsigned outLen = len - ((len + 3) / 4);
