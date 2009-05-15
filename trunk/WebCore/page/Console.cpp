@@ -38,12 +38,12 @@
 #include "PageGroup.h"
 #include "PlatformString.h"
 
-#if ENABLE(INSPECTOR)
-#include "InspectorController.h"
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+#include <profiler/Profiler.h>
 #endif
 
-#if USE(JSC)
-#include <profiler/Profiler.h>
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
 #endif
 
 #include "ScriptCallStack.h"

@@ -644,7 +644,6 @@ void HTMLMediaElement::setNetworkState(MediaPlayer::NetworkState state)
     }
 
     if (state == MediaPlayer::Loading) {
-        ASSERT(static_cast<ReadyState>(m_player->readyState()) < HAVE_ENOUGH_DATA);
         if (m_networkState < NETWORK_LOADING || m_networkState == NETWORK_NO_SOURCE)
             startProgressEventTimer();
         m_networkState = NETWORK_LOADING;
@@ -855,6 +854,13 @@ float HTMLMediaElement::currentTime() const
 void HTMLMediaElement::setCurrentTime(float time, ExceptionCode& ec)
 {
     seek(time, ec);
+}
+
+float HTMLMediaElement::startTime() const
+{
+    if (!m_player)
+        return 0;
+    return m_player->startTime();
 }
 
 float HTMLMediaElement::duration() const

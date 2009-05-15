@@ -165,7 +165,7 @@ void JIT::compileOpCall(OpcodeID opcodeID, Instruction* instruction, unsigned)
 
     // First, in the case of a construct, allocate the new object.
     if (opcodeID == op_construct) {
-        JITStubCall(JITStubs::cti_op_construct_JSConstruct.call(registerOffset - RegisterFile::CallFrameHeaderSize - argCount);
+        JITStubCall(this, JITStubs::cti_op_construct_JSConstruct).call(registerOffset - RegisterFile::CallFrameHeaderSize - argCount);
         emitGetVirtualRegister(callee, regT2);
     }
 
@@ -191,7 +191,7 @@ void JIT::compileOpCallSlowCase(Instruction* instruction, Vector<SlowCaseEntry>:
 
     linkSlowCase(iter);
     linkSlowCase(iter);
-    JITStubCall stubCall(opcodeID == op_construct ? JITStubs::cti_op_construct_NotJSConstruct : JITStubs::cti_op_call_NotJSFunction);
+    JITStubCall stubCall(this, opcodeID == op_construct ? JITStubs::cti_op_construct_NotJSConstruct : JITStubs::cti_op_call_NotJSFunction);
     stubCall.call(dst); // In the interpreter, the callee puts the return value in dst.
 
     sampleCodeBlock(m_codeBlock);
@@ -296,7 +296,6 @@ void JIT::compileOpCallSlowCase(Instruction* instruction, Vector<SlowCaseEntry>:
 
     Jump storeResultForFirstRun = jump();
 
-// FIXME: this label can be removed, since it is a fixed offset from 'callReturnLocation'.
     // This is the address for the cold path *after* the first run (which tries to link the call).
     m_callStructureStubCompilationInfo[callLinkInfoIndex].coldPathOther = MacroAssembler::Label(this);
 

@@ -1,4 +1,7 @@
 list(APPEND WEBCORE_SRC
+    page/AccessibilityAriaGrid.cpp
+    page/AccessibilityAriaGridCell.cpp
+    page/AccessibilityAriaGridRow.cpp
     page/AccessibilityImageMapLink.cpp
     page/AccessibilityList.cpp
     page/AccessibilityListBox.cpp

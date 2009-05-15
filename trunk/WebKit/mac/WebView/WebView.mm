@@ -539,8 +539,10 @@ static BOOL automaticSpellingCorrectionEnabled;
     dashboardBehaviorAllowWheelScrolling = YES;
 #endif
     shouldCloseWithWindow = objc_collecting_enabled();
-    continuousSpellCheckingEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebContinuousSpellCheckingEnabled];
 
+    smartInsertDeleteEnabled = ![[NSUserDefaults standardUserDefaults] objectForKey:WebSmartInsertDeleteEnabled]
+        || [[NSUserDefaults standardUserDefaults] boolForKey:WebSmartInsertDeleteEnabled];
+    continuousSpellCheckingEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebContinuousSpellCheckingEnabled];
 #ifndef BUILDING_ON_TIGER
     grammarCheckingEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebGrammarCheckingEnabled];
 #endif
@@ -551,9 +553,9 @@ static BOOL automaticSpellingCorrectionEnabled;
     automaticTextReplacementEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebAutomaticTextReplacementEnabled];
     automaticSpellingCorrectionEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebAutomaticSpellingCorrectionEnabled];
 #endif
-    
+
     usesPageCache = YES;
-    
+
     pluginDatabaseClientCount++;
 
     shouldUpdateWhileOffscreen = YES;
@@ -763,7 +765,6 @@ static bool runningTigerMail()
     _private->catchesDelegateExceptions = YES;
     _private->mainFrameDocumentReady = NO;
     _private->drawsBackground = YES;
-    _private->smartInsertDeleteEnabled = YES;
     _private->backgroundColor = [[NSColor colorWithDeviceWhite:1 alpha:1] retain];
     _private->useDocumentViews = usesDocumentViews;
 
@@ -2511,11 +2512,35 @@ WebScriptDebugDelegateImplementationCache* WebViewGetScriptDebugDelegateImplemen
     return self;
 }
 
+static bool clientNeedsWebViewInitThreadWorkaround()
+{
+    if (WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_WEBVIEW_INIT_THREAD_WORKAROUND))
+        return false;
+
+    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+
+    // Installer.
+    if ([bundleIdentifier _webkit_isCaseInsensitiveEqualToString:@"com.apple.installer"])
+        return true;
+
+    // Automator.
+    if ([bundleIdentifier _webkit_isCaseInsensitiveEqualToString:@"com.apple.Automator"])
+        return true;
+
+    // Automator Runner.
+    if ([bundleIdentifier _webkit_isCaseInsensitiveEqualToString:@"com.apple.AutomatorRunner"])
+        return true;
+
+    // Automator workflows.
+    if ([bundleIdentifier _webkit_hasCaseInsensitivePrefix:@"com.apple.Automator."])
+        return true;
+
+    return false;
+}
+
 static bool needsWebViewInitThreadWorkaround()
 {
-    static BOOL isOldClient = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_WEBVIEW_INIT_THREAD_WORKAROUND)
-        && ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.installer"] ||
-            [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.Automator"]);
+    static bool isOldClient = clientNeedsWebViewInitThreadWorkaround();
     return isOldClient && !pthread_main_np();
 }
 
@@ -2684,11 +2709,11 @@ static bool needsWebViewInitThreadWorkaround()
     }
 }
 
-- (void)addSizeObservers
+- (void)addSizeObserversForWindow:(NSWindow *)window
 {
     // -addSizeObservers can be called from -viewDidMoveToSuperview: below -[NSView initWithCoder:], before
     // we've had a chance to initialize _private
-    if (_private && [self window]) {
+    if (_private && window) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
             name:NSViewFrameDidChangeNotification object:self];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
@@ -2697,9 +2722,8 @@ static bool needsWebViewInitThreadWorkaround()
     }
 }
 
-- (void)addWindowObservers
+- (void)addWindowObserversForWindow:(NSWindow *)window
 {
-    NSWindow *window = [self window];
     if (!_private->useDocumentViews && window) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowDidBecomeKey:)
             name:NSWindowDidBecomeKeyNotification object:nil];
@@ -2728,10 +2752,7 @@ static bool needsWebViewInitThreadWorkaround()
     // Don't do anything if the WebView isn't initialized.
     // This happens when decoding a WebView in a nib.
     // FIXME: What sets up the observer of NSWindowWillCloseNotification in this case?
-    if (!_private)
-        return;
-
-    if (_private->closed)
+    if (!_private || _private->closed)
         return;
     
     if ([self window] && [self window] != [self hostWindow])
@@ -2745,11 +2766,16 @@ static bool needsWebViewInitThreadWorkaround()
         // and over, so do them when we move into a window.
         [window setAcceptsMouseMovedEvents:YES];
         WKSetNSWindowShouldPostEventNotifications(window, YES);
-        
-        [self removeWindowObservers];
-        [self removeSizeObservers];
     } else
         _private->page->willMoveOffscreen();
+        
+    if (window != [self window]) {
+        [self removeSizeObservers];
+        [self removeWindowObservers];
+
+        [self addSizeObserversForWindow:window];
+        [self addWindowObserversForWindow:window];
+    }
 }
 
 - (void)viewDidMoveToWindow
@@ -2761,11 +2787,8 @@ static bool needsWebViewInitThreadWorkaround()
     if (!_private || _private->closed)
         return;
         
-    if ([self window]) {
-        [self addWindowObservers];
-        [self addSizeObservers];
+    if ([self window])
         _private->page->didMoveOnscreen();
-    }
 }
 
 - (void)_updateFocusedAndActiveState
@@ -3125,7 +3148,7 @@ static bool needsWebViewInitThreadWorkaround()
 - (void)viewDidMoveToSuperview
 {
     if ([self superview] != nil)
-        [self addSizeObservers];
+        [self addSizeObserversForWindow:[self window]];
 }
 
 - (void)setApplicationNameForUserAgent:(NSString *)applicationName
@@ -4444,7 +4467,10 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue jsValu
 
 - (void)setSmartInsertDeleteEnabled:(BOOL)flag
 {
-    _private->smartInsertDeleteEnabled = flag;
+    if (_private->smartInsertDeleteEnabled != flag) {
+        _private->smartInsertDeleteEnabled = flag;
+        [[NSUserDefaults standardUserDefaults] setBool:_private->smartInsertDeleteEnabled forKey:WebSmartInsertDeleteEnabled];
+    }
     if (flag)
         [self setSelectTrailingWhitespaceEnabled:false];
 }

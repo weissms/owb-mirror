@@ -1,3 +1,922 @@
+2009-05-15  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Finish support for disabling the JavaScript Debugger and Profiler 
+        at compile time in WebCore
+        https://bugs.webkit.org/show_bug.cgi?id=24917
+
+        * bindings/js/JSInspectorControllerCustom.cpp: ENABLE_JAVASCRIPT_DEBUGGER guard
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp: Ditto.
+        * inspector/JavaScriptCallFrame.cpp: Ditto.
+        * inspector/JavaScriptCallFrame.h: Ditto.
+        * inspector/JavaScriptCallFrame.idl: Ditto.
+        * inspector/JavaScriptDebugListener.h: Ditto.
+        * inspector/JavaScriptDebugServer.cpp: Ditto.
+        * inspector/JavaScriptDebugServer.h: Ditto.
+        * inspector/JavaScriptProfile.cpp: Ditto.
+        * inspector/JavaScriptProfile.h: Ditto.
+        * inspector/JavaScriptProfileNode.cpp: Ditto.
+        * inspector/JavaScriptProfileNode.h: Ditto.
+        * page/Console.cpp: Use guard ENABLE(JAVASCRIPT_DEBUGGER) instead of USE(JSC)
+        * page/Console.h: Ditto.
+        * page/Console.idl: Use guard ENABLE(JAVASCRIPT_DEBUGGER) instead of !defined(V8_BINDING)
+
+2009-05-15  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Dimitri Glazkov
+
+        http://bugs.webkit.org/show_bug.cgi?id=25464
+
+        Improve the font fallback for characters belonging to 'common' scripts
+        in ChromiumWin port. Make characters like Danda, Double Danda (punctuation
+        marks in North Indian scripts) and currency signs (e.g. Thai Baht)
+        rendered correctly in Chromium on Win. 
+
+        Tests: fast/text/international/danda-space.html
+               fast/text/international/thai-baht-space.html
+
+        * platform/graphics/chromium/FontUtilsChromiumWin.cpp:
+        (WebCore::FontMap::getScriptBasedOnUnicodeBlock):
+        (WebCore::FontMap::getScript):
+        (WebCore::getFallbackFamily):
+
+2009-05-15  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25731
+        [Qt] Cleanup - move files exclusive to XPATH and XSLT under the
+        appropriate build section
+
+        * WebCore.pro:
+
+2009-05-14  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Eric Seidel and Darin Fisher.
+
+        Fix a font-related leak in Chromium's Skia backend found by Valgrind.
+        https://bugs.webkit.org/show_bug.cgi?id=25760
+
+        * platform/graphics/chromium/FontCacheLinux.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        Use caches instead of "new" on every call.
+
+2009-05-14  Rahul Kuchhal  <kuchhal@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Initialize m_spreadMethod in the second constructor too. Not sure if
+        a test case can be written, so no test case.
+        https://bugs.webkit.org/show_bug.cgi?id=25814
+
+        No test possible: spreadMethod() is only used by SVG, doesn't seem possible to hit
+        this case, since several other SVG tests already should be calling
+        spreadMethod().
+
+        * platform/graphics/Gradient.cpp:
+        (WebCore::Gradient::Gradient):
+
+2009-05-14  Simon Fraser  <simon.fraser@apple.com>
+
+        No review.
+
+        Fix Windows build after renaming MediaControlElements to MediaControlElementType.
+
+        * rendering/RenderMediaControls.cpp:
+        (WebCore::RenderMediaControls::paintMediaControlsPart):
+        * rendering/RenderMediaControls.h:
+
+2009-05-14  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+        
+        <rdar://problem/6739671> Movie controller’s play button does not change into a pause
+        button
+
+        Fix a controls repaint issue when the playing state of a video changes by
+        educating the MediaControlInputElements about the state they are currently
+        displaying, and making them repaint when that state changes. This applies
+        to the play/pause and mute/unmute buttons, which both have two states.
+        
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlInputElement::MediaControlInputElement):
+        (WebCore::MediaControlSeekButtonElement::MediaControlSeekButtonElement):
+        (WebCore::MediaControlTimelineElement::MediaControlTimelineElement):
+        (WebCore::MediaControlFullscreenButtonElement::MediaControlFullscreenButtonElement):
+        Pass in and initialize the MediaControlElementType.
+        
+        (WebCore::MediaControlInputElement::update):
+        Update the display type too
+        
+        (WebCore::MediaControlInputElement::setDisplayType):
+        (WebCore::MediaControlMuteButtonElement::MediaControlMuteButtonElement):
+        (WebCore::MediaControlMuteButtonElement::updateDisplayType):
+        Choose muted vs. unmuted display.
+        
+        (WebCore::MediaControlPlayButtonElement::MediaControlPlayButtonElement):
+        (WebCore::MediaControlPlayButtonElement::updateDisplayType):
+        Choose play vs. paused display.
+
+        * rendering/MediaControlElements.h:
+        Renamed the MediaControlElements enum to MediaControlElementType.
+        (WebCore::MediaControlInputElement::updateDisplayType):
+        Add a MediaControlElementType member variable with a setter to allow
+        the element to know what type it is displaying.
+
+2009-05-14  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25197
+
+        Add support for aspect-ratio and orientation
+        media queries.
+
+        Tests: fast/media/mq-aspect-ratio.html
+               fast/media/mq-orientation.html
+
+        * css/MediaFeatureNames.h:
+        * css/MediaQueryEvaluator.cpp:
+        (WebCore::orientationMediaFeatureEval):
+        (WebCore::aspect_ratioMediaFeatureEval):
+        (WebCore::min_aspect_ratioMediaFeatureEval):
+        (WebCore::max_aspect_ratioMediaFeatureEval):
+        * css/MediaQueryExp.h:
+        (WebCore::MediaQueryExp::isViewportDependent):
+
+2009-05-14  Kevin McCullough  <kmccullough@apple.com>
+
+        - Resubmitting previous patch, correctly this time.
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::splitTreeToNode):
+        * editing/IndentOutdentCommand.cpp:
+        (WebCore::IndentOutdentCommand::outdentParagraph):
+
+2009-05-14  Kevin McCullough  <kmccullough@apple.com>
+
+        - Rolling out to fix a bug and the build
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::splitTreeToNode):
+        * editing/IndentOutdentCommand.cpp:
+        (WebCore::IndentOutdentCommand::outdentParagraph):
+
+2009-05-14  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6510362> In some situations message content is messed up
+        when indentation is decreased
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::splitTreeToNode): Calling recursively
+        here served to do nothing because this function will return if the
+        second argument is the parent of the first.  Not only does this now work
+        as intended, but is necessary for the rest of this fix.
+        * editing/IndentOutdentCommand.cpp:
+        (WebCore::IndentOutdentCommand::outdentParagraph): To determine if we 
+        are the last node in a <blockquote>, and can therefore remove the
+        <blockquote> we need the endOfEnclosingBlock to extend to the end of
+        the <blockquote> not just the next block, which could be a <div>, for
+        example. 
+        - Also If a <blockquote> is removed, but it's the child of another
+        <blockquote> then its children are now children of the top <blockquote>.
+        In this case we want to split the parent <blockquote> because the next
+        paragraph assumes that it is the first node in its <blockquote> and if
+        that is not true, various bugs arise.
+
+2009-05-14  Brady Eidson  <beidson@apple.com>
+
+        Build fix.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::setDefaultMIMEType):
+
+2009-05-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix http/tests/xmlhttprequest/cache-override.html on Windows
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::setDefaultMIMEType): Modify the previous response so it maintains all of its data.
+        (WebCore::didReceiveResponse): Call setDefaultMIMEType() when needed.
+        (WebCore::WebCoreSynchronousLoader::load): Ditto.
+
+2009-05-14  Paul Godavari  <paul@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug: Mac Chromium popup menus are not positioned correctly
+        on scrolled pages:
+        https://bugs.webkit.org/show_bug.cgi?id=25772
+
+        Fix Mac Chromium popup menu placement by taking into
+        account any scrolling in the current window. This mirrors
+        the positioning done in PopupContainer::show(), which is
+        used on Chromium Windows and linux.
+
+        Also fixed indenting for this method.
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupContainer::showExternal):
+
+2009-05-14  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25774
+        Upstream V8MessagePortCustom.cpp from the chromium repository.
+
+        * bindings/v8/custom/V8MessagePortCustom.cpp: Added.
+        (WebCore::ACCESSOR_GETTER):
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-05-14  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=25777
+        
+        StyleGeneratedImage::imageSize() needs to take zooming into account for
+        fixed-size images (i.e. canvas) so that canvas-as-image-background
+        renders correctly with zooming.
+
+        Test: fast/canvas/canvas-bg-zoom.html
+
+        * rendering/style/StyleGeneratedImage.cpp:
+        (WebCore::StyleGeneratedImage::imageSize):
+
+2009-05-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Patch originally by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25796
+        <rdar://problem/6886654> Shouldn't set referer and origin in Loader::Host::servePendingRequests().
+
+        Test: http/tests/security/credentials-in-referer.html
+
+        * loader/loader.cpp: (WebCore::Loader::Host::servePendingRequests): This will be done in
+        SubresourceLoader::create() anyway.
+
+2009-05-14  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 25797: Pages with image maps are not properly read with Voiceover
+        https://bugs.webkit.org/show_bug.cgi?id=25797
+
+        * page/AccessibilityImageMapLink.h:
+        (WebCore::AccessibilityImageMapLink::isEnabled):
+
+2009-05-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6887762> and https://bugs.webkit.org/show_bug.cgi?id=25790 
+
+        Nuke the bogus ASSERT and add a legitimate ASSERT with a little help from a new accessor.
+
+        * platform/network/ResourceHandle.cpp:
+        (WebCore::ResourceHandle::shouldContentSniff):
+        * platform/network/ResourceHandle.h:
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::createCFURLResponseWithDefaultMIMEType):
+        (WebCore::didReceiveResponse):
+
+2009-05-14  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25791
+        Bug 25791: HTMLMediaElement: implement 'startTime' attribute
+        
+        Support the recently added HTMLMediaElement 'startTime' attribute. This is a read-only 
+        value that only the media engine can know, so we just need to add the attribute 
+        to HTMLMediaElement and add methods to MediaPlayer and MediaPlayerPrivateInterface so 
+        the engine can make it available.
+
+        Test: media/media-startTime.html
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::startTime): New.
+        * html/HTMLMediaElement.h:
+        * html/HTMLMediaElement.idl:
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::startTime): New.
+        * platform/graphics/MediaPlayer.h:
+
+        * platform/graphics/MediaPlayerPrivate.h:
+        (WebCore::MediaPlayerPrivateInterface::startTime): New.
+
+2009-05-14  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Only create a QWidget wrapper for the plugin in the case it is not
+        in the Qt window mapper, and thus receiving events from the Qt
+        event system. Native Qt based plugins running in process, will
+        already be in the window mapper, and thus creating a wrapper,
+        stops them from getting events from Qt, as they are redirected
+        to the wrapper.
+
+        * plugins/qt/PluginContainerQt.cpp:
+        (PluginContainerQt::on_clientIsEmbedded):
+
+2009-05-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25784
+        Leaks seen on HTTP tests
+
+        We should change ResourceHandleMac.mm to use smart pointers some day, but this is a minimal fix.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::loadResourceSynchronously): Release mutable request copy made for
+        disabling content sniffing, matching the normal code path.
+        (-[WebCoreSynchronousLoader connection:willSendRequest:redirectResponse:]): Release m_user
+        and m_pass before overwriting.
+        (-[WebCoreSynchronousLoader connection:didReceiveAuthenticationChallenge:]): Ditto.
+
+2009-05-14  Yury Semikhatsky <yurys@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25418
+        Remove new lines from event handler wrapper to make line numbers
+        in the wrapped script conside with the lines in the original script.
+
+        * bindings/v8/V8LazyEventListener.cpp:
+        (WebCore::V8LazyEventListener::getListenerFunction):
+        (WebCore::V8LazyEventListener::getWrappedListenerFunction):
+
+2009-05-14  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Remove a JSC-specific include that is already added by including
+        ScriptController.
+
+        No change in behavior, so no tests.
+
+        * dom/Document.cpp: Removed JSDOMBinding include.
+
+2009-05-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Brady Eidson.
+
+        <rdar://problem/4072827> Downloaded non-ASCII file name becomes garbled
+
+        Hopefully, a final stroke. When updating ResourceRequest from a platform request, a wrong
+        CFString function was used, so a user-friendly name was stored in encoding fallback array.
+
+        * platform/network/cf/ResourceRequestCFNet.cpp: (WebCore::ResourceRequest::doUpdateResourceRequest):
+        * platform/network/mac/ResourceRequestMac.mm: (WebCore::ResourceRequest::doUpdateResourceRequest):
+
+2009-05-14  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Darin Adler.
+
+        Add more ENABLE_DATABASE guards.
+        https://bugs.webkit.org/show_bug.cgi?id=25616
+
+        See also https://bugs.webkit.org/show_bug.cgi?id=24776 (original set of guards)
+
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        * bindings/v8/custom/V8CustomSQLStatementCallback.cpp:
+        * bindings/v8/custom/V8CustomSQLStatementCallback.h:
+        * bindings/v8/custom/V8CustomSQLStatementErrorCallback.cpp:
+        * bindings/v8/custom/V8CustomSQLStatementErrorCallback.h:
+        * bindings/v8/custom/V8CustomSQLTransactionCallback.cpp:
+        * bindings/v8/custom/V8CustomSQLTransactionCallback.h:
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.cpp:
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.h:
+        * bindings/v8/custom/V8DatabaseCustom.cpp:
+        * bindings/v8/custom/V8SQLResultSetRowListCustom.cpp:
+        * bindings/v8/custom/V8SQLTransactionCustom.cpp:
+        * storage/Database.cpp:
+        * storage/DatabaseDetails.h:
+        * storage/OriginUsageRecord.cpp:
+        * storage/OriginUsageRecord.h:
+        * storage/SQLError.h:
+        * storage/SQLError.idl:
+        * storage/SQLResultSet.cpp:
+        * storage/SQLResultSet.h:
+        * storage/SQLResultSet.idl:
+        * storage/SQLResultSetRowList.cpp:
+        * storage/SQLResultSetRowList.h:
+        * storage/SQLResultSetRowList.idl:
+        * storage/SQLStatementCallback.h:
+        * storage/SQLStatementErrorCallback.h:
+        * storage/SQLTransactionCallback.h:
+        * storage/SQLTransactionErrorCallback.h:
+
+2009-05-11  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25787
+
+        Gtk was the last platform to not unregister plugins when
+        the plugin is stopped. Catch up with r43550.
+
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::stop):
+
+2009-05-14  Adam Roben  <aroben@apple.com>
+
+        Make WebCore.vcproj's pre-build event work again
+
+        * WebCore.vcproj/WebCore.vcproj: Removed empty override of the
+        pre-build event that was accidentally left in when the pre-build event
+        was moved to WebCoreCommon.vsprops.
+
+2009-05-14  Darin Adler  <darin@apple.com>
+
+        * manual-tests/right-click-crash.html: Added.
+
+2009-05-14  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Darin Adler.
+
+        <rdar://problem/6681868> When building with Xcode 3.1.3 should be using gcc 4.2
+
+        The meaning of XCODE_VERSION_ACTUAL is more sensible in newer versions of Xcode.
+        Update our logic to select the compiler version to use the more appropriate XCODE_VERSION_MINOR
+        if the version of Xcode supports it, and fall back to XCODE_VERSION_ACTUAL if not.
+
+        * Configurations/Base.xcconfig:
+
+2009-05-13  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * WebCore.NPAPI.exp:
+
+2009-05-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix invalid memory write seen in HTMLCanvasElement by Valgrind
+        https://bugs.webkit.org/show_bug.cgi?id=25759
+
+        I can't think of any way to catch this with a layout test, so no test.
+
+        * css/CSSCanvasValue.cpp:
+        (WebCore::CSSCanvasValue::canvasDestroyed):
+        * css/CSSCanvasValue.h:
+        * html/HTMLCanvasElement.cpp:
+        (WebCore::HTMLCanvasElement::~HTMLCanvasElement):
+        * html/HTMLCanvasElement.h:
+
+2009-05-13  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - fix <rdar://problem/5483015> Replies in Mail are drawn first without
+          the user style sheet and then redrawn with the style sheet
+
+        Test: platform/mac/fast/loader/user-stylesheet-fast-path.html
+
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::setUserStyleSheetLocation): For data URLs with
+        base64-encoded UTF-8 data, just decode the style sheet here an apply
+        it synchronously instead of invoking an asynchronous loader.
+
+2009-05-13  Chris Fleizach  <cfleizach@apple.com>
+
+        Bug 25755: Implement ARIA grid role
+        https://bugs.webkit.org/show_bug.cgi?id=25755
+
+        Fix build bustage from last checkin.
+
+        * page/AccessibilityAriaGrid.cpp:
+        (WebCore::AccessibilityAriaGrid::addChild):
+
+2009-05-13  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 25755: Implement ARIA grid role
+        https://bugs.webkit.org/show_bug.cgi?id=25755
+
+        Test: accessibility/aria-tables.html
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * page/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::nodeIsAriaType):
+        (WebCore::AXObjectCache::getOrCreate):
+        * page/AXObjectCache.h:
+        * page/AccessibilityAriaGrid.cpp: Added.
+        (WebCore::AccessibilityAriaGrid::AccessibilityAriaGrid):
+        (WebCore::AccessibilityAriaGrid::~AccessibilityAriaGrid):
+        (WebCore::AccessibilityAriaGrid::create):
+        (WebCore::AccessibilityAriaGrid::addChild):
+        (WebCore::AccessibilityAriaGrid::addChildren):
+        (WebCore::AccessibilityAriaGrid::cellForColumnAndRow):
+        * page/AccessibilityAriaGrid.h: Added.
+        (WebCore::AccessibilityAriaGrid::isAriaTable):
+        * page/AccessibilityAriaGridCell.cpp: Added.
+        (WebCore::AccessibilityAriaGridCell::AccessibilityAriaGridCell):
+        (WebCore::AccessibilityAriaGridCell::~AccessibilityAriaGridCell):
+        (WebCore::AccessibilityAriaGridCell::create):
+        (WebCore::AccessibilityAriaGridCell::parentTable):
+        (WebCore::AccessibilityAriaGridCell::rowIndexRange):
+        (WebCore::AccessibilityAriaGridCell::columnIndexRange):
+        * page/AccessibilityAriaGridCell.h: Added.
+        * page/AccessibilityAriaGridRow.cpp: Added.
+        (WebCore::AccessibilityAriaGridRow::AccessibilityAriaGridRow):
+        (WebCore::AccessibilityAriaGridRow::~AccessibilityAriaGridRow):
+        (WebCore::AccessibilityAriaGridRow::create):
+        (WebCore::AccessibilityAriaGridRow::parentTable):
+        (WebCore::AccessibilityAriaGridRow::headerObject):
+        * page/AccessibilityAriaGridRow.h: Added.
+        * page/AccessibilityList.cpp:
+        (WebCore::AccessibilityList::accessibilityIsIgnored):
+        * page/AccessibilityList.h:
+        * page/AccessibilityObject.h:
+        (WebCore::):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::RoleEntry::):
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::AccessibilityTable):
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+        * page/AccessibilityTable.h:
+        (WebCore::AccessibilityTable::isAriaTable):
+        * page/AccessibilityTableCell.cpp:
+        (WebCore::AccessibilityTableCell::parentTable):
+        (WebCore::AccessibilityTableCell::isTableCell):
+        (WebCore::AccessibilityTableCell::titleUIElement):
+        * page/AccessibilityTableCell.h:
+        * page/AccessibilityTableColumn.cpp:
+        (WebCore::AccessibilityTableColumn::setParentTable):
+        (WebCore::AccessibilityTableColumn::headerObject):
+        * page/AccessibilityTableRow.cpp:
+        (WebCore::AccessibilityTableRow::isTableRow):
+        (WebCore::AccessibilityTableRow::parentTable):
+        * page/AccessibilityTableRow.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (RoleEntry::):
+
+2009-05-13  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 25763: Need to move v8 custom binding to the custom directory.
+        https://bugs.webkit.org/show_bug.cgi?id=25763
+
+        No test due to no change in behavior.
+
+        * bindings/v8/custom/V8CanvasPixelArrayCustom.cpp: Renamed from WebCore/bindings/v8/V8CanvasPixelArrayCustom.cpp.
+
+2009-05-13  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix LayoutTests/fast/dom/Element/attr-param-typechecking.html crashing with V8.
+        https://bugs.webkit.org/show_bug.cgi?id=25758
+
+        * bindings/v8/custom/V8ElementCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL): return the result of throwError() if it is called.
+
+2009-05-13  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        Fix a number of bugs relating to RTL and text-overflow:ellipsis.
+        Also refactor the relevant code to make it a little clearer.
+
+        This CL fixes 3 fundamental issues:
+        - Corrects behavior if the truncated InlineTextBox's directionality is
+          different from the overall flow direction - bug 25135.
+        - Make decoration drawing in InlineFlowbox RTL-aware - bug 24206.
+        - Full truncation on InlineBoxes in RTL flow - bug 24186
+        - Add tests for the above + reorder/cleanup tests for easier
+          interpretation of outcome.
+
+        The code for placing ellipsis has been refactored to use
+        left/right notation rather than a single variable whose meaning
+        could differ based on flow directionality.
+
+        To support differing inline directionality vs flow directionality,
+        different variables are now used in InlineTextBox::placeEllipsisBox to
+        track the two.
+
+        The drawing mode for underlines in standards mode now correctly handles
+        RTL truncation and relevant test where added.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24186
+        https://bugs.webkit.org/show_bug.cgi?id=25135
+        https://bugs.webkit.org/show_bug.cgi?id=24206
+
+        Tests: fast/css/text-overflow-ellipsis-bidi.html
+               fast/css/text-overflow-ellipsis-strict.html
+
+        * rendering/InlineBox.cpp:
+        (WebCore::InlineBox::placeEllipsisBox):
+        * rendering/InlineBox.h:
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::paintTextDecorations):
+        (WebCore::InlineFlowBox::placeEllipsisBox):
+        * rendering/InlineFlowBox.h:
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::placeEllipsisBox):
+        (WebCore::InlineTextBox::paint):
+        * rendering/InlineTextBox.h:
+        * rendering/RenderFlexibleBox.cpp:
+        (WebCore::RenderFlexibleBox::layoutVerticalBox):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::placeEllipsis):
+        (WebCore::RootInlineBox::placeEllipsisBox):
+        * rendering/RootInlineBox.h:
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::checkLinesForTextOverflow):
+
+2009-05-13  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25746
+        Revert http://trac.webkit.org/changeset/43507 which caused crash in PPC nightlies with Safari 4.
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::matchFunc):
+        (WebCore::openFunc):
+        (WebCore::createStringParser):
+        (WebCore::createMemoryParser):
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::IconDatabase::open):
+        * platform/sql/SQLiteDatabase.cpp:
+        (WebCore::SQLiteDatabase::SQLiteDatabase):
+        (WebCore::SQLiteDatabase::close):
+        * storage/DatabaseThread.cpp:
+        (WebCore::DatabaseThread::DatabaseThread):
+        (WebCore::DatabaseThread::start):
+        (WebCore::DatabaseThread::databaseThread):
+        * storage/LocalStorageThread.cpp:
+        (WebCore::LocalStorageThread::LocalStorageThread):
+        (WebCore::LocalStorageThread::start):
+        (WebCore::LocalStorageThread::localStorageThread):
+        (WebCore::LocalStorageThread::scheduleImport):
+        (WebCore::LocalStorageThread::scheduleSync):
+        (WebCore::LocalStorageThread::terminate):
+        * workers/WorkerThread.cpp:
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::start):
+
+2009-05-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Fix for <rdar://problem/6872894> REGRESSION (r41896-42143): First letter cut off in styled select menus
+        
+        Make sure to do rounded clipping for overflow and controls relative to the border box and not to the overflow/control clip rect
+        (which is typically clipped to the padding or content box).  Doing so was causing rounded clips to be incorrectly applied to padding and
+        content.
+    
+        Added fast/overflow/border-radius-clipping.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::pushContentsClip):
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Revert the parser arena change. It was a slowdown, not a speedup.
+        Better luck next time (I'll break it up into pieces).
+
+2009-05-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Beth Dakin and Darin Adler.
+
+        Fix for <rdar://problem/6869687> REGRESSION (r41203): Facebook friend suggestions disappear on update.
+        
+        Make sure that renderers are marked for layout if a style change causes them to switch from having a self-painting layer
+        to a non-self-painting layer (and vice versa).
+        
+        Move misplaced layer repainting code that was in RenderBox up into RenderBoxModelObject so that inlines with layers
+        repaint properly on opacity changes, etc.
+
+        Added fast/repaint/opacity-change-on-overflow-float.html.
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::styleWillChange):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::styleWillChange):
+        (WebCore::RenderBoxModelObject::styleDidChange):
+        * rendering/RenderBoxModelObject.h:
+
+2009-05-13  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Not reviewed, build fix.
+
+        Move an include, needed by Debugger under the corresponding guard.
+
+        * inspector/InspectorController.cpp: Moved parser/SourceCode under JAVASCRIPT_DEBUGGER
+            guard.
+
+2009-05-13  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 25394: REGRESSION: crash in DocumentLoader::addResponse due to bad |this| pointer
+        https://bugs.webkit.org/show_bug.cgi?id=25394
+
+        Test: http/tests/xmlhttprequest/frame-unload-abort-crash.html
+
+        * loader/SubresourceLoader.cpp:
+        (WebCore::SubresourceLoader::create):
+        Add another check to subresource loader to avoid doing any loads in frames
+        when the loaders are being stopped.
+
+2009-05-13  Stephan Haller  <nomad@froevel.de>
+
+        Reviewed by Gustavo Noronha.
+
+        Wrong handling of file upload if no file selected
+        https://bugs.webkit.org/show_bug.cgi?id=25649
+
+        Fixed returned path if path is empty
+
+        * WebCore/platform/gtk/FileSystemGtk.cpp:
+
+2009-05-13  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6805567> REGRESSION (r42348): Notes flicker white
+          when loading
+
+        Tests: fast/frames/content-opacity-1.html
+               fast/frames/content-opacity-2.html
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::reset): Reset m_contentIsOpaque to false.
+        (WebCore::FrameView::useSlowRepaints): Use slow repaints if the content
+        is not known to be opaque.
+        (WebCore::FrameView::setContentIsOpaque): Added. Sets m_contentIsOpaque
+        and enables or disables fast repaints accordingly.
+        * page/FrameView.h:
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended): Removed the
+        document()->haveStylesheetsLoaded() condition in determining whether the
+        root is opaque. This is what was causing the bug, as iframes were
+        considered to be opaque, and thus painted an opaque white background,
+        whenever they were pending a style sheet load.
+        Changed to call FrameView::setContentIsOpaqe() instead of
+        setUseSlowRepaints(), which allows the frame to go back to fast repaints
+        if the content becomes opaque.
+        Corrected the check for background color opacity: any alpha value other
+        than 255--not just zero--is not opaque.
+
+2009-05-13  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Sam Weinig.
+
+        [Qt] Fix "lighther" composition mode.
+        QPainter::CompositionMode_Plus is the right match.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::toQtCompositionMode):
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 25674: syntax tree nodes should use arena allocation
+        https://bugs.webkit.org/show_bug.cgi?id=25674
+
+        * bindings/js/JSDOMBinding.h: Removed include of JSFunction.h.
+        We don't want the entire DOM binding to depend on that file.
+
+        * bindings/js/JSAudioConstructor.cpp: Added include of Error.h.
+        Before we inherited this automatically because JDDOMBinding.h
+        included JSFunction.h, but that was excessive.
+        * bindings/js/JSDOMWindowCustom.cpp: Ditto.
+        * bindings/js/JSHTMLInputElementCustom.cpp: Ditto.
+        * bindings/js/JSImageConstructor.cpp: Ditto.
+        * bindings/js/JSLazyEventListener.cpp: Ditto, but for JSFunction.h.
+        * bindings/js/JSMessageChannelConstructor.cpp: Ditto.
+        * bindings/js/JSOptionConstructor.cpp: Ditto.
+        * bindings/js/JSWorkerConstructor.cpp: Ditto.
+        * bindings/js/JSXMLHttpRequestConstructor.cpp: Ditto.
+        * bridge/jni/jni_jsobject.mm: Ditto, but for SourceCode.h.
+        * inspector/InspectorController.cpp: Ditto.
+
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::recompileAllJSFunctions):
+        Moved mose of this function into the base class in JavaScriptCore,
+        so the details of compilation don't have to be exposed.
+
+2009-05-13  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6879145>
+        Generate a contextual menu item allowing autocorrections to
+        easily be changed back.  Refrain from re-correcting items
+        that have already been autocorrected once.
+
+        * dom/DocumentMarker.h:
+        * editing/Editor.cpp:
+        (WebCore::Editor::markAllMisspellingsAndBadGrammarInRanges):
+        (WebCore::Editor::changeBackToReplacedString):
+        * editing/Editor.h:
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        * page/mac/WebCoreViewFactory.h:
+        * platform/ContextMenu.cpp:
+        (WebCore::ContextMenu::populate):
+        (WebCore::ContextMenu::checkOrEnableIfNeeded):
+        * platform/ContextMenuItem.h:
+        * platform/LocalizedStrings.h:
+        * platform/mac/LocalizedStringsMac.mm:
+        (WebCore::contextMenuItemTagChangeBack):
+        * rendering/HitTestResult.cpp:
+        (WebCore::HitTestResult::replacedString):
+        * rendering/HitTestResult.h:
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::computeRectForReplacementMarker):
+        (WebCore::InlineTextBox::paintDocumentMarkers):
+        * rendering/InlineTextBox.h:
+
+2009-05-13  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Rubber Stamped by Oliver Hunt.
+
+        [GTK] Fix Gtk+/X11 build on OSX
+
+        Including the CoreFoundation header here and X11 headers
+        later will result in different definitions of Boolean. The
+        CoreFoundation include does not seem to be necessary here
+        and my mac build was successfull without it. I will remove
+        it for now. If the build bots disagree this will be replaced
+        by a #if PLATFORM(CF).
+
+        * platform/FileSystem.h:
+
+2009-05-13  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Rubber Stamped by Gustavo Noronha.
+
+        [GTK] Move the #ifdef around for a buildfix for Gtk+ on OSX
+
+        When building Gtk+ on OSX we ended up declaring
+        setNPWindowIfNeeded twice. Fix that by moving
+        the #if PLATFORM(GTK) up and using elif instead of
+        else.
+
+        * plugins/PluginView.h:
+
+2009-05-13  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25685
+        [GTK] Middle click paste form the pasteboard
+
+        The kit wants to paste from at least two different
+        clipboards. By introducing getCurrentTarget to the
+        PasteboardHelper interface we can make this decision
+        in the kit.
+        Use the new method in PasteboardGtk to get the right
+        GdkClipboard for the paste operation.
+
+        * platform/gtk/PasteboardGtk.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        (WebCore::Pasteboard::plainText):
+        * platform/gtk/PasteboardHelper.h:
+
+2009-05-13  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6438177> QTMoviePreferredTransformAttribute only supported on SnowLeopard
+        <rdar://problem/6872468> QTMovieOpenForPlaybackAttribute only supported on SnowLeopard
+
+        QTMoviePreferredTransformAttribute and QTMovieOpenForPlaybackAttribute are not supported
+        on Tiger or Leopard.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setNetworkState): Remove invalid ASSERT.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTMovie): Only request QTMoviePreferredTransformAttribute
+        when !BUILDING_ON_TIGER and !BUILDING_ON_LEOPARD.
+        (WebCore::MediaPlayerPrivate::cacheMovieScale): Only ask for QTMovieOpenForPlaybackAttribute 
+        when !BUILDING_ON_TIGER and !BUILDING_ON_LEOPARD,
+
 2009-05-13  Roland Steiner <rolandsteiner@google.com>
 
         Reviewed by Eric Seidel.

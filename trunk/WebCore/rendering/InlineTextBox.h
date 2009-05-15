@@ -88,7 +88,7 @@ public:
 
 private:
     virtual void clearTruncation() { m_truncation = cNoTruncation; }
-    virtual int placeEllipsisBox(bool ltr, int blockEdge, int ellipsisWidth, bool& foundBox);
+    virtual int placeEllipsisBox(bool flowIsLTR, int visibleLeftEdge, int visibleRightEdge, int ellipsisWidth, bool& foundBox);
 
 public:
     virtual bool isLineBreak() const;
@@ -133,6 +133,7 @@ private:
     void paintSelection(GraphicsContext*, int tx, int ty, RenderStyle*, const Font&);
     void paintSpellingOrGrammarMarker(GraphicsContext*, int tx, int ty, DocumentMarker, RenderStyle*, const Font&, bool grammar);
     void paintTextMatchMarker(GraphicsContext*, int tx, int ty, DocumentMarker, RenderStyle*, const Font&);
+    void computeRectForReplacementMarker(int tx, int ty, DocumentMarker, RenderStyle*, const Font&);
 };
 
 inline RenderText* InlineTextBox::textRenderer() const

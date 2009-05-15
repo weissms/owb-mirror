@@ -1,3 +1,168 @@
+2009-05-15  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Fix for <rdar://problem/6886217> REGRESSION (S4 beta-ToT): Adium chat window contents no longer resize.
+
+        Technically this is a bug in Adium.  It appears that Adium has subclassed the WebView and implemented
+        viewDidMoveToWindow in its subclass improperly.  It doesn't call up to the base class WebView like it
+        should and so our boundsChanged notification never gets added.
+
+        Reduce the dependence on viewDidMoveToWindow by moving the registration of observers into
+        viewWillMoveToWindow instead.
+
+        * WebView/WebView.mm:
+        (-[WebView addSizeObserversForWindow:]):
+        (-[WebView removeWindowObservers]):
+        (-[WebView addWindowObserversForWindow:]):
+        (-[WebView viewWillMoveToWindow:]):
+        (-[WebView viewDidMoveToWindow]):
+        (-[WebView viewDidMoveToSuperview]):
+
+2009-05-14  David Levin  <levin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24704
+
+        Allow the local cache directory to be set using a defaults key.
+
+        * Misc/WebKitNSStringExtras.h:
+        * Misc/WebKitNSStringExtras.m:
+        (+[NSString _webkit_localCacheDirectoryWithBundleIdentifier:]):
+        * WebKit.exp:
+
+2009-05-14  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/6879999> Automator actions that use WebKit on a background thread fail when run outside of Automator
+
+        * WebView/WebView.mm:
+        (clientNeedsWebViewInitThreadWorkaround): Added. Contains new broader rule.
+        (needsWebViewInitThreadWorkaround): Changed to call clientNeedsWebViewInitThreadWorkaround.
+
+2009-05-14  Darin Adler  <darin@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Bug 24049: Second right-click crashes safari when alert invoked
+        https://bugs.webkit.org/show_bug.cgi?id=24049
+        rdar://problem/6878977
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView rightMouseUp:]): Added a retain/autorelease of the event.
+        (-[WebHTMLView menuForEvent:]): Ditto. Also cleaned up the logic here and
+        eliminated some use of pointers that might be invalid after calling through
+        to WebCore.
+        (-[WebHTMLView scrollWheel:]): Ditto.
+        (-[WebHTMLView acceptsFirstMouse:]): Ditto.
+        (-[WebHTMLView shouldDelayWindowOrderingForEvent:]): Ditto.
+        (-[WebHTMLView mouseDown:]): Ditto.
+        (-[WebHTMLView mouseDragged:]): Ditto.
+        (-[WebHTMLView mouseUp:]): Ditto.
+        (-[WebHTMLView keyDown:]): Ditto.
+        (-[WebHTMLView keyUp:]): Ditto.
+        (-[WebHTMLView flagsChanged:]): Ditto.
+        (-[WebHTMLView performKeyEquivalent:]): Ditto.
+
+2009-05-14  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Darin Adler.
+
+        <rdar://problem/6681868> When building with Xcode 3.1.3 should be using gcc 4.2
+
+        The meaning of XCODE_VERSION_ACTUAL is more sensible in newer versions of Xcode.
+        Update our logic to select the compiler version to use the more appropriate XCODE_VERSION_MINOR
+        if the version of Xcode supports it, and fall back to XCODE_VERSION_ACTUAL if not.
+
+        * Configurations/Base.xcconfig:
+
+2009-05-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        WebKit side of <rdar://problem/6884476>.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCGetLocation):
+        Forward this to the plug-in instance proxy.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::getLocation):
+        Ask the plug-in view for the location.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add MIG definition.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView locationStringForTarget:]):
+        Return the URL for a given frame.
+        
+        * Plugins/WebNetscapeContainerCheckPrivate.h:
+        Bump version. Add new declaration to the vtable.
+        
+        * Plugins/WebNetscapeContainerCheckPrivate.mm:
+        (browserContainerCheckFuncs):
+        Add new declaration to the vtable.
+        
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView locationForTarget:]):
+        Call the base class method.
+        
+        * Plugins/npapi.mm:
+        (WKN_GetLocation):
+        Forward this to the plug-in view.
+
+2009-05-13  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6871587> Smart Copy/Paste setting should persist as continuous
+        spell checking setting does
+
+        * WebView/WebPreferenceKeysPrivate.h: Added WebSmartInsertDeleteEnabled.
+
+        * WebView/WebView.mm:
+        (-[WebViewPrivate init]): Initialize based on WebSmartInsertDeleteEnabled
+        default.
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+        Removed code that initialized here.
+        (-[WebView setSmartInsertDeleteEnabled:]): Set default here was with
+        continuous spell checking setting.
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Revert the parser arena change. It was a slowdown, not a speedup.
+        Better luck next time (I'll break it up into pieces).
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 25674: syntax tree nodes should use arena allocation
+        https://bugs.webkit.org/show_bug.cgi?id=25674
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm: Updated includes.
+        New ones needed due to reducing includes of JSDOMBinding.h.
+        * WebView/WebScriptDebugger.mm: Ditto.
+
+2009-05-13  Douglas R. Davidson  <ddavidso@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6879145>
+        Generate a contextual menu item allowing autocorrections to
+        easily be changed back.  Refrain from re-correcting items
+        that have already been autocorrected once.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory contextMenuItemTagChangeBack:]):
+        * WebView/WebUIDelegatePrivate.h:
+
 2009-05-13  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Dan Bernstein.

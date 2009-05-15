@@ -41,6 +41,8 @@ namespace WebCore {
 using namespace HTMLNames;
 
 bool RenderBoxModelObject::s_wasFloating = false;
+bool RenderBoxModelObject::s_hadLayer = false;
+bool RenderBoxModelObject::s_layerWasSelfPainting = false;
 
 RenderBoxModelObject::RenderBoxModelObject(Node* node)
     : RenderObject(node)
@@ -81,10 +83,43 @@ bool RenderBoxModelObject::hasSelfPaintingLayer() const
 void RenderBoxModelObject::styleWillChange(StyleDifference diff, const RenderStyle* newStyle)
 {
     s_wasFloating = isFloating();
+    s_hadLayer = hasLayer();
+    if (s_hadLayer)
+        s_layerWasSelfPainting = layer()->isSelfPaintingLayer();
 
     // If our z-index changes value or our visibility changes,
     // we need to dirty our stacking context's z-order list.
     if (style() && newStyle) {
+        if (parent()) {
+            // Do a repaint with the old style first, e.g., for example if we go from
+            // having an outline to not having an outline.
+            if (diff == StyleDifferenceRepaintLayer) {
+                layer()->repaintIncludingDescendants();
+                if (!(style()->clip() == newStyle->clip()))
+                    layer()->clearClipRectsIncludingDescendants();
+            } else if (diff == StyleDifferenceRepaint || newStyle->outlineSize() < style()->outlineSize())
+                repaint();
+        }
+        
+        if (diff == StyleDifferenceLayout) {
+            // When a layout hint happens, we go ahead and do a repaint of the layer, since the layer could
+            // end up being destroyed.
+            if (hasLayer()) {
+                if (style()->position() != newStyle->position() ||
+                    style()->zIndex() != newStyle->zIndex() ||
+                    style()->hasAutoZIndex() != newStyle->hasAutoZIndex() ||
+                    !(style()->clip() == newStyle->clip()) ||
+                    style()->hasClip() != newStyle->hasClip() ||
+                    style()->opacity() != newStyle->opacity() ||
+                    style()->transform() != newStyle->transform())
+                layer()->repaintIncludingDescendants();
+            } else if (newStyle->hasTransform() || newStyle->opacity() < 1) {
+                // If we don't have a layer yet, but we are going to get one because of transform or opacity,
+                //  then we need to repaint the old position of the object.
+                repaint();
+            }
+        }
+
         if (hasLayer() && (style()->hasAutoZIndex() != newStyle->hasAutoZIndex() ||
                            style()->zIndex() != newStyle->zIndex() ||
                            style()->visibility() != newStyle->visibility())) {
@@ -120,8 +155,11 @@ void RenderBoxModelObject::styleDidChange(StyleDifference diff, const RenderStyl
             setChildNeedsLayout(true);
     }
 
-    if (m_layer)
-        m_layer->styleChanged(diff, oldStyle);
+    if (layer()) {
+        layer()->styleChanged(diff, oldStyle);
+        if (s_hadLayer && layer()->isSelfPaintingLayer() != s_layerWasSelfPainting)
+            setChildNeedsLayout(true);
+    }
 }
 
 void RenderBoxModelObject::updateBoxModelInfoFromStyle()
@@ -339,37 +377,34 @@ void RenderBoxModelObject::paintFillLayerExtended(const PaintInfo& paintInfo, co
 
     // Only fill with a base color (e.g., white) if we're the root document, since iframes/frames with
     // no background in the child document should show the parent's background.
-    bool isTransparent = false;
-    if (!bgLayer->next() && isRoot() && !(bgColor.isValid() && bgColor.alpha() > 0) && view()->frameView()) {
-        Node* elt = document()->ownerElement();
-        if (elt) {
-            if (!elt->hasTagName(frameTag) && document()->haveStylesheetsLoaded()) {
-                // Locate the <body> element using the DOM.  This is easier than trying
-                // to crawl around a render tree with potential :before/:after content and
-                // anonymous blocks created by inline <body> tags etc.  We can locate the <body>
-                // render object very easily via the DOM.
-                HTMLElement* body = document()->body();
-                if (body) {
-                    // Can't scroll a frameset document anyway.
-                    isTransparent = !body->hasLocalName(framesetTag);
-                } else {
-                    // <html> will get a <body> eventually anyway, so we'll just wait for that.
-                    isTransparent = document()->documentElement() && !document()->documentElement()->hasLocalName(htmlTag);
+    bool isOpaqueRoot = false;
+    if (isRoot()) {
+        isOpaqueRoot = true;
+        if (!bgLayer->next() && !(bgColor.isValid() && bgColor.alpha() == 255) && view()->frameView()) {
+            Element* ownerElement = document()->ownerElement();
+            if (ownerElement) {
+                if (!ownerElement->hasTagName(frameTag)) {
+                    // Locate the <body> element using the DOM.  This is easier than trying
+                    // to crawl around a render tree with potential :before/:after content and
+                    // anonymous blocks created by inline <body> tags etc.  We can locate the <body>
+                    // render object very easily via the DOM.
+                    HTMLElement* body = document()->body();
+                    if (body) {
+                        // Can't scroll a frameset document anyway.
+                        isOpaqueRoot = body->hasLocalName(framesetTag);
+                    }
                 }
-            }
-        } else
-            isTransparent = view()->frameView()->isTransparent();
-
-        // FIXME: This needs to be dynamic.  We should be able to go back to blitting if we ever stop being transparent.
-        if (isTransparent)
-            view()->frameView()->setUseSlowRepaints(); // The parent must show behind the child.
+            } else
+                isOpaqueRoot = !view()->frameView()->isTransparent();
+        }
+        view()->frameView()->setContentIsOpaque(isOpaqueRoot);
     }
 
     // Paint the color first underneath all images.
     if (!bgLayer->next()) {
         IntRect rect(tx, clipY, w, clipH);
         // If we have an alpha and we are painting the root element, go ahead and blend with the base background color.
-        if (isRoot() && (!bgColor.isValid() || bgColor.alpha() < 0xFF) && !isTransparent) {
+        if (isOpaqueRoot) {
             Color baseColor = view()->frameView()->baseBackgroundColor();
             if (baseColor.alpha() > 0) {
                 context->save();

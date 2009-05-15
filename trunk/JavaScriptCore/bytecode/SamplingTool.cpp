@@ -121,11 +121,7 @@ SamplingTool* SamplingTool::s_samplingTool = 0;
 
 bool SamplingThread::s_running = false;
 unsigned SamplingThread::s_hertz = 10000;
-
-ThreadIdentifier& SamplingThread::samplingThread() {
-    DEFINE_STATIC_LOCAL(ThreadIdentifier, staticSamplingThread, ());
-    return staticSamplingThread;
-}
+ThreadIdentifier SamplingThread::s_samplingThread;
 
 void* SamplingThread::threadStartFunc(void*)
 {
@@ -150,14 +146,14 @@ void SamplingThread::start(unsigned hertz)
     s_running = true;
     s_hertz = hertz;
 
-    samplingThread() = createThread(threadStartFunc, 0, "JavaScriptCore::Sampler");
+    s_samplingThread = createThread(threadStartFunc, 0, "JavaScriptCore::Sampler");
 }
 
 void SamplingThread::stop()
 {
     ASSERT(s_running);
     s_running = false;
-    waitForThreadCompletion(samplingThread(), 0);
+    waitForThreadCompletion(s_samplingThread, 0);
 }
 
 
@@ -389,5 +385,22 @@ void SamplingTool::dump(ExecState*)
 }
 
 #endif
+
+void AbstractSamplingCounter::dump()
+{
+#if ENABLE(SAMPLING_COUNTERS)
+    if (s_abstractSamplingCounterChain != &s_abstractSamplingCounterChainEnd) {
+        printf("\nSampling Counter Values:\n");
+        for (AbstractSamplingCounter* currCounter = s_abstractSamplingCounterChain; (currCounter != &s_abstractSamplingCounterChainEnd); currCounter = currCounter->m_next)
+            printf("\t%s\t: %lld\n", currCounter->m_name, currCounter->m_counter);
+        printf("\n\n");
+    }
+    s_completed = true;
+#endif
+}
+
+AbstractSamplingCounter AbstractSamplingCounter::s_abstractSamplingCounterChainEnd;
+AbstractSamplingCounter* AbstractSamplingCounter::s_abstractSamplingCounterChain = &s_abstractSamplingCounterChainEnd;
+bool AbstractSamplingCounter::s_completed = false;
 
 } // namespace JSC

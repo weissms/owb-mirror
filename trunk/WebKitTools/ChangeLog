@@ -1,3 +1,51 @@
+2009-05-15  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [GTK] Implement layoutTestController.waitForPolicyDelegate
+        https://bugs.webkit.org/show_bug.cgi?id=25036
+
+        Connect to 'navigation-policy-decision-requested' and handle
+        waitForPolicy in the callback.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (invalidateAnyPreviousWaitToDumpWatchdog):
+        (webViewNavigationPolicyDecisionRequested):
+        (main):
+        * DumpRenderTree/gtk/DumpRenderTreeGtk.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::waitForPolicyDelegate):
+
+2009-05-14  David Levin  <levin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24704
+
+        Make paths where data is saved be scoped to the ~ directory,
+        so that one can run independent instances by setting CFFIXED_USER_HOME.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (libraryPath):
+        (setDefaultsToConsistentValuesForTesting):
+        (dumpFrameAsPDF):
+
+2009-05-13  David Kilzer  <ddkilzer@apple.com>
+
+        Fix resolve-ChangeLogs when used with Subversion
+
+        Reviewed by Darin Adler.
+
+        Fixes the following issue when run on a Subversion repository:
+
+            $ ./WebKitTools/Scripts/resolve-ChangeLogs
+            ERROR: --continue may only be used with a git repository
+
+        * Scripts/resolve-ChangeLogs: Check for the boolean value of
+        $gitRebaseContinue, not whether it's defined, when validating
+        command-line switches.
+
 2009-05-13  David Kilzer  <ddkilzer@apple.com>
 
         Bug 21418: resolve-ChangeLogs should have a --continue option which does git rebase --continue

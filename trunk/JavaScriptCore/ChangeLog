@@ -1,3 +1,467 @@
+2009-05-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Build fix, not reviewed.
+
+        Quick fixes for JIT builds with OPTIMIZE flags disabled.
+
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        (JSC::JIT::compileOpCallSlowCase):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::compilePutByIdHotPath):
+
+2009-05-14  Steve Falkenburg  <sfalken@apple.com>
+
+        Back out incorrect Windows build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore.make:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2009-05-14  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore.make:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2009-05-14  Adam Roben  <aroben@apple.com>
+
+        Windows jsc build fix
+
+        r43648 modified jsc.vcproj's post-build event not to try to copy files
+        that aren't present. Then r43661 mistakenly un-did that modification.
+        This patch restores the modification from r43648, but puts the code in
+        jscCommon.vsprops (where it should have been added in r43648).
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj: Restored empty
+        VCPostBuildEventTool tags.
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops: Modified the post-build
+        event command line to match the one in jsc.vcproj from r43648.
+
+2009-05-14  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25325
+
+        Make sure pthread_self() is declared before it gets called in Collector.cpp
+
+        * runtime/Collector.cpp: Include pthread.h in most Unix-like platforms
+        (not just for OPENBSD)
+
+2009-05-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=25785>.
+        Bug 25785: Segfault in mark when using JSObjectMakeConstructor
+
+        * API/JSObjectRef.cpp:
+        (JSObjectMakeConstructor): OpaqueJSClass::prototype can return 0.  We need to use the default object prototype when it does.
+        * API/tests/testapi.c:
+        (main): Add a test case.
+        * runtime/JSObject.h:
+        (JSC::JSObject::putDirect): Add a clearer assertion for a null value.  The assertion on the next line does catch this,
+        but the cause of the failure is not clear from the assertion itself.
+
+2009-05-14  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Darin Adler.
+
+        <rdar://problem/6681868> When building with Xcode 3.1.3 should be using gcc 4.2
+
+        The meaning of XCODE_VERSION_ACTUAL is more sensible in newer versions of Xcode.
+        Update our logic to select the compiler version to use the more appropriate XCODE_VERSION_MINOR
+        if the version of Xcode supports it, and fall back to XCODE_VERSION_ACTUAL if not.
+
+        * Configurations/Base.xcconfig:
+
+2009-05-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Checking register file bounds should be a ptr comparison (m_end is a Register*).
+        Also, the compare should be unsigned, pointers don'ts go negative.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+
+2009-05-13  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix <rdar://problem/6882919> REGRESSION: page at Metroauto site crashes in cti_op_loop_if_less (25730)
+
+        op_loop_if_less (imm < op) was loading op into regT1, but in the slow path spills regT0.
+        This leads to bad happen.
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_loop_if_less):
+        (JSC::JIT::emitSlow_op_loop_if_less):
+
+2009-05-13  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25746
+        Revert http://trac.webkit.org/changeset/43507 which caused crash in PPC nightlies with Safari 4.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingThread::start):
+        (JSC::SamplingThread::stop):
+        * bytecode/SamplingTool.h:
+        * wtf/CrossThreadRefCounted.h:
+        (WTF::CrossThreadRefCounted::CrossThreadRefCounted):
+        (WTF::::ref):
+        (WTF::::deref):
+        * wtf/Threading.h:
+        * wtf/ThreadingNone.cpp:
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::identifierByPthreadHandle):
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::pthreadHandleForIdentifier):
+        (WTF::clearPthreadHandleForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+        (WTF::currentThread):
+        * wtf/ThreadingWin.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::threadHandleForIdentifier):
+        (WTF::clearThreadHandleForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+        (WTF::currentThread):
+        * wtf/gtk/ThreadingGtk.cpp:
+        (WTF::threadMapMutex):
+        (WTF::initializeThreading):
+        (WTF::threadMap):
+        (WTF::identifierByGthreadHandle):
+        (WTF::establishIdentifierForThread):
+        (WTF::threadForIdentifier):
+        (WTF::clearThreadForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::threadMapMutex):
+        (WTF::threadMap):
+        (WTF::identifierByQthreadHandle):
+        (WTF::establishIdentifierForThread):
+        (WTF::clearThreadForIdentifier):
+        (WTF::threadForIdentifier):
+        (WTF::initializeThreading):
+        (WTF::createThreadInternal):
+        (WTF::waitForThreadCompletion):
+        (WTF::currentThread):
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Revert the parser arena change. It was a slowdown, not a speedup.
+        Better luck next time (I'll break it up into pieces).
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Tiger build fix.
+
+        * parser/Grammar.y: Add back empty code blocks, needed by older
+        versions of bison on certain rules.
+
+2009-05-13  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+
+2009-05-13  Adam Roben  <aroben@apple.com>
+
+        Windows build fixes after r43642
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        Updated.
+
+        * debugger/Debugger.cpp:
+        * runtime/ArrayConstructor.cpp:
+        * runtime/JSArray.cpp:
+        * runtime/RegExp.cpp:
+        * runtime/RegExpConstructor.cpp:
+        * runtime/RegExpPrototype.cpp:
+        * runtime/StringPrototype.cpp:
+        Added missing #includes.
+
+2009-05-13  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 25674: syntax tree nodes should use arena allocation
+        https://bugs.webkit.org/show_bug.cgi?id=25674
+
+        Step 3: Add some actual arena allocation. About 1% SunSpider speedup.
+
+        * JavaScriptCore.exp: Updated.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator): Updated since VarStack
+        contains const Identifier* now.
+        (JSC::BytecodeGenerator::emitPushNewScope): Updated to take a const
+        Identifier&.
+        * bytecompiler/BytecodeGenerator.h: Ditto
+
+        * bytecompiler/SegmentedVector.h: Added isEmpty.
+
+        * debugger/Debugger.cpp:
+        (JSC::Debugger::recompileAllJSFunctions): Moved this function here from
+        WebCore so WebCore doesn't need the details of FunctionBodyNode.
+        * debugger/Debugger.h: Ditto.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute): Updated since VarStack contains const
+        Identifier* now.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_vm_lazyLinkCall): Call isHostFunction on the body
+        rather than on the function object, since we can't easily have inlined
+        access to the FunctionBodyNode in JSFunction.h since WebCore needs
+        access to that header.
+        (JSC::JITStubs::cti_op_construct_JSConstruct): Ditto.
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::createCallIdentifier): Ditto.
+
+        * parser/Grammar.y: Use JSGlobalData* to pass the global data pointer
+        around whenever possible instead of using void*. Changed
+        SET_EXCEPTION_LOCATION from a macro to an inline function. Marked
+        the structure-creating functions inline. Changed the VarStack to use
+        identifier pointers instead of actual identifiers. This takes
+        advantage of the fact that all identifier pointers come from the
+        arena and avoids reference count churn. Changed Identifier* to
+        const Identifier* to make sure we don't modify any by accident.
+        Used identifiers for regular expression strings too, using the new
+        scanRegExp that has out parameters instead of the old one that relied
+        on side effects in the Lexer. Move the creation of numeric identifiers
+        out of this file and into the PropertyNode constructor.
+
+        * parser/Lexer.cpp:
+        (JSC::Lexer::setCode): Pass in ParserArena, used for identifiers.
+        (JSC::Lexer::makeIdentifier): Changed return type to const Identifier*
+        and changed to call ParserArena.
+        (JSC::Lexer::scanRegExp): Added out arguments that are const Identifier*
+        as well as a prefix character argument so we can handle the /= case
+        without a string append.
+        (JSC::Lexer::skipRegExp): Added. Skips a regular expression without
+        allocating Identifier objects.
+        (JSC::Lexer::clear): Removed the code to manage m_identifiers, m_pattern,
+        and m_flags, and added code to set m_arena to 0.
+        * parser/Lexer.h: Updated for changes above.
+
+        * parser/NodeConstructors.h:
+        (JSC::ParserArenaFreeable::operator new): Added. Calls allocateFreeable
+        on the arena.
+        (JSC::ParserArenaDeletable::operator new): Changed to call the
+        allocateDeletable function on the arena instead of deleteWithArena.
+        (JSC::RegExpNode::RegExpNode): Changed arguments to Identifier instead
+        of UString since these come from the parser which makes identifiers.
+        (JSC::PropertyNode::PropertyNode): Added new constructor that makes
+        numeric identifiers. Some day we might want to optimize this for
+        integers so it doesn't create a string for each one.
+        (JSC::ContinueNode::ContinueNode): Initialize m_ident to nullIdentifier
+        since it's now a const Identifier& so it can't be left uninitialized.
+        (JSC::BreakNode::BreakNode): Ditto.
+        (JSC::CaseClauseNode::CaseClauseNode): Updated to use SourceElements*
+        to keep track of the statements rather than a separate statement vector.
+        (JSC::BlockNode::BlockNode): Ditto.
+        (JSC::ForInNode::ForInNode): Initialize m_ident to nullIdentifier.
+
+        * parser/Nodes.cpp: Moved the comment explaining emitBytecode in here.
+        It seemed strangely out of place in the header.
+        (JSC::ThrowableExpressionData::emitThrowError): Added an overload for
+        UString as well as Identifier.
+        (JSC::SourceElements::singleStatement): Added.
+        (JSC::SourceElements::lastStatement): Added.
+        (JSC::RegExpNode::emitBytecode): Updated since the pattern and flags
+        are now Identifier instead of UString. Also changed the throwError code
+        to use the substitution mechanism instead of doing a string append.
+        (JSC::SourceElements::emitBytecode): Added. Replaces the old
+        statementListEmitCode function, since we now keep the SourceElements
+        objects around.
+        (JSC::BlockNode::lastStatement): Added.
+        (JSC::BlockNode::emitBytecode): Changed to use emitBytecode instead of
+        statementListEmitCode.
+        (JSC::CaseClauseNode::emitBytecode): Added.
+        (JSC::CaseBlockNode::emitBytecodeForBlock): Changed to use emitBytecode
+        instead of statementListEmitCode.
+        (JSC::ScopeNodeData::ScopeNodeData): Changed to store the
+        SourceElements* instead of using releaseContentsIntoVector.
+        (JSC::ScopeNode::emitStatementsBytecode): Added.
+        (JSC::ScopeNode::singleStatement): Added.
+        (JSC::ProgramNode::emitBytecode): Call emitStatementsBytecode instead
+        of statementListEmitCode.
+        (JSC::EvalNode::emitBytecode): Ditto.
+        (JSC::EvalNode::generateBytecode): Removed code to clear the children
+        vector. This optimization is no longer possible since everything is in
+        a single arena.
+        (JSC::FunctionBodyNode::emitBytecode): Call emitStatementsBytecode
+        insetad of statementListEmitCode and check for the return node using
+        the new functions.
+
+        * parser/Nodes.h: Changed VarStack to store const Identifier* instead
+        of Identifier and rely on the arena to control lifetime. Added a new
+        ParserArenaFreeable class. Made ParserArenaDeletable inherit from
+        FastAllocBase instead of having its own operator new. Base the Node
+        class on ParserArenaFreeable. Changed the various Node classes
+        to use const Identifier& instead of Identifier to avoid the need to
+        call their destructors and allow them to function as "freeable" in the
+        arena. Removed extraneous JSC_FAST_CALL on definitions of inline functions.
+        Changed ElementNode, PropertyNode, ArgumentsNode, ParameterNode,
+        CaseClauseNode, ClauseListNode, and CaseBlockNode to use ParserArenaFreeable
+        as a base class since they do not descend from Node. Eliminated the
+        StatementVector type and instead have various classes use SourceElements*
+        instead of StatementVector. This prevents those classes from having th
+        use ParserArenaDeletable to make sure the vector destructor is called.
+
+        * parser/Parser.cpp:
+        (JSC::Parser::parse): Pass the arena to the lexer.
+
+        * parser/Parser.h: Added an include of ParserArena.h, which is no longer
+        included by Nodes.h.
+
+        * parser/ParserArena.cpp:
+        (JSC::ParserArena::ParserArena): Added. Initializes the new members,
+        m_freeableMemory, m_freeablePoolEnd, and m_identifiers.
+        (JSC::ParserArena::freeablePool): Added. Computes the pool pointer,
+        since we store only the current pointer and the end of pool pointer.
+        (JSC::ParserArena::deallocateObjects): Added. Contains the common
+        memory-deallocation logic used by both the destructor and the
+        reset function.
+        (JSC::ParserArena::~ParserArena): Changed to call deallocateObjects.
+        (JSC::ParserArena::reset): Ditto. Also added code to zero out the
+        new structures, and switched to use clear() instead of shrink(0) since
+        we don't really reuse arenas.
+        (JSC::ParserArena::makeNumericIdentifier): Added.
+        (JSC::ParserArena::allocateFreeablePool): Added. Used when the pool
+        is empty.
+        (JSC::ParserArena::isEmpty): Added. No longer inline, which is fine
+        since this is used only for assertions at the moment.
+
+        * parser/ParserArena.h: Added an actual arena of "freeable" objects,
+        ones that don't need destructors to be called. Also added the segmented
+        vector of identifiers that used to be in the Lexer.
+
+        * runtime/FunctionConstructor.cpp:
+        (JSC::extractFunctionBody): Use singleStatement function rather than
+        getting at a StatementVector.
+
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString): Call isHostFunction on the body
+        rather than the function object.
+
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction): Moved the structure version of this in
+        here from the header. It's not hot enough that it needs to be inlined.
+        (JSC::JSFunction::isHostFunction): Moved this in here from the header.
+        It's now a helper to be used only within the class.
+        (JSC::JSFunction::setBody): Moved this in here. It's not hot enough that
+        it needs to be inlined, and we want to be able to compile the header
+        without the definition of FunctionBodyNode.
+
+        * runtime/JSFunction.h: Eliminated the include of "Nodes.h". This was
+        exposing too much JavaScriptCore dependency to WebCore. Because of this
+        change and some changes made to WebCore, we could now export a lot fewer
+        headers from JavaScriptCore, but I have not done that yet in this check-in.
+        Made a couple functions non-inline. Removes some isHostFunction() assertions.
+        
+        * wtf/FastAllocBase.h: Added the conventional using statements we use in
+        WTF so we can use identifiers from the WTF namespace without explicit
+        namespace qualification or namespace directive. This is the usual WTF style,
+        although it's unconventional in the C++ world. We use the namespace primarily
+        for link-time disambiguation, not compile-time.
+
+        * wtf/FastMalloc.cpp: Fixed an incorrect comment.
+
+2009-05-13  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed build fix: add JITStubCall.h to files list.
+
+        * GNUmakefile.am:
+
+2009-05-13  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Unreviewed build fix, as suggested by Yael Aharon <yael.aharon@nokia.com>.
+
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::waitForThreadCompletion): renamed IsValid to isValid.
+
+2009-05-13  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Revert r43562 - [Gtk] WTF_USE_JSC is already defined in
+        WebCore/config.h.
+
+        * wtf/Platform.h:
+
+2009-05-12  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add SamplingCounter tool to provide a simple mechanism for counting events in JSC
+        (enabled using ENABLE(SAMPLING_COUNTERS)).  To count events within a single function
+        use the class 'SamplingCounter', where the counter may be incremented from multiple
+        functions 'GlobalSamplingCounter' may be convenient; all other counters (stack or
+        heap allocated, rather than statically declared) should use the DeletableSamplingCounter.
+        Further description of these classes is provided alongside their definition in 
+        SamplingTool.h.
+
+        Counters may be incremented from c++ by calling the 'count()' method on the counter,
+        or may be incremented by JIT code by using the 'emitCount()' method within the JIT.
+
+        This patch also fixes CODEBLOCK_SAMPLING, which was missing a null pointer check.
+
+        * JavaScriptCore.exp:
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::addWithCarry32):
+        (JSC::MacroAssemblerX86::and32):
+        (JSC::MacroAssemblerX86::or32):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::and32):
+        (JSC::MacroAssemblerX86Common::or32):
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::and32):
+        (JSC::MacroAssemblerX86_64::or32):
+        (JSC::MacroAssemblerX86_64::addPtr):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::adcl_im):
+        (JSC::X86Assembler::addq_im):
+        (JSC::X86Assembler::andl_im):
+        (JSC::X86Assembler::orl_im):
+        * bytecode/SamplingTool.cpp:
+        (JSC::AbstractSamplingCounter::dump):
+        * bytecode/SamplingTool.h:
+        (JSC::AbstractSamplingCounter::count):
+        (JSC::GlobalSamplingCounter::name):
+        (JSC::SamplingCounter::SamplingCounter):
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::setSamplingFlag):
+        (JSC::JIT::clearSamplingFlag):
+        (JSC::JIT::emitCount):
+        * jsc.cpp:
+        (runWithScripts):
+        * parser/Nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+        * wtf/Platform.h:
+
 2009-05-13  Steve Falkenburg  <sfalken@apple.com>
 
         Windows build fix.
