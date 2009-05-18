@@ -1,3 +1,427 @@
+2009-05-18  George Staikos  <george.staikos@torchmobile.com>
+
+        Not reviewed - build fix.
+
+        Fix typo: constr -> const.
+
+        * wml/WMLInputElement.h:
+        (WebCore::WMLInputElement::setPlaceholder):
+
+2009-05-17  Darin Adler  <darin@apple.com>
+
+        Fix done by Simon Fraser (reviewed by me).
+
+        <rdar://problem/6893775> Page with screen-only stylesheet with overflow and height
+        transitions has bad layout and overlapping garbled text when printing
+
+        * manual-tests/print-with-height-transition-in-screen-stylesheet.html: Added.
+
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationController::updateAnimations): Don't run transitions when printing.
+
+2009-05-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/6870241> REGRESSION: Programmatically selected popup menu item not shown
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setSelectedIndex): Added a call to updateFromElement and
+        also a type check on the selected index to avoid a bad cast to HTMLOptionElement.
+
+        * manual-tests/select-option-in-onload.html: Added.
+
+2009-05-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Anders Carlsson
+
+        Rename local variables for readability.
+        
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintBorder):
+
+2009-05-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 25840: fix some warnings seen on the GTK bot
+        https://bugs.webkit.org/show_bug.cgi?id=25840
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::platformScrollbarModes): Initialize results here.
+        This is really just to quiet warnings. I think this code is unreachable.
+        Someone could put ASSERT_NOT_REACHED() in here too at some point.
+
+        * plugins/PluginStream.cpp:
+        (WebCore::PluginStream::startStream): Use proper printf format for int
+        here, %d, not %lu. This could cause a real problem when compiled 64-bit,
+        so it's good to fix.
+
+        * rendering/RenderTextControl.cpp:
+        (WebCore::getNextSoftBreak): Initialize breakOffset to 0 here. This is
+        really just to quiet the warning, but still seems like a good idea.
+
+2009-05-17  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 25769: Fix accessibility warnings on GTK
+        https://bugs.webkit.org/show_bug.cgi?id=25769
+
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::columnCount): Get rid of excess const.
+        (WebCore::AccessibilityTable::rowCount): Ditto.
+        * page/AccessibilityTable.h: Ditto.
+
+2009-05-17  Kai Brüning  <kai@granus.net>
+
+        Reviewed by Darin Adler.
+
+        bug 25822: DOM normalize does not remove empty text node between element nodes
+        https://bugs.webkit.org/show_bug.cgi?id=25822
+
+        Test: fast/dom/Node/normalize.html
+
+        * dom/Node.cpp:
+        (WebCore::Node::normalize): Changed to remove any empty text nodes.
+
+2009-05-16  Dave Moore  <davemoore@google.com>
+
+        Reviewed by Darin Adler.
+
+        Allow Strings to be created with one malloc node with no copying
+        https://bugs.webkit.org/show_bug.cgi?id=25779
+
+        Add new methods to String and StringImpl, refactoring existing
+        methods in StringImpl to use new createUninitialized() method.
+
+        * platform/text/PlatformString.h:
+        (WebCore::String::createUninitialized):
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::createUninitialized):
+        (WebCore::StringImpl::create):
+        * platform/text/StringImpl.h:
+
+2009-05-16  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6827041> WebCore should stop throwing away the CGImageSourceRef to
+        dramatically improve animated GIF decoding performance
+
+        Recent versions of ImageIO discard previously decoded image frames if the client
+        application no longer holds references to them, so there's no need to throw away
+        the decoder unless we're explicitly asked to destroy all of the frames.
+
+        This drops peak CPU usage when displaying <http://www.aintitcool.com/files/HoD2.gif>
+        from over 90% to below 3%.
+
+        * platform/graphics/cg/ImageSourceCG.cpp:
+        (WebCore::ImageSource::clear):
+
+2009-05-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix <rdar://problem/6873305> Two distinct characters are not displayed
+          correctly with 2 of the font selections from the stickies widget
+
+        Test: platform/mac/editing/pasteboard/text-precomposed.html
+
+        Ensure that "text/plain" data retrieved from the clipboard is always
+        precomposed. This makes Clipboard::getData() and
+        Pasteboard::documentFragment() consistent with Pasteboard::plainText()
+        and -[WebHTMLView _documentFragmentFromPasteboard:forType:inContext:subresources:].
+
+        * platform/mac/ClipboardMac.mm:
+        (WebCore::ClipboardMac::getData):
+        * platform/mac/PasteboardMac.mm:
+        (WebCore::Pasteboard::documentFragment):
+
+2009-05-16  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::valueForFamily): Declare valueForFamily as static.
+
+2009-05-15  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6883872> REGRESSION (r43243): computed style for font-family is returning
+        only the generic font, if any generic font is in the family list
+
+        Test: fast/css/getComputedStyle/computed-style-font-family.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        Sorted computedProperties alphabetically. Added CSSPropertyClip and CSSPropertyWordBreak.
+        (WebCore::identifierForFamily): Added. Maps internal font family names to identifiers.
+        (WebCore::valueForFamily): Added. Creates either an identifier or a string as appropriate.
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): Implemented the font-family
+        property as specified in the CSS standard. Fixed clip to return "auto" when there is no
+        clip set instead of nothing at all. Gave inheritableProperties and numInheritableProperties
+        internal linkage since there was no reason for them to have external linkage.
+
+2009-05-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25741
+
+        Append instead of throwing when insertItemBefore gets an out-of-bound
+        index.
+
+        Test: svg/dom/svglist-insertItemBefore-appends.html
+
+        * svg/SVGList.h:
+        (WebCore::SVGList::insertItemBefore):
+
+2009-05-15  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+        
+        https://bugs.webkit.org/show_bug.cgi?id=25829
+        
+        Fix -webkit-background-clip:text when the renderer had a non (0,0) x, y offset.
+
+        Test: fast/backgrounds/background-clip-text.html
+
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+
+2009-05-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/6888244> REGRESSION: Using the Up or Down keyboard
+          arrows, I can't navigate caret between To Do items in a Note message
+
+        Test: editing/selection/move-by-line-004.html
+
+        * editing/visible_units.cpp:
+        (WebCore::enclosingNodeWithNonInlineRenderer): Added this helper
+        function.
+        (WebCore::previousLinePosition): When advancing to the next candidate
+        node, stop when leaving the closest ancestor of the original node that
+        is not an inline. The code, incorrectly, was trying to exit the closest
+        ancestor of that type which was editable, and therefore missing other
+        blocks in the same editable root.
+        (WebCore::nextLinePosition): Ditto.
+
+2009-05-15  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Jan Alonzo.
+
+        Converting filename to uri by concatenating strings is broken
+        on Windows. So, don't do it for that platform.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startGio):
+
+2009-05-15  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Upstream V8 bindings for HTMLOptionsCollection and HTMLSelectElementCollection.
+        https://bugs.webkit.org/show_bug.cgi?id=25739
+
+        * bindings/v8/V8Collection.cpp: Added.
+        (WebCore::toOptionsCollectionSetter): Moved from v8_custom.cpp.
+        * bindings/v8/V8Collection.h: Added prototype for toOptionsCollectionSetter().
+        * bindings/v8/custom/V8HTMLOptionsCollectionCustom.cpp:
+        (WebCore::INDEXED_PROPERTY_SETTER): Moved from v8_custom.cpp.
+        * bindings/v8/custom/V8HTMLSelectElementCollectionCustom.cpp: Added.
+        (WebCore::NAMED_PROPERTY_GETTER):  Moved from v8_custom.cpp.
+        (WebCore::INDEXED_PROPERTY_SETTER):  Moved from v8_custom.cpp.
+
+2009-05-15  David Kilzer  <ddkilzer@apple.com>
+
+        <rdar://problem/6649936> Add *.exp export files to WebCore Xcode project
+
+        Reviewed by Darin Adler and Timothy Hatcher.
+
+        * WebCore.xcodeproj/project.pbxproj: Added Exports group, moved
+        WebCore.base.exp into the group, and added 10 other *.exp files
+        in WebCore.
+
+2009-05-15  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25826
+        Change type to only have custom getter in JCS.
+
+        * html/HTMLInputElement.idl: Changed CustomGetter attribute to JSCCustomGetter.
+
+2009-05-15  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Kilzer.
+
+        Add a settings entry to en/disable web font support
+        https://bugs.webkit.org/show_bug.cgi?id=25239
+
+        * css/CSSFontSelector.cpp:
+        (WebCore::CSSFontSelector::addFontFaceRule):
+
+2009-05-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Steve Falkenburg.
+
+        Remove dead youtube site specific hack that was commented out.
+
+        * bindings/js/JSNavigatorCustom.cpp:
+        * page/Navigator.idl:
+
+2009-05-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Beth Dakin.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25826
+        <rdar://problem/6884742> 
+        REGRESSION: In Gmail's Edit Link dialog, I can't type in the Link To: field (due to <input type=url> support)
+
+        Added a site specific quirk for mail.google.com which returns "text" when getting the type of an <input type=url>
+
+        * bindings/js/JSHTMLInputElementCustom.cpp:
+        (WebCore::needsGmailQuirk):
+        (WebCore::JSHTMLInputElement::type):
+        * html/HTMLInputElement.idl:
+
+2009-05-14  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25810
+        Upstream V8 DOM Wrapper map declarations.
+
+        No behavior change, so no tests.
+
+        * bindings/v8/V8DOMMap.h:
+        (WebCore::WeakReferenceMap::WeakReferenceMap): Added.
+        (WebCore::WeakReferenceMap::~WeakReferenceMap): Added.
+        (WebCore::WeakReferenceMap::get): Added.
+        (WebCore::WeakReferenceMap::set): Added.
+        (WebCore::WeakReferenceMap::forget): Added.
+        (WebCore::WeakReferenceMap::contains): Added.
+        (WebCore::WeakReferenceMap::impl): Added.
+        (WebCore::DOMWrapperMap::DOMWrapperMap): Added.
+
+2009-05-15  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+        
+        https://bugs.webkit.org/show_bug.cgi?id=25773
+        
+        Rename GraphicsLayer::graphicsContextsFlipped() to 
+        GraphicsLayer::compositingCoordinatesOrientation() in order to clarify the usage.
+
+        Clean up code around the GraphicsLayer "contents" layer that makes use of this
+        flag, by removing the setHasContentsLayer() method, and just using setContentsLayer(),
+        which can then always do the flipping if necessary.
+
+        Only affects ACCELERATED_COMPOSITING builds.
+        
+        * platform/graphics/GraphicsLayer.h:
+        (WebCore::GraphicsLayer::):
+        * platform/graphics/mac/GraphicsLayerCA.h:
+        (WebCore::GraphicsLayerCA::contentsLayer):
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        (WebCore::GraphicsLayer::compositingCoordinatesOrientation):
+        (WebCore::GraphicsLayerCA::setBackgroundColor):
+        (WebCore::GraphicsLayerCA::clearBackgroundColor):
+        (WebCore::GraphicsLayerCA::setContentsToImage):
+        (WebCore::GraphicsLayerCA::clearContents):
+        (WebCore::GraphicsLayerCA::swapFromOrToTiledLayer):
+        (WebCore::GraphicsLayerCA::setContentsLayer):
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::ensureRootPlatformLayer):
+
+2009-05-15  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25765
+
+        Avoid calling setNeedsStyleRecalc() when we are
+        putting an animated page in the cache. This avoids
+        the assert and subsequent problems with a dirty 
+        page going into the cache.
+
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::endAnimation):
+
+2009-05-15  Francisco Tolmasky  <francisco@280north.com>
+
+        BUG 25467: JavaScript debugger should use function.displayName as the function's name in the call stack
+        <https://bugs.webkit.org/show_bug.cgi?id=25467>
+        
+        Reviewed by Adam Roben.
+
+        * inspector/JavaScriptCallFrame.cpp:
+        (WebCore::JavaScriptCallFrame::functionName): Use calculatedFunctionName which takes into account displayName
+        * inspector/front-end/CallStackSidebarPane.js: Remove "|| anonymous function" since it is handled internally just like in profiles
+        (WebInspector.CallStackSidebarPane.prototype.update):
+
+2009-05-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Windows build fix (and a matching Mac change, to avoid unnecessarily diverging the implementations).
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::ResourceHandle::start):
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::start):
+        Check strings with isEmpty(), not relying on any implicit conversions.
+
+2009-05-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler, Brady Eidson and Eric Carlson.
+
+        <rdar://problem/6875643> REGRESSION: Unable to download file with FTP URL that includes
+        username and password (Lightwave 9.6 for Mac from Newtek site)
+
+        CFNetwork only invokes didReceiveAuthenticationChallenge for HTTP requests. Credentials
+        for other protocols (including FTP) should be included as part of the URL.
+
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::ResourceHandle::start):
+        (WebCore::WebCoreSynchronousLoader::load):
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::start):
+        (+[WebCoreSynchronousLoader loadRequest:allowStoredCredentials:returningResponse:error:]):
+        Put credentials in URL for non-HTTP requests.
+
+        * xml/XMLHttpRequest.cpp: (WebCore::XMLHttpRequest::makeSimpleCrossOriginAccessRequest):
+        Bail out quickly if the URL is non-HTTP. Cross-origin requests require specific HTTP
+        headers to be received, so they cannot work with other protocols.
+
+2009-05-15  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] In the image decoder, remove the raw image data represented as QImage
+        once the image is converted to QPixmap and inserted in the pixmap cache.
+        This effectively reduces the heap usage when running on graphics system
+        other than raster (i.e the case where QImage != QPixmap).
+
+        * platform/graphics/qt/ImageDecoderQt.cpp:
+        (WebCore::ImageDecoderQt::imageAtIndex): Nullified the image on purpose.
+        * platform/graphics/qt/ImageDecoderQt.h: Made m_imageList mutable.
+
+2009-05-15  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Refactor alpha channel detection the image decoder.
+        Sets the boolean flag as soon as the image is being read.
+
+        * platform/graphics/qt/ImageDecoderQt.cpp:
+        (WebCore::ImageDecoderQt::ImageDecoderQt): Initialized m_hasAlphaChannel.
+        (WebCore::ImageDecoderQt::setData): Set the flag when appropriate.
+        (WebCore::ImageDecoderQt::supportsAlpha): Simplified.
+        (WebCore::ImageDecoderQt::reset): Resetted the flag.
+        * platform/graphics/qt/ImageDecoderQt.h: Added m_hasAlphaChannel.
+
 2009-05-15  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Darin Adler.

@@ -1,3 +1,118 @@
+2009-05-18  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig and Dan Bernstein.
+
+        Fix <rdar://problem/6889644>
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::spawnPluginHost):
+
+2009-05-16  Dan Bernstein  <mitz@apple.com>
+
+        - revert an accidental change from r43802.
+
+        * WebInspector/WebInspector.mm:
+
+2009-05-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6895347> Mouse wheeling in the QuickTime plug-in (incorrectly) scrolls the page
+        
+        Fix logic. The plug-in returns true if it handled the event.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView sendEvent:isDrawRect:]):
+
+2009-05-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix <rdar://problem/6873305> Two distinct characters are not displayed
+          correctly with 2 of the font selections from the stickies widget
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _plainTextFromPasteboard:]): Return precomposed text.
+        This is consistent with
+        -_documentFragmentFromPasteboard:forType:inContext:subresources:.
+
+2009-05-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <rdar://problem/6875398>.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        If we failed to instantiate the plug-in, call cleanup() so that any streams created by the plug-in from its
+        NPP_New callback are destroyed.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        Make cleanup() public.
+
+2009-05-15  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/6889823> hash table iterator used after hash table modified in
+        ProxyInstance::fieldNamed() when viewing movie trailer
+
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyInstance::methodsNamed): Move add call after the waitForReply call.
+        Anders says that by the time we return someone else might have done the same add
+        for us.
+        (WebKit::ProxyInstance::fieldNamed): Ditto.
+
+2009-05-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6892055> 
+        Replace WKN_GetLocation with WKN_ResolveURL (WKN_GetLocation was confusing and did not take the base URL into account)
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCResolveURL):
+        New MIG callback.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::resolveURL):
+        Use FrameLoader::complete URL here.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add new MIG definition.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView resolvedURLStringForURL:target:]):        
+        * Plugins/WebNetscapeContainerCheckPrivate.h:
+        * Plugins/WebNetscapeContainerCheckPrivate.mm:
+        (browserContainerCheckFuncs):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView resolveURL:forTarget:]):
+        * Plugins/npapi.mm:
+        (WKN_ResolveURL):
+
+2009-05-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6892052> WebTextIterator should not “emit
+          characters between all visible positions”
+
+        * WebView/WebTextIterator.mm:
+        (-[WebTextIterator initWithRange:]): Changed to construct a TextIterator
+        with emitCharactersBetweenAllVisiblePositions set to false.
+
+2009-05-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dave Kilzer.
+
+        Look for libWebKitSystemInterface.a in a more reasonable location.
+
+        * Configurations/DebugRelease.xcconfig:
+
 2009-05-15  David Hyatt  <hyatt@apple.com>
 
         Reviewed by Tim Hatcher.

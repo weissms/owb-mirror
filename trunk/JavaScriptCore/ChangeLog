@@ -1,3 +1,111 @@
+2009-05-18  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore.make:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2009-05-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Looking like MSVC doesn't like static variables in inline methods?
+        Make the state of the SSE2 check a static variable on the class
+        MacroAssemblerX86Common as a speculative build fix for Windows.
+
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::convertInt32ToDouble):
+        (JSC::MacroAssemblerX86Common::branchDouble):
+        (JSC::MacroAssemblerX86Common::branchTruncateDoubleToInt32):
+        (JSC::MacroAssemblerX86Common::isSSE2Present):
+        (JSC::MacroAssemblerX86Common::):
+        * jit/JIT.cpp:
+
+2009-05-15  Adam Roben  <aroben@apple.com>
+
+        Add some assembler headers to JavaScriptCore.vcproj
+
+        This is just a convenience for Windows developers.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2009-05-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add FP support to the MacroAssembler, port JITArithmetic over to make use of this. Also add
+        API to determine whether FP support is available 'MacroAssembler::supportsFloatingPoint()',
+        FP is presently only supported on SSE2 platforms, not x87.  On platforms where a suitable
+        hardware FPU is not available 'supportsFloatingPoint()' may simply return false, and all
+        other methods ASSERT_NOT_REACHED().
+
+        * assembler/AbstractMacroAssembler.h:
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::MacroAssemblerX86):
+        (JSC::MacroAssemblerX86::branch32):
+        (JSC::MacroAssemblerX86::branchPtrWithPatch):
+        (JSC::MacroAssemblerX86::supportsFloatingPoint):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::):
+        (JSC::MacroAssemblerX86Common::loadDouble):
+        (JSC::MacroAssemblerX86Common::storeDouble):
+        (JSC::MacroAssemblerX86Common::addDouble):
+        (JSC::MacroAssemblerX86Common::subDouble):
+        (JSC::MacroAssemblerX86Common::mulDouble):
+        (JSC::MacroAssemblerX86Common::convertInt32ToDouble):
+        (JSC::MacroAssemblerX86Common::branchDouble):
+        (JSC::MacroAssemblerX86Common::branchTruncateDoubleToInt32):
+        (JSC::MacroAssemblerX86Common::branch32):
+        (JSC::MacroAssemblerX86Common::branch16):
+        (JSC::MacroAssemblerX86Common::branchTest32):
+        (JSC::MacroAssemblerX86Common::branchAdd32):
+        (JSC::MacroAssemblerX86Common::branchMul32):
+        (JSC::MacroAssemblerX86Common::branchSub32):
+        (JSC::MacroAssemblerX86Common::set32):
+        (JSC::MacroAssemblerX86Common::setTest32):
+        (JSC::MacroAssemblerX86Common::x86Condition):
+        (JSC::MacroAssemblerX86Common::isSSE2Present):
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::movePtrToDouble):
+        (JSC::MacroAssemblerX86_64::moveDoubleToPtr):
+        (JSC::MacroAssemblerX86_64::setPtr):
+        (JSC::MacroAssemblerX86_64::branchPtr):
+        (JSC::MacroAssemblerX86_64::branchTestPtr):
+        (JSC::MacroAssemblerX86_64::branchAddPtr):
+        (JSC::MacroAssemblerX86_64::branchSubPtr):
+        (JSC::MacroAssemblerX86_64::supportsFloatingPoint):
+        * assembler/X86Assembler.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::JIT):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_rshift):
+        (JSC::JIT::emitSlow_op_rshift):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::compileBinaryArithOp):
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        (JSC::JIT::emit_op_add):
+        (JSC::JIT::emitSlow_op_add):
+        (JSC::JIT::emit_op_mul):
+        (JSC::JIT::emitSlow_op_mul):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+
+2009-05-15  Francisco Tolmasky  <francisco@280north.com>
+
+        BUG 25467: JavaScript debugger should use function.displayName as the function's name in the call stack
+        <https://bugs.webkit.org/show_bug.cgi?id=25467>
+        
+        Reviewed by Adam Roben.
+
+        * JavaScriptCore.exp: Added calculatedFunctionName
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def: Added calculatedFunctionName
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def: Added calculatedFunctionName
+        * debugger/DebuggerCallFrame.cpp: Added calculatedFunctionName to match existing one in ProfileNode.
+        (JSC::DebuggerCallFrame::calculatedFunctionName):
+        * debugger/DebuggerCallFrame.h: Added calculatedFunctionName to match existing one in ProfileNode.
+
 2009-05-15  Gavin Barraclough  <barraclough@apple.com>
 
         Build fix, not reviewed.

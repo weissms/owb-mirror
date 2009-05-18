@@ -670,7 +670,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     [self willCallPlugInFunction];
     {
         JSC::JSLock::DropAllLocks dropAllLocks(false);
-        acceptedEvent = ![_pluginPackage.get() pluginFuncs]->event(plugin, event);
+        acceptedEvent = [_pluginPackage.get() pluginFuncs]->event(plugin, event);
     }
     [self didCallPlugInFunction];
         
@@ -2246,9 +2246,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     return NPERR_NO_ERROR;
 }
 
-- (char*)locationForTarget:(const char*)target
+- (char*)resolveURL:(const char*)url forTarget:(const char*)target
 {
-    WebCore::CString location = [self locationStringForTarget:target];
+    WebCore::CString location = [self resolvedURLStringForURL:url target:target];
 
     if (location.isNull())
         return 0;
