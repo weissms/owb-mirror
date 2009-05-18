@@ -29,6 +29,7 @@
 #include "Cookie.h"
 #include "CookieBackingStore.h"
 #include "CookieParser.h"
+#include "CString.h"
 #include "CurrentTime.h"
 #include "Logging.h"
 
@@ -66,27 +67,37 @@ void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const Str
         Cookie* cookie = cookies[i];
         if (!shouldRejectForSecurityReason(cookie, url))
             checkAndTreatCookie(cookie);
-        else {
-            LOG_ERROR("Cookie %s was rejected for security reason", value.ascii().data());
+        else
             delete cookie;
-        }
     }
 }
 
 bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KURL& url)
 {
     // Check if path attribute is a prefix of the request URI.
-    if (!cookie->path().endsWith(url.path()) == -1)
+    if (!cookie->path().endsWith(url.path()) == -1) {
+        LOG_ERROR("Cookie %s is rejected because its path does not math the URL %s\n", cookie->toString().utf8().data(), url.string().utf8().data());
         return true;
+    }
 
-    // Check if domain start with a dot and contains an embedded dot.
-    if (cookie->domain()[0] != '.' || cookie->domain().find(".", 1) == -1 || cookie->domain().find(".", 1) == cookie->domain().length())
+    // Check if the domain starts with a dot.
+    if (cookie->domain()[0] != '.') {
+        LOG_ERROR("Cookie %s is rejected because its domain does not start with a dot.\n", cookie->toString().utf8().data());
         return true;
+    }
+
+    // Check if the domain contains an embedded dot.
+    if (cookie->domain().find(".", 1) == -1 || cookie->domain().find(".", 1) == cookie->domain().length()) {
+        LOG_ERROR("Cookie %s is rejected because its domain does not contain an embedded dot.\n", cookie->toString().utf8().data());
+        return true;
+    }
 
     // The request host should domain match the Domain attribute.
     int diffPos = url.host().endsWith(cookie->domain());
-    if (diffPos == -1)
+    if (diffPos == -1) {
+        LOG_ERROR("Cookie %s is rejected because its domain does not domain match the URL %s\n", cookie->toString().utf8().data(), url.string().utf8().data());
         return true;
+    }
     // We should check for an embedded dot in the portion of string in the host not in the domain
     // but to match firefox behaviour we do not.
 

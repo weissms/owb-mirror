@@ -71,6 +71,7 @@ namespace WebCore {
 
         bool hasExpired() const;
 
+        String toString() const;
     private:
         String m_name;
         String m_value;

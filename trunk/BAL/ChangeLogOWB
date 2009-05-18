@@ -1,3 +1,16 @@
+2009-05-18  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Add finer grained information about why a cookie is rejected.
+
+        * Network/WebCore/Curl/BCCookieCurl.cpp:
+        (WebCore::Cookie::toString):
+        * Network/WebCore/Curl/BCCookieCurl.h:
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::setCookies):
+        (WebCore::CookieManager::shouldRejectForSecurityReason):
+
 2009-05-14  Mario Bensi  <mbensi@pleyo.com>
 
         fix test 97 of acid3.

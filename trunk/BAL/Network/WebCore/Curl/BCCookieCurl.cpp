@@ -97,4 +97,16 @@ bool Cookie::hasExpired() const
     return !m_isSession && m_expiry < currentTime();
 }
 
+String Cookie::toString() const
+{
+    String cookie = name();
+    cookie += " = ";
+    cookie += value();
+    cookie += "; Domain = ";
+    cookie += domain();
+    cookie += "; Path = ";
+    cookie += path();
+    return cookie;
+}
+
 } // namespace WebCore
