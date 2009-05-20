@@ -1,4 +1,5 @@
 javascriptcore_cppflags += \
+	-I$(srcdir)/JavaScriptCore \
 	-I$(srcdir)/JavaScriptCore/API \
 	-I$(srcdir)/JavaScriptCore/ForwardingHeaders \
 	-I$(srcdir)/JavaScriptCore/interpreter \
@@ -193,19 +194,13 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/StructureChain.h \
 	JavaScriptCore/runtime/StructureTransitionTable.h \
 	JavaScriptCore/runtime/TypeInfo.h \
-	JavaScriptCore/wrec/CharacterClass.cpp \
 	JavaScriptCore/wrec/CharacterClass.h \
-	JavaScriptCore/wrec/CharacterClassConstructor.cpp \
 	JavaScriptCore/wrec/CharacterClassConstructor.h \
 	JavaScriptCore/wrec/Escapes.h \
 	JavaScriptCore/wrec/Quantifier.h \
-	JavaScriptCore/wrec/WREC.cpp \
 	JavaScriptCore/wrec/WREC.h \
-	JavaScriptCore/wrec/WRECFunctors.cpp \
 	JavaScriptCore/wrec/WRECFunctors.h \
-	JavaScriptCore/wrec/WRECGenerator.cpp \
 	JavaScriptCore/wrec/WRECGenerator.h \
-	JavaScriptCore/wrec/WRECParser.cpp \
 	JavaScriptCore/wrec/WRECParser.h \
 	JavaScriptCore/wtf/ASCIICType.h \
 	JavaScriptCore/wtf/AVLTree.h \
@@ -277,8 +272,11 @@ javascriptcore_sources += \
 	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp \
 	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h \
 	JavaScriptCore/wtf/VMTags.h \
+	JavaScriptCore/yarr/RegexCompiler.cpp \
 	JavaScriptCore/yarr/RegexCompiler.h \
+	JavaScriptCore/yarr/RegexInterpreter.cpp \
 	JavaScriptCore/yarr/RegexInterpreter.h \
+	JavaScriptCore/yarr/RegexJIT.cpp \
 	JavaScriptCore/yarr/RegexJIT.h \
 	JavaScriptCore/yarr/RegexParser.h \
 	JavaScriptCore/yarr/RegexPattern.h
@@ -509,7 +507,6 @@ Programs_minidom_CPPFLAGS = \
 Programs_minidom_CFLAGS = \
 	-ansi \
 	-fno-strict-aliasing \
-	-O2 \
 	$(global_cflags) \
 	$(GLOBALDEPS_CFLAGS)
 
@@ -517,6 +514,10 @@ Programs_minidom_LDADD = \
 	 libJavaScriptCore.la \
 	 -lm \
 	 -lstdc++
+
+Programs_minidom_LDFLAGS = \
+	-no-install \
+	-no-fast-install
 
 # jsc
 Programs_jsc_SOURCES = \
@@ -528,7 +529,6 @@ Programs_jsc_CPPFLAGS = \
 
 Programs_jsc_CXXFLAGS = \
 	-fno-strict-aliasing \
-	-O2 \
 	$(global_cxxflags) \
 	$(global_cflags) \
 	$(GLOBALDEPS_CFLAGS) \

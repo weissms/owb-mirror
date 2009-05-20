@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
- * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
+ * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -224,7 +224,12 @@ struct ScheduledRedirection {
         ASSERT(this->formState);
     }
 };
-
+ 
+#if ENABLE(XHTMLMP)
+static const char defaultAcceptHeader[] = "application/xml,application/vnd.wap.xhtml+xml,application/xhtml+xml;profile='http://www.wapforum.org/xhtml',text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+#else
+static const char defaultAcceptHeader[] = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+#endif
 static double storedTimeOfLastCompletedLoad;
 static FrameLoader::LocalLoadPolicy localLoadPolicy = FrameLoader::AllowLocalLoadsForLocalOnly;
 
@@ -3240,19 +3245,27 @@ FrameLoadType FrameLoader::loadType() const
     return m_loadType;
 }
     
-CachePolicy FrameLoader::cachePolicy() const
+CachePolicy FrameLoader::subresourceCachePolicy() const
 {
     if (m_isComplete)
         return CachePolicyVerify;
-    
-    if (m_loadType == FrameLoadTypeReloadFromOrigin || documentLoader()->request().cachePolicy() == ReloadIgnoringCacheData)
+
+    if (m_loadType == FrameLoadTypeReloadFromOrigin)
         return CachePolicyReload;
-    
+
     if (Frame* parentFrame = m_frame->tree()->parent()) {
-        CachePolicy parentCachePolicy = parentFrame->loader()->cachePolicy();
+        CachePolicy parentCachePolicy = parentFrame->loader()->subresourceCachePolicy();
         if (parentCachePolicy != CachePolicyVerify)
             return parentCachePolicy;
     }
+
+    // FIXME: POST documents are always Reloads, but their subresources should still be Revalidate.
+    // If we bring the CachePolicy.h and ResourceRequest cache policy enums in sync with each other and
+    // remember "Revalidate" in ResourceRequests, we can remove this "POST" check and return either "Reload" 
+    // or "Revalidate" if the DocumentLoader was requested with either.
+    const ResourceRequest& request(documentLoader()->request());
+    if (request.cachePolicy() == ReloadIgnoringCacheData && !equalIgnoringCase(request.httpMethod(), "post"))
+        return CachePolicyRevalidate;
 
     if (m_loadType == FrameLoadTypeReload)
         return CachePolicyRevalidate;
@@ -3582,7 +3595,7 @@ void FrameLoader::addExtraFieldsToRequest(ResourceRequest& request, FrameLoadTyp
     }
     
     if (mainResource)
-        request.setHTTPAccept("application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
+        request.setHTTPAccept(defaultAcceptHeader);
 
     // Make sure we send the Origin header.
     addHTTPOriginIfNeeded(request, String());

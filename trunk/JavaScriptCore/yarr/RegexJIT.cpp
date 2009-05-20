@@ -28,12 +28,12 @@
 
 #include "ASCIICType.h"
 #include "JSGlobalData.h"
-#include "MacroAssembler.h"
 #include "RegexCompiler.h"
 
 #include "pcre.h" // temporary, remove when fallback is removed.
 
 #if ENABLE(YARR_JIT)
+#include "MacroAssembler.h"
 
 using namespace WTF;
 

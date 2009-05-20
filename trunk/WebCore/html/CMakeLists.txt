@@ -54,6 +54,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLMetaElement.cpp
     html/HTMLModElement.cpp
     html/HTMLNameCollection.cpp
+    html/HTMLNoScriptElement.cpp
     html/HTMLOListElement.cpp
     html/HTMLObjectElement.cpp
     html/HTMLOptGroupElement.cpp

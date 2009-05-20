@@ -1,24 +1,9 @@
 list(APPEND WEBCORE_SRC
-    page/AccessibilityAriaGrid.cpp
-    page/AccessibilityAriaGridCell.cpp
-    page/AccessibilityAriaGridRow.cpp
-    page/AccessibilityImageMapLink.cpp
-    page/AccessibilityList.cpp
-    page/AccessibilityListBox.cpp
-    page/AccessibilityListBoxOption.cpp
-    page/AccessibilityObject.cpp
-    page/AccessibilityRenderObject.cpp
-    page/AccessibilityTable.cpp
-    page/AccessibilityTableCell.cpp
-    page/AccessibilityTableColumn.cpp
-    page/AccessibilityTableHeaderContainer.cpp
-    page/AccessibilityTableRow.cpp
     page/animation/AnimationBase.cpp
     page/animation/AnimationController.cpp
     page/animation/CompositeAnimation.cpp
     page/animation/ImplicitAnimation.cpp
     page/animation/KeyframeAnimation.cpp
-    page/AXObjectCache.cpp
     page/BarInfo.cpp
     page/Chrome.cpp
     page/ContextMenuController.cpp

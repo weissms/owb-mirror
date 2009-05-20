@@ -17,18 +17,24 @@
 #include "config.h"
 #include "CookieJar.h"
 
-#include "CookieManager.h"
+#include "KURL.h"
+#include "PlatformString.h"
+#include "StringHash.h"
+
+#include <wtf/HashMap.h>
 
 namespace WebCore {
 
-void setCookies(Document* /*document*/, const KURL& url, const KURL& policyURL, const String& value)
+static HashMap<String, String> cookieJar;
+
+void setCookies(Document* /*document*/, const KURL& url, const KURL& /*policyURL*/, const String& value)
 {
-    cookieManager().setCookies(url, policyURL, value);
+    cookieJar.set(url.string(), value);
 }
 
 String cookies(const Document* /*document*/, const KURL& url)
 {
-    return cookieManager().getCookie(url, NoHttpOnlyCookie);
+    return cookieJar.get(url.string());
 }
 
 bool cookiesEnabled(const Document* /*document*/)

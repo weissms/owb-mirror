@@ -1,3 +1,118 @@
+2009-05-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Remove layoutTestController.addFileToPasteboardOnDrag and add eventSender.beginDragWithFiles
+        https://bugs.webkit.org/show_bug.cgi?id=25852
+
+        This allows us to now test multi-file file drags in DumpRenderTree per:
+        https://bugs.webkit.org/show_bug.cgi?id=25862
+
+        I removed the existing tests using addFileToPasteboardOnDrag()
+        and replaced them with a new test (editing/pasteboard/file-input-files-access)
+        which covers several more drag-drop cases.
+
+        I added a DumpRenderTreeFileDraggingSource class to avoid
+        the hack of if (!draggingSource) in [DumpRenderTreeDraggingInfo draggingSourceOperationMask]
+
+        New Test: editing/pasteboard/file-input-files-access.html
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+        * DumpRenderTree/DumpRenderTreeFileDraggingSource.h: Added.
+        * DumpRenderTree/DumpRenderTreeFileDraggingSource.m: Added.
+        (-[DumpRenderTreeFileDraggingSource draggingSourceOperationMaskForLocal:]):
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (LayoutTestController::staticValues): removed addFileToPasteboardOnDrag support
+        (LayoutTestController::staticFunctions): removed addFileToPasteboardOnDrag support
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (runTest): ASSERT that draggingInfo has been cleared
+        * DumpRenderTree/mac/EventSendingController.mm:
+        (+[EventSendingController isSelectorExcludedFromWebScript:]): Sorted selectors.
+        (+[EventSendingController webScriptNameForSelector:]): Sorted selectors.
+        (-[EventSendingController beginDragWithFiles:]):
+        (-[EventSendingController mouseMoveToX:Y:]):
+        (-[EventSendingController keyDown:withModifiers:]):
+        (-[EventSendingController fireKeyboardEventsToElement:]): removed spurious { }
+        * DumpRenderTree/mac/UIDelegate.mm:
+        (-[UIDelegate webView:dragImage:at:offset:event:pasteboard:source:slideBack:forView:]): removed addFileToPasteboardOnDrag support
+
+2009-05-19  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMSW build fixes for DRT.
+
+        * DumpRenderTree/wx/DumpRenderTreeWx.cpp:
+        (runTest):
+        * DumpRenderTree/wx/WorkQueueItemWx.cpp:
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+
+2009-05-18  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Bug 24569: Add some cookies tests
+
+        <https://bugs.webkit.org/show_bug.cgi?id=24569>
+
+        Patch by David Kilzer.
+
+        * Scripts/make-js-test-wrappers: Added regex to skip
+        cookies-test-(post|pre).js files.
+
+2009-05-18  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Use python-config to get Python linking info on Unix OSes. 
+
+        * wx/build-wxwebkit:
+
+2009-05-18  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, initialize variable that doesn't get set on Windows.
+
+        * DumpRenderTree/wx/DumpRenderTreeWx.cpp:
+        (MyApp::OnInit):
+
+2009-05-18  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Various autotools build refactoring and fixes
+        https://bugs.webkit.org/show_bug.cgi?id=25286
+
+        Add -no-install and -no-fast-install to programs and tests that we
+        don't install. Also remove -O2 since this is already handled at
+        configure time.
+
+        * GNUmakefile.am:
+
+2009-05-18  Julie Parent  <jparent@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25846
+        Make eventSender dispatch a drag over event.
+
+        * DumpRenderTree/mac/UIDelegate.mm:
+        (-[UIDelegate webView:dragImage:at:offset:event:pasteboard:source:slideBack:forView:]):
+
+2009-05-18  Julie Parent  <jparent@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25716
+
+        * Scripts/make-js-test-wrappers: Added exception to avoid overwriting a custom-written test.
+
+2009-05-18  Julie Parent  <jparent@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25716
+
+        * Scripts/make-js-test-wrappers: Added exception to avoid overwriting a custom-written test.
+
 2009-05-18  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Jan Michael Alonzo.

@@ -36,7 +36,7 @@ cmake_dependent_option(ENABLE_OFFLINE_DYNAMIC_ENTRIES "Enable HTML5 offline dyna
 option(ENABLE_GEOLOCATION "Enable geoposition support")
 option(ENABLE_INSPECTOR "Enable web inspector support")
 option(ENABLE_JIT_JSC "Enable JavascriptCore JIT compilation (for x86 only)")
-option(ENABLE_JIT_REGEXP "Enable RegExp JIT compilation (for x86 and x86_64 only)")
+option(ENABLE_YARR "Enable RegExp compilation (for x86 and x86_64 only)")
 option(ENABLE_MULTIPLE_THREADS "Enable multiple threads")
 cmake_dependent_option(ENABLE_WORKERS "Enable workers support" OFF ENABLE_MULTIPLE_THREADS OFF)
 option(ENABLE_NPAPI "Enable Netscape Plugin API support")

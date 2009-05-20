@@ -108,6 +108,7 @@ CONFIG(QTDIR_build) {
 #!contains(DEFINES, ENABLE_XBL=.): DEFINES += ENABLE_XBL=1
 !contains(DEFINES, ENABLE_WML=.): DEFINES += ENABLE_WML=0
 !contains(DEFINES, ENABLE_WORKERS=.): DEFINES += ENABLE_WORKERS=1
+!contains(DEFINES, ENABLE_XHTMLMP=.): DEFINES += ENABLE_XHTMLMP=0
 
 # SVG support
 !contains(DEFINES, ENABLE_SVG=0) {
@@ -159,7 +160,8 @@ INCLUDEPATH += \
 # LocalStorage.h is included only from files within the same directory
 INCLUDEPATH = $$PWD/storage $$INCLUDEPATH
 
-INCLUDEPATH +=  $$PWD/ForwardingHeaders \
+INCLUDEPATH +=  $$PWD/accessibility \
+                $$PWD/ForwardingHeaders \
                 $$PWD/platform \
                 $$PWD/platform/animation \
                 $$PWD/platform/network \
@@ -407,6 +409,21 @@ IDL_BINDINGS += \
 
 
 SOURCES += \
+    accessibility/AccessibilityImageMapLink.cpp \
+    accessibility/AccessibilityObject.cpp \    
+    accessibility/AccessibilityList.cpp \    
+    accessibility/AccessibilityListBox.cpp \    
+    accessibility/AccessibilityListBoxOption.cpp \    
+    accessibility/AccessibilityRenderObject.cpp \    
+    accessibility/AccessibilityAriaGrid.cpp \    
+    accessibility/AccessibilityAriaGridCell.cpp \    
+    accessibility/AccessibilityAriaGridRow.cpp \    
+    accessibility/AccessibilityTable.cpp \    
+    accessibility/AccessibilityTableCell.cpp \    
+    accessibility/AccessibilityTableColumn.cpp \    
+    accessibility/AccessibilityTableHeaderContainer.cpp \    
+    accessibility/AccessibilityTableRow.cpp \    
+    accessibility/AXObjectCache.cpp \
     bindings/js/GCController.cpp \
     bindings/js/JSAttrCustom.cpp \
     bindings/js/JSCDATASectionCustom.cpp \
@@ -765,6 +782,7 @@ SOURCES += \
     html/HTMLPreElement.cpp \
     html/HTMLQuoteElement.cpp \
     html/HTMLScriptElement.cpp \
+    html/HTMLNoScriptElement.cpp \
     html/HTMLSelectElement.cpp \
     html/HTMLStyleElement.cpp \
     html/HTMLTableCaptionElement.cpp \
@@ -786,11 +804,13 @@ SOURCES += \
     inspector/InspectorDatabaseResource.cpp \
     inspector/InspectorDOMStorageResource.cpp \
     inspector/InspectorController.cpp \
+    inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
     inspector/JavaScriptCallFrame.cpp \
     inspector/JavaScriptDebugServer.cpp \
     inspector/JavaScriptProfile.cpp \
     inspector/JavaScriptProfileNode.cpp \
+    inspector/JSONObject.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
     loader/archive/ArchiveResourceCollection.cpp \
@@ -830,26 +850,11 @@ SOURCES += \
     loader/TextResourceDecoder.cpp \
     loader/ThreadableLoader.cpp \
     loader/WorkerThreadableLoader.cpp \
-    page/AccessibilityImageMapLink.cpp \
-    page/AccessibilityObject.cpp \    
-    page/AccessibilityList.cpp \    
-    page/AccessibilityListBox.cpp \    
-    page/AccessibilityListBoxOption.cpp \    
-    page/AccessibilityRenderObject.cpp \    
-    page/AccessibilityAriaGrid.cpp \    
-    page/AccessibilityAriaGridCell.cpp \    
-    page/AccessibilityAriaGridRow.cpp \    
-    page/AccessibilityTable.cpp \    
-    page/AccessibilityTableCell.cpp \    
-    page/AccessibilityTableColumn.cpp \    
-    page/AccessibilityTableHeaderContainer.cpp \    
-    page/AccessibilityTableRow.cpp \    
     page/animation/AnimationBase.cpp \
     page/animation/AnimationController.cpp \
     page/animation/CompositeAnimation.cpp \
     page/animation/ImplicitAnimation.cpp \
     page/animation/KeyframeAnimation.cpp \
-    page/AXObjectCache.cpp \
     page/BarInfo.cpp \
     page/Chrome.cpp \
     page/Console.cpp \
@@ -1086,11 +1091,11 @@ HEADERS += \
 
 
 SOURCES += \
+    accessibility/qt/AccessibilityObjectQt.cpp \
     bindings/js/ScriptControllerQt.cpp \
     bridge/qt/qt_class.cpp \
     bridge/qt/qt_instance.cpp \
     bridge/qt/qt_runtime.cpp \
-    page/qt/AccessibilityObjectQt.cpp \
     page/qt/DragControllerQt.cpp \
     page/qt/EventHandlerQt.cpp \
     page/qt/FrameQt.cpp \
@@ -1539,6 +1544,10 @@ contains(DEFINES, ENABLE_WML=1) {
     wmlnames_b.CONFIG = target_predeps
     wmlnames_b.variable_out = GENERATED_SOURCES
     addExtraCompilerWithHeader(wmlnames_b)
+}
+
+contains(DEFINES, ENABLE_XHTMLMP=1) {
+    FEATURE_DEFINES_JAVASCRIPT += ENABLE_XHTMLMP=1
 }
 
 contains(DEFINES, ENABLE_SVG=1) {

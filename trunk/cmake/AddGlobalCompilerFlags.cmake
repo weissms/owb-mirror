@@ -46,9 +46,13 @@ if(ENABLE_JIT_JSC)
     add_definitions(-DWTF_USE_JIT_STUB_ARGUMENT_VA_LIST)
 endif(ENABLE_JIT_JSC)
 
-if(ENABLE_JIT_REGEXP)
-    add_definitions(-DENABLE_WREC)
-endif(ENABLE_JIT_REGEXP)
+if(ENABLE_YARR)   
+    add_definitions(-DENABLE_YARR)
+endif(ENABLE_YARR)
+
+if (ENABLE_JIT_JSC AND ENABLE_YARR)
+    add_definitions(-DENABLE_YARR_JIT)
+endif (ENABLE_JIT_JSC AND ENABLE_YARR)
 
 if(ENABLE_MULTIPLE_THREADS)
     add_definitions(-DENABLE_JSC_MULTIPLE_THREADS=1)

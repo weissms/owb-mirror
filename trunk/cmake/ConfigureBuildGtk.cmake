@@ -11,7 +11,7 @@ set(ENABLE_GEOLOCATION OFF CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)
 
 set(ENABLE_JIT_JSC OFF CACHE BOOLEAN "Enable JavascriptCore JIT compilation (for x86 only)" FORCE)
-set(ENABLE_JIT_REGEXP OFF CACHE BOOLEAN "Enable RegExp JIT compilation (for x86 and x86_64 only)" FORCE)
+set(ENABLE_YARR OFF CACHE BOOLEAN "Enable RegExp compilation (for x86 and x86_64 only)" FORCE)
 set(ENABLE_MULTIPLE_THREADS OFF CACHE BOOLEAN "Enable multiple threads" FORCE)
 set(ENABLE_NPAPI ON CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 

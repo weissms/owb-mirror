@@ -223,7 +223,7 @@ static void runTest(const wxString testPathOrURL)
 {
     done = false;
     time(&startTime);
-    string pathOrURLString(testPathOrURL.fn_str());
+    string pathOrURLString(testPathOrURL.char_str());
     string pathOrURL(pathOrURLString);
     string expectedPixelHash;
 
@@ -306,6 +306,7 @@ bool MyApp::OnInit()
         eventHandler->bindEvents();
     }
 
+    int optind = 1;
     time(&startTime);
     wxString option_str = wxString(argv[optind]);
     if (argc == optind+1 && option_str.Find(_T("-")) == 0) {

@@ -1,3 +1,721 @@
+2009-05-20  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY, layout tests fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23727
+        This reverts commit r43888.
+
+        Once that change was checked in many of the fast/flexbox0*.html        
+        tests (and others) started failing.
+
+        * WebCore.pro:
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSPropertyNames.in:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * css/CSSValueKeywords.in:
+        * rendering/RenderMarquee.cpp:
+        (WebCore::RenderMarquee::updateMarqueePosition):
+        (WebCore::RenderMarquee::timerFired):
+
+2009-05-19  Yichao Yin <yichao.yin@torchmobile.com.cn>
+
+        Reviewed by George Staikos.
+
+        Add XHTMLMP support to Webkit
+        Update the configure files for building XHTMLMP-enabled WebKit on different platform
+        https://bugs.webkit.org/show_bug.cgi?id=23452
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCoreSources.bkl:
+
+2009-05-19  Antti Koivisto  <antti@apple.com>
+
+        I can't figure out how to make this not timing dependent, making it manual test instead.
+
+        * manual-tests/preload-scanner-entities.html: Added.
+
+2009-05-19  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Antti Koivisto. 
+
+        <rdar://problem/6886382> REGRESSION (Safari 4PB -> ToT): HTTP cache revalidation broken.
+
+        This was caused in http://trac.webkit.org/changeset/41425, which fixed an image caching bug
+        in QuickLooks (rdar://problem/6619630).
+
+        We need to respect the DocumentLoader's request cache policy when deciding the cache policy
+        for subresources, but the check (originally removed in r39304 and added back in in the same
+        place in r41424) needs to be tweaked and relocated a bit.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::subresourceCachePolicy): Renamed from cachePolicy().  Move checking
+          the DocumentLoader's request to a more appropriate place. Add code to handle the recently 
+          added FIXME regarding POSTs. Add a new FIXME describing a great way to make this code 
+          cleaner in the future.
+        * loader/FrameLoader.h:
+
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::cachePolicy): Calls the newly renamed subresourceCachePolicy().
+
+2009-05-19  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 25872: aria-labeledby appends all siblings instead of all children to aria name
+        https://bugs.webkit.org/show_bug.cgi?id=25872
+
+        When setting the aria-labeledby text it should stay within the element identified by the id
+        when searching through the sibling list.
+  
+        This also removes an outdated assert in getDocumentLinks. Its possible for the document to
+        think an element is a link, but accessibility can treat it differently (eg. its ARIA role is different).
+
+        Test: accessibility/aria-labelledby-stay-within.html
+
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::ariaAccessiblityName):
+        (WebCore::AccessibilityRenderObject::getDocumentLinks):
+
+2009-05-19  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin Adler).
+        
+        <rdar://problem/6902674> REGRESSION: Query parameters are sometimes incorrect in URL (23135)
+        
+        Push characters back in correct order when entity parsing fails after 3 characters.
+
+        Test: fast/tokenizer/preload-scanner-entities.html
+
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::consumeEntity):
+
+2009-05-19  Paul Godavari  <paul@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix a crash in Mac Chromium when displaying an HTML select element
+        with no items.
+        https://bugs.webkit.org/show_bug.cgi?id=25874
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupContainer::showExternal):
+
+2009-05-19  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Upstream V8 bindings for CanvasRenderingContext2D.
+        https://bugs.webkit.org/show_bug.cgi?id=25858
+
+        * bindings/v8/custom/V8CanvasRenderingContext2DCustom.cpp: Moved bindings from v8_custom.cpp.
+
+2009-05-19  Jessie Berlin  <jberlin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Windows Build Fix.
+
+        * WebCore.vcproj/WebCore.vcproj: Copy accessibility headers from WebCore.
+
+2009-05-19  Timothy Hatcher  <timothy@apple.com>
+
+        <rdar://problem/6889218> REGRESSION: Some iChat transcript resources are not
+        loaded because willSendRequest doesn't happen immediately
+
+        Reviewed by Antti Koivisto.
+
+        * WebCore.base.exp: Export Loader::servePendingRequests().
+
+2009-05-19  David Levin  <levin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 25859: Need to upstream ScriptController.* for v8.
+        https://bugs.webkit.org/show_bug.cgi?id=25859
+
+        Fixing the header file (which I accidentally made identical to the cpp file).
+
+        * bindings/v8/ScriptController.h:
+
+2009-05-19  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler and Brady Eidson.
+
+        <rdar://problem/6900582> REGRESSION (r42446?): UA Profiler in http://stevesouders.com/ua/ stalls
+
+        The problem was that Document::removeAllEventListeners() was called for a wrong document
+        when a CachedFrame was destroyed.
+
+        Cannot be tested automatically, because DRT doesn't have a b/f cache.
+
+        * dom/Document.cpp: (WebCore::Document::domWindow): Make sure that this doesn't return an
+        unrelated window even if document's m_frame pointer is stale.
+
+        * history/CachedFrame.cpp: (WebCore::CachedFrame::clear): Added a FIXME about strange behavior.
+
+2009-05-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Split InspectorController into InspectorController and InspectorFrontend. Latter encapsulates all frontend interaction and is the only entity allowed to make ScriptFunctionCalls. The further plan is to serialize these script function calls.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25419
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::addToConsole):
+        * inspector/ConsoleMessage.h:
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::~InspectorController):
+        (WebCore::InspectorController::inspect):
+        (WebCore::InspectorController::focusNode):
+        (WebCore::InspectorController::setWindowVisible):
+        (WebCore::InspectorController::addConsoleMessage):
+        (WebCore::InspectorController::setAttachedWindow):
+        (WebCore::InspectorController::inspectedWindowScriptObjectCleared):
+        (WebCore::InspectorController::scriptObjectReady):
+        (WebCore::InspectorController::showPanel):
+        (WebCore::InspectorController::close):
+        (WebCore::InspectorController::populateScriptObjects):
+        (WebCore::InspectorController::resetScriptObjects):
+        (WebCore::InspectorController::pruneResources):
+        (WebCore::InspectorController::didCommitLoad):
+        (WebCore::InspectorController::didLoadResourceFromMemoryCache):
+        (WebCore::InspectorController::identifierForInitialRequest):
+        (WebCore::InspectorController::willSendRequest):
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didReceiveContentLength):
+        (WebCore::InspectorController::didFinishLoading):
+        (WebCore::InspectorController::didFailLoading):
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest):
+        (WebCore::InspectorController::scriptImported):
+        (WebCore::InspectorController::didOpenDatabase):
+        (WebCore::InspectorController::didUseDOMStorage):
+        (WebCore::InspectorController::addScriptProfile):
+        (WebCore::InspectorController::toggleRecordButton):
+        (WebCore::InspectorController::enableProfiler):
+        (WebCore::InspectorController::disableProfiler):
+        (WebCore::InspectorController::enableDebugger):
+        (WebCore::InspectorController::disableDebugger):
+        (WebCore::InspectorController::didParseSource):
+        (WebCore::InspectorController::failedToParseSource):
+        (WebCore::InspectorController::didPause):
+        (WebCore::InspectorController::didContinue):
+        * inspector/InspectorController.h:
+        * inspector/InspectorDOMStorageResource.cpp:
+        (WebCore::InspectorDOMStorageResource::bind):
+        * inspector/InspectorDOMStorageResource.h:
+        * inspector/InspectorDatabaseResource.cpp:
+        (WebCore::InspectorDatabaseResource::bind):
+        * inspector/InspectorDatabaseResource.h:
+        * inspector/InspectorFrontend.cpp: Added.
+        (WebCore::callSimpleFunction):
+        (WebCore::InspectorFrontend::InspectorFrontend):
+        (WebCore::InspectorFrontend::~InspectorFrontend):
+        (WebCore::InspectorFrontend::newJSONObject):
+        (WebCore::InspectorFrontend::addMessageToConsole):
+        (WebCore::InspectorFrontend::addResource):
+        (WebCore::InspectorFrontend::updateResource):
+        (WebCore::InspectorFrontend::removeResource):
+        (WebCore::InspectorFrontend::updateFocusedNode):
+        (WebCore::InspectorFrontend::setAttachedWindow):
+        (WebCore::InspectorFrontend::inspectedWindowScriptObjectCleared):
+        (WebCore::InspectorFrontend::showPanel):
+        (WebCore::InspectorFrontend::populateInterface):
+        (WebCore::InspectorFrontend::reset):
+        (WebCore::InspectorFrontend::debuggerWasEnabled):
+        (WebCore::InspectorFrontend::debuggerWasDisabled):
+        (WebCore::InspectorFrontend::profilerWasEnabled):
+        (WebCore::InspectorFrontend::profilerWasDisabled):
+        (WebCore::InspectorFrontend::parsedScriptSource):
+        (WebCore::InspectorFrontend::failedToParseScriptSource):
+        (WebCore::InspectorFrontend::addProfile):
+        (WebCore::InspectorFrontend::setRecordingProfile):
+        (WebCore::InspectorFrontend::pausedScript):
+        (WebCore::InspectorFrontend::resumedScript):
+        (WebCore::InspectorFrontend::addDatabase):
+        (WebCore::InspectorFrontend::addDOMStorage):
+        * inspector/InspectorFrontend.h: Added.
+        * inspector/InspectorResource.cpp:
+        (WebCore::InspectorResource::createScriptObject):
+        (WebCore::InspectorResource::updateScriptObject):
+        (WebCore::InspectorResource::releaseScriptObject):
+        * inspector/InspectorResource.h:
+
+2009-05-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Introduce JSONObject that wraps ScriptObject and ScriptState* for further serialization
+
+        https://bugs.webkit.org/show_bug.cgi?id=25419
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::addToConsole):
+        * inspector/InspectorDOMStorageResource.cpp:
+        (WebCore::InspectorDOMStorageResource::bind):
+        * inspector/InspectorDatabaseResource.cpp:
+        (WebCore::InspectorDatabaseResource::bind):
+        * inspector/InspectorResource.cpp:
+        (WebCore::populateHeadersObject):
+        (WebCore::InspectorResource::createScriptObject):
+        (WebCore::InspectorResource::updateScriptObject):
+        * inspector/JSONObject.cpp: Added.
+        (WebCore::JSONObject::JSONObject):
+        (WebCore::JSONObject::set):
+        (WebCore::JSONObject::scriptObject):
+        (WebCore::JSONObject::createNew):
+        * inspector/JSONObject.h: Added.
+
+2009-05-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Refactor InpectorController so that it does not instantiate resource/console/database/domresource javascript objects. Move instantiation into the javascript.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25419
+
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::addToConsole):
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didReceiveContentLength):
+        (WebCore::InspectorController::didFinishLoading):
+        (WebCore::InspectorController::didFailLoading):
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest):
+        (WebCore::InspectorController::scriptImported):
+        * inspector/InspectorDOMStorageResource.cpp:
+        (WebCore::InspectorDOMStorageResource::InspectorDOMStorageResource):
+        (WebCore::InspectorDOMStorageResource::bind):
+        (WebCore::InspectorDOMStorageResource::unbind):
+        * inspector/InspectorDOMStorageResource.h:
+        * inspector/InspectorDatabaseResource.cpp:
+        (WebCore::InspectorDatabaseResource::InspectorDatabaseResource):
+        (WebCore::InspectorDatabaseResource::bind):
+        (WebCore::InspectorDatabaseResource::unbind):
+        * inspector/InspectorDatabaseResource.h:
+        * inspector/InspectorResource.cpp:
+        (WebCore::InspectorResource::InspectorResource):
+        (WebCore::populateHeadersObject):
+        (WebCore::InspectorResource::createScriptObject):
+        (WebCore::InspectorResource::updateScriptObject):
+        (WebCore::InspectorResource::releaseScriptObject):
+        * inspector/InspectorResource.h:
+        * inspector/front-end/Console.js:
+        (WebInspector.ConsoleMessage):
+        * inspector/front-end/inspector.js:
+        (WebInspector.addResource):
+        (WebInspector.updateResource):
+        (WebInspector.removeResource):
+        (WebInspector.addDatabase):
+        (WebInspector.addDOMStorage):
+        (WebInspector.reset):
+        (WebInspector.addMessageToConsole):
+
+2009-05-19  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Ariya Hidayat.
+
+        The Qt port has code that disables scrolling optimizations
+        when the root contains native windows, such as windowed plugins.
+
+        This code broke when detaching iframes containing windowed
+        plugins.
+
+        Each ScrollView now knows how many native windows it and its
+        children contain, and when it is detached, that number is
+        substracted from its old parents.
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollContents):
+        (WebCore::ScrollView::setParent):
+        * platform/ScrollView.h:
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::adjustWidgetsPreventingBlittingCount):
+        (WebCore::ScrollView::platformAddChild):
+        (WebCore::ScrollView::platformRemoveChild):
+
+2009-05-18  David Kilzer  <ddkilzer@apple.com>
+
+        Tiger build fix for r43850
+
+        * platform/mac/ClipboardMac.mm: Added typedef for NSUinteger
+        when building on Tiger.
+
+2009-05-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        ClipboardMac cleanup
+        https://bugs.webkit.org/show_bug.cgi?id=25847
+
+        I'm mostly just moving code, however there are 3 changes I made while moving, detailed below.
+
+        No functional changes, so no tests.
+
+        * platform/mac/ClipboardMac.mm:
+        (WebCore::ClipboardMac::clearData):
+        (WebCore::absoluteURLsFromPasteboardFilenames):
+          Broke out logic for filenames into its own function to make the caller more readable.
+        (WebCore::absoluteURLsFromPasteboard):
+          Broke out logic from getData into absoluteURLsFromPasteboard. This returns an NSArray
+          so that we can use -[NSArray componentsJoinedByString] in the caller (which is
+          cleaner than the manual "\n" addition before).
+          This also access to the full list of file urls for future callers.
+        (WebCore::ClipboardMac::getData):
+          unsigned count = (type == "URL") ? 1 : [fileList count]; is now an
+          explicit check for "URL", before it was a check for != "text/uri-list" which
+          was much more confusing in my opinion.  text/uri-list and URL are the only
+          two types which map to NSURLPboardType in cocoaTypeFromMIMEType().
+        (WebCore::ClipboardMac::types):
+          I removed an extra if (!types) check, right before [types count].  In Obj-C
+          messaging nil will return 0 (size of a pointer), so it's safe to message nil
+          here and expect it to return 0.
+
+2009-05-18  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Bug 25859: Need to upstream ScriptController.* for v8.
+        https://bugs.webkit.org/show_bug.cgi?id=25859
+
+        * bindings/v8/ScriptController.cpp: Added.
+        * bindings/v8/ScriptController.h: Added.
+
+2009-05-18  Yichao Yin  <yichao.yin@torchmobile.com.cn>
+
+        Reviewed by George Staikos.
+
+        Change ScriptElement to support XHTMLMP in a better way
+        https://bugs.webkit.org/show_bug.cgi?id=23452
+
+        * dom/ScriptElement.h:
+        * html/HTMLScriptElement.h:
+        * svg/SVGScriptElement.h:
+        (WebCore::SVGScriptElement::shouldExecuteAsJavaScript):
+
+2009-05-18  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, finish up changes after the accessibility dir split.
+
+        * webcore-base.bkl:
+
+2009-05-18  Yichao Yin  <yichao.yin@torchmobile.com.cn>
+
+        Reviewed by George Staikos (and others).
+
+        Add XHTMLMP support to Webkit
+        https://bugs.webkit.org/show_bug.cgi?id=23452
+        XHTMLMP is a strict subset of XHTML 1.1. It extends XHTML Basic and add enhanced
+        functionality. Most of the functionalities have already been implemented by Webkit.
+        
+        The changes include:
+        1) Adding <noscript> support
+        2) Document conformance validation
+        3) User Agent conformance validation
+ 
+        refer to the specification: OMA-WAP-XHTMLMP-V1_1-20061020-A.pdf
+
+        Tests: fast/xhtmlmp/check-doctype-declaration.xhtml
+               fast/xhtmlmp/check-rootelement.xhtml
+               fast/xhtmlmp/noscript-in-multiscripts.xhtml
+               fast/xhtmlmp/noscript-nested.xhtml
+               fast/xhtmlmp/noscript.xhtml
+
+        * dom/DOMImplementation.cpp:
+        (WebCore::DOMImplementation::createDocument):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::isXHTMLMPDocument):
+        * dom/Document.h:
+        (WebCore::Document::shouldProcessNoscriptElement):
+        (WebCore::Document::setShouldProcessNoscriptElement):
+        * dom/Node.cpp:
+        (WebCore::Node::createRendererIfNeeded):
+        * dom/Node.h:
+        * dom/XMLTokenizer.h:
+        (WebCore::XMLTokenizer::setIsXHTMLMPDocument):
+        (WebCore::XMLTokenizer::isXHTMLMPDocument):
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::XMLTokenizer):
+        (WebCore::XMLTokenizer::startElementNs):
+        (WebCore::XMLTokenizer::endElementNs):
+        (WebCore::XMLTokenizer::endDocument):
+        (WebCore::XMLTokenizer::internalSubset):
+        (WebCore::getEntityHandler):
+        (WebCore::externalSubsetHandler):
+        * dom/XMLTokenizerQt.cpp:
+        (WebCore::XMLTokenizer::XMLTokenizer):
+        (WebCore::XMLTokenizer::parse):
+        (WebCore::XMLTokenizer::parseStartElement):
+        (WebCore::XMLTokenizer::parseEndElement):
+        (WebCore::):
+        * dom/make_names.pl:
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::rendererIsNeeded):
+        * html/HTMLNoScriptElement.cpp: Added.
+        (WebCore::HTMLNoScriptElement::HTMLNoScriptElement):
+        (WebCore::HTMLNoScriptElement::~HTMLNoScriptElement):
+        (WebCore::HTMLNoScriptElement::checkDTD):
+        (WebCore::HTMLNoScriptElement::attach):
+        (WebCore::HTMLNoScriptElement::recalcStyle):
+        (WebCore::HTMLNoScriptElement::childShouldCreateRenderer):
+        (WebCore::HTMLNoScriptElement::styleForRenderer):
+        * html/HTMLNoScriptElement.h: Added.
+        (WebCore::HTMLNoScriptElement::rendererIsNeeded):
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::getNode):
+        (WebCore::HTMLParser::isInline):
+        * html/HTMLTagNames.in:
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::scriptHandler):
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::addExtraFieldsToRequest):
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::initializeSupportedNonImageMimeTypes):
+
+2009-05-18  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2009-05-18  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Rubber-stamped by Gustavo Noronha.
+
+        Fixed build for the Qt port by adding the WebCore/accessibility
+        directory to the includepath.
+
+        * WebCore.pro:
+
+2009-05-18  Chris Fleizach  <cfleizach@apple.com>
+
+        Bug 25776: accessibility should have its own folder in WebCore project
+        https://bugs.webkit.org/show_bug.cgi?id=25776
+   
+        Speculative fix for windows build failure.
+
+        * WebCore.vcproj/WebCoreCommon.vsprops:
+
+2009-05-18  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 20652: WebKit doesn't display favicons with MIME type image/vnd.microsoft.icon
+
+        <https://bugs.webkit.org/show_bug.cgi?id=20652>
+
+        Reviewed by Darin Adler.
+
+        Test: http/tests/misc/favicon-as-image.html
+
+        * inspector/front-end/inspector.js: Added
+        image/vnd.microsoft.icon to WebInspector.MIMETypes.
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::initializeSupportedImageMIMETypes): Added
+        image/vnd.microsoft.icon to list of supported image and image
+        resource MIME types.
+
+2009-05-18  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 25776: accessibility should have its own folder in WebCore project
+        https://bugs.webkit.org/show_bug.cgi?id=25776
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * accessibility: Added.
+        * accessibility/AXObjectCache.cpp: Copied from WebCore/page/AXObjectCache.cpp.
+        * accessibility/AXObjectCache.h: Copied from WebCore/page/AXObjectCache.h.
+        * accessibility/AccessibilityAriaGrid.cpp: Copied from WebCore/page/AccessibilityAriaGrid.cpp.
+        * accessibility/AccessibilityAriaGrid.h: Copied from WebCore/page/AccessibilityAriaGrid.h.
+        * accessibility/AccessibilityAriaGridCell.cpp: Copied from WebCore/page/AccessibilityAriaGridCell.cpp.
+        * accessibility/AccessibilityAriaGridCell.h: Copied from WebCore/page/AccessibilityAriaGridCell.h.
+        * accessibility/AccessibilityAriaGridRow.cpp: Copied from WebCore/page/AccessibilityAriaGridRow.cpp.
+        * accessibility/AccessibilityAriaGridRow.h: Copied from WebCore/page/AccessibilityAriaGridRow.h.
+        * accessibility/AccessibilityImageMapLink.cpp: Copied from WebCore/page/AccessibilityImageMapLink.cpp.
+        * accessibility/AccessibilityImageMapLink.h: Copied from WebCore/page/AccessibilityImageMapLink.h.
+        * accessibility/AccessibilityList.cpp: Copied from WebCore/page/AccessibilityList.cpp.
+        * accessibility/AccessibilityList.h: Copied from WebCore/page/AccessibilityList.h.
+        * accessibility/AccessibilityListBox.cpp: Copied from WebCore/page/AccessibilityListBox.cpp.
+        * accessibility/AccessibilityListBox.h: Copied from WebCore/page/AccessibilityListBox.h.
+        * accessibility/AccessibilityListBoxOption.cpp: Copied from WebCore/page/AccessibilityListBoxOption.cpp.
+        * accessibility/AccessibilityListBoxOption.h: Copied from WebCore/page/AccessibilityListBoxOption.h.
+        * accessibility/AccessibilityObject.cpp: Copied from WebCore/page/AccessibilityObject.cpp.
+        * accessibility/AccessibilityObject.h: Copied from WebCore/page/AccessibilityObject.h.
+        * accessibility/AccessibilityRenderObject.cpp: Copied from WebCore/page/AccessibilityRenderObject.cpp.
+        * accessibility/AccessibilityRenderObject.h: Copied from WebCore/page/AccessibilityRenderObject.h.
+        * accessibility/AccessibilityTable.cpp: Copied from WebCore/page/AccessibilityTable.cpp.
+        * accessibility/AccessibilityTable.h: Copied from WebCore/page/AccessibilityTable.h.
+        * accessibility/AccessibilityTableCell.cpp: Copied from WebCore/page/AccessibilityTableCell.cpp.
+        * accessibility/AccessibilityTableCell.h: Copied from WebCore/page/AccessibilityTableCell.h.
+        * accessibility/AccessibilityTableColumn.cpp: Copied from WebCore/page/AccessibilityTableColumn.cpp.
+        * accessibility/AccessibilityTableColumn.h: Copied from WebCore/page/AccessibilityTableColumn.h.
+        * accessibility/AccessibilityTableHeaderContainer.cpp: Copied from WebCore/page/AccessibilityTableHeaderContainer.cpp.
+        * accessibility/AccessibilityTableHeaderContainer.h: Copied from WebCore/page/AccessibilityTableHeaderContainer.h.
+        * accessibility/AccessibilityTableRow.cpp: Copied from WebCore/page/AccessibilityTableRow.cpp.
+        * accessibility/AccessibilityTableRow.h: Copied from WebCore/page/AccessibilityTableRow.h.
+        * accessibility/chromium: Added.
+        * accessibility/chromium/AXObjectCacheChromium.cpp: Copied from WebCore/page/chromium/AXObjectCacheChromium.cpp.
+        * accessibility/chromium/AccessibilityObjectChromium.cpp: Copied from WebCore/page/chromium/AccessibilityObjectChromium.cpp.
+        * accessibility/chromium/AccessibilityObjectWrapper.h: Copied from WebCore/page/chromium/AccessibilityObjectWrapper.h.
+        * accessibility/gtk: Added.
+        * accessibility/gtk/AXObjectCacheAtk.cpp: Copied from WebCore/page/gtk/AXObjectCacheAtk.cpp.
+        * accessibility/gtk/AccessibilityObjectAtk.cpp: Copied from WebCore/page/gtk/AccessibilityObjectAtk.cpp.
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp: Copied from WebCore/page/gtk/AccessibilityObjectWrapperAtk.cpp.
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.h: Copied from WebCore/page/gtk/AccessibilityObjectWrapperAtk.h.
+        * accessibility/mac: Added.
+        * accessibility/mac/AXObjectCacheMac.mm: Copied from WebCore/page/mac/AXObjectCacheMac.mm.
+        * accessibility/mac/AccessibilityObjectMac.mm: Copied from WebCore/page/mac/AccessibilityObjectMac.mm.
+        * accessibility/mac/AccessibilityObjectWrapper.h: Copied from WebCore/page/mac/AccessibilityObjectWrapper.h.
+        * accessibility/mac/AccessibilityObjectWrapper.mm: Copied from WebCore/page/mac/AccessibilityObjectWrapper.mm.
+        * accessibility/qt: Added.
+        * accessibility/qt/AccessibilityObjectQt.cpp: Copied from WebCore/page/qt/AccessibilityObjectQt.cpp.
+        * accessibility/win: Added.
+        * accessibility/win/AXObjectCacheWin.cpp: Copied from WebCore/page/win/AXObjectCacheWin.cpp.
+        * accessibility/win/AccessibilityObjectWin.cpp: Copied from WebCore/page/win/AccessibilityObjectWin.cpp.
+        * accessibility/win/AccessibilityObjectWrapperWin.h: Copied from WebCore/page/win/AccessibilityObjectWrapperWin.h.
+        * accessibility/wx: Added.
+        * accessibility/wx/AccessibilityObjectWx.cpp: Copied from WebCore/page/wx/AccessibilityObjectWx.cpp.
+        * page/AXObjectCache.cpp: Removed.
+        * page/AXObjectCache.h: Removed.
+        * page/AccessibilityAriaGrid.cpp: Removed.
+        * page/AccessibilityAriaGrid.h: Removed.
+        * page/AccessibilityAriaGridCell.cpp: Removed.
+        * page/AccessibilityAriaGridCell.h: Removed.
+        * page/AccessibilityAriaGridRow.cpp: Removed.
+        * page/AccessibilityAriaGridRow.h: Removed.
+        * page/AccessibilityImageMapLink.cpp: Removed.
+        * page/AccessibilityImageMapLink.h: Removed.
+        * page/AccessibilityList.cpp: Removed.
+        * page/AccessibilityList.h: Removed.
+        * page/AccessibilityListBox.cpp: Removed.
+        * page/AccessibilityListBox.h: Removed.
+        * page/AccessibilityListBoxOption.cpp: Removed.
+        * page/AccessibilityListBoxOption.h: Removed.
+        * page/AccessibilityObject.cpp: Removed.
+        * page/AccessibilityObject.h: Removed.
+        * page/AccessibilityRenderObject.cpp: Removed.
+        * page/AccessibilityRenderObject.h: Removed.
+        * page/AccessibilityTable.cpp: Removed.
+        * page/AccessibilityTable.h: Removed.
+        * page/AccessibilityTableCell.cpp: Removed.
+        * page/AccessibilityTableCell.h: Removed.
+        * page/AccessibilityTableColumn.cpp: Removed.
+        * page/AccessibilityTableColumn.h: Removed.
+        * page/AccessibilityTableHeaderContainer.cpp: Removed.
+        * page/AccessibilityTableHeaderContainer.h: Removed.
+        * page/AccessibilityTableRow.cpp: Removed.
+        * page/AccessibilityTableRow.h: Removed.
+        * page/chromium/AXObjectCacheChromium.cpp: Removed.
+        * page/chromium/AccessibilityObjectChromium.cpp: Removed.
+        * page/chromium/AccessibilityObjectWrapper.h: Removed.
+        * page/gtk/AXObjectCacheAtk.cpp: Removed.
+        * page/gtk/AccessibilityObjectAtk.cpp: Removed.
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp: Removed.
+        * page/gtk/AccessibilityObjectWrapperAtk.h: Removed.
+        * page/mac/AXObjectCacheMac.mm: Removed.
+        * page/mac/AccessibilityObjectMac.mm: Removed.
+        * page/mac/AccessibilityObjectWrapper.h: Removed.
+        * page/mac/AccessibilityObjectWrapper.mm: Removed.
+        * page/qt/AccessibilityObjectQt.cpp: Removed.
+        * page/win/AXObjectCacheWin.cpp: Removed.
+        * page/win/AccessibilityObjectWin.cpp: Removed.
+        * page/win/AccessibilityObjectWrapperWin.h: Removed.
+        * page/wx/AccessibilityObjectWx.cpp: Removed.
+
+2009-05-18  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25854
+        [GTK] Should tell servers we only support identity as content encoding
+
+        Let servers know we only support identity as content
+        encoding. We will implement this in libsoup.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startHttp):
+
+2009-05-18  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6881160> REGRESSION (r41425): Unable to create battle.net account due to
+        CAPTCHA failure.
+
+        The problem was that after loading and displaying a CAPTCHA image, it was loaded from
+        the server again due to preloading. So, the server expected the last loaded (invisible)
+        CAPTCHA text to be typed and posted back.
+
+        I don't know how to make tests for preloading.
+
+        * loader/DocLoader.cpp: (WebCore::DocLoader::checkForPendingPreloads): There is never a reason
+        to preload after loading for real - and if cache policy is CachePolicyReload, that actually
+        results in another load from network layer.
+
+        * loader/FrameLoader.cpp: (WebCore::FrameLoader::cachePolicy): It's not good for cachePolicy()
+        to lie, but I don't know how to re-do r41425 properly. Added a FIXME.
+
+2009-05-18  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Done together with Balazs Kelemen  <kelemen.balazs@stud.u-szeged.hu>.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24551
+
+        [Qt] Reuse FontPlatformData for the same FontDescription.
+        This effectively prevents growing heap usage for loading every web page.
+
+        * platform/graphics/qt/FontCacheQt.cpp:
+        (WebCore::qHash): Necessary for FontPlatformDataCache.
+        (WebCore::FontCache::getCachedFontPlatformData): Reuse the instance if
+        it exists, otherwise create a new one and insert it in the cache.
+
+2009-05-18  Balazs Kelemen  <kelemen.balazs@stud.u-szeged.hu>
+
+        Reviewed by Ariya Hidayat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24551
+
+        [Qt] Fix the leak in FontFallbackList::fontDataAt() function.
+        When creating a new instance of SimpleFontData, put it in the font list
+        so that it can deleted later on.
+
+        * platform/graphics/qt/FontFallbackListQt.cpp:
+        (WebCore::FontFallbackList::invalidate):
+        (WebCore::FontFallbackList::releaseFontData):
+        (WebCore::FontFallbackList::fontDataAt):
+
+2009-05-15  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+         Reviewed by Xan Lopez.
+
+         [Gtk] Various autotools build refactoring and fixes
+         https://bugs.webkit.org/show_bug.cgi?id=25286
+
+         Style fixes
+
+         * GNUmakefile.am:
+
 2009-05-18  George Staikos  <george.staikos@torchmobile.com>
 
         Not reviewed - build fix.

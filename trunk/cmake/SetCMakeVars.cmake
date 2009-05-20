@@ -38,9 +38,11 @@ list(APPEND JAVASCRIPTCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/JavaScriptCore/profiler
     ${OWB_SOURCE_DIR}/JavaScriptCore/runtime
     ${OWB_SOURCE_DIR}/JavaScriptCore/wrec
+    ${OWB_SOURCE_DIR}/JavaScriptCore/yarr
 )
 list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_BINARY_DIR}/generated_sources/WebCore/workers
+    ${OWB_SOURCE_DIR}/WebCore/accessibility
     ${OWB_SOURCE_DIR}/WebCore/bindings/js
     ${OWB_SOURCE_DIR}/WebCore/bridge
     ${OWB_SOURCE_DIR}/WebCore/bridge/bal

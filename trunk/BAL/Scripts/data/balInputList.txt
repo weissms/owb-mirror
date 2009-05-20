@@ -824,10 +824,10 @@ BAL/Skeletons/Widgets   WebCore/platform/ScrollbarTheme.h
 BAL/Skeletons/Widgets   WebCore/platform/ScrollbarThemeComposite.h
 BAL/Skeletons/Widgets   WebCore/platform/Theme.h
 
-BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/AXObjectCacheAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/AccessibilityObjectAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/AccessibilityObjectWrapperAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AXObjectCacheAtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectAtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/DragControllerGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/FrameGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
@@ -852,7 +852,7 @@ BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.h
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.cpp
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.cpp
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.h
-BAL/Widgets/WebCore/Qt	WebCore/page/qt/AccessibilityObjectQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/accessibility/qt/AccessibilityObjectQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/DragControllerQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/EventHandlerQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/FrameQt.cpp

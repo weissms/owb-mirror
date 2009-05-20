@@ -347,6 +347,7 @@ if(ENABLE_XPATH)
 endif(ENABLE_XPATH)
 
 include(${OWB_SOURCE_DIR}/BAL/CMakeLists.txt)
+include(accessibility/CMakeLists.txt)
 include(bindings/js/CMakeLists.txt)
 include(bridge/CMakeLists.txt)
 include(css/CMakeLists.txt)

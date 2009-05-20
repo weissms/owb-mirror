@@ -46,7 +46,7 @@ include(parser/CMakeLists.txt)
 include(pcre/CMakeLists.txt)
 include(profiler/CMakeLists.txt)
 include(runtime/CMakeLists.txt)
-include(wrec/CMakeLists.txt)
+include(yarr/CMakeLists.txt)
 
 
 ##################################################
