@@ -177,9 +177,8 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
         } else {
             // If the parsedValue is empty, initialise it in case we need it
             parsedValue = String();
-            // Handle a token without value if it is last.
-            if (pairEnd == end)
-                length = end - tokenStart;
+            // Handle a token without value.
+            length = pairEnd - tokenStart;
         }
 
        // Detect which "cookie-av" is parsed

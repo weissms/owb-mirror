@@ -1,3 +1,14 @@
+2009-05-20  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Julien Chaffraix.
+
+        Secure cookies are wrongly rejected when "Secure;" is not the last
+        property.
+
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
+        (WebCore::CookieParser::parseOneCookie): Set length to a non-zero
+        value.
+
 2009-05-18  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.
