@@ -104,13 +104,7 @@ bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KU
     return false;
 }
 
-String CookieManager::getCookie(const String& url)
-{
-    KURL kurl = KURL(url);
-    return getCookie(kurl);
-}
-
-String CookieManager::getCookie(const KURL& url)
+String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
 {
     bool isConnectionSecure = false;
     if (url.string().startsWith(String("https:", false)))
@@ -126,7 +120,8 @@ String CookieManager::getCookie(const KURL& url)
 
             for (size_t i = 0; i < cookies.size(); ++i) {
                 Cookie* cookie = cookies[i];
-                if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()))
+                // Get the cookies filtering out the secure cookies on an unsecure connection and HttpOnly cookies if requested.
+                if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly()))
                     res += cookie->name() + "=" + cookie->value() + ";";
             }
         }

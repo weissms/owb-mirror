@@ -204,7 +204,7 @@ void ResourceHandle::checkAndSendCookies(KURL& url)
         url = KURL(d->m_url);
 
     // Prepare a cookie header if there are cookies related to this url.
-    String cookiePairs = cookieManager().getCookie(url);
+    String cookiePairs = cookieManager().getCookie(url, WithHttpOnlyCookies);
 
     // Cookie size should not be above 81920 (per construction and also because we
     // do not want to  cookie).

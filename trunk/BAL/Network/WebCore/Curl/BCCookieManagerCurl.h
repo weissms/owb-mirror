@@ -41,12 +41,17 @@ namespace WebCore {
         DoNotRemoveFromBackingStore
     };
 
+    enum HttpOnlyCookieFiltering {
+        NoHttpOnlyCookie,
+        WithHttpOnlyCookies
+    };
+
     class CookieManager {
     public:
 
         void setCookies(const KURL& url, const KURL& policyURL, const String& value);
 
-        String getCookie(const KURL& url);
+        String getCookie(const KURL& url, HttpOnlyCookieFiltering);
         String getCookie(const String& url);
 
         void removeAllCookies(BackingStoreRemoval);

@@ -2,6 +2,28 @@
 
         Reviewed by Mario Bensi.
 
+        Make the cookie jar use the CookieManager.
+
+        The cookies jar used to store its cookies in a separate HashMap which is wrong.
+        Now it uses the CookieManager to get its cookies.
+
+        This is a part of a patch by Joerg Strohmayer (<j_s@gmx.de>) tweaked
+        by me to work with HttpOnly cookies.
+
+        * Network/WebCore/Curl/BCCookieJarCurl.cpp:
+        (WebCore::setCookies): Use the CookieManager.
+        (WebCore::cookies): Ditto but filter out the HttpOnly cookies.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::getCookie): Removed unused overloaded version
+        that takes a String and use the HttpOnlyCookieFiltering parameter to
+        filter the returned cookies.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+        (WebCore::): Added HttpOnlyCookieFiltering enum that is used by getCookies.
+
+2009-05-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Implement HttpOnly cookie option.
 
         This is required in order to (securely) have access to cookie from JS.
