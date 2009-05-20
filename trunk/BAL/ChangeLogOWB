@@ -1,3 +1,19 @@
+2009-05-20  Joerg Strohmayer  <j_s@gmx.de>
+
+        Tweaked and reviewed by Julien Chaffraix.
+
+        Cookie using the default domain are wrongly rejected because they do
+        not start with a leading dot.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::shouldRejectForSecurityReason): Added a comment about
+        removing the leading dot test altogether as it is disabled right now and
+        it matches other implementations.
+
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
+        (WebCore::CookieParser::parseOneCookie): Add a leading dot to the
+        URL domain.
+
 2009-05-20  Mario Bensi  <mbensi@pleyo.com>
 
         Move accessibility from Widget to Accessibility.

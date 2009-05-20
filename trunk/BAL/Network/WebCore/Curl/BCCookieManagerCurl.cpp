@@ -81,6 +81,7 @@ bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KU
     }
 
     // Check if the domain starts with a dot.
+    // FIXME: This check is in fact disabled because the CookieParser prefix the domain if needed and should be removed.
     if (cookie->domain()[0] != '.') {
         LOG_ERROR("Cookie %s is rejected because its domain does not start with a dot.\n", cookie->toString().utf8().data());
         return true;

@@ -200,8 +200,7 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
             case 'd' : {
                 if (length >= 6 && cookie.find("omain", tokenStartSvg + 1, false)) {
                     // If the domain does not start with a dot, add one for security checks
-                   String realDomain = parsedValue[0] == '.' ? parsedValue : "." + parsedValue;
-
+                    String realDomain = parsedValue[0] == '.' ? parsedValue : "." + parsedValue;
                     res->setDomain(realDomain);
                 } else {
                     LOG_ERROR("Invalid cookie %s (domain)", cookie.ascii().data());
@@ -312,7 +311,7 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
 
     // If no domain was provided, set it to the host
     if (!res->domain() || !res->domain().length())
-        res->setDomain(m_defaultCookieURL.host());
+        res->setDomain("." + m_defaultCookieURL.host());
 
     // If no path was provided, set it to the host's path
     if (!res->path() || !res->path().length())
