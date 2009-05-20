@@ -64,12 +64,15 @@ void CookieBackingStore::open(const String& cookieJar)
         return;
     }
 
+    if (tableExists())
+        return;
+
     String createTableQuery("CREATE TABLE ");
     createTableQuery += tableName;
-    // FIXME: Mozilla uses isHttpOnly which is not included here but should be to have a similar table. 
-    createTableQuery +=" (name TEXT, value TEXT, host TEXT, path TEXT, expiry DOUBLE, lastAccessed DOUBLE, isSecure INTEGER);";
+    // This table schema is compliant with Mozilla's.
+    createTableQuery +=" (name TEXT, value TEXT, host TEXT, path TEXT, expiry DOUBLE, lastAccessed DOUBLE, isSecure INTEGER, isHttpOnly INTEGER);";
 
-    if (!tableExists() &&  m_db.executeCommand(createTableQuery)) {
+    if (!m_db.executeCommand(createTableQuery)) {
         LOG_ERROR("Could not create the table to store the cookies into. No cookie will be stored!");
         close();
     }
@@ -87,7 +90,7 @@ void CookieBackingStore::insert(const Cookie* cookie)
  
     String insertQuery("INSERT INTO ");
     insertQuery += tableName;
-    insertQuery += " (name, value, host, path, expiry, lastAccessed, isSecure) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
+    insertQuery += " (name, value, host, path, expiry, lastAccessed, isSecure, isHttpOnly) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);";
     SQLiteStatement insertStatement(m_db, insertQuery);
 
     if (insertStatement.prepare()) {
@@ -99,13 +102,13 @@ void CookieBackingStore::insert(const Cookie* cookie)
     if (insertStatement.bindText(1, cookie->name()) || insertStatement.bindText(2, cookie->value())
         || insertStatement.bindText(3, cookie->domain()) || insertStatement.bindText(4, cookie->path())
         || insertStatement.bindDouble(5, cookie->expiry()) || insertStatement.bindDouble(6, cookie->lastAccessed())
-        || insertStatement.bindInt64(7, cookie->isSecure())) {
-        LOG_ERROR("Cannot save cookie");                                                                                                                                                          
-        return;                                                                                                                                                                                   
+        || insertStatement.bindInt64(7, cookie->isSecure()) || insertStatement.bindInt64(8, cookie->isHttpOnly())) {
+        LOG_ERROR("Cannot save cookie");
+        return;
     }
 
-    if (!insertStatement.executeCommand()) {                                                                                                                                                               
-        LOG_ERROR("Cannot save cookie");                                                                                                                                                          
+    if (!insertStatement.executeCommand()) {
+        LOG_ERROR("Cannot save cookie");
         return;
     }
 }
@@ -118,7 +121,7 @@ void CookieBackingStore::update(const Cookie* cookie)
     String updateQuery("UPDATE ");
     updateQuery += tableName;
     // The where statement is chosen to match CookieMap key.
-    updateQuery += " SET name = ?1, value = ?2, host = ?3, path = ?4, expiry = ?5, lastAccessed = ?6, isSecure = ?7 where name = ?1 and host = ?3 and path = ?4;";
+    updateQuery += " SET name = ?1, value = ?2, host = ?3, path = ?4, expiry = ?5, lastAccessed = ?6, isSecure = ?7, isHttpOnly = ?8 where name = ?1 and host = ?3 and path = ?4;";
     SQLiteStatement updateStatement(m_db, updateQuery);
 
     if (updateStatement.prepare()) {
@@ -130,7 +133,7 @@ void CookieBackingStore::update(const Cookie* cookie)
     if (updateStatement.bindText(1, cookie->name()) || updateStatement.bindText(2, cookie->value())
         || updateStatement.bindText(3, cookie->path()) || updateStatement.bindText(4, cookie->domain())
         || updateStatement.bindDouble(5, cookie->expiry()) || updateStatement.bindDouble(6, cookie->lastAccessed())
-        || updateStatement.bindInt64(7, cookie->isSecure())) {
+        || updateStatement.bindInt64(7, cookie->isSecure()) || updateStatement.bindInt64(8, cookie->isHttpOnly())) {
         LOG_ERROR("Cannot update cookie");
         return;
     }
@@ -200,8 +203,9 @@ Vector<Cookie*> CookieBackingStore::getAllCookies()
     if (!tableExists())
         return cookies;
 
-    String selectQuery("SELECT name, value, host, path, expiry, lastAccessed, isSecure FROM ");
+    String selectQuery("SELECT name, value, host, path, expiry, lastAccessed, isSecure, isHttpOnly FROM ");
     selectQuery += tableName;
+    selectQuery += ";";
 
     SQLiteStatement selectStatement(m_db, selectQuery);
 
@@ -212,19 +216,17 @@ Vector<Cookie*> CookieBackingStore::getAllCookies()
 
     while (selectStatement.step() == SQLResultRow) {
         // There is a row to fetch
-        String name, value, domain, path;                                                                                                                                                         
-        double expiry, lastAccessed;
-        bool isSecure;
 
-        name = selectStatement.getColumnText(0);
-        value = selectStatement.getColumnText(1);
-        domain = selectStatement.getColumnText(2);
-        path = selectStatement.getColumnText(3);
-        expiry = selectStatement.getColumnDouble(4);
-        lastAccessed = selectStatement.getColumnDouble(5);
-        isSecure = (selectStatement.getColumnInt(6) != 0);
+        String name = selectStatement.getColumnText(0);
+        String value = selectStatement.getColumnText(1);
+        String domain = selectStatement.getColumnText(2);
+        String path = selectStatement.getColumnText(3);
+        double expiry = selectStatement.getColumnDouble(4);
+        double lastAccessed = selectStatement.getColumnDouble(5);
+        bool isSecure = (selectStatement.getColumnInt(6) != 0);
+        bool isHttpOnly = (selectStatement.getColumnInt(7) != 0);
 
-        cookies.append(new Cookie(name, value, domain, path, expiry, lastAccessed, isSecure));
+        cookies.append(new Cookie(name, value, domain, path, expiry, lastAccessed, isSecure, isHttpOnly));
     }
 
     return cookies;

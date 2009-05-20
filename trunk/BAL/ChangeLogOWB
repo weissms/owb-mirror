@@ -1,3 +1,30 @@
+2009-05-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Implement HttpOnly cookie option.
+
+        This is required in order to (securely) have access to cookie from JS.
+
+        This patch is inspired from the work of Joerg Strohmayer <j_s@gmx.de>,
+        tweaked and extended by me.
+
+        * Network/WebCore/Curl/BCCookieCurl.cpp:
+        (WebCore::Cookie::Cookie): Added isHttpOnly parameter for the
+        constructor that is called by the backing store.
+        * Network/WebCore/Curl/BCCookieCurl.h:
+        (WebCore::Cookie::isHttpOnly): Getter.
+        (WebCore::Cookie::setIsHttpOnly): Setter.
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
+        (WebCore::CookieParser::parseOneCookie): Added a case for "HttpOnly".
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCookieDatabaseBackingStoreCurl.cpp:
+        (WebCore::CookieBackingStore::open): Updated the create statement.
+        (WebCore::CookieBackingStore::insert): Updated the insert statement.
+        (WebCore::CookieBackingStore::update): Updated the update statement.
+        (WebCore::CookieBackingStore::getAllCookies): Updated the select
+        statement. Also avoided defining the variable and then initializing
+        them.
+
 2009-05-20  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Julien Chaffraix.

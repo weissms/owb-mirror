@@ -266,10 +266,23 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
 
             case 'S' :
             case 's' : {
+                // Secure is a standalone token ("Secure;")
                 if (length >= 6 && cookie.find("ecure", tokenStartSvg + 1, false))
                     res->setSecureFlag(true);
                 else {
                     LOG_ERROR("Invalid cookie %s (secure)", cookie.ascii().data());
+                    delete res;
+                    return 0;
+                }
+                break;
+            }
+            case 'H':
+            case 'h': {
+                // HttpOnly is a standalone token ("HttpOnly;")
+                if (length >= 8 && cookie.find("ttpOnly", tokenStartSvg + 1, false))
+                    res->setIsHttpOnly(true);
+                else {
+                    LOG_ERROR("Invalid cookie %s (HttpOnly)", cookie.ascii().data());
                     delete res;
                     return 0;
                 }

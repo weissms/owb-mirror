@@ -41,7 +41,7 @@ namespace WebCore {
         Cookie(double currentTime);
 
         // For backing store cookies (those cookies are never session cookies).
-        Cookie(const String& /*name*/, const String& /*value*/, const String& /*domain*/, const String& /*path*/, double /*expiry*/, double /*lastAccessed*/, bool /*isSecure*/);
+        Cookie(const String& /*name*/, const String& /*value*/, const String& /*domain*/, const String& /*path*/, double /*expiry*/, double /*lastAccessed*/, bool /*isSecure*/, bool /*isHttpOnly*/);
     
         ~Cookie();
 
@@ -67,6 +67,9 @@ namespace WebCore {
         bool isSecure() const { return m_isSecure; }
         void setSecureFlag(bool secure) { m_isSecure = secure; }
 
+        bool isHttpOnly() const { return m_isHttpOnly; }
+        void setIsHttpOnly(bool isHttpOnly) { m_isHttpOnly = isHttpOnly; }
+
         bool isSession() const { return m_isSession; }
 
         bool hasExpired() const;
@@ -79,6 +82,7 @@ namespace WebCore {
         String m_path;
         double m_expiry;
         bool m_isSecure;
+        bool m_isHttpOnly;
 
         bool m_isSession;
 

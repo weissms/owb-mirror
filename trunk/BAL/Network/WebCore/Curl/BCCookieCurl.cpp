@@ -37,18 +37,20 @@ Cookie::Cookie(double currentTime)
     : m_domain(String())
     , m_expiry(0)
     , m_isSecure(false)
+    , m_isHttpOnly(false)
     , m_isSession(true)
     , m_lastAccessed(currentTime)
 {
 }
 
-Cookie::Cookie(const String& name, const String& value, const String& domain, const String& path, double expiry, double lastAccessed, bool isSecure)
+Cookie::Cookie(const String& name, const String& value, const String& domain, const String& path, double expiry, double lastAccessed, bool isSecure, bool isHttpOnly)
     : m_name(name)
     , m_value(value)
     , m_domain(domain)
     , m_path(path)
     , m_expiry(expiry)
     , m_isSecure(isSecure)
+    , m_isHttpOnly(isHttpOnly)
     , m_isSession(false)
     , m_lastAccessed(lastAccessed)
 {
