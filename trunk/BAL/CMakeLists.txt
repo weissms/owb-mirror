@@ -4,6 +4,7 @@ include_directories(
 )
 set(BAL_DIR ../BAL)
 
+include(${BAL_DIR}/Accessibility/WebCore/CMakeLists.txt)
 include(${BAL_DIR}/Database/WebCore/CMakeLists.txt)
 include(${BAL_DIR}/Events/WebCore/CMakeLists.txt)
 include(${BAL_DIR}/Facilities/WebCore/CMakeLists.txt)

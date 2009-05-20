@@ -1,3 +1,30 @@
+2009-05-20  Mario Bensi  <mbensi@pleyo.com>
+
+        Move accessibility from Widget to Accessibility.
+
+        * Accessibility: Added.
+        * Accessibility/WebCore: Added.
+        * Accessibility/WebCore/CMakeLists.txt: Added.
+        * Accessibility/WebCore/Gtk: Added.
+        * Accessibility/WebCore/Gtk/AccessibilityObjectWrapperAtk.h: Copied from BAL/Widgets/WebCore/Gtk/AccessibilityObjectWrapperAtk.h.
+        * Accessibility/WebCore/Gtk/BCAXObjectCacheAtkGtk.cpp: Copied from BAL/Widgets/WebCore/Gtk/BCAXObjectCacheAtkGtk.cpp.
+        * Accessibility/WebCore/Gtk/BCAccessibilityObjectAtkGtk.cpp: Copied from BAL/Widgets/WebCore/Gtk/BCAccessibilityObjectAtkGtk.cpp.
+        * Accessibility/WebCore/Gtk/BCAccessibilityObjectWrapperAtkGtk.cpp: Copied from BAL/Widgets/WebCore/Gtk/BCAccessibilityObjectWrapperAtkGtk.cpp.
+        * Accessibility/WebCore/Qt: Added.
+        * Accessibility/WebCore/Qt/BCAccessibilityObjectQt.cpp: Copied from BAL/Widgets/WebCore/Qt/BCAccessibilityObjectQt.cpp.
+        * Accessibility/WebCore/SDL: Added.
+        * Accessibility/WebCore/SDL/BCAXObjectCacheSDL.cpp: Copied from BAL/Widgets/WebCore/SDL/BCAXObjectCacheSDL.cpp.
+        * Accessibility/WebCore/SDL/BCAccessibilityObjectSDL.cpp: Copied from BAL/Widgets/WebCore/SDL/BCAccessibilityObjectSDL.cpp.
+        * Accessibility/WebCore/SDL/BCAccessibilityObjectWrapperSDL.cpp: Copied from BAL/Widgets/WebCore/SDL/BCAccessibilityObjectWrapperSDL.cpp.
+        * Widgets/WebCore/Gtk/AccessibilityObjectWrapperAtk.h: Removed.
+        * Widgets/WebCore/Gtk/BCAXObjectCacheAtkGtk.cpp: Removed.
+        * Widgets/WebCore/Gtk/BCAccessibilityObjectAtkGtk.cpp: Removed.
+        * Widgets/WebCore/Gtk/BCAccessibilityObjectWrapperAtkGtk.cpp: Removed.
+        * Widgets/WebCore/Qt/BCAccessibilityObjectQt.cpp: Removed.
+        * Widgets/WebCore/SDL/BCAXObjectCacheSDL.cpp: Removed.
+        * Widgets/WebCore/SDL/BCAccessibilityObjectSDL.cpp: Removed.
+        * Widgets/WebCore/SDL/BCAccessibilityObjectWrapperSDL.cpp: Removed.
+
 2009-05-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
