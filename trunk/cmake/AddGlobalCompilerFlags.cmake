@@ -63,6 +63,7 @@ if(ENABLE_NPAPI)
     add_definitions(-DWTF_PLATFORM_X11=1)
     add_definitions(-DXP_UNIX)
     add_definitions(-DWTF_PLATFORM_X11)
+    add_definitions(-DENABLE_PLUGIN_PACKAGE_SIMPLE_HASH=1)
     add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
 else(ENABLE_NPAPI)
     #ugly hack due to a definition in wtf/Platform.h

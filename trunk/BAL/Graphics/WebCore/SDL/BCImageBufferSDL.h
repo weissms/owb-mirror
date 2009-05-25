@@ -32,8 +32,8 @@
 #include "Image.h"
 #include "IntSize.h"
 #include <wtf/OwnPtr.h>
+#include <wtf/PassOwnPtr.h>
 #include <wtf/PassRefPtr.h>
-#include <memory>
 
 #include "BALBase.h"
 
@@ -48,7 +48,15 @@ namespace WebCore {
 
     class ImageBuffer : Noncopyable {
     public:
-        static std::auto_ptr<ImageBuffer> create(const IntSize&, bool grayScale);
+        static PassOwnPtr<ImageBuffer> create(const IntSize& size, bool grayScale)
+        {
+            bool success = false;
+            OwnPtr<ImageBuffer> buf(new ImageBuffer(size, grayScale, success));
+            if (success)
+                return buf.release();
+            return 0;
+        }
+
         ~ImageBuffer();
 
         IntSize size() const { return m_size; }
@@ -72,7 +80,9 @@ namespace WebCore {
         OwnPtr<GraphicsContext> m_context;
         mutable RefPtr<Image> m_image;
 
-        ImageBuffer(BalSurface* surface);
+        // This constructor will place its success into the given out-variable
+        // so that create() knows when it should return failure.
+        ImageBuffer(const IntSize&, bool grayScale, bool& success);
         mutable BalSurface* m_surface;
     };
 

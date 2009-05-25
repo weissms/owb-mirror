@@ -200,7 +200,7 @@ void JSDOMWindow::setLocation(ExecState* exec, JSValue value)
     if (!activeFrame->loader()->shouldAllowNavigation(impl()->frame()))
         return;
     String dstUrl = activeFrame->loader()->completeURL(value.toString(exec)).string();
-    if (!protocolIs(dstUrl, "javascript") || allowsAccessFrom(exec)) {
+    if (!protocolIsJavaScript(dstUrl) || allowsAccessFrom(exec)) {
         bool userGesture = activeFrame->script()->processingUserGesture();
         // We want a new history item if this JS was called via a user gesture
         impl()->frame()->loader()->scheduleLocationChange(dstUrl, activeFrame->loader()->outgoingReferrer(), !activeFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
@@ -313,7 +313,7 @@ static Frame* createWindow(ExecState* exec, Frame* activeFrame, Frame* openerFra
     if (dialogArgs)
         newWindow->putDirect(Identifier(exec, "dialogArguments"), dialogArgs);
 
-    if (!protocolIs(url, "javascript") || newWindow->allowsAccessFrom(exec)) {
+    if (!protocolIsJavaScript(url) || newWindow->allowsAccessFrom(exec)) {
         KURL completedURL = url.isEmpty() ? KURL("") : activeFrame->document()->completeURL(url);
         bool userGesture = activeFrame->script()->processingUserGesture();
 
@@ -365,7 +365,7 @@ JSValue JSDOMWindow::open(ExecState* exec, const ArgList& args)
             completedURL = activeFrame->document()->completeURL(urlString).string();
 
         const JSDOMWindow* targetedWindow = toJSDOMWindow(frame);
-        if (!completedURL.isEmpty() && (!protocolIs(completedURL, "javascript") || (targetedWindow && targetedWindow->allowsAccessFrom(exec)))) {
+        if (!completedURL.isEmpty() && (!protocolIsJavaScript(completedURL) || (targetedWindow && targetedWindow->allowsAccessFrom(exec)))) {
             bool userGesture = activeFrame->script()->processingUserGesture();
             frame->loader()->scheduleLocationChange(completedURL, activeFrame->loader()->outgoingReferrer(), !activeFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
         }
@@ -478,7 +478,7 @@ JSValue JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)
 {
     DOMWindow* window = impl();
 
-    DOMWindow* source = asJSDOMWindow(exec->dynamicGlobalObject())->impl();
+    DOMWindow* source = asJSDOMWindow(exec->lexicalGlobalObject())->impl();
     String message = args.at(0).toString(exec);
 
     if (exec->hadException())

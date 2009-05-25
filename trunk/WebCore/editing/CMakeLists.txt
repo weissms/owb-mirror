@@ -46,11 +46,11 @@ list(APPEND WEBCORE_SRC
     editing/WrapContentsInDummySpanCommand.cpp
 )
 
-if(USE_I18N_ICU)
+if(USE_I18N_ICU OR USE_I18N_GLIB)
     list(APPEND WEBCORE_SRC
         editing/SmartReplaceICU.cpp
     )
-endif(USE_I18N_ICU)
+endif(USE_I18N_ICU OR USE_I18N_GLIB)
 
 if(USE_I18N_QT)
     list(APPEND WEBCORE_SRC

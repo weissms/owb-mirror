@@ -362,10 +362,6 @@
 #endif
 #endif /* !defined(HAVE_ACCESSIBILITY) */
 
-#if COMPILER(GCC)
-#define HAVE_COMPUTED_GOTO 1
-#endif
-
 #if PLATFORM(DARWIN)
 
 #define HAVE_ERRNO_H 1
@@ -380,9 +376,8 @@
 
 #if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
 #define HAVE_MADV_FREE_REUSE 1
-#endif
-
 #define HAVE_MADV_FREE 1
+#endif
 
 #elif PLATFORM(WIN_OS)
 
@@ -516,6 +511,7 @@
     #define ENABLE_JIT_OPTIMIZE_CALL 1
     #define ENABLE_JIT_OPTIMIZE_PROPERTY_ACCESS 1
     #define ENABLE_JIT_OPTIMIZE_ARITHMETIC 1
+    #define ENABLE_JIT_OPTIMIZE_METHOD_CALLS 1
 #endif
 
 #if ENABLE(JIT)
@@ -540,6 +536,16 @@
     #else
     #define JSC_HOST_CALL
     #endif
+#endif
+
+#if COMPILER(GCC) && !ENABLE(JIT)
+#define HAVE_COMPUTED_GOTO 1
+#endif
+
+#if ENABLE(JIT) && (defined(NDEBUG) || defined(COVERAGE))
+    #define WTF_USE_INTERPRETER 0
+#else
+    #define WTF_USE_INTERPRETER 1
 #endif
 
 /* Yet Another Regex Runtime. */

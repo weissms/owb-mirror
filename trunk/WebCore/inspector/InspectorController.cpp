@@ -1351,7 +1351,7 @@ void InspectorController::drawNodeHighlight(GraphicsContext& context) const
 
         // FIXME: We should show margins/padding/border for inlines.
         Vector<FloatQuad> lineBoxQuads;
-        renderInline->absoluteQuadsForRange(lineBoxQuads);
+        renderInline->absoluteQuads(lineBoxQuads);
         for (unsigned i = 0; i < lineBoxQuads.size(); ++i)
             lineBoxQuads[i] += mainFrameOffset;
 

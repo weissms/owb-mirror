@@ -63,34 +63,6 @@ namespace JSC {
 #endif
     };
 
-#if ENABLE(JIT)
-    // The code, and the associated pool from which it was allocated.
-    struct JITCodeRef {
-        JITCode code;
-#ifndef NDEBUG
-        unsigned codeSize;
-#endif
-        RefPtr<ExecutablePool> executablePool;
-
-        JITCodeRef()
-            : code(0)
-#ifndef NDEBUG
-            , codeSize(0)
-#endif
-        {
-        }
-        
-        JITCodeRef(void* code, PassRefPtr<ExecutablePool> executablePool)
-            : code(code)
-#ifndef NDEBUG
-            , codeSize(0)
-#endif
-            , executablePool(executablePool)
-        {
-        }
-    };
-#endif
-
     struct ExpressionRangeInfo {
         enum {
             MaxOffset = (1 << 7) - 1, 
@@ -132,6 +104,17 @@ namespace JSC {
         
         void setUnlinked() { callee = 0; }
         bool isLinked() { return callee; }
+    };
+
+    struct MethodCallLinkInfo {
+        MethodCallLinkInfo()
+            : cachedStructure(0)
+        {
+        }
+
+        MacroAssembler::CodeLocationCall callReturnLocation;
+        MacroAssembler::CodeLocationDataLabelPtr structureLabel;
+        Structure* cachedStructure;
     };
 
     struct FunctionRegisterInfo {
@@ -183,6 +166,11 @@ namespace JSC {
     inline void* getCallLinkInfoReturnLocation(CallLinkInfo* callLinkInfo)
     {
         return callLinkInfo->callReturnLocation.calleeReturnAddressValue();
+    }
+
+    inline void* getMethodCallLinkInfoReturnLocation(MethodCallLinkInfo* methodCallLinkInfo)
+    {
+        return methodCallLinkInfo->callReturnLocation.calleeReturnAddressValue();
     }
 
     inline unsigned getCallReturnOffset(CallReturnOffsetToBytecodeIndex* pc)
@@ -309,10 +297,15 @@ namespace JSC {
             return *(binaryChop<CallLinkInfo, void*, getCallLinkInfoReturnLocation>(m_callLinkInfos.begin(), m_callLinkInfos.size(), returnAddress));
         }
 
+        MethodCallLinkInfo& getMethodCallLinkInfo(void* returnAddress)
+        {
+            return *(binaryChop<MethodCallLinkInfo, void*, getMethodCallLinkInfoReturnLocation>(m_methodCallLinkInfos.begin(), m_methodCallLinkInfos.size(), returnAddress));
+        }
+
         unsigned getBytecodeIndex(CallFrame* callFrame, void* nativePC)
         {
             reparseForExceptionInfoIfNecessary(callFrame);
-            return binaryChop<CallReturnOffsetToBytecodeIndex, unsigned, getCallReturnOffset>(m_exceptionInfo->m_callReturnIndexVector.begin(), m_exceptionInfo->m_callReturnIndexVector.size(), m_jitCode.code.offsetOf(nativePC))->bytecodeIndex;
+            return binaryChop<CallReturnOffsetToBytecodeIndex, unsigned, getCallReturnOffset>(m_exceptionInfo->m_callReturnIndexVector.begin(), m_exceptionInfo->m_callReturnIndexVector.size(), ownerNode()->generatedJITCode().offsetOf(nativePC))->bytecodeIndex;
         }
         
         bool functionRegisterForBytecodeOffset(unsigned bytecodeOffset, int& functionRegisterIndex);
@@ -327,9 +320,8 @@ namespace JSC {
 #endif
 
 #if ENABLE(JIT)
-        void setJITCode(JITCodeRef& jitCode);
-        JITCode jitCode() { return m_jitCode.code; }
-        ExecutablePool* executablePool() { return m_jitCode.executablePool.get(); }
+        void setJITCode(JITCode);
+        ExecutablePool* executablePool() { return ownerNode()->getExecutablePool(); }
 #endif
 
         ScopeNode* ownerNode() const { return m_ownerNode; }
@@ -372,6 +364,9 @@ namespace JSC {
         size_t numberOfCallLinkInfos() const { return m_callLinkInfos.size(); }
         void addCallLinkInfo() { m_callLinkInfos.append(CallLinkInfo()); }
         CallLinkInfo& callLinkInfo(int index) { return m_callLinkInfos[index]; }
+
+        void addMethodCallLinkInfos(unsigned n) { m_methodCallLinkInfos.grow(n); }
+        MethodCallLinkInfo& methodCallLinkInfo(int index) { return m_methodCallLinkInfos[index]; }
 
         void addFunctionRegisterInfo(unsigned bytecodeOffset, int functionIndex) { createRareDataIfNecessary(); m_rareData->m_functionRegisterInfos.append(FunctionRegisterInfo(bytecodeOffset, functionIndex)); }
 #endif
@@ -473,9 +468,6 @@ namespace JSC {
 #ifndef NDEBUG
         unsigned m_instructionCount;
 #endif
-#if ENABLE(JIT)
-        JITCodeRef m_jitCode;
-#endif
 
         int m_thisRegister;
 
@@ -496,6 +488,7 @@ namespace JSC {
         Vector<StructureStubInfo> m_structureStubInfos;
         Vector<GlobalResolveInfo> m_globalResolveInfos;
         Vector<CallLinkInfo> m_callLinkInfos;
+        Vector<MethodCallLinkInfo> m_methodCallLinkInfos;
         Vector<CallLinkInfo*> m_linkedCallerList;
 #endif
 

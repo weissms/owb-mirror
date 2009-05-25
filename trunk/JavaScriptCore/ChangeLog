@@ -1,3 +1,561 @@
+2009-05-25  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix for experimental PGO Windows target.
+        
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2009-05-23  David Kilzer  <ddkilzer@apple.com>
+
+        Part 1 of 2: Bug 25495: Implement PassOwnPtr and replace uses of std::auto_ptr
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25495>
+
+        Reviewed by Oliver Hunt.
+
+        * GNUmakefile.am: Added OwnPtrCommon.h and PassOwnPtr.h.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Ditto.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Ditto.
+
+        * wtf/OwnPtr.h:
+        (WTF::OwnPtr::OwnPtr): Added constructors that take a
+        PassOwnPtr.  Also added a copy constructor declaration that's
+        required when assigning a PassOwnPtr to a stack-based OwnPtr.
+        (WTF::operator=): Added assignment operator methods that take a
+        PassOwnPtr.
+        (WTF::swap): Reformatted.
+        (WTF::operator==): Whitespace changes.
+        (WTF::operator!=): Ditto.
+
+        * wtf/OwnPtrCommon.h: Added.
+        (WTF::deleteOwnedPtr):
+
+        * wtf/PassOwnPtr.h: Added.
+        (WTF::PassOwnPtr::PassOwnPtr):
+        (WTF::PassOwnPtr::~PassOwnPtr):
+        (WTF::PassOwnPtr::get):
+        (WTF::PassOwnPtr::clear):
+        (WTF::PassOwnPtr::release):
+        (WTF::PassOwnPtr::operator*):
+        (WTF::PassOwnPtr::operator->):
+        (WTF::PassOwnPtr::operator!):
+        (WTF::PassOwnPtr::operator UnspecifiedBoolType):
+        (WTF::::operator):
+        (WTF::operator==):
+        (WTF::operator!=):
+        (WTF::static_pointer_cast):
+        (WTF::const_pointer_cast):
+        (WTF::getPtr):
+
+2009-05-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove interpreter specific logic from the JIT builds.
+
+        This saves ~100k in JSC release builds.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * interpreter/Interpreter.h:
+        * wtf/Platform.h:
+
+2009-05-22  Mark Rowe  <mrowe@apple.com>
+
+        Part two of an attempted Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-05-22  Mark Rowe  <mrowe@apple.com>
+
+        Part one of an attempted Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-05-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        op_method_check
+
+        Optimize method calls, by caching specific function values within the Structure.
+        The new opcode is used almost like an x86 opcode prefix byte to optimize op_get_by_id,
+        where the property access is being used to read a function to be passed to op-call (i.e.
+        'foo.bar();').  This patch modifies the Structure class such that when a property is
+        put to an object for the first time we will check if the value is a function.  If it is,
+        we will cache the function value on the Structure.  A Structure in such a state guarantees
+        that not only does a property with the given identifier exist on the object, but also that
+        its value is unchanged.  Upon any further attempt to put a property with the same identifier
+        (but a different value) to the object, it will transition back to a normal Structure (where
+        it will guarantee the presence but not the value of the property).
+
+        op_method_check makes use of the new information made available by the Structure, by
+        augmenting the functionality of op_get_by_id.  Upon generating a FunctionCallDotNode a
+        check will be emitted prior to the property access reading the function value, and the JIT
+        will generate an extra (initially unlinked but patchable) set of checks prior to the regular
+        JIT code for get_by_id.  The new code will do inline structure and prototype structure check
+        (unlike a regular get_by_id, which can only handle 'self' accesses inline), and then performs
+        an immediate load of the function value, rather than using memory accesses to load the value
+        from the obejct's property storage array.  If the method check fails it will revert, or if
+        the access is polymorphic, the op_get_by_id will continue to operate - and optimize itself -
+        just as any other regular op_get_by_id would.
+
+        ~2.5% on v8-tests, due to a ~9% progression on richards.
+
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::put):
+        (JSC::::staticFunctionGetter):
+        * API/JSObjectRef.cpp:
+        (JSObjectMakeConstructor):
+        * JavaScriptCore.exp:
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::differenceBetween):
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::moveWithPatch):
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/CodeBlock.h:
+        (JSC::getMethodCallLinkInfoReturnLocation):
+        (JSC::CodeBlock::getMethodCallLinkInfo):
+        (JSC::CodeBlock::addMethodCallLinkInfos):
+        (JSC::CodeBlock::methodCallLinkInfo):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitMethodCheck):
+        * bytecompiler/BytecodeGenerator.h:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompile):
+        * jit/JIT.h:
+        (JSC::MethodCallCompilationInfo::MethodCallCompilationInfo):
+        * jit/JITOpcodes.cpp:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::emitSlow_op_method_check):
+        (JSC::JIT::emit_op_get_by_id):
+        (JSC::JIT::emitSlow_op_get_by_id):
+        (JSC::JIT::emit_op_put_by_id):
+        (JSC::JIT::emitSlow_op_put_by_id):
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compileGetByIdSlowCase):
+        (JSC::JIT::patchMethodCallProto):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_get_by_id_method_check):
+        (JSC::JITStubs::cti_op_get_by_id_method_check_second):
+        * jit/JITStubs.h:
+        * jsc.cpp:
+        (GlobalObject::GlobalObject):
+        * parser/Nodes.cpp:
+        (JSC::FunctionCallDotNode::emitBytecode):
+        * runtime/Arguments.cpp:
+        (JSC::Arguments::put):
+        * runtime/ArrayConstructor.cpp:
+        (JSC::ArrayConstructor::ArrayConstructor):
+        * runtime/BooleanConstructor.cpp:
+        (JSC::BooleanConstructor::BooleanConstructor):
+        * runtime/DateConstructor.cpp:
+        (JSC::DateConstructor::DateConstructor):
+        * runtime/ErrorConstructor.cpp:
+        (JSC::ErrorConstructor::ErrorConstructor):
+        (JSC::constructError):
+        * runtime/ErrorPrototype.cpp:
+        (JSC::ErrorPrototype::ErrorPrototype):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::FunctionConstructor::FunctionConstructor):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::FunctionPrototype):
+        * runtime/InternalFunction.cpp:
+        (JSC::InternalFunction::InternalFunction):
+        * runtime/JSActivation.cpp:
+        (JSC::JSActivation::put):
+        (JSC::JSActivation::putWithAttributes):
+        * runtime/JSByteArray.cpp:
+        (JSC::JSByteArray::JSByteArray):
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::getOwnPropertySlot):
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::putWithAttributes):
+        (JSC::JSGlobalObject::reset):
+        (JSC::JSGlobalObject::mark):
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObjectData::JSGlobalObjectData):
+        (JSC::JSGlobalObject::methodCallDummy):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::put):
+        (JSC::JSObject::putWithAttributes):
+        (JSC::JSObject::deleteProperty):
+        (JSC::JSObject::defineGetter):
+        (JSC::JSObject::defineSetter):
+        (JSC::JSObject::getPropertyAttributes):
+        (JSC::JSObject::getPropertySpecificFunction):
+        (JSC::JSObject::putDirectFunction):
+        (JSC::JSObject::putDirectFunctionWithoutTransition):
+        * runtime/JSObject.h:
+        (JSC::getJSFunction):
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::putDirect):
+        (JSC::JSObject::putDirectWithoutTransition):
+        * runtime/LiteralParser.cpp:
+        (JSC::LiteralParser::parseObject):
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+        * runtime/Lookup.h:
+        (JSC::lookupPut):
+        * runtime/MathObject.cpp:
+        (JSC::MathObject::MathObject):
+        * runtime/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::NativeErrorConstructor):
+        (JSC::NativeErrorConstructor::construct):
+        * runtime/NativeErrorPrototype.cpp:
+        (JSC::NativeErrorPrototype::NativeErrorPrototype):
+        * runtime/NumberConstructor.cpp:
+        (JSC::NumberConstructor::NumberConstructor):
+        * runtime/ObjectConstructor.cpp:
+        (JSC::ObjectConstructor::ObjectConstructor):
+        * runtime/PropertyMapHashTable.h:
+        (JSC::PropertyMapEntry::PropertyMapEntry):
+        * runtime/PrototypeFunction.cpp:
+        (JSC::PrototypeFunction::PrototypeFunction):
+        * runtime/PutPropertySlot.h:
+        (JSC::PutPropertySlot::):
+        (JSC::PutPropertySlot::PutPropertySlot):
+        (JSC::PutPropertySlot::setNewProperty):
+        (JSC::PutPropertySlot::setDespecifyFunctionProperty):
+        (JSC::PutPropertySlot::isCacheable):
+        (JSC::PutPropertySlot::cachedOffset):
+        * runtime/RegExpConstructor.cpp:
+        (JSC::RegExpConstructor::RegExpConstructor):
+        * runtime/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+        * runtime/StringPrototype.cpp:
+        (JSC::StringPrototype::StringPrototype):
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure):
+        (JSC::Structure::~Structure):
+        (JSC::Structure::materializePropertyMap):
+        (JSC::Structure::addPropertyTransitionToExistingStructure):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::changeFunctionTransition):
+        (JSC::Structure::addPropertyWithoutTransition):
+        (JSC::Structure::get):
+        (JSC::Structure::despecifyFunction):
+        (JSC::Structure::put):
+        (JSC::Structure::remove):
+        * runtime/Structure.h:
+        (JSC::Structure::get):
+        (JSC::Structure::specificFunction):
+        * runtime/StructureTransitionTable.h:
+        (JSC::StructureTransitionTableHashTraits::emptyValue):
+        * wtf/Platform.h:
+
+2009-05-22  Brent Fulgham <bfulgham@webkit.org>
+
+        Reviewed by Steve Falkenburg.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25950
+        JavaScriptCore Fails to build on Windows (Cairo) due to CoreFoundation
+        link requirement.
+
+        Modify project to add new Debug_CFLite and Release_CFLite targets.  These
+        use the new JavaScriptCoreCFLite.vsprops to link against CFLite.dll.
+        Existing projects are changed to use the new JavaScriptCoreCF.vsprops
+        to link against CoreFoundation.dll.
+
+        The JavaScriptCoreCommon.vsprops is modified to remove the link
+        against CoreFoundation.dll.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCF.vsprops: Added.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCFLite.vsprops: Added.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops:
+
+2009-05-22  Dominik Röttsches  <dominik.roettsches@access-company.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15914
+        [GTK] Implement Unicode functionality using GLib
+
+        Original patch by Jürg Billeter and Naiem Shaik.
+        Implementing WTF Unicode functionality based on GLib.
+
+        * GNUmakefile.am:
+        * wtf/unicode/Unicode.h:
+        * wtf/unicode/glib: Added.
+        * wtf/unicode/glib/UnicodeGLib.cpp: Added.
+        (WTF::Unicode::foldCase):
+        (WTF::Unicode::toLower):
+        (WTF::Unicode::toUpper):
+        (WTF::Unicode::direction):
+        (WTF::Unicode::umemcasecmp):
+        * wtf/unicode/glib/UnicodeGLib.h: Added.
+        (WTF::Unicode::):
+        (WTF::Unicode::toLower):
+        (WTF::Unicode::toUpper):
+        (WTF::Unicode::toTitleCase):
+        (WTF::Unicode::isArabicChar):
+        (WTF::Unicode::isFormatChar):
+        (WTF::Unicode::isSeparatorSpace):
+        (WTF::Unicode::isPrintableChar):
+        (WTF::Unicode::isDigit):
+        (WTF::Unicode::isPunct):
+        (WTF::Unicode::mirroredChar):
+        (WTF::Unicode::category):
+        (WTF::Unicode::isLower):
+        (WTF::Unicode::digitValue):
+        (WTF::Unicode::combiningClass):
+        (WTF::Unicode::decompositionType):
+        * wtf/unicode/glib/UnicodeMacrosFromICU.h: Added.
+
+2009-05-21  Xan Lopez  <xlopez@igalia.com>
+
+        Unreviewed build fix.
+
+        Add MacroAssemblerCodeRef.h to file list.
+
+        * GNUmakefile.am:
+
+2009-05-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+        Addition of MacroAssemblerCodeRef.h rubber stamped by Geoff Garen.
+
+        Refactor JIT code-handle objects.  The representation of generated code is currently
+        a bit of a mess.  We have a class JITCode which wraps the pointer to a block of
+        generated code, but this object does not reference the executable pool meaning that
+        external events (the pool being derefed) could make the pointer become invalid.
+        To overcome this both the JIT and Yarr implement further (and similar) objects to
+        wrap the code pointer with a RefPtr to the pool.  To add to the mire, as well as the
+        CodeBlock containing a handle onto the code the FunctionBodyNode also contains a
+        copy of the code pointer which is used almost (but not entirely) uniquely to access
+        the JIT code for a function.
+
+        Rationalization of all this:
+
+            * Add a new type 'MacroAssembler::CodeRef' as a handle for a block of JIT generated code.
+            * Change the JIT & Yarr to internally handle code using CodeRefs.
+            * Move the CodeRef (formerly anow defunct JITCodeRef) from CodeBlock to its owner node.
+            * Remove the (now) redundant code pointer from FunctionBodyNode.
+
+        While tidying this up I've made the PatchBuffer return code in new allocations using a CodeRef,
+        and have enforced an interface that the PatchBuffer will always be used, and 'finalizeCode()' or
+        'finalizeCodeAddendum()' will always be called exactly once on the PatchBuffer to complete code generation.
+
+        This gives us a potentially useful hook ('PatchBuffer::performFinalization()') at the end of generation,
+        which may have a number of uses.  It may be helpful should we wish to switch our generation
+        model to allow RW/RX exclusive memory, and it may be useful on non-cache-coherent platforms to
+        give us an oportunity to cache flush as necessary.
+
+        No performance impact.
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkCallerToTrampoline):
+        (JSC::AbstractMacroAssembler::CodeRef::CodeRef):
+        (JSC::AbstractMacroAssembler::CodeRef::trampolineAt):
+        (JSC::AbstractMacroAssembler::PatchBuffer::PatchBuffer):
+        (JSC::AbstractMacroAssembler::PatchBuffer::~PatchBuffer):
+        (JSC::AbstractMacroAssembler::PatchBuffer::link):
+        (JSC::AbstractMacroAssembler::PatchBuffer::linkTailRecursive):
+        (JSC::AbstractMacroAssembler::PatchBuffer::patch):
+        (JSC::AbstractMacroAssembler::PatchBuffer::complete):
+        (JSC::AbstractMacroAssembler::PatchBuffer::finalize):
+        (JSC::AbstractMacroAssembler::PatchBuffer::entry):
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::CodeBlock):
+        (JSC::CodeBlock::reparseForExceptionInfoIfNecessary):
+        (JSC::CodeBlock::setJITCode):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::getBytecodeIndex):
+        (JSC::CodeBlock::executablePool):
+        * interpreter/CallFrameClosure.h:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        (JSC::Interpreter::prepareForRepeatCall):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        (JSC::JIT::linkCall):
+        * jit/JIT.h:
+        * jit/JITCode.h:
+        (JSC::JITCode::JITCode):
+        (JSC::JITCode::operator bool):
+        (JSC::JITCode::addressForCall):
+        (JSC::JITCode::offsetOf):
+        (JSC::JITCode::execute):
+        (JSC::JITCode::size):
+        (JSC::JITCode::executablePool):
+        (JSC::JITCode::HostFunction):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_vm_dontLazyLinkCall):
+        (JSC::JITStubs::cti_vm_lazyLinkCall):
+        * parser/Nodes.cpp:
+        (JSC::ProgramNode::generateJITCode):
+        (JSC::EvalNode::generateJITCode):
+        (JSC::FunctionBodyNode::FunctionBodyNode):
+        (JSC::FunctionBodyNode::createNativeThunk):
+        (JSC::FunctionBodyNode::generateJITCode):
+        * parser/Nodes.h:
+        (JSC::ScopeNode::generatedJITCode):
+        (JSC::ScopeNode::getExecutablePool):
+        (JSC::ScopeNode::setJITCode):
+        (JSC::ProgramNode::jitCode):
+        (JSC::EvalNode::jitCode):
+        (JSC::FunctionBodyNode::jitCode):
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::match):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::compile):
+        (JSC::Yarr::jitCompileRegex):
+        (JSC::Yarr::executeRegex):
+        * yarr/RegexJIT.h:
+        (JSC::Yarr::RegexCodeBlock::RegexCodeBlock):
+        (JSC::Yarr::RegexCodeBlock::pcreFallback):
+        (JSC::Yarr::RegexCodeBlock::setFallback):
+        (JSC::Yarr::RegexCodeBlock::operator bool):
+        (JSC::Yarr::RegexCodeBlock::set):
+        (JSC::Yarr::RegexCodeBlock::execute):
+
+2009-05-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        <rdar://problem/6910264> REGRESSION: Cached DOM global object property access fails in browser (25921)
+        <https://bugs.webkit.org/show_bug.cgi?id=25921>
+
+        When caching properties on the global object we need to ensure that we're
+        not attempting to cache through a shell object.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolveGlobal):
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_resolve_global):
+
+2009-05-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops:
+
+2009-05-21  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 25945: Add support for MADV_FREE to TCMalloc
+        <https://bugs.webkit.org/show_bug.cgi?id=25945>
+        <rdar://problem/6910754>
+
+        Add support for MADV_FREE to TCMalloc_SystemRelease for platforms that
+        don't also support MADV_FREE_REUSE. The code is identical to the MADV_DONTNEED
+        case except for the advice passed to madvise(), so combining the two cases
+        makes the most sense.
+
+        * wtf/Platform.h: Only define HAVE_MADV_FREE when not building on Tiger or
+        Leopard, because while it is defined on these platforms it actually does
+        nothing.
+        * wtf/TCSystemAlloc.cpp:
+        (TCMalloc_SystemRelease): use MADV_FREE if it is available; otherwise use
+        MADV_DONTNEED.
+
+2009-05-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=25917> / <rdar://problem/6910066>.
+        Bug 25917: REGRESSION (r43559?): Javascript debugger crashes when pausing page
+
+        The debugger currently retrieves the arguments object from an activation rather than pulling
+        it from a call frame.  This is unreliable to due to the recent optimization to lazily create
+        the arguments object.  In the long-term it should stop doing that (<rdar://problem/6911886>),
+        but for now we force eager creation of the arguments object when debugging.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+
+2009-05-21  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 25912: Harden NumberPrototype.cpp by removing use of strcpy()
+        <https://bugs.webkit.org/show_bug.cgi?id=25912>
+
+        This causes no change on SunSpider.
+
+        * runtime/NumberPrototype.cpp:
+        (JSC::integerPartNoExp): replace strcpy() with memcpy(), ASSERT that the
+        temporary buffer has sufficient space to store the result, and move the
+        explicit null-termination closer to the memcpy() for easier visual inspection
+        of the code.
+        (JSC::fractionalPartToString): replace strcpy() with memcpy(), and ASSERT
+        that the temporary buffer has sufficient space to store the result. There
+        is no explicit null-termination because this is done by the caller. The
+        same is already true for exponentialPartToString().
+        (JSC::numberProtoFuncToExponential): replace strcpy() with memcpy(), explicitly
+        null-terminate the result, and ASSERT that the temporary buffer has sufficient
+        space to store the result.
+
+2009-05-20  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Cleanup the JSGlobalData when exiting early with the usage statement in jsc.
+
+        * jsc.cpp:
+        (printUsageStatement):
+        (parseArguments):
+        (jscmain):
+
+2009-05-20  Stephanie Lewis  <slewis@apple.com>
+
+        Update the order files.  <rdar://problem/6881750> Generate new order files.
+
+        * JavaScriptCore.order:
+
+2009-05-19  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Replace WREC with YARR + YARR_JIT for the Qt port. This is only
+        used when compiled with JIT support for now, so it is a drop-in
+        replacement for the WREC usage. Still including the wrec headers
+        as they are being referred from RegExp.h, though the contents of
+        that header it protected by "#if ENABLE(WREC)".
+
+        * JavaScriptCore.pri:
+
+2009-05-20  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix GTK debug build.
+
+        The function dumpDisjunction, compiled with debug enabled, uses
+        printf, which needs stdio.h to be included.
+
+        * yarr/RegexInterpreter.cpp:
+
+2009-05-20  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by George Staikos.
+
+        BUG 25843: [Qt] Remove qt-port build flag
+        <https://bugs.webkit.org/show_bug.cgi?id=25843>
+
+        * JavaScriptCore.pro:
+
+
 2009-05-20  Geoffrey Garen  <ggaren@apple.com>
 
         Windows build fix.

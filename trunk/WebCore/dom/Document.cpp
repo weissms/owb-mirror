@@ -2596,6 +2596,18 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
 #if PLATFORM(MAC) && !PLATFORM(CHROMIUM)
     if (!focusChangeBlocked && m_focusedNode && AXObjectCache::accessibilityEnabled())
         axObjectCache()->handleFocusedUIElementChanged();
+#elif PLATFORM(GTK)
+    if (!focusChangeBlocked && m_focusedNode && AXObjectCache::accessibilityEnabled()) {
+        RenderObject* oldFocusedRenderer = 0;
+        RenderObject* newFocusedRenderer = 0;
+
+        if (oldFocusedNode)
+            oldFocusedRenderer = oldFocusedNode.get()->renderer();
+        if (newFocusedNode)
+            newFocusedRenderer = newFocusedNode.get()->renderer();
+
+        axObjectCache()->handleFocusedUIElementChangedWithRenderers(oldFocusedRenderer, newFocusedRenderer);
+    }
 #endif
 
 SetFocusedNodeDone:
@@ -2848,7 +2860,7 @@ void Document::setCookie(const String& value)
     if (cookieURL.isEmpty())
         return;
 
-    setCookies(this, cookieURL, policyBaseURL(), value);
+    setCookies(this, cookieURL, value);
 }
 
 String Document::referrer() const

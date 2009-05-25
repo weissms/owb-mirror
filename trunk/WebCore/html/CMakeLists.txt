@@ -86,6 +86,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLViewSourceDocument.cpp
     html/ImageData.cpp
     html/PreloadScanner.cpp
+    html/TimeRanges.cpp
 )
 list(APPEND IDL_SRC
     html/CanvasGradient.idl
@@ -96,6 +97,7 @@ list(APPEND IDL_SRC
     html/HTMLAnchorElement.idl
     html/HTMLAppletElement.idl
     html/HTMLAreaElement.idl
+    html/HTMLAudioElement.idl
     html/HTMLBaseElement.idl
     html/HTMLBaseFontElement.idl
     html/HTMLBlockquoteElement.idl
@@ -129,6 +131,7 @@ list(APPEND IDL_SRC
     html/HTMLLinkElement.idl
     html/HTMLMapElement.idl
     html/HTMLMarqueeElement.idl
+    html/HTMLMediaElement.idl
     html/HTMLMenuElement.idl
     html/HTMLMetaElement.idl
     html/HTMLModElement.idl
@@ -143,6 +146,7 @@ list(APPEND IDL_SRC
     html/HTMLQuoteElement.idl
     html/HTMLScriptElement.idl
     html/HTMLSelectElement.idl
+    html/HTMLSourceElement.idl
     html/HTMLStyleElement.idl
     html/HTMLTableCaptionElement.idl
     html/HTMLTableCellElement.idl
@@ -153,8 +157,12 @@ list(APPEND IDL_SRC
     html/HTMLTextAreaElement.idl
     html/HTMLTitleElement.idl
     html/HTMLUListElement.idl
+    html/HTMLVideoElement.idl
     html/ImageData.idl
+    html/MediaError.idl
     html/TextMetrics.idl
+    html/TimeRanges.idl
+    html/VoidCallback.idl
 )
 
 if(ENABLE_VIDEO)
@@ -163,16 +171,5 @@ if(ENABLE_VIDEO)
         html/HTMLMediaElement.cpp
         html/HTMLSourceElement.cpp
         html/HTMLVideoElement.cpp
-        html/TimeRanges.cpp
-    )
-
-    list(APPEND IDL_SRC
-        html/HTMLAudioElement.idl
-        html/HTMLMediaElement.idl
-        html/HTMLSourceElement.idl
-        html/HTMLVideoElement.idl
-        html/MediaError.idl
-        html/TimeRanges.idl
-        html/VoidCallback.idl
     )
 endif(ENABLE_VIDEO)

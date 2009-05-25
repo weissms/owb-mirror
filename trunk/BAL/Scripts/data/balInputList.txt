@@ -62,8 +62,6 @@ BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/FileChooserGtk.cpp	BCFileChooser
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/Language.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/LoggingGtk.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETypeRegistryGtk.cpp
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/guriescape.c
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/guriescape.h
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/FileChooserQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/LoggingQt.cpp
 BAL/Facilities/WebCore/Qt	WebCore/platform/qt/MIMETypeRegistryQt.cpp
@@ -206,6 +204,8 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/Pen.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/StrokeStyleApplier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
@@ -307,6 +307,10 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
@@ -367,6 +371,7 @@ BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDeco
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/Collator.h
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/UTF8.h
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h
 BAL/Skeletons/Internationalization	WebCore/platform/LocalizedStrings.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/AtomicString.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/AtomicStringImpl.h
@@ -401,6 +406,9 @@ BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/Collator.h
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/CollatorDefault.cpp
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.cpp
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.h
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.cpp
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeMacrosFromICU.h
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCUnicodeICU.h
 BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
@@ -672,6 +680,8 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/Noncopyable.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/NotFound.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnArrayPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/OwnPtrCommon.h
+BAL/Skeletons/Types JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PassRefPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCounted.h
@@ -735,6 +745,8 @@ BAL/Types/WTF	JavaScriptCore/wtf/Noncopyable.h
 BAL/Types/WTF	JavaScriptCore/wtf/NotFound.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnArrayPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/OwnPtrCommon.h
+BAL/Types/WTF   JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/PassRefPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCounted.h

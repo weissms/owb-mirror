@@ -602,6 +602,14 @@ void WebEditorClient::checkGrammarOfString(const UChar* text, int length, Vector
     }*/
 }
 
+String WebEditorClient::getAutoCorrectSuggestionForMisspelledWord(const String& inputWord)
+{
+    // This method can be implemented using customized algorithms for the particular browser.
+    // Currently, it computes an empty string.
+    return String();
+}
+
+
 void WebEditorClient::updateSpellingUIWithGrammarString(const String& string, const WebCore::GrammarDetail& detail)
 {
     /*COMPtr<IWebEditingDelegate> ed;

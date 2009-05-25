@@ -2,6 +2,7 @@ if(ENABLE_SVG)
     list(APPEND WEBCORE_SRC
         svg/ColorDistance.cpp
         svg/Filter.cpp
+        svg/FilterBuilder.cpp
         svg/FilterEffect.cpp
         svg/SVGAElement.cpp
         svg/SVGAltGlyphElement.cpp

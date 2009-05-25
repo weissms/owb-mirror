@@ -5,6 +5,21 @@ if(USE_I18N STREQUAL "GENERIC")
     mark_as_advanced(USE_I18N_GENERIC)
 endif(USE_I18N STREQUAL "GENERIC")
 
+
+if(USE_I18N STREQUAL "GLIB")
+    pkg_check_modules(I18NGLIB REQUIRED glib-2.0)
+    pkg_check_modules(I18NPANGO REQUIRED pango)
+    find_package(ICU REQUIRED)
+    if(NOT ICU_FOUND)
+        message(FATAL_ERROR "icu package not found. Install it to be able to compile owb.")
+    endif(NOT ICU_FOUND)
+    set(I18N_INCLUDE_DIRS ${I18NGLIB_INCLUDE_DIRS} ${I18NPANGO_INCLUDE_DIRS} ${ICU_INCLUDE})
+    set(I18N_LIBRARIES ${I18NGLIB_LIBRARY} ${I18NPANGO_LIBRARY} ${ICU_LIBRARY})
+
+    set(USE_I18N_GLIB TRUE)
+    mark_as_advanced(USE_I18N_GLIB)
+endif(USE_I18N STREQUAL "GLIB")
+
 if(USE_I18N STREQUAL "ICU")
     find_package(ICU REQUIRED)
     if(NOT ICU_FOUND)
@@ -19,7 +34,7 @@ endif(USE_I18N STREQUAL "ICU")
 
 if(USE_I18N STREQUAL "QT")
     pkg_check_modules(QTI18N REQUIRED QtCore)
-    set(I18N_INCLUDE_DIRS ${QTI18N_INCLUDE})
+    set(I18N_INCLUDE_DIRS ${QTI18N_INCLUDE_DIRS})
     set(I18N_LIBRARIES ${QTI18N_LIBRARY})
 
     set(USE_I18N_QT TRUE)

@@ -49,4 +49,7 @@ void AXObjectCache::handleFocusedUIElementChanged()
 {
 }
 
+void AXObjectCache::handleFocusedUIElementChangedWithRenderers(RenderObject*, RenderObject*)
+{
+}
 } // namespace WebCore

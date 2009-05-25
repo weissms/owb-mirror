@@ -827,6 +827,10 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             printf("[%4d] put_setter\t %s, %s, %s\n", location, registerName(r0).c_str(), idName(id0, m_identifiers[id0]).c_str(), registerName(r1).c_str());
             break;
         }
+        case op_method_check: {
+            printf("[%4d] op_method_check\n", location);
+            break;
+        }
         case op_del_by_id: {
             int r0 = (++it)->u.operand;
             int r1 = (++it)->u.operand;
@@ -1310,6 +1314,11 @@ CodeBlock::~CodeBlock()
             callLinkInfo->callee->removeCaller(callLinkInfo);
     }
 
+    for (size_t size = m_methodCallLinkInfos.size(), i = 0; i < size; ++i) {
+        if (Structure* structure = m_methodCallLinkInfos[i].cachedStructure)
+            structure->deref();
+    }
+
     unlinkCallers();
 #endif
 
@@ -1463,7 +1472,7 @@ void CodeBlock::reparseForExceptionInfoIfNecessary(CallFrame* callFrame)
 
 #if ENABLE(JIT)
             JIT::compile(m_globalData, &newCodeBlock);
-            ASSERT(newCodeBlock.m_jitCode.codeSize == m_jitCode.codeSize);
+            ASSERT(newFunctionBody->generatedJITCode().size() == ownerNode()->generatedJITCode().size());
 #endif
 
             m_exceptionInfo.set(newCodeBlock.m_exceptionInfo.release());
@@ -1484,7 +1493,7 @@ void CodeBlock::reparseForExceptionInfoIfNecessary(CallFrame* callFrame)
 
 #if ENABLE(JIT)
             JIT::compile(m_globalData, &newCodeBlock);
-            ASSERT(newCodeBlock.m_jitCode.codeSize == m_jitCode.codeSize);
+            ASSERT(newEvalBody->generatedJITCode().size() == ownerNode()->generatedJITCode().size());
 #endif
 
             m_exceptionInfo.set(newCodeBlock.m_exceptionInfo.release());
@@ -1678,9 +1687,9 @@ bool CodeBlock::hasGlobalResolveInfoAtBytecodeOffset(unsigned bytecodeOffset)
 #endif
 
 #if ENABLE(JIT)
-void CodeBlock::setJITCode(JITCodeRef& jitCode)
+void CodeBlock::setJITCode(JITCode jitCode)
 {
-    m_jitCode = jitCode;
+    ownerNode()->setJITCode(jitCode);
 #if !ENABLE(OPCODE_SAMPLING)
     if (!BytecodeGenerator::dumpsGeneratedCode())
         m_instructions.clear();

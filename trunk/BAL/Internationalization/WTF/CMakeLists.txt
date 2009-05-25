@@ -6,6 +6,13 @@ if(USE_I18N_GENERIC)
     aux_source_directory(${BAL_DIR}/Internationalization/WTF/Generic WTF_SRC)
 endif(USE_I18N_GENERIC)
 
+if(USE_I18N_GLIB)
+    create_include_link(${BAL_DIR}/Internationalization/WTF/GLib BAL/wtf/unicode)
+
+    aux_source_directory(${BAL_DIR}/Internationalization/WTF/GLib WTF_SRC)
+    aux_source_directory(${BAL_DIR}/Internationalization/WTF/ICU WTF_SRC)
+endif(USE_I18N_GLIB)
+
 if(USE_I18N_ICU)
     create_include_link(${BAL_DIR}/Internationalization//WTF/ICU BAL/wtf/unicode)
 

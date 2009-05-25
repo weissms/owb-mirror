@@ -41,6 +41,7 @@
 #include "Editor.h"
 #include "Frame.h"
 #include "FrameView.h"
+#include "HTMLNames.h"
 #include "IntRect.h"
 #include "NotImplemented.h"
 
@@ -116,8 +117,6 @@ static AccessibilityObject* core(AtkImage* image)
 {
     return core(ATK_OBJECT(image));
 }
-
-extern "C" {
 
 static const gchar* webkit_accessible_get_name(AtkObject* object)
 {
@@ -248,7 +247,7 @@ static AtkRole atkRole(AccessibilityRole role)
     case ImageRole:
         return ATK_ROLE_IMAGE;
     case ListMarkerRole:
-        return ATK_ROLE_ROW_HEADER;
+        return ATK_ROLE_TEXT;
     case WebAreaRole:
         //return ATK_ROLE_HTML_CONTAINER; // Is this right?
         return ATK_ROLE_DOCUMENT_FRAME;
@@ -265,7 +264,28 @@ static AtkRole atkRole(AccessibilityRole role)
 
 static AtkRole webkit_accessible_get_role(AtkObject* object)
 {
-    return atkRole(core(object)->roleValue());
+    AccessibilityObject* AXObject = core(object);
+
+    if (!AXObject)
+        return ATK_ROLE_UNKNOWN;
+
+    // WebCore does not seem to have a role for list items
+    if (AXObject->isGroup()) {
+        AccessibilityObject* parent = AXObject->parentObjectUnignored();
+        if (parent && parent->isList())
+            return ATK_ROLE_LIST_ITEM;
+    }
+
+    // WebCore does not know about paragraph role
+    Node* node = static_cast<AccessibilityRenderObject*>(AXObject)->renderer()->node();
+    if (node && node->hasTagName(HTMLNames::pTag))
+        return ATK_ROLE_PARAGRAPH;
+
+    // Note: Why doesn't WebCore have a password field for this
+    if (AXObject->isPasswordField())
+        return ATK_ROLE_PASSWORD_TEXT;
+
+    return atkRole(AXObject->roleValue());
 }
 
 static void setAtkStateSetFromCoreObject(AccessibilityObject* coreObject, AtkStateSet* stateSet)
@@ -960,8 +980,6 @@ void webkit_accessible_detach(WebKitAccessible* accessible)
     // provides default implementations to avoid repetitive null-checking after
     // detachment.
     accessible->m_object = fallbackObject();
-}
-
 }
 
 #endif // HAVE(ACCESSIBILITY)

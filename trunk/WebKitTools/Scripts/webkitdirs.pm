@@ -320,7 +320,7 @@ sub XcodeCoverageSupportOptions()
     push @coverageSupportOptions, "GCC_GENERATE_TEST_COVERAGE_FILES=YES";
     push @coverageSupportOptions, "GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES";
     push @coverageSupportOptions, "EXTRA_LINK= \$(EXTRA_LINK) -ftest-coverage -fprofile-arcs";
-    push @coverageSupportOptions, "OTHER_CFLAGS= \$(OTHER_CFLAGS) -MD";
+    push @coverageSupportOptions, "OTHER_CFLAGS= \$(OTHER_CFLAGS) -DCOVERAGE -MD";
     push @coverageSupportOptions, "OTHER_LDFLAGS=\$(OTHER_LDFLAGS) -ftest-coverage -fprofile-arcs -framework AppKit";
     return @coverageSupportOptions;
 }
@@ -1061,12 +1061,23 @@ sub autotoolsFlag($$)
 
 sub buildAutotoolsProject($@)
 {
-    my ($clean, @buildArgs) = @_;
+    my ($clean, @buildParams) = @_;
 
     my $make = 'make';
     my $dir = productDir();
     my $config = passedConfiguration() || configuration();
     my $prefix = $ENV{"WebKitInstallationPrefix"};
+
+    my @buildArgs = ();
+    my $makeArgs = $ENV{"WebKitMakeArguments"} || "";
+    for my $i (0 .. $#buildParams) {
+        my $opt = $buildParams[$i];
+        if ($opt =~ /^--makeargs=(.*)/i ) {
+            $makeArgs = $makeArgs . " " . $1;
+        } else {
+            push @buildArgs, $opt;
+        }
+    }
 
     push @buildArgs, "--prefix=" . $prefix if defined($prefix);
 
@@ -1109,8 +1120,6 @@ sub buildAutotoolsProject($@)
     if ($result ne 0) {
         die "Failed to setup build environment using 'autotools'!\n";
     }
-
-    my $makeArgs = $ENV{"WebKitMakeArguments"} || "";
 
     $result = system "$make $makeArgs";
     if ($result ne 0) {
@@ -1199,8 +1208,6 @@ sub buildQMakeProject($@)
 sub buildQMakeQtProject($$@)
 {
     my ($project, $clean, @buildArgs) = @_;
-
-    push @buildArgs, "CONFIG+=qt-port";
 
     return buildQMakeProject($clean, @buildArgs);
 }

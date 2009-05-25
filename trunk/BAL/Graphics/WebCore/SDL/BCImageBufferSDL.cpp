@@ -40,8 +40,7 @@
 using namespace std;
 
 namespace WebCore {
-
-auto_ptr<ImageBuffer> ImageBuffer::create(const IntSize& size, bool)
+ImageBuffer::ImageBuffer(const IntSize& size, bool grayScale, bool& success)
 {
     int width, height;
     if( size.width() >= WIDTH_MAX )
@@ -61,16 +60,11 @@ auto_ptr<ImageBuffer> ImageBuffer::create(const IntSize& size, bool)
     gmask = 0x0000ff00;
     bmask = 0x000000ff;
     amask = 0xff000000;
-    surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, width, height, 32,
+    m_surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, width, height, 32,
                                   rmask, gmask, bmask, amask);
 
-    return auto_ptr<ImageBuffer>(new ImageBuffer(surface));
-}
-
-ImageBuffer::ImageBuffer(BalSurface* surface)
-    : m_surface(surface)
-{
     m_context.set(new GraphicsContext(m_surface));
+    success = true;
 }
 
 ImageBuffer::~ImageBuffer()

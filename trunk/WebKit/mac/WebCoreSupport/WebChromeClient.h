@@ -115,6 +115,8 @@ public:
 
     virtual void runOpenPanel(WebCore::Frame*, PassRefPtr<WebCore::FileChooser>);
 
+    virtual bool setCursor(WebCore::PlatformCursorHandle) { return false; }
+
     virtual WebCore::FloatRect customHighlightRect(WebCore::Node*, const WebCore::AtomicString& type,
         const WebCore::FloatRect& lineRect);
     virtual void paintCustomHighlight(WebCore::Node*, const WebCore::AtomicString& type,
@@ -133,7 +135,7 @@ public:
 
     virtual void formStateDidChange(const WebCore::Node*) { }
 
-    virtual WebCore::HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
+    virtual PassOwnPtr<WebCore::HTMLParserQuirks> createHTMLParserQuirks() { return 0; }
 
 #if USE(ACCELERATED_COMPOSITING)
     virtual void attachRootGraphicsLayer(WebCore::Frame*, WebCore::GraphicsLayer*);

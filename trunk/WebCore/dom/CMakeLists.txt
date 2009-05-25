@@ -61,6 +61,7 @@ list(APPEND WEBCORE_SRC
     dom/RegisteredEventListener.cpp
     dom/ScriptElement.cpp
     dom/ScriptExecutionContext.cpp
+    dom/SelectElement.cpp
     dom/SelectorNodeList.cpp
     dom/StaticNodeList.cpp
     dom/StaticStringList.cpp

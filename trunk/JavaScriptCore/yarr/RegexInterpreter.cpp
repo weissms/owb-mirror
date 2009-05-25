@@ -30,6 +30,10 @@
 #include "RegexPattern.h"
 
 #ifndef NDEBUG
+#include <stdio.h>
+#endif
+
+#ifndef NDEBUG
 #include "stdio.h"
 #endif
 

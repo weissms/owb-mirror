@@ -124,7 +124,11 @@ public:
 
     virtual void formStateDidChange(const WebCore::Node*) { }
 
-    virtual WebCore::HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
+    virtual PassOwnPtr<WebCore::HTMLParserQuirks> createHTMLParserQuirks() { return 0; }
+
+    virtual void scrollRectIntoView(const WebCore::IntRect&, const WebCore::ScrollView*) const {}
+
+    virtual void requestGeolocationPermissionForFrame(WebCore::Frame*, WebCore::Geolocation*);
 
 private:
     COMPtr<IWebUIDelegate> uiDelegate();

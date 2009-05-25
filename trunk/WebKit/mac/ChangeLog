@@ -1,3 +1,202 @@
+2009-05-25  Dan Bernstein  <mitz@apple.com>
+
+        - revert an accidental change from r43964.
+
+        * WebView/WebView.mm:
+        (+[WebView _setShouldUseFontSmoothing:]):
+
+2009-05-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein and Tim Hatcher.
+
+        <rdar://problem/6913045> New console message spewed by automator CLI after installing JetstreamLeo40B21a
+
+        * Misc/WebNSObjectExtras.mm:
+        (-[WebMainThreadInvoker initWithTarget:]): Tweaked argument name.
+        (-[WebMainThreadInvoker forwardInvocation:]): Removed call to retainArguments.
+        This was unneeded and in the case of a newly created but not yet fully initialized
+        NSView object it caused the abovementioned bug.
+        (-[WebMainThreadInvoker handleException:]): Tweaked argument name. Added assertion.
+        (-[NSInvocation _webkit_invokeAndHandleException:]): Tweaked name of local variable
+        that holds the exception.
+
+2009-05-23  David Kilzer  <ddkilzer@apple.com>
+
+        Part 2 of 2: Bug 25495: Implement PassOwnPtr and replace uses of std::auto_ptr
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25495>
+
+        Reviewed by Oliver Hunt.
+
+        * History/WebHistory.mm:
+        (-[WebHistory _visitedURL:withTitle:method:wasFailure:]): Return
+        0 instead of an empty auto_ptr<>.
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem initFromDictionaryRepresentation:]): Use
+        OwnPtr<> instead of auto_ptr<> for stack variable.
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::createHTMLParserQuirks): Return a PassOwnPtr<>
+        instead of a raw HTMLParserQuirks pointer.
+
+2009-05-23  David Kilzer  <ddkilzer@apple.com>
+
+        Part 1 of 2: Bug 25495: Implement PassOwnPtr and replace uses of std::auto_ptr
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25495>
+
+        Reviewed by Oliver Hunt.
+
+        * ForwardingHeaders/wtf/OwnPtrCommon.h: Added.
+        * ForwardingHeaders/wtf/PassOwnPtr.h: Added.
+
+2009-05-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - Fix <rdar://problem/6913765> REGRESSION (r42331-r42334): Extra scroll
+          bars appearing on Welcome panels of iLife '09 apps
+
+        * WebView/WebView.mm:
+        (needsUnwantedScrollBarWorkaround): Added. Checks if this is a panel
+        where scroll bars are unwanted. For safety, limited to only Apple applications. 
+        (-[WebView viewDidMoveToWindow]): If the workaround is needed, disallow
+        scrolling the main frame. This prevents scroll bars from appearing.
+
+2009-05-22  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25955
+
+        Remove the policyBaseURL parameter from setCookie.  This parameter is
+        redudant with the document parameter.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::setCookies):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView setVariable:forURL:value:length:]):
+
+2009-05-21  Darin Fisher  <darin@chromium.org>
+
+        Fix-up coding style.
+
+        * WebCoreSupport/WebEditorClient.mm:
+        (WebEditorClient::getAutoCorrectSuggestionForMisspelledWord):
+
+2009-05-20  Siddhartha Chattopadhyaya  <sidchat@google.com>
+
+        Reviewed by Justin Garcia.
+        
+        Add automatic spell correction support in WebKit
+
+        https://bugs.webkit.org/show_bug.cgi?id=24953
+
+        * WebCoreSupport/WebEditorClient.h:
+        * WebCoreSupport/WebEditorClient.mm:
+        (WebEditorClient::getAutoCorrectSuggestionForMisspelledWord):
+
+2009-05-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6907542> REGRESSION (r43143): Hang in RenderLineBoxList::dirtyLinesFromChangedChild
+        when clicking link to load Flash animation (http://www.roambi.com)
+
+        * WebCoreSupport/WebEditorClient.mm: (WebEditorClient::respondToChangedSelection):
+        Don't call -[NSApplication updateWindows] here, WebHTMLView can take care of this.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView inputContext]): Use a precomputed boolean stored in WebHTMLViewPrivate, as
+        calling isTextInput() is not always safe.
+        (-[WebHTMLView textStorage]): Ditto.
+        (-[WebHTMLView _updateSelectionForInputManager]): Update _private->exposeInputContext when
+        selection changes, and let AppKit update its cache if necessary.
+
+2009-05-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/5579292> REGRESSION (2-3): "Default default" encoding for Korean changed
+        from Korean (Windows, DOS) to Korean (ISO 2022-KR), which breaks some sites
+
+        * WebView/WebPreferences.mm:
+       (+[WebPreferences _setInitialDefaultTextEncodingToSystemEncoding]): Update the existing fix
+       for the changed result of CFStringConvertEncodingToIANACharSetName().
+
+2009-05-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6883758> REGRESSION (r43143): First character typed with input method does
+        not go into inline hole (seen with Chinese & Kotoeri on top Chinese website www.baidu.com)
+
+        * WebCoreSupport/WebEditorClient.mm: (WebEditorClient::respondToChangedSelection):
+        Call -[NSApplication updateWindows] to make AppKit re-fetch the input context when selection
+        changes. Since we use SelectionController to check whether the view is editable, it is
+        important not to re-fetch the context too early, e.g. from a focus changed notification.
+
+2009-05-21  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Rename DragController::dragOperation() to sourceDragOperation() for clarity
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView draggingSourceOperationMaskForLocal:]):
+
+2009-05-21  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - WebKit part of <rdar://problem/6901751> REGRESSION (r35515): Tiger
+          crash painting the selection on registration page of car2go.com
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface): Added CGContextIsSafeToClip.
+
+2009-05-20  Stephanie Lewis  <slewis@apple.com>
+
+        Update the order files.  <rdar://problem/6881750> Generate new order files.
+
+        * WebKit.order:
+
+2009-05-20  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6905336> REGRESSION: "Clear History" does not save empty history to disk
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate data]): If there are no entries, return an empty NSData instead of nil.
+
+2009-05-20  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler and Kevin Decker.
+
+        WebKit side of <rdar://problem/6895072>
+        
+        Pass the localization as a launch property.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::spawnPluginHost):
+
+2009-05-20  Dan Bernstein  <mitz@apple.com>
+
+        - fix the build after r43918
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::setCursor):
+
+2009-05-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by John Sullivan.
+
+        <rdar://problem/4023899> Shift-Tab skips key views in toolbar in Safari, although Tab
+        iterates through them properly
+
+        * WebView/WebView.mm:
+        (-[WebView previousValidKeyView]): Work around a bug in -[NSView previousValidKeyView].
+
 2009-05-20  Timothy Hatcher  <timothy@apple.com>
 
         Add a new private API method that will dispatch pending loads that have been scheduled

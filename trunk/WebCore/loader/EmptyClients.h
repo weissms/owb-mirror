@@ -140,7 +140,13 @@ public:
 
     virtual void formStateDidChange(const Node*) { }
 
-    virtual HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
+    virtual PassOwnPtr<HTMLParserQuirks> createHTMLParserQuirks() { return 0; }
+
+    virtual bool setCursor(PlatformCursorHandle) { return false; }
+
+    virtual void scrollRectIntoView(const IntRect&, const ScrollView*) const {}
+
+    virtual void requestGeolocationPermissionForFrame(Frame*, Geolocation*) {}
 };
 
 class EmptyFrameLoaderClient : public FrameLoaderClient {
@@ -372,6 +378,7 @@ public:
     virtual void ignoreWordInSpellDocument(const String&) { }
     virtual void learnWord(const String&) { }
     virtual void checkSpellingOfString(const UChar*, int, int*, int*) { }
+    virtual String getAutoCorrectSuggestionForMisspelledWord(const String&) { return String(); }
     virtual void checkGrammarOfString(const UChar*, int, Vector<GrammarDetail>&, int*, int*) { }
 #if PLATFORM(MAC) && !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
     virtual void checkTextOfParagraph(const UChar*, int, uint64_t, Vector<TextCheckingResult>&) { };
@@ -452,3 +459,4 @@ public:
 }
 
 #endif // EmptyClients_h
+

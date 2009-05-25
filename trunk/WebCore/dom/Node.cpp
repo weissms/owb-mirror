@@ -78,6 +78,7 @@
 #include "XMLNames.h"
 #include "htmlediting.h"
 #include <wtf/HashSet.h>
+#include <wtf/PassOwnPtr.h>
 #include <wtf/RefCountedLeakCounter.h>
 #include <wtf/UnusedParam.h>
 
@@ -88,6 +89,10 @@
 #if ENABLE(SVG)
 #include "SVGElementInstance.h"
 #include "SVGUseElement.h"
+#endif
+
+#if ENABLE(XHTMLMP)
+#include "HTMLNoScriptElement.h"
 #endif
 
 #define DUMP_NODE_STATISTICS 0
@@ -502,7 +507,7 @@ PassRefPtr<NodeList> Node::childNodes()
 {
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
-        data->setNodeLists(auto_ptr<NodeListsNodeData>(new NodeListsNodeData));
+        data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
     }
 
@@ -775,7 +780,7 @@ void Node::registerDynamicNodeList(DynamicNodeList* list)
 {
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
-        data->setNodeLists(auto_ptr<NodeListsNodeData>(new NodeListsNodeData));
+        data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
     } else if (!m_document->hasNodeListCaches()) {
         // We haven't been receiving notifications while there were no registered lists, so the cache is invalid now.
@@ -1298,8 +1303,14 @@ void Node::createRendererIfNeeded()
 
 PassRefPtr<RenderStyle> Node::styleForRenderer()
 {
-    if (isElementNode())
-        return document()->styleSelector()->styleForElement(static_cast<Element*>(this));
+    if (isElementNode()) {
+        bool allowSharing = true;
+#if ENABLE(XHTMLMP)
+        // noscript needs the display property protected - it's a special case
+        allowSharing = localName() != HTMLNames::noscriptTag.localName();
+#endif
+        return document()->styleSelector()->styleForElement(static_cast<Element*>(this), 0, allowSharing);
+    }
     return parentNode() && parentNode()->renderer() ? parentNode()->renderer()->style() : 0;
 }
 
@@ -1463,7 +1474,7 @@ PassRefPtr<NodeList> Node::getElementsByTagNameNS(const AtomicString& namespaceU
     
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
-        data->setNodeLists(auto_ptr<NodeListsNodeData>(new NodeListsNodeData));
+        data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
     }
 
@@ -1484,7 +1495,7 @@ PassRefPtr<NodeList> Node::getElementsByName(const String& elementName)
 {
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
-        data->setNodeLists(auto_ptr<NodeListsNodeData>(new NodeListsNodeData));
+        data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
     }
 
@@ -1499,7 +1510,7 @@ PassRefPtr<NodeList> Node::getElementsByClassName(const String& classNames)
 {
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
-        data->setNodeLists(auto_ptr<NodeListsNodeData>(new NodeListsNodeData));
+        data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
     }
 

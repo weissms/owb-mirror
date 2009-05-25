@@ -46,6 +46,10 @@
 #define HAVE_CG_INTERPOLATION_MEDIUM 1
 #endif
 
+#ifdef BUILDING_ON_TIGER
+#include "WebCoreSystemInterface.h"
+#endif
+
 using namespace std;
 
 namespace WebCore {
@@ -116,10 +120,9 @@ void GraphicsContext::drawRect(const IntRect& rect)
 
     CGContextRef context = platformContext();
 
-    if (fillColor().alpha())
-        CGContextFillRect(context, rect);
+    CGContextFillRect(context, rect);
 
-    if (strokeStyle() != NoStroke && strokeColor().alpha()) {
+    if (strokeStyle() != NoStroke) {
         // We do a fill of four rects to simulate the stroke of a border.
         Color oldFillColor = fillColor();
         if (oldFillColor != strokeColor())
@@ -142,7 +145,7 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (paintingDisabled())
         return;
 
-    if (strokeStyle() == NoStroke || !strokeColor().alpha())
+    if (strokeStyle() == NoStroke)
         return;
 
     float width = strokeThickness();
@@ -277,7 +280,7 @@ void GraphicsContext::drawEllipse(const IntRect& rect)
 
 void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSpan)
 { 
-    if (paintingDisabled() || strokeStyle() == NoStroke || strokeThickness() <= 0.0f || !strokeColor().alpha())
+    if (paintingDisabled() || strokeStyle() == NoStroke || strokeThickness() <= 0.0f)
         return;
     
     CGContextRef context = platformContext();
@@ -366,7 +369,7 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
 
 void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points, bool antialiased)
 {
-    if (paintingDisabled() || !fillColor().alpha() && (strokeThickness() <= 0 || strokeStyle() == NoStroke))
+    if (paintingDisabled())
         return;
 
     if (npoints <= 1)
@@ -483,6 +486,36 @@ static inline void fillPathWithFillRule(CGContextRef context, WindRule fillRule)
         CGContextFillPath(context);
 }
 
+// A bug in old versions of Core Graphics causes memory corruption to occur when clipping
+// under certain conditions. These functions check that it is safe to clip.
+
+static inline void safeCGContextClip(CGContextRef context)
+{
+#ifdef BUILDING_ON_TIGER
+    if (!wkCGContextIsSafeToClip(context))
+        return;
+#endif
+    CGContextClip(context);
+}
+
+static inline void safeCGContextEOClip(CGContextRef context)
+{
+#ifdef BUILDING_ON_TIGER
+    if (!wkCGContextIsSafeToClip(context))
+        return;
+#endif
+    CGContextEOClip(context);
+}
+
+static inline void safeCGContextClipToRect(CGContextRef context, CGRect rect)
+{
+#ifdef BUILDING_ON_TIGER
+    if (!wkCGContextIsSafeToClip(context))
+        return;
+#endif
+    CGContextClipToRect(context, rect);
+}
+
 void GraphicsContext::fillPath()
 {
     if (paintingDisabled())
@@ -491,8 +524,7 @@ void GraphicsContext::fillPath()
     CGContextRef context = platformContext();
     switch (m_common->state.fillColorSpace) {
     case SolidColorSpace:
-        if (fillColor().alpha())
-            fillPathWithFillRule(context, fillRule());
+        fillPathWithFillRule(context, fillRule());
         break;
     case PatternColorSpace:
         applyFillPattern();
@@ -501,9 +533,9 @@ void GraphicsContext::fillPath()
     case GradientColorSpace:
         CGContextSaveGState(context);
         if (fillRule() == RULE_EVENODD)
-            CGContextEOClip(context);
+            safeCGContextEOClip(context);
         else
-            CGContextClip(context);
+            safeCGContextClip(context);
         CGContextConcatCTM(context, m_common->state.fillGradient->gradientSpaceTransform());
         CGContextDrawShading(context, m_common->state.fillGradient->platformGradient());
         CGContextRestoreGState(context);
@@ -519,8 +551,7 @@ void GraphicsContext::strokePath()
     CGContextRef context = platformContext();
     switch (m_common->state.strokeColorSpace) {
     case SolidColorSpace:
-        if (strokeColor().alpha())
-            CGContextStrokePath(context);
+        CGContextStrokePath(context);
         break;
     case PatternColorSpace:
         applyStrokePattern();
@@ -529,7 +560,7 @@ void GraphicsContext::strokePath()
     case GradientColorSpace:
         CGContextSaveGState(context);
         CGContextReplacePathWithStrokedPath(context);
-        CGContextClip(context);
+        safeCGContextClip(context);
         CGContextConcatCTM(context, m_common->state.strokeGradient->gradientSpaceTransform());
         CGContextDrawShading(context, m_common->state.strokeGradient->platformGradient());
         CGContextRestoreGState(context);
@@ -544,8 +575,7 @@ void GraphicsContext::fillRect(const FloatRect& rect)
     CGContextRef context = platformContext();
     switch (m_common->state.fillColorSpace) {
     case SolidColorSpace:
-        if (fillColor().alpha())
-            CGContextFillRect(context, rect);
+        CGContextFillRect(context, rect);
         break;
     case PatternColorSpace:
         applyFillPattern();
@@ -553,7 +583,7 @@ void GraphicsContext::fillRect(const FloatRect& rect)
         break;
     case GradientColorSpace:
         CGContextSaveGState(context);
-        CGContextClipToRect(context, rect);
+        safeCGContextClipToRect(context, rect);
         CGContextConcatCTM(context, m_common->state.fillGradient->gradientSpaceTransform());
         CGContextDrawShading(context, m_common->state.fillGradient->platformGradient());
         CGContextRestoreGState(context);
@@ -565,20 +595,18 @@ void GraphicsContext::fillRect(const FloatRect& rect, const Color& color)
 {
     if (paintingDisabled())
         return;
-    if (color.alpha()) {
-        CGContextRef context = platformContext();
-        Color oldFillColor = fillColor();
-        if (oldFillColor != color)
-            setCGFillColor(context, color);
-        CGContextFillRect(context, rect);
-        if (oldFillColor != color)
-            setCGFillColor(context, oldFillColor);
-    }
+    CGContextRef context = platformContext();
+    Color oldFillColor = fillColor();
+    if (oldFillColor != color)
+      setCGFillColor(context, color);
+    CGContextFillRect(context, rect);
+    if (oldFillColor != color)
+      setCGFillColor(context, oldFillColor);
 }
 
 void GraphicsContext::fillRoundedRect(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color& color)
 {
-    if (paintingDisabled() || !color.alpha())
+    if (paintingDisabled())
         return;
 
     CGContextRef context = platformContext();
@@ -597,7 +625,7 @@ void GraphicsContext::clip(const FloatRect& rect)
 {
     if (paintingDisabled())
         return;
-    CGContextClipToRect(platformContext(), rect);
+    safeCGContextClipToRect(platformContext(), rect);
     m_data->clip(rect);
 }
 
@@ -609,7 +637,7 @@ void GraphicsContext::clipOut(const IntRect& rect)
     CGRect rects[2] = { CGContextGetClipBoundingBox(platformContext()), rect };
     CGContextBeginPath(platformContext());
     CGContextAddRects(platformContext(), rects, 2);
-    CGContextEOClip(platformContext());
+    safeCGContextEOClip(platformContext());
 }
 
 void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
@@ -620,7 +648,7 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
     CGContextBeginPath(platformContext());
     CGContextAddRect(platformContext(), CGContextGetClipBoundingBox(platformContext()));
     CGContextAddEllipseInRect(platformContext(), rect);
-    CGContextEOClip(platformContext());
+    safeCGContextEOClip(platformContext());
 }
 
 void GraphicsContext::clipPath(WindRule clipRule)
@@ -632,9 +660,9 @@ void GraphicsContext::clipPath(WindRule clipRule)
 
     if (!CGContextIsPathEmpty(context)) {
         if (clipRule == RULE_EVENODD)
-            CGContextEOClip(context);
+            safeCGContextEOClip(context);
         else
-            CGContextClip(context);
+            safeCGContextClip(context);
     }
 }
 
@@ -652,7 +680,7 @@ void GraphicsContext::addInnerRoundedRectClip(const IntRect& rect, int thickness
     CGContextAddEllipseInRect(context, CGRectMake(rect.x() + thickness, rect.y() + thickness,
         rect.width() - (thickness * 2), rect.height() - (thickness * 2)));
     
-    CGContextEOClip(context);
+    safeCGContextEOClip(context);
 }
 
 void GraphicsContext::clipToImageBuffer(const FloatRect& rect, const ImageBuffer* imageBuffer)
@@ -782,8 +810,7 @@ void GraphicsContext::strokeRect(const FloatRect& r, float lineWidth)
     CGContextRef context = platformContext();
     switch (m_common->state.strokeColorSpace) {
     case SolidColorSpace:
-        if (strokeColor().alpha())
-            CGContextStrokeRectWithWidth(context, r, lineWidth);
+        CGContextStrokeRectWithWidth(context, r, lineWidth);
         break;
     case PatternColorSpace:
         applyStrokePattern();
@@ -794,7 +821,7 @@ void GraphicsContext::strokeRect(const FloatRect& r, float lineWidth)
         setStrokeThickness(lineWidth);
         CGContextAddRect(context, r);
         CGContextReplacePathWithStrokedPath(context);
-        CGContextClip(context);
+        safeCGContextClip(context);
         CGContextDrawShading(context, m_common->state.strokeGradient->platformGradient());
         CGContextRestoreGState(context);
         break;
@@ -857,7 +884,7 @@ void GraphicsContext::clip(const Path& path)
     CGContextRef context = platformContext();
     CGContextBeginPath(context);
     CGContextAddPath(context, path.platformPath());
-    CGContextClip(context);
+    safeCGContextClip(context);
     m_data->clip(path);
 }
 
@@ -869,7 +896,7 @@ void GraphicsContext::clipOut(const Path& path)
     CGContextBeginPath(platformContext());
     CGContextAddRect(platformContext(), CGContextGetClipBoundingBox(platformContext()));
     CGContextAddPath(platformContext(), path.platformPath());
-    CGContextEOClip(platformContext());
+    safeCGContextEOClip(platformContext());
 }
 
 void GraphicsContext::scale(const FloatSize& size)
@@ -1199,4 +1226,3 @@ void GraphicsContext::setCompositeOperation(CompositeOperator mode)
 #endif
 
 }
-

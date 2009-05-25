@@ -447,7 +447,7 @@ bool FrameLoader::requestFrame(HTMLFrameOwnerElement* ownerElement, const String
     // Support for <frame src="javascript:string">
     KURL scriptURL;
     KURL url;
-    if (protocolIs(urlString, "javascript")) {
+    if (protocolIsJavaScript(urlString)) {
         scriptURL = completeURL(urlString); // completeURL() encodes the URL.
         url = blankURL();
     } else
@@ -533,7 +533,7 @@ void FrameLoader::submitForm(const char* action, const String& url, PassRefPtr<F
     if (u.isEmpty())
         return;
 
-    if (u.protocolIs("javascript")) {
+    if (protocolIsJavaScript(u)) {
         m_isExecutingJavaScriptFormAction = true;
         executeIfJavaScriptURL(u, false, false);
         m_isExecutingJavaScriptFormAction = false;
@@ -701,7 +701,7 @@ KURL FrameLoader::iconURL()
         return KURL(m_frame->document()->iconURL());
 
     // Don't return a favicon iconURL unless we're http or https
-    if (!m_URL.protocolIs("http") && !m_URL.protocolIs("https"))
+    if (!m_URL.protocolInHTTPFamily())
         return KURL();
 
     KURL url;
@@ -737,7 +737,7 @@ bool FrameLoader::didOpenURL(const KURL& url)
         m_frame->setJSDefaultStatusBarText(String());
     }
     m_URL = url;
-    if ((m_URL.protocolIs("http") || m_URL.protocolIs("https")) && !m_URL.host().isEmpty() && m_URL.path().isEmpty())
+    if (m_URL.protocolInHTTPFamily() && !m_URL.host().isEmpty() && m_URL.path().isEmpty())
         m_URL.setPath("/");
     m_workingURL = m_URL;
 
@@ -765,7 +765,7 @@ void FrameLoader::didExplicitOpen()
 
 bool FrameLoader::executeIfJavaScriptURL(const KURL& url, bool userGesture, bool replaceDocument)
 {
-    if (!url.protocolIs("javascript"))
+    if (!protocolIsJavaScript(url))
         return false;
 
     if (m_frame->page() && !m_frame->page()->javaScriptURLsAreAllowed())
@@ -975,7 +975,7 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     m_frame->domWindow()->setURL(document->url());
     m_frame->domWindow()->setSecurityOrigin(document->securityOrigin());
 
-    updatePolicyBaseURL();
+    updateFirstPartyForCookies();
 
     Settings* settings = document->settings();
     document->docLoader()->setAutoLoadImages(settings && settings->loadsImagesAutomatically());
@@ -2012,19 +2012,19 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
 }
 #endif
 
-void FrameLoader::updatePolicyBaseURL()
+void FrameLoader::updateFirstPartyForCookies()
 {
     if (m_frame->tree()->parent())
-        setPolicyBaseURL(m_frame->tree()->parent()->document()->policyBaseURL());
+        setFirstPartyForCookies(m_frame->tree()->parent()->document()->firstPartyForCookies());
     else
-        setPolicyBaseURL(m_URL);
+        setFirstPartyForCookies(m_URL);
 }
 
-void FrameLoader::setPolicyBaseURL(const KURL& url)
+void FrameLoader::setFirstPartyForCookies(const KURL& url)
 {
-    m_frame->document()->setPolicyBaseURL(url);
+    m_frame->document()->setFirstPartyForCookies(url);
     for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
-        child->loader()->setPolicyBaseURL(url);
+        child->loader()->setFirstPartyForCookies(url);
 }
 
 // This does the same kind of work that didOpenURL does, except it relies on the fact
@@ -3063,7 +3063,7 @@ void FrameLoader::open(CachedFrame& cachedFrame)
 
     KURL url = cachedFrame.url();
 
-    if ((url.protocolIs("http") || url.protocolIs("https")) && !url.host().isEmpty() && url.path().isEmpty())
+    if (url.protocolInHTTPFamily() && !url.host().isEmpty() && url.path().isEmpty())
         url.setPath("/");
     
     m_URL = url;
@@ -3097,7 +3097,7 @@ void FrameLoader::open(CachedFrame& cachedFrame)
 
     m_decoder = document->decoder();
 
-    updatePolicyBaseURL();
+    updateFirstPartyForCookies();
 
     cachedFrame.restore();
 }
@@ -3572,13 +3572,13 @@ void FrameLoader::addExtraFieldsToRequest(ResourceRequest& request, FrameLoadTyp
 {
     // Don't set the cookie policy URL if it's already been set.
     // But make sure to set it on all requests, as it has significance beyond the cookie policy for all protocols (<rdar://problem/6616664>).
-    if (request.mainDocumentURL().isEmpty()) {
+    if (request.firstPartyForCookies().isEmpty()) {
         if (mainResource && (isLoadingMainFrame() || cookiePolicyURLFromRequest))
-            request.setMainDocumentURL(request.url());
-        else if (Page* page = m_frame->page())
-            request.setMainDocumentURL(page->mainFrame()->loader()->url());
+            request.setFirstPartyForCookies(request.url());
+        else if (Document* document = m_frame->document())
+            request.setFirstPartyForCookies(document->firstPartyForCookies());
     }
-    
+
     // The remaining modifications are only necessary for HTTP and HTTPS.
     if (!request.url().isEmpty() && !request.url().protocolInHTTPFamily())
         return;
@@ -3699,7 +3699,7 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
     addHTTPOriginIfNeeded(initialRequest, outgoingOrigin());
 
     if (Page* page = m_frame->page())
-        initialRequest.setMainDocumentURL(page->mainFrame()->loader()->documentLoader()->request().url());
+        initialRequest.setFirstPartyForCookies(page->mainFrame()->loader()->documentLoader()->request().url());
     initialRequest.setHTTPUserAgent(client()->userAgent(request.url()));
 
     unsigned long identifier = 0;    

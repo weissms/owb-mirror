@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Collabora, Ltd.
+ * Copyright (C) 2008 Apple Ltd.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,28 +17,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef guriescape_h
-#define guriescape_h
+#include "config.h"
+#include "AccessibilityObject.h"
 
-#include <glib.h>
-#include <wtf/Platform.h>
+#if HAVE(ACCESSIBILITY)
 
-G_BEGIN_DECLS
+namespace WebCore {
 
-#if !PLATFORM(WIN_OS) && !GLIB_CHECK_VERSION(2,16,0)
+bool AccessibilityObject::accessibilityIgnoreAttachment() const
+{
+    return false;
+}
 
-#define g_uri_escape_string _webcore_g_uri_escape_string
-#define g_uri_unescape_string _webcore_g_uri_unescape_string
+} // namespace WebCore
 
-char    *_webcore_g_uri_escape_string   (const char *unescaped,
-                                         const char *reserved_chars_allowed,
-                                         gboolean    allow_utf8);
-
-char    *_webcore_g_uri_unescape_string (const char *escaped_string,
-                                         const char *illegal_characters);
-
-#endif
-
-G_END_DECLS
-
-#endif /* guriescape_h */
+#endif // HAVE(ACCESSIBILITY)

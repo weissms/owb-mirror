@@ -1,3 +1,108 @@
+2009-05-25  David Kilzer  <ddkilzer@apple.com>
+
+        Part 2 of 2: Bug 25495: Implement PassOwnPtr and replace uses of std::auto_ptr
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25495>
+
+        Reviewed by Oliver Hunt.
+
+        * WebCoreSupport/ChromeClientQt.h:
+        (WebCore::ChromeClientQt::createHTMLParserQuirks): Return a
+        PassOwnPtr<> instead of a raw HTMLParserQuirks pointer.
+
+2009-05-23  Jakob Truelsen  <antialize@gmail.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25863
+
+        Expose the default text encoding property to Qt.
+
+        * Api/qwebsettings.cpp:
+        (QWebSettingsPrivate::apply):
+        (QWebSettings::setDefaultTextEncoding):
+        (QWebSettings::defaultTextEncoding):
+        * Api/qwebsettings.h:
+
+2009-05-21  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Additional test for resource load (CSS file) for QWebFrame.
+
+        * tests/qwebframe/qwebframe.qrc:
+        * tests/qwebframe/style.css: Added.
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-05-22  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Unreviewed Qt build fix.
+
+        Provide dummy implementation of pure virtual EditorClient method.
+
+        * WebCoreSupport/EditorClientQt.cpp:
+        (WebCore::EditorClientQt::getAutoCorrectSuggestionForMisspelledWord):
+        * WebCoreSupport/EditorClientQt.h:
+
+2009-05-20  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Simon Hausmann and Holger Freyther.
+
+        [Qt] Add renderHints property to QWebView.
+
+        * Api/qwebview.cpp:
+        (QWebViewPrivate::QWebViewPrivate):
+        (QWebView::renderHints):
+        (QWebView::setRenderHints):
+        (QWebView::setRenderHint):
+        (QWebView::paintEvent):
+        * Api/qwebview.h:
+        * tests/qwebview/qwebview.pro: Added.
+        * tests/qwebview/tst_qwebview.cpp: Added.
+        (tst_QWebView::tst_QWebView):
+        (tst_QWebView::~tst_QWebView):
+        (tst_QWebView::init):
+        (tst_QWebView::cleanup):
+        (tst_QWebView::renderHints):
+        * tests/tests.pro:
+
+2009-05-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25834
+
+        Make ChromeClient a interface again
+
+        With recent additions to ChromeClient.h empty defaults were
+        added. This is bad for porters as these changes go unnoticed
+        and at runtime no notImplemented warning is logged and grepping
+        for notImplemented will not show anything. Change this Client
+        to be like the other Clients again and always have pure virtuals
+        (but for stuff inside #ifdef PLATFORM(MAC)).
+
+        Update the various WebKit/* implementations to compile again.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::setCursor):
+        (WebCore::ChromeClientQt::requestGeolocationPermissionForFrame):
+        * WebCoreSupport/ChromeClientQt.h:
+        (WebCore::ChromeClientQt::scrollRectIntoView):
+
+2009-05-19  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Fix a plugin bug in the WebKit code, similar to the one in WebCore.
+
+        The problem is when a non visible QtPluginWidget would show it self
+        in a sibling frame. The problem was due to our clipping. In Qt,
+        if setMask is set with an empty QRegion, no clipping will
+        be performed, so in that case we hide the PluginContainer
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::):
+
 2009-05-20  Zoltan Horvath <horvath.zoltan.6@stud.u-szeged.hu>
 
         Reviewed by Ariya Hidayat.

@@ -29,7 +29,11 @@ CONFIG(QTDIR_build) {
 
 GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR/
 win32-*|wince*: GENERATED_SOURCES_DIR_SLASH ~= s|/|\|
-unix:QMAKE_PKGCONFIG_REQUIRES = QtCore QtDBus QtGui QtNetwork QtXml
+
+unix {
+    QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui QtNetwork
+    lessThan(QT_MINOR_VERSION, 4): QMAKE_PKGCONFIG_REQUIRES += QtXml
+}
 
 include($$OUTPUT_DIR/config.pri)
 
@@ -44,13 +48,6 @@ CONFIG(release):!CONFIG(QTDIR_build) {
 
 linux-*: DEFINES += HAVE_STDINT_H
 freebsd-*: DEFINES += HAVE_PTHREAD_NP_H
-
-# PRE-BUILD: make the required config.h file
-#config_h.target = config.h
-#config_h.commands = cp config.h.qmake config.h
-#config_h.depends = config.h.qmake
-#QMAKE_EXTRA_TARGETS += config_h
-#PRE_TARGETDEPS += config.h
 
 DEFINES += BUILD_WEBKIT
 
@@ -114,11 +111,12 @@ CONFIG(QTDIR_build) {
 !contains(DEFINES, ENABLE_SVG=0) {
     !contains(DEFINES, ENABLE_SVG=.): DEFINES += ENABLE_SVG=1
     !contains(DEFINES, ENABLE_SVG_FONTS=.): DEFINES += ENABLE_SVG_FONTS=1
-    !contains(DEFINES, ENABLE_SVG_FILTERS=.): DEFINES += ENABLE_SVG_FILTERS=1
     !contains(DEFINES, ENABLE_SVG_FOREIGN_OBJECT=.): DEFINES += ENABLE_SVG_FOREIGN_OBJECT=1
     !contains(DEFINES, ENABLE_SVG_ANIMATION=.): DEFINES += ENABLE_SVG_ANIMATION=1
     !contains(DEFINES, ENABLE_SVG_AS_IMAGE=.): DEFINES += ENABLE_SVG_AS_IMAGE=1
     !contains(DEFINES, ENABLE_SVG_USE=.): DEFINES += ENABLE_SVG_USE=1
+    # disabled due svg filter rework
+    !contains(DEFINES, ENABLE_SVG_FILTERS=.): DEFINES += ENABLE_SVG_FILTERS=0
 } else {
     DEFINES += ENABLE_SVG_FONTS=0 ENABLE_SVG_FILTERS=0 ENABLE_SVG_FOREIGN_OBJECT=0 ENABLE_SVG_ANIMATION=0 ENABLE_SVG_AS_IMAGE=0 ENABLE_SVG_USE=0
 }
@@ -138,7 +136,7 @@ CONFIG(QTDIR_build) {
     }
 }
 
-DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
+DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1 ENABLE_PLUGIN_PACKAGE_SIMPLE_HASH=1
 
 include($$PWD/../JavaScriptCore/JavaScriptCore.pri)
 
@@ -377,7 +375,6 @@ IDL_BINDINGS += \
     html/HTMLUListElement.idl \
     html/ImageData.idl \
     html/TextMetrics.idl \
-    inspector/JavaScriptCallFrame.idl \
     inspector/InspectorController.idl \
     page/BarInfo.idl \
     page/Console.idl \
@@ -392,14 +389,10 @@ IDL_BINDINGS += \
     page/PositionError.idl \
     page/Screen.idl \
     page/WebKitPoint.idl \
-    page/WorkerNavigator.idl \
     plugins/Plugin.idl \
     plugins/MimeType.idl \
     plugins/PluginArray.idl \
     plugins/MimeTypeArray.idl \
-    workers/Worker.idl \
-    workers/WorkerContext.idl \
-    workers/WorkerLocation.idl \
     xml/DOMParser.idl \
     xml/XMLHttpRequest.idl \
     xml/XMLHttpRequestException.idl \
@@ -451,7 +444,6 @@ SOURCES += \
     bindings/js/JSGeolocationCustom.cpp \
     bindings/js/JSHTMLAllCollection.cpp \
     bindings/js/JSHistoryCustom.cpp \
-    bindings/js/JSJavaScriptCallFrameCustom.cpp \
     bindings/js/JSHTMLAppletElementCustom.cpp \
     bindings/js/JSHTMLCollectionCustom.cpp \
     bindings/js/JSHTMLDocumentCustom.cpp \
@@ -644,6 +636,7 @@ SOURCES += \
     dom/RegisteredEventListener.cpp \
     dom/ScriptElement.cpp \
     dom/ScriptExecutionContext.cpp \
+    dom/SelectElement.cpp \
     dom/SelectorNodeList.cpp \
     dom/StaticNodeList.cpp \
     dom/StaticStringList.cpp \
@@ -806,10 +799,6 @@ SOURCES += \
     inspector/InspectorController.cpp \
     inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
-    inspector/JavaScriptCallFrame.cpp \
-    inspector/JavaScriptDebugServer.cpp \
-    inspector/JavaScriptProfile.cpp \
-    inspector/JavaScriptProfileNode.cpp \
     inspector/JSONObject.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
@@ -849,7 +838,6 @@ SOURCES += \
     loader/TextDocument.cpp \
     loader/TextResourceDecoder.cpp \
     loader/ThreadableLoader.cpp \
-    loader/WorkerThreadableLoader.cpp \
     page/animation/AnimationBase.cpp \
     page/animation/AnimationController.cpp \
     page/animation/CompositeAnimation.cpp \
@@ -1366,12 +1354,19 @@ contains(DEFINES, ENABLE_ICONDATABASE=1) {
 contains(DEFINES, ENABLE_WORKERS=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_WORKERS=1
 
+    IDL_BINDINGS += \
+        page/WorkerNavigator.idl \
+        workers/Worker.idl \
+        workers/WorkerContext.idl \
+        workers/WorkerLocation.idl
+
     SOURCES += \
         bindings/js/JSWorkerConstructor.cpp \
         bindings/js/JSWorkerContextBase.cpp \
         bindings/js/JSWorkerContextCustom.cpp \
         bindings/js/JSWorkerCustom.cpp \
         bindings/js/WorkerScriptController.cpp \
+        loader/WorkerThreadableLoader.cpp \
         page/WorkerNavigator.cpp \
         workers/Worker.cpp \
         workers/WorkerContext.cpp \
@@ -1708,6 +1703,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/style/SVGRenderStyleDefs.cpp \
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
+        svg/FilterBuilder.cpp \
         svg/FilterEffect.cpp \
         svg/SVGDocumentExtensions.cpp \
         svg/SVGImageLoader.cpp \
@@ -1846,6 +1842,8 @@ contains(DEFINES, ENABLE_SVG=1) {
         platform/graphics/filters/FEColorMatrix.cpp \
         platform/graphics/filters/FEComponentTransfer.cpp \
         platform/graphics/filters/FEComposite.cpp \
+        platform/graphics/filters/SourceAlpha.cpp \
+        platform/graphics/filters/SourceGraphic.cpp \
         svg/graphics/filters/SVGFEConvolveMatrix.cpp \
         svg/graphics/filters/SVGFEDiffuseLighting.cpp \
         svg/graphics/filters/SVGFEDisplacementMap.cpp \
@@ -1972,6 +1970,16 @@ SOURCES += \
 
 contains(DEFINES, ENABLE_JAVASCRIPT_DEBUGGER=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_JAVASCRIPT_DEBUGGER=1
+
+    IDL_BINDINGS += \
+        inspector/JavaScriptCallFrame.idl
+
+    SOURCES += \
+        bindings/js/JSJavaScriptCallFrameCustom.cpp \
+        inspector/JavaScriptCallFrame.cpp \
+        inspector/JavaScriptDebugServer.cpp \
+        inspector/JavaScriptProfile.cpp \
+        inspector/JavaScriptProfileNode.cpp
 }
 
 contains(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=1) {

@@ -2783,6 +2783,39 @@ static bool needsWebViewInitThreadWorkaround()
     }
 }
 
+#ifndef BUILDING_ON_TIGER
+
+static bool needsUnwantedScrollBarWorkaround(WebView *view)
+{
+    // WebKit's automatic scroll bars are appearing in some cases where they should not.
+    // This is tracked by <https://bugs.webkit.org/show_bug.cgi?id=25969>.
+    // To work around this in What's New windows in some Apple applications, we set
+    // the main frame to not allow scrolling at all.
+
+    NSWindow *window = [view window];
+    if (!window)
+        return false;
+
+    // The applications in question all use distinctive class names for the window.
+    const char* windowClassName = class_getName([window class]);
+    if (strcmp(windowClassName, "WhatsNewPanel") != 0 && strcmp(windowClassName, "iLifeWelcomePanel") != 0)
+        return false;
+
+    // To guarantee this won't cause trouble for any non-Apple application, only do
+    // this if the bundle identifier is an Apple one.
+    return [[[NSBundle mainBundle] bundleIdentifier] hasPrefix:@"com.apple."];
+}
+
+#else
+
+static inline bool needsUnwantedScrollBarWorkaround(WebView *)
+{
+    // The applications in question do not run on Tiger.
+    return false;
+}
+
+#endif
+
 - (void)viewDidMoveToWindow
 {
     // Don't do anything if we aren't initialized.  This happens
@@ -2791,7 +2824,10 @@ static bool needsWebViewInitThreadWorkaround()
     // initialized.  The stub views are discarded by WebView.
     if (!_private || _private->closed)
         return;
-        
+
+    if (needsUnwantedScrollBarWorkaround(self))
+        [[[self mainFrame] frameView] setAllowsScrolling:NO];
+
     if ([self window])
         _private->page->didMoveOnscreen();
 }
@@ -3640,6 +3676,36 @@ static WebFrame *incrementFrame(WebFrame *curr, BOOL forward, BOOL wrapFlag)
 - (WebNodeHighlight *)currentNodeHighlight
 {
     return _private->currentNodeHighlight;
+}
+
+- (NSView *)previousValidKeyView
+{
+    NSView *result = [super previousValidKeyView];
+
+    // Work around AppKit bug 6905484. If the result is a view that's inside this one, it's
+    // possible it is the wrong answer, because the fact that it's a descendant causes the
+    // code that implements key view redirection to fail; this means we won't redirect to
+    // the toolbar, for example, when we hit the edge of a window. Since the bug is specific
+    // to cases where the receiver of previousValidKeyView is an ancestor of the last valid
+    // key view in the loop, we can sidestep it by walking along previous key views until
+    // we find one that is not a superview, then using that to call previousValidKeyView.
+
+    if (![result isDescendantOf:self])
+        return result;
+
+    // Use a visited set so we don't loop indefinitely when walking crazy key loops.
+    // AppKit uses such sets internally and we want our loop to be as robust as its loops.
+    RetainPtr<CFMutableSetRef> visitedViews = CFSetCreateMutable(0, 0, 0);
+    CFSetAddValue(visitedViews.get(), result);
+
+    NSView *previousView = self;
+    do {
+        CFSetAddValue(visitedViews.get(), previousView);
+        previousView = [previousView previousKeyView];
+        if (!previousView || CFSetGetValue(visitedViews.get(), previousView))
+            return result;
+    } while ([result isDescendantOf:previousView]);
+    return [previousView previousValidKeyView];
 }
 
 @end

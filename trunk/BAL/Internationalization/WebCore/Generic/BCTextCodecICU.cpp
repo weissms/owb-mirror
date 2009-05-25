@@ -41,9 +41,9 @@ namespace WebCore {
 
 const size_t ConversionBufferSize = 16384;
 
-static auto_ptr<TextCodec> newTextCodecICU(const TextEncoding& encoding, const void*)
+static PassOwnPtr<TextCodec> newTextCodecICU(const TextEncoding& encoding, const void*)
 {
-    return auto_ptr<TextCodec>(new TextCodecICU(encoding));
+    return new TextCodecICU(encoding);
 }
 
 void TextCodecICU::registerBaseEncodingNames(EncodingNameRegistrar registrar)

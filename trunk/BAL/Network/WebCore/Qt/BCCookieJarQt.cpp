@@ -28,48 +28,46 @@
 #include "config.h"
 #include "CookieJar.h"
 
+#include "Document.h"
 #include "KURL.h"
 #include "PlatformString.h"
 
 #if QT_VERSION >= 0x040400
-#include "Document.h"
-#if 0
-#include "qwebpage.h"
-#include "qwebframe.h"
-#include "FrameLoaderClientQt.h"
-#endif
+//#include "qwebpage.h"
+//#include "qwebframe.h"
+//#include "FrameLoaderClientQt.h"
 #include <QNetworkAccessManager>
 #include <QNetworkCookie>
 #else
 #include <qcookiejar.h>
 #endif
 #include <qurl.h>
-#include <QStringList>
+#include <qstringlist.h>
 
 namespace WebCore {
 
 #if QT_VERSION >= 0x040400
 static QNetworkCookieJar *cookieJar(const Document *document)
 {
-    /*Frame *frame = document->frame();
+    Frame *frame = document->frame();
     if (!frame)
         return 0;
-    FrameLoader *loader = frame->loader();
+/*    FrameLoader *loader = frame->loader();
     if (!loader)
         return 0;
     QWebFrame* webFrame = static_cast<FrameLoaderClientQt*>(loader->client())->webFrame();
-    QWebPage* page = webFrame->page();*
-    QNetworkAccessManager* manager = page->networkAccessManager();*/
-    QNetworkAccessManager* manager = new QNetworkAccessManager();
+    QWebPage* page = webFrame->page();
+    QNetworkAccessManager* manager = page->networkAccessManager();
     QNetworkCookieJar* jar = manager->cookieJar();
-    return jar;
+    return jar;*/
+    return 0;
 }
 #endif
 
-void setCookies(Document* document, const KURL& url, const KURL& policyURL, const String& value)
+void setCookies(Document* document, const KURL& url, const String& value)
 {
     QUrl u(url);
-    QUrl p(policyURL);
+    QUrl p(document->firstPartyForCookies());
 #if QT_VERSION >= 0x040400
     QNetworkCookieJar* jar = cookieJar(document);
     if (!jar)

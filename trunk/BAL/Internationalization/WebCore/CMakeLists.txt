@@ -4,7 +4,7 @@
 
 create_include_link(${BAL_DIR}/Internationalization/WebCore/WK BAL)
 
-if(USE_I18N_ICU)
+if(USE_I18N_ICU OR USE_I18N_GLIB)
     create_include_link(${BAL_DIR}/Internationalization/WebCore/ICU BAL)
     
     aux_source_directory(${BAL_DIR}/Internationalization/WebCore/ICU WEBCORE_SRC)
@@ -20,9 +20,9 @@ if(USE_I18N_ICU)
 
         aux_source_directory(${BAL_DIR}/Internationalization/WebCore/SDL WEBCORE_SRC)
     endif(USE_GRAPHICS_SDL)
-else(USE_I18N_ICU)
+else(USE_I18N_ICU OR USE_I18N_GLIB)
     aux_source_directory(${BAL_DIR}/Internationalization/WebCore/None WEBCORE_SRC)
-endif(USE_I18N_ICU)
+endif(USE_I18N_ICU OR USE_I18N_GLIB)
 
 if(USE_I18N_GENERIC)
     create_include_link(${BAL_DIR}/Internationalization/WebCore/Generic BAL)

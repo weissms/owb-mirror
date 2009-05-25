@@ -119,7 +119,13 @@ public:
 
     virtual void formStateDidChange(const Node*) { }
 
-    virtual HTMLParserQuirks* createHTMLParserQuirks() { return 0; }
+    virtual PassOwnPtr<HTMLParserQuirks> createHTMLParserQuirks() { return 0; }
+
+    virtual bool setCursor(PlatformCursorHandle);
+
+    virtual void scrollRectIntoView(const IntRect&, const ScrollView*) const {}
+
+    virtual void requestGeolocationPermissionForFrame(Frame*, Geolocation*);
 
 private:
     wxWebView* m_webView;
