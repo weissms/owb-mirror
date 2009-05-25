@@ -33,7 +33,7 @@ WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
 WebCore/loader/EmptyClients.h
 WebCore/loader/FrameLoader.cpp
-WebCore/page/AccessibilityObject.cpp
+WebCore/accessibility/AccessibilityObject.cpp
 WebCore/page/AccessibilityObject.h
 WebCore/page/Chrome.cpp
 WebCore/page/Console.cpp
