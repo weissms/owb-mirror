@@ -189,7 +189,7 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&)
 
 void ResourceHandle::setCookies()
 {
-    KURL url = getInternal()->m_response.url();
+    KURL url = getInternal()->m_request.url();
     cookieManager().setCookies(url, getInternal()->m_response.httpHeaderField("Set-Cookie"));
     checkAndSendCookies(url);
 }

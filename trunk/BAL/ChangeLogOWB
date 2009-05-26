@@ -1,3 +1,12 @@
+2009-05-26  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Julien Chaffraix.
+
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setCookies): Use the request URL, not the
+        response as they may not be the same. This changes matches what
+        other implementation do.
+
 2009-05-26  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
