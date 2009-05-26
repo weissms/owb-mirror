@@ -49,7 +49,7 @@ namespace WebCore {
     class CookieManager {
     public:
 
-        void setCookies(const KURL& url, const KURL& policyURL, const String& value);
+        void setCookies(const KURL& url, const String& value);
 
         String getCookie(const KURL& url, HttpOnlyCookieFiltering);
         String getCookie(const String& url);

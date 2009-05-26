@@ -58,7 +58,7 @@ CookieManager::~CookieManager()
     cookieBackingStore().close();
 }
 
-void CookieManager::setCookies(const KURL& url, const KURL& policyURL, const String& value)
+void CookieManager::setCookies(const KURL& url, const String& value)
 {
     CookieParser parser(url);
     Vector<Cookie*> cookies = parser.parse(value);

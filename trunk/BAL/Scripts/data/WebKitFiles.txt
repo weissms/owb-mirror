@@ -65,6 +65,7 @@ WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
 WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
+WebCore/platform/network/curl/CookieJarCurl.cpp BAL/Network/WebCore/Curl/BCCookieJarCurl.cpp
 WebCore/platform/network/curl/ResourceHandleCurl.cpp BAL/Network/WebCore/Curl/BCResourceHandleCurl.cpp
 WebCore/platform/network/curl/ResourceHandleManager.cpp BAL/Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp
 WebCore/platform/network/curl/ResourceHandleManager.h BAL/Network/WebCore/Curl/BCResourceHandleManagerCurl.h

@@ -1,3 +1,22 @@
+2009-05-26  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Reland part of:
+        Make the cookie jar use the CookieManager.
+
+        It got removed because I forgot to add it to WebKitFiles.txt.
+
+        * Network/WebCore/Curl/BCCookieJarCurl.cpp:
+        (WebCore::setCookies):
+        (WebCore::cookies):
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::setCookies):
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setCookies):
+        * Scripts/data/WebKitFiles.txt:
+
 2009-05-20  Joerg Strohmayer  <j_s@gmx.de>
 
         Tweaked and reviewed by Julien Chaffraix.
