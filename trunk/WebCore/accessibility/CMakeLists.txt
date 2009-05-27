@@ -1,8 +1,8 @@
 list(APPEND WEBCORE_SRC
     accessibility/AXObjectCache.cpp
-    accessibility/AccessibilityAriaGrid.cpp
-    accessibility/AccessibilityAriaGridCell.cpp
-    accessibility/AccessibilityAriaGridRow.cpp
+    accessibility/AccessibilityARIAGrid.cpp
+    accessibility/AccessibilityARIAGridCell.cpp
+    accessibility/AccessibilityARIAGridRow.cpp
     accessibility/AccessibilityImageMapLink.cpp
     accessibility/AccessibilityList.cpp
     accessibility/AccessibilityListBox.cpp

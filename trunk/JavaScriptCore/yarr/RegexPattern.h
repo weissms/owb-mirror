@@ -78,6 +78,7 @@ struct PatternTerm {
         TypePatternCharacter,
         TypeCharacterClass,
         TypeBackReference,
+        TypeForwardReference,
         TypeParenthesesSubpattern,
         TypeParentheticalAssertion,
     } type;
@@ -141,6 +142,11 @@ struct PatternTerm {
         subpatternId = spatternId;
         quantityType = QuantifierFixedCount;
         quantityCount = 1;
+    }
+
+    static PatternTerm ForwardReference()
+    {
+        return PatternTerm(TypeForwardReference);
     }
 
     static PatternTerm BOL()
@@ -262,6 +268,14 @@ struct RegexPattern {
     {
         m_numSubpatterns = 0;
         m_maxBackReference = 0;
+
+        newlineCached = 0;
+        digitsCached = 0;
+        spacesCached = 0;
+        wordcharCached = 0;
+        nondigitsCached = 0;
+        nonspacesCached = 0;
+        nonwordcharCached = 0;
 
         deleteAllValues(m_disjunctions);
         m_disjunctions.clear();

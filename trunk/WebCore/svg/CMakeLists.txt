@@ -3,7 +3,6 @@ if(ENABLE_SVG)
         svg/ColorDistance.cpp
         svg/Filter.cpp
         svg/FilterBuilder.cpp
-        svg/FilterEffect.cpp
         svg/SVGAElement.cpp
         svg/SVGAltGlyphElement.cpp
         svg/SVGAngle.cpp

@@ -301,37 +301,6 @@ WebView::WebView()
     grammarCheckingEnabled = sharedPreferences->grammarCheckingEnabled();
     sharedPreferences->willAddToWebView();
     m_preferences = sharedPreferences;
-
-#if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
-#else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
-#endif
-    m_mainFrame = WebFrame::createInstance();
-    m_mainFrame->init(this, m_page, 0);
-
-    RefPtr<Frame> coreFrame = core(m_mainFrame);
-    coreFrame->init();
-    WebCore::FrameView* frameView = coreFrame->view();
-    d->initWithFrameView(frameView);
-
-#if ENABLE(DATABASE)
-    WebKitSetWebDatabasesPathIfNecessary();
-#if ENABLE(OFFLINE_WEB_APPLICATIONS)
-    WebKitSetApplicationCachePathIfNecessary();
-#endif
-#endif
-
-    addToAllWebViewsSet();
-
-    initializeToolTipWindow();
-    windowAncestryDidChange();
-
-    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
-    
-    m_preferences->postPreferencesChangesNotification();
-
-    setSmartInsertDeleteEnabled(true);
 }
 
 WebView::~WebView()
@@ -615,7 +584,8 @@ void WebView::close()
 
 void WebView::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    d->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
+    if (d)
+        d->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
 }
 
 void WebView::deleteBackingStore()
@@ -1064,8 +1034,39 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     else
         d->setFrameRect(frame);
 
-    setGroupName(groupName);
+#if ENABLE(INSPECTOR)
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
+#else
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
+#endif
+    m_mainFrame = WebFrame::createInstance();
+    m_mainFrame->init(this, m_page, 0);
+
+    RefPtr<Frame> coreFrame = core(m_mainFrame);
     m_mainFrame->setName(frameName);
+    coreFrame->init();
+    setGroupName(groupName);
+    WebCore::FrameView* frameView = coreFrame->view();
+    d->initWithFrameView(frameView);
+
+    addToAllWebViewsSet();
+
+    initializeToolTipWindow();
+    windowAncestryDidChange();
+
+#if ENABLE(DATABASE)
+    WebKitSetWebDatabasesPathIfNecessary();
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+    WebKitSetApplicationCachePathIfNecessary();
+#endif
+#endif
+
+    WebCore::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    
+    m_preferences->postPreferencesChangesNotification();
+
+    setSmartInsertDeleteEnabled(true);
+
 }
 
 /*static bool initCommonControls()

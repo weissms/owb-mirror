@@ -1,3 +1,146 @@
+2009-05-27  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        <rdar://problem/6924033> REGRESSION: Assertion failure due to forward references
+
+        Add a pattern type for forward references to ensure that we don't confuse the
+        quantifier alternatives assertion.
+
+        * yarr/RegexCompiler.cpp:
+        (JSC::Yarr::RegexPatternConstructor::atomBackReference):
+        (JSC::Yarr::RegexPatternConstructor::setupAlternativeOffsets):
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::ByteCompiler::emitDisjunction):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateTerm):
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::PatternTerm::):
+        (JSC::Yarr::PatternTerm::PatternTerm):
+        (JSC::Yarr::PatternTerm::ForwardReference):
+
+2009-05-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for: <rdar://problem/6918095> REGRESSION: jQuery load() issue (25981),
+        and also an ASSERT failure on http://ihasahotdog.com/.
+
+        When overwriting a property on a dictionary with a cached specific value,
+        clear the cache if new value being written is different.
+
+        * JavaScriptCore.exp:
+            Export the new symbols.
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::cti_op_get_by_id_method_check_second):
+            Close dictionary prototypes upon caching a method access, as would happen when caching
+            a regular get_by_id.
+        * runtime/JSObject.h:
+        (JSC::JSObject::propertyStorage):
+        (JSC::JSObject::locationForOffset):
+            Make these methods private.
+        (JSC::JSObject::putDirectInternal):
+            When overwriting a property on a dictionary with a cached specific value,
+            clear the cache if new value being written is different.
+        * runtime/Structure.cpp:
+        (JSC::Structure::despecifyDictionaryFunction):
+            Reset the specific value field for a given property in a dictionary.
+        (JSC::Structure::despecifyFunctionTransition):
+            Rename of 'changeFunctionTransition' (this was already internally refered to as a despecification).
+        * runtime/Structure.h:
+            Declare new method.
+
+2009-05-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver "pieces of eight" Hunt.
+
+        When reseting RegexPattern class, should fully reset the class, not just bits of it.
+        In particular, we delete the cached character classes (for wordchars, etc), but do
+        not reset the set of pointers to the cached classes.  In the case of a repeated parse
+        due to an illegal back-reference we will continue to use the deleted character class.
+
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::RegexPattern::reset):
+
+2009-05-26  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix to correct r44161.
+
+        * wtf/FastAllocBase.h:
+
+2009-05-26  Zoltan Horvath  <horvath.zoltan.6@stud.u-szeged.hu>
+
+        Reviewed by Maciej Stachowiak.
+
+        Inherite HashTable from FastAllocBase, because it has been instantiated by
+        'new' in JavaScriptCore/runtime/JSGlobalData.cpp.
+
+        * wtf/HashTable.h:
+        * wtf/FastAllocBase.h: Remove 'wtf' path from TypeTraits.h to allow use outside of wtf.
+
+2009-05-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Maciej Stachowiak and Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25126
+        Allow the buffer underlying UString to be shared.
+
+        In order to not grow the underlying size of any structure,
+        there is a union in the Rep string which holds
+         + m_sharedBuffer -- a pointer to the shared ref counted buffer
+           if the class is BaseString and the buffer is being shared OR
+         + m_baseString -- the BaseString if the class is only UString::Rep
+           but not a UString::BaseString
+
+        Ideally, m_sharedBuffer would be a RefPtr, but it cannot be because
+        it is in a union.
+
+        No change in sunspider perf.
+
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/UString.cpp:
+        (JSC::UString::Rep::share):
+        (JSC::UString::Rep::destroy):
+        (JSC::UString::BaseString::sharedBuffer):
+        (JSC::UString::BaseString::setSharedBuffer):
+        (JSC::UString::BaseString::slowIsBufferReadOnly):
+        (JSC::expandCapacity):
+        (JSC::UString::Rep::reserveCapacity):
+        (JSC::UString::expandPreCapacity):
+        (JSC::concatenate):
+        (JSC::UString::append):
+        * runtime/UString.h:
+        (JSC::UString::Rep::Rep):
+        (JSC::UString::Rep::):
+        (JSC::UString::BaseString::isShared):
+        (JSC::UString::BaseString::isBufferReadOnly):
+        (JSC::UString::Rep::baseString):
+        * wtf/CrossThreadRefCounted.h:
+        (WTF::CrossThreadRefCounted::isShared):
+        * wtf/OwnFastMallocPtr.h: Added.
+        (WTF::OwnFastMallocPtr::OwnFastMallocPtr):
+        (WTF::OwnFastMallocPtr::~OwnFastMallocPtr):
+        (WTF::OwnFastMallocPtr::get):
+        (WTF::OwnFastMallocPtr::release):
+
+2009-05-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Re-add interpreter logic to jit-enabled builds as GCC mysteriously regresses without it
+
+        * wtf/Platform.h:
+
+2009-05-25  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Maciej Stachowiak.
+
+        The functions written in assembly need to have a leading
+        underscore on Windows too.
+
+        * jit/JITStubs.cpp:
+
 2009-05-25  Steve Falkenburg  <sfalken@apple.com>
 
         Build fix for experimental PGO Windows target.

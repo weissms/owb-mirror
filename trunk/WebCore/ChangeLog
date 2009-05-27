@@ -1,3 +1,564 @@
+2009-05-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Brady Eidson.
+
+        Fix for <rdar://problem/6916371>
+        iWeb 'Announce' button does nothing after publishing to MobileMe
+
+        Add ability to force content sniffing for all urls (including file: urls)
+
+        * WebCore.base.exp:
+        * platform/network/ResourceHandle.cpp:
+        (WebCore::ResourceHandle::shouldContentSniffURL):
+        (WebCore::ResourceHandle::forceContentSniffing):
+        * platform/network/ResourceHandle.h:
+
+2009-05-26  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25996
+
+        [Qt] Dead-code stripping for unix
+
+        * WebCore.pro: Turn on GCC dead-code stripping flags for Unix
+
+2009-05-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25646
+
+        [GTK] Send onscroll events for the main FrameView
+
+        WebKit/GTK+ is currently not sending any onscroll
+        events for a frame with external adjustments. This is
+        due the fact that the value-changed signal of the GtkAdjustment
+        is handled by WebCore::ScrollView directly and is not going through
+        the WebCore::Scrollbar -> WebCore::ScrollbarClient ->
+        WebCore::FrameView::valueChanged -> WebCore::ScrollView::valueChanged
+        path.
+
+        Fix the above problem by wrapping the GtkAdjustment we get
+        assigned from GTK+ in a ScrollbarGtk that will not have any
+        visual appearance. Remove code from ScrollView that knows
+        about adjustments and create a special case for
+        WebCore::ScrollView::createScrollbar that will create such
+        a special WebCore::ScrollbarGtk.
+
+        * platform/ScrollView.cpp: Remove adjustment code
+        (WebCore::ScrollView::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::setHasVerticalScrollbar):
+        (WebCore::ScrollView::updateScrollbars):
+        (WebCore::ScrollView::wheelEvent):
+        * platform/ScrollView.h: Remove adjustment code
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::platformDestroy):
+        (WebCore::ScrollView::createScrollbar):
+        (WebCore::ScrollView::setGtkAdjustments):
+        * platform/gtk/ScrollbarGtk.cpp:
+        (ScrollbarGtk::createScrollbar): Special case.
+        (ScrollbarGtk::ScrollbarGtk):  New ctor and work on the adjustment
+        (ScrollbarGtk::~ScrollbarGtk): Disconnect signal
+        (ScrollbarGtk::frameRectsChanged): Do nothing when we lack a platformWidget
+        * platform/gtk/ScrollbarGtk.h:
+
+2009-05-26  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 26035: Make ImageSource::frameHasAlphaAtIndex() return false for JPEGs with CG
+        <https://bugs.webkit.org/show_bug.cgi?id=26035>
+        <rdar://problem/6924087>
+
+        * platform/graphics/cg/ImageSourceCG.cpp:
+        (WebCore::ImageSource::frameHasAlphaAtIndex): return false if the image
+        is JPEG, there is no image type, or m_decoder is null.
+
+2009-05-26  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix for the JPEGImageDecoder.
+
+        Revision 44167 removed stdio.h from the included headers and
+        this will lead to an error that FILE is not known inside the
+        jpeglib.h Put back the stdio.h include.
+
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp:
+
+2009-05-26  Yichao Yin  <yichao.yin@torchmobile.com.cn>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix the crash issue while running layout tests after enalbed XHTMLMP
+        https://bugs.webkit.org/show_bug.cgi?id=26017
+
+        * dom/Document.cpp:
+        (WebCore::Document::isXHTMLMPDocument):
+
+2009-05-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6901751> 
+        REGRESSION (r35515): Tiger crash painting the selection on registration page of car2go.com
+        
+        Don't use the WKCGContextIsSafeToClip function; it wasn't working correctly. Instead, just disable
+        the improved selection drawing on Tiger.
+        
+        * WebCore.Tiger.exp:
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::clip):
+        (WebCore::GraphicsContext::clipOut):
+        (WebCore::GraphicsContext::clipOutEllipseInRect):
+        (WebCore::GraphicsContext::clipPath):
+        (WebCore::GraphicsContext::addInnerRoundedRectClip):
+        (WebCore::GraphicsContext::strokeRect):
+        * platform/mac/WebCoreSystemInterface.h:
+        * platform/mac/WebCoreSystemInterface.mm:
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::fillSelectionGaps):
+
+2009-05-26  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25709 part two
+        Mostly cosmetic changes, mainly to get image decoders for Cairo build to
+        comply with WebKit style guidelines:
+        * Fix header guard names
+        * Fix initializer list wrapping
+        * Fix class/function "{" wrapping
+        * Fix wrapping of long boolean expressions
+        * Fix whitespace around operators
+        * Eliminate whitespace on otherwise-blank lines
+        * No {} on single-line conditional arms
+        * Use 0 instead of NULL
+        * Don't #include "config.h" in headers
+
+        Also a few non-cosmetic changes:
+        * Remove unneeded #ifdef protecting the contents of these files.  The
+          platforms listed don't match who uses these files anymore (even
+          without considering Skia), and platforms which don't use them at all
+          (like CG) aren't harmed by the files, since they don't have
+          equivalently-named classes.  It's simpler to just ditch these.
+        * Convert a use of Vector<>& into SharedBuffer*, since that's how the
+          data is really stored anyway.
+        * Use size() instead of m_size, for consistency with Skia code, and
+          future-proofing (if a particular decoder wants to specialize this).
+        * Move an ASSERT that was slightly more aggressive than necessary.
+        * Change variable names/types for clarity/accuracy and to match Skia.
+        * Remove unnecessary macro magic to work around a problem which no
+          longer exists in the third-party JPEG headers.
+        * Stop silencing a portability warning about setjmp (the vcproj/vsprops
+          are the right place for this)
+        * In Skia code, don't explicitly check |m_failed| before calling
+          isSizeAvailable(), which itself checks |m_failed|.
+
+        * platform/image-decoders/ImageDecoder.h: Fix header guards, "{" wrapping.
+        (WebCore::RGBA32Buffer::):
+        (WebCore::RGBA32Buffer::RGBA32Buffer): Fix initializer list wrapping.
+        (WebCore::ImageDecoder::ImageDecoder): Fix initializer list wrapping.
+        * platform/image-decoders/bmp/BMPImageDecoder.cpp: Remove unneeded #ifdef.
+        * platform/image-decoders/bmp/BMPImageDecoder.h: Fix header guards, "{" wrapping.
+        * platform/image-decoders/gif/GIFImageDecoder.cpp: Remove unneeded #ifdef, fix "{" wrapping.
+        (WebCore::GIFImageDecoderPrivate::GIFImageDecoderPrivate): Use an initializer instead of a block-level statement.
+        (WebCore::GIFImageDecoderPrivate::decode): Expect a SharedBuffer.
+        (WebCore::GIFImageDecoderPrivate::getColorMap):
+        (WebCore::GIFImageDecoder::GIFImageDecoder): Fix initializer list wrapping.
+        (WebCore::GIFImageDecoder::frameCount): Add comment.
+        (WebCore::GIFImageDecoder::frameBufferAtIndex): Explicitly cast, fix whitespace around operators.
+        (WebCore::GIFImageDecoder::decode): Pass a SharedBuffer.
+        (WebCore::GIFImageDecoder::initFrameBuffer): Use size() instead of m_size, move ASSERT, fix boolean wrapping, fix indenting.
+        (WebCore::GIFImageDecoder::prepEmptyFrameBuffer): Use size() instead of m_size.
+        (WebCore::GIFImageDecoder::haveDecodedRow): Use size() instead of m_size, eliminate unneeded whitespace, change variable name.
+        (WebCore::GIFImageDecoder::frameComplete): Use size() instead of m_size, no {} on single-line conditional arms, fix boolean wrapping.
+        * platform/image-decoders/gif/GIFImageDecoder.h: Fix header guards, "{" wrapping.
+        * platform/image-decoders/gif/GIFImageReader.cpp: Remove unneeded #ifdef.
+        (GIFImageReader::read):
+        * platform/image-decoders/gif/GIFImageReader.h: Fix header guards, change variable type.
+        * platform/image-decoders/ico/ICOImageDecoder.cpp: Remove unneeded #ifdef.
+        * platform/image-decoders/ico/ICOImageDecoder.h: Fix header guards, "{" wrapping.
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp: Remove unneeded #ifdef, macro magic, silencing of warning.
+        (WebCore::JPEGImageDecoder::outputScanlines): Use size() instead of m_size, change variable name.
+        * platform/image-decoders/jpeg/JPEGImageDecoder.h: Fix header guards, "{" wrapping.
+        * platform/image-decoders/png/PNGImageDecoder.cpp: Remove unneeded #ifdef, silencing of warning, change variable type.
+        (WebCore::PNGImageReader::PNGImageReader): Fix initializer list wrapping.
+        (WebCore::PNGImageReader::close): Add comment, zero another member for consistency.
+        (WebCore::PNGImageDecoder::PNGImageDecoder): Fix indenting.
+        (WebCore::PNGImageDecoder::decodingFailed): Define in .cpp, not .h.
+        (WebCore::PNGImageDecoder::rowAvailable):
+        * platform/image-decoders/png/PNGImageDecoder.h: Fix header guards, "{" wrapping.
+        * platform/image-decoders/skia/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::isSizeAvailable): Don't check m_failed unnecessarily.
+        (WebCore::GIFImageDecoder::frameBufferAtIndex): Fix whitespace around operators.
+        * platform/image-decoders/skia/GIFImageReader.h: "unsigned" is sufficient to convey "unsigned int".
+        * platform/image-decoders/skia/ImageDecoder.h: Remove unnecessary #includes.
+        (WebCore::ImageDecoder::ImageDecoder): Fix initializer list wrapping.
+        * platform/image-decoders/skia/JPEGImageDecoder.cpp:
+        (WebCore::JPEGImageReader::JPEGImageReader): Use 0 instead of NULL.
+        (WebCore::JPEGImageDecoder::isSizeAvailable): Don't check m_failed unnecessarily.
+        * platform/image-decoders/skia/PNGImageDecoder.cpp:
+        (WebCore::PNGImageReader::PNGImageReader): Fix initializer list wrapping.
+        (WebCore::PNGImageDecoder::PNGImageDecoder): Fix indenting.
+        (WebCore::PNGImageDecoder::isSizeAvailable): Don't check m_failed unnecessarily.
+        (WebCore::rowAvailable):
+        * platform/image-decoders/skia/XBMImageDecoder.h: Don't #include config.h.
+        * platform/image-decoders/xbm/XBMImageDecoder.cpp: Remove unneeded #ifdef.
+        * platform/image-decoders/xbm/XBMImageDecoder.h: Fix header guards, "{" wrapping.
+
+2009-05-26  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25944
+        Remove the uses of V8 Locker in worker execution code. No additional test is needed.
+        The normal WebKit layout tests should cover it. However, layout tests that start
+        multiple workers will fail to pass due to test shell limitation in Chromium. To cover
+        this, UI tests will be added (http://code.google.com/p/chromium/issues/detail?id=12554).
+
+        * bindings/v8/V8WorkerContextEventListener.cpp:
+        (WebCore::V8WorkerContextEventListener::handleEvent):
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::dispose):
+        (WebCore::WorkerContextExecutionProxy::initV8IfNeeded):
+        (WebCore::WorkerContextExecutionProxy::evaluate):
+        (WebCore::WorkerContextExecutionProxy::findOrCreateEventListenerHelper):
+        (WebCore::WorkerContextExecutionProxy::RemoveEventListener):
+
+2009-05-26  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25974
+        Enable timers in Chromuim workers.
+
+        * bindings/v8/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute): Added function which can execute a callback using WorkerContext.
+        * bindings/v8/ScheduledAction.h:
+        (WebCore::ScheduledAction::ScheduledAction): added url parameter to capture the worker's location.
+        * bindings/v8/custom/V8WorkerContextCustom.cpp:
+        (WebCore::SetTimeoutOrInterval): replaced NotImplemented with code to create ScheduledAction and DOMTimer.
+        Also, removed declarations for clearTimeout/clearInterval callbacks since they are now directly generated from IDL.
+
+2009-05-26  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23649
+        Update V8 bindings to match SQLTransactionErrorCallback change.
+
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.cpp:
+        (WebCore::V8CustomSQLTransactionErrorCallback::handleEvent): Changed to return void.
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.h: Ditto.
+
+2009-05-26  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Move FilterEffect to platform/graphics/filters. First step to get an
+        SVG independent filter system.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/filters/FilterEffect.cpp: Added.
+        (WebCore::FilterEffect::FilterEffect):
+        (WebCore::FilterEffect::~FilterEffect):
+        (WebCore::FilterEffect::externalRepresentation):
+        * platform/graphics/filters/FilterEffect.h: Added.
+        (WebCore::FilterEffect::xBoundingBoxMode):
+        (WebCore::FilterEffect::setXBoundingBoxMode):
+        (WebCore::FilterEffect::yBoundingBoxMode):
+        (WebCore::FilterEffect::setYBoundingBoxMode):
+        (WebCore::FilterEffect::widthBoundingBoxMode):
+        (WebCore::FilterEffect::setWidthBoundingBoxMode):
+        (WebCore::FilterEffect::heightBoundingBoxMode):
+        (WebCore::FilterEffect::setHeightBoundingBoxMode):
+        (WebCore::FilterEffect::subRegion):
+        (WebCore::FilterEffect::setSubRegion):
+        (WebCore::FilterEffect::resultImage):
+        (WebCore::FilterEffect::setEffectBuffer):
+        * svg/FilterEffect.cpp: Removed.
+        * svg/FilterEffect.h: Removed.
+
+2009-05-26  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23649
+        Update SQLTransactionErrorCallback to not return a value per changes in
+        HTML5 spec.
+
+        Test: storage/transaction-error-callback.html
+
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.h:
+        * storage/SQLTransaction.cpp:
+        (WebCore::SQLTransaction::SQLTransaction):
+        (WebCore::SQLTransaction::postflightAndCommit):
+        (WebCore::SQLTransaction::handleTransactionError):
+        (WebCore::SQLTransaction::deliverTransactionErrorCallback):
+        (WebCore::SQLTransaction::cleanupAfterTransactionErrorCallback):
+        * storage/SQLTransaction.h:
+        * storage/SQLTransactionErrorCallback.h:
+
+2009-05-26  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25969
+
+        Detect the case where we can fit without scrollbars when the view shrinks, so that we don't mistakenly
+        continue to show scrollbars.
+
+        Added two tests in fast/dynamic.
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+
+2009-05-26  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 25801: change AccessibilityAria -> AccessibilityARIA
+        https://bugs.webkit.org/show_bug.cgi?id=25801
+
+        * GNUmakefile.am:
+        * WebCore.order:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * accessibility/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::getOrCreate):
+        * accessibility/AccessibilityARIAGrid.cpp: Copied from WebCore/accessibility/AccessibilityAriaGrid.cpp.
+        (WebCore::AccessibilityARIAGrid::AccessibilityARIAGrid):
+        (WebCore::AccessibilityARIAGrid::~AccessibilityARIAGrid):
+        (WebCore::AccessibilityARIAGrid::create):
+        (WebCore::AccessibilityARIAGrid::addChild):
+        (WebCore::AccessibilityARIAGrid::addChildren):
+        (WebCore::AccessibilityARIAGrid::cellForColumnAndRow):
+        * accessibility/AccessibilityARIAGrid.h: Copied from WebCore/accessibility/AccessibilityAriaGrid.h.
+        * accessibility/AccessibilityARIAGridCell.cpp: Copied from WebCore/accessibility/AccessibilityAriaGridCell.cpp.
+        (WebCore::AccessibilityARIAGridCell::AccessibilityARIAGridCell):
+        (WebCore::AccessibilityARIAGridCell::~AccessibilityARIAGridCell):
+        (WebCore::AccessibilityARIAGridCell::create):
+        (WebCore::AccessibilityARIAGridCell::parentTable):
+        (WebCore::AccessibilityARIAGridCell::rowIndexRange):
+        (WebCore::AccessibilityARIAGridCell::columnIndexRange):
+        * accessibility/AccessibilityARIAGridCell.h: Copied from WebCore/accessibility/AccessibilityAriaGridCell.h.
+        * accessibility/AccessibilityARIAGridRow.cpp: Copied from WebCore/accessibility/AccessibilityAriaGridRow.cpp.
+        (WebCore::AccessibilityARIAGridRow::AccessibilityARIAGridRow):
+        (WebCore::AccessibilityARIAGridRow::~AccessibilityARIAGridRow):
+        (WebCore::AccessibilityARIAGridRow::create):
+        (WebCore::AccessibilityARIAGridRow::parentTable):
+        (WebCore::AccessibilityARIAGridRow::headerObject):
+        * accessibility/AccessibilityARIAGridRow.h: Copied from WebCore/accessibility/AccessibilityAriaGridRow.h.
+        * accessibility/AccessibilityAriaGrid.cpp: Removed.
+        * accessibility/AccessibilityAriaGrid.h: Removed.
+        * accessibility/AccessibilityAriaGridCell.cpp: Removed.
+        * accessibility/AccessibilityAriaGridCell.h: Removed.
+        * accessibility/AccessibilityAriaGridRow.cpp: Removed.
+        * accessibility/AccessibilityAriaGridRow.h: Removed.
+
+2009-05-26  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26012
+
+        Fix the Skia path to normalize the given source rect when
+        drawing patterns, so it accepts negative width/height (as CG does).
+        Fixes Chromium bug http://www.crbug.com/6167.
+        * platform/graphics/skia/ImageSkia.cpp:
+        (WebCore::Image::drawPattern):
+
+2009-05-26  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Serialize calls to WebInspector. This is the first step where method 
+        calls are being serialized to arrays (not yet JSON stringified ones) and 
+        are being dispatched on the client. This change also allows client to override 
+        InspectorFrontend, so that the serialized calls can be made on a given object
+        instead of in-process WebInspector global. This will be the main control flow
+        when InspectorController is decoupled from the in-process frontend.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26010
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::scriptObjectReady):
+        (WebCore::InspectorController::overrideFrontendObject):
+        (WebCore::InspectorController::show):
+        (WebCore::InspectorController::populateScriptObjects):
+        * inspector/InspectorController.h:
+        * inspector/InspectorFrontend.cpp:
+        (WebCore::InspectorFrontend::addMessageToConsole):
+        (WebCore::InspectorFrontend::addResource):
+        (WebCore::InspectorFrontend::updateResource):
+        (WebCore::InspectorFrontend::removeResource):
+        (WebCore::InspectorFrontend::updateFocusedNode):
+        (WebCore::InspectorFrontend::setAttachedWindow):
+        (WebCore::InspectorFrontend::inspectedWindowScriptObjectCleared):
+        (WebCore::InspectorFrontend::showPanel):
+        (WebCore::InspectorFrontend::populateInterface):
+        (WebCore::InspectorFrontend::reset):
+        (WebCore::InspectorFrontend::debuggerWasEnabled):
+        (WebCore::InspectorFrontend::debuggerWasDisabled):
+        (WebCore::InspectorFrontend::profilerWasEnabled):
+        (WebCore::InspectorFrontend::profilerWasDisabled):
+        (WebCore::InspectorFrontend::parsedScriptSource):
+        (WebCore::InspectorFrontend::failedToParseScriptSource):
+        (WebCore::InspectorFrontend::addProfile):
+        (WebCore::InspectorFrontend::setRecordingProfile):
+        (WebCore::InspectorFrontend::pausedScript):
+        (WebCore::InspectorFrontend::resumedScript):
+        (WebCore::InspectorFrontend::addDatabase):
+        (WebCore::InspectorFrontend::addDOMStorage):
+        (WebCore::InspectorFrontend::newFunctionCall):
+        (WebCore::InspectorFrontend::callSimpleFunction):
+        * inspector/InspectorFrontend.h:
+        * inspector/front-end/inspector.js:
+        (WebInspector.dispatch):
+
+2009-05-25  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6918671> REGRESSION (r41700): Crashes in debug DumpRenderTree at RefCountedBase::ref().
+
+        * dom/QualifiedName.cpp: (WebCore::QualifiedName::QualifiedName):
+        * dom/QualifiedName.h: (WebCore::QualifiedName::QualifiedNameImpl::QualifiedNameImpl):
+        Adjust empty namespace before QNameComponentsTranslator black magic, not after.
+
+2009-05-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Maciej Stachowiak and Oliver Hunt.
+
+        Added forwarding headers.
+
+        * ForwardingHeaders/wtf/CrossThreadRefCounted.h: Added.
+        * ForwardingHeaders/wtf/OwnFastMallocPtr.h: Added.
+
+2009-05-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebCore side of <rdar://problem/6914001>.
+
+        Add a new m_allowPopupsFromPlugin flag.
+        
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::ScriptController):
+        (WebCore::ScriptController::processingUserGesture):
+        * bindings/js/ScriptController.h:
+        (WebCore::ScriptController::setAllowPopupsFromPlugin):
+        (WebCore::ScriptController::allowPopupsFromPlugin):
+
+2009-05-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26006
+
+        Sort out our use of dynamicGlobalObject and lexicalGlobalObject for
+        window.location.  The correct use appears to be as follows:
+
+        1) Use dynamicGlobalObject to find the user gesture.
+        2) Use dynamicGlobalObject to complete URLs.
+        3) Use lexicalGlobalObject to find the referrer.
+        4) Use lexicalGlobalObject for the frame navigation checks.
+        5) Use lexicalGlobalObject for the XSS checks.
+
+        Tests: http/tests/security/frameNavigation/context-for-location-assign.html
+               http/tests/security/frameNavigation/context-for-location-href.html
+               http/tests/security/frameNavigation/context-for-location.html
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::shouldAllowNavigation):
+        (WebCore::toLexicalFrame):
+        (WebCore::processingUserGesture):
+        (WebCore::completeURL):
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::setLocation):
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::navigateIfAllowed):
+        (WebCore::JSLocation::setHref):
+        (WebCore::JSLocation::replace):
+        (WebCore::JSLocation::reload):
+        (WebCore::JSLocation::assign):
+        (WebCore::JSLocation::toString):
+        (WebCore::JSLocationPrototype::customPut):
+        * bindings/v8/V8Utilities.cpp:
+        (WebCore::processingUserGesture):
+        (WebCore::shouldAllowNavigation):
+        (WebCore::completeURL):
+        (WebCore::navigateIfAllowed):
+        * bindings/v8/V8Utilities.h:
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::V8Custom::WindowSetLocation):
+        * bindings/v8/custom/V8LocationCustom.cpp:
+        (WebCore::ACCESSOR_SETTER):
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-05-25  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Maciej Stachowiak.
+
+        With Windows compilers older then MSVC 2005, the functions
+        gmtime_s and localtime_s don't exist. The gmtime and localtime are
+        on Windows always thread safe. So use them in the cases where
+        gmtime_s and localtime_s are not present.
+
+        * loader/FTPDirectoryDocument.cpp:
+        * loader/FTPDirectoryParser.cpp:
+
+2009-05-25  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        Follow up on r44120. PluginPackageMac.cpp is used
+        by Qt on Mac and contained a copy of the m_browserFunc
+        assignments and ::equal, ::hash and ::compareFileVersion.
+        Change it to use the ones from PluginPackage.cpp as well.
+
+        * plugins/mac/PluginPackageMac.cpp:
+        (WebCore::PluginPackage::load):
+
+2009-05-25  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25612
+
+        Support conditionals in the tag factories, by placing
+        feature #ifdefs around the individual factory functions
+        and the registration.
+
+        Made the Audio and Video elements conditional in the tag factories
+
+        * html/HTMLTagNames.in:
+        * dom/make_names.pl:
+
+2009-05-25  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Fix the Gtk build when video is disabled.
+
+        * GNUmakefile.am: Always generate and compile the IDL files for the media
+        elements. They contain proper feature #ifdefs.
+
+2009-05-25  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Fix the Qt build when video is disabled.
+
+        * WebCore.pro: Always generate the IDL files for the media elements. They
+        contain proper ENABLE(VIDEO) #ifdefs.
+
 2009-05-25  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Maciej Stachowiak.

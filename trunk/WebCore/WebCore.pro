@@ -39,6 +39,10 @@ include($$OUTPUT_DIR/config.pri)
 
 CONFIG -= warn_on
 *-g++*:QMAKE_CXXFLAGS += -Wreturn-type -fno-strict-aliasing
+
+unix:!mac:*-g++*:QMAKE_CXXFLAGS += -ffunction-sections -fdata-sections 
+unix:!mac:*-g++*:QMAKE_LFLAGS += -Wl,--gc-sections
+
 #QMAKE_CXXFLAGS += -Wall -Wno-undef -Wno-unused-parameter
 
 CONFIG(release):!CONFIG(QTDIR_build) {
@@ -313,6 +317,7 @@ IDL_BINDINGS += \
     html/CanvasRenderingContext2D.idl \
     html/File.idl \
     html/FileList.idl \
+    html/HTMLAudioElement.idl \
     html/HTMLAnchorElement.idl \
     html/HTMLAppletElement.idl \
     html/HTMLAreaElement.idl \
@@ -349,6 +354,7 @@ IDL_BINDINGS += \
     html/HTMLLinkElement.idl \
     html/HTMLMapElement.idl \
     html/HTMLMarqueeElement.idl \
+    html/HTMLMediaElement.idl \
     html/HTMLMenuElement.idl \
     html/HTMLMetaElement.idl \
     html/HTMLModElement.idl \
@@ -363,6 +369,7 @@ IDL_BINDINGS += \
     html/HTMLQuoteElement.idl \
     html/HTMLScriptElement.idl \
     html/HTMLSelectElement.idl \
+    html/HTMLSourceElement.idl \
     html/HTMLStyleElement.idl \
     html/HTMLTableCaptionElement.idl \
     html/HTMLTableCellElement.idl \
@@ -373,8 +380,12 @@ IDL_BINDINGS += \
     html/HTMLTextAreaElement.idl \
     html/HTMLTitleElement.idl \
     html/HTMLUListElement.idl \
+    html/HTMLVideoElement.idl \
     html/ImageData.idl \
+    html/MediaError.idl \
     html/TextMetrics.idl \
+    html/TimeRanges.idl \
+    html/VoidCallback.idl \
     inspector/InspectorController.idl \
     page/BarInfo.idl \
     page/Console.idl \
@@ -408,9 +419,9 @@ SOURCES += \
     accessibility/AccessibilityListBox.cpp \    
     accessibility/AccessibilityListBoxOption.cpp \    
     accessibility/AccessibilityRenderObject.cpp \    
-    accessibility/AccessibilityAriaGrid.cpp \    
-    accessibility/AccessibilityAriaGridCell.cpp \    
-    accessibility/AccessibilityAriaGridRow.cpp \    
+    accessibility/AccessibilityARIAGrid.cpp \    
+    accessibility/AccessibilityARIAGridCell.cpp \    
+    accessibility/AccessibilityARIAGridRow.cpp \    
     accessibility/AccessibilityTable.cpp \    
     accessibility/AccessibilityTableCell.cpp \    
     accessibility/AccessibilityTableColumn.cpp \    
@@ -1380,15 +1391,6 @@ contains(DEFINES, ENABLE_WORKERS=1) {
 contains(DEFINES, ENABLE_VIDEO=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_VIDEO=1
 
-    IDL_BINDINGS += \
-        html/HTMLAudioElement.idl \
-        html/HTMLMediaElement.idl \
-        html/HTMLSourceElement.idl \
-        html/HTMLVideoElement.idl \
-        html/MediaError.idl \
-        html/TimeRanges.idl \
-        html/VoidCallback.idl 
-
     SOURCES += \
         html/HTMLAudioElement.cpp \
         html/HTMLMediaElement.cpp \
@@ -1704,7 +1706,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
         svg/FilterBuilder.cpp \
-        svg/FilterEffect.cpp \
         svg/SVGDocumentExtensions.cpp \
         svg/SVGImageLoader.cpp \
         svg/ColorDistance.cpp \
@@ -1842,6 +1843,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         platform/graphics/filters/FEColorMatrix.cpp \
         platform/graphics/filters/FEComponentTransfer.cpp \
         platform/graphics/filters/FEComposite.cpp \
+        platform/graphics/filters/FilterEffect.cpp \
         platform/graphics/filters/SourceAlpha.cpp \
         platform/graphics/filters/SourceGraphic.cpp \
         svg/graphics/filters/SVGFEConvolveMatrix.cpp \

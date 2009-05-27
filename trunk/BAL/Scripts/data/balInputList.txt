@@ -9,6 +9,13 @@
 #
 
 
+
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AXObjectCacheAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
+BAL/Accessibility/WebCore/Qt	WebCore/accessibility/qt/AccessibilityObjectQt.cpp
+
 BAL/Skeletons/Database	WebCore/platform/sql/SQLValue.h
 BAL/Skeletons/Database	WebCore/platform/sql/SQLiteDatabase.h
 BAL/Skeletons/Database	WebCore/platform/sql/SQLiteStatement.h
@@ -204,8 +211,9 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/Pen.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/StrokeStyleApplier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
-BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
@@ -307,10 +315,12 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/FilterEffect.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
@@ -406,7 +416,7 @@ BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/Collator.h
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/CollatorDefault.cpp
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.cpp
 BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.h
-BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h UnicodeGLib.h
 BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.cpp
 BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeMacrosFromICU.h
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
@@ -679,6 +689,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/MessageQueue.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Noncopyable.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/NotFound.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnArrayPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/OwnFastMallocPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnPtr.h
 BAL/Skeletons/Types JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Skeletons/Types JavaScriptCore/wtf/PassOwnPtr.h
@@ -744,6 +755,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/MessageQueue.h
 BAL/Types/WTF	JavaScriptCore/wtf/Noncopyable.h
 BAL/Types/WTF	JavaScriptCore/wtf/NotFound.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnArrayPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/OwnFastMallocPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnPtr.h
 BAL/Types/WTF   JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Types/WTF   JavaScriptCore/wtf/PassOwnPtr.h
@@ -836,10 +848,6 @@ BAL/Skeletons/Widgets   WebCore/platform/ScrollbarTheme.h
 BAL/Skeletons/Widgets   WebCore/platform/ScrollbarThemeComposite.h
 BAL/Skeletons/Widgets   WebCore/platform/Theme.h
 
-BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AXObjectCacheAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/DragControllerGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/FrameGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
@@ -864,7 +872,6 @@ BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.h
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.cpp
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.cpp
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.h
-BAL/Widgets/WebCore/Qt	WebCore/accessibility/qt/AccessibilityObjectQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/DragControllerQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/EventHandlerQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/page/qt/FrameQt.cpp

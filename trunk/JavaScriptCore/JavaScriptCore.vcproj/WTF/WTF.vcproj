@@ -214,6 +214,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\wtf\CrossThreadRefCounted.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\wtf\CurrentTime.cpp"
 			>
 		</File>
@@ -307,6 +311,10 @@
 		</File>
 		<File
 			RelativePath="..\..\wtf\OwnArrayPtr.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\wtf\OwnFastMallocPtr.h"
 			>
 		</File>
 		<File

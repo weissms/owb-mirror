@@ -45,19 +45,4 @@ bool PluginPackage::load()
     return false;
 }
 
-unsigned PluginPackage::hash() const
-{
-    return 0;
-}
-
-bool PluginPackage::equal(const PluginPackage& a, const PluginPackage& b)
-{
-    return a.m_description == b.m_description;
-}
-
-int PluginPackage::compareFileVersion(const PlatformModuleVersion& compareVersion) const
-{
-    return 0;
-}
-
 }

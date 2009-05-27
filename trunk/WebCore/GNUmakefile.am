@@ -158,6 +158,7 @@ IDL_BINDINGS += \
 	WebCore/html/HTMLAnchorElement.idl \
 	WebCore/html/HTMLAppletElement.idl \
 	WebCore/html/HTMLAreaElement.idl \
+	WebCore/html/HTMLAudioElement.idl \
 	WebCore/html/HTMLBRElement.idl \
 	WebCore/html/HTMLBaseElement.idl \
 	WebCore/html/HTMLBaseFontElement.idl \
@@ -191,6 +192,8 @@ IDL_BINDINGS += \
 	WebCore/html/HTMLLinkElement.idl \
 	WebCore/html/HTMLMapElement.idl \
 	WebCore/html/HTMLMarqueeElement.idl \
+	WebCore/html/HTMLMediaElement.idl \
+	WebCore/html/MediaError.idl \
 	WebCore/html/HTMLMenuElement.idl \
 	WebCore/html/HTMLMetaElement.idl \
 	WebCore/html/HTMLModElement.idl \
@@ -205,6 +208,7 @@ IDL_BINDINGS += \
 	WebCore/html/HTMLQuoteElement.idl \
 	WebCore/html/HTMLScriptElement.idl \
 	WebCore/html/HTMLSelectElement.idl \
+	WebCore/html/HTMLSourceElement.idl \
 	WebCore/html/HTMLStyleElement.idl \
 	WebCore/html/HTMLTableCaptionElement.idl \
 	WebCore/html/HTMLTableCellElement.idl \
@@ -215,8 +219,10 @@ IDL_BINDINGS += \
 	WebCore/html/HTMLTextAreaElement.idl \
 	WebCore/html/HTMLTitleElement.idl \
 	WebCore/html/HTMLUListElement.idl \
+	WebCore/html/HTMLVideoElement.idl \
 	WebCore/html/ImageData.idl \
 	WebCore/html/TextMetrics.idl \
+	WebCore/html/VoidCallback.idl \
 	WebCore/inspector/JavaScriptCallFrame.idl \
 	WebCore/inspector/InspectorController.idl \
 	WebCore/page/BarInfo.idl \
@@ -252,12 +258,12 @@ webcore_sources += \
 	WebCore/WebCorePrefix.h \
         WebCore/accessibility/AXObjectCache.cpp \
 	WebCore/accessibility/AXObjectCache.h \
-	WebCore/accessibility/AccessibilityAriaGrid.cpp \
-	WebCore/accessibility/AccessibilityAriaGrid.h \
-	WebCore/accessibility/AccessibilityAriaGridCell.cpp \
-	WebCore/accessibility/AccessibilityAriaGridCell.h \
-	WebCore/accessibility/AccessibilityAriaGridRow.cpp \
-	WebCore/accessibility/AccessibilityAriaGridRow.h \
+	WebCore/accessibility/AccessibilityARIAGrid.cpp \
+	WebCore/accessibility/AccessibilityARIAGrid.h \
+	WebCore/accessibility/AccessibilityARIAGridCell.cpp \
+	WebCore/accessibility/AccessibilityARIAGridCell.h \
+	WebCore/accessibility/AccessibilityARIAGridRow.cpp \
+	WebCore/accessibility/AccessibilityARIAGridRow.h \
 	WebCore/accessibility/AccessibilityImageMapLink.cpp \
 	WebCore/accessibility/AccessibilityImageMapLink.h \
 	WebCore/accessibility/AccessibilityList.cpp \
@@ -1438,6 +1444,7 @@ webcore_sources += \
 	WebCore/platform/graphics/filters/FEColorMatrix.h \
 	WebCore/platform/graphics/filters/FEComponentTransfer.h \
 	WebCore/platform/graphics/filters/FEComposite.h \
+	WebCore/platform/graphics/filters/FilterEffect.h \
 	WebCore/platform/graphics/filters/SourceAlpha.h \
 	WebCore/platform/graphics/filters/SourceGraphic.h \
 	WebCore/platform/graphics/transforms/IdentityTransformOperation.h \
@@ -2104,13 +2111,7 @@ webcore_cppflags += -DGST_DISABLE_DEPRECATED
 endif # END ENABLE_DEBUG
 
 IDL_BINDINGS += \
-	WebCore/html/HTMLAudioElement.idl \
-	WebCore/html/HTMLMediaElement.idl \
-	WebCore/html/HTMLSourceElement.idl \
-	WebCore/html/HTMLVideoElement.idl \
-	WebCore/html/MediaError.idl \
-	WebCore/html/TimeRanges.idl \
-	WebCore/html/VoidCallback.idl
+	WebCore/html/TimeRanges.idl
 
 webcore_sources += \
 	WebCore/bindings/js/JSAudioConstructor.cpp \
@@ -2543,6 +2544,7 @@ webcore_sources += \
 	WebCore/platform/graphics/filters/FEColorMatrix.cpp \
 	WebCore/platform/graphics/filters/FEComponentTransfer.cpp \
 	WebCore/platform/graphics/filters/FEComposite.cpp \
+	WebCore/platform/graphics/filters/FilterEffect.cpp \
 	WebCore/platform/graphics/filters/SourceAlpha.cpp \
 	WebCore/platform/graphics/filters/SourceGraphic.cpp \
 	WebCore/rendering/PointerEventsHitRules.cpp \
@@ -2600,8 +2602,6 @@ webcore_sources += \
 	WebCore/svg/Filter.h \
 	WebCore/svg/FilterBuilder.h \
 	WebCore/svg/FilterBuilder.cpp \
-	WebCore/svg/FilterEffect.cpp \
-	WebCore/svg/FilterEffect.h \
 	WebCore/svg/GradientAttributes.h \
 	WebCore/svg/LinearGradientAttributes.h \
 	WebCore/svg/PatternAttributes.h \

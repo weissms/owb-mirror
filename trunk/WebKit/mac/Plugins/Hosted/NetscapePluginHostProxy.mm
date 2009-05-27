@@ -222,6 +222,9 @@ void NetscapePluginHostProxy::beginModal()
     CFRunLoopAddSource(CFRunLoopGetCurrent(), m_clientPortSource.get(), (CFStringRef)NSModalPanelRunLoopMode);
     
     [NSApp runModalForWindow:m_placeholderWindow.get()];
+    
+    [m_placeholderWindow.get() orderOut:nil];
+    m_placeholderWindow = 0;
 }
     
 void NetscapePluginHostProxy::endModal()
@@ -235,8 +238,6 @@ void NetscapePluginHostProxy::endModal()
     CFRunLoopRemoveSource(CFRunLoopGetCurrent(), m_clientPortSource.get(), (CFStringRef)NSModalPanelRunLoopMode);
     
     [NSApp stopModal];
-    [m_placeholderWindow.get() orderOut:nil];
-    m_placeholderWindow = 0;
     
     // Make ourselves the front process.
     ProcessSerialNumber psn;
@@ -510,7 +511,7 @@ kern_return_t WKPCReleaseObject(mach_port_t clientPort, uint32_t pluginID, uint3
     return KERN_SUCCESS;
 }
 
-kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t requestID, uint32_t objectID, data_t scriptData, mach_msg_type_number_t scriptLength)
+kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t requestID, uint32_t objectID, data_t scriptData, mach_msg_type_number_t scriptLength, boolean_t allowPopups)
 {
     DataDeallocator deallocator(scriptData, scriptLength);
 
@@ -530,7 +531,7 @@ kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t r
     
     data_t resultData = 0;
     mach_msg_type_number_t resultLength = 0;
-    boolean_t returnValue = instanceProxy->evaluate(objectID, script, resultData, resultLength);
+    boolean_t returnValue = instanceProxy->evaluate(objectID, script, resultData, resultLength, allowPopups);
     
     _WKPHBooleanAndDataReply(hostProxy->port(), instanceProxy->pluginID(), requestID, returnValue, resultData, resultLength);
     if (resultData)

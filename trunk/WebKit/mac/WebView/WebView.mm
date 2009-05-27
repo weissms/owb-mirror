@@ -106,8 +106,8 @@
 #import <WebCore/FocusController.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
-#import <WebCore/FrameView.h>
 #import <WebCore/FrameTree.h>
+#import <WebCore/FrameView.h>
 #import <WebCore/GCController.h>
 #import <WebCore/HTMLNames.h>
 #import <WebCore/HistoryItem.h>
@@ -119,6 +119,7 @@
 #import <WebCore/PageGroup.h>
 #import <WebCore/PlatformMouseEvent.h>
 #import <WebCore/ProgressTracker.h>
+#import <WebCore/ResourceHandle.h>
 #import <WebCore/RuntimeApplicationChecks.h>
 #import <WebCore/ScriptController.h>
 #import <WebCore/ScriptValue.h>
@@ -421,7 +422,7 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     
     // When this flag is set, we will not make any subviews underneath this WebView.  This means no WebFrameViews and no WebHTMLViews.
     BOOL useDocumentViews;
-
+    
 #if USE(ACCELERATED_COMPOSITING)
     // When this flag is set, next time a WebHTMLView draws, it needs to temporarily disable screen updates
     // so that the NSView drawing is visually synchronized with CALayer updates.
@@ -843,6 +844,9 @@ static bool runningTigerMail()
         // with substitute data.
         FrameLoader::setLocalLoadPolicy(FrameLoader::AllowLocalLoadsForLocalAndSubstituteData);
     }
+
+    if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_CONTENT_SNIFFING_FOR_FILE_URLS))
+        ResourceHandle::forceContentSniffing();
 }
 
 - (id)_initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
@@ -867,22 +871,6 @@ static bool runningTigerMail()
     [self _commonInitializationWithFrameName:frameName groupName:groupName usesDocumentViews:usesDocumentViews];
     [self setMaintainsBackForwardList: YES];
     return self;
-}
-
-- (void)_boundsChanged
-{
-    if (!NSEqualSizes(_private->lastLayoutSize, [self bounds].size)) {
-        Frame* frame = core([self mainFrame]);
-        // FIXME: Viewless WebKit is broken with Safari banners (e.g., the Find banner).  We'll have to figure out a way for
-        // Safari to communicate that this space is being consumed.  For WebKit with document views, there's no
-        // need to do an explicit resize, since WebFrameViews have auto resizing turned on and will handle changing
-        // their bounds automatically. See <rdar://problem/6835573> for details.
-        if (!_private->useDocumentViews)
-            frame->view()->resize([self bounds].size.width, [self bounds].size.height);
-        frame->view()->setNeedsLayout();
-        [self setNeedsDisplay:YES];
-        _private->lastLayoutSize = [self bounds].size;
-    }
 }
 
 - (BOOL)_mustDrawUnionedRect:(NSRect)rect singleRects:(const NSRect *)rects count:(NSInteger)count
@@ -936,6 +924,24 @@ static bool runningTigerMail()
 - (BOOL)isFlipped 
 {
     return _private && !_private->useDocumentViews;
+}
+
+- (void)setFrameSize:(NSSize)size
+{
+    if (!NSEqualSizes(_private->lastLayoutSize, size)) {
+        Frame* frame = core([self mainFrame]);
+        // FIXME: Viewless WebKit is broken with Safari banners (e.g., the Find banner).  We'll have to figure out a way for
+        // Safari to communicate that this space is being consumed.  For WebKit with document views, there's no
+        // need to do an explicit resize, since WebFrameViews have auto resizing turned on and will handle changing
+        // their bounds automatically. See <rdar://problem/6835573> for details.
+        if (!_private->useDocumentViews)
+            frame->view()->resize(IntSize(size));
+        frame->view()->setNeedsLayout();
+        [self setNeedsDisplay:YES];
+        _private->lastLayoutSize = size;
+    }
+
+    [super setFrameSize:size];
 }
 
 #if USE(ACCELERATED_COMPOSITING) || !defined(BUILDING_ON_TIGER)
@@ -1120,6 +1126,9 @@ static bool runningTigerMail()
 #endif
 
     _private->closed = YES;
+    
+    [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     [self _closePluginDatabases];
 }
@@ -2702,31 +2711,6 @@ static bool needsWebViewInitThreadWorkaround()
     return _private->shouldCloseWithWindow;
 }
 
-- (void)removeSizeObservers
-{
-    // -removeSizeObservers can be called from -viewWillMoveToSuperview: below -[NSView initWithCoder:], before
-    // we've had a chance to initialize _private
-    if (_private && [self window]) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSViewFrameDidChangeNotification object:self];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-            name:NSViewBoundsDidChangeNotification object:self];
-    }
-}
-
-- (void)addSizeObserversForWindow:(NSWindow *)window
-{
-    // -addSizeObservers can be called from -viewDidMoveToSuperview: below -[NSView initWithCoder:], before
-    // we've had a chance to initialize _private
-    if (_private && window) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
-            name:NSViewFrameDidChangeNotification object:self];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
-            name:NSViewBoundsDidChangeNotification object:self];
-        [self _boundsChanged];
-    }
-}
-
 - (void)addWindowObserversForWindow:(NSWindow *)window
 {
     if (!_private->useDocumentViews && window) {
@@ -2775,46 +2759,10 @@ static bool needsWebViewInitThreadWorkaround()
         _private->page->willMoveOffscreen();
         
     if (window != [self window]) {
-        [self removeSizeObservers];
         [self removeWindowObservers];
-
-        [self addSizeObserversForWindow:window];
         [self addWindowObserversForWindow:window];
     }
 }
-
-#ifndef BUILDING_ON_TIGER
-
-static bool needsUnwantedScrollBarWorkaround(WebView *view)
-{
-    // WebKit's automatic scroll bars are appearing in some cases where they should not.
-    // This is tracked by <https://bugs.webkit.org/show_bug.cgi?id=25969>.
-    // To work around this in What's New windows in some Apple applications, we set
-    // the main frame to not allow scrolling at all.
-
-    NSWindow *window = [view window];
-    if (!window)
-        return false;
-
-    // The applications in question all use distinctive class names for the window.
-    const char* windowClassName = class_getName([window class]);
-    if (strcmp(windowClassName, "WhatsNewPanel") != 0 && strcmp(windowClassName, "iLifeWelcomePanel") != 0)
-        return false;
-
-    // To guarantee this won't cause trouble for any non-Apple application, only do
-    // this if the bundle identifier is an Apple one.
-    return [[[NSBundle mainBundle] bundleIdentifier] hasPrefix:@"com.apple."];
-}
-
-#else
-
-static inline bool needsUnwantedScrollBarWorkaround(WebView *)
-{
-    // The applications in question do not run on Tiger.
-    return false;
-}
-
-#endif
 
 - (void)viewDidMoveToWindow
 {
@@ -2824,9 +2772,6 @@ static inline bool needsUnwantedScrollBarWorkaround(WebView *)
     // initialized.  The stub views are discarded by WebView.
     if (!_private || _private->closed)
         return;
-
-    if (needsUnwantedScrollBarWorkaround(self))
-        [[[self mainFrame] frameView] setAllowsScrolling:NO];
 
     if ([self window])
         _private->page->didMoveOnscreen();
@@ -3179,17 +3124,6 @@ static inline bool needsUnwantedScrollBarWorkaround(WebView *)
     }
     if ([self _zoomMultiplier:isTextOnly] != 1.0f)
         [self _setZoomMultiplier:1.0f isTextOnly:isTextOnly];
-}
-
-- (void)viewWillMoveToSuperview:(NSView *)newSuperview
-{
-    [self removeSizeObservers];
-}
-
-- (void)viewDidMoveToSuperview
-{
-    if ([self superview] != nil)
-        [self addSizeObserversForWindow:[self window]];
 }
 
 - (void)setApplicationNameForUserAgent:(NSString *)applicationName

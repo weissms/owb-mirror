@@ -1,1 +1,1 @@
-BCUnicodeGLib.h	UnicodeGLib.h
+UnicodeGLib.h	Unicode.h

@@ -1,3 +1,167 @@
+2009-05-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Brady Eidson.
+
+        Fix for <rdar://problem/6916371>
+        iWeb 'Announce' button does nothing after publishing to MobileMe
+
+        Add linked-on-or-after check to allow older WebKit apps to use the
+        old behavior of sniffing everything (including file: urls)
+
+        * Misc/WebKitVersionChecks.h:
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+
+2009-05-26  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Ada Chan and Oliver Hunt.
+
+        Remove WebView observers in during fast teardown.
+        <rdar://problem/6922619> REGRESSION (Tiger-only?): After restoring windows from the previous session, a crash occurs while attempting to quit Safari
+
+        * WebView/WebView.mm:
+        (-[WebView _closeWithFastTeardown]):
+
+2009-05-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6901751> 
+        REGRESSION (r35515): Tiger crash painting the selection on registration page of car2go.com
+
+        Remove WKCGContextIsSafeToClip.
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface):
+
+2009-05-26  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6922371> REGRESSION (r43973): Can't type first
+          character with an umlaut, circumflex, or accent in Mail or in a wiki
+
+        * WebView/WebHTMLView.mm:
+        (isTextInput): Moved here.
+        (isInPasswordField): Moved here.
+        (-[WebHTMLView becomeFirstResponder]): Update the exposeInputContext
+        flag and let NSApplication update the input manager with the new input
+        context if necessary.
+        (-[WebHTMLView _updateSelectionForInputManager]): Changed to use the
+        NSApp global instead of +[NSApplication sharedApplication].
+
+2009-05-26  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Tiger build.
+
+        * Misc/WebNSObjectExtras.mm:
+        (-[NSInvocation _webkit_invokeAndHandleException:]): Rename the local variable so that
+        it doesn't conflict with a member variable on Tiger.
+
+2009-05-26  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6921835> REGRESSION (r44115): Crash in Leopard Mail viewing message
+
+        Fix case where we autorelease an object on the main thread that we are returning
+        to another thread when using our _webkit_invokeOnMainThread method.
+
+        * Misc/WebNSObjectExtras.mm:
+        (returnTypeIsObject): Added.
+        (-[WebMainThreadInvoker forwardInvocation:]): Autorelease the object on the calling
+        thread, balancing a retain done on the main thread.
+        (-[NSInvocation _webkit_invokeAndHandleException:]): Retain the object on the main
+        thread.
+
+2009-05-26  David Hyatt  <hyatt@apple.com>
+
+        Back out the workaround for Mail crashing.  Darin is working on the real fix.
+
+        * Misc/WebNSObjectExtras.mm:
+        (-[WebMainThreadInvoker forwardInvocation:]):
+
+2009-05-26  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=25969.
+
+        Stop using notifications for boundsChanged, since the notifications are being sent too late.
+        Since subviews get resized before parents do, the notification comes in telling the WebHTMLView
+        that its size has changed *before* we've done setNeedsLayout in the WebView size change callback.
+
+        Become more like the Windows platform and just do the bounds changed immediately as our size is
+        being altered by subclassing setFrameSize in WebView.
+
+        Also patch WebDynamicScrollbarsView to detect the case where neither axis is really spilling out
+        past the viewport, so that in shrinking situations we figure out that we don't need scrollbars
+        any more.
+
+        * WebView/WebDynamicScrollBarsView.m:
+        (-[WebDynamicScrollBarsView updateScrollers]):
+        * WebView/WebView.mm:
+        (-[WebView _boundsChangedToNewSize:]):
+        (-[WebView setFrameSize:]):
+        (-[WebView viewWillMoveToWindow:]):
+        (-[WebView viewDidMoveToWindow]):
+
+2009-05-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebKit side of <rdar://problem/6914001>.
+
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::didCreateWindow):
+        Iterate over all plug-in hosts. If one is in full-screen mode, make sure to activate the
+        WebKit app instead.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        (WebKit::NetscapePluginHostProxy::isMenuBarVisible):
+        Add getter.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        Add allowPopups flag.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::PluginRequest):
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::allowPopups):
+        (WebKit::NetscapePluginInstanceProxy::loadURL):
+        (WebKit::NetscapePluginInstanceProxy::evaluateJavaScript):
+        (WebKit::NetscapePluginInstanceProxy::loadRequest):
+        (WebKit::NetscapePluginInstanceProxy::evaluate):
+        Use "allowPopups" instead of "userGesture".
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add allowPopups argument to Evaluate.
+        
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+        Use "allowPopups" instead of "userGesture".
+
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::createWindow):
+        Call didCreateWindow here.
+        
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::dispatchCreatePage):
+        Ditto.
+
+2009-05-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - Fix <rdar://problem/6915849>.
+        
+        Release the placeholder window after -[NSApplication runModalForWindow] returns.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::beginModal):
+        (WebKit::NetscapePluginHostProxy::endModal):
+
 2009-05-25  Dan Bernstein  <mitz@apple.com>
 
         - revert an accidental change from r43964.

@@ -71,7 +71,7 @@ COMPILE_ASSERT(offsetof(struct JITStackFrame, callFrame) == 0x38, JITStackFrame_
 COMPILE_ASSERT(offsetof(struct JITStackFrame, code) == 0x30, JITStackFrame_code_offset_matches_ctiTrampoline);
 COMPILE_ASSERT(offsetof(struct JITStackFrame, savedEBX) == 0x1c, JITStackFrame_stub_argument_space_matches_ctiTrampoline);
 
-#if PLATFORM(DARWIN)
+#if PLATFORM(DARWIN) || PLATFORM(WIN_OS)
 #define SYMBOL_STRING(name) "_" #name
 #else
 #define SYMBOL_STRING(name) #name
@@ -126,7 +126,7 @@ COMPILE_ASSERT(offsetof(struct JITStackFrame, callFrame) == 0x90, JITStackFrame_
 COMPILE_ASSERT(offsetof(struct JITStackFrame, code) == 0x80, JITStackFrame_code_offset_matches_ctiTrampoline);
 COMPILE_ASSERT(offsetof(struct JITStackFrame, savedRBX) == 0x48, JITStackFrame_stub_argument_space_matches_ctiTrampoline);
 
-#if PLATFORM(DARWIN)
+#if PLATFORM(DARWIN) || PLATFORM(WIN_OS)
 #define SYMBOL_STRING(name) "_" #name
 #else
 #define SYMBOL_STRING(name) #name
@@ -732,14 +732,20 @@ EncodedJSValue JITStubs::cti_op_get_by_id_method_check_second(STUB_ARGS_DECLARAT
     //   * there is a function cached.
     Structure* structure;
     JSCell* specific;
+    JSObject* slotBaseObject;
     if (baseValue.isCell()
         && slot.isCacheable()
         && !(structure = asCell(baseValue)->structure())->isDictionary()
-        && asObject(slot.slotBase())->getPropertySpecificValue(callFrame, ident, specific)
+        && (slotBaseObject = asObject(slot.slotBase()))->getPropertySpecificValue(callFrame, ident, specific)
         && specific
         ) {
 
         JSFunction* callee = (JSFunction*)specific;
+
+        // Since we're accessing a prototype in a loop, it's a good bet that it
+        // should not be treated as a dictionary.
+        if (slotBaseObject->structure()->isDictionary())
+            slotBaseObject->setStructure(Structure::fromDictionaryTransition(slotBaseObject->structure()));
 
         // The result fetched should always be the callee!
         ASSERT(result == JSValue(callee));
@@ -747,7 +753,7 @@ EncodedJSValue JITStubs::cti_op_get_by_id_method_check_second(STUB_ARGS_DECLARAT
 
         // Check to see if the function is on the object's prototype.  Patch up the code to optimize.
         if (slot.slotBase() == structure->prototypeForLookup(callFrame))
-            JIT::patchMethodCallProto(methodCallLinkInfo, callee, structure, asObject(slot.slotBase()));
+            JIT::patchMethodCallProto(methodCallLinkInfo, callee, structure, slotBaseObject);
         // Check to see if the function is on the object itself.
         // Since we generate the method-check to check both the structure and a prototype-structure (since this
         // is the common case) we have a problem - we need to patch the prototype structure check to do something
