@@ -1,3 +1,13 @@
+2009-05-27  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #341: cookies database should be in home directory
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::CookieManager): Use the OWB_DATA directory to
+        put the cookieCollection.db file.
+
 2009-05-27  Mario Bensi  <mbensi@pleyo.com>
 
         Add popup menu.

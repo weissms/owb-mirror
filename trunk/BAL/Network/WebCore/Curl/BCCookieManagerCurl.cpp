@@ -26,11 +26,13 @@
 #include "config.h"
 #include "CookieManager.h"
 
+#include "BALBase.h"
 #include "Cookie.h"
 #include "CookieBackingStore.h"
 #include "CookieParser.h"
 #include "CString.h"
 #include "CurrentTime.h"
+#include "FileSystem.h"
 #include "Logging.h"
 
 namespace WebCore {
@@ -44,7 +46,7 @@ CookieManager& cookieManager()
 CookieManager::CookieManager()
     : m_count(0)
 {
-    m_cookieJarFileName = String("cookieCollection.db");
+    m_cookieJarFileName = pathByAppendingComponent(OWB_DATA, "cookieCollection.db");
 
     // We force the cookie backing store to be open with the cookie jar to avoid
     // calling cookieManager() again and recursively calling this constructor.
