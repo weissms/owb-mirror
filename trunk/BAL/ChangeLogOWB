@@ -1,3 +1,11 @@
+2009-05-27  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix clearRect implementation for SDL backend.
+
+        * Graphics/WebCore/SDL/BCGraphicsContextSDL.cpp:
+        (WebCore::GraphicsContext::clearRect):
+
 2009-05-27  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

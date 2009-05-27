@@ -701,7 +701,8 @@ void GraphicsContext::clearRect(const FloatRect& rect)
 
     IntRect rectangle(rect);
     rectangle.setLocation(rectangle.location() + IntSize(origin().x(), origin().y()));
-    fillRect(rectangle, Color::white);
+    SDL_Rect r = rectangle;
+    SDL_FillRect(m_data->surface, &r, Color::transparent);
 }
 
 void GraphicsContext::strokeRect(const FloatRect& rect, float width)

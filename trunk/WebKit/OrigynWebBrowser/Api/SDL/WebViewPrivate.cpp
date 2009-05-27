@@ -102,6 +102,10 @@ void WebViewPrivate::onExpose(BalEventExpose event)
             m_vUpdateRect = IntRect();
         }
 
+        ctx.clip(d);
+        if (m_webView->transparent())
+            ctx.clearRect(d);
+
         frame->view()->paint(&ctx, d);
 
         if (m_scrollSurface) {
