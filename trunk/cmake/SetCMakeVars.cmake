@@ -12,6 +12,16 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/Base/WebKitDefines.h
     ${OWB_SOURCE_DIR}/Base/WebKitTypes.h
 )
+
+if(USE_GRAPHICS_SDL)
+    list(APPEND API_HEADER
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/SDL/WebWindow.h
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/SDL/WebWindowAlert.h
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/SDL/WebWindowConfirm.h
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/SDL/WebWindowPrompt.h
+    )
+endif(USE_GRAPHICS_SDL)
+
 list(APPEND BASE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}
     ${OWB_SOURCE_DIR}/Base

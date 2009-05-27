@@ -1,3 +1,12 @@
+2009-05-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add popup menu.
+
+        * Widgets/WebCore/SDL/BCPopupMenuSDL.cpp:
+        (WebCore::PopupMenu::show):
+        (WebCore::PopupMenu::setFocusedIndex):
+        (WebCore::PopupMenu::paint):
+
 2009-05-26  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Julien Chaffraix.

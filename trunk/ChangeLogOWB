@@ -1,3 +1,24 @@
+2009-05-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add resources.
+
+        * Resources/Alert: Added.
+        * Resources/Alert/background.png: Added.
+        * Resources/Alert/borderb.png: Added.
+        * Resources/Alert/borderh.png: Added.
+        * Resources/Alert/borderl.png: Added.
+        * Resources/Alert/borderr.png: Added.
+        * Resources/Alert/buttonCancel.png: Added.
+        * Resources/Alert/buttonOK.png: Added.
+        * Resources/Alert/cornerbl.png: Added.
+        * Resources/Alert/cornerbr.png: Added.
+        * Resources/Alert/cornerhl.png: Added.
+        * Resources/Alert/cornerhr.png: Added.
+        * Resources/Alert/textbl.png: Added.
+        * Resources/Alert/textbr.png: Added.
+        * Resources/Alert/textgb.png: Added.
+        * cmake/SetCMakeVars.cmake:
+
 2009-04-09  Olivier DOLE  <odole@pleyo.com>
 
         Build fix for jshell.

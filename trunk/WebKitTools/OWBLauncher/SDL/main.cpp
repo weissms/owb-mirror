@@ -27,6 +27,9 @@
  */
 
 #include <WebKit.h>
+#include <WebWindowAlert.h>
+#include <WebWindowConfirm.h>
+#include <WebWindowPrompt.h>
 #include "SDL.h"
 #include "signal.h"
 #include <unistd.h>

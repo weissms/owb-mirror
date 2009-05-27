@@ -1,3 +1,9 @@
+2009-05-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Message in main.
+
+        * OWBLauncher/SDL/main.cpp:
+
 2009-05-12  Olivier DOLE  <odole@pleyo.com>
 
         Fix DumpRenderTree and tests compilation for Qt build.

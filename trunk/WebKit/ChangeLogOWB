@@ -1,3 +1,87 @@
+2009-05-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Popup and Message Box.
+
+        * OrigynWebBrowser/Api/SDL/WebPopup.cpp: Added.
+        (WebPopup::WebPopup):
+        (WebPopup::~WebPopup):
+        (WebPopup::onExpose):
+        (WebPopup::paintScrollbar):
+        (WebPopup::paintPopup):
+        (WebPopup::updatePopup):
+        (WebPopup::valueChanged):
+        (WebPopup::onKeyDown):
+        (WebPopup::onKeyUp):
+        (WebPopup::onMouseMotion):
+        (WebPopup::onMouseButtonDown):
+        (WebPopup::onMouseButtonUp):
+        (WebPopup::onScroll):
+        (WebPopup::onResize):
+        (WebPopup::onQuit):
+        (WebPopup::onUserEvent):
+        * OrigynWebBrowser/Api/SDL/WebPopup.h: Added.
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::popupMenuShow):
+        * OrigynWebBrowser/Api/SDL/WebWindow.cpp: Added.
+        (WebWindow::show):
+        (WebWindow::hide):
+        (WebWindow::setMainWindow):
+        * OrigynWebBrowser/Api/SDL/WebWindow.h: Added.
+        (WebWindow::~WebWindow):
+        * OrigynWebBrowser/Api/SDL/WebWindowAlert.cpp: Added.
+        (WebWindowAlert::WebWindowAlert):
+        (WebWindowAlert::~WebWindowAlert):
+        (WebWindowAlert::onExpose):
+        (WebWindowAlert::drawButton):
+        (WebWindowAlert::updateButton):
+        (WebWindowAlert::onKeyDown):
+        (WebWindowAlert::onKeyUp):
+        (WebWindowAlert::onMouseMotion):
+        (WebWindowAlert::onMouseButtonDown):
+        (WebWindowAlert::onMouseButtonUp):
+        (WebWindowAlert::onScroll):
+        (WebWindowAlert::onResize):
+        (WebWindowAlert::onQuit):
+        (WebWindowAlert::onUserEvent):
+        * OrigynWebBrowser/Api/SDL/WebWindowAlert.h: Added.
+        * OrigynWebBrowser/Api/SDL/WebWindowConfirm.cpp: Added.
+        (WebWindowConfirm::WebWindowConfirm):
+        (WebWindowConfirm::~WebWindowConfirm):
+        (WebWindowConfirm::onExpose):
+        (WebWindowConfirm::drawButton):
+        (WebWindowConfirm::updateButton):
+        (WebWindowConfirm::onKeyDown):
+        (WebWindowConfirm::onKeyUp):
+        (WebWindowConfirm::onMouseMotion):
+        (WebWindowConfirm::onMouseButtonDown):
+        (WebWindowConfirm::onMouseButtonUp):
+        (WebWindowConfirm::onScroll):
+        (WebWindowConfirm::onResize):
+        (WebWindowConfirm::onQuit):
+        (WebWindowConfirm::onUserEvent):
+        (WebWindowConfirm::value):
+        * OrigynWebBrowser/Api/SDL/WebWindowConfirm.h: Added.
+        * OrigynWebBrowser/Api/SDL/WebWindowPrompt.cpp: Added.
+        (WebWindowPrompt::WebWindowPrompt):
+        (WebWindowPrompt::~WebWindowPrompt):
+        (WebWindowPrompt::onExpose):
+        (WebWindowPrompt::drawTextBox):
+        (WebWindowPrompt::updateTextBox):
+        (WebWindowPrompt::drawButton):
+        (WebWindowPrompt::updateButton):
+        (WebWindowPrompt::onKeyDown):
+        (WebWindowPrompt::onKeyUp):
+        (WebWindowPrompt::onMouseMotion):
+        (WebWindowPrompt::onMouseButtonDown):
+        (WebWindowPrompt::onMouseButtonUp):
+        (WebWindowPrompt::onScroll):
+        (WebWindowPrompt::onResize):
+        (WebWindowPrompt::onQuit):
+        (WebWindowPrompt::onUserEvent):
+        (WebWindowPrompt::value):
+        * OrigynWebBrowser/Api/SDL/WebWindowPrompt.h: Added.
+        * OrigynWebBrowser/CMakeLists.txt:
+
 2009-05-13  Mario Bensi  <mbensi@pleyo.com>
 
         Fix paint.

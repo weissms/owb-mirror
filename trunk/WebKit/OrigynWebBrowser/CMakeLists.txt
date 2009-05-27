@@ -33,9 +33,7 @@ if(USE_GRAPHICS_QT)
 endif(USE_GRAPHICS_QT)
 
 if(USE_GRAPHICS_SDL)
-    list(APPEND WEBKIT_SRC
-        Api/SDL/WebViewPrivate.cpp
-    )
+    aux_source_directory(Api/SDL WEBKIT_SRC)
     include_directories(
         Api/SDL
     )

@@ -102,6 +102,13 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     if (clientRect().isEmpty())
         return;
 
+    if (!m_scrollbar) {
+        if (visibleItems() < client()->listSize()) {
+            // We need a scroll bar
+            m_scrollbar = client()->createScrollbar(this, VerticalScrollbar, RegularScrollbar);
+        }
+    }
+
     WebCore::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuShow", "", this);
 }
 
@@ -146,6 +153,13 @@ void PopupMenu::calculatePositionAndSize(const IntRect& r, FrameView* v)
 
 bool PopupMenu::setFocusedIndex(int i, bool hotTracking)
 {
+    if (i < 0 || i >= client()->listSize() || i == focusedIndex())
+        return false;
+
+    if (!client()->itemIsEnabled(i))
+        return false;
+
+    m_focusedIndex = i;
     return true;
 }
 
@@ -305,6 +319,7 @@ const int separatorPadding = 4;
 const int separatorHeight = 1;
 void PopupMenu::paint(const IntRect& damageRect)
 {
+    //printf("paint popup menu with rect %d,%d,%d,%d\n", damageRect.x(), damageRect.y(), damageRect.width(), damageRect.height());
 }
 
 void PopupMenu::valueChanged(Scrollbar* scrollBar)

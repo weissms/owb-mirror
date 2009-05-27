@@ -50,7 +50,9 @@
 #include "CString.h"
 #include "FileIO.h"
 #include "WebFrame.h"
+#include "WebPopup.h"
 #include "WebView.h"
+#include "WebWindowAlert.h"
 
 using namespace WebCore;
 
@@ -286,6 +288,10 @@ void WebViewPrivate::popupMenuHide()
 
 void WebViewPrivate::popupMenuShow(void *popupInfo)
 {
+    PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
+    WebPopup* webPopup = new WebPopup(pop, m_webView);
+    webPopup->show();
+    delete webPopup;
 }
 
 void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)
