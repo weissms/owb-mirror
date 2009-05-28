@@ -90,6 +90,7 @@
 #include <NotImplemented.h>
 #include <Page.h>
 #include <PageCache.h>
+#include <PageGroup.h>
 #include <PlatformKeyboardEvent.h>
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
@@ -1066,7 +1067,7 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     m_preferences->postPreferencesChangesNotification();
 
     setSmartInsertDeleteEnabled(true);
-
+    PageGroup::setShouldTrackVisitedLinks(true);
 }
 
 /*static bool initCommonControls()
