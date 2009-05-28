@@ -90,6 +90,7 @@
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
 #include <PluginDatabase.h>
+#include <PageGroup.h>
 #include <PluginInfoStore.h>
 #include <PluginView.h>
 #include <ProgressTracker.h>
@@ -326,6 +327,7 @@ WebView::WebView()
     m_preferences->postPreferencesChangesNotification();
 
     setSmartInsertDeleteEnabled(true);
+    PageGroup::setShouldTrackVisitedLinks(true);
 }
 
 WebView::~WebView()
