@@ -1,3 +1,17 @@
+2009-05-28  Mario Bensi  <mbensi@pleyo.com>
+
+        add createWindow* to create popup window.
+
+        * OrigynWebBrowser/Api/SDL/WebWindowAlert.cpp:
+        (WebWindowAlert::createWebWindowAlert):
+        * OrigynWebBrowser/Api/SDL/WebWindowAlert.h:
+        * OrigynWebBrowser/Api/SDL/WebWindowConfirm.cpp:
+        (WebWindowConfirm::createWebWindowConfirm):
+        * OrigynWebBrowser/Api/SDL/WebWindowConfirm.h:
+        * OrigynWebBrowser/Api/SDL/WebWindowPrompt.cpp:
+        (WebWindowPrompt::createWebWindowPrompt):
+        * OrigynWebBrowser/Api/SDL/WebWindowPrompt.h:
+
 2009-05-27  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -46,6 +46,11 @@ using namespace WebCore;
 
 static int fontSize = 20;
 
+WebWindowPrompt* WebWindowPrompt::createWebWindowPrompt(const char* text, const char* defaultText, WebView *webView)
+{
+    return new WebWindowPrompt(text, defaultText, webView);
+}
+
 WebWindowPrompt::WebWindowPrompt(const char* text, const char* defaultText, WebView *view)
     : m_text(text)
     , m_defaultText(defaultText)

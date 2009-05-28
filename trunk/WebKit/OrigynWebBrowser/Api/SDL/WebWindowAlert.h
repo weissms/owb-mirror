@@ -37,7 +37,7 @@ class WebView;
 class WEBKIT_OWB_API WebWindowAlert : public WebWindow
 {
 public:
-    WebWindowAlert(const char* text, WebView *);
+    static WebWindowAlert* createWebWindowAlert(const char* text, WebView *);
     virtual ~WebWindowAlert();
     virtual void onExpose(BalEventExpose event);
     virtual void onKeyDown(BalEventKey event);
@@ -51,6 +51,7 @@ public:
     virtual void onUserEvent(BalUserEvent);
 
 private:
+    WebWindowAlert(const char* text, WebView *);
     void drawButton();
     void updateButton();
 

@@ -37,7 +37,7 @@ class WebView;
 class WEBKIT_OWB_API WebWindowConfirm : public WebWindow
 {
 public:
-    WebWindowConfirm(const char* text, WebView *);
+    static WebWindowConfirm* createWebWindowConfirm(const char* text, WebView *);
     virtual ~WebWindowConfirm();
     virtual void onExpose(BalEventExpose event);
     virtual void onKeyDown(BalEventKey event);
@@ -53,6 +53,7 @@ public:
     bool value();
 
 private:
+    WebWindowConfirm(const char* text, WebView *);
     void drawButton();
     void updateButton();
 

@@ -234,21 +234,32 @@ public:
 
     virtual bool jsAlert(WebFrame *frame, const char *message)
     {
-        printf("Javascript Alert: %s (from frame %p)\n", message, frame);
+        WebWindowAlert* alert = WebWindowAlert::createWebWindowAlert(message, frame->webView());
+        alert->show();
+        delete alert; 
         return true;
     }
 
     virtual bool jsConfirm(WebFrame *frame, const char *message)
     {
-        printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message, frame);
-        return true;
+        WebWindowConfirm* confirm = WebWindowConfirm::createWebWindowConfirm(message, frame->webView());
+        confirm->show();
+        bool val = confirm->value();;
+        delete confirm;
+        return val;
     }
 
     virtual bool jsPrompt(WebFrame *frame, const char *message, const char *defaultValue, char **value)
     {
-        printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", message, frame);
-        *value = strdup(defaultValue);
-        return true;
+        WebWindowPrompt* prompt = WebWindowPrompt::createWebWindowPrompt(message, defaultValue, frame->webView());
+        prompt->show();
+        const char *val = prompt->value();
+        delete prompt;
+        if (value) {
+            *value = strdup(val);
+            return true;
+        } else
+            return false;
     }
 };
 

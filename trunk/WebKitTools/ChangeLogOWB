@@ -1,3 +1,12 @@
+2009-05-28  Mario Bensi  <mbensi@pleyo.com>
+
+        change new WebWindow* by createWebWindow*.
+
+        * OWBLauncher/SDL/main.cpp:
+        (MainJSActionDelegate::jsAlert):
+        (MainJSActionDelegate::jsConfirm):
+        (MainJSActionDelegate::jsPrompt):
+
 2009-05-27  Mario Bensi  <mbensi@pleyo.com>
 
         Add Message in main.

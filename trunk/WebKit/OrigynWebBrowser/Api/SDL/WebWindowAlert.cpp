@@ -46,6 +46,11 @@ using namespace WebCore;
 
 static int fontSize = 20;
 
+WebWindowAlert* WebWindowAlert::createWebWindowAlert(const char* text, WebView *webview)
+{
+    return new WebWindowAlert(text, webview);
+}
+
 WebWindowAlert::WebWindowAlert(const char* text, WebView *view)
     : m_text(text)
     , m_buttonText("OK")

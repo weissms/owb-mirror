@@ -37,7 +37,7 @@ class WebView;
 class WEBKIT_OWB_API WebWindowPrompt : public WebWindow
 {
 public:
-    WebWindowPrompt(const char* text, const char* defaultText, WebView *);
+    static WebWindowPrompt* createWebWindowPrompt(const char* text, const char* defaultText, WebView *);
     virtual ~WebWindowPrompt();
     virtual void onExpose(BalEventExpose event);
     virtual void onKeyDown(BalEventKey event);
@@ -53,6 +53,7 @@ public:
     const char* value();
 
 private:
+    WebWindowPrompt(const char* text, const char* defaultText, WebView *);
     void drawTextBox();
     void updateTextBox();
     void drawButton();

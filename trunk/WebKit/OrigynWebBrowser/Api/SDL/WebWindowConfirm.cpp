@@ -47,6 +47,11 @@ using namespace std;
 
 static int fontSize = 20;
 
+WebWindowConfirm* WebWindowConfirm::createWebWindowConfirm(const char* text, WebView *webView)
+{
+    return new WebWindowConfirm(text, webView);
+}
+
 WebWindowConfirm::WebWindowConfirm(const char* text, WebView *view)
     : m_text(text)
     , m_buttonOk("OK")
