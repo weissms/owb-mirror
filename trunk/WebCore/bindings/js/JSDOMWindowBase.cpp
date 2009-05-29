@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 2000 Harri Porten (porten@kde.org)
  *  Copyright (C) 2006 Jon Shier (jshier@iastate.edu)
- *  Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reseved.
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reseved.
  *  Copyright (C) 2006 Alexey Proskuryakov (ap@webkit.org)
  *
  *  This library is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@
 #include "JSDOMWindowBase.h"
 
 #include "CString.h"
-#include "DOMTimer.h"
 #include "DOMWindow.h"
 #include "Element.h"
 #include "Frame.h"
@@ -35,11 +34,9 @@
 #include "JSNode.h"
 #include "Logging.h"
 #include "Page.h"
-#include "ScheduledAction.h"
 #include "ScriptController.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
-#include <runtime/JSLock.h>
 
 #if ENABLE(INSPECTOR)
 #include "Console.h"
@@ -50,13 +47,10 @@ using namespace JSC;
 
 namespace WebCore {
 
-////////////////////// JSDOMWindowBase Object ////////////////////////
-
 const ClassInfo JSDOMWindowBase::s_info = { "Window", 0, 0, 0 };
 
 JSDOMWindowBase::JSDOMWindowBaseData::JSDOMWindowBaseData(PassRefPtr<DOMWindow> window, JSDOMWindowShell* shell)
     : impl(window)
-    , returnValueSlot(0)
     , shell(shell)
 {
 }
@@ -77,10 +71,6 @@ void JSDOMWindowBase::updateDocument()
     ASSERT(d()->impl->document());
     ExecState* exec = globalExec();
     symbolTablePutWithAttributes(Identifier(exec, "document"), toJS(exec, d()->impl->document()), DontDelete | ReadOnly);
-}
-
-JSDOMWindowBase::~JSDOMWindowBase()
-{
 }
 
 ScriptExecutionContext* JSDOMWindowBase::scriptExecutionContext() const
@@ -213,6 +203,9 @@ ExecState* JSDOMWindowBase::globalExec()
 
 bool JSDOMWindowBase::supportsProfiling() const
 {
+#if !ENABLE(JAVASCRIPT_DEBUGGER)
+    return false;
+#else
     Frame* frame = impl()->frame();
     if (!frame)
         return false;
@@ -220,10 +213,8 @@ bool JSDOMWindowBase::supportsProfiling() const
     Page* page = frame->page();
     if (!page)
         return false;
-#if ENABLE(JAVASCRIPT_DEBUGGER)
+
     return page->inspectorController()->profilerEnabled();
-#else
-    return false;
 #endif
 }
 
@@ -245,19 +236,9 @@ bool JSDOMWindowBase::shouldInterruptScript() const
     return page->chrome()->shouldInterruptJavaScript();
 }
 
-void JSDOMWindowBase::clearHelperObjectProperties()
+void JSDOMWindowBase::willRemoveFromWindowShell()
 {
     setCurrentEvent(0);
-}
-
-void JSDOMWindowBase::clear()
-{
-    JSLock lock(false);
-
-    if (d()->returnValueSlot && !*d()->returnValueSlot)
-        *d()->returnValueSlot = getDirect(Identifier(globalExec(), "returnValue"));
-
-    clearHelperObjectProperties();
 }
 
 JSObject* JSDOMWindowBase::toThisObject(ExecState*) const
@@ -279,15 +260,6 @@ JSGlobalData* JSDOMWindowBase::commonJSGlobalData()
     }
 
     return globalData;
-}
-
-void JSDOMWindowBase::setReturnValueSlot(JSValue* slot)
-{
-    d()->returnValueSlot = slot;
-}
-
-void JSDOMWindowBase::disconnectFrame()
-{
 }
 
 JSValue toJS(ExecState*, DOMWindow* domWindow)

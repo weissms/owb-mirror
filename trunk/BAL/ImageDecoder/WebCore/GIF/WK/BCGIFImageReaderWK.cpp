@@ -935,6 +935,5 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
 
   if (clientptr)
     clientptr->decodingHalted(0);
-
   return true;
 }

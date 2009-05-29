@@ -860,6 +860,8 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardGtk.cpp	BCPasteboardGtk.c
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScreenGtk.cpp	BCPlatformScreenGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PopupMenuGtk.cpp	BCPopupMenuGtk.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.h
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp

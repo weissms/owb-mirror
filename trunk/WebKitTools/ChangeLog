@@ -1,3 +1,40 @@
+2009-05-29  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Added new build flag --filters. More details in WebCore/ChangeLog.
+
+        * Scripts/build-webkit:
+
+2009-05-28  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Maciej.
+
+        Add options to sunspider-compare-results to know which test suite to
+        compare (see bug #15941).
+
+        * Scripts/sunspider-compare-results:
+
+2009-05-27  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Update build-webkit to handle a new version of WebKitSystemInterface.
+
+        * Scripts/build-webkit:
+
+2009-05-27  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Maciej Stachowiak.
+
+        When building with MinGW, don't use the __declspec(dl{import,export})
+        decorations and rely on the linker to use its nifty auto-import feature.
+        It is extremely hard to get the decorations right with MinGW in general
+        and impossible in WebKit, where the resulting shared library is linking
+        together some static libraries.
+
+        * DumpRenderTree/config.h:
+
 2009-05-25  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Oliver Hunt.

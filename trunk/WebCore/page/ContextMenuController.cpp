@@ -185,7 +185,7 @@ void ContextMenuController::contextMenuItemSelected(ContextMenuItem* item)
         case ContextMenuItemTagPaste:
             frame->editor()->paste();
             break;
-#if PLATFORM(GTK) || PLATFORM(BAL)
+#if PLATFORM(GTK)
         case ContextMenuItemTagDelete:
             frame->editor()->performDelete();
             break;

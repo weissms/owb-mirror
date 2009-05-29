@@ -82,9 +82,9 @@ if(ENABLE_SVG_AS_IMAGE)
     add_definitions(-DENABLE_SVG_AS_IMAGE=1)
 endif(ENABLE_SVG_AS_IMAGE)
 
-if(ENABLE_SVG_FILTERS)
-    add_definitions(-DENABLE_SVG_FILTERS=1)
-endif(ENABLE_SVG_FILTERS)
+if(ENABLE_FILTERS)
+    add_definitions(-DENABLE_FILTERS=1)
+endif(ENABLE_FILTERS)
 
 if(ENABLE_SVG_FONTS)
     add_definitions(-DENABLE_SVG_FONTS=1)

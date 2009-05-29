@@ -36,7 +36,6 @@ namespace WebCore {
     class JSDOMWindowShell;
     class JSLocation;
     class JSEventListener;
-    class ScheduledAction;
     class SecurityOrigin;
 
     class JSDOMWindowBasePrivate;
@@ -44,28 +43,20 @@ namespace WebCore {
     // This is the only WebCore JS binding which does not inherit from DOMObject
     class JSDOMWindowBase : public JSDOMGlobalObject {
         typedef JSDOMGlobalObject Base;
-
-        friend class ScheduledAction;
     protected:
         JSDOMWindowBase(PassRefPtr<JSC::Structure>, PassRefPtr<DOMWindow>, JSDOMWindowShell*);
 
     public:
-        virtual ~JSDOMWindowBase();
-
         void updateDocument();
 
         DOMWindow* impl() const { return d()->impl.get(); }
         virtual ScriptExecutionContext* scriptExecutionContext() const;
 
-        void disconnectFrame();
-
         virtual bool getOwnPropertySlot(JSC::ExecState*, const JSC::Identifier&, JSC::PropertySlot&);
         virtual void put(JSC::ExecState*, const JSC::Identifier& propertyName, JSC::JSValue, JSC::PutPropertySlot&);
 
-        void clear();
-
-        // Set a place to put a dialog return value when the window is cleared.
-        void setReturnValueSlot(JSC::JSValue* slot);
+        // Called just before removing this window from the JSDOMWindowShell.
+        void willRemoveFromWindowShell();
 
         virtual const JSC::ClassInfo* classInfo() const { return &s_info; }
         static const JSC::ClassInfo s_info;
@@ -95,16 +86,12 @@ namespace WebCore {
             JSDOMWindowBaseData(PassRefPtr<DOMWindow>, JSDOMWindowShell*);
 
             RefPtr<DOMWindow> impl;
-
-            JSC::JSValue* returnValueSlot;
             JSDOMWindowShell* shell;
         };
 
         static JSC::JSValue childFrameGetter(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);
         static JSC::JSValue indexGetter(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);
         static JSC::JSValue namedItemGetter(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);
-
-        void clearHelperObjectProperties();
 
         bool allowsAccessFromPrivate(const JSC::JSGlobalObject*) const;
         String crossDomainAccessErrorMessage(const JSC::JSGlobalObject*) const;

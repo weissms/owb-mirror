@@ -1,3 +1,994 @@
+2009-05-29  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26068
+        V8: Remove the remaining b8::Locker usage in worker code.
+        This completes the fix for https://bugs.webkit.org/show_bug.cgi?id=25944,
+        since the patches for enabling timers and that bug have "crossed in the queue".
+        Existing LayoutTests/fast/workers/worker-timeout.html covers this fix (will start work in Chromium).
+
+        * bindings/v8/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute):
+
+2009-05-28  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Simplify the Accept-Encoding header we are sending out, for it
+        seems some servers do not enjoy parsing the full, explicit
+        version.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startHttp):
+
+2009-05-28  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Added a new build flag --filters. This replaces the old --svg-filters and enables
+        other parts of WebKit to use some basic filters of platform/graphics/filters if needed.
+        This patch also fixes a bug in dom/DOMImplementation.cpp where we used SVG_FILTER. This flag
+        doesn't exist and was replaced by FILTERS as well as all SVG_FILTERS occurrences.
+        Filters are not working yet. This patch is just a preperation. Filters are deactivated by
+        default. 
+
+        * Configurations/FeatureDefines.xcconfig:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * bindings/objc/DOM.mm:
+        (WebCore::createElementClassMap):
+        * dom/DOMImplementation.cpp:
+        (WebCore::isSVG10Feature):
+        (WebCore::isSVG11Feature):
+        * page/DOMWindow.idl:
+        * platform/graphics/filters/FEBlend.cpp:
+        * platform/graphics/filters/FEBlend.h:
+        * platform/graphics/filters/FEColorMatrix.cpp:
+        * platform/graphics/filters/FEColorMatrix.h:
+        * platform/graphics/filters/FEComponentTransfer.cpp:
+        * platform/graphics/filters/FEComponentTransfer.h:
+        * platform/graphics/filters/FEComposite.cpp:
+        * platform/graphics/filters/FEComposite.h:
+        * platform/graphics/filters/FilterEffect.cpp:
+        * platform/graphics/filters/FilterEffect.h:
+        * platform/graphics/filters/SourceAlpha.cpp:
+        * platform/graphics/filters/SourceAlpha.h:
+        * platform/graphics/filters/SourceGraphic.cpp:
+        * platform/graphics/filters/SourceGraphic.h:
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::selfWillPaint):
+        * rendering/RenderSVGModelObject.cpp:
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::selfWillPaint):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::SVGRenderBase::prepareToRenderSVGContent):
+        (WebCore::SVGRenderBase::finishRenderSVGContent):
+        (WebCore::SVGRenderBase::filterBoundingBoxForRenderer):
+        * svg/Filter.cpp:
+        * svg/Filter.h:
+        * svg/FilterBuilder.cpp:
+        * svg/FilterBuilder.h:
+        * svg/SVGComponentTransferFunctionElement.cpp:
+        * svg/SVGComponentTransferFunctionElement.h:
+        * svg/SVGComponentTransferFunctionElement.idl:
+        * svg/SVGFEBlendElement.cpp:
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEBlendElement.idl:
+        * svg/SVGFEColorMatrixElement.cpp:
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEColorMatrixElement.idl:
+        * svg/SVGFEComponentTransferElement.cpp:
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFEComponentTransferElement.idl:
+        * svg/SVGFECompositeElement.cpp:
+        * svg/SVGFECompositeElement.h:
+        * svg/SVGFECompositeElement.idl:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        * svg/SVGFEDiffuseLightingElement.h:
+        * svg/SVGFEDiffuseLightingElement.idl:
+        * svg/SVGFEDisplacementMapElement.cpp:
+        * svg/SVGFEDisplacementMapElement.h:
+        * svg/SVGFEDisplacementMapElement.idl:
+        * svg/SVGFEDistantLightElement.cpp:
+        * svg/SVGFEDistantLightElement.h:
+        * svg/SVGFEDistantLightElement.idl:
+        * svg/SVGFEFloodElement.cpp:
+        * svg/SVGFEFloodElement.h:
+        * svg/SVGFEFloodElement.idl:
+        * svg/SVGFEFuncAElement.cpp:
+        * svg/SVGFEFuncAElement.h:
+        * svg/SVGFEFuncAElement.idl:
+        * svg/SVGFEFuncBElement.cpp:
+        * svg/SVGFEFuncBElement.h:
+        * svg/SVGFEFuncBElement.idl:
+        * svg/SVGFEFuncGElement.cpp:
+        * svg/SVGFEFuncGElement.h:
+        * svg/SVGFEFuncGElement.idl:
+        * svg/SVGFEFuncRElement.cpp:
+        * svg/SVGFEFuncRElement.h:
+        * svg/SVGFEFuncRElement.idl:
+        * svg/SVGFEGaussianBlurElement.cpp:
+        * svg/SVGFEGaussianBlurElement.h:
+        * svg/SVGFEGaussianBlurElement.idl:
+        * svg/SVGFEImageElement.cpp:
+        * svg/SVGFEImageElement.h:
+        * svg/SVGFEImageElement.idl:
+        * svg/SVGFELightElement.cpp:
+        * svg/SVGFELightElement.h:
+        * svg/SVGFEMergeElement.cpp:
+        * svg/SVGFEMergeElement.h:
+        * svg/SVGFEMergeElement.idl:
+        * svg/SVGFEMergeNodeElement.cpp:
+        * svg/SVGFEMergeNodeElement.h:
+        * svg/SVGFEMergeNodeElement.idl:
+        * svg/SVGFEOffsetElement.cpp:
+        * svg/SVGFEOffsetElement.h:
+        * svg/SVGFEOffsetElement.idl:
+        * svg/SVGFEPointLightElement.cpp:
+        * svg/SVGFEPointLightElement.h:
+        * svg/SVGFEPointLightElement.idl:
+        * svg/SVGFESpecularLightingElement.cpp:
+        * svg/SVGFESpecularLightingElement.h:
+        * svg/SVGFESpecularLightingElement.idl:
+        * svg/SVGFESpotLightElement.cpp:
+        * svg/SVGFESpotLightElement.h:
+        * svg/SVGFESpotLightElement.idl:
+        * svg/SVGFETileElement.cpp:
+        * svg/SVGFETileElement.h:
+        * svg/SVGFETileElement.idl:
+        * svg/SVGFETurbulenceElement.cpp:
+        * svg/SVGFETurbulenceElement.h:
+        * svg/SVGFETurbulenceElement.idl:
+        * svg/SVGFilterElement.cpp:
+        * svg/SVGFilterElement.h:
+        * svg/SVGFilterElement.idl:
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp:
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/graphics/SVGResourceFilter.cpp:
+        * svg/graphics/SVGResourceFilter.h:
+        * svg/graphics/cairo/SVGResourceFilterCairo.cpp:
+        * svg/graphics/cg/SVGResourceFilterCg.cpp:
+        * svg/graphics/cg/SVGResourceFilterCg.mm:
+        * svg/graphics/filters/SVGDistantLightSource.h:
+        * svg/graphics/filters/SVGFEConvolveMatrix.cpp:
+        * svg/graphics/filters/SVGFEConvolveMatrix.h:
+        * svg/graphics/filters/SVGFEDiffuseLighting.cpp:
+        * svg/graphics/filters/SVGFEDiffuseLighting.h:
+        * svg/graphics/filters/SVGFEDisplacementMap.cpp:
+        * svg/graphics/filters/SVGFEDisplacementMap.h:
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        * svg/graphics/filters/SVGFEFlood.h:
+        * svg/graphics/filters/SVGFEGaussianBlur.cpp:
+        * svg/graphics/filters/SVGFEGaussianBlur.h:
+        * svg/graphics/filters/SVGFEImage.cpp:
+        * svg/graphics/filters/SVGFEImage.h:
+        * svg/graphics/filters/SVGFEMerge.cpp:
+        * svg/graphics/filters/SVGFEMerge.h:
+        * svg/graphics/filters/SVGFEMorphology.cpp:
+        * svg/graphics/filters/SVGFEMorphology.h:
+        * svg/graphics/filters/SVGFEOffset.cpp:
+        * svg/graphics/filters/SVGFEOffset.h:
+        * svg/graphics/filters/SVGFESpecularLighting.cpp:
+        * svg/graphics/filters/SVGFESpecularLighting.h:
+        * svg/graphics/filters/SVGFETile.cpp:
+        * svg/graphics/filters/SVGFETile.h:
+        * svg/graphics/filters/SVGFETurbulence.cpp:
+        * svg/graphics/filters/SVGFETurbulence.h:
+        * svg/graphics/filters/SVGFilterEffect.cpp:
+        * svg/graphics/filters/SVGFilterEffect.h:
+        * svg/graphics/filters/SVGLightSource.cpp:
+        * svg/graphics/filters/SVGLightSource.h:
+        * svg/graphics/filters/SVGPointLightSource.h:
+        * svg/graphics/filters/SVGSpotLightSource.h:
+        * svg/graphics/filters/cg/SVGFEHelpersCg.h:
+        * svg/graphics/filters/cg/SVGFEHelpersCg.mm:
+        * svg/graphics/filters/cg/SVGFilterEffectCg.mm:
+        * svg/graphics/filters/cg/WKArithmeticFilter.h:
+        * svg/graphics/filters/cg/WKArithmeticFilter.m:
+        * svg/graphics/filters/cg/WKComponentMergeFilter.h:
+        * svg/graphics/filters/cg/WKComponentMergeFilter.m:
+        * svg/graphics/filters/cg/WKDiffuseLightingFilter.h:
+        * svg/graphics/filters/cg/WKDiffuseLightingFilter.m:
+        * svg/graphics/filters/cg/WKDiscreteTransferFilter.h:
+        * svg/graphics/filters/cg/WKDiscreteTransferFilter.m:
+        * svg/graphics/filters/cg/WKDisplacementMapFilter.h:
+        * svg/graphics/filters/cg/WKDisplacementMapFilter.m:
+        * svg/graphics/filters/cg/WKDistantLightFilter.h:
+        * svg/graphics/filters/cg/WKDistantLightFilter.m:
+        * svg/graphics/filters/cg/WKGammaTransferFilter.h:
+        * svg/graphics/filters/cg/WKGammaTransferFilter.m:
+        * svg/graphics/filters/cg/WKIdentityTransferFilter.h:
+        * svg/graphics/filters/cg/WKIdentityTransferFilter.m:
+        * svg/graphics/filters/cg/WKLinearTransferFilter.h:
+        * svg/graphics/filters/cg/WKLinearTransferFilter.m:
+        * svg/graphics/filters/cg/WKNormalMapFilter.h:
+        * svg/graphics/filters/cg/WKNormalMapFilter.m:
+        * svg/graphics/filters/cg/WKPointLightFilter.h:
+        * svg/graphics/filters/cg/WKPointLightFilter.m:
+        * svg/graphics/filters/cg/WKSpecularLightingFilter.h:
+        * svg/graphics/filters/cg/WKSpecularLightingFilter.m:
+        * svg/graphics/filters/cg/WKSpotLightFilter.h:
+        * svg/graphics/filters/cg/WKSpotLightFilter.m:
+        * svg/graphics/filters/cg/WKTableTransferFilter.h:
+        * svg/graphics/filters/cg/WKTableTransferFilter.m:
+        * svg/graphics/mac/SVGResourceFilterPlatformDataMac.h:
+        * svg/graphics/mac/SVGResourceFilterPlatformDataMac.mm:
+        * svg/graphics/qt/SVGResourceFilterQt.cpp:
+        * svg/graphics/skia/SVGResourceFilterSkia.cpp:
+        * svg/svgtags.in:
+
+2009-05-28  Brett Wilson  <brettw@chromium.org>
+
+        Unreviewed, build fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26067
+
+        Add casts for scale function to make more explicit what is happening
+        and fix a compiler warning.
+
+        * platform/graphics/IntSize.h:
+        (WebCore::IntSize::scale):
+
+2009-05-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Remove the returnValueSlot concept from JSDOMWindowBase. Now that windows
+        are not cleared on navigation it is no longer necessary.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBaseData::JSDOMWindowBaseData):
+        (WebCore::JSDOMWindowBase::willRemoveFromWindowShell):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::showModalDialog):
+
+2009-05-19  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo and Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25415
+        [GTK][ATK] Please implement support for get_text_at_offset
+
+        Implement atk_text_get_text_{at,after,before}_offset.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+
+2009-05-28  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove unnecessary destructor from InputElementData/OptionElementData.
+
+        * dom/InputElement.cpp:
+        * dom/InputElement.h:
+        * dom/OptionElement.cpp:
+        * dom/OptionElement.h:
+
+2009-05-28  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Darin Adler.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=26062
+
+        Refactor code from all virtual methods in HTMLSelectElement (that are also needed for WMLSelectElement)
+        in the recently introduced SelectElement abstract base class. Follow the same design sheme that InputElement uses.
+
+        A follow-up patch can now easily add WMLSelectElement.
+
+        * dom/OptionElement.h:
+        * dom/SelectElement.cpp:
+        (WebCore::SelectElement::selectAll):
+        (WebCore::SelectElement::saveLastSelection):
+        (WebCore::isOptionElement):
+        (WebCore::isOptionGroupElement):
+        (WebCore::SelectElement::nextSelectableListIndex):
+        (WebCore::SelectElement::previousSelectableListIndex):
+        (WebCore::SelectElement::setActiveSelectionAnchorIndex):
+        (WebCore::SelectElement::setActiveSelectionEndIndex):
+        (WebCore::SelectElement::updateListBoxSelection):
+        (WebCore::SelectElement::listBoxOnChange):
+        (WebCore::SelectElement::menuListOnChange):
+        (WebCore::SelectElement::scrollToSelection):
+        (WebCore::SelectElement::recalcStyle):
+        (WebCore::SelectElement::setRecalcListItems):
+        (WebCore::SelectElement::recalcListItems):
+        (WebCore::SelectElement::selectedIndex):
+        (WebCore::SelectElement::setSelectedIndex):
+        (WebCore::SelectElement::optionToListIndex):
+        (WebCore::SelectElement::listToOptionIndex):
+        (WebCore::SelectElement::dispatchFocusEvent):
+        (WebCore::SelectElement::dispatchBlurEvent):
+        (WebCore::SelectElement::deselectItems):
+        (WebCore::SelectElement::saveFormControlState):
+        (WebCore::SelectElement::restoreFormControlState):
+        (WebCore::SelectElement::parseMultipleAttribute):
+        (WebCore::SelectElement::appendFormData):
+        (WebCore::SelectElement::reset):
+        (WebCore::SelectElement::menuListDefaultEventHandler):
+        (WebCore::SelectElement::listBoxDefaultEventHandler):
+        (WebCore::SelectElement::defaultEventHandler):
+        (WebCore::SelectElement::lastSelectedListIndex):
+        (WebCore::stripLeadingWhiteSpace):
+        (WebCore::SelectElement::typeAheadFind):
+        (WebCore::SelectElement::insertedIntoTree):
+        (WebCore::SelectElementData::SelectElementData):
+        (WebCore::SelectElementData::checkListItems):
+        (WebCore::SelectElementData::listItems):
+        * dom/SelectElement.h:
+        (WebCore::SelectElementData::multiple):
+        (WebCore::SelectElementData::setMultiple):
+        (WebCore::SelectElementData::size):
+        (WebCore::SelectElementData::setSize):
+        (WebCore::SelectElementData::usesMenuList):
+        (WebCore::SelectElementData::lastOnChangeIndex):
+        (WebCore::SelectElementData::setLastOnChangeIndex):
+        (WebCore::SelectElementData::lastOnChangeSelection):
+        (WebCore::SelectElementData::activeSelectionState):
+        (WebCore::SelectElementData::setActiveSelectionState):
+        (WebCore::SelectElementData::activeSelectionAnchorIndex):
+        (WebCore::SelectElementData::setActiveSelectionAnchorIndex):
+        (WebCore::SelectElementData::activeSelectionEndIndex):
+        (WebCore::SelectElementData::setActiveSelectionEndIndex):
+        (WebCore::SelectElementData::cachedStateForActiveSelection):
+        (WebCore::SelectElementData::shouldRecalcListItems):
+        (WebCore::SelectElementData::setShouldRecalcListItems):
+        (WebCore::SelectElementData::rawListItems):
+        (WebCore::SelectElementData::repeatingChar):
+        (WebCore::SelectElementData::setRepeatingChar):
+        (WebCore::SelectElementData::lastCharTime):
+        (WebCore::SelectElementData::setLastCharTime):
+        (WebCore::SelectElementData::typedString):
+        (WebCore::SelectElementData::setTypedString):
+        * html/HTMLOptionElement.h:
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::HTMLSelectElement):
+        (WebCore::HTMLSelectElement::recalcStyle):
+        (WebCore::HTMLSelectElement::formControlType):
+        (WebCore::HTMLSelectElement::selectedIndex):
+        (WebCore::HTMLSelectElement::deselectItems):
+        (WebCore::HTMLSelectElement::setSelectedIndex):
+        (WebCore::HTMLSelectElement::activeSelectionStartListIndex):
+        (WebCore::HTMLSelectElement::activeSelectionEndListIndex):
+        (WebCore::HTMLSelectElement::saveFormControlState):
+        (WebCore::HTMLSelectElement::restoreFormControlState):
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        (WebCore::HTMLSelectElement::canSelectAll):
+        (WebCore::HTMLSelectElement::selectAll):
+        (WebCore::HTMLSelectElement::createRenderer):
+        (WebCore::HTMLSelectElement::appendFormData):
+        (WebCore::HTMLSelectElement::optionToListIndex):
+        (WebCore::HTMLSelectElement::listToOptionIndex):
+        (WebCore::HTMLSelectElement::recalcListItems):
+        (WebCore::HTMLSelectElement::setRecalcListItems):
+        (WebCore::HTMLSelectElement::reset):
+        (WebCore::HTMLSelectElement::dispatchFocusEvent):
+        (WebCore::HTMLSelectElement::dispatchBlurEvent):
+        (WebCore::HTMLSelectElement::defaultEventHandler):
+        (WebCore::HTMLSelectElement::setActiveSelectionAnchorIndex):
+        (WebCore::HTMLSelectElement::setActiveSelectionEndIndex):
+        (WebCore::HTMLSelectElement::updateListBoxSelection):
+        (WebCore::HTMLSelectElement::menuListOnChange):
+        (WebCore::HTMLSelectElement::listBoxOnChange):
+        (WebCore::HTMLSelectElement::saveLastSelection):
+        (WebCore::HTMLSelectElement::setOption):
+        (WebCore::HTMLSelectElement::scrollToSelection):
+        (WebCore::HTMLSelectElement::insertedIntoTree):
+        * html/HTMLSelectElement.h:
+        (WebCore::HTMLSelectElement::size):
+        (WebCore::HTMLSelectElement::multiple):
+        (WebCore::HTMLSelectElement::listItems):
+        * wml/WMLOptionElement.cpp:
+        (WebCore::WMLOptionElement::text):
+        * wml/WMLOptionElement.h:
+
+
+        * dom/OptionElement.h:
+        * dom/SelectElement.cpp:
+        (WebCore::SelectElement::selectAll):
+        (WebCore::SelectElement::saveLastSelection):
+        (WebCore::isOptionElement):
+        (WebCore::isOptionGroupElement):
+        (WebCore::SelectElement::nextSelectableListIndex):
+        (WebCore::SelectElement::previousSelectableListIndex):
+        (WebCore::SelectElement::setActiveSelectionAnchorIndex):
+        (WebCore::SelectElement::setActiveSelectionEndIndex):
+        (WebCore::SelectElement::updateListBoxSelection):
+        (WebCore::SelectElement::listBoxOnChange):
+        (WebCore::SelectElement::menuListOnChange):
+        (WebCore::SelectElement::scrollToSelection):
+        (WebCore::SelectElement::recalcStyle):
+        (WebCore::SelectElement::setRecalcListItems):
+        (WebCore::SelectElement::recalcListItems):
+        (WebCore::SelectElement::selectedIndex):
+        (WebCore::SelectElement::setSelectedIndex):
+        (WebCore::SelectElement::optionToListIndex):
+        (WebCore::SelectElement::listToOptionIndex):
+        (WebCore::SelectElement::dispatchFocusEvent):
+        (WebCore::SelectElement::dispatchBlurEvent):
+        (WebCore::SelectElement::deselectItems):
+        (WebCore::SelectElement::saveFormControlState):
+        (WebCore::SelectElement::restoreFormControlState):
+        (WebCore::SelectElement::parseMultipleAttribute):
+        (WebCore::SelectElement::appendFormData):
+        (WebCore::SelectElement::reset):
+        (WebCore::SelectElement::menuListDefaultEventHandler):
+        (WebCore::SelectElement::listBoxDefaultEventHandler):
+        (WebCore::SelectElement::defaultEventHandler):
+        (WebCore::SelectElement::lastSelectedListIndex):
+        (WebCore::stripLeadingWhiteSpace):
+        (WebCore::SelectElement::typeAheadFind):
+        (WebCore::SelectElement::insertedIntoTree):
+        (WebCore::SelectElementData::SelectElementData):
+        (WebCore::SelectElementData::~SelectElementData):
+        (WebCore::SelectElementData::checkListItems):
+        (WebCore::SelectElementData::listItems):
+        * dom/SelectElement.h:
+        (WebCore::SelectElementData::multiple):
+        (WebCore::SelectElementData::setMultiple):
+        (WebCore::SelectElementData::size):
+        (WebCore::SelectElementData::setSize):
+        (WebCore::SelectElementData::usesMenuList):
+        (WebCore::SelectElementData::lastOnChangeIndex):
+        (WebCore::SelectElementData::setLastOnChangeIndex):
+        (WebCore::SelectElementData::lastOnChangeSelection):
+        (WebCore::SelectElementData::activeSelectionState):
+        (WebCore::SelectElementData::setActiveSelectionState):
+        (WebCore::SelectElementData::activeSelectionAnchorIndex):
+        (WebCore::SelectElementData::setActiveSelectionAnchorIndex):
+        (WebCore::SelectElementData::activeSelectionEndIndex):
+        (WebCore::SelectElementData::setActiveSelectionEndIndex):
+        (WebCore::SelectElementData::cachedStateForActiveSelection):
+        (WebCore::SelectElementData::shouldRecalcListItems):
+        (WebCore::SelectElementData::setShouldRecalcListItems):
+        (WebCore::SelectElementData::rawListItems):
+        (WebCore::SelectElementData::repeatingChar):
+        (WebCore::SelectElementData::setRepeatingChar):
+        (WebCore::SelectElementData::lastCharTime):
+        (WebCore::SelectElementData::setLastCharTime):
+        (WebCore::SelectElementData::typedString):
+        (WebCore::SelectElementData::setTypedString):
+        * html/HTMLOptionElement.h:
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::HTMLSelectElement):
+        (WebCore::HTMLSelectElement::recalcStyle):
+        (WebCore::HTMLSelectElement::formControlType):
+        (WebCore::HTMLSelectElement::selectedIndex):
+        (WebCore::HTMLSelectElement::deselectItems):
+        (WebCore::HTMLSelectElement::setSelectedIndex):
+        (WebCore::HTMLSelectElement::activeSelectionStartListIndex):
+        (WebCore::HTMLSelectElement::activeSelectionEndListIndex):
+        (WebCore::HTMLSelectElement::saveFormControlState):
+        (WebCore::HTMLSelectElement::restoreFormControlState):
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        (WebCore::HTMLSelectElement::canSelectAll):
+        (WebCore::HTMLSelectElement::selectAll):
+        (WebCore::HTMLSelectElement::createRenderer):
+        (WebCore::HTMLSelectElement::appendFormData):
+        (WebCore::HTMLSelectElement::optionToListIndex):
+        (WebCore::HTMLSelectElement::listToOptionIndex):
+        (WebCore::HTMLSelectElement::recalcListItems):
+        (WebCore::HTMLSelectElement::setRecalcListItems):
+        (WebCore::HTMLSelectElement::reset):
+        (WebCore::HTMLSelectElement::dispatchFocusEvent):
+        (WebCore::HTMLSelectElement::dispatchBlurEvent):
+        (WebCore::HTMLSelectElement::defaultEventHandler):
+        (WebCore::HTMLSelectElement::setActiveSelectionAnchorIndex):
+        (WebCore::HTMLSelectElement::setActiveSelectionEndIndex):
+        (WebCore::HTMLSelectElement::updateListBoxSelection):
+        (WebCore::HTMLSelectElement::menuListOnChange):
+        (WebCore::HTMLSelectElement::listBoxOnChange):
+        (WebCore::HTMLSelectElement::saveLastSelection):
+        (WebCore::HTMLSelectElement::setOption):
+        (WebCore::HTMLSelectElement::scrollToSelection):
+        (WebCore::HTMLSelectElement::insertedIntoTree):
+        * html/HTMLSelectElement.h:
+        (WebCore::HTMLSelectElement::size):
+        (WebCore::HTMLSelectElement::multiple):
+        (WebCore::HTMLSelectElement::listItems):
+        * wml/WMLOptionElement.cpp:
+        (WebCore::WMLOptionElement::text):
+        * wml/WMLOptionElement.h:
+
+2009-05-28  Adam Roben  <aroben@apple.com>
+
+        Don't try to use the new combobox parts on Vista in Classic mode
+
+        Fixes:
+        <rdar://problem/6929277> REGRESSION (r42289+r42350): Windows Classic
+        theme: drop down lists in Preferences get a line/square
+        <rdar://problem/6929298> REGRESSION (r42289): Windows Classic: drop
+        down lists are black with a circle on many sites
+
+        Reviewed by Steve Falkenburg.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::paintMenuList): Only use the new combobox
+        parts when we have a theme (i.e., when we're not in Classic mode).
+        When we don't have a theme, fall back to the pre-r42289 code.
+
+2009-05-27  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25659
+        Avoid calling frameCount() unnecessarily (which could lead to extra
+        GIF decoding).
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::destroyDecodedDataIfNecessary):
+
+2009-05-28  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=8736
+
+        Tests: fast/borders/border-radius-constraints.html
+               fast/borders/border-radius-split-inline.html
+               
+        When the sum of the corner radii on a side exceed the length of the side,
+        reduce the radii according to CSS 3 rules.
+        
+        Add RenderStyle::getBorderRadiiForRect() to fetch corner radii, applying
+        the constraints. Use that for painting borders, box-shadow, clipping replaced
+        elements
+
+        * platform/graphics/IntSize.h:
+        (WebCore::IntSize::scale):
+        Add a scale method that scales by a float (using C rounding rules, like IntRect::scale()).
+
+        * platform/graphics/Path.cpp:
+        Make the QUARTER const static.
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::pushContentsClip):
+        Use getBorderRadiiForRect to fetch border radii.
+
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+        Use getBorderRadiiForRect to fetch border radii.
+
+        (WebCore::RenderBoxModelObject::paintBorder):
+        Use getBorderRadiiForRect to fetch border radii, and fix a bug when drawing
+        borders for split inlines, which used to apply the radii for each segment,
+        and no longer does.
+
+        (WebCore::RenderBoxModelObject::paintBoxShadow):
+        Use getBorderRadiiForRect to fetch border radii.
+
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::paint):
+        Use getBorderRadiiForRect to fetch border radii for clipping.
+
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::paint):
+        Use getBorderRadiiForRect to fetch border radii for clipping.
+
+        * rendering/style/RenderStyle.h:
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::getBorderRadiiForRect):
+        New bottleneck method to fetch corner radiil given a rect, applying the constraint
+        rules.
+
+2009-05-28  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26005
+        Optimization for XPath //* does not preserve context size
+
+        Test: fast/xpath/position.html
+
+        Fixed the bug by removing the incorrect optimization, and made enough micro-optimizations to
+        get a performance progression on my tests.
+
+        * xml/XPathPath.h: Removed broken optimizeStepPair().
+
+        * xml/XPathPath.cpp:
+        (WebCore::XPath::LocationPath::evaluate): Style fix.
+        (WebCore::XPath::LocationPath::appendStep): Don't call optimizeStepPair().
+        (WebCore::XPath::LocationPath::insertFirstStep): Ditto.
+        (WebCore::XPath::Path::Path): Style fix.
+
+        * xml/XPathStep.cpp:
+        (WebCore::XPath::primaryNodeType): Turned this member function into a static inline helper.
+        (WebCore::XPath::nodeMatches): Ditto. Don't check for namespace axis, which is unsupported
+        (and might never be).
+        (WebCore::XPath::Step::nodesInAxis): Updated for the new nodeMatches() signature.
+
+        * xml/XPathStep.h:
+        (WebCore::XPath::Step::NodeTest::data):
+        (WebCore::XPath::Step::NodeTest::namespaceURI):
+        Made these data members AtomicString to avoid repeated conversions. This is the biggest
+        performance win here.
+
+        * xml/XPathUtil.cpp: (WebCore::XPath::stringValue): Reserve some capacity upfront.
+
+2009-05-28  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        When creating a linear or radial gradient with a single stop
+        at offset 1.0, the Skia layer was allocating 3 stops, but only
+        filling 2, leaving one uninitialized.  Only 2 stops are necessary
+        in this case, at offsets (0.0, 1.0).
+
+        http://bugs.webkit.org/show_bug.cgi?id=26063
+
+        Covered by: LayoutTests/svg/W3C-SVG-1.1/pservers-grad-16-b.svg
+                    LayoutTests/svg/custom/gradient-stop-corner-cases.svg
+                    LayoutTests/svg/custom/js-late-gradient-and-object-creation.svg
+
+        * platform/graphics/skia/GradientSkia.cpp:
+        (WebCore::totalStopsNeeded):
+
+2009-05-28  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26041
+        Allow adding resource source to WebInspector.SourceFrame asynchronously.
+
+        Provide common implementation for InspectorController::addResourceSourceToFrame and
+        InspectorController::addSourceToFrame methods.
+
+        * bindings/js/JSInspectorControllerCustom.cpp:
+        * bindings/v8/custom/V8InspectorControllerCustom.cpp:
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::addResourceSourceToFrame):
+        * inspector/InspectorController.h:
+        * inspector/InspectorController.idl:
+        * inspector/front-end/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype.revealLine):
+        (WebInspector.SourceFrame.prototype.highlightLine):
+        (WebInspector.SourceFrame.prototype._loaded):
+        (WebInspector.SourceFrame.prototype._isContentLoaded):
+        * inspector/front-end/SourceView.js:
+        (WebInspector.SourceView.prototype.setupSourceFrameIfNeeded):
+        (WebInspector.SourceView.prototype._contentLoaded):
+
+2009-05-28  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Xan Lopez.
+
+        After r44177 we had a problem when increasing the size
+        of the window the scrollbars stayed and were not hidden.
+        This was due WebCore giving up on the Scrollbar as it became
+        unnecessary but the GtkAdjustment remained unchanged.
+        So from the point of view of the GtkScrolledWindow scrolling
+        was still necessary and the GtkScrollbar kept being displayed.
+
+        Solve the issue by resetting the GtkAdjustment in the
+        destructor of ScrollbarGtk.
+
+        * platform/gtk/ScrollbarGtk.cpp:
+        (ScrollbarGtk::~ScrollbarGtk):
+
+2009-05-28  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Clean up window.open()'s use of lexical and dynamic scope.
+
+        (Added one unreviewed tweak: use dynamicFrame instead of lexicalFrame
+        for DOMWindow::allowPopUp.)
+
+        Test: http/tests/security/frameNavigation/context-for-window-open.html
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::toDynamicFrame):
+        (WebCore::processingUserGesture):
+        (WebCore::completeURL):
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::createWindow):
+        (WebCore::JSDOMWindow::open):
+        (WebCore::JSDOMWindow::showModalDialog):
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+        (WebCore::createWindow):
+
+2009-05-27  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26056
+        XPath string() function can be very slow
+
+        * xml/XPathUtil.cpp: (WebCore::XPath::stringValue): Use an intermediate Vector when appending.
+
+2009-05-27  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/6927761> <isindex> placeholder text is unstylable
+          and initially not visible
+
+        Test: fast/forms/isindex-placeholder.html
+
+        * css/html4.css: Added a default style for <isindex> placeholder text.
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute): Changed to call
+        the new protected function updatePlaceholderVisibility().
+        * html/HTMLInputElement.h:
+        (WebCore::HTMLInputElement::updatePlaceholderVisibility): Added this
+        protected function to allow HTMLIsIndexElement::parseMappedAttribute()
+        to invoke InputElement::updatePlaceholderVisibility().
+        * html/HTMLIsIndexElement.cpp:
+        (WebCore::HTMLIsIndexElement::parseMappedAttribute): Call
+        updatePlaceholderVisibility() when parsing the placeholder attribute.
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::createInnerTextStyle): If there
+        is no placeholder pseudo-element style, use the normal style.
+
+2009-05-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        More cleanup of DOMWindow related functions.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::willRemoveFromWindowShell): Renamed from JSDOMWindowBase::clear()
+        * bindings/js/JSDOMWindowBase.h:
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::showModalDialog): Update Comment.
+
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSDOMWindowShell.h:
+        Remove JSDOMWindowShell::clear().  It was unused.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::clearWindowShell):
+
+2009-05-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Miscellaneous cleanup of DOMWindow related functions.
+
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::~JSDOMGlobalObject): Fix poorly named variables.
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::supportsProfiling): Don't jump through hoops
+        checking for null frames if the build does not support profiling.
+        (WebCore::JSDOMWindowBase::clear): Use setCurrentEvent(0) instead of calling
+        clearHelperObjectProperties().  It is clearer.
+        * bindings/js/JSDOMWindowBase.h:
+        Removed now unused clearHelperObjectProperties() function, empty disconnectFrame()
+        function, and the empty destructor.
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSDOMWindowShell.h:
+        Remove disconnectFrame() which only called JSDOMWindowBase::disconnectFrame(), which
+        is a no-op.
+        * page/Frame.cpp:
+        (WebCore::Frame::~Frame):
+        (WebCore::Frame::pageDestroyed):
+        Remove calls to JSDOMWindowShell::disconnectFrame() which only called
+        JSDOMWindowBase::disconnectFrame(), which is a no-op.
+
+2009-05-27  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25974
+        Remove extra qualifiers from the ScheduledAction decl.
+
+        * bindings/v8/ScheduledAction.h: Removed extraneous class qualifiers.
+
+2009-05-27  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed make distcheck fix. One more missing file.
+
+        * GNUmakefile.am:
+
+2009-05-27  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fixed trunk build on Linux after r44126.
+
+        * WebCore.pro:
+
+2009-05-27  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6926046> REGRESSION (r43972): http://www.youtube.com/html5 crashes on open
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::load): Don't look for a media engine based on an empty MIME type.
+
+2009-05-27  David Levin  <levin@chromium.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 26029: FrameLoader::canLoad should allow calls with just a security origin
+        https://bugs.webkit.org/show_bug.cgi?id=26029
+
+        No functional changes, so no tests.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::canLoad):
+        * loader/FrameLoader.h:
+
+2009-05-27  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed build fix.
+
+        Remove file that does not exist from the build.
+
+        * GNUmakefile.am:
+
+2009-05-27  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Darin Adler.
+
+        Remove two unneeded protected constructors, these classes have pure-virtual functions, and can't be constructed anyway.
+
+        * dom/InputElement.h:
+        * dom/OptionGroupElement.h:
+
+2009-05-27  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17725
+        XPath should be case insensitive for HTML
+
+        Test: fast/xpath/node-name-case-sensitivity.html
+
+        * xml/XPathStep.cpp: (WebCore::XPath::Step::nodeMatches): Made node name check case insensitive
+        for HTML elements in HTML documents.
+
+2009-05-27  John Sullivan  <sullivan@apple.com>
+
+        fixed <rdar://problem/6925482> repro crash in WebCore::DragController::dragExited dropping 
+        bookmarks (at least) over Top Sites (at least)
+
+        Reviewed by Kevin Decker
+
+        * page/DragController.cpp:
+        (WebCore::DragController::dragExited):
+        nil check m_documentUnderMouse and take the "local file" case if it's nil
+
+2009-05-27  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Gustavo Noronha.
+
+        When building on window, consider Windows specific files.
+
+        * GNUmakefile.am:
+
+2009-05-27  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=26031
+
+        InputElementData is too heavy, save storing two pointers by passing them
+        directly to the static helper functions (the only place which needs them). 
+
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::dispatchFocusEvent):
+        (WebCore::InputElement::dispatchBlurEvent):
+        (WebCore::InputElement::updatePlaceholderVisibility):
+        (WebCore::InputElement::updateFocusAppearance):
+        (WebCore::InputElement::updateSelectionRange):
+        (WebCore::InputElement::aboutToUnload):
+        (WebCore::InputElement::setValueFromRenderer):
+        (WebCore::InputElement::constrainValue):
+        (WebCore::InputElement::handleBeforeTextInsertedEvent):
+        (WebCore::InputElement::parseSizeAttribute):
+        (WebCore::InputElement::parseMaxLengthAttribute):
+        (WebCore::InputElement::updateValueIfNeeded):
+        (WebCore::InputElement::notifyFormStateChanged):
+        (WebCore::InputElementData::InputElementData):
+        * dom/InputElement.h:
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::HTMLInputElement):
+        (WebCore::HTMLInputElement::updateFocusAppearance):
+        (WebCore::HTMLInputElement::aboutToUnload):
+        (WebCore::HTMLInputElement::dispatchFocusEvent):
+        (WebCore::HTMLInputElement::dispatchBlurEvent):
+        (WebCore::HTMLInputElement::setInputType):
+        (WebCore::HTMLInputElement::setSelectionRange):
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        (WebCore::HTMLInputElement::setValue):
+        (WebCore::HTMLInputElement::setValueFromRenderer):
+        (WebCore::HTMLInputElement::setFileListFromRenderer):
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        (WebCore::HTMLInputElement::constrainValue):
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::WMLInputElement):
+        (WebCore::WMLInputElement::dispatchFocusEvent):
+        (WebCore::WMLInputElement::dispatchBlurEvent):
+        (WebCore::WMLInputElement::updateFocusAppearance):
+        (WebCore::WMLInputElement::aboutToUnload):
+        (WebCore::WMLInputElement::setValue):
+        (WebCore::WMLInputElement::setValueFromRenderer):
+        (WebCore::WMLInputElement::parseMappedAttribute):
+        (WebCore::WMLInputElement::defaultEventHandler):
+        (WebCore::WMLInputElement::constrainValue):
+
+2009-05-27  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=26033
+
+        OptionElementData saves an Element pointer, which is unnessary.
+        Just pass it to the static function calls directly.
+
+        * dom/OptionElement.cpp:
+        (WebCore::OptionElement::setSelectedState):
+        (WebCore::OptionElement::collectOptionText):
+        (WebCore::OptionElement::collectOptionTextRespectingGroupLabel):
+        (WebCore::OptionElement::collectOptionValue):
+        (WebCore::OptionElementData::OptionElementData):
+        * dom/OptionElement.h:
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::HTMLOptionElement):
+        (WebCore::HTMLOptionElement::text):
+        (WebCore::HTMLOptionElement::value):
+        (WebCore::HTMLOptionElement::setSelected):
+        (WebCore::HTMLOptionElement::setSelectedState):
+        (WebCore::HTMLOptionElement::textIndentedToRespectGroupLabel):
+        * wml/WMLOptionElement.cpp:
+        (WebCore::WMLOptionElement::WMLOptionElement):
+        (WebCore::WMLOptionElement::setSelectedState):
+        (WebCore::WMLOptionElement::value):
+        (WebCore::WMLOptionElement::textIndentedToRespectGroupLabel):
+
+2009-05-27  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Maciej Stachowiak.
+
+        When building with MinGW, don't use the __declspec(dl{import,export})
+        decorations and rely on the linker to use its nifty auto-import feature.
+        It is extremely hard to get the decorations right with MinGW in general
+        and impossible in WebKit, where the resulting shared library is linking 
+        together some static libraries.
+
+        * config.h:
+
+2009-05-26  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25613
+
+        Add a WebCore::Widget that can embed GtkWidget with and
+        without a GdkWindow. This can be used to embed any GtkWidget.
+
+        Some bits are directly copied from the Scrollbar implementation
+        but can not be easily shared here.
+
+        * GNUmakefile.am:
+        * platform/gtk/GtkPluginWidget.cpp: Added.
+        (WebCore::GtkPluginWidget::GtkPluginWidget):
+        (WebCore::GtkPluginWidget::invalidateRect):
+        (WebCore::GtkPluginWidget::frameRectsChanged):
+        (WebCore::GtkPluginWidget::paint):
+        * platform/gtk/GtkPluginWidget.h: Added.
+
+2009-05-26  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25613.
+
+        Implement Widget::setIsSelected for Gtk+ by searching
+        for a property of the name "webkit-widget-is-selected" and if
+        such property exists we are going to set it. We expect
+        the property to take a boolean.
+
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::setIsSelected):
+
 2009-05-27  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Brady Eidson.

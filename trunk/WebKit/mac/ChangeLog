@@ -1,3 +1,36 @@
+2009-05-29  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Build fix.  Move off a deprecated NSFileManager method.
+
+        * Misc/WebNSFileManagerExtras.h:
+        * Misc/WebNSFileManagerExtras.m:
+        (-[NSFileManager destinationOfSymbolicLinkAtPath:error:]): Implement a new-in-Leopard method for Tiger to use.
+        (-[NSFileManager attributesOfItemAtPath:error:]): Ditto.
+        * Plugins/WebNetscapePluginPackage.mm:
+        (-[WebNetscapePluginPackage _initWithPath:]): Use the new non-deprecated methods.
+
+2009-05-28  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Added new build flag --filters. More details in WebCore/ChangeLog.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-05-27  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26009
+        <rdar://problem/6925656> REGRESSION (r43973): Problems While Working With OpenVanilla
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _updateSelectionForInputManager]): Don't call updateWindows if the selection
+        is None. This routinely happens during editing, and it doesn't mean that we left an editable
+        area (in which case the selection changes to a non-editable one).
+
 2009-05-27  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Brady Eidson.

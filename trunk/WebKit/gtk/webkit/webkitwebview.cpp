@@ -140,6 +140,7 @@ enum {
     DOWNLOAD_REQUESTED,
     MOVE_CURSOR,
     PRINT_REQUESTED,
+    PLUGIN_WIDGET,
     LAST_SIGNAL
 };
 
@@ -880,14 +881,6 @@ static void webkit_web_view_dispose(GObject* object)
 
     priv->disposing = TRUE;
 
-    if (priv->corePage) {
-        webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(object));
-
-        core(priv->mainFrame)->loader()->detachFromParent();
-        delete priv->corePage;
-        priv->corePage = NULL;
-    }
-
     if (priv->horizontalAdjustment) {
         g_object_unref(priv->horizontalAdjustment);
         priv->horizontalAdjustment = NULL;
@@ -901,7 +894,17 @@ static void webkit_web_view_dispose(GObject* object)
     if (priv->backForwardList) {
         g_object_unref(priv->backForwardList);
         priv->backForwardList = NULL;
+    }
 
+    if (priv->corePage) {
+        webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(object));
+
+        core(priv->mainFrame)->loader()->detachFromParent();
+        delete priv->corePage;
+        priv->corePage = NULL;
+    }
+
+    if (priv->webSettings) {
         g_signal_handlers_disconnect_by_func(priv->webSettings, (gpointer)webkit_web_view_settings_notify, webView);
         g_object_unref(priv->webSettings);
         priv->webSettings = NULL;
@@ -939,7 +942,7 @@ static void webkit_web_view_finalize(GObject* object)
     G_OBJECT_CLASS(webkit_web_view_parent_class)->finalize(object);
 }
 
-static gboolean webkit_create_web_view_request_handled(GSignalInvocationHint* ihint, GValue* returnAccu, const GValue* handlerReturn, gpointer dummy)
+static gboolean webkit_signal_accumulator_object_handled(GSignalInvocationHint* ihint, GValue* returnAccu, const GValue* handlerReturn, gpointer dummy)
 {
     gpointer newWebView = g_value_get_object(handlerReturn);
     g_value_set_object(returnAccu, newWebView);
@@ -1063,7 +1066,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             G_TYPE_FROM_CLASS(webViewClass),
             (GSignalFlags)G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (WebKitWebViewClass, create_web_view),
-            webkit_create_web_view_request_handled,
+            webkit_signal_accumulator_object_handled,
             NULL,
             webkit_marshal_OBJECT__OBJECT,
             WEBKIT_TYPE_WEB_VIEW , 1,
@@ -1127,7 +1130,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @request: a #WebKitNetworkRequest
      * @navigation_action: a #WebKitWebNavigation
      * @policy_decision: a #WebKitWebPolicyDecision
-     * @return: TRUE if the signal will be handled, FALSE to have the
+     * @return: TRUE if a decision was made, FALSE to have the
      *          default behavior apply
      *
      * Emitted when @frame requests opening a new window. With this
@@ -1142,6 +1145,13 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * information of this new navigation context, without any
      * information about the action that made this new window to be
      * opened.
+     *
+     * Notice that if you return TRUE, meaning that you handled the
+     * signal, you are expected to have decided what to do, by calling
+     * webkit_web_policy_decision_ignore(),
+     * webkit_web_policy_decision_use(), or
+     * webkit_web_policy_decision_download() on the @policy_decision
+     * object.
      *
      * Since: 1.1.4
      */
@@ -1166,12 +1176,19 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @request: a #WebKitNetworkRequest
      * @navigation_action: a #WebKitWebNavigation
      * @policy_decision: a #WebKitWebPolicyDecision
-     * @return: TRUE if the signal will be handled, FALSE to have the
+     * @return: TRUE if a decision was made, FALSE to have the
      *          default behavior apply
      *
      * Emitted when @frame requests a navigation to another page.
      * If this signal is not handled, the default behavior is to allow the
      * navigation.
+     *
+     * Notice that if you return TRUE, meaning that you handled the
+     * signal, you are expected to have decided what to do, by calling
+     * webkit_web_policy_decision_ignore(),
+     * webkit_web_policy_decision_use(), or
+     * webkit_web_policy_decision_download() on the @policy_decision
+     * object.
      *
      * Since: 1.0.3
      */
@@ -1195,7 +1212,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @request: a WebKitNetworkRequest
      * @mimetype: the MIME type attempted to load
      * @policy_decision: a #WebKitWebPolicyDecision
-     * @return: TRUE if the signal will be handled, FALSE to have the
+     * @return: TRUE if a decision was made, FALSE to have the
      *          default behavior apply
      *
      * Decide whether or not to display the given MIME type.  If this
@@ -1203,6 +1220,13 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * content of the requested URI if WebKit can show this MIME
      * type; if WebKit is not able to show the MIME type nothing
      * happens.
+     *
+     * Notice that if you return TRUE, meaning that you handled the
+     * signal, you are expected to have decided what to do, by calling
+     * webkit_web_policy_decision_ignore(),
+     * webkit_web_policy_decision_use(), or
+     * webkit_web_policy_decision_download() on the @policy_decision
+     * object.
      *
      * Since: 1.0.3
      */
@@ -1655,6 +1679,32 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             G_TYPE_BOOLEAN, 2,
             GTK_TYPE_MOVEMENT_STEP,
             G_TYPE_INT);
+
+    /**
+     * WebKitWebView::create-plugin-widget:
+     * @web_view: the object which received the signal
+     * @mime_type: the mimetype of the requested object
+     * @url: the url to load
+     * @param: a #GHashTable with additional attributes (strings)
+     *
+     * The #WebKitWebView::create-plugin signal will be emitted to
+     * create a plugin widget for embed or object HTML tags. This
+     * allows to embed a GtkWidget as a plugin into HTML content. In
+     * case of a textual selection of the GtkWidget WebCore will attempt
+     * to set the property value of "webkit-widget-is-selected". This can
+     * be used to draw a visual indicator of the selection.
+     *
+     * Since: 1.1.8
+     */
+    webkit_web_view_signals[PLUGIN_WIDGET] = g_signal_new("create-plugin-widget",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags) (G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            0,
+            webkit_signal_accumulator_object_handled,
+            NULL,
+            webkit_marshal_OBJECT__STRING_STRING_POINTER,
+            GTK_TYPE_WIDGET, 3,
+            G_TYPE_STRING, G_TYPE_STRING, G_TYPE_HASH_TABLE);
 
     /*
      * implementations of virtual methods
