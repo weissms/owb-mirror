@@ -32,9 +32,6 @@
 
 namespace WebCore {
 
-// Cookie size limit of 4kB as advised per RFC2109
-static const int cMaxLength = 4096;
-
 static bool isCookieHeaderSeparator(UChar c)
 {
     return (c == '\r' || c =='\n');
@@ -299,8 +296,8 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
         }
     }
 
-    // Check if the cookie is above the size limit
-    if (res->name().length() + res->value().length() > cMaxLength) {
+    // Check if the cookie is valid with respect to the size limit/
+    if (!res->isUnderSizeLimit()) {
         LOG_ERROR("Cookie %s is above the 4kb in length : REJECTED", cookie.ascii().data());
         delete res;
         return 0;

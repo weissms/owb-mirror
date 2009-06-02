@@ -32,9 +32,9 @@
 
 namespace WebCore {
 
+    class Cookie;
     class KURL;
     class String;
-    class Cookie;
 
     enum BackingStoreRemoval {
         RemoveFromBackingStore,
@@ -52,7 +52,6 @@ namespace WebCore {
         void setCookies(const KURL& url, const String& value);
 
         String getCookie(const KURL& url, HttpOnlyCookieFiltering);
-        String getCookie(const String& url);
 
         void removeAllCookies(BackingStoreRemoval);
 
@@ -63,6 +62,9 @@ namespace WebCore {
 
         // Count update method
         void removedCookie() { ASSERT(m_count > 0); m_count--; }
+
+        // Constants getter.
+        static unsigned int maxCookieLength() { return s_maxCookieLength; }
 
     private:
         friend CookieManager& cookieManager();
@@ -90,6 +92,8 @@ namespace WebCore {
         // Max count constants.
         static const unsigned int s_globalMaxCookieCount = 300;
         static const unsigned int s_maxCookieCountPerHost = 20;
+        // Cookie size limit of 4kB as advised per RFC2109
+        static const unsigned int s_maxCookieLength = 4096;
     };
 
     // Get the global instance.

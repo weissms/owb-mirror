@@ -90,7 +90,8 @@ bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KU
     }
 
     // Check if the domain contains an embedded dot.
-    if (cookie->domain().find(".", 1) == -1 || cookie->domain().find(".", 1) == cookie->domain().length()) {
+    int dotPosition = cookie->domain().find(".", 1);
+    if (dotPosition == -1 || static_cast<unsigned int>(dotPosition) == cookie->domain().length()) {
         LOG_ERROR("Cookie %s is rejected because its domain does not contain an embedded dot.\n", cookie->toString().utf8().data());
         return true;
     }
@@ -113,7 +114,9 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
     if (url.string().startsWith(String("https:", false)))
         isConnectionSecure = true;
 
-    String res = String();
+    // The max size is the number of cookie per host multiplied by the maximum length of a cookie. We add 1 for the final '\0'.
+    static const size_t cookiesMaxLength = s_maxCookieLength * s_maxCookieCountPerHost + 1;
+    static Vector<UChar> cookiePairs(cookiesMaxLength);
     for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
 
         // Handle sub-domain by only looking at the end of the host.
@@ -125,12 +128,17 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
                 Cookie* cookie = cookies[i];
                 // Get the cookies filtering out the secure cookies on an unsecure connection and HttpOnly cookies if requested.
                 if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly()))
-                    res += cookie->name() + "=" + cookie->value() + ";";
+                    append(cookiePairs, cookie->toNameValuePair());
             }
         }
     }
+    // Per construction of our cookies, we should not grow our vector.
+    ASSERT(cookiePairs.size() == cookiesMaxLength);
 
-    return res;
+    // Append the final '\0'.
+    static const String nullTerminator("\0");
+    append(cookiePairs, nullTerminator);
+    return String::adopt(cookiePairs);
 }
 
 void CookieManager::removeAllCookies(BackingStoreRemoval backingStoreRemoval)

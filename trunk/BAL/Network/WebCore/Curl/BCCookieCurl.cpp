@@ -26,6 +26,7 @@
 #include "config.h"
 #include "Cookie.h"
 
+#include "CookieManager.h"
 #include "CString.h"
 #include "CurrentTime.h"
 #include "Logging.h"
@@ -99,6 +100,13 @@ bool Cookie::hasExpired() const
     return !m_isSession && m_expiry < currentTime();
 }
 
+bool Cookie::isUnderSizeLimit() const
+{
+    // The 2 is to account for the '=' and the final ';' when dumping the cookie for the network backend (see toNameValuePair).
+    size_t cookieLength = m_name.length() + m_value.length() + 2;
+    return cookieLength <= CookieManager::maxCookieLength();
+}
+
 String Cookie::toString() const
 {
     String cookie = name();
@@ -109,6 +117,21 @@ String Cookie::toString() const
     cookie += "; Path = ";
     cookie += path();
     return cookie;
+}
+
+String Cookie::toNameValuePair() const
+{
+    static const String equal("=");
+    static const String semiColon(";");
+
+    size_t cookieLength = m_name.length() + m_value.length() + 2;
+    ASSERT(cookieLength < CookieManager::maxCookieLength());
+    Vector<UChar> result(cookieLength);
+    append(result, m_name);
+    append(result, equal);
+    append(result, m_value);
+    append(result, semiColon);
+    return String::adopt(result);
 }
 
 } // namespace WebCore

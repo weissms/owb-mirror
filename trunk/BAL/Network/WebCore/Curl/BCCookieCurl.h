@@ -73,8 +73,11 @@ namespace WebCore {
         bool isSession() const { return m_isSession; }
 
         bool hasExpired() const;
+        bool isUnderSizeLimit() const;
 
         String toString() const;
+        String toNameValuePair() const;
+
     private:
         String m_name;
         String m_value;
