@@ -294,6 +294,14 @@ WebView::WebView()
 
     initializeStaticObservers();
 
+#if ENABLE(INSPECTOR)
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
+#else
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
+#endif
+    m_mainFrame = WebFrame::createInstance();
+    m_mainFrame->init(this, m_page, 0);
+
     WebCore::ObserverServiceData::createObserverService()->registerObserver("PopupMenuShow", m_webViewObserver);
     WebCore::ObserverServiceData::createObserverService()->registerObserver("PopupMenuHide", m_webViewObserver);
 
@@ -1035,13 +1043,6 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     else
         d->setFrameRect(frame);
 
-#if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
-#else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
-#endif
-    m_mainFrame = WebFrame::createInstance();
-    m_mainFrame->init(this, m_page, 0);
 
     RefPtr<Frame> coreFrame = core(m_mainFrame);
     m_mainFrame->setName(frameName);
@@ -1297,7 +1298,8 @@ bool WebView::setZoomMultiplier(float multiplier, bool isTextOnly)
 
     m_zoomMultiplier = multiplier;
     m_page->settings()->setZoomsTextOnly(isTextOnly);
-    if (Frame* coreFrame = core(m_mainFrame))
+    Frame* coreFrame = core(m_mainFrame);
+    if (coreFrame && coreFrame->document())
         coreFrame->setZoomFactor(multiplier, isTextOnly);
 
     return !hasRounded;
