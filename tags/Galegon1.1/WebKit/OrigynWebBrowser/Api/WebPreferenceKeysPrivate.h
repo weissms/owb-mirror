@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 // These are private because callers should be using the cover methods. They are in
 // a Private (as opposed to Internal) header file because Safari uses some of them
 // for managed preferences.
-
 #define WebKitLogLevelPreferenceKey "WebKitLogLevel"
 #define WebKitStandardFontPreferenceKey "WebKitStandardFont"
 #define WebKitFixedFontPreferenceKey "WebKitFixedFont"
@@ -47,8 +47,12 @@
 #define WebKitTextAreasAreResizablePreferenceKey "WebKitTextAreasAreResizable"
 #define WebKitJavaEnabledPreferenceKey "WebKitJavaEnabled"
 #define WebKitJavaScriptEnabledPreferenceKey "WebKitJavaScriptEnabled"
+#define WebKitWebSecurityEnabledPreferenceKey "WebKitWebSecurityEnabled"
+#define WebKitAllowUniversalAccessFromFileURLsPreferenceKey "WebKitAllowUniversalAccessFromFileURLs"
 #define WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey "WebKitJavaScriptCanOpenWindowsAutomatically"
 #define WebKitPluginsEnabledPreferenceKey "WebKitPluginsEnabled"
+#define WebKitDatabasesEnabledPreferenceKey "WebKitDatabasesEnabled"
+#define WebKitLocalStorageEnabledPreferenceKey "WebKitLocalStorageEnabled"
 #define WebKitAllowAnimatedImagesPreferenceKey "WebKitAllowAnimatedImagesPreferenceKey"
 #define WebKitAllowAnimatedImageLoopingPreferenceKey "WebKitAllowAnimatedImageLoopingPreferenceKey"
 #define WebKitDisplayImagesKey "WebKitDisplayImagesKey"
@@ -59,6 +63,7 @@
 #define WebKitIconDatabaseEnabledPreferenceKey "WebKitIconDatabaseEnabled"
 #define WebKitUsesPageCachePreferenceKey "WebKitUsesPageCachePreferenceKey"
 #define WebKitCacheModelPreferenceKey "WebKitCacheModelPreferenceKey"
+#define WebKitLocalStorageDatabasePathPreferenceKey "WebKitLocalStorageDatabasePath"
 
 // These are private both because callers should be using the cover methods and because the
 // cover methods themselves are private.
@@ -88,6 +93,7 @@
 
 // Windows-specific keys
 #define WebKitFontSmoothingTypePreferenceKey "WebKitFontSmoothingType" // default: FontSmoothingTypeMedium (2)
+#define WebKitFontSmoothingContrastPreferenceKey "WebKitFontSmoothingContrast" // default: "2"
 #define WebKitCookieStorageAcceptPolicyPreferenceKey "WebKitCookieStorageAcceptPolicy" // default: WebKitCookieStorageAcceptPolicyOnlyFromMainDocumentDomain
 
 #define WebContinuousSpellCheckingEnabledPreferenceKey "WebContinuousSpellCheckingEnabled" // default: false
@@ -96,6 +102,10 @@
 #define AllowContinuousSpellCheckingPreferenceKey "AllowContinuousSpellCheckingPreferenceKey" // default: true
 
 #define WebKitDOMPasteAllowedPreferenceKey "WebKitDOMPasteAllowedPreferenceKey" // default: false
+
+#define WebKitApplicationChromeModePreferenceKey "WebKitApplicationChromeMode" // default: false
+
+#define WebKitOfflineWebApplicationCacheEnabledPreferenceKey "WebKitOfflineWebApplicationCacheEnabled" // default: false
 
 // If this key is present and has a value of true, we have already removed the default values from the user's preferences <rdar://problem/5214504>
 #define WebKitDidMigrateDefaultSettingsFromSafari3BetaPreferenceKey "WebKitDidMigrateDefaultSettingsFromSafari3BetaPreferenceKey"
@@ -109,6 +119,7 @@
 
 #define WebKitPaintCustomScrollbarsPreferenceKey "WebKitPaintCustomScrollbars"
 
+#define WebKitPaintNativeControlsPreferenceKey "WebKitPaintNativeControls"
+
 #define WebKitZoomsTextOnlyPreferenceKey "WebKitZoomsTextOnly"
 
-#define WebKitOfflineWebApplicationCacheEnabledPreferenceKey "WebKitOfflineWebApplicationCacheEnabled" // default: false

@@ -2148,8 +2148,20 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->authorAndUserStylesEnabled();
     settings->setAuthorAndUserStylesEnabled(enabled);
 
+    enabled = preferences->inApplicationChromeMode();
+    settings->setApplicationChromeMode(enabled);
+
     enabled = preferences->offlineWebApplicationCacheEnabled();
     settings->setOfflineWebApplicationCacheEnabled(enabled);
+
+    enabled = preferences->databasesEnabled();
+    settings->setDatabasesEnabled(enabled);
+
+    enabled = preferences->localStorageEnabled();
+    settings->setLocalStorageEnabled(enabled);
+
+    enabled = preferences->isWebSecurityEnabled();
+    settings->setWebSecurityEnabled(!!enabled); 
 
 /*    if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME*/

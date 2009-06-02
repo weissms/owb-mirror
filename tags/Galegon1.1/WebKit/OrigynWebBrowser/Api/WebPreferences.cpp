@@ -30,6 +30,7 @@
 #include "WebPreferences.h"
 #include "WebPreferenceKeysPrivate.h"
 
+#include "BALBase.h"
 #include <CString.h>
 #include <FileSystem.h>
 #include <Font.h>
@@ -125,8 +126,19 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitTextAreasAreResizablePreferenceKey, "0"); //FALSE
     m_privatePrefs.add(WebKitJavaEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptEnabledPreferenceKey, "1"); //TRUE
+    m_privatePrefs.add(WebKitWebSecurityEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
+#if ENABLE(DATABASE)
+    m_privatePrefs.add(WebKitDatabasesEnabledPreferenceKey, "1");
+#else
+    m_privatePrefs.add(WebKitDatabasesEnabledPreferenceKey, "0");
+#endif
+#if ENABLE(DOM_STORAGE)
+    m_privatePrefs.add(WebKitLocalStorageEnabledPreferenceKey, "1");
+#else
+    m_privatePrefs.add(WebKitLocalStorageEnabledPreferenceKey, "0");
+#endif
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImageLoopingPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitDisplayImagesKey, "1");//TRUE
@@ -145,15 +157,18 @@ void WebPreferences::initializeDefaultSettings()
 #if PLATFORM(AMIGAOS4)
     m_privatePrefs.add(WebKitIconDatabaseLocationKey, "PROGDIR:");
 #else
-    m_privatePrefs.add(WebKitIconDatabaseLocationKey, "");
+    m_privatePrefs.add(WebKitIconDatabaseLocationKey, OWB_DATA);
 #endif
     m_privatePrefs.add(WebKitIconDatabaseEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitFontSmoothingTypePreferenceKey, "2");
+    m_privatePrefs.add(WebKitFontSmoothingContrastPreferenceKey, "2");
     m_privatePrefs.add(WebKitCookieStorageAcceptPolicyPreferenceKey, "2");
     m_privatePrefs.add(WebContinuousSpellCheckingEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(WebGrammarCheckingEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(AllowContinuousSpellCheckingPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitUsesPageCachePreferenceKey, "1");//TRUE
+    m_privatePrefs.add(WebKitLocalStorageDatabasePathPreferenceKey, OWB_DATA);
+
 
     m_privatePrefs.add(WebKitCacheModelPreferenceKey, String::number(WebCacheModelDocumentViewer));
 
@@ -164,6 +179,7 @@ void WebPreferences::initializeDefaultSettings()
 #else
     m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "0");
 #endif
+    m_privatePrefs.add(WebKitPaintNativeControlsPreferenceKey, "0");
 }
 
 String WebPreferences::valueForKey(String key)
@@ -234,6 +250,14 @@ void WebPreferences::setLongLongValue(String key, unsigned int value)
 
     postPreferencesChangesNotification();
 }
+
+void WebPreferences::setFloatValue(String key, float value)
+{
+    m_privatePrefs.set(key, String::number(value));
+
+    postPreferencesChangesNotification();
+}
+
 
 String WebPreferences::webPreferencesChangedNotification()
 {
@@ -718,6 +742,16 @@ bool WebPreferences::authorAndUserStylesEnabled()
     return boolValueForKey(WebKitAuthorAndUserStylesEnabledPreferenceKey);
 }
 
+bool WebPreferences::inApplicationChromeMode()
+{
+    return boolValueForKey(WebKitApplicationChromeModePreferenceKey);
+}
+
+void WebPreferences::setApplicationChromeMode(bool enabled)
+{
+    setBoolValue(WebKitApplicationChromeModePreferenceKey, enabled);
+}
+
 void WebPreferences::setZoomsTextOnly(bool zoomsTextOnly)
 {
     setBoolValue(WebKitZoomsTextOnlyPreferenceKey, zoomsTextOnly);
@@ -748,3 +782,64 @@ bool WebPreferences::offlineWebApplicationCacheEnabled()
 {
     return boolValueForKey(WebKitOfflineWebApplicationCacheEnabledPreferenceKey);
 }
+
+void WebPreferences::setDatabasesEnabled(bool enabled)
+{
+    setBoolValue(WebKitDatabasesEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::databasesEnabled()
+{
+    return boolValueForKey(WebKitDatabasesEnabledPreferenceKey);
+}
+
+void WebPreferences::setLocalStorageEnabled(bool enabled)
+{
+    setBoolValue(WebKitLocalStorageEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::localStorageEnabled()
+{
+    return boolValueForKey(WebKitLocalStorageEnabledPreferenceKey);
+}
+
+String WebPreferences::localStorageDatabasePath()
+{
+    return stringValueForKey(WebKitLocalStorageDatabasePathPreferenceKey);
+}
+
+void WebPreferences::setLocalStorageDatabasePath(String location)
+{
+    setStringValue(WebKitLocalStorageDatabasePathPreferenceKey, location);
+}
+
+bool WebPreferences::isWebSecurityEnabled()
+{
+    return boolValueForKey(WebKitWebSecurityEnabledPreferenceKey);
+}
+
+void WebPreferences::setWebSecurityEnabled(bool enabled)
+{
+    return setBoolValue(WebKitWebSecurityEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::shouldPaintNativeControls()
+{
+    return boolValueForKey(WebKitPaintNativeControlsPreferenceKey);
+}
+
+void WebPreferences::setShouldPaintNativeControls(bool shouldPaint)
+{
+    setBoolValue(WebKitPaintNativeControlsPreferenceKey, shouldPaint);
+}
+
+float WebPreferences::fontSmoothingContrast()
+{
+    return floatValueForKey(WebKitFontSmoothingContrastPreferenceKey);
+}
+
+void WebPreferences::setFontSmoothingContrast(float contrast)
+{
+    setFloatValue(WebKitFontSmoothingContrastPreferenceKey, contrast);
+}
+

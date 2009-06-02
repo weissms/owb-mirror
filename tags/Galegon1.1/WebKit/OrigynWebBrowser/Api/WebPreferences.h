@@ -511,6 +511,31 @@ public:
      */
     virtual bool authorAndUserStylesEnabled();
 
+    virtual bool inApplicationChromeMode();
+    virtual void setApplicationChromeMode(bool enabled);
+
+    /**
+     * Enable offline web application
+     */
+    virtual void setOfflineWebApplicationCacheEnabled(bool enabled);
+
+    /**
+     * Tell if offline web application cache is enabled
+     */
+    virtual bool offlineWebApplicationCacheEnabled();
+
+    virtual void setDatabasesEnabled(bool enabled);
+    virtual bool databasesEnabled();
+
+    virtual void setLocalStorageEnabled(bool enabled);
+    virtual bool localStorageEnabled();
+
+    virtual WebCore::String localStorageDatabasePath();
+    virtual void setLocalStorageDatabasePath(WebCore::String location);
+
+    virtual void setShouldPaintNativeControls(bool shouldPaint);
+
+    virtual bool shouldPaintNativeControls();
     /**
      * Enable zoom for text only.
      */
@@ -525,6 +550,13 @@ public:
 
     // This method accesses a different preference key than developerExtrasEnabled.
     // See <rdar://5343767> for the justification.
+
+    virtual float fontSmoothingContrast();
+
+    virtual void setFontSmoothingContrast(float contrast);
+
+    bool isWebSecurityEnabled();
+    void setWebSecurityEnabled(bool enabled);
 
     /**
      *  developerExtrasDisabledByOverride 
@@ -607,15 +639,7 @@ public:
      */
     void postPreferencesChangesNotification();
 
-    /**
-     * Enable offline web application
-     */
-    void setOfflineWebApplicationCacheEnabled(bool enabled);
 
-    /**
-     * Tell if offline web application cache is enabled
-     */
-    bool offlineWebApplicationCacheEnabled();
 
 protected:
 
@@ -673,6 +697,11 @@ protected:
      *  setLongLongValue 
      */
     void setLongLongValue(WebCore::String key, unsigned int value);
+
+    /**
+     *  setFloatValue 
+     */
+    void setFloatValue(WebCore::String key, float value);
 
     /**
      *  getInstanceForIdentifier 
