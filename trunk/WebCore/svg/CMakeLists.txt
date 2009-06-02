@@ -134,6 +134,18 @@ if(ENABLE_SVG)
         svg/animation/SMILTime.cpp
         svg/animation/SMILTimeContainer.cpp
         svg/animation/SVGSMILElement.cpp
+        svg/graphics/SVGImage.cpp
+        svg/graphics/SVGPaintServer.cpp
+        svg/graphics/SVGPaintServerGradient.cpp
+        svg/graphics/SVGPaintServerLinearGradient.cpp
+        svg/graphics/SVGPaintServerPattern.cpp
+        svg/graphics/SVGPaintServerRadialGradient.cpp
+        svg/graphics/SVGPaintServerSolid.cpp
+        svg/graphics/SVGResource.cpp
+        svg/graphics/SVGResourceClipper.cpp
+        svg/graphics/SVGResourceFilter.cpp
+        svg/graphics/SVGResourceMarker.cpp
+        svg/graphics/SVGResourceMasker.cpp
         svg/graphics/filters/SVGFilter.cpp
         svg/graphics/filters/SVGFilterBuilder.cpp
         svg/graphics/filters/SVGFEConvolveMatrix.cpp

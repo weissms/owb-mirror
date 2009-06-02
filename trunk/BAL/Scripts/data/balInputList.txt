@@ -178,6 +178,9 @@ BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.cpp
 BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.h
 
 
+BAL/Skeletons/Graphics	WebCore/platform/animation/Animation.h
+BAL/Skeletons/Graphics	WebCore/platform/animation/AnimationList.h
+BAL/Skeletons/Graphics	WebCore/platform/animation/TimingFunction.h
 BAL/Skeletons/Graphics	WebCore/platform/DragData.h
 BAL/Skeletons/Graphics	WebCore/platform/DragImage.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/BitmapImage.h
@@ -210,8 +213,13 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/Pen.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/StrokeStyleApplier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
-BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEBlend.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEColorMatrix.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComponentTransfer.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComposite.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/Filter.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
@@ -224,9 +232,8 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/SkewTransformOperat
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperations.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TranslateTransformOperation.h
-BAL/Skeletons/Graphics	WebCore/platform/animation/Animation.h
-BAL/Skeletons/Graphics	WebCore/platform/animation/AnimationList.h
-BAL/Skeletons/Graphics	WebCore/platform/animation/TimingFunction.h
+
+
 
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/CairoPath.h BCCairoPath.h
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GradientCairo.cpp
@@ -314,12 +321,6 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceAlpha.cpp
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/FilterEffect.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/FilterEffect.cpp
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/filters/SourceGraphic.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
@@ -349,6 +350,21 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.cpp
 
 
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ImageDecoder.h
@@ -596,61 +612,6 @@ BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.h
 
 
-BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEBlend.h
-BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEColorMatrix.h
-BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEComponentTransfer.h
-BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEComposite.h
-BAL/Skeletons/SVG  WebCore/platform/graphics/filters/Filter.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGImage.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServer.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerGradient.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerLinearGradient.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerPattern.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerRadialGradient.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerSolid.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResource.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceClipper.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceFilter.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceListener.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMarker.h
-BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMasker.h
-
-BAL/SVG/WebCore/Cairo	WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp
-BAL/SVG/WebCore/Qt	WebCore/svg/graphics/qt/SVGResourceFilterQt.cpp
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEBlend.cpp
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEBlend.h
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEColorMatrix.cpp
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEColorMatrix.h
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComponentTransfer.cpp
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComponentTransfer.h
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComposite.cpp
-BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComposite.h
-BAL/SVG/WebCore/WK  WebCore/platform/graphics/filters/Filter.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGImage.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGImage.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServer.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServer.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerGradient.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerGradient.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerLinearGradient.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerLinearGradient.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerPattern.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerPattern.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerRadialGradient.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerRadialGradient.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerSolid.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServerSolid.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResource.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResource.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceClipper.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceClipper.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceFilter.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceFilter.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceListener.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMarker.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMarker.h
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.cpp
-BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGResourceMasker.h
 
 
 BAL/Skeletons/Timer WebCore/platform/SharedTimer.h

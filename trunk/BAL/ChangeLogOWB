@@ -1,3 +1,58 @@
+2009-06-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Remove SVG and move filter to graphics.
+
+        * CMakeLists.txt:
+        * Graphics/WebCore/WK/BCFEBlendWK.cpp: Copied from BAL/SVG/WebCore/WK/BCFEBlendWK.cpp.
+        * Graphics/WebCore/WK/BCFEBlendWK.h: Copied from BAL/SVG/WebCore/WK/BCFEBlendWK.h.
+        * Graphics/WebCore/WK/BCFEColorMatrixWK.cpp: Copied from BAL/SVG/WebCore/WK/BCFEColorMatrixWK.cpp.
+        * Graphics/WebCore/WK/BCFEColorMatrixWK.h: Copied from BAL/SVG/WebCore/WK/BCFEColorMatrixWK.h.
+        * Graphics/WebCore/WK/BCFEComponentTransferWK.cpp: Copied from BAL/SVG/WebCore/WK/BCFEComponentTransferWK.cpp.
+        * Graphics/WebCore/WK/BCFEComponentTransferWK.h: Copied from BAL/SVG/WebCore/WK/BCFEComponentTransferWK.h.
+        * Graphics/WebCore/WK/BCFECompositeWK.cpp: Copied from BAL/SVG/WebCore/WK/BCFECompositeWK.cpp.
+        * Graphics/WebCore/WK/BCFECompositeWK.h: Copied from BAL/SVG/WebCore/WK/BCFECompositeWK.h.
+        * Graphics/WebCore/WK/BCFilterWK.h: Copied from BAL/SVG/WebCore/WK/BCFilterWK.h.
+        * SVG: Removed.
+        * SVG/WebCore: Removed.
+        * SVG/WebCore/CMakeLists.txt: Removed.
+        * SVG/WebCore/WK: Removed.
+        * SVG/WebCore/WK/BCFEBlendWK.cpp: Removed.
+        * SVG/WebCore/WK/BCFEBlendWK.h: Removed.
+        * SVG/WebCore/WK/BCFEColorMatrixWK.cpp: Removed.
+        * SVG/WebCore/WK/BCFEColorMatrixWK.h: Removed.
+        * SVG/WebCore/WK/BCFEComponentTransferWK.cpp: Removed.
+        * SVG/WebCore/WK/BCFEComponentTransferWK.h: Removed.
+        * SVG/WebCore/WK/BCFECompositeWK.cpp: Removed.
+        * SVG/WebCore/WK/BCFECompositeWK.h: Removed.
+        * SVG/WebCore/WK/BCFilterWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGImageEmptyClientsWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGImageWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGImageWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerGradientWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerGradientWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerLinearGradientWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerLinearGradientWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerPatternWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerPatternWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerRadialGradientWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerRadialGradientWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerSolidWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerSolidWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGPaintServerWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceClipperWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGResourceClipperWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceFilterWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGResourceFilterWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceListenerWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceMarkerWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGResourceMarkerWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceMaskerWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGResourceMaskerWK.h: Removed.
+        * SVG/WebCore/WK/BCSVGResourceWK.cpp: Removed.
+        * SVG/WebCore/WK/BCSVGResourceWK.h: Removed.
+        * Scripts/data/balInputList.txt:
+
 2009-05-27  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

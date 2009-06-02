@@ -26,3 +26,8 @@ if(USE_GRAPHICS_SDL)
 endif(USE_GRAPHICS_SDL)
 
 aux_source_directory(${GRAPHICS_DIR}/WK WEBCORE_SRC)
+
+if(ENABLE_FILTERS)
+    create_include_link(${GRAPHICS_DIR}/WK/filters BAL)
+    aux_source_directory(${GRAPHICS_DIR}/WK/filters WEBCORE_SRC)
+endif(ENABLE_FILTERS)

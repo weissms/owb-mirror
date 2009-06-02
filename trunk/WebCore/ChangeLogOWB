@@ -1,3 +1,9 @@
+2009-06-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Add svg/graphics sources in WebCore.
+
+        * svg/CMakeLists.txt:
+
 2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
