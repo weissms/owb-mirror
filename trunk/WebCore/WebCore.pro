@@ -152,7 +152,6 @@ INCLUDEPATH += \
     $$PWD/platform/graphics/filters \
     $$PWD/platform/graphics/transforms \
     $$PWD/platform/graphics/qt \
-    $$PWD/svg/graphics/qt \
     $$PWD/page/qt \
     $$PWD/../WebKit/qt/WebCoreSupport \
 
@@ -1530,6 +1529,7 @@ contains(DEFINES, ENABLE_WML=1) {
         wml/WMLPostfieldElement.cpp \
         wml/WMLPrevElement.cpp \
         wml/WMLRefreshElement.cpp \
+        wml/WMLSelectElement.cpp \
         wml/WMLSetvarElement.cpp \
         wml/WMLTableElement.cpp \
         wml/WMLTaskElement.cpp \
@@ -1719,7 +1719,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/style/SVGRenderStyleDefs.cpp \
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
-        svg/FilterBuilder.cpp \
         svg/SVGDocumentExtensions.cpp \
         svg/SVGImageLoader.cpp \
         svg/ColorDistance.cpp \
@@ -1865,7 +1864,8 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/filters/SVGFESpecularLighting.cpp \
         svg/graphics/filters/SVGFETile.cpp \
         svg/graphics/filters/SVGFETurbulence.cpp \
-        svg/graphics/filters/SVGFilterEffect.cpp \
+        svg/graphics/filters/SVGFilter.cpp \
+        svg/graphics/filters/SVGFilterBuilder.cpp \
         svg/graphics/filters/SVGLightSource.cpp \
         svg/graphics/SVGImage.cpp \
         svg/graphics/SVGPaintServer.cpp \
@@ -1900,9 +1900,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/SVGInlineTextBox.cpp \
         rendering/SVGRenderSupport.cpp \
         rendering/SVGRootInlineBox.cpp
-
-SOURCES += \
-        svg/graphics/qt/SVGResourceFilterQt.cpp
 
 
         # GENERATOR 5-C:

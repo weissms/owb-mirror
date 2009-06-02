@@ -1,8 +1,6 @@
 if(ENABLE_SVG)
     list(APPEND WEBCORE_SRC
         svg/ColorDistance.cpp
-        svg/Filter.cpp
-        svg/FilterBuilder.cpp
         svg/SVGAElement.cpp
         svg/SVGAltGlyphElement.cpp
         svg/SVGAngle.cpp
@@ -136,6 +134,8 @@ if(ENABLE_SVG)
         svg/animation/SMILTime.cpp
         svg/animation/SMILTimeContainer.cpp
         svg/animation/SVGSMILElement.cpp
+        svg/graphics/filters/SVGFilter.cpp
+        svg/graphics/filters/SVGFilterBuilder.cpp
         svg/graphics/filters/SVGFEConvolveMatrix.cpp
         svg/graphics/filters/SVGFEDiffuseLighting.cpp
         svg/graphics/filters/SVGFEDisplacementMap.cpp
@@ -148,7 +148,6 @@ if(ENABLE_SVG)
         svg/graphics/filters/SVGFESpecularLighting.cpp
         svg/graphics/filters/SVGFETile.cpp
         svg/graphics/filters/SVGFETurbulence.cpp
-        svg/graphics/filters/SVGFilterEffect.cpp
         svg/graphics/filters/SVGLightSource.cpp
     )
     list(APPEND IDL_SRC

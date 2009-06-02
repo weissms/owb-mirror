@@ -21,7 +21,7 @@
 #include "config.h"
 
 #if ENABLE(SVG) && ENABLE(FILTERS)
-#include "FilterBuilder.h"
+#include "SVGFilterBuilder.h"
 
 #include "FilterEffect.h"
 #include "PlatformString.h"
@@ -33,48 +33,42 @@
 
 namespace WebCore {
 
-FilterBuilder::FilterBuilder()
+SVGFilterBuilder::SVGFilterBuilder()
 {
-    m_builtinEffects.add(SourceGraphic::effectName().impl(), SourceGraphic::create());
-    m_builtinEffects.add(SourceAlpha::effectName().impl(), SourceAlpha::create());
+    m_builtinEffects.add(SourceGraphic::effectName(), SourceGraphic::create());
+    m_builtinEffects.add(SourceAlpha::effectName(), SourceAlpha::create());
 }
 
-void FilterBuilder::add(const AtomicString& id, RefPtr<FilterEffect> effect)
+void SVGFilterBuilder::add(const AtomicString& id, RefPtr<FilterEffect> effect)
 {
     if (id.isEmpty()) {
         m_lastEffect = effect.get();
         return;
     }
 
-    AtomicStringImpl* idImpl = id.impl();
-    ASSERT(idImpl);
-
-    if (m_builtinEffects.contains(idImpl))
+    if (m_builtinEffects.contains(id))
         return;
 
     m_lastEffect = effect.get();
-    m_namedEffects.set(idImpl, m_lastEffect);
+    m_namedEffects.set(id, m_lastEffect);
 }
 
-FilterEffect* FilterBuilder::getEffectById(const AtomicString& id) const
+FilterEffect* SVGFilterBuilder::getEffectById(const AtomicString& id) const
 {
-    bool idIsEmpty = id.isEmpty();
+    if (id.isEmpty()) {
+        if (m_lastEffect)
+            return m_lastEffect.get();
 
-    if (idIsEmpty && m_lastEffect)
-        return m_lastEffect.get();
+        return m_builtinEffects.get(SourceGraphic::effectName()).get();
+    }
 
-    AtomicStringImpl* idImpl = id.impl();
+    if (m_builtinEffects.contains(id))
+        return m_builtinEffects.get(id).get();
 
-    if (m_builtinEffects.contains(idImpl))
-        return m_builtinEffects.get(idImpl).get();
-
-    if (idIsEmpty && !m_lastEffect)
-        return m_builtinEffects.get(SourceGraphic::effectName().impl()).get();
-
-    return m_namedEffects.get(idImpl).get();
+    return m_namedEffects.get(id).get();
 }
 
-void FilterBuilder::clearEffects()
+void SVGFilterBuilder::clearEffects()
 {
     m_lastEffect = 0;
     m_namedEffects.clear();

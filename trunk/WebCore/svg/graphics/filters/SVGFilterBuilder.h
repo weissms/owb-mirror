@@ -17,12 +17,13 @@
     Boston, MA 02110-1301, USA.
 */
 
-#ifndef FilterBuilder_h
-#define FilterBuilder_h
+#ifndef SVGFilterBuilder_h
+#define SVGFilterBuilder_h
 
 #include "config.h"
 
 #if ENABLE(SVG) && ENABLE(FILTERS)
+#include "AtomicStringHash.h"
 #include "FilterEffect.h"
 #include "PlatformString.h"
 
@@ -31,20 +32,20 @@
 
 namespace WebCore {
     
-    class FilterBuilder : public RefCounted<FilterBuilder> {
+    class SVGFilterBuilder : public RefCounted<SVGFilterBuilder> {
     public:
-        FilterBuilder();
+        SVGFilterBuilder();
 
         void add(const AtomicString& id, RefPtr<FilterEffect> effect);
 
         FilterEffect* getEffectById(const AtomicString& id) const;
-        FilterEffect* lastFilter() const { return m_lastEffect.get(); }
+        FilterEffect* lastEffect() const { return m_lastEffect.get(); }
 
         void clearEffects();
 
     private:
-        HashMap<RefPtr<AtomicStringImpl>, RefPtr<FilterEffect> > m_builtinEffects;
-        HashMap<RefPtr<AtomicStringImpl>, RefPtr<FilterEffect> > m_namedEffects;
+        HashMap<AtomicString, RefPtr<FilterEffect> > m_builtinEffects;
+        HashMap<AtomicString, RefPtr<FilterEffect> > m_namedEffects;
 
         RefPtr<FilterEffect> m_lastEffect;
     };

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com
+ * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com 
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,14 +22,28 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef KeyboardCodes_h
 #define KeyboardCodes_h
 
+#include <wtf/Platform.h>
+
+// FIXME: We should get rid of these Chromium-related ifdefs.
+#if PLATFORM(CHROMIUM)
+
+#if PLATFORM(WIN_OS)
+#include "KeyboardCodesWin.h"
+#else
+#include "KeyboardCodesPosix.h"
+#endif
+
+#else
+
 namespace WebCore {
 
+#if !PLATFORM(WIN_OS)
 // VK_LBUTTON (01) Left mouse button
 // VK_RBUTTON (02) Right mouse button
 // VK_CANCEL (03) Control-break processing
@@ -145,6 +160,8 @@ const int VK_DELETE = 0x2E;
 // VK_HELP (2F) HELP key
 const int VK_HELP = 0x2F;
 
+#endif // PLATFORM(WIN_OS)
+
 // (30) 0 key
 const int VK_0 = 0x30;
 
@@ -253,6 +270,8 @@ const int VK_Y = 0x59;
 
 // (5A) Z key
 const int VK_Z = 0x5A;
+
+#if !PLATFORM(WIN_OS)
 
 // VK_LWIN (5B) Left Windows key (Microsoft Natural keyboard)
 const int VK_LWIN = 0x5B;
@@ -464,6 +483,10 @@ const int VK_MEDIA_LAUNCH_APP1 = 0xB6;
 // VK_LAUNCH_APP2 (B7) Windows 2000/XP: Start Application 2 key
 const int VK_MEDIA_LAUNCH_APP2 = 0xB7;
 
+#endif // !PLATFORM(WIN_OS)
+
+#if !PLATFORM(WIN_OS) || PLATFORM(WIN_CE)
+
 // VK_OEM_1 (BA) Used for miscellaneous characters; it can vary by keyboard. Windows 2000/XP: For the US standard keyboard, the ';:' key
 const int VK_OEM_1 = 0xBA;
 
@@ -499,6 +522,10 @@ const int VK_OEM_7 = 0xDE;
 
 // VK_OEM_8 (DF) Used for miscellaneous characters; it can vary by keyboard.
 const int VK_OEM_8 = 0xDF;
+
+#endif // !PLATFORM(WIN_OS) || PLATFORM(WIN_CE)
+
+#if !PLATFORM(WIN_OS)
 
 // VK_OEM_102 (E2) Windows 2000/XP: Either the angle bracket key or the backslash key on the RT 102-key keyboard
 const int VK_OEM_102 = 0xE2;
@@ -538,6 +565,10 @@ const int VK_OEM_CLEAR = 0xFE;
 
 const int VK_UNKNOWN = 0;
 
+#endif // PLATFORM(WIN_OS)
+
 }
+
+#endif // PLATFORM(CHROMIUM)
 
 #endif

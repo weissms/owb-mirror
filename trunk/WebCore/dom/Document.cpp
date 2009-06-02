@@ -1671,7 +1671,7 @@ void Document::implicitClose()
 
 #if PLATFORM(MAC)
     if (f && renderer() && this == topDocument() && AXObjectCache::accessibilityEnabled())
-        axObjectCache()->postNotificationToElement(renderer(), "AXLoadComplete");
+        axObjectCache()->postNotification(renderer(), "AXLoadComplete", true);
 #endif
 
 #if ENABLE(SVG)
@@ -2739,6 +2739,16 @@ void Document::setWindowAttributeEventListener(const AtomicString& eventType, Pa
     if (!domWindow)
         return;
     domWindow->setAttributeEventListener(eventType, listener);
+}
+
+void Document::dispatchWindowEvent(PassRefPtr<Event> event)
+{
+    ASSERT(!eventDispatchForbidden());
+    DOMWindow* domWindow = this->domWindow();
+    if (!domWindow)
+        return;
+    ExceptionCode ec;
+    domWindow->dispatchEvent(event, ec);
 }
 
 void Document::dispatchWindowEvent(const AtomicString& eventType, bool canBubbleArg, bool cancelableArg)

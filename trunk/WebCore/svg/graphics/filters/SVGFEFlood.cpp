@@ -23,21 +23,22 @@
 
 #if ENABLE(SVG) && ENABLE(FILTERS)
 #include "SVGFEFlood.h"
+#include "Filter.h"
 #include "SVGRenderTreeAsText.h"
-#include "SVGResourceFilter.h"
 
 namespace WebCore {
 
-FEFlood::FEFlood(const Color& floodColor, const float& floodOpacity)
+FEFlood::FEFlood(FilterEffect* in, const Color& floodColor, const float& floodOpacity)
     : FilterEffect()
+    , m_in(in)
     , m_floodColor(floodColor)
     , m_floodOpacity(floodOpacity)
 {
 }
 
-PassRefPtr<FEFlood> FEFlood::create(const Color& floodColor, const float& floodOpacity)
+PassRefPtr<FEFlood> FEFlood::create(FilterEffect* in, const Color& floodColor, const float& floodOpacity)
 {
-    return adoptRef(new FEFlood(floodColor, floodOpacity));
+    return adoptRef(new FEFlood(in, floodColor, floodOpacity));
 }
 
 Color FEFlood::floodColor() const
@@ -60,7 +61,7 @@ void FEFlood::setFloodOpacity(float floodOpacity)
     m_floodOpacity = floodOpacity;
 }
 
-void FEFlood::apply(SVGResourceFilter*)
+void FEFlood::apply(Filter*)
 {
 }
 

@@ -1,3 +1,201 @@
+2009-06-02  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY - speculative windows build fix (errm, for the other patch!).
+
+        * jit/JITStubs.cpp:
+        (JSC::):
+
+2009-06-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY - speculative windows build fix.
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::::CodeLocationCall::CodeLocationCall):
+        (JSC::::CodeLocationNearCall::CodeLocationNearCall):
+
+2009-06-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Olliej Hunt.
+
+        Change JITStub functions from being static members on the JITStub class to be
+        global extern "C" functions, and switch their the function signature declaration
+        in the definition of the functions to be C-macro generated.  This makes it easier
+        to work with the stub functions from assembler code (since the names no longer
+        require mangling), and by delaring the functions with a macro we can look at
+        also auto-generating asm thunks to wrap the JITStub functions to perform the
+        work currently in 'restoreArgumentReference' (as a memory saving).
+
+        Making this change also forces us to be a bit more realistic about what is private
+        on the Register and CallFrame objects.  Presently most everything on these classes
+        is private, and the classes have plenty of friends.  We could befriend all the
+        global functions to perpetuate the delusion of encapsulation, but using friends is
+        a bit of a sledgehammer solution here - since friends can poke around with all of
+        the class's privates, and since all the major classes taht operate on Regsiters are
+        currently friends, right there is currently in practice very little protection at
+        all.  Better to start removing friend delclarations, and exposing just the parts
+        that need to be exposed.
+
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::returnPC):
+        (JSC::ExecState::setCallerFrame):
+        (JSC::ExecState::returnValueRegister):
+        (JSC::ExecState::setArgumentCount):
+        (JSC::ExecState::setCallee):
+        (JSC::ExecState::setCodeBlock):
+        * interpreter/Interpreter.h:
+        * interpreter/Register.h:
+        (JSC::Register::Register):
+        (JSC::Register::i):
+        * jit/JITStubs.cpp:
+        (JSC::):
+        (JSC::JITThunks::JITThunks):
+        (JSC::JITThunks::tryCachePutByID):
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::JITStubs::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::JITStubs::):
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::nativeFunction):
+        (JSC::JSFunction::classInfo):
+        * runtime/JSGlobalData.h:
+
+2009-06-01  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Tidy up the literal parser.
+
+        Make the number lexing in the LiteralParser exactly match the JSON spec, which
+        makes us cover more cases, but also more strict.  Also made string lexing only
+        allow double-quoted strings.
+
+        * runtime/LiteralParser.cpp:
+        (JSC::LiteralParser::Lexer::lex):
+        (JSC::LiteralParser::Lexer::lexString):
+        (JSC::LiteralParser::Lexer::lexNumber):
+
+2009-06-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam "WX" Weinig.
+
+        Allow the JIT to operate without relying on use of RWX memory, on platforms where this is supported.
+
+        This patch adds a switch to Platform.h (ENABLE_ASSEMBLER_WX_EXCLUSIVE) which enables this mode of operation.
+        When this flag is set, all executable memory will be allocated RX, and switched to RW only whilst being
+        modified.  Upon completion of code generation the protection is switched back to RX to allow execution.
+
+        Further optimization will be required before it is desirable to enable this mode of operation by default;
+        enabling this presently incurs a 5%-10% regression.
+
+        (Submitting disabled - no performance impact).
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::repatchLoadToLEA):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::fromFunctionPointer):
+        (JSC::AbstractMacroAssembler::CodeLocationJump::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationCall::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationNearCall::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabel32::repatch):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabelPtr::repatch):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkCallerToTrampoline):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkCallerToFunction):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkNearCallerToTrampoline):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkNearCallerToFunction):
+        (JSC::AbstractMacroAssembler::PatchBuffer::PatchBuffer):
+        (JSC::AbstractMacroAssembler::PatchBuffer::~PatchBuffer):
+        (JSC::AbstractMacroAssembler::PatchBuffer::link):
+        (JSC::AbstractMacroAssembler::PatchBuffer::patch):
+        (JSC::AbstractMacroAssembler::PatchBuffer::performFinalization):
+        (JSC::::CodeLocationCommon::nearCallAtOffset):
+        (JSC::::CodeLocationCall::CodeLocationCall):
+        (JSC::::CodeLocationNearCall::CodeLocationNearCall):
+        * assembler/AssemblerBuffer.h:
+        (JSC::AssemblerBuffer::executableCopy):
+        * assembler/X86Assembler.h:
+        (JSC::CAN_SIGN_EXTEND_U32_64):
+        (JSC::X86Assembler::linkJump):
+        (JSC::X86Assembler::linkCall):
+        (JSC::X86Assembler::patchPointer):
+        (JSC::X86Assembler::relinkJump):
+        (JSC::X86Assembler::relinkCall):
+        (JSC::X86Assembler::repatchInt32):
+        (JSC::X86Assembler::repatchPointer):
+        (JSC::X86Assembler::repatchLoadToLEA):
+        (JSC::X86Assembler::patchInt32):
+        (JSC::X86Assembler::patchRel32):
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::):
+        (JSC::ExecutableAllocator::makeWritable):
+        (JSC::ExecutableAllocator::makeExecutable):
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+        (JSC::FixedVMPoolAllocator::FixedVMPoolAllocator):
+        * jit/ExecutableAllocatorPosix.cpp:
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+        (JSC::ExecutableAllocator::reprotectRegion):
+        * jit/ExecutableAllocatorWin.cpp:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchPutByIdReplace):
+        * wtf/Platform.h:
+
+2009-05-29 Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Inherits Interpreter class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/runtime/JSGlobalData.cpp. 
+
+        * interpreter/Interpreter.h:
+
+2009-06-01  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (windows build fix).
+
+        Add exports for windows (corresponding to the JavaScriptCore.exp modification
+        in the previous change).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-06-01  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Alder and Maciej Stachowiak.
+
+        Bug 26057: StringImpl should share buffers with UString.
+        https://bugs.webkit.org/show_bug.cgi?id=26057
+
+        * JavaScriptCore.exp:
+        * runtime/UString.cpp:
+        (JSC::UString::Rep::create):
+        (JSC::UString::BaseString::sharedBuffer): Only do the sharing when
+        the buffer exceeds a certain size.  The size was tuned by running
+        various dom benchmarks with numbers ranging from 20 to 800 and finding
+        a place that seemed to do the best overall.
+        * runtime/UString.h:
+
+2009-05-31  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Olliej "you just need to change NativeFunctionWrapper.h" Hunt.
+
+        Add ENABLE_JIT_OPTIMIZE_NATIVE_CALL switch to allow JIT to operate without native call optimizations.
+
+        * runtime/NativeFunctionWrapper.h:
+        * wtf/Platform.h:
+
+2009-05-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6935193> REGRESSION (r42734): Celtic Kane JavaScript benchmark does not run:
+        "Maximum call stack size exceeded"
+
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString): Use the same recursion limit as the other recursion checks.
+        We need a limit of at least 100 to run the benchmark above.
+        (JSC::arrayProtoFuncToLocaleString): Ditto.
+        (JSC::arrayProtoFuncJoin): Ditto.
+
 2009-05-29  Dirk Schulze  <krit@webkit.org>
 
         Reviewed by Nikolas Zimmermann.

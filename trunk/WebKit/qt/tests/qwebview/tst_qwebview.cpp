@@ -18,7 +18,7 @@
     Boston, MA 02110-1301, USA.
 */
 
-#include <QtTest/QtTest>
+#include <qtest.h>
 
 #include <qpainter.h>
 #include <qwebview.h>
@@ -29,10 +29,6 @@
 class tst_QWebView : public QObject
 {
     Q_OBJECT
-
-public:
-    tst_QWebView();
-    virtual ~tst_QWebView();
 
 public slots:
     void initTestCase();
@@ -45,14 +41,6 @@ private slots:
     void guessUrlFromString_data();
     void guessUrlFromString();
 };
-
-tst_QWebView::tst_QWebView()
-{
-}
-
-tst_QWebView::~tst_QWebView()
-{
-}
 
 // This will be called before the first test function is executed.
 // It is only called once.
@@ -153,8 +141,9 @@ void tst_QWebView::guessUrlFromString_data()
     QTest::newRow("mailto") << "mailto:ben@meyerhome.net" << mailto;
 
     // misc
-    QTest::newRow("misc-0") << "localhost" << QUrl("http://localhost");
-    QTest::newRow("misc-0") << "localhost:80" << QUrl("http://localhost:80");
+    QTest::newRow("localhost-0") << "localhost" << QUrl("http://localhost");
+    QTest::newRow("localhost-1") << "localhost:80" << QUrl("http://localhost:80");
+    QTest::newRow("spaces-0") << "  http://webkit.org/test page.html " << QUrl("http://webkit.org/test%20page.html");
 
     // FYI: The scheme in the resulting url user
     QUrl authUrl("user:pass@domain.com");
@@ -173,3 +162,4 @@ void tst_QWebView::guessUrlFromString()
 
 QTEST_MAIN(tst_QWebView)
 #include "tst_qwebview.moc"
+

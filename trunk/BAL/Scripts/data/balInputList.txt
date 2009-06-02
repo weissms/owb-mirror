@@ -40,12 +40,10 @@ BAL/Skeletons/Events	WebCore/platform/PlatformWheelEvent.h
 BAL/Events/WebCore/Gtk	WebCore/page/gtk/EventHandlerGtk.cpp
 BAL/Events/WebCore/Gtk	WebCore/platform/gtk/EventLoopGtk.cpp
 BAL/Events/WebCore/Gtk	WebCore/platform/gtk/KeyEventGtk.cpp	BCPlatformKeyboardEventGtk.cpp
-BAL/Events/WebCore/Gtk	WebCore/platform/gtk/KeyboardCodes.h
 BAL/Events/WebCore/Gtk	WebCore/platform/gtk/MouseEventGtk.cpp	BCPlatformMouseEventGtk.cpp
 BAL/Events/WebCore/Gtk	WebCore/platform/gtk/WheelEventGtk.cpp	BCPlatformWheelEventGtk.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/EventLoopQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformKeyboardEventQt.cpp
-BAL/Events/WebCore/Qt	WebCore/platform/qt/KeyboardCodes.h
 BAL/Events/WebCore/Qt	WebCore/platform/qt/MenuEventProxy.h
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformMouseEventQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/WheelEventQt.cpp	BCPlatformWheelEventQt.cpp
@@ -53,6 +51,7 @@ BAL/Events/WebCore/WK	WebCore/platform/EventLoop.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformKeyboardEvent.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformMouseEvent.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
+BAL/Events/WebCore/WK	WebCore/platform/KeyboardCodes.h
 
 
 BAL/Skeletons/Facilities    WebCore/platform/CrossThreadCopier.h
@@ -559,6 +558,7 @@ BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequestSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceResponse.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.cpp
@@ -600,6 +600,7 @@ BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEBlend.h
 BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEColorMatrix.h
 BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEComponentTransfer.h
 BAL/Skeletons/SVG  WebCore/platform/graphics/filters/FEComposite.h
+BAL/Skeletons/SVG  WebCore/platform/graphics/filters/Filter.h
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGImage.h
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServer.h
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGPaintServerGradient.h
@@ -624,6 +625,7 @@ BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComponentTransfer.cpp
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComponentTransfer.h
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComposite.cpp
 BAL/SVG/WebCore/WK	WebCore/platform/graphics/filters/FEComposite.h
+BAL/SVG/WebCore/WK  WebCore/platform/graphics/filters/Filter.h
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGImage.cpp
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGImage.h
 BAL/SVG/WebCore/WK	WebCore/svg/graphics/SVGPaintServer.cpp

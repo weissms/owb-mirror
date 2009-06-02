@@ -509,6 +509,7 @@
     #define WTF_USE_JIT_STUB_ARGUMENT_REGISTER 1
 #endif
     #define ENABLE_JIT_OPTIMIZE_CALL 1
+    #define ENABLE_JIT_OPTIMIZE_NATIVE_CALL 1
     #define ENABLE_JIT_OPTIMIZE_PROPERTY_ACCESS 1
     #define ENABLE_JIT_OPTIMIZE_ARITHMETIC 1
     #define ENABLE_JIT_OPTIMIZE_METHOD_CALLS 1
@@ -564,6 +565,9 @@
 #if ENABLE(JIT) || ENABLE(YARR_JIT)
 #define ENABLE_ASSEMBLER 1
 #endif
+// Setting this flag prevents the assembler from using RWX memory; this may improve
+// security but currectly comes at a significant performance cost.
+#define ENABLE_ASSEMBLER_WX_EXCLUSIVE 0
 
 #if !defined(ENABLE_PAN_SCROLLING) && PLATFORM(WIN_OS)
 #define ENABLE_PAN_SCROLLING 1

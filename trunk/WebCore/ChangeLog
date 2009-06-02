@@ -1,3 +1,1393 @@
+2009-06-02  Grace Kloba  <klobag@gmail.com>
+
+        Reviewed by Darin Adler.  Landed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26016
+
+        As HTMLKeygenElement is derived from HTMLSelectElement, HTMLOptionElement::ownerSelectElement() needs to check both selectTag and keygenTag.
+        Test: fast/dom/HTMLKeygenElement/keygen-option-select.html
+
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::ownerSelectElement):
+
+2009-06-01  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Adler.  Landed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26123
+
+        Remove a redundant checkEncodedString call when constructing a
+        KURL object from a string.
+
+        * platform/KURL.cpp:
+        (WebCore::KURL::KURL):
+
+2009-06-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        Reposition platform guard, improperly placed by http://trac.webkit.org/changeset/44340
+        Bad Dimitri.
+
+        * platform/KeyboardCodes.h: Repositioned the guard to avoid nested
+            WebCore namespace declarations.
+
+2009-06-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        * platform/KeyboardCodes.h: Integrated contents of platform/chromium/KeyboardCodes.h
+            with a stern FIXME.
+        * platform/chromium/KeyboardCodes.h: Removed.
+
+2009-06-01  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix assertion error in --filters enabled debug builds.
+        Instead of using RefPtr<AtomicStringImpl> as keys for the hash maps in SVGFilterBuilder, just use AtomicString objects.
+
+        * svg/graphics/filters/SVGFilterBuilder.cpp:
+        (WebCore::SVGFilterBuilder::SVGFilterBuilder):
+        (WebCore::SVGFilterBuilder::add):
+        (WebCore::SVGFilterBuilder::getEffectById):
+        * svg/graphics/filters/SVGFilterBuilder.h:
+
+2009-06-01  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix --filters enabled build on Mac.
+        Remove unnecessary 'boundingBox' parameter from finishRenderSVGContent() method.
+        Kill several warnings, to make build pass.
+
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::paint):
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::paint):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::paint):
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::paint):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::SVGRenderBase::finishRenderSVGContent):
+        * rendering/SVGRenderSupport.h:
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBoxPaintWalker::chunkEndCallback):
+        * svg/SVGFEGaussianBlurElement.cpp:
+        (WebCore::SVGFEGaussianBlurElement::setStdDeviation):
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        (WebCore::FEFlood::FEFlood):
+
+2009-06-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        Fix Chromium build by adding an #ifdef, restoring the code path to that
+        before http://trac.webkit.org/changeset/44287.
+
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::paint): Added an #ifdef.
+
+2009-06-01  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Remove last pieces of the old SVG filter system. They are not
+        usable with our current filter system. The new filter effects
+        will replace the functionality step by step.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/graphics/cairo: Removed.
+        * svg/graphics/cairo/SVGResourceFilterCairo.cpp: Removed.
+        * svg/graphics/cg: Removed.
+        * svg/graphics/cg/SVGResourceFilterCg.cpp: Removed.
+        * svg/graphics/cg/SVGResourceFilterCg.mm: Removed.
+        * svg/graphics/filters/SVGFilterEffect.cpp: Removed.
+        * svg/graphics/filters/SVGFilterEffect.h: Removed.
+        * svg/graphics/filters/cg: Removed.
+        * svg/graphics/filters/cg/SVGFEHelpersCg.h: Removed.
+        * svg/graphics/filters/cg/SVGFEHelpersCg.mm: Removed.
+        * svg/graphics/filters/cg/SVGFilterEffectCg.mm: Removed.
+        * svg/graphics/filters/cg/WKArithmeticFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKArithmeticFilter.h: Removed.
+        * svg/graphics/filters/cg/WKArithmeticFilter.m: Removed.
+        * svg/graphics/filters/cg/WKComponentMergeFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKComponentMergeFilter.h: Removed.
+        * svg/graphics/filters/cg/WKComponentMergeFilter.m: Removed.
+        * svg/graphics/filters/cg/WKDiffuseLightingFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKDiffuseLightingFilter.h: Removed.
+        * svg/graphics/filters/cg/WKDiffuseLightingFilter.m: Removed.
+        * svg/graphics/filters/cg/WKDiscreteTransferFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKDiscreteTransferFilter.h: Removed.
+        * svg/graphics/filters/cg/WKDiscreteTransferFilter.m: Removed.
+        * svg/graphics/filters/cg/WKDisplacementMapFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKDisplacementMapFilter.h: Removed.
+        * svg/graphics/filters/cg/WKDisplacementMapFilter.m: Removed.
+        * svg/graphics/filters/cg/WKDistantLightFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKDistantLightFilter.h: Removed.
+        * svg/graphics/filters/cg/WKDistantLightFilter.m: Removed.
+        * svg/graphics/filters/cg/WKGammaTransferFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKGammaTransferFilter.h: Removed.
+        * svg/graphics/filters/cg/WKGammaTransferFilter.m: Removed.
+        * svg/graphics/filters/cg/WKIdentityTransferFilter.h: Removed.
+        * svg/graphics/filters/cg/WKIdentityTransferFilter.m: Removed.
+        * svg/graphics/filters/cg/WKLinearTransferFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKLinearTransferFilter.h: Removed.
+        * svg/graphics/filters/cg/WKLinearTransferFilter.m: Removed.
+        * svg/graphics/filters/cg/WKNormalMapFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKNormalMapFilter.h: Removed.
+        * svg/graphics/filters/cg/WKNormalMapFilter.m: Removed.
+        * svg/graphics/filters/cg/WKPointLightFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKPointLightFilter.h: Removed.
+        * svg/graphics/filters/cg/WKPointLightFilter.m: Removed.
+        * svg/graphics/filters/cg/WKSpecularLightingFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKSpecularLightingFilter.h: Removed.
+        * svg/graphics/filters/cg/WKSpecularLightingFilter.m: Removed.
+        * svg/graphics/filters/cg/WKSpotLightFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKSpotLightFilter.h: Removed.
+        * svg/graphics/filters/cg/WKSpotLightFilter.m: Removed.
+        * svg/graphics/filters/cg/WKTableTransferFilter.cikernel: Removed.
+        * svg/graphics/filters/cg/WKTableTransferFilter.h: Removed.
+        * svg/graphics/filters/cg/WKTableTransferFilter.m: Removed.
+        * svg/graphics/mac: Removed.
+        * svg/graphics/mac/SVGResourceFilterPlatformDataMac.h: Removed.
+        * svg/graphics/mac/SVGResourceFilterPlatformDataMac.mm: Removed.
+        * svg/graphics/qt: Removed.
+        * svg/graphics/qt/SVGResourceFilterQt.cpp: Removed.
+        * svg/graphics/skia: Removed.
+        * svg/graphics/skia/SVGResourceFilterSkia.cpp: Removed.
+
+2009-06-01  Dmitry Titov  <dimich@chromium.org>
+
+        Fix the previous checkin (ttp://trac.webkit.org/changeset/44327).
+        This adds a comment suggested during review.
+
+        * platform/ThreadGlobalData.cpp:
+        (WebCore::ThreadGlobalData::~ThreadGlobalData): Add comment clarifying the change.
+
+2009-06-01  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25973
+        Avoid calling CurrentThread() in thread-specific destructors in OSX Chromium.
+        Pthreads invoke thread-specific destructors after WTF::detachThread() is called and ThreadIdentifier
+        for the thread removed from the WTF thread map. Calling CurrentThread() in such destructor causes
+        the ThreadIdentifier to be re-created and inserted into the map again. Since Pthreads on OSX reuse
+        the pthread_t between threads, the next created thread will have the same pthread_t and cause an assert
+        in establishIdentifierForPthreadHandle() since the id is already in the map.
+
+        The behavior is covered by existing test LayoutTests/fast/workers/worker-terminate.html, which currently fails
+        on OSX Chromium and will stop failing after this change.
+
+        * platform/ThreadGlobalData.h:
+        * platform/ThreadGlobalData.cpp:
+        (WebCore::ThreadGlobalData::~ThreadGlobalData):
+        Store the result of "isMainThread()" in a member variable during construction of thread-specific data
+        to avoid calling IsMainThread() in destructor, since the latter calls CurrentThread() in OSX Chromium.
+
+2009-06-01  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Alder and Maciej Stachowiak.
+
+        Bug 26057: StringImpl should share buffers with UString.
+        https://bugs.webkit.org/show_bug.cgi?id=26057
+
+        This change results in the following performance improvements:
+        On http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html
+        the time went from 78ms to 40ms for append (other times remained constant).
+
+        On http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/002.html,
+        the time went from 3900ms to 2600ms.
+
+        For http://dromaeo.com/?dom, the time for DomModification improved by ~6%.
+        Other tests in dom seemed to be faster across several runs but within the
+        margin of error (except DOM Attributes which was slightly ~1.5% worse).
+
+        Existing tests cover this code and there is no new functionality
+        that is exposed to test.
+
+        * platform/text/AtomicString.cpp:
+        (WebCore::AtomicString::add):
+        * platform/text/String.cpp:
+        (WebCore::String::String):
+        (WebCore::String::operator UString):
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::StringImpl):
+        (WebCore::StringImpl::~StringImpl):
+        (WebCore::StringImpl::create): Consumes a shared buffer.
+        (WebCore::StringImpl::ustring): Shares the StringImpl's buffer with the UString.
+        (WebCore::StringImpl::sharedBuffer): Exposes the buffer that may be shared.
+        * platform/text/StringImpl.h:
+        (WebCore::StringImpl::hasTerminatingNullCharacter):
+        (WebCore::StringImpl::inTable):
+        (WebCore::StringImpl::setInTable): Converted the bools to be inside of PtrAndFlags
+        to avoid growing StringImpl in size.
+
+2009-06-01  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, build fix.
+
+        V8 bindings follow-up to to DOMWindow-related cleanup:
+        http://trac.webkit.org/changeset/44215
+
+        * bindings/v8/ScriptController.cpp: Removed disconnectFrame(), relocated
+            its body to destructor.
+        * bindings/v8/ScriptController.h: Removed disconnectFrame() decl.
+
+2009-05-28  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        - Add panel enabler to the resources panel.
+        - Add session / always options into the panel enabler.
+        - Make enabled status for three panels sticky (globally).
+        - Persist enabled status using InspectorController::Settings
+        - Make InspectorController produce no network-related overhead when
+          resources panel is not enabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26046
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::setWindowVisible):
+        (WebCore::InspectorController::populateScriptObjects):
+        (WebCore::InspectorController::identifierForInitialRequest):
+        (WebCore::InspectorController::willSendRequest):
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didReceiveContentLength):
+        (WebCore::InspectorController::didFinishLoading):
+        (WebCore::InspectorController::didFailLoading):
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest):
+        (WebCore::InspectorController::scriptImported):
+        (WebCore::InspectorController::enableResourceTracking):
+        (WebCore::InspectorController::disableResourceTracking):
+        (WebCore::InspectorController::startUserInitiatedProfiling):
+        (WebCore::InspectorController::enableProfiler):
+        (WebCore::InspectorController::disableProfiler):
+        (WebCore::InspectorController::enableDebugger):
+        (WebCore::InspectorController::disableDebugger):
+        * inspector/InspectorController.h:
+        (WebCore::InspectorController::Setting::Setting):
+        (WebCore::InspectorController::resourceTrackingEnabled):
+        * inspector/InspectorController.idl:
+        * inspector/InspectorFrontend.cpp:
+        (WebCore::InspectorFrontend::resourceTrackingWasEnabled):
+        (WebCore::InspectorFrontend::resourceTrackingWasDisabled):
+        * inspector/InspectorFrontend.h:
+        * inspector/front-end/PanelEnablerView.js:
+        (WebInspector.PanelEnablerView.enableOption):
+        (WebInspector.PanelEnablerView):
+        (WebInspector.PanelEnablerView.prototype._windowResized):
+        (WebInspector.PanelEnablerView.prototype.alwaysWasChosen):
+        * inspector/front-end/ProfilesPanel.js:
+        (WebInspector.ProfilesPanel.prototype._enableProfiling):
+        (WebInspector.ProfilesPanel.prototype._toggleProfiling):
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel):
+        (WebInspector.ResourcesPanel.prototype.get statusBarItems):
+        (WebInspector.ResourcesPanel.prototype.resourceTrackingWasEnabled):
+        (WebInspector.ResourcesPanel.prototype.resourceTrackingWasDisabled):
+        (WebInspector.ResourcesPanel.prototype.reset):
+        (WebInspector.ResourcesPanel.prototype._updateSidebarWidth):
+        (WebInspector.ResourcesPanel.prototype._enableResourceTracking):
+        (WebInspector.ResourcesPanel.prototype._toggleResourceTracking):
+        * inspector/front-end/ScriptsPanel.js:
+        (WebInspector.ScriptsPanel.prototype._enableDebugging):
+        (WebInspector.ScriptsPanel.prototype._toggleDebugging):
+        * inspector/front-end/inspector.css:
+        * inspector/front-end/inspector.js:
+        (WebInspector.resourceTrackingWasEnabled):
+        (WebInspector.resourceTrackingWasDisabled):
+
+2009-06-01  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Darin Adler.  Landed (and tweaked) by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25902
+
+        Added WorkerContext.close()
+
+        Test: fast/workers/worker-close.html
+
+        * workers/WorkerContext.cpp:
+        (WebCore::WorkerContext::close):
+        * workers/WorkerContext.h:
+        * workers/WorkerContext.idl:
+        * workers/WorkerMessagingProxy.cpp:
+        (WebCore::WorkerMessagingProxy::workerContextDestroyedInternal):
+
+2009-06-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=12471
+        XPathResult not invalidated for documents retrieved via XMLHttpRequest
+
+        Test: fast/xpath/detached-subtree-invalidate-iterator.html and existing tests in dom/svg/level3/xpath.
+
+        Use DOM tree version instead of DOMSubtreeModified events to invalidate, which is more
+        reliable and much faster.
+
+        * xml/XPathExpression.cpp:
+        (WebCore::XPathExpression::evaluate):
+        * xml/XPathResult.cpp:
+        (WebCore::XPathResult::XPathResult):
+        (WebCore::XPathResult::~XPathResult):
+        (WebCore::XPathResult::invalidIteratorState):
+        (WebCore::XPathResult::iterateNext):
+        * xml/XPathResult.h:
+        (WebCore::XPathResult::create):
+
+2009-06-01  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Darin Adler.  Landed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25750
+
+        Test: fast/transforms/bounding-rect-zoom.html
+
+        Make getClientRects and getBoundingClientRect account for ther zoom
+        factor.
+
+        * dom/Element.cpp:
+        (WebCore::adjustFloatPointForAbsoluteZoom):
+        (WebCore::adjustFloatQuadForAbsoluteZoom):
+        (WebCore::adjustIntRectForAbsoluteZoom):
+        (WebCore::Element::getClientRects):
+        (WebCore::Element::getBoundingClientRect):
+
+2009-06-01  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.  Landed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26026
+
+        Fix an infinite loop when using the keyboard in Chromium select
+        popups.
+
+        Not testable since it involves sending a keyboard event to
+        the popup, which is not possible (eventSender sends the key
+        events through webview, we want to go through the webwidget).
+
+        * platform/chromium/PopupMenuChromium.cpp:
+
+2009-06-01  Nate Chapin  <japhet@google.com>
+
+        Reviewed by Dimitri Glazkov.  Landed by Adam Barth.
+
+        If a url with an anchor is being loaded, ensure that the anchor remains locked in view until the page
+        has finished loading compeltely or the user has manually scrolled.  Refreshing an anchor url after
+        scrolling to a new location on the page will still result in jumping to the new location.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26034
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::gotoAnchor): Set anchor lock after navigating to anchor.
+        (WebCore::FrameLoader::completed): Release anchor lock.
+        * page/FrameView.cpp:
+        (WebCore::FrameView::FrameView): Ensure anchor lock starts unset.
+        (WebCore::FrameView::reset): Ensure anchor lock starts unset.
+        (WebCore::FrameView::layout): If anchor lock is set, force a gotoAnchor() after layout.
+        (WebCore::FrameView::scrollRectIntoViewRecursively): Release anchor lock if a programmatic scroll begins.
+        (WebCore::FrameView::setWasScrolledByUser): Release anchor lock if user manually scrolls.
+        (WebCore::FrameView::setScrollPosition): Release anchor lock if a programmatic scroll begins.
+        * page/FrameView.h:
+        (WebCore::FrameView::lockedToAnchor): Added.
+        (WebCore::FrameView::setLockedToAnchor): Added.
+
+2009-05-31  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        WebKit needs cross-platform filter system
+        [https://bugs.webkit.org/show_bug.cgi?id=19991]
+
+        A short clean-up. FilterBuilder is SVG specific. Move it
+        to svg/graphics/filters and rename it to SVGFilterBuilder. 
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/FilterBuilder.cpp: Removed.
+        * svg/FilterBuilder.h: Removed.
+        * svg/SVGFilterElement.cpp:
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/graphics/SVGResourceFilter.cpp:
+        (WebCore::SVGResourceFilter::SVGResourceFilter):
+        * svg/graphics/SVGResourceFilter.h:
+        (WebCore::SVGResourceFilter::builder):
+        * svg/graphics/filters/SVGFilterBuilder.cpp: Added.
+        (WebCore::SVGFilterBuilder::SVGFilterBuilder):
+        (WebCore::SVGFilterBuilder::add):
+        (WebCore::SVGFilterBuilder::getEffectById):
+        (WebCore::SVGFilterBuilder::clearEffects):
+        * svg/graphics/filters/SVGFilterBuilder.h: Added.
+        (WebCore::SVGFilterBuilder::lastEffect):
+
+2009-05-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=13233
+        Need to implement an optimizing XPath evaluator
+
+        Avoid sorting results of hierarchical paths that are naturally sorted. On a flat data structure
+        with 128K nodes and a simple XPath expression, this changes evaluation time from 1.5 minutes
+        to 33 ms.
+
+        * xml/XPathNodeSet.h: Keep track of whether subtrees rooted at nodes in set are disjoint,
+        which is useful for optimization.
+        (WebCore::XPath::NodeSet::NodeSet): Removed, it was identical to compiler generated one.
+        (WebCore::XPath::NodeSet::operator=): Ditto.
+        (WebCore::XPath::NodeSet::swap): Ditto.
+        (WebCore::XPath::NodeSet::isSorted): Single element sets are always sorted, even if sort()
+        was never called.
+        (WebCore::XPath::NodeSet::markSubtreesDisjoint): Just like being sorted, the new flag is
+        maintained by callers.
+        (WebCore::XPath::NodeSet::subtreesAreDisjoint): A single element set only has one subtree.
+        Currently, the only way for a set to gain this flag is to be produced from a single element
+        set with a hierarchical location path.
+
+        * xml/XPathPath.cpp: (WebCore::XPath::LocationPath::evaluate): Use the new flag to avoid
+        maintaining a set of unique nodes, and to avoid sorting the result.
+
+2009-05-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=13233
+        Need to implement an optimizing XPath evaluator
+
+        This patch adds some infrastructure and simple optimizations. Namely,
+        - we now avoid building a full NodeSet just to evaluate a predicate in some cases;
+        - "/descendant-or-self::node()/child::" is optimized to iterate the tree once when possible;
+
+        * xml/XPathExpressionNode.cpp:
+        (WebCore::XPath::Expression::Expression):
+        * xml/XPathExpressionNode.h:
+        (WebCore::XPath::Expression::addSubExpression):
+        (WebCore::XPath::Expression::isContextNodeSensitive):
+        (WebCore::XPath::Expression::isContextPositionSensitive):
+        (WebCore::XPath::Expression::isContextSizeSensitive):
+        (WebCore::XPath::Expression::setIsContextNodeSensitive):
+        (WebCore::XPath::Expression::setIsContextPositionSensitive):
+        (WebCore::XPath::Expression::setIsContextSizeSensitive):
+        XPath expression now knows its result type, and whether evaluation depends on context.
+
+        * xml/XPathFunctions.cpp:
+        (WebCore::XPath::FunLast::resultType):
+        (WebCore::XPath::FunLast::FunLast):
+        (WebCore::XPath::FunPosition::resultType):
+        (WebCore::XPath::FunPosition::FunPosition):
+        (WebCore::XPath::FunCount::resultType):
+        (WebCore::XPath::FunId::resultType):
+        (WebCore::XPath::FunLocalName::resultType):
+        (WebCore::XPath::FunLocalName::FunLocalName):
+        (WebCore::XPath::FunNamespaceURI::resultType):
+        (WebCore::XPath::FunNamespaceURI::FunNamespaceURI):
+        (WebCore::XPath::FunName::resultType):
+        (WebCore::XPath::FunName::FunName):
+        (WebCore::XPath::FunString::resultType):
+        (WebCore::XPath::FunString::FunString):
+        (WebCore::XPath::FunConcat::resultType):
+        (WebCore::XPath::FunStartsWith::resultType):
+        (WebCore::XPath::FunContains::resultType):
+        (WebCore::XPath::FunSubstringBefore::resultType):
+        (WebCore::XPath::FunSubstringAfter::resultType):
+        (WebCore::XPath::FunSubstring::resultType):
+        (WebCore::XPath::FunStringLength::resultType):
+        (WebCore::XPath::FunStringLength::FunStringLength):
+        (WebCore::XPath::FunNormalizeSpace::resultType):
+        (WebCore::XPath::FunNormalizeSpace::FunNormalizeSpace):
+        (WebCore::XPath::FunTranslate::resultType):
+        (WebCore::XPath::FunBoolean::resultType):
+        (WebCore::XPath::FunNot::resultType):
+        (WebCore::XPath::FunTrue::resultType):
+        (WebCore::XPath::FunFalse::resultType):
+        (WebCore::XPath::FunLang::resultType):
+        (WebCore::XPath::FunLang::FunLang):
+        (WebCore::XPath::FunNumber::resultType):
+        (WebCore::XPath::FunNumber::FunNumber):
+        (WebCore::XPath::FunSum::resultType):
+        (WebCore::XPath::FunFloor::resultType):
+        (WebCore::XPath::FunCeiling::resultType):
+        (WebCore::XPath::FunRound::resultType):
+        (WebCore::XPath::Function::setArguments):
+        Set optimization details for the expression. Normally, a function does not introduce context
+        node set dependency, but some use context node as default argument, or otherwise use the context.
+
+        * xml/XPathFunctions.h: Tweaked style.
+
+        * xml/XPathPath.cpp:
+        (WebCore::XPath::Filter::Filter): A filter is as context node set sensitive as its expression is.
+        (WebCore::XPath::LocationPath::LocationPath): A location path can only be context node sensitive,
+        and only if the path relative.
+        (WebCore::XPath::LocationPath::appendStep): Invoke compile-time Step optimizations.
+        (WebCore::XPath::LocationPath::insertFirstStep): Ditto.
+        (WebCore::XPath::Path::Path): A path is as context node set sensitive as its filter is.
+
+        * xml/XPathPath.h:
+        (WebCore::XPath::Filter::resultType): Result type of a filter is the same as of its expression
+        (useful filters return NodeSets, of course).
+        (WebCore::XPath::LocationPath::setAbsolute): An absolute location path if context node set
+        insensitive.
+        (WebCore::XPath::LocationPath::resultType): A path's result is always a node set.
+        (WebCore::XPath::Path::resultType): Ditto.
+
+        * xml/XPathPredicate.h:
+        (WebCore::XPath::Number::resultType): Return a proper result type.
+        (WebCore::XPath::StringExpression::resultType): Ditto.
+        (WebCore::XPath::Negative::resultType): Ditto.
+        (WebCore::XPath::NumericOp::resultType): Ditto.
+        (WebCore::XPath::EqTestOp::resultType): Ditto.
+        (WebCore::XPath::LogicalOp::resultType): Ditto.
+        (WebCore::XPath::Union::resultType): Ditto.
+        (WebCore::XPath::Predicate::isContextPositionSensitive): A predicate can be context position
+        sensitive even if its expression is not, because e.g. [5] is a shortcut for [position()=5].
+        (WebCore::XPath::Predicate::isContextSizeSensitive): This matches expression result.
+
+        * xml/XPathStep.h:
+        (WebCore::XPath::Step::NodeTest::Kind): Removed unused ElementNodeTest, which was previously
+        borrowed from XPath 2.0 to express some optimizations.
+        (WebCore::XPath::Step::NodeTest::mergedPredicates): To avoid building a huge node set and
+        filtering it with predicates, we now try to apply predicates while enumerating an axis.
+        (WebCore::XPath::Step::nodeTest): Expose m_nodeTest.
+
+        * xml/XPathStep.cpp:
+        (WebCore::XPath::Step::~Step): The step owns NodeTest merged predicates, so it is still
+        possible to copy NodeTests.
+        (WebCore::XPath::Step::optimize): Merge predicates into NodeTest if possible.
+        (WebCore::XPath::optimizeStepPair): Optimize some expressions containing "//".
+        (WebCore::XPath::Step::predicatesAreContextListInsensitive): The above optimization is only
+        possible if there are no context sensitive predicates for "//".
+        (WebCore::XPath::Step::evaluate): Track context position for the first merged predicate.
+        (WebCore::XPath::nodeMatchesBasicTest): Check whether the node matches node test, ignoring
+        merged predicates.
+        (WebCore::XPath::nodeMatches): Additionally check merged predicates, and update position.
+        (WebCore::XPath::Step::nodesInAxis): Check merged predicates in optimized attribute code
+        path.
+
+        * xml/XPathVariableReference.h: (WebCore::XPath::VariableReference::resultType): Variable
+        references are not used with XPathEvaluator, so we'll only need them if we decide to
+        reimplement XSLT. The type of variable reference is not known at compile time.
+
+2009-05-31  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Remove unused JSEventTargetBase.h
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSEventTargetBase.h: Removed.
+
+2009-05-31  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Part of https://bugs.webkit.org/show_bug.cgi?id=26100
+        Add missing event handler properties to the DOMWindow
+
+        Add missing oncanplay, oncanplaythrough, ondurationchange, onemptied,
+        onended, onloadeddata, onloadedmetadata, onpause, onplay, onplaying,
+        onratechange, onseeked, onseeking, ontimeupdate, onvolumechange,
+        onwaiting, onloadstart, onprogress, onstalled, onsuspend, ondrag,
+        ondragend, ondragenter, ondragleave, ondragover, ondragstart and 
+        ondrop event handlers to the DOMWindow.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::ondrag):
+        (WebCore::DOMWindow::setOndrag):
+        (WebCore::DOMWindow::ondragend):
+        (WebCore::DOMWindow::setOndragend):
+        (WebCore::DOMWindow::ondragenter):
+        (WebCore::DOMWindow::setOndragenter):
+        (WebCore::DOMWindow::ondragleave):
+        (WebCore::DOMWindow::setOndragleave):
+        (WebCore::DOMWindow::ondragover):
+        (WebCore::DOMWindow::setOndragover):
+        (WebCore::DOMWindow::ondragstart):
+        (WebCore::DOMWindow::setOndragstart):
+        (WebCore::DOMWindow::ondrop):
+        (WebCore::DOMWindow::setOndrop):
+        (WebCore::DOMWindow::oncanplay):
+        (WebCore::DOMWindow::setOncanplay):
+        (WebCore::DOMWindow::oncanplaythrough):
+        (WebCore::DOMWindow::setOncanplaythrough):
+        (WebCore::DOMWindow::ondurationchange):
+        (WebCore::DOMWindow::setOndurationchange):
+        (WebCore::DOMWindow::onemptied):
+        (WebCore::DOMWindow::setOnemptied):
+        (WebCore::DOMWindow::onended):
+        (WebCore::DOMWindow::setOnended):
+        (WebCore::DOMWindow::onloadeddata):
+        (WebCore::DOMWindow::setOnloadeddata):
+        (WebCore::DOMWindow::onloadedmetadata):
+        (WebCore::DOMWindow::setOnloadedmetadata):
+        (WebCore::DOMWindow::onpause):
+        (WebCore::DOMWindow::setOnpause):
+        (WebCore::DOMWindow::onplay):
+        (WebCore::DOMWindow::setOnplay):
+        (WebCore::DOMWindow::onplaying):
+        (WebCore::DOMWindow::setOnplaying):
+        (WebCore::DOMWindow::onratechange):
+        (WebCore::DOMWindow::setOnratechange):
+        (WebCore::DOMWindow::onseeked):
+        (WebCore::DOMWindow::setOnseeked):
+        (WebCore::DOMWindow::onseeking):
+        (WebCore::DOMWindow::setOnseeking):
+        (WebCore::DOMWindow::ontimeupdate):
+        (WebCore::DOMWindow::setOntimeupdate):
+        (WebCore::DOMWindow::onvolumechange):
+        (WebCore::DOMWindow::setOnvolumechange):
+        (WebCore::DOMWindow::onwaiting):
+        (WebCore::DOMWindow::setOnwaiting):
+        (WebCore::DOMWindow::onloadstart):
+        (WebCore::DOMWindow::setOnloadstart):
+        (WebCore::DOMWindow::onprogress):
+        (WebCore::DOMWindow::setOnprogress):
+        (WebCore::DOMWindow::onstalled):
+        (WebCore::DOMWindow::setOnstalled):
+        (WebCore::DOMWindow::onsuspend):
+        (WebCore::DOMWindow::setOnsuspend):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
+
+2009-05-31  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Part of https://bugs.webkit.org/show_bug.cgi?id=26100
+        Add missing event handler properties to the DOMWindow
+
+        Add missing onstorage event handler to the DOMWindow.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::onstorage):
+        (WebCore::DOMWindow::setOnstorage):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
+
+2009-05-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=26110
+        Update online/offline events to match the current spec.
+        - Also adds window.ononline and window.onoffline event handler
+          properties.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::onoffline):
+        (WebCore::DOMWindow::setOnoffline):
+        (WebCore::DOMWindow::ononline):
+        (WebCore::DOMWindow::setOnonline):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
+        * page/Page.cpp:
+        (WebCore::networkStateChanged):
+
+2009-05-31  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        WebKit needs cross-platform filter system
+        [https://bugs.webkit.org/show_bug.cgi?id=19991]
+
+        Make use of the new filter system in WebCore for SVG. Deleted Mac bindings
+        and replace it by a platform independent code. Calculation of subRegions
+        is missing but needed for a first filter effect.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/filters/Filter.h:
+        (WebCore::Filter::~Filter):
+        (WebCore::Filter::setSourceImage):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::SVGRenderBase::prepareToRenderSVGContent):
+        (WebCore::SVGRenderBase::finishRenderSVGContent):
+        * svg/FilterBuilder.h:
+        (WebCore::FilterBuilder::lastEffect):
+        * svg/SVGFEBlendElement.cpp:
+        (WebCore::SVGFEBlendElement::SVGFEBlendElement):
+        (WebCore::SVGFEBlendElement::build):
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEColorMatrixElement.cpp:
+        (WebCore::SVGFEColorMatrixElement::SVGFEColorMatrixElement):
+        (WebCore::SVGFEColorMatrixElement::build):
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.cpp:
+        (WebCore::SVGFEComponentTransferElement::SVGFEComponentTransferElement):
+        (WebCore::SVGFEComponentTransferElement::build):
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.cpp:
+        (WebCore::SVGFECompositeElement::SVGFECompositeElement):
+        (WebCore::SVGFECompositeElement::build):
+        * svg/SVGFECompositeElement.h:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        (WebCore::SVGFEDiffuseLightingElement::SVGFEDiffuseLightingElement):
+        (WebCore::SVGFEDiffuseLightingElement::build):
+        * svg/SVGFEDiffuseLightingElement.h:
+        * svg/SVGFEDisplacementMapElement.cpp:
+        (WebCore::SVGFEDisplacementMapElement::SVGFEDisplacementMapElement):
+        (WebCore::SVGFEDisplacementMapElement::build):
+        * svg/SVGFEDisplacementMapElement.h:
+        * svg/SVGFEFloodElement.cpp:
+        (WebCore::SVGFEFloodElement::SVGFEFloodElement):
+        (WebCore::SVGFEFloodElement::build):
+        * svg/SVGFEFloodElement.h:
+        * svg/SVGFEGaussianBlurElement.cpp:
+        (WebCore::SVGFEGaussianBlurElement::SVGFEGaussianBlurElement):
+        (WebCore::SVGFEGaussianBlurElement::build):
+        * svg/SVGFEGaussianBlurElement.h:
+        * svg/SVGFEImageElement.cpp:
+        (WebCore::SVGFEImageElement::SVGFEImageElement):
+        (WebCore::SVGFEImageElement::notifyFinished):
+        (WebCore::SVGFEImageElement::build):
+        * svg/SVGFEImageElement.h:
+        * svg/SVGFEMergeElement.cpp:
+        (WebCore::SVGFEMergeElement::SVGFEMergeElement):
+        (WebCore::SVGFEMergeElement::build):
+        * svg/SVGFEMergeElement.h:
+        * svg/SVGFEOffsetElement.cpp:
+        (WebCore::SVGFEOffsetElement::SVGFEOffsetElement):
+        (WebCore::SVGFEOffsetElement::build):
+        * svg/SVGFEOffsetElement.h:
+        * svg/SVGFESpecularLightingElement.cpp:
+        (WebCore::SVGFESpecularLightingElement::SVGFESpecularLightingElement):
+        (WebCore::SVGFESpecularLightingElement::build):
+        * svg/SVGFESpecularLightingElement.h:
+        * svg/SVGFETileElement.cpp:
+        (WebCore::SVGFETileElement::SVGFETileElement):
+        (WebCore::SVGFETileElement::build):
+        * svg/SVGFETileElement.h:
+        * svg/SVGFETurbulenceElement.cpp:
+        (WebCore::SVGFETurbulenceElement::SVGFETurbulenceElement):
+        (WebCore::SVGFETurbulenceElement::build):
+        * svg/SVGFETurbulenceElement.h:
+        * svg/SVGFilterElement.cpp:
+        (WebCore::SVGFilterElement::canvasResource):
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp:
+        (WebCore::SVGFilterPrimitiveStandardAttributes::setStandardAttributes):
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        (WebCore::SVGFilterPrimitiveStandardAttributes::contextElement):
+        * svg/graphics/SVGResourceFilter.cpp:
+        (WebCore::SVGResourceFilter::SVGResourceFilter):
+        (WebCore::SVGResourceFilter::addFilterEffect):
+        (WebCore::SVGResourceFilter::filterBBoxForItemBBox):
+        (WebCore::SVGResourceFilter::prepareFilter):
+        (WebCore::SVGResourceFilter::applyFilter):
+        (WebCore::SVGResourceFilter::externalRepresentation):
+        * svg/graphics/SVGResourceFilter.h:
+        (WebCore::SVGResourceFilter::filterBoundingBox):
+        (WebCore::SVGResourceFilter::setFilterBoundingBox):
+        (WebCore::SVGResourceFilter::itemBoundingBox):
+        (WebCore::SVGResourceFilter::setItemBoundingBox):
+        (WebCore::SVGResourceFilter::builder):
+
+2009-05-31  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        WebKit needs cross-platform filter system
+        [https://bugs.webkit.org/show_bug.cgi?id=19991]
+
+        Adding 'in1' attribute support for <feFlood>, as specified in SVG 1.1.
+        This change helps creating test cases, once filters are activated.
+
+        * svg/SVGFEFloodElement.cpp:
+        (WebCore::SVGFEFloodElement::SVGFEFloodElement):
+        (WebCore::SVGFEFloodElement::parseMappedAttribute):
+        (WebCore::SVGFEFloodElement::build):
+        * svg/SVGFEFloodElement.h:
+        * svg/SVGFEFloodElement.idl:
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        (WebCore::FEFlood::FEFlood):
+        (WebCore::FEFlood::create):
+        * svg/graphics/filters/SVGFEFlood.h:
+
+2009-05-31  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        WebKit needs cross-platform filter system
+        [https://bugs.webkit.org/show_bug.cgi?id=19991]
+
+        Replace all occurrences of SVGResourceFilter by Filter. This is the last 
+        step for a SVG independent filter system. Every other part of WebCore can
+        use the filter system by creating a new Filter object.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/filters/FEBlend.cpp:
+        (WebCore::FEBlend::apply):
+        * platform/graphics/filters/FEBlend.h:
+        * platform/graphics/filters/FEColorMatrix.cpp:
+        (WebCore::FEColorMatrix::apply):
+        * platform/graphics/filters/FEColorMatrix.h:
+        * platform/graphics/filters/FEComponentTransfer.cpp:
+        (WebCore::FEComponentTransfer::apply):
+        * platform/graphics/filters/FEComponentTransfer.h:
+        * platform/graphics/filters/FEComposite.cpp:
+        (WebCore::FEComposite::apply):
+        * platform/graphics/filters/FEComposite.h:
+        * platform/graphics/filters/Filter.h: Added.
+        (WebCore::Filter::setSourceImage):
+        (WebCore::Filter::sourceImage):
+        * platform/graphics/filters/FilterEffect.h:
+        * platform/graphics/filters/SourceAlpha.cpp:
+        (WebCore::SourceAlpha::apply):
+        * platform/graphics/filters/SourceAlpha.h:
+        * platform/graphics/filters/SourceGraphic.cpp:
+        (WebCore::SourceGraphic::apply):
+        * platform/graphics/filters/SourceGraphic.h:
+        * svg/Filter.cpp: Removed.
+        * svg/Filter.h: Removed.
+        * svg/graphics/filters/SVGFEConvolveMatrix.cpp:
+        (WebCore::FEConvolveMatrix::apply):
+        * svg/graphics/filters/SVGFEConvolveMatrix.h:
+        * svg/graphics/filters/SVGFEDiffuseLighting.cpp:
+        (WebCore::FEDiffuseLighting::apply):
+        * svg/graphics/filters/SVGFEDiffuseLighting.h:
+        * svg/graphics/filters/SVGFEDisplacementMap.cpp:
+        (WebCore::FEDisplacementMap::apply):
+        * svg/graphics/filters/SVGFEDisplacementMap.h:
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        (WebCore::FEFlood::apply):
+        * svg/graphics/filters/SVGFEFlood.h:
+        * svg/graphics/filters/SVGFEGaussianBlur.cpp:
+        (WebCore::FEGaussianBlur::apply):
+        * svg/graphics/filters/SVGFEGaussianBlur.h:
+        * svg/graphics/filters/SVGFEImage.cpp:
+        (WebCore::FEImage::apply):
+        * svg/graphics/filters/SVGFEImage.h:
+        * svg/graphics/filters/SVGFEMerge.cpp:
+        (WebCore::FEMerge::apply):
+        * svg/graphics/filters/SVGFEMerge.h:
+        * svg/graphics/filters/SVGFEMorphology.cpp:
+        (WebCore::FEMorphology::apply):
+        * svg/graphics/filters/SVGFEMorphology.h:
+        * svg/graphics/filters/SVGFEOffset.cpp:
+        (WebCore::FEOffset::apply):
+        * svg/graphics/filters/SVGFEOffset.h:
+        * svg/graphics/filters/SVGFESpecularLighting.cpp:
+        (WebCore::FESpecularLighting::apply):
+        * svg/graphics/filters/SVGFESpecularLighting.h:
+        * svg/graphics/filters/SVGFETile.cpp:
+        (WebCore::FETile::apply):
+        * svg/graphics/filters/SVGFETile.h:
+        * svg/graphics/filters/SVGFETurbulence.cpp:
+        (WebCore::FETurbulence::apply):
+        * svg/graphics/filters/SVGFETurbulence.h:
+        * svg/graphics/filters/SVGFilter.cpp: Added.
+        (WebCore::SVGFilter::SVGFilter):
+        (WebCore::SVGFilter::calculateEffectSubRegion):
+        (WebCore::SVGFilter::create):
+        * svg/graphics/filters/SVGFilter.h: Added.
+
+2009-05-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Build fix for platforms without plugins support.
+
+        * plugins/PluginViewNone.cpp:
+        (WebCore::PluginView::userAgentStatic):
+        (WebCore::PluginView::getValueStatic):
+
+2009-05-30  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Darin Adler.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=25979
+
+        Fix regression, local WML files won't load anymore, as the mimetype isn't correctly detected.    
+        Bug filed at <rdar://problem/6917571> to cover this CFNetwork limitation.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+        (-[WebCoreResourceHandleAsDelegate connection:didReceiveResponse:]):
+
+2009-05-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=26091
+        Make storage events match the current spec.
+        - Storage event listeners are added to the window.
+        - Storage events are dispatched to the window.
+
+        Updated existing tests.
+
+        * dom/Document.cpp:
+        (WebCore::Document::dispatchWindowEvent):
+        * dom/Document.h:
+        * dom/Node.cpp:
+        * dom/Node.h:
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * storage/LocalStorageArea.cpp:
+        (WebCore::LocalStorageArea::dispatchStorageEvent):
+        * storage/SessionStorageArea.cpp:
+        (WebCore::SessionStorageArea::dispatchStorageEvent):
+
+2009-05-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Bug 26097: REGRESSION (r44283): Tab key doesn't work when focus is on a <select> element
+
+        Test: fast/forms/focus-control-to-page.html
+
+        * dom/SelectElement.h: Made destructor protected. Tweaked a bit.
+
+        * html/HTMLSelectElement.cpp: Removed unneeded includes.
+        (WebCore::HTMLSelectElement::remove): Removed unneeded range check of the
+        result of optionToListIndex.
+        (WebCore::HTMLSelectElement::parseMappedAttribute): Removed code to set the
+        unused attribute, m_minwidth.
+        (WebCore::HTMLSelectElement::defaultEventHandler): The actual bug fix.
+        Call through to the base class defaultEventHandler if the event hasn't
+        been handled yet.
+
+        * html/HTMLSelectElement.h: Removed unneeded includes. Made a lot more functions
+        private. Removed unused minWidth function and m_minwidth data member.
+
+2009-05-30  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Holger Freyther.
+
+        The two KeyboardCodes.h files are basically identical and the
+        qt one is properly #ifdef-ed for different win32 systems. Share
+        them between Qt and Gtk implementations.
+
+        * GNUmakefile.am:
+        * platform/KeyboardCodes.h: Copied from WebCore/platform/qt/KeyboardCodes.h.
+        * platform/gtk/KeyboardCodes.h: Removed.
+        * platform/qt/KeyboardCodes.h: Removed.
+
+2009-05-30  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        LocalStorage and SessionStorage's implicit setters do not correctly 
+        handle null.  The custom JS bindings should convert to strings
+        unconditionally and not try to handle null specially.
+        https://bugs.webkit.org/show_bug.cgi?id=25970
+
+        Tests: storage/domstorage/localstorage/string-conversion.html
+               storage/domstorage/sessionstorage/string-conversion.html
+
+        * bindings/js/JSStorageCustom.cpp:
+        (WebCore::JSStorage::customPut):
+
+2009-05-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6935192> REGRESSION (Safari 3-TOT): Scroll
+          bars in key window draw as inactive if the WebView is not active
+
+        Test: platform/mac/scrollbars/key-window-not-first-responder.html
+
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::paint): Use the window's key state instead
+        of the WebView's first responder state to switch between active and
+        inactive state.
+
+2009-05-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=18445
+          <rdar://problem/5931174> Assertion failure in CSSGradientValue::image
+          with -webkit-gradient as body's background
+
+        Test: fast/backgrounds/body-generated-image-propagated-to-root.html
+
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended): Check if this
+        is the root element painting a background layer propagated from the
+        body, and if it is, use the body's renderer as the client to
+        StyleImage::image().
+
+2009-05-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix for AXObjectCache.
+
+        For !HAVE(ACCESSIBILITY) postNotification was defined twice. Move
+        that into the #ifdef.
+
+        * accessibility/AXObjectCache.cpp:
+
+2009-05-29  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=26072
+
+        Add support for the last missing WML element: <select>. This patch adds WMLSelectElement, providing
+        the same functionality HTMLSelectElement has. The WML specific features will follow soon.
+    
+        Add simple testcase covering <select> element rendering: fast/wml/select.wml
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/OptionElement.cpp:
+        (WebCore::OptionElement::optionIndex):
+        (WebCore::isOptionElement):
+        * dom/OptionElement.h:
+        * dom/OptionGroupElement.cpp:
+        (WebCore::isOptionGroupElement):
+        * dom/OptionGroupElement.h:
+        * dom/SelectElement.cpp:
+        (WebCore::SelectElement::accessKeySetSelectedIndex):
+        (WebCore::toSelectElement):
+        * dom/SelectElement.h:
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::index):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::accessKeySetSelectedIndex):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::paintItemForeground):
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::itemIsEnabled):
+        (WebCore::RenderMenuList::itemIsLabel):
+        * wml/WMLFormControlElement.cpp:
+        (WebCore::WMLFormControlElement::attach):
+        (WebCore::WMLFormControlElement::recalcStyle):
+        * wml/WMLFormControlElement.h:
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::attach):
+        * wml/WMLOptGroupElement.cpp:
+        (WebCore::WMLOptGroupElement::insertBefore):
+        (WebCore::WMLOptGroupElement::replaceChild):
+        (WebCore::WMLOptGroupElement::removeChild):
+        (WebCore::WMLOptGroupElement::appendChild):
+        (WebCore::WMLOptGroupElement::removeChildren):
+        (WebCore::ownerSelectElement):
+        (WebCore::WMLOptGroupElement::accessKeyAction):
+        (WebCore::WMLOptGroupElement::childrenChanged):
+        (WebCore::WMLOptGroupElement::parseMappedAttribute):
+        (WebCore::WMLOptGroupElement::attach):
+        (WebCore::WMLOptGroupElement::detach):
+        (WebCore::WMLOptGroupElement::recalcSelectOptions):
+        * wml/WMLOptionElement.cpp:
+        (WebCore::ownerSelectElement):
+        (WebCore::WMLOptionElement::accessKeyAction):
+        (WebCore::WMLOptionElement::childrenChanged):
+        (WebCore::WMLOptionElement::parseMappedAttribute):
+        (WebCore::WMLOptionElement::attach):
+        (WebCore::WMLOptionElement::detach):
+        (WebCore::WMLOptionElement::insertedIntoDocument):
+        * wml/WMLSelectElement.cpp: Added.
+        (WebCore::WMLSelectElement::WMLSelectElement):
+        (WebCore::WMLSelectElement::~WMLSelectElement):
+        (WebCore::WMLSelectElement::formControlType):
+        (WebCore::WMLSelectElement::isKeyboardFocusable):
+        (WebCore::WMLSelectElement::isMouseFocusable):
+        (WebCore::WMLSelectElement::selectAll):
+        (WebCore::WMLSelectElement::recalcStyle):
+        (WebCore::WMLSelectElement::dispatchFocusEvent):
+        (WebCore::WMLSelectElement::dispatchBlurEvent):
+        (WebCore::WMLSelectElement::selectedIndex):
+        (WebCore::WMLSelectElement::setSelectedIndex):
+        (WebCore::WMLSelectElement::saveFormControlState):
+        (WebCore::WMLSelectElement::restoreFormControlState):
+        (WebCore::WMLSelectElement::childrenChanged):
+        (WebCore::WMLSelectElement::parseMappedAttribute):
+        (WebCore::WMLSelectElement::createRenderer):
+        (WebCore::WMLSelectElement::appendFormData):
+        (WebCore::WMLSelectElement::optionToListIndex):
+        (WebCore::WMLSelectElement::listToOptionIndex):
+        (WebCore::WMLSelectElement::reset):
+        (WebCore::WMLSelectElement::defaultEventHandler):
+        (WebCore::WMLSelectElement::accessKeyAction):
+        (WebCore::WMLSelectElement::setActiveSelectionAnchorIndex):
+        (WebCore::WMLSelectElement::setActiveSelectionEndIndex):
+        (WebCore::WMLSelectElement::updateListBoxSelection):
+        (WebCore::WMLSelectElement::listBoxOnChange):
+        (WebCore::WMLSelectElement::menuListOnChange):
+        (WebCore::WMLSelectElement::activeSelectionStartListIndex):
+        (WebCore::WMLSelectElement::activeSelectionEndListIndex):
+        (WebCore::WMLSelectElement::accessKeySetSelectedIndex):
+        (WebCore::WMLSelectElement::setRecalcListItems):
+        (WebCore::WMLSelectElement::scrollToSelection):
+        (WebCore::WMLSelectElement::insertedIntoTree):
+        * wml/WMLSelectElement.h: Added.
+        (WebCore::WMLSelectElement::canSelectAll):
+        (WebCore::WMLSelectElement::canStartSelection):
+        (WebCore::WMLSelectElement::size):
+        (WebCore::WMLSelectElement::multiple):
+        (WebCore::WMLSelectElement::listItems):
+        * wml/WMLTagNames.in:
+
+2009-05-29  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (build fix for windows).
+
+        http://trac.webkit.org/changeset/44279 left in a "Vector<WCHAR> localeNameBuf"
+        that it was trying to replace.  Resulting in this variable being defined twice (and
+        the second time incorrectly).
+
+        * platform/win/Language.cpp:
+        (WebCore::localeInfo):
+
+2009-05-29  Takeshi Yoshino  <tyoshino@google.com>
+
+        Reviewed by Darin Alder.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26018
+
+        Fix behavior of the Element View of the Web Inspector for double
+        clicking the element outline tree.
+
+        Double clicking the element outline tree should
+        1) on attribute: enter attribute editing mode
+        2) on text: enter text editing mode
+        3) otherwise: change root node to the parent element of double clicked
+           element.
+
+        Now, 3) is broken. For example, clicking <html> clears the element
+        outline view.
+
+        rootDOMNode should be updated to this.representedObject.parentNode, not
+        this.parent.representedObject which is parent inside the element
+        outline tree itself.
+
+        * inspector/front-end/ElementsTreeOutline.js:
+        (WebInspector.ElementsTreeElement.prototype.ondblclick):
+
+2009-05-29  David Moore  <davemoore@google.com>
+
+        Reviewed by Darin Alder.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26001
+        Change many of the uses of String::adopt() to String::createUninitialized().
+        This allows those strings to use an inlined buffer for their characters.
+
+        * dom/StyleElement.cpp:
+        Loop over nodes to precompute length of string and then
+        write the characters into the allocated inline buffer
+        (WebCore::StyleElement::process):
+        * dom/Text.cpp:
+        Loop over nodes to precompute length of string and then
+        write the characters into the allocated inline buffer
+        (WebCore::Text::wholeText):
+        (WebCore::Text::rendererIsNeeded):
+        (WebCore::Text::createRenderer):
+        (WebCore::Text::createWithLengthLimit):
+        (WebCore::Text::formatForDebugger):
+        * platform/text/String.cpp:
+        (WebCore::String::append):
+        (WebCore::String::insert):
+        (WebCore::String::truncate):
+        (WebCore::String::remove):
+        * platform/text/StringBuilder.cpp:
+        (WebCore::StringBuilder::toString):
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::lower):
+        (WebCore::StringImpl::upper):
+        (WebCore::StringImpl::secure):
+        (WebCore::StringImpl::foldCase):
+        (WebCore::StringImpl::replace):
+        * platform/text/TextCodecLatin1.cpp:
+        (WebCore::TextCodecLatin1::decode):
+        * platform/text/TextCodecUserDefined.cpp:
+        (WebCore::TextCodecUserDefined::decode):
+        * platform/win/Language.cpp:
+        (WebCore::localeInfo):
+
+2009-05-29  Takeshi Yoshino  <tyoshino@google.com>
+
+        Reviewed by Darin Alder.
+
+        Bug 25911: Apply href in base elements to anchors shown on the source viewer
+        https://bugs.webkit.org/show_bug.cgi?id=25911
+
+        In rendering HTML sources, parse base elements to apply the base URI to
+        anchors shown on the source viewer.
+
+        This issue was originally reported to the Chromium issue tracker.
+        http://code.google.com/p/chromium/issues/detail?id=2418
+
+        Test: fast/frames/viewsource-link-on-href-value.html
+
+        * html/HTMLViewSourceDocument.cpp:
+        (WebCore::HTMLViewSourceDocument::addViewSourceToken):
+
+2009-05-29  Rob Buis  <rwlbuis@gmail.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22429
+        document.styleSheets collection ignores media=presentation
+
+        Ensure that stylesheets though <link> show up in document.styleSheets regardless of media attribute.
+
+        Test: fast/css/sheet-collection-link.html
+
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::process):
+
+2009-05-29  Itai Danan  <idanan@chromium.org>
+
+        Reviewed by Jon Honeycutt.
+
+        Bug 24791: Should have a preference to disable auto scrolling
+        https://bugs.webkit.org/show_bug.cgi?id=24791
+
+        To understand why this is required see the discussion in
+        issue 24722 (https://bugs.webkit.org/show_bug.cgi?id=24722).
+
+        The code review was done in https://bugs.webkit.org/show_bug.cgi?id=21794.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEvent): Use autoscroll behavior flag to determine
+        if autoscroll needs to be released on this event.
+        (WebCore::EventHandler::handleMouseReleaseEvent):  Use autoscroll behavior flag to determine
+        if autoscroll needs to be released on this event (reverse logic of for Press event).
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Initialize autoscroll behavior setting.
+        * page/Settings.h:
+        (WebCore::Settings::setUsesStickyPanScroll): Autoscroll behavior setting setter.
+        (WebCore::Settings::usesStickyPanScroll): Autoscroll behavior setting getter.
+
+2009-05-29  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26069
+        Fix a crash in custom V8 bindings code for XMLHttpRequest.
+
+        Test: fast/xmlhttprequest/xmlhttprequest-open-after-iframe-onload-remove-self.html
+
+        * bindings/v8/custom/V8XMLHttpRequestCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-05-29  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 26074: SQLTransaction::executeSQL does an unnecessary call to String::copy.
+        https://bugs.webkit.org/show_bug.cgi?id=26074
+
+        The constructor for SQLStatement already does a copy for this string.
+
+        * storage/SQLTransaction.cpp:
+        (WebCore::SQLTransaction::executeSQL):
+
+2009-05-29  Darin Adler  <darin@apple.com>
+
+        Fix build; the new Cairo code compiled on Windows only.
+
+        * platform/graphics/gtk/FontPlatformData.h: Added syntheticBold
+        and syntheticOblique functions as in the Windows version to make it
+        easier to use this cross-platform. Later we can make data members
+        private as in the Windows version.
+        * platform/graphics/mac/FontPlatformData.h: Ditto.
+
+2009-05-29  Alexander Macdonald  <alexmac@adobe.com>
+
+        Reviewed by Darin Adler.
+
+        Added support for synthetic bold/oblique font rendering
+        on platforms that use cairo.
+
+        * platform/graphics/SimpleFontData.h:
+        * platform/graphics/cairo/FontCairo.cpp:
+        (WebCore::Font::drawGlyphs):
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        (WebCore::SimpleFontData::platformInit):
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        (WebCore::SimpleFontData::platformInit):
+        * platform/graphics/win/SimpleFontDataCairoWin.cpp:
+        (WebCore::SimpleFontData::platformInit):
+
+2009-05-29  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 26024: AX: possible to fail assertion because AXPostNotification calls accessibilityIsIgnored
+        https://bugs.webkit.org/show_bug.cgi?id=26024
+
+        AX notifications are posted after a one shot timer so that notifications are not performed mid-layout.
+        Consolidated postNotification and postNotificationToElement into one method.
+
+        * accessibility/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::AXObjectCache):
+        (WebCore::AXObjectCache::notificationPostTimerFired):
+        (WebCore::AXObjectCache::postNotification):
+        (WebCore::AXObjectCache::selectedChildrenChanged):
+        * accessibility/AXObjectCache.h:
+        (WebCore::AXObjectCache::postNotification):
+        (WebCore::AXObjectCache::postPlatformNotification):
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::handleActiveDescendantChanged):
+        * accessibility/chromium/AXObjectCacheChromium.cpp:
+        (WebCore::AXObjectCache::postPlatformNotification):
+        * accessibility/gtk/AXObjectCacheAtk.cpp:
+        (WebCore::AXObjectCache::postPlatformNotification):
+        * accessibility/mac/AXObjectCacheMac.mm:
+        (WebCore::AXObjectCache::postPlatformNotification):
+        * accessibility/win/AXObjectCacheWin.cpp:
+        (WebCore::AXObjectCache::postPlatformNotification):
+        * dom/Document.cpp:
+        (WebCore::Document::implicitClose):
+        * editing/Editor.cpp:
+        (WebCore::Editor::respondToChangedContents):
+        * editing/mac/SelectionControllerMac.mm:
+        (WebCore::SelectionController::notifyAccessibilityForSelectionChange):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::setInnerTextValue):
+
+2009-05-29  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Build fix for Windows Cairo target.
+        https://bugs.webkit.org/show_bug.cgi?id=25972
+
+        Compiler mistakenly selects SMILTime min/max instead of STL version,
+        resulting in a build error.  This change makes the meaning of the
+        min/max explicit and avoids the problem.
+
+        * html/TimeRanges.h:
+        (WebCore::TimeRanges::Range::unionWithOverlappingOrContiguousRange):
+
+2009-05-29  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Jan Alonzo.
+
+        Make SoupMessage a member of ResourceRequest, instead of creating
+        it in startHttp. Implement updating of ResourceRequest from
+        SoupMessage, and vice versa.
+
+        * GNUmakefile.am:
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::~ResourceHandle):
+        (WebCore::gotHeadersCallback):
+        (WebCore::ResourceHandle::startHttp):
+        * platform/network/soup/ResourceRequest.h:
+        (WebCore::ResourceRequest::ResourceRequest):
+        (WebCore::ResourceRequest::~ResourceRequest):
+        * platform/network/soup/ResourceRequestSoup.cpp: Added.
+        (WTF::SoupURI):
+        (WebCore::ResourceRequest::soupMessage):
+        (WebCore::ResourceRequest::ResourceRequest):
+        (WebCore::ResourceRequest::doUpdateResourceRequest):
+        (WebCore::ResourceRequest::doUpdatePlatformRequest):
+
 2009-05-29  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by Dimitri Glazkov.

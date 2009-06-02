@@ -24,14 +24,14 @@
 
 #if ENABLE(SVG) && ENABLE(FILTERS)
 #include "Color.h"
+#include "Filter.h"
 #include "FilterEffect.h"
-#include "SVGResourceFilter.h"
 
 namespace WebCore {
 
     class FEFlood : public FilterEffect {
     public:
-        static PassRefPtr<FEFlood> create(const Color&, const float&);
+        static PassRefPtr<FEFlood> create(FilterEffect*, const Color&, const float&);
 
         Color floodColor() const;
         void setFloodColor(const Color &);
@@ -39,13 +39,14 @@ namespace WebCore {
         float floodOpacity() const;
         void setFloodOpacity(float);
 
-        void apply(SVGResourceFilter*);
+        void apply(Filter*);
         void dump();
         TextStream& externalRepresentation(TextStream& ts) const;
 
     private:
-        FEFlood(const Color&, const float&);
+        FEFlood(FilterEffect*, const Color&, const float&);
 
+        RefPtr<FilterEffect> m_in;
         Color m_floodColor;
         float m_floodOpacity;
     };

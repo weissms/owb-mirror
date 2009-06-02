@@ -29,6 +29,7 @@ if(ENABLE_WML)
         wml/WMLPostfieldElement.cpp
         wml/WMLPrevElement.cpp
         wml/WMLRefreshElement.cpp
+        wml/WMLSelectElement.cpp
         wml/WMLSetvarElement.cpp
         wml/WMLTableElement.cpp
         wml/WMLTaskElement.cpp

@@ -1,3 +1,40 @@
+2009-06-02  Yongjun Zhang  <yongjun.zhang@nokia.com>>
+
+        Reviewed by Holger Freyther.  Landed by Adam Barth.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=26070>
+
+        [Qt] EventSender.keyDown doesn't support Arrow Up and Down keys.
+        Add Down and Up key support.
+        
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (EventSender::keyDown):
+
+2009-06-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        svn-create-patch displays confusing "Broken pipe" errors from Subversion
+        when files have been renamed in local working copy.  This was happening
+        because we invoke 'svn info' to determine the URL that the file was copied
+        from, but we were closing the pipe to the subprocess before SVN had finished
+        writing its output.
+
+        * Scripts/prepare-ChangeLog: Consume all 'svn info' output before closing the file handle.
+        * Scripts/svn-create-patch: Ditto.
+
+2009-05-31  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        - implement LayoutTestController::clearAllDatabases() on
+          Windows.
+
+        Needed for storage/transaction-error-callback.html.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::clearAllDatabases):
+
 2009-05-29  Dirk Schulze  <krit@webkit.org>
 
         Reviewed by Nikolas Zimmermann.
