@@ -25,14 +25,18 @@
 
 namespace WebCore {
 
-void setCookies(Document* /*document*/, const KURL& url, const String& value)
+void setCookies(Document* document, const KURL& url, const String& value)
 {
-    cookieManager().setCookies(url, value);
+    const KURL& documentURL = document->url();
+    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
+    cookieManager().setCookies(cookieURL, value);
 }
 
-String cookies(const Document* /*document*/, const KURL& url)
+String cookies(const Document* document, const KURL& url)
 {
-    return cookieManager().getCookie(url, NoHttpOnlyCookie);
+    const KURL& documentURL = document->url();
+    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
+    return cookieManager().getCookie(cookieURL, NoHttpOnlyCookie);
 }
 
 bool cookiesEnabled(const Document* /*document*/)

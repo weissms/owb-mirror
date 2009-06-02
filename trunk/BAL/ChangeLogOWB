@@ -1,3 +1,16 @@
+2009-06-02  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        This change brings us closer to Mozilla's behaviour that determines
+        the url associated to a cookie by first looking at the document's URL
+        and if none is found, the request URL. This should fix setting a
+        cookie from JavaScript.
+
+        * Network/WebCore/Curl/BCCookieJarCurl.cpp:
+        (WebCore::setCookies):
+        (WebCore::cookies):
+
 2009-06-02  Mario Bensi  <mbensi@pleyo.com>
 
         Remove SVG and move filter to graphics.
