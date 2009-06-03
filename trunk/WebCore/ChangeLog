@@ -1,14 +1,453 @@
-2009-06-02  Grace Kloba  <klobag@gmail.com>
+2009-06-03  Darin Adler  <darin@apple.com>
 
-        Reviewed by Darin Adler.  Landed by Adam Barth.
+        Reviewed by David Hyatt.
 
-        https://bugs.webkit.org/show_bug.cgi?id=26016
+        Bug 26112: viewless WebKit -- make events work
+        https://bugs.webkit.org/show_bug.cgi?id=26112
 
-        As HTMLKeygenElement is derived from HTMLSelectElement, HTMLOptionElement::ownerSelectElement() needs to check both selectTag and keygenTag.
-        Test: fast/dom/HTMLKeygenElement/keygen-option-select.html
+        The main fix here is to make mouse and wheel event coordinates in the coordinate
+        system of the top level NSView rather than the NSWindow when in the viewless mode.
+        This is the design Hyatt chose, but the event part of it wasn't done yet.
 
-        * html/HTMLOptionElement.cpp:
-        (WebCore::HTMLOptionElement::ownerSelectElement):
+        Also fix FrameView to do normal reference counting instead of a strange model with
+        an explicit deref near creation time.
+
+        * WebCore.base.exp: Updated.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::eventLoopHandleMouseUp): Moved this function into the file
+        to reduce conditionals in the header.
+        (WebCore::EventHandler::eventLoopHandleMouseDragged): Ditto.
+
+        * page/EventHandler.h: Reduced includes. Fixed formatting of Objective-C types.
+        Made currentNSEvent a static member function. Added sendContextMenuEvent and
+        eventMayStartDrag functions that takes NSEvent * so the conversion to PlatformMouseEvent
+        can be done here rather than in WebKit. Reduced #if by making eventLoopHandleMouseUp and
+        eventLoopHandleMouseDragged unconditional.
+
+        * page/Frame.cpp:
+        (WebCore::Frame::setView): Made this take a PassRefPtr since it takes ownership.
+        (WebCore::Frame::createView): Changed to use RefPtr and FrameView::create and remove
+        the explicit deref.
+
+        * page/Frame.h: Changed setView to take a PassRefPtr.
+
+        * page/FrameTree.cpp: Added newly-needed include.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::FrameView): Got rid of one of the two constructors, and removed
+        the initialization of m_refCount and call to show from the reamining one.
+        (WebCore::FrameView::create): Added two create functions that do what the two
+        constructors did before, except that they return a PassRefPtr to make sure the
+        reference counting is handled correctly.
+        (WebCore::FrameView::~FrameView): Removed assertion from when FrameView implemented
+        its own reference counting.
+
+        * page/FrameView.h: Inherit from RefCounted for reference counting. Made the
+        constructor private and added create functions. Got rid of the hand-implemented
+        reference counting in this class.
+
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::currentNSEventSlot): Renamed currentEvent to currentNSEventSlot to
+        make it more clear how it relates to currentNSEvent.
+        (WebCore::EventHandler::currentNSEvent): Updated.
+        (WebCore::CurrentEventScope::CurrentEventScope): Added. Use to set/reset the
+        current event in a foolproof way.
+        (WebCore::CurrentEventScope::~CurrentEventScope): Ditto.
+        (WebCore::EventHandler::wheelEvent): Use CurrentEventScope. Pass the platform
+        window in when constructing the PlatformWheelEvent.
+        (WebCore::EventHandler::keyEvent): Use CurrentEventScope.
+        (WebCore::lastEventIsMouseUp): Use currentNSEvent.
+        (WebCore::EventHandler::passMouseDownEventToWidget): Ditto.
+        (WebCore::EventHandler::eventLoopHandleMouseDragged): Ditto.
+        (WebCore::EventHandler::eventLoopHandleMouseUp): Ditto.
+        (WebCore::EventHandler::passSubframeEventToSubframe): Use
+        currentPlatformMouseEvent to get a mouse event that has the appropriate
+        platform window passed to create it.
+        (WebCore::EventHandler::passWheelEventToWidget): Ditto.
+        (WebCore::EventHandler::mouseDown): Ditto.
+        (WebCore::EventHandler::mouseDragged): Ditto.
+        (WebCore::EventHandler::mouseUp): Ditto.
+        (WebCore::EventHandler::mouseMoved): Ditto.
+        (WebCore::EventHandler::currentPlatformMouseEvent): Added. Passes the
+        platform window that's now needed to create a PlatformMouseEvent.
+        (WebCore::EventHandler::sendContextMenuEvent): Added.
+        (WebCore::EventHandler::eventMayStartDrag): Added.
+
+        * platform/HostWindow.h: Removed unneeded includes and constructor definition.
+
+        * platform/PlatformMouseEvent.h: Sorted things in alphabetical order.
+        Changed Mac constructor to take a windowView as well as the event. This is
+        needed in viewless mode, since the "window" is actually an NSView, so the
+        event has to know which view to compute the coordinates with. Made the
+        same change to pointForEvent.
+        * platform/PlatformWheelEvent.h: Ditto.
+
+        * platform/mac/PlatformMouseEventMac.mm:
+        (WebCore::pointForEvent): Convert point from window coordinates to view
+        coordinates if a windowView is passed in. This is used in viewless mode.
+        (WebCore::PlatformMouseEvent::PlatformMouseEvent): Ditto.
+        * platform/mac/WheelEventMac.mm:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent): Ditto.
+
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::convertFromContainingWindow): Fixed case where there
+        is no platform widget and no parent. Before it would yield unpredictable
+        results because of dispatching to a nil object and returning a structure.
+        Now it returns the point without changing coordinates at all, which is what
+        we need for this case in viewless mode.
+
+        * rendering/RenderApplet.cpp: Removed unneeded includes.
+        (WebCore::RenderApplet::intrinsicSize): Use widget function.
+        (WebCore::RenderApplet::createWidgetIfNecessary): Ditto.
+
+        * rendering/RenderApplet.h: Make more things private. Get rid of unneeded
+        explicit destructor.
+
+        * rendering/RenderFrame.cpp: Removed unneeded includes.
+        (WebCore::RenderFrame::edgeInfo): Updated to use node function so header
+        doesn't have to define element function.
+        (WebCore::RenderFrame::viewCleared): Ditto. Also changed to use widget
+        function.
+
+        * rendering/RenderFrame.h: Removed unneeded includes. Made some things
+        private. Got rid of element function.
+
+        * rendering/RenderPart.cpp: Removed unneeded includes.
+        (WebCore::RenderPart::~RenderPart): Changed to use clearWidget function.
+        (WebCore::RenderPart::setWidget): Changed to use widget function.
+        (WebCore::RenderPart::deleteWidget): Changed to use passed-in widget.
+        This is now only called by the clearWidget function.
+
+        * rendering/RenderPart.h: Removed unneeded forward declarations.
+        Made more functions private. Updated deleteWidget to take widget argument.
+
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::~RenderPartObject): use frameView function
+        instead of getting at m_view directly.
+        (WebCore::RenderPartObject::updateWidget): Ditto.
+        (WebCore::RenderPartObject::layout): Ditto. Same for widget and m_widget.
+        (WebCore::RenderPartObject::viewCleared): Ditto.
+
+        * rendering/RenderPartObject.h: Made some functions private.
+
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::RenderWidget): Initialize m_frameView with
+        construction syntax instead of assignment.
+        (WebCore::RenderWidget::destroy): Updated for name change of m_view
+        to m_frameView.
+        (WebCore::RenderWidget::~RenderWidget): Use clearWidget to delete
+        the widget.
+        (WebCore::RenderWidget::setWidget): Use clearWidget.
+        (WebCore::RenderWidget::paint): Updated for name change of m_view
+        to m_frameView.
+        (WebCore::RenderWidget::deleteWidget): Changed to use passed-in widget.
+
+        * rendering/RenderWidget.h: Made many functions protected, others
+        private and made all data members private.
+
+        * svg/animation/SMILTime.h: Removed unhelpful max and min functions. These
+        just do what std::max and std::min will already do automatically for this
+        type, so they are not helpful.
+
+        * svg/graphics/SVGImage.cpp:
+        (WebCore::SVGImage::SVGImage): Removed unneeded initial values for types
+        that initialize to zero without anything explicit.
+        (WebCore::SVGImage::~SVGImage): Update since m_frame and m_frameView are
+        no longer stored.
+        (WebCore::SVGImage::setContainerSize): Ditto.
+        (WebCore::SVGImage::usesContainerSize): Ditto.
+        (WebCore::SVGImage::size): Ditto.
+        (WebCore::SVGImage::hasRelativeWidth): Ditto.
+        (WebCore::SVGImage::hasRelativeHeight): Ditto.
+        (WebCore::SVGImage::draw): Ditto.
+        (WebCore::SVGImage::nativeImageForCurrentFrame): Ditto.
+        (WebCore::SVGImage::dataChanged): Ditto.
+
+        * svg/graphics/SVGImage.h: Removed unneeded includes and unneeded data
+        members m_document, m_frame, m_frameView, and m_minSize.
+
+2009-06-02  Adam Langley  <agl@google.com>
+
+        Reviewed by Eric Seidel.
+
+        The previous code was assuming that we'll be painting buttons on the scrollbar
+        which isn't true on Linux. To reproduce, resize a page with scrollbars until
+        they are less than two widths high.
+
+        This will need pixel test baselines to be updated in the Chromium tree.
+
+        * platform/chromium/ScrollbarThemeChromium.cpp: move this function...
+        * platform/chromium/ScrollbarThemeChromiumWin.cpp:
+        (WebCore::ScrollbarThemeChromium::trackRect): ... to here
+        * platform/chromium/ScrollbarThemeChromiumLinux.cpp:
+        (WebCore::ScrollbarThemeChromium::trackRect): add an alternative which
+        doesn't remove the track when the scrollbar is less than two widths
+        high.
+
+2009-06-02  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Remove workaround that was added to address <rdar://problem/5488678> as it no longer affects our Tiger builds.
+
+        * Configurations/Base.xcconfig:
+
+2009-06-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Insert*List on an stand-alone image in a content editable region ASSERTS
+        ASSERTION FAILED: isStartOfParagraph(startOfParagraphToMove)
+        https://bugs.webkit.org/show_bug.cgi?id=19066
+
+        Attempt to fix this by noticing that we inserted the list inside
+        the selection which includes the image, and re-adjust the selection
+        to not include the list before trying to move the image into
+        the list item.
+        
+        Test: editing/execCommand/list-wrapping-image-crash.html
+
+        * editing/InsertListCommand.cpp:
+        (WebCore::InsertListCommand::doApply):
+
+2009-06-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Rename PositionIterator members in hope of further clarity
+        https://bugs.webkit.org/show_bug.cgi?id=24854
+
+        Rename m_parent to m_anchorNode (since although it's always the parent
+        of the previous m_child member, it is not always the parent of the effective position)
+        Rename m_child to m_nodeAfterPositionInAnchor to make clear that it's the node
+        directly following the position.  This member is often NULL, but is always
+        a child of m_parent, now m_anchorNode if set.
+        Rename m_offset to m_offsetInAnchor (since it's interpreted relative to m_anchorNode)
+
+        * dom/PositionIterator.cpp:
+        (WebCore::PositionIterator::operator Position):
+        (WebCore::PositionIterator::increment):
+        (WebCore::PositionIterator::decrement):
+        (WebCore::PositionIterator::atStart):
+        (WebCore::PositionIterator::atEnd):
+        (WebCore::PositionIterator::atStartOfNode):
+        (WebCore::PositionIterator::atEndOfNode):
+        (WebCore::PositionIterator::isCandidate):
+        * dom/PositionIterator.h:
+        (WebCore::PositionIterator::PositionIterator):
+        (WebCore::PositionIterator::node):
+        (WebCore::PositionIterator::offsetInLeafNode):
+
+2009-06-02  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 17167: Failures in fast/dom/Node/initial-values.html
+
+        This partly solve a compatibility issue with other browsers. It will also
+        make us more consistent while handling XHTML element.
+
+        The issue is that when we create an XHTML element inside an HTML document
+        (as it is the case when calling createElementNS), we default to the HTML
+        behaviour in nodeName. As we cannot test if an HTMLElement is an XHTML
+        element, our fix is to check whether it has a prefix and then default
+        to XML behaviour for nodeName.
+
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::nodeName): Add a prefix check before
+        returning the uppercase tagName (HTML behaviour).
+
+2009-06-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add a compareBoundaryPoints which takes RangeBoundaryPoints
+        https://bugs.webkit.org/show_bug.cgi?id=25500
+
+        I noticed the need for this function when removing compareBoundaryPoints(Position, Position)
+        This patch is almost entirely minus lines.
+
+        No functional changes, thus no tests.
+
+        * dom/Range.cpp:
+        (WebCore::Range::setStart):
+        (WebCore::Range::setEnd):
+        (WebCore::Range::compareBoundaryPoints):
+        (WebCore::Range::boundaryPointsValid):
+        * dom/Range.h:
+
+2009-06-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove Range::compareBoundaryPoints(Position, Position) per Darin's suggestion in bug 25056
+        https://bugs.webkit.org/show_bug.cgi?id=25500
+
+        Darin indicated the Range should deal only with primitive DOM node/offset
+        pairs, and that Position (which is a more robust editing construct) should have
+        its own comparison functions and that Range.h should not mention Position at all.
+
+        Turns out that Position already has a comparePositions() function (which knows
+        how to additionally handled positions in shadow trees).  So I've just changed
+        all callers of compareBoundaryPoints(Position, Position) to use the existing
+        comparePositions() function.  I've also added a comparePositions which takes
+        VisiblePositions for convenience.
+
+        * dom/Range.cpp:
+        * dom/Range.h:
+        * editing/ApplyStyleCommand.cpp:
+        (WebCore::ApplyStyleCommand::updateStartEnd):
+        (WebCore::ApplyStyleCommand::applyBlockStyle):
+        (WebCore::ApplyStyleCommand::applyRelativeFontStyleChange):
+        (WebCore::ApplyStyleCommand::applyInlineStyle):
+        (WebCore::ApplyStyleCommand::applyInlineStyleToRange):
+        (WebCore::ApplyStyleCommand::removeInlineStyle):
+        (WebCore::ApplyStyleCommand::nodeFullySelected):
+        (WebCore::ApplyStyleCommand::nodeFullyUnselected):
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::deleteInsignificantText):
+        (WebCore::CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary):
+        (WebCore::CompositeEditCommand::moveParagraphs):
+        * editing/DeleteSelectionCommand.cpp:
+        (WebCore::DeleteSelectionCommand::initializeStartEnd):
+        (WebCore::DeleteSelectionCommand::handleGeneralDelete):
+        (WebCore::DeleteSelectionCommand::mergeParagraphs):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::nodeWillBeRemoved):
+        * editing/VisibleSelection.cpp:
+        (WebCore::VisibleSelection::toNormalizedRange):
+        * editing/htmlediting.cpp:
+        (WebCore::comparePositions):
+        * editing/htmlediting.h:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEventSingleClick):
+
+2009-06-02  Albert J. Wong  <ajwong@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26122
+        Upstream v8_utility.h functions into V8Utilities.h.  This patch has
+        some transitional code to make upstreaming easier.  This code will
+        be deleted in a few days.
+
+        * bindings/v8/ScriptFunctionCall.cpp:
+        (WebCore::ScriptFunctionCall::construct): NewInstance -> newInstance.
+        * bindings/v8/V8Utilities.h:
+        (WebCore::AllowAllocation::AllowAllocation): Function added.
+        (WebCore::AllowAllocation::~AllowAllocation): Function added.
+        (WebCore::SafeAllocation::NewInstance): Function added.
+        * bindings/v8/WorkerContextExecutionProxy.cpp:
+        (WebCore::WorkerContextExecutionProxy::initContextIfNeeded):
+        NewInstance -> newInstance.
+        (WebCore::WorkerContextExecutionProxy::toV8): NewInstance ->
+        newInstance.
+
+2009-06-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6940747> Search field’s focus ring is outset
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::adjustSearchFieldStyle): Set the focused
+        search field outline offset to -2.
+
+2009-06-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Add list of unimplemented event handlers to DOMWindow.
+
+        * page/DOMWindow.idl:
+
+2009-06-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26133
+        Adapt and import py-dom-xpath tests
+
+        Tests: fast/xpath/py-dom-xpath/abbreviations.html
+               fast/xpath/py-dom-xpath/axes.html
+               fast/xpath/py-dom-xpath/data.html
+               fast/xpath/py-dom-xpath/expressions.html
+               fast/xpath/py-dom-xpath/functions.html
+               fast/xpath/py-dom-xpath/nodetests.html
+               fast/xpath/py-dom-xpath/paths.html
+               fast/xpath/py-dom-xpath/predicates.html
+
+        Fix bugs found with this test suite:
+        - name and local-name were incorrect for processing instructions (XPath expanded-name
+        doesn't match DOM exactly);
+        - name, local-name and namespace functions should crash on attribute nodes;
+        - attemps to make node sets from other types were not detected as errors.
+
+        No performance impact.
+
+        * xml/XPathExpressionNode.h: Track type conversion errors that happen during evaluation.
+        An error won't stop evaluation, but an exception will be raised afterwards. We could also
+        detect conversion errors at compile time, but not if we're going to support XPath variables
+        (which is unnecessary for XPathEvaluator, but will be necessary if we decide to make our own
+        XSLT one day).
+
+        * xml/XPathExpression.cpp: (WebCore::XPathExpression::evaluate): Check whether a type
+        conversion exception occurred during evaluation, and raise an excpetion if it did.
+
+        * xml/XPathFunctions.cpp:
+        (WebCore::XPath::expandedNameLocalPart):
+        (WebCore::XPath::expandedName):
+        XPath name(), local-name() and namespace-uri() functions are defined in terms of expanded-name,
+        which doesn't match anything available via DOM exactly. Calculate the expanded name properly.
+        (WebCore::XPath::FunNamespaceURI::evaluate): This function could crash if used with an
+        attribute node, because it released what was possibly the only reference to attribute node
+        before using it. Changed the function to avoid such situation.
+        (WebCore::XPath::FunLocalName::evaluate): Ditto. Also, used the new expandedNameLocalPart()
+        to work properly with processing instruction nodes.
+        (WebCore::XPath::FunName::evaluate): Ditto (using expandedName()).
+        (WebCore::XPath::FunCount::evaluate): Signal an error if the argument is not a node-set
+        (by using toNodeSet unconditionally, which will raise an error, and return an empty set).
+
+        * xml/XPathPath.cpp: (WebCore::XPath::Filter::evaluate): Signal an error if the expression
+        evaluation result is not a node-set.
+
+        * xml/XPathPath.h: (WebCore::XPath::Filter::resultType): A Filter's result is actually
+        always a node-set (this is not so for FilterExpr production in the spec, but is for us,
+        because we don't naively map BNF productions to classes).
+
+        * xml/XPathPredicate.cpp: (WebCore::XPath::Union::evaluate): Signal an error if either side
+        is not a node-set.
+
+        * xml/XPathStep.cpp: Removed an unnecesary include.
+
+        * xml/XPathValue.cpp:
+        (WebCore::XPath::Value::toNodeSet): Signal an error if conversion fails.
+        (WebCore::XPath::Value::modifiableNodeSet): Ditto.
+        (WebCore::XPath::Value::toNumber): Don't allow inputs that don't match XPath Number production
+        (in particular, those using exponential notation).
+
+2009-06-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Brady Eidson.
+
+        Part of https://bugs.webkit.org/show_bug.cgi?id=26100
+        Add missing event handler properties to the DOMWindow
+
+        Added oncontextmenu, oninput, and onmessage event handlers to
+        the DOMWindow. Aditionally, the onloadstart, onprogress, onstalled,
+        and onsuspend event handlers were implemented but not added to
+        DOMWindow.idl.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::oninput):
+        (WebCore::DOMWindow::setOninput):
+        (WebCore::DOMWindow::onmessage):
+        (WebCore::DOMWindow::setOnmessage):
+        (WebCore::DOMWindow::oncontextmenu):
+        (WebCore::DOMWindow::setOncontextmenu):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
 
 2009-06-01  Jeremy Orlow  <jorlow@chromium.org>
 
@@ -1237,29 +1676,6 @@
 
         * html/HTMLLinkElement.cpp:
         (WebCore::HTMLLinkElement::process):
-
-2009-05-29  Itai Danan  <idanan@chromium.org>
-
-        Reviewed by Jon Honeycutt.
-
-        Bug 24791: Should have a preference to disable auto scrolling
-        https://bugs.webkit.org/show_bug.cgi?id=24791
-
-        To understand why this is required see the discussion in
-        issue 24722 (https://bugs.webkit.org/show_bug.cgi?id=24722).
-
-        The code review was done in https://bugs.webkit.org/show_bug.cgi?id=21794.
-
-        * page/EventHandler.cpp:
-        (WebCore::EventHandler::handleMousePressEvent): Use autoscroll behavior flag to determine
-        if autoscroll needs to be released on this event.
-        (WebCore::EventHandler::handleMouseReleaseEvent):  Use autoscroll behavior flag to determine
-        if autoscroll needs to be released on this event (reverse logic of for Press event).
-        * page/Settings.cpp:
-        (WebCore::Settings::Settings): Initialize autoscroll behavior setting.
-        * page/Settings.h:
-        (WebCore::Settings::setUsesStickyPanScroll): Autoscroll behavior setting setter.
-        (WebCore::Settings::usesStickyPanScroll): Autoscroll behavior setting getter.
 
 2009-05-29  Jian Li  <jianli@chromium.org>
 

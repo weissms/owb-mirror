@@ -42,12 +42,12 @@
 #include "FrameLoader.h"
 #include "FrameTree.h"
 #include "FrameView.h"
-#include "HitTestRequest.h"
-#include "HitTestResult.h"
-#include "HTMLFrameSetElement.h"
 #include "HTMLFrameElementBase.h"
+#include "HTMLFrameSetElement.h"
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
+#include "HitTestRequest.h"
+#include "HitTestResult.h"
 #include "Image.h"
 #if ENABLE(INSPECTOR)
 #include "InspectorController.h"
@@ -60,12 +60,13 @@
 #include "PlatformWheelEvent.h"
 #include "RenderFrameSet.h"
 #include "RenderTextControlSingleLine.h"
-#include "RenderWidget.h"
 #include "RenderView.h"
+#include "RenderWidget.h"
 #include "Scrollbar.h"
 #include "SelectionController.h"
 #include "Settings.h"
 #include "TextEvent.h"
+#include "htmlediting.h" // for comparePositions()
 #include <wtf/StdLibExtras.h>
 
 #if ENABLE(SVG)
@@ -118,6 +119,20 @@ static inline void scrollAndAcceptEvent(float delta, ScrollDirection positiveDir
     if (enclosingBox->scroll(delta < 0 ? negativeDirection : positiveDirection, ScrollByPixel, pixelsToScroll))
         e.accept();
 }
+
+#if !PLATFORM(MAC)
+
+inline bool EventHandler::eventLoopHandleMouseUp(const MouseEventWithHitTestResults&)
+{
+    return false;
+}
+
+inline bool EventHandler::eventLoopHandleMouseDragged(const MouseEventWithHitTestResults&)
+{
+    return false;
+}
+
+#endif
 
 EventHandler::EventHandler(Frame* frame)
     : m_frame(frame)
@@ -306,8 +321,7 @@ bool EventHandler::handleMousePressEventSingleClick(const MouseEventWithHitTestR
         // was created right-to-left
         Position start = newSelection.start();
         Position end = newSelection.end();
-        short before = Range::compareBoundaryPoints(pos.node(), pos.deprecatedEditingOffset(), start.node(), start.deprecatedEditingOffset());
-        if (before <= 0)
+        if (comparePositions(pos, start) <= 0)
             newSelection = VisibleSelection(pos, end);
         else
             newSelection = VisibleSelection(start, pos);
@@ -1105,8 +1119,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
 
 #if ENABLE(PAN_SCROLLING)
     Page* page = m_frame->page();
-    if (m_frame->settings()->usesStickyPanScroll()
-        && (page && page->mainFrame()->eventHandler()->panScrollInProgress() || m_autoscrollInProgress)) {
+    if (page && page->mainFrame()->eventHandler()->panScrollInProgress() || m_autoscrollInProgress) {
         stopAutoscrollTimer();
         invalidateClick();
         return true;
@@ -1351,13 +1364,6 @@ bool EventHandler::handleMouseReleaseEvent(const PlatformMouseEvent& mouseEvent)
 
     m_mousePressed = false;
     m_currentMousePosition = mouseEvent.pos();
-
-    if (!m_frame->settings()->usesStickyPanScroll()
-        && (m_frame->page() && m_frame->page()->mainFrame()->eventHandler()->panScrollInProgress() || m_autoscrollInProgress)) {
-        stopAutoscrollTimer();
-        invalidateClick();
-        return true;
-    }
 
 #if ENABLE(SVG)
     if (m_svgPan) {
