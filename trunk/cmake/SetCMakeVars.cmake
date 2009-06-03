@@ -137,14 +137,14 @@ if(ENABLE_NPAPI)
     )
 endif(ENABLE_NPAPI)
 
-if(ENABLE_SVG)
+if(ENABLE_SVG OR ENABLE_FILTERS)
     list(APPEND WEBCORE_INCLUDE_DIRS
         ${OWB_SOURCE_DIR}/WebCore/svg
         ${OWB_SOURCE_DIR}/WebCore/svg/animation
         ${OWB_SOURCE_DIR}/WebCore/svg/graphics
         ${OWB_SOURCE_DIR}/WebCore/svg/graphics/filters
     )
-endif(ENABLE_SVG)
+endif(ENABLE_SVG OR ENABLE_FILTERS)
 
 if(ENABLE_VIDEO)
     list(APPEND EXTERNAL_DEPS_INCLUDE_DIRS

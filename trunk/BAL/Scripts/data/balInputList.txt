@@ -350,21 +350,21 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.h
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.cpp
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.h
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.cpp
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.h
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.cpp
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.h
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.cpp
-BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.h
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.h
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.cpp
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.h
-BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.cpp BCFEBlendWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.h BCFEBlendWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.cpp BCFEColorMatrixWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.h BCFEColorMatrixWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.cpp BCFEComponentTransferWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.h BCFEComponentTransferWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.cpp BCFECompositeWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.h BCFECompositeWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h BCFilterWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h BCFilterEffectWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp BCFilterEffectWK.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.h BCSourceAlphaWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.cpp BCSourceAlphaWK.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.h BCSourceGraphicsWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.cpp BCSourceGraphicsWK.cpp
 
 
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ImageDecoder.h

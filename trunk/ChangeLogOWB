@@ -1,3 +1,9 @@
+2009-06-03  Mario Bensi  <mbensi@pleyo.com>
+
+        fix build with Filter to ON and SVG to OFF
+
+        * cmake/SetCMakeVars.cmake:
+
 2009-05-27  Mario Bensi  <mbensi@pleyo.com>
 
         Add resources.
