@@ -20,7 +20,11 @@ class WebFrameTest : public CPPUNIT_NS::TestCase
     CPPUNIT_TEST_SUITE_END();
 
 public:
-    void setUp(void) {}
+    void setUp(void) {
+#if PLATFORM(GTK)
+        gtk_init (0, 0);
+#endif
+    }
     void tearDown(void) {} 
 
 protected:

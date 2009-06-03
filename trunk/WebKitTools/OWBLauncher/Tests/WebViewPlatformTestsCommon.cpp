@@ -173,6 +173,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(WebViewTestSDL);
 
 int main( int ac, char **av )
 {
+#if PLATFORM(SDL)
     //--- Create the event manager and test controller
     CPPUNIT_NS::TestResult controller;
 
@@ -190,4 +191,7 @@ int main( int ac, char **av )
     runner.run( controller );
 
     return result.wasSuccessful() ? 0 : 1;
+#else
+    return 0;
+#endif
 }

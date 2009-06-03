@@ -1,37 +1,18 @@
 2009-06-03  Mario Bensi  <mbensi@pleyo.com>
 
+        Fix crash on unit test.
+
+        * Types/WTF/Qt/BCThreadingQt.cpp:
+        (WTF::initializeThreading):
+        (WTF::isMainThread):
+        * Widgets/WebCore/Qt/BCScrollbarThemeQt.cpp:
+        (WebCore::ScrollbarThemeQt::scrollbarThickness):
+
+2009-06-03  Mario Bensi  <mbensi@pleyo.com>
+
         fix merge.
 
         * Scripts/data/balInputList.txt:
-
-2009-06-02  Julien Chaffraix  <jchaffraix@pleyo.com>
-
-        Reviewed by Mario Bensi.
-
-        Speed up CookieManager::getCookies by using a preallocated static Vector<UChar>.
-
-        * Network/WebCore/Curl/BCCookieCurl.cpp:
-        (WebCore::Cookie::isUnderSizeLimit): Added to check whether a cookie is
-        above the size limit.
-        (WebCore::Cookie::toNameValuePair): Dump a cookie for the network layer.
-        * Network/WebCore/Curl/BCCookieCurl.h: Added the two previous methods.
-        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
-        (WebCore::CookieManager::shouldRejectForSecurityReason): Compute the
-        size once and cast it as an unsigned int when we are sure it is fine!
-        (WebCore::CookieManager::getCookie): Updated to use a preallocated
-        static Vector<UChar>. This should avoid unneeded reallocation.
-        * Network/WebCore/Curl/BCCookieManagerCurl.h: Removed an unneeded
-        method. Also moved the maximum constant logic here from the
-        CookieParser.
-        (WebCore::CookieManager::maxCookieLength): Static getter for the
-        maximum length.
-        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
-        (WebCore::CookieParser::parseOneCookie): Updated to call the new
-        Cookie method: isUnderSizeLimit.
-        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
-        (WebCore::ResourceHandle::checkAndSendCookies): Removed the size check
-        limit as it is done in getCookie. Also there is no need for us to
-        copy the data as cURL will do it internally.
 
 2009-06-02  Julien Chaffraix  <jchaffraix@pleyo.com>
 

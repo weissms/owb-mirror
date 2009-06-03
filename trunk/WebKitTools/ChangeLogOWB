@@ -1,3 +1,15 @@
+2009-06-03  Mario Bensi  <mbensi@pleyo.com>
+
+        fix unit test.
+
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        (WebFrameTest::setUp):
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.cpp:
+        (main):
+        * OWBLauncher/Tests/WebViewTests.cpp:
+        (WebViewTest::setUp):
+        (WebViewTest::testInitialValue):
+
 2009-05-28  Mario Bensi  <mbensi@pleyo.com>
 
         change new WebWindow* by createWebWindow*.
