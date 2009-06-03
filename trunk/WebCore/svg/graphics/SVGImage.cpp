@@ -224,7 +224,11 @@ bool SVGImage::dataChanged(bool allDataReceived)
         static EditorClient* dummyEditorClient = new EmptyEditorClient;
         static ContextMenuClient* dummyContextMenuClient = new EmptyContextMenuClient;
         static DragClient* dummyDragClient = new EmptyDragClient;
+#if ENABLE(INSPECTOR)
         static InspectorClient* dummyInspectorClient = new EmptyInspectorClient;
+#else
+        static InspectorClient* dummyInspectorClient = 0;
+#endif
 
         m_chromeClient.set(new SVGImageChromeClient(this));
         

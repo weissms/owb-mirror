@@ -7,6 +7,7 @@ JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
+JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
 JavaScriptCore/wtf/unicode/glib/UnicodeMacrosFromICU.h BAL/Internationalization/WTF/GLib/BCUnicodeMacrosFromICUGLib.h
 JavaScriptCore/yarr/RegexInterpreter.cpp
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
@@ -76,7 +77,7 @@ WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTex
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
 WebCore/plugins/PluginView.h
 WebCore/storage/Database.cpp
-WebCore/svg/graphics/SVGImage.cpp BAL/SVG/WebCore/WK/BCSVGImageWK.cpp
+WebCore/svg/graphics/SVGImage.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/xml/XMLHttpRequest.cpp
