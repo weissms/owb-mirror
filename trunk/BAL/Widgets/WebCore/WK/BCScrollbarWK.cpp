@@ -263,7 +263,11 @@ void Scrollbar::moveThumb(int pos)
 bool Scrollbar::setCurrentPos(float pos)
 {
     if (pos == m_currentPos)
+#if PLATFORM(SDL)
+        return true;
+#else
         return false;
+#endif
 
     int oldValue = value();
     int oldThumbPos = theme()->thumbPosition(this);
