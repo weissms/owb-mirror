@@ -1335,7 +1335,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if (!coreFrame)
         return String();
 
-    JSC::JSCell* scriptExecutionResult = static_cast<JSC::JSCell*> (coreFrame->loader()->executeScript(script, false));
+    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(script, false);
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString())
