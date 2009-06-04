@@ -1,0 +1,2 @@
+BCCairoPath.h CairoPath.h
+BCGraphicsContextPlatformPrivateCairo.h GraphicsContextPlatformPrivateCairo.h
