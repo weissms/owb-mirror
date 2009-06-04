@@ -1,3 +1,10 @@
+2009-06-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix transparency.
+
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.cpp:
+        (WebViewPrivate::paint):
+
 2009-06-02  Mario Bensi  <mbensi@pleyo.com>
 
         fix WebKitTest gtk.

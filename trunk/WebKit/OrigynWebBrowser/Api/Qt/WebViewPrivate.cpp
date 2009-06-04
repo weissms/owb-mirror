@@ -99,6 +99,10 @@ void WebViewPrivate::paint(QPainter *painter, const QRegion &clip)
             painter->save();
             painter->setClipRect(vector.at(i), Qt::IntersectClip);
         }
+
+        if (m_webView->transparent())
+            ctx.clearRect(d);
+
         view->paint(&ctx, vector.at(i));
 
         if (i > 0)
