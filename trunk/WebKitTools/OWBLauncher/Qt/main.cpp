@@ -163,25 +163,6 @@ int main (int argc, char* argv[])
 
     window.show();
     return app.exec();
-
-    /*QRect clientRect= {0, 0, 800, 600};
-   
-    webView->initWithFrame(clientRect, "", "");
-
-    QWidget *view = webView->viewWindow();*/
-
-
-    /*if(webView->canZoomPageIn()) {
-        printf("canZoomPageIn\n");
-        webView->zoomPageIn();
-    }*/
-    /*if(webView->canMakeTextLarger()) {
-        printf("canMakeTextLarger\n");
-        webView->makeTextLarger();
-    }*/
-
-
-    return 0;
 }
 
 #include "main.moc"
