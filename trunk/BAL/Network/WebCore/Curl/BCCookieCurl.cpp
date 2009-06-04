@@ -126,7 +126,8 @@ String Cookie::toNameValuePair() const
 
     size_t cookieLength = m_name.length() + m_value.length() + 2;
     ASSERT(cookieLength < CookieManager::maxCookieLength());
-    Vector<UChar> result(cookieLength);
+    Vector<UChar> result;
+    result.reserveInitialCapacity(cookieLength);
     append(result, m_name);
     append(result, equal);
     append(result, m_value);

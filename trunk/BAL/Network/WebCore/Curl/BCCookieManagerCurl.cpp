@@ -116,7 +116,8 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
 
     // The max size is the number of cookie per host multiplied by the maximum length of a cookie. We add 1 for the final '\0'.
     static const size_t cookiesMaxLength = s_maxCookieLength * s_maxCookieCountPerHost + 1;
-    static Vector<UChar> cookiePairs(cookiesMaxLength);
+    Vector<UChar> cookiePairs;
+    cookiePairs.reserveInitialCapacity(cookiesMaxLength);
     for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
 
         // Handle sub-domain by only looking at the end of the host.
@@ -127,14 +128,15 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
             for (size_t i = 0; i < cookies.size(); ++i) {
                 Cookie* cookie = cookies[i];
                 // Get the cookies filtering out the secure cookies on an unsecure connection and HttpOnly cookies if requested.
-                if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly()))
-                    append(cookiePairs, cookie->toNameValuePair());
+                if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly())) {
+                    String nameValuePair = cookie->toNameValuePair();
+                    append(cookiePairs, nameValuePair);
+                }
             }
         }
     }
     // Per construction of our cookies, we should not grow our vector.
-    // FIXME : We should uncomment this assertion but it is crashing now.
-    //ASSERT(cookiePairs.size() == cookiesMaxLength);
+    ASSERT(cookiePairs.capacity() == cookiesMaxLength);
 
     // Append the final '\0'.
     static const String nullTerminator("\0");

@@ -1,3 +1,21 @@
+2009-06-04  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #347: crash with cookies
+
+        * Network/WebCore/Curl/BCCookieCurl.cpp:
+        (WebCore::Cookie::toNameValuePair): Use reserveInitialCapacity as it
+        is more explicit that the constructor with the size.
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::getCookie): Ditto. Also removed the static to
+        the Vector as it was wrong. Tweaked the toNameValuePair to store the
+        temporary string.
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::checkAndSendCookies): Use
+        StringImpl::ascii() instead of utf8 as there was some issue with this
+        conversion.
+
 2009-06-04  Mario Bensi  <mbensi@pleyo.com>
 
         fix ticket #346 (crash on qt)

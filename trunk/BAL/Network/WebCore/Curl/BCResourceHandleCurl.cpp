@@ -206,9 +206,9 @@ void ResourceHandle::checkAndSendCookies(KURL& url)
     // Prepare a cookie header if there are cookies related to this url.
     String cookiePairs = cookieManager().getCookie(url, WithHttpOnlyCookies);
     if (!cookiePairs.isEmpty() && d->m_handle) {
-        const char* cookieChar = cookiePairs.utf8().data();
-        LOG(Network, "CURL POST Cookie : %s \n", cookieChar);
-        curl_easy_setopt(d->m_handle, CURLOPT_COOKIE, cookieChar);
+        Vector<char> cookieChar = cookiePairs.impl()->ascii();
+        LOG(Network, "CURL POST Cookie : %s \n", cookieChar.data());
+        curl_easy_setopt(d->m_handle, CURLOPT_COOKIE, cookieChar.data());
     }
 }
 
