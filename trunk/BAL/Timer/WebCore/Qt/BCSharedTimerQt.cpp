@@ -64,8 +64,9 @@ SharedTimerQt::SharedTimerQt(QObject* parent)
 
 SharedTimerQt::~SharedTimerQt()
 {
-    if (m_timer.isActive())
-        (m_timerFunction)();
+    // FIXME : crash on owbqt when the browser quit
+    /*if (m_timer.isActive())
+        (m_timerFunction)();*/
 }
 
 SharedTimerQt* SharedTimerQt::inst()

@@ -1,5 +1,12 @@
 2009-06-04  Mario Bensi  <mbensi@pleyo.com>
 
+        fix ticket #346 (crash on qt)
+
+        * Timer/WebCore/Qt/BCSharedTimerQt.cpp:
+        (WebCore::SharedTimerQt::~SharedTimerQt):
+
+2009-06-04  Mario Bensi  <mbensi@pleyo.com>
+
         Fix event dispatch on scrollbar.
 
         * Widgets/WebCore/WK/BCScrollbarWK.cpp:

@@ -101,7 +101,7 @@ void WebViewPrivate::paint(QPainter *painter, const QRegion &clip)
         }
 
         if (m_webView->transparent())
-            ctx.clearRect(d);
+            ctx.clearRect(IntRect(vector.at(i)));
 
         view->paint(&ctx, vector.at(i));
 
