@@ -41,7 +41,7 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
     if (bufferLength > GlyphPage::size)
         return false;
 
-    FT_Face face = fontData->m_font.m_face;
+    FT_Face face = fontData->m_platformData.m_face;
 
     if (!face)
         return false;

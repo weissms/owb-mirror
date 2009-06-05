@@ -177,16 +177,37 @@ ALWAYS_INLINE void JIT::emitInitRegister(unsigned dst)
     // FIXME: #ifndef NDEBUG, Write the correct m_type to the register.
 }
 
-ALWAYS_INLINE JIT::Call JIT::emitNakedCall(void* function)
+ALWAYS_INLINE JIT::Call JIT::emitNakedCall(CodePtr function)
 {
     ASSERT(m_bytecodeIndex != (unsigned)-1); // This method should only be called during hot/cold path generation, so that m_bytecodeIndex is set.
 
     Call nakedCall = nearCall();
-    m_calls.append(CallRecord(nakedCall, m_bytecodeIndex, function));
+    m_calls.append(CallRecord(nakedCall, m_bytecodeIndex, function.executableAddress()));
     return nakedCall;
 }
 
-#if USE(JIT_STUB_ARGUMENT_REGISTER)
+ALWAYS_INLINE void JIT::preverveReturnAddressAfterCall(RegisterID reg)
+{
+    pop(reg);
+}
+
+ALWAYS_INLINE void JIT::restoreReturnAddressBeforeReturn(RegisterID reg)
+{
+    push(reg);
+}
+
+ALWAYS_INLINE void JIT::restoreReturnAddressBeforeReturn(Address address)
+{
+    push(address);
+}
+
+#if USE(JIT_STUB_ARGUMENT_VA_LIST)
+ALWAYS_INLINE void JIT::restoreArgumentReference()
+{
+    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+}
+ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
+#else
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
     move(stackPointerRegister, firstArgumentRegister);
@@ -200,19 +221,6 @@ ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
     addPtr(Imm32(sizeof(void*)), firstArgumentRegister);
 #endif
 }
-#elif USE(JIT_STUB_ARGUMENT_STACK)
-ALWAYS_INLINE void JIT::restoreArgumentReference()
-{
-    poke(stackPointerRegister);
-    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
-}
-ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
-#else // JIT_STUB_ARGUMENT_VA_LIST
-ALWAYS_INLINE void JIT::restoreArgumentReference()
-{
-    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
-}
-ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
 #endif
 
 ALWAYS_INLINE JIT::Jump JIT::checkStructure(RegisterID reg, Structure* structure)

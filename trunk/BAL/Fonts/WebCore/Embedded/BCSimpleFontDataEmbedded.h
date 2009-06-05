@@ -29,7 +29,6 @@
 #include "GlyphWidthMap.h"
 #include <wtf/OwnPtr.h>
 
-
 namespace WebCore {
 
 class FontDescription;
@@ -46,7 +45,7 @@ public:
     virtual ~SimpleFontData();
 
 public:
-    const FontPlatformData& platformData() const { return m_font; }
+    const FontPlatformData& platformData() const { return m_platformData; }
     SimpleFontData* smallCapsFontData(const FontDescription& fontDescription) const;
 
     // vertical metrics
@@ -62,6 +61,13 @@ public:
     float widthForGlyph(Glyph) const;
     float platformWidthForGlyph(Glyph) const;
 
+    float spaceWidth() const { return m_spaceWidth; }
+    float adjustedSpaceWidth() const { return m_adjustedSpaceWidth; }
+
+
+    Glyph spaceGlyph() const { return m_spaceGlyph; }
+
+
     virtual const SimpleFontData* fontDataForCharacter(UChar32) const;
     virtual bool containsCharacters(const UChar*, int length) const;
 
@@ -70,9 +76,7 @@ public:
 
 #if ENABLE(SVG_FONTS)
     SVGFontData* svgFontData() const { return m_svgFontData.get(); }
-    // FIXME
-    //bool isSVGFont() const { return m_svgFontData; }
-    bool isSVGFont() const { return false; }
+    bool isSVGFont() const { return m_svgFontData; }
 #else
     bool isSVGFont() const { return false; }
 #endif
@@ -105,7 +109,7 @@ public:
     float m_xHeight;
     unsigned m_unitsPerEm;
 
-    FontPlatformData m_font;
+    FontPlatformData m_platformData;
 
     mutable GlyphWidthMap m_glyphToWidthMap;
 
@@ -139,6 +143,7 @@ ALWAYS_INLINE float SimpleFontData::widthForGlyph(Glyph glyph) const
 
     return width;
 }
+
 
 } // namespace WebCore
 

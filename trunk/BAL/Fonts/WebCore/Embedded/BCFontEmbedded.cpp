@@ -79,7 +79,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     Color penColor = context->fillColor();
     unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    PixelFontType *fontPixel = font->m_font.m_pixelFont;
+    PixelFontType *fontPixel = font->m_platformData.m_pixelFont;
     uint8_t w = fontPixel->width;
     uint8_t h = fontPixel->height;
     IntRect dstRect(0, 0, w * numGlyphs , h);

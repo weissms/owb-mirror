@@ -383,7 +383,13 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
             showPanel(m_showAfterVisible);
     } else {
 #if ENABLE(JAVASCRIPT_DEBUGGER)
+        // If the window is being closed with the debugger enabled,
+        // remember this state to re-enable debugger on the next window
+        // opening.
+        bool debuggerWasEnabled = m_debuggerEnabled;
         disableDebugger();
+        if (debuggerWasEnabled)
+            m_attachDebuggerWhenShown = true;
 #endif
         resetScriptObjects();
     }
@@ -809,11 +815,15 @@ void InspectorController::didLoadResourceFromMemoryCache(DocumentLoader* loader,
     if (m_knownResources.contains(cachedResource->url()))
         return;
 
+    ASSERT(m_inspectedPage);
+    bool isMainResource = loader->frame() == m_inspectedPage->mainFrame() && cachedResource->url() == loader->requestURL();
+    ensureResourceTrackingSettingsLoaded();
+    if (!isMainResource && !m_resourceTrackingEnabled)
+        return;
+    
     RefPtr<InspectorResource> resource = InspectorResource::createCached(m_nextIdentifier--, loader, cachedResource);
 
-    ASSERT(m_inspectedPage);
-
-    if (loader->frame() == m_inspectedPage->mainFrame() && cachedResource->url() == loader->requestURL()) {
+    if (isMainResource) {
         m_mainResource = resource;
         resource->markMainResource();
     }
@@ -828,24 +838,18 @@ void InspectorController::identifierForInitialRequest(unsigned long identifier, 
 {
     if (!enabled())
         return;
+    ASSERT(m_inspectedPage);
 
-    if (!m_resourceTrackingSettingsLoaded) {
-        m_resourceTrackingSettingsLoaded = true;
-        Setting resourceTracking = setting(resourceTrackingEnabledSettingName);
-        if (resourceTracking.type() == Setting::BooleanType && resourceTracking.booleanValue())
-            m_resourceTrackingEnabled = true;
-    }
-
-    if (!m_resourceTrackingEnabled)
+    bool isMainResource = m_inspectedPage->mainFrame() && request.url() == loader->requestURL();
+    ensureResourceTrackingSettingsLoaded();
+    if (!isMainResource && !m_resourceTrackingEnabled)
         return;
 
     RefPtr<InspectorResource> resource = InspectorResource::create(identifier, loader);
 
     resource->updateRequest(request);
 
-    ASSERT(m_inspectedPage);
-
-    if (loader->frame() == m_inspectedPage->mainFrame() && request.url() == loader->requestURL()) {
+    if (isMainResource) {
         m_mainResource = resource;
         resource->markMainResource();
     }
@@ -1007,6 +1011,17 @@ void InspectorController::disableResourceTracking(bool always) {
     m_resourceTrackingEnabled = false;
     if (m_frontend)
         m_frontend->resourceTrackingWasDisabled();
+}
+
+void InspectorController::ensureResourceTrackingSettingsLoaded()
+{
+    if (m_resourceTrackingSettingsLoaded)
+        return;
+    m_resourceTrackingSettingsLoaded = true;
+
+    Setting resourceTracking = setting(resourceTrackingEnabledSettingName);
+    if (resourceTracking.type() == Setting::BooleanType && resourceTracking.booleanValue())
+        m_resourceTrackingEnabled = true;
 }
 
 #if ENABLE(DATABASE)
@@ -1177,21 +1192,10 @@ void InspectorController::disableProfiler(bool always)
         m_frontend->profilerWasDisabled();
 }
 
-void InspectorController::enableDebugger(bool always)
+void InspectorController::enableDebuggerFromFrontend(bool always)
 {
-    if (!enabled())
-        return;
-
     if (always)
         setSetting(debuggerEnabledSettingName, Setting(true));
-
-    if (!m_scriptState || !m_frontend) {
-        m_attachDebuggerWhenShown = true;
-        return;
-    }
-
-    if (m_debuggerEnabled)
-        return;
 
     ASSERT(m_inspectedPage);
 
@@ -1199,9 +1203,23 @@ void InspectorController::enableDebugger(bool always)
     JavaScriptDebugServer::shared().clearBreakpoints();
 
     m_debuggerEnabled = true;
-    m_attachDebuggerWhenShown = false;
-
     m_frontend->debuggerWasEnabled();
+}
+
+void InspectorController::enableDebugger()
+{
+    if (!enabled())
+        return;
+
+    if (m_debuggerEnabled)
+        return;
+
+    if (!m_scriptState || !m_frontend) {
+        m_attachDebuggerWhenShown = true;
+    } else {
+        m_frontend->attachDebuggerWhenShown();
+        m_attachDebuggerWhenShown = false;
+    }
 }
 
 void InspectorController::disableDebugger(bool always)

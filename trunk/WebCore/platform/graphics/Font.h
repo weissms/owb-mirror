@@ -112,10 +112,12 @@ public:
     int lineGap() const { return primaryFont()->lineGap(); }
     float xHeight() const { return primaryFont()->xHeight(); }
     unsigned unitsPerEm() const { return primaryFont()->unitsPerEm(); }
-    int spaceWidth() const { return (int)ceilf(primaryFont()->m_adjustedSpaceWidth + m_letterSpacing); }
+    int spaceWidth() const { return (int)ceilf(primaryFont()->adjustedSpaceWidth() + m_letterSpacing); }
     int tabWidth() const { return 8 * spaceWidth(); }
 
-    const SimpleFontData* primaryFont() const {
+    const SimpleFontData* primaryFont() const
+    {
+        ASSERT(isMainThread());
         if (!m_cachedPrimaryFont)
             cachePrimaryFont();
         return m_cachedPrimaryFont;
@@ -129,6 +131,9 @@ public:
 #if PLATFORM(QT)
     QFont font() const;
 #endif
+
+    static void setShouldUseSmoothing(bool);
+    static bool shouldUseSmoothing();
 
 private:
 #if ENABLE(SVG_FONTS)

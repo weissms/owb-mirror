@@ -38,6 +38,7 @@
 #import "WebCachedFramePlatformData.h"
 #import "WebChromeClient.h"
 #import "WebDataSourceInternal.h"
+#import "WebDelegateImplementationCaching.h"
 #import "WebDocumentInternal.h"
 #import "WebDocumentLoaderMac.h"
 #import "WebDownloadInternal.h"
@@ -78,6 +79,7 @@
 #import <WebCore/Document.h>
 #import <WebCore/DocumentLoader.h>
 #import <WebCore/EventHandler.h>
+#import <WebCore/FocusController.h>
 #import <WebCore/FormState.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
@@ -1097,6 +1099,10 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     
     if (HTMLFrameOwnerElement* owner = coreFrame->ownerElement())
         coreFrame->view()->setCanHaveScrollbars(owner->scrollingMode() != ScrollbarAlwaysOff);
+        
+    // If the WebHTMLView implicitly became first responder, make sure to set the focused frame properly.
+    if (usesDocumentViews && [[documentView window] firstResponder] == documentView)
+        page->focusController()->setFocusedFrame(coreFrame);
 }
 
 RetainPtr<WebFramePolicyListener> WebFrameLoaderClient::setUpPolicyListener(FramePolicyFunction function)

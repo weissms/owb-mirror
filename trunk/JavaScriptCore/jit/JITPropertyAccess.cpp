@@ -423,17 +423,6 @@ void JIT::compileGetDirectOffset(JSObject* base, RegisterID result, size_t cache
         loadPtr(static_cast<void*>(&base->m_externalStorage[cachedOffset]), result);
 }
 
-static JSObject* resizePropertyStorage(JSObject* baseObject, int32_t oldSize, int32_t newSize)
-{
-    baseObject->allocatePropertyStorage(oldSize, newSize);
-    return baseObject;
-}
-
-static inline bool transitionWillNeedStorageRealloc(Structure* oldStructure, Structure* newStructure)
-{
-    return oldStructure->propertyStorageCapacity() != newStructure->propertyStorageCapacity();
-}
-
 void JIT::privateCompilePutByIdTransition(StructureStubInfo* stubInfo, Structure* oldStructure, Structure* newStructure, size_t cachedOffset, StructureChain* chain, ProcessorReturnAddress returnAddress)
 {
     JumpList failureCases;
@@ -442,7 +431,7 @@ void JIT::privateCompilePutByIdTransition(StructureStubInfo* stubInfo, Structure
     failureCases.append(branchPtr(NotEqual, Address(regT0, FIELD_OFFSET(JSCell, m_structure)), ImmPtr(oldStructure)));
     JumpList successCases;
 
-    //  ecx = baseObject
+    // ecx = baseObject
     loadPtr(Address(regT0, FIELD_OFFSET(JSCell, m_structure)), regT2);
     // proto(ecx) = baseObject->structure()->prototype()
     failureCases.append(branch32(NotEqual, Address(regT2, FIELD_OFFSET(Structure, m_typeInfo) + FIELD_OFFSET(TypeInfo, m_type)), Imm32(ObjectType)));
@@ -467,28 +456,21 @@ void JIT::privateCompilePutByIdTransition(StructureStubInfo* stubInfo, Structure
     Call callTarget;
 
     // emit a call only if storage realloc is needed
-    bool willNeedStorageRealloc = transitionWillNeedStorageRealloc(oldStructure, newStructure);
+    bool willNeedStorageRealloc = oldStructure->propertyStorageCapacity() != newStructure->propertyStorageCapacity();
     if (willNeedStorageRealloc) {
-        pop(X86::ebx);
-#if PLATFORM(X86_64)
-        // Setup arguments in edi, esi, edx.  Since baseObject is in regT0,
-        // regT0 had better not be any of these registers.
-        ASSERT(regT0 != X86::edx);
-        ASSERT(regT0 != X86::esi);
-        ASSERT(regT0 != X86::edi);
-        move(Imm32(newStructure->propertyStorageCapacity()), X86::edx);
-        move(Imm32(oldStructure->propertyStorageCapacity()), X86::esi);
-        move(regT0, X86::edi);
-        callTarget = call();
-#else
-        push(Imm32(newStructure->propertyStorageCapacity()));
-        push(Imm32(oldStructure->propertyStorageCapacity()));
-        push(regT0);
-        callTarget = call();
-        addPtr(Imm32(3 * sizeof(void*)), X86::esp);
-#endif
-        emitGetJITStubArg(3, regT1);
-        push(X86::ebx);
+        // This trampoline was called to like a JIT stub; before we can can call again we need to
+        // remove the return address from the stack, to prevent the stack from becoming misaligned.
+        preverveReturnAddressAfterCall(regT3);
+ 
+        JITStubCall stubCall(this, JITStubs::cti_op_put_by_id_transition_realloc);
+        stubCall.addArgument(regT0);
+        stubCall.addArgument(Imm32(oldStructure->propertyStorageCapacity()));
+        stubCall.addArgument(Imm32(newStructure->propertyStorageCapacity()));
+        stubCall.addArgument(regT1); // This argument is not used in the stub; we set it up on the stack so that it can be restored, below.
+        stubCall.call(regT0);
+        emitGetJITStubArg(4, regT1);
+
+        restoreReturnAddressBeforeReturn(regT3);
     }
 
     // Assumes m_refCount can be decremented easily, refcount decrement is safe as 
@@ -509,10 +491,12 @@ void JIT::privateCompilePutByIdTransition(StructureStubInfo* stubInfo, Structure
 
     PatchBuffer patchBuffer(this, m_codeBlock->executablePool());
 
-    patchBuffer.link(failureCall, JITStubs::cti_op_put_by_id_fail);
+    patchBuffer.link(failureCall, FunctionPtr(JITStubs::cti_op_put_by_id_fail));
 
-    if (willNeedStorageRealloc)
-        patchBuffer.link(callTarget, resizePropertyStorage);
+    if (willNeedStorageRealloc) {
+        ASSERT(m_calls.size() == 1);
+        patchBuffer.link(m_calls[0].from, FunctionPtr(JITStubs::cti_op_put_by_id_transition_realloc));
+    }
     
     CodeLocationLabel entryLabel = patchBuffer.finalizeCodeAddendum();
     stubInfo->stubRoutine = entryLabel;
@@ -523,7 +507,7 @@ void JIT::patchGetByIdSelf(StructureStubInfo* stubInfo, Structure* structure, si
 {
     // We don't want to patch more than once - in future go to cti_op_get_by_id_generic.
     // Should probably go to JITStubs::cti_op_get_by_id_fail, but that doesn't do anything interesting right now.
-    returnAddress.relinkCallerToFunction(JITStubs::cti_op_get_by_id_self_fail);
+    returnAddress.relinkCallerToFunction(FunctionPtr(JITStubs::cti_op_get_by_id_self_fail));
 
     int offset = sizeof(JSValue) * cachedOffset;
 
@@ -553,7 +537,7 @@ void JIT::patchPutByIdReplace(StructureStubInfo* stubInfo, Structure* structure,
 {
     // We don't want to patch more than once - in future go to cti_op_put_by_id_generic.
     // Should probably go to JITStubs::cti_op_put_by_id_fail, but that doesn't do anything interesting right now.
-    returnAddress.relinkCallerToFunction(JITStubs::cti_op_put_by_id_generic);
+    returnAddress.relinkCallerToFunction(FunctionPtr(JITStubs::cti_op_put_by_id_generic));
 
     int offset = sizeof(JSValue) * cachedOffset;
 
@@ -569,10 +553,10 @@ void JIT::patchPutByIdReplace(StructureStubInfo* stubInfo, Structure* structure,
 
 void JIT::privateCompilePatchGetArrayLength(ProcessorReturnAddress returnAddress)
 {
-    StructureStubInfo* stubInfo = &m_codeBlock->getStubInfo(returnAddress);
+    StructureStubInfo* stubInfo = &m_codeBlock->getStubInfo(returnAddress.addressForLookup());
 
     // We don't want to patch more than once - in future go to cti_op_put_by_id_generic.
-    returnAddress.relinkCallerToFunction(JITStubs::cti_op_get_by_id_array_fail);
+    returnAddress.relinkCallerToFunction(FunctionPtr(JITStubs::cti_op_get_by_id_array_fail));
 
     // Check eax is an array
     Jump failureCases1 = branchPtr(NotEqual, Address(regT0), ImmPtr(m_globalData->jsArrayVPtr));
@@ -608,7 +592,7 @@ void JIT::privateCompilePatchGetArrayLength(ProcessorReturnAddress returnAddress
 void JIT::privateCompileGetByIdProto(StructureStubInfo* stubInfo, Structure* structure, Structure* prototypeStructure, size_t cachedOffset, ProcessorReturnAddress returnAddress, CallFrame* callFrame)
 {
     // We don't want to patch more than once - in future go to cti_op_put_by_id_generic.
-    returnAddress.relinkCallerToFunction(JITStubs::cti_op_get_by_id_proto_list);
+    returnAddress.relinkCallerToFunction(FunctionPtr(JITStubs::cti_op_get_by_id_proto_list));
 
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a Structure that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
@@ -778,7 +762,7 @@ void JIT::privateCompileGetByIdChainList(StructureStubInfo* stubInfo, Polymorphi
 void JIT::privateCompileGetByIdChain(StructureStubInfo* stubInfo, Structure* structure, StructureChain* chain, size_t count, size_t cachedOffset, ProcessorReturnAddress returnAddress, CallFrame* callFrame)
 {
     // We don't want to patch more than once - in future go to cti_op_put_by_id_generic.
-    returnAddress.relinkCallerToFunction(JITStubs::cti_op_get_by_id_proto_list);
+    returnAddress.relinkCallerToFunction(FunctionPtr(JITStubs::cti_op_get_by_id_proto_list));
 
     ASSERT(count);
     

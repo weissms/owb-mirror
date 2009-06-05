@@ -29,8 +29,10 @@
 #ifndef JITStubs_h
 #define JITStubs_h
 
-#include "Register.h"
 #include <wtf/Platform.h>
+
+#include "MacroAssemblerCodeRef.h"
+#include "Register.h"
 
 #if ENABLE(JIT)
 
@@ -71,7 +73,7 @@ namespace JSC {
 
 #if PLATFORM(X86_64)
     struct JITStackFrame {
-        JITStubArg padding; // Used by JIT_STUB_ARGUMENT_STACK stub function calling convention
+        JITStubArg padding; // Unused
         JITStubArg args[8];
 
         void* savedRBX;
@@ -94,7 +96,7 @@ namespace JSC {
     };
 #else
     struct JITStackFrame {
-        JITStubArg padding; // Used by JIT_STUB_ARGUMENT_STACK stub function calling convention
+        JITStubArg padding; // Unused
         JITStubArg args[6];
 
         void* savedEBX;
@@ -118,12 +120,16 @@ namespace JSC {
 #if USE(JIT_STUB_ARGUMENT_VA_LIST)
     #define STUB_ARGS_DECLARATION void* args, ...
     #define STUB_ARGS (reinterpret_cast<void**>(vl_args) - 1)
-#else // JIT_STUB_ARGUMENT_REGISTER or JIT_STUB_ARGUMENT_STACK
+
+    #if COMPILER(MSVC)
+    #define JIT_STUB __cdecl
+    #else
+    #define JIT_STUB
+    #endif
+#else
     #define STUB_ARGS_DECLARATION void** args
     #define STUB_ARGS (args)
-#endif
 
-#if USE(JIT_STUB_ARGUMENT_REGISTER)
     #if PLATFORM(X86_64)
     #define JIT_STUB
     #elif COMPILER(MSVC)
@@ -132,12 +138,6 @@ namespace JSC {
     #define JIT_STUB  __attribute__ ((fastcall))
     #else
     #error Need to support register calling convention in this compiler
-    #endif
-#else // JIT_STUB_ARGUMENT_VA_LIST or JIT_STUB_ARGUMENT_STACK
-    #if COMPILER(MSVC)
-    #define JIT_STUB __cdecl
-    #else
-    #define JIT_STUB
     #endif
 #endif
 
@@ -174,22 +174,22 @@ namespace JSC {
         static void tryCacheGetByID(CallFrame*, CodeBlock*, void* returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot&);
         static void tryCachePutByID(CallFrame*, CodeBlock*, void* returnAddress, JSValue baseValue, const PutPropertySlot&);
         
-        void* ctiArrayLengthTrampoline() { return m_ctiArrayLengthTrampoline; }
-        void* ctiStringLengthTrampoline() { return m_ctiStringLengthTrampoline; }
-        void* ctiVirtualCallPreLink() { return m_ctiVirtualCallPreLink; }
-        void* ctiVirtualCallLink() { return m_ctiVirtualCallLink; }
-        void* ctiVirtualCall() { return m_ctiVirtualCall; }
-        void* ctiNativeCallThunk() { return m_ctiNativeCallThunk; }
+        MacroAssemblerCodePtr ctiArrayLengthTrampoline() { return m_ctiArrayLengthTrampoline; }
+        MacroAssemblerCodePtr ctiStringLengthTrampoline() { return m_ctiStringLengthTrampoline; }
+        MacroAssemblerCodePtr ctiVirtualCallPreLink() { return m_ctiVirtualCallPreLink; }
+        MacroAssemblerCodePtr ctiVirtualCallLink() { return m_ctiVirtualCallLink; }
+        MacroAssemblerCodePtr ctiVirtualCall() { return m_ctiVirtualCall; }
+        MacroAssemblerCodePtr ctiNativeCallThunk() { return m_ctiNativeCallThunk; }
 
     private:
         RefPtr<ExecutablePool> m_executablePool;
 
-        void* m_ctiArrayLengthTrampoline;
-        void* m_ctiStringLengthTrampoline;
-        void* m_ctiVirtualCallPreLink;
-        void* m_ctiVirtualCallLink;
-        void* m_ctiVirtualCall;
-        void* m_ctiNativeCallThunk;
+        MacroAssemblerCodePtr m_ctiArrayLengthTrampoline;
+        MacroAssemblerCodePtr m_ctiStringLengthTrampoline;
+        MacroAssemblerCodePtr m_ctiVirtualCallPreLink;
+        MacroAssemblerCodePtr m_ctiVirtualCallLink;
+        MacroAssemblerCodePtr m_ctiVirtualCall;
+        MacroAssemblerCodePtr m_ctiNativeCallThunk;
     };
 
 namespace JITStubs { extern "C" {
@@ -268,6 +268,7 @@ namespace JITStubs { extern "C" {
     EncodedJSValue JIT_STUB cti_op_get_by_val(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_val_byte_array(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_val_string(STUB_ARGS_DECLARATION);
+    EncodedJSValue JIT_STUB cti_op_put_by_id_transition_realloc(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_in(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_instanceof(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_is_boolean(STUB_ARGS_DECLARATION);

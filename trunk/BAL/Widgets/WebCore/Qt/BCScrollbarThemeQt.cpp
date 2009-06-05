@@ -191,8 +191,6 @@ void ScrollbarThemeQt::invalidatePart(Scrollbar* scrollbar, ScrollbarPart)
 int ScrollbarThemeQt::scrollbarThickness(ScrollbarControlSize controlSize)
 {
     QStyle* s = QApplication::style();
-    if (!s)
-        return 11;
     QStyleOptionSlider o;
     o.orientation = Qt::Vertical;
     o.state &= ~QStyle::State_Horizontal;

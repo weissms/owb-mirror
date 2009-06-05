@@ -45,7 +45,7 @@ namespace WebCore {
 
 void SimpleFontData::platformInit()
 {
-    PixelFontType *pixelFont = m_font.m_pixelFont;
+    PixelFontType *pixelFont = m_platformData.m_pixelFont;
     m_ascent = pixelFont->height + 5; //must be 5 else text is misplaced
     m_descent = 2;
     m_lineSpacing = pixelFont->height;
@@ -86,7 +86,7 @@ bool SimpleFontData::containsCharacters(const UChar* characters, int length) con
 
 void SimpleFontData::determinePitch()
 {
-    m_treatAsFixedPitch = m_font.isFixedPitch();
+    m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
 float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
@@ -97,7 +97,7 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 void SimpleFontData::setFont(BalFont* cr) const
 {
     ASSERT(cr);
-    m_font.setFont(cr);
+    m_platformData.setFont(cr);
 }
 
 }

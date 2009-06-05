@@ -36,6 +36,7 @@ list(APPEND BAL_INCLUDE_DIRS
 )
 list(APPEND JAVASCRIPTCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/JavaScriptCore
+    ${OWB_SOURCE_DIR}/JavaScriptCore/assembler
     ${OWB_SOURCE_DIR}/JavaScriptCore/API
     ${OWB_SOURCE_DIR}/JavaScriptCore/bytecode
     ${OWB_SOURCE_DIR}/JavaScriptCore/bytecompiler

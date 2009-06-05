@@ -136,7 +136,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     int xMax = INT_MIN;
     int yMin = INT_MAX;
     int yMax = INT_MIN;
-    FT_Face face = font->m_font.m_face;
+    FT_Face face = font->m_platformData.m_face;
     for (int i = 0; i < numGlyphs; i++) {
         FT_Glyph ftGlyph;
 

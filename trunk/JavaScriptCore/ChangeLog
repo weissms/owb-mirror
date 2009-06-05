@@ -1,3 +1,263 @@
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Encapsulate many uses of void* in the assembler & jit with types that provide
+        more semantic information.  The new types are:
+        
+            * MacroAssemblerCodePtr - this wraps a pointer into JIT generated code.
+            * FunctionPtr - this wraps a pointer to a C/C++ function in JSC.
+            * ReturnAddressPtr - this wraps a return address resulting from a 'call' instruction.
+
+        Wrapping these types allows for stronger type-checking than is possible with everything
+        represented a void*.  For example, it is now enforced by the type system that near
+        calls can only be linked to JIT code and not to C functions in JSC (this was previously
+        required, but could not be enforced on the interface).
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::CodeLocationCommon::CodeLocationCommon):
+        (JSC::AbstractMacroAssembler::CodeLocationCommon::dataLocation):
+        (JSC::AbstractMacroAssembler::CodeLocationCommon::executableAddress):
+        (JSC::AbstractMacroAssembler::CodeLocationCommon::reset):
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::repatchLoadToLEA):
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::CodeLocationInstruction):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::addressForSwitch):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::addressForExceptionHandler):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::addressForJSR):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::operator!):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::reset):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::CodeLocationLabel):
+        (JSC::AbstractMacroAssembler::CodeLocationLabel::getJumpDestination):
+        (JSC::AbstractMacroAssembler::CodeLocationJump::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationJump::CodeLocationJump):
+        (JSC::AbstractMacroAssembler::CodeLocationCall::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationCall::calleeReturnAddressValue):
+        (JSC::AbstractMacroAssembler::CodeLocationCall::CodeLocationCall):
+        (JSC::AbstractMacroAssembler::CodeLocationNearCall::relink):
+        (JSC::AbstractMacroAssembler::CodeLocationNearCall::calleeReturnAddressValue):
+        (JSC::AbstractMacroAssembler::CodeLocationNearCall::CodeLocationNearCall):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabel32::repatch):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabel32::CodeLocationDataLabel32):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabelPtr::repatch):
+        (JSC::AbstractMacroAssembler::CodeLocationDataLabelPtr::CodeLocationDataLabelPtr):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkCallerToTrampoline):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkCallerToFunction):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::relinkNearCallerToTrampoline):
+        (JSC::AbstractMacroAssembler::ProcessorReturnAddress::addressForLookup):
+        (JSC::AbstractMacroAssembler::trampolineAt):
+        (JSC::AbstractMacroAssembler::PatchBuffer::link):
+        (JSC::AbstractMacroAssembler::PatchBuffer::performFinalization):
+        (JSC::::CodeLocationCommon::instructionAtOffset):
+        (JSC::::CodeLocationCommon::labelAtOffset):
+        (JSC::::CodeLocationCommon::jumpAtOffset):
+        (JSC::::CodeLocationCommon::callAtOffset):
+        (JSC::::CodeLocationCommon::nearCallAtOffset):
+        (JSC::::CodeLocationCommon::dataLabelPtrAtOffset):
+        (JSC::::CodeLocationCommon::dataLabel32AtOffset):
+        * assembler/MacroAssemblerCodeRef.h:
+        (JSC::FunctionPtr::FunctionPtr):
+        (JSC::FunctionPtr::value):
+        (JSC::FunctionPtr::executableAddress):
+        (JSC::ReturnAddressPtr::ReturnAddressPtr):
+        (JSC::ReturnAddressPtr::value):
+        (JSC::MacroAssemblerCodePtr::MacroAssemblerCodePtr):
+        (JSC::MacroAssemblerCodePtr::executableAddress):
+        (JSC::MacroAssemblerCodePtr::dataLocation):
+        (JSC::MacroAssemblerCodeRef::MacroAssemblerCodeRef):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::patchPointerForCall):
+        * jit/JIT.cpp:
+        (JSC::ctiPatchNearCallByReturnAddress):
+        (JSC::ctiPatchCallByReturnAddress):
+        (JSC::JIT::privateCompile):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JIT.h:
+        (JSC::JIT::compileCTIMachineTrampolines):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        * jit/JITCode.h:
+        (JSC::JITCode::operator !):
+        (JSC::JITCode::addressForCall):
+        (JSC::JITCode::offsetOf):
+        (JSC::JITCode::execute):
+        (JSC::JITCode::size):
+        (JSC::JITCode::HostFunction):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitNakedCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchPutByIdReplace):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdChain):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+        (JSC::JITThunks::tryCachePutByID):
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::JITStubs::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::JITThunks::ctiArrayLengthTrampoline):
+        (JSC::JITThunks::ctiStringLengthTrampoline):
+        (JSC::JITThunks::ctiVirtualCallPreLink):
+        (JSC::JITThunks::ctiVirtualCallLink):
+        (JSC::JITThunks::ctiVirtualCall):
+        (JSC::JITThunks::ctiNativeCallThunk):
+        * yarr/RegexJIT.h:
+        (JSC::Yarr::RegexCodeBlock::operator!):
+        (JSC::Yarr::RegexCodeBlock::execute):
+
+2009-06-05  Antti Koivisto  <antti@apple.com>
+
+        Try to unbreak Windows build.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-06-03  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Kilzer.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=13128
+        Safari not obeying cache header
+        
+        Export JSC::parseDate()
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-06-04  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Bug in property caching of getters and setters.
+
+        Make sure that the transition logic accounts for getters and setters.
+        If we don't we end up screwing up the transition tables so that some
+        transitions will start incorrectly believing that they need to check
+        for getters and setters. 
+
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::defineGetter):
+        (JSC::JSObject::defineSetter):
+        * runtime/JSObject.h:
+        (JSC::):
+        * runtime/Structure.h:
+
+2009-06-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Minor tweak to PatchBuffer, change it so it no longer holds a CodeRef, and instead
+        holds a separate code pointer and executable pool.  Since it now always holds its
+        own copy of the code size, and to simplify the construction sequence, it's neater
+        this way.
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::PatchBuffer::PatchBuffer):
+        (JSC::AbstractMacroAssembler::PatchBuffer::finalizeCode):
+        (JSC::AbstractMacroAssembler::PatchBuffer::code):
+        (JSC::AbstractMacroAssembler::PatchBuffer::performFinalization):
+
+2009-06-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove 'JIT_STUB_ARGUMENT_STACK' this is unused and untested.
+
+        This just leaves JIT_STUB_ARGUMENT_REGISTER and JIT_STUB_ARGUMENT_VA_LIST.
+        Since JIT_STUB_ARGUMENT_REGISTER is the sensible configuration on most platforms,
+        remove this define and make this the default behaviour.
+        Platforms must now define JIT_STUB_ARGUMENT_VA_LIST to get crazy va_list voodoo,
+        if they so desire.
+
+        (Refactoring of #ifdefs only, no functional change, no performance impact.)
+
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReference):
+        (JSC::JIT::restoreArgumentReferenceForTrampoline):
+        * jit/JITStubs.cpp:
+        (JSC::):
+        * jit/JITStubs.h:
+        * wtf/Platform.h:
+
+2009-06-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig.
+
+        * jit/JITArithmetic.cpp:
+            Remove some redundant typedefs, unused since arithmetic was added to the MacroAssembler interface.
+
+2009-06-04  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix due to header include problem.
+
+        * interpreter/Interpreter.h: Remove wtf from includes so that
+          compile can find the headers in expected places.
+
+2009-06-04  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        HashTable class (JavaScriptCore/wtf/HashTable.h) doesn't instantiated by 'new', so 
+        inheritance was removed. HashTable struct has been instantiated by operator new in
+        JSGlobalData.cpp:106.
+        HashTable couldn't inherited from FastAllocBase since struct with inheritance is 
+        no longer POD, so HashTable struct has been instantiated by fastNew, destroyed by
+        fastDelete.
+
+        * interpreter/Interpreter.h:
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::~JSGlobalData):
+        * wtf/HashTable.h:
+
+2009-06-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Wrap the code that plants pushes/pops planted by JIT in explanatorily named
+        methods; move property storage reallocation into a standard stub function.
+
+        ~No performance impact (possible <1% progression on x86-64, likely just noise).
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+            Wrap calls to push/pop.
+        * jit/JIT.h:
+            Declare the new wrapper methods.
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::preverveReturnAddressAfterCall):
+        (JSC::JIT::restoreReturnAddressBeforeReturn):
+            Define the new wrapper methods.
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_end):
+        (JSC::JIT::emit_op_ret):
+            Wrap calls to push/pop.
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+            Move property storage reallocation into a standard stub function.
+        * jit/JITStubs.cpp:
+        (JSC::JITStubs::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::JITStubs::):
+
+2009-06-04  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Single-threaded QtWebKit configuration
+        <https://bugs.webkit.org/show_bug.cgi?id=26015>
+
+        * JavaScriptCore.pri: Use ThreadingNone.cpp instead of
+        ThreadingQt.cpp and make sure ENABLE_JSC_MULTIPLE_THREADS is turned off
+        when ENABLE_SINGLE_THREADED is tuned on
+        * wtf/ThreadingNone.cpp:
+        (WTF::ThreadCondition::wait): Fix compilation warning.
+        (WTF::ThreadCondition::timedWait): Ditto.
+
 2009-06-03  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Anders Carlsson.

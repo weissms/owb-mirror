@@ -257,6 +257,9 @@ Could be worth adding to the API.
 // until callers can be weaned off of it.
 - (void)_close;
 
+// SPI for DumpRenderTree
+- (void)_updateActiveState;
+
 /*!
     @method _registerViewClass:representationClass:forURLScheme:
     @discussion Register classes that implement WebDocumentView and WebDocumentRepresentation respectively.
@@ -310,8 +313,6 @@ Could be worth adding to the API.
 // regardless of OS X version.
 + (void)_setUsesTestModeFocusRingColor:(BOOL)f;
 + (BOOL)_usesTestModeFocusRingColor;
-
-+ (NSString *)_minimumRequiredSafariBuildNumber;
 
 /*!
     @method setAlwaysShowVerticalScroller:

@@ -32,7 +32,6 @@
 #include "Editor.h"
 #include "Element.h"
 #include "EventHandler.h"
-#include "EventNames.h"
 #include "ExceptionCode.h"
 #include "FocusController.h"
 #include "FloatQuad.h"
@@ -70,7 +69,7 @@ SelectionController::SelectionController(Frame* frame, bool isDragCaretControlle
     , m_lastChangeWasHorizontalExtension(false)
     , m_isDragCaretController(isDragCaretController)
     , m_isCaretBlinkingSuspended(false)
-    , m_focused(false)
+    , m_focused(frame && frame->page() && frame->page()->focusController()->focusedFrame() == frame)
 {
 }
 
@@ -1288,8 +1287,6 @@ void SelectionController::setFocused(bool flag)
     m_focused = flag;
 
     focusedOrActiveStateChanged();
-
-    m_frame->document()->dispatchWindowEvent(flag ? eventNames().focusEvent : eventNames().blurEvent, false, false);
 }
 
 bool SelectionController::isFocusedAndActive() const

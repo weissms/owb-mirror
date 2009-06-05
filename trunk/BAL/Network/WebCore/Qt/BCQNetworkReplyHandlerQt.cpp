@@ -308,10 +308,10 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
 
         response.setHTTPHeaderField(QString::fromAscii(headerName), QString::fromAscii(m_reply->rawHeader(headerName)));
     }
-
+/*
     if (isLocalFileReply)
         response.setExpirationDate(m_startTime);
-
+*/
     QUrl redirection = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
     if (redirection.isValid()) {
         QUrl newUrl = m_reply->url().resolved(redirection);

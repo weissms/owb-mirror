@@ -61,7 +61,7 @@ public:
     virtual ~SimpleFontData();
 
 public:
-    const FontPlatformData& platformData() const { return m_font; }
+    const FontPlatformData& platformData() const { return m_platformData; }
     SimpleFontData* smallCapsFontData(const FontDescription& fontDescription) const;
 
     // vertical metrics
@@ -76,6 +76,15 @@ public:
 
     float widthForGlyph(Glyph) const;
     float platformWidthForGlyph(Glyph) const;
+
+    float spaceWidth() const { return m_spaceWidth; }
+    float adjustedSpaceWidth() const { return m_adjustedSpaceWidth; }
+
+#if PLATFORM(CG) || PLATFORM(CAIRO)
+    float syntheticBoldOffset() const { return m_syntheticBoldOffset; }
+#endif
+
+    Glyph spaceGlyph() const { return m_spaceGlyph; }
 
     virtual const SimpleFontData* fontDataForCharacter(UChar32) const;
     virtual bool containsCharacters(const UChar*, int length) const;
@@ -97,7 +106,7 @@ public:
     const GlyphData& missingGlyphData() const { return m_missingGlyphData; }
 
 #if PLATFORM(MAC)
-    NSFont* getNSFont() const { return m_font.font(); }
+    NSFont* getNSFont() const { return m_platformData.font(); }
 #endif
 
 #if USE(CORE_TEXT)
@@ -116,7 +125,7 @@ public:
 #endif
 
 #if PLATFORM(QT)
-    QFont getQtFont() const { return m_font.font(); }
+    QFont getQtFont() const { return m_platformData.font(); }
 #endif
 
 #if PLATFORM(WIN)
@@ -133,7 +142,7 @@ public:
 #endif
 
 #if PLATFORM(WX)
-    wxFont* getWxFont() const { return m_font.font(); }
+    wxFont* getWxFont() const { return m_platformData.font(); }
 #endif
 
 private:
@@ -152,7 +161,6 @@ private:
     float widthForGDIGlyph(Glyph glyph) const;
 #endif
 
-public:
     int m_ascent;
     int m_descent;
     int m_lineSpacing;
@@ -162,7 +170,7 @@ public:
     float m_xHeight;
     unsigned m_unitsPerEm;
 
-    FontPlatformData m_font;
+    FontPlatformData m_platformData;
 
     mutable GlyphWidthMap m_glyphToWidthMap;
 
@@ -187,18 +195,22 @@ public:
     float m_syntheticBoldOffset;
 #endif
 
-#if PLATFORM(MAC)
 #ifdef BUILDING_ON_TIGER
+public:
     void* m_styleGroup;
-#endif
+
+private:
 #endif
 
 #if USE(ATSUI)
+public:
     mutable ATSUStyle m_ATSUStyle;
     mutable bool m_ATSUStyleInitialized;
     mutable bool m_ATSUMirrors;
     mutable bool m_checkedShapesArabic;
     mutable bool m_shapesArabic;
+
+private:
 #endif
 
 #if USE(CORE_TEXT)

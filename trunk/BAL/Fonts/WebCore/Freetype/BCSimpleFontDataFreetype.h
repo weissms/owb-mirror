@@ -47,7 +47,7 @@ public:
     virtual ~SimpleFontData();
 
 public:
-    const FontPlatformData& platformData() const { return m_font; }
+    const FontPlatformData& platformData() const { return m_platformData; }
     SimpleFontData* smallCapsFontData(const FontDescription& fontDescription) const;
 
     // vertical metrics
@@ -62,6 +62,17 @@ public:
 
     float widthForGlyph(Glyph) const;
     float platformWidthForGlyph(Glyph) const;
+
+    float spaceWidth() const { return m_spaceWidth; }
+    float adjustedSpaceWidth() const { return m_adjustedSpaceWidth; }
+
+#if PLATFORM(CG) || PLATFORM(CAIRO)
+    float syntheticBoldOffset() const { return m_syntheticBoldOffset; }
+#endif
+
+    Glyph spaceGlyph() const { return m_spaceGlyph; }
+
+
 
     virtual const SimpleFontData* fontDataForCharacter(UChar32) const;
     virtual bool containsCharacters(const UChar*, int length) const;
@@ -104,7 +115,7 @@ public:
     float m_xHeight;
     unsigned m_unitsPerEm;
 
-    FontPlatformData m_font;
+    FontPlatformData m_platformData;
 
     mutable GlyphWidthMap m_glyphToWidthMap;
 
@@ -124,6 +135,10 @@ public:
     GlyphData m_missingGlyphData;
 
     mutable SimpleFontData* m_smallCapsFontData;
+
+#if PLATFORM(CG) || PLATFORM(CAIRO)
+    float m_syntheticBoldOffset;
+#endif
 
 };
 

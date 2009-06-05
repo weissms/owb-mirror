@@ -49,7 +49,7 @@ const SimpleFontData* FontCache::getFontDataForCharacters(const Font& font, cons
 {
     FcResult fresult;
     // Avoid copying FontPlatformData.
-    FontPlatformData* prim = const_cast<FontPlatformData*>(&font.primaryFont()->m_font);
+    FontPlatformData* prim = const_cast<FontPlatformData*>(&font.primaryFont()->m_platformData);
 
     if (!prim->m_fallbacks)
         prim->m_fallbacks = FcFontSort(NULL, prim->m_pattern, FcTrue, NULL, &fresult);

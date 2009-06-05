@@ -47,7 +47,7 @@ namespace WebCore {
 
 void SimpleFontData::platformInit()
 {
-    FT_Face face = m_font.m_face;
+    FT_Face face = m_platformData.m_face;
     if (face) {
         m_ascent = static_cast<int> (DOUBLE_FROM_26_6(face->size->metrics.ascender));
         m_descent = -static_cast<int> (DOUBLE_FROM_26_6(face->size->metrics.descender));
@@ -71,14 +71,14 @@ void SimpleFontData::platformCharWidthInit()
 
 void SimpleFontData::platformDestroy()
 {
-    if (m_font.m_pattern && ((FcPattern*)-1 != m_font.m_pattern)) {
-        FcPatternDestroy(m_font.m_pattern);
-        m_font.m_pattern = 0;
+    if (m_platformData.m_pattern && ((FcPattern*)-1 != m_platformData.m_pattern)) {
+        FcPatternDestroy(m_platformData.m_pattern);
+        m_platformData.m_pattern = 0;
     }
     
-    if (m_font.m_fallbacks) {
-        FcFontSetDestroy(m_font.m_fallbacks);
-        m_font.m_fallbacks = 0;
+    if (m_platformData.m_fallbacks) {
+        FcFontSetDestroy(m_platformData.m_fallbacks);
+        m_platformData.m_fallbacks = 0;
     }
     
     if (m_smallCapsFontData)
@@ -99,7 +99,7 @@ SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDes
 
 bool SimpleFontData::containsCharacters(const UChar* characters, int length) const
 {
-    FT_Face face = m_font.m_face;
+    FT_Face face = m_platformData.m_face;
     if (!face)
         return false;
 
@@ -113,12 +113,12 @@ bool SimpleFontData::containsCharacters(const UChar* characters, int length) con
 
 void SimpleFontData::determinePitch()
 {
-    m_treatAsFixedPitch = m_font.isFixedPitch();
+    m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
 float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 {
-    FT_Face face = m_font.m_face;
+    FT_Face face = m_platformData.m_face;
     if (FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT)) {
         return m_spaceWidth;
     }
@@ -130,7 +130,7 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 void SimpleFontData::setFont(BalFont* cr) const
 {
     ASSERT(cr);
-    m_font.setFont(cr);
+    m_platformData.setFont(cr);
 }
 
 }

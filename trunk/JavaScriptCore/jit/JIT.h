@@ -166,8 +166,10 @@ namespace JSC {
         unsigned propertyAccessIndex;
     };
 
-    void ctiPatchCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, void* newCalleeFunction);
-    void ctiPatchNearCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, void* newCalleeFunction);
+    // Near calls can only be patched to other JIT code, regular calls can be patched to JIT code or relinked to stub functions.
+    void ctiPatchNearCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, MacroAssemblerCodePtr newCalleeFunction);
+    void ctiPatchCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, MacroAssemblerCodePtr newCalleeFunction);
+    void ctiPatchCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, FunctionPtr newCalleeFunction);
 
     class JIT : private MacroAssembler {
         friend class JITStubCall;
@@ -183,6 +185,8 @@ namespace JSC {
         // call will always be in regT0, and by default (unless
         // a register is specified) emitPutVirtualRegister() will store
         // the value from regT0.
+        //
+        // regT3 is required to be callee-preserved.
         //
         // tempRegister2 is has no such dependencies.  It is important that
         // on x86/x86-64 it is ecx for performance reasons, since the
@@ -201,7 +205,6 @@ namespace JSC {
         static const RegisterID regT0 = X86::eax;
         static const RegisterID regT1 = X86::edx;
         static const RegisterID regT2 = X86::ecx;
-        // NOTE: privateCompileCTIMachineTrampolines() relies on this being callee preserved; this should be considered non-interface.
         static const RegisterID regT3 = X86::ebx;
 
         static const FPRegisterID fpRegT0 = X86::xmm0;
@@ -220,7 +223,6 @@ namespace JSC {
         static const RegisterID regT0 = X86::eax;
         static const RegisterID regT1 = X86::edx;
         static const RegisterID regT2 = X86::ecx;
-        // NOTE: privateCompileCTIMachineTrampolines() relies on this being callee preserved; this should be considered non-interface.
         static const RegisterID regT3 = X86::ebx;
 
         static const FPRegisterID fpRegT0 = X86::xmm0;
@@ -234,18 +236,6 @@ namespace JSC {
         // Magic number - initial offset cannot be representable as a signed 8bit value, or the X86Assembler
         // will compress the displacement, and we may not be able to fit a patched offset.
         static const int patchGetByIdDefaultOffset = 256;
-
-#if USE(JIT_STUB_ARGUMENT_REGISTER)
-#if PLATFORM(X86_64)
-        static const int ctiArgumentInitSize = 6;
-#else
-        static const int ctiArgumentInitSize = 2;
-#endif
-#elif USE(JIT_STUB_ARGUMENT_STACK)
-        static const int ctiArgumentInitSize = 4;
-#else // JIT_STUB_ARGUMENT_VA_LIST
-        static const int ctiArgumentInitSize = 0;
-#endif
 
 #if PLATFORM(X86_64)
         // These architecture specific value are used to enable patching - see comment on op_put_by_id.
@@ -263,9 +253,9 @@ namespace JSC {
         static const int patchOffsetGetByIdPropertyMapOffset = 31;
         static const int patchOffsetGetByIdPutResult = 31;
 #if ENABLE(OPCODE_SAMPLING)
-        static const int patchOffsetGetByIdSlowCaseCall = 61 + ctiArgumentInitSize;
+        static const int patchOffsetGetByIdSlowCaseCall = 66;
 #else
-        static const int patchOffsetGetByIdSlowCaseCall = 38 + ctiArgumentInitSize;
+        static const int patchOffsetGetByIdSlowCaseCall = 44;
 #endif
         static const int patchOffsetOpCallCompareToJump = 9;
 
@@ -287,10 +277,14 @@ namespace JSC {
         static const int patchLengthGetByIdExternalLoadPrefix = 0;
         static const int patchOffsetGetByIdPropertyMapOffset = 22;
         static const int patchOffsetGetByIdPutResult = 22;
-#if ENABLE(OPCODE_SAMPLING)
-        static const int patchOffsetGetByIdSlowCaseCall = 31 + ctiArgumentInitSize;
+#if ENABLE(OPCODE_SAMPLING) && USE(JIT_STUB_ARGUMENT_VA_LIST)
+        static const int patchOffsetGetByIdSlowCaseCall = 31;
+#elif ENABLE(OPCODE_SAMPLING)
+        static const int patchOffsetGetByIdSlowCaseCall = 33;
+#elif USE(JIT_STUB_ARGUMENT_VA_LIST)
+        static const int patchOffsetGetByIdSlowCaseCall = 21;
 #else
-        static const int patchOffsetGetByIdSlowCaseCall = 21 + ctiArgumentInitSize;
+        static const int patchOffsetGetByIdSlowCaseCall = 23;
 #endif
         static const int patchOffsetOpCallCompareToJump = 6;
 
@@ -340,7 +334,7 @@ namespace JSC {
             jit.privateCompilePutByIdTransition(stubInfo, oldStructure, newStructure, cachedOffset, chain, returnAddress);
         }
 
-        static void compileCTIMachineTrampolines(JSGlobalData* globalData, RefPtr<ExecutablePool>* executablePool, void** ctiArrayLengthTrampoline, void** ctiStringLengthTrampoline, void** ctiVirtualCallPreLink, void** ctiVirtualCallLink, void** ctiVirtualCall, void** ctiNativeCallThunk)
+        static void compileCTIMachineTrampolines(JSGlobalData* globalData, RefPtr<ExecutablePool>* executablePool, CodePtr* ctiArrayLengthTrampoline, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallPreLink, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk)
         {
             JIT jit(globalData);
             jit.privateCompileCTIMachineTrampolines(executablePool, globalData, ctiArrayLengthTrampoline, ctiStringLengthTrampoline, ctiVirtualCallPreLink, ctiVirtualCallLink, ctiVirtualCall, ctiNativeCallThunk);
@@ -384,7 +378,7 @@ namespace JSC {
         void privateCompileGetByIdChain(StructureStubInfo*, Structure*, StructureChain*, size_t count, size_t cachedOffset, ProcessorReturnAddress returnAddress, CallFrame* callFrame);
         void privateCompilePutByIdTransition(StructureStubInfo*, Structure*, Structure*, size_t cachedOffset, StructureChain*, ProcessorReturnAddress returnAddress);
 
-        void privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executablePool, JSGlobalData* data, void** ctiArrayLengthTrampoline, void** ctiStringLengthTrampoline, void** ctiVirtualCallPreLink, void** ctiVirtualCallLink, void** ctiVirtualCall, void** ctiNativeCallThunk);
+        void privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executablePool, JSGlobalData* data, CodePtr* ctiArrayLengthTrampoline, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallPreLink, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk);
         void privateCompilePatchGetArrayLength(ProcessorReturnAddress returnAddress);
 
         void addSlowCase(Jump);
@@ -629,7 +623,10 @@ namespace JSC {
         void restoreArgumentReference();
         void restoreArgumentReferenceForTrampoline();
 
-        Call emitNakedCall(void* function);
+        Call emitNakedCall(CodePtr function = CodePtr());
+        void preverveReturnAddressAfterCall(RegisterID);
+        void restoreReturnAddressBeforeReturn(RegisterID);
+        void restoreReturnAddressBeforeReturn(Address);
 
         void emitGetVariableObjectRegister(RegisterID variableObject, int index, RegisterID dst);
         void emitPutVariableObjectRegister(RegisterID src, RegisterID variableObject, int index);
