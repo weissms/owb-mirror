@@ -1,3 +1,10 @@
+2009-06-05  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Work-around an issue in Offline applications.
+
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::didReceiveResponse):
+
 2009-05-07  Sebastien Roret  <sroret@pleyo.com>
 
         Enabling generic NPAPI support.

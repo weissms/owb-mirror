@@ -449,6 +449,7 @@ void ApplicationCacheGroup::didReceiveResponse(ResourceHandle* handle, const Res
         ApplicationCacheResource* newestCachedResource = m_newestCache->resourceForURL(handle->request().url());
         if (newestCachedResource) {
             m_cacheBeingUpdated->addResource(ApplicationCacheResource::create(url, newestCachedResource->response(), type, newestCachedResource->data()));
+            m_pendingEntries.remove(handle->request().url());
             m_currentHandle->cancel();
             m_currentHandle = 0;
             // Load the next resource, if any.
