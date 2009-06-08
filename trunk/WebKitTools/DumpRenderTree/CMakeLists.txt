@@ -12,8 +12,6 @@ list(APPEND DUMPRENDERTREE_SRC
     LayoutTestController.cpp
     GCController.cpp
     WorkQueue.cpp
-#    AccessibilityController.cpp
-#    AccessibilityUIElement.cpp
     bal/DumpRenderTree.cpp
     bal/LayoutTestControllerBal.cpp    
     bal/WorkQueueItemBal.cpp
