@@ -305,7 +305,6 @@ void JIT::emit_op_ret(Instruction* currentInstruction)
     // Return.
     restoreReturnAddressBeforeReturn(regT1);
     ret();
-
 }
 
 void JIT::emit_op_new_array(Instruction* currentInstruction)
@@ -517,7 +516,7 @@ void JIT::emit_op_jsr(Instruction* currentInstruction)
 {
     int retAddrDst = currentInstruction[1].u.operand;
     int target = currentInstruction[2].u.operand;
-    DataLabelPtr storeLocation = storePtrWithPatch(Address(callFrameRegister, sizeof(Register) * retAddrDst));
+    DataLabelPtr storeLocation = storePtrWithPatch(ImmPtr(0), Address(callFrameRegister, sizeof(Register) * retAddrDst));
     addJump(jump(), target + 2);
     m_jsrSites.append(JSRInfo(storeLocation, label()));
     killLastResultRegister();
@@ -623,22 +622,10 @@ void JIT::emit_op_throw(Instruction* currentInstruction)
     stubCall.addArgument(currentInstruction[1].u.operand, regT2);
     stubCall.call();
     ASSERT(regT0 == returnValueRegister);
-#if PLATFORM(X86_64)
-    addPtr(Imm32(0x48), X86::esp);
-    pop(X86::ebx);
-    pop(X86::r15);
-    pop(X86::r14);
-    pop(X86::r13);
-    pop(X86::r12);
-    pop(X86::ebp);
-    ret();
-#else
-    addPtr(Imm32(0x1c), X86::esp);
-    pop(X86::ebx);
-    pop(X86::edi);
-    pop(X86::esi);
-    pop(X86::ebp);
-    ret();
+#ifndef NDEBUG
+    // cti_op_throw always changes it's return address,
+    // this point in the code should never be reached.
+    breakpoint();
 #endif
 }
 

@@ -145,6 +145,9 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1 ENABLE_PLUGIN_PACKAGE_SIMPLE_HASH=1
 
+# Ensure that we pick up WebCore's config.h over JavaScriptCore's
+INCLUDEPATH = $$PWD $$INCLUDEPATH
+
 include($$PWD/../JavaScriptCore/JavaScriptCore.pri)
 
 RESOURCES += \
@@ -698,6 +701,7 @@ SOURCES += \
     editing/RemoveFormatCommand.cpp \
     editing/RemoveNodeCommand.cpp \
     editing/RemoveNodePreservingChildrenCommand.cpp \
+    editing/ReplaceNodeWithSpanCommand.cpp \
     editing/ReplaceSelectionCommand.cpp \
     editing/SelectionController.cpp \
     editing/SetNodeAttributeCommand.cpp \
@@ -1076,7 +1080,6 @@ SOURCES += \
 HEADERS += \
     $$PWD/platform/graphics/qt/StillImageQt.h \
     $$PWD/platform/qt/QWebPopup.h \
-    $$PWD/platform/qt/MenuEventProxy.h \
     $$PWD/../WebKit/qt/Api/qwebpluginfactory.h \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
     $$PWD/platform/network/qt/QNetworkReplyHandler.h \

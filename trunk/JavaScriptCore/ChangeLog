@@ -1,3 +1,144 @@
+2009-06-08  Gavin Barraclough  <barraclough@apple.com>
+
+        RS by Sam Weinig.
+
+        Remove bonus bogus \n from last commit.
+
+        * jit/JITStubs.cpp:
+        (JSC::):
+
+2009-06-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Change the implementation of op_throw so the stub function always modifies its
+        return address - if it doesn't find a 'catch' it will switch to a trampoline
+        to force a return from JIT execution.  This saves memory, by avoiding the need
+        for a unique return for every op_throw.
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_throw):
+            JITStubs::cti_op_throw now always changes its return address,
+            remove return code generated after the stub call (this is now
+            handled by ctiOpThrowNotCaught).
+        * jit/JITStubs.cpp:
+        (JSC::):
+            Add ctiOpThrowNotCaught definitions.
+        (JSC::JITStubs::DEFINE_STUB_FUNCTION):
+            Change cti_op_throw to always change its return address.
+        * jit/JITStubs.h:
+            Add ctiOpThrowNotCaught declaration.
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Rudder stamped by Sam Weinig.
+
+        Add missing ASSERT.
+
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::getRelocatedAddress):
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Switch storePtrWithPatch to take the initial immediate value as an argument.
+
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::storePtrWithPatch):
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::storePtrWithPatch):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_jsr):
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove patchLength..tByIdExternalLoadPrefix magic numbers from JIT.h.
+
+        These aren't really suitable values to be tracking within common code
+        of the JIT, since they are not (and realistically cannot) be checked
+        by ASSERTs, as the other repatch offsets are.  Move this functionality
+        (skipping the REX prefix when patching load instructions to LEAs on
+        x86-64) into the X86Assembler.
+
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::CodeLocationInstruction::repatchLoadPtrToLEA):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::repatchLoadPtrToLEA):
+        * jit/JIT.h:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchPutByIdReplace):
+
+2009-06-05  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Bug 26160: Compile fails in MacOSX when GNU fileutils are installed
+
+        <https://bugs.webkit.org/show_bug.cgi?id=26160>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Use /bin/ln instead of ln for cases where this command is used with -h option.
+        As this option is not supported by GNU fileutils, this change helps users 
+        who have GNU fileutils in their PATH.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove DoubleNotEqual floating point comparison condition for now -
+        it is not used, and it is unclear the semantics are correct (I think
+        this comparison would actually give you not-equal-or-unordered, which
+        might be what is wanted... we can revisit this interface & get it
+        right when required).
+
+        Also, fix asserts in branchArith32 ops.  All adds & subs can check
+        for Signed, multiply only sets OF so can only check for overflow.
+
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::):
+        (JSC::MacroAssemblerX86Common::branchAdd32):
+        (JSC::MacroAssemblerX86Common::branchMul32):
+        (JSC::MacroAssemblerX86Common::branchSub32):
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Minor tidy up in JITStubs.
+
+        * jit/JITStubs.cpp:
+        (JSC::StackHack::StackHack):
+        * jit/JITStubs.h:
+
+2009-06-05  Koen Kooi <koen@dominion.thruhere.net>
+
+        Reviewed by Xan Lopez.
+
+        Build fix for glib unicode backend.
+
+        * wtf/unicode/glib/UnicodeMacrosFromICU.h:
+
+2009-06-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        3 tiny cleanups:
+
+        * assembler/MacroAssemblerX86.h:
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::storePtrWithPatch):
+            store*() methods should take an ImplicitAddress, rather than an Address.
+        * assembler/X86Assembler.h:
+            Make patchPointer private.
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_ret):
+            Remove empty line at end of function.
+
 2009-06-05  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.

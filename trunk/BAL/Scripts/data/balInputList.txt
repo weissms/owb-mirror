@@ -44,7 +44,6 @@ BAL/Events/WebCore/Gtk	WebCore/platform/gtk/MouseEventGtk.cpp	BCPlatformMouseEve
 BAL/Events/WebCore/Gtk	WebCore/platform/gtk/WheelEventGtk.cpp	BCPlatformWheelEventGtk.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/EventLoopQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformKeyboardEventQt.cpp
-BAL/Events/WebCore/Qt	WebCore/platform/qt/MenuEventProxy.h
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformMouseEventQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/WheelEventQt.cpp	BCPlatformWheelEventQt.cpp
 BAL/Events/WebCore/WK	WebCore/platform/EventLoop.h

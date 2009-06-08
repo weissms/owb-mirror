@@ -104,6 +104,8 @@ SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
     "movl %esp, %ecx" "\n"
 #endif
     "call " SYMBOL_STRING(cti_vm_throw) "\n"
+".globl " SYMBOL_STRING(ctiOpThrowNotCaught) "\n"
+SYMBOL_STRING(ctiOpThrowNotCaught) ":" "\n"
     "addl $0x1c, %esp" "\n"
     "popl %ebx" "\n"
     "popl %edi" "\n"
@@ -155,6 +157,8 @@ asm(
 SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
     "movq %rsp, %rdi" "\n"
     "call " SYMBOL_STRING(cti_vm_throw) "\n"
+".globl " SYMBOL_STRING(ctiOpThrowNotCaught) "\n"
+SYMBOL_STRING(ctiOpThrowNotCaught) ":" "\n"
     "addq $0x48, %rsp" "\n"
     "popq %rbx" "\n"
     "popq %r15" "\n"
@@ -178,7 +182,7 @@ COMPILE_ASSERT(offsetof(struct JITStackFrame, code) == 0x30, JITStackFrame_code_
 COMPILE_ASSERT(offsetof(struct JITStackFrame, savedEBX) == 0x1c, JITStackFrame_stub_argument_space_matches_ctiTrampoline);
 
 extern "C" {
-    
+
     __declspec(naked) EncodedJSValue ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValue* exception, Profiler**, JSGlobalData*)
     {
         __asm {
@@ -200,7 +204,7 @@ extern "C" {
             ret;
         }
     }
-    
+
     __declspec(naked) void ctiVMThrowTrampoline()
     {
         __asm {
@@ -214,7 +218,18 @@ extern "C" {
             ret;
         }
     }
-    
+
+    __declspec(naked) void ctiOpThrowNotCaught()
+    {
+        __asm {
+            add esp, 0x1c;
+            pop ebx;
+            pop edi;
+            pop esi;
+            pop ebp;
+            ret;
+        }
+    }
 }
 
 #endif
@@ -381,8 +396,8 @@ static void jscGeneratedNativeCode()
 struct StackHack {
     ALWAYS_INLINE StackHack(JITStackFrame& stackFrame) 
         : stackFrame(stackFrame)
+        , savedReturnAddress(*stackFrame.returnAddressSlot())
     {
-        savedReturnAddress = *stackFrame.returnAddressSlot();
         *stackFrame.returnAddressSlot() = reinterpret_cast<void*>(jscGeneratedNativeCode);
     }
 
@@ -395,14 +410,14 @@ struct StackHack {
     void* savedReturnAddress;
 };
 
-#define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS); StackHack stackHack(stackFrame);
+#define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS); StackHack stackHack(stackFrame)
 #define STUB_SET_RETURN_ADDRESS(returnAddress) stackHack.savedReturnAddress = returnAddress
 #define STUB_RETURN_ADDRESS stackHack.savedReturnAddress
 
 #else
 
-#define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS);
-#define STUB_SET_RETURN_ADDRESS(returnAddress) *stackFrame.returnAddressSlot() = returnAddress;
+#define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS)
+#define STUB_SET_RETURN_ADDRESS(returnAddress) *stackFrame.returnAddressSlot() = returnAddress
 #define STUB_RETURN_ADDRESS *stackFrame.returnAddressSlot()
 
 #endif
@@ -2214,6 +2229,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_throw)
 
     if (!handler) {
         *stackFrame.exception = exceptionValue;
+        STUB_SET_RETURN_ADDRESS(reinterpret_cast<void*>(ctiOpThrowNotCaught));
         return JSValue::encode(jsNull());
     }
 

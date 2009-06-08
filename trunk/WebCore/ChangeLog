@@ -1,3 +1,203 @@
+2009-06-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/6931661> -[WebView _selectionIsAll] returns YES
+          when the selection is inside a text field.
+
+        * editing/VisibleSelection.cpp:
+        (WebCore::VisibleSelection::isAll): Return false if the selection is in
+        a shadow tree.
+
+2009-06-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26106
+        [GTK] Crashes when you keep a combo open during a page transition, then close it
+
+        Hide the combo popup and disconnect from its signals during
+        PopupMenu destruction to handle this exceptional case with no
+        crash.
+
+        * platform/gtk/PopupMenuGtk.cpp:
+        (WebCore::PopupMenu::~PopupMenu):
+        (WebCore::PopupMenu::menuUnmapped):
+
+2009-06-06  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/6930540>
+        REGRESSION (r43797): Serif and fantasy font-family names are wrong in result of getComputedStyle
+
+        Test: fast/css/font-family-builtins.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::identifierForFamily): Fix typo. Fantasy family should be
+        -webkit-fantasy not, -webkit-serif.
+
+2009-06-06  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Brady Eidson.
+
+        Fix for <rdar://problem/6936235>
+        Need to support StorageEvent.storageArea to meet the Web Storage spec
+
+        * storage/LocalStorageArea.cpp:
+        (WebCore::LocalStorageArea::dispatchStorageEvent): Pass the localStorage for
+        the frame being dispatched to.
+        * storage/SessionStorageArea.cpp:
+        (WebCore::SessionStorageArea::dispatchStorageEvent): Ditto, only for sessionStorage.
+
+        * storage/StorageEvent.cpp:
+        (WebCore::StorageEvent::StorageEvent):
+        (WebCore::StorageEvent::initStorageEvent):
+        * storage/StorageEvent.h:
+        (WebCore::StorageEvent::create):
+        (WebCore::StorageEvent::storageArea):
+        * storage/StorageEvent.idl:
+        Add storageArea member.
+
+2009-06-05  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fix WMLInputElement initialization code. Don't call initialize() on attach(), let
+        WMLCardElement handle initialization once, after the document has been parsed.
+
+        To keep layout tests working introduce a new function in Document.idl: initializeWMLPageState().
+        WMLTestCase.js (the wml/ layout test framework) will use it to simulate a regular WML document,
+        whose variable state gets initialized on WMLDocument::finishedParsing(). Force initialization
+        of the WML variable state, right after the dynamically created elements have been inserted into the tree.
+
+        * dom/Document.cpp:
+        (WebCore::Document::initializeWMLPageState):
+        * dom/Document.h:
+        * dom/Document.idl:
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::handleIntrinsicEventIfNeeded):
+        * wml/WMLDocument.cpp:
+        (WebCore::WMLDocument::finishedParsing):
+        (WebCore::WMLDocument::initialize):
+        * wml/WMLDocument.h:
+        * wml/WMLInputElement.cpp:
+        (WebCore::WMLInputElement::initialize):
+        * wml/WMLInputElement.h:
+
+2009-06-05  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Add ononline and onoffline attributes for the <body> element. 
+
+        * html/HTMLAttributeNames.in: Added ononlineAttr and onofflineAttr.
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute): Map ononlineAttr
+        and onofflineAttr to window event listeners.
+
+2009-06-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add missing includes of config.h
+
+        * platform/qt/QWebPopup.cpp:
+        * platform/text/qt/TextBreakIteratorQt.cpp:
+
+2009-06-05  Fumitoshi Ukai  <ukai@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26215
+        Try to fix the Chromium build.
+
+        * platform/graphics/chromium/GlyphPageTreeNodeChromiumWin.cpp:
+        (WebCore::fillBMPGlyphs):
+        (WebCore::fillNonBMPGlyphs):
+
+2009-06-05  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Bug 26160: Compile fails in MacOSX when GNU fileutils are installed
+
+        <https://bugs.webkit.org/show_bug.cgi?id=26160>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Use /bin/ln instead of ln for cases where this command is used with -h option.
+        As this option is not supported by GNU fileutils, this change helps users 
+        who have GNU fileutils in their PATH.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2009-06-03  Ben Murdoch  <benm@google.com>
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25710> HTML5 Database stops executing transactions if the URL hash changes while a transaction is open and an XHR is in progress.
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix a bug that causes database transactions to fail if a history navigation to a hash fragment of the same document is made while resources (e.g. an XHR) are loading
+
+        Test: storage/hash-change-with-xhr.html
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::stopLoading):
+        * loader/DocumentLoader.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopLoading):
+        (WebCore::FrameLoader::stopAllLoaders):
+        * loader/FrameLoader.h:
+        * loader/FrameLoaderTypes.h:
+        (WebCore::):
+        * page/Page.cpp:
+        (WebCore::Page::goToItem):
+        * WebCore.base.exp:
+
+2009-06-03  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Make sure the correct config.h is included when shadowbuilding
+
+        * WebCore.pro:
+
+2009-06-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix Qt build after r44452
+
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+        (WebCore::QNetworkReplyHandler::sendResponseIfNeeded):
+
+2009-06-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Remove some dead code (MenuEventProxy)
+
+        * WebCore.pro:
+        * platform/ContextMenu.h:
+        * platform/qt/ContextMenuQt.cpp:
+        * platform/qt/MenuEventProxy.h: Removed.
+
+2009-06-05  Xan Lopez  <xlopez@igalia.com>
+
+        More build fixes.
+
+        * platform/graphics/gtk/GlyphPageTreeNodePango.cpp:
+        (WebCore::GlyphPage::fill):
+
+2009-06-05  Xan Lopez  <xlopez@igalia.com>
+
+        Fix the GTK+ build.
+
+        * GNUmakefile.am:
+        * platform/graphics/gtk/FontCacheGtk.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        * platform/graphics/gtk/GlyphPageTreeNodeGtk.cpp:
+        (WebCore::GlyphPage::fill):
+
 2009-06-05  Antti Koivisto  <antti@apple.com>
 
         Try to fix Windows (and possibly other platforms) build.

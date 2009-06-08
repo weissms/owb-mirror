@@ -508,10 +508,29 @@ sub checkFrameworks
     }
 }
 
+sub libraryContainsSymbol
+{
+    my $path = shift;
+    my $symbol = shift;
+
+    if (isCygwin()) {
+        # FIXME: Implement this for Windows.
+        return 0;
+    }
+
+    my $foundSymbol = 0;
+    if (-e $path) {
+        open NM, "-|", "nm", $path or die;
+        while (<NM>) {
+            $foundSymbol = 1 if /$symbol/;
+        }
+        close NM;
+    }
+    return $foundSymbol;
+}
+
 sub hasSVGSupport
 {
-    return 0 if isCygwin();
-
     my $path = shift;
 
     if (isQt()) {
@@ -522,15 +541,7 @@ sub hasSVGSupport
         return 0;
     }
 
-    my $hasSVGSupport = 0;
-    if (-e $path) {
-        open NM, "-|", "nm", $path or die;
-        while (<NM>) {
-            $hasSVGSupport = 1 if /SVGElement/;
-        }
-        close NM;
-    }
-    return $hasSVGSupport;
+    return libraryContainsSymbol($path, "SVGElement");
 }
 
 sub removeLibraryDependingOnSVG
@@ -562,16 +573,7 @@ sub hasAcceleratedCompositingSupport
     return 0 if isCygwin() || isQt();
 
     my $path = shift;
-
-    my $useAcceleratedCompositing = 0;
-    if (-e $path) {
-        open NM, "-|", "nm", $path or die;
-        while (<NM>) {
-            $useAcceleratedCompositing = 1 if /GraphicsLayer/;
-        }
-        close NM;
-    }
-    return $useAcceleratedCompositing;
+    return libraryContainsSymbol($path, "GraphicsLayer");
 }
 
 sub checkWebCoreAcceleratedCompositingSupport
@@ -588,19 +590,10 @@ sub checkWebCoreAcceleratedCompositingSupport
 
 sub has3DRenderingSupport
 {
-    return 0 if isCygwin() || isQt();
+    return 0 if isQt();
 
     my $path = shift;
-
-    my $has3DRenderingSupport = 0;
-    if (-e $path) {
-        open NM, "-|", "nm", $path or die;
-        while (<NM>) {
-            $has3DRenderingSupport = 1 if /WebCoreHas3DRendering/;
-        }
-        close NM;
-    }
-    return $has3DRenderingSupport;
+    return libraryContainsSymbol($path, "WebCoreHas3DRendering");
 }
 
 sub checkWebCore3DRenderingSupport
@@ -617,24 +610,8 @@ sub checkWebCore3DRenderingSupport
 
 sub hasWMLSupport
 {
-    return 0 if isCygwin();
-
     my $path = shift;
-
-    if (isQt()) {
-        # FIXME: Check built library for WML support, just like Gtk does it below.
-        return 0;
-    }
-
-    my $hasWMLSupport = 0;
-    if (-e $path) {
-        open NM, "-|", "nm", $path or die;
-        while (<NM>) {
-            $hasWMLSupport = 1 if /WMLElement/;
-        }
-        close NM;
-    }
-    return $hasWMLSupport;
+    return libraryContainsSymbol($path, "WMLElement");
 }
 
 sub removeLibraryDependingOnWML
@@ -659,6 +636,43 @@ sub checkWebCoreWMLSupport
         die "$framework at \"$path\" does not include WML Support, please run build-webkit --wml\n";
     }
     return $hasWML;
+}
+
+sub hasXHTMLMPSupport
+{
+    my $path = shift;
+    return libraryContainsSymbol($path, "isXHTMLMPDocument");
+}
+
+sub checkWebCoreXHTMLMPSupport
+{
+    my $required = shift;
+    my $framework = "WebCore";
+    my $path = builtDylibPathForName($framework);
+    my $hasXHTMLMP = hasXHTMLMPSupport($path);
+    if ($required && !$hasXHTMLMP) {
+        die "$framework at \"$path\" does not include XHTML MP Support\n";
+    }
+    return $hasXHTMLMP;
+}
+
+sub hasWCSSSupport
+{
+    # FIXME: When WCSS support is landed this should be updated to check for WCSS
+    # being enabled in a manner similar to how we check for XHTML MP above.
+    return 0;
+}
+
+sub checkWebCoreWCSSSupport
+{
+    my $required = shift;
+    my $framework = "WebCore";
+    my $path = builtDylibPathForName($framework);
+    my $hasWCSS = hasWCSSSupport($path);
+    if ($required && !$hasWCSS) {
+        die "$framework at \"$path\" does not include WCSS Support\n";
+    }
+    return $hasWCSS;
 }
 
 sub isQt()
@@ -1022,7 +1036,8 @@ sub retrieveQMakespecVar
             # open the included mkspec
             my $oldcwd = getcwd();
             (my $volume, my $directories, my $file) = File::Spec->splitpath($mkspec);
-            chdir "$volume$directories";
+            my $newcwd = "$volume$directories";
+            chdir $newcwd if $newcwd;
             $compiler = retrieveQMakespecVar($1, $varname);
             chdir $oldcwd;
         } elsif ($_ =~ /$varname\s*=\s*([^\s]+)/) {

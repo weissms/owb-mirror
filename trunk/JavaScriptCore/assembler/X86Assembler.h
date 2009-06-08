@@ -1383,11 +1383,6 @@ public:
         patchRel32(reinterpret_cast<char*>(code) + from.m_offset, to);
     }
 
-    static void patchPointer(void* where, void* value)
-    {
-        reinterpret_cast<void**>(where)[-1] = value;
-    }
-
 #if PLATFORM(X86_64)
     static void patchPointerForCall(void* where, void* value)
     {
@@ -1426,8 +1421,13 @@ public:
         patchPointer(where, value);
     }
 
-    static void repatchLoadToLEA(void* where)
+    static void repatchLoadPtrToLEA(void* where)
     {
+#if PLATFORM(X86_64)
+        // On x86-64 pointer memory accesses require a 64-bit operand, and as such a REX prefix.
+        // Skip over the prefix byte.
+        where = reinterpret_cast<char*>(where) + 1;
+#endif
         ExecutableAllocator::MakeWritable unprotect(where, 1);
         *reinterpret_cast<unsigned char*>(where) = static_cast<unsigned char>(OP_LEA);
     }
@@ -1440,6 +1440,8 @@ public:
 
     static void* getRelocatedAddress(void* code, JmpSrc jump)
     {
+        ASSERT(jump.m_offset != -1);
+
         return reinterpret_cast<void*>(reinterpret_cast<ptrdiff_t>(code) + jump.m_offset);
     }
     
@@ -1473,6 +1475,11 @@ public:
     }
 
 private:
+
+    static void patchPointer(void* where, void* value)
+    {
+        reinterpret_cast<void**>(where)[-1] = value;
+    }
 
     static void patchInt32(void* where, int32_t value)
     {
