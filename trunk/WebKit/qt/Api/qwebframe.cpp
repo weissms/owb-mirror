@@ -1267,9 +1267,7 @@ QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult 
     WebCore::Frame *wframe = hitTest.targetFrame();
     if (wframe)
         linkTargetFrame = QWebFramePrivate::kit(wframe);
-    Element* urlElement = hitTest.URLElement();
-    if (urlElement)
-        linkTarget = urlElement->target();
+    linkElement = QWebElement(hitTest.URLElement());
 
     isContentEditable = hitTest.isContentEditable();
     isContentSelected = hitTest.isSelected();
@@ -1279,14 +1277,7 @@ QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult 
         && innerNonSharedNode->document()->frame())
         frame = QWebFramePrivate::kit(innerNonSharedNode->document()->frame());
 
-    if (Node *block = WebCore::enclosingBlock(innerNode.get())) {
-        RenderObject *renderBlock = block->renderer();
-        while (renderBlock && renderBlock->isListItem())
-            renderBlock = renderBlock->containingBlock();
-
-        if (renderBlock)
-            enclosingBlock = renderBlock->absoluteClippedOverflowRect();
-    }
+    enclosingBlock = QWebElement(WebCore::enclosingBlock(innerNode.get()));
 }
 
 /*!
@@ -1364,12 +1355,16 @@ QRect QWebHitTestResult::boundingRect() const
 
 /*!
     \since 4.6
-    Returns the rect of the smallest enclosing block element.
+    Returns the block element that encloses the element hit.
+
+    A block element is an element that is rendered using the
+    CSS "block" style. This includes for example text
+    paragraphs.
 */
-QRect QWebHitTestResult::enclosingBlock() const
+QWebElement QWebHitTestResult::enclosingBlockElement() const
 {
     if (!d)
-        return QRect();
+        return QWebElement();
     return d->enclosingBlock;
 }
 
@@ -1415,21 +1410,21 @@ QUrl QWebHitTestResult::linkTitle() const
 
 /*!
   \since 4.6
-  Returns the name of the target frame that will load the link if it is activated.
+  Returns the element that represents the link.
 
   \sa linkTargetFrame()
 */
-QString QWebHitTestResult::linkTarget() const
+QWebElement QWebHitTestResult::linkElement() const
 {
     if (!d)
-        return 0;
-    return d->linkTarget;
+        return QWebElement();
+    return d->linkElement;
 }
 
 /*!
     Returns the frame that will load the link if it is activated.
 
-    \sa linkTarget()
+    \sa linkElement()
 */
 QWebFrame *QWebHitTestResult::linkTargetFrame() const
 {

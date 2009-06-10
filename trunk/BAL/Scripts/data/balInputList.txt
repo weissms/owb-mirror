@@ -633,6 +633,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/ByteArray.h
 BAL/Skeletons/Types JavaScriptCore/wtf/CrossThreadRefCounted.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
+BAL/Skeletons/Types JavaScriptCore/wtf/DateMath.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/GetPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/HashCountedSet.h
@@ -698,6 +699,8 @@ BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.h
 BAL/Types/WTF   JavaScriptCore/wtf/CrossThreadRefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
+BAL/Types/WTF	JavaScriptCore/wtf/DateMath.h
+BAL/Types/WTF	JavaScriptCore/wtf/DateMath.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/Deque.h
 BAL/Types/WTF	JavaScriptCore/wtf/GetPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/HashCountedSet.h

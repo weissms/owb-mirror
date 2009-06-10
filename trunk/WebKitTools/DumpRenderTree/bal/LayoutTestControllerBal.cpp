@@ -89,6 +89,11 @@ void LayoutTestController::display()
     displayWebView();
 }
 
+void LayoutTestController::dispatchPendingLoadRequests()
+{
+    // FIXME: Implement for testing fix for 6727495
+}
+
 void LayoutTestController::keepWebHistory()
 {
     // FIXME: implement

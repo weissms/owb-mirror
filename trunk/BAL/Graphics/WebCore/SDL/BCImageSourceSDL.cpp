@@ -184,7 +184,7 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
         return 0;
 
     // If we have a zero height image, just pretend we don't have enough data yet.
-    if (!buffer->height())
+    if (!size().height())
         return 0;
 
 
@@ -203,7 +203,7 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
     bmask = 0x000000ff;
     amask = 0xff000000;
 #endif
-    return SDL_CreateRGBSurfaceFrom((void*)buffer->bytes().data(), size().width(), buffer->height(),
+    return SDL_CreateRGBSurfaceFrom((void*)buffer->bytes().data(), size().width(), size().height(),
                                     32, size().width() * 4, rmask, gmask, bmask, amask);
 }
 

@@ -1,5 +1,6 @@
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/ArrayPrototype.cpp generated_sources/JavaScriptCore/ArrayPrototype.lut.h JavaScriptCore/runtime/ArrayPrototype.cpp)
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/DatePrototype.cpp generated_sources/JavaScriptCore/DatePrototype.lut.h JavaScriptCore/runtime/DatePrototype.cpp)
+create_lut_jsc(JSC_SRC JavaScriptCore/runtime/JSONObject.cpp generated_sources/JavaScriptCore/JSONObject.lut.h JavaScriptCore/runtime/JSONObject.cpp)
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/MathObject.cpp generated_sources/JavaScriptCore/MathObject.lut.h JavaScriptCore/runtime/MathObject.cpp)
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/NumberConstructor.cpp generated_sources/JavaScriptCore/NumberConstructor.lut.h JavaScriptCore/runtime/NumberConstructor.cpp)
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/RegExpConstructor.cpp generated_sources/JavaScriptCore/RegExpConstructor.lut.h JavaScriptCore/runtime/RegExpConstructor.cpp)
@@ -13,6 +14,7 @@ list(APPEND JSC_SRC
     runtime/JSByteArray.cpp
     runtime/JSGlobalData.cpp
     runtime/JSNotAnObject.cpp
+    runtime/JSONObject.cpp
     runtime/JSPropertyNameIterator.cpp
     runtime/LiteralParser.cpp
     runtime/SmallStrings.cpp
@@ -36,8 +38,8 @@ if(ENABLE_DEBUG)
         runtime/Completion.cpp
         runtime/ConstructData.cpp
         runtime/DateConstructor.cpp
+        runtime/DateConversion.cpp
         runtime/DateInstance.cpp
-        runtime/DateMath.cpp
         runtime/DatePrototype.cpp
         runtime/Error.cpp
         runtime/ErrorConstructor.cpp

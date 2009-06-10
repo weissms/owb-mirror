@@ -47,7 +47,7 @@
 #include "runtime/Collector.cpp"
 #include "runtime/CommonIdentifiers.cpp"
 #include "runtime/DateConstructor.cpp"
-#include "runtime/DateMath.cpp"
+#include "runtime/DateConversion.cpp"
 #include "runtime/DatePrototype.cpp"
 #include "runtime/DateInstance.cpp"
 #if PLATFORM(GTK) || PLATFORM(BAL) || PLATFORM(QT)

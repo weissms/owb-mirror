@@ -1,3 +1,395 @@
+2009-06-10  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Mark Rowe.
+
+        Tidy up a couple of comments.
+
+        * assembler/ARMv7Assembler.h:
+            Fix date in copyright, neaten up a couple of comments.
+        * assembler/MacroAssemblerARMv7.h:
+            Fix date in copyright.
+
+2009-06-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 26249: Support JSON.stringify
+        <https://bugs.webkit.org/show_bug.cgi?id=26249>
+        
+        Implement JSON.stringify.  This patch handles all the semantics of the ES5
+        JSON.stringify function, including replacer functions and arrays and both
+        string and numeric gap arguments.
+        
+        Currently uses a clamped recursive algorithm basically identical to the spec
+        description but with a few minor tweaks for performance and corrected semantics
+        discussed in the es-discuss mailing list.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::jsonTable):
+        * runtime/CommonIdentifiers.h:
+           add toJSON to the list of common identifiers
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::~JSGlobalData):
+        * runtime/JSGlobalData.h:
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+            Add support for the JSON object lookup table
+
+        * runtime/JSONObject.cpp: Added.
+        (JSC::):
+        (JSC::JSONObject::getOwnPropertySlot):
+        (JSC::Stringifier::):
+        (JSC::Stringifier::Stringifier):
+        (JSC::Stringifier::stringify):
+        (JSC::Stringifier::appendString):
+
+        (JSC::Stringifier::StringKeyGenerator::StringKeyGenerator):
+        (JSC::Stringifier::StringKeyGenerator::getKey):
+        (JSC::Stringifier::IntKeyGenerator::IntKeyGenerator):
+        (JSC::Stringifier::IntKeyGenerator::getKey):
+            These KeyGenerator classes are used to abstract away the lazy evaluation of keys for
+            toJSON and replacer functions.
+
+        (JSC::Stringifier::toJSONValue):
+        (JSC::Stringifier::stringifyArray):
+        (JSC::Stringifier::stringifyObject):
+        (JSC::JSONProtoFuncStringify):
+        * runtime/JSONObject.h: Added.
+        (JSC::JSONObject:::JSObject):
+        (JSC::JSONObject::classInfo):
+        (JSC::JSONObject::createStructure):
+
+2009-06-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Enable JIT_OPTIMIZE_CALL & JIT_OPTIMIZE_METHOD_CALLS on ARMv7 platforms.
+
+        These optimizations function correctly with no further changes.
+
+        * wtf/Platform.h:
+            Change to enable JIT_OPTIMIZE_CALL & JIT_OPTIMIZE_METHOD_CALLS.
+
+2009-06-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Not Reviewed, build fix.
+
+        * assembler/MacroAssemblerARMv7.h:
+
+2009-06-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Enable JIT_OPTIMIZE_ARITHMETIC on ARMv7 platforms.
+
+        Temporarily split support for 'branchTruncateDoubleToInt32' onto its own switch
+        ('supportsFloatingPointTruncate').  See comment in MacroAssemblerARMv7, we need
+        to work out wherther we are going to be able to support the current interface on
+        all platforms, or whether this should be refactored.
+
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::supportsFloatingPoint):
+            Add implementation of supportsFloatingPointTruncate (returns true).
+        (JSC::MacroAssemblerARMv7::supportsFloatingPointTruncate):
+            Add implementation of supportsFloatingPointTruncate (returns false).
+        (JSC::MacroAssemblerARMv7::loadDouble):
+        (JSC::MacroAssemblerARMv7::storeDouble):
+        (JSC::MacroAssemblerARMv7::addDouble):
+        (JSC::MacroAssemblerARMv7::subDouble):
+        (JSC::MacroAssemblerARMv7::mulDouble):
+        (JSC::MacroAssemblerARMv7::convertInt32ToDouble):
+        (JSC::MacroAssemblerARMv7::branchDouble):
+            Implement FP code genertion operations.
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::supportsFloatingPointTruncate):
+            Add implementation of supportsFloatingPointTruncate (returns true).
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::supportsFloatingPointTruncate):
+            Add implementation of supportsFloatingPointTruncate (returns true).
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_rshift):
+            Changed to call supportsFloatingPointTruncate().
+        (JSC::JIT::emitSlow_op_rshift):
+            Changed to call supportsFloatingPointTruncate().
+        * wtf/Platform.h:
+            Change to enable JIT_OPTIMIZE_ARITHMETIC.
+
+2009-06-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Mark Rowe & Geoff Garen.
+
+        Enable JIT_OPTIMIZE_PROPERTY_ACCESS on ARMv7 platforms.
+
+        Firm up interface for planting load intructions that will be repatched by
+        repatchLoadPtrToLEA().  This method should now no longer be applied to just
+        any loadPtr instruction.
+
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::loadPtrWithPatchToLEA):
+            Implement loadPtrWithPatchToLEA interface (plants a load with a fixed width address).
+        (JSC::MacroAssemblerARMv7::move):
+        (JSC::MacroAssemblerARMv7::nearCall):
+        (JSC::MacroAssemblerARMv7::call):
+        (JSC::MacroAssemblerARMv7::moveWithPatch):
+        (JSC::MacroAssemblerARMv7::tailRecursiveCall):
+            Switch to use common method 'moveFixedWidthEncoding()' to perform fixed width (often patchable) loads.
+        (JSC::MacroAssemblerARMv7::moveFixedWidthEncoding):
+            Move an immediate to a register, always plants movT3/movt instruction pair.
+        * assembler/MacroAssemblerX86.h:
+        (JSC::MacroAssemblerX86::loadPtrWithPatchToLEA):
+            Implement loadPtrWithPatchToLEA interface (just a regular 32-bit load on x86).
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::loadPtrWithPatchToLEA):
+            Implement loadPtrWithPatchToLEA interface (just a regular 64-bit load on x86_64).
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::emit_op_put_by_id):
+        * wtf/Platform.h:
+            Change to enable JIT_OPTIMIZE_PROPERTY_ACCESS.
+
+2009-06-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Enable JS language JIT for ARM thumb2 platforms.  Add ARMv7 specific
+        asm & constants, add appropriate configuration switches to Platform.h.
+
+        Landing this disabled until jump linking is completed (see YARR jit patch).
+
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::load32):
+            Fix: should load pointer with ImmPtr not Imm32.
+        (JSC::MacroAssemblerARMv7::store32):
+            Fix: should load pointer with ImmPtr not Imm32.
+        (JSC::MacroAssemblerARMv7::move):
+            Fix: When moving an Imm32 that is actually a pointer, should call movT3()
+            not mov(), to ensure code generation is repeatable (for exception handling).
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+            Disable JIT_OPTIMIZE_NATIVE_CALL specific code generation if the optimization is not enabled.
+        * jit/JIT.h:
+            Add ARMv7 specific values of constants & register names.
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::preverveReturnAddressAfterCall):
+        (JSC::JIT::restoreReturnAddressBeforeReturn):
+        (JSC::JIT::restoreArgumentReferenceForTrampoline):
+            Implement for ARMv7 (move value to/from lr).
+        * jit/JITStubs.cpp:
+            Add JIT entry/thow trampolines, add macro to add thunk wrapper around stub routines.
+        * jit/JITStubs.h:
+        (JSC::JITStackFrame::returnAddressSlot):
+            Add ARMv7 stack frame object.
+        * wtf/Platform.h:
+            Add changes necessary to allow JIT to build on this platform, disabled.
+
+2009-06-08  Mark Rowe  <mrowe@apple.com>
+
+        Speculative GTK build fix.
+
+        * wtf/DateMath.cpp:
+
+2009-06-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Previous patch caused a regression.
+
+        Restructure so no new (empty, inline) function calls are added on x86.
+
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::makeWritable):
+        (JSC::ExecutableAllocator::makeExecutable):
+        (JSC::ExecutableAllocator::reprotectRegion):
+        (JSC::ExecutableAllocator::cacheFlush):
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, GTK build fix (thanks, bdash).
+
+        * GNUmakefile.am: Moved DateMath with all other wtf kin.
+
+2009-06-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Add (incomplete) support to YARR for running with the jit enabled
+        on Arm thumb2 platforms.  Adds new Assembler/MacroAssembler classes,
+        along with cache flushing support, tweaks to MacroAssemblerCodePtr
+        to support decorated thumb code pointers, and new enter/exit code
+        to YARR jit for the platform.
+
+        Support for this platform is still under development - the assembler
+        currrently only supports planting and linking jumps with a 16Mb range.
+        As such, initially commiting in a disabled state.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+            Add new assembler files.
+        * assembler/ARMv7Assembler.h: Added.
+            Add new Assembler.
+        * assembler/AbstractMacroAssembler.h:
+            Tweaks to ensure sizes of pointer values planted in JIT code do not change.
+        * assembler/MacroAssembler.h:
+            On ARMv7 platforms use MacroAssemblerARMv7.
+        * assembler/MacroAssemblerARMv7.h: Added.
+            Add new MacroAssembler.
+        * assembler/MacroAssemblerCodeRef.h:
+        (JSC::FunctionPtr::FunctionPtr):
+            Add better ASSERT.
+        (JSC::ReturnAddressPtr::ReturnAddressPtr):
+            Add better ASSERT.
+        (JSC::MacroAssemblerCodePtr::MacroAssemblerCodePtr):
+            On ARMv7, MacroAssemblerCodePtr's mush be 'decorated' with a low bit set,
+            to indicate to the processor that the code is thumb code, not traditional
+            32-bit ARM.
+        (JSC::MacroAssemblerCodePtr::dataLocation):
+            On ARMv7, decoration must be removed.
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::makeWritable):
+            Reformatted, no change.
+        (JSC::ExecutableAllocator::makeExecutable):
+            When marking code executable also cache flush it, where necessary.
+        (JSC::ExecutableAllocator::MakeWritable::MakeWritable):
+            Only use the null implementation of this class if both !ASSEMBLER_WX_EXCLUSIVE
+            and running on x86(_64) - on other platforms we may also need ensure that
+            makeExecutable is called at the end to flush caches.
+        (JSC::ExecutableAllocator::reprotectRegion):
+            Reformatted, no change.
+        (JSC::ExecutableAllocator::cacheFlush):
+            Cache flush a region of memory, or platforms where this is necessary.
+        * wtf/Platform.h:
+            Add changes necessary to allow YARR jit to build on this platform, disabled.
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateEnter):
+        (JSC::Yarr::RegexGenerator::generateReturn):
+            Add support to these methods for ARMv7.
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, fix my previous fix.
+
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::msToGregorianDateTime): Use WTF namespace qualifier to
+            disambiguate func signatures.
+
+2009-06-08  Mark Rowe  <mrowe@apple.com>
+
+        Attempt to fix the Tiger build.
+
+        * wtf/Platform.h: Only test the value of the macro once we know it is defined.
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, another Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, projectile-fixing Windows build.
+
+        * runtime/DateConversion.cpp: Added StringExtras include.
+        * wtf/DateMath.cpp: Replaced math with algorithm include (looking for std::min def for Windows).
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, Windows build fix.
+
+        * runtime/DateConstructor.cpp: Changed to use WTF namespace.
+        * runtime/DateConversion.cpp: Added UString include.
+        * runtime/DateInstance.cpp: Changed to use WTF namespace.
+        * wtf/DateMath.cpp: Added math include.
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26238
+        Move most of runtime/DateMath functions to wtf/DateMath, and split off conversion-related
+        helpers to DateConversion.
+
+        * AllInOneFile.cpp: Changed DateMath->DateConversion.
+        * GNUmakefile.am: Ditto and added DateMath.
+        * JavaScriptCore.exp: Ditto.
+        * JavaScriptCore.pri: Ditto.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Ditto.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Added DateMath.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Ditto.
+        * JavaScriptCoreSources.bkl: Ditto.
+        * pcre/pcre_exec.cpp: Changed to use DateMath.
+        * profiler/ProfileNode.cpp:
+        (JSC::getCount): Changed to use DateConversion.
+        * runtime/DateConstructor.cpp: Ditto.
+        * runtime/DateConversion.cpp: Copied from JavaScriptCore/runtime/DateMath.cpp.
+        (JSC::parseDate): Refactored to use null-terminated characters as input.
+        * runtime/DateConversion.h: Copied from JavaScriptCore/runtime/DateMath.h.
+        * runtime/DateInstance.cpp: Changed to use wtf/DateMath.
+        * runtime/DateInstance.h: Ditto.
+        * runtime/DateMath.cpp: Removed.
+        * runtime/DateMath.h: Removed.
+        * runtime/DatePrototype.cpp: Ditto.
+        * runtime/InitializeThreading.cpp: Ditto.
+        * wtf/DateMath.cpp: Copied from JavaScriptCore/runtime/DateMath.cpp.
+        * wtf/DateMath.h: Copied from JavaScriptCore/runtime/DateMath.h.
+
+2009-06-08  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops:
+
+2009-06-07  David Kilzer  <ddkilzer@apple.com>
+
+        Make JavaScriptCore compile for iPhone and iPhone Simulator
+
+        Reviewed by Gavin Barraclough.
+
+        * Configurations/Base.xcconfig: Split GCC_ENABLE_OBJC_GC on
+        $(REAL_PLATFORM_NAME).  Added $(ARCHS_UNIVERSAL_IPHONE_OS) to
+        VALID_ARCHS.  Added REAL_PLATFORM_NAME_iphoneos,
+        REAL_PLATFORM_NAME_iphonesimulator, HAVE_DTRACE_iphoneos and
+        HAVE_DTRACE_iphonesimulator variables.
+        * Configurations/DebugRelase.xcconfig: Split ARCHS definition on
+        $(REAL_PLATFORM_NAME).
+        * Configurations/JavaScriptCore.xcconfig: Added
+        EXPORTED_SYMBOLS_FILE_armv6 and EXPORTED_SYMBOLS_FILE_armv7
+        variables.  Split OTHER_LDFLAGS into OTHER_LDFLAGS_BASE and
+        OTHER_LDFLAGS_$(REAL_PLATFORM_NAME) since CoreServices.framework
+        is only linked to on Mac OS X.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Removed references
+        to CoreServices.framework since it's linked using OTHER_LDFLAGS
+        in JavaScriptCore.xcconfig.
+        * profiler/ProfilerServer.mm: Added #import for iPhone
+        Simulator.
+        (-[ProfilerServer init]): Conditionalize use of
+        NSDistributedNotificationCenter to non-iPhone or iPhone
+        Simulator.
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMallocStats::): Build fix for iPhone and iPhone
+        Simulator.
+        * wtf/Platform.h: Defined PLATFORM(IPHONE) and
+        PLATFORM(IPHONE_SIMULATOR).
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::setThreadNameInternal): Build fix for iPhone and iPhone
+        Simulator.
+
+2009-06-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use $QMAKE_PATH_SEP instead of hardcoded / to fix Windows build
+
+        * JavaScriptCore.pri:
+        * JavaScriptCore.pro:
+        * jsc.pro:
+
 2009-06-08  Gavin Barraclough  <barraclough@apple.com>
 
         RS by Sam Weinig.

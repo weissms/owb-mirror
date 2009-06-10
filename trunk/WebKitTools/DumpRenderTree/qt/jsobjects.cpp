@@ -266,15 +266,9 @@ void LayoutTestController::setJavaScriptProfilingEnabled(bool enable)
     qt_drt_setJavaScriptProfilingEnabled(m_topLoadingFrame, enable);
 }
 
-void LayoutTestController::setFixedLayoutSize(int width, int height)
+void LayoutTestController::setFixedContentsSize(int width, int height)
 {
-    m_topLoadingFrame->page()->setFixedLayoutSize(QSize(width, height));
-}
-
-
-void LayoutTestController::setUseFixedLayout(bool enable)
-{
-    m_topLoadingFrame->page()->setUseFixedLayout(enable);
+    m_topLoadingFrame->page()->setFixedContentsSize(QSize(width, height));
 }
 
 bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(const QString &animationName,
@@ -300,6 +294,11 @@ unsigned LayoutTestController::numberOfActiveAnimations() const
     QWebFrame *frame = m_drt->webPage()->mainFrame();
     Q_ASSERT(frame);
     return qt_drt_numberOfActiveAnimations(frame);
+}
+
+void LayoutTestController::dispatchPendingLoadRequests()
+{
+    // FIXME: Implement for testing fix for 6727495
 }
 
 EventSender::EventSender(QWebPage *parent)

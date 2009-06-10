@@ -68,7 +68,7 @@ ScriptValue WorkerScriptController::evaluate(const ScriptSourceCode& sourceCode)
     }
 
     v8::Local<v8::Value> result = m_proxy->evaluate(sourceCode.source(), sourceCode.url().string(), sourceCode.startLine() - 1);
-    m_workerContext->thread()->workerObjectProxy()->reportPendingActivity(m_workerContext->hasPendingActivity());
+    m_workerContext->thread()->workerObjectProxy().reportPendingActivity(m_workerContext->hasPendingActivity());
     return ScriptValue();
 }
 

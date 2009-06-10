@@ -35,6 +35,7 @@ javascriptcore_built_nosources += \
 	DerivedSources/Lexer.lut.h \
 	JavaScriptCore/runtime/ArrayPrototype.lut.h \
 	JavaScriptCore/runtime/DatePrototype.lut.h \
+	JavaScriptCore/runtime/JSONObject.lut.h \
 	JavaScriptCore/runtime/MathObject.lut.h \
 	JavaScriptCore/runtime/NumberConstructor.lut.h \
 	JavaScriptCore/runtime/RegExpConstructor.lut.h \
@@ -182,6 +183,8 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/JSGlobalData.h \
 	JavaScriptCore/runtime/JSNotAnObject.cpp \
 	JavaScriptCore/runtime/JSNotAnObject.h \
+	JavaScriptCore/runtime/JSONObject.cpp \
+	JavaScriptCore/runtime/JSONObject.h \
 	JavaScriptCore/runtime/JSPropertyNameIterator.cpp \
 	JavaScriptCore/runtime/JSPropertyNameIterator.h \
 	JavaScriptCore/runtime/LiteralParser.cpp \
@@ -213,6 +216,8 @@ javascriptcore_sources += \
 	JavaScriptCore/wtf/OwnFastMallocPtr.h \
 	JavaScriptCore/wtf/CurrentTime.cpp \
 	JavaScriptCore/wtf/CurrentTime.h \
+	JavaScriptCore/wtf/DateMath.cpp \
+	JavaScriptCore/wtf/DateMath.h \
 	JavaScriptCore/wtf/Deque.h \
 	JavaScriptCore/wtf/DisallowCType.h \
 	JavaScriptCore/wtf/Forward.h \
@@ -368,10 +373,10 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/ConstructData.h \
 	JavaScriptCore/runtime/DateConstructor.cpp \
 	JavaScriptCore/runtime/DateConstructor.h \
+	JavaScriptCore/runtime/DateConversion.cpp \
+	JavaScriptCore/runtime/DateConversion.h \
 	JavaScriptCore/runtime/DateInstance.cpp \
 	JavaScriptCore/runtime/DateInstance.h \
-	JavaScriptCore/runtime/DateMath.cpp \
-	JavaScriptCore/runtime/DateMath.h \
 	JavaScriptCore/runtime/DatePrototype.cpp \
 	JavaScriptCore/runtime/DatePrototype.h \
 	JavaScriptCore/runtime/Error.cpp \
@@ -588,6 +593,7 @@ javascriptcore_dist += \
 CLEANFILES += \
 	JavaScriptCore/runtime/ArrayPrototype.lut.h \
 	JavaScriptCore/runtime/DatePrototype.lut.h \
+	JavaScriptCore/runtime/JSONObject.lut.h \
 	JavaScriptCore/runtime/MathObject.lut.h \
 	JavaScriptCore/runtime/NumberConstructor.lut.h \
 	JavaScriptCore/runtime/RegExpConstructor.lut.h \

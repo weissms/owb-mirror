@@ -1,3 +1,514 @@
+2009-06-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix: include <stdio.h> as it is required in jpeglib.h
+
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp:
+
+2009-06-09  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25709 part four
+        Most of the remaining Cairo changes needed before merging Skia/Cairo
+        image decoders.  Most of these involve plumbing more error detection and
+        handling (or, in some cases, merely the capability to detect errors, as
+        e.g. Skia detects and handles image allocation failure while Cairo
+        currently doesn't).  There is also some general cleanup and
+        simplification; RGBA32Buffer::m_height and all associated functions have
+        been removed (set but never used) and some places now rely on superclass
+        implementations.
+
+        * platform/image-decoders/ImageDecoder.h:
+        (WebCore::RGBA32Buffer::RGBA32Buffer): Remove m_height, ensureHeight() and associated stuff
+        (WebCore::RGBA32Buffer::copyBitmapData): Add API function so refcounted backing stores (like Skia uses) can be used with GIFs
+        (WebCore::RGBA32Buffer::setSize): Zero-fill image to avoid garbage
+        (WebCore::RGBA32Buffer::height): Remove
+        (WebCore::RGBA32Buffer::ensureHeight): Remove
+        (WebCore::ImageDecoder::ImageDecoder): Keep member initialization in order, force subclasses to go through size() instead of accessing m_size directly
+        (WebCore::ImageDecoder::isSizeAvailable): Check that decoding hasn't failed
+        (WebCore::ImageDecoder::size): Check that decoding hasn't failed
+        (WebCore::ImageDecoder::setSize): Protect against integer overflow
+        (WebCore::ImageDecoder::isOverSize): Protect against integer overflow
+        * platform/image-decoders/gif/GIFImageDecoder.cpp: Remove prepEmptyFrameBuffer()
+        (WebCore::GIFImageDecoder::isSizeAvailable): Rely on superclass isSizeAvailable() for better failure handling
+        (WebCore::GIFImageDecoder::sizeNowAvailable): Add return values for better failure handling, rely on superclass setSize() for overflow protection
+        (WebCore::GIFImageDecoder::initFrameBuffer): Add return values for better failure handling, remove prepEmptyFrameBuffer(), use RGBA32Buffer::setSize() to handle potential allocation failures (won't happen with Cairo port, can in Skia), use RGBA32Buffer::copyBitmapData() so backing store can be refcounted internally (Cairo won't be, Skia is), rely on superclass size() for better failure handling
+        (WebCore::GIFImageDecoder::haveDecodedRow): Fix style violation, remove RGBA32Buffer::ensureHeight()
+        (WebCore::GIFImageDecoder::frameComplete): Remove RGBA32Buffer::ensureHeight()
+        * platform/image-decoders/gif/GIFImageDecoder.h: Remove prepEmptyFrameBuffer(), add return values for better failure handling
+        * platform/image-decoders/gif/GIFImageReader.cpp:
+        (GIFImageReader::do_lzw): Protect against array overflow, add comments
+        (GIFImageReader::read): Protect against array overflow, be more tolerant of bad data, better failure handling
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp: Remove MSVC-specific warning disable (bfulgham will move into build files)
+        (WebCore::JPEGImageReader::decode): Better failure handling
+        (WebCore::JPEGImageDecoder::isSizeAvailable): Rely on superclass isSizeAvailable() for better failure handling
+        (WebCore::JPEGImageDecoder::outputScanlines): Use RGBA32Buffer::setSize() to handle potential allocation failures (won't happen with Cairo port, can in Skia), rely on superclass size() for better failure handling, remove RGBA32Buffer::ensureHeight()
+        * platform/image-decoders/jpeg/JPEGImageDecoder.h: Rely on superclass setSize() for overflow protection
+        * platform/image-decoders/png/PNGImageDecoder.cpp: Remove MSVC-specific warning disable (bfulgham will move into build files)
+        (WebCore::PNGImageDecoder::PNGImageDecoder): Don't allocate a slot in the framebuffer cache until it's needed
+        (WebCore::PNGImageDecoder::isSizeAvailable): Rely on superclass isSizeAvailable() for better failure handling
+        (WebCore::PNGImageDecoder::frameBufferAtIndex): Don't allocate a slot in the framebuffer cache until it's needed
+        (WebCore::PNGImageDecoder::decode): Don't allocate a slot in the framebuffer cache until it's needed
+        (WebCore::PNGImageDecoder::decodingFailed): Fix style violation
+        (WebCore::PNGImageDecoder::headerAvailable): Rely on superclass isSizeAvailable() and setSize() for overflow protection and better failure handling
+        (WebCore::PNGImageDecoder::rowAvailable): Don't allocate a slot in the framebuffer cache until it's needed, use RGBA32Buffer::setSize() to handle potential allocation failures (won't happen with Cairo port, can in Skia), remove RGBA32Buffer::ensureHeight()
+        (WebCore::PNGImageDecoder::pngComplete): Don't allocate a slot in the framebuffer cache until it's needed
+
+2009-06-09  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, adding JSCore/assembler to the list of include dirs, and
+        adding editing/ReplaceNodeSpanCommand.cpp to the build.
+        
+        * WebCoreSources.bkl:
+        * webcore-base.bkl:
+
+2009-06-09  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        When checking if the loader is the main resource loader make sure that the loader's frame is the main frame. 
+
+        https://bugs.webkit.org/show_bug.cgi?id=26218
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didLoadResourceFromMemoryCache):
+        (WebCore::InspectorController::identifierForInitialRequest):
+        (WebCore::InspectorController::isMainResourceLoader):
+        * inspector/InspectorController.h:
+
+2009-06-09  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26190
+
+        Test: media/controls-css-overload.html
+
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::updateControls): Prevent NULL dereference in case containers gets hidden.
+
+2009-06-08  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25709 part three
+        Various minor cleanups to the Skia files.  Mostly non-functional, except
+        for two specific changes:
+        * JPEGs and PNGs were always marked as transparent; now they are only
+          marked as transparent when they actually are.  I doubt this has much
+          of an effect but in theory it could be used to optimize their display.
+        * Instead of arbitrarily disallowing images over 32 * 1024 * 1024 px^2,
+          only disallow images which are so large they will cause overflow in
+          other parts of the code.  This should fix the testcase on
+          http://code.google.com/p/chromium/issues/detail?id=3643.
+
+        * platform/image-decoders/skia/BMPImageReader.h:
+        (WebCore::BMPImageReader::setRGBA): Use simpler non-static setRGBA() form
+        * platform/image-decoders/skia/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::initFrameBuffer): Remove unneeded code, use more readable setRGBA() form
+        (WebCore::GIFImageDecoder::haveDecodedRow): Fix style violation
+        * platform/image-decoders/skia/GIFImageDecoder.h: Remove unneeded code
+        * platform/image-decoders/skia/ImageDecoder.h:
+        (WebCore::RGBA32Buffer::setSize): setSize() should just setStatus() when it fails since all callers were doing it
+        (WebCore::ImageDecoder::isOverSize): Ease "oversized" image constraints to allow any image that won't overflow
+        * platform/image-decoders/skia/JPEGImageDecoder.cpp:
+        (WebCore::JPEGImageDecoder::outputScanlines): Remove unneeded code, mark JPEGs as non-transparent
+        * platform/image-decoders/skia/PNGImageDecoder.cpp:
+        (WebCore::PNGImageDecoder::decodingFailed): Fix style violation
+        (WebCore::PNGImageDecoder::rowAvailable): Mark un-decoded PNGs as non-transparent (this will get reset later as needed)
+        * platform/image-decoders/skia/XBMImageDecoder.cpp:
+        (WebCore::XBMImageDecoder::frameBufferAtIndex): Remove unneeded code
+
+2009-06-09  Darin Fisher  <darin@chromium.org>
+
+        Fix Chromium build bustage.
+        
+        CachedResource.cpp no longer compiles if USE(JSC) is not defined.  The
+        problem is that this file is using a macro from StdLibExtras.h without
+        including that file.  It just happenes to get that file via a JSC
+        specific include.
+
+        * loader/CachedResource.cpp:
+
+2009-06-09  Dean McNamee  <deanm@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        Make sure the graphics backends are in sync with the canvas lineWidth state.
+        https://bugs.webkit.org/show_bug.cgi?id=26187
+
+        Test: fast/canvas/canvas-line-width.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::CanvasRenderingContext2D):
+
+2009-06-09  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Proactively cancel pending requests at DocLoader dtor time,
+        otherwise crashes can occur. 
+
+        https://bugs.webkit.org/show_bug.cgi?id=26230
+        http://code.google.com/p/chromium/issues/detail?id=12161
+
+        Test: fast/frames/javascript-url-as-framesrc-crash.html
+
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::~DocLoader):
+
+2009-06-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Fix ASSERT seen in shadow tree testing
+        https://bugs.webkit.org/show_bug.cgi?id=25092
+
+        Test: svg/custom/use-mutation-event-crash.svg
+
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::instanceForShadowTreeElement):
+
+2009-06-09  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Fixes https://bugs.webkit.org/show_bug.cgi?id=22891
+        Scrolling in Windows Cairo Broken if no background color set.
+
+        * platform/graphics/cairo/GradientCairo.cpp:
+        (WebCore::Gradient::fill):  Use the GraphicsContext save and restore
+          methods (rather than the Cairo-only functions) so that the Windows
+          device context is kept in sync.
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::GraphicsContext): Add new constructor call
+          to sync Windows HDC with Cairo surface.
+        * platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h:
+        (WebCore::GraphicsContextPlatformPrivate::syncContext): Provide
+          declaration for Windows HDC sync method (and stub for non-Windows
+          Cairo implementations).
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::draw): Use GraphicsContext save and restore
+          methods (rather than the Cairo-only functions) so that the Windows
+          device context is kept in sync.
+        * platform/graphics/win/GraphicsContextCairoWin.cpp:
+        (WebCore::CairoContextWithHDC): New method to create a valid Cairo
+          context for a given HDC.
+        (WebCore::GraphicsContext::GraphicsContext): Modify constructor to
+          use new CairoContextWithHDC call.
+        (WebCore::GraphicsContext::getWindowsContext): Revise to match
+          behavior of CG implementation.
+        (WebCore::GraphicsContext::releaseWindowsContext): Revise to match
+          behavior of CG implementation.
+        (WebCore::GraphicsContextPlatformPrivate::concatCTM): Get rid of
+          incorrect new HDC, and use object's HDC member for dealing with
+          concatCTM operations.
+        (WebCore::GraphicsContextPlatformPrivate::syncContext): New method
+          to sync Windows HDC with Cairo context.
+        * platform/graphics/win/ImageCairoWin.cpp:
+        (WebCore::BitmapImage::getHBITMAPOfSize): Revise implementation to
+          match CG behavior.
+
+2009-06-09  Jian Li  <jianli@chromium.org>
+
+        Reviewed by David Levin.
+
+        Bug 26196: Fix the problem that worker's importScripts fails if the
+        script URL is redirected from different origin.
+        https://bugs.webkit.org/show_bug.cgi?id=26196
+
+        Test: http/tests/workers/worker-importScripts.html
+
+        The fix is to pass an additional enum parameter to the loader in
+        order to tell it to perform the redirect origin check or not.
+
+        * loader/DocumentThreadableLoader.cpp:
+        (WebCore::DocumentThreadableLoader::create):
+        (WebCore::DocumentThreadableLoader::DocumentThreadableLoader):
+        (WebCore::DocumentThreadableLoader::willSendRequest):
+        * loader/DocumentThreadableLoader.h:
+        * loader/ThreadableLoader.cpp:
+        (WebCore::ThreadableLoader::create):
+        (WebCore::ThreadableLoader::loadResourceSynchronously):
+        * loader/ThreadableLoader.h:
+        (WebCore::):
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::WorkerThreadableLoader):
+        (WebCore::WorkerThreadableLoader::loadResourceSynchronously):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::MainThreadBridge):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::mainThreadCreateLoader):
+        * loader/WorkerThreadableLoader.h:
+        (WebCore::WorkerThreadableLoader::create):
+        * workers/WorkerContext.cpp:
+        (WebCore::WorkerContext::importScripts):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+
+2009-06-09  Anand K. Mistry  <amistry@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Paint bitmaps with the alpha channel in Skia.
+        https://bugs.webkit.org/show_bug.cgi?id=26037
+
+        Test: fast/canvas/drawImage-with-globalAlpha.html
+
+        * platform/graphics/skia/ImageSkia.cpp:
+        (WebCore::paintSkBitmap):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::getAlpha):
+        * platform/graphics/skia/PlatformContextSkia.h:
+
+2009-06-09  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26104
+        [GTK] Make NetworkRequest a proper GObject and expose SoupMessage
+
+        Refactor how SoupMessage is handled, so that our ResourceRequest
+        object doesn't have to store it as a member, which complicates
+        managing ResourceRequest's lifetime.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandle::startHttp):
+        * platform/network/soup/ResourceRequest.h:
+        (WebCore::ResourceRequest::ResourceRequest):
+        (WebCore::ResourceRequest::doUpdatePlatformRequest):
+        (WebCore::ResourceRequest::doUpdateResourceRequest):
+        * platform/network/soup/ResourceRequestSoup.cpp:
+        (WebCore::ResourceRequest::toSoupMessage):
+        (WebCore::ResourceRequest::updateFromSoupMessage):
+
+2009-06-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Fix the Qt build, the time functions moved into the WTF namespace.
+
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::convertValueToQVariant):
+        (JSC::Bindings::convertQVariantToValue):
+
+2009-06-08  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Antti Koivisto
+
+        <rdar://problem/6727495> Repro crash in WebCore::Loader::Host::servePendingRequests() and dupes.
+
+        Test: http/tests/loading/deleted-host-in-resource-load-delegate-callback.html
+
+        Loader::Host objects were manually managed via new/delete.
+        There's a variety of circumstances where a Host might've been deleted while it was still in the middle
+        of a resource load delegate callback.
+        Changing them to be RefCounted then adding protectors in the callbacks makes this possibility disappear.
+
+        At the same time, remove ProcessingResource which was an earlier fix for this same problem that wasn't
+        fully implemented.
+
+        * loader/loader.cpp:
+        (WebCore::Loader::Loader):
+        (WebCore::Loader::load):
+        (WebCore::Loader::servePendingRequests):
+        (WebCore::Loader::resumePendingRequests):
+        (WebCore::Loader::cancelRequests):
+        (WebCore::Loader::Host::didFinishLoading):
+        (WebCore::Loader::Host::didFail):
+        (WebCore::Loader::Host::didReceiveResponse):
+        (WebCore::Loader::Host::didReceiveData):
+        * loader/loader.h:
+        (WebCore::Loader::Host::create):
+
+2009-06-08  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by David Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26126
+        Refactor methods of WorkerMessagingProxy used to talk to main-thread loader into new interface.
+
+        Split a couple of methods used to schedule cross-thread tasks between worker thread and loader thread
+        implemented on WorkerMessagingProxy into a separate interface so the loading can be implemented in
+        Chromium's workers.
+
+        No changes in functionality so no tests added.
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        Added WorkerLoaderProxy.h to the bulid.
+
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::evaluate): WorkerThread::workerObjectProxy() now returns & instead of *
+        * bindings/v8/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::evaluate): same.
+        * workers/WorkerContext.cpp:
+        (WebCore::WorkerContext::~WorkerContext): same.
+        (WebCore::WorkerContext::reportException): same.
+        (WebCore::WorkerContext::addMessage): same.
+        (WebCore::WorkerContext::postMessage): same.
+
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::WorkerThreadableLoader):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::MainThreadBridge):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::destroy):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::cancel):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didSendData):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didReceiveResponse):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didReceiveData):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didFinishLoading):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didFail):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didFailRedirectCheck):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::didReceiveAuthenticationCancellation):
+        Use WorkerLoaderProxy instead of WorkerMessagingProxy for the MainThreadBridge.
+        Mostly rename.
+
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::mainThreadCreateLoader):
+        In addition to using WorkerLoaderProxy instead of WorkerMessagingProxy, the check for
+        AskedToTerminate is removed. It seems to be an optimization for a very small number of cases
+        when worker termination is requested a very short time before the request to load something
+        (XHR or importScript) was dispatched on the main thread.
+
+        * loader/WorkerThreadableLoader.h:
+        Now keeps a pointer to WorkerLoaderProxy rather then to a WorkerMessagingProxy. This allows
+        to implement WorkerThreadableLoader for Chromium.
+
+        * workers/WorkerLoaderProxy.h: Added.
+        (WebCore::WorkerLoaderProxy::~WorkerLoaderProxy):
+
+        * workers/WorkerMessagingProxy.cpp:
+        (WebCore::WorkerMessagingProxy::startWorkerContext):
+        (WebCore::WorkerMessagingProxy::postTaskToLoader): Added ASSERT since this needs to be implemented for nested workers.
+        * workers/WorkerMessagingProxy.h:
+        Derived from WorkerLoaderProxy, the methods for posting tasks cross-thread are now virtual.
+        Removed unused postTaskToWorkerContext() method.
+
+        * workers/WorkerThread.cpp:
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        * workers/WorkerThread.h:
+        (WebCore::WorkerThread::workerLoaderProxy):
+        * workers/WorkerThread.cpp:
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * workers/WorkerThread.h:
+        (WebCore::WorkerThread::workerLoaderProxy):
+        (WebCore::WorkerThread::workerObjectProxy):
+        WorkerThread gets a new member of type WorkerLoaderProxy&, and accessor.
+        Also, existing WorkerObjectProxy* member is now WorkerObjectProxy& because it can't be null.
+
+2009-06-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26238
+        Add parseDate helper to HTTPParsers, which uses WTF::parseDateFromNullTerminatedCharacters.
+
+        * ForwardingHeaders/runtime/DateMath.h: Removed.
+        * ForwardingHeaders/wtf/DateMath.h: Copied from WebCore/ForwardingHeaders/runtime/DateMath.h.
+        * platform/network/HTTPParsers.cpp:
+        (WebCore::parseDate): Added.
+        * platform/network/HTTPParsers.h:
+        * platform/network/ResourceResponseBase.cpp:
+        (WebCore::parseDateValueInHeader): Changed to use the new helper.
+
+2009-06-08  Adam Langley  <agl@google.com>
+
+        Reviewed by Eric Siedel.
+
+        Chromium Linux ignored the background color on <select>s. Rather
+        than encode magic colours, we start with a base color (specified
+        via CSS) and derive the other colors from it. Thus, setting the
+        CSS background-color now correctly changes the colour of the
+        control.
+
+        This should not change the appearence controls without
+        background-colors. However, <select>s with a background-color
+        will now renderer correctly, which may require rebaselining
+        pixel tests in the Chromium tree.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26030
+        http://code.google.com/p/chromium/issues/detail?id=12596
+
+        * platform/graphics/Color.cpp:
+        (WebCore::Color::getHSL): new member
+        * platform/graphics/Color.h:
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::systemColor):
+        (WebCore::brightenColor):
+        (WebCore::paintButtonLike):
+
+2009-06-08  Victor Wang <victorw@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26087
+        Bug 26087: Removing element in JS crashes Chrome tab if it fired the change event
+
+        Fix tab crash caused by destroying the popup list that fired the change event on abandon.
+
+        If a popup list is abandoned (press a key to jump to an item
+        and then use tab or mouse to get away from the select box),
+        the current code fires a change event in PopupListBox::updateFromElemt().
+        The JS that listens to this event may destroy the object and cause the
+        rest of popup list code crashes.
+
+        The updateFromElement() is called before abandon() and this causes
+        the selected index to be discarded after updateFromElement(). From
+        the code comments, this appears to be the reason why valueChanged is
+        called in updateFromElement.
+
+        Fix the issue by removing the valueChanged call in updateFromElement,
+        saving the selected index that we should accept on abandon and pass
+        it to the valueChange in abandon().
+
+        A manual test has been added.
+
+        * manual-tests/chromium: Added.
+        * manual-tests/chromium/onchange-reload-popup.html: Added.
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupListBox::PopupListBox):
+        (WebCore::PopupListBox::handleKeyEvent):
+        (WebCore::PopupListBox::abandon):
+        (WebCore::PopupListBox::updateFromElement):
+
+2009-06-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Disable a few warnings on Windows
+
+        * WebCore.pro:
+
+2009-06-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Don't enable ENABLE_PLUGIN_PACKAGE_SIMPLE_HASH on Windows
+        
+        This define was brought in after refactoring some code from
+        PluginPackage(Qt|Gtk).cpp into the shared PluginPackage.cpp.
+
+        * WebCore.pro:
+
+2009-06-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use $QMAKE_PATH_SEP instead of hardcoded / to fix Windows build
+
+        * WebCore.pro:
+
+2009-06-08  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Build fix when NETSCAPE_PLUGIN_API support is turned off
+        https://bugs.webkit.org/show_bug.cgi?id=26244
+
+        * WebCore.pro: Define PLUGIN_PACKAGE_SIMPLE_HASH only if
+        NETSCAPE_PLUGIN_API is turned on
+        * plugins/PluginPackage.cpp: Guard initializeBrowserFuncs()
+        * plugins/PluginViewNone.cpp: Match guards with PluginView.h
+
 2009-06-08  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Sam Weinig.

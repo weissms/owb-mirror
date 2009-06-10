@@ -239,6 +239,7 @@ void PluginPackage::determineModuleVersionFromDescription()
 }
 #endif
 
+#if ENABLE(NETSCAPE_PLUGIN_API)
 void PluginPackage::initializeBrowserFuncs()
 {
 #if ENABLE(NETSCAPE_PLUGIN_API)
@@ -294,6 +295,7 @@ void PluginPackage::initializeBrowserFuncs()
     m_browserFuncs.construct = _NPN_Construct;
 #endif
 }
+#endif
 
 #if ENABLE(PLUGIN_PACKAGE_SIMPLE_HASH)
 unsigned PluginPackage::hash() const

@@ -72,14 +72,14 @@ public:
 
     QPoint pos() const;
     QRect boundingRect() const;
-    QRect enclosingBlock() const;
+    QWebElement enclosingBlockElement() const;
     QString title() const;
 
     QString linkText() const;
     QUrl linkUrl() const;
     QUrl linkTitle() const;
     QWebFrame *linkTargetFrame() const;
-    QString linkTarget() const;
+    QWebElement linkElement() const;
 
     QString alternateText() const; // for img, area, input and applet
 
