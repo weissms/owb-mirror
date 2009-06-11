@@ -1311,6 +1311,7 @@ protected:
     friend class WebEditorClient;
     friend class WebFrameLoaderClient;
     friend class WebInspector;
+    friend class WebFrame;
     friend WebCore::Page* core(WebView*);
 
     /**
