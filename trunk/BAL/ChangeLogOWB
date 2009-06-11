@@ -1,3 +1,14 @@
+2009-06-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #349: Can't sign in to Yahoo mail with OWB
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::ResourceHandleManager::ResourceHandleManager): Avoid
+        initializing the cURL cookie engine. This way would not get in our
+        way when we set the cookies.
+
 2009-06-04  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
