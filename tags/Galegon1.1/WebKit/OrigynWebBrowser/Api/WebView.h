@@ -1299,6 +1299,12 @@ private:
      */
     bool active();
 
+    /**
+     * Implemented per platform
+     * Used to completely clear the view if needed by the graphic backend.
+     */
+    void clearTransparentView();
+
 protected:
     friend class WebViewPrivate;
     friend class WebChromeClient;

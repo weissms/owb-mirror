@@ -161,6 +161,8 @@ public:
     void fireWebKitEvents() {}
     void runJavaScriptAlert(WebFrame*, char const*) {}
 
+    void clearTransparentView();
+
 private:
     WebCore::IntRect m_rect;
     GtkWidget *m_view;

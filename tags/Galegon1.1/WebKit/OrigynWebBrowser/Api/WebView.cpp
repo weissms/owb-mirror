@@ -2475,3 +2475,8 @@ Page* core(WebView* webView)
     return page;
 }
 
+void WebView::clearTransparentView()
+{
+    d->clearTransparentView();
+}
+

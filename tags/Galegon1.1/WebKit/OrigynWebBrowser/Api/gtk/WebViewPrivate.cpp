@@ -29,6 +29,7 @@
 #include "WebViewPrivate.h"
 
 #include <CString.h>
+#include "NotImplemented.h"
 #include <PlatformString.h>
 
 using namespace WebCore;
@@ -39,4 +40,9 @@ void WebView::runJavaScriptAlert(WebFrame* frame, const String& message)
     // gboolean retval;
     // g_signal_emit_by_name(this->viewWindow(), "script-alert", frame, message.utf8().data(), &retval);
     printf("Javascript Alert: %s (from frame %p)\n", message.utf8().data(), frame);
+}
+
+void WebViewPrivate::clearTransparentView()
+{
+    balNotImplemented();
 }

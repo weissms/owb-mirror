@@ -465,3 +465,10 @@ void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
     printf("Javascript Alert: %s (from frame %p)\n", message, frame);
 }
 
+void WebViewPrivate::clearTransparentView()
+{
+    GraphicsContext ctx(m_webView->viewWindow());
+    IntRect visibleRect(m_rect);
+    Frame* frame = core(m_webView->mainFrame());
+    frame->view()->paint(&ctx, visibleRect);
+}

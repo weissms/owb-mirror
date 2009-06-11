@@ -131,6 +131,8 @@ public:
     void fireWebKitEvents();
     void runJavaScriptAlert(WebFrame* frame, const char* message);
     
+    void clearTransparentView();
+
 private:
     void updateView(BalWidget *widget, WebCore::IntRect rect);
     WebCore::IntRect m_rect;

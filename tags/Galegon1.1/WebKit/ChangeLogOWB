@@ -1,3 +1,27 @@
+2009-06-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Temporary fix for transparency issues with a transparent background.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::clearTransparentView):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.cpp:
+        (WebViewPrivate::clearTransparentView):
+        * OrigynWebBrowser/Api/Qt/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::clearTransparentView):
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::updateBackground):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::clearTransparentView):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.cpp:
+        (WebViewPrivate::clearTransparentView):
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.h:
+
 2009-06-02  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Patch by Mario Bensi.

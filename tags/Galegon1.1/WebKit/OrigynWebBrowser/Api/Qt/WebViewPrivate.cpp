@@ -38,6 +38,7 @@
 #include "HitTestResult.h"
 #include "HitTestRequest.h"
 #include <MainThread.h>
+#include "NotImplemented.h"
 #include <PlatformKeyboardEvent.h>
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
@@ -289,3 +290,8 @@ void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
     printf("Javascript Alert: %s (from frame %p)\n", message, frame);
 }
 
+void WebViewPrivate::clearTransparentView()
+{
+    // FIXME: Implement.
+    balNotImplemented();
+}

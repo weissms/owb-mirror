@@ -116,6 +116,8 @@ public:
     void fireWebKitEvents();
     void runJavaScriptAlert(WebFrame* frame, const char* message);
     
+    void clearTransparentView();
+
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);
     void paint(QPainter *painter, const QRegion &clip);

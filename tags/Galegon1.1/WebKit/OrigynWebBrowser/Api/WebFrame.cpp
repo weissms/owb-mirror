@@ -1087,13 +1087,17 @@ void WebFrame::unmarkAllBadGrammar()
 
 void WebFrame::updateBackground()
 {
-    Color backgroundColor = webView()->transparent() ? Color::transparent : Color::white;
+    bool isWebViewTransparent = webView()->transparent();
+    Color backgroundColor = isWebViewTransparent ? Color::transparent : Color::white;
     Frame* coreFrame = core(this);
 
     if (!coreFrame || !coreFrame->view())
         return;
 
-    coreFrame->view()->updateBackgroundRecursively(backgroundColor, webView()->transparent());
+    if (isWebViewTransparent)
+        webView()->clearTransparentView();
+ 
+    coreFrame->view()->updateBackgroundRecursively(backgroundColor, isWebViewTransparent);
 }
 
 void WebFrame::addHistoryItemForFragmentScroll()

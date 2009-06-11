@@ -39,6 +39,7 @@
 #include "EventHandler.h"
 #include "FocusController.h"
 #include <MainThread.h>
+#include "NotImplemented.h"
 #include <PlatformKeyboardEvent.h>
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
@@ -655,4 +656,9 @@ void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
         IIntuition->DisposeObject(requester);
     }
     free(messageAmiga);
+}
+
+void WebViewPrivate::clearTransparentView()
+{
+    balNotImplemented();
 }
