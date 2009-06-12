@@ -1,3 +1,11 @@
+2009-06-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::clearTransparentView): Make this method do what it
+        was intented to do instead of wrongly repainting the whole SDL surface.
+
 2009-06-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
