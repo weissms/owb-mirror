@@ -4126,6 +4126,22 @@
 								AdditionalOptions="$(AnalyzeWithLargeStack)"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								DisableSpecificWarnings="4611"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								DisableSpecificWarnings="4611"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\GlyphPageTreeNodeCGWin.cpp"

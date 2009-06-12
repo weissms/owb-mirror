@@ -1,3 +1,555 @@
+2009-06-12  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25609
+        [GTK] Implement support for get_selection and get_n_selections
+
+        Only use the VisibleSelection object if it actually belongs to the
+        object we are using.
+
+        This is pretty hacky-ish, but I can't seem to find a direct API to
+        get the VisibleSelection for a given object, only the global one.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (selectionBelongsToObject):
+        (webkit_accessible_text_get_n_selections):
+        (webkit_accessible_text_get_selection):
+
+2009-06-03  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Crash at Node::nodeIndex()
+        https://bugs.webkit.org/show_bug.cgi?id=26044
+
+        This crash seems to be caused by calling nodeIndex() on
+        and invalid Node pointer.  As far as I can tell, the most likely
+        explanation is that the Range holding the node is actually
+        deleted already (thus the memory is junk).  Looking at the code
+        Range changes m_start.container() in its destructor to tell if
+        the range is detached or not.  If somehow m_start.container() was
+        cleared, the range will never be detached and the Document will end
+        up with pointers to deleted ranges.  I don't know how to reproduce this
+        any reproduction I could think of would hit ASSERTS in Debug mode.
+        One reproduction I tried, did not crash in Release mode, even though it
+        did in Debug mode.
+
+        I'm making a speculative fix by always detaching the Range from the document
+        during ~Range.  This is safer, and all we lose is an ASSERT to prevent double-detach.
+        
+        Another solution would be to instead store an m_attached bool on the Range object, or
+        expose a Document::isRangeAttached(range) call.  Either of those solutions
+        could affect performance, so I went with this solution for now.
+
+        I also removed the RangeBoundaryPoint default constructor
+        as it is not used anywhere (and is more likely to cause confusion).
+
+        Since I can't reproduce the crash, no test.
+
+        * dom/Document.cpp:
+        (WebCore::Document::detachRange):
+        * dom/Range.cpp:
+        (WebCore::Range::~Range):
+        (WebCore::Range::detach):
+        * dom/RangeBoundaryPoint.h:
+        (WebCore::RangeBoundaryPoint::RangeBoundaryPoint):
+          RangeBoundaryPoints always have an m_containerNode, ASSERT that.
+        (WebCore::RangeBoundaryPoint::set):
+          ASSERT(container) to match all the other functions.
+          All callers already ASSERT(container).  Since we only
+          have reports if this crash from Release mode, I can only
+          assume that those ASSERTs would have been hit in a Debug reproduction.
+
+2009-06-11  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25512
+        Handle texts after unfinished special tags (i.e., script, style, textarea,
+        title, xmp, and iframe) as the text node under the tags in view-source mode.
+        Before this change, all texts in unfinished special tags cannot be seen even in view-source mode.
+
+        This was already done only for title. This change allows other special tags to be handled as well.
+
+        Test: fast/frames/viewsource-unfinished-tags.html
+
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::parseNonHTMLText):
+        (WebCore::HTMLTokenizer::parseTag):
+        (WebCore::HTMLTokenizer::write):
+        * html/HTMLTokenizer.h:
+        (WebCore::HTMLTokenizer::State::inAnyNonHTMLText):
+
+2009-06-11  Yongjun Zhang  <yongjun.zhang@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26291
+
+        [Qt] build break in ImageDecoderQt.cpp.
+
+        * platform/graphics/qt/ImageDecoderQt.cpp:
+        (WebCore::ImageDecoderQt::reset):
+        (WebCore::ImageDecoderQt::setData):
+        (WebCore::ImageDecoderQt::isSizeAvailable):
+        * platform/image-decoders/ImageDecoder.h:
+        (WebCore::ImageDecoder::setSize):
+
+2009-06-11  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Ariya Hidayat.
+
+        Removed obsolete and unmaintained files from the old Symbian port.
+
+        * platform/symbian/FloatPointSymbian.cpp: Removed.
+        * platform/symbian/FloatRectSymbian.cpp: Removed.
+        * platform/symbian/IntPointSymbian.cpp: Removed.
+        * platform/symbian/IntRectSymbian.cpp: Removed.
+        * platform/symbian/IntSizeSymbian.cpp: Removed.
+        * platform/text/symbian/StringImplSymbian.cpp: Removed.
+        * platform/text/symbian/StringSymbian.cpp: Removed.
+
+2009-06-10  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25709 part six
+        Miscellaneous tiny changes.  The important bits here are the ANSI C++
+        compliance fix in skia/ImageDecoders.h (needed to compile this file on
+        non-MSVC) and some behavioral fixes for the XBM decoder that Chromium
+        unit tests partly exposed.  Other changes are mostly cosmetic.
+
+        * platform/image-decoders/ImageDecoder.h: Make some variables private again.  This will break QTWebKit but those guys have agreed to wait on my finishing the ImageDecoder changes.
+        * platform/image-decoders/gif/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::initFrameBuffer): Use IntPoint() instead of the redundant IntPoint(0, 0).
+        (WebCore::GIFImageDecoder::frameComplete): Use IntPoint() instead of the redundant IntPoint(0, 0).
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp:
+        (WebCore::JPEGImageDecoder::outputScanlines): Remove obvious comments.
+        * platform/image-decoders/png/PNGImageDecoder.cpp:
+        (WebCore::PNGImageDecoder::rowAvailable): Remove obvious comments.
+        * platform/image-decoders/skia/BMPImageReader.cpp:
+        (WebCore::BMPImageReader::decodeBMP): Make more in line with other decoders' comments and structure, use a ref to decrease verbosity.
+        (WebCore::BMPImageReader::processRLEData): Use a ref to decrease verbosity.
+        (WebCore::BMPImageReader::processNonRLEData): Use a ref to decrease verbosity.
+        * platform/image-decoders/skia/GIFImageDecoder.cpp: Use IntPoint() instead of the redundant IntPoint(0, 0).
+        (WebCore::GIFImageDecoder::initFrameBuffer): Use IntPoint() instead of the redundant IntPoint(0, 0).
+        (WebCore::GIFImageDecoder::frameComplete): Use IntPoint() instead of the redundant IntPoint(0, 0).
+        * platform/image-decoders/skia/ImageDecoder.h:
+        (WebCore::RGBA32Buffer::copyRowNTimes): Fix ANSI violation that MSVC let me compile (!).
+        * platform/image-decoders/skia/JPEGImageDecoder.cpp:
+        (WebCore::JPEGImageDecoder::outputScanlines): Remove obvious comments.
+        * platform/image-decoders/skia/PNGImageDecoder.cpp:
+        (WebCore::PNGImageDecoder::rowAvailable): Remove obvious comments.
+        * platform/image-decoders/skia/XBMImageDecoder.cpp:
+        (WebCore::XBMImageDecoder::frameBufferAtIndex): Return 0 for non-zero indexes, don't try to decode unnecessarily after failure or when the size couldn't be computed, make more in line with other decoders' comments and structure, call RGBA32Buffer::setRect() appropriately.
+
+2009-06-10  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        The shadow node inside empty textareas gets collapsed in disabled
+        textareas. This is a regression from moving the overflow from
+        the shadow node to it's parent. The fix is to return true in
+        RenderBlock::hasLineIfEmpty for textarea shadow nodes as we 
+        currently do for input shadow nodes.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26296
+        
+        Test: fast/forms/empty-textarea-toggle-disabled.html
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::hasLineIfEmpty):
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25609
+        [GTK] Implement support for get_selection and get_n_selections
+
+        Implement atk_text_get_n_selections.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (webkit_accessible_text_get_n_selections):
+
+2009-06-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - fix <rdar://problem/6958664> REGRESSION (r42665): When I drag to pan a
+          Google map in iPhoto Places, it drags a map tile instead
+
+        Calling stopLoadRequest() from notifyFinished() removed the
+        ScriptElementData from the CachedScript's client set, which could make
+        it eligible for purging. The fix is to call removeClient() only after
+        executing the script, which protects it from being purged while it is
+        in the document's queue of scripts to execute soon.
+
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::execute): Call removeClient() here.
+        (WebCore::ScriptElementData::notifyFinished): Instead of calling
+        stopLoadRequest(), which calls removeClient(), just reset
+        m_cachedScript.
+
+2009-06-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Mark Rowe and Eric Seidel.
+
+        Update WebInspector localizedStrings.js with new resource tracking strings
+        https://bugs.webkit.org/show_bug.cgi?id=26247
+
+        * English.lproj/localizedStrings.js:
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android specific files.
+        https://bugs.webkit.org/show_bug.cgi?id=26280
+
+        * platform/text/android: Added.
+        * platform/text/android/TextBreakIteratorInternalICU.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android specific file to WebCore/platform/android (part 9).
+        https://bugs.webkit.org/show_bug.cgi?id=26266
+
+        * platform/android/TemporaryLinkStubs.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android platform specific files.
+        https://bugs.webkit/org/show_bug.cgi?id=26265 (part 8).
+
+        * platform/android/SystemTimeAndroid.cpp: Added.
+        * platform/android/WidgetAndroid.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform. (part 6).
+        https://bugs.webkit.org/show_bug.cgi?id=26264
+
+        * platform/android/RenderThemeAndroid.cpp: Added.
+        * platform/android/RenderThemeAndroid.h: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform (part 7).
+        https://bugs.webkit.org/show_bug.cgi?id=23296
+
+        * platform/android/ScreenAndroid.cpp: Added.
+        * platform/android/ScrollViewAndroid.cpp: Added.
+        * platform/android/SearchPopupMenuAndroid.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform (part 5).
+        https://bugs.webkit.org/show_bug.cgi?id=23296
+
+        * platform/android/LocalizedStringsAndroid.cpp: Added.
+        * platform/android/PopupMenuAndroid.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform (part 4).
+        https://bugs.webkit.org/show_bug.cgi?id=23296
+
+        * platform/android/KeyEventAndroid.cpp: Added.
+        * platform/android/KeyboardCodes.h: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform (part 3).
+        https://bugs.webkit.org/show_bug.cgi?id=23296
+
+        * platform/android/FileChooserAndroid.cpp: Added.
+        * platform/android/FileSystemAndroid.cpp: Added.
+
+2009-06-10  Feng Qian  <feng@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Android port files to WebCore/platform (part 2).
+        https://bugs.webkit.org/show_bug.cgi?id=23296
+
+        * platform/android/CursorAndroid.cpp: Added.
+        * platform/android/DragDataAndroid.cpp: Added.
+        * platform/android/EventLoopAndroid.cpp: Added.
+
+2009-06-10  Nate Chapin  <japhet@google.com>
+
+        Reviewed by David Levin.
+
+        Finish moving V8Custom from src.chromium.org to svn.webkit.org.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26258
+
+        * bindings/v8/custom/V8CustomBinding.cpp: Finished upstreaming.
+        (WebCore::ACCESSOR_GETTER): Moved from v8_custom.cpp.
+        (WebCore::INDEXED_ACCESS_CHECK): Moved from v8_custom.cpp.
+        (WebCore::NAMED_ACCESS_CHECK): Moved from v8_custom.cpp.
+        (WebCore::V8Custom::GetTargetFrame): Moved from v8_custom.cpp.
+        (WebCore::V8Custom::DowncastSVGPathSeg): Moved from v8_custom.cpp.
+        * bindings/v8/custom/V8CustomBinding.h: Finished upstreaming.
+        * bindings/v8/custom/V8DatabaseCustom.cpp: Updated includes.
+        * bindings/v8/custom/V8SQLResultSetRowListCustom.cpp: Updated includes.
+        * bindings/v8/custom/V8SQLTransactionCustom.cpp: Updated includes.
+        * bindings/v8/custom/V8WebKitPointConstructor.cpp: Added.
+        (WebCore::CALLBACK_FUNC_DECL): Moved from v8_custom.cpp.
+
+2009-06-10  Takeshi Yoshino  <tyoshino@google.com>
+
+        Reviewed by Justin Garcia.
+
+        Bug 26214: RenderTextControl: Remove ASSERT for checking that visiblePositionForIndex()'s return is not null.
+        https://bugs.webkit.org/show_bug.cgi?id=26214
+
+        visiblePositionForIndex can return an instance that returns true for
+        isNotNull(). One of common case is when the corresponding input element has
+        "-webkit-user-select: none" style attribute. We should allow the case instead
+        of putting ASSERT.
+
+        Test: fast/forms/input-select-webkit-user-select-none.html
+
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::setSelectionRange):
+
+2009-06-10  Roland Steiner <rolandsteiner@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Bug 26197: Incorrect variable initialization in PlatformContextSkia.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=26197
+
+        The PlatformContextSkia constructor does a (very likely) wrong size
+        initialization for its m_stateStack member:
+
+            m_stateStack(sizeof(State))
+
+        The intended initialization is probably rather
+
+            m_stateStack(1)
+
+        However, since this doesn't buy much (see also comment #4),
+        I removed the initialization completely.
+
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (PlatformContextSkia::PlatformContextSkia): remove member initialization
+
+2009-06-10  Dean McNamee  <deanm@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        When there is no backing bitmap, return a transparent pattern.
+        https://bugs.webkit.org/show_bug.cgi?id=26061
+
+        Test: fast/canvas/canvas-empty-image-pattern.html
+
+        * platform/graphics/skia/PatternSkia.cpp:
+        (WebCore::Pattern::createPlatformPattern):
+
+2009-06-10  Dean McNamee  <deanm@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix a crash for radial gradients with a zero radius.
+        https://bugs.webkit.org/show_bug.cgi?id=26059
+
+        Test: fast/gradients/crash-on-zero-radius.html
+
+        * platform/graphics/skia/GradientSkia.cpp:
+        (WebCore::Gradient::platformGradient):
+
+2009-06-10  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25709 part five
+        Rewrite users of ImageDecoder.h to use "safe" API calls, Skia side.
+        This tweaks the RGBA32Buffer interfaces to be implementable by Cairo as
+        well and modifies Skia's usage of those interfaces accordingly.  Once a
+        similar change lands on the Cairo side, the Skia and Cairo decoders
+        should be identical except for the implementation of RGBA32Buffer.
+
+        * platform/graphics/skia/ImageSourceSkia.cpp:
+        (WebCore::ImageSource::createFrameAtIndex): Use new RGBA32Buffer::asNewNativeImage() function.
+        * platform/image-decoders/skia/BMPImageReader.cpp:
+        (WebCore::BMPImageReader::processNonRLEData): Use new RGBA32Buffer::zeroFill() function.
+        * platform/image-decoders/skia/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::haveDecodedRow): Rewrite to use RGBA32Buffer::setRGBA(x, y, ...) calls as well as other RGBA32Buffer interface calls instead of knowing the underlying types inside the buffer; also try and add clarity.
+        * platform/image-decoders/skia/ImageDecoder.h: Removed bitmap(), width(), and height().
+        (WebCore::RGBA32Buffer::zeroFill): Added.
+        (WebCore::RGBA32Buffer::copyBitmapData): Avoid using bitmap(), which is going away.
+        (WebCore::RGBA32Buffer::copyRowNTimes): Added.
+        (WebCore::RGBA32Buffer::setSize): Use new zeroFill() function.
+        (WebCore::RGBA32Buffer::asNewNativeImage): Added.
+        (WebCore::RGBA32Buffer::setRGBA): Condensed two versions into one that takes coordinates instead of a raw pointer.
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25671
+        [GTK] Implement support for set_caret_offset
+
+        Make an implementation that actually works.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (webkit_accessible_text_set_caret_offset):
+
+2009-06-10  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26294
+
+        Make sure all member variables are initialized so that the default
+        assignment operator and copy constructors do not read uninitialized
+        memory.
+
+        * platform/network/ResourceResponseBase.cpp:
+
+2009-06-10  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Update main resource meta-data when resource tracking is disabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26253
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::getTrackedResource):
+        (WebCore::InspectorController::willSendRequest):
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didReceiveContentLength):
+        (WebCore::InspectorController::didFinishLoading):
+        (WebCore::InspectorController::didFailLoading):
+        * inspector/InspectorController.h:
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25609
+        [GTK] Implement support for get_selection and get_n_selections
+
+        Implement atk_text_get_selection.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (webkit_accessible_text_get_selection):
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Do not check if our parent class has the finalize method, it's
+        guaranteed to be there.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (webkit_accessible_finalize):
+
+2009-06-10  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build correct for Windows Cairo targets.
+
+        * WebCore.vcproj/WebCore.vcproj: Disable warning 4611 (interaction
+          between '_setjmp' and C++ object destruction is non-portable) for
+          the two Cairo targets.  This used to be disabled in a #pragma,
+          but recent refactoring removed these lines.
+
+2009-06-10  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix the build of PluginView on Qt with 64-bit where we disable plugins
+        at compile time.
+
+        Use the FooNone.cpp files at compile-time.
+
+        * plugins/PluginPackageNone.cpp:
+        * plugins/mac/PluginPackageMac.cpp:
+        * plugins/mac/PluginViewMac.cpp:
+
+2009-06-10  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Fix the Qt build.
+
+        ImageDecoderQt needs m_size and m_sizeAvailable to be protected.
+
+        * platform/image-decoders/ImageDecoder.h:
+
+2009-06-10  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use absolute path for install_name on Mac
+
+        * WebCore.pro:
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25415
+        [GTK][ATK] Please implement support for get_text_at_offset
+
+        Reduce duplicated code to access the text of a AtkText
+        object. doAXStringForRange calls text() internally, so we are
+        doing exactly the same after the change.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (getGailTextUtilForAtk):
+        (getPangoLayoutForAtk):
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25415
+        [GTK][ATK] Please implement support for get_text_at_offset
+
+        Pass a PangoLayout to the GailTextUtil function calls.
+
+        It's needed for LINE boundary calls to work correctly.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (updateLayout):
+        (getPangoLayoutForAtk):
+        (webkit_accessible_text_get_text_after_offset):
+        (webkit_accessible_text_get_text_at_offset):
+
+2009-06-10  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25415
+        [GTK][ATK] Please implement support for get_text_at_offset
+
+        Use GailUtilText instead of my crappy partial reimplementation of
+        it. This should add support for LINE boundaries too, although it's
+        mostly untested for now.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (getGailTextUtilForAtk):
+        (webkit_accessible_text_get_text_after_offset):
+        (webkit_accessible_text_get_text_at_offset):
+
 2009-06-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Gtk build fix: include <stdio.h> as it is required in jpeglib.h

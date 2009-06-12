@@ -1,8 +1,9 @@
 if(USE_GRAPHICS STREQUAL "GTK")
     pkg_check_modules(CAIRO REQUIRED cairo>=1.4)
     pkg_check_modules(GTK REQUIRED gtk+-2.0>=2.8)
-    set(GRAPHICS_INCLUDE_DIRS ${GTK_INCLUDE_DIRS})
-    set(GRAPHICS_LIBRARIES ${GTK_LDFLAGS})
+    pkg_check_modules(GAIL REQUIRED gail)
+    set(GRAPHICS_INCLUDE_DIRS ${GTK_INCLUDE_DIRS} ${GAIL_INCLUDE_DIRS})
+    set(GRAPHICS_LIBRARIES ${GTK_LDFLAGS} ${GAIL_LDFLAGS})
 
     set(USE_GRAPHICS_GTK TRUE)
     mark_as_advanced(USE_GRAPHICS_GTK)

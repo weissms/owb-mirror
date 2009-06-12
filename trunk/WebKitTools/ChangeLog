@@ -1,3 +1,63 @@
+2009-06-12  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Steve Falkenburg.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26306
+
+        Revert 42565 as it leads to DumpRenderTree crashing on startup because
+        Windows can't find CFURLCacheCopySharedURLCache in CoreNetwork.dll.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+
+2009-06-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Jan Alonzo.
+
+        [gtk] Change DumpRenderTree to use a GtkScrolledWindow instead of GtkFixed
+
+        Change the code to use GtkScrolledWindow and resize the GtkScrolledWindow
+        to pass more tests. Make sure the content is bigger than a thumbnail.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (runTest):
+        (main):
+
+2009-06-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Gustavo Noronha.
+
+        Clear the frame name before we run each tests so we don't get
+        "someFloaString" or "3" in the target frame name.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+
+2009-06-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        - add a LayoutTestController method for temporarily changing the WebKit
+          cache model
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setCacheModelCallback): Added. Calls
+        LayoutTestController::setCacheModel() with the first argument as an
+        integer.
+        (LayoutTestController::staticFunctions): Added setCacheModel.
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setCacheModel):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (setDefaultsToConsistentValuesForTesting): Reset the cache model to
+        WebCacheModelDocumentBrowser.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setCacheModel): Added. Calls -[WebPreferences
+        setCacheModel:].
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setCacheModel):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setCacheModel):
+
 2009-06-10  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Sam Weinig.

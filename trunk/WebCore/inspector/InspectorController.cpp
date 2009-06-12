@@ -806,6 +806,21 @@ void InspectorController::removeResource(InspectorResource* resource)
     }
 }
 
+InspectorResource* InspectorController::getTrackedResource(long long identifier)
+{
+    if (!enabled())
+        return 0;
+
+    if (m_resourceTrackingEnabled)
+        return m_resources.get(identifier).get();
+
+    bool isMainResource = m_mainResource && m_mainResource->identifier() == identifier;
+    if (isMainResource)
+        return m_mainResource.get();
+
+    return 0;
+}
+
 void InspectorController::didLoadResourceFromMemoryCache(DocumentLoader* loader, const CachedResource* cachedResource)
 {
     if (!enabled())
@@ -867,10 +882,7 @@ bool InspectorController::isMainResourceLoader(DocumentLoader* loader, const KUR
 
 void InspectorController::willSendRequest(DocumentLoader*, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
-    if (!enabled() || !m_resourceTrackingEnabled)
-        return;
-
-    InspectorResource* resource = m_resources.get(identifier).get();
+    RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
 
@@ -887,10 +899,7 @@ void InspectorController::willSendRequest(DocumentLoader*, unsigned long identif
 
 void InspectorController::didReceiveResponse(DocumentLoader*, unsigned long identifier, const ResourceResponse& response)
 {
-    if (!enabled() || !m_resourceTrackingEnabled)
-        return;
-
-    InspectorResource* resource = m_resources.get(identifier).get();
+    RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
 
@@ -903,10 +912,7 @@ void InspectorController::didReceiveResponse(DocumentLoader*, unsigned long iden
 
 void InspectorController::didReceiveContentLength(DocumentLoader*, unsigned long identifier, int lengthReceived)
 {
-    if (!enabled() || !m_resourceTrackingEnabled)
-        return;
-
-    InspectorResource* resource = m_resources.get(identifier).get();
+    RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
 
@@ -918,10 +924,7 @@ void InspectorController::didReceiveContentLength(DocumentLoader*, unsigned long
 
 void InspectorController::didFinishLoading(DocumentLoader*, unsigned long identifier)
 {
-    if (!enabled() || !m_resourceTrackingEnabled)
-        return;
-
-    RefPtr<InspectorResource> resource = m_resources.get(identifier);
+    RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
 
@@ -937,10 +940,7 @@ void InspectorController::didFinishLoading(DocumentLoader*, unsigned long identi
 
 void InspectorController::didFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError& /*error*/)
 {
-    if (!enabled() || !m_resourceTrackingEnabled)
-        return;
-
-    RefPtr<InspectorResource> resource = m_resources.get(identifier);
+    RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
 

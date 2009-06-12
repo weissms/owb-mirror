@@ -510,7 +510,7 @@ void webkit_web_frame_load_request(WebKitWebFrame* frame, WebKitNetworkRequest* 
     if (!coreFrame)
         return;
 
-    coreFrame->loader()->load(ResourceRequest(webkit_network_request_get_message(request)), false);
+    coreFrame->loader()->load(core(request), false);
 }
 
 /**
@@ -827,4 +827,11 @@ WebKitLoadStatus webkit_web_frame_get_load_status(WebKitWebFrame* frame)
 
     WebKitWebFramePrivate* priv = frame->priv;
     return priv->loadStatus;
+}
+
+void webkit_web_frame_clear_main_frame_name(WebKitWebFrame* frame)
+{
+    g_return_if_fail(WEBKIT_IS_WEB_FRAME(frame));
+
+    core(frame)->tree()->clearName();
 }
