@@ -1,3 +1,10 @@
+2009-06-13  Olivier DOLE  <odole@pleyo.com>
+
+        DumpRenderTree build fix.
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::setCacheModel):
+
 2009-06-03  Mario Bensi  <mbensi@pleyo.com>
 
         fix unit test.
