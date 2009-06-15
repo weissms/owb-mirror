@@ -1,3 +1,12 @@
+2009-06-15  Olivier DOLE  <odole@pleyo.com>
+
+        ticket #345: Add specific code for MIPS platform.
+
+        * Internationalization/WebCore/WK/BCAtomicStringWK.cpp:
+        (WebCore::equal):
+        * Internationalization/WebCore/WK/BCStringHashWK.h:
+        (WebCore::StringHash::equal):
+
 2009-06-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

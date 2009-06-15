@@ -267,6 +267,11 @@
 #define WTF_PLATFORM_SH4 1
 #endif
 
+/* PLATFORM(MIPS) */
+#if defined(__mips__)
+#define WTF_PLATFORM_MIPS 1
+#endif
+
 /* PLATFORM(SPARC64) */
 #if defined(__sparc64__)
 #define WTF_PLATFORM_SPARC64 1
