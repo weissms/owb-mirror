@@ -1,3 +1,15 @@
+2009-06-15  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Julien Chaffraix.
+
+        Ticket #349: Can't sign in to Yahoo mail with OWB
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::getCookie): Corrected misplaced parenthesis.
+        Because of this bug isConnectionSecure variable was always set to true.
+        Also stored the String holding "https" in a static String to avoid doing
+        this conversion each time the method is called.
+
 2009-06-15  Olivier DOLE  <odole@pleyo.com>
 
         ticket #345: Add specific code for MIPS platform.

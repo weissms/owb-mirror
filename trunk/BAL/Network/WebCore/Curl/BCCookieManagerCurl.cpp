@@ -111,7 +111,8 @@ bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KU
 String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
 {
     bool isConnectionSecure = false;
-    if (url.string().startsWith(String("https:", false)))
+    static String httpsPrefix("https:");
+    if (url.string().startsWith(httpsPrefix, false))
         isConnectionSecure = true;
 
     // The max size is the number of cookie per host multiplied by the maximum length of a cookie. We add 1 for the final '\0'.
