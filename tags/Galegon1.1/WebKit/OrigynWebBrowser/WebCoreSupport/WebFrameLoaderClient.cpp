@@ -678,7 +678,7 @@ void WebFrameLoaderClient::savePlatformDataToCachedFrame(WebCore::CachedFrame* c
 }
 
 void WebFrameLoaderClient::transitionToCommittedFromCachedFrame(CachedFrame*)                                                                              
-{                                                                                                                                                          
+{
 }
 
 void WebFrameLoaderClient::transitionToCommittedForNewPage()
@@ -689,6 +689,7 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     bool transparent = view->transparent();
     Color backgroundColor = transparent ? Color::transparent : Color::white;
     core(m_webFrame)->createView(IntRect(rect).size(), backgroundColor, transparent, IntSize(), false);
+    m_webFrame->updateBackground();
 }
 
 bool WebFrameLoaderClient::canCachePage() const

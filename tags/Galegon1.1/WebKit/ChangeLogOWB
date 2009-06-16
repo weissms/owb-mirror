@@ -1,3 +1,13 @@
+2009-06-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::transitionToCommittedFromCachedFrame): Removed
+        some trailing spaces.
+        (WebFrameLoaderClient::transitionToCommittedForNewPage): Call
+        updateBackground.
+
 2009-06-12  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
