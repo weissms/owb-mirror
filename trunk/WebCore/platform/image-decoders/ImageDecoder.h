@@ -34,16 +34,18 @@
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
 
-namespace WebCore {
+#if PLATFORM(SKIA)
+#include "NativeImageSkia.h"
+#include "SkBitmap.h"
+#endif
 
-    typedef Vector<unsigned> RGBA32Array;
+namespace WebCore {
 
     // The RGBA32Buffer object represents the decoded image data in RGBA32 format.  This buffer is what all
     // decoders write a single frame into.  Frames are then instantiated for drawing by being handed this buffer.
     class RGBA32Buffer {
     public:
         enum FrameStatus { FrameEmpty, FramePartial, FrameComplete };
-
         enum FrameDisposalMethod {
             // If you change the numeric values of these, make sure you audit all
             // users, as some users may cast raw values to/from these constants.
@@ -52,70 +54,101 @@ namespace WebCore {
             DisposeOverwriteBgcolor,   // Clear frame to transparent
             DisposeOverwritePrevious,  // Clear frame to previous framebuffer contents
         };
+#if PLATFORM(SKIA)
+        typedef uint32_t PixelData;
+#else
+        typedef unsigned PixelData;
+#endif
 
-        RGBA32Buffer()
-            : m_status(FrameEmpty)
-            , m_duration(0)
-            , m_disposalMethod(DisposeNotSpecified)
-            , m_hasAlpha(false)
+        RGBA32Buffer();
+
+        // For backends which refcount their data, this constructor doesn't need
+        // to create a new copy of the image data, only increase the ref count.
+        //
+        // This exists because ImageDecoder keeps a Vector<RGBA32Buffer>, and
+        // Vector requires this constructor.
+        RGBA32Buffer(const RGBA32Buffer& other)
         {
-        } 
-
-        void clear() {
-          m_bytes.clear();
-          m_status = FrameEmpty;
-          // NOTE: Do not reset other members here; clearFrameBufferCache() calls
-          // this to free the bitmap data, but other functions like
-          // initFrameBuffer() and frameComplete() may still need to read other
-          // metadata out of this frame later.
+            operator=(other);
         }
 
-        // This function creates a new copy of the image data in |other|, so the
-        // two images can be modified independently.
-        void copyBitmapData(const RGBA32Buffer& other)
-        {
-            if (this == &other)
-                return;
+        // Deletes the pixel data entirely; used by ImageDecoder to save memory
+        // when we no longer need to display a frame and only need its metadata.
+        void clear();
 
-            m_bytes = other.m_bytes;
-            m_hasAlpha = other.m_hasAlpha;
+        // Zeroes the pixel data in the buffer, setting it to fully-transparent.
+        void zeroFill();
+
+        // Creates a new copy of the image data in |other|, so the two images
+        // can be modified independently.
+        void copyBitmapData(const RGBA32Buffer& other);
+
+        // Copies the pixel data at [(startX, startY), (endX, startY)) to the
+        // same X-coordinates on each subsequent row up to but not including
+        // endY.
+        void copyRowNTimes(int startX, int endX, int startY, int endY)
+        {
+            ASSERT(startX < width());
+            ASSERT(endX <= width());
+            ASSERT(startY < height());
+            ASSERT(endY <= height());
+            const int rowBytes = (endX - startX) * sizeof(PixelData);
+            const PixelData* const startAddr = getAddr(startX, startY);
+            for (int destY = startY + 1; destY < endY; ++destY)
+                memcpy(getAddr(startX, destY), startAddr, rowBytes);
         }
 
-        const RGBA32Array& bytes() const { return m_bytes; }
-        RGBA32Array& bytes() { return m_bytes; }
+        // Allocates space for the pixel data.  Must be called before any pixels
+        // are written. Will return true on success, false if the memory
+        // allocation fails.  Calling this multiple times is undefined and may
+        // leak memory.
+        bool setSize(int newWidth, int newHeight);
 
-        // Must be called before any pixels are written. Will return true on
-        // success, false if the memory allocation fails.
-        bool setSize(int width, int height)
-        {
-            // NOTE: This has no way to check for allocation failure if the
-            // requested size was too big...
-            m_bytes.resize(width * height);
+        // To be used by ImageSource::createFrameAtIndex().  Returns a pointer
+        // to the underlying native image data.  This pointer will be owned by
+        // the BitmapImage and freed in FrameData::clear().
+        NativeImagePtr asNewNativeImage() const;
 
-            // Clear the image.
-            m_bytes.fill(0);
-            m_hasAlpha = true;
-
-            return true;
-        }
-
+        bool hasAlpha() const;
         const IntRect& rect() const { return m_rect; }
         FrameStatus status() const { return m_status; }
         unsigned duration() const { return m_duration; }
         FrameDisposalMethod disposalMethod() const { return m_disposalMethod; }
-        bool hasAlpha() const { return m_hasAlpha; }
 
+        void setHasAlpha(bool alpha);
         void setRect(const IntRect& r) { m_rect = r; }
-        void setStatus(FrameStatus s) { m_status = s; }
+        void setStatus(FrameStatus status);
         void setDuration(unsigned duration) { m_duration = duration; }
         void setDisposalMethod(FrameDisposalMethod method) { m_disposalMethod = method; }
-        void setHasAlpha(bool alpha) { m_hasAlpha = alpha; }
 
-        static void setRGBA(unsigned& pos, unsigned r, unsigned g, unsigned b, unsigned a)
+        inline void setRGBA(int x, int y, unsigned r, unsigned g, unsigned b, unsigned a)
+        {
+            setRGBA(getAddr(x, y), r, g, b, a);
+        }
+
+    private:
+        RGBA32Buffer& operator=(const RGBA32Buffer& other);
+
+        int width() const;
+        int height() const;
+
+        inline PixelData* getAddr(int x, int y)
+        {
+#if PLATFORM(CAIRO) || PLATFORM(WX)
+            return m_bytes.data() + (y * width()) + x;
+#elif PLATFORM(SKIA)
+            return m_bitmap.getAddr32(x, y);
+#else
+            ASSERT_NOT_REACHED();
+            return 0;
+#endif
+        }
+
+        inline void setRGBA(PixelData* dest, unsigned r, unsigned g, unsigned b, unsigned a)
         {
             // We store this data pre-multiplied.
             if (a == 0)
-                pos = 0;
+                *dest = 0;
             else {
                 if (a < 255) {
                     float alphaPercent = a / 255.0f;
@@ -123,19 +156,25 @@ namespace WebCore {
                     g = static_cast<unsigned>(g * alphaPercent);
                     b = static_cast<unsigned>(b * alphaPercent);
                 }
-                pos = (a << 24 | r << 16 | g << 8 | b);
+                *dest = (a << 24 | r << 16 | g << 8 | b);
             }
         }
 
-    private:
-        RGBA32Array m_bytes;
-        IntRect m_rect;    // The rect of the original specified frame within the overall buffer.
-                           // This will always just be the entire buffer except for GIF frames
-                           // whose original rect was smaller than the overall image size.
+#if PLATFORM(CAIRO) || PLATFORM(WX)
+        Vector<PixelData> m_bytes;
+        IntSize m_size;       // The size of the buffer.  This should be the
+                              // same as ImageDecoder::m_size.
+        bool m_hasAlpha;      // Whether or not any of the pixels in the buffer have transparency.
+#elif PLATFORM(SKIA)
+        NativeImageSkia m_bitmap;
+#endif
+        IntRect m_rect;       // The rect of the original specified frame within the overall buffer.
+                              // This will always just be the entire buffer except for GIF frames
+                              // whose original rect was smaller than the overall image size.
         FrameStatus m_status; // Whether or not this frame is completely finished decoding.
-        unsigned m_duration; // The animation delay.
-        FrameDisposalMethod m_disposalMethod; // What to do with this frame's data when initializing the next frame.
-        bool m_hasAlpha; // Whether or not any of the pixels in the buffer have transparency.
+        unsigned m_duration;  // The animation delay.
+        FrameDisposalMethod m_disposalMethod;
+                              // What to do with this frame's data when initializing the next frame.
     };
 
     // The ImageDecoder class represents a base class for specific image format decoders

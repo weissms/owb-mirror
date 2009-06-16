@@ -43,6 +43,7 @@
 #include "DragController.h"
 #include "DragData.h"
 #include "EditorClientQt.h"
+#include "SecurityOrigin.h"
 #include "Settings.h"
 #include "Page.h"
 #include "Pasteboard.h"
@@ -797,11 +798,24 @@ void QWebPagePrivate::keyPressEvent(QKeyEvent *ev)
         int fontHeight = fm.height();
         if (!handleScrolling(ev)) {
             switch (ev->key()) {
+            case Qt::Key_Back:
+                q->triggerAction(QWebPage::Back);
+                break;
+            case Qt::Key_Forward:
+                q->triggerAction(QWebPage::Forward);
+                break;
+            case Qt::Key_Stop:
+                q->triggerAction(QWebPage::Stop);
+                break;
+            case Qt::Key_Refresh:
+                q->triggerAction(QWebPage::Reload);
+                break;
             case Qt::Key_Backspace:
                 if (ev->modifiers() == Qt::ShiftModifier)
                     q->triggerAction(QWebPage::Forward);
                 else
                     q->triggerAction(QWebPage::Back);
+                break;
             default:
                 handled = false;
                 break;
@@ -1632,8 +1646,8 @@ void QWebPage::setFixedContentsSize(const QSize &size) const
             view->setUseFixedLayout(true);
             view->setFixedLayoutSize(size);
             view->forceLayout();
-        } else if (!view->useFixedLayout()) {
-            view->setUseFixedLayout(true);
+        } else if (view->useFixedLayout()) {
+            view->setUseFixedLayout(false);
             view->forceLayout();
         }
     }
@@ -1665,7 +1679,7 @@ bool QWebPage::acceptNavigationRequest(QWebFrame *frame, const QWebNetworkReques
                 return true;
 
             case DelegateExternalLinks:
-                if (WebCore::FrameLoader::shouldTreatURLSchemeAsLocal(request.url().scheme()))
+                if (WebCore::SecurityOrigin::shouldTreatURLSchemeAsLocal(request.url().scheme()))
                     return true;
                 emit linkClicked(request.url());
                 return false;
@@ -2216,7 +2230,10 @@ void QWebPage::updatePositionDependentActions(const QPoint &pos)
     WebCore::Frame* focusedFrame = d->page->focusController()->focusedOrMainFrame();
     HitTestResult result = focusedFrame->eventHandler()->hitTestResultAtPoint(focusedFrame->view()->windowToContents(pos), /*allowShadowContent*/ false);
 
-    d->hitTestResult = QWebHitTestResult(new QWebHitTestResultPrivate(result));
+    if (result.scrollbar())
+        d->hitTestResult = QWebHitTestResult();
+    else
+        d->hitTestResult = QWebHitTestResult(new QWebHitTestResultPrivate(result));
     WebCore::ContextMenu menu(result);
     menu.populate();
     if (d->page->inspectorController()->enabled())

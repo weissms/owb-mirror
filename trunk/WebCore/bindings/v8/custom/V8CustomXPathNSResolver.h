@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2009, Google Inc. All rights reserved.
+ * Copyright (C) 2009 Google Inc. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,27 +28,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BMPImageDecoder_h
-#define BMPImageDecoder_h
 
-#include "BMPImageReader.h"
+#ifndef V8CustomXPathNSResolver_h
+#define V8CustomXPathNSResolver_h
+
+#if ENABLE(XPATH)
+
+#include <v8.h>
+#include "XPathNSResolver.h"
 
 namespace WebCore {
 
-    // This class decodes the BMP image format.
-    class BMPImageDecoder : public BMPImageReader {
-    public:
-        virtual String filenameExtension() const { return "bmp"; }
+class String;
 
-        // BMPImageReader
-        virtual void decodeImage(SharedBuffer*);
+class V8CustomXPathNSResolver : public XPathNSResolver {
+public:
 
-    private:
-        // Processes the file header at the beginning of the data.  Returns true if
-        // the file header could be decoded.
-        bool processFileHeader(SharedBuffer*);
-    };
+    V8CustomXPathNSResolver(v8::Handle<v8::Object> resolver);
+    virtual ~V8CustomXPathNSResolver();
+
+    virtual String lookupNamespaceURI(const String& prefix);
+
+private:
+    v8::Handle<v8::Object> m_resolver;  // Handle to resolver object.
+};
 
 } // namespace WebCore
 
-#endif
+#endif  // ENABLE(XPATH)
+
+#endif  // V8CustomXPathNSResolver_h

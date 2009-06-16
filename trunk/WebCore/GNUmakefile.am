@@ -1105,8 +1105,8 @@ webcore_sources += \
 	WebCore/inspector/JavaScriptProfile.h \
 	WebCore/inspector/JavaScriptProfileNode.cpp \
 	WebCore/inspector/JavaScriptProfileNode.h \
-	WebCore/inspector/JSONObject.cpp \
-	WebCore/inspector/JSONObject.h \
+	WebCore/inspector/InspectorJSONObject.cpp \
+	WebCore/inspector/InspectorJSONObject.h \
 	WebCore/loader/Cache.cpp \
 	WebCore/loader/Cache.h \
 	WebCore/loader/CachePolicy.h \
@@ -1862,6 +1862,9 @@ webcoregtk_sources += \
 	WebCore/platform/image-decoders/ImageDecoder.h \
 	WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp \
 	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h \
+	WebCore/platform/image-decoders/bmp/BMPImageReader.cpp \
+	WebCore/platform/image-decoders/bmp/BMPImageReader.h \
+	WebCore/platform/image-decoders/cairo/ImageDecoderCairo.cpp \
 	WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp \
 	WebCore/platform/image-decoders/gif/GIFImageDecoder.h \
 	WebCore/platform/image-decoders/gif/GIFImageReader.cpp \

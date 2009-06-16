@@ -16,3 +16,16 @@ aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/ICO/WK WEBCORE_SRC)
 aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/JPEG/WK WEBCORE_SRC)
 aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/PNG/WK WEBCORE_SRC)
 aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/XBM/WK WEBCORE_SRC)
+
+if(USE_GRAPHICS_GTK)
+    aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/Cairo WEBCORE_SRC)
+endif(USE_GRAPHICS_GTK)
+
+if(USE_GRAPHICS_QT)
+    aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/Qt WEBCORE_SRC)
+endif(USE_GRAPHICS_QT)
+
+if(USE_GRAPHICS_SDL)
+    aux_source_directory(${BAL_DIR}/ImageDecoder/WebCore/SDL WEBCORE_SRC)
+endif(USE_GRAPHICS_SDL)
+

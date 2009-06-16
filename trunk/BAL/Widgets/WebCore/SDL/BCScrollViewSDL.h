@@ -203,7 +203,8 @@ public:
     virtual void hide();
     virtual void setParentVisible(bool);
     
-    // Pan scrolling methods.
+    // Pan scrolling.
+    static const int noPanScrollRadius = 15;
     void addPanScrollIcon(const IntPoint&);
     void removePanScrollIcon();
 

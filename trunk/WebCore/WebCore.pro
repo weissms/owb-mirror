@@ -149,6 +149,12 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
 
+# Used to compute defaults for the build-webkit script
+CONFIG(compute_defaults) {
+    message($$DEFINES)
+    error("Done computing defaults")
+}
+
 # Ensure that we pick up WebCore's config.h over JavaScriptCore's
 INCLUDEPATH = $$PWD $$INCLUDEPATH
 
@@ -819,7 +825,7 @@ SOURCES += \
     inspector/InspectorController.cpp \
     inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
-    inspector/JSONObject.cpp \
+    inspector/InspectorJSONObject.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
     loader/archive/ArchiveResourceCollection.cpp \

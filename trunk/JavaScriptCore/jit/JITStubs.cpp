@@ -322,7 +322,7 @@ JITThunks::JITThunks(JSGlobalData* globalData)
 
 #if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
 
-NEVER_INLINE void JITThunks::tryCachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValue baseValue, const PutPropertySlot& slot)
+NEVER_INLINE void JITThunks::tryCachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, ReturnAddressPtr returnAddress, JSValue baseValue, const PutPropertySlot& slot)
 {
     // The interpreter checks for recursion here; I do not believe this can occur in CTI.
 
@@ -366,7 +366,7 @@ NEVER_INLINE void JITThunks::tryCachePutByID(CallFrame* callFrame, CodeBlock* co
     JIT::patchPutByIdReplace(stubInfo, structure, slot.cachedOffset(), returnAddress);
 }
 
-NEVER_INLINE void JITThunks::tryCacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot& slot)
+NEVER_INLINE void JITThunks::tryCacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, ReturnAddressPtr returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot& slot)
 {
     // FIXME: Write a test that proves we need to check for recursion here just
     // like the interpreter does, then add a check for recursion.
@@ -473,7 +473,7 @@ struct StackHack {
         : stackFrame(stackFrame)
         , savedReturnAddress(*stackFrame.returnAddressSlot())
     {
-        *stackFrame.returnAddressSlot() = reinterpret_cast<void*>(jscGeneratedNativeCode);
+        *stackFrame.returnAddressSlot() = ReturnAddressPtr(FunctionPtr(jscGeneratedNativeCode));
     }
 
     ALWAYS_INLINE ~StackHack() 
@@ -482,17 +482,17 @@ struct StackHack {
     }
 
     JITStackFrame& stackFrame;
-    void* savedReturnAddress;
+    ReturnAddressPtr savedReturnAddress;
 };
 
 #define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS); StackHack stackHack(stackFrame)
-#define STUB_SET_RETURN_ADDRESS(returnAddress) stackHack.savedReturnAddress = returnAddress
+#define STUB_SET_RETURN_ADDRESS(returnAddress) stackHack.savedReturnAddress = ReturnAddressPtr(returnAddress)
 #define STUB_RETURN_ADDRESS stackHack.savedReturnAddress
 
 #else
 
 #define STUB_INIT_STACK_FRAME(stackFrame) SETUP_VA_LISTL_ARGS; JITStackFrame& stackFrame = *reinterpret_cast<JITStackFrame*>(STUB_ARGS)
-#define STUB_SET_RETURN_ADDRESS(returnAddress) *stackFrame.returnAddressSlot() = returnAddress
+#define STUB_SET_RETURN_ADDRESS(returnAddress) *stackFrame.returnAddressSlot() = ReturnAddressPtr(returnAddress)
 #define STUB_RETURN_ADDRESS *stackFrame.returnAddressSlot()
 
 #endif
@@ -501,14 +501,14 @@ struct StackHack {
 // to get the address of the ctiVMThrowTrampoline function. It's also
 // good to keep the code size down by leaving as much of the exception
 // handling code out of line as possible.
-static NEVER_INLINE void returnToThrowTrampoline(JSGlobalData* globalData, void* exceptionLocation, void*& returnAddressSlot)
+static NEVER_INLINE void returnToThrowTrampoline(JSGlobalData* globalData, ReturnAddressPtr exceptionLocation, ReturnAddressPtr& returnAddressSlot)
 {
     ASSERT(globalData->exception);
     globalData->exceptionLocation = exceptionLocation;
-    returnAddressSlot = reinterpret_cast<void*>(ctiVMThrowTrampoline);
+    returnAddressSlot = ReturnAddressPtr(FunctionPtr(ctiVMThrowTrampoline));
 }
 
-static NEVER_INLINE void throwStackOverflowError(CallFrame* callFrame, JSGlobalData* globalData, void* exceptionLocation, void*& returnAddressSlot)
+static NEVER_INLINE void throwStackOverflowError(CallFrame* callFrame, JSGlobalData* globalData, ReturnAddressPtr exceptionLocation, ReturnAddressPtr& returnAddressSlot)
 {
     globalData->exception = createStackOverflowError(callFrame);
     returnToThrowTrampoline(globalData, exceptionLocation, returnAddressSlot);
@@ -672,7 +672,7 @@ DEFINE_STUB_FUNCTION(void, register_file_check)
     // moved the call frame forward.
     CallFrame* oldCallFrame = stackFrame.callFrame->callerFrame();
     stackFrame.callFrame = oldCallFrame;
-    throwStackOverflowError(oldCallFrame, stackFrame.globalData, oldCallFrame->returnPC(), STUB_RETURN_ADDRESS);
+    throwStackOverflowError(oldCallFrame, stackFrame.globalData, ReturnAddressPtr(oldCallFrame->returnPC()), STUB_RETURN_ADDRESS);
 }
 
 DEFINE_STUB_FUNCTION(int, op_loop_if_less)
@@ -931,7 +931,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_get_by_id_self_fail)
 
         if (stubInfo->opcodeID == op_get_by_id_self) {
             ASSERT(!stubInfo->stubRoutine);
-            polymorphicStructureList = new PolymorphicAccessStructureList(MacroAssembler::CodeLocationLabel(), stubInfo->u.getByIdSelf.baseObjectStructure);
+            polymorphicStructureList = new PolymorphicAccessStructureList(CodeLocationLabel(), stubInfo->u.getByIdSelf.baseObjectStructure);
             stubInfo->initGetByIdSelfList(polymorphicStructureList, 2);
         } else {
             polymorphicStructureList = stubInfo->u.getByIdSelfList.structureList;
@@ -957,12 +957,12 @@ static PolymorphicAccessStructureList* getPolymorphicAccessStructureListSlot(Str
     switch (stubInfo->opcodeID) {
     case op_get_by_id_proto:
         prototypeStructureList = new PolymorphicAccessStructureList(stubInfo->stubRoutine, stubInfo->u.getByIdProto.baseObjectStructure, stubInfo->u.getByIdProto.prototypeStructure);
-        stubInfo->stubRoutine.reset();
+        stubInfo->stubRoutine = CodeLocationLabel();
         stubInfo->initGetByIdProtoList(prototypeStructureList, 2);
         break;
     case op_get_by_id_chain:
         prototypeStructureList = new PolymorphicAccessStructureList(stubInfo->stubRoutine, stubInfo->u.getByIdChain.baseObjectStructure, stubInfo->u.getByIdChain.chain);
-        stubInfo->stubRoutine.reset();
+        stubInfo->stubRoutine = CodeLocationLabel();
         stubInfo->initGetByIdProtoList(prototypeStructureList, 2);
         break;
     case op_get_by_id_proto_list:
@@ -1247,7 +1247,7 @@ DEFINE_STUB_FUNCTION(void*, vm_lazyLinkCall)
         codeBlock = &callee->body()->bytecode(callee->scope().node());
 
     CallLinkInfo* callLinkInfo = &stackFrame.callFrame->callerFrame()->codeBlock()->getCallLinkInfo(stackFrame.args[1].returnAddress());
-    JIT::linkCall(callee, codeBlock, jitCode, callLinkInfo, stackFrame.args[2].int32());
+    JIT::linkCall(callee, codeBlock, jitCode, callLinkInfo, stackFrame.args[2].int32(), stackFrame.globalData);
 
     return jitCode.addressForCall().executableAddress();
 }
@@ -1278,7 +1278,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_call_NotJSFunction)
         CallFrame* previousCallFrame = stackFrame.callFrame;
         CallFrame* callFrame = CallFrame::create(previousCallFrame->registers() + registerOffset);
 
-        callFrame->init(0, static_cast<Instruction*>(STUB_RETURN_ADDRESS), previousCallFrame->scopeChain(), previousCallFrame, 0, argCount, 0);
+        callFrame->init(0, static_cast<Instruction*>((STUB_RETURN_ADDRESS).value()), previousCallFrame->scopeChain(), previousCallFrame, 0, argCount, 0);
         stackFrame.callFrame = callFrame;
 
         Register* argv = stackFrame.callFrame->registers() - RegisterFile::CallFrameHeaderSize - argCount;
@@ -2333,7 +2333,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_throw)
     }
 
     stackFrame.callFrame = callFrame;
-    void* catchRoutine = handler->nativeCode.addressForExceptionHandler();
+    void* catchRoutine = handler->nativeCode.executableAddress();
     ASSERT(catchRoutine);
     STUB_SET_RETURN_ADDRESS(catchRoutine);
     return JSValue::encode(exceptionValue);
@@ -2541,14 +2541,14 @@ DEFINE_STUB_FUNCTION(void*, op_switch_imm)
     CodeBlock* codeBlock = callFrame->codeBlock();
 
     if (scrutinee.isInt32Fast())
-        return codeBlock->immediateSwitchJumpTable(tableIndex).ctiForValue(scrutinee.getInt32Fast()).addressForSwitch();
+        return codeBlock->immediateSwitchJumpTable(tableIndex).ctiForValue(scrutinee.getInt32Fast()).executableAddress();
     else {
         double value;
         int32_t intValue;
         if (scrutinee.getNumber(value) && ((intValue = static_cast<int32_t>(value)) == value))
-            return codeBlock->immediateSwitchJumpTable(tableIndex).ctiForValue(intValue).addressForSwitch();
+            return codeBlock->immediateSwitchJumpTable(tableIndex).ctiForValue(intValue).executableAddress();
         else
-            return codeBlock->immediateSwitchJumpTable(tableIndex).ctiDefault.addressForSwitch();
+            return codeBlock->immediateSwitchJumpTable(tableIndex).ctiDefault.executableAddress();
     }
 }
 
@@ -2561,12 +2561,12 @@ DEFINE_STUB_FUNCTION(void*, op_switch_char)
     CallFrame* callFrame = stackFrame.callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
 
-    void* result = codeBlock->characterSwitchJumpTable(tableIndex).ctiDefault.addressForSwitch();
+    void* result = codeBlock->characterSwitchJumpTable(tableIndex).ctiDefault.executableAddress();
 
     if (scrutinee.isString()) {
         UString::Rep* value = asString(scrutinee)->value().rep();
         if (value->size() == 1)
-            result = codeBlock->characterSwitchJumpTable(tableIndex).ctiForValue(value->data()[0]).addressForSwitch();
+            result = codeBlock->characterSwitchJumpTable(tableIndex).ctiForValue(value->data()[0]).executableAddress();
     }
 
     return result;
@@ -2581,11 +2581,11 @@ DEFINE_STUB_FUNCTION(void*, op_switch_string)
     CallFrame* callFrame = stackFrame.callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
 
-    void* result = codeBlock->stringSwitchJumpTable(tableIndex).ctiDefault.addressForSwitch();
+    void* result = codeBlock->stringSwitchJumpTable(tableIndex).ctiDefault.executableAddress();
 
     if (scrutinee.isString()) {
         UString::Rep* value = asString(scrutinee)->value().rep();
-        result = codeBlock->stringSwitchJumpTable(tableIndex).ctiForValue(value).addressForSwitch();
+        result = codeBlock->stringSwitchJumpTable(tableIndex).ctiForValue(value).executableAddress();
     }
 
     return result;
@@ -2689,7 +2689,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, vm_throw)
     }
 
     stackFrame.callFrame = callFrame;
-    void* catchRoutine = handler->nativeCode.addressForExceptionHandler();
+    void* catchRoutine = handler->nativeCode.executableAddress();
     ASSERT(catchRoutine);
     STUB_SET_RETURN_ADDRESS(catchRoutine);
     return JSValue::encode(exceptionValue);

@@ -74,7 +74,7 @@ ImageDecoder* createDecoder(const Vector<char>& data)
     // CURs begin with 2-byte 0 followed by 2-byte 2.
     if (!memcmp(contents, "\000\000\001\000", 4) ||
         !memcmp(contents, "\000\000\002\000", 4))
-        return new ICOImageDecoder();
+        return new ICOImageDecoder(IntSize());
 
     // XBMs require 8 bytes of info.
     if (length >= 8 && strncmp(contents, "#define ", 8) == 0)
@@ -187,24 +187,7 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
     if (!size().height())
         return 0;
 
-
-
-    Uint32 rmask, gmask, bmask, amask;
-    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
-    on the endianness (byte order) of the machine */
-#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-#else
-    rmask = 0x00ff0000;
-    gmask = 0x0000ff00;
-    bmask = 0x000000ff;
-    amask = 0xff000000;
-#endif
-    return SDL_CreateRGBSurfaceFrom((void*)buffer->bytes().data(), size().width(), size().height(),
-                                    32, size().width() * 4, rmask, gmask, bmask, amask);
+    return buffer->asNewNativeImage();
 }
 
 bool ImageSource::frameIsCompleteAtIndex(size_t index)

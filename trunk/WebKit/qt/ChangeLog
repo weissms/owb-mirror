@@ -1,3 +1,47 @@
+2009-06-16  Benjamin C Meyer  <benjamin.meyer@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Support the back/forward/stop/refresh multimedia keys and accept the
+        event when handling backspace and shift backspace as we should.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::keyPressEvent):
+
+2009-06-15  Andre Pedralho  <andre.pedralho@openbossa.org>
+
+        Reviewed by Adam Treat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26351
+        Remove bool QWebHitTestResult::isScrollBar() const and make sure a null QWebHitTestResult is returned instead.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hitTestContent):
+        * Api/qwebframe.h:
+        * Api/qwebpage.cpp:
+        (QWebPage::updatePositionDependentActions):
+
+2009-06-15  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Adam Treat.
+
+        Fix the logic for disabling the fixed layout feature, when an invalid
+        QSize is set.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::setFixedContentsSize):
+
+2009-06-13  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24492
+
+        Move registerURLSchemeAsLocal from FrameLoader to SecurityOrigin.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::acceptNavigationRequest):
+
 2009-06-12  Antonio Gomes   <antonio.gomes@openbossa.org>
 
         Reviewed by Ariya Hidayat.

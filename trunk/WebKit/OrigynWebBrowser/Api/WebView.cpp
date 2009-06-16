@@ -1838,7 +1838,7 @@ const char* WebView::mainFrameTitle()
 
 void WebView::registerURLSchemeAsLocal(const char* scheme)
 {
-    FrameLoader::registerURLSchemeAsLocal(scheme);
+    SecurityOrigin::registerURLSchemeAsLocal(scheme);
 }
 
 void WebView::setSmartInsertDeleteEnabled(bool flag)

@@ -46,19 +46,22 @@ using namespace std;
 
 namespace JSC {
 
-void ctiPatchNearCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, MacroAssemblerCodePtr newCalleeFunction)
+void ctiPatchNearCallByReturnAddress(ReturnAddressPtr returnAddress, MacroAssemblerCodePtr newCalleeFunction)
 {
-    returnAddress.relinkNearCallerToTrampoline(newCalleeFunction);
+    MacroAssembler::RepatchBuffer repatchBuffer;
+    repatchBuffer.relinkNearCallerToTrampoline(returnAddress, newCalleeFunction);
 }
 
-void ctiPatchCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, MacroAssemblerCodePtr newCalleeFunction)
+void ctiPatchCallByReturnAddress(ReturnAddressPtr returnAddress, MacroAssemblerCodePtr newCalleeFunction)
 {
-    returnAddress.relinkCallerToTrampoline(newCalleeFunction);
+    MacroAssembler::RepatchBuffer repatchBuffer;
+    repatchBuffer.relinkCallerToTrampoline(returnAddress, newCalleeFunction);
 }
 
-void ctiPatchCallByReturnAddress(MacroAssembler::ProcessorReturnAddress returnAddress, FunctionPtr newCalleeFunction)
+void ctiPatchCallByReturnAddress(ReturnAddressPtr returnAddress, FunctionPtr newCalleeFunction)
 {
-    returnAddress.relinkCallerToFunction(newCalleeFunction);
+    MacroAssembler::RepatchBuffer repatchBuffer;
+    repatchBuffer.relinkCallerToFunction(returnAddress, newCalleeFunction);
 }
 
 JIT::JIT(JSGlobalData* globalData, CodeBlock* codeBlock)
@@ -426,7 +429,7 @@ void JIT::privateCompile()
 
     ASSERT(m_jmpTable.isEmpty());
 
-    PatchBuffer patchBuffer(this, m_globalData->executableAllocator.poolForSize(m_assembler.size()));
+    LinkBuffer patchBuffer(this, m_globalData->executableAllocator.poolForSize(m_assembler.size()));
 
     // Translate vPC offsets into addresses in JIT generated code, for switch tables.
     for (unsigned i = 0; i < m_switches.size(); ++i) {
@@ -474,7 +477,7 @@ void JIT::privateCompile()
 
     // Link absolute addresses for jsr
     for (Vector<JSRInfo>::iterator iter = m_jsrSites.begin(); iter != m_jsrSites.end(); ++iter)
-        patchBuffer.patch(iter->storeLocation, patchBuffer.locationOf(iter->target).addressForJSR());
+        patchBuffer.patch(iter->storeLocation, patchBuffer.locationOf(iter->target).executableAddress());
 
 #if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
     for (unsigned i = 0; i < m_codeBlock->numberOfStructureStubInfos(); ++i) {
@@ -489,7 +492,6 @@ void JIT::privateCompile()
         info.callReturnLocation = patchBuffer.locationOfNearCall(m_callStructureStubCompilationInfo[i].callReturnLocation);
         info.hotPathBegin = patchBuffer.locationOf(m_callStructureStubCompilationInfo[i].hotPathBegin);
         info.hotPathOther = patchBuffer.locationOfNearCall(m_callStructureStubCompilationInfo[i].hotPathOther);
-        info.coldPathOther = patchBuffer.locationOf(m_callStructureStubCompilationInfo[i].coldPathOther);
     }
 #endif
     unsigned methodCallCount = m_methodCallCompilationInfo.size();
@@ -849,7 +851,7 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
 #endif
 
     // All trampolines constructed! copy the code, link up calls, and set the pointers on the Machine object.
-    PatchBuffer patchBuffer(this, m_globalData->executableAllocator.poolForSize(m_assembler.size()));
+    LinkBuffer patchBuffer(this, m_globalData->executableAllocator.poolForSize(m_assembler.size()));
 
 #if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
     patchBuffer.link(array_failureCases1Call, FunctionPtr(JITStubs::cti_op_get_by_id_array_fail));
@@ -903,11 +905,14 @@ void JIT::unlinkCall(CallLinkInfo* callLinkInfo)
     // When the JSFunction is deleted the pointer embedded in the instruction stream will no longer be valid
     // (and, if a new JSFunction happened to be constructed at the same location, we could get a false positive
     // match).  Reset the check so it no longer matches.
-    callLinkInfo->hotPathBegin.repatch(JSValue::encode(JSValue()));
+    RepatchBuffer repatchBuffer;
+    repatchBuffer.repatch(callLinkInfo->hotPathBegin, JSValue::encode(JSValue()));
 }
 
-void JIT::linkCall(JSFunction* callee, CodeBlock* calleeCodeBlock, JITCode& code, CallLinkInfo* callLinkInfo, int callerArgCount)
+void JIT::linkCall(JSFunction* callee, CodeBlock* calleeCodeBlock, JITCode& code, CallLinkInfo* callLinkInfo, int callerArgCount, JSGlobalData* globalData)
 {
+    RepatchBuffer repatchBuffer;
+
     // Currently we only link calls with the exact number of arguments.
     // If this is a native call calleeCodeBlock is null so the number of parameters is unimportant
     if (!calleeCodeBlock || callerArgCount == calleeCodeBlock->m_numParameters) {
@@ -916,12 +921,12 @@ void JIT::linkCall(JSFunction* callee, CodeBlock* calleeCodeBlock, JITCode& code
         if (calleeCodeBlock)
             calleeCodeBlock->addCaller(callLinkInfo);
     
-        callLinkInfo->hotPathBegin.repatch(callee);
-        callLinkInfo->hotPathOther.relink(code.addressForCall());
+        repatchBuffer.repatch(callLinkInfo->hotPathBegin, callee);
+        repatchBuffer.relink(callLinkInfo->hotPathOther, code.addressForCall());
     }
 
-    // patch the instruction that jumps out to the cold path, so that we only try to link once.
-    callLinkInfo->hotPathBegin.jumpAtOffset(patchOffsetOpCallCompareToJump).relink(callLinkInfo->coldPathOther);
+    // patch the call so we do not continue to try to link.
+    repatchBuffer.relink(callLinkInfo->callReturnLocation, globalData->jitStubs.ctiVirtualCall());
 }
 
 } // namespace JSC

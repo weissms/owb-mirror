@@ -282,7 +282,7 @@ void Node::stopIgnoringLeaks()
 #endif
 }
 
-Node::StyleChange Node::diff( RenderStyle *s1, RenderStyle *s2 )
+Node::StyleChange Node::diff(const RenderStyle* s1, const RenderStyle* s2)
 {
     // FIXME: The behavior of this function is just totally wrong.  It doesn't handle
     // explicit inheritance of non-inherited properties and so you end up not re-resolving
@@ -302,6 +302,12 @@ Node::StyleChange Node::diff( RenderStyle *s1, RenderStyle *s2 )
     else if (s1->inheritedNotEqual(s2))
         ch = Inherit;
     
+    // For nth-child and other positional rules, treat styles as different if they have
+    // changed positionally in the DOM. This way subsequent sibling resolutions won't be confused
+    // by the wrong child index and evaluate to incorrect results.
+    if (ch == NoChange && s1->childIndex() != s2->childIndex())
+        ch = NoInherit;
+
     // If the pseudoStyles have changed, we want any StyleChange that is not NoChange
     // because setStyle will do the right thing with anything else.
     if (ch == NoChange && s1->hasPseudoStyle(BEFORE)) {

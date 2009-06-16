@@ -1,3 +1,70 @@
+2009-06-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6974857>
+        
+        Define ENABLE_3D_RENDERING when building on 10.6, and move ENABLE_3D_RENDERING
+        switch from config.h to wtf/Platform.h.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * WebKitPrefix.h:
+
+2009-06-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6967569>
+        CrashTracer: 15 crashes in Safari at com.apple.WebKit • WebKit::NetscapePluginHostManager::didCreateWindow + 85
+        
+        Make sure to remove the entry from the plug-in host map so we won't end up with an entry that has a null value.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::hostForPackage):
+
+2009-06-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        - make the source code font in the Web Inspector match Mac defaults
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController init]): Set the default monospace font
+        to 11px Menlo, except on Leopard and Tiger where it is 10px Monaco.
+
+2009-06-09  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Eric Seidel.  Landed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26281
+
+        REGRESSION: Copying from TextEdit/OmniGraffle and pasting into editable
+        region loses images
+        
+        Prefer RTFD (RTF with inline images) over RTF.  In
+        http://trac.webkit.org/changeset/19745 I accidently reversed their
+        order.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _documentFragmentFromPasteboard:inContext:allowPlainText:]): 
+
+2009-06-13  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24492
+
+        Move registerURLSchemeAsLocal from FrameLoader to SecurityOrigin
+
+        * WebView/WebView.mm:
+        (+[WebView registerURLSchemeAsLocal:]):
+
+2009-06-12  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        * ChangeLog-2007-10-14: Change pseudonym "Don Gibson" to me (was used while Google Chrome was not public); update my email address.
+
 2009-06-10  Dan Bernstein  <mitz@apple.com>
 
         Rubber-stamped by Mark Rowe.

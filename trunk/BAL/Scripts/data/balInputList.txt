@@ -368,6 +368,7 @@ BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.
 
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ImageDecoder.h
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h
+BAL/Skeletons/ImageDecoder  WebCore/platform/image-decoders/bmp/BMPImageReader.h
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/gif/GIFImageDecoder.h
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ico/ICOImageDecoder.h
 BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h
@@ -376,6 +377,9 @@ BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/xbm/XBMImageDecoder.h
 
 BAL/ImageDecoder/WebCore/BMP/WK	WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp
 BAL/ImageDecoder/WebCore/BMP/WK	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h
+BAL/ImageDecoder/WebCore/BMP/WK WebCore/platform/image-decoders/bmp/BMPImageReader.cpp
+BAL/ImageDecoder/WebCore/BMP/WK WebCore/platform/image-decoders/bmp/BMPImageReader.h
+BAL/ImageDecoder/WebCore/Cairo  WebCore/platform/image-decoders/cairo/ImageDecoderCairo.cpp
 BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp
 BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageDecoder.h
 BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageReader.cpp
