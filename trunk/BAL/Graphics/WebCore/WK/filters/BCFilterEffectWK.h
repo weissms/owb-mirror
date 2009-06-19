@@ -24,6 +24,7 @@
 #if ENABLE(FILTERS)
 #include "Filter.h"
 #include "FloatRect.h"
+#include "GraphicsContext.h"
 #include "ImageBuffer.h"
 #include "TextStream.h"
 
@@ -74,10 +75,15 @@ namespace WebCore {
         FloatRect calculateUnionOfChildEffectSubregions(Filter*, FilterEffect*, FilterEffect*);
         FloatRect calculateUnionOfChildEffectSubregions(Filter*, FilterEffect*);
 
+        GraphicsContext* getEffectContext();
+        FloatRect calculateDrawingRect(const FloatRect&);
+
         virtual FloatRect uniteChildEffectSubregions(Filter* filter) { return filter->filterRegion(); }
         virtual FloatRect calculateEffectRect(Filter*);
         virtual void apply(Filter*) = 0;
         virtual void dump() = 0;
+
+        virtual bool isSourceInput() { return false; }
 
         virtual TextStream& externalRepresentation(TextStream&) const;
     protected:

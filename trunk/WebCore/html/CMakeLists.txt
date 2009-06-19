@@ -106,6 +106,7 @@ list(APPEND IDL_SRC
     html/HTMLButtonElement.idl
     html/HTMLCanvasElement.idl
     html/HTMLCollection.idl
+    html/HTMLDataGridElement.idl
     html/HTMLDirectoryElement.idl
     html/HTMLDivElement.idl
     html/HTMLDListElement.idl

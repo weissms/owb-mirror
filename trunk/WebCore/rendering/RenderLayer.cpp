@@ -229,6 +229,10 @@ RenderLayerCompositor* RenderLayer::compositor() const
 
 void RenderLayer::rendererContentChanged()
 {
+    // This can get called when video becomes accelerated, so the layers may change.
+    if (compositor()->updateLayerCompositingState(this))
+        compositor()->setCompositingLayersNeedUpdate();
+
     if (m_backing)
         m_backing->rendererContentChanged();
 }
@@ -3045,7 +3049,7 @@ void RenderLayer::repaintIncludingNonCompositingDescendants(RenderBoxModelObject
 
 bool RenderLayer::shouldBeNormalFlowOnly() const
 {
-    return (renderer()->hasOverflowClip() || renderer()->hasReflection() || renderer()->hasMask()) &&
+    return (renderer()->hasOverflowClip() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isVideo()) &&
            !renderer()->isPositioned() &&
            !renderer()->isRelPositioned() &&
            !renderer()->hasTransform() &&
@@ -3054,7 +3058,7 @@ bool RenderLayer::shouldBeNormalFlowOnly() const
 
 bool RenderLayer::isSelfPaintingLayer() const
 {
-    return !isNormalFlowOnly() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isTableRow();
+    return !isNormalFlowOnly() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isTableRow() || renderer()->isVideo();
 }
 
 void RenderLayer::styleChanged(StyleDifference diff, const RenderStyle*)

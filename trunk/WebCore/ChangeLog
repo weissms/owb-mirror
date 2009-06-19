@@ -1,3 +1,1556 @@
+2009-06-19  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        feOffset and objectBoundingBox
+        [https://bugs.webkit.org/show_bug.cgi?id=26441]
+
+        If we use objectBoundingBox for primitiveUnits, the fractions given
+        to dx or dy of feOffset must be multiplied with the referenced objects
+        objectBoundingBox size.
+
+        Test: svg/filters/feOffset.svg
+
+        * svg/graphics/filters/SVGFEOffset.cpp:
+        (WebCore::FEOffset::apply):
+
+2009-06-18  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        feTile implementation missing
+        [https://bugs.webkit.org/show_bug.cgi?id=26419]
+
+        Implementation of feTile, a pattern effect for SVG filters. It was
+        necessary to modify FilterEffect since source inputs need a secial
+        logic and we have to identify if an effect is a source input.
+
+        Tests: svg/batik/filters/feTile.svg
+               svg/filters/feTile.svg
+
+        * platform/graphics/filters/FilterEffect.h:
+        (WebCore::FilterEffect::isSourceInput):
+        * platform/graphics/filters/SourceAlpha.h:
+        (WebCore::SourceAlpha::isSourceInput):
+        * platform/graphics/filters/SourceGraphic.h:
+        (WebCore::SourceGraphic::isSourceInput):
+        * svg/graphics/filters/SVGFETile.cpp:
+        (WebCore::FETile::apply):
+
+2009-06-18  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        feMerge implementation
+        [https://bugs.webkit.org/show_bug.cgi?id=26480]
+
+        Added feMerge to the SVG Filter system.
+
+        Test: svg/filters/feMerge.svg
+
+        * svg/graphics/filters/SVGFEMerge.cpp:
+        (WebCore::FEMerge::uniteChildEffectSubregions):
+        (WebCore::FEMerge::apply):
+        * svg/graphics/filters/SVGFEMerge.h:
+
+2009-06-18  Mark Rowe  <mrowe@apple.com>
+
+        Speculative Windows build fix.
+
+        * page/win/FrameCGWin.cpp: Add missing #include.
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26425
+        Final refactorings, picking up a few places where BitmapInfo
+        could be used.
+
+        * page/win/FrameCGWin.cpp:
+        (WebCore::imageFromRect):
+        * platform/win/CursorWin.cpp:
+        (WebCore::Cursor::Cursor):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::paint):
+
+2009-06-18  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 26522: In DOM mode, VoiceOver reads some mouseover text on web sites strangely
+        https://bugs.webkit.org/show_bug.cgi?id=26522
+
+        Test: accessibility/non-data-table-cell-title-ui-element.html
+
+        * accessibility/AccessibilityTableCell.cpp:
+        (WebCore::AccessibilityTableCell::titleUIElement):
+
+2009-06-18  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix after recent RenderTheme changes.
+
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::~RenderThemeWx):
+        (WebCore::RenderTheme::themeForPage):
+
+2009-06-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26460 part two
+        Attempt to minimize diff of following functional change by first landing
+        non-functional change to:
+        * Make readUintX() public and static (since they will need to be once
+          BMPImageReader is included in *ImageDecoder via composition rather
+          than inheritance).  Add wrappers in each class so callers can be
+          simpler.  In the next patch, these wrappers will be beefed up slightly
+          and the callers will get even simpler.
+        * Change direct setting of m_failed to use setFailed(), since in the
+          next patch much of this code won't even have direct access to m_failed
+        * Add a helper function in ICOImageDecoder to determine the image type
+          instead of simply doing it inline
+        * Rewrap lines that used to be <=80 cols and slipped over it during the
+          original landing of these decoders
+        * Other misc. changes, e.g. adding constructor definitions, reordering
+          functions, changing RGBA32Buffer& to RGBA32Buffer*, etc. that have no
+          functional effect but minimize the subsequent diff for readability
+
+
+        * platform/image-decoders/bmp/BMPImageDecoder.cpp:
+        (WebCore::BMPImageDecoder::BMPImageDecoder):
+        (WebCore::BMPImageDecoder::processFileHeader):
+        * platform/image-decoders/bmp/BMPImageDecoder.h:
+        (WebCore::BMPImageDecoder::readUint32):
+        * platform/image-decoders/bmp/BMPImageReader.cpp:
+        (WebCore::BMPImageReader::decodeBMP):
+        (WebCore::BMPImageReader::getInfoHeaderSize):
+        (WebCore::BMPImageReader::processInfoHeader):
+        (WebCore::BMPImageReader::readInfoHeader):
+        (WebCore::BMPImageReader::processBitmasks):
+        (WebCore::BMPImageReader::processColorTable):
+        (WebCore::BMPImageReader::processRLEData):
+        (WebCore::BMPImageReader::processNonRLEData):
+        * platform/image-decoders/bmp/BMPImageReader.h:
+        (WebCore::BMPImageReader::readUint16Helper):
+        (WebCore::BMPImageReader::readUint32Helper):
+        (WebCore::BMPImageReader::):
+        (WebCore::BMPImageReader::readUint16):
+        (WebCore::BMPImageReader::readUint32):
+        (WebCore::BMPImageReader::readCurrentPixel):
+        (WebCore::BMPImageReader::getComponent):
+        (WebCore::BMPImageReader::setI):
+        (WebCore::BMPImageReader::setRGBA):
+        (WebCore::BMPImageReader::fillRGBA):
+        * platform/image-decoders/ico/ICOImageDecoder.cpp:
+        (WebCore::ICOImageDecoder::ICOImageDecoder):
+        (WebCore::ICOImageDecoder::isSizeAvailable):
+        (WebCore::ICOImageDecoder::size):
+        (WebCore::ICOImageDecoder::decodeImage):
+        (WebCore::ICOImageDecoder::processDirectory):
+        (WebCore::ICOImageDecoder::processDirectoryEntries):
+        (WebCore::ICOImageDecoder::isBetterEntry):
+        (WebCore::ICOImageDecoder::processImageType):
+        * platform/image-decoders/ico/ICOImageDecoder.h:
+        (WebCore::ICOImageDecoder::readUint16):
+        (WebCore::ICOImageDecoder::readUint32):
+
+2009-06-18  Peter Kasting  <pkasting@google.com>
+
+        Fix build bustage.
+
+        * platform/image-decoders/gif/GIFImageDecoder.h:
+
+2009-06-18  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6940880> REGRESSION: Breakpoints don't break in 64-bit
+
+        Convert intptr_t to Strings so that we don't loose bits in the
+        conversion to JS.  Previously they were being put into 32bit ints.
+
+        * inspector/InspectorController.cpp: Convert the String back to an
+        intptr_t.
+        (WebCore::InspectorController::addBreakpoint):
+        (WebCore::InspectorController::removeBreakpoint):
+        * inspector/InspectorController.h:
+        * inspector/InspectorController.idl: Use strings in JS to avoid 32bit
+        truncation.
+        * inspector/InspectorFrontend.cpp: Make the intptr_t into a String.
+        (WebCore::InspectorFrontend::parsedScriptSource):
+        * platform/text/PlatformString.h: Implemented the necessary conversion
+        functions to be able to convert to and from an intptr_t.
+        * platform/text/String.cpp: Ditto.
+        (WebCore::String::toIntPtrStrict):
+        (WebCore::String::toIntPtr):
+        (WebCore::charactersToIntPtrStrict):
+        (WebCore::charactersToIntPtr):
+        * platform/text/StringImpl.cpp: Ditto.
+        (WebCore::StringImpl::toIntPtrStrict):
+        (WebCore::StringImpl::toIntPtr):
+        * platform/text/StringImpl.h: Ditto.
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Final cleanups in this refactoring:
+        (1) Move WindowsBitmap implementation from CG-specific file to
+            the platform-common GraphicsContextWin.cpp, since it is
+            equally useful on both platforms.
+        (2) Revise the TransformationMatrix logic as suggested by
+            Adam Roben in his review comments to Part #2 of this
+            refactoring.
+
+        * platform/graphics/win/GraphicsContextCGWin.cpp:
+        * platform/graphics/win/GraphicsContextWin.cpp:
+        (WebCore::GraphicsContext::WindowsBitmap::WindowsBitmap):
+        (WebCore::GraphicsContext::WindowsBitmap::~WindowsBitmap):
+        (WebCore::GraphicsContext::createWindowsBitmap):
+        (WebCore::GraphicsContext::getWindowsContext):
+        (WebCore::GraphicsContextPlatformPrivate::scale):
+        (WebCore::GraphicsContextPlatformPrivate::rotate):
+        (WebCore::GraphicsContextPlatformPrivate::translate):
+        (WebCore::GraphicsContextPlatformPrivate::concatCTM):
+
+2009-06-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26460 part one
+        Make isSizeAvailable non-const, since it's not logically const (it
+        triggers lazy decoding), and simplify all the implementations (without
+        changing behavior; just make less verbose).  Remove some other
+        inappropriate consts, which enables the removal of all the mutable
+        declarations in the decoders.
+
+        * platform/image-decoders/ImageDecoder.h:
+        (WebCore::ImageDecoder::isSizeAvailable):
+        (WebCore::ImageDecoder::setSize): Make public to avoid needing a friend declaration in the JPEG decoder, and because the ICO/BMP decoders will soon need this.
+        * platform/image-decoders/gif/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::isSizeAvailable):
+        (WebCore::GIFImageDecoder::repetitionCount):
+        (WebCore::GIFImageDecoder::decode):
+        * platform/image-decoders/gif/GIFImageDecoder.h:
+        * platform/image-decoders/ico/ICOImageDecoder.cpp:
+        (WebCore::ICOImageDecoder::isSizeAvailable):
+        * platform/image-decoders/ico/ICOImageDecoder.h:
+        * platform/image-decoders/jpeg/JPEGImageDecoder.cpp:
+        (WebCore::JPEGImageDecoder::isSizeAvailable):
+        (WebCore::JPEGImageDecoder::decode):
+        * platform/image-decoders/jpeg/JPEGImageDecoder.h:
+        * platform/image-decoders/png/PNGImageDecoder.cpp:
+        (WebCore::PNGImageDecoder::isSizeAvailable):
+        (WebCore::PNGImageDecoder::decode):
+        * platform/image-decoders/png/PNGImageDecoder.h:
+        * platform/image-decoders/xbm/XBMImageDecoder.cpp:
+        (WebCore::XBMImageDecoder::isSizeAvailable):
+        (WebCore::XBMImageDecoder::frameBufferAtIndex):
+        (WebCore::XBMImageDecoder::decode):
+        * platform/image-decoders/xbm/XBMImageDecoder.h: Rename decodeXBM() to decode() for consistency with the JPEG/PNG decoders, and in the future the ICO/BMP decoders.
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move some common functions out of platform files and into
+        the common implementation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26425.
+        Add a new platform context method (flush) so that the
+        getWindowsContext method can be consolidated into the common
+        GraphicsContextWin.cpp file.
+         
+        * platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h:
+        (WebCore::GraphicsContextPlatformPrivate::flush):
+        * platform/graphics/cg/GraphicsContextPlatformPrivateCG.h:
+        (WebCore::GraphicsContextPlatformPrivate::flush):
+        * platform/graphics/win/GraphicsContextCGWin.cpp: Remove
+          getWindowContext method.
+        * platform/graphics/win/GraphicsContextCairoWin.cpp: Remove
+          getWindowContext method and fillWithClearColor methods.
+        * platform/graphics/win/GraphicsContextWin.cpp:
+        (WebCore::fillWithClearColor): Moved from *CairoWin.cpp
+        (WebCore::GraphicsContext::getWindowsContext): Moved
+          from *CairoWin.cpp
+
+2009-06-18  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        Remove code that I accidentally committed in r44811.
+
+        * editing/markup.cpp:
+        (WebCore::createMarkup):
+
+2009-06-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6983207> Non-layer content is not re-rendered when transition
+        starts sometimes (with hardware acceleration).
+        
+        When deciding which RenderLayers should be composited, when a layer goes into
+        compositing mode we repaint the old location. However, we did that before
+        we'd looked at all the factors that may force a layer to composite, so missed
+        some cases. Fix by doing the repaint once we really know whether it's going
+        to composite.
+
+        Test: compositing/repaint/become-overlay-composited-layer.html
+
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::computeCompositingRequirements):
+
+2009-06-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix the Leopard build where USE(ACCELERATED_COMPOSITING) is not defined, and
+        the Tiger build where QTMovieLayer does not exist.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTMovieLayer):
+        (WebCore::MediaPlayerPrivate::destroyQTMovieLayer):
+        (WebCore::MediaPlayerPrivate::currentRenderingMode):
+        (WebCore::MediaPlayerPrivate::setUpVideoRendering):
+        (WebCore::MediaPlayerPrivate::tearDownVideoRendering):
+        (WebCore::MediaPlayerPrivate::hasSetUpVideoRendering):
+
+2009-06-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix the Leopard build where USE(ACCELERATED_COMPOSITING) is not defined.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::currentRenderingMode):
+        (WebCore::MediaPlayerPrivate::setUpVideoRendering):
+        (WebCore::MediaPlayerPrivate::tearDownVideoRendering):
+
+2009-06-17  Erik Arvidsson  <arv@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15189
+        Adds the HTML5 input event support for textarea.
+        
+        Also, moves the oninput attribute parse handling to HTMLElement so that
+        it can be set on any HTML element so that bubbling events can be handled
+        using HTML attribute handlers.
+
+        Test: fast/forms/textarea-input-event.html
+
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        * rendering/RenderTextControlMultiLine.cpp:
+        (WebCore::RenderTextControlMultiLine::subtreeHasChanged):
+
+2009-06-18  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Share code between filterEffects
+        [https://bugs.webkit.org/show_bug.cgi?id=26479]
+
+        Share more code of filter effects. The imageBuffer creation can move to
+        FilterEffect ant every effect asks for the GraphicsContext. Move the
+        drawingRect calculation to FilterEffect.
+
+        * platform/graphics/filters/FilterEffect.cpp:
+        (WebCore::FilterEffect::calculateDrawingRect):
+        (WebCore::FilterEffect::getEffectContext):
+        * platform/graphics/filters/FilterEffect.h:
+        * platform/graphics/filters/SourceGraphic.cpp:
+        (WebCore::SourceGraphic::apply):
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        (WebCore::FEFlood::apply):
+        * svg/graphics/filters/SVGFEOffset.cpp:
+        (WebCore::FEOffset::apply):
+
+2009-06-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26499
+        
+        Support hardware-accelerationed rendering of video elements.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::mediaPlayerSawUnsupportedTracks):
+        (WebCore::HTMLMediaElement::mediaPlayerRepaint):
+        Just move these methods to group the render-related methods together.
+        
+        (WebCore::HTMLMediaElement::mediaPlayerRenderingCanBeAccelerated):
+        Call out method to ask the RenderLayerCompositor if presentation of this video
+        can be acclerated. It might say no, if, for example, the video has a reflection.
+        
+        (WebCore::HTMLMediaElement::mediaPlayerGraphicsLayer):
+        Fetch the GraphicsLayer from the RenderVideo that will host the movie layer.
+        
+        * html/HTMLMediaElement.h:
+        Reordered the rendering-related methods, and added two methods related to video
+        acceleration.
+        
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::acceleratedRenderingStateChanged):
+        Called by the rendering system when it determines that the video must go into, or
+        fall off of the hardware-accelerated path.
+        
+        (WebCore::MediaPlayer::supportsAcceleratedRendering):
+        Method to say whether the media engine supports accelerated rendering.
+        
+        * platform/graphics/MediaPlayer.h:
+        (WebCore::MediaPlayerClient::mediaPlayerRepaint):
+        (WebCore::MediaPlayerClient::mediaPlayerSizeChanged):
+        Moved.
+        
+        (WebCore::MediaPlayerClient::mediaPlayerRenderingCanBeAccelerated):
+        (WebCore::MediaPlayerClient::mediaPlayerGraphicsLayer):
+        New methods to ask the client if the rendering system can support accelerated
+        rendering, and to get a GraphicsLayer to plug the movie layer into.
+        
+        * platform/graphics/MediaPlayerPrivate.h:
+        (WebCore::MediaPlayerPrivateInterface::supportsAcceleratedRendering):
+        (WebCore::MediaPlayerPrivateInterface::acceleratedRenderingStateChanged):
+        Forwarding methods from MediaPlayer.
+        
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        Some new methods related to using a QTMovieLayer, and to simplify the rendering mode logic.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::createQTMovieLayer):
+        (WebCore::MediaPlayerPrivate::destroyQTMovieLayer):
+        Methods to create and destroy the QTMovieLayer.
+        
+        (WebCore::MediaPlayerPrivate::currentRenderingMode):
+        (WebCore::MediaPlayerPrivate::preferredRenderingMode):
+        Methods to clarify the code that decides which of the 3 rendering modes to use.
+        
+        (WebCore::MediaPlayerPrivate::setUpVideoRendering):
+        Changed to use the new rendering mode methods.
+        
+        (WebCore::MediaPlayerPrivate::tearDownVideoRendering):
+        Destroy the layer if we have one.
+        
+        (WebCore::MediaPlayerPrivate::hasSetUpVideoRendering):
+        Small utility method.
+        
+        (WebCore::MediaPlayerPrivate::updateStates):
+        Move the call to setUpVideoRendering() to before we send out the state notifications,
+        so that we will have created the rendering objects already.
+        
+        (WebCore::MediaPlayerPrivate::supportsAcceleratedRendering):
+        Return true if we have QTMovieLayer.
+        
+        (WebCore::MediaPlayerPrivate::acceleratedRenderingStateChanged):
+        We've been told that we went into or out of accelerated mode; maybe reset
+        the renderer, and set the layer if we have to.
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::rendererContentChanged):
+        We may need to udpate compositing layers if the video went into accelerated mode.
+        
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::canUseDirectCompositing):
+        Add smarts to deal with video, which allows us to avoid extra backing store.
+        
+        (WebCore::RenderLayerBacking::contentsBox):
+        Use the videoBox to use the content layer for video layers.
+        
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::updateLayerCompositingState):
+        Poke the RenderVideo if the state changed.
+        
+        (WebCore::RenderLayerCompositor::computeCompositingRequirements):
+        Handle an edge case when the video element itself is a stacking context
+        because of opacity or transform.
+        
+        (WebCore::RenderLayerCompositor::canAccelerateVideoRendering):
+        (WebCore::RenderLayerCompositor::requiresCompositingLayer):
+        (WebCore::RenderLayerCompositor::requiresCompositingForVideo):
+        Allow video to throw us into compositing mode if the media engine supports it.
+        
+        * rendering/RenderLayerCompositor.h:
+        New methods related to video.
+        
+        * rendering/RenderVideo.h:
+        * rendering/RenderVideo.cpp:
+        (WebCore::RenderVideo::updatePlayer):
+        Call rendererContentChanged() to give the compositor a change to throw the video into
+        compositing mode.
+        
+        (WebCore::RenderVideo::supportsAcceleratedRendering):
+        (WebCore::RenderVideo::acceleratedRenderingStateChanged):
+        (WebCore::RenderVideo::videoGraphicsLayer):
+        Methods to allow the MediaPlayer to do rendering-related stuff via the media element.
+
+2009-06-18  Rob Buis  <rwlbuis@gmail.com>
+
+        Reviewed by Niko.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26385
+        Root SVG element is not checked on requiredFeatures, requiredExtension like other elements
+
+        Also do the isValid check for outer <svg>.
+
+        Test: svg/custom/outer-svg-unknown-feature.svg
+
+        * svg/SVGDocument.cpp:
+        (WebCore::SVGDocument::childShouldCreateRenderer):
+        * svg/SVGDocument.h:
+
+2009-06-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6913221> REGRESSION (Safari 3-4): Search field on
+          apple.com cuts entered text
+
+        Test: fast/forms/search-vertical-alignment.html
+
+        * rendering/RenderTextControlSingleLine.cpp:
+        (WebCore::RenderTextControlSingleLine::layout): Vertically center the
+            the search field's inner block.
+
+2009-06-18  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix compilation with Symbian WINSCW compiler, which produced
+        multiple definitions of the CSSPrimitiveValue conversion operators.
+
+        It turns out that they are defined inline but not declared inline.
+
+        Adding the inline keyword to the declaration fixes the build.
+
+        * css/CSSPrimitiveValue.h:
+
+2009-06-18  Markus Goetz <Markus.Goetz@nokia.com>
+
+        Reviewed by Simon Hausman.
+
+        Clarify in docs how to compile with debug information.
+
+        * WebCore.pro:
+
+2009-06-18  Jakub Wieczorek  <faw217@gmail.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] When writing an URL to the clipboard, save the corresponding title
+        in the mime data as well.
+
+        * platform/qt/ClipboardQt.cpp:
+        (WebCore::ClipboardQt::writeURL):
+
+2009-06-18  Jakub Wieczorek  <faw217@gmail.com>
+
+        [Qt] Fix build. Add HTMLDataGridElement.
+
+        * WebCore.pro:
+
+2009-06-18  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix.
+
+        Add HTMLDataGridElement header and IDL to the build script.
+
+        * GNUmakefile.am:
+
+2009-06-18  Chris Evans  <scarybeasts@gmail.com>
+
+        Reviewed by Adam Barth.
+
+        Fix 8-digit long hex entities. Fixes bug 26454
+        https://bugs.webkit.org/show_bug.cgi?id=26454
+
+        Test: fast/parser/eightdigithexentity.html
+
+        * html/HTMLTokenizer.cpp: fix off-by-ones.
+
+2009-06-18  David Levin  <levin@chromium.org>
+
+        Fix chromium linux build.
+
+        Fixes a mistake that happened during the complicated merge for
+        landing r44775, r44776, r44777.
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::create):
+
+2009-06-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26499
+        
+        First step to making video rendering be hardware-accelerated:
+        make <video> elements get self-painting RenderLayers, and add
+        an isVideo() virtual method to RenderObject.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::setReadyState):
+        (WebCore::HTMLMediaElement::mediaPlayerDurationChanged):
+        (WebCore::HTMLMediaElement::mediaPlayerSizeChanged):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::shouldBeNormalFlowOnly):
+        (WebCore::RenderLayer::isSelfPaintingLayer):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isVideo):
+        * rendering/RenderVideo.h:
+        (WebCore::RenderVideo::requiresLayer):
+        (WebCore::RenderVideo::isVideo):
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Refactor a few common routines in the various Windows ports
+        and reduce some duplicated code.
+
+        (1) Create TransformationMatrix XFORM casting operator, and
+            switch various XFORM structure uses to utilize it.
+        (2) Push concatCTM call to GraphicsContextWin now that the
+            TransformationMatrix can directly create XFORM (rather
+            than converting to CGAffineTransform/cairo_matrix_t first.)
+
+        * WebCore.vcproj/WebCore.vcproj: Add new BitmapInfo structure.
+        * platform/graphics/transforms/TransformationMatrix.h:
+        * platform/graphics/win/GraphicsContextCGWin.cpp:
+        * platform/graphics/win/GraphicsContextCairoWin.cpp:
+        * platform/graphics/win/GraphicsContextWin.cpp:
+        (WebCore::GraphicsContextPlatformPrivate::scale):
+        (WebCore::GraphicsContextPlatformPrivate::rotate):
+        (WebCore::GraphicsContextPlatformPrivate::translate):
+        (WebCore::GraphicsContextPlatformPrivate::concatCTM):
+        * platform/graphics/win/TransformationMatrixWin.cpp: Added.
+        (WebCore::TransformationMatrix::operator XFORM): New operator
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Non-CG Windows build fix after @r44758.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderTheme::themeForPage):
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Refactor a few common routines in the various Windows ports
+        and reduce some duplicated code.
+        https://bugs.webkit.org/show_bug.cgi?id=26425.
+
+        Refactor use of BITMAPINFO for the new BitmapInfo structure.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/win/BitmapInfo.cpp: Added.
+        (WebCore::bitmapInfoForSize):
+        (WebCore::BitmapInfo::create):
+        (WebCore::BitmapInfo::createBottomUp):
+        * platform/win/BitmapInfo.h: Added.
+        * platform/graphics/win/GraphicsContextCairoWin.cpp:
+        * platform/graphics/win/GraphicsContextCGWin.cpp:
+        * platform/graphics/win/TransformationMatrixWin.cpp: Added.
+        (WebCore::TransformationMatrix::operator XFORM): New operator
+        * platform/win/DragImageCGWin.cpp:
+        (WebCore::allocImage):
+        * platform/win/DragImageCairoWin.cpp:
+        (WebCore::allocImage):
+        * platform/win/PasteboardWin.cpp:
+        (WebCore::Pasteboard::writeImage):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::paint):
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Remove unnecessary 6th parameter from SOFT_LINK_OPTIONAL
+
+        Reviewed by Mark Rowe.
+
+        * platform/graphics/win/ColorSafari.cpp: Removed the 6th parameter and
+        an unnecessary parameter name.
+        * platform/win/SoftLinking.h: Removed the unused 6th parameter.
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Make Settings::shouldPaintNativeControls default to true
+
+        This matches the default up in WebKit (that was changed in r43318).
+
+        Fixes Bug 26493: REGRESSION (r44758): First tab always uses Mac-style
+        form controls
+        <https://bugs.webkit.org/show_bug.cgi?id=26493>
+
+        Reviewed by Darin Adler and Dave Hyatt.
+
+        No test possible since DRT always uses Mac-style form controls.
+
+        * page/Settings.cpp: Changed the initial value of
+        gShouldPaintNativeControls to true.
+
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderTheme::themeForPage): Added a FIXME about the design
+        flaw here involving querying Settings before it's been initialized.
+
+2009-06-17  David Levin  <levin@chromium.org>
+
+        Fix chromium windows build.
+
+        A mistake that happened during the complicated merge for
+        landing r44775, r44776, r44777.
+
+        * rendering/RenderThemeChromiumWin.h:
+        (WebCore::RenderThemeChromiumWin::RenderThemeChromiumWin):
+        (WebCore::RenderThemeChromiumWin::~RenderThemeChromiumWin):
+
+2009-06-17  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/6981193> Crash in MediaControlInputElement::attachToParent
+
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaTextDisplayElement::attachToParent): NULL check element renderer or parent renderer.
+        (WebCore::MediaControlInputElement::attachToParent): Ditto.
+
+2009-06-17  David Hyatt  <hyatt@apple.com>
+
+        Fix Windows build.  There's no HTMLDataGridElement.cpp file yet.
+
+        * html/HTMLElementsAllInOne.cpp:
+
+2009-06-17  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben and Anders Carlsson.
+
+        Stub out the HTMLDataGridElement.
+
+        * DerivedSources.make:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        * editing/htmlediting.cpp:
+        (WebCore::canHaveChildrenForEditing):
+        * html/HTMLDataGridElement.h: Added.
+        (WebCore::HTMLDataGridElement::HTMLDataGridElement):
+        (WebCore::HTMLDataGridElement::tagPriority):
+        * html/HTMLDataGridElement.idl: Added.
+        * html/HTMLElement.cpp:
+        (WebCore::inlineTagList):
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::isAffectedByResidualStyle):
+        * html/HTMLTagNames.in:
+
+2009-06-17  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (chromium build fix).
+
+        Fix typo in previous changes.
+
+        * rendering/RenderThemeChromiumSkia.cpp:
+        (WebCore::RenderThemeChromiumSkia::defaultGUIFont):
+
+2009-06-17  Albert J. Wong  <ajwong@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26148
+        Remove common code from RenderThemeChromiumWin that is shared with
+        RenderThemeChromiumSkia.
+
+        Also move supportsControlTints to RenderThemeChromiumLinux since it
+        is linux specific.
+
+        There are no tests changed because this just removes functions with
+        duplicate implementations between the base and derived classes.
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::supportsControlTints):
+        * rendering/RenderThemeChromiumLinux.h:
+        * rendering/RenderThemeChromiumSkia.cpp:
+        * rendering/RenderThemeChromiumSkia.h:
+        * rendering/RenderThemeChromiumWin.cpp:
+        (WebCore::):
+        (WebCore::getNonClientMetrics):
+        (WebCore::RenderThemeChromiumWin::RenderThemeChromiumWin):
+        (WebCore::RenderThemeChromiumWin::~RenderThemeChromiumWin):
+        (WebCore::RenderThemeChromiumWin::systemFont):
+        (WebCore::RenderThemeChromiumWin::paintCheckbox):
+        (WebCore::RenderThemeChromiumWin::paintRadio):
+        (WebCore::RenderThemeChromiumWin::paintSliderThumb):
+        (WebCore::RenderThemeChromiumWin::caretBlinkIntervalInternal):
+        * rendering/RenderThemeChromiumWin.h:
+
+2009-06-17  Albert J. Wong  <ajwong@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26148
+        Move RenderThemeChromiumSkia into its own file.  This is purely a code move.
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        * rendering/RenderThemeChromiumLinux.h:
+        * rendering/RenderThemeChromiumSkia.cpp:
+        (WebCore::):
+        (WebCore::setSizeIfAuto):
+        (WebCore::mediaElementParent):
+        (WebCore::RenderThemeChromiumSkia::defaultGUIFont):
+        (WebCore::RenderThemeChromiumSkia::RenderThemeChromiumSkia):
+        (WebCore::RenderThemeChromiumSkia::~RenderThemeChromiumSkia):
+        (WebCore::RenderThemeChromiumSkia::extraDefaultStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::extraQuirksStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::extraMediaControlsStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::supportsHover):
+        (WebCore::RenderThemeChromiumSkia::supportsFocusRing):
+        (WebCore::RenderThemeChromiumSkia::platformActiveSelectionBackgroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformInactiveSelectionBackgroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformActiveSelectionForegroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformInactiveSelectionForegroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformTextSearchHighlightColor):
+        (WebCore::RenderThemeChromiumSkia::caretBlinkInterval):
+        (WebCore::RenderThemeChromiumSkia::systemFont):
+        (WebCore::RenderThemeChromiumSkia::minimumMenuListSize):
+        (WebCore::RenderThemeChromiumSkia::paintCheckbox):
+        (WebCore::RenderThemeChromiumSkia::setCheckboxSize):
+        (WebCore::RenderThemeChromiumSkia::paintRadio):
+        (WebCore::RenderThemeChromiumSkia::setRadioSize):
+        (WebCore::brightenColor):
+        (WebCore::paintButtonLike):
+        (WebCore::RenderThemeChromiumSkia::paintButton):
+        (WebCore::RenderThemeChromiumSkia::paintTextField):
+        (WebCore::RenderThemeChromiumSkia::paintTextArea):
+        (WebCore::RenderThemeChromiumSkia::paintSearchField):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldCancelButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldDecorationStyle):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldResultsDecorationStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldResultsButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldResultsButton):
+        (WebCore::RenderThemeChromiumSkia::paintMediaButtonInternal):
+        (WebCore::RenderThemeChromiumSkia::paintMediaPlayButton):
+        (WebCore::RenderThemeChromiumSkia::paintMediaMuteButton):
+        (WebCore::RenderThemeChromiumSkia::adjustMenuListStyle):
+        (WebCore::RenderThemeChromiumSkia::paintMenuList):
+        (WebCore::RenderThemeChromiumSkia::adjustMenuListButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintMenuListButton):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingRight):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingTop):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingBottom):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingRight):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingTop):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingBottom):
+        (WebCore::RenderThemeChromiumSkia::caretBlinkIntervalInternal):
+        (WebCore::RenderThemeChromiumSkia::menuListInternalPadding):
+        * rendering/RenderThemeChromiumSkia.h:
+        (WebCore::RenderThemeChromiumSkia::supportsControlTints):
+
+2009-06-17  Albert J. Wong  <ajwong@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26148
+        Extract RenderThemeChromiumSkia out of RenderThemeChromiumLinux.  This
+        is mostly a code shuffle.  The non-suffle changes are:
+           1) Creation of a caretBlinkIntervalInternal.
+           2) Moving of some inline functions into the implementation files.
+           3) Changing of defaultGUIFont into a static class constant from a
+              static function.  Also the type is changed to String.
+           4) Changing of defaultFontSize into a static class constant from a
+              static variable in the file scope.
+           5) The static supportsFocus function was collapsed into
+              supportsFocusRing.
+           6) Split the extraDefaultStyleSheet into Skia and Linux versions.
+
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumSkia::defaultGUIFont):
+        (WebCore::RenderThemeChromiumSkia::RenderThemeChromiumSkia):
+        (WebCore::RenderThemeChromiumSkia::~RenderThemeChromiumSkia):
+        (WebCore::RenderThemeChromiumSkia::extraDefaultStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::extraQuirksStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::extraMediaControlsStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::supportsHover):
+        (WebCore::RenderThemeChromiumSkia::supportsFocusRing):
+        (WebCore::RenderThemeChromiumSkia::platformActiveSelectionBackgroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformInactiveSelectionBackgroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformActiveSelectionForegroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformInactiveSelectionForegroundColor):
+        (WebCore::RenderThemeChromiumSkia::platformTextSearchHighlightColor):
+        (WebCore::RenderThemeChromiumSkia::caretBlinkInterval):
+        (WebCore::RenderThemeChromiumSkia::systemFont):
+        (WebCore::RenderThemeChromiumSkia::minimumMenuListSize):
+        (WebCore::RenderThemeChromiumSkia::paintCheckbox):
+        (WebCore::RenderThemeChromiumSkia::setCheckboxSize):
+        (WebCore::RenderThemeChromiumSkia::paintRadio):
+        (WebCore::RenderThemeChromiumSkia::setRadioSize):
+        (WebCore::RenderThemeChromiumSkia::paintButton):
+        (WebCore::RenderThemeChromiumSkia::paintTextField):
+        (WebCore::RenderThemeChromiumSkia::paintTextArea):
+        (WebCore::RenderThemeChromiumSkia::paintSearchField):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldCancelButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldDecorationStyle):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldResultsDecorationStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeChromiumSkia::adjustSearchFieldResultsButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintSearchFieldResultsButton):
+        (WebCore::RenderThemeChromiumSkia::paintMediaButtonInternal):
+        (WebCore::RenderThemeChromiumSkia::paintMediaPlayButton):
+        (WebCore::RenderThemeChromiumSkia::paintMediaMuteButton):
+        (WebCore::RenderThemeChromiumSkia::adjustMenuListStyle):
+        (WebCore::RenderThemeChromiumSkia::paintMenuList):
+        (WebCore::RenderThemeChromiumSkia::adjustMenuListButtonStyle):
+        (WebCore::RenderThemeChromiumSkia::paintMenuListButton):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingRight):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingTop):
+        (WebCore::RenderThemeChromiumSkia::popupInternalPaddingBottom):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingLeft):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingRight):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingTop):
+        (WebCore::RenderThemeChromiumSkia::buttonInternalPaddingBottom):
+        (WebCore::RenderThemeChromiumSkia::caretBlinkIntervalInternal):
+        (WebCore::RenderThemeChromiumLinux::RenderThemeChromiumLinux):
+        (WebCore::RenderThemeChromiumLinux::~RenderThemeChromiumLinux):
+        (WebCore::RenderThemeChromiumLinux::systemColor):
+        (WebCore::RenderThemeChromiumLinux::extraDefaultStyleSheet):
+        (WebCore::RenderThemeChromiumSkia::menuListInternalPadding):
+        * rendering/RenderThemeChromiumLinux.h:
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Add a SOFT_LINK_OPTIONAL macro
+
+        This macro is useful when soft-linking functions that are present in
+        only some versions of a particular library (e.g., APIs added in
+        Windows Vista that aren't available on Windows XP).
+
+        Reviewed by Ada Chan.
+
+        * platform/graphics/win/ColorSafari.cpp:
+        (WebCore::focusRingColor):
+        Use the SoftLinking.h macros instead of doing the soft-link ourselves.
+        Also removed an unused call to focusRingColor.isValid().
+
+        * platform/win/SoftLinking.h: Added SOFT_LINK_OPTIONAL.
+
+2009-06-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Gustavo Noronha.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=26470.
+        The use of zero-width or zero-height rectangles in generating
+        gradients caused Windows Cairo to crash, and webkitgtk to
+        produce invalid images.
+
+        We now test for NaN in the phase argument, which is calculated
+        using fmodf and can blow up when the width/height values passed
+        are zero.
+
+        Test: fast/gradients/border-image-gradient-sides-and-corners.html
+
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::Image::drawPattern):
+
+2009-06-17  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        If loading a font fails because of the sandbox, we ask the browser process to
+        try to load it by calling ensureFontLoaded. If it still fails after
+        ensureFontLoaded, we hit a ASSERT_NOT_REACHED.
+
+        This case happens once in a while during browser shutdown. The browser will
+        queue a message to the renderer to shutdown, and will then stop answering sync
+        messages from the renderer. If the renderer is still loading a page during this
+        time, it might try to call the browser process to ask to load a font. The
+        browser process will ignore the request, and the font will fail to load, even
+        after the second try.
+
+        This is unfortunate, but there is no real risk here, since the renderer will be
+        going away as soon as it processes another message.
+        
+        This can't be layout tested as it depends on the sandbox.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26484
+
+        * platform/graphics/chromium/FontCacheChromiumWin.cpp:
+        (WebCore::fontContainsCharacter):
+
+2009-06-17  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26482
+        <rdar://problem/6978590> When setting playback rate to 0, the audio element stops 
+        playing (doesn't resume later)
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::setRate): Always set the rate, even when "paused".
+
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp:
+        (WebCore::MediaPlayerPrivate::setRate): Ditto.
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Add all the generated JS*.cpp files back to WebCore.vcproj
+
+        They are not compiled by the vcproj directly. Instead they are
+        compiled as part of DerivedSources.cpp. Having them listed in the
+        vcproj makes them be included in Project Find, etc.
+
+        Rubber-stamped in advance by Steve Falkenburg.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2009-06-17  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Don't fire redundant 'change' events for a file upload form.
+        https://bugs.webkit.org/show_bug.cgi?id=26471
+
+        * platform/FileChooser.cpp:
+        (WebCore::FileChooser::chooseFiles): Suppress change event if the
+        existing selected files and the incoming selected files are equal.
+        (WebCore::FileChooser::chooseIcon): Returns 0 if there is no selected
+        files.
+
+2009-06-17  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23155
+        Move WIN_CE -> WINCE as previously discussed with Qt WINCE folks.
+
+        * platform/KeyboardCodes.h:
+
+2009-06-17  George Staikos  <george.staikos@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23155
+        Move WIN_CE -> WINCE as previously discussed with Qt WINCE folks.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::getWindowsContext):
+        * platform/win/SystemTimeWin.cpp:
+        (WebCore::userIdleTime):
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Speculative Mac build fix
+
+        * page/Page.h: Forward-declare RenderTheme instead of including
+        RenderTheme.h so that we don't need to make RenderTheme.h a private
+        header for WebKit's benefit.
+
+        * editing/SelectionController.cpp:
+        * rendering/InlineTextBox.cpp:
+        * rendering/RenderObject.cpp:
+        Added #includes of RenderTheme.h.
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Speculative Mac build fix
+
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderTheme::create): Added.
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Speculative Mac build fix
+
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderTheme::themeForPage): Remove the name of an unused
+        parameter.
+
+2009-06-17  Adam Roben  <aroben@apple.com>
+
+        Speculative Mac build fix
+
+        * page/Page.cpp:
+        (WebCore::Page::Page): Change the initializer order to match the
+        declaration order.
+
+2009-06-16  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Follow up to bug https://bugs.webkit.org/show_bug.cgi?id=26278
+        Patch that make WebCore have a RenderTheme per page
+
+        Make the Qt implementation of RenderTheme create a theme per page,
+        and use the QStyle associated with the view of each page, in order
+        to make the QWidget setStyle() method work as advertised.
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::RenderThemeQt):
+        (WebCore::RenderThemeQt::qStyle):
+        (WebCore::findFrameLineWidth):
+        (WebCore::inflateButtonRect):
+        (WebCore::RenderThemeQt::adjustRepaintRect):
+        (WebCore::RenderThemeQt::isControlStyled):
+        (WebCore::RenderThemeQt::computeSizeBasedOnStyle):
+        (WebCore::RenderThemeQt::setButtonPadding):
+        (WebCore::RenderThemeQt::paintButton):
+        (WebCore::RenderThemeQt::paintTextField):
+        (WebCore::RenderThemeQt::setPopupPadding):
+        * platform/qt/RenderThemeQt.h:
+
+2009-06-16  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Dave Hyatt and Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26278
+        Patch that make WebCore have a RenderTheme per page
+
+
+        Create a different RenderTheme per page, so that RenderTheme has
+        access to page specific theming. This is needed for the Qt port, as Qt
+        supports setting the theme (style) per widget.
+
+        This change was suggested and discussed with Dave Hyatt.
+
+        More detailed:
+
+        1) Create a theme per page or one global one, depending on the needs
+           of the platform.
+        2) Add an accesser to the theme from RenderObject.
+        3) Change all uses of the theming to access the theme through
+           RenderObject, using the global default theme as fallback, when the
+           document of RenderObject has no page.
+           When we don't have access to a RenderObject, use the default theme.
+        4) Modify all RenderTheme platform implementations to work with the
+           above changes, still creating only one global theme.
+
+
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::boundingBoxRect):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::loadFullDefaultStyle):
+        (WebCore::CSSStyleSelector::styleForElement):
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        (WebCore::CSSStyleSelector::applyProperty):
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::setActive):
+        (WebCore::ContainerNode::setHovered):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::focusedOrActiveStateChanged):
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::parseMappedAttribute):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::setChecked):
+        (WebCore::HTMLInputElement::setIndeterminate):
+        * page/Frame.cpp:
+        (WebCore::Frame::selectionLayoutChanged):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::updateControlTints):
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        * page/Page.h:
+        (WebCore::Page::theme):
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupListBox::paintRow):
+        * platform/gtk/RenderThemeGtk.cpp:
+        (WebCore::RenderThemeGtk::create):
+        (WebCore::RenderTheme::themeForPage):
+        (WebCore::RenderThemeGtk::RenderThemeGtk):
+        (WebCore::RenderThemeGtk::~RenderThemeGtk):
+        (WebCore::RenderThemeGtk::gtkEntry):
+        (WebCore::RenderThemeGtk::gtkTreeView):
+        * platform/gtk/RenderThemeGtk.h:
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::create):
+        (WebCore::RenderTheme::themeForPage):
+        * platform/qt/RenderThemeQt.h:
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::paint):
+        * rendering/RenderMediaControls.cpp:
+        (WebCore::determineState):
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paintTextMatchMarker):
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlInputElement::hitTest):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::theme):
+        * rendering/RenderObject.h:
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::adjustStyle):
+        * rendering/RenderTheme.h:
+        (WebCore::RenderTheme::defaultTheme):
+        * rendering/RenderThemeChromiumLinux.cpp:
+        (WebCore::RenderThemeChromiumLinux::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeChromiumLinux.h:
+        (WebCore::RenderThemeChromiumLinux::~RenderThemeChromiumLinux):
+        * rendering/RenderThemeChromiumMac.h:
+        * rendering/RenderThemeChromiumMac.mm:
+        (WebCore::RenderThemeChromiumMac::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeChromiumWin.cpp:
+        (WebCore::RenderThemeChromiumWin::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeChromiumWin.h:
+        (WebCore::RenderThemeChromiumWin::RenderThemeChromiumWin):
+        (WebCore::RenderThemeChromiumWin::~RenderThemeChromiumWin):
+        * rendering/RenderThemeMac.h:
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderThemeSafari::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeSafari.h:
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::create):
+        (WebCore::RenderTheme::themeForPage):
+        * rendering/RenderThemeWin.h:
+
+2009-06-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6974175> ASSERT in JITStubs.cpp at appsaccess.apple.com
+
+        JSDOMWindowCustom was using PropertySlot::putValue, however this interface
+        appears to be fundaementally incorrect - PropertySlots are only used to get
+        values, all puts use PutPropertySlot.  However PutPropertySlot cannot be
+        used in the fashion desired here - it only reports the caching type of a
+        write that has been performed.
+
+        (This caused a bug where the put should have triggered a transition, and
+        failed to do so.)
+
+        Removing the faulty case from the optimization leads to a ~0.5% progression
+        on in-browser SunSpider (presumably the very first case was not being hit
+        often, and the simplification here is beneficial).
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::put):
+
+2009-06-17  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY, layout tests fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26326
+        This reverts commit r44751.
+
+        Once that change was checked scrollbars/scrollbar-orientation.html started
+        crashing on Windows.
+
+        * dom/Document.cpp:
+        (WebCore::Document::detach):
+        * page/FrameView.cpp:
+        * page/FrameView.h:
+        * platform/Scrollbar.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::destroy):
+        * rendering/RenderScrollbar.h:
+
+2009-06-16  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        In ImageSource::setData, delete the old m_encoder before replacing it with a new one.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=26458
+
+        * platform/graphics/wx/ImageSourceWx.cpp:
+        (WebCore::ImageSource::setData):
+
+2009-06-16  David Levin  <levin@chromium.org>
+
+        Reviewed by David Hyatt.
+
+        REGRESSION: When the main page (ScrollView) has a custom scrollbar, it crashes on destruction.
+        https://bugs.webkit.org/show_bug.cgi?id=26326
+
+        Test: scrollbars/scrollbar-crash-on-refresh.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::detach):
+        Gives the FrameView a change to do any necessary cleanup on
+        Document::detach() which is where the renderArena gets detroyed.
+        * page/FrameView.cpp:
+        (WebCore::FrameView::detachCustomScrollbars):
+        Gets rid of any custom scrollbars (if the docment supplied them).
+        * page/FrameView.h:
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::isCustomScrollbar):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::destroy):
+        Removed the check for document()->frame().  If frame() is 0 in this code,
+        then the call to animation() is also incorrect (since it does document()->frame()->animation()).
+        * rendering/RenderScrollbar.h:
+        (WebCore::RenderScrollbar::isCustomScrollbar):
+
+2009-06-16  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Fix of <rdar://6967547> Ctrl-C copies null value erasing text in clipboard in Safari.
+        This patch kept the way events were firing as they were before, and Windows events are
+        consistent with Mac.       
+
+        * editing/Editor.cpp:
+        (WebCore::Editor::tryDHTMLCopy): Added check for canCopy() before clearing PasteBoard
+        (WebCore::Editor::tryDHTMLCut): Added check for canCut() before clearing PasteBoard
+
+2009-06-16  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        <rdar://problem/6660037> CrashTracer: [USER] 46 crashes in Safari at com.apple.WebCore • WebCore::CachedCSSStyleSheet::addClient + 53
+        
+        When revalidating a resource, calling addClient() on one client might cause another to get removed.
+        
+        - made CachedResource::addClient() non-virtual and added virtual didAddClient()
+        - in CachedResource::switchClientsToRevalidatedResource() add all clients to the client set of the revalidated resource first
+        - check if the client is still in the set before invoking didAddClient() for it
+        
+        No test case, I didn't manage to construct one. You need some combination of 304 revalidation, stylesheets that
+        reference each other via @imports and reloading.
+
+        * WebCore.base.exp:
+        * loader/CachedCSSStyleSheet.cpp:
+        (WebCore::CachedCSSStyleSheet::didAddClient):
+        * loader/CachedCSSStyleSheet.h:
+        * loader/CachedFont.cpp:
+        (WebCore::CachedFont::didAddClient):
+        * loader/CachedFont.h:
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::didAddClient):
+        * loader/CachedImage.h:
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::addClient):
+        (WebCore::CachedResource::addClientToSet):
+        (WebCore::CachedResource::switchClientsToRevalidatedResource):
+        * loader/CachedResource.h:
+        * loader/CachedScript.cpp:
+        (WebCore::CachedScript::didAddClient):
+        * loader/CachedScript.h:
+        * loader/CachedXSLStyleSheet.cpp:
+        (WebCore::CachedXSLStyleSheet::didAddClient):
+        * loader/CachedXSLStyleSheet.h:
+
+2009-06-16  Simon Fraser  <simon.fraser@apple.com>
+
+        No Review
+
+        Fix code inside an #ifdef that draws the video framerate.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::paint):
+
+2009-06-16  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 26456: Hook up V8 bindings for Worker's importScripts functionality.
+        https://bugs.webkit.org/show_bug.cgi?id=26456
+
+        * bindings/v8/custom/V8WorkerContextCustom.cpp:
+        (WebCore::CALLBACK_FUNC_DECL):
+        * bindings/v8/custom/V8WorkerCustom.cpp: Fixed missing exception code
+          handling in Worker constructor for V8 bindings.
+        (WebCore::CALLBACK_FUNC_DECL):
+
+2009-06-16  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Update of https://bugs.webkit.org/show_bug.cgi?id=26353.
+        Provide an assignment operator to avoid improper reference
+        counts on the Cairo font objects.  This brings the Windows
+        Cairo port in line with the GTK+ port.
+
+        * platform/graphics/win/FontPlatformData.h:
+        * platform/graphics/win/FontPlatformDataCairoWin.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+        (WebCore::FontPlatformData::operator=):
+
+2009-06-16  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Fix for <rdar://problem/6890126> Theme code should fetch the MediaControlElementType from 
+        the MediaControlInputElement, rather than computing it again
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::percentLoaded): New, utility function for controller implementation.
+        * html/HTMLMediaElement.h:
+
+        * rendering/MediaControlElements.h:
+        (WebCore::MediaControlInputElement::displayType): New, return m_displayType.
+
+        * rendering/RenderMediaControls.cpp:
+        (WebCore::RenderMediaControls::paintMediaControlsPart): Stop using MediaPlayer object, get button
+        state from the button itself and get movie state from HTMLMediaElement.
+
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::paintMediaMuteButton): Get state from button instead of MediaPlayer.
+        (WebCore::RenderThemeMac::paintMediaPlayButton): Ditto.
+
+2009-06-16  Jian Li  <jianli@chromium.org>
+
+        Reviewed by David Levin.
+
+        Bug 26450: Rename values of enum RedirectOriginCheck to make them
+        clearer.
+        https://bugs.webkit.org/show_bug.cgi?id=26450
+
+        * loader/DocumentThreadableLoader.cpp:
+        (WebCore::DocumentThreadableLoader::create):
+        (WebCore::DocumentThreadableLoader::DocumentThreadableLoader):
+        (WebCore::DocumentThreadableLoader::willSendRequest):
+        * loader/DocumentThreadableLoader.h:
+        * loader/ThreadableLoader.cpp:
+        (WebCore::ThreadableLoader::create):
+        (WebCore::ThreadableLoader::loadResourceSynchronously):
+        * loader/ThreadableLoader.h:
+        * workers/Worker.cpp:
+        (WebCore::Worker::Worker):
+        * workers/WorkerContext.cpp:
+        (WebCore::WorkerContext::importScripts):
+        * loader/WorkerThreadableLoader.cpp:
+        (WebCore::WorkerThreadableLoader::WorkerThreadableLoader):
+        (WebCore::WorkerThreadableLoader::loadResourceSynchronously):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::MainThreadBridge):
+        (WebCore::WorkerThreadableLoader::MainThreadBridge::mainThreadCreateLoader):
+        * loader/WorkerThreadableLoader.h:
+        (WebCore::WorkerThreadableLoader::create):
+        * workers/WorkerScriptLoader.cpp:
+        (WebCore::WorkerScriptLoader::loadSynchronously):
+        (WebCore::WorkerScriptLoader::loadAsynchronously):
+        * workers/WorkerScriptLoader.h:
+        (WebCore::WorkerContext::importScripts):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+
+2009-06-16  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Fix a UMR in WebCore::BitStack by initializing new memory to 0.
+        https://bugs.webkit.org/show_bug.cgi?id=26449
+        No new tests, covered by purify.
+
+        * editing/TextIterator.cpp:
+        (WebCore::BitStack::push):
+
+2009-06-16  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        Test: fast/multicol/columns-shorthand-parsing.html 
+
+        Fixes https://bugs.webkit.org/show_bug.cgi?id=26453.
+        Null Cairo contextwill crash Windows Cairo build.
+
+        * platform/graphics/win/GraphicsContextCairoWin.cpp:
+        (WebCore::GraphicsContextPlatformPrivate::syncContext):
+          Add a check for null context before attempting to
+          retrieve the Cairo surface.
+
+2009-06-16  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26447
+        Fix animated GIF breakage in Cairo/wx ports.
+
+        * platform/image-decoders/cairo/ImageDecoderCairo.cpp:
+        (WebCore::RGBA32Buffer::copyBitmapData):
+        (WebCore::RGBA32Buffer::operator=):
+        * platform/image-decoders/wx/ImageDecoderWx.cpp:
+        (WebCore::RGBA32Buffer::copyBitmapData):
+        (WebCore::RGBA32Buffer::operator=):
+
+2009-06-16  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by John Sullivan
+        
+        <rdar://problem/6937882>
+        
+        Tweak "time remaining" and "time elapsed" fields in the overlay video controller.
+
+        * css/mediaControlsQT.css:
+
+2009-06-16  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Adam Barth and David Levin.
+
+        Bug 26146: Change to use ThreadableLoader to load the worker script
+        in order to check URL origin for redirection.
+        https://bugs.webkit.org/show_bug.cgi?id=26146
+
+        Test: http/tests/workers/worker-redirect.html
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * workers/Worker.cpp:
+        (WebCore::Worker::Worker):
+        (WebCore::Worker::notifyFinished):
+        * workers/Worker.h:
+        * workers/WorkerContext.cpp:
+        (WebCore::WorkerContext::importScripts):
+        * workers/WorkerImportScriptsClient.cpp: Removed.
+        * workers/WorkerImportScriptsClient.h: Removed.
+        * workers/WorkerScriptLoader.cpp: Renamed from workers/WorkerImportScriptsClient.cpp.
+          This to make it more generic so worker script loading could use it.
+        (WebCore::WorkerScriptLoader::loadSynchronously):
+        (WebCore::WorkerScriptLoader::loadAsynchronously):
+        (WebCore::WorkerScriptLoader::didFinishLoading):
+        (WebCore::WorkerScriptLoader::didFail):
+        (WebCore::WorkerScriptLoader::didFailRedirectCheck):
+        (WebCore::WorkerScriptLoader::didReceiveAuthenticationCancellation):
+        (WebCore::WorkerScriptLoader::notifyFinished):
+        * workers/WorkerScriptLoader.h: Renamed from workers/WorkerImportScriptsClient.h.
+          This to make it more generic so worker script loading could use it.
+        * workers/WorkerScriptLoaderClient.h: Added.
+
+2009-06-16  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Use consistent GUID comparison functions.
+        https://bugs.webkit.org/show_bug.cgi?id=26427
+
+        * platform/win/WCDataObject.cpp:
+        (WebCore::WCDataObject::QueryInterface):
+
+2009-06-16  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix compiler warning.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (webkit_accessible_class_init):
+
+2009-06-16  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Remove dummy AtkStreamableContent implementation.
+
+        It's completely empty, we'll add it back (and conditionally
+        instead of unconditionally) when it does something.
+
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        (GetAtkInterfaceTypeFromWAIType):
+        (getInterfaceMaskFromObject):
+
 2009-06-12  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Gustavo Noronha.

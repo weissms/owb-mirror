@@ -62,6 +62,7 @@ namespace WebCore {
     class PageGroup;
     class PluginData;
     class ProgressTracker;
+    class RenderTheme;
     class VisibleSelection;
     class SelectionController;
 #if ENABLE(DOM_STORAGE)
@@ -80,7 +81,9 @@ namespace WebCore {
 
         Page(ChromeClient*, ContextMenuClient*, EditorClient*, DragClient*, InspectorClient*);
         ~Page();
-        
+
+        RenderTheme* theme() const { return m_theme.get(); };
+
         static void refreshPlugins(bool reload);
         PluginData* pluginData() const;
 
@@ -224,6 +227,8 @@ namespace WebCore {
         RefPtr<HistoryItem> m_globalHistoryItem;
 
         mutable RefPtr<PluginData> m_pluginData;
+
+        RefPtr<RenderTheme> m_theme;
 
         EditorClient* m_editorClient;
 

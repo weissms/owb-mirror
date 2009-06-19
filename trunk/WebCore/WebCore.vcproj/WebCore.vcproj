@@ -3562,6 +3562,14 @@
 				Name="win"
 				>
 				<File
+					RelativePath="..\platform\win\BitmapInfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\win\BitmapInfo.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\win\BString.cpp"
 					>
 				</File>
@@ -4193,6 +4201,10 @@
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\SimpleFontDataWin.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\win\TransformationMatrixWin.cpp"
 						>
 					</File>
 					<File
@@ -7749,6 +7761,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\html\HTMLDataGridElement.h"
+				>
+			</File>
+			<File
 				RelativePath="..\html\HTMLDirectoryElement.cpp"
 				>
 			</File>
@@ -10130,14 +10146,6 @@
 			</File>
 			<File
 				RelativePath="..\history\PageCache.h"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\InspectorJSONObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\InspectorJSONObject.h"
 				>
 			</File>
 			<Filter

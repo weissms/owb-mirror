@@ -131,6 +131,8 @@ public:
 
     bool canPlay() const;
 
+    float percentLoaded() const;
+
 #if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
     void setNeedWidgetUpdate(bool needWidgetUpdate) { m_needWidgetUpdate = needWidgetUpdate; }
     void deliverNotification(MediaPlayerProxyNotificationType notification);
@@ -150,16 +152,20 @@ protected:
     void setReadyState(MediaPlayer::ReadyState);
     void setNetworkState(MediaPlayer::NetworkState);
     
-private: // MediaPlayerObserver
+private: // MediaPlayerClient
     virtual void mediaPlayerNetworkStateChanged(MediaPlayer*);
     virtual void mediaPlayerReadyStateChanged(MediaPlayer*);
     virtual void mediaPlayerTimeChanged(MediaPlayer*);
-    virtual void mediaPlayerRepaint(MediaPlayer*);
     virtual void mediaPlayerVolumeChanged(MediaPlayer*);
     virtual void mediaPlayerDurationChanged(MediaPlayer*);
     virtual void mediaPlayerRateChanged(MediaPlayer*);
-    virtual void mediaPlayerSizeChanged(MediaPlayer*);
     virtual void mediaPlayerSawUnsupportedTracks(MediaPlayer*);
+    virtual void mediaPlayerRepaint(MediaPlayer*);
+    virtual void mediaPlayerSizeChanged(MediaPlayer*);
+#if USE(ACCELERATED_COMPOSITING)
+    virtual bool mediaPlayerRenderingCanBeAccelerated(MediaPlayer*);
+    virtual GraphicsLayer* mediaPlayerGraphicsLayer(MediaPlayer*);
+#endif
 
 private:
     void loadTimerFired(Timer<HTMLMediaElement>*);

@@ -38,8 +38,12 @@
 namespace WebCore {
 
 class RenderThemeBal : public RenderTheme {
-public:
+private:
     RenderThemeBal();
+    virtual ~RenderThemeBal() { }
+
+public:
+    static PassRefPtr<RenderTheme> create();
 
     // A method asking if the theme's controls actually care about redrawing when hovered.
     virtual bool supportsHover(const RenderStyle* style) const { return true; }

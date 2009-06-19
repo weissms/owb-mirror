@@ -45,6 +45,7 @@
 #include "PluginData.h"
 #include "ProgressTracker.h"
 #include "RenderWidget.h"
+#include "RenderTheme.h"
 #include "ScriptController.h"
 #include "SelectionController.h"
 #include "Settings.h"
@@ -109,6 +110,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_settings(new Settings(this))
     , m_progress(new ProgressTracker)
     , m_backForwardList(BackForwardList::create(this))
+    , m_theme(RenderTheme::themeForPage(this))
     , m_editorClient(editorClient)
     , m_frameCount(0)
     , m_tabKeyCyclesThroughElements(true)

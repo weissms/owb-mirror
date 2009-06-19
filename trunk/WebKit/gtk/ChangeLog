@@ -1,3 +1,56 @@
+2009-06-19  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez and Christian Dywan.
+
+        Add a new load status to report that the first visually non-empty
+        layout has been done.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout):
+        * webkit/webkitwebframe.h:
+
+2009-06-18  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Fix parameters of navigation-policy-decision-requested callback,
+        to be correct in number and type
+
+        * tests/testhttpbackend.c:
+        (navigation_policy_decision_requested_cb):
+
+2009-06-18  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Gustavo Noronha.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::loadDone):
+        (WebKit::FrameLoaderClient::dispatchDidFinishLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFailProvisionalLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFailLoad): Introduce the static
+        function loadDone to emit "load-done" and update the status and update
+        the relevent places. We missed some status notifications before.
+
+2009-06-18  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Rubber-stamped by Xan Lopez.
+
+        Be consistent in always using the term URI instead of URL in the
+        documentation of WebKitWebView signals.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+
+2009-06-16  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Do not use g_assert_cmpint to test for NULL pointer, just
+        g_assert.
+
+        * tests/testnetworkrequest.c:
+        (test_network_request_create_destroy):
+
 2009-06-16  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Gustavo Noronha.

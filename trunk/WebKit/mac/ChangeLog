@@ -1,3 +1,46 @@
+2009-06-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6926859>
+        NPN_ConvertPoint doesn't give the right value when converting to/from NPCoordinateSpaceFlippedScreen
+        
+        When inverting Y, use the height of the first screen instead of the screen the window is on.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::windowFrameChanged):
+        (WebKit::NetscapePluginInstanceProxy::mouseEvent):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView convertFromX:andY:space:toX:andY:space:]):
+
+2009-06-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        <rdar://problem/6976766> Control-click on pages with accelerated compositing
+        content does not work.
+        
+        Part deux. #ifdef the use of _private->layerHostingView with 
+        USE(ACCELERATED_COMPOSITING)
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView hitTest:]):
+
+2009-06-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        <rdar://problem/6976766> Control-click on pages with accelerated compositing
+        content does not work.
+        
+        Remove the WebLayerHostingView subclass of NSView, with its attempts to
+        forward events to the WebHTMLView, and just fix -[WebHTMLView hitTest:]
+        to ignore the layerHostingView.
+        
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView hitTest:]):
+        (-[WebHTMLView attachRootLayer:]):
+
 2009-06-16  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Mark Rowe.

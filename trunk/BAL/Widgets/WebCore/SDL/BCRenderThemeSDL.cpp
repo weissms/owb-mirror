@@ -61,6 +61,17 @@
 
 namespace WebCore {
 
+PassRefPtr<RenderTheme> RenderThemeBal::create()
+{
+    return adoptRef(new RenderThemeBal());
+}
+
+PassRefPtr<RenderTheme> RenderTheme::themeForPage(Page* page)
+{
+    static RenderTheme* rt = RenderThemeBal::create().releaseRef();
+    return rt;
+}
+
 void RenderThemeBal::addIntrinsicMargins(RenderStyle* style) const
 {
     // Cut out the intrinsic margins completely if we end up using a small font size
@@ -86,12 +97,6 @@ void RenderThemeBal::addIntrinsicMargins(RenderStyle* style) const
     }
 }
 
-
-RenderTheme* theme()
-{
-    static RenderThemeBal balTheme;
-    return &balTheme;
-}
 
 RenderThemeBal::RenderThemeBal()
     : m_balWindow(0)

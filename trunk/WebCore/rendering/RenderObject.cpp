@@ -214,6 +214,13 @@ RenderObject::~RenderObject()
 #endif
 }
 
+RenderTheme* RenderObject::theme() const
+{
+    ASSERT(document()->page());
+
+    return document()->page()->theme();
+}
+
 bool RenderObject::isDescendantOf(const RenderObject* obj) const
 {
     for (const RenderObject* r = this; r; r = r->m_parent) {

@@ -44,6 +44,10 @@
 #import <objc/objc-runtime.h>
 #import <wtf/UnusedParam.h>
 
+#if USE(ACCELERATED_COMPOSITING)
+#include "GraphicsLayer.h"
+#endif
+
 #if DRAW_FRAME_RATE
 #import "Font.h"
 #import "Frame.h"
@@ -67,6 +71,7 @@ SOFT_LINK(QTKit, QTMakeTime, QTTime, (long long timeValue, long timeScale), (tim
 
 SOFT_LINK_CLASS(QTKit, QTMovie)
 SOFT_LINK_CLASS(QTKit, QTMovieView)
+SOFT_LINK_CLASS(QTKit, QTMovieLayer)
 
 SOFT_LINK_POINTER(QTKit, QTTrackMediaTypeAttribute, NSString *)
 SOFT_LINK_POINTER(QTKit, QTMediaTypeAttribute, NSString *)
@@ -100,6 +105,7 @@ SOFT_LINK_POINTER(QTKit, QTMovieApertureModeAttribute, NSString *)
 
 #define QTMovie getQTMovieClass()
 #define QTMovieView getQTMovieViewClass()
+#define QTMovieLayer getQTMovieLayerClass()
 
 #define QTTrackMediaTypeAttribute getQTTrackMediaTypeAttribute()
 #define QTMediaTypeAttribute getQTMediaTypeAttribute()
@@ -404,23 +410,115 @@ void MediaPlayerPrivate::destroyQTVideoRenderer()
     m_qtVideoRenderer = nil;
 }
 
-void MediaPlayerPrivate::setUpVideoRendering()
+void MediaPlayerPrivate::createQTMovieLayer()
 {
-    if (!m_player->frameView() || !m_qtMovie)
+#if USE(ACCELERATED_COMPOSITING)
+    if (!m_qtMovie)
         return;
 
-    if (m_player->inMediaDocument() || !QTVideoRendererClass() )
+    ASSERT(supportsAcceleratedRendering());
+    
+    if (!m_qtVideoLayer) {
+        m_qtVideoLayer.adoptNS([[QTMovieLayer alloc] init]);
+        if (!m_qtVideoLayer)
+            return;
+
+        [m_qtVideoLayer.get() setMovie:m_qtMovie.get()];
+#ifndef NDEBUG
+        [(CALayer *)m_qtVideoLayer.get() setName:@"Video layer"];
+#endif
+
+        // Hang the video layer from the render layer, if we have one yet. If not, we'll do this
+        // later via acceleratedRenderingStateChanged().
+        GraphicsLayer* videoGraphicsLayer = m_player->mediaPlayerClient()->mediaPlayerGraphicsLayer(m_player);
+        if (videoGraphicsLayer)
+            videoGraphicsLayer->setContentsToVideo((PlatformLayer *)m_qtVideoLayer.get());
+    }
+#endif
+}
+
+void MediaPlayerPrivate::destroyQTMovieLayer()
+{
+#if USE(ACCELERATED_COMPOSITING)
+    if (!m_qtVideoLayer)
+        return;
+
+    // disassociate our movie from our instance of QTMovieLayer
+    [m_qtVideoLayer.get() setMovie:nil];    
+    m_qtVideoLayer = nil;
+#endif
+}
+
+MediaPlayerPrivate::MediaRenderingMode MediaPlayerPrivate::currentRenderingMode() const
+{
+    if (m_qtMovieView)
+        return MediaRenderingMovieView;
+    
+    if (m_qtVideoRenderer)
+        return MediaRenderingSoftwareRenderer;
+    
+    if (m_qtVideoLayer)
+        return MediaRenderingMovieLayer;
+    
+    return MediaRenderingNone;
+}
+
+MediaPlayerPrivate::MediaRenderingMode MediaPlayerPrivate::preferredRenderingMode() const
+{
+    if (!m_player->frameView() || !m_qtMovie)
+        return MediaRenderingNone;
+
+    if (m_player->inMediaDocument() || !QTVideoRendererClass())
+        return MediaRenderingMovieView;
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (supportsAcceleratedRendering() && m_player->mediaPlayerClient()->mediaPlayerRenderingCanBeAccelerated(m_player))
+        return MediaRenderingMovieLayer;
+#endif
+
+    return MediaRenderingSoftwareRenderer;
+}
+
+void MediaPlayerPrivate::setUpVideoRendering()
+{
+    MediaRenderingMode currentMode = currentRenderingMode();
+    MediaRenderingMode preferredMode = preferredRenderingMode();
+    if (currentMode == preferredMode)
+        return;
+
+    if (currentMode != MediaRenderingNone)  
+        tearDownVideoRendering();
+
+    switch (preferredMode) {
+    case MediaRenderingNone:
+        break;
+    case MediaRenderingMovieView:
         createQTMovieView();
-    else
+        break;
+    case MediaRenderingSoftwareRenderer:
         createQTVideoRenderer();
+        break;
+    case MediaRenderingMovieLayer:
+        createQTMovieLayer();
+        break;
+    }
 }
 
 void MediaPlayerPrivate::tearDownVideoRendering()
 {
     if (m_qtMovieView)
         detachQTMovieView();
-    else
+    else if (m_qtVideoRenderer)
         destroyQTVideoRenderer();
+    else
+        destroyQTMovieLayer();
+}
+
+bool MediaPlayerPrivate::hasSetUpVideoRendering() const
+{
+    return m_qtMovieView
+        || m_qtVideoLayer
+        || m_qtVideoRenderer;
 }
 
 QTTime MediaPlayerPrivate::createQTTime(float time) const
@@ -607,8 +705,7 @@ void MediaPlayerPrivate::setRate(float rate)
 {
     if (!metaDataAvailable())
         return;
-    if (!paused())
-        [m_qtMovie.get() setRate:rate];
+    [m_qtMovie.get() setRate:rate];
 }
 
 int MediaPlayerPrivate::dataRate() const
@@ -776,13 +873,14 @@ void MediaPlayerPrivate::updateStates()
     if (seeking())
         m_readyState = MediaPlayer::HaveNothing;
 
+    if (loadState >= QTMovieLoadStateLoaded && !hasSetUpVideoRendering() && m_player->visible())
+        setUpVideoRendering();
+
     if (m_networkState != oldNetworkState)
         m_player->networkStateChanged();
+
     if (m_readyState != oldReadyState)
         m_player->readyStateChanged();
-
-    if (loadState >= QTMovieLoadStateLoaded && (!m_qtMovieView && !m_qtVideoRenderer) && m_player->visible())
-        setUpVideoRendering();
 
     if (loadState >= QTMovieLoadStateLoaded) {
         float dur = duration();
@@ -944,12 +1042,11 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& r)
             TextRun textRun(text.characters(), text.length());
             const Color color(255, 0, 0);
             context->scale(FloatSize(1.0f, -1.0f));    
-            context->setFont(styleToUse->font());
             context->setStrokeColor(color);
             context->setStrokeStyle(SolidStroke);
             context->setStrokeThickness(1.0f);
             context->setFillColor(color);
-            context->drawText(textRun, IntPoint(2, -3));
+            context->drawText(styleToUse->font(), textRun, IntPoint(2, -3));
         }
     }
 #endif
@@ -1146,7 +1243,26 @@ void MediaPlayerPrivate::sawUnsupportedTracks()
     m_player->mediaPlayerClient()->mediaPlayerSawUnsupportedTracks(m_player);
 }
 
+#if USE(ACCELERATED_COMPOSITING)
+bool MediaPlayerPrivate::supportsAcceleratedRendering() const
+{
+    return getQTMovieLayerClass() != Nil;
 }
+
+void MediaPlayerPrivate::acceleratedRenderingStateChanged()
+{
+    // Set up or change the rendering path if necessary.
+    setUpVideoRendering();
+
+    if (currentRenderingMode() == MediaRenderingMovieLayer) {
+        GraphicsLayer* videoGraphicsLayer = m_player->mediaPlayerClient()->mediaPlayerGraphicsLayer(m_player);
+        if (videoGraphicsLayer)
+            videoGraphicsLayer->setContentsToVideo((PlatformLayer *)m_qtVideoLayer.get());
+    }
+}
+#endif
+
+} // namespace WebCore
 
 @implementation WebCoreMovieObserver
 

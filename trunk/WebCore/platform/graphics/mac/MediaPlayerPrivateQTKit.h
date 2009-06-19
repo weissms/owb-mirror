@@ -37,12 +37,14 @@
 #import <QTKit/QTTime.h>
 @class QTMovie;
 @class QTMovieView;
+@class QTMovieLayer;
 @class QTVideoRendererWebKitOnly;
 @class WebCoreMovieObserver;
 #else
 class QTMovie;
 class QTMovieView;
 class QTTime;
+class QTMovieLayer;
 class QTVideoRendererWebKitOnly;
 class WebCoreMovieObserver;
 #endif
@@ -112,13 +114,30 @@ private:
     
     void paint(GraphicsContext*, const IntRect&);
 
+#if USE(ACCELERATED_COMPOSITING)
+    bool supportsAcceleratedRendering() const;
+    void acceleratedRenderingStateChanged();
+#endif
+
     void createQTMovie(const String& url);
+
+    enum MediaRenderingMode { MediaRenderingNone, MediaRenderingMovieView, MediaRenderingSoftwareRenderer, MediaRenderingMovieLayer };
+    MediaRenderingMode currentRenderingMode() const;
+    MediaRenderingMode preferredRenderingMode() const;
+    
     void setUpVideoRendering();
     void tearDownVideoRendering();
+    bool hasSetUpVideoRendering() const;
+    
     void createQTMovieView();
     void detachQTMovieView();
+    
     void createQTVideoRenderer();
     void destroyQTVideoRenderer();
+    
+    void createQTMovieLayer();
+    void destroyQTMovieLayer();
+
     QTTime createQTTime(float time) const;
     
     void updateStates();
@@ -150,6 +169,7 @@ private:
     unsigned m_totalTrackCount;
     bool m_hasUnsupportedTracks;
     float m_duration;
+    RetainPtr<QTMovieLayer> m_qtVideoLayer;
 #if DRAW_FRAME_RATE
     int  m_frameCountWhilePlaying;
     double m_timeStartedPlaying;

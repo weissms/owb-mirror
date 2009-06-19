@@ -53,6 +53,7 @@
 #pragma warning( push, 0 )
 #include <WebCore/ApplicationCacheStorage.h>
 #include <WebCore/AXObjectCache.h>
+#include <WebCore/BitmapInfo.h>
 #include <WebCore/BString.h>
 #include <WebCore/Cache.h>
 #include <WebCore/ContextMenu.h>
@@ -593,11 +594,8 @@ HRESULT STDMETHODCALLTYPE WebView::close()
 
     m_didClose = true;
 
-    if (m_uiDelegatePrivate) {
-        COMPtr<IWebUIDelegatePrivate5> uiDelegatePrivate5(Query, m_uiDelegatePrivate);
-        if (uiDelegatePrivate5)
-            uiDelegatePrivate5->webViewClosing(this);
-    }
+    if (m_uiDelegatePrivate)
+        m_uiDelegatePrivate->webViewClosing(this);
 
     removeFromAllWebViewsSet();
 
@@ -690,18 +688,7 @@ bool WebView::ensureBackingStore()
 
         m_backingStoreSize.cx = width;
         m_backingStoreSize.cy = height;
-        BITMAPINFO bitmapInfo;
-        bitmapInfo.bmiHeader.biSize          = sizeof(BITMAPINFOHEADER);
-        bitmapInfo.bmiHeader.biWidth         = width; 
-        bitmapInfo.bmiHeader.biHeight        = -height;
-        bitmapInfo.bmiHeader.biPlanes        = 1;
-        bitmapInfo.bmiHeader.biBitCount      = 32;
-        bitmapInfo.bmiHeader.biCompression   = BI_RGB;
-        bitmapInfo.bmiHeader.biSizeImage     = 0;
-        bitmapInfo.bmiHeader.biXPelsPerMeter = 0;
-        bitmapInfo.bmiHeader.biYPelsPerMeter = 0;
-        bitmapInfo.bmiHeader.biClrUsed       = 0;
-        bitmapInfo.bmiHeader.biClrImportant  = 0;
+        BitmapInfo bitmapInfo = BitmapInfo::createBottomUp(IntSize(m_backingStoreSize));
 
         void* pixels = NULL;
         m_backingStoreBitmap.set(::CreateDIBSection(NULL, &bitmapInfo, DIB_RGB_COLORS, &pixels, NULL, 0));
@@ -730,9 +717,8 @@ void WebView::addToDirtyRegion(HRGN newRegion)
     } else
         m_backingStoreDirtyRegion.set(newRegion);
 
-    COMPtr<IWebUIDelegatePrivate5> delegate(Query, m_uiDelegatePrivate);
-    if (delegate)
-        delegate->webViewDidInvalidate(this);
+    if (m_uiDelegatePrivate)
+        m_uiDelegatePrivate->webViewDidInvalidate(this);
 }
 
 void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
@@ -854,11 +840,8 @@ void WebView::updateBackingStore(FrameView* frameView, HDC dc, bool backingStore
         for (unsigned i = 0; i < paintRects.size(); ++i)
             paintIntoBackingStore(frameView, bitmapDC, paintRects[i], windowsToPaint);
 
-        if (m_uiDelegatePrivate) {
-            COMPtr<IWebUIDelegatePrivate2> uiDelegatePrivate2(Query, m_uiDelegatePrivate);
-            if (uiDelegatePrivate2)
-                uiDelegatePrivate2->webViewPainted(this);
-        }
+        if (m_uiDelegatePrivate)
+            m_uiDelegatePrivate->webViewPainted(this);
 
         m_backingStoreDirtyRegion.clear();
     }
@@ -1269,12 +1252,8 @@ bool WebView::handleMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
     LONG messageTime = ::GetMessageTime();
 
     if (inResizer(position)) {
-        if (m_uiDelegate) {
-            COMPtr<IWebUIDelegatePrivate4> uiPrivate(Query, m_uiDelegate);
-
-            if (uiPrivate)
-                uiPrivate->webViewSendResizeMessage(message, wParam, position);
-        }
+        if (m_uiDelegatePrivate)
+            m_uiDelegatePrivate->webViewSendResizeMessage(message, wParam, position);
         return true;
     }
 
@@ -1344,9 +1323,9 @@ bool WebView::mouseWheel(WPARAM wParam, LPARAM lParam, bool isMouseHWheel)
     if (wParam & MK_CONTROL) {
         short delta = short(HIWORD(wParam));
         if (delta < 0)
-            makeTextLarger(0);
-        else
             makeTextSmaller(0);
+        else
+            makeTextLarger(0);
         return true;
     }
 
@@ -1855,7 +1834,7 @@ static LRESULT CALLBACK WebViewWndProc(HWND hWnd, UINT message, WPARAM wParam, L
         case WM_XP_THEMECHANGED:
             if (Frame* coreFrame = core(mainFrameImpl)) {
                 webView->deleteBackingStore();
-                theme()->themeChanged();
+                coreFrame->page()->theme()->themeChanged();
                 ScrollbarTheme::nativeTheme()->themeChanged();
                 RECT windowRect;
                 ::GetClientRect(hWnd, &windowRect);
@@ -2195,13 +2174,10 @@ HRESULT STDMETHODCALLTYPE WebView::initWithFrame(
     }
 
     if (m_uiDelegate) {
-        COMPtr<IWebUIDelegate2> uiDelegate2;
-        if (SUCCEEDED(m_uiDelegate->QueryInterface(IID_IWebUIDelegate2, (void**)&uiDelegate2))) {
-            BSTR path;
-            if (SUCCEEDED(uiDelegate2->ftpDirectoryTemplatePath(this, &path))) {
-                m_page->settings()->setFTPDirectoryTemplatePath(String(path, SysStringLen(path)));
-                SysFreeString(path);
-            }
+        BSTR path;
+        if (SUCCEEDED(m_uiDelegate->ftpDirectoryTemplatePath(this, &path))) {
+            m_page->settings()->setFTPDirectoryTemplatePath(String(path, SysStringLen(path)));
+            SysFreeString(path);
         }
     }
 
@@ -5213,7 +5189,7 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv)
     {
-        if (riid == IID_IUnknown || riid == IID_IEnumTextMatches) {
+        if (IsEqualGUID(riid, IID_IUnknown) || IsEqualGUID(riid, IID_IEnumTextMatches)) {
             *ppv = this;
             AddRef();
         }

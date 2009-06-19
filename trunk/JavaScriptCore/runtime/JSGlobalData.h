@@ -54,8 +54,10 @@ namespace JSC {
     class Lexer;
     class Parser;
     class ScopeNode;
+    class Stringifier;
     class Structure;
     class UString;
+
     struct HashTable;
     struct VPtrSet;
 
@@ -118,13 +120,6 @@ namespace JSC {
         Interpreter* interpreter;
 #if ENABLE(JIT)
         JITThunks jitStubs;
-        FunctionBodyNode* nativeFunctionThunk()
-        {
-            if (!lazyNativeFunctionThunk)
-                createNativeThunk();
-            return lazyNativeFunctionThunk.get();
-        }
-        RefPtr<FunctionBodyNode> lazyNativeFunctionThunk;
 #endif
         TimeoutChecker timeoutChecker;
         Heap heap;
@@ -146,6 +141,7 @@ namespace JSC {
         HashSet<JSObject*> arrayVisitedElements;
 
         ScopeNode* scopeNodeBeingReparsed;
+        Stringifier* firstStringifierToMark;
 
     private:
         JSGlobalData(bool isShared, const VPtrSet&);

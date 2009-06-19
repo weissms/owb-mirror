@@ -52,7 +52,7 @@
 #include <signal.h>
 #endif
 
-#if COMPILER(MSVC) && !PLATFORM(WIN_CE)
+#if COMPILER(MSVC) && !PLATFORM(WINCE)
 #include <crtdbg.h>
 #include <windows.h>
 #include <mmsystem.h>
@@ -332,7 +332,7 @@ int main(int argc, char** argv)
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
 #endif
 
-#if COMPILER(MSVC) && !PLATFORM(WIN_CE)
+#if COMPILER(MSVC) && !PLATFORM(WINCE)
     timeBeginPeriod(1);
 #endif
 

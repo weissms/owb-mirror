@@ -300,7 +300,7 @@ double getCurrentUTCTimeWithMicroseconds()
 
 void getLocalTime(const time_t* localTime, struct tm* localTM)
 {
-#if COMPILER(MSVC7) || COMPILER(MINGW) || PLATFORM(WIN_CE)
+#if COMPILER(MSVC7) || COMPILER(MINGW) || PLATFORM(WINCE)
     *localTM = *localtime(localTime);
 #elif COMPILER(MSVC)
     localtime_s(localTM, localTime);
@@ -361,13 +361,29 @@ int equivalentYearForDST(int year)
 
 static int32_t calculateUTCOffset()
 {
+    time_t localTime = time(0);
     tm localt;
-    memset(&localt, 0, sizeof(localt));
- 
-    // get the difference between this time zone and UTC on Jan 01, 2000 12:00:00 AM
+    getLocalTime(&localTime, &localt);
+
+    // Get the difference between this time zone and UTC on the 1st of January of this year.
+    localt.tm_sec = 0;
+    localt.tm_min = 0;
+    localt.tm_hour = 0;
     localt.tm_mday = 1;
-    localt.tm_year = 100;
-    time_t utcOffset = 946684800 - mktime(&localt);
+    localt.tm_mon = 0;
+    // Not setting localt.tm_year!
+    localt.tm_wday = 0;
+    localt.tm_yday = 0;
+    localt.tm_isdst = 0;
+#if PLATFORM(WIN_OS) || PLATFORM(SOLARIS) || COMPILER(RVCT)
+    // Using a canned date of 01/01/2009 on platforms with weaker date-handling foo.
+    localt.tm_year = 109;
+    time_t utcOffset = 1230768000 - mktime(&localt);
+#else
+    localt.tm_zone = 0;
+    localt.tm_gmtoff = 0;
+    time_t utcOffset = timegm(&localt) - mktime(&localt);
+#endif
 
     return static_cast<int32_t>(utcOffset * 1000);
 }

@@ -140,8 +140,8 @@ void WebPopup::paintPopup(int highligth)
         Color optionBackgroundColor, optionTextColor;
         PopupMenuStyle itemStyle = m_popup->client()->itemStyle(i);
         if ((i - m_scrollIndex) == highligth) {
-            optionBackgroundColor = theme()->activeListBoxSelectionBackgroundColor();
-            optionTextColor = theme()->activeListBoxSelectionForegroundColor();
+            optionBackgroundColor = RenderTheme::defaultTheme()->activeListBoxSelectionBackgroundColor();
+            optionTextColor = RenderTheme::defaultTheme()->activeListBoxSelectionForegroundColor();
         } else {
             optionBackgroundColor = itemStyle.backgroundColor();
             optionTextColor = itemStyle.foregroundColor();

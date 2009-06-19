@@ -344,6 +344,7 @@ IDL_BINDINGS += \
     html/HTMLButtonElement.idl \
     html/HTMLCanvasElement.idl \
     html/HTMLCollection.idl \
+    html/HTMLDataGridElement.idl \
     html/HTMLDirectoryElement.idl \
     html/HTMLDivElement.idl \
     html/HTMLDListElement.idl \
@@ -1404,7 +1405,7 @@ contains(DEFINES, ENABLE_WORKERS=1) {
         workers/WorkerMessagingProxy.cpp \
         workers/WorkerRunLoop.cpp \
         workers/WorkerThread.cpp \
-        workers/WorkerImportScriptsClient.cpp
+        workers/WorkerScriptLoader.cpp
 }
 
 contains(DEFINES, ENABLE_VIDEO=1) {
@@ -2194,6 +2195,7 @@ HEADERS += $$WEBKIT_API_HEADERS
 
 CONFIG(QTDIR_build):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VERSION, 4) {
     # start with 4.5
+    # Remove the following 2 lines if you want debug information in WebCore
     CONFIG -= separate_debug_info
     CONFIG += no_debug_info
 }

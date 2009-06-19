@@ -57,6 +57,11 @@
 #include <wtf/CurrentTime.h>
 #include <wtf/MathExtras.h>
 
+#if USE(ACCELERATED_COMPOSITING)
+#include "RenderView.h"
+#include "RenderLayerCompositor.h"
+#endif
+
 #if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
 #include "RenderPartObject.h"
 #include "Widget.h"
@@ -710,7 +715,7 @@ void HTMLMediaElement::setReadyState(MediaPlayer::ReadyState state)
         scheduleEvent(eventNames().loadedmetadataEvent);
 
 #if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
-        if (renderer() && !renderer()->isImage()) {
+        if (renderer() && renderer()->isVideo()) {
             static_cast<RenderVideo*>(renderer())->videoSizeChanged();
         }
 #endif        
@@ -1130,6 +1135,14 @@ bool HTMLMediaElement::canPlay() const
     return paused() || ended() || m_readyState < HAVE_METADATA;
 }
 
+float HTMLMediaElement::percentLoaded() const
+{
+    if (!m_player)
+        return 0;
+    float duration = m_player->duration();
+    return duration ? m_player->maxTimeBuffered() / duration : 0;
+}
+
 bool HTMLMediaElement::havePotentialSourceChild()
 {
     // Stash the current <source> node so we can restore it after checking
@@ -1226,14 +1239,6 @@ void HTMLMediaElement::mediaPlayerTimeChanged(MediaPlayer*)
     endProcessingMediaPlayerCallback();
 }
 
-void HTMLMediaElement::mediaPlayerRepaint(MediaPlayer*)
-{
-    beginProcessingMediaPlayerCallback();
-    if (renderer())
-        renderer()->repaint();
-    endProcessingMediaPlayerCallback();
-}
-
 void HTMLMediaElement::mediaPlayerVolumeChanged(MediaPlayer*)
 {
     beginProcessingMediaPlayerCallback();
@@ -1248,7 +1253,7 @@ void HTMLMediaElement::mediaPlayerDurationChanged(MediaPlayer*)
 #if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
     if (renderer()) {
         renderer()->updateFromElement();
-        if (!renderer()->isImage())
+        if (renderer()->isVideo())
             static_cast<RenderVideo*>(renderer())->videoSizeChanged();
     }
 #endif        
@@ -1264,16 +1269,6 @@ void HTMLMediaElement::mediaPlayerRateChanged(MediaPlayer*)
     endProcessingMediaPlayerCallback();
 }
 
-void HTMLMediaElement::mediaPlayerSizeChanged(MediaPlayer*)
-{
-    beginProcessingMediaPlayerCallback();
-#if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
-    if (renderer() && !renderer()->isImage())
-        static_cast<RenderVideo*>(renderer())->videoSizeChanged();
-#endif        
-    endProcessingMediaPlayerCallback();
-}
-
 void HTMLMediaElement::mediaPlayerSawUnsupportedTracks(MediaPlayer*)
 {
     // The MediaPlayer came across content it cannot completely handle.
@@ -1284,6 +1279,43 @@ void HTMLMediaElement::mediaPlayerSawUnsupportedTracks(MediaPlayer*)
         mediaDocument->mediaElementSawUnsupportedTracks();
     }
 }
+
+// MediaPlayerPresentation methods
+void HTMLMediaElement::mediaPlayerRepaint(MediaPlayer*)
+{
+    beginProcessingMediaPlayerCallback();
+    if (renderer())
+        renderer()->repaint();
+    endProcessingMediaPlayerCallback();
+}
+
+void HTMLMediaElement::mediaPlayerSizeChanged(MediaPlayer*)
+{
+    beginProcessingMediaPlayerCallback();
+#if !ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+    if (renderer() && renderer()->isVideo())
+        static_cast<RenderVideo*>(renderer())->videoSizeChanged();
+#endif        
+    endProcessingMediaPlayerCallback();
+}
+
+#if USE(ACCELERATED_COMPOSITING)
+bool HTMLMediaElement::mediaPlayerRenderingCanBeAccelerated(MediaPlayer*)
+{
+    if (renderer() && renderer()->isVideo()) {
+        ASSERT(renderer()->view());
+        return renderer()->view()->compositor()->canAccelerateVideoRendering(static_cast<RenderVideo*>(renderer()));
+    }
+    return false;
+}
+
+GraphicsLayer* HTMLMediaElement::mediaPlayerGraphicsLayer(MediaPlayer*)
+{
+    if (renderer() && renderer()->isVideo())
+        return static_cast<RenderVideo*>(renderer())->videoGraphicsLayer();
+    return 0;
+}
+#endif
 
 PassRefPtr<TimeRanges> HTMLMediaElement::buffered() const
 {
