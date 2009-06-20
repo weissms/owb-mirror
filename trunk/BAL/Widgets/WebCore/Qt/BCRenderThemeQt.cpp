@@ -158,6 +158,7 @@ QStyle* RenderThemeQt::fallbackStyle()
 
 QStyle* RenderThemeQt::qStyle() const
 {
+#if 0
     if (m_page) {
         ChromeClientQt* client = static_cast<ChromeClientQt*>(m_page->chrome()->client());
 
@@ -167,6 +168,7 @@ QStyle* RenderThemeQt::qStyle() const
         if (QWidget* view = client->m_webPage->view())
             return view->style();
     }
+#endif
 
     return QApplication::style();
 }

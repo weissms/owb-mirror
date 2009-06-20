@@ -1,3 +1,20 @@
+2009-06-20  Olivier DOLE  <odole@pleyo.com>
+
+        - Qt build fix!
+        - update ImageDecoderSDL/Qt to match Cairo implementation.
+
+        * Graphics/WebCore/Qt/BCImageDecoderQt.cpp:
+        (WebCore::ImageDecoderQt::isSizeAvailable):
+        * Graphics/WebCore/Qt/BCImageDecoderQt.h:
+        * ImageDecoder/WebCore/Qt/BCImageDecoderQt.cpp:
+        (WebCore::RGBA32Buffer::copyBitmapData):
+        (WebCore::RGBA32Buffer::operator=):
+        * ImageDecoder/WebCore/SDL/BCImageDecoderSDL.cpp:
+        (WebCore::RGBA32Buffer::copyBitmapData):
+        (WebCore::RGBA32Buffer::operator=):
+        * Widgets/WebCore/Qt/BCRenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::qStyle):
+
 2009-06-15  Stanislaw Szymczyk  <sszymczy@gmail.com>
 
         Reviewed by Julien Chaffraix.
