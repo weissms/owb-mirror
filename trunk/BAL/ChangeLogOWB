@@ -1,3 +1,19 @@
+2009-06-19  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Stanislaw Szymczyk.
+        Ticket #351: Deleting or closing unopened File object closes the
+        standard input.
+
+        * Facilities/WebCore/Linux/BCFileIOLinux.cpp:
+        (WebCore::File::File): initialize m_fd to -1 instead of 0 to avoid
+        some nasty bugs on standard input fd.
+        (WebCore::File::open): check that m_fd is -1 to ensure that there is
+        no remaining open file.
+        (WebCore::File::read): check m_fd is valid.
+        (WebCore::File::write): check m_fd is valid.
+        (WebCore::File::getSize): check m_fd is valid.
+
+
 2009-06-20  Olivier DOLE  <odole@pleyo.com>
 
         - Qt build fix!

@@ -39,7 +39,7 @@
 namespace WebCore {
 
 File::File(const String path)
-    : m_fd(0)
+    : m_fd(-1)
     , m_filePath(path)
 {
 }
@@ -51,6 +51,10 @@ File::~File()
 
 int File::open(char openType)
 {
+    // Check that m_fd is -1, if that's not the case it means that an open file
+    // has not been closed, so close it before continuing.
+    if (m_fd != -1)
+        close();
     if (openType == 'w')
         m_fd = ::open(m_filePath.utf8().data(), O_WRONLY|O_CREAT|O_TRUNC, 0666);
     else if (openType == 'r')
@@ -70,6 +74,9 @@ void File::close()
 
 char* File::read(size_t size)
 {
+    // Check that we try to read on a valid file descriptor.
+    if (m_fd == -1)
+        return NULL;
     char* readData = new char[size + 1];
     ::read(m_fd, readData, size);
     readData[size] = '\0';
@@ -78,17 +85,26 @@ char* File::read(size_t size)
 
 void File::write(String dataToWrite)
 {
+    // Check that we try to write on a valid file descriptor.
+    if (m_fd == -1)
+        return;
     ::write(m_fd, dataToWrite.utf8().data(), dataToWrite.length());
 }
 
 void File::write(const void *data, size_t length)
 {
+    // Check that we try to write on a valid file descriptor.
+    if (m_fd == -1)
+        return;
     ::write(m_fd, data, length);
 }
 
 int File::getSize()
 {
     int fileSize, current;
+    // If file descriptor is not valid then return a size of -1
+    if (m_fd == -1)
+        return -1;
 
     //save the current offset
     current = lseek(m_fd, 0, SEEK_CUR);
