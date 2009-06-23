@@ -2137,6 +2137,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->allowUniversalAccessFromFileURLs();
     settings->setAllowUniversalAccessFromFileURLs(!!enabled);
 
+    enabled = preferences->isXSSAuditorEnabled();
+    settings->setXSSAuditorEnabled(!!enabled);
+
     enabled = preferences->javaScriptCanOpenWindowsAutomatically();
     settings->setJavaScriptCanOpenWindowsAutomatically(!!enabled);
 

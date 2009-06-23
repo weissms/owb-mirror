@@ -24,7 +24,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCustomVoidCallback.cpp
     bindings/js/JSDOMBinding.cpp
     bindings/js/JSDOMGlobalObject.cpp
-    bindings/js/JSDOMStringListCustom.cpp
     bindings/js/JSDOMWindowBase.cpp
     bindings/js/JSDOMWindowCustom.cpp
     bindings/js/JSDOMWindowShell.cpp

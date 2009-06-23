@@ -1,3 +1,126 @@
+2009-06-23  Steve Falkenburg  <sfalken@apple.com>
+
+        Remove errant line of code mistakenly checked in.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-06-22  Steve Falkenburg  <sfalken@apple.com>
+
+        Pass correct value to setShouldPaintNativeControls.
+        
+        Rubber stamped by Mark Rowe.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-06-22  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix last DumpRenderTree change to correctly set preferences flag without crashing.
+        
+        Reviewed by Mark Rowe.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-06-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Set up global native controls flag before creating the first WebView.
+        
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-06-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Set a sensible user agent string for the HTTP requests that Sparkle makes (checking for and downloading updates).
+
+        * WebKitLauncher/WebKitNightlyEnablerSparkle.m:
+        (userAgentStringForSparkle):
+        (initializeSparkle):
+
+2009-06-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add a hook to the WebKit launcher application to allow a link on the nightly build start page to
+        trigger an update via the built-in software update mechanism.
+
+        * WebKitLauncher/WebKitLauncher.xcodeproj/project.pbxproj:
+        * WebKitLauncher/WebKitLauncherURLProtocol.h: Added.
+        * WebKitLauncher/WebKitLauncherURLProtocol.m: Added.
+        (+[WebKitLauncherURLProtocol load]):
+        (+[WebKitLauncherURLProtocol canInitWithRequest:]): Only allow use of the x-webkit-launcher scheme from .webkit.org subdomains.
+        (+[WebKitLauncherURLProtocol canonicalRequestForRequest:]):
+        (-[WebKitLauncherURLProtocol startLoading]):
+        (-[WebKitLauncherURLProtocol stopLoading]):
+        (-[WebKitLauncherURLProtocol handleIsWebKitLauncherAvailableJS]): Return a brief JavaScript snippet that can be used to programatically
+        determine whether the x-webkit-launcher is available and working.
+        (-[WebKitLauncherURLProtocol handleCheckForUpdates]): Trigger a software update on the main thread.
+        (-[WebKitLauncherURLProtocol resourceNotFound]): Fail with a generic "File does not exist" error.
+
+2009-06-20  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Gustavo Noronha and Xan Lopez.
+
+        [Gtk] Implement DRT XSS auditor support
+        https://bugs.webkit.org/show_bug.cgi?id=26571
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+
+2009-06-19  Darin Adler  <darin@apple.com>
+
+        * Scripts/do-webcore-rename: More renaming ideas.
+
+2009-06-15  Andre Pedralho  <andre.pedralho@openbossa.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Only pass --makeargs along if an argument is given.
+
+        * Scripts/build-webkit:
+
+2009-06-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed attempt to fix Windows build.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+
+2009-06-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26199
+
+        Add support for testing the XSSAuditor.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setXSSAuditorEnabledCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setXSSAuditorEnabled):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+        (LayoutTestController::setPopupBlockingEnabled):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+
 2009-06-19  Darin Adler  <darin@apple.com>
 
         Rubber stamped by Mark Rowe.

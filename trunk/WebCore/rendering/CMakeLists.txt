@@ -18,6 +18,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderBoxModelObject.cpp
     rendering/RenderButton.cpp
     rendering/RenderCounter.cpp
+    rendering/RenderDataGrid.cpp
     rendering/RenderFieldset.cpp
     rendering/RenderFileUploadControl.cpp
     rendering/RenderFlexibleBox.cpp

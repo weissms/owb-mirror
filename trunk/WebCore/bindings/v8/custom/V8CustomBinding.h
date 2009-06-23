@@ -274,6 +274,7 @@ namespace WebCore {
         DECLARE_CALLBACK(DOMWindowClearInterval);
 
         DECLARE_CALLBACK(DOMParserConstructor);
+        DECLARE_CALLBACK(HTMLAudioElementConstructor);
         DECLARE_CALLBACK(HTMLImageElementConstructor);
         DECLARE_CALLBACK(HTMLOptionElementConstructor);
         DECLARE_CALLBACK(MessageChannelConstructor);
@@ -403,9 +404,6 @@ namespace WebCore {
         DECLARE_CALLBACK(NodeFilterAcceptNode);
 
         DECLARE_CALLBACK(HTMLFormElementSubmit);
-
-        DECLARE_INDEXED_PROPERTY_GETTER(DOMStringList);
-        DECLARE_CALLBACK(DOMStringListItem);
 
         DECLARE_NAMED_PROPERTY_GETTER(DOMWindow);
         DECLARE_INDEXED_PROPERTY_GETTER(DOMWindow);

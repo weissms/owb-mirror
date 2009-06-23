@@ -32,6 +32,7 @@ list(APPEND WEBCORE_SRC
     page/SecurityOrigin.cpp
     page/Settings.cpp
     page/WindowFeatures.cpp
+    page/XSSAuditor.cpp
 )
 list(APPEND IDL_SRC
     page/BarInfo.idl

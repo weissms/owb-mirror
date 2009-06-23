@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -23,27 +23,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include "config.h"
-#include "JSDOMStringList.h"
+module html {
 
-#include "DOMStringList.h"
+interface [GenerateConstructor] HTMLDataGridRowElement : HTMLElement {
+    attribute boolean selected; // Whether or not the row is currently selected.
+    attribute boolean focused; // Whether or not the row is the current object in the tree for keyboard navigation (or as the principal item of a multiple selection).
+    
+    attribute boolean expanded; // Whether or not the row is open (if it is, child rows will be shown).
+};
 
-using namespace JSC;
-
-namespace WebCore {
-
-JSValue JSDOMStringList::getByIndex(ExecState* exec, unsigned index)
-{
-    return jsString(exec, impl()->item(index));
 }
-
-JSValue JSDOMStringList::item(ExecState* exec, const ArgList& args)
-{
-    unsigned index = args.at(0).toUInt32(exec);
-    if (index >= impl()->length())
-        return jsNull();
-
-    return jsString(exec, impl()->item(index));
-}
-
-} // namespace WebCore

@@ -18,7 +18,6 @@ list(APPEND WEBCORE_SRC
     dom/Comment.cpp
     dom/ContainerNode.cpp
     dom/DOMImplementation.cpp
-    dom/DOMStringList.cpp
     dom/Document.cpp
     dom/DocumentFragment.cpp
     dom/DocumentType.cpp
@@ -38,6 +37,7 @@ list(APPEND WEBCORE_SRC
     dom/MessageChannel.cpp
     dom/MessageEvent.cpp
     dom/MessagePort.cpp
+    dom/MessagePortChannel.cpp
     dom/MouseEvent.cpp
     dom/MouseRelatedEvent.cpp
     dom/MutationEvent.cpp
@@ -64,7 +64,6 @@ list(APPEND WEBCORE_SRC
     dom/SelectElement.cpp
     dom/SelectorNodeList.cpp
     dom/StaticNodeList.cpp
-    dom/StaticStringList.cpp
     dom/StyleElement.cpp
     dom/StyledElement.cpp
     dom/TagNodeList.cpp
@@ -79,6 +78,7 @@ list(APPEND WEBCORE_SRC
     dom/WheelEvent.cpp
     dom/XMLTokenizer.cpp
     dom/XMLTokenizerScope.cpp
+    dom/default/PlatformMessagePortChannel.cpp
 )
 
 if(USE_GRAPHICS_QT)
@@ -104,7 +104,6 @@ list(APPEND IDL_SRC
     dom/DocumentType.idl
     dom/DOMCoreException.idl
     dom/DOMImplementation.idl
-    dom/DOMStringList.idl
     dom/Element.idl
     dom/Entity.idl
     dom/EntityReference.idl

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Google Inc. All rights reserved.
+ * Copyright (C) 2009 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -29,34 +29,42 @@
  */
 
 #include "config.h"
-#include "DOMStringList.h"
+#include "HTMLAudioElement.h"
+
+#include "Document.h"
+#include "Frame.h"
+#include "HTMLNames.h"
 
 #include "V8Binding.h"
-#include "V8CustomBinding.h"
 #include "V8Proxy.h"
+
+#include <wtf/RefPtr.h>
 
 namespace WebCore {
 
-INDEXED_PROPERTY_GETTER(DOMStringList)
+CALLBACK_FUNC_DECL(HTMLAudioElementConstructor)
 {
-    INC_STATS("DOM.DOMStringList.IndexedPropertyGetter");
-    DOMStringList* imp = V8Proxy::DOMWrapperToNative<DOMStringList>(info.Holder());
-    return v8String(imp->item(index));
-}
+    INC_STATS("DOM.HTMLAudioElement.Contructor");
 
-CALLBACK_FUNC_DECL(DOMStringListItem)
-{
-    INC_STATS("DOM.DOMStringListItem()");
-    if (!args.Length())
-        return v8::Null();
+    if (!args.IsConstructCall())
+        return throwError("DOM object constructor cannot be called as a function.");
 
-    uint32_t index = args[0]->Uint32Value();
+    Document* document = V8Proxy::retrieveFrame()->document();
+    if (!document)
+        return throwError("Audio constructor associated document is unavailable", V8Proxy::REFERENCE_ERROR);
 
-    DOMStringList* imp = V8Proxy::DOMWrapperToNative<DOMStringList>(args.Holder());
-    if (index >= imp->length())
-        return v8::Null();
+    // Make sure the document is added to the DOM Node map. Otherwise, the HTMLAudioElement instance
+    // may end up being the only node in the map and get garbage-ccollected prematurely.
+    V8Proxy::NodeToV8Object(document);
 
-    return v8String(imp->item(index));
+    RefPtr<HTMLAudioElement> audio = new HTMLAudioElement(HTMLNames::audioTag, V8Proxy::retrieveFrame()->document());
+    if (args.Length() > 0)
+        audio->setSrc(toWebCoreString(args[0]));
+
+    V8Proxy::SetDOMWrapper(args.Holder(), V8ClassIndex::ToInt(V8ClassIndex::NODE), audio.get());
+    audio->ref();
+    V8Proxy::SetJSWrapperForDOMNode(audio.get(), v8::Persistent<v8::Object>::New(args.Holder()));
+    return args.Holder();
 }
 
 } // namespace WebCore

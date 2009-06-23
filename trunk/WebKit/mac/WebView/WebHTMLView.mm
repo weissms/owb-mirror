@@ -1386,6 +1386,9 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
     //      and Dictionary's Command-Control-D (open dictionary popup for item under cursor).
     //      This is of course a hack.
 
+    if (_private->closed)
+        return nil;
+
     BOOL captureHitsOnSubviews;
     if (forceNSViewHitTest)
         captureHitsOnSubviews = NO;
@@ -5781,7 +5784,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
         _private->exposeInputContext = exposeInputContext;
         // Let AppKit cache a potentially changed input context.
         // WebCore routinely sets the selection to None when editing, and IMs become unhappy when an input context suddenly turns nil, see bug 26009.
-        if (!coreFrame || !coreFrame->selection()->isNone())
+        if (!coreFrame->selection()->isNone())
             [NSApp updateWindows];
     }
 

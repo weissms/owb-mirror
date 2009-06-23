@@ -60,6 +60,7 @@ list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebCore/bridge/c
     ${OWB_SOURCE_DIR}/WebCore/css
     ${OWB_SOURCE_DIR}/WebCore/dom
+    ${OWB_SOURCE_DIR}/WebCore/dom/default
     ${OWB_SOURCE_DIR}/WebCore/editing
     ${OWB_SOURCE_DIR}/WebCore/history
     ${OWB_SOURCE_DIR}/WebCore/html

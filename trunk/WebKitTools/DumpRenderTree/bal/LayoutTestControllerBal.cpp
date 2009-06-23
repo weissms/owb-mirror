@@ -227,6 +227,11 @@ void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled
     // FIXME: implement
 }
 
+void LayoutTestController::setXSSAuditorEnabled(bool enabled)
+{
+    // FIXME: implement
+}
+
 void LayoutTestController::setAuthorAndUserStylesEnabled(bool flag)
 {
     // FIXME: implement

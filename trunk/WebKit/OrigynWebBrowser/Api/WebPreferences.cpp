@@ -126,6 +126,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitJavaEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, "1");//TRUE
+    m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
@@ -443,6 +444,16 @@ bool WebPreferences::isJavaScriptEnabled()
 void WebPreferences::setJavaScriptEnabled(bool enabled)
 {
     setBoolValue(WebKitJavaScriptEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::isXSSAuditorEnabled()
+{
+    return boolValueForKey(WebKitXSSAuditorEnabledPreferenceKey);
+}
+
+void WebPreferences::setXSSAuditorEnabled(bool enabled)
+{
+    setBoolValue(WebKitXSSAuditorEnabledPreferenceKey, enabled);
 }
 
 bool WebPreferences::javaScriptCanOpenWindowsAutomatically()

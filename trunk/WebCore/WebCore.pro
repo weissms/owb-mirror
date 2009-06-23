@@ -194,6 +194,7 @@ INCLUDEPATH +=  $$PWD/accessibility \
                 $$PWD/loader/icon \
                 $$PWD/css \
                 $$PWD/dom \
+                $$PWD/dom/default \
                 $$PWD/page \
                 $$PWD/page/animation \
                 $$PWD/editing \
@@ -295,7 +296,6 @@ IDL_BINDINGS += \
     dom/DocumentType.idl \
     dom/DOMCoreException.idl \
     dom/DOMImplementation.idl \
-    dom/DOMStringList.idl \
     dom/Element.idl \
     dom/Entity.idl \
     dom/EntityReference.idl \
@@ -345,6 +345,9 @@ IDL_BINDINGS += \
     html/HTMLCanvasElement.idl \
     html/HTMLCollection.idl \
     html/HTMLDataGridElement.idl \
+    html/HTMLDataGridCellElement.idl \
+    html/HTMLDataGridColElement.idl \
+    html/HTMLDataGridRowElement.idl \
     html/HTMLDirectoryElement.idl \
     html/HTMLDivElement.idl \
     html/HTMLDListElement.idl \
@@ -460,7 +463,6 @@ SOURCES += \
     bindings/js/JSDocumentCustom.cpp \
     bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMGlobalObject.cpp \
-    bindings/js/JSDOMStringListCustom.cpp \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSDOMWindowCustom.cpp \
     bindings/js/JSDOMWindowShell.cpp \
@@ -622,7 +624,6 @@ SOURCES += \
     dom/DocumentFragment.cpp \
     dom/DocumentType.cpp \
     dom/DOMImplementation.cpp \
-    dom/DOMStringList.cpp \
     dom/DynamicNodeList.cpp \
     dom/EditingText.cpp \
     dom/Element.cpp \
@@ -639,6 +640,7 @@ SOURCES += \
     dom/MessageChannel.cpp \
     dom/MessageEvent.cpp \
     dom/MessagePort.cpp \
+    dom/MessagePortChannel.cpp \
     dom/MouseEvent.cpp \
     dom/MouseRelatedEvent.cpp \
     dom/MutationEvent.cpp \
@@ -665,7 +667,6 @@ SOURCES += \
     dom/SelectElement.cpp \
     dom/SelectorNodeList.cpp \
     dom/StaticNodeList.cpp \
-    dom/StaticStringList.cpp \
     dom/StyledElement.cpp \
     dom/StyleElement.cpp \
     dom/TagNodeList.cpp \
@@ -681,6 +682,7 @@ SOURCES += \
     dom/XMLTokenizer.cpp \
     dom/XMLTokenizerQt.cpp \
     dom/XMLTokenizerScope.cpp \
+    dom/default/PlatformMessagePortChannel.cpp \
     editing/AppendNodeCommand.cpp \
     editing/ApplyStyleCommand.cpp \
     editing/BreakBlockquoteCommand.cpp \
@@ -753,6 +755,10 @@ SOURCES += \
     html/HTMLButtonElement.cpp \
     html/HTMLCanvasElement.cpp \
     html/HTMLCollection.cpp \
+    html/HTMLDataGridElement.cpp \
+    html/HTMLDataGridCellElement.cpp \
+    html/HTMLDataGridColElement.cpp \
+    html/HTMLDataGridRowElement.cpp \
     html/HTMLDirectoryElement.cpp \
     html/HTMLDivElement.cpp \
     html/HTMLDListElement.cpp \
@@ -899,6 +905,7 @@ SOURCES += \
     page/Screen.cpp \
     page/Settings.cpp \
     page/WindowFeatures.cpp \
+    page/XSSAuditor.cpp \
     plugins/PluginData.cpp \
     plugins/PluginArray.cpp \
     plugins/Plugin.cpp \
@@ -1016,6 +1023,7 @@ SOURCES += \
     rendering/RenderBR.cpp \
     rendering/RenderButton.cpp \
     rendering/RenderCounter.cpp \
+    rendering/RenderDataGrid.cpp \
     rendering/RenderFieldset.cpp \
     rendering/RenderFileUploadControl.cpp \
     rendering/RenderFlexibleBox.cpp \
@@ -1365,6 +1373,7 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/StorageEvent.cpp \
         storage/SessionStorage.cpp \
         storage/SessionStorageArea.cpp \
+        storage/StorageSyncManager.cpp \
         bindings/js/JSStorageCustom.cpp
 
     IDL_BINDINGS += \

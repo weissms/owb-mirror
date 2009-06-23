@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,7 +10,7 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
@@ -21,41 +21,19 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- *
  */
 
-#ifndef StaticStringList_h
-#define StaticStringList_h
+module html {
 
-#include "DOMStringList.h"
+interface [GenerateConstructor] HTMLDataGridCellElement : HTMLElement {
+    attribute DOMString label; // The text to display in the column, assuming the type supports text.
+    
+    attribute boolean focused; // Whether or not this cell is currently focused.
+    
+    attribute boolean checked; // The checked state of the column, assuming the type of the column is checkbox.
+    attribute boolean indeterminate; // If the checked state is indeterminate.
+    
+    attribute float progress; // For progress cells, a value from 0-1.0 indicating the state of progress.
+};
 
-namespace WebCore {
-
-    class StaticStringList : public DOMStringList {
-    public:
-        static PassRefPtr<StaticStringList> create(const Vector<String>& strings)
-        {
-            return adoptRef(new StaticStringList(strings));
-        }
-        static PassRefPtr<StaticStringList> adopt(Vector<String>& strings)
-        {
-            StaticStringList* newList = new StaticStringList;
-            newList->m_strings.swap(strings);
-            return adoptRef(newList);
-        }
-        virtual ~StaticStringList();
-
-        virtual unsigned length() const;
-        virtual String item(unsigned) const;
-        virtual bool contains(const String&) const;
-
-    private:
-        StaticStringList(const Vector<String>&);
-        StaticStringList();
-
-        Vector<String> m_strings;
-    };
-
-} // namespace WebCore
-
-#endif // StaticStringList
+}

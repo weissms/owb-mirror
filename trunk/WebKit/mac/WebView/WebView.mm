@@ -751,14 +751,13 @@ static bool runningTigerMail()
 
 - (void)setFrameSize:(NSSize)size
 {
-    if (!NSEqualSizes(_private->lastLayoutSize, size)) {
+    if (!_private->usesDocumentViews && !NSEqualSizes(_private->lastLayoutSize, size)) {
         Frame* frame = [self _mainCoreFrame];
         // FIXME: Viewless WebKit is broken with Safari banners (e.g., the Find banner).  We'll have to figure out a way for
         // Safari to communicate that this space is being consumed.  For WebKit with document views, there's no
         // need to do an explicit resize, since WebFrameViews have auto resizing turned on and will handle changing
         // their bounds automatically. See <rdar://problem/6835573> for details.
-        if (!_private->usesDocumentViews)
-            frame->view()->resize(IntSize(size));
+        frame->view()->resize(IntSize(size));
         frame->view()->setNeedsLayout();
         [self setNeedsDisplay:YES];
         _private->lastLayoutSize = size;
@@ -1302,6 +1301,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setWebArchiveDebugModeEnabled([preferences webArchiveDebugModeEnabled]);
     settings->setOfflineWebApplicationCacheEnabled([preferences offlineWebApplicationCacheEnabled]);
     settings->setZoomsTextOnly([preferences zoomsTextOnly]);
+    settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
 }
 
@@ -2328,6 +2328,12 @@ static bool clientNeedsWebViewInitThreadWorkaround()
     // Automator workflows.
     if ([bundleIdentifier _webkit_hasCaseInsensitivePrefix:@"com.apple.Automator."])
         return true;
+
+#if defined(BUILDING_ON_TIGER) || defined(BUILDING_ON_LEOPARD)
+    // Mail.
+    if ([bundleIdentifier _webkit_isCaseInsensitiveEqualToString:@"com.apple.Mail"])
+        return true;
+#endif
 
     return false;
 }

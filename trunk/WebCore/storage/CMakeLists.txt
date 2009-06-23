@@ -34,6 +34,7 @@ if(ENABLE_DOM_STORAGE)
         storage/StorageArea.cpp
         storage/StorageEvent.cpp
         storage/StorageMap.cpp
+        storage/StorageSyncManager.cpp
     )
     list(APPEND IDL_SRC
         storage/Storage.idl

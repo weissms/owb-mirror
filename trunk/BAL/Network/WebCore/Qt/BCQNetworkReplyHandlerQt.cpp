@@ -180,9 +180,21 @@ QNetworkReplyHandler::~QNetworkReplyHandler()
 
 void QNetworkReplyHandler::setLoadMode(LoadMode mode)
 {
-    m_loadMode = mode;
-    if (m_loadMode == LoadNormal)
-        sendQueuedItems();
+    // https://bugs.webkit.org/show_bug.cgi?id=26556
+    // We cannot call sendQueuedItems() from here, because the signal that 
+    // caused us to get into deferred mode, might not be processed yet.
+    switch (mode) {
+    case LoadNormal:
+        m_loadMode = LoadResuming;
+        emit processQueuedItems();
+        break;
+    case LoadDeferred:
+        m_loadMode = LoadDeferred;
+        break;
+    case LoadResuming:
+        Q_ASSERT(0); // should never happen
+        break;
+    };
 }
 
 void QNetworkReplyHandler::abort()
@@ -212,8 +224,8 @@ QNetworkReply* QNetworkReplyHandler::release()
 
 void QNetworkReplyHandler::finish()
 {
-    m_shouldFinish = (m_loadMode == LoadDeferred);
-    if (m_loadMode == LoadDeferred)
+    m_shouldFinish = (m_loadMode != LoadNormal);
+    if (m_shouldFinish)
         return;
 
     sendResponseIfNeeded();
@@ -248,8 +260,8 @@ void QNetworkReplyHandler::finish()
 
 void QNetworkReplyHandler::sendResponseIfNeeded()
 {
-    m_shouldSendResponse = (m_loadMode == LoadDeferred);
-    if (m_loadMode == LoadDeferred)
+    m_shouldSendResponse = (m_loadMode != LoadNormal);
+    if (m_shouldSendResponse)
         return;
 
     if (m_responseSent || !m_resourceHandle)
@@ -332,8 +344,8 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
 
 void QNetworkReplyHandler::forwardData()
 {
-    m_shouldForwardData = (m_loadMode == LoadDeferred);
-    if (m_loadMode == LoadDeferred)
+    m_shouldForwardData = (m_loadMode != LoadNormal);
+    if (m_shouldForwardData)
         return;
 
     sendResponseIfNeeded();
@@ -421,6 +433,8 @@ void QNetworkReplyHandler::start()
 
     connect(m_reply, SIGNAL(readyRead()),
             this, SLOT(forwardData()), Qt::QueuedConnection);
+    connect(this, SIGNAL(processQueuedItems()),
+            this, SLOT(sendQueuedItems()), Qt::QueuedConnection);
 }
 
 void QNetworkReplyHandler::resetState()
@@ -435,7 +449,9 @@ void QNetworkReplyHandler::resetState()
 
 void QNetworkReplyHandler::sendQueuedItems()
 {
-    Q_ASSERT(m_loadMode == LoadNormal);
+    if (m_loadMode != LoadResuming)
+        return;
+    m_loadMode = LoadNormal;
 
     if (m_shouldStart)
         start();

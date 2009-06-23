@@ -19,6 +19,10 @@ list(APPEND WEBCORE_SRC
     html/HTMLButtonElement.cpp
     html/HTMLCanvasElement.cpp
     html/HTMLCollection.cpp
+    html/HTMLDataGridElement.cpp
+    html/HTMLDataGridCellElement.cpp
+    html/HTMLDataGridColElement.cpp
+    html/HTMLDataGridRowElement.cpp
     html/HTMLDListElement.cpp
     html/HTMLDirectoryElement.cpp
     html/HTMLDivElement.cpp
@@ -107,6 +111,9 @@ list(APPEND IDL_SRC
     html/HTMLCanvasElement.idl
     html/HTMLCollection.idl
     html/HTMLDataGridElement.idl
+    html/HTMLDataGridCellElement.idl
+    html/HTMLDataGridColElement.idl
+    html/HTMLDataGridRowElement.idl
     html/HTMLDirectoryElement.idl
     html/HTMLDivElement.idl
     html/HTMLDListElement.idl

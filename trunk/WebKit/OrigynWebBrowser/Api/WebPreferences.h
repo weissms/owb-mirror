@@ -531,6 +531,16 @@ public:
      */
     virtual void setAllowUniversalAccessFromFileURLs(bool);
 
+    /**
+     * Is XSS auditor enabled
+     */
+    virtual bool isXSSAuditorEnabled();
+
+    /**
+     * Enable/Disable XSS auditor
+     */
+    virtual void setXSSAuditorEnabled(bool);
+
     // WebPreferences
 
     // This method accesses a different preference key than developerExtrasEnabled.

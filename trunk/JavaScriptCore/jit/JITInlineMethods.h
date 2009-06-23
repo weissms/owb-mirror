@@ -30,15 +30,6 @@
 
 #if ENABLE(JIT)
 
-#if PLATFORM(WIN)
-#undef FIELD_OFFSET // Fix conflict with winnt.h.
-#endif
-
-// FIELD_OFFSET: Like the C++ offsetof macro, but you can use it with classes.
-// The magic number 0x4000 is insignificant. We use it to avoid using NULL, since
-// NULL can cause compiler problems, especially in cases of multiple inheritance.
-#define FIELD_OFFSET(class, field) (reinterpret_cast<ptrdiff_t>(&(reinterpret_cast<class*>(0x4000)->field)) - 0x4000)
-
 namespace JSC {
 
 ALWAYS_INLINE void JIT::killLastResultRegister()
@@ -203,7 +194,7 @@ ALWAYS_INLINE void JIT::restoreReturnAddressBeforeReturn(Address address)
     push(address);
 }
 
-#elif PLATFORM(ARM_V7)
+#elif PLATFORM_ARM_ARCH(7)
 
 ALWAYS_INLINE void JIT::preverveReturnAddressAfterCall(RegisterID reg)
 {
@@ -225,21 +216,21 @@ ALWAYS_INLINE void JIT::restoreReturnAddressBeforeReturn(Address address)
 #if USE(JIT_STUB_ARGUMENT_VA_LIST)
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
-    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+    poke(callFrameRegister, OBJECT_OFFSETOF(struct JITStackFrame, callFrame) / sizeof (void*));
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline() {}
 #else
 ALWAYS_INLINE void JIT::restoreArgumentReference()
 {
     move(stackPointerRegister, firstArgumentRegister);
-    poke(callFrameRegister, offsetof(struct JITStackFrame, callFrame) / sizeof (void*));
+    poke(callFrameRegister, OBJECT_OFFSETOF(struct JITStackFrame, callFrame) / sizeof (void*));
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
 {
 #if PLATFORM(X86)
     // Within a trampoline the return address will be on the stack at this point.
     addPtr(Imm32(sizeof(void*)), stackPointerRegister, firstArgumentRegister);
-#elif PLATFORM(ARM_V7)
+#elif PLATFORM_ARM_ARCH(7)
     move(stackPointerRegister, firstArgumentRegister);
 #endif
     // In the trampoline on x86-64, the first argument register is not overwritten.
@@ -248,7 +239,7 @@ ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
 
 ALWAYS_INLINE JIT::Jump JIT::checkStructure(RegisterID reg, Structure* structure)
 {
-    return branchPtr(NotEqual, Address(reg, FIELD_OFFSET(JSCell, m_structure)), ImmPtr(structure));
+    return branchPtr(NotEqual, Address(reg, OBJECT_OFFSETOF(JSCell, m_structure)), ImmPtr(structure));
 }
 
 ALWAYS_INLINE JIT::Jump JIT::emitJumpIfJSCell(RegisterID reg)

@@ -667,6 +667,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/RefCountedLeakCounter.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtrHashMap.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RetainPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/SegmentedVector.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/StringExtras.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/TCPackedCache.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/TCPageMap.h
@@ -736,6 +737,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefPtrHashMap.h
 BAL/Types/WTF	JavaScriptCore/wtf/RetainPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/SegmentedVector.h
 BAL/Types/WTF	JavaScriptCore/wtf/StdLibExtras.h
 BAL/Types/WTF	JavaScriptCore/wtf/StringExtras.h
 BAL/Types/WTF	JavaScriptCore/wtf/TCPackedCache.h

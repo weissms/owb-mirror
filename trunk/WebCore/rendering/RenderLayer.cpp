@@ -310,9 +310,6 @@ void RenderLayer::updateLayerPositions(bool doFullRepaint, bool checkForRepaint)
         child->updateLayerPositions(doFullRepaint, checkForRepaint);
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (!parent())
-        compositor()->updateRootLayerPosition();
-
     if (isComposited())
         backing()->updateAfterLayout();
 #endif
@@ -1303,7 +1300,7 @@ void RenderLayer::resize(const PlatformMouseEvent& evt, const IntSize& oldOffset
 
     ExceptionCode ec;
 
-    if (difference.width()) {
+    if (resize != RESIZE_VERTICAL && difference.width()) {
         if (element->isFormControlElement()) {
             // Make implicit margins from the theme explicit (see <http://bugs.webkit.org/show_bug.cgi?id=9547>).
             style->setProperty(CSSPropertyMarginLeft, String::number(renderer->marginLeft() / zoomFactor) + "px", false, ec);
@@ -1315,7 +1312,7 @@ void RenderLayer::resize(const PlatformMouseEvent& evt, const IntSize& oldOffset
         style->setProperty(CSSPropertyWidth, String::number(baseWidth + difference.width()) + "px", false, ec);
     }
 
-    if (difference.height()) {
+    if (resize != RESIZE_HORIZONTAL && difference.height()) {
         if (element->isFormControlElement()) {
             // Make implicit margins from the theme explicit (see <http://bugs.webkit.org/show_bug.cgi?id=9547>).
             style->setProperty(CSSPropertyMarginTop, String::number(renderer->marginTop() / zoomFactor) + "px", false, ec);
@@ -1940,7 +1937,7 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
 {
 #if USE(ACCELERATED_COMPOSITING)
     // Composited RenderLayers are painted via the backing's paintIntoLayer().
-    if (isComposited() && !backing()->paintingGoesToWindow())
+    if (isComposited() && !backing()->paintingGoesToWindow() && !p->updatingControlTints())
         return;
 #endif
 
@@ -2301,7 +2298,7 @@ RenderLayer* RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLayer* cont
 #if USE(ACCELERATED_COMPOSITING)
         if (isComposited()) {
             // It doesn't make sense to project hitTestRect into the plane of this layer, so use the same bounds we use for painting.
-            localHitTestRect = compositor()->calculateCompositedBounds(this, this);
+            localHitTestRect = backing()->compositedBounds();
         } else
 #endif
             localHitTestRect = newTransformState->mappedQuad().enclosingBoundingBox();

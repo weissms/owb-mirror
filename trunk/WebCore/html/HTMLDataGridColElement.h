@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,7 +10,7 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
@@ -21,47 +21,39 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- *
  */
 
-#include "config.h"
-#include "StaticStringList.h"
+#ifndef HTMLDataGridColElement_h
+#define HTMLDataGridColElement_h
+
+#include "HTMLElement.h"
 
 namespace WebCore {
 
-StaticStringList::StaticStringList(const Vector<String>& strings)
-    : m_strings(strings)
+class HTMLDataGridColElement : public HTMLElement
 {
-}
+public:
+    HTMLDataGridColElement(const QualifiedName&, Document*);
 
-StaticStringList::StaticStringList()
-{
-}
+    virtual HTMLTagStatus endTagRequirement() const { return TagStatusForbidden; }
+    virtual int tagPriority() const { return 0; }
+    
+    String label() const;
+    void setLabel(const String&);
+    
+    String type() const;
+    void setType(const String&);
+    
+    bool sortable() const;
+    void setSortable(bool);
+    
+    String sortDirection() const;
+    void setSortDirection(const String&);
+    
+    bool primary() const;
+    void setPrimary(bool);
+};
 
-StaticStringList::~StaticStringList()
-{
-}
+} //namespace
 
-unsigned StaticStringList::length() const
-{
-    return m_strings.size();
-}
-
-String StaticStringList::item(unsigned index) const
-{
-    if (index >= m_strings.size())
-        return "";
-    return m_strings[index];
-}
-
-bool StaticStringList::contains(const String& str) const
-{
-    size_t count = m_strings.size();
-    for (size_t i = 0; i < count; ++i) {
-        if (m_strings[i] == str)
-            return true;
-    }
-    return false;
-}
-
-} // namespace WebCore
+#endif

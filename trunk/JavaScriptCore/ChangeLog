@@ -1,3 +1,375 @@
+2009-06-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 26640: JSON.stringify needs to special case Boolean objects
+        <https://bugs.webkit.org/show_bug.cgi?id=26640>
+
+        Add special case handling of the Boolean object so we match current
+        ES5 errata.
+
+        * runtime/JSONObject.cpp:
+        (JSC::unwrapBoxedPrimitive): renamed from unwrapNumberOrString
+        (JSC::gap):
+        (JSC::Stringifier::appendStringifiedValue):
+
+2009-06-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 26591: Support revivers in JSON.parse
+        <https://bugs.webkit.org/show_bug.cgi?id=26591>
+
+        Add reviver support to JSON.parse.  This completes the JSON object.
+
+        * runtime/JSONObject.cpp:
+        (JSC::Walker::Walker):
+        (JSC::Walker::callReviver):
+        (JSC::Walker::walk):
+        (JSC::JSONProtoFuncParse):
+
+2009-06-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 26592: Support standard toJSON functions
+        <https://bugs.webkit.org/show_bug.cgi?id=26592>
+
+        Add support for the standard Date.toJSON function.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::dateProtoFuncToJSON):
+
+2009-06-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 26594: JSC needs to support Date.toISOString
+        <https://bugs.webkit.org/show_bug.cgi?id=26594>
+
+        Add support for Date.toISOString.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::dateProtoFuncToISOString):
+
+2009-06-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Remove dead code.
+
+        * runtime/LiteralParser.cpp:
+        (JSC::LiteralParser::parse):
+
+2009-06-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler and Cameron Zwarich.
+
+        Bug 26587: Support JSON.parse
+        <https://bugs.webkit.org/show_bug.cgi?id=26587>
+
+        Extend the LiteralParser to support the full strict JSON
+        grammar, fix a few places where the grammar was incorrectly
+        lenient.   Doesn't yet support the JSON.parse reviver function
+        but that does not block the JSON.parse functionality itself.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::callEval):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+        * runtime/JSONObject.cpp:
+        (JSC::JSONProtoFuncParse):
+        * runtime/LiteralParser.cpp:
+        (JSC::LiteralParser::Lexer::lex):
+        (JSC::isSafeStringCharacter):
+        (JSC::LiteralParser::Lexer::lexString):
+        (JSC::LiteralParser::parse):
+        * runtime/LiteralParser.h:
+        (JSC::LiteralParser::LiteralParser):
+        (JSC::LiteralParser::tryJSONParse):
+        (JSC::LiteralParser::):
+        (JSC::LiteralParser::Lexer::Lexer):
+
+2009-06-21  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (speculative build fix for windows).
+
+        Simply removed some whitespace form this file to make windows build wtf and
+        hopefully copy the new MessageQueque.h so that WebCore picks it up.
+
+        * wtf/Assertions.cpp:
+
+2009-06-21  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=25043>
+        Added support for multi-threaded MessagePorts.
+
+        * wtf/MessageQueue.h:
+        (WTF::::appendAndCheckEmpty):
+            Added API to test whether the queue was empty before adding an element.
+  
+2009-06-20  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Fix namespace comment in SegmentedVector.h
+
+        * wtf/SegmentedVector.h: Updated namespace comment to reflect
+        new namespace after r44897.
+
+2009-06-20  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Bug 24986: ARM JIT port
+        <https://bugs.webkit.org/show_bug.cgi?id=24986>
+
+        Reviewed by Oliver Hunt.
+
+        An Iterator added for SegmentedVector. Currently
+        only the pre ++ operator is supported.
+
+        * wtf/SegmentedVector.h:
+        (WTF::SegmentedVectorIterator::~SegmentedVectorIterator):
+        (WTF::SegmentedVectorIterator::operator*):
+        (WTF::SegmentedVectorIterator::operator->):
+        (WTF::SegmentedVectorIterator::operator++):
+        (WTF::SegmentedVectorIterator::operator==):
+        (WTF::SegmentedVectorIterator::operator!=):
+        (WTF::SegmentedVectorIterator::operator=):
+        (WTF::SegmentedVectorIterator::SegmentedVectorIterator):
+        (WTF::SegmentedVector::alloc):
+        (WTF::SegmentedVector::begin):
+        (WTF::SegmentedVector::end):
+
+2009-06-20  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Bug 24986: ARM JIT port
+        <https://bugs.webkit.org/show_bug.cgi?id=24986>
+
+        Reviewed by Oliver Hunt.
+
+        Move SegmentedVector to /wtf subdirectory
+        and change "namespace JSC" to "namespace WTF"
+
+        Additional build file updates by David Kilzer.
+
+        * GNUmakefile.am: Updated path to SegmentedVector.h.
+        * JavaScriptCore.order: Updated SegmentedVector namespace from
+        JSC to WTF in mangled C++ method name.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        Removed reference to bytecompiler\SegmentedVector.h.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Added reference to
+        wtf\SegmentedVector.h.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Moved
+        SegmentedVector.h definition from bytecompiler subdirectory to
+        wtf subdirectory.
+        * bytecompiler/BytecodeGenerator.h: Updated #include path to
+        SegmentedVector.h and prepended WTF:: namespace to its use.
+        * parser/Lexer.h: Ditto.
+        * wtf/SegmentedVector.h: Renamed from JavaScriptCore/bytecompiler/SegmentedVector.h.
+        (WTF::SegmentedVector::SegmentedVector):
+        (WTF::SegmentedVector::~SegmentedVector):
+        (WTF::SegmentedVector::size):
+        (WTF::SegmentedVector::at):
+        (WTF::SegmentedVector::operator[]):
+        (WTF::SegmentedVector::last):
+        (WTF::SegmentedVector::append):
+        (WTF::SegmentedVector::removeLast):
+        (WTF::SegmentedVector::grow):
+        (WTF::SegmentedVector::clear):
+        (WTF::SegmentedVector::deleteAllSegments):
+        (WTF::SegmentedVector::segmentExistsFor):
+        (WTF::SegmentedVector::segmentFor):
+        (WTF::SegmentedVector::subscriptFor):
+        (WTF::SegmentedVector::ensureSegmentsFor):
+        (WTF::SegmentedVector::ensureSegment):
+
+2009-06-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix take 2 - rename FIELD_OFFSET to something that doesn't conflict with winnt.h).
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        (JSC::JIT::emitGetVariableObjectRegister):
+        (JSC::JIT::emitPutVariableObjectRegister):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_rshift):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::compileBinaryArithOp):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallInitializeCallFrame):
+        (JSC::JIT::compileOpCall):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReference):
+        (JSC::JIT::checkStructure):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_instanceof):
+        (JSC::JIT::emit_op_get_scoped_var):
+        (JSC::JIT::emit_op_put_scoped_var):
+        (JSC::JIT::emit_op_construct_verify):
+        (JSC::JIT::emit_op_resolve_global):
+        (JSC::JIT::emit_op_jeq_null):
+        (JSC::JIT::emit_op_jneq_null):
+        (JSC::JIT::emit_op_to_jsnumber):
+        (JSC::JIT::emit_op_catch):
+        (JSC::JIT::emit_op_eq_null):
+        (JSC::JIT::emit_op_neq_null):
+        (JSC::JIT::emit_op_convert_this):
+        (JSC::JIT::emit_op_profile_will_call):
+        (JSC::JIT::emit_op_profile_did_call):
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emit_op_get_by_val):
+        (JSC::JIT::emit_op_put_by_val):
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::emit_op_put_by_id):
+        (JSC::JIT::compilePutDirectOffset):
+        (JSC::JIT::compileGetDirectOffset):
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+
+2009-06-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Windows build fix).
+
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+
+2009-06-19  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Reorganize ARM architecture specific macros.
+        Use PLATFORM_ARM_ARCH(7) instead of PLATFORM(ARM_V7).
+
+        Bug 24986: ARM JIT port
+        <https://bugs.webkit.org/show_bug.cgi?id=24986>
+
+        * assembler/ARMv7Assembler.h:
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::Imm32::Imm32):
+        * assembler/MacroAssembler.h:
+        * assembler/MacroAssemblerCodeRef.h:
+        (JSC::MacroAssemblerCodePtr::MacroAssemblerCodePtr):
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::cacheFlush):
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReferenceForTrampoline):
+        * jit/JITStubs.cpp:
+        * jit/JITStubs.h:
+        * wtf/Platform.h:
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateEnter):
+        (JSC::Yarr::RegexGenerator::generateReturn):
+
+2009-06-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix armv7 JIT build issues.
+
+        Unfortunate the arm compiler does not like the use of offsetof on JITStackFrame (since it now contains non POD types),
+        and the FIELD_OFFSET macro does not appear constantish enough for it to be happy with its use in COMPILE_ASSERT macros.
+
+        * Replace offsetofs with FIELD_OFFSETs (safe on C++ objects).
+        * Move COMPILE_ASSERTs defending layout of JITStackFrame structure on armv7 into JITThunks constructor.
+
+        * jit/JIT.cpp:
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReference):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_catch):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+
+2009-06-19  Adam Treat  <adam.treat@torchmobile.com>
+
+        Blind attempt at build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-06-19  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Oliver Hunt.
+
+        Inherits CallIdentifier struct from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/profiler/CallIdentifier.h:86.
+
+        * wtf/HashCountedSet.h:
+
+2009-06-19  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26540
+        Modify the test shell to add a new function 'checkSyntax' that will
+        only parse the source instead of executing it. In this way we can test
+        pure parsing performance against some of the larger scripts in the wild.
+
+        * jsc.cpp:
+        (GlobalObject::GlobalObject):
+        (functionCheckSyntax):
+
+2009-06-19  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+        
+        Inherits HashCountedSet class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/runtime/Collector.cpp:1095.
+
+        * wtf/HashCountedSet.h:
+
+2009-06-19  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26558
+        Declare these symbols extern for WINCE as they are provided by libce.
+
+        * runtime/DateConstructor.cpp:
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+
+2009-06-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        <rdar://problem/6988973> ScopeChain leak in interpreter builds
+
+        Move the Scopechain destruction code in JSFunction outside of the ENABLE(JIT)
+        path.
+
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::~JSFunction):
+        * wtf/Platform.h:
+
+2009-06-19  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26543
+        Windows CE uses 'GetLastError' instead of 'errno.'
+
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        (JSC::RegisterFile::grow):
+
+2009-06-19  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (Windows build fix).
+
+        Add export for Windows corresponding to OSX export done in r44844.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
 2009-06-19  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Gavin "Viceroy of Venezuela" Barraclough.

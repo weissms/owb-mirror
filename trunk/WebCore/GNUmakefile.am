@@ -16,6 +16,7 @@ webcore_cppflags += \
 	-I$(srcdir)/WebCore/bridge/c \
 	-I$(srcdir)/WebCore/css \
 	-I$(srcdir)/WebCore/dom \
+	-I$(srcdir)/WebCore/dom/default \
 	-I$(srcdir)/WebCore/editing \
 	-I$(srcdir)/WebCore/history \
 	-I$(srcdir)/WebCore/html \
@@ -117,7 +118,6 @@ IDL_BINDINGS += \
 	WebCore/dom/Comment.idl \
 	WebCore/dom/DOMCoreException.idl \
 	WebCore/dom/DOMImplementation.idl \
-	WebCore/dom/DOMStringList.idl \
 	WebCore/dom/Document.idl \
 	WebCore/dom/DocumentFragment.idl \
 	WebCore/dom/DocumentType.idl \
@@ -168,6 +168,9 @@ IDL_BINDINGS += \
 	WebCore/html/HTMLCanvasElement.idl \
 	WebCore/html/HTMLCollection.idl \
 	WebCore/html/HTMLDataGridElement.idl \
+	WebCore/html/HTMLDataGridCellElement.idl \
+	WebCore/html/HTMLDataGridColElement.idl \
+	WebCore/html/HTMLDataGridRowElement.idl \
 	WebCore/html/HTMLDListElement.idl \
 	WebCore/html/HTMLDirectoryElement.idl \
 	WebCore/html/HTMLDivElement.idl \
@@ -312,7 +315,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSDOMBinding.h \
 	WebCore/bindings/js/JSDOMGlobalObject.cpp \
 	WebCore/bindings/js/JSDOMGlobalObject.h \
-	WebCore/bindings/js/JSDOMStringListCustom.cpp \
 	WebCore/bindings/js/JSDOMWindowBase.cpp \
 	WebCore/bindings/js/JSDOMWindowBase.h \
 	WebCore/bindings/js/JSDOMWindowCustom.cpp \
@@ -631,8 +633,6 @@ webcore_sources += \
 	WebCore/dom/DOMCoreException.h \
 	WebCore/dom/DOMImplementation.cpp \
 	WebCore/dom/DOMImplementation.h \
-	WebCore/dom/DOMStringList.cpp \
-	WebCore/dom/DOMStringList.h \
 	WebCore/dom/DocPtr.h \
 	WebCore/dom/Document.cpp \
 	WebCore/dom/Document.h \
@@ -677,7 +677,8 @@ webcore_sources += \
 	WebCore/dom/MessageEvent.h \
 	WebCore/dom/MessagePort.cpp \
 	WebCore/dom/MessagePort.h \
-	WebCore/dom/MessagePortProxy.h \
+	WebCore/dom/MessagePortChannel.cpp \
+	WebCore/dom/MessagePortChannel.h \
 	WebCore/dom/MouseEvent.cpp \
 	WebCore/dom/MouseEvent.h \
 	WebCore/dom/MouseRelatedEvent.cpp \
@@ -737,8 +738,6 @@ webcore_sources += \
 	WebCore/dom/SelectorNodeList.h \
 	WebCore/dom/StaticNodeList.cpp \
 	WebCore/dom/StaticNodeList.h \
-	WebCore/dom/StaticStringList.cpp \
-	WebCore/dom/StaticStringList.h \
 	WebCore/dom/StyleElement.cpp \
 	WebCore/dom/StyleElement.h \
 	WebCore/dom/StyledElement.cpp \
@@ -769,6 +768,8 @@ webcore_sources += \
 	WebCore/dom/XMLTokenizerLibxml2.cpp \
 	WebCore/dom/XMLTokenizerScope.cpp \
 	WebCore/dom/XMLTokenizerScope.h \
+	WebCore/dom/default/PlatformMessagePortChannel.cpp \
+	WebCore/dom/default/PlatformMessagePortChannel.h \
 	WebCore/editing/AppendNodeCommand.cpp \
 	WebCore/editing/AppendNodeCommand.h \
 	WebCore/editing/ApplyStyleCommand.cpp \
@@ -919,7 +920,14 @@ webcore_sources += \
 	WebCore/html/HTMLCanvasElement.h \
 	WebCore/html/HTMLCollection.cpp \
 	WebCore/html/HTMLCollection.h \
+	WebCore/html/HTMLDataGridElement.cpp \
 	WebCore/html/HTMLDataGridElement.h \
+	WebCore/html/HTMLDataGridCellElement.cpp \
+	WebCOre/html/HTMLDataGridCellElement.h \
+	WebCore/html/HTMLDataGridColElement.cpp \
+	WebCore/html/HTMLDataGridColElement.h \
+	WebCore/html/HTMLDataGridRowElement.cpp \
+	WebCore/html/HTMLDataGridRowElement.h \
 	WebCore/html/HTMLDListElement.cpp \
 	WebCore/html/HTMLDListElement.h \
 	WebCore/html/HTMLDirectoryElement.cpp \
@@ -1269,6 +1277,8 @@ webcore_sources += \
 	WebCore/page/WebKitPoint.h \
 	WebCore/page/WindowFeatures.cpp \
 	WebCore/page/WindowFeatures.h \
+	WebCore/page/XSSAuditor.cpp \
+	WebCore/page/XSSAuditor.h \
 	WebCore/page/animation/AnimationBase.cpp \
 	WebCore/page/animation/AnimationBase.h \
 	WebCore/page/animation/AnimationController.cpp \
@@ -1608,6 +1618,8 @@ webcore_sources += \
 	WebCore/rendering/RenderButton.h \
 	WebCore/rendering/RenderCounter.cpp \
 	WebCore/rendering/RenderCounter.h \
+	WebCore/rendering/RenderDataGrid.cpp \
+	WebCore/rendering/RenderDataGrid.h \
 	WebCore/rendering/RenderFieldset.cpp \
 	WebCore/rendering/RenderFieldset.h \
 	WebCore/rendering/RenderFileUploadControl.cpp \
@@ -2081,7 +2093,9 @@ webcore_sources += \
 	WebCore/storage/StorageEvent.cpp \
 	WebCore/storage/StorageEvent.h \
 	WebCore/storage/StorageMap.cpp \
-	WebCore/storage/StorageMap.h
+	WebCore/storage/StorageMap.h \
+	WebCore/storage/StorageSyncManager.cpp \
+	WebCore/storage/StorageSyncManager.h
 endif # END ENABLE_DOM_STORAGE
 
 # ----

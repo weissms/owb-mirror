@@ -43,7 +43,8 @@ class QNetworkReplyHandler : public QObject
 public:
     enum LoadMode {
         LoadNormal,
-        LoadDeferred
+        LoadDeferred,
+        LoadResuming
     };
 
     QNetworkReplyHandler(ResourceHandle *handle, LoadMode);
@@ -56,15 +57,18 @@ public:
 
     QNetworkReply* release();
 
+signals:
+    void processQueuedItems();
+
 private slots:
     void finish();
     void sendResponseIfNeeded();
     void forwardData();
+    void sendQueuedItems();
 
 private:
     void start();
     void resetState();
-    void sendQueuedItems();
 
     QNetworkReply* m_reply;
     ResourceHandle* m_resourceHandle;

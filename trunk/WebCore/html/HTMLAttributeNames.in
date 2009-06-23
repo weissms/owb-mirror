@@ -67,7 +67,9 @@ direction
 disabled
 enctype
 end
+expanded
 face
+focused
 for
 frame
 frameborder
@@ -80,6 +82,7 @@ hspace
 http_equiv
 id
 incremental
+indeterminate
 ismap
 keytype
 label
@@ -161,7 +164,9 @@ placeholder
 pluginurl
 poster
 precision
+primary
 profile
+progress
 prompt
 readonly
 rel
@@ -179,6 +184,8 @@ scrolling
 selected
 shape
 size
+sortable
+sortdirection
 span
 spellcheck
 src

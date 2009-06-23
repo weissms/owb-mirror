@@ -27,6 +27,7 @@ WebCore/editing/TextIterator.cpp
 WebCore/page/DOMWindow.cpp
 WebCore/page/DOMWindow.h
 WebCore/page/DOMWindow.idl
+WebCore/page/XSSAuditor.cpp
 WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLParser.cpp

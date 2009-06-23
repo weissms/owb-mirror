@@ -80,7 +80,6 @@ DOM_CLASSES = \
     DOMImplementation \
     DOMParser \
     DOMSelection \
-    DOMStringList \
     DOMWindow \
     Database \
     Document \
@@ -111,6 +110,9 @@ DOM_CLASSES = \
     HTMLCanvasElement \
     HTMLCollection \
     HTMLDataGridElement \
+    HTMLDataGridCellElement \
+    HTMLDataGridColElement \
+    HTMLDataGridRowElement \
     HTMLDListElement \
     HTMLDirectoryElement \
     HTMLDivElement \
