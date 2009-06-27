@@ -25,7 +25,6 @@ CONFIG(QTDIR_build) {
     }
 
     DESTDIR = $$OUTPUT_DIR/lib
-    macx:CONFIG += absolute_library_soname
 }
 
 GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR${QMAKE_DIR_SEP}
@@ -330,6 +329,8 @@ IDL_BINDINGS += \
     html/CanvasGradient.idl \
     html/CanvasPattern.idl \
     html/CanvasRenderingContext2D.idl \
+    html/DataGridColumn.idl \
+    html/DataGridColumnList.idl \
     html/File.idl \
     html/FileList.idl \
     html/HTMLAudioElement.idl \
@@ -460,6 +461,8 @@ SOURCES += \
     bindings/js/JSCustomPositionErrorCallback.cpp \
     bindings/js/JSCustomVoidCallback.cpp \
     bindings/js/JSCustomXPathNSResolver.cpp \
+    bindings/js/JSDataGridColumnListCustom.cpp \
+    bindings/js/JSDataGridDataSource.cpp \
     bindings/js/JSDocumentCustom.cpp \
     bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMGlobalObject.cpp \
@@ -474,6 +477,7 @@ SOURCES += \
     bindings/js/JSHistoryCustom.cpp \
     bindings/js/JSHTMLAppletElementCustom.cpp \
     bindings/js/JSHTMLCollectionCustom.cpp \
+    bindings/js/JSHTMLDataGridElementCustom.cpp \
     bindings/js/JSHTMLDocumentCustom.cpp \
     bindings/js/JSHTMLElementCustom.cpp \
     bindings/js/JSHTMLEmbedElementCustom.cpp \
@@ -741,6 +745,8 @@ SOURCES += \
     html/CanvasRenderingContext2D.cpp \
     html/CanvasStyle.cpp \
     html/CollectionCache.cpp \
+    html/DataGridColumn.cpp \
+    html/DataGridColumnList.cpp \
     html/File.cpp \
     html/FileList.cpp \
     html/FormDataList.cpp \
@@ -1360,19 +1366,19 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/Storage.h \
         storage/StorageEvent.h \
         storage/SessionStorage.h \
-        storage/SessionStorageArea.h
+        storage/StorageSyncManager.h \
+        storage/StorageAreaSync.h
 
     SOURCES += \
         storage/LocalStorage.cpp \
-        storage/LocalStorageArea.cpp \
         storage/LocalStorageTask.cpp \
         storage/LocalStorageThread.cpp \
         storage/Storage.cpp \
         storage/StorageArea.cpp \
+        storage/StorageAreaSync.cpp \
         storage/StorageMap.cpp \
         storage/StorageEvent.cpp \
         storage/SessionStorage.cpp \
-        storage/SessionStorageArea.cpp \
         storage/StorageSyncManager.cpp \
         bindings/js/JSStorageCustom.cpp
 
@@ -2184,21 +2190,25 @@ HEADERS += $$WEBKIT_API_HEADERS
         QMAKE_PKGCONFIG_INSTALL_REPLACE += lib_replace
     }
 
-    mac:!static:contains(QT_CONFIG, qt_framework):!CONFIG(webkit_no_framework) {
-        !build_pass {
-            message("Building QtWebKit as a framework, as that's how Qt was built. You can")
-            message("override this by passing CONFIG+=webkit_no_framework to build-webkit.")
-        } else {
-            debug_and_release:CONFIG(debug, debug|release) {
-                TARGET = $$qtLibraryTarget($$TARGET)
+    mac {
+        !static:contains(QT_CONFIG, qt_framework):!CONFIG(webkit_no_framework) {
+            !build_pass {
+                message("Building QtWebKit as a framework, as that's how Qt was built. You can")
+                message("override this by passing CONFIG+=webkit_no_framework to build-webkit.")
+            } else {
+                debug_and_release:CONFIG(debug, debug|release) {
+                    TARGET = $$qtLibraryTarget($$TARGET)
+                }
             }
+
+            CONFIG += lib_bundle qt_no_framework_direct_includes qt_framework
+            FRAMEWORK_HEADERS.version = Versions
+            FRAMEWORK_HEADERS.files = $$WEBKIT_API_HEADERS
+            FRAMEWORK_HEADERS.path = Headers
+            QMAKE_BUNDLE_DATA += FRAMEWORK_HEADERS
         }
 
-        CONFIG += lib_bundle qt_no_framework_direct_includes qt_framework
-        FRAMEWORK_HEADERS.version = Versions
-        FRAMEWORK_HEADERS.files = $$WEBKIT_API_HEADERS
-        FRAMEWORK_HEADERS.path = Headers
-        QMAKE_BUNDLE_DATA += FRAMEWORK_HEADERS
+        QMAKE_LFLAGS_SONAME = "$${QMAKE_LFLAGS_SONAME}$${DESTDIR}$${QMAKE_DIR_SEP}"
     }
 }
 

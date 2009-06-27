@@ -52,6 +52,7 @@
 #include "Page.h"
 #include "ProgressEvent.h"
 #include "RenderVideo.h"
+#include "ScriptEventListener.h"
 #include "TimeRanges.h"
 #include <limits>
 #include <wtf/CurrentTime.h>
@@ -82,6 +83,7 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document* doc)
     , m_playedTimeRanges()
     , m_playbackRate(1.0f)
     , m_defaultPlaybackRate(1.0f)
+    , m_webkitPreservesPitch(true)
     , m_networkState(NETWORK_EMPTY)
     , m_readyState(HAVE_NOTHING)
     , m_volume(1.0f)
@@ -149,12 +151,60 @@ void HTMLMediaElement::attributeChanged(Attribute* attr, bool preserveDecls)
 #endif
 }
 
-void HTMLMediaElement::parseMappedAttribute(MappedAttribute *attr)
+void HTMLMediaElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    if (attr->name() == autobufferAttr) {
+    const QualifiedName& attrName = attr->name();
+
+    if (attrName == autobufferAttr) {
         if (m_player)
             m_player->setAutobuffer(!attr->isNull());
-    } else
+    } else if (attrName == onabortAttr)
+        setAttributeEventListener(eventNames().abortEvent, createAttributeEventListener(this, attr));
+    else if (attrName == oncanplayAttr)
+        setAttributeEventListener(eventNames().canplayEvent, createAttributeEventListener(this, attr));
+    else if (attrName == oncanplaythroughAttr)
+        setAttributeEventListener(eventNames().canplaythroughEvent, createAttributeEventListener(this, attr));
+    else if (attrName == ondurationchangeAttr)
+        setAttributeEventListener(eventNames().durationchangeEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onemptiedAttr)
+        setAttributeEventListener(eventNames().emptiedEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onendedAttr)
+        setAttributeEventListener(eventNames().endedEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onerrorAttr)
+        setAttributeEventListener(eventNames().errorEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onloadAttr)
+        setAttributeEventListener(eventNames().loadEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onloadeddataAttr)
+        setAttributeEventListener(eventNames().loadeddataEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onloadedmetadataAttr)
+        setAttributeEventListener(eventNames().loadedmetadataEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onloadstartAttr)
+        setAttributeEventListener(eventNames().loadstartEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onpauseAttr)
+        setAttributeEventListener(eventNames().pauseEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onplayAttr)
+        setAttributeEventListener(eventNames().playEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onplayingAttr)
+        setAttributeEventListener(eventNames().playingEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onprogressAttr)
+        setAttributeEventListener(eventNames().progressEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onratechangeAttr)
+        setAttributeEventListener(eventNames().ratechangeEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onseekedAttr)
+        setAttributeEventListener(eventNames().seekedEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onseekingAttr)
+        setAttributeEventListener(eventNames().seekingEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onstalledAttr)
+        setAttributeEventListener(eventNames().stalledEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onsuspendAttr)
+        setAttributeEventListener(eventNames().suspendEvent, createAttributeEventListener(this, attr));
+    else if (attrName == ontimeupdateAttr)
+        setAttributeEventListener(eventNames().timeupdateEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onvolumechangeAttr)
+        setAttributeEventListener(eventNames().volumechangeEvent, createAttributeEventListener(this, attr));
+    else if (attrName == onwaitingAttr)
+        setAttributeEventListener(eventNames().waitingEvent, createAttributeEventListener(this, attr));
+    else
         HTMLElement::parseMappedAttribute(attr);
 }
 
@@ -500,6 +550,7 @@ void HTMLMediaElement::loadResource(const KURL& url, ContentType& contentType)
         m_player.set(new MediaPlayer(this));
 #endif
 
+    m_player->setPreservesPitch(m_webkitPreservesPitch);
     updateVolume();
 
     m_player->load(m_currentSrc, contentType);
@@ -906,6 +957,21 @@ void HTMLMediaElement::setPlaybackRate(float rate)
     }
     if (m_player && potentiallyPlaying() && m_player->rate() != rate)
         m_player->setRate(rate);
+}
+
+bool HTMLMediaElement::webkitPreservesPitch() const
+{
+    return m_webkitPreservesPitch;
+}
+
+void HTMLMediaElement::setWebkitPreservesPitch(bool preservesPitch)
+{
+    m_webkitPreservesPitch = preservesPitch;
+    
+    if (!m_player)
+        return;
+
+    m_player->setPreservesPitch(preservesPitch);
 }
 
 bool HTMLMediaElement::ended() const
@@ -1484,6 +1550,9 @@ void HTMLMediaElement::documentWillBecomeInactive()
 
     if (renderer())
         renderer()->updateFromElement();
+
+    stopPeriodicTimers();
+    cancelPendingEventsAndCallbacks();
 }
 
 void HTMLMediaElement::documentDidBecomeActive()
@@ -1541,8 +1610,7 @@ bool HTMLMediaElement::processingUserGesture() const
 void HTMLMediaElement::deliverNotification(MediaPlayerProxyNotificationType notification)
 {
     if (notification == MediaPlayerNotificationPlayPauseButtonPressed) {
-        ExceptionCode ec;
-        togglePlayState(ec);
+        togglePlayState();
         return;
     }
 
@@ -1561,7 +1629,7 @@ String HTMLMediaElement::initialURL()
     KURL initialSrc = document()->completeURL(getAttribute(srcAttr));
     
     if (!initialSrc.isValid())
-        initialSrc = selectNextSourceChild(0, DoNothing).string();
+        initialSrc = selectNextSourceChild(0, DoNothing);
 
     m_currentSrc = initialSrc.string();
 

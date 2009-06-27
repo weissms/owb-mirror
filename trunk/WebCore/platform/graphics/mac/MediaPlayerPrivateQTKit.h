@@ -68,6 +68,7 @@ public:
     void timeChanged();
     void didEnd();
 
+    bool hasSingleSecurityOrigin() const;
 private:
     MediaPlayerPrivate(MediaPlayer*);
 
@@ -95,6 +96,7 @@ private:
     
     void setRate(float);
     void setVolume(float);
+    void setPreservesPitch(bool);
 
     void setEndTime(float time);
 
@@ -120,6 +122,7 @@ private:
 #endif
 
     void createQTMovie(const String& url);
+    void createQTMovie(NSURL *, NSDictionary *movieAttributes);
 
     enum MediaRenderingMode { MediaRenderingNone, MediaRenderingMovieView, MediaRenderingSoftwareRenderer, MediaRenderingMovieLayer };
     MediaRenderingMode currentRenderingMode() const;
@@ -169,6 +172,7 @@ private:
     unsigned m_totalTrackCount;
     bool m_hasUnsupportedTracks;
     float m_duration;
+    float m_timeToRestore;
     RetainPtr<QTMovieLayer> m_qtVideoLayer;
 #if DRAW_FRAME_RATE
     int  m_frameCountWhilePlaying;

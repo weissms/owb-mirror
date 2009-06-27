@@ -92,10 +92,15 @@ int WMLSelectElement::selectedIndex() const
     return SelectElement::selectedIndex(m_data, this);
 }
     
-void WMLSelectElement::setSelectedIndex(int index, bool deselect, bool fireOnChange)
+void WMLSelectElement::setSelectedIndex(int optionIndex, bool deselect)
 {
-    SelectElement::setSelectedIndex(m_data, this, index, deselect, fireOnChange);
+    SelectElement::setSelectedIndex(m_data, this, optionIndex, deselect, false, false);
 }
+
+void WMLSelectElement::setSelectedIndexByUser(int optionIndex, bool deselect, bool fireOnChangeNow) 
+{ 
+    SelectElement::setSelectedIndex(m_data, this, optionIndex, deselect, fireOnChangeNow, true); 
+} 
 
 bool WMLSelectElement::saveFormControlState(String& value) const
 {

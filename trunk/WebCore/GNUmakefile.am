@@ -153,6 +153,8 @@ IDL_BINDINGS += \
 	WebCore/html/CanvasGradient.idl \
 	WebCore/html/CanvasPattern.idl \
 	WebCore/html/CanvasRenderingContext2D.idl \
+	WebCore/html/DataGridColumn.idl \
+	WebCore/html/DataGridColumnList.idl \
 	WebCore/html/File.idl \
 	WebCore/html/FileList.idl \
 	WebCore/html/HTMLAnchorElement.idl \
@@ -295,6 +297,9 @@ webcore_sources += \
 	WebCore/bindings/js/GCController.h \
 	WebCore/bindings/js/JSAttrCustom.cpp \
 	WebCore/bindings/js/JSCDATASectionCustom.cpp \
+	WebCore/bindings/js/JSDataGridColumnListCustom.cpp \
+	WebCore/bindings/js/JSDataGridDataSource.cpp \
+	WebCore/bindings/js/JSDataGridDataSource.h \
 	WebCore/bindings/js/JSCSSRuleCustom.cpp \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.cpp \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.h \
@@ -335,6 +340,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.h \
 	WebCore/bindings/js/JSHTMLCollectionCustom.cpp \
+	WebCore/bindings/js/JSHTMLDataGridElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLDocumentCustom.cpp \
 	WebCore/bindings/js/JSHTMLElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLEmbedElementCustom.cpp \
@@ -892,6 +898,11 @@ webcore_sources += \
 	WebCore/html/CollectionCache.cpp \
 	WebCore/html/CollectionCache.h \
 	WebCore/html/CollectionType.h \
+	WebCore/html/DataGridColumn.cpp \
+	WebCore/html/DataGridColumn.h \
+	WebCore/html/DataGridColumnList.cpp \
+	WebCore/html/DataGridColumnList.h \
+	WebCore/html/DataGridDataSource.h \
 	WebCore/html/File.cpp \
 	WebCore/html/File.h \
 	WebCore/html/FileList.cpp \
@@ -2076,16 +2087,12 @@ webcore_sources += \
 	WebCore/bindings/js/JSStorageCustom.cpp \
 	WebCore/storage/LocalStorage.cpp \
 	WebCore/storage/LocalStorage.h \
-	WebCore/storage/LocalStorageArea.cpp \
-	WebCore/storage/LocalStorageArea.h \
 	WebCore/storage/LocalStorageTask.cpp \
 	WebCore/storage/LocalStorageTask.h \
 	WebCore/storage/LocalStorageThread.cpp \
 	WebCore/storage/LocalStorageThread.h \
 	WebCore/storage/SessionStorage.cpp \
 	WebCore/storage/SessionStorage.h \
-	WebCore/storage/SessionStorageArea.cpp \
-	WebCore/storage/SessionStorageArea.h \
 	WebCore/storage/Storage.cpp \
 	WebCore/storage/Storage.h \
 	WebCore/storage/StorageArea.cpp \
@@ -2094,6 +2101,8 @@ webcore_sources += \
 	WebCore/storage/StorageEvent.h \
 	WebCore/storage/StorageMap.cpp \
 	WebCore/storage/StorageMap.h \
+	WebCore/storage/StorageAreaSync.cpp \
+	WebCore/storage/StorageAreaSync.h \
 	WebCore/storage/StorageSyncManager.cpp \
 	WebCore/storage/StorageSyncManager.h
 endif # END ENABLE_DOM_STORAGE

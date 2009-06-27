@@ -1200,13 +1200,7 @@ static bool fastDocumentTeardownEnabled()
 
 - (BOOL)_needsAdobeFrameReloadingQuirk
 {
-    static BOOL checked = NO;
-    static BOOL needsQuirk = NO;
-
-    if (checked)
-        return needsQuirk;
-
-    needsQuirk = WKAppVersionCheckLessThan(@"com.adobe.Acrobat", -1, 9.0)
+    static BOOL needsQuirk = WKAppVersionCheckLessThan(@"com.adobe.Acrobat", -1, 9.0)
         || WKAppVersionCheckLessThan(@"com.adobe.Acrobat.Pro", -1, 9.0)
         || WKAppVersionCheckLessThan(@"com.adobe.Reader", -1, 9.0)
         || WKAppVersionCheckLessThan(@"com.adobe.distiller", -1, 9.0)
@@ -1216,23 +1210,20 @@ static bool fastDocumentTeardownEnabled()
         || WKAppVersionCheckLessThan(@"com.adobe.InCopy", -1, 5.1)
         || WKAppVersionCheckLessThan(@"com.adobe.InDesign", -1, 5.1)
         || WKAppVersionCheckLessThan(@"com.adobe.Soundbooth", -1, 2);
-    checked = YES;
 
     return needsQuirk;
 }
 
 - (BOOL)_needsKeyboardEventDisambiguationQuirks
 {
-    static BOOL checked = NO;
-    static BOOL needsQuirks = NO;
-
-    if (checked)
-        return needsQuirks;
-
-    needsQuirks = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_IE_COMPATIBLE_KEYBOARD_EVENT_DISPATCH) && !applicationIsSafari();
-    checked = YES;
-
+    static BOOL needsQuirks = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_IE_COMPATIBLE_KEYBOARD_EVENT_DISPATCH) && !applicationIsSafari();
     return needsQuirks;
+}
+
+- (BOOL)_needsFrameLoadDelegateRetainQuirk
+{
+    static BOOL needsQuirk = WKAppVersionCheckLessThan(@"com.equinux.iSale5", -1, 5.6);    
+    return needsQuirk;
 }
 
 - (void)_preferencesChangedNotification:(NSNotification *)notification
@@ -1303,6 +1294,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setZoomsTextOnly([preferences zoomsTextOnly]);
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
+    settings->setAcceleratedCompositingEnabled([preferences acceleratedCompositingEnabled]);
 }
 
 static inline IMP getMethod(id o, SEL s)
@@ -2465,6 +2457,9 @@ static bool needsWebViewInitThreadWorkaround()
 
     --WebViewCount;
     
+    if ([self _needsFrameLoadDelegateRetainQuirk])
+        [_private->frameLoadDelegate release];
+        
     [_private release];
     // [super dealloc] can end up dispatching against _private (3466082)
     _private = nil;
@@ -2685,6 +2680,15 @@ static bool needsWebViewInitThreadWorkaround()
 
 - (void)setFrameLoadDelegate:delegate
 {
+    // <rdar://problem/6950660> - Due to some subtle WebKit changes - presumably to delegate callback behavior - we've
+    // unconvered a latent bug in at least one WebKit app where the delegate wasn't properly retained by the app and
+    // was dealloc'ed before being cleared.
+    // This is an effort to keep such apps working for now.
+    if ([self _needsFrameLoadDelegateRetainQuirk]) {
+        [delegate retain];
+        [_private->frameLoadDelegate release];
+    }
+    
     _private->frameLoadDelegate = delegate;
     [self _cacheFrameLoadDelegateImplementations];
 

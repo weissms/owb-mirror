@@ -5,6 +5,7 @@ list(APPEND WEBCORE_SRC
     html/CanvasRenderingContext2D.cpp
     html/CanvasStyle.cpp
     html/CollectionCache.cpp
+    html/DataGridColumn.cpp
     html/File.cpp
     html/FileList.cpp
     html/FormDataList.cpp
@@ -23,6 +24,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLDataGridCellElement.cpp
     html/HTMLDataGridColElement.cpp
     html/HTMLDataGridRowElement.cpp
+    html/DataGridColumnList.cpp
     html/HTMLDListElement.cpp
     html/HTMLDirectoryElement.cpp
     html/HTMLDivElement.cpp
@@ -96,6 +98,8 @@ list(APPEND IDL_SRC
     html/CanvasGradient.idl
     html/CanvasPattern.idl
     html/CanvasRenderingContext2D.idl
+    html/DataGridColumnList.idl
+    html/DataGridColumn.idl
     html/File.idl
     html/FileList.idl
     html/HTMLAnchorElement.idl

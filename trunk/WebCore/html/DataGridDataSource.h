@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,39 +23,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef SessionStorageArea_h
-#define SessionStorageArea_h
+#ifndef DataGridDataSource_h
+#define DataGridDataSource_h
 
-#if ENABLE(DOM_STORAGE)
-
-#include "StorageArea.h"
+#include <wtf/RefCounted.h>
 
 namespace WebCore {
 
-    class Page;
-    
-    class SessionStorageArea : public StorageArea {
-    public:
-        static PassRefPtr<SessionStorageArea> create(SecurityOrigin* origin, Page* page) { return adoptRef(new SessionStorageArea(origin, page)); }
-        PassRefPtr<SessionStorageArea> copy(SecurityOrigin*, Page*);
-                
-        Page* page() { return m_page; }
+class HTMLDataGridElement;
 
-    private:
-        SessionStorageArea(SecurityOrigin*, Page*);
-        SessionStorageArea(SecurityOrigin*, Page*, SessionStorageArea*);
+class DataGridDataSource : public RefCounted<DataGridDataSource> {
+public:
+    virtual ~DataGridDataSource() { }
 
-        virtual void itemChanged(const String& key, const String& oldValue, const String& newValue, Frame* sourceFrame);
-        virtual void itemRemoved(const String& key, const String& oldValue, Frame* sourceFrame);
-        virtual void areaCleared(Frame* sourceFrame);
+    virtual bool isJSDataGridDataSource() const { return false; }
 
-        void dispatchStorageEvent(const String& key, const String& oldValue, const String& newValue, Frame* sourceFrame);
-        
-        Page* m_page;
-    };
+    virtual void initialize(HTMLDataGridElement*) = 0;
+};
 
 } // namespace WebCore
 
-#endif // ENABLE(DOM_STORAGE)
-
-#endif // SessionStorageArea_h
+#endif // DataGridDataSource_h

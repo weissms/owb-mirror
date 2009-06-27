@@ -1,3 +1,266 @@
+2009-06-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        bugzilla-tool apply-patch throws exception in Linux
+        https://bugs.webkit.org/show_bug.cgi?id=26738
+
+        HEAD is case-sensitive in Linux. Convert uses of head to HEAD in
+        the scm module.
+
+        * Scripts/modules/scm.py:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Call WebKitTools/Scripts scripts by their absolute paths
+        https://bugs.webkit.org/show_bug.cgi?id=26704
+
+        bugzilla-tool used to use whatever build-webkit was in your path.
+        That could end up building the wrong copy of WebKit.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-06-25  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Dave Levin.
+
+        Use unicode() instead of str when reading from bugzilla.
+        Also add Simon Fraser as a reviewer.
+        https://bugs.webkit.org/show_bug.cgi?id=26719
+
+        * Scripts/modules/bugzilla.py:
+
+2009-06-25  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Use Q_ASSERT in Qt's DumpRenderTree instead of JSC's ASSERT
+        
+        The WTFReportAssertionFailure function in JSC is not exported when
+        building QtWebKit in both debug and release on Mac, so DRT fails to
+        link.
+        
+        We can revert this patch once the Qt port builds JSC as a separate
+        library, and we add the proper export macros to Assertions.cpp
+
+        * DumpRenderTree/qt/WorkQueue.cpp:
+        (WorkQueue::queue):
+        (WorkQueue::dequeue):
+
+2009-06-25  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Jan Alonzo.
+
+        bugzilla-tool: Add Simon Hausmann as reviewer
+
+        * Scripts/modules/bugzilla.py:
+
+2009-06-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Support local commits during apply-patches
+        and let land-patches take multiple bug ids.
+        https://bugs.webkit.org/show_bug.cgi?id=26703
+
+        I also restructured parts of land-patches into
+        class methods and static methods in preparation
+        for future code sharing with other commands.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Make svn-apply work with Git too
+        https://bugs.webkit.org/show_bug.cgi?id=26299
+        
+        Add an --force option to svn-apply and otherwise make svn-apply
+        exit non-zero when patch application fails.
+        https://bugs.webkit.org/show_bug.cgi?id=26300
+
+        I did not update svn-unapply, because it makes no sense in a Git world.
+        You don't roll in and out patch files.  You make commits and deal with those.
+        Git users can just git reset --hard to get the same functionality.
+
+        * Scripts/svn-apply:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Remove use of os.system to fix reviewers with unicode chars in their names
+        https://bugs.webkit.org/show_bug.cgi?id=26713
+
+        Also change to latin1 encoding of ø to make python happy.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Add Adam Roben and Tor Arne Vestbø to the reviewers list.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-06-24  Chris Fleizach  <cfleizach@apple.com>
+
+        Windows build fix.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::language):
+
+2009-06-24  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 26668: AX: need a way to retrieve the language for an element
+        Support ability to retrieve AXLanguage for testing
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getLanguageCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::language):
+
+2009-06-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Spell Maciej's name right and add Brady Eidson.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-06-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Fix missing comment message during land-patches and SVN.commit_with_message respecting --dry-run
+        https://bugs.webkit.org/show_bug.cgi?id=26669
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-06-23  Takeshi Yoshino  <tyoshino@google.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 26537: Builds from command-line fail if custom build product directory is set and ~/Library/Preferences/xcodebuild.plist exists
+        https://bugs.webkit.org/show_bug.cgi?id=26537
+
+        Let determineBaseProductDir subroutine remove
+        ~/Library/Preferences/xcodebuild.plist. It can prevent xcodebuild from
+        respecting global settings such as a custom build products directory
+        (<rdar://problem/5585899>).
+
+        * Scripts/webkitdirs.pm:
+
+2009-06-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Make SCM.run_command smarter, and make all previous
+        os.system and subprocess.popen use SCM.run_command instead.
+        https://bugs.webkit.org/show_bug.cgi?id=26666
+
+        This makes it easier to handle errors in a standard way throughout all the code.
+        Since this new code raises by default when the exit_code != 0,
+        we should prevent future problems of bugzilla-tool continuing after
+        a git or svn command failed.
+
+        * Scripts/modules/scm.py:
+
+2009-06-23  Joe Mason  <joe.mason@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26664
+        * Scripts/prepare-ChangeLog: Added --git-index mode to list only the
+        changes which are already staged in the index.  Useful to create an
+        entry for what you're about to commit while ignoring unstaged changes.
+
+2009-06-23  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Update for WebKit changes.
+        
+        * DumpRenderTree/win/UIDelegate.h:
+        (UIDelegate::willPerformDragSourceAction):
+
+2009-06-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        * Scripts/modules/scm.py: Fix commit_with_message to return the commit output.
+
+2009-06-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        * Scripts/modules/scm.py: Fix error seen when commiting r44979.
+
+2009-06-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        WebKit needs a script to interact with bugzilla and automate
+        parts of the patch posting and commit processes.
+        https://bugs.webkit.org/show_bug.cgi?id=26283
+
+        This is really a first-draft tool.
+        It's to the point where it's useful to more people than just me now though.
+        Git support works.  SVN support is written, but mostly untested.
+
+        This tool requires BeautifulSoup and mechanize python modules to run:
+        sudo easy_install BeautifulSoup
+        sudo easy_install mechanize
+
+        More important than the tool itself are the Bugzilla, Git and SVN class abstractions
+        which I hope will allow easy writing of future tools.
+
+        The tool currently implements 10 commands, described below.
+
+        Helpers for scripting dealing with the commit queue:
+        bugs-to-commit                 Bugs in the commit queue
+        patches-to-commit              Patches attached to bugs in the commit queue
+
+        Dealing with bugzilla:
+        reviewed-patches BUGID         r+'d patches on a bug
+        apply-patches BUGID            Applies all patches on a bug to the local working directory without committing.
+        land-and-update BUGID          Lands the current working directory diff and updates the bug.
+        land-patches [options] BUGID   Lands all patches on a bug optionally testing them first
+        obsolete-attachments BUGID     Marks all attachments on a bug as obsolete.
+        commit-message                 Prints a commit message suitable for the uncommitted changes.
+
+        These effectively replace git-send-bugzilla:
+        post-diff BUGID                Attaches the current working directory diff to a bug as a patch file.
+        post-commits BUGID COMMITISH   Attaches a range of local commits to a bug as patch files.
+
+        post-diff works for SVN and Git, post-commits only works for SCMs with local-commit support (like Git)
+
+        land-* commands in a Git environment only work with simple patches due to svn-apply bugs:
+        https://bugs.webkit.org/show_bug.cgi?id=26299
+        https://bugs.webkit.org/show_bug.cgi?id=26300
+
+        This script follows python style (similar to how for Obj-C we follow AppKit style)
+        http://www.python.org/doc/essays/styleguide.html
+        The Python community has a strong style culture and the WebKit style guide is silent re: Python.
+
+        I've filed a bug to update the WebKit style guide to mention python:
+        https://bugs.webkit.org/show_bug.cgi?id=26524
+
+        * Scripts/bugzilla-tool: Added.
+
 2009-06-23  Steve Falkenburg  <sfalken@apple.com>
 
         Remove errant line of code mistakenly checked in.

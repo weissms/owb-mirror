@@ -108,6 +108,8 @@ public:
     void setDefaultPlaybackRate(float);
     float playbackRate() const;
     void setPlaybackRate(float);
+    bool webkitPreservesPitch() const;
+    void setWebkitPreservesPitch(bool);
     PassRefPtr<TimeRanges> played() const;
     PassRefPtr<TimeRanges> seekable() const;
     bool ended() const;
@@ -140,6 +142,8 @@ public:
     String initialURL();
     virtual void finishParsingChildren();
 #endif
+
+    bool hasSingleSecurityOrigin() const { return !m_player || m_player->hasSingleSecurityOrigin(); }
 
 protected:
     float getTimeOffsetAttribute(const QualifiedName&, float valueOnError) const;
@@ -234,6 +238,7 @@ protected:
     
     float m_playbackRate;
     float m_defaultPlaybackRate;
+    bool m_webkitPreservesPitch;
     NetworkState m_networkState;
     ReadyState m_readyState;
     String m_currentSrc;

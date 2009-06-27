@@ -47,7 +47,8 @@ public:
     virtual bool canStartSelection() const { return false; }
 
     virtual int selectedIndex() const;
-    virtual void setSelectedIndex(int index, bool deselect = true, bool fireOnChange = false);
+    virtual void setSelectedIndex(int index, bool deselect = true);
+    virtual void setSelectedIndexByUser(int index, bool deselect = true, bool fireOnChangeNow = false);
 
     virtual int size() const { return m_data.size(); }
     virtual bool multiple() const { return m_data.multiple(); }

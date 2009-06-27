@@ -120,7 +120,7 @@ void RenderLayerBacking::updateLayerTransform()
     TransformationMatrix t;
     if (m_owningLayer->hasTransform()) {
         style->applyTransform(t, toRenderBox(renderer())->borderBoxRect().size(), RenderStyle::ExcludeTransformOrigin);
-        makeMatrixRenderable(t);
+        makeMatrixRenderable(t, compositor()->hasAcceleratedCompositing());
     }
     
     m_graphicsLayer->setTransform(t);
@@ -657,9 +657,6 @@ FloatPoint RenderLayerBacking::computePerspectiveOrigin(const IntRect& borderBox
 // Return the offset from the top-left of this compositing layer at which the renderer's contents are painted.
 IntSize RenderLayerBacking::contentOffsetInCompostingLayer()
 {
-    if (m_compositedBounds != compositor()->calculateCompositedBounds(m_owningLayer, m_owningLayer) && !compositor()->compositingLayersNeedUpdate())
-        fprintf(stderr, "Stale compositing offset\n");
-
     return IntSize(-m_compositedBounds.x(), -m_compositedBounds.y());
 }
 
@@ -701,27 +698,47 @@ bool RenderLayerBacking::paintingGoesToWindow() const
 
 void RenderLayerBacking::setContentsNeedDisplay()
 {
-    if (m_graphicsLayer)
+    bool needViewUpdate = false;
+
+    if (m_graphicsLayer && m_graphicsLayer->drawsContent()) {
         m_graphicsLayer->setNeedsDisplay();
-    if (m_contentsLayer)
+        needViewUpdate = true;
+    }
+    
+    if (m_contentsLayer && m_contentsLayer->drawsContent()) {
         m_contentsLayer->setNeedsDisplay();
+        needViewUpdate = true;
+    }
+    
+    // Make sure layout happens before we get rendered again.
+    if (needViewUpdate)
+        compositor()->scheduleViewUpdate();
 }
 
 // r is in the coordinate space of the layer's render object
 void RenderLayerBacking::setContentsNeedDisplayInRect(const IntRect& r)
 {
-    if (m_graphicsLayer) {
+    bool needViewUpdate = false;
+
+    if (m_graphicsLayer && m_graphicsLayer->drawsContent()) {
         FloatPoint dirtyOrigin = contentsToGraphicsLayerCoordinates(m_graphicsLayer, FloatPoint(r.x(), r.y()));
         FloatRect dirtyRect(dirtyOrigin, r.size());
         FloatRect bounds(FloatPoint(), m_graphicsLayer->size());
-        if (bounds.intersects(dirtyRect))
+        if (bounds.intersects(dirtyRect)) {
             m_graphicsLayer->setNeedsDisplayInRect(dirtyRect);
+            needViewUpdate = true;
+        }
     }
 
-    if (m_contentsLayer) {
+    if (m_contentsLayer && m_contentsLayer->drawsContent()) {
         // FIXME: do incremental repaint
         m_contentsLayer->setNeedsDisplay();
+        needViewUpdate = true;
     }
+
+    // Make sure layout happens before we get rendered again.
+    if (needViewUpdate)
+        compositor()->scheduleViewUpdate();
 }
 
 static void setClip(GraphicsContext* p, const IntRect& paintDirtyRect, const IntRect& clipRect)
@@ -742,7 +759,7 @@ static void restoreClip(GraphicsContext* p, const IntRect& paintDirtyRect, const
 // Share this with RenderLayer::paintLayer, which would have to be educated about GraphicsLayerPaintingPhase?
 void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext* context,
                     const IntRect& paintDirtyRect,      // in the coords of rootLayer
-                    bool haveTransparency, PaintRestriction paintRestriction, GraphicsLayerPaintingPhase paintingPhase,
+                    PaintRestriction paintRestriction, GraphicsLayerPaintingPhase paintingPhase,
                     RenderObject* paintingRoot)
 {
     if (paintingGoesToWindow()) {
@@ -752,6 +769,14 @@ void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext*
     
     m_owningLayer->updateLayerListsIfNeeded();
     
+    // Paint the reflection first if we have one.
+    if (m_owningLayer->hasReflection()) {
+        // Mark that we are now inside replica painting.
+        m_owningLayer->setPaintingInsideReflection(true);
+        m_owningLayer->reflectionLayer()->paintLayer(rootLayer, context, paintDirtyRect, paintRestriction, paintingRoot, 0, RenderLayer::PaintLayerPaintingReflection);
+        m_owningLayer->setPaintingInsideReflection(false);
+    }
+
     // Calculate the clip rects we should use.
     IntRect layerBounds, damageRect, clipRectToApply, outlineRect;
     m_owningLayer->calculateRects(rootLayer, paintDirtyRect, layerBounds, damageRect, clipRectToApply, outlineRect);
@@ -819,7 +844,7 @@ void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext*
         Vector<RenderLayer*>* negZOrderList = m_owningLayer->negZOrderList();
         if (negZOrderList) {
             for (Vector<RenderLayer*>::iterator it = negZOrderList->begin(); it != negZOrderList->end(); ++it)
-                it[0]->paintLayer(rootLayer, context, paintDirtyRect, haveTransparency, paintRestriction, paintingRoot);
+                it[0]->paintLayer(rootLayer, context, paintDirtyRect, paintRestriction, paintingRoot);
         }
 
         bool forceBlackText = paintRestriction == PaintRestrictionSelectionOnlyBlackText;
@@ -858,14 +883,14 @@ void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext*
         Vector<RenderLayer*>* normalFlowList = m_owningLayer->normalFlowList();
         if (normalFlowList) {
             for (Vector<RenderLayer*>::iterator it = normalFlowList->begin(); it != normalFlowList->end(); ++it)
-                it[0]->paintLayer(rootLayer, context, paintDirtyRect, haveTransparency, paintRestriction, paintingRoot);
+                it[0]->paintLayer(rootLayer, context, paintDirtyRect, paintRestriction, paintingRoot);
         }
 
         // Now walk the sorted list of children with positive z-indices.
         Vector<RenderLayer*>* posZOrderList = m_owningLayer->posZOrderList();
         if (posZOrderList) {
             for (Vector<RenderLayer*>::iterator it = posZOrderList->begin(); it != posZOrderList->end(); ++it)
-                it[0]->paintLayer(rootLayer, context, paintDirtyRect, haveTransparency, paintRestriction, paintingRoot);
+                it[0]->paintLayer(rootLayer, context, paintDirtyRect, paintRestriction, paintingRoot);
         }
         
         if (renderer()->hasMask() && !selectionOnly && !damageRect.isEmpty()) {
@@ -902,7 +927,7 @@ void RenderLayerBacking::paintContents(const GraphicsLayer*, GraphicsContext& co
     IntRect dirtyRect = enclosingBBox;
     dirtyRect.intersect(clipRect);
 
-    paintIntoLayer(m_owningLayer, &context, dirtyRect, false, PaintRestrictionNone, drawingPhase, renderer());
+    paintIntoLayer(m_owningLayer, &context, dirtyRect, PaintRestrictionNone, drawingPhase, renderer());
 }
 
 bool RenderLayerBacking::startAnimation(double beginTime, const Animation* anim, const KeyframeList& keyframes)

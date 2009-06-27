@@ -34,7 +34,9 @@
 #include "BALBase.h"
 
 namespace WebCore {
+
     class CachedImage;
+    class FileList;
 
     // State available during IE's events for drag and drop and copy/paste
     // Created from the EventHandlerGtk to be used by the dom
@@ -53,6 +55,8 @@ namespace WebCore {
         bool setData(const String&, const String&);
 
         HashSet<String> types() const;
+        virtual PassRefPtr<FileList> files() const;
+
         IntPoint dragLocation() const;
         CachedImage* dragImage() const;
         void setDragImage(CachedImage*, const IntPoint&);

@@ -31,6 +31,7 @@
 
 #include "NotImplemented.h"
 #include "StringHash.h"
+#include "FileList.h"
 
 #include "Editor.h"
 
@@ -81,6 +82,12 @@ HashSet<String> ClipboardBal::types() const
     NotImplemented();
     return HashSet<String>();
 }
+
+PassRefPtr<FileList> ClipboardBal::files() const 
+{ 
+    notImplemented(); 
+    return 0; 
+} 
 
 IntPoint ClipboardBal::dragLocation() const
 {

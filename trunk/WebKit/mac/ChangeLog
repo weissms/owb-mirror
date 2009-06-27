@@ -1,3 +1,95 @@
+2009-06-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6989017> 
+        REGRESSION (SnowLeopard): RealPlayer content replays when opening a new tab or switching back to the RealPlayer tab
+        
+        If a plug-in fails in NPP_New, we would try to recreate it whenever the preferences for a web view would change. 
+        
+        Fix this by setting a flag when we fail to instantiate the plug-in, so we only try once.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView start]):
+
+2009-06-25  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser  <simon.fraser@apple.com>.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26651
+        
+        Preference is named "WebKitAcceleratedCompositingEnabled"
+        and is a boolean value. When false, prevents compositing layers from
+        being created, which prevents hardware animation from running.
+        Also forces video to do software rendering. Added a cache for
+        the flag in RenderLayerCompositing and made it all work
+        on-the-fly when the flag is changed while a page is loaded.
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences acceleratedCompositingEnabled]):
+        (-[WebPreferences setAcceleratedCompositingEnabled:]):
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-06-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fix the most recently seen kind of crash in <rdar://problem/5983224>
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView adjustPageHeightNew:top:bottom:limit:]): Null-check the
+        Frame.
+
+2009-06-24  Jeff Johnson  <opendarwin@lapcatsoftware.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26638 WebKitErrors.m: _initWithPluginErrorCode: does not set localizedDescription
+
+        Add localized descriptions for plugin errors.
+        The localized strings already existed but were unused; now NSLocalizedDescriptionKey is added to the NSError userInfo.
+
+        * Misc/WebKitErrors.m:
+        (-[NSError _initWithPluginErrorCode:contentURL:pluginPageURL:pluginName:MIMEType:]):
+
+2009-06-23  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6950660> REGRESSION: iSale 5.5.3 crashes after I click a template to load
+
+        Due to some subtle WebKit changes - presumably some delegate callback behavior - a latent bug in 
+        iSale was uncovered where they aren't properly retaining their FrameLoadDelegate, and we ended up
+        calling back to a dealloc'ed object.
+
+        * WebView/WebView.mm:
+        (-[WebView _needsAdobeFrameReloadingQuirk]): Use more intelligent C++-style initialization.
+        (-[WebView _needsKeyboardEventDisambiguationQuirks]): Ditto.
+        (-[WebView _needsFrameLoadDelegateRetainQuirk]): YES for iSale versions under 5.6
+        (-[WebView dealloc]): Release the delegate if the quirk is in effect.
+        (-[WebView setFrameLoadDelegate:]): Retain the new delegate if the quirk is in effect.
+
+2009-06-23  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - Fix <rdar://problem/6965672>
+        
+        Defer calls to WKPCInvalidateRect, so we don't try to invalidate while waiting for a reply, since
+        that is too early.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        (WebKit::NetscapePluginHostProxy::isProcessingRequests):
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+        (WebKit::NetscapePluginHostProxy::processRequests):
+        (WKPCInvalidateRect):
+
 2009-06-23  Timothy Hatcher  <timothy@apple.com>
 
         Add Mail on Tiger and Leopard to the list of applications that need the WebView init thread workaround.

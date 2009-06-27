@@ -28,10 +28,9 @@
 
 #include "config.h"
 #include "WebDragClient.h"
-#include "WebDropSource.h"
-//#include "WebKitGraphics.h"
-#include "WebView.h"
 
+#include "WebDropSource.h"
+#include "WebView.h"
 #include <DragData.h>
 #include <Font.h>
 #include <FontDescription.h>
@@ -101,6 +100,8 @@ DragSourceAction WebDragClient::dragSourceActionMaskForPoint(const IntPoint& win
 
 void WebDragClient::willPerformDragSourceAction(DragSourceAction, const IntPoint&, Clipboard*)
 {
+    // FIXME: Implement this!
+    // See WebKit/win/WebCoreSupport/WebDragClient.cpp for how to implement it.
 }
 
 void WebDragClient::startDrag(DragImageRef image, const IntPoint& imageOrigin, const IntPoint& dragPoint, Clipboard* clipboard, Frame* frame, bool isLink)

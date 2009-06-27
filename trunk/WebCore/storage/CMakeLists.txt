@@ -25,13 +25,12 @@ endif(ENABLE_DATABASE)
 if(ENABLE_DOM_STORAGE)
     list(APPEND WEBCORE_SRC
         storage/LocalStorage.cpp
-        storage/LocalStorageArea.cpp
         storage/LocalStorageTask.cpp
         storage/LocalStorageThread.cpp
         storage/SessionStorage.cpp
-        storage/SessionStorageArea.cpp
         storage/Storage.cpp
         storage/StorageArea.cpp
+        storage/StorageAreaSync.cpp
         storage/StorageEvent.cpp
         storage/StorageMap.cpp
         storage/StorageSyncManager.cpp

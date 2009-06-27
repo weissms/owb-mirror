@@ -33,6 +33,10 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSEventCustom.cpp
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTarget.cpp
+    bindings/js/JSDataGridColumnListCustom.cpp
+    bindings/js/JSHTMLDataGridElementCustom.cpp
+    bindings/js/JSDataGridDataSource.h
+    bindings/js/JSDataGridDataSource.cpp
     bindings/js/JSGeolocationCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
