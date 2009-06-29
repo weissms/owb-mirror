@@ -232,11 +232,11 @@ sub applyPatch($$;$)
     print PATCH $patch;
     close PATCH;
 
-    my $exitCode = $? >> 8;
-    if ($exitCode != 0 && $force == 0) {
-        print "patch -p0 \"$fullPath\" returned $exitCode.  Pass --force to ignore patch failures.\n";
-        exit($exitCode);
-    }
+    #my $exitCode = $? >> 8;
+    #if ($exitCode != 0 && $force == 0) {
+    #    print "patch -p0 \"$fullPath\" returned $exitCode.  Pass --force to ignore patch failures.\n";
+    #    exit($exitCode);
+    #}
 }
 
 sub checksum($)
