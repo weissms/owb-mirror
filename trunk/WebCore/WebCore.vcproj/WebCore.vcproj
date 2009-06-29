@@ -528,7 +528,7 @@
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSDatabase.h"
 				>
 			</File>
-                        <File
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSDataGridColumn.cpp"
 				>
 				<FileConfiguration
@@ -576,7 +576,7 @@
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSDataGridColumn.h"
 				>
 			</File>
-                        <File
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSDataGridColumnList.cpp"
 				>
 				<FileConfiguration
@@ -5948,6 +5948,10 @@
 			<File
 				RelativePath="..\rendering\RenderMediaControls.cpp"
 				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSInspectorController.cpp"
+				>
 				<FileConfiguration
 					Name="Debug_Cairo|Win32"
 					ExcludedFromBuild="true"
@@ -9358,6 +9362,10 @@
 			</File>
 			<File
 				RelativePath="..\svg\SVGParserUtilities.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSSVGElementWrapperFactory.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

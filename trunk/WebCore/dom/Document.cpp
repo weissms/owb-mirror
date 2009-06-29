@@ -2542,7 +2542,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             newFocusedNode = 0;
         }
-        oldFocusedNode->dispatchUIEvent(eventNames().DOMFocusOutEvent);
+        oldFocusedNode->dispatchUIEvent(eventNames().DOMFocusOutEvent, 0, 0);
         if (m_focusedNode) {
             // handler shifted focus
             focusChangeBlocked = true;
@@ -2572,7 +2572,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             goto SetFocusedNodeDone;
         }
-        m_focusedNode->dispatchUIEvent(eventNames().DOMFocusInEvent);
+        m_focusedNode->dispatchUIEvent(eventNames().DOMFocusInEvent, 0, 0);
         if (m_focusedNode != newFocusedNode) { 
             // handler shifted focus
             focusChangeBlocked = true;

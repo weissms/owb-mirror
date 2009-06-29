@@ -63,7 +63,6 @@ namespace WebCore {
     class WebKitPoint;
 
 #if ENABLE(DOM_STORAGE)
-    class SessionStorage;
     class Storage;
 #endif
 

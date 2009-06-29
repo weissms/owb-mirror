@@ -162,8 +162,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     style->setBorderBottomWidth(borderWidth);
     style->setBorderRightWidth(borderWidth);
     toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, style->backgroundComposite());
     toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
@@ -184,8 +183,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
         style->setBorderBottomWidth(borderWidth);
         style->setBorderRightWidth(borderWidth);
         toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, style->backgroundComposite());
         toRenderBox(o)->paintBorder(i.context,
             r.x(), r.y(), r.width(), r.height(),
             style.get(), true, true);
@@ -230,8 +228,7 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
     style->setBorderRightWidth(borderWidth);
 
     toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, style->backgroundComposite());
     toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
@@ -258,8 +255,7 @@ void RenderThemeBal::adjustButtonStyle(CSSStyleSelector* selector, RenderStyle* 
 bool RenderThemeBal::paintButton(RenderObject* o, const RenderObject::PaintInfo& i, const IntRect& r)
 {
     toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, o->style()->backgroundComposite());
     toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         o->style(), true, true);
@@ -289,8 +285,7 @@ bool RenderThemeBal::paintMenuList(RenderObject* o, const RenderObject::PaintInf
     style->setBorderBottomWidth(1);
     style->setBorderRightWidth(1);
     toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, style->backgroundComposite());
     toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);
@@ -325,8 +320,7 @@ bool RenderThemeBal::paintTextField(RenderObject* o, const RenderObject::PaintIn
     style->setBorderBottomWidth(borderWidth);
     style->setBorderRightWidth(borderWidth);
     toRenderBox(o)->paintFillLayerExtended(i,
-        o->style()->backgroundColor(), o->style()->backgroundLayers(),
-        r.y(), toRenderBox(o)->height(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height());
+        o->style()->backgroundColor(), o->style()->backgroundLayers(), r.x(), r.y(), toRenderBox(o)->width(), toRenderBox(o)->height(), 0, style->backgroundComposite());
     toRenderBox(o)->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
         style.get(), true, true);

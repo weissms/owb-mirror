@@ -92,5 +92,4 @@ WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/Pasteb
 WebKitTools/DumpRenderTree/DumpRenderTree.h
 WebKitTools/Scripts/prepare-ChangeLog
 WebKitTools/Scripts/resolve-ChangeLogs
-WebKitTools/Scripts/svn-apply
 WebKitTools/Scripts/svn-unapply

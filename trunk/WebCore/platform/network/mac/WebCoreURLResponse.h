@@ -26,9 +26,4 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// FIXME: This is a workaround for <rdar://problem/5321972> REGRESSION: Plain text document from HTTP server detected
-// as application/octet-stream
-
-@interface NSURLResponse (WebCoreURLResponse)
-- (NSString *)_webcore_MIMEType;
-@end
+void swizzleMIMETypeMethodIfNecessary();

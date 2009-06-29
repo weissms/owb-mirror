@@ -45,7 +45,7 @@
 #include <wtf/Vector.h>
 
 #if ENABLE(DOM_STORAGE)
-#include "SessionStorage.h"
+#include "StorageNamespace.h"
 #endif
 
 #if ENABLE(INSPECTOR)
@@ -150,8 +150,8 @@ Page* Chrome::createWindow(Frame* frame, const FrameLoadRequest& request, const 
 
 #if ENABLE(DOM_STORAGE)
     if (newPage) {
-        if (SessionStorage* oldSessionStorage = m_page->sessionStorage(false))
-            newPage->setSessionStorage(oldSessionStorage->copy(newPage));
+        if (StorageNamespace* oldSessionStorage = m_page->sessionStorage(false))
+            newPage->setSessionStorage(oldSessionStorage->copy());
     }
 #endif
 

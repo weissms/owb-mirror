@@ -46,10 +46,6 @@
 #import "WebCoreURLResponse.h"
 #import <wtf/UnusedParam.h>
 
-#ifndef BUILDING_ON_TIGER
-#import <objc/objc-class.h>
-#endif
-
 #ifdef BUILDING_ON_TIGER
 typedef int NSInteger;
 #endif
@@ -92,9 +88,6 @@ using namespace WebCore;
 @end
 
 static NSString *WebCoreSynchronousLoaderRunLoopMode = @"WebCoreSynchronousLoaderRunLoopMode";
-
-static IMP oldNSURLResponseMIMETypeIMP = 0;
-static NSString *webNSURLResponseMIMEType(id, SEL);
 
 #endif
 
@@ -181,6 +174,13 @@ bool ResourceHandle::start(Frame* frame)
 
     if (!ResourceHandle::didSendBodyDataDelegateExists())
         associateStreamWithResourceHandle([d->m_request.nsURLRequest() HTTPBodyStream], this);
+
+#ifdef BUILDING_ON_TIGER
+    // A conditional request sent by WebCore (e.g. to update appcache) can be for a resource that is not cacheable by NSURLConnection,
+    // which can get confused and fail to load it in this case.
+    if (d->m_request.isConditional())
+        d->m_request.setCachePolicy(ReloadIgnoringCacheData);
+#endif
 
     d->m_needsSiteSpecificQuirks = frame->settings() && frame->settings()->needsSiteSpecificQuirks();
 
@@ -632,13 +632,7 @@ void ResourceHandle::receivedCancellation(const AuthenticationChallenge& challen
         return;
     CallbackGuard guard;
 
-#ifndef BUILDING_ON_TIGER
-    if (!oldNSURLResponseMIMETypeIMP) {
-        Method nsURLResponseMIMETypeMethod = class_getInstanceMethod(objc_getClass("NSURLResponse"), @selector(MIMEType));
-        ASSERT(nsURLResponseMIMETypeMethod);
-        oldNSURLResponseMIMETypeIMP = method_setImplementation(nsURLResponseMIMETypeMethod, (IMP)webNSURLResponseMIMEType);
-    }
-#endif
+    swizzleMIMETypeMethodIfNecessary();
 
     if ([m_handle->request().nsURLRequest() _propertyForKey:@"ForceHTMLMIMEType"])
         [r _setMIMEType:@"text/html"];
@@ -653,7 +647,7 @@ void ResourceHandle::receivedCancellation(const AuthenticationChallenge& challen
         DEFINE_STATIC_LOCAL(const String, wmlExt, (".wml"));
         if (path.endsWith(wmlExt, false)) {
             static NSString* defaultMIMETypeString = [(NSString*) defaultMIMEType() retain];
-            if ([[r _webcore_MIMEType] isEqualToString:defaultMIMETypeString])
+            if ([[r MIMEType] isEqualToString:defaultMIMETypeString])
                 [r _setMIMEType:@"text/vnd.wap.wml"];
         }
     }
@@ -1007,15 +1001,5 @@ void ResourceHandle::receivedCancellation(const AuthenticationChallenge& challen
 }
 
 @end
-
-static NSString *webNSURLResponseMIMEType(id self, SEL _cmd)
-{
-    ASSERT(oldNSURLResponseMIMETypeIMP);
-    if (NSString *result = oldNSURLResponseMIMETypeIMP(self, _cmd))
-        return result;
-
-    static NSString *defaultMIMETypeString = [(NSString *)defaultMIMEType() retain];
-    return defaultMIMETypeString;
-}
 
 #endif

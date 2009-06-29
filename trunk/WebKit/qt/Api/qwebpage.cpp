@@ -796,7 +796,7 @@ void QWebPagePrivate::keyPressEvent(QKeyEvent *ev)
             defaultFont = view->font();
         QFontMetrics fm(defaultFont);
         int fontHeight = fm.height();
-        if (!handleScrolling(ev)) {
+        if (!handleScrolling(ev, frame)) {
             switch (ev->key()) {
             case Qt::Key_Back:
                 q->triggerAction(QWebPage::Back);
@@ -999,7 +999,7 @@ void QWebPagePrivate::shortcutOverrideEvent(QKeyEvent* event)
     }
 }
 
-bool QWebPagePrivate::handleScrolling(QKeyEvent *ev)
+bool QWebPagePrivate::handleScrolling(QKeyEvent *ev, Frame *frame)
 {
     ScrollDirection direction;
     ScrollGranularity granularity;
@@ -1046,10 +1046,7 @@ bool QWebPagePrivate::handleScrolling(QKeyEvent *ev)
         }
     }
 
-    if (!mainFrame->d->frame->eventHandler()->scrollOverflow(direction, granularity))
-        mainFrame->d->frame->view()->scroll(direction, granularity);
-
-    return true;
+    return frame->eventHandler()->scrollRecursively(direction, granularity);
 }
 
 /*!
@@ -2198,7 +2195,7 @@ bool QWebPage::swallowContextMenuEvent(QContextMenuEvent *event)
 
     if (QWebFrame* webFrame = d->frameAt(event->pos())) {
         Frame* frame = QWebFramePrivate::core(webFrame);
-        if (Scrollbar* scrollbar = frame->view()->scrollbarUnderMouse(PlatformMouseEvent(event, 1))) {
+        if (Scrollbar* scrollbar = frame->view()->scrollbarUnderPoint(PlatformMouseEvent(event, 1).pos())) {
             return scrollbar->contextMenu(PlatformMouseEvent(event, 1));
         }
     }

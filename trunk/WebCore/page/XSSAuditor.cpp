@@ -21,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
@@ -34,22 +34,19 @@
 #include "DOMWindow.h"
 #include "Frame.h"
 #include "KURL.h"
+#include "ResourceResponseBase.h"
 #include "ScriptSourceCode.h"
 #include "Settings.h"
 #include "TextResourceDecoder.h"
+
+using namespace WTF;
 
 #if ENABLE(INSPECTOR)
 #include "Console.h"
 #endif
 
 namespace WebCore {
-  
-// This method also appears in file ResourceResponseBase.cpp.
-static bool isControlCharacter(UChar c)
-{
-    return c < ' ' || c == 127;
-}
-  
+
 XSSAuditor::XSSAuditor(Frame* frame)
     : m_frame(frame)
 {
@@ -58,13 +55,13 @@ XSSAuditor::XSSAuditor(Frame* frame)
 XSSAuditor::~XSSAuditor()
 {
 }
-    
+
 bool XSSAuditor::isEnabled() const
 {
     Settings* settings = m_frame->settings();
     return (settings && settings->xssAuditorEnabled());
 }
-  
+
 bool XSSAuditor::canEvaluate(const String& sourceCode) const
 {
     if (!isEnabled())
@@ -84,7 +81,7 @@ bool XSSAuditor::canCreateInlineEventListener(const String&, const String& code)
 {
     if (!isEnabled())
         return true;
-    
+
     return canEvaluate(code);
 }
 
@@ -92,7 +89,7 @@ bool XSSAuditor::canLoadExternalScriptFromSrc(const String& url) const
 {
     if (!isEnabled())
         return true;
-  
+
 #if ENABLE(INSPECTOR)
     if (findInRequest(url)) {
         DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request.\n"));
@@ -111,28 +108,44 @@ bool XSSAuditor::canLoadObject(const String& url) const
 #if ENABLE(INSPECTOR)
     if (findInRequest(url)) {
         DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request"));
-        m_frame->domWindow()->console()->addMessage(OtherMessageSource, ErrorMessageLevel, consoleMessage, 1, String());    
+        m_frame->domWindow()->console()->addMessage(OtherMessageSource, ErrorMessageLevel, consoleMessage, 1, String());
         return false;
     }
 #endif
     return true;
 }
 
-String XSSAuditor::decodeURL(const String& str, const TextEncoding& encoding, bool allowNullCharacters)
+String XSSAuditor::decodeURL(const String& str, const TextEncoding& encoding, bool allowControlCharacters)
 {
     String result;
     String url = str;
-    
+
     url.replace('+', ' ');
-    result = decodeURLEscapeSequences(url, encoding);
-    return allowNullCharacters ? result : result.removeCharacters(&isControlCharacter);
+    result = decodeURLEscapeSequences(url);
+    if (!allowControlCharacters)
+        result.removeCharacters(&isControlCharacter);
+    result = encoding.decode(result.utf8().data(), result.length());
+    if (!allowControlCharacters)
+        result.removeCharacters(&isControlCharacter);
+    return result;
 }
 
 bool XSSAuditor::findInRequest(const String& string) const
 {
-    ASSERT(m_frame->document());
-    String pageURL = m_frame->document()->url().string();
-    
+    bool result = false;
+    Frame* parentFrame = m_frame->tree()->parent();
+    if (parentFrame && m_frame->document()->url() == blankURL())
+        result = findInRequest(parentFrame, string);
+    if (!result)
+        result = findInRequest(m_frame, string);
+    return result;
+}
+
+bool XSSAuditor::findInRequest(Frame* frame, const String& string) const
+{
+    ASSERT(frame->document());
+    String pageURL = frame->document()->url().string();
+
     if (protocolIs(pageURL, "data"))
         return false;
 
@@ -141,12 +154,12 @@ bool XSSAuditor::findInRequest(const String& string) const
 
     if (string.length() < pageURL.length()) {
         // The string can actually fit inside the pageURL.
-        String decodedPageURL = decodeURL(pageURL, m_frame->document()->decoder()->encoding());
+        String decodedPageURL = decodeURL(pageURL, frame->document()->decoder()->encoding());
         if (decodedPageURL.find(string, 0, false) != -1)
            return true;  // We've found the smoking gun.
     }
-    
-    FormData* formDataObj = m_frame->loader()->documentLoader()->originalRequest().httpBody();
+
+    FormData* formDataObj = frame->loader()->documentLoader()->originalRequest().httpBody();
     if (formDataObj && !formDataObj->isEmpty()) {
         String formData = formDataObj->flattenToString();
         if (string.length() < formData.length()) {
@@ -154,7 +167,7 @@ bool XSSAuditor::findInRequest(const String& string) const
             // the url-encoded POST data because the length of the url-decoded
             // code is less than or equal to the length of the url-encoded
             // string.
-            String decodedFormData = decodeURL(formData, m_frame->document()->decoder()->encoding());
+            String decodedFormData = decodeURL(formData, frame->document()->decoder()->encoding());
             if (decodedFormData.find(string, 0, false) != -1)
                 return true;  // We found the string in the POST data.
         }

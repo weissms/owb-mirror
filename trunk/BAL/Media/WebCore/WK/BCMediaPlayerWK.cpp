@@ -64,6 +64,8 @@ public:
     virtual void play() { }
     virtual void pause() { }    
 
+    virtual bool supportsFullscreen() const { return false; }
+
     virtual IntSize naturalSize() const { return IntSize(0, 0); }
 
     virtual bool hasVideo() const { return false; }
@@ -299,6 +301,11 @@ bool MediaPlayer::paused() const
 bool MediaPlayer::seeking() const
 {
     return m_private->seeking();
+}
+
+bool MediaPlayer::supportsFullscreen() const
+{
+    return m_private->supportsFullscreen();
 }
 
 IntSize MediaPlayer::naturalSize()

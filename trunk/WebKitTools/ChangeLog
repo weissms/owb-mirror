@@ -1,3 +1,114 @@
+2009-06-29  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix - include stdarg.h for va_start/va_end.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+
+2009-06-28  John Abd-El-Malek  <jam@chromium.org>
+
+        https://bugs.webkit.org/show_bug.cgi?id=15457
+
+        Modify NPAPI test plugin to verify that "src" paramater is added when
+        it's missing but "data" is present.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginLog):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_Destroy):
+        (NPP_SetWindow):
+        (handleEventCarbon):
+        (handleEventCocoa):
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_New):
+
+2009-06-27  Emilio Pozuelo Monfort  <pochu27@gmail.com>
+
+        Reviewed by Jan Alonzo.
+
+        [GTK] Don't use deprecated GTK+ symbols.
+        https://bugs.webkit.org/show_bug.cgi?id=26583
+
+        * GtkLauncher/main.c:
+        (create_toolbar):
+
+2009-06-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Make SVN work (again?).
+
+        * Scripts/modules/scm.py:
+
+2009-06-26  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add ability to query isEnabled
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getIsEnabledCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isEnabled):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::isEnabled):
+
+2009-06-26  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        <rdar://problem/6961578> REGRESSION (r43511): Opening .fdf files from Acrobat Professional fails
+
+        Add a dumpResourceResponseMIMETypes() mode so the ResourceLoadDelegate will dump the mime type from
+        the NSURLResponse.  Needed for the test for this bug fix.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (dumpResourceResponseMIMETypesCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::dumpResourceResponseMIMETypes):
+        (LayoutTestController::setDumpResourceResponseMIMETypes):
+
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm:
+        (-[ResourceLoadDelegate webView:resource:didReceiveResponse:fromDataSource:]):
+
+2009-06-26  David Kilzer  <ddkilzer@apple.com>
+
+        Update build-dumprendertree to use buildXCodeProject()
+
+        Reviewed by Adam Roben.
+
+        * Scripts/build-dumprendertree: Updated to use
+        buildXCodeProject() when building for isAppleMacWebKit().  This
+        provides additional command-line switch parsing for free.  Also
+        added --clean and --help switches.  Updated copyright.
+
+2009-06-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Remove non-sense --update option to land-patches
+        and make land-patches update before every patch application.
+        This makes it slightly less likely that multi-patch landings will fail.
+
+        Also updated git diff command to include staged modifications.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Jan Alonzo.
+
+        Fix obsolete_attachment to work when passed a comment.
+        https://bugs.webkit.org/show_bug.cgi?id=26745
+
+        * Scripts/modules/bugzilla.py:
+
 2009-06-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Reviewed by Mark Rowe.
@@ -9,6 +120,20 @@
         the scm module.
 
         * Scripts/modules/scm.py:
+
+2009-06-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Jan Alonzo.
+
+        bugzilla-tool post-diff needs to obsolete old patches before posting
+        https://bugs.webkit.org/show_bug.cgi?id=26740
+
+        I've also added a --no-obsolete to disable this behavior.
+        
+        I also finally updated the bug page parsing to use XML. So much less code!
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
 
 2009-06-25  Eric Seidel  <eric@webkit.org>
 

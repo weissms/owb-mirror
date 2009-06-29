@@ -1,3 +1,68 @@
+2009-06-29  John Sullivan  <sullivan@apple.com>
+
+        Added support for disabling Stop Speaking when there is no speaking to stop.
+        Also fixed Stop Speaking so that it works (formerly it would throw an exception, and
+        selecting it from the menu would perform a web search instead (!)).
+
+        Reviewed by Tim Hatcher.
+
+        * WebCoreSupport/WebContextMenuClient.h:
+        declare isSpeaking()
+        
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (WebContextMenuClient::isSpeaking):
+        implement by calling through to NSApplication
+        (WebContextMenuClient::stopSpeaking):
+        fixed implementation by correcting the signature of the NSApplication method
+
+2009-06-26  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser  <simon.fraser@apple.com>.
+
+        Additional fix for https://bugs.webkit.org/show_bug.cgi?id=26651
+
+        The flag should always default to true to avoid it getting set
+        to false in a build with accelerated compositing turned off
+        and then disabling accelerated compositing when subsequently
+        running a build with it turned on.
+
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+
+2009-06-26  Brady Eidson  <beidson@apple.com>
+
+        Fix SnowLeopard build.
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::didReceiveResponse):
+
+2009-06-26  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        <rdar://problem/6961578> REGRESSION (r43511): Opening .fdf files from Acrobat Professional fails
+
+        Replace all usage of the now obsolete [NSURLResponse _webcore_MIMEType].
+
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::didReceiveResponse):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView pluginView:receivedData:]):
+        * Plugins/WebPluginController.mm:
+        (-[WebPluginController pluginView:receivedResponse:]):
+        * WebView/WebDataSource.mm:
+        (-[WebDataSource _responseMIMEType]):
+        * WebView/WebResource.mm:
+        (-[WebResource _initWithData:URL:response:]):
+
+2009-06-26  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6651201> Update lookalike character list.
+
+        * Misc/WebNSURLExtras.mm: (isLookalikeCharacter): Added more characters to the list.
+
 2009-06-26  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Oliver Hunt.

@@ -68,10 +68,9 @@
 #endif
 
 #if ENABLE(DOM_STORAGE)
-#include "LocalStorage.h"
-#include "SessionStorage.h"
 #include "Storage.h"
 #include "StorageArea.h"
+#include "StorageNamespace.h"
 #endif
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
@@ -587,7 +586,7 @@ Storage* DOMWindow::localStorage() const
     if (!settings || !settings->localStorageEnabled())
         return 0;
 
-    LocalStorage* localStorage = page->group().localStorage();
+    StorageNamespace* localStorage = page->group().localStorage();
     RefPtr<StorageArea> storageArea = localStorage ? localStorage->storageArea(document->securityOrigin()) : 0; 
     if (storageArea) {
 #if ENABLE(INSPECTOR)
