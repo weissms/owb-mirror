@@ -104,6 +104,9 @@ my $optionParseSuccess = GetOptions(
     "force!" => \$force
 );
 
+print STDOUT $force;
+print STDOUT "\n";
+
 if (!$optionParseSuccess || $showHelp) {
     print STDERR basename($0) . " [-h|--help] [--force] [-m|--merge] [-r|--reviewer name] patch1 [patch2 ...]\n";
     exit 1;
@@ -229,6 +232,7 @@ sub applyPatch($$;$)
     $options = [] if (! $options);
     my $command = "patch " . join(" ", "-p0", @{$options});
     open PATCH, "| $command" or die "Failed to patch $fullPath\n";
+    print STDOUT $command;
     print PATCH $patch;
     close PATCH;
 
@@ -377,10 +381,10 @@ sub patch($)
         # Standard patch, patch tool can handle this.
         if (basename($fullPath) =~ "ChangeLog") {
             my $changeLogDotOrigExisted = -f "${fullPath}.orig";
-            applyPatch(setChangeLogDateAndReviewer(fixChangeLogPatch($patch), $reviewer), $fullPath, ["--fuzz=3"]);
+            applyPatch(setChangeLogDateAndReviewer(fixChangeLogPatch($patch), $reviewer), $fullPath, ["--fuzz=3 --force"]);
             unlink("${fullPath}.orig") if (! $changeLogDotOrigExisted);
         } else {
-            applyPatch($patch, $fullPath);
+            applyPatch($patch, $fullPath, ["--force"]);
         }
     } else {
         # Either a deletion, an addition or a binary change.
@@ -397,7 +401,7 @@ sub patch($)
         } else {
             # Addition
             rename($fullPath, "$fullPath.orig") if -e $fullPath;
-            applyPatch($patch, $fullPath);
+            applyPatch($patch, $fullPath, ["--force"]);
             unlink("$fullPath.orig") if -e "$fullPath.orig" && checksum($fullPath) eq checksum("$fullPath.orig");
             scmAdd($fullPath);
             # What is this for?

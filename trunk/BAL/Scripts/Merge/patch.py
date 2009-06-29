@@ -112,7 +112,7 @@ def applyWebkitPatch(path, currentMergeVersion) :
     dir = ["WebCore", "JavaScriptCore", "WebKit", "WebKitTools"]
     for d in dir :
         logging.debug('apply ' + path + "/../merge/webkit-" + str(currentMergeVersion) + "-" + d + ".patch") 
-        os.system(path + "/WebKitTools/Scripts/svn-apply " + path + "/../merge/webkit-" + str(currentMergeVersion) + "-" + d + ".patch")
+        os.system(path + "/WebKitTools/Scripts/svn-apply --force " + path + "/../merge/webkit-" + str(currentMergeVersion) + "-" + d + ".patch")
     if change :
         os.chdir(current)
     logging.debug('apply webkit patch done')
@@ -130,13 +130,13 @@ def applyOWBPatch(path) :
     for file in list : 
         if file != 'bal' :
 	    logging.debug('apply webkit patch : ' + path + "/../merge/patches/" + file)
-            os.system(path + "/WebKitTools/Scripts/svn-apply " + path + "/../merge/patches/" + file)
+            os.system(path + "/WebKitTools/Scripts/svn-apply --force " + path + "/../merge/patches/" + file)
 
     #BAL patch
     list = os.listdir(path + "/../merge/patches/bal")
     for file in list : 
 	logging.debug('apply webkit patch : ' + path + "/../merge/patches/bal/" + file)
-        os.system(path + "/WebKitTools/Scripts/svn-apply " + path + "/../merge/patches/bal/" + file)
+        os.system(path + "/WebKitTools/Scripts/svn-apply --force " + path + "/../merge/patches/bal/" + file)
     if change :
         os.chdir(current)
     logging.debug('apply owb patch done')
