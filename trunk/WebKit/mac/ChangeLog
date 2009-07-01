@@ -1,3 +1,64 @@
+2009-07-01  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/7014389> REGRESSION(4-TOT): Hyperlinks have no tooltips in Mail unless you first click in the message body
+
+        Updated these new methods (added as part of the viewless WebKit effort) that call through to WebHTMLView to use _selectedOrMainFrame, 
+        instead of just selectedFrame.  When the selection changes, I don't think there is a situation where there's no selected frame, but
+        it seems better to keep these two uses the same, since if there is a case, this will be more like the old behavior, before there was
+        a version of _selectionChanged in WebView. 
+
+        * WebView/WebView.mm:
+        (-[WebView _setToolTip:]):
+        (-[WebView _selectionChanged]):
+
+2009-06-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        <rdar://problem/7006959> 'Save as…’ does not work in Mail
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView initWithFrame:]): Call _needMailThreadWorkaroundIfCalledOffMainThread rather than
+        needMailThreadWorkaround, as the latter is intended to be used at the point which a workaround would
+        be applied and thus contains a main thread check.  Since -initWithFrame: is called on the main thread,
+        this was causing us to not switch from exception-throwing to logging for the thread violation behavior.
+
+2009-06-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6946611> REGRESSION (r30673): Shade10:" D_Snap
+          to Grid" window is clipping
+
+        * Misc/WebKitVersionChecks.h: Added
+            WEBKIT_FIRST_VERSION_WITHOUT_SHADE10_QUIRK
+        * WebView/WebView.mm:
+        (-[WebView _needsLinkElementTextCSSQuirk]): Added. Returns YES if the
+            client app is a version of Shade 10 earlier than 10.6 and it was
+            linked against a version of WebKit earlier than 531.2.
+        (-[WebView _preferencesChangedNotification:]): Added a call to
+            Settings::setTreatsAnyTextCSSLinkAsStylesheet().
+
+2009-06-29  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7014813> Ask media engine if a movie is streamed or downloaded.
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface):
+            Add QTMovieGetType.
+
+2009-06-29  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Put datagrid behind an #ifdef.
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2009-06-29  John Sullivan  <sullivan@apple.com>
 
         Added support for disabling Stop Speaking when there is no speaking to stop.

@@ -258,15 +258,12 @@ void MediaPlayerPrivate::createQTMovie(NSURL *url, NSDictionary *movieAttributes
         m_qtMovie = 0;
     }
     
-    // Disable streaming support for now, <rdar://problem/5693967>
+    // Disable rtsp streams for now, <rdar://problem/5693967>
     if (protocolIs([url scheme], "rtsp"))
         return;
     
     NSError *error = nil;
     m_qtMovie.adoptNS([[QTMovie alloc] initWithAttributes:movieAttributes error:&error]);
-    
-    // FIXME: Find a proper way to detect streaming content.
-    m_isStreaming = protocolIs([url scheme], "rtsp");
     
     if (!m_qtMovie)
         return;
@@ -274,7 +271,7 @@ void MediaPlayerPrivate::createQTMovie(NSURL *url, NSDictionary *movieAttributes
     [m_qtMovie.get() setVolume:m_player->volume()];
 
     if (recreating && hasVideo())
-        createQTVideoRenderer();
+        createQTVideoRenderer(QTVideoRendererModeListensForNewImages);
     
     [[NSNotificationCenter defaultCenter] addObserver:m_objcObserver.get()
                                              selector:@selector(loadStateChanged:) 
@@ -390,7 +387,7 @@ void MediaPlayerPrivate::detachQTMovieView()
     }
 }
 
-void MediaPlayerPrivate::createQTVideoRenderer()
+void MediaPlayerPrivate::createQTVideoRenderer(QTVideoRendererMode rendererMode)
 {
     destroyQTVideoRenderer();
 
@@ -401,11 +398,13 @@ void MediaPlayerPrivate::createQTVideoRenderer()
     // associate our movie with our instance of QTVideoRendererWebKitOnly
     [(id<WebKitVideoRenderingDetails>)m_qtVideoRenderer.get() setMovie:m_qtMovie.get()];    
 
-    // listen to QTVideoRendererWebKitOnly's QTVideoRendererWebKitOnlyNewImageDidBecomeAvailableNotification
-    [[NSNotificationCenter defaultCenter] addObserver:m_objcObserver.get()
-                                             selector:@selector(newImageAvailable:)
-                                                 name:QTVideoRendererWebKitOnlyNewImageAvailableNotification
-                                               object:m_qtVideoRenderer.get()];
+    if (rendererMode == QTVideoRendererModeListensForNewImages) {
+        // listen to QTVideoRendererWebKitOnly's QTVideoRendererWebKitOnlyNewImageDidBecomeAvailableNotification
+        [[NSNotificationCenter defaultCenter] addObserver:m_objcObserver.get()
+                                                 selector:@selector(newImageAvailable:)
+                                                     name:QTVideoRendererWebKitOnlyNewImageAvailableNotification
+                                                   object:m_qtVideoRenderer.get()];
+    }
 }
 
 void MediaPlayerPrivate::destroyQTVideoRenderer()
@@ -468,11 +467,11 @@ MediaPlayerPrivate::MediaRenderingMode MediaPlayerPrivate::currentRenderingMode(
     if (m_qtMovieView)
         return MediaRenderingMovieView;
     
-    if (m_qtVideoRenderer)
-        return MediaRenderingSoftwareRenderer;
-    
     if (m_qtVideoLayer)
         return MediaRenderingMovieLayer;
+
+    if (m_qtVideoRenderer)
+        return MediaRenderingSoftwareRenderer;
     
     return MediaRenderingNone;
 }
@@ -509,7 +508,7 @@ void MediaPlayerPrivate::setUpVideoRendering()
         break;
     case MediaRenderingNone:
     case MediaRenderingSoftwareRenderer:
-        createQTVideoRenderer();
+        createQTVideoRenderer(QTVideoRendererModeListensForNewImages);
         break;
     case MediaRenderingMovieLayer:
         createQTMovieLayer();
@@ -521,9 +520,9 @@ void MediaPlayerPrivate::tearDownVideoRendering()
 {
     if (m_qtMovieView)
         detachQTMovieView();
-    else if (m_qtVideoRenderer)
+    if (m_qtVideoRenderer)
         destroyQTVideoRenderer();
-    else
+    if (m_qtVideoLayer)
         destroyQTMovieLayer();
 }
 
@@ -608,6 +607,10 @@ float MediaPlayerPrivate::currentTime() const
 
 void MediaPlayerPrivate::seek(float time)
 {
+    // Nothing to do if we are already in the middle of a seek to the same time.
+    if (time == m_seekTo)
+        return;
+
     cancelSeek();
     
     if (!metaDataAvailable())
@@ -617,7 +620,7 @@ void MediaPlayerPrivate::seek(float time)
         time = duration();
 
     m_seekTo = time;
-    if (maxTimeLoaded() >= m_seekTo)
+    if (maxTimeSeekable() >= m_seekTo)
         doSeek();
     else 
         m_seekTimer.start(0, 0.5f);
@@ -629,12 +632,16 @@ void MediaPlayerPrivate::doSeek()
     // setCurrentTime generates several event callbacks, update afterwards
     [m_objcObserver.get() setDelayCallbacks:YES];
     float oldRate = [m_qtMovie.get() rate];
-    [m_qtMovie.get() setRate:0];
+
+    if (oldRate)
+        [m_qtMovie.get() setRate:0];
     [m_qtMovie.get() setCurrentTime:qttime];
-    float timeAfterSeek = currentTime();
+
     // restore playback only if not at end, othewise QTMovie will loop
+    float timeAfterSeek = currentTime();
     if (oldRate && timeAfterSeek < duration())
         [m_qtMovie.get() setRate:oldRate];
+
     cancelSeek();
     [m_objcObserver.get() setDelayCallbacks:NO];
 }
@@ -653,8 +660,8 @@ void MediaPlayerPrivate::seekTimerFired(Timer<MediaPlayerPrivate>*)
         m_player->timeChanged(); 
         return;
     } 
-    
-    if (maxTimeLoaded() >= m_seekTo)
+
+    if (maxTimeSeekable() >= m_seekTo)
         doSeek();
     else {
         MediaPlayer::NetworkState state = networkState();
@@ -749,8 +756,7 @@ int MediaPlayerPrivate::dataRate() const
 
 float MediaPlayerPrivate::maxTimeBuffered() const
 {
-    // rtsp streams are not buffered
-    return m_isStreaming ? 0 : maxTimeLoaded();
+    return maxTimeLoaded();
 }
 
 float MediaPlayerPrivate::maxTimeSeekable() const
@@ -839,19 +845,20 @@ void MediaPlayerPrivate::updateStates()
     if (loadState >= QTMovieLoadStateLoaded && m_readyState < MediaPlayer::HaveMetadata) {
         disableUnsupportedTracks();
         if (m_player->inMediaDocument()) {
-            if (!m_enabledTrackCount || m_enabledTrackCount != m_totalTrackCount) {
-                // This is a type of media that we do not handle directly with a <video> 
-                // element, likely streamed media or QuickTime VR. Tell the MediaPlayerClient
+            if (!m_enabledTrackCount || m_hasUnsupportedTracks) {
+                // This has a type of media that we do not handle directly with a <video> 
+                // element, eg. a rtsp track or QuickTime VR. Tell the MediaPlayerClient
                 // that we noticed.
                 sawUnsupportedTracks();
                 return;
             }
-        } else if (!m_enabledTrackCount) {
+        } else if (!m_enabledTrackCount)
             loadState = QTMovieLoadStateError;
-        }
-        
+
         if (loadState != QTMovieLoadStateError) {
             cacheMovieScale();
+            MediaPlayer::MovieLoadType movieType = movieLoadType();
+            m_isStreaming = movieType == MediaPlayer::StoredStream || movieType == MediaPlayer::LiveStream;
         }
     }
     
@@ -892,6 +899,8 @@ void MediaPlayerPrivate::updateStates()
         m_readyState = MediaPlayer::HaveNothing;
         m_networkState = MediaPlayer::Loading;
     } else {
+        // Loading or decoding failed.
+
         if (m_player->inMediaDocument()) {
             // Something went wrong in the loading of media within a standalone file. 
             // This can occur with chained refmovies pointing to streamed media.
@@ -914,11 +923,15 @@ void MediaPlayerPrivate::updateStates()
         }
     }
 
-    if (seeking())
-        m_readyState = MediaPlayer::HaveNothing;
-
     if (loadState >= QTMovieLoadStateLoaded && !hasSetUpVideoRendering() && m_player->visible())
         setUpVideoRendering();
+
+    if (seeking())
+        m_readyState = m_readyState >= MediaPlayer::HaveMetadata ? MediaPlayer::HaveMetadata : MediaPlayer::HaveNothing;
+
+    // Streaming movies don't use the network when paused.
+    if (m_isStreaming && m_readyState >= MediaPlayer::HaveMetadata && m_networkState >= MediaPlayer::Loading && [m_qtMovie.get() rate] == 0)
+        m_networkState = MediaPlayer::Idle;
 
     if (m_networkState != oldNetworkState)
         m_player->networkStateChanged();
@@ -961,6 +974,12 @@ void MediaPlayerPrivate::timeChanged()
 {
     if (m_hasUnsupportedTracks)
         return;
+
+    // It may not be possible to seek to a specific time in a streamed movie. When seeking in a 
+    // stream QuickTime sets the movie time to closest time possible and posts a timechanged 
+    // notification. Update m_seekTo so we can detect when the seek completes.
+    if (m_seekTo != -1)
+        m_seekTo = currentTime();
 
     m_timeToRestore = -1.0f;
     updateStates();
@@ -1018,6 +1037,20 @@ void MediaPlayerPrivate::repaint()
     }
 #endif
     m_player->repaint();
+}
+
+void MediaPlayerPrivate::paintCurrentFrameInContext(GraphicsContext* context, const IntRect& r)
+{
+    id qtVideoRenderer = m_qtVideoRenderer.get();
+    if (!qtVideoRenderer && currentRenderingMode() == MediaRenderingMovieLayer) {
+        // We're being told to render into a context, but we already have the
+        // MovieLayer going. This probably means we've been called from <canvas>.
+        // Set up a QTVideoRenderer to use, but one that doesn't register for
+        // update callbacks. That way, it won't bother us asking to repaint.
+        createQTVideoRenderer(QTVideoRendererModeDefault);
+        qtVideoRenderer = m_qtVideoRenderer.get();
+    }
+    paint(context, r);
 }
 
 void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& r)
@@ -1234,8 +1267,10 @@ void MediaPlayerPrivate::disableUnsupportedTracks()
         
         // Check to see if the track is disabled already, we should move along.
         // We don't need to re-disable it.
-        if (![track isEnabled])
+        if (![track isEnabled]) {
+            --m_enabledTrackCount;
             continue;
+        }
         
         // Get the track's media type.
         NSString *mediaType = [track attributeForKey:QTTrackMediaTypeAttribute];
@@ -1247,6 +1282,7 @@ void MediaPlayerPrivate::disableUnsupportedTracks()
             // If this track type is not allowed, then we need to disable it.
             [track setEnabled:NO];
             --m_enabledTrackCount;
+            m_hasUnsupportedTracks = true;
         }
 
         // Disable chapter tracks. These are most likely to lead to trouble, as
@@ -1279,6 +1315,7 @@ void MediaPlayerPrivate::disableUnsupportedTracks()
         // Disable the evil, evil track.
         [chapterTrack setEnabled:NO];
         --m_enabledTrackCount;
+        m_hasUnsupportedTracks = true;
     }
 }
 
@@ -1314,6 +1351,21 @@ bool MediaPlayerPrivate::hasSingleSecurityOrigin() const
     // so we know all media is single origin.
     return true;
 }
+
+MediaPlayer::MovieLoadType MediaPlayerPrivate::movieLoadType() const
+{
+    if (!m_qtMovie)
+        return MediaPlayer::Unknown;
+
+    MediaPlayer::MovieLoadType movieType = (MediaPlayer::MovieLoadType)wkQTMovieGetType(m_qtMovie.get());
+
+    // Can't include WebKitSystemInterface from WebCore so we can't get the enum returned
+    // by wkQTMovieGetType, but at least verify that the value is in the valid range.
+    ASSERT(movieType >= MediaPlayer::Unknown && movieType <= MediaPlayer::LiveStream);
+
+    return movieType;
+}
+
 
 } // namespace WebCore
 

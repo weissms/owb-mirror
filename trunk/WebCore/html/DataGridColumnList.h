@@ -1,6 +1,8 @@
 #ifndef DataGridColumnList_h
 #define DataGridColumnList_h
 
+#if ENABLE(DATAGRID)
+
 #include "DataGridColumn.h"
 
 #include <wtf/PassRefPtr.h>
@@ -16,7 +18,7 @@ class DataGridColumnList : public RefCounted<DataGridColumnList> {
 public:
     static PassRefPtr<DataGridColumnList> create()
     {
-        return new DataGridColumnList();
+        return adoptRef(new DataGridColumnList);
     }
 
     ~DataGridColumnList();
@@ -31,6 +33,7 @@ public:
     DataGridColumn* sortColumn() const { return m_sortColumn.get(); }
 
     DataGridColumn* add(const String& id, const String& label, const String& type, bool primary, unsigned short sortable);
+    DataGridColumn* add(DataGridColumn*);
     void remove(DataGridColumn*);
     void move(DataGridColumn*, unsigned long index);
     void clear();
@@ -44,5 +47,7 @@ private:
 };
 
 } // namespace WebCore
+
+#endif
 
 #endif // DataGridColumnList_h

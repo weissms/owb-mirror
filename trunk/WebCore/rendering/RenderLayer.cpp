@@ -255,17 +255,17 @@ void RenderLayer::setStaticY(int staticY)
     renderer()->setChildNeedsLayout(true, false);
 }
 
-void RenderLayer::updateLayerPositions(bool doFullRepaint, bool checkForRepaint)
+void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
 {
-    if (doFullRepaint) {
+    if (flags & DoFullRepaint) {
         renderer()->repaint();
 #if USE(ACCELERATED_COMPOSITING)
-        checkForRepaint = false;
+        flags &= ~CheckForRepaint;
         // We need the full repaint to propagate to child layers if we are hardware compositing.
         if (!compositor()->inCompositingMode())
-            doFullRepaint = false;
+            flags &= ~DoFullRepaint;
 #else
-        checkForRepaint = doFullRepaint = false;
+        flags &= ~(CheckForRepaint | DoFullRepaint);
 #endif
     }
     
@@ -292,7 +292,7 @@ void RenderLayer::updateLayerPositions(bool doFullRepaint, bool checkForRepaint)
         RenderBoxModelObject* repaintContainer = renderer()->containerForRepaint();
         IntRect newRect = renderer()->clippedOverflowRectForRepaint(repaintContainer);
         IntRect newOutlineBox = renderer()->outlineBoundsForRepaint(repaintContainer);
-        if (checkForRepaint) {
+        if (flags & CheckForRepaint) {
             if (view && !view->printing()) {
                 if (m_needsFullRepaint) {
                     renderer()->repaintUsingContainer(repaintContainer, m_repaintRect);
@@ -316,11 +316,11 @@ void RenderLayer::updateLayerPositions(bool doFullRepaint, bool checkForRepaint)
         m_reflection->layout();
 
     for (RenderLayer* child = firstChild(); child; child = child->nextSibling())
-        child->updateLayerPositions(doFullRepaint, checkForRepaint);
+        child->updateLayerPositions(flags);
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (isComposited())
-        backing()->updateAfterLayout();
+    if ((flags & UpdateCompositingLayers) && isComposited())
+        backing()->updateAfterLayout(RenderLayerBacking::CompositingChildren);
 #endif
         
     // With all our children positioned, now update our marquee if we need to.
@@ -1057,14 +1057,15 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
     m_scrollX = newScrollX;
     m_scrollY = y;
 
-    // Update the positions of our child layers.
+    // Update the positions of our child layers. Don't have updateLayerPositions() update
+    // compositing layers, because we need to do a deep update from the compositing ancestor.
     for (RenderLayer* child = firstChild(); child; child = child->nextSibling())
-        child->updateLayerPositions(false, false);
+        child->updateLayerPositions(0);
 
 #if USE(ACCELERATED_COMPOSITING)
     if (compositor()->inCompositingMode()) {
         if (RenderLayer* compositingAncestor = ancestorCompositingLayer())
-            compositingAncestor->backing()->updateAfterLayout();
+            compositingAncestor->backing()->updateAfterLayout(RenderLayerBacking::AllDescendants);
     }
 #endif
     

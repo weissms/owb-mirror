@@ -353,7 +353,7 @@ public:
         if (port1->isEntangled() && !port2)
             wrapper.ClearWeak();
 
-        if (!port2) {
+        if (port2) {
             // As ports are always entangled in pairs only perform the entanglement
             // once for each pair (see ASSERT in MessagePort::unentangle()).
             if (port1 < port2) {
@@ -2135,18 +2135,15 @@ void V8Proxy::setDOMException(int exceptionCode)
         setDOMExceptionHelper(V8ClassIndex::SVGEXCEPTION, SVGException::create(description));
         break;
 #endif
+#if ENABLE(XPATH)
+    case XPathExceptionType:
+        setDOMExceptionHelper(V8ClassIndex::XPATHEXCEPTION, XPathException::create(description));
+        break;
+#endif
     default:
         ASSERT_NOT_REACHED();
         break;
-#if ENABLE(XPATH)
-    case XPathExceptionType:
-        exception = convertToV8Object(V8ClassIndex::XPATHEXCEPTION, XPathException::create(description));
-        break;
-#endif
     }
-
-    ASSERT(!exception.IsEmpty());
-    v8::ThrowException(exception);
 }
 
 v8::Handle<v8::Value> V8Proxy::throwError(ErrorType type, const char* message)

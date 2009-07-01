@@ -6,6 +6,7 @@ list(APPEND WEBCORE_SRC
     html/CanvasStyle.cpp
     html/CollectionCache.cpp
     html/DataGridColumn.cpp
+    html/DOMDataGridDataSource.cpp
     html/File.cpp
     html/FileList.cpp
     html/FormDataList.cpp

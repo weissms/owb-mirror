@@ -1,3 +1,164 @@
+2009-07-01  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26877
+        [GTK] DRT fixes to pass new plugin test
+
+        Silence compiler warnings.
+
+        Newer GCC don't like using or returning a static string where a
+        'char*' is expected. Ideally we'd change the function signatures
+        to return or take 'const char*' I suppose, but since we can't do
+        that just cast the strings to 'char*'.
+
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_get_value):
+
+2009-06-30  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26877
+        [GTK] DRT fixes to pass new plugin test
+
+        Use the common pluginLog function instead of a local copy.
+
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_new_instance):
+        (webkit_test_plugin_destroy_instance):
+        (webkit_test_plugin_set_window):
+        (webkit_test_plugin_handle_event):
+
+2009-06-30  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26877
+        [GTK] DRT fixes to pass new plugin test
+
+        Modify our DRT as done in bug #15457 to log logSrc as src in order
+        to pass test plugins/netscape-plugin-map-data-to-src.html.
+
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_new_instance):
+
+2009-06-30  Adrien Nader  <camaradetux@gmail.com>
+
+        Reviewed by Jan Alonzo.
+
+        [GTK] GtkLauncher depends on gtk+2-2.15 because of gtk_orientable_set_orientation()
+        https://bugs.webkit.org/show_bug.cgi?id=26835
+
+        * GtkLauncher/main.c:
+        (create_toolbar):
+
+2009-06-30  Eric Seidel  <eric@webkit.org>
+
+        Typo fix only, no review.
+
+        Fix typo causing failure during land-diff
+
+        * Scripts/bugzilla-tool:
+
+2009-06-30  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Fix drawing of view background in pixel snapshots when using compositing.
+        We still need to call -displayIfNeeded to ensure that the NSView drawing
+        has happened.
+
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (createBitmapContextFromWebView):
+
+2009-06-30  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        createBitmapContextFromWebView() incorrectly used #ifdef BUILDING_ON_LEOPARD,
+        and thus failed on SnowLeopard.
+        
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (createBitmapContextFromWebView):
+
+2009-06-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Make bugzilla tool print a message explaining how to get help on failure:
+        https://bugs.webkit.org/show_bug.cgi?id=26861
+
+        % bugzilla-tool
+        Usage: bugzilla-tool [options] command [command-options] [command-arguments]
+
+        bugzilla-tool: error: No command specified
+
+        Type 'bugzilla-tool --help' to see usage.
+
+        * Scripts/bugzilla-tool:
+
+2009-06-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Include a built copy of BeautifulSoup 3.1.0.1 so that
+        bugzilla-tool users do not need to install it manually.
+        https://bugs.webkit.org/show_bug.cgi?id=26833
+
+        BeautifulSoup is BSD-licensed (thus WebKit compatible) and available from:
+        http://www.crummy.com/software/BeautifulSoup
+
+        * Scripts/bugzilla-tool: fixed a typo in a log message.
+        * Scripts/modules/BeautifulSoup.py: Added.
+        * Scripts/modules/bugzilla.py:
+
+2009-06-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Fix our create_patch handling to not
+        hang when creating large patches.
+        https://bugs.webkit.org/show_bug.cgi?id=26834
+
+        We're now using StringIO to make an in-memory buffer for the patch
+        instead of piping from the patch command directly to the upload.
+        The previous hang was caused by calling wait() when the process had already
+        filed the stdout buffer.
+
+        * Scripts/modules/scm.py:
+
+2009-06-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove more unused scons support.
+
+        * Scripts/build-jsc:
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
+2009-06-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        Rename land-and-update to land-diff and make it awesome.
+        https://bugs.webkit.org/show_bug.cgi?id=26734
+
+        Renamed land-and-update to land-diff
+        Made the BUGID argument optional.
+        Added optional support for building and testing before landing.
+
+        land-diff [options] [BUGID]    Lands the current working directory diff and updates the bug if provided.
+          Options:
+            -r REVIEWER, --reviewer=REVIEWER
+                              Update ChangeLogs to say Reviewed by REVIEWER.
+            --no-close        Leave bug open after landing.
+            --no-build        Commit without building first, implies --no-test.
+            --no-test         Commit without running run-webkit-tests.
+
+        * Scripts/bugzilla-tool:
+
 2009-06-29  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Gtk build fix - include stdarg.h for va_start/va_end.

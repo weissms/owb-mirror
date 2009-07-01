@@ -903,6 +903,8 @@ webcore_sources += \
 	WebCore/html/DataGridColumnList.cpp \
 	WebCore/html/DataGridColumnList.h \
 	WebCore/html/DataGridDataSource.h \
+	WebCore/html/DOMDataGridDataSource.cpp \
+	WebCore/html/DOMDataGridDataSource.h \
 	WebCore/html/File.cpp \
 	WebCore/html/File.h \
 	WebCore/html/FileList.cpp \
@@ -934,7 +936,7 @@ webcore_sources += \
 	WebCore/html/HTMLDataGridElement.cpp \
 	WebCore/html/HTMLDataGridElement.h \
 	WebCore/html/HTMLDataGridCellElement.cpp \
-	WebCOre/html/HTMLDataGridCellElement.h \
+	WebCore/html/HTMLDataGridCellElement.h \
 	WebCore/html/HTMLDataGridColElement.cpp \
 	WebCore/html/HTMLDataGridColElement.h \
 	WebCore/html/HTMLDataGridRowElement.cpp \
@@ -1940,6 +1942,14 @@ webcoregtk_sources += \
 	WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp \
 	WebCore/platform/graphics/gtk/SimpleFontDataPango.cpp
 endif # END USE_PANGO
+
+# ----
+# HTML Data Grid - enable always.
+# ----
+FEATURE_DEFINES_JAVASCRIPT += ENABLE_DATAGRID=1
+
+webcore_cppflags += \
+	-DENABLE_DATAGRID=1
 
 # ----
 # JavaScript Debugger/Profiler
@@ -3092,7 +3102,7 @@ DerivedSources/CSSGrammar.cpp: $(WebCore)/css/CSSGrammar.y
 
 # user agent style sheets
 USER_AGENT_STYLE_SHEETS = \
-	$(WebCore)/css/html4.css \
+	$(WebCore)/css/html.css \
 	$(WebCore)/css/quirks.css \
 	$(WebCore)/css/view-source.css \
 	$(WebCore)/css/svg.css \
@@ -3212,7 +3222,7 @@ webcore_dist += \
 	WebCore/bindings/scripts/InFilesParser.pm \
 	WebCore/bindings/scripts/generate-bindings.pl \
 	WebCore/bindings/scripts/CodeGeneratorJS.pm \
-	WebCore/css/html4.css \
+	WebCore/css/html.css \
 	WebCore/css/quirks.css \
 	WebCore/css/view-source.css \
 	WebCore/css/svg.css \

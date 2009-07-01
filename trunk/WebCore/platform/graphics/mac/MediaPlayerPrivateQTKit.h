@@ -68,7 +68,6 @@ public:
     void timeChanged();
     void didEnd();
 
-    bool hasSingleSecurityOrigin() const;
 private:
     MediaPlayerPrivate(MediaPlayer*);
 
@@ -115,11 +114,15 @@ private:
     void setSize(const IntSize&);
     
     void paint(GraphicsContext*, const IntRect&);
+    void paintCurrentFrameInContext(GraphicsContext*, const IntRect&);
 
 #if USE(ACCELERATED_COMPOSITING)
     bool supportsAcceleratedRendering() const;
     void acceleratedRenderingStateChanged();
 #endif
+
+    bool hasSingleSecurityOrigin() const;
+    MediaPlayer::MovieLoadType movieLoadType() const;
 
     void createQTMovie(const String& url);
     void createQTMovie(NSURL *, NSDictionary *movieAttributes);
@@ -135,7 +138,8 @@ private:
     void createQTMovieView();
     void detachQTMovieView();
     
-    void createQTVideoRenderer();
+    enum QTVideoRendererMode { QTVideoRendererModeDefault, QTVideoRendererModeListensForNewImages };
+    void createQTVideoRenderer(QTVideoRendererMode rendererMode);
     void destroyQTVideoRenderer();
     
     void createQTMovieLayer();

@@ -1214,6 +1214,13 @@ static bool fastDocumentTeardownEnabled()
     return needsQuirk;
 }
 
+- (BOOL)_needsLinkElementTextCSSQuirk
+{
+    static BOOL needsQuirk = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITHOUT_LINK_ELEMENT_TEXT_CSS_QUIRK)
+        && WKAppVersionCheckLessThan(@"com.e-frontier.shade10", -1, 10.6);
+    return needsQuirk;
+}
+
 - (BOOL)_needsKeyboardEventDisambiguationQuirks
 {
     static BOOL needsQuirks = !WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_IE_COMPATIBLE_KEYBOARD_EVENT_DISPATCH) && !applicationIsSafari();
@@ -1285,6 +1292,7 @@ static bool fastDocumentTeardownEnabled()
     } else
         settings->setUserStyleSheetLocation([NSURL URLWithString:@""]);
     settings->setNeedsAdobeFrameReloadingQuirk([self _needsAdobeFrameReloadingQuirk]);
+    settings->setTreatsAnyTextCSSLinkAsStylesheet([self _needsLinkElementTextCSSQuirk]);
     settings->setNeedsKeyboardEventDisambiguationQuirks([self _needsKeyboardEventDisambiguationQuirks]);
     settings->setNeedsLeopardMailQuirks(runningLeopardMail());
     settings->setNeedsTigerMailQuirks(runningTigerMail());
@@ -5319,7 +5327,7 @@ static WebFrameView *containingFrameView(NSView *view)
 - (void)_setToolTip:(NSString *)toolTip
 {
     if (_private->usesDocumentViews) {
-        id documentView = [[[self selectedFrame] frameView] documentView];
+        id documentView = [[[self _selectedOrMainFrame] frameView] documentView];
         if ([documentView isKindOfClass:[WebHTMLView class]])
             [documentView _setToolTip:toolTip];
         return;
@@ -5331,7 +5339,7 @@ static WebFrameView *containingFrameView(NSView *view)
 - (void)_selectionChanged
 {
     if (_private->usesDocumentViews) {
-        id documentView = [[[self selectedFrame] frameView] documentView];
+        id documentView = [[[self _selectedOrMainFrame] frameView] documentView];
         if ([documentView isKindOfClass:[WebHTMLView class]])
             [documentView _selectionChanged];
         return;

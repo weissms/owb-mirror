@@ -58,6 +58,12 @@ freebsd-*: DEFINES += HAVE_PTHREAD_NP_H
 
 DEFINES += BUILD_WEBKIT
 
+# Remove whole program optimizations due to miscompilations
+win32-msvc2005|win32-msvc2008:{
+    QMAKE_CFLAGS_RELEASE -= -GL
+    QMAKE_CXXFLAGS_RELEASE -= -GL
+}
+
 win32-*: DEFINES += _HAS_TR1=0
 wince* {
 #    DEFINES += ENABLE_SVG=0 ENABLE_XPATH=0 ENABLE_XBL=0 \
@@ -246,7 +252,7 @@ SVGCSSPROPERTIES = $$PWD/css/SVGCSSPropertyNames.in
 SVGCSSVALUES = $$PWD/css/SVGCSSValueKeywords.in
 
 STYLESHEETS_EMBED = \
-    $$PWD/css/html4.css \
+    $$PWD/css/html.css \
     $$PWD/css/quirks.css \
     $$PWD/css/svg.css \
     $$PWD/css/view-source.css \
@@ -748,6 +754,7 @@ SOURCES += \
     html/CollectionCache.cpp \
     html/DataGridColumn.cpp \
     html/DataGridColumnList.cpp \
+    html/DOMDataGridDataSource.cpp \
     html/File.cpp \
     html/FileList.cpp \
     html/FormDataList.cpp \
