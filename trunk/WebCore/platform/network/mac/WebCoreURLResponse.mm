@@ -29,9 +29,11 @@
 #import "config.h"
 #import "WebCoreURLResponse.h"
 
+#import "FoundationExtras.h"
 #import "MIMETypeRegistry.h"
 #import <objc/objc-class.h>
 #import <wtf/Assertions.h>
+#import <wtf/RetainPtr.h>
 
 #ifndef BUILDING_ON_TIGER
 // <rdar://problem/5321972> Plain text document from HTTP server detected as application/octet-stream
@@ -342,19 +344,68 @@ void swizzleMIMETypeMethodIfNecessary()
     }
 }
 
+static NSString *mimeTypeFromUTITree(CFStringRef uti)
+{
+    // Check if this UTI has a MIME type.
+    RetainPtr<CFStringRef> mimeType(AdoptCF, UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType));
+    if (mimeType)
+        return (NSString *)HardAutorelease(mimeType.releaseRef());
+    
+    // If not, walk the ancestory of this UTI via its "ConformsTo" tags and return the first MIME type we find.
+    RetainPtr<CFDictionaryRef> decl(AdoptCF, UTTypeCopyDeclaration(uti));
+    if (!decl)
+        return nil;
+    CFTypeRef value = CFDictionaryGetValue(decl.get(), kUTTypeConformsToKey);
+    if (!value)
+        return nil;
+    CFTypeID typeID = CFGetTypeID(value);
+    
+    if (typeID == CFStringGetTypeID())
+        return mimeTypeFromUTITree((CFStringRef)value);
+
+    if (typeID == CFArrayGetTypeID()) {
+        CFArrayRef newTypes = (CFArrayRef)value;
+        CFIndex count = CFArrayGetCount(newTypes);
+        for (CFIndex i = 0; i < count; ++i) {
+            CFTypeRef object = CFArrayGetValueAtIndex(newTypes, i);
+            if (CFGetTypeID(object) != CFStringGetTypeID())
+                continue;
+
+            if (NSString *mimeType = mimeTypeFromUTITree((CFStringRef)object))
+                return mimeType;
+        }
+    }
+    
+    return nil;
+}
+
 static NSString *webNSURLResponseMIMEType(id self, SEL _cmd)
 {
     ASSERT(oldNSURLResponseMIMETypeIMP);
     NSString *result = oldNSURLResponseMIMETypeIMP(self, _cmd);
 
+#ifdef BUILDING_ON_TIGER
+    // When content sniffing is disabled, Tiger's CFNetwork automatically returns application/octet-stream for certain
+    // extensions even when scouring the UTI maps would end up with a better result, so we'll give a chance for that to happen.
+    if ([[self URL] isFileURL] && [result caseInsensitiveCompare:@"application/octet-stream"] == NSOrderedSame)
+        result = nil;
+#endif
+
     if (!result) {
-        // <rdar://problem/7007389> CoreTypes UTI map is missing 100+ file extensions that GateKeeper knew about
-        // When this radar is resolved, we can remove this file:// url specific code.
         NSURL *url = [self URL];
         if ([url isFileURL]) {
             if (NSString *extension = [[url path] pathExtension]) {
+                // <rdar://problem/7007389> CoreTypes UTI map is missing 100+ file extensions that GateKeeper knew about
+                // When this radar is resolved, we can remove this file:// url specific code.
                 static NSDictionary *extensionMap = createExtensionToMIMETypeMap();
                 result = [extensionMap objectForKey:[extension lowercaseString]];
+                
+                if (!result) {
+                    // If the Gatekeeper-based map doesn't have a MIME type, we'll try to figure out what it should be by
+                    // looking up the file extension in the UTI maps.
+                    RetainPtr<CFStringRef> uti(AdoptCF, UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)extension, 0));
+                    result = mimeTypeFromUTITree(uti.get());
+                }
             }
         }
     }
@@ -383,3 +434,13 @@ static NSString *webNSURLResponseMIMEType(id self, SEL _cmd)
 
     return result;
 }
+
+@implementation NSURLResponse (WebCoreURLResponse)
+
+-(NSString *)_webcore_reportedMIMEType
+{
+    swizzleMIMETypeMethodIfNecessary();
+    return oldNSURLResponseMIMETypeIMP(self, @selector(_webcore_realMIMEType));
+}
+
+@end

@@ -30,8 +30,8 @@
 #include "DataGridColumn.h"
 #include "HTMLDataGridElement.h"
 #include "HTMLDataGridColElement.h"
-
 #include "HTMLNames.h"
+#include "MappedAttribute.h"
 #include "Text.h"
 
 namespace WebCore {
@@ -40,11 +40,11 @@ using namespace HTMLNames;
 
 HTMLDataGridColElement::HTMLDataGridColElement(const QualifiedName& name, Document* doc)
     : HTMLElement(name, doc)
-    , m_datagrid(0)
+    , m_dataGrid(0)
 {
 }
 
-HTMLDataGridElement* HTMLDataGridColElement::findDatagridAncestor() const
+HTMLDataGridElement* HTMLDataGridColElement::findDataGridAncestor() const
 {
     if (parent() && parent()->hasTagName(datagridTag))
         return static_cast<HTMLDataGridElement*>(parent());
@@ -61,23 +61,23 @@ void HTMLDataGridColElement::ensureColumn()
 void HTMLDataGridColElement::insertedIntoTree(bool deep)
 {
     HTMLElement::insertedIntoTree(deep);
-    if (datagrid()) // We're connected to a datagrid already.
+    if (dataGrid()) // We're connected to a datagrid already.
         return;
-    m_datagrid = findDatagridAncestor();
-    if (datagrid() && datagrid()->dataSource()->isDOMDataGridDataSource()) {
+    m_dataGrid = findDataGridAncestor();
+    if (dataGrid() && dataGrid()->dataSource()->isDOMDataGridDataSource()) {
         ensureColumn();
-        m_datagrid->columns()->add(column()); // FIXME: Deal with ordering issues (complicated, since columns can be made outside the DOM).
+        m_dataGrid->columns()->add(column()); // FIXME: Deal with ordering issues (complicated, since columns can be made outside the DOM).
     }
 }
 
 void HTMLDataGridColElement::removedFromTree(bool deep)
 {
     HTMLElement::removedFromTree(deep);
-    if (datagrid() && datagrid()->dataSource()->isDOMDataGridDataSource()) {
-        HTMLDataGridElement* grid = findDatagridAncestor();
+    if (dataGrid() && dataGrid()->dataSource()->isDOMDataGridDataSource()) {
+        HTMLDataGridElement* grid = findDataGridAncestor();
         if (!grid && column()) {
-            datagrid()->columns()->remove(column());
-            m_datagrid = 0;
+            dataGrid()->columns()->remove(column());
+            m_dataGrid = 0;
         }
     }
 }
@@ -143,6 +143,27 @@ bool HTMLDataGridColElement::primary() const
 void HTMLDataGridColElement::setPrimary(bool primary)
 {
     setAttribute(primaryAttr, primary ? "" : 0);
+}
+
+void HTMLDataGridColElement::parseMappedAttribute(MappedAttribute* attr) 
+{
+    HTMLElement::parseMappedAttribute(attr);
+     
+    if (!column())
+        return;
+
+    if (attr->name() == labelAttr)
+        column()->setLabel(label());
+    else if (attr->name() == typeAttr)
+        column()->setType(type());
+    else if (attr->name() == primaryAttr)
+        column()->setPrimary(primary());
+    else if (attr->name() == sortableAttr)
+        column()->setSortable(sortable());
+    else if (attr->name() == sortdirectionAttr)
+        column()->setSortDirection(sortDirection());
+    else if (attr->name() == idAttr)
+        column()->setId(getAttribute(idAttr));
 }
 
 } // namespace WebCore

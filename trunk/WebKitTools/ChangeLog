@@ -1,3 +1,198 @@
+2009-07-03  Brent Fulgham  <bfulgham@webkit.org>
+
+        Unreviewed build fix (Cairo this time) for DumpRenderTree.
+        Put Cairo code back in, but use original include order
+        for the CG stuff to avoid compile issues.
+
+        * DumpRenderTree/win/PixelDumpSupportWin.cpp:
+        (createBitmapContextFromWebView):
+
+2009-07-02  Eric Seidel  <eric@webkit.org>
+
+        Correct blatant typo (missing []), no review.
+
+        * Scripts/modules/scm.py:
+
+2009-07-02  Brent Fulgham  <bfulgham@webkit.org>
+
+        Windows build fix, no review.
+
+
+        Reverting PixelDumpSupportWin.cpp change to avoid strange
+        error on the build-bot.
+ 
+        * DumpRenderTree/win/PixelDumpSupportWin.cpp:
+        (createBitmapContextFromWebView):
+
+2009-07-02  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix, no review.
+
+        * DumpRenderTree/config.h:
+
+2009-07-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        bugzilla-tool needs to handle login failure
+        https://bugs.webkit.org/show_bug.cgi?id=26913
+
+        We now exit(1) on login failure.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-06-30  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add build support for a Windows Cairo version of
+        DumpRenderTree.  Share as much logic between the
+        CG and Cairo builds as possible.
+        https://bugs.webkit.org/show_bug.cgi?id=26457
+
+        * DumpRenderTree/PixelDumpSupport.cpp: Added.
+        (dumpWebViewAsPixelsAndCompareWithExpected): Moved common logic
+          from CG-specific file.
+        (printPNG): Moved common logic from CG-specific file.
+        * DumpRenderTree/PixelDumpSupport.h: Add declaration for new
+          common printPNG function.
+        * DumpRenderTree/cairo: Added.
+        * DumpRenderTree/cairo/PixelDumpSupportCairo.cpp: Added.
+          Implement cairo-specific logic for dealing with Cairo surfaces.
+        (writeFunction):
+        (printPNG): Cairo-specific PNG handling logic.
+        (computeMD5HashStringForBitmapContext): New Cairo routine using
+          the generic BitmapContext signature.
+        (dumpBitmap): New function containing Cairo-specific portions of
+          the dumping routine.
+        * DumpRenderTree/cairo/PixelDumpSupportCairo.h: Added.
+          Provide Cairo version of the BitmapContext structure so that
+          dumping routines can work on an abstract type.
+        (BitmapContext::createByAdoptingBitmapAndContext):
+        (BitmapContext::~BitmapContext):
+        (BitmapContext::cairoContext):
+        (BitmapContext::BitmapContext):
+        * DumpRenderTree/cg/PixelDumpSupportCG.cpp:
+        (printPNG): CG-specific PNG handling logic.
+        (computeMD5HashStringForBitmapContext): Revised to use generic
+          BitmapContext signature.
+        (dumpBitmap): New function containing CG-specific portions of
+          the dumping routine.
+        * DumpRenderTree/cg/PixelDumpSupportCG.h: Add new signatures.
+        * DumpRenderTree/win/DumpRenderTree.cpp: Disable CFNetwork logic
+          when building the non-CFNetwork version.
+        (main):
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/PixelDumpSupportWin.cpp:
+        (createBitmapContextFromWebView): Provide parallel Cairo implementation
+          of CG bitmap/context setup.
+
+2009-07-02  Eric Seidel  <eric@webkit.org>
+
+        No review, just adding Antti as a reviewer.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-07-02  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26896
+
+        [Qt] Set DRT's default fontsize to 13.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+
+2009-07-01  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool fails for SVN users
+        https://bugs.webkit.org/show_bug.cgi?id=26914
+
+        To fix this I moved svn from -F - to using -m
+        In order for -m to work I had to move us off of shell=True
+        To move off of shell=True all call sites for run_command
+        which take args, need to pass their args as an list instead of a string.
+
+        In order for the final bug update to work correctly, I had to
+        abstract the way that we parse out revision numbers from the commit text.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-07-01  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        prepare-ChangeLog should have a --bug= argument and use it for url autofill
+        https://bugs.webkit.org/show_bug.cgi?id=26383
+
+        prepare-ChangeLog now knows how to grab the bug title from bugs.webkit.org
+        I also added a bit more template text in an effort to get better ChangeLogs
+        from casual contributers.
+
+        * Scripts/prepare-ChangeLog:
+
+2009-07-01  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        prepare-ChangeLog should fail when EMAIL_ADDRESS or REAL_NAME are missing:
+        https://bugs.webkit.org/show_bug.cgi?id=26692
+
+        I also made prepare-ChangeLog sanity-check names and email addresses a little.
+        Names must contain a space, and email addresses must contain '@'
+
+        Also "fixed" $email_address to $emailAddress.  This script uses mixed variable name styles.
+
+        * Scripts/prepare-ChangeLog:
+
+2009-07-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 26900: AX: Manual spell check with Command-; does not bring up suggestions
+        https://bugs.webkit.org/show_bug.cgi?id=26900
+
+        Expose the ability to get the click point of an element through accessibility.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getClickPointXCallback):
+        (getClickPointYCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::clickPointX):
+        (AccessibilityUIElement::clickPointY):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::clickPointX):
+        (AccessibilityUIElement::clickPointY):
+
+2009-07-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Change how WebKitNightlyEnabler.dylib lies about Safari's identity to LaunchServices.
+        This makes WebKit.app behave as expected when set as the default web browser on a wider
+        range of OS versions.
+
+        * WebKitLauncher/WebKitNightlyEnabler.m:
+        (poseAsWebKitApp):
+        (enableWebKitNightlyBehaviour):
+
+2009-07-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Shuffle some code around in preparation for a change to how poseAsWebKitApp works.
+
+        * WebKitLauncher/WebKitNightlyEnabler.m:
+        (systemVersion):
+        (webKitLauncherBundle):
+        (insideSafari4OnTigerTrampoline):
+
 2009-07-01  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Jan Alonzo.

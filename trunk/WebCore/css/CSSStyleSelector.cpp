@@ -1408,6 +1408,22 @@ PassRefPtr<RenderStyle> CSSStyleSelector::pseudoStyleForElement(PseudoId pseudo,
     return m_style.release();
 }
 
+#if ENABLE(DATAGRID)
+
+PassRefPtr<RenderStyle> CSSStyleSelector::pseudoStyleForDataGridColumn(DataGridColumn*, RenderStyle*)
+{
+    // FIXME: Implement
+    return 0;
+}
+
+PassRefPtr<RenderStyle> CSSStyleSelector::pseudoStyleForDataGridColumnHeader(DataGridColumn*, RenderStyle*)
+{
+    // FIXME: Implement
+    return 0;
+}
+
+#endif
+
 static void addIntrinsicMargins(RenderStyle* style)
 {
     // Intrinsic margin value.
@@ -2483,6 +2499,15 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 return true;
             case CSSSelector::PseudoMediaControlsSeekForwardButton:
                 dynamicPseudo = MEDIA_CONTROLS_SEEK_FORWARD_BUTTON;
+                return true;
+            case CSSSelector::PseudoMediaControlsRewindButton:
+                dynamicPseudo = MEDIA_CONTROLS_REWIND_BUTTON;
+                return true;
+            case CSSSelector::PseudoMediaControlsReturnToRealtimeButton:
+                dynamicPseudo = MEDIA_CONTROLS_RETURN_TO_REALTIME_BUTTON;
+                return true;
+            case CSSSelector::PseudoMediaControlsStatusDisplay:
+                dynamicPseudo = MEDIA_CONTROLS_STATUS_DISPLAY;
                 return true;
             case CSSSelector::PseudoMediaControlsFullscreenButton:
                 dynamicPseudo = MEDIA_CONTROLS_FULLSCREEN_BUTTON;

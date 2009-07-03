@@ -1,3 +1,101 @@
+2009-07-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6978783> 
+        Software-rendered plug-in does not update correctly when inside a hardware layer
+        
+        Replace calls to setNeedsDisplay: and setNeedsDisplayInRect: with a call to the new method
+        invalidatePluginContentRect:. This new method will ask WebCore to do the repainting, taking
+        transforms into account.
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invalidateRect):
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView pluginHostDied]):
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView windowBecameKey:]):
+        (-[WebBaseNetscapePluginView windowResignedKey:]):
+        (-[WebBaseNetscapePluginView preferencesHaveChanged:]):
+        (-[WebBaseNetscapePluginView invalidatePluginContentRect:]):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView invalidateRect:]):
+        (-[WebNetscapePluginView invalidateRegion:]):
+        (-[WebNetscapePluginView forceRedraw]):
+
+2009-07-02  Adam Roben  <aroben@apple.com>
+
+        Fix warnings from update-webkit-localizable-strings
+
+        Rubber-stamped by Eric Carlson.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory mediaElementLoadingStateText]):
+        (-[WebViewFactory mediaElementLiveBroadcastStateText]):
+        Changed the localization comments to match the comments in the Windows
+        version of this file, to avoid warnings about different comments for
+        the same localized string.
+
+2009-07-02  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Compositing-related preference methods are not public API; should move to WebPreferencesPrivate.h
+        <rdar://problem/7027363>
+
+        Move accelerated-compositing pref to WebPreferencesPrivate.h
+
+        * WebView/WebPreferences.h:
+        * WebView/WebPreferences.mm:
+        (-[WebPreferences acceleratedCompositingEnabled]):
+        (-[WebPreferences setAcceleratedCompositingEnabled:]):
+        * WebView/WebPreferencesPrivate.h:
+
+2009-07-02  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/6518119>
+
+        Add localized strings for media controller status messages.
+
+        * WebCoreSupport/WebViewFactory.mm: Add new localized text.
+        (-[WebViewFactory mediaElementLoadingStateText]):
+        (-[WebViewFactory mediaElementLiveBroadcastStateText]):
+
+2009-07-01  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add a preference/setting to toggle whether content sniffing is enabled for file URLs.
+
+        * WebView/WebPreferenceKeysPrivate.h:
+
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences localFileContentSniffingEnabled]):
+        (-[WebPreferences setLocalFileContentSniffingEnabled:]):
+        * WebView/WebPreferencesPrivate.h:
+
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-07-01  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/6998524> REGRESSION (r44474): Form text field has focus ring, looks focused,
+        even though the field is not actually focused for keyboard input
+        
+        Add the concept of whether or not the Page is focused by adding a boolean to the focusController.  This allows the
+        focused frame and focused node to both be cached and changed programmatically without causing errors when the Page doesn't
+        have focus.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView becomeFirstResponder]):
+        (-[WebHTMLView resignFirstResponder]):
+
 2009-07-01  Adele Peterson  <adele@apple.com>
 
         Reviewed by Dan Bernstein.

@@ -77,6 +77,7 @@ namespace WebCore {
     String contextMenuItemTagUnderline();
     String contextMenuItemTagOutline();
     String contextMenuItemTagWritingDirectionMenu();
+    String contextMenuItemTagTextDirectionMenu();
     String contextMenuItemTagDefaultDirection();
     String contextMenuItemTagLeftToRight();
     String contextMenuItemTagRightToLeft();
@@ -107,6 +108,9 @@ namespace WebCore {
     String contextMenuItemTagTextDirectionMenu();
 
     String imageTitle(const String& filename, const IntSize& size);
+
+    String mediaElementLoadingStateText();
+    String mediaElementLiveBroadcastStateText();
 }
 
 #endif

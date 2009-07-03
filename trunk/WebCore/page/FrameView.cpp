@@ -1519,4 +1519,142 @@ void FrameView::adjustPageHeight(float *newBottom, float oldTop, float oldBottom
         *newBottom = oldBottom;
 }
 
+IntRect FrameView::convertFromRenderer(const RenderObject* renderer, const IntRect& rendererRect) const
+{
+    IntRect rect = renderer->localToAbsoluteQuad(FloatRect(rendererRect)).enclosingBoundingBox();
+
+    // Convert from page ("absolute") to FrameView coordinates.
+    rect.move(-scrollX(), -scrollY());
+
+    return rect;
+}
+
+IntRect FrameView::convertToRenderer(const RenderObject* renderer, const IntRect& viewRect) const
+{
+    IntRect rect = viewRect;
+    
+    // Convert from FrameView coords into page ("absolute") coordinates.
+    rect.move(scrollX(), scrollY());
+
+    // FIXME: we don't have a way to map an absolute rect down to a local quad, so just
+    // move the rect for now.
+    rect.setLocation(roundedIntPoint(renderer->absoluteToLocal(rect.location(), false, true /* use transforms */)));
+    return rect;
+}
+
+IntPoint FrameView::convertFromRenderer(const RenderObject* renderer, const IntPoint& rendererPoint) const
+{
+    IntPoint point = roundedIntPoint(renderer->localToAbsolute(rendererPoint, false, true /* use transforms */));
+
+    // Convert from page ("absolute") to FrameView coordinates.
+    point.move(-scrollX(), -scrollY());
+    return point;
+}
+
+IntPoint FrameView::convertToRenderer(const RenderObject* renderer, const IntPoint& viewPoint) const
+{
+    IntPoint point = viewPoint;
+    
+    // Convert from FrameView coords into page ("absolute") coordinates.
+    point += IntSize(scrollX(), scrollY());
+
+    return roundedIntPoint(renderer->absoluteToLocal(point, false, true /* use transforms */));
+}
+
+IntRect FrameView::convertToContainingView(const IntRect& localRect) const
+{
+    if (const ScrollView* parentScrollView = parent()) {
+        if (parentScrollView->isFrameView()) {
+            const FrameView* parentView = static_cast<const FrameView*>(parentScrollView);
+            // Get our renderer in the parent view
+            RenderPart* renderer = m_frame->ownerRenderer();
+            if (!renderer)
+                return localRect;
+                
+            IntRect rect(localRect);
+            // Add borders and padding??
+            rect.move(renderer->borderLeft() + renderer->paddingLeft(),
+                      renderer->borderTop() + renderer->paddingTop());
+            return parentView->convertFromRenderer(renderer, rect);
+        }
+        
+        return Widget::convertToContainingView(localRect);
+    }
+    
+    return localRect;
+}
+
+IntRect FrameView::convertFromContainingView(const IntRect& parentRect) const
+{
+    if (const ScrollView* parentScrollView = parent()) {
+        if (parentScrollView->isFrameView()) {
+            const FrameView* parentView = static_cast<const FrameView*>(parentScrollView);
+
+            // Get our renderer in the parent view
+            RenderPart* renderer = m_frame->ownerRenderer();
+            if (!renderer)
+                return parentRect;
+
+            IntRect rect = parentView->convertToRenderer(renderer, parentRect);
+            // Subtract borders and padding
+            rect.move(-renderer->borderLeft() - renderer->paddingLeft(),
+                      -renderer->borderTop() - renderer->paddingTop());
+            return rect;
+        }
+        
+        return Widget::convertFromContainingView(parentRect);
+    }
+    
+    return parentRect;
+}
+
+IntPoint FrameView::convertToContainingView(const IntPoint& localPoint) const
+{
+    if (const ScrollView* parentScrollView = parent()) {
+        if (parentScrollView->isFrameView()) {
+            const FrameView* parentView = static_cast<const FrameView*>(parentScrollView);
+
+            // Get our renderer in the parent view
+            RenderPart* renderer = m_frame->ownerRenderer();
+            if (!renderer)
+                return localPoint;
+                
+            IntPoint point(localPoint);
+
+            // Add borders and padding
+            point.move(renderer->borderLeft() + renderer->paddingLeft(),
+                       renderer->borderTop() + renderer->paddingTop());
+            return parentView->convertFromRenderer(renderer, point);
+        }
+        
+        return Widget::convertToContainingView(localPoint);
+    }
+    
+    return localPoint;
+}
+
+IntPoint FrameView::convertFromContainingView(const IntPoint& parentPoint) const
+{
+    if (const ScrollView* parentScrollView = parent()) {
+        if (parentScrollView->isFrameView()) {
+            const FrameView* parentView = static_cast<const FrameView*>(parentScrollView);
+
+            // Get our renderer in the parent view
+            RenderPart* renderer = m_frame->ownerRenderer();
+            if (!renderer)
+                return parentPoint;
+
+            IntPoint point = parentView->convertToRenderer(renderer, parentPoint);
+            // Subtract borders and padding
+            point.move(-renderer->borderLeft() - renderer->paddingLeft(),
+                       -renderer->borderTop() - renderer->paddingTop());
+            return point;
+        }
+        
+        return Widget::convertFromContainingView(parentPoint);
+    }
+    
+    return parentPoint;
+}
+
 } // namespace WebCore

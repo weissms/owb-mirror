@@ -4661,6 +4661,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\sql\SQLiteFileSystem.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\sql\SQLiteFileSystem.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\sql\SQLiteStatement.cpp"
 					>
 				</File>

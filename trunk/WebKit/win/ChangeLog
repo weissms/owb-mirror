@@ -1,3 +1,58 @@
+2009-07-03  Erik Arvidsson  <arv@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        [Win] HTML5 Drag and drop, dragend is not fired when pressing Esc
+        https://bugs.webkit.org/show_bug.cgi?id=26699
+
+        * WebDropSource.cpp:
+        (WebDropSource::QueryContinueDrag):
+
+2009-07-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/6939593> REGRESSION (r37793): Hitting back button on Google often gives non-interactive Google page (26670)
+        <https://bugs.webkit.org/show_bug.cgi?id=26670>
+
+        Make windows loader client match mac behaviour more closely.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::forceLayout):
+
+2009-06-30  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Adam Roben.
+
+        Build DumpRenderTree under Cairo.
+        https://bugs.webkit.org/show_bug.cgi?id=26457
+
+        * WebKit.vcproj/WebKit.sln: Add Cairo targets to the
+          DumpRenderTree build, and use the in the Debug_Cairo
+          and Release_Cairo targets.
+
+2009-07-02  Eric Carlson  <eric.carlson@apple.com>
+
+        Fix Windows build by including missing localized string methods.
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::mediaElementLoadingStateText):
+        (WebCore::mediaElementLiveBroadcastStateText):
+
+2009-07-01  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/6998524> REGRESSION (r44474): Form text field has focus ring, looks focused,
+        even though the field is not actually focused for keyboard input
+        
+        Add the concept of whether or not the Page is focused by adding a boolean to the focusController.  This allows the
+        focused frame and focused node to both be cached and changed programmatically without causing errors when the Page doesn't
+        have focus.
+
+        * WebView.cpp:
+        (WebViewWndProc):
+
 2009-07-01  David Hyatt  <hyatt@apple.com>
 
         Fix Windows bustage.  Missed two configurations for enabling DATAGRID.

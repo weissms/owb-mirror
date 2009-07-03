@@ -316,6 +316,8 @@ QWebFrame::~QWebFrame()
     new URL, you should add them in a slot connected to the
     javaScriptWindowObjectCleared() signal.
 
+    If Javascript is not enabled for this page, then this method does nothing.
+
     The \a object will never be explicitly deleted by QtWebKit.
 */
 void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object)
@@ -338,10 +340,15 @@ void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object
     new URL, you should add them in a slot connected to the
     javaScriptWindowObjectCleared() signal.
 
+    If Javascript is not enabled for this page, then this method does nothing.
+
     The ownership of \a object is specified using \a own.
 */
 void QWebFrame::addToJavaScriptWindowObject(const QString &name, QObject *object, QScriptEngine::ValueOwnership ownership)
 {
+    if (!page()->settings()->testAttribute(QWebSettings::JavascriptEnabled))
+        return;
+
     JSC::JSLock lock(false);
     JSDOMWindow* window = toJSDOMWindow(d->frame);
     JSC::Bindings::RootObject* root = d->frame->script()->bindingRootObject();
@@ -941,6 +948,26 @@ void QWebFrame::setZoomFactor(qreal factor)
 qreal QWebFrame::zoomFactor() const
 {
     return d->frame->zoomFactor();
+}
+
+/*!
+    \since 4.6
+
+    Returns true if this frame has keyboard input focus; otherwise, returns false.
+*/
+bool QWebFrame::hasFocus() const
+{
+    return QWebFramePrivate::kit(d->frame->page()->focusController()->focusedFrame()) == this;
+}
+
+/*!
+    \since 4.6
+
+    Gives keyboard input focus to this frame.
+*/
+void QWebFrame::setFocus()
+{
+    QWebFramePrivate::core(this)->page()->focusController()->setFocusedFrame(QWebFramePrivate::core(this));
 }
 
 /*!

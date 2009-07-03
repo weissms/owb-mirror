@@ -18,6 +18,7 @@ BAL/Accessibility/WebCore/Qt	WebCore/accessibility/qt/AccessibilityObjectQt.cpp
 
 BAL/Skeletons/Database	WebCore/platform/sql/SQLValue.h
 BAL/Skeletons/Database	WebCore/platform/sql/SQLiteDatabase.h
+BAL/Skeletons/Database	WebCore/platform/sql/SQLiteFileSystem.h
 BAL/Skeletons/Database	WebCore/platform/sql/SQLiteStatement.h
 BAL/Skeletons/Database	WebCore/platform/sql/SQLiteTransaction.h
 
@@ -26,6 +27,8 @@ BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLValue.h
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteAuthorizer.cpp
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteDatabase.cpp
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteDatabase.h
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteFileSystem.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteFileSystem.h
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteStatement.cpp
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteStatement.h
 BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteTransaction.cpp

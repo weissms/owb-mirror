@@ -111,10 +111,10 @@ public:
     
     // Methods for getting/setting the size of the document contained inside the ScrollView (as an IntSize or as individual width and height
     // values).
-    IntSize contentsSize() const;
+    IntSize contentsSize() const; // Always at least as big as the visibleWidth()/visibleHeight().
     int contentsWidth() const { return contentsSize().width(); }
     int contentsHeight() const { return contentsSize().height(); }
-    void setContentsSize(const IntSize&);
+    virtual void setContentsSize(const IntSize&);
    
     // Methods for querying the current scrolled position (both as a point, a size, or as individual X and Y values).
     IntPoint scrollPosition() const { return visibleContentRect().location(); }
@@ -134,7 +134,6 @@ public:
         
     // Scroll the actual contents of the view (either blitting or invalidating as needed).
     void scrollContents(const IntSize& scrollDelta);
-
 
     // This gives us a means of blocking painting on our scrollbars until the first layout has occurred.
     void setScrollbarsSuppressed(bool suppressed, bool repaintOnUnsuppress = false);
@@ -210,10 +209,15 @@ public:
 
     virtual bool scrollbarCornerPresent() const;
 
+    virtual IntRect convertFromScrollbarToContainingView(const Scrollbar*, const IntRect&) const;
+    virtual IntRect convertFromContainingViewToScrollbar(const Scrollbar*, const IntRect&) const;
+    virtual IntPoint convertFromScrollbarToContainingView(const Scrollbar*, const IntPoint&) const;
+    virtual IntPoint convertFromContainingViewToScrollbar(const Scrollbar*, const IntPoint&) const;
+
 protected:
     virtual void repaintContentRectangle(const IntRect&, bool now = false);
     virtual void paintContents(GraphicsContext*, const IntRect& damageRect) = 0;
-    
+ 
     virtual void contentsResized() = 0;
     virtual void visibleContentsResized() = 0;
 
@@ -229,6 +233,9 @@ private:
     bool m_prohibitsScrolling;
 
     HashSet<Widget*> m_children;
+
+    // This bool is unused on Mac OS because we directly ask the platform widget
+    // whether it is safe to blit on scroll.
     bool m_canBlitOnScroll;
     IntSize m_scrollOffset; // FIXME: Would rather store this as a position, but we will wait to make this change until more code is shared.
     IntSize m_fixedLayoutSize;

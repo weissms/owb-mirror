@@ -351,4 +351,15 @@ String multipleFileUploadText(unsigned numberOfFiles)
     return String();
 }
 
+
+String mediaElementLoadingStateText()
+{
+    return String::fromUTF8("Loading ...");
 }
+
+String mediaElementLiveBroadcastStateText()
+{
+    return String::fromUTF8("Live broadcast");
+}
+
+} // namespace WebCore

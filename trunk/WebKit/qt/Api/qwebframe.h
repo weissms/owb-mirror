@@ -113,6 +113,7 @@ class QWEBKIT_EXPORT QWebFrame : public QObject
     Q_PROPERTY(QIcon icon READ icon)
     Q_PROPERTY(QSize contentsSize READ contentsSize)
     Q_PROPERTY(QPoint scrollPosition READ scrollPosition WRITE setScrollPosition)
+    Q_PROPERTY(bool focus READ hasFocus)
 private:
     QWebFrame(QWebPage *parent, QWebFrameData *frameData);
     QWebFrame(QWebFrame *parent, QWebFrameData *frameData);
@@ -172,6 +173,9 @@ public:
 
     qreal zoomFactor() const;
     void setZoomFactor(qreal factor);
+
+    bool hasFocus() const;
+    void setFocus();
 
     QPoint pos() const;
     QRect geometry() const;

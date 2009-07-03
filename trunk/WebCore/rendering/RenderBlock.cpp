@@ -389,14 +389,14 @@ void RenderBlock::deleteLineBoxTree()
     m_lineBoxes.deleteLineBoxTree(renderArena());
 }
 
-RootInlineBox* RenderBlock::createRootBox()
+RootInlineBox* RenderBlock::createRootInlineBox() 
 {
     return new (renderArena()) RootInlineBox(this);
 }
 
-RootInlineBox* RenderBlock::createRootInlineBox()
+RootInlineBox* RenderBlock::createAndAppendRootInlineBox()
 {
-    RootInlineBox* rootBox = createRootBox();
+    RootInlineBox* rootBox = createRootInlineBox();
     m_lineBoxes.appendLineBox(rootBox);
     return rootBox;
 }
@@ -3246,12 +3246,12 @@ void RenderBlock::addVisualOverflow(const IntRect& r)
     m_overflowHeight = max(m_overflowHeight, r.bottom());
 }
 
-bool RenderBlock::isPointInOverflowControl(HitTestResult& result, int, int, int, int)
+bool RenderBlock::isPointInOverflowControl(HitTestResult& result, int _x, int _y, int _tx, int _ty)
 {
     if (!scrollsOverflow())
         return false;
 
-    return layer()->hitTestOverflowControls(result);
+    return layer()->hitTestOverflowControls(result, IntPoint(_x - _tx, _y - _ty));
 }
 
 bool RenderBlock::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int _tx, int _ty, HitTestAction hitTestAction)

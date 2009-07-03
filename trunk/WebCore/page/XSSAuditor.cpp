@@ -115,18 +115,18 @@ bool XSSAuditor::canLoadObject(const String& url) const
     return true;
 }
 
-String XSSAuditor::decodeURL(const String& str, const TextEncoding& encoding, bool allowControlCharacters)
+String XSSAuditor::decodeURL(const String& str, const TextEncoding& encoding, bool allowNullCharacters)
 {
     String result;
     String url = str;
 
     url.replace('+', ' ');
     result = decodeURLEscapeSequences(url);
-    if (!allowControlCharacters)
-        result.removeCharacters(&isControlCharacter);
-    result = encoding.decode(result.utf8().data(), result.length());
-    if (!allowControlCharacters)
-        result.removeCharacters(&isControlCharacter);
+    String decodedResult = encoding.decode(result.utf8().data(), result.length());
+    if (!decodedResult.isEmpty())
+        result = decodedResult;
+    if (!allowNullCharacters)
+        result = StringImpl::createStrippingNullCharacters(result.characters(), result.length());
     return result;
 }
 
@@ -145,6 +145,11 @@ bool XSSAuditor::findInRequest(Frame* frame, const String& string) const
 {
     ASSERT(frame->document());
     String pageURL = frame->document()->url().string();
+
+    if (!frame->document()->decoder()) {
+        // Note, JavaScript URLs do not have a charset.
+        return false;
+    }
 
     if (protocolIs(pageURL, "data"))
         return false;
