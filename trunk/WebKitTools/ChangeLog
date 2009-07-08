@@ -1,3 +1,78 @@
+2009-07-08  Brady Eidson  <beidson@apple.com>
+
+        Tiger build fix, work around missing NSString API.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dumpHistoryItem):
+
+2009-07-07  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27049 - In dumpBackForwardList() mode, DRT should normalize file urls.
+
+        Make the dump of a history item agnostic to the layout of filesystem on the testing machine.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dumpHistoryItem):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (dumpHistoryItem):
+
+2009-07-07  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Clear the main frame's name between loading pages, like in r36652. This
+        reduces the side-effects between test cases.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open):
+
+2009-07-06  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Fix various layout tests with Qt's DRT.
+
+        Remember to set the focus on the web page before
+        loading.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open):
+
+2009-07-07  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Tor Arne Vestbø and Holger Freyther.
+
+        Fix timeout timer handling in Qt DRT.
+
+        Use QBasicTimer instead of startTimer/killTimer, to fix the
+        problem that starting the timeout timer did not stop a
+        previously started timer, causing multiple emissions of timeout.
+        The timerEvent() implementation now also checks the timer id, to
+        protect against double timeouts.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::LayoutTestController):
+        (LayoutTestController::reset):
+        (LayoutTestController::waitUntilDone):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::timerEvent):
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-07-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        bugzilla-tool fails to close bugs with bugzilla 3.0
+        https://bugs.webkit.org/show_bug.cgi?id=27008
+
+        Update bugzilla.py to match changes in the bug page "changeform"
+        Update scm.py to add bug_ids to attachments to make error reporting nicer.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
 2009-07-06  Maciej Stachowiak  <mjs@apple.com>
 
         Reviewed by Eric Seidel.

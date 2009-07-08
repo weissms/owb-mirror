@@ -4989,10 +4989,17 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
             m_style->setPerspective(0);
             return;
         }
-
-        if (primitiveValue->primitiveType() != CSSPrimitiveValue::CSS_NUMBER)
+        
+        float perspectiveValue;
+        int type = primitiveValue->primitiveType();
+        if (CSSPrimitiveValue::isUnitTypeLength(type))
+            perspectiveValue = static_cast<float>(primitiveValue->computeLengthIntForLength(style(), zoomFactor));
+        else if (type == CSSPrimitiveValue::CSS_NUMBER) {
+            // For backward compatibility, treat valueless numbers as px.
+            perspectiveValue = CSSPrimitiveValue::create(primitiveValue->getDoubleValue(), CSSPrimitiveValue::CSS_PX)->computeLengthFloat(style(), zoomFactor);
+        } else
             return;
-        float perspectiveValue = static_cast<float>(primitiveValue->getDoubleValue());
+
         if (perspectiveValue >= 0.0f)
             m_style->setPerspective(perspectiveValue);
         return;
@@ -5757,7 +5764,7 @@ Color CSSStyleSelector::getColorFromPrimitiveValue(CSSPrimitiveValue* primitiveV
         } else if (ident == CSSValueWebkitActivelink)
             col = m_element->document()->activeLinkColor();
         else if (ident == CSSValueWebkitFocusRingColor)
-            col = RenderTheme::defaultTheme()->focusRingColor();
+            col = RenderTheme::focusRingColor();
         else if (ident == CSSValueCurrentcolor)
             col = m_style->color();
         else

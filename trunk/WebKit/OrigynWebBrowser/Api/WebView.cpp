@@ -1600,7 +1600,7 @@ void WebView::updateFocusedAndActiveState()
     bool active = m_page->focusController()->isActive();
     Frame* mainFrame = m_page->mainFrame();
     Frame* focusedFrame = m_page->focusController()->focusedOrMainFrame();
-    mainFrame->selection()->setFocused(active && mainFrame == focusedFrame);
+    mainFrame->selection()->setFocused(mainFrame);
 }
 
 String buffer(const char* url)

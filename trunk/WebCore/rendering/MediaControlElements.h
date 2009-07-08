@@ -82,9 +82,14 @@ class MediaControlElement : public HTMLDivElement
 {
 public:
     MediaControlElement(Document*, PseudoId, HTMLMediaElement*);
+    virtual void attach();
+    virtual bool rendererIsNeeded(RenderStyle*);
+
+    RenderStyle* styleForElement();
     void attachToParent(Element*);
     void update();
-    void updateStyle();
+    virtual void updateStyle();
+
 protected:
     HTMLMediaElement* m_mediaElement;   
     PseudoId m_pseudoStyleId;
@@ -95,7 +100,7 @@ protected:
 class MediaControlTimelineContainerElement : public MediaControlElement {
 public:
     MediaControlTimelineContainerElement(Document*, HTMLMediaElement*);
-    virtual bool rendererIsNeeded(RenderStyle* style);
+    virtual bool rendererIsNeeded(RenderStyle*);
 };
 
 // ----------------------------
@@ -104,7 +109,7 @@ class MediaControlStatusDisplayElement : public MediaControlElement {
 public:
     MediaControlStatusDisplayElement(Document*, HTMLMediaElement*);
     virtual void update();
-    virtual bool rendererIsNeeded(RenderStyle* style);
+    virtual bool rendererIsNeeded(RenderStyle*);
 private:
     enum StateBeingDisplayed { Nothing, Loading, LiveBroadcast };
     StateBeingDisplayed m_stateBeingDisplayed;
@@ -115,9 +120,14 @@ private:
 class MediaControlInputElement : public HTMLInputElement {
 public:
     MediaControlInputElement(Document*, PseudoId, const String& type, HTMLMediaElement*, MediaControlElementType);
+    virtual void attach();
+    virtual bool rendererIsNeeded(RenderStyle*);
+
+    RenderStyle* styleForElement();
     void attachToParent(Element*);
     void update();
-    virtual void updateStyle();
+    void updateStyle();
+
     bool hitTest(const IntPoint& absPoint);
     MediaControlElementType displayType() const { return m_displayType; }
 
@@ -200,6 +210,16 @@ public:
 
 // ----------------------------
 
+class MediaControlTimeDisplayElement : public MediaControlElement {
+public:
+    MediaControlTimeDisplayElement(Document*, PseudoId, HTMLMediaElement*);
+    void setVisible(bool);
+private:
+    Length m_cachedWidth;
+};
+
+// ----------------------------
+
 class RenderMediaControlShadowRoot : public RenderBlock {
 public:
     RenderMediaControlShadowRoot(Element* e) : RenderBlock(e) { }
@@ -207,6 +227,7 @@ public:
 };
     
 // ----------------------------
+
 
 } //namespace WebCore
 #endif // enable(video)

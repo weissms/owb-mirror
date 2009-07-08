@@ -153,11 +153,13 @@ public:
         FloatWithRect(RenderBox* f)
             : object(f)
             , rect(IntRect(f->x() - f->marginLeft(), f->y() - f->marginTop(), f->width() + f->marginLeft() + f->marginRight(), f->height() + f->marginTop() + f->marginBottom()))
+            , everHadLayout(f->m_everHadLayout)
         {
         }
 
         RenderBox* object;
         IntRect rect;
+        bool everHadLayout;
     };
 
     void bidiReorderLine(InlineBidiResolver&, const InlineIterator& end, bool previousLineBrokeCleanly);
@@ -329,6 +331,14 @@ public:
     // style from this RenderBlock.
     RenderBlock* createAnonymousBlock() const;
 
+    // Delay update scrollbar until finishDelayRepaint() will be
+    // called.  This function is used when a flexbox is layouting its
+    // descendant.  If multiple startDelayRepaint() is called,
+    // finishDelayRepaint() will do nothing until finishDelayRepaint()
+    // is called same times.
+    static void startDelayUpdateScrollInfo();
+    static void finishDelayUpdateScrollInfo();
+
 private:
     void adjustPointToColumnContents(IntPoint&) const;
     void adjustForBorderFit(int x, int& left, int& right) const; // Helper function for borderFitAdjust
@@ -356,6 +366,8 @@ private:
     int layoutColumns(int endOfContent = -1);
 
     bool expandsToEncloseOverhangingFloats() const;
+
+    void updateScrollInfoAfterLayout();
 
 protected:
     struct FloatingObject {

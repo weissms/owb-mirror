@@ -34,6 +34,7 @@
 #import "Image.h"
 #import "LocalCurrentGraphicsContext.h"
 #import "MediaControlElements.h"
+#import "RenderMedia.h"
 #import "RenderSlider.h"
 #import "RenderView.h"
 #import "SharedBuffer.h"
@@ -157,7 +158,7 @@ Color RenderThemeMac::platformInactiveListBoxSelectionForegroundColor() const
     return Color::black;
 }
 
-Color RenderThemeMac::focusRingColor() const
+Color RenderThemeMac::platformFocusRingColor() const
 {
     if (usesTestModeFocusRingColor())
         return oldAquaFocusRingColor();
@@ -1422,23 +1423,35 @@ static int mediaControllerTheme()
 {
     static const long minimumQuickTimeVersion = 0x07600000; // 7.6
     static SInt32 quickTimeVersion = 0;
+    static int controllerTheme = -1;
+    
+    if (controllerTheme != -1)
+        return controllerTheme;
+
+    controllerTheme = MediaControllerThemeClassic;
 
     if (!quickTimeVersion) {
         OSErr err;
         err = Gestalt(gestaltQuickTime, &quickTimeVersion);
         if (err != noErr)
-            return MediaControllerThemeClassic;
+            return controllerTheme;
     }
     if (quickTimeVersion < minimumQuickTimeVersion)
-        return MediaControllerThemeClassic;
+        return controllerTheme;
 
-    // keep the feature off for now without an explicit opt-in
     Boolean validKey;
     Boolean useQTMediaUI = CFPreferencesGetAppBooleanValue(CFSTR("UseQuickTimeMediaUI"), CFSTR("com.apple.WebCore"), &validKey);
-    if (!validKey || !useQTMediaUI)
-        return MediaControllerThemeClassic;
 
-    return MediaControllerThemeQT;
+#if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
+    if (validKey && !useQTMediaUI)
+        return controllerTheme;
+#else
+    if (!validKey || !useQTMediaUI)
+        return controllerTheme;
+#endif
+
+    controllerTheme = MediaControllerThemeQT;
+    return controllerTheme;
 }
 #endif
 
@@ -1477,6 +1490,13 @@ void RenderThemeMac::adjustSliderThumbSize(RenderObject* o) const
 
 #if ENABLE(VIDEO)
 
+enum WKMediaControllerThemeState { 
+    MediaUIPartDisabledFlag = 1 << 0,
+    MediaUIPartPressedFlag = 1 << 1,
+    MediaUIPartDrawEndCapsFlag = 1 << 3,
+};
+
+
 // Utility to scale when the UI part are not scaled by wkDrawMediaUIPart
 static FloatRect getUnzoomedRectAndAdjustCurrentContext(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect &originalRect)
 {
@@ -1492,6 +1512,7 @@ static FloatRect getUnzoomedRectAndAdjustCurrentContext(RenderObject* o, const R
     return unzoomedRect;
 }
 
+
 bool RenderThemeMac::paintMediaFullscreenButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
 {
     Node* node = o->node();
@@ -1499,7 +1520,8 @@ bool RenderThemeMac::paintMediaFullscreenButton(RenderObject* o, const RenderObj
         return false;
 
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaFullscreenButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
+    wkDrawMediaUIPart(MediaFullscreenButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
     return false;
 }
 
@@ -1512,7 +1534,9 @@ bool RenderThemeMac::paintMediaMuteButton(RenderObject* o, const RenderObject::P
 
     if (MediaControlPlayButtonElement* btn = static_cast<MediaControlPlayButtonElement*>(node)) {
         LocalCurrentGraphicsContext localContext(paintInfo.context);
-        wkDrawMediaUIPart(btn->displayType(), mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
+        wkDrawMediaUIPart(btn->displayType(), mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+            node->active() ? MediaUIPartPressedFlag : 0);
+
     }
     return false;
 }
@@ -1526,7 +1550,8 @@ bool RenderThemeMac::paintMediaPlayButton(RenderObject* o, const RenderObject::P
 
     if (MediaControlPlayButtonElement* btn = static_cast<MediaControlPlayButtonElement*>(node)) {
         LocalCurrentGraphicsContext localContext(paintInfo.context);
-        wkDrawMediaUIPart(btn->displayType(), mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
+        wkDrawMediaUIPart(btn->displayType(), mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+            node->active() ? MediaUIPartPressedFlag : 0);
     }
     return false;
 }
@@ -1538,8 +1563,9 @@ bool RenderThemeMac::paintMediaSeekBackButton(RenderObject* o, const RenderObjec
         return false;
 
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaSeekBackButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaSeekBackButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
 
 bool RenderThemeMac::paintMediaSeekForwardButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1549,8 +1575,9 @@ bool RenderThemeMac::paintMediaSeekForwardButton(RenderObject* o, const RenderOb
         return false;
 
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaSeekForwardButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaSeekForwardButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
 
 bool RenderThemeMac::paintMediaSliderTrack(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1575,7 +1602,9 @@ bool RenderThemeMac::paintMediaSliderTrack(RenderObject* o, const RenderObject::
  
     paintInfo.context->save();
     FloatRect unzoomedRect = getUnzoomedRectAndAdjustCurrentContext(o, paintInfo, r);
-    wkDrawMediaSliderTrack(mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, timeLoaded, currentTime, duration);
+    bool shouldDrawEndCaps = !static_cast<RenderMedia*>(mediaElement->renderer())->shouldShowTimeDisplayControls();
+    wkDrawMediaSliderTrack(mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, 
+        timeLoaded, currentTime, duration, shouldDrawEndCaps ? MediaUIPartDrawEndCapsFlag : 0);
     paintInfo.context->restore();
     return false;
 }
@@ -1587,8 +1616,9 @@ bool RenderThemeMac::paintMediaSliderThumb(RenderObject* o, const RenderObject::
         return false;
 
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaSliderThumb, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaSliderThumb, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
     
 bool RenderThemeMac::paintMediaRewindButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1598,8 +1628,9 @@ bool RenderThemeMac::paintMediaRewindButton(RenderObject* o, const RenderObject:
         return false;
     
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaRewindButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaRewindButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
 
 bool RenderThemeMac::paintMediaReturnToRealtimeButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1609,8 +1640,9 @@ bool RenderThemeMac::paintMediaReturnToRealtimeButton(RenderObject* o, const Ren
         return false;
     
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaReturnToRealtimeButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaReturnToRealtimeButton, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
 
 
@@ -1621,8 +1653,9 @@ bool RenderThemeMac::paintMediaControlsBackground(RenderObject* o, const RenderO
         return false;
 
     LocalCurrentGraphicsContext localContext(paintInfo.context);
-    wkDrawMediaUIPart(MediaTimelineContainer, mediaControllerTheme(), paintInfo.context->platformContext(), r, node->active());
-    return false;
+    wkDrawMediaUIPart(MediaTimelineContainer, mediaControllerTheme(), paintInfo.context->platformContext(), r, 
+        node->active() ? MediaUIPartPressedFlag : 0);
+     return false;
 }
 
 bool RenderThemeMac::paintMediaCurrentTime(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1633,7 +1666,8 @@ bool RenderThemeMac::paintMediaCurrentTime(RenderObject* o, const RenderObject::
 
     paintInfo.context->save();
     FloatRect unzoomedRect = getUnzoomedRectAndAdjustCurrentContext(o, paintInfo, r);
-    wkDrawMediaUIPart(MediaCurrentTimeDisplay, mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, node->active());
+    wkDrawMediaUIPart(MediaCurrentTimeDisplay, mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, 
+        node->active() ? MediaUIPartPressedFlag : 0);
     paintInfo.context->restore();
     return false;
 }
@@ -1646,7 +1680,8 @@ bool RenderThemeMac::paintMediaTimeRemaining(RenderObject* o, const RenderObject
 
     paintInfo.context->save();
     FloatRect unzoomedRect = getUnzoomedRectAndAdjustCurrentContext(o, paintInfo, r);
-    wkDrawMediaUIPart(MediaTimeRemainingDisplay, mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, node->active());
+    wkDrawMediaUIPart(MediaTimeRemainingDisplay, mediaControllerTheme(), paintInfo.context->platformContext(), unzoomedRect, 
+         node->active() ? MediaUIPartPressedFlag : 0);
     paintInfo.context->restore();
     return false;
 }

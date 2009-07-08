@@ -575,6 +575,7 @@
 #endif
 #endif
 
+#if ENABLE(JIT)
 #ifndef ENABLE_JIT_OPTIMIZE_CALL
 #define ENABLE_JIT_OPTIMIZE_CALL 1
 #endif
@@ -589,6 +590,7 @@
 #endif
 #ifndef ENABLE_JIT_OPTIMIZE_METHOD_CALLS
 #define ENABLE_JIT_OPTIMIZE_METHOD_CALLS 1
+#endif
 #endif
 
 #if PLATFORM(X86) && COMPILER(MSVC)
