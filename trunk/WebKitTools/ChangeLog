@@ -1,3 +1,111 @@
+2009-07-10  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26903
+
+        Turned on CHANNEL_MESSAGING by default because the MessageChannel API
+        can now be implemented for Web Workers and is reasonably stable.
+
+        * Scripts/build-webkit:
+
+2009-07-09  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27114> bugzilla-tool: Parse short bug URL from commit log messages
+
+        Reviewed by Adam Roben.
+
+        * Scripts/bugzilla-tool:
+        (bug_id_from_commit_message): Check for the short bug URL before
+        checking for the longer bugs.webkit.org URL.
+
+2009-07-08  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 27062: bugzilla-tool: post-commits should read bug id from commit log and actually work
+
+        <https://bugs.webkit.org/show_bug.cgi?id=27062>
+
+        Reviewed by Eric Seidel.
+
+        Removed the required BUGID argument from the "post-commits"
+        command and replaced it with a -b|--bug-id switch or parsing the
+        commit log message for the bug URL.  Fixed a bug in the
+        "post-commits" that would ignore the COMMITISH used and post a
+        patch of local changes against HEAD.  Added --no-commit switch
+        to disable using the bulk of the ChangeLog entry as the comment
+        for the new patch.
+
+        * Scripts/bugzilla-tool:
+        (bug_id_from_commit_message): Added.  Returns a bug id from the
+        commit log message, thus enforcing the need for a bug URL in the
+        message.
+        (PostCommitsAsPatchesToBug.__init__): Updated help description
+        to match new behavior of pulling bug ids from commit log
+        messages instead of from the command line.  Added -b|--bug-id
+        switch and --no-comment switch.
+        (PostCommitsAsPatchesToBug.execute): Updated to use
+        bug_id_from_commit_message() to pull bug ids from commit log
+        messages.  Also switched from SCM.create_patch() to use
+        SCM.create_patch_from_local_commit() to fix a bug where local
+        repository changes were posted as a patch instead of the
+        specific COMMITISH.  Fall back to -b|--bug-id if no URL is found
+        in the commit log message.  Don't specify a comment for the
+        patch if --no-comment is used.  Set cherry_pick argument to True
+        for Git.commit_ids_from_range_arguments() since we don't want
+        implicit commit range behavior for this command.
+
+        * Scripts/modules/bugzilla.py: Import datetime module.
+        (timestamp): Added.  Returns a timestamp in the form of
+        "YYYYMMDDhhmmss".
+        (Bugzilla.bug_server_regex): Added static attribute.
+        (Bugzilla.add_patch_to_bug): Construct a more meaningful patch
+        file name using the bug_id and timestamp().
+
+        * Scripts/modules/scm.py:
+        (SCM.create_patch_from_local_commit): Added.
+        (Git.create_patch_from_local_commit): Added.  Runs "git diff" to
+        return a patch for the given commit_id.
+
+2009-07-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Make prepare-ChangeLog less shouty
+        https://bugs.webkit.org/show_bug.cgi?id=27098
+
+        * Scripts/prepare-ChangeLog:
+
+2009-07-08  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 27083: bugzilla.py: Clean up bug_server use
+
+        <https://bugs.webkit.org/show_bug.cgi?id=27083>
+
+        Reviewed by Darin Adler.
+
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.fetch_bug_ids_from_commit_queue): Use bug_server
+        instead of hard-coding the URL.
+        (Bugzilla.authenticate): Remove extra '/' before URL path.
+        (Bugzilla.add_patch_to_bug): Ditto.
+
+2009-07-08  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix for Windows Cairo.
+
+        Cairo build was incorrectly #including the PixelDumpSupportCG.h
+        instead of PixelDumpSupportCairo.h
+
+        * DumpRenderTree/win/PixelDumpSupportWin.cpp: Correct #include
+
+2009-07-08  David Faure  <faure@kde.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Small documentation improvement for build-webkit --help
+
+        * Scripts/build-webkit: mention --debug option
+
 2009-07-08  Brady Eidson  <beidson@apple.com>
 
         Tiger build fix, work around missing NSString API.
@@ -17,6 +125,15 @@
         (dumpHistoryItem):
         * DumpRenderTree/win/DumpRenderTree.cpp:
         (dumpHistoryItem):
+
+2009-07-07  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Correct git url of the Qt test-fonts.
+
+        * DumpRenderTree/qt/main.cpp:
+        (main):
 
 2009-07-07  Simon Hausmann  <hausmann@webkit.org>
 

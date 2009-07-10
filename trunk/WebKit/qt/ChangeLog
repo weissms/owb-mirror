@@ -1,3 +1,59 @@
+2009-07-10  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Make Widget RefCounted to fix:
+
+        <rdar://problem/7038831> REGRESSION (TOT): In Mail, a crash occurs 
+        at WebCore::Widget::afterMouseDown() after clicking To Do's close 
+        box
+        <rdar://problem/6978804> WER #16: Repro Access Violation in 
+        WebCore::PluginView::bindingInstance (1310178023)
+        -and-
+        <rdar://problem/6991251> WER #13: Crash in WebKit!
+        WebCore::PluginView::performRequest+203 (1311461169) 
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::createPlugin):
+        (WebCore::FrameLoaderClientQt::createJavaAppletWidget):
+        * WebCoreSupport/FrameLoaderClientQt.h:
+
+2009-07-08  Pradeepto Bhattacharya  <pradeepto@kde.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Build fix.
+
+        * WebCoreSupport/FrameLoaderClientQt.h: Removed the slot slotCallPolicyFunction().
+
+2009-07-08  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27080
+
+        Fix DRT instability issues with fast/loader/submit-form-while-parsing-2.html
+
+        When the form is submitted we call the policy function in the frame
+        loader delayed with a queued connection. That queued connection
+        sometimes interferes with the javascript timeout set in the testcase.
+
+        Eliminate the entire delayed policy function mechanism and instead always
+        call back directly, like in the other ports. In most other places we called
+        the slot directly anyway.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::FrameLoaderClientQt): Remove m_policyFunction.
+        (WebCore::FrameLoaderClientQt::callPolicyFunction): Call the policy function directly instead
+        of emitting the queued signal.
+        (WebCore::FrameLoaderClientQt::cancelPolicyCheck): Call callPolicyFunction directly.
+        (WebCore::FrameLoaderClientQt::dispatchWillSubmitForm): Ditto.
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForMIMEType): Ditto.
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNewWindowAction): Ditto.
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNavigationAction): Ditto.
+        * WebCoreSupport/FrameLoaderClientQt.h: Remove m_policyFunction as well as the associated
+        signal.
+
 2009-07-08  Simon Hausmann  <hausmann@webkit.org>
 
         Reviewed by Holger Freyther.

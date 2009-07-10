@@ -391,7 +391,7 @@ String HTMLMediaElement::canPlayType(const String& mimeType) const
     switch (support)
     {
         case MediaPlayer::IsNotSupported:
-            canPlay = "no";
+            canPlay = "";
             break;
         case MediaPlayer::MayBeSupported:
             canPlay = "maybe";
@@ -1629,7 +1629,7 @@ bool HTMLMediaElement::processingUserGesture() const
     FrameLoader* loader = frame ? frame->loader() : 0;
 
     // return 'true' for safety if we don't know the answer 
-    return loader ? loader->userGestureHint() : true;
+    return loader ? loader->isProcessingUserGesture() : true;
 }
 
 #if ENABLE(PLUGIN_PROXY_FOR_VIDEO)

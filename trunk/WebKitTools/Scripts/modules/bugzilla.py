@@ -1,4 +1,5 @@
 # Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Apple Inc. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -33,6 +34,8 @@ import re
 import subprocess
 import sys
 import urllib2
+
+from datetime import datetime # used in timestamp()
 
 # WebKit includes a built copy of BeautifulSoup in Scripts/modules
 # so this import should always succeed.
@@ -74,6 +77,9 @@ def read_config(key):
         return None
     return value.rstrip('\n')
 
+def timestamp():
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+
 class Bugzilla:
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
@@ -85,6 +91,8 @@ class Bugzilla:
         self.browser = Browser()
         # Ignore bugs.webkit.org/robots.txt until we fix it to allow this script
         self.browser.set_handle_robots(False)
+
+    bug_server_regex = "https?\://bugs\.webkit\.org/"
 
     # This could eventually be a text file
     reviewer_usernames_to_full_names = {
@@ -182,7 +190,7 @@ class Bugzilla:
     def fetch_bug_ids_from_commit_queue(self):
         # FIXME: We should have an option for restricting the search by email.  Example:
         # unassigned_only = "&emailassigned_to1=1&emailtype1=substring&email1=unassigned"
-        commit_queue_url = "https://bugs.webkit.org/buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review%2B"
+        commit_queue_url = self.bug_server + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review%2B"
         log("Loading commit queue")
 
         page = urllib2.urlopen(commit_queue_url)
@@ -220,7 +228,7 @@ class Bugzilla:
         if self.dryrun:
             self.authenticated = True
             return
-        self.browser.open(self.bug_server + "/index.cgi?GoAheadAndLogIn=1")
+        self.browser.open(self.bug_server + "index.cgi?GoAheadAndLogIn=1")
         self.browser.select_form(name="login")
         self.browser['Bugzilla_login'] = username
         self.browser['Bugzilla_password'] = password
@@ -242,7 +250,7 @@ class Bugzilla:
             log(comment_text)
             return
         
-        self.browser.open(self.bug_server + "/attachment.cgi?action=enter&bugid=" + bug_id)
+        self.browser.open(self.bug_server + "attachment.cgi?action=enter&bugid=" + bug_id)
         self.browser.select_form(name="entryform")
         self.browser['description'] = description
         self.browser['ispatch'] = ("1",)
@@ -250,7 +258,7 @@ class Bugzilla:
             log(comment_text)
             self.browser['comment'] = comment_text
         self.browser['flag_type-1'] = ('?',) if mark_for_review else ('X',)
-        self.browser.add_file(patch_file_object, "text/plain", "bugzilla_requires_a_filename.patch")
+        self.browser.add_file(patch_file_object, "text/plain", "bug-%s-%s.patch" % (bug_id, timestamp()))
         self.browser.submit()
 
     def obsolete_attachment(self, attachment_id, comment_text = None):

@@ -39,7 +39,9 @@
 #include "SecurityOrigin.h" // for WebCore::SecurityOrigin
 #include "V8CustomBinding.h"
 #include "V8DOMMap.h"
+#include "V8DOMWrapper.h"
 #include "V8EventListenerList.h"
+#include "V8GCController.h"
 #include "V8Index.h"
 #include "V8Utilities.h"
 #include <v8.h>
@@ -104,35 +106,6 @@ namespace WebCore {
 
     // FIXME: use standard logging facilities in WebCore.
     void logInfo(Frame*, const String& message, const String& url);
-
-#ifndef NDEBUG
-
-#define GlobalHandleTypeList(V)   \
-    V(PROXY)                      \
-    V(NPOBJECT)                   \
-    V(SCHEDULED_ACTION)           \
-    V(EVENT_LISTENER)             \
-    V(NODE_FILTER)                \
-    V(SCRIPTINSTANCE)             \
-    V(SCRIPTVALUE)
-
-
-    // Host information of persistent handles.
-    enum GlobalHandleType {
-#define ENUM(name) name,
-        GlobalHandleTypeList(ENUM)
-#undef ENUM
-    };
-
-
-    class GlobalHandleInfo {
-    public:
-        GlobalHandleInfo(void* host, GlobalHandleType type) : m_host(host), m_type(type) { }
-        void* m_host;
-        GlobalHandleType m_type;
-    };
-
-#endif // NDEBUG
 
     // The following Batch structs and methods are used for setting multiple
     // properties on an ObjectTemplate, used from the generated bindings
@@ -232,10 +205,6 @@ namespace WebCore {
 
         void removeV8EventListener(V8EventListener*);
         void removeObjectEventListener(V8ObjectEventListener*);
-
-        // Protect/Unprotect JS wrappers of a DOM object.
-        static void gcProtect(void* domObject);
-        static void gcUnprotect(void* domObject);
 
 #if ENABLE(SVG)
         static void setSVGContext(void*, SVGElement*);
@@ -347,72 +316,7 @@ namespace WebCore {
 
         static v8::Handle<v8::Value> checkNewLegal(const v8::Arguments&);
 
-        // Create a V8 wrapper for a C pointer
-        static v8::Handle<v8::Value> wrapCPointer(void* cptr)
-        {
-            // Represent void* as int
-            int addr = reinterpret_cast<int>(cptr);
-            ASSERT(!(addr & 0x01)); // The address must be aligned.
-            return v8::Integer::New(addr >> 1);
-        }
-
-        // Take C pointer out of a v8 wrapper.
-        template <class C>
-        static C* extractCPointer(v8::Handle<v8::Value> obj)
-        {
-            return static_cast<C*>(extractCPointerImpl(obj));
-        }
-
         static v8::Handle<v8::Script> compileScript(v8::Handle<v8::String> code, const String& fileName, int baseLine);
-
-#ifndef NDEBUG
-        // Checks if a v8 value can be a DOM wrapper
-        static bool maybeDOMWrapper(v8::Handle<v8::Value>);
-#endif
-
-        // Sets contents of a DOM wrapper.
-        static void setDOMWrapper(v8::Handle<v8::Object>, int type, void* ptr);
-
-        static v8::Handle<v8::Object> lookupDOMWrapper(V8ClassIndex::V8WrapperType, v8::Handle<v8::Value>);
-
-        // A helper function extract native object pointer from a DOM wrapper
-        // and cast to the specified type.
-        template <class C>
-        static C* convertDOMWrapperToNative(v8::Handle<v8::Value> object)
-        {
-            ASSERT(maybeDOMWrapper(object));
-            v8::Handle<v8::Value> ptr = v8::Handle<v8::Object>::Cast(object)->GetInternalField(V8Custom::kDOMWrapperObjectIndex);
-            return extractCPointer<C>(ptr);
-        }
-
-        // A help function extract a node type pointer from a DOM wrapper.
-        // Wrapped pointer must be cast to Node* first.
-        static void* convertDOMWrapperToNodeHelper(v8::Handle<v8::Value>);
-
-        template <class C>
-        static C* convertDOMWrapperToNode(v8::Handle<v8::Value> value)
-        {
-            return static_cast<C*>(convertDOMWrapperToNodeHelper(value));
-        }
-
-        template<typename T>
-        static v8::Handle<v8::Value> convertToV8Object(V8ClassIndex::V8WrapperType type, PassRefPtr<T> imp)
-        {
-            return convertToV8Object(type, imp.get());
-        }
-
-        static v8::Handle<v8::Value> convertToV8Object(V8ClassIndex::V8WrapperType, void*);
-
-        // Fast-path for Node objects.
-        static v8::Handle<v8::Value> convertNodeToV8Object(Node*);
-
-        template <class C>
-        static C* convertToNativeObject(V8ClassIndex::V8WrapperType type, v8::Handle<v8::Value> object)
-        {
-            return static_cast<C*>(convertToNativeObjectImpl(type, object));
-        }
-
-        static V8ClassIndex::V8WrapperType domWrapperType(v8::Handle<v8::Object>);
 
         // If the exception code is different from zero, a DOM exception is
         // schedule to be thrown.
@@ -425,56 +329,16 @@ namespace WebCore {
         // as a named property. Used by v8_test_shell.
         static void bindJsObjectToWindow(Frame*, const char* name, int type, v8::Handle<v8::FunctionTemplate>, void*);
 
-        static v8::Handle<v8::Value> convertEventToV8Object(Event*);
-
-        static Event* convertToNativeEvent(v8::Handle<v8::Value> jsEvent)
-        {
-            if (!isDOMEventWrapper(jsEvent))
-                return 0;
-            return convertDOMWrapperToNative<Event>(jsEvent);
-        }
-
-        static v8::Handle<v8::Value> convertEventTargetToV8Object(EventTarget*);
-        // Wrap and unwrap JS event listeners.
-        static v8::Handle<v8::Value> convertEventListenerToV8Object(EventListener*);
-
-        // DOMImplementation is a singleton and it is handled in a special
-        // way. A wrapper is generated per document and stored in an
-        // internal field of the document.
-        static v8::Handle<v8::Value> convertDOMImplementationToV8Object(DOMImplementation*);
-
-        // Wrap JS node filter in C++.
-        static PassRefPtr<NodeFilter> wrapNativeNodeFilter(v8::Handle<v8::Value>);
-
-        static v8::Persistent<v8::FunctionTemplate> getTemplate(V8ClassIndex::V8WrapperType);
-
         template <int tag, typename T>
         static v8::Handle<v8::Value> constructDOMObject(const v8::Arguments&);
 
-        // Checks whether a DOM object has a JS wrapper.
-        static bool domObjectHasJSWrapper(void*);
-        // Set JS wrapper of a DOM object, the caller in charge of increase ref.
-        static void setJSWrapperForDOMObject(void*, v8::Persistent<v8::Object>);
-        static void setJSWrapperForActiveDOMObject(void*, v8::Persistent<v8::Object>);
-        static void setJSWrapperForDOMNode(Node*, v8::Persistent<v8::Object>);
-
         // Process any pending JavaScript console messages.
         static void processConsoleMessages();
-
-#ifndef NDEBUG
-        // For debugging and leak detection purpose.
-        static void registerGlobalHandle(GlobalHandleType, void*, v8::Persistent<v8::Value>);
-        static void unregisterGlobalHandle(void*, v8::Persistent<v8::Value>);
-#endif
-
-        // Check whether a V8 value is a wrapper of type |classType|.
-        static bool isWrapperOfType(v8::Handle<v8::Value>, V8ClassIndex::V8WrapperType);
 
         // Function for retrieving the line number and source name for the top
         // JavaScript stack frame.
         static int sourceLineNumber();
         static String sourceName();
-
 
         // Returns a local handle of the context.
         v8::Local<v8::Context> context()
@@ -491,21 +355,21 @@ namespace WebCore {
         // of the v8::Extension object passed.
         static void registerExtension(v8::Extension*, const String& schemeRestriction);
 
-        static void* convertToSVGPODTypeImpl(V8ClassIndex::V8WrapperType, v8::Handle<v8::Value>);
-
         // FIXME: Separate these concerns from V8Proxy?
         v8::Persistent<v8::Context> createNewContext(v8::Handle<v8::Object> global);
         bool installDOMWindow(v8::Handle<v8::Context> context, DOMWindow* window);
+
+        void initContextIfNeeded();
+        DOMWrapperMap<Node>& domNodeMap() { return m_domNodeMap; }
+        void updateDocumentWrapper(v8::Handle<v8::Value> wrapper);
 
     private:
         static const char* kContextDebugDataType;
         static const char* kContextDebugDataValue;
 
-        void initContextIfNeeded();
         void disconnectEventListeners();
         void setSecurityToken();
         void clearDocumentWrapper();
-        void updateDocumentWrapper(v8::Handle<v8::Value> wrapper);
 
         // The JavaScript wrapper for the document object is cached on the global
         // object for fast access. UpdateDocumentWrapperCache sets the wrapper
@@ -519,51 +383,6 @@ namespace WebCore {
 
         static bool canAccessPrivate(DOMWindow*);
 
-        // Check whether a V8 value is a DOM Event wrapper.
-        static bool isDOMEventWrapper(v8::Handle<v8::Value>);
-
-        static void* convertToNativeObjectImpl(V8ClassIndex::V8WrapperType, v8::Handle<v8::Value>);
-
-        // Take C pointer out of a v8 wrapper.
-        static void* extractCPointerImpl(v8::Handle<v8::Value> object)
-        {
-            ASSERT(object->IsNumber());
-            int addr = object->Int32Value();
-            return reinterpret_cast<void*>(addr << 1);
-        }
-
-
-        static v8::Handle<v8::Value> convertStyleSheetToV8Object(StyleSheet*);
-        static v8::Handle<v8::Value> convertCSSValueToV8Object(CSSValue*);
-        static v8::Handle<v8::Value> convertCSSRuleToV8Object(CSSRule*);
-        // Returns the JS wrapper of a window object, initializes the environment
-        // of the window frame if needed.
-        static v8::Handle<v8::Value> convertWindowToV8Object(DOMWindow*);
-
-#if ENABLE(SVG)
-        static v8::Handle<v8::Value> convertSVGElementInstanceToV8Object(SVGElementInstance*);
-        static v8::Handle<v8::Value> convertSVGObjectWithContextToV8Object(V8ClassIndex::V8WrapperType, void*);
-#endif
-
-        // Set hidden references in a DOMWindow object of a frame.
-        static void setHiddenWindowReference(Frame*, const int internalIndex, v8::Handle<v8::Object>);
-
-        static V8ClassIndex::V8WrapperType htmlElementType(HTMLElement*);
-
-        // The first V8WrapperType specifies the function descriptor
-        // used to create JS object. The second V8WrapperType specifies
-        // the actual type of the void* for type casting.
-        // For example, a HTML element has HTMLELEMENT for the first V8WrapperType, but always
-        // use NODE as the second V8WrapperType. JS wrapper stores the second
-        // V8WrapperType and the void* as internal fields.
-        static v8::Local<v8::Object> instantiateV8Object(V8ClassIndex::V8WrapperType descType, V8ClassIndex::V8WrapperType cptrType, void* impl)
-        {
-            return instantiateV8Object(NULL, descType, cptrType, impl);
-        }
-
-        static v8::Local<v8::Object> instantiateV8Object(V8Proxy*, V8ClassIndex::V8WrapperType, V8ClassIndex::V8WrapperType, void*);
-
-
         static const char* rangeExceptionName(int exceptionCode);
         static const char* eventExceptionName(int exceptionCode);
         static const char* xmlHttpRequestExceptionName(int exceptionCode);
@@ -574,7 +393,6 @@ namespace WebCore {
 #endif
 
 #if ENABLE(SVG)
-        static V8ClassIndex::V8WrapperType svgElementType(SVGElement*);
         static const char* svgExceptionName(int exceptionCode);
 #endif
 
@@ -642,9 +460,9 @@ namespace WebCore {
         // Note: it's OK to let this RefPtr go out of scope because we also call
         // SetDOMWrapper(), which effectively holds a reference to obj.
         RefPtr<T> obj = T::create();
-        V8Proxy::setDOMWrapper(args.Holder(), tag, obj.get());
+        V8DOMWrapper::setDOMWrapper(args.Holder(), tag, obj.get());
         obj->ref();
-        V8Proxy::setJSWrapperForDOMObject(obj.get(), v8::Persistent<v8::Object>::New(args.Holder()));
+        V8DOMWrapper::setJSWrapperForDOMObject(obj.get(), v8::Persistent<v8::Object>::New(args.Holder()));
         return args.Holder();
     }
 
@@ -681,7 +499,7 @@ namespace WebCore {
     template <class T> inline v8::Handle<v8::Object> toV8(PassRefPtr<T> object, v8::Local<v8::Object> holder)
     {
         object->ref();
-        V8Proxy::setJSWrapperForDOMObject(object.get(), v8::Persistent<v8::Object>::New(holder));
+        V8DOMWrapper::setJSWrapperForDOMObject(object.get(), v8::Persistent<v8::Object>::New(holder));
         return holder;
     }
 

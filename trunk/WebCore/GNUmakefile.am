@@ -1916,6 +1916,17 @@ webcoregtk_sources += \
 	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp
 
 # ---
+# Channel mesaging support
+# ---
+if ENABLE_CHANNEL_MESSAGING
+FEATURE_DEFINES_JAVASCRIPT += ENABLE_CHANNEL_MESSAGING=1
+
+webcore_cppflags += \
+	-DENABLE_CHANNEL_MESSAGING=1
+
+endif # END ENABLE_CHANNEL_MESSAGING
+
+# ---
 # Freetype font backend
 # ---
 if USE_FREETYPE
@@ -2105,6 +2116,8 @@ webcore_sources += \
 	WebCore/storage/Storage.h \
 	WebCore/storage/StorageArea.cpp \
 	WebCore/storage/StorageArea.h \
+	WebCore/storage/StorageAreaImpl.cpp \
+	WebCore/storage/StorageAreaImpl.h \
 	WebCore/storage/StorageAreaSync.cpp \
 	WebCore/storage/StorageAreaSync.h \
 	WebCore/storage/StorageEvent.cpp \
@@ -2113,6 +2126,8 @@ webcore_sources += \
 	WebCore/storage/StorageMap.h \
 	WebCore/storage/StorageNamespace.cpp \
 	WebCore/storage/StorageNamespace.h \
+	WebCore/storage/StorageNamespaceImpl.cpp \
+	WebCore/storage/StorageNamespaceImpl.h \
 	WebCore/storage/StorageSyncManager.cpp \
 	WebCore/storage/StorageSyncManager.h
 endif # END ENABLE_DOM_STORAGE

@@ -175,10 +175,10 @@ public:
     bool nextOnLineExists() const;
     bool prevOnLineExists() const;
 
-    virtual InlineBox* firstLeafChild();
-    virtual InlineBox* lastLeafChild();
-    InlineBox* nextLeafChild();
-    InlineBox* prevLeafChild();
+    virtual bool isLeaf() const { return true; }
+    
+    InlineBox* nextLeafChild() const;
+    InlineBox* prevLeafChild() const;
         
     RenderObject* renderer() const { return m_renderer; }
 
@@ -204,6 +204,9 @@ public:
     int y() const { return m_y; }
 
     int height() const;
+
+    inline int baselinePosition(bool isRootLineBox) const { return renderer()->baselinePosition(m_firstLine, isRootLineBox); }
+    inline int lineHeight(bool isRootLineBox) const { return renderer()->lineHeight(m_firstLine, isRootLineBox); }
 
     virtual int topOverflow() const { return y(); }
     virtual int bottomOverflow() const { return y() + height(); }

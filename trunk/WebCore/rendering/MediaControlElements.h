@@ -78,14 +78,13 @@ private:
 
 // ----------------------------
 
-class MediaControlElement : public HTMLDivElement
-{
+class MediaControlElement : public HTMLDivElement {
 public:
     MediaControlElement(Document*, PseudoId, HTMLMediaElement*);
     virtual void attach();
     virtual bool rendererIsNeeded(RenderStyle*);
 
-    RenderStyle* styleForElement();
+    virtual PassRefPtr<RenderStyle> styleForElement();
     void attachToParent(Element*);
     void update();
     virtual void updateStyle();
@@ -123,7 +122,7 @@ public:
     virtual void attach();
     virtual bool rendererIsNeeded(RenderStyle*);
 
-    RenderStyle* styleForElement();
+    virtual PassRefPtr<RenderStyle> styleForElement();
     void attachToParent(Element*);
     void update();
     void updateStyle();
@@ -164,6 +163,7 @@ class MediaControlSeekButtonElement : public MediaControlInputElement {
 public:
     MediaControlSeekButtonElement(Document*, HTMLMediaElement*, bool forward);
     virtual void defaultEventHandler(Event*);
+    virtual void detach();
     void seekTimerFired(Timer<MediaControlSeekButtonElement>*);
 
 private:
@@ -214,8 +214,10 @@ class MediaControlTimeDisplayElement : public MediaControlElement {
 public:
     MediaControlTimeDisplayElement(Document*, PseudoId, HTMLMediaElement*);
     void setVisible(bool);
+    virtual PassRefPtr<RenderStyle> styleForElement();
+
 private:
-    Length m_cachedWidth;
+    bool m_isVisible;
 };
 
 // ----------------------------

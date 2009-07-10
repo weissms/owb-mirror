@@ -1055,6 +1055,13 @@ static bool fastDocumentTeardownEnabled()
 #endif
 }
 
+// Indicates if the WebView is in the midst of a user gesture.
+- (BOOL)_isProcessingUserGesture
+{
+    WebFrame *frame = [self mainFrame];
+    return core(frame)->loader()->isProcessingUserGesture();
+}
+
 + (NSString *)_MIMETypeForFile:(NSString *)path
 {
     NSString *extension = [path pathExtension];
@@ -1686,10 +1693,10 @@ static inline IMP getMethod(id o, SEL s)
 {    
     NSView *documentView = [[kit(frameView->frame()) frameView] documentView];
 
-    const HashSet<Widget*>* children = frameView->children();
-    HashSet<Widget*>::const_iterator end = children->end();
-    for (HashSet<Widget*>::const_iterator it = children->begin(); it != end; ++it) {
-        Widget* widget = *it;
+    const HashSet<RefPtr<Widget> >* children = frameView->children();
+    HashSet<RefPtr<Widget> >::const_iterator end = children->end();
+    for (HashSet<RefPtr<Widget> >::const_iterator it = children->begin(); it != end; ++it) {
+        Widget* widget = (*it).get();
         if (widget->isFrameView()) {
             [self _addScrollerDashboardRegionsForFrameView:static_cast<FrameView*>(widget) dashboardRegions:regions];
             continue;
@@ -5155,11 +5162,7 @@ static WebFrameView *containingFrameView(NSView *view)
 - (WebCore::String)_userAgentForURL:(const WebCore::KURL&)url
 {
     if (_private->useSiteSpecificSpoofing) {
-        if (url.host() == "ads.pointroll.com") {
-            // <rdar://problem/6899044> Can't see Apple ad on nytimes.com unless I spoof the user agent
-            DEFINE_STATIC_LOCAL(const String, uaForAdsPointroll, ("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) AppleWebKit/525.28.3 (KHTML, like Gecko) Version/3.2.3 Safari/525.28.3"));
-            return uaForAdsPointroll;
-        }
+        // No current site-specific spoofs.
     }
 
     if (_private->userAgent.isNull())
