@@ -30,10 +30,10 @@
 #define LayoutTestController_h
 
 #include <JavaScriptCore/JSObjectRef.h>
-#include <wtf/RefCounted.h>
+//#include <wtf/RefCounted.h>
 #include <string>
 
-class LayoutTestController : public RefCounted<LayoutTestController> {
+class LayoutTestController { //: public RefCounted<LayoutTestController> {
 public:
     LayoutTestController(const std::string& testPathOrURL, const std::string& expectedPixelHash);
     ~LayoutTestController();

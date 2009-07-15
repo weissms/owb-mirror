@@ -1,7 +1,7 @@
 #include "SDL.h"
 #include "SDL_getenv.h"
-#include <WebKit.h>
 #include <DumpRenderTree.h>
+#include <WebKit.h>
 
 
 // Choose some default values.

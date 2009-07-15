@@ -28,12 +28,12 @@
 
 //#include "config.h"
 #include "DumpRenderTree.h"
+#include <WebKit.h>
 
 #include "LayoutTestController.h"
 #include "WorkQueue.h"
 #include "WorkQueueItem.h"
 
-#include <WebKit.h>
 #include <string>
 
 #include <string.h>
@@ -362,7 +362,7 @@ void runTest(const string& testPathOrURL)
     
     //WorkQueue::shared()->clear();
 
-    gLayoutTestController->deref();
+    //gLayoutTestController->deref();
     gLayoutTestController = 0;
     delete webView;
     delete frameLoadDelegate;

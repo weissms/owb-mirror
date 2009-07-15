@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+//#include "config.h"
 #include "LayoutTestController.h"
 
 #include "WorkQueue.h"
@@ -822,7 +822,7 @@ static bool setGlobalFlagCallback(JSContextRef context, JSObjectRef thisObject, 
 static void layoutTestControllerObjectFinalize(JSObjectRef object)
 {
     LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(object));
-    controller->deref();
+    //controller->deref();
 }
 
 // Object Creation
@@ -830,7 +830,7 @@ static void layoutTestControllerObjectFinalize(JSObjectRef object)
 void LayoutTestController::makeWindowObject(JSContextRef context, JSObjectRef windowObject, JSValueRef* exception)
 {
     JSRetainPtr<JSStringRef> layoutTestContollerStr(Adopt, JSStringCreateWithUTF8CString("layoutTestController"));
-    ref();
+    //ref();
     JSValueRef layoutTestContollerObject = JSObjectMake(context, getJSClass(), this);
     JSObjectSetProperty(context, windowObject, layoutTestContollerStr.get(), layoutTestContollerObject, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete, exception);
 }
