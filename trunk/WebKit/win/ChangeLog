@@ -1,3 +1,70 @@
+2009-07-15  Steve Falkenburg  <sfalken@apple.com>
+
+        Reorganize JavaScriptCore headers into:
+        API: include/JavaScriptCore/
+        Private: include/private/JavaScriptCore/
+
+        Reviewed by Darin Adler.
+
+        * WebKit.vcproj/WebKit.vcproj:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Change all Noncopyable inheriting visibility to public.
+        https://bugs.webkit.org/show_bug.cgi?id=27225
+
+        Change all Noncopyable inheriting visibility to public because
+        it is needed to the custom allocation framework (bug #20422).
+
+        * COMEnumVariant.h:
+        * WebDatabaseManager.cpp:
+        * WebInspector.h:
+        * WebLocalizableStrings.cpp:
+
+2009-07-13  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Refactor WebFrame::spoolPages for easier sharing with Windows Cairo.
+        https://bugs.webkit.org/show_bug.cgi?id=27240.
+
+        * WebFrame.cpp:
+        (WebFrame::printHeader): New shared method to print the header.
+        (WebFrame::printFooter): New shared method to print the footer.
+        (WebFrame::spoolPage): New conditionally-compiled method to print
+         a page.
+        (WebFrame::spoolPages): Revised to call the platform-specific spoolPage
+         for each page.
+        * WebFrame.h: Add new method prototypes.
+
+2009-07-13  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add new configuration flag for redistributable Windows build.
+        https://bugs.webkit.org/show_bug.cgi=27087
+
+        * WebKit.vcproj/WebKit.vcproj: Add new WinCairo.vsprops to
+          Debug_Cairo and Release_Cairo targets.
+
+2009-07-12  Brent Fulgham  <bfulgham@gmail.com>
+
+        Speculative Windows build fix after http://trac.webkit.org/changeset/45786.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::addMessageToConsole):
+
+2009-07-10  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig with the power of Grayskull.
+
+        Enable XSSAuditor by default.
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
 2009-07-10  Drew Wilson  <atwilson@google.com>
 
         Reviewed by Alexey Proskuryakov.

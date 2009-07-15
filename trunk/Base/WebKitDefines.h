@@ -41,8 +41,12 @@
     #define WEBKIT_OWB_OBSOLETE_API WEBKIT_OWB_API __attribute__((deprecated))
 #endif
 
-#define PLATFORM(WTF_FEATURE) (defined( WTF_PLATFORM_##WTF_FEATURE ) && WTF_PLATFORM_##WTF_FEATURE)
-#define ENABLE(WTF_FEATURE) (defined( ENABLE_##WTF_FEATURE ) && ENABLE_##WTF_FEATURE)
+#if !defined(PLATFORM)
+    #define PLATFORM(WTF_FEATURE) (defined( WTF_PLATFORM_##WTF_FEATURE ) && WTF_PLATFORM_##WTF_FEATURE)
+#endif
+#if !defined(ENABLE)
+    #define ENABLE(WTF_FEATURE) (defined( ENABLE_##WTF_FEATURE ) && ENABLE_##WTF_FEATURE)
+#endif
 
 #if defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1

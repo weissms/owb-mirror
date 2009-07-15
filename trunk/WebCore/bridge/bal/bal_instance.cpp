@@ -73,7 +73,7 @@ private:
 const ClassInfo BalRuntimeObjectImp::s_info = { "BalRuntimeObject", &RuntimeObjectImp::s_info, 0, 0 };
 
 BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
-    : RuntimeObjectImp(exec, WebCore::getDOMStructure<BalRuntimeObjectImp>(exec), instance)
+    : RuntimeObjectImp(exec, WebCore::deprecatedGetDOMStructure<BalRuntimeObjectImp>(exec), instance)
 {
 }
 

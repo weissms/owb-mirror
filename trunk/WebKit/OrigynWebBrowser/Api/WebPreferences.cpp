@@ -126,7 +126,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitJavaEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, "1");//TRUE
-    m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "0");//FALSE
+    m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "1");//FALSE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE

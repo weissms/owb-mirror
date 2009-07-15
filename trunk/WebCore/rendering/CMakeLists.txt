@@ -1,6 +1,5 @@
 list(APPEND WEBCORE_SRC
     rendering/AutoTableLayout.cpp
-    rendering/bidi.cpp
     rendering/break_lines.cpp
     rendering/CounterNode.cpp
     rendering/EllipsisBox.cpp
@@ -14,6 +13,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderArena.cpp
     rendering/RenderBR.cpp
     rendering/RenderBlock.cpp
+    rendering/RenderBlockLineLayout.cpp
     rendering/RenderBox.cpp
     rendering/RenderBoxModelObject.cpp
     rendering/RenderButton.cpp

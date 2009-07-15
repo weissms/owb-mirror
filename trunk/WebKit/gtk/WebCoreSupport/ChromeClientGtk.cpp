@@ -215,7 +215,18 @@ void ChromeClient::setResizable(bool)
 
 void ChromeClient::closeWindowSoon()
 {
-    notImplemented();
+    webkit_web_view_stop_loading(m_webView);
+
+    gboolean isHandled = false;
+    g_signal_emit_by_name(m_webView, "close-web-view", &isHandled);
+
+    if (isHandled)
+        return;
+
+    // FIXME: should we clear the frame group name here explicitly? Mac does it.
+    // But this gets cleared in Page's destructor anyway.
+    // webkit_web_view_set_group_name(m_webView, "");
+    g_object_unref(m_webView);
 }
 
 bool ChromeClient::canTakeFocus(FocusDirection)
@@ -238,7 +249,7 @@ bool ChromeClient::runBeforeUnloadConfirmPanel(const WebCore::String& message, W
     return runJavaScriptConfirm(frame, message);
 }
 
-void ChromeClient::addMessageToConsole(WebCore::MessageSource source, WebCore::MessageLevel level, const WebCore::String& message, unsigned int lineNumber, const WebCore::String& sourceId)
+void ChromeClient::addMessageToConsole(WebCore::MessageSource source, WebCore::MessageType type, WebCore::MessageLevel level, const WebCore::String& message, unsigned int lineNumber, const WebCore::String& sourceId)
 {
     gboolean retval;
     g_signal_emit_by_name(m_webView, "console-message", message.utf8().data(), lineNumber, sourceId.utf8().data(), &retval);

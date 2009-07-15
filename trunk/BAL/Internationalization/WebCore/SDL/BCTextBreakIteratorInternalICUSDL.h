@@ -33,6 +33,7 @@
 
 namespace WebCore {
 
+    const char* currentSearchLocaleID();
     const char* currentTextBreakLocaleID();
 
 }

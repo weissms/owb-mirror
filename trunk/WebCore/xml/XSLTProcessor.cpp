@@ -103,7 +103,7 @@ void XSLTProcessor::parseErrorFunc(void* userData, xmlError* error)
             break;
     }
 
-    console->addMessage(XMLMessageSource, level, error->message, error->line, error->file);
+    console->addMessage(XMLMessageSource, LogMessageType, level, error->message, error->line, error->file);
 #endif
 }
 

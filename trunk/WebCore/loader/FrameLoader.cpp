@@ -54,7 +54,6 @@
 #include "FrameLoaderClient.h"
 #include "FrameTree.h"
 #include "FrameView.h"
-#include "HTMLAnchorElement.h"
 #include "HTMLAppletElement.h"
 #include "HTMLFormElement.h"
 #include "HTMLFrameElement.h"
@@ -1592,28 +1591,8 @@ bool FrameLoader::gotoAnchor(const String& name)
     if (!anchorNode && !(name.isEmpty() || equalIgnoringCase(name, "top")))
         return false;
 
-    // We need to update the layout before scrolling, otherwise we could
-    // really mess things up if an anchor scroll comes at a bad moment.
-    m_frame->document()->updateStyleIfNeeded();
-    // Only do a layout if changes have occurred that make it necessary.
-    if (m_frame->view() && m_frame->contentRenderer() && m_frame->contentRenderer()->needsLayout())
-        m_frame->view()->layout();
-  
-    // Scroll nested layers and frames to reveal the anchor.
-    // Align to the top and to the closest side (this matches other browsers).
-    RenderObject* renderer;
-    IntRect rect;
-    if (!anchorNode)
-        renderer = m_frame->document()->renderer(); // top of document
-    else {
-        renderer = anchorNode->renderer();
-        rect = anchorNode->getRect();
-    }
-    if (renderer) {
-        renderer->enclosingLayer()->scrollRectToVisible(rect, true, ScrollAlignment::alignToEdgeIfNeeded, ScrollAlignment::alignTopAlways);
-        if (m_frame->view())
-            m_frame->view()->setLockedToAnchor(true);
-    }
+    if (FrameView* view = m_frame->view())
+        view->maintainScrollPositionAtAnchor(anchorNode ? static_cast<Node*>(anchorNode) : m_frame->document());
 
     return true;
 }
@@ -2117,7 +2096,7 @@ void FrameLoader::completed()
     if (Frame* parent = m_frame->tree()->parent())
         parent->loader()->checkCompleted();
     if (m_frame->view())
-        m_frame->view()->setLockedToAnchor(false);
+        m_frame->view()->maintainScrollPositionAtAnchor(0);
 }
 
 void FrameLoader::started()
@@ -2413,7 +2392,7 @@ void FrameLoader::reportLocalLoadFailed(Frame* frame, const String& url)
         return;
 
 #if ENABLE(INSPECTOR)
-    frame->domWindow()->console()->addMessage(JSMessageSource, ErrorMessageLevel, "Not allowed to load local resource: " + url, 0, String());
+    frame->domWindow()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, "Not allowed to load local resource: " + url, 0, String());
 #endif
 }
 
@@ -2630,9 +2609,9 @@ bool FrameLoader::shouldAllowNavigation(Frame* targetFrame) const
         String message = String::format("Unsafe JavaScript attempt to initiate a navigation change for frame with URL %s from frame with URL %s.\n",
             targetDocument->url().string().utf8().data(), activeDocument->url().string().utf8().data());
 
-        // FIXME: should we print to the console of the activeFrame as well?
 #if ENABLE(INSPECTOR)
-        targetFrame->domWindow()->console()->addMessage(JSMessageSource, ErrorMessageLevel, message, 1, String());
+        // FIXME: should we print to the console of the activeFrame as well?
+        targetFrame->domWindow()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, message, 1, String());
 #endif
     }
     

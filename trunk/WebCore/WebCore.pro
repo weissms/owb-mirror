@@ -106,6 +106,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 !contains(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=.): DEFINES += ENABLE_OFFLINE_WEB_APPLICATIONS=1
 !contains(DEFINES, ENABLE_DOM_STORAGE=.): DEFINES += ENABLE_DOM_STORAGE=1
 !contains(DEFINES, ENABLE_ICONDATABASE=.): DEFINES += ENABLE_ICONDATABASE=1
+!contains(DEFINES, ENABLE_CHANNEL_MESSAGING=.): DEFINES += ENABLE_CHANNEL_MESSAGING=1
 
 # turn on SQLITE support if any of the dependent features are turned on
 !contains(DEFINES, ENABLE_SQLITE=.) {
@@ -122,6 +123,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 !contains(DEFINES, ENABLE_XSLT=.): DEFINES += ENABLE_XSLT=0
 #!contains(DEFINES, ENABLE_XBL=.): DEFINES += ENABLE_XBL=1
 !contains(DEFINES, ENABLE_WML=.): DEFINES += ENABLE_WML=0
+!contains(DEFINES, ENABLE_SHARED_WORKERS=.): DEFINES += ENABLE_SHARED_WORKERS=0
 !contains(DEFINES, ENABLE_WORKERS=.): DEFINES += ENABLE_WORKERS=1
 !contains(DEFINES, ENABLE_XHTMLMP=.): DEFINES += ENABLE_XHTMLMP=0
 
@@ -410,6 +412,7 @@ IDL_BINDINGS += \
     html/ImageData.idl \
     html/MediaError.idl \
     html/TextMetrics.idl \
+    html/ValidityState.idl \
     html/VoidCallback.idl \
     inspector/InspectorController.idl \
     page/BarInfo.idl \
@@ -840,6 +843,7 @@ SOURCES += \
     html/HTMLViewSourceDocument.cpp \
     html/ImageData.cpp \
     html/PreloadScanner.cpp \
+    html/ValidityState.cpp \
     inspector/ConsoleMessage.cpp \
     inspector/InspectorDatabaseResource.cpp \
     inspector/InspectorDOMStorageResource.cpp \
@@ -1019,7 +1023,6 @@ SOURCES += \
     plugins/PluginStream.cpp \
     plugins/PluginView.cpp \
     rendering/AutoTableLayout.cpp \
-    rendering/bidi.cpp \
     rendering/break_lines.cpp \
     rendering/CounterNode.cpp \
     rendering/EllipsisBox.cpp \
@@ -1032,6 +1035,7 @@ SOURCES += \
     rendering/RenderApplet.cpp \
     rendering/RenderArena.cpp \
     rendering/RenderBlock.cpp \
+    rendering/RenderBlockLineLayout.cpp \
     rendering/RenderBox.cpp \
     rendering/RenderBoxModelObject.cpp \
     rendering/RenderBR.cpp \
@@ -1438,6 +1442,21 @@ contains(DEFINES, ENABLE_WORKERS=1) {
         workers/WorkerRunLoop.cpp \
         workers/WorkerThread.cpp \
         workers/WorkerScriptLoader.cpp
+}
+
+contains(DEFINES, SHARED_WORKERS=1) {
+    FEATURE_DEFINES_JAVASCRIPT += ENABLE_SHARED_WORKERS=1
+
+    IDL_BINDINGS += \
+        workers/AbstractWorker.idl \
+        workers/SharedWorker.idl
+
+    SOURCES += \
+        bindings/js/JSAbstractWorkerCustom.cpp \
+        bindings/js/JSSharedWorkerConstructor.cpp \
+        bindings/js/JSSharedWorkerCustom.cpp \
+        workers/AbstractWorker.cpp \
+        workers/SharedWorker.cpp
 }
 
 contains(DEFINES, ENABLE_VIDEO=1) {
@@ -2181,8 +2200,6 @@ HEADERS += $$WEBKIT_API_HEADERS
     target.path = $$[QT_INSTALL_LIBS]
     headers.files = $$WEBKIT_API_HEADERS
     headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
-    prf.files = $$PWD/../WebKit/qt/Api/qtwebkit.prf
-    prf.path = $$[QT_INSTALL_PREFIX]/mkspecs/features
 
     VERSION=$${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
 
@@ -2195,7 +2212,7 @@ HEADERS += $$WEBKIT_API_HEADERS
     }
 
 
-    INSTALLS += target headers prf
+    INSTALLS += target headers
 
     unix {
         CONFIG += create_pc create_prl

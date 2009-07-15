@@ -250,7 +250,7 @@ void DocLoader::printAccessDeniedMessage(const KURL& url) const
 
     // FIXME: provide a real line number and source URL.
 #if ENABLE(INSPECTOR)
-    frame()->domWindow()->console()->addMessage(OtherMessageSource, ErrorMessageLevel, message, 1, String());
+    frame()->domWindow()->console()->addMessage(OtherMessageSource, LogMessageType, ErrorMessageLevel, message, 1, String());
 #endif
 }
 

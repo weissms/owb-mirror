@@ -47,7 +47,7 @@ namespace WebCore {
     class Worker;
     class WorkerThread;
 
-    class WorkerMessagingProxy : public WorkerContextProxy, public WorkerObjectProxy, public WorkerLoaderProxy, Noncopyable {
+    class WorkerMessagingProxy : public WorkerContextProxy, public WorkerObjectProxy, public WorkerLoaderProxy, public Noncopyable {
     public:
         WorkerMessagingProxy(Worker*);
 
@@ -63,7 +63,7 @@ namespace WebCore {
         // (Only use these methods in the worker context thread.)
         virtual void postMessageToWorkerObject(const String&, PassOwnPtr<MessagePortChannel>);
         virtual void postExceptionToWorkerObject(const String& errorMessage, int lineNumber, const String& sourceURL);
-        virtual void postConsoleMessageToWorkerObject(MessageDestination, MessageSource, MessageLevel, const String& message, int lineNumber, const String& sourceURL);
+        virtual void postConsoleMessageToWorkerObject(MessageDestination, MessageSource, MessageType, MessageLevel, const String& message, int lineNumber, const String& sourceURL);
         virtual void confirmMessageFromWorkerObject(bool hasPendingActivity);
         virtual void reportPendingActivity(bool hasPendingActivity);
         virtual void workerContextDestroyed();

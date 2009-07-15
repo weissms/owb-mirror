@@ -78,6 +78,11 @@ bool Path::isEmpty() const
     return true;
 }
 
+bool Path::hasCurrentPoint() const
+{
+    return !isEmpty();
+}
+
 void Path::translate(const FloatSize& p)
 {
     //printf("Path::translate\n");

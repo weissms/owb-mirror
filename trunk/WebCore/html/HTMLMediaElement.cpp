@@ -848,6 +848,11 @@ void HTMLMediaElement::returnToRealtime()
     ExceptionCode e;
     setCurrentTime(maxTimeSeekable(), e);
 }  
+
+bool HTMLMediaElement::supportsSave() const
+{
+    return m_player ? m_player->supportsSave() : false;
+}
     
 void HTMLMediaElement::seek(float time, ExceptionCode& ec)
 {
@@ -901,10 +906,9 @@ HTMLMediaElement::ReadyState HTMLMediaElement::readyState() const
     return m_readyState;
 }
 
-bool HTMLMediaElement::isStreaming() const
+MediaPlayer::MovieLoadType HTMLMediaElement::movieLoadType() const
 {
-    MediaPlayer::MovieLoadType loadType = m_player ? m_player->movieLoadType() : MediaPlayer::Unknown;
-    return loadType == MediaPlayer::LiveStream;
+    return m_player ? m_player->movieLoadType() : MediaPlayer::Unknown;
 }
 
 bool HTMLMediaElement::seeking() const

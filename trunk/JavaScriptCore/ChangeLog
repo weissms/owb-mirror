@@ -1,3 +1,273 @@
+2009-07-15  Steve Falkenburg  <sfalken@apple.com>
+
+        Reorganize JavaScriptCore headers into:
+        API: include/JavaScriptCore/
+        Private: include/private/JavaScriptCore/
+
+        Reviewed by Darin Adler.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make:
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj:
+        * JavaScriptCore.vcproj/testapi/testapiCommon.vsprops:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Change JSCell's superclass to NoncopyableCustomAllocated
+        https://bugs.webkit.org/show_bug.cgi?id=27248
+
+        JSCell class customizes operator new, since Noncopyable will be 
+        inherited from FastAllocBase, NoncopyableCustomAllocated has 
+        to be used.
+
+        * runtime/JSCell.h:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Change all Noncopyable inheriting visibility to public.
+        https://bugs.webkit.org/show_bug.cgi?id=27225
+
+        Change all Noncopyable inheriting visibility to public because
+        it is needed to the custom allocation framework (bug #20422).
+
+        * bytecode/SamplingTool.h:
+        * bytecompiler/RegisterID.h:
+        * interpreter/CachedCall.h:
+        * interpreter/RegisterFile.h:
+        * parser/Lexer.h:
+        * parser/Parser.h:
+        * runtime/ArgList.h:
+        * runtime/BatchedTransitionOptimizer.h:
+        * runtime/Collector.h:
+        * runtime/CommonIdentifiers.h:
+        * runtime/JSCell.h:
+        * runtime/JSGlobalObject.h:
+        * runtime/JSLock.h:
+        * runtime/JSONObject.cpp:
+        * runtime/SmallStrings.cpp:
+        * runtime/SmallStrings.h:
+        * wtf/CrossThreadRefCounted.h:
+        * wtf/GOwnPtr.h:
+        * wtf/Locker.h:
+        * wtf/MessageQueue.h:
+        * wtf/OwnArrayPtr.h:
+        * wtf/OwnFastMallocPtr.h:
+        * wtf/OwnPtr.h:
+        * wtf/RefCounted.h:
+        * wtf/ThreadSpecific.h:
+        * wtf/Threading.h:
+        * wtf/Vector.h:
+        * wtf/unicode/Collator.h:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Change ParserArenaRefCounted's superclass to RefCountedCustomAllocated
+        https://bugs.webkit.org/show_bug.cgi?id=27249
+
+        ParserArenaDeletable customizes operator new, to avoid double inheritance
+        ParserArenaDeletable's superclass has been changed to RefCountedCustomAllocated.
+
+        * parser/Nodes.h:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Add RefCountedCustomAllocated to RefCounted.h
+        https://bugs.webkit.org/show_bug.cgi?id=27232
+
+        Some class which are inherited from RefCounted customize
+        operator new, but RefCounted is inherited from Noncopyable
+        which will be inherited from FastAllocBase. To avoid
+        conflicts Noncopyable inheriting was moved down to RefCounted
+        and to avoid double inheritance this class has been added.
+
+        * wtf/RefCounted.h:
+        (WTF::RefCountedCustomAllocated::deref):
+        (WTF::RefCountedCustomAllocated::~RefCountedCustomAllocated):
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Add NoncopyableCustomAllocated to Noncopyable.h.
+        https://bugs.webkit.org/show_bug.cgi?id=27228
+        
+        Some classes which inherited from Noncopyable overrides operator new
+        since Noncopyable'll be inherited from FastAllocBase, Noncopyable.h 
+        needs to be extended with this new class to support the overriding. 
+
+        * wtf/Noncopyable.h:
+        (WTFNoncopyable::NoncopyableCustomAllocated::NoncopyableCustomAllocated):
+        (WTFNoncopyable::NoncopyableCustomAllocated::~NoncopyableCustomAllocated):
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for JavaScriptCore's IdentifierTable class
+        https://bugs.webkit.org/show_bug.cgi?id=27260
+
+        Inherits IdentifierTable class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/runtime/Identifier.cpp:70.
+
+        * runtime/Identifier.cpp:
+
+2009-07-14  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for JavaScriptCore's Profiler class
+        https://bugs.webkit.org/show_bug.cgi?id=27253
+
+        Inherits Profiler class from FastAllocBase because it has been instantiated by
+        'new' in JavaScriptCore/profiler/Profiler.cpp:56.
+
+        * profiler/Profiler.h:
+
+2009-07-06  George Staikos  <george.staikos@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Authors: George Staikos <george.staikos@torchmobile.com>, Joe Mason <joe.mason@torchmobile.com>, Makoto Matsumoto <matumoto@math.keio.ac.jp>, Takuji Nishimura
+
+        https://bugs.webkit.org/show_bug.cgi?id=27030
+        Implement custom RNG for WinCE using Mersenne Twister
+
+        * wtf/RandomNumber.cpp:
+        (WTF::randomNumber):
+        * wtf/RandomNumberSeed.h:
+        (WTF::initializeRandomNumberGenerator):
+        * wtf/wince/mt19937ar.c: Added.
+        (init_genrand):
+        (init_by_array):
+        (genrand_int32):
+        (genrand_int31):
+        (genrand_real1):
+        (genrand_real2):
+        (genrand_real3):
+        (genrand_res53):
+
+2009-07-13  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed make dist build fix.
+
+        * GNUmakefile.am:
+
+2009-07-13  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        Add ENABLE(SHARED_WORKERS) flag and define SharedWorker APIs
+        https://bugs.webkit.org/show_bug.cgi?id=26932
+
+        Added ENABLE(SHARED_WORKERS) flag (off by default).
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-07-07  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Maciej Stachoviak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27058
+
+        Removed superfluous parenthesis around single expression.
+        Compilers on Symbian platform fail to properly parse and compile.
+
+        * JavaScriptCore/wtf/Platform.h:
+
+2009-07-13  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Maciej Stachoviak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27054
+
+        Renamed Translator to HashTranslator
+
+        Codewarrior compiler (WINSCW) latest b482 cannot resolve typename
+        mismatch between template declaration and definition
+        (HashTranslator / Translator)
+
+        * wtf/HashSet.h:
+
+2009-07-13  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27053
+
+        Ambiguity in LabelScope initialization
+
+        Codewarrior compiler (WINSCW) latest b482 on Symbian cannot resolve
+        type of "0" unambiguously. Set expression explicitly to
+        PassRefPtr<Label>::PassRefPtr()
+
+        * bytecompiler/BytecodeGenerator.cpp
+
+2009-07-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Enable support for accelerated compositing and 3d transforms on Leopard.
+        <https://bugs.webkit.org/show_bug.cgi?id=20166>
+        <rdar://problem/6120614>
+
+        Reviewed by Oliver Hunt.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * wtf/Platform.h:
+
+2009-07-10  Mark Rowe  <mrowe@apple.com>
+
+        Second part of the "make Windows happier" dance.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-07-10  Mark Rowe  <mrowe@apple.com>
+
+        Try and make the Windows build happy.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-07-10  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        * debugger/Debugger.h: Made this function virtual for use in WebCore's
+        WebInspector.
+
+2009-07-10  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Darin Adler.
+
+        ParserArenaDeletable should override delete
+        https://bugs.webkit.org/show_bug.cgi?id=26790
+
+        ParserArenaDeletable overrides new, but it does not override delete.
+        ParserArenaDeletable must be freed by fastFree
+        because it is allocated by fastMalloc.
+
+        * parser/NodeConstructors.h:
+        (JSC::ParserArenaDeletable::operator delete):
+        * parser/Nodes.h:
+
+2009-07-10  Adam Roben  <aroben@apple.com>
+
+        Sort all our Xcode projects
+
+        Accomplished using sort-Xcode-project-file.
+
+        Requested by Dave Kilzer.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
 2009-07-10  Maciej Stachowiak  <mjs@apple.com>
 
         Not reviewed, build fix.

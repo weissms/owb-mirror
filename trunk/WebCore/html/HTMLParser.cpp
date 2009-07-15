@@ -1675,7 +1675,7 @@ void HTMLParser::reportErrorToConsole(HTMLParserErrorCode errorCode, const Atomi
     message.replace("%tag2", tag2);
 
 #if ENABLE(INSPECTOR)
-    frame->domWindow()->console()->addMessage(HTMLMessageSource,
+    frame->domWindow()->console()->addMessage(HTMLMessageSource, LogMessageType, 
         isWarning(errorCode) ? WarningMessageLevel : ErrorMessageLevel,
         message, lineNumber, m_document->url().string());
 #endif

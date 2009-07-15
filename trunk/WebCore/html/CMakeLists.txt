@@ -94,6 +94,7 @@ list(APPEND WEBCORE_SRC
     html/ImageData.cpp
     html/PreloadScanner.cpp
     html/TimeRanges.cpp
+    html/ValidityState.cpp
 )
 list(APPEND IDL_SRC
     html/CanvasGradient.idl
@@ -175,6 +176,7 @@ list(APPEND IDL_SRC
     html/MediaError.idl
     html/TextMetrics.idl
     html/TimeRanges.idl
+    html/ValidityState.idl
     html/VoidCallback.idl
 )
 

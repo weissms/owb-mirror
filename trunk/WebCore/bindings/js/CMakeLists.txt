@@ -11,6 +11,7 @@ endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
     bindings/js/GCController.cpp
+    bindings/js/JSAbstractWorkerCustom.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp
@@ -75,6 +76,8 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginElementFunctions.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSRGBColor.cpp
+    bindings/js/JSSharedWorkerConstructor.cpp
+    bindings/js/JSSharedWorkerCustom.cpp
     bindings/js/JSStyleSheetCustom.cpp
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp

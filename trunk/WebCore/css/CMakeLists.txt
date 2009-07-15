@@ -48,6 +48,7 @@ list(APPEND WEBCORE_SRC
     css/MediaQuery.cpp
     css/MediaQueryEvaluator.cpp
     css/MediaQueryExp.cpp
+    css/RGBColor.cpp
     css/ShadowValue.cpp
     css/StyleBase.cpp
     css/StyleList.cpp

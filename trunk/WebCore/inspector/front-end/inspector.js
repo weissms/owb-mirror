@@ -117,6 +117,11 @@ var WebInspector = {
                 }
             }
         }
+        
+        for (var panelName in WebInspector.panels) {
+            if (WebInspector.panels[panelName] == x)
+                InspectorController.storeLastActivePanel(panelName);
+        }
     },
 
     get attached()
@@ -306,8 +311,6 @@ WebInspector.loaded = function()
             toolbarElement.insertBefore(panelToolbarItem, toolbarElement.firstChild);
         previousToolbarItem = panelToolbarItem;
     }
-
-    this.currentPanel = this.panels.elements;
 
     this.resourceCategories = {
         documents: new WebInspector.ResourceCategory(WebInspector.UIString("Documents"), "documents"),
@@ -588,6 +591,7 @@ WebInspector.animateStyle = function(animations, duration, callback, complete)
         var start = null;
         var current = null;
         var end = null;
+        var key = null;
         for (key in animation) {
             if (key === "element")
                 element = animation[key];
@@ -979,6 +983,7 @@ WebInspector.addMessageToConsole = function(payload)
 {
     var consoleMessage = new WebInspector.ConsoleMessage(
         payload.source,
+        payload.type,
         payload.level,
         payload.line,
         payload.url,

@@ -179,8 +179,7 @@ public:
 
     void adjustPageHeight(float* newBottom, float oldTop, float oldBottom, float bottomLimit);
 
-    bool lockedToAnchor() { return m_lockedToAnchor; }
-    void setLockedToAnchor(bool lockedToAnchor) { m_lockedToAnchor = lockedToAnchor; }
+    void maintainScrollPositionAtAnchor(Node*);
 
     // Methods to convert points and rects between the coordinate space of the renderer, and this view.
     virtual IntRect convertFromRenderer(const RenderObject*, const IntRect&) const;
@@ -208,11 +207,7 @@ private:
 
     virtual void repaintContentRectangle(const IntRect&, bool immediate);
     virtual void contentsResized() { setNeedsLayout(); }
-    virtual void visibleContentsResized()
-    {
-        if (needsLayout())
-            layout();
-    }
+    virtual void visibleContentsResized();
 
     // Override ScrollView methods to do point conversion via renderers, in order to
     // take transforms into account.
@@ -233,6 +228,7 @@ private:
     double adjustedDeferredRepaintDelay() const;
 
     bool updateWidgets();
+    void scrollToAnchor();
     
     static double sCurrentPaintTimeStamp; // used for detecting decoded resource thrash in the cache
 
@@ -302,7 +298,7 @@ private:
     bool m_isVisuallyNonEmpty;
     bool m_firstVisuallyNonEmptyLayoutCallbackPending;
 
-    bool m_lockedToAnchor;
+    RefPtr<Node> m_maintainScrollPositionAnchor;
 };
 
 } // namespace WebCore

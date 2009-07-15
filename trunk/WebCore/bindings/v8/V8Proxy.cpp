@@ -152,7 +152,7 @@ void JavaScriptConsoleMessage::addToPage(Page* page) const
 {
     ASSERT(page);
     Console* console = page->mainFrame()->domWindow()->console();
-    console->addMessage(JSMessageSource, ErrorMessageLevel, m_string, m_lineNumber, m_sourceID);
+    console->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, m_string, m_lineNumber, m_sourceID);
 }
 
 // The ConsoleMessageManager handles all console messages that stem
@@ -527,7 +527,7 @@ void V8Proxy::evaluateInNewContext(const Vector<ScriptSourceCode>& sources)
     // Set up the DOM window as the prototype of the new global object.
     v8::Handle<v8::Context> windowContext = m_context;
     v8::Handle<v8::Object> windowGlobal = windowContext->Global();
-    v8::Handle<v8::Value> windowWrapper = V8DOMWrapper::lookupDOMWrapper(V8ClassIndex::DOMWINDOW, windowGlobal);
+    v8::Handle<v8::Object> windowWrapper = V8DOMWrapper::lookupDOMWrapper(V8ClassIndex::DOMWINDOW, windowGlobal);
 
     ASSERT(V8DOMWrapper::convertDOMWrapperToNative<DOMWindow>(windowWrapper) == m_frame->domWindow());
 
@@ -552,6 +552,8 @@ void V8Proxy::evaluateInNewContext(const Vector<ScriptSourceCode>& sources)
     // Give the code running in the new context a way to get access to the
     // original context.
     global->Set(v8::String::New("contentWindow"), windowGlobal);
+
+    m_frame->loader()->client()->didCreateIsolatedScriptContext();
 
     // Run code in the new context.
     for (size_t i = 0; i < sources.size(); ++i)
@@ -938,7 +940,7 @@ void V8Proxy::clearDocumentWrapperCache()
 void V8Proxy::disposeContextHandles()
 {
     if (!m_context.IsEmpty()) {
-        m_frame->loader()->client()->didDestroyScriptContext();
+        m_frame->loader()->client()->didDestroyScriptContextForFrame();
         m_context.Dispose();
         m_context.Clear();
     }
@@ -994,10 +996,6 @@ void V8Proxy::clearForNavigation()
         m_context->DetachGlobal();
 
         disposeContextHandles();
-
-        // Reinitialize the context so the global object points to
-        // the new DOM window.
-        initContextIfNeeded();
     }
 }
 
@@ -1041,10 +1039,8 @@ void V8Proxy::updateDocument()
     if (!m_frame->document())
         return;
 
-    if (m_global.IsEmpty()) {
-        ASSERT(m_context.IsEmpty());
+    if (m_context.IsEmpty())
         return;
-    }
 
     // We have a new document and we need to update the cache.
     updateDocumentWrapperCache();
@@ -1313,7 +1309,7 @@ void V8Proxy::initContextIfNeeded()
 
     setSecurityToken();
 
-    m_frame->loader()->client()->didCreateScriptContext();
+    m_frame->loader()->client()->didCreateScriptContextForFrame();
     m_frame->loader()->dispatchWindowObjectAvailable();
 }
 

@@ -252,7 +252,7 @@ void WebChromeClient::setResizable(bool resizable)
 {
 }
 
-void WebChromeClient::addMessageToConsole(MessageSource source, MessageLevel level, const String& message, unsigned line, const String& url)
+void WebChromeClient::addMessageToConsole(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned line, const String& url)
 {
 #if PLATFORM(AMIGAOS4)
     printf("JavaScript '%s' line %u: %s\n", url.latin1().data(), line, message.latin1().data());

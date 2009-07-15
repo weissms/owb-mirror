@@ -193,7 +193,14 @@ void ScriptController::evaluateInNewContext(const Vector<ScriptSourceCode>& sour
 // Evaluate a script file in the environment of this proxy.
 ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
 {
-    if (!m_XSSAuditor->canEvaluate(sourceCode.source())) {
+    String sourceURL = sourceCode.url();
+    
+    if (sourceURL.isNull() && !m_XSSAuditor->canEvaluateJavaScriptURL(sourceCode.source())) {
+        // This JavaScript URL is not safe to be evaluated.
+        return ScriptValue();
+    }
+    
+    if (!sourceURL.isNull() && !m_XSSAuditor->canEvaluate(sourceCode.source())) {
         // This script is not safe to be evaluated.
         return ScriptValue();
     }
@@ -240,7 +247,7 @@ void ScriptController::bindToWindowObject(Frame* frame, const String& key, NPObj
 
     v8::Context::Scope scope(v8Context);
 
-    v8::Handle<v8::Object> value = CreateV8ObjectForNPObject(object, 0);
+    v8::Handle<v8::Object> value = createV8ObjectForNPObject(object, 0);
 
     // Attach to the global object.
     v8::Handle<v8::Object> global = v8Context->Global();
@@ -304,7 +311,7 @@ PassScriptInstance ScriptController::createScriptInstanceForWidget(Widget* widge
     // NPObject as part of its wrapper. However, before accessing the object
     // it must consult the NPN_Registry.
 
-    v8::Local<v8::Object> wrapper = CreateV8ObjectForNPObject(npObject, 0);
+    v8::Local<v8::Object> wrapper = createV8ObjectForNPObject(npObject, 0);
 
     // Track the plugin object. We've been given a reference to the object.
     m_pluginObjects.set(widget, npObject);

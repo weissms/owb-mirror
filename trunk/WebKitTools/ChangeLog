@@ -1,3 +1,402 @@
+2009-07-15  Steve Falkenburg  <sfalken@apple.com>
+
+        Reorganize JavaScriptCore headers into:
+        API: include/JavaScriptCore/
+        Private: include/private/JavaScriptCore/
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+
+2009-07-14  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        WebKit needs a style linting tool
+        https://bugs.webkit.org/show_bug.cgi?id=25884
+
+        Modifies cpplint (http://google-styleguide.googlecode.com/svn/trunk/cpplint/)
+        based on WebKit's style guide.
+
+        * Scripts/cpplint.py: Added.
+        * Scripts/cpplint_unittest.py: Added.
+
+2009-07-14  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] DumpRenderTree no longer builds with Qt4.4
+        https://bugs.webkit.org/show_bug.cgi?id=27257
+
+        Flag Qt 4.5 dependency to allow building with Qt 4.4.
+
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2009-07-13  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add new configuration flag for redistributable Windows build.
+        https://bugs.webkit.org/show_bug.cgi=27087
+
+        * DumpRenderTree/config.h: Check for presence of WIN_CAIRO and
+          select appropriate configuration. Defaults to standard Apple build.
+        * DumpRenderTree/win/DumpRenderTree.vcproj: Add new WinCairo.vsprops
+          to Debug_Cairo and Release_Cairo targets.
+
+2009-07-13  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Always run the Qt DRT with the raster graphicssystem on X11, for
+        increased stability in the image based tests, in particular canvas.
+
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2009-07-13  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Fix test netscape plugin usage with the Qt DRT.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage): Enable plugins in the settings.
+        * Scripts/run-webkit-tests: Set the QT_WEBKIT_PLUGIN path to the correct build
+        directory to make Qt DRT find the test netscape plugin.
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Make sure to disable the fixed contents size when resetting the page/view
+        state between test runs, to avoid side-effects.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open): Call setFixedContentsSize() with an invalid
+        QSize to disable the fixed layout.
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        When creating new windows, don't forget to connect the new
+        page's main frame. This ensures that for example the layoutTestController
+        is also available there.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::createWindow):
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Added support for LayoutTestController.setPrivateBrowsingEnabled.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::reset):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Added support for database callbacks, storage quota setting,
+        and clearing of all databases.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::dumpDatabaseQuota):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::reset):
+        (LayoutTestController::setDatabaseQuota):
+        (LayoutTestController::clearAllDatabases):
+        * DumpRenderTree/qt/jsobjects.h:
+        (LayoutTestController::shouldDumpDatabaseCallbacks):
+        (LayoutTestController::dumpDatabaseCallbacks):
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Setup the path in the Qt DRT for HTML 5 Databases, to enable some of
+        the storage layout tests.
+
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Make the test output more robust by dumping only when the main
+        frame finishes loading, instead of when _any_ frame finishes.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree): Connect to the
+        main frame's loadFinished() signal instead of the page's one.
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Implement the GCController DRT interface.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree): Allocate the GCController.
+        (WebCore::DumpRenderTree::initJSObjects): Register the interface with the JS engine.
+        * DumpRenderTree/qt/DumpRenderTree.h: Declare m_gcController.
+        * DumpRenderTree/qt/jsobjects.cpp: Implement GCController.
+        (GCController::GCController):
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+        * DumpRenderTree/qt/jsobjects.h: Declare GCController.
+
+2009-07-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        Implement the GCController DRT interface in the Qt DRT.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree): Allocate the GCController.
+        (WebCore::DumpRenderTree::initJSObjects): Register the interface with the JS engine.
+        * DumpRenderTree/qt/DumpRenderTree.h: Declare m_gcController.
+        * DumpRenderTree/qt/jsobjects.cpp: Implement GCController.
+        (GCController::GCController):
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+        * DumpRenderTree/qt/jsobjects.h: Declare GCController.
+
+2009-07-13  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        https://bugs.webkit.org/show_bug.cgi?id=26718 [Gtk] Add support for javascript windows for DRT
+
+        Reviewed by Gustavo Noronha and Xan Lopez.
+
+        Support running of tests that open and close JS windows automatically.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dumpFramesAsText):
+        (dumpBackForwardListForAllWebViews):
+        (resetWebViewToConsistentStateBeforeTesting):
+        (dump):
+        (runTest):
+        (webViewClose):
+        (createWebView):
+        (webViewCreate):
+        (main):
+        * DumpRenderTree/gtk/DumpRenderTreeGtk.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::windowCount):
+        (LayoutTestController::setPopupBlockingEnabled):
+
+2009-07-13  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        prepare-ChangeLog should decode HTML entities in short description
+        https://bugs.webkit.org/show_bug.cgi?id=27122
+
+        Decode the short description by adding a function which decodes HTML
+        entities. It can decode &, <, >, ", and ' . They may be sufficient
+        as the description seems to be encoded by xml_quote in
+        http://mxr.mozilla.org/bugzilla/source/Bugzilla/Util.pm
+
+        * Scripts/prepare-ChangeLog:
+
+2009-07-13  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        Add ENABLE(SHARED_WORKERS) flag and define SharedWorker APIs
+        https://bugs.webkit.org/show_bug.cgi?id=26932
+
+        Added support for --shared-workers (turned off by default)
+
+        * Scripts/build-webkit:
+
+2009-07-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27196
+        Update check-for-global-initializers for the renaming for bidi.cpp to
+        RenderBlockLineLayout.cpp
+
+        * Scripts/check-for-global-initializers:
+
+2009-07-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Enable support for accelerated compositing and 3d transforms on Leopard.
+        <https://bugs.webkit.org/show_bug.cgi?id=20166>
+        <rdar://problem/6120614>
+
+        Reviewed by Oliver Hunt.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * wtf/Platform.h:
+
+2009-07-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27173> svn-apply: Fix typo in git command used to find deleted files
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/svn-apply:
+        (scmWillDeleteFile): Changed 'head' to 'HEAD'.
+
+2009-07-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27167> bugzilla-tool: hide help for unsupported commands
+
+        Reviewed by Eric Seidel.
+
+        When bugzilla-tool -h|--help is invoked in an svn working
+        directory, don't print help for commands that are only supported
+        on git working directories.
+
+        * Scripts/bugzilla-tool:
+        (Command.__init__): Added requires_local_commits argument with a
+        default of False.  Set self.requires_local_commits attribute.
+        (PostCommitsAsPatchesToBug.execute): Removed
+        SCM.supports_local_commits() check since this is now handled by
+        BugzillaTool.main().
+        (PostCommitsAsPatchesToBug.__init__): Added
+        requires_local_commits=True argument to Command.__init__().
+        (BugzillaTool.commands_usage): Don't print help for commands if
+        they require local commits and the current SCM doesn't support
+        them.
+        (BugzillaTool.main): If command_object requires local commits
+        and the current SCM doesn't, exit with an error message.
+
+2009-07-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27117> bugzilla-tool: use Mac OS X keychain for authentication
+
+        Reviewed by Eric Seidel.
+
+        Try reading credentials from git config first, then keychain if
+        running on Mac OS X, else prompt at the command-line.
+
+        * Scripts/modules/bugzilla.py: Added "import platform".
+        (credentials_from_git): Added.
+        (credentials_from_keychain): Added.
+        (is_mac_os_x): Added.
+        (read_credentials): Added.
+        (Bugzilla.__init__): Moved instance attribute bug_server to a
+        static attribute named bug-server_url.
+        (Bugzilla.bug_server_host): Added.  Extracted host name from
+        bug_server_url.
+        (Bugzilla.bug_server_regex): Updated to be created using
+        bug_server_host.
+        (Bugzilla.bug_server_url): Renamed from bug_server.
+        (Bugzilla.bug_url_for_bug_id): Updated for renaming of
+        bug_server to bug_server_url.
+        (Bugzilla.attachment_url_for_id): Ditto.
+        (Bugzilla.fetch_bug_ids_from_commit_queue): Ditto.
+        (Bugzilla.authenticate): Ditto.  Updated to use
+        read_credentials().
+        (Bugzilla.add_patch_to_bug): Ditto.
+
+2009-07-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27115> bugzilla-tool: extract duplicate logging methods into a module
+
+        Reviewed by Adam Roben.
+
+        * Scripts/bugzilla-tool: Removed error() and log() methods and
+        added import of new logging module.
+        * Scripts/modules/bugzilla.py: Ditto.  Removed "import sys".
+        * Scripts/modules/scm.py: Ditto.
+
+        * Scripts/modules/logging.py: Added.
+        (log): Added.
+        (error): Added.  Prefix error messages with "ERROR: ".
+
+2009-07-10  Adam Roben  <aroben@apple.com>
+
+        Sort all our Xcode projects
+
+        Accomplished using sort-Xcode-project-file.
+
+        Requested by Dave Kilzer.
+
+        * DrawTest/DrawTest.xcodeproj/project.pbxproj:
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+        * WebKitLauncher/WebKitLauncher.xcodeproj/project.pbxproj:
+
+2009-07-10  Adam Roben  <aroben@apple.com>
+
+        Print prepare-ChangeLog's reminders to STDERR so they don't end up in
+        the diff output
+
+        Fixes REGRESSION (r45647): prepare-ChangeLog -d puts non-diff lines
+        into the diff
+        <https://bugs.webkit.org/show_bug.cgi?id=27150>
+
+        Reviewed by Maciej Stachowiak.
+
+        * Scripts/prepare-ChangeLog:
+
+2009-07-08  Adam Roben  <aroben@apple.com>
+
+        Use case-insensitive comparisons when sorting Xcode project files
+
+        This matches the sorting used in Xcode's files list.
+
+        Fixes Bug 27079: sort-Xcode-project-file should sort
+        case-insensitively, to match Xcode's files list
+        <https://bugs.webkit.org/show_bug.cgi?id=27079>
+
+        Reviewed by Dave Kilzer.
+
+        * Scripts/sort-Xcode-project-file:
+        (sortChildrenByFileName):
+        (sortFilesByFileName):
+        Lowercase the strings before comparing them so that the comparison
+        will be case-insensitive.
+
+2009-07-08  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27109
+
+        Fix side-effects in the Qt DRT with tests using application fonts.
+
+        Detect if a test used application fonts and re-initialize the fontconfig
+        application fontset accordingly.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open): call initializeFonts and remove all application fonts
+        after running a testcase.
+        (WebCore::DumpRenderTree::initializeFonts): Moved fontconfig initialization code
+        here from main.
+        * DumpRenderTree/qt/DumpRenderTree.h: Declare initializeFonts.
+        * DumpRenderTree/qt/main.cpp:
+        (main): Moved fontconfig initialization code to DRT::initializeFonts.
+
+2009-07-10  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [QT] [ARM] Add pkg-config entry for FontConfig on DRT.pro
+        https://bugs.webkit.org/show_bug.cgi?id=26990
+
+        Missing pkg-config entry for FontConfig in DRT.pro causes some compilers to
+        not link fine against FontConfig bits.
+
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+
 2009-07-10  Drew Wilson  <atwilson@google.com>
 
         Reviewed by Alexey Proskuryakov.

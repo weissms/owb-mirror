@@ -42,6 +42,7 @@
 #include "visible_units.h"
 
 #if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION && !USE(BALI18N)
+#include "TextBreakIteratorInternalICU.h"
 #include <unicode/usearch.h>
 #endif
 
@@ -56,7 +57,7 @@ using namespace HTMLNames;
 // Keeps enough of the previous text to be able to search in the future, but no more.
 // Non-breaking spaces are always equal to normal spaces.
 // Case folding is also done if <isCaseSensitive> is false.
-class SearchBuffer : Noncopyable {
+class SearchBuffer : public Noncopyable {
 public:
     SearchBuffer(const String& target, bool isCaseSensitive);
     ~SearchBuffer();
@@ -1392,7 +1393,39 @@ const UChar* WordAwareIterator::characters() const
 
 // --------
 
+static inline UChar foldQuoteMark(UChar c)
+{
+    switch (c) {
+        case hebrewPunctuationGershayim:
+        case leftDoubleQuotationMark:
+        case rightDoubleQuotationMark:
+            return '"';
+        case hebrewPunctuationGeresh:
+        case leftSingleQuotationMark:
+        case rightSingleQuotationMark:
+            return '\'';
+        default:
+            return c;
+    }
+}
+
+static inline void foldQuoteMarks(String& s)
+{
+    s.replace(hebrewPunctuationGeresh, '\'');
+    s.replace(hebrewPunctuationGershayim, '"');
+    s.replace(leftDoubleQuotationMark, '"');
+    s.replace(leftSingleQuotationMark, '\'');
+    s.replace(rightDoubleQuotationMark, '"');
+    s.replace(rightSingleQuotationMark, '\'');
+}
+
 #if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION && !USE(BALI18N)
+
+static inline void foldQuoteMarks(UChar* data, size_t length)
+{
+    for (size_t i = 0; i < length; ++i)
+        data[i] = foldQuoteMark(data[i]);
+}
 
 static const size_t minimumSearchBufferSize = 8192;
 
@@ -1405,13 +1438,9 @@ static UStringSearch* createSearcher()
     // Provide a non-empty pattern and non-empty text so usearch_open will not fail,
     // but it doesn't matter exactly what it is, since we don't perform any searches
     // without setting both the pattern and the text.
-
-    // Pass empty string for the locale for now to get the Unicode Collation Algorithm,
-    // rather than something locale-specific.
-
     UErrorCode status = U_ZERO_ERROR;
-    UStringSearch* searcher = usearch_open(&newlineCharacter, 1, &newlineCharacter, 1, "", 0, &status);
-    ASSERT(status == U_ZERO_ERROR);
+    UStringSearch* searcher = usearch_open(&newlineCharacter, 1, &newlineCharacter, 1, currentSearchLocaleID(), 0, &status);
+    ASSERT(status == U_ZERO_ERROR || status == U_USING_FALLBACK_WARNING || status == U_USING_DEFAULT_WARNING);
     return searcher;
 }
 
@@ -1443,7 +1472,12 @@ inline SearchBuffer::SearchBuffer(const String& target, bool isCaseSensitive)
 {
     ASSERT(!m_target.isEmpty());
 
-    size_t targetLength = target.length();
+    // FIXME: We'd like to tailor the searcher to fold quote marks for us instead
+    // of doing it in a separate replacement pass here, but ICU doesn't offer a way
+    // to add tailoring on top of the locale-specific tailoring as of this writing.
+    foldQuoteMarks(m_target);
+
+    size_t targetLength = m_target.length();
     m_buffer.reserveInitialCapacity(max(targetLength * 8, minimumSearchBufferSize));
     m_overlap = m_buffer.capacity() / 4;
 
@@ -1483,9 +1517,11 @@ inline size_t SearchBuffer::append(const UChar* characters, size_t length)
         m_buffer.shrink(m_overlap);
     }
 
-    size_t usableLength = min(m_buffer.capacity() - m_buffer.size(), length);
+    size_t oldLength = m_buffer.size();
+    size_t usableLength = min(m_buffer.capacity() - oldLength, length);
     ASSERT(usableLength);
     m_buffer.append(characters, usableLength);
+    foldQuoteMarks(m_buffer.data() + oldLength, usableLength);
     return usableLength;
 }
 
@@ -1552,6 +1588,7 @@ inline SearchBuffer::SearchBuffer(const String& target, bool isCaseSensitive)
 {
     ASSERT(!m_target.isEmpty());
     m_target.replace(noBreakSpace, ' ');
+    foldQuoteMarks(m_target);
 }
 
 inline SearchBuffer::~SearchBuffer()
@@ -1571,7 +1608,7 @@ inline bool SearchBuffer::atBreak() const
 
 inline void SearchBuffer::append(UChar c, bool isStart)
 {
-    m_buffer[m_cursor] = c == noBreakSpace ? ' ' : c;
+    m_buffer[m_cursor] = c == noBreakSpace ? ' ' : foldQuoteMark(c);
     m_isCharacterStartBuffer[m_cursor] = isStart;
     if (++m_cursor == m_target.length()) {
         m_cursor = 0;
@@ -1878,11 +1915,6 @@ tryAgain:
 
 PassRefPtr<Range> findPlainText(const Range* range, const String& target, bool forward, bool caseSensitive)
 {
-    // We can't search effectively for a string that's entirely made of collapsible
-    // whitespace, so we won't even try. This also takes care of the empty string case.
-    if (isAllCollapsibleWhitespace(target))
-        return collapsedToBoundary(range, forward);
-
     // First, find the text.
     size_t matchStart;
     size_t matchLength;

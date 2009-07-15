@@ -164,10 +164,14 @@ void FrameLoaderClientQt::setFrame(QWebFrame* webFrame, Frame* frame)
 
     connect(this, SIGNAL(loadStarted()),
             m_webFrame->page(), SIGNAL(loadStarted()));
+    connect(this, SIGNAL(loadStarted()),
+            m_webFrame, SIGNAL(loadStarted()));
     connect(this, SIGNAL(loadProgress(int)),
             m_webFrame->page(), SIGNAL(loadProgress(int)));
     connect(this, SIGNAL(loadFinished(bool)),
             m_webFrame->page(), SIGNAL(loadFinished(bool)));
+    connect(this, SIGNAL(loadFinished(bool)),
+            m_webFrame, SIGNAL(loadFinished(bool)));
     connect(this, SIGNAL(titleChanged(const QString&)),
             m_webFrame, SIGNAL(titleChanged(const QString&)));
 }
@@ -210,7 +214,7 @@ void FrameLoaderClientQt::transitionToCommittedForNewPage()
 
     m_frame->createView(m_webFrame->page()->viewportSize(),
                         backgroundColor, !backgroundColor.alpha(),
-                        fixedLayoutSize,
+                        fixedLayoutSize.isValid() ? IntSize(fixedLayoutSize) : IntSize(),
                         fixedLayoutSize.isValid(),
                         (ScrollbarMode)m_webFrame->scrollBarPolicy(Qt::Horizontal),
                         (ScrollbarMode)m_webFrame->scrollBarPolicy(Qt::Vertical));
@@ -675,6 +679,11 @@ void FrameLoaderClientQt::committedLoad(WebCore::DocumentLoader* loader, const c
     if (m_pluginView) {
         if (!m_hasSentResponseToPlugin) {
             m_pluginView->didReceiveResponse(loader->response());
+            // didReceiveResponse sets up a new stream to the plug-in. on a full-page plug-in, a failure in
+            // setting up this stream can cause the main document load to be cancelled, setting m_pluginView
+            // to null
+            if (!m_pluginView)
+                return;
             m_hasSentResponseToPlugin = true;
         }
         m_pluginView->didReceiveData(data, length);
@@ -948,32 +957,35 @@ PassRefPtr<Frame> FrameLoaderClientQt::createFrame(const KURL& url, const String
     if (!m_webFrame)
         return 0;
 
-    QWebFrameData frameData;
+    QWebFrameData frameData(m_frame->page(), m_frame, ownerElement, name);
     frameData.url = url;
-    frameData.name = name;
-    frameData.ownerElement = ownerElement;
     frameData.referrer = referrer;
     frameData.allowsScrolling = allowsScrolling;
     frameData.marginWidth = marginWidth;
     frameData.marginHeight = marginHeight;
 
-    QWebFrame* webFrame = new QWebFrame(m_webFrame, &frameData);
-    emit m_webFrame->page()->frameCreated(webFrame);
+    QPointer<QWebFrame> webFrame = new QWebFrame(m_webFrame, &frameData);
+    // The creation of the frame may have run arbitrary JavaScript that removed it from the page already.
+    if (!webFrame->d->frame->page()) {
+        frameData.frame.release();
+        ASSERT(webFrame.isNull());
+        return 0;
+    }
 
-    RefPtr<Frame> childFrame = adoptRef(webFrame->d->frame);
+    emit m_webFrame->page()->frameCreated(webFrame);
 
     // ### set override encoding if we have one
 
     FrameLoadType loadType = m_frame->loader()->loadType();
     FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedBackForwardList;
 
-    childFrame->loader()->loadURLIntoChildFrame(frameData.url, frameData.referrer, childFrame.get());
+    frameData.frame->loader()->loadURLIntoChildFrame(frameData.url, frameData.referrer, frameData.frame.get());
 
     // The frame's onload handler may have removed it from the document.
-    if (!childFrame->tree()->parent())
+    if (!frameData.frame->tree()->parent())
         return 0;
 
-    return childFrame.release();
+    return frameData.frame.release();
 }
 
 ObjectContentType FrameLoaderClientQt::objectContentType(const KURL& url, const String& _mimeType)

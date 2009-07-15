@@ -198,6 +198,11 @@
 #include "WorkerNavigator.h"
 #endif // WORKERS
 
+#if ENABLE(SHARED_WORKERS)
+#include "AbstractWorker.h"
+#include "SharedWorker.h"
+#endif // SHARED_WORKERS
+
 #if ENABLE(XPATH)
 #include "XPathEvaluator.h"
 #endif // XPATH
@@ -205,7 +210,7 @@
 namespace WebCore {
 
     // A helper class for undetectable document.all
-    class UndetectableHTMLCollection : public HTMLCollection {
+    class HTMLAllCollection : public HTMLCollection {
     };
 
 } // namespace WebCore

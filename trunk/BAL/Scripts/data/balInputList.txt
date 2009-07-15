@@ -444,10 +444,10 @@ BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCUnicodeICU.h
 BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp
-BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/TextBreakIteratorInternalICU.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBoundariesICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorICU.cpp
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorInternalICU.h
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.h
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextEncodingDetectorICU.cpp

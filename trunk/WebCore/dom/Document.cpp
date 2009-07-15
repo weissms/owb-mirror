@@ -2606,7 +2606,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             else
                 view()->setFocus();
         }
-   }
+    }
 
 #if PLATFORM(MAC) && !PLATFORM(CHROMIUM)
     if (!focusChangeBlocked && m_focusedNode && AXObjectCache::accessibilityEnabled())
@@ -4363,21 +4363,21 @@ void Document::reportException(const String& errorMessage, int lineNumber, const
 {
 #if ENABLE(INSPECTOR)
     if (DOMWindow* window = domWindow())
-        window->console()->addMessage(JSMessageSource, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
+        window->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
 #endif
 }
 
-void Document::addMessage(MessageDestination destination, MessageSource source, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
+void Document::addMessage(MessageDestination destination, MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
 {
 #if ENABLE(INSPECTOR)
     switch (destination) {
     case InspectorControllerDestination:
         if (page())
-            page()->inspectorController()->addMessageToConsole(source, level, message, lineNumber, sourceURL);
+            page()->inspectorController()->addMessageToConsole(source, type, level, message, lineNumber, sourceURL);
         return;
     case ConsoleDestination:
         if (DOMWindow* window = domWindow())
-            window->console()->addMessage(source, level, message, lineNumber, sourceURL);
+            window->console()->addMessage(source, type, level, message, lineNumber, sourceURL);
         return;
     }
     ASSERT_NOT_REACHED();

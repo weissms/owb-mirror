@@ -3441,7 +3441,7 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         }
         
         int width = 0;
-        if (primitiveValue && primitiveValue->getIdent() == CSSValueNormal){
+        if (primitiveValue && primitiveValue->getIdent() == CSSValueNormal) {
             width = 0;
         } else {
             if (!primitiveValue)
@@ -4959,7 +4959,7 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         int type = primitiveValue->primitiveType();
         if (CSSPrimitiveValue::isUnitTypeLength(type))
             l = Length(primitiveValue->computeLengthIntForLength(style(), zoomFactor), Fixed);
-        else if(type == CSSPrimitiveValue::CSS_PERCENTAGE)
+        else if (type == CSSPrimitiveValue::CSS_PERCENTAGE)
             l = Length(primitiveValue->getDoubleValue(), Percent);
         else
             return;
@@ -5029,7 +5029,7 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         int type = primitiveValue->primitiveType();
         if (CSSPrimitiveValue::isUnitTypeLength(type))
             l = Length(primitiveValue->computeLengthIntForLength(style(), zoomFactor), Fixed);
-        else if(type == CSSPrimitiveValue::CSS_PERCENTAGE)
+        else if (type == CSSPrimitiveValue::CSS_PERCENTAGE)
             l = Length(primitiveValue->getDoubleValue(), Percent);
         else
             return;

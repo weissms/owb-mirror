@@ -161,8 +161,8 @@ const String& HistoryItem::alternateTitle() const
 
 Image* HistoryItem::icon() const
 {
-    Image* result = iconDatabase()->iconForPageURL(m_urlString, IntSize(16,16));
-    return result ? result : iconDatabase()->defaultIcon(IntSize(16,16));
+    Image* result = iconDatabase()->iconForPageURL(m_urlString, IntSize(16, 16));
+    return result ? result : iconDatabase()->defaultIcon(IntSize(16, 16));
 }
 
 double HistoryItem::lastVisitedTime() const
@@ -331,10 +331,10 @@ void HistoryItem::setVisitCount(int count)
 
 void HistoryItem::adoptVisitCounts(Vector<int>& dailyCounts, Vector<int>& weeklyCounts)
 {
-  m_dailyVisitCounts.clear();
-  m_dailyVisitCounts.swap(dailyCounts);
-  m_weeklyVisitCounts.clear();
-  m_weeklyVisitCounts.swap(weeklyCounts);
+    m_dailyVisitCounts.clear();
+    m_dailyVisitCounts.swap(dailyCounts);
+    m_weeklyVisitCounts.clear();
+    m_weeklyVisitCounts.swap(weeklyCounts);
 }
 
 const IntPoint& HistoryItem::scrollPoint() const
@@ -480,7 +480,7 @@ FormData* HistoryItem::formData()
 bool HistoryItem::isCurrentDocument(Document* doc) const
 {
     // FIXME: We should find a better way to check if this is the current document.
-    return urlString() == doc->url();
+    return equalIgnoringRef(url(), doc->url());
 }
 
 void HistoryItem::mergeAutoCompleteHints(HistoryItem* otherItem)

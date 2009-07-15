@@ -72,8 +72,8 @@
 #include "V8File.h"
 #include "V8FileList.h"
 #include "V8History.h"
+#include "V8HTMLAllCollection.h"
 #include "V8HTMLCanvasElement.h"
-#include "V8UndetectableHTMLCollection.h"
 #include "V8HTMLCollection.h"
 #include "V8HTMLDocument.h"
 #include "V8HTMLElement.h"
@@ -374,6 +374,11 @@
 #include "V8WorkerContext.h"
 #include "V8WorkerLocation.h"
 #include "V8WorkerNavigator.h"
+#endif
+
+#if ENABLE(SHARED_WORKERS)
+#include "V8AbstractWorker.h"
+#include "V8SharedWorker.h"
 #endif
 
 namespace WebCore {

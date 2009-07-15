@@ -113,6 +113,12 @@ public:
             m_simpleContent.m_boolean = value;
         }
 
+        explicit Setting(const String& value)
+            : m_type(StringType)
+        {
+            m_string = value;
+        }
+
         Type type() const { return m_type; }
 
         String string() const { ASSERT(m_type == StringType); return m_string; }
@@ -173,8 +179,8 @@ public:
 
     void addResourceSourceToFrame(long identifier, Node* frame);
     bool addSourceToFrame(const String& mimeType, const String& source, Node*);
-    void addMessageToConsole(MessageSource, MessageLevel, ScriptCallStack*);
-    void addMessageToConsole(MessageSource, MessageLevel, const String& message, unsigned lineNumber, const String& sourceID);
+    void addMessageToConsole(MessageSource, MessageType, MessageLevel, ScriptCallStack*);
+    void addMessageToConsole(MessageSource, MessageType, MessageLevel, const String& message, unsigned lineNumber, const String& sourceID);
     void clearConsoleMessages();
 
     void attachWindow();
@@ -182,6 +188,8 @@ public:
 
     void setAttachedWindow(bool);
     void setAttachedWindowHeight(unsigned height);
+
+    void storeLastActivePanel(const String& panelName);
 
     void toggleSearchForNodeInPage();
     bool searchingForNodeInPage() { return m_searchingForNode; };
@@ -302,6 +310,8 @@ private:
     void showWindow();
 
     bool isMainResourceLoader(DocumentLoader* loader, const KURL& requestUrl);
+
+    SpecialPanels specialPanelForJSName(const String& panelName);
 
     Page* m_inspectedPage;
     InspectorClient* m_client;

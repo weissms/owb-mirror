@@ -643,10 +643,10 @@ void DOMWindow::postMessageTimerFired(PostMessageTimer* t)
     if (timer->targetOrigin()) {
         // Check target origin now since the target document may have changed since the simer was scheduled.
         if (!timer->targetOrigin()->isSameSchemeHostPort(document()->securityOrigin())) {
+#if ENABLE(INSPECTOR)
             String message = String::format("Unable to post message to %s. Recipient has origin %s.\n", 
                 timer->targetOrigin()->toString().utf8().data(), document()->securityOrigin()->toString().utf8().data());
-#if ENABLE(INSPECTOR)
-            console()->addMessage(JSMessageSource, ErrorMessageLevel, message, 0, String());
+            console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, message, 0, String());
 #endif
             return;
         }

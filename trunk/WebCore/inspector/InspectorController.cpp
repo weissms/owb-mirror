@@ -99,6 +99,7 @@ static const char* const UserInitiatedProfileName = "org.webkit.profiles.user-in
 static const char* const resourceTrackingEnabledSettingName = "resourceTrackingEnabled";
 static const char* const debuggerEnabledSettingName = "debuggerEnabled";
 static const char* const profilerEnabledSettingName = "profilerEnabled";
+static const char* const lastActivePanelSettingName = "lastActivePanel";
 
 bool InspectorController::addSourceToFrame(const String& mimeType, const String& source, Node* frameNode)
 {
@@ -170,7 +171,7 @@ InspectorController::InspectorController(Page* page, InspectorClient* client)
     , m_page(0)
     , m_scriptState(0)
     , m_windowVisible(false)
-    , m_showAfterVisible(ElementsPanel)
+    , m_showAfterVisible(CurrentPanel)
     , m_nextIdentifier(-2)
     , m_groupLevel(0)
     , m_searchingForNode(false)
@@ -373,14 +374,20 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
     if (m_windowVisible) {
         setAttachedWindow(attached);
         populateScriptObjects();
+
+        if (m_showAfterVisible == CurrentPanel) {
+          Setting lastActivePanelSetting = setting(lastActivePanelSettingName);
+          if (lastActivePanelSetting.type() == Setting::StringType)
+              m_showAfterVisible = specialPanelForJSName(lastActivePanelSetting.string());
+        }
+
         if (m_nodeToFocus)
             focusNode();
 #if ENABLE(JAVASCRIPT_DEBUGGER)
         if (m_attachDebuggerWhenShown)
             enableDebugger();
 #endif
-        if (m_showAfterVisible != CurrentPanel)
-            showPanel(m_showAfterVisible);
+        showPanel(m_showAfterVisible);
     } else {
 #if ENABLE(JAVASCRIPT_DEBUGGER)
         // If the window is being closed with the debugger enabled,
@@ -393,24 +400,23 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
 #endif
         resetScriptObjects();
     }
-
     m_showAfterVisible = CurrentPanel;
 }
 
-void InspectorController::addMessageToConsole(MessageSource source, MessageLevel level, ScriptCallStack* callStack)
+void InspectorController::addMessageToConsole(MessageSource source, MessageType type, MessageLevel level, ScriptCallStack* callStack)
 {
     if (!enabled())
         return;
 
-    addConsoleMessage(callStack->state(), new ConsoleMessage(source, level, callStack, m_groupLevel, level == TraceMessageLevel));
+    addConsoleMessage(callStack->state(), new ConsoleMessage(source, type, level, callStack, m_groupLevel, type == TraceMessageType));
 }
 
-void InspectorController::addMessageToConsole(MessageSource source, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceID)
+void InspectorController::addMessageToConsole(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceID)
 {
     if (!enabled())
         return;
 
-    addConsoleMessage(0, new ConsoleMessage(source, level, message, lineNumber, sourceID, m_groupLevel));
+    addConsoleMessage(0, new ConsoleMessage(source, type, level, message, lineNumber, sourceID, m_groupLevel));
 }
 
 void InspectorController::addConsoleMessage(ScriptState* scriptState, ConsoleMessage* consoleMessage)
@@ -442,7 +448,7 @@ void InspectorController::startGroup(MessageSource source, ScriptCallStack* call
 {
     ++m_groupLevel;
 
-    addConsoleMessage(callStack->state(), new ConsoleMessage(source, StartGroupMessageLevel, callStack, m_groupLevel));
+    addConsoleMessage(callStack->state(), new ConsoleMessage(source, StartGroupMessageType, LogMessageLevel, callStack, m_groupLevel));
 }
 
 void InspectorController::endGroup(MessageSource source, unsigned lineNumber, const String& sourceURL)
@@ -452,7 +458,7 @@ void InspectorController::endGroup(MessageSource source, unsigned lineNumber, co
 
     --m_groupLevel;
 
-    addConsoleMessage(0, new ConsoleMessage(source, EndGroupMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
+    addConsoleMessage(0, new ConsoleMessage(source, EndGroupMessageType, LogMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
 }
 
 void InspectorController::attachWindow()
@@ -482,6 +488,11 @@ void InspectorController::setAttachedWindowHeight(unsigned height)
     if (!enabled())
         return;
     m_client->setAttachedWindowHeight(height);
+}
+
+void InspectorController::storeLastActivePanel(const String& panelName)
+{
+    setSetting(lastActivePanelSettingName, Setting(panelName));
 }
 
 void InspectorController::toggleSearchForNodeInPage()
@@ -989,7 +1000,8 @@ void InspectorController::scriptImported(unsigned long identifier, const String&
         resource->updateScriptObject(m_frontend.get());
 }
 
-void InspectorController::enableResourceTracking(bool always) {
+void InspectorController::enableResourceTracking(bool always)
+{
     if (!enabled())
         return;
 
@@ -1007,7 +1019,8 @@ void InspectorController::enableResourceTracking(bool always) {
     m_inspectedPage->mainFrame()->loader()->reload();
 }
 
-void InspectorController::disableResourceTracking(bool always) {
+void InspectorController::disableResourceTracking(bool always)
+{
     if (!enabled())
         return;
 
@@ -1100,7 +1113,7 @@ void InspectorController::addProfileFinishedMessageToConsole(PassRefPtr<Profile>
     message += "/";
     message += UString::from(profile->uid());
     message += "\" finished.";
-    addMessageToConsole(JSMessageSource, LogMessageLevel, message, lineNumber, sourceURL);
+    addMessageToConsole(JSMessageSource, LogMessageType, LogMessageLevel, message, lineNumber, sourceURL);
 }
 
 void InspectorController::addStartProfilingMessageToConsole(const UString& title, unsigned lineNumber, const UString& sourceURL)
@@ -1108,7 +1121,7 @@ void InspectorController::addStartProfilingMessageToConsole(const UString& title
     UString message = "Profile \"webkit-profile://";
     message += encodeWithURLEscapeSequences(title);
     message += "/0\" started.";
-    addMessageToConsole(JSMessageSource, LogMessageLevel, message, lineNumber, sourceURL);
+    addMessageToConsole(JSMessageSource, LogMessageType, LogMessageLevel, message, lineNumber, sourceURL);
 }
 
 void InspectorController::addScriptProfile(Profile* profile)
@@ -1508,7 +1521,7 @@ void InspectorController::count(const String& title, unsigned lineNumber, const 
     m_counts.add(identifier, count);
 
     String message = String::format("%s: %d", title.utf8().data(), count);
-    addMessageToConsole(JSMessageSource, LogMessageLevel, message, lineNumber, sourceID);
+    addMessageToConsole(JSMessageSource, LogMessageType, LogMessageLevel, message, lineNumber, sourceID);
 }
 
 void InspectorController::startTiming(const String& title)
@@ -1527,6 +1540,22 @@ bool InspectorController::stopTiming(const String& title, double& elapsed)
     
     elapsed = currentTime() * 1000 - startTime;
     return true;
+}
+
+InspectorController::SpecialPanels InspectorController::specialPanelForJSName(const String& panelName)
+{
+    if (panelName == "elements")
+        return ElementsPanel;
+    else if (panelName == "resources")
+        return ResourcesPanel;
+    else if (panelName == "scripts")
+        return ScriptsPanel;
+    else if (panelName == "profiles")
+        return ProfilesPanel;
+    else if (panelName == "databases")
+        return DatabasesPanel;
+    else
+        return ElementsPanel;
 }
 
 } // namespace WebCore

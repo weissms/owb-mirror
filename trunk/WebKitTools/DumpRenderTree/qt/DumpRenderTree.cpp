@@ -41,11 +41,17 @@
 #include <QApplication>
 #include <QUrl>
 #include <QFocusEvent>
+#include <QFontDatabase>
 
 #include <qwebpage.h>
 #include <qwebframe.h>
 #include <qwebview.h>
 #include <qwebsettings.h>
+#include <qwebsecurityorigin.h>
+
+#ifdef Q_WS_X11
+#include <fontconfig/fontconfig.h>
+#endif
 
 #include <unistd.h>
 #include <qdebug.h>
@@ -95,6 +101,7 @@ WebPage::WebPage(QWidget *parent, DumpRenderTree *drt)
     settings()->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
     settings()->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
     settings()->setAttribute(QWebSettings::LinksIncludedInFocusChain, false);
+    settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     connect(this, SIGNAL(geometryChangeRequested(const QRect &)),
             this, SLOT(setViewGeometry(const QRect & )));
 
@@ -143,15 +150,18 @@ DumpRenderTree::DumpRenderTree()
     connect(m_page, SIGNAL(frameCreated(QWebFrame *)), this, SLOT(connectFrame(QWebFrame *)));
     connectFrame(m_page->mainFrame());
 
-    connect(m_page, SIGNAL(loadFinished(bool)), m_controller, SLOT(maybeDump(bool)));
+    connect(m_page->mainFrame(), SIGNAL(loadFinished(bool)), m_controller, SLOT(maybeDump(bool)));
 
     m_page->mainFrame()->setScrollBarPolicy(Qt::Horizontal, Qt::ScrollBarAlwaysOff);
     m_page->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
     connect(m_page->mainFrame(), SIGNAL(titleChanged(const QString&)),
             SLOT(titleChanged(const QString&)));
+    connect(m_page, SIGNAL(databaseQuotaExceeded(QWebFrame*,QString)),
+            this, SLOT(dumpDatabaseQuota(QWebFrame*,QString)));
 
     m_eventSender = new EventSender(m_page);
     m_textInputController = new TextInputController(m_page);
+    m_gcController = new GCController(m_page);
 
     QObject::connect(this, SIGNAL(quit()), qApp, SLOT(quit()), Qt::QueuedConnection);
     qt_drt_run(true);
@@ -187,6 +197,7 @@ void DumpRenderTree::open(const QUrl& url)
     int width = isW3CTest ? 480 : maxViewWidth;
     int height = isW3CTest ? 360 : maxViewHeight;
     m_page->view()->resize(QSize(width, height));
+    m_page->setFixedContentsSize(QSize());
     m_page->setViewportSize(QSize(width, height));
 
     // Reset so that any current loads are stopped
@@ -198,6 +209,11 @@ void DumpRenderTree::open(const QUrl& url)
 
     QFocusEvent ev(QEvent::FocusIn);
     m_page->event(&ev);
+
+    QFontDatabase::removeAllApplicationFonts();
+#if defined(Q_WS_X11)
+    initializeFonts();
+#endif
 
     qt_drt_clearFrameName(m_page->mainFrame());
 
@@ -240,6 +256,7 @@ void DumpRenderTree::initJSObjects()
     frame->addToJavaScriptWindowObject(QLatin1String("layoutTestController"), m_controller);
     frame->addToJavaScriptWindowObject(QLatin1String("eventSender"), m_eventSender);
     frame->addToJavaScriptWindowObject(QLatin1String("textInputController"), m_textInputController);
+    frame->addToJavaScriptWindowObject(QLatin1String("GCController"), m_gcController);
 }
 
 
@@ -338,6 +355,19 @@ void DumpRenderTree::connectFrame(QWebFrame *frame)
             layoutTestController(), SLOT(provisionalLoad()));
 }
 
+void DumpRenderTree::dumpDatabaseQuota(QWebFrame* frame, const QString& dbName)
+{
+    if (!m_controller->shouldDumpDatabaseCallbacks())
+        return;
+    QWebSecurityOrigin origin = frame->securityOrigin();
+    printf("UI DELEGATE DATABASE CALLBACK: exceededDatabaseQuotaForSecurityOrigin:{%s, %s, %i} database:%s\n",
+           origin.scheme().toUtf8().data(),
+           origin.host().toUtf8().data(),
+           origin.port(),
+           dbName.toUtf8().data());
+    origin.setDatabaseQuota(5 * 1024 * 1024);
+}
+
 QWebPage *DumpRenderTree::createWindow()
 {
     if (!m_controller->canOpenWindows())
@@ -347,6 +377,7 @@ QWebPage *DumpRenderTree::createWindow()
     container->move(-1, -1);
     container->hide();
     QWebPage *page = new WebPage(container, this);
+    connectFrame(page->mainFrame());
     connect(m_page, SIGNAL(frameCreated(QWebFrame *)), this, SLOT(connectFrame(QWebFrame *)));
     windows.append(container);
     return page;
@@ -361,6 +392,45 @@ int DumpRenderTree::windowCount() const
     }
     return count + 1;
 }
+
+#if defined(Q_WS_X11)
+void DumpRenderTree::initializeFonts()
+{
+    static int numFonts = -1;
+
+    // Some test cases may add or remove application fonts (via @font-face).
+    // Make sure to re-initialize the font set if necessary.
+    FcFontSet* appFontSet = FcConfigGetFonts(0, FcSetApplication);
+    if (appFontSet && numFonts >= 0 && appFontSet->nfont == numFonts)
+        return;
+
+    QByteArray fontDir = getenv("WEBKIT_TESTFONTS");
+    if (fontDir.isEmpty() || !QDir(fontDir).exists()) {
+        fprintf(stderr,
+                "\n\n"
+                "----------------------------------------------------------------------\n"
+                "WEBKIT_TESTFONTS environment variable is not set correctly.\n"
+                "This variable has to point to the directory containing the fonts\n"
+                "you can clone from git://gitorious.org/qtwebkit/testfonts.git\n"
+                "----------------------------------------------------------------------\n"
+               );
+        exit(1);
+    }
+    char currentPath[PATH_MAX+1];
+    getcwd(currentPath, PATH_MAX);
+    QByteArray configFile = currentPath;
+    FcConfig *config = FcConfigCreate();
+    configFile += "/WebKitTools/DumpRenderTree/qt/fonts.conf";
+    if (!FcConfigParseAndLoad (config, (FcChar8*) configFile.data(), true))
+        qFatal("Couldn't load font configuration file");
+    if (!FcConfigAppFontAddDir (config, (FcChar8*) fontDir.data()))
+        qFatal("Couldn't add font dir!");
+    FcConfigSetCurrent(config);
+
+    appFontSet = FcConfigGetFonts(config, FcSetApplication);
+    numFonts = appFontSet->nfont;
+}
+#endif
 
 }
 

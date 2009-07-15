@@ -98,7 +98,7 @@ public:
 
     virtual void setResizable(bool) { }
 
-    virtual void addMessageToConsole(MessageSource, MessageLevel, const String&, unsigned, const String&) { }
+    virtual void addMessageToConsole(MessageSource, MessageType, MessageLevel, const String&, unsigned, const String&) { }
 
     virtual bool canRunBeforeUnloadConfirmPanel() { return false; }
     virtual bool runBeforeUnloadConfirmPanel(const String&, Frame*) { return true; }
@@ -139,6 +139,9 @@ public:
     virtual void runOpenPanel(Frame*, PassRefPtr<FileChooser>) { }
 
     virtual void formStateDidChange(const Node*) { }
+
+    virtual void formDidFocus(const Node*) { }
+    virtual void formDidBlur(const Node*) { }
 
     virtual PassOwnPtr<HTMLParserQuirks> createHTMLParserQuirks() { return 0; }
 
@@ -287,8 +290,9 @@ public:
     virtual void registerForIconNotification(bool) { }
 
 #if USE(V8)
-    virtual void didCreateScriptContext() { }
-    virtual void didDestroyScriptContext() { }
+    virtual void didCreateScriptContextForFrame() { }
+    virtual void didDestroyScriptContextForFrame() { }
+    virtual void didCreateIsolatedScriptContext() { }
 #endif
 
 #if PLATFORM(MAC)

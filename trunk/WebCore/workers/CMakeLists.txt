@@ -1,5 +1,7 @@
 if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
+        workers/AbstractWorker.cpp
+        workers/SharedWorker.cpp
         workers/Worker.cpp
         workers/WorkerContext.cpp
         workers/WorkerLocation.cpp
@@ -9,6 +11,8 @@ if(ENABLE_WORKERS)
         workers/WorkerThread.cpp
     )
     list(APPEND IDL_SRC
+        workers/AbstractWorker.idl
+        workers/SharedWorker.idl
         workers/Worker.idl
         workers/WorkerContext.idl
         workers/WorkerLocation.idl

@@ -68,8 +68,10 @@ public:
 
     void rewind(float timeDelta);
     void returnToRealtime();
-    
-    virtual bool supportsFullscreen() const { return false; }
+
+    // Eventually overloaded in HTMLVideoElement
+    virtual bool supportsFullscreen() const { return false; };
+    virtual bool supportsSave() const;
 
     void scheduleLoad();
     
@@ -77,6 +79,8 @@ public:
     
     // Pauses playback without changing any states or generating events
     void setPausedInternal(bool);
+    
+    MediaPlayer::MovieLoadType movieLoadType() const;
     
     bool inActiveDocument() const { return m_inActiveDocument; }
     
@@ -97,8 +101,6 @@ public:
     PassRefPtr<TimeRanges> buffered() const;
     void load(ExceptionCode&);
     String canPlayType(const String& mimeType) const;
-
-    bool isStreaming() const;
 
 // ready state
     enum ReadyState { HAVE_NOTHING, HAVE_METADATA, HAVE_CURRENT_DATA, HAVE_FUTURE_DATA, HAVE_ENOUGH_DATA };
@@ -231,8 +233,7 @@ private:
 
     // Restrictions to change default behaviors. This is a effectively a compile time choice at the moment
     //  because there are no accessor methods.
-    enum BehaviorRestrictions 
-    { 
+    enum BehaviorRestrictions {
         NoRestrictions = 0,
         RequireUserGestureForLoadRestriction = 1 << 0,
         RequireUserGestureForRateChangeRestriction = 1 << 1,

@@ -308,6 +308,11 @@ bool MediaPlayer::supportsFullscreen() const
     return m_private->supportsFullscreen();
 }
 
+bool MediaPlayer::supportsSave() const
+{
+    return m_private->supportsSave();
+}
+
 IntSize MediaPlayer::naturalSize()
 {
     return m_private->naturalSize();

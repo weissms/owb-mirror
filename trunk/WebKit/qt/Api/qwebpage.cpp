@@ -325,11 +325,7 @@ bool QWebPagePrivate::acceptNavigationRequest(QWebFrame *frame, const QNetworkRe
 void QWebPagePrivate::createMainFrame()
 {
     if (!mainFrame) {
-        QWebFrameData frameData;
-        frameData.ownerElement = 0;
-        frameData.allowsScrolling = true;
-        frameData.marginWidth = 0;
-        frameData.marginHeight = 0;
+        QWebFrameData frameData(page);
         mainFrame = new QWebFrame(q, &frameData);
 
         emit q->frameCreated(mainFrame);
@@ -1422,6 +1418,28 @@ bool QWebPage::javaScriptPrompt(QWebFrame *frame, const QString& msg, const QStr
     }
 #endif
     return ok;
+}
+
+/*!
+    \fn bool QWebPage::shouldInterruptJavaScript()
+    \since 4.6
+    This function is called when a JavaScript program is running for a long period of time.
+
+    If the user wanted to stop the JavaScript the implementation should return true; otherwise false.
+
+    The default implementation executes the query using QMessageBox::information with QMessageBox::Yes and QMessageBox::No buttons.
+
+    \warning Because of binary compatibility constraints, this function is not virtual. If you want to
+    provide your own implementation in a QWebPage subclass, reimplement the shouldInterruptJavaScript()
+    slot in your subclass instead. QtWebKit will dynamically detect the slot and call it.
+*/
+bool QWebPage::shouldInterruptJavaScript()
+{
+#ifdef QT_NO_MESSAGEBOX
+    return false;
+#else
+    return QMessageBox::Yes == QMessageBox::information(d->view, tr("JavaScript Problem - %1").arg(mainFrame()->url().host()), tr("The script on this page appears to have a problem. Do you want to stop the script?"), QMessageBox::Yes, QMessageBox::No);
+#endif
 }
 
 /*!
