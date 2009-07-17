@@ -31,6 +31,7 @@
 // This source file coalesces the HTML elements into a single object file to
 // reduce bloat and allow us to link release builds on 32-bit Windows.
 
+#include "bindings/V8AbstractWorker.cpp"
 #include "bindings/V8Attr.cpp"
 #include "bindings/V8BarInfo.cpp"
 #include "bindings/V8CanvasGradient.cpp"
@@ -178,10 +179,13 @@
 #include "bindings/V8Rect.cpp"
 #include "bindings/V8RGBColor.cpp"
 #include "bindings/V8Screen.cpp"
+#include "bindings/V8SharedWorker.cpp"
 #include "bindings/V8SQLError.cpp"
 #include "bindings/V8SQLResultSet.cpp"
 #include "bindings/V8SQLResultSetRowList.cpp"
 #include "bindings/V8SQLTransaction.cpp"
+#include "bindings/V8Storage.cpp"
+#include "bindings/V8StorageEvent.cpp"
 #include "bindings/V8StyleSheet.cpp"
 #include "bindings/V8StyleSheetList.cpp"
 #include "bindings/V8SVGAElement.cpp"
@@ -300,6 +304,7 @@
 #include "bindings/V8TimeRanges.cpp"
 #include "bindings/V8TreeWalker.cpp"
 #include "bindings/V8UIEvent.cpp"
+#include "bindings/V8ValidityState.cpp"
 #include "bindings/V8WebKitAnimationEvent.cpp"
 #include "bindings/V8WebKitCSSKeyframeRule.cpp"
 #include "bindings/V8WebKitCSSKeyframesRule.cpp"

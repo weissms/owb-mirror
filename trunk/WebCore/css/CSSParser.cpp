@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2003 Lars Knoll (knoll@kde.org)
  * Copyright (C) 2005 Allan Sandfeld Jensen (kde@carewolf.com)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Nicholas Shanks <webkit@nickshanks.com>
  * Copyright (C) 2008 Eric Seidel <eric@webkit.org>
  *
@@ -425,6 +425,7 @@ bool CSSParser::validUnit(CSSParserValue* value, Units unitflags, bool strict)
         break;
     case CSSParserValue::Q_EMS:
     case CSSPrimitiveValue::CSS_EMS:
+    case CSSPrimitiveValue::CSS_REMS:
     case CSSPrimitiveValue::CSS_EXS:
     case CSSPrimitiveValue::CSS_PX:
     case CSSPrimitiveValue::CSS_CM:
@@ -460,6 +461,8 @@ static int unitFromString(CSSParserValue* value)
 
     if (equal(value->string, "em"))
         return CSSPrimitiveValue::CSS_EMS;
+    if (equal(value->string, "rem"))
+        return CSSPrimitiveValue::CSS_REMS;
     if (equal(value->string, "ex"))
         return CSSPrimitiveValue::CSS_EXS;
     if (equal(value->string, "px"))
@@ -811,7 +814,7 @@ bool CSSParser::parseValue(int propId, bool important)
         while (value && value->unit == CSSPrimitiveValue::CSS_URI) {
             if (!list)
                 list = CSSValueList::createCommaSeparated(); 
-            String uri = parseURL(value->string);
+            String uri = value->string;
             Vector<int> coords;
             value = m_valueList->next();
             while (value && value->unit == CSSPrimitiveValue::CSS_NUMBER) {
@@ -826,8 +829,11 @@ bool CSSParser::parseValue(int propId, bool important)
             } else if (m_strict && nrcoords == 2)
                 hotspot = IntPoint(coords[0], coords[1]);
             if (m_strict || coords.size() == 0) {
-                if (!uri.isNull() && m_styleSheet)
+                if (!uri.isNull() && m_styleSheet) {
+                    // FIXME: The completeURL call should be done when using the CSSCursorImageValue,
+                    // not when creating it.
                     list->append(CSSCursorImageValue::create(m_styleSheet->completeURL(uri), hotspot));
+                }
             }
             if ((m_strict && !value) || (value && !(value->unit == CSSParserValue::Operator && value->iValue == ',')))
                 return false;
@@ -890,10 +896,10 @@ bool CSSParser::parseValue(int propId, bool important)
             parsedValue = CSSImageValue::create();
             m_valueList->next();
         } else if (value->unit == CSSPrimitiveValue::CSS_URI) {
-            // ### allow string in non strict mode?
-            String uri = parseURL(value->string);
-            if (!uri.isNull() && m_styleSheet) {
-                parsedValue = CSSImageValue::create(m_styleSheet->completeURL(uri));
+            if (m_styleSheet) {
+                // FIXME: The completeURL call should be done when using the CSSImageValue,
+                // not when creating it.
+                parsedValue = CSSImageValue::create(m_styleSheet->completeURL(value->string));
                 m_valueList->next();
             }
         } else if (value->unit == CSSParserValue::Function && equalIgnoringCase(value->function->name, "-webkit-gradient(")) {
@@ -1105,8 +1111,9 @@ bool CSSParser::parseValue(int propId, bool important)
             RefPtr<CSSValue> parsedValue;
             while ((val = m_valueList->current())) {
                 if (val->unit == CSSPrimitiveValue::CSS_URI && m_styleSheet) {
-                    String value = parseURL(val->string);
-                    parsedValue = CSSPrimitiveValue::create(m_styleSheet->completeURL(value), CSSPrimitiveValue::CSS_URI);
+                    // FIXME: The completeURL call should be done when using the CSSPrimitiveValue,
+                    // not when creating it.
+                    parsedValue = CSSPrimitiveValue::create(m_styleSheet->completeURL(val->string), CSSPrimitiveValue::CSS_URI);
                 }
                 if (!parsedValue)
                     break;
@@ -1653,6 +1660,8 @@ bool CSSParser::parseValue(int propId, bool important)
             parsedValue = CSSPrimitiveValue::create(value->string, (CSSPrimitiveValue::UnitTypes) value->unit);
         else if (value->unit >= CSSPrimitiveValue::CSS_NUMBER && value->unit <= CSSPrimitiveValue::CSS_KHZ)
             parsedValue = CSSPrimitiveValue::create(value->fValue, (CSSPrimitiveValue::UnitTypes) value->unit);
+        else if (value->unit >= CSSPrimitiveValue::CSS_TURN && value->unit <= CSSPrimitiveValue::CSS_REMS)
+            parsedValue = CSSPrimitiveValue::create(value->fValue, (CSSPrimitiveValue::UnitTypes) value->unit);
         else if (value->unit >= CSSParserValue::Q_EMS)
             parsedValue = CSSQuirkPrimitiveValue::create(value->fValue, CSSPrimitiveValue::CSS_EMS);
         m_valueList->next();
@@ -2012,8 +2021,9 @@ bool CSSParser::parseContent(int propId, bool important)
         RefPtr<CSSValue> parsedValue;
         if (val->unit == CSSPrimitiveValue::CSS_URI && m_styleSheet) {
             // url
-            String value = parseURL(val->string);
-            parsedValue = CSSImageValue::create(m_styleSheet->completeURL(value));
+            // FIXME: The completeURL call should be done when using the CSSImageValue,
+            // not when creating it.
+            parsedValue = CSSImageValue::create(m_styleSheet->completeURL(val->string));
         } else if (val->unit == CSSParserValue::Function) {
             // attr(X) | counter(X [,Y]) | counters(X, Y, [,Z]) | -webkit-gradient(...)
             CSSParserValueList* args = val->function->args;
@@ -2102,9 +2112,10 @@ bool CSSParser::parseFillImage(RefPtr<CSSValue>& value)
         return true;
     }
     if (m_valueList->current()->unit == CSSPrimitiveValue::CSS_URI) {
-        String uri = parseURL(m_valueList->current()->string);
-        if (!uri.isNull() && m_styleSheet)
-            value = CSSImageValue::create(m_styleSheet->completeURL(uri));
+        // FIXME: The completeURL call should be done when using the CSSImageValue,
+        // not when creating it.
+        if (m_styleSheet)
+            value = CSSImageValue::create(m_styleSheet->completeURL(m_valueList->current()->string));
         return true;
     }
 
@@ -2114,6 +2125,7 @@ bool CSSParser::parseFillImage(RefPtr<CSSValue>& value)
         if (equalIgnoringCase(m_valueList->current()->function->name, "-webkit-canvas("))
             return parseCanvas(value);
     }
+
     return false;
 }
 
@@ -3155,8 +3167,9 @@ bool CSSParser::parseFontFaceSrc()
     while ((val = m_valueList->current())) {
         RefPtr<CSSFontFaceSrcValue> parsedValue;
         if (val->unit == CSSPrimitiveValue::CSS_URI && !expectComma && m_styleSheet) {
-            String value = parseURL(val->string);
-            parsedValue = CSSFontFaceSrcValue::create(m_styleSheet->completeURL(value));
+            // FIXME: The completeURL call should be done when using the CSSFontFaceSrcValue,
+            // not when creating it.
+            parsedValue = CSSFontFaceSrcValue::create(m_styleSheet->completeURL(val->string));
             uriValue = parsedValue;
             allowFormat = true;
             expectComma = true;
@@ -3761,11 +3774,10 @@ bool CSSParser::parseBorderImage(int propId, bool important, RefPtr<CSSValue>& r
     // Look for an image initially.  If the first value is not a URI, then we're done.
     BorderImageParseContext context;
     CSSParserValue* val = m_valueList->current();
-    if (val->unit == CSSPrimitiveValue::CSS_URI && m_styleSheet) {        
-        String uri = parseURL(val->string);
-        if (uri.isNull())
-            return false;
-        context.commitImage(CSSImageValue::create(m_styleSheet->completeURL(uri)));
+    if (val->unit == CSSPrimitiveValue::CSS_URI && m_styleSheet) {
+        // FIXME: The completeURL call should be done when using the CSSImageValue,
+        // not when creating it.
+        context.commitImage(CSSImageValue::create(m_styleSheet->completeURL(val->string)));
     } else if (val->unit == CSSParserValue::Function) {
         RefPtr<CSSValue> value;
         if ((equalIgnoringCase(val->function->name, "-webkit-gradient(") && parseGradient(value)) ||
@@ -4351,6 +4363,7 @@ int CSSParser::lex(void* yylvalWithoutType)
     case DEGS:
     case RADS:
     case KHERZ:
+    case REMS:
         length--;
     case MSECS:
     case HERZ:
@@ -4378,15 +4391,9 @@ int CSSParser::lex(void* yylvalWithoutType)
     return token;
 }
 
-static inline int toHex(char c)
+static inline bool isCSSWhitespace(UChar c)
 {
-    if ('0' <= c && c <= '9')
-        return c - '0';
-    if ('a' <= c && c <= 'f')
-        return c - 'a' + 10;
-    if ('A' <= c && c<= 'F')
-        return c - 'A' + 10;
-    return 0;
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f';
 }
 
 UChar* CSSParser::text(int *length)
@@ -4405,27 +4412,21 @@ UChar* CSSParser::text(int *length)
     case URI:
         // "url("{w}{string}{w}")"
         // "url("{w}{url}{w}")"
-
         // strip "url(" and ")"
         start += 4;
         l -= 5;
         // strip {w}
-        while (l &&
-                (*start == ' ' || *start == '\t' || *start == '\r' ||
-                 *start == '\n' || *start == '\f')) {
-            start++; l--;
+        while (l && isCSSWhitespace(*start)) {
+            ++start;
+            --l;
         }
-        if (*start == '"' || *start == '\'') {
-            start++; l--;
+        while (l && isCSSWhitespace(start[l - 1]))
+            --l;
+        if (l && (*start == '"' || *start == '\'')) {
+            ASSERT(l >= 2 && start[l - 1] == *start);
+            ++start;
+            l -= 2;
         }
-        while (l &&
-                (start[l-1] == ' ' || start[l-1] == '\t' || start[l-1] == '\r' ||
-                 start[l-1] == '\n' || start[l-1] == '\f')) {
-            l--;
-        }
-        if (l && (start[l-1] == '\"' || start[l-1] == '\''))
-             l--;
-
         break;
     case VARCALL:
         // "-webkit-var("{w}{ident}{w}")"
@@ -4433,16 +4434,13 @@ UChar* CSSParser::text(int *length)
         start += 12;
         l -= 13;
         // strip {w}
-        while (l &&
-                (*start == ' ' || *start == '\t' || *start == '\r' ||
-                 *start == '\n' || *start == '\f')) {
-            start++; l--;
+        while (l && isCSSWhitespace(*start)) {
+            ++start;
+            --l;
         }
-        while (l &&
-                (start[l-1] == ' ' || start[l-1] == '\t' || start[l-1] == '\r' ||
-                 start[l-1] == '\n' || start[l-1] == '\f')) {
-            l--;
-        }
+        while (l && isCSSWhitespace(start[l - 1]))
+            --l;
+        break;
     default:
         break;
     }
@@ -4454,9 +4452,7 @@ UChar* CSSParser::text(int *length)
     for (int i = 0; i < l; i++) {
         UChar* current = start + i;
         if (escape == current - 1) {
-            if ((*current >= '0' && *current <= '9') ||
-                 (*current >= 'a' && *current <= 'f') ||
-                 (*current >= 'A' && *current <= 'F'))
+            if (isASCIIHexDigit(*current))
                 continue;
             if (yyTok == STRING &&
                  (*current == '\n' || *current == '\r' || *current == '\f')) {
@@ -4476,10 +4472,7 @@ UChar* CSSParser::text(int *length)
             escape = 0;
             continue;
         }
-        if (escape > current - 7 &&
-             ((*current >= '0' && *current <= '9') ||
-               (*current >= 'a' && *current <= 'f') ||
-               (*current >= 'A' && *current <= 'F')))
+        if (escape > current - 7 && isASCIIHexDigit(*current))
             continue;
         if (escape) {
             // add escaped char
@@ -4487,7 +4480,7 @@ UChar* CSSParser::text(int *length)
             escape++;
             while (escape < current) {
                 uc *= 16;
-                uc += toHex(*escape);
+                uc += toASCIIHexValue(*escape);
                 escape++;
             }
             // can't handle chars outside ucs2
@@ -4495,11 +4488,7 @@ UChar* CSSParser::text(int *length)
                 uc = 0xfffd;
             *out++ = uc;
             escape = 0;
-            if (*current == ' ' ||
-                 *current == '\t' ||
-                 *current == '\r' ||
-                 *current == '\n' ||
-                 *current == '\f')
+            if (isCSSWhitespace(*current))
                 continue;
         }
         if (!escape && *current == '\\') {
@@ -4514,7 +4503,7 @@ UChar* CSSParser::text(int *length)
         escape++;
         while (escape < start+l) {
             uc *= 16;
-            uc += toHex(*escape);
+            uc += toASCIIHexValue(*escape);
             escape++;
         }
         // can't handle chars outside ucs2

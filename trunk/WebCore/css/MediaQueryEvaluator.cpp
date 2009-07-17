@@ -40,6 +40,7 @@
 #include "MediaList.h"
 #include "MediaQuery.h"
 #include "MediaQueryExp.h"
+#include "NodeRenderStyle.h"
 #include "Page.h"
 #include "RenderStyle.h"
 #include "PlatformScreen.h"
@@ -300,7 +301,8 @@ static bool device_heightMediaFeatureEval(CSSValue* value, RenderStyle* style, F
 {
     if (value) {
         FloatRect sg = screenRect(frame->page()->mainFrame()->view());
-        return value->isPrimitiveValue() && compareValue(static_cast<int>(sg.height()), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style), op);
+        RenderStyle* rootStyle = frame->document()->documentElement()->renderStyle();
+        return value->isPrimitiveValue() && compareValue(static_cast<int>(sg.height()), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style, rootStyle), op);
     }
     // ({,min-,max-}device-height)
     // assume if we have a device, assume non-zero
@@ -311,7 +313,8 @@ static bool device_widthMediaFeatureEval(CSSValue* value, RenderStyle* style, Fr
 {
     if (value) {
         FloatRect sg = screenRect(frame->page()->mainFrame()->view());
-        return value->isPrimitiveValue() && compareValue(static_cast<int>(sg.width()), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style), op);
+        RenderStyle* rootStyle = frame->document()->documentElement()->renderStyle();
+        return value->isPrimitiveValue() && compareValue(static_cast<int>(sg.width()), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style, rootStyle), op);
     }
     // ({,min-,max-}device-width)
     // assume if we have a device, assume non-zero
@@ -321,9 +324,10 @@ static bool device_widthMediaFeatureEval(CSSValue* value, RenderStyle* style, Fr
 static bool heightMediaFeatureEval(CSSValue* value, RenderStyle* style, Frame* frame, MediaFeaturePrefix op)
 {
     FrameView* view = frame->view();
-    
+    RenderStyle* rootStyle = frame->document()->documentElement()->renderStyle();
+
     if (value)
-        return value->isPrimitiveValue() && compareValue(view->layoutHeight(), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style), op);
+        return value->isPrimitiveValue() && compareValue(view->layoutHeight(), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style, rootStyle), op);
 
     return view->layoutHeight() != 0;
 }
@@ -331,9 +335,10 @@ static bool heightMediaFeatureEval(CSSValue* value, RenderStyle* style, Frame* f
 static bool widthMediaFeatureEval(CSSValue* value, RenderStyle* style, Frame* frame, MediaFeaturePrefix op)
 {
     FrameView* view = frame->view();
-    
+    RenderStyle* rootStyle = frame->document()->documentElement()->renderStyle();
+
     if (value)
-        return value->isPrimitiveValue() && compareValue(view->layoutWidth(), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style), op);
+        return value->isPrimitiveValue() && compareValue(view->layoutWidth(), static_cast<CSSPrimitiveValue*>(value)->computeLengthInt(style, rootStyle), op);
 
     return view->layoutWidth() != 0;
 }

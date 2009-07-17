@@ -874,22 +874,6 @@ void GraphicsContext::fillPath()
 {
 }
 
-void GraphicsContext::setPlatformFillPattern(Pattern* pattern)
-{
-}
-
-void GraphicsContext::setPlatformStrokePattern(Pattern* pattern)
-{
-}
-
-void GraphicsContext::setPlatformFillGradient(Gradient* gradient)
-{
-}
-
-void GraphicsContext::setPlatformStrokeGradient(Gradient* gradient)
-{
-}
-
 void GraphicsContext::setPlatformShouldAntialias(bool enable)
 {
     if (paintingDisabled())

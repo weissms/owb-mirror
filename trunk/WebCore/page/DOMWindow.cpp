@@ -553,12 +553,17 @@ Storage* DOMWindow::sessionStorage() const
 {
     if (m_sessionStorage)
         return m_sessionStorage.get();
-        
-    Page* page = m_frame->page();
+
+    Document* document = this->document();
+    if (!document)
+        return 0;
+
+    Page* page = document->page();
     if (!page)
         return 0;
 
-    Document* document = m_frame->document();
+    if (!page->settings()->sessionStorageEnabled())
+        return 0;
 
     RefPtr<StorageArea> storageArea = page->sessionStorage()->storageArea(document->securityOrigin());
 #if ENABLE(INSPECTOR)
@@ -582,8 +587,7 @@ Storage* DOMWindow::localStorage() const
     if (!page)
         return 0;
 
-    Settings* settings = document->settings();
-    if (!settings || !settings->localStorageEnabled())
+    if (!page->settings()->localStorageEnabled())
         return 0;
 
     StorageNamespace* localStorage = page->group().localStorage();

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2009 Google Inc. All rights reserved.
 #
@@ -119,6 +120,7 @@ _ERROR_CATEGORIES = '''\
     readability/braces
     readability/casting
     readability/check
+    readability/comparison_to_zero
     readability/constructors
     readability/fn_size
     readability/function
@@ -1685,6 +1687,15 @@ def check_braces(filename, clean_lines, line_number, error):
         error(filename, line_number, 'whitespace/braces', 4,
               'Place brace on its own line for function definitions.')
 
+    if (match(r'\s*}\s*$', line) and line_number > 1):
+        # We check if a closed brace has started a line to see if a
+        # one line control statement was previous.
+        previous_line = clean_lines.elided[line_number - 2]
+        if (previous_line.find('{') > 0
+            and search(r'\b(if|for|while|else)\b', previous_line)):
+            error(filename, line_number, 'whitespace/braces', 4,
+                  'One line control clauses should not use braces.')
+
     # An else clause should be on the same line as the preceding closing brace.
     if match(r'\s*else\s*', line):
         previous_line = get_previous_non_blank_line(clean_lines, line_number)[0]
@@ -1787,6 +1798,16 @@ def check_check(filename, clean_lines, line_number, error):
             break
 
 
+def check_for_comparisons_to_zero(filename, clean_lines, line_number, error):
+    # Get the line without comments and strings.
+    line = clean_lines.elided[line_number]
+
+    # Include NULL here so that users don't have to convert NULL to 0 first and then get this error.
+    if search(r'[=!]=\s*(NULL|0|true|false)\W', line) or search(r'\W(NULL|0|true|false)\s*[=!]=', line):
+        error(filename, line_number, 'readability/comparison_to_zero', 5,
+	      'Tests for true/false, null/non-null, and zero/non-zero should all be done without equality comparisons.')
+
+
 def get_line_width(line):
     """Determines the width of the line in column positions.
 
@@ -1878,6 +1899,7 @@ def check_style(filename, clean_lines, line_number, file_extension, error):
     check_braces(filename, clean_lines, line_number, error)
     check_spacing(filename, clean_lines, line_number, error)
     check_check(filename, clean_lines, line_number, error)
+    check_for_comparisons_to_zero(filename, clean_lines, line_number, error)
 
 
 _RE_PATTERN_INCLUDE_NEW_STYLE = re.compile(r'#include +"[^/]+\.h"')

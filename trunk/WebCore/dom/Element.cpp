@@ -590,6 +590,12 @@ PassRefPtr<Attribute> Element::createAttribute(const QualifiedName& name, const 
 
 void Element::attributeChanged(Attribute* attr, bool)
 {
+    recalcStyleIfNeededAfterAttributeChanged(attr);
+    updateAfterAttributeChanged(attr);
+}
+
+void Element::updateAfterAttributeChanged(Attribute* attr)
+{
     if (!document()->axObjectCache()->accessibilityEnabled())
         return;
 
@@ -602,7 +608,13 @@ void Element::attributeChanged(Attribute* attr, bool)
         document()->axObjectCache()->handleAriaRoleChanged(renderer());
     }
 }
-
+    
+void Element::recalcStyleIfNeededAfterAttributeChanged(Attribute* attr)
+{
+    if (document()->attached() && document()->styleSelector()->hasSelectorForAttribute(attr->name().localName()))
+        setNeedsStyleRecalc();
+}
+        
 void Element::setAttributeMap(PassRefPtr<NamedNodeMap> list)
 {
     document()->incDOMTreeVersion();
@@ -854,7 +866,11 @@ void Element::recalcStyle(StyleChange change)
              setRenderStyle(newStyle);
 
         if (change != Force) {
-            if ((document()->usesDescendantRules() || hasPositionalRules) && styleChangeType() >= FullStyleChange)
+            // If "rem" units are used anywhere in the document, and if the document element's font size changes, then go ahead and force font updating
+            // all the way down the tree.  This is simpler than having to maintain a cache of objects (and such font size changes should be rare anyway).
+            if (document()->usesRemUnits() && ch != NoChange && currentStyle && newStyle && currentStyle->fontSize() != newStyle->fontSize() && document()->documentElement() == this)
+                change = Force;
+            else if ((document()->usesDescendantRules() || hasPositionalRules) && styleChangeType() >= FullStyleChange)
                 change = Force;
             else
                 change = ch;

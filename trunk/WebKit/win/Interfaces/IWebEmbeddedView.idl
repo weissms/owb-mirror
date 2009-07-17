@@ -42,5 +42,5 @@ interface IWebEmbeddedView : IUnknown
     HRESULT didReceiveResponse([in] IWebURLResponse* response);
     HRESULT didReceiveData([in] IStream* data);
     HRESULT didFinishLoading();
- 
+    HRESULT didFail([in] IWebError* error);
 }

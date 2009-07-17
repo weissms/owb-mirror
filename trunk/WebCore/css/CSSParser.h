@@ -195,7 +195,6 @@ namespace WebCore {
         
         Vector<CSSSelector*>* reusableSelectorVector() { return &m_reusableSelectorVector; }
         
-    public:
         bool m_strict;
         bool m_important;
         int m_id;
@@ -221,7 +220,6 @@ namespace WebCore {
         AtomicString m_defaultNamespace;
 
         // tokenizer methods and data
-    public:
         int lex(void* yylval);
         int token() { return yyTok; }
         UChar* text(int* length);

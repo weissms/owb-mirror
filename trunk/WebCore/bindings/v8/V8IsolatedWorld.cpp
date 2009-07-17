@@ -34,28 +34,14 @@
 
 #include <v8.h>
 
-#include "V8DOMWindow.h"
 #include "Frame.h"
+#include "FrameLoaderClient.h"
 #include "HashMap.h"
 #include "ScriptController.h"
+#include "V8DOMWindow.h"
+#include "V8HiddenPropertyName.h"
 
 namespace WebCore {
-
-// We cache a pointer to the V8IsolatedWorld as a hidden property on the
-// context's global object.  This constant is the name of our hidden property.
-//
-// FIXME: We should centralize our list of V8 hidden proprety names to ensure
-// we don't have name collisions.
-//
-static char isolatedWorldKey[] = "IsolatedWorld";
-
-static v8::Handle<v8::String> getIsolatedWorldKey()
-{
-    static v8::Persistent<v8::String>* key;
-    if (!key)
-        key = new v8::Persistent<v8::String>(v8::Persistent<v8::String>::New(v8::String::NewSymbol(isolatedWorldKey)));
-    return *key;
-}
 
 static int isolatedWorldCount = 0;
 
@@ -78,7 +64,11 @@ void V8IsolatedWorld::evaluate(const Vector<ScriptSourceCode>& sources, V8Proxy*
     // We need to create the world before touching DOM wrappers.
     V8IsolatedWorld* world = new V8IsolatedWorld(context);
 
+    V8Proxy::installHiddenObjectPrototype(context);
     proxy->installDOMWindow(context, proxy->frame()->domWindow());
+
+    proxy->frame()->loader()->client()->didCreateIsolatedScriptContext();
+
     for (size_t i = 0; i < sources.size(); ++i)
         proxy->evaluate(sources[i], 0);
 
@@ -101,7 +91,7 @@ V8IsolatedWorld::V8IsolatedWorld(v8::Handle<v8::Context> context)
 {
     ++isolatedWorldCount;
     m_context.MakeWeak(this, &contextWeakReferenceCallback);
-    m_context->Global()->SetHiddenValue(getIsolatedWorldKey(), v8::External::Wrap(this));
+    m_context->Global()->SetHiddenValue(V8HiddenPropertyName::isolatedWorld(), v8::External::Wrap(this));
 }
 
 V8IsolatedWorld::~V8IsolatedWorld()
@@ -124,7 +114,7 @@ V8IsolatedWorld* V8IsolatedWorld::getEntered()
         return 0;
     v8::HandleScope scope;
 
-    v8::Local<v8::Value> world = v8::Context::GetEntered()->Global()->GetHiddenValue(getIsolatedWorldKey());
+    v8::Local<v8::Value> world = v8::Context::GetEntered()->Global()->GetHiddenValue(V8HiddenPropertyName::isolatedWorld());
     if (world.IsEmpty())
         return 0;
 

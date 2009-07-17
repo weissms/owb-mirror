@@ -76,11 +76,12 @@ namespace WebCore {
         void setStopsSorted(bool s) { m_stopsSorted = s; }
         void setSpreadMethod(GradientSpreadMethod);
         GradientSpreadMethod spreadMethod() { return m_spreadMethod; }
-        void setGradientSpaceTransform(const TransformationMatrix& gradientSpaceTransformation) { m_gradientSpaceTransformation = gradientSpaceTransformation; }
+        void setGradientSpaceTransform(const TransformationMatrix& gradientSpaceTransformation);
         // Qt and CG transform the gradient at draw time
         TransformationMatrix gradientSpaceTransform() { return m_gradientSpaceTransformation; }
 
         virtual void fill(GraphicsContext*, const FloatRect&);
+        void setPlatformGradientSpaceTransform(const TransformationMatrix& gradientSpaceTransformation);
 
     private:
         Gradient(const FloatPoint& p0, const FloatPoint& p1);

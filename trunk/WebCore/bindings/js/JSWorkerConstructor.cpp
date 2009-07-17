@@ -42,7 +42,7 @@ namespace WebCore {
 const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", 0, 0, 0 };
 
 JSWorkerConstructor::JSWorkerConstructor(ExecState* exec)
-    : DOMObject(JSWorkerConstructor::createStructure(exec->lexicalGlobalObject()->objectPrototype()))
+    : DOMConstructorObject(JSWorkerConstructor::createStructure(exec->lexicalGlobalObject()->objectPrototype()))
 {
     putDirect(exec->propertyNames().prototype, JSWorkerPrototype::self(exec, exec->lexicalGlobalObject()), None);
     putDirect(exec->propertyNames().length, jsNumber(exec, 1), ReadOnly|DontDelete|DontEnum);
@@ -59,9 +59,7 @@ static JSObject* constructWorker(ExecState* exec, JSObject*, const ArgList& args
 
     DOMWindow* window = asJSDOMWindow(exec->lexicalGlobalObject())->impl();
     
-    ExceptionCode ec = 0;
-    RefPtr<Worker> worker = Worker::create(scriptURL, window->document(), ec);
-    setDOMException(exec, ec);
+    RefPtr<Worker> worker = Worker::create(scriptURL, window->document());
 
     return asObject(toJS(exec, worker.release()));
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc.  All rights reserved.
+ * Copyright (C) 2007-2009 Torch Mobile, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -190,7 +191,7 @@
 
 /* Makes PLATFORM(WIN) default to PLATFORM(CAIRO) */
 /* FIXME: This should be changed from a blacklist to a whitelist */
-#if !PLATFORM(MAC) && !PLATFORM(QT) && !PLATFORM(WX) && !PLATFORM(CHROMIUM)
+#if !PLATFORM(MAC) && !PLATFORM(QT) && !PLATFORM(WX) && !PLATFORM(CHROMIUM) && !PLATFORM(WINCE)
 #define WTF_PLATFORM_CAIRO 1
 #endif
 
@@ -338,6 +339,33 @@
 #define ENABLE_JSC_MULTIPLE_THREADS 1
 #endif
 
+#if PLATFORM(WINCE) && !PLATFORM(QT)
+#undef ENABLE_JSC_MULTIPLE_THREADS
+#define ENABLE_JSC_MULTIPLE_THREADS        0
+#define USE_SYSTEM_MALLOC                  0
+#define ENABLE_ICONDATABASE                0
+#define ENABLE_JAVASCRIPT_DEBUGGER         0
+#define ENABLE_FTPDIR                      0
+#define ENABLE_PAN_SCROLLING               0
+#define ENABLE_WML                         1
+#define HAVE_ACCESSIBILITY                 0
+
+#define NOMINMAX       // Windows min and max conflict with standard macros
+#define NOSHLWAPI      // shlwapi.h not available on WinCe
+
+// MSDN documentation says these functions are provided with uspce.lib.  But we cannot find this file.
+#define __usp10__      // disable "usp10.h"
+
+#define _INC_ASSERT    // disable "assert.h"
+#define assert(x)
+
+// _countof is only included in CE6; for CE5 we need to define it ourself
+#ifndef _countof
+#define _countof(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+
+#endif  // PLATFORM(WINCE) && !PLATFORM(QT)
+
 /* for Unicode, KDE uses Qt */
 #if PLATFORM(KDE) || PLATFORM(QT)
 #define WTF_USE_QT4_UNICODE 1
@@ -404,6 +432,12 @@
 #if PLATFORM(UNIX) && !PLATFORM(SYMBIAN)
 #define HAVE_SIGNAL_H 1
 #endif
+
+#if !PLATFORM(WIN_OS) && !PLATFORM(SOLARIS) && !PLATFORM(SYMBIAN) && !COMPILER(RVCT)
+#define HAVE_TM_GMTOFF 1
+#define HAVE_TM_ZONE 1
+#define HAVE_TIMEGM 1
+#endif     
 
 #if PLATFORM(DARWIN)
 

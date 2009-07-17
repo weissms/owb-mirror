@@ -481,7 +481,7 @@ void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsig
 
 }
 
-void WebChromeClient::setToolTip(const String& toolTip)
+void WebChromeClient::setToolTip(const String& toolTip, TextDirection)
 {
     m_webView->setToolTip(toolTip.utf8().data());
 }

@@ -44,7 +44,6 @@ use strict;
 use warnings;
 
 use Config;
-use Cwd;
 use File::Basename;
 use File::Spec;
 use File::stat;
@@ -55,12 +54,14 @@ use Time::gmtime;
 
 sub binarycmp($$);
 sub canonicalizePath($);
+sub chdirAndGetDifference($);
+sub determineSvnRoot();
 sub findBaseUrl($);
 sub findMimeType($;$);
 sub findModificationType($);
 sub findSourceFileAndRevision($);
 sub fixChangeLogPatch($);
-sub generateDiff($);
+sub generateDiff($$);
 sub generateFileList($\%);
 sub isBinaryMimeType($);
 sub manufacturePatchForAdditionWithHistory($);
@@ -94,9 +95,12 @@ for my $path (keys %paths) {
     generateFileList($path, %diffFiles);
 }
 
+my $svnRoot = determineSvnRoot();
+my $prefix = chdirAndGetDifference($svnRoot);
+
 # Generate the diffs, in a order chosen for easy reviewing.
 for my $path (sort patchpathcmp values %diffFiles) {
-    generateDiff($path);
+    generateDiff($path, $prefix);
 }
 
 exit 0;
@@ -165,7 +169,10 @@ sub findMimeType($;$)
     open PROPGET, "svn propget svn:mime-type $args '$file' |" or die;
     my $mimeType = <PROPGET>;
     close PROPGET;
-    chomp $mimeType if $mimeType;
+    # svn may output a different EOL sequence than $/, so avoid chomp.
+    if ($mimeType) {
+        $mimeType =~ s/\r?\n$//g;
+    }
     return $mimeType;
 }
 
@@ -252,10 +259,10 @@ sub fixChangeLogPatch($)
     return $newPatch;
 }
 
-sub generateDiff($)
+sub generateDiff($$)
 {
-    my ($fileData) = @_;
-    my $file = $fileData->{path};
+    my ($fileData, $prefix) = @_;
+    my $file = File::Spec->catdir($prefix, $fileData->{path});
     my $patch;
     if ($fileData->{modificationType} eq "additionWithHistory") {
         manufacturePatchForAdditionWithHistory($fileData);
@@ -279,7 +286,8 @@ sub generateFileList($\%)
     my %testDirectories = map { $_ => 1 } qw(LayoutTests);
     open STAT, "svn stat '$statPath' |" or die;
     while (my $line = <STAT>) {
-        chomp $line;
+        # svn may output a different EOL sequence than $/, so avoid chomp.
+        $line =~ s/\r?\n$//g;
         my $stat;
         my $path;
         if (eval "v$svnVersion" ge v1.6) { 
@@ -446,4 +454,47 @@ sub testfilecmp($$)
 {
     my ($fileDataA, $fileDataB) = @_;
     return $fileDataA->{isTestFile} <=> $fileDataB->{isTestFile};
+}
+
+sub chdirAndGetDifference($)
+{
+    my ($newdir) = @_;
+    my $before = File::Spec->rel2abs( File::Spec->curdir() );
+    chdir $newdir;
+    my $after = File::Spec->rel2abs( File::Spec->curdir() );
+    return "." if $after eq $before;
+    return File::Spec->abs2rel($before, $after);
+}
+
+sub determineSvnRoot()
+{
+    my $last = '';
+    my $path = '.';
+    my $parent = '..';
+    my $devnull = File::Spec->devnull();
+    my $repositoryRoot;
+    while (1) {
+        my $thisRoot;
+        open INFO, "svn info '$path' |" or die;
+        while (<INFO>) {
+            if (/^Repository Root: (.+)/) {
+                $thisRoot = $1;
+            }
+        }
+        close INFO;
+
+        # It's possible (e.g. for developers of some ports) to have a WebKit
+        # checkout in a subdirectory of another checkout.  So abort if the
+        # repository root suddenly changes.
+        last if !$thisRoot;
+        if (!$repositoryRoot) {
+            $repositoryRoot = $thisRoot;
+        }
+        last if $thisRoot ne $repositoryRoot;
+
+        $last = $path;
+        $path = File::Spec->catdir($parent, $path);
+    }
+
+    return File::Spec->rel2abs($last);
 }

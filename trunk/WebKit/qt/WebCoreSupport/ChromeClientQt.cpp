@@ -353,18 +353,19 @@ void ChromeClientQt::contentsSizeChanged(Frame* frame, const IntSize& size) cons
 
 void ChromeClientQt::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
 {
+    TextDirection dir;
     if (result.absoluteLinkURL() != lastHoverURL
-        || result.title() != lastHoverTitle
+        || result.title(dir) != lastHoverTitle
         || result.textContent() != lastHoverContent) {
         lastHoverURL = result.absoluteLinkURL();
-        lastHoverTitle = result.title();
+        lastHoverTitle = result.title(dir);
         lastHoverContent = result.textContent();
         emit m_webPage->linkHovered(lastHoverURL.prettyURL(),
                 lastHoverTitle, lastHoverContent);
     }
 }
 
-void ChromeClientQt::setToolTip(const String &tip)
+void ChromeClientQt::setToolTip(const String &tip, TextDirection)
 {
 #ifndef QT_NO_TOOLTIP
     QWidget* view = m_webPage->view();
