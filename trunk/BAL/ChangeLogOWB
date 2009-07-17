@@ -1,3 +1,28 @@
+2009-07-17  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Correctly handle 417 status code due to "Expect: 100-Continue"
+        header.
+
+        HTTP 1.0 servers (and some proxy) do not support "Expect:
+        100-Continue" header. In this case, they reply with a status code 417
+        ("Expectation failed").
+        Currently we assumed it was some error and we just cancelled the
+        request. A better behaviour is to do another request without the
+        faulty "Expect: 100-Continue" header.
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::headerCallback): Do a new request without the faulty header if the server return a 417
+        status code.
+        (WebCore::ResourceHandleManager::setupPOST): Check if we should
+        include the Expect header or not.
+        * Network/WebCore/WK/BCResourceHandleInternalWK.h: Added a flag to
+        control the presence of the Expect header.
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal): We default
+        to sending the Expect header.
+        * Scripts/data/WebKitFiles.txt: Added BCResourceHandleInternalWK.h.
+
 2009-06-19  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Stanislaw Szymczyk.

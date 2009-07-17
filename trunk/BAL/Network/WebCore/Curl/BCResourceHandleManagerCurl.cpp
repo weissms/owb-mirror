@@ -197,6 +197,17 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
                 return totalSize;
             }
         }
+        // Handle "417: Expectation failed" for requests as it could be the result of the "Expect: 100-Continue" header in the request
+        // In this case, we issue another request without the header. We could also set an HTTP/1.0 request. 
+        if (httpCode == 417 && d->m_shouldIncludeExpectHeader) {
+            ASSERT(job->request().httpMethod() == "POST");
+            // We cancel the currrent job so that it is properly cleaned-up.
+            d->m_cancelled = true;
+            RefPtr<ResourceHandle> newHandle = ResourceHandle::create(job->request(), client, reinterpret_cast<Frame*>(0x1), d->m_defersLoading, job->shouldContentSniff(), d->m_mightDownloadFromHandle);
+            job->setClient(0); // Clear the client to avoid it being cleared by WebCore.
+            newHandle->getInternal()->m_shouldIncludeExpectHeader = false;
+            return totalSize;
+        }
 
         if (client)
             client->didReceiveResponse(job, d->m_response);
@@ -381,6 +392,9 @@ void ResourceHandleManager::setupPOST(ResourceHandle* job, struct curl_slist** h
     size_t numElements = elements.size();
     if (!numElements)
         return;
+
+    if (!d->m_shouldIncludeExpectHeader)
+        *headers = curl_slist_append(*headers, "Expect:");    
 
     // Do not stream for simple POST data
     if (numElements == 1) {

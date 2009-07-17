@@ -105,6 +105,7 @@ namespace WebCore {
             , m_handle(0)
             , m_url(0)
             , m_customHeaders(0)
+            , m_shouldIncludeExpectHeader(true)
             , m_cancelled(false)
             , m_formDataStream(loader)
 #endif
@@ -183,6 +184,7 @@ namespace WebCore {
         CURL* m_handle;
         char* m_url;
         struct curl_slist* m_customHeaders;
+        bool m_shouldIncludeExpectHeader;
         ResourceResponse m_response;
         bool m_cancelled;
 
