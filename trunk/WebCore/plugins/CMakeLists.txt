@@ -10,6 +10,7 @@ list(APPEND WEBCORE_SRC
     plugins/PluginPackage.cpp
     plugins/PluginStream.cpp
     plugins/PluginView.cpp
+    plugins/PluginDebug.cpp
 )
 list(APPEND IDL_SRC
     plugins/MimeType.idl

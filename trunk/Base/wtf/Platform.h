@@ -107,12 +107,10 @@
 #define WTF_PLATFORM_SOLARIS 1
 #endif
 
-#if defined (__S60__) || defined (__SYMBIAN32__)
+#if defined (__SYMBIAN32__)
 /* we are cross-compiling, it is not really windows */
 #undef WTF_PLATFORM_WIN_OS
 #undef WTF_PLATFORM_WIN
-#undef WTF_PLATFORM_CAIRO
-#define WTF_PLATFORM_S60 1
 #define WTF_PLATFORM_SYMBIAN 1
 #endif
 
@@ -129,7 +127,7 @@
 /* should be used regardless of operating environment */
 #if   PLATFORM(DARWIN)     \
    || PLATFORM(FREEBSD)    \
-   || PLATFORM(S60)        \
+   || PLATFORM(SYMBIAN)    \
    || PLATFORM(NETBSD)     \
    || PLATFORM(MACPORT)    \
    || defined(unix)        \
@@ -331,6 +329,7 @@
 /* --gnu option of the RVCT compiler also defines __GNUC__ */
 #if defined(__GNUC__) && !COMPILER(RVCT)
 #define WTF_COMPILER_GCC 1
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 /* COMPILER(MINGW) */
@@ -384,13 +383,11 @@
 #define _countof(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
-#endif  // PLATFORM(WINCE) && !PLATFORM(QT)
+#endif  /* PLATFORM(WINCE) && !PLATFORM(QT) */
 
 /* for Unicode, KDE uses Qt */
 #if PLATFORM(KDE) || PLATFORM(QT)
 #define WTF_USE_QT4_UNICODE 1
-#elif PLATFORM(SYMBIAN)
-#define WTF_USE_SYMBIAN_UNICODE 1
 #elif PLATFORM(GTK)
 /* The GTK+ Unicode backend is configurable */
 #else
@@ -669,7 +666,7 @@
 #endif
 /* Setting this flag prevents the assembler from using RWX memory; this may improve
    security but currectly comes at a significant performance cost. */
-#if PLATFORM_ARM_ARCH(7) && PLATFORM(IPHONE)
+#if PLATFORM(ARM)
 #define ENABLE_ASSEMBLER_WX_EXCLUSIVE 1
 #else
 #define ENABLE_ASSEMBLER_WX_EXCLUSIVE 0

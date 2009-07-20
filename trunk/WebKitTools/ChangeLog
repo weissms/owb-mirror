@@ -1,3 +1,259 @@
+2009-07-20  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        No review, just adding Gavin Barraclough as reviewer.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-07-20  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by David Levin.
+
+        Add support for Qt's foreach to cpplint 
+        https://bugs.webkit.org/show_bug.cgi?id=27386
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-18  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        https://bugs.webkit.org/show_bug.cgi?id=27145
+        [Gtk][REGRESSION] subframe-navigate-during-main-frame-load.html fails after r45615
+
+        Reviewed by Gustavo Noronha.
+
+        Normalize file URLs.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dumpHistoryItem):
+
+2009-07-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Further improve non-Cygwin SVN support.
+
+        * Scripts/prepare-ChangeLog: Harmless change to be consistent with other
+          places that consume whitespace at the end of svn output.
+        * Scripts/resolve-ChangeLogs: Add support for SVN 1.6.  Slightly
+          optimize svn info parsing based on technique in svn-create-patch.
+          Normalize paths and consume whitespace in the same way as
+          prepare-ChangeLog, for Windows systems with a non-Cygwin SVN.  Force
+          diff and patch to run in binary mode so that they won't
+          "intelligently" screw up line endings.
+
+2009-07-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix Tiger DRT build.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (createWebViewAndOffscreenWindow):
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+
+2009-07-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        DRT doesn't reliably snapshot composited layers
+        https://bugs.webkit.org/show_bug.cgi?id=27399
+        
+        If we're doing an "onscreen" pixel capture, it means that we're snapshotting a view
+        with composited content. In that case we need to force the view to display so that
+        the composited layers are rendered to the screen.
+
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (createBitmapContextFromWebView):
+
+2009-07-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by David Levin.
+
+        bugzilla-tool does not understand nested SVN repos
+        https://bugs.webkit.org/show_bug.cgi?id=27404
+
+        Determine the root of the working copy by looking at SVN's UUIDs.
+
+        * Scripts/modules/scm.py:
+
+2009-07-17  David Levin  <levin@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        webkit-tools-completion.sh has two typos and sorting issues.
+        https://bugs.webkit.org/show_bug.cgi?id=27401
+
+        * Scripts/webkit-tools-completion.sh: Fix two typos "--dif" and "-clean".
+          Also, sort all lists including items in the case statement and flags for
+          the commands.
+
+2009-07-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Tweak some regexes for correctness.
+
+        * Scripts/prepare-ChangeLog: Allow 1-character filenames (my previous
+          change here didn't quite get things right).
+        * Scripts/update-webkit: Detect conflicting ChangeLogs correctly by not
+          including any trailing whitespace in the name "ChangeLog", and by
+          normalizing paths before calling basename() to avoid confusing it.
+          (normalizePath() copied from prepare-ChangeLog.)
+
+2009-07-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Steve Falkenburg.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Only add Cygwin to the path when it isn't already there.  This avoids
+        causing problems for people who purposefully have non-Cygwin versions of
+        executables like svn in front of the Cygwin ones in their paths.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+
+2009-07-17  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Treat.
+
+        WebKit should have a bash completion script to aid with common commands.
+        https://bugs.webkit.org/show_bug.cgi?id=27374
+
+        * Scripts/webkit-tools-completion.sh: The script which enables option completion
+          for several WebKit command line scripts.
+
+2009-07-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Avoid error spew on Macs, and fix a few other tiny details.
+
+        * Scripts/svn-create-patch:
+
+2009-07-17  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Dave Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27377
+        This makes cpplint complain about this for instance:
+
+            if (true)
+            {
+                int foo;
+            }
+
+        Add the appropriate unit tests.
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-17  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Dave Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27377
+        Don't filter whitespace at the end of the line.  This is not
+        explicitly a rule of webkit coding style, but there is no reason
+        not to warn of this common style problem.
+
+        Don't filter whitespace newline. Now, cpplint will complain
+        about the following situation:
+
+            if (true) {
+                doSomething();
+                doSomethingAgain();
+            }
+            else
+                doSomething();
+
+        Which is a webkit coding style rule violation.
+
+        * Scripts/modules/cpplint.py:
+
+2009-07-17  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Dave Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27377
+        Move this comment to where it belongs.
+
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-17  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Correct crash in WinLauncher due to improper mixing of BSTR
+        and TCHAR types.
+        https://bugs.webkit.org/show_bug.cgi?id=27381
+
+        * WinLauncher/WinLauncher.cpp:
+        (loadURL): Perform SysReAllocString to update the BSTR with
+          the contents of the TCHAR string.
+
+2009-07-17  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Treat.
+
+        cpplint should flag usages of NULL.
+        https://bugs.webkit.org/show_bug.cgi?id=27341
+
+        * Scripts/modules/cpplint.py: Add the check for NULL test and call it.
+          Make the collapse_strings method public.
+        * Scripts/modules/cpplint_unittest.py: Add several tests to verify
+          the check for NULL behavior. Adjust existing tests due to the
+          new NULL check:
+           1. Several had NULL removed (or were just removed completely).
+           2. Two tests now do an assert that allows the caller to check
+              that a particular error is one of several that was returned.
+
+2009-07-17  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add a parser of patches for linter.
+        https://bugs.webkit.org/show_bug.cgi?id=27363
+
+        Adds a simple parser for unified diff format.
+
+        * Scripts/modules/diff_parser.py: Added.
+        * Scripts/modules/diff_parser_unittest.py: Added.
+
+2009-06-30  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        [GTK+] Remove check to be loadable in firefox
+        https://bugs.webkit.org/show_bug.cgi?id=27345
+
+        if (aMozillaVTable->size < sizeof (NPNetscapeFuncs))
+        fails in firefox but no other example in the mozilla tree is
+        doing that check. Remove and be happy.
+
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (NP_Initialize):
+
+2009-07-17  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Simon Hausmann.
+
+        Something about having a single TAB in a style checking tool like this
+        is equivalent to nails on a chalk board to me...
+
+        * Scripts/modules/cpplint.py:
+
+2009-07-17  Kenneth Rohde Christiansen  <kenneth.christiansen@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Overwrite the plugin directories for the DRT.
+        Part of https://bugs.webkit.org/show_bug.cgi?id=27215
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+
 2009-07-17  Fumitoshi Ukai  <ukai@chromium.org>
 
         Reviewed by David Levin.

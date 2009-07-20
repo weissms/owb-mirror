@@ -867,6 +867,7 @@ This file contains the list of files needed to build WebCore.
         plugins/PluginArray.cpp
         plugins/PluginData.cpp
         plugins/PluginDatabase.cpp
+        plugins/PluginDebug.cpp
         plugins/PluginInfoStore.cpp
         plugins/PluginMainThreadScheduler.cpp
         plugins/PluginPackage.cpp
@@ -1022,7 +1023,6 @@ This file contains the list of files needed to build WebCore.
         storage/SQLStatement.cpp
         storage/SQLTransaction.cpp
         storage/Storage.cpp
-        storage/StorageArea.cpp
         storage/StorageAreaImpl.cpp
         storage/StorageAreaSync.cpp
         storage/StorageEvent.cpp

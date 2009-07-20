@@ -42,13 +42,13 @@ namespace WebCore {
 const ClassInfo JSAudioConstructor::s_info = { "AudioConstructor", 0, 0, 0 };
 
 JSAudioConstructor::JSAudioConstructor(ExecState* exec, JSDOMGlobalObject* globalObject)
-    : DOMConstructorObject(JSAudioConstructor::createStructure(exec->lexicalGlobalObject()->objectPrototype()))
+    : DOMConstructorObject(JSAudioConstructor::createStructure(globalObject->objectPrototype()))
     , m_globalObject(globalObject)
 {
     ASSERT(globalObject->scriptExecutionContext());
     ASSERT(globalObject->scriptExecutionContext()->isDocument());
 
-    putDirect(exec->propertyNames().prototype, JSHTMLAudioElementPrototype::self(exec, exec->lexicalGlobalObject()), None);
+    putDirect(exec->propertyNames().prototype, JSHTMLAudioElementPrototype::self(exec, globalObject), None);
     putDirect(exec->propertyNames().length, jsNumber(exec, 1), ReadOnly|DontDelete|DontEnum);
 }
 
@@ -66,6 +66,7 @@ static JSObject* constructAudio(ExecState* exec, JSObject* constructor, const Ar
         return throwError(exec, ReferenceError, "Audio constructor associated document is unavailable");
 
     RefPtr<HTMLAudioElement> audio = new HTMLAudioElement(HTMLNames::audioTag, document);
+    audio->setAutobuffer(true);
     if (args.size() > 0) {
         audio->setSrc(args.at(0).toString(exec));
         audio->scheduleLoad();

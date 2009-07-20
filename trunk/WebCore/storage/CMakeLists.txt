@@ -27,7 +27,6 @@ if(ENABLE_DOM_STORAGE)
         storage/LocalStorageTask.cpp
         storage/LocalStorageThread.cpp
         storage/Storage.cpp
-        storage/StorageArea.cpp
         storage/StorageAreaImpl.cpp
         storage/StorageAreaSync.cpp
         storage/StorageEvent.cpp

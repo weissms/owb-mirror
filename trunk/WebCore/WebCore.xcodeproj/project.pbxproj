@@ -854,7 +854,6 @@
 		51A9267F0D53F0570063ECC2 /* OriginUsageRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 51A9267B0D53F0570063ECC2 /* OriginUsageRecord.h */; };
 		51AA3F6F0BD5AA9E00892971 /* ResourceLoaderMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 51AA3F6E0BD5AA9E00892971 /* ResourceLoaderMac.mm */; };
 		51B2417B0D931F3F00E83F5C /* LegacyWebArchiveMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 51B2417A0D931F3F00E83F5C /* LegacyWebArchiveMac.mm */; };
-		51BE37DF0DAEE00E001085FC /* StorageArea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 51BE37DD0DAEE00E001085FC /* StorageArea.cpp */; };
 		51BE37E00DAEE00E001085FC /* StorageArea.h in Headers */ = {isa = PBXBuildFile; fileRef = 51BE37DE0DAEE00E001085FC /* StorageArea.h */; };
 		51C0AA390F2AA10A001648C2 /* CachedFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 51C0AA380F2AA10A001648C2 /* CachedFrame.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51C0AA410F2AA15E001648C2 /* CachedFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 51C0AA400F2AA15E001648C2 /* CachedFrame.cpp */; };
@@ -2017,7 +2016,7 @@
 		935F45420F7C3B5F00D7C1FB /* JSLazyEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 935F45400F7C3B5F00D7C1FB /* JSLazyEventListener.cpp */; };
 		935F45430F7C3B5F00D7C1FB /* JSLazyEventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 935F45410F7C3B5F00D7C1FB /* JSLazyEventListener.h */; };
 		935FBC4509BA00B900E230B1 /* EventListener.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBC4409BA00B900E230B1 /* EventListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		935FBCF209BA143B00E230B1 /* ExceptionCode.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBCF109BA143B00E230B1 /* ExceptionCode.h */; };
+		935FBCF209BA143B00E230B1 /* ExceptionCode.h in Headers */ = {isa = PBXBuildFile; fileRef = 935FBCF109BA143B00E230B1 /* ExceptionCode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9362640B0DE1137D009D5A00 /* CSSReflectionDirection.h in Headers */ = {isa = PBXBuildFile; fileRef = 9362640A0DE1137D009D5A00 /* CSSReflectionDirection.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9363B62C0F8E8FE000803810 /* HistoryPropertyList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9363B62A0F8E8FE000803810 /* HistoryPropertyList.cpp */; };
 		9363B62D0F8E8FE000803810 /* HistoryPropertyList.h in Headers */ = {isa = PBXBuildFile; fileRef = 9363B62B0F8E8FE000803810 /* HistoryPropertyList.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5843,7 +5842,6 @@
 		51A9267B0D53F0570063ECC2 /* OriginUsageRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OriginUsageRecord.h; sourceTree = "<group>"; };
 		51AA3F6E0BD5AA9E00892971 /* ResourceLoaderMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ResourceLoaderMac.mm; sourceTree = "<group>"; };
 		51B2417A0D931F3F00E83F5C /* LegacyWebArchiveMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LegacyWebArchiveMac.mm; sourceTree = "<group>"; };
-		51BE37DD0DAEE00E001085FC /* StorageArea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StorageArea.cpp; sourceTree = "<group>"; };
 		51BE37DE0DAEE00E001085FC /* StorageArea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StorageArea.h; sourceTree = "<group>"; };
 		51C0AA380F2AA10A001648C2 /* CachedFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFrame.h; sourceTree = "<group>"; };
 		51C0AA400F2AA15E001648C2 /* CachedFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CachedFrame.cpp; sourceTree = "<group>"; };
@@ -9756,7 +9754,6 @@
 				51E3F9C50DA059DC00250911 /* Storage.cpp */,
 				51E3F9C40DA059DC00250911 /* Storage.h */,
 				51E3F9D10DA05D7100250911 /* Storage.idl */,
-				51BE37DD0DAEE00E001085FC /* StorageArea.cpp */,
 				51BE37DE0DAEE00E001085FC /* StorageArea.h */,
 				C5160EE81004543A00A7CEE2 /* StorageAreaImpl.cpp */,
 				C5160EE91004543A00A7CEE2 /* StorageAreaImpl.h */,
@@ -18668,7 +18665,6 @@
 				93F19AE608245E59001E9ABC /* SSLKeyGeneratorMac.mm in Sources */,
 				BC7FA62E0D1F0EFF00DB22A9 /* StaticNodeList.cpp in Sources */,
 				51E3F9C70DA059DC00250911 /* Storage.cpp in Sources */,
-				51BE37DF0DAEE00E001085FC /* StorageArea.cpp in Sources */,
 				C5160EEA1004543A00A7CEE2 /* StorageAreaImpl.cpp in Sources */,
 				C5102ED00FD9EF8C00FAFF04 /* StorageAreaSync.cpp in Sources */,
 				51E0BABC0DA5547100A9E417 /* StorageEvent.cpp in Sources */,

@@ -530,7 +530,12 @@ bool ResourceHandle::startHttp(String urlString)
 
                     SoupBuffer* soupBuffer = soup_buffer_new_with_owner(g_mapped_file_get_contents(fileMapping),
                                                                         g_mapped_file_get_length(fileMapping),
-                                                                        fileMapping, reinterpret_cast<GDestroyNotify>(g_mapped_file_free));
+                                                                        fileMapping,
+#if GLIB_CHECK_VERSION(2, 21, 3)
+                                                                        reinterpret_cast<GDestroyNotify>(g_mapped_file_unref));
+#else
+                                                                        reinterpret_cast<GDestroyNotify>(g_mapped_file_free));
+#endif
                     soup_message_body_append_buffer(d->m_msg->request_body, soupBuffer);
                     soup_buffer_free(soupBuffer);
                 }
@@ -578,7 +583,11 @@ bool ResourceHandle::start(Frame* frame)
     if (equalIgnoringCase(protocol, "data"))
         return startData(urlString);
 
-    if ((equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https")) && SOUP_URI_VALID_FOR_HTTP(soup_uri_new(urlString.utf8().data())))
+    SoupURI* uri = soup_uri_new(urlString.utf8().data());
+    bool isHTTPOrHTTPS = (equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https")) && SOUP_URI_VALID_FOR_HTTP(uri);
+    soup_uri_free(uri);
+
+    if (isHTTPOrHTTPS)
         return startHttp(urlString);
 
     if (equalIgnoringCase(protocol, "file") || equalIgnoringCase(protocol, "ftp") || equalIgnoringCase(protocol, "ftps"))

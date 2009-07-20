@@ -126,6 +126,7 @@ _ERROR_CATEGORIES = '''\
     readability/function
     readability/multiline_comment
     readability/multiline_string
+    readability/null
     readability/streams
     readability/todo
     readability/utf8
@@ -758,7 +759,7 @@ class CleansedLines(object):
         self._num_lines = len(lines)
         for line_number in range(len(lines)):
             self.lines.append(cleanse_comments(lines[line_number]))
-            elided = self._collapse_strings(lines[line_number])
+            elided = self.collapse_strings(lines[line_number])
             self.elided.append(cleanse_comments(elided))
 
     def num_lines(self):
@@ -766,7 +767,7 @@ class CleansedLines(object):
         return self._num_lines
 
     @staticmethod
-    def _collapse_strings(elided):
+    def collapse_strings(elided):
         """Collapses strings and chars on a line to simple "" or '' blocks.
 
         We nix strings first so we're not fooled by text like '"http://"'
@@ -1268,13 +1269,14 @@ def check_spacing_for_function_call(filename, line, line_number, error):
       error: The function to call with any errors found.
     """
 
-    # Since function calls often occur inside if/for/while/switch
+    # Since function calls often occur inside if/for/foreach/while/switch
     # expressions - which have their own, more liberal conventions - we
     # first see if we should be looking inside such an expression for a
     # function call, to which we can apply more strict standards.
     function_call = line    # if there's no control flow construct, look at whole line
     for pattern in (r'\bif\s*\((.*)\)\s*{',
                     r'\bfor\s*\((.*)\)\s*{',
+                    r'\bforeach\s*\((.*)\)\s*{',
                     r'\bwhile\s*\((.*)\)\s*[{;]',
                     r'\bswitch\s*\((.*)\)\s*{'):
         matched = search(pattern, line)
@@ -1282,7 +1284,7 @@ def check_spacing_for_function_call(filename, line, line_number, error):
             function_call = matched.group(1)    # look inside the parens for function calls
             break
 
-    # Except in if/for/while/switch, there should never be space
+    # Except in if/for/foreach/while/switch, there should never be space
     # immediately inside parens (eg "f( 3, 4 )").  We make an exception
     # for nested parens ( (a+b) + c ).  Likewise, there should never be
     # a space before a ( when it's a function argument.  I assume it's a
@@ -1296,7 +1298,7 @@ def check_spacing_for_function_call(filename, line, line_number, error):
     # Note that we assume the contents of [] to be short enough that
     # they'll never need to wrap.
     if (  # Ignore control structures.
-        not search(r'\b(if|for|while|switch|return|new|delete)\b', function_call)
+        not search(r'\b(if|for|foreach|while|switch|return|new|delete)\b', function_call)
         # Ignore pointers/references to functions.
         and not search(r' \([^)]+\)\([^)]*(\)|,$)', function_call)
         # Ignore pointers/references to arrays.
@@ -1560,17 +1562,17 @@ def check_spacing(filename, clean_lines, line_number, error):
               'Extra space for operator %s' % matched.group(1))
 
     # A pet peeve of mine: no spaces after an if, while, switch, or for
-    matched = search(r' (if\(|for\(|while\(|switch\()', line)
+    matched = search(r' (if\(|for\(|foreach\(|while\(|switch\()', line)
     if matched:
         error(filename, line_number, 'whitespace/parens', 5,
               'Missing space before ( in %s' % matched.group(1))
 
-    # For if/for/while/switch, the left and right parens should be
+    # For if/for/foreach/while/switch, the left and right parens should be
     # consistent about how many spaces are inside the parens, and
     # there should either be zero or one spaces inside the parens.
     # We don't want: "if ( foo)" or "if ( foo   )".
     # Exception: "for ( ; foo; bar)" and "for (foo; bar; )" are allowed.
-    matched = search(r'\b(if|for|while|switch)\s*\(([ ]*)(.).*[^ ]+([ ]*)\)\s*{\s*$',
+    matched = search(r'\b(if|for|foreach|while|switch)\s*\(([ ]*)(.).*[^ ]+([ ]*)\)\s*{\s*$',
                      line)
     if matched:
         if len(matched.group(2)) != len(matched.group(4)):
@@ -1674,16 +1676,17 @@ def check_braces(filename, clean_lines, line_number, error):
         # the lifetime of stack-allocated variables.  We don't detect this
         # perfectly: we just don't complain if the last non-whitespace
         # character on the previous non-blank line is ';', ':', '{', '}',
-        # ')', or ') const'.  We also allow '#' for #endif and '=' for
-        # array initialization.
+        # ')', or ') const' and doesn't begin with 'if|for|while|switch|else'.
+        # We also allow '#' for #endif and '=' for array initialization.
         previous_line = get_previous_non_blank_line(clean_lines, line_number)[0]
-        if (not search(r'[;:}{)=]\s*$|\)\s*const\s*$', previous_line)
+        if ((not search(r'[;:}{)=]\s*$|\)\s*const\s*$', previous_line)
+             or search(r'\b(if|for|while|switch|else)\b', previous_line))
             and previous_line.find('#') < 0):
             error(filename, line_number, 'whitespace/braces', 4,
                   'This { should be at the end of the previous line')
     elif (search(r'\)\s*(const\s*)?{\s*$', line)
           and line.count('(') == line.count(')')
-          and not search(r'\b(if|for|while|switch)\b', line)):
+          and not search(r'\b(if|for|foreach|while|switch)\b', line)):
         error(filename, line_number, 'whitespace/braces', 4,
               'Place brace on its own line for function definitions.')
 
@@ -1692,7 +1695,7 @@ def check_braces(filename, clean_lines, line_number, error):
         # one line control statement was previous.
         previous_line = clean_lines.elided[line_number - 2]
         if (previous_line.find('{') > 0
-            and search(r'\b(if|for|while|else)\b', previous_line)):
+            and search(r'\b(if|for|foreach|while|else)\b', previous_line)):
             error(filename, line_number, 'whitespace/braces', 4,
                   'One line control clauses should not use braces.')
 
@@ -1805,8 +1808,21 @@ def check_for_comparisons_to_zero(filename, clean_lines, line_number, error):
     # Include NULL here so that users don't have to convert NULL to 0 first and then get this error.
     if search(r'[=!]=\s*(NULL|0|true|false)\W', line) or search(r'\W(NULL|0|true|false)\s*[=!]=', line):
         error(filename, line_number, 'readability/comparison_to_zero', 5,
-	      'Tests for true/false, null/non-null, and zero/non-zero should all be done without equality comparisons.')
+              'Tests for true/false, null/non-null, and zero/non-zero should all be done without equality comparisons.')
 
+
+def check_for_null(filename, clean_lines, line_number, error):
+    line = clean_lines.elided[line_number]
+    if search(r'\bNULL\b', line):
+        error(filename, line_number, 'readability/null', 5, 'Use 0 instead of NULL.')
+        return
+
+    line = clean_lines.raw_lines[line_number]
+    # See if NULL occurs in any comments in the line. If the search for NULL using the raw line
+    # matches, then do the check with strings collapsed to avoid giving errors for
+    # NULLs occurring in strings.
+    if search(r'\bNULL\b', line) and search(r'\bNULL\b', CleansedLines.collapse_strings(line)):
+        error(filename, line_number, 'readability/null', 4, 'Use 0 instead of NULL.')
 
 def get_line_width(line):
     """Determines the width of the line in column positions.
@@ -1900,6 +1916,7 @@ def check_style(filename, clean_lines, line_number, file_extension, error):
     check_spacing(filename, clean_lines, line_number, error)
     check_check(filename, clean_lines, line_number, error)
     check_for_comparisons_to_zero(filename, clean_lines, line_number, error)
+    check_for_null(filename, clean_lines, line_number, error)
 
 
 _RE_PATTERN_INCLUDE_NEW_STYLE = re.compile(r'#include +"[^/]+\.h"')
@@ -2785,10 +2802,8 @@ def use_webkit_styles():
     #        modify the implementation and enable them.
     global _DEFAULT_FILTERS
     _DEFAULT_FILTERS = [
-        '-whitespace/end_of_line',
         '-whitespace/comments',
         '-whitespace/blank_line',
-        '-whitespace/newline',  # '\r'
         '-runtime/explicit',  # explicit
         '-runtime/virtual',  # virtual dtor
         '-runtime/printf',

@@ -445,12 +445,12 @@ JSValue JSDOMWindow::audio(ExecState* exec) const
 
 JSValue JSDOMWindow::webKitPoint(ExecState* exec) const
 {
-    return getDOMConstructor<JSWebKitPointConstructor>(exec);
+    return getDOMConstructor<JSWebKitPointConstructor>(exec, this);
 }
 
 JSValue JSDOMWindow::webKitCSSMatrix(ExecState* exec) const
 {
-    return getDOMConstructor<JSWebKitCSSMatrixConstructor>(exec);
+    return getDOMConstructor<JSWebKitCSSMatrixConstructor>(exec, this);
 }
  
 JSValue JSDOMWindow::xmlHttpRequest(ExecState* exec) const
@@ -461,7 +461,7 @@ JSValue JSDOMWindow::xmlHttpRequest(ExecState* exec) const
 #if ENABLE(XSLT)
 JSValue JSDOMWindow::xsltProcessor(ExecState* exec) const
 {
-    return getDOMConstructor<JSXSLTProcessorConstructor>(exec);
+    return getDOMConstructor<JSXSLTProcessorConstructor>(exec, this);
 }
 #endif
 
@@ -475,7 +475,7 @@ JSValue JSDOMWindow::messageChannel(ExecState* exec) const
 #if ENABLE(WORKERS)
 JSValue JSDOMWindow::worker(ExecState* exec) const
 {
-    return getDOMConstructor<JSWorkerConstructor>(exec);
+    return getDOMConstructor<JSWorkerConstructor>(exec, this);
 }
 #endif
 

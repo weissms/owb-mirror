@@ -383,6 +383,13 @@ v8::Persistent<v8::FunctionTemplate> V8DOMWrapper::getTemplate(V8ClassIndex::V8W
     }
 
 #if ENABLE(WORKERS)
+    case V8ClassIndex::ABSTRACTWORKER: {
+        // Reserve one more internal field for keeping event listeners.
+        v8::Local<v8::ObjectTemplate> instanceTemplate = descriptor->InstanceTemplate();
+        instanceTemplate->SetInternalFieldCount(V8Custom::kAbstractWorkerInternalFieldCount);
+        break;
+    }
+
     case V8ClassIndex::WORKER: {
         // Reserve one more internal field for keeping event listeners.
         v8::Local<v8::ObjectTemplate> instanceTemplate = descriptor->InstanceTemplate();
@@ -698,7 +705,9 @@ v8::Local<v8::Object> V8DOMWrapper::instantiateV8Object(V8Proxy* proxy, V8ClassI
         proxy = 0;
         // FIXME: Do we need a wrapper cache for the isolated world?  We should
         // see if the performance gains are worth while.
-    }
+    } else if (!proxy)
+        proxy = V8Proxy::retrieve();
+
     v8::Local<v8::Object> instance;
     if (proxy)
         instance = proxy->createWrapperFromCache(descriptorType);
