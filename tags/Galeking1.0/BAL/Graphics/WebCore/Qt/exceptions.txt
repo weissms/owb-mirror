@@ -1,0 +1,2 @@
+BCImageDecoderQt.h ImageDecoderQt.h
+BCStillImageQt.h StillImageQt.h

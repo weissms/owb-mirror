@@ -1,0 +1,10 @@
+BCClipboardSDL.h ClipboardSDL.h
+BCRenderThemeSDL.h RenderThemeSDL.h
+BCScrollbarThemeSDL.h ScrollbarThemeSDL.h
+CursorSDL.h
+handCursor.h
+iBeamCursor.h
+moveCursor.h
+noCursor.h
+PasteboardHelperSDL.h PasteboardHelperSDL.h
+pointerCursor.h

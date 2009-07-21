@@ -1,0 +1,2 @@
+BCApplyTransparencySDL.h ApplyTransparencySDL.h
+BCGraphicsContextPlatformPrivateSDL.h GraphicsContextPlatformPrivateSDL.h
