@@ -1,3 +1,9 @@
+2009-07-22  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Correct an error in the script.
+
+        * Scripts/prepare-ChangeLog:
+
 2009-07-15  Mario Bensi  <mbensi@pleyo.com>
 
         Speculative fix for drt.

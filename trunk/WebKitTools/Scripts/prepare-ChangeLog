@@ -1280,7 +1280,7 @@ sub createPatchCommand($)
 
 sub diffHeaderFormat()
 {
-    return qr/^Index: WebKitTools/(\S+)\r?\n?$/ if $isSVN;
+    return qr/^Index: (\S+)\s*$/ if $isSVN;
     return qr/^diff --git a\/.+ b\/(.+)$/ if $isGit;
 }
 
