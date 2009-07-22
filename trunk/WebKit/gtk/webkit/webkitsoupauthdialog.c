@@ -278,7 +278,7 @@ static void show_auth_dialog(WebKitAuthData* authData, const char* login, const 
     gtk_box_pack_start (GTK_BOX (vbox), rememberBox,
                         FALSE, FALSE, 0);
 
-    checkButton = gtk_check_button_new_with_label(_("Remember password"));
+    checkButton = gtk_check_button_new_with_label(_("_Remember password"));
     if (login && password)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkButton), TRUE);
     gtk_label_set_line_wrap(GTK_LABEL(gtk_bin_get_child(GTK_BIN(checkButton))), TRUE);
@@ -314,13 +314,6 @@ static void session_authenticate(SoupSession* session, SoupMessage* msg, SoupAut
     SoupURI* uri;
     WebKitAuthData* authData;
     SoupSessionFeature* manager = (SoupSessionFeature*)user_data;
-
-    /* 
-     * Workaround for http://bugzilla.gnome.org/show_bug.cgi?id=583462
-     * FIXME: we can remove this once we depend on a libsoup newer than 2.26.2
-     */
-    if (msg->status_code == 0)
-        return;
 
     soup_session_pause_message(session, msg);
     /* We need to make sure the message sticks around when pausing it */

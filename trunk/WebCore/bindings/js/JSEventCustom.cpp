@@ -32,6 +32,7 @@
 #include "Clipboard.h"
 #include "Event.h"
 #include "JSClipboard.h"
+#include "JSErrorEvent.h"
 #include "JSKeyboardEvent.h"
 #include "JSMessageEvent.h"
 #include "JSMouseEvent.h"
@@ -44,6 +45,7 @@
 #include "JSWebKitTransitionEvent.h"
 #include "JSWheelEvent.h"
 #include "JSXMLHttpRequestProgressEvent.h"
+#include "ErrorEvent.h"
 #include "KeyboardEvent.h"
 #include "MessageEvent.h"
 #include "MouseEvent.h"
@@ -99,7 +101,7 @@ JSValue toJS(ExecState* exec, Event* event)
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, WheelEvent, event);
 #if ENABLE(SVG)
         else if (event->isSVGZoomEvent())
-            wrapper = CREATE_SVG_OBJECT_WRAPPER(exec, SVGZoomEvent, event, 0);
+            wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, SVGZoomEvent, event);
 #endif
         else
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, UIEvent, event);
@@ -123,6 +125,10 @@ JSValue toJS(ExecState* exec, Event* event)
         wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, WebKitAnimationEvent, event);
     else if (event->isWebKitTransitionEvent())
         wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, WebKitTransitionEvent, event);
+#if ENABLE(WORKERS)
+    else if (event->isErrorEvent())
+        wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, ErrorEvent, event);
+#endif
     else
         wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, Event, event);
 

@@ -3,7 +3,6 @@ create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSDOMWindowBase.cpp generated
 create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
 create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSImageConstructor.cpp generated_sources/WebCore/JSImageConstructor.lut.h WebCore/bindings/js/JSImageConstructor.cpp)
 create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp generated_sources/WebCore/JSPluginElementFunctions.lut.h WebCore/bindings/js/JSPluginElementFunctions.cpp)
-create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSRGBColor.cpp generated_sources/WebCore/JSRGBColor.lut.h WebCore/bindings/js/JSRGBColor.cpp)
 
 if(ENABLE_WORKERS)
     create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSWorkerContextBase.cpp generated_sources/WebCore/JSWorkerContextBase.lut.h WebCore/bindings/js/JSWorkerContextBase.cpp)
@@ -75,7 +74,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginElementFunctions.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
-    bindings/js/JSRGBColor.cpp
     bindings/js/JSSharedWorkerConstructor.cpp
     bindings/js/JSSharedWorkerCustom.cpp
     bindings/js/JSStyleSheetCustom.cpp

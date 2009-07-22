@@ -18,7 +18,7 @@ if(USE_NETWORK STREQUAL "QT")
 endif(USE_NETWORK STREQUAL "QT")
 
 if(USE_NETWORK STREQUAL "SOUP")
-    pkg_check_modules(SOUP REQUIRED libsoup-2.4>=2.26.1)
+    pkg_check_modules(SOUP REQUIRED libsoup-2.4>=2.27.4)
     set(NETWORK_INCLUDE_DIRS ${SOUP_INCLUDE_DIRS})
     set(NETWORK_LIBRARIES ${SOUP_LIBRARIES})
 

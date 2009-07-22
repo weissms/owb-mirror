@@ -63,9 +63,7 @@ webcoregtk_cppflags += \
 webcore_built_nosources += \
 	DerivedSources/DocTypeStrings.cpp \
 	DerivedSources/tokenizer.cpp \
-	DerivedSources/ColorData.c \
-	WebCore/bindings/js/JSDOMWindowBase.lut.h \
-	WebCore/bindings/js/JSRGBColor.lut.h
+	DerivedSources/ColorData.c
 
 webcore_built_sources += \
 	DerivedSources/CSSGrammar.cpp \
@@ -102,6 +100,7 @@ IDL_BINDINGS += \
 	WebCore/css/CSSVariablesRule.idl \
 	WebCore/css/Counter.idl \
 	WebCore/css/MediaList.idl \
+	WebCore/css/RGBColor.idl \
 	WebCore/css/Rect.idl \
 	WebCore/css/StyleSheet.idl \
 	WebCore/css/StyleSheetList.idl \
@@ -124,6 +123,7 @@ IDL_BINDINGS += \
 	WebCore/dom/Element.idl \
 	WebCore/dom/Entity.idl \
 	WebCore/dom/EntityReference.idl \
+	WebCore/dom/ErrorEvent.idl \
 	WebCore/dom/Event.idl \
 	WebCore/dom/EventException.idl \
 	WebCore/dom/KeyboardEvent.idl \
@@ -397,8 +397,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSPluginElementFunctions.h \
 	WebCore/bindings/js/JSQuarantinedObjectWrapper.cpp \
 	WebCore/bindings/js/JSQuarantinedObjectWrapper.h \
-	WebCore/bindings/js/JSRGBColor.cpp \
-	WebCore/bindings/js/JSRGBColor.h \
 	WebCore/bindings/js/JSSharedWorkerConstructor.h \
 	WebCore/bindings/js/JSStorageCustom.h \
 	WebCore/bindings/js/JSStyleSheetCustom.cpp \
@@ -436,6 +434,7 @@ webcore_sources += \
 	WebCore/bindings/js/ScriptObjectQuarantine.cpp \
 	WebCore/bindings/js/ScriptObjectQuarantine.h \
 	WebCore/bindings/js/ScriptSourceCode.h \
+	WebCore/bindings/js/ScriptSourceProvider.h \
 	WebCore/bindings/js/ScriptState.cpp \
 	WebCore/bindings/js/ScriptState.h \
 	WebCore/bindings/js/ScriptString.h \
@@ -583,6 +582,8 @@ webcore_sources += \
 	WebCore/css/MediaQueryExp.cpp \
 	WebCore/css/MediaQueryExp.h \
 	WebCore/css/Pair.h \
+	WebCore/css/RGBColor.cpp \
+	WebCore/css/RGBColor.h \
 	WebCore/css/Rect.h \
 	WebCore/css/ShadowValue.cpp \
 	WebCore/css/ShadowValue.h \
@@ -662,6 +663,8 @@ webcore_sources += \
 	WebCore/dom/Entity.h \
 	WebCore/dom/EntityReference.cpp \
 	WebCore/dom/EntityReference.h \
+	WebCore/dom/ErrorEvent.cpp \
+	WebCore/dom/ErrorEvent.h \
 	WebCore/dom/Event.cpp \
 	WebCore/dom/Event.h \
 	WebCore/dom/EventException.h \
@@ -1190,6 +1193,8 @@ webcore_sources += \
 	WebCore/loader/NavigationAction.h \
 	WebCore/loader/NetscapePlugInStreamLoader.cpp \
 	WebCore/loader/NetscapePlugInStreamLoader.h \
+	WebCore/loader/PlaceholderDocument.cpp \
+	WebCore/loader/PlaceholderDocument.h \
 	WebCore/loader/PluginDocument.cpp \
 	WebCore/loader/PluginDocument.h \
 	WebCore/loader/ProgressTracker.cpp \
@@ -2208,6 +2213,16 @@ webcore_libadd += \
 	-lgstvideo-0.10
 
 endif # END ENABLE_VIDEO
+
+# ----
+# Ruby Support
+# ----
+if ENABLE_RUBY
+
+HTML_FEATURES += ENABLE_RUBY=1
+webcore_cppflags += -DENABLE_RUBY=1
+
+endif # END ENABLE_RUBY
 
 # ----
 # XPath Support
@@ -3332,8 +3347,5 @@ dist_webresources_DATA = \
 # Clean rules for WebCore
 
 CLEANFILES += \
-	libWebCoreJS.la \
-	WebCore/bindings/js/JSDOMWindowBase.lut.h \
-	WebCore/bindings/js/JSRGBColor.lut.h \
-	WebCore/bindings/js/JSWorkerContextBase.lut.h
+	libWebCoreJS.la
 

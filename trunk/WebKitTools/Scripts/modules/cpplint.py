@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2009 Google Inc. All rights reserved.
+# Copyright (C) 2009 Google Inc. All rights reserved.
+# Copyright (C) 2009 Torch Mobile Inc.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -232,11 +233,9 @@ for op, inv_replacement in [('==', 'NE'), ('!=', 'EQ'),
 
 # These constants define types of headers for use with
 # _IncludeState.check_next_include_order().
-_C_SYS_HEADER = 1
-_CPP_SYS_HEADER = 2
-_LIKELY_MY_HEADER = 3
-_POSSIBLE_MY_HEADER = 4
-_OTHER_HEADER = 5
+_CONFIG_HEADER = 0
+_PRIMARY_HEADER = 1
+_OTHER_HEADER = 2
 
 
 _regexp_compile_cache = {}
@@ -273,31 +272,27 @@ class _IncludeState(dict):
     # self._section will move monotonically through this set. If it ever
     # needs to move backwards, check_next_include_order will raise an error.
     _INITIAL_SECTION = 0
-    _MY_H_SECTION = 1
-    _C_SECTION = 2
-    _CPP_SECTION = 3
-    _OTHER_H_SECTION = 4
+    _CONFIG_SECTION = 1
+    _PRIMARY_SECTION = 2
+    _OTHER_SECTION = 3
 
     _TYPE_NAMES = {
-        _C_SYS_HEADER: 'C system header',
-        _CPP_SYS_HEADER: 'C++ system header',
-        _LIKELY_MY_HEADER: 'header this file implements',
-        _POSSIBLE_MY_HEADER: 'header this file may implement',
+        _CONFIG_HEADER: 'WebCore config.h',
+        _PRIMARY_HEADER: 'header this file implements',
         _OTHER_HEADER: 'other header',
         }
     _SECTION_NAMES = {
-        _INITIAL_SECTION: "... nothing. (This can't be an error.)",
-        _MY_H_SECTION: 'a header this file implements',
-        _C_SECTION: 'C system header',
-        _CPP_SECTION: 'C++ system header',
-        _OTHER_H_SECTION: 'other header',
+        _INITIAL_SECTION: "... nothing.",
+        _CONFIG_SECTION: "WebCore config.h.",
+        _PRIMARY_SECTION: 'a header this file implements.',
+        _OTHER_SECTION: 'other header.',
         }
 
     def __init__(self):
         dict.__init__(self)
         self._section = self._INITIAL_SECTION
 
-    def check_next_include_order(self, header_type):
+    def check_next_include_order(self, header_type, file_is_header):
         """Returns a non-empty error message if the next header is out of order.
 
         This function also updates the internal state to be ready to check
@@ -305,44 +300,44 @@ class _IncludeState(dict):
 
         Args:
           header_type: One of the _XXX_HEADER constants defined above.
+          file_is_header: Whether the file that owns this _IncludeState is itself a header
 
         Returns:
           The empty string if the header is in the right order, or an
           error message describing what's wrong.
 
         """
-        # FIXME: This isn't WebKit's rule. We are just disabling this for now.
-        error_message = ('Found %s after %s' %
-                         (self._TYPE_NAMES[header_type],
-                          self._SECTION_NAMES[self._section]))
+        if header_type == _CONFIG_HEADER and file_is_header:
+            return 'Header file should not contain WebCore config.h.'
+        if header_type == _PRIMARY_HEADER and file_is_header:
+            return 'Header file should not contain itself.'
 
-        if header_type == _C_SYS_HEADER:
-            if self._section <= self._C_SECTION:
-                self._section = self._C_SECTION
-            else:
-                return error_message
-        elif header_type == _CPP_SYS_HEADER:
-            if self._section <= self._CPP_SECTION:
-                self._section = self._CPP_SECTION
-            else:
-                return error_message
-        elif header_type == _LIKELY_MY_HEADER:
-            if self._section <= self._MY_H_SECTION:
-                self._section = self._MY_H_SECTION
-            else:
-                self._section = self._OTHER_H_SECTION
-        elif header_type == _POSSIBLE_MY_HEADER:
-            if self._section <= self._MY_H_SECTION:
-                self._section = self._MY_H_SECTION
-            else:
-                # This will always be the fallback because we're not sure
-                # enough that the header is associated with this file.
-                self._section = self._OTHER_H_SECTION
+        error_message = ''
+        if self._section != self._OTHER_SECTION:
+            before_error_message = ('Found %s before %s' %
+                                    (self._TYPE_NAMES[header_type],
+                                     self._SECTION_NAMES[self._section + 1]))
+        after_error_message = ('Found %s after %s' %
+                                (self._TYPE_NAMES[header_type],
+                                 self._SECTION_NAMES[self._section]))
+
+        if header_type == _CONFIG_HEADER:
+            if self._section >= self._CONFIG_SECTION:
+                error_message = after_error_message
+            self._section = self._CONFIG_SECTION
+        elif header_type == _PRIMARY_HEADER:
+            if self._section >= self._PRIMARY_SECTION:
+                error_message = after_error_message
+            elif self._section < self._CONFIG_SECTION:
+                error_message = before_error_message
+            self._section = self._PRIMARY_SECTION
         else:
             assert header_type == _OTHER_HEADER
-            self._section = self._OTHER_H_SECTION
+            if not file_is_header and self._section < self._PRIMARY_SECTION:
+                error_message = before_error_message
+            self._section = self._OTHER_SECTION
 
-        return ''
+        return error_message
 
 
 class _CppLintState(object):
@@ -442,6 +437,11 @@ def _set_filters(filters):
                Each filter should start with + or -; else we die.
     """
     _cpplint_state.set_filters(filters)
+
+
+def error_count():
+    """Returns the global count of reported errors."""
+    return _cpplint_state.error_count
 
 
 class _FunctionState(object):
@@ -1657,6 +1657,131 @@ def get_previous_non_blank_line(clean_lines, line_number):
     return ('', -1)
 
 
+def check_namespace_indentation(filename, clean_lines, line_number, file_extension, error):
+    """Looks for indentation errors inside of namespaces.
+
+    Args:
+      filename: The name of the current file.
+      clean_lines: A CleansedLines instance containing the file.
+      line_number: The number of the line to check.
+      file_extension: The extension (dot not included) of the file.
+      error: The function to call with any errors found.
+    """
+
+    line = clean_lines.elided[line_number] # Get rid of comments and strings.
+
+    namespace_match = match(r'(?P<namespace_indentation>\s*)namespace\s+\S+\s*{\s*$', line)
+    if not namespace_match:
+        return
+
+    namespace_indentation = namespace_match.group('namespace_indentation')
+
+    is_header_file = file_extension == 'h'
+    is_implementation_file = not is_header_file
+    line_offset = 0
+
+    if is_header_file:
+        inner_indentation = namespace_indentation + ' ' * 4
+
+        for current_line in clean_lines.raw_lines[line_number + 1:]:
+            line_offset += 1
+
+            # Skip not only empty lines but also those with preprocessor directives.
+            # Goto labels don't occur in header files, so no need to check for those.
+            if current_line.strip() == '' or current_line.startswith('#'):
+                continue
+
+            if not current_line.startswith(inner_indentation):
+                # If something unindented was discovered, make sure it's a closing brace.
+                if not current_line.startswith(namespace_indentation + '}'):
+                    error(filename, line_number + line_offset, 'whitespace/indent', 4,
+                          'In a header, code inside a namespace should be indented.')
+                break
+
+    if is_implementation_file:
+        for current_line in clean_lines.raw_lines[line_number + 1:]:
+            line_offset += 1
+
+            # Skip not only empty lines but also those with (goto) labels.
+            if current_line.strip() == '' or match(r'\w+\s*:', current_line):
+                continue
+
+            remaining_line = current_line[len(namespace_indentation):]
+            if not match(r'\S', remaining_line):
+                error(filename, line_number + line_offset, 'whitespace/indent', 4,
+                      'In an implementation file, code inside a namespace should not be indented.')
+
+            # Just check the first non-empty line in any case, because
+            # otherwise we would need to count opened and closed braces,
+            # which is obviously a lot more complicated.
+            break
+
+
+def check_switch_indentation(filename, clean_lines, line_number, error):
+    """Looks for indentation errors inside of switch statements.
+
+    Args:
+      filename: The name of the current file.
+      clean_lines: A CleansedLines instance containing the file.
+      line_number: The number of the line to check.
+      error: The function to call with any errors found.
+    """
+
+    line = clean_lines.elided[line_number] # Get rid of comments and strings.
+
+    switch_match = match(r'(?P<switch_indentation>\s*)switch\s*\(.+\)\s*{\s*$', line)
+    if not switch_match:
+        return
+
+    switch_indentation = switch_match.group('switch_indentation')
+    inner_indentation = switch_indentation + ' ' * 4
+    line_offset = 0
+    encountered_nested_switch = False
+
+    for current_line in clean_lines.elided[line_number + 1:]:
+        line_offset += 1
+
+        # Skip not only empty lines but also those with preprocessor directives.
+        if current_line.strip() == '' or current_line.startswith('#'):
+            continue
+
+        if match(r'\s*switch\s*\(.+\)\s*{\s*$', current_line):
+            # Complexity alarm - another switch statement nested inside the one
+            # that we're currently testing. We'll need to track the extent of
+            # that inner switch if the upcoming label tests are still supposed
+            # to work correctly. Let's not do that; instead, we'll finish
+            # checking this line, and then leave it like that. Assuming the
+            # indentation is done consistently (even if incorrectly), this will
+            # still catch all indentation issues in practice.
+            encountered_nested_switch = True
+
+        current_indentation_match = match(r'(?P<indentation>\s*)(?P<remaining_line>.*)$', current_line);
+        current_indentation = current_indentation_match.group('indentation')
+        remaining_line = current_indentation_match.group('remaining_line')
+
+        if remaining_line.startswith('}'):
+            break # The end of the switch statement.
+        elif match(r'(default|case\s+.*)\s*:\s*$', remaining_line):
+            if current_indentation != switch_indentation:
+                error(filename, line_number + line_offset, 'whitespace/indent', 4,
+                      'A case label should not be indented, but line up with its switch statement.')
+                # Don't throw an error for multiple badly indented labels,
+                # one should be enough to figure out the problem.
+                break
+        elif not match(r'\w+\s*:\s*$', remaining_line):
+            # It's not a goto label (which we don't care about), so check if
+            # it's indented at least as far as the switch plus 4 spaces.
+            if not current_indentation.startswith(inner_indentation):
+                error(filename, line_number + line_offset, 'whitespace/indent', 4,
+                      'Non-label code inside switch statements should be indented.')
+                # Don't throw an error for multiple badly indented statements,
+                # one should be enough to figure out the problem.
+                break
+
+        if encountered_nested_switch:
+            break
+
+
 def check_braces(filename, clean_lines, line_number, error):
     """Looks for misplaced braces (e.g. at the end of line).
 
@@ -1667,7 +1792,7 @@ def check_braces(filename, clean_lines, line_number, error):
       error: The function to call with any errors found.
     """
 
-    line = clean_lines.elided[line_number]        # get rid of comments and strings
+    line = clean_lines.elided[line_number] # Get rid of comments and strings.
 
     if match(r'\s*{\s*$', line):
         # We allow an open brace to start a line in the case where someone
@@ -1680,7 +1805,7 @@ def check_braces(filename, clean_lines, line_number, error):
         # We also allow '#' for #endif and '=' for array initialization.
         previous_line = get_previous_non_blank_line(clean_lines, line_number)[0]
         if ((not search(r'[;:}{)=]\s*$|\)\s*const\s*$', previous_line)
-             or search(r'\b(if|for|while|switch|else)\b', previous_line))
+             or search(r'\b(if|for|foreach|while|switch|else)\b', previous_line))
             and previous_line.find('#') < 0):
             error(filename, line_number, 'whitespace/braces', 4,
                   'This { should be at the end of the previous line')
@@ -1912,6 +2037,8 @@ def check_style(filename, clean_lines, line_number, file_extension, error):
               'More than one command on the same line')
 
     # Some more style checks
+    check_namespace_indentation(filename, clean_lines, line_number, file_extension, error)
+    check_switch_indentation(filename, clean_lines, line_number, error)
     check_braces(filename, clean_lines, line_number, error)
     check_spacing(filename, clean_lines, line_number, error)
     check_check(filename, clean_lines, line_number, error)
@@ -1972,11 +2099,11 @@ def _is_test_filename(filename):
     return False
 
 
-def _classify_include(fileinfo, include, is_system):
+def _classify_include(filename, include, is_system):
     """Figures out what kind of header 'include' is.
 
     Args:
-      fileinfo: The current file cpplint is running over. A FileInfo instance.
+      filename: The current file cpplint is running over.
       include: The path to a #included file.
       is_system: True if the #include used <> rather than "".
 
@@ -1984,48 +2111,29 @@ def _classify_include(fileinfo, include, is_system):
       One of the _XXX_HEADER constants.
 
     For example:
-      >>> _classify_include(FileInfo('foo/foo.cc'), 'stdio.h', True)
-      _C_SYS_HEADER
-      >>> _classify_include(FileInfo('foo/foo.cc'), 'string', True)
-      _CPP_SYS_HEADER
-      >>> _classify_include(FileInfo('foo/foo.cc'), 'foo/foo.h', False)
-      _LIKELY_MY_HEADER
-      >>> _classify_include(FileInfo('foo/foo_unknown_extension.cc'),
-      ...                  'bar/foo_other_ext.h', False)
-      _POSSIBLE_MY_HEADER
-      >>> _classify_include(FileInfo('foo/foo.cc'), 'foo/bar.h', False)
+      >>> _classify_include('foo.cpp', 'config.h', False)
+      _CONFIG_HEADER
+      >>> _classify_include('foo.cpp', 'foo.h', False)
+      _PRIMARY_HEADER
+      >>> _classify_include('foo.cpp', 'bar.h', False)
       _OTHER_HEADER
     """
-    # This is a list of all standard c++ header files, except
-    # those already checked for above.
-    is_stl_h = include in _STL_HEADERS
-    is_cpp_h = is_stl_h or include in _CPP_HEADERS
 
+    # If it is a system header we know it is classified as _OTHER_HEADER.
     if is_system:
-        if is_cpp_h:
-            return _CPP_SYS_HEADER
-        return _C_SYS_HEADER
+        return _OTHER_HEADER
 
-    # If the target file and the include we're checking share a
-    # basename when we drop common extensions, and the include
-    # lives in . , then it's likely to be owned by the target file.
-    target_dir, target_base = (
-        os.path.split(_drop_common_suffixes(fileinfo.repository_name())))
-    include_dir, include_base = os.path.split(_drop_common_suffixes(include))
-    if (target_base == include_base
-        and (include_dir == target_dir
-             or include_dir == os.path.normpath(target_dir + '/../public'))):
-        return _LIKELY_MY_HEADER
+    # If the include is named config.h then this is WebCore/config.h.
+    if include == "config.h":
+        return _CONFIG_HEADER
 
-    # If the target and include share some initial basename
-    # component, it's possible the target is implementing the
-    # include, so it's allowed to be first, but we'll never
-    # complain if it's not there.
-    target_first_component = _RE_FIRST_COMPONENT.match(target_base)
-    include_first_component = _RE_FIRST_COMPONENT.match(include_base)
-    if (target_first_component and include_first_component
-        and target_first_component.group(0) == include_first_component.group(0)):
-        return _POSSIBLE_MY_HEADER
+    # If the target file basename starts with the include we're checking
+    # then we consider it the primary header.
+    target_base = FileInfo(filename).base_name()
+    include_base = FileInfo(include).base_name()
+
+    if target_base.startswith(include_base):
+        return _PRIMARY_HEADER
 
     return _OTHER_HEADER
 
@@ -2045,14 +2153,8 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
       include_state: An _IncludeState instance in which the headers are inserted.
       error: The function to call with any errors found.
     """
-    fileinfo = FileInfo(filename)
 
     line = clean_lines.lines[line_number]
-
-    ## "include" should use the new style "foo/bar.h" instead of just "bar.h"
-    #if _RE_PATTERN_INCLUDE_NEW_STYLE.search(line):
-    #  error(filename, line_number, 'build/include', 4,
-    #        'Include the directory when naming .h files')
 
     # we shouldn't include a file more than once. actually, there are a
     # handful of instances where doing so is okay, but in general it's
@@ -2069,22 +2171,50 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
             include_state[include] = line_number
 
             # We want to ensure that headers appear in the right order:
-            # 1) for foo.cc, foo.h  (preferred location)
-            # 2) c system files
-            # 3) cpp system files
-            # 4) for foo.cc, foo.h  (deprecated location)
-            # 5) other google headers
+            # 1) for implementation files: config.h, primary header, blank line, alphabetically sorted
+            # 2) for header files: alphabetically sorted
             #
-            # We classify each include statement as one of those 5 types
+            # We classify each include statement as one of 4 types
             # using a number of techniques. The include_state object keeps
             # track of the highest type seen, and complains if we see a
             # lower type after that.
-            error_message = include_state.check_next_include_order(
-                _classify_include(fileinfo, include, is_system))
+            header_type = _classify_include(filename, include, is_system)
+            error_message = include_state.check_next_include_order(header_type, filename.endswith('.h'))
+
+            # Check to make sure we have a blank line after primary header.
+            if not error_message and header_type == _PRIMARY_HEADER:
+                 next_line = clean_lines.raw_lines[line_number + 1]
+                 if not is_blank_line(next_line):
+                    error(filename, line_number, 'build/include_order', 4,
+                          'You should add a blank line after implementation file\'s own header.')
+
+            # Check to make sure all headers besides config.h and the primary header are
+            # alphabetically sorted.
+            if not error_message and header_type == _OTHER_HEADER:
+                 previous_line_number = line_number - 1;
+                 previous_line = clean_lines.lines[previous_line_number]
+                 previous_match = _RE_PATTERN_INCLUDE.search(previous_line)
+                 while (not previous_match and previous_line_number > 0
+                        and not search(r'\A(#if|#ifdef|#ifndef|#else|#elif|#endif)', previous_line)):
+                    previous_line_number -= 1;
+                    previous_line = clean_lines.lines[previous_line_number]
+                    previous_match = _RE_PATTERN_INCLUDE.search(previous_line)
+                 if previous_match:
+                    previous_include = previous_match.group(2)
+                    previous_header_type = _classify_include(filename, previous_include, (previous_match.group(1) == '<'))
+                    if previous_header_type == _OTHER_HEADER and previous_line.strip() > line.strip():
+                        error(filename, line_number, 'build/include_order', 4,
+                              'Alphabetical sorting problem.')
+
             if error_message:
-                error(filename, line_number, 'build/include_order', 4,
-                      '%s. Should be: %s.h, c system, c++ system, other.' %
-                      (error_message, fileinfo.base_name()))
+                if filename.endswith('.h'):
+                    error(filename, line_number, 'build/include_order', 4,
+                          '%s Should be: alphabetically sorted.' %
+                          error_message)
+                else:
+                    error(filename, line_number, 'build/include_order', 4,
+                          '%s Should be: config.h, primary header, blank line, and then alphabetically sorted.' %
+                          error_message)
 
     # Look for any of the stream classes that are part of standard C++.
     matched = _RE_PATTERN_INCLUDE.match(line)
@@ -2665,18 +2795,13 @@ def process_file_data(filename, file_extension, lines, error):
     check_for_new_line_at_eof(filename, lines, error)
 
 
-def process_file(filename, vlevel):
+def process_file(filename, error=error):
     """Does google-lint on a single file.
 
     Args:
       filename: The name of the file to parse.
-
-      vlevel: The level of errors to report.  Every error of confidence
-      >= verbose_level will be reported.  0 is a good default.
+      error: The function to call with any errors found.
     """
-
-    _set_verbose_level(vlevel)
-
     try:
         # Support the UNIX convention of using "-" for stdin.  Note that
         # we are not opening the file with universal newline support
@@ -2785,9 +2910,6 @@ def parse_arguments(args):
             if not filters:
                 print_categories()
 
-    if not filenames:
-        print_usage('No files were specified.')
-
     _set_output_format(output_format)
     _set_verbose_level(verbosity)
     _set_filters(filters)
@@ -2815,8 +2937,6 @@ def use_webkit_styles():
         '-readability/braces',  # int foo() {};
         '-readability/fn_size',
         '-build/storage_class',  # const static
-        '-build/include_order',
-        '-build/include',
         '-build/endif_comment',
         '-whitespace/labels',
         '-runtime/arrays',  # variable length array
@@ -2843,6 +2963,8 @@ that you notice that it flags incorrectly.
     use_webkit_styles()
 
     filenames = parse_arguments(sys.argv[1:])
+    if not filenames:
+        print_usage('No files were specified.')
 
     # Change stderr to write with replacement characters so we don't die
     # if we try to print something containing non-ASCII characters.
@@ -2853,7 +2975,7 @@ that you notice that it flags incorrectly.
 
     _cpplint_state.reset_error_count()
     for filename in filenames:
-        process_file(filename, _cpplint_state.verbose_level)
+        process_file(filename)
     sys.stderr.write('Total errors found: %d\n' % _cpplint_state.error_count)
     sys.exit(_cpplint_state.error_count > 0)
 

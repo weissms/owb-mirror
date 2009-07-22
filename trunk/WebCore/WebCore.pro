@@ -140,6 +140,9 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
     DEFINES += ENABLE_SVG_FONTS=0 ENABLE_SVG_FOREIGN_OBJECT=0 ENABLE_SVG_ANIMATION=0 ENABLE_SVG_AS_IMAGE=0 ENABLE_SVG_USE=0
 }
 
+# HTML5 ruby support
+!contains(DEFINES, ENABLE_RUBY=.): DEFINES += ENABLE_RUBY=1
+
 # HTML5 media support
 !contains(DEFINES, ENABLE_VIDEO=.) {
     contains(QT_CONFIG, phonon):DEFINES += ENABLE_VIDEO=1
@@ -261,7 +264,6 @@ STYLESHEETS_EMBED = \
 
 DOMLUT_FILES += \
     bindings/js/JSDOMWindowBase.cpp \
-    bindings/js/JSRGBColor.cpp \
     bindings/js/JSWorkerContextBase.cpp
 
 IDL_BINDINGS += \
@@ -282,6 +284,7 @@ IDL_BINDINGS += \
     css/CSSVariablesDeclaration.idl \
     css/CSSVariablesRule.idl \
     css/MediaList.idl \
+    css/RGBColor.idl \
     css/Rect.idl \
     css/StyleSheet.idl \
     css/StyleSheetList.idl \
@@ -304,6 +307,7 @@ IDL_BINDINGS += \
     dom/Element.idl \
     dom/Entity.idl \
     dom/EntityReference.idl \
+    dom/ErrorEvent.idl \
     dom/Event.idl \
     dom/EventException.idl \
 #    dom/EventListener.idl \
@@ -512,7 +516,6 @@ SOURCES += \
     bindings/js/JSNodeListCustom.cpp \
     bindings/js/JSOptionConstructor.cpp \
     bindings/js/JSQuarantinedObjectWrapper.cpp \
-    bindings/js/JSRGBColor.cpp \
     bindings/js/JSStyleSheetCustom.cpp \
     bindings/js/JSStyleSheetListCustom.cpp \
     bindings/js/JSTextCustom.cpp \
@@ -604,6 +607,7 @@ SOURCES += \
     css/MediaQuery.cpp \
     css/MediaQueryEvaluator.cpp \
     css/MediaQueryExp.cpp \
+    css/RGBColor.cpp \
     css/ShadowValue.cpp \
     css/StyleBase.cpp \
     css/StyleList.cpp \
@@ -640,6 +644,7 @@ SOURCES += \
     dom/Element.cpp \
     dom/Entity.cpp \
     dom/EntityReference.cpp \
+    dom/ErrorEvent.cpp \
     dom/Event.cpp \
     dom/EventNames.cpp \
     dom/EventTarget.cpp \
@@ -879,6 +884,7 @@ SOURCES += \
     loader/MediaDocument.cpp \
     loader/NavigationAction.cpp \
     loader/NetscapePlugInStreamLoader.cpp \
+    loader/PlaceholderDocument.cpp \
     loader/PluginDocument.cpp \
     loader/ProgressTracker.cpp \
     loader/Request.cpp \
@@ -1128,6 +1134,8 @@ HEADERS += \
     accessibility/AccessibilityTableHeaderContainer.h \
     accessibility/AccessibilityTableRow.h \
     accessibility/AXObjectCache.h \
+    bindings/js/CachedScriptSourceProvider.h \
+    bindings/js/DOMObjectWithSVGContext.h \
     bindings/js/GCController.h \
     bindings/js/JSAudioConstructor.h \
     bindings/js/JSCSSStyleDeclarationCustom.h \
@@ -1166,8 +1174,6 @@ HEADERS += \
     bindings/js/JSOptionConstructor.h \
     bindings/js/JSPluginElementFunctions.h \
     bindings/js/JSQuarantinedObjectWrapper.h \
-    bindings/js/JSRGBColor.h \
-    bindings/js/JSRGBColor.h \
     bindings/js/JSSharedWorkerConstructor.h \
     bindings/js/JSStorageCustom.h \
     bindings/js/JSWebKitCSSMatrixConstructor.h \
@@ -1186,8 +1192,11 @@ HEADERS += \
     bindings/js/ScriptFunctionCall.h \
     bindings/js/ScriptObject.h \
     bindings/js/ScriptObjectQuarantine.h \
+    bindings/js/ScriptSourceCode.h \
+    bindings/js/ScriptSourceProvider.h \
     bindings/js/ScriptState.h \
     bindings/js/ScriptValue.h \
+    bindings/js/StringSourceProvider.h \
     bindings/js/WorkerScriptController.h \
     bridge/c/c_class.h \
     bridge/c/c_instance.h \
@@ -1253,6 +1262,7 @@ HEADERS += \
     css/MediaQueryEvaluator.h \
     css/MediaQueryExp.h \
     css/MediaQuery.h \
+    css/RGBColor.h \
     css/ShadowValue.h \
     css/StyleBase.h \
     css/StyleList.h \
@@ -1541,6 +1551,7 @@ HEADERS += \
     loader/MediaDocument.h \
     loader/NavigationAction.h \
     loader/NetscapePlugInStreamLoader.h \
+    loader/PlaceholderDocument.h \
     loader/PluginDocument.h \
     loader/ProgressTracker.h \
     loader/Request.h \

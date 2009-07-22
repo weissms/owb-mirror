@@ -92,6 +92,7 @@ DOM_CLASSES = \
     ElementTimeControl \
     Entity \
     EntityReference \
+    ErrorEvent \
     Event \
     EventException \
     EventListener \
@@ -392,9 +393,7 @@ DOM_CLASSES = \
 .PHONY : all
 
 all : \
-    $(filter-out JSEventListener.h JSEventTarget.h JSRGBColor.h,$(DOM_CLASSES:%=JS%.h)) \
-    \
-    JSRGBColor.lut.h \
+    $(filter-out JSEventListener.h JSEventTarget.h,$(DOM_CLASSES:%=JS%.h)) \
     \
     JSJavaScriptCallFrame.h \
     \
@@ -545,19 +544,14 @@ UserAgentStyleSheets.h : css/make-css-file-arrays.pl $(USER_AGENT_STYLE_SHEETS)
 
 # --------
 
-# lookup tables for old-style JavaScript bindings
-
-%.lut.h: %.cpp $(CREATE_HASH_TABLE)
-	$(CREATE_HASH_TABLE) $< -n WebCore > $@
-%Table.cpp: %.cpp $(CREATE_HASH_TABLE)
-	$(CREATE_HASH_TABLE) $< -n WebCore > $@
-
-# --------
-
 # HTML tag and attribute names
 
 ifeq ($(findstring ENABLE_VIDEO,$(FEATURE_DEFINES)), ENABLE_VIDEO)
     HTML_FLAGS := $(HTML_FLAGS) ENABLE_VIDEO=1
+endif
+
+ifeq ($(findstring ENABLE_RUBY,$(FEATURE_DEFINES)), ENABLE_RUBY)
+    HTML_FLAGS := $(HTML_FLAGS) ENABLE_RUBY=1
 endif
 
 ifdef HTML_FLAGS

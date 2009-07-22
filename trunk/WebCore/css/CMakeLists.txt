@@ -87,6 +87,7 @@ list(APPEND IDL_SRC
     css/CSSVariablesRule.idl
     css/MediaList.idl
     css/Rect.idl
+    css/RGBColor.idl
     css/StyleSheet.idl
     css/StyleSheetList.idl
     css/WebKitCSSKeyframeRule.idl

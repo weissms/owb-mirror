@@ -34,6 +34,8 @@
 #include "JSArray.h"
 #include "JSFunction.h"
 #include "Interpreter.h"
+#include "LinkBuffer.h"
+#include "RepatchBuffer.h"
 #include "ResultType.h"
 #include "SamplingTool.h"
 
@@ -533,9 +535,14 @@ void JIT::patchMethodCallProto(MethodCallLinkInfo& methodCallLinkInfo, JSFunctio
     methodCallLinkInfo.cachedStructure = structure;
     structure->ref();
 
+    Structure* prototypeStructure = proto->structure();
+    ASSERT(!methodCallLinkInfo.cachedPrototypeStructure);
+    methodCallLinkInfo.cachedPrototypeStructure = prototypeStructure;
+    prototypeStructure->ref();
+
     repatchBuffer.repatch(methodCallLinkInfo.structureLabel, structure);
     repatchBuffer.repatch(methodCallLinkInfo.structureLabel.dataLabelPtrAtOffset(patchOffsetMethodCheckProtoObj), proto);
-    repatchBuffer.repatch(methodCallLinkInfo.structureLabel.dataLabelPtrAtOffset(patchOffsetMethodCheckProtoStruct), proto->structure());
+    repatchBuffer.repatch(methodCallLinkInfo.structureLabel.dataLabelPtrAtOffset(patchOffsetMethodCheckProtoStruct), prototypeStructure);
     repatchBuffer.repatch(methodCallLinkInfo.structureLabel.dataLabelPtrAtOffset(patchOffsetMethodCheckPutFunction), callee);
 }
 

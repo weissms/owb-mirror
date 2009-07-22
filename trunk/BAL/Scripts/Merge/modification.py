@@ -27,7 +27,7 @@ def getWinApiChange(path) :
     print "diff in win api : "
     logging.debug('diff webkit win')
     client = pysvn.Client()
-    diff_text = client.diff("/tmp/merge.tmp", path + "/WebKit/win")
+    diff_text = client.diff("/tmp/", path + "/WebKit/win")
     print diff_text
     logging.debug(diff_text)
     logging.debug('diff webkit win done')

@@ -28,6 +28,7 @@
 
 #include "ASCIICType.h"
 #include "JSGlobalData.h"
+#include "LinkBuffer.h"
 #include "RegexCompiler.h"
 
 #include "pcre.h" // temporary, remove when fallback is removed.

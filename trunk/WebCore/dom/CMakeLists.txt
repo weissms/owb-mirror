@@ -26,6 +26,7 @@ list(APPEND WEBCORE_SRC
     dom/Element.cpp
     dom/Entity.cpp
     dom/EntityReference.cpp
+    dom/ErrorEvent.cpp
     dom/Event.cpp
     dom/EventNames.cpp
     dom/EventTarget.cpp
@@ -107,6 +108,7 @@ list(APPEND IDL_SRC
     dom/Element.idl
     dom/Entity.idl
     dom/EntityReference.idl
+    dom/ErrorEvent.idl
     dom/Event.idl
     dom/EventException.idl
     dom/KeyboardEvent.idl
