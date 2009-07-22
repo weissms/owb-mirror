@@ -37,7 +37,7 @@ def cleanMergeDirectory(path) :
 def createPatch(path) :
     logging.debug('create patch for the working directory')
     client = pysvn.Client()
-    diff_text = client.diff("/tmp/merge.tmp", path)
+    diff_text = client.diff("/tmp/", path)
     if len(diff_text) != 0 :
         rev = client.info2(path, recurse=False)[0][1]["rev"]
 	revision =  getattr(rev, "number")

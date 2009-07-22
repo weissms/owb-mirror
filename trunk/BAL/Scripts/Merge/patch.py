@@ -84,7 +84,7 @@ def createWebkitPatch(path, lastMergeVersion, currentMergeVersion) :
     dir = ["WebCore", "JavaScriptCore", "SunSpider", "WebKit", "WebKitTools"]
     for d in dir :
         logging.debug('create patch for ' + d)
-        diff_text = client.diff("/tmp/merge.tmp", "http://svn.webkit.org/repository/webkit/trunk/" + d, revision1=pysvn.Revision(pysvn.opt_revision_kind.number, lastMergeVersion), revision2=pysvn.Revision(pysvn.opt_revision_kind.number, currentMergeVersion))
+        diff_text = client.diff("/tmp/", "http://svn.webkit.org/repository/webkit/trunk/" + d, revision1=pysvn.Revision(pysvn.opt_revision_kind.number, lastMergeVersion), revision2=pysvn.Revision(pysvn.opt_revision_kind.number, currentMergeVersion))
 	diff_text = renameHeaderPatch(diff_text, d)
         file = open(path + "/../merge/webkit-" + str(currentMergeVersion) + "-" + d + ".patch", 'w')
         file.write(diff_text)
