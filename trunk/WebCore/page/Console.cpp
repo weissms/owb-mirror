@@ -29,8 +29,8 @@
 #include "config.h"
 #include "Console.h"
 
-#include "ChromeClient.h"
 #include "CString.h"
+#include "ChromeClient.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameTree.h"
@@ -93,48 +93,48 @@ static void printMessageSourceAndLevelPrefix(MessageSource source, MessageLevel 
 {
     const char* sourceString;
     switch (source) {
-        case HTMLMessageSource:
-            sourceString = "HTML";
-            break;
-        case WMLMessageSource:
-            sourceString = "WML";
-            break;
-        case XMLMessageSource:
-            sourceString = "XML";
-            break;
-        case JSMessageSource:
-            sourceString = "JS";
-            break;
-        case CSSMessageSource:
-            sourceString = "CSS";
-            break;
-        case OtherMessageSource:
-            sourceString = "OTHER";
-            break;
-        default:
-            ASSERT_NOT_REACHED();
-            sourceString = "UNKNOWN";
-            break;
+    case HTMLMessageSource:
+        sourceString = "HTML";
+        break;
+    case WMLMessageSource:
+        sourceString = "WML";
+        break;
+    case XMLMessageSource:
+        sourceString = "XML";
+        break;
+    case JSMessageSource:
+        sourceString = "JS";
+        break;
+    case CSSMessageSource:
+        sourceString = "CSS";
+        break;
+    case OtherMessageSource:
+        sourceString = "OTHER";
+        break;
+    default:
+        ASSERT_NOT_REACHED();
+        sourceString = "UNKNOWN";
+        break;
     }
 
     const char* levelString;
     switch (level) {
-        case TipMessageLevel:
-            levelString = "TIP";
-            break;
-        case LogMessageLevel:
-            levelString = "LOG";
-            break;
-        case WarningMessageLevel:
-            levelString = "WARN";
-            break;
-        case ErrorMessageLevel:
-            levelString = "ERROR";
-            break;
-        default:
-            ASSERT_NOT_REACHED();
-            levelString = "UNKNOWN";
-            break;
+    case TipMessageLevel:
+        levelString = "TIP";
+        break;
+    case LogMessageLevel:
+        levelString = "LOG";
+        break;
+    case WarningMessageLevel:
+        levelString = "WARN";
+        break;
+    case ErrorMessageLevel:
+        levelString = "ERROR";
+        break;
+    default:
+        ASSERT_NOT_REACHED();
+        levelString = "UNKNOWN";
+        break;
     }
 
     printf("%s %s:", sourceString, levelString);
@@ -273,7 +273,7 @@ void Console::profile(const JSC::UString& title, ScriptCallStack* callStack)
 
 #if ENABLE(INSPECTOR)
     InspectorController* controller = page->inspectorController();
-    // FIXME: log a console message when profiling is disabled. 
+    // FIXME: log a console message when profiling is disabled.
     if (!controller->profilerEnabled())
         return;
 #endif
@@ -320,7 +320,7 @@ void Console::profileEnd(const JSC::UString& title, ScriptCallStack* callStack)
 }
 
 #endif
-    
+
 void Console::time(const String& title)
 {
     Page* page = this->page();
@@ -331,7 +331,7 @@ void Console::time(const String& title)
     // undefined for timing functions
     if (title.isNull())
         return;
-    
+
 #if ENABLE(INSPECTOR)
     page->inspectorController()->startTiming(title);
 #endif
@@ -366,7 +366,9 @@ void Console::group(ScriptCallStack* callStack)
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->startGroup(JSMessageSource, callStack);
+#endif
 }
 
 void Console::groupEnd()
@@ -375,7 +377,9 @@ void Console::groupEnd()
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->endGroup(JSMessageSource, 0, String());
+#endif
 }
 
 void Console::warn(ScriptCallStack* callStack)

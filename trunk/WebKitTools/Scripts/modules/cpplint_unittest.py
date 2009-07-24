@@ -110,15 +110,16 @@ class CpplintTestBase(unittest.TestCase):
     """Provides some useful helper functions for cpplint tests."""
 
     # Perform lint on single line of input and return the error message.
-    def perform_single_line_lint(self, code):
+    def perform_single_line_lint(self, code, file_name):
         error_collector = ErrorCollector(self.assert_)
         lines = code.split('\n')
-        cpplint.remove_multi_line_comments('foo.h', lines, error_collector)
+        cpplint.remove_multi_line_comments(file_name, lines, error_collector)
         clean_lines = cpplint.CleansedLines(lines)
         include_state = cpplint._IncludeState()
         function_state = cpplint._FunctionState()
+        ext = file_name[file_name.rfind('.') + 1:]
         class_state = cpplint._ClassState()
-        cpplint.process_line('foo.cc', 'cc', clean_lines, 0,
+        cpplint.process_line(file_name, ext, clean_lines, 0,
                              include_state, function_state,
                              class_state, error_collector)
         # Single-line lint tests are allowed to fail the 'unlintable function'
@@ -202,11 +203,11 @@ class CpplintTestBase(unittest.TestCase):
         return error_collector.results()
 
     # Perform lint and compare the error message with "expected_message".
-    def assert_lint(self, code, expected_message):
-        self.assertEquals(expected_message, self.perform_single_line_lint(code))
+    def assert_lint(self, code, expected_message, file_name='foo.cc'):
+        self.assertEquals(expected_message, self.perform_single_line_lint(code, file_name))
 
-    def assert_lint_one_of_many_errors_re(self, code, expected_message_re):
-        messages = self.perform_single_line_lint(code)
+    def assert_lint_one_of_many_errors_re(self, code, expected_message_re, file_name='foo.cc'):
+        messages = self.perform_single_line_lint(code, file_name)
         for message in messages:
             if re.search(expected_message_re, message):
                 return
@@ -1126,9 +1127,10 @@ class CpplintTest(CpplintTestBase):
             '}\n',
             '')
         self.assert_multi_line_lint(
-            'if (condition &&\n'
-            '    condition2 &&\n'
-            '    condition3) {\n',
+            'if (condition\n'
+            '    && condition2\n'
+            '    && condition3) {\n'
+            '}\n',
             '')
 
     def test_mismatching_spaces_in_parens(self):
@@ -1494,42 +1496,52 @@ class CpplintTest(CpplintTestBase):
             self.assertRaises(ValueError, cpplint.parse_arguments,
                               ['--filter=+a,b,-c'])
 
-            self.assertEquals(['foo.cc'], cpplint.parse_arguments(['foo.cc']))
+            self.assertEquals((['foo.cc'], {}), cpplint.parse_arguments(['foo.cc']))
             self.assertEquals(old_output_format, cpplint._cpplint_state.output_format)
             self.assertEquals(old_verbose_level, cpplint._cpplint_state.verbose_level)
 
-            self.assertEquals([], cpplint.parse_arguments([]))
-            self.assertEquals([], cpplint.parse_arguments(['--v=0']))
+            self.assertEquals(([], {}), cpplint.parse_arguments([]))
+            self.assertEquals(([], {}), cpplint.parse_arguments(['--v=0']))
 
-            self.assertEquals(['foo.cc'],
+            self.assertEquals((['foo.cc'], {}),
                               cpplint.parse_arguments(['--v=1', 'foo.cc']))
             self.assertEquals(1, cpplint._cpplint_state.verbose_level)
-            self.assertEquals(['foo.h'],
+            self.assertEquals((['foo.h'], {}),
                               cpplint.parse_arguments(['--v=3', 'foo.h']))
             self.assertEquals(3, cpplint._cpplint_state.verbose_level)
-            self.assertEquals(['foo.cpp'],
+            self.assertEquals((['foo.cpp'], {}),
                               cpplint.parse_arguments(['--verbose=5', 'foo.cpp']))
             self.assertEquals(5, cpplint._cpplint_state.verbose_level)
             self.assertRaises(ValueError,
                               cpplint.parse_arguments, ['--v=f', 'foo.cc'])
 
-            self.assertEquals(['foo.cc'],
+            self.assertEquals((['foo.cc'], {}),
                               cpplint.parse_arguments(['--output=emacs', 'foo.cc']))
             self.assertEquals('emacs', cpplint._cpplint_state.output_format)
-            self.assertEquals(['foo.h'],
+            self.assertEquals((['foo.h'], {}),
                               cpplint.parse_arguments(['--output=vs7', 'foo.h']))
             self.assertEquals('vs7', cpplint._cpplint_state.output_format)
             self.assertRaises(SystemExit,
                               cpplint.parse_arguments, ['--output=blah', 'foo.cc'])
 
             filt = '-,+whitespace,-whitespace/indent'
-            self.assertEquals(['foo.h'],
+            self.assertEquals((['foo.h'], {}),
                               cpplint.parse_arguments(['--filter='+filt, 'foo.h']))
             self.assertEquals(['-', '+whitespace', '-whitespace/indent'],
                               cpplint._cpplint_state.filters)
 
-            self.assertEquals(['foo.cc', 'foo.h'],
+            self.assertEquals((['foo.cc', 'foo.h'], {}),
                               cpplint.parse_arguments(['foo.cc', 'foo.h']))
+
+            self.assertEquals((['foo.cc'], {'--foo': ''}),
+                              cpplint.parse_arguments(['--foo', 'foo.cc'], ['foo']))
+            self.assertEquals((['foo.cc'], {'--foo': 'bar'}),
+                              cpplint.parse_arguments(['--foo=bar', 'foo.cc'], ['foo=']))
+            self.assertEquals((['foo.cc'], {}),
+                              cpplint.parse_arguments(['foo.cc'], ['foo=']))
+            self.assertRaises(SystemExit,
+                              cpplint.parse_arguments,
+                              ['--footypo=bar', 'foo.cc'], ['foo='])
         finally:
             cpplint._USAGE = old_usage
             cpplint._ERROR_CATEGORIES = old_error_categories
@@ -1843,7 +1855,7 @@ class CpplintTest(CpplintTestBase):
 
     def assert_lintLogCodeOnError(self, code, expected_message):
         # Special assert_lint which logs the input code on error.
-        result = self.perform_single_line_lint(code)
+        result = self.perform_single_line_lint(code, 'foo.cc')
         if result != expected_message:
             self.fail('For code: "%s"\nGot: "%s"\nExpected: "%s"'
                       % (code, result, expected_message))
@@ -2051,6 +2063,14 @@ class OrderOfIncludesTest(CpplintTestBase):
     def test_check_next_include_order__no_self(self):
         self.assertEqual('Header file should not contain itself.',
                          self.include_state.check_next_include_order(cpplint._PRIMARY_HEADER, True))
+        # Test actual code to make sure that header types are correctly assigned.
+        self.assert_language_rules_check('Foo.h',
+                                         '#include "Foo.h"\n',
+                                         'Header file should not contain itself. Should be: alphabetically sorted.'
+                                         '  [build/include_order] [4]')
+        self.assert_language_rules_check('FooBar.h',
+                                         '#include "Foo.h"\n',
+                                         '')
 
     def test_check_next_include_order__likely_then_config(self):
         self.assertEqual('Found header this file implements before WebCore config.h.',
@@ -2156,32 +2176,63 @@ class OrderOfIncludesTest(CpplintTestBase):
                                          '#include "a.h"\n', # Should still flag this.
                                          'Alphabetical sorting problem.  [build/include_order] [4]')
 
+    def test_check_wtf_includes(self):
+        self.assert_language_rules_check('foo.cpp',
+                                         '#include "config.h"\n'
+                                         '#include "foo.h"\n'
+                                         '\n'
+                                         '#include <wtf/Assertions.h>\n',
+                                         '')
+        self.assert_language_rules_check('foo.cpp',
+                                         '#include "config.h"\n'
+                                         '#include "foo.h"\n'
+                                         '\n'
+                                         '#include "wtf/Assertions.h"\n',
+                                         'wtf includes should be <wtf/file.h> instead of "wtf/file.h".'
+                                         '  [build/include] [4]')
+
     def test_classify_include(self):
         classify_include = cpplint._classify_include
+        include_state = cpplint._IncludeState()
         self.assertEqual(cpplint._CONFIG_HEADER,
                          classify_include('foo/foo.cpp',
                                           'config.h',
-                                          False))
+                                          False, include_state))
         self.assertEqual(cpplint._PRIMARY_HEADER,
                          classify_include('foo/internal/foo.cpp',
                                           'foo/public/foo.h',
-                                          False))
+                                          False, include_state))
         self.assertEqual(cpplint._PRIMARY_HEADER,
                          classify_include('foo/internal/foo.cpp',
                                           'foo/other/public/foo.h',
-                                          False))
+                                          False, include_state))
         self.assertEqual(cpplint._OTHER_HEADER,
                          classify_include('foo/internal/foo.cpp',
                                           'foo/other/public/foop.h',
-                                          False))
+                                          False, include_state))
         self.assertEqual(cpplint._OTHER_HEADER,
                          classify_include('foo/foo.cpp',
                                           'string',
-                                          True))
+                                          True, include_state))
         self.assertEqual(cpplint._PRIMARY_HEADER,
                          classify_include('fooCustom.cpp',
                                           'foo.h',
-                                          False))
+                                          False, include_state))
+        # Tricky example where both includes might be classified as primary.
+        self.assert_language_rules_check('ScrollbarThemeWince.cpp',
+                                         '#include "config.h"\n'
+                                         '#include "ScrollbarThemeWince.h"\n'
+                                         '\n'
+                                         '#include "Scrollbar.h"\n',
+                                         '')
+        self.assert_language_rules_check('ScrollbarThemeWince.cpp',
+                                         '#include "config.h"\n'
+                                         '#include "Scrollbar.h"\n'
+                                         '\n'
+                                         '#include "ScrollbarThemeWince.h"\n',
+                                         'Found header this file implements after a header this file implements.'
+                                         ' Should be: config.h, primary header, blank line, and then alphabetically sorted.'
+                                         '  [build/include_order] [4]')
 
     def test_try_drop_common_suffixes(self):
         self.assertEqual('foo/foo', cpplint._drop_common_suffixes('foo/foo-inl.h'))
@@ -2714,9 +2765,11 @@ class WebKitStyleTest(CpplintTestBase):
         #    or .mm), code inside a namespace should not be indented.
         self.assert_multi_line_lint(
             'namespace WebCore {\n\n'
-            'bool Document::Foo()\n'
+            'Document::Foo()\n'
+            '    : foo(bar)\n'
+            '    , boo(far)\n'
             '{\n'
-            '    return true;\n'
+            '    stuff();\n'
             '}',
             '',
             'foo.cpp')
@@ -2725,6 +2778,13 @@ class WebKitStyleTest(CpplintTestBase):
             'namespace InnerNamespace {\n'
             'Document::Foo() { }\n'
             '}',
+            '',
+            'foo.cpp')
+        self.assert_multi_line_lint(
+            '    namespace WebCore {\n\n'
+            'start:  // Pointless code, but tests the label regexp.\n'
+            '    goto start;\n'
+            '    }',
             '',
             'foo.cpp')
         self.assert_multi_line_lint(
@@ -2769,11 +2829,26 @@ class WebKitStyleTest(CpplintTestBase):
             '')
         self.assert_multi_line_lint(
             '    switch (condition) {\n'
+            '    case fooCondition: break;\n'
+            '    default: return;\n'
+            '    }\n',
+            '')
+        self.assert_multi_line_lint(
+            '    switch (condition) {\n'
             '        case fooCondition:\n'
             '        case barCondition:\n'
             '            i++;\n'
             '            break;\n'
             '        default:\n'
+            '            i--;\n'
+            '    }\n',
+            'A case label should not be indented, but line up with its switch statement.'
+            '  [whitespace/indent] [4]')
+        self.assert_multi_line_lint(
+            '    switch (condition) {\n'
+            '        case fooCondition:\n'
+            '            break;\n'
+            '    default:\n'
             '            i--;\n'
             '    }\n',
             'A case label should not be indented, but line up with its switch statement.'
@@ -2819,12 +2894,16 @@ class WebKitStyleTest(CpplintTestBase):
         # 6. Boolean expressions at the same nesting level that span
         #   multiple lines should have their operators on the left side of
         #   the line instead of the right side.
-        # FIXME: No tests for this rule. The following should fail.
-        # self.assert_multi_line_lint(
-        #     '    return attr->name() == srcAttr ||\n'
-        #     '        attr->name() == lowsrcAttr ||\n'
-        #     '        (attr->name() == usemapAttr && attr->value().domString()[0] != \'#\');\n',
-        #     '')
+        self.assert_multi_line_lint(
+            '    return attr->name() == srcAttr\n'
+            '        || attr->name() == lowsrcAttr;\n',
+            '')
+        self.assert_multi_line_lint(
+            '    return attr->name() == srcAttr ||\n'
+            '        attr->name() == lowsrcAttr;\n',
+            'Boolean expressions that span multiple lines should have their '
+            'operators on the left side of the line instead of the right side.'
+            '  [whitespace/operators] [4]')
 
     def test_spacing(self):
         # 1. Do not place spaces around unary operators.
@@ -2951,7 +3030,117 @@ class WebKitStyleTest(CpplintTestBase):
 
         # 3. An else if statement should be written as an if statement
         #    when the prior if concludes with a return statement.
-        # FIXME: No tests for this.
+        self.assert_multi_line_lint(
+            'if (motivated) {\n'
+            '    if (liquid)\n'
+            '        return money;\n'
+            '} else if (tired)\n'
+            '    break;\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (condition)\n'
+            '    doSomething();\n'
+            'else if (otherCondition)\n'
+            '    doSomethingElse();\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (condition)\n'
+            '    doSomething();\n'
+            'else\n'
+            '    doSomethingElse();\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (condition)\n'
+            '    returnValue = foo;\n'
+            'else if (otherCondition)\n'
+            '    returnValue = bar;\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (condition)\n'
+            '    returnValue = foo;\n'
+            'else\n'
+            '    returnValue = bar;\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (condition)\n'
+            '    doSomething();\n'
+            'else if (liquid)\n'
+            '    return money;\n'
+            'else if (broke)\n'
+            '    return favor;\n'
+            'else\n'
+            '    sleep(28800);\n',
+            '')
+        self.assert_multi_line_lint(
+            'if (liquid) {\n'
+            '    prepare();\n'
+            '    return money;\n'
+            '} else if (greedy) {\n'
+            '    keep();\n'
+            '    return nothing;\n'
+            '}\n',
+            'An else if statement should be written as an if statement when the '
+            'prior "if" concludes with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
+        self.assert_multi_line_lint(
+            '    if (stupid) {\n'
+            'infiniteLoop:\n'
+            '        goto infiniteLoop;\n'
+            '    } else if (evil)\n'
+            '        goto hell;\n',
+            'An else if statement should be written as an if statement when the '
+            'prior "if" concludes with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
+        self.assert_multi_line_lint(
+            'if (liquid)\n'
+            '{\n'
+            '    prepare();\n'
+            '    return money;\n'
+            '}\n'
+            'else if (greedy)\n'
+            '    keep();\n',
+            ['This { should be at the end of the previous line  [whitespace/braces] [4]',
+            'An else should appear on the same line as the preceding }  [whitespace/newline] [4]',
+            'An else if statement should be written as an if statement when the '
+            'prior "if" concludes with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]'])
+        self.assert_multi_line_lint(
+            'if (gone)\n'
+            '    return;\n'
+            'else if (here)\n'
+            '    go();\n',
+            'An else if statement should be written as an if statement when the '
+            'prior "if" concludes with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
+        self.assert_multi_line_lint(
+            'if (gone)\n'
+            '    return;\n'
+            'else\n'
+            '    go();\n',
+            'An else statement can be removed when the prior "if" concludes '
+            'with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
+        self.assert_multi_line_lint(
+            'if (motivated) {\n'
+            '    prepare();\n'
+            '    continue;\n'
+            '} else {\n'
+            '    cleanUp();\n'
+            '    break;\n'
+            '}\n',
+            'An else statement can be removed when the prior "if" concludes '
+            'with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
+        self.assert_multi_line_lint(
+            'if (tired)\n'
+            '    break;\n'
+            'else {\n'
+            '    prepare();\n'
+            '    continue;\n'
+            '}\n',
+            'An else statement can be removed when the prior "if" concludes '
+            'with a return, break, continue or goto statement.'
+            '  [readability/control_flow] [4]')
 
     def test_braces(self):
         # 1. Function definitions: place each brace on its own line.
@@ -3126,24 +3315,39 @@ class WebKitStyleTest(CpplintTestBase):
         self.assert_lint(
             'functionCall(NULL)',
             'Use 0 instead of NULL.'
-            '  [readability/null] [5]')
+            '  [readability/null] [5]',
+            'foo.cpp')
         self.assert_lint(
             "// Don't use NULL in comments since it isn't in code.",
             'Use 0 instead of NULL.'
-            '  [readability/null] [4]')
+            '  [readability/null] [4]',
+            'foo.cpp')
         self.assert_lint(
             '"A string with NULL"  // and a comment with NULL is tricky to flag correctly in cpplint.',
             'Use 0 instead of NULL.'
-            '  [readability/null] [4]')
+            '  [readability/null] [4]',
+            'foo.cpp')
         self.assert_lint(
             '"A string containing NULL is ok"',
-            '')
+            '',
+            'foo.cpp')
         self.assert_lint(
             'if (aboutNULL)',
-            '')
+            '',
+            'foo.cpp')
         self.assert_lint(
             'myVariable = NULLify',
-            '')
+            '',
+            'foo.cpp')
+        # Make sure that the NULL check does not apply to C and Objective-C files.
+        self.assert_lint(
+            'functionCall(NULL)',
+            '',
+            'foo.c')
+        self.assert_lint(
+            'functionCall(NULL)',
+            '',
+            'foo.m')
 
         # 2. C++ and C bool values should be written as true and
         #    false. Objective-C BOOL values should be written as YES and NO.

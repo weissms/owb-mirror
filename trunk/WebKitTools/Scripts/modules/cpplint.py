@@ -123,6 +123,7 @@ _ERROR_CATEGORIES = '''\
     readability/check
     readability/comparison_to_zero
     readability/constructors
+    readability/control_flow
     readability/fn_size
     readability/function
     readability/multiline_comment
@@ -291,6 +292,11 @@ class _IncludeState(dict):
     def __init__(self):
         dict.__init__(self)
         self._section = self._INITIAL_SECTION
+        self._visited_primary_section = False
+        self.header_types = dict();
+
+    def visited_primary_section(self):
+        return self._visited_primary_section
 
     def check_next_include_order(self, header_type, file_is_header):
         """Returns a non-empty error message if the next header is out of order.
@@ -331,6 +337,7 @@ class _IncludeState(dict):
             elif self._section < self._CONFIG_SECTION:
                 error_message = before_error_message
             self._section = self._PRIMARY_SECTION
+            self._visited_primary_section = True
         else:
             assert header_type == _OTHER_HEADER
             if not file_is_header and self._section < self._PRIMARY_SECTION:
@@ -386,7 +393,7 @@ class _CppLintState(object):
                 self.filters.append(clean_filter)
         for filter in self.filters:
             if not (filter.startswith('+') or filter.startswith('-')):
-                raise ValueError('Every filter in --filters must start with '
+                raise ValueError('Every filter in --filter must start with '
                                  '+ or - (%s does not)' % filter)
 
     def reset_error_count(self):
@@ -607,7 +614,7 @@ def _should_print_error(category, confidence):
             if category.startswith(one_filter[1:]):
                 is_filtered = False
         else:
-            assert False  # should have been checked for in SetFilter.
+            assert False  # should have been checked for in set_filter.
     if is_filtered:
         return False
 
@@ -1426,7 +1433,7 @@ def check_spacing(filename, clean_lines, line_number, error):
 
     # Before nixing comments, check if the line is blank for no good
     # reason.  This includes the first line after a block is opened, and
-    # blank lines at the end of a function (ie, right before a line like '}'
+    # blank lines at the end of a function (ie, right before a line like '}').
     if is_blank_line(line):
         elided = clean_lines.elided
         previous_line = elided[line_number - 1]
@@ -1439,7 +1446,7 @@ def check_spacing(filename, clean_lines, line_number, error):
             and previous_line[:previous_brace].find('namespace') == -1):
             # OK, we have a blank line at the start of a code block.  Before we
             # complain, we check if it is an exception to the rule: The previous
-            # non-empty line has the paramters of a function header that are indented
+            # non-empty line has the parameters of a function header that are indented
             # 4 spaces (because they did not fit in a 80 column line when placed on
             # the same line as the function name).  We also check for the case where
             # the previous line is indented 6 spaces, which may happen when the
@@ -1703,7 +1710,9 @@ def check_namespace_indentation(filename, clean_lines, line_number, file_extensi
             line_offset += 1
 
             # Skip not only empty lines but also those with (goto) labels.
-            if current_line.strip() == '' or match(r'\w+\s*:', current_line):
+            # The goto label regexp accepts spaces or the beginning of a
+            # comment (if anything) after the initial colon.
+            if current_line.strip() == '' or match(r'\w+\s*:([\s\/].*)?$', current_line):
                 continue
 
             remaining_line = current_line[len(namespace_indentation):]
@@ -1759,24 +1768,30 @@ def check_switch_indentation(filename, clean_lines, line_number, error):
         current_indentation = current_indentation_match.group('indentation')
         remaining_line = current_indentation_match.group('remaining_line')
 
-        if remaining_line.startswith('}'):
-            break # The end of the switch statement.
-        elif match(r'(default|case\s+.*)\s*:\s*$', remaining_line):
+        # End the check at the end of the switch statement.
+        if remaining_line.startswith('}') and current_indentation == switch_indentation:
+            break
+        # Case and default branches should not be indented. The regexp also
+        # catches single-line cases like "default: break;" but does not trigger
+        # on stuff like "Document::Foo();".
+        elif match(r'(default|case\s+.*)\s*:([^:].*)?$', remaining_line):
             if current_indentation != switch_indentation:
                 error(filename, line_number + line_offset, 'whitespace/indent', 4,
                       'A case label should not be indented, but line up with its switch statement.')
                 # Don't throw an error for multiple badly indented labels,
                 # one should be enough to figure out the problem.
                 break
-        elif not match(r'\w+\s*:\s*$', remaining_line):
-            # It's not a goto label (which we don't care about), so check if
-            # it's indented at least as far as the switch plus 4 spaces.
-            if not current_indentation.startswith(inner_indentation):
-                error(filename, line_number + line_offset, 'whitespace/indent', 4,
-                      'Non-label code inside switch statements should be indented.')
-                # Don't throw an error for multiple badly indented statements,
-                # one should be enough to figure out the problem.
-                break
+        # We ignore goto labels at the very beginning of a line.
+        elif match(r'\w+\s*:\s*$', remaining_line):
+            continue
+        # It's not a goto label, so check if it's indented at least as far as
+        # the switch statement plus one more level of indentation.
+        elif not current_indentation.startswith(inner_indentation):
+            error(filename, line_number + line_offset, 'whitespace/indent', 4,
+                  'Non-label code inside switch statements should be indented.')
+            # Don't throw an error for multiple badly indented statements,
+            # one should be enough to figure out the problem.
+            break
 
         if encountered_nested_switch:
             break
@@ -1858,6 +1873,96 @@ def check_braces(filename, clean_lines, line_number, error):
               "You don't need a ; after a }")
 
 
+def check_exit_statement_simplifications(filename, clean_lines, line_number, error):
+    """Looks for else or else-if statements that should be written as an
+    if statement when the prior if concludes with a return, break, continue or
+    goto statement.
+
+    Args:
+      filename: The name of the current file.
+      clean_lines: A CleansedLines instance containing the file.
+      line_number: The number of the line to check.
+      error: The function to call with any errors found.
+    """
+
+    line = clean_lines.elided[line_number] # Get rid of comments and strings.
+
+    else_match = match(r'(?P<else_indentation>\s*)(\}\s*)?else(\s+if\s*\(|(?P<else>\s*(\{\s*)?\Z))', line)
+    if not else_match:
+        return
+
+    else_indentation = else_match.group('else_indentation')
+    inner_indentation = else_indentation + ' ' * 4
+
+    previous_lines = clean_lines.elided[:line_number]
+    previous_lines.reverse()
+    line_offset = 0
+    encountered_exit_statement = False
+
+    for current_line in previous_lines:
+        line_offset -= 1
+
+        # Skip not only empty lines but also those with preprocessor directives
+        # and goto labels.
+        if current_line.strip() == '' or current_line.startswith('#') or match(r'\w+\s*:\s*$', current_line):
+            continue
+
+        # Skip lines with closing braces on the original indentation level.
+        # Even though the styleguide says they should be on the same line as
+        # the "else if" statement, we also want to check for instances where
+        # the current code does not comply with the coding style. Thus, ignore
+        # these lines and proceed to the line before that.
+        if current_line == else_indentation + '}':
+            continue
+
+        current_indentation_match = match(r'(?P<indentation>\s*)(?P<remaining_line>.*)$', current_line);
+        current_indentation = current_indentation_match.group('indentation')
+        remaining_line = current_indentation_match.group('remaining_line')
+
+        # As we're going up the lines, the first real statement to encounter
+        # has to be an exit statement (return, break, continue or goto) -
+        # otherwise, this check doesn't apply.
+        if not encountered_exit_statement:
+            # We only want to find exit statements if they are on exactly
+            # the same level of indentation as expected from the code inside
+            # the block. If the indentation doesn't strictly match then we
+            # might have a nested if or something, which must be ignored.
+            if current_indentation != inner_indentation:
+                break
+            if match(r'(return(\W+.*)|(break|continue)\s*;|goto\s*\w+;)$', remaining_line):
+                encountered_exit_statement = True
+                continue
+            break
+
+        # When code execution reaches this point, we've found an exit statement
+        # as last statement of the previous block. Now we only need to make
+        # sure that the block belongs to an "if", then we can throw an error.
+
+        # Skip lines with opening braces on the original indentation level,
+        # similar to the closing braces check above. ("if (condition)\n{")
+        if current_line == else_indentation + '{':
+            continue
+
+        # Skip everything that's further indented than our "else" or "else if".
+        if current_indentation.startswith(else_indentation) and current_indentation != else_indentation:
+            continue
+
+        # So we've got a line with same (or less) indentation. Is it an "if"?
+        # If yes: throw an error. If no: don't throw an error.
+        # Whatever the outcome, this is the end of our loop.
+        if match(r'if\s*\(', remaining_line):
+            if else_match.start('else') != -1:
+                error(filename, line_number + line_offset, 'readability/control_flow', 4,
+                      'An else statement can be removed when the prior "if" '
+                      'concludes with a return, break, continue or goto statement.')
+            else:
+                error(filename, line_number + line_offset, 'readability/control_flow', 4,
+                      'An else if statement should be written as an if statement '
+                      'when the prior "if" concludes with a return, break, '
+                      'continue or goto statement.')
+        break
+
+
 def replaceable_check(operator, macro, line):
     """Determine whether a basic CHECK can be replaced with a more specific one.
 
@@ -1937,6 +2042,10 @@ def check_for_comparisons_to_zero(filename, clean_lines, line_number, error):
 
 
 def check_for_null(filename, clean_lines, line_number, error):
+    # This check doesn't apply to C or Objective-C implementation files.
+    if filename.endswith('.c') or filename.endswith('.m'):
+        return
+
     line = clean_lines.elided[line_number]
     if search(r'\bNULL\b', line):
         error(filename, line_number, 'readability/null', 5, 'Use 0 instead of NULL.')
@@ -2018,11 +2127,18 @@ def check_style(filename, clean_lines, line_number, file_extension, error):
               'Weird number of spaces at line-start.  '
               'Are you using a 4-space indent?')
     # Labels should always be indented at least one space.
-    elif not initial_spaces and line[:2] != '//' and search(r'[^:]:\s*$', line):
-        error(filename, line_number, 'whitespace/labels', 4,
-              'Labels should always be indented at least one space.  '
-              'If this is a member-initializer list in a constructor, '
-              'the colon should be on the line after the definition header.')
+    elif not initial_spaces and line[:2] != '//':
+        label_match = match(r'(?P<label>[^:]+):\s*$', line)
+
+        if label_match:
+            label = label_match.group('label')
+            # Only throw errors for stuff that is definitely not a goto label,
+            # because goto labels can in fact occur at the start of the line.
+            if label in ['public', 'private', 'protected'] or label.find(' ') != -1:
+                error(filename, line_number, 'whitespace/labels', 4,
+                      'Labels should always be indented at least one space.  '
+                      'If this is a member-initializer list in a constructor, '
+                      'the colon should be on the line after the definition header.')
 
     if (cleansed_line.count(';') > 1
         # for loops are allowed two ;'s (and may run over two lines).
@@ -2036,10 +2152,16 @@ def check_style(filename, clean_lines, line_number, file_extension, error):
         error(filename, line_number, 'whitespace/newline', 4,
               'More than one command on the same line')
 
+    if cleansed_line.strip().endswith('||') or cleansed_line.strip().endswith('&&'):
+        error(filename, line_number, 'whitespace/operators', 4,
+              'Boolean expressions that span multiple lines should have their '
+              'operators on the left side of the line instead of the right side.')
+
     # Some more style checks
     check_namespace_indentation(filename, clean_lines, line_number, file_extension, error)
     check_switch_indentation(filename, clean_lines, line_number, error)
     check_braces(filename, clean_lines, line_number, error)
+    check_exit_statement_simplifications(filename, clean_lines, line_number, error)
     check_spacing(filename, clean_lines, line_number, error)
     check_check(filename, clean_lines, line_number, error)
     check_for_comparisons_to_zero(filename, clean_lines, line_number, error)
@@ -2099,13 +2221,14 @@ def _is_test_filename(filename):
     return False
 
 
-def _classify_include(filename, include, is_system):
+def _classify_include(filename, include, is_system, include_state):
     """Figures out what kind of header 'include' is.
 
     Args:
       filename: The current file cpplint is running over.
       include: The path to a #included file.
       is_system: True if the #include used <> rather than "".
+      include_state: An _IncludeState instance in which the headers are inserted.
 
     Returns:
       One of the _XXX_HEADER constants.
@@ -2127,12 +2250,24 @@ def _classify_include(filename, include, is_system):
     if include == "config.h":
         return _CONFIG_HEADER
 
+    # There cannot be primary includes in header files themselves. Only an
+    # include exactly matches the header filename will be is flagged as
+    # primary, so that it triggers the "don't include yourself" check.
+    if filename.endswith('.h') and filename != include:
+        return _OTHER_HEADER;
+
     # If the target file basename starts with the include we're checking
     # then we consider it the primary header.
     target_base = FileInfo(filename).base_name()
     include_base = FileInfo(include).base_name()
 
-    if target_base.startswith(include_base):
+    # If we haven't encountered a primary header, then be lenient in checking.
+    if not include_state.visited_primary_section() and target_base.startswith(include_base):
+        return _PRIMARY_HEADER
+    # If we already encountered a primary header, perform a strict comparison.
+    # In case the two filename bases are the same then the above lenient check
+    # probably was a false positive.
+    elif include_state.visited_primary_section() and target_base == include_base:
         return _PRIMARY_HEADER
 
     return _OTHER_HEADER
@@ -2178,8 +2313,9 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
             # using a number of techniques. The include_state object keeps
             # track of the highest type seen, and complains if we see a
             # lower type after that.
-            header_type = _classify_include(filename, include, is_system)
+            header_type = _classify_include(filename, include, is_system, include_state)
             error_message = include_state.check_next_include_order(header_type, filename.endswith('.h'))
+            include_state.header_types[line_number] = header_type
 
             # Check to make sure we have a blank line after primary header.
             if not error_message and header_type == _PRIMARY_HEADER:
@@ -2200,8 +2336,7 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
                     previous_line = clean_lines.lines[previous_line_number]
                     previous_match = _RE_PATTERN_INCLUDE.search(previous_line)
                  if previous_match:
-                    previous_include = previous_match.group(2)
-                    previous_header_type = _classify_include(filename, previous_include, (previous_match.group(1) == '<'))
+                    previous_header_type = include_state.header_types[previous_line_number]
                     if previous_header_type == _OTHER_HEADER and previous_line.strip() > line.strip():
                         error(filename, line_number, 'build/include_order', 4,
                               'Alphabetical sorting problem.')
@@ -2216,15 +2351,18 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
                           '%s Should be: config.h, primary header, blank line, and then alphabetically sorted.' %
                           error_message)
 
-    # Look for any of the stream classes that are part of standard C++.
-    matched = _RE_PATTERN_INCLUDE.match(line)
-    if matched:
-        include = matched.group(2)
+        # Look for any of the stream classes that are part of standard C++.
         if match(r'(f|ind|io|i|o|parse|pf|stdio|str|)?stream$', include):
             # Many unit tests use cout, so we exempt them.
             if not _is_test_filename(filename):
                 error(filename, line_number, 'readability/streams', 3,
                       'Streams are highly discouraged.')
+
+        # Look for specific includes to fix.
+        if include.startswith('wtf/') and not is_system:
+            error(filename, line_number, 'build/include', 4,
+                  'wtf includes should be <wtf/file.h> instead of "wtf/file.h".')
+
 
 def check_language(filename, clean_lines, line_number, file_extension, include_state,
                    error):
@@ -2796,7 +2934,7 @@ def process_file_data(filename, file_extension, lines, error):
 
 
 def process_file(filename, error=error):
-    """Does google-lint on a single file.
+    """Performs cpplint on a single file.
 
     Args:
       filename: The name of the file to parse.
@@ -2839,8 +2977,8 @@ def process_file(filename, error=error):
     # When reading from stdin, the extension is unknown, so no cpplint tests
     # should rely on the extension.
     if (filename != '-' and file_extension != 'cc' and file_extension != 'h'
-        and file_extension != 'cpp'):
-        sys.stderr.write('Ignoring %s; not a .cc or .h file\n' % filename)
+        and file_extension != 'cpp' and file_extension != 'c'):
+        sys.stderr.write('Ignoring %s; not a .cc, .cpp, .c or .h file\n' % filename)
     else:
         process_file_data(filename, file_extension, lines, error)
         if carriage_return_found and os.linesep != '\r\n':
@@ -2875,20 +3013,25 @@ def print_categories():
     sys.exit(0)
 
 
-def parse_arguments(args):
+def parse_arguments(args, additional_flags=[]):
     """Parses the command line arguments.
 
     This may set the output format and verbosity level as side-effects.
 
     Args:
       args: The command line arguments:
+      additional_flags: A list of strings which specifies flags we allow.
 
     Returns:
-      The list of filenames to lint.
+      A tuple of (filenames, flags)
+
+      filenames: The list of filenames to lint.
+      flags: The dict of the flag names and the flag values.
     """
+    flags = ['help', 'output=', 'verbose=', 'filter='] + additional_flags
+    additional_flag_values = {}
     try:
-        (opts, filenames) = getopt.getopt(args, '', ['help', 'output=', 'verbose=',
-                                                     'filter='])
+        (opts, filenames) = getopt.getopt(args, '', flags)
     except getopt.GetoptError:
         print_usage('Invalid arguments.')
 
@@ -2909,12 +3052,14 @@ def parse_arguments(args):
             filters = val
             if not filters:
                 print_categories()
+        else:
+            additional_flag_values[opt] = val
 
     _set_output_format(output_format)
     _set_verbose_level(verbosity)
     _set_filters(filters)
 
-    return filenames
+    return (filenames, additional_flag_values)
 
 
 def use_webkit_styles():
@@ -2962,7 +3107,7 @@ that you notice that it flags incorrectly.
 
     use_webkit_styles()
 
-    filenames = parse_arguments(sys.argv[1:])
+    (filenames, flags) = parse_arguments(sys.argv[1:])
     if not filenames:
         print_usage('No files were specified.')
 

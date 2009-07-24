@@ -231,6 +231,11 @@ void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsig
     if (webURLRequest == newWebURLRequest)
         return;
 
+    if (!newWebURLRequest) {
+        request = ResourceRequest();
+        return;
+    }
+
     COMPtr<WebMutableURLRequest> newWebURLRequestImpl(Query, newWebURLRequest);
     if (!newWebURLRequestImpl)
         return;

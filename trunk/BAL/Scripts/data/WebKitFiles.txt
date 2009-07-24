@@ -21,6 +21,7 @@ WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
 WebCore/css/CSSStyleSelector.h
+WebCore/css/MediaQueryEvaluator.cpp
 WebCore/dom/Document.cpp
 WebCore/dom/Document.h
 WebCore/editing/TextIterator.cpp
@@ -82,6 +83,7 @@ WebCore/platform/Scrollbar.cpp	BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
 WebCore/plugins/PluginView.h
+WebCore/rendering/RenderLayerCompositor.h
 WebCore/storage/Database.cpp
 WebCore/svg/graphics/SVGImage.cpp
 WebCore/svg/SVGDocumentExtensions.cpp

@@ -42,9 +42,14 @@
 #include "MediaQueryExp.h"
 #include "NodeRenderStyle.h"
 #include "Page.h"
+#include "RenderView.h"
 #include "RenderStyle.h"
 #include "PlatformScreen.h"
 #include <wtf/HashMap.h>
+
+#if ENABLE(3D_RENDERING)
+#include "RenderLayerCompositor.h"
+#endif
 
 namespace WebCore {
 
@@ -462,15 +467,22 @@ static bool transform_2dMediaFeatureEval(CSSValue* value, RenderStyle*, Frame*, 
     return true;
 }
 
-static bool transform_3dMediaFeatureEval(CSSValue* value, RenderStyle*, Frame*, MediaFeaturePrefix op)
+static bool transform_3dMediaFeatureEval(CSSValue* value, RenderStyle*, Frame* frame, MediaFeaturePrefix op)
 {
     bool returnValueIfNoParameter;
     int have3dRendering;
 
 #if ENABLE(3D_RENDERING)
-    returnValueIfNoParameter = true;
-    have3dRendering = 1;
+    bool threeDEnabled = false;
+#if USE(ACCELERATED_COMPOSITING)
+    if (RenderView* view = frame->contentRenderer())
+        threeDEnabled = view->compositor()->hasAcceleratedCompositing();
+#endif
+
+    returnValueIfNoParameter = threeDEnabled;
+    have3dRendering = threeDEnabled ? 1 : 0;
 #else
+    UNUSED_PARAM(frame);
     returnValueIfNoParameter = false;
     have3dRendering = 0;
 #endif

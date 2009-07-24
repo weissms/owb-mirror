@@ -1,3 +1,315 @@
+2009-07-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Simon Hausmann.
+
+        Add a command line option to run-javascriptcore-tests to explicitly opt out of attempting to rebuild JavaScriptCore.
+        This is primarily useful to speed up the build bots where one machine builds JavaScriptCore and a second runs the tests,
+        leading to situations where the build system unnecessarily feels that the need to recompile.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+        * Scripts/run-javascriptcore-tests:
+
+2009-07-23  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [Gtk] Add implementation of GCController for DRT
+        https://bugs.webkit.org/show_bug.cgi?id=27636
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewWindowObjectCleared):
+        (main):
+        * DumpRenderTree/gtk/GCControllerGtk.cpp:
+        (GCController::collect):
+        (GCController::collectOnAlternateThread):
+        (GCController::getJSObjectCount):
+
+2009-07-23  Mark Rowe  <mrowe@apple.com>
+
+        Update build.webkit.org config for new machine.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2009-07-23  Brady Eidson  <beidson@apple.com>
+
+        Remove accidentally checked in code.
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (waitUntilDoneWatchdogFired):
+        (LayoutTestController::setWaitToDump):
+
+2009-07-23  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        WebCore has a few places that don't gracefully handle a null request returned from willSendRequest.
+        https://bugs.webkit.org/show_bug.cgi?id=27595
+
+        Add the ability to tell the LayoutTestController to return a null request for willSendRequest
+        redirect callbacks.
+        
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (setWillSendRequestReturnsNullOnRedirectCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::willSendRequestReturnsNullOnRedirect):
+        (LayoutTestController::setWillSendRequestReturnsNullOnRedirect):
+
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm:
+        (-[ResourceLoadDelegate webView:resource:willSendRequest:redirectResponse:fromDataSource:]):
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::willSendRequest):
+
+2009-07-23  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed Oliver Hunt.
+
+        Fix DumpRenderTree to not fail an assertion on launch on a new machine.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (setDefaultsToConsistentValuesForTesting): Disable the XSS auditor.  It being enabled
+        breaks all of the JavaScript tests within testStringByEvaluatingJavaScriptFromString,
+        which causes us to exit due to an assertion failure.  It's not clear why the XSS auditor
+        decides to interfere with these tests.
+
+2009-07-23  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Update default state of the XSS auditor in GTK DumpRenderTree to match Mac and Windows
+        in hopes of fixing some layout test failures seen on the build bot.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+
+2009-07-23  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+         Reviewed by Adam Treat.
+
+         Fix false positives for switch statement indentation check in cpplint.
+         https://bugs.webkit.org/show_bug.cgi?id=27615
+
+         Makes one-line case statements (e.g. "case foo: bar();") work.
+         Also a few general improvements to the robustness and readability of
+         the check, and more test cases.
+
+         * Scripts/modules/cpplint.py:
+         * Scripts/modules/cpplint_unittest.py:
+
+2009-07-23  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+         Reviewed by Adam Treat.
+
+         Add check for line-breaking rule #3 to cpplint.
+         https://bugs.webkit.org/show_bug.cgi?id=27610
+
+         "An else if statement should be written as an if statement when
+         the prior if concludes with a return statement."
+
+         Implemented by a multi-line (kind of back-tracking) algorithm.
+         Comes with loads of unit tests. Fixes the check for label indentation
+         to be not so overzealous, as it didn't allow for completely unindented
+         goto labels (at the very start of a line).
+
+         * Scripts/modules/cpplint.py:
+         * Scripts/modules/cpplint_unittest.py:
+
+2009-07-23  Eli Fidler  <eli.fidler@torchmobile.com>
+
+         Reviewed by Adam Treat.
+
+         Improve git workflow by populating commit messages with ChangeLog entries.
+         https://bugs.webkit.org/show_bug.cgi?id=27605
+
+         add --[no-]write option to optionally output new ChangeLog entries to
+         stdout instead of modifying ChangeLog files
+
+         fix Torch Mobile copyright
+
+         * Scripts/prepare-ChangeLog:
+
+2009-07-23  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Enable cpplint for .c files.
+        https://bugs.webkit.org/show_bug.cgi?id=27604
+
+        Also make sure that the check for NULL does not apply to .c files.
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-22  Steve Falkenburg  <sfalken@apple.com>
+
+        Checkpoint new Windows nightly launcher.
+        
+        Reviewed by Mark Rowe.
+
+        * WebKitLauncherWin: Added.
+        * WebKitLauncherWin/Resource.h: Added.
+        * WebKitLauncherWin/WebKitLauncherWin.cpp: Added.
+        (getStringValue): Retrieve a string registry value.
+        (applePathFromRegistry): Get an Apple-related path out of the registry.
+        (copyEnvironmentVariable): Copy an environment variable.
+        (safariInstallDir): Helper function to get the install directory for Safari.
+        (safariBrowserExe): Helper function to get the full path of the Safari executable.
+        (_tWinMain): Locate Safari and launch it after setting up an environment variable.
+        * WebKitLauncherWin/WebKitLauncherWin.h: Added.
+        * WebKitLauncherWin/WebKitLauncherWin.rc: Added.
+        * WebKitLauncherWin/WebKitLauncherWin.vcproj: Added.
+        * WebKitLauncherWin/webkit.ico: Added.
+
+2009-07-22  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Treat.
+
+        run-webkit-lint should be named check-webkit-style
+        https://bugs.webkit.org/show_bug.cgi?id=27568
+
+        This name better reflects the fact that it is about checking the style of files.
+
+        * Scripts/check-webkit-style: Renamed from WebKitTools/Scripts/run-webkit-lint.
+
+2009-07-22  Takeshi Yoshino  <tyoshino@google.com>
+
+        Reviewed by Darin Adler.
+
+        VC++ 2005 Express failed to build WebKit due to raw UTF-8 string in WebKit/win/WebCoreLocalizedStrings.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=26375
+
+        Make it able to use hexadecimal escape sequences in .*UI_STRING(_KEY)? macros. Now,
+        the extract-localizable-strings script unescapes hexadecimal escape sequences in string literals
+        in the macros before writing out them into the file to update.
+
+        By this fix, we can eliminate raw UTF-8 strings in source code while using raw UTF-16 big endian
+        strings in the Localizable.strings file.
+
+        Bonus: There's no longer extract-webkit-localizable-strings script. Fix usage message to guide
+        users to update-webkit-localizable-strings.
+
+        * Scripts/extract-localizable-strings:
+
+2009-07-22  Shinichiro Hamaji  <hamaji@google.com>
+
+        Reviewed by David Levin.
+
+        Tiny typo fixes for cpplint.py
+        https://bugs.webkit.org/show_bug.cgi?id=27530
+
+        * Scripts/modules/cpplint.py:
+
+2009-07-22  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        run-webkit-lint checks code which are not changed
+        https://bugs.webkit.org/show_bug.cgi?id=27529
+
+        Add check if the line is newly added.
+
+        * Scripts/run-webkit-lint:
+
+2009-07-22  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        run-webkit-lint should have --git-commit option
+        https://bugs.webkit.org/show_bug.cgi?id=27528
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/run-webkit-lint:
+
+2009-07-22  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Factor svn-create-patch's "determineSvnRoot()" into a function in
+        VCSUtils.pm so commit-log-editor can use it too.
+
+        * Scripts/VCSUtils.pm: Add determineSVNRoot().
+        * Scripts/commit-log-editor: Use determineSVNRoot() instead of old
+          code (which didn't work as well).
+        * Scripts/svn-create-patch: Remove determineSvnRoot() (moved).
+
+2009-07-22  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Fix false positives in namespace indentation checks.
+        https://bugs.webkit.org/show_bug.cgi?id=27567
+
+        The regular expression detecting goto labels (in order
+        to skip those) was too permissive, which caused other
+        code like "Foo::Bar()" to be treated as a label too,
+        thereby not stopping the processing loop as expected.
+
+        Now comes with a stricter regexp, and more demanding
+        test cases to check for these issues.
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-22  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Fix cpplint generating false positives for
+        "primary" includes in headers.
+        https://bugs.webkit.org/show_bug.cgi?id=27553
+
+        Doing so by only flagging includes in header files
+        as primary when the include filename exactly matches
+        the header filename.
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-22  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        cpplint generates false positives for primary includes
+        https://bugs.webkit.org/show_bug.cgi?id=27544
+
+        Fix false positives for instances when cpplint would
+        normally classify multiple includes as primary: After
+        the first primary include, classify subsequent ones as
+        "other" includes even if they look like primary ones.
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
+2009-07-22  Gabor Rapcsanyi  <rapcsanyi.gabor@stud.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        Pass XAUTHORITY environment variable to $dumpTool as well.
+
+        * Scripts/run-webkit-tests:
+
+2009-07-21  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+         Reviewed by Adam Treat.
+
+         Add check for correct wtf includes to cpplint.
+         https://bugs.webkit.org/show_bug.cgi?id=27524
+
+         * Scripts/modules/cpplint.py:
+         * Scripts/modules/cpplint_unittest.py:
+
+2009-07-21  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+        Reviewed by David Levin.
+
+        Add checks for multi-line boolean operator placement.
+        https://bugs.webkit.org/show_bug.cgi?id=27496
+
+        * Scripts/modules/cpplint.py:
+        * Scripts/modules/cpplint_unittest.py:
+
 2009-07-22  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by David Levin.

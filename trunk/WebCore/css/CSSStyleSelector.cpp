@@ -2,7 +2,7 @@
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 2004-2005 Allan Sandfeld Jensen (kde@carewolf.com)
  * Copyright (C) 2006, 2007 Nicholas Shanks (webkit@nickshanks.com)
- * Copyright (C) 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Alexey Proskuryakov <ap@webkit.org>
  * Copyright (C) 2007, 2008 Eric Seidel <eric@webkit.org>
  * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
@@ -2907,12 +2907,14 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyBackgroundAttachment:
         HANDLE_BACKGROUND_VALUE(attachment, Attachment, value)
         return;
+    case CSSPropertyBackgroundClip:
     case CSSPropertyWebkitBackgroundClip:
         HANDLE_BACKGROUND_VALUE(clip, Clip, value)
         return;
     case CSSPropertyWebkitBackgroundComposite:
         HANDLE_BACKGROUND_VALUE(composite, Composite, value)
         return;
+    case CSSPropertyBackgroundOrigin:
     case CSSPropertyWebkitBackgroundOrigin:
         HANDLE_BACKGROUND_VALUE(origin, Origin, value)
         return;
@@ -4523,7 +4525,7 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         return;
 
     case CSSPropertyTextShadow:
-    case CSSPropertyWebkitBoxShadow: {
+    case CSSPropertyBoxShadow: {
         if (isInherit) {
             if (id == CSSPropertyTextShadow)
                 return m_style->setTextShadow(m_parentStyle->textShadow() ? new ShadowData(*m_parentStyle->textShadow()) : 0);
@@ -4543,10 +4545,11 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
             int y = item->y->computeLengthInt(style(), m_rootElementStyle, zoomFactor);
             int blur = item->blur ? item->blur->computeLengthInt(style(), m_rootElementStyle, zoomFactor) : 0;
             int spread = item->spread ? item->spread->computeLengthInt(style(), m_rootElementStyle, zoomFactor) : 0;
+            ShadowStyle shadowStyle = item->style && item->style->getIdent() == CSSValueInset ? Inset : Normal;
             Color color;
             if (item->color)
                 color = getColorFromPrimitiveValue(item->color.get());
-            ShadowData* shadowData = new ShadowData(x, y, blur, spread, color.isValid() ? color : Color::transparent);
+            ShadowData* shadowData = new ShadowData(x, y, blur, spread, shadowStyle, color.isValid() ? color : Color::transparent);
             if (id == CSSPropertyTextShadow)
                 m_style->setTextShadow(shadowData, i != 0);
             else
@@ -5163,10 +5166,13 @@ void CSSStyleSelector::mapFillAttachment(FillLayer* layer, CSSValue* value)
     CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
     switch (primitiveValue->getIdent()) {
         case CSSValueFixed:
-            layer->setAttachment(false);
+            layer->setAttachment(FixedBackgroundAttachment);
             break;
         case CSSValueScroll:
-            layer->setAttachment(true);
+            layer->setAttachment(ScrollBackgroundAttachment);
+            break;
+        case CSSValueLocal:
+            layer->setAttachment(LocalBackgroundAttachment);
             break;
         default:
             return;

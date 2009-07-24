@@ -860,9 +860,11 @@ bool CSSParser::parseValue(int propId, bool important)
     }
 
     case CSSPropertyBackgroundAttachment:
+    case CSSPropertyBackgroundClip:
     case CSSPropertyWebkitBackgroundClip:
     case CSSPropertyWebkitBackgroundComposite:
     case CSSPropertyBackgroundImage:
+    case CSSPropertyBackgroundOrigin:
     case CSSPropertyWebkitBackgroundOrigin:
     case CSSPropertyBackgroundPosition:
     case CSSPropertyBackgroundPositionX:
@@ -1053,7 +1055,7 @@ bool CSSParser::parseValue(int propId, bool important)
         if (id == CSSValueNone) {
             valid_primitive = true;
         } else {
-            RefPtr<CSSValueList> list = CSSValueList::createCommaSeparated();
+            RefPtr<CSSValueList> list = CSSValueList::createSpaceSeparated();
             bool is_valid = true;
             while (is_valid && value) {
                 switch (value->id) {
@@ -1184,7 +1186,7 @@ bool CSSParser::parseValue(int propId, bool important)
         valid_primitive = validUnit(value, FLength, m_strict);
         break;
     case CSSPropertyTextShadow: // CSS2 property, dropped in CSS2.1, back in CSS3, so treat as CSS3
-    case CSSPropertyWebkitBoxShadow:
+    case CSSPropertyBoxShadow:
         if (id == CSSValueNone)
             valid_primitive = true;
         else
@@ -1508,15 +1510,15 @@ bool CSSParser::parseValue(int propId, bool important)
         // in quirks mode but it's usually the X coordinate of a position.
         // FIXME: Add CSSPropertyWebkitBackgroundSize to the shorthand.
         const int properties[] = { CSSPropertyBackgroundImage, CSSPropertyBackgroundRepeat, 
-                                   CSSPropertyBackgroundAttachment, CSSPropertyBackgroundPosition, CSSPropertyWebkitBackgroundClip,
-                                   CSSPropertyWebkitBackgroundOrigin, CSSPropertyBackgroundColor };
-        return parseFillShorthand(propId, properties, 7, important);
+                                   CSSPropertyBackgroundAttachment, CSSPropertyBackgroundPosition, CSSPropertyBackgroundOrigin, 
+                                   CSSPropertyBackgroundColor };
+        return parseFillShorthand(propId, properties, 6, important);
     }
     case CSSPropertyWebkitMask: {
         const int properties[] = { CSSPropertyWebkitMaskImage, CSSPropertyWebkitMaskRepeat, 
-                                   CSSPropertyWebkitMaskAttachment, CSSPropertyWebkitMaskPosition, CSSPropertyWebkitMaskClip,
+                                   CSSPropertyWebkitMaskAttachment, CSSPropertyWebkitMaskPosition,
                                    CSSPropertyWebkitMaskOrigin };
-        return parseFillShorthand(propId, properties, 6, important);
+        return parseFillShorthand(propId, properties, 5, important);
     }
     case CSSPropertyBorder:
         // [ 'border-width' || 'border-style' || <color> ] | inherit
@@ -1703,6 +1705,7 @@ bool CSSParser::parseFillShorthand(int propId, const int* properties, int numPro
 
     bool parsedProperty[cMaxFillProperties] = { false };
     RefPtr<CSSValue> values[cMaxFillProperties];
+    RefPtr<CSSValue> clipValue;
     RefPtr<CSSValue> positionYValue;
     int i;
 
@@ -1721,6 +1724,10 @@ bool CSSParser::parseFillShorthand(int propId, const int* properties, int numPro
                     addFillValue(values[i], CSSInitialValue::createImplicit());
                     if (properties[i] == CSSPropertyBackgroundPosition || properties[i] == CSSPropertyWebkitMaskPosition)
                         addFillValue(positionYValue, CSSInitialValue::createImplicit());
+                    if ((properties[i] == CSSPropertyBackgroundOrigin || properties[i] == CSSPropertyWebkitMaskOrigin) && !parsedProperty[i]) {
+                        // If background-origin wasn't present, then reset background-clip also.
+                        addFillValue(clipValue, CSSInitialValue::createImplicit());
+                    }
                 }
                 parsedProperty[i] = false;
             }
@@ -1739,6 +1746,13 @@ bool CSSParser::parseFillShorthand(int propId, const int* properties, int numPro
                     addFillValue(values[i], val1.release());
                     if (properties[i] == CSSPropertyBackgroundPosition || properties[i] == CSSPropertyWebkitMaskPosition)
                         addFillValue(positionYValue, val2.release());
+                    if (properties[i] == CSSPropertyBackgroundOrigin || properties[i] == CSSPropertyWebkitMaskOrigin) {
+                        // Reparse the value as a clip, and see if we succeed.
+                        if (parseFillProperty(CSSPropertyBackgroundClip, propId1, propId2, val1, val2))
+                            addFillValue(clipValue, val1.release()); // The property parsed successfully.
+                        else
+                            addFillValue(clipValue, CSSInitialValue::createImplicit()); // Some value was used for origin that is not supported by clip. Just reset clip instead.
+                    }
                 }
             }
         }
@@ -1755,6 +1769,10 @@ bool CSSParser::parseFillShorthand(int propId, const int* properties, int numPro
             addFillValue(values[i], CSSInitialValue::createImplicit());
             if (properties[i] == CSSPropertyBackgroundPosition || properties[i] == CSSPropertyWebkitMaskPosition)
                 addFillValue(positionYValue, CSSInitialValue::createImplicit());
+            if ((properties[i] == CSSPropertyBackgroundOrigin || properties[i] == CSSPropertyWebkitMaskOrigin) && !parsedProperty[i]) {
+                // If background-origin wasn't present, then reset background-clip also.
+                addFillValue(clipValue, CSSInitialValue::createImplicit());
+            }
         }
     }
     
@@ -1770,8 +1788,14 @@ bool CSSParser::parseFillShorthand(int propId, const int* properties, int numPro
             addProperty(CSSPropertyWebkitMaskPositionY, positionYValue.release(), important);
         } else
             addProperty(properties[i], values[i].release(), important);
+            
+        // Add in clip values when we hit the corresponding origin property.
+        if (properties[i] == CSSPropertyBackgroundOrigin)
+            addProperty(CSSPropertyBackgroundClip, clipValue.release(), important);
+        else  if (properties[i] == CSSPropertyWebkitMaskOrigin)
+            addProperty(CSSPropertyWebkitMaskClip, clipValue.release(), important);
     }
-    
+
     return true;
 }
 
@@ -2269,7 +2293,7 @@ bool CSSParser::parseFillProperty(int propId, int& propId1, int& propId2,
                     break;
                 case CSSPropertyBackgroundAttachment:
                 case CSSPropertyWebkitMaskAttachment:
-                    if (val->id == CSSValueScroll || val->id == CSSValueFixed) {
+                    if (val->id == CSSValueScroll || val->id == CSSValueFixed || val->id == CSSValueLocal) {
                         currValue = CSSPrimitiveValue::createIdentifier(val->id);
                         m_valueList->next();
                     }
@@ -2283,10 +2307,24 @@ bool CSSParser::parseFillProperty(int propId, int& propId1, int& propId2,
                 case CSSPropertyWebkitBackgroundOrigin:
                 case CSSPropertyWebkitMaskClip:
                 case CSSPropertyWebkitMaskOrigin:
-                    // The first three values here are deprecated and should not be allowed to apply when we drop the -webkit-
-                    // from the property names.
+                    // The first three values here are deprecated and do not apply to the version of the property that has
+                    // the -webkit- prefix removed.
                     if (val->id == CSSValueBorder || val->id == CSSValuePadding || val->id == CSSValueContent ||
-                        val->id == CSSValueBorderBox || val->id == CSSValuePaddingBox || val->id == CSSValueContentBox || val->id == CSSValueText) {
+                        val->id == CSSValueBorderBox || val->id == CSSValuePaddingBox || val->id == CSSValueContentBox ||
+                        ((propId == CSSPropertyWebkitBackgroundClip || propId == CSSPropertyWebkitMaskClip) &&
+                         (val->id == CSSValueText || val->id == CSSValueWebkitText))) {
+                        currValue = CSSPrimitiveValue::createIdentifier(val->id);
+                        m_valueList->next();
+                    }
+                    break;
+                case CSSPropertyBackgroundClip:
+                    if (val->id == CSSValueBorderBox || val->id == CSSValuePaddingBox || val->id == CSSValueWebkitText) {
+                        currValue = CSSPrimitiveValue::createIdentifier(val->id);
+                        m_valueList->next();
+                    }
+                    break;
+                case CSSPropertyBackgroundOrigin:
+                    if (val->id == CSSValueBorderBox || val->id == CSSValuePaddingBox || val->id == CSSValueContentBox) {
                         currValue = CSSPrimitiveValue::createIdentifier(val->id);
                         m_valueList->next();
                     }
@@ -3460,6 +3498,7 @@ struct ShadowParseContext {
         , allowBlur(false)
         , allowSpread(false)
         , allowColor(true)
+        , allowStyle(prop == CSSPropertyBoxShadow)
         , allowBreak(true)
     {
     }
@@ -3469,12 +3508,12 @@ struct ShadowParseContext {
     void commitValue()
     {
         // Handle the ,, case gracefully by doing nothing.
-        if (x || y || blur || spread || color) {
+        if (x || y || blur || spread || color || style) {
             if (!values)
                 values = CSSValueList::createCommaSeparated();
-            
+
             // Construct the current shadow value and add it to the list.
-            values->append(ShadowValue::create(x.release(), y.release(), blur.release(), spread.release(), color.release()));
+            values->append(ShadowValue::create(x.release(), y.release(), blur.release(), spread.release(), style.release(), color.release()));
         }
 
         // Now reset for the next shadow value.
@@ -3482,6 +3521,7 @@ struct ShadowParseContext {
         y = 0;
         blur = 0;
         spread = 0;
+        style = 0;
         color = 0;
 
         allowX = true;
@@ -3489,7 +3529,8 @@ struct ShadowParseContext {
         allowBreak = true;
         allowY = false;
         allowBlur = false;
-        allowSpread = false;  
+        allowSpread = false;
+        allowStyle = property == CSSPropertyBoxShadow;
     }
 
     void commitLength(CSSParserValue* v)
@@ -3501,17 +3542,19 @@ struct ShadowParseContext {
             allowX = false;
             allowY = true;
             allowColor = false;
+            allowStyle = false;
             allowBreak = false;
         } else if (allowY) {
             y = val.release();
             allowY = false;
             allowBlur = true;
             allowColor = true;
+            allowStyle = property == CSSPropertyBoxShadow;
             allowBreak = true;
         } else if (allowBlur) {
             blur = val.release();
             allowBlur = false;
-            allowSpread = property == CSSPropertyWebkitBoxShadow;
+            allowSpread = property == CSSPropertyBoxShadow;
         } else if (allowSpread) {
             spread = val.release();
             allowSpread = false;
@@ -3522,11 +3565,26 @@ struct ShadowParseContext {
     {
         color = val;
         allowColor = false;
+        if (allowX) {
+            allowStyle = false;
+            allowBreak = false;
+        } else {
+            allowBlur = false;
+            allowSpread = false;
+            allowStyle = property == CSSPropertyBoxShadow;
+        }
+    }
+
+    void commitStyle(CSSParserValue* v)
+    {
+        style = CSSPrimitiveValue::createIdentifier(v->id);
+        allowStyle = false;
         if (allowX)
             allowBreak = false;
         else {
             allowBlur = false;
             allowSpread = false;
+            allowColor = false;
         }
     }
 
@@ -3537,6 +3595,7 @@ struct ShadowParseContext {
     RefPtr<CSSPrimitiveValue> y;
     RefPtr<CSSPrimitiveValue> blur;
     RefPtr<CSSPrimitiveValue> spread;
+    RefPtr<CSSPrimitiveValue> style;
     RefPtr<CSSPrimitiveValue> color;
 
     bool allowX;
@@ -3544,6 +3603,7 @@ struct ShadowParseContext {
     bool allowBlur;
     bool allowSpread;
     bool allowColor;
+    bool allowStyle;
     bool allowBreak;
 };
 
@@ -3568,6 +3628,11 @@ bool CSSParser::parseShadow(int propId, bool important)
 
             // A length is allowed here.  Construct the value and add it.
             context.commitLength(val);
+        } else if (val->id == CSSValueInset) {
+            if (!context.allowStyle)
+                return false;
+
+            context.commitStyle(val);
         } else {
             // The only other type of value that's ok is a color value.
             RefPtr<CSSPrimitiveValue> parsedColor;
@@ -4923,12 +4988,19 @@ static int cssPropertyID(const UChar* propertyName, unsigned length)
             ++length;
         }
 
-        // Honor -webkit-opacity as a synonym for opacity.
-        // This was the only syntax that worked in Safari 1.1, and may be in use on some websites and widgets.
-        if (strcmp(buffer, "-webkit-opacity") == 0) {
-            const char * const opacity = "opacity";
-            name = opacity;
-            length = strlen(opacity);
+        if (hasPrefix(buffer, length, "-webkit")) {
+            if (strcmp(buffer, "-webkit-opacity") == 0) {
+                // Honor -webkit-opacity as a synonym for opacity.
+                // This was the only syntax that worked in Safari 1.1, and may be in use on some websites and widgets.
+                const char* const opacity = "opacity";
+                name = opacity;
+                length = strlen(opacity);
+            } else if (strcmp(buffer, "-webkit-box-shadow") == 0) {
+                // CSS Backgrounds/Borders.  -webkit-box-shadow worked in Safari 4 and earlier.
+                const char* const boxShadow = "box-shadow";
+                name = boxShadow;
+                length = strlen(boxShadow);
+            }
         }
     }
 
