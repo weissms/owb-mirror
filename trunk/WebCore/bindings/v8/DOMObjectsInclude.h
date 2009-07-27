@@ -65,6 +65,7 @@
 #include "DOMSelection.h"
 #include "DOMWindow.h"
 #include "Entity.h"
+#include "ErrorEvent.h"
 #include "EventListener.h"
 #include "EventTarget.h"
 #include "Event.h"
@@ -84,7 +85,7 @@
 #include "HTMLSelectElement.h"
 #include "HTMLOptionsCollection.h"
 #include "ImageData.h"
-#include "InspectorController.h"
+#include "InspectorBackend.h"
 #include "KeyboardEvent.h"
 #include "Location.h"
 #include "MediaError.h"
@@ -198,6 +199,7 @@
 #endif // SVG
 
 #if ENABLE(WORKERS)
+#include "DedicatedWorkerContext.h"
 #include "Worker.h"
 #include "WorkerContext.h"
 #include "WorkerLocation.h"

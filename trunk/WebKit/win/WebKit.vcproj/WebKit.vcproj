@@ -44,6 +44,7 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="WebKitPrefix.h"
 				ForcedIncludeFiles="WebKitPrefix.h"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -120,6 +121,7 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="WebKitPrefix.h"
 				ForcedIncludeFiles="WebKitPrefix.h"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -196,6 +198,7 @@
 				PrecompiledHeaderThrough="WebKitPrefix.h"
 				Detect64BitPortabilityProblems="true"
 				ForcedIncludeFiles="WebKitPrefix.h"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -274,6 +277,7 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="WebKitPrefix.h"
 				ForcedIncludeFiles="WebKitPrefix.h"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -353,6 +357,7 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="WebKitPrefix.h"
 				ForcedIncludeFiles="WebKitPrefix.h"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

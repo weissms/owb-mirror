@@ -138,4 +138,11 @@ bool FontPlatformData::operator==(const FontPlatformData& other) const
 
 }
 
+#ifndef NDEBUG
+String FontPlatformData::description() const
+{
+    return String();
+}
+#endif
+
 }

@@ -107,10 +107,12 @@ class QWEBKIT_EXPORT QWebFrame : public QObject {
     Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor)
     Q_PROPERTY(QString title READ title)
     Q_PROPERTY(QUrl url READ url WRITE setUrl)
+    Q_PROPERTY(QUrl requestedUrl READ requestedUrl)
     Q_PROPERTY(QUrl baseUrl READ baseUrl)
     Q_PROPERTY(QIcon icon READ icon)
     Q_PROPERTY(QSize contentsSize READ contentsSize)
     Q_PROPERTY(QPoint scrollPosition READ scrollPosition WRITE setScrollPosition)
+    Q_PROPERTY(bool clipRenderToViewport READ clipRenderToViewport WRITE setClipRenderToViewport)
     Q_PROPERTY(bool focus READ hasFocus)
 private:
     QWebFrame(QWebPage *parent, QWebFrameData *frameData);
@@ -140,6 +142,7 @@ public:
     QString title() const;
     void setUrl(const QUrl &url);
     QUrl url() const;
+    QUrl requestedUrl() const;
     QUrl baseUrl() const;
     QIcon icon() const;
     QMultiMap<QString, QString> metaData() const;
@@ -164,7 +167,8 @@ public:
 
     void render(QPainter *painter, const QRegion &clip);
     void render(QPainter *painter);
-    void renderContents(QPainter *painter, const QRegion &contents);
+    bool clipRenderToViewport() const;
+    void setClipRenderToViewport(bool clipRenderToViewport);
 
     void setTextSizeMultiplier(qreal factor);
     qreal textSizeMultiplier() const;

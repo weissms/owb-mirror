@@ -47,6 +47,7 @@
 #include <FrameLoadRequest.h>
 #include <FrameView.h>
 #include <IntRect.h>
+#include <NotImplemented.h>
 #include <Page.h>
 #include <WindowFeatures.h>
 #if PLATFORM(AMIGAOS4)
@@ -505,6 +506,15 @@ void WebChromeClient::dashboardRegionsChanged()
 {
     // This option is not supported so use it at your own risk.
     ASSERT_NOT_REACHED();
+}
+#endif
+
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+#include "ApplicationCacheStorage.h"
+void WebChromeClient::reachedMaxAppCacheSize(int64_t spaceNeeded)
+{
+    // FIXME: Free some space.
+    notImplemented();
 }
 #endif
 

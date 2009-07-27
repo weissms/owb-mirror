@@ -163,6 +163,7 @@ BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SegmentedFontData.h
+BAL/Fonts/WebCore/WK    WebCore/platform/graphics/SegmentedFontData.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.cpp

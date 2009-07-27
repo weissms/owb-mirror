@@ -67,6 +67,10 @@ public:
         return m_pattern == hashTableDeletedFontValue();
     };
 
+#ifndef NDEBUG
+    String description() const;
+#endif
+
     BalPattern* m_pattern;
     float m_size;
     bool m_syntheticBold;

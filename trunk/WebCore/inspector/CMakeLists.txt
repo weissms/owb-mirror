@@ -1,6 +1,7 @@
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
         inspector/ConsoleMessage.cpp
+        inspector/InspectorBackend.cpp
         inspector/InspectorController.cpp
         inspector/InspectorDatabaseResource.cpp
         inspector/InspectorDOMStorageResource.cpp
@@ -13,7 +14,7 @@ if(ENABLE_INSPECTOR)
         inspector/JavaScriptProfileNode.cpp
     )
     list(APPEND IDL_SRC
-        inspector/InspectorController.idl
+        inspector/InspectorBackend.idl
         inspector/JavaScriptCallFrame.idl
     )
 endif(ENABLE_INSPECTOR)

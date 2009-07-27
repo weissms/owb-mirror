@@ -105,6 +105,10 @@ public:
 
     virtual void exceededDatabaseQuota(WebCore::Frame*, const WebCore::String&);
 
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+    virtual void reachedMaxAppCacheSize(int64_t spaceNeeded);
+#endif
+
 #if ENABLE(DASHBOARD_SUPPORT)
     virtual void dashboardRegionsChanged();
 #endif

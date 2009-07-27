@@ -40,6 +40,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;$(WebKitOutputDir)\Include&quot;;&quot;$(WebKitOutputDir)\Include\JavaScriptCore&quot;;&quot;$(WebKitOutputDir)\Include\WebCore\ForwardingHeaders&quot;;&quot;$(ProjectDir)..\..\TestNetscapePlugin.subproj&quot;"
 				PreprocessorDefinitions="_USRDLL;TESTNETSCAPEPLUGIN_EXPORTS;snprintf=_snprintf"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -107,6 +108,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;$(WebKitOutputDir)\Include&quot;;&quot;$(WebKitOutputDir)\Include\JavaScriptCore&quot;;&quot;$(WebKitOutputDir)\Include\WebCore\ForwardingHeaders&quot;;&quot;$(ProjectDir)..\..\TestNetscapePlugin.subproj&quot;"
 				PreprocessorDefinitions="_USRDLL;TESTNETSCAPEPLUGIN_EXPORTS;snprintf=_snprintf"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -174,6 +176,7 @@
 				AdditionalIncludeDirectories="&quot;$(WebKitOutputDir)\Include&quot;;&quot;$(WebKitOutputDir)\Include\JavaScriptCore&quot;;&quot;$(WebKitOutputDir)\Include\WebCore\ForwardingHeaders&quot;;&quot;$(ProjectDir)..\..\TestNetscapePlugin.subproj&quot;"
 				PreprocessorDefinitions="_USRDLL;TESTNETSCAPEPLUGIN_EXPORTS;snprintf=_snprintf"
 				RuntimeLibrary="3"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

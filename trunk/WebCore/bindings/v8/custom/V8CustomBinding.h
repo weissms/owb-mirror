@@ -123,7 +123,10 @@ namespace WebCore {
         static const int kWorkerInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
 
         static const int kWorkerContextRequestCacheIndex = kDefaultWrapperInternalFieldCount + 0;
-        static const int kWorkerContextInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
+        static const int kWorkerContextMinimumInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
+
+        static const int kDedicatedWorkerContextRequestCacheIndex = kWorkerContextMinimumInternalFieldCount + 0;
+        static const int kDedicatedWorkerContextInternalFieldCount = kWorkerContextMinimumInternalFieldCount + 1;
 
         static const int kAbstractWorkerRequestCacheIndex = kDefaultWrapperInternalFieldCount + 0;
         static const int kAbstractWorkerInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
@@ -383,23 +386,22 @@ namespace WebCore {
         DECLARE_CALLBACK(TreeWalkerNextSibling);
         DECLARE_CALLBACK(TreeWalkerPreviousSibling);
 
-        DECLARE_CALLBACK(InspectorControllerProfiles);
-        DECLARE_CALLBACK(InspectorControllerHighlightDOMNode);
-        DECLARE_CALLBACK(InspectorControllerAddResourceSourceToFrame);
-        DECLARE_CALLBACK(InspectorControllerGetResourceDocumentNode);
-        DECLARE_CALLBACK(InspectorControllerAddSourceToFrame);
-        DECLARE_CALLBACK(InspectorControllerSearch);
-        DECLARE_CALLBACK(InspectorControllerSetting);
-        DECLARE_CALLBACK(InspectorControllerInspectedWindow);
-        DECLARE_CALLBACK(InspectorControllerSetSetting);
-        DECLARE_CALLBACK(InspectorControllerCurrentCallFrame);
-        DECLARE_CALLBACK(InspectorControllerDebuggerEnabled);
-        DECLARE_CALLBACK(InspectorControllerPauseOnExceptions);
-        DECLARE_CALLBACK(InspectorControllerProfilerEnabled);
+        DECLARE_CALLBACK(InspectorBackendProfiles);
+        DECLARE_CALLBACK(InspectorBackendHighlightDOMNode);
+        DECLARE_CALLBACK(InspectorBackendAddResourceSourceToFrame);
+        DECLARE_CALLBACK(InspectorBackendAddSourceToFrame);
+        DECLARE_CALLBACK(InspectorBackendSearch);
+        DECLARE_CALLBACK(InspectorBackendSetting);
+        DECLARE_CALLBACK(InspectorBackendInspectedWindow);
+        DECLARE_CALLBACK(InspectorBackendSetSetting);
+        DECLARE_CALLBACK(InspectorBackendCurrentCallFrame);
+        DECLARE_CALLBACK(InspectorBackendDebuggerEnabled);
+        DECLARE_CALLBACK(InspectorBackendPauseOnExceptions);
+        DECLARE_CALLBACK(InspectorBackendProfilerEnabled);
 #if ENABLE(DATABASE)
-        DECLARE_CALLBACK(InspectorControllerDatabaseTableNames);
+        DECLARE_CALLBACK(InspectorBackendDatabaseTableNames);
 #endif
-        DECLARE_CALLBACK(InspectorControllerWrapCallback);
+        DECLARE_CALLBACK(InspectorBackendWrapCallback);
 
         DECLARE_CALLBACK(NodeIteratorNextNode);
         DECLARE_CALLBACK(NodeIteratorPreviousNode);
@@ -481,12 +483,13 @@ namespace WebCore {
         DECLARE_CALLBACK(AbstractWorkerAddEventListener);
         DECLARE_CALLBACK(AbstractWorkerRemoveEventListener);
 
+        DECLARE_PROPERTY_ACCESSOR(DedicatedWorkerContextOnmessage);
+
         DECLARE_PROPERTY_ACCESSOR(WorkerOnmessage);
         DECLARE_CALLBACK(WorkerConstructor);
 
         DECLARE_PROPERTY_ACCESSOR_GETTER(WorkerContextSelf);
         DECLARE_PROPERTY_ACCESSOR(WorkerContextOnerror);
-        DECLARE_PROPERTY_ACCESSOR(WorkerContextOnmessage);
         DECLARE_CALLBACK(WorkerContextImportScripts);
         DECLARE_CALLBACK(WorkerContextSetTimeout);
         DECLARE_CALLBACK(WorkerContextClearTimeout);

@@ -77,6 +77,10 @@ public:
         return m_pattern == hashTableDeletedFontValue();
     };
 
+#ifndef NDEBUG
+    String description() const;
+#endif
+
     BalPattern* m_pattern;
     bool m_syntheticBold;
     bool m_syntheticOblique;

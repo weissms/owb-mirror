@@ -139,7 +139,7 @@
 #include "V8HTMLTitleElement.h"
 #include "V8HTMLUListElement.h"
 #include "V8ImageData.h"
-#include "V8InspectorController.h"
+#include "V8InspectorBackend.h"
 #include "V8MediaList.h"
 #include "V8MessageChannel.h"
 #include "V8MessageEvent.h"
@@ -157,6 +157,7 @@
 #include "V8DOMCoreException.h"
 #include "V8DOMParser.h"
 #include "V8DOMWindow.h"
+#include "V8ErrorEvent.h"
 #include "V8Event.h"
 #include "V8EventException.h"
 #include "V8KeyboardEvent.h"
@@ -372,6 +373,7 @@
 
 #if ENABLE(WORKERS)
 #include "V8AbstractWorker.h"
+#include "V8DedicatedWorkerContext.h"
 #include "V8Worker.h"
 #include "V8WorkerContext.h"
 #include "V8WorkerLocation.h"

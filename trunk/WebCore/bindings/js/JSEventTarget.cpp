@@ -50,10 +50,10 @@
 #endif
 
 #if ENABLE(WORKERS)
+#include "DedicatedWorkerContext.h"
+#include "JSDedicatedWorkerContext.h"
 #include "JSWorker.h"
-#include "JSWorkerContext.h"
 #include "Worker.h"
-#include "WorkerContext.h"
 #endif
 
 #if ENABLE(SHARED_WORKERS)
@@ -65,7 +65,7 @@ using namespace JSC;
 
 namespace WebCore {
 
-JSValue toJS(ExecState* exec, EventTarget* target)
+JSValue toJS(ExecState* exec, JSDOMGlobalObject*, EventTarget* target)
 {
     if (!target)
         return jsNull();
@@ -100,7 +100,7 @@ JSValue toJS(ExecState* exec, EventTarget* target)
     if (Worker* worker = target->toWorker())
         return toJS(exec, worker);
 
-    if (WorkerContext* workerContext = target->toWorkerContext())
+    if (DedicatedWorkerContext* workerContext = target->toDedicatedWorkerContext())
         return toJSDOMGlobalObject(workerContext);
 #endif
 
@@ -137,7 +137,7 @@ EventTarget* toEventTarget(JSC::JSValue value)
 
 #if ENABLE(WORKERS)
     CONVERT_TO_EVENT_TARGET(Worker)
-    CONVERT_TO_EVENT_TARGET(WorkerContext)
+    CONVERT_TO_EVENT_TARGET(DedicatedWorkerContext)
 #endif
 
 #if ENABLE(SHARED_WORKERS)

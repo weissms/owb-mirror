@@ -123,10 +123,10 @@ endif(ENABLE_OFFLINE_WEB_APPLICATIONS)
 
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
+        bindings/js/JSInspectorBackendCustom.cpp
         bindings/js/JSConsoleCustom.cpp
         bindings/js/JSInspectedObjectWrapper.cpp
         bindings/js/JSInspectorCallbackWrapper.cpp
-        bindings/js/JSInspectorControllerCustom.cpp
         bindings/js/JSJavaScriptCallFrameCustom.cpp
         bindings/js/ScriptObjectQuarantine.cpp
     )
@@ -152,6 +152,7 @@ endif(ENABLE_VIDEO)
 
 if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
+        bindings/js/JSDedicatedWorkerContextCustom.cpp
         bindings/js/JSWorkerConstructor.cpp
         bindings/js/JSWorkerContextBase.cpp
         bindings/js/JSWorkerContextCustom.cpp

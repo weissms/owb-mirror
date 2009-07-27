@@ -78,6 +78,7 @@ DOM_CLASSES = \
     Counter \
     DataGridColumn \
     DataGridColumnList \
+    DedicatedWorkerContext \
     DOMApplicationCache \
     DOMCoreException \
     DOMImplementation \
@@ -171,7 +172,7 @@ DOM_CLASSES = \
     HTMLVideoElement \
     History \
     ImageData \
-    InspectorController \
+    InspectorBackend \
     KeyboardEvent \
     Location \
     MediaError \

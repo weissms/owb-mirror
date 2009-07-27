@@ -1,3 +1,116 @@
+2009-07-26  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        More documentation cleanups in the QWebElement class overview.
+
+        * Api/qwebelement.cpp:
+
+2009-07-26  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Clean up documentation of QWebElement's findFirst and findAll functions,
+        as well as their QWebFrame counterparts.
+
+        * Api/qwebelement.cpp:
+        * Api/qwebframe.cpp:
+
+2009-07-26  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Various documentation cleanups
+
+        * Fixed qdoc warnings
+        * Hide QWebNetworkInterface from the class overview
+        * Mention QWebElement in the module overview
+        * More cleanups
+
+        * Api/qwebframe.cpp:
+        * Api/qwebnetworkinterface.cpp:
+        * Api/qwebview.cpp:
+        * docs/qtwebkit.qdoc:
+
+2009-07-26  Kavindra Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Added missing class diagram referenced from the docs, taken from the Qt
+        documentation.
+
+        * docs/qtwebkit.qdocconf: Register the image directory with
+        qdoc.
+        * docs/qwebview-diagram.png: Added.
+
+2009-07-24  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Adam Treat.
+
+        As per discussion on IRC, changed originalUrl by requestedUrl.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::requestedUrl):
+        * Api/qwebframe.h:
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-07-24  Andre Pedralho  <andre.pedralho@openbossa.org>
+
+        Reviewed by Adam Treat.
+
+        Removed void QWebFrame::renderContents(...) and added the Q_PROPERTY
+        clipRenderToViewport to control whether QWebFrame::render would call
+        FrameView::paintContents rather than FrameView::paint and do not clip
+        the frame content to viewport.
+
+
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::renderPrivate):
+        (QWebFrame::clipRenderToViewport):
+        (QWebFrame::setClipRenderToViewport):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        (QWebFramePrivate::QWebFramePrivate):
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-07-24  Antonio Gomes   <antonio.gomes@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [QT] Implement originalUrl getter method to the API
+        https://bugs.webkit.org/show_bug.cgi?id=25867
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::originalUrl):
+        * Api/qwebframe.h:
+        * tests/qwebframe/qwebframe.qrc:
+        * tests/qwebframe/test1.html: Added.
+        * tests/qwebframe/test2.html: Added.
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-07-24  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Build fix for Qt.
+
+        Fix build issue introduced in 46344
+        ([Bug 22700] ApplicationCache should have size limit)
+
+        Remove method only added to the Qt ChromeClient.
+
+        * WebCoreSupport/ChromeClientQt.h:
+
+2009-07-24  Andrei Popescu  <andreip@google.com>
+
+        Reviewed by Anders Carlsson.
+
+        ApplicationCache should have size limit
+        https://bugs.webkit.org/show_bug.cgi?id=22700
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::reachedMaxAppCacheSize):
+        Adds empty implementation of the reachedMaxAppCacheSize callback.
+        * WebCoreSupport/ChromeClientQt.h:
+
 2009-07-24  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Simon Hausmann.

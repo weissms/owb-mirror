@@ -76,4 +76,11 @@ bool SegmentedFontData::isSegmented() const
     return true;
 }
 
+#ifndef NDEBUG
+String SegmentedFontData::description() const
+{
+    return "[segmented font]";
+}
+#endif
+
 } // namespace WebCore

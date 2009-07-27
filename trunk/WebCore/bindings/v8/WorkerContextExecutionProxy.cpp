@@ -35,6 +35,7 @@
 
 #include "WorkerContextExecutionProxy.h"
 
+#include "DedicatedWorkerContext.h"
 #include "DOMCoreException.h"
 #include "Event.h"
 #include "EventException.h"
@@ -165,7 +166,7 @@ void WorkerContextExecutionProxy::initContextIfNeeded()
     v8::Handle<v8::String> implicitProtoString = v8::String::New("__proto__");
 
     // Create a new JS object and use it as the prototype for the shadow global object.
-    v8::Handle<v8::Function> workerContextConstructor = GetConstructor(V8ClassIndex::WORKERCONTEXT);
+    v8::Handle<v8::Function> workerContextConstructor = GetConstructor(V8ClassIndex::DEDICATEDWORKERCONTEXT);
     v8::Local<v8::Object> jsWorkerContext = SafeAllocation::newInstance(workerContextConstructor);
     // Bail out if allocation failed.
     if (jsWorkerContext.IsEmpty()) {
@@ -174,7 +175,7 @@ void WorkerContextExecutionProxy::initContextIfNeeded()
     }
 
     // Wrap the object.
-    V8DOMWrapper::setDOMWrapper(jsWorkerContext, V8ClassIndex::ToInt(V8ClassIndex::WORKERCONTEXT), m_workerContext);
+    V8DOMWrapper::setDOMWrapper(jsWorkerContext, V8ClassIndex::ToInt(V8ClassIndex::DEDICATEDWORKERCONTEXT), m_workerContext);
 
     V8DOMWrapper::setJSWrapperForDOMObject(m_workerContext, v8::Persistent<v8::Object>::New(jsWorkerContext));
     m_workerContext->ref();
@@ -207,7 +208,7 @@ v8::Handle<v8::Value> WorkerContextExecutionProxy::ToV8Object(V8ClassIndex::V8Wr
     if (!impl)
         return v8::Null();
 
-    if (type == V8ClassIndex::WORKERCONTEXT)
+    if (type == V8ClassIndex::DEDICATEDWORKERCONTEXT)
         return WorkerContextToV8Object(static_cast<WorkerContext*>(impl));
 
     if (type == V8ClassIndex::WORKER || type == V8ClassIndex::XMLHTTPREQUEST) {
@@ -290,7 +291,7 @@ v8::Handle<v8::Value> WorkerContextExecutionProxy::EventTargetToV8Object(EventTa
     if (!target)
         return v8::Null();
 
-    WorkerContext* workerContext = target->toWorkerContext();
+    DedicatedWorkerContext* workerContext = target->toDedicatedWorkerContext();
     if (workerContext)
         return WorkerContextToV8Object(workerContext);
 
@@ -344,16 +345,34 @@ bool WorkerContextExecutionProxy::forgetV8EventObject(Event* event)
         return false;
 }
 
-v8::Local<v8::Value> WorkerContextExecutionProxy::evaluate(const String& script, const String& fileName, int baseLine)
+ScriptValue WorkerContextExecutionProxy::evaluate(const String& script, const String& fileName, int baseLine, WorkerContextExecutionState* state)
 {
     v8::HandleScope hs;
 
     initContextIfNeeded();
     v8::Context::Scope scope(m_context);
 
+    v8::TryCatch exceptionCatcher;
+
     v8::Local<v8::String> scriptString = v8ExternalString(script);
     v8::Handle<v8::Script> compiledScript = V8Proxy::compileScript(scriptString, fileName, baseLine);
-    return runScript(compiledScript);
+    v8::Local<v8::Value> result = runScript(compiledScript);
+
+    if (exceptionCatcher.HasCaught()) {
+        v8::Local<v8::Message> message = exceptionCatcher.Message();
+        state->hadException = true;
+        state->exception = ScriptValue(exceptionCatcher.Exception());
+        state->errorMessage = toWebCoreString(message->Get());
+        state->lineNumber = message->GetLineNumber();
+        state->sourceURL = toWebCoreString(message->GetScriptResourceName());
+        exceptionCatcher.Reset();
+    } else
+        state->hadException = false;
+
+    if (result.IsEmpty() || result->IsUndefined())
+        return ScriptValue();
+
+    return ScriptValue(result);
 }
 
 v8::Local<v8::Value> WorkerContextExecutionProxy::runScript(v8::Handle<v8::Script> script)

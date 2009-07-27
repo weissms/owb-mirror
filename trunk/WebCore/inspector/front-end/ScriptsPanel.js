@@ -133,13 +133,11 @@ WebInspector.ScriptsPanel = function()
     for (var pane in this.sidebarPanes)
         this.sidebarElement.appendChild(this.sidebarPanes[pane].element);
 
-    // FIXME: remove the following line of code when the Breakpoints pane has content.
-    this.sidebarElement.removeChild(this.sidebarPanes.breakpoints.element);
-
     this.sidebarPanes.callstack.expanded = true;
     this.sidebarPanes.callstack.addEventListener("call frame selected", this._callFrameSelected, this);
 
     this.sidebarPanes.scopechain.expanded = true;
+    this.sidebarPanes.breakpoints.expanded = true;
 
     var panelEnablerHeading = WebInspector.UIString("You need to enable debugging before you can use the Scripts panel.");
     var panelEnablerDisclaimer = WebInspector.UIString("Enabling debugging will make scripts run slower.");
@@ -240,7 +238,7 @@ WebInspector.ScriptsPanel.prototype = {
             view.visible = false;
         }
         if (this._attachDebuggerWhenShown) {
-            InspectorController.enableDebuggerFromFrontend(false);
+            InspectorController.enableDebugger(false);
             delete this._attachDebuggerWhenShown;
         }
     },
@@ -297,6 +295,11 @@ WebInspector.ScriptsPanel.prototype = {
             this._sourceIDMap[sourceID] = (resource || script);
 
         this._addScriptToFilesMenu(script);
+    },
+
+    scriptOrResourceForID: function(id)
+    {
+        return this._sourceIDMap[id];
     },
 
     addBreakpoint: function(breakpoint)
@@ -429,7 +432,7 @@ WebInspector.ScriptsPanel.prototype = {
     attachDebuggerWhenShown: function()
     {
         if (this.element.parentElement) {
-            InspectorController.enableDebuggerFromFrontend(false);
+            InspectorController.enableDebugger(false);
         } else {
             this._attachDebuggerWhenShown = true;
         }
@@ -863,7 +866,7 @@ WebInspector.ScriptsPanel.prototype = {
         if (InspectorController.debuggerEnabled())
             InspectorController.disableDebugger(true);
         else
-            InspectorController.enableDebuggerFromFrontend(!!optionalAlways);
+            InspectorController.enableDebugger(!!optionalAlways);
     },
 
     _togglePauseOnExceptions: function()

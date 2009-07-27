@@ -143,6 +143,8 @@ EventHandler::EventHandler(Frame* frame)
     , m_mouseDownWasSingleClickInSelection(false)
     , m_beganSelectingText(false)
     , m_panScrollInProgress(false)
+    , m_panScrollButtonPressed(false)
+    , m_springLoadedPanScrollInProgress(false)
     , m_hoverTimer(this, &EventHandler::hoverTimerFired)
     , m_autoscrollTimer(this, &EventHandler::autoscrollTimerFired)
     , m_autoscrollRenderer(0)
@@ -657,7 +659,7 @@ void EventHandler::autoscrollTimerFired(Timer<EventHandler>*)
             }
         }
 #if ENABLE(PAN_SCROLLING)
-        setPanScrollCursor();
+        updatePanScrollState();
         toRenderBox(r)->panScroll(m_panScrollStartPos);
 #endif
     }
@@ -665,7 +667,7 @@ void EventHandler::autoscrollTimerFired(Timer<EventHandler>*)
 
 #if ENABLE(PAN_SCROLLING)
 
-void EventHandler::setPanScrollCursor()
+void EventHandler::updatePanScrollState()
 {
     FrameView* view = m_frame->view();
     if (!view)
@@ -678,6 +680,9 @@ void EventHandler::setPanScrollCursor()
     bool north = m_panScrollStartPos.y() > (m_currentMousePosition.y() + ScrollView::noPanScrollRadius);
     bool south = m_panScrollStartPos.y() < (m_currentMousePosition.y() - ScrollView::noPanScrollRadius);
          
+    if ((east || west || north || south) && m_panScrollButtonPressed)
+        m_springLoadedPanScrollInProgress = true;
+
     if (north) {
         if (east)
             view->setCursor(northEastPanningCursor());
@@ -838,6 +843,7 @@ void EventHandler::stopAutoscrollTimer(bool rendererIsBeingDestroyed)
     m_autoscrollTimer.stop();
 
     m_panScrollInProgress = false;
+    m_springLoadedPanScrollInProgress = false;
 
     // If we're not in the top frame we notify it that we are not doing a panScroll any more.
     if (Page* page = m_frame->page()) {
@@ -1167,6 +1173,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
 
         if (renderer) {
             m_panScrollInProgress = true;
+            m_panScrollButtonPressed = true;
             handleAutoscroll(renderer);
             invalidateClick();
             return true;
@@ -1393,6 +1400,13 @@ void EventHandler::invalidateClick()
 bool EventHandler::handleMouseReleaseEvent(const PlatformMouseEvent& mouseEvent)
 {
     RefPtr<FrameView> protector(m_frame->view());
+
+#if ENABLE(PAN_SCROLLING)
+    if (mouseEvent.button() == MiddleButton)
+        m_panScrollButtonPressed = false;
+    if (m_springLoadedPanScrollInProgress)
+       stopAutoscrollTimer();
+#endif
 
     m_mousePressed = false;
     m_currentMousePosition = mouseEvent.pos();

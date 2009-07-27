@@ -93,6 +93,10 @@ public:
 
     const GlyphData& missingGlyphData() const { return m_missingGlyphData; }
 
+#ifndef NDEBUG
+    virtual String description() const;
+#endif
+
     void setFont(BalFont*) const;
 
 private:

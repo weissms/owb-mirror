@@ -417,7 +417,7 @@ IDL_BINDINGS += \
     html/TextMetrics.idl \
     html/ValidityState.idl \
     html/VoidCallback.idl \
-    inspector/InspectorController.idl \
+    inspector/InspectorBackend.idl \
     page/BarInfo.idl \
     page/Console.idl \
     page/Coordinates.idl \
@@ -504,8 +504,8 @@ SOURCES += \
     bindings/js/JSImageConstructor.cpp \
     bindings/js/JSImageDataCustom.cpp \
     bindings/js/JSInspectedObjectWrapper.cpp \
+    bindings/js/JSInspectorBackendCustom.cpp \
     bindings/js/JSInspectorCallbackWrapper.cpp \
-    bindings/js/JSInspectorControllerCustom.cpp \
     bindings/js/JSLocationCustom.cpp \
     bindings/js/JSNamedNodeMapCustom.cpp \
     bindings/js/JSNamedNodesCollection.cpp  \
@@ -849,6 +849,7 @@ SOURCES += \
     html/PreloadScanner.cpp \
     html/ValidityState.cpp \
     inspector/ConsoleMessage.cpp \
+    inspector/InspectorBackend.cpp \
     inspector/InspectorDatabaseResource.cpp \
     inspector/InspectorDOMStorageResource.cpp \
     inspector/InspectorController.cpp \
@@ -1504,6 +1505,7 @@ HEADERS += \
     html/TimeRanges.h \
     html/ValidityState.h \
     inspector/ConsoleMessage.h \
+    inspector/InspectorBackend.h \
     inspector/InspectorController.h \
     inspector/InspectorDatabaseResource.h \
     inspector/InspectorDOMStorageResource.h \
@@ -2378,12 +2380,14 @@ contains(DEFINES, ENABLE_WORKERS=1) {
     IDL_BINDINGS += \
         page/WorkerNavigator.idl \
         workers/AbstractWorker.idl \
+        workers/DedicatedWorkerContext.idl \
         workers/Worker.idl \
         workers/WorkerContext.idl \
         workers/WorkerLocation.idl
 
     SOURCES += \
         bindings/js/JSAbstractWorkerCustom.cpp \
+        bindings/js/JSDedicatedWorkerContextCustom.cpp \
         bindings/js/JSWorkerConstructor.cpp \
         bindings/js/JSWorkerContextBase.cpp \
         bindings/js/JSWorkerContextCustom.cpp \
@@ -2392,6 +2396,7 @@ contains(DEFINES, ENABLE_WORKERS=1) {
         loader/WorkerThreadableLoader.cpp \
         page/WorkerNavigator.cpp \
         workers/AbstractWorker.cpp \
+        workers/DedicatedWorkerContext.cpp \
         workers/Worker.cpp \
         workers/WorkerContext.cpp \
         workers/WorkerLocation.cpp \
