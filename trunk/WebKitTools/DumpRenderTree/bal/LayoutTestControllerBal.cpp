@@ -317,3 +317,9 @@ unsigned LayoutTestController::numberOfActiveAnimations() const
 {
     return getWebView()->mainFrame()->numberOfActiveAnimations();
 }
+/*
+void LayoutTestController::setAppCacheMaximumSize(unsigned long long size)
+{
+    printf("ERROR: LayoutTestController::setAppCacheMaximumSize() not implemented\n");
+}
+*/
