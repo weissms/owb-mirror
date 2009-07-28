@@ -65,6 +65,12 @@ Vector<Cookie*> CookieParser::parse(const String& cookies)
         while (cookieEnd <= cookies.length() && !isCookieHeaderSeparator(cookies[cookieEnd]))
             cookieEnd++;
 
+        // Detect an empty cookie and go to the next one.
+        if (cookieStart == cookieEnd) {
+            ++cookieEnd;
+            continue;
+        }
+
         Cookie* cookie = parseOneCookie(cookies, cookieStart, cookieEnd - 1, curTime);
         if (cookie)
             parsedCookies.append(cookie);

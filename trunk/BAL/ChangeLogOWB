@@ -1,3 +1,17 @@
+2009-07-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #356: CookieParser::parse is going into an infinite loop when
+        there is a trailing \n in the cookie
+
+        Based on work and testing by P.S.Ravi Kiran <gkiranps@gmail.com>.
+
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
+        (WebCore::CookieParser::parse): Make sure that we always increment the
+        index of the last position in the cookie. This will prevent us from
+        behaviour such as the one described in the ticket.
+
 2009-07-17  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
