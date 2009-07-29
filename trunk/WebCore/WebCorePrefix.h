@@ -107,7 +107,13 @@
 
 #ifndef BUILDING_WX__
 #include <CoreFoundation/CoreFoundation.h>
+#ifdef WIN_CAIRO
+#include <ConditionalMacros.h>
+#include <windows.h>
+#include <stdio.h>
+#else
 #include <CoreServices/CoreServices.h>
+#endif
 #endif
 
 #ifdef __OBJC__

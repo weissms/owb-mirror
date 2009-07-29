@@ -32,13 +32,13 @@
 #include "WorkerMessagingProxy.h"
 
 #include "DedicatedWorkerContext.h"
+#include "DedicatedWorkerThread.h"
 #include "DOMWindow.h"
 #include "Document.h"
 #include "GenericWorkerTask.h"
 #include "MessageEvent.h"
 #include "ScriptExecutionContext.h"
 #include "Worker.h"
-#include "WorkerThread.h"
 
 namespace WebCore {
 
@@ -127,7 +127,15 @@ private:
 
     virtual void performTask(ScriptExecutionContext* context)
     {
-        if (!m_messagingProxy->askedToTerminate())
+        Worker* workerObject = m_messagingProxy->workerObject();
+        if (!workerObject || m_messagingProxy->askedToTerminate())
+            return;
+
+        bool errorHandled = false;
+        if (workerObject->onerror())
+            errorHandled = workerObject->dispatchScriptErrorEvent(m_errorMessage, m_sourceURL, m_lineNumber);
+
+        if (!errorHandled)
             context->reportException(m_errorMessage, m_lineNumber, m_sourceURL);
     }
 
@@ -212,7 +220,7 @@ WorkerMessagingProxy::~WorkerMessagingProxy()
 
 void WorkerMessagingProxy::startWorkerContext(const KURL& scriptURL, const String& userAgent, const String& sourceCode)
 {
-    RefPtr<WorkerThread> thread = WorkerThread::create(scriptURL, userAgent, sourceCode, *this, *this);
+    RefPtr<DedicatedWorkerThread> thread = DedicatedWorkerThread::create(scriptURL, userAgent, sourceCode, *this, *this);
     workerThreadCreated(thread);
     thread->start();
 }
@@ -267,7 +275,7 @@ void WorkerMessagingProxy::postConsoleMessageToWorkerObject(MessageDestination d
     m_scriptExecutionContext->postTask(createCallbackTask(&postConsoleMessageTask, this, destination, source, type, level, message, lineNumber, sourceURL));
 }
 
-void WorkerMessagingProxy::workerThreadCreated(PassRefPtr<WorkerThread> workerThread)
+void WorkerMessagingProxy::workerThreadCreated(PassRefPtr<DedicatedWorkerThread> workerThread)
 {
     m_workerThread = workerThread;
 

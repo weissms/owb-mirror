@@ -297,6 +297,7 @@ webcore_sources += \
 	WebCore/accessibility/AccessibilityTableRow.cpp \
 	WebCore/accessibility/AccessibilityTableRow.h \
 	WebCore/bindings/js/CachedScriptSourceProvider.h \
+	WebCore/bindings/js/DOMObjectWithSVGContext.h \
 	WebCore/bindings/js/GCController.cpp \
 	WebCore/bindings/js/GCController.h \
 	WebCore/bindings/js/JSAttrCustom.cpp \
@@ -417,6 +418,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSXSLTProcessorCustom.cpp \
 	WebCore/bindings/js/ScheduledAction.cpp \
 	WebCore/bindings/js/ScheduledAction.h \
+	WebCore/bindings/js/ScriptArray.cpp \
+	WebCore/bindings/js/ScriptArray.h \
 	WebCore/bindings/js/ScriptCachedFrameData.cpp \
 	WebCore/bindings/js/ScriptCachedFrameData.h \
 	WebCore/bindings/js/ScriptCallFrame.cpp \
@@ -1140,8 +1143,6 @@ webcore_sources += \
 	WebCore/inspector/JavaScriptProfile.h \
 	WebCore/inspector/JavaScriptProfileNode.cpp \
 	WebCore/inspector/JavaScriptProfileNode.h \
-	WebCore/inspector/InspectorJSONObject.cpp \
-	WebCore/inspector/InspectorJSONObject.h \
 	WebCore/loader/Cache.cpp \
 	WebCore/loader/Cache.h \
 	WebCore/loader/CachePolicy.h \
@@ -2327,9 +2328,6 @@ FEATURE_DEFINES_JAVASCRIPT += ENABLE_WORKERS=1
 webcore_cppflags += \
 	-DENABLE_WORKERS=1
 
-webcore_built_nosources += \
-	WebCore/bindings/js/JSWorkerContextBase.lut.h
-
 webcore_sources += \
 	WebCore/bindings/js/JSAbstractWorkerCustom.cpp \
 	WebCore/bindings/js/JSDedicatedWorkerContextCustom.cpp \
@@ -2347,6 +2345,8 @@ webcore_sources += \
 	WebCore/workers/AbstractWorker.h \
 	WebCore/workers/DedicatedWorkerContext.cpp \
 	WebCore/workers/DedicatedWorkerContext.h \
+	WebCore/workers/DedicatedWorkerThread.cpp \
+	WebCore/workers/DedicatedWorkerThread.h \
 	WebCore/workers/GenericWorkerTask.h \
 	WebCore/workers/Worker.cpp \
 	WebCore/workers/Worker.h \
@@ -3199,10 +3199,6 @@ DerivedSources/UserAgentStyleSheetsData.cpp: DerivedSources/UserAgentStyleSheets
 
 DerivedSources/UserAgentStyleSheets.h: $(WebCore)/css/make-css-file-arrays.pl $(USER_AGENT_STYLE_SHEETS)
 	$(PERL) $< $@ DerivedSources/UserAgentStyleSheetsData.cpp $(USER_AGENT_STYLE_SHEETS)
-
-# lookup tables for old-style JavaScript bindings
-WebCore/%.lut.h: $(CREATE_HASH_TABLE) $(srcdir)/WebCore/%.cpp
-	$(PERL) $^ -n WebCore > $@
 
 # HTML tag and attribute names
 DerivedSources/HTMLElementFactory.cpp: DerivedSources/HTMLNames.cpp;

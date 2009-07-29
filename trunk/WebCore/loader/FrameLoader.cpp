@@ -274,9 +274,6 @@ FrameLoader::FrameLoader(Frame* frame, FrameLoaderClient* client)
 #ifndef NDEBUG
     , m_didDispatchDidCommitLoad(false)
 #endif
-#if ENABLE(WML)
-    , m_forceReloadWmlDeck(false)
-#endif
 {
 }
 
@@ -1786,6 +1783,17 @@ void FrameLoader::addData(const char* bytes, int length)
     write(bytes, length);
 }
 
+#if ENABLE(WML)
+static inline bool frameContainsWMLContent(Frame* frame)
+{
+    Document* document = frame ? frame->document() : 0;
+    if (!document)
+        return false;
+
+    return document->containsWMLContent() || document->isWMLDocument();
+}
+#endif
+
 bool FrameLoader::canCachePageContainingThisFrame()
 {
     return m_documentLoader
@@ -1813,6 +1821,9 @@ bool FrameLoader::canCachePageContainingThisFrame()
         // application cache. <rdar://problem/5917899> tracks that work.
         && !m_documentLoader->applicationCache()
         && !m_documentLoader->candidateApplicationCacheGroup()
+#endif
+#if ENABLE(WML)
+        && !frameContainsWMLContent(m_frame)
 #endif
         && m_client->canCachePage()
         ;
@@ -2970,18 +2981,11 @@ void FrameLoader::clientRedirected(const KURL& url, double seconds, double fireD
     m_quickRedirectComing = lockBackForwardList && m_documentLoader && !m_isExecutingJavaScriptFormAction;
 }
 
-#if ENABLE(WML)
-void FrameLoader::setForceReloadWmlDeck(bool reload)
-{
-    m_forceReloadWmlDeck = reload;
-}
-#endif
-
 bool FrameLoader::shouldReload(const KURL& currentURL, const KURL& destinationURL)
 {
 #if ENABLE(WML)
-    // As for WML deck, sometimes it's supposed to be reloaded even if the same URL with fragment
-    if (m_forceReloadWmlDeck)
+    // All WML decks are supposed to be reloaded, even within the same URL fragment
+    if (frameContainsWMLContent(m_frame))
         return true;
 #endif
 
@@ -4440,7 +4444,8 @@ void FrameLoader::loadItem(HistoryItem* item, FrameLoadType loadType)
     bool shouldScroll = !formData && !(m_currentHistoryItem && m_currentHistoryItem->formData()) && urlsMatchItem(item);
 
 #if ENABLE(WML)
-    if (m_frame->document()->isWMLDocument())
+    // All WML decks should go through the real load mechanism, not the scroll-to-anchor code
+    if (frameContainsWMLContent(m_frame))
         shouldScroll = false;
 #endif
 

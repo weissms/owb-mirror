@@ -37,10 +37,6 @@ unix {
 CONFIG -= warn_on
 *-g++*:QMAKE_CXXFLAGS += -Wreturn-type -fno-strict-aliasing
 
-# Disable a few warnings on Windows. The warnings are also
-# disabled in WebKitLibraries/win/tools/vsprops/common.vsprops
-win32-msvc*: QMAKE_CXXFLAGS += -wd4291 -wd4344
-
 unix:!mac:*-g++*:QMAKE_CXXFLAGS += -ffunction-sections -fdata-sections 
 unix:!mac:*-g++*:QMAKE_LFLAGS += -Wl,--gc-sections
 
@@ -536,6 +532,7 @@ SOURCES += \
     bindings/js/JSEventListener.cpp \
     bindings/js/JSLazyEventListener.cpp \
     bindings/js/JSPluginElementFunctions.cpp \
+    bindings/js/ScriptArray.cpp \
     bindings/js/ScriptCachedFrameData.cpp \
     bindings/js/ScriptCallFrame.cpp \
     bindings/js/ScriptCallStack.cpp \
@@ -855,7 +852,6 @@ SOURCES += \
     inspector/InspectorController.cpp \
     inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
-    inspector/InspectorJSONObject.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
     loader/archive/ArchiveResourceCollection.cpp \
@@ -1186,6 +1182,7 @@ HEADERS += \
     bindings/js/JSXMLHttpRequestConstructor.h \
     bindings/js/JSXSLTProcessorConstructor.h \
     bindings/js/ScheduledAction.h \
+    bindings/js/ScriptArray.h \
     bindings/js/ScriptCachedFrameData.h \
     bindings/js/ScriptCallFrame.h \
     bindings/js/ScriptCallStack.h \
@@ -1510,7 +1507,6 @@ HEADERS += \
     inspector/InspectorDatabaseResource.h \
     inspector/InspectorDOMStorageResource.h \
     inspector/InspectorFrontend.h \
-    inspector/InspectorJSONObject.h \
     inspector/InspectorResource.h \
     inspector/JavaScriptCallFrame.h \
     inspector/JavaScriptDebugServer.h \
@@ -2033,6 +2029,8 @@ HEADERS += \
     wml/WMLTimerElement.h \
     wml/WMLVariables.h \
     workers/AbstractWorker.h \
+    workers/DedicatedWorkerContext.h \
+    workers/DedicatedWorkerThread.h \
     workers/SharedWorker.h \
     workers/WorkerContext.h \
     workers/Worker.h \
@@ -2158,7 +2156,8 @@ SOURCES += \
     ../WebKit/qt/Api/qwebhistoryinterface.cpp \
     ../WebKit/qt/Api/qwebpluginfactory.cpp \
     ../WebKit/qt/Api/qwebsecurityorigin.cpp \
-    ../WebKit/qt/Api/qwebdatabase.cpp
+    ../WebKit/qt/Api/qwebdatabase.cpp \
+    ../WebKit/qt/Api/qwebkitversion.cpp
 
 
     win32-*|wince*: SOURCES += platform/win/SystemTimeWin.cpp
@@ -2350,7 +2349,6 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/LocalStorageTask.cpp \
         storage/LocalStorageThread.cpp \
         storage/Storage.cpp \
-        storage/StorageArea.cpp \
         storage/StorageAreaImpl.cpp \
         storage/StorageAreaSync.cpp \
         storage/StorageEvent.cpp \
@@ -2397,6 +2395,7 @@ contains(DEFINES, ENABLE_WORKERS=1) {
         page/WorkerNavigator.cpp \
         workers/AbstractWorker.cpp \
         workers/DedicatedWorkerContext.cpp \
+        workers/DedicatedWorkerThread.cpp \
         workers/Worker.cpp \
         workers/WorkerContext.cpp \
         workers/WorkerLocation.cpp \
@@ -3160,6 +3159,19 @@ xpathbison.CONFIG = target_predeps
 xpathbison.dependency_type = TYPE_C
 xpathbison.variable_out = GENERATED_SOURCES
 addExtraCompilerWithHeader(xpathbison)
+
+# GENERATOR 11: WebKit Version
+# The appropriate Apple-maintained Version.xcconfig file for WebKit version information is in WebKit/mac/Configurations/.
+webkitversion.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}WebKitVersion.h
+webkitversion.commands = perl $$PWD/../WebKit/scripts/generate-webkitversion.pl --config $$PWD/../WebKit/mac/Configurations/Version.xcconfig --outputDir $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}
+WEBKITVERSION_SCRIPT = $$PWD/../WebKit/scripts/generate-webkitversion.pl
+webkitversion.input = WEBKITVERSION_SCRIPT
+webkitversion.CONFIG = target_predeps
+webkitversion.depend = $$PWD/../WebKit/scripts/generate-webkitversion.pl
+webkitversion.variable_out = GENERATED_SOURCES
+webkitversion.clean = ${QMAKE_VAR_GENERATED_SOURCES_DIR_SLASH}WebKitVersion.h
+addExtraCompiler(webkitversion)
+
 
 include($$PWD/../WebKit/qt/Api/headers.pri)
 HEADERS += $$WEBKIT_API_HEADERS

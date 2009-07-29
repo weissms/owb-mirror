@@ -206,6 +206,8 @@ void PluginView::init()
 
 PluginView::~PluginView()
 {
+    LOG(Plugins, "PluginView::~PluginView()");
+
     stop();
 
     deleteAllValues(m_requests);
@@ -239,7 +241,7 @@ void PluginView::stop()
 
     m_isStarted = false;
 
-    JSC::JSLock::DropAllLocks dropAllLocks(false);
+    JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
 
     PluginMainThreadScheduler::scheduler().unregisterPlugin(m_instance);
 
@@ -347,6 +349,8 @@ NPError PluginView::getValue(NPNVariable variable, void* value)
 }
 void PluginView::setParent(ScrollView* parent)
 {
+    LOG(Plugins, "PluginView::setParent(%p)", parent);
+
     Widget::setParent(parent);
 
     if (parent)
@@ -443,7 +447,7 @@ void PluginView::setNPWindowIfNeeded()
             m_npWindow.clipRect.right - m_npWindow.clipRect.left, m_npWindow.clipRect.bottom - m_npWindow.clipRect.top);
 
     PluginView::setCurrentPluginView(this);
-    JSC::JSLock::DropAllLocks dropAllLocks(false);
+    JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
     setCallingPlugin(true);
     m_plugin->pluginFuncs()->setwindow(m_instance, &m_npWindow);
     setCallingPlugin(false);
@@ -708,7 +712,7 @@ Point PluginView::globalMousePosForPlugin() const
 bool PluginView::dispatchNPEvent(NPEvent& event)
 {
     PluginView::setCurrentPluginView(this);
-    JSC::JSLock::DropAllLocks dropAllLocks(false);
+    JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
     setCallingPlugin(true);
 
     bool accepted = m_plugin->pluginFuncs()->event(m_instance, &event);

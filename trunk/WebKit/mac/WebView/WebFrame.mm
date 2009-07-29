@@ -95,6 +95,7 @@ using namespace HTMLNames;
 using JSC::JSGlobalObject;
 using JSC::JSLock;
 using JSC::JSValue;
+using JSC::SilenceAssertionsOnly;
 
 /*
 Here is the current behavior matrix for four types of navigations:
@@ -605,7 +606,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     if (!result || !result.isBoolean() && !result.isString() && !result.isNumber())
         return @"";
 
-    JSLock lock(false);
+    JSLock lock(SilenceAssertionsOnly);
     return String(result.toString(_private->coreFrame->script()->globalObject()->globalExec()));
 }
 
@@ -1241,8 +1242,17 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     return getWebView(self);
 }
 
+static bool needsMicrosoftMessengerDOMDocumentWorkaround()
+{
+    static bool needsWorkaround = applicationIsMicrosoftMessenger() && [[[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey] compare:@"7.1" options:NSNumericSearch] == NSOrderedAscending;
+    return needsWorkaround;
+}
+
 - (DOMDocument *)DOMDocument
 {
+    if (needsMicrosoftMessengerDOMDocumentWorkaround() && !pthread_main_np())
+        return nil;
+
     Frame* coreFrame = _private->coreFrame;
     if (!coreFrame)
         return nil;

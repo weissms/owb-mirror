@@ -337,6 +337,9 @@ Document::Document(Frame* frame, bool isXHTML)
     , m_hasOpenDatabases(false)
 #endif
     , m_usingGeolocation(false)
+#if ENABLE(WML)
+    , m_containsWMLContent(false)
+#endif
 {
     m_document.resetSkippingRef(this);
 
@@ -1135,6 +1138,11 @@ void Document::unscheduleStyleRecalc()
 void Document::styleRecalcTimerFired(Timer<Document>*)
 {
     updateStyleIfNeeded();
+}
+
+bool Document::childNeedsAndNotInStyleRecalc()
+{
+    return childNeedsStyleRecalc() && !m_inStyleRecalc;
 }
 
 void Document::recalcStyle(StyleChange change)

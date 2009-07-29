@@ -82,8 +82,6 @@ ScriptValue WorkerScriptController::evaluate(const ScriptSourceCode& sourceCode,
             m_workerContext->reportException(state.errorMessage, state.lineNumber, state.sourceURL);
     }
 
-    m_workerContext->thread()->workerObjectProxy().reportPendingActivity(m_workerContext->hasPendingActivity());
-
     return result;
 }
 

@@ -76,7 +76,7 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
     if (!m_frame->script()->isEnabled())
         return String();
 
-    JSLock lock(false);
+    JSLock lock(SilenceAssertionsOnly);
 
     JSGlobalObject* globalObject = m_frame->script()->globalObject();
     ExecState* exec = globalObject->globalExec();

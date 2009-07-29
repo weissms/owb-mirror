@@ -1213,7 +1213,7 @@ WebView* WebFrame::webView() const
 
 void WebFrame::addToJSWindowObject(void* object)
 {
-    JSC::JSLock lock(false);
+    JSC::JSLock lock(JSC::SilenceAssertionsOnly);
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;

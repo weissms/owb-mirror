@@ -406,6 +406,7 @@ public:
     PassRefPtr<EditingText> createEditingTextNode(const String&);
 
     virtual void recalcStyle(StyleChange = NoChange);
+    bool childNeedsAndNotInStyleRecalc();
     virtual void updateStyleIfNeeded();
     void updateLayout();
     void updateLayoutIgnorePendingStylesheets();
@@ -1034,6 +1035,9 @@ public:
     bool usingGeolocation() const { return m_usingGeolocation; };
 
 #if ENABLE(WML)
+    void setContainsWMLContent(bool value) { m_containsWMLContent = value; }
+    bool containsWMLContent() const { return m_containsWMLContent; }
+
     void resetWMLPageState();
     void initializeWMLPageState();
 #endif
@@ -1116,6 +1120,10 @@ private:
 #endif
     
     bool m_usingGeolocation;
+
+#if ENABLE(WML)
+    bool m_containsWMLContent;
+#endif
 };
 
 inline bool Document::hasElementWithId(AtomicStringImpl* id) const

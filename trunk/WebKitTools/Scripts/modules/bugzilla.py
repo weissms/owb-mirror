@@ -139,6 +139,7 @@ class Bugzilla:
         "mrowe" : "Mark Rowe",
         "oliver" : "Oliver Hunt",
         "sam" : "Sam Weinig",
+        "sfalken" : "Steve Falkenburg",
         "simon.fraser" : "Simon Fraser",
         "staikos" : "George Staikos",
         "timothy" : "Timothy Hatcher",

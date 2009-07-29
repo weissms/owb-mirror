@@ -6,7 +6,6 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorDatabaseResource.cpp
         inspector/InspectorDOMStorageResource.cpp
         inspector/InspectorFrontend.cpp
-        inspector/InspectorJSONObject.cpp
         inspector/InspectorResource.cpp
         inspector/JavaScriptCallFrame.cpp
         inspector/JavaScriptDebugServer.cpp

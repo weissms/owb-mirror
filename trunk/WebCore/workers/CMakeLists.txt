@@ -2,6 +2,7 @@ if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
         workers/AbstractWorker.cpp
         workers/DedicatedWorkerContext.cpp
+        workers/DedicatedWorkerThread.cpp
         workers/SharedWorker.cpp
         workers/Worker.cpp
         workers/WorkerContext.cpp

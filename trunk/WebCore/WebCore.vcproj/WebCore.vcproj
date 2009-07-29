@@ -10572,6 +10572,14 @@
 					RelativePath="..\history\cf\HistoryPropertyList.cpp"
 					>
 				</File>
+                                <File
+                                        RelativePath="..\bindings\js\ScriptArray.cpp"
+                                        >
+                                </File>
+                                <File
+                                        RelativePath="..\bindings\js\ScriptArray.h"
+                                        >
+                                </File>
 				<File
 					RelativePath="..\history\cf\HistoryPropertyList.h"
 					>
