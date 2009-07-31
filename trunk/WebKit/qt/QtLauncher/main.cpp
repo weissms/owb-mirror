@@ -51,6 +51,10 @@
 #include <QFile>
 #include <cstdio>
 
+#ifndef NDEBUG
+void QWEBKIT_EXPORT qt_drt_garbageCollector_collect();
+#endif
+
 class WebPage : public QWebPage
 {
 public:
@@ -436,12 +440,12 @@ int main(int argc, char **argv)
             qDebug() << "Usage: QtLauncher -r listfile";
             exit(0);
         }
-        MainWindow window;
-        QWebView *view = window.webView();
+        MainWindow* window = new MainWindow;
+        QWebView *view = window->webView();
         URLLoader loader(view, listFile);
         QObject::connect(view, SIGNAL(loadFinished(bool)), &loader, SLOT(loadNext()));
         loader.loadNext();
-        window.show();
+        window->show();
         return app.exec();
     } else {
         if (args.count() > 1)
@@ -454,6 +458,13 @@ int main(int argc, char **argv)
             window->newWindow(args.at(i));
 
         window->show();
+#ifndef NDEBUG
+        int retVal = app.exec();
+        qt_drt_garbageCollector_collect();
+        QWebSettings::clearMemoryCaches();
+        return retVal;
+#else
         return app.exec();
+#endif
     }
 }

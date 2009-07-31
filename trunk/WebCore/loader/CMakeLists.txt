@@ -43,6 +43,7 @@ if(ENABLE_OFFLINE_WEB_APPLICATIONS)
     list(APPEND WEBCORE_SRC
         loader/appcache/ApplicationCache.cpp
         loader/appcache/ApplicationCacheGroup.cpp
+        loader/appcache/ApplicationCacheHost.cpp
         loader/appcache/ApplicationCacheResource.cpp
         loader/appcache/ApplicationCacheStorage.cpp
         loader/appcache/DOMApplicationCache.cpp

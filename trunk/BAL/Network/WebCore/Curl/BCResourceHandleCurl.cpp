@@ -181,7 +181,7 @@ void ResourceHandle::setDefersLoading(bool defers)
 #endif
 }
 
-bool ResourceHandle::willLoadFromCache(ResourceRequest&)
+bool ResourceHandle::willLoadFromCache(ResourceRequest&, Frame*)
 {
     notImplemented();
     return false;

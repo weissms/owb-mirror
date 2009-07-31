@@ -35,6 +35,7 @@
 #include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
 #include "qwebpage_p.h"
+#include "qwebframe_p.h"
 #include "ChromeClientQt.h"
 #include "FrameLoaderClientQt.h"
 #include "Page.h"
@@ -42,6 +43,9 @@
 
 #include "NotImplemented.h"
 
+#if QT_VERSION >= 0x040500
+#include <QAbstractNetworkCache>
+#endif
 #include <QCoreApplication>
 #include <QUrl>
 #if QT_VERSION >= 0x040400
@@ -154,10 +158,28 @@ bool ResourceHandle::loadsBlocked()
     return false;
 }
 
-bool ResourceHandle::willLoadFromCache(ResourceRequest& request)
+bool ResourceHandle::willLoadFromCache(ResourceRequest& request, Frame* frame)
 {
-    notImplemented();
+    if (!frame)
+        return false;
+
+#if QT_VERSION >= 0x040500
+    QNetworkAccessManager* manager = QWebFramePrivate::kit(frame)->page()->networkAccessManager();
+    QAbstractNetworkCache* cache = manager->cache();
+
+    if (!cache)
+        return false;
+
+    QNetworkCacheMetaData data = cache->metaData(request.url());
+    if (data.isValid()) {
+        request.setCachePolicy(ReturnCacheDataDontLoad);
+        return true;
+    }
+
     return false;
+#else
+    return false;
+#endif
 }
 
 bool ResourceHandle::supportsBufferedData()

@@ -47,7 +47,6 @@ namespace JSC {
     class CommonIdentifiers;
     class FunctionBodyNode;
     class IdentifierTable;
-    class Instruction;
     class Interpreter;
     class JSGlobalObject;
     class JSObject;
@@ -59,6 +58,7 @@ namespace JSC {
     class UString;
 
     struct HashTable;
+    struct Instruction;    
     struct VPtrSet;
 
     class JSGlobalData : public RefCounted<JSGlobalData> {
@@ -97,7 +97,7 @@ namespace JSC {
         RefPtr<Structure> stringStructure;
         RefPtr<Structure> notAnObjectErrorStubStructure;
         RefPtr<Structure> notAnObjectStructure;
-#if !USE(ALTERNATE_JSIMMEDIATE)
+#if USE(JSVALUE32)
         RefPtr<Structure> numberStructure;
 #endif
 

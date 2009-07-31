@@ -1,3 +1,192 @@
+2009-07-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Teach buildbot to detect test cases that are missing results.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+
+2009-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Things work better when you create the correct directories.
+
+        * Scripts/run-webkit-tests:
+
+2009-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Include some information about the error when we die.
+
+        * Scripts/run-webkit-tests:
+
+2009-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Ensure that the path exists before writing results to it.
+        Hopefully this will make the Windows build bot happy.
+
+        * Scripts/run-webkit-tests:
+
+2009-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adam Treat and Jon Honeycutt.
+
+        Teach run-webkit-tests to always store the actual results in the results directory for new tests.
+        This allows us to give a working link to the results from the result summary page, even if we're
+        not generating new results in to the tree.
+
+        * Scripts/run-webkit-tests:
+
+2009-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Add a Qt Linux build bot.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2009-07-30  Jakob Petsovits  <jakob.petsovits@torchmobile.com>
+
+         Reviewed by Adam Roben.
+
+         Add --minimal option to webkit-build.
+         https://bugs.webkit.org/show_bug.cgi?id=27852
+
+         This option disables all optional build features unless
+         they are explicitly enabled.
+
+         * Scripts/build-webkit:
+
+2009-07-30  Jakub Wieczorek  <faw217@gmail.com>
+
+        [Qt] Fix build with GCC 4.4.
+
+        * DumpRenderTree/qt/ImageDiff.cpp:
+
+2009-07-29  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27813
+
+        [Qt] Support pixel tests in DumpRenderTree for the Qt port.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::open):
+        (WebCore::DumpRenderTree::setDumpPixels):
+        (WebCore::DumpRenderTree::dump):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2009-07-29  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27813
+
+        [Qt] Implement ImageDiff.
+
+        * DumpRenderTree/qt/ImageDiff.cpp: Added.
+        * DumpRenderTree/qt/ImageDiff.pro: Added.
+
+2009-07-30  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        build-webkit: Reorder logic for determining the baseProductDir
+        
+        https://bugs.webkit.org/show_bug.cgi?id=27699
+
+        We now do port-spesific probing for the product dir first, and then
+        fall back to either the generic WEBKITOUTPUTDIR (which now also works
+        on Mac), or WebKitBuild.
+        
+        Then we add the git branch if the git branch build option is enabled.
+        
+        Finally we massage the product dir based on the port. For example the
+        Mac port will now always set the SYMROOT and OBJROOT configuration for
+        XCode.
+        
+        Note that isAppleWinWebkit() and isCygwin() is not mutually exclusive,
+        hence the normal if and not elsif in the last two blocks.
+
+        * Scripts/webkitdirs.pm:
+
+2009-07-29  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27082> bugzilla-tool: Add --no-close switch to land-patches
+
+        Reviewed by David Levin.
+
+        * Scripts/bugzilla-tool:
+        (LandPatchesFromBugs.__init__): Added --no-close switch.
+        (LandPatchesFromBugs.land_patches): Don't close the bug if the
+        --no-close switch was used.  Always clear the review+ flag on
+        every landed patch using the commit_text message when cleared.
+        This prevents patches from showing up in the commit queue if
+        reopened and provides consistency with all landed patches.
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.clear_attachment_review_flag): Added.
+
+2009-07-29  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27815> bugzilla-tool: add -m/--description to post-commits command
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/bugzilla-tool:
+        (PostDiffAsPatchToBug.execute): Changed default patch name from
+        "patch" to "Patch v1".
+        (PostCommitsAsPatchesToBug.__init__): Added -m/--description
+        switch.
+        (PostCommitsAsPatchesToBug.execute): Use description provided by
+        -m/--description switch first, else fall back to the commit
+        message.
+
+2009-07-29  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Make check-webkit-style support files as arguments.
+        https://bugs.webkit.org/show_bug.cgi?id=27549
+
+        * Scripts/check-webkit-style:
+        Support files as argument. Change documentation and use basename
+        on the binary name when used in the documentation. Also do not
+        die when printing something containing non-ASCII characters.
+
+2009-07-29  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27119> bugzilla-tool: Add create-bug command
+
+        Reviewed by David Levin.
+
+        Implement "create-bug" command for bugzilla-tool.
+
+        * Scripts/bugzilla-tool: Added CreateBug class.
+        (CreateBug.__init__): Added.
+        (CreateBug.create_bug_from_commit): Added.
+        (CreateBug.create_bug_from_patch): Added.
+        (CreateBug.prompt_for_bug_title_and_comment): Added.
+        (CreateBug.execute): Added.
+        (BugzillaTool.__init__): Added create-bug command.
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.prompt_for_component): Added.
+        (Bugzilla.check_create_bug_response_returning_bug_id_on_success): Added.
+        (Bugzilla.create_bug_with_patch): Added.
+
+2009-07-29  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Eric Seidel and Xan Lopez.
+
+        [Gtk] Enable http/tests/appcache tests
+        https://bugs.webkit.org/show_bug.cgi?id=27674
+
+        Add support for testing http/tests/appcache tests.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setAppCacheMaximumSize):
+
 2009-07-29  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Oliver Hunt.

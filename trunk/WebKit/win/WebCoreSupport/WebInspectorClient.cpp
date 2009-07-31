@@ -41,6 +41,7 @@
 #include <WebCore/FloatRect.h>
 #include <WebCore/FrameView.h>
 #include <WebCore/InspectorController.h>
+#include <WebCore/NotImplemented.h>
 #include <WebCore/Page.h>
 #include <WebCore/RenderObject.h>
 #include <WebCore/WindowMessageBroadcaster.h>
@@ -305,6 +306,11 @@ void WebInspectorClient::inspectedURLChanged(const String& newURL)
 {
     m_inspectedURL = newURL;
     updateWindowTitle();
+}
+
+void WebInspectorClient::inspectorWindowObjectCleared()
+{
+    notImplemented();
 }
 
 void WebInspectorClient::closeWindowWithoutNotifications()

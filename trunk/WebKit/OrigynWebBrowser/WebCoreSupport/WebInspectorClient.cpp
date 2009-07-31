@@ -123,3 +123,8 @@ void WebInspectorClient::removeSetting(const WebCore::String& key)
     notImplemented();
 }
 
+void WebInspectorClient::inspectorWindowObjectCleared()
+{
+    notImplemented();
+}
+

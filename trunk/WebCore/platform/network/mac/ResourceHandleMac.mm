@@ -348,7 +348,7 @@ bool ResourceHandle::loadsBlocked()
 #endif
 }
 
-bool ResourceHandle::willLoadFromCache(ResourceRequest& request)
+bool ResourceHandle::willLoadFromCache(ResourceRequest& request, Frame*)
 {
 #ifndef BUILDING_ON_TIGER
     request.setCachePolicy(ReturnCacheDataDontLoad);
@@ -566,6 +566,15 @@ void ResourceHandle::receivedCancellation(const AuthenticationChallenge& challen
         return newRequest;
     
     LOG(Network, "Handle %p delegate connection:%p willSendRequest:%@ redirectResponse:%p", m_handle, connection, [newRequest description], redirectResponse);
+
+    if (redirectResponse && [redirectResponse isKindOfClass:[NSHTTPURLResponse class]] && [(NSHTTPURLResponse *)redirectResponse statusCode] == 307) {
+        String originalMethod = m_handle->request().httpMethod();
+        if (!equalIgnoringCase(originalMethod, String([newRequest HTTPMethod]))) {
+            NSMutableURLRequest *mutableRequest = [newRequest mutableCopy];
+            [mutableRequest setHTTPMethod:originalMethod];
+            newRequest = [mutableRequest autorelease];
+        }
+    }
 
     CallbackGuard guard;
     ResourceRequest request = newRequest;

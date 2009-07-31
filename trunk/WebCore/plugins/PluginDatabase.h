@@ -63,12 +63,17 @@ namespace WebCore {
         static int preferredPluginCompare(const void*, const void*);
 
         PluginPackage* findPlugin(const KURL&, String& mimeType);
+        PluginPackage* pluginForMIMEType(const String& mimeType);
+        void setPreferredPluginForMIMEType(const String& mimeType, PluginPackage* plugin);
 
         void setPluginDirectories(const Vector<String>& directories)
         {
             clear();
             m_pluginDirectories = directories;
         }
+
+        static Vector<String> defaultPluginDirectories();
+        Vector<String> pluginDirectories() const { return m_pluginDirectories; }
 
     private:
         void getPluginPathsInDirectories(HashSet<String>&) const;
@@ -78,16 +83,14 @@ namespace WebCore {
         bool add(PassRefPtr<PluginPackage>);
         void remove(PluginPackage*);
 
-        PluginPackage* pluginForMIMEType(const String& mimeType);
         String MIMETypeForExtension(const String& extension) const;
-
-        static Vector<String> defaultPluginDirectories();
 
         Vector<String> m_pluginDirectories;
         HashSet<String> m_registeredMIMETypes;
         PluginSet m_plugins;
         HashMap<String, RefPtr<PluginPackage> > m_pluginsByPath;
         HashMap<String, time_t> m_pluginPathsWithTimes;
+        HashMap<String, RefPtr<PluginPackage> > m_preferredPlugins;
     };
 
 } // namespace WebCore

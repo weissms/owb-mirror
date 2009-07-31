@@ -711,7 +711,10 @@ void ContextMenu::checkOrEnableIfNeeded(ContextMenuItem& item) const
         case ContextMenuItemTagStopSpeaking:
             shouldEnable = controller() && controller()->client() && controller()->client()->isSpeaking();
             break;
-#endif // PLATFORM(MAC)
+#else // PLATFORM(MAC) ends here
+        case ContextMenuItemTagStopSpeaking:
+            break;
+#endif
 #if PLATFORM(GTK)
         case ContextMenuItemTagGoBack:
             shouldEnable = frame->loader()->canGoBackOrForward(-1);

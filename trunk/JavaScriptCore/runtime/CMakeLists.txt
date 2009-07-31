@@ -51,6 +51,7 @@ if(ENABLE_DEBUG)
         runtime/GlobalEvalFunction.cpp
         runtime/Identifier.cpp
         runtime/InternalFunction.cpp
+        runtime/JSAPIValueWrapper.cpp
         runtime/JSArray.cpp
         runtime/JSCell.cpp
         runtime/JSFunction.cpp

@@ -1321,8 +1321,13 @@ void CSSStyleSelector::keyframeStylesForAnimation(Element* e, const RenderStyle*
 
         // Add all the animating properties to the list
         CSSMutableStyleDeclaration::const_iterator end = kf->style()->end();
-        for (CSSMutableStyleDeclaration::const_iterator it = kf->style()->begin(); it != end; ++it)
-            list.addProperty((*it).id());
+        for (CSSMutableStyleDeclaration::const_iterator it = kf->style()->begin(); it != end; ++it) {
+            int property = (*it).id();
+            // Timing-function within keyframes is special, because it is not animated; it just
+            // describes the timing function between this keyframe and the next.
+            if (property != CSSPropertyWebkitAnimationTimingFunction)
+                list.addProperty(property);
+        }
         
         // Add this keyframe style to all the indicated key times
         Vector<float> keys;
@@ -5071,6 +5076,9 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyWebkitAnimationName:
         HANDLE_ANIMATION_VALUE(name, Name, value)
         return;
+    case CSSPropertyWebkitAnimationPlayState:
+        HANDLE_ANIMATION_VALUE(playState, PlayState, value)
+        return;
     case CSSPropertyWebkitAnimationTimingFunction:
         HANDLE_ANIMATION_VALUE(timingFunction, TimingFunction, value)
         return;
@@ -5427,6 +5435,18 @@ void CSSStyleSelector::mapAnimationName(Animation* layer, CSSValue* value)
         layer->setIsNoneAnimation(true);
     else
         layer->setName(primitiveValue->getStringValue());
+}
+
+void CSSStyleSelector::mapAnimationPlayState(Animation* layer, CSSValue* value)
+{
+    if (value->cssValueType() == CSSValue::CSS_INITIAL) {
+        layer->setPlayState(Animation::initialAnimationPlayState());
+        return;
+    }
+
+    CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
+    EAnimPlayState playState = (primitiveValue->getIdent() == CSSValuePaused) ? AnimPlayStatePaused : AnimPlayStatePlaying;
+    layer->setPlayState(playState);
 }
 
 void CSSStyleSelector::mapAnimationProperty(Animation* animation, CSSValue* value)

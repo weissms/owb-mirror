@@ -425,8 +425,6 @@ void RenderThemeQt::adjustButtonStyle(CSSStyleSelector* selector, RenderStyle* s
 
     setButtonSize(style);
     setButtonPadding(style);
-
-    style->setColor(QApplication::palette().text().color());
 }
 
 void RenderThemeQt::setButtonSize(RenderStyle* style) const

@@ -48,6 +48,12 @@ V8AbstractEventListener::V8AbstractEventListener(Frame* frame, bool isAttribute)
     if (!m_frame)
         return;
 
+    // We might be called directly from the parser.
+    v8::HandleScope handleScope;
+
+    m_context.set(V8Proxy::context(m_frame));
+    m_context.makeWeak();
+
     // Get the position in the source if any.
     if (m_isAttribute && m_frame->document()->tokenizer()) {
         m_lineNumber = m_frame->document()->tokenizer()->lineNumber();
@@ -112,7 +118,7 @@ void V8AbstractEventListener::handleEvent(Event* event, bool isWindowEvent)
 
     v8::HandleScope handleScope;
 
-    v8::Handle<v8::Context> v8Context = V8Proxy::context(m_frame);
+    v8::Handle<v8::Context> v8Context = m_context.get();
     if (v8Context.IsEmpty())
         return;
 
