@@ -1,3 +1,169 @@
+2009-08-03  Xan Lopez  <xlopez@igalia.com>
+
+        Fix the GTK+ build.
+
+        * wtf/Platform.h:
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Disabled JSVALUE32_64 on Qt builds, since all layout tests mysteriously
+        crash with it enabled.
+
+        * wtf/Platform.h:
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Qt build fix.
+
+        Added JSAPIValueWrapper.cpp to the build.
+
+        * JavaScriptCore.pri:
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix.
+
+        Exported symbols for JSAPIValueWrapper.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        GTK build fix.
+
+        * jit/JITStubs.cpp: #include <stdarg.h>, for a definition of va_start.
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Qt build fix.
+        
+        * runtime/Collector.cpp: #include <limits.h>, for a definition of ULONG_MAX.
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: Nixed JSImmediate::prototype, JSImmediate::toObject,
+        and JSImmediate::toThisObject, and removed their exported symbols.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        * runtime/JSImmediate.cpp:
+        * runtime/JSImmediate.h:
+
+2009-08-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Enabled JSVALUE32_64 by default on all platforms other than x86_64 (which uses JSVALUE64).
+
+        * wtf/Platform.h:
+
+2009-08-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Jan Alonzo.
+
+        Script for building the JavaScriptCore library for wx.
+        https://bugs.webkit.org/show_bug.cgi?id=27619
+
+        * wscript: Added.
+
+2009-08-02  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        DateMath depends on strftime and localtime, which need to be imported manually on WinCE
+        https://bugs.webkit.org/show_bug.cgi?id=26558
+
+        * wtf/DateMath.cpp:
+
+2009-08-01  David Kilzer  <ddkilzer@apple.com>
+
+        wtf/Threading.h: added include of Platform.h
+
+        Reviewed by Mark Rowe.
+
+        * wtf/Threading.h: Added #include "Platform.h" since this header
+        uses PLATFORM() and other macros.
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Roll out r46668 as it was misinformed.  ScopeChain is only used with placement new.
+
+        * runtime/ScopeChain.h:
+
+2009-08-01  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Allow custom memory allocation control for JavaScriptCore's HashMap class
+        http://bugs.webkit.org/show_bug.cgi?id=27871
+
+        Inherits HashMap class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/API/JSClassRef.cpp:148.
+
+        * wtf/RefPtrHashMap.h:
+        (WTF::):
+
+2009-08-01  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Allow custom memory allocation control for JavaScriptCore's ScopeChain class
+        https://bugs.webkit.org/show_bug.cgi?id=27834
+
+        Inherits ScopeChain class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/runtime/JSFunction.h:109.
+
+        * runtime/ScopeChain.h:
+
+2009-08-01  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for JavaScriptCore's RegExpConstructorPrivate struct 
+        https://bugs.webkit.org/show_bug.cgi?id=27833
+
+        Inherits RegExpConstructorPrivate class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/runtime/RegExpConstructor.cpp:152.
+
+        * runtime/RegExpConstructor.cpp:
+
+2009-07-31  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Resurrect the old GetTickCount implementation of currentTime, controlled by WTF_USE_QUERY_PERFORMANCE_COUNTER
+        currentSystemTime taken from older WebKit; currentTime written by Yong Li <yong.li@torchmobile.com>; cleanup by Joe Mason <joe.mason@torchmobile.com>
+        https://bugs.webkit.org/show_bug.cgi?id=27848
+
+        * wtf/CurrentTime.cpp:
+        (WTF::currentSystemTime): get current time with GetCurrentFT
+        (WTF::currentTime): track msec elapsed since first currentSystemTime call using GetTickCount
+        * wtf/Platform.h:
+
+2009-07-31  Ada Chan  <adachan@apple.com>
+
+        Fixes the Windows release-PGO build.
+
+        Reviewed by Jon Honeycutt.
+
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Suppresses the warning about unreachable code that we get by adding "return 0" to WTF::TCMalloc_PageHeap::runScavengerThread().
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::runScavengerThread): Fixes the error about the method not returning a value in the release-PGO build.
+
+2009-07-31  Zoltan Horvath  <hzoltan@inf.u-szeged.hu>
+
+        Change malloc to fastMalloc and free to fastFree in Yarr's RegexInterpreter.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=27874
+
+        Use fastMalloc and fastFree instead of malloc and free in RegexInterpreter.cpp's methods.
+
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::allocDisjunctionContext):
+        (JSC::Yarr::Interpreter::freeDisjunctionContext):
+        (JSC::Yarr::Interpreter::allocParenthesesDisjunctionContext):
+        (JSC::Yarr::Interpreter::freeParenthesesDisjunctionContext):
+
 2009-07-31  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Jan Alonzo.

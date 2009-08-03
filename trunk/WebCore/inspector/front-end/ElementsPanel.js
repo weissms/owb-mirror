@@ -60,7 +60,6 @@ WebInspector.ElementsPanel = function()
             InspectorController.toggleNodeSearch();
             this.panel.nodeSearchButton.removeStyleClass("toggled-on");
         }
-
         WebInspector.console.addInspectedNode(this._focusedDOMNode);
     };
 
@@ -113,6 +112,8 @@ WebInspector.ElementsPanel = function()
     this._nodeInsertedEventListener = InspectorController.wrapCallback(this._nodeInserted.bind(this));
     this._nodeRemovedEventListener = InspectorController.wrapCallback(this._nodeRemoved.bind(this));
     this._contentLoadedEventListener = InspectorController.wrapCallback(this._contentLoaded.bind(this));
+
+    this.stylesheet = null;
 
     this.reset();
 }
@@ -181,7 +182,7 @@ WebInspector.ElementsPanel.prototype = {
         delete this.currentQuery;
         this.searchCanceled();
 
-        var inspectedWindow = InspectorController.inspectedWindow();
+        var inspectedWindow = Preferences.useDOMAgent ? WebInspector.domAgent.inspectedWindow : InspectorController.inspectedWindow();
         if (!inspectedWindow || !inspectedWindow.document)
             return;
 

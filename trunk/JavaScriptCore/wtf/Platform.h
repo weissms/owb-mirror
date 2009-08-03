@@ -338,6 +338,11 @@
 #define ENABLE_JSC_MULTIPLE_THREADS 1
 #endif
 
+/* On Windows, use QueryPerformanceCounter by default */
+#if PLATFORM(WIN_OS)
+#define WTF_USE_QUERY_PERFORMANCE_COUNTER  1
+#endif
+
 #if PLATFORM(WINCE) && !PLATFORM(QT)
 #undef ENABLE_JSC_MULTIPLE_THREADS
 #define ENABLE_JSC_MULTIPLE_THREADS        0
@@ -560,8 +565,10 @@
 #if !defined(WTF_USE_JSVALUE64) && !defined(WTF_USE_JSVALUE32) && !defined(WTF_USE_JSVALUE32_64)
 #if PLATFORM(X86_64) && PLATFORM(MAC)
 #define WTF_USE_JSVALUE64 1
-#else
+#elif PLATFORM(QT) /* All Qt layout tests crash in JSVALUE32_64 mode. */
 #define WTF_USE_JSVALUE32 1
+#else
+#define WTF_USE_JSVALUE32_64 1
 #endif
 #endif /* !defined(WTF_USE_JSVALUE64) && !defined(WTF_USE_JSVALUE32) && !defined(WTF_USE_JSVALUE32_64) */
 

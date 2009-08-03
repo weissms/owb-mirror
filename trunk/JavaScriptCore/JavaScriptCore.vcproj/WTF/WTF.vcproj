@@ -260,6 +260,14 @@
 		<File
 			RelativePath="..\..\wtf\Forward.h"
 			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					DisableSpecificWarnings="4702"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\wtf\GetPtr.h"

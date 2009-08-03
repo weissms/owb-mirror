@@ -73,17 +73,6 @@ void PluginView::setNPWindowRect(const IntRect&)
     notImplemented();
 }
 
-void PluginView::stop()
-{
-    notImplemented();
-}
-
-const char* PluginView::userAgent()
-{
-    notImplemented();
-    return 0;
-}
-
 NPError PluginView::handlePostReadFile(Vector<char>&, uint32, const char*)
 {
     notImplemented();
@@ -135,6 +124,11 @@ void PluginView::setParentVisible(bool)
 void PluginView::updatePluginWidget()
 {
     notImplemented();
+}
+
+void PluginView::platformStart()
+{
+  notImplemented();
 }
 
 } // namespace WebCore

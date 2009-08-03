@@ -322,3 +322,8 @@ void LayoutTestController::setAppCacheMaximumSize(unsigned long long size)
 {
     printf("ERROR: LayoutTestController::setAppCacheMaximumSize() not implemented\n");
 }
+
+void LayoutTestController::disableImageLoading()
+{
+  // FIXME: implement
+}

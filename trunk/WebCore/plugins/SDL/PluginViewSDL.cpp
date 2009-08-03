@@ -213,69 +213,6 @@ void PluginView::setNPWindowRect(const IntRect& rect)
     }
 }
 
-void PluginView::stop()
-{
-    if (!m_isStarted)
-        return;
-
-    HashSet<RefPtr<PluginStream> > streams = m_streams;
-    HashSet<RefPtr<PluginStream> >::iterator end = streams.end();
-    for (HashSet<RefPtr<PluginStream> >::iterator it = streams.begin(); it != end; ++it) {
-        (*it)->stop();
-        disconnectStream((*it).get());
-    }
-
-    ASSERT(m_streams.isEmpty());
-
-    m_isStarted = false;
-
-    // Clear the window
-    m_npWindow.window = 0;
-#ifdef XP_UNIX
-    if (m_isWindowed && m_npWindow.ws_info)
-           delete (NPSetWindowCallbackStruct *)m_npWindow.ws_info;
-    m_npWindow.ws_info = 0;
-#endif
-    if (m_plugin->pluginFuncs()->setwindow && !m_plugin->quirks().contains(PluginQuirkDontSetNullWindowHandleOnDestroy)) {
-        PluginView::setCurrentPluginView(this);
-        setCallingPlugin(true);
-        m_plugin->pluginFuncs()->setwindow(m_instance, &m_npWindow);
-        setCallingPlugin(false);
-        PluginView::setCurrentPluginView(0);
-    }
-
-    // Destroy the plugin
-    {
-        PluginView::setCurrentPluginView(this);
-        setCallingPlugin(true);
-        m_plugin->pluginFuncs()->destroy(m_instance, 0);
-        setCallingPlugin(false);
-        PluginView::setCurrentPluginView(0);
-    }
-
-    m_instance->pdata = 0;
-}
-
-static const char* MozillaUserAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0";
-
-const char* PluginView::userAgent()
-{
-    if (m_plugin->quirks().contains(PluginQuirkWantsMozillaUserAgent))
-        return MozillaUserAgent;
-
-    if (m_userAgent.isNull())
-        m_userAgent = m_parentFrame->loader()->userAgent(m_url).utf8();
-
-    return m_userAgent.data();
-}
-
-const char* PluginView::userAgentStatic()
-{
-    //FIXME - Lie and say we are Mozilla
-    //    return MozillaUserAgent;
-    return "";
-}
-
 void PluginView::invalidateRegion(NPRegion)
 { 
     notImplemented();
@@ -374,6 +311,10 @@ void PluginView::invalidateRect(const IntRect& rect)
 }
 
 void PluginView::setParentVisible(bool visible)
+{
+}
+
+void PluginView::platformStart()
 {
 }
 

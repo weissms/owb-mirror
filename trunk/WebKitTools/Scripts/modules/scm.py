@@ -35,7 +35,7 @@ import subprocess
 
 # Import WebKit-specific modules.
 from modules.logging import error, log
-from modules.bugzilla import Bugzilla
+from modules.bugzilla import Bugzilla # FIXME: This should not be imported by scm.py
 
 def detect_scm_system(path):
     if SVN.in_working_directory(path):
@@ -199,10 +199,13 @@ class SCM:
         raise NotImplementedError, "subclasses must implement"
 
     def create_patch_from_local_commit(self, commit_id):
-        pass
+        error("Your source control manager does not support creating a patch from a local commit.")
+
+    def create_patch_since_local_commit(self, commit_id):
+        error("Your source control manager does not support creating a patch from a local commit.")
 
     def commit_locally_with_message(self, message):
-        pass
+        error("Your source control manager does not support local commits.")
 
     def discard_local_commits(self):
         pass
@@ -358,6 +361,9 @@ class Git(SCM):
     def create_patch_from_local_commit(self, commit_id):
         return self.run_command(['git', 'diff', commit_id + "^.." + commit_id])
 
+    def create_patch_since_local_commit(self, commit_id):
+        return self.run_command(['git', 'diff', commit_id])
+
     def commit_locally_with_message(self, message):
         self.run_command(['git', 'commit', '--all', '-F', '-'], input=message)
         
@@ -366,19 +372,25 @@ class Git(SCM):
             return "Dry run, no remote commit."
         return self.run_command(['git', 'svn', 'dcommit'])
 
-    def commit_ids_from_range_arguments(self, args, cherry_pick=False):
-        # First get the commit-ids for the passed in revisions.
-        revisions = self.run_command(['git', 'rev-parse', '--revs-only'] + args).splitlines()
+    # This function supports the following argument formats:
+    # no args : rev-list trunk..HEAD
+    # A..B    : rev-list A..B
+    # A...B   : error!
+    # A B     : [A, B]  (different from git diff, which would use "rev-list A..B")
+    def commit_ids_from_commitish_arguments(self, args):
+        if not len(args):
+            args.append('trunk..HEAD')
 
-        if cherry_pick:
-            return revisions
-
-        # If we're not cherry picking and were only passed one revision, assume "^revision head" aka "revision..head".
-        if len(revisions) < 2:
-            revisions[0] = "^" + revisions[0]
-            revisions.append("HEAD")
-
-        return self.run_command(['git', 'rev-list'] + revisions).splitlines()
+        commit_ids = []
+        for commitish in args:
+            if '...' in commitish:
+                error("'...' is not supported (found in '%s'). Did you mean '..'?" % commitish)
+            elif '..' in commitish:
+                commit_ids += self.run_command(['git', 'rev-list', commitish]).splitlines()
+            else:
+                # Turn single commits or branch or tag names into commit ids.
+                commit_ids += self.run_command(['git', 'rev-parse', '--revs-only', commitish]).splitlines()
+        return commit_ids
 
     def commit_message_for_local_commit(self, commit_id):
         commit_lines = self.run_command(['git', 'cat-file', 'commit', commit_id]).splitlines()

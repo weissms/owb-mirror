@@ -4,6 +4,7 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorBackend.cpp
         inspector/InspectorController.cpp
         inspector/InspectorDatabaseResource.cpp
+        inspector/InspectorDOMAgent.cpp
         inspector/InspectorDOMStorageResource.cpp
         inspector/InspectorFrontend.cpp
         inspector/InspectorResource.cpp

@@ -223,38 +223,6 @@ PluginView::~PluginView()
     m_window = 0;
 }
 
-void PluginView::stop()
-{
-    if (!m_isStarted)
-        return;
-
-    LOG(Plugins, "PluginView::stop(): Stopping plug-in '%s'", m_plugin->name().utf8().data());
-
-    HashSet<RefPtr<PluginStream> > streams = m_streams;
-    HashSet<RefPtr<PluginStream> >::iterator end = streams.end();
-    for (HashSet<RefPtr<PluginStream> >::iterator it = streams.begin(); it != end; ++it) {
-        (*it)->stop();
-        disconnectStream((*it).get());
-    }
-
-    ASSERT(m_streams.isEmpty());
-
-    m_isStarted = false;
-
-    JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
-
-    PluginMainThreadScheduler::scheduler().unregisterPlugin(m_instance);
-
-    // Destroy the plugin
-    PluginView::setCurrentPluginView(this);
-    setCallingPlugin(true);
-    m_plugin->pluginFuncs()->destroy(m_instance, 0);
-    setCallingPlugin(false);
-    PluginView::setCurrentPluginView(0);
-
-    m_instance->pdata = 0;
-}
-
 // Used before the plugin view has been initialized properly, and as a
 // fallback for variables that do not require a view to resolve.
 NPError PluginView::getValueStatic(NPNVariable variable, void* value)
@@ -724,24 +692,6 @@ bool PluginView::dispatchNPEvent(NPEvent& event)
 
 // ------------------- WebCore/Miscellaneous  ------------------
 
-static const char* MozillaUserAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0";
-
-const char* PluginView::userAgent()
-{
-    if (m_plugin->quirks().contains(PluginQuirkWantsMozillaUserAgent))
-        return MozillaUserAgent;
-
-    if (m_userAgent.isNull())
-        m_userAgent = m_parentFrame->loader()->userAgent(m_url).utf8();
-
-    return m_userAgent.data();
-}
-
-const char* PluginView::userAgentStatic()
-{
-    return MozillaUserAgent;
-}
-
 NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const char* buf)
 {
     String filename(buf, len);
@@ -766,6 +716,11 @@ NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const c
 
     return NPERR_NO_ERROR;
 }
+
+void PluginView::platformStart()
+{
+}
+
 
 } // namespace WebCore
 

@@ -84,6 +84,7 @@ WebCore/platform/Scrollbar.cpp	BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
 WebCore/plugins/PluginView.h
+WebCore/plugins/PluginView.cpp
 WebCore/rendering/RenderLayerCompositor.h
 WebCore/storage/Database.cpp
 WebCore/svg/graphics/SVGImage.cpp

@@ -1,3 +1,300 @@
+2009-08-03  David D. Kilzer  <ddkilzer@webkit.org>
+
+        <http://webkit.org/b/27930> bugzilla-tool hates Tor Arne Vestbø
+
+        Reviewed by Tor Arne Vestbø.
+
+        * Scripts/bugzilla-tool:
+        (set_reviewer_in_changelog): Made sure reviewer is properly
+        encoded when calling replace().
+
+2009-08-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by David Levin.
+
+        Script for building the wxBrowser sample app for wx.
+        https://bugs.webkit.org/show_bug.cgi?id=27619
+
+        * wx/browser/wscript: Added.
+
+2009-08-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Jan Alonzo.
+
+        Scripts needed for the waf build.
+        https://bugs.webkit.org/show_bug.cgi?id=27619
+
+        * wx/build: Added.
+        * wx/build/build_utils.py: Added.
+        * wx/build/settings.py: Added.
+        * wx/build/waf_extensions.py: Added.
+        * wx/build/wxpresets.py: Added.
+
+2009-08-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Make pixel test results more consistent across Mac OS X versions
+
+        * DumpRenderTree/cg/ImageDiffCG.cpp:
+        (createDifferenceImage): Avoid color correction when rendering the
+            images into graphics contexts, so that the actual color values are
+            compared, regardless of how the images are tagged.
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (createWebViewAndOffscreenWindow): Set the window’s color space to the
+            main screen’s color space, even though the window is off-screen.
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Try again to make the Qt build bot happy.
+
+        * BuildSlaveSupport/test-result-archive: Create a placeholder file inside the newly-created
+        directory to prevent 'zip' from failing due to the directory containing no files.
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Try and make the Qt build bot happy.
+
+        * BuildSlaveSupport/test-result-archive: Handle the case where run-webkit-tests generates
+        no output files at all and thus does not create the layout-test-results directory.
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Move the include of DumpRenderTreeSupport to after DumpRenderTree has been built.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig and David D. Kilzer.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=27923>.
+        Bug 27923: run-webkit-tests should not invoke "ps" repeatedly on Mac OS X
+
+        run-webkit-tests invokes "ps" after each test on Mac OS X to determine whether DumpRenderTree is
+        in the process of crashing.  We can do the same test more efficiently with a simple call to sysctl.
+        I couldn't find any built-in way of doing this directly from perl, so we do it from a simple C module
+        instead.  This speeds up run-webkit-tests by around 8%.
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+        * DumpRenderTree/mac/PerlSupport/DumpRenderTreeSupport.c: Added.
+        (processIsCrashing):
+        * DumpRenderTree/mac/PerlSupport/DumpRenderTreeSupportTiger.pm: Added.  Tiger does not have the SWIG tool
+        that is used to generate the Perl binding to the C code, so we fall back to the old implementation on Tiger.
+        * DumpRenderTree/mac/PerlSupport/Makefile: Added.
+        * Scripts/run-webkit-tests:
+
+2009-08-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by David D. Kilzer.
+
+        Display the reminder once rather than once per ChangeLog.
+
+        * Scripts/prepare-ChangeLog:
+
+2009-08-01  David Kilzer  <ddkilzer@apple.com>
+
+        resolve-ChangeLogs: add error checking to git ls-files command on close()
+
+        Reviewed by Eric Seidel.
+
+        Item 2 of <https://bugs.webkit.org/show_bug.cgi?id=18599#c0>.
+
+        * Scripts/resolve-ChangeLogs: Added error checking to close()
+        after running git ls-files.  Added error checking to all
+        system() calls by checking for a non-zero WEXITSTATUS($?).
+        Changed "|| die;" expressions to "or die $!;".
+
+2009-08-01  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/18599> resolve-ChangeLogs doesn't work with relative paths
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/resolve-ChangeLogs: Used chdirReturningRelativePath()
+        and determineVCSRoot() to change directories to the root of the
+        project before running the command and to provide a path for
+        removeChangeLogArguments() to make sure any ChangeLog arguments
+        on the command line are still found.
+        (canonicalRelativePath): Added.  Returns a canonical path (e.g.,
+        stripping 'dir/../' from the path) relative to the current
+        directory.
+        (removeChangeLogArguments): Added argument which contains a
+        relative path that must be prepended to any ChangeLog arguments.
+        Used canonicalRelativePath() and File::Spec->catfile() to
+        construct a normalized, relative path to each file.
+
+2009-08-01  David Kilzer  <ddkilzer@apple.com>
+
+        Implement VCSUtils::chdirReturningRelativePath()
+
+        Reviewed by Eric Seidel.
+
+        Step 2 to fix:
+        <http://webkit.org/b/18599> resolve-ChangeLogs doesn't work with relative paths
+
+        * Scripts/VCSUtils.pm:
+        (VCSUtils::chdirReturningRelativePath): Moved here from
+        chdirAndGetDifference() in svn-create-patch.
+        * Scripts/svn-create-patch: Switched to use
+        chdirReturningRelativePath() instead of chdirAndGetDifference().
+        (chdirAndGetDifference): Removed.
+
+2009-08-01  David Kilzer  <ddkilzer@apple.com>
+
+        Implement VCSUtils::determineVCSRoot()
+
+        Reviewed by Eric Seidel.
+
+        Step 1 to fix:
+        <http://webkit.org/b/18599> resolve-ChangeLogs doesn't work with relative paths
+
+        * Scripts/VCSUtils.pm: Removed reference to webkitdirs module.
+        (VCSUtils::EXPORT): Added &determineVCSRoot.  Realphabetized.
+        (VCSUtils::determineGitRoot): Added.  Based on code in
+        commit-log-editor.
+        (VCSUtils::determineVCSRoot): Implemented using
+        determineGitRoot() and determineSVNRoot().
+        * Scripts/commit-log-editor: Replaced use of
+        topLevelSourceDirectory() with determineVCSRoot().  Resorted
+        use statements.
+        (topLevelSourceDirectory): Removed.
+
+2009-07-31  Daniel Bates  <dbates@intudata.com>
+
+        Reviewed by Eric Seidel.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=27757
+
+        Resolves Perl redefinition warnings about functions tmpfile and tmpnam which are 
+        defined in both File::Temp and POSIX.
+        
+        This stops the warnings by preventing the "import" method of File::Temp from being called,
+        which would otherwise add these functions into the primary namespace. Note, "use POSIX" 
+        will import these functions into the primary namespace anyway. We only need one instance
+        of these functions in our namespace (or we get redefinition warnings), so lets use the 
+        one's in the POSIX package.
+        
+        * Scripts/update-webkit-auxiliary-libs: Changed "use File::Temp" to "use File::Temp ()".
+        * Scripts/update-webkit-support-libs: ditto
+
+2009-07-31  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Add a top level build option to control datagrid support
+        https://bugs.webkit.org/show_bug.cgi?id=27915
+
+        * Scripts/build-webkit:
+
+2009-07-31  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Treat.
+
+        check-webkit-style --git-commit has bugs if you select a commit in the past
+        https://bugs.webkit.org/show_bug.cgi?id=27908
+
+        * Scripts/check-webkit-style:
+        (main): Made the git-commit command only select the first commit
+        if a range is given (and print a warning).
+        * Scripts/modules/scm.py:
+        (SCM::create_patch_from_local_commit):
+        (SCM::create_patch_since_local_commit):
+        (SCM::commit_locally_with_message):
+        (SCM::discard_local_commits):
+        Added an error messages in case these aren't overriden.
+
+        (Git::create_patch_since_local_commit):
+        Added this command to allow doing a diff of everything after a given commit.
+
+2009-07-31  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Speculative Qt build fix. Not reviewed.
+
+        Add LayoutTestController::disableImageLoading() in jsobjects.h.
+
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-07-31  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by John Sullivan.
+
+        <rdar://problem/6973106> and https://bugs.webkit.org/show_bug.cgi?id=27896
+        Favicons are still loaded when automatic image loading is disabled.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (disableImageLoadingCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::disableImageLoading):
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::disableImageLoading):
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::disableImageLoading): Stubbed for now.
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::disableImageLoading): Ditto.
+
+2009-07-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        bugzilla-tool post-commits trunk..head errors out
+        https://bugs.webkit.org/show_bug.cgi?id=27847
+
+        Rename commit_ids_from_range_arguments to commit_ids_from_commitish_arguments
+        and make it handle the new arguments format proposed in the bug.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-07-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        clean up build-webkit to use less copy/paste code and remove unneeded SVG warning
+        https://bugs.webkit.org/show_bug.cgi?id=27857
+
+        * Scripts/build-webkit:
+
+2009-07-31  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27894> bugzilla-tool: Bugzilla.clear_attachment_review_flag() fails with ClientForm-0.2.10 and python-2.5
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.clear_attachment_review_flag): Specify which 'comment'
+        form field to use when setting its value.
+
+2009-07-31  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        bugzilla-tool post-commits obsoletes its own work :(
+        https://bugs.webkit.org/show_bug.cgi?id=27849
+
+        Simple fix.  Use .add() instead of .update()
+
+        * Scripts/bugzilla-tool:
+
+2009-07-31  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Anders Carlsson.
+
+        Improve platform-detection in run-webkit-tests
+
+        This prevents miss-detection of mac-* over Qt/Mac.
+
+        * Scripts/run-webkit-tests:
+
 2009-07-31  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Cameron Zwarich.

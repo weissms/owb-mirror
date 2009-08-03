@@ -34,6 +34,7 @@
 #include "FocusController.h"
 #include "Frame.h"
 #include "FrameLoader.h"
+#include "FrameLoaderClient.h"
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "HTMLElement.h"
@@ -43,6 +44,7 @@
 #include "NetworkStateNotifier.h"
 #include "PageGroup.h"
 #include "PluginData.h"
+#include "PluginView.h"
 #include "ProgressTracker.h"
 #include "RenderWidget.h"
 #include "RenderTheme.h"
@@ -128,6 +130,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_debugger(0)
     , m_customHTMLTokenizerTimeDelay(-1)
     , m_customHTMLTokenizerChunkSize(-1)
+    , m_canStartPlugins(true)
 {
     if (!allPages) {
         allPages = new HashSet<Page*>;
@@ -305,6 +308,18 @@ PluginData* Page::pluginData() const
     if (!m_pluginData)
         m_pluginData = PluginData::create(this);
     return m_pluginData.get();
+}
+
+void Page::addUnstartedPlugin(PluginView* view)
+{
+    ASSERT(!m_canStartPlugins);
+    m_unstartedPlugins.add(view);
+}
+
+void Page::removeUnstartedPlugin(PluginView* view)
+{
+    ASSERT(!m_canStartPlugins);
+    m_unstartedPlugins.remove(view);
 }
 
 static Frame* incrementFrame(Frame* curr, bool forward, bool wrapFlag)

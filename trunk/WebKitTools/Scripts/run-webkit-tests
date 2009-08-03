@@ -153,23 +153,24 @@ my $errorTag = "stderr";
 
 my @macPlatforms = ("mac-tiger", "mac-leopard", "mac-snowleopard", "mac");
 
-if (isTiger()) {
-    $platform = "mac-tiger";
-    $tolerance = 1.0;
-} elsif (isLeopard()) {
-    $platform = "mac-leopard";
-    $tolerance = 0.1;
-} elsif (isSnowLeopard()) {
-    $platform = "mac-snowleopard";
-    $tolerance = 0.1;
-} elsif (isAppleMacWebKit()) {
-    $platform = "mac";
+if (isAppleMacWebKit()) {
+    if (isTiger()) {
+        $platform = "mac-tiger";
+        $tolerance = 1.0;
+    } elsif (isLeopard()) {
+        $platform = "mac-leopard";
+        $tolerance = 0.1;
+    } elsif (isSnowLeopard()) {
+        $platform = "mac-snowleopard";
+        $tolerance = 0.1;
+    } else {
+        $platform = "mac";
+    }
 } elsif (isQt()) {
     $platform = "qt";
 } elsif (isGtk()) {
     $platform = "gtk";
-}
-elsif (isWx()) {
+} elsif (isWx()) {
     $platform = "wx";
 } elsif (isCygwin()) {
     $platform = "win";
@@ -316,6 +317,11 @@ $imageDiffTool .= "_debug" if isCygwin() && $configuration ne "Release";
 die "can't find executable $imageDiffTool (looked in $productDir)\n" if $pixelTests && !-x $imageDiffTool;
 
 checkFrameworks() unless isCygwin();
+
+if (isAppleMacWebKit()) {
+    push @INC, $productDir;
+    eval 'use DumpRenderTreeSupport;';
+}
 
 my $layoutTestsName = "LayoutTests";
 my $testDirectory = File::Spec->rel2abs($layoutTestsName);
@@ -1356,12 +1362,7 @@ sub dumpToolDidCrash()
     # On Mac OS X, crashing may be significantly delayed by crash reporter.
     return 0 unless isAppleMacWebKit();
 
-    my $tryingToExit = 0;
-    open PS, "ps -o state -p $dumpToolPID |";
-    <PS>; # skip header
-    $tryingToExit = 1 if <PS> =~ /E/;
-    close PS;
-    return $tryingToExit;
+    return DumpRenderTreeSupport::processIsCrashing($dumpToolPID);
 }
 
 sub openHTTPDIfNeeded()
