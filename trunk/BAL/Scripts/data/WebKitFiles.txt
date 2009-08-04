@@ -1,4 +1,5 @@
 JavaScriptCore/AllInOneFile.cpp
+JavaScriptCore/config.h
 JavaScriptCore/bytecode/Instruction.h
 JavaScriptCore/bytecode/JumpTable.h
 JavaScriptCore/interpreter/RegisterFile.cpp
