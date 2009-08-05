@@ -155,9 +155,15 @@ enum AccessibilityRole {
     TableHeaderContainerRole,
     DefinitionListTermRole,
     DefinitionListDefinitionRole,
-    AnnotationRole
+    AnnotationRole,
+    SliderThumbRole
 };
 
+enum AccessibilityOrientation {
+    AccessibilityOrientationVertical,
+    AccessibilityOrientationHorizontal,
+};
+    
 struct VisiblePositionRange {
 
     VisiblePosition start;
@@ -231,6 +237,7 @@ public:
     virtual bool isTableCell() const { return false; };
     virtual bool isFieldset() const { return false; };
     virtual bool isGroup() const { return false; };
+    bool isRadioGroup() const { return roleValue() == RadioGroupRole; }
     
     virtual bool isChecked() const { return false; };
     virtual bool isEnabled() const { return false; };
@@ -244,6 +251,7 @@ public:
     virtual bool isPressed() const { return false; };
     virtual bool isReadOnly() const { return false; };
     virtual bool isVisited() const { return false; };
+    virtual bool isRequired() const { return false; };
 
     virtual bool canSetFocusAttribute() const { return false; };
     virtual bool canSetTextRangeAttributes() const { return false; };
@@ -257,9 +265,11 @@ public:
     virtual bool accessibilityIsIgnored() const  { return true; };
 
     virtual int intValue() const { return 0; }
+    virtual String valueDescription() const { return String(); }
     virtual float valueForRange() const { return 0.0f; }
     virtual float maxValueForRange() const { return 0.0f; }
     virtual float minValueForRange() const { return 0.0f; }
+    virtual AccessibilityObject* selectedRadioButton() { return 0; }
     virtual int layoutCount() const { return 0; }
     static bool isARIAControl(AccessibilityRole);
     static bool isARIAInput(AccessibilityRole);
@@ -284,7 +294,7 @@ public:
     virtual bool isPresentationalChildOfAriaRole() const { return false; }
     virtual bool ariaRoleHasPresentationalChildren() const { return false; }
     virtual AccessibilityRole roleValue() const { return UnknownRole; }
-    virtual String ariaAccessiblityName(const String&) const { return String(); }
+    virtual String ariaAccessibilityName(const String&) const { return String(); }
     virtual String ariaLabeledByAttribute() const { return String(); }
     virtual String ariaDescribedByAttribute() const { return String(); }
     virtual String accessibilityDescription() const { return String(); }
@@ -333,7 +343,11 @@ public:
     virtual void makeRangeVisible(const PlainTextRange&) { }
     virtual bool press() const;
     bool performDefaultAction() const { return press(); }
-    
+
+    virtual AccessibilityOrientation orientation() const;
+    virtual void increment() { };
+    virtual void decrement() { };
+
     virtual void childrenChanged() { }
     virtual const AccessibilityChildrenVector& children() { return m_children; }
     virtual void addChildren() { }

@@ -101,6 +101,7 @@ public:
     virtual bool isPressed() const;
     virtual bool isReadOnly() const;
     virtual bool isVisited() const;        
+    virtual bool isRequired() const;
 
     const AtomicString& getAttribute(const QualifiedName&) const;
     virtual bool canSetFocusAttribute() const;
@@ -113,9 +114,11 @@ public:
     
     static int headingLevel(Node*);
     virtual int intValue() const;
+    virtual String valueDescription() const;
     virtual float valueForRange() const;
     virtual float maxValueForRange() const;
     virtual float minValueForRange() const;
+    virtual AccessibilityObject* selectedRadioButton();
     virtual int layoutCount() const;
     
     virtual AccessibilityObject* doAccessibilityHitTest(const IntPoint&) const;
@@ -161,7 +164,7 @@ public:
     virtual PlainTextRange selectedTextRange() const;
     virtual VisibleSelection selection() const;
     virtual String stringValue() const;
-    virtual String ariaAccessiblityName(const String&) const;
+    virtual String ariaAccessibilityName(const String&) const;
     virtual String ariaLabeledByAttribute() const;
     virtual String title() const;
     virtual String ariaDescribedByAttribute() const;

@@ -45,13 +45,8 @@ unix {
     lessThan(QT_MINOR_VERSION, 4): QMAKE_PKGCONFIG_REQUIRES += QtXml
 }
 
-CONFIG -= warn_on
-*-g++*:QMAKE_CXXFLAGS += -Wreturn-type -fno-strict-aliasing
-
 unix:!mac:*-g++*:QMAKE_CXXFLAGS += -ffunction-sections -fdata-sections 
 unix:!mac:*-g++*:QMAKE_LFLAGS += -Wl,--gc-sections
-
-#QMAKE_CXXFLAGS += -Wall -Wno-undef -Wno-unused-parameter
 
 CONFIG(release):!CONFIG(QTDIR_build) {
     contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
@@ -457,6 +452,7 @@ SOURCES += \
     accessibility/AccessibilityListBox.cpp \    
     accessibility/AccessibilityListBoxOption.cpp \    
     accessibility/AccessibilityRenderObject.cpp \    
+    accessibility/AccessibilitySlider.cpp \    
     accessibility/AccessibilityARIAGrid.cpp \    
     accessibility/AccessibilityARIAGridCell.cpp \    
     accessibility/AccessibilityARIAGridRow.cpp \    
@@ -1138,6 +1134,7 @@ HEADERS += \
     accessibility/AccessibilityList.h \
     accessibility/AccessibilityObject.h \
     accessibility/AccessibilityRenderObject.h \
+    accessibility/AccessibilitySlider.h \
     accessibility/AccessibilityTableCell.h \
     accessibility/AccessibilityTableColumn.h \
     accessibility/AccessibilityTable.h \
@@ -2167,6 +2164,7 @@ SOURCES += \
     ../WebKit/qt/Api/qwebhistory.cpp \
     ../WebKit/qt/Api/qwebsettings.cpp \
     ../WebKit/qt/Api/qwebhistoryinterface.cpp \
+    ../WebKit/qt/Api/qwebplugindatabase.cpp \
     ../WebKit/qt/Api/qwebpluginfactory.cpp \
     ../WebKit/qt/Api/qwebsecurityorigin.cpp \
     ../WebKit/qt/Api/qwebdatabase.cpp \
@@ -3096,6 +3094,7 @@ htmlnames.input = HTML_NAMES
 htmlnames.dependency_type = TYPE_C
 htmlnames.CONFIG = target_predeps
 htmlnames.variable_out = GENERATED_SOURCES
+htmlnames.depends = $$PWD/html/HTMLAttributeNames.in
 addExtraCompilerWithHeader(htmlnames)
 
 htmlelementfactory.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}HTMLElementFactory.cpp

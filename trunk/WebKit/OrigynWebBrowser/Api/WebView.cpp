@@ -866,6 +866,7 @@ static const KeyDownEntry keyDownEntries[] = {
     { VK_RETURN, 0,                  "InsertNewline"                               },
     { VK_RETURN, CtrlKey,            "InsertNewline"                               },
     { VK_RETURN, AltKey,             "InsertNewline"                               },
+    { VK_RETURN, ShiftKey,           "InsertNewline"                               },
     { VK_RETURN, AltKey | ShiftKey,  "InsertNewline"                               },
 
     // It's not quite clear whether clipboard shortcuts and Undo/Redo should be handled
@@ -894,6 +895,7 @@ static const KeyPressEntry keyPressEntries[] = {
     { '\r',   0,                  "InsertNewline"                               },
     { '\r',   CtrlKey,            "InsertNewline"                               },
     { '\r',   AltKey,             "InsertNewline"                               },
+    { '\r',   ShiftKey,           "InsertNewline"                               },
     { '\r',   AltKey | ShiftKey,  "InsertNewline"                               },
     { 9999999,   0,               ""                                         },
 };

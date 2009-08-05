@@ -1,3 +1,253 @@
+2009-08-05  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 27994 - WAI-ARIA: aria-valuetext needs to be implemented
+        https://bugs.webkit.org/show_bug.cgi?id=27994
+
+        Expose valueDescription for accessibility. 
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getValueDescriptionCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::valueDescription):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::valueDescription):
+
+2009-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        REGRESSION: run-webkit-tests crashes if you have non-system perl in PATH
+        https://bugs.webkit.org/show_bug.cgi?id=28006
+
+        Hard-code perl to /usr/bin/perl and swig to /usr/bin/swig
+
+        * DumpRenderTree/mac/PerlSupport/Makefile:
+
+2009-08-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Add pkasting to bugzilla-tool as a committer
+        https://bugs.webkit.org/show_bug.cgi?id=28002
+
+        * Scripts/modules/committers.py:
+
+2009-08-04  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 27993 - AXSliders are missing required attributes and actions
+        https://bugs.webkit.org/show_bug.cgi?id=27993
+
+        Add ability to check if any arbitrary action is supported.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (isActionSupportedCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isActionSupported):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::isActionSupported):
+
+2009-08-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool unit tests need a test harness
+        https://bugs.webkit.org/show_bug.cgi?id=27977
+
+        * Scripts/run-webkit-unittests: Added.
+
+2009-08-04  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Gavin "Gavvy" Barraclough.
+
+        Ensure that DumpRenderTreeSupport is regenerated when switching between OS versions
+        by listing the DumpRenderTree binary as a dependency.  Xcode has the smarts to rebuild
+        DumpRenderTree itself when switching OS versions so this dependency removes the need
+        for any smarts in the Makefile.
+
+        * DumpRenderTree/mac/PerlSupport/Makefile:
+
+2009-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool needs unit tests
+        https://bugs.webkit.org/show_bug.cgi?id=26916
+
+        Add some basic unit testing for scm.py.
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py: Added.
+
+2009-08-04  Mike Fenton  <mike.fenton@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Fix --skipped=only mode to honor flags such as --no-http and platform ignored directories by checking
+        to make sure the Skipped entries are not in the $ignoredDirectories array.  Directories commonly included
+        are (http, media, compositing, wml, wcss).
+
+        https://bugs.webkit.org/show_bug.cgi?id=27893
+
+        * Scripts/run-webkit-tests:
+
+2009-08-03  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Bug 27958 - WAI-ARIA: Implement 'aria-required' attribute.
+        https://bugs.webkit.org/show_bug.cgi?id=27958
+
+        Exposed isRequired to DumpRenderTree for accessibility.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getIsRequiredCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isRequired):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::isRequired):
+
+2009-08-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool --commit-queue should validate commit-queue setter is a committer
+        https://bugs.webkit.org/show_bug.cgi?id=27974
+
+        With a test!
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/bugzilla_unittest.py:
+
+2009-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        REGRESSION(r46700): bugzilla-tool land-diff double-spaces ChangeLogs
+        https://bugs.webkit.org/show_bug.cgi?id=27973
+
+        The trailing comma (suppresses newlines) was lost in r46700.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool has too many fatal errors
+        https://bugs.webkit.org/show_bug.cgi?id=27969
+
+        Replace several fatal errors with ScriptError exceptions.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
+2009-08-04  Eric Seidel  <eric@webkit.org>
+
+        No review, ChangeLog fix only.
+
+        Fix a ChangeLog line-spacing disaster caused by:
+        https://bugs.webkit.org/show_bug.cgi?id=27973
+
+        Still unsure what the fix for bugzilla-tool will be.
+
+2009-08-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool --commit-queue should only land commit-queue+ patches
+        https://bugs.webkit.org/show_bug.cgi?id=27970
+
+        commit-queue mode for bugzilla-tool
+        https://bugs.webkit.org/show_bug.cgi?id=27918
+
+        Make bugzilla tool smart enough to find the commit-queue+ flags and
+        land those patches.
+        When we call land-patches with --commit-queue, we should filter the
+        patches we land to only those that have the commit-queue+ flag set.
+        That way, when we call bugzilla-tool from a main commit queue process,
+        we won't land the wrong patches.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        committer logic should be split out of bugzilla.py into its own module
+
+        https://bugs.webkit.org/show_bug.cgi?id=27972
+
+        I also added unit tests for the functionality I added.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/bugzilla_unittest.py: Added.
+        * Scripts/modules/commiters_unittest.py: Added.
+        * Scripts/modules/committers.py: Added.
+
+2009-08-03  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Handle any kind of line endings in svn-apply and svn-unapply, instead
+        of assuming LF.
+
+        * Scripts/svn-apply:
+        * Scripts/svn-unapply:
+
+2009-08-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool land-patches needs --queue mode
+        https://bugs.webkit.org/show_bug.cgi?id=27961
+
+        Add a --commit-queue command line option to suppress user interaction.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-08-03  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.  Add installsrc, installhdrs and install targets.
+
+        * DumpRenderTree/mac/PerlSupport/Makefile:
+
+2009-08-03  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        HTMLInputElement is not controllable by assistive technologies
+        https://bugs.webkit.org/show_bug.cgi?id=27941
+
+        Accessibility control of a slider required adding increment() and decrement()
+        methods to AccessibilityObject, so expose thos methods on AccessibilityUIElement.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (incrementCallback): New, call UI element increment method.
+        (decrementCallback): New, call UI element decrement method.
+        (AccessibilityUIElement::getJSClass): Expose increment and decrement methods.
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::increment): New, send NSAccessibilityIncrementAction to Mac wrapper.
+        (AccessibilityUIElement::decrement): New, send NSAccessibilityDecrementAction to Mac wrapper.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::increment): New, do nothing.
+        (AccessibilityUIElement::decrement): New, do nothing.
+
 2009-08-03  David D. Kilzer  <ddkilzer@webkit.org>
 
         <http://webkit.org/b/27930> bugzilla-tool hates Tor Arne Vestbø

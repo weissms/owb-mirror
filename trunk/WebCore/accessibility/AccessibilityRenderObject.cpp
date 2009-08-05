@@ -293,7 +293,7 @@ bool AccessibilityRenderObject::isSlider() const
 {
     return roleValue() == SliderRole;
 }
-    
+
 bool AccessibilityRenderObject::isMenuRelated() const
 {
     AccessibilityRole role = roleValue();
@@ -485,6 +485,21 @@ bool AccessibilityRenderObject::isFieldset() const
 bool AccessibilityRenderObject::isGroup() const
 {
     return roleValue() == GroupRole;
+}
+    
+AccessibilityObject* AccessibilityRenderObject::selectedRadioButton()
+{
+    if (!isRadioGroup())
+        return 0;
+    
+    // Find the child radio button that is selected (ie. the intValue == 1).
+    int count = m_children.size();
+    for (int i = 0; i < count; ++i) {
+        AccessibilityObject* object = m_children[i].get();
+        if (object->roleValue() == RadioButtonRole && object->intValue() == 1)
+            return object;
+    }
+    return 0;
 }
     
 const AtomicString& AccessibilityRenderObject::getAttribute(const QualifiedName& attribute) const
@@ -736,6 +751,15 @@ int AccessibilityRenderObject::intValue() const
     return static_cast<HTMLInputElement*>(node)->checked();
 }
 
+String AccessibilityRenderObject::valueDescription() const
+{
+    // Only sliders and progress bars support value descriptions currently.
+    if (!isProgressIndicator() && !isSlider())
+        return String();
+    
+    return getAttribute(aria_valuetextAttr).string();
+}
+    
 float AccessibilityRenderObject::valueForRange() const
 {
     if (!isProgressIndicator() && !isSlider())
@@ -824,7 +848,7 @@ static String accessibleNameForNode(Node* node)
     return String();
 }
 
-String AccessibilityRenderObject::ariaAccessiblityName(const String& s) const
+String AccessibilityRenderObject::ariaAccessibilityName(const String& s) const
 {
     Document* document = m_renderer->document();
     if (!document)
@@ -847,7 +871,9 @@ String AccessibilityRenderObject::ariaAccessiblityName(const String& s) const
                 nameFragment = accessibleNameForNode(n);
                 ariaLabel.append(nameFragment.characters(), nameFragment.length());
             }
-            ariaLabel.append(' ');
+            
+            if (i != size - 1)
+                ariaLabel.append(' ');
         }
     }
     return String::adopt(ariaLabel);
@@ -871,7 +897,7 @@ String AccessibilityRenderObject::ariaLabeledByAttribute() const
             return String();
     }
 
-    return ariaAccessiblityName(idList);
+    return ariaAccessibilityName(idList);
 }
 
 static HTMLLabelElement* labelForElement(Element* element)
@@ -947,6 +973,7 @@ String AccessibilityRenderObject::title() const
         || ariaRole == ListBoxOptionRole
         || ariaRole == MenuItemRole
         || ariaRole == MenuButtonRole
+        || ariaRole == RadioButtonRole
         || isHeading())
         return textUnderElement();
     
@@ -962,7 +989,7 @@ String AccessibilityRenderObject::ariaDescribedByAttribute() const
     if (idList.isEmpty())
         return String();
     
-    return ariaAccessiblityName(idList);
+    return ariaAccessibilityName(idList);
 }
 
 String AccessibilityRenderObject::accessibilityDescription() const
@@ -1507,6 +1534,14 @@ KURL AccessibilityRenderObject::url() const
 bool AccessibilityRenderObject::isVisited() const
 {
     return m_renderer->style()->pseudoState() == PseudoVisited;
+}
+    
+bool AccessibilityRenderObject::isRequired() const
+{
+    if (equalIgnoringCase(getAttribute(aria_requiredAttr).string(), "true"))
+        return true;
+    
+    return false;
 }
 
 bool AccessibilityRenderObject::isSelected() const
@@ -2203,6 +2238,7 @@ static const ARIARoleMap& createARIARoleMap()
         { "menuitemradio", MenuItemRole },
         { "progressbar", ProgressIndicatorRole },
         { "radio", RadioButtonRole },
+        { "radiogroup", RadioGroupRole },
         { "row", RowRole },
         { "range", SliderRole },
         { "slider", SliderRole },
@@ -2366,7 +2402,7 @@ bool AccessibilityRenderObject::canSetFocusAttribute() const
     Node* node = m_renderer->node();
 
     // NOTE: It would be more accurate to ask the document whether setFocusedNode() would
-    // do anything.  For example, it setFocusedNode() will do nothing if the current focused
+    // do anything.  For example, setFocusedNode() will do nothing if the current focused
     // node will not relinquish the focus.
     if (!node || !node->isElementNode())
         return false;

@@ -31,6 +31,7 @@
 #include "config.h"
 #include "FrameLoader.h"
 
+#include "ApplicationCacheHost.h"
 #include "Archive.h"
 #include "ArchiveFactory.h"
 #include "CString.h"
@@ -95,10 +96,6 @@
 
 #if ENABLE(INSPECTOR)
 #include "InspectorController.h"
-#endif
-
-#if ENABLE(OFFLINE_WEB_APPLICATIONS)
-#include "ApplicationCacheHost.h"
 #endif
 
 #if ENABLE(SVG)

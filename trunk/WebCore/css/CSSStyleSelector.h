@@ -299,7 +299,9 @@ public:
                 prev->m_next = this;
         }
 
-        ~CSSRuleData() { delete m_next; }
+        ~CSSRuleData() 
+        { 
+        }
 
         unsigned position() { return m_position; }
         CSSStyleRule* rule() { return m_rule; }
@@ -321,7 +323,17 @@ public:
         {
         }
 
-        ~CSSRuleDataList() { delete m_first; }
+        ~CSSRuleDataList() 
+        { 
+            CSSRuleData* ptr;
+            CSSRuleData* next;
+            ptr = m_first;
+            while (ptr) {
+                next = ptr->next();
+                delete ptr;
+                ptr = next;
+            }
+        }
 
         CSSRuleData* first() { return m_first; }
         CSSRuleData* last() { return m_last; }

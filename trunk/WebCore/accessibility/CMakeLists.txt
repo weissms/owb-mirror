@@ -9,6 +9,7 @@ list(APPEND WEBCORE_SRC
     accessibility/AccessibilityListBoxOption.cpp
     accessibility/AccessibilityObject.cpp
     accessibility/AccessibilityRenderObject.cpp
+    accessibility/AccessibilitySlider.cpp
     accessibility/AccessibilityTable.cpp
     accessibility/AccessibilityTableCell.cpp
     accessibility/AccessibilityTableColumn.cpp

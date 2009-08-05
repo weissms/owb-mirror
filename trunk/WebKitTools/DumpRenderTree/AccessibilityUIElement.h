@@ -74,10 +74,13 @@ public:
     JSStringRef attributesOfDocumentLinks();
     JSStringRef attributesOfChildren();
     JSStringRef parameterizedAttributeNames();
-    
+    void increment();
+    void decrement();
+
     // Attributes - platform-independent implementations
     JSStringRef attributeValue(JSStringRef attribute);
     bool isAttributeSettable(JSStringRef attribute);
+    bool isActionSupported(JSStringRef action);
     JSStringRef role();
     JSStringRef title();
     JSStringRef description();
@@ -89,10 +92,11 @@ public:
     double intValue();
     double minValue();
     double maxValue();
+    JSStringRef valueDescription();
     int insertionPointLineNumber();
     JSStringRef selectedTextRange();
-    bool supportsPressAction();
     bool isEnabled();
+    bool isRequired() const;
     double clickPointX();
     double clickPointY();
 
@@ -114,7 +118,7 @@ public:
     
     // Table-specific
     AccessibilityUIElement cellForColumnAndRow(unsigned column, unsigned row);
-    
+
 private:
     static JSClassRef getJSClass();
 

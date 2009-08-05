@@ -224,6 +224,11 @@ double AccessibilityUIElement::clickPointY()
     return 0;
 }
 
+JSStringRef AccessibilityUIElement::valueDescription()
+{
+    return 0;
+}
+
 double AccessibilityUIElement::intValue()
 {
     BSTR valueBSTR;
@@ -245,12 +250,17 @@ double AccessibilityUIElement::maxValue()
     return 0;
 }
 
-bool AccessibilityUIElement::supportsPressAction()
+bool AccessibilityUIElement::isActionSupported(JSStringRef action)
 {
     return false;
 }
 
 bool AccessibilityUIElement::isEnabled()
+{
+    return false;
+}
+
+bool AccessibilityUIElement::isRequired() const
 {
     return false;
 }
@@ -339,3 +349,10 @@ bool AccessibilityUIElement::isAttributeSettable(JSStringRef attribute)
     return false;
 }
 
+void AccessibilityUIElement::increment()
+{
+}
+
+void AccessibilityUIElement::decrement()
+{
+}

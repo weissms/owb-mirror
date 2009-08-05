@@ -128,7 +128,7 @@ void PluginView::updatePluginWidget()
 
 void PluginView::platformStart()
 {
-  notImplemented();
+    notImplemented();
 }
 
 } // namespace WebCore

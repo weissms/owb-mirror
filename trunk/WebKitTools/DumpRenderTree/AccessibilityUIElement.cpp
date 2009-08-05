@@ -173,6 +173,18 @@ static JSValueRef isAttributeSettableCallback(JSContextRef context, JSObjectRef 
     return result;
 }
 
+
+static JSValueRef isActionSupportedCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    JSStringRef action = 0;
+    if (argumentCount == 1)
+        action = JSValueToStringCopy(context, arguments[0], exception);    
+    JSValueRef result = JSValueMakeNumber(context, toAXElement(thisObject)->isActionSupported(action));
+    if (action)
+        JSStringRelease(action);
+    return result;
+}
+
 static JSValueRef attributeValueCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     JSStringRef attribute = NULL;
@@ -216,6 +228,19 @@ static JSValueRef setSelectedTextRangeCallback(JSContextRef context, JSObjectRef
     toAXElement(thisObject)->setSelectedTextRange(location, length);
     return 0;
 }
+
+static JSValueRef incrementCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    toAXElement(thisObject)->increment();
+    return 0;
+}
+
+static JSValueRef decrementCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    toAXElement(thisObject)->decrement();
+    return 0;
+}
+
 
 // Static Value Getters
 
@@ -304,14 +329,20 @@ static JSValueRef getSelectedTextRangeCallback(JSContextRef context, JSObjectRef
     return JSValueMakeString(context, selectedTextRange.get());
 }
 
-static JSValueRef getSupportsPressActionCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
-{
-    return JSValueMakeBoolean(context, toAXElement(thisObject)->supportsPressAction());
-}
-
 static JSValueRef getIsEnabledCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
     return JSValueMakeBoolean(context, toAXElement(thisObject)->isEnabled());
+}
+
+static JSValueRef getIsRequiredCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef, JSValueRef*)
+{
+    return JSValueMakeBoolean(context, toAXElement(thisObject)->isRequired());
+}
+
+static JSValueRef getValueDescriptionCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+{
+    JSRetainPtr<JSStringRef> valueDescription(Adopt, toAXElement(thisObject)->valueDescription());
+    return JSValueMakeString(context, valueDescription.get());
 }
 
 // Destruction
@@ -347,8 +378,9 @@ JSClassRef AccessibilityUIElement::getJSClass()
         { "childrenCount", getChildrenCountCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "insertionPointLineNumber", getInsertionPointLineNumberCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "selectedTextRange", getSelectedTextRangeCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
-        { "supportsPressAction", getSupportsPressActionCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "isEnabled", getIsEnabledCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "isRequired", getIsRequiredCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "valueDescription", getValueDescriptionCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0, 0 }
     };
 
@@ -376,7 +408,10 @@ JSClassRef AccessibilityUIElement::getJSClass()
         { "setSelectedTextRange", setSelectedTextRangeCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "attributeValue", attributeValueCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "isAttributeSettable", isAttributeSettableCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "isActionSupported", isActionSupportedCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "parentElement", parentElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "increment", incrementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "decrement", decrementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0 }
     };
 

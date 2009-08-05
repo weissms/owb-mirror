@@ -116,7 +116,7 @@ class SCM:
     def ensure_clean_working_directory(self, force):
         if not force and not self.working_directory_is_clean():
             print self.run_command(self.status_command(), raise_on_failure=False)
-            error("Working directory has modifications, pass --force-clean or --no-clean to continue.")
+            raise ScriptError("Working directory has modifications, pass --force-clean or --no-clean to continue.")
         
         log("Cleaning working directory")
         self.clean_working_directory()
@@ -131,11 +131,14 @@ class SCM:
             error("Working directory has local commits, pass --force-clean to continue.")
         self.discard_local_commits()
 
-    def apply_patch(self, patch):
+    def apply_patch(self, patch, force=False):
         # It's possible that the patch was not made from the root directory.
         # We should detect and handle that case.
         curl_process = subprocess.Popen(['curl', patch['url']], stdout=subprocess.PIPE)
-        patch_apply_process = subprocess.Popen([self.script_path('svn-apply'), '--reviewer', patch['reviewer']], stdin=curl_process.stdout)
+        args = [self.script_path('svn-apply'), '--reviewer', patch['reviewer']]
+        if force:
+            args.append('--force')
+        patch_apply_process = subprocess.Popen(args, stdin=curl_process.stdout)
 
         return_code = patch_apply_process.wait()
         if return_code:
@@ -379,12 +382,13 @@ class Git(SCM):
     # A B     : [A, B]  (different from git diff, which would use "rev-list A..B")
     def commit_ids_from_commitish_arguments(self, args):
         if not len(args):
+            # FIXME: trunk is not always the remote branch name, need a way to detect the name.
             args.append('trunk..HEAD')
 
         commit_ids = []
         for commitish in args:
             if '...' in commitish:
-                error("'...' is not supported (found in '%s'). Did you mean '..'?" % commitish)
+                raise ScriptError("'...' is not supported (found in '%s'). Did you mean '..'?" % commitish)
             elif '..' in commitish:
                 commit_ids += self.run_command(['git', 'rev-list', commitish]).splitlines()
             else:

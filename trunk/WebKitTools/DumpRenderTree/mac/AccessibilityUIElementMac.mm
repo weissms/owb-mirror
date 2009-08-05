@@ -385,6 +385,14 @@ double AccessibilityUIElement::maxValue()
     return 0.0;
 }
 
+JSStringRef AccessibilityUIElement::valueDescription()
+{
+    NSString* valueDescription = [m_element accessibilityAttributeValue:NSAccessibilityValueDescriptionAttribute];
+     if ([valueDescription isKindOfClass:[NSString class]])
+         return [valueDescription createJSStringRef];
+    return 0;
+}
+
 int AccessibilityUIElement::insertionPointLineNumber()
 {
     id value = [m_element accessibilityAttributeValue:NSAccessibilityInsertionPointLineNumberAttribute];
@@ -393,15 +401,23 @@ int AccessibilityUIElement::insertionPointLineNumber()
     return -1;
 }
 
-bool AccessibilityUIElement::supportsPressAction()
+bool AccessibilityUIElement::isActionSupported(JSStringRef action)
 {
     NSArray* actions = [m_element accessibilityActionNames];
-    return [actions containsObject:NSAccessibilityPressAction];
+    return [actions containsObject:[NSString stringWithJSStringRef:action]];
 }
 
 bool AccessibilityUIElement::isEnabled()
 {
     id value = [m_element accessibilityAttributeValue:NSAccessibilityEnabledAttribute];
+    if ([value isKindOfClass:[NSNumber class]])
+        return [value boolValue];
+    return false;
+}
+
+bool AccessibilityUIElement::isRequired() const
+{
+    id value = [m_element accessibilityAttributeValue:@"AXRequired"];
     if ([value isKindOfClass:[NSNumber class]])
         return [value boolValue];
     return false;
@@ -524,4 +540,14 @@ void AccessibilityUIElement::setSelectedTextRange(unsigned location, unsigned le
     NSRange textRange = NSMakeRange(location, length);
     NSValue *textRangeValue = [NSValue valueWithRange:textRange];
     [m_element accessibilitySetValue:textRangeValue forAttribute:NSAccessibilitySelectedTextRangeAttribute];
+}
+
+void AccessibilityUIElement::increment()
+{
+    [m_element accessibilityPerformAction:NSAccessibilityIncrementAction];
+}
+
+void AccessibilityUIElement::decrement()
+{
+    [m_element accessibilityPerformAction:NSAccessibilityDecrementAction];
 }
