@@ -286,6 +286,7 @@ IDL_BINDINGS += \
     css/CSSValueList.idl \
     css/CSSVariablesDeclaration.idl \
     css/CSSVariablesRule.idl \
+    css/Media.idl \
     css/MediaList.idl \
     css/RGBColor.idl \
     css/Rect.idl \
@@ -608,6 +609,7 @@ SOURCES += \
     css/FontFamilyValue.cpp \
     css/FontValue.cpp \
     css/MediaFeatureNames.cpp \
+    css/Media.cpp \
     css/MediaList.cpp \
     css/MediaQuery.cpp \
     css/MediaQueryEvaluator.cpp \
@@ -1266,6 +1268,7 @@ HEADERS += \
     css/FontFamilyValue.h \
     css/FontValue.h \
     css/MediaFeatureNames.h \
+    css/Media.h \
     css/MediaList.h \
     css/MediaQueryEvaluator.h \
     css/MediaQueryExp.h \
@@ -2420,12 +2423,17 @@ contains(DEFINES, SHARED_WORKERS=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_SHARED_WORKERS=1
 
     IDL_BINDINGS += \
-        workers/SharedWorker.idl
+        workers/SharedWorker.idl \
+        workers/SharedWorkerContext.idl
 
     SOURCES += \
         bindings/js/JSSharedWorkerConstructor.cpp \
+        bindings/js/JSSharedWorkerContextCustom.cpp \
         bindings/js/JSSharedWorkerCustom.cpp \
-        workers/SharedWorker.cpp
+        workers/DefaultSharedWorkerRepository.cpp \
+        workers/SharedWorker.cpp \
+        workers/SharedWorkerContext.cpp \
+        workers/SharedWorkerThread.cpp
 }
 
 contains(DEFINES, ENABLE_VIDEO=1) {
@@ -3126,7 +3134,7 @@ addExtraCompilerWithHeader(xmlnames)
 
 # GENERATOR 8-A:
 entities.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}HTMLEntityNames.c
-entities.commands = gperf -a -L ANSI-C -C -G -c -o -t --key-positions="*" -N findEntity -D -s 2 < $$PWD/html/HTMLEntityNames.gperf > $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}HTMLEntityNames.c
+entities.commands = gperf -a -L ANSI-C -C -G -c -o -t --includes --key-positions="*" -N findEntity -D -s 2 < $$PWD/html/HTMLEntityNames.gperf > $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}HTMLEntityNames.c
 entities.input = ENTITIES_GPERF
 entities.dependency_type = TYPE_C
 entities.CONFIG = target_predeps no_link
@@ -3137,7 +3145,7 @@ addExtraCompiler(entities)
 # GENERATOR 8-B:
 doctypestrings.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}${QMAKE_FILE_BASE}.cpp
 doctypestrings.input = DOCTYPESTRINGS
-doctypestrings.commands = perl -e \"print \'$${LITERAL_HASH}include <string.h>\';\" > ${QMAKE_FILE_OUT} && echo // bogus >> ${QMAKE_FILE_OUT} && gperf -CEot -L ANSI-C --key-positions="*" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${QMAKE_FILE_NAME} >> ${QMAKE_FILE_OUT}
+doctypestrings.commands = gperf -CEot -L ANSI-C --includes --key-positions="*" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${QMAKE_FILE_NAME} >> ${QMAKE_FILE_OUT}
 doctypestrings.dependency_type = TYPE_C
 doctypestrings.CONFIG += target_predeps no_link
 doctypestrings.variable_out =
@@ -3146,7 +3154,7 @@ addExtraCompiler(doctypestrings)
 
 # GENERATOR 8-C:
 colordata.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}ColorData.c
-colordata.commands = perl -e \"print \'$${LITERAL_HASH}include <string.h>\';\" > ${QMAKE_FILE_OUT} && echo // bogus >> ${QMAKE_FILE_OUT} && gperf -CDEot -L ANSI-C --key-positions="*" -N findColor -D -s 2 < ${QMAKE_FILE_NAME} >> ${QMAKE_FILE_OUT}
+colordata.commands = gperf -CDEot -L ANSI-C --includes --key-positions="*" -N findColor -D -s 2 < ${QMAKE_FILE_NAME} >> ${QMAKE_FILE_OUT}
 colordata.input = COLORDAT_GPERF
 colordata.CONFIG = target_predeps no_link
 colordata.variable_out =

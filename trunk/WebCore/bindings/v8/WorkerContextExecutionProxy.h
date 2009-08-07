@@ -34,10 +34,10 @@
 
 #if ENABLE(WORKERS)
 
-#include <v8.h>
 #include "ScriptValue.h"
 #include "V8EventListenerList.h"
 #include "V8Index.h"
+#include <v8.h>
 #include <wtf/OwnPtr.h>
 #include <wtf/Vector.h>
 
@@ -64,19 +64,12 @@ namespace WebCore {
         WorkerContextExecutionProxy(WorkerContext*);
         ~WorkerContextExecutionProxy();
 
-        // FIXME: following function should have camelCased names once V8 code-generating script is migrated.
-        v8::Local<v8::Context> GetContext() { return v8::Local<v8::Context>::New(m_context); }
-        v8::Local<v8::Function> GetConstructor(V8ClassIndex::V8WrapperType);
-        void RemoveEventListener(V8EventListener*);
-
-        static v8::Handle<v8::Value> ToV8Object(V8ClassIndex::V8WrapperType type, void* impl);
-        static v8::Handle<v8::Value> EventToV8Object(Event* event);
-        static v8::Handle<v8::Value> EventTargetToV8Object(EventTarget* target);
-        static v8::Handle<v8::Value> WorkerContextToV8Object(WorkerContext* wc);
+        void removeEventListener(V8EventListener*);
 
         // Finds/creates event listener wrappers.
         PassRefPtr<V8EventListener> findOrCreateEventListener(v8::Local<v8::Value> listener, bool isInline, bool findOnly);
         PassRefPtr<V8EventListener> findOrCreateObjectEventListener(v8::Local<v8::Value> object, bool isInline, bool findOnly);
+        PassRefPtr<V8EventListener> findOrCreateEventListenerHelper(v8::Local<v8::Value> object, bool isInline, bool findOnly, bool createObjectEventListener);
 
         // Track the event so that we can detach it from the JS wrapper when a worker
         // terminates. This is needed because we need to be able to dispose these
@@ -86,22 +79,35 @@ namespace WebCore {
         // Evaluate a script file in the current execution environment.
         ScriptValue evaluate(const String& script, const String& fileName, int baseLine, WorkerContextExecutionState*);
 
+        // Returns a local handle of the context.
+        v8::Local<v8::Context> context() { return v8::Local<v8::Context>::New(m_context); }
+
         // Returns WorkerContext object.
         WorkerContext* workerContext() { return m_workerContext; }
 
         // Returns WorkerContextExecutionProxy object of the currently executing context. 0 will be returned if the current executing context is not the worker context.
         static WorkerContextExecutionProxy* retrieve();
 
+        // We have to keep all these conversion functions here before WorkerContextExecutionProxy is refactor-ed.
+        template<typename T>
+        static v8::Handle<v8::Value> convertToV8Object(V8ClassIndex::V8WrapperType type, PassRefPtr<T> impl)
+        {
+            return convertToV8Object(type, impl.get());
+        }
+        static v8::Handle<v8::Value> convertToV8Object(V8ClassIndex::V8WrapperType, void* impl);
+        static v8::Handle<v8::Value> convertEventToV8Object(Event*);
+        static v8::Handle<v8::Value> convertEventTargetToV8Object(EventTarget*);
+        static v8::Handle<v8::Value> convertWorkerContextToV8Object(WorkerContext*);
+
     private:
         void initV8IfNeeded();
         void initContextIfNeeded();
         void dispose();
-        PassRefPtr<V8EventListener> findOrCreateEventListenerHelper(v8::Local<v8::Value> object, bool isInline, bool findOnly, bool createObjectEventListener);
 
         // Run an already compiled script.
         v8::Local<v8::Value> runScript(v8::Handle<v8::Script>);
 
-        static v8::Local<v8::Object> toV8(V8ClassIndex::V8WrapperType descType, V8ClassIndex::V8WrapperType cptrType, void* impl);
+        static v8::Local<v8::Object> toV8(V8ClassIndex::V8WrapperType descriptorType, V8ClassIndex::V8WrapperType cptrType, void* impl);
 
         static bool forgetV8EventObject(Event*);
 

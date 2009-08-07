@@ -41,6 +41,7 @@ VPATH = \
     $(WebCore)/wml \
     $(WebCore)/workers \
     $(WebCore)/svg \
+    $(WebCore)/websockets \
 #
 
 DOM_CLASSES = \
@@ -175,6 +176,7 @@ DOM_CLASSES = \
     InspectorBackend \
     KeyboardEvent \
     Location \
+    Media \
     MediaError \
     MediaList \
     MessageChannel \
@@ -204,6 +206,7 @@ DOM_CLASSES = \
     RangeException \
     Rect \
     SharedWorker \
+    SharedWorkerContext \
     SQLError \
     SQLResultSet \
     SQLResultSetRowList \
@@ -373,6 +376,7 @@ DOM_CLASSES = \
     WebKitCSSTransformValue \
     WebKitPoint \
     WebKitTransitionEvent \
+    WebSocket \
     WheelEvent \
     Worker \
     WorkerContext \

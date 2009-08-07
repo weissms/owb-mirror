@@ -10,7 +10,6 @@ endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
     bindings/js/GCController.cpp
-    bindings/js/JSAbstractWorkerCustom.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp
@@ -74,8 +73,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginElementFunctions.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
-    bindings/js/JSSharedWorkerConstructor.cpp
-    bindings/js/JSSharedWorkerCustom.cpp
     bindings/js/JSStyleSheetCustom.cpp
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp
@@ -151,8 +148,16 @@ if(ENABLE_VIDEO)
     )
 endif(ENABLE_VIDEO)
 
+if(ENABLE_WEB_SOCKETS)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSWebSocketConstructor.cpp
+        bindings/js/JSWebSocketCustom.cpp
+    )
+endif(ENABLE_WEB_SOCKETS)
+
 if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
+        bindings/js/JSAbstractWorkerCustom.cpp
         bindings/js/JSDedicatedWorkerContextCustom.cpp
         bindings/js/JSWorkerConstructor.cpp
         bindings/js/JSWorkerContextBase.cpp
@@ -160,6 +165,13 @@ if(ENABLE_WORKERS)
         bindings/js/JSWorkerCustom.cpp
         bindings/js/WorkerScriptController.cpp
     )
+    if(ENABLE_SHARED_WORKERS)
+        list(APPEND WEBCORE_SRC
+            bindings/js/JSSharedWorkerConstructor.cpp
+            bindings/js/JSSharedWorkerContextCustom.cpp
+            bindings/js/JSSharedWorkerCustom.cpp
+        )
+    endif(ENABLE_SHARED_WORKERS)
 endif(ENABLE_WORKERS)
 
 if(ENABLE_XPATH)

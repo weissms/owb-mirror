@@ -34,8 +34,10 @@
 #include "ScriptExecutionContext.h"
 #include "Document.h"
 #include "DocumentThreadableLoader.h"
+#if ENABLE(WORKERS)
 #include "WorkerContext.h"
 #include "WorkerRunLoop.h"
+#endif
 #include "WorkerThreadableLoader.h"
 
 namespace WebCore {

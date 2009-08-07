@@ -14,6 +14,7 @@ JavaScriptCore/yarr/RegexInterpreter.cpp
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
+WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bindings/js/ScheduledAction.cpp
 WebCore/bindings/js/ScriptObject.cpp
 WebCore/bindings/js/ScriptObjectQuarantine.h
@@ -24,8 +25,10 @@ WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
 WebCore/css/CSSStyleSelector.h
 WebCore/css/MediaQueryEvaluator.cpp
+WebCore/dom/ActiveDOMObject.cpp
 WebCore/dom/Document.cpp
 WebCore/dom/Document.h
+WebCore/dom/ScriptExecutionContext.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/page/DOMWindow.cpp
 WebCore/page/DOMWindow.h
@@ -39,6 +42,7 @@ WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
 WebCore/loader/EmptyClients.h
 WebCore/loader/FrameLoader.cpp
+WebCore/loader/ThreadableLoader.cpp
 WebCore/accessibility/AccessibilityObject.cpp
 WebCore/accessibility/AccessibilityObject.h
 WebCore/page/Chrome.cpp

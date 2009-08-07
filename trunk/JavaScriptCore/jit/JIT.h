@@ -242,6 +242,31 @@ namespace JSC {
         static const FPRegisterID fpRegT0 = ARM::d0;
         static const FPRegisterID fpRegT1 = ARM::d1;
         static const FPRegisterID fpRegT2 = ARM::d2;
+#elif PLATFORM(ARM)
+        static const RegisterID returnValueRegister = ARM::r0;
+        static const RegisterID cachedResultRegister = ARM::r0;
+        static const RegisterID firstArgumentRegister = ARM::r0;
+
+        static const RegisterID timeoutCheckRegister = ARM::r5;
+        static const RegisterID callFrameRegister = ARM::r4;
+        static const RegisterID ctiReturnRegister = ARM::r6;
+
+        static const RegisterID regT0 = ARM::r0;
+        static const RegisterID regT1 = ARM::r1;
+        static const RegisterID regT2 = ARM::r2;
+        // Callee preserved
+        static const RegisterID regT3 = ARM::r7;
+
+        static const RegisterID regS0 = ARM::S0;
+        // Callee preserved
+        static const RegisterID regS1 = ARM::S1;
+
+        static const RegisterID regStackPtr = ARM::sp;
+        static const RegisterID regLink = ARM::lr;
+
+        static const FPRegisterID fpRegT0 = ARM::d0;
+        static const FPRegisterID fpRegT1 = ARM::d1;
+        static const FPRegisterID fpRegT2 = ARM::d2;
 #else
     #error "JIT not supported on this platform."
 #endif
@@ -292,15 +317,15 @@ namespace JSC {
             jit.privateCompilePutByIdTransition(stubInfo, oldStructure, newStructure, cachedOffset, chain, returnAddress);
         }
 
-        static void compileCTIMachineTrampolines(JSGlobalData* globalData, RefPtr<ExecutablePool>* executablePool, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallPreLink, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk)
+        static void compileCTIMachineTrampolines(JSGlobalData* globalData, RefPtr<ExecutablePool>* executablePool, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk)
         {
             JIT jit(globalData);
-            jit.privateCompileCTIMachineTrampolines(executablePool, globalData, ctiStringLengthTrampoline, ctiVirtualCallPreLink, ctiVirtualCallLink, ctiVirtualCall, ctiNativeCallThunk);
+            jit.privateCompileCTIMachineTrampolines(executablePool, globalData, ctiStringLengthTrampoline, ctiVirtualCallLink, ctiVirtualCall, ctiNativeCallThunk);
         }
 
         static void patchGetByIdSelf(CodeBlock* codeblock, StructureStubInfo*, Structure*, size_t cachedOffset, ReturnAddressPtr returnAddress);
         static void patchPutByIdReplace(CodeBlock* codeblock, StructureStubInfo*, Structure*, size_t cachedOffset, ReturnAddressPtr returnAddress);
-        static void patchMethodCallProto(CodeBlock* codeblock, MethodCallLinkInfo&, JSFunction*, Structure*, JSObject*);
+        static void patchMethodCallProto(CodeBlock* codeblock, MethodCallLinkInfo&, JSFunction*, Structure*, JSObject*, ReturnAddressPtr);
 
         static void compilePatchGetArrayLength(JSGlobalData* globalData, CodeBlock* codeBlock, ReturnAddressPtr returnAddress)
         {
@@ -336,7 +361,7 @@ namespace JSC {
         void privateCompileGetByIdChain(StructureStubInfo*, Structure*, StructureChain*, size_t count, size_t cachedOffset, ReturnAddressPtr returnAddress, CallFrame* callFrame);
         void privateCompilePutByIdTransition(StructureStubInfo*, Structure*, Structure*, size_t cachedOffset, StructureChain*, ReturnAddressPtr returnAddress);
 
-        void privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executablePool, JSGlobalData* data, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallPreLink, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk);
+        void privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executablePool, JSGlobalData* data, CodePtr* ctiStringLengthTrampoline, CodePtr* ctiVirtualCallLink, CodePtr* ctiVirtualCall, CodePtr* ctiNativeCallThunk);
         void privateCompilePatchGetArrayLength(ReturnAddressPtr returnAddress);
 
         void addSlowCase(Jump);

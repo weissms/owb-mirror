@@ -1422,6 +1422,14 @@
 				>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.cpp"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMediaError.cpp"
 				>
 			</File>
@@ -1611,6 +1619,54 @@
 			</File>
 			<File
 				RelativePath="$(WebKitOutputDir)\obj\WebCore\DerivedSources\JSSharedWorker.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\WebCore\DerivedSources\JSSharedWorkerContext.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Internal|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\WebCore\DerivedSources\JSSharedWorkerContext.h"
 				>
 			</File>
 			<File
@@ -5771,6 +5827,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\css\Media.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\css\Media.h"
+				>
+			</File>
+			<File
 				RelativePath="..\css\MediaFeatureNames.cpp"
 				>
 			</File>
@@ -9062,6 +9126,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSSharedWorkerConstructor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSSharedWorkerContextCustom.cpp"
 					>
 				</File>
 				<File

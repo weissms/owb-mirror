@@ -99,6 +99,7 @@ IDL_BINDINGS += \
 	WebCore/css/CSSVariablesDeclaration.idl \
 	WebCore/css/CSSVariablesRule.idl \
 	WebCore/css/Counter.idl \
+	WebCore/css/Media.idl \
 	WebCore/css/MediaList.idl \
 	WebCore/css/RGBColor.idl \
 	WebCore/css/Rect.idl \
@@ -253,6 +254,7 @@ IDL_BINDINGS += \
 	WebCore/workers/AbstractWorker.idl \
 	WebCore/workers/DedicatedWorkerContext.idl \
 	WebCore/workers/SharedWorker.idl \
+	WebCore/workers/SharedWorkerContext.idl \
 	WebCore/workers/Worker.idl \
 	WebCore/workers/WorkerContext.idl \
 	WebCore/workers/WorkerLocation.idl \
@@ -401,7 +403,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSPluginElementFunctions.h \
 	WebCore/bindings/js/JSQuarantinedObjectWrapper.cpp \
 	WebCore/bindings/js/JSQuarantinedObjectWrapper.h \
-	WebCore/bindings/js/JSSharedWorkerConstructor.h \
 	WebCore/bindings/js/JSStorageCustom.h \
 	WebCore/bindings/js/JSStyleSheetCustom.cpp \
 	WebCore/bindings/js/JSStyleSheetListCustom.cpp \
@@ -579,6 +580,8 @@ webcore_sources += \
 	WebCore/css/FontValue.h \
 	WebCore/css/MediaFeatureNames.cpp \
 	WebCore/css/MediaFeatureNames.h \
+	WebCore/css/Media.cpp \
+	WebCore/css/Media.h \
 	WebCore/css/MediaList.cpp \
 	WebCore/css/MediaList.h \
 	WebCore/css/MediaQuery.cpp \
@@ -2386,9 +2389,17 @@ webcore_cppflags += \
 webcore_built_sources += \
 	WebCore/bindings/js/JSSharedWorkerConstructor.cpp \
 	WebCore/bindings/js/JSSharedWorkerConstructor.h \
+	WebCore/bindings/js/JSSharedWorkerContextCustom.cpp \
 	WebCore/bindings/js/JSSharedWorkerCustom.cpp \
+	WebCore/workers/DefaultSharedWorkerRepository.cpp \
+	WebCore/workers/DefaultSharedWorkerRepository.h \
 	WebCore/workers/SharedWorker.cpp \
-	WebCore/workers/SharedWorker.h
+	WebCore/workers/SharedWorker.h \
+	WebCore/workers/SharedWorkerContext.cpp \
+	WebCore/workers/SharedWorkerContext.h \
+	WebCore/workers/SharedWorkerRepository.h \
+	WebCore/workers/SharedWorkerThread.cpp \
+	WebCore/workers/SharedWorkerThread.h
 
 endif
 
@@ -3130,9 +3141,19 @@ endif # END ENABLE_SVG
 if ENABLE_WEB_SOCKETS
 FEATURE_DEFINES_JAVASCRIPT += ENABLE_WEB_SOCKETS=1
 
+IDL_BINDINGS += \
+	WebCore/websockets/WebSocket.idl
+
 webcore_cppflags += \
 	-DENABLE_WEB_SOCKETS=1 \
 	-I$(srcdir)/WebCore/websockets
+
+webcore_sources += \
+	WebCore/bindings/js/JSWebSocketConstructor.cpp \
+	WebCore/bindings/js/JSWebSocketConstructor.h \
+	WebCore/bindings/js/JSWebSocketCustom.cpp \
+	WebCore/websockets/WebSocket.cpp \
+	WebCore/websockets/WebSocket.h
 
 else
 webcore_cppflags += -DENABLE_WEB_SOCKETS=0
@@ -3238,6 +3259,7 @@ IDL_PATH := \
     $(WebCore)/svg \
     $(WebCore)/xml \
     $(WebCore)/plugins \
+    $(WebCore)/websockets \
     $(WebCore)/workers
 
 vpath %.idl = $(IDL_PATH)

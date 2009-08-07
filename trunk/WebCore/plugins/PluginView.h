@@ -273,6 +273,7 @@ namespace WebCore {
         bool m_isWindowed;
         bool m_isTransparent;
         bool m_haveInitialized;
+        bool m_isWaitingToStart;
 
 #if PLATFORM(GTK) || defined(Q_WS_X11) || PLATFORM(BAL)
         bool m_needsXEmbed;

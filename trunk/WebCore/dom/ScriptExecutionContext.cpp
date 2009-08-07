@@ -31,8 +31,10 @@
 #include "Document.h"
 #include "MessagePort.h"
 #include "SecurityOrigin.h"
+#if ENABLE(WORKERS)
 #include "WorkerContext.h"
 #include "WorkerThread.h"
+#endif
 #include <wtf/MainThread.h>
 #include <wtf/PassRefPtr.h>
 

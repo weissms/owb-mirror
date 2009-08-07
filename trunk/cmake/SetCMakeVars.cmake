@@ -52,7 +52,6 @@ list(APPEND JAVASCRIPTCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/JavaScriptCore/yarr
 )
 list(APPEND WEBCORE_INCLUDE_DIRS
-    ${OWB_BINARY_DIR}/generated_sources/WebCore/workers
     ${OWB_SOURCE_DIR}/WebCore/accessibility
     ${OWB_SOURCE_DIR}/WebCore/bindings/js
     ${OWB_SOURCE_DIR}/WebCore/bridge
@@ -73,7 +72,6 @@ list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebCore/plugins
     ${OWB_SOURCE_DIR}/WebCore/rendering
     ${OWB_SOURCE_DIR}/WebCore/rendering/style
-    ${OWB_SOURCE_DIR}/WebCore/workers
     ${OWB_SOURCE_DIR}/WebCore/xml
 )
 list(APPEND WEBKIT_INCLUDE_DIRS
@@ -157,12 +155,25 @@ if(ENABLE_VIDEO)
     )
 endif(ENABLE_VIDEO)
 
+if(ENABLE_WEB_SOCKETS)
+    list(APPEND WEBCORE_INCLUDE_DIRS
+        ${OWB_SOURCE_DIR}/WebCore/websockets
+    )
+endif(ENABLE_WEB_SOCKETS)
+
 if(ENABLE_WML)
     list(APPEND WEBCORE_INCLUDE_DIRS
         ${OWB_SOURCE_DIR}/WebCore/wml
         ${OWB_BINARY_DIR}/generated_sources/WebCore/wml
     )
 endif(ENABLE_WML)
+
+if(ENABLE_WORKERS)
+    list(APPEND WEBCORE_INCLUDE_DIRS
+        ${OWB_BINARY_DIR}/generated_sources/WebCore/workers
+        ${OWB_SOURCE_DIR}/WebCore/workers
+    )
+endif(ENABLE_WORKERS)
 
 if(ENABLE_XSLT)
     list(APPEND EXTERNAL_DEPS_INCLUDE_DIRS

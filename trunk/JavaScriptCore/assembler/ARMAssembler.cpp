@@ -329,9 +329,40 @@ void ARMAssembler::baseIndexTransfer32(bool isLoad, RegisterID srcDst, RegisterI
         return;
     }
 
-    moveImm(offset, ARM::S0);
+    ldr_un_imm(ARM::S0, offset);
     add_r(ARM::S0, ARM::S0, op2);
     dtr_ur(isLoad, srcDst, base, ARM::S0);
+}
+
+void ARMAssembler::doubleTransfer(bool isLoad, FPRegisterID srcDst, RegisterID base, int32_t offset)
+{
+    if (offset & 0x3) {
+        if (offset <= 0x3ff && offset >= 0) {
+            fdtr_u(isLoad, srcDst, base, offset >> 2);
+            return;
+        }
+        if (offset <= 0x3ffff && offset >= 0) {
+            add_r(ARM::S0, base, OP2_IMM | (offset >> 10) | (11 << 8));
+            fdtr_u(isLoad, srcDst, ARM::S0, (offset >> 2) & 0xff);
+            return;
+        }
+        offset = -offset;
+
+        if (offset <= 0x3ff && offset >= 0) {
+            fdtr_d(isLoad, srcDst, base, offset >> 2);
+            return;
+        }
+        if (offset <= 0x3ffff && offset >= 0) {
+            sub_r(ARM::S0, base, OP2_IMM | (offset >> 10) | (11 << 8));
+            fdtr_d(isLoad, srcDst, ARM::S0, (offset >> 2) & 0xff);
+            return;
+        }
+        offset = -offset;
+    }
+
+    ldr_un_imm(ARM::S0, offset);
+    add_r(ARM::S0, ARM::S0, base);
+    fdtr_u(isLoad, srcDst, ARM::S0, 0);
 }
 
 void* ARMAssembler::executableCopy(ExecutablePool* allocator)

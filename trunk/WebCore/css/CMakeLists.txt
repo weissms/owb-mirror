@@ -43,6 +43,7 @@ list(APPEND WEBCORE_SRC
     css/CSSVariablesRule.cpp
     css/FontFamilyValue.cpp
     css/FontValue.cpp
+    css/Media.cpp
     css/MediaFeatureNames.cpp
     css/MediaList.cpp
     css/MediaQuery.cpp
@@ -85,6 +86,7 @@ list(APPEND IDL_SRC
     css/CSSValueList.idl
     css/CSSVariablesDeclaration.idl
     css/CSSVariablesRule.idl
+    css/Media.idl
     css/MediaList.idl
     css/Rect.idl
     css/RGBColor.idl

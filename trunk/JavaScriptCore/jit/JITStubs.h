@@ -38,6 +38,8 @@
 
 namespace JSC {
 
+    struct StructureStubInfo;
+
     class CodeBlock;
     class ExecutablePool;
     class Identifier;
@@ -155,6 +157,27 @@ namespace JSC {
         
         ReturnAddressPtr* returnAddressSlot() { return &thunkReturnAddress; }
     };
+#elif PLATFORM(ARM)
+    struct JITStackFrame {
+        JITStubArg padding; // Unused
+        JITStubArg args[7];
+
+        void* preservedR4;
+        void* preservedR5;
+        void* preservedR6;
+        void* preservedR7;
+        void* preservedR8;
+        void* preservedLink;
+
+        RegisterFile* registerFile;
+        CallFrame* callFrame;
+        JSValue* exception;
+        Profiler** enabledProfilerReference;
+        JSGlobalData* globalData;
+
+        // When JIT code makes a call, it pushes its return address just below the rest of the stack.
+        ReturnAddressPtr* returnAddressSlot() { return reinterpret_cast<ReturnAddressPtr*>(this) - 1; }
+    };
 #else
 #error "JITStackFrame not defined for this platform."
 #endif
@@ -206,11 +229,10 @@ namespace JSC {
     public:
         JITThunks(JSGlobalData*);
 
-        static void tryCacheGetByID(CallFrame*, CodeBlock*, ReturnAddressPtr returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot&);
-        static void tryCachePutByID(CallFrame*, CodeBlock*, ReturnAddressPtr returnAddress, JSValue baseValue, const PutPropertySlot&);
-        
+        static void tryCacheGetByID(CallFrame*, CodeBlock*, ReturnAddressPtr returnAddress, JSValue baseValue, const Identifier& propertyName, const PropertySlot&, StructureStubInfo* stubInfo);
+        static void tryCachePutByID(CallFrame*, CodeBlock*, ReturnAddressPtr returnAddress, JSValue baseValue, const PutPropertySlot&, StructureStubInfo* stubInfo);
+
         MacroAssemblerCodePtr ctiStringLengthTrampoline() { return m_ctiStringLengthTrampoline; }
-        MacroAssemblerCodePtr ctiVirtualCallPreLink() { return m_ctiVirtualCallPreLink; }
         MacroAssemblerCodePtr ctiVirtualCallLink() { return m_ctiVirtualCallLink; }
         MacroAssemblerCodePtr ctiVirtualCall() { return m_ctiVirtualCall; }
         MacroAssemblerCodePtr ctiNativeCallThunk() { return m_ctiNativeCallThunk; }
@@ -219,7 +241,6 @@ namespace JSC {
         RefPtr<ExecutablePool> m_executablePool;
 
         MacroAssemblerCodePtr m_ctiStringLengthTrampoline;
-        MacroAssemblerCodePtr m_ctiVirtualCallPreLink;
         MacroAssemblerCodePtr m_ctiVirtualCallLink;
         MacroAssemblerCodePtr m_ctiVirtualCall;
         MacroAssemblerCodePtr m_ctiNativeCallThunk;
@@ -242,11 +263,9 @@ extern "C" {
     EncodedJSValue JIT_STUB cti_op_get_by_id_array_fail(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_generic(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_method_check(STUB_ARGS_DECLARATION);
-    EncodedJSValue JIT_STUB cti_op_get_by_id_method_check_second(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_proto_fail(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_proto_list(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_proto_list_full(STUB_ARGS_DECLARATION);
-    EncodedJSValue JIT_STUB cti_op_get_by_id_second(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_self_fail(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_id_string_fail(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_get_by_val(STUB_ARGS_DECLARATION);
@@ -324,7 +343,6 @@ extern "C" {
     void JIT_STUB cti_op_put_by_id(STUB_ARGS_DECLARATION);
     void JIT_STUB cti_op_put_by_id_fail(STUB_ARGS_DECLARATION);
     void JIT_STUB cti_op_put_by_id_generic(STUB_ARGS_DECLARATION);
-    void JIT_STUB cti_op_put_by_id_second(STUB_ARGS_DECLARATION);
     void JIT_STUB cti_op_put_by_index(STUB_ARGS_DECLARATION);
     void JIT_STUB cti_op_put_by_val(STUB_ARGS_DECLARATION);
     void JIT_STUB cti_op_put_by_val_array(STUB_ARGS_DECLARATION);
@@ -339,7 +357,6 @@ extern "C" {
     void* JIT_STUB cti_op_switch_char(STUB_ARGS_DECLARATION);
     void* JIT_STUB cti_op_switch_imm(STUB_ARGS_DECLARATION);
     void* JIT_STUB cti_op_switch_string(STUB_ARGS_DECLARATION);
-    void* JIT_STUB cti_vm_dontLazyLinkCall(STUB_ARGS_DECLARATION);
     void* JIT_STUB cti_vm_lazyLinkCall(STUB_ARGS_DECLARATION);
 } // extern "C"
 

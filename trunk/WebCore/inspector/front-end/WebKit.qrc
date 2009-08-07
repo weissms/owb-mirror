@@ -7,6 +7,7 @@
     <file>Callback.js</file>
     <file>CallStackSidebarPane.js</file>
     <file>ChangesView.js</file>
+    <file>Color.js</file>
     <file>ConsoleView.js</file>
     <file>Database.js</file>
     <file>DatabaseQueryView.js</file>
@@ -22,6 +23,7 @@
     <file>ElementsTreeOutline.js</file>
     <file>FontView.js</file>
     <file>ImageView.js</file>
+    <file>InjectedScript.js</file>
     <file>inspector.js</file>
     <file>KeyboardShortcut.js</file>
     <file>MetricsSidebarPane.js</file>

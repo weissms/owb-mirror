@@ -539,9 +539,8 @@ static bool equal(const UChar* a, const char* b, int length)
     return true;
 }
 
-static bool equalIgnoringCase(const UChar* a, const char* b, int length)
+bool equalIgnoringCase(const UChar* a, const char* b, unsigned length)
 {
-    ASSERT(length >= 0);
     while (length--) {
         unsigned char bc = *b++;
         if (foldCase(*a++) != foldCase(bc))

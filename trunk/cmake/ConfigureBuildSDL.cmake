@@ -30,6 +30,7 @@ endif(ARCH MATCHES "[ix][3-6]*86*")
 
 set(ENABLE_MULTIPLE_THREADS ON CACHE BOOLEAN "Enable multiple threads" FORCE)
 set(ENABLE_WORKERS ON CACHE BOOLEAN "Enable workers support" FORCE)
+set(ENABLE_SHARED_WORKERS ON CACHE BOOLEAN "Enable shared workers support" FORCE)
 set(ENABLE_NPAPI ON CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 
 set(ENABLE_SVG ON CACHE BOOLEAN "Enable SVG support" FORCE)
@@ -41,6 +42,7 @@ set(ENABLE_SVG_FOREIGN_OBJECT ON CACHE BOOLEAN "Enable support for SVG foreign o
 set(ENABLE_SVG_USE_ELEMENT ON CACHE BOOLEAN "Enable support for SVG use element (EXPERIMENTAL)" FORCE)
 
 set(ENABLE_VIDEO ON CACHE BOOLEAN "Enable HTML5 video support" FORCE)
+set(ENABLE_WEB_SOCKETS ON CACHE BOOLEAN "Enable Web Sockets support" FORCE)
 set(ENABLE_WML ON CACHE BOOLEAN "Enable WML support" FORCE)
 set(ENABLE_XPATH ON CACHE BOOLEAN "Enable XPath support"FORCE)
 set(ENABLE_XSLT ON CACHE BOOLEAN "Enable XSLT support"FORCE)

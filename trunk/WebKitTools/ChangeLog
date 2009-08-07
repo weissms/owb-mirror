@@ -1,3 +1,177 @@
+2009-08-07  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        box-shadow's spread is ignored with <table>
+        https://bugs.webkit.org/show_bug.cgi?id=28017
+
+        Use RenderStyle::getBoxShadowExtent just like RenderBlock.
+
+        * Scripts/make-js-test-wrappers: Added regexp to skip box-shadow-overflow-scroll.js
+
+2009-08-06  Eric Seidel  <eric@webkit.org>
+
+        No review, only changing make-js-test-wrappers.
+
+        Fix make-js-test-wrappers to ignore a few more js tests
+        with custom templates.
+
+        * Scripts/make-js-test-wrappers:
+
+2009-08-06  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Added ENABLE_3D_CANVAS flag to build, default to off
+
+        * Scripts/build-webkit:
+
+2009-08-05  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Win DRT's resource load delegate is missing didReceiveResponse
+        https://bugs.webkit.org/show_bug.cgi?id=28033
+
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        Added:
+        (FrameLoadDelegate::didReceiveServerRedirectForProvisionalLoadForFrame):
+        (FrameLoadDelegate::willPerformClientRedirectToURL):
+        (FrameLoadDelegate::didCancelClientRedirectForFrame):
+
+        Minor style cleanup:
+        (FrameLoadDelegate::didStartProvisionalLoadForFrame): 
+        (FrameLoadDelegate::didReceiveTitle):
+        (FrameLoadDelegate::didFinishLoadForFrame):
+        (FrameLoadDelegate::willCloseFrame):
+        (FrameLoadDelegate::didClearWindowObject):
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+
+2009-08-05  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Win DRT's resource load delegate is missing didReceiveResponse
+        https://bugs.webkit.org/show_bug.cgi?id=28033
+
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::didReceiveResponse):
+        * DumpRenderTree/win/ResourceLoadDelegate.h:
+
+2009-08-05  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add layoutTestController.dumpWillCacheResponse
+        https://bugs.webkit.org/show_bug.cgi?id=28010
+
+        willCacheResponse is only interesting for embedders of mainline WebKit on Mac.
+        Splitting off a new dumpWillCacheResponse allows a number of existings tests
+        to run across platforms.
+
+        The test that was specifically verifying willCacheResponse now calls
+        dumpWillCacheResponse.
+
+        * DumpRenderTree/LayoutTestController.cpp: Add dumpWillCacheResponse
+        (LayoutTestController::LayoutTestController):
+        (dumpWillCacheResponseCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::dumpWillCacheResponse):
+        (LayoutTestController::setDumpWillCacheResponse):
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm: Inspect dumpWillCacheResponse
+        instead of dumpResourceLoadCallbacks.
+        (-[ResourceLoadDelegate webView:resource:willCacheResponse:fromDataSource:]):
+
+2009-08-05  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add my name to committers.py
+        https://bugs.webkit.org/show_bug.cgi?id=28013
+
+        Add my name to committers.py.
+
+        * Scripts/modules/committers.py:
+
+2009-08-05  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        A minor refactoring of the Qt DRT to be a bit more similar to
+        the other DRTs, as well as more understandable.
+
+        Splitting up resetJSObjects into a LayoutTestController->reset()
+        plus a new closeRemainingWindows() method.
+
+        Added a resetToConsistentStateBeforeTesting() method to keep
+        the code in one place, making it easier to verify that we are
+        doing things properly.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+        (WebCore::DumpRenderTree::open):
+        (WebCore::DumpRenderTree::closeRemainingWindows):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+
+2009-08-05  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Make the Qt DRT WorkQueue work similarily to the cross platform
+        one. This means that all items return true if they started
+        loading.
+
+        This change paves the way for unforking the WorkQueue, if we [Qt]
+        would like that.
+
+        * DumpRenderTree/qt/WorkQueue.cpp:
+        (WorkQueue::processWork):
+        * DumpRenderTree/qt/WorkQueue.h:
+        * DumpRenderTree/qt/WorkQueueItem.h:
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        (LayoutTestController::processWork):
+        (LayoutTestController::maybeDump):
+
+2009-08-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        If load of a test fails, don't dump as it will be dumped
+        in the preceding test, resulting in a invalid incorrect layout.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::maybeDump):
+
+2009-08-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Make the Qt DumpRenderTree more similar to the mac one.
+
+        Changes include:
+        1) Reset zoom factor before each test
+        2) Only dump the backforward list when we got other dump result
+        3) When we dump the render tree, and got zero result print out:
+           [mainFrame renderTreeAsExternalRepresentation]
+           and not:
+           [frame renderTreeAsExternalRepresentation]
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open):
+        (WebCore::methodNameStringForFailedTest):
+        (WebCore::DumpRenderTree::dump):
+
+2009-08-05  chris fleizach  <cfleizach@apple.com>
+
+        Fix Tiger build breakage.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+
 2009-08-05  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Darin Adler.
@@ -699,6 +873,18 @@
         Support files as argument. Change documentation and use basename
         on the binary name when used in the documentation. Also do not
         die when printing something containing non-ASCII characters.
+
+2009-08-06  Mike Fenton  <mike.fenton@torchmobile.com>
+
+        Reviewed by David Levin.
+
+        Add validation for pointer and reference declaration as defined by webkit style guidelines to cpp_style.py.
+        Add unit tests for validation and update existing c style cast test to be run explicitly as c validation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27984
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
 
 2009-07-29  David Kilzer  <ddkilzer@apple.com>
 

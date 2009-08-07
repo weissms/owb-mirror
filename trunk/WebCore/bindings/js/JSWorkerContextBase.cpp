@@ -32,6 +32,9 @@
 #include "JSWorkerContextBase.h"
 
 #include "JSDedicatedWorkerContext.h"
+#if ENABLE(SHARED_WORKERS)
+#include "JSSharedWorkerContext.h"
+#endif
 #include "JSWorkerContext.h"
 #include "WorkerContext.h"
 
@@ -83,10 +86,26 @@ JSDedicatedWorkerContext* toJSDedicatedWorkerContext(JSValue value)
     return 0;
 }
 
+#if ENABLE(SHARED_WORKERS)
+JSSharedWorkerContext* toJSSharedWorkerContext(JSValue value)
+{
+    if (!value.isObject())
+        return 0;
+    const ClassInfo* classInfo = asObject(value)->classInfo();
+    if (classInfo == &JSSharedWorkerContext::s_info)
+        return static_cast<JSSharedWorkerContext*>(asObject(value));
+    return 0;
+}
+#endif
+
 JSWorkerContext* toJSWorkerContext(JSValue value)
 {
-    // When we support shared workers, we'll add code to test for SharedWorkerContext too.
-    return toJSDedicatedWorkerContext(value);
+    JSWorkerContext* context = toJSDedicatedWorkerContext(value);
+#if ENABLE(SHARED_WORKERS)
+    if (!context)
+        context = toJSSharedWorkerContext(value);
+#endif
+    return context;
 }
 
 } // namespace WebCore

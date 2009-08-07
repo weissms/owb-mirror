@@ -101,16 +101,26 @@ if(ENABLE_SVG_USE_ELEMENT)
         ENABLE_SVG_USE=1
     )
 endif(ENABLE_SVG_USE_ELEMENT)
-if(ENABLE_WORKERS)
+if(ENABLE_WEB_SOCKETS)
     list(APPEND FEATURE_DEFINES_JAVASCRIPT
-        ENABLE_WORKERS=1
+        ENABLE_WEB_SOCKETS=1
     )
-endif(ENABLE_WORKERS)
+endif(ENABLE_WEB_SOCKETS)
 if(ENABLE_WML)
     list(APPEND FEATURE_DEFINES_JAVASCRIPT
         ENABLE_WML=1
     )
 endif(ENABLE_WML)
+if(ENABLE_WORKERS)
+    list(APPEND FEATURE_DEFINES_JAVASCRIPT
+        ENABLE_WORKERS=1
+    )
+    if(ENABLE_SHARED_WORKERS)
+        list(APPEND FEATURE_DEFINES_JAVASCRIPT
+            ENABLE_SHARED_WORKERS=1
+        )
+    endif(ENABLE_SHARED_WORKERS)
+endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_CSS_PROPERTY_NAMES 
     ${OWB_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
@@ -365,6 +375,7 @@ include(rendering/CMakeLists.txt)
 include(rendering/style/CMakeLists.txt)
 include(storage/CMakeLists.txt)
 include(svg/CMakeLists.txt)
+include(websockets/CMakeLists.txt)
 include(workers/CMakeLists.txt)
 include(wml/CMakeLists.txt)
 include(xml/CMakeLists.txt)
