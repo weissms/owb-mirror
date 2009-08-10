@@ -307,6 +307,7 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsTypes.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsTypes.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Image.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Image.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/ImageBuffer.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageBuffer.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageObserver.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.h

@@ -89,6 +89,7 @@
 #include "InspectorBackend.h"
 #include "KeyboardEvent.h"
 #include "Location.h"
+#include "Media.h"
 #include "MediaError.h"
 #include "MediaList.h"
 #include "MediaPlayer.h"
@@ -156,6 +157,10 @@
 #include "XPathExpression.h"
 #include "XPathNSResolver.h"
 #include "XPathResult.h"
+
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+#include "DOMApplicationCache.h"
+#endif
 
 #if ENABLE(DATAGRID)
 #include "DataGridColumn.h"

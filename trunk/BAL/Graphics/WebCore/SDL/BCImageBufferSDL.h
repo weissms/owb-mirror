@@ -46,12 +46,19 @@ namespace WebCore {
     class RenderObject;
     class String;
 
-    class ImageBuffer : Noncopyable {
+    enum ImageColorSpace {
+        Unknown,
+        DeviceRGB, // like sRGB
+        GrayScale,
+        LinearRGB
+    };
+
+    class ImageBuffer : public Noncopyable {
     public:
-        static PassOwnPtr<ImageBuffer> create(const IntSize& size, bool grayScale)
+        static PassOwnPtr<ImageBuffer> create(const IntSize& size, ImageColorSpace colorSpace = DeviceRGB)
         {
             bool success = false;
-            OwnPtr<ImageBuffer> buf(new ImageBuffer(size, grayScale, success));
+            OwnPtr<ImageBuffer> buf(new ImageBuffer(size, colorSpace, success));
             if (success)
                 return buf.release();
             return 0;
@@ -71,8 +78,13 @@ namespace WebCore {
 
         String toDataURL(const String& mimeType) const;
 
-	TransformationMatrix baseTransform() const { return TransformationMatrix(); }
-
+#if !PLATFORM(CG)
+        TransformationMatrix baseTransform() const { return TransformationMatrix(); }
+        void transformColorSpace(ImageColorSpace srcColorSpace, ImageColorSpace dstColorSpace);
+        void platformTransformColorSpace(const Vector<int>&);
+#else
+        TransformationMatrix baseTransform() const { return TransformationMatrix(1, 0, 0, -1, 0, m_size.height()); }
+#endif
     private:
         void* m_data;
         IntSize m_size;
@@ -80,9 +92,14 @@ namespace WebCore {
         OwnPtr<GraphicsContext> m_context;
         mutable RefPtr<Image> m_image;
 
+#if !PLATFORM(CG)
+        Vector<int> m_linearRgbLUT;
+        Vector<int> m_deviceRgbLUT;
+#endif
+
         // This constructor will place its success into the given out-variable
         // so that create() knows when it should return failure.
-        ImageBuffer(const IntSize&, bool grayScale, bool& success);
+        ImageBuffer(const IntSize&, ImageColorSpace colorSpace, bool& success);
         mutable BalSurface* m_surface;
     };
 

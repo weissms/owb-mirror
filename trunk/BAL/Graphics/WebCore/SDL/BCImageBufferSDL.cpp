@@ -40,7 +40,7 @@
 using namespace std;
 
 namespace WebCore {
-ImageBuffer::ImageBuffer(const IntSize& size, bool grayScale, bool& success)
+ImageBuffer::ImageBuffer(const IntSize& size, ImageColorSpace colorSpace, bool& success)
 {
     int width, height;
     if( size.width() >= WIDTH_MAX )
@@ -104,6 +104,11 @@ String ImageBuffer::toDataURL(const String&) const
 {
     notImplemented();
     return String();
+}
+
+void ImageBuffer::platformTransformColorSpace(const Vector<int>& lookUpTable)
+{
+    notImplemented();
 }
 
 } // namespace WebCore

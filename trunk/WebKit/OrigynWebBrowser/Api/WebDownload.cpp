@@ -61,7 +61,7 @@ using namespace WebCore;
 
 /*****************************************************************************************************/
 
-class DownloadClient : Noncopyable, public ResourceHandleClient
+class DownloadClient : public Noncopyable, public ResourceHandleClient
 {
 public:
     DownloadClient(WebDownload*);

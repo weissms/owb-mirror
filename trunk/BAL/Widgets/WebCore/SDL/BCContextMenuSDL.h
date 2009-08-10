@@ -41,7 +41,7 @@ class MenuEventProxy;
 
     class ContextMenuController;
 
-    class ContextMenu : Noncopyable
+    class ContextMenu : public Noncopyable
     {
     public:
         ContextMenu(const HitTestResult&);

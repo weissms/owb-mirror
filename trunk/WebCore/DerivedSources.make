@@ -32,6 +32,7 @@ VPATH = \
     $(WebCore)/css \
     $(WebCore)/dom \
     $(WebCore)/html \
+    $(WebCore)/html/canvas \
     $(WebCore)/inspector \
     $(WebCore)/loader/appcache \
     $(WebCore)/page \
@@ -196,9 +197,7 @@ DOM_CLASSES = \
     OverflowEvent \
     Plugin \
     PluginArray \
-    PositionCallback \
     PositionError \
-    PositionErrorCallback \
     ProcessingInstruction \
     ProgressEvent \
     RGBColor \

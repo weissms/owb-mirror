@@ -81,6 +81,13 @@ typedef v8::Persistent<v8::FunctionTemplate> (*FunctionTemplateFactory)();
 #define WORKER_NONNODE_WRAPPER_TYPES(V)
 #endif
 
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+#define APPLICATIONCACHE_NONNODE_WRAPPER_TYPES(V)                      \
+  V(DOMAPPLICATIONCACHE, DOMApplicationCache)
+#else
+#define APPLICATIONCACHE_NONNODE_WRAPPER_TYPES(V)
+#endif
+
 #if ENABLE(SHARED_WORKERS)
 #define SHARED_WORKER_ACTIVE_OBJECT_WRAPPER_TYPES(V)                    \
     V(SHAREDWORKER, SharedWorker)
@@ -337,6 +344,7 @@ typedef v8::Persistent<v8::FunctionTemplate> (*FunctionTemplateFactory)();
     V(INSPECTORBACKEND, InspectorBackend)                               \
     V(KEYBOARDEVENT, KeyboardEvent)                                     \
     V(LOCATION, Location)                                               \
+    V(MEDIA, Media)                                               \
     V(MEDIALIST, MediaList)
 
 #define DOM_OBJECT_TYPES_2(V)                                           \
@@ -386,6 +394,7 @@ typedef v8::Persistent<v8::FunctionTemplate> (*FunctionTemplateFactory)();
     V(XPATHRESULT, XPathResult)                                         \
     V(XSLTPROCESSOR, XSLTProcessor)                                     \
     ACTIVE_DOM_OBJECT_TYPES(V)                                          \
+    APPLICATIONCACHE_NONNODE_WRAPPER_TYPES(V)                           \
     DATAGRID_NONNODE_TYPES(V)                                           \
     VIDEO_NONNODE_TYPES(V)                                              \
     SHARED_WORKER_NONNODE_WRAPPER_TYPES(V)                              \

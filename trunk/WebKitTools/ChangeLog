@@ -1,3 +1,159 @@
+2009-08-10  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool needs a --quiet option
+        https://bugs.webkit.org/show_bug.cgi?id=28060
+
+        A first pass at a --quiet option.  This doesn't do all the excting
+        things we might want, but it addresses 80% of the use case.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-08  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Enable accessibility in Gtk DRT
+        https://bugs.webkit.org/show_bug.cgi?id=25989
+
+        Add Accessibility support to the GTK DRT.
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp: Added.
+        (AccessibilityController::AccessibilityController):
+        (AccessibilityController::~AccessibilityController):
+        (AccessibilityController::focusedElement):
+        (AccessibilityController::rootElement):
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp: Added.
+        (AccessibilityUIElement::AccessibilityUIElement):
+        (AccessibilityUIElement::~AccessibilityUIElement):
+        (AccessibilityUIElement::getLinkedUIElements):
+        (AccessibilityUIElement::getDocumentLinks):
+        (AccessibilityUIElement::getChildren):
+        (AccessibilityUIElement::getChildrenWithRange):
+        (AccessibilityUIElement::childrenCount):
+        (AccessibilityUIElement::elementAtPoint):
+        (AccessibilityUIElement::getChildAtIndex):
+        (AccessibilityUIElement::allAttributes):
+        (AccessibilityUIElement::attributesOfLinkedUIElements):
+        (AccessibilityUIElement::attributesOfDocumentLinks):
+        (AccessibilityUIElement::titleUIElement):
+        (AccessibilityUIElement::parentElement):
+        (AccessibilityUIElement::attributesOfChildren):
+        (AccessibilityUIElement::parameterizedAttributeNames):
+        (AccessibilityUIElement::role):
+        (AccessibilityUIElement::title):
+        (AccessibilityUIElement::description):
+        (AccessibilityUIElement::language):
+        (AccessibilityUIElement::x):
+        (AccessibilityUIElement::y):
+        (AccessibilityUIElement::width):
+        (AccessibilityUIElement::height):
+        (AccessibilityUIElement::clickPointX):
+        (AccessibilityUIElement::clickPointY):
+        (AccessibilityUIElement::intValue):
+        (AccessibilityUIElement::minValue):
+        (AccessibilityUIElement::maxValue):
+        (AccessibilityUIElement::valueDescription):
+        (AccessibilityUIElement::isEnabled):
+        (AccessibilityUIElement::insertionPointLineNumber):
+        (AccessibilityUIElement::isActionSupported):
+        (AccessibilityUIElement::isRequired):
+        (AccessibilityUIElement::attributesOfColumnHeaders):
+        (AccessibilityUIElement::attributesOfRowHeaders):
+        (AccessibilityUIElement::attributesOfColumns):
+        (AccessibilityUIElement::attributesOfRows):
+        (AccessibilityUIElement::attributesOfVisibleCells):
+        (AccessibilityUIElement::attributesOfHeader):
+        (AccessibilityUIElement::indexInTable):
+        (AccessibilityUIElement::rowIndexRange):
+        (AccessibilityUIElement::columnIndexRange):
+        (AccessibilityUIElement::lineForIndex):
+        (AccessibilityUIElement::boundsForRange):
+        (AccessibilityUIElement::cellForColumnAndRow):
+        (AccessibilityUIElement::selectedTextRange):
+        (AccessibilityUIElement::setSelectedTextRange):
+        (AccessibilityUIElement::attributeValue):
+        (AccessibilityUIElement::isAttributeSettable):
+        (AccessibilityUIElement::increment):
+        (AccessibilityUIElement::decrement):
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewWindowObjectCleared):
+        (main):
+        * GNUmakefile.am:
+
+2009-08-07  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Unreviewed Gtk build fix.
+
+        DRT needs internal WTF symbols so we link to libJavaScriptCore.la
+        too. Also don't force Gtk to use USE_SYSTEM_MALLOC.
+
+        * GNUmakefile.am:
+
+2009-08-07  Darin Adler  <darin@apple.com>
+
+        * Scripts/commit-log-editor: Fix unchecked access to environment
+        variable that may not be there.
+
+2009-08-07  Mark Rowe  <mrowe@apple.com>
+
+        Handle the case where only a single test is missing results.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+
+2009-08-07  George Wright  <george.wright@torchmobile.com>
+
+        Reviewed by Adam Treat
+
+        Fix DumpRenderTree for the Qt port to always dump the PNG data unless
+        the expected and actual hashes match.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28077
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::dump):
+
+2009-08-07  Pierre d'Herbemont  <pdherbemont@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        commit-log-editor does not produce a git commit log that is git friendly.
+        https://bugs.webkit.org/show_bug.cgi?id=27754
+
+        We make sure we end up with:
+        - A first paragraph describing the bug. It is eventually prefixed by
+        "WebKit: <line>" or "WebCore: <line>". This used to be
+        "WebCore:\n\n<line>".
+        - The Reviewed By line.
+        - An eventual Patch By line if author and committer doesn't match.
+        - The rest of the commit.
+
+        * Scripts/commit-log-editor:
+
+2009-08-07  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  (Darin Adler indicated he'd prefer if we landed these
+        kinds of changes unreviewed, like editing the WebKit Team wiki page.)
+
+        Added Pierre d'Herbemont to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-08-07  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        Cannot scroll for box-reflect:right
+        https://bugs.webkit.org/show_bug.cgi?id=27979
+
+        Update m_overflowLeft an m_overflowWidth for reflection just like
+        m_overflowTop and m_overflowHeight.
+
+        * Scripts/make-js-test-wrappers:  Added regexp to skip box-shadow-overflo
+w-scroll.js
+
 2009-08-07  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Reviewed by Adam Barth.

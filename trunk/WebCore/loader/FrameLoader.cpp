@@ -212,6 +212,7 @@ bool isBackForwardLoadType(FrameLoadType type)
         case FrameLoadTypeReplace:
             return false;
         case FrameLoadTypeBack:
+        case FrameLoadTypeBackWMLDeckNotAccessible:
         case FrameLoadTypeForward:
         case FrameLoadTypeIndexedBackForward:
             return true;
@@ -1163,6 +1164,7 @@ void FrameLoader::restoreDocumentState()
         case FrameLoadTypeReplace:
             break;
         case FrameLoadTypeBack:
+        case FrameLoadTypeBackWMLDeckNotAccessible:
         case FrameLoadTypeForward:
         case FrameLoadTypeIndexedBackForward:
         case FrameLoadTypeRedirectWithLockedBackForwardList:
@@ -2004,10 +2006,39 @@ void FrameLoader::setFirstPartyForCookies(const KURL& url)
         child->loader()->setFirstPartyForCookies(url);
 }
 
+class HashChangeEventTask : public ScriptExecutionContext::Task {
+public:
+    static PassRefPtr<HashChangeEventTask> create(PassRefPtr<Document> document)
+    {
+        return adoptRef(new HashChangeEventTask(document));
+    }
+    
+    virtual void performTask(ScriptExecutionContext* context)
+    {
+        ASSERT_UNUSED(context, context->isDocument());
+        m_document->dispatchWindowEvent(eventNames().hashchangeEvent, false, false);
+    }
+    
+private:
+    HashChangeEventTask(PassRefPtr<Document> document)
+        : m_document(document)
+    {
+        ASSERT(m_document);
+    }
+    
+    RefPtr<Document> m_document;
+};
+    
 // This does the same kind of work that didOpenURL does, except it relies on the fact
 // that a higher level already checked that the URLs match and the scrolling is the right thing to do.
 void FrameLoader::scrollToAnchor(const KURL& url)
 {
+    ASSERT(equalIgnoringRef(url, m_URL));
+    if (equalIgnoringRef(url, m_URL) && !equalIgnoringNullity(url.ref(), m_URL.ref())) {
+        Document* currentDocument = frame()->document();
+        currentDocument->postTask(HashChangeEventTask::create(currentDocument));
+    }
+    
     m_URL = url;
     updateHistoryForAnchorScroll();
 
@@ -2883,6 +2914,7 @@ void FrameLoader::transitionToCommitted(PassRefPtr<CachedPage> cachedPage)
     switch (m_loadType) {
         case FrameLoadTypeForward:
         case FrameLoadTypeBack:
+        case FrameLoadTypeBackWMLDeckNotAccessible:
         case FrameLoadTypeIndexedBackForward:
             if (Page* page = m_frame->page())
                 if (page->backForwardList()) {
@@ -4524,6 +4556,7 @@ void FrameLoader::loadItem(HistoryItem* item, FrameLoadType loadType)
                         request.setCachePolicy(ReloadIgnoringCacheData);
                         break;
                     case FrameLoadTypeBack:
+                    case FrameLoadTypeBackWMLDeckNotAccessible:
                     case FrameLoadTypeForward:
                     case FrameLoadTypeIndexedBackForward:
                         if (itemURL.protocol() != "https")

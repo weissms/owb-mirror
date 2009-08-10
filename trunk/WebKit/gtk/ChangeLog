@@ -1,3 +1,29 @@
+2009-08-10  Xan Lopez  <xlopez@igalia.com>
+
+        Roll out r46928, since it wasn't done in accordance with the
+        agreed naming.
+
+        * ChangeLog:
+
+        Remove the ChangeLog entry, since it was added at the bottom of
+        the file.
+
+        * gdom/GdomDOMObject.h: Removed.
+        * gdom/GdomDOMObjectPrivate.h: Removed.
+
+2009-08-08  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Enable accessibility in Gtk DRT
+        https://bugs.webkit.org/show_bug.cgi?id=25989
+
+        Add SPI to get the focused accessible element to be used by DRT.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_get_focused_accessible_element):
+
 2009-07-31  Martin Robinson  <mrobinson@appcelerator.com>
 
         Reviewed by Xan Lopez, Gustavo Noronha and Jan Alonzo.

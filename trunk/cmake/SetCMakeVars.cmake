@@ -63,6 +63,7 @@ list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebCore/editing
     ${OWB_SOURCE_DIR}/WebCore/history
     ${OWB_SOURCE_DIR}/WebCore/html
+    ${OWB_SOURCE_DIR}/WebCore/html/canvas
     ${OWB_SOURCE_DIR}/WebCore/loader
     ${OWB_SOURCE_DIR}/WebCore/loader/appcache
     ${OWB_SOURCE_DIR}/WebCore/loader/archive

@@ -140,6 +140,7 @@
 #include "V8HTMLUListElement.h"
 #include "V8ImageData.h"
 #include "V8InspectorBackend.h"
+#include "V8Media.h"
 #include "V8MediaList.h"
 #include "V8MessageChannel.h"
 #include "V8MessageEvent.h"
@@ -206,6 +207,10 @@
 #include "V8XPathEvaluator.h"
 #include "V8XSLTProcessor.h"
 #include "V8RGBColor.h"
+
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+#include "V8DOMApplicationCache.h"
+#endif
 
 #if ENABLE(DOM_STORAGE)
 #include "V8Storage.h"

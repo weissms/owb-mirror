@@ -20,6 +20,7 @@ webcore_cppflags += \
 	-I$(srcdir)/WebCore/editing \
 	-I$(srcdir)/WebCore/history \
 	-I$(srcdir)/WebCore/html \
+	-I$(srcdir)/WebCore/html/canvas \
 	-I$(srcdir)/WebCore/inspector \
 	-I$(srcdir)/WebCore/loader \
 	-I$(srcdir)/WebCore/loader/appcache \
@@ -151,9 +152,9 @@ IDL_BINDINGS += \
 	WebCore/dom/WebKitAnimationEvent.idl \
 	WebCore/dom/WebKitTransitionEvent.idl \
 	WebCore/dom/WheelEvent.idl \
-	WebCore/html/CanvasGradient.idl \
-	WebCore/html/CanvasPattern.idl \
-	WebCore/html/CanvasRenderingContext2D.idl \
+	WebCore/html/canvas/CanvasGradient.idl \
+	WebCore/html/canvas/CanvasPattern.idl \
+	WebCore/html/canvas/CanvasRenderingContext2D.idl \
 	WebCore/html/DataGridColumn.idl \
 	WebCore/html/DataGridColumnList.idl \
 	WebCore/html/File.idl \
@@ -901,16 +902,16 @@ webcore_sources += \
 	WebCore/history/HistoryItem.h \
 	WebCore/history/PageCache.cpp \
 	WebCore/history/PageCache.h \
-	WebCore/html/CanvasGradient.cpp \
-	WebCore/html/CanvasGradient.h \
-	WebCore/html/CanvasPattern.cpp \
-	WebCore/html/CanvasPattern.h \
-	WebCore/html/CanvasPixelArray.cpp \
-	WebCore/html/CanvasPixelArray.h \
-	WebCore/html/CanvasRenderingContext2D.cpp \
-	WebCore/html/CanvasRenderingContext2D.h \
-	WebCore/html/CanvasStyle.cpp \
-	WebCore/html/CanvasStyle.h \
+	WebCore/html/canvas/CanvasGradient.cpp \
+	WebCore/html/canvas/CanvasGradient.h \
+	WebCore/html/canvas/CanvasPattern.cpp \
+	WebCore/html/canvas/CanvasPattern.h \
+	WebCore/html/canvas/CanvasPixelArray.cpp \
+	WebCore/html/canvas/CanvasPixelArray.h \
+	WebCore/html/canvas/CanvasRenderingContext2D.cpp \
+	WebCore/html/canvas/CanvasRenderingContext2D.h \
+	WebCore/html/canvas/CanvasStyle.cpp \
+	WebCore/html/canvas/CanvasStyle.h \
 	WebCore/html/CollectionCache.cpp \
 	WebCore/html/CollectionCache.h \
 	WebCore/html/CollectionType.h \
@@ -1462,6 +1463,7 @@ webcore_sources += \
 	WebCore/platform/graphics/Icon.h \
 	WebCore/platform/graphics/Image.cpp \
 	WebCore/platform/graphics/Image.h \
+	WebCore/platform/graphics/ImageBuffer.cpp \
 	WebCore/platform/graphics/ImageBuffer.h \
 	WebCore/platform/graphics/ImageObserver.h \
 	WebCore/platform/graphics/ImageSource.h \
@@ -3252,6 +3254,7 @@ IDL_PATH := \
     $(WebCore)/css \
     $(WebCore)/dom \
     $(WebCore)/html \
+    $(WebCore)/html/canvas \
     $(WebCore)/inspector \
     $(WebCore)/loader/appcache \
     $(WebCore)/page \
