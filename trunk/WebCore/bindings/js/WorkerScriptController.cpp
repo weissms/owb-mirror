@@ -32,7 +32,6 @@
 
 #include "JSDOMBinding.h"
 #include "JSDedicatedWorkerContext.h"
-#include "JSSharedWorkerContext.h"
 #include "ScriptSourceCode.h"
 #include "ScriptValue.h"
 #include "WorkerContext.h"
@@ -42,6 +41,10 @@
 #include <runtime/Completion.h>
 #include <runtime/Completion.h>
 #include <runtime/JSLock.h>
+
+#if ENABLE(SHARED_WORKERS)
+#include "JSSharedWorkerContext.h"
+#endif
 
 using namespace JSC;
 
