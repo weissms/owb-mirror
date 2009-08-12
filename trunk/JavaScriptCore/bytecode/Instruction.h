@@ -29,14 +29,10 @@
 #ifndef Instruction_h
 #define Instruction_h
 
+#include "MacroAssembler.h"
 #include "Opcode.h"
 #include "Structure.h"
 #include <wtf/VectorTraits.h>
-
-#if ENABLE(JIT)
-#include "MacroAssembler.h"
-#endif
-
 
 #define POLYMORPHIC_LIST_CACHE_SIZE 8
 

@@ -1,46 +1,40 @@
 /*
- * Copyright (c) 2008, Google Inc. All rights reserved.
- * 
+ * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Alp Toker <alp.toker@collabora.co.uk>
+ * Copyright (C) 2008, Google Inc. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 
- *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- * copyright notice, this list of conditions and the following disclaimer
- * in the documentation and/or other materials provided with the
- * distribution.
- *     * Neither the name of Google Inc. nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "config.h"
 #include "ImageSource.h"
-#include "SharedBuffer.h"
 
+#include "BMPImageDecoder.h"
 #include "GIFImageDecoder.h"
 #include "ICOImageDecoder.h"
 #include "JPEGImageDecoder.h"
 #include "PNGImageDecoder.h"
-#include "BMPImageDecoder.h"
 #include "XBMImageDecoder.h"
-
-#include "SkBitmap.h"
+#include "SharedBuffer.h"
 
 namespace WebCore {
 
@@ -80,7 +74,7 @@ ImageDecoder* createDecoder(const Vector<char>& data)
     if (!memcmp(contents, "\000\000\001\000", 4) ||
         !memcmp(contents, "\000\000\002\000", 4))
         return new ICOImageDecoder();
-   
+
     // XBMs require 8 bytes of info.
     if (length >= 8 && strncmp(contents, "#define ", 8) == 0)
         return new XBMImageDecoder();
@@ -91,7 +85,8 @@ ImageDecoder* createDecoder(const Vector<char>& data)
 
 ImageSource::ImageSource()
     : m_decoder(0)
-{}
+{
+}
 
 ImageSource::~ImageSource()
 {
@@ -126,12 +121,13 @@ void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
     if (!m_decoder)
         m_decoder = createDecoder(data->buffer());
 
-    // CreateDecoder will return NULL if the decoder could not be created. Plus,
-    // we should not send more data to a decoder which has already decided it
-    // has failed.
-    if (!m_decoder || m_decoder->failed())
-        return;
-    m_decoder->setData(data, allDataReceived);
+    if (m_decoder)
+        m_decoder->setData(data, allDataReceived);
+}
+
+String ImageSource::filenameExtension() const
+{
+    return m_decoder ? m_decoder->filenameExtension() : String();
 }
 
 bool ImageSource::isSizeAvailable()
@@ -168,9 +164,7 @@ int ImageSource::repetitionCount()
 
 size_t ImageSource::frameCount() const
 {
-    if (!m_decoder)
-        return 0;
-    return m_decoder->failed() ? 0 : m_decoder->frameCount();
+    return m_decoder ? m_decoder->frameCount() : 0;
 }
 
 NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
@@ -178,16 +172,17 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
     if (!m_decoder)
         return 0;
 
-    // Note that the buffer can have NULL bytes even when it is marked as
-    // non-empty. It seems "FrameEmpty" is only set before the frame has been
-    // initialized. If it is decoded and it happens to be empty, it will be
-    // marked as "FrameComplete" but will still have NULL bytes.
     RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
     if (!buffer || buffer->status() == RGBA32Buffer::FrameEmpty)
         return 0;
 
-    // Copy the bitmap.  The pixel data is refcounted internally by SkBitmap, so
-    // this doesn't cost much.  
+    // Zero-height images can cause problems for some ports.  If we have an
+    // empty image dimension, just bail.
+    if (size().isEmpty())
+        return 0;
+
+    // Return the buffer contents as a native image.  For some ports, the data
+    // is already in a native container, and this just increments its refcount.
     return buffer->asNewNativeImage();
 }
 
@@ -220,19 +215,14 @@ float ImageSource::frameDurationAtIndex(size_t index)
 
 bool ImageSource::frameHasAlphaAtIndex(size_t index)
 {
-    if (!m_decoder || !m_decoder->supportsAlpha())
-        return false;
-
-    RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
-    if (!buffer || buffer->status() == RGBA32Buffer::FrameEmpty)
-        return false;
-
-    return buffer->hasAlpha();
-}
-
-String ImageSource::filenameExtension() const
-{
-    return m_decoder ? m_decoder->filenameExtension() : String();
+    // When a frame has not finished decoding, always mark it as having alpha.
+    // Ports that check the result of this function to determine their
+    // compositing op need this in order to not draw the undecoded portion as
+    // black.
+    // TODO: Perhaps we should ensure that each individual decoder returns true
+    // in this case.
+    return frameIsCompleteAtIndex(index) ?
+        m_decoder->frameBufferAtIndex(index)->hasAlpha() : true;
 }
 
 }

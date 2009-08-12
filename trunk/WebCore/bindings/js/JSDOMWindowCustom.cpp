@@ -64,38 +64,42 @@
 #include <runtime/JSObject.h>
 #include <runtime/PrototypeFunction.h>
 
+#if ENABLE(NOTIFICATIONS)
+#include "NotificationCenter.h"
+#endif
+
 using namespace JSC;
 
 namespace WebCore {
 
-void JSDOMWindow::mark()
+void JSDOMWindow::markChildren(MarkStack& markStack)
 {
-    Base::mark();
+    Base::markChildren(markStack);
 
-    markEventListeners(impl()->eventListeners());
+    markEventListeners(markStack, impl()->eventListeners());
 
     JSGlobalData& globalData = *Heap::heap(this)->globalData();
 
 #if ENABLE(INSPECTOR)
-    markDOMObjectWrapper(globalData, impl()->optionalConsole());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalConsole());
 #endif
-    markDOMObjectWrapper(globalData, impl()->optionalHistory());
-    markDOMObjectWrapper(globalData, impl()->optionalLocationbar());
-    markDOMObjectWrapper(globalData, impl()->optionalMenubar());
-    markDOMObjectWrapper(globalData, impl()->optionalNavigator());
-    markDOMObjectWrapper(globalData, impl()->optionalPersonalbar());
-    markDOMObjectWrapper(globalData, impl()->optionalScreen());
-    markDOMObjectWrapper(globalData, impl()->optionalScrollbars());
-    markDOMObjectWrapper(globalData, impl()->optionalSelection());
-    markDOMObjectWrapper(globalData, impl()->optionalStatusbar());
-    markDOMObjectWrapper(globalData, impl()->optionalToolbar());
-    markDOMObjectWrapper(globalData, impl()->optionalLocation());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalHistory());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalLocationbar());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalMenubar());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalNavigator());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalPersonalbar());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalScreen());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalScrollbars());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalSelection());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalStatusbar());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalToolbar());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalLocation());
 #if ENABLE(DOM_STORAGE)
-    markDOMObjectWrapper(globalData, impl()->optionalSessionStorage());
-    markDOMObjectWrapper(globalData, impl()->optionalLocalStorage());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalSessionStorage());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalLocalStorage());
 #endif
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
-    markDOMObjectWrapper(globalData, impl()->optionalApplicationCache());
+    markDOMObjectWrapper(markStack, globalData, impl()->optionalApplicationCache());
 #endif
 }
 

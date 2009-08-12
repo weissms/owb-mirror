@@ -17,6 +17,8 @@ list(APPEND JSC_SRC
     runtime/JSONObject.cpp
     runtime/JSPropertyNameIterator.cpp
     runtime/LiteralParser.cpp
+    runtime/MarkStack.cpp
+    runtime/MarkStackPosix.cpp
     runtime/SmallStrings.cpp
     runtime/Structure.cpp
     runtime/StructureChain.cpp

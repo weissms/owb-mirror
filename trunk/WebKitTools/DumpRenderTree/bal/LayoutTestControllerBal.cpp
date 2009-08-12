@@ -293,7 +293,13 @@ void LayoutTestController::clearAllDatabases()
 {
     // FIXME: implement
 }
- 
+
+void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value)
+{
+    // FIXME : implement
+}
+
+
 void LayoutTestController::setDatabaseQuota(unsigned long long quota)
 {    
     // FIXME: implement

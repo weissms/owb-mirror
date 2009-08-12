@@ -138,6 +138,10 @@
 #include "StorageEvent.h"
 #endif
 
+#if ENABLE(SHARED_WORKERS)
+#include "SharedWorkerRepository.h"
+#endif
+
 #if ENABLE(XPATH)
 #include "XPathEvaluator.h"
 #include "XPathExpression.h"
@@ -1350,7 +1354,11 @@ void Document::detach()
     // Send out documentWillBecomeInactive() notifications to registered elements,
     // in order to stop media elements
     documentWillBecomeInactive();
-    
+
+#if ENABLE(SHARED_WORKERS)
+    SharedWorkerRepository::documentDetached(this);
+#endif
+
     if (m_frame) {
         FrameView* view = m_frame->view();
         if (view)

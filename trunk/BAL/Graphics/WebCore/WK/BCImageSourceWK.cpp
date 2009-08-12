@@ -1,30 +1,30 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Alp Toker <alp.toker@collabora.co.uk>
+ * Copyright (C) 2008, Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- * 2.  Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Pleyo nor the names of
- *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "config.h"
 #include "ImageSource.h"
 
@@ -35,13 +35,12 @@
 #include "PNGImageDecoder.h"
 #include "XBMImageDecoder.h"
 #include "SharedBuffer.h"
-#include "SDL.h"
 
 namespace WebCore {
 
 ImageDecoder* createDecoder(const Vector<char>& data)
 {
-// We need at least 4 bytes to figure out what kind of image we're dealing with.
+    // We need at least 4 bytes to figure out what kind of image we're dealing with.
     int length = data.size();
     if (length < 4)
         return 0;
@@ -122,10 +121,13 @@ void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
     if (!m_decoder)
         m_decoder = createDecoder(data->buffer());
 
-    if (!m_decoder)
-        return;
+    if (m_decoder)
+        m_decoder->setData(data, allDataReceived);
+}
 
-    m_decoder->setData(data, allDataReceived);
+String ImageSource::filenameExtension() const
+{
+    return m_decoder ? m_decoder->filenameExtension() : String();
 }
 
 bool ImageSource::isSizeAvailable()
@@ -136,15 +138,6 @@ bool ImageSource::isSizeAvailable()
     return m_decoder->isSizeAvailable();
 }
 
-String ImageSource::filenameExtension() const
-{
-    if (!m_decoder)
-        return String();
-
-    return m_decoder->filenameExtension();
-}
-
-
 IntSize ImageSource::size() const
 {
     if (!m_decoder)
@@ -153,9 +146,12 @@ IntSize ImageSource::size() const
     return m_decoder->size();
 }
 
-IntSize ImageSource::frameSizeAtIndex(size_t) const
+IntSize ImageSource::frameSizeAtIndex(size_t index) const
 {
-    return size();
+    if (!m_decoder)
+        return IntSize();
+
+    return m_decoder->frameSizeAtIndex(index);
 }
 
 int ImageSource::repetitionCount()
@@ -173,9 +169,6 @@ size_t ImageSource::frameCount() const
 
 NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
 {
-    if (!initialized())
-        return 0;
-
     if (!m_decoder)
         return 0;
 
@@ -183,10 +176,13 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
     if (!buffer || buffer->status() == RGBA32Buffer::FrameEmpty)
         return 0;
 
-    // If we have a zero height image, just pretend we don't have enough data yet.
-    if (!size().height())
+    // Zero-height images can cause problems for some ports.  If we have an
+    // empty image dimension, just bail.
+    if (size().isEmpty())
         return 0;
 
+    // Return the buffer contents as a native image.  For some ports, the data
+    // is already in a native container, and this just increments its refcount.
     return buffer->asNewNativeImage();
 }
 
@@ -219,16 +215,14 @@ float ImageSource::frameDurationAtIndex(size_t index)
 
 bool ImageSource::frameHasAlphaAtIndex(size_t index)
 {
-    // When a frame has not finished decoding, always mark it as having alpha,
-    // so we don't get a black background for the undecoded sections.
-    // TODO: A better solution is probably to have the underlying buffer's
-    // hasAlpha() return true in these cases, since it is, in fact, technically
-    // true.
-    if (!frameIsCompleteAtIndex(index))
-        return true;
-
-    return m_decoder->frameBufferAtIndex(index)->hasAlpha();
+    // When a frame has not finished decoding, always mark it as having alpha.
+    // Ports that check the result of this function to determine their
+    // compositing op need this in order to not draw the undecoded portion as
+    // black.
+    // TODO: Perhaps we should ensure that each individual decoder returns true
+    // in this case.
+    return frameIsCompleteAtIndex(index) ?
+        m_decoder->frameBufferAtIndex(index)->hasAlpha() : true;
 }
 
 }
-

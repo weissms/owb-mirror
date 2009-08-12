@@ -33,10 +33,6 @@
 #include <stdio.h>
 #endif
 
-#ifndef NDEBUG
-#include "stdio.h"
-#endif
-
 #if ENABLE(YARR)
 
 using namespace WTF;

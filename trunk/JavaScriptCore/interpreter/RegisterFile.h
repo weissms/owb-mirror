@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008, 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -136,8 +136,8 @@ namespace JSC {
 
         Register* lastGlobal() const { return m_start - m_numGlobals; }
         
-        void markGlobals(Heap* heap) { heap->markConservatively(lastGlobal(), m_start); }
-        void markCallFrames(Heap* heap) { heap->markConservatively(m_start, m_end); }
+        void markGlobals(MarkStack& markStack, Heap* heap) { heap->markConservatively(markStack, lastGlobal(), m_start); }
+        void markCallFrames(MarkStack& markStack, Heap* heap) { heap->markConservatively(markStack, m_start, m_end); }
 
     private:
         void releaseExcessCapacity();
@@ -204,8 +204,6 @@ namespace JSC {
             CRASH();
         }
         m_commitEnd = reinterpret_cast<Register*>(reinterpret_cast<char*>(m_buffer) + committedSize);
-    #elif PLATFORM(AMIGAOS4)
-        m_buffer = static_cast<Register*>(fastMalloc(bufferLength));
     #else
         #error "Don't know how to reserve virtual memory on this platform."
     #endif

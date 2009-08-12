@@ -1,6 +1,6 @@
 // Copyright (c) 2005, 2007, Google Inc.
 // All rights reserved.
-// Copyright (C) 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+// Copyright (C) 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
 // 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -89,12 +89,11 @@
 #endif
 #endif
 
-#if !defined(USE_SYSTEM_MALLOC) && defined(NDEBUG)
+#if !(defined(USE_SYSTEM_MALLOC) && USE_SYSTEM_MALLOC) && defined(NDEBUG)
 #define FORCE_SYSTEM_MALLOC 0
 #else
 #define FORCE_SYSTEM_MALLOC 1
 #endif
-
 
 // Use a background thread to periodically scavenge memory to release back to the system
 // https://bugs.webkit.org/show_bug.cgi?id=27900: don't turn this on for Tiger until we have figured out why it caused a crash.
@@ -179,10 +178,10 @@ void* fastZeroedMalloc(size_t n)
     return result;
 }
     
-void* tryFastZeroedMalloc(size_t n) 
+TryMallocReturnValue tryFastZeroedMalloc(size_t n) 
 {
-    void* result = tryFastMalloc(n);
-    if (!result)
+    void* result;
+    if (!tryFastMalloc(n).getValue(result))
         return 0;
     memset(result, 0, n);
     return result;
@@ -201,7 +200,7 @@ void* tryFastZeroedMalloc(size_t n)
 
 namespace WTF {
 
-void* tryFastMalloc(size_t n) 
+TryMallocReturnValue tryFastMalloc(size_t n) 
 {
     ASSERT(!isForbidden());
 
@@ -237,7 +236,7 @@ void* fastMalloc(size_t n)
     return result;
 }
 
-void* tryFastCalloc(size_t n_elements, size_t element_size)
+TryMallocReturnValue tryFastCalloc(size_t n_elements, size_t element_size)
 {
     ASSERT(!isForbidden());
 
@@ -292,7 +291,7 @@ void fastFree(void* p)
 #endif
 }
 
-void* tryFastRealloc(void* p, size_t n)
+TryMallocReturnValue tryFastRealloc(void* p, size_t n)
 {
     ASSERT(!isForbidden());
 
@@ -3577,7 +3576,7 @@ void* fastMalloc(size_t size)
     return malloc<true>(size);
 }
 
-void* tryFastMalloc(size_t size)
+TryMallocReturnValue tryFastMalloc(size_t size)
 {
     return malloc<false>(size);
 }
@@ -3638,7 +3637,7 @@ void* fastCalloc(size_t n, size_t elem_size)
     return calloc<true>(n, elem_size);
 }
 
-void* tryFastCalloc(size_t n, size_t elem_size)
+TryMallocReturnValue tryFastCalloc(size_t n, size_t elem_size)
 {
     return calloc<false>(n, elem_size);
 }
@@ -3702,7 +3701,7 @@ void* fastRealloc(void* old_ptr, size_t new_size)
     return realloc<true>(old_ptr, new_size);
 }
 
-void* tryFastRealloc(void* old_ptr, size_t new_size)
+TryMallocReturnValue tryFastRealloc(void* old_ptr, size_t new_size)
 {
     return realloc<false>(old_ptr, new_size);
 }

@@ -76,11 +76,11 @@ public:
     virtual HRESULT STDMETHODCALLTYPE canShowMIMEType( 
         /* [in] */ BSTR mimeType,
         /* [retval][out] */ BOOL *canShow);
-    
+
     virtual HRESULT STDMETHODCALLTYPE canShowMIMETypeAsHTML( 
         /* [in] */ BSTR mimeType,
         /* [retval][out] */ BOOL *canShow);
-    
+
     virtual HRESULT STDMETHODCALLTYPE MIMETypesShownAsHTML( 
         /* [retval][out] */ IEnumVARIANT **enumVariant);
     
@@ -568,6 +568,11 @@ public:
         /* [in] */ IWebNotification *notification);
 
     // IWebViewPrivate
+
+    virtual HRESULT STDMETHODCALLTYPE MIMETypeForExtension(
+        /* [in] */ BSTR extension,
+        /* [retval][out] */ BSTR *mimeType);
+
     virtual HRESULT STDMETHODCALLTYPE setCustomDropTarget(
         /* [in] */ IDropTarget* dt);
 

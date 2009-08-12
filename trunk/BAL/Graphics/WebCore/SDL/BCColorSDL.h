@@ -113,6 +113,8 @@ inline bool operator!=(const Color& a, const Color& b)
 Color focusRingColor();
 void setFocusRingColorChangeFunction(void (*)());
 
+Color colorFromPremultipliedARGB(unsigned);
+unsigned premultipliedARGBFromColor(const Color&);
 
 } // namespace WebCore
 

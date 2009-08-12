@@ -1422,11 +1422,51 @@
 				>
 			</File>
 			<File
-				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.h"
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Internal|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.cpp"
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSMedia.h"
 				>
 			</File>
 			<File
@@ -1515,6 +1555,102 @@
 			</File>
 			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSNotation.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSNotification.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Internal|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSNotification.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSNotificationCenter.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Internal|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_Cairo|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSNotificationCenter.h"
 				>
 			</File>
 			<File
@@ -4398,6 +4534,34 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\graphics\ImageSource.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\platform\graphics\ImageSource.h"
 					>
 				</File>
@@ -5823,15 +5987,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\css\mediaControls.css"
-				>
-			</File>
-			<File
 				RelativePath="..\css\Media.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\css\Media.h"
+				>
+			</File>
+			<File
+				RelativePath="..\css\mediaControls.css"
 				>
 			</File>
 			<File
@@ -5887,11 +6051,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\css\RGBColor.h"
+				RelativePath="..\css\RGBColor.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\css\RGBColor.cpp"
+				RelativePath="..\css\RGBColor.h"
 				>
 			</File>
 			<File
@@ -7615,6 +7779,34 @@
 			</File>
 		</Filter>
 		<Filter
+			Name="notifications"
+			>
+			<File
+				RelativePath="..\notifications\Notification.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\notifications\Notification.h"
+				>
+			</File>
+			<File
+				RelativePath="..\notifications\NotificationCenter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\notifications\NotificationCenter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\notifications\NotificationContents.h"
+				>
+			</File>
+			<File
+				RelativePath="..\notifications\NotificationPresenter.h"
+				>
+			</File>
+		</Filter>
+		<Filter
 			Name="editing"
 			>
 			<File
@@ -8954,6 +9146,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSDedicatedWorkerContextCustom.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSDesktopNotificationsCustom.cpp"
 					>
 				</File>
 				<File

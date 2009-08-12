@@ -5,6 +5,7 @@
 set(GRAPHICS_DIR ${BAL_DIR}/Graphics/WebCore)
 
 create_include_link(${GRAPHICS_DIR}/WK BAL)
+aux_source_directory(${GRAPHICS_DIR}/WK WEBCORE_SRC)
 
 if(USE_GRAPHICS_GTK)
     create_include_link(${GRAPHICS_DIR}/Cairo BAL)
@@ -15,7 +16,9 @@ endif(USE_GRAPHICS_GTK)
 
 if(USE_GRAPHICS_QT)
     create_include_link(${GRAPHICS_DIR}/Qt BAL)
-
+    list (REMOVE_ITEM WEBCORE_SRC 
+            ${BAL_DIR}/Graphics/WebCore/WK/BCImageSourceWK.cpp
+    )
     aux_source_directory(${GRAPHICS_DIR}/Qt WEBCORE_SRC)
 endif(USE_GRAPHICS_QT)
 
@@ -25,7 +28,6 @@ if(USE_GRAPHICS_SDL)
     aux_source_directory(${GRAPHICS_DIR}/SDL WEBCORE_SRC)
 endif(USE_GRAPHICS_SDL)
 
-aux_source_directory(${GRAPHICS_DIR}/WK WEBCORE_SRC)
 
 if(ENABLE_FILTERS)
     create_include_link(${GRAPHICS_DIR}/WK/filters BAL)

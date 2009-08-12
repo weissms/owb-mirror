@@ -32,6 +32,7 @@
 #include <ScrollTypes.h>
 #include <wtf/Forward.h>
 
+class WebDesktopNotificationsDelegate;
 class WebView;
 
 class WebChromeClient : public WebCore::ChromeClient {
@@ -134,6 +135,13 @@ public:
 
     virtual void requestGeolocationPermissionForFrame(WebCore::Frame*, WebCore::Geolocation*);
 
+#if ENABLE(NOTIFICATIONS)
+    virtual WebCore::NotificationPresenter* notificationPresenter() const { return reinterpret_cast<WebCore::NotificationPresenter*>(m_notificationsDelegate.get()); }
+#endif
+
 private:
     WebView* m_webView;
+#if ENABLE(NOTIFICATIONS)
+    OwnPtr<WebDesktopNotificationsDelegate> m_notificationsDelegate;
+#endif
 };

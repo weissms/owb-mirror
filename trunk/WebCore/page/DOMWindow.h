@@ -58,6 +58,7 @@ namespace WebCore {
     class MessagePort;
     class Navigator;
     class Node;
+    class NotificationCenter;
     class PostMessageTimer;
     class ScheduledAction;
     class Screen;
@@ -204,6 +205,10 @@ namespace WebCore {
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         DOMApplicationCache* applicationCache() const;
+#endif
+
+#if ENABLE(NOTIFICATIONS)
+        NotificationCenter* webkitNotifications() const;
 #endif
 
         void postMessage(const String& message, MessagePort*, const String& targetOrigin, DOMWindow* source, ExceptionCode&);
@@ -375,7 +380,7 @@ namespace WebCore {
         void captureEvents();
         void releaseEvents();
 
-        // These methods are used for GC marking. See JSDOMWindow::mark() in
+        // These methods are used for GC marking. See JSDOMWindow::markChildren(MarkStack&) in
         // JSDOMWindowCustom.cpp.
         Screen* optionalScreen() const { return m_screen.get(); }
         DOMSelection* optionalSelection() const { return m_selection.get(); }
@@ -434,6 +439,9 @@ namespace WebCore {
 #endif
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         mutable RefPtr<DOMApplicationCache> m_applicationCache;
+#endif
+#if ENABLE(NOTIFICATIONS)
+        mutable RefPtr<NotificationCenter> m_notifications;
 #endif
 
         RegisteredEventListenerVector m_eventListeners;

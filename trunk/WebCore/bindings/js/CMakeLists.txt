@@ -130,6 +130,13 @@ if(ENABLE_INSPECTOR)
     )
 endif(ENABLE_INSPECTOR)
 
+if(ENABLE_NOTIFICATIONS)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSDesktopNotificationsCustom.cpp
+    )
+endif(ENABLE_NOTIFICATIONS)
+
+
 if(ENABLE_SVG)
     list(APPEND WEBCORE_SRC
         bindings/js/JSSVGElementInstanceCustom.cpp

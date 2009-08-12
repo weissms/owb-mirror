@@ -1,3 +1,155 @@
+2009-08-12  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Move the accessor for notifications presenter from WebUIDelegate
+        to WebUIDelegate2 which extends it.  When making this call from
+        WebCoreSupport, check using QueryInterface before calling.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28198
+
+        * Interfaces/IWebUIDelegate.idl:
+        * Interfaces/IWebUIDelegate2.idl: Added.
+        * Interfaces/WebKit.idl:
+        * WebCoreSupport/WebDesktopNotificationsDelegate.cpp:
+        (WebDesktopNotificationsDelegate::show):
+        (WebDesktopNotificationsDelegate::cancel):
+        (WebDesktopNotificationsDelegate::notificationObjectDestroyed):
+        (WebDesktopNotificationsDelegate::requestPermission):
+        (WebDesktopNotificationsDelegate::checkPermission):
+        (WebDesktopNotificationsDelegate::hasNotificationDelegate):
+        (WebDesktopNotificationsDelegate::notificationDelegate):
+        * WebCoreSupport/WebDesktopNotificationsDelegate.h:
+
+2009-08-11  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by NOBODY (build break).
+
+        Speculative Windows build fix - undo previous unnecessary change.
+
+        * WebCoreSupport/WebDesktopNotificationsDelegate.h:
+
+2009-08-11  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Steve Falkenburg.
+
+        Refactored MIMETypeforExtension to be a member of IWebViewPrivate
+        instead of IWebView.
+
+        * Interfaces/IWebView.idl:
+        * Interfaces/IWebViewPrivate.idl:
+        * WebView.cpp:
+        (WebView::MIMETypeForExtension):
+        * WebView.h:
+
+2009-08-11  Drew Wilson <atwilson@google.com>
+
+        Reviewed by NOBODY (build break)
+
+        Speculative fix for windows build break.
+
+        * WebKitSupport/WebDesktopNotificationsDelegate.h:
+        WebCore/Notification*.h => WebCore/notifications/Notification*.h
+
+2009-08-11  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Desktop Notifications API
+        https://bugs.webkit.org/show_bug.cgi?id=25643
+
+        Adds test hooks for notification features to WebCoreSupport for
+        use in DumpRenderTree.
+
+        * Interfaces/IWebDesktopNotificationsDelegate.idl: Added.
+        * Interfaces/IWebUIDelegate.idl:
+        * Interfaces/WebKit.idl:
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::WebChromeClient):
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::notificationPresenter):
+        * WebCoreSupport/WebDesktopNotificationsDelegate.cpp: Added.
+        (NotificationCOMWrapper::create):
+        (NotificationCOMWrapper::NotificationCOMWrapper):
+        (NotificationCOMWrapper::QueryInterface):
+        (NotificationCOMWrapper::AddRef):
+        (NotificationCOMWrapper::Release):
+        (NotificationCOMWrapper::isHTML):
+        (NotificationCOMWrapper::contentsURL):
+        (NotificationCOMWrapper::iconURL):
+        (NotificationCOMWrapper::title):
+        (NotificationCOMWrapper::text):
+        (NotificationCOMWrapper::notifyDisplay):
+        (NotificationCOMWrapper::notifyError):
+        (NotificationCOMWrapper::notifyClose):
+        (WebDesktopNotificationsDelegate::WebDesktopNotificationsDelegate):
+        (WebDesktopNotificationsDelegate::show):
+        (WebDesktopNotificationsDelegate::cancel):
+        (WebDesktopNotificationsDelegate::notificationObjectDestroyed):
+        (WebDesktopNotificationsDelegate::requestPermission):
+        (WebDesktopNotificationsDelegate::checkPermission):
+        (WebDesktopNotificationsDelegate::notificationDelegate):
+        * WebCoreSupport/WebDesktopNotificationsDelegate.h: Added.
+        * WebCoreSupport/WebInspectorDelegate.h:
+        (WebInspectorDelegate::desktopNotificationsDelegate):
+        * WebKit.vcproj/Interfaces.vcproj:
+        * WebKit.vcproj/WebKit.vcproj:
+
+2009-08-11  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix of <rdar://5016504> SVG file cannot be dragged to webview,
+        but can be opened via Open File.
+        
+        Added a new function to IWebView that gets the MIME type for a given 
+        extension from the MIMETypeRegistry.
+
+        * Interfaces/IWebView.idl:
+        * WebView.cpp:
+        (WebView::MIMETypeForExtension):
+        * WebView.h:
+
+2009-08-11  Dmitry Titov <dimich@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Originally implemented by Glenn Wilson  <gwilson@chromium.org>.
+
+        Added support for overriding default preferences per-test.
+        See https://bugs.webkit.org/show_bug.cgi?id=20534
+
+        * Interfaces/IWebPreferencesPrivate.idl: added new method setPreferenceForTest
+        * WebPreferences.cpp: same.
+        * WebPreferences.h: same.
+
+2009-08-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Link drag images specify Lucida Grande on Windows and end up using Times
+        New Roman
+        <rdar://problem/7117835>
+
+        * WebCoreSupport/WebDragClient.cpp:
+        (dragLabelFont): Added a RenderingMode parameter and changed to use the
+            same typeface as the Windows small caption font.
+        (WebDragClient::createDragImageForLink): Changed to respect the
+            page’s rendering mode.
+
+2009-08-10  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28048.
+        Move various WinCairo build settings into *.vsprops file.
+
+        * WebKit.vcproj/WebKit.vcproj: Add new cURL.vsprops property sheet
+          (which contains link settings for cURL and its dependencies), and
+          remove the corresponding entries from the vcproj file.  Remove
+          png, jpeg, cairo library linking flags from vcproj, now that they
+          are in the WinCairo.vsprops file.
+
 2009-08-10  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
 
         Reviewed by George Staikos.

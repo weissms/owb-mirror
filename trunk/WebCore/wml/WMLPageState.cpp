@@ -35,7 +35,6 @@ namespace WebCore {
 
 WMLPageState::WMLPageState(Page* page)
     : m_page(page)
-    , m_activeCard(0)
     , m_hasAccessControlData(false)
 {
 }
@@ -188,7 +187,7 @@ bool WMLPageState::canAccessDeck() const
     if (!tryAccessHistoryURLs(m_page, previousURL, currentURL))
         return true;
 
-    if (equalIgnoringRef(previousURL, currentURL))
+    if (equalIgnoringFragmentIdentifier(previousURL, currentURL))
        return true;
 
     return hostIsAllowedToAccess(hostFromURL(previousURL)) && pathIsAllowedToAccess(previousURL.path());

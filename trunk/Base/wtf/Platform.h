@@ -36,16 +36,6 @@
 
 /* Operating systems - low-level dependencies */
 
-/* PLATFORM(AMIGAOS4) */
-/* Operating system level dependencies for AmigaOS 4.x that should */
-/* be used regardless of operating environment */
-#if defined(__AMIGAOS4__)
-#define WTF_PLATFORM_AMIGAOS4 1
-#define WTF_USE_CURL 1
-#define WTF_USE_PTHREADS 1
-#define USE_SYSTEM_MALLOC 1
-#endif
-
 /* PLATFORM(DARWIN) */
 /* Operating system level dependencies for Mac OS X / Darwin that should */
 /* be used regardless of operating environment */
@@ -58,10 +48,6 @@
 #define BUILDING_ON_LEOPARD 1
 #endif
 #include <TargetConditionals.h>
-#endif
-
-#if PLATFORM(MACPORT)
-#undef WTF_PLATFORM_MAC
 #endif
 
 /* PLATFORM(WIN_OS) */
@@ -129,11 +115,11 @@
    || PLATFORM(FREEBSD)    \
    || PLATFORM(SYMBIAN)    \
    || PLATFORM(NETBSD)     \
-   || PLATFORM(MACPORT)    \
    || defined(unix)        \
    || defined(__unix)      \
    || defined(__unix__)    \
-   || defined(_AIX)
+   || defined(_AIX)        \
+   || defined(__HAIKU__)
 #define WTF_PLATFORM_UNIX 1
 #endif
 
@@ -158,7 +144,9 @@
 #define WTF_PLATFORM_WX 1
 #elif defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1
-#elif PLATFORM(DARWIN) && !PLATFORM(MACPORT)
+#elif defined(BUILDING_HAIKU__)
+#define WTF_PLATFORM_HAIKU 1
+#elif PLATFORM(DARWIN)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1
@@ -204,7 +192,7 @@
 
 /* Makes PLATFORM(WIN) default to PLATFORM(CAIRO) */
 /* FIXME: This should be changed from a blacklist to a whitelist */
-#if !PLATFORM(MAC) && !PLATFORM(QT) && !PLATFORM(WX) && !PLATFORM(CHROMIUM) && !PLATFORM(WINCE)
+#if !PLATFORM(MAC) && !PLATFORM(QT) && !PLATFORM(WX) && !PLATFORM(CHROMIUM) && !PLATFORM(WINCE) && !PLATFORM(HAIKU)
 #define WTF_PLATFORM_CAIRO 1
 #endif
 
@@ -283,11 +271,6 @@
 /* PLATFORM(SH4) */
 #if defined(__SH4__)
 #define WTF_PLATFORM_SH4 1
-#endif
-
-/* PLATFORM(MIPS) */
-#if defined(__mips__)
-#define WTF_PLATFORM_MIPS 1
 #endif
 
 /* PLATFORM(SPARC64) */
@@ -447,6 +430,14 @@
 #endif
 #endif
 
+#if PLATFORM(HAIKU)
+#define HAVE_POSIX_MEMALIGN 1
+#define WTF_USE_CURL 1
+#define WTF_USE_PTHREADS 1
+#define USE_SYSTEM_MALLOC 1
+#define ENABLE_NETSCAPE_PLUGIN_API 0
+#endif
+
 #if !defined(HAVE_ACCESSIBILITY)
 #if PLATFORM(IPHONE) || PLATFORM(MAC) || PLATFORM(WIN) || PLATFORM(GTK) || PLATFORM(CHROMIUM)
 #define HAVE_ACCESSIBILITY 1
@@ -457,7 +448,7 @@
 #define HAVE_SIGNAL_H 1
 #endif
 
-#if !PLATFORM(WIN_OS) && !PLATFORM(SOLARIS) && !PLATFORM(SYMBIAN) && !COMPILER(RVCT)
+#if !PLATFORM(WIN_OS) && !PLATFORM(SOLARIS) && !PLATFORM(SYMBIAN) && !PLATFORM(HAIKU) && !COMPILER(RVCT)
 #define HAVE_TM_GMTOFF 1
 #define HAVE_TM_ZONE 1
 #define HAVE_TIMEGM 1
@@ -507,19 +498,15 @@
 #define HAVE_SYS_PARAM_H 1
 #endif
 
-#elif PLATFORM(AMIGAOS4)
-
-#define HAVE_ERRNO_H 1
-#define HAVE_STRINGS_H 1
-#define HAVE_SYS_PARAM_H 1
-#define HAVE_SYS_TIME_H 1
-
 #else
 
 /* FIXME: is this actually used or do other platforms generate their own config.h? */
 
 #define HAVE_ERRNO_H 1
+/* As long as Haiku doesn't have a complete support of locale this will be disabled. */
+#if !PLATFORM(HAIKU)
 #define HAVE_LANGINFO_H 1
+#endif
 #define HAVE_MMAP 1
 #define HAVE_SBRK 1
 #define HAVE_STRINGS_H 1
@@ -581,6 +568,10 @@
 
 #if !defined(ENABLE_GEOLOCATION)
 #define ENABLE_GEOLOCATION 0
+#endif
+
+#if !defined(ENABLE_NOTIFICATIONS)
+#define ENABLE_NOTIFICATIONS 0
 #endif
 
 #if !defined(ENABLE_TEXT_CARET)
@@ -739,6 +730,12 @@
 
 #if PLATFORM(IPHONE)
 #define WTF_USE_ACCELERATED_COMPOSITING 1
+#endif
+
+#if COMPILER(GCC)
+#define WARN_UNUSED_RETURN __attribute__ ((warn_unused_result))
+#else
+#define WARN_UNUSED_RETURN
 #endif
 
 #endif /* WTF_Platform_h */

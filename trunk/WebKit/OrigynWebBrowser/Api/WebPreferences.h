@@ -541,6 +541,8 @@ public:
      */
     virtual void setXSSAuditorEnabled(bool);
 
+    virtual void setPreferenceForTest(const char* key, const char* value);
+
     // WebPreferences
 
     // This method accesses a different preference key than developerExtrasEnabled.

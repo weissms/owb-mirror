@@ -29,6 +29,7 @@
 #include "config.h"
 #include "WebChromeClient.h"
 
+#include "WebDesktopNotificationsDelegate.h"
 #include "WebElementPropertyBag.h"
 #include "WebFrame.h"
 #include "WebHistory.h"
@@ -67,6 +68,9 @@ using namespace WebCore;
 
 WebChromeClient::WebChromeClient(WebView* webView)
     : m_webView(webView)
+#if ENABLE(NOTIFICATIONS)
+    , m_notificationsDelegate(new WebDesktopNotificationsDelegate(webView))
+#endif
 {
 }
 

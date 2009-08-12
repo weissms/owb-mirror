@@ -31,6 +31,7 @@ endif(ARCH MATCHES "[ix][3-6]*86*")
 set(ENABLE_MULTIPLE_THREADS ON CACHE BOOLEAN "Enable multiple threads" FORCE)
 set(ENABLE_WORKERS ON CACHE BOOLEAN "Enable workers support" FORCE)
 set(ENABLE_SHARED_WORKERS ON CACHE BOOLEAN "Enable shared workers support" FORCE)
+set(ENABLE_NOTIFICATIONS ON CACHE BOOLEAN "Enable notification support" FORCE)
 set(ENABLE_NPAPI ON CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 
 set(ENABLE_SVG ON CACHE BOOLEAN "Enable SVG support" FORCE)

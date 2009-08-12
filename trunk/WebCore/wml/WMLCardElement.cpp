@@ -311,7 +311,7 @@ WMLCardElement* WMLCardElement::determineActiveCard(Document* doc)
         return 0;
 
     // Figure out the new target card
-    String cardName = doc->url().ref();
+    String cardName = doc->url().fragmentIdentifier();
 
     WMLCardElement* activeCard = findNamedCardInDocument(doc, cardName);
     if (activeCard) {
@@ -339,8 +339,6 @@ WMLCardElement* WMLCardElement::determineActiveCard(Document* doc)
     // Update the document title
     doc->setTitle(activeCard->title());
 
-    // Set the active activeCard in the WMLPageState object
-    pageState->setActiveCard(activeCard);
     return activeCard;
 }
 

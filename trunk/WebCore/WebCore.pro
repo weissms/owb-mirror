@@ -193,6 +193,7 @@ INCLUDEPATH = \
     $$PWD/loader/appcache \
     $$PWD/loader/archive \
     $$PWD/loader/icon \
+    $$PWD/notifications \
     $$PWD/page \
     $$PWD/page/animation \
     $$PWD/platform \
@@ -3047,6 +3048,12 @@ idl.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}JS${QMAKE_FILE_BASE}.cpp
 idl.variable_out = GENERATED_SOURCES
 idl.input = IDL_BINDINGS
 idl.commands = perl -I$$PWD/bindings/scripts $$PWD/bindings/scripts/generate-bindings.pl --defines \"$${FEATURE_DEFINES_JAVASCRIPT}\" --generator JS --include $$PWD/dom --include $$PWD/html --include $$PWD/xml --include $$PWD/svg --outputDir $$GENERATED_SOURCES_DIR --preprocessor \"$${QMAKE_MOC} -E\" ${QMAKE_FILE_NAME}
+idl.depends = $$PWD/bindings/scripts/generate-bindings.pl \
+              $$PWD/bindings/scripts/CodeGenerator.pm \
+              $$PWD/bindings/scripts/CodeGeneratorJS.pm \
+              $$PWD/bindings/scripts/IDLParser.pm \
+              $$PWD/bindings/scripts/IDLStructure.pm \
+              $$PWD/bindings/scripts/InFilesParser.pm
 idl.CONFIG += target_predeps
 addExtraCompilerWithHeader(idl)
 
@@ -3235,3 +3242,20 @@ CONFIG(QTDIR_build):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VERSION, 4
     CONFIG += no_debug_info
 }
 
+!win32-g++:win32:contains(QMAKE_HOST.arch, x86_64):{
+    asm_compiler.commands = ml64 /c
+    asm_compiler.commands +=  /Fo ${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
+    asm_compiler.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_OBJ)}
+    asm_compiler.input = ASM_SOURCES
+    asm_compiler.variable_out = OBJECTS
+    asm_compiler.name = compiling[asm] ${QMAKE_FILE_IN}
+    silent:asm_compiler.commands = @echo compiling[asm] ${QMAKE_FILE_IN} && $$asm_compiler.commands
+    QMAKE_EXTRA_COMPILERS += asm_compiler
+
+    ASM_SOURCES += \
+        plugins/win/PaintHooks.asm
+   if(win32-msvc2005|win32-msvc2008):equals(TEMPLATE_PREFIX, "vc") {
+        SOURCES += \
+            plugins/win/PaintHooks.asm
+    }
+}

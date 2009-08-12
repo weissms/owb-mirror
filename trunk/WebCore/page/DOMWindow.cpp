@@ -78,6 +78,10 @@
 #include "DOMApplicationCache.h"
 #endif
 
+#if ENABLE(NOTIFICATIONS)
+#include "NotificationCenter.h"
+#endif
+
 #if ENABLE(INSPECTOR)
 #include "Console.h"
 #include "InspectorController.h"
@@ -459,6 +463,10 @@ void DOMWindow::clear()
         m_applicationCache->disconnectFrame();
     m_applicationCache = 0;
 #endif
+
+#if ENABLE(NOTIFICATIONS)
+    m_notifications = 0;
+#endif
 }
 
 Screen* DOMWindow::screen() const
@@ -529,7 +537,7 @@ Console* DOMWindow::console() const
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
 DOMApplicationCache* DOMWindow::applicationCache() const
 {
-    if (!m_applicationCache)
+    if (!m_applicationCache && m_frame && m_frame->settings() && m_frame->settings()->offlineWebApplicationCacheEnabled())
         m_applicationCache = DOMApplicationCache::create(m_frame);
     return m_applicationCache.get();
 }
@@ -601,6 +609,28 @@ Storage* DOMWindow::localStorage() const
     }
 
     return m_localStorage.get();
+}
+#endif
+
+#if ENABLE(NOTIFICATIONS)
+NotificationCenter* DOMWindow::webkitNotifications() const
+{
+    if (m_notifications)
+        return m_notifications.get();
+
+    Document* document = this->document();
+    if (!document)
+        return 0;
+    
+    Page* page = document->page();
+    if (!page)
+        return 0;
+
+    NotificationPresenter* provider = page->chrome()->notificationPresenter();
+    if (provider) 
+        m_notifications = NotificationCenter::create(document, provider);    
+      
+    return m_notifications.get();
 }
 #endif
 

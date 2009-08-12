@@ -74,6 +74,3 @@
 #include <wtf/DisallowCType.h>
 #endif
 
-#if !ENABLE(YARR)
-#include <limits.h>
-#endif

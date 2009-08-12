@@ -33,6 +33,8 @@
 #include "JIT.h"
 #include "JSValue.h"
 #include "Interpreter.h"
+#include "JSFunction.h"
+#include "JSStaticScopeObject.h"
 #include "Debugger.h"
 #include "BytecodeGenerator.h"
 #include <stdio.h>
@@ -1428,21 +1430,18 @@ void CodeBlock::refStructures(Instruction* vPC) const
     ASSERT(vPC[0].u.opcode == interpreter->getOpcode(op_get_by_id) || vPC[0].u.opcode == interpreter->getOpcode(op_put_by_id) || vPC[0].u.opcode == interpreter->getOpcode(op_get_by_id_generic) || vPC[0].u.opcode == interpreter->getOpcode(op_put_by_id_generic));
 }
 
-void CodeBlock::mark()
+void CodeBlock::markAggregate(MarkStack& markStack)
 {
-    for (size_t i = 0; i < m_constantRegisters.size(); ++i)
+    for (size_t i = 0; i < m_constantRegisters.size(); ++i) {
         if (!m_constantRegisters[i].marked())
-            m_constantRegisters[i].mark();
-
-    for (size_t i = 0; i < m_functionExpressions.size(); ++i)
-        m_functionExpressions[i]->body()->mark();
-
-    if (m_rareData) {
-        for (size_t i = 0; i < m_rareData->m_functions.size(); ++i)
-            m_rareData->m_functions[i]->body()->mark();
-
-        m_rareData->m_evalCodeCache.mark();
+            markStack.append(m_constantRegisters[i].jsValue());
     }
+
+    for (size_t i = 0; i < m_functions.size(); ++i)
+        m_functions[i]->markAggregate(markStack);
+
+    if (m_rareData)
+        m_rareData->m_evalCodeCache.markAggregate(markStack);
 }
 
 void CodeBlock::reparseForExceptionInfoIfNecessary(CallFrame* callFrame)
@@ -1469,7 +1468,7 @@ void CodeBlock::reparseForExceptionInfoIfNecessary(CallFrame* callFrame)
             FunctionBodyNode* ownerFunctionBodyNode = static_cast<FunctionBodyNode*>(m_ownerNode);
             RefPtr<FunctionBodyNode> newFunctionBody = m_globalData->parser->reparse<FunctionBodyNode>(m_globalData, ownerFunctionBodyNode);
             ASSERT(newFunctionBody);
-            newFunctionBody->finishParsing(ownerFunctionBodyNode->copyParameters(), ownerFunctionBodyNode->parameterCount());
+            newFunctionBody->finishParsing(ownerFunctionBodyNode->copyParameters(), ownerFunctionBodyNode->parameterCount(), ownerFunctionBodyNode->ident());
 
             m_globalData->scopeNodeBeingReparsed = newFunctionBody.get();
 
@@ -1727,7 +1726,7 @@ void CodeBlock::shrinkToFit()
 #endif
 
     m_identifiers.shrinkToFit();
-    m_functionExpressions.shrinkToFit();
+    m_functions.shrinkToFit();
     m_constantRegisters.shrinkToFit();
 
     if (m_exceptionInfo) {
@@ -1738,7 +1737,6 @@ void CodeBlock::shrinkToFit()
 
     if (m_rareData) {
         m_rareData->m_exceptionHandlers.shrinkToFit();
-        m_rareData->m_functions.shrinkToFit();
         m_rareData->m_regexps.shrinkToFit();
         m_rareData->m_immediateSwitchJumpTables.shrinkToFit();
         m_rareData->m_characterSwitchJumpTables.shrinkToFit();

@@ -6,6 +6,7 @@
  * Copyright (C) 2009 Gustavo Noronha Silva <gns@gnome.org>
  * Copyright (C) 2009 Christian Dywan <christian@imendio.com>
  * Copyright (C) 2009 Igalia S.L.
+ * Copyright (C) 2009 John Kjellberg <john.kjellberg@power.alstom.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -152,39 +153,7 @@ static void fillResponseFromMessage(SoupMessage* msg, ResourceResponse* response
     while (soup_message_headers_iter_next(&iter, &name, &value))
         response->setHTTPHeaderField(name, value);
 
-    GHashTable* contentTypeParameters = 0;
-    String contentType = soup_message_headers_get_content_type(msg->response_headers, &contentTypeParameters);
-
-    // When the server sends multiple Content-Type headers, soup will
-    // give us their values concatenated with commas as a separator;
-    // we need to handle this and use only one value. We use the first
-    // value, and add all the parameters, afterwards, if any.
-    Vector<String> contentTypes;
-    contentType.split(',', true, contentTypes);
-    contentType = contentTypes[0];
-
-    if (contentTypeParameters) {
-        GString* parametersString = g_string_new(0);
-        GHashTableIter hashTableIter;
-        const char* hashKey;
-        const char* hashValue;
-
-        g_hash_table_iter_init(&hashTableIter, contentTypeParameters);
-        while (g_hash_table_iter_next(&hashTableIter, reinterpret_cast<void**>(const_cast<char**>(&hashKey)), reinterpret_cast<void**>(const_cast<char**>(&hashValue)))) {
-            // Work-around bug in soup which causes a crash;
-            // See http://bugzilla.gnome.org/show_bug.cgi?id=577728
-            if (!hashValue)
-                hashValue = "";
-
-            g_string_append(parametersString, "; ");
-            soup_header_g_string_append_param(parametersString, hashKey, hashValue);
-        }
-        contentType += String(parametersString->str);
-
-        g_string_free(parametersString, true);
-        g_hash_table_destroy(contentTypeParameters);
-    }
-
+    String contentType = soup_message_headers_get_one(msg->response_headers, "Content-Type");
     response->setMimeType(extractMIMETypeFromMediaType(contentType));
 
     char* uri = soup_uri_to_string(soup_message_get_uri(msg), false);
@@ -322,10 +291,12 @@ static void finishedCallback(SoupSession *session, SoupMessage* msg, gpointer da
         return;
 
     if (SOUP_STATUS_IS_TRANSPORT_ERROR(msg->status_code)) {
+        char* uri = soup_uri_to_string(soup_message_get_uri(msg), false);
         ResourceError error(g_quark_to_string(SOUP_HTTP_ERROR),
                             msg->status_code,
-                            soup_uri_to_string(soup_message_get_uri(msg), false),
+                            uri,
                             String::fromUTF8(msg->reason_phrase));
+        g_free(uri);
         client->didFail(handle.get(), error);
         return;
     }
@@ -469,6 +440,15 @@ static bool startHttp(ResourceHandle* handle, String urlString)
     ResourceHandleInternal* d = handle->getInternal();
 
     d->m_msg = handle->request().toSoupMessage();
+    if (!d->m_msg) {
+        ResourceError resourceError(g_quark_to_string(SOUP_HTTP_ERROR),
+                                    SOUP_STATUS_MALFORMED,
+                                    urlString,
+                                    handle->request().httpMethod());
+        d->client()->didFail(handle, resourceError);
+        return false;
+    }
+
     g_signal_connect(d->m_msg, "restarted", G_CALLBACK(restartedCallback), handle);
     g_signal_connect(d->m_msg, "got-headers", G_CALLBACK(gotHeadersCallback), handle);
     g_signal_connect(d->m_msg, "content-sniffed", G_CALLBACK(contentSniffedCallback), handle);
@@ -582,11 +562,7 @@ bool ResourceHandle::start(Frame* frame)
     if (equalIgnoringCase(protocol, "data"))
         return startData(this, urlString);
 
-    SoupURI* uri = soup_uri_new(urlString.utf8().data());
-    bool isHTTPOrHTTPS = (equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https")) && SOUP_URI_VALID_FOR_HTTP(uri);
-    soup_uri_free(uri);
-
-    if (isHTTPOrHTTPS)
+    if (equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https"))
         return startHttp(this, urlString);
 
     if (equalIgnoringCase(protocol, "file") || equalIgnoringCase(protocol, "ftp") || equalIgnoringCase(protocol, "ftps"))
@@ -707,10 +683,12 @@ static void readCallback(GObject* source, GAsyncResult* res, gpointer)
 
     gssize bytesRead = g_input_stream_read_finish(d->m_inputStream, res, &error);
     if (error) {
+        char* uri = g_file_get_uri(d->m_gfile);
         ResourceError resourceError(g_quark_to_string(G_IO_ERROR),
                                     error->code,
-                                    g_file_get_uri(d->m_gfile),
+                                    uri,
                                     error ? String::fromUTF8(error->message) : String());
+        g_free(uri);
         g_error_free(error);
         cleanupGioOperation(d);
         client->didFail(handle.get(), resourceError);
@@ -753,11 +731,12 @@ static void openCallback(GObject* source, GAsyncResult* res, gpointer)
     GError *error = 0;
     GFileInputStream* in = g_file_read_finish(G_FILE(source), res, &error);
     if (error) {
+        char* uri = g_file_get_uri(d->m_gfile);
         ResourceError resourceError(g_quark_to_string(G_IO_ERROR),
                                     error->code,
-                                    g_file_get_uri(d->m_gfile),
+                                    uri,
                                     error ? String::fromUTF8(error->message) : String());
-
+        g_free(uri);
         g_error_free(error);
         cleanupGioOperation(d);
         client->didFail(handle, resourceError);
@@ -804,10 +783,12 @@ static void queryInfoCallback(GObject* source, GAsyncResult* res, gpointer)
         // server (and then keep track of the fact that we mounted it,
         // and set a timeout to unmount it later after it's been idle
         // for a while).
+        char* uri = g_file_get_uri(d->m_gfile);
         ResourceError resourceError(g_quark_to_string(G_IO_ERROR),
                                     error->code,
-                                    g_file_get_uri(d->m_gfile),
+                                    uri,
                                     error ? String::fromUTF8(error->message) : String());
+        g_free(uri);
         g_error_free(error);
         cleanupGioOperation(d);
         client->didFail(handle, resourceError);
@@ -817,10 +798,12 @@ static void queryInfoCallback(GObject* source, GAsyncResult* res, gpointer)
     if (g_file_info_get_file_type(info) != G_FILE_TYPE_REGULAR) {
         // FIXME: what if the URI points to a directory? Should we
         // generate a listing? How? What do other backends do here?
+        char* uri = g_file_get_uri(d->m_gfile);
         ResourceError resourceError(g_quark_to_string(G_IO_ERROR),
                                     G_IO_ERROR_FAILED,
-                                    g_file_get_uri(d->m_gfile),
+                                    uri,
                                     String());
+        g_free(uri);
         cleanupGioOperation(d);
         client->didFail(handle, resourceError);
         return;
@@ -855,7 +838,7 @@ static bool startGio(ResourceHandle* handle, KURL url)
     // GIO doesn't know how to handle refs and queries, so remove them
     // TODO: use KURL.fileSystemPath after KURLGtk and FileSystemGtk are
     // using GIO internally, and providing URIs instead of file paths
-    url.removeRef();
+    url.removeFragmentIdentifier();
     url.setQuery(String());
     url.setPort(0);
 

@@ -32,11 +32,12 @@
 #include "ScriptObject.h"
 
 #include "JSDOMBinding.h"
+
+#include <runtime/JSLock.h>
+
 #if ENABLE(INSPECTOR)
 #include "JSInspectorBackend.h"
 #endif
-
-#include <runtime/JSLock.h>
 
 using namespace JSC;
 

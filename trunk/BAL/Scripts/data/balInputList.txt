@@ -245,7 +245,6 @@ BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GraphicsContextPlatfo
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageBufferCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageBufferData.h
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageCairo.cpp
-BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageSourceCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/PathCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/PatternCairo.cpp
 BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/TransformationMatrixCairo.cpp
@@ -311,6 +310,7 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/ImageBuffer.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageBuffer.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageObserver.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntPoint.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.h
@@ -666,6 +666,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/OwnPtr.h
 BAL/Skeletons/Types JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Skeletons/Types JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/PossiblyNull.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCounted.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCountedLeakCounter.h
@@ -735,6 +736,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/OwnPtr.h
 BAL/Types/WTF   JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Types/WTF   JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/PossiblyNull.h
 BAL/Types/WTF	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.cpp

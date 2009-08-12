@@ -79,11 +79,10 @@ private:
     ResourceResponse m_response;
     ResourceError m_error;
     Vector<char> m_data;
-    bool m_finished;
+    QEventLoop m_eventLoop;
 };
 
 WebCoreSynchronousLoader::WebCoreSynchronousLoader()
-    : m_finished(false)
 {
 }
 
@@ -99,19 +98,18 @@ void WebCoreSynchronousLoader::didReceiveData(ResourceHandle*, const char* data,
 
 void WebCoreSynchronousLoader::didFinishLoading(ResourceHandle*)
 {
-    m_finished = true;
+    m_eventLoop.exit();
 }
 
 void WebCoreSynchronousLoader::didFail(ResourceHandle*, const ResourceError& error)
 {
     m_error = error;
-    m_finished = true;
+    m_eventLoop.exit();
 }
 
 void WebCoreSynchronousLoader::waitForCompletion()
 {
-    while (!m_finished)
-        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+    m_eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 }
 
 ResourceHandleInternal::~ResourceHandleInternal()

@@ -55,12 +55,12 @@ public:
 
     static const ClassInfo s_info;
 
-    virtual void mark()
+    virtual void markChildren(MarkStack& markStack)
     {
 /*        BalInstance* instance = static_cast<BalInstance*>(getInternalInstance());
         if (instance)
             instance->mark();*/
-        RuntimeObjectImp::mark();
+        RuntimeObjectImp::markChildren(markStack);
     }
 
 protected:

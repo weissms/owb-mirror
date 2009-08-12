@@ -24,6 +24,7 @@
 #include "JSDOMWindowBase.h"
 
 #include "CString.h"
+#include "Console.h"
 #include "DOMWindow.h"
 #include "Frame.h"
 #include "JSDOMWindowCustom.h"
@@ -35,10 +36,8 @@
 #include "Settings.h"
 
 #if ENABLE(INSPECTOR)
-#include "Console.h"
 #include "InspectorController.h"
 #endif
-
 using namespace JSC;
 
 namespace WebCore {
@@ -101,6 +100,7 @@ void JSDOMWindowBase::printErrorMessage(const String& message) const
     
     if (settings->privateBrowsingEnabled())
         return;
+
 #if ENABLE(INSPECTOR)
     impl()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, message, 1, String()); // FIXME: provide a real line number and source URL.
 #endif

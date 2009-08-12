@@ -1,3 +1,325 @@
+2009-08-12  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Switch DumpRenderTree to contain a WebUIDelegate2, which extends
+        WebUIDelegate, so that the notifications tests will still work.
+        https://bugs.webkit.org/show_bug.cgi?id=28198
+
+        * DumpRenderTree/win/UIDelegate.h:
+
+2009-08-11  Darin Adler  <darin@apple.com>
+
+        Try to fix GTK build.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::stringForRange): Added.
+
+2009-08-10  Mike Fenton  <mike.fenton@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Add processing for string constants used by the tests to trigger
+        common actions like up, down, left, right, etc. for the Qt
+        implementation of DumpRenderTree.
+
+        Note this allows fast/forms/textarea-arrow-navigation.html to pass
+        correctly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28161
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (EventSender::keyDown):
+
+2009-08-11  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 28200 - ListMarker should be included as part of the text value to parse
+        https://bugs.webkit.org/show_bug.cgi?id=28200
+
+        Add the ability to retrieve a string given a plain NSRange.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (stringForRangeCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::valueDescription):
+        (AccessibilityUIElement::stringForRange):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::stringForRange):
+
+2009-08-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by NOBODY (Speculative fix for the layout test failure).
+
+        Fix fast/dom/prototype-inheritance.html
+        and fast/dom/prototype-inheritance-2.html
+        broken on Windows by http://trac.webkit.org/changeset/47018
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues): enable app cache in Windows DRT.
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool: Re-factor shared landing logic into helper class to share more code
+        https://bugs.webkit.org/show_bug.cgi?id=28193
+
+        Added new WebKitLandingScripts class to hold this shared logic.
+        Also added a view_source_url function to move more webkit-specific urls out of bugzilla-tool core.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-11  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Adam Treat.
+
+        Fix the current failures on the buildbot.
+
+        As Qt hooks up the maybeDump to loadFinished, we need to make
+        sure that calling dump() will not call maybeDump on loadFinished.
+
+        As dump is called my emitting done() which calls dump() and then
+        setting m_isLoading to false. So in the case m_isLoading is false,
+        do not dump again.
+
+        The current code is confusing, and should be made more clear
+        in another commit.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::maybeDump):
+        (LayoutTestController::notifyDone):
+
+2009-08-11  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add support for desktop notifications API to DumpRenderTree,
+        and support for ENABLE_NOTIFICATIONS flag to build-webkit.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (grantDesktopNotificationPermissionCallback):
+        (LayoutTestController::staticFunctions):
+        (LayoutTestController::grantDesktopNotificationPermission):
+        (LayoutTestController::checkDesktopNotificationPermission):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/win/DRTDesktopNotificationPresenter.cpp: Added.
+        (DRTDesktopNotificationPresenter::DRTDesktopNotificationPresenter):
+        (DRTDesktopNotificationPresenter::QueryInterface):
+        (DRTDesktopNotificationPresenter::AddRef):
+        (DRTDesktopNotificationPresenter::Release):
+        (DRTDesktopNotificationPresenter::showDesktopNotification):
+        (DRTDesktopNotificationPresenter::cancelDesktopNotification):
+        (DRTDesktopNotificationPresenter::notificationDestroyed):
+        (DRTDesktopNotificationPresenter::checkNotificationPermission):
+        (DRTDesktopNotificationPresenter::requestNotificationPermission):
+        * DumpRenderTree/win/DRTDesktopNotificationPresenter.h: Added.
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/UIDelegate.cpp:
+        (UIDelegate::UIDelegate):
+        (UIDelegate::desktopNotificationsDelegate):
+        * DumpRenderTree/win/UIDelegate.h:
+        * Scripts/build-webkit:
+
+2009-08-11  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Handle arbitrary line endings when manufacturing patches for additions
+        with history.
+
+        * Scripts/svn-create-patch:
+
+2009-08-11  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28183
+        Support VS2008 as well as VS2005 in a few scripts.
+
+        * Scripts/pdevenv: Check both $VS80COMNTOOLS and $VS90COMNTOOLS.
+        * Scripts/webkitdirs.pm: Use $VSINSTALLDIR if available instead of hardcoding the VS2005 dir.
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        run-webkit-tests --quiet should not output build-dumprendertree output
+        https://bugs.webkit.org/show_bug.cgi?id=28189
+
+        * Scripts/run-webkit-tests:
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Exception in land-patches
+        https://bugs.webkit.org/show_bug.cgi?id=27962
+
+        Use ("%s" % object) instead of ("" + object).
+        Added unit tests for logging.py.
+
+        * Scripts/modules/logging.py:
+        * Scripts/modules/logging_unittest.py: Added.
+        * Scripts/run-webkit-unittests:
+
+2009-08-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by NOBODY (Windows layout tests fix).
+
+        Fix for layout tests failures. Need to initialize some preferences early
+        because WebView on Windows uses them during create time.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-08-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Originally implemented by Glenn Wilson  <gwilson@chromium.org>.
+
+        Added support for overriding default preferences per-test.
+        See https://bugs.webkit.org/show_bug.cgi?id=20534
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (overridePreferenceCallback): add wiring for layoutTestController.overridePreference.
+        (LayoutTestController::staticFunctions): same.
+        * DumpRenderTree/LayoutTestController.h: same.
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::overridePreference): added empty overridePreference method.
+        * DumpRenderTree/mac/DumpRenderTree.mm: implemented preference override.
+        (resetDefaultsToConsistentValues): new method, resets preferences to same set of value before every test.
+        (setDefaultsToConsistentValuesForTesting): new method, sets other details of testing environment, every time  DRT starts.
+        (resetWebViewToConsistentStateBeforeTesting): move some preference setting from here to new resetDefaultsToConsistentValues().
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::overridePreference):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues): new method, resets preferences to same set of value before every test.
+        (resetWebViewToConsistentStateBeforeTesting): move some preference setting from here to new resetDefaultsToConsistentValues().
+        (createWebViewAndOffscreenWindow): same.
+        (main): same.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::overridePreference):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::overridePreference):
+
+2009-08-11  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Added support for DRT to support arguments for eventSender.mouseDown and eventSender.mouseUp for Windows.
+        https://bugs.webkit.org/show_bug.cgi?id=28166.
+        
+        This is a step towards fixing fast/events/mouse-click-events.html on Windows.
+
+        * DumpRenderTree/win/EventSender.cpp:
+        (mouseDownCallback):
+        (mouseUpCallback):
+        (replaySavedEvents):
+
+2009-08-11  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Build the TestNetscapePlugin on Qt/Mac
+
+        * DumpRenderTree/qt/TestNetscapePlugin/TestNetscapePlugin.pro:
+
+2009-08-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by NOBODY (build fix).
+
+        Attempt to fix the Windows test bot. Reverted r47015 caused one of the Windows
+        bots that runs Layout Tests to save "JS disabled" and "default font 24pt"
+        preferences permanently. Since these preferences are not initialized explicitly in DRT,
+        almost all Layout tests are failing. Attempt to fix by explicit
+        initialization of these into defaults (enabled, 16pt) at the beginning of the DRT.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):  see above.
+
+2009-08-10  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows nightly fix.
+
+        Reviewed by Ada Chan.
+
+        * FindSafari/FindSafari.cpp:
+        (_tmain): Copy Safari.dll if it exists.
+
+2009-08-10  David Levin  <levin@chromium.org>
+
+        Reviewed by David Kilzer.
+
+        check-webkit-style doesn't catch braces around single line statements when followed by else.
+        https://bugs.webkit.org/show_bug.cgi?id=28164
+
+        * Scripts/modules/cpp_style.py: Added else to the regex that finds ending }'s when
+          checking the no braces for "single lines" rule.
+        * Scripts/modules/cpp_style_unittest.py: Added test case.
+
+2009-08-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28163> bugzilla-tool: scm module should not import bugzilla module
+
+        Reviewed by David Levin.
+
+        * Scripts/bugzilla-tool:
+        (parse_bug_id): Added.  Moved from CommitMessage.parse_bug_id()
+        in scm module.
+        * Scripts/modules/scm.py: Removed import of bugzilla module.
+        (CommitMessage.parse_bug_id): Deleted.
+
+2009-08-10  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=18599
+        Work around apparent bug in abs2rel() with symlinked directories.
+
+        * Scripts/resolve-ChangeLogs:
+
+2009-08-10  Dan Bernstein  <mitz@apple.com>
+
+        Build fix
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+
+2009-08-10  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix a bunch of build warnings in TestNetscapePlugin
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/TestObject.cpp:
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+
+2009-08-10  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Adam Roben.
+        
+        Allow TestNetscapePlugIn to fall back to the Carbon event model
+        
+        Previously the plugin would fail, even though the Carbon event
+        model was available. The only way to get the Carbon event model
+        was to pass the "forcecarbon" argument in the test markup, but no
+        tests were using this.
+        
+        Now the plugin uses carbon either if it's forced, or if the Cocoa
+        event model is not supported.
+        
+        This helps us run most of the plugin tests on Qt/Mac, which still
+        does not support the Cocoa event model.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+
 2009-08-10  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Eric Seidel.

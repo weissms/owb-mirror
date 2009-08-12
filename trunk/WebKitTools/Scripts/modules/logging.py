@@ -35,5 +35,5 @@ def log(string):
     print >> sys.stderr, string
 
 def error(string):
-    log("ERROR: " + string)
+    log("ERROR: %s" % string)
     exit(1)

@@ -357,6 +357,16 @@ WebInspector.loaded = function()
     if (Preferences.useDOMAgent)
         this.domAgent = new WebInspector.DOMAgent();
 
+    this.resourceCategories = {
+        documents: new WebInspector.ResourceCategory(WebInspector.UIString("Documents"), "documents"),
+        stylesheets: new WebInspector.ResourceCategory(WebInspector.UIString("Stylesheets"), "stylesheets"),
+        images: new WebInspector.ResourceCategory(WebInspector.UIString("Images"), "images"),
+        scripts: new WebInspector.ResourceCategory(WebInspector.UIString("Scripts"), "scripts"),
+        xhr: new WebInspector.ResourceCategory(WebInspector.UIString("XHR"), "xhr"),
+        fonts: new WebInspector.ResourceCategory(WebInspector.UIString("Fonts"), "fonts"),
+        other: new WebInspector.ResourceCategory(WebInspector.UIString("Other"), "other")
+    };
+
     this.panels = {};
     this._createPanels();
 
@@ -375,16 +385,6 @@ WebInspector.loaded = function()
             toolbarElement.insertBefore(panelToolbarItem, toolbarElement.firstChild);
         previousToolbarItem = panelToolbarItem;
     }
-
-    this.resourceCategories = {
-        documents: new WebInspector.ResourceCategory(WebInspector.UIString("Documents"), "documents"),
-        stylesheets: new WebInspector.ResourceCategory(WebInspector.UIString("Stylesheets"), "stylesheets"),
-        images: new WebInspector.ResourceCategory(WebInspector.UIString("Images"), "images"),
-        scripts: new WebInspector.ResourceCategory(WebInspector.UIString("Scripts"), "scripts"),
-        xhr: new WebInspector.ResourceCategory(WebInspector.UIString("XHR"), "xhr"),
-        fonts: new WebInspector.ResourceCategory(WebInspector.UIString("Fonts"), "fonts"),
-        other: new WebInspector.ResourceCategory(WebInspector.UIString("Other"), "other")
-    };
 
     this.Tips = {
         ResourceNotCompressed: {id: 0, message: WebInspector.UIString("You could save bandwidth by having your web server compress this transfer with gzip or zlib.")}
@@ -853,12 +853,12 @@ WebInspector.elementDragEnd = function(event)
 
 WebInspector.showConsole = function()
 {
-    this.drawer.visibleView = this.console;
+    this.drawer.showView(this.console);
 }
 
 WebInspector.showChanges = function()
 {
-    this.drawer.visibleView = this.changes;
+    this.drawer.showView(this.changes);
 }
 
 WebInspector.showElementsPanel = function()

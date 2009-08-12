@@ -68,7 +68,7 @@ namespace JSC {
         void setBody(PassRefPtr<FunctionBodyNode> body) { m_body = body; }
         FunctionBodyNode* body() const { return m_body.get(); }
 
-        virtual void mark();
+        virtual void markChildren(MarkStack&);
 
         static JS_EXPORTDATA const ClassInfo info;
 
@@ -131,6 +131,11 @@ namespace JSC {
     {
         ASSERT(asObject(value)->inherits(&JSFunction::info));
         return static_cast<JSFunction*>(asObject(value));
+    }
+
+    inline JSFunction* FunctionBodyNode::make(ExecState* exec, ScopeChainNode* scopeChain)
+    {
+        return new (exec) JSFunction(exec, m_ident, this, scopeChain);
     }
 
 } // namespace JSC

@@ -456,6 +456,14 @@ void WebPreferences::setXSSAuditorEnabled(bool enabled)
     setBoolValue(WebKitXSSAuditorEnabledPreferenceKey, enabled);
 }
 
+void WebPreferences::setPreferenceForTest(const char* key, const char* value)
+{ 
+    if (!key || !value)
+        return ; 
+    setValueForKey(key, value); 
+    postPreferencesChangesNotification();
+} 
+
 bool WebPreferences::javaScriptCanOpenWindowsAutomatically()
 {
     return boolValueForKey(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey);

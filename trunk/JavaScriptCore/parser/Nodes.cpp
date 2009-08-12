@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "Nodes.h"
-//#include "NodeConstructors.h"
+#include "NodeConstructors.h"
 
 #include "BytecodeGenerator.h"
 #include "CallFrame.h"
@@ -1205,7 +1205,13 @@ RegisterID* ConstDeclNode::emitCodeSingle(BytecodeGenerator& generator)
 
         return generator.emitNode(local, m_init);
     }
-    
+
+    if (generator.codeType() != EvalCode) {
+        if (m_init)
+            return generator.emitNode(m_init);
+        else
+            return generator.emitResolve(generator.newTemporary(), m_ident);
+    }
     // FIXME: While this code should only be hit in eval code, it will potentially
     // assign to the wrong base if m_ident exists in an intervening dynamic scope.
     RefPtr<RegisterID> base = generator.emitResolveBase(generator.newTemporary(), m_ident);
@@ -1818,14 +1824,14 @@ ScopeNodeData::ScopeNodeData(ParserArena& arena, SourceElements* children, VarSt
         children->releaseContentsIntoVector(m_children);
 }
 
-void ScopeNodeData::mark()
+void ScopeNodeData::markAggregate(MarkStack& markStack)
 {
     FunctionStack::iterator end = m_functionStack.end();
     for (FunctionStack::iterator ptr = m_functionStack.begin(); ptr != end; ++ptr) {
-        FunctionBodyNode* body = (*ptr)->body();
+        FunctionBodyNode* body = *ptr;
         if (!body->isGenerated())
             continue;
-        body->generatedBytecode().mark();
+        body->generatedBytecode().markAggregate(markStack);
     }
 }
 
@@ -1972,10 +1978,10 @@ EvalCodeBlock& EvalNode::bytecodeForExceptionInfoReparse(ScopeChainNode* scopeCh
     return *m_code;
 }
 
-void EvalNode::mark()
+void EvalNode::markAggregate(MarkStack& markStack)
 {
     // We don't need to mark our own CodeBlock as the JSGlobalObject takes care of that
-    data()->mark();
+    data()->markAggregate(markStack);
 }
 
 #if ENABLE(JIT)
@@ -2012,7 +2018,7 @@ FunctionBodyNode::~FunctionBodyNode()
     fastFree(m_parameters);
 }
 
-void FunctionBodyNode::finishParsing(const SourceCode& source, ParameterNode* firstParameter)
+void FunctionBodyNode::finishParsing(const SourceCode& source, ParameterNode* firstParameter, const Identifier& ident)
 {
     Vector<Identifier> parameters;
     for (ParameterNode* parameter = firstParameter; parameter; parameter = parameter->nextParam())
@@ -2020,20 +2026,21 @@ void FunctionBodyNode::finishParsing(const SourceCode& source, ParameterNode* fi
     size_t count = parameters.size();
 
     setSource(source);
-    finishParsing(parameters.releaseBuffer(), count);
+    finishParsing(parameters.releaseBuffer(), count, ident);
 }
 
-void FunctionBodyNode::finishParsing(Identifier* parameters, size_t parameterCount)
+void FunctionBodyNode::finishParsing(Identifier* parameters, size_t parameterCount, const Identifier& ident)
 {
     ASSERT(!source().isNull());
     m_parameters = parameters;
     m_parameterCount = parameterCount;
+    m_ident = ident;
 }
 
-void FunctionBodyNode::mark()
+void FunctionBodyNode::markAggregate(MarkStack& markStack)
 {
     if (m_code)
-        m_code->mark();
+        m_code->markAggregate(markStack);
 }
 
 #if ENABLE(JIT)
@@ -2151,11 +2158,6 @@ Identifier* FunctionBodyNode::copyParameters()
 
 // ------------------------------ JavaScriptCore/FuncDeclNode ---------------------------------
 
-JSFunction* FuncDeclNode::makeFunction(ExecState* exec, ScopeChainNode* scopeChain)
-{
-    return new (exec) JSFunction(exec, m_ident, m_body.get(), scopeChain);
-}
-
 RegisterID* FuncDeclNode::emitBytecode(BytecodeGenerator& generator, RegisterID* dst)
 {
     if (dst == generator.ignoredResult())
@@ -2168,26 +2170,6 @@ RegisterID* FuncDeclNode::emitBytecode(BytecodeGenerator& generator, RegisterID*
 RegisterID* FuncExprNode::emitBytecode(BytecodeGenerator& generator, RegisterID* dst)
 {
     return generator.emitNewFunctionExpression(generator.finalDestination(dst), this);
-}
-
-JSFunction* FuncExprNode::makeFunction(ExecState* exec, ScopeChainNode* scopeChain)
-{
-    JSFunction* func = new (exec) JSFunction(exec, m_ident, m_body.get(), scopeChain);
-
-    /* 
-        The Identifier in a FunctionExpression can be referenced from inside
-        the FunctionExpression's FunctionBody to allow the function to call
-        itself recursively. However, unlike in a FunctionDeclaration, the
-        Identifier in a FunctionExpression cannot be referenced from and
-        does not affect the scope enclosing the FunctionExpression.
-     */
-
-    if (!m_ident.isNull()) {
-        JSStaticScopeObject* functionScopeObject = new (exec) JSStaticScopeObject(exec, m_ident, func, ReadOnly | DontDelete);
-        func->scope().push(functionScopeObject);
-    }
-
-    return func;
 }
 
 } // namespace JSC

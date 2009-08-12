@@ -37,8 +37,6 @@ RegisterFile::~RegisterFile()
     munmap(m_buffer, ((m_max - m_start) + m_maxGlobals) * sizeof(Register));
 #elif HAVE(VIRTUALALLOC)
     VirtualFree(m_buffer, 0, MEM_RELEASE);
-#elif PLATFORM(AMIGAOS4)
-    fastFree(m_buffer);
 #else
     #error "Don't know how to release virtual memory on this platform."
 #endif

@@ -151,6 +151,12 @@ void LayoutTestController::maybeDump(bool success)
 {
     Q_ASSERT(sender() == m_topLoadingFrame);
 
+    // as the function is called on loadFinished, the test might
+    // already have dumped and thus no longer be active, thus
+    // bail out here.
+    if (!m_isLoading)
+        return;
+
     m_topLoadingFrame = 0;
     WorkQueue::shared()->setFrozen(true); // first complete load freezes the queue for the rest of this test
 
@@ -180,6 +186,7 @@ void LayoutTestController::notifyDone()
     m_timeoutTimer.stop();
     emit done();
     m_isLoading = false;
+    m_waitForDone = false;
 }
 
 int LayoutTestController::windowCount()
@@ -442,6 +449,37 @@ void EventSender::keyDown(const QString &string, const QStringList &modifiers)
             modifs = 0;
         } else {
             code = string.unicode()->toUpper().unicode();
+        }
+    } else {
+        qDebug() << ">>>>>>>>> keyDown" << string;
+        // map special keycode strings used by the tests to something that works for Qt/X11
+        if (string == QLatin1String("leftArrow")) {
+            s = QString();
+            code = Qt::Key_Left;
+        } else if (string == QLatin1String("rightArrow")) {
+            s = QString();
+            code = Qt::Key_Right;
+        } else if (string == QLatin1String("upArrow")) {
+            s = QString();
+            code = Qt::Key_Up;
+        } else if (string == QLatin1String("downArrow")) {
+            s = QString();
+            code = Qt::Key_Down;
+        } else if (string == QLatin1String("pageUp")) {
+            s = QString();
+            code = Qt::Key_PageUp;
+        } else if (string == QLatin1String("pageDown")) {
+            s = QString();
+            code = Qt::Key_PageDown;
+        } else if (string == QLatin1String("home")) {
+            s = QString();
+            code = Qt::Key_Home;
+        } else if (string == QLatin1String("end")) {
+            s = QString();
+            code = Qt::Key_End;
+        } else if (string == QLatin1String("delete")) {
+            s = QString();
+            code = Qt::Key_Delete;
         }
     }
     QKeyEvent event(QEvent::KeyPress, code, modifs, s);
