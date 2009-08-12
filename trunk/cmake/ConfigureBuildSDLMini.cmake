@@ -21,7 +21,10 @@ if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_YARR ON CACHE BOOLEAN "Enable RegExp JIT compilation (for x86 and x86_64 only)" FORCE)
 endif(ARCH MATCHES "[ix][3-6]*86*")
 
-set(ENABLE_MULTIPLE_THREADS OFF CACHE BOOLEAN "Enable multiple threads" FORCE)
+set(ENABLE_MULTIPLE_THREADS ON CACHE BOOLEAN "Enable multiple threads" FORCE)
+set(ENABLE_WORKERS ON CACHE BOOLEAN "Enable workers support" FORCE)
+set(ENABLE_SHARED_WORKERS OFF CACHE BOOLEAN "Enable shared workers support" FORCE)
+
 set(ENABLE_NPAPI OFF CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 
 set(ENABLE_SVG OFF CACHE BOOLEAN "Enable SVG support" FORCE)

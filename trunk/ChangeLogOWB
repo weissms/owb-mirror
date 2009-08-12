@@ -1,3 +1,9 @@
+2009-08-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Change option for build sdl mini
+
+        * cmake/ConfigureBuildSDLMini.cmake:
+
 2009-06-15  Olivier DOLE  <odole@pleyo.com>
 
         Add specific PLATFORM(MIPS).
