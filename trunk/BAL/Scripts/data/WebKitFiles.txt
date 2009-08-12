@@ -34,7 +34,6 @@ WebCore/page/DOMWindow.cpp
 WebCore/page/DOMWindow.h
 WebCore/page/DOMWindow.idl
 WebCore/page/XSSAuditor.cpp
-WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLParser.cpp
 WebCore/inspector/InspectorController.cpp
