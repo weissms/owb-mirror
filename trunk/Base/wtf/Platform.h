@@ -36,6 +36,16 @@
 
 /* Operating systems - low-level dependencies */
 
+/* PLATFORM(AMIGAOS4) */                                                           
+/* Operating system level dependencies for AmigaOS 4.x that should */              
+/* be used regardless of operating environment */                                  
+#if defined(__AMIGAOS4__)                                                          
+#define WTF_PLATFORM_AMIGAOS4 1                                                    
+#define WTF_USE_CURL 1                                                             
+#define WTF_USE_PTHREADS 1                                                         
+#define USE_SYSTEM_MALLOC 1                                                        
+#endif
+
 /* PLATFORM(DARWIN) */
 /* Operating system level dependencies for Mac OS X / Darwin that should */
 /* be used regardless of operating environment */
@@ -48,6 +58,10 @@
 #define BUILDING_ON_LEOPARD 1
 #endif
 #include <TargetConditionals.h>
+#endif
+
+#if PLATFORM(MACPORT)                                                              
+#undef WTF_PLATFORM_MAC                                                            
 #endif
 
 /* PLATFORM(WIN_OS) */
@@ -115,6 +129,7 @@
    || PLATFORM(FREEBSD)    \
    || PLATFORM(SYMBIAN)    \
    || PLATFORM(NETBSD)     \
+   || PLATFORM(MACPORT)    \
    || defined(unix)        \
    || defined(__unix)      \
    || defined(__unix__)    \
@@ -146,7 +161,7 @@
 #define WTF_PLATFORM_GTK 1
 #elif defined(BUILDING_HAIKU__)
 #define WTF_PLATFORM_HAIKU 1
-#elif PLATFORM(DARWIN)
+#elif PLATFORM(DARWIN) && !PLATFORM(MACPORT)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1
@@ -271,6 +286,11 @@
 /* PLATFORM(SH4) */
 #if defined(__SH4__)
 #define WTF_PLATFORM_SH4 1
+#endif
+
+/* PLATFORM(MIPS) */                                                                                               
+#if defined(__mips__)                                                                                              
+#define WTF_PLATFORM_MIPS 1                                                                                        
 #endif
 
 /* PLATFORM(SPARC64) */
@@ -497,6 +517,13 @@
 #if !COMPILER(RVCT)
 #define HAVE_SYS_PARAM_H 1
 #endif
+
+#elif PLATFORM(AMIGAOS4)                                                                                           
+                                                                                                                   
+#define HAVE_ERRNO_H 1                                                                                             
+#define HAVE_STRINGS_H 1                                                                                           
+#define HAVE_SYS_PARAM_H 1                                                                                         
+#define HAVE_SYS_TIME_H 1
 
 #else
 

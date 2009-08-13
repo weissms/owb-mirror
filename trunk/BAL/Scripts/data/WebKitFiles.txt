@@ -1,22 +1,12 @@
 JavaScriptCore/AllInOneFile.cpp
-JavaScriptCore/config.h
-JavaScriptCore/bytecode/Instruction.h
-JavaScriptCore/bytecode/JumpTable.h
 JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
-JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
-JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
-JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
-JavaScriptCore/wtf/unicode/glib/UnicodeMacrosFromICU.h BAL/Internationalization/WTF/GLib/BCUnicodeMacrosFromICUGLib.h
-JavaScriptCore/yarr/RegexInterpreter.cpp
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
-WebCore/bindings/js/ScheduledAction.cpp
-WebCore/bindings/js/ScriptObject.cpp
 WebCore/bindings/js/ScriptObjectQuarantine.h
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
@@ -36,7 +26,6 @@ WebCore/page/DOMWindow.idl
 WebCore/page/XSSAuditor.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLParser.cpp
-WebCore/inspector/InspectorController.cpp
 WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
 WebCore/loader/EmptyClients.h
@@ -61,7 +50,6 @@ WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
-WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/image-decoders/ImageDecoder.h BAL/ImageDecoder/WebCore/WK/BCImageDecoderWK.h
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
 WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
@@ -76,7 +64,6 @@ WebCore/platform/network/curl/ResourceHandleManager.h BAL/Network/WebCore/Curl/B
 WebCore/platform/network/qt/QNetworkReplyHandler.h BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
 WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp
 WebCore/platform/network/qt/ResourceHandleQt.cpp BAL/Network/WebCore/Qt/BCResourceHandleQt.cpp
-WebCore/platform/network/soup/ResourceHandleSoup.cpp BAL/Network/WebCore/Soup/BCResourceHandleSoup.cpp
 WebCore/platform/posix/FileSystemPOSIX.cpp BAL/Filesystem/WebCore/Posix/BCFileSystemPosix.cpp
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
@@ -94,7 +81,6 @@ WebCore/storage/Database.cpp
 WebCore/svg/graphics/SVGImage.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/wml/WMLErrorHandling.cpp
-WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLTProcessor.cpp
 WebCore/xml/XSLStyleSheet.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp

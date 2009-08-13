@@ -204,6 +204,8 @@ namespace JSC {
             CRASH();
         }
         m_commitEnd = reinterpret_cast<Register*>(reinterpret_cast<char*>(m_buffer) + committedSize);
+    #elif PLATFORM(AMIGAOS4)
+        m_buffer = static_cast<Register*>(fastMalloc(bufferLength));
     #else
         #error "Don't know how to reserve virtual memory on this platform."
     #endif

@@ -24,7 +24,6 @@
 #include "JSDOMWindowBase.h"
 
 #include "CString.h"
-#include "Console.h"
 #include "DOMWindow.h"
 #include "Frame.h"
 #include "JSDOMWindowCustom.h"
@@ -36,6 +35,7 @@
 #include "Settings.h"
 
 #if ENABLE(INSPECTOR)
+#include "Console.h"
 #include "InspectorController.h"
 #endif
 using namespace JSC;

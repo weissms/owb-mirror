@@ -51,7 +51,11 @@
 #include "runtime/DateConversion.cpp"
 #include "runtime/DatePrototype.cpp"
 #include "runtime/DateInstance.cpp"
+#if PLATFORM(GTK) || PLATFORM(BAL) || PLATFORM(QT)
+#include "BCdtoaWTF.cpp"
+#else
 #include "wtf/dtoa.cpp"
+#endif
 #include "runtime/ErrorInstance.cpp"
 #include "runtime/ErrorPrototype.cpp"
 #include "runtime/ErrorConstructor.cpp"
@@ -100,7 +104,12 @@
 #include "runtime/ConstructData.cpp"
 #include "runtime/JSCell.cpp"
 #include "runtime/JSVariableObject.cpp"
+#if PLATFORM(GTK) || PLATFORM(BAL)
+#include "BCFastMallocWTF.cpp"
+#include "BCTCSystemAllocWTF.cpp"
+#else
 #include "wtf/FastMalloc.cpp"
 #include "wtf/TCSystemAlloc.cpp"
+#endif
 #include "bytecompiler/BytecodeGenerator.cpp"
 #include "interpreter/RegisterFile.cpp"
