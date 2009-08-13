@@ -35,6 +35,8 @@
 #include "JSFunction.h"
 #include "LinkBuffer.h"
 
+#include "limits.h"
+
 namespace JSC {
 
 #if USE(JSVALUE32_64)

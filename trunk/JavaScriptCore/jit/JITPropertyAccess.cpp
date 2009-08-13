@@ -39,6 +39,8 @@
 #include "ResultType.h"
 #include "SamplingTool.h"
 
+#include "limits.h"
+
 #ifndef NDEBUG
 #include <stdio.h>
 #endif
