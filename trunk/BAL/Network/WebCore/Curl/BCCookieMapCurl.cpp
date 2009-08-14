@@ -26,7 +26,7 @@
 #include "config.h"
 #include "CookieMap.h"
 
-#include "Cookie.h"
+#include "ParsedCookie.h"
 #include "CookieBackingStore.h"
 #include "CookieManager.h"
 #include "CurrentTime.h"
@@ -41,13 +41,13 @@ CookieMap::CookieMap()
 
 CookieMap::~CookieMap()
 {
-    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
-    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
-    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator)
+    HashMap<String, ParsedCookie*>::iterator first = m_cookieMap.begin();
+    HashMap<String, ParsedCookie*>::iterator end = m_cookieMap.end();
+    for (HashMap<String, ParsedCookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator)
         delete cookieIterator->second;
 }
 
-Cookie* CookieMap::takePrevious(const Cookie* cookie)
+ParsedCookie* CookieMap::takePrevious(const ParsedCookie* cookie)
 {
     String key = cookie->name() + cookie->path();
 
@@ -58,7 +58,7 @@ Cookie* CookieMap::takePrevious(const Cookie* cookie)
     return m_cookieMap.take(key);
 }
 
-void CookieMap::add(Cookie* cookie)
+void CookieMap::add(ParsedCookie* cookie)
 {
     String key = cookie->name() + cookie->path();
     ASSERT(!m_cookieMap.get(key));
@@ -67,12 +67,12 @@ void CookieMap::add(Cookie* cookie)
         m_oldestCookie = cookie;
 }
 
-void CookieMap::remove(const Cookie* cookie)
+void CookieMap::remove(const ParsedCookie* cookie)
 {
     String key = cookie->name() + cookie->path();
 
     // Find a previous entry for deletion
-    Cookie* prevCookie = m_cookieMap.take(key);
+    ParsedCookie* prevCookie = m_cookieMap.take(key);
 
     if (prevCookie == m_oldestCookie)
         updateOldestCookie();
@@ -81,19 +81,19 @@ void CookieMap::remove(const Cookie* cookie)
     delete prevCookie;
 }
 
-Vector<Cookie*> CookieMap::getCookies()
+Vector<ParsedCookie*> CookieMap::getCookies()
 {
-    Vector<Cookie*> cookies;
+    Vector<ParsedCookie*> cookies;
 
     double now = currentTime();
 
-    HashMap<String, Cookie*>::iterator first = m_cookieMap.begin();
-    HashMap<String, Cookie*>::iterator end = m_cookieMap.end();
-    for (HashMap<String, Cookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
-        Cookie* cookie = cookieIterator->second;
+    HashMap<String, ParsedCookie*>::iterator first = m_cookieMap.begin();
+    HashMap<String, ParsedCookie*>::iterator end = m_cookieMap.end();
+    for (HashMap<String, ParsedCookie*>::iterator cookieIterator = first; cookieIterator != end; ++cookieIterator) {
+        ParsedCookie* cookie = cookieIterator->second;
         // Check for non session cookie expired.
         if (cookie->hasExpired()) {
-            LOG(Network, "Cookie name: %s value: %s path: %s  expired", cookie->name().ascii().data(), cookie->value().ascii().data(), cookie->path().ascii().data());
+            LOG(Network, "ParsedCookie name: %s value: %s path: %s  expired", cookie->name().ascii().data(), cookie->value().ascii().data(), cookie->path().ascii().data());
             m_cookieMap.take(cookieIterator->first);
             cookieBackingStore().remove(cookie);
             cookieManager().removedCookie();
@@ -107,18 +107,18 @@ Vector<Cookie*> CookieMap::getCookies()
     return cookies;
 }
 
-Cookie* CookieMap::removeOldestCookie()
+ParsedCookie* CookieMap::removeOldestCookie()
 {
     String key = m_oldestCookie->name() + m_oldestCookie->path();
 
-    Cookie* result = m_cookieMap.take(key);
+    ParsedCookie* result = m_cookieMap.take(key);
 
     updateOldestCookie();
 
     return result;
 }
 
-void CookieMap::updateTime(Cookie* cookie, double newTime)
+void CookieMap::updateTime(ParsedCookie* cookie, double newTime)
 {
     cookie->setLastAccessed(newTime);
 
@@ -131,7 +131,7 @@ void CookieMap::updateOldestCookie()
     if (m_cookieMap.size() == 0)
         m_oldestCookie = 0;
     else {
-        HashMap<String, Cookie*>::iterator it = m_cookieMap.begin();
+        HashMap<String, ParsedCookie*>::iterator it = m_cookieMap.begin();
         m_oldestCookie = it->second;
         ++it;
         for (; it != m_cookieMap.end(); ++it)

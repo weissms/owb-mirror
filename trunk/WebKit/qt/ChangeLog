@@ -1,3 +1,44 @@
+2009-08-14  Mark Rowe  <mrowe@apple.com>
+
+        Try and fix the Qt build.
+
+        * Api/qwebelement.cpp:
+
+2009-08-13  Kavindra Devi Palaraja  <kavindra.palaraja@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc - Some cleanup on the documentation of QWebElement
+
+        * Api/qwebelement.cpp:
+
+2009-08-13  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Symbian target components (library and executable files)
+        require Unique Identifiers (i.e., UID3).
+        These identifiers are defined in the respective project
+        files, conditionally for "symbian" platform.
+
+        * QtLauncher/QtLauncher.pro:
+        * tests/qwebelement/qwebelement.pro:
+        * tests/qwebframe/qwebframe.pro:
+        * tests/qwebhistory/qwebhistory.pro:
+        * tests/qwebhistoryinterface/qwebhistoryinterface.pro:
+        * tests/qwebpage/qwebpage.pro:
+        * tests/qwebview/qwebview.pro:
+
+2009-08-12  George Wright  <george.wright@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Initialise zoom levels independent of whether a URL is valid or not to
+        fix https://bugs.webkit.org/show_bug.cgi?id=28162
+
+        * QtLauncher/main.cpp:
+        (MainWindow::MainWindow):
+
 2009-08-12  Joerg Bornemann  <joerg.bornemann@trolltech.com>
 
         Reviewed by Simon Hausmann.

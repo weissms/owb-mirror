@@ -31,7 +31,7 @@
 
 namespace WebCore {
 
-    class Cookie;
+    class ParsedCookie;
     class String;
 
     class CookieParser {
@@ -40,11 +40,11 @@ namespace WebCore {
         ~CookieParser();
 
         // Parses a sequence of "Cookie:" header and return the parsed cookies.
-        Vector<Cookie*> parse(const String& /*cookies*/);
+        Vector<ParsedCookie*> parse(const String& /*cookies*/);
 
     private:
         // FIXME: curTime, start, end parameters should be removed. And this method can be public.
-        Cookie* parseOneCookie(const String& /*cookie*/, unsigned /*start*/, unsigned /*end*/, double /*curTime*/);
+        ParsedCookie* parseOneCookie(const String& /*cookie*/, unsigned /*start*/, unsigned /*end*/, double /*curTime*/);
 
         KURL m_defaultCookieURL;
     };

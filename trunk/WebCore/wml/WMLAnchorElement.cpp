@@ -71,7 +71,7 @@ void WMLAnchorElement::registerTask(WMLTaskElement* task)
 
 void WMLAnchorElement::deregisterTask(WMLTaskElement* task)
 {
-    ASSERT(m_task == task);
+    ASSERT_UNUSED(task, m_task == task);
     m_task = 0;
 }
 

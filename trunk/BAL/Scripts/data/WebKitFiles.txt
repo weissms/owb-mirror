@@ -4,9 +4,11 @@ JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
+WebCore/bindings/js/JSDesktopNotificationsCustom.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
+WebCore/bindings/js/JSSharedWorkerConstructor.cpp
 WebCore/bindings/js/ScriptObjectQuarantine.h
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp

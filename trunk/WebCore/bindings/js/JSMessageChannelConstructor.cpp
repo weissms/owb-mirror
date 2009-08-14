@@ -30,6 +30,7 @@
 #include "JSDocument.h"
 #include "JSMessageChannel.h"
 #include "MessageChannel.h"
+#include <runtime/Error.h>
 
 #if ENABLE(WORKERS)
 #include "JSWorkerContextBase.h"

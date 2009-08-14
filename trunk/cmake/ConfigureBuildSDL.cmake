@@ -45,8 +45,10 @@ set(ENABLE_SVG_USE_ELEMENT ON CACHE BOOLEAN "Enable support for SVG use element 
 set(ENABLE_VIDEO ON CACHE BOOLEAN "Enable HTML5 video support" FORCE)
 set(ENABLE_WEB_SOCKETS ON CACHE BOOLEAN "Enable Web Sockets support" FORCE)
 set(ENABLE_WML ON CACHE BOOLEAN "Enable WML support" FORCE)
+set(ENABLE_XHTMLMP ON CACHE BOOLEAN "Enable XHTML Mobile profile." FORCE)
 set(ENABLE_XPATH ON CACHE BOOLEAN "Enable XPath support"FORCE)
 set(ENABLE_XSLT ON CACHE BOOLEAN "Enable XSLT support"FORCE)
+set(ENABLE_WCSS ON CACHE BOOLEAN "Enable WAP CSS support" FORCE)
 
 set(USE_FILESYSTEM_ACCESS "POSIX" CACHE STRING "Choose the filesystem access method, options are: GLIB POSIX" FORCE)
 set(USE_FONTS "FREETYPE" CACHE STRING "Choose the font engine, options are: GTK FREETYPE EMBEDDED" FORCE)

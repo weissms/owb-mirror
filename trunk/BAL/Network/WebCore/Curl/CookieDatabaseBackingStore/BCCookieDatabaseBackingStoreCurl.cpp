@@ -26,7 +26,7 @@
 #include <config.h>
 #include "CookieBackingStore.h"
 
-#include "Cookie.h"
+#include "ParsedCookie.h"
 #include "CookieManager.h"
 #include "SQLiteStatement.h"
 
@@ -83,7 +83,7 @@ void CookieBackingStore::close()
     m_db.close();
 }
 
-void CookieBackingStore::insert(const Cookie* cookie)
+void CookieBackingStore::insert(const ParsedCookie* cookie)
 {
     if (!tableExists())
         return;
@@ -113,7 +113,7 @@ void CookieBackingStore::insert(const Cookie* cookie)
     }
 }
 
-void CookieBackingStore::update(const Cookie* cookie)
+void CookieBackingStore::update(const ParsedCookie* cookie)
 {
     if (!tableExists())
         return;
@@ -145,7 +145,7 @@ void CookieBackingStore::update(const Cookie* cookie)
  
 }
 
-void CookieBackingStore::remove(const Cookie* cookie)
+void CookieBackingStore::remove(const ParsedCookie* cookie)
 {
     if (!tableExists())
         return;
@@ -195,9 +195,9 @@ void CookieBackingStore::removeAll()
     }
 }
 
-Vector<Cookie*> CookieBackingStore::getAllCookies()
+Vector<ParsedCookie*> CookieBackingStore::getAllCookies()
 {
-    Vector<Cookie*, 8> cookies;
+    Vector<ParsedCookie*, 8> cookies;
 
     // Check that the table exists to avoid doing an unnecessary request.
     if (!tableExists())
@@ -226,7 +226,7 @@ Vector<Cookie*> CookieBackingStore::getAllCookies()
         bool isSecure = (selectStatement.getColumnInt(6) != 0);
         bool isHttpOnly = (selectStatement.getColumnInt(7) != 0);
 
-        cookies.append(new Cookie(name, value, domain, path, expiry, lastAccessed, isSecure, isHttpOnly));
+        cookies.append(new ParsedCookie(name, value, domain, path, expiry, lastAccessed, isSecure, isHttpOnly));
     }
 
     return cookies;

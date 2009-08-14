@@ -33,7 +33,7 @@
 
 namespace WebCore {
 
-    class Cookie;
+    class ParsedCookie;
 
     class CookieMap {
 
@@ -43,28 +43,28 @@ namespace WebCore {
 
         unsigned int count() const { return m_cookieMap.size(); }
 
-        void add(Cookie* cookie);
-        void remove(const Cookie* cookie);
+        void add(ParsedCookie* cookie);
+        void remove(const ParsedCookie* cookie);
 
-        Vector<Cookie*> getCookies();
+        Vector<ParsedCookie*> getCookies();
 
         // Will take the cookie that match the paramater
-        Cookie* takePrevious(const Cookie* cookie);
+        ParsedCookie* takePrevious(const ParsedCookie* cookie);
 
-        void updateTime(Cookie* cookie, double newTime);
+        void updateTime(ParsedCookie* cookie, double newTime);
 
-        // Return Cookie to remove it from the backing store in the CookieManager
-        Cookie* removeOldestCookie();
+        // Return ParsedCookie to remove it from the backing store in the CookieManager
+        ParsedCookie* removeOldestCookie();
 
     private:
         void updateOldestCookie();
 
         // The key is the tuple (name, path)
         // The spec asks to have also domain, which is implied by choosing the CookieMap relevant to the domain
-        HashMap<String, Cookie*> m_cookieMap;
+        HashMap<String, ParsedCookie*> m_cookieMap;
 
         // Store the oldest cookie to speed up LRU checks
-        Cookie* m_oldestCookie;
+        ParsedCookie* m_oldestCookie;
 
         // FIXME : should have a m_shouldUpdate flag to update the network layer only when the map has changed
     };

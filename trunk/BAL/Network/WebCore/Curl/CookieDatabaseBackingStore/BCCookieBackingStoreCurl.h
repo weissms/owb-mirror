@@ -30,20 +30,20 @@
 
 namespace WebCore {
 
-    class Cookie;
+    class ParsedCookie;
 
     class CookieBackingStore {
     public:
         void open(const String& cookieJar);
         void close();
 
-        void insert(const Cookie* cookie);
-        void update(const Cookie* cookie);
-        void remove(const Cookie* cookie);
+        void insert(const ParsedCookie* cookie);
+        void update(const ParsedCookie* cookie);
+        void remove(const ParsedCookie* cookie);
 
         void removeAll();
 
-        Vector<Cookie*> getAllCookies();
+        Vector<ParsedCookie*> getAllCookies();
 
     private:
         friend CookieBackingStore& cookieBackingStore();

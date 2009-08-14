@@ -121,7 +121,18 @@ if(ENABLE_WORKERS)
         )
     endif(ENABLE_SHARED_WORKERS)
 endif(ENABLE_WORKERS)
+if(ENABLE_XHTMLMP)
+    list(APPEND FEATURE_DEFINES_JAVASCRIPT
+        ENABLE_XHTMLMP=1
+    )
+endif(ENABLE_XHTMLMP)
+if(ENABLE_WCSS)
+    list(APPEND FEATURE_DEFINES_JAVASCRIPT
+        ENABLE_WCSS=1
+    )
+endif(ENABLE_WCSS)
 
+# CSS Property names.
 list(APPEND WEBCORE_CSS_PROPERTY_NAMES 
     ${OWB_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
 )
@@ -130,6 +141,13 @@ if(ENABLE_SVG)
         ${OWB_SOURCE_DIR}/WebCore/css/SVGCSSPropertyNames.in
     )
 endif(ENABLE_SVG)
+if(ENABLE_WCSS)
+    list(APPEND WEBCORE_CSS_PROPERTY_NAMES
+        ${OWB_SOURCE_DIR}/WebCore/css/WCSSPropertyNames.in
+    )
+endif(ENABLE_WCSS)
+
+# CSS Values keywords.
 list(APPEND WEBCORE_CSS_VALUE_KEYWORDS
     ${OWB_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in
 )
@@ -138,6 +156,12 @@ if(ENABLE_SVG)
         ${OWB_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in
     )
 endif(ENABLE_SVG)
+if(ENABLE_WCSS)
+    list(APPEND WEBCORE_CSS_VALUE_KEYWORDS
+        ${OWB_SOURCE_DIR}/WebCore/css/WCSSValueKeywords.in
+    )
+endif(ENABLE_WCSS)
+
 list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/html.css
     ${OWB_SOURCE_DIR}/WebCore/css/quirks.css

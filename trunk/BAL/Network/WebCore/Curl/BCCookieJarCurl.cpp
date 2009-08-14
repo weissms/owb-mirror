@@ -17,6 +17,7 @@
 #include "config.h"
 #include "CookieJar.h"
 
+#include "Cookie.h"
 #include "CookieManager.h"
 #include "Document.h"
 #include "KURL.h"
@@ -31,7 +32,7 @@ void setCookies(Document* document, const KURL& url, const String& value)
     const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
     cookieManager().setCookies(cookieURL, value);
 }
-
+  
 String cookies(const Document* document, const KURL& url)
 {
     const KURL& documentURL = document->url();
@@ -42,6 +43,12 @@ String cookies(const Document* document, const KURL& url)
 bool cookiesEnabled(const Document* /*document*/)
 {
     return true;
+}
+
+void getRawCookies(const Document*, const KURL&, Vector<Cookie>& rawCookies)
+{
+    // FIXME: Not yet implemented
+    rawCookies.clear();
 }
 
 }

@@ -24,7 +24,7 @@
  */
 
 #include "config.h"
-#include "Cookie.h"
+#include "ParsedCookie.h"
 
 #include "CookieManager.h"
 #include "CString.h"
@@ -34,7 +34,7 @@
 
 namespace WebCore {
 
-Cookie::Cookie(double currentTime)
+ParsedCookie::ParsedCookie(double currentTime)
     : m_domain(String())
     , m_expiry(0)
     , m_isSecure(false)
@@ -44,7 +44,7 @@ Cookie::Cookie(double currentTime)
 {
 }
 
-Cookie::Cookie(const String& name, const String& value, const String& domain, const String& path, double expiry, double lastAccessed, bool isSecure, bool isHttpOnly)
+ParsedCookie::ParsedCookie(const String& name, const String& value, const String& domain, const String& path, double expiry, double lastAccessed, bool isSecure, bool isHttpOnly)
     : m_name(name)
     , m_value(value)
     , m_domain(domain)
@@ -57,11 +57,11 @@ Cookie::Cookie(const String& name, const String& value, const String& domain, co
 {
 }
 
-Cookie::~Cookie()
+ParsedCookie::~ParsedCookie()
 {
 }
 
-void Cookie::setExpiry(const String& expiry)
+void ParsedCookie::setExpiry(const String& expiry)
 {
     if (expiry.isEmpty())
         return;
@@ -77,7 +77,7 @@ void Cookie::setExpiry(const String& expiry)
     }
 }
 
-void Cookie::setMaxAge(const String& maxAge)
+void ParsedCookie::setMaxAge(const String& maxAge)
 {
     bool ok;
     m_expiry = maxAge.toDouble(&ok);
@@ -94,20 +94,20 @@ void Cookie::setMaxAge(const String& maxAge)
         m_expiry += currentTime();
 }
 
-bool Cookie::hasExpired() const
+bool ParsedCookie::hasExpired() const
 {
     // Session cookies do not expires, they will just not be saved to the backing store.
     return !m_isSession && m_expiry < currentTime();
 }
 
-bool Cookie::isUnderSizeLimit() const
+bool ParsedCookie::isUnderSizeLimit() const
 {
     // The 2 is to account for the '=' and the final ';' when dumping the cookie for the network backend (see toNameValuePair).
     size_t cookieLength = m_name.length() + m_value.length() + 2;
     return cookieLength <= CookieManager::maxCookieLength();
 }
 
-String Cookie::toString() const
+String ParsedCookie::toString() const
 {
     String cookie = name();
     cookie += " = ";
@@ -119,7 +119,7 @@ String Cookie::toString() const
     return cookie;
 }
 
-String Cookie::toNameValuePair() const
+String ParsedCookie::toNameValuePair() const
 {
     static const String equal("=");
     static const String semiColon(";");

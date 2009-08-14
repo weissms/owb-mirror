@@ -14,6 +14,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp
     bindings/js/JSCSSRuleCustom.cpp
+    bindings/js/JSCSSRuleListCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
@@ -39,6 +40,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSGeolocationCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
+    bindings/js/JSHTMLCanvasElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp
     bindings/js/JSHTMLDocumentCustom.cpp
     bindings/js/JSHTMLElementCustom.cpp

@@ -45,12 +45,21 @@ class Reviewer(Committer):
 # All reviewers are committers, so this list is only of committers
 # who are not reviewers.
 committers_unable_to_review = [
+    Committer("Adam Langley", "agl@chromium.org"),
     Committer("Albert J. Wong", "ajwong@chromium.org"),
     Committer("Ben Murdoch", "benm@google.com"),
+    Committer("Brent Fulgham", "bfulgham@webkit.org"),
+    Committer("Daniel Bates", "dbates@webkit.org"),
+    Committer("Drew Wilson", "atwilson@chromium.org"),
+    Committer("Dirk Schulze", "krit@webkit.org"),
+    Committer("Eric Carlson", "eric.carlson@apple.com"),
+    Committer("Greg Bolsinga", "bolsinga@apple.com"),
     Committer("Jeremy Orlow", "jorlow@chromium.org"),
+    Committer("Nate Chapin", "japhet@chromium.org"),
     Committer("Peter Kasting", "pkasting@google.com"),
     Committer("Pierre d'Herbemont", "pdherbemont@free.fr"),
     Committer("Shinichiro Hamaji", "hamaji@google.com"),
+    Committer("Yong Li", "yong.li@torchmobile.com"),
     Committer("Zoltan Horvath", "hzoltan@inf.u-szeged.hu"),
 ]
 
@@ -77,6 +86,7 @@ reviewers_list = [
     Reviewer("Gustavo Noronha", "gns@gnome.org"),
     Reviewer("Holger Freyther", "zecke@selfish.org"),
     Reviewer("Jan Alonzo", "jmalonzo@gmail.com"),
+    Reviewer("John Sullivan", "sullivan@apple.com"),
     Reviewer("Justin Garcia", "justin.garcia@apple.com"),
     Reviewer("Kevin McCullough", "kmccullough@apple.com"),
     Reviewer("Kevin Ollivier", "kevino@theolliviers.com"),

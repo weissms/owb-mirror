@@ -33,6 +33,7 @@
 #include "WorkQueueItem.h"
 #include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSRetainPtr.h>
+#include <stdio.h>
 #include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
 
@@ -1059,4 +1060,12 @@ bool LayoutTestController::checkDesktopNotificationPermission(JSStringRef origin
             return true;
     }
     return false;
+}
+
+void LayoutTestController::waitToDumpWatchdogTimerFired()
+{
+    const char* message = "FAIL: Timed out waiting for notifyDone to be called\n";
+    fprintf(stderr, "%s", message);
+    fprintf(stdout, "%s", message);
+    notifyDone();
 }

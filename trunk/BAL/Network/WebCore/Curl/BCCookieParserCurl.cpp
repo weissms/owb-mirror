@@ -26,7 +26,7 @@
 #include "config.h"
 #include "CookieParser.h"
 
-#include "Cookie.h"
+#include "ParsedCookie.h"
 #include "CurrentTime.h"
 #include "Logging.h"
 
@@ -51,11 +51,11 @@ CookieParser::~CookieParser()
 {
 }
 
-Vector<Cookie*> CookieParser::parse(const String& cookies)
+Vector<ParsedCookie*> CookieParser::parse(const String& cookies)
 {
     unsigned cookieStart, cookieEnd = 0;
     double curTime = currentTime();
-    Vector<Cookie*, 4> parsedCookies;
+    Vector<ParsedCookie*, 4> parsedCookies;
  
     // Iterate over the header to parse all the cookies.
     while (cookieEnd <= cookies.length()) {
@@ -71,7 +71,7 @@ Vector<Cookie*> CookieParser::parse(const String& cookies)
             continue;
         }
 
-        Cookie* cookie = parseOneCookie(cookies, cookieStart, cookieEnd - 1, curTime);
+        ParsedCookie* cookie = parseOneCookie(cookies, cookieStart, cookieEnd - 1, curTime);
         if (cookie)
             parsedCookies.append(cookie);
     }
@@ -80,9 +80,9 @@ Vector<Cookie*> CookieParser::parse(const String& cookies)
 
 // Parse the string without "Set-Cookie" according to Firefox grammar (loosely RFC 2109 compliant)
 // see netwerk/cookie/src/nsCookieService.cpp comment for it
-Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsigned end, double curTime)
+ParsedCookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsigned end, double curTime)
 {
-    Cookie* res = new Cookie(curTime);
+    ParsedCookie* res = new ParsedCookie(curTime);
 
     if (!res) {
         LOG_ERROR("Out of memory");
@@ -241,7 +241,7 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
             case 'c' : {
                 if (length >= 7 && cookie.find("omment", tokenStartSvg + 1, false))
                     // We do not have room for the comment part (and so do Mozilla) so just log the comment.
-                    LOG(Network, "Comment %s for Cookie : %s\n", parsedValue.ascii().data(), cookie.ascii().data());
+                    LOG(Network, "Comment %s for ParsedCookie : %s\n", parsedValue.ascii().data(), cookie.ascii().data());
                 else {
                     LOG_ERROR("Invalid cookie %s (comment)", cookie.ascii().data());
                     delete res;
@@ -254,7 +254,7 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
             case 'v' : {
                 if (length >= 7 && cookie.find("ersion", tokenStartSvg + 1, false)) {
                     if (parsedValue.toInt() != 1) {
-                        LOG_ERROR("Cookie version %d not supported (only support version=1)", parsedValue.toInt());
+                        LOG_ERROR("ParsedCookie version %d not supported (only support version=1)", parsedValue.toInt());
                         delete res;
                         return 0;
                     }
@@ -304,7 +304,7 @@ Cookie* CookieParser::parseOneCookie(const String& cookie, unsigned start, unsig
 
     // Check if the cookie is valid with respect to the size limit/
     if (!res->isUnderSizeLimit()) {
-        LOG_ERROR("Cookie %s is above the 4kb in length : REJECTED", cookie.ascii().data());
+        LOG_ERROR("ParsedCookie %s is above the 4kb in length : REJECTED", cookie.ascii().data());
         delete res;
         return 0;
     }

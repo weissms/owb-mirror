@@ -1,3 +1,316 @@
+2009-08-14  Eric Seidel  <eric@webkit.org>
+
+        No review, correcting obvious python error seen in the commit queue.
+
+        args can be a string or an array.  Assuming args is always an array results in
+        double-spaced text in error logs.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-13  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed build fix. Include stdio.h for using stdout, stderr,
+        and fprintf.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+
+2009-08-13  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        rename make-js-test-wrappers to make-script-test-wrappers
+        https://bugs.webkit.org/show_bug.cgi?id=28212
+
+        * Scripts/make-script-test-wrappers: Renamed from WebKitTools/Scripts/make-js-test-wrappers.
+
+2009-08-13  Drew Wilson <atwilson@chromium.org>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  John Sullivan  <sullivan@apple.com>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Eric Seidel  <eric@webkit.org>
+
+        Correct spelling error in file name.  No review.
+
+        * Scripts/modules/committers_unittest.py: Renamed from WebKitTools/Scripts/modules/commiters_unittest.py.
+        * Scripts/run-webkit-unittests:
+
+2009-08-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        REGRESSION(r47175): error running run-webkit-tests
+        https://bugs.webkit.org/show_bug.cgi?id=28261
+
+        Fix "Use of uninitialized value in concatenation (.) or string at
+        WebKitTools/Scripts/run-webkit-tests line 191." by setting
+        $testsPerDumpTool to 1000 by default.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-13  Nate Chapin  <japhet@chromium.org>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Brent Fulgham  <bfulgham@webkit.org>
+
+        Unreviewed.
+
+        Add 'Brent Fulgham' to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Adam Langley  <agl@chromium.org>
+
+        Review not required.
+
+        * Scripts/modules/committers.py:
+          Adding myself to this list because Eric told me to.
+
+2009-08-13  Greg Bolsinga  <bolsinga@apple.com>
+
+        Unreviewed.
+
+        Add 'Greg Bolsinga' to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Adam Roben  <aroben@apple.com>
+
+        Fix off-by-one result comparisons in media tests on Windows Debug
+        builds
+
+        media/video-played.html seems always to time out in Windows Debug
+        builds. A race condition between media/video-test.js's "hang" timer and
+        DumpRenderTree's built-in "watchdog" timer was causing results for
+        media/video-played.html to be printed twice, causing all future media
+        tests to be compared to the previous test's results.
+
+        The fix is to make the watchdog timer got through the same code path
+        as calling notifyDone manually, so that the results will only get
+        printed once. A subsequent patch will remove video-test.js's hang
+        timer entirely, since it is redundant.
+
+        Fixes <http://webkit.org/b/28265>.
+
+        Reviewed by Mark Rowe.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::waitToDumpWatchdogTimerFired): Added. Code came
+        from Gtk/Mac/Win's watchdog timer handlers, but we now call
+        notifyDone() instead of dump() so that a subsequent call to
+        notifyDone() won't print the results out again.
+
+        * DumpRenderTree/LayoutTestController.h: Added
+        waitToDumpWatchdogTimerFired.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (waitToDumpWatchdogFired):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (waitUntilDoneWatchdogFired):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (waitUntilDoneWatchdogFired):
+        Changed to call waitToDumpWatchdogTimerFired.
+
+2009-08-13  Eric Carlson  <eric.carlson@apple.com>
+
+        Unreviewed.
+
+        Added 'Eric Carlson' to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Dirk Schulze  <krit@webkit.org>
+
+        Unreviewed.
+        Added 'Dirk Schulze' to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-08-13  Adam Roben  <aroben@apple.com>
+
+        Enable running testapi in run-javascriptcore-tests on Windows
+
+        Fixes <http://webkit.org/b/24856> run-javascriptcore-tests should run
+        testapi on Windows
+
+        Reviewed by Mark Rowe.
+
+        * Scripts/run-javascriptcore-tests: Allow testapi to run if we're in
+        the AppleWinWebKit configuration.
+
+2009-08-13  Adam Roben  <aroben@apple.com>
+
+        Re-enable testapi in run-javascriptcore-tests on Mac
+
+        This seems to have been mistakenly disabled in r47089.
+
+        Rubber-stamped by Mark Rowe.
+
+        * Scripts/run-javascriptcore-tests: Removed comment markers that were
+        preventing running testapi.
+
+2009-08-12  George Staikos  <george.staikos@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Enable WCSS and XHTML-MP flags for build-webkit.
+
+        * Scripts/build-webkit:
+
+2009-08-12  David Kilzer  <ddkilzer@apple.com>
+
+        run-webkit-tests: document --nthly flag in help message
+
+        Reviewed by Simon Fraser.
+
+        * Scripts/run-webkit-tests: Added --nthly flag to $usage string.
+        Also noted that -1|--singly implies --nthly 1.
+
+2009-08-12  Eric Seidel  <eric@webkit.org>
+
+        No review, just fixing mismerged ChangeLogs.
+
+2009-08-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        run-webkit-tests needs a --exit-after-failures=N option
+        https://bugs.webkit.org/show_bug.cgi?id=28192
+
+        Added the option and deployed it to bugzilla-tool.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/run-webkit-tests:
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        bugzilla-tool : various improvements for running the commit-queue
+        https://bugs.webkit.org/show_bug.cgi?id=28199
+
+        Make run_and_throw_if_fail silence STDERR as well as STDIN.
+        I also changed run_and_throw_if_fail to use the /dev/null trick instead of .communicate() to avoid ever buffering the output (per abarth's suggestion).
+        Change a few "print" statements to "log" so they appear in the output.
+        Changed all string + uses to use string formatting instead (this is less error prone as it will automatically convert non-string objects).
+        Added a little more logging so that --quiet mode is easier to understand.
+        Changed clear_attachment_review_flag to clear_attachment_flags and made it clear the commit-queue flag as well.
+        Added the ability for bugzilla-tool to reject patches from the commit-queue when they fail to compile/apply/etc.
+        Added _find_select_element_for_flag to make the code for finding flag <select> elements clearer.
+        Made curl call (downloading patch files) quieter.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
+2009-08-12  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Change pattern that strips all trailing whitespace to just remove EOL
+        chars (\r, \n), to make it clear that varying EOL chars is the primary
+        problem being solved.
+
+        * Scripts/prepare-ChangeLog:
+        * Scripts/resolve-ChangeLogs:
+        * Scripts/svn-create-patch:
+        * Scripts/update-webkit:
+
+2009-08-12  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx waf build fix, add new directories to the build.
+
+        * wx/build/settings.py:
+
+2009-08-11  Adam Roben  <aroben@apple.com>
+
+        Update DumpRenderTree for IWebUIDelegatePrivate changes
+
+        Reviewed by Dave Hyatt.
+
+        * DumpRenderTree/win/UIDelegate.h: Updated to match
+        IWebUIDelegatePrivate.
+
+2009-08-12  Adam Roben  <aroben@apple.com>
+
+        Don't try to seek to the end of stdin on Cygwin
+
+        Doing so seems to always cause an exception (for unknown reasons).
+
+        Fixes <http://webkit.org/b/28159> create-bug throws an exception in
+        Cygwin
+
+        Reviewed by Dave Kilzer.
+
+        * Scripts/bugzilla-tool:
+        (CreateBug.prompt_for_bug_title_and_comments): Ignore IOErrors
+        generated by calling sys.stdin.seek, since these seem to be generated
+        for no good reason on Cygwin.
+
+2009-08-12  Adam Roben  <aroben@apple.com>
+
+        Don't raise an exception when --cc is not passed to create-bug
+
+        Fixes <http://webkit.org/b/28158> create-bug throws an exception if
+        --cc is not specified
+
+        Reviewed by Dave Kilzer.
+
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.create_bug_with_patch): Only set the "cc" field if a CC
+        string was specified. Otherwise we'll generate an exception about the
+        "cc" variable not being a string.
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool : various improvements for running the commit-queue
+        https://bugs.webkit.org/show_bug.cgi?id=28199
+
+        Make run_and_throw_if_fail silence STDERR as well as STDIN.
+        I also changed run_and_throw_if_fail to use the /dev/null trick instead of .communicate() to avoid ever buffering the out
+        Change a few "print" statements to "log" so they appear in the output.
+        Changed all string + uses to use string formatting instead (this is less error prone as it will automatically convert non
+        Added a little more logging so that --quiet mode is easier to understand.
+        Changed clear_attachment_review_flag to clear_attachment_flags and made it clear the commit-queue flag as well.
+        Added the ability for bugzilla-tool to reject patches from the commit-queue when they fail to compile/apply/etc.
+        Added _find_select_element_for_flag to make the code for finding flag <select> elements clearer.
+        Made curl call (downloading patch files) quieter.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/scm.py:
+
+2009-08-11  Eric Seidel  <eric@webkit.org>
+
+        No review, script regression fix only.
+
+        run-webkit-tests --quiet hangs
+        https://bugs.webkit.org/show_bug.cgi?id=28202
+
+        Do a huge dance to get open3 to pipe to /dev/null w/o blocking.
+        This was what I came up with after discussions in #perl.
+
+        * Scripts/run-webkit-tests:
+
 2009-08-12  John Gregg  <johnnyg@google.com>
 
         Reviewed by Maciej Stachowiak.

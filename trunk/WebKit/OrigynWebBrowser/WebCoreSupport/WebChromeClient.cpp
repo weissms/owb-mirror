@@ -449,9 +449,7 @@ bool WebChromeClient::tabsToLinks() const
 
 IntRect WebChromeClient::windowResizerRect() const
 {
-    IntRect intRect;
-
-    return intRect;
+    return IntRect();
 }
 
 void WebChromeClient::repaint(const IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)

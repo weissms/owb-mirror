@@ -27,7 +27,7 @@
 #include "CookieManager.h"
 
 #include "BALBase.h"
-#include "Cookie.h"
+#include "ParsedCookie.h"
 #include "CookieBackingStore.h"
 #include "CookieParser.h"
 #include "CString.h"
@@ -63,10 +63,10 @@ CookieManager::~CookieManager()
 void CookieManager::setCookies(const KURL& url, const String& value)
 {
     CookieParser parser(url);
-    Vector<Cookie*> cookies = parser.parse(value);
+    Vector<ParsedCookie*> cookies = parser.parse(value);
 
     for (size_t i = 0; i < cookies.size(); ++i) {
-        Cookie* cookie = cookies[i];
+        ParsedCookie* cookie = cookies[i];
         if (!shouldRejectForSecurityReason(cookie, url))
             checkAndTreatCookie(cookie);
         else
@@ -74,7 +74,7 @@ void CookieManager::setCookies(const KURL& url, const String& value)
     }
 }
 
-bool CookieManager::shouldRejectForSecurityReason(const Cookie* cookie, const KURL& url)
+bool CookieManager::shouldRejectForSecurityReason(const ParsedCookie* cookie, const KURL& url)
 {
     // Check if path attribute is a prefix of the request URI.
     if (!cookie->path().endsWith(url.path()) == -1) {
@@ -124,10 +124,10 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
         // Handle sub-domain by only looking at the end of the host.
         if (it->first.endsWith(url.host()) || (it->first.startsWith(".", false) && ("." + url.host()).endsWith(it->first, false))) {
             // Get CookieMap to check for expired cookies.
-            Vector<Cookie*> cookies = it->second->getCookies();
+            Vector<ParsedCookie*> cookies = it->second->getCookies();
 
             for (size_t i = 0; i < cookies.size(); ++i) {
-                Cookie* cookie = cookies[i];
+                ParsedCookie* cookie = cookies[i];
                 // Get the cookies filtering out the secure cookies on an unsecure connection and HttpOnly cookies if requested.
                 if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly())) {
                     String nameValuePair = cookie->toNameValuePair();
@@ -163,7 +163,7 @@ void CookieManager::setCookieJar(const char* fileName)
     cookieBackingStore().open(m_cookieJarFileName);
 }
 
-void CookieManager::checkAndTreatCookie(Cookie* cookie)
+void CookieManager::checkAndTreatCookie(ParsedCookie* cookie)
 {
     ASSERT(cookie->domain().length());
 
@@ -174,7 +174,7 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
         // The cookie has expired so check we have a valid HashMap so try delete it.
         if (curMap) {
             // Check if we have a cookie to remove and update information accordingly.
-            Cookie* prevCookie = curMap->takePrevious(cookie);
+            ParsedCookie* prevCookie = curMap->takePrevious(cookie);
             if (prevCookie) {
                 cookieBackingStore().remove(cookie);
                 removedCookie();
@@ -188,7 +188,7 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
             addCookieToMap(curMap, cookie);
         } else {
             // Check if there is a previous cookie.
-            Cookie* prevCookie = curMap->takePrevious(cookie);
+            ParsedCookie* prevCookie = curMap->takePrevious(cookie);
 
             if (prevCookie) {
                 update(curMap, prevCookie, cookie);
@@ -199,12 +199,12 @@ void CookieManager::checkAndTreatCookie(Cookie* cookie)
     }
 }
 
-void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
+void CookieManager::addCookieToMap(CookieMap* map, ParsedCookie* cookie)
 {
     // Check if we do not have reached the cookie's threshold.
     // FIXME : should split the case and remove one cookie among all the other if m_count >= max_count
     if (map->count() > s_maxCookieCountPerHost || m_count >= s_globalMaxCookieCount) {
-        Cookie* rmCookie = map->removeOldestCookie();
+        ParsedCookie* rmCookie = map->removeOldestCookie();
         cookieBackingStore().remove(rmCookie);
         removedCookie();
         delete rmCookie;
@@ -219,7 +219,7 @@ void CookieManager::addCookieToMap(CookieMap* map, Cookie* cookie)
     m_count++;
 }
 
-void CookieManager::update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie)
+void CookieManager::update(CookieMap* map, ParsedCookie* prevCookie, ParsedCookie* newCookie)
 {
     ASSERT(!map->takePrevious(prevCookie));
     map->add(newCookie);
@@ -228,10 +228,10 @@ void CookieManager::update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie
 
 void CookieManager::getBackingStoreCookies()
 {
-    Vector<Cookie*> cookies = cookieBackingStore().getAllCookies();
+    Vector<ParsedCookie*> cookies = cookieBackingStore().getAllCookies();
 
     for (size_t i = 0; i < cookies.size(); ++i) {
-        Cookie* newCookie = cookies[i];
+        ParsedCookie* newCookie = cookies[i];
 
         if (newCookie->hasExpired()) {
             cookieBackingStore().remove(newCookie);

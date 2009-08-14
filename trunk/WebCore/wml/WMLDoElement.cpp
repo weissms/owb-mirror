@@ -175,7 +175,7 @@ void WMLDoElement::registerTask(WMLTaskElement* task)
 
 void WMLDoElement::deregisterTask(WMLTaskElement* task)
 {
-    ASSERT(m_task == task);
+    ASSERT_UNUSED(task, m_task == task);
     m_task = 0;
 }
 

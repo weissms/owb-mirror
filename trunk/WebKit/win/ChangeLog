@@ -1,3 +1,58 @@
+2009-08-14  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix of <rdar://6728361> Mouse wheel scrolling on a page with expanded drop down 
+        list detaches drop down.
+        
+        Added a check in mouseWheel to see if our focus is currently in a popup, if so, close
+        the popup (matches other browser behavior).
+
+        * WebView.cpp:
+        (WebView::mouseWheel):
+
+2009-08-12  Adam Roben  <aroben@apple.com>
+
+        Make WebPreferenceKeysPrivate.h available for client use
+
+        Reviewed by Dave Hyatt.
+
+        Fixes <http://webkit.org/b/28227>.
+
+        * WebKit.vcproj/WebKit.vcproj: Copy WebPreferenceKeysPrivate.h to
+        $WebKitOutputDir, just like we do for a few other headers. Also let VS
+        reorder some XML attributes.
+
+        * WebPreferenceKeysPrivate.h: Touched this file to force a build.
+
+2009-08-11  Adam Roben  <aroben@apple.com>
+
+        Remove support for a window resizer within the WebView
+
+        Starting with Safari 4, there is never a window resizer inside the
+        WebView, so we no longer need to support that functionality.
+
+        Fixes <http://webkit.org/b/28190> Remove support for a window resizer
+        within the WebView
+
+        Reviewed by Dave Hyatt.
+
+        * Interfaces/IWebUIDelegatePrivate.idl: Replaced the delegate
+        functions related to the window resizer with unused*() functions. We
+        can't remove them entirely because we need to keep the vtable
+        unchanged so new versions of WebKit will work with old versions of
+        Safari (e.g., for nightlies and WebKit development).
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::windowResizerRect): Now always returns an empty
+        rect.
+
+        * WebView.cpp:
+        (WebView::paint):
+        (WebView::handleMouseEvent):
+        * WebView.h:
+        Removed window-resizer-related code.
+
 2009-08-12  John Gregg  <johnnyg@google.com>
 
         Reviewed by Maciej Stachowiak.

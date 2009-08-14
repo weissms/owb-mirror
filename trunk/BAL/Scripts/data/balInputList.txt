@@ -545,6 +545,7 @@ BAL/Memory/WebCore/WK	WebCore/platform/AutodrainedPool.h
 
 
 BAL/Skeletons/Network	WebCore/platform/CookieJar.h
+BAL/Skeletons/Network	WebCore/platform/Cookie.h
 BAL/Skeletons/Network	WebCore/platform/network/AuthenticationChallengeBase.h
 BAL/Skeletons/Network	WebCore/platform/network/Credential.h
 BAL/Skeletons/Network	WebCore/platform/network/FormData.h
@@ -594,6 +595,7 @@ BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceRequestQt.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceResponse.h
 BAL/Network/WebCore/Qt	WebCore/platform/qt/CookieJarQt.cpp
 BAL/Network/WebCore/WK	WebCore/platform/CookieJar.h
+BAL/Network/WebCore/WK	WebCore/platform/Cookie.h
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.h
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.cpp

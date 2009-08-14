@@ -23,8 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef Cookie_h
-#define Cookie_h
+#ifndef ParsedCookie_h
+#define ParsedCookie_h
 
 #include "PlatformString.h"
 
@@ -35,15 +35,15 @@ namespace WebCore {
      * It can either be created by the CookieParser which will then fill it
      * or it can be created by the backing store filling it in the constructor.
      */
-    class Cookie {
+    class ParsedCookie {
     public:
         // Default cookie : empty domain, non secure and session
-        Cookie(double currentTime);
+        ParsedCookie(double currentTime);
 
         // For backing store cookies (those cookies are never session cookies).
-        Cookie(const String& /*name*/, const String& /*value*/, const String& /*domain*/, const String& /*path*/, double /*expiry*/, double /*lastAccessed*/, bool /*isSecure*/, bool /*isHttpOnly*/);
+        ParsedCookie(const String& /*name*/, const String& /*value*/, const String& /*domain*/, const String& /*path*/, double /*expiry*/, double /*lastAccessed*/, bool /*isSecure*/, bool /*isHttpOnly*/);
     
-        ~Cookie();
+        ~ParsedCookie();
 
         const String& name() const { return m_name; }
         void setName(const String& name) { m_name = name; }
@@ -95,4 +95,4 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // Cookie_h
+#endif // ParsedCookie_h

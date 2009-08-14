@@ -52,6 +52,8 @@ cmake_dependent_option(ENABLE_SVG_USE_ELEMENT "Enable support for SVG use elemen
 option(ENABLE_VIDEO "Enable HTML5 video support")
 option(ENABLE_WEB_SOCKETS "Enable Web Sockets support")
 option(ENABLE_WML "Enable WML support")
+option(ENABLE_XHTMLMP "Enable XHTML Mobile profile.")
+cmake_dependent_option(ENABLE_WCSS "Enable WAP CSS support" OFF ENABLE_XHTMLMP OFF)
 option(ENABLE_XPATH "Enable XPath support")
 option(ENABLE_XSLT "Enable XSLT support")
 

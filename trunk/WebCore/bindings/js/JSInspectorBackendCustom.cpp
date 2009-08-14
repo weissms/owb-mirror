@@ -34,6 +34,8 @@
 #include "JSInspectorBackend.h"
 
 #include "Console.h"
+#include "Cookie.h"
+#include "CookieJar.h"
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "JSDatabase.h"
@@ -51,6 +53,10 @@
 #include "JSRange.h"
 #include "Node.h"
 #include "Page.h"
+#if ENABLE(DOM_STORAGE)
+#include "Storage.h"
+#include "JSStorage.h"
+#endif
 #include "TextIterator.h"
 #include "VisiblePosition.h"
 #include <runtime/JSArray.h>
@@ -70,21 +76,12 @@ using namespace JSC;
 
 namespace WebCore {
 
-JSValue JSInspectorBackend::highlightDOMNode(JSC::ExecState*, const JSC::ArgList& args)
+JSValue JSInspectorBackend::highlightDOMNode(JSC::ExecState* exec, const JSC::ArgList& args)
 {
     if (args.size() < 1)
         return jsUndefined();
 
-    JSQuarantinedObjectWrapper* wrapper = JSQuarantinedObjectWrapper::asWrapper(args.at(0));
-    if (!wrapper)
-        return jsUndefined();
-
-    Node* node = toNode(wrapper->unwrappedObject());
-    if (!node)
-        return jsUndefined();
-
-    impl()->highlight(node);
-
+    impl()->highlight(args.at(0).toInt32(exec));
     return jsUndefined();
 }
 
@@ -156,6 +153,46 @@ JSValue JSInspectorBackend::inspectedWindow(ExecState*, const ArgList&)
         return jsUndefined();
     JSDOMWindow* inspectedWindow = toJSDOMWindow(ic->inspectedPage()->mainFrame());
     return JSInspectedObjectWrapper::wrap(inspectedWindow->globalExec(), inspectedWindow);
+}
+
+JSValue JSInspectorBackend::cookies(ExecState* exec, const ArgList&)
+{
+    InspectorController* ic = impl()->inspectorController();
+    if (!ic)
+        return jsUndefined();
+
+    Document* document = ic->inspectedPage()->mainFrame()->document();
+    Vector<Cookie> cookies;
+    getRawCookies(document, document->cookieURL(), cookies);
+
+    MarkedArgumentBuffer result;
+    Identifier nameIdentifier(exec, "name");
+    Identifier valueIdentifier(exec, "value");
+    Identifier domainIdentifier(exec, "domain");
+    Identifier pathIdentifier(exec, "path");
+    Identifier expiresIdentifier(exec, "expires");
+    Identifier sizeIdentifier(exec, "size");
+    Identifier httpOnlyIdentifier(exec, "httpOnly");
+    Identifier secureIdentifier(exec, "secure");
+    Identifier sessionIdentifier(exec, "session");
+
+    unsigned length = cookies.size();
+    for (unsigned i = 0; i < length; ++i) {
+        const Cookie& cookie = cookies[i];
+        JSObject* cookieObject = constructEmptyObject(exec);
+        cookieObject->putDirect(nameIdentifier, jsString(exec, cookie.name));
+        cookieObject->putDirect(valueIdentifier, jsString(exec, cookie.value));
+        cookieObject->putDirect(domainIdentifier, jsString(exec, cookie.domain));
+        cookieObject->putDirect(pathIdentifier, jsString(exec, cookie.path));
+        cookieObject->putDirect(expiresIdentifier, jsNumber(exec, cookie.expires));
+        cookieObject->putDirect(sizeIdentifier, jsNumber(exec, cookie.name.length() + cookie.value.length()));
+        cookieObject->putDirect(httpOnlyIdentifier, jsBoolean(cookie.httpOnly));
+        cookieObject->putDirect(secureIdentifier, jsBoolean(cookie.secure));
+        cookieObject->putDirect(sessionIdentifier, jsBoolean(cookie.session));
+        result.append(cookieObject);
+    }
+
+    return constructArray(exec, result);
 }
 
 JSValue JSInspectorBackend::setting(ExecState* exec, const ArgList& args)
@@ -278,6 +315,109 @@ JSValue JSInspectorBackend::profiles(JSC::ExecState* exec, const JSC::ArgList&)
     return constructArray(exec, result);
 }
 
+#endif
+
+JSValue JSInspectorBackend::nodeForId(ExecState* exec, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+
+    Node* node = impl()->nodeForId(args.at(0).toInt32(exec));
+    if (!node)
+        return jsUndefined();
+
+    InspectorController* ic = impl()->inspectorController();
+    if (!ic)
+        return jsUndefined();
+
+    JSLock lock(SilenceAssertionsOnly);
+    JSDOMWindow* inspectedWindow = toJSDOMWindow(ic->inspectedPage()->mainFrame());
+    return JSInspectedObjectWrapper::wrap(inspectedWindow->globalExec(), toJS(exec, deprecatedGlobalObjectForPrototype(inspectedWindow->globalExec()), node));
+}
+
+JSValue JSInspectorBackend::idForNode(ExecState* exec, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+
+    JSQuarantinedObjectWrapper* wrapper = JSQuarantinedObjectWrapper::asWrapper(args.at(0));
+    if (!wrapper)
+        return jsUndefined();
+
+    Node* node = toNode(wrapper->unwrappedObject());
+    if (node)
+        return jsNumber(exec, impl()->idForNode(node));
+    return jsUndefined();
+}
+
+JSValue JSInspectorBackend::wrapObject(ExecState*, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+
+    return impl()->wrapObject(ScriptValue(args.at(0))).jsValue();
+}
+
+JSValue JSInspectorBackend::unwrapObject(ExecState* exec, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+
+    return impl()->unwrapObject(args.at(0).toString(exec)).jsValue();
+}
+
+JSValue JSInspectorBackend::pushNodePathToFrontend(ExecState* exec, const ArgList& args)
+{
+    if (args.size() < 2)
+        return jsUndefined();
+
+    JSQuarantinedObjectWrapper* wrapper = JSQuarantinedObjectWrapper::asWrapper(args.at(0));
+    if (!wrapper)
+        return jsUndefined();
+
+    Node* node = toNode(wrapper->unwrappedObject());
+    if (!node)
+        return jsUndefined();
+
+    bool selectInUI = args.at(1).toBoolean(exec);
+    return jsNumber(exec, impl()->pushNodePathToFrontend(node, selectInUI));
+}
+
+#if ENABLE(DATABASE)
+JSValue JSInspectorBackend::selectDatabase(ExecState*, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+
+    JSQuarantinedObjectWrapper* wrapper = JSQuarantinedObjectWrapper::asWrapper(args.at(0));
+    if (!wrapper)
+        return jsUndefined();
+
+    Database* database = toDatabase(wrapper->unwrappedObject());
+    if (database)
+        impl()->selectDatabase(database);
+    return jsUndefined();
+}
+#endif
+
+#if ENABLE(DOM_STORAGE)
+JSValue JSInspectorBackend::selectDOMStorage(ExecState*, const ArgList& args)
+{
+    if (args.size() < 1)
+        return jsUndefined();
+    InspectorController* ic = impl()->inspectorController();
+    if (!ic)
+        return jsUndefined();
+
+    JSQuarantinedObjectWrapper* wrapper = JSQuarantinedObjectWrapper::asWrapper(args.at(0));
+    if (!wrapper)
+        return jsUndefined();
+
+    Storage* storage = toStorage(wrapper->unwrappedObject());
+    if (storage)
+        impl()->selectDOMStorage(storage);
+    return jsUndefined();
+}
 #endif
 
 } // namespace WebCore

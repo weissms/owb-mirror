@@ -357,13 +357,13 @@ namespace JSC {
 
     class RegExpNode : public ExpressionNode, public ThrowableExpressionData {
     public:
-        RegExpNode(JSGlobalData*, const UString& pattern, const UString& flags);
+        RegExpNode(JSGlobalData*, const Identifier& pattern, const Identifier& flags);
 
     private:
         virtual RegisterID* emitBytecode(BytecodeGenerator&, RegisterID* = 0);
 
-        UString m_pattern;
-        UString m_flags;
+        Identifier m_pattern;
+        Identifier m_flags;
     };
 
     class ThisNode : public ExpressionNode {
@@ -429,6 +429,7 @@ namespace JSC {
         enum Type { Constant, Getter, Setter };
 
         PropertyNode(JSGlobalData*, const Identifier& name, ExpressionNode* value, Type);
+        PropertyNode(JSGlobalData*, double name, ExpressionNode* value, Type);
 
         const Identifier& name() const { return m_name; }
 

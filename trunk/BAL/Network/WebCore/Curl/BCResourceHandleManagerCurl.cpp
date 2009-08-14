@@ -68,7 +68,11 @@ static CString certificatePath()
         return path;
     }
 #endif
-    return getenv("CURL_CA_BUNDLE_PATH");
+    char* envPath = getenv("CURL_CA_BUNDLE_PATH");
+    if (envPath)
+       return envPath;
+
+    return CString();
 }
 
 ResourceHandleManager::ResourceHandleManager()

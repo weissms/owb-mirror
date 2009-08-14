@@ -32,7 +32,7 @@
 
 namespace WebCore {
 
-    class Cookie;
+    class ParsedCookie;
     class KURL;
     class String;
 
@@ -72,12 +72,12 @@ namespace WebCore {
         CookieManager();
         ~CookieManager();
 
-        void checkAndTreatCookie(Cookie* cookie);
+        void checkAndTreatCookie(ParsedCookie* cookie);
 
-        bool shouldRejectForSecurityReason(const Cookie*, const KURL&);
+        bool shouldRejectForSecurityReason(const ParsedCookie*, const KURL&);
 
-        void addCookieToMap(CookieMap* map, Cookie* cookie);
-        void update(CookieMap* map, Cookie* prevCookie, Cookie* newCookie);
+        void addCookieToMap(CookieMap* map, ParsedCookie* cookie);
+        void update(CookieMap* map, ParsedCookie* prevCookie, ParsedCookie* newCookie);
 
         HashMap<String, CookieMap*> m_managerMap;
 

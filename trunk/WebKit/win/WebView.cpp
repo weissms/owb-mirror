@@ -94,6 +94,7 @@
 #include <WebCore/PluginDatabase.h>
 #include <WebCore/PluginInfoStore.h>
 #include <WebCore/PluginView.h>
+#include <WebCore/PopupMenu.h>
 #include <WebCore/ProgressTracker.h>
 #include <WebCore/RenderTheme.h>
 #include <WebCore/RenderView.h>
@@ -930,19 +931,6 @@ void WebView::paint(HDC dc, LPARAM options)
 
     ::DeleteDC(bitmapDC);
 
-    // Paint the gripper.
-    COMPtr<IWebUIDelegate> ui;
-    if (SUCCEEDED(uiDelegate(&ui))) {
-        COMPtr<IWebUIDelegatePrivate> uiPrivate;
-        if (SUCCEEDED(ui->QueryInterface(IID_IWebUIDelegatePrivate, (void**)&uiPrivate))) {
-            RECT r;
-            if (SUCCEEDED(uiPrivate->webViewResizerRect(this, &r))) {
-                LOCAL_GDI_COUNTER(2, __FUNCTION__" webViewDrawResizer delegate call");
-                uiPrivate->webViewDrawResizer(this, hdc, (frameView->containsScrollbarsAvoidingResizer() ? true : false), &r);
-            }
-        }
-    }
-
     if (!dc)
         EndPaint(m_viewWindow, &ps);
 
@@ -1270,12 +1258,6 @@ bool WebView::handleMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
                            abs(globalPrevPoint.y() - mouseEvent.pos().y()) < ::GetSystemMetrics(SM_CYDOUBLECLK);
     LONG messageTime = ::GetMessageTime();
 
-    if (inResizer(position)) {
-        if (m_uiDelegatePrivate)
-            m_uiDelegatePrivate->webViewSendResizeMessage(message, wParam, position);
-        return true;
-    }
-
     bool handled = false;
 
     if (message == WM_LBUTTONDOWN || message == WM_MBUTTONDOWN || message == WM_RBUTTONDOWN) {
@@ -1472,6 +1454,23 @@ bool WebView::mouseWheel(WPARAM wParam, LPARAM lParam, bool isMouseHWheel)
         else
             makeTextLarger(0);
         return true;
+    }
+    
+    // FIXME: This doesn't fix https://bugs.webkit.org/show_bug.cgi?id=28217. This only fixes https://bugs.webkit.org/show_bug.cgi?id=28203.
+    HWND focusedWindow = GetFocus();
+    if (focusedWindow && focusedWindow != m_viewWindow) {
+        // Our focus is on a different hwnd, see if it's a PopupMenu and if so, set the focus back on us (which will hide the popup).
+        TCHAR className[256];
+
+        // Make sure truncation won't affect the comparison.
+        ASSERT(ARRAYSIZE(className) > _tcslen(PopupMenu::popupClassName()));
+
+        if (GetClassName(focusedWindow, className, ARRAYSIZE(className)) && !_tcscmp(className, PopupMenu::popupClassName())) {
+            // We don't let the WebView scroll here for two reasons - 1) To match Firefox behavior, 2) If we do scroll, we lose the
+            // focus ring around the select menu.
+            SetFocus(m_viewWindow);
+            return true;
+        }
     }
 
     PlatformWheelEvent wheelEvent(m_viewWindow, wParam, lParam, isMouseHWheel);
@@ -1738,21 +1737,6 @@ bool WebView::keyPress(WPARAM charCode, LPARAM keyData, bool systemKeyDown)
     if (systemKeyDown)
         return frame->eventHandler()->handleAccessKey(keyEvent);
     return frame->eventHandler()->keyEvent(keyEvent);
-}
-
-bool WebView::inResizer(LPARAM lParam)
-{
-    if (!m_uiDelegatePrivate)
-        return false;
-
-    RECT r;
-    if (FAILED(m_uiDelegatePrivate->webViewResizerRect(this, &r)))
-        return false;
-
-    POINT pt;
-    pt.x = LOWORD(lParam);
-    pt.y = HIWORD(lParam);
-    return !!PtInRect(&r, pt);
 }
 
 static bool registerWebViewWindowClass()

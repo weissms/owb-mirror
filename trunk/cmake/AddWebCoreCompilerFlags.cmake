@@ -67,6 +67,13 @@ if(ENABLE_WORKERS)
     endif(ENABLE_SHARED_WORKERS)
 endif(ENABLE_WORKERS)
 
+if(ENABLE_XHTMLMP)
+    add_definitions(-DENABLE_XHTMLMP)
+    if(ENABLE_WCSS)
+        add_definitions(-DENABLE_WCSS)
+    endif(ENABLE_WCSS)
+endif(ENABLE_XHTMLMP)
+
 if(ENABLE_XPATH)
     add_definitions(-DENABLE_XPATH=1)
 endif(ENABLE_XPATH)

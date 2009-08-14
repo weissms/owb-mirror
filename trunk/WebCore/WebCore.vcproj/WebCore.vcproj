@@ -9085,6 +9085,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\bindings\js\JSCSSRuleListCustom.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\bindings\js\JSCSSStyleDeclarationCustom.cpp"
 					>
 				</File>
@@ -9194,6 +9198,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLAppletElementCustom.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSHTMLCanvasElementCustom.cpp"
 					>
 				</File>
 				<File
@@ -10967,6 +10975,14 @@
 			</File>
 			<File
 				RelativePath="..\storage\SQLTransactionCallback.h"
+				>
+			</File>
+			<File
+				RelativePath="..\storage\SQLTransactionCoordinator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\storage\SQLTransactionCoordinator.cpp"
 				>
 			</File>
 			<File

@@ -419,12 +419,10 @@ void GraphicsContext::drawRect(const IntRect& rect)
     int shadowBlur;
     Color shadowColor;
     if (textDrawingMode() == cTextFill && getShadow(shadowSize, shadowBlur, shadowColor)) {
-        p->save();
-        p->translate(shadowSize.width(), shadowSize.height());
-        p->setPen(QColor(shadowColor));
-        p->setBrush(QBrush(QColor(shadowColor)));
-        p->drawRect(rect);
-        p->restore();
+        IntRect shadowRect = rect;
+        shadowRect.move(shadowSize.width(), shadowSize.height());
+        shadowRect.inflate(p->pen().widthF());
+        p->fillRect(shadowRect, QColor(shadowColor));
     }
 
     p->drawRect(rect);
@@ -700,6 +698,15 @@ void GraphicsContext::fillRect(const FloatRect& rect)
 
     QPainter* p = m_data->p();
 
+    IntSize shadowSize;
+    int shadowBlur;
+    Color shadowColor;
+    if (getShadow(shadowSize, shadowBlur, shadowColor)) {
+        FloatRect shadowRect = rect;
+        shadowRect.move(shadowSize.width(), shadowSize.height());
+        p->fillRect(shadowRect, QColor(shadowColor));
+    }
+
     switch (m_common->state.fillColorSpace) {
     case SolidColorSpace:
         if (fillColor().alpha())
@@ -730,12 +737,10 @@ void GraphicsContext::fillRect(const FloatRect& rect, const Color& c)
     Color shadowColor;
     QPainter* p = m_data->p();
     if (textDrawingMode() == cTextFill && getShadow(shadowSize, shadowBlur, shadowColor)) {
-        p->save();
-        p->translate(shadowSize.width(), shadowSize.height());
-        p->setPen(QColor(shadowColor));
-        p->setBrush(QBrush(QColor(shadowColor)));
-        p->drawRect(rect);
-        p->restore();
+        FloatRect shadowRect = rect;
+        shadowRect.move(shadowSize.width(), shadowSize.height());
+        shadowRect.inflate(p->pen().widthF());
+        p->fillRect(shadowRect, QColor(shadowColor));
     }
     p->fillRect(rect, m_data->solidColor);
 }
@@ -863,10 +868,16 @@ FloatRect GraphicsContext::roundToDevicePixels(const FloatRect& frect)
     return FloatRect(QRectF(result));
 }
 
-void GraphicsContext::setPlatformShadow(const IntSize& pos, int blur, const Color &color)
+void GraphicsContext::setPlatformShadow(const IntSize& size, int blur, const Color &color)
 {
     // Qt doesn't support shadows natively, they are drawn manually in the draw*
     // functions
+
+    if (m_common->state.shadowsIgnoreTransforms) {
+        // Meaning that this graphics context is associated with a CanvasRenderingContext
+        // We flip the height since CG and HTML5 Canvas have opposite Y axis
+        m_common->state.shadowSize = IntSize(size.width(), -size.height());
+    }
 }
 
 void GraphicsContext::clearPlatformShadow()

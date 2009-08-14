@@ -109,6 +109,7 @@ sub writeToFile($$);
 # Argument handling
 my $addPlatformExceptions = 0;
 my $complexText = 0;
+my $exitAfterNFailures = 0;
 my $guardMalloc = '';
 my $httpdPort = 8000;
 my $httpdSSLPort = 8443;
@@ -121,7 +122,7 @@ my $report10Slowest = 0;
 my $resetResults = 0;
 my $shouldCheckLeaks = 0;
 my $showHelp = 0;
-my $testsPerDumpTool;
+my $testsPerDumpTool = 1000;
 my $testHTTP = 1;
 my $testMedia = 1;
 my $testResultsDirectory = "/tmp/layout-test-results";
@@ -193,12 +194,14 @@ Usage: $programName [options] [testdir|testpath ...]
   --complex-text                  Use the complex text code path for all text (Mac OS X and Windows only)
   -c|--configuration config       Set DumpRenderTree build configuration
   -g|--guard-malloc               Enable malloc guard
+  --exit-after-n-failures N       Exit after the first N failures instead of running all tests
   --help                          Show this help message
   --[no-]http                     Run (or do not run) http tests (default: $httpDefault)
   -i|--ignore-tests               Comma-separated list of directories or tests to ignore
   --[no-]launch-safari            Launch (or do not launch) Safari to display test results (default: $launchSafariDefault)
   -l|--leaks                      Enable leaks checking
   --[no-]new-test-results         Generate results for new tests
+  --nthly n                       Restart DumpRenderTree every n tests (default: $testsPerDumpTool)
   -p|--pixel-tests                Enable pixel tests
   --tolerance t                   Ignore image differences less than this percentage (default: $tolerance)
   --platform                      Override the detected platform to use for tests and results (default: $platform)
@@ -210,7 +213,7 @@ Usage: $programName [options] [testdir|testpath ...]
   --reverse                       Run the tests in reverse alphabetical order
   --root                          Path to root tools build
   --[no-]sample-on-timeout        Run sample on timeout (default: $sampleDefault) (Mac OS X only)
-  -1|--singly                     Isolate each test case run (implies --verbose)
+  -1|--singly                     Isolate each test case run (implies --nthly 1 --verbose)
   --skipped=[default|ignore|only] Specifies how to treat the Skipped file
                                      default: Tests/directories listed in the Skipped file are not tested
                                      ignore:  The Skipped file is ignored
@@ -230,6 +233,7 @@ setConfiguration();
 
 my $getOptionsResult = GetOptions(
     'complex-text' => \$complexText,
+    'exit-after-n-failures=i' => \$exitAfterNFailures,
     'guard-malloc|g' => \$guardMalloc,
     'help' => \$showHelp,
     'http!' => \$testHTTP,
@@ -275,8 +279,6 @@ my $skippedOnly = $treatSkipped eq "only";
 
 my $configuration = configuration();
 
-$testsPerDumpTool = 1000 if !$testsPerDumpTool;
-
 $verbose = 1 if $testsPerDumpTool == 1;
 
 if ($shouldCheckLeaks && $testsPerDumpTool > 1000) {
@@ -299,17 +301,27 @@ chdirWebKit();
 if (!defined($root)) {
     print STDERR "Running build-dumprendertree\n";
 
+    local *DEVNULL;
     my ($childIn, $childOut, $childErr);
-    if (!$quiet) {
+    if ($quiet) {
+        open(DEVNULL, ">", File::Spec->devnull) or die "Failed to open /dev/null";
+        $childOut = ">&DEVNULL";
+        $childErr = ">&DEVNULL";
+    } else {
         # When not quiet, let the child use our stdout/stderr.
         $childOut = ">&STDOUT";
         $childErr = ">&STDERR";
     }
 
     my @args = argumentsForConfiguration();
-    my $buildProcess = open3($childIn, $childOut, $childErr, "WebKitTools/Scripts/build-dumprendertree", @args);
+    my $buildProcess = open3($childIn, $childOut, $childErr, "WebKitTools/Scripts/build-dumprendertree", @args) or die "Failed to run build-dumprendertree";
+    close($childIn);
     waitpid $buildProcess, 0;
     my $buildResult = $?;
+    close($childOut);
+    close($childErr);
+
+    close DEVNULL if ($quiet);
 
     if ($buildResult) {
         print STDERR "Compiling DumpRenderTree failed!\n";
@@ -981,6 +993,13 @@ for my $test (@tests) {
     }
 
     countFinishedTest($test, $base, $result, $isText);
+
+    my $failureCount = $count - $counts{match}; # Includes new tests, timeouts, crashes, etc.
+    if ($exitAfterNFailures && $failureCount >= $exitAfterNFailures) {
+        print "\nExiting early after $failureCount failures.  $count tests run.";
+        closeDumpTool();
+        last;
+    }
 }
 printf "\n%0.2fs total testing time\n", (time - $overallStartTime) . "";
 

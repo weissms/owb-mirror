@@ -26,11 +26,12 @@
 #include "config.h"
 #include "ImageDecoder.h"
 
+// It seems that we need more definitions than Qt to compile. Those definitons should go here (the implementation is in Graphics/WebCore/Qt/BCImageDecoderQt.*)
+
 namespace WebCore {
 
 RGBA32Buffer::RGBA32Buffer()
-    : m_hasAlpha(false)
-    , m_status(FrameEmpty)
+    : m_status(FrameEmpty)
     , m_duration(0)
     , m_disposalMethod(DisposeNotSpecified)
 {
@@ -38,7 +39,6 @@ RGBA32Buffer::RGBA32Buffer()
 
 void RGBA32Buffer::clear()
 {
-    m_bytes.clear();
     m_status = FrameEmpty;
     // NOTE: Do not reset other members here; clearFrameBufferCache()
     // calls this to free the bitmap data, but other functions like
@@ -48,27 +48,18 @@ void RGBA32Buffer::clear()
 
 void RGBA32Buffer::zeroFill()
 {
-    m_bytes.fill(0);
-    m_hasAlpha = true;
 }
 
 void RGBA32Buffer::copyBitmapData(const RGBA32Buffer& other)
 {
     if (this == &other)
         return;
-
-    m_bytes = other.m_bytes;
-    m_size = other.m_size;
-    setHasAlpha(other.m_hasAlpha);
 }
 
 bool RGBA32Buffer::setSize(int newWidth, int newHeight)
 {
     // NOTE: This has no way to check for allocation failure if the
     // requested size was too big...
-    m_bytes.resize(newWidth * newHeight);
-    m_size = IntSize(newWidth, newHeight);
-
     // Zero the image.
     zeroFill();
 
@@ -77,12 +68,11 @@ bool RGBA32Buffer::setSize(int newWidth, int newHeight)
 
 bool RGBA32Buffer::hasAlpha() const
 {
-    return m_hasAlpha;
+    return false;
 }
 
 void RGBA32Buffer::setHasAlpha(bool alpha)
 {
-    m_hasAlpha = alpha;
 }
 
 void RGBA32Buffer::setStatus(FrameStatus status)
@@ -101,6 +91,14 @@ RGBA32Buffer& RGBA32Buffer::operator=(const RGBA32Buffer& other)
     setDuration(other.duration());
     setDisposalMethod(other.disposalMethod());
     return *this;
+}
+
+int RGBA32Buffer::width() const {
+    return 0;
+}
+
+int RGBA32Buffer::height() const {
+    return 0;
 }
 
 } // namespace WebCore
