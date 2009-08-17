@@ -194,7 +194,6 @@ public:
     void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags);
     void handleMousePressOnNode(Node*);
 
-    void inspectedWindowScriptObjectCleared(Frame*);
     void windowScriptObjectAvailable();
 
     void setFrontendProxyObject(ScriptState* state, ScriptObject webInspectorObj, ScriptObject injectedScriptObj = ScriptObject());
@@ -271,7 +270,6 @@ public:
 
 private:
     friend class InspectorBackend;
- 
     // Following are used from InspectorBackend and internally.
     void scriptObjectReady();
     void moveWindowBy(float x, float y) const;
@@ -280,6 +278,11 @@ private:
     void storeLastActivePanel(const String& panelName);
     void closeWindow();
     InspectorDOMAgent* domAgent() { return m_domAgent.get(); }
+
+    friend class InspectorFrontend;
+    // Following are used from InspectorFrontend only. We don't want to expose them to the
+    // rest of the InspectorController clients.
+    // TODO: extract these into a separate interface.
     ScriptValue wrapObject(const ScriptValue& object);
     ScriptValue unwrapObject(const String& objectId);
 

@@ -33,6 +33,7 @@ cmake_dependent_option(ENABLE_DOM_STORAGE "Enable HTML5 client-side session and 
 cmake_dependent_option(ENABLE_ICONDATABASE "Enable icon database support" OFF ENABLE_DATABASE OFF)
 cmake_dependent_option(ENABLE_OFFLINE_WEB_APPLICATIONS "Enable HTML5 offline web applications support" OFF ENABLE_DATABASE OFF)
 cmake_dependent_option(ENABLE_OFFLINE_DYNAMIC_ENTRIES "Enable HTML5 offline dynamic entries support" OFF ENABLE_OFFLINE_WEB_APPLICATIONS OFF)
+option(ENABLE_EVENTSOURCE "Enable HTML5 server-sent events support")
 option(ENABLE_FILTERS "Enable support for filters")
 option(ENABLE_GEOLOCATION "Enable geoposition support")
 option(ENABLE_INSPECTOR "Enable web inspector support")

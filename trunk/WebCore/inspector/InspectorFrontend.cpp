@@ -32,7 +32,7 @@
 
 #include "ConsoleMessage.h"
 #include "Frame.h"
-#include "InspectorController.h"  // TODO(pfeldman): Extract SpecialPanels to remove include.
+#include "InspectorController.h"
 #include "Node.h"
 #include "ScriptFunctionCall.h"
 #include "ScriptObject.h"
@@ -49,8 +49,9 @@
 
 namespace WebCore {
 
-InspectorFrontend::InspectorFrontend(ScriptState* scriptState, ScriptObject webInspector)
-    : m_scriptState(scriptState)
+InspectorFrontend::InspectorFrontend(InspectorController* inspectorController, ScriptState* scriptState, ScriptObject webInspector)
+    : m_inspectorController(inspectorController)
+    , m_scriptState(scriptState)
     , m_webInspector(webInspector)
 {
 }
@@ -79,7 +80,7 @@ void InspectorFrontend::addMessageToConsole(const ScriptObject& messageObj, cons
             function->appendArgument(frames[i]);
     } else if (!wrappedArguments.isEmpty()) {
         for (unsigned i = 0; i < wrappedArguments.size(); ++i)
-            function->appendArgument(wrappedArguments[i]);
+            function->appendArgument(m_inspectorController->wrapObject(wrappedArguments[i]));
     } else
         function->appendArgument(message);
     function->call();
@@ -128,17 +129,6 @@ void InspectorFrontend::setAttachedWindow(bool attached)
 {
     OwnPtr<ScriptFunctionCall> function(newFunctionCall("setAttachedWindow"));
     function->appendArgument(attached);
-    function->call();
-}
-
-void InspectorFrontend::inspectedWindowScriptObjectCleared(Frame* frame)
-{
-    ScriptObject domWindow;
-    if (!getQuarantinedScriptObject(frame->domWindow(), domWindow))
-        return;
-
-    OwnPtr<ScriptFunctionCall> function(newFunctionCall("inspectedWindowCleared"));
-    function->appendArgument(domWindow);
     function->call();
 }
 

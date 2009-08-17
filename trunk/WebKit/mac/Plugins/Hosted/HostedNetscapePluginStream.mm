@@ -178,8 +178,9 @@ void HostedNetscapePluginStream::didFail(WebCore::NetscapePlugInStreamLoader*, c
 {
     if (NetscapePluginHostProxy* hostProxy = m_instance->hostProxy())
         _WKPHStreamDidFail(hostProxy->port(), m_instance->pluginID(), m_streamID, reasonForError(error));
+    m_instance->disconnectStream(this);
 }
-    
+
 bool HostedNetscapePluginStream::wantsAllStreams() const
 {
     // FIXME: Implement.
@@ -218,9 +219,7 @@ void HostedNetscapePluginStream::cancelLoad(NSError *error)
         ASSERT(!m_loader);
         
         DocumentLoader* documentLoader = m_frameLoader->activeDocumentLoader();
-        ASSERT(documentLoader);
-        
-        if (documentLoader->isLoadingMainResource())
+        if (documentLoader && documentLoader->isLoadingMainResource())
             documentLoader->cancelMainResourceLoad(error);
         return;
     }

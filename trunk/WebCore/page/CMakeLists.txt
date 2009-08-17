@@ -66,3 +66,12 @@ if(ENABLE_INSPECTOR)
         page/Console.idl
     )    
 endif(ENABLE_INSPECTOR)
+
+if(ENABLE_EVENTSOURCE)
+    list(APPEND WEBCORE_SRC
+        page/EventSource.cpp
+    )
+    list(APPEND IDL_SRC
+        page/EventSource.idl
+    )
+endif(ENABLE_EVENTSOURCE)

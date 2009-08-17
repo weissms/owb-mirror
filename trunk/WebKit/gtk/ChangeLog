@@ -1,3 +1,38 @@
+2009-08-17  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Xan Lopez.
+
+        Fix compiler warnings.
+
+        * webkit/webkitwebview.cpp:
+        (clipboard_contents_received):
+        (webkit_web_view_drag_data_get):
+
+2009-08-14  Jiahua Huang  <jhuangjiahua@gmail.com>
+
+        Reviewed by Jan Alonzo.
+
+        [gtk] Pasteboard/GtkClipboard can't handle the "text/html" target.
+        https://bugs.webkit.org/show_bug.cgi?id=27028
+
+        Add a function in WebKit::PasteboardHelperGtk that will return the
+        value of WEBKIT_WEB_VIEW_TARGET_INFO_HTML,
+        and WebCore::clipboard_get_contents_cb will use that.
+
+        * WebCoreSupport/PasteboardHelperGtk.cpp:
+        (WebKit::PasteboardHelperGtk::getWebViewTargetInfoHtml):
+        * WebCoreSupport/PasteboardHelperGtk.h:
+
+2009-08-14  Benjamin Otte  <otte@gnome.org>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix webkit_web_view_set_highlight_text_matches() so that highlighting
+        works properly in documents with frames.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_set_highlight_text_matches):
+
 2009-08-14  Zan Dobersek  <zandobersek@gmail.com>
 
         Reviewed by Gustavo Noronha.

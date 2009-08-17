@@ -29,6 +29,7 @@
 #include "JSArray.h"
 #include "JSFunction.h"
 #include "Lookup.h"
+#include "PrototypeFunction.h"
 
 namespace JSC {
 
@@ -90,9 +91,7 @@ CallType ArrayConstructor::getCallData(CallData& callData)
 
 JSValue JSC_HOST_CALL arrayConstructorIsArray(ExecState*, JSObject*, JSValue, const ArgList& args)
 {
-    if (!args.at(0).isObject())
-        return jsBoolean(false);
-    return jsBoolean(asObject(args.at(0))->isObject(&JSArray::info));
+    return jsBoolean(args.at(0).inherits(&JSArray::info));
 }
 
 } // namespace JSC

@@ -214,5 +214,12 @@ if(USE_GRAPHICS_SDL)
     )
 endif(USE_GRAPHICS_SDL)
 
+if(ENABLE_EVENTSOURCE)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSEventSourceConstructor.cpp
+        bindings/js/JSEventSourceCustom.cpp
+    )
+endif(ENABLE_EVENTSOURCE)
+
 include(bindings/js/Customer/CMakeLists.txt OPTIONAL)
 

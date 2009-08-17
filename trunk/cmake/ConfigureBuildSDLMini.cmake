@@ -10,6 +10,7 @@ endif(UNIX)
 set(ENABLE_DEBUG OFF CACHE BOOLEAN "Enable debug support" FORCE)
 
 set(ENABLE_DATABASE OFF CACHE BOOLEAN "Enable HTML5 client-side database storage support" FORCE)
+set(ENABLE_EVENTSOURCE OFF CACHE BOOLEAN "Enable HTML5 server-sent events support" FORCE)
 set(ENABLE_GEOLOCATION OFF CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR OFF CACHE BOOLEAN "Enable web inspector support" FORCE)
 

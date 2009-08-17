@@ -58,10 +58,12 @@ WebInspector.DOMNode = function(doc, payload) {
     this.style = null;
     this._matchedCSSRules = [];
 
-    if (this.nodeType == Node.DOCUMENT_NODE)
-        this.ownerDocument.documentElement = this;
-    if (this.nodeType == Node.ELEMENT_NODE && this.nodeName == "BODY")
-        this.ownerDocument.body = this;
+    if (this.nodeType == Node.ELEMENT_NODE) {
+        if (this.nodeName == "HTML")
+            this.ownerDocument.documentElement = this;
+        if (this.nodeName == "BODY")
+            this.ownerDocument.body = this;
+    }
 }
 
 WebInspector.DOMNode.prototype = {
@@ -226,7 +228,7 @@ WebInspector.DOMDocument = function(domAgent, defaultView, payload)
 
 WebInspector.DOMDocument.prototype = {
 
-    addEventListener: function(name, callback, useCapture)
+    addEventListener: function(name, callback)
     {
         var listeners = this._listeners[name];
         if (!listeners) {
@@ -236,7 +238,7 @@ WebInspector.DOMDocument.prototype = {
         listeners.push(callback);
     },
 
-    removeEventListener: function(name, callback, useCapture)
+    removeEventListener: function(name, callback)
     {
         var listeners = this._listeners[name];
         if (!listeners)
@@ -251,10 +253,12 @@ WebInspector.DOMDocument.prototype = {
     {
         var listeners = this._listeners[name];
         if (!listeners)
-          return;
+            return;
 
-        for (var i = 0; i < listeners.length; ++i)
-          listeners[i](event);
+        for (var i = 0; i < listeners.length; ++i) {
+            var listener = listeners[i];
+            listener.call(this, event);
+        }
     }
 }
 
@@ -316,18 +320,16 @@ WebInspector.DOMAgent.prototype = {
         return this._window;
     },
 
-    getChildNodesAsync: function(parent, opt_callback)
+    getChildNodesAsync: function(parent, callback)
     {
         var children = parent.children;
-        if (children && opt_callback) {
-          opt_callback(children);
-          return;
+        if (children) {
+            callback(children);
+            return;
         }
-        var mycallback = function() {
-            if (opt_callback) {
-                opt_callback(parent.children);
-            }
-        };
+        function mycallback() {
+            callback(parent.children);
+        }
         var callId = WebInspector.Callback.wrap(mycallback);
         InspectorController.getChildNodes(callId, parent.id);
     },
@@ -384,8 +386,6 @@ WebInspector.DOMAgent.prototype = {
     _setChildNodes: function(parentId, payloads)
     {
         var parent = this._idToDOMNode[parentId];
-        if (parent.children)
-          return;
         parent._setChildrenPayload(payloads);
         this._bindNodes(parent.children);
     },
@@ -481,6 +481,7 @@ WebInspector.CSSStyleDeclaration.parseRule = function(payload)
     rule.style.parentRule = rule;
     rule.isUserAgent = payload.isUserAgent;
     rule.isUser = payload.isUser;
+    rule.isViaInspector = payload.isViaInspector;
     if (payload.parentStyleSheet)
         rule.parentStyleSheet = { href: payload.parentStyleSheet.href };
 
@@ -587,13 +588,11 @@ WebInspector.hasChildrenUpdated = function()
 WebInspector.childNodeInserted = function()
 {
     this.domAgent._childNodeInserted.apply(this.domAgent, arguments);
-    this._childNodeInserted.bind(this);
 }
 
 WebInspector.childNodeRemoved = function()
 {
     this.domAgent._childNodeRemoved.apply(this.domAgent, arguments);
-    this._childNodeRemoved.bind(this);
 }
 
 WebInspector.didGetChildNodes = WebInspector.Callback.processCallback;

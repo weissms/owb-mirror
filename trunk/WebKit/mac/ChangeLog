@@ -1,3 +1,87 @@
+2009-08-17  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28366> WebHTMLViewInternal.h: add @class CALayer declaration
+
+        Reviewed by Simon Fraser.
+
+        Without WebKitPrefix.h, the missing @class CALayer declaration
+        causes a compile-time error.
+
+        * WebView/WebHTMLViewInternal.h: Added @class CALayer
+        declaration with USE(ACCELERATED_COMPOSITING).
+
+2009-08-16  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28355> Replace MAX()/MIN() macros with type-safe std::max()/min() templates
+
+        Reviewed by Dan Bernstein.
+
+        * Plugins/WebBaseNetscapePluginStream.mm: Added using std::min
+        statement.
+        (WebNetscapePluginStream::deliverData): Changed MIN() to min().
+        Changed C-style cast to a static_cast.
+        * Plugins/WebNetscapePluginView.mm: Added using std::min
+        statement.
+        (-[WebNetscapePluginView _postURL:target:len:buf:file:notifyData:sendNotification:allowHeaders:]):
+        Changed MIN() to min().  Changed C-style cast to a static_cast.
+        * WebView/WebHTMLView.mm: Added using std::max statement.
+        (-[WebHTMLView _dragImageForURL:withLabel:]): Changed MAX() to
+        max().
+        (-[WebHTMLView _scaleFactorForPrintOperation:]): Ditto.
+        * WebView/WebTextCompletionController.mm: Added using std::max
+        and using std::min statements.
+        (-[WebTextCompletionController _placePopupWindow:]): Changed
+        type of maxWidth variable from float to CGFloat to prevent a
+        type mismatch on x86_64.  Changed MAX() to max() and MIN() to
+        min().  Added static_cast for a constant value since CGFloat is
+        defined as a float on i386 and as a double on x86_64.
+
+2009-08-15  Adam Bergkvist  <adam.bergkvist@ericsson.com>
+
+        Reviewed by Sam Weinig.
+
+        Added ENABLE_EVENTSOURCE flag.
+        https://bugs.webkit.org/show_bug.cgi?id=14997
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-08-14  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::enumerate):  Add the necessary .get() calls.
+
+2009-08-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/7091546> - Assertion failure in plugins/return-error-from-new-stream-doesnt-invoke-destroy-stream.html 
+        on 64-bit SnowLeopard
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::cancelLoad): Since this might be called while the FrameLoader is switching DocumentLoaders
+          during the brief moment where there is no activeDocumentLoader(), accept and handle a validly null DocumentLoader.
+
+2009-08-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        Fix leaks of NSNumber and NSMutableArray objects seen during layout tests.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::enumerate): Don't leak an NSMutableArray that we allocate.
+
+2009-08-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fix leaks of HostedNetscapePluginStream and NetscapePlugInStreamLoader objects seen during layout tests.
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::didFail): Disconnect the stream from the plug-in instance proxy
+        when the load fails.
+
 2009-08-14  Darin Adler  <darin@apple.com>
 
         * Plugins/Hosted/NetscapePluginInstanceProxy.mm: Updated includes.

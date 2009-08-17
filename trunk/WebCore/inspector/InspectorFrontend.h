@@ -47,6 +47,7 @@ namespace WebCore {
     class ConsoleMessage;
     class Database;
     class Frame;
+    class InspectorController;
     class InspectorResource;
     class Node;
     class ScriptFunctionCall;
@@ -55,7 +56,7 @@ namespace WebCore {
 
     class InspectorFrontend {
     public:
-        InspectorFrontend(ScriptState*, ScriptObject webInspector);
+        InspectorFrontend(InspectorController* inspectorController, ScriptState*, ScriptObject webInspector);
         ~InspectorFrontend();
 
         ScriptArray newScriptArray();
@@ -70,7 +71,6 @@ namespace WebCore {
 
         void updateFocusedNode(long long nodeId);
         void setAttachedWindow(bool attached);
-        void inspectedWindowScriptObjectCleared(Frame* frame);
         void showPanel(int panel);
         void populateInterface();
         void reset();
@@ -116,6 +116,7 @@ namespace WebCore {
     private:
         PassOwnPtr<ScriptFunctionCall> newFunctionCall(const String& functionName);
         void callSimpleFunction(const String& functionName);
+        InspectorController* m_inspectorController;
         ScriptState* m_scriptState;
         ScriptObject m_webInspector;
     };

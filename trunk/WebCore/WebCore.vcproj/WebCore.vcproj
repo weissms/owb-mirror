@@ -3288,6 +3288,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\page\EventSource.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\page\EventSource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\page\FocusController.cpp"
 				>
 			</File>
@@ -7259,10 +7267,6 @@
 			</File>
 			<File
 				RelativePath="..\dom\CSSMappedAttributeDeclaration.h"
-				>
-			</File>
-			<File
-				RelativePath="..\dom\DocPtr.h"
 				>
 			</File>
 			<File

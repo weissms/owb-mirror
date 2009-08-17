@@ -53,7 +53,7 @@ GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const
 GtkClipboard* PasteboardHelperGtk::getPrimary(Frame* frame) const
 {
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
-    return gtk_widget_get_clipboard(GTK_WIDGET (webView),
+    return gtk_widget_get_cliWEBKIT_WEB_VIEW_TARGET_INFO_HTMLpboard(GTK_WIDGET (webView),
                                     GDK_SELECTION_PRIMARY);*/
     return 0;
 }
@@ -70,6 +70,11 @@ GtkTargetList* PasteboardHelperGtk::getPasteTargetList(Frame* frame) const
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
     return webkit_web_view_get_paste_target_list(webView);*/
     return 0;
+}
+
+gint PasteboardHelperGtk::getWebViewTargetInfoHtml() const
+{
+    return -1;
 }
 
 }

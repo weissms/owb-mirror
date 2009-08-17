@@ -1,3 +1,192 @@
+2009-08-17  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28370> check-webkit-style: add check for 'using std::foo;' statements
+
+        Reviewed by David Levin.
+
+        In <http://webkit.org/b/28355#c1>, it was noted that new source
+        files use 'using namespace std;' instead of individual
+        'using std::foo;' statements.  This adds a level 4 check for
+        such statements.
+
+        * Scripts/modules/cpp_style.py:
+        (_ERROR_CATEGORIES): Added 'build/using_std'.
+        (check_using_std): Added.
+        (check_style): Added call to check_using_std().
+        * Scripts/modules/cpp_style_unittest.py:
+        (WebKitStyleTest.test_using_std): Added unit test.
+
+2009-08-16  David Kilzer  <ddkilzer@apple.com>
+
+        Backed out r47343 which was mistakenly committed
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-08-16  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28367> bugzilla.py: replace ScriptError class with BugzillaError class
+
+        Reviewed by David Levin.
+
+        The ScriptError class doesn't exist in bugzilla.py, so any
+        errors print error messages about ScriptError instead of the
+        actual error:
+
+            NameError: global name 'ScriptError' is not defined
+
+        * Scripts/modules/bugzilla.py:
+        (BugzillaError): Added class.  Modeled after ScriptError class
+        in scm.py.
+        (Bugzilla.authenticate): Changed to use BugzillaError instead of
+        ScriptError.
+        (Bugzilla._check_create_bug_response): Ditto.
+
+2009-08-14  Adam Bergkvist  <adam.bergkvist@ericsson.com>
+
+        Reviewed by Sam Weinig.
+
+        Added EventSource to the build script (default on).
+        https://bugs.webkit.org/show_bug.cgi?id=14997 
+
+        * Scripts/build-webkit:
+
+2009-08-15  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-08-15  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Fix layout test failures after r47312.
+
+        Reviewed by Cameron Zwarich.
+
+        * DumpRenderTree/AccessibilityController.h:
+        Replaced logFocusEvents() with setLogFocusEvents(), which takes a
+        boolean argument to turn logging of focus events on or off.
+        Added a function to reset the AccessibilityController to a consistent
+        state.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (logFocusEventsCallback):
+        Call setLogFocusEvents() to enable logging.
+        (AccessibilityController::resetToConsistentState):
+        Call setLogFocusEvents() to disable logging.
+
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::setLogFocusEvents):
+        Update stub.
+
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::setLogFocusEvents):
+        Update stub.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting):
+        Call the FrameLoadDelegate's resetToConsistentState method.
+
+        * DumpRenderTree/mac/FrameLoadDelegate.h:
+        Declare the resetToConsistentState method.
+
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate resetToConsistentState]):
+        Call the AccessibilityController's resetToConsistentState() function.
+
+        * DumpRenderTree/win/AccessibilityControllerWin.cpp:
+        (AccessibilityController::~AccessibilityController):
+        Turn off focus event logging when the controller is destroyed.
+        (AccessibilityController::setLogFocusEvents):
+        If the caller passes false, unhook the focus event, and clear
+        m_focusEventHook.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        Call the FrameLoadDelegate's resetToConsistentState function.
+
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+        Declare the resetToConsistentState() function.
+
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::resetToConsistentState):
+        Call the AccessibilityController's resetToConsistentState() function.
+
+
+2009-08-14  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Add a mechanism for logging MSAA focus events.
+
+        Part of <rdar://problem/6218721> No MSAA focus events fired for Webkit
+        nightly (20866)
+
+        https://bugs.webkit.org/show_bug.cgi?id=20866
+
+        Reviewed by Oliver Hunt.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (logFocusEventsCallback):
+        Call the AccessibilityController's logFocusEvents() function.
+        (AccessibilityController::getJSClass):
+        Add a "logFocusEvents" function to the AccessibilityController's JS
+        class definition.
+
+        * DumpRenderTree/AccessibilityController.h:
+        On Windows, include windows.h, and add a member variable to hold the
+        handle to the event hook for focus events. Add a declaration for a
+        function that enables logging of focus events.
+
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::logFocusEvents):
+        Stubbed.
+
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::logFocusEvents):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityControllerWin.cpp:
+        (AccessibilityController::AccessibilityController):
+        (AccessibilityController::~AccessibilityController):
+        If we hooked the focus event, unhook it.
+        (logFocusEventProc):
+        When we receive a focus event, get the accessible object for the event,
+        and log its name to stdout.
+        (AccessibilityController::logFocusEvents):
+        Setup the focus event hook to listen for events in the current process.
+
+2009-08-14  Eric Seidel  <eric@webkit.org>
+
+        No review.  Fix 5-space indent to be 4-spaces.
+
+        * Scripts/bugzilla-tool:
+
+2009-08-14  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Public API to configure the storage path for HTML5 localStorage
+        https://bugs.webkit.org/show_bug.cgi?id=28036
+
+        Turn on LocalStorage support for Qt DumpRenderTree since
+        LocalStorage is now disabled by defult for QtWebkit.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp: 
+        (WebCore::WebPage::WebPage):
+
+2009-08-14  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        Do not unref the main webview, it's owned by its parent
+        container. Instead destroy the container, which should take care
+        of everything (not terribly important since we exit right after
+        that, but still).
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (main):
+
 2009-08-14  Eric Seidel  <eric@webkit.org>
 
         No review, correcting obvious python error seen in the commit queue.

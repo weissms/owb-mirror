@@ -41,7 +41,7 @@ WMLPrevElement::~WMLPrevElement()
 {
 }
 
-void WMLPrevElement::executeTask(Event*)
+void WMLPrevElement::executeTask()
 {
     ASSERT(document()->isWMLDocument());
     WMLDocument* document = static_cast<WMLDocument*>(this->document());

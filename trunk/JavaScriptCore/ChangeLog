@@ -1,3 +1,331 @@
+2009-08-17  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix crash on ./ecma_2/RegExp/exec-002.js.
+        https://bugs.webkit.org/show_bug.cgi?id=28353
+
+        Change the order of freeParenthesesDisjunctionContext and
+        popParenthesesDisjunctionContext on all call sites as the pop
+        method is accessing backTrack->lastContext which is the context
+        that is about to be freed.
+
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::parenthesesDoBacktrack):
+        (JSC::Yarr::Interpreter::backtrackParentheses):
+
+2009-08-16  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28352
+
+        Fix coding style violations. Use m_ for C++ class members. Remove
+        trailing whitespace on empty lines.
+
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::ParenthesesDisjunctionContext::ParenthesesDisjunctionContext):
+        (JSC::Yarr::Interpreter::tryConsumeCharacter):
+        (JSC::Yarr::Interpreter::tryConsumeBackReference):
+        (JSC::Yarr::Interpreter::parenthesesDoBacktrack):
+        (JSC::Yarr::Interpreter::backtrackParentheses):
+        (JSC::Yarr::ByteCompiler::ByteCompiler):
+        (JSC::Yarr::ByteCompiler::compile):
+        (JSC::Yarr::ByteCompiler::checkInput):
+        (JSC::Yarr::ByteCompiler::assertionBOL):
+        (JSC::Yarr::ByteCompiler::assertionEOL):
+        (JSC::Yarr::ByteCompiler::assertionWordBoundary):
+        (JSC::Yarr::ByteCompiler::atomPatternCharacter):
+        (JSC::Yarr::ByteCompiler::atomCharacterClass):
+        (JSC::Yarr::ByteCompiler::atomBackReference):
+        (JSC::Yarr::ByteCompiler::atomParenthesesSubpatternBegin):
+        (JSC::Yarr::ByteCompiler::atomParentheticalAssertionBegin):
+        (JSC::Yarr::ByteCompiler::popParenthesesStack):
+        (JSC::Yarr::ByteCompiler::closeAlternative):
+        (JSC::Yarr::ByteCompiler::closeBodyAlternative):
+        (JSC::Yarr::ByteCompiler::atomParenthesesEnd):
+        (JSC::Yarr::ByteCompiler::regexBegin):
+        (JSC::Yarr::ByteCompiler::alterantiveBodyDisjunction):
+        (JSC::Yarr::ByteCompiler::alterantiveDisjunction):
+        (JSC::Yarr::ByteCompiler::emitDisjunction):
+
+2009-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build with JIT disabled.
+
+        * runtime/Arguments.h: Only compile the jitCode method when the JIT is enabled.
+        * runtime/Executable.h: Include PrototypeFunction.h so the compiler knows what
+        NativeFunctionWrapper is when the JIT is disabled.
+
+2009-08-15  Adam Bergkvist  <adam.bergkvist@ericsson.com>
+
+        Reviewed by Sam Weinig.
+
+        Added ENABLE_EVENTSOURCE flag.
+        https://bugs.webkit.org/show_bug.cgi?id=14997
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-08-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        * parser/Parser.h:
+        (JSC::EvalExecutable::parse):
+        (JSC::ProgramExecutable::parse):
+        * runtime/Executable.h:
+
+2009-08-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove AST nodes from use within the Runtime (outside of parsing), stage 1
+        https://bugs.webkit.org/show_bug.cgi?id=28330
+
+        Remove the EvalNode and ProgramNode from use in the runtime.  They still exist
+        after this patch, but are hidden behind EvalExecutable and FunctionExecutable,
+        and are also still reachable behind CodeBlock::m_ownerNode.
+
+        The next step will be to beat back FunctionBodyNode in the same fashion.
+        Then remove the usage via CodeBlock, then only construct these nodes only on
+        demand during bytecode generation.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * bytecode/CodeBlock.h:
+        (JSC::GlobalCodeBlock::GlobalCodeBlock):
+        (JSC::GlobalCodeBlock::~GlobalCodeBlock):
+        (JSC::ProgramCodeBlock::ProgramCodeBlock):
+        (JSC::EvalCodeBlock::EvalCodeBlock):
+        (JSC::FunctionCodeBlock::FunctionCodeBlock):
+        (JSC::NativeCodeBlock::NativeCodeBlock):
+        * bytecode/EvalCodeCache.h:
+        (JSC::EvalCodeCache::get):
+        * debugger/Debugger.cpp:
+        (JSC::evaluateInGlobalCallFrame):
+        * debugger/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::callEval):
+        (JSC::Interpreter::execute):
+        * interpreter/Interpreter.h:
+        * parser/Nodes.cpp:
+        (JSC::FunctionBodyNode::createNativeThunk):
+        (JSC::FunctionBodyNode::generateBytecode):
+        (JSC::FunctionBodyNode::bytecodeForExceptionInfoReparse):
+        * parser/Parser.h:
+        (JSC::Parser::parse):
+        (JSC::Parser::reparse):
+        (JSC::Parser::parseFunctionFromGlobalCode):
+        (JSC::::parse):
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Error.cpp:
+        (JSC::throwError):
+        * runtime/Error.h:
+        * runtime/Executable.h: Added.
+        (JSC::TemplateExecutable::TemplateExecutable):
+        (JSC::TemplateExecutable::markAggregate):
+        (JSC::TemplateExecutable::sourceURL):
+        (JSC::TemplateExecutable::lineNo):
+        (JSC::TemplateExecutable::bytecode):
+        (JSC::TemplateExecutable::jitCode):
+        (JSC::EvalExecutable::EvalExecutable):
+        (JSC::ProgramExecutable::ProgramExecutable):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::constructFunction):
+        * runtime/FunctionConstructor.h:
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::numericCompareFunction):
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::~JSGlobalObject):
+        (JSC::JSGlobalObject::markChildren):
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::codeBlocks):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+
+2009-08-14  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Rename the confusing isObject(<class>) to inherits(<class>).
+        It still works on non-objects, returning false.
+
+        * runtime/ArrayConstructor.cpp:
+        (JSC::arrayConstructorIsArray): Removed unneeded isObject call
+        and updated remaining isObject call to new name, inherits.
+
+        * runtime/JSCell.h: Renamed isObject(<class>) to inherits(<class>)
+        but more importantly, made it non-virtual (it was already inline)
+        so it is now as fast as JSObject::inherits was.
+
+        * runtime/JSObject.h: Removed inherits function since the one
+        in the base class is fine as-is. Also made various JSCell functions
+        that should not be called on JSObject uncallable by making them
+        both private and not implemented.
+        (JSC::JSCell::inherits): Updated name.
+        (JSC::JSValue::inherits): Ditto.
+
+        * debugger/Debugger.cpp:
+        (JSC::Debugger::recompileAllJSFunctions):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::unwindCallFrame):
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        (JSC::arrayProtoFuncToLocaleString):
+        (JSC::arrayProtoFuncConcat):
+        * runtime/BooleanPrototype.cpp:
+        (JSC::booleanProtoFuncToString):
+        (JSC::booleanProtoFuncValueOf):
+        * runtime/DateConstructor.cpp:
+        (JSC::constructDate):
+        * runtime/DatePrototype.cpp:
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToISOString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncToLocaleString):
+        (JSC::dateProtoFuncToLocaleDateString):
+        (JSC::dateProtoFuncToLocaleTimeString):
+        (JSC::dateProtoFuncGetTime):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetMilliSeconds):
+        (JSC::dateProtoFuncGetUTCMilliseconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::dateProtoFuncSetTime):
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/JSActivation.cpp:
+        (JSC::JSActivation::argumentsGetter):
+        * runtime/JSValue.h:
+        * runtime/RegExpConstructor.cpp:
+        (JSC::constructRegExp):
+        * runtime/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncTest):
+        (JSC::regExpProtoFuncExec):
+        (JSC::regExpProtoFuncCompile):
+        (JSC::regExpProtoFuncToString):
+        * runtime/ScopeChain.cpp:
+        (JSC::ScopeChain::localDepth):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+        (JSC::stringProtoFuncToString):
+        (JSC::stringProtoFuncMatch):
+        (JSC::stringProtoFuncSearch):
+        (JSC::stringProtoFuncSplit):
+        Updated to new name, inherits, from old name, isObject.
+
+2009-07-31  Harald Fernengel  <harald.fernengel@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Adding QNX as a platform. Currently only tested with Qt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27885
+
+        * JavaScriptCore/runtime/Collector.cpp: Added retrieving of stack base
+          since QNX doesn't have the pthread _nt functions
+        * JavaScriptCore/wtf/Platform.h: Added WTF_PLATFORM_QNX and corresponding
+          defines
+        * WebCore/bridge/npapi.h: Build fix for missing typedefs on QNX
+
+2009-08-14  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        Currently generic ARM and ARMv7 platforms work only with JSVALUE32
+        https://bugs.webkit.org/show_bug.cgi?id=28300
+
+        * wtf/Platform.h:
+
+2009-08-14  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        Enable JIT on ARM for QT by default
+        https://bugs.webkit.org/show_bug.cgi?id=28259
+
+        * wtf/Platform.h:
+
+2009-08-14  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        Enable YARR_JIT on ARM for QT by default
+        https://bugs.webkit.org/show_bug.cgi?id=28259
+
+        * wtf/Platform.h:
+
+2009-08-14  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [ES5] Arguments object should inherit from Array
+        https://bugs.webkit.org/show_bug.cgi?id=28298
+
+        Make the Arguments object conform to the behaviour specified in ES5.
+        The simple portion of this is to make Arguments use Array.prototype
+        as its prototype rather than Object.prototype.
+
+        The spec then requires us to set instance.constructor to the pristine
+        Object constructor, and instance.toString and instance.toLocaleString
+        to the pristine versions from Object.prototype.  To do this we now 
+        make the ObjectPrototype constructor return its toString and
+        toLocaleString functions (similar to the call and apply functions
+        from FunctionPrototype).
+
+        Oddly enough this reports itself as a slight win, but given the code
+        isn't hit in the tests that claim to have improved I put this down to
+        code motion.
+
+        * runtime/Arguments.h:
+        (JSC::Arguments::Arguments):
+        (JSC::Arguments::initializeStandardProperties):
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+        (JSC::JSGlobalObject::markChildren):
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObjectData::JSGlobalObjectData):
+        (JSC::JSGlobalObject::objectConstructor):
+        (JSC::JSGlobalObject::objectToStringFunction):
+        (JSC::JSGlobalObject::objectToLocaleStringFunction):
+        * runtime/ObjectPrototype.cpp:
+        (JSC::ObjectPrototype::ObjectPrototype):
+        * runtime/ObjectPrototype.h:
+        * tests/mozilla/ecma_3/Function/arguments-001.js:
+          Update test to new es5 behaviour
+
+2009-08-14  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Remove MarkStack::drain from the JSC exports file
+
+        MarkStack::drain is now marked inline, the including it in the exports file
+        produces an ld warning
+
+        * JavaScriptCore.exp:
+
 2009-08-14  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Oliver Hunt.

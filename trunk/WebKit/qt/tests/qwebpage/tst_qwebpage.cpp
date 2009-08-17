@@ -110,6 +110,7 @@ private slots:
     void frameAt();
     void requestCache();
     void protectBindingsRuntimeObjectsFromCollector();
+    void localURLSchemes();
 
 private:
 
@@ -627,7 +628,6 @@ void tst_QWebPage::createViewlessPlugin()
 // import private API
 void QWEBKIT_EXPORT qt_webpage_setGroupName(QWebPage* page, const QString& groupName);
 QString QWEBKIT_EXPORT qt_webpage_groupName(QWebPage* page);
-void QWEBKIT_EXPORT qt_websettings_setLocalStorageDatabasePath(QWebSettings* settings, const QString& path);
 
 void tst_QWebPage::multiplePageGroupsAndLocalStorage()
 {
@@ -638,9 +638,11 @@ void tst_QWebPage::multiplePageGroupsAndLocalStorage()
     QWebView view1;
     QWebView view2;
 
-    qt_websettings_setLocalStorageDatabasePath(view1.page()->settings(), QDir::toNativeSeparators(QDir::currentPath() + "/path1"));
+    view1.page()->settings()->setAttribute(QWebSettings::LocalStorageEnabled, true);
+    view1.page()->settings()->setLocalStoragePath(QDir::toNativeSeparators(QDir::currentPath() + "/path1"));
     qt_webpage_setGroupName(view1.page(), "group1");
-    qt_websettings_setLocalStorageDatabasePath(view2.page()->settings(), QDir::toNativeSeparators(QDir::currentPath() + "/path2"));
+    view2.page()->settings()->setAttribute(QWebSettings::LocalStorageEnabled, true);    
+    view2.page()->settings()->setLocalStoragePath(QDir::toNativeSeparators(QDir::currentPath() + "/path2"));
     qt_webpage_setGroupName(view2.page(), "group2");
     QCOMPARE(qt_webpage_groupName(view1.page()), QString("group1"));
     QCOMPARE(qt_webpage_groupName(view2.page()), QString("group2"));
@@ -1188,6 +1190,23 @@ void tst_QWebPage::protectBindingsRuntimeObjectsFromCollector()
 
     // don't crash!
     newPage->mainFrame()->evaluateJavaScript("testme('bar')");
+}
+
+void tst_QWebPage::localURLSchemes()
+{
+    int i = QWebSecurityOrigin::localSchemes().size();
+    QWebSecurityOrigin::removeLocalScheme("file");
+    QTRY_COMPARE(QWebSecurityOrigin::localSchemes().size(), i);
+    QWebSecurityOrigin::addLocalScheme("file");
+    QTRY_COMPARE(QWebSecurityOrigin::localSchemes().size(), i);
+    QString myscheme = "myscheme";
+    QWebSecurityOrigin::addLocalScheme(myscheme);
+    QTRY_COMPARE(QWebSecurityOrigin::localSchemes().size(), i + 1);
+    QVERIFY(QWebSecurityOrigin::localSchemes().contains(myscheme));
+    QWebSecurityOrigin::removeLocalScheme(myscheme);
+    QTRY_COMPARE(QWebSecurityOrigin::localSchemes().size(), i);
+    QWebSecurityOrigin::removeLocalScheme(myscheme);
+    QTRY_COMPARE(QWebSecurityOrigin::localSchemes().size(), i);
 }
 
 QTEST_MAIN(tst_QWebPage)
