@@ -27,14 +27,20 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var InjectedScript = {
-    _styles: {},
-    _styleRules: {},
-    _lastStyleId: 0,
-    _lastStyleRuleId: 0,
-    _searchResults: [],
-    _includedInSearchResultsPropertyName: "__includedInInspectorSearchResults"
-};
+var InjectedScript = {};
+
+// Called from within InspectorController on the 'inspected page' side.
+InjectedScript.reset = function()
+{
+    InjectedScript._styles = {};
+    InjectedScript._styleRules = {};
+    InjectedScript._lastStyleId = 0;
+    InjectedScript._lastStyleRuleId = 0;
+    InjectedScript._searchResults = [];
+    InjectedScript._includedInSearchResultsPropertyName = "__includedInInspectorSearchResults";
+}
+
+InjectedScript.reset();
 
 InjectedScript.getStyles = function(nodeId, authorOnly)
 {
@@ -245,7 +251,8 @@ InjectedScript._doesSelectorAffectNode = function(selectorText, node)
     return false;
 }
 
-InjectedScript.setStyleProperty = function(styleId, name, value) {
+InjectedScript.setStyleProperty = function(styleId, name, value)
+{
     var style = InjectedScript._styles[styleId];
     if (!style)
         return false;
@@ -427,33 +434,17 @@ InjectedScript.getProperties = function(objectProxy, ignoreHasOwnProperty)
         if (!ignoreHasOwnProperty && "hasOwnProperty" in object && !object.hasOwnProperty(propertyName))
             continue;
 
-        //TODO: remove this once object becomes really remote.
-        if (propertyName === "__treeElementIdentifier")
-            continue;
         var property = {};
         property.name = propertyName;
         property.parentObjectProxy = objectProxy;
         var isGetter = object["__lookupGetter__"] && object.__lookupGetter__(propertyName);
         if (!property.isGetter) {
             var childObject = object[propertyName];
-            var childObjectProxy = {};
-            childObjectProxy.objectId = objectProxy.objectId;
+            var childObjectProxy = new InjectedScript.createProxyObject(childObject, objectProxy.objectId);
             childObjectProxy.path = objectProxy.path ? objectProxy.path.slice() : [];
             childObjectProxy.path.push(propertyName);
-
             childObjectProxy.protoDepth = objectProxy.protoDepth || 0;
-            childObjectProxy.description = Object.describe(childObject, true);
             property.value = childObjectProxy;
-
-            var type = typeof childObject;
-            if (type === "object" || type === "function") {
-                for (var subPropertyName in childObject) {
-                    if (propertyName === "__treeElementIdentifier")
-                        continue;
-                    childObjectProxy.hasChildren = true;
-                    break;
-                }
-            }
         } else {
             // FIXME: this should show something like "getter" (bug 16734).
             property.value = { description: "\u2014" }; // em dash
@@ -768,6 +759,11 @@ InjectedScript.searchCanceled = function()
     return true;
 }
 
+InjectedScript.getCookies = function()
+{
+    return InjectedScript._window().document.cookie;
+}
+
 InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
 {
     var inspectedWindow = InjectedScript._window();
@@ -867,13 +863,22 @@ InjectedScript._objectForId = function(objectId)
     return objectId;
 }
 
-InjectedScript._createProxyObject = function(object, objectId)
+// Called from within InspectorController on the 'inspected page' side.
+InjectedScript.createProxyObject = function(object, objectId)
 {
     var result = {};
     result.objectId = objectId;
     result.type = Object.type(object, InjectedScript._window());
     if (result.type === "node")
         result.nodeId = InspectorController.pushNodePathToFrontend(object, false);
+
+    var type = typeof object;
+    if (type === "object" || type === "function") {
+        for (var subPropertyName in object) {
+            result.hasChildren = true;
+            break;
+        }
+    }
     try {
         result.description = Object.describe(object, true, InjectedScript._window());
     } catch (e) {

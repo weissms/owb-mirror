@@ -93,7 +93,7 @@ sub defaultTagPropertyHash
     return (
         'constructorNeedsCreatedByParser' => 0,
         'constructorNeedsFormElement' => 0,
-        'createWithNew' => 1,
+        'createWithNew' => 0,
         'exportString' => 0,
         'interfaceName' => defaultInterfaceName($_[0]),
         # By default, the JSInterfaceName is the same as the interfaceName.
@@ -640,7 +640,7 @@ sub printDefinitions
     print "\n";
 
     for my $name (sort keys %$namesRef) {
-        print F "    new (&$name","${shortCamelType}) QualifiedName(nullAtom, $name","${shortCamelType}String, $namespaceURI);\n";
+        print F "    new ((void*)&$name","${shortCamelType}) QualifiedName(nullAtom, $name","${shortCamelType}String, $namespaceURI);\n";
     }
 }
 

@@ -1,3 +1,229 @@
+2009-08-19  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Kilzer.
+
+        run-webkit-tests hangs when WebCore tries to log too much
+        https://bugs.webkit.org/show_bug.cgi?id=15743
+
+        Read stdout and stderr in parallel.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-18  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Add a new build configuration that checks for leaks during the layout tests,
+        and hook a new machine up to it.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+
+2009-08-18  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28412: Leak of WebCore::XMLHttpRequest object during layout tests.
+
+        No new tests: Already covered by existing tests.
+
+        * Scripts/check-for-global-initializers: Allow global initialization of WTF::RefCountedLeakCounter for XMLHttpRequest.
+
+2009-08-18  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        Bump waitToDumpWatchdogInterval to 15 seconds to match the time-out used by run-webkit-tests.
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+
+2009-08-18  Brian Weinstein  <bweinstein@apple.com>
+
+        Rubber-stamped by Adam Roben.
+
+        Changed use of CComBSTR in exceededDatabaseQuota to BSTRs, and free them,
+        and removed include to fix building on VC++ Express.
+
+        * DumpRenderTree/win/UIDelegate.cpp:
+        (UIDelegate::exceededDatabaseQuota):
+
+2009-08-18  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix of <https://bugs.webkit.org/show_bug.cgi?id=28326> DRT on Windows doesn't support 
+        LayoutTestController::setQuota or print a callback on UIDelegate::exceededDatabaseQuota.
+        
+        Implemenent setDatabaseQuota and added a new function to the IWebDatabaseManager interface.
+        Also added a console output on UIDelegate::exceededDatabaseQuota to match the mac.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setDatabaseQuota):
+        * DumpRenderTree/win/UIDelegate.cpp:
+        (UIDelegate::exceededDatabaseQuota):
+
+2009-08-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28415
+        Set svn:eol-style CRLF on all .sln and .vcproj files that don't already
+        have it.
+
+        * record-memory-win/record-memory-win.vcproj:
+        * WinLauncher/WinLauncher.vcproj:
+        * WebKitLauncherWin/WebKitLauncherWin.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+        * FindSafari/FindSafari.vcproj:
+
+2009-08-18  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Need to extend DumpRenderTree to expose number of worker threads
+        https://bugs.webkit.org/show_bug.cgi?id=28292
+
+        Added layoutTestController.workerThreadCount, and implementations on various platforms that call into WebKit.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (getWorkerThreadCountCallback):
+        (LayoutTestController::staticValues):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::workerThreadCount):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::workerThreadCount):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::workerThreadCount):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::workerThreadCount):
+
+2009-08-18  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        Initialize x and y in the GtkAllocation structure to shut up
+        valgrind.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (runTest):
+
+2009-08-17  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Some HTMLs are modified by make-script-test-wrappers
+        https://bugs.webkit.org/show_bug.cgi?id=28213
+
+        Add fast/js/const.js and fast/canvas/canvas-2d-imageData-create-nonfinite.js into
+        the exclude list, modified fast/dom/Geolocation/resources/TEMPLATE.html, and
+        re-generated wml/* and Geolocation/* .
+
+        * Scripts/make-script-test-wrappers:
+
+2009-08-17  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        -webkit-box-orient:horizontal doesn't work on <button> tag
+        https://bugs.webkit.org/show_bug.cgi?id=34445
+
+        Make a flexible button's anonymous child flexible and pass the
+        parent's box-orient to the anonymous child.
+
+        Also, added a renderName for anonymous flexible boxes.
+
+        * Scripts/make-script-test-wrappers:
+
+2009-08-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Can no longer --reset-results of a layout test directory
+        https://bugs.webkit.org/show_bug.cgi?id=28336
+
+        --reset-results and --exit-after-n-failures are incompatible.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-17  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/26920> bugzilla-tool dumps too much junk the the commit comment from git
+
+        Reviewed by Adam Roben.
+
+        New commit message:
+            Committed r12345: <http://trac.webkit.org/changeset/12345>
+
+        * Scripts/bugzilla-tool:
+        (bug_comment_from_commit_text): Print out a compact,
+        standardized commit message for both git and svn.
+
+2009-08-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Steve Falkenburg.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Only add Cygwin to the path when it isn't already there.  This avoids
+        causing problems for people who purposefully have non-Cygwin versions of
+        executables like svn in front of the Cygwin ones in their paths.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+
+2009-08-17  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28393> check-webkit-style: add check for use of std::max()/std::min() instead of MAX()/MIN()
+
+        Reviewed by David Levin.
+
+        * Scripts/modules/cpp_style.py:
+        (_ERROR_CATEGORIES): Added 'runtime/max_min_macros'.
+        (check_max_min_macros): Added.  Returns level 4 error when MAX()
+        and MIN() macros are used in header files and C++ source files.
+        (check_style): Added call to check_max_min_macros().
+        * Scripts/modules/cpp_style_unittest.py: Added unit tests.
+        (test_max_macro): Added.
+        (test_min_macro): Added.
+
+2009-08-13  Mike Fenton  <mike.fenton@torchmobile.com>
+
+        Reviewed by Eric Seidel.
+
+        Move adjustLineToPixelBoundaries overlapping function to GraphicsContext.cpp
+        and remove from GraphicsContextCairo.cpp and GraphicsContextQt.cpp.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28268
+
+        * platform/graphics/GraphicsContext.cpp:
+        (WebCore::GraphicsContext::adjustLineToPixelBoundaries):
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+
+2009-08-10  Mike Fenton  <mike.fenton@torchmobile.com>
+
+        Reviewed by Adam Treat.
+
+        Style fixes for DumpRenderTree/qt/jsobjects.cpp based on cpp_style.py and
+        WebKit style guide.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28161
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (findFrameNamed):
+        (LoadItem::invoke):
+        (LayoutTestController::provisionalLoad):
+        (LayoutTestController::timerEvent):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        (LayoutTestController::numberOfActiveAnimations):
+        (EventSender::keyDown):
+        (EventSender::frameUnderMouse):
+        (TextInputController::doCommand):
+
 2009-08-17  David Kilzer  <ddkilzer@apple.com>
 
         <http://webkit.org/b/28370> check-webkit-style: add check for 'using std::foo;' statements

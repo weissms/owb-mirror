@@ -1,3 +1,43 @@
+2009-08-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Mac specific part of
+        
+        <rdar://problem/7135588> HTMLMediaElement should ask WebPolicyLoadDelegate before loading resource
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        Implement shouldLoadMediaElementURL by asking the policy delegate.
+        
+        * WebView/WebPolicyDelegatePrivate.h:
+        Add new delegate method, remove some unused cruft.
+
+2009-08-18  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Need to extend DumpRenderTree to expose number of worker threads.
+        https://bugs.webkit.org/show_bug.cgi?id=28292
+
+        * WebKit.exp:
+        Exported WebWorkersPrivate so DumpRenderTree can access it.
+        * Workers/WebWorkersPrivate.h: Added.
+        * Workers/WebWorkersPrivate.mm: Added.
+        (+[WebWorkersPrivate workerThreadCount]):
+        Added WebWorkersPrivate::workerThreadCount() API for DumpRenderTree.
+
+2009-08-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Use a HashMap instead of a list of if statements for the command
+        name exception map.
+
+        * WebView/WebHTMLView.mm:
+        (createSelectorExceptionMap): Added.
+        (commandNameForSelector): Use createSelectorExceptionMap.
+
 2009-08-17  David Kilzer  <ddkilzer@apple.com>
 
         <http://webkit.org/b/28366> WebHTMLViewInternal.h: add @class CALayer declaration

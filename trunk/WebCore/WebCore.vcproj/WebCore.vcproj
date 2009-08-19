@@ -990,6 +990,14 @@
 				>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLDataListElement.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLDataListElement.cpp"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLDirectoryElement.cpp"
 				>
 			</File>
@@ -8395,6 +8403,14 @@
 			</File>
 			<File
 				RelativePath="..\html\HTMLDataGridElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\HTMLDataListElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\HTMLDataListElement.h"
 				>
 			</File>
 			<File

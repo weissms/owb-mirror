@@ -227,7 +227,7 @@ String DatabaseTracker::fullPathForDatabase(SecurityOrigin* origin, const String
     }
     statement.finalize();
     
-    String fileName = SQLiteFileSystem::getFileNameForNewDatabase(originPath, origin->databaseIdentifier(), name, &m_database);
+    String fileName = SQLiteFileSystem::getFileNameForNewDatabase(originPath, name, origin->databaseIdentifier(), &m_database);
     if (!addDatabase(origin, name, fileName))
         return String();
 
@@ -606,8 +606,8 @@ void DatabaseTracker::deleteOrigin(SecurityOrigin* origin)
     
     for (unsigned i = 0; i < databaseNames.size(); ++i) {
         if (!deleteDatabaseFile(origin, databaseNames[i])) {
+            // Even if the file can't be deleted, we want to try and delete the rest, don't return early here.
             LOG_ERROR("Unable to delete file for database %s in origin %s", databaseNames[i].ascii().data(), origin->databaseIdentifier().ascii().data());
-            return;
         }
     }
     

@@ -156,6 +156,9 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
     else:DEFINES += ENABLE_VIDEO=0
 }
 
+# HTML5 datalist support
+!contains(DEFINES, ENABLE_DATALIST=.): DEFINES += ENABLE_DATALIST=1
+
 # Nescape plugins support (NPAPI)
 !contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=.) {
     unix|win32-*:!embedded:!wince*:!symbian {
@@ -376,6 +379,7 @@ IDL_BINDINGS += \
     html/HTMLDataGridCellElement.idl \
     html/HTMLDataGridColElement.idl \
     html/HTMLDataGridRowElement.idl \
+    html/HTMLDataListElement.idl \
     html/HTMLDirectoryElement.idl \
     html/HTMLDivElement.idl \
     html/HTMLDListElement.idl \
@@ -961,6 +965,7 @@ SOURCES += \
     html/HTMLDataGridCellElement.cpp \
     html/HTMLDataGridColElement.cpp \
     html/HTMLDataGridRowElement.cpp \
+    html/HTMLDataListElement.cpp \
     html/HTMLDirectoryElement.cpp \
     html/HTMLDivElement.cpp \
     html/HTMLDListElement.cpp \
@@ -2257,6 +2262,7 @@ HEADERS += \
     xml/XSLTProcessor.h \
     xml/XSLTUnicodeSort.h \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
+    $$PWD/platform/network/qt/DnsPrefetchHelper.h
 
 SOURCES += \
     accessibility/qt/AccessibilityObjectQt.cpp \
@@ -2289,6 +2295,7 @@ SOURCES += \
     platform/graphics/qt/StillImageQt.cpp \
     platform/network/qt/ResourceHandleQt.cpp \
     platform/network/qt/ResourceRequestQt.cpp \
+    platform/network/qt/DnsPrefetchHelper.cpp \
     platform/network/qt/QNetworkReplyHandler.cpp \
     editing/qt/EditorQt.cpp \
     platform/qt/ClipboardQt.cpp \

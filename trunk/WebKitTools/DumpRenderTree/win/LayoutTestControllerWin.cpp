@@ -183,6 +183,17 @@ size_t LayoutTestController::webHistoryItemCount()
     return count;
 }
 
+unsigned LayoutTestController::workerThreadCount() const
+{
+    COMPtr<IWebWorkersPrivate> workers;
+    if (FAILED(WebKitCreateInstance(CLSID_WebWorkersPrivate, 0, __uuidof(workers), reinterpret_cast<void**>(&workers))))
+        return 0;
+    unsigned count;
+    if (FAILED(workers->workerThreadCount(&count)))
+        return 0;
+    return count;
+}
+
 void LayoutTestController::notifyDone()
 {
     // Same as on mac.  This can be shared.
@@ -615,7 +626,7 @@ void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool flag)
     viewEditing->setSelectTrailingWhitespaceEnabled(flag ? TRUE : FALSE);
 }
 
-static const CFTimeInterval waitToDumpWatchdogInterval = 10.0;
+static const CFTimeInterval waitToDumpWatchdogInterval = 15.0;
 
 static void CALLBACK waitUntilDoneWatchdogFired(HWND, UINT, UINT_PTR, DWORD)
 {
@@ -727,7 +738,15 @@ void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value
 
 void LayoutTestController::setDatabaseQuota(unsigned long long quota)
 {
-    printf("ERROR: LayoutTestController::setDatabaseQuota() not implemented\n");
+    COMPtr<IWebDatabaseManager> databaseManager;
+    COMPtr<IWebDatabaseManager> tmpDatabaseManager;
+
+    if (FAILED(WebKitCreateInstance(CLSID_WebDatabaseManager, 0, IID_IWebDatabaseManager, (void**)&tmpDatabaseManager)))
+        return;
+    if (FAILED(tmpDatabaseManager->sharedWebDatabaseManager(&databaseManager)))
+        return;
+
+    databaseManager->setQuota(TEXT("file:///"), quota);
 }
 
 void LayoutTestController::setAppCacheMaximumSize(unsigned long long size)

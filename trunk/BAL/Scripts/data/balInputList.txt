@@ -395,6 +395,7 @@ BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageD
 BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h
 BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.cpp
 BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.h
+BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.cpp
 BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.h
 BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp
 BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDecoder.h
@@ -586,6 +587,8 @@ BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequestSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceResponse.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceError.h

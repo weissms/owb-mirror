@@ -923,6 +923,7 @@ PassRefPtr<Node> HTMLParser::getNode(Token* t)
         gFunctionMap.set(listingTag.localName().impl(), &HTMLParser::pCloserCreateErrorCheck);
         gFunctionMap.set(mapTag.localName().impl(), &HTMLParser::mapCreateErrorCheck);
         gFunctionMap.set(menuTag.localName().impl(), &HTMLParser::pCloserCreateErrorCheck);
+        gFunctionMap.set(navTag.localName().impl(), &HTMLParser::pCloserCreateErrorCheck);
         gFunctionMap.set(nobrTag.localName().impl(), &HTMLParser::nestedCreateErrorCheck);
         gFunctionMap.set(noembedTag.localName().impl(), &HTMLParser::noembedCreateErrorCheck);
         gFunctionMap.set(noframesTag.localName().impl(), &HTMLParser::noframesCreateErrorCheck);
@@ -1095,6 +1096,7 @@ bool HTMLParser::isAffectedByResidualStyle(const AtomicString& tagName)
         unaffectedTags.add(selectTag.localName().impl());
         unaffectedTags.add(objectTag.localName().impl());
         unaffectedTags.add(datagridTag.localName().impl());
+        unaffectedTags.add(datalistTag.localName().impl());
     }
     
     return !unaffectedTags.contains(tagName.impl());

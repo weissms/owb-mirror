@@ -1018,7 +1018,7 @@ String AccessibilityRenderObject::accessibilityDescription() const
                 const AtomicString& title = static_cast<HTMLFrameElementBase*>(owner)->getAttribute(titleAttr);
                 if (!title.isEmpty())
                     return title;
-                return static_cast<HTMLFrameElementBase*>(owner)->name();
+                return static_cast<HTMLFrameElementBase*>(owner)->getAttribute(nameAttr);
             }
             if (owner->isHTMLElement())
                 return static_cast<HTMLElement*>(owner)->getAttribute(nameAttr);
@@ -1656,7 +1656,7 @@ AccessibilityObject* AccessibilityRenderObject::accessibilityParentForImageMap(H
         
         // The HTMLImageElement's useMap() value includes the '#' symbol at the beginning,
         // which has to be stripped off
-        String useMapName = static_cast<HTMLImageElement*>(curr)->useMap().substring(1).lower();
+        String useMapName = static_cast<HTMLImageElement*>(curr)->getAttribute(usemapAttr).string().substring(1).lower();
         if (useMapName == mapName)
             return axObjectCache()->getOrCreate(obj);
     }

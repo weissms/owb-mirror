@@ -1,3 +1,83 @@
+2009-08-19  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix of <https://bugs.webkit.org/show_bug.cgi?id=28326> DRT on Windows doesn't support 
+        LayoutTestController::setQuota or print a callback on UIDelegate::exceededDatabaseQuota.
+        
+        Added a setQuota interface method to IWebDatabaseManager and implemented it.
+
+        * Interfaces/IWebDatabaseManager.idl:
+        * WebDatabaseManager.cpp:
+        (WebDatabaseManager::setQuota):
+        * WebDatabaseManager.h:
+
+2009-08-18  Drew Wilson  <atwilson@google.com>
+
+        Unreviewed (build break).
+
+        Added missing include for WebWorkersPrivate.h.
+
+        * WebKitClassFactory.cpp:
+
+2009-08-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28415
+        Set svn:eol-style CRLF on all .sln and .vcproj files that don't already
+        have it.
+
+        * WebKit.vcproj/InterfacesGenerated.vcproj:
+
+2009-08-18  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Need to extend DumpRenderTree to expose number of worker threads
+        https://bugs.webkit.org/show_bug.cgi?id=28292
+
+        Defined/implemented COM interfaces to expose WorkerThread::workerThreadCount() for DumpRenderTree.
+
+        * ForEachCoClass.h:
+        Added WebWorkersPrivate.
+        * Interfaces/IWebWorkersPrivate.idl: Added.
+        * Interfaces/WebKit.idl:
+        Added WebWorkersPrivate.
+        * WebKit.vcproj/Interfaces.vcproj:
+        * WebKit.vcproj/WebKit.vcproj:
+        * WebWorkersPrivate.cpp: Added.
+        Implementation of the IWebWorkersPrivate COM interface, to expose workerThreadCount() for DumpRenderTree.
+        (WebWorkersPrivate::QueryInterface):
+        (WebWorkersPrivate::AddRef):
+        (WebWorkersPrivate::Release):
+        (WebWorkersPrivate::workerThreadCount):
+        (WebWorkersPrivate::createInstance):
+        (WebWorkersPrivate::WebWorkersPrivate):
+        (WebWorkersPrivate::~WebWorkersPrivate):
+        * WebWorkersPrivate.h: Added.
+
+2009-08-17  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Steve Falkenburg.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27323
+        Only add Cygwin to the path when it isn't already there.  This avoids
+        causing problems for people who purposefully have non-Cygwin versions of
+        executables like svn in front of the Cygwin ones in their paths.
+
+        * WebKit.vcproj/Interfaces.vcproj:
+        * WebKit.vcproj/InterfacesGenerated.vcproj:
+        * WebKit.vcproj/WebKit.vcproj:
+        * WebKit.vcproj/WebKitGUID.vcproj:
+
+2009-08-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Speculative fix for Windows build bustage.
+
+        * DOMHTMLClasses.cpp:
+        (DOMHTMLElement::idName):
+
 2009-08-17  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Part of <rdar://problem/6218721> No MSAA focus events fired for Webkit

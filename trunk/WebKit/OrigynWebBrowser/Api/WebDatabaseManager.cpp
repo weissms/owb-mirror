@@ -130,6 +130,17 @@ void WebDatabaseManager::deleteOrigin(WebSecurityOrigin* origin)
     delete webSecurityOrigin;
 }
 
+void WebDatabaseManager::setQuota(const char* origin, unsigned long long quota)
+{
+    if (!origin)
+        return;
+
+    if (this != s_sharedWebDatabaseManager)
+        return;
+
+    DatabaseTracker::tracker().setQuota(SecurityOrigin::createFromString(origin).get(), quota);
+}
+
 void WebDatabaseManager::deleteDatabase(WebCore::String databaseName, WebSecurityOrigin* origin)
 {
     if (this != s_sharedWebDatabaseManager)

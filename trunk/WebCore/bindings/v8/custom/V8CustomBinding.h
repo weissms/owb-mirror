@@ -135,6 +135,11 @@ namespace WebCore {
         static const int kAbstractWorkerInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
 #endif
 
+#if ENABLE(NOTIFICATIONS)
+        static const int kNotificationRequestCacheIndex = kDefaultWrapperInternalFieldCount + 0;
+        static const int kNotificationInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
+#endif
+
         static const int kDOMWindowConsoleIndex = kDefaultWrapperInternalFieldCount + 0;
         static const int kDOMWindowHistoryIndex = kDefaultWrapperInternalFieldCount + 1;
         static const int kDOMWindowLocationbarIndex = kDefaultWrapperInternalFieldCount + 2;
@@ -403,6 +408,7 @@ namespace WebCore {
         DECLARE_CALLBACK(InspectorBackendInspectedWindow);
         DECLARE_CALLBACK(InspectorBackendSetSetting);
         DECLARE_CALLBACK(InspectorBackendCookies);
+        DECLARE_CALLBACK(InspectorBackendDeleteCookie);
         DECLARE_CALLBACK(InspectorBackendCurrentCallFrame);
         DECLARE_CALLBACK(InspectorBackendDebuggerEnabled);
         DECLARE_CALLBACK(InspectorBackendPauseOnExceptions);
@@ -515,7 +521,17 @@ namespace WebCore {
         DECLARE_CALLBACK(WorkerContextClearInterval);
         DECLARE_CALLBACK(WorkerContextAddEventListener);
         DECLARE_CALLBACK(WorkerContextRemoveEventListener);
-#endif
+#endif // ENABLE(WORKERS)
+
+#if ENABLE(NOTIFICATIONS)
+        DECLARE_CALLBACK(NotificationCenterRequestPermission);
+        DECLARE_CALLBACK(NotificationCenterCreateNotification);
+        DECLARE_CALLBACK(NotificationCenterCreateHTMLNotification);
+
+        DECLARE_CALLBACK(NotificationAddEventListener);
+        DECLARE_CALLBACK(NotificationRemoveEventListener);
+        DECLARE_PROPERTY_ACCESSOR(NotificationEventHandler);
+#endif // ENABLE(NOTIFICATIONS)
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         DECLARE_PROPERTY_ACCESSOR(DOMApplicationCacheEventHandler);

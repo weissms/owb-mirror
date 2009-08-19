@@ -1,3 +1,81 @@
+2009-08-19  Xan Lopez  <xlopez@igalia.com>
+
+        Rubber-stamped by Holger Freyther.
+
+        Remove an unneeded include.
+
+        * WebCoreSupport/DragClientGtk.cpp:
+
+2009-08-18  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28443
+        Fix build break with gtk older than 2.14.
+
+        WebKit gtk port requires gtk 2.10 or later, but DragClientGtk.cpp
+        uses gtk_widget_get_window that is introduced in 2.14.
+
+        * WebCoreSupport/DragClientGtk.cpp:
+         define gtk_widget_get_window for gtk older than 2.14.
+
+2009-08-18  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        [Gtk] crash when closing page from javascript
+        https://bugs.webkit.org/show_bug.cgi?id=27439
+
+        Do not unref the WebView in ChromeClientGtk::closeWindowSoon
+        because (1) a create-web-view handler can return a NULL WebView,
+        (2) the created WebView is owned by its containing widget, and (3)
+        clients may not handle the close-web-view signal so this avoids
+        unreffing a WebView more than once.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::closeWindowSoon):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+
+2009-08-18  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19360
+        Frags on current page don't generate "navigation-requested" events
+
+        Fix order of parameters for the creation of SubstituteData object,
+        so that normal data loads do not have an unreachable URL. Also
+        remove a confusion about the purpose of the last parameter.
+
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_load_data):
+
+2009-08-18  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Need to extend DumpRenderTree to expose number of worker threads
+        https://bugs.webkit.org/show_bug.cgi?id=28292
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitworkers.cpp: Added.
+        (webkit_worker_thread_count):
+        Exposed WebCore::WorkerThread::workerThreadCount() for the gtk version of DumpRenderTree.
+
+2009-08-18  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix the ATK unit test.
+
+        We now support line boundaries in the get_text functions, so we
+        need to make sure the test has the layout we expect by giving it
+        enough space to fit in one line.
+
+        * tests/testatk.c:
+        (test_webkit_atk_get_text_at_offset):
+
 2009-08-17  Zan Dobersek  <zandobersek@gmail.com>
 
         Reviewed by Xan Lopez.

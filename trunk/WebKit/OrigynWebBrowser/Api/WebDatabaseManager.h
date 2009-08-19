@@ -131,6 +131,13 @@ public:
     virtual void deleteOrigin(WebSecurityOrigin* origin);
 
     /**
+     * set quota
+     * @parma[in]: origin
+     * @param[in]: quota
+     */
+    virtual void setQuota(const char* origin, unsigned long long quota);
+
+    /**
      * delete Database 
      * @param[in]: database name
      * @param[in]: WebSecurityOrigin

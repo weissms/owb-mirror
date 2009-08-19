@@ -285,6 +285,9 @@ public:
 
     bool isHTMLMarquee() const;
 
+    inline bool isAfterContent() const;
+    static inline bool isAfterContent(const RenderObject* obj) { return obj && obj->isAfterContent(); }
+
     bool childrenInline() const { return m_childrenInline; }
     void setChildrenInline(bool b = true) { m_childrenInline = b; }
     bool hasColumns() const { return m_hasColumns; }
@@ -734,9 +737,6 @@ public:
         return outlineBoundsForRepaint(0);
     }
 
-    bool replacedHasOverflow() const { return m_replacedHasOverflow; }
-    void setReplacedHasOverflow(bool b = true) { m_replacedHasOverflow = b; }
-    
 protected:
     // Overrides should call the superclass at the end
     virtual void styleWillChange(StyleDifference, const RenderStyle* newStyle);
@@ -845,9 +845,6 @@ private:
     // from RenderTableCell
     bool m_cellWidthChanged : 1;
 
-    // from RenderReplaced
-    bool m_replacedHasOverflow : 1;
-
 private:
     // Store state between styleWillChange and styleDidChange
     static bool s_affectsParentBlock;
@@ -856,6 +853,16 @@ private:
 inline bool RenderObject::documentBeingDestroyed() const
 {
     return !document()->renderer();
+}
+
+inline bool RenderObject::isAfterContent() const
+{
+    if (style()->styleType() != AFTER)
+        return false;
+    // Text nodes don't have their own styles, so ignore the style on a text node.
+    if (isText() && !isBR())
+        return false;
+    return true;
 }
 
 inline void RenderObject::setNeedsLayout(bool b, bool markParents)

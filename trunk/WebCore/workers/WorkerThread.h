@@ -56,6 +56,9 @@ namespace WebCore {
         WorkerLoaderProxy& workerLoaderProxy() const { return m_workerLoaderProxy; }
         WorkerReportingProxy& workerReportingProxy() const { return m_workerReportingProxy; }
 
+        // Number of active worker threads.
+        static unsigned workerThreadCount();
+
 #if ENABLE(NOTIFICATIONS)
         NotificationPresenter* getNotificationPresenter() { return m_notificationPresenter; }
         void setNotificationPresenter(NotificationPresenter* presenter) { m_notificationPresenter = presenter; }
@@ -90,6 +93,9 @@ namespace WebCore {
 #if ENABLE(NOTIFICATIONS)
         NotificationPresenter* m_notificationPresenter;
 #endif
+
+        // Track the number of WorkerThread instances for use in layout tests.
+        static unsigned m_threadCount;
     };
 
 } // namespace WebCore

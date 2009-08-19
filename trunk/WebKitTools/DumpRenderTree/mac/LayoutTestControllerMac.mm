@@ -59,6 +59,7 @@
 #import <WebKit/WebTypesInternal.h>
 #import <WebKit/WebView.h>
 #import <WebKit/WebViewPrivate.h>
+#import <WebKit/WebWorkersPrivate.h>
 #import <wtf/RetainPtr.h>
 
 @interface CommandValidationTarget : NSObject <NSValidatedUserInterfaceItem>
@@ -161,6 +162,11 @@ void LayoutTestController::keepWebHistory()
 size_t LayoutTestController::webHistoryItemCount()
 {
     return [[[WebHistory optionalSharedHistory] allItems] count];
+}
+
+unsigned LayoutTestController::workerThreadCount() const
+{
+    return [WebWorkersPrivate workerThreadCount];
 }
 
 void LayoutTestController::notifyDone()
@@ -331,7 +337,7 @@ void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool flag)
     [[mainFrame webView] setSelectTrailingWhitespaceEnabled:flag];
 }
 
-static const CFTimeInterval waitToDumpWatchdogInterval = 10.0;
+static const CFTimeInterval waitToDumpWatchdogInterval = 15.0;
 
 static void waitUntilDoneWatchdogFired(CFRunLoopTimerRef timer, void* info)
 {

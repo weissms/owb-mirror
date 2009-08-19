@@ -92,7 +92,7 @@ int HTMLElement::tagPriority() const
         return 0;
     if (hasLocalName(addressTag) || hasLocalName(ddTag) || hasLocalName(dtTag) || hasLocalName(noscriptTag) || hasLocalName(rpTag) || hasLocalName(rtTag))
         return 3;
-    if (hasLocalName(centerTag) || hasLocalName(nobrTag) || hasLocalName(rubyTag))
+    if (hasLocalName(centerTag) || hasLocalName(nobrTag) || hasLocalName(rubyTag) || hasLocalName(navTag))
         return 5;
     if (hasLocalName(noembedTag) || hasLocalName(noframesTag))
         return 10;
@@ -727,54 +727,9 @@ void HTMLElement::accessKeyAction(bool sendToAnyElement)
         dispatchSimulatedClick(0, true);
 }
 
-String HTMLElement::id() const
-{
-    return getAttribute(idAttr);
-}
-
-void HTMLElement::setId(const String& value)
-{
-    setAttribute(idAttr, value);
-}
-
 String HTMLElement::title() const
 {
     return getAttribute(titleAttr);
-}
-
-void HTMLElement::setTitle(const String& value)
-{
-    setAttribute(titleAttr, value);
-}
-
-String HTMLElement::lang() const
-{
-    return getAttribute(langAttr);
-}
-
-void HTMLElement::setLang(const String& value)
-{
-    setAttribute(langAttr, value);
-}
-
-String HTMLElement::dir() const
-{
-    return getAttribute(dirAttr);
-}
-
-void HTMLElement::setDir(const String &value)
-{
-    setAttribute(dirAttr, value);
-}
-
-String HTMLElement::className() const
-{
-    return getAttribute(classAttr);
-}
-
-void HTMLElement::setClassName(const String &value)
-{
-    setAttribute(classAttr, value);
 }
 
 short HTMLElement::tabIndex() const
@@ -884,6 +839,7 @@ static HashSet<AtomicStringImpl*>* inlineTagList()
         tagList.add(textareaTag.localName().impl());
         tagList.add(labelTag.localName().impl());
         tagList.add(buttonTag.localName().impl());
+        tagList.add(datalistTag.localName().impl());
         tagList.add(insTag.localName().impl());
         tagList.add(delTag.localName().impl());
         tagList.add(nobrTag.localName().impl());
@@ -926,6 +882,7 @@ static HashSet<AtomicStringImpl*>* blockTagList()
         tagList.add(listingTag.localName().impl());
         tagList.add(marqueeTag.localName().impl());
         tagList.add(menuTag.localName().impl());
+        tagList.add(navTag.localName().impl());
         tagList.add(noembedTag.localName().impl());
         tagList.add(noframesTag.localName().impl());
         tagList.add(nolayerTag.localName().impl());

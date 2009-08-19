@@ -34,6 +34,7 @@
  */
 
 #include "config.h"
+#include "GraphicsContext.h"
 
 #ifdef Q_WS_WIN
 #include <windows.h>
@@ -42,7 +43,6 @@
 #include "Color.h"
 #include "FloatConversion.h"
 #include "Font.h"
-#include "GraphicsContext.h"
 #include "GraphicsContextPrivate.h"
 #include "ImageBuffer.h"
 #include "NotImplemented.h"
@@ -428,37 +428,6 @@ void GraphicsContext::drawRect(const IntRect& rect)
     p->drawRect(rect);
 
     p->setRenderHint(QPainter::Antialiasing, antiAlias);
-}
-
-// FIXME: Now that this is refactored, it should be shared by all contexts.
-static void adjustLineToPixelBoundaries(FloatPoint& p1, FloatPoint& p2, float strokeWidth,
-                                        const StrokeStyle& penStyle)
-{
-    // For odd widths, we add in 0.5 to the appropriate x/y so that the float arithmetic
-    // works out.  For example, with a border width of 3, KHTML will pass us (y1+y2)/2, e.g.,
-    // (50+53)/2 = 103/2 = 51 when we want 51.5.  It is always true that an even width gave
-    // us a perfect position, but an odd width gave us a position that is off by exactly 0.5.
-    if (penStyle == DottedStroke || penStyle == DashedStroke) {
-        if (p1.x() == p2.x()) {
-            p1.setY(p1.y() + strokeWidth);
-            p2.setY(p2.y() - strokeWidth);
-        } else {
-            p1.setX(p1.x() + strokeWidth);
-            p2.setX(p2.x() - strokeWidth);
-        }
-    }
-
-    if (((int) strokeWidth) % 2) {
-        if (p1.x() == p2.x()) {
-            // We're a vertical line.  Adjust our x.
-            p1.setX(p1.x() + 0.5);
-            p2.setX(p2.x() + 0.5);
-        } else {
-            // We're a horizontal line. Adjust our y.
-            p1.setY(p1.y() + 0.5);
-            p2.setY(p2.y() + 0.5);
-        }
-    }
 }
 
 // This is only used to draw borders.
@@ -1219,7 +1188,6 @@ void GraphicsContext::setPlatformShouldAntialias(bool enable)
 }
 
 #ifdef Q_WS_WIN
-#include <windows.h>
 
 HDC GraphicsContext::getWindowsContext(const IntRect& dstRect, bool supportAlphaBlend, bool mayCreateBitmap)
 {

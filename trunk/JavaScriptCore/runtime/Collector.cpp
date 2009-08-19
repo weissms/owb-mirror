@@ -23,6 +23,7 @@
 
 #include "ArgList.h"
 #include "CallFrame.h"
+#include "CodeBlock.h"
 #include "CollectorHeapIterator.h"
 #include "Interpreter.h"
 #include "JSArray.h"
@@ -1277,8 +1278,8 @@ bool Heap::collect()
         markStack.append(m_globalData->exception);
     m_globalData->interpreter->registerFile().markCallFrames(markStack, this);
     m_globalData->smallStrings.mark();
-    if (m_globalData->scopeNodeBeingReparsed)
-        m_globalData->scopeNodeBeingReparsed->markAggregate(markStack);
+    if (m_globalData->functionCodeBlockBeingReparsed)
+        m_globalData->functionCodeBlockBeingReparsed->markAggregate(markStack);
     if (m_globalData->firstStringifierToMark)
         JSONObject::markStringifiers(markStack, m_globalData->firstStringifierToMark);
 

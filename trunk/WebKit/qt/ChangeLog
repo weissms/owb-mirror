@@ -1,3 +1,28 @@
+2009-08-19  Markus Goetz <Markus.Goetz@nokia.com>
+
+        Reviwed by Ariya Hidayat.
+
+        [Qt] For prefecthDNS, the pre-fetching has to be enabled in the
+        WebSettings.
+
+        * Api/qwebsettings.cpp:
+        (QWebSettings::QWebSettings):
+        * Api/qwebsettings.h:
+
+2009-08-17  Darin Adler  <darin@apple.com>
+
+        Try to fix Qt build again.
+
+        * WebCoreSupport/EditorClientQt.cpp: Move "using namespace".
+
+2009-08-17  Darin Adler  <darin@apple.com>
+
+        Try to fix Qt build.
+
+        * WebCoreSupport/EditorClientQt.cpp:
+        (WebCore::EditorClientQt::shouldShowDeleteInterface):
+        Use getAttribute(classAttr) instead of className() function.
+
 2009-08-17  Yongjun Zhang  <yongjun.zhang@nokia.com>
 
         Reviewed by Simon Hausmann.

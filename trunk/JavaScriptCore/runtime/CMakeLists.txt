@@ -9,6 +9,7 @@ create_lut_jsc(JSC_SRC JavaScriptCore/runtime/StringPrototype.cpp generated_sour
 
 list(APPEND JSC_SRC
     runtime/ExceptionHelpers.cpp
+    runtime/Executable.cpp
     runtime/InitializeThreading.cpp
     runtime/JSActivation.cpp
     runtime/JSByteArray.cpp

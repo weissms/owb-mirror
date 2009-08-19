@@ -36,6 +36,7 @@
 
 #include "ActiveDOMObject.h"
 #include "Document.h"
+#include "GenericWorkerTask.h"
 #include "MessagePort.h"
 #include "NotImplemented.h"
 #include "PlatformString.h"
@@ -67,9 +68,8 @@ public:
     bool matches(const String& name, PassRefPtr<SecurityOrigin> origin) const { return name == m_name && origin->equal(m_origin.get()); }
 
     // WorkerLoaderProxy
-    // FIXME: Implement WorkerLoaderProxy APIs by proxying to an active document.
-    virtual void postTaskToLoader(PassRefPtr<ScriptExecutionContext::Task>) { notImplemented(); }
-    virtual void postTaskForModeToWorkerContext(PassRefPtr<ScriptExecutionContext::Task>, const String&) { notImplemented(); }
+    virtual void postTaskToLoader(PassRefPtr<ScriptExecutionContext::Task>);
+    virtual void postTaskForModeToWorkerContext(PassRefPtr<ScriptExecutionContext::Task>, const String&);
 
     // WorkerReportingProxy
     virtual void postExceptionToWorkerObject(const String& errorMessage, int lineNumber, const String& sourceURL);
@@ -94,6 +94,8 @@ private:
     RefPtr<SharedWorkerThread> m_thread;
     RefPtr<SecurityOrigin> m_origin;
     HashSet<Document*> m_workerDocuments;
+    // Ensures exclusive access to the worker documents. Must not grab any other locks (such as the DefaultSharedWorkerRepository lock) while holding this one.
+    Mutex m_workerDocumentsLock;
 };
 
 SharedWorkerProxy::SharedWorkerProxy(const String& name, const KURL& url, PassRefPtr<SecurityOrigin> origin)
@@ -106,16 +108,63 @@ SharedWorkerProxy::SharedWorkerProxy(const String& name, const KURL& url, PassRe
     ASSERT(m_origin->hasOneRef());
 }
 
-void SharedWorkerProxy::postExceptionToWorkerObject(const String&, int, const String&)
+void SharedWorkerProxy::postTaskToLoader(PassRefPtr<ScriptExecutionContext::Task> task)
 {
-    // FIXME: Log exceptions to all parent documents.
-    notImplemented();
+    MutexLocker lock(m_workerDocumentsLock);
+
+    if (isClosing())
+        return;
+
+    // If we aren't closing, then we must have at least one document.
+    ASSERT(m_workerDocuments.size());
+
+    // Just pick an arbitrary active document from the HashSet and pass load requests to it.
+    // FIXME: Do we need to deal with the case where the user closes the document mid-load, via a shadow document or some other solution?
+    Document* document = *(m_workerDocuments.begin());
+    document->postTask(task);
 }
 
-void SharedWorkerProxy::postConsoleMessageToWorkerObject(MessageDestination, MessageSource, MessageType, MessageLevel, const String&, int, const String&)
+void SharedWorkerProxy::postTaskForModeToWorkerContext(PassRefPtr<ScriptExecutionContext::Task> task, const String& mode)
 {
-    // FIXME: Log console messages to all parent documents.
-    notImplemented();
+    if (isClosing())
+        return;
+    ASSERT(m_thread);
+    m_thread->runLoop().postTaskForMode(task, mode);
+}
+
+static void postExceptionTask(ScriptExecutionContext* context, const String& errorMessage, int lineNumber, const String& sourceURL)
+{
+    context->reportException(errorMessage, lineNumber, sourceURL);
+}
+
+void SharedWorkerProxy::postExceptionToWorkerObject(const String& errorMessage, int lineNumber, const String& sourceURL)
+{
+    MutexLocker lock(m_workerDocumentsLock);
+    for (HashSet<Document*>::iterator iter = m_workerDocuments.begin(); iter != m_workerDocuments.end(); ++iter)
+        (*iter)->postTask(createCallbackTask(&postExceptionTask, errorMessage, lineNumber, sourceURL));
+}
+
+static void postConsoleMessageTask(ScriptExecutionContext* document, MessageDestination destination, MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
+{
+    document->addMessage(destination, source, type, level, message, lineNumber, sourceURL);
+}
+
+void SharedWorkerProxy::postConsoleMessageToWorkerObject(MessageDestination destination, MessageSource source, MessageType type, MessageLevel level, const String& message, int lineNumber, const String& sourceURL)
+{
+    MutexLocker lock(m_workerDocumentsLock);
+    for (HashSet<Document*>::iterator iter = m_workerDocuments.begin(); iter != m_workerDocuments.end(); ++iter)
+        (*iter)->postTask(createCallbackTask(&postConsoleMessageTask, destination, source, type, level, message, lineNumber, sourceURL));
+}
+
+void SharedWorkerProxy::workerContextClosed()
+{
+    m_closing = true;
+}
+
+void SharedWorkerProxy::workerContextDestroyed()
+{
+    // The proxy may be freed by this call, so do not reference it any further.
+    DefaultSharedWorkerRepository::instance().removeProxy(this);
 }
 
 void SharedWorkerProxy::addToWorkerDocuments(ScriptExecutionContext* context)
@@ -123,6 +172,7 @@ void SharedWorkerProxy::addToWorkerDocuments(ScriptExecutionContext* context)
     // Nested workers are not yet supported, so passed-in context should always be a Document.
     ASSERT(context->isDocument());
     ASSERT(!isClosing());
+    MutexLocker lock(m_workerDocumentsLock);
     Document* document = static_cast<Document*>(context);
     m_workerDocuments.add(document);
 }
@@ -132,6 +182,7 @@ void SharedWorkerProxy::documentDetached(Document* document)
     if (isClosing())
         return;
     // Remove the document from our set (if it's there) and if that was the last document in the set, mark the proxy as closed.
+    MutexLocker lock(m_workerDocumentsLock);
     m_workerDocuments.remove(document);
     if (!m_workerDocuments.size())
         close();
@@ -144,18 +195,6 @@ void SharedWorkerProxy::close()
     // Stop the worker thread - the proxy will stay around until we get workerThreadExited() notification.
     if (m_thread)
         m_thread->stop();
-}
-
-// When close() is invoked, mark the proxy as closing so we don't share it with any new requests.
-void SharedWorkerProxy::workerContextClosed()
-{
-    m_closing = true;
-}
-
-void SharedWorkerProxy::workerContextDestroyed()
-{
-    // The proxy may be freed by this call, so do not reference it any further.
-    DefaultSharedWorkerRepository::instance().removeProxy(this);
 }
 
 class SharedWorkerConnectTask : public ScriptExecutionContext::Task {
@@ -213,7 +252,7 @@ void SharedWorkerScriptLoader::load(const KURL& url)
     // Mark this object as active for the duration of the load.
     ASSERT(!hasPendingActivity());
     m_scriptLoader = new WorkerScriptLoader();
-    m_scriptLoader->loadAsynchronously(scriptExecutionContext(), url, DenyCrossOriginRedirect, this);
+    m_scriptLoader->loadAsynchronously(scriptExecutionContext(), url, DenyCrossOriginRequests, this);
 
     // Stay alive until the load finishes.
     setPendingActivity(this);

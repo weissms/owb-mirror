@@ -6,6 +6,7 @@ list(APPEND WEBCORE_SRC
     html/canvas/CanvasStyle.cpp
     html/CollectionCache.cpp
     html/DataGridColumn.cpp
+    html/DataGridColumnList.cpp
     html/DOMDataGridDataSource.cpp
     html/File.cpp
     html/FileList.cpp
@@ -25,7 +26,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLDataGridCellElement.cpp
     html/HTMLDataGridColElement.cpp
     html/HTMLDataGridRowElement.cpp
-    html/DataGridColumnList.cpp
+    html/HTMLDataListElement.cpp
     html/HTMLDListElement.cpp
     html/HTMLDirectoryElement.cpp
     html/HTMLDivElement.cpp
@@ -120,6 +121,7 @@ list(APPEND IDL_SRC
     html/HTMLDataGridCellElement.idl
     html/HTMLDataGridColElement.idl
     html/HTMLDataGridRowElement.idl
+    html/HTMLDataListElement.idl
     html/HTMLDirectoryElement.idl
     html/HTMLDivElement.idl
     html/HTMLDListElement.idl

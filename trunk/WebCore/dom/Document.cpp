@@ -82,7 +82,6 @@
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
 #include "ImageLoader.h"
-#include "ScriptEventListener.h"
 #include "KeyboardEvent.h"
 #include "Logging.h"
 #include "MappedAttribute.h"
@@ -106,6 +105,7 @@
 #include "RenderWidget.h"
 #include "ScriptController.h"
 #include "ScriptElement.h"
+#include "ScriptEventListener.h"
 #include "SecurityOrigin.h"
 #include "SegmentedString.h"
 #include "SelectionController.h"
@@ -2569,10 +2569,10 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             newFocusedNode = 0;
         }
-        if ((oldFocusedNode.get() == this) && oldFocusedNode->hasOneRef())
+        if (oldFocusedNode == this && oldFocusedNode->hasOneRef())
             return true;
             
-        if (oldFocusedNode.get() == oldFocusedNode->rootEditableElement())
+        if (oldFocusedNode == oldFocusedNode->rootEditableElement())
             frame()->editor()->didEndEditing();
     }
 
@@ -2601,7 +2601,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         }
         m_focusedNode->setFocus();
 
-        if (m_focusedNode.get() == m_focusedNode->rootEditableElement())
+        if (m_focusedNode == m_focusedNode->rootEditableElement())
             frame()->editor()->didBeginEditing();
 
         // eww, I suck. set the qt focus correctly
@@ -2632,9 +2632,9 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         RenderObject* newFocusedRenderer = 0;
 
         if (oldFocusedNode)
-            oldFocusedRenderer = oldFocusedNode.get()->renderer();
+            oldFocusedRenderer = oldFocusedNode->renderer();
         if (newFocusedNode)
-            newFocusedRenderer = newFocusedNode.get()->renderer();
+            newFocusedRenderer = newFocusedNode->renderer();
 
         axObjectCache()->handleFocusedUIElementChangedWithRenderers(oldFocusedRenderer, newFocusedRenderer);
     }

@@ -373,7 +373,7 @@ void FrameView::adjustViewSize()
     RenderView* root = m_frame->contentRenderer();
     if (!root)
         return;
-    setContentsSize(IntSize(root->overflowWidth(), root->overflowHeight()));
+    setContentsSize(IntSize(root->rightLayoutOverflow(), root->bottomLayoutOverflow()));
 }
 
 void FrameView::applyOverflowToViewport(RenderObject* o, ScrollbarMode& hMode, ScrollbarMode& vMode)
@@ -1397,6 +1397,25 @@ void FrameView::updateDashboardRegions()
 }
 #endif
 
+bool FrameView::hasCustomScrollbars() const
+{
+    const HashSet<RefPtr<Widget> >* viewChildren = children();
+    HashSet<RefPtr<Widget> >::const_iterator end = viewChildren->end();
+    for (HashSet<RefPtr<Widget> >::const_iterator current = viewChildren->begin(); current != end; ++current) {
+        Widget* widget = current->get();
+        if (widget->isFrameView()) {
+            if (static_cast<FrameView*>(widget)->hasCustomScrollbars())
+                return true;
+        } else if (widget->isScrollbar()) {
+            Scrollbar* scrollbar = static_cast<Scrollbar*>(widget);
+            if (scrollbar->isCustomScrollbar())
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void FrameView::updateControlTints()
 {
     // This is called when control tints are changed from aqua/graphite to clear and vice versa.
@@ -1408,7 +1427,7 @@ void FrameView::updateControlTints()
     if (!m_frame || m_frame->loader()->url().isEmpty())
         return;
 
-    if (m_frame->contentRenderer() && m_frame->contentRenderer()->theme()->supportsControlTints()) {
+    if ((m_frame->contentRenderer() && m_frame->contentRenderer()->theme()->supportsControlTints()) || hasCustomScrollbars())  {
         if (needsLayout())
             layout();
         PlatformGraphicsContext* const noContext = 0;
@@ -1596,7 +1615,7 @@ void FrameView::adjustPageHeight(float *newBottom, float oldTop, float oldBottom
         // Use a context with painting disabled.
         GraphicsContext context((PlatformGraphicsContext*)0);
         root->setTruncatedAt((int)floorf(oldBottom));
-        IntRect dirtyRect(0, (int)floorf(oldTop), root->overflowWidth(), (int)ceilf(oldBottom - oldTop));
+        IntRect dirtyRect(0, (int)floorf(oldTop), root->rightLayoutOverflow(), (int)ceilf(oldBottom - oldTop));
         root->layer()->paint(&context, dirtyRect);
         *newBottom = root->bestTruncatedAt();
         if (*newBottom == 0)
