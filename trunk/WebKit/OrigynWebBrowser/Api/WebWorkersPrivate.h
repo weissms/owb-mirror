@@ -47,7 +47,11 @@ public:
      * create a new instance of WebWorkersPrivate
      */
     static WebWorkersPrivate* createInstance();
-
+    
+    /**
+     * WebWorkersPrivate destructor
+     */
+    ~WebWorkersPrivate();
 
     /**
      * get worker thread number
@@ -59,11 +63,6 @@ private:
      * WebWorkersPrivate constructor
      */
     WebWorkersPrivate();
-
-    /**
-     * WebWorkersPrivate destructor
-     */
-    ~WebWorkersPrivate();
 
     uint32_t m_refCount;
 };

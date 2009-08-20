@@ -1,3 +1,9 @@
+2009-08-20  Olivier DOLE  <odole@pleyo.com>
+
+        make destructor public.
+
+        * OrigynWebBrowser/Api/WebWorkersPrivate.h:
+
 2009-06-04  Mario Bensi  <mbensi@pleyo.com>
 
         Fix transparency.

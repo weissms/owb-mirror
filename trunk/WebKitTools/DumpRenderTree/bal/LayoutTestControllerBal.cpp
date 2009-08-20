@@ -333,3 +333,9 @@ void LayoutTestController::disableImageLoading()
 {
   // FIXME: implement
 }
+
+unsigned LayoutTestController::workerThreadCount() const
+{
+  // FIXME: implement
+    return 0;
+}
