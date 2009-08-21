@@ -65,6 +65,7 @@ public:
     
     virtual bool isVideo() const { return false; }
     virtual bool hasVideo() const { return false; }
+    virtual bool hasAudio() const;
 
     void rewind(float timeDelta);
     void returnToRealtime();
@@ -190,6 +191,7 @@ private:
     void stopPeriodicTimers();
 
     void seek(float time, ExceptionCode&);
+    void finishSeek();
     void checkIfSeekNeeded();
     
     void scheduleTimeupdateEvent(bool periodicEvent);

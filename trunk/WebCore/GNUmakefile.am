@@ -73,16 +73,12 @@ webcore_built_sources += \
 	DerivedSources/CSSPropertyNames.h \
 	DerivedSources/CSSValueKeywords.h \
 	DerivedSources/HTMLElementFactory.cpp \
-	DerivedSources/HTMLElementFactory.h \
 	DerivedSources/HTMLEntityNames.c \
 	DerivedSources/HTMLNames.cpp \
-	DerivedSources/HTMLNames.h \
 	DerivedSources/JSHTMLElementWrapperFactory.cpp \
-	DerivedSources/JSHTMLElementWrapperFactory.h \
 	DerivedSources/UserAgentStyleSheets.h \
 	DerivedSources/UserAgentStyleSheetsData.cpp \
-	DerivedSources/XMLNames.cpp \
-	DerivedSources/XMLNames.h
+	DerivedSources/XMLNames.cpp
 
 IDL_BINDINGS += \
 	WebCore/css/CSSCharsetRule.idl \
@@ -1304,6 +1300,8 @@ webcore_sources += \
 	WebCore/page/Navigator.h \
 	WebCore/page/NavigatorBase.cpp \
 	WebCore/page/NavigatorBase.h \
+	WebCore/page/OriginAccessEntry.cpp \
+	WebCore/page/OriginAccessEntry.h \
 	WebCore/page/Page.cpp \
 	WebCore/page/Page.h \
 	WebCore/page/PageGroup.cpp \
@@ -2124,6 +2122,8 @@ webcore_sources += \
 	WebCore/storage/SQLTransaction.cpp \
 	WebCore/storage/SQLTransaction.h \
 	WebCore/storage/SQLTransactionCallback.h \
+	WebCore/storage/SQLTransactionClient.cpp \
+	WebCore/storage/SQLTransactionClient.h \
 	WebCore/storage/SQLTransactionCoordinator.h \
 	WebCore/storage/SQLTransactionCoordinator.cpp \
 	WebCore/storage/SQLTransactionErrorCallback.h
@@ -3288,21 +3288,15 @@ DerivedSources/UserAgentStyleSheets.h: $(WebCore)/css/make-css-file-arrays.pl $(
 	$(AM_V_GEN)$(PERL) $< $@ DerivedSources/UserAgentStyleSheetsData.cpp $(USER_AGENT_STYLE_SHEETS)
 
 # HTML tag and attribute names
-DerivedSources/HTMLElementFactory.cpp: DerivedSources/HTMLNames.cpp;
-DerivedSources/HTMLElementFactory.h: DerivedSources/HTMLElementFactory.cpp;
-DerivedSources/HTMLNames.h: DerivedSources/HTMLNames.cpp;
-DerivedSources/JSHTMLElementWrapperFactory.cpp: DerivedSources/HTMLNames.cpp;
-DerivedSources/JSHTMLElementWrapperFactory.h: DerivedSources/JSHTMLElementWrapperFactory.cpp;
-
 if HTML_FLAGS
-DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
+DerivedSources/HTMLElementFactory.cpp DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
 	$(AM_V_GEN)$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --extraDefines "$(HTML_FEATURES)" --factory --wrapperFactory --outputDir "$(GENSOURCES)"
 else
-DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
+DerivedSources/HTMLElementFactory.cpp DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
 	$(AM_V_GEN)$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --factory --wrapperFactory --outputDir "$(GENSOURCES)"
 endif # HTML_FLAGS
 
-DerivedSources/XMLNames.h: DerivedSources/XMLNames.cpp;
+DerivedSources/JSHTMLElementWrapperFactory.cpp: DerivedSources/HTMLNames.cpp;
 
 DerivedSources/XMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/xml/xmlattrs.in
 	$(AM_V_GEN)$(PERL) -I$(WebCore)/bindings/scripts $< --attrs $(WebCore)/xml/xmlattrs.in --outputDir "$(GENSOURCES)"

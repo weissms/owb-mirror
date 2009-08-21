@@ -49,6 +49,7 @@ bool webkit_web_frame_pause_transition(WebKitWebFrame* frame, const gchar* name,
 unsigned int webkit_web_frame_number_of_active_animations(WebKitWebFrame* frame);
 void webkit_application_cache_set_maximum_size(unsigned long long size);
 unsigned int webkit_worker_thread_count(void);
+void webkit_white_list_access_from_origin(const gchar* sourceOrigin, const gchar* destinationProtocol, const gchar* destinationHost, bool allowDestinationSubdomains);
 }
 
 LayoutTestController::~LayoutTestController()
@@ -169,6 +170,17 @@ void LayoutTestController::waitForPolicyDelegate()
     setWaitToDump(true);
 }
 
+void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef protocol, JSStringRef host, bool includeSubdomains)
+{
+    gchar* sourceOriginGChar = JSStringCopyUTF8CString(sourceOrigin);
+    gchar* protocolGChar = JSStringCopyUTF8CString(protocol);
+    gchar* hostGChar = JSStringCopyUTF8CString(host);
+    webkit_white_list_access_from_origin(sourceOriginGChar, protocolGChar, hostGChar, includeSubdomains);
+    g_free(sourceOriginGChar);
+    g_free(protocolGChar);
+    g_free(hostGChar);
+}
+
 void LayoutTestController::setMainFrameIsFirstResponder(bool flag)
 {
     // FIXME: implement
@@ -226,7 +238,7 @@ static gboolean waitToDumpWatchdogFired(void*)
 
 void LayoutTestController::setWaitToDump(bool waitUntilDone)
 {
-    static const int timeoutSeconds = 10;
+    static const int timeoutSeconds = 15;
 
     m_waitToDump = waitUntilDone;
     if (m_waitToDump && !waitToDumpWatchdog)
@@ -351,14 +363,20 @@ bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(JSStringRef anima
 {    
     gchar* name = JSStringCopyUTF8CString(animationName);
     gchar* element = JSStringCopyUTF8CString(elementId);
-    return webkit_web_frame_pause_animation(mainFrame, name, time, element);
+    bool returnValue = webkit_web_frame_pause_animation(mainFrame, name, time, element);
+    g_free(name);
+    g_free(element);
+    return returnValue;
 }
 
 bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef propertyName, double time, JSStringRef elementId)
 {    
     gchar* name = JSStringCopyUTF8CString(propertyName);
     gchar* element = JSStringCopyUTF8CString(elementId);
-    return webkit_web_frame_pause_transition(mainFrame, name, time, element);
+    bool returnValue = webkit_web_frame_pause_transition(mainFrame, name, time, element);
+    g_free(name);
+    g_free(element);
+    return returnValue;
 }
 
 unsigned LayoutTestController::numberOfActiveAnimations() const

@@ -1,3 +1,238 @@
+2009-08-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Enable various "grouping" ARIA roles
+        https://bugs.webkit.org/show_bug.cgi?id=28486
+
+        Expose the ability to retrieve the subrole through accessibility for DRT.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+
+2009-08-20  Joseph Pecoraro  <joepeck@webkit.org>
+
+        Unreviewed.
+
+        Added myself as a committer.
+
+        * Scripts/modules/committers.py:
+
+2009-08-20  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix memory leaks.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::whiteListAccessFromOrigin):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+
+2009-08-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool post-diff can post partial diffs from SVN checkouts.
+        https://bugs.webkit.org/show_bug.cgi?id=28445
+
+        Pass the checkout root as the cwd.  Also wrote a test to ensure this.
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+
+2009-08-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Don't leak the JSStringRef returned by AccessibilityUIElement::attributeValue.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (attributeValueCallback):
+
+2009-08-20  Ariya Hidayat  <ariya.hidayat@nokia.com>
+
+        Unreviewed, build fix.
+
+        [Qt] The template-based qMax() compares two qreals.
+
+        * DumpRenderTree/qt/ImageDiff.cpp:
+        (main):
+
+2009-08-20  David Levin  <levin@chromium.org>
+
+        Reviewed by David Kilzer.
+
+        bugzilla-tool patch retrieval should handle 302 redirects.
+        https://bugs.webkit.org/show_bug.cgi?id=28485
+
+        * Scripts/modules/scm.py: Pass the --location parameter to curl
+        so that 302's are followed.
+
+2009-08-20  Aaron Boodman  <aa@chromium.org>
+
+        One more speculative build for gtk.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+
+2009-08-20  Aaron Boodman  <aa@chromium.org>
+
+        Speculative build for gtk.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::whiteListAccessFromOrigin):
+
+2009-08-20  Mark Rowe  <mrowe@apple.com>
+
+        Ignore some leaks that are known to originate from ImageIO.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-20  Aaron Boodman  <aa@chromium.org>
+
+        With David Levin.
+
+        Speculative build fix for qt.
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::whiteListAccessFromOrigin):
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-08-19  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <http://webkit.org/b/28484> Plug-in-related leaks seen on the build bot
+
+        Update check-for-global-initializers to accommodate the new uses of RefCountedLeakCounter in WebKit.
+
+        * Scripts/check-for-global-initializers:
+
+2009-08-19  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by David Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24853: Provide a way for WebKit clients to
+        specify a more granular policy for cross-origin XHR access.
+
+        * DumpRenderTree/LayoutTestController.cpp: Expose whiteListAccessFromOrigin() to layout tests.
+        (whiteListAccessFromOriginCallback): Ditto.
+        (LayoutTestController::staticFunctions): Ditto.
+        * DumpRenderTree/LayoutTestController.h: Ditto.
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp: Ditto.
+        (LayoutTestController::whiteListAccessToOrigin): Ditto.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm: Ditto.
+        (LayoutTestController::whiteListAccessFromOrigin): Ditto.
+        * DumpRenderTree/qt/jsobjects.cpp: Ditto.
+        (LayoutTestController::whiteListAccessFromOrigin): Ditto.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp: Stub out whiteListAccessFromOrigin().
+        (LayoutTestController::whiteListAccessFromOrigin): Ditto.
+        * DumpRenderTree/gtk/DumpRenderTree.cpp: Reset origin access lists before each test.
+        (resetWebViewToConsistentStateBeforeTesting): Ditto.
+        * DumpRenderTree/mac/DumpRenderTree.mm: Ditto.
+        (resetWebViewToConsistentStateBeforeTesting): Ditto.
+        * DumpRenderTree/qt/DumpRenderTree.cpp: Ditto.
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting): Ditto.
+
+2009-08-19  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Ignore some leaks that are known to originate from QTKit.
+
+        * Scripts/run-webkit-tests:
+
+2009-08-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        commit-queue/bugzilla-tool can get wedged if git is mid-rebase
+        https://bugs.webkit.org/show_bug.cgi?id=28436
+
+        Make clean_working_directory cancel rebases too (even though that's a bit of a hack).
+        This code will only ever be run when --force-clean is passed.
+
+        I also added a new unit test to make sure this code actually works. :)
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+
+2009-08-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        WebKit needs a changelogs.py to hold changelog-related code
+        https://bugs.webkit.org/show_bug.cgi?id=28477
+
+        This is moving code and adding tests.  There was only one functional
+        change (which was removing a trailing newline from the last_entry() result).
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/changelogs.py: Added.
+        * Scripts/modules/changelogs_unittest.py: Added.
+        * Scripts/run-webkit-unittests:
+
+2009-08-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool needs a way to ask build.webkit.org if the bots are passing
+        https://bugs.webkit.org/show_bug.cgi?id=28222
+
+        Basic support for now.  This has been in testing for 24 hours now and worked great!
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/buildbot.py: Added.
+        * Scripts/modules/buildbot_unittest.py: Added.
+        * Scripts/run-webkit-unittests:
+
+2009-08-19  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Gustavo Noronha.
+
+        [Gtk] Bump waitToDumpWatchdog interval to 15 seconds to match the
+        default timeout used by run-webkit-tests. Mac and Win ports were
+        recently bumped in http://trac.webkit.org/changeset/r47465.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setWaitToDump):
+
+2009-08-19  David D. Kilzer  <ddkilzer@webkit.org>
+
+        DumpRenderTreeSupport.pm: provide pre-generated swig source for Tiger
+
+        Reviewed by Mark Rowe.
+
+        Provide pre-generated swig source files for Tiger so it may
+        benefit from the faster run-webkit-tests.
+
+        * DumpRenderTree/mac/PerlSupport/DumpRenderTreeSupportTiger.pm:
+        Generated by swig.
+        * DumpRenderTree/mac/PerlSupport/DumpRenderTreeSupport_wrapTiger.c: Added.
+        Generated by swig.
+        (swig_type_info::SWIG_TypeNameComp):
+        (swig_type_info::SWIG_TypeEquiv):
+        (swig_type_info::SWIG_TypeRegisterTL):
+        (swig_type_info::SWIG_TypeCheck):
+        (swig_type_info::SWIG_TypeCast):
+        (swig_type_info::SWIG_TypeDynamicCast):
+        (swig_type_info::SWIG_TypeName):
+        (swig_type_info::SWIG_TypePrettyName):
+        (swig_type_info::SWIG_TypeQueryTL):
+        (swig_type_info::SWIG_TypeClientDataTL):
+        (swig_type_info::SWIG_PackData):
+        (swig_type_info::SWIG_UnpackData):
+        (swig_type_info::SWIG_PropagateClientDataTL):
+        (swig_type_info::SWIG_PackVoidPtr):
+        (swig_type_info::SWIG_UnpackVoidPtr):
+        (swig_type_info::SWIG_PackDataName):
+        (swig_type_info::SWIG_UnpackDataName):
+        * DumpRenderTree/mac/PerlSupport/Makefile: Updated to build on
+        Tiger using pre-generated files.
+
 2009-08-19  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Reviewed by David Kilzer.

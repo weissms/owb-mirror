@@ -55,10 +55,10 @@ void EvalExecutable::generateBytecode(ScopeChainNode* scopeChainNode)
 
     ASSERT(!m_evalCodeBlock);
     m_evalCodeBlock = new EvalCodeBlock(this, globalObject, source().provider(), scopeChain.localDepth());
-    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(evalNode(), globalObject->debugger(), scopeChain, &m_evalCodeBlock->symbolTable(), m_evalCodeBlock));
+    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(evalNode(), globalObject->debugger(), scopeChain, m_evalCodeBlock->symbolTable(), m_evalCodeBlock));
     generator->generate();
     
-    evalNode()->partialDestroyData();
+    evalNode()->destroyData();
 }
 
 void ProgramExecutable::generateBytecode(ScopeChainNode* scopeChainNode)
@@ -83,8 +83,11 @@ void FunctionExecutable::generateBytecode(ScopeChainNode* scopeChainNode)
 
     ASSERT(!m_codeBlock);
     m_codeBlock = new FunctionCodeBlock(this, FunctionCode, source().provider(), source().startOffset());
-    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(body(), globalObject->debugger(), scopeChain, &m_codeBlock->symbolTable(), m_codeBlock));
+    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(body(), globalObject->debugger(), scopeChain, m_codeBlock->symbolTable(), m_codeBlock));
     generator->generate();
+    m_numParameters = m_codeBlock->m_numParameters;
+    ASSERT(m_numParameters);
+    m_numVariables = m_codeBlock->m_numVars;
 
     body()->destroyData();
 }
@@ -126,11 +129,6 @@ void FunctionExecutable::generateJITCode(ScopeChainNode* scopeChainNode)
 
 #endif
 
-bool FunctionExecutable::isHostFunction() const
-{
-    return m_codeBlock && m_codeBlock->codeType() == NativeCode;
-}
-
 void FunctionExecutable::markAggregate(MarkStack& markStack)
 {
     if (m_codeBlock)
@@ -149,7 +147,7 @@ ExceptionInfo* FunctionExecutable::reparseExceptionInfo(JSGlobalData* globalData
     OwnPtr<CodeBlock> newCodeBlock(new FunctionCodeBlock(this, FunctionCode, source().provider(), source().startOffset()));
     globalData->functionCodeBlockBeingReparsed = newCodeBlock.get();
 
-    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(newFunctionBody.get(), globalObject->debugger(), scopeChain, &newCodeBlock->symbolTable(), newCodeBlock.get()));
+    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(newFunctionBody.get(), globalObject->debugger(), scopeChain, newCodeBlock->symbolTable(), newCodeBlock.get()));
     generator->setRegeneratingForExceptionInfo(static_cast<FunctionCodeBlock*>(codeBlock));
     generator->generate();
 
@@ -174,7 +172,7 @@ ExceptionInfo* EvalExecutable::reparseExceptionInfo(JSGlobalData* globalData, Sc
 
     OwnPtr<EvalCodeBlock> newCodeBlock(new EvalCodeBlock(this, globalObject, source().provider(), scopeChain.localDepth()));
 
-    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(newEvalBody.get(), globalObject->debugger(), scopeChain, &newCodeBlock->symbolTable(), newCodeBlock.get()));
+    OwnPtr<BytecodeGenerator> generator(new BytecodeGenerator(newEvalBody.get(), globalObject->debugger(), scopeChain, newCodeBlock->symbolTable(), newCodeBlock.get()));
     generator->setRegeneratingForExceptionInfo(static_cast<EvalCodeBlock*>(codeBlock));
     generator->generate();
 
@@ -197,6 +195,7 @@ void FunctionExecutable::recompile(ExecState* exec)
     m_node = newBody;
     delete m_codeBlock;
     m_codeBlock = 0;
+    m_numParameters = NUM_PARAMETERS_NOT_COMPILED;
 #if ENABLE(JIT)
     m_jitCode = JITCode();
 #endif
@@ -204,10 +203,11 @@ void FunctionExecutable::recompile(ExecState* exec)
 
 #if ENABLE(JIT)
 FunctionExecutable::FunctionExecutable(ExecState* exec)
-    : m_codeBlock(new NativeCodeBlock(this))
+    : m_codeBlock(0)
     , m_name(Identifier(exec, "<native thunk>"))
 {
     m_jitCode = JITCode(JITCode::HostFunction(exec->globalData().jitStubs.ctiNativeCallThunk()));
+    m_numParameters = NUM_PARAMETERS_IS_HOST;
 }
 #endif
 

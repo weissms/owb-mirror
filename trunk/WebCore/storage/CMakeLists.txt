@@ -12,6 +12,7 @@ if(ENABLE_DATABASE)
         storage/SQLResultSetRowList.cpp
         storage/SQLStatement.cpp
         storage/SQLTransaction.cpp
+        storage/SQLTransactionClient.cpp
         storage/SQLTransactionCoordinator.cpp
     )
     list(APPEND IDL_SRC

@@ -72,9 +72,11 @@ void RenderReplaced::layout()
     LayoutRepainter repainter(*this, checkForRepaintDuringLayout());
     
     setHeight(minimumReplacedHeight());
-    
+
     calcWidth();
     calcHeight();
+
+    m_overflow.clear();
     addShadowOverflow();
     
     repainter.repaintAfterLayout();    
@@ -122,21 +124,29 @@ void RenderReplaced::paint(PaintInfo& paintInfo, int tx, int ty)
         drawSelectionTint = false;
     }
 
+    bool completelyClippedOut = false;
     if (style()->hasBorderRadius()) {
-        // Push a clip if we have a border radius, since we want to round the foreground content that gets painted.
-        paintInfo.context->save();
-        
-        IntSize topLeft, topRight, bottomLeft, bottomRight;
         IntRect borderRect = IntRect(tx, ty, width(), height());
-        style()->getBorderRadiiForRect(borderRect, topLeft, topRight, bottomLeft, bottomRight);
 
-        paintInfo.context->addRoundedRectClip(borderRect, topLeft, topRight, bottomLeft, bottomRight);
+        if (borderRect.isEmpty())
+            completelyClippedOut = true;
+        else {
+            // Push a clip if we have a border radius, since we want to round the foreground content that gets painted.
+            paintInfo.context->save();
+            
+            IntSize topLeft, topRight, bottomLeft, bottomRight;
+            style()->getBorderRadiiForRect(borderRect, topLeft, topRight, bottomLeft, bottomRight);
+
+            paintInfo.context->addRoundedRectClip(borderRect, topLeft, topRight, bottomLeft, bottomRight);
+        }
     }
 
-    paintReplaced(paintInfo, tx, ty);
+    if (!completelyClippedOut) {
+        paintReplaced(paintInfo, tx, ty);
 
-    if (style()->hasBorderRadius())
-        paintInfo.context->restore();
+        if (style()->hasBorderRadius())
+            paintInfo.context->restore();
+    }
         
     // The selection tint never gets clipped by border-radius rounding, since we want it to run right up to the edges of
     // surrounding content.
@@ -164,8 +174,8 @@ bool RenderReplaced::shouldPaint(PaintInfo& paintInfo, int& tx, int& ty)
     int currentTY = ty + y();
 
     // Early exit if the element touches the edges.
-    int top = currentTY + topCombinedOverflow();
-    int bottom = currentTY + bottomCombinedOverflow();
+    int top = currentTY + topVisibleOverflow();
+    int bottom = currentTY + bottomVisibleOverflow();
     if (isSelected() && m_inlineBoxWrapper) {
         int selTop = ty + m_inlineBoxWrapper->root()->selectionTop();
         int selBottom = ty + selTop + m_inlineBoxWrapper->root()->selectionHeight();
@@ -174,7 +184,7 @@ bool RenderReplaced::shouldPaint(PaintInfo& paintInfo, int& tx, int& ty)
     }
     
     int os = 2 * maximalOutlineSize(paintInfo.phase);
-    if (currentTX + leftCombinedOverflow() >= paintInfo.rect.right() + os || currentTX + rightCombinedOverflow() <= paintInfo.rect.x() - os)
+    if (currentTX + leftVisibleOverflow() >= paintInfo.rect.right() + os || currentTX + rightVisibleOverflow() <= paintInfo.rect.x() - os)
         return false;
     if (top >= paintInfo.rect.bottom() + os || bottom <= paintInfo.rect.y() - os)
         return false;
@@ -329,7 +339,7 @@ IntRect RenderReplaced::clippedOverflowRectForRepaint(RenderBoxModelObject* repa
 
     // The selectionRect can project outside of the overflowRect, so take their union
     // for repainting to avoid selection painting glitches.
-    IntRect r = unionRect(localSelectionRect(false), combinedOverflowRect());
+    IntRect r = unionRect(localSelectionRect(false), visibleOverflowRect());
 
     RenderView* v = view();
     if (v) {

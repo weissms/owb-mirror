@@ -1,3 +1,43 @@
+2009-08-21  Aaron Boodman  <aa@chromium.org>
+
+        Hopefully the last speculative build for gtk.
+
+        * webkit/webkitprivate.cpp:
+        (webkit_white_list_access_from_origin):
+        * webkit/webkitprivate.h:
+
+2009-08-20  David Levin  <levin@chromium.org>
+
+        Another speculative build for gtk.
+
+        * webkit/webkitprivate.cpp:
+        (webkit_white_list_access_to_origin):
+
+2009-08-20  David Levin  <levin@chromium.org>
+
+        Speculative build for gtk.
+
+        * webkit/webkitprivate.cpp:
+        (webkit_white_list_access_to_origin):
+
+2009-08-19  Aaron Boodman  <aa@chromium.org>
+
+        Fix build break.
+
+        * webkit/webkitprivate.h: "WEBKIT API" -> "WEBKIT_API"
+
+2009-08-19  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by David Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24853: Provide a way for WebKit clients to
+        specify a more granular policy for cross-origin XHR access.
+
+        * webkit/webkitprivate.cpp:
+        (webkit_white_list_access_to_origin): Add API to manipulate origin access whitelists.
+        (webkit_reset_origin_access_white_lists): Ditto.
+        * webkit/webkitprivate.h: Ditto.
+
 2009-08-19  Xan Lopez  <xlopez@igalia.com>
 
         Rubber-stamped by Holger Freyther.

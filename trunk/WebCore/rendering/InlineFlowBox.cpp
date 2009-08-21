@@ -325,12 +325,17 @@ int InlineFlowBox::placeBoxesHorizontally(int xPos, bool& needsWordSpacing)
             } else if (!curr->renderer()->isListMarker() || toRenderListMarker(curr->renderer())->isInside()) {
                 xPos += curr->boxModelObject()->marginLeft();
                 curr->setX(xPos);
-                if (!toRenderBox(curr->renderer())->hasOverflowClip()) {
-                    leftLayoutOverflow = min(xPos + toRenderBox(curr->renderer())->leftLayoutOverflow(), leftLayoutOverflow);
-                    rightLayoutOverflow = max(xPos + toRenderBox(curr->renderer())->rightLayoutOverflow(), rightLayoutOverflow);
-                }
-                leftVisualOverflow = min(xPos + toRenderBox(curr->renderer())->leftVisualOverflow(), leftVisualOverflow);
-                rightVisualOverflow = max(xPos + toRenderBox(curr->renderer())->rightVisualOverflow(), rightVisualOverflow);
+                 
+                RenderBox* box = toRenderBox(curr->renderer());
+                int childLeftOverflow = box->hasOverflowClip() ? 0 : box->leftLayoutOverflow();
+                int childRightOverflow = box->hasOverflowClip() ? curr->width() : box->rightLayoutOverflow();
+                
+                leftLayoutOverflow = min(xPos + childLeftOverflow, leftLayoutOverflow);
+                rightLayoutOverflow = max(xPos + childRightOverflow, rightLayoutOverflow);
+
+                leftVisualOverflow = min(xPos + box->leftVisualOverflow(), leftVisualOverflow);
+                rightVisualOverflow = max(xPos + box->rightVisualOverflow(), rightVisualOverflow);
+               
                 xPos += curr->width() + curr->boxModelObject()->marginRight();
             }
         }
@@ -584,13 +589,13 @@ void InlineFlowBox::computeVerticalOverflow(int lineTop, int lineBottom, bool st
                 bottomVisualOverflow = max(bottomVisualOverflow, flow->bottomVisualOverflow());
             } else {
                 RenderBox* box = toRenderBox(curr->renderer());
-                int boxY = box->y();
-                if (!box->hasOverflowClip()) {
-                    topLayoutOverflow = min(boxY + toRenderBox(curr->renderer())->topLayoutOverflow(), topLayoutOverflow);
-                    bottomLayoutOverflow = max(boxY + toRenderBox(curr->renderer())->bottomLayoutOverflow(), bottomLayoutOverflow);
-                }
-                topVisualOverflow = min(boxY + toRenderBox(curr->renderer())->topVisualOverflow(), topVisualOverflow);
-                bottomVisualOverflow = max(boxY + toRenderBox(curr->renderer())->bottomVisualOverflow(), bottomVisualOverflow);
+                int boxY = curr->y();
+                int childTopOverflow = box->hasOverflowClip() ? 0 : box->topLayoutOverflow();
+                int childBottomOverflow = box->hasOverflowClip() ? curr->height() : box->bottomLayoutOverflow();
+                topLayoutOverflow = min(boxY + childTopOverflow, topLayoutOverflow);
+                bottomLayoutOverflow = max(boxY + childBottomOverflow, bottomLayoutOverflow);
+                topVisualOverflow = min(boxY + box->topVisualOverflow(), topVisualOverflow);
+                bottomVisualOverflow = max(boxY + box->bottomVisualOverflow(), bottomVisualOverflow);
             }
         }
     }
@@ -600,7 +605,7 @@ void InlineFlowBox::computeVerticalOverflow(int lineTop, int lineBottom, bool st
 
 bool InlineFlowBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int x, int y, int tx, int ty)
 {
-    IntRect overflowRect(combinedOverflowRect());
+    IntRect overflowRect(visibleOverflowRect());
     overflowRect.move(tx, ty);
     if (!overflowRect.contains(x, y))
         return false;
@@ -625,7 +630,7 @@ bool InlineFlowBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
 
 void InlineFlowBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
 {
-    IntRect overflowRect(combinedOverflowRect());
+    IntRect overflowRect(visibleOverflowRect());
     overflowRect.inflate(renderer()->maximalOutlineSize(paintInfo.phase));
     overflowRect.move(tx, ty);
     

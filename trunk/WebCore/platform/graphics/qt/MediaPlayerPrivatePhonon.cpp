@@ -160,6 +160,14 @@ bool MediaPlayerPrivate::hasVideo() const
     return hasVideo;
 }
 
+bool MediaPlayerPrivate::hasAudio() const
+{
+    // FIXME: Phonon::MediaObject does not have such a hasAudio() function
+    bool hasAudio = true;
+    LOG(Media, "MediaPlayerPrivatePhonon::hasAudio() -> %s", hasAudio ? "true" : "false");
+    return hasAudio;
+}
+
 void MediaPlayerPrivate::load(const String& url)
 {
     LOG(Media, "MediaPlayerPrivatePhonon::load(\"%s\")", url.utf8().data());

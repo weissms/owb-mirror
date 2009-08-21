@@ -159,6 +159,11 @@ bool MediaPlayerPrivate::hasVideo() const
     return false;
 }
 
+bool MediaPlayerPrivate::hasAudio() const
+{
+    return false;
+}
+
 void MediaPlayerPrivate::setVolume(float volume)
 {
     m_volume = volume;

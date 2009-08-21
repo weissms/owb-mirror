@@ -1,3 +1,49 @@
+2009-08-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Enable various "grouping" ARIA roles
+        https://bugs.webkit.org/show_bug.cgi?id=28486
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory AXARIAContentGroupText:]):
+
+2009-08-19  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <http://webkit.org/b/28484> Plug-in-related leaks seen on the build bot
+
+        When the plug-in data is being loaded manually there is a reference cycle between the
+        NetscapePluginInstanceProxy and the HostedNetscapePluginStream.  We need to explicitly
+        break the reference cycle in NetscapePluginInstanceProxy::cleanup so that both objects
+        will be destroyed.
+
+        Take the opportunity to add RefCountedLeakCounter support to HostedNetscapePluginStream
+        and NetscapePluginInstanceProxy to simplify tracking down leaks of these objects in the future.
+
+        * Plugins/Hosted/HostedNetscapePluginStream.h:
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::HostedNetscapePluginStream):
+        (WebKit::HostedNetscapePluginStream::~HostedNetscapePluginStream):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::cleanup): Clear m_manualStream to break the reference
+        cycle.
+
+2009-08-19  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by David Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24853: Provide a way for WebKit clients to
+        specify a more granular policy for cross-origin XHR access.
+
+        * WebView/WebView.mm: Add SPI to manipulate origin access whitelists.
+        (+[WebView _whiteListAccessFromOrigin:destinationProtocol:destinationHost:allowDestinationSubdomains:]): Ditto.
+        (+[WebView _resetOriginAccessWhiteLists]): Ditto.
+        * WebView/WebViewPrivate.h: Ditto.
+
 2009-08-19  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Adele Peterson.

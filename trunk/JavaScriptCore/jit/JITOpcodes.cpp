@@ -66,90 +66,77 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
     // (2) Trampolines for the slow cases of op_call / op_call_eval / op_construct.
 
 #if ENABLE(JIT_OPTIMIZE_CALL)
-    /* VirtualCallLink Trampoline */
+    // VirtualCallLink Trampoline
+    // regT0 holds callee, regT1 holds argCount.  regT2 will hold the FunctionExecutable.
     Label virtualCallLinkBegin = align();
-
-    // regT0 holds callee, regT1 holds argCount.
     loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_codeBlock)), regT2);
-    Jump hasCodeBlock2 = branchTestPtr(NonZero, regT2);
 
-    // Lazily generate a CodeBlock.
-    preserveReturnAddressAfterCall(regT3); // return address
+    Jump isNativeFunc2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+
+    Jump hasCodeBlock2 = branch32(GreaterThan, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+    preserveReturnAddressAfterCall(regT3);
     restoreArgumentReference();
     Call callJSFunction2 = call();
-    move(regT0, regT2);
-    emitGetJITStubArg(1, regT0); // callee
-    emitGetJITStubArg(5, regT1); // argCount
-    restoreReturnAddressBeforeReturn(regT3); // return address
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
+    emitGetJITStubArg(2, regT1); // argCount
+    restoreReturnAddressBeforeReturn(regT3);
     hasCodeBlock2.link(this);
 
-    // regT2 holds codeBlock.
-    Jump isNativeFunc2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(CodeBlock, m_codeType)), Imm32(NativeCode));
-
     // Check argCount matches callee arity.
-    Jump arityCheckOkay2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(CodeBlock, m_numParameters)), regT1);
+    Jump arityCheckOkay2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), regT1);
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 3); // return address
-    emitPutJITStubArg(regT2, 7); // codeBlock
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callArityCheck2 = call();
     move(regT1, callFrameRegister);
-    emitGetJITStubArg(1, regT0); // callee
-    emitGetJITStubArg(5, regT1); // argCount
-    restoreReturnAddressBeforeReturn(regT3); // return address
-
+    emitGetJITStubArg(2, regT1); // argCount
+    restoreReturnAddressBeforeReturn(regT3);
     arityCheckOkay2.link(this);
+
     isNativeFunc2.link(this);
 
     compileOpCallInitializeCallFrame();
 
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 3);
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callLazyLinkCall = call();
     restoreReturnAddressBeforeReturn(regT3);
     jump(regT0);
 #endif // ENABLE(JIT_OPTIMIZE_CALL)
 
-    /* VirtualCall Trampoline */
+    // VirtualCall Trampoline
+    // regT0 holds callee, regT1 holds argCount.  regT2 will hold the FunctionExecutable.
     Label virtualCallBegin = align();
-
-    // regT0 holds callee, regT1 holds argCount.
     loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_codeBlock)), regT2);
-    Jump hasCodeBlock3 = branchTestPtr(NonZero, regT2);
 
-    // Lazily generate a CodeBlock.
-    preserveReturnAddressAfterCall(regT3); // return address
+    Jump isNativeFunc3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+
+    Jump hasCodeBlock3 = branch32(GreaterThan, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+    preserveReturnAddressAfterCall(regT3);
     restoreArgumentReference();
     Call callJSFunction1 = call();
-    move(regT0, regT2);
-    emitGetJITStubArg(1, regT0); // callee
-    emitGetJITStubArg(5, regT1); // argCount
-    restoreReturnAddressBeforeReturn(regT3); // return address
+    emitGetJITStubArg(2, regT1); // argCount
+    restoreReturnAddressBeforeReturn(regT3);
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
     hasCodeBlock3.link(this);
     
-    // regT2 holds codeBlock.
-    Jump isNativeFunc3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(CodeBlock, m_codeType)), Imm32(NativeCode));
-    
-    // Check argCount matches callee.
-    Jump arityCheckOkay3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(CodeBlock, m_numParameters)), regT1);
+    // Check argCount matches callee arity.
+    Jump arityCheckOkay3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), regT1);
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 3); // return address
-    emitPutJITStubArg(regT2, 7); // codeBlock
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callArityCheck1 = call();
     move(regT1, callFrameRegister);
-    emitGetJITStubArg(1, regT0); // callee
-    emitGetJITStubArg(5, regT1); // argCount
-    restoreReturnAddressBeforeReturn(regT3); // return address
-
+    emitGetJITStubArg(2, regT1); // argCount
+    restoreReturnAddressBeforeReturn(regT3);
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
     arityCheckOkay3.link(this);
+
     isNativeFunc3.link(this);
+
     compileOpCallInitializeCallFrame();
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT0);
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(FunctionExecutable, m_jitCode)), regT0);
+    loadPtr(Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_jitCode)), regT0);
     jump(regT0);
 
 #if PLATFORM(X86)
@@ -239,23 +226,23 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
 
 #if COMPILER(MSVC) || PLATFORM(LINUX)
     // ArgList is passed by reference so is stackPointerRegister + 4 * sizeof(Register)
-    addPtr(Imm32(OBJECT_OFFSETOF(NativeCallFrameStructure, result)), stackPointerRegister, X86::ecx);
+    addPtr(Imm32(OBJECT_OFFSETOF(NativeCallFrameStructure, result)), stackPointerRegister, X86Registers::ecx);
 
     // Plant callee
-    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86::eax);
-    storePtr(X86::eax, Address(stackPointerRegister, OBJECT_OFFSETOF(NativeCallFrameStructure, callee)));
+    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86Registers::eax);
+    storePtr(X86Registers::eax, Address(stackPointerRegister, OBJECT_OFFSETOF(NativeCallFrameStructure, callee)));
 
     // Plant callframe
-    move(callFrameRegister, X86::edx);
+    move(callFrameRegister, X86Registers::edx);
 
-    call(Address(X86::eax, OBJECT_OFFSETOF(JSFunction, m_data)));
+    call(Address(X86Registers::eax, OBJECT_OFFSETOF(JSFunction, m_data)));
 
     // JSValue is a non-POD type, so eax points to it
-    emitLoad(0, regT1, regT0, X86::eax);
+    emitLoad(0, regT1, regT0, X86Registers::eax);
 #else
-    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86::edx); // callee
-    move(callFrameRegister, X86::ecx); // callFrame
-    call(Address(X86::edx, OBJECT_OFFSETOF(JSFunction, m_data)));
+    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86Registers::edx); // callee
+    move(callFrameRegister, X86Registers::ecx); // callFrame
+    call(Address(X86Registers::edx, OBJECT_OFFSETOF(JSFunction, m_data)));
 #endif
 
     // We've put a few temporaries on the stack in addition to the actual arguments
@@ -1486,85 +1473,77 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
     // (3) Trampolines for the slow cases of op_call / op_call_eval / op_construct.
     COMPILE_ASSERT(sizeof(CodeType) == 4, CodeTypeEnumMustBe32Bit);
 
+    // VirtualCallLink Trampoline
+    // regT0 holds callee, regT1 holds argCount.  regT2 will hold the FunctionExecutable.
     Label virtualCallLinkBegin = align();
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
 
-    // Load the callee CodeBlock* into eax
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(JSFunction, m_executable)), regT3);
-    loadPtr(Address(regT3, OBJECT_OFFSETOF(FunctionExecutable, m_codeBlock)), regT0);
-    Jump hasCodeBlock2 = branchTestPtr(NonZero, regT0);
+    Jump isNativeFunc2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+
+    Jump hasCodeBlock2 = branch32(GreaterThan, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
     preserveReturnAddressAfterCall(regT3);
     restoreArgumentReference();
     Call callJSFunction2 = call();
-    emitGetJITStubArg(1, regT2);
-    emitGetJITStubArg(3, regT1);
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
+    emitGetJITStubArg(2, regT1); // argCount
     restoreReturnAddressBeforeReturn(regT3);
     hasCodeBlock2.link(this);
 
-    Jump isNativeFunc2 = branch32(Equal, Address(regT0, OBJECT_OFFSETOF(CodeBlock, m_codeType)), Imm32(NativeCode));
-
     // Check argCount matches callee arity.
-    Jump arityCheckOkay2 = branch32(Equal, Address(regT0, OBJECT_OFFSETOF(CodeBlock, m_numParameters)), regT1);
+    Jump arityCheckOkay2 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), regT1);
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 2);
-    emitPutJITStubArg(regT0, 4);
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callArityCheck2 = call();
     move(regT1, callFrameRegister);
-    emitGetJITStubArg(1, regT2);
-    emitGetJITStubArg(3, regT1);
+    emitGetJITStubArg(2, regT1); // argCount
     restoreReturnAddressBeforeReturn(regT3);
     arityCheckOkay2.link(this);
+
     isNativeFunc2.link(this);
 
     compileOpCallInitializeCallFrame();
-
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 2);
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callLazyLinkCall = call();
     restoreReturnAddressBeforeReturn(regT3);
-
     jump(regT0);
 
+    // VirtualCall Trampoline
+    // regT0 holds callee, regT1 holds argCount.  regT2 will hold the FunctionExecutable.
     Label virtualCallBegin = align();
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
 
-    // Load the callee CodeBlock* into eax
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(JSFunction, m_executable)), regT3);
-    loadPtr(Address(regT3, OBJECT_OFFSETOF(FunctionExecutable, m_codeBlock)), regT0);
-    Jump hasCodeBlock3 = branchTestPtr(NonZero, regT0);
+    Jump isNativeFunc3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
+
+    Jump hasCodeBlock3 = branch32(GreaterThan, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), Imm32(0));
     preserveReturnAddressAfterCall(regT3);
     restoreArgumentReference();
     Call callJSFunction1 = call();
-    emitGetJITStubArg(1, regT2);
-    emitGetJITStubArg(3, regT1);
+    emitGetJITStubArg(2, regT1); // argCount
     restoreReturnAddressBeforeReturn(regT3);
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(JSFunction, m_executable)), regT3); // reload the function body nody, so we can reload the code pointer.
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
     hasCodeBlock3.link(this);
     
-    Jump isNativeFunc3 = branch32(Equal, Address(regT0, OBJECT_OFFSETOF(CodeBlock, m_codeType)), Imm32(NativeCode));
-
     // Check argCount matches callee arity.
-    Jump arityCheckOkay3 = branch32(Equal, Address(regT0, OBJECT_OFFSETOF(CodeBlock, m_numParameters)), regT1);
+    Jump arityCheckOkay3 = branch32(Equal, Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_numParameters)), regT1);
     preserveReturnAddressAfterCall(regT3);
-    emitPutJITStubArg(regT3, 2);
-    emitPutJITStubArg(regT0, 4);
+    emitPutJITStubArg(regT3, 1); // return address
     restoreArgumentReference();
     Call callArityCheck1 = call();
     move(regT1, callFrameRegister);
-    emitGetJITStubArg(1, regT2);
-    emitGetJITStubArg(3, regT1);
+    emitGetJITStubArg(2, regT1); // argCount
     restoreReturnAddressBeforeReturn(regT3);
-    loadPtr(Address(regT2, OBJECT_OFFSETOF(JSFunction, m_executable)), regT3); // reload the function body nody, so we can reload the code pointer.
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_executable)), regT2);
     arityCheckOkay3.link(this);
+
     isNativeFunc3.link(this);
 
-    // load ctiCode from the new codeBlock.
-    loadPtr(Address(regT3, OBJECT_OFFSETOF(FunctionExecutable, m_jitCode)), regT0);
-    
     compileOpCallInitializeCallFrame();
+    loadPtr(Address(regT2, OBJECT_OFFSETOF(FunctionExecutable, m_jitCode)), regT0);
     jump(regT0);
 
-    
     Label nativeCallThunk = align();
     preserveReturnAddressAfterCall(regT0);
     emitPutToCallFrameHeader(regT0, RegisterFile::ReturnPC); // Push return address
@@ -1577,39 +1556,39 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
     
 
 #if PLATFORM(X86_64)
-    emitGetFromCallFrameHeader32(RegisterFile::ArgumentCount, X86::ecx);
+    emitGetFromCallFrameHeader32(RegisterFile::ArgumentCount, X86Registers::ecx);
 
     // Allocate stack space for our arglist
     subPtr(Imm32(sizeof(ArgList)), stackPointerRegister);
     COMPILE_ASSERT((sizeof(ArgList) & 0xf) == 0, ArgList_should_by_16byte_aligned);
     
     // Set up arguments
-    subPtr(Imm32(1), X86::ecx); // Don't include 'this' in argcount
+    subPtr(Imm32(1), X86Registers::ecx); // Don't include 'this' in argcount
 
     // Push argcount
-    storePtr(X86::ecx, Address(stackPointerRegister, OBJECT_OFFSETOF(ArgList, m_argCount)));
+    storePtr(X86Registers::ecx, Address(stackPointerRegister, OBJECT_OFFSETOF(ArgList, m_argCount)));
 
     // Calculate the start of the callframe header, and store in edx
-    addPtr(Imm32(-RegisterFile::CallFrameHeaderSize * (int32_t)sizeof(Register)), callFrameRegister, X86::edx);
+    addPtr(Imm32(-RegisterFile::CallFrameHeaderSize * (int32_t)sizeof(Register)), callFrameRegister, X86Registers::edx);
     
     // Calculate start of arguments as callframe header - sizeof(Register) * argcount (ecx)
-    mul32(Imm32(sizeof(Register)), X86::ecx, X86::ecx);
-    subPtr(X86::ecx, X86::edx);
+    mul32(Imm32(sizeof(Register)), X86Registers::ecx, X86Registers::ecx);
+    subPtr(X86Registers::ecx, X86Registers::edx);
 
     // push pointer to arguments
-    storePtr(X86::edx, Address(stackPointerRegister, OBJECT_OFFSETOF(ArgList, m_args)));
+    storePtr(X86Registers::edx, Address(stackPointerRegister, OBJECT_OFFSETOF(ArgList, m_args)));
     
     // ArgList is passed by reference so is stackPointerRegister
-    move(stackPointerRegister, X86::ecx);
+    move(stackPointerRegister, X86Registers::ecx);
     
     // edx currently points to the first argument, edx-sizeof(Register) points to 'this'
-    loadPtr(Address(X86::edx, -(int32_t)sizeof(Register)), X86::edx);
+    loadPtr(Address(X86Registers::edx, -(int32_t)sizeof(Register)), X86Registers::edx);
     
-    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86::esi);
+    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86Registers::esi);
 
-    move(callFrameRegister, X86::edi); 
+    move(callFrameRegister, X86Registers::edi); 
 
-    call(Address(X86::esi, OBJECT_OFFSETOF(JSFunction, m_data)));
+    call(Address(X86Registers::esi, OBJECT_OFFSETOF(JSFunction, m_data)));
     
     addPtr(Imm32(sizeof(ArgList)), stackPointerRegister);
 #elif PLATFORM(X86)
@@ -1678,26 +1657,26 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
 
 #if COMPILER(MSVC) || PLATFORM(LINUX)
     // ArgList is passed by reference so is stackPointerRegister + 4 * sizeof(Register)
-    addPtr(Imm32(OBJECT_OFFSETOF(NativeCallFrameStructure, result)), stackPointerRegister, X86::ecx);
+    addPtr(Imm32(OBJECT_OFFSETOF(NativeCallFrameStructure, result)), stackPointerRegister, X86Registers::ecx);
 
     // Plant callee
-    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86::eax);
-    storePtr(X86::eax, Address(stackPointerRegister, OBJECT_OFFSETOF(NativeCallFrameStructure, callee)));
+    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86Registers::eax);
+    storePtr(X86Registers::eax, Address(stackPointerRegister, OBJECT_OFFSETOF(NativeCallFrameStructure, callee)));
 
     // Plant callframe
-    move(callFrameRegister, X86::edx);
+    move(callFrameRegister, X86Registers::edx);
 
-    call(Address(X86::eax, OBJECT_OFFSETOF(JSFunction, m_data)));
+    call(Address(X86Registers::eax, OBJECT_OFFSETOF(JSFunction, m_data)));
 
     // JSValue is a non-POD type
-    loadPtr(Address(X86::eax), X86::eax);
+    loadPtr(Address(X86Registers::eax), X86Registers::eax);
 #else
     // Plant callee
-    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86::edx);
+    emitGetFromCallFrameHeaderPtr(RegisterFile::Callee, X86Registers::edx);
 
     // Plant callframe
-    move(callFrameRegister, X86::ecx);
-    call(Address(X86::edx, OBJECT_OFFSETOF(JSFunction, m_data)));
+    move(callFrameRegister, X86Registers::ecx);
+    call(Address(X86Registers::edx, OBJECT_OFFSETOF(JSFunction, m_data)));
 #endif
 
     // We've put a few temporaries on the stack in addition to the actual arguments
@@ -1738,9 +1717,9 @@ void JIT::privateCompileCTIMachineTrampolines(RefPtr<ExecutablePool>* executable
     move(callFrameRegister, regT0);
 
     // Setup arg4: This is a plain hack
-    move(stackPointerRegister, ARM::S0);
+    move(stackPointerRegister, ARMRegisters::S0);
 
-    move(ctiReturnRegister, ARM::lr);
+    move(ctiReturnRegister, ARMRegisters::lr);
     call(Address(regT1, OBJECT_OFFSETOF(JSFunction, m_data)));
 
     addPtr(Imm32(sizeof(ArgList)), stackPointerRegister);

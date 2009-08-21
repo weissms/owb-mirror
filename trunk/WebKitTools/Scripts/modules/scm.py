@@ -123,7 +123,7 @@ class SCM:
     def apply_patch(self, patch, force=False):
         # It's possible that the patch was not made from the root directory.
         # We should detect and handle that case.
-        curl_process = subprocess.Popen(['curl', '--silent', '--show-error', patch['url']], stdout=subprocess.PIPE)
+        curl_process = subprocess.Popen(['curl', '--location', '--silent', '--show-error', patch['url']], stdout=subprocess.PIPE)
         args = [self.script_path('svn-apply'), '--reviewer', patch['reviewer']]
         if force:
             args.append('--force')
@@ -278,7 +278,7 @@ class SVN(SCM):
         return "svn"
 
     def create_patch(self):
-        return self.run_command(self.script_path("svn-create-patch"))
+        return self.run_command(self.script_path("svn-create-patch"), cwd=self.checkout_root)
 
     def commit_with_message(self, message):
         if self.dryrun:
@@ -290,7 +290,7 @@ class SVN(SCM):
 class Git(SCM):
     def __init__(self, cwd, dryrun=False):
         SCM.__init__(self, cwd, dryrun)
-    
+
     @classmethod
     def in_working_directory(cls, path):
         return cls.run_command(['git', 'rev-parse', '--is-inside-work-tree'], cwd=path) == "true"
@@ -314,15 +314,21 @@ class Git(SCM):
     def local_commits(self):
         return self.run_command(['git', 'log', '--pretty=oneline', 'HEAD...trunk']).splitlines()
 
+    def rebase_in_progress(self):
+        return os.path.exists(os.path.join(self.checkout_root, '.git/rebase-apply'))
+
     def working_directory_is_clean(self):
         return self.run_command(['git', 'diff-index', 'HEAD']) == ""
-    
+
     def clean_working_directory(self):
         # Could run git clean here too, but that wouldn't match working_directory_is_clean
         self.run_command(['git', 'reset', '--hard', 'HEAD'])
-    
+        # Aborting rebase even though this does not match working_directory_is_clean
+        if self.rebase_in_progress():
+            self.run_command(['git', 'rebase', '--abort'])
+
     def update_webkit(self):
-        # FIXME: Should probably call update-webkit, no?
+        # FIXME: Call update-webkit once https://bugs.webkit.org/show_bug.cgi?id=27162 is fixed.
         log("Updating working directory")
         self.run_command(['git', 'svn', 'rebase'])
 

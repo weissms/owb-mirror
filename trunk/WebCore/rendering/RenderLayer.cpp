@@ -968,12 +968,22 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& xPos, i
     yPos += y();
 }
 
+static inline int adjustedScrollDelta(int beginningDelta) {
+    // This implemention matches Firefox's.
+    // http://mxr.mozilla.org/firefox/source/toolkit/content/widgets/browser.xml#856.
+    const int speedReducer = 12;
+
+    int adjustedDelta = beginningDelta / speedReducer;
+    if (adjustedDelta > 1)
+        adjustedDelta = static_cast<int>(adjustedDelta * sqrt(static_cast<double>(adjustedDelta))) - 1;
+    else if (adjustedDelta < -1)
+        adjustedDelta = static_cast<int>(adjustedDelta * sqrt(static_cast<double>(-adjustedDelta))) + 1;
+
+    return adjustedDelta;
+}
+
 void RenderLayer::panScrollFromPoint(const IntPoint& sourcePoint) 
 {
-    // We want to reduce the speed if we're close from the original point to improve the handleability of the scroll
-    const int shortDistanceLimit = 100;  // We delimit a 200 pixels long square enclosing the original point
-    const int speedReducer = 2;          // Within this square we divide the scrolling speed by 2
-    
     Frame* frame = renderer()->document()->frame();
     if (!frame)
         return;
@@ -990,18 +1000,12 @@ void RenderLayer::panScrollFromPoint(const IntPoint& sourcePoint)
     int xDelta = currentMousePosition.x() - sourcePoint.x();
     int yDelta = currentMousePosition.y() - sourcePoint.y();
 
-    if (abs(xDelta) < ScrollView::noPanScrollRadius) // at the center we let the space for the icon
+    if (abs(xDelta) <= ScrollView::noPanScrollRadius) // at the center we let the space for the icon
         xDelta = 0;
-    if (abs(yDelta) < ScrollView::noPanScrollRadius)
+    if (abs(yDelta) <= ScrollView::noPanScrollRadius)
         yDelta = 0;
 
-    // Let's attenuate the speed for the short distances
-    if (abs(xDelta) < shortDistanceLimit)
-        xDelta /= speedReducer;
-    if (abs(yDelta) < shortDistanceLimit)
-        yDelta /= speedReducer;
-
-    scrollByRecursively(xDelta, yDelta);
+    scrollByRecursively(adjustedScrollDelta(xDelta), adjustedScrollDelta(yDelta));
 }
 
 void RenderLayer::scrollByRecursively(int xDelta, int yDelta)
@@ -2805,8 +2809,8 @@ IntRect RenderLayer::localBoundingBox() const
         InlineFlowBox* firstBox = inlineFlow->firstLineBox();
         if (!firstBox)
             return result;
-        int top = firstBox->topCombinedOverflow();
-        int bottom = inlineFlow->lastLineBox()->bottomCombinedOverflow();
+        int top = firstBox->topVisibleOverflow();
+        int bottom = inlineFlow->lastLineBox()->bottomVisibleOverflow();
         int left = firstBox->x();
         for (InlineRunBox* curr = firstBox->nextLineBox(); curr; curr = curr->nextLineBox())
             left = min(left, curr->x());
@@ -2817,7 +2821,7 @@ IntRect RenderLayer::localBoundingBox() const
             if (child->isTableCell()) {
                 IntRect bbox = toRenderBox(child)->borderBoxRect();
                 result.unite(bbox);
-                IntRect overflowRect = renderBox()->combinedOverflowRect();
+                IntRect overflowRect = renderBox()->visibleOverflowRect();
                 if (bbox != overflowRect)
                     result.unite(overflowRect);
             }
@@ -2830,7 +2834,7 @@ IntRect RenderLayer::localBoundingBox() const
         else {
             IntRect bbox = box->borderBoxRect();
             result = bbox;
-            IntRect overflowRect = box->combinedOverflowRect();
+            IntRect overflowRect = box->visibleOverflowRect();
             if (bbox != overflowRect)
                 result.unite(overflowRect);
         }

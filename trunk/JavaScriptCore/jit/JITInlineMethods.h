@@ -37,28 +37,32 @@ namespace JSC {
 // puts an arg onto the stack, as an arg to a context threaded function.
 ALWAYS_INLINE void JIT::emitPutJITStubArg(RegisterID src, unsigned argumentNumber)
 {
-    poke(src, argumentNumber);
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
+    poke(src, argumentStackOffset);
 }
 
 /* Deprecated: Please use JITStubCall instead. */
 
 ALWAYS_INLINE void JIT::emitPutJITStubArgConstant(unsigned value, unsigned argumentNumber)
 {
-    poke(Imm32(value), argumentNumber);
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
+    poke(Imm32(value), argumentStackOffset);
 }
 
 /* Deprecated: Please use JITStubCall instead. */
 
 ALWAYS_INLINE void JIT::emitPutJITStubArgConstant(void* value, unsigned argumentNumber)
 {
-    poke(ImmPtr(value), argumentNumber);
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
+    poke(ImmPtr(value), argumentStackOffset);
 }
 
 /* Deprecated: Please use JITStubCall instead. */
 
 ALWAYS_INLINE void JIT::emitGetJITStubArg(unsigned argumentNumber, RegisterID dst)
 {
-    peek(dst, argumentNumber);
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
+    peek(dst, argumentStackOffset);
 }
 
 ALWAYS_INLINE JSValue JIT::getConstantOperand(unsigned src)
@@ -183,7 +187,7 @@ ALWAYS_INLINE void JIT::restoreArgumentReference()
     move(stackPointerRegister, firstArgumentRegister);
     poke(callFrameRegister, OBJECT_OFFSETOF(struct JITStackFrame, callFrame) / sizeof (void*));
 #if PLATFORM(ARM) && !PLATFORM_ARM_ARCH(7)
-    move(ctiReturnRegister, ARM::lr);
+    move(ctiReturnRegister, ARMRegisters::lr);
 #endif
 }
 ALWAYS_INLINE void JIT::restoreArgumentReferenceForTrampoline()
@@ -275,8 +279,8 @@ ALWAYS_INLINE void JIT::emitCount(AbstractSamplingCounter& counter, uint32_t cou
 #if PLATFORM(X86_64)
 ALWAYS_INLINE void JIT::sampleInstruction(Instruction* instruction, bool inHostFunction)
 {
-    move(ImmPtr(m_interpreter->sampler()->sampleSlot()), X86::ecx);
-    storePtr(ImmPtr(m_interpreter->sampler()->encodeSample(instruction, inHostFunction)), X86::ecx);
+    move(ImmPtr(m_interpreter->sampler()->sampleSlot()), X86Registers::ecx);
+    storePtr(ImmPtr(m_interpreter->sampler()->encodeSample(instruction, inHostFunction)), X86Registers::ecx);
 }
 #else
 ALWAYS_INLINE void JIT::sampleInstruction(Instruction* instruction, bool inHostFunction)
@@ -290,8 +294,8 @@ ALWAYS_INLINE void JIT::sampleInstruction(Instruction* instruction, bool inHostF
 #if PLATFORM(X86_64)
 ALWAYS_INLINE void JIT::sampleCodeBlock(CodeBlock* codeBlock)
 {
-    move(ImmPtr(m_interpreter->sampler()->codeBlockSlot()), X86::ecx);
-    storePtr(ImmPtr(codeBlock), X86::ecx);
+    move(ImmPtr(m_interpreter->sampler()->codeBlockSlot()), X86Registers::ecx);
+    storePtr(ImmPtr(codeBlock), X86Registers::ecx);
 }
 #else
 ALWAYS_INLINE void JIT::sampleCodeBlock(CodeBlock* codeBlock)
@@ -582,16 +586,26 @@ ALWAYS_INLINE bool JIT::isOperandConstantImmediateDouble(unsigned src)
 
 /* Deprecated: Please use JITStubCall instead. */
 
+ALWAYS_INLINE void JIT::emitPutJITStubArg(RegisterID tag, RegisterID payload, unsigned argumentNumber)
+{
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
+    poke(payload, argumentStackOffset);
+    poke(tag, argumentStackOffset + 1);
+}
+
+/* Deprecated: Please use JITStubCall instead. */
+
 ALWAYS_INLINE void JIT::emitPutJITStubArgFromVirtualRegister(unsigned src, unsigned argumentNumber, RegisterID scratch1, RegisterID scratch2)
 {
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
     if (m_codeBlock->isConstantRegisterIndex(src)) {
         JSValue constant = m_codeBlock->getConstant(src);
-        poke(Imm32(constant.payload()), argumentNumber);
-        poke(Imm32(constant.tag()), argumentNumber + 1);
+        poke(Imm32(constant.payload()), argumentStackOffset);
+        poke(Imm32(constant.tag()), argumentStackOffset + 1);
     } else {
         emitLoad(src, scratch1, scratch2);
-        poke(scratch2, argumentNumber);
-        poke(scratch1, argumentNumber + 1);
+        poke(scratch2, argumentStackOffset);
+        poke(scratch1, argumentStackOffset + 1);
     }
 }
 
@@ -812,12 +826,13 @@ ALWAYS_INLINE void JIT::emitTagAsBoolImmediate(RegisterID reg)
 // get arg puts an arg from the SF register array onto the stack, as an arg to a context threaded function.
 ALWAYS_INLINE void JIT::emitPutJITStubArgFromVirtualRegister(unsigned src, unsigned argumentNumber, RegisterID scratch)
 {
+    unsigned argumentStackOffset = (argumentNumber * (sizeof(JSValue) / sizeof(void*))) + 1;
     if (m_codeBlock->isConstantRegisterIndex(src)) {
         JSValue value = m_codeBlock->getConstant(src);
-        emitPutJITStubArgConstant(JSValue::encode(value), argumentNumber);
+        poke(ImmPtr(JSValue::encode(value)), argumentStackOffset);
     } else {
         loadPtr(Address(callFrameRegister, src * sizeof(Register)), scratch);
-        emitPutJITStubArg(scratch, argumentNumber);
+        poke(scratch, argumentStackOffset);
     }
 
     killLastResultRegister();

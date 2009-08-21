@@ -45,4 +45,4 @@ void ScrollView::setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj)
 {
 }
 
-}
+} // Namespace WebCore

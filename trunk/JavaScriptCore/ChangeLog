@@ -1,3 +1,385 @@
+2009-08-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Browser hangs on opening Web Inspector.
+        https://bugs.webkit.org/show_bug.cgi?id=28438
+
+        Code generation needs to be able to walk the entire scopechain in some
+        cases, however the symbol table used by activations was a member of the
+        codeblock.  Following recompilation this may no longer exist, leading
+        to a crash or hang on lookup.
+
+        We fix this by introducing a refcounted SymbolTable subclass, SharedSymbolTable,
+        for the CodeBlocks used by function code.  This allows activations to
+        maintain ownership of a copy of the symbol table even after recompilation so
+        they can continue to work.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::CodeBlock):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::symbolTable):
+        (JSC::CodeBlock::sharedSymbolTable):
+        (JSC::GlobalCodeBlock::GlobalCodeBlock):
+        (JSC::FunctionCodeBlock::FunctionCodeBlock):
+        (JSC::FunctionCodeBlock::~FunctionCodeBlock):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::retrieveArguments):
+        * runtime/Executable.cpp:
+        (JSC::EvalExecutable::generateBytecode):
+        (JSC::FunctionExecutable::generateBytecode):
+        (JSC::FunctionExecutable::reparseExceptionInfo):
+        (JSC::EvalExecutable::reparseExceptionInfo):
+        * runtime/JSActivation.h:
+        (JSC::JSActivation::JSActivationData::JSActivationData):
+        (JSC::JSActivation::JSActivationData::~JSActivationData):
+        * runtime/SymbolTable.h:
+
+2009-08-20  Xan Lopez  <xlopez@igalia.com>
+
+        Add new file to GTK+ build.
+
+        * GNUmakefile.am:
+
+2009-08-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Added a number => string cache.
+        
+        1.07x faster on v8 (1.7x faster on v8-splay).
+        1.004x faster on SunSpider.
+
+        * runtime/JSCell.h: Moved JSValue::toString to JSString.h.
+        * runtime/JSGlobalData.h: Holds the cache.
+        * runtime/JSNumberCell.cpp:
+        (JSC::JSNumberCell::toString):
+        (JSC::JSNumberCell::toThisString): Removed -0 special case.
+        UString handles this now, since too many clients were
+        special-casing it.
+
+        * runtime/JSString.h:
+        (JSC::JSValue::toString): Use the cache when converting
+        an int or double to string.
+
+        * runtime/Operations.h:
+        (JSC::concatenateStrings): Call toString to take advantage
+        of the cache.
+
+        * runtime/SmallStrings.h:
+        (JSC::NumericStrings::add):
+        (JSC::NumericStrings::lookup): The cache.
+
+        * runtime/UString.cpp:
+        (JSC::UString::from): Added -0 special case mentioned above.
+        Removed appendNumeric because it's mutually exclusive with the
+        cache.
+
+2009-08-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        REGRESSION: fast/profiler/call.html is crashing occasionally
+        https://bugs.webkit.org/show_bug.cgi?id=28476
+
+        Using the codeblock for information about how many parameters and
+        locals a function has is unsafe in certain circumstances.  The
+        basic scenario is all function code being cleared in response to
+        the debugger or profiler being enabled, and then an activation is
+        marked before its associated function is re-executed.
+
+        To deal with this scenario we store the variable count of a function
+        directly in the FunctionExecutable, and then use that information.
+
+        * runtime/Arguments.h:
+        (JSC::Arguments::getArgumentsData):
+        * runtime/Executable.cpp:
+        (JSC::FunctionExecutable::generateBytecode):
+        * runtime/Executable.h:
+        (JSC::FunctionExecutable::FunctionExecutable):
+        (JSC::FunctionExecutable::variableCount):
+        * runtime/JSActivation.cpp:
+        (JSC::JSActivation::markChildren):
+
+2009-08-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Numbering of arguments to emitGetJITStubArg/emitPutJITStubArg incorrect
+        https://bugs.webkit.org/show_bug.cgi?id=28513
+
+        The argumentNumber argument to emitGetJITStubArg/emitPutJITStubArg should match
+        the argument number used within the stub functions in JITStubs.cpp, but it doesn't.
+
+        Firstly, all the numbers changed when we added a void* 'reserved' as the first slot
+        (rather than leaving argument 0 unused), and secondly in 32_64 builds the index to
+        peek/poke needs to be multiplies by 2 (since the argument to peek/poke is a number
+        of machine words, and on 32_64 build the argument slots to stub functions are two
+        words wide).
+
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallSetupArgs):
+        (JSC::JIT::compileOpConstructSetupArgs):
+        (JSC::JIT::compileOpCallVarargsSetupArgs):
+        (JSC::JIT::compileOpCall):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitPutJITStubArg):
+        (JSC::JIT::emitPutJITStubArgConstant):
+        (JSC::JIT::emitGetJITStubArg):
+        (JSC::JIT::emitPutJITStubArgFromVirtualRegister):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+
+2009-08-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        REGRESSION: significant slowdown on Celtic Kane "AJAX declaration" subtest
+        https://bugs.webkit.org/show_bug.cgi?id=28332
+
+        Follow up style fixes that were missed in review.
+
+        * runtime/Structure.cpp:
+        (JSC::Structure::hasTransition):
+        * runtime/Structure.h:
+        (JSC::Structure::get):
+        (JSC::StructureTransitionTable::contains):
+        * runtime/StructureTransitionTable.h:
+        (JSC::StructureTransitionTable::add):
+
+2009-08-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Add new exports to windows jsc build
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        REGRESSION: significant slowdown on Celtic Kane "AJAX declaration" subtest
+        https://bugs.webkit.org/show_bug.cgi?id=28332
+
+        The method check optimisation made transitions aware of the value being
+        assigned when a transition was assigning a function.  This had the side
+        effect of making every assignment of a function expression result in a
+        new transition, and thus a new Structure.  The net result of this is that
+        the common JS idiom of
+
+            function MyObject() {
+                this.myFunction = function(...){...};
+            }
+            new MyObject();
+
+        Will produce a unique structure on every iteration, meaning that all
+        caching is defeated and there is a significant amount of structure churn.
+
+        The fix is to return the transition to its original form where it is
+        keyed off a property name + attributes tuple, but have each transition
+        support an optional transition on a specific value.
+
+        * JavaScriptCore.exp:
+        * runtime/JSObject.h:
+        (JSC::JSObject::putDirectInternal):
+        * runtime/Structure.cpp:
+        (JSC::Structure::~Structure):
+        (JSC::Structure::addPropertyTransitionToExistingStructure):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::hasTransition):
+        * runtime/Structure.h:
+        (JSC::Structure::transitionedFor):
+        (JSC::Structure::hasTransition):
+        (JSC::Structure::):
+        (JSC::StructureTransitionTable::contains):
+        (JSC::StructureTransitionTable::get):
+        * runtime/StructureTransitionTable.h:
+        (JSC::StructureTransitionTableHashTraits::emptyValue):
+        (JSC::StructureTransitionTable::hasTransition):
+        (JSC::StructureTransitionTable::remove):
+        (JSC::StructureTransitionTable::add):
+
+2009-08-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove FunctionCodeBlock.
+        https://bugs.webkit.org/show_bug.cgi?id=28502
+
+        These only exist to allow JIT code to dereference properties off the
+        CodeBlock for any callee, regardless of whether it is a host function.
+
+        Instead just use the FunctionExecutable.  Copy the m_parameters field
+        from the CodeBlock into the Executable, and use this to distinguish
+        between host functions, functions that have been bytecompiled, and
+        functions that have not.
+
+        m_parameters is moved to ExecutableBase rather than FunctionExecutable
+        so that (as a separate change) we can move make a separate class of
+        executable for host code, which is not devived from FunctionExecutable
+        (host code does not feature any of the properties that normal executable
+        do and will provide, such as source, attributes, and a parsed name).
+
+        1% win on v8 tests, 0.5% on sunspider.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::derefStructures):
+        (JSC::CodeBlock::refStructures):
+        (JSC::CodeBlock::reparseForExceptionInfoIfNecessary):
+        (JSC::CodeBlock::handlerForBytecodeOffset):
+        (JSC::CodeBlock::lineNumberForBytecodeOffset):
+        (JSC::CodeBlock::expressionRangeForBytecodeOffset):
+        (JSC::CodeBlock::getByIdExceptionInfoForBytecodeOffset):
+        (JSC::CodeBlock::functionRegisterForBytecodeOffset):
+        (JSC::CodeBlock::hasGlobalResolveInstructionAtBytecodeOffset):
+        (JSC::CodeBlock::hasGlobalResolveInfoAtBytecodeOffset):
+        * bytecode/CodeBlock.h:
+        (JSC::):
+        (JSC::CodeBlock::source):
+        (JSC::CodeBlock::sourceOffset):
+        (JSC::CodeBlock::evalCodeCache):
+        (JSC::CodeBlock::createRareDataIfNecessary):
+        
+            remove NativeCodeBlocks and the NativeCode code type.
+        
+        * jit/JIT.cpp:
+        (JSC::JIT::linkCall):
+
+            Revert to previous behaviour (as currently still commented!) that Hhost functions have a null codeblock.
+
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallInitializeCallFrame):
+        (JSC::JIT::compileOpCallSetupArgs):
+        (JSC::JIT::compileOpCallVarargsSetupArgs):
+        (JSC::JIT::compileOpConstructSetupArgs):
+        (JSC::JIT::compileOpCallVarargs):
+        (JSC::JIT::compileOpCall):
+        (JSC::JIT::compileOpCallSlowCase):
+
+            Bring the 32_64 & non-32_64 JITs into line with each other, callee in regT0.
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+
+            Rewrite call trampolines to not use the CodeBlock.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+
+            Make call_JSFunction & call_arityCheck return the callee, don't expect to be passed the CodeBlock.
+
+        * runtime/Executable.cpp:
+        (JSC::FunctionExecutable::generateBytecode):
+        (JSC::FunctionExecutable::recompile):
+        (JSC::FunctionExecutable::FunctionExecutable):
+        * runtime/Executable.h:
+        (JSC::ExecutableBase::):
+        (JSC::ExecutableBase::ExecutableBase):
+        (JSC::FunctionExecutable::isHostFunction):
+
+            Add m_numParameters.
+
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::~JSFunction):
+
+            Only call generatedBytecode() on JSFunctions non-host FunctionExecutables.
+
+2009-08-20  Yongjun Zhang  <yongjun.zhang@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28054
+       
+        Use a helper function to work around winscw compiler forward declaration bug
+        regarding templated classes.
+
+        Add parenthesis around (PassRefPtr::*UnspecifiedBoolType) to make winscw compiler
+        work with the default UnSpecifiedBoolType() operator, which removes the winscw
+        specific bool cast hack.
+
+        * wtf/PassRefPtr.h:
+        (WTF::derefIfNotNull):
+        (WTF::PassRefPtr::~PassRefPtr):
+
+2009-08-19  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Change namespace ARM to ARMRegisters
+        X86 to X86Registers to avoid conflict with macros
+        https://bugs.webkit.org/show_bug.cgi?id=28428
+
+        * assembler/ARMAssembler.cpp:
+        * assembler/ARMAssembler.h:
+        * assembler/ARMv7Assembler.h:
+        * assembler/MacroAssemblerARM.h:
+        * assembler/MacroAssemblerARMv7.h:
+        * assembler/MacroAssemblerX86Common.h:
+        * assembler/MacroAssemblerX86_64.h:
+        * assembler/X86Assembler.h:
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        * jit/JITInlineMethods.h:
+        * jit/JITOpcodes.cpp:
+        * wrec/WRECGenerator.cpp:
+        * wrec/WRECGenerator.h:
+        * yarr/RegexJIT.cpp:
+
+2009-08-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Devirtualise marking
+        https://bugs.webkit.org/show_bug.cgi?id=28294
+
+        We actually need to mark the value in a number object if we're using the
+        32bit number representation.
+
+        * runtime/NumberObject.h:
+        (JSC::NumberObject::createStructure):
+
+2009-08-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+         We probably shouldn't be keeping the AST for eval nodes around forevar.
+        https://bugs.webkit.org/show_bug.cgi?id=28469
+
+        EvalNodes don't destroyData() (delete their parser data) since they need to hold onto
+        their varStack.  Copy a list of variable onto EvalCodeBlock, and this can go away.
+
+        * bytecode/CodeBlock.h:
+        (JSC::EvalCodeBlock::variable):
+        (JSC::EvalCodeBlock::numVariables):
+        (JSC::EvalCodeBlock::adoptVariables):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        * parser/Nodes.h:
+        * runtime/Executable.cpp:
+        (JSC::EvalExecutable::generateBytecode):
+        * runtime/Executable.h:
+
+2009-08-19  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        http://bugs.webkit.org/show_bug.cgi?id=28441
+
+        Fix a build issue with ICU 4.2 or later on Windows with Visual C++. 
+        Instead of defining all isXXX and toupper/tolower as 
+          WTF_Please_use_ASCIICType_instead_of_ctype_see_comment_in_ASCIICType_h,
+        #define them to be different by prepending 'WTF_...ASCIIType_h' with
+        the originial names like 'toupper_WTF_...ASCIIType_h'. 
+
+        * wtf/DisallowCType.h:
+
 2009-08-19  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Gavin Barraclough.

@@ -61,7 +61,7 @@ namespace JSC {
 
     class ExecState;
 
-    enum CodeType { GlobalCode, EvalCode, FunctionCode, NativeCode };
+    enum CodeType { GlobalCode, EvalCode, FunctionCode };
 
     static ALWAYS_INLINE int missingThisObjectMarker() { return std::numeric_limits<int>::max(); }
 
@@ -261,10 +261,9 @@ namespace JSC {
     class CodeBlock : public FastAllocBase {
         friend class JIT;
     protected:
-        CodeBlock(ExecutableBase* ownerExecutable);
-        CodeBlock(ExecutableBase* ownerExecutable, CodeType, PassRefPtr<SourceProvider>, unsigned sourceOffset);
+        CodeBlock(ExecutableBase* ownerExecutable, CodeType, PassRefPtr<SourceProvider>, unsigned sourceOffset, SymbolTable* symbolTable);
     public:
-        ~CodeBlock();
+        virtual ~CodeBlock();
 
         void markAggregate(MarkStack&);
         void refStructures(Instruction* vPC) const;
@@ -378,8 +377,8 @@ namespace JSC {
 
         CodeType codeType() const { return m_codeType; }
 
-        SourceProvider* source() const { ASSERT(m_codeType != NativeCode); return m_source.get(); }
-        unsigned sourceOffset() const { ASSERT(m_codeType != NativeCode); return m_sourceOffset; }
+        SourceProvider* source() const { return m_source.get(); }
+        unsigned sourceOffset() const { return m_sourceOffset; }
 
         size_t numberOfJumpTargets() const { return m_jumpTargets.size(); }
         void addJumpTarget(unsigned jumpTarget) { m_jumpTargets.append(jumpTarget); }
@@ -467,9 +466,10 @@ namespace JSC {
         StringJumpTable& stringSwitchJumpTable(int tableIndex) { ASSERT(m_rareData); return m_rareData->m_stringSwitchJumpTables[tableIndex]; }
 
 
-        SymbolTable& symbolTable() { return m_symbolTable; }
+        SymbolTable* symbolTable() { return m_symbolTable; }
+        SharedSymbolTable* sharedSymbolTable() { ASSERT(m_codeType == FunctionCode); return static_cast<SharedSymbolTable*>(m_symbolTable); }
 
-        EvalCodeCache& evalCodeCache() { ASSERT(m_codeType != NativeCode); createRareDataIfNecessary(); return m_rareData->m_evalCodeCache; }
+        EvalCodeCache& evalCodeCache() { createRareDataIfNecessary(); return m_rareData->m_evalCodeCache; }
 
         void shrinkToFit();
 
@@ -488,7 +488,6 @@ namespace JSC {
 
         void createRareDataIfNecessary()
         {
-            ASSERT(m_codeType != NativeCode); 
             if (!m_rareData)
                 m_rareData.set(new RareData);
         }
@@ -532,7 +531,7 @@ namespace JSC {
         Vector<RefPtr<FunctionExecutable> > m_functionDecls;
         Vector<RefPtr<FunctionExecutable> > m_functionExprs;
 
-        SymbolTable m_symbolTable;
+        SymbolTable* m_symbolTable;
 
         OwnPtr<ExceptionInfo> m_exceptionInfo;
 
@@ -562,7 +561,7 @@ namespace JSC {
     class GlobalCodeBlock : public CodeBlock {
     public:
         GlobalCodeBlock(ExecutableBase* ownerExecutable, CodeType codeType, PassRefPtr<SourceProvider> sourceProvider, unsigned sourceOffset, JSGlobalObject* globalObject)
-            : CodeBlock(ownerExecutable, codeType, sourceProvider, sourceOffset)
+            : CodeBlock(ownerExecutable, codeType, sourceProvider, sourceOffset, &m_unsharedSymbolTable)
             , m_globalObject(globalObject)
         {
             m_globalObject->codeBlocks().add(this);
@@ -578,6 +577,7 @@ namespace JSC {
 
     private:
         JSGlobalObject* m_globalObject; // For program and eval nodes, the global object that marks the constant pool.
+        SymbolTable m_unsharedSymbolTable;
     };
 
     class ProgramCodeBlock : public GlobalCodeBlock {
@@ -598,23 +598,32 @@ namespace JSC {
 
         int baseScopeDepth() const { return m_baseScopeDepth; }
 
+        const Identifier& variable(unsigned index) { return m_variables[index]; }
+        unsigned numVariables() { return m_variables.size(); }
+        void adoptVariables(Vector<Identifier>& variables)
+        {
+            ASSERT(m_variables.isEmpty());
+            m_variables.swap(variables);
+        }
+
     private:
         int m_baseScopeDepth;
+        Vector<Identifier> m_variables;
     };
 
     class FunctionCodeBlock : public CodeBlock {
     public:
+        // Rather than using the usual RefCounted::create idiom for SharedSymbolTable we just use new
+        // as we need to initialise the CodeBlock before we could initialise any RefPtr to hold the shared
+        // symbol table, so we just pass as a raw pointer with a ref count of 1.  We then manually deref
+        // in the destructor.
         FunctionCodeBlock(FunctionExecutable* ownerExecutable, CodeType codeType, PassRefPtr<SourceProvider> sourceProvider, unsigned sourceOffset)
-            : CodeBlock(ownerExecutable, codeType, sourceProvider, sourceOffset)
+            : CodeBlock(ownerExecutable, codeType, sourceProvider, sourceOffset, new SharedSymbolTable)
         {
         }
-    };
-
-    class NativeCodeBlock : public CodeBlock {
-    public:
-        NativeCodeBlock(FunctionExecutable* ownerExecutable)
-            : CodeBlock(ownerExecutable)
+        ~FunctionCodeBlock()
         {
+            sharedSymbolTable()->deref();
         }
     };
 

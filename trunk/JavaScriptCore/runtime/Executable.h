@@ -40,10 +40,19 @@ namespace JSC {
     class ExecutableBase {
         friend class JIT;
     public:
+        enum Mode {
+            NoJITCode,
+            HasJITCode,
+            IsHost
+        };
+        static const int NUM_PARAMETERS_IS_HOST = 0;
+        static const int NUM_PARAMETERS_NOT_COMPILED = -1;
+    
         virtual ~ExecutableBase() {}
 
         ExecutableBase(const SourceCode& source)
             : m_source(source)
+            , m_numParameters(NUM_PARAMETERS_NOT_COMPILED)
         {
         }
 
@@ -59,11 +68,10 @@ namespace JSC {
 
         virtual ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*) = 0;
 
-        ScopeNode* astNode() { return m_node.get(); }
-
     protected:
         RefPtr<ScopeNode> m_node;
         SourceCode m_source;
+        int m_numParameters;
 
     private:
         // For use making native thunk.
@@ -108,8 +116,6 @@ namespace JSC {
                 generateBytecode(scopeChainNode);
             return *m_evalCodeBlock;
         }
-
-        DeclarationStacks::VarStack& varStack() { return m_node->varStack(); }
 
         ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*);
 
@@ -195,6 +201,7 @@ namespace JSC {
             : ExecutableBase(body->source())
             , m_codeBlock(0)
             , m_name(name)
+            , m_numVariables(0)
         {
             m_node = body;
         }
@@ -221,9 +228,10 @@ namespace JSC {
         bool usesEval() const { return body()->usesEval(); }
         bool usesArguments() const { return body()->usesArguments(); }
         size_t parameterCount() const { return body()->parameterCount(); }
+        size_t variableCount() const { return m_numVariables; }
         UString paramString() const { return body()->paramString(); }
 
-        bool isHostFunction() const;
+        bool isHostFunction() const { return m_numParameters == NUM_PARAMETERS_IS_HOST; }
         bool isGenerated() const
         {
             return m_codeBlock;
@@ -242,6 +250,7 @@ namespace JSC {
 
         CodeBlock* m_codeBlock;
         const Identifier& m_name;
+        size_t m_numVariables;
 
 #if ENABLE(JIT)
     public:

@@ -339,3 +339,8 @@ unsigned LayoutTestController::workerThreadCount() const
   // FIXME: implement
     return 0;
 }
+
+void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
+{
+    // FIXME: Implement.
+}
