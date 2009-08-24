@@ -110,6 +110,11 @@
 #include "SegmentedString.h"
 #include "SelectionController.h"
 #include "Settings.h"
+
+#if ENABLE(SHARED_WORKERS)
+#include "SharedWorkerRepository.h"
+#endif
+
 #include "StyleSheetList.h"
 #include "TextEvent.h"
 #include "TextIterator.h"
@@ -160,6 +165,7 @@
 #if ENABLE(SVG)
 #include "SVGDocumentExtensions.h"
 #include "SVGElementFactory.h"
+#include "SVGNames.h"
 #include "SVGZoomEvent.h"
 #include "SVGStyleElement.h"
 #endif
@@ -800,7 +806,7 @@ PassRefPtr<Element> Document::createElement(const QualifiedName& qName, bool cre
 #endif
     
     if (!e)
-        e = new Element(qName, document());
+        e = Element::create(qName, document());
 
     // <image> uses imgTag so we need a special rule.
 #if ENABLE(WML)

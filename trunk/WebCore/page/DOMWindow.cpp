@@ -2058,6 +2058,16 @@ void DOMWindow::setOncontextmenu(PassRefPtr<EventListener> eventListener)
     setAttributeEventListener(eventNames().contextmenuEvent, eventListener);
 }
 
+EventListener* DOMWindow::oninvalid() const
+{
+    return getAttributeEventListener(eventNames().invalidEvent);
+}
+
+void DOMWindow::setOninvalid(PassRefPtr<EventListener> eventListener)
+{
+    setAttributeEventListener(eventNames().invalidEvent, eventListener);
+}
+
 void DOMWindow::captureEvents()
 {
     // Not implemented.

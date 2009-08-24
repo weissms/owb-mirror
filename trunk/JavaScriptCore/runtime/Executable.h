@@ -26,6 +26,7 @@
 #ifndef Executable_h
 #define Executable_h
 
+#include "JSFunction.h"
 #include "Nodes.h"
 
 namespace JSC {
@@ -37,48 +38,25 @@ namespace JSC {
 
     struct ExceptionInfo;
 
-    class ExecutableBase {
+    class ExecutableBase : public RefCounted<ExecutableBase> {
         friend class JIT;
-    public:
-        enum Mode {
-            NoJITCode,
-            HasJITCode,
-            IsHost
-        };
+
+    protected:
         static const int NUM_PARAMETERS_IS_HOST = 0;
         static const int NUM_PARAMETERS_NOT_COMPILED = -1;
     
+    public:
+        ExecutableBase(int numParameters)
+            : m_numParameters(numParameters)
+        {
+        }
+
         virtual ~ExecutableBase() {}
 
-        ExecutableBase(const SourceCode& source)
-            : m_source(source)
-            , m_numParameters(NUM_PARAMETERS_NOT_COMPILED)
-        {
-        }
-
-        const SourceCode& source() { return m_source; }
-        intptr_t sourceID() const { return m_node->sourceID(); }
-        const UString& sourceURL() const { return m_node->sourceURL(); }
-        int lineNo() const { return m_node->lineNo(); }
-        int lastLine() const { return m_node->lastLine(); }
-
-        bool usesEval() const { return m_node->usesEval(); }
-        bool usesArguments() const { return m_node->usesArguments(); }
-        bool needsActivation() const { return m_node->needsActivation(); }
-
-        virtual ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*) = 0;
+        bool isHostFunction() const { return m_numParameters == NUM_PARAMETERS_IS_HOST; }
 
     protected:
-        RefPtr<ScopeNode> m_node;
-        SourceCode m_source;
         int m_numParameters;
-
-    private:
-        // For use making native thunk.
-        friend class FunctionExecutable;
-        ExecutableBase()
-        {
-        }
 
 #if ENABLE(JIT)
     public:
@@ -98,17 +76,65 @@ namespace JSC {
 #endif
     };
 
-    class EvalExecutable : public ExecutableBase {
+#if ENABLE(JIT)
+    class NativeExecutable : public ExecutableBase {
+    public:
+        NativeExecutable(ExecState* exec)
+            : ExecutableBase(NUM_PARAMETERS_IS_HOST)
+        {
+            m_jitCode = JITCode(JITCode::HostFunction(exec->globalData().jitStubs.ctiNativeCallThunk()));
+        }
+
+        ~NativeExecutable();
+    };
+#endif
+
+    class VPtrHackExecutable : public ExecutableBase {
+    public:
+        VPtrHackExecutable()
+            : ExecutableBase(NUM_PARAMETERS_IS_HOST)
+        {
+        }
+
+        ~VPtrHackExecutable();
+    };
+
+    class ScriptExecutable : public ExecutableBase {
+    public:
+        ScriptExecutable(const SourceCode& source)
+            : ExecutableBase(NUM_PARAMETERS_NOT_COMPILED)
+            , m_source(source)
+        {
+        }
+
+        const SourceCode& source() { return m_source; }
+        intptr_t sourceID() const { return m_node->sourceID(); }
+        const UString& sourceURL() const { return m_node->sourceURL(); }
+        int lineNo() const { return m_node->lineNo(); }
+        int lastLine() const { return m_node->lastLine(); }
+
+        bool usesEval() const { return m_node->usesEval(); }
+        bool usesArguments() const { return m_node->usesArguments(); }
+        bool needsActivation() const { return m_node->needsActivation(); }
+
+        virtual ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*) = 0;
+
+    protected:
+        SourceCode m_source;
+        RefPtr<ScopeNode> m_node;
+    };
+
+    class EvalExecutable : public ScriptExecutable {
     public:
         EvalExecutable(const SourceCode& source)
-            : ExecutableBase(source)
+            : ScriptExecutable(source)
             , m_evalCodeBlock(0)
         {
         }
 
         ~EvalExecutable();
 
-        JSObject* parse(ExecState* exec, bool allowDebug = true);
+        JSObject* parse(ExecState*, bool allowDebug = true);
 
         EvalCodeBlock& bytecode(ScopeChainNode* scopeChainNode)
         {
@@ -118,6 +144,8 @@ namespace JSC {
         }
 
         ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*);
+
+        static PassRefPtr<EvalExecutable> create(const SourceCode& source) { return adoptRef(new EvalExecutable(source)); }
 
     private:
         EvalNode* evalNode() { return static_cast<EvalNode*>(m_node.get()); }
@@ -140,28 +168,17 @@ namespace JSC {
 #endif
     };
 
-    class CacheableEvalExecutable : public EvalExecutable, public RefCounted<CacheableEvalExecutable> {
-    public:
-        static PassRefPtr<CacheableEvalExecutable> create(const SourceCode& source) { return adoptRef(new CacheableEvalExecutable(source)); }
-
-    private:
-        CacheableEvalExecutable(const SourceCode& source)
-            : EvalExecutable(source)
-        {
-        }
-    };
-
-    class ProgramExecutable : public ExecutableBase {
+    class ProgramExecutable : public ScriptExecutable {
     public:
         ProgramExecutable(const SourceCode& source)
-            : ExecutableBase(source)
+            : ScriptExecutable(source)
             , m_programCodeBlock(0)
         {
         }
         
         ~ProgramExecutable();
 
-        JSObject* parse(ExecState* exec, bool allowDebug = true);
+        JSObject* parse(ExecState*, bool allowDebug = true);
 
         // CodeBlocks for program code are transient and therefore to not gain from from throwing out there exception information.
         ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*) { ASSERT_NOT_REACHED(); return 0; }
@@ -194,11 +211,11 @@ namespace JSC {
 #endif
     };
 
-    class FunctionExecutable : public ExecutableBase, public RefCounted<FunctionExecutable> {
+    class FunctionExecutable : public ScriptExecutable {
         friend class JIT;
     public:
         FunctionExecutable(const Identifier& name, FunctionBodyNode* body)
-            : ExecutableBase(body->source())
+            : ScriptExecutable(body->source())
             , m_codeBlock(0)
             , m_name(name)
             , m_numVariables(0)
@@ -210,7 +227,7 @@ namespace JSC {
 
         const Identifier& name() { return m_name; }
 
-        JSFunction* make(ExecState* exec, ScopeChainNode* scopeChain);
+        JSFunction* make(ExecState*, ScopeChainNode* scopeChain);
 
         CodeBlock& bytecode(ScopeChainNode* scopeChainNode) 
         {
@@ -231,13 +248,12 @@ namespace JSC {
         size_t variableCount() const { return m_numVariables; }
         UString paramString() const { return body()->paramString(); }
 
-        bool isHostFunction() const { return m_numParameters == NUM_PARAMETERS_IS_HOST; }
         bool isGenerated() const
         {
             return m_codeBlock;
         }
 
-        void recompile(ExecState* exec);
+        void recompile(ExecState*);
 
         ExceptionInfo* reparseExceptionInfo(JSGlobalData*, ScopeChainNode*, CodeBlock*);
 
@@ -261,17 +277,28 @@ namespace JSC {
             return m_jitCode;
         }
 
-        static PassRefPtr<FunctionExecutable> createNativeThunk(ExecState* exec)
-        {
-            return adoptRef(new FunctionExecutable(exec));
-        }
-
     private:
-        FunctionExecutable(ExecState* exec);
         void generateJITCode(ScopeChainNode*);
 #endif
     };
 
-};
+    inline FunctionExecutable* JSFunction::jsExecutable() const
+    {
+        ASSERT(!isHostFunctionNonInline());
+        return static_cast<FunctionExecutable*>(m_executable.get());
+    }
+
+    inline JSFunction* FunctionExecutable::make(ExecState* exec, ScopeChainNode* scopeChain)
+    {
+        return new (exec) JSFunction(exec, this, scopeChain);
+    }
+
+    inline bool JSFunction::isHostFunction() const
+    {
+        ASSERT(m_executable);
+        return m_executable->isHostFunction();
+    }
+
+}
 
 #endif

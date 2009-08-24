@@ -1,3 +1,36 @@
+2009-08-24  Adam Barth  <abarth@webkit.org>
+
+        Revert 47684.  We're going to do this later once clients have had a
+        chance to opt into the setting they like.
+
+        * Misc/WebKitVersionChecks.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+
+2009-08-22  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Don't let local files access web URLs
+        https://bugs.webkit.org/show_bug.cgi?id=28480
+
+        * Misc/WebKitVersionChecks.m:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+
+2009-08-21  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/7162480>
+        Sometimes WebKit does not layout correctly when a WebView is embedded in an HICocoaView
+        
+        Add a null check for the current context when reflectScrolledClipView: is called from outside a 
+        draw operation.
+        
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView reflectScrolledClipView:]):
+
 2009-08-21  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Darin Adler.

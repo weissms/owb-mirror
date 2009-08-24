@@ -102,15 +102,15 @@ CanvasRenderingContext2D::CanvasRenderingContext2D(HTMLCanvasElement* canvas)
     setLineWidth(lineWidth());
 }
 
-void CanvasRenderingContext2D::ref()
-{
-    m_canvas->ref();
-}
+void CanvasRenderingContext2D::ref() 
+{ 
+    m_canvas->ref(); 
+} 
 
-void CanvasRenderingContext2D::deref()
-{
-    m_canvas->deref(); 
-}
+void CanvasRenderingContext2D::deref() 
+{ 
+    m_canvas->deref();  
+} 
 
 void CanvasRenderingContext2D::reset()
 {

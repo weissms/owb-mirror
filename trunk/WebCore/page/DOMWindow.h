@@ -378,6 +378,8 @@ namespace WebCore {
         void setOnmessage(PassRefPtr<EventListener>);
         EventListener* oncontextmenu() const;
         void setOncontextmenu(PassRefPtr<EventListener>);
+        EventListener* oninvalid() const;
+        void setOninvalid(PassRefPtr<EventListener>);
 
         void captureEvents();
         void releaseEvents();

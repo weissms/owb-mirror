@@ -43,6 +43,9 @@ public:
     HTMLFormElement* form() const { return m_form; }
     virtual ValidityState* validity();
 
+    bool formNoValidate() const;
+    void setFormNoValidate(bool);
+
     virtual bool isTextFormControl() const { return false; }
     virtual bool isEnabledFormControl() const { return !disabled(); }
 
@@ -102,6 +105,7 @@ public:
     virtual short tabIndex() const;
 
     virtual bool willValidate() const;
+    bool checkValidity();
     void setCustomValidity(const String&);
 
     virtual bool valueMissing() const { return false; }

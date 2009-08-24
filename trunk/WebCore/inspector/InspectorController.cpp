@@ -34,6 +34,7 @@
 #include "CachedResource.h"
 #include "Console.h"
 #include "ConsoleMessage.h"
+#include "CookieJar.h"
 #include "Document.h"
 #include "DocumentLoader.h"
 #include "Element.h"
@@ -1475,8 +1476,8 @@ InspectorController::SpecialPanels InspectorController::specialPanelForJSName(co
         return ScriptsPanel;
     else if (panelName == "profiles")
         return ProfilesPanel;
-    else if (panelName == "databases")
-        return DatabasesPanel;
+    else if (panelName == "storage" || panelName == "databases")
+        return StoragePanel;
     else
         return ElementsPanel;
 }
@@ -1509,6 +1510,12 @@ void InspectorController::resetInjectedScript()
 {
     ScriptFunctionCall function(m_scriptState, m_injectedScriptObj, "reset");
     function.call();
+}
+
+void InspectorController::deleteCookie(const String& cookieName)
+{
+    Document* document = m_inspectedPage->mainFrame()->document();
+    WebCore::deleteCookie(document, document->cookieURL(), cookieName);
 }
 
 } // namespace WebCore

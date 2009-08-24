@@ -139,9 +139,6 @@ void InspectorFrontend::showPanel(int panel)
         case InspectorController::ConsolePanel:
             showFunctionName = "showConsole";
             break;
-        case InspectorController::DatabasesPanel:
-            showFunctionName = "showDatabasesPanel";
-            break;
         case InspectorController::ElementsPanel:
             showFunctionName = "showElementsPanel";
             break;
@@ -153,6 +150,9 @@ void InspectorFrontend::showPanel(int panel)
             break;
         case InspectorController::ScriptsPanel:
             showFunctionName = "showScriptsPanel";
+            break;
+        case InspectorController::StoragePanel:
+            showFunctionName = "showStoragePanel";
             break;
         default:
             ASSERT_NOT_REACHED();
@@ -344,6 +344,15 @@ void InspectorFrontend::didApplyDomChange(int callId, bool success)
     OwnPtr<ScriptFunctionCall> function(newFunctionCall("didApplyDomChange"));
     function->appendArgument(callId);
     function->appendArgument(success);
+    function->call();
+}
+
+void InspectorFrontend::didGetCookies(int callId, const ScriptArray& cookies, const String& cookiesString)
+{
+    OwnPtr<ScriptFunctionCall> function(newFunctionCall("didGetCookies"));
+    function->appendArgument(callId);
+    function->appendArgument(cookies);
+    function->appendArgument(cookiesString);
     function->call();
 }
 

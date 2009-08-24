@@ -218,6 +218,7 @@ module window {
         attribute EventListener onfocus;
         attribute EventListener onhashchange;
         attribute EventListener oninput;
+        attribute EventListener oninvalid;
         attribute EventListener onkeydown;
         attribute EventListener onkeypress;
         attribute EventListener onkeyup;
@@ -259,7 +260,6 @@ module window {
         // attribute EventListener onformchange;
         // attribute EventListener onforminput;
         // attribute EventListener onhashchange;
-        // attribute EventListener oninvalid;
         // attribute EventListener onpopstate;
         // attribute EventListener onreadystatechange;
         // attribute EventListener onredo;

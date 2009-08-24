@@ -1,3 +1,72 @@
+2009-08-24  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix a couple of typos.
+
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_class_init):
+
+2009-08-23  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Update editing-behavior property here too.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_settings_notify):
+
+2009-08-23  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Rubberstamped by Gustavo Noronha.
+
+        Fix regressions introduced by http://trac.webkit.org/changeset/47690.
+
+        Update the setting whenever the property gets set.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_settings_notify):
+
+2009-08-23  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] API for disabling local file access to web URLs
+        https://bugs.webkit.org/show_bug.cgi?id=28663
+
+        Add a setting to enable or disable file access to web URLs. It's
+        disabled by default for security reasons.
+
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_class_init):
+        (webkit_web_settings_set_property):
+        (webkit_web_settings_get_property):
+        (webkit_web_settings_copy):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_update_settings):
+
+2009-08-22  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28154
+        clicking below end of text in a textarea moves cursor to wrong position
+
+        Expose the EditingBehavior setting and set it by default to Mac,
+        since that what matches the GTK+ default behavior.
+
+        * webkit/webkitprivate.cpp:
+        (WebKit::core):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_class_init):
+        (webkit_web_settings_set_property):
+        (webkit_web_settings_get_property):
+        (webkit_web_settings_copy):
+        * webkit/webkitwebsettings.h:
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_update_settings):
+
 2009-08-21  Aaron Boodman  <aa@chromium.org>
 
         Hopefully the last speculative build for gtk.

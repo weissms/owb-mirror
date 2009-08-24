@@ -94,11 +94,11 @@ public:
     typedef enum {
         CurrentPanel,
         ConsolePanel,
-        DatabasesPanel,
         ElementsPanel,
         ProfilesPanel,
         ResourcesPanel,
-        ScriptsPanel
+        ScriptsPanel,
+        StoragePanel
     } SpecialPanels;
 
     struct Setting {
@@ -287,6 +287,8 @@ private:
     ScriptValue unwrapObject(const String& objectId);
     
     void resetInjectedScript();
+
+    void deleteCookie(const String& cookieName);
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
     void startUserInitiatedProfilingSoon();

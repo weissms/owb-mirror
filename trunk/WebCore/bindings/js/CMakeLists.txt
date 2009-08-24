@@ -17,6 +17,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCSSRuleListCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
+    bindings/js/JSCanvasNumberArrayCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSCustomPositionCallback.cpp

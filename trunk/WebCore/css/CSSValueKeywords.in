@@ -169,6 +169,8 @@ repeat
 repeat-x
 repeat-y
 no-repeat
+# round
+# space
 #
 # CSS_PROP__WEBKIT_BACKGROUND_COMPOSITE:
 #
@@ -550,6 +552,12 @@ content
 content-box
 padding
 padding-box
+
+#
+# background-size
+#
+contain
+cover
 
 #
 # CSS_PROP__KHTML_RTL_ORDERING

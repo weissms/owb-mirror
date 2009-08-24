@@ -132,12 +132,15 @@ enum EFillBox {
 };
 
 enum EFillRepeat {
-    RepeatFill, RepeatXFill, RepeatYFill, NoRepeatFill
+    RepeatFill, RepeatXFill, RepeatYFill, NoRepeatFill, RoundFill, SpaceFill
 };
 
 enum EFillLayerType {
     BackgroundFillLayer, MaskFillLayer
 };
+
+// CSS3 Background Values
+enum EFillSizeType { Contain, Cover, SizeLength, SizeNone };
 
 // CSS3 Marquee Properties
 

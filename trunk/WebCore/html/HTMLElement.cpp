@@ -56,13 +56,9 @@ using namespace HTMLNames;
 using std::min;
 using std::max;
 
-HTMLElement::HTMLElement(const QualifiedName& tagName, Document *doc)
-    : StyledElement(tagName, doc)
+PassRefPtr<HTMLElement> HTMLElement::create(const QualifiedName& tagName, Document* document)
 {
-}
-
-HTMLElement::~HTMLElement()
-{
+    return adoptRef(new HTMLElement(tagName, document, CreateElement));
 }
 
 String HTMLElement::nodeName() const
@@ -224,6 +220,8 @@ void HTMLElement::parseMappedAttribute(MappedAttribute *attr)
         setAttributeEventListener(eventNames().webkitTransitionEndEvent, createAttributeEventListener(this, attr));
     } else if (attr->name() == oninputAttr) {
         setAttributeEventListener(eventNames().inputEvent, createAttributeEventListener(this, attr));
+    } else if (attr->name() == oninvalidAttr) {
+        setAttributeEventListener(eventNames().invalidEvent, createAttributeEventListener(this, attr));
     }
 }
 

@@ -96,7 +96,7 @@
  * gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
  *
  * /<!-- -->* Open a webpage *<!-- -->/
- * webkit_web_view_open (WEBKIT_WEB_VIEW (web_view), "http://www.gnome.org");
+ * webkit_web_view_load_uri (WEBKIT_WEB_VIEW (web_view), "http://www.gnome.org");
  *
  * /<!-- -->* Show the result *<!-- -->/
  * gtk_window_set_default_size (GTK_WINDOW (main_window), 800, 600);
@@ -2240,7 +2240,10 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     gboolean autoLoadImages, autoShrinkImages, printBackgrounds,
         enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
         enablePrivateBrowsing, enableCaretBrowsing, enableHTML5Database, enableHTML5LocalStorage,
-        enableXSSAuditor, javascriptCanOpenWindows, enableOfflineWebAppCache;
+        enableXSSAuditor, javascriptCanOpenWindows, enableOfflineWebAppCache,
+        enableUniversalAccessFromFileURI;
+
+    WebKitEditingBehavior editingBehavior;
 
     g_object_get(webSettings,
                  "default-encoding", &defaultEncoding,
@@ -2265,6 +2268,8 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "enable-xss-auditor", &enableXSSAuditor,
                  "javascript-can-open-windows-automatically", &javascriptCanOpenWindows,
                  "enable-offline-web-application-cache", &enableOfflineWebAppCache,
+                 "editing-behavior", &editingBehavior,
+                 "enable-universal-access-from-file-uris", &enableUniversalAccessFromFileURI,
                  NULL);
 
     settings->setDefaultTextEncodingName(defaultEncoding);
@@ -2289,6 +2294,8 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setXSSAuditorEnabled(enableXSSAuditor);
     settings->setJavaScriptCanOpenWindowsAutomatically(javascriptCanOpenWindows);
     settings->setOfflineWebApplicationCacheEnabled(enableOfflineWebAppCache);
+    settings->setEditingBehavior(core(editingBehavior));
+    settings->setAllowUniversalAccessFromFileURLs(enableUniversalAccessFromFileURI);
 
     g_free(defaultEncoding);
     g_free(cursiveFontFamily);
@@ -2371,6 +2378,10 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setJavaScriptCanOpenWindowsAutomatically(g_value_get_boolean(&value));
     else if (name == g_intern_string("enable-offline-web-application-cache"))
         settings->setOfflineWebApplicationCacheEnabled(g_value_get_boolean(&value));
+    else if (name == g_intern_string("editing-behavior"))
+        settings->setEditingBehavior(core(static_cast<WebKitEditingBehavior>(g_value_get_enum(&value))));
+    else if (name == g_intern_string("enable-universal-access-from-file-uris"))
+        settings->setAllowUniversalAccessFromFileURLs(g_value_get_boolean(&value));
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
         g_warning("Unexpected setting '%s'", name);
     g_value_unset(&value);

@@ -384,7 +384,7 @@ WebInspector.ConsoleView.prototype = {
 
     _format: function(output, forceObjectFormat)
     {
-        var isProxy = typeof output === "object";
+        var isProxy = (output != null && typeof output === "object");
 
         if (forceObjectFormat)
             var type = "object";
@@ -468,7 +468,7 @@ WebInspector.ConsoleView.prototype = {
             }
             elem.appendChild(document.createTextNode("]"));
         }
-        InspectorController.getProperties(arr, true, printResult);
+        InspectorController.getProperties(arr, false, printResult);
     },
 
     _formatnode: function(object, elem)

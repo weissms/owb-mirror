@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2007 Apple Inc.  All rights reserved.
- * Copyright (C) 2009 Joseph Pecoraro
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -440,7 +439,7 @@ InjectedScript.getProperties = function(objectProxy, ignoreHasOwnProperty)
         var isGetter = object["__lookupGetter__"] && object.__lookupGetter__(propertyName);
         if (!property.isGetter) {
             var childObject = object[propertyName];
-            var childObjectProxy = new InjectedScript.createProxyObject(childObject, objectProxy.objectId);
+            var childObjectProxy = new InjectedScript.createProxyObject(childObject, objectProxy.objectId, true);
             childObjectProxy.path = objectProxy.path ? objectProxy.path.slice() : [];
             childObjectProxy.path.push(propertyName);
             childObjectProxy.protoDepth = objectProxy.protoDepth || 0;
@@ -499,6 +498,8 @@ InjectedScript.evaluate = function(expression)
     var result = {};
     try {
         var value = InjectedScript._window().eval(expression);
+        if (value === null)
+            return { value: null };
         var wrapper = InspectorController.wrapObject(value);
         if (typeof wrapper === "object" && wrapper.exception)
             result.exception = wrapper.exception;
@@ -759,11 +760,6 @@ InjectedScript.searchCanceled = function()
     return true;
 }
 
-InjectedScript.getCookies = function()
-{
-    return InjectedScript._window().document.cookie;
-}
-
 InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
 {
     var inspectedWindow = InjectedScript._window();
@@ -872,7 +868,7 @@ InjectedScript.pushNodeToFrontend = function(objectProxy)
 }
 
 // Called from within InspectorController on the 'inspected page' side.
-InjectedScript.createProxyObject = function(object, objectId)
+InjectedScript.createProxyObject = function(object, objectId, abbreviate)
 {
     var result = {};
     result.objectId = objectId;
@@ -886,7 +882,7 @@ InjectedScript.createProxyObject = function(object, objectId)
         }
     }
     try {
-        result.description = Object.describe(object, true, InjectedScript._window());
+        result.description = Object.describe(object, abbreviate, InjectedScript._window());
     } catch (e) {
         result.exception = e.toString();
     }

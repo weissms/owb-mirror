@@ -1,3 +1,21 @@
+2009-08-24  Adam Barth  <abarth@webkit.org>
+
+        Revert 47684.  We're going to do this later once clients have had a
+        chance to opt into the setting they like.
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
+2009-08-22  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Don't let local files access web URLs
+        https://bugs.webkit.org/show_bug.cgi?id=28480
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
 2009-08-21  Brian Weinstein  <bweinstein@apple.com>
 
         Reviewed by Adam Roben.

@@ -64,6 +64,16 @@ HTMLFormControlElement::~HTMLFormControlElement()
         m_form->removeFormElement(this);
 }
 
+bool HTMLFormControlElement::formNoValidate() const
+{
+    return !getAttribute(formnovalidateAttr).isNull();
+}
+
+void HTMLFormControlElement::setFormNoValidate(bool formnovalidate)
+{
+    setAttribute(formnovalidateAttr, formnovalidate ? "" : 0);
+}
+
 ValidityState* HTMLFormControlElement::validity()
 {
     if (!m_validityState)
@@ -261,6 +271,16 @@ bool HTMLFormControlElement::willValidate() const
     //      The control does not have a datalist element as an ancestor.
     //      The control is not an output element.
     return form() && !name().isEmpty() && !disabled() && !isReadOnlyFormControl();
+}
+
+bool HTMLFormControlElement::checkValidity()
+{
+    if (willValidate() && !isValidFormControlElement()) {
+        dispatchEvent(EventNames().invalidEvent, false, true);
+        return false;
+    }
+
+    return true;
 }
 
 void HTMLFormControlElement::setCustomValidity(const String& error)

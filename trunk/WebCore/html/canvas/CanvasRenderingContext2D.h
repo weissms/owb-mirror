@@ -57,11 +57,14 @@ namespace WebCore {
     class CanvasRenderingContext2D : public Noncopyable {
     public:
         CanvasRenderingContext2D(HTMLCanvasElement*);
+
+        void ref(); 
+        void deref(); 
+
+        HTMLCanvasElement* canvas() const { return m_canvas; } 
+        virtual ~CanvasRenderingContext2D() { }
         
-        void ref();
-        void deref();
-        
-        HTMLCanvasElement* canvas() const { return m_canvas; }
+        virtual bool is2d() { return true; }
 
         CanvasStyle* strokeStyle() const;
         void setStrokeStyle(PassRefPtr<CanvasStyle>);
