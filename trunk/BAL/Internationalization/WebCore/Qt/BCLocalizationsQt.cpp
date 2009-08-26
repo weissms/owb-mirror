@@ -362,5 +362,20 @@ String mediaElementLiveBroadcastStateText()
     return QCoreApplication::translate("QWebPage", "Live Broadcast", "Media controller status message when watching a live broadcast");
 }
 
+String localizedMediaControlElementString(const String&)
+{
+    return "";
+}
+
+String localizedMediaControlElementHelpText(const String&)
+{
+    return "";
+}
+
+String localizedMediaTimeDescription(float)
+{
+    return "";
+}
+
 }
 // vim: ts=4 sw=4 et

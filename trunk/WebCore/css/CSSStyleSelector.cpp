@@ -2510,7 +2510,10 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 return true;
             case CSSSelector::PseudoMediaControlsTimelineContainer:
                 dynamicPseudo = MEDIA_CONTROLS_TIMELINE_CONTAINER;
-                 return true;
+                return true;
+            case CSSSelector::PseudoMediaControlsVolumeSliderContainer:
+                dynamicPseudo = MEDIA_CONTROLS_VOLUME_SLIDER_CONTAINER;
+                return true;
             case CSSSelector::PseudoMediaControlsCurrentTimeDisplay:
                 dynamicPseudo = MEDIA_CONTROLS_CURRENT_TIME_DISPLAY;
                 return true;
@@ -2519,6 +2522,9 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                 return true;
             case CSSSelector::PseudoMediaControlsTimeline:
                 dynamicPseudo = MEDIA_CONTROLS_TIMELINE;
+                return true;
+            case CSSSelector::PseudoMediaControlsVolumeSlider:
+                dynamicPseudo = MEDIA_CONTROLS_VOLUME_SLIDER;
                 return true;
             case CSSSelector::PseudoMediaControlsSeekBackButton:
                 dynamicPseudo = MEDIA_CONTROLS_SEEK_BACK_BUTTON;

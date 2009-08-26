@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Apple Inc. All right reserved.
+ * Copyright (C) 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,13 +20,18 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #include "config.h"
 #include "JSHTMLCanvasElement.h"
 
 #include "HTMLCanvasElement.h"
+#include "JSCanvasRenderingContext2D.h"
+#if ENABLE(3D_CANVAS)
+#include "JSCanvasRenderingContext3D.h"
+#endif
+#include <wtf/GetPtr.h>
 
 using namespace JSC;
 
@@ -39,7 +44,7 @@ void JSHTMLCanvasElement::markChildren(MarkStack& markStack)
     HTMLCanvasElement* canvas = static_cast<HTMLCanvasElement*>(impl());
     JSGlobalData& globalData = *Heap::heap(this)->globalData();
 
-    markDOMObjectWrapper(markStack, globalData, canvas->renderingContext2D());
+    markDOMObjectWrapper(markStack, globalData, canvas->renderingContext());
 }
 
-}
+} // namespace WebCore

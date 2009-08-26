@@ -111,6 +111,9 @@ namespace WebCore {
 
     String mediaElementLoadingStateText();
     String mediaElementLiveBroadcastStateText();
+    String localizedMediaControlElementString(const String&);
+    String localizedMediaControlElementHelpText(const String&);
+    String localizedMediaTimeDescription(float);
 }
 
 #endif

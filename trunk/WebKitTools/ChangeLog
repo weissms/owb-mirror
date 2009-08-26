@@ -1,3 +1,86 @@
+2009-08-26  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Darin Adler.
+
+        make-script-test-wrappers should be executable
+        https://bugs.webkit.org/show_bug.cgi?id=28669
+
+        Make make-script-test-wrappers and update-sources-list.py both be
+        executable.
+
+        * Scripts/update-sources-list.py:
+        * Scripts/make-script-test-wrappers:
+
+2009-08-25  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix
+
+        Revise Debug_Cairo targets to point inherit from the 
+        debug_wincairo.vsprops property sheet so that they link
+        against the proper libraries in Debug build.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+        * WinLauncher/WinLauncher.vcproj:
+
+2009-08-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        PLATFORM(CFNETWORK) should be USE(CFNETWORK).
+        https://bugs.webkit.org/show_bug.cgi?id=28713
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2009-08-25  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt/Mac] Use CONFIG+=build_all only when building libraries
+
+        If no configuration is specified when building WebKit we pass the
+        debug_and_release option to QMake which results in Makefiles for
+        both configurations being generated.
+
+        Previously we built both of these configurations by default, for
+        all targets (both the QtWebKit framework/dyldlib and the various
+        executables such as QtLauncher and tests). This makes sense for
+        the libraries, which get the _debug suffix and can be loaded on
+        demand by setting the DYLD_IMAGE_SUFFIX, but for executables we
+        ended up building the same executable twice.
+
+        We now only build one instance of each executable, and since this
+        is a developer build we build the debug-version. Passing either
+        --debug or --release to build-webkit will override this, and
+        even in the default case the release version can still be built
+        by running 'make release' in the the build directory of each
+        target.
+
+        * DumpRenderTree/qt/TestNetscapePlugin/TestNetscapePlugin.pro:
+        * Scripts/webkitdirs.pm:
+
+2009-08-24  Hironori Bono  <hbono@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Fix Bug 27827 "[Chromium] Functions Keys don't work in google spreadsheet".
+        <https://bugs.webkit.org/show_bug.cgi?id=27827>.
+
+        Because of the lack of mappings from GDK key-codes to WebKit key-codes,
+        Chromium cannot send valid key-codes to JavaScript when a user types
+        function keys. This change just copies the mappings from 'KeyEventGtk.cpp'.
+
+        To write layout tests for this issue, added mappings from function-key
+        names to platform-specific key-codes to EventSendingController objects
+        so that eventSender.keyDown() can send function-key events without using
+        platform-specific key codes. (Unfortunately, this eventSender.keyDown() change
+        is only for Mac. So this change adds this new test to Skipped tests for other
+        platforms to prevent this change from crashing the build trees.)
+
+        * DumpRenderTree/mac/EventSendingController.mm:
+        (-[EventSendingController keyDown:withModifiers:]):
+
 2009-08-24  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Reviewed by Xan Lopez.

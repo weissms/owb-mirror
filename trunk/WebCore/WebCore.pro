@@ -361,6 +361,7 @@ IDL_BINDINGS += \
     dom/WheelEvent.idl \
     html/canvas/CanvasGradient.idl \
     html/canvas/CanvasPattern.idl \
+    html/canvas/CanvasRenderingContext.idl \
     html/canvas/CanvasRenderingContext2D.idl \
     html/DataGridColumn.idl \
     html/DataGridColumnList.idl \
@@ -626,6 +627,7 @@ IDL_BINDINGS += \
 
 SOURCES += \
     accessibility/AccessibilityImageMapLink.cpp \
+    accessibility/AccessibilityMediaControls.cpp \    
     accessibility/AccessibilityObject.cpp \    
     accessibility/AccessibilityList.cpp \    
     accessibility/AccessibilityListBox.cpp \    
@@ -644,6 +646,7 @@ SOURCES += \
     bindings/js/GCController.cpp \
     bindings/js/JSAttrCustom.cpp \
     bindings/js/JSCDATASectionCustom.cpp \
+    bindings/js/JSCanvasRenderingContextCustom.cpp \
     bindings/js/JSCanvasRenderingContext2DCustom.cpp \
     bindings/js/JSClipboardCustom.cpp \
     bindings/js/JSConsoleCustom.cpp \
@@ -944,6 +947,7 @@ SOURCES += \
     html/canvas/CanvasGradient.cpp \
     html/canvas/CanvasPattern.cpp \
     html/canvas/CanvasPixelArray.cpp \
+    html/canvas/CanvasRenderingContext.cpp \
     html/canvas/CanvasRenderingContext2D.cpp \
     html/canvas/CanvasStyle.cpp \
     html/CollectionCache.cpp \
@@ -1320,6 +1324,7 @@ HEADERS += \
     accessibility/AccessibilityListBox.h \
     accessibility/AccessibilityListBoxOption.h \
     accessibility/AccessibilityList.h \
+    accessibility/AccessibilityMediaControls.h \
     accessibility/AccessibilityObject.h \
     accessibility/AccessibilityRenderObject.h \
     accessibility/AccessibilitySlider.h \
@@ -1603,6 +1608,7 @@ HEADERS += \
     html/canvas/CanvasGradient.h \
     html/canvas/CanvasPattern.h \
     html/canvas/CanvasPixelArray.h \
+    html/canvas/CanvasRenderingContext.h \
     html/canvas/CanvasRenderingContext2D.h \
     html/canvas/CanvasStyle.h \
     html/CollectionCache.h \
@@ -3247,10 +3253,10 @@ HEADERS += $$WEBKIT_API_HEADERS
             !build_pass {
                 message("Building QtWebKit as a framework, as that's how Qt was built. You can")
                 message("override this by passing CONFIG+=webkit_no_framework to build-webkit.")
+
+                CONFIG += build_all
             } else {
-                debug_and_release:CONFIG(debug, debug|release) {
-                    TARGET = $$qtLibraryTarget($$TARGET)
-                }
+                debug_and_release:TARGET = $$qtLibraryTarget($$TARGET)
             }
 
             CONFIG += lib_bundle qt_no_framework_direct_includes qt_framework

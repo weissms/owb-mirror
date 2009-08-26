@@ -18,6 +18,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
     bindings/js/JSCanvasNumberArrayCustom.cpp
+    bindings/js/JSCanvasRenderingContextCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSCustomPositionCallback.cpp
@@ -35,7 +36,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTarget.cpp
     bindings/js/JSDataGridColumnListCustom.cpp
-    bindings/js/JSHTMLDataGridElementCustom.cpp
     bindings/js/JSDataGridDataSource.h
     bindings/js/JSDataGridDataSource.cpp
     bindings/js/JSGeolocationCustom.cpp
@@ -43,6 +43,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCanvasElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp
+    bindings/js/JSHTMLDataGridElementCustom.cpp
     bindings/js/JSHTMLDocumentCustom.cpp
     bindings/js/JSHTMLElementCustom.cpp
     bindings/js/JSHTMLEmbedElementCustom.cpp

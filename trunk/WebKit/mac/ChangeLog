@@ -1,3 +1,24 @@
+2009-08-26  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <video> and <audio> controller should be accessible
+        https://bugs.webkit.org/show_bug.cgi?id=28081
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory localizedMediaControlElementString:]):
+        (-[WebViewFactory localizedMediaControlElementHelpText:]):
+        (-[WebViewFactory localizedMediaTimeDescription:]):
+            New.
+
+2009-08-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by NOBODY (build fix)
+
+        Turn off ENABLE_3D_CANVAS in the xconfig files.
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2009-08-24  Adam Barth  <abarth@webkit.org>
 
         Revert 47684.  We're going to do this later once clients have had a

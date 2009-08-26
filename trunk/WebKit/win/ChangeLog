@@ -1,3 +1,49 @@
+2009-08-26  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <video> and <audio> controller should be accessible
+        https://bugs.webkit.org/show_bug.cgi?id=28081
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::localizedMediaControlElementString):
+        (WebCore::localizedMediaControlElementHelpText):
+        (WebCore::localizedMediaTimeDescription):
+            New.
+
+2009-08-25  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix for Windows.
+
+        Revise Debug_Cairo build target to build testapi, jsc, WinLauncher,
+        DumpRenderTree, and TestNetscapeAPI using WinCairo debug build
+        settings so they link against the proper libraries.
+
+        * WebKit.vcproj/WebKit.sln:
+
+2009-08-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        PLATFORM(CFNETWORK) should be USE(CFNETWORK).
+        https://bugs.webkit.org/show_bug.cgi?id=28713
+
+        Also, moved the #if header section after the other #includes.
+
+        * WebError.cpp:
+        (WebError::localizedDescription):
+
+2009-08-24  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Steve Falkenburg.
+
+        Revise CFLite Debug build to emit DLL's with _debug label.
+        https://bugs.webkit.org/show_bug.cgi?id=28695.
+
+        * WebKit.vcproj/WebKit.vcproj: Modify Debug_Cairo target to
+          inherit from new debug_wincairo property sheet, instead of
+          the current debug sheet. 
+
 2009-08-24  Adam Barth  <abarth@webkit.org>
 
         Revert 47684.  We're going to do this later once clients have had a

@@ -1,9 +1,4 @@
 list(APPEND WEBCORE_SRC
-    html/canvas/CanvasGradient.cpp
-    html/canvas/CanvasPattern.cpp
-    html/canvas/CanvasPixelArray.cpp
-    html/canvas/CanvasRenderingContext2D.cpp
-    html/canvas/CanvasStyle.cpp
     html/CollectionCache.cpp
     html/DataGridColumn.cpp
     html/DataGridColumnList.cpp
@@ -97,10 +92,8 @@ list(APPEND WEBCORE_SRC
     html/TimeRanges.cpp
     html/ValidityState.cpp
 )
+
 list(APPEND IDL_SRC
-    html/canvas/CanvasGradient.idl
-    html/canvas/CanvasPattern.idl
-    html/canvas/CanvasRenderingContext2D.idl
     html/DataGridColumnList.idl
     html/DataGridColumn.idl
     html/File.idl

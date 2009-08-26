@@ -1,3 +1,173 @@
+2009-08-26  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by NOBODY (Buildfix).
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj: Add Debug_CFLite target
+          that inherits from the debug_wincairo property sheet and therefore
+          links to the proper debug library.
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj: Add Debug_CFLite target
+          that inherits from the debug_wincairo property sheet and therefore
+          links to the proper debug library.
+
+2009-08-25  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Export tryFastMalloc for Canvas3D work
+        https://bugs.webkit.org/show_bug.cgi?id=28018
+
+        * JavaScriptCore.exp:
+
+2009-08-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        PLATFORM(CFNETWORK) should be USE(CFNETWORK).
+        https://bugs.webkit.org/show_bug.cgi?id=28713
+
+        * wtf/Platform.h: Added a #define to catch this issue in the
+        future. The define would generate an error on gcc without the
+        space in the expansion, but Visual C++ needs the space to cause an error.
+
+2009-08-24  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Steve Falkenburg.
+
+        Revise CFLite Debug build to emit DLL's with _debug label.
+        https://bugs.webkit.org/show_bug.cgi?id=28695.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Modify
+          Cairo debug build to inherit from new debug_cairo property sheet.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCFLite.vsprops:
+          Modify to look for debug CFLite when in debug build.
+
+2009-08-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Adler & Darin Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28691
+        Do not retain ScopeNodes outside of parsing
+        
+        There is now no need for these to exist outside of parsing - their use in the runtime is replaced by Executable types.
+
+        * bytecode/EvalCodeCache.h:
+        (JSC::EvalCodeCache::get):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        (JSC::BytecodeGenerator::emitNewFunction):
+        (JSC::BytecodeGenerator::emitNewFunctionExpression):
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::makeFunction):
+        * debugger/Debugger.cpp:
+        (JSC::Debugger::recompileAllJSFunctions):
+        (JSC::evaluateInGlobalCallFrame):
+        * debugger/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        (JSC::Interpreter::prepareForRepeatCall):
+        (JSC::Interpreter::privateExecute):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * parser/Nodes.cpp:
+        (JSC::ScopeNodeData::ScopeNodeData):
+        (JSC::ProgramNode::create):
+        (JSC::EvalNode::create):
+        (JSC::FunctionBodyNode::create):
+        * parser/Nodes.h:
+        (JSC::ScopeNode::adoptData):
+        (JSC::FunctionBodyNode::parameterCount):
+        * parser/Parser.cpp:
+        * parser/Parser.h:
+        (JSC::Parser::arena):
+        (JSC::Parser::Parser):
+        (JSC::Parser::parse):
+        * runtime/ArrayPrototype.cpp:
+        (JSC::isNumericCompareFunction):
+        (JSC::arrayProtoFuncSort):
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Executable.cpp:
+        (JSC::FunctionExecutable::~FunctionExecutable):
+        (JSC::EvalExecutable::compile):
+        (JSC::ProgramExecutable::checkSyntax):
+        (JSC::ProgramExecutable::compile):
+        (JSC::FunctionExecutable::compile):
+        (JSC::EvalExecutable::generateJITCode):
+        (JSC::ProgramExecutable::generateJITCode):
+        (JSC::FunctionExecutable::generateJITCode):
+        (JSC::FunctionExecutable::reparseExceptionInfo):
+        (JSC::EvalExecutable::reparseExceptionInfo):
+        (JSC::FunctionExecutable::recompile):
+        (JSC::FunctionExecutable::fromGlobalCode):
+        (JSC::FunctionExecutable::copyParameters):
+        (JSC::FunctionExecutable::paramString):
+        * runtime/Executable.h:
+        (JSC::ScriptExecutable::ScriptExecutable):
+        (JSC::ScriptExecutable::sourceID):
+        (JSC::ScriptExecutable::sourceURL):
+        (JSC::ScriptExecutable::lineNo):
+        (JSC::ScriptExecutable::lastLine):
+        (JSC::ScriptExecutable::usesEval):
+        (JSC::ScriptExecutable::usesArguments):
+        (JSC::ScriptExecutable::needsActivation):
+        (JSC::ScriptExecutable::recordParse):
+        (JSC::EvalExecutable::bytecode):
+        (JSC::EvalExecutable::jitCode):
+        (JSC::ProgramExecutable::bytecode):
+        (JSC::ProgramExecutable::reparseExceptionInfo):
+        (JSC::ProgramExecutable::jitCode):
+        (JSC::FunctionExecutable::FunctionExecutable):
+        (JSC::FunctionExecutable::make):
+        (JSC::FunctionExecutable::bytecode):
+        (JSC::FunctionExecutable::isGenerated):
+        (JSC::FunctionExecutable::name):
+        (JSC::FunctionExecutable::parameterCount):
+        (JSC::FunctionExecutable::jitCode):
+        * runtime/FunctionConstructor.cpp:
+        (JSC::constructFunction):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::numericCompareFunction):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+
+2009-08-24  Darin Adler  <darin@apple.com>
+
+        * runtime/ObjectPrototype.cpp:
+        (JSC::ObjectPrototype::put): Landed revised version I had tested but forgot
+        to land. Leave out the branch, since we don't need one.
+
+2009-08-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Array index miss case creates a string every time
+        https://bugs.webkit.org/show_bug.cgi?id=28664
+
+        SunSpider test results I saw:
+
+            0.5% faster overall
+            1% faster on crypto-aes
+            20% faster on crypto-md5
+            13% faster on crypto-sha1
+
+        * runtime/ObjectPrototype.cpp:
+        (JSC::ObjectPrototype::ObjectPrototype): Initialize m_hasNoPropertiesWithUInt32Names
+        to true.
+        (JSC::ObjectPrototype::put): Clearly m_hasNoPropertiesWithUInt32Names if the new
+        property has a name that is the string form of a UInt32.
+        (JSC::ObjectPrototype::getOwnPropertySlot): Don't call JSObject::getOwnPropertySlot
+        if m_hasNoPropertiesWithUInt32Names is true, and it is highly likely to be true.
+
+        * runtime/ObjectPrototype.h: Added declarations for the above.
+
+2009-08-24  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed. Fix a typo in my distcheck build fix.
+
+        * GNUmakefile.am:
+
 2009-08-24  Gustavo Noronha Silva  <gns@gnome.org>
 
         Unreviewed build fix for make distcheck.
