@@ -344,3 +344,9 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
 {
     // FIXME: Implement.
 }
+
+void LayoutTestController::setAlwaysAcceptCookies(bool alwaysAcceptCookies)
+{
+    // FIXME: Implement this (and restore the default value before running each test in DumpRenderTree.cpp).
+}
+ 
