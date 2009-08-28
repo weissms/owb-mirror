@@ -28,6 +28,7 @@
 
 #include "EventTarget.h"
 #include "KURL.h"
+#include "MessagePort.h"
 #include "PlatformString.h"
 #include "RegisteredEventListener.h"
 #include "SecurityOrigin.h"
@@ -55,7 +56,6 @@ namespace WebCore {
     class History;
     class Location;
     class Media;
-    class MessagePort;
     class Navigator;
     class Node;
     class NotificationCenter;
@@ -211,6 +211,8 @@ namespace WebCore {
         NotificationCenter* webkitNotifications() const;
 #endif
 
+        void postMessage(const String& message, const MessagePortArray*, const String& targetOrigin, DOMWindow* source, ExceptionCode&);
+        // FIXME: remove this when we update the JS bindings (bug #28460).
         void postMessage(const String& message, MessagePort*, const String& targetOrigin, DOMWindow* source, ExceptionCode&);
         void postMessageTimerFired(PostMessageTimer*);
 
@@ -242,6 +244,7 @@ namespace WebCore {
         void dispatchLoadEvent();
         void dispatchUnloadEvent(RegisteredEventListenerVector* = 0);
         PassRefPtr<BeforeUnloadEvent> dispatchBeforeUnloadEvent(RegisteredEventListenerVector* = 0);
+        void dispatchPageTransitionEvent(const AtomicString& eventType, bool persisted);
 
         // Used for legacy "onEvent" property APIs.
         void setAttributeEventListener(const AtomicString& eventType, PassRefPtr<EventListener>);
@@ -306,6 +309,10 @@ namespace WebCore {
         void setOnoffline(PassRefPtr<EventListener>);
         EventListener* ononline() const;
         void setOnonline(PassRefPtr<EventListener>);
+        EventListener* onpagehide() const;
+        void setOnpagehide(PassRefPtr<EventListener>);
+        EventListener* onpageshow() const;
+        void setOnpageshow(PassRefPtr<EventListener>);
         EventListener* onreset() const;
         void setOnreset(PassRefPtr<EventListener>);
         EventListener* onresize() const;

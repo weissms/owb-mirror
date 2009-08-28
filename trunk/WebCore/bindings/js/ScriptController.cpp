@@ -39,6 +39,10 @@
 #include <debugger/Debugger.h>
 #include <runtime/JSLock.h>
 
+#if ENABLE(DOM_STORAGE)
+#include "StorageNamespace.h"
+#endif
+
 using namespace JSC;
 
 namespace WebCore {
@@ -117,6 +121,14 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
     // Evaluating the JavaScript could cause the frame to be deallocated
     // so we start the keep alive timer here.
     m_frame->keepAlive();
+
+    // Release any localStorage locks we may still have.
+    Page* page = m_frame->page();
+#if #ENABLE(DOM_STORAGE)
+    StorageNamespace* localStorage = page ? page->group().localStorage() : 0;
+    if (localStorage)
+        localStorage->unlock();
+#endif
 
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
         m_sourceURL = savedSourceURL;

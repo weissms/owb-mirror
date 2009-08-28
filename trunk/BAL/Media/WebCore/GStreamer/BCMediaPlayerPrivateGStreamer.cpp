@@ -322,7 +322,7 @@ bool MediaPlayerPrivate::hasAudio() const
 {
     gint currentAudio = -1;
     if (m_playBin)
-        g_object_get(G_OBJECT(m_playBin), "current-audio", &currentAudio, 0);
+        g_object_get(G_OBJECT(m_playBin), "current-audio", &currentAudio, NULL);
     return currentAudio > -1;
 }
 
@@ -689,10 +689,8 @@ void MediaPlayerPrivate::getSupportedTypes(HashSet<String>& types)
 
 MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& type, const String& codecs)
 {
-    // Sometimes the type is null and it will crash so bail out early.
-    if (!type.isNull() && mimeTypeCache().contains(type))
+    if (mimeTypeCache().contains(type))
         return !codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported;
-
     return MediaPlayer::IsNotSupported;
 }
 

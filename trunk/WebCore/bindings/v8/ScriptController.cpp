@@ -45,8 +45,10 @@
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 #include "NPV8Object.h"
+#include "Page.h"
+#include "PageGroup.h"
 #include "ScriptSourceCode.h"
-#include "ScriptState.h"
+#include "StorageNamespace.h"
 #include "Widget.h"
 #include "XSSAuditor.h"
 
@@ -91,7 +93,6 @@ ScriptController::ScriptController(Frame* frame)
     , m_sourceURL(0)
     , m_processingTimerCallback(false)
     , m_paused(false)
-    , m_scriptState(new ScriptState(frame))
     , m_proxy(new V8Proxy(frame))
 #if ENABLE(NETSCAPE_PLUGIN_API)
     , m_windowScriptNPObject(0)
@@ -220,6 +221,12 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
     // Evaluating the JavaScript could cause the frame to be deallocated
     // so we start the keep alive timer here.
     m_frame->keepAlive();
+
+    // Release any localStorage locks we may still have.
+    Page* page = m_frame->page();
+    StorageNamespace* localStorage = page ? page->group().localStorage() : 0;
+    if (localStorage)
+        localStorage->unlock();
 
     if (object.IsEmpty() || object->IsUndefined())
         return ScriptValue();

@@ -59,6 +59,10 @@
 #include <CFNetwork/CFURLCachePriv.h>
 #endif
 
+#if USE(CFNETWORK)
+#include <CFNetwork/CFHTTPCookiesPriv.h>
+#endif
+
 using namespace std;
 
 #ifndef NDEBUG
@@ -107,6 +111,24 @@ const unsigned maxViewHeight = 600;
 void setPersistentUserStyleSheetLocation(CFStringRef url)
 {
     persistentUserStyleSheetLocation = url;
+}
+
+bool setAlwaysAcceptCookies(bool alwaysAcceptCookies)
+{
+#if USE(CFNETWORK)
+    COMPtr<IWebCookieManager> cookieManager;
+    if (FAILED(WebKitCreateInstance(CLSID_WebCookieManager, 0, IID_IWebCookieManager, reinterpret_cast<void**>(&cookieManager))))
+        return false;
+    CFHTTPCookieStorageRef cookieStorage = 0;
+    if (FAILED(cookieManager->cookieStorage(&cookieStorage)) || !cookieStorage)
+        return false;
+
+    WebKitCookieStorageAcceptPolicy cookieAcceptPolicy = alwaysAcceptCookies ? WebKitCookieStorageAcceptPolicyAlways : WebKitCookieStorageAcceptPolicyOnlyFromMainDocumentDomain;
+    CFHTTPCookieStorageSetCookieAcceptPolicy(cookieStorage, cookieAcceptPolicy);
+    return true;
+#else
+    // FIXME: Implement!
+#endif
 }
 
 wstring urlSuitableForTestResult(const wstring& url)
@@ -710,12 +732,14 @@ static void resetDefaultsToConsistentValues(IWebPreferences* preferences)
 
     COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
     if (prefsPrivate) {
+        prefsPrivate->setAllowUniversalAccessFromFileURLs(TRUE);
         prefsPrivate->setAuthorAndUserStylesEnabled(TRUE);
         prefsPrivate->setDeveloperExtrasEnabled(FALSE);
         prefsPrivate->setShouldPaintNativeControls(FALSE); // FIXME - need to make DRT pass with Windows native controls <http://bugs.webkit.org/show_bug.cgi?id=25592>
         prefsPrivate->setXSSAuditorEnabled(FALSE);
         prefsPrivate->setOfflineWebApplicationCacheEnabled(TRUE);
     }
+    setAlwaysAcceptCookies(false);
 }
 
 static void resetWebViewToConsistentStateBeforeTesting()

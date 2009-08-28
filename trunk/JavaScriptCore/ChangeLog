@@ -1,3 +1,449 @@
+2009-08-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        JSON Stringifier does not follow ES5 spec for handling of Number, String and Boolean objects
+        https://bugs.webkit.org/show_bug.cgi?id=28797
+
+        Fixed unwrapBoxedPrimitive to do the right thing, which necessitated a couple of new exception
+        checks, and corrected the logic in gap to correctly convert Number and String objects.
+
+        * runtime/JSONObject.cpp:
+        (JSC::unwrapBoxedPrimitive):
+        (JSC::gap):
+        (JSC::Stringifier::Stringifier):
+        (JSC::Stringifier::appendStringifiedValue):
+
+2009-08-27  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Adam Roben.
+
+        JSON.stringify replacer array does not accept values that are not string primitives.
+        https://bugs.webkit.org/show_bug.cgi?id=28788
+
+        Update the JSON stringifier to initialise its replacer array according to the most
+        recent version of the spec.
+
+        * runtime/Identifier.h:
+        (JSC::Identifier::from):
+        * runtime/JSONObject.cpp:
+        (JSC::Stringifier::Stringifier):
+
+2009-08-27  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28753
+        <rdar://problem/7173448> Excessive number of threads (and a crash)
+
+        * wtf/Threading.h: (WTF::atomicIncrement): Changed atomicIncrement to match decrement
+        and return the new value. Also added using directives for these functions, to match
+        te rest of WTF.
+
+2009-08-27  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Link the testapi against CFLite when building the WinCairo port.
+
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj: Add new Release_CFLite
+          target.  Update all targets to inherit from either the
+          JavaScriptCF.vsprops (Apple target) or the JavaScriptCFLite.vsprops
+          file (WinCairo target).
+        * JavaScriptCore.vcproj/testapi/testapiCommon.vsprops: Remove
+          input file CoreFoundation.lib. This is provided by either the
+          JavaScriptCF.vsprops or JavaScriptCFLite.vsprops file.
+
+2009-08-27  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Geoff Garen.
+        
+        Fix Windows-specific crash due to missing memory clearing call.
+        
+        * runtime/Collector.cpp:
+        (JSC::Heap::allocateBlock):
+
+2009-08-27  Brent Fulgham  <bfulgham@webkit.org>
+
+        Build fix: JavaScriptCore_debug.def missing some exports.  Apple
+        Windows build does not use this file, so it was not noticed previously.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-27  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        x86-64 GTK broken due to code offsets changing, pointers sometimes packed into immediates.
+        https://bugs.webkit.org/show_bug.cgi?id=28317
+
+        Missed one, fix part II.
+
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::move):
+        * assembler/X86Assembler.h:
+        (JSC::CAN_SIGN_EXTEND_8_32):
+
+2009-08-27  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Adam Roben.
+
+        JSON.stringify replacer array does not accept values that are not string primitives.
+        https://bugs.webkit.org/show_bug.cgi?id=28788
+
+        Update the JSON stringifier to initialise its replacer array according to the most
+        recent version of the spec.
+
+        * runtime/Identifier.h:
+        (JSC::Identifier::from):
+        * runtime/JSONObject.cpp:
+        (JSC::Stringifier::Stringifier):
+
+2009-08-27  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        JSON parser accepts trailing comma in array literals
+        https://bugs.webkit.org/show_bug.cgi?id=28779
+
+        Update parser to correctly fail if there's a trailing comma.
+
+        * runtime/LiteralParser.cpp:
+        (JSC::LiteralParser::parse):
+
+2009-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        'this' in JSON.parse reviver is the global object
+        https://bugs.webkit.org/show_bug.cgi?id=28752
+
+        This is a technically simple change, we merely update the code for calling
+        the reviver function to pass the correct this object.  Doing so however
+        exposes the holder to arbitrary mutation by the reviver function so it is
+        necessary for us to now guard all property accesses against the possibility
+        of failure.
+
+        * runtime/JSArray.h:
+          JSON needs to delete a property from the array, so we friend its 
+          Walker class so that we can make a non-virtual call to the arrays
+          delete and getOwnPropertySlot methods.
+        * runtime/JSONObject.cpp:
+        (JSC::Walker::callReviver):
+          We need to pass the correct this object
+        (JSC::Walker::walk):
+          Update calls to callReviver, and update property logic logic
+          to correctly handle the holder being mutated by the reviver
+          function.
+
+2009-08-26  Alice Liu  <alice.liu@apple.com>
+
+        Windows build fix: added some exported symbols
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: Removed some exported symbols that no longer exist.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Olliejver Hunt.
+
+        x86-64 GTK broken due to code offsets changing, pointers sometimes packed into immediates.
+        https://bugs.webkit.org/show_bug.cgi?id=28317
+
+        We rely on a slightly OS X specific behaviour, that x86-64 applications have a 4Gb zero page,
+        so pointers are never representable as a 32-bit integer, and always have to be represented by
+        a separate immediate load instruction, rather than within the immediate field of an arithmetic
+        or memory operation.
+
+        We explicitly check for a couple of cases where a value might be representable in 32-bit, but
+        these probably never kick in on Mac OS, and only kick in to hose GTK.  Deleting these does not
+        show a performance degradation on SunSpider.  Remove.
+
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::storePtr):
+        (JSC::MacroAssemblerX86_64::branchPtr):
+
+2009-08-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        A bit of Collector refatoring.
+        
+        SunSpider says no change. v8 says 1.003x faster (1.02x faster on splay).
+
+        * JavaScriptCore.exp:
+
+        * runtime/JSCell.cpp:
+        (JSC::JSCell::toPrimitive):
+        (JSC::JSCell::getPrimitiveNumber):
+        (JSC::JSCell::toBoolean):
+        (JSC::JSCell::toNumber):
+        (JSC::JSCell::toString):
+        (JSC::JSCell::toObject): Removed pure virtual functions from
+        JSCell, so the collector can construct one. This allowed
+        me to remove a bunch of ASSERT_NOT_REACHED throughout the
+        code, too.
+
+        * runtime/JSCell.h:
+        (JSC::JSCell::JSCell): ditto
+        (JSC::Heap::heap): Inlined this function because it's trivial.
+
+        * JavaScriptCore.exp:
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::destroy):
+        (JSC::Heap::allocateBlock):
+        (JSC::Heap::freeBlock):
+        (JSC::Heap::freeBlocks): Renamed freeHeap to freeBlocks, since
+        it doesn't actually free the Heap object.
+        (JSC::Heap::heapAllocate):
+        (JSC::Heap::sweep):
+        * runtime/Collector.h: Refactored block allocation and destruction
+        into helper functions.
+        
+        * runtime/GetterSetter.cpp:
+        * runtime/JSAPIValueWrapper.cpp:
+        * runtime/JSPropertyNameIterator.cpp: Removed dummy implementations
+        of pure virtual functions. (See above.)
+
+=== End re-roll-in of r47738:47740 with Windows crash fixed ===
+
+2009-08-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: start out with a 32-bit value to avoid a shortening warning.
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::sweep):
+
+2009-08-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Substantially reduced VM thrash in the GC heap.
+        
+        1.08x faster on v8 (1.60x faster on v8-splay).
+        
+        1.40x faster on bench-alloc-nonretained.
+        
+        1.90x faster on bench-alloc-retained.
+        
+        SunSpider says no change.
+        
+        * runtime/Collector.cpp:
+        (JSC::Heap::heapAllocate): Fixed a long-standing bug: update a few local
+        variables unconditionally after calling collect(), since they may be used
+        even if we don't "goto scan". (In the bug I saw, usedBlocks got out of
+        sync with heap.usedBlocks).
+        (JSC::Heap::sweep): Keep enough free heap space to accomodate 
+        the number of objects we'll allocate before the next GC, plus 25%, for
+        good measure.
+        * runtime/Collector.h: Bumped the block size to 256k. This seems to give
+        the best cache performance, and it prevents us from initiating lots of
+        VM traffic to recover very small chunks of memory.
+
+=== Begin re-roll-in of r47738:47740 with Windows crash fixed ===
+
+2009-08-25  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        postMessage() spec now supports sending arrays of ports
+        https://bugs.webkit.org/show_bug.cgi?id=26902
+
+        Added OwnPtr to VectorTraits so we can store OwnPtrs in Vectors.
+
+        * wtf/VectorTraits.h:
+
+2009-08-26  Xan Lopez  <xlopez@igalia.com>
+
+        Rubber-stamped by Gustavo Noronha.
+
+        Remove duplicated files from file list.
+
+        * GNUmakefile.am:
+
+2009-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        More export fixes.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Hopefully fix all the exports from JSC on windows
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fixes).
+
+        Forgot I added files to JavaScriptCore. 
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCoreSources.bkl:
+
+2009-08-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [ES5] Implement getOwnPropertyDescriptor
+        https://bugs.webkit.org/show_bug.cgi?id=28724
+
+        Implement the core runtime support for getOwnPropertyDescriptor.
+        This adds a virtual getOwnPropertyDescriptor method to every class
+        that implements getOwnPropertySlot that shadows the behaviour of
+        getOwnPropertySlot.  The alternative would be to make getOwnPropertySlot
+        (or PropertySlots in general) provide property attribute information,
+        but quick testing showed this to be a regression.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/Arguments.cpp:
+        (JSC::Arguments::getOwnPropertyDescriptor):
+        * runtime/Arguments.h:
+        * runtime/ArrayPrototype.cpp:
+        (JSC::ArrayPrototype::getOwnPropertyDescriptor):
+        * runtime/ArrayPrototype.h:
+        * runtime/CommonIdentifiers.h:
+        * runtime/DatePrototype.cpp:
+        (JSC::DatePrototype::getOwnPropertyDescriptor):
+        * runtime/DatePrototype.h:
+        * runtime/JSArray.cpp:
+        (JSC::JSArray::getOwnPropertyDescriptor):
+        * runtime/JSArray.h:
+        * runtime/JSByteArray.cpp:
+        (JSC::JSByteArray::getOwnPropertyDescriptor):
+        * runtime/JSByteArray.h:
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::getOwnPropertyDescriptor):
+        * runtime/JSFunction.h:
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::getOwnPropertyDescriptor):
+        * runtime/JSNotAnObject.cpp:
+        (JSC::JSNotAnObject::getOwnPropertyDescriptor):
+        * runtime/JSNotAnObject.h:
+        * runtime/JSONObject.cpp:
+        (JSC::JSONObject::getOwnPropertySlot):
+        (JSC::JSONObject::getOwnPropertyDescriptor):
+        * runtime/JSONObject.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::getOwnPropertyDescriptor):
+        (JSC::JSObject::getPropertyDescriptor):
+        * runtime/JSObject.h:
+        * runtime/JSString.cpp:
+        (JSC::JSString::getStringPropertyDescriptor):
+        (JSC::JSString::getOwnPropertyDescriptor):
+        * runtime/JSString.h:
+        * runtime/JSVariableObject.cpp:
+        (JSC::JSVariableObject::symbolTableGet):
+        * runtime/JSVariableObject.h:
+        * runtime/Lookup.h:
+        (JSC::getStaticPropertyDescriptor):
+        (JSC::getStaticFunctionDescriptor):
+        (JSC::getStaticValueDescriptor):
+          Add property descriptor equivalents of the lookup
+          table access functions
+
+        * runtime/MathObject.cpp:
+        (JSC::MathObject::getOwnPropertySlot):
+        (JSC::MathObject::getOwnPropertyDescriptor):
+        * runtime/MathObject.h:
+        * runtime/NumberConstructor.cpp:
+        (JSC::NumberConstructor::getOwnPropertyDescriptor):
+        * runtime/NumberConstructor.h:
+        * runtime/ObjectConstructor.cpp:
+        (JSC::ObjectConstructor::ObjectConstructor):
+        (JSC::objectConstructorGetOwnPropertyDescriptor):
+        * runtime/PropertyDescriptor.cpp: Added.
+        (JSC::PropertyDescriptor::writable):
+        (JSC::PropertyDescriptor::enumerable):
+        (JSC::PropertyDescriptor::configurable):
+        (JSC::PropertyDescriptor::hasAccessors):
+        (JSC::PropertyDescriptor::setUndefined):
+        (JSC::PropertyDescriptor::getter):
+        (JSC::PropertyDescriptor::setter):
+        (JSC::PropertyDescriptor::setDescriptor):
+        (JSC::PropertyDescriptor::setAccessorDescriptor):
+        * runtime/PropertyDescriptor.h: Added.
+        (JSC::PropertyDescriptor::PropertyDescriptor):
+        (JSC::PropertyDescriptor::attributes):
+        (JSC::PropertyDescriptor::isValid):
+        (JSC::PropertyDescriptor::value):
+        * runtime/RegExpConstructor.cpp:
+        (JSC::RegExpConstructor::getOwnPropertyDescriptor):
+        * runtime/RegExpConstructor.h:
+        * runtime/RegExpMatchesArray.h:
+        (JSC::RegExpMatchesArray::getOwnPropertyDescriptor):
+        * runtime/RegExpObject.cpp:
+        (JSC::RegExpObject::getOwnPropertyDescriptor):
+        * runtime/RegExpObject.h:
+        * runtime/StringObject.cpp:
+        (JSC::StringObject::getOwnPropertyDescriptor):
+        * runtime/StringObject.h:
+        * runtime/StringPrototype.cpp:
+        (JSC::StringPrototype::getOwnPropertyDescriptor):
+        * runtime/StringPrototype.h:
+
+2009-08-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+        How many copies of the parameters do you need?
+        https://bugs.webkit.org/show_bug.cgi?id=28701
+
+        The function parameters in JSC get copied a lot - and unnecessarily so.
+
+        Originally this happened due to duplicating FunctionBodyNodes on recompilation,
+        though the problem has been exacerbated by copying the parameters from the
+        original function body onto the executable, then back onto the real body that
+        will be generated (this happens on every function).  And this is all made worse
+        since the data structures in question are a little ugly - C style arrays of C++
+        objects containing ref counts, so they need a full copy-construct (rather than
+        a simple memcpy).
+
+        This can all be greatly simplified by just punting the parameters off into
+        their own ref-counted object, and forgoing all the copying.
+
+        ~no performance change, possible slight progression.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::makeFunction):
+        * parser/Nodes.cpp:
+        (JSC::FunctionParameters::FunctionParameters):
+        (JSC::FunctionBodyNode::FunctionBodyNode):
+        (JSC::FunctionBodyNode::finishParsing):
+        * parser/Nodes.h:
+        (JSC::FunctionBodyNode::parameters):
+        (JSC::FunctionBodyNode::parameterCount):
+        * runtime/Executable.cpp:
+        (JSC::FunctionExecutable::~FunctionExecutable):
+        (JSC::FunctionExecutable::compile):
+        (JSC::FunctionExecutable::reparseExceptionInfo):
+        (JSC::FunctionExecutable::fromGlobalCode):
+        (JSC::FunctionExecutable::paramString):
+        * runtime/Executable.h:
+        (JSC::FunctionExecutable::FunctionExecutable):
+        (JSC::FunctionExecutable::parameterCount):
+
 2009-08-26  Brent Fulgham  <bfulgham@webkit.org>
 
         Reviewed by NOBODY (Buildfix).

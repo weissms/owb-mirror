@@ -586,6 +586,9 @@ BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequestSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceResponse.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamError.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamHandle.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamHandleSoup.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.h
@@ -603,11 +606,14 @@ BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.h
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.h
+BAL/Network/WebCore/WK	WebCore/platform/network/DNS.h
 BAL/Network/WebCore/WK	WebCore/platform/network/FormData.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/FormData.h
 BAL/Network/WebCore/WK	WebCore/platform/network/FormDataBuilder.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/FormDataBuilder.h
 BAL/Network/WebCore/WK  WebCore/platform/network/HTTPHeaderMap.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceErrorBase.cpp
@@ -620,9 +626,11 @@ BAL/Network/WebCore/WK	WebCore/platform/network/ResourceRequestBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceRequestBase.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceResponseBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceResponseBase.h
-BAL/Network/WebCore/WK	WebCore/platform/network/DNS.h
-BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.cpp
-BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamErrorBase.cpp
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamErrorBase.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleBase.cpp
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleBase.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleClient.h
 
 
 

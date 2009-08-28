@@ -53,6 +53,7 @@ list(APPEND WEBCORE_SRC
     dom/OptionElement.cpp
     dom/OptionGroupElement.cpp
     dom/OverflowEvent.cpp
+    dom/PageTransitionEvent.cpp
     dom/Position.cpp
     dom/PositionIterator.cpp
     dom/ProcessingInstruction.cpp
@@ -124,6 +125,7 @@ list(APPEND IDL_SRC
     dom/NodeList.idl
     dom/Notation.idl
     dom/OverflowEvent.idl
+    dom/PageTransitionEvent.idl
     dom/ProcessingInstruction.idl
     dom/ProgressEvent.idl
     dom/RangeException.idl

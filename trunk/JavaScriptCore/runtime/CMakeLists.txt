@@ -20,6 +20,7 @@ list(APPEND JSC_SRC
     runtime/LiteralParser.cpp
     runtime/MarkStack.cpp
     runtime/MarkStackPosix.cpp
+    runtime/PropertyDescriptor.cpp
     runtime/SmallStrings.cpp
     runtime/Structure.cpp
     runtime/StructureChain.cpp

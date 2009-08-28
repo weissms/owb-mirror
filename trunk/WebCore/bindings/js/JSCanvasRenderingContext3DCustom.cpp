@@ -65,7 +65,7 @@ static inline PassRefPtr<CanvasNumberArray> toCanvasNumberArray(JSC::ExecState* 
     return numberArray;
 }
 
-JSValue JSCanvasRenderingContext3D::glBufferData(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::bufferData(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 3)
         return throwError(exec, SyntaxError);
@@ -75,11 +75,11 @@ JSValue JSCanvasRenderingContext3D::glBufferData(JSC::ExecState* exec, JSC::ArgL
     
     RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(1));
     
-    static_cast<CanvasRenderingContext3D*>(impl())->glBufferData(target, numberArray.get(), usage);
+    static_cast<CanvasRenderingContext3D*>(impl())->bufferData(target, numberArray.get(), usage);
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glBufferSubData(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::bufferSubData(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 3)
         return throwError(exec, SyntaxError);
@@ -89,11 +89,11 @@ JSValue JSCanvasRenderingContext3D::glBufferSubData(JSC::ExecState* exec, JSC::A
     
     RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(2));
     
-    static_cast<CanvasRenderingContext3D*>(impl())->glBufferSubData(target, offset, numberArray.get());
+    static_cast<CanvasRenderingContext3D*>(impl())->bufferSubData(target, offset, numberArray.get());
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glVertexAttrib(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::vertexAttrib(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 2)
         return throwError(exec, SyntaxError);
@@ -102,12 +102,12 @@ JSValue JSCanvasRenderingContext3D::glVertexAttrib(JSC::ExecState* exec, JSC::Ar
     
     RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(1));
     
-    static_cast<CanvasRenderingContext3D*>(impl())->glVertexAttrib(indx, numberArray.get());
+    static_cast<CanvasRenderingContext3D*>(impl())->vertexAttrib(indx, numberArray.get());
     return jsUndefined();
 }
 
 // void glVertexAttribPointer (in unsigned long indx, in long size, in unsigned long type, in boolean normalized, in unsigned long stride, in CanvasNumberArray array);
-JSValue JSCanvasRenderingContext3D::glVertexAttribPointer(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::vertexAttribPointer(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 6)
         return throwError(exec, SyntaxError);
@@ -120,11 +120,11 @@ JSValue JSCanvasRenderingContext3D::glVertexAttribPointer(JSC::ExecState* exec, 
     
     RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(5));
     
-    static_cast<CanvasRenderingContext3D*>(impl())->glVertexAttribPointer(indx, size, type, normalized, stride, numberArray.get());
+    static_cast<CanvasRenderingContext3D*>(impl())->vertexAttribPointer(indx, size, type, normalized, stride, numberArray.get());
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glUniformMatrix(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::uniformMatrix(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 4)
         return throwError(exec, SyntaxError);
@@ -139,7 +139,7 @@ JSValue JSCanvasRenderingContext3D::glUniformMatrix(JSC::ExecState* exec, JSC::A
     CanvasRenderingContext3D* context = static_cast<CanvasRenderingContext3D*>(impl());    
     WebKitCSSMatrix* matrix = toWebKitCSSMatrix(args.at(3));
     if (matrix)
-        context->glUniformMatrix(location, transpose, matrix);
+        context->uniformMatrix(location, transpose, matrix);
     else {
         JSObject* array = asObject(args.at(3));
         int length = array->get(exec, Identifier(exec, "length")).toInt32(exec);
@@ -153,15 +153,15 @@ JSValue JSCanvasRenderingContext3D::glUniformMatrix(JSC::ExecState* exec, JSC::A
                     matrixArray[i] = matrix;
                 }
 
-                // FIXME: The array may have null entries. We currently don't check for this in glUniformMatrix
-                context->glUniformMatrix(location, transpose, matrixArray);
+                // FIXME: The array may have null entries. We currently don't check for this in uniformMatrix
+                context->uniformMatrix(location, transpose, matrixArray);
             } else {
                 RefPtr<CanvasNumberArray> numberArray = CanvasNumberArray::create(length);
                 for (int i = 0; i < length; ++i) {
                     float value = array->get(exec, i).toFloat(exec);
                     numberArray->data()[i] = value;
                 }
-                context->glUniformMatrix(location, count, transpose, numberArray.get());
+                context->uniformMatrix(location, count, transpose, numberArray.get());
             }
         }
     }
@@ -169,7 +169,7 @@ JSValue JSCanvasRenderingContext3D::glUniformMatrix(JSC::ExecState* exec, JSC::A
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glUniformf(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::uniformf(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() < 1)
         return throwError(exec, SyntaxError);
@@ -181,22 +181,22 @@ JSValue JSCanvasRenderingContext3D::glUniformf(JSC::ExecState* exec, JSC::ArgLis
         case 2:
             if (args.at(1).isObject()) {
                 RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(1));
-                context->glUniform(location, numberArray.get());
+                context->uniform(location, numberArray.get());
             }
             else
-                context->glUniform(location, static_cast<float>(args.at(1).toNumber(exec)));
+                context->uniform(location, static_cast<float>(args.at(1).toNumber(exec)));
             break;
         case 3: 
-            context->glUniform(location, static_cast<float>(args.at(1).toNumber(exec)),
+            context->uniform(location, static_cast<float>(args.at(1).toNumber(exec)),
                                         static_cast<float>(args.at(2).toNumber(exec))); 
             break;
         case 4: 
-            context->glUniform(location, static_cast<float>(args.at(1).toNumber(exec)),
+            context->uniform(location, static_cast<float>(args.at(1).toNumber(exec)),
                                         static_cast<float>(args.at(2).toNumber(exec)),
                                         static_cast<float>(args.at(3).toNumber(exec))); 
             break;
         case 5: 
-            context->glUniform(location, static_cast<float>(args.at(1).toNumber(exec)),
+            context->uniform(location, static_cast<float>(args.at(1).toNumber(exec)),
                                         static_cast<float>(args.at(2).toNumber(exec)),
                                         static_cast<float>(args.at(3).toNumber(exec)),
                                         static_cast<float>(args.at(4).toNumber(exec))); 
@@ -208,7 +208,7 @@ JSValue JSCanvasRenderingContext3D::glUniformf(JSC::ExecState* exec, JSC::ArgLis
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glUniformi(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::uniformi(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() < 1)
         return throwError(exec, SyntaxError);
@@ -218,19 +218,19 @@ JSValue JSCanvasRenderingContext3D::glUniformi(JSC::ExecState* exec, JSC::ArgLis
     CanvasRenderingContext3D* context = static_cast<CanvasRenderingContext3D*>(impl());    
     switch(args.size()) {
         case 2:
-            context->glUniform(location, args.at(1).toInt32(exec));
+            context->uniform(location, args.at(1).toInt32(exec));
             break;
         case 3: 
-            context->glUniform(location, args.at(1).toInt32(exec),
+            context->uniform(location, args.at(1).toInt32(exec),
                                         args.at(2).toInt32(exec)); 
             break;
         case 4: 
-            context->glUniform(location, args.at(1).toInt32(exec),
+            context->uniform(location, args.at(1).toInt32(exec),
                                         args.at(2).toInt32(exec),
                                         args.at(3).toInt32(exec)); 
             break;
         case 5: 
-            context->glUniform(location, args.at(1).toInt32(exec),
+            context->uniform(location, args.at(1).toInt32(exec),
                                         args.at(2).toInt32(exec),
                                         args.at(3).toInt32(exec),
                                         args.at(4).toInt32(exec)); 
@@ -238,7 +238,7 @@ JSValue JSCanvasRenderingContext3D::glUniformi(JSC::ExecState* exec, JSC::ArgLis
         default:
             if (args.at(1).isObject()) {
                 RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(1));
-                context->glUniform(location, numberArray.get());
+                context->uniform(location, numberArray.get());
             }
             break;
     }
@@ -246,7 +246,7 @@ JSValue JSCanvasRenderingContext3D::glUniformi(JSC::ExecState* exec, JSC::ArgLis
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glTexParameter(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::texParameter(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() != 3)
         return throwError(exec, SyntaxError);
@@ -257,24 +257,22 @@ JSValue JSCanvasRenderingContext3D::glTexParameter(JSC::ExecState* exec, JSC::Ar
     CanvasRenderingContext3D* context = static_cast<CanvasRenderingContext3D*>(impl());    
     if (args.at(2).isObject()) {
         RefPtr<CanvasNumberArray> numberArray = toCanvasNumberArray(exec, args.at(2));
-        context->glTexParameter(target, pname, numberArray.get());
+        context->texParameter(target, pname, numberArray.get());
     } else {
         double value = args.at(2).toNumber(exec);
-        context->glTexParameter(target, pname, value);
+        context->texParameter(target, pname, value);
     }
     
     return jsUndefined();
 }
 
-JSValue JSCanvasRenderingContext3D::glDrawElements(JSC::ExecState* exec, JSC::ArgList const& args)
+JSValue JSCanvasRenderingContext3D::drawElements(JSC::ExecState* exec, JSC::ArgList const& args)
 {
     if (args.size() < 3)
         return throwError(exec, SyntaxError);
 
     unsigned mode = args.at(0).toInt32(exec);
     unsigned type = args.at(1).toInt32(exec);
-    
-    unsigned int count = 0;
     
     // If the third param is not an object, it is a number, which is the count.
     // In this case if there is a 4th param, it is the offset. If there is no
@@ -284,42 +282,44 @@ JSValue JSCanvasRenderingContext3D::glDrawElements(JSC::ExecState* exec, JSC::Ar
         if (args.size() > 4)
             return throwError(exec, SyntaxError);
             
-        count = args.at(2).toInt32(exec);
+        unsigned int count = args.at(2).toInt32(exec);
         unsigned int offset = (args.size() == 4) ? args.at(3).toInt32(exec) : 0;
-        context->glDrawElements(mode, count, type, (void*) offset);
-    } else {
-        if (args.size() != 3)
-            return throwError(exec, SyntaxError);
-            
-        if (type != GL_UNSIGNED_BYTE && type != GL_UNSIGNED_SHORT)
-             return throwError(exec, TypeError);
-             
-        size_t size = count * ((type == GL_UNSIGNED_BYTE) ? sizeof(unsigned char) : sizeof(unsigned short));
-        void* tempIndices;
-        if (!tryFastMalloc(size).getValue(tempIndices))
-            return throwError(exec, GeneralError);
-
-        OwnFastMallocPtr<void> passedIndices(tempIndices);
-        JSObject* array = asObject(args.at(2));
-        count = array->get(exec, Identifier(exec, "length")).toInt32(exec);
-
-        if (type == GL_UNSIGNED_BYTE) {
-            unsigned char* indices = static_cast<unsigned char*>(passedIndices.get());
-            for (unsigned int i = 0; i < count; ++i) {
-                unsigned short value = static_cast<unsigned char>(array->get(exec, i).toUInt32(exec));
-                indices[i] = value;
-            }
-        } else {
-            unsigned short* indices = static_cast<unsigned short*>(passedIndices.get());
-            for (unsigned int i = 0; i < count; ++i) {
-                unsigned short value = static_cast<unsigned short>(array->get(exec, i).toUInt32(exec));
-                indices[i] = value;
-            }
-        }
-            
-        context->glDrawElements(mode, count, type, passedIndices.get());
+        context->drawElements(mode, count, type, (void*) offset);
+        return jsUndefined();
     }
+    
+    // 3rd param is an object. Treat it as an array
+    if (args.size() != 3)
+        return throwError(exec, SyntaxError);
+        
+    if (type != GL_UNSIGNED_BYTE && type != GL_UNSIGNED_SHORT)
+         return throwError(exec, TypeError);
+         
+    JSObject* array = asObject(args.at(2));
+    unsigned int count = array->get(exec, Identifier(exec, "length")).toInt32(exec);
+    size_t size = count * ((type == GL_UNSIGNED_BYTE) ? sizeof(unsigned char) : sizeof(unsigned short));
+    
+    void* tempIndices;
+    if (!tryFastMalloc(size).getValue(tempIndices))
+        return throwError(exec, GeneralError);
 
+    OwnFastMallocPtr<void> passedIndices(tempIndices);
+
+    if (type == GL_UNSIGNED_BYTE) {
+        unsigned char* indices = static_cast<unsigned char*>(passedIndices.get());
+        for (unsigned int i = 0; i < count; ++i) {
+            unsigned short value = static_cast<unsigned char>(array->get(exec, i).toUInt32(exec));
+            indices[i] = value;
+        }
+    } else {
+        unsigned short* indices = static_cast<unsigned short*>(passedIndices.get());
+        for (unsigned int i = 0; i < count; ++i) {
+            unsigned short value = static_cast<unsigned short>(array->get(exec, i).toUInt32(exec));
+            indices[i] = value;
+        }
+    }
+        
+    context->drawElements(mode, count, type, passedIndices.get());
     return jsUndefined();
 }
 

@@ -1,3 +1,33 @@
+2009-08-28  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Modify Release_Cairo target to build testapi using the
+        Release_CFLite target so that the correct CoreFoundation
+        (in this case, CFLite.dll) is linked.
+
+        * WebKit.vcproj/WebKit.sln:
+
+2009-08-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Don't let local files access web URLs
+        https://bugs.webkit.org/show_bug.cgi?id=28480
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
+2009-08-26  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        ResourceRequestBase::*[Aa]llowHTTPCookies shouldn't mention http.
+        https://bugs.webkit.org/show_bug.cgi?id=28735
+
+        * WebMutableURLRequest.cpp:
+        (WebMutableURLRequest::setHTTPShouldHandleCookies):
+
 2009-08-26  Eric Carlson  <eric.carlson@apple.com>
 
         Reviewed by Oliver Hunt.

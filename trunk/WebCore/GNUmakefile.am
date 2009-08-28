@@ -138,6 +138,7 @@ IDL_BINDINGS += \
 	WebCore/dom/NodeList.idl \
 	WebCore/dom/Notation.idl \
 	WebCore/dom/OverflowEvent.idl \
+	WebCore/dom/PageTransitionEvent.idl \
 	WebCore/dom/ProcessingInstruction.idl \
 	WebCore/dom/ProgressEvent.idl \
 	WebCore/dom/Range.idl \
@@ -153,6 +154,7 @@ IDL_BINDINGS += \
 	WebCore/html/canvas/CanvasPattern.idl \
 	WebCore/html/canvas/CanvasRenderingContext.idl \
 	WebCore/html/canvas/CanvasRenderingContext2D.idl \
+	WebCore/html/canvas/CanvasRenderingContext3D.idl \
 	WebCore/html/DataGridColumn.idl \
 	WebCore/html/DataGridColumnList.idl \
 	WebCore/html/File.idl \
@@ -744,6 +746,8 @@ webcore_sources += \
 	WebCore/dom/OptionElement.h \
 	WebCore/dom/OverflowEvent.cpp \
 	WebCore/dom/OverflowEvent.h \
+	WebCore/dom/PageTransitionEvent.cpp \
+	WebCore/dom/PageTransitionEvent.h \
 	WebCore/dom/Position.cpp \
 	WebCore/dom/Position.h \
 	WebCore/dom/PositionIterator.cpp \
@@ -1930,6 +1934,7 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/gtk2drawing.c \
 	WebCore/platform/gtk/gtkdrawing.h \
 	WebCore/platform/image-decoders/ImageDecoder.h \
+	WebCore/platform/image-decoders/ImageDecoder.cpp \
 	WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp \
 	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h \
 	WebCore/platform/image-decoders/bmp/BMPImageReader.cpp \
@@ -3220,8 +3225,18 @@ webcore_sources += \
 	WebCore/bindings/js/JSWebSocketConstructor.cpp \
 	WebCore/bindings/js/JSWebSocketConstructor.h \
 	WebCore/bindings/js/JSWebSocketCustom.cpp \
+	WebCore/platform/network/SocketStreamErrorBase.cpp \
+	WebCore/platform/network/SocketStreamErrorBase.h \
+	WebCore/platform/network/SocketStreamHandleBase.cpp \
+	WebCore/platform/network/SocketStreamHandleBase.h \
+	WebCore/platform/network/SocketStreamHandleClient.h \
 	WebCore/websockets/WebSocket.cpp \
 	WebCore/websockets/WebSocket.h
+
+webcoregtk_sources += \
+	WebCore/platform/network/soup/SocketStreamError.h \
+	WebCore/platform/network/soup/SocketStreamHandle.h \
+	WebCore/platform/network/soup/SocketStreamHandleSoup.cpp
 
 else
 webcore_cppflags += -DENABLE_WEB_SOCKETS=0

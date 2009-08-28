@@ -385,6 +385,7 @@ This file contains the list of files needed to build WebCore.
         DerivedSources/WebCore/JSNodeList.cpp
         DerivedSources/WebCore/JSNotation.cpp
         DerivedSources/WebCore/JSOverflowEvent.cpp
+        DerivedSources/WebCore/JSPageTransitionEvent.cpp
         DerivedSources/WebCore/JSPlugin.cpp
         DerivedSources/WebCore/JSPluginArray.cpp
         DerivedSources/WebCore/JSPositionError.cpp
@@ -488,6 +489,7 @@ This file contains the list of files needed to build WebCore.
         dom/OptionGroupElement.cpp
         dom/OptionElement.cpp
         dom/OverflowEvent.cpp
+        dom/PageTransitionEvent.cpp
         dom/Position.cpp
         dom/PositionIterator.cpp
         dom/ProcessingInstruction.cpp
@@ -898,6 +900,10 @@ This file contains the list of files needed to build WebCore.
         plugins/npapi.cpp
     </set>
 
+    <set append="1" var="WEBCORE_SOURCES_IMAGE_DECODERS">
+        platform/image-decoders/ImageDecoder.cpp
+    </set>
+
     <set append="1" var="WEBCORE_SOURCES_GIF">
         platform/image-decoders/gif/GIFImageDecoder.cpp
         platform/image-decoders/gif/GIFImageReader.cpp
@@ -927,8 +933,8 @@ This file contains the list of files needed to build WebCore.
     </set>
 
     <set append="1" var="WEBCORE_SOURCES_BMP">
-      platform/image-decoders/bmp/BMPImageDecoder.cpp
-      platform/image-decoders/bmp/BMPImageReader.cpp
+        platform/image-decoders/bmp/BMPImageDecoder.cpp
+        platform/image-decoders/bmp/BMPImageReader.cpp
     </set>
 
     <set append="1" var="WEBCORE_SOURCES_ICO">

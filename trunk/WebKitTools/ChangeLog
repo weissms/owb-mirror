@@ -1,3 +1,103 @@
+2009-08-28  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by David Kilzer.
+
+        Make prepare-ChangeLog notice property changes
+        https://bugs.webkit.org/show_bug.cgi?id=28675
+
+        Make the generated ChangeLog entry include a short description of
+        property changes if there were such changes.  Also make
+        prepare-ChangeLog not bail if the only changes are property changes.
+
+        * Scripts/prepare-ChangeLog:
+
+2009-08-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Don't let local files access web URLs
+        https://bugs.webkit.org/show_bug.cgi?id=28480
+
+        A bunch of our LayoutTests rely on our old behavior, so we explicitly
+        grant local files universal access during testing.  Mainly, these tests
+        involve making XMLHttpRequests for data URLs.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+
+2009-08-26  John Gregg  <johnnyg@google.com>
+
+        Reviewed by David Levin.
+
+        Minor style correction and include fix for notifications
+        https://bugs.webkit.org/show_bug.cgi?id=28745
+
+        * DumpRenderTree/win/DRTDesktopNotificationPresenter.cpp:
+          change to correct EnumStyle
+        (DRTDesktopNotificationPresenter::checkNotificationPermission):
+
+2009-08-26  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        XMLHttpRequest.withCredentials=false shouldn't save cookies.
+        https://bugs.webkit.org/show_bug.cgi?id=28743
+
+        Added the support to the layout test controller on OSX and
+        Windows (for CFNETWORK) to allow for changing the accept cookie
+        policy.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController): Added a bool
+        to track the state of accepting cookies.
+        (setAlwaysAcceptCookiesCallback): Standard wrapper method
+        to go from js to a C++ method.
+        (LayoutTestController::staticFunctions): Added the
+        setAlwaysAcceptCookies method to the js layoutTestController.
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::alwaysAcceptCookies): Returns the value.
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setAlwaysAcceptCookies): Stub out method.
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues): Reset the accept cookie to
+        its default.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setAlwaysAcceptCookies): Does the work for
+        OSX to change the cookie accept policy.
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (setAlwaysAcceptCookies): Method to handle all the calls necessary
+        to change the accept cookie policy on Windows.
+        (resetDefaultsToConsistentValues): Reset the accept cookie to
+        its default.
+        * DumpRenderTree/win/DumpRenderTreeWin.h:
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setAlwaysAcceptCookies): Stub out method.
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setAlwaysAcceptCookies): Stub out method.
+
+2009-08-26  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed.
+
+        Remove accidentally left in clobber option.
+        https://bugs.webkit.org/show_bug.cgi?id=28400
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg: Removed clobber option.
+
+2009-08-26  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        Add canary-style Chromium WebKit build slave to the waterfall.
+        https://bugs.webkit.org/show_bug.cgi?id=28400
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json: Added one Chromium/Windows slave
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg: Added support for Chromium slave commands.
+
 2009-08-26  Cameron McCormack  <cam@mcc.id.au>
 
         Reviewed by Darin Adler.

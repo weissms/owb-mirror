@@ -11,6 +11,7 @@ WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSDesktopNotificationsCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bindings/js/ScriptObjectQuarantine.h
+WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/css/CSSParser.cpp
@@ -53,6 +54,7 @@ WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.c
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp BAL/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.cpp
 WebCore/platform/graphics/gtk/ImageGtk.cpp BAL/Graphics/WebCore/Gtk/BCImageGtk.cpp
+WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
 WebCore/platform/graphics/qt/GraphicsContextQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsContextQt.cpp
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp

@@ -11,5 +11,6 @@ list(APPEND IDL_SRC
     html/canvas/CanvasGradient.idl
     html/canvas/CanvasPattern.idl
     html/canvas/CanvasRenderingContext2D.idl
+    html/canvas/CanvasRenderingContext3D.idl
     html/canvas/CanvasRenderingContext.idl
 )
