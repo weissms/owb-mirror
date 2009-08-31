@@ -39,7 +39,7 @@ namespace WebCore {
 class ImageDecoderQt : public ImageDecoder
 {
 public:
-    static ImageDecoderQt* create(const SharedBuffer& data);
+    ImageDecoderQt(const QString& imageFormat);
     ~ImageDecoderQt();
 
     typedef Vector<char> IncomingData;
@@ -58,7 +58,6 @@ public:
     void clearFrame(size_t index);
 
 private:
-    ImageDecoderQt(const QString &imageFormat);
     ImageDecoderQt(const ImageDecoderQt&);
     ImageDecoderQt &operator=(const ImageDecoderQt&);
 

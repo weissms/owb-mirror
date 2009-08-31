@@ -336,6 +336,9 @@ void PluginView::removeFromUnstartedListIfNecessary()
 
 void PluginView::performRequest(PluginRequest* request)
 {
+    if (!m_isStarted)
+        return;
+
     // don't let a plugin start any loads if it is no longer part of a document that is being 
     // displayed unless the loads are in the same frame as the plugin.
     const String& targetFrameName = request->frameLoadRequest().frameName();
@@ -731,7 +734,7 @@ PluginView::PluginView(Frame* parentFrame, const IntSize& size, PluginPackage* p
     , m_isTransparent(false)
     , m_haveInitialized(false)
     , m_isWaitingToStart(false)
-#if PLATFORM(GTK) || defined(Q_WS_X11)
+#if defined(XP_UNIX) || defined(Q_WS_X11)
     , m_needsXEmbed(false)
 #endif
 #if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
@@ -1129,7 +1132,12 @@ static const char* MozillaUserAgent = "Mozilla/5.0 ("
 #elif defined(XP_WIN)
         "Windows; U; Windows NT 5.1;"
 #elif defined(XP_UNIX)
-        "X11; U; Linux i686;"
+// The Gtk port uses X11 plugins in Mac.
+#if PLATFORM(DARWIN) && PLATFORM(GTK)
+    "X11; U; Intel Mac OS X;"
+#else
+    "X11; U; Linux i686;"
+#endif
 #endif
         " en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0";
 

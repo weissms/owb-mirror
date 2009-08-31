@@ -562,3 +562,8 @@ void WebChromeClient::requestGeolocationPermissionForFrame(Frame*, Geolocation*)
     // See the comment in WebCore/page/ChromeClient.h
 }
 
+void WebChromeClient::scrollbarsModeDidChange() const
+{
+    //FIXME: implement me!
+    notImplemented();
+}
