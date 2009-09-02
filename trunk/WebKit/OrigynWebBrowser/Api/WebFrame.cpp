@@ -363,7 +363,7 @@ void WebFrame::loadHTMLString(const char* string, const char* baseURL, const cha
     String utf8Encoding("utf-8");
     String mimeType("text/html");
 
-    KURL baseKURL(baseURL);
+    KURL baseKURL(ParsedURLString, baseURL);
     KURL failingKURL;
 
     ResourceRequest request(baseKURL);

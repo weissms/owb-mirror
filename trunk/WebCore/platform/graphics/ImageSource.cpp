@@ -29,7 +29,11 @@
 #include "config.h"
 #include "ImageSource.h"
 
+#if PLATFORM(QT)
+#include "ImageDecoderQt.h"
+#else
 #include "ImageDecoder.h"
+#endif
 
 #if ENABLE(IMAGE_DECODER_DOWN_SAMPLING)
 #ifndef IMAGE_DECODER_DOWN_SAMPLING_MAX_NUMBER_OF_PIXELS
@@ -116,6 +120,8 @@ size_t ImageSource::frameCount() const
     return m_decoder ? m_decoder->frameCount() : 0;
 }
 
+#if !PLATFORM(QT)
+
 NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
 {
     if (!m_decoder)
@@ -161,8 +167,8 @@ bool ImageSource::frameHasAlphaAtIndex(size_t index)
     // black.
     // TODO: Perhaps we should ensure that each individual decoder returns true
     // in this case.
-    return frameIsCompleteAtIndex(index) ?
-        m_decoder->frameBufferAtIndex(index)->hasAlpha() : true;
+    return !frameIsCompleteAtIndex(index)
+        || m_decoder->frameBufferAtIndex(index)->hasAlpha();
 }
 
 bool ImageSource::frameIsCompleteAtIndex(size_t index)
@@ -173,5 +179,7 @@ bool ImageSource::frameIsCompleteAtIndex(size_t index)
     RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
     return buffer && buffer->status() == RGBA32Buffer::FrameComplete;
 }
+
+#endif
 
 }

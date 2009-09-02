@@ -222,11 +222,13 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
     // so we start the keep alive timer here.
     m_frame->keepAlive();
 
+#if ENABLE(DOM_STORAGE)
     // Release any localStorage locks we may still have.
     Page* page = m_frame->page();
     StorageNamespace* localStorage = page ? page->group().localStorage() : 0;
     if (localStorage)
         localStorage->unlock();
+#endif
 
     if (object.IsEmpty() || object->IsUndefined())
         return ScriptValue();
@@ -272,6 +274,11 @@ void ScriptController::collectGarbage()
     v8::Context::Scope scope(v8Context);
 
     m_proxy->evaluate(ScriptSourceCode("if (window.gc) void(gc());"), 0);
+}
+
+void ScriptController::lowMemoryNotification()
+{
+    v8::V8::LowMemoryNotification();
 }
 
 bool ScriptController::haveInterpreter() const

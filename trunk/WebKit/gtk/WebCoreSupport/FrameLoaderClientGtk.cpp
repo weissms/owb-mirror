@@ -804,8 +804,6 @@ bool FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, 
 void FrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
     dispatchDidFailLoad(error);
-
-    loadDone(m_frame, false);
 }
 
 void FrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
@@ -824,7 +822,6 @@ void FrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
 
     if (!shouldFallBack(error)) {
         g_error_free(webError);
-        loadDone(m_frame, false);
         return;
     }
 
@@ -852,21 +849,14 @@ void FrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
         g_object_unref(errorFile);
 
     g_error_free(webError);
-
-    loadDone(m_frame, false);
 }
 
 void FrameLoaderClient::download(ResourceHandle* handle, const ResourceRequest& request, const ResourceRequest&, const ResourceResponse& response)
 {
-    // FIXME: We could reuse the same handle here, but when I tried
-    // implementing that the main load would fail and stop, so I have
-    // simplified this case for now.
-    handle->cancel();
-
-    WebKitNetworkRequest* networkRequest = webkit_network_request_new(request.url().string().utf8().data());
+    WebKitNetworkRequest* networkRequest = webkit_network_request_new_with_core_request(request);
     WebKitWebView* view = getViewFromFrame(m_frame);
 
-    webkit_web_view_request_download(view, networkRequest, response);
+    webkit_web_view_request_download(view, networkRequest, response, handle);
     g_object_unref(networkRequest);
 }
 

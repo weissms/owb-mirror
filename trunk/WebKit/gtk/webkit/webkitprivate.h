@@ -35,12 +35,15 @@
 #include <webkit/webkitwebframe.h>
 #include <webkit/webkitwebpolicydecision.h>
 #include <webkit/webkitwebnavigationaction.h>
+#include <webkit/webkitwebresource.h>
 #include <webkit/webkitwebsettings.h>
 #include <webkit/webkitwebwindowfeatures.h>
 #include <webkit/webkitwebbackforwardlist.h>
 #include <webkit/webkitnetworkrequest.h>
 
+#include "ArchiveResource.h"
 #include "BackForwardList.h"
+#include "CString.h"
 #include <enchant.h>
 #include "HistoryItem.h"
 #include "Settings.h"
@@ -159,6 +162,22 @@ extern "C" {
     webkit_web_history_item_get_children(WebKitWebHistoryItem*);
     // end WebKitWebHistoryItem private
 
+    // WebKitWebResource private
+    #define WEBKIT_WEB_RESOURCE_GET_PRIVATE(obj)        (G_TYPE_INSTANCE_GET_PRIVATE((obj), WEBKIT_TYPE_WEB_RESOURCE, WebKitWebResourcePrivate))
+    struct _WebKitWebResourcePrivate {
+        WebCore::ArchiveResource* resource;
+
+        gchar* uri;
+        gchar* mimeType;
+        gchar* textEncoding;
+        gchar* frameName;
+
+        GString* data;
+    };
+    WebKitWebResource*
+    webkit_web_resource_new_with_core_resource(PassRefPtr<WebCore::ArchiveResource>);
+    // end WebKitWebResource private
+
     void
     webkit_web_inspector_set_inspector_client(WebKitWebInspector*, WebCore::Page*);
 
@@ -175,7 +194,10 @@ extern "C" {
     webkit_web_view_notify_ready (WebKitWebView* web_view);
 
     void
-    webkit_web_view_request_download(WebKitWebView* web_view, WebKitNetworkRequest* request, const WebCore::ResourceResponse& response = WebCore::ResourceResponse());
+    webkit_web_view_request_download(WebKitWebView* web_view, WebKitNetworkRequest* request, const WebCore::ResourceResponse& response = WebCore::ResourceResponse(), WebCore::ResourceHandle* handle = 0);
+
+    WebKitDownload*
+    webkit_download_new_with_handle(WebKitNetworkRequest* request, WebCore::ResourceHandle* handle, const WebCore::ResourceResponse& response);
 
     void
     webkit_download_set_suggested_filename(WebKitDownload* download, const gchar* suggestedFilename);

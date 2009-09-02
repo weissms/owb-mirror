@@ -2942,9 +2942,6 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyWebkitBackgroundOrigin:
         HANDLE_BACKGROUND_VALUE(origin, Origin, value)
         return;
-    case CSSPropertyBackgroundRepeat:
-        HANDLE_BACKGROUND_VALUE(repeat, Repeat, value)
-        return;
     case CSSPropertyBackgroundSize:
         HANDLE_BACKGROUND_VALUE(size, Size, value)
         return;
@@ -2959,9 +2956,6 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         return;
     case CSSPropertyWebkitMaskOrigin:
         HANDLE_MASK_VALUE(origin, Origin, value)
-        return;
-    case CSSPropertyWebkitMaskRepeat:
-        HANDLE_MASK_VALUE(repeat, Repeat, value)
         return;
     case CSSPropertyWebkitMaskSize:
         HANDLE_MASK_VALUE(size, Size, value)
@@ -3249,6 +3243,26 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         HANDLE_MASK_VALUE(yPosition, YPosition, value)
         return;
     }
+    case CSSPropertyBackgroundRepeat:
+        HANDLE_BACKGROUND_INHERIT_AND_INITIAL(repeatX, RepeatX);
+        HANDLE_BACKGROUND_INHERIT_AND_INITIAL(repeatY, RepeatY);
+        return;
+    case CSSPropertyBackgroundRepeatX:
+        HANDLE_BACKGROUND_VALUE(repeatX, RepeatX, value)
+        return;
+    case CSSPropertyBackgroundRepeatY:
+        HANDLE_BACKGROUND_VALUE(repeatY, RepeatY, value)
+        return;
+    case CSSPropertyWebkitMaskRepeat:
+        HANDLE_MASK_INHERIT_AND_INITIAL(repeatX, RepeatX);
+        HANDLE_MASK_INHERIT_AND_INITIAL(repeatY, RepeatY);
+        return;
+    case CSSPropertyWebkitMaskRepeatX:
+        HANDLE_MASK_VALUE(repeatX, RepeatX, value)
+        return;
+    case CSSPropertyWebkitMaskRepeatY:
+        HANDLE_MASK_VALUE(repeatY, RepeatY, value)
+        return;
     case CSSPropertyBorderSpacing: {
         if (isInherit) {
             m_style->setHorizontalBorderSpacing(m_parentStyle->horizontalBorderSpacing());
@@ -5319,10 +5333,10 @@ void CSSStyleSelector::mapFillImage(FillLayer* layer, CSSValue* value)
     layer->setImage(styleImage(value));
 }
 
-void CSSStyleSelector::mapFillRepeat(FillLayer* layer, CSSValue* value)
+void CSSStyleSelector::mapFillRepeatX(FillLayer* layer, CSSValue* value)
 {
     if (value->cssValueType() == CSSValue::CSS_INITIAL) {
-        layer->setRepeat(FillLayer::initialFillRepeat(layer->type()));
+        layer->setRepeatX(FillLayer::initialFillRepeatX(layer->type()));
         return;
     }
     
@@ -5330,7 +5344,21 @@ void CSSStyleSelector::mapFillRepeat(FillLayer* layer, CSSValue* value)
         return;
 
     CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
-    layer->setRepeat(*primitiveValue);
+    layer->setRepeatX(*primitiveValue);
+}
+
+void CSSStyleSelector::mapFillRepeatY(FillLayer* layer, CSSValue* value)
+{
+    if (value->cssValueType() == CSSValue::CSS_INITIAL) {
+        layer->setRepeatY(FillLayer::initialFillRepeatY(layer->type()));
+        return;
+    }
+    
+    if (!value->isPrimitiveValue())
+        return;
+
+    CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
+    layer->setRepeatY(*primitiveValue);
 }
 
 void CSSStyleSelector::mapFillSize(FillLayer* layer, CSSValue* value)

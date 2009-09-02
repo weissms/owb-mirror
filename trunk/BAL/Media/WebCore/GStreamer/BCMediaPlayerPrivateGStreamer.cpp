@@ -668,7 +668,7 @@ static HashSet<String> mimeTypeCache()
                     g_str_equal(mimetype[0], "video") ||
                     (g_str_equal(mimetype[0], "application") &&
                         !ignoredApplicationSubtypes.contains(String(mimetype[1])))) {
-                cache.add(String(capability[0]));
+                //cache.add(String(capability[0]));
             }
 
             g_strfreev(capability);

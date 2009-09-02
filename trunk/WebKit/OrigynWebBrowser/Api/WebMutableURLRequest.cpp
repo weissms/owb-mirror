@@ -114,7 +114,7 @@ bool WebMutableURLRequest::HTTPShouldHandleCookies()
 
 void WebMutableURLRequest::initWithURL(String url, ResourceRequestCachePolicy cachePolicy, double timeoutInterval)
 {
-    m_request.setURL(KURL(url));
+    m_request.setURL(KURL(ParsedURLString, url));
     m_request.setCachePolicy(cachePolicy);
     m_request.setTimeoutInterval(timeoutInterval);
 }
@@ -191,7 +191,7 @@ void WebMutableURLRequest::setTimeoutInterval(double /*timeoutInterval*/)
 
 void WebMutableURLRequest::setURL(String url)
 {
-    m_request.setURL(KURL(url));
+    m_request.setURL(KURL(ParsedURLString, url));
 }
 
 void WebMutableURLRequest::setValue(String value, String field)

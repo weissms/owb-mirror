@@ -163,7 +163,7 @@ WebURLResponse* WebURLResponse::createInstance()
 {
     WebURLResponse* instance = new WebURLResponse();
     // fake an http response - so it has the IWebHTTPURLResponse interface
-    instance->m_response = ResourceResponse(KURL("http://"), String(), 0, String(), String());
+    instance->m_response = ResourceResponse(KURL(ParsedURLString, "http://"), String(), 0, String(), String());
     return instance;
 }
 
@@ -185,7 +185,7 @@ long long WebURLResponse::expectedContentLength()
 
 void WebURLResponse::initWithURL(String url, String mimeType, int expectedContentLength, String textEncodingName)
 {
-    m_response = ResourceResponse(KURL(url), String(mimeType), expectedContentLength, String(textEncodingName), String());
+    m_response = ResourceResponse(KURL(ParsedURLString, url), String(mimeType), expectedContentLength, String(textEncodingName), String());
 }
 
 String WebURLResponse::MIMEType()

@@ -2004,7 +2004,7 @@ void WebView::paste()
 
 void WebView::copyURL(const char* url)
 {
-    m_page->focusController()->focusedOrMainFrame()->editor()->copyURL(KURL(url), "");
+    m_page->focusController()->focusedOrMainFrame()->editor()->copyURL(KURL(ParsedURLString, url), "");
 }
 
 
@@ -2172,7 +2172,7 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->userStyleSheetEnabled();
     if (enabled) {
         str = preferences->userStyleSheetLocation();
-        settings->setUserStyleSheetLocation(KURL(str));
+        settings->setUserStyleSheetLocation(KURL(ParsedURLString, str));
     } else {
         settings->setUserStyleSheetLocation(KURL());
     }

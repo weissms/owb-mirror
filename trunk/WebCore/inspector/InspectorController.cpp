@@ -826,7 +826,7 @@ void InspectorController::didLoadResourceFromMemoryCache(DocumentLoader* loader,
         return;
 
     ASSERT(m_inspectedPage);
-    bool isMainResource = isMainResourceLoader(loader, KURL(cachedResource->url()));
+    bool isMainResource = isMainResourceLoader(loader, KURL(ParsedURLString, cachedResource->url()));
     ensureResourceTrackingSettingsLoaded();
     if (!isMainResource && !m_resourceTrackingEnabled)
         return;
@@ -1274,7 +1274,9 @@ void InspectorController::failedToParseSource(ExecState*, const SourceCode& sour
 
 void InspectorController::didPause()
 {
-    m_frontend->pausedScript();
+    ScriptFunctionCall function(m_scriptState, m_injectedScriptObj, "getCallFrames");
+    ScriptValue callFrames = function.call();
+    m_frontend->pausedScript(callFrames);
 }
 
 void InspectorController::didContinue()

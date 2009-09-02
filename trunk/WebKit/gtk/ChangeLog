@@ -1,3 +1,85 @@
+2009-09-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Avoid causing unexpected issues with window sizing when sites
+        disable scrollbars completely.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::scrollbarsModeDidChange):
+        * tests/testwindow.c:
+        (test_webkit_window_scrollbar_policy):
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_class_init):
+
+2009-09-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez and Gustavo Noronha.
+
+        [Gtk] Implement a WebDataSource for the gtk port
+        https://bugs.webkit.org/show_bug.cgi?id=24758
+
+        Implement WebKitWebResource for the resource-related API for
+        WebKitWebDataSource.
+
+        * GNUmakefile.am:
+
+2009-09-01  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28842
+        [GTK] Do not emit extra FINISHED load-status signals
+
+        Do not emit FINISHED load-status signals on our own, just rely on
+        WebCore for that. Avoids emitting FINISHED several times when we
+        fail to load a URI.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFailProvisionalLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFailLoad):
+        * tests/testloading.c:
+        (web_loading_fixture_setup):
+        (web_loading_fixture_teardown):
+        (load_finished_cb):
+        (status_changed_cb):
+        (test_loading_status):
+        (load_error_status_changed_cb):
+        (load_error_cb):
+        (test_loading_error):
+        (main):
+        * webkit/webkitwebframe.h:
+
+2009-08-31  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28466
+        When downloading a file, two GET requests are sent to the HTTP server
+
+        Support reusing a connection that is already ongoing, instead of
+        cancelling the connection and creating another.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::download):
+        * webkit/webkitdownload.cpp:
+        (webkit_download_new_with_handle):
+        (webkit_download_start):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_request_download):
+
+2009-08-31  Alexey Proskuryakov  <ap@apple.com>
+
+        Gtk build fix.
+
+        This is also a behavior fix, at least on debug builds - a caller of
+        webkit_web_history_item_new_with_data() could pass an URL that could cause an assertion
+        failure in KURL.
+
+        * webkit/webkitwebhistoryitem.cpp: (webkit_web_history_item_new_with_data): Pass a null
+        KURL as base to parse properly.
+
 2009-08-31  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Holger Freyther.

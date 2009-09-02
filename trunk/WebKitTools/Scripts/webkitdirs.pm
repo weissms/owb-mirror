@@ -468,9 +468,17 @@ sub safariPath
         # Use Safari.app in product directory if present (good for Safari development team).
         if (isAppleMacWebKit() && -d "$configurationProductDir/Safari.app") {
             $safariBundle = "$configurationProductDir/Safari.app";
-        } elsif (isAppleWinWebKit() && -x "$configurationProductDir/bin/Safari.exe") {
-            $safariBundle = "$configurationProductDir/bin/Safari.exe";
-        } else {
+        } elsif (isAppleWinWebKit()) {
+            my $path = "$configurationProductDir/Safari.exe";
+            my $debugPath = "$configurationProductDir/Safari_debug.exe";
+
+            if (configurationForVisualStudio() =~ /Debug/ && -x $debugPath) {
+                $safariBundle = $debugPath;
+            } elsif (-x $path) {
+                $safariBundle = $path;
+            }
+        }
+        if (!$safariBundle) {
             return installedSafariPath();
         }
     }
@@ -786,6 +794,11 @@ sub getWxArgs()
 sub isDebianBased()
 {
     return -e "/etc/debian_version";
+}
+
+sub isFedoraBased()
+{
+    return -e "/etc/fedora-release";
 }
 
 sub isChromium()

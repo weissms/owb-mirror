@@ -894,7 +894,9 @@ WebInspector.addResource = function(identifier, payload)
         payload.lastPathComponent,
         identifier,
         payload.isMainResource,
-        payload.cached);
+        payload.cached,
+        payload.requestMethod,
+        payload.requestFormData);
     this.resources[identifier] = resource;
     this.resourceURLMap[resource.url] = resource;
 
@@ -937,6 +939,8 @@ WebInspector.updateResource = function(identifier, payload)
         resource.lastPathComponent = payload.lastPathComponent;
         resource.requestHeaders = payload.requestHeaders;
         resource.mainResource = payload.mainResource;
+        resource.requestMethod = payload.requestMethod;
+        resource.requestFormData = payload.requestFormData;
     }
 
     if (payload.didResponseChange) {
@@ -1049,9 +1053,9 @@ WebInspector.failedToParseScriptSource = function(sourceURL, source, startingLin
     this.panels.scripts.addScript(null, sourceURL, source, startingLine, errorLine, errorMessage);
 }
 
-WebInspector.pausedScript = function()
+WebInspector.pausedScript = function(callFrames)
 {
-    this.panels.scripts.debuggerPaused();
+    this.panels.scripts.debuggerPaused(callFrames);
 }
 
 WebInspector.resumedScript = function()
@@ -1106,6 +1110,20 @@ WebInspector.addMessageToConsole = function(payload)
         payload.repeatCount);
     consoleMessage.setMessageBody(Array.prototype.slice.call(arguments, 1));
     this.console.addMessage(consoleMessage);
+}
+
+WebInspector.log = function(message)
+{
+    var msg = new WebInspector.ConsoleMessage(
+        WebInspector.ConsoleMessage.MessageSource.Other,
+        WebInspector.ConsoleMessage.MessageType.Log,
+        WebInspector.ConsoleMessage.MessageLevel.Debug,
+        -1,
+        null,
+        null,
+        1,
+        message);
+    this.console.addMessage(msg);
 }
 
 WebInspector.addProfile = function(profile)

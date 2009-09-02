@@ -1,3 +1,29 @@
+2009-09-02  Dimitri Glazkov  <dglazkov@chromium.org>
+
+    Reverting http://trac.webkit.org/changeset/47904, because it caused
+    layout test failure.
+
+2009-08-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28852
+        Rename KURL single argument constructor to avoid confusion
+
+        * WebView/WebScriptDebugger.mm: (toNSURL): Adapt to the change.
+
+2009-08-31  Mark Mentovai  <mark@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28614
+
+        Perform a layout prior to checking whether the scrollbar modes are
+        off, on, or automatic.  The modes may change during layout.
+
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView updateScrollers]):
+
 2009-08-31  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by John Sullivan.

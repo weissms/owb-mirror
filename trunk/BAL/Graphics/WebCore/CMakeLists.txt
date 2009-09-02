@@ -16,9 +16,6 @@ endif(USE_GRAPHICS_GTK)
 
 if(USE_GRAPHICS_QT)
     create_include_link(${GRAPHICS_DIR}/Qt BAL)
-    list (REMOVE_ITEM WEBCORE_SRC 
-            ${BAL_DIR}/Graphics/WebCore/WK/BCImageSourceWK.cpp
-    )
     aux_source_directory(${GRAPHICS_DIR}/Qt WEBCORE_SRC)
 endif(USE_GRAPHICS_QT)
 

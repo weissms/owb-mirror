@@ -55,7 +55,7 @@ WebResource* WebResource::createInstance(PassRefPtr<WebCore::SharedBuffer> data,
 void WebResource::initWithData( PassRefPtr<WebCore::SharedBuffer> data, String url, String mimeType, String textEncodingName, String frameName)
 {
     m_data = data;
-    m_url = KURL(String(url));
+    m_url = KURL(ParsedURLString, String(url));
     m_mimeType = String(mimeType);
     m_textEncodingName = String(textEncodingName);
     m_frameName = String(frameName);
