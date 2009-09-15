@@ -349,4 +349,23 @@ void LayoutTestController::setAlwaysAcceptCookies(bool alwaysAcceptCookies)
 {
     // FIXME: Implement this (and restore the default value before running each test in DumpRenderTree.cpp).
 }
- 
+
+void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
+{
+    // FIXME: Implement.
+}
+
+void LayoutTestController::addUserStyleSheet(JSStringRef source)
+{
+    // FIXME: Implement.
+}
+
+void LayoutTestController::setMockGeolocationPosition(double latitude, double longitude, double accuracy)
+{
+    // FIXME: Implement.
+}
+
+void LayoutTestController::setMockGeolocationError(int code, JSStringRef message)
+{
+    // FIXME: Implement.
+}
