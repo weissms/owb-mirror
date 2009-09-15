@@ -1,3 +1,11 @@
+2009-09-15 Brendon  <mickael.leforestier@hotmail.fr>
+
+        Reviewed by Mario Bensi.
+
+        Fix some problem on win port
+
+        * OrigynWebBrowser/CMakeLists.txt:
+
 2009-08-20  Olivier DOLE  <odole@pleyo.com>
 
         make destructor public.

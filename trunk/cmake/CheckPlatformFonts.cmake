@@ -16,8 +16,17 @@ if(USE_FONTS STREQUAL "EMBEDDED")
 endif(USE_FONTS STREQUAL "EMBEDDED")
 
 if(USE_FONTS STREQUAL "FREETYPE")
-    pkg_check_modules(FONTCONFIG REQUIRED fontconfig>=2.4)
-    pkg_check_modules(FREETYPE REQUIRED freetype2>=9.0)
+    IF(NOT WIN32)
+        pkg_check_modules(FONTCONFIG REQUIRED fontconfig>=2.4)
+        pkg_check_modules(FREETYPE REQUIRED freetype2>=9.0)
+    ELSE(NOT WIN32)
+        ## We haven't got a good pkg-config under Windows so we let cmake search libs
+        find_path(FONTCONFIG_INCLUDE_DIRS fontconfig.h ${WINLIB_INC_PATH} ${WINLIB_INC_PATH}/fontconfig)
+        find_path(FREETYPE_INCLUDE_DIRS freetype.h ${WINLIB_INC_PATH} ${WINLIB_INC_PATH}/freetype ${WINLIB_INC_PATH}/freetype2 ${WINLIB_INC_PATH}/freetype2/freetype)    
+        find_file(FONTCONFIG_LIBRARIES fontconfig.lib ${WINLIB_LIB_PATH} ${WINLIB_LIB_PATH}/fontconfig)
+        find_file(FREETYPE_LIBRARIES freetype.lib ${WINLIB_LIB_PATH} ${WINLIB_LIB_PATH}/freetype)
+    ENDIF(NOT WIN32)
+    
     set(FONTS_INCLUDE_DIRS ${FONTCONFIG_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
     set(FONTS_LIBRARIES ${FONTCONFIG_LIBRARIES} ${FREETYPE_LIBRARIES})
 

@@ -1,3 +1,11 @@
+2009-09-15  Brendon  <mickael.leforestier@hotmail.fr>
+
+        Reviewed by Mario Bensi.
+
+        new script for win implementation
+
+        * Scripts/createLinkwin32.py: Added.
+
 2009-07-28  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

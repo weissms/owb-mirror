@@ -1,5 +1,12 @@
 if(USE_NETWORK STREQUAL "CURL")
-    pkg_check_modules(CURL REQUIRED libcurl>=7.15)
+    IF(NOT WIN32)
+        pkg_check_modules(CURL REQUIRED libcurl>=7.15)
+    ELSE(NOT WIN32)
+        ## We haven't got a good pkg-config under Windows so we let cmake search libs
+        find_path(CURL_INCLUDE_DIRS curl.h ${WINLIB_INC_PATH} ${WINLIB_INC_PATH}/curl)    
+        find_file(CURL_LIBRARIES libcurl.lib ${WINLIB_LIB_PATH} ${WINLIB_LIB_PATH}/curl)
+    ENDIF(NOT WIN32)
+    
     set(NETWORK_INCLUDE_DIRS ${CURL_INCLUDE_DIRS})
     set(NETWORK_LIBRARIES ${CURL_LIBRARIES})
 

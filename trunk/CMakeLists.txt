@@ -8,10 +8,19 @@ project(OWB CXX C)
 
 cmake_minimum_required(VERSION 2.6.2)
 
-execute_process(COMMAND ./FindCMakeModulesPath.py
-    WORKING_DIRECTORY ${OWB_SOURCE_DIR}
-    OUTPUT_VARIABLE EXTRA_MODULE_PATH
-)
+if(NOT WIN32)
+    execute_process(COMMAND ./FindCMakeModulesPath.py
+        WORKING_DIRECTORY ${OWB_SOURCE_DIR}
+        OUTPUT_VARIABLE EXTRA_MODULE_PATH
+    )
+ELSE (NOT WIN32)
+    ## We need a pur windows path for CMAKE under windows 
+    execute_process(COMMAND python ./FindCMakeModulesPathwin32.py ${CYGWIN_INSTALL_PATH}
+        WORKING_DIRECTORY ${OWB_SOURCE_DIR}
+        OUTPUT_VARIABLE EXTRA_MODULE_PATH
+    )
+ENDIF(NOT WIN32)
+
 set(CMAKE_MODULE_PATH ${EXTRA_MODULE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ${OWB_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${OWB_BINARY_DIR}/lib)
@@ -67,6 +76,13 @@ set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are:
 set(USE_TIMER "LINUX" CACHE STRING "Choose the timer backend, options are: GLIB LINUX QT")
 
 set(WITH_OWB_CONFIG_DIR "$ENV{HOME}/.owb/conf/" CACHE STRING "Set configuration directory for owb")
+
+IF(WIN32)
+    ## It seems interessant to let custombers put here the directory of his win32 library or force it to use  ${OWB_SOURCE_DIR}/winlib, I don't know  
+    set(WINLIB_PATH "${OWB_SOURCE_DIR}/winlib" CACHE STRING "Choose the path to you Win32 include/lib/runtime")
+    SET(WINLIB_LIB_PATH ${WINLIB_PATH}/lib)
+    SET(WINLIB_INC_PATH ${WINLIB_PATH}/include)
+ENDIF(WIN32)
 
 include(AddOnsOptions OPTIONAL RESULT_VARIABLE HAS_ADDONS)
 include(CustomerOptions OPTIONAL RESULT_VARIABLE HAS_CUSTOMER)

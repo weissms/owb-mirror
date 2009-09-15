@@ -65,7 +65,12 @@ include_directories(
 
 include(Customer/CMakeLists.txt OPTIONAL)
 
-include(AddWebKitCompilerFlags)
+IF(NOT WIN32)
+    include(AddWebKitCompilerFlags)
+ELSE(NOT WIN32)
+    ## We had an issues with link under windows so we put directly the target of it (AddWebCoreCompilerFlags)
+    include(AddWebCoreCompilerFlags)
+ENDIF(NOT WIN32)
 
 set_source_files_properties(${WEBKIT_SRC}
     PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
@@ -93,9 +98,13 @@ configure_file(
     @ONLY
 )
 
-install(TARGETS webkit-owb
-    LIBRARY DESTINATION lib
-)
+IF(NOT WIN32)
+    ## LIBRARY DESTINATION is useless with vcproj
+    install(TARGETS webkit-owb
+        LIBRARY DESTINATION lib
+    )
+ENDIF(NOT WIN32)
+
 install(FILES ${API_HEADER}
     DESTINATION include/webkit-owb
     PERMISSIONS OWNER_READ GROUP_READ WORLD_READ

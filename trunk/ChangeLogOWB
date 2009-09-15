@@ -1,3 +1,21 @@
+2009-09-15  Brendon  <mickael.leforestier@hotmail.fr>
+
+        Reviewed by Mario Bensi.
+
+        First step for win implementation
+
+        * CMakeLists.txt:
+        * FindCMakeModulesPathwin32.py: Added.
+        * cmake/CheckBaseDependencies.cmake:
+        * cmake/CheckPlatformFonts.cmake:
+        * cmake/CheckPlatformGraphics.cmake:
+        * cmake/CheckPlatformImageDecoder.cmake:
+        * cmake/CheckPlatformInternationalization.cmake:
+        * cmake/CheckPlatformNetwork.cmake:
+        * cmake/CheckXSLT.cmake:
+        * cmake/DefineOwbMacros.cmake:
+        * cmake/FindSDL_gfx.cmake:
+
 2009-08-12  Mario Bensi  <mbensi@pleyo.com>
 
         Change option for build sdl mini

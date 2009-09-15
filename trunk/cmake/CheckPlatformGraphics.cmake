@@ -22,7 +22,16 @@ if(USE_GRAPHICS STREQUAL "QT")
 endif(USE_GRAPHICS STREQUAL "QT")
 
 if(USE_GRAPHICS STREQUAL "SDL")
-    pkg_check_modules(SDL REQUIRED sdl>=1.2.10)
+
+    IF(NOT WIN32)
+        pkg_check_modules(SDL REQUIRED sdl>=1.2.10)
+    ELSE(NOT WIN32)
+        ## We haven't got a good pkg-config under Windows so we let cmake search libs
+        find_path(SDL_INCLUDE_DIRS SDL.h ${WINLIB_INC_PATH} ${WINLIB_INC_PATH}/SDL)
+        find_file(SDL_LIB SDL.lib ${WINLIB_LIB_PATH} ${WINLIB_LIB_PATH}/SDL)
+        find_file(SDL_MAIN_LIB SDLmain.lib ${WINLIB_LIB_PATH} ${WINLIB_LIB_PATH}/SDL)
+    ENDIF(NOT WIN32)
+    
     include(FindSDL_gfx)
     set(GRAPHICS_INCLUDE_DIRS ${SDL_INCLUDE_DIRS} ${SDLGFX_INCLUDE_DIR})
     set(GRAPHICS_LIBRARIES ${SDL_LDFLAGS} ${SDLGFX_LIBRARY})
