@@ -302,6 +302,18 @@ void LayoutTestController::disableImageLoading()
     // Also need to make sure image loading is re-enabled for each new test.
 }
 
+void LayoutTestController::setMockGeolocationPosition(double latitude, double longitude, double accuracy)
+{
+    // FIXME: Implement for Geolocation layout tests.
+    // See https://bugs.webkit.org/show_bug.cgi?id=28264.
+}
+
+void LayoutTestController::setMockGeolocationError(int code, JSStringRef message)
+{
+    // FIXME: Implement for Geolocation layout tests.
+    // See https://bugs.webkit.org/show_bug.cgi?id=28264.
+}
+
 void LayoutTestController::setIconDatabaseEnabled(bool flag)
 {
     // FIXME: implement
@@ -368,12 +380,13 @@ void LayoutTestController::clearPersistentUserStyleSheet()
 
 void LayoutTestController::clearAllDatabases()
 {
-    // FIXME: implement
+    webkit_remove_all_web_databases();
 }
  
 void LayoutTestController::setDatabaseQuota(unsigned long long quota)
-{    
-    // FIXME: implement
+{
+    WebKitSecurityOrigin* origin = webkit_web_frame_get_security_origin(mainFrame);
+    webkit_security_origin_set_web_database_quota(origin, quota);
 }
 
 void LayoutTestController::setAppCacheMaximumSize(unsigned long long size)
@@ -447,4 +460,14 @@ void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value
     g_free(webSettingKey);
     g_free(name);
     g_free(strValue);
+}
+
+void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
+{
+    printf("LayoutTestController::addUserScript not implemented.\n");
+}
+
+void LayoutTestController::addUserStyleSheet(JSStringRef source)
+{
+    printf("LayoutTestController::addUserStyleSheet not implemented.\n");
 }

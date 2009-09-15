@@ -212,6 +212,7 @@ void ChromeClientWx::addMessageToConsole(MessageSource source,
         wkEvent.SetMessage(message);
         wkEvent.SetLineNumber(lineNumber);
         wkEvent.SetSourceID(sourceID);
+        wkEvent.SetLevel(static_cast<wxWebViewConsoleMessageLevel>(level));
         m_webView->GetEventHandler()->ProcessEvent(wkEvent);
     }
 }
@@ -340,7 +341,7 @@ IntPoint ChromeClientWx::screenToWindow(const IntPoint& point) const
 
 PlatformWidget ChromeClientWx::platformWindow() const
 {
-    return 0;
+    return m_webView;
 }
 
 void ChromeClientWx::contentsSizeChanged(Frame*, const IntSize&) const
@@ -393,6 +394,7 @@ void ChromeClientWx::reachedMaxAppCacheSize(int64_t spaceNeeded)
 
 void ChromeClientWx::scroll(const IntSize&, const IntRect&, const IntRect&)
 {
+    m_webView->Refresh();
     notImplemented();
 }
 

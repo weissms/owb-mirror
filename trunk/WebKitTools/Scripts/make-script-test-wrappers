@@ -62,7 +62,15 @@ my @templates = findTemplateFiles(@ARGV);
 for my $tfile (@templates) {
 
     my $tpath = $tfile;
-    $tpath =~ s:/resources/TEMPLATE.html$::;
+    my $templateDirectory;
+    my $templateRelativePath;
+    if ($tpath =~ s:/(resources)/TEMPLATE.html$:: || $tpath =~ s:/(script-tests)/TEMPLATE.html$::) {
+        $templateDirectory = $1;
+        $templateRelativePath = $1 . "/TEMPLATE.html";
+    } else {
+        print "Inappropriate position of a template: ${tpath}\n";
+        next;
+    }
 
     print "${tpath}\n";
 
@@ -73,15 +81,15 @@ for my $tfile (@templates) {
     my $fileFilter = sub {
         push @files, $File::Find::name if substr($_, -3) eq ".js";
     };
-    find({ preprocess => \&directoryFilter, wanted => $fileFilter }, "resources");
+    find({ preprocess => \&directoryFilter, wanted => $fileFilter }, $templateDirectory);
 
-    open TEMPLATE, "<resources/TEMPLATE.html";
+    open TEMPLATE, "<${templateRelativePath}";
     my $template = do { local $/; <TEMPLATE> };
     close TEMPLATE;
 
     my $templateNegative = $template;
-    if (-e "resources/TEMPLATE-n.html") {
-        open TEMPLATE, "<resources/TEMPLATE-n.html";
+    if (-e "${templateDirectory}/TEMPLATE-n.html") {
+        open TEMPLATE, "<${templateDirectory}/TEMPLATE-n.html";
         $templateNegative = do { local $/; <TEMPLATE> };
         close TEMPLATE;
     }
@@ -105,12 +113,16 @@ for my $tfile (@templates) {
         next if $file =~ m:resources/codegen-temporaries-multiple-global-blocks-2\.js$:;
         next if $file =~ m:resources/const\.js$:;
         next if $file =~ m:resources/constructors-cached-navigate\.js$:;
+        next if $file =~ m:resources/error\.js$:;
         next if $file =~ m:resources/frame-loading-via-document-write\.js$:;
         next if $file =~ m:resources/id-fastpath-almost-strict\.js$:;
         next if $file =~ m:resources/id-fastpath-strict\.js$:;
         next if $file =~ m:resources/intersectsNode\.js$:;
         next if $file =~ m:resources/p-in-scope\.js$:;
         next if $file =~ m:resources/paste-blockquote-before-blockquote\.js$:;
+        next if $file =~ m:resources/permission-denied\.js$:;
+        next if $file =~ m:resources/permission-denied-stops-watches\.js$:;
+        next if $file =~ m:resources/position-string\.js$:;
         next if $file =~ m:resources/reflection-overflow-scroll\.js$:;
         next if $file =~ m:resources/script-element-gc\.js$:;
         next if $file =~ m:resources/script-element-gc\.js$:;
@@ -120,9 +132,11 @@ for my $tfile (@templates) {
         next if $file =~ m:resources/scripted-random\.js$:;
         next if $file =~ m:resources/select-options-remove\.js$:;
         next if $file =~ m:resources/shadow-offset\.js$:;
+        next if $file =~ m:resources/success\.js$:;
         next if $file =~ m:resources/tabindex-focus-blur-all\.js$:;
         next if $file =~ m:resources/use-instanceRoot-event-bubbling\.js$:;
         next if $file =~ m:resources/use-instanceRoot-event-listeners\.js$:;
+        next if $file =~ m:resources/watch\.js$:;
         next if $file =~ m:resources/window-properties\.js$:;
         next if $file =~ m:resources/wrapper-identity-base\.js$:;
         next if $file =~ m:resources/xhtml-scripts\.js$:;
@@ -133,7 +147,7 @@ for my $tfile (@templates) {
         next if $file =~ m:resources/textarea-input-event\.js$:;
 
         my $html = $file;
-        $html =~ s:resources/(.*)\.js:$1.html:;
+        $html =~ s:${templateDirectory}/(.*)\.js:$1.html:;
         next if -f "$html-disabled";
 
         system("grep -q 'successfullyParsed =' $file");

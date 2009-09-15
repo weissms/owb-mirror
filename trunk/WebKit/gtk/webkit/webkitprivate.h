@@ -32,6 +32,7 @@
 #include <webkit/webkitdownload.h>
 #include <webkit/webkitnetworkrequest.h>
 #include <webkit/webkitwebview.h>
+#include <webkit/webkitwebdatasource.h>
 #include <webkit/webkitwebframe.h>
 #include <webkit/webkitwebpolicydecision.h>
 #include <webkit/webkitwebnavigationaction.h>
@@ -40,11 +41,13 @@
 #include <webkit/webkitwebwindowfeatures.h>
 #include <webkit/webkitwebbackforwardlist.h>
 #include <webkit/webkitnetworkrequest.h>
+#include <webkit/webkitsecurityorigin.h>
 
 #include "ArchiveResource.h"
 #include "BackForwardList.h"
 #include "CString.h"
 #include <enchant.h>
+#include "GOwnPtr.h"
 #include "HistoryItem.h"
 #include "Settings.h"
 #include "Page.h"
@@ -55,6 +58,7 @@
 #include "ResourceRequest.h"
 #include "ResourceResponse.h"
 #include "WindowFeatures.h"
+#include "SecurityOrigin.h"
 
 #include <atk/atk.h>
 #include <glib.h>
@@ -63,6 +67,9 @@
 class DownloadClient;
 
 namespace WebKit {
+
+    class DocumentLoader;
+
     WebKitWebView* getViewFromFrame(WebKitWebFrame*);
 
     WebCore::Frame* core(WebKitWebFrame*);
@@ -81,7 +88,12 @@ namespace WebKit {
 
     WebCore::ResourceRequest core(WebKitNetworkRequest* request);
 
+    WebCore::ResourceResponse core(WebKitNetworkResponse* response);
+
     WebCore::EditingBehavior core(WebKitEditingBehavior type);
+
+    WebKitSecurityOrigin* kit(WebCore::SecurityOrigin*);
+    WebCore::SecurityOrigin* core(WebKitSecurityOrigin*);
 }
 
 typedef struct {
@@ -140,6 +152,17 @@ extern "C" {
         gchar* title;
         gchar* uri;
         WebKitLoadStatus loadStatus;
+        WebKitSecurityOrigin* origin;
+    };
+
+#define WEBKIT_SECURITY_ORIGIN_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), WEBKIT_TYPE_SECURITY_ORIGIN, WebKitSecurityOriginPrivate))
+    struct _WebKitSecurityOriginPrivate {
+        RefPtr<WebCore::SecurityOrigin> coreOrigin;
+        gchar* protocol;
+        gchar* host;
+        GHashTable* webDatabases;
+
+        gboolean disposed;
     };
 
     PassRefPtr<WebCore::Frame>
@@ -176,6 +199,7 @@ extern "C" {
     };
     WebKitWebResource*
     webkit_web_resource_new_with_core_resource(PassRefPtr<WebCore::ArchiveResource>);
+
     // end WebKitWebResource private
 
     void
@@ -210,6 +234,9 @@ extern "C" {
 
     WebKitNetworkRequest*
     webkit_network_request_new_with_core_request(const WebCore::ResourceRequest& resourceRequest);
+
+    WebKitNetworkResponse*
+    webkit_network_response_new_with_core_response(const WebCore::ResourceResponse& resourceResponse);
 
     // FIXME: move this to webkitnetworkrequest.h once the API is agreed upon.
     WEBKIT_API SoupMessage*
@@ -283,6 +310,23 @@ extern "C" {
     
     WEBKIT_API void
     webkit_reset_origin_access_white_lists();
+
+    // WebKitWebDataSource private
+    WebKitWebDataSource*
+    webkit_web_data_source_new_with_loader(PassRefPtr<WebKit::DocumentLoader>);
+
+    WEBKIT_API WebKitWebDatabase *
+    webkit_security_origin_get_web_database(WebKitSecurityOrigin* securityOrigin, const char* databaseName);
+
+    WEBKIT_API void
+    webkit_web_frame_layout(WebKitWebFrame* frame);
+}
+
+namespace WTF {
+    template <> void freeOwnedGPtr<SoupMessage>(SoupMessage*);
+    template <> void freeOwnedGPtr<WebKitNetworkRequest>(WebKitNetworkRequest*);
+    template <> void freeOwnedGPtr<WebKitNetworkResponse>(WebKitNetworkResponse*);
+    template <> void freeOwnedGPtr<WebKitWebResource>(WebKitWebResource*);
 }
 
 #endif

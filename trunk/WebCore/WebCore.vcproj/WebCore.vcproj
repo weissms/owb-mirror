@@ -3316,10 +3316,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\page\Coordinates.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\page\Coordinates.h"
 				>
 			</File>
@@ -3513,6 +3509,22 @@
 			</File>
 			<File
 				RelativePath="..\page\Settings.h"
+				>
+			</File>
+                        <File
+				RelativePath="..\page\UserScript.h"
+				>
+			</File>
+                        <File
+				RelativePath="..\page\UserScriptTypes.h"
+				>
+			</File>
+                        <File
+				RelativePath="..\page\UserStyleSheet.h"
+				>
+			</File>
+                        <File
+				RelativePath="..\page\UserStyleSheetTypes.h"
 				>
 			</File>
 			<File
@@ -5065,6 +5077,26 @@
 					RelativePath="..\platform\network\ResourceResponseBase.h"
 					>
 				</File>
+				<File
+					RelativePath="..\platform\network\SocketStreamErrorBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\SocketStreamErrorBase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\SocketStreamHandleBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\SocketStreamHandleBase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\SocketStreamHandleClient.h"
+					>
+				</File>
 				<Filter
 					Name="cf"
 					>
@@ -5576,6 +5608,66 @@
 							/>
 						</FileConfiguration>
 					</File>
+					<File
+						RelativePath="..\platform\network\cf\SocketStreamError.h"
+						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath="..\platform\network\cf\SocketStreamHandle.h"
+						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath="..\platform\network\cf\SocketStreamHandleCFNet.cpp"
+						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
 				</Filter>
 				<Filter
 					Name="xbm"
@@ -5770,6 +5862,18 @@
 					>
 				</File>
 			</Filter>
+ 			<Filter
+ 				Name="mock"
+ 				>
+ 				<File
+ 					RelativePath="..\platform\mock\GeolocationServiceMock.cpp"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\platform\mock\GeolocationServiceMock.h"
+ 					>
+ 				</File>
+ 			</Filter>
 		</Filter>
 		<Filter
 			Name="css"
@@ -9766,10 +9870,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\svg\SVGDefinitionSrcElement.h"
-				>
-			</File>
-			<File
 				RelativePath="..\svg\SVGDefsElement.h"
 				>
 			</File>
@@ -10957,6 +11057,14 @@
 				RelativePath="..\history\PageCache.h"
 				>
 			</File>
+			<File
+				RelativePath="..\inspector\TimelineItem.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\inspector\TimelineItem.h"
+				>
+			</File>
 			<Filter
 				Name="cf"
 				>
@@ -11160,6 +11268,38 @@
 						DisableSpecificWarnings="4819"
 					/>
 				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="websockets"
+			>
+			<File
+				RelativePath="..\websockets\WebSocket.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocketChannel.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocketChannel.h"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocketChannelClient.h"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocketHandshake.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\websockets\WebSocketHandshake.h"
+				>
 			</File>
 		</Filter>
 		<File

@@ -25,7 +25,7 @@
 namespace WebCore {
     class GeolocationServiceBAL : public GeolocationService {
     public:
-        GeolocationServiceBAL(GeolocationServiceClient*);
+        static GeolocationService* create(GeolocationServiceClient*);
 
         virtual bool startUpdating(PositionOptions*);
         virtual void stopUpdating();
@@ -35,6 +35,9 @@ namespace WebCore {
 
         Geoposition* lastPosition() const;
         PositionError* lastError() const;
+
+    private:
+        GeolocationServiceBAL(GeolocationServiceClient*);
     };
 }
 

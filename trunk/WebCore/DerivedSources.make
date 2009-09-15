@@ -1,5 +1,6 @@
 # Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
 # Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com> 
+# Copyright (C) 2009 Cameron McCormack <cam@mcc.id.au>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,11 +69,14 @@ DOM_CLASSES = \
     CSSValueList \
     CSSVariablesRule \
     CSSVariablesDeclaration \
+    CanvasArray \
+    CanvasArrayBuffer \
     CanvasBuffer \
     CanvasByteArray \
+    CanvasFloatArray \
     CanvasFramebuffer \
     CanvasGradient \
-    CanvasNumberArray \
+    CanvasIntArray \
     CanvasPattern \
     CanvasProgram \
     CanvasRenderbuffer \
@@ -80,7 +84,11 @@ DOM_CLASSES = \
     CanvasRenderingContext2D \
     CanvasRenderingContext3D \
     CanvasShader \
+    CanvasShortArray \
     CanvasTexture \
+    CanvasUnsignedByteArray \
+    CanvasUnsignedIntArray \
+    CanvasUnsignedShortArray \
     CharacterData \
     ClientRect \
     ClientRectList \
@@ -254,7 +262,6 @@ DOM_CLASSES = \
     SVGColor \
     SVGComponentTransferFunctionElement \
     SVGCursorElement \
-    SVGDefinitionSrcElement \
     SVGDefsElement \
     SVGDescElement \
     SVGDocument \
@@ -412,8 +419,10 @@ DOM_CLASSES = \
 
 .PHONY : all
 
+JS_DOM_HEADERS=$(filter-out JSEventListener.h JSEventTarget.h,$(DOM_CLASSES:%=JS%.h))
+
 all : \
-    $(filter-out JSEventListener.h JSEventTarget.h,$(DOM_CLASSES:%=JS%.h)) \
+    $(JS_DOM_HEADERS) \
     \
     JSJavaScriptCallFrame.h \
     \
@@ -703,7 +712,7 @@ endif
 # JavaScript bindings
 
 GENERATE_BINDINGS = perl -I $(WebCore)/bindings/scripts $(WebCore)/bindings/scripts/generate-bindings.pl \
-    --include dom --include html --include css --include page --include notifications --include xml --include svg --outputDir .
+    --include dom --include html --include css --include page --include notifications --include xml --include svg --write-dependencies --outputDir .
 
 GENERATE_BINDINGS_SCRIPTS = \
     bindings/scripts/CodeGenerator.pm \
@@ -715,13 +724,17 @@ GENERATE_BINDINGS_SCRIPTS = \
 JS%.h : %.idl $(GENERATE_BINDINGS_SCRIPTS) bindings/scripts/CodeGeneratorJS.pm
 	$(GENERATE_BINDINGS) --defines "$(FEATURE_DEFINES) LANGUAGE_JAVASCRIPT" --generator JS $<
 
+-include $(JS_DOM_HEADERS:.h=.dep)
+
 # ------------------------
 
 # Mac-specific rules
 
 ifeq ($(OS),MACOS)
 
-all : $(filter-out DOMDOMWindow.h DOMMimeType.h DOMPlugin.h,$(DOM_CLASSES:%=DOM%.h))
+OBJC_DOM_HEADERS=$(filter-out DOMDOMWindow.h DOMMimeType.h DOMPlugin.h,$(DOM_CLASSES:%=DOM%.h))
+
+all : $(OBJC_DOM_HEADERS)
 
 all : CharsetData.cpp WebCore.exp
 
@@ -766,6 +779,8 @@ WebCore.exp : WebCore.base.exp $(WEBCORE_EXPORT_DEPENDENCIES)
 
 DOM%.h : %.idl $(GENERATE_BINDINGS_SCRIPTS) bindings/scripts/CodeGeneratorObjC.pm bindings/objc/PublicDOMInterfaces.h
 	$(GENERATE_BINDINGS) --defines "$(FEATURE_DEFINES) LANGUAGE_OBJECTIVE_C" --generator ObjC $<
+
+-include $(OBJC_DOM_HEADERS:.h=.dep)
 
 # --------
 

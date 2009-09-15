@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
+#include <wtf/RefPtr.h>
 
 LayoutTestController::LayoutTestController(const std::string& testPathOrURL, const std::string& expectedPixelHash)
     : m_dumpAsText(false)
@@ -66,6 +67,8 @@ LayoutTestController::LayoutTestController(const std::string& testPathOrURL, con
     , m_windowIsKey(true)
     , m_alwaysAcceptCookies(false)
     , m_globalFlag(false)
+    , m_isGeolocationPermissionSet(false)
+    , m_geolocationPermission(false)
     , m_testPathOrURL(testPathOrURL)
     , m_expectedPixelHash(expectedPixelHash)
 {
@@ -133,6 +136,13 @@ static JSValueRef dumpResourceLoadCallbacksCallback(JSContextRef context, JSObje
 {
     LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
     controller->setDumpResourceLoadCallbacks(true);
+    return JSValueMakeUndefined(context);
+}
+
+static JSValueRef dumpFrameLoadCallbacksCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setDumpFrameLoadCallbacks(true);
     return JSValueMakeUndefined(context);
 }
 
@@ -620,7 +630,46 @@ static JSValueRef setDatabaseQuotaCallback(JSContextRef context, JSObjectRef fun
         controller->setDatabaseQuota(static_cast<unsigned long long>(quota));
         
     return JSValueMakeUndefined(context);
+}
 
+static JSValueRef setMockGeolocationPositionCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount < 3)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setMockGeolocationPosition(JSValueToNumber(context, arguments[0], NULL),  // latitude
+                                           JSValueToNumber(context, arguments[1], NULL),  // longitude
+                                           JSValueToNumber(context, arguments[2], NULL));  // accuracy
+
+    return JSValueMakeUndefined(context);
+}
+
+static JSValueRef setMockGeolocationErrorCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount < 2)
+        return JSValueMakeUndefined(context);
+
+    int code = JSValueToNumber(context, arguments[0], NULL);
+    JSRetainPtr<JSStringRef> message(Adopt, JSValueToStringCopy(context, arguments[1], exception));
+    ASSERT(!*exception);
+
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setMockGeolocationError(code, message.get());
+
+    return JSValueMakeUndefined(context);
+}
+
+static JSValueRef setGeolocationPermissionCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    // Has mac implementation
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setGeolocationPermission(JSValueToBoolean(context, arguments[0]));
+
+    return JSValueMakeUndefined(context);
 }
 
 static JSValueRef setIconDatabaseEnabledCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
@@ -905,6 +954,33 @@ static JSValueRef whiteListAccessFromOriginCallback(JSContextRef context, JSObje
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef addUserScriptCallback(JSContextRef context, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount != 2)
+        return JSValueMakeUndefined(context);
+    
+    JSRetainPtr<JSStringRef> source(Adopt, JSValueToStringCopy(context, arguments[0], exception));
+    ASSERT(!*exception);
+    bool runAtStart = JSValueToBoolean(context, arguments[1]);
+    
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->addUserScript(source.get(), runAtStart);
+    return JSValueMakeUndefined(context);
+}
+ 
+static JSValueRef addUserStyleSheetCallback(JSContextRef context, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount != 1)
+        return JSValueMakeUndefined(context);
+    
+    JSRetainPtr<JSStringRef> source(Adopt, JSValueToStringCopy(context, arguments[0], exception));
+    ASSERT(!*exception);
+   
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->addUserStyleSheet(source.get());
+    return JSValueMakeUndefined(context);
+}
+
 // Static Values
 
 static JSValueRef getGlobalFlagCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
@@ -981,6 +1057,8 @@ JSStaticFunction* LayoutTestController::staticFunctions()
 {
     static JSStaticFunction staticFunctions[] = {
         { "addDisallowedURL", addDisallowedURLCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "addUserScript", addUserScriptCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "addUserStyleSheet", addUserStyleSheetCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "clearAllDatabases", clearAllDatabasesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "clearBackForwardList", clearBackForwardListCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "clearPersistentUserStyleSheet", clearPersistentUserStyleSheetCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -996,6 +1074,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "dumpDatabaseCallbacks", dumpDatabaseCallbacksCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dumpEditingCallbacks", dumpEditingCallbacksCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dumpResourceLoadCallbacks", dumpResourceLoadCallbacksCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "dumpFrameLoadCallbacks", dumpFrameLoadCallbacksCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dumpResourceResponseMIMETypes", dumpResourceResponseMIMETypesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dumpSelectionRect", dumpSelectionRectCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dumpSourceAsWebArchive", dumpSourceAsWebArchiveCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1032,6 +1111,9 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "setCloseRemainingWindowsWhenComplete", setCloseRemainingWindowsWhenCompleteCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setCustomPolicyDelegate", setCustomPolicyDelegateCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setDatabaseQuota", setDatabaseQuotaCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete }, 
+        { "setMockGeolocationPosition", setMockGeolocationPositionCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setMockGeolocationError", setMockGeolocationErrorCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setGeolocationPermission", setGeolocationPermissionCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setIconDatabaseEnabled", setIconDatabaseEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setJavaScriptProfilingEnabled", setJavaScriptProfilingEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setMainFrameIsFirstResponder", setMainFrameIsFirstResponderCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1108,4 +1190,10 @@ void LayoutTestController::waitToDumpWatchdogTimerFired()
     fprintf(stderr, "%s", message);
     fprintf(stdout, "%s", message);
     notifyDone();
+}
+
+void LayoutTestController::setGeolocationPermission(bool allow)
+{
+    m_isGeolocationPermissionSet = true;
+    m_geolocationPermission = allow;
 }

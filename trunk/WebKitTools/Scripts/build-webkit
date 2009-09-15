@@ -37,6 +37,8 @@ use lib $FindBin::Bin;
 use webkitdirs;
 use POSIX;
 
+sub formatBuildTime($);
+
 my $originalWorkingDirectory = getcwd();
 chdirWebKit();
 
@@ -44,6 +46,7 @@ my $showHelp = 0;
 my $clean = 0;
 my $minimal = 0;
 my $makeArgs;
+my $startTime = time();
 
 my ($threeDCanvasSupport, $threeDRenderingSupport, $channelMessagingSupport, $databaseSupport, $datagridSupport, $domStorageSupport,
     $eventsourceSupport, $filtersSupport, $geolocationSupport, $iconDatabaseSupport,
@@ -99,7 +102,7 @@ my @features = (
       define => "ENABLE_RUBY", default => 1, value => \$rubySupport },
 
     { option => "shared-workers", desc => "Toggle SharedWorkers support",
-      define => "ENABLE_SHARED_WORKERS", default => 0, value => \$sharedWorkersSupport },
+      define => "ENABLE_SHARED_WORKERS", default => (isAppleWebKit() || isGtk()), value => \$sharedWorkersSupport },
 
     { option => "svg", desc => "Toggle SVG support",
       define => "ENABLE_SVG", default => 1, value => \$svgSupport },
@@ -214,18 +217,6 @@ if ($showHelp) {
 checkRequiredSystemConfig();
 setConfiguration();
 
-if (isWx()) {
-    $ENV{"WEBKITOUTPUTDIR"} = productDir();
-
-    my @opts = getWxArgs();
-
-    if ($clean) {
-        push(@opts, "clean");
-    }
-    system "WebKitTools/wx/build-wxwebkit @opts";
-    exit exitStatus($?);
-}
-
 my $productDir = productDir();
 
 # Check that all the project directories are there.
@@ -315,6 +306,12 @@ if (isGtk()) {
 # Force re-link of existing libraries if different than expected
 removeLibraryDependingOnSVG("WebCore", $svgSupport);
 
+if (isWx()) {
+    downloadWafIfNeeded();
+    push @projects, 'WebKitTools/wx/browser';
+    push @projects, 'WebKit/wx/bindings/python';
+}
+
 # Build, and abort if the build fails.
 for my $dir (@projects) {
     chdir $dir or die;
@@ -336,6 +333,16 @@ for my $dir (@projects) {
         if ($dir eq "WebKit") {
             $result = buildVisualStudioProject("win/WebKit.vcproj/WebKit.sln", $clean);
         }
+    } elsif (isWx()) {
+        @options = ();
+        if (defined($makeArgs)) {
+            @options = split(/ /, $makeArgs);
+        }
+        if ($dir eq "WebKit" && isWx()) {
+            chdir 'wx' or die;
+        }
+            
+        $result = buildWafProject($dir, $clean, @options);
     }
 
     if (exitStatus($result)) {
@@ -348,7 +355,7 @@ for my $dir (@projects) {
         }
         exit exitStatus($result);
     }
-    chdir ".." or die;
+    chdirWebKit();
 }
 
 # Don't report the "WebKit is now built" message after a clean operation.
@@ -358,11 +365,28 @@ exit if $clean;
 
 my $launcherPath = launcherPath();
 my $launcherName = launcherName();
+my $endTime = time();
+my $buildTime = formatBuildTime($endTime - $startTime);
 
 print "\n";
 print "===========================================================\n";
-print " WebKit is now built. To run $launcherName with this newly-built\n";
-print " code, use the \"$launcherPath\" script.\n";
+print " WebKit is now built ($buildTime). \n";
+print " To run $launcherName with this newly-built code, use the\n";
+print " \"$launcherPath\" script.\n";
 print "===========================================================\n";
 
 exit 0;
+
+sub formatBuildTime($)
+{
+    my ($buildTime) = @_;
+
+    my $buildHours = int($buildTime / 3600);
+    my $buildMins = int(($buildTime - $buildHours * 3600) / 60);
+    my $buildSecs = $buildTime - $buildHours * 3600 - $buildMins * 60;
+
+    if ($buildHours) {
+        return sprintf("%dh:%02dm:%02ds", $buildHours, $buildMins, $buildSecs);
+    }
+    return sprintf("%02dm:%02ds", $buildMins, $buildSecs);
+}

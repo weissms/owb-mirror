@@ -40,6 +40,7 @@
 #if ENABLE(INSPECTOR)
 #include "Console.h"
 #include "InspectorController.h"
+#include "InspectorTimelineAgent.h"
 #endif
 #include "CookieJar.h"
 #include "DOMImplementation.h"
@@ -95,6 +96,7 @@
 #include "NodeWithIndex.h"
 #include "OverflowEvent.h"
 #include "Page.h"
+#include "PageGroup.h"
 #include "PageTransitionEvent.h"
 #include "PlatformKeyboardEvent.h"
 #include "ProcessingInstruction.h"
@@ -111,11 +113,6 @@
 #include "SegmentedString.h"
 #include "SelectionController.h"
 #include "Settings.h"
-
-#if ENABLE(SHARED_WORKERS)
-#include "SharedWorkerRepository.h"
-#endif
-
 #include "StyleSheetList.h"
 #include "TextEvent.h"
 #include "TextIterator.h"
@@ -129,6 +126,7 @@
 #include "XMLHttpRequest.h"
 #include "XMLNames.h"
 #include "XMLTokenizer.h"
+#include "htmlediting.h"
 #include <wtf/CurrentTime.h>
 #include <wtf/HashFunctions.h>
 #include <wtf/MainThread.h>
@@ -138,6 +136,10 @@
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "DatabaseThread.h"
+#endif
+
+#if ENABLE(SHARED_WORKERS)
+#include "SharedWorkerRepository.h"
 #endif
 
 #if ENABLE(DOM_STORAGE)
@@ -353,6 +355,8 @@ Document::Document(Frame* frame, bool isXHTML)
 #endif
 {
     m_document = this;
+
+    m_pageGroupUserSheetCacheValid = false;
 
     m_printing = false;
     
@@ -929,16 +933,25 @@ KURL Document::baseURI() const
 
 Element* Document::elementFromPoint(int x, int y) const
 {
+    // FIXME: Share code between this and caretRangeFromPoint.
     if (!renderer())
         return 0;
+    Frame* frame = this->frame();
+    if (!frame)
+        return 0;
+    FrameView* frameView = frame->view();
+    if (!frameView)
+        return 0;
 
-    HitTestRequest request(HitTestRequest::ReadOnly |
-                           HitTestRequest::Active);
+    float zoomFactor = frame->pageZoomFactor();
+    IntPoint point = roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)) + view()->scrollOffset();
 
-    float zoomFactor = frame() ? frame()->pageZoomFactor() : 1.0f;
+    if (!frameView->boundsRect().contains(point))
+        return 0;
 
-    HitTestResult result(roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)));
-    renderView()->layer()->hitTest(request, result); 
+    HitTestRequest request(HitTestRequest::ReadOnly | HitTestRequest::Active);
+    HitTestResult result(point);
+    renderView()->layer()->hitTest(request, result);
 
     Node* n = result.innerNode();
     while (n && !n->isElementNode())
@@ -946,6 +959,50 @@ Element* Document::elementFromPoint(int x, int y) const
     if (n)
         n = n->shadowAncestorNode();
     return static_cast<Element*>(n);
+}
+
+PassRefPtr<Range> Document::caretRangeFromPoint(int x, int y)
+{
+    // FIXME: Share code between this and elementFromPoint.
+    if (!renderer())
+        return 0;
+    Frame* frame = this->frame();
+    if (!frame)
+        return 0;
+    FrameView* frameView = frame->view();
+    if (!frameView)
+        return 0;
+
+    float zoomFactor = frame->pageZoomFactor();
+    IntPoint point = roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)) + view()->scrollOffset();
+
+    if (!frameView->boundsRect().contains(point))
+        return 0;
+
+    HitTestRequest request(HitTestRequest::ReadOnly | HitTestRequest::Active);
+    HitTestResult result(point);
+    renderView()->layer()->hitTest(request, result);
+
+    Node* node = result.innerNode();
+    if (!node)
+        return 0;
+
+    Node* shadowAncestorNode = node->shadowAncestorNode();
+    if (shadowAncestorNode != node) {
+        unsigned offset = shadowAncestorNode->nodeIndex();
+        Node* container = shadowAncestorNode->parentNode();
+        return Range::create(this, container, offset, container, offset);
+    }
+
+    RenderObject* renderer = node->renderer();
+    if (!renderer)
+        return 0;
+    VisiblePosition visiblePosition = renderer->positionForPoint(result.localPoint());
+    if (visiblePosition.isNull())
+        return 0;
+
+    Position rangeCompliantPosition = rangeCompliantEquivalent(visiblePosition);
+    return Range::create(this, rangeCompliantPosition, rangeCompliantPosition);
 }
 
 void Document::addElementById(const AtomicString& elementId, Element* element)
@@ -1163,6 +1220,12 @@ void Document::recalcStyle(StyleChange change)
     if (m_inStyleRecalc)
         return; // Guard against re-entrancy. -dwh
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent();
+    if (timelineAgent)
+        timelineAgent->willRecalculateStyle();
+#endif
+
     m_inStyleRecalc = true;
     suspendPostAttachCallbacks();
     if (view())
@@ -1235,6 +1298,11 @@ bail_out:
         m_closeAfterStyleRecalc = false;
         implicitClose();
     }
+
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didRecalculateStyle();
+#endif
 }
 
 void Document::updateStyleIfNeeded()
@@ -1331,7 +1399,8 @@ void Document::attach()
         bool matchAuthorAndUserStyles = true;
         if (Settings* docSettings = settings())
             matchAuthorAndUserStyles = docSettings->authorAndUserStylesEnabled();
-        m_styleSelector = new CSSStyleSelector(this, userStyleSheet(), m_styleSheets.get(), m_mappedElementSheet.get(), !inCompatMode(), matchAuthorAndUserStyles);
+        m_styleSelector = new CSSStyleSelector(this, m_styleSheets.get(), m_mappedElementSheet.get(), pageUserSheet(), pageGroupUserSheets(), 
+                                               !inCompatMode(), matchAuthorAndUserStyles);
     }
 
     recalcStyle(Force);
@@ -1709,7 +1778,7 @@ void Document::implicitClose()
         // exists in the cache (we ignore the return value because we don't need it here). This is 
         // only safe to call when a layout is not in progress, so it can not be used in postNotification.    
         axObjectCache()->getOrCreate(renderObject);
-        axObjectCache()->postNotification(renderObject, "AXLoadComplete", true);
+        axObjectCache()->postNotification(renderObject, AXObjectCache::AXLoadComplete, true);
     }
 #endif
 
@@ -1871,34 +1940,68 @@ String Document::userAgent(const KURL& url) const
     return frame() ? frame()->loader()->userAgent(url) : String();
 }
 
-void Document::setCSSStyleSheet(const String& url, const String& charset, const CachedCSSStyleSheet* sheet)
+CSSStyleSheet* Document::pageUserSheet()
 {
-    m_sheet = CSSStyleSheet::create(this, url, charset);
-    m_sheet->parseString(sheet->sheetText());
+    if (m_pageUserSheet)
+        return m_pageUserSheet.get();
+    
+    Page* owningPage = page();
+    if (!owningPage)
+        return 0;
+    
+    String userSheetText = owningPage->userStyleSheet();
+    if (userSheetText.isEmpty())
+        return 0;
+    
+    // Parse the sheet and cache it.
+    m_pageUserSheet = CSSStyleSheet::create(this);
+    m_pageUserSheet->parseString(userSheetText, !inCompatMode());
+    return m_pageUserSheet.get();
+}
 
+void Document::clearPageUserSheet()
+{
+    m_pageUserSheet = 0;
     updateStyleSelector();
 }
 
-#if FRAME_LOADS_USER_STYLESHEET
-void Document::setUserStyleSheet(const String& sheet)
+const Vector<RefPtr<CSSStyleSheet> >* Document::pageGroupUserSheets() const
 {
-    if (m_usersheet != sheet) {
-        m_usersheet = sheet;
-        updateStyleSelector();
-    }
-}
-#endif
+    if (m_pageGroupUserSheetCacheValid)
+        return m_pageGroupUserSheets.get();
+    
+    m_pageGroupUserSheetCacheValid = true;
+    
+    Page* owningPage = page();
+    if (!owningPage)
+        return 0;
+        
+    const PageGroup& pageGroup = owningPage->group();
+    const UserStyleSheetMap* sheetsMap = pageGroup.userStyleSheets();
+    if (!sheetsMap)
+        return 0;
 
-String Document::userStyleSheet() const
+    UserStyleSheetMap::const_iterator end = sheetsMap->end();
+    for (UserStyleSheetMap::const_iterator it = sheetsMap->begin(); it != end; ++it) {
+        const UserStyleSheetVector* sheets = it->second;
+        for (unsigned i = 0; i < sheets->size(); ++i) {
+            const UserStyleSheet* sheet = sheets->at(i).get();
+            RefPtr<CSSStyleSheet> parsedSheet = CSSStyleSheet::create(const_cast<Document*>(this));
+            parsedSheet->parseString(sheet->source(), !inCompatMode());
+            if (!m_pageGroupUserSheets)
+                m_pageGroupUserSheets.set(new Vector<RefPtr<CSSStyleSheet> >);
+            m_pageGroupUserSheets->append(parsedSheet.release());
+        }
+    }
+
+    return m_pageGroupUserSheets.get();
+}
+
+void Document::clearPageGroupUserSheets()
 {
-#if FRAME_LOADS_USER_STYLESHEET
-    return m_usersheet;
-#else
-    Page* page = this->page();
-    if (!page)
-        return String();
-    return page->userStyleSheet();
-#endif
+    m_pageGroupUserSheets.clear();
+    m_pageGroupUserSheetCacheValid = false;
+    updateStyleSelector();
 }
 
 CSSStyleSheet* Document::elementSheet()
@@ -2462,7 +2565,8 @@ void Document::recalcStyleSelector()
 
     // Create a new style selector
     delete m_styleSelector;
-    m_styleSelector = new CSSStyleSelector(this, userStyleSheet(), m_styleSheets.get(), m_mappedElementSheet.get(), !inCompatMode(), matchAuthorAndUserStyles);
+    m_styleSelector = new CSSStyleSelector(this, m_styleSheets.get(), m_mappedElementSheet.get(), 
+                                           pageUserSheet(), pageGroupUserSheets(), !inCompatMode(), matchAuthorAndUserStyles);
     m_didCalculateStyleSelector = true;
 }
 

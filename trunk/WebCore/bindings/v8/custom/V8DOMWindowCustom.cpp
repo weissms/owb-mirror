@@ -34,6 +34,7 @@
 #include "V8Binding.h"
 #include "V8CustomBinding.h"
 #include "V8CustomEventListener.h"
+#include "V8MessagePortCustom.h"
 #include "V8Proxy.h"
 #include "V8Utilities.h"
 
@@ -66,13 +67,13 @@ v8::Handle<v8::Value> V8Custom::WindowSetTimeoutImpl(const v8::Arguments& args, 
 
     DOMWindow* imp = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, args.Holder());
 
-    if (!imp->frame())
-        return v8::Undefined();
-
     if (!V8Proxy::canAccessFrame(imp->frame(), true))
         return v8::Undefined();
 
-    ScriptExecutionContext* scriptContext = static_cast<ScriptExecutionContext*>(imp->frame()->document());
+    ScriptExecutionContext* scriptContext = static_cast<ScriptExecutionContext*>(imp->document());
+
+    if (!scriptContext)
+        return v8::Undefined();
 
     v8::Handle<v8::Value> function = args[0];
 
@@ -156,7 +157,7 @@ ACCESSOR_GETTER(DOMWindowEvent)
         return v8::Undefined();
 
     Frame* frame = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, holder)->frame();
-    if (!frame || !V8Proxy::canAccessFrame(frame, true))
+    if (!V8Proxy::canAccessFrame(frame, true))
         return v8::Undefined();
 
     v8::Local<v8::Context> context = V8Proxy::context(frame);
@@ -174,7 +175,7 @@ ACCESSOR_SETTER(DOMWindowEvent)
         return;
 
     Frame* frame = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, holder)->frame();
-    if (!frame || !V8Proxy::canAccessFrame(frame, true))
+    if (!V8Proxy::canAccessFrame(frame, true))
         return;
 
     v8::Local<v8::Context> context = V8Proxy::context(frame);
@@ -231,10 +232,8 @@ CALLBACK_FUNC_DECL(DOMWindowAddEventListener)
     if (!V8Proxy::canAccessFrame(imp->frame(), true))
         return v8::Undefined();
 
-    if (!imp->frame())
-        return v8::Undefined();  // DOMWindow could be disconnected from the frame
-  
-    Document* doc = imp->frame()->document();
+    Document* doc = imp->document();
+
     if (!doc)
         return v8::Undefined();
 
@@ -263,10 +262,8 @@ CALLBACK_FUNC_DECL(DOMWindowRemoveEventListener)
     if (!V8Proxy::canAccessFrame(imp->frame(), true))
         return v8::Undefined();
 
-    if (!imp->frame())
-        return v8::Undefined();
+    Document* doc = imp->document();
 
-    Document* doc = imp->frame()->document();
     if (!doc)
         return v8::Undefined();
 
@@ -295,7 +292,7 @@ CALLBACK_FUNC_DECL(DOMWindowPostMessage)
 
     v8::TryCatch tryCatch;
     String message = toWebCoreString(args[0]);
-    MessagePort* port = 0;
+    MessagePortArray portArray;
     String targetOrigin;
 
     // This function has variable arguments and can either be:
@@ -303,8 +300,8 @@ CALLBACK_FUNC_DECL(DOMWindowPostMessage)
     // or
     //   postMessage(message, targetOrigin);
     if (args.Length() > 2) {
-        if (V8DOMWrapper::isWrapperOfType(args[1], V8ClassIndex::MESSAGEPORT))
-            port = V8DOMWrapper::convertToNativeObject<MessagePort>(V8ClassIndex::MESSAGEPORT, v8::Handle<v8::Object>::Cast(args[1]));
+        if (!getMessagePortArray(args[1], portArray))
+            return v8::Undefined();
         targetOrigin = toWebCoreStringWithNullOrUndefinedCheck(args[2]);
     } else {
         targetOrigin = toWebCoreStringWithNullOrUndefinedCheck(args[1]);
@@ -314,11 +311,8 @@ CALLBACK_FUNC_DECL(DOMWindowPostMessage)
         return v8::Undefined();
 
     ExceptionCode ec = 0;
-    window->postMessage(message, port, targetOrigin, source, ec);
-    if (ec)
-        V8Proxy::setDOMException(ec);
-
-    return v8::Undefined();
+    window->postMessage(message, &portArray, targetOrigin, source, ec);
+    return throwError(ec);
 }
 
 CALLBACK_FUNC_DECL(DOMWindowAtob)
@@ -406,10 +400,9 @@ ACCESSOR_SETTER(DOMWindowEventHandler)
         return;
 
     DOMWindow* imp = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, holder);
-    if (!imp->frame())
-        return;
 
-    Document* doc = imp->frame()->document();
+    Document* doc = imp->document();
+
     if (!doc)
         return;
 
@@ -437,10 +430,9 @@ ACCESSOR_GETTER(DOMWindowEventHandler)
         return v8::Undefined();
 
     DOMWindow* imp = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, holder);
-    if (!imp->frame())
-        return v8::Undefined();
 
-    Document* doc = imp->frame()->document();
+    Document* doc = imp->document();
+
     if (!doc)
         return v8::Undefined();
 
@@ -575,7 +567,7 @@ CALLBACK_FUNC_DECL(DOMWindowShowModalDialog)
         V8ClassIndex::DOMWINDOW, args.Holder());
     Frame* frame = window->frame();
 
-    if (!frame || !V8Proxy::canAccessFrame(frame, true)) 
+    if (!V8Proxy::canAccessFrame(frame, true))
         return v8::Undefined();
 
     Frame* callingFrame = V8Proxy::retrieveFrameForCallingContext();
@@ -663,7 +655,7 @@ CALLBACK_FUNC_DECL(DOMWindowOpen)
     DOMWindow* parent = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, args.Holder());
     Frame* frame = parent->frame();
 
-    if (!frame || !V8Proxy::canAccessFrame(frame, true))
+    if (!V8Proxy::canAccessFrame(frame, true))
         return v8::Undefined();
 
     Frame* callingFrame = V8Proxy::retrieveFrameForCallingContext();
@@ -835,6 +827,7 @@ NAMED_PROPERTY_GETTER(DOMWindow)
 
     // Search named items in the document.
     Document* doc = frame->document();
+
     if (doc) {
         RefPtr<HTMLCollection> items = doc->windowNamedItems(propName);
         if (items->length() >= 1) {
@@ -886,7 +879,9 @@ void V8Custom::ClearTimeoutImpl(const v8::Arguments& args)
     DOMWindow* imp = V8DOMWrapper::convertToNativeObject<DOMWindow>(V8ClassIndex::DOMWINDOW, holder);
     if (!V8Proxy::canAccessFrame(imp->frame(), true))
         return;
-    ScriptExecutionContext* context = static_cast<ScriptExecutionContext*>(imp->frame()->document());
+    ScriptExecutionContext* context = static_cast<ScriptExecutionContext*>(imp->document());
+    if (!context)
+        return;
     int handle = toInt32(args[0]);
     DOMTimer::removeById(context, handle);
 }

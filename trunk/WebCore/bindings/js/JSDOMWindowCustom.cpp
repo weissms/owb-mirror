@@ -45,14 +45,28 @@
 #include "JSLocation.h"
 #include "JSMessageChannelConstructor.h"
 #include "JSMessagePort.h"
+#include "JSMessagePortCustom.h"
 #include "JSOptionConstructor.h"
 
 #if ENABLE(SHARED_WORKERS)
 #include "JSSharedWorkerConstructor.h"
 #endif
 
+#if ENABLE(3D_CANVAS)
+#include "JSCanvasArrayBufferConstructor.h"
+#include "JSCanvasByteArrayConstructor.h"
+#include "JSCanvasUnsignedByteArrayConstructor.h"
+#include "JSCanvasIntArrayConstructor.h"
+#include "JSCanvasUnsignedIntArrayConstructor.h"
+#include "JSCanvasShortArrayConstructor.h"
+#include "JSCanvasUnsignedShortArrayConstructor.h"
+#include "JSCanvasFloatArrayConstructor.h"
+#endif
 #include "JSWebKitCSSMatrixConstructor.h"
 #include "JSWebKitPointConstructor.h"
+#if ENABLE(WEB_SOCKETS)
+#include "JSWebSocketConstructor.h"
+#endif
 #include "JSWorkerConstructor.h"
 #include "JSXMLHttpRequestConstructor.h"
 #include "JSXSLTProcessorConstructor.h"
@@ -463,6 +477,14 @@ void JSDOMWindow::getPropertyNames(ExecState* exec, PropertyNameArray& propertyN
     Base::getPropertyNames(exec, propertyNames);
 }
 
+void JSDOMWindow::getOwnPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
+{
+    // Only allow the window to enumerated by frames in the same origin.
+    if (!allowsAccessFrom(exec))
+        return;
+    Base::getOwnPropertyNames(exec, propertyNames);
+}
+
 bool JSDOMWindow::getPropertyAttributes(ExecState* exec, const Identifier& propertyName, unsigned& attributes) const
 {
     // Only allow getting property attributes properties by frames in the same origin.
@@ -617,6 +639,48 @@ JSValue JSDOMWindow::webKitCSSMatrix(ExecState* exec) const
     return getDOMConstructor<JSWebKitCSSMatrixConstructor>(exec, this);
 }
  
+#if ENABLE(3D_CANVAS)
+JSValue JSDOMWindow::canvasArrayBuffer(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasArrayBufferConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasByteArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasByteArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasUnsignedByteArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasUnsignedByteArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasIntArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasIntArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasUnsignedIntArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasUnsignedIntArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasShortArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasShortArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasUnsignedShortArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasUnsignedShortArrayConstructor>(exec, this);
+}
+ 
+JSValue JSDOMWindow::canvasFloatArray(ExecState* exec) const
+{
+    return getDOMConstructor<JSCanvasFloatArrayConstructor>(exec, this);
+}
+#endif
+ 
 JSValue JSDOMWindow::xmlHttpRequest(ExecState* exec) const
 {
     return getDOMConstructor<JSXMLHttpRequestConstructor>(exec, this);
@@ -647,6 +711,13 @@ JSValue JSDOMWindow::worker(ExecState* exec) const
 JSValue JSDOMWindow::sharedWorker(ExecState* exec) const
 {
     return getDOMConstructor<JSSharedWorkerConstructor>(exec, this);
+}
+#endif
+
+#if ENABLE(WEB_SOCKETS)
+JSValue JSDOMWindow::webSocket(ExecState* exec) const
+{
+    return getDOMConstructor<JSWebSocketConstructor>(exec, this);
 }
 #endif
 
@@ -864,14 +935,18 @@ JSValue JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)
     if (exec->hadException())
         return jsUndefined();
 
-    MessagePort* messagePort = (args.size() == 2) ? 0 : toMessagePort(args.at(1));
+    MessagePortArray messagePorts;
+    if (args.size() > 2)
+        fillMessagePortArray(exec, args.at(1), messagePorts);
+    if (exec->hadException())
+        return jsUndefined();
 
     String targetOrigin = valueToStringWithUndefinedOrNullCheck(exec, args.at((args.size() == 2) ? 1 : 2));
     if (exec->hadException())
         return jsUndefined();
 
     ExceptionCode ec = 0;
-    window->postMessage(message, messagePort, targetOrigin, source, ec);
+    window->postMessage(message, &messagePorts, targetOrigin, source, ec);
     setDOMException(exec, ec);
 
     return jsUndefined();

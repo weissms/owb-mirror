@@ -26,29 +26,62 @@
 #ifndef CanvasByteArray_h
 #define CanvasByteArray_h
 
+#include "CanvasArray.h"
+#include <wtf/MathExtras.h>
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
-#include <wtf/Vector.h>
-#include <limits>
 
 namespace WebCore {
-
-    class String;
     
-    class CanvasByteArray : public RefCounted<CanvasByteArray> {
+    class CanvasArrayBuffer;
+
+    class CanvasByteArray : public CanvasArray {
     public:
         static PassRefPtr<CanvasByteArray> create(unsigned length);
+        static PassRefPtr<CanvasByteArray> create(signed char* array, unsigned length);
+        static PassRefPtr<CanvasByteArray> create(PassRefPtr<CanvasArrayBuffer> buffer, int offset, unsigned length);
+
+        char* data() { return static_cast<char*>(baseAddress()); }
+
+        virtual unsigned length() const;
+        virtual unsigned sizeInBytes() const;
+
+        void set(unsigned index, double value)
+        {
+            if (index >= m_size)
+                return;
+            if (isnan(value)) // Clamp NaN to 0
+                value = 0;
+            if (value < std::numeric_limits<signed char>::min())
+                value = std::numeric_limits<signed char>::min();
+            else if (value > std::numeric_limits<signed char>::max())
+                value = std::numeric_limits<signed char>::max();
+            signed char* storage = static_cast<signed char*>(m_baseAddress);
+            storage[index] = static_cast<signed char>(value);
+        }
         
-        Vector<uint8_t>& data() { return m_data; }
-        const Vector<uint8_t>& data() const { return m_data; }
+        bool get(unsigned index, signed char& result) const
+        {
+            if (index >= m_size)
+                return false;
+            signed char* storage = static_cast<signed char*>(m_baseAddress);
+            result = storage[index];
+            return true;
+        }
 
-        unsigned length() const { return m_data.size(); }
-
+        signed char item(unsigned index) const
+        {
+            ASSERT(index < m_size);
+            signed char* storage = static_cast<signed char*>(m_baseAddress);
+            return storage[index];
+        }
     private:
-        CanvasByteArray(unsigned length);
-        Vector<uint8_t> m_data;
+        CanvasByteArray(PassRefPtr<CanvasArrayBuffer> buffer,
+                        int offset,
+                        unsigned length);
+        unsigned m_size;
     };
     
 } // namespace WebCore
 
-#endif // CanvasNumberArray_h
+#endif // CanvasByteArray_h

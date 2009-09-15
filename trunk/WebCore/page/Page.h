@@ -58,6 +58,7 @@ namespace WebCore {
 #if ENABLE(INSPECTOR)
     class InspectorController;
 #endif
+    class InspectorTimelineAgent;
     class Node;
     class PageGroup;
     class PluginData;
@@ -216,6 +217,7 @@ namespace WebCore {
         void setJavaScriptURLsAreAllowed(bool);
         bool javaScriptURLsAreAllowed() const;
 
+        InspectorTimelineAgent* inspectorTimelineAgent() const;
     private:
         void initGroup();
 

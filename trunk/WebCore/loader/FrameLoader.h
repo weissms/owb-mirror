@@ -30,8 +30,6 @@
 #ifndef FrameLoader_h
 #define FrameLoader_h
 
-#include "CachedFrame.h"
-#include "CachedPage.h"
 #include "CachePolicy.h"
 #include "FrameLoaderTypes.h"
 #include "ResourceRequest.h"
@@ -42,7 +40,7 @@ namespace WebCore {
 
     class Archive;
     class AuthenticationChallenge;
-    class CachedFrame;
+    class CachedFrameBase;
     class CachedPage;
     class CachedResource;
     class Document;
@@ -243,6 +241,7 @@ namespace WebCore {
 
         void checkLoadComplete();
         void detachFromParent();
+        void detachViewsAndDocumentLoader();
 
         void addExtraFieldsToSubresourceRequest(ResourceRequest&);
         void addExtraFieldsToMainResourceRequest(ResourceRequest&);
@@ -262,7 +261,7 @@ namespace WebCore {
             bool lockHistory, PassRefPtr<Event>, PassRefPtr<FormState>);
 
         void stop();
-        void stopLoading(bool sendUnload, DatabasePolicy = DatabasePolicyStop);
+        void stopLoading(UnloadEventPolicy, DatabasePolicy = DatabasePolicyStop);
         bool closeURL();
 
         void didExplicitOpen();
@@ -308,6 +307,11 @@ namespace WebCore {
         void dispatchWindowObjectAvailable();
         void dispatchDocumentElementAvailable();
         void restoreDocumentState();
+
+        // Mixed content related functions.
+        static bool isMixedContent(SecurityOrigin* context, const KURL&);
+        void checkIfDisplayInsecureContent(SecurityOrigin* context, const KURL&);
+        void checkIfRunInsecureContent(SecurityOrigin* context, const KURL&);
 
         Frame* opener();
         void setOpener(Frame*);
@@ -377,6 +381,8 @@ namespace WebCore {
 
         bool shouldInterruptLoadForXFrameOptions(const String&, const KURL&);
 
+        void open(CachedFrameBase&);
+
     private:
         PassRefPtr<HistoryItem> createHistoryItem(bool useOriginal);
         PassRefPtr<HistoryItem> createHistoryItemTree(Frame* targetFrame, bool clipAtTarget);
@@ -421,6 +427,7 @@ namespace WebCore {
         
         bool loadProvisionalItemFromCachedPage();
         void cachePageForHistoryItem(HistoryItem*);
+        void pageHidden();
 
         void receivedFirstData();
 
@@ -470,13 +477,10 @@ namespace WebCore {
 
         void closeOldDataSources();
         void open(CachedPage&);
-        friend void CachedPage::restore(Page* page);
-        friend void CachedFrame::restore();
-        void open(CachedFrame&);
 
         void updateHistoryAfterClientRedirect();
 
-        void clear(bool clearWindowProperties = true, bool clearScriptObjects = true);
+        void clear(bool clearWindowProperties = true, bool clearScriptObjects = true, bool clearFrameView = true);
 
         bool shouldReloadToHandleUnreachableURL(DocumentLoader*);
         void handleUnimplementablePolicy(const ResourceError&);

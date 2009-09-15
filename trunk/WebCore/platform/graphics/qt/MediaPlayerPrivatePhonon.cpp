@@ -27,6 +27,7 @@
 #include "FrameView.h"
 #include "GraphicsContext.h"
 #include "NotImplemented.h"
+#include "TimeRanges.h"
 #include "Widget.h"
 #include <wtf/HashSet.h>
 
@@ -37,9 +38,9 @@
 #include <QUrl>
 #include <QEvent>
 
-#include <Phonon/AudioOutput>
-#include <Phonon/MediaObject>
-#include <Phonon/VideoWidget>
+#include <audiooutput.h>
+#include <mediaobject.h>
+#include <videowidget.h>
 
 using namespace Phonon;
 
@@ -260,10 +261,10 @@ void MediaPlayerPrivate::setEndTime(float endTime)
     notImplemented();
 }
 
-float MediaPlayerPrivate::maxTimeBuffered() const
+PassRefPtr<TimeRanges> MediaPlayerPrivate::buffered() const
 {
     notImplemented();
-    return 0.0f;
+    return TimeRanges::create();
 }
 
 float MediaPlayerPrivate::maxTimeSeekable() const

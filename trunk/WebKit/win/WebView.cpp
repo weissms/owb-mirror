@@ -88,6 +88,7 @@
 #include <WebCore/MIMETypeRegistry.h>
 #include <WebCore/Page.h>
 #include <WebCore/PageCache.h>
+#include <WebCore/PageGroup.h>
 #include <WebCore/PlatformKeyboardEvent.h>
 #include <WebCore/PlatformMouseEvent.h>
 #include <WebCore/PlatformWheelEvent.h>
@@ -147,9 +148,8 @@ SOFT_LINK_OPTIONAL(Uxtheme, EndPanningFeedback, BOOL, WINAPI, (HWND, BOOL));
 SOFT_LINK_OPTIONAL(Uxtheme, UpdatePanningFeedback, BOOL, WINAPI, (HWND, LONG, LONG, BOOL));
 
 using namespace WebCore;
+using namespace std;
 using JSC::JSLock;
-using std::min;
-using std::max;
 
 static HMODULE accessibilityLib;
 static HashSet<WebView*> pendingDeleteBackingStoreSet;
@@ -2314,13 +2314,8 @@ HRESULT STDMETHODCALLTYPE WebView::initWithFrame(
 
     registerWebViewWindowClass();
 
-    if (!::IsWindow(m_hostWindow)) {
-        ASSERT_NOT_REACHED();
-        return E_FAIL;
-    }
-
     m_viewWindow = CreateWindowEx(0, kWebViewWindowClassName, 0, WS_CHILD | WS_CLIPCHILDREN,
-        frame.left, frame.top, frame.right - frame.left, frame.bottom - frame.top, m_hostWindow, 0, gInstance, 0);
+        frame.left, frame.top, frame.right - frame.left, frame.bottom - frame.top, m_hostWindow ? m_hostWindow : HWND_MESSAGE, 0, gInstance, 0);
     ASSERT(::IsWindow(m_viewWindow));
 
     hr = registerDragDrop();
@@ -2342,6 +2337,10 @@ HRESULT STDMETHODCALLTYPE WebView::initWithFrame(
     if (SUCCEEDED(m_preferences->shouldPaintNativeControls(&shouldPaintNativeControls)))
         Settings::setShouldPaintNativeControls(shouldPaintNativeControls);
 #endif
+
+    BOOL useHighResolutionTimer;
+    if (SUCCEEDED(m_preferences->shouldUseHighResolutionTimers(&useHighResolutionTimer)))
+        Settings::setShouldUseHighResolutionTimers(useHighResolutionTimer);
 
     m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
 
@@ -2985,8 +2984,8 @@ HRESULT STDMETHODCALLTYPE WebView::setHostWindow(
     /* [in] */ OLE_HANDLE oleWindow)
 {
     HWND window = (HWND)(ULONG64)oleWindow;
-    if (m_viewWindow && window)
-        SetParent(m_viewWindow, window);
+    if (m_viewWindow)
+        SetParent(m_viewWindow, window ? window : HWND_MESSAGE);
 
     m_hostWindow = window;
 
@@ -4394,6 +4393,11 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
     settings->setShouldPaintNativeControls(!!enabled);
 #endif
 
+    hr = prefsPrivate->shouldUseHighResolutionTimers(&enabled);
+    if (FAILED(hr))
+        return hr;
+    settings->setShouldUseHighResolutionTimers(enabled);
+
     if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME
 
@@ -5368,6 +5372,79 @@ HRESULT WebView::setJavaScriptURLsAreAllowed(BOOL areAllowed)
 HRESULT WebView::setCanStartPlugins(BOOL canStartPlugins)
 {
     m_page->setCanStartPlugins(canStartPlugins);
+    return S_OK;
+}
+
+HRESULT WebView::addUserScriptToGroup(BSTR groupName, unsigned worldID, BSTR source, BSTR url, unsigned patternsCount, BSTR* patterns, WebUserScriptInjectionTime injectionTime)
+{
+    String group(groupName, SysStringLen(groupName));
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return E_INVALIDARG;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return E_FAIL;
+
+    // Convert the patterns into a Vector.
+    Vector<String> patternsVector;
+    for (unsigned i = 0; i < patternsCount; ++i)
+        patternsVector.append(String(patterns[i], SysStringLen(patterns[i])));
+
+    pageGroup->addUserScript(String(source, SysStringLen(source)), KURL(KURL(), String(url, SysStringLen(url))), patternsVector, worldID,
+                             injectionTime == WebInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
+
+    return S_OK;
+}
+
+HRESULT WebView::addUserStyleSheetToGroup(BSTR groupName, unsigned worldID, BSTR source, BSTR url, unsigned patternsCount, BSTR* patterns)
+{
+    String group(groupName, SysStringLen(groupName));
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return E_INVALIDARG;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return E_FAIL;
+
+    // Convert the patterns into a Vector.
+    Vector<String> patternsVector;
+    for (unsigned i = 0; i < patternsCount; ++i)
+        patternsVector.append(String(patterns[i], SysStringLen(patterns[i])));
+
+    pageGroup->addUserStyleSheet(String(source, SysStringLen(source)), KURL(KURL(), String(url, SysStringLen(url))), patternsVector, worldID);
+
+    return S_OK;
+}
+
+HRESULT WebView::removeUserContentFromGroup(BSTR groupName, unsigned worldID)
+{
+    String group(groupName, SysStringLen(groupName));
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return E_INVALIDARG;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return E_FAIL;
+
+    pageGroup->removeUserContentForWorld(worldID);
+    return S_OK;
+}
+
+HRESULT WebView::removeAllUserContentFromGroup(BSTR groupName)
+{
+    String group(groupName, SysStringLen(groupName));
+    if (group.isEmpty())
+        return E_INVALIDARG;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return E_FAIL;
+
+    pageGroup->removeAllUserContent();
     return S_OK;
 }
 

@@ -33,8 +33,9 @@
 
 #include "Frame.h"
 #include "V8Binding.h"
-#include "V8Document.h"
 #include "V8CustomBinding.h"
+#include "V8Document.h"
+#include "V8File.h"
 #include "V8HTMLDocument.h"
 #include "V8ObjectEventListener.h"
 #include "V8Proxy.h"
@@ -323,22 +324,9 @@ CALLBACK_FUNC_DECL(XMLHttpRequestOpen)
 
     String method = toWebCoreString(args[0]);
     String urlstring = toWebCoreString(args[1]);
-    ScriptExecutionContext* context = 0;
-#if ENABLE(WORKERS)
-    WorkerContextExecutionProxy* workerContextProxy = WorkerContextExecutionProxy::retrieve();
-    if (workerContextProxy) {
-        context = workerContextProxy->workerContext();
-        ASSERT(context);
-    }
-#endif
-
-    if (!context) {
-        V8Proxy* proxy = V8Proxy::retrieve();
-        if (!proxy)
-            return v8::Undefined();
-        context = proxy->frame()->document();
-        ASSERT(context);
-    }
+    ScriptExecutionContext* context = getScriptExecutionContext();
+    if (!context)
+        return v8::Undefined();
 
     KURL url = context->completeURL(urlstring);
 
@@ -379,12 +367,16 @@ CALLBACK_FUNC_DECL(XMLHttpRequestSend)
         xmlHttpRequest->send(ec);
     else {
         v8::Handle<v8::Value> arg = args[0];
-        // FIXME: upstream handles "File" objects too.
         if (IsDocumentType(arg)) {
             v8::Handle<v8::Object> object = v8::Handle<v8::Object>::Cast(arg);
             Document* document = V8DOMWrapper::convertDOMWrapperToNode<Document>(object);
             ASSERT(document);
             xmlHttpRequest->send(document, ec);
+        } else if (V8File::HasInstance(arg)) {
+            v8::Handle<v8::Object> object = v8::Handle<v8::Object>::Cast(arg);
+            File* file = V8DOMWrapper::convertDOMWrapperToNative<File>(object);
+            ASSERT(file);
+            xmlHttpRequest->send(file, ec);
         } else
             xmlHttpRequest->send(toWebCoreStringWithNullCheck(arg), ec);
     }

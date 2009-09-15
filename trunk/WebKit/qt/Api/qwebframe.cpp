@@ -268,6 +268,8 @@ void QWebFramePrivate::renderPrivate(QPainter *painter, const QRegion &clip)
     \since 4.4
     \brief The QWebFrame class represents a frame in a web page.
 
+    \inmodule QtWebKit
+
     QWebFrame represents a frame inside a web page. Each QWebPage
     object contains at least one frame, the main frame, obtained using
     QWebPage::mainFrame(). Additional frames will be created for HTML
@@ -801,13 +803,11 @@ void QWebFrame::setScrollBarPolicy(Qt::Orientation orientation, Qt::ScrollBarPol
         d->horizontalScrollBarPolicy = policy;
         if (d->frame->view()) {
             d->frame->view()->setHorizontalScrollbarMode((ScrollbarMode)policy);
-            d->frame->view()->updateDefaultScrollbarState();
         }
     } else {
         d->verticalScrollBarPolicy = policy;
         if (d->frame->view()) {
             d->frame->view()->setVerticalScrollbarMode((ScrollbarMode)policy);
-            d->frame->view()->updateDefaultScrollbarState();
         }
     }
 }
@@ -1246,7 +1246,7 @@ QVariant QWebFrame::evaluateJavaScript(const QString& scriptSource)
     ScriptController *proxy = d->frame->script();
     QVariant rc;
     if (proxy) {
-        JSC::JSValue v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
+        JSC::JSValue v = d->frame->loader()->executeScript(ScriptSourceCode(scriptSource)).jsValue();
         int distance = 0;
         rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);
     }
@@ -1363,6 +1363,8 @@ QWebFrame* QWebFramePrivate::kit(WebCore::Frame* coreFrame)
     \since 4.4
     \brief The QWebHitTestResult class provides information about the web
     page content after a hit test.
+
+    \inmodule QtWebKit
 
     QWebHitTestResult is returned by QWebFrame::hitTestContent() to provide
     information about the content of the web page at the specified position.

@@ -86,6 +86,10 @@
 #include "StorageEvent.h"
 #endif
 
+#if ENABLE(INSPECTOR)
+#include "InspectorTimelineAgent.h"
+#endif
+
 #if ENABLE(SVG)
 #include "SVGElementInstance.h"
 #include "SVGUseElement.h"
@@ -585,7 +589,8 @@ PassRefPtr<NodeList> Node::childNodes()
     NodeRareData* data = ensureRareData();
     if (!data->nodeLists()) {
         data->setNodeLists(NodeListsNodeData::create());
-        document()->addNodeListCache();
+        if (document())
+            document()->addNodeListCache();
     }
 
     return ChildNodeList::create(this, data->nodeLists()->m_childNodeListCaches.get());
@@ -828,10 +833,30 @@ bool Node::rareDataFocused() const
     ASSERT(hasRareData());
     return rareData()->isFocused();
 }
+
+bool Node::supportsFocus() const
+{
+    return hasRareData() && rareData()->tabIndexSetExplicitly();
+}
     
 bool Node::isFocusable() const
 {
-    return hasRareData() && rareData()->tabIndexSetExplicitly();
+    if (!inDocument() || !supportsFocus())
+        return false;
+    
+    if (renderer())
+        ASSERT(!renderer()->needsLayout());
+    else
+        // If the node is in a display:none tree it might say it needs style recalc but
+        // the whole document is atually up to date.
+        ASSERT(!document()->childNeedsStyleRecalc());
+    
+    // FIXME: Even if we are not visible, we might have a child that is visible.
+    // Hyatt wants to fix that some day with a "has visible content" flag or the like.
+    if (!renderer() || renderer()->style()->visibility() != VISIBLE)
+        return false;
+
+    return true;
 }
 
 bool Node::isKeyboardFocusable(KeyboardEvent*) const
@@ -859,7 +884,7 @@ void Node::registerDynamicNodeList(DynamicNodeList* list)
     if (!data->nodeLists()) {
         data->setNodeLists(NodeListsNodeData::create());
         document()->addNodeListCache();
-    } else if (!m_document->hasNodeListCaches()) {
+    } else if (!m_document || !m_document->hasNodeListCaches()) {
         // We haven't been receiving notifications while there were no registered lists, so the cache is invalid now.
         data->nodeLists()->invalidateCaches();
     }
@@ -877,7 +902,8 @@ void Node::unregisterDynamicNodeList(DynamicNodeList* list)
         data->nodeLists()->m_listsWithCaches.remove(list);
         if (data->nodeLists()->isEmpty()) {
             data->clearNodeLists();
-            document()->removeNodeListCache();
+            if (document())
+                document()->removeNodeListCache();
         }
     }
 }
@@ -2528,6 +2554,12 @@ bool Node::dispatchGenericEvent(PassRefPtr<Event> prpEvent)
     ASSERT(event->target());
     ASSERT(!event->type().isNull()); // JavaScript code can create an event with an empty name, but not null.
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = document()->inspectorTimelineAgent();
+    if (timelineAgent)
+        timelineAgent->willDispatchDOMEvent(*event);
+#endif
+
     // Make a vector of ancestors to send the event to.
     // If the node is not in a document just send the event to it.
     // Be sure to ref all of nodes since event handlers could result in the last reference going away.
@@ -2639,6 +2671,11 @@ doneDispatching:
     }
 
 doneWithDefault:
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didDispatchDOMEvent();
+#endif
+
     Document::updateStyleForAllDocuments();
 
     return !event->defaultPrevented();

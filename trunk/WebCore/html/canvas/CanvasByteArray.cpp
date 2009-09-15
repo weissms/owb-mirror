@@ -27,19 +27,48 @@
 
 #if ENABLE(3D_CANVAS)
 
+#include "CanvasArrayBuffer.h"
 #include "CanvasByteArray.h"
-#include "PlatformString.h"
 
 namespace WebCore {
     
 PassRefPtr<CanvasByteArray> CanvasByteArray::create(unsigned length)
 {
-    return adoptRef(new CanvasByteArray(length));
+    RefPtr<CanvasArrayBuffer> buffer = CanvasArrayBuffer::create(length * sizeof(signed char));
+    return create(buffer, 0, length);
 }
 
-CanvasByteArray::CanvasByteArray(unsigned length)
-    : m_data(length)
+PassRefPtr<CanvasByteArray> CanvasByteArray::create(signed char* array, unsigned length)
 {
+    RefPtr<CanvasByteArray> a = CanvasByteArray::create(length);
+    for (unsigned i = 0; i < length; ++i)
+        a->set(i, array[i]);
+    return a;
+}
+
+PassRefPtr<CanvasByteArray> CanvasByteArray::create(PassRefPtr<CanvasArrayBuffer> buffer, int offset, unsigned length)
+{
+    // Check to make sure we are talking about a valid region of
+    // the given CanvasArrayBuffer's storage.
+    if ((offset + (length * sizeof(signed char))) > buffer->byteLength()) {
+        return NULL;
+    }
+
+    return adoptRef(new CanvasByteArray(buffer, offset, length));
+}
+
+CanvasByteArray::CanvasByteArray(PassRefPtr<CanvasArrayBuffer> buffer, int offset, unsigned length)
+    : CanvasArray(buffer, offset)
+    , m_size(length)
+{
+}
+
+unsigned CanvasByteArray::length() const {
+    return m_size;
+}
+    
+unsigned CanvasByteArray::sizeInBytes() const {
+    return length() * sizeof(signed char);
 }
 
 }

@@ -100,7 +100,7 @@ CONFIG(QTDIR_build) {
 # Optional components (look for defs in config.h and included files!)
 
 contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
-    DEFINES+=ENABLE_DATABASE=0 ENABLE_DOM_STORAGE=0 ENABLE_ICONDATABASE=0 ENABLE_WORKERS=0
+    DEFINES+=ENABLE_DATABASE=0 ENABLE_DOM_STORAGE=0 ENABLE_ICONDATABASE=0 ENABLE_WORKERS=0 ENABLE_SHARED_WORKERS=0
 }
 
 # turn off SQLITE support if we do not have sqlite3 available
@@ -130,7 +130,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 #!contains(DEFINES, ENABLE_XBL=.): DEFINES += ENABLE_XBL=1
 !contains(DEFINES, ENABLE_WCSS=.): DEFINES += ENABLE_WCSS=0
 !contains(DEFINES, ENABLE_WML=.): DEFINES += ENABLE_WML=0
-!contains(DEFINES, ENABLE_SHARED_WORKERS=.): DEFINES += ENABLE_SHARED_WORKERS=0
+!contains(DEFINES, ENABLE_SHARED_WORKERS=.): DEFINES += ENABLE_SHARED_WORKERS=1
 !contains(DEFINES, ENABLE_WORKERS=.): DEFINES += ENABLE_WORKERS=1
 !contains(DEFINES, ENABLE_XHTMLMP=.): DEFINES += ENABLE_XHTMLMP=0
 !contains(DEFINES, ENABLE_DATAGRID=.): DEFINES += ENABLE_DATAGRID=1
@@ -167,6 +167,10 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
         DEFINES += ENABLE_NETSCAPE_PLUGIN_API=0
     }
 }
+
+# Web Socket support.
+# FIXME: Enable once platform code is landed.
+# !contains(DEFINES, ENABLE_WEB_SOCKETS=.): DEFINES += ENABLE_WEB_SOCKETS=1
 
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
 
@@ -212,6 +216,7 @@ INCLUDEPATH = \
     $$PWD/platform/graphics/filters \
     $$PWD/platform/graphics/transforms \
     $$PWD/platform/image-decoders \
+    $$PWD/platform/mock \
     $$PWD/platform/network \
     $$PWD/platform/sql \
     $$PWD/platform/text \
@@ -223,6 +228,7 @@ INCLUDEPATH = \
     $$PWD/svg/animation \
     $$PWD/svg/graphics \
     $$PWD/svg/graphics/filters \
+    $$PWD/websockets \
     $$PWD/wml \
     $$PWD/workers \
     $$PWD/xml \
@@ -360,11 +366,20 @@ IDL_BINDINGS += \
     dom/WebKitAnimationEvent.idl \
     dom/WebKitTransitionEvent.idl \
     dom/WheelEvent.idl \
+    html/canvas/CanvasArray.idl \
+    html/canvas/CanvasArrayBuffer.idl \
+    html/canvas/CanvasByteArray.idl \
+    html/canvas/CanvasFloatArray.idl \
     html/canvas/CanvasGradient.idl \
+    html/canvas/CanvasIntArray.idl \
     html/canvas/CanvasPattern.idl \
     html/canvas/CanvasRenderingContext.idl \
     html/canvas/CanvasRenderingContext2D.idl \
     html/canvas/CanvasRenderingContext3D.idl \
+    html/canvas/CanvasShortArray.idl \
+    html/canvas/CanvasUnsignedByteArray.idl \
+    html/canvas/CanvasUnsignedIntArray.idl \
+    html/canvas/CanvasUnsignedShortArray.idl \
     html/DataGridColumn.idl \
     html/DataGridColumnList.idl \
     html/File.idl \
@@ -498,7 +513,6 @@ IDL_BINDINGS += \
     svg/SVGColor.idl \
     svg/SVGComponentTransferFunctionElement.idl \
     svg/SVGCursorElement.idl \
-    svg/SVGDefinitionSrcElement.idl \
     svg/SVGDefsElement.idl \
     svg/SVGDescElement.idl \
     svg/SVGDocument.idl \
@@ -606,6 +620,7 @@ IDL_BINDINGS += \
     svg/SVGUnitTypes.idl \
     svg/SVGUseElement.idl \
     svg/SVGViewElement.idl \
+    websockets/WebSocket.idl \
     workers/AbstractWorker.idl \
     workers/DedicatedWorkerContext.idl \
     workers/SharedWorker.idl \
@@ -721,7 +736,9 @@ SOURCES += \
     bindings/js/JSPluginArrayCustom.cpp \
     bindings/js/JSMessageChannelConstructor.cpp \
     bindings/js/JSMessageChannelCustom.cpp \
+    bindings/js/JSMessageEventCustom.cpp \
     bindings/js/JSMessagePortCustom.cpp \
+    bindings/js/JSMessagePortCustom.h \
     bindings/js/JSMimeTypeArrayCustom.cpp \
     bindings/js/JSDOMBinding.cpp \
     bindings/js/JSEventListener.cpp \
@@ -1045,17 +1062,19 @@ SOURCES += \
     html/PreloadScanner.cpp \
     html/ValidityState.cpp \
     inspector/ConsoleMessage.cpp \
+    inspector/DOMDispatchTimelineItem.cpp \
     inspector/InspectorBackend.cpp \
+    inspector/InspectorController.cpp \
     inspector/InspectorDatabaseResource.cpp \
     inspector/InspectorDOMAgent.cpp \
     inspector/InspectorDOMStorageResource.cpp \
-    inspector/InspectorController.cpp \
     inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
+    inspector/InspectorTimelineAgent.cpp \
+    inspector/TimelineItem.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
     loader/archive/ArchiveResourceCollection.cpp \
-    loader/UserStyleSheetLoader.cpp \
     loader/Cache.cpp \
     loader/CachedCSSStyleSheet.cpp \
     loader/CachedFont.cpp \
@@ -1100,7 +1119,6 @@ SOURCES += \
     page/Chrome.cpp \
     page/Console.cpp \
     page/ContextMenuController.cpp \
-    page/Coordinates.cpp \
     page/DOMSelection.cpp \
     page/DOMTimer.cpp \
     page/DOMWindow.cpp \
@@ -1114,7 +1132,6 @@ SOURCES += \
     page/FrameTree.cpp \
     page/FrameView.cpp \
     page/Geolocation.cpp \
-    page/Geoposition.cpp \
     page/History.cpp \
     page/Location.cpp \
     page/MouseEventWithHitTestResults.cpp \
@@ -1188,6 +1205,7 @@ SOURCES += \
     platform/LinkHash.cpp \
     platform/Logging.cpp \
     platform/MIMETypeRegistry.cpp \
+    platform/mock/GeolocationServiceMock.cpp \
     platform/network/AuthenticationChallengeBase.cpp \
     platform/network/Credential.cpp \
     platform/network/FormData.cpp \
@@ -1712,16 +1730,19 @@ HEADERS += \
     html/TimeRanges.h \
     html/ValidityState.h \
     inspector/ConsoleMessage.h \
+    inspector/DOMDispatchTimelineItem.h \
     inspector/InspectorBackend.h \
     inspector/InspectorController.h \
     inspector/InspectorDatabaseResource.h \
     inspector/InspectorDOMStorageResource.h \
     inspector/InspectorFrontend.h \
     inspector/InspectorResource.h \
+    inspector/InspectorTimelineAgent.h \
     inspector/JavaScriptCallFrame.h \
     inspector/JavaScriptDebugServer.h \
     inspector/JavaScriptProfile.h \
     inspector/JavaScriptProfileNode.h \
+    inspector/TimelineItem.h \
     loader/appcache/ApplicationCacheGroup.h \
     loader/appcache/ApplicationCacheHost.h \
     loader/appcache/ApplicationCache.h \
@@ -1770,7 +1791,6 @@ HEADERS += \
     loader/TextDocument.h \
     loader/TextResourceDecoder.h \
     loader/ThreadableLoader.h \
-    loader/UserStyleSheetLoader.h \
     loader/WorkerThreadableLoader.h \
     page/animation/AnimationBase.h \
     page/animation/AnimationController.h \
@@ -1820,6 +1840,7 @@ HEADERS += \
     platform/DragImage.h \
     platform/FileChooser.h \
     platform/GeolocationService.h \
+    platform/mock/GeolocationServiceMock.h \
     platform/graphics/BitmapImage.h \
     platform/graphics/Color.h \
     platform/graphics/filters/FEBlend.h \
@@ -2091,7 +2112,6 @@ HEADERS += \
     svg/SVGColor.h \
     svg/SVGComponentTransferFunctionElement.h \
     svg/SVGCursorElement.h \
-    svg/SVGDefinitionSrcElement.h \
     svg/SVGDefsElement.h \
     svg/SVGDescElement.h \
     svg/SVGDocumentExtensions.h \
@@ -2363,6 +2383,7 @@ SOURCES += \
     ../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.cpp \
     ../WebKit/qt/WebCoreSupport/InspectorClientQt.cpp \
     ../WebKit/qt/Api/qwebframe.cpp \
+    ../WebKit/qt/Api/qwebgraphicsitem.cpp \
     ../WebKit/qt/Api/qwebpage.cpp \
     ../WebKit/qt/Api/qwebview.cpp \
     ../WebKit/qt/Api/qwebelement.cpp \
@@ -2373,6 +2394,7 @@ SOURCES += \
     ../WebKit/qt/Api/qwebpluginfactory.cpp \
     ../WebKit/qt/Api/qwebsecurityorigin.cpp \
     ../WebKit/qt/Api/qwebdatabase.cpp \
+    ../WebKit/qt/Api/qwebinspector.cpp \
     ../WebKit/qt/Api/qwebkitversion.cpp
 
 
@@ -2382,6 +2404,7 @@ SOURCES += \
         SOURCES += \
             platform/text/cf/StringCF.cpp \
             platform/text/cf/StringImplCF.cpp
+        LIBS_PRIVATE += -framework Carbon -framework AppKit
     }
 
     win32-* {
@@ -2610,7 +2633,7 @@ contains(DEFINES, ENABLE_WORKERS=1) {
         workers/WorkerScriptLoader.cpp
 }
 
-contains(DEFINES, SHARED_WORKERS=1) {
+contains(DEFINES, ENABLE_SHARED_WORKERS=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_SHARED_WORKERS=1
 
     SOURCES += \
@@ -2835,7 +2858,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/SVGColor.cpp \
         svg/SVGComponentTransferFunctionElement.cpp \
         svg/SVGCursorElement.cpp \
-        svg/SVGDefinitionSrcElement.cpp \
         svg/SVGDefsElement.cpp \
         svg/SVGDescElement.cpp \
         svg/SVGDocument.cpp \

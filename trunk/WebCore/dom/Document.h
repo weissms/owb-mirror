@@ -33,18 +33,10 @@
 #include "CollectionType.h"
 #include "Color.h"
 #include "DocumentMarker.h"
+#include "Page.h"
 #include "ScriptExecutionContext.h"
 #include "Timer.h"
 #include <wtf/HashCountedSet.h>
-
-// FIXME: We should move Mac off of the old Frame-based user stylesheet loading
-// code and onto the new code in Page. We can't do that until the code in Page
-// supports non-file: URLs, however.
-#if PLATFORM(MAC) || PLATFORM(QT)  || PLATFORM(GTK) || PLATFORM(BAL)
-#define FRAME_LOADS_USER_STYLESHEET 1
-#else
-#define FRAME_LOADS_USER_STYLESHEET 0
-#endif
 
 namespace WebCore {
 
@@ -83,12 +75,12 @@ namespace WebCore {
     class HTMLHeadElement;
     class HTMLInputElement;
     class HTMLMapElement;
+    class InspectorTimelineAgent;
     class IntPoint;
     class JSNode;
     class MouseEventWithHitTestResults;
     class NodeFilter;
     class NodeIterator;
-    class Page;
     class PlatformMouseEvent;
     class ProcessingInstruction;
     class Range;
@@ -236,6 +228,8 @@ public:
     bool containsMultipleElementsWithId(const AtomicString& elementId) { return m_duplicateIds.contains(elementId.impl()); }
 
     Element* elementFromPoint(int x, int y) const;
+    PassRefPtr<Range> caretRangeFromPoint(int x, int y);
+
     String readyState() const;
 
     String defaultCharset() const;
@@ -383,6 +377,7 @@ public:
     Frame* frame() const { return m_frame; } // can be NULL
     Page* page() const; // can be NULL
     Settings* settings() const; // can be NULL
+    InspectorTimelineAgent* inspectorTimelineAgent() const; // can be NULL
 
     PassRefPtr<Range> createRange();
 
@@ -446,14 +441,15 @@ public:
 
     virtual String userAgent(const KURL&) const;
 
-#if FRAME_LOADS_USER_STYLESHEET
-    void setUserStyleSheet(const String& sheet);
-#endif
+    CSSStyleSheet* pageUserSheet();
+    void clearPageUserSheet();
 
-    String userStyleSheet() const;
+    const Vector<RefPtr<CSSStyleSheet> >* pageGroupUserSheets() const;
+    void clearPageGroupUserSheets();
 
     CSSStyleSheet* elementSheet();
     CSSStyleSheet* mappedElementSheet();
+    
     virtual Tokenizer* createTokenizer();
     Tokenizer* tokenizer() { return m_tokenizer; }
     
@@ -871,7 +867,6 @@ private:
 
     virtual String nodeName() const;
     virtual NodeType nodeType() const;
-    virtual void setCSSStyleSheet(const String& url, const String& charset, const CachedCSSStyleSheet*);
     virtual bool childTypeAllowed(NodeType);
     virtual PassRefPtr<Node> cloneNode(bool deep);
     virtual bool canReplaceChild(Node* newChild, Node* oldChild);
@@ -922,11 +917,6 @@ private:
     RefPtr<DocumentType> m_docType;
     mutable RefPtr<DOMImplementation> m_implementation;
 
-    RefPtr<StyleSheet> m_sheet;
-#if FRAME_LOADS_USER_STYLESHEET
-    String m_usersheet;
-#endif
-
     // Track the number of currently loading top-level stylesheets.  Sheets
     // loaded using the @import directive are not included in this count.
     // We use this count of pending sheets to detect when we can begin attaching
@@ -946,6 +936,9 @@ private:
 
     RefPtr<CSSStyleSheet> m_elemSheet;
     RefPtr<CSSStyleSheet> m_mappedElementSheet;
+    RefPtr<CSSStyleSheet> m_pageUserSheet;
+    mutable OwnPtr<Vector<RefPtr<CSSStyleSheet> > > m_pageGroupUserSheets;
+    mutable bool m_pageGroupUserSheetCacheValid;
 
     bool m_printing;
     
@@ -1125,6 +1118,10 @@ inline bool Document::hasElementWithId(AtomicStringImpl* id) const
 inline bool Node::isDocumentNode() const
 {
     return this == m_document;
+}
+
+inline InspectorTimelineAgent* Document::inspectorTimelineAgent() const {
+    return page() ? page()->inspectorTimelineAgent() : 0;
 }
 
 } // namespace WebCore

@@ -40,7 +40,7 @@ RegisterFile::~RegisterFile()
 #elif PLATFORM(AMIGAOS4)
     fastFree(m_buffer);
 #else
-    #error "Don't know how to release virtual memory on this platform."
+    fastFree(m_buffer);
 #endif
 }
 

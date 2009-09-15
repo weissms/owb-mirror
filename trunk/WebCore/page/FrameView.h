@@ -25,7 +25,9 @@
 #ifndef FrameView_h
 #define FrameView_h
 
+#include "Frame.h"
 #include "IntSize.h"
+#include "Page.h"
 #include "RenderLayer.h"
 #include "ScrollView.h"
 #include <wtf/Forward.h>
@@ -37,6 +39,7 @@ class Color;
 class Event;
 class Frame;
 class FrameViewPrivate;
+class InspectorTimelineAgent;
 class IntRect;
 class Node;
 class PlatformMouseEvent;
@@ -68,8 +71,6 @@ public:
     int marginHeight() const { return m_margins.height(); } // -1 means default
     void setMarginWidth(int);
     void setMarginHeight(int);
-
-    virtual void setCanHaveScrollbars(bool);
 
     virtual PassRefPtr<Scrollbar> createScrollbar(ScrollbarOrientation);
 
@@ -122,8 +123,6 @@ public:
     void setShouldUpdateWhileOffscreen(bool);
 
     void adjustViewSize();
-    void initScrollbars();
-    void updateDefaultScrollbarState();
     
     virtual IntRect windowClipRect(bool clipToContents = true) const;
     IntRect windowClipRectForLayer(const RenderLayer*, bool clipToLayerContents) const;
@@ -236,6 +235,8 @@ private:
 
     bool updateWidgets();
     void scrollToAnchor();
+
+    InspectorTimelineAgent* inspectorTimelineAgent() const;
     
     bool hasCustomScrollbars() const;
 
@@ -251,8 +252,6 @@ private:
 
     bool m_doFullRepaint;
     
-    ScrollbarMode m_vmode;
-    ScrollbarMode m_hmode;
     bool m_useSlowRepaints;
     bool m_isOverlapped;
     bool m_contentIsOpaque;
@@ -272,7 +271,6 @@ private:
     bool m_firstLayoutCallbackPending;
 
     bool m_firstLayout;
-    bool m_needToInitScrollbars;
     bool m_isTransparent;
     Color m_baseBackgroundColor;
     IntSize m_lastLayoutSize;
@@ -315,6 +313,11 @@ private:
     // Renderer to hold our custom scroll corner.
     RenderScrollbarPart* m_scrollCorner;
 };
+
+inline InspectorTimelineAgent* FrameView::inspectorTimelineAgent() const
+{
+    return m_frame->page() ? m_frame->page()->inspectorTimelineAgent() : 0;
+}
 
 } // namespace WebCore
 

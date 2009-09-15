@@ -39,10 +39,21 @@ namespace WebCore {
         
         static PassRefPtr<CanvasTexture> create(CanvasRenderingContext3D*);
     
+        bool isCubeMapRWrapModeInitialized() {
+            return cubeMapRWrapModeInitialized;
+        }
+
+        void setCubeMapRWrapModeInitialized(bool initialized) {
+            cubeMapRWrapModeInitialized = initialized;
+        }
+
     protected:
         CanvasTexture(CanvasRenderingContext3D*);
 
         virtual void _deleteObject(Platform3DObject);
+
+    private:
+        bool cubeMapRWrapModeInitialized;
     };
     
 } // namespace WebCore

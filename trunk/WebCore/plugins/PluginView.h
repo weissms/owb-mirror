@@ -207,8 +207,9 @@ namespace WebCore {
         bool startOrAddToUnstartedList();
         void removeFromUnstartedListIfNecessary();
         void init();
-        void platformStart();
+        bool platformStart();
         void stop();
+        void platformDestroy();
         static void setCurrentPluginView(PluginView*);
         NPError load(const FrameLoadRequest&, bool sendNotification, void* notifyData);
         NPError handlePost(const char* url, const char* target, uint32 len, const char* buf, bool file, void* notifyData, bool sendNotification, bool allowHeaders);

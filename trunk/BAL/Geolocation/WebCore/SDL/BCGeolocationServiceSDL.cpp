@@ -22,7 +22,9 @@
 
 namespace WebCore {
 
-GeolocationService* GeolocationService::create(GeolocationServiceClient* client)
+GeolocationService::FactoryFunction* GeolocationService::s_factoryFunction = &GeolocationServiceBAL::create;
+
+GeolocationService* GeolocationServiceBAL::create(GeolocationServiceClient* client)
 {
     return new GeolocationServiceBAL(client);
 }

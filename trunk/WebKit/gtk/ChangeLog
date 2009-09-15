@@ -1,3 +1,325 @@
+2009-09-14  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        [GTK] Use gtk_style_set_background instead of gdk_window_set_background
+        https://bugs.webkit.org/show_bug.cgi?id=29173
+
+        Use gtk_style_set_background instead of gdk_window_set_background,
+        as suggested by the documentation. Also, use GTK_STATE_NORMAL
+        directly, since that's the default state of a GtkWidget.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_realize):
+
+2009-09-09  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] DumpRenderTree needs eventSender object and implementation
+        https://bugs.webkit.org/show_bug.cgi?id=25990
+
+        Creates a function that is accessible from the DumpRenderTree tool
+        and calls the layout method on the frame view.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_layout):
+
+2009-09-08  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29044
+        [GTK] Should update suggested-filename when the response is received
+
+        Set suggested filename also when the response only comes after the
+        download has started.
+
+        * webkit/webkitdownload.cpp:
+        (webkit_download_set_response):
+        (webkit_download_set_suggested_filename):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_request_download):
+
+2009-09-08  Priit Laes  <plaes@plaes.org>
+
+        Reviewed by Gustavo Noronha.
+
+        Fix up erroneus 'Since: @version@' tags in documentation.
+
+        * webkit/webkitwebdatasource.cpp:
+        * webkit/webkitwebresource.cpp:
+        (webkit_web_resource_class_init):
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_class_init):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+        * webkit/webkitwebwindowfeatures.cpp:
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Link new objects documents in the main document.
+
+        * docs/webkitgtk-docs.sgml:
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Documentation control files updated for 1.1.14.
+
+        * docs/webkitgtk-docs.sgml:
+        * docs/webkitgtk-sections.txt:
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        What's new for 1.1.14.
+
+        * NEWS:
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Rubber-stamped by Xan Lopez.
+
+        Use g_return_if_fail to check for the SoupURI creation, instead of
+        printing a custom warning.
+
+        * webkit/webkitnetworkrequest.cpp:
+        (webkit_network_request_set_uri):
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=26854
+        [GTK] Needs API to allow more control over outgoing requests
+
+        Map the willSendRequest delegate to the 'resource-request-starting'
+        signal, allowing more control of the resources that are fetched.
+
+        Mapping willSendRequest properly requires an appropriate Response
+        object, so we are introducing WebKitNetworkResponse, which works in a
+        way similar to WebKitNetworkRequest.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchWillSendRequest):
+        (WebKit::FrameLoaderClient::assignIdentifierToInitialRequest):
+        (WebKit::FrameLoaderClient::dispatchDidFinishLoading):
+        (WebKit::FrameLoaderClient::dispatchDidFailLoading):
+        * tests/testnetworkresponse.c: Added.
+        (test_network_response_create_destroy):
+        (test_network_response_properties):
+        (main):
+        * tests/testwebresource.c:
+        (resource_request_starting_cb):
+        (load_finished_cb):
+        (test_web_resource_loading):
+        (main):
+        * webkit/webkit.h:
+        * webkit/webkitdefines.h:
+        * webkit/webkitnetworkrequest.cpp:
+        * webkit/webkitnetworkresponse.cpp: Added.
+        (webkit_network_response_dispose):
+        (webkit_network_response_finalize):
+        (webkit_network_response_get_property):
+        (webkit_network_response_set_property):
+        (webkit_network_response_class_init):
+        (webkit_network_response_init):
+        (webkit_network_response_new_with_core_response):
+        (webkit_network_response_new):
+        (webkit_network_response_set_uri):
+        (webkit_network_response_get_uri):
+        (webkit_network_response_get_message):
+        * webkit/webkitnetworkresponse.h: Added.
+        * webkit/webkitprivate.cpp:
+        (WTF::SoupMessage):
+        (WTF::WebKitNetworkRequest):
+        (WTF::WebKitNetworkResponse):
+        (WTF::WebKitWebResource):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebresource.cpp:
+        (webkit_web_resource_cleanup):
+        (webkit_web_resource_finalize):
+        (webkit_web_resource_class_init):
+        (webkit_web_resource_set_property):
+        (webkit_web_resource_get_uri):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+        * webkitmarshal.list:
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28979
+        [GTK] Misc improvments to NetworkRequest
+
+        Unref message in dispose, as it should be, not in finalize.
+
+        * webkit/webkitnetworkrequest.cpp:
+        (webkit_network_request_dispose):
+        (webkit_network_request_finalize):
+        (webkit_network_request_class_init):
+
+2009-09-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28979
+        [GTK] Misc improvments to NetworkRequest
+
+        Bring documentation up-to-date with reality regarding NetworkRequest.
+
+        * webkit/webkitnetworkrequest.cpp:
+
+2009-09-07  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Make the auth dialog usable when libsoup does not have a
+        SoupPasswordManager, since it might go away in the next
+        development cycle.
+
+        * webkit/webkitsoupauthdialog.c:
+        (response_callback):
+        (session_can_save_passwords):
+        (session_authenticate):
+2009-09-06  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Update the unitests to latest changes wrt scrollbar policy.
+
+        * tests/testwindow.c:
+        (test_webkit_window_scrollbar_policy):
+
+2009-09-06  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Gustavo Noronha, Jan Alonzo and Xan Lopez.
+
+        [Gtk] Expose a database API
+        https://bugs.webkit.org/show_bug.cgi?id=27899
+
+        Expose an HTML5 database API for GTK+.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::print):
+        * webkit/webkit.h:
+        * webkit/webkitdefines.h:
+        * webkit/webkitprivate.cpp:
+        (webkit_init):
+        * webkit/webkitprivate.h:
+        * webkit/webkitsecurityorigin.cpp: Added.
+        (webkit_security_origin_finalize):
+        (webkit_security_origin_dispose):
+        (webkit_security_origin_set_property):
+        (webkit_security_origin_get_property):
+        (webkit_security_origins):
+        (webkit_security_origin_class_init):
+        (webkit_security_origin_init):
+        (webkit_security_origin_get_protocol):
+        (webkit_security_origin_get_host):
+        (webkit_security_origin_get_port):
+        (webkit_security_origin_get_web_database_usage):
+        (webkit_security_origin_get_web_database_quota):
+        (webkit_security_origin_set_web_database_quota):
+        (webkit_security_origin_get_all_web_databases):
+        (WebKit::kit):
+        (WebKit::core):
+        (webkit_security_origin_get_web_database):
+        * webkit/webkitsecurityorigin.h: Added.
+        * webkit/webkitwebdatabase.cpp: Added.
+        (webkit_web_database_finalize):
+        (webkit_web_database_dispose):
+        (webkit_web_database_set_property):
+        (webkit_web_database_get_property):
+        (webkit_web_database_class_init):
+        (webkit_web_database_init):
+        (webkit_web_database_set_security_origin):
+        (webkit_web_database_set_name):
+        (webkit_web_database_get_security_origin):
+        (webkit_web_database_get_name):
+        (webkit_web_database_get_display_name):
+        (webkit_web_database_get_expected_size):
+        (webkit_web_database_get_size):
+        (webkit_web_database_get_filename):
+        (webkit_web_database_remove):
+        (webkit_remove_all_web_databases):
+        (webkit_get_web_database_directory_path):
+        (webkit_set_web_database_directory_path):
+        (webkit_get_default_web_database_quota):
+        * webkit/webkitwebdatabase.h: Added.
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_new):
+        (webkit_web_frame_get_focused_accessible_element):
+        (webkit_web_frame_get_horizontal_scrollbar_policy):
+        * webkit/webkitwebframe.h:
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+
+2009-09-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by eric@webkit.org.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24696
+
+        Stub implementations of mixed content methods of FrameLoaderClient. 
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::didDisplayInsecureContent):
+        (WebKit::FrameLoaderClient::didRunInsecureContent):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-09-03  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Access private member variables directly instead of using the
+        accessor.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createFrame):
+        (WebKit::FrameLoaderClient::windowObjectCleared):
+
+2009-09-03  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Remove bogus asserts that break Debug builds at runtime.
+
+        * WebCoreSupport/DocumentLoaderGtk.cpp:
+        (WebKit::DocumentLoader::detachFromFrame):
+        (WebKit::DocumentLoader::decreaseLoadCount):
+
+2009-09-02  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez and Gustavo Noronha.
+
+         [Gtk] Implement a WebDataSource for the gtk port
+         https://bugs.webkit.org/show_bug.cgi?id=24758
+
+        Add data source API getters to WebKitWebFrame.
+        Also add WebKitWebDataSource unit test.
+
+        * tests/testwebdatasource.c: Added.
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebframe.h:
+
+2009-09-02  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Xan Lopez and Gustavo Noronha.
+
+        [Gtk] Implement a WebDataSource for the gtk port
+        https://bugs.webkit.org/show_bug.cgi?id=24758
+
+        Subclass DocumentLoader for Gtk and implement it under the WebKit
+        namespace. Add WebKitWebDataSource implementation that closely
+        follows the mac implementation of the API.
+
+        * WebCoreSupport/DocumentLoaderGtk.cpp: Added.
+        * WebCoreSupport/DocumentLoaderGtk.h: Added.
+        * webkit/webkitwebdatasource.cpp: Added.
+        * webkit/webkitwebdatasource.h: Added.
+
 2009-09-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Xan Lopez.

@@ -955,52 +955,7 @@ void PluginView::forceRedraw()
         ::UpdateWindow(windowHandleForPlatformWidget(parent() ? parent()->hostWindow()->platformWindow() : 0));
 }
 
-PluginView::~PluginView()
-{
-    removeFromUnstartedListIfNecessary();
-
-    stop();
-
-    deleteAllValues(m_requests);
-
-    freeStringArray(m_paramNames, m_paramCount);
-    freeStringArray(m_paramValues, m_paramCount);
-
-    if (platformPluginWidget())
-        DestroyWindow(platformPluginWidget());
-
-    m_parentFrame->script()->cleanupScriptObjectsForPlugin(this);
-
-    if (m_plugin && !m_plugin->quirks().contains(PluginQuirkDontUnloadPlugin))
-        m_plugin->unload();
-}
-
-void PluginView::init()
-{
-    if (m_haveInitialized)
-        return;
-    m_haveInitialized = true;
-
-    if (!m_plugin) {
-        ASSERT(m_status == PluginStatusCanNotFindPlugin);
-        return;
-    }
-
-    if (!m_plugin->load()) {
-        m_plugin = 0;
-        m_status = PluginStatusCanNotLoadPlugin;
-        return;
-    }
-
-    if (!startOrAddToUnstartedList()) {
-        m_status = PluginStatusCanNotLoadPlugin;
-        return;
-    }
-
-    m_status = PluginStatusLoadedSuccessfully;
-}
-
-void PluginView::platformStart()
+bool PluginView::platformStart()
 {
     ASSERT(m_isStarted);
     ASSERT(m_status == PluginStatusLoadedSuccessfully);
@@ -1047,6 +1002,14 @@ void PluginView::platformStart()
 
     if (!m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall))
         setNPWindowRect(frameRect());
+
+    return true;
+}
+
+void PluginView::platformDestroy()
+{
+    if (platformPluginWidget())
+        DestroyWindow(platformPluginWidget());
 }
 
 } // namespace WebCore

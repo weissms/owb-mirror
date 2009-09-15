@@ -32,6 +32,7 @@
 #include "DumpRenderTree.h"
 
 #include "AccessibilityController.h"
+#include "EventSender.h"
 #include "GCController.h"
 #include "LayoutTestController.h"
 #include "WorkQueue.h"
@@ -375,6 +376,10 @@ static void setDefaultsToConsistentStateValuesForTesting()
 #if PLATFORM(X11)
     webkit_web_settings_add_extra_plugin_directory(webView, TEST_PLUGIN_DIR);
 #endif
+
+    gchar* databaseDirectory = g_build_filename(g_get_user_data_dir(), "gtkwebkitdrt", "databases", NULL);
+    webkit_set_web_database_directory_path(databaseDirectory);
+    g_free(databaseDirectory);
 }
 
 static void runTest(const string& testPathOrURL)
@@ -422,7 +427,8 @@ static void runTest(const string& testPathOrURL)
     if (prevTestBFItem)
         g_object_ref(prevTestBFItem);
 
-
+    // Focus the web view before loading the test to avoid focusing problems
+    gtk_widget_grab_focus(GTK_WIDGET(webView));
     webkit_web_view_open(webView, url);
 
     g_free(url);
@@ -496,6 +502,10 @@ static void webViewWindowObjectCleared(WebKitWebView* view, WebKitWebFrame* fram
     axController->makeWindowObject(context, windowObject, &exception);
     ASSERT(!exception);
 
+    JSStringRef eventSenderStr = JSStringCreateWithUTF8CString("eventSender");
+    JSValueRef eventSender = makeEventSender(context);
+    JSObjectSetProperty(context, windowObject, eventSenderStr, eventSender, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete, 0);
+    JSStringRelease(eventSenderStr);
 }
 
 static gboolean webViewConsoleMessage(WebKitWebView* view, const gchar* message, unsigned int line, const gchar* sourceId, gpointer data)
@@ -597,6 +607,23 @@ static gboolean webViewClose(WebKitWebView* view)
     return TRUE;
 }
 
+static void databaseQuotaExceeded(WebKitWebView* view, WebKitWebFrame* frame, WebKitWebDatabase *database)
+{
+    ASSERT(view);
+    ASSERT(frame);
+    ASSERT(database);
+
+    WebKitSecurityOrigin* origin = webkit_web_database_get_security_origin(database);
+    if (gLayoutTestController->dumpDatabaseCallbacks()) {
+        printf("UI DELEGATE DATABASE CALLBACK: exceededDatabaseQuotaForSecurityOrigin:{%s, %s, %i} database:%s\n",
+            webkit_security_origin_get_protocol(origin),
+            webkit_security_origin_get_host(origin),
+            webkit_security_origin_get_port(origin),
+            webkit_web_database_get_name(database));
+    }
+    webkit_security_origin_set_web_database_quota(origin, 5 * 1024 * 1024);
+}
+
 
 static WebKitWebView* webViewCreate(WebKitWebView*, WebKitWebFrame*);
 
@@ -621,6 +648,7 @@ static WebKitWebView* createWebView()
                      "signal::status-bar-text-changed", webViewStatusBarTextChanged, 0,
                      "signal::create-web-view", webViewCreate, 0,
                      "signal::close-web-view", webViewClose, 0,
+                     "signal::database-quota-exceeded", databaseQuotaExceeded, 0,
                      NULL);
 
     return view;

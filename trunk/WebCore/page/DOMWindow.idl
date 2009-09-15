@@ -74,7 +74,7 @@ module window {
                                 in DOMString name,
                                 in [Optional] DOMString options);
 
-        [Custom] DOMObject showModalDialog(in DOMString url, 
+        [Custom] DOMObject showModalDialog(in DOMString url,
                                            in [Optional] DOMObject dialogArgs,
                                            in [Optional] DOMString featureArgs);
 
@@ -175,8 +175,14 @@ module window {
 #endif
 
         // cross-document messaging
+#if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
+        [DoNotCheckDomainSecurity, Custom] void postMessage(in DOMString message, in [Optional] Array messagePorts, in DOMString targetOrigin)
+            raises(DOMException);
+#else
+        // There's no good way to expose an array via the ObjC bindings, so for now just allow passing in a single port.
         [DoNotCheckDomainSecurity, Custom] void postMessage(in DOMString message, in [Optional] MessagePort messagePort, in DOMString targetOrigin)
             raises(DOMException);
+#endif
 
         // Timers
         [Custom] long setTimeout(in TimeoutHandler handler, in long timeout);
@@ -420,6 +426,15 @@ module window {
         attribute [Conditional=3D_CANVAS] CanvasRenderingContext3DConstructor CanvasRenderingContext3D;
         attribute TextMetricsConstructor TextMetrics;
 
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasArrayBufferConstructor CanvasArrayBuffer; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasByteArrayConstructor CanvasByteArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasUnsignedByteArrayConstructor CanvasUnsignedByteArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasShortArrayConstructor CanvasShortArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasUnsignedShortArrayConstructor CanvasUnsignedShortArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasIntArrayConstructor CanvasIntArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasUnsignedIntArrayConstructor CanvasUnsignedIntArray; // Usable with new operator
+        attribute [CustomGetter,Conditional=3D_CANVAS] CanvasFloatArrayConstructor CanvasFloatArray; // Usable with new operator
+
         attribute EventConstructor Event;
         attribute KeyboardEventConstructor KeyboardEvent;
         attribute MouseEventConstructor MouseEvent;
@@ -481,6 +496,10 @@ module window {
 
 #if defined(ENABLE_SHARED_WORKERS) && ENABLE_SHARED_WORKERS
         attribute [JSCCustomGetter] SharedWorkerConstructor SharedWorker; // Usable with the new operator
+#endif
+
+#if defined(ENABLE_WEB_SOCKETS) && ENABLE_WEB_SOCKETS
+        attribute [JSCCustomGetter] WebSocketConstructor WebSocket; // Usable with the new operator
 #endif
 
         attribute PluginConstructor Plugin;

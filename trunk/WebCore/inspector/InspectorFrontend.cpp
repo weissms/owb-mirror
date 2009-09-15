@@ -183,6 +183,23 @@ void InspectorFrontend::resourceTrackingWasDisabled()
     callSimpleFunction("resourceTrackingWasDisabled");
 }
 
+void InspectorFrontend::timelineWasEnabled()
+{
+    callSimpleFunction("timelineWasEnabled");
+}
+
+void InspectorFrontend::timelineWasDisabled()
+{
+    callSimpleFunction("timelineWasDisabled");
+}
+
+void InspectorFrontend::addItemToTimeline(const ScriptObject& itemObj)
+{
+    OwnPtr<ScriptFunctionCall> function(newFunctionCall("addItemToTimeline"));
+    function->appendArgument(itemObj);
+    function->call();
+}
+
 #if ENABLE(JAVASCRIPT_DEBUGGER)
 void InspectorFrontend::attachDebuggerWhenShown()
 {
@@ -355,6 +372,15 @@ void InspectorFrontend::didGetCookies(int callId, const ScriptArray& cookies, co
     function->appendArgument(callId);
     function->appendArgument(cookies);
     function->appendArgument(cookiesString);
+    function->call();
+}
+
+void InspectorFrontend::didDispatchOnInjectedScript(int callId, const String& result, bool isException)
+{
+    OwnPtr<ScriptFunctionCall> function(newFunctionCall("didDispatchOnInjectedScript"));
+    function->appendArgument(callId);
+    function->appendArgument(result);
+    function->appendArgument(isException);
     function->call();
 }
 

@@ -248,64 +248,6 @@ void PluginView::forceRedraw()
 {
 }
 
-PluginView::~PluginView()
-{
-    stop();
-
-    deleteAllValues(m_requests);
-
-    freeStringArray(m_paramNames, m_paramCount);
-    freeStringArray(m_paramValues, m_paramCount);
-
-    m_parentFrame->script()->cleanupScriptObjectsForPlugin(this);
-
-    if (m_plugin && !(m_plugin->quirks().contains(PluginQuirkDontUnloadPlugin)))
-        m_plugin->unload();
-}
-
-void PluginView::init()
-{
-    if (m_haveInitialized)
-        return;
-    m_haveInitialized = true;
-
-    if (!m_plugin) {
-        ASSERT(m_status == PluginStatusCanNotFindPlugin);
-        return;
-    }
-
-    if (!m_plugin->load()) {
-        m_plugin = 0;
-        m_status = PluginStatusCanNotLoadPlugin;
-        return;
-    }
-
-    if (!start()) {
-        m_status = PluginStatusCanNotLoadPlugin;
-        return;
-    }
-
-    if (m_plugin->pluginFuncs()->getvalue) {
-        /*PluginView::setCurrentPluginView(this);
-        setCallingPlugin(true);
-        m_plugin->pluginFuncs()->getvalue(m_instance, NPPVpluginNeedsXEmbed, &m_needsXEmbed);
-        setCallingPlugin(false);
-        PluginView::setCurrentPluginView(0);*/
-    }
-
-    if (m_isWindowed)
-        m_npWindow.type = NPWindowTypeWindow;
-    else {
-        m_npWindow.type = NPWindowTypeDrawable;
-        m_npWindow.window = 0;
-    }
-
-/*    if (!(m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall)))
-        setNPWindowRect(frameGeometry());*/
-
-    m_status = PluginStatusLoadedSuccessfully;
-}
-
 void PluginView::invalidateRect(const IntRect& rect)
 {
 }
@@ -314,8 +256,15 @@ void PluginView::setParentVisible(bool visible)
 {
 }
 
-void PluginView::platformStart()
+bool PluginView::platformStart()
 {
+    return true;
 }
+
+void PluginView::platformDestroy()
+{
+    notImplemented();
+}
+
 
 } // namespace WebCore

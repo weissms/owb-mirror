@@ -49,6 +49,7 @@
 #include <QCoreApplication>
 #include <QPainter>
 #include <QPaintEngine>
+#include <QVariant>
 #include <QWidget>
 
 #include <QDebug>
@@ -92,7 +93,7 @@ void Widget::setCursor(const Cursor& cursor)
     if (!cursor.impl().bitmap() && widget->cursor().shape() == cursor.impl().shape())
         return;
 
-    //QCoreApplication::postEvent(widget, new SetCursorEvent(cursor.impl()));
+    widget->setProperty("WebCoreCursor", cursor.impl());
 #endif
 }
 

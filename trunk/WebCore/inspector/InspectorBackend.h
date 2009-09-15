@@ -95,6 +95,10 @@ public:
 
     const String& platform() const;
 
+    void enableTimeline(bool always);
+    void disableTimeline(bool always);
+    bool timelineEnabled() const;
+
     void getCookies(long callId);
     void deleteCookie(const String& cookieName);
 
@@ -129,6 +133,7 @@ public:
     void stepOutOfFunctionInDebugger();
 #endif
 
+    void dispatchOnInjectedScript(long callId, const String& methodName, const String& arguments);
     void getChildNodes(long callId, long nodeId);
     void setAttribute(long callId, long elementId, const String& name, const String& value);
     void removeAttribute(long callId, long elementId, const String& name);

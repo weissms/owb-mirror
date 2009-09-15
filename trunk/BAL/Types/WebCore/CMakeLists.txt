@@ -22,5 +22,6 @@ if(USE_GRAPHICS_SDL)
     list(APPEND WEBCORE_SRC
         ${TYPES_DIR}/SDL/BCIconSDL.cpp
         ${TYPES_DIR}/SDL/BCSharedBufferSDL.cpp
+        ${TYPES_DIR}/SDL/BCKURLSDL.cpp
     )
 endif(USE_GRAPHICS_SDL)

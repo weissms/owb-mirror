@@ -151,8 +151,6 @@ $isSVN || $isGit || die "Couldn't determine your version control system.";
 my $SVN = "svn";
 my $GIT = "git";
 
-my $svnVersion = `svn --version --quiet` if $isSVN;
-
 # Find the list of modified files
 my @changed_files;
 my $changed_files_string;
@@ -1438,7 +1436,7 @@ sub generateFileList(\@\@\%)
 
         if ($isSVN) {
             my $matches;
-            if (eval "v$svnVersion" ge v1.6) {
+            if (isSVNVersion16OrNewer()) {
                 $matches = /^([ ACDMR])([ CM]).{5} (.+?)[\r\n]*$/;
                 $status = $1;
                 $propertyStatus = $2;
@@ -1588,8 +1586,7 @@ sub statusDescription($$$$)
     $description = sprintf($git{$status}, $original) if $isGit && exists $git{$status};
     return unless defined $description;
 
-    $description .= $propertyDescription;
-    $description =~ s/^ Added\. Added propert/ Added with propert/;
+    $description .= $propertyDescription unless isAddedStatus($status);
     return $description;
 }
 

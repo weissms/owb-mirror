@@ -82,27 +82,12 @@ bool StringObject::deleteProperty(ExecState* exec, const Identifier& propertyNam
     return JSObject::deleteProperty(exec, propertyName);
 }
 
-void StringObject::getPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
+void StringObject::getOwnPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
 {
     int size = internalValue()->value().size();
     for (int i = 0; i < size; ++i)
         propertyNames.add(Identifier(exec, UString::from(i)));
-    return JSObject::getPropertyNames(exec, propertyNames);
-}
-
-UString StringObject::toString(ExecState*) const
-{
-    return internalValue()->value();
-}
-
-UString StringObject::toThisString(ExecState*) const
-{
-    return internalValue()->value();
-}
-
-JSString* StringObject::toThisJSString(ExecState*)
-{
-    return internalValue();
+    return JSObject::getOwnPropertyNames(exec, propertyNames);
 }
 
 } // namespace JSC

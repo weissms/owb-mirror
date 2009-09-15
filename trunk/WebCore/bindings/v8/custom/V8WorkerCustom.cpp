@@ -38,6 +38,7 @@
 #include "Frame.h"
 #include "V8Binding.h"
 #include "V8CustomBinding.h"
+#include "V8MessagePortCustom.h"
 #include "V8ObjectEventListener.h"
 #include "V8Proxy.h"
 #include "V8Utilities.h"
@@ -65,16 +66,9 @@ CALLBACK_FUNC_DECL(WorkerConstructor)
         return v8::Undefined();
 
     // Get the script execution context.
-    ScriptExecutionContext* context = 0;
-    WorkerContextExecutionProxy* proxy = WorkerContextExecutionProxy::retrieve();
-    if (proxy)
-        context = proxy->workerContext();
-    else {
-        Frame* frame = V8Proxy::retrieveFrameForCurrentContext();
-        if (!frame)
-            return v8::Undefined();
-        context = frame->document();
-    }
+    ScriptExecutionContext* context = getScriptExecutionContext();
+    if (!context)
+        return v8::Undefined();
 
     // Create the worker object.
     // Note: it's OK to let this RefPtr go out of scope because we also call setDOMWrapper(), which effectively holds a reference to obj.
@@ -147,6 +141,21 @@ ACCESSOR_SETTER(WorkerOnmessage)
             createHiddenDependency(info.Holder(), value, V8Custom::kWorkerRequestCacheIndex);
         }
     }
+}
+
+CALLBACK_FUNC_DECL(WorkerPostMessage)
+{
+    INC_STATS("DOM.Worker.postMessage");
+    Worker* worker = V8DOMWrapper::convertToNativeObject<Worker>(V8ClassIndex::WORKER, args.Holder());
+    String message = toWebCoreString(args[0]);
+    MessagePortArray portArray;
+    if (args.Length() > 1) {
+        if (!getMessagePortArray(args[1], portArray))
+            return v8::Undefined();
+    }
+    ExceptionCode ec = 0;
+    worker->postMessage(message, &portArray, ec);
+    return throwError(ec);
 }
 
 } // namespace WebCore

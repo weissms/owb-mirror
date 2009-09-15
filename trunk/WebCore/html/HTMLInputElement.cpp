@@ -59,6 +59,7 @@
 #include "RenderTextControlSingleLine.h"
 #include "RenderTheme.h"
 #include "TextEvent.h"
+#include <wtf/MathExtras.h>
 #include <wtf/StdLibExtras.h>
 
 using namespace std;
@@ -137,6 +138,8 @@ bool HTMLInputElement::valueMissing() const
             return !checked();
         case RADIO:
             return !document()->checkedRadioButtons().checkedButtonForGroup(name());
+        case COLOR:
+            return false;
         case HIDDEN:
         case RANGE:
         case SUBMIT:
@@ -165,6 +168,7 @@ bool HTMLInputElement::patternMismatch() const
         case BUTTON:
         case RANGE:
         case NUMBER:
+        case COLOR:
             return false;
         case TEXT:
         case SEARCH:
@@ -314,6 +318,8 @@ void HTMLInputElement::setInputType(const String& t)
         newType = TELEPHONE;
     else if (equalIgnoringCase(t, "url"))
         newType = URL;
+    else if (equalIgnoringCase(t, "color"))
+        newType = COLOR;
     else
         newType = TEXT;
 
@@ -397,6 +403,10 @@ const AtomicString& HTMLInputElement::formControlType() const
             DEFINE_STATIC_LOCAL(const AtomicString, checkbox, ("checkbox"));
             return checkbox;
         }
+        case COLOR: {
+            DEFINE_STATIC_LOCAL(const AtomicString, color, ("color"));
+            return color;
+        }
         case EMAIL: {
             DEFINE_STATIC_LOCAL(const AtomicString, email, ("email"));
             return email;
@@ -466,6 +476,7 @@ bool HTMLInputElement::saveFormControlState(String& result) const
 
     switch (inputType()) {
         case BUTTON:
+        case COLOR:
         case EMAIL:
         case FILE:
         case HIDDEN:
@@ -497,6 +508,7 @@ void HTMLInputElement::restoreFormControlState(const String& state)
     ASSERT(inputType() != PASSWORD); // should never save/restore password fields
     switch (inputType()) {
         case BUTTON:
+        case COLOR:
         case EMAIL:
         case FILE:
         case HIDDEN:
@@ -608,6 +620,7 @@ void HTMLInputElement::accessKeyAction(bool sendToAnyElement)
         case HIDDEN:
             // a no-op for this type
             break;
+        case COLOR:
         case EMAIL:
         case ISINDEX:
         case NUMBER:
@@ -751,6 +764,7 @@ bool HTMLInputElement::rendererIsNeeded(RenderStyle *style)
     switch (inputType()) {
         case BUTTON:
         case CHECKBOX:
+        case COLOR:
         case EMAIL:
         case FILE:
         case IMAGE:
@@ -791,6 +805,7 @@ RenderObject *HTMLInputElement::createRenderer(RenderArena *arena, RenderStyle *
             return new (arena) RenderImage(this);
         case RANGE:
             return new (arena) RenderSlider(this);
+        case COLOR:
         case EMAIL:
         case ISINDEX:
         case NUMBER:
@@ -877,6 +892,7 @@ bool HTMLInputElement::appendFormData(FormDataList& encoding, bool multipart)
         return false;
 
     switch (inputType()) {
+        case COLOR:
         case EMAIL:
         case HIDDEN:
         case ISINDEX:
@@ -984,7 +1000,7 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
     // RenderTextView), but it's not possible to do it at the moment
     // because of the way the code is structured.
     if (renderer() && AXObjectCache::accessibilityEnabled())
-        renderer()->document()->axObjectCache()->postNotification(renderer(), "AXCheckedStateChanged", true);
+        renderer()->document()->axObjectCache()->postNotification(renderer(), AXObjectCache::AXCheckedStateChanged, true);
 
     // Only send a change event for items in the document (avoid firing during
     // parsing) and don't send a change event for a radio button that's getting
@@ -1054,6 +1070,7 @@ String HTMLInputElement::valueWithDefault() const
         switch (inputType()) {
             case BUTTON:
             case CHECKBOX:
+            case COLOR:
             case EMAIL:
             case FILE:
             case HIDDEN:
@@ -1159,6 +1176,7 @@ bool HTMLInputElement::storesValueSeparateFromAttribute() const
         case RESET:
         case SUBMIT:
             return false;
+        case COLOR:
         case EMAIL:
         case FILE:
         case ISINDEX:
@@ -1334,6 +1352,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
         if (charCode == '\r') {
             switch (inputType()) {
                 case CHECKBOX:
+                case COLOR:
                 case EMAIL:
                 case HIDDEN:
                 case ISINDEX:
@@ -1461,6 +1480,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
                     if (!checked())
                         clickElement = true;
                     break;
+                case COLOR:
                 case EMAIL:
                 case HIDDEN:
                 case ISINDEX:
@@ -1505,7 +1525,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
     }
 
     if (evt->isBeforeTextInsertedEvent())
-        InputElement::handleBeforeTextInsertedEvent(m_data, this, document(), evt);
+        InputElement::handleBeforeTextInsertedEvent(m_data, this, this, evt);
 
     if (isTextField() && renderer() && (evt->isMouseEvent() || evt->isDragEvent() || evt->isWheelEvent() || evt->type() == eventNames().blurEvent || evt->type() == eventNames().focusEvent))
         toRenderTextControlSingleLine(renderer())->forwardEvent(evt);
@@ -1693,6 +1713,7 @@ bool HTMLInputElement::isRequiredFormControl() const
         case IMAGE:
         case RESET:
         case BUTTON:
+        case COLOR:
         case ISINDEX:
             return false;
     }
@@ -1772,6 +1793,29 @@ bool HTMLInputElement::placeholderShouldBeVisible() const
     return InputElement::placeholderShouldBeVisible(this, this);
 }
 
+bool HTMLInputElement::formStringToDouble(const String& src, double* out)
+{
+    // See HTML5 2.4.4.3 `Real numbers.'
+
+    if (src.isEmpty())
+        return false;
+    // String::toDouble() accepts leading + \t \n \v \f \r and SPACE, which are invalid in HTML5.
+    // So, check the first character.
+    if (src[0] != '-' && (src[0] < '0' || src[0] > '9'))
+        return false;
+
+    bool valid = false;
+    double value = src.toDouble(&valid);
+    if (!valid)
+        return false;
+    // NaN and Infinity are not valid numbers according to the standard.
+    if (isnan(value) || isinf(value))
+        return false;
+    if (out)
+        *out = value;
+    return true;
+}
+
 #if ENABLE(DATALIST)
 HTMLElement* HTMLInputElement::list() const
 {
@@ -1790,7 +1834,8 @@ HTMLDataListElement* HTMLInputElement::dataList() const
     case TELEPHONE:
     case EMAIL:
     case NUMBER:
-    case RANGE: {
+    case RANGE:
+    case COLOR: {
         Element* element = document()->getElementById(getAttribute(listAttr));
         if (element && element->hasTagName(datalistTag))
             return static_cast<HTMLDataListElement*>(element);

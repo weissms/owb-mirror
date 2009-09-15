@@ -995,7 +995,6 @@ V8ClassIndex::V8WrapperType V8DOMWrapper::htmlElementType(HTMLElement* element)
 
 #if ENABLE(SVG_FONTS)
 #define FOR_EACH_FONTS_TAG(macro) \
-    macro(definition-src, DEFINITIONSRC) \
     macro(font-face, FONTFACE) \
     macro(font-face-format, FONTFACEFORMAT) \
     macro(font-face-name, FONTFACENAME) \
@@ -1125,6 +1124,10 @@ v8::Handle<v8::Value> V8DOMWrapper::convertEventToV8Object(Event* event)
 #if ENABLE(WORKERS)
     else if (event->isErrorEvent())
         type = V8ClassIndex::ERROREVENT;
+#endif
+#if ENABLE(DOM_STORAGE)
+    else if (event->isStorageEvent())
+        type = V8ClassIndex::STORAGEEVENT;
 #endif
 
 

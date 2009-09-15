@@ -569,12 +569,12 @@ void FrameLoader::submitForm(const char* action, const String& url, PassRefPtr<F
     targetFrame->loader()->scheduleFormSubmission(frameRequest, lockHistory, event, formState);
 }
 
-void FrameLoader::stopLoading(bool sendUnload, DatabasePolicy databasePolicy)
+void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy, DatabasePolicy databasePolicy)
 {
     if (m_frame->document() && m_frame->document()->tokenizer())
         m_frame->document()->tokenizer()->stopParsing();
 
-    if (sendUnload) {
+    if (unloadEventPolicy != UnloadEventPolicyNone) {
         if (m_frame->document()) {
             if (m_didCallImplicitClose && !m_wasUnloadEventEmitted) {
                 Node* currentFocusedNode = m_frame->document()->focusedNode();
@@ -582,7 +582,8 @@ void FrameLoader::stopLoading(bool sendUnload, DatabasePolicy databasePolicy)
                     currentFocusedNode->aboutToUnload();
                 m_unloadEventBeingDispatched = true;
                 if (m_frame->domWindow()) {
-                    m_frame->domWindow()->dispatchPageTransitionEvent(EventNames().pagehideEvent, m_frame->document()->inPageCache());
+                    if (unloadEventPolicy == UnloadEventPolicyUnloadAndPageHide)
+                        m_frame->domWindow()->dispatchPageTransitionEvent(EventNames().pagehideEvent, m_frame->document()->inPageCache());
                     m_frame->domWindow()->dispatchUnloadEvent();
                 }
                 m_unloadEventBeingDispatched = false;
@@ -620,7 +621,7 @@ void FrameLoader::stopLoading(bool sendUnload, DatabasePolicy databasePolicy)
 
     // tell all subframes to stop as well
     for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
-        child->loader()->stopLoading(sendUnload);
+        child->loader()->stopLoading(unloadEventPolicy);
 
     cancelRedirection();
 }
@@ -642,7 +643,11 @@ void FrameLoader::stop()
 bool FrameLoader::closeURL()
 {
     saveDocumentState();
-    stopLoading(true);
+    
+    // Should only send the pagehide event here if the current document exists and has not been placed in the page cache.    
+    Document* currentDocument = m_frame->document();
+    stopLoading(currentDocument && !currentDocument->inPageCache() ? UnloadEventPolicyUnloadAndPageHide : UnloadEventPolicyUnloadOnly);
+    
     m_frame->editor()->clearUndoRedoOperations();
     return true;
 }
@@ -795,7 +800,7 @@ void FrameLoader::cancelAndClear()
     m_frame->script()->updatePlatformScriptObjects();
 }
 
-void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects)
+void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects, bool clearFrameView)
 {
     m_frame->editor()->clear();
 
@@ -822,7 +827,7 @@ void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects)
 
     m_frame->selection()->clear();
     m_frame->eventHandler()->clear();
-    if (m_frame->view())
+    if (clearFrameView && m_frame->view())
         m_frame->view()->clear();
 
     m_frame->setSelectionGranularity(CharacterGranularity);
@@ -954,12 +959,6 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
         if (!dnsPrefetchControl.isEmpty())
             document->parseDNSPrefetchControlHeader(dnsPrefetchControl);
     }
-
-#if FRAME_LOADS_USER_STYLESHEET
-    KURL userStyleSheet = settings ? settings->userStyleSheetLocation() : KURL();
-    if (!userStyleSheet.isEmpty())
-        m_frame->setUserStyleSheetLocation(userStyleSheet);
-#endif
 
     restoreDocumentState();
 
@@ -1213,6 +1212,8 @@ void FrameLoader::finishedParsing()
 {
     if (m_creatingInitialEmptyDocument)
         return;
+
+    m_frame->injectUserScripts(InjectAtDocumentEnd);
 
     // This can be called from the Frame's destructor, in which case we shouldn't protect ourselves
     // because doing so will cause us to re-enter the destructor when protector goes out of scope.
@@ -1726,6 +1727,33 @@ String FrameLoader::outgoingOrigin() const
     return m_frame->document()->securityOrigin()->toString();
 }
 
+bool FrameLoader::isMixedContent(SecurityOrigin* context, const KURL& url)
+{
+    if (context->protocol() != "https")
+        return false;  // We only care about HTTPS security origins.
+
+    if (url.protocolIs("https") || url.protocolIs("about") || url.protocolIs("data"))
+        return false;  // Loading these protocols is secure.
+
+    return true;
+}
+
+void FrameLoader::checkIfDisplayInsecureContent(SecurityOrigin* context, const KURL& url)
+{
+    if (!isMixedContent(context, url))
+        return;
+
+    m_client->didDisplayInsecureContent();
+}
+
+void FrameLoader::checkIfRunInsecureContent(SecurityOrigin* context, const KURL& url)
+{
+    if (!isMixedContent(context, url))
+        return;
+
+    m_client->didRunInsecureContent(context);
+}
+
 Frame* FrameLoader::opener()
 {
     return m_opener;
@@ -1812,9 +1840,13 @@ static inline bool frameContainsWMLContent(Frame* frame)
 
 bool FrameLoader::canCachePageContainingThisFrame()
 {
+    for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling()) {
+        if (!child->loader()->canCachePageContainingThisFrame())
+            return false;
+    }
+            
     return m_documentLoader
         && m_documentLoader->mainDocumentError().isNull()
-        && !m_frame->tree()->childCount()
         // FIXME: If we ever change this so that frames with plug-ins will be cached,
         // we need to make sure that we don't cache frames that have outstanding NPObjects
         // (objects created by the plug-in). Since there is no way to pause/resume a Netscape plug-in,
@@ -1963,8 +1995,6 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
         }
         if (!m_documentLoader->mainDocumentError().isNull())
             { PCLOG("   -Main document has an error"); cannotCache = true; }
-        if (m_frame->tree()->childCount())
-            { PCLOG("   -Frame has child frames"); cannotCache = true; }
         if (m_containsPlugIns)
             { PCLOG("   -Frame contains plugins"); cannotCache = true; }
         if (m_URL.protocolIs("https"))
@@ -2087,7 +2117,7 @@ void FrameLoader::scheduleRedirection(ScheduledRedirection* redirection)
     if (redirection->wasDuringLoad) {
         if (m_provisionalDocumentLoader)
             m_provisionalDocumentLoader->stopLoading();
-        stopLoading(true);   
+        stopLoading(UnloadEventPolicyUnloadAndPageHide);   
     }
 
     stopRedirectionTimer();
@@ -2690,6 +2720,7 @@ void FrameLoader::stopLoadingSubframes()
 
 void FrameLoader::stopAllLoaders(DatabasePolicy databasePolicy)
 {
+    ASSERT(!m_frame->document() || !m_frame->document()->inPageCache());
     if (m_unloadEventBeingDispatched)
         return;
 
@@ -3083,7 +3114,7 @@ void FrameLoader::open(CachedPage& cachedPage)
     checkCompleted();
 }
 
-void FrameLoader::open(CachedFrame& cachedFrame)
+void FrameLoader::open(CachedFrameBase& cachedFrame)
 {
     m_isComplete = false;
     
@@ -3099,8 +3130,7 @@ void FrameLoader::open(CachedFrame& cachedFrame)
     m_workingURL = url;
 
     started();
-
-    clear();
+    clear(true, true, cachedFrame.isMainFrame());
 
     Document* document = cachedFrame.document();
     ASSERT(document);
@@ -3115,8 +3145,7 @@ void FrameLoader::open(CachedFrame& cachedFrame)
     
     // When navigating to a CachedFrame its FrameView should never be null.  If it is we'll crash in creative ways downstream.
     ASSERT(view);
-    if (view)
-        view->setWasScrolledByUser(false);
+    view->setWasScrolledByUser(false);
 
     // Use the current ScrollView's frame rect.
     if (m_frame->view())
@@ -3500,7 +3529,7 @@ void FrameLoader::closeAndRemoveChild(Frame* child)
     child->tree()->detachFromParent();
 
     child->setView(0);
-    if (child->ownerElement())
+    if (child->ownerElement() && child->page())
         child->page()->decrementFrameCount();
     child->pageDestroyed();
 
@@ -3579,9 +3608,8 @@ void FrameLoader::detachFromParent()
         page->inspectorController()->frameDetachedFromParent(m_frame);
 #endif
 
-    m_client->detachedFromParent2();
-    setDocumentLoader(0);
-    m_client->detachedFromParent3();
+    detachViewsAndDocumentLoader();
+
     if (Frame* parent = m_frame->tree()->parent()) {
         parent->loader()->closeAndRemoveChild(m_frame);
         parent->loader()->scheduleCheckCompleted();
@@ -3589,6 +3617,13 @@ void FrameLoader::detachFromParent()
         m_frame->setView(0);
         m_frame->pageDestroyed();
     }
+}
+
+void FrameLoader::detachViewsAndDocumentLoader()
+{
+    m_client->detachedFromParent2();
+    setDocumentLoader(0);
+    m_client->detachedFromParent3();
 }
     
 void FrameLoader::addExtraFieldsToSubresourceRequest(ResourceRequest& request)
@@ -4242,10 +4277,24 @@ void FrameLoader::cachePageForHistoryItem(HistoryItem* item)
     if (!canCachePage() || item->isInPageCache())
         return;
 
+    pageHidden();
+    
     if (Page* page = m_frame->page()) {
         RefPtr<CachedPage> cachedPage = CachedPage::create(page);
         pageCache()->add(item, cachedPage.release());
     }
+}
+
+void FrameLoader::pageHidden()
+{
+    m_unloadEventBeingDispatched = true;
+    if (m_frame->domWindow())
+        m_frame->domWindow()->dispatchPageTransitionEvent(EventNames().pagehideEvent, true);
+    m_unloadEventBeingDispatched = false;
+
+    // Send pagehide event for subframes as well
+    for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
+        child->loader()->pageHidden();
 }
 
 bool FrameLoader::shouldTreatURLAsSameAsCurrent(const KURL& url) const
@@ -5097,6 +5146,7 @@ String FrameLoader::referrer() const
 
 void FrameLoader::dispatchDocumentElementAvailable()
 {
+    m_frame->injectUserScripts(InjectAtDocumentStart);
     m_client->documentElementAvailable();
 }
 

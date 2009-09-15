@@ -43,6 +43,7 @@
 #include "InspectorDOMAgent.h"
 #include "InspectorFrontend.h"
 #include "InspectorResource.h"
+#include "ScriptFunctionCall.h"
 
 #if ENABLE(DOM_STORAGE)
 #include "Storage.h"
@@ -253,6 +254,25 @@ const String& InspectorBackend::platform() const
     return platform;
 }
 
+void InspectorBackend::enableTimeline(bool always)
+{
+    if (m_inspectorController)
+        m_inspectorController->enableTimeline(always);
+}
+
+void InspectorBackend::disableTimeline(bool always)
+{
+    if (m_inspectorController)
+        m_inspectorController->disableTimeline(always);
+}
+
+bool InspectorBackend::timelineEnabled() const
+{
+    if (m_inspectorController)
+        return m_inspectorController->timelineEnabled();
+    return false;
+}
+
 void InspectorBackend::getCookies(long callId)
 {
     if (InspectorDOMAgent* domAgent = inspectorDOMAgent())
@@ -385,6 +405,23 @@ void InspectorBackend::stepOutOfFunctionInDebugger()
 
 #endif
 
+void InspectorBackend::dispatchOnInjectedScript(long callId, const String& methodName, const String& arguments)
+{
+    InspectorFrontend* frontend = inspectorFrontend();
+    if (!frontend)
+        return;
+
+    ScriptFunctionCall function(m_inspectorController->m_scriptState, m_inspectorController->m_injectedScriptObj, "dispatch");
+    function.appendArgument(methodName);
+    function.appendArgument(arguments);
+    bool hadException = false;
+    ScriptValue result = function.call(hadException);
+    if (hadException)
+        frontend->didDispatchOnInjectedScript(callId, "", true);
+    else
+        frontend->didDispatchOnInjectedScript(callId, result.toString(m_inspectorController->m_scriptState), false);
+}
+
 void InspectorBackend::getChildNodes(long callId, long nodeId)
 {
     if (InspectorDOMAgent* domAgent = inspectorDOMAgent())
@@ -418,7 +455,7 @@ void InspectorBackend::highlight(long nodeId)
 Node* InspectorBackend::nodeForId(long nodeId)
 {
     if (InspectorDOMAgent* domAgent = inspectorDOMAgent())
-        domAgent->nodeForId(nodeId);
+        return domAgent->nodeForId(nodeId);
     return 0;
 }
 

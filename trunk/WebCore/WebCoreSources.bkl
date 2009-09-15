@@ -118,6 +118,7 @@ This file contains the list of files needed to build WebCore.
         bindings/js/JSLocationCustom.cpp
         bindings/js/JSMessageChannelConstructor.cpp
         bindings/js/JSMessageChannelCustom.cpp
+        bindings/js/JSMessageEventCustom.cpp
         bindings/js/JSMessagePortCustom.cpp
         bindings/js/JSMimeTypeArrayCustom.cpp
         bindings/js/JSNamedNodeMapCustom.cpp
@@ -754,7 +755,6 @@ This file contains the list of files needed to build WebCore.
         page/Chrome.cpp
         page/Console.cpp
         page/ContextMenuController.cpp
-        page/Coordinates.cpp
         page/DOMSelection.cpp
         page/DOMTimer.cpp
         page/DOMWindow.cpp
@@ -766,7 +766,6 @@ This file contains the list of files needed to build WebCore.
         page/FrameTree.cpp
         page/FrameView.cpp
         page/Geolocation.cpp
-        page/Geoposition.cpp
         page/History.cpp
         page/Location.cpp
         page/MouseEventWithHitTestResults.cpp
@@ -816,6 +815,7 @@ This file contains the list of files needed to build WebCore.
         platform/LinkHash.cpp
         platform/Logging.cpp
         platform/MIMETypeRegistry.cpp
+        platform/mock/GeolocationServiceMock.cpp
         platform/text/RegularExpression.cpp
         platform/Scrollbar.cpp
         platform/ScrollbarThemeComposite.cpp

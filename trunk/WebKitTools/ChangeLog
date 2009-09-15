@@ -1,3 +1,752 @@
+2009-09-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Fix typo accidently landed in last commit.
+
+        * wx/build/settings.py:
+
+2009-09-13  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix, error out if using the wrong Python.
+
+        * wx/build/settings.py:
+
+2009-09-13  Xan Lopez  <xlopez@igalia.com>
+
+        Build fix for GTK+ < 2.14.
+
+        Do not use gtk_widget_get_window, access the window directly
+        through the struct.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (contextClickCallback):
+        (mouseDownCallback):
+        (mouseUpCallback):
+        (mouseMoveToCallback):
+        (keyDownCallback):
+
+2009-09-13  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Xan Lopez and Jan Alonzo.
+
+        [GTK] EventSender does not set 'window' property on synthesized GDK events
+        https://bugs.webkit.org/show_bug.cgi?id=29169
+
+        Set the window property on synthesized GDK events in the GTK+ EventSender.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (contextClickCallback):
+        (mouseDownCallback):
+        (mouseUpCallback):
+        (mouseMoveToCallback):
+        (keyDownCallback):
+
+2009-09-12  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by Mark Rowe.
+
+        run-webkit-tests has a timeout value that is too low
+        https://bugs.webkit.org/show_bug.cgi?id=29223
+
+        * Scripts/run-webkit-tests:
+        Changed timeout value to 20 seconds to avoid timing out too early.
+
+2009-09-11  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Mark dependencies as mandatory and declare which MSVC versions and
+        architectures are supported for building wxWebKit.
+
+        * wx/build/settings.py:
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        bugzilla-tool rollout threw exception under svn
+        https://bugs.webkit.org/show_bug.cgi?id=29211
+
+        * Scripts/modules/scm.py: add missing return, and convert number arguments to strings.
+        * Scripts/modules/scm_unittest.py: add testing for this fix.
+
+2009-09-11  Brian Weinstein  <bweinstein@apple.com>
+
+        Add myself to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool land-patches should only fail-fast in --commit-queue mode
+        https://bugs.webkit.org/show_bug.cgi?id=29201
+
+        * Scripts/bugzilla-tool:
+
+2009-09-11  Adam Roben  <aroben@apple.com>
+
+        Make commit-log-editor move common prefixes to the top of the log
+
+        Fies <http://webkit.org/b/29190> commit-log-editor should move common
+        prefixes to the top of the commit log
+
+        Reviewed by Darin Adler.
+
+        * Scripts/commit-log-editor: Find and remove the longest common prefix
+        ending in a double newline from each ChangeLog entry, then put that
+        common prefix at the top of the commit log.
+        (removeLongestCommonPrefixEndingInDoubleNewline): Added. Finds,
+        removes, and returns the longest common prefix ending in a double
+        newline from a hash of strings
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        Fix obvious typo in previous commit, no review.
+
+        bugzilla-tool should automate rollouts
+        https://bugs.webkit.org/show_bug.cgi?id=26715
+
+        * Scripts/bugzilla-tool: add back missing "scm" argument.
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool should automate rollouts
+        https://bugs.webkit.org/show_bug.cgi?id=26715
+
+        bugzilla-tool rollout will do the rollout locally and leave the diff for you to verify and commit.
+        The --complete-rollout option will automatically land and update the bug.
+        Eventually --complete-rollout will be default, but that will require more testing.
+
+        This first pass is good enough for others to try and file bugs about.
+
+        * Scripts/bugzilla-tool:
+         - Move modified_changelogs into scm.py.
+         - Move svn_revision_from_commit_text logic into scm.py.
+         - Add RolloutCommit command.
+        * Scripts/modules/bugzilla.py:
+         - Add reopen_bug command used by RolloutCommit.
+        * Scripts/modules/scm.py:
+         - Add functions to support RolloutCommit.
+         - Abstract find_uuid into value_from_svn_info so it can be re-used for _repository_url (needed by svn merge).
+         - Add a str() call so that svn_commit_log can take a numeric argument.
+         - Remove a bunch of very slow code from last_svn_commit_log and used the built-in 'BASE' alias instead.
+         - Made dry_run commits return something that svn_revision_from_commit_text can parse.
+        * Scripts/modules/scm_unittest.py:
+         - Add read_from_path for easy file reading.
+         - Put test4 on a new line to make reverts work w/o conflict.
+         - Add an "svn update" call so that the checkout revision matches the server revision.
+         - Add tests for svn_revision_from_commit_text.
+         - Add a simple test for apply_reverse_diff.
+         - Add a new self.scm member and use it in the new tests (eventually other tests can use it too).
+         - Add test for svn_commit_log to make sure my 'BASE' change above worked as expected.
+
+2009-09-11  Adam Roben  <aroben@apple.com>
+
+        Get user script/stylesheet tests running on Windows
+
+        Fixes <http://webkit.org/b/29181> User script/stylesheet tests are
+        skipped on Windows
+
+        Reviewed by John Sullivan.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj: Link all configurations
+        against comsuppw.lib so we can use _bstr_t.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp: Fixed #include
+        order, added #include of comutil.h for _bstr_t.
+
+        (bstrT): Helper function to convert a JSStringRef to a _bstr_t.
+        (LayoutTestController::addUserScript):
+        (LayoutTestController::addUserStyleSheet):
+        Implemented. Implementations were based on those in
+        LayoutTestControllerMac.mm.
+
+2009-09-10  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/29147> run-webkit-tests:  make -h show help 
+
+        Reviewed by Mark Rowe.
+
+        * Scripts/run-webkit-tests: Updated to make -h switch show help.
+
+2009-09-10  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Add WebCore/websockets directory in wx build system.
+        https://bugs.webkit.org/show_bug.cgi?id=28038
+
+        * wx/build/settings.py:
+
+2009-09-10  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        [GTK] EventSender does not properly convert some keyDown strings
+        https://bugs.webkit.org/show_bug.cgi?id=29119
+
+        Add more keyDown string to character code conversions for GTK+ EventSender.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (keyDownCallback):
+
+2009-09-09  Steve Block  <steveblock@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Geolocation Coordinates::toString() prints bogus values for unspecified properties.
+        https://bugs.webkit.org/show_bug.cgi?id=29080
+
+        * Scripts/make-script-test-wrappers: Modified. Adds asynchronous Geolocation tests to exclusion list.
+
+2009-09-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Eric Carlson.
+
+        reviewer/committer lookups are backwards
+        https://bugs.webkit.org/show_bug.cgi?id=29113
+
+        I also moved Eric Carlson from the committer list to the reviewer list now that he is one.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/committers.py:
+
+2009-09-09  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Eric Seidel.
+
+        svn-unapply doesn't revert directories correctly
+        https://bugs.webkit.org/show_bug.cgi?id=29065
+
+        * Scripts/svn-unapply: Make svnStatus consistently return status
+        lines including a newline.
+        * Scripts/svn-apply: Keep svnStatus in sync with the one in
+        svn-unapply, in lieu of moving it to a common file.
+
+2009-09-09  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Eric Seidel.
+
+        svn-apply doesn't handle changes to files copied to new directories properly
+        https://bugs.webkit.org/show_bug.cgi?id=29059
+
+        * Scripts/svn-apply: Don't treat "--- WebKitTools/revision 0" patches as being
+        additions if we know that we've just copied a file to this name.
+
+2009-09-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        commit-queue hangs if a builder has never built
+        https://bugs.webkit.org/show_bug.cgi?id=29091
+
+        * Scripts/modules/buildbot.py:
+        * Scripts/modules/buildbot_unittest.py:
+
+2009-09-09  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] DumpRenderTree needs eventSender object and implementation
+        https://bugs.webkit.org/show_bug.cgi?id=25990
+
+        Implements most of the EventSender object's functionality for
+        the DumpRenderTree tool. Implementation still lacks support
+        for drag and drop tests and forward leaps.
+
+        Based on work by Holger Hans Peter Freyther.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (runTest): Focus on the view before loading a new test.
+        (webViewWindowObjectCleared):
+        * DumpRenderTree/gtk/EventSender.cpp: Added.
+        (getDragModeCallback):
+        (setDragModeCallback):
+        (leapForwardCallback):
+        (contextClickCallback):
+        (updateClickCount):
+        (mouseDownCallback):
+        (mouseUpCallback):
+        (mouseMoveToCallback):
+        (beginDragWithFilesCallback):
+        (replaySavedEvents):
+        (keyDownCallback):
+        (textZoomInCallback):
+        (textZoomOutCallback):
+        (zoomPageInCallback):
+        (zoomPageOutCallback):
+        (getClass):
+        (makeEventSender):
+        * DumpRenderTree/gtk/EventSender.h: Added.
+        * GNUmakefile.am: Add build rules for EventSender.
+
+2009-09-09  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Adam Roben.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=28953
+
+        Added pre- and post- build events so that on build failure, the file 
+        buildfailed is written to the directory $(WebKitOutputDir).
+
+        * WinLauncher/WinLauncher.vcproj:
+
+2009-09-09  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-09-08  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        commit-queue gets stuck if a non-committer sets commit-queue+ or review+
+        https://bugs.webkit.org/show_bug.cgi?id=28605
+        https://bugs.webkit.org/show_bug.cgi?id=28916
+
+        * Scripts/bugzilla-tool:
+         - Fix comment and adjust reject_patch_from_commit_queue call to pass "manual commit"
+           comment now that it's used for rejecting patches for invalid committers too.
+         - Pass reject_invalid_patches=True for commit-queue calls, normally we just ignore patches with invalid reviewers, the commit-queue rejects them.
+         - Make the commit queue print patches count instead of bugs count, this also fixes https://bugs.webkit.org/show_bug.cgi?id=28916.
+        * Scripts/modules/bugzilla.py:
+         - Make _parse_attachment_element not validate reviewer/committer.
+         - Share flag parsing code in _parse_attachment_flag.
+         - Add _validate* methods for validating reviewers and committers and updating bugs when validation fails.
+         - Add reject_invalid_patches argument so the commit-queue can update bugs on failed validation and other "read only" commands will not.
+         - Add reject_patch_from_review_queue using a new _set_flag_on_attachment abstraction.
+        * Scripts/modules/bugzilla_unittest.py:
+         - Update this test to no longer expect committer/reviewer validation.
+        * Scripts/modules/committers.py:
+         - Return None on failed lookups instead of raising Exceptions.
+        * Scripts/modules/committers_unittest.py:
+         - Update tests to expect None returns instead of exceptions.
+
+2009-09-09  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/29061> Fix obvious copy-paste error in AccessibilityUIElement::clickPointY()
+
+        Reviewed by Mark Rowe.
+
+        No change to layout test results.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::clickPointY): Changed to return y value
+        instead of x value.
+
+2009-09-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        Reduce dglazkov's boboiness by properly concatenating revision value.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg: Used substitution
+            rather than "+".
+
+2009-09-08  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxWebKit Python extension build fix - get swig.py if it doesn't exist.
+
+        * wx/build/build_utils.py:
+
+2009-09-08  Mark Rowe  <mrowe@apple.com>
+
+        Fix an incorrect variable name in UpdateChromiumSource.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+
+2009-09-08  Mark Rowe  <mrowe@apple.com>
+
+        Don't check for leaks on the release SnowLeopard builder.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2009-09-08  Mark Rowe  <mrowe@apple.com>
+
+        Add a SnowLeopard release builder.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2009-09-08  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Remove end of line whitespace check from check-webkit-style.
+        https://bugs.webkit.org/show_bug.cgi?id=29053
+
+        * Scripts/modules/cpp_style.py:
+
+2009-09-08  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Darin Adler.
+
+        Fix DumpRenderTree build from clean tree on Tiger
+        https://bugs.webkit.org/show_bug.cgi?id=28927
+
+        * DumpRenderTree/mac/PerlSupport/Makefile: Ensure the
+        DerivedSources/DumpRenderTree directory exists when
+        building on Tiger.
+
+2009-09-08  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix after introduction of platform/mock directory.
+
+        * wx/build/settings.py:
+
+2009-09-08  Yael Aharon  <yael.aharon@nokia.com>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-09-08  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed.
+
+        Add myself to list of committers.
+
+        * Scripts/modules/committers.py:
+
+2009-09-08  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Darin Adler.
+
+        prepare-ChangeLog too chatty on file additions
+        https://bugs.webkit.org/show_bug.cgi?id=29019
+
+        * Scripts/prepare-ChangeLog: Omit description of added properties
+        on newly added files.
+
+2009-09-08  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        Adds a LayoutTestController method to set the permission state for Geolocation.
+        This is required to use the mock Geolocation service for testing.
+        https://bugs.webkit.org/show_bug.cgi?id=29027
+
+        * DumpRenderTree/LayoutTestController.cpp: Modified.
+        (setDatabaseQuotaCallback): Modified. Style fix.
+        (setGeolocationPermissionCallback): Added. Sets the Geolocation permission state.
+        (LayoutTestController::staticFunctions): Modified. Registers the above function on the LayoutTestController.
+        * DumpRenderTree/LayoutTestController.h: Modified.
+        (LayoutTestController::setGeolocationPermission): Added. Sets the Geolocation permission state.
+        (LayoutTestController::isGeolocationPermissionSet): Added. Returns whether the Geolocation permission has been set.
+        (LayoutTestController::geolocationPermission): Added. Returns the Geolocation permission state.
+        * DumpRenderTree/mac/UIDelegate.mm: Modified.
+        (-[UIDelegate webView:frame:requestGeolocationPermission:securityOrigin:]): Added. Implement chrome method to respond to request for Geolocation permission state. Response is made using above methods to access permission state.
+
+2009-09-08  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] QtWebKit single API to enable persistency
+        https://bugs.webkit.org/show_bug.cgi?id=28682
+
+        Use the new enablePersistentStorage API instead 
+        of enabling all persistent features one-by-one.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::DumpRenderTree::DumpRenderTree):
+
+2009-09-07  Andras Becsi  <becsi.andras@stud.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Refactor --strict switch to --ignore-metrics and correct the
+        implementation to make the feature usable on all platforms.
+        https://bugs.webkit.org/show_bug.cgi?id=28907
+
+        run-webkit-tests --ignore-metrics strips the font related metrics from
+        the actual and expected data before comparing them.
+        In this way the render trees can be checked for obvious differences but
+        a successful test implies by no means that the layout is actually correct.
+
+        * Scripts/run-webkit-tests:
+
+2009-09-07  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        Adds a mock Geolocation service. This will be used to provide predictable behavior of the
+        Geolocation API for use in LayoutTests. Later changes will integrate the the mock
+        Geolocation service with DumpRenderTree.
+        https://bugs.webkit.org/show_bug.cgi?id=28264
+
+        * DumpRenderTree/LayoutTestController.cpp: Modified.
+        (setMockGeolocationPositionCallback): Added. Configures the mock Geolocation service.
+        (setMockGeolocationErrorCallback): Added. Configures the mock Geolocation service.
+        (LayoutTestController::staticFunctions): Added. Registers the above functions on the LayoutTestController.
+        * DumpRenderTree/LayoutTestController.h: Modified.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm: Modified.
+        (LayoutTestController::setMockGeolocationPosition): Added. Configures the mock Geolocation service.
+        (LayoutTestController::setMockGeolocationError): Added. Configures the mock Geolocation service.
+
+2009-09-07  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        Enable SHARED_WORKERS by default
+        https://bugs.webkit.org/show_bug.cgi?id=28959
+
+        * Scripts/build-webkit:
+
+2009-09-07  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes for wx SVN trunk.
+
+        * wx/build/settings.py:
+
+2009-09-04  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Switch USE_ defines over to the compiler so that they can be
+        checked by files not including config.h (like WebCorePrefix.h).
+
+        * wx/build/settings.py:
+
+2009-09-04  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed build fix.
+
+        Update declaration of FrameLoadDelegate to reflect that
+        IWebFrameLoadDelegatePrivate2 inherits from
+        IWebFrameLoadDelegatePrivate.
+
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+
+2009-09-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24696
+
+        Add testing instrumentation for mixed content.
+
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate webView:]):
+        (-[FrameLoadDelegate webView:didRunInsecureContent:]):
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (descriptionSuitableForTestResult):
+        (FrameLoadDelegate::QueryInterface):
+        (FrameLoadDelegate::didDisplayInsecureContent):
+        (FrameLoadDelegate::didRunInsecureContent):
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+
+2009-09-03  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Frames support
+        https://bugs.webkit.org/show_bug.cgi?id=19041
+
+        * wx/build-wxwebkit:
+
+2009-09-02  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28880> svn-apply --force doesn't actually work
+
+        Reviewed by Eric Seidel.
+
+        This fixes "svn-apply --force" and adds unit tests for the
+        scm.apply_patch() method which uses this script.
+
+        * Scripts/svn-apply: Created $globalExitCode variable that
+        defaults to 0.  Exit with a value of $globalExitCode when the
+        script is finished.
+        (applyPatch): Ignore a non-zero $exitCode if $force is true, but
+        set $globalExitCode to $exitCode so that svn-apply exits with a
+        non-zero status if any patches did not apply cleanly.  Also
+        print out the actual patch command if $force was not true.
+
+        * Scripts/modules/scm.py:
+        (scripts_directory): Added.  Extracted from script_path().
+        (script_path): Extracted scripts_directory().
+        * Scripts/modules/scm_unittest.py: Import urllib.
+        (SVNTestRepository.setup): Save the original working directory
+        in test_object since this represents the WebKit repository from
+        where the unit tests are run.
+        (SCMTest): Created new super class to hold utility methods.
+        (SCMTest._create_patch): Creates a patch file on disk and a
+        dictionary for use with scm.svn_apply().
+        (SCMTest._setup_webkittools_scripts_symlink): Sets up a symlink
+        back to WebKitTools/Scripts in the test repository so that
+        scm.apply_patch() is able to find the svn-apply script.
+        (SVNTest): Inherit from SCMTest instead of unittest.TestCase.
+        (SVNTest.tearDown): Make sure to change directories back to the
+        original_path before the next test.
+        (SVNTest.test_apply_svn_patch): New test case for applying an
+        svn patch with scm.apply_patch().
+        (SVNTest.test_apply_svn_patch_force): New test case for applying
+        an svn patch with scm.apply_patch() that conflicts.
+        (GitTest): Inherit from SCMTest instead of unittest.TestCase.
+        (GitTest.tearDown): Make sure to change directories back to the
+        original_path before the next test.
+        (GitTest.test_apply_git_patch): New test case for applying a git
+        patch with scm.apply_patch().
+        (GitTest.test_apply_git_patch_force): New test case for applying
+        a git patch with scm.apply_patch() that conflicts.
+
+2009-09-02  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Mark Rowe.
+
+        [Qt] Add support for platform-spesific layout-test results
+
+        For the Qt port we use the qt-[mac|linux|win] directories and then fall
+        back to the generic qt directory for both test results and skipped list.
+
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+
+2009-09-02  Laurent Cerveau  <lcerveau@me.com>
+
+        Reviewed by David Kilzer.
+
+        <http://webkit.org/b/25517> build-webkit script should print build time at end
+
+        * Scripts/build-webkit:
+        Added startTime and endTime variable so that the build time is computed and printed as
+        part of the build message; display formatting has been separated in a dedicated subroutine.
+
+2009-09-02  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28881> svn-create-patch should check if the repo path is the same when trying to find the root
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/VCSUtils.pm:
+        (determineSvnRoot): Added back check for repository root that
+        was removed in r46134 when this code lived in svn-create-patch.
+        It's necessary to check both the repository root and the
+        repository UUID in case two different working directories are
+        checked out from the same repository.
+
+2009-09-02  Timothy Hatcher  <timothy@apple.com>
+
+        Use new 512x512 icons for nightly builds.
+
+        Rubber-stamped by Mark Rowe.
+
+        * WebKitLauncher/webkit.icns:
+
+2009-09-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        waf build fix. Remove local variable shadowing global.
+
+        * wx/build/settings.py:
+
+2009-09-02  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by David Kilzer.
+
+        Calls exitStatus function from the main package where it is also defined.
+
+        * Scripts/VCSUtils.pm:
+
+2009-09-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        waf build fixes for Windows/MSVC and Mac/Snow Leopard.
+
+        * wx/browser/wscript:
+        * wx/build/build_utils.py:
+        * wx/build/settings.py:
+
+2009-08-10  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Eric Seidel.
+
+        Changes needed for build-webkit to support the waf build system for the wx port.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=27619
+
+        * Scripts/build-webkit:
+        * Scripts/run-launcher:
+        * Scripts/webkitdirs.pm:
+
+2009-09-02  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/27168> With Subversion 1.6, update-webkit prompts on conflicts
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/update-webkit: Added "--accept postpone" to
+        @svnOptions when running with svn-1.6 or newer.
+
+2009-09-02  David Kilzer  <ddkilzer@apple.com>
+
+        Moved svn 1.6 version check into VCSUtils::isSVNVersion16OrNewer()
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/VCSUtils.pm:
+        (@EXPORT): Added &isSVNVersion16OrNewer.
+        (svnVersion): Added.  Internal method that gets the SVN version
+        and caches it.
+        (isSVNVersion16OrNewer): Added.  Method that does the SVN 1.6
+        version check.
+        * Scripts/prepare-ChangeLog: Switched to use new
+        isSVNVersion16OrNewer() method.
+        * Scripts/resolve-ChangeLogs: Ditto.
+        * Scripts/svn-create-patch: Ditto.
+
+2009-09-02  David Kilzer  <ddkilzer@apple.com>
+
+        Clean up VCSUtils.pm
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/VCSUtils.pm: Added proper package statement.  Fixed
+        indentation of BEGIN block.  Listed each exported method on a
+        line by itself.  Added methods to the export list after adding
+        the package statement.  Sorted module variables.  Moved
+        definiton of $gitRoot next to other module variables.
+
+2009-09-01  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [Qt] Fix layout-test plugins/plugin-javascript-access.html
+
+        * DumpRenderTree/qt/TestNetscapePlugin/TestNetscapePlugin.pro:
+
+2009-09-02  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        js tests should move into jstests subdirectory instead of resources/
+        https://bugs.webkit.org/show_bug.cgi?id=25880
+
+        make-script-wrappers supports both resources and script-tests directories.
+        run-webkit-tests ignores files in script-tests.
+        Move script tests of animations to check the new script is working.
+
+        * Scripts/make-script-test-wrappers:
+        * Scripts/run-webkit-tests:
+
+2009-09-02  Szabo Carol  <carol.szabo@nokia.com>
+
+        Reviewed by David Levin.
+
+        check-webkit-style uses python from /usr/bin instead of the PATH
+        https://bugs.webkit.org/show_bug.cgi?id=28225
+
+        * Scripts/bugzilla-tool:
+        * Scripts/check-webkit-style:
+        * Scripts/run-webkit-unittests:
+        * Scripts/update-sources-list.py:
+          Changed the first line from
+          #!/usr/bin/python
+          to
+          #!/usr/bin/env python
+          which causes python to be invoked from the path location returned
+          by "which python" when any of these scripts are launched.
+          these are currently all the python scripts in WebKitTools/Scripts.
+
 2009-09-02  David Kilzer  <ddkilzer@apple.com>
 
         <http://webkit.org/b/28601> bugzilla-tool post-commits posts commits backwards

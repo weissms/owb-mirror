@@ -41,6 +41,12 @@ InjectedScript.reset = function()
 
 InjectedScript.reset();
 
+InjectedScript.dispatch = function(methodName, args)
+{
+    var result = InjectedScript[methodName].apply(InjectedScript, JSON.parse(args));
+    return JSON.stringify(result);
+}
+
 InjectedScript.getStyles = function(nodeId, authorOnly)
 {
     var node = InjectedScript._nodeForId(nodeId);
@@ -810,6 +816,32 @@ InjectedScript._callFrameForId = function(id)
     return callFrame;
 }
 
+InjectedScript._clearConsoleMessages = function()
+{
+    InspectorController.clearMessages(true);
+}
+
+InjectedScript._inspectObject = function(o)
+{
+    if (arguments.length === 0)
+        return;
+
+    var inspectedWindow = InjectedScript._window();
+    inspectedWindow.console.log(o);
+    if (Object.type(o) === "node") {
+        InspectorController.pushNodePathToFrontend(o, true);
+    } else {
+        switch (Object.describe(o)) {
+            case "Database":
+                InspectorController.selectDatabase(o);
+                break;
+            case "Storage":
+                InspectorController.selectDOMStorage(o);
+                break;
+        }
+    }
+}
+
 InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
 {
     var inspectedWindow = InjectedScript._window();
@@ -843,28 +875,8 @@ InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
         get $4() { return _inspectorCommandLineAPI._inspectedNodes[4] } \
     };");
 
-    inspectedWindow._inspectorCommandLineAPI.clear = InspectorController.wrapCallback(InspectorController.clearMessages.bind(InspectorController, true));
-    inspectedWindow._inspectorCommandLineAPI.inspect = InspectorController.wrapCallback(inspectObject.bind(this));
-
-    function inspectObject(o)
-    {
-        if (arguments.length === 0)
-            return;
-
-        inspectedWindow.console.log(o);
-        if (Object.type(o) === "node") {
-            InspectorController.pushNodePathToFrontend(o, true);
-        } else {
-            switch (Object.describe(o)) {
-                case "Database":
-                    InspectorController.selectDatabase(o);
-                    break;
-                case "Storage":
-                    InspectorController.selectDOMStorage(o);
-                    break;
-            }
-        }
-    }
+    inspectedWindow._inspectorCommandLineAPI.clear = InspectorController.wrapCallback(InjectedScript._clearConsoleMessages);
+    inspectedWindow._inspectorCommandLineAPI.inspect = InspectorController.wrapCallback(InjectedScript._inspectObject);
 }
 
 InjectedScript._resolveObject = function(objectProxy)
@@ -952,7 +964,7 @@ InjectedScript.CallFrameProxy = function(id, callFrame)
 {
     this.id = id;
     this.type = callFrame.type;
-    this.functionName = callFrame.functionName;
+    this.functionName = (this.type === "function" ? callFrame.functionName : "");
     this.sourceID = callFrame.sourceID;
     this.line = callFrame.line;
     this.scopeChain = this._wrapScopeChain(callFrame);
@@ -967,6 +979,7 @@ InjectedScript.CallFrameProxy.prototype = {
         for (var i = 0; i < scopeChain.length; ++i) {
             var scopeObject = scopeChain[i];
             var scopeObjectProxy = InjectedScript.createProxyObject(scopeObject, { callFrame: this.id, chainIndex: WebCore/i });
+
             if (Object.prototype.toString.call(scopeObject) === "[object JSActivation]") {
                 if (!foundLocalScope)
                     scopeObjectProxy.thisObject = InjectedScript.createProxyObject(callFrame.thisObject, { callFrame: this.id, thisObject: true });
@@ -978,7 +991,7 @@ InjectedScript.CallFrameProxy.prototype = {
                 scopeObjectProxy.isElement = true;
             else if (foundLocalScope && scopeObject instanceof InjectedScript._window().Document)
                 scopeObjectProxy.isDocument = true;
-            else if (!foundLocalScope && !localScope)
+            else if (!foundLocalScope)
                 scopeObjectProxy.isWithBlock = true;
             scopeObjectProxy.properties = [];
             try {

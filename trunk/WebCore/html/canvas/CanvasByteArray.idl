@@ -26,8 +26,11 @@
 module html {
     interface [
         Conditional=3D_CANVAS,
-        GenerateConstructor
-    ] CanvasByteArray {
-        readonly attribute unsigned long length;
+        HasNumericIndexGetter,
+        HasCustomIndexSetter,
+        GenerateNativeConverter,
+        GenerateCustomConstructor,
+        CustomToJS
+    ] CanvasByteArray : CanvasArray {
     };
 }

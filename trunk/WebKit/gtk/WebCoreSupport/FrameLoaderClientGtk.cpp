@@ -23,8 +23,10 @@
 #include "config.h"
 #include "FrameLoaderClientGtk.h"
 
+#include "ArchiveResource.h"
 #include "Color.h"
 #include "DocumentLoader.h"
+#include "DocumentLoaderGtk.h"
 #include "FormState.h"
 #include "FrameLoader.h"
 #include "FrameView.h"
@@ -53,6 +55,7 @@
 #include "ScriptController.h"
 #include "webkiterror.h"
 #include "webkitnetworkrequest.h"
+#include "webkitnetworkresponse.h"
 #include "webkitprivate.h"
 #include "webkitwebframe.h"
 #include "webkitwebnavigationaction.h"
@@ -111,7 +114,13 @@ static void loadDone(WebKitWebFrame* frame, bool didSucceed)
 
 WTF::PassRefPtr<WebCore::DocumentLoader> FrameLoaderClient::createDocumentLoader(const WebCore::ResourceRequest& request, const SubstituteData& substituteData)
 {
-    return DocumentLoader::create(request, substituteData);
+    RefPtr<WebKit::DocumentLoader> loader = WebKit::DocumentLoader::create(request, substituteData);
+
+    WebKitWebDataSource* webDataSource = webkit_web_data_source_new_with_loader(loader.get());
+    loader->setDataSource(webDataSource);
+    g_object_unref(webDataSource);
+
+    return loader.release();
 }
 
 void FrameLoaderClient::dispatchWillSubmitForm(FramePolicyFunction policyFunction, PassRefPtr<FormState>)
@@ -124,7 +133,7 @@ void FrameLoaderClient::dispatchWillSubmitForm(FramePolicyFunction policyFunctio
 }
 
 
-void FrameLoaderClient::committedLoad(DocumentLoader* loader, const char* data, int length)
+void FrameLoaderClient::committedLoad(WebCore::DocumentLoader* loader, const char* data, int length)
 {
     if (!m_pluginView) {
         ASSERT(loader->frame());
@@ -158,28 +167,50 @@ void FrameLoaderClient::committedLoad(DocumentLoader* loader, const char* data, 
 }
 
 bool
-FrameLoaderClient::shouldUseCredentialStorage(DocumentLoader*, unsigned long  identifier)
+FrameLoaderClient::shouldUseCredentialStorage(WebCore::DocumentLoader*, unsigned long  identifier)
 {
     notImplemented();
     return false;
 }
 
-void FrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
+void FrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(WebCore::DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
+void FrameLoaderClient::dispatchDidCancelAuthenticationChallenge(WebCore::DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::dispatchWillSendRequest(DocumentLoader*, unsigned long, ResourceRequest&, const ResourceResponse&)
+void FrameLoaderClient::dispatchWillSendRequest(WebCore::DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
-    notImplemented();
+    GOwnPtr<WebKitNetworkResponse> networkResponse(0);
+
+    // We are adding one more resource to the load, or maybe we are
+    // just redirecting a load.
+    if (redirectResponse.isNull())
+        static_cast<WebKit::DocumentLoader*>(loader)->increaseLoadCount(identifier);
+    else
+        networkResponse.set(webkit_network_response_new_with_core_response(redirectResponse));
+
+    WebKitWebView* webView = getViewFromFrame(m_frame);
+    GOwnPtr<WebKitWebResource> webResource(WEBKIT_WEB_RESOURCE(g_object_new(WEBKIT_TYPE_WEB_RESOURCE, "uri", request.url().string().utf8().data(), 0)));
+    GOwnPtr<WebKitNetworkRequest> networkRequest(webkit_network_request_new_with_core_request(request));
+
+    g_signal_emit_by_name(webView, "resource-request-starting", m_frame, webResource.get(), networkRequest.get(), networkResponse.get());
+
+    // Feed any changes back into the ResourceRequest object.
+    SoupMessage* message = webkit_network_request_get_message(networkRequest.get());
+    if (!message) {
+        request.setURL(KURL(KURL(), String::fromUTF8(webkit_network_request_get_uri(networkRequest.get()))));
+        return;
+    }
+
+    request.updateFromSoupMessage(message);
 }
 
-void FrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identifier, DocumentLoader*, const ResourceRequest&)
+void FrameLoaderClient::assignIdentifierToInitialRequest(unsigned long, WebCore::DocumentLoader*, const ResourceRequest&)
 {
     notImplemented();
 }
@@ -221,7 +252,7 @@ void FrameLoaderClient::frameLoaderDestroyed()
     delete this;
 }
 
-void FrameLoaderClient::dispatchDidReceiveResponse(DocumentLoader*, unsigned long, const ResourceResponse& response)
+void FrameLoaderClient::dispatchDidReceiveResponse(WebCore::DocumentLoader*, unsigned long, const ResourceResponse& response)
 {
     m_response = response;
 }
@@ -403,11 +434,11 @@ PassRefPtr<Widget> FrameLoaderClient::createPlugin(const IntSize& pluginSize, HT
 PassRefPtr<Frame> FrameLoaderClient::createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
                                                  const String& referrer, bool allowsScrolling, int marginWidth, int marginHeight)
 {
-    Frame* coreFrame = core(webFrame());
+    Frame* coreFrame = core(m_frame);
 
-    ASSERT(core(getViewFromFrame(webFrame())) == coreFrame->page());
+    ASSERT(core(getViewFromFrame(m_frame)) == coreFrame->page());
 
-    RefPtr<Frame> childFrame = webkit_web_frame_init_with_web_view(getViewFromFrame(webFrame()), ownerElement);
+    RefPtr<Frame> childFrame = webkit_web_frame_init_with_web_view(getViewFromFrame(m_frame), ownerElement);
 
     coreFrame->tree()->appendChild(childFrame);
 
@@ -474,7 +505,7 @@ void FrameLoaderClient::windowObjectCleared()
     // Is this obsolete now?
     g_signal_emit_by_name(m_frame, "cleared");
 
-    Frame* coreFrame = core(webFrame());
+    Frame* coreFrame = core(m_frame);
     ASSERT(coreFrame);
 
     Settings* settings = coreFrame->settings();
@@ -546,7 +577,17 @@ bool FrameLoaderClient::shouldGoToHistoryItem(HistoryItem* item) const
     return item != 0;
 }
 
-void FrameLoaderClient::makeRepresentation(DocumentLoader*)
+void FrameLoaderClient::didDisplayInsecureContent()
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::didRunInsecureContent(SecurityOrigin*)
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::makeRepresentation(WebCore::DocumentLoader*)
 {
     notImplemented();
 }
@@ -700,22 +741,22 @@ void FrameLoaderClient::cancelPolicyCheck()
         webkit_web_policy_decision_cancel(m_policyDecision);
 }
 
-void FrameLoaderClient::dispatchDidLoadMainResource(DocumentLoader*)
+void FrameLoaderClient::dispatchDidLoadMainResource(WebCore::DocumentLoader*)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::revertToProvisionalState(DocumentLoader*)
+void FrameLoaderClient::revertToProvisionalState(WebCore::DocumentLoader*)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::willChangeTitle(DocumentLoader*)
+void FrameLoaderClient::willChangeTitle(WebCore::DocumentLoader*)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::didChangeTitle(DocumentLoader *l)
+void FrameLoaderClient::didChangeTitle(WebCore::DocumentLoader *l)
 {
     setTitle(l->title(), l->url());
 }
@@ -744,7 +785,7 @@ String FrameLoaderClient::generatedMIMETypeForURLScheme(const String&) const
     return String();
 }
 
-void FrameLoaderClient::finishedLoading(DocumentLoader* documentLoader)
+void FrameLoaderClient::finishedLoading(WebCore::DocumentLoader* documentLoader)
 {
     if (!m_pluginView)
         committedLoad(documentLoader, 0, 0);
@@ -774,19 +815,28 @@ void FrameLoaderClient::setTitle(const String& title, const KURL& url)
     frameData->title = g_strdup(title.utf8().data());
 }
 
-void FrameLoaderClient::dispatchDidReceiveContentLength(DocumentLoader*, unsigned long identifier, int lengthReceived)
+void FrameLoaderClient::dispatchDidReceiveContentLength(WebCore::DocumentLoader*, unsigned long identifier, int lengthReceived)
 {
     notImplemented();
 }
 
-void FrameLoaderClient::dispatchDidFinishLoading(DocumentLoader*, unsigned long identifier)
+void FrameLoaderClient::dispatchDidFinishLoading(WebCore::DocumentLoader* loader, unsigned long identifier)
 {
+    static_cast<WebKit::DocumentLoader*>(loader)->decreaseLoadCount(identifier);
+
+    // FIXME: This function should notify the application that the resource
+    // finished loading, maybe using a load-status property in the
+    // WebKitWebResource object, similar to what we do for WebKitWebFrame'
+    // signal.
     notImplemented();
 }
 
-void FrameLoaderClient::dispatchDidFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError& error)
+void FrameLoaderClient::dispatchDidFailLoading(WebCore::DocumentLoader* loader, unsigned long identifier, const ResourceError& error)
 {
-    // FIXME: when does this occur and what should happen?
+    static_cast<WebKit::DocumentLoader*>(loader)->decreaseLoadCount(identifier);
+
+    // FIXME: This function should notify the application that the resource failed
+    // loading, maybe a 'load-error' signal in the WebKitWebResource object.
     notImplemented();
 }
 
@@ -795,7 +845,7 @@ void FrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest(unsigned long, c
     notImplemented();
 }
 
-bool FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int length)
+bool FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(WebCore::DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int length)
 {
     notImplemented();
     return false;
@@ -933,7 +983,7 @@ void FrameLoaderClient::dispatchUnableToImplementPolicy(const ResourceError&)
     notImplemented();
 }
 
-void FrameLoaderClient::setMainDocumentError(DocumentLoader*, const ResourceError& error)
+void FrameLoaderClient::setMainDocumentError(WebCore::DocumentLoader*, const ResourceError& error)
 {
     if (m_pluginView) {
         m_pluginView->didFail(error);

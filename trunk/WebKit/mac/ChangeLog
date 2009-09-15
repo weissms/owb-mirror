@@ -1,3 +1,191 @@
+2009-09-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Fix <rdar://problem/7145242> Crashes inside WTF::HashTable below NetscapePluginInstanceProxy::disconnectStream
+
+        * Plugins/Hosted/HostedNetscapePluginStream.mm:
+        (WebKit::HostedNetscapePluginStream::cancelLoad): Canceling the load can result in calling through to disconnectStream.
+        If the plug-in instance holds the last reference to the plug-in stream this will result in the stream being deallocated.
+        This leads to HostedNetscapePluginStream::cancelLoad's call to disconnectStream being passed a deallocated stream object.
+        Since the stream was already disconnected by the call to cancel there's no need to call disconnectStream a second time.
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r48229.
+        http://trac.webkit.org/changeset/48229
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _dragSourceMovedTo:]):
+
+2009-09-10  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Update JavaScriptCore and WebKit's FeatureDefines.xcconfig so that they are in sync with WebCore as they need to be.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-09-09  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Initialize DataTransfer's effectAllowed and dropEffect properties correctly
+        according to HTML5 spec (sec. 7.9.2-7.9.3).
+        https://bugs.webkit.org/show_bug.cgi?id=26700
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _dragSourceMovedTo:]):
+            Pass current drag operation (if known) to EventHandler::dragSourceMovedTo().
+
+2009-09-09  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29102, add support for user stylesheet injection.  This is similar
+        to user script injection but allows for user stylesheets to be added.  The stylesheets are applied immediately
+        to all Frames in the PageGroup.
+
+        Added userscripts/simple-stylesheet.html test case.
+
+        * WebView/WebView.mm:
+        (+[WebView _addUserStyleSheetToGroup:source:url:worldID:patterns:]):
+        * WebView/WebViewPrivate.h:
+
+2009-09-07  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        Adds a mock Geolocation service. This will be used to provide predictable behavior of the
+        Geolocation API for use in LayoutTests. Later changes will integrate the the mock
+        Geolocation service with DumpRenderTree.
+        https://bugs.webkit.org/show_bug.cgi?id=28264
+
+        * WebCoreSupport/WebGeolocationMockPrivate.h: Added.
+        * WebCoreSupport/WebGeolocationMock.mm: Added.
+        (+[WebGeolocationMock setError:code:]): Added. Used by DumpRender tree to configure the mock Geolocation service.
+        (+[WebGeolocationMock setPosition:latitude:longitude:accuracy:]): Added. Used by DumpRender tree to configure the mock Geolocation service.
+        * WebKit.exp: Modified. Exports WebGeolocationMock.
+
+2009-09-07  Drew Wilson  <atwilson@google.com>
+
+        Reviewed by David Levin.
+
+        Enable SHARED_WORKERS by default.
+        https://bugs.webkit.org/show_bug.cgi?id=28959
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-09-06  Cameron McCormack  <cam@mcc.id.au>
+
+        Reviewed by Eric Seidel.
+
+        Drop <definition-src> support
+        https://bugs.webkit.org/show_bug.cgi?id=28991
+
+        * MigrateHeaders.make: Remove reference to ObjC definition-src
+        binding class.
+
+2009-09-04  Mark Mentovai  <mark@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28614
+
+        Account for scrollbar state changes that occur during layout.
+
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView updateScrollers]):
+
+        Perform a layout prior to checking whether the scrollbar modes are
+        off, on, or automatic.  The modes may change during layout.
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView _install]):
+
+        Eliminate duplicated (and incorrect) scrollbar mode tracking between
+        FrameView and ScrollView.
+
+2009-09-03  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28890, make simple user script injection work.
+        
+        This patch adds new API for adding and removing user scripts from page groups.  User scripts
+        are bundled together in isolated worlds (you can have multiple scripts together in the same
+        world).
+
+        Added userscripts/ directory for holding new tests (along with a simple test of script injection).
+
+        * WebView/WebView.mm:
+        (+[WebView _addUserScriptToGroup:source:url:worldID:patterns:injectionTime:]):
+        (+[WebView _removeUserContentFromGroup:worldID:]):
+        (+[WebView _removeAllUserContentFromGroup:]):
+        * WebView/WebViewPrivate.h:
+
+2009-09-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24696
+
+        Plumb mixed content notifications to WebFrameLoadDelegatePrivate.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::didDisplayInsecureContent):
+        (WebFrameLoaderClient::didRunInsecureContent):
+        * WebView/WebDelegateImplementationCaching.h:
+        * WebView/WebFrameLoadDelegatePrivate.h: Added.
+
+2009-09-03  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed build fix.
+
+        Change notImplemented() to a FIXME.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::didDisplayInsecureContent):
+        (WebFrameLoaderClient::didRunInsecureContent):
+
+2009-09-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by eric@webkit.org.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24696
+
+        Plumb mixed content notifications to WebFrameLoadDelegatePrivate.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::didDisplayInsecureContent):
+        (WebFrameLoaderClient::didRunInsecureContent):
+        * WebView/WebDelegateImplementationCaching.h:
+        * WebView/WebFrameLoadDelegatePrivate.h: Added.
+
+2009-09-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=24696
+
+        Stub implementations of mixed content methods of FrameLoaderClient. 
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::didDisplayInsecureContent):
+        (WebFrameLoaderClient::didRunInsecureContent):
+
+2009-09-02  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        More partial work towards "Page Cache should support pages with Frames"
+        https://bugs.webkit.org/show_bug.cgi?id=13631
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _topHTMLView]): Rework the ASSERT in this method to reflect the
+          reality of calling this method for pages currently in the PageCache.
+
 2009-09-02  Dimitri Glazkov  <dglazkov@chromium.org>
 
     Reverting http://trac.webkit.org/changeset/47904, because it caused

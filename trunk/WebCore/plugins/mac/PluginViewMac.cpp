@@ -125,30 +125,10 @@ static inline IntPoint topLevelOffsetFor(PlatformWidget widget)
 
 // --------------- WebCore/Lifetime management -----------------
 
-void PluginView::init()
+bool PluginView::platformStart()
 {
-    LOG(Plugins, "PluginView::init(): Initializing plug-in '%s'", m_plugin->name().utf8().data());
-
-    if (m_haveInitialized)
-        return;
-    m_haveInitialized = true;
-
-    if (!m_plugin) {
-        ASSERT(m_status == PluginStatusCanNotFindPlugin);
-        return;
-    }
-
-    if (!m_plugin->load()) {
-        m_plugin = 0;
-        m_status = PluginStatusCanNotLoadPlugin;
-        return;
-    }
-
-    if (!start()) {
-        m_status = PluginStatusCanNotLoadPlugin;
-        stop(); // Make sure we unregister the plugin
-        return;
-    }
+    ASSERT(m_isStarted);
+    ASSERT(m_status == PluginStatusLoadedSuccessfully);
 
     if (m_drawingModel == NPDrawingModel(-1)) {
         // We default to QuickDraw, even though we don't support it,
@@ -180,8 +160,7 @@ void PluginView::init()
         m_status = PluginStatusCanNotLoadPlugin;
         LOG(Plugins, "Plug-in '%s' uses unsupported event model %s",
                 m_plugin->name().utf8().data(), prettyNameForEventModel(m_eventModel));
-        stop();
-        return;
+        return false;
     }
 
     if (getValueStatic(NPNVariable(NPNVsupportsQuickDrawBool + m_drawingModel), &drawingModelSupported) != NPERR_NO_ERROR
@@ -189,38 +168,24 @@ void PluginView::init()
         m_status = PluginStatusCanNotLoadPlugin;
         LOG(Plugins, "Plug-in '%s' uses unsupported drawing model %s",
                 m_plugin->name().utf8().data(), prettyNameForDrawingModel(m_drawingModel));
-        stop();
-        return;
+        return false;
     }
 
     setPlatformPluginWidget(m_parentFrame->view()->hostWindow()->platformWindow());
 
     show();
 
-    m_status = PluginStatusLoadedSuccessfully;
-
     // TODO: Implement null timer throttling depending on plugin activation
     m_nullEventTimer.set(new Timer<PluginView>(this, &PluginView::nullEventTimerFired));
     m_nullEventTimer->startRepeating(0.02);
+
+    return true;
 }
 
-PluginView::~PluginView()
+void PluginView::platformDestroy()
 {
-    LOG(Plugins, "PluginView::~PluginView()");
-
-    stop();
-
-    deleteAllValues(m_requests);
-
-    freeStringArray(m_paramNames, m_paramCount);
-    freeStringArray(m_paramValues, m_paramCount);
-
-    m_parentFrame->script()->cleanupScriptObjectsForPlugin(this);
-
-    if (m_plugin && !(m_plugin->quirks().contains(PluginQuirkDontUnloadPlugin)))
-        m_plugin->unload();
-
-    m_window = 0;
+    if (platformPluginWidget())
+        setPlatformPluginWidget(0);
 }
 
 // Used before the plugin view has been initialized properly, and as a
@@ -716,11 +681,6 @@ NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const c
 
     return NPERR_NO_ERROR;
 }
-
-void PluginView::platformStart()
-{
-}
-
 
 } // namespace WebCore
 

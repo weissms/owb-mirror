@@ -122,14 +122,6 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
     // so we start the keep alive timer here.
     m_frame->keepAlive();
 
-#if ENABLE(DOM_STORAGE)
-    // Release any localStorage locks we may still have.
-    Page* page = m_frame->page();
-    StorageNamespace* localStorage = page ? page->group().localStorage() : 0;
-    if (localStorage)
-        localStorage->unlock();
-#endif
-
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
         m_sourceURL = savedSourceURL;
         return comp.value();
@@ -140,6 +132,14 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
 
     m_sourceURL = savedSourceURL;
     return JSValue();
+}
+
+void ScriptController::evaluateInIsolatedWorld(unsigned /* worldID */, const Vector<ScriptSourceCode>& sourceCode) 
+{
+    // FIXME: Actually support isolated worlds!
+    unsigned size = sourceCode.size();
+    for (unsigned i = 0; i < size; ++i)
+        evaluate(sourceCode[i]);
 }
 
 void ScriptController::clearWindowShell()

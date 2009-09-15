@@ -45,10 +45,7 @@
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 #include "NPV8Object.h"
-#include "Page.h"
-#include "PageGroup.h"
 #include "ScriptSourceCode.h"
-#include "StorageNamespace.h"
 #include "Widget.h"
 #include "XSSAuditor.h"
 
@@ -182,6 +179,12 @@ bool ScriptController::processingUserGesture() const
     return false;
 }
 
+void ScriptController::evaluateInIsolatedWorld(unsigned worldID, const Vector<ScriptSourceCode>& sources)
+{
+    // FIXME: Get rid of extensionGroup here.
+    m_proxy->evaluateInNewWorld(sources, 1);
+}
+
 void ScriptController::evaluateInNewWorld(const Vector<ScriptSourceCode>& sources, int extensionGroup)
 {
     m_proxy->evaluateInNewWorld(sources, extensionGroup);
@@ -221,14 +224,6 @@ ScriptValue ScriptController::evaluate(const ScriptSourceCode& sourceCode)
     // Evaluating the JavaScript could cause the frame to be deallocated
     // so we start the keep alive timer here.
     m_frame->keepAlive();
-
-#if ENABLE(DOM_STORAGE)
-    // Release any localStorage locks we may still have.
-    Page* page = m_frame->page();
-    StorageNamespace* localStorage = page ? page->group().localStorage() : 0;
-    if (localStorage)
-        localStorage->unlock();
-#endif
 
     if (object.IsEmpty() || object->IsUndefined())
         return ScriptValue();

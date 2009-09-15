@@ -123,6 +123,7 @@ namespace JSC {
         virtual bool hasInstance(ExecState*, JSValue, JSValue prototypeProperty);
 
         virtual void getPropertyNames(ExecState*, PropertyNameArray&);
+        virtual void getOwnPropertyNames(ExecState*, PropertyNameArray&);
 
         virtual JSValue toPrimitive(ExecState*, PreferredPrimitiveType = NoPreference) const;
         virtual bool getPrimitiveNumber(ExecState*, double& number, JSValue& value);
@@ -205,7 +206,7 @@ namespace JSC {
 
         static PassRefPtr<Structure> createStructure(JSValue prototype)
         {
-            return Structure::create(prototype, TypeInfo(ObjectType, HasStandardGetOwnPropertySlot | HasDefaultMark));
+            return Structure::create(prototype, TypeInfo(ObjectType, HasStandardGetOwnPropertySlot | HasDefaultMark | HasDefaultGetPropertyNames));
         }
 
     private:
@@ -253,10 +254,15 @@ namespace JSC {
     
 JSObject* constructEmptyObject(ExecState*);
 
+inline JSObject* asObject(JSCell* cell)
+{
+    ASSERT(cell->isObject());
+    return static_cast<JSObject*>(cell);
+}
+
 inline JSObject* asObject(JSValue value)
 {
-    ASSERT(asCell(value)->isObject());
-    return static_cast<JSObject*>(asCell(value));
+    return asObject(value.asCell());
 }
 
 inline JSObject::JSObject(PassRefPtr<Structure> structure)
@@ -582,8 +588,7 @@ inline JSValue JSValue::get(ExecState* exec, const Identifier& propertyName, Pro
     while (true) {
         if (cell->fastGetOwnPropertySlot(exec, propertyName, slot))
             return slot.getValue(exec, propertyName);
-        ASSERT(cell->isObject());
-        JSValue prototype = static_cast<JSObject*>(cell)->prototype();
+        JSValue prototype = asObject(cell)->prototype();
         if (!prototype.isObject())
             return jsUndefined();
         cell = asObject(prototype);
@@ -608,8 +613,7 @@ inline JSValue JSValue::get(ExecState* exec, unsigned propertyName, PropertySlot
     while (true) {
         if (cell->getOwnPropertySlot(exec, propertyName, slot))
             return slot.getValue(exec, propertyName);
-        ASSERT(cell->isObject());
-        JSValue prototype = static_cast<JSObject*>(cell)->prototype();
+        JSValue prototype = asObject(cell)->prototype();
         if (!prototype.isObject())
             return jsUndefined();
         cell = prototype.asCell();
@@ -657,6 +661,7 @@ ALWAYS_INLINE void JSObject::allocatePropertyStorageInline(size_t oldSize, size_
 ALWAYS_INLINE void JSObject::markChildrenDirect(MarkStack& markStack)
 {
     JSCell::markChildren(markStack);
+
     m_structure->markAggregate(markStack);
     
     PropertyStorage storage = propertyStorage();

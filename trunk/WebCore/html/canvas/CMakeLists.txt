@@ -1,16 +1,47 @@
 list(APPEND WEBCORE_SRC
+    html/canvas/CanvasArray.cpp
+    html/canvas/CanvasArrayBuffer.cpp
+    html/canvas/CanvasByteArray.cpp
+    html/canvas/CanvasFloatArray.cpp
+    html/canvas/CanvasFramebuffer.cpp
     html/canvas/CanvasGradient.cpp
+    html/canvas/CanvasIntArray.cpp
+    html/canvas/CanvasNumberArray.cpp
+    html/canvas/CanvasObject.cpp
     html/canvas/CanvasPattern.cpp
     html/canvas/CanvasPixelArray.cpp
+    html/canvas/CanvasProgram.cpp
+    html/canvas/CanvasRenderbuffer.cpp
     html/canvas/CanvasRenderingContext.cpp
     html/canvas/CanvasRenderingContext2D.cpp
+    html/canvas/CanvasShader.cpp
+    html/canvas/CanvasShortArray.cpp
     html/canvas/CanvasStyle.cpp
+    html/canvas/CanvasTexture.cpp
+    html/canvas/CanvasUnsignedByteArray.cpp
+    html/canvas/CanvasUnsignedIntArray.cpp
+    html/canvas/CanvasUnsignedShortArray.cpp
 ) 
 
 list(APPEND IDL_SRC
+    html/canvas/CanvasArray.idl
+    html/canvas/CanvasArrayBuffer.idl
+    html/canvas/CanvasByteArray.idl
+    html/canvas/CanvasFloatArray.idl
+    html/canvas/CanvasFramebuffer.idl
     html/canvas/CanvasGradient.idl
+    html/canvas/CanvasIntArray.idl
+    html/canvas/CanvasNumberArray.idl
     html/canvas/CanvasPattern.idl
+    html/canvas/CanvasProgram.idl
+    html/canvas/CanvasRenderbuffer.idl
     html/canvas/CanvasRenderingContext2D.idl
     html/canvas/CanvasRenderingContext3D.idl
     html/canvas/CanvasRenderingContext.idl
+    html/canvas/CanvasShader.idl
+    html/canvas/CanvasShortArray.idl
+    html/canvas/CanvasTexture.idl
+    html/canvas/CanvasUnsignedByteArray.idl
+    html/canvas/CanvasUnsignedIntArray.idl
+    html/canvas/CanvasUnsignedShortArray.idl
 )

@@ -37,8 +37,8 @@ sources = []
 jscore_excludes.extend(get_excludes(jscore_dir, ['*Win.cpp', '*None.cpp']))
 
 if building_on_win32:
-    jscore_excludes.append('ExecutableAllocatorPosix.cpp')
-    sources.append('jit/ExecutableAllocatorWin.cpp')
+    jscore_excludes += ['ExecutableAllocatorPosix.cpp', 'MarkStackPosix.cpp']
+    sources += ['jit/ExecutableAllocatorWin.cpp', 'runtime/MarkStackWin.cpp']
 else:
     jscore_excludes.append('JSStringRefBSTR.cpp')
 
@@ -62,16 +62,13 @@ def set_options(opt):
     common_set_options(opt)
 
 def configure(conf):
-    common_configure(conf)    
+    common_configure(conf)
+    generate_jscore_derived_sources()
     
 def build(bld):
     import Options
 
-    generate_jscore_derived_sources()
-
     full_dirs = get_dirs_for_features(jscore_dir, features=[build_port], dirs=jscore_dirs)
-
-    print 'full_dirs = %r' % full_dirs
 
     includes = common_includes + full_dirs
 
@@ -81,7 +78,7 @@ def build(bld):
         includes = '. .. assembler wrec DerivedSources ForwardingHeaders ' + ' '.join(includes),
         source = sources,
         target = 'jscore',
-        uselib = 'WX ICU ' + waf_configname,
+        uselib = 'WX ICU ' + get_config(),
         uselib_local = '',
         install_path = output_dir)
 
@@ -92,7 +89,7 @@ def build(bld):
         includes = '. .. assembler wrec DerivedSources ForwardingHeaders ' + ' '.join(includes),
         source = 'jsc.cpp',
         target = 'jsc',
-        uselib = 'WX ICU ' + waf_configname,
+        uselib = 'WX ICU ' + get_config(),
         uselib_local = 'jscore',
         install_path = output_dir,
         )

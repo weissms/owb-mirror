@@ -418,6 +418,13 @@ static SoupSession* createSoupSession()
     return soup_session_async_new();
 }
 
+// Values taken from http://stevesouders.com/ua/index.php following
+// the rule "Do What Every Other Modern Browser Is Doing". They seem
+// to significantly improve page loading time compared to soup's
+// default values.
+#define MAX_CONNECTIONS          60
+#define MAX_CONNECTIONS_PER_HOST 6
+
 static void ensureSessionIsInitialized(SoupSession* session)
 {
     if (g_object_get_data(G_OBJECT(session), "webkit-init"))
@@ -435,27 +442,31 @@ static void ensureSessionIsInitialized(SoupSession* session)
         g_object_unref(logger);
     }
 
+    g_object_set(session,
+                 SOUP_SESSION_MAX_CONNS, MAX_CONNECTIONS,
+                 SOUP_SESSION_MAX_CONNS_PER_HOST, MAX_CONNECTIONS_PER_HOST,
+                 NULL);
+
     g_object_set_data(G_OBJECT(session), "webkit-init", reinterpret_cast<void*>(0xdeadbeef));
 }
 
-static bool startHttp(ResourceHandle* handle, String urlString)
+static bool startHttp(ResourceHandle* handle)
 {
     ASSERT(handle);
- 
+
     SoupSession* session = handle->defaultSession();
     ensureSessionIsInitialized(session);
 
     ResourceHandleInternal* d = handle->getInternal();
 
-    d->m_msg = handle->request().toSoupMessage();
-    if (!d->m_msg) {
-        ResourceError resourceError(g_quark_to_string(SOUP_HTTP_ERROR),
-                                    SOUP_STATUS_MALFORMED,
-                                    urlString,
-                                    handle->request().httpMethod());
-        d->client()->didFail(handle, resourceError);
+    ResourceRequest request(handle->request());
+    KURL url(request.url());
+    url.removeFragmentIdentifier();
+    request.setURL(url);
+
+    d->m_msg = request.toSoupMessage();
+    if (!d->m_msg)
         return false;
-    }
 
     if(!handle->shouldContentSniff())
         soup_message_disable_feature(d->m_msg, SOUP_TYPE_CONTENT_SNIFFER);
@@ -502,14 +513,7 @@ static bool startHttp(ResourceHandle* handle, String urlString)
                     g_free(fileName);
 
                     if (error) {
-                        ResourceError resourceError(g_quark_to_string(SOUP_HTTP_ERROR),
-                                                    d->m_msg->status_code,
-                                                    urlString,
-                                                    String::fromUTF8(error->message));
                         g_error_free(error);
-
-                        d->client()->didFail(handle, resourceError);
-
                         g_signal_handlers_disconnect_matched(d->m_msg, G_SIGNAL_MATCH_DATA,
                                                              0, 0, 0, 0, handle);
                         g_object_unref(d->m_msg);
@@ -573,12 +577,16 @@ bool ResourceHandle::start(Frame* frame)
     if (equalIgnoringCase(protocol, "data"))
         return startData(this, urlString);
 
-    if (equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https"))
-        return startHttp(this, urlString);
+    if (equalIgnoringCase(protocol, "http") || equalIgnoringCase(protocol, "https")) {
+        if (startHttp(this))
+            return true;
+    }
 
-    if (equalIgnoringCase(protocol, "file") || equalIgnoringCase(protocol, "ftp") || equalIgnoringCase(protocol, "ftps"))
+    if (equalIgnoringCase(protocol, "file") || equalIgnoringCase(protocol, "ftp") || equalIgnoringCase(protocol, "ftps")) {
         // FIXME: should we be doing any other protocols here?
-        return startGio(this, url);
+        if (startGio(this, url))
+            return true;
+    }
 
     // Error must not be reported immediately
     this->scheduleFailure(InvalidURLFailure);
@@ -849,13 +857,8 @@ static bool startGio(ResourceHandle* handle, KURL url)
 
     ResourceHandleInternal* d = handle->getInternal();
 
-    if (handle->request().httpMethod() != "GET" && handle->request().httpMethod() != "POST") {
-        ResourceError error(g_quark_to_string(SOUP_HTTP_ERROR),
-                            SOUP_STATUS_METHOD_NOT_ALLOWED,
-                            url.string(), handle->request().httpMethod());
-        d->client()->didFail(handle, error);
+    if (handle->request().httpMethod() != "GET" && handle->request().httpMethod() != "POST")
         return false;
-    }
 
     // GIO doesn't know how to handle refs and queries, so remove them
     // TODO: use KURL.fileSystemPath after KURLGtk and FileSystemGtk are

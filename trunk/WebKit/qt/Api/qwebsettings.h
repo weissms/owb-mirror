@@ -50,7 +50,6 @@ public:
     };
     enum WebAttribute {
         AutoLoadImages,
-        DnsPrefetchEnabled,
         JavascriptEnabled,
         JavaEnabled,
         PluginsEnabled,
@@ -67,7 +66,9 @@ public:
 #ifdef QT_DEPRECATED
         LocalStorageDatabaseEnabled = LocalStorageEnabled,
 #endif
-        LocalContentCanAccessRemoteUrls
+        LocalContentCanAccessRemoteUrls,
+        SessionStorageEnabled,
+        DnsPrefetchEnabled
     };
     enum WebGraphic {
         MissingImageGraphic,
@@ -130,6 +131,8 @@ public:
     QString localStoragePath() const; 
 
     static void clearMemoryCaches();
+
+    static void enablePersistentStorage(const QString& path = QString());
 
     inline QWebSettingsPrivate* handle() const { return d; }
 

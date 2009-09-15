@@ -631,6 +631,16 @@ bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const
     return true;
 }
 
+void WebFrameLoaderClient::didDisplayInsecureContent()
+{
+    BalNotImplemented();
+}
+
+void WebFrameLoaderClient::didRunInsecureContent(SecurityOrigin* origin)
+{
+    BalNotImplemented();
+}
+
 PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const ResourceRequest& request, const SubstituteData& substituteData)
 {
     RefPtr<WebDocumentLoader> loader = WebDocumentLoader::create(request, substituteData);

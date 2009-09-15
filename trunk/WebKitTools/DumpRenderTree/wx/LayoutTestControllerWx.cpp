@@ -239,6 +239,18 @@ bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef prop
     return false;
 }
 
+void LayoutTestController::setMockGeolocationPosition(double latitude, double longitude, double accuracy)
+{
+    // FIXME: Implement for Geolocation layout tests.
+    // See https://bugs.webkit.org/show_bug.cgi?id=28264.
+}
+
+void LayoutTestController::setMockGeolocationError(int code, JSStringRef message)
+{
+    // FIXME: Implement for Geolocation layout tests.
+    // See https://bugs.webkit.org/show_bug.cgi?id=28264.
+}
+
 void LayoutTestController::setIconDatabaseEnabled(bool iconDatabaseEnabled)
 {
     // FIXME: implement
@@ -277,3 +289,12 @@ void LayoutTestController::overridePreference(JSStringRef /* key */, JSStringRef
     // FIXME: implement
 }
 
+void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
+{
+    printf("LayoutTestController::addUserScript not implemented.\n");
+}
+
+void LayoutTestController::addUserStyleSheet(JSStringRef source)
+{
+    printf("LayoutTestController::addUserStyleSheet not implemented.\n");
+}

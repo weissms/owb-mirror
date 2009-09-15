@@ -74,8 +74,7 @@ wxWebFrame::wxWebFrame(wxWebView* container, wxWebFrame* parent, WebViewFrameDat
     m_textMagnifier(1.0),
     m_isEditable(false),
     m_isInitialized(false),
-    m_beingDestroyed(false),
-    m_title(wxEmptyString)
+    m_beingDestroyed(false)
 {
 
     m_impl = new WebFramePrivate();
@@ -87,13 +86,16 @@ wxWebFrame::wxWebFrame(wxWebView* container, wxWebFrame* parent, WebViewFrameDat
     }
     
     WebCore::FrameLoaderClientWx* loaderClient = new WebCore::FrameLoaderClientWx();
-    
-    m_impl->frame = WebCore::Frame::create(container->m_impl->page, parentFrame, loaderClient);
-    m_impl->frame->deref();
+    RefPtr<WebCore::Frame> newFrame = WebCore::Frame::create(container->m_impl->page, parentFrame, loaderClient);
 
-    loaderClient->setFrame(m_impl->frame.get());
+    m_impl->frame = newFrame.get();
+
+    loaderClient->setFrame(this);
     loaderClient->setWebView(container);
     
+    if (data && data->ownerElement)
+        m_impl->frame->ref();
+
     m_impl->frame->init();
         
     m_isInitialized = true;
@@ -101,13 +103,14 @@ wxWebFrame::wxWebFrame(wxWebView* container, wxWebFrame* parent, WebViewFrameDat
 
 wxWebFrame::~wxWebFrame()
 {
-    m_impl->frame->loader()->detachFromParent();
+    if (m_impl)
+        delete m_impl;
 }
 
 WebCore::Frame* wxWebFrame::GetFrame()
 {
     if (m_impl)
-        return m_impl->frame.get();
+        return m_impl->frame;
         
     return 0;
 }
@@ -143,7 +146,7 @@ wxString wxWebFrame::GetPageSource()
 void wxWebFrame::SetPageSource(const wxString& source, const wxString& baseUrl)
 {
     if (m_impl->frame && m_impl->frame->loader()) {
-        WebCore::KURL url(static_cast<const char*>(baseUrl.mb_str(wxConvUTF8)));
+        WebCore::KURL url(WebCore::KURL(), static_cast<const char*>(baseUrl.mb_str(wxConvUTF8)));
 
         wxCharBuffer charBuffer(source.mb_str(wxConvUTF8));
         const char* contents = charBuffer;
@@ -390,3 +393,10 @@ wxWebViewDOMElementInfo wxWebFrame::HitTest(const wxPoint& pos) const
     return domInfo;
 }
 
+bool wxWebFrame::ShouldClose() const
+{
+    if (m_impl->frame)
+        return m_impl->frame->shouldClose();
+
+    return true;
+}

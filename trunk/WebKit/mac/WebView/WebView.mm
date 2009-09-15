@@ -1371,6 +1371,8 @@ static inline IMP getMethod(id o, SEL s)
     cache->willCloseFrameFunc = getMethod(delegate, @selector(webView:willCloseFrame:));
     cache->willPerformClientRedirectToURLDelayFireDateForFrameFunc = getMethod(delegate, @selector(webView:willPerformClientRedirectToURL:delay:fireDate:forFrame:));
     cache->windowScriptObjectAvailableFunc = getMethod(delegate, @selector(webView:windowScriptObjectAvailable:));
+    cache->didDisplayInsecureContentFunc = getMethod(delegate, @selector(webViewDidDisplayInsecureContent:));
+    cache->didRunInsecureContentFunc = getMethod(delegate, @selector(webView:didRunInsecureContent:));
 }
 
 - (void)_cacheScriptDebugDelegateImplementations
@@ -2108,6 +2110,76 @@ static inline IMP getMethod(id o, SEL s)
         _private->page->focusController()->setActive([[self window] isKeyWindow]);
 }
 
++ (void)_addUserScriptToGroup:(NSString *)groupName source:(NSString *)source url:(NSURL *)url worldID:(unsigned)worldID patterns:(NSArray *)patterns injectionTime:(WebUserScriptInjectionTime)injectionTime
+{
+    String group(groupName);
+    if (group.isEmpty() || worldID == UINT_MAX)
+        return;
+    
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    if (!pageGroup)
+        return;
+    
+    // Convert the patterns into a Vector.
+    Vector<String> patternsVector;
+    NSUInteger count = [patterns count];
+    for (NSUInteger i = 0; i < count; ++i) {
+        id entry = [patterns objectAtIndex: WebKit/i];
+        if ([entry isKindOfClass:[NSString class]])
+            patternsVector.append(String((NSString*)entry));
+    }
+    
+    pageGroup->addUserScript(source, url, patternsVector, worldID, 
+                             injectionTime == WebInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
+}
+
++ (void)_addUserStyleSheetToGroup:(NSString *)groupName source:(NSString *)source url:(NSURL *)url worldID:(unsigned)worldID patterns:(NSArray *)patterns
+{
+    String group(groupName);
+    if (group.isEmpty() || worldID == UINT_MAX)
+        return;
+    
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    if (!pageGroup)
+        return;
+    
+    // Convert the patterns into a Vector.
+    Vector<String> patternsVector;
+    NSUInteger count = [patterns count];
+    for (NSUInteger i = 0; i < count; ++i) {
+        id entry = [patterns objectAtIndex: WebKit/i];
+        if ([entry isKindOfClass:[NSString class]])
+            patternsVector.append(String((NSString*)entry));
+    }
+    
+    pageGroup->addUserStyleSheet(source, url, patternsVector, worldID);
+}
+
++ (void)_removeUserContentFromGroup:(NSString *)groupName worldID:(unsigned)worldID
+{
+    String group(groupName);
+    if (group.isEmpty())
+        return;
+    
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    if (!pageGroup)
+        return;
+
+    pageGroup->removeUserContentForWorld(worldID);
+}
+
++ (void)_removeAllUserContentFromGroup:(NSString *)groupName
+{
+    String group(groupName);
+    if (group.isEmpty())
+        return;
+    
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    if (!pageGroup)
+        return;
+    
+    pageGroup->removeAllUserContent();
+}
 @end
 
 @implementation _WebSafeForwarder

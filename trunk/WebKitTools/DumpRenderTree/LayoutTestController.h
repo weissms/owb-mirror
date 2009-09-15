@@ -68,6 +68,8 @@ public:
     void setCacheModel(int);
     void setCustomPolicyDelegate(bool setDelegate, bool permissive);
     void setDatabaseQuota(unsigned long long quota);
+    void setMockGeolocationPosition(double latitude, double longitude, double accuracy);
+    void setMockGeolocationError(int code, JSStringRef message);
     void setIconDatabaseEnabled(bool iconDatabaseEnabled);
     void setJavaScriptProfilingEnabled(bool profilingEnabled);
     void setMainFrameIsFirstResponder(bool flag);
@@ -185,6 +187,13 @@ public:
 
     void whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains);
 
+    void addUserScript(JSStringRef source, bool runAtStart);
+    void addUserStyleSheet(JSStringRef source);
+
+    void setGeolocationPermission(bool allow);
+    bool isGeolocationPermissionSet() const { return m_isGeolocationPermissionSet; }
+    bool geolocationPermission() const { return m_geolocationPermission; }
+
 private:
     bool m_dumpAsText;
     bool m_dumpAsPDF;
@@ -213,8 +222,9 @@ private:
     bool m_willSendRequestReturnsNullOnRedirect;
     bool m_windowIsKey;
     bool m_alwaysAcceptCookies;
-
     bool m_globalFlag;
+    bool m_isGeolocationPermissionSet;
+    bool m_geolocationPermission;
 
     std::string m_testPathOrURL;
     std::string m_expectedPixelHash;    // empty string if no hash

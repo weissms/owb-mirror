@@ -578,6 +578,9 @@ private slots:
     void urlChange();
     void domCycles();
     void requestedUrl();
+    void javaScriptWindowObjectCleared_data();
+    void javaScriptWindowObjectCleared();
+    void javaScriptWindowObjectClearedOnEvaluate();
     void setHtml();
     void setHtmlWithResource();
     void ipv6HostEncoding();
@@ -592,6 +595,7 @@ private slots:
     void hasSetFocus();
     void render();
     void scrollPosition();
+    void evaluateWillCauseRepaint();
 
 private:
     QString  evalJS(const QString&s) {
@@ -2277,6 +2281,40 @@ void tst_QWebFrame::requestedUrl()
     QCOMPARE(frame->url(), QUrl("qrc:/fake-ssl-error.html"));
 }
 
+void tst_QWebFrame::javaScriptWindowObjectCleared_data()
+{
+    QTest::addColumn<QString>("html");
+    QTest::addColumn<int>("signalCount");
+    QTest::newRow("with <script>") << "<html><body><script></script><p>hello world</p></body></html>" << 1;
+    QTest::newRow("without <script>") << "<html><body><p>hello world</p></body></html>" << 0;
+}
+
+void tst_QWebFrame::javaScriptWindowObjectCleared()
+{
+    QWebPage page;
+    QWebFrame* frame = page.mainFrame();
+    QSignalSpy spy(frame, SIGNAL(javaScriptWindowObjectCleared()));
+    QFETCH(QString, html);
+    frame->setHtml(html);
+
+    QFETCH(int, signalCount);
+    QCOMPARE(spy.count(), signalCount);
+}
+
+void tst_QWebFrame::javaScriptWindowObjectClearedOnEvaluate()
+{
+    QWebPage page;
+    QWebFrame* frame = page.mainFrame();
+    QSignalSpy spy(frame, SIGNAL(javaScriptWindowObjectCleared()));
+    frame->setHtml("<html></html>");
+    QCOMPARE(spy.count(), 0);
+    frame->evaluateJavaScript("var a = 'a';");
+    QCOMPARE(spy.count(), 1);
+    // no new clear for a new script:
+    frame->evaluateJavaScript("var a = 1;");
+    QCOMPARE(spy.count(), 1);
+}
+
 void tst_QWebFrame::setHtml()
 {
     QString html("<html><head></head><body><p>hello world</p></body></html>");
@@ -2668,6 +2706,25 @@ void tst_QWebFrame::scrollPosition()
     QCOMPARE(x, 23);
     QCOMPARE(y, 29);
 }
+
+void tst_QWebFrame::evaluateWillCauseRepaint()
+{
+    QWebView view;
+    QString html("<html><body>top<div id=\"junk\" style=\"display: block;\">"
+                    "junk</div>bottom</body></html>");
+    view.setHtml(html);
+    view.show();
+
+    QTest::qWait(200);
+
+    view.page()->mainFrame()->evaluateJavaScript(
+        "document.getElementById('junk').style.display = 'none';");
+
+    ::waitForSignal(view.page(), SIGNAL(repaintRequested( const QRect &)));
+
+    QTest::qWait(2000);
+}
+
 
 QTEST_MAIN(tst_QWebFrame)
 #include "tst_qwebframe.moc"

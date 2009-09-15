@@ -35,7 +35,6 @@ list(APPEND WEBCORE_SRC
     loader/TextDocument.cpp
     loader/TextResourceDecoder.cpp
     loader/ThreadableLoader.cpp
-    loader/UserStyleSheetLoader.cpp
     loader/WorkerThreadableLoader.cpp
 )
 

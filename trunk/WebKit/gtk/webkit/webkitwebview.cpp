@@ -25,11 +25,13 @@
  */
 
 #include "config.h"
+#include "webkitwebview.h"
 
 #include "webkitdownload.h"
-#include "webkitwebview.h"
 #include "webkitenumtypes.h"
 #include "webkitmarshal.h"
+#include "webkitnetworkrequest.h"
+#include "webkitnetworkresponse.h"
 #include "webkitprivate.h"
 #include "webkitwebinspector.h"
 #include "webkitwebbackforwardlist.h"
@@ -144,6 +146,8 @@ enum {
     CLOSE_WEB_VIEW,
     UNDO,
     REDO,
+    DATABASE_QUOTA_EXCEEDED,
+    RESOURCE_REQUEST_STARTING,
     LAST_SIGNAL
 };
 
@@ -651,7 +655,7 @@ static void webkit_web_view_realize(GtkWidget* widget)
     gdk_window_set_user_data(widget->window, widget);
 
     widget->style = gtk_style_attach(widget->style, widget->window);
-    gdk_window_set_background(widget->window, &widget->style->base[GTK_WIDGET_STATE(widget)]);
+    gtk_style_set_background(widget->style, widget->window, GTK_STATE_NORMAL);
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
     WebKitWebViewPrivate* priv = webView->priv;
@@ -1246,7 +1250,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * the new #WebKitWebView. The widget to which the widget is added will
      * handle that.
      *
-     * Since 1.0.3
+     * Since: 1.0.3
      */
     webkit_web_view_signals[CREATE_WEB_VIEW] = g_signal_new("create-web-view",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1275,7 +1279,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * time of the window, so you may want to connect to the ::notify
      * signal of the #WebKitWebWindowFeatures object to handle those.
      *
-     * Since 1.0.3
+     * Since: 1.0.3
      */
     webkit_web_view_signals[WEB_VIEW_READY] = g_signal_new("web-view-ready",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1297,7 +1301,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * signal handler does not do anything. It is the owner's responsibility
      * to hide or delete the web view, if necessary.
      *
-     * Since 1.1.11
+     * Since: 1.1.11
      */
     webkit_web_view_signals[CLOSE_WEB_VIEW] = g_signal_new("close-web-view",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1952,6 +1956,69 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             GTK_TYPE_WIDGET, 3,
             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_HASH_TABLE);
 
+    /**
+     * WebKitWebView::database-quota-exceeded
+     * @web_view: the object which received the signal
+     * @frame: the relevant frame
+     * @database: the #WebKitWebDatabase which exceeded the quota of its #WebKitSecurityOrigin
+     *
+     * The #WebKitWebView::database-exceeded-quota signal will be emitted when
+     * a Web Database exceeds the quota of its security origin. This signal
+     * may be used to increase the size of the quota before the originating
+     * operation fails.
+     *
+     * Since: 1.1.14
+     */
+    webkit_web_view_signals[DATABASE_QUOTA_EXCEEDED] = g_signal_new("database-quota-exceeded",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags) (G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            0,
+            NULL, NULL,
+            webkit_marshal_VOID__OBJECT_OBJECT,
+            G_TYPE_NONE, 2,
+            G_TYPE_OBJECT, G_TYPE_OBJECT);
+
+    /**
+     * WebKitWebView::resource-request-starting:
+     * @web_view: the object which received the signal
+     * @web_frame: the #WebKitWebFrame whose load dispatched this request
+     * @web_resource: an empty #WebKitWebResource object
+     * @request: the #WebKitNetworkRequest that will be dispatched
+     * @response: the #WebKitNetworkResponse representing the redirect
+     * response, if any
+     *
+     * Emitted when a request is about to be sent. You can modify the
+     * request while handling this signal. You can set the URI in the
+     * #WebKitNetworkRequest object itself, and add/remove/replace
+     * headers using the #SoupMessage object it carries, if it is
+     * present. See webkit_network_request_get_message(). Setting the
+     * request URI to "about:blank" will effectively cause the request
+     * to load nothing, and can be used to disable the loading of
+     * specific resources.
+     *
+     * Notice that information about an eventual redirect is available
+     * in @response's #SoupMessage, not in the #SoupMessage carried by
+     * the @request. If @response is %NULL, then this is not a
+     * redirected request.
+     *
+     * The #WebKitWebResource object will be the same throughout all
+     * the lifetime of the resource, but the contents may change from
+     * inbetween signal emissions.
+     *
+     * Since: 1.1.14
+     */
+    webkit_web_view_signals[RESOURCE_REQUEST_STARTING] = g_signal_new("resource-request-starting",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            0,
+            NULL, NULL,
+            webkit_marshal_VOID__OBJECT_OBJECT_OBJECT_OBJECT,
+            G_TYPE_NONE, 4,
+            WEBKIT_TYPE_WEB_FRAME,
+            WEBKIT_TYPE_WEB_RESOURCE,
+            WEBKIT_TYPE_NETWORK_REQUEST,
+            WEBKIT_TYPE_NETWORK_RESPONSE);
+
     /*
      * implementations of virtual methods
      */
@@ -2519,9 +2586,6 @@ void webkit_web_view_request_download(WebKitWebView* webView, WebKitNetworkReque
         download = webkit_download_new_with_handle(request, handle, response);
     else
         download = webkit_download_new(request);
-
-    if (!response.isNull() && !response.suggestedFilename().isEmpty())
-        webkit_download_set_suggested_filename(download, response.suggestedFilename().utf8().data());
 
     gboolean handled;
     g_signal_emit(webView, webkit_web_view_signals[DOWNLOAD_REQUESTED], 0, download, &handled);

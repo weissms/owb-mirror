@@ -17,9 +17,25 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCSSRuleListCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
+    bindings/js/JSCanvasArrayBufferConstructor.cpp
+    bindings/js/JSCanvasArrayCustom.cpp
+    bindings/js/JSCanvasByteArrayConstructor.cpp
+    bindings/js/JSCanvasByteArrayCustom.cpp
+    bindings/js/JSCanvasFloatArrayConstructor.cpp
+    bindings/js/JSCanvasFloatArrayCustom.cpp
+    bindings/js/JSCanvasIntArrayConstructor.cpp
+    bindings/js/JSCanvasIntArrayCustom.cpp
     bindings/js/JSCanvasNumberArrayCustom.cpp
     bindings/js/JSCanvasRenderingContextCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
+    bindings/js/JSCanvasShortArrayConstructor.cpp
+    bindings/js/JSCanvasShortArrayCustom.cpp
+    bindings/js/JSCanvasUnsignedByteArrayConstructor.cpp
+    bindings/js/JSCanvasUnsignedByteArrayCustom.cpp
+    bindings/js/JSCanvasUnsignedIntArrayConstructor.cpp
+    bindings/js/JSCanvasUnsignedIntArrayCustom.cpp
+    bindings/js/JSCanvasUnsignedShortArrayConstructor.cpp
+    bindings/js/JSCanvasUnsignedShortArrayCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSCustomPositionCallback.cpp
     bindings/js/JSCustomPositionErrorCallback.cpp
@@ -62,6 +78,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMessageChannelConstructor.cpp
     bindings/js/JSMessageChannelCustom.cpp
+    bindings/js/JSMessageEventCustom.cpp
     bindings/js/JSMessagePortCustom.cpp
     bindings/js/JSMimeTypeArrayCustom.cpp
     bindings/js/JSNamedNodeMapCustom.cpp

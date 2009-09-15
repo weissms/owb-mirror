@@ -33,6 +33,7 @@
 #include "MediaPlayer.h"
 #include "NotImplemented.h"
 #include "ScrollView.h"
+#include "TimeRanges.h"
 #include "Widget.h"
 
 #include <limits>
@@ -194,6 +195,12 @@ MediaPlayer::NetworkState MediaPlayerPrivate::networkState() const
 MediaPlayer::ReadyState MediaPlayerPrivate::readyState() const
 {
     return m_readyState;
+}
+
+PassRefPtr<TimeRanges> MediaPlayerPrivate::buffered() const
+{
+    notImplemented();
+    return TimeRanges::create();
 }
 
 float MediaPlayerPrivate::maxTimeBuffered() const

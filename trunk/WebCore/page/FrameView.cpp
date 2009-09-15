@@ -44,7 +44,6 @@
 #include "HTMLFrameSetElement.h"
 #include "HTMLNames.h"
 #include "OverflowEvent.h"
-#include "Page.h"
 #include "RenderPart.h"
 #include "RenderPartObject.h"
 #include "RenderScrollbar.h"
@@ -53,6 +52,10 @@
 #include "RenderView.h"
 #include "Settings.h"
 #include <wtf/CurrentTime.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorTimelineAgent.h"
+#endif
 
 #if USE(ACCELERATED_COMPOSITING)
 #include "RenderLayerCompositor.h"
@@ -93,13 +96,10 @@ struct ScheduledEvent {
 
 FrameView::FrameView(Frame* frame)
     : m_frame(frame)
-    , m_vmode(ScrollbarAuto)
-    , m_hmode(ScrollbarAuto)
     , m_slowRepaintObjectCount(0)
     , m_layoutTimer(this, &FrameView::layoutTimerFired)
     , m_layoutRoot(0)
     , m_postLayoutTasksTimer(this, &FrameView::postLayoutTimerFired)
-    , m_needToInitScrollbars(true)
     , m_isTransparent(false)
     , m_baseBackgroundColor(Color::white)
     , m_mediaType("screen")
@@ -210,7 +210,7 @@ void FrameView::resetScrollbars()
     // Reset the document's scrollbars back to our defaults before we yield the floor.
     m_firstLayout = true;
     setScrollbarsSuppressed(true);
-    setScrollbarModes(m_hmode, m_vmode);
+    setScrollbarModes(ScrollbarAuto, ScrollbarAuto);
     setScrollbarsSuppressed(false);
 }
 
@@ -241,22 +241,12 @@ void FrameView::detachCustomScrollbars()
     if (!m_frame)
         return;
 
-    Document* document = m_frame->document();
-    if (!document)
-        return;
-
-    Element* body = document->body();
-    if (!body)
-        return;
-
-    RenderBox* renderBox = body->renderBox();
-
     Scrollbar* horizontalBar = horizontalScrollbar();
-    if (horizontalBar && horizontalBar->isCustomScrollbar() && toRenderScrollbar(horizontalBar)->owningRenderer() == renderBox)
+    if (horizontalBar && horizontalBar->isCustomScrollbar() && !toRenderScrollbar(horizontalBar)->owningRenderer()->isRenderPart())
         setHasHorizontalScrollbar(false);
 
     Scrollbar* verticalBar = verticalScrollbar();
-    if (verticalBar && verticalBar->isCustomScrollbar() && toRenderScrollbar(verticalBar)->owningRenderer() == renderBox)
+    if (verticalBar && verticalBar->isCustomScrollbar() && !toRenderScrollbar(verticalBar)->owningRenderer()->isRenderPart())
         setHasVerticalScrollbar(false);
 
     if (m_scrollCorner) {
@@ -282,21 +272,6 @@ void FrameView::clear()
 bool FrameView::didFirstLayout() const
 {
     return !m_firstLayout;
-}
-
-void FrameView::initScrollbars()
-{
-    if (!m_needToInitScrollbars)
-        return;
-    m_needToInitScrollbars = false;
-    updateDefaultScrollbarState();
-}
-
-void FrameView::updateDefaultScrollbarState()
-{
-    m_hmode = horizontalScrollbarMode();
-    m_vmode = verticalScrollbarMode();
-    setScrollbarModes(m_hmode, m_vmode);
 }
 
 void FrameView::invalidateRect(const IntRect& rect)
@@ -330,12 +305,6 @@ void FrameView::setMarginHeight(int h)
 {
     // make it update the rendering area when set
     m_margins.setHeight(h);
-}
-
-void FrameView::setCanHaveScrollbars(bool canScroll)
-{
-    ScrollView::setCanHaveScrollbars(canScroll);
-    scrollbarModes(m_hmode, m_vmode);
 }
 
 PassRefPtr<Scrollbar> FrameView::createScrollbar(ScrollbarOrientation orientation)
@@ -526,6 +495,12 @@ void FrameView::layout(bool allowSubtree)
     if (isPainting())
         return;
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent();
+    if (timelineAgent)
+        timelineAgent->willLayout();
+#endif
+
     if (!allowSubtree && m_layoutRoot) {
         m_layoutRoot->markContainingBlocksForLayout(false);
         m_layoutRoot = 0;
@@ -577,8 +552,9 @@ void FrameView::layout(bool allowSubtree)
 
     m_nestedLayoutCount++;
 
-    ScrollbarMode hMode = m_hmode;
-    ScrollbarMode vMode = m_vmode;
+    ScrollbarMode hMode;
+    ScrollbarMode vMode;
+    scrollbarModes(hMode, vMode);
 
     if (!subtree) {
         RenderObject* rootRenderer = document->documentElement() ? document->documentElement()->renderer() : 0;
@@ -678,7 +654,7 @@ void FrameView::layout(bool allowSubtree)
 
 #if PLATFORM(MAC)
     if (AXObjectCache::accessibilityEnabled())
-        root->document()->axObjectCache()->postNotification(root, "AXLayoutComplete", true);
+        root->document()->axObjectCache()->postNotification(root, AXObjectCache::AXLayoutComplete, true);
 #endif
 #if ENABLE(DASHBOARD_SUPPORT)
     updateDashboardRegions();
@@ -709,6 +685,10 @@ void FrameView::layout(bool allowSubtree)
         ASSERT(m_enqueueEvents);
     }
 
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didLayout();
+#endif
     m_nestedLayoutCount--;
 }
 
@@ -1531,7 +1511,13 @@ void FrameView::paintContents(GraphicsContext* p, const IntRect& rect)
 {
     if (!frame())
         return;
-    
+
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent();
+    if (timelineAgent)
+        timelineAgent->willPaint();
+#endif
+
     Document* document = frame()->document();
 
 #ifndef NDEBUG
@@ -1595,6 +1581,11 @@ void FrameView::paintContents(GraphicsContext* p, const IntRect& rect)
 
     if (isTopLevelPainter)
         sCurrentPaintTimeStamp = 0;
+
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didPaint();
+#endif
 }
 
 void FrameView::setPaintRestriction(PaintRestriction pr)

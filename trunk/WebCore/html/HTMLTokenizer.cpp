@@ -54,6 +54,10 @@
 
 #include "HTMLEntityNames.c"
 
+#if ENABLE(INSPECTOR)
+#include "InspectorTimelineAgent.h"
+#endif
+
 #define PRELOAD_SCANNER_ENABLED 1
 // #define INSTRUMENT_LAYOUT_SCHEDULING 1
 
@@ -1657,10 +1661,16 @@ void HTMLTokenizer::write(const SegmentedString& str, bool appendData)
     if (!m_doc->ownerElement())
         printf("Beginning write at time %d\n", m_doc->elapsedTime());
 #endif
-    
+
     int processedCount = 0;
     double startTime = currentTime();
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = m_doc->inspectorTimelineAgent();
+    if (timelineAgent)
+        timelineAgent->willWriteHTML();
+#endif
+  
     Frame* frame = m_doc->frame();
 
     State state = m_state;
@@ -1781,7 +1791,12 @@ void HTMLTokenizer::write(const SegmentedString& str, bool appendData)
     if (!m_doc->ownerElement())
         printf("Ending write at time %d\n", m_doc->elapsedTime());
 #endif
-    
+
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didWriteHTML();
+#endif
+
     m_inWrite = wasInWrite;
 
     m_state = state;

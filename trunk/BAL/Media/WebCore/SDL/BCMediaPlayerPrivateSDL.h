@@ -68,6 +68,7 @@ namespace WebCore {
         MediaPlayer::NetworkState networkState() const;
         MediaPlayer::ReadyState readyState() const;
 
+        virtual PassRefPtr<TimeRanges> buffered() const;
         float maxTimeBuffered() const;
         float maxTimeSeekable() const;
         unsigned bytesLoaded() const;

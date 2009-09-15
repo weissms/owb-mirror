@@ -1440,11 +1440,16 @@ li.editing .swatch, li.editing .enabled-button {
 .swatch {
     display: inline-block;
     vertical-align: baseline;
-    margin-left: 4px;
+    margin-left: 1px;
+    margin-right: 2px;
     margin-bottom: -1px;
     width: 1em;
     height: 1em;
-    border: 1px solid rgb(180, 180, 180);
+    border: 1px solid rgba(128, 128, 128, 0.6);
+}
+
+.swatch:hover {
+    border: 1px solid rgba(64, 64, 64, 0.8);
 }
 
 .pane:not(.expanded) + .pane, .pane:first-of-type {
@@ -1483,6 +1488,34 @@ li.editing .swatch, li.editing .enabled-button {
 
 .pane.expanded > .title::before {
     content: url(Images/disclosureTriangleSmallDownBlack.png);
+}
+
+.pane > .title > select {
+    display: none;
+    float: right;
+    width: 23px;
+    height: 17px;
+    color: transparent;
+    background-color: transparent;
+    border: none;
+    background-image: url(Images/paneSettingsButtons.png);
+    background-repeat: no-repeat;
+    margin: 1px 0 0 0;
+    padding: 0;
+    -webkit-border-radius: 0;
+    -webkit-appearance: none;
+}
+
+.pane.expanded:hover > .title > select {
+    display: inline-block;
+}
+
+.pane > .title > select:hover {
+    background-position: -23px 0px;
+}
+
+.pane > .title > select:active {
+    background-position: -46px 0px;
 }
 
 .pane > .body {
@@ -2249,7 +2282,13 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
     overflow: hidden;
 }
 
-#resources-filter li {
+#console-filter {
+    height: 24px;
+    padding: 2px 10px 0;
+    overflow: hidden;
+}
+
+#resources-filter li, #console-filter li {
     display: inline-block;
     margin: 1px 1px 0 0;
     padding: 0 6px 3px;
@@ -2264,7 +2303,8 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
     text-shadow: rgba(255, 255, 255, 0.5) 1px 1px 0;
 }
 
-#resources-filter li.selected, #resources-filter li:hover, #resources-filter li:active {
+#resources-filter li.selected, #resources-filter li:hover, #resources-filter li:active,
+#console-filter li.selected, #console-filter li:hover, #console-filter li:active {
     color: white;
     text-shadow: rgb(80, 80, 80) 1px 1px 1px;
     background: rgba(20, 20, 20, 0.4);
@@ -2272,13 +2312,15 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
     -webkit-box-shadow: 0 1px 0px rgba(255, 255, 255, 0.5);
 }
 
-#resources-filter li:hover {
+#resources-filter li:hover,
+#console-filter li:hover {
     background: rgba(20, 20, 20, 0.4);
     border-color: transparent;
     -webkit-box-shadow: none;
 }
 
-#resources-filter li:active {
+#resources-filter li:active,
+#console-filter li:active {
     background: rgba(20, 20, 20, 0.6);
 }
 
@@ -2503,6 +2545,16 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
 .filter-all .resources-category-other, .filter-other .resources-category-other,
 .resource-sidebar-tree-item.selected {
     display: list-item;
+}
+
+.console-warning-level, .console-error-level, .console-log-level {
+    display: none;
+}
+
+.filter-all .console-warning-level, .filter-warnings .console-warning-level,
+.filter-all .console-error-level, .filter-errors .console-error-level,
+.filter-all .console-log-level, .filter-logs .console-log-level {
+    display: block;
 }
 
 .resources-graph-bar.waiting {

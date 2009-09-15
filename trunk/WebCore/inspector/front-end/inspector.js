@@ -40,6 +40,9 @@ var Preferences = {
     styleRulesExpandedState: {},
     showMissingLocalizedStrings: false,
     heapProfilerPresent: false,
+    samplingCPUProfiler: false,
+    showColorNicknames: true,
+    colorFormat: "hex"
 }
 
 var WebInspector = {
@@ -346,6 +349,10 @@ WebInspector.loaded = function()
 {
     var platform = InspectorController.platform();
     document.body.addStyleClass("platform-" + platform);
+
+    var colorFormat = InspectorController.setting("color-format");
+    if (colorFormat)
+        Preferences.colorFormat = colorFormat;
 
     this.drawer = new WebInspector.Drawer();
     this.console = new WebInspector.ConsoleView(this.drawer);
@@ -1449,17 +1456,19 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
     }
 
     function editingCancelled() {
-        this.innerText = oldText;
+        this.textContent = oldText;
 
         cleanUpAfterEditing.call(this);
 
-        cancelledCallback(this, context);
+        if (cancelledCallback)
+            cancelledCallback(this, context);
     }
 
     function editingCommitted() {
         cleanUpAfterEditing.call(this);
 
-        committedCallback(this, this.textContent, oldText, context, moveDirection);
+        if (committedCallback)
+            committedCallback(this, this.textContent, oldText, context, moveDirection);
     }
 
     element.handleKeyEvent = function(event) {

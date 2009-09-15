@@ -44,6 +44,7 @@
 #include "WebHistoryItem.h"
 #include "WebMutableURLRequest.h"
 #include "WebNotificationCenter.h"
+#include "WebSecurityOrigin.h"
 #include "WebURLAuthenticationChallenge.h"
 #include "WebURLResponse.h"
 #include "WebView.h"
@@ -527,6 +528,36 @@ void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const
 {
     return true;
+}
+
+void WebFrameLoaderClient::didDisplayInsecureContent()
+{
+    WebView* webView = m_webFrame->webView();
+    COMPtr<IWebFrameLoadDelegatePrivate> frameLoadDelegatePriv;
+    if (FAILED(webView->frameLoadDelegatePrivate(&frameLoadDelegatePriv)) || !frameLoadDelegatePriv)
+        return;
+
+    COMPtr<IWebFrameLoadDelegatePrivate2> frameLoadDelegatePriv2(Query, frameLoadDelegatePriv);
+    if (!frameLoadDelegatePriv2)
+        return;
+
+    frameLoadDelegatePriv2->didDisplayInsecureContent(webView);
+}
+
+void WebFrameLoaderClient::didRunInsecureContent(SecurityOrigin* origin)
+{
+    COMPtr<IWebSecurityOrigin> webSecurityOrigin = WebSecurityOrigin::createInstance(origin);
+
+    WebView* webView = m_webFrame->webView();
+    COMPtr<IWebFrameLoadDelegatePrivate> frameLoadDelegatePriv;
+    if (FAILED(webView->frameLoadDelegatePrivate(&frameLoadDelegatePriv)) || !frameLoadDelegatePriv)
+        return;
+
+    COMPtr<IWebFrameLoadDelegatePrivate2> frameLoadDelegatePriv2(Query, frameLoadDelegatePriv);
+    if (!frameLoadDelegatePriv2)
+        return;
+
+    frameLoadDelegatePriv2->didRunInsecureContent(webView, webSecurityOrigin.get());
 }
 
 PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const ResourceRequest& request, const SubstituteData& substituteData)

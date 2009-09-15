@@ -52,6 +52,7 @@
 #import <WebKit/WebHistory.h>
 #import <WebKit/WebHistoryPrivate.h>
 #import <WebKit/WebInspector.h>
+#import <WebKit/WebGeolocationMockPrivate.h>
 #import <WebKit/WebNSURLExtras.h>
 #import <WebKit/WebPreferences.h>
 #import <WebKit/WebPreferencesPrivate.h>
@@ -232,6 +233,18 @@ void LayoutTestController::setDatabaseQuota(unsigned long long quota)
     WebSecurityOrigin *origin = [[WebSecurityOrigin alloc] initWithURL:[NSURL URLWithString:@"file:///"]];
     [origin setQuota:quota];
     [origin release];
+}
+
+void LayoutTestController::setMockGeolocationPosition(double latitude, double longitude, double accuracy)
+{
+    [WebGeolocationMock setPosition:latitude:longitude:accuracy];
+}
+
+void LayoutTestController::setMockGeolocationError(int code, JSStringRef message)
+{
+    RetainPtr<CFStringRef> messageCF(AdoptCF, JSStringCopyCFString(kCFAllocatorDefault, message));
+    NSString *messageNS = (NSString *)messageCF.get();
+    [WebGeolocationMock setError:code:messageNS];
 }
 
 void LayoutTestController::setIconDatabaseEnabled(bool iconDatabaseEnabled)
@@ -464,3 +477,18 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
     NSString *destinationHostNS = (NSString *)hostCF.get();
     [WebView _whiteListAccessFromOrigin:sourceOriginNS destinationProtocol:destinationProtocolNS destinationHost:destinationHostNS allowDestinationSubdomains:allowDestinationSubdomains];
 }
+
+void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
+{
+    RetainPtr<CFStringRef> sourceCF(AdoptCF, JSStringCopyCFString(kCFAllocatorDefault, source));
+    NSString *sourceNS = (NSString *)sourceCF.get();
+    [WebView _addUserScriptToGroup:@"org.webkit.DumpRenderTree" source:sourceNS url:nil worldID:1 patterns:nil injectionTime:(runAtStart ? WebInjectAtDocumentStart : WebInjectAtDocumentEnd)];
+}
+
+void LayoutTestController::addUserStyleSheet(JSStringRef source)
+{
+    RetainPtr<CFStringRef> sourceCF(AdoptCF, JSStringCopyCFString(kCFAllocatorDefault, source));
+    NSString *sourceNS = (NSString *)sourceCF.get();
+    [WebView _addUserStyleSheetToGroup:@"org.webkit.DumpRenderTree" source:sourceNS url:nil worldID:1 patterns:nil];
+}
+

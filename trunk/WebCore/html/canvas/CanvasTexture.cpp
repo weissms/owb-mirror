@@ -39,6 +39,7 @@ PassRefPtr<CanvasTexture> CanvasTexture::create(CanvasRenderingContext3D* ctx)
 
 CanvasTexture::CanvasTexture(CanvasRenderingContext3D* ctx)
     : CanvasObject(ctx)
+    , cubeMapRWrapModeInitialized(false)
 {
     setObject(context()->graphicsContext3D()->createTexture());
 }
