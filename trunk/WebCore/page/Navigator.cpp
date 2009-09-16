@@ -27,7 +27,6 @@
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameLoaderClient.h"
-#include "Geolocation.h"
 #include "Language.h"
 #include "MimeTypeArray.h"
 #include "Page.h"
@@ -39,6 +38,9 @@
 #include "Settings.h"
 #if ENABLE(DOM_STORAGE)
 #include "StorageNamespace.h"
+#endif
+#if ENABLE(GEOLOCATION)
+#include "Geolocation.h"
 #endif
 
 namespace WebCore {
@@ -63,10 +65,12 @@ void Navigator::disconnectFrame()
         m_mimeTypes->disconnectFrame();
         m_mimeTypes = 0;
     }
+#if ENABLE(GEOLOCATION)
     if (m_geolocation) {
         m_geolocation->disconnectFrame();
         m_geolocation = 0;
     }
+#endif
     m_frame = 0;
 }
 
@@ -148,12 +152,14 @@ bool Navigator::javaEnabled() const
     return m_frame->settings()->isJavaEnabled();
 }
 
+#if ENABLE(GEOLOCATION)
 Geolocation* Navigator::geolocation() const
 {
     if (!m_geolocation)
         m_geolocation = Geolocation::create(m_frame);
     return m_geolocation.get();
 }
+#endif
 
 #if ENABLE(DOM_STORAGE)
 void Navigator::getStorageUpdates()

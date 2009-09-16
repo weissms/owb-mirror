@@ -27,6 +27,7 @@
  */
 
 #include "config.h"
+#include "PtrAndFlags.h"
 #include "WebPopup.h"
 #include "GraphicsContext.h"
 #include "IntRect.h"
@@ -40,6 +41,8 @@
 #include "FrameView.h"
 #include "Image.h"
 #include "RenderTheme.h"
+#include "PlatformString.h"
+#include "PopupMenu.h"
 
 using namespace WebCore;
 

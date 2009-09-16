@@ -946,7 +946,7 @@ Element* Document::elementFromPoint(int x, int y) const
     float zoomFactor = frame->pageZoomFactor();
     IntPoint point = roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)) + view()->scrollOffset();
 
-    if (!frameView->boundsRect().contains(point))
+    if (!frameView->visibleContentRect().contains(point))
         return 0;
 
     HitTestRequest request(HitTestRequest::ReadOnly | HitTestRequest::Active);
@@ -976,7 +976,7 @@ PassRefPtr<Range> Document::caretRangeFromPoint(int x, int y)
     float zoomFactor = frame->pageZoomFactor();
     IntPoint point = roundedIntPoint(FloatPoint(x * zoomFactor, y * zoomFactor)) + view()->scrollOffset();
 
-    if (!frameView->boundsRect().contains(point))
+    if (!frameView->visibleContentRect().contains(point))
         return 0;
 
     HitTestRequest request(HitTestRequest::ReadOnly | HitTestRequest::Active);
@@ -1468,27 +1468,8 @@ void Document::removeAllEventListeners()
 {
     if (DOMWindow* domWindow = this->domWindow())
         domWindow->removeAllEventListeners();
-    removeAllDisconnectedNodeEventListeners();
     for (Node* node = this; node; node = node->traverseNextNode())
         node->removeAllEventListeners();
-}
-
-void Document::registerDisconnectedNodeWithEventListeners(Node* node)
-{
-    m_disconnectedNodesWithEventListeners.add(node);
-}
-
-void Document::unregisterDisconnectedNodeWithEventListeners(Node* node)
-{
-    m_disconnectedNodesWithEventListeners.remove(node);
-}
-
-void Document::removeAllDisconnectedNodeEventListeners()
-{
-    HashSet<Node*>::iterator end = m_disconnectedNodesWithEventListeners.end();
-    for (HashSet<Node*>::iterator i = m_disconnectedNodesWithEventListeners.begin(); i != end; ++i)
-        (*i)->removeAllEventListeners();
-    m_disconnectedNodesWithEventListeners.clear();
 }
 
 RenderView* Document::renderView() const

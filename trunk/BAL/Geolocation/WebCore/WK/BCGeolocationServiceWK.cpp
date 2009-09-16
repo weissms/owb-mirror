@@ -26,6 +26,7 @@
 #include "config.h"
 #include "GeolocationService.h"
 #include "Geoposition.h"
+#include "GeolocationServiceMock.h"
 #include "PositionError.h"
 
 #include <wtf/CurrentTime.h>
@@ -49,6 +50,7 @@ GeolocationService* GeolocationService::create(GeolocationServiceClient* client)
 
 void GeolocationService::useMock()
 {
+    s_factoryFunction = &GeolocationServiceMock::create;
 }
 
 GeolocationService::GeolocationService(GeolocationServiceClient* client)

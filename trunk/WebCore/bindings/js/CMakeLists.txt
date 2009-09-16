@@ -54,7 +54,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSDataGridColumnListCustom.cpp
     bindings/js/JSDataGridDataSource.h
     bindings/js/JSDataGridDataSource.cpp
-    bindings/js/JSGeolocationCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCanvasElementCustom.cpp
@@ -139,6 +138,12 @@ if(ENABLE_OFFLINE_WEB_APPLICATIONS)
         bindings/js/JSDOMApplicationCacheCustom.cpp
     )
 endif(ENABLE_OFFLINE_WEB_APPLICATIONS)
+
+if(ENABLE_GEOLOCATION)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSGeolocationCustom.cpp
+    )
+endif(ENABLE_GEOLOCATION)
 
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC

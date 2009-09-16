@@ -51,9 +51,11 @@ namespace WebCore {
 
         virtual String userAgent() const;
 
+#if ENABLE(GEOLOCATION)
         Geolocation* geolocation() const;
         // This is used for GC marking.
         Geolocation* optionalGeolocation() const { return m_geolocation.get(); }
+#endif
 
 #if ENABLE(DOM_STORAGE)
         // Relinquishes the storage lock, if one exists.
@@ -65,7 +67,9 @@ namespace WebCore {
         Frame* m_frame;
         mutable RefPtr<PluginArray> m_plugins;
         mutable RefPtr<MimeTypeArray> m_mimeTypes;
+#if ENABLE(GEOLOCATION)
         mutable RefPtr<Geolocation> m_geolocation;
+#endif
     };
 
 }

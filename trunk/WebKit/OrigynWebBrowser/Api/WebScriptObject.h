@@ -29,10 +29,6 @@
 #ifndef WebScriptObject_H
 #define WebScriptObject_H
 
-namespace WebCore {
-    class String;
-}
-
 class WebScriptObject
 {
 public:
@@ -53,7 +49,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage);
+    virtual bool throwException(const char* exceptionMessage);
 
     /**
      * remove web script key 
@@ -63,7 +59,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name);
+    virtual void removeWebScriptKey(const char* name);
 
     /**
      *  stringRepresentation 
@@ -71,7 +67,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation();
+    virtual const char* stringRepresentation();
 
     /**
      *  setException 
@@ -79,7 +75,7 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description);
+    virtual void setException(const char* description);
 };
 
 #endif

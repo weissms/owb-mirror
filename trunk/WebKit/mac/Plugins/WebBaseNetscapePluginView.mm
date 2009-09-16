@@ -43,6 +43,8 @@
 
 #import <WebCore/WebCoreObjCExtras.h>
 #import <WebCore/AuthenticationMac.h>
+#import <WebCore/Credential.h>
+#import <WebCore/CredentialStorage.h>
 #import <WebCore/CString.h>
 #import <WebCore/Document.h>
 #import <WebCore/Element.h>
@@ -50,6 +52,7 @@
 #import <WebCore/FrameLoader.h>
 #import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/Page.h>
+#import <WebCore/ProtectionSpace.h>
 #import <WebCore/RenderView.h>
 #import <WebKit/DOMPrivate.h>
 #import <runtime/InitializeThreading.h>
@@ -389,9 +392,10 @@ using namespace WebCore;
     
     _isStarted = YES;
     [[self webView] addPluginInstanceView:self];
-    
-    [self updateAndSetWindow];
-    
+
+    if ([self currentWindow])
+        [self updateAndSetWindow];
+
     if ([self window]) {
         [self addWindowObservers];
         if ([[self window] isKeyWindow]) {
@@ -478,11 +482,16 @@ using namespace WebCore;
                                                  selector:@selector(preferencesHaveChanged:)
                                                      name:WebPreferencesChangedNotification
                                                    object:nil];
-        
+
         // View moved to an actual window. Start it if not already started.
         [self start];
-        [self restartTimers];
-        [self addWindowObservers];
+
+        // Starting the plug-in can result in it removing itself from the window so we need to ensure that we're still in
+        // place before doing anything that requires a window.
+        if ([self window]) {
+            [self restartTimers];
+            [self addWindowObservers];
+        }
     } else if ([[self webView] hostWindow]) {
         // View moved out of an actual window, but still has a host window.
         // Call setWindow to explicitly "clip out" the plug-in from sight.
@@ -868,7 +877,7 @@ bool getAuthenticationInfo(const char* protocolStr, const char* hostStr, int32_t
     
     RetainPtr<NSURLProtectionSpace> protectionSpace(AdoptNS, [[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:authenticationMethod]);
     
-    NSURLCredential *credential = WebCoreCredentialStorage::get(protectionSpace.get());
+    NSURLCredential *credential = mac(CredentialStorage::get(core(protectionSpace.get())));
     if (!credential)
         credential = [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace.get()];
     if (!credential)

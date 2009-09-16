@@ -4998,6 +4998,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\network\CredentialStorage.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\CredentialStorage.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\network\FormData.cpp"
 					>
 				</File>
@@ -5035,6 +5043,10 @@
 				</File>
 				<File
 					RelativePath="..\platform\network\ProtectionSpace.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\ProtectionSpaceHash.h"
 					>
 				</File>
 				<File

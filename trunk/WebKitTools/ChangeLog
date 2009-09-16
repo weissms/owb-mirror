@@ -1,3 +1,170 @@
+2009-09-16  Alex Milowski  <alex@milowski.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Added mathml toggle
+
+        * Scripts/build-webkit:
+
+2009-09-15  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Allow waf build to support Python < 2.6.
+
+        * wx/build/waf_extensions.py:
+
+2009-09-14  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add LayoutTests infrastructure to enable and disable webgl tests.
+        https://bugs.webkit.org/show_bug.cgi?id=29254
+
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+
+2009-09-14  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Add --iterations option to run-webkit-tests to repeat the tests N times
+        https://bugs.webkit.org/show_bug.cgi?id=29263
+
+        When run with --iterations N, run-webkit-tests will repeat the tests N times.
+
+        * Scripts/run-webkit-tests:
+
+2009-09-14  Brady Eidson  <beidson@apple.com>
+
+        Not reviewed, maybe should've been:
+
+        Cleaning up more Windows-specific fallout from the fix for:
+        <rdar://problem/7174050> and https://bugs.webkit.org/show_bug.cgi?id=29160
+
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::didReceiveAuthenticationChallenge):  Correct printf() formatter, 
+          and call the correct method to get the Sender.
+
+2009-09-14  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        GTK build fix.
+
+        Unreviewed.
+
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::setLogScrollingStartEvents):
+
+2009-09-11  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        DRT/test part of
+        <rdar://problem/7197644> WebKit should broadcast an MSAA event when
+        jumping to a named anchor
+
+        https://bugs.webkit.org/show_bug.cgi?id=28899
+
+        Reviewed by Adam Roben.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (logScrollingStartEventsCallback):
+        Turn on logging of scrolling start events.
+        (AccessibilityController::getJSClass):
+        Add a "logScrollingStartEvents" to the AccessibilityController's JS
+        class definition.
+        (AccessibilityController::resetToConsistentState):
+        Turn off logging of scrolling start events.
+
+        * DumpRenderTree/AccessibilityController.h:
+        Declare setLogScrollingStartEvents(). Add a member for the scrolling
+        start event hook.
+
+        * DumpRenderTree/mac/AccessibilityControllerMac.cpp:
+        (AccessibilityController::setLogScrollingStartEvents):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityControllerWin.cpp:
+        (AccessibilityController::AccessibilityController):
+        Initialize the handle to 0.
+        (logEventProc):
+        Renamed from logFocusEventProc; now logs scrolling start events, too.
+        Removed the assertion that the event is a focus event. Added a switch
+        to print a message for focus, scrolling start, and other, unknown
+        events.
+        (AccessibilityController::setLogFocusEvents):
+        Changed to use logEventProc.
+        (AccessibilityController::setLogScrollingStartEvents):
+        If turning logging off, unhook the scrolling start event hook, and clear
+        the member holding the handle. If turning on, query for the root
+        accessible, so that accessibility is enabled for the WebView, and call
+        SetWinEventHook to setup an event hook using logEventProc as the
+        callback function.
+
+2009-09-14  Brady Eidson  <beidson@apple.com>
+
+        Windows build fix.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setAuthenticationPasswordCallback):
+        (setAuthenticationUsernameCallback):
+        
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::didReceiveAuthenticationChallenge):
+
+2009-09-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Safari 4 cannot be used to update firmware on Linksys routers.
+        <rdar://problem/7174050> and https://bugs.webkit.org/show_bug.cgi?id=29160
+
+        Add the ability for DRT to handle authentication challenges.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setAuthenticationPasswordCallback):
+        (setAuthenticationUsernameCallback):
+        (setHandlesAuthenticationChallengesCallback):
+        (LayoutTestController::staticFunctions):
+
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::handlesAuthenticationChallenges):
+        (LayoutTestController::setHandlesAuthenticationChallenges):
+        (LayoutTestController::authenticationUsername):
+        (LayoutTestController::setAuthenticationUsername):
+        (LayoutTestController::authenticationPassword):
+        (LayoutTestController::setAuthenticationPassword):
+
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm:
+        (-[ResourceLoadDelegate webView:resource:didReceiveAuthenticationChallenge:fromDataSource:]):
+
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::didReceiveAuthenticationChallenge):
+        * DumpRenderTree/win/ResourceLoadDelegate.h:
+
+2009-09-12  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Test for <rdar://problem/6954546> and <rdar://problem/7090444>.
+
+        Add a flag on the test plug-in that asks it to clear the document during the call to NPP_New.
+        This is the trigger for both <rdar://problem/6954546> and <rdar://problem/7090444>.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+
+2009-09-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix for non-wxPython builds and a fix for errors when updating swig.py.
+
+        * wx/build/build_utils.py:
+        * wx/build/settings.py:
+
+2009-09-14  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Build fix for windows build.
+
+        * Scripts/bisect-builds: Add missing paranthesis for tmpdir function.
+
 2009-09-14  Kevin Ollivier  <kevino@theolliviers.com>
 
         Fix typo accidently landed in last commit.

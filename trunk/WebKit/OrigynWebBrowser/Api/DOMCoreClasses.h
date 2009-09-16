@@ -30,21 +30,18 @@
 #define DOMCoreClasses_H
 
 #include "WebScriptObject.h"
-#include "BALBase.h"
-#include "PlatformString.h"
-#include "IntRect.h"
-#include "DOMImplementation.h"
+#include "WebKitTypes.h"
 
 namespace WebCore {
     class Element;
     class Document;
     class Node;
     class NodeList;
-    class WebCore::DOMImplementation;
+    class DOMImplementation;
 }
 
 struct WebFontDescription {
-    WebCore::String family;
+    const char* family;
     unsigned familyLength;
     float size;
     bool weight;
@@ -58,7 +55,7 @@ class DOMEvent;
 class DOMElement;
 class DOMCSSStyleDeclaration;
 
-class DOMObject : public WebScriptObject
+class WEBKIT_OWB_API DOMObject : public WebScriptObject
 {
 public:
     /**
@@ -66,7 +63,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return WebScriptObject::throwException(exceptionMessage); 
     }
@@ -79,7 +76,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         WebScriptObject::removeWebScriptKey(name);
     }
@@ -90,7 +87,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return WebScriptObject::stringRepresentation();
     }
@@ -101,13 +98,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         WebScriptObject::setException(description);
     }
 };
 
-class DOMNode : public DOMObject
+class WEBKIT_OWB_API DOMNode : public DOMObject
 {
 protected:
     DOMNode(WebCore::Node* n);
@@ -124,7 +121,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return WebScriptObject::throwException(exceptionMessage); 
     }
@@ -137,7 +134,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         WebScriptObject::removeWebScriptKey(name);
     }
@@ -148,7 +145,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return WebScriptObject::stringRepresentation();
     }
@@ -159,17 +156,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         WebScriptObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName();
+    virtual const char* nodeName();
     
-    virtual WebCore::String nodeValue();
+    virtual const char* nodeValue();
     
-    virtual void setNodeValue(WebCore::String);
+    virtual void setNodeValue(const char*);
     
     virtual unsigned short nodeType();
     
@@ -203,15 +200,15 @@ public:
     
     virtual void normalize();
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version);
+    virtual bool isSupported(const char* feature, const char* version);
     
-    virtual WebCore::String namespaceURI();
+    virtual const char* namespaceURI();
     
-    virtual WebCore::String prefix();
+    virtual const char* prefix();
     
-    virtual void setPrefix(WebCore::String);
+    virtual void setPrefix(const char*);
     
-    virtual WebCore::String localName();
+    virtual const char* localName();
     
     virtual bool hasAttributes();
 
@@ -219,14 +216,14 @@ public:
     
     virtual bool isEqualNode(DOMNode* other);
     
-    virtual WebCore::String textContent();
+    virtual const char* textContent();
     
-    virtual void setTextContent(WebCore::String text);
+    virtual void setTextContent(const char* text);
 
     // IDOMEventTarget
-    virtual void addEventListener(WebCore::String type, DOMEventListener *listener, bool useCapture);
+    virtual void addEventListener(const char* type, DOMEventListener *listener, bool useCapture);
     
-    virtual void removeEventListener( WebCore::String type, DOMEventListener *listener, bool useCapture);
+    virtual void removeEventListener( const char* type, DOMEventListener *listener, bool useCapture);
     
     virtual bool dispatchEvent(DOMEvent *evt);
 
@@ -237,7 +234,7 @@ protected:
     WebCore::Node* m_node;
 };
 
-class DOMNodeList : public DOMObject
+class WEBKIT_OWB_API DOMNodeList : public DOMObject
 {
 protected:
     DOMNodeList(WebCore::NodeList* l);
@@ -253,7 +250,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return WebScriptObject::throwException(exceptionMessage); 
     }
@@ -266,7 +263,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         WebScriptObject::removeWebScriptKey(name);
     }
@@ -277,7 +274,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return WebScriptObject::stringRepresentation();
     }
@@ -288,7 +285,7 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         WebScriptObject::setException(description);
     }
@@ -302,7 +299,7 @@ protected:
     WebCore::NodeList* m_nodeList;
 };
 
-class DOMDocument : public DOMNode
+class WEBKIT_OWB_API DOMDocument : public DOMNode
 {
 protected:
     DOMDocument(WebCore::Document* d);
@@ -317,7 +314,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return WebScriptObject::throwException(exceptionMessage);
     }
@@ -330,7 +327,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         WebScriptObject::removeWebScriptKey(name);
     }
@@ -341,7 +338,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return WebScriptObject::stringRepresentation();
     }
@@ -352,17 +349,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         WebScriptObject::setException(description);
     }
     
     // DOMNode
-    virtual WebCore::String nodeName() { return DOMNode::nodeName(); }
+    virtual const char* nodeName() { return DOMNode::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMNode::nodeValue(); }
+    virtual const char* nodeValue() { return DOMNode::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMNode::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMNode::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMNode::nodeType(); }
     
@@ -396,15 +393,15 @@ public:
     
     virtual void normalize() { DOMNode::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMNode::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMNode::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMNode::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMNode::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMNode::prefix(); }
+    virtual const char* prefix() { return DOMNode::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { DOMNode::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { DOMNode::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMNode::localName(); }
+    virtual const char* localName() { return DOMNode::localName(); }
     
     virtual bool hasAttributes() { return DOMNode::hasAttributes(); }
 
@@ -412,9 +409,9 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMNode::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMNode::textContent(); }
+    virtual const char* textContent() { return DOMNode::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMNode::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMNode::setTextContent(text); }
     
     // DOMDocument
 //    virtual DOMDocumentType* doctype();
@@ -423,39 +420,39 @@ public:
     
     virtual DOMElement* documentElement();
     
-    virtual DOMElement* createElement(WebCore::String tagName);
+    virtual DOMElement* createElement(const char* tagName);
     
     //virtual DOMDocumentFragment* createDocumentFragment();
     
-    /*virtual DOMText* createTextNode(WebCore::String data);
+    /*virtual DOMText* createTextNode(const char* data);
     
-    virtual DOMComment* createComment(WebCore::String data);
+    virtual DOMComment* createComment(const char* data);
     
-    virtual DOMCDATASection* createCDATASection(WebCore::String data);
+    virtual DOMCDATASection* createCDATASection(const char* data);
     
-    virtual DOMProcessingInstruction* createProcessingInstruction(WebCore::String target, WebCore::String data);
+    virtual DOMProcessingInstruction* createProcessingInstruction(const char* target, const char* data);
     
-    virtual DOMAttr* createAttribute(WebCore::String name);
+    virtual DOMAttr* createAttribute(const char* name);
     
-    virtual DOMEntityReference* createEntityReference(WebCore::String name);*/
+    virtual DOMEntityReference* createEntityReference(const char* name);*/
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String tagName);
+    virtual DOMNodeList* getElementsByTagName(const char* tagName);
     
     virtual DOMNode* importNode(DOMNode *importedNode, bool deep);
     
-    virtual DOMElement* createElementNS(WebCore::String namespaceURI, WebCore::String qualifiedName);
+    virtual DOMElement* createElementNS(const char* namespaceURI, const char* qualifiedName);
     
-    //virtual DOMAttr* createAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName);
+    //virtual DOMAttr* createAttributeNS(const char* namespaceURI, const char* qualifiedName);
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName);
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName);
     
-    virtual DOMElement* getElementById(WebCore::String elementId);
+    virtual DOMElement* getElementById(const char* elementId);
 
     // DOMViewCSS
-    virtual DOMCSSStyleDeclaration* getComputedStyle(DOMElement *elt, WebCore::String pseudoElt);
+    virtual DOMCSSStyleDeclaration* getComputedStyle(DOMElement *elt, const char* pseudoElt);
 
     // DOMDocumentEvent
-    virtual DOMEvent* createEvent(WebCore::String eventType);
+    virtual DOMEvent* createEvent(const char* eventType);
 
     // DOMDocument
     WebCore::Document* document() { return m_document; }
@@ -464,7 +461,7 @@ protected:
     WebCore::Document* m_document;
 };
 
-class DOMElement : public DOMNode
+class WEBKIT_OWB_API DOMElement : public DOMNode
 {
 protected:
     DOMElement(WebCore::Element* e);
@@ -479,7 +476,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return WebScriptObject::throwException(exceptionMessage); 
     }
@@ -492,7 +489,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         WebScriptObject::removeWebScriptKey(name);
     }
@@ -503,7 +500,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return WebScriptObject::stringRepresentation();
     }
@@ -514,17 +511,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         WebScriptObject::setException(description);
     }
     
     // DOMNode
-    virtual WebCore::String nodeName() { return DOMNode::nodeName(); }
+    virtual const char* nodeName() { return DOMNode::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMNode::nodeValue(); }
+    virtual const char* nodeValue() { return DOMNode::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMNode::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMNode::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMNode::nodeType(); }
     
@@ -558,15 +555,15 @@ public:
     
     virtual void normalize() { DOMNode::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMNode::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMNode::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMNode::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMNode::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMNode::prefix(); }
+    virtual const char* prefix() { return DOMNode::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { DOMNode::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { DOMNode::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMNode::localName(); }
+    virtual const char* localName() { return DOMNode::localName(); }
     
     virtual bool hasAttributes() { return DOMNode::hasAttributes(); }
 
@@ -574,51 +571,51 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMNode::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMNode::textContent(); }
+    virtual const char* textContent() { return DOMNode::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMNode::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMNode::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName();
+    virtual const char* tagName();
     
-    virtual WebCore::String getAttribute(WebCore::String name);
+    virtual const char* getAttribute(const char* name);
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value);
+    virtual void setAttribute(const char* name, const char* value);
     
-    virtual void removeAttribute(WebCore::String name);
+    virtual void removeAttribute(const char* name);
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name);
+    //virtual DOMAttr* getAttributeNode(const char* name);
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr);
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr);
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name);
+    virtual DOMNodeList* getElementsByTagName(const char* name);
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName);
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName);
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value);
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value);
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName);
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName);
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore::String localName);
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, const char* localName);
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr);
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName);
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName);
     
-    virtual bool hasAttribute(WebCore::String name);
+    virtual bool hasAttribute(const char* name);
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName);
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName);
 
     virtual void focus();
     
     virtual void blur();
 
     // DOMNodeExtensions
-    virtual WebCore::IntRect boundingBox();
+    virtual BalRectangle boundingBox();
     
-    virtual void lineBoxRects( WebCore::IntRect *rects, int cRects);
+    virtual void lineBoxRects(BalRectangle *rects, int cRects);
 
     // DOMElementPrivate
     virtual void* coreElement();
@@ -627,7 +624,7 @@ public:
 
     virtual bool isFocused();
 
-    virtual WebCore::String innerText();
+    virtual const char* innerText();
 
     virtual WebFontDescription* font();
 

@@ -52,7 +52,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -65,7 +65,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -76,7 +76,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -87,7 +87,7 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
@@ -110,7 +110,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -123,7 +123,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -134,7 +134,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -145,13 +145,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMEvent
-    virtual WebCore::String type();
+    virtual const char* type();
     
     virtual DOMEventTarget* target();
     
@@ -169,7 +169,7 @@ public:
     
     virtual void preventDefault();
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg);
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg);
 
     // DOMEvent methods
     WebCore::Event* coreEvent() { return m_event.get(); }
@@ -188,7 +188,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -201,7 +201,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -212,7 +212,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -223,13 +223,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -247,14 +247,14 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
     
     // IDOMUIEvent
     virtual WebCore::DOMWindow* view();
     
     virtual long detail();
     
-    virtual void initUIEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail);
+    virtual void initUIEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail);
     
     virtual long keyCode();
     
@@ -281,7 +281,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -294,7 +294,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -305,7 +305,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -316,13 +316,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -340,14 +340,14 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
 
     // IDOMUIEvent
     virtual WebCore::DOMWindow* view() { return DOMUIEvent::view(); }
     
     virtual long detail() { return DOMUIEvent::detail(); }
     
-    virtual void initUIEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) {  DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
+    virtual void initUIEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) {  DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
     
     virtual long keyCode() { return DOMUIEvent::keyCode(); }
     
@@ -364,7 +364,7 @@ public:
     virtual long which() { return DOMUIEvent::which(); }
     
     // DOMKeyboardEvent
-    virtual WebCore::String keyIdentifier();
+    virtual const char* keyIdentifier();
     
     virtual unsigned long keyLocation();
     
@@ -378,9 +378,9 @@ public:
     
     virtual bool altGraphKey();
     
-    virtual bool getModifierState(WebCore::String keyIdentifierArg);
+    virtual bool getModifierState(const char* keyIdentifierArg);
     
-    virtual void initKeyboardEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, WebCore::String keyIdentifier, unsigned long keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool graphKey);
+    virtual void initKeyboardEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, const char* keyIdentifier, unsigned long keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool graphKey);
 };
 
 class DOMMouseEvent : public DOMUIEvent
@@ -393,7 +393,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -406,7 +406,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -417,7 +417,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -428,13 +428,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // DOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -452,14 +452,14 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
 
     // DOMUIEvent
     virtual WebCore::DOMWindow* view() { return DOMUIEvent::view(); }
     
     virtual long detail() { return DOMUIEvent::detail(); }
     
-    virtual void initUIEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) {  DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
+    virtual void initUIEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) {  DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
     
     virtual long keyCode() { return DOMUIEvent::keyCode(); }
     
@@ -496,7 +496,7 @@ public:
     
     virtual DOMEventTarget* relatedTarget();
     
-    virtual void initMouseEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail, long screenX, long screenY, long clientX, long clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, unsigned short button, DOMEventTarget* relatedTarget);
+    virtual void initMouseEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail, long screenX, long screenY, long clientX, long clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, unsigned short button, DOMEventTarget* relatedTarget);
     
     virtual long offsetX();
     
@@ -521,7 +521,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -534,7 +534,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -545,7 +545,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -556,13 +556,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // DOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -580,20 +580,20 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
 
     // DOMMutationEvent
     virtual DOMNode* relatedNode();
     
-    virtual WebCore::String prevValue();
+    virtual const char* prevValue();
     
-    virtual WebCore::String newValue();
+    virtual const char* newValue();
     
-    virtual WebCore::String attrName();
+    virtual const char* attrName();
     
     virtual unsigned short attrChange();
     
-    virtual void initMutationEvent(WebCore::String type, bool canBubble, bool cancelable, DOMNode* relatedNode, WebCore::String prevValue, WebCore::String newValue, WebCore::String attrName, unsigned short attrChange);
+    virtual void initMutationEvent(const char* type, bool canBubble, bool cancelable, DOMNode* relatedNode, const char* prevValue, const char* newValue, const char* attrName, unsigned short attrChange);
 };
 
 class DOMOverflowEvent : public DOMEvent
@@ -606,7 +606,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -619,7 +619,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -630,7 +630,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -641,13 +641,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -665,7 +665,7 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
 
     // DOMOverflowEvent
     virtual unsigned short orient();
@@ -685,7 +685,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -698,7 +698,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -709,7 +709,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -720,13 +720,13 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMEvent
-    virtual WebCore::String type() { return DOMEvent::type(); }
+    virtual const char* type() { return DOMEvent::type(); }
     
     virtual DOMEventTarget* target() { return DOMEvent::target(); }
     
@@ -744,14 +744,14 @@ public:
     
     virtual void preventDefault() { DOMEvent::preventDefault(); }
     
-    virtual void initEvent(WebCore::String eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
+    virtual void initEvent(const char* eventTypeArg, bool canBubbleArg, bool cancelableArg) { return DOMEvent::initEvent(eventTypeArg, canBubbleArg, cancelableArg); }
     
     // IDOMUIEvent
     virtual WebCore::DOMWindow* view() { return DOMUIEvent::view(); }
     
     virtual long detail() { return DOMUIEvent::detail(); }
     
-    virtual void initUIEvent(WebCore::String type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) { return DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
+    virtual void initUIEvent(const char* type, bool canBubble, bool cancelable, WebCore::DOMWindow* view, long detail) { return DOMUIEvent::initUIEvent(type, canBubble, cancelable, view, detail); }
     
     virtual long keyCode() { return DOMUIEvent::keyCode(); }
     

@@ -27,9 +27,12 @@
 #include "JSCustomPositionCallback.h"
 
 #include "Frame.h"
-#include "JSGeoposition.h"
 #include "ScriptController.h"
 #include <runtime/JSLock.h>
+
+#if ENABLE(GEOLOCATION)
+#include "JSGeoposition.h"
+#endif
 
 namespace WebCore {
 
@@ -43,6 +46,7 @@ JSCustomPositionCallback::JSCustomPositionCallback(JSObject* callback, Frame* fr
 
 void JSCustomPositionCallback::handleEvent(Geoposition* geoposition)
 {
+#if ENABLE(GEOLOCATION)
     ASSERT(m_callback);
     ASSERT(m_frame);
     
@@ -80,6 +84,7 @@ void JSCustomPositionCallback::handleEvent(Geoposition* geoposition)
         reportCurrentException(exec);
     
     Document::updateStyleForAllDocuments();
+#endif
 }
 
 } // namespace WebCore

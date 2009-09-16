@@ -16,7 +16,6 @@ list(APPEND WEBCORE_SRC
     page/Frame.cpp
     page/FrameTree.cpp
     page/FrameView.cpp
-    page/Geolocation.cpp
     page/History.cpp
     page/Location.cpp
     page/MouseEventWithHitTestResults.cpp
@@ -38,8 +37,6 @@ list(APPEND IDL_SRC
     page/Coordinates.idl
     page/DOMSelection.idl
     page/DOMWindow.idl
-    page/Geoposition.idl
-    page/Geolocation.idl
     page/History.idl
     page/Location.idl
     page/Navigator.idl
@@ -65,6 +62,16 @@ if(ENABLE_INSPECTOR)
         page/Console.idl
     )    
 endif(ENABLE_INSPECTOR)
+
+if(ENABLE_GEOLOCATION)
+    list(APPEND WEBCORE_SRC
+        page/Geolocation.cpp
+    )
+    list(APPEND IDL_SRC
+        page/Geoposition.idl
+        page/Geolocation.idl
+    )
+endif(ENABLE_GEOLOCATION)
 
 if(ENABLE_EVENTSOURCE)
     list(APPEND WEBCORE_SRC

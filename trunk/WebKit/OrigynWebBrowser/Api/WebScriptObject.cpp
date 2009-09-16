@@ -44,25 +44,26 @@ WebScriptObject::~WebScriptObject()
 }
 
 
-bool WebScriptObject::throwException(String /*exceptionMessage*/)
+bool WebScriptObject::throwException(const char* /*exceptionMessage*/)
 {
     notImplemented();
     return false;
 }
 
-void WebScriptObject::removeWebScriptKey(String /*name*/)
+void WebScriptObject::removeWebScriptKey(const char* /*name*/)
 {
     notImplemented();
 }
 
-String WebScriptObject::stringRepresentation()
+const char* WebScriptObject::stringRepresentation()
 {
     notImplemented();
-    return String();
+    return "";
 }
 
 
-void WebScriptObject::setException(WebCore::String /*description*/)
+void WebScriptObject::setException(const char* /*description*/)
 {
     notImplemented();
 }
+

@@ -74,9 +74,9 @@ DOMEvent* DOMEvent::createInstance(PassRefPtr<WebCore::Event> e)
     return 0;
 }
 
-WebCore::String DOMEvent::type()
+const char* DOMEvent::type()
 {
-    return WebCore::String();
+    return "";
 }
 
 DOMEventTarget* DOMEvent::target()
@@ -117,7 +117,7 @@ void DOMEvent::preventDefault()
 {
 }
 
-void DOMEvent::initEvent(WebCore::String /*eventTypeArg*/, bool /*canBubbleArg*/, bool /*cancelableArg*/)
+void DOMEvent::initEvent(const char* /*eventTypeArg*/, bool /*canBubbleArg*/, bool /*cancelableArg*/)
 {
 }
 
@@ -133,7 +133,7 @@ long DOMUIEvent::detail()
     return 0;
 }
 
-void DOMUIEvent::initUIEvent(WebCore::String /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, long /*detail*/)
+void DOMUIEvent::initUIEvent(const char* /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, long /*detail*/)
 {
 }
 
@@ -174,9 +174,9 @@ long DOMUIEvent::which()
 
 // DOMKeyboardEvent -----------------------------------------------------------
 
-WebCore::String DOMKeyboardEvent::keyIdentifier()
+const char* DOMKeyboardEvent::keyIdentifier()
 {
-    return WebCore::String();
+    return "";
 }
 
 unsigned long DOMKeyboardEvent::keyLocation()
@@ -229,12 +229,12 @@ bool DOMKeyboardEvent::altGraphKey()
     return keyEvent->altGraphKey() ? true : false;
 }
 
-bool DOMKeyboardEvent::getModifierState(WebCore::String /*keyIdentifierArg*/)
+bool DOMKeyboardEvent::getModifierState(const char* /*keyIdentifierArg*/)
 {
     return false;
 }
 
-void DOMKeyboardEvent::initKeyboardEvent(WebCore::String /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, WebCore::String /*keyIdentifier*/, unsigned long /*keyLocation*/, bool /*ctrlKey*/, bool /*altKey*/, bool /*shiftKey*/, bool /*metaKey*/, bool /*graphKey*/)
+void DOMKeyboardEvent::initKeyboardEvent(const char* /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, const char* /*keyIdentifier*/, unsigned long /*keyLocation*/, bool /*ctrlKey*/, bool /*altKey*/, bool /*shiftKey*/, bool /*metaKey*/, bool /*graphKey*/)
 {
 }
 
@@ -306,7 +306,7 @@ DOMEventTarget* DOMMouseEvent::relatedTarget()
     return 0;
 }
 
-void DOMMouseEvent::initMouseEvent(WebCore::String /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, long /*detail*/, long /*screenX*/, long /*screenY*/, long /*clientX*/, long /*clientY*/, bool /*ctrlKey*/, bool /*altKey*/, bool /*shiftKey*/, bool /*metaKey*/, unsigned short /*button*/, DOMEventTarget* /*relatedTarget*/)
+void DOMMouseEvent::initMouseEvent(const char* /*type*/, bool /*canBubble*/, bool /*cancelable*/, WebCore::DOMWindow* /*view*/, long /*detail*/, long /*screenX*/, long /*screenY*/, long /*clientX*/, long /*clientY*/, bool /*ctrlKey*/, bool /*altKey*/, bool /*shiftKey*/, bool /*metaKey*/, unsigned short /*button*/, DOMEventTarget* /*relatedTarget*/)
 {
 }
 
@@ -347,19 +347,19 @@ DOMNode* DOMMutationEvent::relatedNode()
     return 0;
 }
 
-WebCore::String DOMMutationEvent::prevValue()
+const char* DOMMutationEvent::prevValue()
 {
-    return WebCore::String();
+    return "";
 }
 
-WebCore::String DOMMutationEvent::newValue()
+const char* DOMMutationEvent::newValue()
 {
-    return WebCore::String();
+    return "";
 }
 
-WebCore::String DOMMutationEvent::attrName()
+const char* DOMMutationEvent::attrName()
 {
-    return WebCore::String();
+    return "";
 }
 
 unsigned short DOMMutationEvent::attrChange()
@@ -367,7 +367,7 @@ unsigned short DOMMutationEvent::attrChange()
     return 0;
 }
 
-void DOMMutationEvent::initMutationEvent(WebCore::String /*type*/, bool /*canBubble*/, bool /*cancelable*/, DOMNode* /*relatedNode*/, WebCore::String /*prevValue*/, WebCore::String /*newValue*/, WebCore::String /*attrName*/, unsigned short /*attrChange*/)
+void DOMMutationEvent::initMutationEvent(const char* /*type*/, bool /*canBubble*/, bool /*cancelable*/, DOMNode* /*relatedNode*/, const char* /*prevValue*/, const char* /*newValue*/, const char* /*attrName*/, unsigned short /*attrChange*/)
 {
 }
 

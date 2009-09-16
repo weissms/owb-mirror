@@ -28,9 +28,13 @@
 #ifndef WebWindowConfirm_H
 #define WebWindowConfirm_H
 
-#include "WebKit.h"
 #include "WebWindow.h"
 #include <string>
+
+namespace WebCore {
+    class Font;
+    class TextRun;
+}
 
 class WebView;
 
@@ -56,6 +60,7 @@ private:
     WebWindowConfirm(const char* text, WebView *);
     void drawButton();
     void updateButton();
+    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
 
     std::string m_text;
     std::string m_buttonOk;

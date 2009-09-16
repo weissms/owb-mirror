@@ -27,6 +27,7 @@
  */
 
 #include "config.h"
+#include "PtrAndFlags.h"
 #include "WebWorkersPrivate.h"
 
 #if ENABLE(WORKERS)

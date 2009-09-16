@@ -28,7 +28,6 @@
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameTree.h"
-#include "Geolocation.h"
 #include "HTMLFormElement.h"
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
@@ -47,6 +46,10 @@
 
 #if ENABLE(DOM_STORAGE)
 #include "StorageNamespace.h"
+#endif
+
+#if ENABLE(GEOLOCATION)
+#include "Geolocation.h"
 #endif
 
 #if ENABLE(INSPECTOR)
@@ -393,6 +396,7 @@ void Chrome::print(Frame* frame)
     m_client->print(frame);
 }
 
+#if ENABLE(GEOLOCATION)
 void Chrome::requestGeolocationPermissionForFrame(Frame* frame, Geolocation* geolocation)
 {
     // Defer loads in case the client method runs a new event loop that would
@@ -402,6 +406,7 @@ void Chrome::requestGeolocationPermissionForFrame(Frame* frame, Geolocation* geo
     ASSERT(frame);
     m_client->requestGeolocationPermissionForFrame(frame, geolocation);
 }
+#endif
 
 void Chrome::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> fileChooser)
 {

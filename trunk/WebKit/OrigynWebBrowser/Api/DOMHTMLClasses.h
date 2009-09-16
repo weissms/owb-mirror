@@ -55,7 +55,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -68,7 +68,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -79,7 +79,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -90,7 +90,7 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
@@ -100,7 +100,7 @@ public:
     
     virtual DOMNode* item(unsigned index);
     
-    virtual DOMNode* namedItem(WebCore::String name);
+    virtual DOMNode* namedItem(const char* name);
 
 protected:
     RefPtr<WebCore::HTMLCollection> m_collection;
@@ -114,7 +114,7 @@ class DOMHTMLOptionsCollection : public DOMObject
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -127,7 +127,7 @@ class DOMHTMLOptionsCollection : public DOMObject
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -138,7 +138,7 @@ class DOMHTMLOptionsCollection : public DOMObject
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -149,7 +149,7 @@ class DOMHTMLOptionsCollection : public DOMObject
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
@@ -161,7 +161,7 @@ class DOMHTMLOptionsCollection : public DOMObject
     
     virtual DOMNode* item(unsigned int index);
     
-    virtual DOMNode* namedItem(WebCore::String name);
+    virtual DOMNode* namedItem(const char* name);
 };
 
 class DOMHTMLDocument : public DOMDocument
@@ -176,7 +176,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -189,7 +189,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -200,7 +200,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -211,17 +211,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMDocument::nodeName(); }
+    virtual const char* nodeName() { return DOMDocument::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMDocument::nodeValue(); }
+    virtual const char* nodeValue() { return DOMDocument::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMDocument::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMDocument::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMDocument::nodeType(); }
     
@@ -255,15 +255,15 @@ public:
     
     virtual void normalize() { DOMDocument::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMDocument::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMDocument::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMDocument::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMDocument::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMDocument::prefix(); }
+    virtual const char* prefix() { return DOMDocument::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMDocument::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMDocument::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMDocument::localName(); }
+    virtual const char* localName() { return DOMDocument::localName(); }
     
     virtual bool hasAttributes() { return DOMDocument::hasAttributes(); }
 
@@ -271,9 +271,9 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMDocument::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMDocument::textContent(); }
+    virtual const char* textContent() { return DOMDocument::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMDocument::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMDocument::setTextContent(text); }
     
     // IDOMDocument
     //virtual DOMDocumentType* doctype() { return DOMDocument::doctype(); }
@@ -282,44 +282,44 @@ public:
     
     virtual DOMElement* documentElement() { return DOMDocument::documentElement(); }
     
-    virtual DOMElement* createElement(WebCore::String tagName) { return DOMDocument::createElement(tagName); }
+    virtual DOMElement* createElement(const char* tagName) { return DOMDocument::createElement(tagName); }
     
     //virtual DOMDocumentFragment* createDocumentFragment() { return DOMDocument::createDocumentFragment(); }
     
-    //virtual DOMText* createTextNode(WebCore::String data) { return DOMDocument::createTextNode(data); }
+    //virtual DOMText* createTextNode(const char* data) { return DOMDocument::createTextNode(data); }
     
-    //virtual DOMComment* createComment(WebCore::String data) { return DOMDocument::createComment(data); }
+    //virtual DOMComment* createComment(const char* data) { return DOMDocument::createComment(data); }
     
-    //virtual DOMCDATASection* createCDATASection(WebCore::String data) { return DOMDocument::createCDATASection(data); }
+    //virtual DOMCDATASection* createCDATASection(const char* data) { return DOMDocument::createCDATASection(data); }
     
-    //virtual DOMProcessingInstruction* createProcessingInstruction(WebCore::String target, WebCore::String data) { return DOMDocument::createProcessingInstruction(target, data); }
+    //virtual DOMProcessingInstruction* createProcessingInstruction(const char* target, const char* data) { return DOMDocument::createProcessingInstruction(target, data); }
     
-    //virtual DOMAttr* createAttribute(WebCore::String name) { return DOMDocument::createAttribute(name); }
+    //virtual DOMAttr* createAttribute(const char* name) { return DOMDocument::createAttribute(name); }
     
-    //virtual DOMEntityReference* createEntityReference(WebCore::String name) { return DOMDocument::createEntityReference(name); }
+    //virtual DOMEntityReference* createEntityReference(const char* name) { return DOMDocument::createEntityReference(name); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String tagName) { return DOMDocument::getElementsByTagName(tagName); }
+    virtual DOMNodeList* getElementsByTagName(const char* tagName) { return DOMDocument::getElementsByTagName(tagName); }
     
     virtual DOMNode* importNode(DOMNode *importedNode, bool deep) { return DOMDocument::importNode(importedNode, deep); }
     
-    virtual DOMElement* createElementNS(WebCore::String namespaceURI, WebCore::String qualifiedName) { return DOMDocument::createElementNS(namespaceURI, qualifiedName); }
+    virtual DOMElement* createElementNS(const char* namespaceURI, const char* qualifiedName) { return DOMDocument::createElementNS(namespaceURI, qualifiedName); }
     
-    //virtual DOMAttr* createAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName) { return DOMDocument::createAttributeNS(namespaceURI, qualifiedName); }
+    //virtual DOMAttr* createAttributeNS(const char* namespaceURI, const char* qualifiedName) { return DOMDocument::createAttributeNS(namespaceURI, qualifiedName); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMDocument::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMDocument::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual DOMElement* getElementById(WebCore::String elementId) { return DOMDocument::getElementById(elementId); }
+    virtual DOMElement* getElementById(const char* elementId) { return DOMDocument::getElementById(elementId); }
 
     // IDOMHTMLDocument
-    virtual WebCore::String title();
+    virtual const char* title();
     
-    virtual void setTitle(WebCore::String);
+    virtual void setTitle(const char*);
     
-    virtual WebCore::String referrer();
+    virtual const char* referrer();
     
-    virtual WebCore::String domain();
+    virtual const char* domain();
     
-    virtual WebCore::String URL();
+    virtual const char* URL();
     
     virtual DOMHTMLElement* body();
     
@@ -335,21 +335,21 @@ public:
     
     virtual DOMHTMLCollection* anchors();
     
-    virtual WebCore::String cookie();
+    virtual const char* cookie();
     
-    virtual void setCookie(WebCore::String cookie);
+    virtual void setCookie(const char* cookie);
     
     virtual void open();
     
     virtual void close();
     
-    virtual void write(WebCore::String text);
+    virtual void write(const char* text);
     
-    virtual void writeln(WebCore::String text);
+    virtual void writeln(const char* text);
     
-    virtual DOMElement* getElementById_(WebCore::String elementId);
+    virtual DOMElement* getElementById_(const char* elementId);
     
-    virtual DOMNodeList* getElementsByName(WebCore::String elementName);
+    virtual DOMNodeList* getElementsByName(const char* elementName);
 };
 
 class DOMHTMLElement : public DOMElement
@@ -364,7 +364,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -377,7 +377,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -388,7 +388,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -399,17 +399,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMElement::nodeName(); }
+    virtual const char* nodeName() { return DOMElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMElement::nodeType(); }
     
@@ -443,15 +443,15 @@ public:
     
     virtual void normalize() { DOMElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMElement::prefix(); }
+    virtual const char* prefix() { return DOMElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMElement::localName(); }
+    virtual const char* localName() { return DOMElement::localName(); }
     
     virtual bool hasAttributes() { return DOMElement::hasAttributes(); }
 
@@ -459,75 +459,75 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMElement::textContent(); }
+    virtual const char* textContent() { return DOMElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMElement::tagName(); }
+    virtual const char* tagName() { return DOMElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMElement::focus(); }
     
     virtual void blur() { DOMElement::blur(); }
 
     // IDOMHTMLElement
-    virtual WebCore::String idName();
+    virtual const char* idName();
     
-    virtual void setIdName(WebCore::String idName);
+    virtual void setIdName(const char* idName);
     
-    virtual WebCore::String title();
+    virtual const char* title();
     
-    virtual void setTitle(WebCore::String title);
+    virtual void setTitle(const char* title);
     
-    virtual WebCore::String lang();
+    virtual const char* lang();
     
-    virtual void setLang(WebCore::String lang);
+    virtual void setLang(const char* lang);
     
-    virtual WebCore::String dir();
+    virtual const char* dir();
     
-    virtual void setDir(WebCore::String dir);
+    virtual void setDir(const char* dir);
     
-    virtual WebCore::String className();
+    virtual const char* className();
     
-    virtual void setClassName(WebCore::String className);
+    virtual void setClassName(const char* className);
 
-    virtual WebCore::String innerHTML();
+    virtual const char* innerHTML();
         
-    virtual void setInnerHTML(WebCore::String html);
+    virtual void setInnerHTML(const char* html);
         
-    virtual WebCore::String innerText();
+    virtual const char* innerText();
         
-    virtual void setInnerText(WebCore::String text);        
+    virtual void setInnerText(const char* text);        
 
 };
 
@@ -543,7 +543,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -556,7 +556,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -567,7 +567,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -578,17 +578,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMHTMLElement::nodeName(); }
+    virtual const char* nodeName() { return DOMHTMLElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMHTMLElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMHTMLElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMHTMLElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMHTMLElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMHTMLElement::nodeType(); }
     
@@ -622,15 +622,15 @@ public:
     
     virtual void normalize() { DOMHTMLElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMHTMLElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMHTMLElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMHTMLElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMHTMLElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMHTMLElement::prefix(); }
+    virtual const char* prefix() { return DOMHTMLElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMHTMLElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMHTMLElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMHTMLElement::localName(); }
+    virtual const char* localName() { return DOMHTMLElement::localName(); }
     
     virtual bool hasAttributes() { return DOMHTMLElement::hasAttributes(); }
 
@@ -638,42 +638,42 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMHTMLElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMHTMLElement::textContent(); }
+    virtual const char* textContent() { return DOMHTMLElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMHTMLElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMHTMLElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMHTMLElement::tagName(); }
+    virtual const char* tagName() { return DOMHTMLElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMHTMLElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMHTMLElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMHTMLElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMHTMLElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMHTMLElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMHTMLElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMHTMLElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMHTMLElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMHTMLElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMHTMLElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMHTMLElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMHTMLElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMHTMLElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMHTMLElement::focus(); }
     
@@ -681,62 +681,62 @@ public:
 
 
     // IDOMHTMLElement
-    virtual WebCore::String idName() { return DOMHTMLElement::idName(); }
+    virtual const char* idName() { return DOMHTMLElement::idName(); }
     
-    virtual void setIdName(WebCore::String idName) { DOMHTMLElement::setIdName(idName); }
+    virtual void setIdName(const char* idName) { DOMHTMLElement::setIdName(idName); }
     
-    virtual WebCore::String title() { return DOMHTMLElement::title(); }
+    virtual const char* title() { return DOMHTMLElement::title(); }
     
-    virtual void setTitle(WebCore::String title) { DOMHTMLElement::setTitle(title); }
+    virtual void setTitle(const char* title) { DOMHTMLElement::setTitle(title); }
     
-    virtual WebCore::String lang() { return DOMHTMLElement::lang(); }
+    virtual const char* lang() { return DOMHTMLElement::lang(); }
     
-    virtual void setLang(WebCore::String lang) { DOMHTMLElement::setLang(lang); }
+    virtual void setLang(const char* lang) { DOMHTMLElement::setLang(lang); }
     
-    virtual WebCore::String dir() { return DOMHTMLElement::dir(); }
+    virtual const char* dir() { return DOMHTMLElement::dir(); }
     
-    virtual void setDir(WebCore::String dir) { DOMHTMLElement::setDir(dir); }
+    virtual void setDir(const char* dir) { DOMHTMLElement::setDir(dir); }
     
-    virtual WebCore::String className() { return DOMHTMLElement::className(); }
+    virtual const char* className() { return DOMHTMLElement::className(); }
     
-    virtual void setClassName(WebCore::String className) { DOMHTMLElement::setClassName(className); }
+    virtual void setClassName(const char* className) { DOMHTMLElement::setClassName(className); }
 
-    virtual WebCore::String innerHTML() { return DOMHTMLElement::innerHTML(); }
+    virtual const char* innerHTML() { return DOMHTMLElement::innerHTML(); }
         
-    virtual void setInnerHTML(WebCore::String html) { DOMHTMLElement::setInnerHTML(html); }
+    virtual void setInnerHTML(const char* html) { DOMHTMLElement::setInnerHTML(html); }
         
-    virtual WebCore::String innerText() { return DOMHTMLElement::innerText(); }
+    virtual const char* innerText() { return DOMHTMLElement::innerText(); }
         
-    virtual void setInnerText(WebCore::String text) { DOMHTMLElement::setInnerText(text); }
+    virtual void setInnerText(const char* text) { DOMHTMLElement::setInnerText(text); }
 
     // IDOMHTMLFormElement
     virtual DOMHTMLCollection* elements();
     
     virtual int length();
     
-    virtual WebCore::String name();
+    virtual const char* name();
     
-    virtual void setName(WebCore::String name);
+    virtual void setName(const char* name);
     
-    virtual WebCore::String acceptCharset();
+    virtual const char* acceptCharset();
     
-    virtual void setAcceptCharset(WebCore::String acceptCharset);
+    virtual void setAcceptCharset(const char* acceptCharset);
     
-    virtual WebCore::String action();
+    virtual const char* action();
     
-    virtual void setAction(WebCore::String action);
+    virtual void setAction(const char* action);
     
-    virtual WebCore::String encType();
+    virtual const char* encType();
     
-    virtual WebCore::String setEnctype();
+    virtual const char* setEnctype();
     
-    virtual WebCore::String method();
+    virtual const char* method();
     
-    virtual void setMethod(WebCore::String method);
+    virtual void setMethod(const char* method);
     
-    virtual WebCore::String target();
+    virtual const char* target();
     
-    virtual void setTarget(WebCore::String target);
+    virtual void setTarget(const char* target);
     
     virtual void submit();
     
@@ -755,7 +755,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -768,7 +768,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -779,7 +779,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -790,17 +790,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMHTMLElement::nodeName(); }
+    virtual const char* nodeName() { return DOMHTMLElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMHTMLElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMHTMLElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMHTMLElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMHTMLElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMHTMLElement::nodeType(); }
     
@@ -834,15 +834,15 @@ public:
     
     virtual void normalize() { DOMHTMLElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMHTMLElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMHTMLElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMHTMLElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMHTMLElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMHTMLElement::prefix(); }
+    virtual const char* prefix() { return DOMHTMLElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMHTMLElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMHTMLElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMHTMLElement::localName(); }
+    virtual const char* localName() { return DOMHTMLElement::localName(); }
     
     virtual bool hasAttributes() { return DOMHTMLElement::hasAttributes(); }
 
@@ -850,42 +850,42 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMHTMLElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMHTMLElement::textContent(); }
+    virtual const char* textContent() { return DOMHTMLElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMHTMLElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMHTMLElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMHTMLElement::tagName(); }
+    virtual const char* tagName() { return DOMHTMLElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMHTMLElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMHTMLElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMHTMLElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMHTMLElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMHTMLElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMHTMLElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMHTMLElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMHTMLElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMHTMLElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMHTMLElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMHTMLElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMHTMLElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMHTMLElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMHTMLElement::focus(); }
     
@@ -893,44 +893,44 @@ public:
 
 
     // IDOMHTMLElement
-    virtual WebCore::String idName() { return DOMHTMLElement::idName(); }
+    virtual const char* idName() { return DOMHTMLElement::idName(); }
     
-    virtual void setIdName(WebCore::String idName) { DOMHTMLElement::setIdName(idName); }
+    virtual void setIdName(const char* idName) { DOMHTMLElement::setIdName(idName); }
     
-    virtual WebCore::String title() { return DOMHTMLElement::title(); }
+    virtual const char* title() { return DOMHTMLElement::title(); }
     
-    virtual void setTitle(WebCore::String title) { DOMHTMLElement::setTitle(title); }
+    virtual void setTitle(const char* title) { DOMHTMLElement::setTitle(title); }
     
-    virtual WebCore::String lang() { return DOMHTMLElement::lang(); }
+    virtual const char* lang() { return DOMHTMLElement::lang(); }
     
-    virtual void setLang(WebCore::String lang) { DOMHTMLElement::setLang(lang); }
+    virtual void setLang(const char* lang) { DOMHTMLElement::setLang(lang); }
     
-    virtual WebCore::String dir() { return DOMHTMLElement::dir(); }
+    virtual const char* dir() { return DOMHTMLElement::dir(); }
     
-    virtual void setDir(WebCore::String dir) { DOMHTMLElement::setDir(dir); }
+    virtual void setDir(const char* dir) { DOMHTMLElement::setDir(dir); }
     
-    virtual WebCore::String className() { return DOMHTMLElement::className(); }
+    virtual const char* className() { return DOMHTMLElement::className(); }
     
-    virtual void setClassName(WebCore::String className) { DOMHTMLElement::setClassName(className); }
+    virtual void setClassName(const char* className) { DOMHTMLElement::setClassName(className); }
 
-    virtual WebCore::String innerHTML() { return DOMHTMLElement::innerHTML(); }
+    virtual const char* innerHTML() { return DOMHTMLElement::innerHTML(); }
         
-    virtual void setInnerHTML(WebCore::String html) { DOMHTMLElement::setInnerHTML(html); }
+    virtual void setInnerHTML(const char* html) { DOMHTMLElement::setInnerHTML(html); }
         
-    virtual WebCore::String innerText() { return DOMHTMLElement::innerText(); }
+    virtual const char* innerText() { return DOMHTMLElement::innerText(); }
         
-    virtual void setInnerText(WebCore::String text) { DOMHTMLElement::setInnerText(text); }
+    virtual void setInnerText(const char* text) { DOMHTMLElement::setInnerText(text); }
     
     // DOMHTMLSelectElement
-    virtual WebCore::String type();
+    virtual const char* type();
     
     virtual int selectedIndex();
     
     virtual void setSelectedIndx(int selectedIndex);
     
-    virtual WebCore::String value();
+    virtual const char* value();
     
-    virtual void setValue(WebCore::String value);
+    virtual void setValue(const char* value);
     
     virtual int length();
     
@@ -946,9 +946,9 @@ public:
     
     virtual void setMultiple(bool multiple);
     
-    virtual WebCore::String name();
+    virtual const char* name();
     
-    virtual void setName(WebCore::String name);
+    virtual void setName(const char* name);
     
     virtual int size();
     
@@ -978,7 +978,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -991,7 +991,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -1002,7 +1002,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -1013,17 +1013,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMHTMLElement::nodeName(); }
+    virtual const char* nodeName() { return DOMHTMLElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMHTMLElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMHTMLElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMHTMLElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMHTMLElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMHTMLElement::nodeType(); }
     
@@ -1057,15 +1057,15 @@ public:
     
     virtual void normalize() { DOMHTMLElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMHTMLElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMHTMLElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMHTMLElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMHTMLElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMHTMLElement::prefix(); }
+    virtual const char* prefix() { return DOMHTMLElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMHTMLElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMHTMLElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMHTMLElement::localName(); }
+    virtual const char* localName() { return DOMHTMLElement::localName(); }
     
     virtual bool hasAttributes() { return DOMHTMLElement::hasAttributes(); }
 
@@ -1073,42 +1073,42 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMHTMLElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMHTMLElement::textContent(); }
+    virtual const char* textContent() { return DOMHTMLElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMHTMLElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMHTMLElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMHTMLElement::tagName(); }
+    virtual const char* tagName() { return DOMHTMLElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMHTMLElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMHTMLElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMHTMLElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMHTMLElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMHTMLElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMHTMLElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMHTMLElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMHTMLElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMHTMLElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMHTMLElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMHTMLElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMHTMLElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMHTMLElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMHTMLElement::focus(); }
     
@@ -1116,33 +1116,33 @@ public:
 
 
     // IDOMHTMLElement
-    virtual WebCore::String idName() { return DOMHTMLElement::idName(); }
+    virtual const char* idName() { return DOMHTMLElement::idName(); }
     
-    virtual void setIdName(WebCore::String idName) { DOMHTMLElement::setIdName(idName); }
+    virtual void setIdName(const char* idName) { DOMHTMLElement::setIdName(idName); }
     
-    virtual WebCore::String title() { return DOMHTMLElement::title(); }
+    virtual const char* title() { return DOMHTMLElement::title(); }
     
-    virtual void setTitle(WebCore::String title) { DOMHTMLElement::setTitle(title); }
+    virtual void setTitle(const char* title) { DOMHTMLElement::setTitle(title); }
     
-    virtual WebCore::String lang() { return DOMHTMLElement::lang(); }
+    virtual const char* lang() { return DOMHTMLElement::lang(); }
     
-    virtual void setLang(WebCore::String lang) { DOMHTMLElement::setLang(lang); }
+    virtual void setLang(const char* lang) { DOMHTMLElement::setLang(lang); }
     
-    virtual WebCore::String dir() { return DOMHTMLElement::dir(); }
+    virtual const char* dir() { return DOMHTMLElement::dir(); }
     
-    virtual void setDir(WebCore::String dir) { DOMHTMLElement::setDir(dir); }
+    virtual void setDir(const char* dir) { DOMHTMLElement::setDir(dir); }
     
-    virtual WebCore::String className() { return DOMHTMLElement::className(); }
+    virtual const char* className() { return DOMHTMLElement::className(); }
     
-    virtual void setClassName(WebCore::String className) { DOMHTMLElement::setClassName(className); }
+    virtual void setClassName(const char* className) { DOMHTMLElement::setClassName(className); }
 
-    virtual WebCore::String innerHTML() { return DOMHTMLElement::innerHTML(); }
+    virtual const char* innerHTML() { return DOMHTMLElement::innerHTML(); }
         
-    virtual void setInnerHTML(WebCore::String html) { DOMHTMLElement::setInnerHTML(html); }
+    virtual void setInnerHTML(const char* html) { DOMHTMLElement::setInnerHTML(html); }
         
-    virtual WebCore::String innerText() { return DOMHTMLElement::innerText(); }
+    virtual const char* innerText() { return DOMHTMLElement::innerText(); }
         
-    virtual void setInnerText(WebCore::String text) { DOMHTMLElement::setInnerText(text); }
+    virtual void setInnerText(const char* text) { DOMHTMLElement::setInnerText(text); }
 
     // IDOMHTMLOptionElement
     virtual DOMHTMLFormElement* form();
@@ -1151,7 +1151,7 @@ public:
     
     virtual void setDefaultSelected(bool defaultSelected);
     
-    virtual WebCore::String text();
+    virtual const char* text();
     
     virtual int index();
     
@@ -1159,17 +1159,17 @@ public:
     
     virtual void setDisabled(bool disabled);
     
-    virtual WebCore::String label();
+    virtual const char* label();
     
-    virtual void setLabel(WebCore::String label);
+    virtual void setLabel(const char* label);
     
     virtual bool selected();
     
     virtual void setSelected(bool selected);
     
-    virtual WebCore::String value();
+    virtual const char* value();
     
-    virtual void setValue(WebCore::String value);
+    virtual void setValue(const char* value);
 };
 
 class DOMHTMLInputElement : public DOMHTMLElement
@@ -1184,7 +1184,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -1197,7 +1197,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -1208,7 +1208,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -1219,16 +1219,16 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMHTMLElement::nodeName(); }
+    virtual const char* nodeName() { return DOMHTMLElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMHTMLElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMHTMLElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMHTMLElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMHTMLElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMHTMLElement::nodeType(); }
     
@@ -1262,15 +1262,15 @@ public:
     
     virtual void normalize() { DOMHTMLElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMHTMLElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMHTMLElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMHTMLElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMHTMLElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMHTMLElement::prefix(); }
+    virtual const char* prefix() { return DOMHTMLElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMHTMLElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMHTMLElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMHTMLElement::localName(); }
+    virtual const char* localName() { return DOMHTMLElement::localName(); }
     
     virtual bool hasAttributes() { return DOMHTMLElement::hasAttributes(); }
 
@@ -1278,42 +1278,42 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMHTMLElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMHTMLElement::textContent(); }
+    virtual const char* textContent() { return DOMHTMLElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMHTMLElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMHTMLElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMHTMLElement::tagName(); }
+    virtual const char* tagName() { return DOMHTMLElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMHTMLElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMHTMLElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMHTMLElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMHTMLElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMHTMLElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMHTMLElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMHTMLElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMHTMLElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMHTMLElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMHTMLElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMHTMLElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMHTMLElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMHTMLElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMHTMLElement::focus(); }
     
@@ -1321,60 +1321,60 @@ public:
 
 
     // IDOMHTMLElement
-    virtual WebCore::String idName() { return DOMHTMLElement::idName(); }
+    virtual const char* idName() { return DOMHTMLElement::idName(); }
     
-    virtual void setIdName(WebCore::String idName) { DOMHTMLElement::setIdName(idName); }
+    virtual void setIdName(const char* idName) { DOMHTMLElement::setIdName(idName); }
     
-    virtual WebCore::String title() { return DOMHTMLElement::title(); }
+    virtual const char* title() { return DOMHTMLElement::title(); }
     
-    virtual void setTitle(WebCore::String title) { DOMHTMLElement::setTitle(title); }
+    virtual void setTitle(const char* title) { DOMHTMLElement::setTitle(title); }
     
-    virtual WebCore::String lang() { return DOMHTMLElement::lang(); }
+    virtual const char* lang() { return DOMHTMLElement::lang(); }
     
-    virtual void setLang(WebCore::String lang) { DOMHTMLElement::setLang(lang); }
+    virtual void setLang(const char* lang) { DOMHTMLElement::setLang(lang); }
     
-    virtual WebCore::String dir() { return DOMHTMLElement::dir(); }
+    virtual const char* dir() { return DOMHTMLElement::dir(); }
     
-    virtual void setDir(WebCore::String dir) { DOMHTMLElement::setDir(dir); }
+    virtual void setDir(const char* dir) { DOMHTMLElement::setDir(dir); }
     
-    virtual WebCore::String className() { return DOMHTMLElement::className(); }
+    virtual const char* className() { return DOMHTMLElement::className(); }
     
-    virtual void setClassName(WebCore::String className) { DOMHTMLElement::setClassName(className); }
+    virtual void setClassName(const char* className) { DOMHTMLElement::setClassName(className); }
 
-    virtual WebCore::String innerHTML() { return DOMHTMLElement::innerHTML(); }
+    virtual const char* innerHTML() { return DOMHTMLElement::innerHTML(); }
         
-    virtual void setInnerHTML(WebCore::String html) { DOMHTMLElement::setInnerHTML(html); }
+    virtual void setInnerHTML(const char* html) { DOMHTMLElement::setInnerHTML(html); }
         
-    virtual WebCore::String innerText() { return DOMHTMLElement::innerText(); }
+    virtual const char* innerText() { return DOMHTMLElement::innerText(); }
         
-    virtual void setInnerText(WebCore::String text) { DOMHTMLElement::setInnerText(text); }
+    virtual void setInnerText(const char* text) { DOMHTMLElement::setInnerText(text); }
 
     // IDOMHTMLInputElement
-    virtual WebCore::String defaultValue();
+    virtual const char* defaultValue();
     
-    virtual void setDefaultValue(WebCore::String val);
+    virtual void setDefaultValue(const char* val);
     
     virtual bool defaultChecked();
     
-    virtual void setDefaultChecked(WebCore::String checked);
+    virtual void setDefaultChecked(const char* checked);
     
     virtual DOMHTMLElement* form();
     
-    virtual WebCore::String accept();
+    virtual const char* accept();
     
-    virtual void setAccept(WebCore::String accept);
+    virtual void setAccept(const char* accept);
     
-    virtual WebCore::String accessKey();
+    virtual const char* accessKey();
     
-    virtual void setAccessKey(WebCore::String key);
+    virtual void setAccessKey(const char* key);
     
-    virtual WebCore::String align();
+    virtual const char* align();
     
-    virtual void setAlign(WebCore::String align);
+    virtual void setAlign(const char* align);
     
-    virtual WebCore::String alt();
+    virtual const char* alt();
     
-    virtual void setAlt(WebCore::String alt);
+    virtual void setAlt(const char* alt);
     
     virtual bool checked();
     
@@ -1388,9 +1388,9 @@ public:
     
     virtual void setMaxLength(int maxLength);
     
-    virtual WebCore::String name();
+    virtual const char* name();
     
-    virtual void setName(WebCore::String name);
+    virtual void setName(const char* name);
     
     virtual bool readOnly();
     
@@ -1400,25 +1400,25 @@ public:
     
     virtual void setSize(unsigned int size);
     
-    virtual WebCore::String src();
+    virtual const char* src();
     
-    virtual void setSrc(WebCore::String src);
+    virtual void setSrc(const char* src);
     
     virtual int tabIndex();
     
     virtual void setTabIndex(int tabIndex);
     
-    virtual WebCore::String type();
+    virtual const char* type();
     
-    virtual void setType(WebCore::String type);
+    virtual void setType(const char* type);
     
-    virtual WebCore::String useMap();
+    virtual const char* useMap();
     
-    virtual void setUseMap(WebCore::String useMap);
+    virtual void setUseMap(const char* useMap);
     
-    virtual WebCore::String value();
+    virtual const char* value();
     
-    virtual void setValue(WebCore::String value);
+    virtual void setValue(const char* value);
         
     virtual void select();
     
@@ -1437,7 +1437,7 @@ public:
     
     virtual WebCore::IntRect rectOnScreen();
     
-    virtual void replaceCharactersInRange(int startTarget, int endTarget, WebCore::String replacementString, int index);
+    virtual void replaceCharactersInRange(int startTarget, int endTarget, const char* replacementString, int index);
     
     virtual void selectedRange(int *start, int *end);
     
@@ -1459,7 +1459,7 @@ public:
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -1472,7 +1472,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -1483,7 +1483,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -1494,17 +1494,17 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // IDOMNode
-    virtual WebCore::String nodeName() { return DOMHTMLElement::nodeName(); }
+    virtual const char* nodeName() { return DOMHTMLElement::nodeName(); }
     
-    virtual WebCore::String nodeValue() { return DOMHTMLElement::nodeValue(); }
+    virtual const char* nodeValue() { return DOMHTMLElement::nodeValue(); }
     
-    virtual void setNodeValue(WebCore::String value) { DOMHTMLElement::setNodeValue(value); }
+    virtual void setNodeValue(const char* value) { DOMHTMLElement::setNodeValue(value); }
     
     virtual unsigned short nodeType() { return DOMHTMLElement::nodeType(); }
     
@@ -1538,15 +1538,15 @@ public:
     
     virtual void normalize() { DOMHTMLElement::normalize(); }
     
-    virtual bool isSupported(WebCore::String feature, WebCore::String version) { return DOMHTMLElement::isSupported(feature, version); }
+    virtual bool isSupported(const char* feature, const char* version) { return DOMHTMLElement::isSupported(feature, version); }
     
-    virtual WebCore::String namespaceURI() { return DOMHTMLElement::namespaceURI(); }
+    virtual const char* namespaceURI() { return DOMHTMLElement::namespaceURI(); }
     
-    virtual WebCore::String prefix() { return DOMHTMLElement::prefix(); }
+    virtual const char* prefix() { return DOMHTMLElement::prefix(); }
     
-    virtual void setPrefix(WebCore::String prefix) { return DOMHTMLElement::setPrefix(prefix); }
+    virtual void setPrefix(const char* prefix) { return DOMHTMLElement::setPrefix(prefix); }
     
-    virtual WebCore::String localName() { return DOMHTMLElement::localName(); }
+    virtual const char* localName() { return DOMHTMLElement::localName(); }
     
     virtual bool hasAttributes() { return DOMHTMLElement::hasAttributes(); }
 
@@ -1554,42 +1554,42 @@ public:
     
     virtual bool isEqualNode(DOMNode* other) { return DOMHTMLElement::isEqualNode(other); }
     
-    virtual WebCore::String textContent() { return DOMHTMLElement::textContent(); }
+    virtual const char* textContent() { return DOMHTMLElement::textContent(); }
     
-    virtual void setTextContent(WebCore::String text) { DOMHTMLElement::setTextContent(text); }
+    virtual void setTextContent(const char* text) { DOMHTMLElement::setTextContent(text); }
     
     // IDOMElement
-    virtual WebCore::String tagName() { return DOMHTMLElement::tagName(); }
+    virtual const char* tagName() { return DOMHTMLElement::tagName(); }
     
-    virtual WebCore::String getAttribute(WebCore::String name) { return DOMHTMLElement::getAttribute(name); }
+    virtual const char* getAttribute(const char* name) { return DOMHTMLElement::getAttribute(name); }
     
-    virtual void setAttribute(WebCore::String name, WebCore::String value) { DOMHTMLElement::setAttribute(name, value); }
+    virtual void setAttribute(const char* name, const char* value) { DOMHTMLElement::setAttribute(name, value); }
     
-    virtual void removeAttribute(WebCore::String name) { DOMHTMLElement::removeAttribute(name); }
+    virtual void removeAttribute(const char* name) { DOMHTMLElement::removeAttribute(name); }
     
-    //virtual DOMAttr* getAttributeNode(WebCore::String name) { return DOMHTMLElement::getAttributeNode(name); }
+    //virtual DOMAttr* getAttributeNode(const char* name) { return DOMHTMLElement::getAttributeNode(name); }
     
     //virtual DOMAttr* setAttributeNode(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNode(newAttr); }
     
     //virtual DOMAttr* removeAttributeNode(DOMAttr *oldAttr) { return DOMHTMLElement::removeAttributeNode(oldAttr); }
     
-    virtual DOMNodeList* getElementsByTagName(WebCore::String name) { return DOMHTMLElement::getElementsByTagName(name); }
+    virtual DOMNodeList* getElementsByTagName(const char* name) { return DOMHTMLElement::getElementsByTagName(name); }
     
-    virtual WebCore::String getAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
+    virtual const char* getAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getAttributeNS(namespaceURI, localName); }
     
-    virtual void setAttributeNS(WebCore::String namespaceURI, WebCore::String qualifiedName, WebCore::String value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
+    virtual void setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) { DOMHTMLElement::setAttributeNS(namespaceURI, qualifiedName, value); }
     
-    virtual void removeAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
+    virtual void removeAttributeNS(const char* namespaceURI, const char* localName) { DOMHTMLElement::removeAttributeNS(namespaceURI, localName); }
     
-    //virtual DOMAttr* getAttributeNodeNS(WebCore::String namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
+    //virtual DOMAttr* getAttributeNodeNS(const char* namespaceURI, WebCore:String localName) { return DOMHTMLElement::getAttributeNodeNS(namespaceURI, localName); }
     
     //virtual DOMAttr* setAttributeNodeNS(DOMAttr *newAttr) { return DOMHTMLElement::setAttributeNodeNS(newAttr); }
     
-    virtual DOMNodeList* getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
+    virtual DOMNodeList* getElementsByTagNameNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::getElementsByTagNameNS(namespaceURI, localName); }
     
-    virtual bool hasAttribute(WebCore::String name) { return DOMHTMLElement::hasAttribute(name); }
+    virtual bool hasAttribute(const char* name) { return DOMHTMLElement::hasAttribute(name); }
     
-    virtual bool hasAttributeNS(WebCore::String namespaceURI, WebCore::String localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
+    virtual bool hasAttributeNS(const char* namespaceURI, const char* localName) { return DOMHTMLElement::hasAttributeNS(namespaceURI, localName); }
 
     virtual void focus() { DOMHTMLElement::focus(); }
     
@@ -1597,44 +1597,44 @@ public:
 
 
     // IDOMHTMLElement
-    virtual WebCore::String idName() { return DOMHTMLElement::idName(); }
+    virtual const char* idName() { return DOMHTMLElement::idName(); }
     
-    virtual void setIdName(WebCore::String idName) { DOMHTMLElement::setIdName(idName); }
+    virtual void setIdName(const char* idName) { DOMHTMLElement::setIdName(idName); }
     
-    virtual WebCore::String title() { return DOMHTMLElement::title(); }
+    virtual const char* title() { return DOMHTMLElement::title(); }
     
-    virtual void setTitle(WebCore::String title) { DOMHTMLElement::setTitle(title); }
+    virtual void setTitle(const char* title) { DOMHTMLElement::setTitle(title); }
     
-    virtual WebCore::String lang() { return DOMHTMLElement::lang(); }
+    virtual const char* lang() { return DOMHTMLElement::lang(); }
     
-    virtual void setLang(WebCore::String lang) { DOMHTMLElement::setLang(lang); }
+    virtual void setLang(const char* lang) { DOMHTMLElement::setLang(lang); }
     
-    virtual WebCore::String dir() { return DOMHTMLElement::dir(); }
+    virtual const char* dir() { return DOMHTMLElement::dir(); }
     
-    virtual void setDir(WebCore::String dir) { DOMHTMLElement::setDir(dir); }
+    virtual void setDir(const char* dir) { DOMHTMLElement::setDir(dir); }
     
-    virtual WebCore::String className() { return DOMHTMLElement::className(); }
+    virtual const char* className() { return DOMHTMLElement::className(); }
     
-    virtual void setClassName(WebCore::String className) { DOMHTMLElement::setClassName(className); }
+    virtual void setClassName(const char* className) { DOMHTMLElement::setClassName(className); }
 
-    virtual WebCore::String innerHTML() { return DOMHTMLElement::innerHTML(); }
+    virtual const char* innerHTML() { return DOMHTMLElement::innerHTML(); }
         
-    virtual void setInnerHTML(WebCore::String html) { DOMHTMLElement::setInnerHTML(html); }
+    virtual void setInnerHTML(const char* html) { DOMHTMLElement::setInnerHTML(html); }
         
-    virtual WebCore::String innerText() { return DOMHTMLElement::innerText(); }
+    virtual const char* innerText() { return DOMHTMLElement::innerText(); }
         
-    virtual void setInnerText(WebCore::String text) { DOMHTMLElement::setInnerText(text); }
+    virtual void setInnerText(const char* text) { DOMHTMLElement::setInnerText(text); }
     
     // IDOMHTMLTextArea
-    virtual WebCore::String defaultValue();
+    virtual const char* defaultValue();
     
-    virtual void setDefaultValue(WebCore::String val);
+    virtual void setDefaultValue(const char* val);
     
     virtual DOMHTMLElement* form();
     
-    virtual WebCore::String accessKey();
+    virtual const char* accessKey();
     
-    virtual void setAccessKey(WebCore::String key);
+    virtual void setAccessKey(const char* key);
     
     virtual int cols();
     
@@ -1644,9 +1644,9 @@ public:
     
     virtual void setDisabled(bool disabled);
     
-    virtual WebCore::String name();
+    virtual const char* name();
     
-    virtual void setName(WebCore::String name);
+    virtual void setName(const char* name);
     
     virtual bool readOnly();
     
@@ -1660,11 +1660,11 @@ public:
     
     virtual void setTabIndex(int tabIndex);
     
-    virtual WebCore::String type();
+    virtual const char* type();
     
-    virtual WebCore::String value();
+    virtual const char* value();
     
-    virtual void setValue(WebCore::String value);
+    virtual void setValue(const char* value);
         
     virtual void select();
 

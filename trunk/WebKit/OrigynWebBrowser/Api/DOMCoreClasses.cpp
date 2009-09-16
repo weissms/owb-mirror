@@ -34,6 +34,7 @@
 #include "DOMHTMLClasses.h"
 
 #include <PlatformString.h>
+#include <CString.h>
 #include <DOMWindow.h>
 #include <Document.h>
 #include <Element.h>
@@ -53,19 +54,21 @@ using namespace HTMLNames;
 
 // DOMNode --------------------------------------------------------------------
 
-WebCore::String DOMNode::nodeName()
-{
-    return WebCore::String();
-}
-
-WebCore::String DOMNode::nodeValue()
+const char* DOMNode::nodeName()
 {
     if (!m_node)
-        return WebCore::String();
-    return m_node->nodeValue();
+        return "";
+    return strdup(m_node->nodeName().utf8().data());
 }
 
-void DOMNode::setNodeValue(WebCore::String)
+const char* DOMNode::nodeValue()
+{
+    if (!m_node)
+        return "";
+    return strdup(m_node->nodeValue().utf8().data());
+}
+
+void DOMNode::setNodeValue(const char*)
 {
 }
 
@@ -152,28 +155,28 @@ void DOMNode::normalize()
 {
 }
 
-bool DOMNode::isSupported(WebCore::String /*feature*/, WebCore::String /*version*/)
+bool DOMNode::isSupported(const char* /*feature*/, const char* /*version*/)
 {
     return false;
 }
 
-WebCore::String DOMNode::namespaceURI()
+const char* DOMNode::namespaceURI()
 {
-    return WebCore::String();
+    return "";
 }
 
-WebCore::String DOMNode::prefix()
+const char* DOMNode::prefix()
 {
-    return WebCore::String();
+    return "";
 }
 
-void DOMNode::setPrefix(WebCore::String /*prefix*/)
+void DOMNode::setPrefix(const char* /*prefix*/)
 {
 }
 
-WebCore::String DOMNode::localName()
+const char* DOMNode::localName()
 {
-    return WebCore::String();
+    return "";
 }
 
 bool DOMNode::hasAttributes()
@@ -194,22 +197,22 @@ bool DOMNode::isEqualNode( DOMNode* /*other*/)
     return false;
 }
 
-WebCore::String DOMNode::textContent()
+const char* DOMNode::textContent()
 {
-    return m_node->textContent();
+    return strdup(m_node->textContent().utf8().data());
 }
 
-void DOMNode::setTextContent(WebCore::String /*text*/)
+void DOMNode::setTextContent(const char* /*text*/)
 {
 }
 
 // DOMNode - DOMEventTarget --------------------------------------------------
 
-void DOMNode::addEventListener(WebCore::String /*type*/, DOMEventListener* /*listener*/, bool /*useCapture*/)
+void DOMNode::addEventListener(const char* /*type*/, DOMEventListener* /*listener*/, bool /*useCapture*/)
 {
 }
 
-void DOMNode::removeEventListener(WebCore::String /*type*/, DOMEventListener* /*listener*/, bool /*useCapture*/)
+void DOMNode::removeEventListener(const char* /*type*/, DOMEventListener* /*listener*/, bool /*useCapture*/)
 {
 }
 
@@ -223,7 +226,7 @@ bool DOMNode::dispatchEvent(DOMEvent* evt)
         WebCore::raiseDOMException(DOM_NOT_SUPPORTED_ERR);
 #endif
 
-    WebCore::ExceptionCode ec = 0;
+    //WebCore::ExceptionCode ec = 0;
     //return WebCore::EventTargetNodeCast(m_node)->dispatchEvent(evt->coreEvent(), ec) ? true : false;
     return false;
 #if 0   // FIXME - raise dom exceptions
@@ -341,7 +344,7 @@ DOMElement* DOMDocument::documentElement()
     return DOMElement::createInstance(m_document->documentElement());
 }
 
-DOMElement* DOMDocument::createElement(WebCore::String tagName)
+DOMElement* DOMDocument::createElement(const char* tagName)
 {
     if (!m_document)
         return 0;
@@ -355,37 +358,37 @@ DOMElement* DOMDocument::createElement(WebCore::String tagName)
     return 0;
 }*/
 
-// DOMText* DOMDocument::createTextNode(WebCore::String /*data*/)
+// DOMText* DOMDocument::createTextNode(const char* /*data*/)
 // {
 //     return 0;
 // }
 // 
-// DOMComment* DOMDocument::createComment(WebCore::String /*data*/)
+// DOMComment* DOMDocument::createComment(const char* /*data*/)
 // {
 //     return 0;
 // }
 // 
-// DOMCDATASection* DOMDocument::createCDATASection(WebCore::String /*data*/)
+// DOMCDATASection* DOMDocument::createCDATASection(const char* /*data*/)
 // {
 //     return 0;
 // }
 // 
-// DOMProcessingInstruction* DOMDocument::createProcessingInstruction(WebCore::String /*target*/, WebCore::String /*data*/)
+// DOMProcessingInstruction* DOMDocument::createProcessingInstruction(const char* /*target*/, const char* /*data*/)
 // {
 //     return 0;
 // }
 // 
-// DOMAttr* DOMDocument::createAttribute(WebCore::String /*name*/)
+// DOMAttr* DOMDocument::createAttribute(const char* /*name*/)
 // {
 //     return 0;
 // }
 // 
-// DOMEntityReference* DOMDocument::createEntityReference(WebCore::String /*name*/)
+// DOMEntityReference* DOMDocument::createEntityReference(const char* /*name*/)
 // {
 //     return 0;
 // }
 
-DOMNodeList* DOMDocument::getElementsByTagName(WebCore::String tagName)
+DOMNodeList* DOMDocument::getElementsByTagName(const char* tagName)
 {
     if (!m_document)
         return 0;
@@ -398,17 +401,17 @@ DOMNode* DOMDocument::importNode(DOMNode* /*importedNode*/, bool /*deep*/)
     return 0;
 }
 
-DOMElement* DOMDocument::createElementNS(WebCore::String /*namespaceURI*/, WebCore::String /*qualifiedName*/)
+DOMElement* DOMDocument::createElementNS(const char* /*namespaceURI*/, const char* /*qualifiedName*/)
 {
     return 0;
 }
 
-// DOMAttr* DOMDocument::createAttributeNS(WebCore::String /*namespaceURI*/, WebCore::String /*qualifiedName*/)
+// DOMAttr* DOMDocument::createAttributeNS(const char* /*namespaceURI*/, const char* /*qualifiedName*/)
 // {
 //     return 0;
 // }
 
-DOMNodeList* DOMDocument::getElementsByTagNameNS(WebCore::String namespaceURI, WebCore::String localName)
+DOMNodeList* DOMDocument::getElementsByTagNameNS(const char* namespaceURI, const char* localName)
 {
     if (!m_document)
         return 0;
@@ -416,7 +419,7 @@ DOMNodeList* DOMDocument::getElementsByTagNameNS(WebCore::String namespaceURI, W
     return  DOMNodeList::createInstance(m_document->getElementsByTagNameNS(namespaceURI, localName).get());
 }
 
-DOMElement* DOMDocument::getElementById(WebCore::String elementId)
+DOMElement* DOMDocument::getElementById(const char* elementId)
 {
     if (!m_document)
         return 0;
@@ -426,7 +429,7 @@ DOMElement* DOMDocument::getElementById(WebCore::String elementId)
 
 // DOMDocument - DOMViewCSS --------------------------------------------------
 
-DOMCSSStyleDeclaration* DOMDocument::getComputedStyle(DOMElement* elt, WebCore::String pseudoElt)
+DOMCSSStyleDeclaration* DOMDocument::getComputedStyle(DOMElement* elt, const char* pseudoElt)
 {
     if (!elt)
         return 0;
@@ -438,12 +441,12 @@ DOMCSSStyleDeclaration* DOMDocument::getComputedStyle(DOMElement* elt, WebCore::
     if (!dv)
         return 0;
     
-    return DOMCSSStyleDeclaration::createInstance(dv->getComputedStyle(element, pseudoElt.impl()).get());
+    return DOMCSSStyleDeclaration::createInstance(dv->getComputedStyle(element, pseudoElt).get());
 }
 
 // DOMDocument - DOMDocumentEvent --------------------------------------------
 
-DOMEvent* DOMDocument::createEvent(WebCore::String eventType)
+DOMEvent* DOMDocument::createEvent(const char* eventType)
 {
     WebCore::ExceptionCode ec = 0;
     return DOMEvent::createInstance(m_document->createEvent(eventType, ec));
@@ -479,39 +482,38 @@ DOMDocument* DOMDocument::createInstance(WebCore::Document* d)
 
 // DOMElement - DOMNodeExtensions---------------------------------------------
 
-IntRect DOMElement::boundingBox()
+BalRectangle DOMElement::boundingBox()
 {
     if (!m_element)
-        return IntRect();
+        return BalRectangle();
 
     WebCore::RenderObject *renderer = m_element->renderer();
     if (renderer) {
         return renderer->absoluteBoundingBoxRect();
     }
 
-    return IntRect();
+    return BalRectangle();
 }
 
-void DOMElement::lineBoxRects(IntRect */*rects*/, int /*cRects*/)
+void DOMElement::lineBoxRects(BalRectangle* /*rects*/, int /*cRects*/)
 {
 }
 
 // DOMElement ----------------------------------------------------------------
 
-WebCore::String DOMElement::tagName()
+const char* DOMElement::tagName()
 {
-    return WebCore::String();
+    return "";
 }
     
-WebCore::String DOMElement::getAttribute(WebCore::String name)
+const char* DOMElement::getAttribute(const char* name)
 {
     if (!m_element)
-        return WebCore::String();
-    WebCore::String& attrValueString = (WebCore::String&) m_element->getAttribute(name);
-    return attrValueString.characters();
+        return "";
+    return strdup(m_element->getAttribute(name).string().utf8().data());
 }
     
-void DOMElement::setAttribute(WebCore::String name, WebCore::String value)
+void DOMElement::setAttribute(const char* name, const char* value)
 {
     if (!m_element)
         return;
@@ -520,11 +522,11 @@ void DOMElement::setAttribute(WebCore::String name, WebCore::String value)
     m_element->setAttribute(name, value, ec);
 }
     
-void DOMElement::removeAttribute(WebCore::String /*name*/)
+void DOMElement::removeAttribute(const char* /*name*/)
 {
 }
     
-//DOMAttr* DOMElement::getAttributeNode(WebCore::String /*name*/)
+//DOMAttr* DOMElement::getAttributeNode(const char* /*name*/)
 //{
 //    return 0;
 //}
@@ -539,25 +541,25 @@ void DOMElement::removeAttribute(WebCore::String /*name*/)
 //     return 0;
 // }
     
-DOMNodeList* DOMElement::getElementsByTagName(WebCore::String /*name*/)
+DOMNodeList* DOMElement::getElementsByTagName(const char* /*name*/)
 {
     return 0;
 }
     
-WebCore::String DOMElement::getAttributeNS(WebCore::String /*namespaceURI*/, WebCore::String /*localName*/)
+const char* DOMElement::getAttributeNS(const char* /*namespaceURI*/, const char* /*localName*/)
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMElement::setAttributeNS(WebCore::String /*namespaceURI*/, WebCore::String /*qualifiedName*/, WebCore::String /*value*/)
-{
-}
-    
-void DOMElement::removeAttributeNS(WebCore::String /*namespaceURI*/, WebCore::String /*localName*/)
+void DOMElement::setAttributeNS(const char* /*namespaceURI*/, const char* /*qualifiedName*/, const char* /*value*/)
 {
 }
     
-// DOMAttr* DOMElement::getAttributeNodeNS(WebCore::String /*namespaceURI*/, WebCore::String /*localName*/)
+void DOMElement::removeAttributeNS(const char* /*namespaceURI*/, const char* /*localName*/)
+{
+}
+    
+// DOMAttr* DOMElement::getAttributeNodeNS(const char* /*namespaceURI*/, const char* /*localName*/)
 // {
 //     return 0;
 // }
@@ -567,17 +569,17 @@ void DOMElement::removeAttributeNS(WebCore::String /*namespaceURI*/, WebCore::St
 //     return 0;
 // }
     
-DOMNodeList* DOMElement::getElementsByTagNameNS(WebCore::String /*namespaceURI*/, WebCore::String /*localName*/)
+DOMNodeList* DOMElement::getElementsByTagNameNS(const char* /*namespaceURI*/, const char* /*localName*/)
 {
     return 0;
 }
     
-bool DOMElement::hasAttribute(WebCore::String /*name*/)
+bool DOMElement::hasAttribute(const char* /*name*/)
 {
     return false;
 }
     
-bool DOMElement::hasAttributeNS(WebCore::String /*namespaceURI*/, WebCore::String /*localName*/)
+bool DOMElement::hasAttributeNS(const char* /*namespaceURI*/, const char* /*localName*/)
 {
     return false;
 }
@@ -625,12 +627,12 @@ bool DOMElement::isFocused()
     return false;
 }
 
-WebCore::String DOMElement::innerText()
+const char* DOMElement::innerText()
 {
     if (!m_element) 
-        return WebCore::String();
+        return "";
 
-    return m_element->innerText();
+    return strdup(m_element->innerText().utf8().data());
 }
 
 WebFontDescription* DOMElement::font()
@@ -645,7 +647,7 @@ WebFontDescription* DOMElement::font()
     AtomicString family = fontDescription.family().family();
     
     WebFontDescription *webFontDescription = new WebFontDescription();
-    webFontDescription->family = family.characters();
+    webFontDescription->family = strdup(family.string().utf8().data());
     webFontDescription->familyLength = family.length();
     webFontDescription->size = fontDescription.computedSize();
     webFontDescription->weight = fontDescription.weight() >= FontWeight600;

@@ -29,7 +29,7 @@
 #ifndef WebWindow_H
 #define WebWindow_H
   
-#include "WebKit.h"
+#include "WebKitTypes.h"
 
 class WebView;
 

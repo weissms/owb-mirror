@@ -35,7 +35,11 @@ void JSNavigator::markChildren(MarkStack& markStack)
 
     JSGlobalData& globalData = *Heap::heap(this)->globalData();
 
+#if ENABLE(GEOLOCATION)
     markDOMObjectWrapper(markStack, globalData, impl()->optionalGeolocation());
+#else
+    markDOMObjectWrapper(markStack, globalData, 0);
+#endif
 }
 
 }

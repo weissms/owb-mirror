@@ -1,3 +1,100 @@
+2009-09-16  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Allow anonymous storage inside JSObject
+        https://bugs.webkit.org/show_bug.cgi?id=29168
+
+        Add the concept of anonymous slots to Structures so that it is
+        possible to store references to values that need marking in the
+        standard JSObject storage buffer.  This allows us to reduce the
+        malloc overhead of some objects (by allowing them to store JS
+        values in the inline storage of the object) and reduce the 
+        dependence of custom mark functions (if all an objects children
+        are in the standard object property storage there's no need to
+        mark them manually).
+
+        * JavaScriptCore.exp:
+        * runtime/JSObject.h:
+        (JSC::JSObject::putAnonymousValue):
+        (JSC::JSObject::getAnonymousValue):
+        (JSC::JSObject::addAnonymousSlots):
+        * runtime/JSWrapperObject.h:
+        (JSC::JSWrapperObject::createStructure):
+        (JSC::JSWrapperObject::JSWrapperObject):
+        (JSC::JSWrapperObject::setInternalValue):
+        * runtime/PropertyMapHashTable.h:
+        * runtime/Structure.cpp:
+        (JSC::Structure::~Structure):
+        (JSC::Structure::materializePropertyMap):
+        (JSC::Structure::addAnonymousSlotsTransition):
+        (JSC::Structure::copyPropertyTable):
+        (JSC::Structure::put):
+        (JSC::Structure::rehashPropertyMapHashTable):
+        * runtime/Structure.h:
+        (JSC::Structure::propertyStorageSize):
+        (JSC::StructureTransitionTable::reifySingleTransition):
+        * runtime/StructureTransitionTable.h:
+        (JSC::StructureTransitionTable::TransitionTable::addSlotTransition):
+        (JSC::StructureTransitionTable::TransitionTable::removeSlotTransition):
+        (JSC::StructureTransitionTable::TransitionTable::getSlotTransition):
+        (JSC::StructureTransitionTable::getAnonymousSlotTransition):
+        (JSC::StructureTransitionTable::addAnonymousSlotTransition):
+        (JSC::StructureTransitionTable::removeAnonymousSlotTransition):
+
+2009-09-15  Alex Milowski  <alex@milowski.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Added the ENABLE_MATHML define to the features
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-09-15 Csaba Osztrogonac <oszi@inf.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Build fix for windows.
+
+        After http://trac.webkit.org/changeset/47795 the MinGW build broke,
+        because MinGW has __mingw_aligned_malloc instead of _aligned_malloc.
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::allocateBlock): MinGW case added.
+        (JSC::Heap::freeBlock): MinGW case added.
+
+2009-09-15  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Build fix for Windows/MinGW
+
+        https://bugs.webkit.org/show_bug.cgi?id=29268
+
+        * wtf/Platform.h: JSVALUE32_64 temporarily disabled on PLATFORM(WIN_OS) with COMPILER(MINGW)
+
+2009-09-14  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Detect VFP at runtime in generic ARM port on Linux platform.
+        https://bugs.webkit.org/show_bug.cgi?id=29076
+
+        * JavaScriptCore.pri:
+        * assembler/MacroAssemblerARM.cpp: Added.
+        (JSC::isVFPPresent):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::supportsFloatingPoint):
+
+2009-09-14  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Build fix for windows build.
+
+        * JavaScriptCore.pri: Correct a logic error.
+        * pcre/dftables: Add missing paranthesis for tmpdir function.
+
 2009-09-14  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by NOBODY (Build fix).

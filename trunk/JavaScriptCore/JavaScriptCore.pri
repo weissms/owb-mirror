@@ -104,6 +104,7 @@ SOURCES += \
     bytecode/StructureStubInfo.cpp \
     bytecode/JumpTable.cpp \
     assembler/ARMAssembler.cpp \
+    assembler/MacroAssemblerARM.cpp \
     jit/JIT.cpp \
     jit/JITCall.cpp \
     jit/JITArithmetic.cpp \
@@ -122,7 +123,7 @@ SOURCES += \
     yarr/RegexJIT.cpp \
     interpreter/RegisterFile.cpp
 
-win32-*:wince* {
+win32-*|wince* {
     SOURCES += jit/ExecutableAllocatorWin.cpp \
                runtime/MarkStackWin.cpp
 } else {

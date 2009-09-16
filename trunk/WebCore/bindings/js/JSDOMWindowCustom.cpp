@@ -1027,9 +1027,11 @@ JSValue JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
     if (!frame)
         return jsUndefined();
 
-    if (RefPtr<JSEventListener> listener = findOrCreateJSEventListener(args.at(1)))
-        impl()->addEventListener(AtomicString(args.at(0).toString(exec)), listener.release(), args.at(2).toBoolean(exec));
+    JSValue listener = args.at(1);
+    if (!listener.isObject())
+        return jsUndefined();
 
+    impl()->addEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 
@@ -1039,9 +1041,11 @@ JSValue JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
     if (!frame)
         return jsUndefined();
 
-    if (JSEventListener* listener = findJSEventListener(args.at(1)))
-        impl()->removeEventListener(AtomicString(args.at(0).toString(exec)), listener, args.at(2).toBoolean(exec));
+    JSValue listener = args.at(1);
+    if (!listener.isObject())
+        return jsUndefined();
 
+    impl()->removeEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false).get(), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 

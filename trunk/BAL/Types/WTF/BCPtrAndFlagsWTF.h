@@ -68,7 +68,7 @@ namespace WTF {
         PtrAndFlags(T* ptr)
         {
             PtrAndFlagsBase<T, FlagEnum>::m_ptrAndFlags = 0;
-            PtrAndFlagsBase<T, FlagEnum>::set(ptr);
+            set(ptr);
         }
     };
 } // namespace WTF

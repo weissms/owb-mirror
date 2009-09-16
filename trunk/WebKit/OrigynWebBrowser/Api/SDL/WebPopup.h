@@ -29,15 +29,16 @@
 #ifndef WebPopup_H
 #define WebPopup_H
 
-#include "BALBase.h"
+#include "WebKit.h"
+
 #include "WebWindow.h"
 #include "SDL/SDL.h"
-#include "PlatformString.h"
-#include "GraphicsContext.h"
 #include "IntRect.h"
-#include "PopupMenu.h"
 
 class WebView;
+namespace WebCore {
+    class PopupMenu;
+}
 
 class WebPopup : public WebWindow
 {
@@ -61,8 +62,6 @@ private:
     void updatePopup();
     void valueChanged();
 
-    WebCore::String m_text;
-    WebCore::String m_buttonText;
     bool m_state;
     WebView *m_view;
     bool isPainted;

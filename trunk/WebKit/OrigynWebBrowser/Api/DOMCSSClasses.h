@@ -35,21 +35,24 @@
 
 class DOMCSSStyleDeclaration : public DOMObject
 {
-protected:
+private:
     DOMCSSStyleDeclaration(WebCore::CSSStyleDeclaration* d);
-    ~DOMCSSStyleDeclaration();
 
-public:
+protected:
+    friend class DOMDocument;
+    friend class DOMElement;
+    friend class WebEditorClient;
     static DOMCSSStyleDeclaration* createInstance(WebCore::CSSStyleDeclaration* d);
 
 public:
+    ~DOMCSSStyleDeclaration();
     // WebScriptObject
     /**
      * throw exception
      * @discussion Throws an exception in the current script execution context.
         @result Either NO if an exception could not be raised, YES otherwise.
      */
-    virtual bool throwException(WebCore::String exceptionMessage)
+    virtual bool throwException(const char* exceptionMessage)
     { 
         return DOMObject::throwException(exceptionMessage); 
     }
@@ -62,7 +65,7 @@ public:
         specified arguments.
         @result Returns the result of calling the script method.
      */
-    virtual void removeWebScriptKey(WebCore::String name)
+    virtual void removeWebScriptKey(const char* name)
     {
         DOMObject::removeWebScriptKey(name);
     }
@@ -73,7 +76,7 @@ public:
         of non string objects type is dependent on the script environment.
         @result Returns the string representation of the object.
      */
-    virtual WebCore::String stringRepresentation()
+    virtual const char* stringRepresentation()
     {
         return DOMObject::stringRepresentation();
     }
@@ -84,29 +87,29 @@ public:
         @discussion Raises an exception in the script environment in the context of the
         current object.
      */
-    virtual void setException(WebCore::String description)
+    virtual void setException(const char* description)
     {
         DOMObject::setException(description);
     }
 
     // DOMCSSStyleDeclaration
-    virtual WebCore::String cssText();
+    virtual const char* cssText();
     
-    virtual void setCssText(WebCore::String cssText);
+    virtual void setCssText(const char* cssText);
     
-    virtual WebCore::String getPropertyValue(WebCore::String propertyName);
+    virtual const char* getPropertyValue(const char* propertyName);
     
-    //virtual DOMCSSValue* getPropertyCSSValue(WebCore::String propertyName);
+    //virtual DOMCSSValue* getPropertyCSSValue(const char* propertyName);
     
-    virtual WebCore::String removeProperty(WebCore::String propertyName);
+    virtual const char* removeProperty(const char* propertyName);
     
-    virtual WebCore::String getPropertyPriority(WebCore::String propertyName);
+    virtual const char* getPropertyPriority(const char* propertyName);
     
-    virtual void setProperty(WebCore::String propertyName, WebCore::String value, WebCore::String priority);
+    virtual void setProperty(const char* propertyName, const char* value, const char* priority);
     
     virtual unsigned length();
     
-    virtual WebCore::String item(unsigned index);
+    virtual const char* item(unsigned index);
     
 //    virtual DOMCSSRule* parentRule();
 

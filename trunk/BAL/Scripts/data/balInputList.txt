@@ -177,6 +177,8 @@ BAL/Skeletons/Geolocation   WebCore/platform/GeolocationService.h
 
 BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.cpp
 BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.h
+BAL/Geolocation/WebCore/Mock  WebCore/platform/mock/GeolocationServiceMock.cpp
+BAL/Geolocation/WebCore/Mock  WebCore/platform/mock/GeolocationServiceMock.h
 BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.cpp
 BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.h
 
@@ -549,10 +551,12 @@ BAL/Skeletons/Network	WebCore/platform/CookieJar.h
 BAL/Skeletons/Network	WebCore/platform/Cookie.h
 BAL/Skeletons/Network	WebCore/platform/network/AuthenticationChallengeBase.h
 BAL/Skeletons/Network	WebCore/platform/network/Credential.h
+BAL/Skeletons/Network   WebCore/platform/network/CredentialStorage.h
 BAL/Skeletons/Network	WebCore/platform/network/FormData.h
 BAL/Skeletons/Network	WebCore/platform/network/FormDataBuilder.h
 BAL/Skeletons/Network	WebCore/platform/network/NetworkStateNotifier.h
 BAL/Skeletons/Network	WebCore/platform/network/ProtectionSpace.h
+BAL/Skeletons/Network   WebCore/platform/network/ProtectionSpaceHash.h
 BAL/Skeletons/Network	WebCore/platform/network/ResourceErrorBase.h
 BAL/Skeletons/Network	WebCore/platform/network/ResourceHandle.h
 BAL/Skeletons/Network	WebCore/platform/network/ResourceHandleClient.h
@@ -607,6 +611,8 @@ BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.h
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.h
+BAL/Network/WebCore/WK  WebCore/platform/network/CredentialStorage.h
+BAL/Network/WebCore/WK  WebCore/platform/network/CredentialStorage.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/DNS.h
 BAL/Network/WebCore/WK	WebCore/platform/network/FormData.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/FormData.h
@@ -617,6 +623,7 @@ BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.h
+BAL/Network/WebCore/WK  WebCore/platform/network/ProtectionSpaceHash.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceErrorBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceErrorBase.h
 BAL/Network/WebCore/WK	WebCore/platform/network/ResourceHandle.cpp

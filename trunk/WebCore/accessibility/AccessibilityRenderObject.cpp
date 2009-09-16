@@ -606,6 +606,22 @@ Element* AccessibilityRenderObject::mouseButtonListener() const
     return 0;
 }
 
+void AccessibilityRenderObject::increment()
+{
+    if (roleValue() != SliderRole)
+        return;
+    
+    changeValueByPercent(5);
+}
+
+void AccessibilityRenderObject::decrement()
+{
+    if (roleValue() != SliderRole)
+        return;
+    
+    changeValueByPercent(-5);
+}
+
 static Element* siblingWithAriaRole(String role, Node* node)
 {
     Node* sibling = node->parent()->firstChild();
@@ -1138,22 +1154,10 @@ AccessibilityObject* AccessibilityRenderObject::internalLinkElement() const
     if (!linkedNode)
         return 0;
     
-    // the element we find may not be accessible, keep searching until we find a good one
-    AccessibilityObject* linkedAXElement = m_renderer->document()->axObjectCache()->getOrCreate(linkedNode->renderer());
-    while (linkedAXElement && linkedAXElement->accessibilityIsIgnored()) {
-        linkedNode = linkedNode->traverseNextNode();
-        
-        while (linkedNode && !linkedNode->renderer())
-            linkedNode = linkedNode->traverseNextSibling();
-        
-        if (!linkedNode)
-            return 0;
-        linkedAXElement = m_renderer->document()->axObjectCache()->getOrCreate(linkedNode->renderer());
-    }
-    
-    return linkedAXElement;
+    // The element we find may not be accessible, so find the first accessible object.
+    return firstAccessibleObjectFromNode(linkedNode);
 }
-    
+
 void AccessibilityRenderObject::addRadioButtonGroupMembers(AccessibilityChildrenVector& linkedUIElements) const
 {
     if (!m_renderer || roleValue() != RadioButtonRole)
@@ -1593,8 +1597,22 @@ void AccessibilityRenderObject::setFocused(bool on)
     }
 }
 
+void AccessibilityRenderObject::changeValueByPercent(float percentChange)
+{
+    float range = maxValueForRange() - minValueForRange();
+    float value = valueForRange();
+    
+    value += range * (percentChange / 100);
+    setValue(String::number(value));
+    
+    axObjectCache()->postNotification(m_renderer, AXObjectCache::AXValueChanged, true);
+}
+    
 void AccessibilityRenderObject::setValue(const String& string)
 {
+    if (!m_renderer)
+        return;
+    
     // FIXME: Do we want to do anything here for ARIA textboxes?
     if (m_renderer->isTextField()) {
         HTMLInputElement* input = static_cast<HTMLInputElement*>(m_renderer->node());
@@ -1602,6 +1620,10 @@ void AccessibilityRenderObject::setValue(const String& string)
     } else if (m_renderer->isTextArea()) {
         HTMLTextAreaElement* textArea = static_cast<HTMLTextAreaElement*>(m_renderer->node());
         textArea->setValue(string);
+    } else if (roleValue() == SliderRole) {
+        Node* element = m_renderer->node();
+        if (element && element->isElementNode())
+            static_cast<Element*>(element)->setAttribute(aria_valuenowAttr, string);
     }
 }
 
@@ -2420,6 +2442,7 @@ bool AccessibilityRenderObject::canSetFocusAttribute() const
         case PopUpButtonRole:
         case CheckBoxRole:
         case RadioButtonRole:
+        case SliderRole:
             return true;
         default:
             return false;

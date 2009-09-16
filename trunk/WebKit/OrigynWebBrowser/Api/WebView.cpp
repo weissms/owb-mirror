@@ -29,6 +29,7 @@
 #include "config.h"
 #include "WebView.h"
 
+#include "PtrAndFlags.h"
 #include "DefaultPolicyDelegate.h"
 #include "WebDownloadDelegate.h"
 #include "DOMCoreClasses.h"

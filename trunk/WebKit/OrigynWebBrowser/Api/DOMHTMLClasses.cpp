@@ -30,6 +30,7 @@
 #include "DOMHTMLClasses.h"
 
 #include <PlatformString.h>
+#include <CString.h>
 #include <Document.h>
 #include <Element.h>
 #include <FrameView.h>
@@ -81,7 +82,7 @@ DOMNode* DOMHTMLCollection::item(unsigned index)
     return DOMNode::createInstance(m_collection->item(index));
 }
 
-DOMNode* DOMHTMLCollection::namedItem(WebCore::String /*name*/)
+DOMNode* DOMHTMLCollection::namedItem(const char* /*name*/)
 {
     return 0;
 }
@@ -102,35 +103,35 @@ DOMNode* DOMHTMLOptionsCollection::item(unsigned int /*index*/)
     return 0;
 }
 
-DOMNode* DOMHTMLOptionsCollection::namedItem(WebCore::String /*name*/)
+DOMNode* DOMHTMLOptionsCollection::namedItem(const char* /*name*/)
 {
     return 0;
 }
 
 // DOMHTMLDocument ------------------------------------------------------------
 
-WebCore::String DOMHTMLDocument::title()
+const char* DOMHTMLDocument::title()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLDocument::setTitle(WebCore::String /*title*/)
+void DOMHTMLDocument::setTitle(const char* /*title*/)
 {
 }
     
-WebCore::String DOMHTMLDocument::referrer()
+const char* DOMHTMLDocument::referrer()
 {
-    return WebCore::String();
+    return "";
 }
     
-WebCore::String DOMHTMLDocument::domain()
+const char* DOMHTMLDocument::domain()
 {
-    return WebCore::String();
+    return "";
 }
     
-WebCore::String DOMHTMLDocument::URL()
+const char* DOMHTMLDocument::URL()
 {
-    return static_cast<HTMLDocument*>(m_document)->url();
+    return strdup(static_cast<HTMLDocument*>(m_document)->url().string().utf8().data());
 }
     
 DOMHTMLElement* DOMHTMLDocument::body()
@@ -175,14 +176,14 @@ DOMHTMLCollection* DOMHTMLDocument::anchors()
     return 0;
 }
     
-WebCore::String DOMHTMLDocument::cookie()
+const char* DOMHTMLDocument::cookie()
 {
     if (!m_document)
-        return String();
-    return m_document->cookie();
+        return "";
+    return strdup(m_document->cookie().utf8().data());
 }
     
-void DOMHTMLDocument::setCookie(WebCore::String cookie)
+void DOMHTMLDocument::setCookie(const char* cookie)
 {
     if (!m_document)
         return;
@@ -198,87 +199,87 @@ void DOMHTMLDocument::close()
 {
 }
     
-void DOMHTMLDocument::write(WebCore::String /*text*/)
+void DOMHTMLDocument::write(const char* /*text*/)
 {
 }
     
-void DOMHTMLDocument::writeln(WebCore::String /*text*/)
+void DOMHTMLDocument::writeln(const char* /*text*/)
 {
 }
     
-DOMElement* DOMHTMLDocument::getElementById_(WebCore::String /*elementId*/)
+DOMElement* DOMHTMLDocument::getElementById_(const char* /*elementId*/)
 {
     return 0;
 }
     
-DOMNodeList* DOMHTMLDocument::getElementsByName(WebCore::String /*elementName*/)
+DOMNodeList* DOMHTMLDocument::getElementsByName(const char* /*elementName*/)
 {
     return 0;
 }
 
 // DOMHTMLElement -------------------------------------------------------------
 
-WebCore::String DOMHTMLElement::idName()
+const char* DOMHTMLElement::idName()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLElement::setIdName(WebCore::String /*idName*/)
-{
-}
-    
-WebCore::String DOMHTMLElement::title()
-{
-    return WebCore::String();
-}
-    
-void DOMHTMLElement::setTitle(WebCore::String /*title*/)
+void DOMHTMLElement::setIdName(const char* /*idName*/)
 {
 }
     
-WebCore::String DOMHTMLElement::lang()
+const char* DOMHTMLElement::title()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLElement::setLang(WebCore::String /*lang*/)
-{
-}
-    
-WebCore::String DOMHTMLElement::dir()
-{
-    return WebCore::String();
-}
-    
-void DOMHTMLElement::setDir(WebCore::String /*dir*/)
+void DOMHTMLElement::setTitle(const char* /*title*/)
 {
 }
     
-WebCore::String DOMHTMLElement::className()
+const char* DOMHTMLElement::lang()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLElement::setClassName(WebCore::String /*className*/)
+void DOMHTMLElement::setLang(const char* /*lang*/)
+{
+}
+    
+const char* DOMHTMLElement::dir()
+{
+    return "";
+}
+    
+void DOMHTMLElement::setDir(const char* /*dir*/)
+{
+}
+    
+const char* DOMHTMLElement::className()
+{
+    return "";
+}
+    
+void DOMHTMLElement::setClassName(const char* /*className*/)
 {
 }
 
-WebCore::String DOMHTMLElement::innerHTML()
+const char* DOMHTMLElement::innerHTML()
 {
-    return WebCore::String();
+    return "";
 }
         
-void DOMHTMLElement::setInnerHTML(WebCore::String /*html*/)
+void DOMHTMLElement::setInnerHTML(const char* /*html*/)
 {
 }
         
-WebCore::String DOMHTMLElement::innerText()
+const char* DOMHTMLElement::innerText()
 {
     ASSERT(m_element && m_element->isHTMLElement());
-    return static_cast<HTMLElement*>(m_element)->innerText();
+    return strdup(static_cast<HTMLElement*>(m_element)->innerText().utf8().data());
 }
         
-void DOMHTMLElement::setInnerText(WebCore::String text)
+void DOMHTMLElement::setInnerText(const char* text)
 {
     ASSERT(m_element && m_element->isHTMLElement());
     HTMLElement* htmlEle = static_cast<HTMLElement*>(m_element);
@@ -298,60 +299,60 @@ int DOMHTMLFormElement::length()
     return 0;
 }
     
-WebCore::String DOMHTMLFormElement::name()
+const char* DOMHTMLFormElement::name()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLFormElement::setName(WebCore::String /*name*/)
-{
-}
-    
-WebCore::String DOMHTMLFormElement::acceptCharset()
-{
-    return WebCore::String();
-}
-    
-void DOMHTMLFormElement::setAcceptCharset(WebCore::String /*acceptCharset*/)
+void DOMHTMLFormElement::setName(const char* /*name*/)
 {
 }
     
-WebCore::String DOMHTMLFormElement::action()
+const char* DOMHTMLFormElement::acceptCharset()
 {
-    ASSERT(m_element && m_element->hasTagName(formTag));
-    return static_cast<HTMLFormElement*>(m_element)->action();
+    return "";
 }
     
-void DOMHTMLFormElement::setAction(WebCore::String /*action*/)
+void DOMHTMLFormElement::setAcceptCharset(const char* /*acceptCharset*/)
 {
 }
     
-WebCore::String DOMHTMLFormElement::encType()
-{
-    return WebCore::String();
-}
-    
-WebCore::String DOMHTMLFormElement::setEnctype()
-{
-    return WebCore::String();
-}
-    
-WebCore::String DOMHTMLFormElement::method()
+const char* DOMHTMLFormElement::action()
 {
     ASSERT(m_element && m_element->hasTagName(formTag));
-    return static_cast<HTMLFormElement*>(m_element)->method();
+    return strdup(static_cast<HTMLFormElement*>(m_element)->action().utf8().data());
 }
     
-void DOMHTMLFormElement::setMethod(WebCore::String /*method*/)
+void DOMHTMLFormElement::setAction(const char* /*action*/)
 {
 }
     
-WebCore::String DOMHTMLFormElement::target()
+const char* DOMHTMLFormElement::encType()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLFormElement::setTarget(WebCore::String /*target*/)
+const char* DOMHTMLFormElement::setEnctype()
+{
+    return "";
+}
+    
+const char* DOMHTMLFormElement::method()
+{
+    ASSERT(m_element && m_element->hasTagName(formTag));
+    return strdup(static_cast<HTMLFormElement*>(m_element)->method().utf8().data());
+}
+    
+void DOMHTMLFormElement::setMethod(const char* /*method*/)
+{
+}
+    
+const char* DOMHTMLFormElement::target()
+{
+    return "";
+}
+    
+void DOMHTMLFormElement::setTarget(const char* /*target*/)
 {
 }
     
@@ -365,9 +366,9 @@ void DOMHTMLFormElement::reset()
 
 // DOMHTMLSelectElement -------------------------------------------------------
 
-WebCore::String DOMHTMLSelectElement::type()
+const char* DOMHTMLSelectElement::type()
 {
-    return WebCore::String();
+    return "";
 }
     
 int DOMHTMLSelectElement::selectedIndex()
@@ -379,12 +380,12 @@ void DOMHTMLSelectElement::setSelectedIndx(int /*selectedIndex*/)
 {
 }
     
-WebCore::String DOMHTMLSelectElement::value()
+const char* DOMHTMLSelectElement::value()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLSelectElement::setValue(WebCore::String /*value*/)
+void DOMHTMLSelectElement::setValue(const char* /*value*/)
 {
 }
     
@@ -421,12 +422,12 @@ void DOMHTMLSelectElement::setMultiple(bool /*multiple*/)
 {
 }
     
-WebCore::String DOMHTMLSelectElement::name()
+const char* DOMHTMLSelectElement::name()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLSelectElement::setName(WebCore::String /*name*/)
+void DOMHTMLSelectElement::setName(const char* /*name*/)
 {
 }
     
@@ -478,9 +479,9 @@ void DOMHTMLOptionElement::setDefaultSelected(bool /*defaultSelected*/)
 {
 }
     
-WebCore::String DOMHTMLOptionElement::text()
+const char* DOMHTMLOptionElement::text()
 {
-    return WebCore::String();
+    return "";
 }
     
 int DOMHTMLOptionElement::index()
@@ -497,12 +498,12 @@ void DOMHTMLOptionElement::setDisabled(bool /*disabled*/)
 {
 }
     
-WebCore::String DOMHTMLOptionElement::label()
+const char* DOMHTMLOptionElement::label()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLOptionElement::setLabel(WebCore::String /*label*/)
+void DOMHTMLOptionElement::setLabel(const char* /*label*/)
 {
 }
     
@@ -515,23 +516,23 @@ void DOMHTMLOptionElement::setSelected(bool /*selected*/)
 {
 }
     
-WebCore::String DOMHTMLOptionElement::value()
+const char* DOMHTMLOptionElement::value()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLOptionElement::setValue(WebCore::String /*value*/)
+void DOMHTMLOptionElement::setValue(const char* /*value*/)
 {
 }
 
 // DOMHTMLInputElement --------------------------------------------------------
 
-WebCore::String DOMHTMLInputElement::defaultValue()
+const char* DOMHTMLInputElement::defaultValue()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setDefaultValue(WebCore::String /*val*/)
+void DOMHTMLInputElement::setDefaultValue(const char* /*val*/)
 {
 }
     
@@ -540,7 +541,7 @@ bool DOMHTMLInputElement::defaultChecked()
     return false;
 }
     
-void DOMHTMLInputElement::setDefaultChecked(WebCore::String /*checked*/)
+void DOMHTMLInputElement::setDefaultChecked(const char* /*checked*/)
 {
 }
     
@@ -550,39 +551,39 @@ DOMHTMLElement* DOMHTMLInputElement::form()
     return new DOMHTMLElement(static_cast<HTMLInputElement*>(m_element));
 }
     
-WebCore::String DOMHTMLInputElement::accept()
+const char* DOMHTMLInputElement::accept()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setAccept(WebCore::String /*accept*/)
-{
-}
-    
-WebCore::String DOMHTMLInputElement::accessKey()
-{
-    return WebCore::String();
-}
-    
-void DOMHTMLInputElement::setAccessKey(WebCore::String /*key*/)
+void DOMHTMLInputElement::setAccept(const char* /*accept*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::align()
+const char* DOMHTMLInputElement::accessKey()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setAlign(WebCore::String /*align*/)
+void DOMHTMLInputElement::setAccessKey(const char* /*key*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::alt()
+const char* DOMHTMLInputElement::align()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setAlt(WebCore::String /*alt*/)
+void DOMHTMLInputElement::setAlign(const char* /*align*/)
+{
+}
+    
+const char* DOMHTMLInputElement::alt()
+{
+    return "";
+}
+    
+void DOMHTMLInputElement::setAlt(const char* /*alt*/)
 {
 }
     
@@ -615,12 +616,12 @@ void DOMHTMLInputElement::setMaxLength(int /*maxLength*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::name()
+const char* DOMHTMLInputElement::name()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setName(WebCore::String /*name*/)
+void DOMHTMLInputElement::setName(const char* /*name*/)
 {
 }
     
@@ -644,12 +645,12 @@ void DOMHTMLInputElement::setSize(unsigned int /*size*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::src()
+const char* DOMHTMLInputElement::src()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setSrc(WebCore::String /*src*/)
+void DOMHTMLInputElement::setSrc(const char* /*src*/)
 {
 }
     
@@ -662,35 +663,35 @@ void DOMHTMLInputElement::setTabIndex(int /*tabIndex*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::type()
+const char* DOMHTMLInputElement::type()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setType(WebCore::String type)
+void DOMHTMLInputElement::setType(const char* type)
 {
     ASSERT(m_element && m_element->hasTagName(inputTag));
     HTMLInputElement* inputElement = static_cast<HTMLInputElement*>(m_element);
     inputElement->setType(type);
 }
     
-WebCore::String DOMHTMLInputElement::useMap()
+const char* DOMHTMLInputElement::useMap()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLInputElement::setUseMap(WebCore::String /*useMap*/)
+void DOMHTMLInputElement::setUseMap(const char* /*useMap*/)
 {
 }
     
-WebCore::String DOMHTMLInputElement::value()
+const char* DOMHTMLInputElement::value()
 {
     ASSERT(m_element && m_element->hasTagName(inputTag));
     HTMLInputElement* inputElement = static_cast<HTMLInputElement*>(m_element);
-    return inputElement->value();
+    return strdup(inputElement->value().utf8().data());
 }
     
-void DOMHTMLInputElement::setValue(WebCore::String value)
+void DOMHTMLInputElement::setValue(const char* value)
 {
     ASSERT(m_element && m_element->hasTagName(inputTag));
     HTMLInputElement* inputElement = static_cast<HTMLInputElement*>(m_element);
@@ -757,7 +758,7 @@ WebCore::IntRect DOMHTMLInputElement::rectOnScreen()
     return coreRect;
 }
 
-void DOMHTMLInputElement::replaceCharactersInRange(int /*startTarget*/, int /*endTarget*/, WebCore::String /*replacementString*/, int /*index*/)
+void DOMHTMLInputElement::replaceCharactersInRange(int /*startTarget*/, int /*endTarget*/, const char* /*replacementString*/, int /*index*/)
 {
 }
 
@@ -792,12 +793,12 @@ bool DOMHTMLInputElement::isUserEdited()
 
 // DOMHTMLTextAreaElement -----------------------------------------------------
 
-WebCore::String DOMHTMLTextAreaElement::defaultValue()
+const char* DOMHTMLTextAreaElement::defaultValue()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLTextAreaElement::setDefaultValue(WebCore::String /*val*/)
+void DOMHTMLTextAreaElement::setDefaultValue(const char* /*val*/)
 {
 }
     
@@ -807,12 +808,12 @@ DOMHTMLElement* DOMHTMLTextAreaElement::form()
     return new DOMHTMLElement(static_cast<HTMLTextAreaElement*>(m_element));
 }
     
-WebCore::String DOMHTMLTextAreaElement::accessKey()
+const char* DOMHTMLTextAreaElement::accessKey()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLTextAreaElement::setAccessKey(WebCore::String /*key*/)
+void DOMHTMLTextAreaElement::setAccessKey(const char* /*key*/)
 {
 }
     
@@ -834,12 +835,12 @@ void DOMHTMLTextAreaElement::setDisabled(bool /*disabled*/)
 {
 }
     
-WebCore::String DOMHTMLTextAreaElement::name()
+const char* DOMHTMLTextAreaElement::name()
 {
-    return WebCore::String();
+    return "";
 }
     
-void DOMHTMLTextAreaElement::setName(WebCore::String /*name*/)
+void DOMHTMLTextAreaElement::setName(const char* /*name*/)
 {
 }
     
@@ -870,19 +871,19 @@ void DOMHTMLTextAreaElement::setTabIndex(int /*tabIndex*/)
 {
 }
     
-WebCore::String DOMHTMLTextAreaElement::type()
+const char* DOMHTMLTextAreaElement::type()
 {
-    return WebCore::String();
+    return "";
 }
     
-WebCore::String DOMHTMLTextAreaElement::value()
+const char* DOMHTMLTextAreaElement::value()
 {
     ASSERT(m_element && m_element->hasTagName(textareaTag));
     HTMLTextAreaElement* textareaElement = static_cast<HTMLTextAreaElement*>(m_element);
-    return textareaElement->value();
+    return strdup(textareaElement->value().utf8().data());
 }
     
-void DOMHTMLTextAreaElement::setValue(WebCore::String value)
+void DOMHTMLTextAreaElement::setValue(const char* value)
 {
     ASSERT(m_element && m_element->hasTagName(textareaTag));
     HTMLTextAreaElement* textareaElement = static_cast<HTMLTextAreaElement*>(m_element);

@@ -25,13 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "config.h"
 #include "WebWindowPrompt.h"
+
 #include "GraphicsContext.h"
 #include "IntRect.h"
 #include "Color.h"
-#include "TextRun.h"
 #include "Font.h"
 #include "FontSelector.h"
 #include "WebView.h"
@@ -39,12 +38,11 @@
 #include "Frame.h"
 #include "FrameView.h"
 #include "CString.h"
-
-#define MIN 40
+#include "TextBreakIterator.h"
 
 using namespace WebCore;
 
-static int fontSize = 20;
+static int fontSize = 12;
 
 WebWindowPrompt* WebWindowPrompt::createWebWindowPrompt(const char* text, const char* defaultText, WebView *webView)
 {
@@ -93,135 +91,127 @@ void WebWindowPrompt::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     ctx.save();
     // Paint background
-    ctx.beginTransparencyLayer(0.8);
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color(0xA0A0A0A0)/*Color::gray*/);
-    ctx.endTransparencyLayer();
+    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent);
     
 
-    RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
+    static RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
     if (cornerhl) {
-        RefPtr<WebCore::Image> cornerhr = Image::loadPlatformResource("/Alert/cornerhr");
-        RefPtr<WebCore::Image> cornerbl = Image::loadPlatformResource("/Alert/cornerbl");
-        RefPtr<WebCore::Image> cornerbr = Image::loadPlatformResource("/Alert/cornerbr");
-        RefPtr<WebCore::Image> borderh = Image::loadPlatformResource("/Alert/borderh");
-        RefPtr<WebCore::Image> borderb = Image::loadPlatformResource("/Alert/borderb");
-        RefPtr<WebCore::Image> borderl = Image::loadPlatformResource("/Alert/borderl");
-        RefPtr<WebCore::Image> borderr = Image::loadPlatformResource("/Alert/borderr");
-        RefPtr<WebCore::Image> bg = Image::loadPlatformResource("/Alert/background");
-        RefPtr<WebCore::Image> buttonOK = Image::loadPlatformResource("/Alert/buttonOK");
-        RefPtr<WebCore::Image> buttonCancel = Image::loadPlatformResource("/Alert/buttonCancel");
-        RefPtr<WebCore::Image> textbl = Image::loadPlatformResource("/Alert/textbl");
-        RefPtr<WebCore::Image> textbr = Image::loadPlatformResource("/Alert/textbr");
-        RefPtr<WebCore::Image> textgb = Image::loadPlatformResource("/Alert/textgb");
+        static RefPtr<WebCore::Image> cornerhr = Image::loadPlatformResource("/Alert/cornerhr");
+        static RefPtr<WebCore::Image> cornerbl = Image::loadPlatformResource("/Alert/cornerbl");
+        static RefPtr<WebCore::Image> cornerbr = Image::loadPlatformResource("/Alert/cornerbr");
+        static RefPtr<WebCore::Image> borderh = Image::loadPlatformResource("/Alert/borderh");
+        static RefPtr<WebCore::Image> borderb = Image::loadPlatformResource("/Alert/borderb");
+        static RefPtr<WebCore::Image> borderl = Image::loadPlatformResource("/Alert/borderl");
+        static RefPtr<WebCore::Image> borderr = Image::loadPlatformResource("/Alert/borderr");
+        static RefPtr<WebCore::Image> bg = Image::loadPlatformResource("/Alert/background");
+        static RefPtr<WebCore::Image> buttonOK = Image::loadPlatformResource("/Alert/buttonOK");
+        static RefPtr<WebCore::Image> buttonCancel = Image::loadPlatformResource("/Alert/buttonCancel");
+        static RefPtr<WebCore::Image> textbl = Image::loadPlatformResource("/Alert/textbl");
+        static RefPtr<WebCore::Image> textbr = Image::loadPlatformResource("/Alert/textbr");
+        static RefPtr<WebCore::Image> textgb = Image::loadPlatformResource("/Alert/textgb");
         if (!cornerhr->isNull() && !cornerbl->isNull() && !cornerbr->isNull() && !borderh->isNull() && !borderb->isNull() && !borderl->isNull() && !borderr->isNull() && !bg->isNull() && !buttonOK->isNull() && !buttonCancel->isNull() && !textbl->isNull() && !textbr->isNull() && !textgb->isNull()) {
             isThemable = true;
-            fontSize = 13;
 
             // Create font
             FontDescription fontDescription;
             // this is normally computed by CSS and fixes the minimum size
             fontDescription.setComputedSize(fontSize);
-            Font font(fontDescription,0,0);
+            Font font(fontDescription, 0, 0);
             // update m_fontList
             // needed or else Assertion `m_fontList' will failed.
             font.update(0);
 
-            int size = (font.width(TextRun(m_text.c_str())) / bg->width()) + 1;
+            int textWidth = font.width(TextRun(m_text.c_str()));
+            int lines = 2 * textWidth / m_surface->w + 1;
+            int popupHeight = borderh->height() * 2 + buttonOK->height() + lines * font.height() + textgb->height() + bg->height();
+            int popupWidth = textWidth + 2 * borderl->width();
 
-            if (size < MIN)
-                size = MIN;
+            // minimum popup width = OK and Cancel button width + width of right and left border + bg width for space between buttons.
+            int minWidth =  buttonOK->width() + buttonCancel->width() + 2 * borderl->width() + bg->width();
+            if (popupWidth < minWidth)
+                popupWidth = minWidth;
 
-            /*int size = m_text.length() * fontSize / cornerhl->width();
+            if (textWidth > m_surface->w / 2)
+                popupWidth = m_surface->w / 2;
 
-            if (size < MIN)
-                size = MIN;*/
+            // Compute popup top left corner to have a centered popup.
+            IntPoint startPos((m_surface->w - popupWidth) / 2, (m_surface->h - popupHeight) / 2);
 
-            // Draw Hborder
-            IntPoint startPos((m_surface->w - (cornerhl->width() * size)) / 2, (m_surface->h / 2) - 30);
-            ctx.drawImage(cornerhl.get(), startPos);
-            IntPoint m = startPos;
-            for (int i = 0; i < size - 1; i++) {
-                m.move(borderh->width(), 0);
-                ctx.drawImage(borderh.get(), m);
-            }
-            m.move(borderh->width(), 0);
-            ctx.drawImage(cornerhr.get(), m);
+            // Fill popup with popup bg image.
+            // Then draw borders.
+            ctx.drawImage(bg.get(), IntRect(startPos, IntSize(popupWidth, popupHeight)));
 
-            IntPoint startText = startPos;
-            startText.move(borderh->width(), cornerhl->height() * 2);
+            // Left side
+            IntPoint topLeft(startPos);
+            ctx.drawImage(cornerhl.get(), topLeft);
+            IntRect leftBorder(IntPoint(topLeft.x(), topLeft.y() + cornerhl->height()), IntSize(borderl->width(), popupHeight - 2 * cornerhl->height()));
+            ctx.drawImage(borderl.get(), leftBorder);
+            IntPoint bottomLeft(topLeft.x(), topLeft.y() + popupHeight - cornerbl->height());
+            ctx.drawImage(cornerbl.get(), bottomLeft);
 
-            // Draw Text Backgroung + rigth and left border
-            for(int j=0; j < 2; j++) {
-                startPos.move(0, cornerhl->height());
-                ctx.drawImage(borderl.get(), startPos);
-                m = startPos;
-                for (int i = 0; i < size - 1; i++) {
-                    m.move(bg->width(), 0);
-                    ctx.drawImage(bg.get(), m);
-                }
-                m.move(bg->width(), 0);
-                ctx.drawImage(borderr.get(), m);
-            }
+            // Right side
+            IntPoint topRight(startPos.x() + popupWidth - cornerhr->width(), startPos.y());
+            ctx.drawImage(cornerhr.get(), topRight);
+            IntRect rightBorder(IntPoint(topRight.x(), topRight.y() + cornerhr->height()), IntSize(borderr->width(), popupHeight - 2 * cornerhr->height()));
+            ctx.drawImage(borderr.get(), rightBorder);
+            IntPoint bottomRight(topRight.x(), topRight.y() + popupHeight - cornerbr->height());
+            ctx.drawImage(cornerbr.get(), bottomRight);
 
-            // Draw BackGround TextBox
-            startPos.move(0, borderl->height());
-            ctx.drawImage(borderl.get(), startPos);
-            m = startPos;
-            m.move(textbl->width(), 0);
-            m_textRect = IntRect(m.x(), m.y(), size * bg->width(), textbl->height());
-            ctx.drawImage(textbl.get(), m);
-            for (int i = 0; i < size - 3; i++) {
-                m.move(bg->width(), 0);
-                ctx.drawImage(textgb.get(), m);
-            }
-            m.move(textgb->width(), 0);
-            ctx.drawImage(textbr.get(), m);
-            m.move(borderr->width(), 0);
-            ctx.drawImage(borderr.get(), m);
+            // Top border
+            IntRect topBorder(startPos.x() + borderh->width(), startPos.y(), popupWidth - 2 * borderh->width(), borderh->height());
+            ctx.drawImage(borderh.get(), topBorder);
 
-            // Draw BackGround Button
-            startPos.move(0, textgb->height());
-            ctx.drawImage(borderl.get(), startPos);
-            m = startPos;
-            for (int i = 0; i < size - 1; i++) {
-                m.move(bg->width(), 0);
-                ctx.drawImage(bg.get(), m);
-            }
-            m.move(bg->width(), 0);
-            ctx.drawImage(borderr.get(), m);
+            // Bottom border
+            IntRect bottomBorder(startPos.x() + borderb->width(), startPos.y() + popupHeight - borderb->height(), popupWidth - 2 * borderb->width(), borderb->height());
+            ctx.drawImage(borderb.get(), bottomBorder);
 
-            m_buttonOKRect = IntRect((m_surface->w / 2) - (buttonOK->width()) - 10 , m.y(), buttonOK->width(), buttonOK->height());
-            m_buttonCancelRect = IntRect((m_surface->w / 2), m.y(), buttonCancel->width(), buttonCancel->height());
+            // Draw text box
+            m_textRect = IntRect(startPos.x() + textbl->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonOK->height() - textgb->height() - bg->height(), popupWidth - 2 * borderb->width(), textgb->height());
+            ctx.drawImage(textgb.get(), m_textRect);
+            // Draw text border after, else text background will overwrite them.
+            IntRect textRect = m_textRect;
+            ctx.drawImage(textbl.get(), IntPoint(textRect.x(), textRect.y()));
+            ctx.drawImage(textbr.get(), IntPoint(textRect.right() - textbr->width(), textRect.y()));
 
-            // Draw BBorder
-            startPos.move(0, cornerbl->height());
-            ctx.drawImage(cornerbl.get(), startPos);
-            m = startPos;
-            for (int i = 0; i < size - 1; i++) {
-                m.move(bg->width(), 0);
-                ctx.drawImage(borderb.get(), m);
-            }
-            m.move(bg->width(), 0);
-            ctx.drawImage(cornerbr.get(), m);
-            
-            // Draw button
-            IntRect buttonOKRect = m_buttonOKRect;
-            IntRect buttonCancelRect = m_buttonCancelRect;
-            ctx.drawImage(buttonOK.get(), buttonOKRect.location());
-            ctx.drawImage(buttonCancel.get(), buttonCancelRect.location());
+            // Draw OK button at a centered position
+            // Specific hack: a bit lower
+            m_buttonOKRect = IntRect(startPos.x() + (popupWidth - minWidth) / 2 + borderl->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonOK->height(), buttonOK->width(), buttonOK->height());
+            ctx.drawImage(buttonOK.get(), m_buttonOKRect);
 
-            // Draw Text
-            /*FontDescription fontDescription;
-            // this is normally computed by CSS and fixes the minimum size
-            fontDescription.setComputedSize(fontSize);
-            Font font(fontDescription,0,0);
-            // update m_fontList
-            // needed or else Assertion `m_fontList' will failed.
-            font.update(0);*/
-        
+            // Draw Cancel button at a centered position
+            // Specific hack: a bit lower
+            m_buttonCancelRect = IntRect(m_buttonOKRect.x + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
+            ctx.drawImage(buttonCancel.get(), m_buttonCancelRect);
+
+            // Draw text line by line
+            IntPoint startText(startPos.x() + borderl->width(), startPos.y() + borderh->height() + font.size());
             TextRun textrun(m_text.c_str());
-            ctx.drawText(font, textrun, startText);
+            uint16_t lineLength = popupWidth - 2 * borderl->width(); // Keep a border for max line length
+            uint8_t lineEnd = 0;
+            uint16_t currentLineLength = 0;
+            getLineBreak(font, textrun, lineLength, &lineEnd, &currentLineLength); // Get the computed index in text and the corresponding text length to perfectly display one line.
+            int xCenterOffset = (lineLength - currentLineLength) / 2; // x offset to display a centered text.
+            startText.move(xCenterOffset, 0);
+            TextRun textLine(textrun.characters(), textrun.length());
+            for (int line = 0; line < lines; line++) {
+                font.drawText(&ctx, textLine, startText, 0, lineEnd);
+                // Undo the previous x move to correctly center next line.
+                startText.move(-xCenterOffset, 0);
+                textLine.setText(textLine.data(lineEnd), textLine.length() - lineEnd);
+                getLineBreak(font, textLine, lineLength, &lineEnd, &currentLineLength);
+                // Update xCenterOffset as currentLineLength has been updated for next line.
+                xCenterOffset = (lineLength - currentLineLength) / 2;
+                startText.move(xCenterOffset, font.lineSpacing());
+            }
 
+            // Draw default text inside text box
+            IntPoint startDefaultText(m_textRect.x, m_textRect.y + font.size());
+            ctx.setFillColor(Color::black);
+            TextRun defaultText(m_defaultText.c_str());
+            getLineBreak(font, defaultText, lineLength, &lineEnd, &currentLineLength); // Get the computed index in text and the corresponding text length to perfectly display one line.
+            xCenterOffset = (lineLength - currentLineLength) / 2; // x offset to display a centered text.
+            startDefaultText.move(xCenterOffset, 0);
+            font.drawText(&ctx, defaultText, startDefaultText);
 
             SDL_BlitSurface(m_surface, &sdlSrc, m_mainSurface, &sdlSrc);
             SDL_BlitSurface(m_mainSurface, &sdlSrc, SDL_GetVideoSurface(), &sdlDest);
@@ -271,29 +261,7 @@ void WebWindowPrompt::drawTextBox()
 {
     GraphicsContext ctx(m_surface);
     ctx.save();
-
-    if (!isThemable) {
-        ctx.setFillColor(Color::white);
-        ctx.drawRect(IntRect(50, (m_surface->h / 2) + (fontSize), m_surface->w - 100, 40));
-    } else {
-        RefPtr<WebCore::Image> textbl = Image::loadPlatformResource("/Alert/textbl");
-        RefPtr<WebCore::Image> textbr = Image::loadPlatformResource("/Alert/textbr");
-        RefPtr<WebCore::Image> textgb = Image::loadPlatformResource("/Alert/textgb");
-        IntPoint m = IntPoint(m_textRect.x, m_textRect.y);
-        ctx.drawImage(textbl.get(), m);
-        int size = m_text.length() * fontSize / textgb->width();
-
-        if (size < MIN)
-            size = MIN;
-
-        for (int i = 0; i < size - 3; i++) {
-            m.move(textgb->width(), 0);
-            ctx.drawImage(textgb.get(), m);
-        }
-        m.move(textgb->width(), 0);
-        ctx.drawImage(textbr.get(), m);
-    }
-
+    
     FontDescription fontDescription;
     // this is normally computed by CSS and fixes the minimum size
     fontDescription.setComputedSize(fontSize);
@@ -304,10 +272,36 @@ void WebWindowPrompt::drawTextBox()
 
     ctx.setFillColor(Color::black);
     TextRun textrun(m_defaultText.c_str());
-    if (!isThemable)
+
+    if (!isThemable) {
+        // Draw text box bg
+        ctx.setFillColor(Color::white);
+        ctx.drawRect(IntRect(50, (m_surface->h / 2) + (fontSize), m_surface->w - 100, 40));
+        // Draw text box text
         ctx.drawText(font, textrun, IntPoint(55, (m_surface->h / 2) + fontSize + 25));
-    else
-        ctx.drawText(font, textrun, IntPoint(m_textRect.x + 10, m_textRect.y + m_textRect.h - 5));
+    } else {
+        static RefPtr<WebCore::Image> textbl = Image::loadPlatformResource("/Alert/textbl");
+        static RefPtr<WebCore::Image> textbr = Image::loadPlatformResource("/Alert/textbr");
+        static RefPtr<WebCore::Image> textgb = Image::loadPlatformResource("/Alert/textgb");
+
+        // Draw text box
+        IntRect textRect = m_textRect;
+        ctx.drawImage(textgb.get(), textRect);
+        // Draw text border after, else text background will overwrite them.
+        ctx.drawImage(textbl.get(), IntPoint(textRect.x(), textRect.y()));
+        ctx.drawImage(textbr.get(), IntPoint(textRect.right() - textbr->width(), textRect.y()));
+        
+        // Draw text inside text box    
+        IntPoint startDefaultText(textRect.x(), textRect.y() + font.size());
+        uint16_t lineLength = textRect.width() - 2 * textbl->width(); // Keep a border for max line length
+        uint8_t lineEnd = 0;
+        uint16_t currentLineLength = 0;
+        getLineBreak(font, textrun, lineLength, &lineEnd, &currentLineLength); // Get the computed index in text and the corresponding text length to perfectly display one line.
+        int xCenterOffset = (lineLength - currentLineLength) / 2; // x offset to display a centered text.
+        startDefaultText.move(xCenterOffset, 0);
+        font.drawText(&ctx, textrun, startDefaultText);
+    }
+
     ctx.restore();
 }
 
@@ -594,3 +588,25 @@ const char* WebWindowPrompt::value()
     return v;
 }
 
+void WebWindowPrompt::getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength)
+{
+    // Ensure that wordBreak is set to 0 to avoid bugs in next calls.
+    *wordBreak = 0;
+
+    if (font.width(text) <= maxLength) {
+        *wordBreak = text.length();
+        *wordLength = font.width(text);
+        return;
+    }
+
+    TextRun expandText(text.data(0), 1);
+    while (font.width(expandText) < maxLength) {
+        uint8_t nextWordBreak = textBreakFollowing(wordBreakIterator(text.characters(), text.length()), *wordBreak);
+        expandText.setText(text.data(0), nextWordBreak);
+        if (font.width(expandText) >= maxLength)
+            break;
+        *wordBreak = nextWordBreak;
+        *wordLength = font.width(expandText);
+    }
+    return;
+}

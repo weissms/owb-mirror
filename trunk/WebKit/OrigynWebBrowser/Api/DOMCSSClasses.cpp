@@ -30,6 +30,7 @@
 #include "DOMCSSClasses.h"
 
 #include <PlatformString.h>
+#include <CString.h>
 
 // DOMCSSStyleDeclaration - DOMCSSStyleDeclaration ----------------------------
 
@@ -59,39 +60,39 @@ DOMCSSStyleDeclaration* DOMCSSStyleDeclaration::createInstance(WebCore::CSSStyle
 
 // DOMCSSStyleDeclaration - DOMCSSStyleDeclaration ---------------------------
 
-WebCore::String DOMCSSStyleDeclaration::cssText()
+const char* DOMCSSStyleDeclaration::cssText()
 {
-    return WebCore::String();
+    return "";
 }
 
-void DOMCSSStyleDeclaration::setCssText(WebCore::String cssText)
+void DOMCSSStyleDeclaration::setCssText(const char* cssText)
 {
     // FIXME: <rdar://5148045> return DOM exception info
     WebCore::ExceptionCode ec;
     m_style->setCssText(cssText, ec);
 }
 
-WebCore::String DOMCSSStyleDeclaration::getPropertyValue(WebCore::String propertyName)
+const char* DOMCSSStyleDeclaration::getPropertyValue(const char* propertyName)
 {
-    return m_style->getPropertyValue(propertyName);
+    return m_style->getPropertyValue(propertyName).utf8().data();
 }
 
-//DOMCSSValue* DOMCSSStyleDeclaration::getPropertyCSSValue(WebCore::String /*propertyName*/)
+//DOMCSSValue* DOMCSSStyleDeclaration::getPropertyCSSValue(const char* /*propertyName*/)
 //{
 //    return 0;
 //}
 
-WebCore::String DOMCSSStyleDeclaration::removeProperty(WebCore::String /*propertyName*/)
+const char* DOMCSSStyleDeclaration::removeProperty(const char* /*propertyName*/)
 {
-    return WebCore::String();
+    return "";
 }
 
-WebCore::String DOMCSSStyleDeclaration::getPropertyPriority(WebCore::String /*propertyName*/)
+const char* DOMCSSStyleDeclaration::getPropertyPriority(const char* /*propertyName*/)
 {
-    return WebCore::String();
+    return "";
 }
 
-void DOMCSSStyleDeclaration::setProperty(WebCore::String propertyName, WebCore::String value, WebCore::String priority)
+void DOMCSSStyleDeclaration::setProperty(const char* propertyName, const char* value, const char* priority)
 {
     // FIXME: <rdar://5148045> return DOM exception info
     WebCore::ExceptionCode code;
@@ -103,9 +104,9 @@ unsigned DOMCSSStyleDeclaration::length()
     return 0;
 }
 
-WebCore::String DOMCSSStyleDeclaration::item(unsigned /*index*/)
+const char* DOMCSSStyleDeclaration::item(unsigned /*index*/)
 {
-    return WebCore::String();
+    return "";
 }
 
 // DOMCSSRule* DOMCSSStyleDeclaration::parentRule()

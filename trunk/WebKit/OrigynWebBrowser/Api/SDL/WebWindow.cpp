@@ -25,23 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "config.h"
+
 #include "WebWindow.h"
 #include "SDL/SDL.h"
-#include <unistd.h>
 #include "GraphicsContext.h"
 #include "Frame.h"
-#include "WebView.h"
 #include "FrameView.h"
+#include "MainThread.h"
+#include "SharedTimer.h"
 #include "WebFrame.h"
-  
+#include "WebView.h"
+ 
+#include <signal.h>
+#include <unistd.h>
+
 using namespace WebCore;
+
+static void quitCatcher(int)
+{
+    SDL_Quit();
+    exit(1);
+}
 
 void WebWindow::show()
 {
     quit = false;
     bool isInitialized = false;
+
+    signal(SIGKILL, &quitCatcher);
+    signal(SIGINT, &quitCatcher);
+    signal(SIGTERM, &quitCatcher);
 
     SDL_Event event;
     while (!quit) {
@@ -51,7 +65,7 @@ void WebWindow::show()
             isInitialized = true;
         }
         
-        if (SDL_WaitEvent(&event) != 0)
+        if (SDL_PollEvent(&event) != 0)
         {
             switch (event.type) {
                 case SDL_ACTIVEEVENT:
@@ -112,6 +126,10 @@ void WebWindow::show()
                 default:
                     ;//printf("other event\n");
             }
+        } else {
+            WTF::dispatchFunctionsFromMainThread();
+            fireTimerIfNeeded();
+            usleep(10000);
         }
     }
 }
