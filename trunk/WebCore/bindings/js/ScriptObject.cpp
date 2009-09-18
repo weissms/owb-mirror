@@ -135,7 +135,7 @@ bool ScriptGlobalObject::set(ScriptState* scriptState, const char* name, Inspect
     globalObject->putDirect(Identifier(scriptState, name), toJS(scriptState, globalObject, value));
     return handleException(scriptState);
 }
-#endif
+#endif // ENABLE(INSPECTOR)
 
 bool ScriptGlobalObject::get(ScriptState* scriptState, const char* name, ScriptObject& value)
 {

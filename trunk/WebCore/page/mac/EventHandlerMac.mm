@@ -60,7 +60,9 @@ static inline IMP method_setImplementation(Method m, IMP i)
 
 namespace WebCore {
 
+#if ENABLE(DRAG_SUPPORT)
 const double EventHandler::TextDragDelay = 0.15;
+#endif
 
 static RetainPtr<NSEvent>& currentNSEventSlot()
 {
@@ -372,6 +374,7 @@ bool EventHandler::eventActivatedView(const PlatformMouseEvent& event) const
     return m_activationEventNumber == event.eventNumber();
 }
 
+#if ENABLE(DRAG_SUPPORT)
 bool EventHandler::eventLoopHandleMouseDragged(const MouseEventWithHitTestResults&)
 {
     NSView *view = mouseDownViewIfStillGood();
@@ -399,6 +402,7 @@ PassRefPtr<Clipboard> EventHandler::createDraggingClipboard() const
     [pasteboard declareTypes:[NSArray array] owner:nil];
     return ClipboardMac::create(true, pasteboard, ClipboardWritable, m_frame);
 }
+#endif // ENABLE(DRAG_SUPPORT)
     
 bool EventHandler::eventLoopHandleMouseUp(const MouseEventWithHitTestResults&)
 {
@@ -430,8 +434,10 @@ bool EventHandler::passSubframeEventToSubframe(MouseEventWithHitTestResults& eve
             // layout tests.
             if (!m_mouseDownWasInSubframe)
                 return false;
+#if ENABLE(DRAG_SUPPORT)
             if (subframe->page()->dragController()->didInitiateDrag())
                 return false;
+#endif
         case NSMouseMoved:
             // Since we're passing in currentNSEvent() here, we can call
             // handleMouseMoveEvent() directly, since the save/restore of
@@ -710,6 +716,7 @@ PlatformMouseEvent EventHandler::currentPlatformMouseEvent() const
     return PlatformMouseEvent(currentNSEvent(), windowView);
 }
 
+#if ENABLE(CONTEXT_MENUS)
 bool EventHandler::sendContextMenuEvent(NSEvent *event)
 {
     Page* page = m_frame->page();
@@ -717,7 +724,9 @@ bool EventHandler::sendContextMenuEvent(NSEvent *event)
         return false;
     return sendContextMenuEvent(PlatformMouseEvent(event, page->chrome()->platformWindow()));
 }
+#endif // ENABLE(CONTEXT_MENUS)
 
+#if ENABLE(DRAG_SUPPORT)
 bool EventHandler::eventMayStartDrag(NSEvent *event)
 {
     Page* page = m_frame->page();
@@ -725,5 +734,6 @@ bool EventHandler::eventMayStartDrag(NSEvent *event)
         return false;
     return eventMayStartDrag(PlatformMouseEvent(event, page->chrome()->platformWindow()));
 }
+#endif // ENABLE(DRAG_SUPPORT)
 
 }

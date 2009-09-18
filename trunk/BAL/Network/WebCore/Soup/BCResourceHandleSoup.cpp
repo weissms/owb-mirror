@@ -468,9 +468,8 @@ static bool startHttp(ResourceHandle* handle)
     if (!d->m_msg)
         return false;
 
-    // FIXME : wait soup 2.28
-/*    if(!handle->shouldContentSniff())
-        soup_message_disable_feature(d->m_msg, SOUP_TYPE_CONTENT_SNIFFER);*/
+    if(!handle->shouldContentSniff())
+        soup_message_disable_feature(d->m_msg, SOUP_TYPE_CONTENT_SNIFFER);
 
     g_signal_connect(d->m_msg, "restarted", G_CALLBACK(restartedCallback), handle);
     g_signal_connect(d->m_msg, "got-headers", G_CALLBACK(gotHeadersCallback), handle);

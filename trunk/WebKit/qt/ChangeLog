@@ -1,3 +1,133 @@
+2009-09-18  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Improve documentation for Page Cache.
+
+        * Api/qwebsettings.cpp:
+
+2009-09-17  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Update QWebSettings::setUserStyleSheetUrl() docs and test
+
+        https://bugs.webkit.org/show_bug.cgi?id=29081
+
+        The documentation now specifies that the URL has to be a local file
+        or a a data-URL (with utf-8 and base64-encoded data), as these are the
+        only two schemes that the current code path accepts.
+
+        The auto-test has been updated to reflect this limitation.
+
+        At a later point we should concider adding API for the new way of
+        doing both user defined stylesheets and scripts.
+
+        * Api/qwebsettings.cpp:
+        * tests/qwebpage/tst_qwebpage.cpp:
+
+2009-09-17  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Symbian build fix.
+
+        Moved the #ifdefs around _q_cleanupLeakMessages() into the function
+        definition.
+
+        QMake is not being able to distinguish between release and debug builds
+        in Symbian build. This is a Symbian toolchain issue.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::_q_cleanupLeakMessages):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+
+2009-09-17  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Small cosmetic documentation fixlet in the QWebInspector.
+
+        * Api/qwebinspector.cpp:
+
+2009-09-16  Benjamin C Meyer  <benjamin.meyer@torchmobile.com>
+
+        Reviewed by Eric Seidel.
+
+        Detect and add Windows7 properly to the user agent.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl):
+
+2009-09-16  Andras Becsi  <andrewbecsi@yahoo.co.uk>
+
+        Rubberstamped by Kenneth Christiansen.
+
+        [Qt] Build fix for previous changes.
+
+        * QGVLauncher/main.cpp:
+        (MainView::flip):
+
+2009-09-16  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed potential Qt < 4.6 build fix.
+
+        * QGVLauncher/main.cpp:
+        (MainView::flip):
+
+2009-09-16  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Add a "Flip effect" to our GraphicsView based launcher.
+
+        * QGVLauncher/main.cpp:
+        (MainView::resizeEvent):
+        (MainView::flip):
+        (MainWindow::flip):
+        (MainWindow::buildUI):
+
+2009-09-16  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [Qt] Typo fix. Pass the window object to the Format
+        menu. In this way Qt can free its internal graphical
+        objects during exit.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::setupUI):
+
+2009-09-16  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Build break fix on gcc ARM.
+
+        * Api/qwebgraphicsitem.cpp:
+        (QWebGraphicsItemPrivate::_q_doLoadProgress):
+
+2009-09-16  Warwick Allison  <warwick.allison@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix a crash in QWebFrame::hasFocus() with a simple null pointer check
+        when the focused frame is null. We do the same check in other places
+        where we call kit().
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::hasFocus):
+
+2009-09-16  Jure Repinc  <jlp@holodeck1.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fixed a typo found during translation.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::interruptForPolicyChangeError):
+
 2009-09-16  Jakub Wieczorek  <faw217@gmail.com>
 
         Reviewed by Simon Hausmann.

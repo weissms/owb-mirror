@@ -26,6 +26,8 @@
 #include "config.h"
 #include "ContextMenuController.h"
 
+#if ENABLE(CONTEXT_MENUS)
+
 #include "Chrome.h"
 #include "ContextMenu.h"
 #include "ContextMenuClient.h"
@@ -330,15 +332,19 @@ void ContextMenuController::contextMenuItemSelected(ContextMenuItem* item)
         frame->editor()->changeBackToReplacedString(result.replacedString());
         break;
 #endif
+#if ENABLE(INSPECTOR)
     case ContextMenuItemTagInspectElement:
 #if ENABLE(INSPECTOR)
         if (Page* page = frame->page())
             page->inspectorController()->inspect(result.innerNonSharedNode());
 #endif
         break;
+#endif
     default:
         break;
     }
 }
 
 } // namespace WebCore
+
+#endif // ENABLE(CONTEXT_MENUS)

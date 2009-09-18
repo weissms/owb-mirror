@@ -4518,6 +4518,9 @@ void Document::scriptImported(unsigned long identifier, const String& sourceStri
 #if ENABLE(INSPECTOR)
     if (page())
         page()->inspectorController()->scriptImported(identifier, sourceString);
+#else
+    UNUSED_PARAM(identifier);
+    UNUSED_PARAM(sourceString);
 #endif
 }
 

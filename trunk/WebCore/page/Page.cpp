@@ -103,9 +103,13 @@ static void networkStateChanged()
 Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, EditorClient* editorClient, DragClient* dragClient, InspectorClient* inspectorClient)
     : m_chrome(new Chrome(this, chromeClient))
     , m_dragCaretController(new SelectionController(0, true))
+#if ENABLE(DRAG_SUPPORT)
     , m_dragController(new DragController(this, dragClient))
+#endif
     , m_focusController(new FocusController(this))
+#if ENABLE(CONTEXT_MENUS)
     , m_contextMenuController(new ContextMenuController(this, contextMenuClient))
+#endif
 #if ENABLE(INSPECTOR)
     , m_inspectorController(new InspectorController(this, inspectorClient))
 #endif
@@ -133,6 +137,15 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_customHTMLTokenizerChunkSize(-1)
     , m_canStartPlugins(true)
 {
+#if !ENABLE(CONTEXT_MENUS)
+    UNUSED_PARAM(contextMenuClient);
+#endif
+#if !ENABLE(DRAG_SUPPORT)
+    UNUSED_PARAM(dragClient);
+#endif
+#if !ENABLE(INSPECTOR)
+    UNUSED_PARAM(inspectorClient);
+#endif
     if (!allPages) {
         allPages = new HashSet<Page*>;
         

@@ -146,6 +146,7 @@ static void printMessageSourceAndLevelPrefix(MessageSource source, MessageLevel 
 
 void Console::addMessage(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
@@ -162,10 +163,12 @@ void Console::addMessage(MessageSource source, MessageType type, MessageLevel le
     printMessageSourceAndLevelPrefix(source, level);
 
     printf(" %s\n", message.utf8().data());
+#endif
 }
 
 void Console::addMessage(MessageType type, MessageLevel level, ScriptCallStack* callStack, bool acceptNoArguments)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
@@ -193,6 +196,7 @@ void Console::addMessage(MessageType type, MessageLevel level, ScriptCallStack* 
             printf(" %s", argAsString.utf8().data());
     }
     printf("\n");
+#endif
 }
 
 void Console::debug(ScriptCallStack* callStack)
@@ -252,6 +256,7 @@ void Console::assertCondition(bool condition, ScriptCallStack* callStack)
 
 void Console::count(ScriptCallStack* callStack)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
@@ -262,8 +267,9 @@ void Console::count(ScriptCallStack* callStack)
     String title;
     getFirstArgumentAsString(callStack->state(), lastCaller, title);
 
-#if ENABLE(INSPECTOR)
     page->inspectorController()->count(title, lastCaller.lineNumber(), lastCaller.sourceURL().string());
+#else
+    UNUSED_PARAM(callStack);
 #endif
 }
 
@@ -309,9 +315,11 @@ void Console::profile(const JSC::UString& title, ScriptCallStack* callStack)
 #endif
 
     JSC::UString resolvedTitle = title;
-#if ENABLE(INSPECTOR)
     if (title.isNull())   // no title so give it the next user initiated profile title.
+#if ENABLE(INSPECTOR)
         resolvedTitle = controller->getCurrentUserInitiatedProfileName(true);
+#else
+        resolvedTitle = "";
 #endif
 
     JSC::Profiler::profiler()->startProfiling(callStack->state(), resolvedTitle);
@@ -343,8 +351,8 @@ void Console::profileEnd(const JSC::UString& title, ScriptCallStack* callStack)
 
     m_profiles.append(profile);
 
-    const ScriptCallFrame& lastCaller = callStack->at(0);
 #if ENABLE(INSPECTOR)
+    const ScriptCallFrame& lastCaller = callStack->at(0);
     controller->addProfile(profile, lastCaller.lineNumber(), lastCaller.sourceURL());
 #endif
 }
@@ -353,6 +361,7 @@ void Console::profileEnd(const JSC::UString& title, ScriptCallStack* callStack)
 
 void Console::time(const String& title)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
@@ -362,13 +371,15 @@ void Console::time(const String& title)
     if (title.isNull())
         return;
 
-#if ENABLE(INSPECTOR)
     page->inspectorController()->startTiming(title);
+#else
+    UNUSED_PARAM(title);
 #endif
 }
 
 void Console::timeEnd(const String& title, ScriptCallStack* callStack)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
@@ -378,7 +389,6 @@ void Console::timeEnd(const String& title, ScriptCallStack* callStack)
     if (title.isNull())
         return;
 
-#if ENABLE(INSPECTOR)
     double elapsed;
     if (!page->inspectorController()->stopTiming(title, elapsed))
         return;
@@ -387,27 +397,32 @@ void Console::timeEnd(const String& title, ScriptCallStack* callStack)
 
     const ScriptCallFrame& lastCaller = callStack->at(0);
     page->inspectorController()->addMessageToConsole(JSMessageSource, LogMessageType, LogMessageLevel, message, lastCaller.lineNumber(), lastCaller.sourceURL().string());
+#else
+    UNUSED_PARAM(title);
+    UNUSED_PARAM(callStack);
 #endif
 }
 
 void Console::group(ScriptCallStack* callStack)
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
 
-#if ENABLE(INSPECTOR)
     page->inspectorController()->startGroup(JSMessageSource, callStack);
+#else
+    UNUSED_PARAM(callStack);
 #endif
 }
 
 void Console::groupEnd()
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return;
 
-#if ENABLE(INSPECTOR)
     page->inspectorController()->endGroup(JSMessageSource, 0, String());
 #endif
 }

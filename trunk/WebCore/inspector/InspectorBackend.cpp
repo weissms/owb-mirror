@@ -30,6 +30,8 @@
 #include "config.h"
 #include "InspectorBackend.h"
 
+#if ENABLE(INSPECTOR)
+
 #if ENABLE(DATABASE)
 #include "Database.h"
 #endif
@@ -522,3 +524,5 @@ InspectorFrontend* InspectorBackend::inspectorFrontend()
 }
 
 } // namespace WebCore
+
+#endif // ENABLE(INSPECTOR)

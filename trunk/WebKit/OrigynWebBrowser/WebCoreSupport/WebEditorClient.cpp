@@ -220,22 +220,38 @@ bool WebEditorClient::isSelectTrailingWhitespaceEnabled(void)
 //{ notImplemented(); return false; }
 
 bool WebEditorClient::shouldApplyStyle(CSSStyleDeclaration* /*style*/, Range* /*toElementsInDOMRange*/)
-{ notImplemented(); return true; }
+{
+    notImplemented();
+    return true;
+}
 
 bool WebEditorClient::shouldMoveRangeAfterDelete(Range* /*range*/, Range* /*rangeToBeReplaced*/)
-{ notImplemented(); return true; }
+{
+    notImplemented();
+    return true;
+}
 
 bool WebEditorClient::shouldChangeTypingStyle(CSSStyleDeclaration* /*currentStyle*/, CSSStyleDeclaration* /*toProposedStyle*/)
-{ notImplemented(); return false; }
+{
+    notImplemented();
+    return false;
+}
 
 void WebEditorClient::webViewDidChangeTypingStyle(WebNotification* /*notification*/)
-{  notImplemented(); }
+{
+    notImplemented();
+}
 
 void WebEditorClient::webViewDidChangeSelection(WebNotification* /*notification*/)
-{  notImplemented(); }
+{
+    notImplemented();
+}
 
 bool WebEditorClient::shouldShowDeleteInterface(HTMLElement* /*element*/)
-{ notImplemented(); return false; }
+{
+    notImplemented();
+    return false;
+}
 
 bool WebEditorClient::smartInsertDeleteEnabled(void)
 { 

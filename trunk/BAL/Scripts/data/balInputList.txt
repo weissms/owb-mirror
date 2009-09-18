@@ -106,6 +106,7 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/FontFallbackList.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontFamily.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontRenderingMode.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSelector.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSmoothingMode.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontTraitsMask.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphBuffer.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphPageTreeNode.h
@@ -156,6 +157,7 @@ BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFamily.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFastPath.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontRenderingMode.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSelector.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSmoothingMode.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontTraitsMask.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphBuffer.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.cpp

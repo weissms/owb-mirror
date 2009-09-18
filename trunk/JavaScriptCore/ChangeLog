@@ -1,3 +1,136 @@
+2009-09-18  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Symbian/WINSCW build fox.
+
+        Repeat Q_OS_WIN wchar_t hack for WINSCW, similar to
+        revision 24774.
+
+        WINSCW defines wchar_t, thus UChar has to be wchar_t
+
+        * wtf/unicode/qt4/UnicodeQt4.h:
+
+2009-09-17  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Symbian/WINSCW build fix.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29186
+
+        WINSCW Template specialisation name in declaration must the be the same as in implementation.
+
+        * runtime/LiteralParser.h:
+
+2009-09-15  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=27060
+
+        Symbian compiler for emulator target (WINSCW) fails with
+        "illegal operand" for m_attributesInPrevious in structure.ccp
+        (when calling make_pair functions).
+        This error is apparently due to the compiler not properly
+        resolving the unsigned type of the declared bitfield.
+
+        Initial patch explicitly casted m_attributesInPrevious
+        to unsigned, but since bitfield optimization is not critical for
+        the emulator target, this conditional change in header file
+        appears to be least intrusive.
+
+        * runtime/Structure.h:
+
+2009-09-16  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Fix GCC warnings on ARM_THUMB2 platform
+
+        * assembler/ARMv7Assembler.h:
+        (JSC::ARMThumbImmediate::countLeadingZerosPartial):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::branchTruncateDoubleToInt32):
+        (JSC::MacroAssemblerARMv7::moveFixedWidthEncoding):
+
+2009-09-16  Greg Bolsinga  <bolsinga@apple.com>
+
+        Add ENABLE(INSPECTOR)
+        https://bugs.webkit.org/show_bug.cgi?id=29260
+
+        Reviewed by David Kilzer.
+
+        * wtf/Platform.h:
+
+2009-09-16  Greg Bolsinga  <bolsinga@apple.com>
+
+        Add ENABLE(CONTEXT_MENUS)
+        https://bugs.webkit.org/show_bug.cgi?id=29225
+
+        Reviewed by David Kilzer.
+
+        * wtf/Platform.h:
+
+2009-09-16  Benjamin C Meyer  <benjamin.meyer@torchmobile.com>
+
+        Reviewed by Eric Seidel.
+
+        The webkit stdint and stdbool headers exists because
+        the compiler MSVC doesn't include them.  The check
+        should not check for PLATFORM(WIN_OS) but for MSVC.
+
+        * os-win32/stdbool.h:
+        * os-win32/stdint.h:
+
+2009-09-16  Greg Bolsinga  <bolsinga@apple.com>
+
+        Add ENABLE(DRAG_SUPPORT)
+        https://bugs.webkit.org/show_bug.cgi?id=29233
+
+        Reviewed by David Kilzer.
+
+        * wtf/Platform.h:
+
+2009-09-16  Kevin Ollivier  <kevino@theolliviers.com>
+
+        waf build fix after flag was moved to correct place.
+
+        * wscript:
+
+2009-09-16  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Build fix for 64-bit Qt on Mac OS X
+
+        * wtf/Platform.h: Use JSVALUE64 on DARWIN, not only on MAC
+
+2009-09-16  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix wtf/ThreadSpecific.h under Qt to free thread local objects.
+        https://bugs.webkit.org/show_bug.cgi?id=29295
+
+        This is an important fix when JavaScript workers are in use, since
+        unfreed ThreadGlobalDatas leak a big amount of memory (50-100k each).
+        QThreadStorage calls the destructor of a given object, which is the
+        ThreadSpecific::Data. Unlike pthread, Qt is object oriented, and does
+        not support the calling of a static utility function when the thread
+        is about to close. In this patch we call the ThreadSpecific::destroy()
+        utility function from the destructor of ThreadSpecific::Data. Moreover,
+        since Qt resets all thread local values to 0 before the calling of the
+        appropriate destructors, we set back the pointer to its original value.
+        This is necessary because the get() method of the ThreadSpecific
+        object may be called during the exuction of the destructor.
+
+        * wtf/ThreadSpecific.h:
+        (WTF::ThreadSpecific::Data::~Data):
+        (WTF::::~ThreadSpecific):
+        (WTF::::set):
+        (WTF::::destroy):
+
 2009-09-16  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Geoff Garen.

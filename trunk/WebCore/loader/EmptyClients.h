@@ -418,6 +418,7 @@ public:
 
 };
 
+#if ENABLE(CONTEXT_MENUS)
 class EmptyContextMenuClient : public ContextMenuClient {
 public:
     virtual ~EmptyContextMenuClient() {  }
@@ -438,7 +439,9 @@ public:
     virtual void searchWithSpotlight() { }
 #endif
 };
+#endif // ENABLE(CONTEXT_MENUS)
 
+#if ENABLE(DRAG_SUPPORT)
 class EmptyDragClient : public DragClient {
 public:
     virtual ~EmptyDragClient() {}
@@ -450,6 +453,7 @@ public:
     virtual DragImageRef createDragImageForLink(KURL&, const String&, Frame*) { return 0; }
     virtual void dragControllerDestroyed() { }
 };
+#endif // ENABLE(DRAG_SUPPORT)
 
 #if ENABLE(INSPECTOR)
 class EmptyInspectorClient : public InspectorClient {
