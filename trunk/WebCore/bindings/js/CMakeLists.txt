@@ -81,7 +81,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSMessagePortCustom.cpp
     bindings/js/JSMimeTypeArrayCustom.cpp
     bindings/js/JSNamedNodeMapCustom.cpp
-    bindings/js/JSNamedNodesCollection.cpp
     bindings/js/JSNavigatorCustom.cpp
     bindings/js/JSNodeCustom.cpp
     bindings/js/JSNodeFilterCondition.cpp

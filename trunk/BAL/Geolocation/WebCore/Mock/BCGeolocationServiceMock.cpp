@@ -34,9 +34,7 @@
 
 namespace WebCore {
 
-// FIXME: This is an OWB work-around to have the Mock implementation to compile.
-GeolocationService::FactoryFunction* GeolocationService::s_factoryFunction = GeolocationServiceMock::create;
-
+GeolocationService::FactoryFunction* GeolocationService::s_factoryFunction = &GeolocationServiceMock::create;
 GeolocationServiceMock::GeolocationServiceSet* GeolocationServiceMock::s_instances = 0;
 RefPtr<Geoposition>* GeolocationServiceMock::s_lastPosition;
 RefPtr<PositionError>* GeolocationServiceMock::s_lastError;

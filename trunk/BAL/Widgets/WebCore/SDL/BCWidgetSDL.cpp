@@ -80,7 +80,7 @@ void Widget::setCursor(const Cursor& cursor)
 
     static const Cursor *waitCursorPtr = &waitCursor();
     HostWindow *hostWindow = static_cast<FrameView*>(this)->hostWindow();
-    BalWidget *widget = hostWindow ? hostWindow->platformWindow() : 0;
+    BalWidget *widget = hostWindow ? hostWindow->platformPageClient() : 0;
     Window *window = widget ? widget->window : 0;
 
     if (window)

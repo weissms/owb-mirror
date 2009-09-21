@@ -410,7 +410,7 @@ void WebViewPrivate::popupMenuShow(void* popupInfo)
     if (!pop)
         return;
 
-    BalWidget* widget = pop->client()->hostWindow()->platformWindow();
+    BalWidget* widget = pop->client()->hostWindow()->platformPageClient();
     if (!widget)
         return;
 
@@ -498,7 +498,7 @@ void WebViewPrivate::popupMenuShow(void* popupInfo)
                 break;
             }
 
-        pop->client()->hidePopup();
+        pop->client()->popupDidHide();
     }
 
     IIntuition->DisposeObject(menu);

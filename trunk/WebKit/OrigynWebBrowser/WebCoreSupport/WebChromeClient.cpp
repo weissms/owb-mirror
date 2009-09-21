@@ -470,7 +470,7 @@ IntRect WebChromeClient::windowToScreen(const IntRect& rect) const
     return rect;
 }
 
-PlatformWidget WebChromeClient::platformWindow() const                                                             
+PlatformPageClient WebChromeClient::platformPageClient() const
 {                                                                                                                  
     return m_webView->viewWindow();
 } 

@@ -243,7 +243,7 @@ void WebPopup::onKeyDown(BalEventKey event)
         m_popup->client()->valueChanged(m_popup->focusedIndex());
         m_popup->client()->setTextFromItem(m_popup->focusedIndex());
         hide();
-        m_popup->client()->hidePopup();
+        m_popup->client()->popupDidHide();
         m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
         SDL_Event ev;
         ev.type = SDL_VIDEOEXPOSE;
@@ -253,7 +253,7 @@ void WebPopup::onKeyDown(BalEventKey event)
     case SDLK_ESCAPE:
     {
         hide();
-        m_popup->client()->hidePopup();
+        m_popup->client()->popupDidHide();
         m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
         SDL_Event ev;
         ev.type = SDL_VIDEOEXPOSE;
@@ -328,7 +328,7 @@ void WebPopup::onMouseButtonDown(BalEventButton event)
         hide();
         int i = (event.y - m_popup->windowRect().y() - m_view->frameRect().y) / m_popup->itemHeight();
         m_popup->client()->valueChanged(i + m_scrollIndex);
-        m_popup->client()->hidePopup();
+        m_popup->client()->popupDidHide();
         m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
         SDL_Event ev;
         ev.type = SDL_VIDEOEXPOSE;
@@ -340,7 +340,7 @@ void WebPopup::onMouseButtonDown(BalEventButton event)
             m_position = event.y;
         } else {
             hide();
-            m_popup->client()->hidePopup();
+            m_popup->client()->popupDidHide();
             m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
             SDL_Event ev;
             ev.type = SDL_VIDEOEXPOSE;

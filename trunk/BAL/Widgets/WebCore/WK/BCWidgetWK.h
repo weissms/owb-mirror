@@ -27,6 +27,7 @@
 #ifndef Widget_h
 #define Widget_h
 
+#include "BALBase.h"
 #include <wtf/Platform.h>
 
 #if PLATFORM(MAC)
@@ -73,6 +74,8 @@ typedef BView* PlatformWidget;
 #if PLATFORM(CHROMIUM)
 #include "PlatformWidget.h"
 #endif
+
+typedef PlatformWidget PlatformPageClient;
 
 #include "IntPoint.h"
 #include "IntRect.h"

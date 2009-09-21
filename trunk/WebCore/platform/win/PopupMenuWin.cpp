@@ -40,6 +40,7 @@
 #include "SimpleFontData.h"
 #include <tchar.h>
 #include <windows.h>
+#include <windowsx.h>
 #if PLATFORM(WINCE)
 #include <ResDefCE.h>
 #define MAKEPOINTS(l) (*((POINTS FAR *)&(l)))
@@ -62,14 +63,25 @@ const int popupWindowBorderWidth = 1;
 static LPCTSTR kPopupWindowClassName = _T("PopupWindowClass");
 
 // This is used from within our custom message pump when we want to send a
-// WM_CHAR message to the web view and not have our message stolen and sent to
+// message to the web view and not have our message stolen and sent to
 // the popup window.
-static const UINT WM_HOST_WINDOW_CHAR = WM_USER;
+static const UINT WM_HOST_WINDOW_FIRST = WM_USER;
+static const UINT WM_HOST_WINDOW_CHAR = WM_USER + WM_CHAR; 
+static const UINT WM_HOST_WINDOW_MOUSEMOVE = WM_USER + WM_MOUSEMOVE;
 
 // FIXME: Remove this as soon as practical.
 static inline bool isASCIIPrintable(unsigned c)
 {
     return c >= 0x20 && c <= 0x7E;
+}
+
+static void translatePoint(LPARAM& lParam, HWND from, HWND to)
+{
+    POINT pt;
+    pt.x = (short)GET_X_LPARAM(lParam);
+    pt.y = (short)GET_Y_LPARAM(lParam);    
+    ::MapWindowPoints(from, to, &pt, 1);
+    lParam = MAKELPARAM(pt.x, pt.y);
 }
 
 PopupMenu::PopupMenu(PopupMenuClient* client)
@@ -111,7 +123,7 @@ void PopupMenu::show(const IntRect& r, FrameView* view, int index)
     if (clientRect().isEmpty())
         return;
 
-    HWND hostWindow = view->hostWindow()->platformWindow();
+    HWND hostWindow = view->hostWindow()->platformPageClient();
 
     if (!m_scrollbar && visibleItems() < client()->listSize()) {
         // We need a scroll bar
@@ -165,6 +177,9 @@ void PopupMenu::show(const IntRect& r, FrameView* view, int index)
 
     m_showPopup = true;
 
+    // Protect the popup menu in case its owner is destroyed while we're running the message pump.
+    RefPtr<PopupMenu> protect(this);
+
     ::SetCapture(hostWindow);
 
     MSG msg;
@@ -172,11 +187,12 @@ void PopupMenu::show(const IntRect& r, FrameView* view, int index)
 
     while (::GetMessage(&msg, 0, 0, 0)) {
         switch (msg.message) {
+            case WM_HOST_WINDOW_MOUSEMOVE:
             case WM_HOST_WINDOW_CHAR: 
                 if (msg.hwnd == m_popup) {
-                    // This message should be sent to the host window as a WM_CHAR.
+                    // This message should be sent to the host window.
                     msg.hwnd = hostWindow;
-                    msg.message = WM_CHAR;
+                    msg.message -= WM_HOST_WINDOW_FIRST;
                 }
                 break;
 
@@ -206,11 +222,9 @@ void PopupMenu::show(const IntRect& r, FrameView* view, int index)
             case WM_MBUTTONDOWN:
             case WM_MBUTTONUP:
             case WM_MBUTTONDBLCLK: {
-                POINT pt;
-                pt.x = (short)LOWORD(msg.lParam);
-                pt.y = (short)HIWORD(msg.lParam);
-                ::MapWindowPoints(msg.hwnd, m_popup, &pt, 1);
-                msg.lParam = MAKELPARAM(pt.x, pt.y);
+                // Translate the coordinate.
+                translatePoint(msg.lParam, msg.hwnd, m_popup);
+
                 msg.hwnd = m_popup;
                 break;
             }
@@ -229,6 +243,9 @@ void PopupMenu::show(const IntRect& r, FrameView* view, int index)
 
         ::TranslateMessage(&msg);
         ::DispatchMessage(&msg);
+
+        if (!m_popupClient)
+            break;
 
         if (!m_showPopup)
             break;
@@ -272,7 +289,7 @@ void PopupMenu::calculatePositionAndSize(const IntRect& r, FrameView* v)
 
     // Then, translate to screen coordinates
     POINT location(rScreenCoords.location());
-    if (!::ClientToScreen(v->hostWindow()->platformWindow(), &location))
+    if (!::ClientToScreen(v->hostWindow()->platformPageClient(), &location))
         return;
 
     rScreenCoords.setLocation(location);
@@ -817,7 +834,7 @@ LRESULT PopupMenu::wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
                     break;
                 }
                 case VK_TAB:
-                    ::SendMessage(client()->hostWindow()->platformWindow(), message, wParam, lParam);
+                    ::SendMessage(client()->hostWindow()->platformPageClient(), message, wParam, lParam);
                     hide();
                     break;
                 case VK_ESCAPE:
@@ -880,6 +897,17 @@ LRESULT PopupMenu::wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
             RECT bounds;
             GetClientRect(popupHandle(), &bounds);
+            if (!::PtInRect(&bounds, mousePoint) && !(wParam & MK_LBUTTON) && client()) {
+                // When the mouse is not inside the popup menu and the left button isn't down, just
+                // repost the message to the web view.
+
+                // Translate the coordinate.
+                translatePoint(lParam, m_popup, client()->hostWindow()->platformPageClient());
+
+                ::PostMessage(m_popup, WM_HOST_WINDOW_MOUSEMOVE, wParam, lParam);
+                break;
+            }
+
             if ((shouldHotTrack || wParam & MK_LBUTTON) && ::PtInRect(&bounds, mousePoint))
                 setFocusedIndex(listIndexAtPoint(mousePoint), true);
 

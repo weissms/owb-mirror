@@ -2297,6 +2297,9 @@ void FrameLoader::loadFrameRequest(const FrameLoadRequest& request, bool lockHis
 void FrameLoader::loadURL(const KURL& newURL, const String& referrer, const String& frameName, bool lockHistory, FrameLoadType newLoadType,
     PassRefPtr<Event> event, PassRefPtr<FormState> prpFormState)
 {
+    if (m_unloadEventBeingDispatched)
+        return;
+
     RefPtr<FormState> formState = prpFormState;
     bool isFormSubmission = formState;
     
@@ -2439,6 +2442,9 @@ void FrameLoader::loadWithDocumentLoader(DocumentLoader* loader, FrameLoadType t
     // to parser requiring a FrameView.  We should fix this dependency.
 
     ASSERT(m_frame->view());
+
+    if (m_unloadEventBeingDispatched)
+        return;
 
     m_policyLoadType = type;
     RefPtr<FormState> formState = prpFormState;
@@ -2910,7 +2916,7 @@ void FrameLoader::commitProvisionalLoad(PassRefPtr<CachedPage> prpCachedPage)
         m_frame->document()->documentDidBecomeActive();
         
         // Force a layout to update view size and thereby update scrollbars.
-        m_client->forceLayout();
+        m_frame->view()->forceLayout();
 
         const ResponseVector& responses = m_documentLoader->responses();
         size_t count = responses.size();

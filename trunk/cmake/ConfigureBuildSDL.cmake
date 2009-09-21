@@ -29,6 +29,7 @@ if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_YARR ON CACHE BOOLEAN "Enable RegExp compilation (for x86 and x86_64 only)" FORCE)
 endif(ARCH MATCHES "[ix][3-6]*86*")
 
+set(ENABLE_MATHML ON CACHE BOOLEAN "Enable MathML support" FORCE)
 set(ENABLE_MULTIPLE_THREADS ON CACHE BOOLEAN "Enable multiple threads" FORCE)
 set(ENABLE_WORKERS ON CACHE BOOLEAN "Enable workers support" FORCE)
 set(ENABLE_SHARED_WORKERS ON CACHE BOOLEAN "Enable shared workers support" FORCE)

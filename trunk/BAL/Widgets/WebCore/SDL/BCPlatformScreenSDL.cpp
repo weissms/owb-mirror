@@ -40,8 +40,8 @@ namespace WebCore {
 
 int screenDepth(Widget* widget)
 {
-    ASSERT(widget->root()->hostWindow()->platformWindow());
-    return widget->root()->hostWindow()->platformWindow()->format->BitsPerPixel;
+    ASSERT(widget->root()->hostWindow()->platformPageClient());
+    return widget->root()->hostWindow()->platformPageClient()->format->BitsPerPixel;
 }
 
 int screenDepthPerComponent(Widget*)
@@ -57,8 +57,8 @@ bool screenIsMonochrome(Widget* widget)
 
 FloatRect screenRect(Widget* widget)
 {
-    ASSERT(widget->root()->hostWindow()->platformWindow());
-    SDL_Rect sdlRect = widget->root()->hostWindow()->platformWindow()->clip_rect;
+    ASSERT(widget->root()->hostWindow()->platformPageClient());
+    SDL_Rect sdlRect = widget->root()->hostWindow()->platformPageClient()->clip_rect;
     return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
 }
 

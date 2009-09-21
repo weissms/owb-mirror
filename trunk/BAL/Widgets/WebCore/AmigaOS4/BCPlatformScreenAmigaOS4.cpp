@@ -45,7 +45,7 @@ int screenDepth(Widget* widget)
     int depth = 32;
     if (widget->isFrameView()) {
         HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
-        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        BalWidget *balWidget = hostWindow ? hostWindow->platformPageClient() : 0;
         if (balWidget) {
             Window *window = balWidget->window;
             if (window)
@@ -61,7 +61,7 @@ int screenDepthPerComponent(Widget* widget)
     int depth = 8;
     if (widget->isFrameView()) {
         HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
-        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        BalWidget *balWidget = hostWindow ? hostWindow->platformPageClient() : 0;
         if (balWidget) {
             uint32 id = INVALID_ID;
             struct DisplayInfo displayInfo;
@@ -90,7 +90,7 @@ FloatRect screenRect(Widget* widget)
 
     if (widget->isFrameView()) {
         HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
-        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        BalWidget *balWidget = hostWindow ? hostWindow->platformPageClient() : 0;
         if (balWidget) {
             Window *window = balWidget->window;
             if (window)

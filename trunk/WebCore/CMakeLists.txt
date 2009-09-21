@@ -135,6 +135,11 @@ if(ENABLE_WCSS)
         ENABLE_WCSS=1
     )
 endif(ENABLE_WCSS)
+if(ENABLE_MATHML)
+    list(APPEND FEATURE_DEFINES_JAVASCRIPT
+        ENABLE_MATHML=1
+    )
+endif(ENABLE_MATHML)
 
 # CSS Property names.
 list(APPEND WEBCORE_CSS_PROPERTY_NAMES 
@@ -172,6 +177,12 @@ list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/view-source.css
 )
 
+if(ENABLE_MATHML)
+list(APPEND USER_AGENT_STYLE_SHEETS
+    ${OWB_SOURCE_DIR}/WebCore/css/mathml.css
+)
+endif(ENABLE_MATHML)
+
 if(ENABLE_SVG)
 list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/svg.css
@@ -199,6 +210,7 @@ set(WEBCORE_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebCore)
 if(NOT EXISTS ${WEBCORE_GENERATED_DIR})
 	execute_process(
 		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/html
+        COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/mathml
 		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/wml
 		COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/xml
 	)
@@ -313,6 +325,16 @@ add_custom_command(
     VERBATIM
 )
 
+if(ENABLE_MATHML)
+add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.cpp ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.h
+    ${WEBCORE_GENERATED_DIR}/mathml/MathMLNames.cpp ${WEBCORE_GENERATED_DIR}/mathml/MathMLNames.h
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags  ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/mathml
+    WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
+    DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in
+    VERBATIM
+)
+endif(ENABLE_MATHML)
+
 add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/xml/XMLNames.cpp ${WEBCORE_GENERATED_DIR}/xml/XMLNames.h
     COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${OWB_SOURCE_DIR}/WebCore/xml/xmlattrs.in --output xml
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
@@ -362,6 +384,13 @@ list(APPEND WEBCORE_SRC
     ${WEBCORE_GENERATED_DIR}/xml/XMLNames.cpp
 )
 
+if(ENABLE_MATHML)
+    list(APPEND WEBCORE_SRC
+        ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.cpp
+        ${WEBCORE_GENERATED_DIR}/mathml/MathMLNames.cpp
+    )
+endif(ENABLE_MATHML)
+
 if(ENABLE_SVG)
     list(APPEND WEBCORE_SRC
         ${WEBCORE_GENERATED_DIR}/JSSVGElementWrapperFactory.cpp
@@ -397,6 +426,7 @@ include(html/canvas/CMakeLists.txt)
 include(inspector/CMakeLists.txt)
 include(loader/CMakeLists.txt)
 include(loader/icon/CMakeLists.txt)
+include(mathml/CMakeLists.txt)
 include(notifications/CMakeLists.txt)
 include(page/CMakeLists.txt)
 include(platform/CMakeLists.txt)
@@ -449,6 +479,12 @@ if(ENABLE_DATABASE)
         ${OWB_SOURCE_DIR}/WebCore/storage)
 endif(ENABLE_DATABASE)
 
+if(ENABLE_MATHML)
+    list(APPEND WEBCORE_INCLUDE_DIRS
+        ${OWB_SOURCE_DIR}/WebCore/mathml
+    )
+endif(ENABLE_MATHML)
+
 include_directories(
     ${BASE_INCLUDE_DIRS}
     ${WTF_INCLUDE_DIRS}
@@ -457,6 +493,8 @@ include_directories(
     ${WEBCORE_INCLUDE_DIRS}
     ${WEBCORE_GENERATED_DIR}
     ${WEBCORE_GENERATED_DIR}/html
+    ${WEBCORE_GENERATED_DIR}/mathml
+    ${WEBCORE_GENERATED_DIR}/wml
     ${WEBCORE_GENERATED_DIR}/xml
     ${WEBKIT_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS})

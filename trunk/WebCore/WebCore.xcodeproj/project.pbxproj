@@ -4377,8 +4377,6 @@
 		BCD9C2630C17AA67005C90A2 /* JSNamedNodeMapCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C25F0C17AA67005C90A2 /* JSNamedNodeMapCustom.cpp */; };
 		BCD9C2640C17AA67005C90A2 /* JSNodeCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C2600C17AA67005C90A2 /* JSNodeCustom.cpp */; };
 		BCD9C2650C17AA67005C90A2 /* JSNodeListCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C2610C17AA67005C90A2 /* JSNodeListCustom.cpp */; };
-		BCD9C2720C17AA81005C90A2 /* JSNamedNodesCollection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C26C0C17AA81005C90A2 /* JSNamedNodesCollection.cpp */; };
-		BCD9C2730C17AA81005C90A2 /* JSNamedNodesCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C26D0C17AA81005C90A2 /* JSNamedNodesCollection.h */; };
 		BCD9C2C00C17B69E005C90A2 /* JSNamedNodeMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C2BC0C17B69E005C90A2 /* JSNamedNodeMap.cpp */; };
 		BCD9C2C10C17B69E005C90A2 /* JSNamedNodeMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C2BD0C17B69E005C90A2 /* JSNamedNodeMap.h */; };
 		BCD9C2C20C17B69E005C90A2 /* JSNodeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCD9C2BE0C17B69E005C90A2 /* JSNodeList.cpp */; };
@@ -4679,6 +4677,14 @@
 		F916C48D0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F916C48B0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.cpp */; };
 		F916C48E0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = F916C48C0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.h */; };
 		F9F0ED7A0DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = F9F0ED770DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.h */; };
+		FABE72F41059C1EB00D999DD /* MathMLElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABE72ED1059C1EB00D999DD /* MathMLElement.cpp */; };
+		FABE72F51059C1EB00D999DD /* MathMLElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FABE72EE1059C1EB00D999DD /* MathMLElement.h */; };
+		FABE72F61059C1EB00D999DD /* MathMLInlineContainerElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABE72EF1059C1EB00D999DD /* MathMLInlineContainerElement.cpp */; };
+		FABE72F71059C1EB00D999DD /* MathMLInlineContainerElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FABE72F01059C1EB00D999DD /* MathMLInlineContainerElement.h */; };
+		FABE72F81059C1EB00D999DD /* MathMLMathElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABE72F11059C1EB00D999DD /* MathMLMathElement.cpp */; };
+		FABE72F91059C1EB00D999DD /* MathMLMathElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FABE72F21059C1EB00D999DD /* MathMLMathElement.h */; };
+		FABE72FD1059C21100D999DD /* MathMLElementFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABE72FB1059C21100D999DD /* MathMLElementFactory.cpp */; };
+		FABE72FE1059C21100D999DD /* MathMLNames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABE72FC1059C21100D999DD /* MathMLNames.cpp */; };
 		FE6FD4880F676E5700092873 /* Coordinates.h in Headers */ = {isa = PBXBuildFile; fileRef = FE6FD4850F676E5700092873 /* Coordinates.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FE6FD48D0F676E9300092873 /* JSCoordinates.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE6FD48B0F676E9300092873 /* JSCoordinates.cpp */; };
 		FE6FD48E0F676E9300092873 /* JSCoordinates.h in Headers */ = {isa = PBXBuildFile; fileRef = FE6FD48C0F676E9300092873 /* JSCoordinates.h */; };
@@ -9454,8 +9460,6 @@
 		BCD9C25F0C17AA67005C90A2 /* JSNamedNodeMapCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNamedNodeMapCustom.cpp; sourceTree = "<group>"; };
 		BCD9C2600C17AA67005C90A2 /* JSNodeCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeCustom.cpp; sourceTree = "<group>"; };
 		BCD9C2610C17AA67005C90A2 /* JSNodeListCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeListCustom.cpp; sourceTree = "<group>"; };
-		BCD9C26C0C17AA81005C90A2 /* JSNamedNodesCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNamedNodesCollection.cpp; sourceTree = "<group>"; };
-		BCD9C26D0C17AA81005C90A2 /* JSNamedNodesCollection.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSNamedNodesCollection.h; sourceTree = "<group>"; };
 		BCD9C2BC0C17B69E005C90A2 /* JSNamedNodeMap.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNamedNodeMap.cpp; sourceTree = "<group>"; };
 		BCD9C2BD0C17B69E005C90A2 /* JSNamedNodeMap.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSNamedNodeMap.h; sourceTree = "<group>"; };
 		BCD9C2BE0C17B69E005C90A2 /* JSNodeList.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeList.cpp; sourceTree = "<group>"; };
@@ -9813,6 +9817,15 @@
 		F916C48C0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSXMLHttpRequestProgressEvent.h; sourceTree = "<group>"; };
 		F9F0ED770DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = XMLHttpRequestProgressEvent.h; sourceTree = "<group>"; };
 		F9F0ED780DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.idl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = XMLHttpRequestProgressEvent.idl; sourceTree = "<group>"; };
+		FABE72ED1059C1EB00D999DD /* MathMLElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLElement.cpp; sourceTree = "<group>"; };
+		FABE72EE1059C1EB00D999DD /* MathMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathMLElement.h; sourceTree = "<group>"; };
+		FABE72EF1059C1EB00D999DD /* MathMLInlineContainerElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLInlineContainerElement.cpp; sourceTree = "<group>"; };
+		FABE72F01059C1EB00D999DD /* MathMLInlineContainerElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathMLInlineContainerElement.h; sourceTree = "<group>"; };
+		FABE72F11059C1EB00D999DD /* MathMLMathElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLMathElement.cpp; sourceTree = "<group>"; };
+		FABE72F21059C1EB00D999DD /* MathMLMathElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathMLMathElement.h; sourceTree = "<group>"; };
+		FABE72F31059C1EB00D999DD /* mathtags.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mathtags.in; sourceTree = "<group>"; };
+		FABE72FB1059C21100D999DD /* MathMLElementFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLElementFactory.cpp; sourceTree = "<group>"; };
+		FABE72FC1059C21100D999DD /* MathMLNames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLNames.cpp; sourceTree = "<group>"; };
 		FE49BD301061719100D0E1AE /* WebCore.Inspector.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = WebCore.Inspector.exp; sourceTree = "<group>"; };
 		FE49EF970DC51462004266E1 /* DashboardSupportCSSPropertyNames.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DashboardSupportCSSPropertyNames.in; sourceTree = "<group>"; };
 		FE6FD4850F676E5700092873 /* Coordinates.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Coordinates.h; sourceTree = "<group>"; };
@@ -9895,6 +9908,7 @@
 				93EEC1EC09C2877700C515D1 /* html */,
 				1C81B94D0E9732D900266E07 /* inspector */,
 				BCB16BFB0979C38700467741 /* loader */,
+				FABE72EC1059C1EB00D999DD /* mathml */,
 				333F703D0FB49C16008E12A6 /* notifications */,
 				65BF02180974806300C43196 /* page */,
 				BCF1A5BA097832090061A123 /* platform */,
@@ -10817,6 +10831,8 @@
 				938E65F009F09840008A48EC /* JSHTMLElementWrapperFactory.h */,
 				8574D1F10ADE6122004CBA11 /* JSSVGElementWrapperFactory.cpp */,
 				8574D1F20ADE6122004CBA11 /* JSSVGElementWrapperFactory.h */,
+				FABE72FB1059C21100D999DD /* MathMLElementFactory.cpp */,
+				FABE72FC1059C21100D999DD /* MathMLNames.cpp */,
 				656581E609D1508D000E61D7 /* SVGElementFactory.cpp */,
 				656581E709D1508D000E61D7 /* SVGElementFactory.h */,
 				656581E809D1508D000E61D7 /* SVGNames.cpp */,
@@ -14115,8 +14131,6 @@
 				C09158850DB4209200E55AF4 /* JSInspectedObjectWrapper.h */,
 				C09158860DB4209200E55AF4 /* JSInspectorCallbackWrapper.cpp */,
 				C09158870DB4209200E55AF4 /* JSInspectorCallbackWrapper.h */,
-				BCD9C26C0C17AA81005C90A2 /* JSNamedNodesCollection.cpp */,
-				BCD9C26D0C17AA81005C90A2 /* JSNamedNodesCollection.h */,
 				93B70D4F09EB0C7C009D8468 /* JSPluginElementFunctions.cpp */,
 				93B70D5009EB0C7C009D8468 /* JSPluginElementFunctions.h */,
 				C09158880DB4209200E55AF4 /* JSQuarantinedObjectWrapper.cpp */,
@@ -15448,6 +15462,20 @@
 			sourceTree = "<group>";
 			tabWidth = 4;
 			usesTabs = 0;
+		};
+		FABE72EC1059C1EB00D999DD /* mathml */ = {
+			isa = PBXGroup;
+			children = (
+				FABE72ED1059C1EB00D999DD /* MathMLElement.cpp */,
+				FABE72EE1059C1EB00D999DD /* MathMLElement.h */,
+				FABE72EF1059C1EB00D999DD /* MathMLInlineContainerElement.cpp */,
+				FABE72F01059C1EB00D999DD /* MathMLInlineContainerElement.h */,
+				FABE72F11059C1EB00D999DD /* MathMLMathElement.cpp */,
+				FABE72F21059C1EB00D999DD /* MathMLMathElement.h */,
+				FABE72F31059C1EB00D999DD /* mathtags.in */,
+			);
+			path = mathml;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -16815,7 +16843,6 @@
 				A86629D109DA2B48009633A5 /* JSMouseEvent.h in Headers */,
 				65DF31FC09D1CC60000BE325 /* JSMutationEvent.h in Headers */,
 				BCD9C2C10C17B69E005C90A2 /* JSNamedNodeMap.h in Headers */,
-				BCD9C2730C17AA81005C90A2 /* JSNamedNodesCollection.h in Headers */,
 				A9D247F80D757E3400FDF959 /* JSNavigator.h in Headers */,
 				14115B7309F84CD600CA4FC1 /* JSNodeFilter.h in Headers */,
 				BCB773620C17853D00132BA4 /* JSNodeFilterCondition.h in Headers */,
@@ -17826,6 +17853,9 @@
 				510D4A4F103177A20049EA54 /* WebSocketChannel.h in Headers */,
 				510D4A50103177A20049EA54 /* WebSocketChannelClient.h in Headers */,
 				51ABAE451043AB4A008C5260 /* WebSocketHandshake.h in Headers */,
+				FABE72F51059C1EB00D999DD /* MathMLElement.h in Headers */,
+				FABE72F71059C1EB00D999DD /* MathMLInlineContainerElement.h in Headers */,
+				FABE72F91059C1EB00D999DD /* MathMLMathElement.h in Headers */,
 				37202199106213C600F25C4B /* FontSmoothingMode.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -18984,7 +19014,6 @@
 				65DF31FB09D1CC60000BE325 /* JSMutationEvent.cpp in Sources */,
 				BCD9C2C00C17B69E005C90A2 /* JSNamedNodeMap.cpp in Sources */,
 				BCD9C2630C17AA67005C90A2 /* JSNamedNodeMapCustom.cpp in Sources */,
-				BCD9C2720C17AA81005C90A2 /* JSNamedNodesCollection.cpp in Sources */,
 				A9D247F70D757E3400FDF959 /* JSNavigator.cpp in Sources */,
 				A9C6E6490D7465D8006442E9 /* JSNavigatorCustom.cpp in Sources */,
 				14DC0D3709FED073007B0235 /* JSNode.cpp in Sources */,
@@ -19951,6 +19980,11 @@
 				51A052341058774F00CC9E95 /* CredentialStorage.cpp in Sources */,
 				510D4A4E103177A20049EA54 /* WebSocketChannel.cpp in Sources */,
 				51ABAE441043AB4A008C5260 /* WebSocketHandshake.cpp in Sources */,
+				FABE72F41059C1EB00D999DD /* MathMLElement.cpp in Sources */,
+				FABE72F61059C1EB00D999DD /* MathMLInlineContainerElement.cpp in Sources */,
+				FABE72F81059C1EB00D999DD /* MathMLMathElement.cpp in Sources */,
+				FABE72FD1059C21100D999DD /* MathMLElementFactory.cpp in Sources */,
+				FABE72FE1059C21100D999DD /* MathMLNames.cpp in Sources */,
 				BCCE58AC1061E8CF008FB35A /* JSDatabaseCustom.cpp in Sources */,
 				BCCE58AF1061E90C008FB35A /* JSDocumentFragmentCustom.cpp in Sources */,
 			);
