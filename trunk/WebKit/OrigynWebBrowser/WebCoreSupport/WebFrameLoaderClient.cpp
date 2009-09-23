@@ -1176,6 +1176,31 @@ PassRefPtr<Widget> WebFrameLoaderClient::createJavaAppletWidget(const IntSize& p
     return pluginView;
 }
 
+bool WebFrameLoaderClient::shouldLoadMediaElementURL(const KURL& url) const
+{
+    WebView* webView = m_webFrame->webView();
+    if (!webView)
+        return true;
+
+    return true;
+
+/*
+    COMPtr<IWebPolicyDelegate> policyDelegate;
+    if (FAILED(webView->policyDelegate(&policyDelegate)) || !policyDelegate)
+        return true;
+
+    COMPtr<IWebPolicyDelegatePrivate> policyDelegatePrivate(Query, policyDelegate);
+    if (!policyDelegate)
+        return true;
+
+    BOOL retval;
+    if (FAILED(policyDelegatePrivate->shouldLoadMediaURL(webView, BString(url), m_webFrame, &retval)))
+        return true;
+
+    return retval;
+*/
+}
+
 ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const String& mimeTypeIn)
 {
     String mimeType = mimeTypeIn;

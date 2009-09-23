@@ -1,3 +1,68 @@
+2009-09-23  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        js tests should move into jstests subdirectory instead of resources/
+        https://bugs.webkit.org/show_bug.cgi?id=25880
+
+        Remove support of resources directory.
+
+        * Scripts/make-script-test-wrappers:
+
+2009-09-22  Eric Seidel  <eric@webkit.org>
+
+        No review, only fixing typo (missing space character).
+
+        Fix typo from https://bugs.webkit.org/show_bug.cgi?id=29220
+
+        * Scripts/run-webkit-tests:
+
+2009-09-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        run-webkit-tests needs a --repeat-each=N option (AAABBBCCC instead of ABCABCABC)
+        https://bugs.webkit.org/show_bug.cgi?id=29220
+
+        * Scripts/run-webkit-tests:
+
+2009-09-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        svn-apply can't handle single-line binary file additions
+        https://bugs.webkit.org/show_bug.cgi?id=29100
+
+        Fixed the regexp and added a unit test.
+
+        * Scripts/modules/scm_unittest.py:
+        * Scripts/svn-apply:
+
+2009-09-11  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        post-diff and post-commits should be able to find bug urls in ChangeLogs.
+        https://bugs.webkit.org/show_bug.cgi?id=29206
+
+        * Scripts/bugzilla-tool:
+         - Share common options by adding a PostDiffAsPatchToBug.posting_options() method.
+         - Rename --no-comment to --add-log-as-comment and reverse behavior.
+           Comments tend to just be noise.  I'll eventually remove this argument if no one uses it.
+         - Split out code into helper functions to try and make execute() more legible.
+         - Make post-diff find the bug url in the ChangeLogs if not passed as an argument.
+         - Fallback to bug urls in commit diffs, instead of just in commit messages,
+           meaning post-commits will now find bug urls in ChangeLogs.
+
+2009-09-21  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Maciej Stachowiak.
+
+        --parse-only parameter wasn't passed to SunSpider/sunspider script.
+        https://bugs.webkit.org/show_bug.cgi?id=29611
+
+        * Scripts/run-sunspider: Missing parameter passing added.
+
 2009-09-21  David Kilzer  <ddkilzer@apple.com>
 
         <http://webkit.org/b/29521> run-webkit-tests: use require instead eval to load DumpRenderTreeSupport module

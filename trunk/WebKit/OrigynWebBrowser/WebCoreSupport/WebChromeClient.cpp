@@ -441,7 +441,6 @@ bool WebChromeClient::shouldInterruptJavaScript()
 
 bool WebChromeClient::tabsToLinks() const
 {
-    bool enabled = false;
     WebPreferences* preferences = m_webView->preferences();
 
     return preferences->tabsToLinks();
@@ -471,8 +470,12 @@ IntRect WebChromeClient::windowToScreen(const IntRect& rect) const
 }
 
 PlatformPageClient WebChromeClient::platformPageClient() const
-{                                                                                                                  
+{
+#if PLATFORM(QT)
+    return 0;
+#else
     return m_webView->viewWindow();
+#endif
 } 
 
 void WebChromeClient::contentsSizeChanged(Frame*, const IntSize&) const

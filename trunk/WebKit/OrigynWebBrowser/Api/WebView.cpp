@@ -765,6 +765,14 @@ bool WebView::canHandleRequest(const WebCore::ResourceRequest& request)
     return true;
 }
 
+void WebView::reloadFromOrigin()
+{
+    if (!m_mainFrame)
+        return;
+
+    m_mainFrame->reloadFromOrigin();
+}
+
 const char* WebView::standardUserAgentWithApplicationName(const char* applicationName)
 {
 #if PLATFORM(MACPORT)

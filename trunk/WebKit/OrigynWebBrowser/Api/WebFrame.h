@@ -369,6 +369,11 @@ public:
     virtual void setExcludeFromTextSearch(bool flag);
 
     /**
+     * reloadFromOrigin
+     */
+    virtual void reloadFromOrigin();
+
+    /**
      * test if the frame supports text encoding
      */
     virtual bool supportsTextEncoding();

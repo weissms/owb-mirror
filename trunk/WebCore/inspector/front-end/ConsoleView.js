@@ -303,7 +303,9 @@ WebInspector.ConsoleView.prototype = {
         }
 
         var includeInspectorCommandLineAPI = (!dotNotation && !bracketNotation);
-        InjectedScriptAccess.getCompletions(expressionString, includeInspectorCommandLineAPI, reportCompletions);
+        if (WebInspector.panels.scripts && WebInspector.panels.scripts.paused)
+            var callFrameId = WebInspector.panels.scripts.selectedCallFrameId();
+        InjectedScriptAccess.getCompletions(expressionString, includeInspectorCommandLineAPI, callFrameId, reportCompletions);
     },
 
     _reportCompletions: function(bestMatchOnly, completionsReadyCallback, dotNotation, bracketNotation, prefix, result, isException) {
@@ -606,7 +608,7 @@ WebInspector.ConsoleMessage.prototype = {
                 this.formattedMessage = span;
                 break;
             case WebInspector.ConsoleMessage.MessageType.Object:
-                this.formattedMessage = this._format(["%O", args[0]]);
+                this.formattedMessage = this._format([WebInspector.ObjectProxy.wrapPrimitiveValue("%O"), args[0]]);
                 break;
             default:
                 this.formattedMessage = this._format(args);
@@ -668,8 +670,8 @@ WebInspector.ConsoleMessage.prototype = {
         }
 
         for (var i = 0; i < parameters.length; ++i) {
-            if (typeof parameters[i] === "string")
-                formattedResult.appendChild(WebInspector.linkifyStringAsFragment(parameters[i]));
+            if (Object.proxyType(parameters[i]) === "string")
+                formattedResult.appendChild(WebInspector.linkifyStringAsFragment(parameters[i].description));
             else
                 formattedResult.appendChild(formatForConsole(parameters[i]));
 
@@ -911,7 +913,7 @@ WebInspector.ConsoleTextMessage.prototype.__proto__ = WebInspector.ConsoleMessag
 WebInspector.ConsoleCommandResult = function(result, exception, originatingCommand)
 {
     var level = (exception ? WebInspector.ConsoleMessage.MessageLevel.Error : WebInspector.ConsoleMessage.MessageLevel.Log);
-    var message = (exception ? String(result) : result);
+    var message = result;
     var line = (exception ? result.line : -1);
     var url = (exception ? result.sourceURL : null);
 

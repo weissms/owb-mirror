@@ -571,6 +571,8 @@ BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceError.h
 BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceHandleManager.h
 BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceRequest.h
 BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceResponse.h
+BAL/Skeletons/Network   WebCore/platform/network/curl/SocketStreamError.h
+BAL/Skeletons/Network   WebCore/platform/network/curl/SocketStreamHandle.h
 
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/AuthenticationChallenge.h
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceError.h
@@ -583,6 +585,9 @@ BAL/Network/WebCore/Curl	WebCore/platform/network/curl/DNSCurl.cpp
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/CookieJarCurl.cpp
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.cpp
 BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.h
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamError.h
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamHandleCurl.cpp
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamHandle.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/AuthenticationChallenge.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
 BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
@@ -886,6 +891,7 @@ BAL/Widgets/WebCore/Qt	WebCore/platform/qt/CursorQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PasteboardQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PlatformScreenQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PopupMenuQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPageClient.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.cpp	QWebPopup.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.h	QWebPopup.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.cpp

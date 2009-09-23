@@ -1,3 +1,220 @@
+2009-09-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Code sampling builds are broken.
+        https://bugs.webkit.org/show_bug.cgi?id=29662
+
+        Fix build.
+
+        * bytecode/EvalCodeCache.h:
+        (JSC::EvalCodeCache::get):
+        * bytecode/SamplingTool.cpp:
+        (JSC::ScriptSampleRecord::sample):
+        (JSC::SamplingTool::doRun):
+        (JSC::SamplingTool::notifyOfScope):
+        (JSC::compareScriptSampleRecords):
+        (JSC::SamplingTool::dump):
+        * bytecode/SamplingTool.h:
+        (JSC::ScriptSampleRecord::ScriptSampleRecord):
+        (JSC::ScriptSampleRecord::~ScriptSampleRecord):
+        (JSC::SamplingTool::SamplingTool):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        (JSC::BytecodeGenerator::emitNewFunction):
+        (JSC::BytecodeGenerator::emitNewFunctionExpression):
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::makeFunction):
+        * debugger/Debugger.cpp:
+        (JSC::evaluateInGlobalCallFrame):
+        * debugger/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate):
+        * parser/Nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Executable.cpp:
+        (JSC::FunctionExecutable::fromGlobalCode):
+        * runtime/Executable.h:
+        (JSC::ScriptExecutable::ScriptExecutable):
+        (JSC::EvalExecutable::EvalExecutable):
+        (JSC::EvalExecutable::create):
+        (JSC::ProgramExecutable::ProgramExecutable):
+        (JSC::FunctionExecutable::create):
+        (JSC::FunctionExecutable::FunctionExecutable):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval):
+
+2009-09-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * wtf/Forward.h: Added PassOwnPtr.
+
+2009-09-22  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by David Levin.
+
+        Ported chromium.org's javascriptcore.gyp for the webkit chromium port.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29617
+
+        * JavaScriptCore.gyp/JavaScriptCore.gyp: Added.
+
+2009-09-22  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix compilation with WINSCW: no varargs macros
+
+        Disable variadic arguments for WINSCW just like we do
+        for MSVC7.
+
+        * wtf/Assertions.h:
+
+2009-09-22  Kent Hansen  <khansen@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Disable variadic macros on MSVC7.
+
+        This was originally added in r26589 but not extended
+        when LOG_DISABLED/ASSERT_DISABLED was introduced.
+
+        * wtf/Assertions.h:
+
+2009-09-22  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Unreviewed build fix for Windows CE < 5
+
+        Define WINCEBASIC to disable the IsDebuggerPresent() code in
+        wtf/Assertions.cpp.
+
+        * JavaScriptCore.pri:
+
+2009-09-22  Joerg Bornemann  <joerg.bornemann@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix major memory leak in JavaScriptCore RegisterFile on Windows CE
+
+        https://bugs.webkit.org/show_bug.cgi?id=29367
+
+        On Widows CE we must decommit all committed pages before we release
+        them. See VirtualFree documentation.
+        Desktop Windows behaves much smoother in this situation.
+
+        * interpreter/RegisterFile.cpp:
+        (JSC::RegisterFile::~RegisterFile):
+
+2009-09-21  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Simon Fraser & Sam Weinig.
+
+        Add ENABLE(ORIENTATION_EVENTS)
+        https://bugs.webkit.org/show_bug.cgi?id=29508
+
+        * wtf/Platform.h: Also sort PLATFORM(IPHONE) #defines.
+
+2009-09-21  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Fix] SourceCode's uninitialized member
+        
+        Potential source of crashes and bugs was fixed. Default constructor
+        didn't initialized m_provider member.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29364
+
+        * parser/SourceCode.h:
+        (JSC::SourceCode::SourceCode):
+
+2009-09-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        REGRESSION (r48582): Crash in StructureStubInfo::initPutByIdTransition when reloading trac.webkit.org
+        https://bugs.webkit.org/show_bug.cgi?id=29599
+
+        It is unsafe to attempt to cache new property transitions on
+        dictionaries of any type.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::tryCachePutByID):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCachePutByID):
+
+2009-09-21  Oliver Hunt  <oliver@apple.com>
+
+        RS=Maciej Stachowiak.
+
+        Re-land SNES fix with corrected assertion.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolveGlobal):
+        (JSC::Interpreter::tryCachePutByID):
+        (JSC::Interpreter::tryCacheGetByID):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCachePutByID):
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/BatchedTransitionOptimizer.h:
+        (JSC::BatchedTransitionOptimizer::BatchedTransitionOptimizer):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::removeDirect):
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure):
+        (JSC::Structure::getEnumerablePropertyNames):
+        (JSC::Structure::despecifyDictionaryFunction):
+        (JSC::Structure::addPropertyTransitionToExistingStructure):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::removePropertyTransition):
+        (JSC::Structure::toDictionaryTransition):
+        (JSC::Structure::toCacheableDictionaryTransition):
+        (JSC::Structure::toUncacheableDictionaryTransition):
+        (JSC::Structure::fromDictionaryTransition):
+        (JSC::Structure::removePropertyWithoutTransition):
+        * runtime/Structure.h:
+        (JSC::Structure::isDictionary):
+        (JSC::Structure::isUncacheableDictionary):
+        (JSC::Structure::):
+        * runtime/StructureChain.cpp:
+        (JSC::StructureChain::isCacheable):
+
+2009-09-21  Adam Roben  <aroben@apple.com>
+
+        Revert r48573, as it caused many assertion failures
+
+        * interpreter/Interpreter.cpp:
+        * jit/JITStubs.cpp:
+        * runtime/BatchedTransitionOptimizer.h:
+        * runtime/JSObject.cpp:
+        * runtime/Structure.cpp:
+        * runtime/Structure.h:
+        * runtime/StructureChain.cpp:
+
+2009-09-21  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed make dist build fix. Missing files.
+
+        * GNUmakefile.am:
+
+2009-09-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam 'Cabin Boy' Weinig.
+
+        Fix stack alignment with ARM THUMB2 JIT.
+        https://bugs.webkit.org/show_bug.cgi?id=29526
+        
+        Stack is currently being decremented by 0x3c, bump this to 0x40 to make this a
+        multiple of 16 bytes.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+        * jit/JITStubs.h:
+
 2009-09-21  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Maciej Stachowiak.

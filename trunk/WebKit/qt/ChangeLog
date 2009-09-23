@@ -1,3 +1,73 @@
+2009-09-23  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add default timeout while waiting for signals in QWebPage auto
+        tests.
+        https://bugs.webkit.org/show_bug.cgi?id=29637
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (waitForSignal):
+
+2009-09-22  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reivewed by Simon Hausmann.
+
+        Fix the Qt/Mac build after r48604 (Implement new QWebPageClient class)
+
+        There's no QWidget::x11Info() on Mac, and setPlatformPluginWidget()
+        takes a QWidget*, not a QWebPageClient*
+
+        * Api/qwebgraphicsitem.cpp:
+        (QWebGraphicsItemPrivate::screenNumber):
+        * Api/qwebview.cpp:
+        (QWebViewPrivate::screenNumber):
+
+2009-09-21  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        For Qt, platformPageClient() will now return a class derived from
+        the QWebPageClient, so the patch adapts our Qt hooks to go though
+        this class and not depend on the QWebView.
+
+        * Api/qwebgraphicsitem.cpp:
+        (QWebGraphicsItemPrivate::scroll):
+        (QWebGraphicsItemPrivate::update):
+        (QWebGraphicsItemPrivate::cursor):
+        (QWebGraphicsItemPrivate::updateCursor):
+        (QWebGraphicsItemPrivate::screenNumber):
+        (QWebGraphicsItemPrivate::winId):
+        (QWebGraphicsItem::event):
+        (QWebGraphicsItem::setPage):
+        * Api/qwebgraphicsitem.h:
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        * Api/qwebpage_p.h:
+        * Api/qwebview.cpp:
+        (QWebViewPrivate::scroll):
+        (QWebViewPrivate::update):
+        (QWebViewPrivate::cursor):
+        (QWebViewPrivate::updateCursor):
+        (QWebViewPrivate::screenNumber):
+        (QWebViewPrivate::winId):
+        (QWebView::setPage):
+        (QWebView::event):
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::repaint):
+        (WebCore::ChromeClientQt::scroll):
+        (WebCore::ChromeClientQt::platformPageClient):
+
+2009-09-21  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29609
+        Build fix for windows when using Qt 4.5.0.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl):
+
 2009-09-21  Benjamin Poulain  <benjamin.poulain@nokia.com>
 
         Reviewed by Simon Hausmann.

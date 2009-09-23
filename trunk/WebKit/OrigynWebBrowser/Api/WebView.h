@@ -931,6 +931,11 @@ public:
     virtual bool canHandleRequest(WebMutableURLRequest *request);
 
     /**
+     * reloadFromOrigin
+     */
+    virtual void reloadFromOrigin();
+
+    /**
      *  clearFocusNode 
      */
     virtual void clearFocusNode();

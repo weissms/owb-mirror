@@ -556,7 +556,7 @@ PassRefPtr<Structure> Structure::getterSetterTransition(Structure* structure)
 
 PassRefPtr<Structure> Structure::toDictionaryTransition(Structure* structure, DictionaryKind kind)
 {
-    ASSERT(!structure->isDictionary() || (structure->m_dictionaryKind != kind));
+    ASSERT(!structure->isUncacheableDictionary());
     
     RefPtr<Structure> transition = create(structure->m_prototype, structure->typeInfo());
     transition->m_dictionaryKind = kind;

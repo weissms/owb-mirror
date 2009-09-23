@@ -256,6 +256,7 @@ static inline Qt::DropAction dragOpToDropAction(unsigned actions)
 
 QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
     : q(qq)
+    , client(0)
     , view(0)
     , inspectorFrontend(0)
     , inspector(0)
@@ -2909,9 +2910,11 @@ QString QWebPage::userAgentForUrl(const QUrl& url) const
         case QSysInfo::WV_VISTA:
             ver = "Windows NT 6.0";
             break;
+#if QT_VERSION > 0x040500
         case QSysInfo::WV_WINDOWS7:
             ver = "Windows NT 6.1";
             break;
+#endif
         case QSysInfo::WV_CE:
             ver = "Windows CE";
             break;

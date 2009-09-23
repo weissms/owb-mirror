@@ -499,11 +499,20 @@ InjectedScript.setPropertyValue = function(objectProxy, propertyName, expression
 }
 
 
-InjectedScript.getCompletions = function(expression, includeInspectorCommandLineAPI)
+InjectedScript.getCompletions = function(expression, includeInspectorCommandLineAPI, callFrameId)
 {
     var props = {};
     try {
-        var expressionResult = InjectedScript._evaluateOn(InjectedScript._window().eval, InjectedScript._window(), expression);
+        var expressionResult;
+        // Evaluate on call frame if call frame id is available.
+        if (typeof callFrameId === "number") {
+            var callFrame = InjectedScript._callFrameForId(callFrameId);
+            if (!callFrame)
+                return props;
+            expressionResult = InjectedScript._evaluateOn(callFrame.evaluate, callFrame, expression);
+        } else {
+            expressionResult = InjectedScript._evaluateOn(InjectedScript._window().eval, InjectedScript._window(), expression);
+        }
         for (var prop in expressionResult)
             props[prop] = true;
         if (includeInspectorCommandLineAPI)
@@ -515,29 +524,23 @@ InjectedScript.getCompletions = function(expression, includeInspectorCommandLine
     return props;
 }
 
-
 InjectedScript.evaluate = function(expression)
+{
+    return InjectedScript._evaluateAndWrap(InjectedScript._window().eval, InjectedScript._window(), expression);
+}
+
+InjectedScript._evaluateAndWrap = function(evalFunction, object, expression)
 {
     var result = {};
     try {
-        var value = InjectedScript._evaluateOn(InjectedScript._window().eval, InjectedScript._window(), expression);
-        if (value === null)
-            return { value: null };
-        if (Object.type(value) === "error") {
-            result.value = Object.describe(value);
+        result.value = InspectorController.wrapObject(InjectedScript._evaluateOn(evalFunction, object, expression));
+        // Handle error that might have happened while describing result.
+        if (result.value.errorText) {
+            result.value = InspectorController.wrapObject(result.value.errorText);
             result.isException = true;
-            return result;
-        }
-
-        var wrapper = InspectorController.wrapObject(value);
-        if (typeof wrapper === "object" && wrapper.exception) {
-            result.value = wrapper.exception;
-            result.isException = true;
-        } else {
-            result.value = wrapper;
         }
     } catch (e) {
-        result.value = e.toString();
+        result.value = InspectorController.wrapObject(e.toString());
         result.isException = true;
     }
     return result;
@@ -549,7 +552,13 @@ InjectedScript._evaluateOn = function(evalFunction, object, expression)
     // Surround the expression in with statements to inject our command line API so that
     // the window object properties still take more precedent than our API functions.
     expression = "with (window._inspectorCommandLineAPI) { with (window) { " + expression + " } }";
-    return evalFunction.call(object, expression);
+    var value = evalFunction.call(object, expression);
+
+    // When evaluating on call frame error is not thrown, but returned as a value.
+    if (Object.type(value) === "error")
+        throw value.toString();
+
+    return value;
 }
 
 InjectedScript.addInspectedNode = function(nodeId)
@@ -826,7 +835,7 @@ InjectedScript.evaluateInCallFrame = function(callFrameId, code)
     var callFrame = InjectedScript._callFrameForId(callFrameId);
     if (!callFrame)
         return false;
-    return InjectedScript._evaluateOn(callFrame.evaluate, callFrame, code);
+    return InjectedScript._evaluateAndWrap(callFrame.evaluate, callFrame, code);
 }
 
 InjectedScript._callFrameForId = function(id)
@@ -976,7 +985,7 @@ InjectedScript.createProxyObject = function(object, objectId, abbreviate)
     try {
         result.description = Object.describe(object, abbreviate);
     } catch (e) {
-        result.exception = e.toString();
+        result.errorText = e.toString();
     }
     return result;
 }

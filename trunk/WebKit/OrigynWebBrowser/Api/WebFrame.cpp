@@ -267,6 +267,15 @@ void WebFrame::setExcludeFromTextSearch(bool flag)
     }
 }
 
+void WebFrame::reloadFromOrigin()
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return;
+
+    coreFrame->loader()->reload(true);
+}
+
 const char* WebFrame::name()
 {
     Frame* coreFrame = core(this);

@@ -31,6 +31,7 @@
 #include "config.h"
 #include "V8AbstractEventListener.h"
 
+#include "DateExtension.h"
 #include "Document.h"
 #include "Event.h"
 #include "Frame.h"
@@ -68,6 +69,10 @@ void V8AbstractEventListener::invokeEventHandler(v8::Handle<v8::Context> v8Conte
     v8::Local<v8::String> eventSymbol = v8::String::NewSymbol("event");
     v8::Local<v8::Value> returnValue;
 
+    // In beforeunload/unload handlers, we want to avoid sleeps which do tight loops of calling Date.getTime().
+    if (event->type() == "beforeunload" || event->type() == "unload")
+        DateExtension::get()->setAllowSleep(false);
+
     {
         // Catch exceptions thrown in the event handler so they do not propagate to javascript code that caused the event to fire.
         v8::TryCatch tryCatch;
@@ -82,16 +87,28 @@ void V8AbstractEventListener::invokeEventHandler(v8::Handle<v8::Context> v8Conte
         tryCatch.Reset();
 
         // Call the event handler.
+        tryCatch.SetVerbose(false); // We do not want to report the exception to the inspector console.
         returnValue = callListenerFunction(jsEvent, event, isWindowEvent);
-        tryCatch.Reset();
+        if (!tryCatch.CanContinue())
+            return;
+
+        // If an error occurs while handling the event, it should be reported.
+        if (tryCatch.HasCaught()) {
+            reportException(0, tryCatch);
+            tryCatch.Reset();
+        }
 
         // Restore the old event. This must be done for all exit paths through this method.
+        tryCatch.SetVerbose(true);
         if (savedEvent.IsEmpty())
             v8Context->Global()->SetHiddenValue(eventSymbol, v8::Undefined());
         else
             v8Context->Global()->SetHiddenValue(eventSymbol, savedEvent);
         tryCatch.Reset();
     }
+
+    if (event->type() == "beforeunload" || event->type() == "unload")
+        DateExtension::get()->setAllowSleep(true);
 
     ASSERT(!V8Proxy::handleOutOfMemory() || returnValue.IsEmpty());
 
