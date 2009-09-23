@@ -58,6 +58,7 @@ public:
     void endTransparencyLayer() {}
 
     Vector<float> layers;
+    Vector<IntRect> clipRect;
     SDL_Surface *surface;
 };
 

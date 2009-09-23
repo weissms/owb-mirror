@@ -210,7 +210,7 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
 
     // Check and see if a single draw of the image can cover the entire area we are supposed to tile.
     // save context info
-    context->clip(IntRect(destRect)); // don't draw outside this
+    context->clip(destRect); // don't draw outside this
 
 
     IntRect dest(IntPoint(), IntSize(image->w, image->h));

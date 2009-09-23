@@ -88,6 +88,10 @@ void GraphicsContext::savePlatformState()
     if (paintingDisabled())
         return;
 
+    SDL_Rect clipRect = {0, 0, 0, 0};
+    SDL_GetClipRect(m_data->surface, &clipRect);
+    IntRect clippingRect(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+    m_data->clipRect.append(clippingRect);
     m_common->stack.append(m_common->state);
 }
 
@@ -103,7 +107,8 @@ void GraphicsContext::restorePlatformState()
 
     m_common->state = m_common->stack.last();
     m_common->stack.removeLast();
-    clip(clippingRect);
+    clip(m_data->clipRect.last());
+    m_data->clipRect.removeLast();
 }
 
 // Draws a filled rectangle with a stroked border.
