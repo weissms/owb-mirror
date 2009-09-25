@@ -200,7 +200,6 @@ if(ENABLE_WORKERS)
     if(ENABLE_SHARED_WORKERS)
         list(APPEND WEBCORE_SRC
             bindings/js/JSSharedWorkerConstructor.cpp
-            bindings/js/JSSharedWorkerContextCustom.cpp
             bindings/js/JSSharedWorkerCustom.cpp
         )
     endif(ENABLE_SHARED_WORKERS)

@@ -1,3 +1,172 @@
+2009-09-25  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Mark "Do It!" Rowe.
+
+        Some GCC versions don't like C++-style comments in preprocessor
+        directives, change to C-style to shut them up.
+
+        * wtf/Platform.h:
+
+2009-09-24  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Division is needlessly slow in 64-bit
+        https://bugs.webkit.org/show_bug.cgi?id=29723
+
+        Add codegen for op_div on x86-64
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        (JSC::JIT::emit_op_div):
+        (JSC::JIT::emitSlow_op_div):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::isOperandConstantImmediateDouble):
+        (JSC::JIT::addressFor):
+        (JSC::JIT::emitLoadDouble):
+        (JSC::JIT::emitLoadInt32ToDouble):
+        (JSC::JIT::emitJumpSlowCaseIfNotImmediateNumber):
+
+2009-09-24  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add GYP generated files to svn:ignore
+        https://bugs.webkit.org/show_bug.cgi?id=29724
+
+        Adding the following files to the svn:ignore list (all in the
+        JavaScriptCore/JavaScriptCore.gyp directory)
+
+        JavaScriptCore.xcodeproj
+        JavaScriptCore.sln
+        JavaScriptCore.vcproj
+        JavaScriptCore_Debug.rules
+        JavaScriptCore_Release.rules
+        JavaScriptCore_Release - no tcmalloc.rules
+        JavaScriptCore_Purify.rules
+        JavaScriptCore.mk
+        JavaScriptCore_Debug_rules.mk
+        JavaScriptCore_Release_rules.mk
+        JavaScriptCore_Release - no tcmalloc_rules.mk
+        JavaScriptCore_Purify_rules.mk
+        JavaScriptCore.scons
+        JavaScriptCore_main.scons
+
+        * JavaScriptCore.gyp: Changed property svn:ignore.
+
+2009-09-24  Yong Li  <yong.li@torchmobile.com>
+
+        Reviewed by Adam Barth.
+
+        Replace platform-dependent code with WTF::currentTime()
+        https://bugs.webkit.org/show_bug.cgi?id=29148
+
+        * jsc.cpp:
+        (StopWatch::start):
+        (StopWatch::stop):
+        (StopWatch::getElapsedMS):
+        * runtime/TimeoutChecker.cpp:
+        (JSC::getCPUTime):
+
+2009-09-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7215058> FastMalloc scavenging thread should be named
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::scavengerThread): Set the thread name.
+        * wtf/Platform.h: Move the knowledge of whether pthread_setname_np exists to here as HAVE(PTHREAD_SETNAME_NP).
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::setThreadNameInternal): Use HAVE(PTHREAD_SETNAME_NP).
+
+2009-09-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Renamed clear to removeAll, as suggested by Darin Adler.
+
+        * wtf/HashCountedSet.h:
+        (WTF::::removeAll):
+
+2009-09-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix FastMalloc to build with assertions enabled.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_Central_FreeList::ReleaseToSpans):
+        * wtf/TCSpinLock.h:
+        (TCMalloc_SpinLock::IsHeld):
+
+2009-09-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Suggested by Darin Adler.
+
+        Removed some unnecessary parameter names.
+
+        * wtf/HashCountedSet.h:
+
+2009-09-24  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        On Windows JSChar is typedef'ed to wchar_t.
+
+        When building with WINSCW for Symbian we need to do the
+        same typedef.
+
+        * API/JSStringRef.h:
+
+2009-09-23  Geoffrey Garen  <ggaren@apple.com>
+
+        A piece of my last patch that I forgot.
+
+        * wtf/HashCountedSet.h:
+        (WTF::::clear): Added HashCountedSet::clear.
+
+2009-09-24  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Avoid __clear_cache built-in function if DISABLE_BUILTIN_CLEAR_CACHE define is set
+        https://bugs.webkit.org/show_bug.cgi?id=28886
+
+        There are some GCC packages (for example GCC-2006q3 from CodeSourcery)
+        which contain __clear_cache built-in function only for C while the C++
+        version of __clear_cache is missing on ARM architectures.
+
+        Fixed a small bug in the inline assembly of cacheFlush function on
+        ARM_TRADITIONAL.
+
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::cacheFlush):
+
+2009-09-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Added the ability to swap vectors with inline capacities, so you can
+        store a vector with inline capacity in a hash table.
+
+        * wtf/Vector.h:
+        (WTF::swap):
+        (WTF::VectorBuffer::swap):
+
+2009-09-23  David Kilzer  <ddkilzer@apple.com>
+
+        Move definition of USE(PLUGIN_HOST_PROCESS) from WebKitPrefix.h to Platform.h
+
+        Reviewed by Mark Rowe.
+
+        * wtf/Platform.h: Define WTF_USE_PLUGIN_HOST_PROCESS to 1 when
+        building on 64-bit SnowLeopard.  Define to 0 elsewhere.
+
 2009-09-23  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Geoff Garen.

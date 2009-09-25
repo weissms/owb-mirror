@@ -1,3 +1,84 @@
+2009-09-25  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Reviewed by Alice Liu.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        Pass 0 for new Page constructor argument.
+
+2009-09-24  Martin Smith  <msmith@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        qdoc: Added \brief texts to all the since 4.6 functions.
+
+        * Api/qwebhistory.cpp:
+
+2009-09-23  J-P Nurmi  <jpnurmi@gmail.com>
+
+        Reviewed by Simon Hausmann.
+
+        Prevent QWebPage::setView() from changing the viewport size on the fly
+        in case the view doesn't actually change. QWebPage::setView() is
+        called upon every QWebGraphicsItem::hoverMoveEvent(), which forced
+        the viewport size to be equal to the size of the whole graphics view.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29676
+
+        * Api/qwebpage.cpp:
+        (QWebPage::setView):
+
+2009-09-23  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Crash fix in QWebHistory back and forward methods.
+        
+        QWebHistory::back() and QWebHistory::forward() were crashing on
+        ASSERT in WebCore::BackForwardList. The methods should check
+        canGoBack() and canGoForward() at the beginning.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29675
+
+        * Api/qwebhistory.cpp:
+        (QWebHistory::back):
+        (QWebHistory::forward):
+
+2009-09-23  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Bug fix. QWebHistory should call QWebPage::updateNavigationActions
+        
+        In QWebHistory's methods that change item count or current item call
+        to QWebPage::updateNavigationActions should be executed.
+        QWebHistory::clear() and QWebHistory::restorState() were changed.
+        New helper method, QWebPagePrivate accesor, were created in
+        QWebHistoryPrivate class.
+        Two autotest were developed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29246
+
+        * Api/qwebhistory.cpp:
+        (QWebHistory::clear):
+        (QWebHistory::restoreState):
+        (QWebHistoryPrivate::page):
+        * Api/qwebhistory_p.h:
+        * tests/qwebhistory/tst_qwebhistory.cpp:
+        (tst_QWebHistory::saveAndRestore_1):
+        (tst_QWebHistory::clear):
+
+2009-09-23  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Need to guard QX11Info include with Q_WS_X11.
+        That class may not be available (in QT 4.5 for Symbian, for instance).
+        Completes fixes in r48627 and r48604.
+
+        * Api/qwebgraphicsitem.cpp:
+        * Api/qwebview.cpp:
+
 2009-09-23  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
 
         Reviewed by Simon Hausmann.

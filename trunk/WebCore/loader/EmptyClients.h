@@ -38,6 +38,7 @@
 #include "FocusDirection.h"
 #include "FormState.h"
 #include "FrameLoaderClient.h"
+#include "PluginHalterClient.h"
 #include "ResourceError.h"
 #include "SharedBuffer.h"
 
@@ -487,6 +488,12 @@ public:
     virtual void inspectorWindowObjectCleared() { }
 };
 #endif
+
+class EmptyPluginHalterClient : public PluginHalterClient
+{
+public:
+    virtual bool shouldHaltPlugin(Node*) const { return false; }
+};
 
 }
 

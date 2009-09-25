@@ -52,6 +52,7 @@
 #include "WebInspector.h"
 #include "WebInspectorClient.h"
 #endif
+#include "WebPluginHalterClient.h"
 #include "WebMutableURLRequest.h"
 #include "WebPreferences.h"
 #include "WebViewPrivate.h"
@@ -296,9 +297,9 @@ WebView::WebView()
     initializeStaticObservers();
 
 #if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this), new WebPluginHalterClient());
 #else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0, new WebPluginHalterClient());
 #endif
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);

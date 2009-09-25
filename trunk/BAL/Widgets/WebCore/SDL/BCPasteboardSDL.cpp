@@ -93,6 +93,12 @@ void Pasteboard::setHelper(PasteboardHelper* helper)
 
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
+    NotImplemented();
+}
+
+void Pasteboard::writePlainText(const String&)
+{
+    NotImplemented();
 }
 
 void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)

@@ -47,7 +47,8 @@ WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
 WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
-WebCore/platform/Scrollbar.cpp	BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
+WebCore/platform/Scrollbar.cpp BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
+WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
 WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.cpp
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
@@ -59,7 +60,7 @@ WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
 WebCore/platform/image-decoders/ImageDecoder.h BAL/ImageDecoder/WebCore/WK/BCImageDecoderWK.h
-WebCore/platform/WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
+WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
 WebCore/platform/network/ResourceHandleInternal.h BAL/Network/WebCore/WK/BCResourceHandleInternalWK.h
 WebCore/platform/network/curl/CookieJarCurl.cpp BAL/Network/WebCore/Curl/BCCookieJarCurl.cpp
@@ -85,6 +86,7 @@ WebCore/rendering/RenderLayerCompositor.h
 WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/wml/WMLErrorHandling.cpp
+WebCore/wml/WMLInputElement.cpp
 WebCore/xml/XSLStyleSheet.cpp
 WebCore/xml/XSLTProcessor.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp

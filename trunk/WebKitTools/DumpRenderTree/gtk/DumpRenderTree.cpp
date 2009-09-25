@@ -59,6 +59,7 @@ extern GList* webkit_web_history_item_get_children(WebKitWebHistoryItem*);
 extern GSList* webkit_web_frame_get_children(WebKitWebFrame* frame);
 extern gchar* webkit_web_frame_get_inner_text(WebKitWebFrame* frame);
 extern gchar* webkit_web_frame_dump_render_tree(WebKitWebFrame* frame);
+extern guint webkit_web_frame_get_pending_unload_event_count(WebKitWebFrame* frame);
 extern void webkit_web_settings_add_extra_plugin_directory(WebKitWebView* view, const gchar* directory);
 extern gchar* webkit_web_frame_get_response_mime_type(WebKitWebFrame* frame);
 extern void webkit_web_frame_clear_main_frame_name(WebKitWebFrame* frame);
@@ -75,6 +76,7 @@ AccessibilityController* axController = 0;
 LayoutTestController* gLayoutTestController = 0;
 static GCController* gcController = 0;
 static WebKitWebView* webView;
+static GtkWidget* window;
 static GtkWidget* container;
 WebKitWebFrame* mainFrame = 0;
 WebKitWebFrame* topLoadingFrame = 0;
@@ -418,6 +420,7 @@ static void runTest(const string& testPathOrURL)
     size.x = size.y = 0;
     size.width = isSVGW3CTest ? 480 : maxViewWidth;
     size.height = isSVGW3CTest ? 360 : maxViewHeight;
+    gtk_window_resize(GTK_WINDOW(window), size.width, size.height);
     gtk_widget_size_allocate(container, &size);
 
     if (prevTestBFItem)
@@ -472,8 +475,39 @@ static gboolean processWork(void* data)
     return FALSE;
 }
 
+static char* getFrameNameSuitableForTestResult(WebKitWebView* view, WebKitWebFrame* frame)
+{
+    char* frameName = g_strdup(webkit_web_frame_get_name(frame));
+
+    if (frame == webkit_web_view_get_main_frame(view)) {
+        // This is a bit strange. Shouldn't web_frame_get_name return NULL?
+        if (frameName && (frameName[0] != '\0')) {
+            char* tmp = g_strdup_printf("main frame \"%s\"", frameName);
+            g_free (frameName);
+            frameName = tmp;
+        } else {
+            g_free(frameName);
+            frameName = g_strdup("main frame");
+        }
+    } else if (!frameName || (frameName[0] == '\0')) {
+        g_free(frameName);
+        frameName = g_strdup("frame (anonymous)");
+    }
+
+    return frameName;
+}
+
 static void webViewLoadFinished(WebKitWebView* view, WebKitWebFrame* frame, void*)
 {
+    if (!done && !gLayoutTestController->dumpFrameLoadCallbacks()) {
+        guint pendingFrameUnloadEvents = webkit_web_frame_get_pending_unload_event_count(frame);
+        if (pendingFrameUnloadEvents) {
+            char* frameName = getFrameNameSuitableForTestResult(view, frame);
+            printf("%s - has %u onunload handler(s)\n", frameName, pendingFrameUnloadEvents);
+            g_free(frameName);
+        }
+    }
+
     if (frame != topLoadingFrame)
         return;
 
@@ -689,11 +723,11 @@ int main(int argc, char* argv[])
                 break;
         }
 
-    GtkWidget* window = gtk_window_new(GTK_WINDOW_POPUP);
+    window = gtk_window_new(GTK_WINDOW_POPUP);
     container = GTK_WIDGET(gtk_scrolled_window_new(NULL, NULL));
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(container), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_container_add(GTK_CONTAINER(window), container);
-    gtk_widget_realize(window);
+    gtk_widget_show_all(window);
 
     webView = createWebView();
     gtk_container_add(GTK_CONTAINER(container), GTK_WIDGET(webView));

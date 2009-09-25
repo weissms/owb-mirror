@@ -1,3 +1,74 @@
+2009-09-25  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Reviewed by Alice Liu.
+
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+        Pass 0 for new Page constructor argument.
+
+2009-09-14  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Eric Seidel.
+
+        isEnabled switch for notifications (experimental) in Page Settings
+        https://bugs.webkit.org/show_bug.cgi?id=28930
+
+        Adds support for the experimentalNotificationsEnabled flag in Settings
+        through WebPreferencesPrivate.
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences experimentalNotificationsEnabled]):
+        (-[WebPreferences setExperimentalNotificationsEnabled:]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-09-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Updated for a WebCore rename.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _cacheabilityDictionary]):
+
+2009-09-23  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Speed up access to history items by caching date computation.
+
+        * History/WebHistory.mm:
+        (getDayBoundaries): Refactored from timeIntervalForBeginningOfDay.
+        Returns the beginning of the day that the passed time is within and
+        the beginning of the next day.
+        (beginningOfDay): Added. Uses getDayBoundaries so it can be fast for
+        multiple dates within the same day, which is the common case.
+        (dateKey): Added. Calls beginningOfDay and converts to an integer.
+        (-[WebHistoryPrivate findKey:forDay:]): Changed to call dateKey
+        insetad of timeIntervalForBeginningOfDay.
+
+2009-09-23  David Kilzer  <ddkilzer@apple.com>
+
+        Move definition of USE(PLUGIN_HOST_PROCESS) from WebKitPrefix.h to Platform.h
+
+        Reviewed by Mark Rowe.
+
+        * WebKitPrefix.h: Removed definition of
+        WTF_USE_PLUGIN_HOST_PROCESS.
+
+2009-09-22  Timothy Hatcher  <timothy@apple.com>
+
+        Prevent scrolling multiple frames during latched wheel events.
+
+        Reviewed by Anders Carlsson.
+
+        * WebView/WebDynamicScrollBarsView.h:
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView scrollWheel:]):
+
 2009-09-23  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by John Sullivan.

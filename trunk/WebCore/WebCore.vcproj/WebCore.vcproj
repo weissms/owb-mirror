@@ -3432,6 +3432,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\page\HaltablePlugin.h"
+				>
+			</File>
+			<File
 				RelativePath="..\page\History.cpp"
 				>
 			</File>
@@ -9594,10 +9598,6 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSSharedWorkerConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSSharedWorkerContextCustom.cpp"
 					>
 				</File>
 				<File

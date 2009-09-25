@@ -637,10 +637,39 @@ public:
     /**
      * Tell if offline web application cache is enabled
      */
-    bool offlineWebApplicationCacheEnabled();
+    bool offlineWebApplicationCacheEnabled() const;
+
+    /**
+     * Enable experimental desktop notifications
+     */
+    void setExperimentalNotificationsEnabled(bool);
+
+    /**
+     * Returns whether the experimental desktop notifications are enabled.
+     */
+    bool experimentalNotificationsEnabled() const;
+
+    /**
+     * Enable automatic plugin halter
+     */
+    void setPluginHalterEnabled(bool);
+
+    /**
+     * Returns whether the automatic plugin halter is enabled
+     */
+    bool pluginHalterEnabled() const;
+
+    /**
+     * Enable or disable plugin run time.
+     */
+    void setPluginAllowedRuntime(bool);
+
+    /**
+     * Returns whether plugin's run time is enabled
+     */
+    bool pluginAllowedRuntime() const;
 
 protected:
-
     /**
      *  setValueForKey
      */
@@ -664,7 +693,7 @@ protected:
     /**
      *  boolValueForKey 
      */
-    bool boolValueForKey(WebCore::String key);
+    bool boolValueForKey(WebCore::String key) const;
 
     /**
      *  floatValueForKey

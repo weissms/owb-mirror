@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2008, 2009 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +56,7 @@ class Pasteboard : Noncopyable {
 public:
     static Pasteboard* generalPasteboard();
     void writeSelection(Range*, bool canSmartCopyOrDelete, Frame*);
+    void writePlainText(const String&);
     void writeURL(const KURL&, const String&, Frame* = 0);
     void writeImage(Node*, const KURL&, const String& title);
 

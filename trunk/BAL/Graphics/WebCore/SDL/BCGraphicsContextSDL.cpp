@@ -67,8 +67,8 @@ GraphicsContext::GraphicsContext(PlatformGraphicsContext* cr)
 
 GraphicsContext::~GraphicsContext()
 {
-     destroyGraphicsContextPrivate(m_common);
-     delete m_data;
+    destroyGraphicsContextPrivate(m_common);
+    delete m_data;
 }
 
 TransformationMatrix GraphicsContext::getCTM() const

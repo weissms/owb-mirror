@@ -1,3 +1,176 @@
+2009-09-25  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Enable switch for notifications (experimental) in Page Settings
+        https://bugs.webkit.org/show_bug.cgi?id=28930
+
+        Now that desktop notifications are controlled by run-time switch,
+        set that switch to true for DumpRenderTree.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/win/UIDelegate.cpp:
+        (UIDelegate::QueryInterface):
+
+2009-09-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. SnowLeopard fixes for Mac dependencies.
+
+        * wx/build/build_utils.py:
+        * wx/build/settings.py:
+        * wx/install-unix-extras:
+
+2009-09-24  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Oliver Hunt.
+
+        Add support for DRT to send mouse wheel events.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29348
+        [Gtk] Scrollwheel on horizontal scrollbars should slide horizontally
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (mouseWheelToCallback):
+
+2009-09-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        commit-queue needs web-based status reporting
+        https://bugs.webkit.org/show_bug.cgi?id=29307
+
+        Add a first-pass web-based status for the commit-queue.
+        The bot is currently reachable at:
+        http://webkit-commit-queue.appspot.com/
+
+        * CommitQueueStatus/app.yaml: Added.
+         - Application description file required by App Engine.
+        * CommitQueueStatus/filters/__init__.py: Added.
+         - Required by python to treat 'filters' as a module.
+        * CommitQueueStatus/filters/webkit_extras.py: Added.
+         - Support for turning 'bug 123' and 'patch 123' into links.
+           This lets us use plain text strings in our logs yet display nice HTML (help prevent XSS attacks on the page).
+        * CommitQueueStatus/index.html: Added.
+        * CommitQueueStatus/index.yaml: Added.
+         - Some auto-generated file from app engine.
+        * CommitQueueStatus/queue_status.py: Added.
+         - The core logic of this bot.  We could eventually split this file out into pieces.
+        * CommitQueueStatus/stylesheets/main.css: Added.
+         - Some basic lame-o CSS to make the page look less awful.
+        * CommitQueueStatus/update_status.html: Added.
+         - The form that the commit-queue (or a human) can use to update the status.
+        * Scripts/bugzilla-tool:
+         - Add some very basic update_status calls.
+        * Scripts/modules/statusbot.py: Added.
+         - Knows how to post to the CommitQueueStatus web application.
+
+2009-09-24  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/29712> mark-bug-fixed: add -m|--comment switch
+
+        Reviewed by Adam Roben.
+
+        * Scripts/mark-bug-fixed:
+        (MarkBugFixed.__init__): Added -m|--comment switch to list of
+        parse options.
+        (MarkBugFixed.main): When specified, prepend comment from
+        -m|--comment command-line switch to the bug comment.
+
+2009-09-24  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Jan Alonzo.
+
+        [GTK] DRT must display window instead of just realizing, to enable synthesizing events correctly
+        https://bugs.webkit.org/show_bug.cgi?id=29693
+
+        Show the window, to be able to synthesize events correctly.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (runTest):
+        (main):
+
+2009-09-24  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY(rollout)
+
+        Roll out r48712 as it is incorrect.
+
+        * DumpRenderTree/mac/ObjCController.m:
+        (+[ObjCController isSelectorExcludedFromWebScript:]):
+        (+[ObjCController webScriptNameForSelector:]):
+
+2009-09-24  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29005
+        The indices of RuntimeArray should be enumerated like for a regular array.
+
+        * DumpRenderTree/mac/ObjCController.m:
+        (+[ObjCController isSelectorExcludedFromWebScript:]):
+        (+[ObjCController webScriptNameForSelector:]):
+        (-[ObjCController arrayOfString]):
+
+2009-09-23  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/28910> Move bugzilla-tool mark-fixed to standalone mark-bug-fixed tool
+
+        Reviewed by Darin Adler.
+
+        Also fixed a bug where specifying a revision on the command-line
+        as 'r12345' would fail.  See <http://webkit.org/b/29699>.
+
+        * Scripts/bugzilla-tool: Updated module import statements.
+        (parse_bug_id): Removed.  Moved to bugzilla.py.
+        (bug_comment_from_svn_revision): Removed.  Moved to comments.py.
+        (bug_comment_from_commit_text): Removed.  Moved to comments.py.
+        (MarkBugFixed): Removed.  Code moved to mark-bug-fixed.
+        (BugzillaTool.__init__): Removed mark-fixed subcommand.
+        * Scripts/mark-bug-fixed: Added.
+        * Scripts/modules/bugzilla.py:
+        (parse_bug_id): Added.  Moved from bugzilla-tool.
+        * Scripts/modules/comments.py: Added.
+        (bug_comment_from_svn_revision): Added.  Moved from bugzilla-tool.
+        (bug_comment_from_commit_text): Added.  Moved from bugzilla-tool.
+
+2009-09-23  Marshall Culpepper  <mculpepper@appcelerator.com>
+
+        Reviewed by Eric Seidel.
+        
+         jpeg.lib is now libjpeg.lib in DRT Cairo dependencies. return
+         "false" in non-implemented stub for setAlwaysAcceptCookies.
+         https://bugs.webkit.org/show_bug.cgi?id=29661
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+
+2009-09-23  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] need to dump number of pending unload handlers
+        https://bugs.webkit.org/show_bug.cgi?id=29685
+
+        Implement dumping of the number of pending unload handlers.
+
+        The following tests will pass:
+
+          fast/loader/unload-form-about-blank.html
+          fast/loader/unload-form-post-about-blank.html
+          fast/loader/unload-form-post.html
+          fast/loader/unload-form.html
+          fast/loader/unload-hyperlink.html
+          fast/loader/unload-javascript-url.html
+          fast/loader/unload-reload.html
+          fast/loader/unload-window-location.html
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (getFrameNameSuitableForTestResult):
+        (webViewLoadFinished):
+
 2009-09-23  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Reviewed by Eric Seidel.

@@ -124,3 +124,7 @@
 #define WebKitZoomsTextOnlyPreferenceKey "WebKitZoomsTextOnly"
 
 #define WebKitXSSAuditorEnabledPreferenceKey "WebKitXSSAuditorEnabled"
+
+#define WebKitExperimentalNotificationsEnabledPreferenceKey "WebKitExperimentalNotificationsEnabled"
+#define WebKitPluginHalterEnabledPreferenceKey "WebKitPluginHalterEnabled"
+#define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"

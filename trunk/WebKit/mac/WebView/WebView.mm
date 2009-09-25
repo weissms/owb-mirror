@@ -619,7 +619,7 @@ static bool runningTigerMail()
         didOneTimeInitialization = true;
     }
 
-    _private->page = new Page(new WebChromeClient(self), new WebContextMenuClient(self), new WebEditorClient(self), new WebDragClient(self), new WebInspectorClient(self));
+    _private->page = new Page(new WebChromeClient(self), new WebContextMenuClient(self), new WebEditorClient(self), new WebDragClient(self), new WebInspectorClient(self), 0);
 
     _private->page->settings()->setLocalStorageDatabasePath([[self preferences] _localStorageDatabasePath]);
 
@@ -1277,6 +1277,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setPluginsEnabled([preferences arePlugInsEnabled]);
     settings->setDatabasesEnabled([preferences databasesEnabled]);
     settings->setLocalStorageEnabled([preferences localStorageEnabled]);
+    settings->setExperimentalNotificationsEnabled([preferences experimentalNotificationsEnabled]);
     settings->setPrivateBrowsingEnabled([preferences privateBrowsingEnabled]);
     settings->setSansSerifFontFamily([preferences sansSerifFontFamily]);
     settings->setSerifFontFamily([preferences serifFontFamily]);

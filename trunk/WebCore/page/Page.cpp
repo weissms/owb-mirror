@@ -29,8 +29,10 @@
 #include "ContextMenuController.h"
 #include "DOMWindow.h"
 #include "DragController.h"
+#include "ExceptionCode.h"
 #include "EditorClient.h"
 #include "EventNames.h"
+#include "Event.h"
 #include "FileSystem.h"
 #include "FocusController.h"
 #include "Frame.h"
@@ -45,6 +47,7 @@
 #include "NetworkStateNotifier.h"
 #include "PageGroup.h"
 #include "PluginData.h"
+#include "PluginHalter.h"
 #include "ProgressTracker.h"
 #include "RenderWidget.h"
 #include "RenderTheme.h"
@@ -97,10 +100,10 @@ static void networkStateChanged()
 
     AtomicString eventName = networkStateNotifier().onLine() ? eventNames().onlineEvent : eventNames().offlineEvent;
     for (unsigned i = 0; i < frames.size(); i++)
-        frames[i]->document()->dispatchWindowEvent(eventName, false, false);
+        frames[i]->document()->dispatchWindowEvent(Event::create(eventName, false, false));
 }
 
-Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, EditorClient* editorClient, DragClient* dragClient, InspectorClient* inspectorClient)
+Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, EditorClient* editorClient, DragClient* dragClient, InspectorClient* inspectorClient, PluginHalterClient* pluginHalterClient)
     : m_chrome(new Chrome(this, chromeClient))
     , m_dragCaretController(new SelectionController(0, true))
 #if ENABLE(DRAG_SUPPORT)
@@ -136,6 +139,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_customHTMLTokenizerTimeDelay(-1)
     , m_customHTMLTokenizerChunkSize(-1)
     , m_canStartPlugins(true)
+    , m_pluginHalterClient(pluginHalterClient)
 {
 #if !ENABLE(CONTEXT_MENUS)
     UNUSED_PARAM(contextMenuClient);
@@ -154,6 +158,8 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
 
     ASSERT(!allPages->contains(this));
     allPages->add(this);
+
+    pluginHalterEnabledStateChanged();
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
     JavaScriptDebugServer::shared().pageCreated(this);
@@ -679,5 +685,33 @@ InspectorTimelineAgent* Page::inspectorTimelineAgent() const
     return m_inspectorController->timelineAgent();
 }
 #endif
+
+void Page::pluginHalterEnabledStateChanged()
+{
+    if (m_settings->pluginHalterEnabled()) {
+        ASSERT(!m_pluginHalter);
+        m_pluginHalter.set(new PluginHalter(m_pluginHalterClient));
+        m_pluginHalter->setPluginAllowedRunTime(m_settings->pluginAllowedRunTime());
+    } else
+        m_pluginHalter = 0;
+}
+
+void Page::pluginAllowedRunTimeChanged()
+{
+    if (m_pluginHalter)
+        m_pluginHalter->setPluginAllowedRunTime(m_settings->pluginAllowedRunTime());
+}
+
+void Page::didStartPlugin(HaltablePlugin* obj)
+{
+    if (m_pluginHalter)
+        m_pluginHalter->didStartPlugin(obj);
+}
+
+void Page::didStopPlugin(HaltablePlugin* obj)
+{
+    if (m_pluginHalter)
+        m_pluginHalter->didStopPlugin(obj);
+}
 
 } // namespace WebCore

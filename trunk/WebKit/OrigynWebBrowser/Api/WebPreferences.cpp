@@ -126,7 +126,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitJavaEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitJavaScriptEnabledPreferenceKey, "1"); //TRUE
     m_privatePrefs.add(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, "0");//FALSE
-    m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "1");//FALSE
+    m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
@@ -166,6 +166,10 @@ void WebPreferences::initializeDefaultSettings()
 #else
     m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "0");
 #endif
+
+    m_privatePrefs.add(WebKitExperimentalNotificationsEnabledPreferenceKey, "0"); // FALSE
+    m_privatePrefs.add(WebKitPluginHalterEnabledPreferenceKey, "0"); // FALSE
+    m_privatePrefs.add(WebKitPluginAllowedRunTimePreferenceKey, "0"); // FALSE
 }
 
 String WebPreferences::valueForKey(String key)
@@ -191,7 +195,7 @@ int WebPreferences::integerValueForKey(String key)
     return value.toInt();
 }
 
-bool WebPreferences::boolValueForKey(String key)
+bool WebPreferences::boolValueForKey(String key) const
 {
     String value = m_privatePrefs.get(key);
     return (bool)value.toInt();
@@ -776,7 +780,38 @@ void WebPreferences::setOfflineWebApplicationCacheEnabled(bool enabled)
 {
     setBoolValue(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, enabled);
 }
-bool WebPreferences::offlineWebApplicationCacheEnabled()
+
+bool WebPreferences::offlineWebApplicationCacheEnabled() const
 {
     return boolValueForKey(WebKitOfflineWebApplicationCacheEnabledPreferenceKey);
+}
+
+void WebPreferences::setExperimentalNotificationsEnabled(bool enable)
+{
+    setBoolValue(WebKitExperimentalNotificationsEnabledPreferenceKey, enable);
+}
+
+bool WebPreferences::experimentalNotificationsEnabled() const
+{
+    return boolValueForKey(WebKitExperimentalNotificationsEnabledPreferenceKey);
+}
+
+void WebPreferences::setPluginHalterEnabled(bool enable)
+{
+    setBoolValue(WebKitPluginHalterEnabledPreferenceKey, enable);
+}
+
+bool WebPreferences::pluginHalterEnabled() const
+{
+    return boolValueForKey(WebKitPluginHalterEnabledPreferenceKey);
+}
+
+void WebPreferences::setPluginAllowedRuntime(bool enable)
+{
+    setBoolValue(WebKitPluginAllowedRunTimePreferenceKey, enable);
+}
+
+bool WebPreferences::pluginAllowedRuntime() const
+{
+    return boolValueForKey(WebKitPluginAllowedRunTimePreferenceKey);
 }

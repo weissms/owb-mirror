@@ -325,7 +325,13 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE setLocalStorageDatabasePath(
         /* [in] */ BSTR location);
-    
+
+    virtual HRESULT STDMETHODCALLTYPE experimentalNotificationsEnabled(
+        /* [retval][out] */ BOOL *enabled);
+
+    virtual HRESULT STDMETHODCALLTYPE setExperimentalNotificationsEnabled(
+        /* [in] */ BOOL enabled);
+
     virtual HRESULT STDMETHODCALLTYPE setShouldPaintNativeControls( 
     /* [in] */ BOOL shouldPaint);
 
@@ -367,6 +373,18 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE shouldUseHighResolutionTimers(
     /* [retval][out] */ BOOL* useHighResolutionTimers);
+
+    virtual HRESULT STDMETHODCALLTYPE setPluginHalterEnabled(
+    /* [in] */ BOOL enabled);
+
+    virtual HRESULT STDMETHODCALLTYPE pluginHalterEnabled(
+    /* [retval][out] */ BOOL* enabled);
+
+    virtual HRESULT STDMETHODCALLTYPE setPluginAllowedRunTime(
+    /* [in] */ UINT allowedRunTime);
+
+    virtual HRESULT STDMETHODCALLTYPE pluginAllowedRunTime(
+    /* [retval][out] */ UINT* allowedRunTime);
 
     virtual HRESULT STDMETHODCALLTYPE setPreferenceForTest(
     /* [in] */ BSTR key,

@@ -37,15 +37,17 @@ import subprocess
 import sys
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from optparse import OptionParser, IndentedHelpFormatter, SUPPRESS_USAGE, make_option
 
 # Import WebKit-specific modules.
-from modules.bugzilla import Bugzilla
-from modules.changelogs import ChangeLog, view_source_url
+from modules.bugzilla import Bugzilla, parse_bug_id
+from modules.changelogs import ChangeLog
+from modules.comments import bug_comment_from_commit_text
 from modules.logging import error, log, tee
 from modules.scm import CommitMessage, detect_scm_system, ScriptError
 from modules.buildbot import BuildBot
+from modules.statusbot import StatusBot
 
 def plural(noun):
     # This is a dumb plural() implementation which was just enough for our uses.
@@ -58,15 +60,6 @@ def pluralize(noun, count):
     if count != 1:
         noun = plural(noun)
     return "%d %s" % (count, noun)
-
-def parse_bug_id(message):
-    match = re.search("http\://webkit\.org/b/(?P<bug_id>\d+)", message)
-    if match:
-        return match.group('bug_id')
-    match = re.search(Bugzilla.bug_server_regex + "show_bug\.cgi\?id=(?P<bug_id>\d+)", message)
-    if match:
-        return match.group('bug_id')
-    return None
 
 def commit_message_for_this_commit(scm):
     changelog_paths = scm.modified_changelogs()
@@ -172,14 +165,6 @@ class ApplyPatchesFromBug(Command):
             error("--local-commit passed, but %s does not support local commits" % tool.scm().display_name())
         
         self.apply_patches(patches, tool.scm(), options.local_commit)
-
-
-def bug_comment_from_svn_revision(svn_revision):
-    return "Committed r%s: <%s>" % (svn_revision, view_source_url(svn_revision))
-
-def bug_comment_from_commit_text(scm, commit_text):
-    svn_revision = scm.svn_revision_from_commit_text(commit_text)
-    return bug_comment_from_svn_revision(svn_revision)
 
 
 class WebKitLandingScripts:
@@ -380,59 +365,6 @@ class LandPatchesFromBugs(Command):
 
         for bug_id in bugs_to_patches.keys():
             self.land_patches(bug_id, bugs_to_patches[bug_id], options, tool)
-
-
-class MarkBugFixed(Command):
-    def __init__(self):
-        options = [
-            make_option("-b", "--bug-id", action="store", type="string", dest="bug_id", help="Specify bug id if no URL is provided in the commit log."),
-        ]
-        Command.__init__(self, 'Marks a bug as fixed based on a bug id and a commit revision.', '[rNNNNN]', options=options)
-
-    def _fetch_commit_log(self, scm, svn_revision):
-        if not svn_revision:
-            return scm.last_svn_commit_log()
-        return scm.svn_commit_log(svn_revision)
-
-    def _determine_bug_id_and_svn_revision(self, tool, bug_id, svn_revision):
-        commit_log = self._fetch_commit_log(tool.scm(), svn_revision)
-
-        if not bug_id:
-            bug_id = parse_bug_id(commit_log)
-
-        if not svn_revision:
-            match = re.search("^r(?P<svn_revision>\d+) \|", commit_log, re.MULTILINE)
-            if match:
-                svn_revision = match.group('svn_revision')
-
-        if not bug_id or not svn_revision:
-            not_found = []
-            if not bug_id:
-                not_found.append("bug id")
-            if not svn_revision:
-                not_found.append("svn revision")
-            error("Could not find %s on command-line or in last commit." % " or ".join(not_found))
-
-        log("Bug: <http://webkit.org/b/%s> %s" % (bug_id, tool.bugs.fetch_title_from_bug(bug_id)))
-        log("Revision: %s" % svn_revision)
-        answer = raw_input("Is this correct (y/N)? ")
-        if not re.match("^\s*y(es)?", answer, re.IGNORECASE):
-            exit(1)
-
-        return (bug_id, svn_revision)
-
-    def execute(self, options, args, tool):
-        if len(args) > 1:
-            error("Only one revision may be specified.")
-
-        bug_id = options.bug_id
-        svn_revision = args[0] if len(args) == 1 else None
-
-        if not bug_id or not svn_revision:
-            (bug_id, svn_revision) = self._determine_bug_id_and_svn_revision(tool, bug_id, svn_revision)
-
-        log("Updating bug %s" % bug_id)
-        tool.bugs.close_bug_as_fixed(bug_id, bug_comment_from_svn_revision(svn_revision))
 
 
 class CommitMessageForCurrentDiff(Command):
@@ -694,6 +626,7 @@ class LandPatchesFromCommitQueue(Command):
     def __init__(self):
         options = [
             make_option("--no-confirm", action="store_false", dest="confirm", default=True, help="Do not ask the user for confirmation before running the queue.  Dangerous!"),
+            make_option("--status-host", action="store", type="string", dest="status_host", default=StatusBot.default_host, help="Do not ask the user for confirmation before running the queue.  Dangerous!"),
         ]
         Command.__init__(self, 'Run the commit queue.', options=options)
         self._original_stdout = None
@@ -702,6 +635,10 @@ class LandPatchesFromCommitQueue(Command):
 
     queue_log_path = 'commit_queue.log'
     bug_logs_directory = 'commit_queue_logs'
+
+    log_date_format = "%Y-%m-%d %H:%M:%S"
+    sleep_duration_text = "5 mins"
+    seconds_to_sleep = 300
 
     def _tee_outputs_to_files(self, files):
         if not self._original_stdout:
@@ -714,10 +651,21 @@ class LandPatchesFromCommitQueue(Command):
             sys.stdout = self._original_stdout
             sys.stderr = self._original_stderr
 
-    @staticmethod
-    def _sleep(log_message):
-        log("%s  Sleeping 5 minutes... %s" % (log_message, datetime.now()))
-        time.sleep(300) # Wait 5 minutes
+    @classmethod
+    def _sleep_message(cls, message):
+        wake_time = datetime.now() + timedelta(seconds=cls.seconds_to_sleep)
+        return "%s Sleeping until %s (%s)." % (message, wake_time.strftime(cls.log_date_format), cls.sleep_duration_text)
+
+    @classmethod
+    def _sleep(cls, message):
+        log(cls._sleep_message(message))
+        time.sleep(cls.seconds_to_sleep)
+
+    def _update_status_and_sleep(self, message):
+        status_message = self._sleep_message(message)
+        self.status_bot.update_status(status_message)
+        log(status_message)
+        time.sleep(self.seconds_to_sleep)
 
     @staticmethod
     def _open_log_file(log_path):
@@ -755,7 +703,9 @@ class LandPatchesFromCommitQueue(Command):
                 error("User declined.")
 
         queue_log = self._add_log_to_output_tee(self.queue_log_path)
-        log("Running WebKit Commit Queue. %s" % datetime.now())
+        log("Running WebKit Commit Queue. %s" % datetime.now().strftime(self.log_date_format))
+
+        self.status_bot = StatusBot(host=options.status_host)
 
         while (True):
             # Either of these calls could throw URLError which shouldn't stop the queue.
@@ -764,16 +714,19 @@ class LandPatchesFromCommitQueue(Command):
                 # Fetch patches instead of just bug ids to that we validate reviewer/committer flags on every patch.
                 patches = tool.bugs.fetch_patches_from_commit_queue(reject_invalid_patches=True)
                 if not len(patches):
-                    self._sleep("Empty queue.")
+                    self._update_status_and_sleep("Empty queue.")
                     continue
                 patch_ids = map(lambda patch: patch['id'], patches)
                 first_bug_id = patches[0]['bug_id']
                 log("%s in commit queue [%s]" % (pluralize('patch', len(patches)), ", ".join(patch_ids)))
 
                 if not tool.buildbot.core_builders_are_green():
-                    self._sleep("Builders are red.")
+                    self._update_status_and_sleep("Builders (http://build.webkit.org) are red.")
                     continue
+
+                self.status_bot.update_status("Landing patches from bug %s." % first_bug_id, bug_id=first_bug_id)
             except Exception, e:
+                # Don't try tell the status bot, in case telling it causes an exception.
                 self._sleep("Exception while checking queue and bots: %s." % e)
                 continue
 
@@ -784,7 +737,7 @@ class LandPatchesFromCommitQueue(Command):
             self._run_command([bugzilla_tool_path, 'land-patches', '--force-clean', '--commit-queue', '--quiet', first_bug_id])
             self._remove_log_from_output_tee(bug_log)
 
-        log("Finished WebKit Commit Queue. %s" % datetime.now())
+        log("Finished WebKit Commit Queue. %s" % datetime.now().strftime(self.log_date_format))
         self._remove_log_from_output_tee(queue_log)
 
 
@@ -820,7 +773,6 @@ class BugzillaTool:
             { 'name' : 'apply-patches', 'object' : ApplyPatchesFromBug() },
             { 'name' : 'land-diff', 'object' : LandAndUpdateBug() },
             { 'name' : 'land-patches', 'object' : LandPatchesFromBugs() },
-            { 'name' : 'mark-fixed', 'object' : MarkBugFixed() },
             { 'name' : 'commit-message', 'object' : CommitMessageForCurrentDiff() },
             { 'name' : 'obsolete-attachments', 'object' : ObsoleteAttachmentsOnBug() },
             { 'name' : 'post-diff', 'object' : PostDiffAsPatchToBug() },

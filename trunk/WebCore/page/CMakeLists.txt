@@ -25,6 +25,7 @@ list(APPEND WEBCORE_SRC
     page/Page.cpp
     page/PageGroup.cpp
     page/PageGroupLoadDeferrer.cpp
+    page/PluginHalter.cpp
     page/PrintContext.cpp
     page/Screen.cpp
     page/SecurityOrigin.cpp
