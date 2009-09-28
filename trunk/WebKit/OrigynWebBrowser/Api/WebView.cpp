@@ -2536,3 +2536,25 @@ Page* core(WebView* webView)
     return page;
 }
 
+bool WebView::invalidateBackingStore(const WebCore::IntRect* rect)
+{
+    notImplemented();
+    return false;
+/*
+    if (!IsWindow(m_viewWindow))
+        return S_OK;
+
+    RECT clientRect;
+    if (!GetClientRect(m_viewWindow, &clientRect))
+        return E_FAIL;
+
+    RECT rectToInvalidate;
+    if (!rect)
+        rectToInvalidate = clientRect;
+    else if (!IntersectRect(&rectToInvalidate, &clientRect, rect))
+        return S_OK;
+
+    repaint(rectToInvalidate, true);
+    return S_OK;
+*/
+}

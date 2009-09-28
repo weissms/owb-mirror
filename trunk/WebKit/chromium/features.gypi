@@ -32,6 +32,7 @@
   # The following defines turn webkit features on or off. 
   'variables': {
     'feature_defines': [
+      'ENABLE_3D_CANVAS=0',
       'ENABLE_CHANNEL_MESSAGING=1',
       'ENABLE_DATABASE=1',
       'ENABLE_DATAGRID=0',
@@ -42,6 +43,7 @@
       'ENABLE_JSC_MULTIPLE_THREADS=0',
       'ENABLE_ICONDATABASE=0',
       'ENABLE_NOTIFICATIONS=0',
+      'ENABLE_ORIENTATION_EVENTS=0',
       'ENABLE_XSLT=1',
       'ENABLE_XPATH=1',
       'ENABLE_SHARED_WORKERS=0',

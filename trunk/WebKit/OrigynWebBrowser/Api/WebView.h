@@ -1367,6 +1367,11 @@ protected:
     void deleteBackingStore();
 
     /**
+     *  invalidateBackingStore 
+     */
+    bool invalidateBackingStore(const WebCore::IntRect*);
+
+    /**
      * repaint
      */
     void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);

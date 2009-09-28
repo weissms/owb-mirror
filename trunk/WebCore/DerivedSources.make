@@ -461,36 +461,29 @@ else
     ENABLE_DASHBOARD_SUPPORT = 0
 endif
 
-else
-
-ENABLE_DASHBOARD_SUPPORT = 0
-
-endif
-
-ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_CONTEXT_MENUS | cut -d' ' -f3), 1)
-    ENABLE_CONTEXT_MENUS = 1
-else
-    ENABLE_CONTEXT_MENUS = 0
-endif
-
-ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_DRAG_SUPPORT | cut -d' ' -f3), 1)
-    ENABLE_DRAG_SUPPORT = 1
-else
-    ENABLE_DRAG_SUPPORT = 0
-endif
-
-ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_INSPECTOR | cut -d' ' -f3), 1)
-    ENABLE_INSPECTOR = 1
-else
-    ENABLE_INSPECTOR = 0
-endif
-
 ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_ORIENTATION_EVENTS | cut -d' ' -f3), 1)
     ENABLE_ORIENTATION_EVENTS = 1
-    ADDITIONAL_IDL_DEFINES := $(ADDITIONAL_IDL_DEFINES) ENABLE_ORIENTATION_EVENTS
 else
     ENABLE_ORIENTATION_EVENTS = 0
 endif
+
+else
+
+ifndef ENABLE_DASHBOARD_SUPPORT
+    ENABLE_DASHBOARD_SUPPORT = 0
+endif
+
+ifndef ENABLE_ORIENTATION_EVENTS
+    ENABLE_ORIENTATION_EVENTS = 0
+endif
+
+endif # MACOS
+
+ifeq ($(ENABLE_ORIENTATION_EVENTS), 1)
+    ADDITIONAL_IDL_DEFINES := $(ADDITIONAL_IDL_DEFINES) ENABLE_ORIENTATION_EVENTS
+endif
+
+# --------
 
 # CSS property names and value keywords
 
@@ -813,7 +806,7 @@ ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Pla
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.PluginHostProcess.exp
 endif
 
-ifeq ($(ENABLE_CONTEXT_MENUS), 1)
+ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_CONTEXT_MENUS | cut -d' ' -f3), 1)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.ContextMenus.exp
 endif
 
@@ -821,11 +814,11 @@ ifeq ($(ENABLE_DASHBOARD_SUPPORT), 1)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.DashboardSupport.exp
 endif
 
-ifeq ($(ENABLE_DRAG_SUPPORT), 1)
+ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_DRAG_SUPPORT | cut -d' ' -f3), 1)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.DragSupport.exp
 endif
 
-ifeq ($(ENABLE_INSPECTOR), 1)
+ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_INSPECTOR | cut -d' ' -f3), 1)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.Inspector.exp
 endif
 
@@ -859,6 +852,6 @@ DOM%.h : %.idl $(GENERATE_BINDINGS_SCRIPTS) bindings/scripts/CodeGeneratorObjC.p
 
 # --------
 
-endif
+endif # MACOS
 
 # ------------------------

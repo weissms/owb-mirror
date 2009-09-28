@@ -252,25 +252,29 @@
 #define WTF_PLATFORM_MIDDLE_ENDIAN 1
 #endif
 #define ARM_ARCH_VERSION 3
-#if defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__)
+#if defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__) || defined(__MARM_ARMV4__)
 #undef ARM_ARCH_VERSION
 #define ARM_ARCH_VERSION 4
 #endif
 #if defined(__ARM_ARCH_5__) || defined(__ARM_ARCH_5T__) \
         || defined(__ARM_ARCH_5E__) || defined(__ARM_ARCH_5TE__) \
-        || defined(__ARM_ARCH_5TEJ__)
+        || defined(__ARM_ARCH_5TEJ__) || defined(__MARM_ARMV5__)
 #undef ARM_ARCH_VERSION
 #define ARM_ARCH_VERSION 5
 #endif
 #if defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) \
      || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) \
-     || defined(__ARM_ARCH_6ZK__)
+     || defined(__ARM_ARCH_6ZK__) || defined(__ARMV6__)
 #undef ARM_ARCH_VERSION
 #define ARM_ARCH_VERSION 6
 #endif
 #if defined(__ARM_ARCH_7A__)
 #undef ARM_ARCH_VERSION
 #define ARM_ARCH_VERSION 7
+#endif
+/* On ARMv5 and below the natural alignment is required. */
+#if !defined(ARM_REQUIRE_NATURAL_ALIGNMENT) && ARM_ARCH_VERSION <= 5
+#define ARM_REQUIRE_NATURAL_ALIGNMENT 1
 #endif
 /* Defines two pseudo-platforms for ARM and Thumb-2 instruction set. */
 #if !defined(WTF_PLATFORM_ARM_TRADITIONAL) && !defined(WTF_PLATFORM_ARM_THUMB2)

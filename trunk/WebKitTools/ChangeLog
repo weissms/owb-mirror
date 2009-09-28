@@ -1,3 +1,158 @@
+2009-09-28  Jakub Wieczorek  <faw217@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        run-webkit-tests: Do not strip the metrics when there is no expected result for a test.
+        https://bugs.webkit.org/show_bug.cgi?id=29771
+
+        * Scripts/run-webkit-tests:
+
+2009-09-27  Jakub Wieczorek  <faw217@gmail.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Implement layoutTestController.waitForPolicyDelegate.
+        https://bugs.webkit.org/show_bug.cgi?id=25037
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::acceptNavigationRequest):
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::reset):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::waitForPolicyDelegate):
+        * DumpRenderTree/qt/jsobjects.h:
+        (LayoutTestController::waitForPolicy):
+
+2009-09-26  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/29764> mark-bug-fixed: add -o|--open switch
+
+        Reviewed by Eric Seidel.
+
+        The -o|--open switch uses the open(1) command on Mac OS X to
+        open the bug URL in the default web browser.  If there are
+        similar mechanisms on other platforms, they may be added later.
+
+        * Scripts/mark-bug-fixed:
+        (MarkBugFixed.__init__): Added -o|--open switch to list of parse
+        options.
+        (MarkBugFixed._determine_bug_id_and_svn_revision): Moved logging
+        code into main() and extracted prompting code into
+        _prompt_user_for_correctness().
+        (MarkBugFixed._open_bug_in_web_browser): Added.
+        (MarkBugFixed._prompt_user_for_correctness): Added.
+        (MarkBugFixed.main): Added logging code from
+        _determine_bug_id_and_svn_revision().  Added code to call
+        _open_bug_in_web_browser() if the switch is set.  Added code to
+        call _prompt_user_for_correctness() when needed.
+        * Scripts/modules/bugzilla.py:
+        (Bugzilla.short_bug_url_for_bug_id): Added.
+
+2009-09-26  David Kilzer  <ddkilzer@apple.com>
+
+        svn-unapply and svn-apply don't work when used outside multiple svn working directories
+
+        <http://webkit.org/b/29744>
+        <rdar://problem/7252905>
+
+        Reviewed by Eric Seidel.
+
+        Some users have a workflow where svn-create-patch, svn-apply and
+        svn-unapply are used outside of multiple svn working
+        directories.  Instead of aborting the scripts in these cases,
+        print a warning and assume that Subversion is being used.
+
+        * Scripts/VCSUtils.pm:
+        (determineVCSRoot): Call warn() instead of die() if both isGit()
+        and isSVN() initially return false.  Set $VCSUtils::isSVN to 1
+        to enforce the assumption about Subversion, then return
+        determineSVNRoot().
+        * Scripts/svn-apply: Switch to using isGit() and isSVN() from
+        VCSUtils.pm.  They both already cache their values and checking
+        here is redundant since determineVCSRoot() is called later.
+
+2009-09-26  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [Layout tests] [Gtk] Gtk DumpRenderTree should use WebKit test fonts
+        https://bugs.webkit.org/show_bug.cgi?id=29689
+
+        Load test fonts through FontConfig before each test.
+        This ensures a more proper rendering of the tests.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (initializeFonts):
+        (runTest):
+        (main):
+        * DumpRenderTree/gtk/fonts.conf: Copied from WebKitTools/DumpRenderTree/qt/fonts.conf.
+        * GNUmakefile.am:
+
+2009-09-25  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/29718> mark-bug-fixed: add -u|--update-only switch
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/mark-bug-fixed:
+        (MarkBugFixed.__init__): Added -u|--update-only switch to list
+        of parse options.
+        (MarkBugFixed.main): When -u|--update-only is specified, add a
+        comment to the bug without marking it Resolved/Fixed.
+
+2009-09-25  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        * Scripts/prepare-ChangeLog: Leave files from the script-tests directory
+        out, just as we do for the resources directory.
+
+2009-09-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Added Tony to committers.py because he's a
+        committer now.
+
+        * Scripts/modules/committers.py:
+
+2009-09-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        commit-queue should auto-retry patches which fail to commit due to out of date files
+        https://bugs.webkit.org/show_bug.cgi?id=28316
+
+        * Scripts/bugzilla-tool:
+         - Handle new CheckoutNeedsUpdate exception.
+        * Scripts/modules/logging_unittest.py:
+         - Call the ScriptError constructor correctly (this test had regressed).
+        * Scripts/modules/scm.py:
+         - Added the ability to define custom error handlers for run_command
+           and added a commit_error_handler which throws CheckoutNeedsUpdate
+           instead of ScriptError.
+         - Re-ordered ScriptError constructor arguments to make ScriptError("message text") usage possible.
+        * Scripts/modules/scm_unittest.py:
+         - Added tests of new error handlers.
+
+2009-09-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        commit-queue should give better feedback when failing a patch
+        https://bugs.webkit.org/show_bug.cgi?id=29316
+
+        * Scripts/bugzilla-tool:
+         - Update ScriptError uses to the new constructor format.
+         - Move CommitQueue._run_command to WebKitLandingScripts.run_command_with_teed_output
+           so that we can print to both stdout as well as an output buffer for error reporting.
+         - Update run_and_throw_if_fail to use teed output so that it can report the "output" as part of ScriptError.
+         - Use e.message_with_output() when failing a patch (this is the real fix here).
+           I also removed use of "This patch will require manual commit." as that's not always true.
+         - Add missing word "bug" from log message.
+        * Scripts/modules/scm.py:
+         - Make ScriptError save a bunch more data so that error messages can be nicer.
+         - Update ScriptError callers.
+
 2009-09-25  John Gregg  <johnnyg@google.com>
 
         Reviewed by Eric Seidel.

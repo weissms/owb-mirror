@@ -2318,9 +2318,6 @@ void FrameLoader::loadFrameRequest(const FrameLoadRequest& request, bool lockHis
 void FrameLoader::loadURL(const KURL& newURL, const String& referrer, const String& frameName, bool lockHistory, FrameLoadType newLoadType,
     PassRefPtr<Event> event, PassRefPtr<FormState> prpFormState)
 {
-    if (m_unloadEventBeingDispatched)
-        return;
-
     RefPtr<FormState> formState = prpFormState;
     bool isFormSubmission = formState;
     
@@ -2342,6 +2339,9 @@ void FrameLoader::loadURL(const KURL& newURL, const String& referrer, const Stri
         targetFrame->loader()->loadURL(newURL, referrer, String(), lockHistory, newLoadType, event, formState.release());
         return;
     }
+
+    if (m_unloadEventBeingDispatched)
+        return;
 
     NavigationAction action(newURL, newLoadType, isFormSubmission, event);
 
@@ -5203,6 +5203,8 @@ void FrameLoader::dispatchWindowObjectAvailable()
 
 #if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page()) {
+        if (InspectorController* inspector = page->inspectorController())
+            inspector->inspectedWindowScriptObjectCleared(m_frame);
         if (InspectorController* inspector = page->parentInspectorController())
             inspector->windowScriptObjectAvailable();
     }
