@@ -953,9 +953,9 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     m_outgoingReferrer = ref.string();
     m_URL = url;
 
+    document->setURL(m_URL);
     m_frame->setDocument(document);
 
-    document->setURL(m_URL);
     if (m_decoder)
         document->setDecoder(m_decoder.get());
     if (forcedSecurityOrigin)

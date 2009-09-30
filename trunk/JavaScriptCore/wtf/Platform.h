@@ -237,7 +237,8 @@
 #define WTF_PLATFORM_MIDDLE_ENDIAN 1
 #endif
 #define ARM_ARCH_VERSION 3
-#if defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__) || defined(__MARM_ARMV4__)
+#if defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__) || defined(__MARM_ARMV4__) \
+    || defined(_ARMV4I_)
 #undef ARM_ARCH_VERSION
 #define ARM_ARCH_VERSION 4
 #endif
@@ -776,11 +777,11 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 #define ENABLE_PAN_SCROLLING 1
 #endif
 
-/* Use the QtXmlStreamReader implementation for XMLTokenizer */
+/* Use the QXmlStreamReader implementation for XMLTokenizer */
+/* Use the QXmlQuery implementation for XSLTProcessor */
 #if PLATFORM(QT)
-#if !ENABLE(XSLT)
 #define WTF_USE_QXMLSTREAM 1
-#endif
+#define WTF_USE_QXMLQUERY 1
 #endif
 
 #if !PLATFORM(QT)

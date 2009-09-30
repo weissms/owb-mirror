@@ -1,3 +1,36 @@
+2009-09-30  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Do not set a non-default parent window for child widgets. We are
+        just doing the same than the default path does, and on top of that
+        if the widget's window changes (for example, during DnD widgets
+        are usually unrealized/realized) the child widget will we left
+        pointing to a dead window.
+
+        For examples of crashers caused by this see
+        https://bugzilla.gnome.org/show_bug.cgi?id=596397 and
+        https://bugzilla.gnome.org/show_bug.cgi?id=596398
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_container_add):
+
+2009-09-29  Xan Lopez  <xlopez@igalia.com>
+
+        Rubber-stamped by Eric Seidel.
+
+        [Gtk] Crash when saving a password
+        https://bugs.webkit.org/show_bug.cgi?id=28070
+
+        Disconnect the 'got-headers' callback when we are done with
+        it. The signal can be emitted more than once if the message is
+        retransmitted, but each time that happens authData is created
+        again and a new callback connected, so we have to get rid of the
+        old one (which will crash because we free authData).
+
+        * webkit/webkitsoupauthdialog.c:
+        (save_password_callback):
+
 2009-09-28  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Xan Lopez.

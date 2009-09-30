@@ -1278,6 +1278,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setDatabasesEnabled([preferences databasesEnabled]);
     settings->setLocalStorageEnabled([preferences localStorageEnabled]);
     settings->setExperimentalNotificationsEnabled([preferences experimentalNotificationsEnabled]);
+    settings->setExperimentalWebSocketsEnabled([preferences experimentalWebSocketsEnabled]);
     settings->setPrivateBrowsingEnabled([preferences privateBrowsingEnabled]);
     settings->setSansSerifFontFamily([preferences sansSerifFontFamily]);
     settings->setSerifFontFamily([preferences serifFontFamily]);
@@ -1312,6 +1313,9 @@ static bool fastDocumentTeardownEnabled()
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
     settings->setAcceleratedCompositingEnabled([preferences acceleratedCompositingEnabled]);
+#if ENABLE(3D_CANVAS)
+    settings->setExperimentalWebGLEnabled(true);
+#endif  // ENABLE(3D_CANVAS)
 }
 
 static inline IMP getMethod(id o, SEL s)
@@ -1397,6 +1401,21 @@ static inline IMP getMethod(id o, SEL s)
     cache->willExecuteStatementFunc = getMethod(delegate, @selector(webView:willExecuteStatement:sourceId:line:forWebFrame:));
     cache->willLeaveCallFrameFunc = getMethod(delegate, @selector(webView:willLeaveCallFrame:sourceId:line:forWebFrame:));
     cache->exceptionWasRaisedFunc = getMethod(delegate, @selector(webView:exceptionWasRaised:sourceId:line:forWebFrame:));
+}
+
+- (void)_cacheHistoryDelegateImplementations
+{
+    WebHistoryDelegateImplementationCache *cache = &_private->historyDelegateImplementations;
+    id delegate = _private->historyDelegate;
+
+    if (!delegate) {
+        bzero(cache, sizeof(WebHistoryDelegateImplementationCache));
+        return;
+    }
+
+    cache->navigatedFunc = getMethod(delegate, @selector(webView:didNavigateWithNavigationData:inFrame:));
+    cache->clientRedirectFunc = getMethod(delegate, @selector(webView:didPerformClientRedirectFromURL:toURL:inFrame:));
+    cache->serverRedirectFunc = getMethod(delegate, @selector(webView:didPerformServerRedirectFromURL:toURL:inFrame:));
 }
 
 - (id)_policyDelegateForwarder
@@ -3956,6 +3975,17 @@ done:
 - (id)scriptDebugDelegate
 {
     return _private->scriptDebugDelegate;
+}
+  
+- (void)setHistoryDelegate:(id)delegate
+{
+    _private->historyDelegate = delegate;
+    [self _cacheHistoryDelegateImplementations];
+}
+
+- (id)historyDelegate
+{
+    return _private->historyDelegate;
 }
 
 - (BOOL)shouldClose

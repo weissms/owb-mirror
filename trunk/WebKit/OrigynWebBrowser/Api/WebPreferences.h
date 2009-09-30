@@ -399,6 +399,16 @@ public:
      */
     virtual void setFontSmoothing(FontSmoothingType smoothingType);
 
+    /*
+     * isWebSecurityEnabled
+     */
+    virtual bool isWebSecurityEnabled();
+
+    /*
+     * setWebSecurityEnabled
+     */
+    virtual void setWebSecurityEnabled(bool enabled);
+
     /**
      *  editableLinkBehavior 
      */
@@ -511,6 +521,16 @@ public:
      */
     virtual bool authorAndUserStylesEnabled();
 
+    /*
+     * inApplicationChromeMode
+     */
+    virtual bool inApplicationChromeMode();
+    
+    /*
+     * setApplicationChromeMode
+     */
+    virtual void setApplicationChromeMode(bool enabled);
+
     /**
      * Enable zoom for text only.
      */
@@ -540,6 +560,18 @@ public:
      * Enable/Disable XSS auditor
      */
     virtual void setXSSAuditorEnabled(bool);
+
+    virtual void setShouldUseHighResolutionTimers(bool useHighResolutionTimers);
+
+    virtual bool shouldUseHighResolutionTimers();
+
+    virtual void setPluginHalterEnabled(bool enabled);
+
+    virtual bool pluginHalterEnabled();
+
+    virtual void setPluginAllowedRunTime(unsigned int allowedRunTime);
+
+    virtual unsigned int pluginAllowedRunTime();
 
     virtual void setPreferenceForTest(const char* key, const char* value);
 
@@ -639,6 +671,16 @@ public:
      */
     bool offlineWebApplicationCacheEnabled() const;
 
+    /*
+     * setDatabasesEnabled
+     */
+    virtual void setDatabasesEnabled(bool enabled);
+
+    /*
+     * databasesEnabled
+     */
+    virtual bool databasesEnabled();
+
     /**
      * Enable experimental desktop notifications
      */
@@ -649,15 +691,15 @@ public:
      */
     bool experimentalNotificationsEnabled() const;
 
-    /**
-     * Enable automatic plugin halter
+    /*
+     * experimentalWebSocketsEnabled
      */
-    void setPluginHalterEnabled(bool);
+    virtual bool experimentalWebSocketsEnabled();
 
-    /**
-     * Returns whether the automatic plugin halter is enabled
+    /*
+     * setExperimentalWebSocketsEnabled
      */
-    bool pluginHalterEnabled() const;
+    virtual void setExperimentalWebSocketsEnabled(bool enabled);
 
     /**
      * Enable or disable plugin run time.

@@ -129,6 +129,26 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitXSSAuditorEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitPluginsEnabledPreferenceKey, "1");//TRUE
+#if ENABLE(DATABASE)
+    m_privatePrefs.add(WebKitDatabasesEnabledPreferenceKey, "1");//TRUE
+#else
+    m_privatePrefs.add(WebKitDatabasesEnabledPreferenceKey, "0");//FALSE
+#endif
+#if ENABLE(DOM_STORAGE)
+    m_privatePrefs.add(WebKitLocalStorageEnabledPreferenceKey, "1");//TRUE
+#else
+    m_privatePrefs.add(WebKitLocalStorageEnabledPreferenceKey, "0");//FALSE
+#endif
+#if ENABLE(NOTIFICATIONS)
+    m_privatePrefs.add(WebKitExperimentalNotificationsEnabledPreferenceKey, "1");//TRUE
+#else
+    m_privatePrefs.add(WebKitExperimentalNotificationsEnabledPreferenceKey, "0");//FALSE
+#endif
+#if ENABLE(WEB_SOCKETS)
+    m_privatePrefs.add(WebKitExperimentalWebSocketsEnabledPreferenceKey, "1");//TRUE
+#else
+    m_privatePrefs.add(WebKitExperimentalWebSocketsEnabledPreferenceKey, "0");//FALSE
+#endif
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImageLoopingPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitDisplayImagesKey, "1");//TRUE
@@ -142,7 +162,7 @@ void WebPreferences::initializeDefaultSettings()
 
     m_privatePrefs.add(WebKitEditableLinkBehaviorPreferenceKey, String::number(WebKitEditableLinkDefaultBehavior));
 
-    m_privatePrefs.add(WebKitHistoryItemLimitKey, "1000");
+    m_privatePrefs.add(WebKitHistoryItemLimitKey, "10");
     m_privatePrefs.add(WebKitHistoryAgeInDaysLimitKey, "7");
 #if PLATFORM(AMIGAOS4)
     m_privatePrefs.add(WebKitIconDatabaseLocationKey, "PROGDIR:");
@@ -151,15 +171,18 @@ void WebPreferences::initializeDefaultSettings()
 #endif
     m_privatePrefs.add(WebKitIconDatabaseEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitFontSmoothingTypePreferenceKey, "2");
+    m_privatePrefs.add(WebKitFontSmoothingContrastPreferenceKey, "2");
     m_privatePrefs.add(WebKitCookieStorageAcceptPolicyPreferenceKey, "2");
     m_privatePrefs.add(WebContinuousSpellCheckingEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(WebGrammarCheckingEnabledPreferenceKey, "0");//FALSE
     m_privatePrefs.add(AllowContinuousSpellCheckingPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitUsesPageCachePreferenceKey, "1");//TRUE
+    m_privatePrefs.add(WebKitLocalStorageDatabasePathPreferenceKey, "");
 
     m_privatePrefs.add(WebKitCacheModelPreferenceKey, String::number(WebCacheModelDocumentViewer));
 
     m_privatePrefs.add(WebKitAuthorAndUserStylesEnabledPreferenceKey, "1");//TRUE
+    m_privatePrefs.add(WebKitApplicationChromeModePreferenceKey, "0");//FALSE
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
     m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "1");
@@ -167,7 +190,8 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitOfflineWebApplicationCacheEnabledPreferenceKey, "0");
 #endif
 
-    m_privatePrefs.add(WebKitExperimentalNotificationsEnabledPreferenceKey, "0"); // FALSE
+    m_privatePrefs.add(WebKitPaintNativeControlsPreferenceKey, "1"); // TRUE
+    m_privatePrefs.add(WebKitUseHighResolutionTimersPreferenceKey, "1"); // TRUE
     m_privatePrefs.add(WebKitPluginHalterEnabledPreferenceKey, "0"); // FALSE
     m_privatePrefs.add(WebKitPluginAllowedRunTimePreferenceKey, "0"); // FALSE
 }
@@ -450,6 +474,17 @@ void WebPreferences::setJavaScriptEnabled(bool enabled)
     setBoolValue(WebKitJavaScriptEnabledPreferenceKey, enabled);
 }
 
+bool WebPreferences::isWebSecurityEnabled()
+{
+    return boolValueForKey(WebKitWebSecurityEnabledPreferenceKey);
+}
+
+void WebPreferences::setWebSecurityEnabled(bool enabled)
+{
+    setBoolValue(WebKitWebSecurityEnabledPreferenceKey, enabled);
+}
+
+
 bool WebPreferences::isXSSAuditorEnabled()
 {
     return boolValueForKey(WebKitXSSAuditorEnabledPreferenceKey);
@@ -459,6 +494,37 @@ void WebPreferences::setXSSAuditorEnabled(bool enabled)
 {
     setBoolValue(WebKitXSSAuditorEnabledPreferenceKey, enabled);
 }
+
+void WebPreferences::setShouldUseHighResolutionTimers(bool useHighResolutionTimers)
+{
+    setBoolValue(WebKitUseHighResolutionTimersPreferenceKey, useHighResolutionTimers);
+}
+
+bool WebPreferences::shouldUseHighResolutionTimers()
+{
+    return boolValueForKey(WebKitUseHighResolutionTimersPreferenceKey);
+}
+
+void WebPreferences::setPluginHalterEnabled(bool enabled)
+{
+    setBoolValue(WebKitPluginHalterEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::pluginHalterEnabled()
+{
+    return boolValueForKey(WebKitPluginHalterEnabledPreferenceKey);
+}
+
+void WebPreferences::setPluginAllowedRunTime(unsigned int allowedRunTime)
+{
+    setIntegerValue(WebKitPluginAllowedRunTimePreferenceKey, allowedRunTime);
+}
+
+unsigned int WebPreferences::pluginAllowedRunTime()
+{
+    return integerValueForKey(WebKitPluginAllowedRunTimePreferenceKey);
+}
+
 
 void WebPreferences::setPreferenceForTest(const char* key, const char* value)
 { 
@@ -754,6 +820,17 @@ bool WebPreferences::authorAndUserStylesEnabled()
     return boolValueForKey(WebKitAuthorAndUserStylesEnabledPreferenceKey);
 }
 
+bool WebPreferences::inApplicationChromeMode()
+{
+    return boolValueForKey(WebKitApplicationChromeModePreferenceKey);
+}
+
+void WebPreferences::setApplicationChromeMode(bool enabled)
+{
+    setBoolValue(WebKitApplicationChromeModePreferenceKey, enabled);
+}
+
+
 void WebPreferences::setZoomsTextOnly(bool zoomsTextOnly)
 {
     setBoolValue(WebKitZoomsTextOnlyPreferenceKey, zoomsTextOnly);
@@ -786,6 +863,16 @@ bool WebPreferences::offlineWebApplicationCacheEnabled() const
     return boolValueForKey(WebKitOfflineWebApplicationCacheEnabledPreferenceKey);
 }
 
+void WebPreferences::setDatabasesEnabled(bool enabled)
+{
+    setBoolValue(WebKitDatabasesEnabledPreferenceKey, enabled);
+}
+
+bool WebPreferences::databasesEnabled()
+{
+    return boolValueForKey(WebKitDatabasesEnabledPreferenceKey);
+}
+
 void WebPreferences::setExperimentalNotificationsEnabled(bool enable)
 {
     setBoolValue(WebKitExperimentalNotificationsEnabledPreferenceKey, enable);
@@ -796,14 +883,14 @@ bool WebPreferences::experimentalNotificationsEnabled() const
     return boolValueForKey(WebKitExperimentalNotificationsEnabledPreferenceKey);
 }
 
-void WebPreferences::setPluginHalterEnabled(bool enable)
+void WebPreferences::setExperimentalWebSocketsEnabled(bool enabled)
 {
-    setBoolValue(WebKitPluginHalterEnabledPreferenceKey, enable);
+    setBoolValue(WebKitExperimentalWebSocketsEnabledPreferenceKey, enabled);
 }
 
-bool WebPreferences::pluginHalterEnabled() const
+bool WebPreferences::experimentalWebSocketsEnabled()
 {
-    return boolValueForKey(WebKitPluginHalterEnabledPreferenceKey);
+    return boolValueForKey(WebKitExperimentalWebSocketsEnabledPreferenceKey);
 }
 
 void WebPreferences::setPluginAllowedRuntime(bool enable)

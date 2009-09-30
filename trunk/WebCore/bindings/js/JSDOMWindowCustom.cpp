@@ -725,6 +725,14 @@ JSValue JSDOMWindow::sharedWorker(ExecState* exec) const
 #if ENABLE(WEB_SOCKETS)
 JSValue JSDOMWindow::webSocket(ExecState* exec) const
 {
+    Frame* frame = impl()->frame();
+    if (!frame)
+        return jsUndefined();
+    Settings* settings = frame->settings();
+    if (!settings)
+        return jsUndefined();
+    if (!settings->experimentalWebSocketsEnabled())
+        return jsUndefined();
     return getDOMConstructor<JSWebSocketConstructor>(exec, this);
 }
 #endif
@@ -1039,7 +1047,7 @@ JSValue JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
     if (!listener.isObject())
         return jsUndefined();
 
-    impl()->addEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false), args.at(2).toBoolean(exec));
+    impl()->addEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), false), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 
@@ -1053,7 +1061,7 @@ JSValue JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
     if (!listener.isObject())
         return jsUndefined();
 
-    impl()->removeEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false).get(), args.at(2).toBoolean(exec));
+    impl()->removeEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), false).get(), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 

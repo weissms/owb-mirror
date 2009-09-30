@@ -4409,6 +4409,11 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
         return hr;
     settings->setExperimentalNotificationsEnabled(enabled);
 
+    hr = prefsPrivate->experimentalWebSocketsEnabled(&enabled);
+    if (FAILED(hr))
+        return hr;
+    settings->setExperimentalWebSocketsEnabled(enabled);
+
     hr = prefsPrivate->isWebSecurityEnabled(&enabled);
     if (FAILED(hr))
         return hr;
@@ -4446,6 +4451,10 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
     if (FAILED(hr))
         return hr;
     settings->setPluginAllowedRunTime(runTime);
+
+#if ENABLE(3D_CANVAS)
+    settings->setExperimentalWebGLEnabled(true);
+#endif  // ENABLE(3D_CANVAS)
 
     if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME
@@ -5625,4 +5634,3 @@ Page* core(IWebView* iWebView)
 
     return page;
 }
-

@@ -3515,6 +3515,14 @@
 				RelativePath="..\page\Settings.h"
 				>
 			</File>
+                        <File
+				RelativePath="..\page\UserContentURLPattern.cpp"
+				>
+			</File>
+                        <File
+				RelativePath="..\page\UserContentURLPattern.h"
+				>
+			</File>
 			<File
 				RelativePath="..\page\UserScript.h"
 				>
@@ -7334,7 +7342,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\xml\XSLStyleSheet.cpp"
+				RelativePath="..\xml\XSLStyleSheetLibxslt.cpp"
 				>
 			</File>
 			<File
@@ -7351,6 +7359,10 @@
 			</File>
 			<File
 				RelativePath="..\xml\XSLTProcessor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\xml\XSLTProcessorLibxslt.cpp"
 				>
 			</File>
 			<File
@@ -7983,6 +7995,14 @@
 			</File>
 			<File
 				RelativePath="..\dom\Tokenizer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\TransformSourceLibxslt.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\TransformSource.h"
 				>
 			</File>
 			<File

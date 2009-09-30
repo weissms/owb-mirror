@@ -2146,12 +2146,6 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->isJavaScriptEnabled();
     settings->setJavaScriptEnabled(!!enabled);
 
-    enabled = preferences->allowUniversalAccessFromFileURLs();
-    settings->setAllowUniversalAccessFromFileURLs(!!enabled);
-
-    enabled = preferences->isXSSAuditorEnabled();
-    settings->setXSSAuditorEnabled(!!enabled);
-
     enabled = preferences->javaScriptCanOpenWindowsAutomatically();
     settings->setJavaScriptCanOpenWindowsAutomatically(!!enabled);
 
@@ -2223,8 +2217,45 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->authorAndUserStylesEnabled();
     settings->setAuthorAndUserStylesEnabled(enabled);
 
+    enabled = preferences->inApplicationChromeMode();
+    settings->setApplicationChromeMode(!!enabled);
+
     enabled = preferences->offlineWebApplicationCacheEnabled();
     settings->setOfflineWebApplicationCacheEnabled(enabled);
+
+    enabled = preferences->databasesEnabled();
+    settings->setDatabasesEnabled(enabled);
+
+    enabled = preferences->experimentalNotificationsEnabled();
+    settings->setExperimentalNotificationsEnabled(enabled);
+
+#if ENABLE(WEB_SOCKETS)
+    enabled = preferences->experimentalWebSocketsEnabled();
+    settings->setExperimentalWebSocketsEnabled(enabled);
+#endif
+
+    enabled = preferences->isWebSecurityEnabled();
+    settings->setWebSecurityEnabled(enabled);
+
+    enabled = preferences->allowUniversalAccessFromFileURLs();
+    settings->setAllowUniversalAccessFromFileURLs(!!enabled);
+
+    enabled = preferences->isXSSAuditorEnabled();
+    settings->setXSSAuditorEnabled(!!enabled);
+
+    // Only use on windows
+/*    enabled = preferences->shouldUseHighResolutionTimers();
+    settings->setShouldUseHighResolutionTimers(enabled);*/
+
+    enabled = preferences->pluginHalterEnabled();
+    settings->setPluginHalterEnabled(enabled);
+
+    enabled = preferences->pluginAllowedRunTime();
+    settings->setPluginAllowedRunTime(enabled);
+
+#if ENABLE(3D_CANVAS)
+    settings->setExperimentalWebGLEnabled(true);
+#endif
 
 /*    if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME*/

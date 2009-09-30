@@ -30,6 +30,7 @@ list(APPEND WEBCORE_SRC
     page/Screen.cpp
     page/SecurityOrigin.cpp
     page/Settings.cpp
+    page/UserContentURLPattern.cpp
     page/WindowFeatures.cpp
     page/XSSAuditor.cpp
 )

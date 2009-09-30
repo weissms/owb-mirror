@@ -87,10 +87,20 @@ if(USE_GRAPHICS_QT)
     list(APPEND WEBCORE_SRC
         dom/XMLTokenizerQt.cpp
     )
+    if(ENABLE_XSLT)
+        list(APPEND WEBCORE_SRC 
+            dom/TransformSourceQt.cpp
+        )
+    endif(ENABLE_XSLT)
 else(USE_GRAPHICS_QT)
     list(APPEND WEBCORE_SRC 
         dom/XMLTokenizerLibxml2.cpp
     )
+    if(ENABLE_XSLT)
+        list(APPEND WEBCORE_SRC
+            dom/TransformSourceLibxslt.cpp
+        )
+    endif(ENABLE_XSLT)
 endif(USE_GRAPHICS_QT)
 
 list(APPEND IDL_SRC
