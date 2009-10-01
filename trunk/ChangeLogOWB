@@ -1,3 +1,12 @@
+2009-10-01  Mario Bensi  <mbensi@pleyo.com>
+
+        add ENABLE_DATAGRID.
+
+        * CMakeLists.txt:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/ConfigureBuildGtk.cmake:
+        * cmake/ConfigureBuildSDL.cmake:
+
 2009-09-15  Brendon  <mickael.leforestier@hotmail.fr>
 
         Reviewed by Mario Bensi.

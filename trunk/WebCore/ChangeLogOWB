@@ -1,3 +1,9 @@
+2009-10-01  Mario Bensi  <mbensi@pleyo.com>
+
+        add ENABLE_DATAGRID.
+
+        * CMakeLists.txt:
+
 2009-06-02  Mario Bensi  <mbensi@pleyo.com>
 
         Add svg/graphics sources in WebCore.
