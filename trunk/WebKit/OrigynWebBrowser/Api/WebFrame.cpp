@@ -626,6 +626,15 @@ bool WebFrame::isDisplayingStandaloneImage()
     return (document && document->isImageDocument());
 }
 
+bool WebFrame::allowsFollowingLink(const char* url) const
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return false;
+
+    return FrameLoader::canLoad(KURL(KURL(), url), String(), frame->document());
+}
+
 /*HRESULT WebFrame::elementWithName(BSTR name, IDOMElement* form, IDOMElement** element)
 {
     if (!form)

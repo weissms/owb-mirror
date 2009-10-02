@@ -16,6 +16,7 @@ WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
+WebCore/css/CSSPrimitiveValueMappings.h
 WebCore/css/CSSStyleSelector.cpp
 WebCore/css/CSSStyleSelector.h
 WebCore/css/MediaQueryEvaluator.cpp
@@ -87,7 +88,7 @@ WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
-WebCore/xml/XSLStyleSheet.cpp
+WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessor.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKitTools/DumpRenderTree/DumpRenderTree.h

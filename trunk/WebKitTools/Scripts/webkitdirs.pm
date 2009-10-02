@@ -29,6 +29,7 @@
 
 use strict;
 use warnings;
+use Config;
 use FindBin;
 use File::Basename;
 use File::Spec;
@@ -83,6 +84,15 @@ sub determineSourceDir
     }
 
     $sourceDir = "$sourceDir/OpenSource" if -d "$sourceDir/OpenSource";
+}
+
+sub currentPerlPath()
+{
+    my $thisPerl = $^X;
+    if ($^O ne 'VMS') {
+        $thisPerl .= $Config{_exe} unless $thisPerl =~ m/$Config{_exe}$/i;
+    }
+    return $thisPerl;
 }
 
 # used for scripts which are stored in a non-standard location
@@ -1367,11 +1377,13 @@ sub buildChromium($@)
     my $result = 1;
     if (isDarwin()) {
         # Mac build - builds the root xcode project.
-        $result = buildXCodeProject("WebKit/chromium/webkit", $clean, (@options));
+        $result = buildXCodeProject("WebKit/chromium/webkit",
+                                    $clean,
+                                    (@options));
     } elsif (isCygwin()) {
-        # Windows build
-        # FIXME support windows.
-        print STDERR "Windows build is not supported. Yet.";
+        # Windows build - builds the root visual studio solution.
+        $result = buildVisualStudioProject("WebKit/chromium/webkit.sln",
+                                           $clean);
     } elsif (isLinux()) {
         # Linux build
         # FIXME support linux.

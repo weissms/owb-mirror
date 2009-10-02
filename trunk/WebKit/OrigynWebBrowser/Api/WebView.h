@@ -107,9 +107,7 @@ static const float cZoomMultiplierRatio = 1.2f;
 
 class MouseEventPrivate;
 
-class WEBKIT_OWB_API WebView 
-//    : public OWBAL::ObserverData
-{
+class WEBKIT_OWB_API WebView {
 public:
 
     /**
@@ -1342,6 +1340,63 @@ private:
      *  active 
      */
     bool active();
+
+    enum WebUserScriptInjectionTime {
+        WebUserScriptInjectAtDocumentStart,
+        WebUserScriptInjectAtDocumentEnd
+    };
+
+    /**
+     * addUserScriptToGroup add a user script management to a world's page group matching some URL patterns.
+     * @result Returns true if the script was added, false if something happened (page group not found, world ID not valid ...)
+     * Note that no verification is done on the script prior to its insertion!
+     * @param groupName is the PageGroup name
+     * @param groupID is the world ID
+     * @discussion A world is a different JS context sharing the same DOM tree initial structure. Modification made to a world are not reported to other worlds.
+     * @param source is the script source code to inject
+     * @param url is the associated URL (used for origin checks)
+     * @param patterns are the patterns which a page URL should match for the user script to be injected
+     * (example: http://google.com, file:///home/foobar/, ftp://mydomain.com/ [using * as the path matches all subdomains of the host])
+     * @param WebUserScriptInjectionTime: where to inject the script at the start of the document or the end. This will determine when it will be executed.
+     */
+    bool addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns, WebUserScriptInjectionTime);
+
+    /**
+     * addUserStyleSheetToGroup add a user style sheet to world's page group matching some URL patterns.
+     * @result Returns true if the style sheet was added, false if something went wrong (see addUserScriptToGroup for some reasons)
+     * Note that no verification is done on the style sheet prior to its insertion!
+     * @param groupName is the page group name
+     * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
+     * @param source the style sheet source code
+     * @param url the URL associated with the style sheet. It is used for origin matching.
+     * @param patternsCount the number of patterns in "patterns"
+     * @param patterns are the patterns which a page URL should match for the user style sheet to be injected (see addUserScriptToGroup to see some example of patterns)
+     */
+    bool addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns);
+    /**
+     * removeUserContentWithURLFromGroup remove user content from a world's page group matching an origin URL
+     * @result Returns true if the parameters were valid, false if not.
+     * @param groupName is the page group name
+     * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
+     * @param url is the URL associated with the content (script or style). It should match the url parameter in addUserScriptToGroup or addUserStyleSheetToGroup
+     */
+    bool removeUserContentWithURLFromGroup(const char* groupName, unsigned worldID, const char* url);
+
+
+    /**
+     * removeUserContentFromGroup remove all the user content from a world's page group.
+     * @result Returns true if the parameters were valid, false if not.
+     * @param groupName is the page group name
+     * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
+     */
+    bool removeUserContentFromGroup(const char* groupName, unsigned worldID);
+
+    /**
+     * removeAllUserContentFromGroup remove all user content from a page group (including all worlds)
+     * @result Returns true if the parameters were valid, false if not.
+     * @param groupName is the page group name
+     */
+    bool removeAllUserContentFromGroup(const char* groupName);
 
 protected:
     friend class WebViewPrivate;

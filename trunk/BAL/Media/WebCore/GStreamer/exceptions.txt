@@ -1,1 +1,2 @@
 BCMediaPlayerPrivateGStreamer.h MediaPlayerPrivateGStreamer.h
+BCDataSourceGStreamer.h DataSourceGStreamer.h

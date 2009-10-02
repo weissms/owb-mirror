@@ -1670,7 +1670,7 @@ void Document::implicitClose()
         return;
     }
 
-    bool wasLocationChangePending = frame() && frame()->loader()->isScheduledLocationChangePending();
+    bool wasLocationChangePending = frame() && frame()->redirectScheduler()->locationChangePending();
     bool doload = !parsing() && m_tokenizer && !m_processingLoadEvent && !wasLocationChangePending;
     
     if (!doload)
@@ -1737,7 +1737,7 @@ void Document::implicitClose()
     // fires. This will improve onload scores, and other browsers do it.
     // If they wanna cheat, we can too. -dwh
 
-    if (frame()->loader()->isScheduledLocationChangePending() && elapsedTime() < cLayoutScheduleThreshold) {
+    if (frame()->redirectScheduler()->locationChangePending() && elapsedTime() < cLayoutScheduleThreshold) {
         // Just bail out. Before or during the onload we were shifted to another page.
         // The old i-Bench suite does this. When this happens don't bother painting or laying out.        
         view()->unscheduleRelayout();
@@ -2166,7 +2166,7 @@ void Document::processHttpEquiv(const String& equiv, const String& content)
                 url = frame->loader()->url().string();
             else
                 url = completeURL(url).string();
-            frame->loader()->scheduleHTTPRedirection(delay, url);
+            frame->redirectScheduler()->scheduleRedirect(delay, url);
         }
     } else if (equalIgnoringCase(equiv, "set-cookie")) {
         // FIXME: make setCookie work on XML documents too; e.g. in case of <html:meta .....>
@@ -2180,7 +2180,7 @@ void Document::processHttpEquiv(const String& equiv, const String& content)
         FrameLoader* frameLoader = frame->loader();
         if (frameLoader->shouldInterruptLoadForXFrameOptions(content, url())) {
             frameLoader->stopAllLoaders();
-            frameLoader->scheduleLocationChange(blankURL(), String());
+            frame->redirectScheduler()->scheduleLocationChange(blankURL(), String());
         }
     }
 }

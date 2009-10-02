@@ -218,6 +218,7 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/PathTraversalState.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Pattern.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Pen.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/TextRenderingMode.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEBlend.h
@@ -336,6 +337,7 @@ BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/TimingFunction.h
+BAL/Graphics/WebCore/WK WebCore/platform/animation/TextRenderingMode.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/Generator.h
@@ -517,6 +519,8 @@ BAL/Skeletons/Media	WebCore/platform/Sound.h
 BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h
 BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.h 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.cpp 
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp

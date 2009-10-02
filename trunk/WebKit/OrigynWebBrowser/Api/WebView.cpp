@@ -1600,6 +1600,91 @@ bool WebView::active()
     return true;
 }
 
+bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns, WebUserScriptInjectionTime injectionTime)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    // Turns the pattern into a Vector for WebCore.
+    Vector<String> patternsVector;
+    for (unsigned int i = 0; i < patternsCount; ++i)
+        patternsVector.append(String(patterns[i]));
+    
+    pageGroup->addUserScript(String(source), KURL(KURL(), String(url)), patternsVector, worldID, injectionTime == WebUserScriptInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
+    return true;
+}
+
+bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    // Turns the pattern into a Vector for WebCore.
+    Vector<String> patternsVector;
+    for (unsigned int i = 0; i < patternsCount; ++i)
+        patternsVector.append(String(patterns[i]));
+ 
+    pageGroup->addUserStyleSheet(String(source), KURL(KURL(), url), patternsVector, worldID);    
+    return true;
+}
+
+bool WebView::removeUserContentWithURLFromGroup(const char* groupName, unsigned worldID, const char* url)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    pageGroup->removeUserContentWithURLForWorld(KURL(KURL(), url), worldID);
+    return true;
+}
+
+bool WebView::removeUserContentFromGroup(const char* groupName, unsigned worldID)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    pageGroup->removeUserContentForWorld(worldID);
+    return true;
+}
+
+bool WebView::removeAllUserContentFromGroup(const char* groupName)
+{
+    String group(groupName);
+    if (group.isEmpty())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    pageGroup->removeAllUserContent();
+    return true;
+}
+
 void WebView::updateActiveState()
 {
     m_page->focusController()->setActive(active());

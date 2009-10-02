@@ -28,32 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#ifndef V8HTMLImageElementConstructor_h
+#define V8HTMLImageElementConstructor_h
 
-#if ENABLE(WORKERS)
-
-#include "V8WorkerContextObjectEventListener.h"
-
-#include "WorkerContextExecutionProxy.h"
+#include <v8.h>
 
 namespace WebCore {
 
-static void weakObjectEventListenerCallback(v8::Persistent<v8::Value>, void* parameter)
-{
-    V8WorkerContextObjectEventListener* listener = static_cast<V8WorkerContextObjectEventListener*>(parameter);
+    class V8HTMLImageElementConstructor {
+    private:
+        static v8::Persistent<v8::FunctionTemplate> GetTemplate();
 
-    // Remove the wrapper
-    listener->proxy()->removeEventListener(listener);
+        friend class V8ClassIndex;
+    };
 
-    listener->disposeListenerObject();
 }
 
-V8WorkerContextObjectEventListener::V8WorkerContextObjectEventListener(WorkerContextExecutionProxy* proxy, v8::Local<v8::Object> listener, bool isInline)
-    : V8WorkerContextEventListener(proxy, listener, isInline)
-{
-    m_listener.MakeWeak(this, weakObjectEventListenerCallback);
-}
-
-} // namespace WebCore
-
-#endif // WORKERS
+#endif // V8HTMLImageElementConstructor_h

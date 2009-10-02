@@ -516,6 +516,11 @@ public:
     bool isDisplayingStandaloneImage();
 
     /**
+     * Returns true if the WebFrame can load the given URL.
+     */
+    bool allowsFollowingLink(const char* url) const;
+
+    /**
      * pause Animation
      */
     bool pauseAnimation(const char* name, double time, const char* element);

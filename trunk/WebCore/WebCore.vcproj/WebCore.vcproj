@@ -11371,6 +11371,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\platform\graphics\TextRenderingMode.h"
+			>
+		</File>
+		<File
 			RelativePath="..\WebCorePrefix.cpp"
 			>
 			<FileConfiguration

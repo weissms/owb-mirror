@@ -140,6 +140,11 @@ namespace WebCore {
         static const int kNotificationInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
 #endif
 
+#if ENABLE(SVG)
+        static const int kSVGElementInstanceEventListenerCacheIndex = kDefaultWrapperInternalFieldCount + 0;
+        static const int kSVGElementInstanceInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
+#endif
+
         static const int kDOMWindowConsoleIndex = kDefaultWrapperInternalFieldCount + 0;
         static const int kDOMWindowHistoryIndex = kDefaultWrapperInternalFieldCount + 1;
         static const int kDOMWindowLocationbarIndex = kDefaultWrapperInternalFieldCount + 2;
@@ -153,7 +158,8 @@ namespace WebCore {
         static const int kDOMWindowToolbarIndex = kDefaultWrapperInternalFieldCount + 10;
         static const int kDOMWindowLocationIndex = kDefaultWrapperInternalFieldCount + 11;
         static const int kDOMWindowDOMSelectionIndex = kDefaultWrapperInternalFieldCount + 12;
-        static const int kDOMWindowInternalFieldCount = kDefaultWrapperInternalFieldCount + 13;
+        static const int kDOMWindowEventListenerCacheIndex = kDefaultWrapperInternalFieldCount + 13;
+        static const int kDOMWindowInternalFieldCount = kDefaultWrapperInternalFieldCount + 14;
 
         static const int kStyleSheetOwnerNodeIndex = kDefaultWrapperInternalFieldCount + 0;
         static const int kStyleSheetInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
@@ -232,6 +238,13 @@ namespace WebCore {
         DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowCrypto);
         DECLARE_PROPERTY_ACCESSOR_SETTER(DOMWindowLocation);
         DECLARE_PROPERTY_ACCESSOR_SETTER(DOMWindowOpener);
+
+#if ENABLE(VIDEO)
+        DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowAudio);
+#endif
+
+        DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowImage);
+        DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowOption);
 
         DECLARE_PROPERTY_ACCESSOR(DocumentLocation);
         DECLARE_PROPERTY_ACCESSOR(DocumentImplementation);

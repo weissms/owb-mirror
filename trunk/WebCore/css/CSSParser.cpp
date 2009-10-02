@@ -1191,7 +1191,7 @@ bool CSSParser::parseValue(int propId, bool important)
         valid_primitive = validUnit(value, FLength, m_strict);
         break;
     case CSSPropertyTextShadow: // CSS2 property, dropped in CSS2.1, back in CSS3, so treat as CSS3
-    case CSSPropertyBoxShadow:
+    case CSSPropertyWebkitBoxShadow:
         if (id == CSSValueNone)
             valid_primitive = true;
         else
@@ -1432,6 +1432,11 @@ bool CSSParser::parseValue(int propId, bool important)
         if (id == CSSValueNone || id == CSSValueSolid || id == CSSValueDouble ||
             id == CSSValueDashed || id == CSSValueDotDash || id == CSSValueDotDotDash ||
             id == CSSValueWave)
+            valid_primitive = true;
+        break;
+    case CSSPropertyTextRendering: // auto | optimizeSpeed | optimizeLegibility | geometricPrecision
+        if (id == CSSValueAuto || id == CSSValueOptimizespeed || id == CSSValueOptimizelegibility
+            || id == CSSValueGeometricprecision)
             valid_primitive = true;
         break;
     case CSSPropertyTextLineThroughWidth:
@@ -3617,7 +3622,7 @@ struct ShadowParseContext {
         , allowBlur(false)
         , allowSpread(false)
         , allowColor(true)
-        , allowStyle(prop == CSSPropertyBoxShadow)
+        , allowStyle(prop == CSSPropertyWebkitBoxShadow)
         , allowBreak(true)
     {
     }
@@ -3649,7 +3654,7 @@ struct ShadowParseContext {
         allowY = false;
         allowBlur = false;
         allowSpread = false;
-        allowStyle = property == CSSPropertyBoxShadow;
+        allowStyle = property == CSSPropertyWebkitBoxShadow;
     }
 
     void commitLength(CSSParserValue* v)
@@ -3668,12 +3673,12 @@ struct ShadowParseContext {
             allowY = false;
             allowBlur = true;
             allowColor = true;
-            allowStyle = property == CSSPropertyBoxShadow;
+            allowStyle = property == CSSPropertyWebkitBoxShadow;
             allowBreak = true;
         } else if (allowBlur) {
             blur = val.release();
             allowBlur = false;
-            allowSpread = property == CSSPropertyBoxShadow;
+            allowSpread = property == CSSPropertyWebkitBoxShadow;
         } else if (allowSpread) {
             spread = val.release();
             allowSpread = false;
@@ -3690,7 +3695,7 @@ struct ShadowParseContext {
         } else {
             allowBlur = false;
             allowSpread = false;
-            allowStyle = property == CSSPropertyBoxShadow;
+            allowStyle = property == CSSPropertyWebkitBoxShadow;
         }
     }
 
@@ -5183,11 +5188,6 @@ static int cssPropertyID(const UChar* propertyName, unsigned length)
                 const char* const opacity = "opacity";
                 name = opacity;
                 length = strlen(opacity);
-            } else if (strcmp(buffer, "-webkit-box-shadow") == 0) {
-                // CSS Backgrounds/Borders.  -webkit-box-shadow worked in Safari 4 and earlier.
-                const char* const boxShadow = "box-shadow";
-                name = boxShadow;
-                length = strlen(boxShadow);
             } else if (strcmp(buffer, "-webkit-background-size") == 0) {
                 // CSS Backgrounds/Borders.  -webkit-background-size worked in Safari 4 and earlier.
                 const char* const backgroundSize = "background-size";

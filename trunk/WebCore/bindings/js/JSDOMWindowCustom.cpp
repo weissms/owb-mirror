@@ -594,7 +594,7 @@ void JSDOMWindow::setLocation(ExecState* exec, JSValue value)
 
     if (!protocolIsJavaScript(url) || allowsAccessFrom(exec)) {
         // We want a new history item if this JS was called via a user gesture
-        frame->loader()->scheduleLocationChange(url, lexicalFrame->loader()->outgoingReferrer(), !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, processingUserGesture(exec));
+        frame->redirectScheduler()->scheduleLocationChange(url, lexicalFrame->loader()->outgoingReferrer(), !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, processingUserGesture(exec));
     }
 }
 
@@ -786,7 +786,7 @@ static Frame* createWindow(ExecState* exec, Frame* lexicalFrame, Frame* dynamicF
         if (created)
             newFrame->loader()->changeLocation(completedURL, referrer, false, false, userGesture);
         else if (!url.isEmpty())
-            newFrame->loader()->scheduleLocationChange(completedURL.string(), referrer, !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
+            newFrame->redirectScheduler()->scheduleLocationChange(completedURL.string(), referrer, !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
     }
 
     return newFrame;
@@ -843,7 +843,7 @@ JSValue JSDOMWindow::open(ExecState* exec, const ArgList& args)
             // here.
             String referrer = dynamicFrame->loader()->outgoingReferrer();
 
-            frame->loader()->scheduleLocationChange(completedURL, referrer, !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
+            frame->redirectScheduler()->scheduleLocationChange(completedURL, referrer, !lexicalFrame->script()->anyPageIsProcessingUserGesture(), false, userGesture);
         }
         return toJS(exec, frame->domWindow());
     }
@@ -938,7 +938,15 @@ JSValue JSDOMWindow::showModalDialog(ExecState* exec, const ArgList& args)
     JSDOMWindow* dialogWindow = toJSDOMWindow(dialogFrame);
     dialogFrame->page()->chrome()->runModal();
 
-    return dialogWindow->getDirect(Identifier(exec, "returnValue"));
+    Identifier returnValue(exec, "returnValue");
+    if (dialogWindow->allowsAccessFromNoErrorMessage(exec)) {
+        PropertySlot slot;
+        // This is safe, we have already performed the origin security check and we are
+        // not interested in any of the DOM properties of the window.
+        if (dialogWindow->JSGlobalObject::getOwnPropertySlot(exec, returnValue, slot))
+            return slot.getValue(exec, returnValue);
+    }
+    return jsUndefined();
 }
 
 JSValue JSDOMWindow::postMessage(ExecState* exec, const ArgList& args)

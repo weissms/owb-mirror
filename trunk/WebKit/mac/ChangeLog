@@ -1,3 +1,47 @@
+2009-10-02  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Tiger build.  Don't unconditionally enable 3D canvas as it is not supported on Tiger.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-10-01  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Turn on ENABLE_3D_CANVAS in TOT
+        https://bugs.webkit.org/show_bug.cgi?id=29906
+
+        * Configurations/FeatureDefines.xcconfig:
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences webGLEnabled]):
+        (-[WebPreferences setWebGLEnabled:]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-09-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/7259706>
+        Need WebKit API or SPI on Mac and Windows to test whether it's safe to load a page in a new tab/window
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _allowsFollowingLink:]):
+        * WebView/WebFramePrivate.h:
+
+2009-09-30  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add the ability to remove user stylesheets and scripts by URL.
+
+        * WebView/WebView.mm:
+        (+[WebView _removeUserContentFromGroup:url:worldID:]):
+        * WebView/WebViewPrivate.h:
+
 2009-09-30  Brady Eidson  <beidson@apple.com>
 
         Rubberstamped by Dan Bernstein.

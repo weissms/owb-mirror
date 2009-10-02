@@ -32,6 +32,7 @@ if(ENABLE_DOM_STORAGE)
         storage/StorageAreaImpl.cpp
         storage/StorageAreaSync.cpp
         storage/StorageEvent.cpp
+        storage/StorageEventDispatcher.cpp
         storage/StorageMap.cpp
         storage/StorageNamespace.cpp
         storage/StorageNamespaceImpl.cpp

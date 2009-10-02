@@ -1313,9 +1313,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
     settings->setAcceleratedCompositingEnabled([preferences acceleratedCompositingEnabled]);
-#if ENABLE(3D_CANVAS)
-    settings->setExperimentalWebGLEnabled(true);
-#endif  // ENABLE(3D_CANVAS)
+    settings->setWebGLEnabled([preferences webGLEnabled]);
 }
 
 static inline IMP getMethod(id o, SEL s)
@@ -2173,6 +2171,19 @@ static inline IMP getMethod(id o, SEL s)
     }
     
     pageGroup->addUserStyleSheet(source, url, patternsVector, worldID);
+}
+
++ (void)_removeUserContentFromGroup:(NSString *)groupName url:(NSURL *)url worldID:(unsigned)worldID
+{
+    String group(groupName);
+    if (group.isEmpty())
+        return;
+    
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    if (!pageGroup)
+        return;
+
+    pageGroup->removeUserContentWithURLForWorld(url, worldID);
 }
 
 + (void)_removeUserContentFromGroup:(NSString *)groupName worldID:(unsigned)worldID
