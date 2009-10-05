@@ -266,5 +266,14 @@ void PluginView::platformDestroy()
     notImplemented();
 }
 
+void PluginView::halt()
+{
+    notImplemented();
+}
+
+void PluginView::restart()
+{
+    notImplemented();
+}
 
 } // namespace WebCore

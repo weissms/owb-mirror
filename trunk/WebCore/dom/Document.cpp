@@ -1975,7 +1975,7 @@ const Vector<RefPtr<CSSStyleSheet> >* Document::pageGroupUserSheets() const
         const UserStyleSheetVector* sheets = it->second;
         for (unsigned i = 0; i < sheets->size(); ++i) {
             const UserStyleSheet* sheet = sheets->at(i).get();
-            if (!UserContentURLPattern::matchesPatterns(url(), sheet->patterns()))
+            if (!UserContentURLPattern::matchesPatterns(url(), sheet->whitelist(), sheet->blacklist()))
                 continue;
             RefPtr<CSSStyleSheet> parsedSheet = CSSStyleSheet::create(const_cast<Document*>(this), sheet->url());
             parsedSheet->setIsUserStyleSheet(true);
@@ -4022,8 +4022,17 @@ void Document::finishedParsing()
 {
     setParsing(false);
     dispatchEvent(Event::create(eventNames().DOMContentLoadedEvent, true, false));
-    if (Frame* f = frame())
+    if (Frame* f = frame()) {
         f->loader()->finishedParsing();
+
+#if ENABLE(INSPECTOR)
+        if (!page())
+            return;
+
+        if (InspectorController* controller = page()->inspectorController())
+            controller->mainResourceFiredDOMContentEvent(f->loader()->documentLoader(), url());
+#endif
+    }
 }
 
 Vector<String> Document::formElementsState() const

@@ -1261,11 +1261,7 @@ bool WebView::goForward()
 
 void WebView::goBackOrForward(int steps)
 {
-    Frame* coreFrame = core(m_mainFrame);
-    if (!coreFrame)
-        return ; 
-
-    coreFrame->loader()->goBackOrForward(steps);
+    m_page->goBackOrForward(steps);
 }
 
 bool WebView::goToBackForwardItem(WebHistoryItem* item)
@@ -1600,7 +1596,19 @@ bool WebView::active()
     return true;
 }
 
-bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns, WebUserScriptInjectionTime injectionTime)
+static PassOwnPtr<Vector<String> > toStringVector(unsigned patternsCount, const char** patterns)
+{
+    // Convert the patterns into a Vector.
+    if (patternsCount == 0)
+        return 0;
+    Vector<String>* patternsVector = new Vector<String>;
+    for (unsigned i = 0; i < patternsCount; ++i)
+        patternsVector->append(String(patterns[i]));
+
+    return patternsVector;
+}
+
+bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime injectionTime)
 {
     String group(groupName);
     if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
@@ -1610,17 +1618,17 @@ bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, cons
     ASSERT(pageGroup);
     if (!pageGroup)
         return false;
-
-    // Turns the pattern into a Vector for WebCore.
-    Vector<String> patternsVector;
-    for (unsigned int i = 0; i < patternsCount; ++i)
-        patternsVector.append(String(patterns[i]));
     
-    pageGroup->addUserScript(String(source), KURL(KURL(), String(url)), patternsVector, worldID, injectionTime == WebUserScriptInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
+    pageGroup->addUserScript(String(source),
+                             KURL(KURL(), String(url)),
+                             toStringVector(whitelistCount, whitelist),
+                             toStringVector(blacklistCount, blacklist),
+                             worldID,
+                             injectionTime == WebUserScriptInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
     return true;
 }
 
-bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns)
+bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist)
 {
     String group(groupName);
     if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
@@ -1630,13 +1638,12 @@ bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, 
     ASSERT(pageGroup);
     if (!pageGroup)
         return false;
-
-    // Turns the pattern into a Vector for WebCore.
-    Vector<String> patternsVector;
-    for (unsigned int i = 0; i < patternsCount; ++i)
-        patternsVector.append(String(patterns[i]));
  
-    pageGroup->addUserStyleSheet(String(source), KURL(KURL(), url), patternsVector, worldID);    
+    pageGroup->addUserStyleSheet(String(source),
+                                 KURL(KURL(), String(url)),
+                                 toStringVector(whitelistCount, whitelist),
+                                 toStringVector(blacklistCount, blacklist),
+                                 worldID);    
     return true;
 }
 

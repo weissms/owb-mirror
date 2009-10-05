@@ -1,3 +1,26 @@
+2009-10-05  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        * WebView/WebPreferenceKeysPrivate.h: Added new key.
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]): Leave plug-in halting disabled by default.
+        (-[WebPreferences pluginHalterEnabled]): Added.
+        (-[WebPreferences setPluginHalterEnabled:]): Ditto.
+        * WebView/WebPreferencesPrivate.h: Added above new methods. 
+
+2009-10-02  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add support for blacklist patterns to user stylesheets and scripts in addition to whitelist patterns.
+
+        * WebView/WebView.mm:
+        (toStringVector):
+        (+[WebView _addUserScriptToGroup:source:url:worldID:whitelist:blacklist:injectionTime:]):
+        (+[WebView _addUserStyleSheetToGroup:source:url:worldID:whitelist:blacklist:]):
+        * WebView/WebViewPrivate.h:
+
 2009-10-02  Mark Rowe  <mrowe@apple.com>
 
         Fix the Tiger build.  Don't unconditionally enable 3D canvas as it is not supported on Tiger.

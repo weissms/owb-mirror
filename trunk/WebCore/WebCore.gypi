@@ -1626,8 +1626,12 @@
             'loader/PlaceholderDocument.h',
             'loader/PluginDocument.cpp',
             'loader/PluginDocument.h',
+            'loader/PolicyCheck.cpp',
+            'loader/PolicyCheck.h',
             'loader/ProgressTracker.cpp',
             'loader/ProgressTracker.h',
+            'loader/RedirectScheduler.cpp',
+            'loader/RedirectScheduler.h',
             'loader/Request.cpp',
             'loader/Request.h',
             'loader/ResourceLoader.cpp',
@@ -3621,6 +3625,7 @@
             'inspector/front-end/View.js',
             'inspector/front-end/WatchExpressionsSidebarPane.js',
             'inspector/front-end/inspector.css',
+            'inspector/front-end/inspectorSyntaxHighlight.css',
         ],
         'webinspector_image_files': [
 

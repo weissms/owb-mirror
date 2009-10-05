@@ -28,7 +28,9 @@ list(APPEND WEBCORE_SRC
     loader/NetscapePlugInStreamLoader.cpp
     loader/PlaceholderDocument.cpp
     loader/PluginDocument.cpp
+    loader/PolicyCheck.cpp
     loader/ProgressTracker.cpp
+    loader/RedirectScheduler.cpp
     loader/Request.cpp
     loader/ResourceLoader.cpp
     loader/SubresourceLoader.cpp

@@ -234,7 +234,13 @@ bool PluginView::start()
     if (!platformStart())
         m_status = PluginStatusCanNotLoadPlugin;
 
-    return (m_status == PluginStatusLoadedSuccessfully);
+    if (m_status != PluginStatusLoadedSuccessfully)
+        return false;
+
+    if (parentFrame()->page())
+        parentFrame()->page()->didStartPlugin(this);
+
+    return true;
 }
 
 PluginView::~PluginView()
@@ -274,6 +280,9 @@ void PluginView::stop()
 #if ENABLE(NETSCAPE_PLUGIN_API)
     if (!m_isStarted)
         return;
+
+    if (parentFrame()->page())
+        parentFrame()->page()->didStopPlugin(this);
 
     LOG(Plugins, "PluginView::stop(): Stopping plug-in '%s'", m_plugin->name().utf8().data());
 
@@ -1215,5 +1224,11 @@ const char* PluginView::userAgentStatic()
     return MozillaUserAgent;
 }
 #endif
+
+
+Node* PluginView::node() const
+{
+    return m_element;
+}
 
 } // namespace WebCore

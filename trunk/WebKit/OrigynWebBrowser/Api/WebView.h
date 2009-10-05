@@ -1355,11 +1355,15 @@ private:
      * @discussion A world is a different JS context sharing the same DOM tree initial structure. Modification made to a world are not reported to other worlds.
      * @param source is the script source code to inject
      * @param url is the associated URL (used for origin checks)
-     * @param patterns are the patterns which a page URL should match for the user script to be injected
+     * @param whitelistCount is the number of pattern definitions held in 'whitelist'
+     * @param whitelist are the whitelist patterns which a page URL should match for the user script to be injected
+     * (example: http://google.com, file:///home/foobar/, ftp://mydomain.com/ [using * as the path matches all subdomains of the host])
+     * @param blacklistCount is the number of pattern definitions held in 'blacklist'
+     * @param blacklist are the blacklist patterns which a page URL should match for the user script to be injected
      * (example: http://google.com, file:///home/foobar/, ftp://mydomain.com/ [using * as the path matches all subdomains of the host])
      * @param WebUserScriptInjectionTime: where to inject the script at the start of the document or the end. This will determine when it will be executed.
      */
-    bool addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns, WebUserScriptInjectionTime);
+    bool addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime);
 
     /**
      * addUserStyleSheetToGroup add a user style sheet to world's page group matching some URL patterns.
@@ -1369,10 +1373,12 @@ private:
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      * @param source the style sheet source code
      * @param url the URL associated with the style sheet. It is used for origin matching.
-     * @param patternsCount the number of patterns in "patterns"
-     * @param patterns are the patterns which a page URL should match for the user style sheet to be injected (see addUserScriptToGroup to see some example of patterns)
+     * @param whitelistCount is the number of pattern definitions held in 'whitelist'
+     * @param whitelist are the whitelist patterns which a page URL should match for the user style sheet to be injected (see addUserScriptToGroup to see some example of patterns)
+     * @param blacklistCount is the number of pattern definitions held in 'blacklist'
+     * @param blacklist are the blacklist patterns which a page URL should match for the user style sheet to be injected (see addUserScriptToGroup to see some example of patterns)
      */
-    bool addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned patternsCount, const char** patterns);
+    bool addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist);
     /**
      * removeUserContentWithURLFromGroup remove user content from a world's page group matching an origin URL
      * @result Returns true if the parameters were valid, false if not.

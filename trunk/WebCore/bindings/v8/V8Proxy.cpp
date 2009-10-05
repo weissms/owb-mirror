@@ -211,6 +211,14 @@ static void reportFatalErrorInV8(const char* location, const char* message)
     handleFatalErrorInV8();
 }
 
+V8Proxy::V8Proxy(Frame* frame)
+    : m_frame(frame),
+      m_context(SharedPersistent<v8::Context>::create()),
+      m_listenerGuard(V8ListenerGuard::create()),
+      m_inlineCode(false),
+      m_timerCallback(false),
+      m_recursion(0) { }
+
 V8Proxy::~V8Proxy()
 {
     clearForClose();
@@ -417,6 +425,17 @@ v8::Local<v8::Value> V8Proxy::callFunction(v8::Handle<v8::Function> function, v8
     {
         V8ConsoleMessage::Scope scope;
 
+        if (m_recursion >= kMaxRecursionDepth) {
+            v8::Local<v8::String> code = v8::String::New("throw new RangeError('Maximum call stack size exceeded.')");
+            if (code.IsEmpty())
+                return result;
+            v8::Local<v8::Script> script = v8::Script::Compile(code);
+            if (script.IsEmpty())
+                return result;
+            script->Run();
+            return result;
+        }
+
         // Evaluating the JavaScript could cause the frame to be deallocated,
         // so we start the keep alive timer here.
         // Frame::keepAlive method adds the ref count of the frame and sets a
@@ -550,6 +569,7 @@ V8Proxy* V8Proxy::retrieve(ScriptExecutionContext* context)
 
 void V8Proxy::disconnectFrame()
 {
+    disconnectEventListeners();
 }
 
 bool V8Proxy::isEnabled()
@@ -683,6 +703,12 @@ void V8Proxy::releaseStorageMutex()
         page->group().localStorage()->unlock();
 }
 
+void V8Proxy::disconnectEventListeners()
+{
+    m_listenerGuard->disconnectListeners();
+    m_listenerGuard = V8ListenerGuard::create();
+}
+
 void V8Proxy::clearForClose()
 {
     if (!context().IsEmpty()) {
@@ -695,6 +721,7 @@ void V8Proxy::clearForClose()
 
 void V8Proxy::clearForNavigation()
 {
+    disconnectEventListeners();
     if (!context().IsEmpty()) {
         v8::HandleScope handle;
         clearDocumentWrapper();

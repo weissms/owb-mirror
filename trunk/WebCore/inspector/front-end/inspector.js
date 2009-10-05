@@ -43,7 +43,8 @@ var Preferences = {
     samplingCPUProfiler: false,
     showColorNicknames: true,
     colorFormat: "hex",
-    eventListenersFilter: "all"
+    eventListenersFilter: "all",
+    resourcesLargeRows: true
 }
 
 var WebInspector = {
@@ -143,6 +144,21 @@ var WebInspector = {
             this.panels.profiles = new WebInspector.ProfilesPanel();
         if (hiddenPanels.indexOf("storage") === -1 && hiddenPanels.indexOf("databases") === -1)
             this.panels.storage = new WebInspector.StoragePanel();      
+    },
+
+    _loadPreferences: function()
+    {
+        var colorFormat = InspectorController.setting("color-format");
+        if (colorFormat)
+            Preferences.colorFormat = colorFormat;
+
+        var eventListenersFilter = InspectorController.setting("event-listeners-filter");
+        if (eventListenersFilter)
+            Preferences.eventListenersFilter = eventListenersFilter;
+
+        var resourcesLargeRows = InspectorController.setting("resources-large-rows");
+        if (typeof resourcesLargeRows !== "undefined")
+            Preferences.resourcesLargeRows = resourcesLargeRows;
     },
 
     get attached()
@@ -351,13 +367,7 @@ WebInspector.loaded = function()
     var platform = InspectorController.platform();
     document.body.addStyleClass("platform-" + platform);
 
-    var colorFormat = InspectorController.setting("color-format");
-    if (colorFormat)
-        Preferences.colorFormat = colorFormat;
-
-    var eventListenersFilter = InspectorController.setting("event-listeners-filter");
-    if (eventListenersFilter)
-        Preferences.eventListenersFilter = eventListenersFilter;
+    this._loadPreferences();
 
     this.drawer = new WebInspector.Drawer();
     this.console = new WebInspector.ConsoleView(this.drawer);
@@ -989,6 +999,21 @@ WebInspector.updateResource = function(identifier, payload)
             resource.responseReceivedTime = payload.responseReceivedTime;
         if (payload.endTime)
             resource.endTime = payload.endTime;
+        
+        if (payload.loadEventTime) {
+            // This loadEventTime is for the main resource, and we want to show it
+            // for all resources on this page. This means we want to set it as a member
+            // of the resources panel instead of the individual resource.
+            if (this.panels.resources)
+                this.panels.resources.mainResourceLoadTime = payload.loadEventTime;
+        }
+        
+        if (payload.domContentEventTime) {
+            // This domContentEventTime is for the main resource, so it should go in
+            // the resources panel for the same reasons as above.
+            if (this.panels.resources)
+                this.panels.resources.mainResourceDOMContentTime = payload.domContentEventTime;
+        }
     }
 }
 
@@ -1598,6 +1623,11 @@ WebInspector._toolbarItemClicked = function(event)
 {
     var toolbarItem = event.currentTarget;
     this.currentPanel = toolbarItem.panel;
+}
+
+WebInspector.evaluateForTestInFrontend = function(callId, script)
+{
+    InspectorController.didEvaluateForTestInFrontend(callId, JSON.stringify(window.eval(script)));
 }
 
 // This table maps MIME types to the Resource.Types which are valid for them.

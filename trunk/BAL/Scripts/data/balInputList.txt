@@ -337,7 +337,6 @@ BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/TimingFunction.h
-BAL/Graphics/WebCore/WK WebCore/platform/animation/TextRenderingMode.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/Generator.h
