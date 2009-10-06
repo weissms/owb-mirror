@@ -8,7 +8,13 @@ if(USE_I18N_ICU OR USE_I18N_GLIB)
     create_include_link(${BAL_DIR}/Internationalization/WebCore/ICU BAL)
     
     aux_source_directory(${BAL_DIR}/Internationalization/WebCore/ICU WEBCORE_SRC)
-    
+
+    if(USE_GRAPHICS_AMIGAOS4)
+        create_include_link(${BAL_DIR}/Internationalization/WebCore/AmigaOS4 BAL)
+
+        aux_source_directory(${BAL_DIR}/Internationalization/WebCore/AmigaOS4 WEBCORE_SRC)
+    endif(USE_GRAPHICS_AMIGAOS4)
+   
     if(USE_GRAPHICS_GTK)
         create_include_link(${BAL_DIR}/Internationalization/WebCore/Gtk BAL)
 
@@ -20,6 +26,7 @@ if(USE_I18N_ICU OR USE_I18N_GLIB)
 
         aux_source_directory(${BAL_DIR}/Internationalization/WebCore/SDL WEBCORE_SRC)
     endif(USE_GRAPHICS_SDL)
+
 else(USE_I18N_ICU OR USE_I18N_GLIB)
     aux_source_directory(${BAL_DIR}/Internationalization/WebCore/None WEBCORE_SRC)
 endif(USE_I18N_ICU OR USE_I18N_GLIB)

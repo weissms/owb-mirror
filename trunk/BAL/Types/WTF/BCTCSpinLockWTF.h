@@ -180,6 +180,8 @@ static void TCMalloc_SlowLock(volatile unsigned int* lockword) {
     // Sleep for a few milliseconds
 #if PLATFORM(WIN_OS)
     Sleep(2);
+#elif PLATFORM(AMIGAOS4)
+    usleep(2);
 #else
     struct timespec tm;
     tm.tv_sec = 0;

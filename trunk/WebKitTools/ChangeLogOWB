@@ -1,3 +1,11 @@
+2009-10-06  Andrea Palmatè  <andrea@amigasoft.net>
+
+        Reviewed by Olivier DOLE.
+
+        ticket #358: fix cmake for AmigaOS4
+
+        * OWBLauncher/CMakeLists.txt:
+
 2009-08-20  Olivier DOLE  <odole@pleyo.com>
 
         build fix for DRT.

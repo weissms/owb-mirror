@@ -43,7 +43,8 @@
 #define WTF_PLATFORM_AMIGAOS4 1                                                    
 #define WTF_USE_CURL 1                                                             
 #define WTF_USE_PTHREADS 1                                                         
-#define USE_SYSTEM_MALLOC 1                                                        
+#define USE_SYSTEM_MALLOC 1
+#undef  WTF_PLATFORM_MACPORT
 #endif
 
 /* PLATFORM(DARWIN) */
@@ -553,7 +554,7 @@
 #endif
 
 #if !PLATFORM(WIN_OS) && !PLATFORM(SOLARIS) && !PLATFORM(QNX) \
-    && !PLATFORM(SYMBIAN) && !PLATFORM(HAIKU) && !COMPILER(RVCT)
+    && !PLATFORM(SYMBIAN) && !PLATFORM(HAIKU) && !COMPILER(RVCT) && !PLATFORM(AMIGAOS4)
 #define HAVE_TM_GMTOFF 1
 #define HAVE_TM_ZONE 1
 #define HAVE_TIMEGM 1

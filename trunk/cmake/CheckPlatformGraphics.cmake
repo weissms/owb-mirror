@@ -1,3 +1,9 @@
+if(USE_GRAPHICS STREQUAL "AMIGAOS4")
+    set(USE_GRAPHICS_AMIGAOS4 TRUE)
+    mark_as_advanced(USE_GRAPHICS_AMIGAOS4)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/local/amiga/ppc-amigaos/SDK/local/common/include/cairo")
+endif(USE_GRAPHICS STREQUAL "AMIGAOS4")
+
 if(USE_GRAPHICS STREQUAL "GTK")
     pkg_check_modules(CAIRO REQUIRED cairo>=1.4)
     pkg_check_modules(GTK REQUIRED gtk+-2.0>=2.8)

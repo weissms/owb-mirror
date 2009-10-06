@@ -119,6 +119,11 @@ if(USE_GRAPHICS_SDL)
     add_definitions(-DWTF_PLATFORM_BAL=1)
 endif(USE_GRAPHICS_SDL)
 
+if(USE_GRAPHICS_AMIGAOS4)
+    add_definitions(-DBUILDING_CAIRO__=1)
+    add_definitions(-DWTF_PLATFORM_BAL=1)
+endif(USE_GRAPHICS_AMIGAOS4)
+
 if(USE_I18N_GENERIC)
     add_definitions(-DWTF_USE_BALI18N=1)
 endif(USE_I18N_GENERIC)

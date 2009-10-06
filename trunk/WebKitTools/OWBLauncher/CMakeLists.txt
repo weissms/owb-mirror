@@ -22,6 +22,11 @@ link_directories(
     ${LIBRARY_OUTPUT_PATH}
     ${GRAPHICS_LIBRARY_DIRS}
 )
+
+if(USE_GRAPHICS_AMIGAOS4)
+    add_executable(owb EXCLUDE_FROM_ALL AmigaOS4/main.cpp)
+endif(USE_GRAPHICS_AMIGAOS4)
+
 if(USE_GRAPHICS_GTK)
     add_executable(owb EXCLUDE_FROM_ALL gtk/main.cpp)
 endif(USE_GRAPHICS_GTK)

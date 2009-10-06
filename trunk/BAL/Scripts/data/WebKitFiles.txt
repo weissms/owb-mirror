@@ -3,6 +3,7 @@ JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
+JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 WebCore/accessibility/AccessibilityObject.cpp
 WebCore/accessibility/AccessibilityObject.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp

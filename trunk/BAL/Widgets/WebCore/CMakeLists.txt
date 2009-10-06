@@ -6,6 +6,12 @@ set(WIDGETS_DIR ${BAL_DIR}/Widgets/WebCore)
 
 create_include_link(${WIDGETS_DIR}/WK BAL)
 
+if(USE_GRAPHICS_AMIGAOS4)
+    create_include_link(${WIDGETS_DIR}/AmigaOS4 BAL)
+
+    aux_source_directory(${WIDGETS_DIR}/AmigaOS4 WEBCORE_SRC)
+endif(USE_GRAPHICS_AMIGAOS4)
+
 if(USE_GRAPHICS_GTK)
     create_include_link(${WIDGETS_DIR}/Gtk BAL)
 

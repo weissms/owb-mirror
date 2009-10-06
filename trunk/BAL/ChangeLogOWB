@@ -1,3 +1,20 @@
+2009-10-06  Andrea Palmatè  <andrea@amigasoft.net>
+
+        Reviewed by Olivier DOLE.
+
+        ticket #358: fix cmake for AmigaOS4
+
+        * Events/WebCore/CMakeLists.txt:
+        * Facilities/WebCore/CMakeLists.txt:
+        * Graphics/WebCore/CMakeLists.txt:
+        * ImageDecoder/WebCore/CMakeLists.txt:
+        * Internationalization/WebCore/CMakeLists.txt:
+        * Media/WebCore/CMakeLists.txt:
+        * Scripts/data/WebKitFiles.txt:
+        * Types/WTF/BCTCSpinLockWTF.h:
+        (TCMalloc_SlowLock):
+        * Widgets/WebCore/CMakeLists.txt:
+
 2009-09-23  Olivier DOLE  <odole@pleyo.com>
 
         ticket #357: fix a SDL clipping problem inside GraphicsContext to

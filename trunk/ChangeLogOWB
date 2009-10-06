@@ -1,3 +1,15 @@
+2009-10-06  Andrea Palmatè  <andrea@amigasoft.net>
+
+        Reviewed by Olivier DOLE.
+
+        ticket #358: fix cmake for AmigaOS4
+
+        * Base/wtf/Platform.h:
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake:
+        * cmake/CheckPlatformFonts.cmake:
+        * cmake/CheckPlatformGraphics.cmake:
+
 2009-10-01  Mario Bensi  <mbensi@pleyo.com>
 
         add ENABLE_DATAGRID.
