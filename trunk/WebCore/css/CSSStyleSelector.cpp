@@ -2497,6 +2497,11 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
             case CSSSelector::PseudoFileUploadButton:
                 dynamicPseudo = FILE_UPLOAD_BUTTON;
                 return true;
+#if ENABLE(DATALIST)
+            case CSSSelector::PseudoInputListButton:
+                dynamicPseudo = INPUT_LIST_BUTTON;
+                return true;
+#endif
             case CSSSelector::PseudoInputPlaceholder:
                 dynamicPseudo = INPUT_PLACEHOLDER;
                 return true;

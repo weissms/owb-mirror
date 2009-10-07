@@ -179,7 +179,7 @@ void WebIconDatabase::dispatchDidRemoveAllIcons()
 void WebIconDatabase::dispatchDidAddIconForPageURL(const String& pageURL)
 {   
     MutexLocker locker(m_notificationMutex);
-    m_notificationQueue.append(pageURL.copy());
+    m_notificationQueue.append(pageURL.threadsafeCopy());
     scheduleNotificationDelivery();
 }
 

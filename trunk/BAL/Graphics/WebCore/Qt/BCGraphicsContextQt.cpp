@@ -422,7 +422,7 @@ void GraphicsContext::drawRect(const IntRect& rect)
         IntRect shadowRect = rect;
         shadowRect.move(shadowSize.width(), shadowSize.height());
         shadowRect.inflate(static_cast<int>(p->pen().widthF()));
-        p->fillRect(shadowRect, shadowColor);
+        p->fillRect(shadowRect, QColor(shadowColor));
     }
 
     p->drawRect(rect);
@@ -492,11 +492,11 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
         }
 #elif QT_VERSION >= 040500
         if (isVerticalLine) {
-            p->fillRect(FloatRect(p1.x() - width / 2, p1.y() - width, width, width), color);
-            p->fillRect(FloatRect(p2.x() - width / 2, p2.y(), width, width), color);
+            p->fillRect(FloatRect(p1.x() - width / 2, p1.y() - width, width, width), QColor(color));
+            p->fillRect(FloatRect(p2.x() - width / 2, p2.y(), width, width), QColor(color));
         } else {
-            p->fillRect(FloatRect(p1.x() - width, p1.y() - width / 2, width, width), color);
-            p->fillRect(FloatRect(p2.x(), p2.y() - width / 2, width, width), color);
+            p->fillRect(FloatRect(p1.x() - width, p1.y() - width / 2, width, width), QColor(color));
+            p->fillRect(FloatRect(p2.x(), p2.y() - width / 2, width, width), QColor(color));
         }
 #endif
         // Example: 80 pixels with a width of 30 pixels.
@@ -728,7 +728,7 @@ static inline void drawBorderlessRectShadow(GraphicsContext* context, QPainter* 
     if (context->getShadow(shadowSize, shadowBlur, shadowColor)) {
         FloatRect shadowRect(rect);
         shadowRect.move(shadowSize.width(), shadowSize.height());
-        p->fillRect(shadowRect, shadowColor);
+        p->fillRect(shadowRect, QColor(shadowColor));
     }
 }
 
@@ -1069,14 +1069,18 @@ void GraphicsContext::clipOut(const Path& path)
         return;
 
     QPainter* p = m_data->p();
-    QRectF clipBounds = p->clipPath().boundingRect();
     QPainterPath clippedOut = *path.platformPath();
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
-    newClip.addRect(clipBounds);
-    newClip.addPath(clippedOut);
-
-    p->setClipPath(newClip, Qt::IntersectClip);
+    if (p->hasClipping()) {
+        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addPath(clippedOut);
+        p->setClipPath(newClip, Qt::IntersectClip);
+    } else {
+        newClip.addRect(p->window());
+        newClip.addPath(clippedOut & newClip);
+        p->setClipPath(newClip);
+    }
 }
 
 void GraphicsContext::translate(float x, float y)
@@ -1135,13 +1139,20 @@ void GraphicsContext::clipOut(const IntRect& rect)
         return;
 
     QPainter* p = m_data->p();
-    QRectF clipBounds = p->clipPath().boundingRect();
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
-    newClip.addRect(clipBounds);
-    newClip.addRect(QRect(rect));
-
-    p->setClipPath(newClip, Qt::IntersectClip);
+    if (p->hasClipping()) {
+        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addRect(QRect(rect));
+        p->setClipPath(newClip, Qt::IntersectClip);
+    } else {
+        QRect clipOutRect(rect);
+        QRect window(p->window());
+        clipOutRect &= window;
+        newClip.addRect(window);
+        newClip.addRect(clipOutRect);
+        p->setClipPath(newClip);
+    }
 }
 
 void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
@@ -1150,13 +1161,20 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
         return;
 
     QPainter* p = m_data->p();
-    QRectF clipBounds = p->clipPath().boundingRect();
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
-    newClip.addRect(clipBounds);
-    newClip.addEllipse(QRect(rect));
-
-    p->setClipPath(newClip, Qt::IntersectClip);
+    if (p->hasClipping()) {
+        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addEllipse(QRect(rect));
+        p->setClipPath(newClip, Qt::IntersectClip);
+    } else {
+        QRect clipOutRect(rect);
+        QRect window(p->window());
+        clipOutRect &= window;
+        newClip.addRect(window);
+        newClip.addEllipse(clipOutRect);
+        p->setClipPath(newClip);
+    }
 }
 
 void GraphicsContext::clipToImageBuffer(const FloatRect&, const ImageBuffer*)

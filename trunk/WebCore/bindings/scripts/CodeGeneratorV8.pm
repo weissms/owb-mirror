@@ -1463,7 +1463,7 @@ sub GenerateFunctionCallString()
             $paramName = "SVGPODListItem<" . GetNativeType($paramType, 1) . ">::copy($paramName)";
         }
 
-        if ($parameter->type eq "NodeFilter") {
+        if ($parameter->type eq "NodeFilter" || $parameter->type eq "XPathNSResolver") {
             $functionString .= "$paramName.get()";
         } else {
             $functionString .= $paramName;
@@ -1745,6 +1745,9 @@ sub GetNativeType
     # temporary hack
     return "RefPtr<NodeFilter>" if $type eq "NodeFilter";
 
+    # necessary as resolvers could be constructed on fly.
+    return "RefPtr<XPathNSResolver>" if $type eq "XPathNSResolver";
+
     return "RefPtr<${type}>" if IsRefPtrType($type) and not $isParameter;
 
     # Default, assume native type is a pointer with same type name as idl type
@@ -1880,6 +1883,11 @@ sub JSValueToNative
         return "toWebCoreString($value)";
     }
 
+    if ($type eq "SerializedScriptValue") {
+        $implIncludes{"SerializedScriptValue.h"} = 1;
+        return "SerializedScriptValue::create($value)";
+    }
+
     if ($type eq "NodeFilter") {
         return "V8DOMWrapper::wrapNativeNodeFilter($value)";
     }
@@ -1899,6 +1907,10 @@ sub JSValueToNative
 
         # EventTarget is not in DOM hierarchy, but all Nodes are EventTarget.
         return "V8Node::HasInstance($value) ? V8DOMWrapper::convertDOMWrapperToNode<Node>(v8::Handle<v8::Object>::Cast($value)) : 0";
+    }
+
+    if ($type eq "XPathNSResolver") {
+        return "V8DOMWrapper::getXPathNSResolver($value)";
     }
 
     AddIncludesForType($type);
@@ -1952,10 +1964,16 @@ sub CreateCustomSignature
         if ($first) { $first = 0; }
         else { $result .= ", "; }
         if (IsWrapperType($parameter->type)) {
-            my $type = $parameter->type;
-            my $header = GetV8HeaderName($type);
-            $implIncludes{$header} = 1;
-            $result .= "V8${type}::GetRawTemplate()";
+            if ($parameter->type eq "XPathNSResolver") {
+                # Special case for XPathNSResolver.  All other browsers accepts a callable,
+                # so, even though it's against IDL, accept objects here.
+                $result .= "v8::Handle<v8::FunctionTemplate>()";
+            } else {
+                my $type = $parameter->type;
+                my $header = GetV8HeaderName($type);
+                $implIncludes{$header} = 1;
+                $result .= "V8${type}::GetRawTemplate()";
+            }
         } else {
             $result .= "v8::Handle<v8::FunctionTemplate>()";
         }
@@ -2096,6 +2114,11 @@ sub ReturnNativeToJSValue
 
     if ($type eq "EventListener") {
         return "return V8DOMWrapper::convertEventListenerToV8Object($value)";
+    }
+
+    if ($type eq "SerializedScriptValue") {
+        $implIncludes{"$type.h"} = 1;
+        return "return v8String($value->toString())";
     }
 
     if ($type eq "DedicatedWorkerContext" or $type eq "WorkerContext" or $type eq "SharedWorkerContext") {

@@ -353,6 +353,11 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
         client->willSendRequest(m_resourceHandle, newRequest, response);
         m_redirected = true;
         m_request = newRequest.toNetworkRequest();
+
+#if 0
+        ResourceHandleInternal* d = m_resourceHandle->getInternal();
+        emit d->m_frame->page()->networkRequestStarted(d->m_frame, &m_request);
+#endif
         return;
     }
 
@@ -394,6 +399,7 @@ void QNetworkReplyHandler::start()
 
 #if 0
     QNetworkAccessManager* manager = d->m_frame->page()->networkAccessManager();
+    emit d->m_frame->page()->networkRequestStarted(d->m_frame, &m_request);
 #else
     QNetworkAccessManager* manager = createAccessManager();
 #endif

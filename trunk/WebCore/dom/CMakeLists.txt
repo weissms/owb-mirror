@@ -105,6 +105,7 @@ endif(USE_GRAPHICS_QT)
 
 list(APPEND IDL_SRC
     dom/Attr.idl
+    dom/BeforeLoadEvent.idl
     dom/CharacterData.idl
     dom/ClientRect.idl
     dom/ClientRectList.idl

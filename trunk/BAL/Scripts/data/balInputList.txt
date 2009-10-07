@@ -269,7 +269,6 @@ BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageBufferQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageDecoderQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageDecoderQt.h
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageQt.cpp
-BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageSourceQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntPointQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntRectQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntSizeQt.cpp
@@ -400,6 +399,7 @@ BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageD
 BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h
 BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.cpp
 BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.h
+BAL/ImageDecoder/WebCore/Qt WebCore/platform/image-decoders/qt/RGBA32BufferQt.cpp BCRGBA32BufferQt.cpp
 BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.cpp
 BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.h
 BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp

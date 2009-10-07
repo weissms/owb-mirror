@@ -112,6 +112,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/ScriptObject.cpp
     bindings/js/ScriptState.cpp
     bindings/js/ScriptValue.cpp
+    bindings/js/SerializedScriptValue.cpp
 )
 
 if(ENABLE_DATABASE)

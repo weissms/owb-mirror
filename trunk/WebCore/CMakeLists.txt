@@ -205,7 +205,7 @@ if(ENABLE_VIDEO)
     )
     if(USE_GRAPHICS_QT)
         list(APPEND USER_AGENT_STYLE_SHEETS
-            ${OWB_SOURCE_DIR}/WebCore/css/mediaControlsQT.css
+            ${OWB_SOURCE_DIR}/WebCore/css/mediaControlsQt.css
         )
     endif(USE_GRAPHICS_QT)
 endif(ENABLE_VIDEO)

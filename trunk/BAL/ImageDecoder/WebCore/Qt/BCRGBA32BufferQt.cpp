@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008, 2009 Google, Inc.
+ * Copyright (C) 2009 Holger Hans Peter Freyther
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,25 +22,37 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
 #include "ImageDecoder.h"
 
-// It seems that we need more definitions than Qt to compile. Those definitons should go here (the implementation is in Graphics/WebCore/Qt/BCImageDecoderQt.*)
+#include <QPixmap>
+#include <stdio.h>
 
 namespace WebCore {
 
 RGBA32Buffer::RGBA32Buffer()
     : m_status(FrameEmpty)
+    , m_hasAlpha(false)
+    , m_size()
     , m_duration(0)
     , m_disposalMethod(DisposeNotSpecified)
 {
-} 
+}
+
+// The image must not have format 8888 pre multiplied...
+void RGBA32Buffer::setDecodedImage(const QImage& image)
+{
+    m_image = image;
+    m_size = image.size();
+    m_hasAlpha = image.hasAlphaChannel();
+}
 
 void RGBA32Buffer::clear()
 {
+    m_image = QImage();
     m_status = FrameEmpty;
     // NOTE: Do not reset other members here; clearFrameBufferCache()
     // calls this to free the bitmap data, but other functions like
@@ -48,31 +62,55 @@ void RGBA32Buffer::clear()
 
 void RGBA32Buffer::zeroFill()
 {
+    m_image.fill(0);
 }
 
 void RGBA32Buffer::copyBitmapData(const RGBA32Buffer& other)
 {
     if (this == &other)
         return;
+
+    m_image = other.m_image;
+    m_size = other.m_size;
+    m_hasAlpha = other.m_hasAlpha;
 }
 
 bool RGBA32Buffer::setSize(int newWidth, int newHeight)
 {
-    // NOTE: This has no way to check for allocation failure if the
-    // requested size was too big...
+    // This function should only be called once, it will leak memory
+    // otherwise.
+    ASSERT(width() == 0 && height() == 0);
+
+    m_size = IntSize(newWidth, newHeight);
+    m_image = QImage(newWidth, newHeight, QImage::Format_ARGB32_Premultiplied);
+    if (m_image.isNull()) {
+        // Allocation failure, maybe the bitmap was too big.
+        setStatus(FrameComplete);
+        return false;
+    }
+
     // Zero the image.
     zeroFill();
 
     return true;
 }
 
+QPixmap* RGBA32Buffer::asNewNativeImage() const
+{
+    QPixmap pix = QPixmap::fromImage(m_image);
+    m_image = QImage();
+
+    return new QPixmap(pix);
+}
+
 bool RGBA32Buffer::hasAlpha() const
 {
-    return false;
+    return m_hasAlpha;
 }
 
 void RGBA32Buffer::setHasAlpha(bool alpha)
 {
+    m_hasAlpha = alpha;
 }
 
 void RGBA32Buffer::setStatus(FrameStatus status)
@@ -93,12 +131,14 @@ RGBA32Buffer& RGBA32Buffer::operator=(const RGBA32Buffer& other)
     return *this;
 }
 
-int RGBA32Buffer::width() const {
-    return 0;
+int RGBA32Buffer::width() const
+{
+    return m_size.width();
 }
 
-int RGBA32Buffer::height() const {
-    return 0;
+int RGBA32Buffer::height() const
+{
+    return m_size.height();
 }
 
-} // namespace WebCore
+}

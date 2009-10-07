@@ -106,13 +106,7 @@ namespace WebCore {
         
         void loadArchive(PassRefPtr<Archive>);
 
-        // Returns true for any non-local URL. If document parameter is supplied, its local load policy dictates,
-        // otherwise if referrer is non-empty and represents a local file, then the local load is allowed.
-        static bool canLoad(const KURL&, const String& referrer, const Document*);
-        static bool canLoad(const KURL&, const String& referrer, const SecurityOrigin* = 0);
         static void reportLocalLoadFailed(Frame*, const String& url);
-
-        static bool shouldHideReferrer(const KURL&, const String& referrer);
 
         // Called by createWindow in JSDOMWindowBase.cpp, e.g. to fulfill a modal dialog creation
         Frame* createWindow(FrameLoader* frameLoaderForFrameLookup, const FrameLoadRequest&, const WindowFeatures&, bool& created);
@@ -156,6 +150,8 @@ namespace WebCore {
         const ResourceRequest& initialRequest() const;
         void receivedMainResourceError(const ResourceError&, bool isComplete);
         void receivedData(const char*, int);
+
+        bool willLoadMediaElementURL(KURL&);
 
         void handleFallbackContent();
         bool isStopping() const;
@@ -272,8 +268,6 @@ namespace WebCore {
 
         Frame* opener();
         void setOpener(Frame*);
-        bool openedByDOM() const;
-        void setOpenedByDOM();
 
         bool isProcessingUserGesture();
 
@@ -315,15 +309,6 @@ namespace WebCore {
 
         HistoryItem* currentHistoryItem();
         void setCurrentHistoryItem(PassRefPtr<HistoryItem>);
-
-        enum LocalLoadPolicy {
-            AllowLocalLoadsForAll,  // No restriction on local loads.
-            AllowLocalLoadsForLocalAndSubstituteData,
-            AllowLocalLoadsForLocalOnly,
-        };
-        static void setLocalLoadPolicy(LocalLoadPolicy);
-        static bool restrictAccessToLocal();
-        static bool allowSubstituteDataAccessToLocal();
 
         bool committingFirstRealLoad() const { return !m_creatingInitialEmptyDocument && !m_committedFirstRealDocumentLoad; }
         bool committedFirstRealDocumentLoad() const { return m_committedFirstRealDocumentLoad; }
@@ -562,8 +547,6 @@ namespace WebCore {
 
         Frame* m_opener;
         HashSet<Frame*> m_openedFrames;
-
-        bool m_openedByDOM;
 
         bool m_creatingInitialEmptyDocument;
         bool m_isDisplayingInitialEmptyDocument;

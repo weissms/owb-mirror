@@ -153,24 +153,6 @@ void LayoutTestController::setTabKeyCyclesThroughElements(bool cycles)
     // FIXME: implement
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void LayoutTestController::setUseDashboardCompatibilityMode(bool flag)
 {
     // FIXME: implement
@@ -369,3 +351,19 @@ void LayoutTestController::setMockGeolocationError(int code, JSStringRef message
 {
     // FIXME: Implement.
 }
+
+void LayoutTestController::showWebInspector()
+{
+    //getWebView()->inspector()->show()
+}
+
+void LayoutTestController::closeWebInspector()
+{
+    //getWebView()->inspector()->close()
+}
+
+void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)
+{
+    //getWebView()->inspector()->evaluateInFrontend(callId, char*);
+}
+

@@ -529,16 +529,16 @@ InjectedScript.getCompletions = function(expression, includeInspectorCommandLine
     return props;
 }
 
-InjectedScript.evaluate = function(expression)
+InjectedScript.evaluate = function(expression, objectGroup)
 {
-    return InjectedScript._evaluateAndWrap(InjectedScript._window().eval, InjectedScript._window(), expression);
+    return InjectedScript._evaluateAndWrap(InjectedScript._window().eval, InjectedScript._window(), expression, objectGroup);
 }
 
-InjectedScript._evaluateAndWrap = function(evalFunction, object, expression)
+InjectedScript._evaluateAndWrap = function(evalFunction, object, expression, objectGroup)
 {
     var result = {};
     try {
-        result.value = InspectorController.wrapObject(InjectedScript._evaluateOn(evalFunction, object, expression));
+        result.value = InspectorController.wrapObject(InjectedScript._evaluateOn(evalFunction, object, expression), objectGroup);
         // Handle error that might have happened while describing result.
         if (result.value.errorText) {
             result.value = result.value.errorText;
@@ -553,7 +553,7 @@ InjectedScript._evaluateAndWrap = function(evalFunction, object, expression)
 
 InjectedScript._evaluateOn = function(evalFunction, object, expression)
 {
-    InjectedScript._ensureCommandLineAPIInstalled();
+    InjectedScript._ensureCommandLineAPIInstalled(evalFunction, object);
     // Surround the expression in with statements to inject our command line API so that
     // the window object properties still take more precedent than our API functions.
     expression = "with (window._inspectorCommandLineAPI) { with (window) { " + expression + " } }";
@@ -572,7 +572,7 @@ InjectedScript.addInspectedNode = function(nodeId)
     if (!node)
         return false;
 
-    InjectedScript._ensureCommandLineAPIInstalled();
+    InjectedScript._ensureCommandLineAPIInstalled(InjectedScript._window().eval, InjectedScript._window());
     var inspectedNodes = InjectedScript._window()._inspectorCommandLineAPI._inspectedNodes;
     inspectedNodes.unshift(node);
     if (inspectedNodes.length >= 5)
@@ -838,12 +838,12 @@ InjectedScript.getCallFrames = function()
     return result;
 }
 
-InjectedScript.evaluateInCallFrame = function(callFrameId, code)
+InjectedScript.evaluateInCallFrame = function(callFrameId, code, objectGroup)
 {
     var callFrame = InjectedScript._callFrameForId(callFrameId);
     if (!callFrame)
         return false;
-    return InjectedScript._evaluateAndWrap(callFrame.evaluate, callFrame, code);
+    return InjectedScript._evaluateAndWrap(callFrame.evaluate, callFrame, code, objectGroup);
 }
 
 InjectedScript._callFrameForId = function(id)
@@ -880,13 +880,11 @@ InjectedScript._inspectObject = function(o)
     }
 }
 
-InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
+InjectedScript._ensureCommandLineAPIInstalled = function(evalFunction, evalObject)
 {
-    var inspectedWindow = InjectedScript._window();
-    if (inspectedWindow._inspectorCommandLineAPI)
+    if (evalFunction.call(evalObject, "window._inspectorCommandLineAPI"))
         return;
-    
-    inspectedWindow.eval("window._inspectorCommandLineAPI = { \
+    var inspectorCommandLineAPI = evalFunction.call(evalObject, "window._inspectorCommandLineAPI = { \
         $: function() { return document.getElementById.apply(document, arguments) }, \
         $$: function() { return document.querySelectorAll.apply(document, arguments) }, \
         $x: function(xpath, context) { \
@@ -913,8 +911,8 @@ InjectedScript._ensureCommandLineAPIInstalled = function(inspectedWindow)
         get $4() { return _inspectorCommandLineAPI._inspectedNodes[4] } \
     };");
 
-    inspectedWindow._inspectorCommandLineAPI.clear = InspectorController.wrapCallback(InjectedScript._clearConsoleMessages);
-    inspectedWindow._inspectorCommandLineAPI.inspect = InspectorController.wrapCallback(InjectedScript._inspectObject);
+    inspectorCommandLineAPI.clear = InspectorController.wrapCallback(InjectedScript._clearConsoleMessages);
+    inspectorCommandLineAPI.inspect = InspectorController.wrapCallback(InjectedScript._inspectObject);
 }
 
 InjectedScript._resolveObject = function(objectProxy)

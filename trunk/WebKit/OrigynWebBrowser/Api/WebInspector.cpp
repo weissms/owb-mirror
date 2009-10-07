@@ -180,3 +180,16 @@ void WebInspector::setJavaScriptProfilingEnabled(bool enabled)
         page->inspectorController()->disableProfiler();
 }
 
+void WebInspector::evaluateInFrontend(long callId, const char* script)
+{
+    if (!m_webView)
+        return;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return;
+
+    String inspectorScript(script, strlen(script));
+    page->inspectorController()->evaluateForTestInFrontend(callId, inspectorScript);
+    return;
+}

@@ -49,6 +49,7 @@
 #include "PlatformScreen.h"
 #include "ScheduledAction.h"
 #include "ScriptSourceCode.h"
+#include "SerializedScriptValue.h"
 #include "Settings.h"
 #include "WindowFeatures.h"
 
@@ -325,7 +326,7 @@ CALLBACK_FUNC_DECL(DOMWindowPostMessage)
     ASSERT(source->frame());
 
     v8::TryCatch tryCatch;
-    String message = toWebCoreString(args[0]);
+    RefPtr<SerializedScriptValue> message = SerializedScriptValue::create(toWebCoreString(args[0]));
     MessagePortArray portArray;
     String targetOrigin;
 
@@ -345,7 +346,7 @@ CALLBACK_FUNC_DECL(DOMWindowPostMessage)
         return v8::Undefined();
 
     ExceptionCode ec = 0;
-    window->postMessage(message, &portArray, targetOrigin, source, ec);
+    window->postMessage(message.release(), &portArray, targetOrigin, source, ec);
     return throwError(ec);
 }
 
@@ -496,7 +497,7 @@ static Frame* createWindow(Frame* callingFrame,
         return 0;
 
     newFrame->loader()->setOpener(openerFrame);
-    newFrame->loader()->setOpenedByDOM();
+    newFrame->page()->setOpenedByDOM();
 
     // Set dialog arguments on the global object of the new frame.
     if (!dialogArgs.IsEmpty()) {

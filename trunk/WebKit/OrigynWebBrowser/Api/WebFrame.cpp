@@ -79,6 +79,7 @@
 #include <ResourceRequest.h>
 #include <RenderView.h>
 #include <RenderTreeAsText.h>
+#include <SecurityOrigin.h>
 #include <Settings.h>
 #include <TextIterator.h>
 #include <JSDOMBinding.h>
@@ -632,7 +633,7 @@ bool WebFrame::allowsFollowingLink(const char* url) const
     if (!frame)
         return false;
 
-    return FrameLoader::canLoad(KURL(KURL(), url), String(), frame->document());
+    return SecurityOrigin::canLoad(KURL(KURL(), url), String(), frame->document());
 }
 
 /*HRESULT WebFrame::elementWithName(BSTR name, IDOMElement* form, IDOMElement** element)
