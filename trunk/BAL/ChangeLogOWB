@@ -1,3 +1,12 @@
+2009-10-07  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        Fix clipping position
+
+        * Graphics/WebCore/SDL/BCGraphicsContextSDL.cpp:
+        (WebCore::GraphicsContext::savePlatformState):
+
 2009-10-06  Andrea Palmatè  <andrea@amigasoft.net>
 
         Reviewed by Olivier DOLE.

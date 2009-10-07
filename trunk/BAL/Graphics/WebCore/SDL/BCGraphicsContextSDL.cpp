@@ -90,7 +90,7 @@ void GraphicsContext::savePlatformState()
 
     SDL_Rect clipRect = {0, 0, 0, 0};
     SDL_GetClipRect(m_data->surface, &clipRect);
-    IntRect clippingRect(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+    IntRect clippingRect(clipRect.x - origin().x(), clipRect.y - origin().y(), clipRect.w, clipRect.h);
     m_data->clipRect.append(clippingRect);
     m_common->stack.append(m_common->state);
 }

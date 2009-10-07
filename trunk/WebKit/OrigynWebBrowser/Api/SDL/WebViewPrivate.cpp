@@ -83,15 +83,19 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         frame->view()->adjustViewSize();
     }
 
-    GraphicsContext ctx(m_webView->viewWindow());
-    ctx.save();
-    ctx.setBalExposeEvent(&event);
-    IntRect rect(m_webView->dirtyRegion());
-    if (frame->contentRenderer() && frame->view() && !rect.isEmpty()) {
+    if (frame->contentRenderer() && frame->view()) {
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = m_webView->dirtyRegion();
         IntRect d = dirty;
+
+        if (dirty.isEmpty())
+            return;
+
         m_webView->clearDirtyRegion();
+
+        GraphicsContext ctx(m_webView->viewWindow());
+        ctx.save();
+
         if (!m_hUpdateRect.isEmpty()) {
             frame->view()->paint(&ctx, m_hUpdateRect);
             dirty.unite(m_hUpdateRect);
@@ -126,9 +130,9 @@ void WebViewPrivate::onExpose(BalEventExpose event)
             m_scrollUpdateRect = IntRect();
         }
 
+        ctx.restore();  
         updateView(ctx.platformContext(), dirty);
     }
-    ctx.restore();  
 }
 
 void WebViewPrivate::onKeyDown(BalEventKey event)
