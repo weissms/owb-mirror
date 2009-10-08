@@ -1,0 +1,1 @@
+BCTextCodecQt.h TextCodecQt.h

@@ -1,0 +1,940 @@
+#       This file gives a list of all WebKit files that may be used by BAL/scripts to generate BI/BC files.
+#       It may be splited in several files in futur (one by BAL module, for exemple).
+#
+#       few rules:
+#       - file path must be relative to BAL/scripts
+#       - all lines starting with '#' are comments
+#       - try to keep sorted on BAL module (Database, Facilities, ...)
+#       - empty lines will be ignored (as well as comments) by scripts using this file
+#
+
+
+
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AXObjectCacheAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.cpp
+BAL/Accessibility/WebCore/Gtk	WebCore/accessibility/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
+BAL/Accessibility/WebCore/Qt	WebCore/accessibility/qt/AccessibilityObjectQt.cpp
+
+BAL/Skeletons/Database	WebCore/platform/sql/SQLValue.h
+BAL/Skeletons/Database	WebCore/platform/sql/SQLiteDatabase.h
+BAL/Skeletons/Database	WebCore/platform/sql/SQLiteFileSystem.h
+BAL/Skeletons/Database	WebCore/platform/sql/SQLiteStatement.h
+BAL/Skeletons/Database	WebCore/platform/sql/SQLiteTransaction.h
+
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLValue.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLValue.h
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteAuthorizer.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteDatabase.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteDatabase.h
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteFileSystem.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteFileSystem.h
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteStatement.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteStatement.h
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteTransaction.cpp
+BAL/Database/WebCore/SQLite	WebCore/platform/sql/SQLiteTransaction.h
+
+
+BAL/Skeletons/Events	WebCore/platform/EventLoop.h
+BAL/Skeletons/Events	WebCore/platform/PlatformKeyboardEvent.h
+BAL/Skeletons/Events	WebCore/platform/PlatformMouseEvent.h
+BAL/Skeletons/Events	WebCore/platform/PlatformWheelEvent.h
+
+BAL/Events/WebCore/Gtk	WebCore/page/gtk/EventHandlerGtk.cpp
+BAL/Events/WebCore/Gtk	WebCore/platform/gtk/EventLoopGtk.cpp
+BAL/Events/WebCore/Gtk	WebCore/platform/gtk/KeyEventGtk.cpp	BCPlatformKeyboardEventGtk.cpp
+BAL/Events/WebCore/Gtk	WebCore/platform/gtk/MouseEventGtk.cpp	BCPlatformMouseEventGtk.cpp
+BAL/Events/WebCore/Gtk	WebCore/platform/gtk/WheelEventGtk.cpp	BCPlatformWheelEventGtk.cpp
+BAL/Events/WebCore/Qt	WebCore/platform/qt/EventLoopQt.cpp
+BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformKeyboardEventQt.cpp
+BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformMouseEventQt.cpp
+BAL/Events/WebCore/Qt	WebCore/platform/qt/WheelEventQt.cpp	BCPlatformWheelEventQt.cpp
+BAL/Events/WebCore/WK	WebCore/platform/EventLoop.h
+BAL/Events/WebCore/WK	WebCore/platform/PlatformKeyboardEvent.h
+BAL/Events/WebCore/WK	WebCore/platform/PlatformMouseEvent.h
+BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
+BAL/Events/WebCore/WK	WebCore/platform/KeyboardCodes.h
+
+
+BAL/Skeletons/Facilities    WebCore/platform/CrossThreadCopier.h
+BAL/Skeletons/Facilities	WebCore/platform/FileChooser.h
+BAL/Skeletons/Facilities	WebCore/platform/FloatConversion.h
+BAL/Skeletons/Facilities	WebCore/platform/Language.h
+BAL/Skeletons/Facilities	WebCore/platform/Logging.h
+BAL/Skeletons/Facilities	WebCore/platform/MIMETypeRegistry.h
+BAL/Skeletons/Facilities	WebCore/platform/SSLKeyGenerator.h
+BAL/Skeletons/Facilities	WebCore/platform/ThreadGlobalData.h
+BAL/Skeletons/Facilities	WebCore/platform/network/HTTPParsers.h
+
+BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/FileChooserGtk.cpp	BCFileChooserGtk.cpp
+BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/Language.cpp
+BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/LoggingGtk.cpp
+BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETypeRegistryGtk.cpp
+BAL/Facilities/WebCore/Qt	WebCore/platform/qt/FileChooserQt.cpp
+BAL/Facilities/WebCore/Qt	WebCore/platform/qt/LoggingQt.cpp
+BAL/Facilities/WebCore/Qt	WebCore/platform/qt/MIMETypeRegistryQt.cpp
+BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.h
+BAL/Facilities/WebCore/WK   WebCore/platform/CrossThreadCopier.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.h
+BAL/Facilities/WebCore/WK	WebCore/platform/FloatConversion.h
+BAL/Facilities/WebCore/WK	WebCore/platform/Language.h
+BAL/Facilities/WebCore/WK	WebCore/platform/Logging.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/Logging.h
+BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.h
+BAL/Facilities/WebCore/WK	WebCore/platform/SSLKeyGenerator.h
+BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.h
+BAL/Facilities/WebCore/WK	WebCore/platform/network/HTTPParsers.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/network/HTTPParsers.h
+
+
+BAL/Skeletons/Filesystem	WebCore/platform/FileSystem.h
+
+BAL/Filesystem/WebCore/Gtk	WebCore/platform/gtk/FileSystemGtk.cpp	BCFileSystemGtk.cpp
+BAL/Filesystem/WebCore/Posix	WebCore/platform/posix/FileSystemPOSIX.cpp BCFileSystemPosix.cpp
+BAL/Filesystem/WebCore/Qt	WebCore/platform/qt/FileSystemQt.cpp
+BAL/Filesystem/WebCore/WK	WebCore/platform/FileSystem.h
+
+
+BAL/Skeletons/Fonts	WebCore/platform/graphics/Font.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontCache.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontDescription.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontFallbackList.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontFamily.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontRenderingMode.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSelector.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSmoothingMode.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/FontTraitsMask.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphBuffer.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphPageTreeNode.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphWidthMap.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/SegmentedFontData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/SimpleFontData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/StringTruncator.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/TextRun.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/WidthIterator.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontPlatformData.h
+
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCacheGtk.cpp	BCFontCacheCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontGtk.cpp	BCFontGtk.cpp
+BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformData.h
+BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp	BCFontPlatformDataGtk.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/GlyphPageTreeNodeGtk.cpp	BCGlyphPageTreeNodeCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/SimpleFontDataGtk.cpp	BCSimpleFontDataCairo.cpp
+BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontCustomPlatformDataPango.cpp
+BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontPlatformDataPango.cpp
+BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp
+BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/SimpleFontDataPango.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCacheQt.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontFallbackListQt.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformData.h
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformDataQt.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt43.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/GlyphPageTreeNodeQt.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/SimpleFontDataQt.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/Font.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/Font.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontCache.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontCache.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontData.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontData.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontDescription.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontDescription.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFallbackList.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFallbackList.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFamily.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFamily.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontFastPath.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontRenderingMode.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSelector.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSmoothingMode.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontTraitsMask.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphBuffer.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SegmentedFontData.h
+BAL/Fonts/WebCore/WK    WebCore/platform/graphics/SegmentedFontData.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/TextRun.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.h
+
+
+BAL/Skeletons/Geolocation   WebCore/platform/GeolocationService.h
+
+BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.cpp
+BAL/Geolocation/WebCore/Gtk WebCore/platform/gtk/GeolocationServiceGtk.h
+BAL/Geolocation/WebCore/Mock  WebCore/platform/mock/GeolocationServiceMock.cpp
+BAL/Geolocation/WebCore/Mock  WebCore/platform/mock/GeolocationServiceMock.h
+BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.cpp
+BAL/Geolocation/WebCore/WK	WebCore/platform/GeolocationService.h
+
+
+BAL/Skeletons/Graphics	WebCore/platform/animation/Animation.h
+BAL/Skeletons/Graphics	WebCore/platform/animation/AnimationList.h
+BAL/Skeletons/Graphics	WebCore/platform/animation/TimingFunction.h
+BAL/Skeletons/Graphics	WebCore/platform/DragData.h
+BAL/Skeletons/Graphics	WebCore/platform/DragImage.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/BitmapImage.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Color.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/DashArray.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatPoint.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatPoint3D.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatQuad.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatRect.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatSize.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/GeneratedImage.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Generator.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Gradient.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/GraphicsContext.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/GraphicsLayerClient.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/GraphicsLayer.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/GraphicsTypes.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Image.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageBuffer.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageObserver.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageSource.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/IntPoint.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/IntRect.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/IntSize.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/IntSizeHash.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Path.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/PathTraversalState.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Pattern.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/Pen.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/TextRenderingMode.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEBlend.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEColorMatrix.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComponentTransfer.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComposite.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/Filter.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/MatrixTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/PerspectiveTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/RotateTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/ScaleTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/SkewTransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperation.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperations.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TranslateTransformOperation.h
+
+
+
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/CairoPath.h BCCairoPath.h
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GradientCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageBufferCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageBufferData.h
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/ImageCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/PathCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/PatternCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/TransformationMatrixCairo.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/graphics/gtk/ColorGtk.cpp	BCColorGtk.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/graphics/gtk/ImageGtk.cpp	BCImageGtk.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/graphics/gtk/IntPointGtk.cpp	BCIntPointGtk.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/graphics/gtk/IntRectGtk.cpp	BCIntRectGtk.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/gtk/DragDataGtk.cpp	BCDragDataGtk.cpp
+BAL/Graphics/WebCore/Gtk	WebCore/platform/gtk/DragImageGtk.cpp	BCDragImageGtk.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ColorQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatPointQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatRectQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GradientQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsContextQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageBufferData.h
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageBufferQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageDecoderQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageDecoderQt.h
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntPointQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntRectQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/IntSizeQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/PathQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/PatternQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/StillImageQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/StillImageQt.h
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/TransformationMatrixQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/qt/DragDataQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/qt/DragImageQt.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/DragData.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/DragData.h
+BAL/Graphics/WebCore/WK	WebCore/platform/DragImage.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/DragImage.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Color.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Color.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/DashArray.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint3D.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint3D.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatQuad.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatQuad.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatRect.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatRect.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatSize.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatSize.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContextPrivate.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayerClient.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayer.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayer.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsTypes.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsTypes.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Image.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Image.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/ImageBuffer.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageBuffer.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageObserver.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntPoint.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntSize.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntSizeHash.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Path.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Path.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/PathTraversalState.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/PathTraversalState.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
+BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
+BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.h
+BAL/Graphics/WebCore/WK WebCore/platform/animation/TimingFunction.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/Generator.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/UnitBezier.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/IdentityTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/PerspectiveTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/PerspectiveTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/RotateTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/RotateTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/ScaleTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/ScaleTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/SkewTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/SkewTransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperation.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.cpp BCFEBlendWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEBlend.h BCFEBlendWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.cpp BCFEColorMatrixWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEColorMatrix.h BCFEColorMatrixWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.cpp BCFEComponentTransferWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.h BCFEComponentTransferWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.cpp BCFECompositeWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.h BCFECompositeWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h BCFilterWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h BCFilterEffectWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp BCFilterEffectWK.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.h BCSourceAlphaWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.cpp BCSourceAlphaWK.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.h BCSourceGraphicWK.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.cpp BCSourceGraphicWK.cpp
+
+
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ImageDecoder.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h
+BAL/Skeletons/ImageDecoder  WebCore/platform/image-decoders/bmp/BMPImageReader.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/gif/GIFImageDecoder.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/ico/ICOImageDecoder.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/png/PNGImageDecoder.h
+BAL/Skeletons/ImageDecoder	WebCore/platform/image-decoders/xbm/XBMImageDecoder.h
+
+BAL/ImageDecoder/WebCore/BMP/WK	WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp
+BAL/ImageDecoder/WebCore/BMP/WK	WebCore/platform/image-decoders/bmp/BMPImageDecoder.h
+BAL/ImageDecoder/WebCore/BMP/WK WebCore/platform/image-decoders/bmp/BMPImageReader.cpp
+BAL/ImageDecoder/WebCore/BMP/WK WebCore/platform/image-decoders/bmp/BMPImageReader.h
+BAL/ImageDecoder/WebCore/Cairo  WebCore/platform/image-decoders/cairo/ImageDecoderCairo.cpp
+BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp
+BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageDecoder.h
+BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageReader.cpp
+BAL/ImageDecoder/WebCore/GIF/WK	WebCore/platform/image-decoders/gif/GIFImageReader.h
+BAL/ImageDecoder/WebCore/ICO/WK	WebCore/platform/image-decoders/ico/ICOImageDecoder.cpp
+BAL/ImageDecoder/WebCore/ICO/WK	WebCore/platform/image-decoders/ico/ICOImageDecoder.h
+BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.cpp
+BAL/ImageDecoder/WebCore/JPEG/WK	WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h
+BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.cpp
+BAL/ImageDecoder/WebCore/PNG/WK	WebCore/platform/image-decoders/png/PNGImageDecoder.h
+BAL/ImageDecoder/WebCore/Qt WebCore/platform/image-decoders/qt/RGBA32BufferQt.cpp BCRGBA32BufferQt.cpp
+BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.cpp
+BAL/ImageDecoder/WebCore/WK	WebCore/platform/image-decoders/ImageDecoder.h
+BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp
+BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDecoder.h
+
+
+
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/Collator.h
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/UTF8.h
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h
+BAL/Skeletons/Internationalization	WebCore/platform/LocalizedStrings.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/AtomicString.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/AtomicStringImpl.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/Base64.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/BidiContext.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/BidiResolver.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/CString.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/ParserUtilities.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/PlatformString.h	
+BAL/Skeletons/Internationalization	WebCore/platform/text/RegularExpression.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/SegmentedString.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/StringBuffer.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/StringBuilder.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/StringHash.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/StringImpl.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextBoundaries.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextBreakIterator.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodec.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecICU.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecLatin1.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUTF16.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextCodecUserDefined.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncoding.h
+BAL/Skeletons/Internationalization  WebCore/platform/text/TextEncodingDetector.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextEncodingRegistry.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/TextStream.h
+BAL/Skeletons/Internationalization	WebCore/platform/text/UnicodeRange.h
+BAL/Skeletons/Internationalization  WebCore/platform/text/AtomicStringHash.h
+
+
+BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/Collator.h
+BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/CollatorDefault.cpp
+BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.cpp
+BAL/Internationalization/WTF	JavaScriptCore/wtf/unicode/UTF8.h
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h UnicodeGLib.h
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeGLib.cpp
+BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeMacrosFromICU.h
+BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
+BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCUnicodeICU.h
+BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
+BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp
+BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBoundariesICU.cpp
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorICU.cpp
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorInternalICU.h
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.cpp
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.h
+BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextEncodingDetectorICU.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/qt/Localizations.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/StringQt.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBoundaries.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBreakIteratorQt.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.h
+BAL/Internationalization/WebCore/None WebCore/platform/text/TextEncodingDetectorNone.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/LocalizedStrings.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicStringImpl.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/Base64.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/Base64.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiContext.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiContext.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiResolver.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/CString.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/CString.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/CharacterNames.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/PlatformString.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/RegularExpression.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/RegularExpression.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/SegmentedString.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/SegmentedString.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/String.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuffer.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringHash.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextBoundaries.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextBreakIterator.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodec.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodec.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecLatin1.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecLatin1.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUTF16.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUTF16.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUserDefined.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodecUserDefined.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextDirection.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncoding.h
+BAL/Internationalization/WebCore/WK WebCore/platform/text/TextEncodingDetector.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncodingRegistry.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextEncodingRegistry.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextStream.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextStream.h
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/UnicodeRange.cpp
+BAL/Internationalization/WebCore/WK	WebCore/platform/text/UnicodeRange.h
+BAL/Internationalization/WebCore/WK     WebCore/platform/text/ParserUtilities.h
+BAL/Internationalization/WebCore/WK WebCore/platform/text/AtomicStringHash.h
+
+
+BAL/Skeletons/Media	WebCore/platform/Sound.h
+BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h
+BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
+
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.h 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.cpp 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.h VideoSinkGStreamer.h
+BAL/Media/WebCore/Gtk	WebCore/platform/gtk/SoundGtk.cpp	BCSoundGtk.cpp
+BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
+BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h
+BAL/Media/WebCore/Qt	WebCore/platform/qt/SoundQt.cpp
+BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.cpp
+BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.h
+BAL/Media/WebCore/WK    WebCore/platform/graphics/MediaPlayerPrivate.h
+BAL/Media/WebCore/WK	WebCore/platform/Sound.h
+
+
+BAL/Skeletons/Memory	JavaScriptCore/wtf/FastMalloc.h
+BAL/Skeletons/Memory    JavaScriptCore/wtf/FastAllocBase.h
+BAL/Skeletons/Memory	JavaScriptCore/wtf/MallocZoneSupport.h
+BAL/Skeletons/Memory	JavaScriptCore/wtf/TCSystemAlloc.h
+BAL/Skeletons/Memory	WebCore/platform/Arena.h
+BAL/Skeletons/Memory	WebCore/platform/AutodrainedPool.h
+
+BAL/Memory/WTF  JavaScriptCore/wtf/FastAllocBase.h
+BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.cpp
+BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.h
+BAL/Memory/WTF	JavaScriptCore/wtf/MallocZoneSupport.h
+BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.cpp
+BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.h
+BAL/Memory/WebCore/WK	WebCore/platform/Arena.cpp
+BAL/Memory/WebCore/WK	WebCore/platform/Arena.h
+BAL/Memory/WebCore/WK	WebCore/platform/AutodrainedPool.h
+
+
+BAL/Skeletons/Network	WebCore/platform/CookieJar.h
+BAL/Skeletons/Network	WebCore/platform/Cookie.h
+BAL/Skeletons/Network	WebCore/platform/network/AuthenticationChallengeBase.h
+BAL/Skeletons/Network	WebCore/platform/network/Credential.h
+BAL/Skeletons/Network   WebCore/platform/network/CredentialStorage.h
+BAL/Skeletons/Network	WebCore/platform/network/FormData.h
+BAL/Skeletons/Network	WebCore/platform/network/FormDataBuilder.h
+BAL/Skeletons/Network	WebCore/platform/network/NetworkStateNotifier.h
+BAL/Skeletons/Network	WebCore/platform/network/ProtectionSpace.h
+BAL/Skeletons/Network   WebCore/platform/network/ProtectionSpaceHash.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceErrorBase.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceHandle.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceHandleClient.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceHandleInternal.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceRequestBase.h
+BAL/Skeletons/Network	WebCore/platform/network/ResourceResponseBase.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/AuthenticationChallenge.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/FormDataStreamCurl.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceError.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceHandleManager.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceRequest.h
+BAL/Skeletons/Network	WebCore/platform/network/curl/ResourceResponse.h
+BAL/Skeletons/Network   WebCore/platform/network/curl/SocketStreamError.h
+BAL/Skeletons/Network   WebCore/platform/network/curl/SocketStreamHandle.h
+
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/AuthenticationChallenge.h
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceError.h
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceHandleCurl.cpp
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceHandleManager.cpp
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceHandleManager.h
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceRequest.h
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/ResourceResponse.h
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/DNSCurl.cpp
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/CookieJarCurl.cpp
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.cpp
+BAL/Network/WebCore/Curl	WebCore/platform/network/curl/FormDataStreamCurl.h
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamError.h
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamHandleCurl.cpp
+BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamHandle.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/AuthenticationChallenge.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequestSoup.cpp
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceResponse.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/ResourceResponseSoup.cpp
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamError.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamHandle.h
+BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamHandleSoup.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceError.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceHandleQt.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceRequest.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceRequestQt.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceResponse.h
+BAL/Network/WebCore/Qt	WebCore/platform/qt/CookieJarQt.cpp
+BAL/Network/WebCore/WK	WebCore/platform/CookieJar.h
+BAL/Network/WebCore/WK	WebCore/platform/Cookie.h
+BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.h
+BAL/Network/WebCore/WK	WebCore/platform/network/Credential.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/Credential.h
+BAL/Network/WebCore/WK  WebCore/platform/network/CredentialStorage.h
+BAL/Network/WebCore/WK  WebCore/platform/network/CredentialStorage.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/DNS.h
+BAL/Network/WebCore/WK	WebCore/platform/network/FormData.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/FormData.h
+BAL/Network/WebCore/WK	WebCore/platform/network/FormDataBuilder.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/FormDataBuilder.h
+BAL/Network/WebCore/WK  WebCore/platform/network/HTTPHeaderMap.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/NetworkStateNotifier.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/ProtectionSpace.h
+BAL/Network/WebCore/WK  WebCore/platform/network/ProtectionSpaceHash.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceErrorBase.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceErrorBase.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceHandle.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceHandle.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceHandleClient.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceHandleInternal.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceRequestBase.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceRequestBase.h
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceResponseBase.cpp
+BAL/Network/WebCore/WK	WebCore/platform/network/ResourceResponseBase.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamErrorBase.cpp
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamErrorBase.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleBase.cpp
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleBase.h
+BAL/Network/WebCore/WK  WebCore/platform/network/SocketStreamHandleClient.h
+
+
+
+
+BAL/Skeletons/Timer WebCore/platform/SharedTimer.h
+BAL/Skeletons/Timer WebCore/platform/SystemTime.h
+BAL/Skeletons/Timer WebCore/platform/Timer.h
+BAL/Skeletons/Timer WebCore/platform/RunLoopTimer.h
+
+BAL/Timer/WebCore/Gtk   WebCore/platform/gtk/SharedTimerGtk.cpp BCSharedTimerGtk.cpp
+BAL/Timer/WebCore/Qt	WebCore/platform/qt/SharedTimerQt.cpp
+BAL/Timer/WebCore/WK	WebCore/platform/SharedTimer.h
+BAL/Timer/WebCore/WK	WebCore/platform/SystemTime.h
+BAL/Timer/WebCore/WK	WebCore/platform/Timer.cpp
+BAL/Timer/WebCore/WK	WebCore/platform/Timer.h
+BAL/Timer/WebCore/WK	WebCore/platform/RunLoopTimer.h
+
+
+BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/AVLTree.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ByteArray.h
+BAL/Skeletons/Types JavaScriptCore/wtf/CrossThreadRefCounted.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
+BAL/Skeletons/Types JavaScriptCore/wtf/DateMath.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/GetPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashCountedSet.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashFunctions.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashIterators.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashMap.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashSet.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashTable.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/HashTraits.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ListHashSet.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ListRefPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Locker.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/MainThread.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/MathExtras.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/MessageQueue.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Noncopyable.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/NotFound.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/OwnArrayPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/OwnFastMallocPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/OwnPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/OwnPtrCommon.h
+BAL/Skeletons/Types JavaScriptCore/wtf/PassOwnPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Skeletons/Types JavaScriptCore/wtf/PossiblyNull.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/PtrAndFlags.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RefCounted.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RefCountedLeakCounter.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtrHashMap.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RetainPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/SegmentedVector.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/StringExtras.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/TCPackedCache.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/TCPageMap.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/TCSpinLock.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ThreadSpecific.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Threading.h
+BAL/Skeletons/Types JavaScriptCore/wtf/TypeTraits.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Vector.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/VectorTraits.h
+BAL/Skeletons/Types WebCore/platform/ContentType.h
+BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrList.h
+BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrListImpl.h
+BAL/Skeletons/Types	WebCore/platform/KURL.h
+BAL/Skeletons/Types	WebCore/platform/KURLHash.h
+BAL/Skeletons/Types	WebCore/platform/SharedBuffer.h
+BAL/Skeletons/Types WebCore/platform/ThreadTimers.h
+BAL/Skeletons/Types	WebCore/platform/TreeShared.h
+BAL/Skeletons/Types	WebCore/platform/graphics/Icon.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RandomNumber.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/RandomNumberSeed.h
+BAL/Skeletons/Types	WebCore/platform/Length.h
+BAL/Skeletons/Types	WebCore/platform/LengthBox.h
+BAL/Skeletons/Types	WebCore/platform/LengthSize.h
+BAL/Skeletons/Types	WebCore/platform/LinkHash.h
+BAL/Skeletons/Types	WebCore/platform/PurgeableBuffer.h
+BAL/Skeletons/Types WebCore/platform/SuddenTermination.h
+
+BAL/Types/WTF	JavaScriptCore/wtf/ASCIICType.h
+BAL/Types/WTF	JavaScriptCore/wtf/AVLTree.h
+BAL/Types/WTF	JavaScriptCore/wtf/Assertions.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/Assertions.h
+BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.h
+BAL/Types/WTF   JavaScriptCore/wtf/CrossThreadRefCounted.h
+BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
+BAL/Types/WTF	JavaScriptCore/wtf/DateMath.h
+BAL/Types/WTF	JavaScriptCore/wtf/DateMath.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/Deque.h
+BAL/Types/WTF	JavaScriptCore/wtf/GetPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashCountedSet.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashFunctions.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashIterators.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashMap.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashSet.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashTable.h
+BAL/Types/WTF	JavaScriptCore/wtf/HashTraits.h
+BAL/Types/WTF	JavaScriptCore/wtf/ListHashSet.h
+BAL/Types/WTF	JavaScriptCore/wtf/ListRefPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/Locker.h
+BAL/Types/WTF	JavaScriptCore/wtf/MainThread.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/MainThread.h
+BAL/Types/WTF	JavaScriptCore/wtf/MathExtras.h
+BAL/Types/WTF	JavaScriptCore/wtf/MessageQueue.h
+BAL/Types/WTF	JavaScriptCore/wtf/Noncopyable.h
+BAL/Types/WTF	JavaScriptCore/wtf/NotFound.h
+BAL/Types/WTF	JavaScriptCore/wtf/OwnArrayPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/OwnFastMallocPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/OwnPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/OwnPtrCommon.h
+BAL/Types/WTF   JavaScriptCore/wtf/PassOwnPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Types/WTF   JavaScriptCore/wtf/PossiblyNull.h
+BAL/Types/WTF	JavaScriptCore/wtf/PtrAndFlags.h
+BAL/Types/WTF	JavaScriptCore/wtf/RefCounted.h
+BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.h
+BAL/Types/WTF	JavaScriptCore/wtf/RefPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/RefPtrHashMap.h
+BAL/Types/WTF	JavaScriptCore/wtf/RetainPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/SegmentedVector.h
+BAL/Types/WTF	JavaScriptCore/wtf/StdLibExtras.h
+BAL/Types/WTF	JavaScriptCore/wtf/StringExtras.h
+BAL/Types/WTF	JavaScriptCore/wtf/TCPackedCache.h
+BAL/Types/WTF	JavaScriptCore/wtf/TCPageMap.h
+BAL/Types/WTF	JavaScriptCore/wtf/TCSpinLock.h
+BAL/Types/WTF	JavaScriptCore/wtf/ThreadSpecific.h
+BAL/Types/WTF	JavaScriptCore/wtf/Threading.cpp
+BAL/Types/WTF   JavaScriptCore/wtf/TypeTraits.h
+BAL/Types/WTF   JavaScriptCore/wtf/TypeTraits.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/Vector.h
+BAL/Types/WTF	JavaScriptCore/wtf/VectorTraits.h
+BAL/Types/WTF	JavaScriptCore/wtf/dtoa.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/dtoa.h
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.cpp
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/Threading.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/ThreadingGtk.cpp	BCThreadingGtk.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/GOwnPtr.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/GOwnPtr.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/MainThreadGtk.cpp
+BAL/Types/WTF/None	JavaScriptCore/wtf/Threading.h
+BAL/Types/WTF/None	JavaScriptCore/wtf/ThreadingNone.cpp
+BAL/Types/WTF/Pthreads	JavaScriptCore/wtf/Threading.h
+BAL/Types/WTF/Pthreads	JavaScriptCore/wtf/ThreadingPthreads.cpp
+BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/ThreadingQt.cpp
+BAL/Types/WTF/Qt	JavaScriptCore/wtf/Threading.h
+BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/MainThreadQt.cpp
+BAL/Types/WebCore/Gtk	WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp
+BAL/Types/WebCore/Qt	WebCore/platform/graphics/qt/IconQt.cpp       BCIconQt.cpp
+BAL/Types/WebCore/Qt	WebCore/platform/qt/KURLQt.cpp
+BAL/Types/WebCore/Qt	WebCore/platform/qt/SharedBufferQt.cpp
+BAL/Types/WebCore/WK    WebCore/platform/ContentType.h
+BAL/Types/WebCore/WK    WebCore/platform/ContentType.cpp
+BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrList.h
+BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.cpp
+BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.h
+BAL/Types/WebCore/WK	WebCore/platform/graphics/Icon.h
+BAL/Types/WebCore/WK	WebCore/platform/KURL.cpp
+BAL/Types/WebCore/WK	WebCore/platform/KURL.h
+BAL/Types/WebCore/WK	WebCore/platform/KURLHash.h
+BAL/Types/WebCore/WK	WebCore/platform/network/HTTPHeaderMap.h
+BAL/Types/WebCore/WK    WebCore/platform/Length.cpp
+BAL/Types/WebCore/WK    WebCore/platform/Length.h
+BAL/Types/WebCore/WK    WebCore/platform/LengthBox.h
+BAL/Types/WebCore/WK    WebCore/platform/LengthSize.h
+BAL/Types/WebCore/WK    WebCore/platform/LinkHash.cpp
+BAL/Types/WebCore/WK    WebCore/platform/LinkHash.h
+BAL/Types/WebCore/WK    WebCore/platform/PurgeableBuffer.h
+BAL/Types/WebCore/WK	WebCore/platform/ScrollTypes.h
+BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.cpp
+BAL/Types/WebCore/WK	WebCore/platform/SharedBuffer.h
+BAL/Types/WebCore/WK    WebCore/platform/SuddenTermination.h
+BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.h
+BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.cpp
+BAL/Types/WebCore/WK	WebCore/platform/TreeShared.h
+
+
+BAL/Skeletons/Widgets	WebCore/platform/ContextMenu.h
+BAL/Skeletons/Widgets	WebCore/platform/ContextMenuItem.h
+BAL/Skeletons/Widgets	WebCore/platform/Cursor.h
+BAL/Skeletons/Widgets	WebCore/platform/HostWindow.h
+BAL/Skeletons/Widgets	WebCore/platform/Pasteboard.h
+BAL/Skeletons/Widgets	WebCore/platform/PlatformScreen.h
+BAL/Skeletons/Widgets	WebCore/platform/PopupMenu.h
+BAL/Skeletons/Widgets	WebCore/platform/PopupMenuClient.h
+BAL/Skeletons/Widgets   WebCore/platform/PopupMenuStyle.h
+BAL/Skeletons/Widgets	WebCore/platform/ScrollView.h
+BAL/Skeletons/Widgets	WebCore/platform/Scrollbar.h
+BAL/Skeletons/Widgets	WebCore/platform/ScrollbarClient.h
+BAL/Skeletons/Widgets	WebCore/platform/SearchPopupMenu.h
+BAL/Skeletons/Widgets	WebCore/platform/ThemeTypes.h
+BAL/Skeletons/Widgets	WebCore/platform/Widget.h
+BAL/Skeletons/Widgets	WebCore/platform/gtk/ClipboardGtk.h
+BAL/Skeletons/Widgets	WebCore/platform/gtk/RenderThemeGtk.h
+BAL/Skeletons/Widgets   WebCore/platform/ScrollbarTheme.h
+BAL/Skeletons/Widgets   WebCore/platform/ScrollbarThemeComposite.h
+BAL/Skeletons/Widgets   WebCore/platform/Theme.h
+
+BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/DragControllerGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/FrameGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuGtk.cpp	BCContextMenuGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuItemGtk.cpp	BCContextMenuItemGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.h	CursorGtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.cpp	BCCursorGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardGtk.cpp	BCPasteboardGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScreenGtk.cpp	BCPlatformScreenGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PopupMenuGtk.cpp	BCPopupMenuGtk.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.h
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/SearchPopupMenuGtk.cpp	BCSearchPopupMenuGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/WidgetGtk.cpp	BCWidgetGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/gtkdrawing.h
+BAL/Widgets/WebCore/Gtk	WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp PasteboardHelperGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.h PasteboardHelperGtk.h
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.h
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarGtk.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.h
+BAL/Widgets/WebCore/Qt	WebCore/page/qt/DragControllerQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/page/qt/EventHandlerQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/page/qt/FrameQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ClipboardQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ClipboardQt.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ContextMenuItemQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ContextMenuQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/CursorQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PasteboardQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PlatformScreenQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PopupMenuQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPageClient.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.cpp	QWebPopup.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.h	QWebPopup.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollViewQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollbarQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollbarThemeQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollbarThemeQt.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/SearchPopupMenuQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/WidgetQt.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenu.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenu.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenuItem.h
+BAL/Widgets/WebCore/WK	WebCore/platform/Cursor.h
+BAL/Widgets/WebCore/WK	WebCore/platform/HostWindow.h
+BAL/Widgets/WebCore/WK	WebCore/platform/Pasteboard.h
+BAL/Widgets/WebCore/WK	WebCore/platform/PlatformMenuDescription.h
+BAL/Widgets/WebCore/WK	WebCore/platform/PlatformScreen.h
+BAL/Widgets/WebCore/WK	WebCore/platform/PopupMenu.h
+BAL/Widgets/WebCore/WK  WebCore/platform/PopupMenuStyle.h
+BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarClient.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollView.h
+BAL/Widgets/WebCore/WK	WebCore/platform/SearchPopupMenu.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ThemeTypes.h
+BAL/Widgets/WebCore/WK	WebCore/platform/Widget.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/Widget.h
+BAL/Widgets/WebCore/WK  WebCore/platform/ScrollView.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarTheme.h
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarThemeComposite.cpp
+BAL/Widgets/WebCore/WK	WebCore/platform/ScrollbarThemeComposite.h
+BAL/Widgets/WebCore/WK  WebCore/platform/Theme.cpp
+BAL/Widgets/WebCore/WK  WebCore/platform/Theme.h
+
+
+Base	WebCore/platform/NotImplemented.h	NotImplemented.h
+Base	WebCore/platform/StaticConstructors.h	StaticConstructors.h
+Base/wtf	JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
+Base/wtf	JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
+Base/wtf	JavaScriptCore/wtf/Forward.h	Forward.h
+Base/wtf	JavaScriptCore/wtf/Platform.h	Platform.h
+Base/wtf	JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h

@@ -1,0 +1,598 @@
+2009-10-01  Mario Bensi  <mbensi@pleyo.com>
+
+        add ENABLE_DATAGRID.
+
+        * CMakeLists.txt:
+
+2009-06-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Add svg/graphics sources in WebCore.
+
+        * svg/CMakeLists.txt:
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Avoid crashing when the client application returns 0.
+
+        Now we set the returned value to JS undefined.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret. 
+
+        Build fix when INSPECTOR is activated: 
+        ScriptObjectQuarantine.cpp is needed when INSPECTOR is ON 
+        but we were including Database.h which would break the build if 
+        DATABASE is OFF. 
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+
+2009-04-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Better build fix when DOM_STORAGE is enabled but not INSPECTOR.
+        ScriptObjectQuarantine is a wrapper used only by the
+        WebInspector so I added an #if guard in the header and compile
+        the cpp file when both option are provided.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-04-02  Mario Bensi  <mbensi@pleyo.com>
+
+        fix compilation ScriptObjectQuarantine.cpp depend of storage and database.
+
+        * bindings/js/CMakeLists.txt:
+
+2009-04-02  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * CMakeLists.txt:
+        * bridge/npapi.h:
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        Fix Mac Compilation
+
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Change ResourceHandle object ownership to avoid destroying it
+        during error handling.
+
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::continueAfterContentPolicy):
+
+2009-03-16  Mario Bensi  <mbensi@pleyo.com>
+
+        remove #if ENABLE(DATABASE) in ScriptObjectQuarantine
+        and compile ScriptObjectQuarantine.cpp when DATABASE is enabled by
+        cmake.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix test compilation in release.
+
+        * CMakeLists.txt:
+
+2009-02-13  Olivier DOLE  <odole@pleyo.com>
+
+        Build fix when DOM_STORAGE is enabled and INSPECTOR disabled.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::sessionStorage):
+        (WebCore::DOMWindow::localStorage):
+
+2009-02-03  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix cmake : creation of webcore directory is ok
+
+
+        * CMakeLists.txt:
+
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix bug #325 (build fix).
+
+        * loader/EmptyClients.h:
+        * svg/SVGDocumentExtensions.cpp:
+        (WebCore::SVGDocumentExtensions::reportWarning):
+        (WebCore::SVGDocumentExtensions::reportError):
+        * wml/WMLErrorHandling.cpp:
+        (WebCore::reportWMLError):
+
+2008-12-23  Mario Bensi  <mbensi@pleyo.com>
+
+        fix ticket #322.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::paintBorder):
+
+2008-12-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix parallel build for webcore.
+        Fix webcore dependency.
+
+        * CMakeLists.txt:
+
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Rename BalObject into WebObject.
+
+        * CMakeLists.txt:
+        * bridge/bal/bal_class.cpp:
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/bal_class.h:
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::stringValue):
+        * bridge/bal/bal_instance.h:
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+        * bridge/bal/bal_runtime.h:
+
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when XPATH and XSLT are enabled and INSPECTOR is disabled.
+
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessor.cpp:
+        (WebCore::XSLTProcessor::parseErrorFunc):
+        (WebCore::docLoaderFunc):
+
+2008-12-17  Mario  <mbensi@pleyo.com>
+
+        fix addons.
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * CMakeLists.txt:
+
+2008-12-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Not reviewed.
+
+        Fix build when the inscpector controller is disabled.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::printErrorMessage):
+        (WebCore::JSDOMWindowBase::supportsProfiling):
+        * loader/FrameLoader.cpp:
+
+2008-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        fix WebCore build for SVG.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        gtk build fix
+
+        * CMakeLists.txt:
+        * wml/CMakeLists.txt:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        remove Console when the Inspector is set to off
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::printErrorMessage):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::mark):
+        * dom/Document.cpp:
+        (WebCore::Document::reportException):
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::reportErrorToConsole):
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::printAccessDeniedMessage):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::reportLocalLoadFailed):
+        (WebCore::FrameLoader::shouldAllowNavigation):
+        * page/CMakeLists.txt:
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::clear):
+        (WebCore::DOMWindow::postMessageTimerFired):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::reportUnsafeUsage):
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        build fix and merge
+
+        * CMakeLists.txt:
+        * ChangeLog:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSWorkerContext.cpp:
+        (WebCore::jsWorkerContextNavigator):
+        * bindings/js/ScriptCallFrame.cpp: Added.
+        (WebCore::ScriptCallFrame::ScriptCallFrame):
+        (WebCore::ScriptCallFrame::~ScriptCallFrame):
+        (WebCore::ScriptCallFrame::argumentAt):
+        * bindings/js/ScriptCallFrame.h: Added.
+        (WebCore::ScriptCallFrame::functionName):
+        (WebCore::ScriptCallFrame::sourceURL):
+        (WebCore::ScriptCallFrame::lineNumber):
+        (WebCore::ScriptCallFrame::argumentCount):
+        * bindings/js/ScriptCallStack.cpp: Added.
+        (WebCore::ScriptCallStack::ScriptCallStack):
+        (WebCore::ScriptCallStack::~ScriptCallStack):
+        (WebCore::ScriptCallStack::at):
+        (WebCore::ScriptCallStack::size):
+        (WebCore::ScriptCallStack::initialize):
+        * bindings/js/ScriptCallStack.h: Added.
+        (WebCore::ScriptCallStack::state):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::updateSecurityOrigin):
+        * bindings/js/ScriptController.h:
+        * bindings/js/ScriptString.h:
+        (WebCore::ScriptString::ScriptString):
+        (WebCore::ScriptString::operator==):
+        (WebCore::ScriptString::operator!=):
+        * bindings/js/ScriptValue.cpp:
+        (WebCore::ScriptValue::getString):
+        (WebCore::ScriptValue::isNull):
+        (WebCore::ScriptValue::isUndefined):
+        * bindings/js/ScriptValue.h:
+        * bindings/objc/DOMAbstractView.mm:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * css/CSSCursorImageValue.cpp:
+        (WebCore::CSSCursorImageValue::~CSSCursorImageValue):
+        (WebCore::CSSCursorImageValue::updateIfSVGCursorIsUsed):
+        (WebCore::CSSCursorImageValue::removeReferencedElement):
+        * css/CSSCursorImageValue.h:
+        * dom/Document.cpp:
+        (WebCore::Document::setDomain):
+        (WebCore::Document::resetWMLPageState):
+        * dom/Worker.cpp:
+        (WebCore::Worker::notifyFinished):
+        * dom/WorkerContext.cpp:
+        (WebCore::WorkerContext::WorkerContext):
+        (WebCore::WorkerContext::navigator):
+        * dom/WorkerContext.h:
+        (WebCore::WorkerContext::create):
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * dom/WorkerThread.h:
+        * html/HTMLInputElement.cpp:
+        (WebCore::notifyFormStateChanged):
+        (WebCore::HTMLInputElement::setInputType):
+        (WebCore::HTMLInputElement::type):
+        (WebCore::HTMLInputElement::attach):
+        (WebCore::HTMLInputElement::setValue):
+        (WebCore::HTMLInputElement::setValueFromRenderer):
+        (WebCore::HTMLInputElement::setFileListFromRenderer):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setSelectedIndex):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::notifyFormStateChanged):
+        (WebCore::HTMLTextAreaElement::HTMLTextAreaElement):
+        (WebCore::HTMLTextAreaElement::updateValue):
+        (WebCore::HTMLTextAreaElement::setValue):
+        * inspector/InspectorController.cpp:
+        (WebCore::ConsoleMessage::ConsoleMessage):
+        (WebCore::ConsoleMessage::isEqual):
+        (WebCore::InspectorController::addMessageToConsole):
+        (WebCore::InspectorController::startGroup):
+        (WebCore::InspectorController::addScriptConsoleMessage):
+        (WebCore::InspectorController::count):
+        (WebCore::InspectorController::startTiming):
+        (WebCore::InspectorController::stopTiming):
+        * inspector/InspectorController.h:
+        * inspector/front-end/Console.js:
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::formStateDidChange):
+        * page/CMakeLists.txt:
+        * page/ChromeClient.h:
+        * page/Console.cpp:
+        (WebCore::getFirstArgumentAsString):
+        (WebCore::Console::addMessage):
+        (WebCore::Console::debug):
+        (WebCore::Console::error):
+        (WebCore::Console::info):
+        (WebCore::Console::log):
+        (WebCore::Console::dir):
+        (WebCore::Console::dirxml):
+        (WebCore::Console::trace):
+        (WebCore::Console::assertCondition):
+        (WebCore::Console::count):
+        (WebCore::Console::profile):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::time):
+        (WebCore::Console::timeEnd):
+        (WebCore::Console::group):
+        (WebCore::Console::warn):
+        * page/Console.h:
+        * page/Console.idl:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::createScrollbar):
+        * page/Navigator.cpp:
+        (WebCore::Navigator::appVersion):
+        (WebCore::Navigator::javaEnabled):
+        * page/Navigator.h:
+        * page/NavigatorBase.cpp: Added.
+        (WebCore::NavigatorBase::~NavigatorBase):
+        (WebCore::NavigatorBase::appName):
+        (WebCore::NavigatorBase::appVersion):
+        (WebCore::NavigatorBase::platform):
+        (WebCore::NavigatorBase::appCodeName):
+        (WebCore::NavigatorBase::product):
+        (WebCore::NavigatorBase::productSub):
+        (WebCore::NavigatorBase::vendor):
+        (WebCore::NavigatorBase::vendorSub):
+        (WebCore::NavigatorBase::onLine):
+        * page/NavigatorBase.h: Added.
+        * page/WorkerNavigator.cpp: Added.
+        (WebCore::WorkerNavigator::WorkerNavigator):
+        (WebCore::WorkerNavigator::~WorkerNavigator):
+        (WebCore::WorkerNavigator::userAgent):
+        * page/WorkerNavigator.h: Added.
+        (WebCore::WorkerNavigator::create):
+        * page/WorkerNavigator.idl: Added.
+        * platform/network/NetworkStateNotifier.cpp:
+        (WebCore::networkStateNotifier):
+        * platform/network/mac/NetworkStateNotifierMac.cpp:
+        (WebCore::NetworkStateNotifier::NetworkStateNotifier):
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::addChild):
+        (WebCore::RenderButton::styleDidChange):
+        (WebCore::RenderButton::setupInnerStyle):
+        * rendering/RenderButton.h:
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::adjustButtonInnerStyle):
+        * rendering/RenderTheme.h:
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::adjustSliderThumbSize):
+        (WebCore::RenderThemeWin::adjustButtonInnerStyle):
+        * rendering/RenderThemeWin.h:
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::~SVGCursorElement):
+        (WebCore::SVGCursorElement::addClient):
+        (WebCore::SVGCursorElement::removeClient):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::SVGElement):
+        (WebCore::SVGElement::~SVGElement):
+        * svg/SVGElement.h:
+        (WebCore::SVGElement::setCursorElement):
+        (WebCore::SVGElement::setCursorImageValue):
+        * wml/CMakeLists.txt:
+        * wml/WMLCardElement.cpp:
+        * wml/WMLCardElement.h:
+        * wml/WMLEventHandlingElement.cpp:
+        (WebCore::WMLEventHandlingElement::registerDoElement):
+        * wml/WMLEventHandlingElement.h:
+        * wml/WMLGoElement.cpp:
+        (WebCore::WMLGoElement::WMLGoElement):
+        (WebCore::WMLGoElement::registerPostfieldElement):
+        (WebCore::WMLGoElement::parseMappedAttribute):
+        (WebCore::WMLGoElement::executeTask):
+        (WebCore::WMLGoElement::parseContentType):
+        (WebCore::WMLGoElement::preparePOSTRequest):
+        (WebCore::WMLGoElement::prepareGETRequest):
+        * wml/WMLGoElement.h:
+        * wml/WMLPostfieldElement.cpp: Added.
+        (WebCore::WMLPostfieldElement::WMLPostfieldElement):
+        (WebCore::WMLPostfieldElement::parseMappedAttribute):
+        (WebCore::WMLPostfieldElement::insertedIntoDocument):
+        * wml/WMLPostfieldElement.h: Added.
+        (WebCore::WMLPostfieldElement::name):
+        (WebCore::WMLPostfieldElement::value):
+        * wml/WMLTagNames.in:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Clean in cmake
+
+        * bridge/CMakeLists.txt:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Fix cmake due to balwtf removal.
+
+        * CMakeLists.txt:
+
+2008-12-05  Olivier DOLE  <odole@pleyo.com>
+
+        Modify source code organization.
+
+        * CMakeLists.txt:
+
+2008-12-01  Olivier DOLE  <odole@pleyo.com>
+
+        Add SVG support.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * css/CMakeLists.txt:
+        * rendering/CMakeLists.txt:
+        * svg/CMakeLists.txt:
+
+2008-11-27  Olivier DOLE  <odole@pleyo.com>
+
+        Add NPAPI support.
+
+        * plugins/CMakeLists.txt:
+
+2008-11-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        Drop support for Dashboard.
+
+        * CMakeLists.txt:
+
+2008-10-20  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when inspector is disabled.
+
+        * bindings/js/CMakeLists.txt:
+
+2008-10-20  Olivier DOLE  <odole@pleyo.com>
+
+        Add #ifdef to disable inspector.
+
+        * bindings/js/CMakeLists.txt:
+        * html/HTMLDocument.cpp:
+        (WebCore::HTMLDocument::createTokenizer):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::detachFromParent):
+        (WebCore::FrameLoader::loadedResourceFromMemoryCache):
+        (WebCore::FrameLoader::dispatchWindowObjectAvailable):
+        (WebCore::FrameLoader::dispatchDidCommitLoad):
+        (WebCore::FrameLoader::dispatchAssignIdentifierToInitialRequest):
+        (WebCore::FrameLoader::dispatchWillSendRequest):
+        (WebCore::FrameLoader::dispatchDidReceiveResponse):
+        (WebCore::FrameLoader::dispatchDidReceiveContentLength):
+        (WebCore::FrameLoader::dispatchDidFinishLoading):
+        * page/CMakeLists.txt:
+        * page/Console.cpp:
+        (WebCore::Console::addMessage):
+        (WebCore::Console::error):
+        (WebCore::Console::info):
+        (WebCore::Console::log):
+        (WebCore::Console::dir):
+        (WebCore::Console::dirxml):
+        (WebCore::Console::assertCondition):
+        (WebCore::Console::count):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::time):
+        (WebCore::Console::timeEnd):
+        (WebCore::Console::group):
+        (WebCore::Console::groupEnd):
+        (WebCore::Console::warn):
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::handleContextMenuEvent):
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        (WebCore::Page::~Page):
+        * page/Page.h:
+        * storage/Database.cpp:
+        (WebCore::Database::openDatabase):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Fix webcore archive link.
+
+        * CMakeLists.txt:
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Add a dependency on kjs.
+
+        * CMakeLists.txt:
+
+2008-10-06  Olivier DOLE  <odole@pleyo.com>
+
+        Fix bindings/js/CMakeLists.txt for customer port + coding style.
+
+        * bindings/js/CMakeLists.txt:
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        First clean.
+
+        * CMakeLists.txt:
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        Fix Database and dependent option support.
+
+        * bindings/js/CMakeLists.txt:
+        * loader/CMakeLists.txt:
+        * loader/icon/CMakeLists.txt:
+        * storage/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Fix generic internationalization compilation.
+
+        * CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Rename ICU_LIBRARY to I18N_LIBRARIES.
+        Fix editing/CMakeLists.txt for internationalization.
+
+        * CMakeLists.txt:
+        * editing/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Add xml2 dependency at link for webcore.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        fix a generated source dependency.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        rewrite cmake to get a single library and more clean and modular
+		cmake.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * bridge/CMakeLists.txt:
+        * css/CMakeLists.txt:
+        * dom/CMakeLists.txt:
+        * editing/CMakeLists.txt:
+        * history/CMakeLists.txt:
+        * html/CMakeLists.txt:
+        * loader/CMakeLists.txt:
+        * loader/icon/CMakeLists.txt:
+        * page/CMakeLists.txt:
+        * platform/CMakeLists.txt:
+        * plugins/CMakeLists.txt:
+        * rendering/CMakeLists.txt:
+        * storage/CMakeLists.txt:
+        * xml/CMakeLists.txt:
+
