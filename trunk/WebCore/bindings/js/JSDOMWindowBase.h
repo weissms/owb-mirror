@@ -22,6 +22,7 @@
 
 #include "PlatformString.h"
 #include "JSDOMBinding.h"
+#include "DOMWindow.h" // For RefPtr<DOMWindow>.
 #include <runtime/Protect.h>
 #include <wtf/HashMap.h>
 #include <wtf/OwnPtr.h>
@@ -29,7 +30,6 @@
 namespace WebCore {
 
     class AtomicString;
-    class DOMWindow;
     class Event;
     class Frame;
     class JSDOMWindow;

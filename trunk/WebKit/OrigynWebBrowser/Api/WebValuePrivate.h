@@ -30,24 +30,27 @@
 #ifndef BINDINGS_BALVALUEPRIVATE_H_
 #define BINDINGS_BALVALUEPRIVATE_H_
 
-#include "JSValue.h"
-#include <interpreter/CallFrame.h>
-#include "WebObject.h"
-#include "PlatformString.h"
-#include "CString.h"
-#include "JSGlobalObject.h"
-#include "runtime_object.h"
 #include "bal_instance.h"
+#include "runtime_object.h"
+#include "CString.h"
+#include "JSDOMWindowBase.h" // Needed for JSDOMWindowBase::commonJSGlobalData();
+#include "JSGlobalObject.h"
+#include "JSValue.h"
+#include "PlatformString.h"
+#include "WebObject.h"
+#include <interpreter/CallFrame.h>
 
 using namespace JSC;
+
 class WebValuePrivate {
     public:
         WebValuePrivate()
         {
-            PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
-            JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject();
+            JSGlobalData* sharedGlobalData = WebCore::JSDOMWindowBase::commonJSGlobalData();
+            JSGlobalObject* obj = new (sharedGlobalData) JSGlobalObject();
             m_exec = obj->globalExec();
         }
+
         WebValuePrivate(ExecState* exec, JSValue value)
         {
             m_val = value;
