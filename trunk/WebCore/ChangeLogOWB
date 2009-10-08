@@ -1,3 +1,17 @@
+2009-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Correct leaks in the bridge.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod): Avoid leaking the vector's
+        pointers and the temporary value (it is ok as the internal JSValue is
+        copied).
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance): Delete the temporary
+        value.
+
 2009-10-01  Mario Bensi  <mbensi@pleyo.com>
 
         add ENABLE_DATAGRID.

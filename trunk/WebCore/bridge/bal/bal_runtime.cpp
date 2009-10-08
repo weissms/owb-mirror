@@ -61,8 +61,7 @@ JSValue BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
         v = val->d->balObject(val->m_obj, exec);
     else
         v = val->d->getValue();
-    // FIXME
-    //delete val;
+    delete val;
     return v;
 }
 

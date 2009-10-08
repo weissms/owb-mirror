@@ -158,9 +158,14 @@ JSValue BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList,
         }
     }
 
+    for (i = 0; i < count; ++i)
+        delete cArgs[i];
+
     cArgs.clear();
 
-    return val->d->getValue();
+    JSValue value = val->d->getValue();
+    delete val;
+    return value;
 }
 
 
