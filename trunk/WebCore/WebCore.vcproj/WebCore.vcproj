@@ -3856,11 +3856,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\loader\PolicyCheck.cpp"
+				RelativePath="..\loader\PolicyCallback.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\loader\PolicyCheck.h"
+				RelativePath="..\loader\PolicyCallback.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\PolicyChecker.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\PolicyChecker.h"
 				>
 			</File>
 			<File
@@ -9405,6 +9413,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\bindings\js\JSCallbackData.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSCallbackData.h"
+					>
+				</File>
+				<File
 					RelativePath="..\bindings\js\JSAbstractWorkerCustom.cpp"
 					>
 				</File>
@@ -9849,6 +9865,10 @@
 					>
 				</File>
 			</Filter>
+      <File
+        RelativePath="..\bindings\ScriptControllerBase.cpp"
+        >
+      </File>
 		</Filter>
 		<Filter
 			Name="plugins"

@@ -23,10 +23,3 @@ endif(USE_THREADS_QT)
 create_include_link(${BAL_DIR}/Types/WTF BAL/wtf)
 
 aux_source_directory(${BAL_DIR}/Types/WTF WTF_SRC)
-
-if(NOT ENABLE_DEBUG)
-    list(REMOVE_ITEM WTF_SRC
-        ${BAL_DIR}/Types/WTF/BCdtoaWTF.cpp
-    )
-endif(NOT ENABLE_DEBUG)
-

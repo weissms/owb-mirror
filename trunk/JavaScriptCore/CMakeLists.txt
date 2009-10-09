@@ -63,15 +63,6 @@ include_directories(
     ${THREADS_INCLUDE_DIRS}
 )
 
-if(NOT ENABLE_DEBUG)
-    include_directories(
-        ${OWB_SOURCE_DIR}/BAL/Memory/WTF
-        ${OWB_SOURCE_DIR}/BAL/Types/WTF
-    )
-    set_source_files_properties(${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/Grammar.cpp
-        PROPERTIES HEADER_FILE_ONLY TRUE)
-endif(NOT ENABLE_DEBUG)
-
 include(AddJavaScriptCoreCompilerFlags)
 
 set_source_files_properties(${JSC_SRC}

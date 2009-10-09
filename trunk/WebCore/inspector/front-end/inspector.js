@@ -1034,11 +1034,16 @@ WebInspector.removeResource = function(identifier)
 WebInspector.addDatabase = function(payload)
 {
     var database = new WebInspector.Database(
-        payload.database,
+        payload.id,
         payload.domain,
         payload.name,
         payload.version);
     this.panels.storage.addDatabase(database);
+}
+
+WebInspector.addCookieDomain = function(domain)
+{
+    this.panels.storage.addCookieDomain(domain);
 }
 
 WebInspector.addDOMStorage = function(payload)

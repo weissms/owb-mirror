@@ -332,6 +332,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.cpp \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.h \
 	WebCore/bindings/js/JSCSSValueCustom.cpp \
+	WebCore/bindings/js/JSCallbackData.cpp \
+	WebCore/bindings/js/JSCallbackData.h \
 	WebCore/bindings/js/JSCanvasRenderingContextCustom.cpp \
 	WebCore/bindings/js/JSCanvasRenderingContext2DCustom.cpp \
 	WebCore/bindings/js/JSClipboardCustom.cpp \
@@ -474,6 +476,7 @@ webcore_sources += \
 	WebCore/bindings/js/SerializedScriptValue.cpp \
 	WebCore/bindings/js/SerializedScriptValue.h \
 	WebCore/bindings/js/StringSourceProvider.h \
+	WebCore/bindings/ScriptControllerBase.cpp \
 	WebCore/bridge/IdentifierRep.cpp \
 	WebCore/bridge/IdentifierRep.h \
 	WebCore/bridge/NP_jsobject.cpp \
@@ -1245,8 +1248,10 @@ webcore_sources += \
 	WebCore/loader/PlaceholderDocument.h \
 	WebCore/loader/PluginDocument.cpp \
 	WebCore/loader/PluginDocument.h \
-	WebCore/loader/PolicyCheck.cpp \
-	WebCore/loader/PolicyCheck.h \
+	WebCore/loader/PolicyCallback.cpp \
+	WebCore/loader/PolicyCallback.h \
+	WebCore/loader/PolicyChecker.cpp \
+	WebCore/loader/PolicyChecker.h \
 	WebCore/loader/ProgressTracker.cpp \
 	WebCore/loader/ProgressTracker.h \
 	WebCore/loader/RedirectScheduler.cpp \

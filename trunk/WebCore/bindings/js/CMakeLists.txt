@@ -9,6 +9,7 @@ if(ENABLE_WORKERS)
 endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
+    bindings/ScriptControllerBase.cpp
     bindings/js/GCController.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
@@ -17,6 +18,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCSSRuleListCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
+    bindings/js/JSCallbackData.cpp
     bindings/js/JSCanvasArrayBufferConstructor.cpp
     bindings/js/JSCanvasArrayCustom.cpp
     bindings/js/JSCanvasByteArrayConstructor.cpp

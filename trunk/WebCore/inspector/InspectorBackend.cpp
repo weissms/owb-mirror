@@ -46,6 +46,7 @@
 #include "InspectorFrontend.h"
 #include "InspectorResource.h"
 #include "Pasteboard.h"
+#include "ScriptArray.h"
 #include "ScriptFunctionCall.h"
 
 #if ENABLE(DOM_STORAGE)
@@ -397,7 +398,7 @@ void InspectorBackend::stepOutOfFunctionInDebugger()
 
 #endif
 
-void InspectorBackend::dispatchOnInjectedScript(long callId, const String& methodName, const String& arguments)
+void InspectorBackend::dispatchOnInjectedScript(long callId, const String& methodName, const String& arguments, bool async)
 {
     InspectorFrontend* frontend = inspectorFrontend();
     if (!frontend)
@@ -406,8 +407,12 @@ void InspectorBackend::dispatchOnInjectedScript(long callId, const String& metho
     ScriptFunctionCall function(m_inspectorController->m_scriptState, m_inspectorController->m_injectedScriptObj, "dispatch");
     function.appendArgument(methodName);
     function.appendArgument(arguments);
+    if (async)
+        function.appendArgument(static_cast<int>(callId));
     bool hadException = false;
     ScriptValue result = function.call(hadException);
+    if (async)
+        return;  // InjectedScript will return result asynchronously by means of ::reportDidDispatchOnInjectedScript.
     if (hadException)
         frontend->didDispatchOnInjectedScript(callId, "", true);
     else
@@ -453,17 +458,18 @@ void InspectorBackend::copyNode(long nodeId)
     Pasteboard::generalPasteboard()->writePlainText(markup);
 }
 
-void InspectorBackend::getCookies(long callId)
-{
-    if (InspectorDOMAgent* domAgent = inspectorDOMAgent())
-        domAgent->getCookies(callId);
-}
-
-void InspectorBackend::deleteCookie(const String& cookieName)
+void InspectorBackend::getCookies(long callId, const String& domain)
 {
     if (!m_inspectorController)
         return;
-    m_inspectorController->deleteCookie(cookieName);
+    m_inspectorController->getCookies(callId, domain);
+}
+
+void InspectorBackend::deleteCookie(const String& cookieName, const String& domain)
+{
+    if (!m_inspectorController)
+        return;
+    m_inspectorController->deleteCookie(cookieName, domain);
 }
 
 void InspectorBackend::highlight(long nodeId)
@@ -518,10 +524,32 @@ void InspectorBackend::addNodesToSearchResult(const String& nodeIds)
 }
 
 #if ENABLE(DATABASE)
+Database* InspectorBackend::databaseForId(long databaseId)
+{
+    if (m_inspectorController)
+        return m_inspectorController->databaseForId(databaseId);
+    return 0;
+}
+
 void InspectorBackend::selectDatabase(Database* database)
 {
-    if (InspectorFrontend* frontend = inspectorFrontend())
-        frontend->selectDatabase(database);
+    if (m_inspectorController)
+        m_inspectorController->selectDatabase(database);
+}
+
+void InspectorBackend::getDatabaseTableNames(long callId, long databaseId)
+{
+    if (InspectorFrontend* frontend = inspectorFrontend()) {
+        ScriptArray result = frontend->newScriptArray();
+        Database* database = m_inspectorController->databaseForId(databaseId);
+        if (database) {
+            Vector<String> tableNames = database->tableNames();
+            unsigned length = tableNames.size();
+            for (unsigned i = 0; i < length; ++i)
+                result.set(i, tableNames[i]);
+        }
+        frontend->didGetDatabaseTableNames(callId, result);
+    }
 }
 #endif
 
@@ -555,6 +583,12 @@ void InspectorBackend::didEvaluateForTestInFrontend(long callId, const String& j
 {
     if (m_inspectorController)
         m_inspectorController->didEvaluateForTestInFrontend(callId, jsonResult);
+}
+
+void InspectorBackend::reportDidDispatchOnInjectedScript(long callId, const String& result, bool isException)
+{
+    if (InspectorFrontend* frontend = inspectorFrontend())
+        frontend->didDispatchOnInjectedScript(callId, result, isException);
 }
 
 InspectorDOMAgent* InspectorBackend::inspectorDOMAgent()

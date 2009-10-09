@@ -1,3 +1,188 @@
+2009-10-09  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Ask the History Delegate to populate the visited links hash.
+        <rdar://problem/7285293> and https://webkit.org/b/29904
+
+        Add the ability for LayoutTestController to clear all visited links.
+        Also lets the History Delegate dump visited links, but only if this test specifically cleared them.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (removeAllVisitedLinksCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::removeAllVisitedLinks):
+
+        * DumpRenderTree/mac/HistoryDelegate.mm:
+        (-[HistoryDelegate populateVisitedLinksForWebView:]):
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::removeAllVisitedLinks):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::removeAllVisitedLinks):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::removeAllVisitedLinks):
+
+
+2009-10-08  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30175
+        
+        The Windows DRT equivalent of DoDragDrop (i.e. UIDelegate::doDragDrop) does not return
+        the OLE drag-and-drop return value like the function it emulates. Currently, 
+        UIDelegate::doDragDrop returns a hard-coded S_OK. Hence, the caller cannot determine 
+        whether the drag-and-drop operation was successful or was cancelled.
+        
+        This patch fixes this issue by having UIDelegate::doDragDrop return the OLE drag-and-drop 
+        return value according to whether the drop operation was successful or not.
+
+        * DumpRenderTree/win/EventSender.cpp:
+        (doMouseUp): Added parameter oleDragAndDropReturnValue.
+        (replaySavedEvents): Ditto.
+        * DumpRenderTree/win/EventSender.h:
+        * DumpRenderTree/win/UIDelegate.cpp:
+        (UIDelegate::doDragDrop): Modified to return OLE drag-and-drop return value.
+
+2009-10-08  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Added support for a parameter setting the button that was
+        pressed in the mouseDown function.
+        https://bugs.webkit.org/show_bug.cgi?id=30220
+
+        * WebKitTools/DumpRenderTree/gtk/EventSender.cpp:
+
+2009-10-08  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Added a line to the bottom of the expected result to match
+        the output of the test.
+        https://bugs.webkit.org/show_bug.cgi?id=30220
+
+        * LayoutTests/platform/gtk/editing/pasteboard/middle-click-onpaste-
+        expected.txt:
+
+2009-10-08  Adam Roben  <aroben@apple.com>
+
+        Use QueryInterface to get IWebInspectorPrivate
+
+        Fixes <http://webkit.org/b/30215> Make IWebInspectorPrivate be
+        accessed in a more standard way
+
+        Reviewed by John Sullivan and Tim Hatcher.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::evaluateInWebInspector): Get the IWebInspector
+        by calling IWebViewPrivate::inspector, then use QueryInterface to get
+        to the IWebInspectorPrivate interface.
+
+2009-10-07  Adam Roben  <aroben@apple.com>
+
+        Implement DRT support for origin whitelisting
+
+        Fixes <http://webkit.org/b/30185>.
+
+        Reviewed by Eric Seidel.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting): Reset any origin
+        whitelist, to match Mac DRT.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::whiteListAccessFromOrigin): Call through to
+        IWebViewPrivate::whiteListAccessFromOrigin.
+
+2009-10-07  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Send title changes to the global history delegate.
+        <rdar://problem/7285293> and https://webkit.org/b/29904
+
+        * DumpRenderTree/mac/HistoryDelegate.mm:
+        (-[HistoryDelegate webView:updateHistoryTitle:forURL:]):
+
+2009-10-07  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Remove some folks from committers.py who were listed on
+        the WebKit Team wiki page but who weren't actually listed as commit+.
+        At some point, we should coorelate this list with the committers
+        mailing list.
+
+        * Scripts/modules/committers.py:
+
+2009-10-07  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Import a bunch of committers from the WebKit Team page on
+        the wiki into committers.py.
+
+        * Scripts/modules/committers.py:
+
+2009-10-07  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Added Aaron Boodman to committers.py.
+
+        * Scripts/modules/committers.py:
+
+2009-10-07  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add API to LayoutTestController for re/setting the system locale.
+        https://bugs.webkit.org/show_bug.cgi?id=18994
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setLocaleCallback):
+        (LayoutTestController::staticFunctions):
+        (LayoutTestController::setLocale):
+        * DumpRenderTree/LayoutTestController.h:
+
+2009-10-06  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Jan Alonzo.
+
+        [Layout tests] [Gtk] Gtk DumpRenderTree should use WebKit test fonts
+        https://bugs.webkit.org/show_bug.cgi?id=29689
+
+        Build fix by adding -lfontconfig for DumpRenderTree.
+
+        * GNUmakefile.am:
+
+2009-10-07  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        Re-enable use-remote-links-to-tests for Qt. Disabled in r46416.
+
+        * Scripts/run-webkit-tests:
+
+2009-10-07  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        "delete" in EventSender is the backspace key, not the delete one.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (keyDownCallback):
+
+2009-10-07  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        getChildrenWithRange expects as last parameter the end index, not
+        the length of the range. Correct this and clarify the variable
+        names to reflect how the code works.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::getChildrenWithRange):
+        (AccessibilityUIElement::getChildAtIndex):
+
 2009-10-07  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Simon Fraser.

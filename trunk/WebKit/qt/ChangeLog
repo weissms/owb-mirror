@@ -1,3 +1,90 @@
+2009-10-09  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move executeScript from FrameLoader to ScriptController
+        https://bugs.webkit.org/show_bug.cgi?id=30200
+
+        Update API call.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::evaluateJavaScript):
+
+2009-10-08  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Part of testOptionalJSObjects autotest was marked as "expect to fail".
+
+        Two places in tst_QWebPage::testOptionalJSObjects were marked as
+        expected to fail. The problem concern checking if a feature is enabled
+        or disabled. According to discussion on webkit dev mailing list
+        a disabled feature should be invisible from java script level, but
+        there are exceptions from the rule. So we decided to disable the test
+        for now.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29867
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::testOptionalJSObjects):
+
+2009-10-07  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Factor PolicyChecker out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=30155
+
+        Move the policy callback to the policy object.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::callPolicyFunction):
+
+2009-10-07  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Get rid of useless loadFailed signal in QGraphicsWebView
+        https://bugs.webkit.org/show_bug.cgi?id=30166
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::_q_doLoadFinished):
+        * Api/qgraphicswebview.h:
+        * QGVLauncher/main.cpp:
+        (MainWindow::init):
+        (MainWindow::loadFinished):
+
+2009-10-07  Girish Ramakrishnan  <girish@forwardbias.in>
+
+        Reviewed by Simon Hausmann.
+
+        Add a simple rotation effect to QGVLauncher
+
+        https://bugs.webkit.org/show_bug.cgi?id=30162
+
+        * QGVLauncher/main.cpp:
+        (MainView::animatedFlip):
+        (MainWindow::animatedFlip):
+        (MainWindow::buildUI):
+
+2009-10-07  Volker Hilsheimer  <volker.hilsheimer@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Doc: Document HTML and status as properties.
+
+        * Api/qgraphicswebview.cpp:
+
+2009-10-07  Martin Smith  <msmith@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix qdoc warning about disabled renderHints property
+        on Symbian.
+
+        * Api/qwebview.cpp:
+        * Api/qwebview.h:
+
 2009-10-07  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Eric Seidel.

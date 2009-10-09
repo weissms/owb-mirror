@@ -840,15 +840,19 @@ unsigned LayoutTestController::numberOfActiveAnimations() const
     return number;
 }
 
-void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
-{
-    printf("LayoutTestController::whiteListAccessFromOrigin not implemented\n");
-}
-
 static _bstr_t bstrT(JSStringRef jsString)
 {
     // The false parameter tells the _bstr_t constructor to adopt the BSTR we pass it.
     return _bstr_t(JSStringCopyBSTR(jsString), false);
+}
+
+void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
+{
+    COMPtr<IWebViewPrivate> webView;
+    if (FAILED(WebKitCreateInstance(__uuidof(WebView), 0, __uuidof(webView), reinterpret_cast<void**>(&webView))))
+        return;
+
+    webView->whiteListAccessFromOrigin(bstrT(sourceOrigin).GetBSTR(), bstrT(destinationProtocol).GetBSTR(), bstrT(destinationHost).GetBSTR(), allowDestinationSubdomains);
 }
 
 void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
@@ -898,7 +902,18 @@ void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef scrip
     if (FAILED(WebKitCreateInstance(__uuidof(WebView), 0, __uuidof(webView), reinterpret_cast<void**>(&webView))))
         return;
 
-    COMPtr<IWebInspectorPrivate> inspector;
-    if (SUCCEEDED(webView->inspectorPrivate(&inspector)))
-        inspector->evaluateInFrontend(callId, bstrT(script).GetBSTR());
+    COMPtr<IWebInspector> inspector;
+    if (FAILED(webView->inspector(&inspector)))
+        return;
+
+    COMPtr<IWebInspectorPrivate> inspectorPrivate(Query, inspector);
+    if (!inspectorPrivate)
+        return;
+
+    inspectorPrivate->evaluateInFrontend(callId, bstrT(script).GetBSTR());
+}
+
+void LayoutTestController::removeAllVisitedLinks()
+{
+    // FIXME: Implement this.
 }

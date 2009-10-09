@@ -1433,6 +1433,20 @@ protected:
     bool invalidateBackingStore(const WebCore::IntRect*);
 
     /**
+     * whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
+     * @param sourceOrigin the source host name that is given access to a destination host
+     * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
+     * @param destinationHost the destination host
+     * @param allowDestinationSubDomain whether to authorize destination sub-domains
+     */
+    void whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
+
+    /**
+     * resetOriginAccessWhiteLists reset (i.e. remove all) the white list accesses set up with whiteListAccessFromOrigin
+     */
+    void resetOriginAccessWhiteLists() const;
+
+    /**
      * repaint
      */
     void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);

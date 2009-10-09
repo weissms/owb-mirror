@@ -1463,7 +1463,7 @@ const char* WebView::stringByEvaluatingJavaScriptFromString(const char* script)
     if (!coreFrame)
         return NULL; 
 
-    JSC::JSValue scriptExecutionResult = coreFrame->loader()->executeScript(script, false).jsValue();
+    JSC::JSValue scriptExecutionResult = coreFrame->script()->executeScript(script, false).jsValue();
     if(!scriptExecutionResult)
         return NULL;
     else if (scriptExecutionResult.isString())
@@ -1480,8 +1480,7 @@ void WebView::executeScript(const char* script)
     if (!coreFrame)
         return ;
 
-    if (FrameLoader* loader = coreFrame->loader())
-        loader->executeScript(String::fromUTF8(script), true);
+    coreFrame->script()->executeScript(String::fromUTF8(script), true);
 }
 
 WebScriptObject* WebView::windowScriptObject()
@@ -2681,3 +2680,14 @@ bool WebView::invalidateBackingStore(const WebCore::IntRect* rect)
     return S_OK;
 */
 }
+
+void WebView::whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomains) const
+{
+    SecurityOrigin::whiteListAccessFromOrigin(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubDomains);
+}
+
+void WebView::resetOriginAccessWhiteLists() const
+{
+    SecurityOrigin::resetOriginAccessWhiteLists();
+}
+

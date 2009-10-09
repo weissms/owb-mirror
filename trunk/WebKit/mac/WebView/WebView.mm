@@ -1420,6 +1420,8 @@ static inline IMP getMethod(id o, SEL s)
     cache->navigatedFunc = getMethod(delegate, @selector(webView:didNavigateWithNavigationData:inFrame:));
     cache->clientRedirectFunc = getMethod(delegate, @selector(webView:didPerformClientRedirectFromURL:toURL:inFrame:));
     cache->serverRedirectFunc = getMethod(delegate, @selector(webView:didPerformServerRedirectFromURL:toURL:inFrame:));
+    cache->setTitleFunc = getMethod(delegate, @selector(webView:updateHistoryTitle:forURL:));
+    cache->populateVisitedLinksFunc = getMethod(delegate, @selector(populateVisitedLinksForWebView:));
 }
 
 - (id)_policyDelegateForwarder
@@ -4094,7 +4096,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue jsValu
         return nil;
     if (!coreFrame->document())
         return nil;
-    JSValue result = coreFrame->loader()->executeScript(script, true).jsValue();
+    JSValue result = coreFrame->script()->executeScript(script, true).jsValue();
     if (!result) // FIXME: pass errors
         return 0;
     JSLock lock(SilenceAssertionsOnly);
@@ -4254,6 +4256,24 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue jsValu
         return 0;
 
     return _private->page->mediaVolume();
+}
+
+- (void)addVisitedLinks:(NSArray *)visitedLinks
+{
+    PageGroup& group = core(self)->group();
+    
+    NSEnumerator *enumerator = [visitedLinks objectEnumerator];
+    while (NSString *url = [enumerator nextObject]) {
+        size_t length = [url length];
+        const UChar* characters = CFStringGetCharactersPtr(reinterpret_cast<CFStringRef>(url));
+        if (characters)
+            group.addVisitedLink(characters, length);
+        else {
+            Vector<UChar, 512> buffer(length);
+            [url getCharacters:buffer.data()];
+            group.addVisitedLink(buffer.data(), length);
+        }
+    }
 }
 
 @end

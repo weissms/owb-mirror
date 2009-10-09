@@ -898,7 +898,7 @@ void WebFrameLoaderClient::dispatchWillSubmitForm(FramePolicyFunction function, 
     Frame* coreFrame = core(m_webFrame);
     ASSERT(coreFrame);
 
-    (coreFrame->loader()->*function)(PolicyUse);
+    (coreFrame->loader()->policyChecker()->*function)(PolicyUse);
 }
 
 void WebFrameLoaderClient::revertToProvisionalState(DocumentLoader*)
@@ -1058,7 +1058,7 @@ void WebFrameLoaderClient::receivedPolicyDecision(PolicyAction action)
     Frame* coreFrame = core(m_webFrame);
     ASSERT(coreFrame);
 
-    (coreFrame->loader()->*function)(action);
+    (coreFrame->loader()->policyChecker()->*function)(action);
 }
 
 void WebFrameLoaderClient::dispatchDecidePolicyForMIMEType(FramePolicyFunction function, const String& mimeType, const ResourceRequest& request)
@@ -1091,7 +1091,7 @@ void WebFrameLoaderClient::dispatchDecidePolicyForNewWindowAction(FramePolicyFun
 
     //policyDelegate->decidePolicyForNewWindowAction(d->webView, actionInformation, urlRequest, frameName, setUpPolicyListener(function));
 
-    (coreFrame->loader()->*function)(PolicyUse);
+    (coreFrame->loader()->policyChecker()->*function)(PolicyUse);
     delete urlRequest;
     delete actionInformation;
 }
@@ -1174,31 +1174,6 @@ PassRefPtr<Widget> WebFrameLoaderClient::createJavaAppletWidget(const IntSize& p
         return pluginView;
 
     return pluginView;
-}
-
-bool WebFrameLoaderClient::shouldLoadMediaElementURL(const KURL& url) const
-{
-    WebView* webView = m_webFrame->webView();
-    if (!webView)
-        return true;
-
-    return true;
-
-/*
-    COMPtr<IWebPolicyDelegate> policyDelegate;
-    if (FAILED(webView->policyDelegate(&policyDelegate)) || !policyDelegate)
-        return true;
-
-    COMPtr<IWebPolicyDelegatePrivate> policyDelegatePrivate(Query, policyDelegate);
-    if (!policyDelegate)
-        return true;
-
-    BOOL retval;
-    if (FAILED(policyDelegatePrivate->shouldLoadMediaURL(webView, BString(url), m_webFrame, &retval)))
-        return true;
-
-    return retval;
-*/
 }
 
 ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const String& mimeTypeIn)

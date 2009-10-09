@@ -2865,7 +2865,7 @@ HRESULT STDMETHODCALLTYPE WebView::stringByEvaluatingJavaScriptFromString(
     if (!coreFrame)
         return E_FAIL;
 
-    JSC::JSValue scriptExecutionResult = coreFrame->loader()->executeScript(WebCore::String(script), true).jsValue();
+    JSC::JSValue scriptExecutionResult = coreFrame->script()->executeScript(WebCore::String(script), true).jsValue();
     if (!scriptExecutionResult)
         return E_FAIL;
     else if (scriptExecutionResult.isString()) {
@@ -5177,14 +5177,6 @@ HRESULT STDMETHODCALLTYPE WebView::inspector(IWebInspector** inspector)
     return m_webInspector.copyRefTo(inspector);
 }
 
-HRESULT STDMETHODCALLTYPE WebView::inspectorPrivate(IWebInspectorPrivate** inspector)
-{
-    if (!m_webInspector)
-        m_webInspector.adoptRef(WebInspector::createInstance(this));
-
-    return m_webInspector.copyRefTo(inspector);
-}
-
 HRESULT STDMETHODCALLTYPE WebView::windowAncestryDidChange()
 {
     HWND newParent = findTopLevelParent(m_hostWindow);
@@ -5554,6 +5546,18 @@ HRESULT WebView::invalidateBackingStore(const RECT* rect)
         return S_OK;
 
     repaint(rectToInvalidate, true);
+    return S_OK;
+}
+
+HRESULT WebView::whiteListAccessFromOrigin(BSTR sourceOrigin, BSTR destinationProtocol, BSTR destinationHost, BOOL allowDestinationSubdomains)
+{
+    SecurityOrigin::whiteListAccessFromOrigin(*SecurityOrigin::createFromString(String(sourceOrigin, SysStringLen(sourceOrigin))), String(destinationProtocol, SysStringLen(destinationProtocol)), String(destinationHost, SysStringLen(destinationHost)), allowDestinationSubdomains);
+    return S_OK;
+}
+
+HRESULT WebView::resetOriginAccessWhiteLists()
+{
+    SecurityOrigin::resetOriginAccessWhiteLists();
     return S_OK;
 }
 

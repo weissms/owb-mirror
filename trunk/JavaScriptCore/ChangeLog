@@ -1,3 +1,181 @@
+2009-10-09  Mark Rowe  <mrowe@apple.com>
+
+        Attempt to fix the GTK release build.
+
+        * GNUmakefile.am: Include Grammar.cpp in release builds now that
+        AllInOneFile.cpp is gone.
+
+2009-10-09  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Rubber-stamped by Eric Seidel.
+
+        Add ARM JIT support for Gtk port (disabled by default)
+        https://bugs.webkit.org/show_bug.cgi?id=30228
+
+        * GNUmakefile.am:
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Tiger build fix: added a few more variable initializations.
+
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+        (JSC::stringProtoFuncSearch):
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Qt build fix: added missing #include.
+
+        * jsc.cpp:
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Tiger build fix: initialize variable whose initialization the compiler
+        can't otherwise figure out.
+
+        * runtime/RegExpObject.cpp:
+        (JSC::RegExpObject::match):
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: updated exports.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Tiger build fix: fixed file name case.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-10-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        At long last, I pronounce the death of AllInOneFile.cpp.
+        
+        SunSpider reports a 1.01x speedup.
+
+        * AllInOneFile.cpp: Removed.
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added missing project files
+        to compilation stages.
+
+        * parser/Grammar.y:
+        * parser/Lexer.cpp:
+        * parser/Lexer.h:
+        (JSC::jscyylex):
+        * runtime/ArrayConstructor.cpp:
+        (JSC::constructArrayWithSizeQuirk):
+        * runtime/Collector.h:
+        * runtime/JSCell.cpp:
+        (JSC::JSCell::operator new):
+        * runtime/JSCell.h:
+        (JSC::JSCell::operator new):
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::operator new):
+        * runtime/JSNumberCell.h:
+        (JSC::JSNumberCell::operator new):
+        * runtime/JSString.cpp:
+        * runtime/JSString.h:
+        (JSC::jsString):
+        (JSC::jsSubstring):
+        (JSC::jsOwnedString):
+        * runtime/RegExpConstructor.cpp:
+        * runtime/RegExpConstructor.h:
+        (JSC::RegExpConstructorPrivate::RegExpConstructorPrivate):
+        (JSC::RegExpConstructorPrivate::lastOvector):
+        (JSC::RegExpConstructorPrivate::tempOvector):
+        (JSC::RegExpConstructorPrivate::changeLastOvector):
+        (JSC::RegExpConstructor::performMatch):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncMatch):
+        * yarr/RegexJIT.cpp:
+        * yarr/RegexJIT.h:
+        (JSC::Yarr::executeRegex): Inlined a few things that Shark said
+        were hot, on the presumption that AllInOneFile.cpp used to inline them
+        automatically.
+
+2009-10-08  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix for JIT'ed op_call instructions (evals, constructs, etc.)
+        when !ENABLE(JIT_OPTIMIZE_CALL) && USE(JSVALUE32_64)
+
+        https://bugs.webkit.org/show_bug.cgi?id=30201
+
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+
+2009-10-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: removed no longer exported symbol.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+
+2009-10-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fixed <rdar://problem/5751979> Database code takes JSLock on secondary
+        thread, permanently slowing down JavaScript
+        
+        Removed the optional lock from Heap::protect, Heap::unprotect, and friends,
+        since WebCore no longer uses it.
+
+        * JavaScriptCore.exp:
+        * runtime/Collector.cpp:
+        (JSC::Heap::protect):
+        (JSC::Heap::unprotect):
+        (JSC::Heap::markProtectedObjects):
+        (JSC::Heap::protectedGlobalObjectCount):
+        (JSC::Heap::protectedObjectCount):
+        (JSC::Heap::protectedObjectTypeCounts):
+        * runtime/Collector.h:
+
+2009-10-07  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for JavaScriptCore's IdentifierArena
+        https://bugs.webkit.org/show_bug.cgi?id=30158
+
+        Inherits IdentifierArena class from FastAllocBase because it has been
+        instantiated by 'new' in JavaScriptCore/parser/ParserArena.cpp:36.
+
+        * parser/ParserArena.h:
+
+2009-10-07  Adam Roben  <aroben@apple.com>
+
+        Export DateInstance::info in a way that works on Windows
+
+        Fixes <http://webkit.org/b/30171>
+        fast/dom/Window/window-postmessage-clone.html fails on Windows
+
+        Reviewed by Anders Carlsson.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        Removed the export of DateInstance::info from here.
+
+        * runtime/DateInstance.h: Use JS_EXPORTDATA to export
+        DateInstance::info, which is the required way of exporting data on
+        Windows.
+
+2009-10-07  Jørgen Lind  <jorgen.lind@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        When enabling or disabling the JIT through .qmake.cache, make sure
+        to also toggle ENABLE_YARR_JIT.
+
+        * JavaScriptCore.pri:
+
 2009-10-07  Priit Laes  <plaes@plaes.org>
 
         Reviewed by Gavin Barraclough.

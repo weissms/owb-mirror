@@ -88,6 +88,7 @@ void ScriptController::gcUnprotectJSWrapper(void* domObject)
 ScriptController::ScriptController(Frame* frame)
     : m_frame(frame)
     , m_sourceURL(0)
+    , m_inExecuteScript(false)
     , m_processingTimerCallback(false)
     , m_paused(false)
     , m_proxy(new V8Proxy(frame))
@@ -181,13 +182,12 @@ bool ScriptController::processingUserGesture() const
 
 void ScriptController::evaluateInIsolatedWorld(unsigned worldID, const Vector<ScriptSourceCode>& sources)
 {
-    // FIXME: Get rid of extensionGroup here.
-    m_proxy->evaluateInNewWorld(sources, 1);
+    m_proxy->evaluateInIsolatedWorld(worldID, sources, 0);
 }
 
-void ScriptController::evaluateInNewWorld(const Vector<ScriptSourceCode>& sources, int extensionGroup)
+void ScriptController::evaluateInIsolatedWorld(unsigned worldID, const Vector<ScriptSourceCode>& sources, int extensionGroup)
 {
-    m_proxy->evaluateInNewWorld(sources, extensionGroup);
+    m_proxy->evaluateInIsolatedWorld(worldID, sources, extensionGroup);
 }
 
 void ScriptController::evaluateInNewContext(const Vector<ScriptSourceCode>& sources, int extensionGroup)

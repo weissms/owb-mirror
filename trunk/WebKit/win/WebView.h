@@ -673,9 +673,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE inspector(
         /* [retval][out] */ IWebInspector**);
 
-    virtual HRESULT STDMETHODCALLTYPE inspectorPrivate(
-        /* [retval][out] */ IWebInspectorPrivate**);
-
     virtual HRESULT STDMETHODCALLTYPE clearUndoRedoOperations( void);
     virtual HRESULT STDMETHODCALLTYPE shouldClose( 
         /* [retval][out] */ BOOL* result);
@@ -758,6 +755,9 @@ public:
     virtual HRESULT STDMETHODCALLTYPE pluginHalterDelegate(IWebPluginHalterDelegate**);
 
     virtual HRESULT STDMETHODCALLTYPE invalidateBackingStore(const RECT*);
+
+    virtual HRESULT STDMETHODCALLTYPE whiteListAccessFromOrigin(BSTR sourceOrigin, BSTR destinationProtocol, BSTR destinationHost, BOOL allowDestinationSubdomains);
+    virtual HRESULT STDMETHODCALLTYPE resetOriginAccessWhiteLists();
 
     // WebView
     bool shouldUseEmbeddedView(const WebCore::String& mimeType) const;

@@ -54,6 +54,7 @@ LayoutTestController::LayoutTestController(const std::string& testPathOrURL, con
     , m_dumpSourceAsWebArchive(false)
     , m_dumpStatusCallbacks(false)
     , m_dumpTitleChanges(false)
+    , m_dumpVisitedLinksCallback(false)
     , m_dumpWillCacheResponse(false)
     , m_callCloseOnWebViews(true)
     , m_canOpenWindows(false)
@@ -202,6 +203,14 @@ static JSValueRef pathToLocalResourceCallback(JSContextRef context, JSObjectRef 
         return JSValueMakeUndefined(context);
 
     return JSValueMakeString(context, convertedPath.get());
+}
+
+static JSValueRef removeAllVisitedLinksCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setDumpVisitedLinksCallback(true);
+    controller->removeAllVisitedLinks();
+    return JSValueMakeUndefined(context);
 }
 
 static JSValueRef repaintSweepHorizontallyCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
@@ -724,6 +733,19 @@ static JSValueRef setHandlesAuthenticationChallengesCallback(JSContextRef contex
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef setPOSIXLocaleCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    JSRetainPtr<JSStringRef> locale(Adopt, JSValueToStringCopy(context, arguments[0], exception));
+    ASSERT(!*exception);
+    controller->setPOSIXLocale(locale.get());
+
+    return JSValueMakeUndefined(context);
+}
+
 static JSValueRef setIconDatabaseEnabledCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     // Has mac & windows implementation
@@ -1180,6 +1202,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "queueLoadingScript", queueLoadingScriptCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "queueNonLoadingScript", queueNonLoadingScriptCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "queueReload", queueReloadCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "removeAllVisitedLinks", removeAllVisitedLinksCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "repaintSweepHorizontally", repaintSweepHorizontallyCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAcceptsEditing", setAcceptsEditingCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAlwaysAcceptCookies", setAlwaysAcceptCookiesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1195,6 +1218,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "setDatabaseQuota", setDatabaseQuotaCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete }, 
         { "setGeolocationPermission", setGeolocationPermissionCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setHandlesAuthenticationChallenges", setHandlesAuthenticationChallengesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setPOSIXLocale", setPOSIXLocaleCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setIconDatabaseEnabled", setIconDatabaseEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setJavaScriptProfilingEnabled", setJavaScriptProfilingEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setMainFrameIsFirstResponder", setMainFrameIsFirstResponderCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1280,4 +1304,11 @@ void LayoutTestController::setGeolocationPermission(bool allow)
 {
     m_isGeolocationPermissionSet = true;
     m_geolocationPermission = allow;
+}
+
+void LayoutTestController::setPOSIXLocale(JSStringRef locale)
+{
+    char localeBuf[32];
+    JSStringGetUTF8CString(locale, localeBuf, sizeof(localeBuf));
+    setlocale(LC_ALL, localeBuf);
 }

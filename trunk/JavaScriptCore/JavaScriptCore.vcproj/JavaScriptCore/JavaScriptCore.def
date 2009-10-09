@@ -77,6 +77,7 @@ EXPORTS
     ?createInheritorID@JSObject@JSC@@AAEPAVStructure@2@XZ
     ?createInterruptedExecutionException@JSC@@YA?AVJSValue@1@PAVJSGlobalData@1@@Z
     ?createLeaked@JSGlobalData@JSC@@SA?AV?$PassRefPtr@VJSGlobalData@JSC@@@WTF@@XZ
+    ?createSingleCharacterString@SmallStrings@JSC@@AAEXPAVJSGlobalData@2@E@Z
     ?createStackOverflowError@JSC@@YA?AVJSValue@1@PAVExecState@1@@Z
     ?createStructure@JSByteArray@JSC@@SA?AV?$PassRefPtr@VStructure@JSC@@@WTF@@VJSValue@2@@Z
     ?createTable@HashTable@JSC@@ABEXPAVJSGlobalData@2@@Z
@@ -166,7 +167,6 @@ EXPORTS
     ?hasTransition@Structure@JSC@@QAE_NPAURep@UString@2@I@Z
     ?heap@Heap@JSC@@SAPAV12@VJSValue@2@@Z
     ?increment@RefCountedLeakCounter@WTF@@QAEXXZ
-    ?info@DateInstance@JSC@@2UClassInfo@2@B
     ?init@JSGlobalObject@JSC@@AAEXPAVJSObject@2@@Z
     ?initializeMainThread@WTF@@YAXXZ
     ?initializeThreading@JSC@@YAXXZ
@@ -233,7 +233,6 @@ EXPORTS
     ?setDescriptor@PropertyDescriptor@JSC@@QAEXVJSValue@2@I@Z
     ?setDumpsGeneratedCode@BytecodeGenerator@JSC@@SAX_N@Z
     ?setEnumerable@PropertyDescriptor@JSC@@QAEX_N@Z
-    ?setGCProtectNeedsLocking@Heap@JSC@@QAEXXZ
     ?setGetter@PropertyDescriptor@JSC@@QAEXVJSValue@2@@Z
     ?setLength@JSArray@JSC@@QAEXI@Z
     ?setLoc@StatementNode@JSC@@QAEXHH@Z

@@ -13,6 +13,9 @@ symbian: {
 
     TARGET.UID3 = 0x200267C2
 }
+# RO-section in qtwebkit.dll exceeds allocated space in SBSv2. Move RW-section
+# base address to start from 0x800000 instead of the toolchain default 0x400000.
+symbian-sbsv2: MMP_RULES += "LINKEROPTION  armcc --rw-base 0x800000"
 
 include($$PWD/../WebKit.pri)
 
@@ -668,6 +671,7 @@ SOURCES += \
     accessibility/AccessibilityTableRow.cpp \    
     accessibility/AXObjectCache.cpp \
     bindings/js/GCController.cpp \
+    bindings/js/JSCallbackData.cpp \
     bindings/js/JSAttrCustom.cpp \
     bindings/js/JSCDATASectionCustom.cpp \
     bindings/js/JSCanvasRenderingContextCustom.cpp \
@@ -763,6 +767,7 @@ SOURCES += \
     bindings/js/ScriptValue.cpp \
     bindings/js/ScheduledAction.cpp \
     bindings/js/SerializedScriptValue.cpp \
+    bindings/ScriptControllerBase.cpp \
     bridge/IdentifierRep.cpp \
     bridge/NP_jsobject.cpp \
     bridge/npruntime.cpp \
@@ -1109,7 +1114,8 @@ SOURCES += \
     loader/NetscapePlugInStreamLoader.cpp \
     loader/PlaceholderDocument.cpp \
     loader/PluginDocument.cpp \
-    loader/PolicyCheck.cpp \
+    loader/PolicyCallback.cpp \
+    loader/PolicyChecker.cpp \
     loader/ProgressTracker.cpp \
     loader/RedirectScheduler.cpp \
     loader/Request.cpp \
@@ -1370,6 +1376,7 @@ HEADERS += \
     bindings/js/CachedScriptSourceProvider.h \
     bindings/js/DOMObjectWithSVGContext.h \
     bindings/js/GCController.h \
+    bindings/js/JSCallbackData.h \
     bindings/js/JSAudioConstructor.h \
     bindings/js/JSCSSStyleDeclarationCustom.h \
     bindings/js/JSCustomPositionCallback.h \
