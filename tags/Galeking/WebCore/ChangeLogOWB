@@ -1,5 +1,47 @@
 2009-10-12  Gilles Bertal  <gbertal@pleyo.com>
 
+        Reviewed by Mario Bensi.
+
+        Integrating generic NPAPI plugin support.
+
+        * bridge/npapi.h:
+        * bridge/npruntime_internal.h:
+        * plugins/CMakeLists.txt:
+        * plugins/Generic: Added.
+        * plugins/Generic/PluginDataGeneric.cpp: Added.
+        (WebCore::PluginData::initPlugins):
+        (WebCore::PluginData::refresh):
+        * plugins/Generic/PluginPackageGeneric.cpp: Added.
+        (WebCore::PluginPackage::fetchInfo):
+        (WebCore::PluginPackage::load):
+        * plugins/Generic/PluginViewGeneric.cpp: Added.
+        (WebCore::PluginView::updatePluginWidget):
+        (WebCore::PluginView::setFocus):
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        (WebCore::PluginView::setParent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::userAgent):
+        (WebCore::PluginView::userAgentStatic):
+        (WebCore::PluginView::invalidateRegion):
+        (WebCore::PluginView::handlePostReadFile):
+        (WebCore::PluginView::getValueStatic):
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::invalidateRect):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::~PluginView):
+        (WebCore::PluginView::init):
+        * plugins/PluginDatabase.cpp:
+        (WebCore::PluginDatabase::pluginForMIMEType):
+        (WebCore::PluginDatabase::getPluginPathsInDirectories):
+
+2009-10-12  Gilles Bertal  <gbertal@pleyo.com>
+
         Manually integrating WebKit bug #27384 fix.
 
         * loader/appcache/ApplicationCacheGroup.cpp:

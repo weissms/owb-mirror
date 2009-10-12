@@ -31,6 +31,7 @@
 #include "KURL.h"
 #include "PluginPackage.h"
 #include <stdlib.h>
+#include "CString.h"
 
 namespace WebCore {
 
@@ -162,8 +163,9 @@ PluginPackage* PluginDatabase::pluginForMIMEType(const String& mimeType)
     Vector<PluginPackage*, 2> pluginChoices;
 
     for (PluginSet::const_iterator it = m_plugins.begin(); it != end; ++it) {
-        if ((*it)->mimeToDescriptions().contains(key))
+        if ((*it)->mimeToDescriptions().contains(key)) {
             pluginChoices.append((*it).get());
+        }
     }
 
     if (pluginChoices.isEmpty())
@@ -351,10 +353,10 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
     // FIXME: This should be a case insensitive set.
     HashSet<String> uniqueFilenames;
 
-#if defined(XP_UNIX)
+#if defined(XP_UNIX) && PLATFORM(X11)
     String fileNameFilter("*.so");
 #else
-    String fileNameFilter("");
+    String fileNameFilter(".*\\.so");
 #endif
 
     Vector<String>::const_iterator dirsEnd = m_pluginDirectories.end();
@@ -364,7 +366,6 @@ void PluginDatabase::getPluginPathsInDirectories(HashSet<String>& paths) const
         for (Vector<String>::const_iterator pIt = pluginPaths.begin(); pIt != pluginsEnd; ++pIt) {
             if (!fileExists(*pIt))
                 continue;
-
             paths.add(*pIt);
         }
     }

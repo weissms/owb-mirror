@@ -1,3 +1,12 @@
+2009-10-12  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Integrating generic NPAPI plugin support.
+
+        * cmake/AddGlobalCompilerFlags.cmake:
+        * cmake/CheckNPAPI.cmake:
+
 2009-06-03  Mario Bensi  <mbensi@pleyo.com>
 
         fix build with Filter to ON and SVG to OFF

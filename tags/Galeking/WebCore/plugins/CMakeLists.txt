@@ -42,9 +42,9 @@ if(ENABLE_NPAPI)
 
     if(USE_GRAPHICS_SDL)
         list(APPEND WEBCORE_SRC
-            plugins/SDL/PluginPackageSDL.cpp
-            plugins/SDL/PluginDataSDL.cpp
-            plugins/SDL/PluginViewSDL.cpp
+            plugins/Generic/PluginPackageGeneric.cpp
+            plugins/Generic/PluginDataGeneric.cpp
+            plugins/Generic/PluginViewGeneric.cpp
         )
     endif(USE_GRAPHICS_SDL)
 else(ENABLE_NPAPI)

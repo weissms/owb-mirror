@@ -29,6 +29,7 @@
 #include "npfunctions.h"
 #include "npruntime.h"
 
+#if PLATFORM(X11)
 #ifdef XP_UNIX
     #include <X11/Xresource.h>
 
@@ -48,4 +49,5 @@
     #undef FontChange
     #undef GrayScale
     #undef NormalState
+#endif
 #endif
