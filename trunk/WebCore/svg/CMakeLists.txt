@@ -42,6 +42,7 @@ if(ENABLE_SVG)
         svg/SVGFELightElement.cpp
         svg/SVGFEMergeElement.cpp
         svg/SVGFEMergeNodeElement.cpp
+        svg/SVGFEMorphologyElement.cpp
         svg/SVGFEOffsetElement.cpp
         svg/SVGFEPointLightElement.cpp
         svg/SVGFESpecularLightingElement.cpp
@@ -246,6 +247,7 @@ if(ENABLE_SVG)
         svg/SVGMatrix.idl
         svg/SVGMetadataElement.idl
         svg/SVGMissingGlyphElement.idl
+        svg/SVGFEMorphologyElement.idl
         svg/SVGNumber.idl
         svg/SVGNumberList.idl
         svg/SVGPaint.idl

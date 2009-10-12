@@ -20,6 +20,7 @@ list(APPEND WEBCORE_SRC
     loader/FrameLoader.cpp
     loader/FTPDirectoryDocument.cpp
     loader/FTPDirectoryParser.cpp
+    loader/HistoryController.cpp
     loader/ImageDocument.cpp
     loader/ImageLoader.cpp
     loader/loader.cpp

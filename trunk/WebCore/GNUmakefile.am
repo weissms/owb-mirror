@@ -1232,6 +1232,8 @@ webcore_sources += \
 	WebCore/loader/FrameLoader.h \
 	WebCore/loader/FrameLoaderClient.h \
 	WebCore/loader/FrameLoaderTypes.h \
+	WebCore/loader/HistoryController.cpp \
+	WebCore/loader/HistoryController.h \
 	WebCore/loader/ImageDocument.cpp \
 	WebCore/loader/ImageDocument.h \
 	WebCore/loader/ImageLoader.cpp \
@@ -2711,6 +2713,7 @@ IDL_BINDINGS += \
 	WebCore/svg/SVGFEImageElement.idl \
 	WebCore/svg/SVGFEMergeElement.idl \
 	WebCore/svg/SVGFEMergeNodeElement.idl \
+	WebCore/svg/SVGFEMorphologyElement.idl \
 	WebCore/svg/SVGFEOffsetElement.idl \
 	WebCore/svg/SVGFEPointLightElement.idl \
 	WebCore/svg/SVGFESpecularLightingElement.idl \
@@ -2965,6 +2968,8 @@ webcore_sources += \
 	WebCore/svg/SVGFEMergeElement.h \
 	WebCore/svg/SVGFEMergeNodeElement.cpp \
 	WebCore/svg/SVGFEMergeNodeElement.h \
+	WebCore/svg/SVGFEMorphologyElement.cpp \
+	WebCore/svg/SVGFEMorphologyElement.h \
 	WebCore/svg/SVGFEOffsetElement.cpp \
 	WebCore/svg/SVGFEOffsetElement.h \
 	WebCore/svg/SVGFEPointLightElement.cpp \

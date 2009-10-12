@@ -265,6 +265,7 @@ WebView::WebView()
     , m_webNotificationDelegate(0)
     , m_webFrameLoadDelegate(0)
     , m_jsActionDelegate(0)
+    , m_pluginHalterDelegate(0)
     , m_preferences(0)
     , m_userAgentOverridden(false)
     , m_useBackForwardList(true)
@@ -297,9 +298,9 @@ WebView::WebView()
     initializeStaticObservers();
 
 #if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this), new WebPluginHalterClient());
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this), new WebPluginHalterClient(this));
 #else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0, new WebPluginHalterClient());
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0, new WebPluginHalterClient(this));
 #endif
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
@@ -1222,6 +1223,16 @@ void WebView::setJSActionDelegate(JSActionDelegate* newJSActionDelegate)
 JSActionDelegate* WebView::jsActionDelegate()
 {
     return m_jsActionDelegate;
+}
+
+void WebView::setPluginHalterDelegate(WebPluginHalterDelegate* d)
+{
+    m_pluginHalterDelegate = d;
+}
+
+WebPluginHalterDelegate* WebView::pluginHalterDelegate()
+{
+    return m_pluginHalterDelegate;
 }
 
 WebFrame* WebView::mainFrame()
@@ -2338,9 +2349,6 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 /*    enabled = preferences->shouldUseHighResolutionTimers();
     settings->setShouldUseHighResolutionTimers(enabled);*/
 
-    enabled = preferences->pluginHalterEnabled();
-    settings->setPluginHalterEnabled(enabled);
-
     enabled = preferences->pluginAllowedRunTime();
     settings->setPluginAllowedRunTime(enabled);
 
@@ -2483,7 +2491,7 @@ void WebView::loadBackForwardListFromOtherView(WebView* otherView)
             // If this item is showing , save away its current scroll and form state,
             // since that might have changed since loading and it is normally not saved
             // until we leave that page.
-            otherView->m_page->mainFrame()->loader()->saveDocumentAndScrollState();
+            otherView->m_page->mainFrame()->loader()->history()->saveDocumentAndScrollState();
         }
         RefPtr<HistoryItem> newItem = otherBackForwardList->itemAtIndex(i)->copy();
         if (!i) 

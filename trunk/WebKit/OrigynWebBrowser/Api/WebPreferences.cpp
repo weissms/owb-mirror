@@ -192,7 +192,6 @@ void WebPreferences::initializeDefaultSettings()
 
     m_privatePrefs.add(WebKitPaintNativeControlsPreferenceKey, "1"); // TRUE
     m_privatePrefs.add(WebKitUseHighResolutionTimersPreferenceKey, "1"); // TRUE
-    m_privatePrefs.add(WebKitPluginHalterEnabledPreferenceKey, "0"); // FALSE
     m_privatePrefs.add(WebKitPluginAllowedRunTimePreferenceKey, "0"); // FALSE
 }
 
@@ -503,16 +502,6 @@ void WebPreferences::setShouldUseHighResolutionTimers(bool useHighResolutionTime
 bool WebPreferences::shouldUseHighResolutionTimers()
 {
     return boolValueForKey(WebKitUseHighResolutionTimersPreferenceKey);
-}
-
-void WebPreferences::setPluginHalterEnabled(bool enabled)
-{
-    setBoolValue(WebKitPluginHalterEnabledPreferenceKey, enabled);
-}
-
-bool WebPreferences::pluginHalterEnabled()
-{
-    return boolValueForKey(WebKitPluginHalterEnabledPreferenceKey);
 }
 
 void WebPreferences::setPluginAllowedRunTime(unsigned int allowedRunTime)

@@ -1,4 +1,3 @@
-JavaScriptCore/AllInOneFile.cpp
 JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Collector.cpp
@@ -28,6 +27,7 @@ WebCore/dom/ScriptExecutionContext.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLParser.cpp
+WebCore/html/HTMLTokenizer.cpp
 WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
 WebCore/loader/EmptyClients.h
@@ -84,6 +84,7 @@ WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/plugins/PluginView.cpp
 WebCore/plugins/PluginView.h
+WebCore/plugins/PluginViewNone.cpp
 WebCore/rendering/RenderLayerCompositor.h
 WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp

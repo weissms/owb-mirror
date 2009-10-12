@@ -24,6 +24,7 @@ list(APPEND WEBCORE_SRC
 ) 
 
 list(APPEND IDL_SRC
+    html/canvas/CanvasActiveInfo.idl
     html/canvas/CanvasArray.idl
     html/canvas/CanvasArrayBuffer.idl
     html/canvas/CanvasByteArray.idl

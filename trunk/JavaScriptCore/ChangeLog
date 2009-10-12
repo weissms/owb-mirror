@@ -1,3 +1,138 @@
+2009-10-12  Oliver Hunt  <oliver@apple.com>
+
+        Re-enable the JIT.
+
+        * wtf/Platform.h:
+
+2009-10-10  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Support for String.trim(), String.trimLeft() and String.trimRight() methods
+        https://bugs.webkit.org/show_bug.cgi?id=26590
+
+        Implement trim, trimLeft, and trimRight
+
+        * runtime/StringPrototype.cpp:
+        (JSC::isTrimWhitespace):
+           Our normal string whitespace function does not include U+200B which
+           is needed for compatibility with mozilla's implementation of trim.
+           U+200B does not appear to be expected according to spec, however I am
+           choosing to be lax, and match mozilla behavior so have added this
+           exception.
+        (JSC::trimString):
+
+2009-10-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Eliminated some legacy bytecode weirdness.
+        
+        Use vPC[x] subscripting instead of ++vPC to access instruction operands.
+        This is simpler, and often more efficient.
+
+        To support this, and to remove use of hard-coded offsets in bytecode and
+        JIT code generation and dumping, calculate jump offsets from the beginning
+        of an instruction, rather than the middle or end.
+        
+        Also, use OPCODE_LENGTH instead of hard-coded constants for the sizes of
+        opcodes.
+        
+        SunSpider reports no change in JIT mode, and a 1.01x speedup in Interpreter
+        mode.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::printConditionalJump):
+        (JSC::CodeBlock::dump):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitJump):
+        (JSC::BytecodeGenerator::emitJumpIfTrue):
+        (JSC::BytecodeGenerator::emitJumpIfFalse):
+        (JSC::BytecodeGenerator::emitJumpIfNotFunctionCall):
+        (JSC::BytecodeGenerator::emitJumpIfNotFunctionApply):
+        (JSC::BytecodeGenerator::emitComplexJumpScopes):
+        (JSC::BytecodeGenerator::emitJumpScopes):
+        (JSC::BytecodeGenerator::emitNextPropertyName):
+        (JSC::BytecodeGenerator::emitCatch):
+        (JSC::BytecodeGenerator::emitJumpSubroutine):
+        (JSC::prepareJumpTableForImmediateSwitch):
+        (JSC::prepareJumpTableForCharacterSwitch):
+        (JSC::prepareJumpTableForStringSwitch):
+        (JSC::BytecodeGenerator::endSwitch):
+        * bytecompiler/Label.h:
+        (JSC::Label::setLocation):
+        (JSC::Label::bind):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolve):
+        (JSC::Interpreter::resolveSkip):
+        (JSC::Interpreter::resolveGlobal):
+        (JSC::Interpreter::resolveBase):
+        (JSC::Interpreter::resolveBaseAndProperty):
+        (JSC::Interpreter::createExceptionScope):
+        (JSC::Interpreter::privateExecute):
+        * interpreter/Interpreter.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_jnless):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emit_op_jnlesseq):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::emitBinaryDoubleOp):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_jmp):
+        (JSC::JIT::emit_op_loop):
+        (JSC::JIT::emit_op_loop_if_less):
+        (JSC::JIT::emitSlow_op_loop_if_less):
+        (JSC::JIT::emit_op_loop_if_lesseq):
+        (JSC::JIT::emitSlow_op_loop_if_lesseq):
+        (JSC::JIT::emit_op_loop_if_true):
+        (JSC::JIT::emitSlow_op_loop_if_true):
+        (JSC::JIT::emit_op_jfalse):
+        (JSC::JIT::emitSlow_op_jfalse):
+        (JSC::JIT::emit_op_jtrue):
+        (JSC::JIT::emitSlow_op_jtrue):
+        (JSC::JIT::emit_op_jeq_null):
+        (JSC::JIT::emit_op_jneq_null):
+        (JSC::JIT::emit_op_jneq_ptr):
+        (JSC::JIT::emit_op_jsr):
+        (JSC::JIT::emit_op_next_pname):
+        (JSC::JIT::emit_op_jmp_scopes):
+
+2009-10-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Migrated some code that didn't belong out of Structure.
+        
+        SunSpider says maybe 1.03x faster.
+
+        * runtime/JSCell.h: Nixed Structure::markAggregate, and made marking of
+        a Structure's prototype the direct responsility of the object using it.
+        (Giving Structure a mark function was misleading because it implied that
+        all live structures get marked during GC, when they don't.)
+        
+        * runtime/JSGlobalObject.cpp:
+        (JSC::markIfNeeded):
+        (JSC::JSGlobalObject::markChildren): Added code to mark prototypes stored
+        on the global object. Maybe this wasn't necessary, but now we don't have
+        to wonder.
+
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        (JSC::JSObject::getOwnPropertyNames):
+        (JSC::JSObject::getEnumerableNamesFromClassInfoTable):
+        * runtime/JSObject.h:
+        (JSC::JSObject::markChildrenDirect):
+        * runtime/PropertyNameArray.h:
+        * runtime/Structure.cpp:
+        * runtime/Structure.h:
+        (JSC::Structure::setEnumerationCache):
+        (JSC::Structure::enumerationCache): Moved property name gathering code
+        from Structure to JSObject because having a Structure iterate its JSObject
+        was a layering violation. A JSObject is implemented using a Structure; not
+        the other way around.
+
 2009-10-09  Mark Rowe  <mrowe@apple.com>
 
         Attempt to fix the GTK release build.

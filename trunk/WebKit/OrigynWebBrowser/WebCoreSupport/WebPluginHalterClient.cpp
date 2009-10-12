@@ -27,16 +27,31 @@
 #include "WebPluginHalterClient.h"
 
 #include "Assertions.h"
+#include "DOMCoreClasses.h"
 #include "NotImplemented.h"
+#include "WebPluginHalterDelegate.h"
+#include "WebView.h"
 
-WebPluginHalterClient::WebPluginHalterClient()
+WebPluginHalterClient::WebPluginHalterClient(WebView* webView)
+    : m_webView(webView)
 {
+    ASSERT_ARG(webView, webView);
 }
 
 bool WebPluginHalterClient::shouldHaltPlugin(WebCore::Node* node) const
 {
     ASSERT_ARG(node, node);
-    // FIXME: Windows delegate this decision to the WebView.
-    notImplemented();
-    return false;
+
+    WebPluginHalterDelegate* d = m_webView->pluginHalterDelegate();
+
+    if (!d)
+        return false;
+
+    DOMNode* domNode = DOMNode::createInstance(node);
+    return d->shouldHaltPlugin(m_webView, domNode);
+}
+
+bool WebPluginHalterClient::enabled() const
+{
+    return !m_webView->pluginHalterDelegate();
 }

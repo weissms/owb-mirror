@@ -107,10 +107,10 @@ void PluginView::updatePluginWidget()
     if (m_windowRect == oldWindowRect && m_clipRect == oldClipRect)
         return;
 
-    if (m_drawable)
-        XFreePixmap(QX11Info::display(), m_drawable);
+    if (!m_isWindowed && m_windowRect.size() != oldWindowRect.size()) {
+        if (m_drawable)
+            XFreePixmap(QX11Info::display(), m_drawable);
 
-    if (!m_isWindowed) {
         m_drawable = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(), m_windowRect.width(), m_windowRect.height(), 
                                    ((NPSetWindowCallbackStruct*)m_npWindow.ws_info)->depth);
         QApplication::syncX(); // make sure that the server knows about the Drawable
@@ -196,7 +196,7 @@ void PluginView::paint(GraphicsContext* context, const IntRect& rect)
         // (because backing store contents are already transformed). What we really mean to do 
         // here is to check if we are painting on QWebView, but let's be a little permissive :)
         QWebPageClient* client = m_parentFrame->view()->hostWindow()->platformPageClient();
-        const bool backingStoreHasUntransformedContents = qobject_cast<QWidget*>(client->pluginParent());
+        const bool backingStoreHasUntransformedContents = client && qobject_cast<QWidget*>(client->pluginParent());
 
         if (hasValidBackingStore && backingStorePixmap->depth() == drawableDepth 
             && backingStoreHasUntransformedContents) {
@@ -240,11 +240,11 @@ bool PluginView::dispatchNPEvent(NPEvent& event)
         return false;
 
     PluginView::setCurrentPluginView(this);
-    JSC::JSLock::DropAllLocks dropAllLocks(false);
-
+    JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
     setCallingPlugin(true);
     bool accepted = m_plugin->pluginFuncs()->event(m_instance, &event);
     setCallingPlugin(false);
+    PluginView::setCurrentPluginView(0);
 
     return accepted;
 }

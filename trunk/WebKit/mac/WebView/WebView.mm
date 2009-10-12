@@ -1187,7 +1187,7 @@ static bool fastDocumentTeardownEnabled()
             // If this item is showing , save away its current scroll and form state,
             // since that might have changed since loading and it is normally not saved
             // until we leave that page.
-            otherView->_private->page->mainFrame()->loader()->saveDocumentAndScrollState();
+            otherView->_private->page->mainFrame()->loader()->history()->saveDocumentAndScrollState();
         }
         RefPtr<HistoryItem> newItem = otherBackForwardList->itemAtIndex(i)->copy();
         if (i == 0) 
@@ -1317,7 +1317,6 @@ static bool fastDocumentTeardownEnabled()
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
     settings->setAcceleratedCompositingEnabled([preferences acceleratedCompositingEnabled]);
-    settings->setPluginHalterEnabled([preferences pluginHalterEnabled]);
     settings->setPluginAllowedRunTime([preferences pluginAllowedRunTime]);
     settings->setWebGLEnabled([preferences webGLEnabled]);
 }

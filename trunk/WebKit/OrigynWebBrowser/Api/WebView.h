@@ -53,6 +53,7 @@ class WebFrameLoadDelegate;
 class WebHistoryItem;
 class WebMutableURLRequest;
 class WebNotificationDelegate;
+class WebPluginHalterDelegate;
 class WebPreferences;
 class WebScriptObject;
 class WebViewPrivate;
@@ -232,6 +233,18 @@ public:
      *  get the WebView's JSActionDelegate.
      */
     JSActionDelegate* jsActionDelegate();
+
+    /**
+     *  setPluginHalterDelegate
+     *  
+     */
+    virtual void setPluginHalterDelegate(WebPluginHalterDelegate*);
+
+    /**
+     *  pluginHalterDelegate
+     *  
+     */
+    virtual WebPluginHalterDelegate* pluginHalterDelegate();
 
     /**
      * mainFrame 
@@ -1567,6 +1580,7 @@ protected:
     WebNotificationDelegate* m_webNotificationDelegate;
     WebFrameLoadDelegate* m_webFrameLoadDelegate;
     JSActionDelegate* m_jsActionDelegate;
+    WebPluginHalterDelegate* m_pluginHalterDelegate;
     WebPreferences* m_preferences;
 
     bool m_userAgentOverridden;

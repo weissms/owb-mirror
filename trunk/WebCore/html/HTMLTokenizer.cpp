@@ -43,6 +43,7 @@
 #include "HTMLParser.h"
 #include "HTMLScriptElement.h"
 #include "HTMLViewSourceDocument.h"
+#include "ImageLoader.h"
 #include "MappedAttribute.h"
 #include "Page.h"
 #include "PreloadScanner.h"
@@ -1805,6 +1806,9 @@ void HTMLTokenizer::write(const SegmentedString& str, bool appendData)
 
     if (m_noMoreData && !m_inWrite && !state.loadingExtScript() && !m_executingScript && !m_timer.isActive())
         end(); // this actually causes us to be deleted
+    
+    // After parsing, go ahead and dispatch image beforeload/load events.
+    ImageLoader::dispatchPendingEvents();
 }
 
 void HTMLTokenizer::stopParsing()

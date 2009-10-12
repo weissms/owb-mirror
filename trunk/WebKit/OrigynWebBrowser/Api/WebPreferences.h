@@ -565,10 +565,6 @@ public:
 
     virtual bool shouldUseHighResolutionTimers();
 
-    virtual void setPluginHalterEnabled(bool enabled);
-
-    virtual bool pluginHalterEnabled();
-
     virtual void setPluginAllowedRunTime(unsigned int allowedRunTime);
 
     virtual unsigned int pluginAllowedRunTime();

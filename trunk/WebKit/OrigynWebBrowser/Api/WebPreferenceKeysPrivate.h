@@ -130,5 +130,4 @@
 
 #define WebKitExperimentalNotificationsEnabledPreferenceKey "WebKitExperimentalNotificationsEnabled"
 #define WebKitExperimentalWebSocketsEnabledPreferenceKey "WebKitExperimentalWebSocketsEnabled"
-#define WebKitPluginHalterEnabledPreferenceKey "WebKitPluginHalterEnabled"
 #define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"
