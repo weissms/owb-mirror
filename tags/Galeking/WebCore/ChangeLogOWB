@@ -1,3 +1,10 @@
+2009-10-12  Gilles Bertal  <gbertal@pleyo.com>
+
+        Manually integrating WebKit bug #27384 fix.
+
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::didReceiveResponse):
+
 2009-06-02  Mario Bensi  <mbensi@pleyo.com>
 
         Add svg/graphics sources in WebCore.
