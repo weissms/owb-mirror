@@ -43,7 +43,7 @@ namespace Bindings {
 
 BalClass::~BalClass()
 {
-    JSLock lock(false);
+    JSLock lock(SilenceAssertionsOnly);
 
     deleteAllValues(m_methods);
     m_methods.clear();
@@ -92,7 +92,7 @@ MethodList BalClass::methodsNamed(const Identifier& identifier, Instance* instan
     {
         Method* aMethod = new BalMethod(ident); // deleted in the CClass destructor
         {
-            JSLock lock(false);
+            JSLock lock(SilenceAssertionsOnly);
             m_methods.set(identifier.ustring().rep(), aMethod);
         }
         methodList.append(aMethod);
@@ -115,7 +115,7 @@ Field* BalClass::fieldNamed(const Identifier& identifier, Instance *instance) co
     {
         aField = new BalField(ident); // deleted in the CClass destructor
         {
-            JSLock lock(false);
+            JSLock lock(SilenceAssertionsOnly);
             m_fields.set(identifier.ustring().rep(), aField);
         }
     }

@@ -1,3 +1,24 @@
+2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Update calls to JSLock method to use the JSLockBehavior enum instead
+        of using a bool. This would lead to crashes in the bridge.
+
+        * bridge/bal/bal_class.cpp:
+        (JSC::Bindings::BalClass::~BalClass):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::getPropertyNames):
+        (JSC::Bindings::BalInstance::createRuntimeObject):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
 2009-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

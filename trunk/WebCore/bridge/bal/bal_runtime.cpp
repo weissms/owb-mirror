@@ -48,7 +48,7 @@ JSValue BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
     WebObject* obj = instance->getObject();
     WebValue* val;
     {
-        JSLock::DropAllLocks dropAllLocks(false);
+        JSLock::DropAllLocks dropAllLocks(SilenceAssertionsOnly);
         val = obj->getProperty(m_ident);
         if (!val) {
             val = new WebValue();
@@ -72,7 +72,7 @@ void BalField::setValueToInstance(ExecState* exec, const Instance* inst, JSValue
     WebValuePrivate *priv = new WebValuePrivate(exec, aValue);
     WebValue *val = new WebValue(priv);
     {
-        JSLock::DropAllLocks dropAllLocks(false);
+        JSLock::DropAllLocks dropAllLocks(SilenceAssertionsOnly);
         obj->setProperty(m_ident, val);
     }
     delete val;

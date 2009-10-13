@@ -90,7 +90,7 @@ void BalRuntimeObjectImp::invalidate()
 
 void BalRuntimeObjectImp::removeFromCache()
 {
-/*    JSLock lock(false);
+/*    JSLock lock(SilenceAssertionsOnly);
     QtInstance* key = cachedObjects.key(this);
     if (key)
         cachedObjects.remove(key);*/
@@ -150,7 +150,7 @@ JSValue BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList,
 
     WebValue *val;
     {
-        JSLock::DropAllLocks dropAllLocks(false);
+        JSLock::DropAllLocks dropAllLocks(SilenceAssertionsOnly);
         val = m_object->invoke(ident, cArgs);
         if (!val) {
             val = new WebValue();
@@ -214,7 +214,7 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
 {
     /*uint32_t count;
     {
-        JSLock::DropAllLocks dropAllLocks(false);
+        JSLock::DropAllLocks dropAllLocks(SilenceAssertionsOnly);
 #if PLATFORM(AMIGAOS4)
         if (!_object->_class->enumerate(_object, &identifiers, (uint32_t *)&count))
 #else
@@ -238,7 +238,7 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
 
 RuntimeObjectImp* BalInstance::createRuntimeObject(ExecState* exec)
 {
-    JSLock lock(false);
+    JSLock lock(SilenceAssertionsOnly);
     RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(exec, this);
     return ret;
 }
@@ -246,7 +246,7 @@ RuntimeObjectImp* BalInstance::createRuntimeObject(ExecState* exec)
 
 PassRefPtr<BalInstance> BalInstance::getBalInstance(WebObject* o, PassRefPtr<RootObject> rootObject)
 {
-    JSLock lock(false);
+    JSLock lock(SilenceAssertionsOnly);
 
 /*    foreach(QtInstance* instance, cachedInstances.values(o)) {
         if (instance->rootObject() == rootObject)
