@@ -28,10 +28,6 @@ if(USE_NETWORK_SOUP)
     add_definitions(-DWTF_USE_SOUP=1)
 endif(USE_NETWORK_SOUP)
 
-if(ENABLE_3D_RENDERING)
-    add_definitions(-DENABLE_3D_RENDERING)
-endif(ENABLE_3D_RENDERING)
-
 if(ENABLE_DEBUG)
     add_definitions(-DUSE_SYSTEM_MALLOC)
 else (ENABLE_DEBUG)

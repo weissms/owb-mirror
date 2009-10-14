@@ -1,2 +1,3 @@
 BCImageDecoderQt.h ImageDecoderQt.h
 BCStillImageQt.h StillImageQt.h
+BCGraphicsLayerQt.h GraphicsLayerQt.h

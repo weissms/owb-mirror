@@ -1,6 +1,7 @@
 /*
     Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
     Copyright (C) 2008 Holger Hans Peter Freyther
+    Copyright (C) 2009 Girish Ramakrishnan <girish@forwardbias.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -57,8 +58,9 @@ public:
     virtual void updateCursor(const QCursor& cursor);
 #endif
 
+    virtual QPalette palette() const;
     virtual int screenNumber() const;
-    virtual WId winId() const;
+    virtual QWidget* ownerWidget() const;
 
     virtual QObject* pluginParent() const;
 
@@ -105,6 +107,11 @@ void QWebViewPrivate::updateCursor(const QCursor& cursor)
 }
 #endif
 
+QPalette QWebViewPrivate::palette() const
+{
+    return view->palette();
+}
+
 int QWebViewPrivate::screenNumber() const
 {
 #if defined(Q_WS_X11)
@@ -115,12 +122,9 @@ int QWebViewPrivate::screenNumber() const
     return 0;
 }
 
-WId QWebViewPrivate::winId() const
+QWidget* QWebViewPrivate::ownerWidget() const
 {
-    if (view)
-        return view->winId();
-
-    return 0;
+    return view;
 }
 
 QObject* QWebViewPrivate::pluginParent() const

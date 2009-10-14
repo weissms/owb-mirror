@@ -54,7 +54,6 @@ webcore_cppflags += \
 
 webcoregtk_cppflags += \
 	-DWTF_USE_SOUP=1 \
-        -DENABLE_PLUGIN_PACKAGE_SIMPLE_HASH=1 \
 	-I$(srcdir)/WebCore/accessibility/gtk \
 	-I$(srcdir)/WebCore/loader/gtk \
 	-I$(srcdir)/WebCore/page/gtk \
@@ -2332,7 +2331,7 @@ webcoregtk_sources += \
 	WebCore/platform/graphics/gtk/VideoSinkGStreamer.cpp \
 	WebCore/platform/graphics/gtk/VideoSinkGStreamer.h \
 	WebCore/platform/graphics/gtk/DataSourceGStreamer.cpp \
-	WebCore/platform/graphics/gtk/DataSourceGstreamer.h
+	WebCore/platform/graphics/gtk/DataSourceGStreamer.h
 
 webcore_libadd += \
 	-lgstinterfaces-0.10 \

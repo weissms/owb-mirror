@@ -1393,22 +1393,39 @@ private:
      */
     bool addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist);
     /**
-     * removeUserContentWithURLFromGroup remove user content from a world's page group matching an origin URL
+     * removeUserScriptFromGroup remove user script from a world's page group matching an origin URL
      * @result Returns true if the parameters were valid, false if not.
      * @param groupName is the page group name
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      * @param url is the URL associated with the content (script or style). It should match the url parameter in addUserScriptToGroup or addUserStyleSheetToGroup
      */
-    bool removeUserContentWithURLFromGroup(const char* groupName, unsigned worldID, const char* url);
+    bool removeUserScriptFromGroup(const char* groupName, unsigned worldID, const char* url);
 
 
     /**
-     * removeUserContentFromGroup remove all the user content from a world's page group.
+     * removeUserStyleSheetFromGroup remove user styleSheet from a world's page group matching an origin URL
+     * @result Returns true if the parameters were valid, false if not.
+     * @param groupName is the page group name
+     * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
+     * @param url is the URL associated with the content (script or style). It should match the url parameter in addUserScriptToGroup or addUserStyleSheetToGroup
+     */
+    bool removeUserStyleSheetFromWorld(const char* groupName, unsigned worldID, const char* url);
+
+    /**
+     * removeUserScriptsFromGroup remove user styleSheet from a world's page group
      * @result Returns true if the parameters were valid, false if not.
      * @param groupName is the page group name
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      */
-    bool removeUserContentFromGroup(const char* groupName, unsigned worldID);
+    bool removeUserScriptsFromGroup(const char* groupName, unsigned worldID);
+
+    /**
+     * removeUserStyleSheetsFromGroup remove user styleSheet from a world's page group
+     * @result Returns true if the parameters were valid, false if not.
+     * @param groupName is the page group name
+     * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
+     */
+    bool removeUserStyleSheetsFromGroup(const char* groupName, unsigned worldID);
 
     /**
      * removeAllUserContentFromGroup remove all user content from a page group (including all worlds)

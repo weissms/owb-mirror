@@ -37,3 +37,7 @@ if(ENABLE_FILTERS)
     create_include_link(${GRAPHICS_DIR}/WK/filters BAL)
     aux_source_directory(${GRAPHICS_DIR}/WK/filters WEBCORE_SRC)
 endif(ENABLE_FILTERS)
+
+if(ENABLE_3D_CANVAS)
+    aux_source_directory(${GRAPHICS_DIR}/Empty WEBCORE_SRC)
+endif(ENABLE_3D_CANVAS)

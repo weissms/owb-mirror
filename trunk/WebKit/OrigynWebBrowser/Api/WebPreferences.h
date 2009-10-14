@@ -707,6 +707,26 @@ public:
      */
     bool pluginAllowedRuntime() const;
 
+    /*
+     * Enable or disable WebGL
+     */
+    void setWebGLEnabled(bool);
+
+    /*
+     * Return whether webgl is enabled
+     */
+    bool webGLEnabled();
+
+    /*
+     * Enable or disable accelerated compositing
+     */
+    void setAcceleratedCompositingEnabled(bool);
+
+    /*
+     * Return whether accelerated compositing is enabled
+     */
+    bool acceleratedCompositingEnabled();
+
 protected:
     /**
      *  setValueForKey

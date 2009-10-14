@@ -522,8 +522,14 @@ void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy, DatabasePolic
         }
 
         // Dispatching the unload event could have made m_frame->document() null.
-        if (m_frame->document() && !m_frame->document()->inPageCache())
-            m_frame->document()->removeAllEventListeners();
+        if (m_frame->document() && !m_frame->document()->inPageCache()) {
+            // Don't remove event listeners from a transitional empty document (see bug 28716 for more information).
+            bool keepEventListeners = m_isDisplayingInitialEmptyDocument && m_provisionalDocumentLoader
+                && m_frame->document()->securityOrigin()->isSecureTransitionTo(m_provisionalDocumentLoader->url());
+
+            if (!keepEventListeners)
+                m_frame->document()->removeAllEventListeners();
+        }
     }
 
     m_isComplete = true; // to avoid calling completed() in finishedParsing()
@@ -613,7 +619,6 @@ bool FrameLoader::didOpenURL(const KURL& url)
 
     m_frame->redirectScheduler()->cancel();
     m_frame->editor()->clearLastEditCommand();
-    closeURL();
 
     m_isComplete = false;
     m_isLoadingMainResource = true;
@@ -2064,6 +2069,13 @@ void FrameLoader::loadWithDocumentLoader(DocumentLoader* loader, FrameLoadType t
         if (loader->triggeringAction().isEmpty())
             loader->setTriggeringAction(NavigationAction(newURL, policyChecker()->loadType(), isFormSubmission));
 
+        if (Element* ownerElement = m_frame->document()->ownerElement()) {
+            if (!ownerElement->dispatchBeforeLoadEvent(loader->request().url().string())) {
+                continueLoadAfterNavigationPolicy(loader->request(), formState, false);
+                return;
+            }
+        }
+
         policyChecker()->checkNavigationPolicy(loader->request(), loader, formState,
             callContinueLoadAfterNavigationPolicy, this);
     }
@@ -2802,6 +2814,8 @@ void FrameLoader::finishedLoadingDocument(DocumentLoader* loader)
     loader->setParsedArchiveData(mainResource->data());
 
     m_responseMIMEType = mainResource->mimeType();
+
+    closeURL();
     didOpenURL(mainResource->url());
 
     String userChosenEncoding = documentLoader()->overrideEncoding();

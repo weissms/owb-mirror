@@ -457,6 +457,35 @@ void InspectorBackend::copyNode(long nodeId)
     String markup = createMarkup(node);
     Pasteboard::generalPasteboard()->writePlainText(markup);
 }
+    
+void InspectorBackend::removeNode(long callId, long nodeId)
+{
+    InspectorFrontend* frontend = inspectorFrontend();
+    if (!frontend)
+        return;
+
+    Node* node = nodeForId(nodeId);
+    if (!node) {
+        // Use -1 to denote an error condition.
+        frontend->didRemoveNode(callId, -1);
+        return;
+    }
+
+    Node* parentNode = node->parentNode();
+    if (!parentNode) {
+        frontend->didRemoveNode(callId, -1);
+        return;
+    }
+
+    ExceptionCode code;
+    parentNode->removeChild(node, code);
+    if (code) {
+        frontend->didRemoveNode(callId, -1);
+        return;
+    }
+
+    frontend->didRemoveNode(callId, nodeId);
+}
 
 void InspectorBackend::getCookies(long callId, const String& domain)
 {

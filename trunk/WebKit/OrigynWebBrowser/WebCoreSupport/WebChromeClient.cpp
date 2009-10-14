@@ -570,3 +570,17 @@ void WebChromeClient::scrollbarsModeDidChange() const
     //FIXME: implement me!
     notImplemented();
 }
+
+#if USE(ACCELERATED_COMPOSITING)
+void WebChromeClient::scheduleCompositingLayerSync()
+{
+}
+
+void WebChromeClient::attachRootGraphicsLayer(WebCore::Frame* frame, WebCore::GraphicsLayer* layer)
+{
+}
+
+void WebChromeClient::setNeedsOneShotDrawingSynchronization()
+{
+}
+#endif

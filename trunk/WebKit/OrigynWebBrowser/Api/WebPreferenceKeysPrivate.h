@@ -131,3 +131,5 @@
 #define WebKitExperimentalNotificationsEnabledPreferenceKey "WebKitExperimentalNotificationsEnabled"
 #define WebKitExperimentalWebSocketsEnabledPreferenceKey "WebKitExperimentalWebSocketsEnabled"
 #define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"
+#define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
+#define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"

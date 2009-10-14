@@ -1,3 +1,192 @@
+2009-10-14  Stephanie Lewis  <slewis@apple.com>
+
+        Unreviewed, adding myself to reviewers list.
+
+        * Scripts/modules/committers.py:
+
+2009-10-13  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix null assignment so root tests work again.
+
+        * Scripts/webkitdirs.pm:
+
+2009-10-13  Andras Becsi  <becsi.andras@stud.u-szeged.hu>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Refactor LayoutTestController, EventSender, TextInputController and WorkQueueItem classes
+        out of jsobjects into separate files to get a more structured DumpRenderTree implementation.
+        This is done in preparation of implementing missing features in DRT.
+        No functionality changes made yet.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/EventSenderQt.cpp: Added.
+        (EventSender::EventSender):
+        (EventSender::mouseDown):
+        (EventSender::mouseUp):
+        (EventSender::mouseMoveTo):
+        (EventSender::leapForward):
+        (EventSender::keyDown):
+        (EventSender::contextClick):
+        (EventSender::scheduleAsynchronousClick):
+        (EventSender::frameUnderMouse):
+        * DumpRenderTree/qt/EventSenderQt.h: Added.
+        (EventSender::clearKillRing):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp: Added.
+        (LayoutTestController::LayoutTestController):
+        (LayoutTestController::reset):
+        (LayoutTestController::processWork):
+        (LayoutTestController::maybeDump):
+        (LayoutTestController::waitUntilDone):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::windowCount):
+        (LayoutTestController::clearBackForwardList):
+        (LayoutTestController::dumpEditingCallbacks):
+        (LayoutTestController::dumpResourceLoadCallbacks):
+        (LayoutTestController::queueBackNavigation):
+        (LayoutTestController::queueForwardNavigation):
+        (LayoutTestController::queueLoad):
+        (LayoutTestController::queueReload):
+        (LayoutTestController::queueScript):
+        (LayoutTestController::provisionalLoad):
+        (LayoutTestController::timerEvent):
+        (LayoutTestController::encodeHostName):
+        (LayoutTestController::decodeHostName):
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setFixedContentsSize):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        (LayoutTestController::setPopupBlockingEnabled):
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        (LayoutTestController::numberOfActiveAnimations):
+        (LayoutTestController::disableImageLoading):
+        (LayoutTestController::dispatchPendingLoadRequests):
+        (LayoutTestController::setDatabaseQuota):
+        (LayoutTestController::clearAllDatabases):
+        (LayoutTestController::whiteListAccessFromOrigin):
+        (LayoutTestController::waitForPolicyDelegate):
+        (LayoutTestController::overridePreference):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h: Added.
+        (LayoutTestController::isLoading):
+        (LayoutTestController::setLoading):
+        (LayoutTestController::shouldDumpAsText):
+        (LayoutTestController::shouldDumpBackForwardList):
+        (LayoutTestController::shouldDumpChildrenAsText):
+        (LayoutTestController::shouldDumpDatabaseCallbacks):
+        (LayoutTestController::shouldDumpStatusCallbacks):
+        (LayoutTestController::shouldWaitUntilDone):
+        (LayoutTestController::canOpenWindows):
+        (LayoutTestController::shouldDumpTitleChanges):
+        (LayoutTestController::waitForPolicy):
+        (LayoutTestController::dumpAsText):
+        (LayoutTestController::dumpChildFramesAsText):
+        (LayoutTestController::dumpDatabaseCallbacks):
+        (LayoutTestController::dumpStatusCallbacks):
+        (LayoutTestController::setCanOpenWindows):
+        (LayoutTestController::dumpBackForwardList):
+        (LayoutTestController::setCloseRemainingWindowsWhenComplete):
+        (LayoutTestController::display):
+        (LayoutTestController::dumpTitleChanges):
+        (LayoutTestController::dumpSelectionRect):
+        * DumpRenderTree/qt/TextInputControllerQt.cpp: Added.
+        (TextInputController::TextInputController):
+        (TextInputController::doCommand):
+        * DumpRenderTree/qt/TextInputControllerQt.h: Added.
+        * DumpRenderTree/qt/WorkQueue.cpp:
+        * DumpRenderTree/qt/WorkQueue.h:
+        * DumpRenderTree/qt/WorkQueueItem.h:
+        * DumpRenderTree/qt/WorkQueueItemQt.cpp: Added.
+        (findFrameNamed):
+        (LoadItem::invoke):
+        (ReloadItem::invoke):
+        (ScriptItem::invoke):
+        (BackForwardItem::invoke):
+        * DumpRenderTree/qt/jsobjects.cpp: Move all the above classes into separate files
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-10-13  Dmitry Titov  <dimich@chromium.org>
+
+        Not reviewed, adding myself to the list of reviewers.
+
+        * Scripts/modules/committers.py:
+
+2009-10-13  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6660507> Add "privacy mode" to Netscape Plug-in API
+
+        Make the private browsing mode testable by the test plug-in.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginGetProperty):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_SetValue):
+
+2009-10-13  Pavel Feldman  <pfeldman@chromium.org>
+
+        No review, just adding self to the list of reviewers.
+
+        * Scripts/modules/committers.py:
+
+2009-10-12  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Web Inspector: Use proper web view in inspector layout
+        tests for windows.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30298
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+        (LayoutTestController::evaluateInWebInspector):
+
+2009-10-12  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        Enable experimentalWebSocket in DumpRenderTree for LayoutTest.
+        https://bugs.webkit.org/show_bug.cgi?id=29841
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+
+2009-10-12  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Chromium Port - Windows
+        https://bugs.webkit.org/show_bug.cgi?id=29969
+
+        * Scripts/pdevenv: removed msvc's /useenv for chromium builds
+        * Scripts/webkitdirs.pm:
+
+2009-10-12  Csaba Osztrogonac  <ossy@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        jsc scripts cleanup and Qt/GTK fix
+        https://bugs.webkit.org/show_bug.cgi?id=30288
+
+        Duplicated jscPath() moved to webkitdirs.pm.
+        New jscProductDir() added to webkitdirs.pm instead of duplicated codes.
+        Configuration added (release/debug) to path for Qt-port on Windows.
+
+        * Scripts/run-javascriptcore-tests:
+        * Scripts/run-jsc:
+        * Scripts/run-sunspider:
+        * Scripts/sunspider-compare-results:
+        * Scripts/webkitdirs.pm:
+
 2009-10-12  Adam Barth  <abarth@webkit.org>
 
         Unreviewed.  Add Collin to committers.py.

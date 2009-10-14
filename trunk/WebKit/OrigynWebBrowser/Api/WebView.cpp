@@ -1629,12 +1629,12 @@ bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, cons
     if (!pageGroup)
         return false;
     
-    pageGroup->addUserScript(String(source),
-                             KURL(KURL(), String(url)),
-                             toStringVector(whitelistCount, whitelist),
-                             toStringVector(blacklistCount, blacklist),
-                             worldID,
-                             injectionTime == WebUserScriptInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
+    pageGroup->addUserScriptToWorld(worldID,
+                                    String(source),
+                                    KURL(KURL(), String(url)),
+                                    toStringVector(whitelistCount, whitelist),
+                                    toStringVector(blacklistCount, blacklist),
+                                    injectionTime == WebUserScriptInjectAtDocumentStart ? InjectAtDocumentStart : InjectAtDocumentEnd);
     return true;
 }
 
@@ -1649,15 +1649,15 @@ bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, 
     if (!pageGroup)
         return false;
  
-    pageGroup->addUserStyleSheet(String(source),
-                                 KURL(KURL(), String(url)),
-                                 toStringVector(whitelistCount, whitelist),
-                                 toStringVector(blacklistCount, blacklist),
-                                 worldID);    
+    pageGroup->addUserStyleSheetToWorld(worldID,
+                                       String(source),
+                                       KURL(KURL(), String(url)),
+                                       toStringVector(whitelistCount, whitelist),
+                                       toStringVector(blacklistCount, blacklist));
     return true;
 }
 
-bool WebView::removeUserContentWithURLFromGroup(const char* groupName, unsigned worldID, const char* url)
+bool WebView::removeUserScriptFromGroup(const char* groupName, unsigned worldID, const char* url)
 {
     String group(groupName);
     if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
@@ -1668,11 +1668,11 @@ bool WebView::removeUserContentWithURLFromGroup(const char* groupName, unsigned 
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserContentWithURLForWorld(KURL(KURL(), url), worldID);
+    pageGroup->removeUserScriptFromWorld(worldID, KURL(KURL(), url));
     return true;
 }
 
-bool WebView::removeUserContentFromGroup(const char* groupName, unsigned worldID)
+bool WebView::removeUserStyleSheetFromWorld(const char* groupName, unsigned worldID, const char* url)
 {
     String group(groupName);
     if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
@@ -1683,7 +1683,37 @@ bool WebView::removeUserContentFromGroup(const char* groupName, unsigned worldID
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserContentForWorld(worldID);
+    pageGroup->removeUserStyleSheetFromWorld(worldID, KURL(KURL(), url));
+    return true;
+}
+
+bool WebView::removeUserScriptsFromGroup(const char* groupName, unsigned worldID)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    pageGroup->removeUserScriptsFromWorld(worldID);
+    return true;
+}
+
+bool WebView::removeUserStyleSheetsFromGroup(const char* groupName, unsigned worldID)
+{
+    String group(groupName);
+    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+        return false;
+
+    PageGroup* pageGroup = PageGroup::pageGroup(group);
+    ASSERT(pageGroup);
+    if (!pageGroup)
+        return false;
+
+    pageGroup->removeUserStyleSheetsFromWorld(worldID);
     return true;
 }
 
@@ -2352,9 +2382,11 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->pluginAllowedRunTime();
     settings->setPluginAllowedRunTime(enabled);
 
-#if ENABLE(3D_CANVAS)
-    settings->setExperimentalWebGLEnabled(true);
-#endif
+    enabled = preferences->webGLEnabled();
+    settings->setWebGLEnabled(enabled);
+
+    enabled = preferences->acceleratedCompositingEnabled();
+    settings->setAcceleratedCompositingEnabled(enabled);
 
 /*    if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME*/

@@ -202,6 +202,7 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/GeneratedImage.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Generator.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Gradient.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/GraphicsContext.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/GraphicsContext3D.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/GraphicsLayerClient.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/GraphicsLayer.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/GraphicsTypes.h
@@ -302,6 +303,7 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext3D.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContextPrivate.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayerClient.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayer.h

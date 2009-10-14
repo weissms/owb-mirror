@@ -54,6 +54,10 @@
 namespace WebCore {
 
 GraphicsContext3D::GraphicsContext3D()
+    : m_contextObj(0)
+    , m_texture(0)
+    , m_fbo(0)
+    , m_depthBuffer(0)
 {
     CGLPixelFormatAttribute attribs[] =
     {
@@ -64,12 +68,23 @@ GraphicsContext3D::GraphicsContext3D()
         (CGLPixelFormatAttribute) 0
     };
     
-    CGLPixelFormatObj pixelFormatObj;
-    GLint numPixelFormats;
+    CGLPixelFormatObj pixelFormatObj = 0;
+    GLint numPixelFormats = 0;
     
-    CGLChoosePixelFormat(attribs, &pixelFormatObj, &numPixelFormats);
+    CGLError err = CGLChoosePixelFormat(attribs, &pixelFormatObj, &numPixelFormats);
+    if (err != kCGLNoError) {
+        // FIXME: temporary change to get error.
+        fprintf(stderr, "CGLChoosePixelFormat failed, err %d\n", err);
+        return;
+    }
     
-    CGLCreateContext(pixelFormatObj, 0, &m_contextObj);
+    err = CGLCreateContext(pixelFormatObj, 0, &m_contextObj);
+    if (err != kCGLNoError || !m_contextObj) {
+        // FIXME: temporary change to get error.
+        fprintf(stderr, "CGLCreateContext failed, err %d (context %p)\n", err, m_contextObj);
+        m_contextObj = 0;
+        return;
+    }
     
     CGLDestroyPixelFormat(pixelFormatObj);
     
@@ -595,6 +610,22 @@ void GraphicsContext3D::polygonOffset(double factor, double units)
 {
     ensureContext(m_contextObj);
     ::glPolygonOffset(static_cast<float>(factor), static_cast<float>(units));
+}
+
+PassRefPtr<CanvasArray> GraphicsContext3D::readPixels(long x, long y, unsigned long width, unsigned long height, unsigned long format, unsigned long type)
+{
+    ensureContext(m_contextObj);
+    
+    // FIXME: For now we only accept GL_UNSIGNED_BYTE/GL_RGBA. In reality OpenGL ES 2.0 accepts that pair and one other
+    // as specified by GL_IMPLEMENTATION_COLOR_READ_FORMAT and GL_IMPLEMENTATION_COLOR_READ_TYPE. But for now we will
+    // not accept those.
+    // FIXME: Also, we should throw when an unacceptable value is passed
+    if (type != GL_UNSIGNED_BYTE || format != GL_RGBA)
+        return 0;
+        
+    RefPtr<CanvasUnsignedByteArray> array = CanvasUnsignedByteArray::create(width * height * 4);
+    ::glReadPixels(x, y, width, height, format, type, (GLvoid*) array->data());
+    return array;    
 }
 
 void GraphicsContext3D::releaseShaderCompiler()

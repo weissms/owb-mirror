@@ -193,6 +193,16 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs.add(WebKitPaintNativeControlsPreferenceKey, "1"); // TRUE
     m_privatePrefs.add(WebKitUseHighResolutionTimersPreferenceKey, "1"); // TRUE
     m_privatePrefs.add(WebKitPluginAllowedRunTimePreferenceKey, "0"); // FALSE
+#if ENABLE(3D_CANVAS)
+    m_privatePrefs.add(WebKitWebGLEnabledPreferenceKey, "1");
+#else
+    m_privatePrefs.add(WebKitWebGLEnabledPreferenceKey, "0");
+#endif
+#if ENABLE(3D_RENDERING)
+    m_privatePrefs.add(WebKitAcceleratedCompositingEnabledPreferenceKey, "1");
+#else
+    m_privatePrefs.add(WebKitAcceleratedCompositingEnabledPreferenceKey, "0");
+#endif
 }
 
 String WebPreferences::valueForKey(String key)
@@ -890,4 +900,24 @@ void WebPreferences::setPluginAllowedRuntime(bool enable)
 bool WebPreferences::pluginAllowedRuntime() const
 {
     return boolValueForKey(WebKitPluginAllowedRunTimePreferenceKey);
+}
+
+void WebPreferences::setWebGLEnabled(bool enable)
+{
+    setBoolValue(WebKitWebGLEnabledPreferenceKey, enable);
+}
+
+bool WebPreferences::webGLEnabled()
+{
+    return boolValueForKey(WebKitWebGLEnabledPreferenceKey);
+}
+
+void WebPreferences::setAcceleratedCompositingEnabled(bool enable)
+{
+    setBoolValue(WebKitAcceleratedCompositingEnabledPreferenceKey, enable);
+}
+
+bool WebPreferences::acceleratedCompositingEnabled()
+{
+    return boolValueForKey(WebKitAcceleratedCompositingEnabledPreferenceKey);
 }

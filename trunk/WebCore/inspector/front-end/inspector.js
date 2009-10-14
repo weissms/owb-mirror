@@ -486,7 +486,14 @@ window.addEventListener("load", windowLoaded, false);
 WebInspector.dispatch = function() {
     var methodName = arguments[0];
     var parameters = Array.prototype.slice.call(arguments, 1);
-    WebInspector[methodName].apply(this, parameters);
+
+    // We'd like to enforce asynchronous interaction between the inspector controller and the frontend.
+    // This is important to LayoutTests.
+    function delayDispatch()
+    {
+        WebInspector[methodName].apply(WebInspector, parameters);
+    }
+    setTimeout(delayDispatch, 0);
 }
 
 WebInspector.windowUnload = function(event)
@@ -547,7 +554,7 @@ WebInspector.documentClick = function(event)
 
             WebInspector.showResourceForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel);
         } else {
-            var profileStringRegEx = new RegExp("webkit-profile://.+/([0-9]+)");
+            var profileStringRegEx = new RegExp("webkit-profile://.+/.+#([0-9]+)");
             var profileString = profileStringRegEx.exec(anchor.href);
             if (profileString)
                 WebInspector.showProfileById(profileString[1])
@@ -1368,7 +1375,7 @@ WebInspector.linkifyStringAsFragment = function(string)
         var nonLink = string.substring(0, linkIndex);
         container.appendChild(document.createTextNode(nonLink));
 
-        var profileStringRegEx = new RegExp("webkit-profile://(.+)/[0-9]+");
+        var profileStringRegEx = new RegExp("webkit-profile://.+/(.+)#[0-9]+");
         var profileStringMatches = profileStringRegEx.exec(title);
         var profileTitle;
         if (profileStringMatches)

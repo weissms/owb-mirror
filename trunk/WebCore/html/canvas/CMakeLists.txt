@@ -24,7 +24,6 @@ list(APPEND WEBCORE_SRC
 ) 
 
 list(APPEND IDL_SRC
-    html/canvas/CanvasActiveInfo.idl
     html/canvas/CanvasArray.idl
     html/canvas/CanvasArrayBuffer.idl
     html/canvas/CanvasByteArray.idl
@@ -46,3 +45,15 @@ list(APPEND IDL_SRC
     html/canvas/CanvasUnsignedIntArray.idl
     html/canvas/CanvasUnsignedShortArray.idl
 )
+
+if(ENABLE_3D_CANVAS)
+    list(APPEND WEBCORE_SRC
+        html/canvas/CanvasRenderingContext3D.cpp
+        html/canvas/CanvasBuffer.cpp
+    )
+    list(APPEND IDL_SRC
+        html/canvas/CanvasActiveInfo.idl
+        html/canvas/CanvasBuffer.idl
+    )
+endif(ENABLE_3D_CANVAS)
+

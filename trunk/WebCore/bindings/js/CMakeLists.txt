@@ -117,6 +117,12 @@ list(APPEND WEBCORE_SRC
     bindings/js/SerializedScriptValue.cpp
 )
 
+if(ENABLE_3D_CANVAS)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSCanvasRenderingContext3DCustom.cpp
+    )
+endif(ENABLE_3D_CANVAS)
+
 if(ENABLE_DATABASE)
     list(APPEND WEBCORE_SRC
         bindings/js/JSCustomSQLStatementCallback.cpp

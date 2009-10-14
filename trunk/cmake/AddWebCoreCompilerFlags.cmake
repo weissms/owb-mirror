@@ -2,6 +2,15 @@
 # Add definitions.                               #
 ##################################################
 
+if(ENABLE_3D_CANVAS)
+    add_definitions(-DENABLE_3D_CANVAS)
+endif(ENABLE_3D_CANVAS)
+
+if(ENABLE_3D_RENDERING)
+    add_definitions(-DENABLE_3D_RENDERING)
+    add_definitions(-DWTF_USE_ACCELERATED_COMPOSITING=1)
+endif(ENABLE_3D_RENDERING)
+
 if(ENABLE_DASHBOARD_SUPPORT)
     add_definitions(-DENABLE_DASHBOARD_SUPPORT=1)
 endif(ENABLE_DASHBOARD_SUPPORT)
