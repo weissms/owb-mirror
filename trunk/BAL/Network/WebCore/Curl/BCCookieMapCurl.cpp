@@ -47,15 +47,10 @@ CookieMap::~CookieMap()
         delete cookieIterator->second;
 }
 
-ParsedCookie* CookieMap::takePrevious(const ParsedCookie* cookie)
+bool CookieMap::exists(const ParsedCookie* cookie) const
 {
     String key = cookie->name() + cookie->path();
-
-#ifndef NDEBUG
-    LOG(Network, "Key : %s\n", key.ascii().data());
-#endif
-
-    return m_cookieMap.take(key);
+    return m_cookieMap.get(key);
 }
 
 void CookieMap::add(ParsedCookie* cookie)
@@ -65,6 +60,7 @@ void CookieMap::add(ParsedCookie* cookie)
     m_cookieMap.add(key, cookie);
     if (!m_oldestCookie || m_oldestCookie->lastAccessed() > cookie->lastAccessed())
         m_oldestCookie = cookie;
+    cookieManager().addedCookie();
 }
 
 void CookieMap::remove(const ParsedCookie* cookie)
@@ -77,6 +73,7 @@ void CookieMap::remove(const ParsedCookie* cookie)
     if (prevCookie == m_oldestCookie)
         updateOldestCookie();
 
+    cookieManager().removedCookie();
     ASSERT(prevCookie);
     delete prevCookie;
 }
@@ -107,15 +104,15 @@ Vector<ParsedCookie*> CookieMap::getCookies()
     return cookies;
 }
 
-ParsedCookie* CookieMap::removeOldestCookie()
+void CookieMap::removeOldestCookie()
 {
-    String key = m_oldestCookie->name() + m_oldestCookie->path();
+    ASSERT(m_oldestCookie);
+    if (!m_oldestCookie)
+        return;
 
-    ParsedCookie* result = m_cookieMap.take(key);
+    remove(m_oldestCookie);
 
-    updateOldestCookie();
-
-    return result;
+    ASSERT(!m_oldestCookies || !count());
 }
 
 void CookieMap::updateTime(ParsedCookie* cookie, double newTime)

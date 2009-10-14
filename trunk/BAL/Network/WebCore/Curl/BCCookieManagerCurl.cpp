@@ -174,10 +174,10 @@ void CookieManager::checkAndTreatCookie(ParsedCookie* cookie)
         // The cookie has expired so check we have a valid HashMap so try delete it.
         if (curMap) {
             // Check if we have a cookie to remove and update information accordingly.
-            ParsedCookie* prevCookie = curMap->takePrevious(cookie);
-            if (prevCookie) {
+            bool cookieAlreadyExists = curMap->exists(cookie);
+            if (cookieAlreadyExists) {
+                curMap->remove(cookie);
                 cookieBackingStore().remove(cookie);
-                removedCookie();
                 delete cookie;
             }
         }
@@ -188,12 +188,11 @@ void CookieManager::checkAndTreatCookie(ParsedCookie* cookie)
             addCookieToMap(curMap, cookie);
         } else {
             // Check if there is a previous cookie.
-            ParsedCookie* prevCookie = curMap->takePrevious(cookie);
+            bool cookieAlreadyExists = curMap->exists(cookie);
 
-            if (prevCookie) {
-                update(curMap, prevCookie, cookie);
-                delete prevCookie;
-            } else
+            if (cookieAlreadyExists)
+                update(curMap, cookie);
+            else
                 addCookieToMap(curMap, cookie);
         }
     }
@@ -202,12 +201,27 @@ void CookieManager::checkAndTreatCookie(ParsedCookie* cookie)
 void CookieManager::addCookieToMap(CookieMap* map, ParsedCookie* cookie)
 {
     // Check if we do not have reached the cookie's threshold.
-    // FIXME : should split the case and remove one cookie among all the other if m_count >= max_count
-    if (map->count() > s_maxCookieCountPerHost || m_count >= s_globalMaxCookieCount) {
-        ParsedCookie* rmCookie = map->removeOldestCookie();
-        cookieBackingStore().remove(rmCookie);
-        removedCookie();
-        delete rmCookie;
+    if (map->count() > s_maxCookieCountPerHost)
+        map->removeOldestCookie();
+    else if (m_count >= s_globalMaxCookieCount) {
+        if (map->count())
+            map->removeOldestCookie();
+        else {
+#ifndef NDEBUG
+            bool hasRemovedCookie = false;
+#endif
+            // We are above the limit and our map is empty, let's find another cookie to remove.
+            for (HashMap<String, CookieMap*>::iterator it = m_managerMap.begin(); it != m_managerMap.end(); ++it) {
+                if (it->second->count()) {
+                    it->second->removeOldestCookie();
+#ifndef NDEBUG
+                    hasRemovedCookie = true;
+#endif
+                    break;
+                }
+            }
+            ASSERT(hasRemovedCookie);
+        }
     }
 
     map->add(cookie);
@@ -215,13 +229,12 @@ void CookieManager::addCookieToMap(CookieMap* map, ParsedCookie* cookie)
     // Only add non session cookie to the backing store.
     if (!cookie->isSession())
         cookieBackingStore().insert(cookie);
-
-    m_count++;
 }
 
-void CookieManager::update(CookieMap* map, ParsedCookie* prevCookie, ParsedCookie* newCookie)
+void CookieManager::update(CookieMap* map, ParsedCookie* newCookie)
 {
-    ASSERT(!map->takePrevious(prevCookie));
+    ASSERT(map->exists(newCookie));
+    map->remove(newCookie);
     map->add(newCookie);
     cookieBackingStore().update(newCookie);
 }

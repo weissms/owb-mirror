@@ -62,6 +62,7 @@ namespace WebCore {
 
         // Count update method
         void removedCookie() { ASSERT(m_count > 0); m_count--; }
+        void addedCookie() { ++m_count; }
 
         // Constants getter.
         static unsigned int maxCookieLength() { return s_maxCookieLength; }
@@ -77,7 +78,7 @@ namespace WebCore {
         bool shouldRejectForSecurityReason(const ParsedCookie*, const KURL&);
 
         void addCookieToMap(CookieMap* map, ParsedCookie* cookie);
-        void update(CookieMap* map, ParsedCookie* prevCookie, ParsedCookie* newCookie);
+        void update(CookieMap* map, ParsedCookie* newCookie);
 
         HashMap<String, CookieMap*> m_managerMap;
 

@@ -35,6 +35,10 @@ namespace WebCore {
 
     class ParsedCookie;
 
+    /**
+     * A cookie map is a container for cookies that matches a common host.
+     * The number of cookie per host is limited by CookieManager::s_maxCookieCountPerHost
+     */
     class CookieMap {
 
     public:
@@ -44,17 +48,24 @@ namespace WebCore {
         unsigned int count() const { return m_cookieMap.size(); }
 
         void add(ParsedCookie* cookie);
-        void remove(const ParsedCookie* cookie);
 
+        /**
+         * Remove a cookie from the map.
+         * Note the deletion is based on a key search not using the provided pointer.
+         */
+        void remove(const ParsedCookie*);
+
+        /**
+         * Check if a cookie matching this cookie exists (used when parsing to detect duplicate entries).
+         * Returns whether a cookie matching this one exists in the map.
+         */
+        bool exists(const ParsedCookie*) const;
+ 
         Vector<ParsedCookie*> getCookies();
-
-        // Will take the cookie that match the paramater
-        ParsedCookie* takePrevious(const ParsedCookie* cookie);
 
         void updateTime(ParsedCookie* cookie, double newTime);
 
-        // Return ParsedCookie to remove it from the backing store in the CookieManager
-        ParsedCookie* removeOldestCookie();
+        void removeOldestCookie();
 
     private:
         void updateOldestCookie();

@@ -1,3 +1,34 @@
+2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        #359: NULL-read in CookieMap::removeOldestCookie() (Curl backend)
+
+        Rewritten and consolidated the removeOldestCookie logic to be called
+        only if the map is not empty (added an assertion to catch bad usage).
+        Also removed the CookieMap::takePrevious method as it was a source of
+        errors and made the CookieMap responsible of updating the count.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::checkAndTreatCookie): Updated to use
+        CookieMap::exists and act upon it.
+        (WebCore::CookieManager::addCookieToMap): Rewritten the logic to avoid
+        calling removeOldestCookie if we are not sure the map is not empty.
+        (WebCore::CookieManager::update): Changed the ASSERT and inlined the
+        old cookie removal here.
+        * Network/WebCore/Curl/BCCookieManagerCurl.h: Updated "update"
+        signature.
+        (WebCore::CookieManager::addedCookie): Added to update the count.
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::add): Updated to notify the CookieManager of the
+        change in count.
+        (WebCore::CookieMap::remove): Ditto.
+        (WebCore::CookieMap::exists): Added to determine if a cookie is
+        present in the map or not.
+        (WebCore::CookieMap::removeOldestCookie): Added an ASSERT and inlined
+        the cookie removal process.
+        * Network/WebCore/Curl/BCCookieMapCurl.h: Added some documentation.
+
 2009-10-07  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
