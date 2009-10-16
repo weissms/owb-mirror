@@ -112,7 +112,7 @@ void CookieMap::removeOldestCookie()
 
     remove(m_oldestCookie);
 
-    ASSERT(!m_oldestCookies || !count());
+    ASSERT(!m_oldestCookie || !count());
 }
 
 void CookieMap::updateTime(ParsedCookie* cookie, double newTime)

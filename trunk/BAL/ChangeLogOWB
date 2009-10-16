@@ -1,3 +1,23 @@
+2009-10-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Avoid initializing the CookieManager in the constructor.
+
+        This was causing several problem where we would recursively call the
+        constructor.
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::cookieManager): Create the global CookieManager and then
+        initialize it.
+        (WebCore::CookieManager::CookieManager): Remove the initialization
+        code.
+        (WebCore::CookieManager::getBackingStoreCookies): Added an ASSERT here
+        to be sure that it is just called at the start-up. Also avoid
+        increamenting m_count twice (once in addCookie and once manually).
+        * Network/WebCore/Curl/BCCookieMapCurl.cpp:
+        (WebCore::CookieMap::removeOldestCookie): Fix a typo here.
+
 2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -40,18 +40,20 @@ namespace WebCore {
 CookieManager& cookieManager()
 {
     static CookieManager cookieManager;
+    static bool isManagerInitialized = false;
+    if (!isManagerInitialized) {
+        // Open the cookieJar now and get the backing store cookies to fill the manager.
+        cookieBackingStore().open(cookieManager.cookieJar());
+        cookieManager.getBackingStoreCookies();
+        isManagerInitialized = true;
+    }
     return cookieManager;
 } 
 
 CookieManager::CookieManager()
     : m_count(0)
+    , m_cookieJarFileName(pathByAppendingComponent(OWB_DATA, "cookieCollection.db"))
 {
-    m_cookieJarFileName = pathByAppendingComponent(OWB_DATA, "cookieCollection.db");
-
-    // We force the cookie backing store to be open with the cookie jar to avoid
-    // calling cookieManager() again and recursively calling this constructor.
-    cookieBackingStore().open(cookieJar());
-    getBackingStoreCookies();
 }
 
 CookieManager::~CookieManager()
@@ -241,15 +243,17 @@ void CookieManager::update(CookieMap* map, ParsedCookie* newCookie)
 
 void CookieManager::getBackingStoreCookies()
 {
-    Vector<ParsedCookie*> cookies = cookieBackingStore().getAllCookies();
+    // This method should be called just after having created the cookieManager
+    // NEVER afterwards!
+    ASSERT(!m_count);
 
+    Vector<ParsedCookie*> cookies = cookieBackingStore().getAllCookies();
     for (size_t i = 0; i < cookies.size(); ++i) {
         ParsedCookie* newCookie = cookies[i];
 
-        if (newCookie->hasExpired()) {
-            cookieBackingStore().remove(newCookie);
+        if (newCookie->hasExpired())
             delete newCookie;
-        } else {
+        else {
             CookieMap* curMap = m_managerMap.get(newCookie->domain());
             if (!curMap) {
                 curMap = new CookieMap();
@@ -257,7 +261,6 @@ void CookieManager::getBackingStoreCookies()
             }
             // Use the straightforward add
             curMap->add(newCookie);
-            m_count++;
         }
     }
 }
