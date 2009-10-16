@@ -880,6 +880,16 @@ void LayoutTestController::showWebInspector()
     if (FAILED(frame->webView(&webView)))
         return;
 
+    COMPtr<IWebPreferences> preferences;
+    if (FAILED(webView->preferences(&preferences)))
+        return;
+
+    COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
+    if (!prefsPrivate)
+        return;
+
+    prefsPrivate->setDeveloperExtrasEnabled(true);
+
     COMPtr<IWebViewPrivate> viewPrivate(Query, webView);
     if (!viewPrivate)
         return;
@@ -900,8 +910,20 @@ void LayoutTestController::closeWebInspector()
         return;
 
     COMPtr<IWebInspector> inspector;
-    if (SUCCEEDED(viewPrivate->inspector(&inspector)))
-        inspector->close();
+    if (FAILED(viewPrivate->inspector(&inspector)))
+        return;
+
+    inspector->close();
+
+    COMPtr<IWebPreferences> preferences;
+    if (FAILED(webView->preferences(&preferences)))
+        return;
+
+    COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
+    if (!prefsPrivate)
+        return;
+
+    prefsPrivate->setDeveloperExtrasEnabled(false);
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)
@@ -927,5 +949,17 @@ void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef scrip
 
 void LayoutTestController::removeAllVisitedLinks()
 {
-    // FIXME: Implement this.
+    COMPtr<IWebHistory> history;
+    if (FAILED(WebKitCreateInstance(CLSID_WebHistory, 0, __uuidof(history), reinterpret_cast<void**>(&history))))
+        return;
+
+    COMPtr<IWebHistory> sharedHistory;
+    if (FAILED(history->optionalSharedHistory(&sharedHistory)) || !sharedHistory)
+        return;
+
+    COMPtr<IWebHistoryPrivate> sharedHistoryPrivate;
+    if (FAILED(sharedHistory->QueryInterface(&sharedHistoryPrivate)))
+        return;
+
+    sharedHistoryPrivate->removeAllVisitedLinks();
 }

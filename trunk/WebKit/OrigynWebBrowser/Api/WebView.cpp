@@ -29,10 +29,11 @@
 #include "config.h"
 #include "WebView.h"
 
-#include "PtrAndFlags.h"
 #include "DefaultPolicyDelegate.h"
-#include "WebDownloadDelegate.h"
 #include "DOMCoreClasses.h"
+#include "PtrAndFlags.h"
+#include "RenderWidget.h"
+#include "WebDownloadDelegate.h"
 #include "WebDatabaseManager.h"
 #include "WebDocumentLoader.h"
 #include "WebEditorClient.h"
@@ -266,6 +267,7 @@ WebView::WebView()
     , m_webFrameLoadDelegate(0)
     , m_jsActionDelegate(0)
     , m_pluginHalterDelegate(0)
+    , m_historyDelegate(0)
     , m_preferences(0)
     , m_userAgentOverridden(false)
     , m_useBackForwardList(true)
@@ -328,6 +330,14 @@ WebView::~WebView()
         m_downloadDelegate = 0;
     if (m_webNotificationDelegate)
         m_webNotificationDelegate = 0;
+    if (m_pluginHalterDelegate)
+        m_pluginHalterDelegate = 0;
+    if (m_webFrameLoadDelegate)
+        m_webFrameLoadDelegate = 0;
+    if (m_jsActionDelegate)
+        m_jsActionDelegate = 0;
+    if (m_historyDelegate)
+        m_historyDelegate = 0;
     if (m_mainFrame)
         delete m_mainFrame;
     if (d)
@@ -1956,7 +1966,18 @@ void WebView::setMainFrameURL(const char* /*urlString*/)
 
 const char* WebView::mainFrameURL()
 {
-    return m_mainFrame->url();
+    OwnPtr<WebDataSource> dataSource(m_mainFrame->provisionalDataSource());
+    if (!dataSource) {
+        dataSource = m_mainFrame->dataSource();
+        if (!dataSource)
+            return 0;
+    }
+
+    OwnPtr<WebMutableURLRequest> request(dataSource->request());
+    if (!request)
+        return 0;
+
+    return request->URL().utf8().data();
 }
 
 DOMDocument* WebView::mainFrameDocument()
@@ -2731,3 +2752,40 @@ void WebView::resetOriginAccessWhiteLists() const
     SecurityOrigin::resetOriginAccessWhiteLists();
 }
 
+void WebView::setHistoryDelegate(WebHistoryDelegate* historyDelegate)
+{
+    m_historyDelegate = historyDelegate;
+}
+
+WebHistoryDelegate* WebView::historyDelegate() const
+{
+    return m_historyDelegate;
+}
+
+void WebView::addVisitedLinks(const char** visitedURLs, unsigned visitedURLCount)
+{
+    PageGroup& group = core(this)->group();
+
+    for (unsigned i = 0; i < visitedURLCount; ++i)
+        group.addVisitedLink(KURL(KURL(), visitedURLs[i]));
+}
+
+bool WebView::isNodeHaltedPlugin(DOMNode* domNode)
+{
+    if (!domNode)
+        return false;
+
+    Node* node = domNode->node();
+    if (!node)
+        return false;
+
+    RenderObject* renderer = node->renderer();
+    if (!renderer || !renderer->isWidget())
+        return false;
+
+    Widget* widget = toRenderWidget(renderer)->widget();
+    if (!widget || !widget->isPluginView())
+        return false;
+
+    return static_cast<PluginView*>(widget)->isHalted();
+}

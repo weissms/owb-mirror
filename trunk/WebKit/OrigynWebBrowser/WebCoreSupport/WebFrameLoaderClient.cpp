@@ -40,9 +40,11 @@
 #include "WebFrameLoadDelegate.h"
 #include "WebFramePolicyListener.h"
 #include "WebHistory.h"
+#include "WebHistoryDelegate.h"
 #include "WebHistoryItem.h"
 #include "WebHistoryItem_p.h"
 #include "WebMutableURLRequest.h"
+#include "WebNavigationData.h"
 #include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
 #include "WebURLAuthenticationChallenge.h"
@@ -597,31 +599,63 @@ void WebFrameLoaderClient::finishedLoading(DocumentLoader* loader)
 
 void WebFrameLoaderClient::updateGlobalHistory()
 {
+    DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
+
+    WebView* webView = m_webFrame->webView();
+    WebHistoryDelegate* historyDelegate = webView->historyDelegate();
+    if (historyDelegate) {
+        String url(loader->urlForHistory().string());
+        String title(loader->title());
+        String redirectSource(loader->clientRedirectSourceForHistory());
+        OwnPtr<WebURLResponse> urlResponse(WebURLResponse::createInstance(loader->response()));
+        OwnPtr<WebMutableURLRequest> urlRequest(WebMutableURLRequest::createInstance(loader->originalRequestCopy()));
+        OwnPtr<WebNavigationData> navigationData(WebNavigationData::createInstance(url.utf8().data(), title.utf8().data(), urlRequest.get(), urlResponse.get(), loader->substituteData().isValid(), redirectSource.utf8().data()));
+
+        historyDelegate->didNavigateWithNavigationData(webView, navigationData.get(), m_webFrame);
+        return;
+    }
+
+
     WebHistory* history = WebHistory::sharedHistory();
     if (!history)
         return;
-    DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
 
     history->visitedURL(loader->urlForHistory(), loader->title(), loader->originalRequestCopy().httpMethod(), loader->urlForHistoryReflectsFailure());
 }
 
 void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
-{                                                                                                                                                          
+{
+    WebView* webView = m_webFrame->webView();
+    WebHistoryDelegate* historyDelegate = webView->historyDelegate();
+
     WebHistory* history = WebHistory::sharedHistory();                                                                                                     
-    if (!history)                                                                                                                                          
-        return;                                                                                                                                            
+
     DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
     ASSERT(loader->unreachableURL().isEmpty());
 
     if (!loader->clientRedirectSourceForHistory().isNull()) {
-        if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory())) {
-            webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->clientRedirectDestinationForHistory());
+        if (historyDelegate) {
+            String sourceURL(loader->clientRedirectSourceForHistory());
+            String destinationURL(loader->clientRedirectDestinationForHistory());
+            historyDelegate->didPerformClientRedirectFromURL(webView, sourceURL.utf8().data(), destinationURL.utf8().data(), m_webFrame);
+        } else {
+            if (history) {
+                if (WebHistoryItem* webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory()))
+                    webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->clientRedirectDestinationForHistory());
+            }
         }
     }
-                                                                                              
-    if (!loader->serverRedirectSourceForHistory().isNull()) {                               
-        if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory())) {
-            webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->serverRedirectDestinationForHistory());
+ 
+    if (!loader->serverRedirectSourceForHistory().isNull()) {
+        if (historyDelegate) {
+            String sourceURL(loader->serverRedirectSourceForHistory());
+            String destinationURL(loader->serverRedirectDestinationForHistory());
+            historyDelegate->didPerformServerRedirectFromURL(webView, sourceURL.utf8().data(), destinationURL.utf8().data(), m_webFrame);
+        } else {
+            if (history) {
+                if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory()))
+                    webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->serverRedirectDestinationForHistory());
+            }
         }
     }
 }
@@ -692,6 +726,12 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
         }
     }
 #endif
+    WebView* webView = m_webFrame->webView();
+    WebHistoryDelegate* historyDelegate = webView->historyDelegate();
+    if (historyDelegate) {
+        historyDelegate->updateHistoryTitle(webView, title.utf8().data(), url.string().utf8().data());
+        return;
+    }
     bool privateBrowsingEnabled = false;
     WebPreferences* preferences = m_webFrame->webView()->preferences();
     if (preferences)

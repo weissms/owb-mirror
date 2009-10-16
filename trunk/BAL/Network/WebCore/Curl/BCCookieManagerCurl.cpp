@@ -42,10 +42,10 @@ CookieManager& cookieManager()
     static CookieManager cookieManager;
     static bool isManagerInitialized = false;
     if (!isManagerInitialized) {
+        isManagerInitialized = true;
         // Open the cookieJar now and get the backing store cookies to fill the manager.
         cookieBackingStore().open(cookieManager.cookieJar());
         cookieManager.getBackingStoreCookies();
-        isManagerInitialized = true;
     }
     return cookieManager;
 } 

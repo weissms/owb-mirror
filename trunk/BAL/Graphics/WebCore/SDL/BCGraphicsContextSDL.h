@@ -70,12 +70,12 @@ namespace WebCore {
         DashedStroke
     };
 
-// FIXME: This is a place-holder until we decide to add
-// real color space support to WebCore.  At that time, ColorSpace will be a
-// class and instances will be held  off of Colors.   There will be
-// special singleton Gradient and Pattern color spaces to mark when
-// a fill or stroke is using a gradient or pattern instead of a solid color.
-// https://bugs.webkit.org/show_bug.cgi?id=20558
+    // FIXME: This is a place-holder until we decide to add
+    // real color space support to WebCore.  At that time, ColorSpace will be a
+    // class and instances will be held  off of Colors.   There will be
+    // special singleton Gradient and Pattern color spaces to mark when
+    // a fill or stroke is using a gradient or pattern instead of a solid color.
+    // https://bugs.webkit.org/show_bug.cgi?id=20558
     enum ColorSpace {
         SolidColorSpace,
         PatternColorSpace,
@@ -108,17 +108,19 @@ namespace WebCore {
 
         void setStrokePattern(PassRefPtr<Pattern>);
         Pattern* strokePattern() const;
+
         void setStrokeGradient(PassRefPtr<Gradient>);
         Gradient* strokeGradient() const;
 
         WindRule fillRule() const;
         void setFillRule(WindRule);
-        GradientSpreadMethod spreadMethod() const;
-        void setSpreadMethod(GradientSpreadMethod);
+
         Color fillColor() const;
         void setFillColor(const Color&);
+
         void setFillPattern(PassRefPtr<Pattern>);
         Pattern* fillPattern() const;
+
         void setFillGradient(PassRefPtr<Gradient>);
         Gradient* fillGradient() const;
 
@@ -177,7 +179,6 @@ namespace WebCore {
         void clipOutEllipseInRect(const IntRect&);
         void clipOutRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
         void clipPath(WindRule);
-
         void clipToImageBuffer(const FloatRect&, const ImageBuffer*);
 
         int textDrawingMode();
@@ -188,13 +189,13 @@ namespace WebCore {
         void drawHighlightForText(const Font&, const TextRun&, const IntPoint&, int h, const Color& backgroundColor, int from = 0, int to = -1);
 
         FloatRect roundToDevicePixels(const FloatRect&);
-        
+
         void drawLineForText(const IntPoint&, int width, bool printing);
         void drawLineForMisspellingOrBadGrammar(const IntPoint&, int width, bool grammar);
-        
+ 
         bool paintingDisabled() const;
         void setPaintingDisabled(bool);
-        
+ 
         bool updatingControlTints() const;
         void setUpdatingControlTints(bool);
 
@@ -224,6 +225,11 @@ namespace WebCore {
         void addPath(const Path&);
 
         void clip(const Path&);
+
+        // This clip function is used only by <canvas> code. It allows
+        // implementations to handle clipping on the canvas differently since
+        // the disipline is different.
+        void canvasClip(const Path&);
         void clipOut(const Path&);
 
         void scale(const FloatSize&);

@@ -1,3 +1,202 @@
+2009-10-16  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by David Levin.
+
+        Add mod_pywebsocket to test Web Sockets.
+        http://code.google.com/p/pywebsocket/
+        https://bugs.webkit.org/show_bug.cgi?id=27490
+
+        * pywebsocket/COPYING: Added.
+        * pywebsocket/MANIFEST.in: Added.
+        * pywebsocket/README: Added.
+        * pywebsocket/example/echo_client.py: Added.
+        * pywebsocket/example/echo_wsh.py: Added.
+        * pywebsocket/mod_pywebsocket/__init__.py: Added.
+        * pywebsocket/mod_pywebsocket/dispatch.py: Added.
+        * pywebsocket/mod_pywebsocket/handshake.py: Added.
+        * pywebsocket/mod_pywebsocket/headerparserhandler.py: Added.
+        * pywebsocket/mod_pywebsocket/msgutil.py: Added.
+        * pywebsocket/mod_pywebsocket/standalone.py: Added.
+        * pywebsocket/mod_pywebsocket/util.py: Added.
+        * pywebsocket/setup.py: Added.
+        * pywebsocket/test/config.py: Added.
+        * pywebsocket/test/mock.py: Added.
+        * pywebsocket/test/run_all.py: Added.
+        * pywebsocket/test/test_dispatch.py: Added.
+        * pywebsocket/test/test_handshake.py: Added.
+        * pywebsocket/test/test_mock.py: Added.
+        * pywebsocket/test/test_msgutil.py: Added.
+        * pywebsocket/test/test_util.py: Added.
+        * pywebsocket/test/testdata/handlers/blank_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/origin_check_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/exception_in_transfer_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/no_wsh_at_the_end.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/non_callable_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/plain_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/wrong_handshake_sig_wsh.py: Added.
+        * pywebsocket/test/testdata/handlers/sub/wrong_transfer_sig_wsh.py: Added.
+
+2009-10-15  James Robinson  <jamesr@google.com>
+
+        Reviewed by David Levin.
+
+        Updates check-webkit-style to reflect that code inside a namespace should not be indented, even in a header file.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30426
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-10-15  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fixes <http://webkit.org/b/30411>.
+        REGRESSION(49485): pdevenv doesn't compile in parallel for non-chromium builds on Windows.
+        
+        Added a check for isChromium() in pdevenv, and pass /useenv if we are not
+        building Chromium.
+
+        * Scripts/pdevenv:
+
+2009-10-15  Robin Dunn  <robin@alldunn.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Add Mac package building scripts for wx.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=30405
+
+        * wx/build/build_utils.py:
+        * wx/build/settings.py:
+        * wx/packaging/build-mac-installer.py: Added.
+
+2009-10-15  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Enable Web Sockets support when running layout tests.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+
+2009-10-15  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Need to initialize event.button.button, since in most cases a
+        button number is not passed as an argument.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (mouseDownCallback):
+        (mouseUpCallback):
+
+2009-10-15  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. More SDK fixes for Mac, make sure we use the SDK corresponding to
+        the OS if none was explicitly set.
+
+        * wx/build/settings.py:
+
+2009-10-14  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: enable developers extras within inspector layout tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30014
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+
+2009-10-14  José Millán Soto  <jmillan@igalia.com>
+
+        Reviewed by Jan Alonzo.
+
+        GtkLauncher is using a deprecated signal
+        https://bugs.webkit.org/show_bug.cgi?id=30364
+
+        Modified GtkLauncher to use notify::title signal instead of
+        deprecated title-changed signal
+
+        * GtkLauncher/main.c:
+        (notify_title_cb):
+        (create_browser):
+
+2009-10-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Don't set the history delegate on new windows that are opened during a test, as the history delegate:
+        1 - Disables WebHistory
+        2 - Doesn't make sense in that context anyway.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (createWebViewAndOffscreenWindow):
+
+2009-10-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMac build fix. Ensure 10.4 compatibility for deps, and allow the user to specify
+        the SDK to use since Python overrides any user-set value of MACOSX_DEPLOYMENT_TARGET.
+
+        * wx/build/settings.py:
+        * wx/install-unix-extras:
+
+2009-10-14  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        WebKit Win API should provide a delegate interface for global history.
+        https://bugs.webkit.org/show_bug.cgi?id=29905
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::dumpHistoryDelegateCallbacks):
+        (LayoutTestController::setDumpHistoryDelegateCallbacks):
+                
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (shouldLogHistoryDelegates):
+        (runTest):
+        (createWebViewAndOffscreenWindow):
+        (main):
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        
+        Add the IWebHistoryDelegate to DRT Windows:
+        * DumpRenderTree/win/HistoryDelegate.cpp: Added.
+        (wstringFromBSTR):
+        (HistoryDelegate::HistoryDelegate):
+        (HistoryDelegate::~HistoryDelegate):
+        (HistoryDelegate::QueryInterface):
+        (HistoryDelegate::AddRef):
+        (HistoryDelegate::Release):
+        (HistoryDelegate::didNavigateWithNavigationData):
+        (HistoryDelegate::didPerformClientRedirectFromURL):
+        (HistoryDelegate::didPerformServerRedirectFromURL):
+        (HistoryDelegate::updateHistoryTitle):
+        (HistoryDelegate::populateVisitedLinksForWebView):
+        * DumpRenderTree/win/HistoryDelegate.h: Added.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::removeAllVisitedLinks):
+
+2009-10-14  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Implement support for setPOSIXLocale on Qt.
+        https://bugs.webkit.org/show_bug.cgi?id=30268 
+ 
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setPOSIXLocale):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
 2009-10-14  Stephanie Lewis  <slewis@apple.com>
 
         Unreviewed, adding myself to reviewers list.

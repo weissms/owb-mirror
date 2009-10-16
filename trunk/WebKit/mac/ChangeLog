@@ -1,3 +1,40 @@
+2009-10-16  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        <rdar://problem/7306052> Fullscreen max/min volume buttons non-functional
+
+        * WebView/WebVideoFullscreenHUDWindowController.mm:
+        (-[WebVideoFullscreenHUDWindowController windowDidLoad]): Set volume buttons target and action.
+        (-[WebVideoFullscreenHUDWindowController decrementVolume:]): New, decrement the volume by 10%.
+        (-[WebVideoFullscreenHUDWindowController incrementVolume:]): New, increment the volume by 10%.
+
+2009-10-15  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7295738> No way to mute/unmute a movie in full screen video mode
+
+        * WebView/WebVideoFullscreenHUDWindowController.mm:
+        (-[WebVideoFullscreenHUDWindowController setVolume:]): Unmute movie before changing volume.
+
+2009-10-14  Kevin Decker  <kdecker@apple.com>
+
+        Unbreak the world.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (WebHaltablePlugin::restart):
+
+2009-10-14  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson and Jon Honeycutt
+
+        <rdar://problem/7304295> snapshots of halted plug-ins are missing
+        
+        * Plugins/WebBaseNetscapePluginView.mm: Move bodies of WebHaltablePlugin virtual functions from WebHaltablePlugin class definition.
+        (WebHaltablePlugin::halt): Provide a substitute image to the RenderWidget for the plug-in view.
+        (WebHaltablePlugin::restart): Clear the substitute image.
+
 2009-10-14  Dave Hyatt  <hyatt@apple.com>
 
         Reviewed by Adam Roben.

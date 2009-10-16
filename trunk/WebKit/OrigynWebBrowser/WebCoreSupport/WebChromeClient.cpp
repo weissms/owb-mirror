@@ -29,12 +29,13 @@
 #include "config.h"
 #include "WebChromeClient.h"
 
+#include "JSActionDelegate.h"
 #include "WebDesktopNotificationsDelegate.h"
 #include "WebElementPropertyBag.h"
 #include "WebFrame.h"
 #include "WebHistory.h"
+#include "WebHistoryDelegate.h"
 #include "WebMutableURLRequest.h"
-#include "JSActionDelegate.h"
 #include "WebPreferences.h"
 #include "WebSecurityOrigin.h"
 #include "WebView.h"
@@ -525,7 +526,13 @@ void WebChromeClient::reachedMaxAppCacheSize(int64_t spaceNeeded)
 
 void WebChromeClient::populateVisitedLinks()
 {
-    WebHistory *history = WebHistory::sharedHistory();
+    WebHistoryDelegate* historyDelegate = m_webView->historyDelegate();
+    if (historyDelegate) {
+        historyDelegate->populateVisitedLinksForWebView(m_webView);
+        return;
+    }
+
+    WebHistory* history = WebHistory::sharedHistory();
     if (!history)
         return;
     history->addVisitedLinksToPageGroup(m_webView->page()->group());

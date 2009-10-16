@@ -95,19 +95,20 @@ public:
 
     const String& platform() const;
 
-    void enableTimeline(bool always);
-    void disableTimeline(bool always);
-    bool timelineEnabled() const;
+    void startTimelineProfiler();
+    void stopTimelineProfiler();
+    bool timelineProfilerEnabled() const;
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
-    const ProfilesArray& profiles() const;
-
     void startProfiling();
     void stopProfiling();
 
     void enableProfiler(bool always);
     void disableProfiler(bool always);
     bool profilerEnabled();
+
+    void getProfileHeaders(long callId);
+    void getProfile(long callId, unsigned uid);
 
     void enableDebugger(bool always);
     void disableDebugger(bool always);
@@ -171,9 +172,6 @@ private:
 
     InspectorController* m_inspectorController;
     InspectorClient* m_client;
-#if ENABLE(JAVASCRIPT_DEBUGGER)
-    ProfilesArray m_emptyProfiles;
-#endif
 };
 
 } // namespace WebCore

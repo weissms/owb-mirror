@@ -35,6 +35,7 @@ list(APPEND WEBCORE_SRC
     loader/RedirectScheduler.cpp
     loader/Request.cpp
     loader/ResourceLoader.cpp
+    loader/ResourceLoadNotifier.cpp
     loader/SubresourceLoader.cpp
     loader/TextDocument.cpp
     loader/TextResourceDecoder.cpp

@@ -2392,7 +2392,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
         enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
         enablePrivateBrowsing, enableCaretBrowsing, enableHTML5Database, enableHTML5LocalStorage,
         enableXSSAuditor, javascriptCanOpenWindows, enableOfflineWebAppCache,
-        enableUniversalAccessFromFileURI;
+        enableUniversalAccessFromFileURI, enableWebSockets;
 
     WebKitEditingBehavior editingBehavior;
 
@@ -2421,6 +2421,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "enable-offline-web-application-cache", &enableOfflineWebAppCache,
                  "editing-behavior", &editingBehavior,
                  "enable-universal-access-from-file-uris", &enableUniversalAccessFromFileURI,
+                 "enable-web-sockets", &enableWebSockets,
                  NULL);
 
     settings->setDefaultTextEncodingName(defaultEncoding);
@@ -2447,6 +2448,9 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setOfflineWebApplicationCacheEnabled(enableOfflineWebAppCache);
     settings->setEditingBehavior(core(editingBehavior));
     settings->setAllowUniversalAccessFromFileURLs(enableUniversalAccessFromFileURI);
+#if ENABLE(WEB_SOCKETS)
+    settings->setExperimentalWebSocketsEnabled(enableWebSockets);
+#endif
 
     g_free(defaultEncoding);
     g_free(cursiveFontFamily);
@@ -2533,6 +2537,10 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setEditingBehavior(core(static_cast<WebKitEditingBehavior>(g_value_get_enum(&value))));
     else if (name == g_intern_string("enable-universal-access-from-file-uris"))
         settings->setAllowUniversalAccessFromFileURLs(g_value_get_boolean(&value));
+#if ENABLE(WEB_SOCKETS)
+    else if (name == g_intern_string("enable-web-sockets"))
+        settings->setExperimentalWebSocketsEnabled(g_value_get_boolean(&value));
+#endif
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
         g_warning("Unexpected setting '%s'", name);
     g_value_unset(&value);
@@ -3893,8 +3901,12 @@ WebKitWebResource* webkit_web_view_get_resource(WebKitWebView* webView, char* id
 
     gboolean resourceFound = g_hash_table_lookup_extended(priv->subResources, identifier, NULL, &webResource);
 
-    // The only resource we do not store in this hash table is the main!
-    g_return_val_if_fail(resourceFound || g_str_equal(identifier, priv->mainResourceIdentifier), NULL);
+    // The only resource we do not store in this hash table is the
+    // main!  If we did not find a request, it probably means the load
+    // has been interrupted while while a resource was still being
+    // loaded.
+    if (!resourceFound && !g_str_equal(identifier, priv->mainResourceIdentifier))
+        return NULL;
 
     if (!webResource)
         return webkit_web_view_get_main_resource(webView);

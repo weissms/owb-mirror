@@ -202,6 +202,8 @@ namespace WebCore {
         virtual void restart();
         virtual Node* node() const;
 
+        bool isHalted() const { return m_isHalted; }
+
         static bool isCallingPlugin();
 
         bool start();
@@ -314,7 +316,7 @@ public:
 
 private:
 
-#if defined(XP_UNIX) || defined(Q_WS_X11)
+#if defined(XP_UNIX) || defined(Q_WS_X11) || PLATFORM(SYMBIAN)
         void setNPWindowIfNeeded();
 #elif defined(XP_MACOSX)
         NP_CGContext m_npCgContext;
@@ -344,6 +346,8 @@ private:
         RefPtr<PluginStream> m_manualStream;
 
         bool m_isJavaScriptPaused;
+
+        bool m_isHalted;
 
         static PluginView* s_currentPluginView;
     };

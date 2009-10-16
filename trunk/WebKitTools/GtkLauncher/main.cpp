@@ -69,11 +69,11 @@ link_hover_cb (WebKitWebView* page, const gchar* title, const gchar* link, gpoin
 }
 
 static void
-title_change_cb (WebKitWebView* web_view, WebKitWebFrame* web_frame, const gchar* title, gpointer data)
+notify_title_cb (WebKitWebView* web_view, GParamSpec* pspec, gpointer data)
 {
     if (main_title)
         g_free (main_title);
-    main_title = g_strdup (title);
+    main_title = g_strdup (webkit_web_view_get_title(web_view));
     update_title (GTK_WINDOW (main_window));
 }
 

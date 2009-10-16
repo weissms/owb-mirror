@@ -11,7 +11,7 @@
  *    documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * EXPRESS OR IMPLIED WARRANTIES, INCfLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -761,6 +761,13 @@ public:
     virtual HRESULT STDMETHODCALLTYPE whiteListAccessFromOrigin(BSTR sourceOrigin, BSTR destinationProtocol, BSTR destinationHost, BOOL allowDestinationSubdomains);
     virtual HRESULT STDMETHODCALLTYPE resetOriginAccessWhiteLists();
 
+
+    virtual HRESULT STDMETHODCALLTYPE setHistoryDelegate(IWebHistoryDelegate* historyDelegate);
+    virtual HRESULT STDMETHODCALLTYPE historyDelegate(IWebHistoryDelegate** historyDelegate);
+    virtual HRESULT STDMETHODCALLTYPE addVisitedLinks(BSTR* visitedURLs, unsigned visitedURLCount);
+
+    virtual HRESULT STDMETHODCALLTYPE isNodeHaltedPlugin(IDOMNode*, BOOL*);
+
     // WebView
     bool shouldUseEmbeddedView(const WebCore::String& mimeType) const;
 
@@ -867,6 +874,14 @@ private:
     void paintIntoBackingStore(WebCore::FrameView*, HDC bitmapDC, const WebCore::IntRect& dirtyRect, WindowsToPaint);
     void updateBackingStore(WebCore::FrameView*, HDC = 0, bool backingStoreCompletelyDirty = false, WindowsToPaint = PaintWebViewOnly);
 
+    WebCore::DragOperation keyStateToDragOperation(DWORD grfKeyState) const;
+
+    // FIXME: This variable is part of a workaround. The drop effect (pdwEffect) passed to Drop is incorrect. 
+    // We set this variable in DragEnter and DragOver so that it can be used in Drop to set the correct drop effect. 
+    // Thus, on return from DoDragDrop we have the correct pdwEffect for the drag-and-drop operation.
+    // (see https://bugs.webkit.org/show_bug.cgi?id=29264)
+    DWORD m_lastDropEffect;
+
 protected:
     HIMC getIMMContext();
     void releaseIMMContext(HIMC);
@@ -906,6 +921,7 @@ protected:
     COMPtr<IWebPolicyDelegate> m_policyDelegate;
     COMPtr<IWebResourceLoadDelegate> m_resourceLoadDelegate;
     COMPtr<IWebDownloadDelegate> m_downloadDelegate;
+    COMPtr<IWebHistoryDelegate> m_historyDelegate;
     COMPtr<WebPreferences> m_preferences;
     COMPtr<WebInspector> m_webInspector;
     COMPtr<IWebPluginHalterDelegate> m_pluginHalterDelegate;

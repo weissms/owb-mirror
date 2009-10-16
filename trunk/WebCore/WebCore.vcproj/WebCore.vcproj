@@ -3912,6 +3912,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\loader\ResourceLoadNotifier.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\ResourceLoadNotifier.h"
+				>
+			</File>
+			<File
 				RelativePath="..\loader\cf\ResourceLoaderCFNet.cpp"
 				>
 				<FileConfiguration

@@ -787,6 +787,14 @@ void GraphicsContext::clip(const Path& path)
     NotImplemented();
 }
 
+void GraphicsContext::canvasClip(const Path& path)
+{
+    if (paintingDisabled())
+        return;
+
+    NotImplemented();
+}
+
 void GraphicsContext::clipOut(const Path& path)
 {
     if (paintingDisabled())

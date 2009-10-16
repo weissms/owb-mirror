@@ -155,6 +155,19 @@ public:
     virtual int historyItemLimit();
 
     /**
+     * @method setVisitedLinkTrackingEnabled
+     * @discussion setVisitedLinkTrackingEnabled enable the link tracking code inside WebCore. if disabled, selector such as :visited would not work.
+     * @param visitedLinkTrackingEnabled the new value.
+     */
+    virtual void setVisitedLinkTrackingEnabled(bool visitedLinkTrackingEnabled);
+
+    /**
+     * @method removeAllVisitedLinks
+     * @discussion removeAllVisitedLinks remove the visited link cache. This will make links that were matched by the :visited selector to not be applied anymoe.
+     */
+    virtual void removeAllVisitedLinks();
+
+    /**
         @method setHistoryAgeInDaysLimit:
         @discussion setHistoryAgeInDaysLimit: sets the maximum number of days to be read from
         stored history.

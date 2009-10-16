@@ -74,7 +74,6 @@ bool GraphicsLayerSDL::animateFloat(AnimatedPropertyID, const FloatValueList&, c
     return false;
 }
 
-
 } // namespace WebCore
 
 #endif // USE(ACCELERATED_COMPOSITING)

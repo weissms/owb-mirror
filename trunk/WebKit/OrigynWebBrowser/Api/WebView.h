@@ -41,15 +41,17 @@
 #include "WebKitTypes.h"
 #include <string>
 
-class WebDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
+class DOMNode;
 class JSActionDelegate;
 class WebArchive;
 class WebBackForwardList;
 class WebElementPropertyBag;
+class WebDownloadDelegate;
 class WebFrame;
 class WebFrameLoadDelegate;
+class WebHistoryDelegate;
 class WebHistoryItem;
 class WebMutableURLRequest;
 class WebNotificationDelegate;
@@ -1463,7 +1465,8 @@ protected:
     bool invalidateBackingStore(const WebCore::IntRect*);
 
     /**
-     * whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
+     * @method whiteListAccessFromOrigin
+     * @discussion whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
      * @param sourceOrigin the source host name that is given access to a destination host
      * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
      * @param destinationHost the destination host
@@ -1472,9 +1475,39 @@ protected:
     void whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
 
     /**
-     * resetOriginAccessWhiteLists reset (i.e. remove all) the white list accesses set up with whiteListAccessFromOrigin
+     * @method resetOriginAccessWhiteLists
+     * @discussion resetOriginAccessWhiteLists reset (i.e. remove all) the white list accesses set up with whiteListAccessFromOrigin
      */
     void resetOriginAccessWhiteLists() const;
+
+    /**
+     * @method setHistoryDelegate
+     * @discussion setHistoryDelegate set the history delegate. It is used to populate this WebView links, get notified when an event occurs related to history (redirection, title change ...).
+     * @param historyDelegate the new history delegate.
+     */
+    void setHistoryDelegate(WebHistoryDelegate* historyDelegate);
+
+    /**
+     * @method historyDelegate
+     * @discussion historyDelegate returns the current hold history delegate.
+     */
+    WebHistoryDelegate* historyDelegate() const;
+
+    /**
+     * @method addVisitedLinks
+     * @discussion addVisitedLinks add a char* array to the visited links cache. This is used mainly for the :visited CSS selector.
+     * @param visitedURLs a char** array
+     * @param visitedURLCount the number of char* in visitedURLs
+     */
+    void addVisitedLinks(const char** visitedURLs, unsigned visitedURLCount);
+
+    /**
+     * @method isNodeHaltedPlugin
+     * @discussion isNodeHaltedPlugin returns when the passed DOMNode is a plugin that was halted.
+     * @param domNode the DOMNode to check
+     * @return true if it is a plugin that was halted, false otherwise (if it is not a plugin or if it is a running plugin for example).
+     */
+    bool isNodeHaltedPlugin(DOMNode* domNode);
 
     /**
      * repaint
@@ -1598,6 +1631,7 @@ protected:
     WebFrameLoadDelegate* m_webFrameLoadDelegate;
     JSActionDelegate* m_jsActionDelegate;
     WebPluginHalterDelegate* m_pluginHalterDelegate;
+    WebHistoryDelegate* m_historyDelegate;
     WebPreferences* m_preferences;
 
     bool m_userAgentOverridden;

@@ -106,6 +106,15 @@ WebHistoryItem* WebHistory::itemForURL(WebCore::String url)
     return 0;
 }
 
+void WebHistory::setVisitedLinkTrackingEnabled(bool visitedLinkTrackingEnabled)
+{
+    PageGroup::setShouldTrackVisitedLinks(visitedLinkTrackingEnabled);
+}
+
+void WebHistory::removeAllVisitedLinks()
+{
+    PageGroup::removeAllVisitedLinks();
+}
 
 void WebHistory::setHistoryItemLimit(int limit)
 {

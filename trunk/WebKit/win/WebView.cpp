@@ -100,6 +100,7 @@
 #include <WebCore/ProgressTracker.h>
 #include <WebCore/RenderTheme.h>
 #include <WebCore/RenderView.h>
+#include <WebCore/RenderWidget.h>
 #include <WebCore/ResourceHandle.h>
 #include <WebCore/ResourceHandleClient.h>
 #include <WebCore/ScriptValue.h>
@@ -639,6 +640,7 @@ HRESULT STDMETHODCALLTYPE WebView::close()
     setEditingDelegate(0);
     setFrameLoadDelegate(0);
     setFrameLoadDelegatePrivate(0);
+    setHistoryDelegate(0);
     setPolicyDelegate(0);
     setResourceLoadDelegate(0);
     setUIDelegate(0);
@@ -3360,10 +3362,34 @@ HRESULT STDMETHODCALLTYPE WebView::setMainFrameURL(
 }
     
 HRESULT STDMETHODCALLTYPE WebView::mainFrameURL( 
-        /* [retval][out] */ BSTR* /*urlString*/)
+        /* [retval][out] */ BSTR* urlString)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!urlString)
+        return E_POINTER;
+
+    if (!m_mainFrame)
+        return E_FAIL;
+
+    COMPtr<IWebDataSource> dataSource;
+
+    if (FAILED(m_mainFrame->provisionalDataSource(&dataSource))) {
+        if (FAILED(m_mainFrame->dataSource(&dataSource)))
+            return E_FAIL;
+    }
+
+    if (!dataSource) {
+        *urlString = 0;
+        return S_OK;
+    }
+    
+    COMPtr<IWebMutableURLRequest> request;
+    if (FAILED(dataSource->request(&request)) || !request)
+        return E_FAIL;
+
+    if (FAILED(request->URL(urlString)))
+        return E_FAIL;
+
+    return S_OK;
 }
     
 HRESULT STDMETHODCALLTYPE WebView::mainFrameDocument( 
@@ -4619,11 +4645,25 @@ static DWORD dragOperationToDragCursor(DragOperation op) {
     return res;
 }
 
-static DragOperation keyStateToDragOperation(DWORD) {
-    //FIXME: This is currently very simple, it may need to actually
-    //work out an appropriate DragOperation in future -- however this
-    //behaviour appears to match FireFox
-    return (DragOperation)(DragOperationCopy | DragOperationLink);
+DragOperation WebView::keyStateToDragOperation(DWORD grfKeyState) const
+{
+    if (!m_page)
+        return DragOperationNone;
+
+    // Conforms to Microsoft's key combinations as documented for 
+    // IDropTarget::DragOver. Note, grfKeyState is the current 
+    // state of the keyboard modifier keys on the keyboard. See:
+    // <http://msdn.microsoft.com/en-us/library/ms680129(VS.85).aspx>.
+    DragOperation operation = m_page->dragController()->sourceDragOperation();
+
+    if ((grfKeyState & (MK_CONTROL | MK_SHIFT)) == (MK_CONTROL | MK_SHIFT))
+        operation = DragOperationLink;
+    else if ((grfKeyState & MK_CONTROL) == MK_CONTROL)
+        operation = DragOperationCopy;
+    else if ((grfKeyState & MK_SHIFT) == MK_SHIFT)
+        operation = DragOperationGeneric;
+
+    return operation;
 }
 
 HRESULT STDMETHODCALLTYPE WebView::DragEnter(
@@ -4640,6 +4680,7 @@ HRESULT STDMETHODCALLTYPE WebView::DragEnter(
         IntPoint(pt.x, pt.y), keyStateToDragOperation(grfKeyState));
     *pdwEffect = dragOperationToDragCursor(m_page->dragController()->dragEntered(&data));
 
+    m_lastDropEffect = *pdwEffect;
     m_dragData = pDataObject;
 
     return S_OK;
@@ -4660,6 +4701,7 @@ HRESULT STDMETHODCALLTYPE WebView::DragOver(
     } else
         *pdwEffect = DROPEFFECT_NONE;
 
+    m_lastDropEffect = *pdwEffect;
     return S_OK;
 }
 
@@ -4684,7 +4726,7 @@ HRESULT STDMETHODCALLTYPE WebView::Drop(
         m_dropTargetHelper->Drop(pDataObject, (POINT*)&pt, *pdwEffect);
 
     m_dragData = 0;
-    *pdwEffect = DROPEFFECT_NONE;
+    *pdwEffect = m_lastDropEffect;
     POINTL localpt = pt;
     ::ScreenToClient(m_viewWindow, (LPPOINT)&localpt);
     DragData data(pDataObject, IntPoint(localpt.x, localpt.y), 
@@ -5586,6 +5628,33 @@ HRESULT WebView::resetOriginAccessWhiteLists()
     SecurityOrigin::resetOriginAccessWhiteLists();
     return S_OK;
 }
+ 
+HRESULT WebView::setHistoryDelegate(IWebHistoryDelegate* historyDelegate)
+{
+    m_historyDelegate = historyDelegate;
+    return S_OK;
+}
+
+HRESULT WebView::historyDelegate(IWebHistoryDelegate** historyDelegate)
+{
+    if (!historyDelegate)
+        return E_POINTER;
+
+    return m_historyDelegate.copyRefTo(historyDelegate);
+}
+
+HRESULT WebView::addVisitedLinks(BSTR* visitedURLs, unsigned visitedURLCount)
+{
+    PageGroup& group = core(this)->group();
+    
+    for (unsigned i = 0; i < visitedURLCount; ++i) {
+        BSTR url = visitedURLs[i];
+        unsigned length = SysStringLen(url);
+        group.addVisitedLink(url, length);
+    }
+
+    return S_OK;
+}
 
 void WebView::downloadURL(const KURL& url)
 {
@@ -5611,6 +5680,33 @@ HRESULT STDMETHODCALLTYPE WebView::pluginHalterDelegate(IWebPluginHalterDelegate
         return E_FAIL;
 
     return m_pluginHalterDelegate.copyRefTo(d);
+}
+
+HRESULT STDMETHODCALLTYPE WebView::isNodeHaltedPlugin(IDOMNode* domNode, BOOL* result)
+{
+    if (!domNode || !result)
+        return E_POINTER;
+
+    COMPtr<DOMNode> webKitDOMNode(Query, domNode);
+    if (!webKitDOMNode)
+        return E_FAIL;
+
+    Node* node = webKitDOMNode->node();
+    if (!node)
+        return E_FAIL;
+
+    *result = FALSE;
+
+    RenderObject* renderer = node->renderer();
+    if (!renderer || !renderer->isWidget())
+        return S_OK;
+
+    Widget* widget = toRenderWidget(renderer)->widget();
+    if (!widget || !widget->isPluginView())
+        return S_OK;
+
+    *result = static_cast<PluginView*>(widget)->isHalted();
+    return S_OK;
 }
 
 class EnumTextMatches : public IEnumTextMatches
