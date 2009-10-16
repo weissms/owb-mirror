@@ -23,46 +23,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef GraphicsLayerCairo_h
-#define GraphicsLayerCairo_h
-
 #include "config.h"
-
 #if USE(ACCELERATED_COMPOSITING)
 
-#include "GraphicsLayer.h"
+#include "GraphicsLayerCairo.h"
 
 namespace WebCore {
 
-class FloatPoint3D;
-class FloatValueList;
-class GraphicsContext;
-class Image;
-class IntSize;
-class TextStream;
-class TimingFunction;
-class TransformValueList;
+PassOwnPtr<GraphicsLayer> GraphicsLayer::create(GraphicsLayerClient* client)
+{
+    return new GraphicsLayerCairo(client);
+}
 
-// GraphicsLayer is an abstraction for a rendering surface with backing store,
-// which may have associated transformation and animations.
+GraphicsLayer::CompositingCoordinatesOrientation GraphicsLayer::compositingCoordinatesOrientation()
+{
+    return CompositingCoordinatesTopDown;
+}
 
-class GraphicsLayerCairo : public GraphicsLayer {
-public:
-    GraphicsLayerCairo(GraphicsLayerClient*);
-    virtual ~GraphicsLayerCairo();
+#ifndef NDEBUG
+bool GraphicsLayer::showDebugBorders()
+{
+    return false;
+}
+#endif
 
-    virtual void setNeedsDisplay();
-    // mark the given rect (in layer coords) as needing dispay. Never goes deep.
-    virtual void setNeedsDisplayInRect(const FloatRect&);
+GraphicsLayerCairo::GraphicsLayerCairo(GraphicsLayerClient* client)
+: GraphicsLayer(client)
+{
+}
 
-    virtual bool animateTransform(const TransformValueList&, const IntSize&, const Animation*, double beginTime, bool isTransition);
-    virtual bool animateFloat(AnimatedPropertyID, const FloatValueList&, const Animation*, double beginTime);
-};
+GraphicsLayerCairo::~GraphicsLayerCairo()
+{
+}
+
+void GraphicsLayerCairo::setNeedsDisplay()
+{
+}
+
+void GraphicsLayerCairo::setNeedsDisplayInRect(const FloatRect&)
+{
+}
+
+bool GraphicsLayerCairo::animateTransform(const TransformValueList&, const IntSize&, const Animation*, double beginTime, bool isTransition)
+{
+    return false;
+}
+
+bool GraphicsLayerCairo::animateFloat(AnimatedPropertyID, const FloatValueList&, const Animation*, double beginTime)
+{
+    return false;
+}
 
 
 } // namespace WebCore
 
 #endif // USE(ACCELERATED_COMPOSITING)
-
-#endif // GraphicsLayerCairo_h
 
