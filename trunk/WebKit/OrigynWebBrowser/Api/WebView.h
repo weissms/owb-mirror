@@ -1503,11 +1503,27 @@ protected:
 
     /**
      * @method isNodeHaltedPlugin
-     * @discussion isNodeHaltedPlugin returns when the passed DOMNode is a plugin that was halted.
+     * @discussion isNodeHaltedPlugin returns true when the passed DOMNode is a plugin that was halted.
      * @param domNode the DOMNode to check
      * @return true if it is a plugin that was halted, false otherwise (if it is not a plugin or if it is a running plugin for example).
      */
     bool isNodeHaltedPlugin(DOMNode* domNode);
+
+    /**
+     * @method restartHaltedPluginForNode
+     * @discussion restartHaltedPluginForNode restarts a halted plugin at the given DOM node.
+     * @param domNode the DOMNode for which to restart the plugin
+     * @return true if the plugin was restarted, false otherwise
+     */
+    bool restartHaltedPluginForNode(DOMNode* domNode);
+
+    /**
+     * @method hasPluginForNodeBeenHalted
+     * @discussion hasPluginForNodeBeenHalted returns true when the passed DOMNode holds a plugin and that plugin was halted.
+     * @param domNode the DOMNode for which to check for a halted plugin
+     * @return true if the given node holds a plugin that was halted, false otherwise.
+     */
+    bool hasPluginForNodeBeenHalted(DOMNode* domNode);
 
     /**
      * repaint

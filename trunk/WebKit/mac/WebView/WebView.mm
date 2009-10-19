@@ -34,6 +34,7 @@
 #import "DOMNodeInternal.h"
 #import "DOMRangeInternal.h"
 #import "WebBackForwardListInternal.h"
+#import "WebBaseNetscapePluginView.h"
 #import "WebCache.h"
 #import "WebChromeClient.h"
 #import "WebContextMenuClient.h"
@@ -124,6 +125,7 @@
 #import <WebCore/PageGroup.h>
 #import <WebCore/PlatformMouseEvent.h>
 #import <WebCore/ProgressTracker.h>
+#import <WebCore/RenderWidget.h>
 #import <WebCore/ResourceHandle.h>
 #import <WebCore/RuntimeApplicationChecks.h>
 #import <WebCore/ScriptController.h>
@@ -2112,6 +2114,47 @@ static inline IMP getMethod(id o, SEL s)
 #else
     return NO;
 #endif
+}
+
+static WebBaseNetscapePluginView *_pluginViewForNode(DOMNode *node)
+{
+    if (!node)
+        return nil;
+    
+    Node* coreNode = core(node);
+    if (!coreNode)
+        return nil;
+    
+    RenderObject* renderer = coreNode->renderer();
+    if (!renderer || !renderer->isWidget())
+        return nil;
+    
+    Widget* widget = toRenderWidget(renderer)->widget();
+    if (!widget || !widget->platformWidget())
+        return nil;
+    
+    NSView *view = widget->platformWidget();
+    if (![view isKindOfClass:[WebBaseNetscapePluginView class]])
+        return nil;
+    
+    return (WebBaseNetscapePluginView *)view;
+}
+
++ (BOOL)_isNodeHaltedPlugin:(DOMNode *)node
+{
+    return [_pluginViewForNode(node) isHalted];
+}
+
++ (BOOL)_hasPluginForNodeBeenHalted:(DOMNode *)node
+{
+    return [_pluginViewForNode(node) hasBeenHalted];
+}
++ (void)_restartHaltedPluginForNode:(DOMNode *)node
+{
+    if (!node)
+        return;
+    
+    [_pluginViewForNode(node) resumeFromHalt];
 }
 
 - (NSPasteboard *)_insertionPasteboard

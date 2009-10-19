@@ -7,5 +7,6 @@ list(APPEND JSC_SRC
     jit/JITPropertyAccess.cpp
     jit/JITStubs.cpp
     jit/ExecutableAllocatorPosix.cpp
+    jit/ExecutableAllocatorSymbian.cpp
 )
 

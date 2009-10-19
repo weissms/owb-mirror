@@ -1,3 +1,93 @@
+2009-10-19  Jakob Truelsen  <antialize@gmail.com>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=29042
+
+        Allow one to costumize the minimal and maximal shrink factors,
+        Added methods setPrintingMinimumShrinkFactor, printingMinimumShrinkFactor,
+        setPrintingMaximumShrinkFactor, printingMaximumShrinkFactor to QWebSettings.
+
+
+        * Api/qwebsettings.cpp:
+        (QWebSettingsPrivate::apply):
+        (QWebSettings::QWebSettings):
+        (QWebSettings::setPrintingMinimumShrinkFactor):
+        (QWebSettings::printingMinimumShrinkFactor):
+        (QWebSettings::setPrintingMaximumShrinkFactor):
+        (QWebSettings::printingMaximumShrinkFactor):
+        * Api/qwebsettings.h:
+
+2009-10-18  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Rename fixedContentsSize property to preferredContentsSize as
+        agreed upon with Simon Hausmann and Matthias Ettrich.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::preferredContentsSize):
+        (QWebPage::setPreferredContentsSize):
+        * Api/qwebpage.h:
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::transitionToCommittedForNewPage):
+
+2009-10-16  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] QGLauncher leaks WebPage object
+        https://bugs.webkit.org/show_bug.cgi?id=30465
+
+        Make 'SharedScene' to own 'WebPage' reference and delete it at its destructor.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::view):
+        * Api/qwebpage_p.h:
+        * QGVLauncher/main.cpp:
+        (SharedScene::SharedScene):
+        (SharedScene::~SharedScene):
+
+2009-10-16  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] "dangling" pointer to qwebpage's view object can leads QGLauncher to crash
+        https://bugs.webkit.org/show_bug.cgi?id=30459
+
+        Remove all setView(ev->widget()) calls in QWebPage and QGWV event handling methods,
+        since QWebPageClient would do the trick.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::hoverMoveEvent):
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::mouseMoveEvent):
+        (QWebPagePrivate::mousePressEvent):
+        (QWebPagePrivate::mouseDoubleClickEvent):
+        (QWebPagePrivate::mouseReleaseEvent):
+        (QWebPagePrivate::wheelEvent):
+        (QWebPagePrivate::dragEnterEvent):
+        (QWebPagePrivate::dragLeaveEvent):
+        (QWebPagePrivate::dragMoveEvent):
+
+2009-10-16  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Pull out r49676 as it caused build breakges on Symbian
+
+        * Api/qwebpage.cpp:
+
+2009-10-16  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Need a way to inform the application when a Netscape plugin is created or deleted
+        https://bugs.webkit.org/show_bug.cgi?id=30179
+
+        Added "c" style static methods for the application to hook up for
+        receiving notifications when a plugin is created or destroyed.
+
+        * Api/qwebpage.cpp:
+
 2009-10-16  Antonio Gomes  <tonikitoo@webkit.org>
 
         Rubberstamped by Tor Arne.
@@ -33,6 +123,7 @@
         * Api/qgraphicswebview.cpp:
         (QGraphicsWebView::event):
 
+>>>>>>> .r49765
 2009-10-14  Girish Ramakrishnan  <girish@forwardbias.in>
 
         Reviewed by Simon Hausmann.

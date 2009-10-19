@@ -2770,7 +2770,7 @@ void WebView::addVisitedLinks(const char** visitedURLs, unsigned visitedURLCount
         group.addVisitedLink(KURL(KURL(), visitedURLs[i]));
 }
 
-bool WebView::isNodeHaltedPlugin(DOMNode* domNode)
+static PluginView* pluginViewForNode(DOMNode* domNode)
 {
     if (!domNode)
         return false;
@@ -2787,5 +2787,42 @@ bool WebView::isNodeHaltedPlugin(DOMNode* domNode)
     if (!widget || !widget->isPluginView())
         return false;
 
-    return static_cast<PluginView*>(widget)->isHalted();
+    return static_cast<PluginView*>(widget);
+}
+
+bool WebView::isNodeHaltedPlugin(DOMNode* domNode)
+{
+    if (!domNode)
+        return false;
+
+    PluginView* view = pluginViewForNode(domNode);
+    if (!view)
+        return false;
+
+    return view->isHalted();
+}
+
+bool WebView::restartHaltedPluginForNode(DOMNode* domNode)
+{
+    if (!domNode)
+        return false;
+
+    PluginView* view = pluginViewForNode(domNode);
+    if (!view)
+        return false;
+
+    view->restart();
+    return true;
+}
+
+bool WebView::hasPluginForNodeBeenHalted(DOMNode* domNode)
+{
+    if (!domNode)
+        return false;
+
+    PluginView* view = pluginViewForNode(domNode);
+    if (!view)
+        return false;
+
+    return view->hasBeenHalted();
 }

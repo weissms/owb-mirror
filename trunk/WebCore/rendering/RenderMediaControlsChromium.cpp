@@ -56,12 +56,8 @@ static Image* platformResource(const char* name)
 
 static bool paintMediaButton(GraphicsContext* context, const IntRect& rect, Image* image)
 {
-    // Create a destination rectangle for the image that is centered in the drawing rectangle, rounded left, and down.
     IntRect imageRect = image->rect();
-    imageRect.setY(rect.y() + (rect.height() - image->height() + 1) / 2);
-    imageRect.setX(rect.x() + (rect.width() - image->width() + 1) / 2);
-
-    context->drawImage(image, imageRect);
+    context->drawImage(image, rect);
     return true;
 }
 
@@ -91,7 +87,8 @@ static bool paintMediaPlayButton(RenderObject* object, const RenderObject::Paint
     static Image* mediaPause = platformResource("mediaPause");
     static Image* mediaPlayDisabled = platformResource("mediaPlayDisabled");
 
-    if (mediaElement->networkState() == HTMLMediaElement::NETWORK_NO_SOURCE)
+    if (mediaElement->networkState() == HTMLMediaElement::NETWORK_EMPTY ||
+        mediaElement->networkState() == HTMLMediaElement::NETWORK_NO_SOURCE)
         return paintMediaButton(paintInfo.context, rect, mediaPlayDisabled);
 
     return paintMediaButton(paintInfo.context, rect, mediaElement->paused() ? mediaPlay : mediaPause);
@@ -119,10 +116,9 @@ static bool paintMediaSlider(RenderObject* object, const RenderObject::PaintInfo
 
     // Draw the buffered ranges.
     // FIXME: Draw multiple ranges if there are multiple buffered ranges.
-    // FIXME: percentLoaded() doesn't always hit 1.0 so we're using round().
     IntRect bufferedRect = rect;
     bufferedRect.inflate(-style->borderLeftWidth());
-    bufferedRect.setWidth(round((bufferedRect.width() * mediaElement->percentLoaded())));
+    bufferedRect.setWidth((bufferedRect.width() * mediaElement->percentLoaded()));
 
     // Don't bother drawing an empty area.
     if (!bufferedRect.isEmpty()) {
@@ -278,9 +274,10 @@ void RenderMediaControlsChromium::adjustMediaSliderThumbSize(RenderObject* objec
     else if (object->style()->appearance() == MediaVolumeSliderThumbPart)
         thumbImage = mediaVolumeSliderThumb;
 
+    float zoomLevel = object->style()->effectiveZoom();
     if (thumbImage) {
-        object->style()->setWidth(Length(thumbImage->width(), Fixed));
-        object->style()->setHeight(Length(thumbImage->height(), Fixed));
+        object->style()->setWidth(Length(static_cast<int>(thumbImage->width() * zoomLevel), Fixed));
+        object->style()->setHeight(Length(static_cast<int>(thumbImage->height() * zoomLevel), Fixed));
     }
 }
 

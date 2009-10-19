@@ -1,3 +1,328 @@
+2009-10-19  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Darin Adler.
+
+        Use _stricmp and _strnicmp instead of deprecated stricmp and strnicmp.
+        https://bugs.webkit.org/show_bug.cgi?id=30474
+
+        stricmp and strnicmp are deprecated beginning in Visual
+        C++ 2005. Use _stricmp and _strnicmp instead in StringExtras.h.
+
+        * wtf/StringExtras.h:
+        (strncasecmp):
+        (strcasecmp):
+
+2009-10-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: apparently we shouldn't export those symbols?
+
+        * JavaScriptCore.exp:
+
+2009-10-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: export some symbols.
+
+        * JavaScriptCore.exp:
+
+2009-10-16  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        structure typeinfo flags should be inherited.
+        https://bugs.webkit.org/show_bug.cgi?id=30468
+
+        Add StructureFlag constant to the various JSC classes and use
+        it for the TypeInfo construction.  This allows us to simply
+        accumulate flags by basing each classes StructureInfo on its parents.
+
+        * API/JSCallbackConstructor.h:
+        (JSC::JSCallbackConstructor::createStructure):
+        * API/JSCallbackFunction.h:
+        (JSC::JSCallbackFunction::createStructure):
+        * API/JSCallbackObject.h:
+        (JSC::JSCallbackObject::createStructure):
+        * debugger/DebuggerActivation.h:
+        (JSC::DebuggerActivation::createStructure):
+        * runtime/Arguments.h:
+        (JSC::Arguments::createStructure):
+        * runtime/BooleanObject.h:
+        (JSC::BooleanObject::createStructure):
+        * runtime/DatePrototype.h:
+        (JSC::DatePrototype::createStructure):
+        * runtime/FunctionPrototype.h:
+        (JSC::FunctionPrototype::createStructure):
+        * runtime/GlobalEvalFunction.h:
+        (JSC::GlobalEvalFunction::createStructure):
+        * runtime/InternalFunction.h:
+        (JSC::InternalFunction::createStructure):
+        * runtime/JSActivation.h:
+        (JSC::JSActivation::createStructure):
+        * runtime/JSArray.h:
+        (JSC::JSArray::createStructure):
+        * runtime/JSByteArray.cpp:
+        (JSC::JSByteArray::createStructure):
+        * runtime/JSByteArray.h:
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::createStructure):
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::createStructure):
+        * runtime/JSNotAnObject.h:
+        (JSC::JSNotAnObject::createStructure):
+        * runtime/JSONObject.h:
+        (JSC::JSONObject::createStructure):
+        * runtime/JSObject.h:
+        (JSC::JSObject::createStructure):
+        * runtime/JSStaticScopeObject.h:
+        (JSC::JSStaticScopeObject::createStructure):
+        * runtime/JSVariableObject.h:
+        (JSC::JSVariableObject::createStructure):
+        * runtime/JSWrapperObject.h:
+        (JSC::JSWrapperObject::createStructure):
+        * runtime/MathObject.h:
+        (JSC::MathObject::createStructure):
+        * runtime/NumberConstructor.h:
+        (JSC::NumberConstructor::createStructure):
+        * runtime/NumberObject.h:
+        (JSC::NumberObject::createStructure):
+        * runtime/RegExpConstructor.h:
+        (JSC::RegExpConstructor::createStructure):
+        * runtime/RegExpObject.h:
+        (JSC::RegExpObject::createStructure):
+        * runtime/StringObject.h:
+        (JSC::StringObject::createStructure):
+        * runtime/StringObjectThatMasqueradesAsUndefined.h:
+        (JSC::StringObjectThatMasqueradesAsUndefined::createStructure):
+
+2009-10-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fast for-in enumeration: Cache JSPropertyNameIterator; cache JSStrings
+        in JSPropertyNameIterator; inline more code.
+
+        1.024x as fast on SunSpider (fasta: 1.43x as fast).
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitGetPropertyNames):
+        (JSC::BytecodeGenerator::emitNextPropertyName):
+        * bytecompiler/BytecodeGenerator.h: Added a few extra operands to
+        op_get_pnames and op_next_pname so that we can track iteration state
+        in the register file instead of in the JSPropertyNameIterator. (To be
+        cacheable, the JSPropertyNameIterator must be stateless.)
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::tryCachePutByID):
+        (JSC::Interpreter::tryCacheGetByID): Updated for rename to
+        "normalizePrototypeChain" and removal of "isCacheable". 
+
+        (JSC::Interpreter::privateExecute): Updated for in-RegisterFile
+        iteration state tracking.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_get_pnames): Updated for in-RegisterFile
+        iteration state tracking.
+
+        (JSC::JIT::emit_op_next_pname): Inlined code generation for op_next_pname.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCachePutByID):
+        (JSC::JITThunks::tryCacheGetByID): Updated for rename to
+        "normalizePrototypeChain" and removal of "isCacheable". 
+
+        (JSC::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::): Added has_property and to_object stubs. Removed op_next_pname
+        stub, since has_property is all we need anymore.
+
+        * parser/Nodes.cpp:
+        (JSC::ForInNode::emitBytecode): Updated for in-RegisterFile
+        iteration state tracking.
+
+        * runtime/JSCell.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames): Don't do caching at this layer
+        anymore, since we don't create a JSPropertyNameIterator at this layer.
+
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::create): Do do caching at this layer.
+        (JSC::JSPropertyNameIterator::get):  Updated for in-RegisterFile
+        iteration state tracking.
+        (JSC::JSPropertyNameIterator::markChildren): Mark our JSStrings.
+
+        * runtime/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::size):
+        (JSC::JSPropertyNameIterator::setCachedStructure):
+        (JSC::JSPropertyNameIterator::cachedStructure):
+        (JSC::JSPropertyNameIterator::setCachedPrototypeChain):
+        (JSC::JSPropertyNameIterator::cachedPrototypeChain):
+        (JSC::JSPropertyNameIterator::JSPropertyNameIterator):
+        (JSC::Structure::setEnumerationCache): Don't store iteration state in
+        a JSPropertyNameIterator. Do cache a JSPropertyNameIterator in a
+        Structure.
+
+        * runtime/JSValue.h:
+        (JSC::asCell):
+        * runtime/MarkStack.h: Make those mischievous #include gods happy.
+
+        * runtime/ObjectConstructor.cpp:
+
+        * runtime/Operations.h:
+        (JSC::normalizePrototypeChain): Renamed countPrototypeChainEntriesAndCheckForProxies
+        to normalizePrototypeChain, since it changes dictionary prototypes to
+        non-dictionary objects.
+
+        * runtime/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * runtime/PropertyNameArray.h:
+        (JSC::PropertyNameArrayData::PropertyNameArrayData):
+        (JSC::PropertyNameArray::data):
+        (JSC::PropertyNameArray::size):
+        (JSC::PropertyNameArray::begin):
+        (JSC::PropertyNameArray::end): Simplified some code here to help with
+        current and future refactoring.
+
+        * runtime/Protect.h:
+        * runtime/Structure.cpp:
+        (JSC::Structure::~Structure):
+        (JSC::Structure::addPropertyWithoutTransition):
+        (JSC::Structure::removePropertyWithoutTransition): No need to clear
+        the enumeration cache with adding / removing properties without
+        transition. It is an error to add / remove properties without transition
+        once an object has been observed, and we can ASSERT to catch that.
+
+        * runtime/Structure.h:
+        (JSC::Structure::enumerationCache): Changed the enumeration cache to
+        hold a JSPropertyNameIterator.
+
+        * runtime/StructureChain.cpp:
+        * runtime/StructureChain.h:
+        (JSC::StructureChain::head): Removed StructureChain::isCacheable because
+        it was wrong-headed in two ways: (1) It gave up when a prototype was a
+        dictionary, but instead we want un-dictionary heavily accessed
+        prototypes; (2) It folded a test for hasDefaultGetPropertyNames() into
+        a generic test for "cacheable-ness", but hasDefaultGetPropertyNames()
+        is only releavant to for-in caching.
+
+2009-10-16  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add a Debug_All configuration to build entire stack as debug.
+        Change Debug_Internal to:
+        - stop using _debug suffix for all WebKit/Safari binaries
+        - not use _debug as a DLL naming suffix
+        - use non-debug C runtime lib.
+
+        * JavaScriptCore.vcproj/JavaScriptCore.make: Debug build in makefile should build Debug_All.
+        * JavaScriptCore.vcproj/JavaScriptCore.sln: Add Debug_All configuration.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Add Debug_All configuration.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.vcproj: Renamed single configuration from "Release" to "all".
+        * JavaScriptCore.vcproj/JavaScriptCoreSubmit.sln: Add Debug_All configuration.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Add Debug_All configuration.
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj: Add Debug_All configuration.
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj: Add Debug_All configuration.
+
+2009-10-16  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Make typeinfo flags default to false
+        https://bugs.webkit.org/show_bug.cgi?id=30372
+
+        Last part -- replace HasDefaultGetPropertyNames with OverridesGetPropertyNames
+        flag.
+
+        * API/JSCallbackConstructor.h:
+        (JSC::JSCallbackConstructor::createStructure):
+        * API/JSCallbackObject.h:
+        (JSC::JSCallbackObject::createStructure):
+        * debugger/DebuggerActivation.h:
+        (JSC::DebuggerActivation::createStructure):
+        * runtime/Arguments.h:
+        (JSC::Arguments::createStructure):
+        * runtime/BooleanObject.h:
+        (JSC::BooleanObject::createStructure):
+        * runtime/DatePrototype.h:
+        (JSC::DatePrototype::createStructure):
+        * runtime/FunctionPrototype.h:
+        (JSC::FunctionPrototype::createStructure):
+        * runtime/GlobalEvalFunction.h:
+        (JSC::GlobalEvalFunction::createStructure):
+        * runtime/JSAPIValueWrapper.h:
+        (JSC::JSAPIValueWrapper::createStructure):
+        * runtime/JSActivation.h:
+        (JSC::JSActivation::createStructure):
+        * runtime/JSArray.h:
+        (JSC::JSArray::createStructure):
+        * runtime/JSByteArray.cpp:
+        (JSC::JSByteArray::createStructure):
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::createStructure):
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::createStructure):
+        * runtime/JSNotAnObject.h:
+        (JSC::JSNotAnObject::createStructure):
+        * runtime/JSONObject.h:
+        (JSC::JSONObject::createStructure):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        * runtime/JSObject.h:
+        (JSC::JSObject::createStructure):
+        * runtime/JSStaticScopeObject.h:
+        (JSC::JSStaticScopeObject::createStructure):
+        * runtime/JSTypeInfo.h:
+        (JSC::TypeInfo::overridesGetPropertyNames):
+        * runtime/JSVariableObject.h:
+        (JSC::JSVariableObject::createStructure):
+        * runtime/JSWrapperObject.h:
+        (JSC::JSWrapperObject::createStructure):
+        * runtime/MathObject.h:
+        (JSC::MathObject::createStructure):
+        * runtime/NumberConstructor.h:
+        (JSC::NumberConstructor::createStructure):
+        * runtime/NumberObject.h:
+        (JSC::NumberObject::createStructure):
+        * runtime/RegExpConstructor.h:
+        (JSC::RegExpConstructor::createStructure):
+        * runtime/RegExpObject.h:
+        (JSC::RegExpObject::createStructure):
+        * runtime/StringObject.h:
+        (JSC::StringObject::createStructure):
+        * runtime/StringObjectThatMasqueradesAsUndefined.h:
+        (JSC::StringObjectThatMasqueradesAsUndefined::createStructure):
+        * runtime/StructureChain.cpp:
+        (JSC::StructureChain::isCacheable):
+
+2009-10-16  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMSW build fix, we can't use the simple hash there because the PlatformModuleVersion 
+        structure differs.
+
+        * wtf/Platform.h:
+
+2009-10-16  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Implement ExecutableAllocator for Symbian
+        https://bugs.webkit.org/show_bug.cgi?id=29946
+
+        Tested with YARR JIT enabled for Symbian; 
+        This patch does not (yet) enable YARR JIT by default.
+
+        * JavaScriptCore.pri:
+        * jit/ExecutableAllocator.h:
+        * jit/ExecutableAllocatorSymbian.cpp: Added.
+        (JSC::ExecutableAllocator::intializePageSize):
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+
 2009-10-16  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Darin Adler.

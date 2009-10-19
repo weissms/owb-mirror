@@ -581,8 +581,6 @@ void QWebPagePrivate::timerEvent(QTimerEvent *ev)
 
 void QWebPagePrivate::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-    q->setView(ev->widget());
-
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
     if (!frame->view())
         return;
@@ -603,8 +601,6 @@ void QWebPagePrivate::mouseMoveEvent(QMouseEvent *ev)
 
 void QWebPagePrivate::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-    q->setView(ev->widget());
-
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
     if (!frame->view())
         return;
@@ -660,8 +656,6 @@ void QWebPagePrivate::mousePressEvent(QMouseEvent *ev)
 
 void QWebPagePrivate::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    q->setView(ev->widget());
-
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
     if (!frame->view())
         return;
@@ -747,8 +741,6 @@ void QWebPagePrivate::handleClipboard(QEvent* ev, Qt::MouseButton button)
 
 void QWebPagePrivate::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-    q->setView(ev->widget());
-
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
     if (!frame->view())
         return;
@@ -830,8 +822,6 @@ QMenu *QWebPage::createStandardContextMenu()
 #ifndef QT_NO_WHEELEVENT
 void QWebPagePrivate::wheelEvent(QGraphicsSceneWheelEvent* ev)
 {
-    q->setView(ev->widget());
-
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
     if (!frame->view())
         return;
@@ -987,8 +977,6 @@ void QWebPagePrivate::focusOutEvent(QFocusEvent*)
 
 void QWebPagePrivate::dragEnterEvent(QGraphicsSceneDragDropEvent* ev)
 {
-    q->setView(ev->widget());
-
 #ifndef QT_NO_DRAGANDDROP
     DragData dragData(ev->mimeData(), ev->pos().toPoint(),
             QCursor::pos(), dropActionToDragOp(ev->possibleActions()));
@@ -1013,8 +1001,6 @@ void QWebPagePrivate::dragEnterEvent(QDragEnterEvent* ev)
 
 void QWebPagePrivate::dragLeaveEvent(QGraphicsSceneDragDropEvent* ev)
 {
-    q->setView(ev->widget());
-
 #ifndef QT_NO_DRAGANDDROP
     DragData dragData(0, IntPoint(), QCursor::pos(), DragOperationNone);
     page->dragController()->dragExited(&dragData);
@@ -1033,8 +1019,6 @@ void QWebPagePrivate::dragLeaveEvent(QDragLeaveEvent* ev)
 
 void QWebPagePrivate::dragMoveEvent(QGraphicsSceneDragDropEvent* ev)
 {
-    q->setView(ev->widget());
-
 #ifndef QT_NO_DRAGANDDROP
     DragData dragData(ev->mimeData(), ev->pos().toPoint(),
             QCursor::pos(), dropActionToDragOp(ev->possibleActions()));
@@ -1972,7 +1956,7 @@ void QWebPage::setViewportSize(const QSize &size) const
     }
 }
 
-QSize QWebPage::fixedContentsSize() const
+QSize QWebPage::preferredContentsSize() const
 {
     QWebFrame* frame = d->mainFrame;
     if (frame) {
@@ -1985,7 +1969,7 @@ QSize QWebPage::fixedContentsSize() const
 }
 
 /*!
-    \property QWebPage::fixedContentsSize
+    \property QWebPage::preferredContentsSize
     \since 4.6
     \brief the size of the fixed layout
 
@@ -1993,7 +1977,7 @@ QSize QWebPage::fixedContentsSize() const
     1024x768 for example then webkit will layout the page as if the viewport were that size
     rather than something different.
 */
-void QWebPage::setFixedContentsSize(const QSize &size) const
+void QWebPage::setPreferredContentsSize(const QSize &size) const
 {
     d->fixedLayoutSize = size;
 

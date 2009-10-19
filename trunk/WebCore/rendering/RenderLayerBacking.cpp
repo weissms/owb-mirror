@@ -148,7 +148,7 @@ void RenderLayerBacking::updateCompositedBounds()
     setCompositedBounds(layerBounds);
 }
 
-void RenderLayerBacking::updateAfterLayout(UpdateDepth updateDepth)
+void RenderLayerBacking::updateAfterLayout(UpdateDepth updateDepth, bool isUpdateRoot)
 {
     RenderLayerCompositor* layerCompositor = compositor();
     if (!layerCompositor->compositingLayersNeedRebuild()) {
@@ -162,7 +162,7 @@ void RenderLayerBacking::updateAfterLayout(UpdateDepth updateDepth)
         updateCompositedBounds();
         layerCompositor->updateCompositingDescendantGeometry(m_owningLayer, m_owningLayer, updateDepth);
         
-        if (!m_owningLayer->parent()) {
+        if (isUpdateRoot) {
             updateGraphicsLayerGeometry();
             layerCompositor->updateRootLayerPosition();
         }
@@ -1034,10 +1034,6 @@ bool RenderLayerBacking::startAnimation(double beginTime, const Animation* anim,
     if (!hasOpacity && !hasTransform)
         return false;
     
-    // Don't start animations if we're not rooted, because we won't get the callback that the animation started.
-    if (!m_graphicsLayer->hasAncestor(compositor()->rootPlatformLayer()))
-        return false;
-
     KeyframeValueList transformVector(AnimatedPropertyWebkitTransform);
     KeyframeValueList opacityVector(AnimatedPropertyOpacity);
 
@@ -1078,10 +1074,6 @@ bool RenderLayerBacking::startTransition(double beginTime, int property, const R
 {
     bool didAnimate = false;
     ASSERT(property != cAnimateAll);
-
-    // Don't start animations if we're not rooted, because we won't get the callback that the animation started.
-    if (!m_graphicsLayer->hasAncestor(compositor()->rootPlatformLayer()))
-        return false;
 
     if (property == (int)CSSPropertyOpacity) {
         const Animation* opacityAnim = toStyle->transitionForProperty(CSSPropertyOpacity);

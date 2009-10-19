@@ -1,3 +1,81 @@
+2009-10-19  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30456
+        Fixes for new Debug_All Windows build configuration.
+
+        * WebKitClassFactory.cpp: Use new DEBUG_ALL preprocessor define for library naming.
+
+2009-10-16  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Add SPI to determine whether a plug-in has ever been halted.
+
+        Part of <rdar://problem/7312158>.
+
+        Reviewed by Dan Bernstein.
+
+        * Interfaces/IWebViewPrivate.idl:
+        Add hasPluginForNodeBeenHalted().
+
+        * WebView.cpp:
+        (pluginViewForNode):
+        Code factored out of isNodeHaltedPlugin().
+        (WebView::isNodeHaltedPlugin):
+        Remove STDMETHODCALLTYPE, as it has no use at the definition. Use
+        pluginViewForNode().
+        (WebView::restartHaltedPluginForNode):
+        Ditto.
+        (WebView::hasPluginForNodeBeenHalted):
+        Get the PluginView for the given node. Return the result of
+        PluginView::hasBeenHalted().
+
+        * WebView.h:
+        Declare hasPluginForNodeBeenHalted().
+
+2009-10-16  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add a Debug_All configuration to build entire stack as debug.
+        Change Debug_Internal to:
+        - stop using _debug suffix for all WebKit/Safari binaries
+        - not use _debug as a DLL naming suffix
+        - use non-debug C runtime lib.
+
+        * WebKit.vcproj/InterfacesGenerated.vcproj: Renamed single configuration from "Release" to "all".
+        * WebKit.vcproj/WebKit.make: Debug build in makefile should build Debug_All.
+        * WebKit.vcproj/WebKit.sln: Add Debug_All configuration.
+        * WebKit.vcproj/WebKit.submit.sln: Add Debug_All configuration.
+        * WebKit.vcproj/WebKit.vcproj:
+        Remove extraneous OutputDirectory/IntermediateDirectory in Debug_Cairo.
+        Add Debug_All configuration.
+        * WebKit.vcproj/WebKitGUID.vcproj: Add Debug_All configuration.
+
+2009-10-15  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Add SPI to restart a halted plug-in.
+
+        Part of <rdar://problem/7273354> Halted plug-ins should restart on
+        mouseover
+
+        https://bugs.webkit.org/show_bug.cgi?id=30151
+
+        Reviewed by Kevin Decker.
+
+        * Interfaces/IWebViewPrivate.idl:
+        Add restartHaltedPluginForNode().
+
+        * WebView.cpp:
+        (WebView::restartHaltedPluginForNode):
+        From the IDOMNode, query for the DOMNode. From the DOMNode, get the
+        WebCore::Node. Get the node's renderer, and check whether it is a
+        RenderWidget. If so, get its Widget, and check whether it's a
+        PluginView. If so, call PluginView::restart().
+
+        * WebView.h:
+        Declare restartHaltedPluginForNode().
+
 2009-10-16  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Add SPI to determine whether a node is a halted plug-in.

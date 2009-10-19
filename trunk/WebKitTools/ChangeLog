@@ -1,3 +1,101 @@
+2009-10-19  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Use the setPreferredContentsSize method instead
+        of setFixedContentsSize, as the method has been renamed.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::open):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setFixedContentsSize):
+
+2009-10-16  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30456
+        Fixes for new Debug_All Windows build configuration.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (sharedCFURLCache): Use new DEBUG_ALL preprocessor define for library naming.
+        * DumpRenderTree/win/DumpRenderTree.vcproj: Remove unused DEBUG_WEBKIT_HAS_SUFFIX.
+
+2009-10-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        commit-queue status bot should list which buildbot is blocking the queue
+        https://bugs.webkit.org/show_bug.cgi?id=30452
+
+        Add new methods and testing.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/buildbot.py:
+        * Scripts/modules/buildbot_unittest.py:
+
+2009-10-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        run-webkit-tests fails when CWD is not inside a WebKit checkout
+        https://bugs.webkit.org/show_bug.cgi?id=30451
+
+        * Scripts/modules/scm.py: in_working_directory shouldn't throw exceptions on failure.
+        * Scripts/modules/scm_unittest.py:
+          - Remove use of original_path (we don't need to restore the CWD).
+          - Don't use '.' to find the webkit checkout, use __file__ instead.
+
+2009-10-16  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add a Debug_All configuration to build entire stack as debug.
+        Change Debug_Internal to:
+        - stop using _debug suffix for all WebKit/Safari binaries
+        - not use _debug as a DLL naming suffix
+        - use non-debug C runtime lib.
+
+        * DumpRenderTree/DumpRenderTree.sln: Add Debug_All configuration.
+        * DumpRenderTree/win/DumpRenderTree.vcproj: Add Debug_All configuration.
+        * DumpRenderTree/win/ImageDiff.vcproj: Add Debug_All configuration.
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+        Add missing debug.vsprops inherited property sheet.
+        Add Debug_All configuration.
+        * FindSafari/FindSafari.vcproj: Renamed single configuration from "Release" to "all".
+        * WinLauncher/WinLauncher.vcproj:
+        Removed extraneous definitions inherited from vsprops.
+        Add Debug_All configuration.
+
+2009-10-16  Carol Szabo  <carol.szabo@nokia.com>
+
+        Reviewed by David Levin.
+
+        check-webkit-style is wrong about indent checking in namespaces
+        in header files and a few other things
+        https://bugs.webkit.org/show_bug.cgi?id=30362
+
+        The few other things include:
+        + check-webkit-style does not require spaces around the equal sign
+          inside 'if' statements and around binary operators that take 
+          numeric literals.
+        + check-webkit-style reports false errors for the / operator
+          when part of a filename in the #include directive.
+
+        * Scripts/modules/cpp_style.py:
+        Improved indentation checking and space checking around
+        binary operators. While the checks are still not perfect,
+        they are clearly better than before.
+        * Scripts/modules/cpp_style_unittest.py:
+        Added test cases for the newly supported checks and modified old
+        test cases to match the new guidelines
+
+2009-10-16  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMSW build fix. Link to MSW library needed by PluginPackageWin.cpp.
+
+        * wx/build/settings.py:
+
 2009-10-16  Yuzo Fujishima  <yuzo@google.com>
 
         Reviewed by David Levin.

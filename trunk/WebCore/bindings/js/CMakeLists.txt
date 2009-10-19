@@ -53,6 +53,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSEventCustom.cpp
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTarget.cpp
+    bindings/js/JSExceptionBase.cpp
     bindings/js/JSDataGridColumnListCustom.cpp
     bindings/js/JSDataGridDataSource.h
     bindings/js/JSDataGridDataSource.cpp
