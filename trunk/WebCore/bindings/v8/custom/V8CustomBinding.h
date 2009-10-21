@@ -254,6 +254,10 @@ namespace WebCore {
 #if ENABLE(VIDEO)
         DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowAudio);
         DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowAudio);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLMediaElement);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLAudioElement);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLVideoElement);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowMediaError);
 #endif
 
         DECLARE_PROPERTY_ACCESSOR_GETTER(DOMWindowImage);
@@ -573,6 +577,8 @@ namespace WebCore {
 #endif      
 
 #if ENABLE(DOM_STORAGE)
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowLocalStorage);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowSessionStorage);
         DECLARE_INDEXED_PROPERTY_GETTER(Storage);
         DECLARE_INDEXED_PROPERTY_SETTER(Storage);
         DECLARE_INDEXED_PROPERTY_DELETER(Storage);
@@ -612,6 +618,10 @@ namespace WebCore {
         DECLARE_CALLBACK(WorkerContextClearInterval);
         DECLARE_CALLBACK(WorkerContextAddEventListener);
         DECLARE_CALLBACK(WorkerContextRemoveEventListener);
+
+#if ENABLE(NOTIFICATIONS)
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(WorkerContextWebkitNotifications);
+#endif
 #endif // ENABLE(WORKERS)
 
 #if ENABLE(NOTIFICATIONS)
@@ -635,6 +645,10 @@ namespace WebCore {
         DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowSharedWorker);
 #endif
 
+#if ENABLE(NOTIFICATIONS)
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowWebkitNotifications);
+#endif
+
 #if ENABLE(WEB_SOCKETS)
         DECLARE_PROPERTY_ACCESSOR(WebSocketOnopen);
         DECLARE_PROPERTY_ACCESSOR(WebSocketOnmessage);
@@ -644,6 +658,7 @@ namespace WebCore {
         DECLARE_CALLBACK(WebSocketRemoveEventListener);
         DECLARE_CALLBACK(WebSocketSend);
         DECLARE_CALLBACK(WebSocketClose);
+        DECLARE_ACCESSOR_RUNTIME_ENABLER(DOMWindowWebSocket);
 #endif
 
 #undef DECLARE_INDEXED_ACCESS_CHECK

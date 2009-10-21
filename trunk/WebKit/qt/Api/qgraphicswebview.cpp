@@ -246,6 +246,28 @@ bool QGraphicsWebView::sceneEvent(QEvent* event)
 
 /*! \reimp
 */
+QVariant QGraphicsWebView::itemChange(GraphicsItemChange change, const QVariant& value)
+{
+    switch (change) {
+    // Differently from QWebView, it is interesting to QGraphicsWebView to handle
+    // post mouse cursor change notifications. Reason: 'ItemCursorChange' is sent
+    // as the first action in QGraphicsItem::setCursor implementation, and at that
+    // item widget's cursor has not been effectively changed yet.
+    // After cursor is properly set (at 'ItemCursorHasChanged' emission time), we
+    // fire 'CursorChange'.
+    case ItemCursorChange:
+        return value;
+    case ItemCursorHasChanged:
+        QEvent event(QEvent::CursorChange);
+        QApplication::sendEvent(this, &event);
+        return value;
+    }
+
+    return QGraphicsWidget::itemChange(change, value);
+}
+
+/*! \reimp
+*/
 bool QGraphicsWebView::event(QEvent* event)
 {
     // Re-implemented in order to allows fixing event-related bugs in patch releases.
@@ -263,23 +285,26 @@ bool QGraphicsWebView::event(QEvent* event)
                 return true;
             }
             d->page->updatePositionDependentActions(fakeEvent.pos());
-        }
+        } else
 #endif // QT_NO_CONTEXTMENU
+        {
 #ifndef QT_NO_CURSOR
 #if QT_VERSION >= 0x040400
-        } else if (event->type() == QEvent::CursorChange) {
-            // An unsetCursor will set the cursor to Qt::ArrowCursor.
-            // Thus this cursor change might be a QWidget::unsetCursor()
-            // If this is not the case and it came from WebCore, the
-            // QWebPageClient already has set its cursor internally
-            // to Qt::ArrowCursor, so updating the cursor is always
-            // right, as it falls back to the last cursor set by
-            // WebCore.
-            // FIXME: Add a QEvent::CursorUnset or similar to Qt.
-            if (cursor().shape() == Qt::ArrowCursor)
-                d->resetCursor();
+            if (event->type() == QEvent::CursorChange) {
+                // An unsetCursor will set the cursor to Qt::ArrowCursor.
+                // Thus this cursor change might be a QWidget::unsetCursor()
+                // If this is not the case and it came from WebCore, the
+                // QWebPageClient already has set its cursor internally
+                // to Qt::ArrowCursor, so updating the cursor is always
+                // right, as it falls back to the last cursor set by
+                // WebCore.
+                // FIXME: Add a QEvent::CursorUnset or similar to Qt.
+                if (cursor().shape() == Qt::ArrowCursor)
+                    d->resetCursor();
+            }
 #endif
 #endif
+        }
     }
     return QGraphicsWidget::event(event);
 }

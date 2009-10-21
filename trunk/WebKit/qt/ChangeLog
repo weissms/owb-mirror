@@ -1,3 +1,192 @@
+2009-10-21  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed By Adam Barth.
+
+        Add some actions to the menu for cursor debugging.
+
+        GraphicsView based launcher only.
+
+        * QGVLauncher/main.cpp:
+        (MainView::setWaitCursor):
+        (MainView::resetCursor):
+        (MainView::flip):
+        (MainWindow::setWaitCursor):
+        (MainWindow::resetCursor):
+        (MainWindow::buildUI):
+
+2009-10-20  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Adam Barth.
+
+        Remove clipRenderToViewport as agreed upon in
+        https://bugs.webkit.org/show_bug.cgi?id=29843
+
+        * Api/qwebframe.cpp:
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        (QWebFramePrivate::QWebFramePrivate):
+
+2009-10-20  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Update the tests to test the new render functionality, and take
+        into consideration that render() clips to the frame itself as well
+        as the viewport.
+
+        QWebFrame::render() now always clips, so the old tests were bogus.
+
+        Rendering pure contents (no scrollbars etc) without clipping can now
+        be accomplished using QWebFrame::documentElement()->render(...)
+
+        * Api/qwebframe.cpp:
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        (QWebFramePrivate::QWebFramePrivate):
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-10-20  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Adam Barth.
+
+        As we do not support rendering a QWebFrame without it being clipped
+        the the frame as well as the viewport, we now set the viewport size
+        to the size of the contents.
+
+        Rendering pure contents (no scrollbars etc) without clipping can be
+        acomplished using QWebFrame::documentElement()->render(...)
+
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::render):
+
+2009-10-20  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Add menu item to dump the plugin list to the console,
+        which can be handy for debugging.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::dumpPlugins):
+        (MainWindow::setupUI):
+
+2009-10-19  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Introduce new render method on QWebFrame, which supports specifying
+        which layers to render (scrollbars, contents, pan-icon).
+
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::renderPrivate):
+        (QWebFrame::render):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+
+2009-10-19  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Infinite loop (leading to crash) when setting cursor in QGraphicsWebView
+        https://bugs.webkit.org/show_bug.cgi?id=30549
+
+        Patch reimplements QGraphicsItem's itemChange method, and make
+        CursorChange event to be emitted after cursor has already been
+        set.
+
+        QWidget::setCursor send the event just after it sets the cursor,
+        then patch makes both behaviors compatible.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::itemChange):
+        * Api/qgraphicswebview.h:
+
+2009-10-19  Nate Chapin  <japhet@chromium.org>
+
+        Unreviewed, build fix.
+
+        Update call to FrameLoader::loadFrameRequest().
+
+        * Api/qwebpage.cpp:
+        (QWebPage::triggerAction):
+
+2009-10-19  Viatcheslav Ostapenko  <ostapenko.viatcheslav@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        Add QWebElement::render API which allows rendering of single
+        element.
+
+        * Api/qwebelement.cpp:
+        (QWebElement::render):
+        * Api/qwebelement.h:
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::render):
+        * tests/qwebelement/qwebelement.qrc:
+        * tests/qwebelement/image.png: Added.
+
+2009-10-19  Markus Goetz <Markus.Goetz@nokia.com>
+
+        Reviewed by Ariya Hidayat.
+
+        QWebPage: Doc: setNetworkAccessManager should only be called once.
+
+        * Api/qwebpage.cpp:
+
+2009-10-19  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Tor Arne.
+
+        Wrong ifdef combination in QGraphicsWebView's event method.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::event):
+
+2009-10-19  Girish Ramakrishnan  <girish@forwardbias.in>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Windowed Plugins: Don't crash when client is 0.
+        
+        Client is 0 when we use QWebPage without a QWebView or QGraphicsWebView.
+        In addition, setFrameRect()/updatePluginWidget() is called even if the
+        plugin was not succesfully loaded. updatePluginWidget() updates the
+        window rect which is, in theory, useful to draw something that indicates
+        that we didn't load successfully.
+        
+        So, a status check is added to setNPWindowIfNeeded.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30380
+
+        * tests/qwebpage/qwebpage.pro:
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (takeScreenshot):
+        (tst_QWebPage::screenshot_data):
+        (tst_QWebPage::screenshot):
+        * tests/resources/test.swf: Copied from LayoutTests/fast/replaced/resources/test.swf.
+
+2009-10-19  Girish Ramakrishnan  <girish@forwardbias.in>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Windowed Plugins: Fix crash when QWebPage is deleted after QWebView.
+        
+        Fixes various sources of crashes:
+        1. The PluginContainer is a child of QWebView. When the view gets deleted,
+        the PluginView is not notified about the deletion of PluginContainer.
+        2. QWebView destructor does not set client to 0.
+        3. Sometimes pending paint events are sent after the plugin has died, so add
+        a check in PluginView::setNPWindowIfNeeded.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30354
+
+        * Api/qwebview.cpp:
+        (QWebView::~QWebView):
+        * tests/qwebview/qwebview.pro:
+        * tests/qwebview/tst_qwebview.cpp:
+        (tst_QWebView::reusePage_data):
+        (tst_QWebView::reusePage):
+
 2009-10-19  Jakob Truelsen  <antialize@gmail.com>
 
         Reviewed by Adam Barth.
@@ -123,7 +312,6 @@
         * Api/qgraphicswebview.cpp:
         (QGraphicsWebView::event):
 
->>>>>>> .r49765
 2009-10-14  Girish Ramakrishnan  <girish@forwardbias.in>
 
         Reviewed by Simon Hausmann.

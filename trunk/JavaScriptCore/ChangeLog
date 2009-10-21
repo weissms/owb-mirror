@@ -1,3 +1,142 @@
+2009-10-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: updated variable name.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+
+2009-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_next_pname): Slightly tweaked this #ifdef to match the
+        size of a JSValue because m_jsStrings is an array of JSValues.
+
+2009-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fixed a 64-bit regression caused by the fix for
+        https://bugs.webkit.org/show_bug.cgi?id=30570.
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_next_pname): Use TimesEight stepping on 64-bit, since
+        64-bit pointers are eight bytes long.
+
+2009-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Refactored DateInstance::msToGregorianDateTime so that a DateInstance's
+        caller doesn't need to supply the DateInstance's own internal value to
+        the DateInstance.
+
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::getGregorianDateTime): Renamed from "msToGregorianDateTime".
+
+        * runtime/DateInstance.h:
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToISOString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncToLocaleString):
+        (JSC::dateProtoFuncToLocaleDateString):
+        (JSC::dateProtoFuncToLocaleTimeString):
+        (JSC::dateProtoFuncGetTime):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear): Also renamed "utc" to "outputIsUTC", for clarity.
+
+2009-10-20  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Geoffrey Garen.
+
+        The op_next_pname should use 4 bytes addressing mode in case of JSValue32
+        https://bugs.webkit.org/show_bug.cgi?id=30570
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_next_pname):
+
+2009-10-20  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Oliver Hunt.
+
+        Move OverridesMarkChildren flag from DatePrototype to its parent class
+        https://bugs.webkit.org/show_bug.cgi?id=30372
+
+        * runtime/DateInstance.h:
+        (JSC::DateInstance::createStructure):
+        * runtime/DatePrototype.h:
+
+2009-10-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Tightened up some put_by_id_transition code generation.
+        https://bugs.webkit.org/show_bug.cgi?id=30539
+
+        * jit/JIT.h:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::testPrototype):
+        (JSC::JIT::privateCompilePutByIdTransition): No need to do object type
+        checks or read Structures and prototypes from objects: they're all known
+        constants at compile time.
+
+2009-10-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Added a private API for getting a global context from a context, for
+        clients who want to preserve a context for a later callback.
+
+        * API/APICast.h:
+        (toGlobalRef): Added an ASSERT, since this function is used more often
+        than before.
+
+        * API/JSContextRef.cpp:
+        * API/JSContextRefPrivate.h: Added. The new API.
+
+        * API/tests/testapi.c:
+        (print_callAsFunction):
+        (main): Test the new API.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj: Build and export the new API.
+
+2009-10-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Tightened up some instanceof code generation.
+        https://bugs.webkit.org/show_bug.cgi?id=30488
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_instanceof):
+        (JSC::JIT::emitSlow_op_instanceof): No need to do object type checks - 
+        cell type checks and ImplementsDefaultHasIntance checks implicitly
+        supersede object type checks.
+
 2009-10-19  Kwang Yul Seo  <skyul@company100.net>
 
         Reviewed by Darin Adler.

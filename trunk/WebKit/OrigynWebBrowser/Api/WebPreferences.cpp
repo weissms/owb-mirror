@@ -144,11 +144,6 @@ void WebPreferences::initializeDefaultSettings()
 #else
     m_privatePrefs.add(WebKitExperimentalNotificationsEnabledPreferenceKey, "0");//FALSE
 #endif
-#if ENABLE(WEB_SOCKETS)
-    m_privatePrefs.add(WebKitExperimentalWebSocketsEnabledPreferenceKey, "1");//TRUE
-#else
-    m_privatePrefs.add(WebKitExperimentalWebSocketsEnabledPreferenceKey, "0");//FALSE
-#endif
     m_privatePrefs.add(WebKitAllowAnimatedImagesPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitAllowAnimatedImageLoopingPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitDisplayImagesKey, "1");//TRUE
@@ -880,16 +875,6 @@ void WebPreferences::setExperimentalNotificationsEnabled(bool enable)
 bool WebPreferences::experimentalNotificationsEnabled() const
 {
     return boolValueForKey(WebKitExperimentalNotificationsEnabledPreferenceKey);
-}
-
-void WebPreferences::setExperimentalWebSocketsEnabled(bool enabled)
-{
-    setBoolValue(WebKitExperimentalWebSocketsEnabledPreferenceKey, enabled);
-}
-
-bool WebPreferences::experimentalWebSocketsEnabled()
-{
-    return boolValueForKey(WebKitExperimentalWebSocketsEnabledPreferenceKey);
 }
 
 void WebPreferences::setPluginAllowedRuntime(bool enable)

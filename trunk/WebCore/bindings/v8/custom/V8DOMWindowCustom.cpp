@@ -46,6 +46,7 @@
 #include "FrameView.h"
 #include "HTMLCollection.h"
 #include "MediaPlayer.h"
+#include "NotificationCenter.h"
 #include "Page.h"
 #include "PlatformScreen.h"
 #include "ScheduledAction.h"
@@ -53,6 +54,8 @@
 #include "SerializedScriptValue.h"
 #include "Settings.h"
 #include "SharedWorkerRepository.h"
+#include "Storage.h"
+#include "WebSocket.h"
 #include "WindowFeatures.h"
 
 // Horizontal and vertical offset, from the parent content area, around newly
@@ -242,12 +245,58 @@ ACCESSOR_RUNTIME_ENABLER(DOMWindowAudio)
     return MediaPlayer::isAvailable();
 }
 
+ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLMediaElement)
+{
+    return MediaPlayer::isAvailable();
+}
+
+ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLAudioElement)
+{
+    return MediaPlayer::isAvailable();
+}
+
+ACCESSOR_RUNTIME_ENABLER(DOMWindowHTMLVideoElement)
+{
+    return MediaPlayer::isAvailable();
+}
+
+ACCESSOR_RUNTIME_ENABLER(DOMWindowMediaError)
+{
+    return MediaPlayer::isAvailable();
+}
+
 #endif
 
 #if ENABLE(SHARED_WORKERS)
 ACCESSOR_RUNTIME_ENABLER(DOMWindowSharedWorker)
 {
     return SharedWorkerRepository::isAvailable();
+}
+#endif
+
+#if ENABLE(WEB_SOCKETS)
+ACCESSOR_RUNTIME_ENABLER(DOMWindowWebSocket)
+{
+    return WebSocket::isAvailable();
+}
+#endif
+
+#if ENABLE(DOM_STORAGE)
+ACCESSOR_RUNTIME_ENABLER(DOMWindowLocalStorage)
+{
+    return Storage::localStorageAvailable();
+}
+
+ACCESSOR_RUNTIME_ENABLER(DOMWindowSessionStorage)
+{
+    return Storage::sessionStorageAvailable();
+}
+#endif
+
+#if ENABLE(NOTIFICATIONS)
+ACCESSOR_RUNTIME_ENABLER(DOMWindowWebkitNotifications)
+{
+    return NotificationCenter::isAvailable();
 }
 #endif
 

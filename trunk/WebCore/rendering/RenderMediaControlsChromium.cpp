@@ -54,6 +54,12 @@ static Image* platformResource(const char* name)
     return 0;
 }
 
+static bool hasSource(const HTMLMediaElement* mediaElement)
+{
+    return mediaElement->networkState() != HTMLMediaElement::NETWORK_EMPTY
+        && mediaElement->networkState() != HTMLMediaElement::NETWORK_NO_SOURCE;
+}
+
 static bool paintMediaButton(GraphicsContext* context, const IntRect& rect, Image* image)
 {
     IntRect imageRect = image->rect();
@@ -71,7 +77,7 @@ static bool paintMediaMuteButton(RenderObject* object, const RenderObject::Paint
     static Image* soundNone = platformResource("mediaSoundNone");
     static Image* soundDisabled = platformResource("mediaSoundDisabled");
 
-    if (mediaElement->networkState() == HTMLMediaElement::NETWORK_NO_SOURCE || !mediaElement->hasAudio())
+    if (!hasSource(mediaElement) || !mediaElement->hasAudio())
         return paintMediaButton(paintInfo.context, rect, soundDisabled);
 
     return paintMediaButton(paintInfo.context, rect, mediaElement->muted() ? soundNone: soundFull);
@@ -87,8 +93,7 @@ static bool paintMediaPlayButton(RenderObject* object, const RenderObject::Paint
     static Image* mediaPause = platformResource("mediaPause");
     static Image* mediaPlayDisabled = platformResource("mediaPlayDisabled");
 
-    if (mediaElement->networkState() == HTMLMediaElement::NETWORK_EMPTY ||
-        mediaElement->networkState() == HTMLMediaElement::NETWORK_NO_SOURCE)
+    if (!hasSource(mediaElement))
         return paintMediaButton(paintInfo.context, rect, mediaPlayDisabled);
 
     return paintMediaButton(paintInfo.context, rect, mediaElement->paused() ? mediaPlay : mediaPause);
@@ -107,6 +112,7 @@ static bool paintMediaSlider(RenderObject* object, const RenderObject::PaintInfo
     // FIXME: this should be a rounded rect but need to fix GraphicsContextSkia first.
     // https://bugs.webkit.org/show_bug.cgi?id=30143
     context->save();
+    context->setShouldAntialias(true);
     context->setStrokeStyle(SolidStroke);
     context->setStrokeColor(style->borderLeftColor());
     context->setStrokeThickness(style->borderLeftWidth());
@@ -134,7 +140,7 @@ static bool paintMediaSlider(RenderObject* object, const RenderObject::PaintInfo
         context->save();
         context->setStrokeStyle(NoStroke);
         context->setFillGradient(gradient);
-        context->drawRect(bufferedRect);
+        context->fillRect(bufferedRect);
         context->restore();
     }
 
@@ -145,6 +151,13 @@ static bool paintMediaSliderThumb(RenderObject* object, const RenderObject::Pain
 {
     if (!object->parent()->isSlider())
         return false;
+
+    HTMLMediaElement* mediaElement = toParentMediaElement(object->parent());
+    if (!mediaElement)
+        return false;
+
+    if (!hasSource(mediaElement))
+        return true;
 
     static Image* mediaSliderThumb = platformResource("mediaSliderThumb");
     return paintMediaButton(paintInfo.context, rect, mediaSliderThumb);

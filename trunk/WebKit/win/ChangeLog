@@ -1,3 +1,66 @@
+2009-10-21  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by David Levin.
+
+        Removed WebSocket runtime settings.
+        https://bugs.webkit.org/show_bug.cgi?id=29896
+
+        WebSocket runtime configuration is supported by chromium/v8 only.
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::experimentalNotificationsEnabled):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2009-10-19  Adam Roben  <aroben@apple.com>
+
+        Fix crashes/assertions when calling WebLocalizedString from multiple
+        threads concurrently
+
+        Fixes <http://webkit.org/b/30534> WebLocalizedString asserts if called
+        from multiple threads concurrently
+
+        Reviewed by John Sullivan.
+
+        * WebLocalizableStrings.cpp:
+        (mainBundleLocStringsMutex):
+        (frameworkLocStringsMutex):
+        Added these new getters.
+
+        (findCachedString):
+        (cacheString):
+        Lock the relevant mutex before accessing each string map. Otherwise
+        bad things could happen if two threads end up here at the same time.
+
+2009-10-19  Adam Roben  <aroben@apple.com>
+
+        Get rid of a few static initializers/exit-time destructors in
+        WebLocalizableStrings
+
+        Reviewed by Dan Bernstein.
+
+        * WebLocalizableStrings.cpp:
+        (mainBundleLocStrings):
+        (frameworkLocStrings):
+        Added these functions instead of file-scope variables.
+
+        (findCachedString):
+        (cacheString):
+        Updated to use the new functions.
+
+2009-10-19  Nate Chapin  <japhet@chromium.org>
+
+        Unreviewed, build fix.
+
+        Update call to FrameLoader::urlSelected().
+
+        * WebCoreSupport/WebContextMenuClient.cpp:
+        (WebContextMenuClient::searchWithGoogle):
+
 2009-10-19  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Dan Bernstein.

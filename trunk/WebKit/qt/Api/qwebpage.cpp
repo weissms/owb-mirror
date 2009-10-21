@@ -1844,7 +1844,7 @@ void QWebPage::triggerAction(WebAction action, bool)
                 WTF::RefPtr<WebCore::Frame> wcFrame = targetFrame->d->frame;
                 targetFrame->d->frame->loader()->loadFrameRequest(frameLoadRequest(d->hitTestResult.linkUrl(), wcFrame.get()),
                                                                   /*lockHistory*/ false, /*lockBackForwardList*/ false, /*event*/ 0,
-                                                                  /*FormState*/ 0);
+                                                                  /*FormState*/ 0, SendReferrer);
                 break;
             }
             // fall through
@@ -2867,6 +2867,9 @@ QNetworkProxy QWebPage::networkProxy() const
 /*!
     Sets the QNetworkAccessManager \a manager responsible for serving network requests for this
     QWebPage.
+
+    \note It is currently not supported to change the network access manager after the
+    QWebPage has used it. The results of doing this are undefined.
 
     \sa networkAccessManager()
 */

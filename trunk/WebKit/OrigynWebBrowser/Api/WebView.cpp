@@ -2382,11 +2382,6 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->experimentalNotificationsEnabled();
     settings->setExperimentalNotificationsEnabled(enabled);
 
-#if ENABLE(WEB_SOCKETS)
-    enabled = preferences->experimentalWebSocketsEnabled();
-    settings->setExperimentalWebSocketsEnabled(enabled);
-#endif
-
     enabled = preferences->isWebSecurityEnabled();
     settings->setWebSecurityEnabled(enabled);
 

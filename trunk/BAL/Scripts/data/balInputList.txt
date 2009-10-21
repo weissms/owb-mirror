@@ -226,6 +226,7 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEBlend.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEColorMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComponentTransfer.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComposite.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEGaussianBlur.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/Filter.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
@@ -368,6 +369,8 @@ BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTra
 BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComponentTransfer.h BCFEComponentTransferWK.h
 BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.cpp BCFECompositeWK.cpp
 BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEComposite.h BCFECompositeWK.h
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEGaussianBlur.cpp BCFEGaussianBlurWK.cpp
+BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEGaussianBlur.h BCFEGaussianBlurWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h BCFilterWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h BCFilterEffectWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp BCFilterEffectWK.cpp

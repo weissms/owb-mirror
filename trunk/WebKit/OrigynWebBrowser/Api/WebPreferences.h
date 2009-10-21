@@ -687,16 +687,6 @@ public:
      */
     bool experimentalNotificationsEnabled() const;
 
-    /*
-     * experimentalWebSocketsEnabled
-     */
-    virtual bool experimentalWebSocketsEnabled();
-
-    /*
-     * setExperimentalWebSocketsEnabled
-     */
-    virtual void setExperimentalWebSocketsEnabled(bool enabled);
-
     /**
      * Enable or disable plugin run time.
      */

@@ -1187,6 +1187,7 @@ SOURCES += \
     platform/FileChooser.cpp \
     platform/GeolocationService.cpp \
     platform/image-decoders/qt/RGBA32BufferQt.cpp \
+    platform/graphics/filters/FEGaussianBlur.cpp \
     platform/graphics/FontDescription.cpp \
     platform/graphics/FontFamily.cpp \
     platform/graphics/BitmapImage.cpp \
@@ -1873,6 +1874,7 @@ HEADERS += \
     platform/graphics/filters/FEColorMatrix.h \
     platform/graphics/filters/FEComponentTransfer.h \
     platform/graphics/filters/FEComposite.h \
+    platform/graphics/filters/FEGaussianBlur.h \
     platform/graphics/filters/FilterEffect.h \
     platform/graphics/filters/SourceAlpha.h \
     platform/graphics/filters/SourceGraphic.h \
@@ -2101,7 +2103,6 @@ HEADERS += \
     svg/graphics/filters/SVGFEDiffuseLighting.h \
     svg/graphics/filters/SVGFEDisplacementMap.h \
     svg/graphics/filters/SVGFEFlood.h \
-    svg/graphics/filters/SVGFEGaussianBlur.h \
     svg/graphics/filters/SVGFEImage.h \
     svg/graphics/filters/SVGFEMerge.h \
     svg/graphics/filters/SVGFEMorphology.h \
@@ -2778,6 +2779,7 @@ contains(DEFINES, ENABLE_FILTERS=1) {
         platform/graphics/filters/FEColorMatrix.cpp \
         platform/graphics/filters/FEComponentTransfer.cpp \
         platform/graphics/filters/FEComposite.cpp \
+        platform/graphics/filters/FEGaussianBlur.cpp \
         platform/graphics/filters/FilterEffect.cpp \
         platform/graphics/filters/SourceAlpha.cpp \
         platform/graphics/filters/SourceGraphic.cpp
@@ -3017,7 +3019,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/filters/SVGFEDiffuseLighting.cpp \
         svg/graphics/filters/SVGFEDisplacementMap.cpp \
         svg/graphics/filters/SVGFEFlood.cpp \
-        svg/graphics/filters/SVGFEGaussianBlur.cpp \
         svg/graphics/filters/SVGFEImage.cpp \
         svg/graphics/filters/SVGFEMerge.cpp \
         svg/graphics/filters/SVGFEMorphology.cpp \

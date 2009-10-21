@@ -1,3 +1,85 @@
+2009-10-21  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        <rdar://problem/7319749> REGRESSION(r49806): Contextual Menu items missing
+        https://bugs.webkit.org/show_bug.cgi?id=30568
+
+        Revert accidental change from r49806.
+
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (WebContextMenuClient::getCustomMenuFromDefaultItems):
+
+2009-10-20  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by David Levin.
+
+        Removed WebSocket runtime settings.
+        https://bugs.webkit.org/show_bug.cgi?id=29896
+
+        WebSocket runtime configuration is supported by chromium/v8 only.
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-10-19  Nate Chapin  <japhet@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Update call to loadFrameRequest to match new parameters.
+
+        * WebView/WebPDFView.mm:
+        (-[WebPDFView PDFViewWillClickOnLink:withURL:]): Update call to loadFrameRequest.
+
+2009-10-19  David Kilzer  <ddkilzer@apple.com>
+
+        Documentation fix for -[NSObject(WebResourceLoadDelegate) webView:resource:willSendRequest:redirectResponse:fromDataSource:]
+
+        Reviewed by Dan Bernstein.
+
+        * WebView/WebResourceLoadDelegate.h: Prepended "webView:" to the
+        @method declaration of
+        -webView:resource:willSendRequest:redirectResponse:fromDataSource:
+        which was absent before r3953 and was missed during the great
+        documentation clean up of r4269.
+
+2009-10-19  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+
+2009-10-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Split assertions of conjunctions into separate statements or remove
+        redundant assertions.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::deadNameNotificationCallback):
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView setAttributeKeys:andValues:]):
+        (-[WebHostedNetscapePluginView _webPluginContainerCancelCheckIfAllowedToLoadRequest:]):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView halt]):
+        (-[WebBaseNetscapePluginView resumeFromHalt]):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        (-[WebNetscapePluginView _webPluginContainerCancelCheckIfAllowedToLoadRequest:]):
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (WebContextMenuClient::getCustomMenuFromDefaultItems):
+        * WebCoreSupport/WebEditorClient.mm:
+        (WebEditorClient::checkGrammarOfString):
+        (WebEditorClient::checkTextOfParagraph):
+        * WebView/WebTextCompletionController.mm:
+        (-[WebTextCompletionController _reflectSelection]):
+
 2009-10-19  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Dan Bernstein.

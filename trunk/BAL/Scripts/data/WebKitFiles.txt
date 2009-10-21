@@ -89,6 +89,7 @@ WebCore/plugins/PluginViewNone.cpp
 WebCore/rendering/RenderLayerCompositor.h
 WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
+WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp

@@ -2392,7 +2392,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
         enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
         enablePrivateBrowsing, enableCaretBrowsing, enableHTML5Database, enableHTML5LocalStorage,
         enableXSSAuditor, javascriptCanOpenWindows, enableOfflineWebAppCache,
-        enableUniversalAccessFromFileURI, enableWebSockets;
+        enableUniversalAccessFromFileURI, enableDOMPaste;
 
     WebKitEditingBehavior editingBehavior;
 
@@ -2421,7 +2421,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "enable-offline-web-application-cache", &enableOfflineWebAppCache,
                  "editing-behavior", &editingBehavior,
                  "enable-universal-access-from-file-uris", &enableUniversalAccessFromFileURI,
-                 "enable-web-sockets", &enableWebSockets,
+                 "enable-dom-paste", &enableDOMPaste,
                  NULL);
 
     settings->setDefaultTextEncodingName(defaultEncoding);
@@ -2448,9 +2448,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setOfflineWebApplicationCacheEnabled(enableOfflineWebAppCache);
     settings->setEditingBehavior(core(editingBehavior));
     settings->setAllowUniversalAccessFromFileURLs(enableUniversalAccessFromFileURI);
-#if ENABLE(WEB_SOCKETS)
-    settings->setExperimentalWebSocketsEnabled(enableWebSockets);
-#endif
+    settings->setDOMPasteAllowed(enableDOMPaste);
 
     g_free(defaultEncoding);
     g_free(cursiveFontFamily);
@@ -2537,10 +2535,8 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setEditingBehavior(core(static_cast<WebKitEditingBehavior>(g_value_get_enum(&value))));
     else if (name == g_intern_string("enable-universal-access-from-file-uris"))
         settings->setAllowUniversalAccessFromFileURLs(g_value_get_boolean(&value));
-#if ENABLE(WEB_SOCKETS)
-    else if (name == g_intern_string("enable-web-sockets"))
-        settings->setExperimentalWebSocketsEnabled(g_value_get_boolean(&value));
-#endif
+    else if (name == g_intern_string("enable-dom-paste"))
+        settings->setDOMPasteAllowed(g_value_get_boolean(&value));
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
         g_warning("Unexpected setting '%s'", name);
     g_value_unset(&value);

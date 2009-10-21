@@ -132,9 +132,32 @@ static const gchar* webkit_accessible_get_description(AtkObject* object)
     return returnString(core(object)->accessibilityDescription());
 }
 
+static gpointer webkit_accessible_parent_class = NULL;
+
 static AtkObject* webkit_accessible_get_parent(AtkObject* object)
 {
+    // To work around bogus additional objects in the ancestry, we set the
+    // parent when we ref the child. If the child knows its parent, use that.
+    AtkObject* parent = ATK_OBJECT_CLASS(webkit_accessible_parent_class)->get_parent(object);
+    if (parent)
+        return parent;
+
     AccessibilityObject* coreParent = core(object)->parentObject();
+
+    // The top level web view claims to not have a parent. This makes it
+    // impossible for assistive technologies to ascend the accessible
+    // hierarchy all the way to the application. (Bug 30489)
+    if (!coreParent && core(object)->isWebArea()) {
+        HostWindow* hostWindow = core(object)->document()->view()->hostWindow();
+        if (hostWindow) {
+            PlatformPageClient webView = hostWindow->platformPageClient();
+            if (webView) {
+                GtkWidget* webViewParent = gtk_widget_get_parent(webView);
+                if (webViewParent)
+                    return gtk_widget_get_accessible(webViewParent);
+            }
+        }
+    }
 
     if (!coreParent)
         return NULL;
@@ -160,8 +183,7 @@ static AtkObject* webkit_accessible_ref_child(AtkObject* object, gint index)
         return NULL;
 
     AtkObject* child = coreChild->wrapper();
-    // TODO: Should we call atk_object_set_parent() here?
-    //atk_object_set_parent(child, object);
+    atk_object_set_parent(child, object);
     g_object_ref(child);
 
     return child;
@@ -383,8 +405,6 @@ static void setAtkStateSetFromCoreObject(AccessibilityObject* coreObject, AtkSta
     if (coreObject->isVisited())
         atk_state_set_add_state(stateSet, ATK_STATE_VISITED);
 }
-
-static gpointer webkit_accessible_parent_class = NULL;
 
 static AtkStateSet* webkit_accessible_ref_state_set(AtkObject* object)
 {

@@ -2,6 +2,7 @@ BCFEBlendWK.h	FEBlend.h
 BCFEColorMatrixWK.h	FEColorMatrix.h
 BCFEComponentTransferWK.h	FEComponentTransfer.h
 BCFECompositeWK.h	FEComposite.h
+BCFEGaussianBlurWK.h	FEGaussianBlur.h
 BCFilterEffectWK.h	FilterEffect.h
 BCFilterWK.h	Filter.h
 BCSourceAlphaWK.h	SourceAlpha.h
