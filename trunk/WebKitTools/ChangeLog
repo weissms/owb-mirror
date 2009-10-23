@@ -1,3 +1,117 @@
+2009-10-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+        Build fix following bug #30696.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+
+2009-10-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig & Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30696
+        Enable isolated-worlds tests on mac.
+
+        Add private interface for DRT to invoke execution in a given world.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (evaluateScriptInIsolatedWorldCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+
+2009-10-21  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool's "patch failed to download an apply" error should give more information
+        https://bugs.webkit.org/show_bug.cgi?id=30632
+
+        * Scripts/modules/scm.py:
+         - Use the common run_command method instead of custom POpen code.
+         - Make run_command know how to take pipes as input.
+        * Scripts/modules/scm_unittest.py:
+         - Add new tests to cover change.
+         - Also move test_error_handlers into new SCMClassTests so we don't run it 3 times.
+
+2009-10-21  Kent Tamura  <tkent@chromium.org>
+
+        Unreviewed.  Adding myself to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-10-21  Robin Dunn  <robin@alldunn.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Update the Windows installer builder to work with Vista / Win 7 and with git.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=30649
+
+        * wx/build/build_utils.py:
+        * wx/packaging/build-mac-installer.py:
+        * wx/packaging/build-win-installer.py:
+        * wx/packaging/wxWebKitInstaller.iss.in:
+
+2009-10-21  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] Added conditional code to avoid using
+        gdk_window_get_root_coords if we do not have a gtk+ release newer
+        than 2.17.3.
+        https://bugs.webkit.org/show_bug.cgi?id=30636
+
+        * WebKitTools/DumpRenderTree/gtk/EventSender.cpp:
+
+2009-10-21  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Added dummy implementation for keepWebHistory()
+        https://bugs.webkit.org/show_bug.cgi?id=30592
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::keepWebHistory):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2009-10-21  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Fixed the double click condition, it is not double click if
+        we move in just in one direction.
+        https://bugs.webkit.org/show_bug.cgi?id=30636
+
+        * WebKitTools/DumpRenderTree/gtk/EventSender.cpp:
+
+2009-10-21  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Initialize the events completly before emitting them.
+        https://bugs.webkit.org/show_bug.cgi?id=30633
+
+        * WebKitTools/DumpRenderTree/gtk/EventSender.cpp:
+
+2009-10-21  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Fix for when linking using --as-needed with gcc.
+
+        * wx/browser/wscript:
+
+2009-10-21  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMac 10.4 build fix. Build and link against a version of libcurl new enough
+        to support all the features used by CURL backend.
+        
+        * wx/build/settings.py:
+        * wx/install-unix-extras:
+
 2009-10-21  Anton Muhin  <antonm@chromium.org>
 
         Reviewed by Adam Barth.

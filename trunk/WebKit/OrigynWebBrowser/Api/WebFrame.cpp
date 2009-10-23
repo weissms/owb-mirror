@@ -332,7 +332,7 @@ JSGlobalContextRef WebFrame::globalContext()
     if (!coreFrame)
         return 0;
 
-    return toGlobalRef(coreFrame->script()->globalObject()->globalExec());
+    return toGlobalRef(coreFrame->script()->globalObject(mainThreadNormalWorld())->globalExec());
 }
 
 bool isAbsolute(const char *url)
@@ -1233,13 +1233,13 @@ WebView* WebFrame::webView() const
 void WebFrame::addToJSWindowObject(void* object)
 {
     JSC::JSLock lock(JSC::SilenceAssertionsOnly);
-    JSDOMWindow *window = toJSDOMWindow(core(this));
+    JSDOMWindow *window = toJSDOMWindow(core(this), mainThreadNormalWorld());
     if (!window)
         return;
 
     RefPtr<JSC::Bindings::RootObject> root = core(this)->script()->bindingRootObject();
     // we want to put custom properties here, so get global object directly
-    JSC::JSGlobalObject* global = core(this)->script()->globalObject();
+    JSC::JSGlobalObject* global = core(this)->script()->globalObject(mainThreadNormalWorld());
     // root must be valid! if not create it
     if (!root)
     	root = JSC::Bindings::RootObject::create(window, global);
@@ -1252,4 +1252,43 @@ void WebFrame::addToJSWindowObject(void* object)
         JSC::PutPropertySlot prop;
         global->put(exec, JSC::Identifier(exec, obj->getName()), runtimeObject, prop);
     }
+}
+
+bool WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(unsigned int worldID, void* jsGlobalObject, const char* script, const char** evaluationResult)
+{
+    if (!jsGlobalObject || !evaluationResult)
+        return false;
+    *evaluationResult = 0;
+
+    Frame* coreFrame = core(this);
+    JSObjectRef globalObjectRef = reinterpret_cast<JSObjectRef>(jsGlobalObject);
+    String string = String(script);
+
+    // Start off with some guess at a frame and a global object, we'll try to do better...!
+    JSDOMWindow* anyWorldGlobalObject = coreFrame->script()->globalObject(mainThreadNormalWorld());
+
+    // The global object is probably a shell object? - if so, we know how to use this!
+    JSC::JSObject* globalObjectObj = toJS(globalObjectRef);
+    if (!strcmp(globalObjectObj->classInfo()->className, "JSDOMWindowShell"))
+        anyWorldGlobalObject = static_cast<JSDOMWindowShell*>(globalObjectObj)->window();
+
+    // Get the frame from the global object we've settled on.
+    Frame* frame = anyWorldGlobalObject->impl()->frame();
+    ASSERT(frame->document());
+    JSC::JSValue result = frame->script()->executeScriptInIsolatedWorld(worldID, string, true).jsValue();
+
+    if (!frame) // In case the script removed our frame from the page.
+        return false;
+
+    // This bizarre set of rules matches behavior from WebKit for Safari 2.0.
+    // If you don't like it, use -[WebScriptObject evaluateWebScript:] or 
+    // JSEvaluateScript instead, since they have less surprising semantics.
+    if (!result || !result.isBoolean() && !result.isString() && !result.isNumber())
+        return true;
+
+    JSC::JSLock lock(JSC::SilenceAssertionsOnly);
+    String resultString = String(result.toString(anyWorldGlobalObject->globalExec()));
+    *evaluationResult = strdup(resultString.utf8().data());
+
+    return true;
 }

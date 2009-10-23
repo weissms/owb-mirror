@@ -549,6 +549,17 @@ public:
      */
     void addToJSWindowObject(void* object);
 
+    /**
+     * stringByEvaluatingJavaScriptInIsolatedWorld
+     * Allows to evaluate a given JS script within the specified window shell.
+     * @param[in]: World ID for the window shell to evaluate the script from
+     * @param[in]: JS global object
+     * @param[in]: Script to evaluate
+     * @param[in/out]: Result of the evaluation. Caller owns the string upon return.
+     * @result: true if the evaluation succeeded, false otherwise.
+     */
+    virtual bool stringByEvaluatingJavaScriptInIsolatedWorld(unsigned int worldID, void* jsGlobalObject, const char* script, const char** evaluationResult);
+
     //BCObserverAddons
     /**
      * observe implementation

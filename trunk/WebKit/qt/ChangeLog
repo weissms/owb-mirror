@@ -1,3 +1,74 @@
+2009-10-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (speculative build fix - qt is currently already broken!)
+        Build fix following bug #30696.
+
+        * Api/qwebelement.cpp:
+        (setupScriptContext):
+        * Api/qwebframe.cpp:
+        (QWebFrame::evaluateJavaScript):
+
+2009-10-22  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Enable track visited links in QWebPage
+        https://bugs.webkit.org/show_bug.cgi?id=30574
+
+        Test: fast/history/clicked-link-is-visited.html
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+
+2009-10-22  Girish Ramakrishnan  <girish@forwardbias.in>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Add Print Shortcut to QtLauncher
+
+        https://bugs.webkit.org/show_bug.cgi?id=30682
+
+        * QtLauncher/main.cpp:
+        (MainWindow::setupUI):
+
+2009-10-22  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Rubberstamped by Tor Arne Vestbø.
+
+        Code standarlization for QGVLauncher.
+
+        1) Made member initilization lists in constructors
+           to be per line.
+        2) Made applyProxy method inline as all other methods in
+           WebPage class.
+
+        * QGVLauncher/main.cpp:
+        (WebPage::WebPage):
+        (WebPage::applyProxy):
+        (MainView::MainView):
+        (MainWindow::MainWindow):
+        (MainWindow::init):
+
+2009-10-22  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Add a Y-Axis rotation to QGVLauncher.
+
+        It uses the QStateMachine API from Qt 4.6.
+
+        * QGVLauncher/main.cpp:
+        (WebView::WebView):
+        (WebView::setYRotation):
+        (WebView::yRotation):
+        (MainView::flip):
+        (MainView::animatedYFlip):
+        (SharedScene::SharedScene):
+        (SharedScene::webView):
+        (MainWindow::init):
+        (MainWindow::animatedYFlip):
+        (MainWindow::buildUI):
+
 2009-10-21  Kenneth Rohde Christiansen  <kenneth@webkit.org>
 
         Reviewed By Adam Barth.

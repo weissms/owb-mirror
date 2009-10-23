@@ -1270,8 +1270,8 @@ void WebFrameLoaderClient::windowObjectCleared()
 #endif
    
 
-    JSGlobalContextRef context = toGlobalRef(coreFrame->script()->globalObject()->globalExec());
-    JSObjectRef windowObject = toRef(coreFrame->script()->globalObject());
+    JSGlobalContextRef context = toGlobalRef(coreFrame->script()->globalObject(mainThreadNormalWorld())->globalExec());
+    JSObjectRef windowObject = toRef(coreFrame->script()->globalObject(mainThreadNormalWorld()));
     ASSERT(windowObject);
 
     WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();

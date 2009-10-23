@@ -1,3 +1,47 @@
+2009-10-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fixed ASSERT when opening Safari's Caches window while the Web Inspector
+        is open.
+
+        * runtime/Collector.cpp:
+        (JSC::typeName): Added two new types to the type name list in the Collector.
+        These types have been around for a while, but nobody remembered to consider them here.
+
+        * runtime/JSCell.h:
+        (JSC::JSCell::isPropertyNameIterator):
+        * runtime/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::isPropertyNameIterator): Give the Collector
+        a way to tell if a cell is a JSPropertyNameIterator.
+
+2009-10-22  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30686
+        Remove debug-specific def file.
+        Only Debug_All target uses JavaScriptCore_debug.dll naming, and since
+        that target is only used internally, maintaining two files just to
+        suppress a single link warning isn't worthwhile.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def: Removed.
+
+2009-10-21  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        <rdar://problem/7270320> Screenshots of off-screen plug-ins are blank
+        <rdar://problem/7270314> After halting a transparent PluginView on
+        Windows, the transparency is applied twice
+
+        Reviewed by Dan Bernstein.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        Export WTF::deleteOwnedPtr(HDC).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore_debug.def:
+        Ditto.
+
 2009-10-21  Geoffrey Garen  <ggaren@apple.com>
 
         Windows build fix: updated variable name.

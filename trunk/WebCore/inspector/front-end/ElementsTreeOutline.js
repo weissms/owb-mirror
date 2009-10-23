@@ -38,6 +38,7 @@ WebInspector.ElementsTreeOutline = function() {
 
     this.includeRootDOMNode = true;
     this.selectEnabled = false;
+    this.showInElementsPanelEnabled = false;
     this.rootDOMNode = null;
     this.focusedDOMNode = null;
 }
@@ -509,6 +510,11 @@ WebInspector.ElementsTreeElement.prototype = {
         if (this._editing)
             return;
 
+        if (this.treeOutline.showInElementsPanelEnabled) {    
+            WebInspector.showElementsPanel();
+            WebInspector.panels.elements.focusedDOMNode = this.representedObject;
+        }
+
         // Prevent selecting the nearest word on double click.
         if (event.detail >= 2)
             event.preventDefault();
@@ -578,7 +584,7 @@ WebInspector.ElementsTreeElement.prototype = {
             this.toggleNewAttributeButton(false);
             var attribute = listItem.getElementsByClassName("webkit-html-attribute")[0];
             if (attribute)
-                return this._startEditingAttribute(attribute, attribute.getElementsByClassName("webkit-html-attribute-name")[0]);
+                return this._startEditingAttribute(attribute, attribute.getElementsByClassName("webkit-html-attribute-value")[0]);
 
             return this._addNewAttribute(listItem);
         }

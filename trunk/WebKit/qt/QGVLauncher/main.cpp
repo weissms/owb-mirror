@@ -50,28 +50,71 @@
 #include <qwebsettings.h>
 #include <qwebview.h>
 
+class WebView : public QGraphicsWebView {
+    Q_OBJECT
+    Q_PROPERTY(qreal yRotation READ yRotation WRITE setYRotation)
+
+public:
+    WebView(QGraphicsItem* parent = 0)
+        : QGraphicsWebView(parent)
+    {
+    }
+    void setYRotation(qreal angle)
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
+        QRectF r = boundingRect();
+        setTransform(QTransform()
+            .translate(r.width() / 2, r.height() / 2)
+            .rotate(angle, Qt::YAxis)
+            .translate(-r.width() / 2, -r.height() / 2));
+#endif
+        m_yRotation = angle;
+    }
+    qreal yRotation() const
+    {
+        return m_yRotation;
+    }
+
+private:
+    qreal m_yRotation;
+};
+
 class WebPage : public QWebPage {
     Q_OBJECT
 
 public:
-    WebPage(QObject* parent = 0) : QWebPage(parent)
+    WebPage(QObject* parent = 0)
+        : QWebPage(parent)
     {
         applyProxy();
     }
     virtual QWebPage* createWindow(QWebPage::WebWindowType);
 
 private:
-    void applyProxy();
+    void applyProxy()
+    {
+        QUrl proxyUrl = QWebView::guessUrlFromString(qgetenv("http_proxy"));
+
+        if (proxyUrl.isValid() && !proxyUrl.host().isEmpty()) {
+            int proxyPort = (proxyUrl.port() > 0) ? proxyUrl.port() : 8080;
+            networkAccessManager()->setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, proxyUrl.host(), proxyPort));
+        }
+    }
 };
 
 class MainView : public QGraphicsView {
     Q_OBJECT
 
 public:
-    MainView(QWidget* parent) : QGraphicsView(parent), m_mainWidget(0)
+    MainView(QWidget* parent)
+        : QGraphicsView(parent)
+        , m_mainWidget(0)
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+        setFrameShape(QFrame::NoFrame);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
 
     void setMainWidget(QGraphicsWidget* widget)
@@ -100,7 +143,8 @@ public:
         m_mainWidget->unsetCursor();
     }
 
-   void flip()
+public slots:
+    void flip()
     {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
         QSizeF center = m_mainWidget->boundingRect().size() / 2;
@@ -125,6 +169,15 @@ public:
         animation->start(QAbstractAnimation::DeleteWhenStopped);
 #endif
     }
+
+    void animatedYFlip()
+    {
+        emit flipRequest();
+    }
+
+signals:
+    void flipRequest();
+
 private:
     QGraphicsWidget* m_mainWidget;
 };
@@ -134,7 +187,7 @@ public:
     SharedScene()
     {
         m_scene = new QGraphicsScene;
-        m_item = new QGraphicsWebView;
+        m_item = new WebView;
         m_item->setPage((m_page = new WebPage));
 
         m_scene->addItem(m_item);
@@ -149,27 +202,30 @@ public:
     }
 
     QGraphicsScene* scene() const { return m_scene; }
-    QGraphicsWebView* webView() const { return m_item; }
+    WebView* webView() const { return m_item; }
 
 private:
     QGraphicsScene* m_scene;
-    QGraphicsWebView* m_item;
+    WebView* m_item;
     WebPage* m_page;
 };
-
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     MainWindow(QExplicitlySharedDataPointer<SharedScene> other)
-        : QMainWindow(), view(new MainView(this)), scene(other)
+        : QMainWindow()
+        , view(new MainView(this))
+        , scene(other)
     {
         init();
     }
 
     MainWindow()
-        : QMainWindow(), view(new MainView(this)), scene(new SharedScene())
+        : QMainWindow()
+        , view(new MainView(this))
+        , scene(new SharedScene())
     {
         init();
     }
@@ -179,8 +235,7 @@ public:
         setAttribute(Qt::WA_DeleteOnClose);
 
         view->setScene(scene->scene());
-        view->setFrameShape(QFrame::NoFrame);
-        view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
         setCentralWidget(view);
 
         view->setMainWidget(scene->webView());
@@ -188,6 +243,30 @@ public:
         connect(scene->webView(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)));
         connect(scene->webView(), SIGNAL(titleChanged(const QString&)), this, SLOT(setWindowTitle(const QString&)));
         connect(scene->webView()->page(), SIGNAL(windowCloseRequested()), this, SLOT(close()));
+
+#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
+        QStateMachine *machine = new QStateMachine(this);
+        QState *s0 = new QState(machine);
+        s0->assignProperty(scene->webView(), "yRotation", 0);
+
+        QState *s1 = new QState(machine);
+        s1->assignProperty(scene->webView(), "yRotation", 90);
+
+        QAbstractTransition *t1 = s0->addTransition(view, SIGNAL(flipRequest()), s1);
+        QPropertyAnimation *yRotationAnim = new QPropertyAnimation(scene->webView(), "yRotation", this);
+        yRotationAnim->setDuration(1000);
+        t1->addAnimation(yRotationAnim);
+
+        QState *s2 = new QState(machine);
+        s2->assignProperty(scene->webView(), "yRotation", -90);
+        s1->addTransition(s1, SIGNAL(polished()), s2);
+
+        QAbstractTransition *t2 = s2->addTransition(s0);
+        t2->addAnimation(yRotationAnim);
+
+        machine->setInitialState(s0);
+        machine->start();
+#endif
 
         resize(640, 480);
         buildUI();
@@ -274,6 +353,12 @@ public slots:
     {
         view->animatedFlip();
     }
+
+    void animatedYFlip()
+    {
+        view->animatedYFlip();
+    }
+
 private:
     void buildUI()
     {
@@ -304,7 +389,8 @@ private:
 
         QMenu* fxMenu = menuBar()->addMenu("&Effects");
         fxMenu->addAction("Flip", this, SLOT(flip()));
-        fxMenu->addAction("Animated Flip", this, SLOT(animatedFlip()));
+        fxMenu->addAction("Animated Flip", this, SLOT(animatedFlip()), QKeySequence("Ctrl+R"));
+        fxMenu->addAction("Animated Y-Flip", this, SLOT(animatedYFlip()), QKeySequence("Ctrl+Y"));
     }
 
 private:
@@ -319,16 +405,6 @@ QWebPage* WebPage::createWindow(QWebPage::WebWindowType)
     MainWindow* mw = new MainWindow;
     mw->show();
     return mw->page();
-}
-
-void WebPage::applyProxy()
-{
-    QUrl proxyUrl = QWebView::guessUrlFromString(qgetenv("http_proxy"));
-
-    if (proxyUrl.isValid() && !proxyUrl.host().isEmpty()) {
-        int proxyPort = (proxyUrl.port() > 0) ? proxyUrl.port() : 8080;
-        networkAccessManager()->setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, proxyUrl.host(), proxyPort));
-    }
 }
 
 int main(int argc, char** argv)

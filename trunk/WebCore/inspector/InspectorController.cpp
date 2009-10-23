@@ -171,6 +171,8 @@ InspectorController::~InspectorController()
         s_settingCache = 0;
     }
     
+    releaseDOMAgent();
+
     m_inspectorBackend->disconnectController();
 }
 
@@ -552,7 +554,8 @@ void InspectorController::setFrontendProxyObject(ScriptState* scriptState, Scrip
     m_scriptState = scriptState;
     m_injectedScriptObj = injectedScriptObj;
     m_frontend.set(new InspectorFrontend(this, scriptState, webInspectorObj));
-    m_domAgent = new InspectorDOMAgent(m_frontend.get());
+    releaseDOMAgent();
+    m_domAgent = InspectorDOMAgent::create(m_frontend.get());
     m_timelineAgent = 0;
 }
 
@@ -608,11 +611,7 @@ void InspectorController::close()
 
     m_frontend.set(0);
     m_injectedScriptObj = ScriptObject();
-    // m_domAgent is RefPtr. Remove DOM listeners first to ensure that there are
-    // no references to the DOM agent from the DOM tree.
-    if (m_domAgent)
-        m_domAgent->setDocument(0);
-    m_domAgent = 0;
+    releaseDOMAgent();
     m_timelineAgent = 0;
     m_scriptState = 0;
     if (m_page)
@@ -640,6 +639,15 @@ void InspectorController::showWindow()
 void InspectorController::closeWindow()
 {
     m_client->closeWindow();
+}
+
+void InspectorController::releaseDOMAgent()
+{
+    // m_domAgent is RefPtr. Remove DOM listeners first to ensure that there are
+    // no references to the DOM agent from the DOM tree.
+    if (m_domAgent)
+        m_domAgent->setDocument(0);
+    m_domAgent = 0;
 }
 
 void InspectorController::populateScriptObjects()
@@ -1039,7 +1047,7 @@ void InspectorController::scriptImported(unsigned long identifier, const String&
         resource->updateScriptObject(m_frontend.get());
 }
 
-void InspectorController::enableResourceTracking(bool always)
+void InspectorController::enableResourceTracking(bool always, bool reload)
 {
     if (!enabled())
         return;
@@ -1055,7 +1063,8 @@ void InspectorController::enableResourceTracking(bool always)
     if (m_frontend)
         m_frontend->resourceTrackingWasEnabled();
 
-    m_inspectedPage->mainFrame()->loader()->reload();
+    if (reload)
+        m_inspectedPage->mainFrame()->loader()->reload();
 }
 
 void InspectorController::disableResourceTracking(bool always)
@@ -1435,7 +1444,7 @@ void InspectorController::startUserInitiatedProfiling(Timer<InspectorController>
 
     UString title = getCurrentUserInitiatedProfileName(true);
 
-    ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame())->globalExec();
+    ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame(), debuggerWorld())->globalExec();
     Profiler::profiler()->startProfiling(scriptState, title);
 
     addStartProfilingMessageToConsole(title, 0, UString());
@@ -1452,7 +1461,7 @@ void InspectorController::stopUserInitiatedProfiling()
 
     UString title = getCurrentUserInitiatedProfileName();
 
-    ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame())->globalExec();
+    ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame(), debuggerWorld())->globalExec();
     RefPtr<Profile> profile = Profiler::profiler()->stopProfiling(scriptState, title);
     if (profile)
         addProfile(profile, 0, UString());
