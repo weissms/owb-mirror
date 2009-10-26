@@ -358,6 +358,15 @@ void WebFrame::loadURL(const char* url)
         coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(url))), false);
 }
 
+JSGlobalContextRef WebFrame::contextForWorldID(unsigned worldID)
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return 0;
+
+    return toGlobalRef(coreFrame->script()->globalObject(worldID)->globalExec());
+}
+
 void WebFrame::loadRequest(WebMutableURLRequest* request)
 {
     Frame* coreFrame = core(this);

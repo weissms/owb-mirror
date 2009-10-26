@@ -169,6 +169,7 @@ IDL_BINDINGS += \
 	WebCore/html/DataGridColumnList.idl \
 	WebCore/html/File.idl \
 	WebCore/html/FileList.idl \
+	WebCore/html/HTMLAllCollection.idl \
 	WebCore/html/HTMLAnchorElement.idl \
 	WebCore/html/HTMLAppletElement.idl \
 	WebCore/html/HTMLAreaElement.idl \
@@ -370,12 +371,12 @@ webcore_sources += \
 	WebCore/bindings/js/JSExceptionBase.cpp \
 	WebCore/bindings/js/JSExceptionBase.h \
 	WebCore/bindings/js/JSGeolocationCustom.cpp \
-	WebCore/bindings/js/JSHTMLAllCollection.cpp \
-	WebCore/bindings/js/JSHTMLAllCollection.h \
-	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
+	WebCore/bindings/js/JSHTMLAllCollectionCustom.cpp \
+ 	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.h \
 	WebCore/bindings/js/JSHTMLCanvasElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLCollectionCustom.cpp \
+	WebCore/bindings/js/JSHTMLCollectionFunctions.h \
 	WebCore/bindings/js/JSHTMLDataGridElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLDocumentCustom.cpp \
 	WebCore/bindings/js/JSHTMLElementCustom.cpp \
@@ -960,6 +961,8 @@ webcore_sources += \
 	WebCore/html/FileList.h \
 	WebCore/html/FormDataList.cpp \
 	WebCore/html/FormDataList.h \
+	WebCore/html/HTMLAllCollection.cpp \
+	WebCore/html/HTMLAllCollection.h \
 	WebCore/html/HTMLAnchorElement.cpp \
 	WebCore/html/HTMLAnchorElement.h \
 	WebCore/html/HTMLAppletElement.cpp \
@@ -1161,8 +1164,6 @@ webcore_sources += \
 	WebCore/icu/unicode/uversion.h \
 	WebCore/inspector/ConsoleMessage.cpp \
 	WebCore/inspector/ConsoleMessage.h \
-	WebCore/inspector/DOMDispatchTimelineItem.cpp \
-	WebCore/inspector/DOMDispatchTimelineItem.h \
 	WebCore/inspector/InspectorBackend.cpp \
 	WebCore/inspector/InspectorBackend.h \
 	WebCore/inspector/InspectorDatabaseResource.cpp \
@@ -1189,8 +1190,8 @@ webcore_sources += \
 	WebCore/inspector/JavaScriptProfile.h \
 	WebCore/inspector/JavaScriptProfileNode.cpp \
 	WebCore/inspector/JavaScriptProfileNode.h \
-	WebCore/inspector/TimelineItem.cpp \
-	WebCore/inspector/TimelineItem.h \
+	WebCore/inspector/TimelineItemFactory.cpp \
+	WebCore/inspector/TimelineItemFactory.h \
 	WebCore/loader/Cache.cpp \
 	WebCore/loader/Cache.h \
 	WebCore/loader/CachePolicy.h \

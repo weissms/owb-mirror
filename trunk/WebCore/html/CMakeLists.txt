@@ -6,6 +6,7 @@ list(APPEND WEBCORE_SRC
     html/File.cpp
     html/FileList.cpp
     html/FormDataList.cpp
+    html/HTMLAllCollection.cpp
     html/HTMLAnchorElement.cpp
     html/HTMLAppletElement.cpp
     html/HTMLAreaElement.cpp
@@ -98,6 +99,7 @@ list(APPEND IDL_SRC
     html/DataGridColumn.idl
     html/File.idl
     html/FileList.idl
+    html/HTMLAllCollection.idl
     html/HTMLAnchorElement.idl
     html/HTMLAppletElement.idl
     html/HTMLAreaElement.idl

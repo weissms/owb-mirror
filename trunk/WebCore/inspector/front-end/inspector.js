@@ -143,8 +143,13 @@ var WebInspector = {
             this.panels.profiles = new WebInspector.ProfilesPanel();
             this.panels.profiles.registerProfileType(new WebInspector.CPUProfileType());
         }
+
+        // Uncomment this when timeline is ready.
+        // if (hiddenPanels.indexOf("timeline") === -1 && hiddenPanels.indexOf("timeline") === -1)
+        //     this.panels.timeline = new WebInspector.TimelinePanel();
+
         if (hiddenPanels.indexOf("storage") === -1 && hiddenPanels.indexOf("databases") === -1)
-            this.panels.storage = new WebInspector.StoragePanel();      
+            this.panels.storage = new WebInspector.StoragePanel();
     },
 
     _loadPreferences: function()
@@ -456,8 +461,6 @@ WebInspector.loaded = function()
     // this._updateErrorAndWarningCounts();
 
     var searchField = document.getElementById("search");
-    searchField.addEventListener("keydown", this.searchKeyDown.bind(this), false);
-    searchField.addEventListener("keyup", this.searchKeyUp.bind(this), false);
     searchField.addEventListener("search", this.performSearch.bind(this), false); // when the search is emptied
 
     toolbarElement.addEventListener("mousedown", this.toolbarDragStart, true);
@@ -1436,19 +1439,8 @@ WebInspector.addMainEventListeners = function(doc)
 
 WebInspector.searchKeyDown = function(event)
 {
-    if (event.keyIdentifier !== "Enter")
-        return;
-
-    // Call preventDefault since this was the Enter key. This prevents a "search" event
-    // from firing for key down. We handle the Enter key on key up in searchKeyUp. This
-    // stops performSearch from being called twice in a row.
-    event.preventDefault();
-}
-
-WebInspector.searchKeyUp = function(event)
-{
-    if (event.keyIdentifier !== "Enter")
-        return;
+    if (!isEnterKey(event))
+        return false;
 
     // Select all of the text so the user can easily type an entirely new query.
     event.target.select();
@@ -1457,14 +1449,33 @@ WebInspector.searchKeyUp = function(event)
     // performance is poor because of searching on every key. The search field has
     // the incremental attribute set, so we still get incremental searches.
     this.performSearch(event);
+
+    // Call preventDefault since this was the Enter key. This prevents a "search" event
+    // from firing for key down. This stops performSearch from being called twice in a row.
+    event.preventDefault();
 }
 
 WebInspector.performSearch = function(event)
 {
     var query = event.target.value;
     var forceSearch = event.keyIdentifier === "Enter";
+    var isShortSearch = (query.length < 3);
 
-    if (!query || !query.length || (!forceSearch && query.length < 3)) {
+    // Clear a leftover short search flag due to a non-conflicting forced search.
+    if (isShortSearch && this.shortSearchWasForcedByKeyEvent && this.currentQuery !== query)
+        delete this.shortSearchWasForcedByKeyEvent;
+
+    // Indicate this was a forced search on a short query.
+    if (isShortSearch && forceSearch)
+        this.shortSearchWasForcedByKeyEvent = true;
+
+    if (!query || !query.length || (!forceSearch && isShortSearch)) {
+        // Prevent clobbering a short search forced by the user.
+        if (this.shortSearchWasForcedByKeyEvent) {
+            delete this.shortSearchWasForcedByKeyEvent;
+            return;
+        }
+
         delete this.currentQuery;
 
         for (var panelName in this.panels) {
@@ -1620,7 +1631,7 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
         if (event.handled)
             return;
 
-        if (event.keyIdentifier === "Enter") {
+        if (isEnterKey(event)) {
             editingCommitted.call(element);
             event.preventDefault();
         } else if (event.keyCode === 27) { // Escape key

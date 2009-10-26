@@ -1,7 +1,6 @@
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
         inspector/ConsoleMessage.cpp
-        inspector/DOMDispatchTimelineItem.cpp
         inspector/InspectorBackend.cpp
         inspector/InspectorController.cpp
         inspector/InspectorDatabaseResource.cpp
@@ -10,7 +9,7 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorFrontend.cpp
         inspector/InspectorResource.cpp
         inspector/InspectorTimelineAgent.cpp
-        inspector/TimelineItem.cpp
+        inspector/TimelineItemFactory.cpp
         inspector/JavaScriptCallFrame.cpp
         inspector/JavaScriptDebugServer.cpp
         inspector/JavaScriptProfile.cpp

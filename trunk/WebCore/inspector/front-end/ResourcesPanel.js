@@ -35,6 +35,7 @@ WebInspector.ResourcesPanel = function()
 
     this.filterBarElement = document.createElement("div");
     this.filterBarElement.id = "resources-filter";
+    this.filterBarElement.className = "scope-bar";
     this.element.appendChild(this.filterBarElement);
 
     this.viewsContainerElement = document.createElement("div");
@@ -46,15 +47,9 @@ WebInspector.ResourcesPanel = function()
     this.containerElement.addEventListener("scroll", this._updateDividersLabelBarPosition.bind(this), false);
     this.element.appendChild(this.containerElement);
 
-    this.sidebarElement = document.createElement("div");
-    this.sidebarElement.id = "resources-sidebar";
-    this.sidebarElement.className = "sidebar";
-    this.containerElement.appendChild(this.sidebarElement);
+    this.createSidebar(this.containerElement, this.element);
 
-    this.sidebarResizeElement = document.createElement("div");
-    this.sidebarResizeElement.className = "sidebar-resizer-vertical";
-    this.sidebarResizeElement.addEventListener("mousedown", this._startSidebarDragging.bind(this), false);
-    this.element.appendChild(this.sidebarResizeElement);
+    this.sidebarElement.id = "resources-sidebar";
 
     this.containerContentElement = document.createElement("div");
     this.containerContentElement.id = "resources-container-content";
@@ -79,12 +74,6 @@ WebInspector.ResourcesPanel = function()
     this.dividersLabelBarElement = document.createElement("div");
     this.dividersLabelBarElement.id = "resources-dividers-label-bar";
     this.containerContentElement.appendChild(this.dividersLabelBarElement);
-
-    this.sidebarTreeElement = document.createElement("ol");
-    this.sidebarTreeElement.className = "sidebar-tree";
-    this.sidebarElement.appendChild(this.sidebarTreeElement);
-
-    this.sidebarTree = new TreeOutline(this.sidebarTreeElement);
 
     var timeGraphItem = new WebInspector.SidebarTreeElement("resources-time-graph-sidebar-item", WebInspector.UIString("Time"));
     timeGraphItem.onselect = this._graphSelected.bind(this);
@@ -148,23 +137,34 @@ WebInspector.ResourcesPanel = function()
     this.sortingSelectElement.className = "status-bar-item";
     this.sortingSelectElement.addEventListener("change", this._changeSortingFunction.bind(this), false);
 
-    var createFilterElement = function (category) {
+    function createFilterElement(category)
+    {
+        if (category === "all")
+            var label = WebInspector.UIString("All");
+        else if (WebInspector.resourceCategories[category])
+            var label = WebInspector.resourceCategories[category].title;
+
         var categoryElement = document.createElement("li");
         categoryElement.category = category;
         categoryElement.addStyleClass(category);
-        var label = WebInspector.UIString("All");
-        if (WebInspector.resourceCategories[category])
-            label = WebInspector.resourceCategories[category].title;
         categoryElement.appendChild(document.createTextNode(label));
         categoryElement.addEventListener("click", this._updateFilter.bind(this), false);
         this.filterBarElement.appendChild(categoryElement);
-        return categoryElement;
-    };
 
-    var allElement = createFilterElement.call(this, "all");
-    this.filter(allElement.category);
+        return categoryElement;
+    }
+
+    this.allElement = createFilterElement.call(this, "all");
+
+    // Add a divider
+    var dividerElement = document.createElement("div");
+    dividerElement.addStyleClass("divider");
+    this.filterBarElement.appendChild(dividerElement);
+
     for (var category in this.categories)
         createFilterElement.call(this, category);
+
+    this.filter(this.allElement, false);
 
     this.reset();
 
@@ -178,34 +178,93 @@ WebInspector.ResourcesPanel.prototype = {
     {
         if (!this._categories) {
             this._categories = {documents: {color: {r: 47, g: 102, b: 236}}, stylesheets: {color: {r: 157, g: 231, b: 119}}, images: {color: {r: 164, g: 60, b: 255}}, scripts: {color: {r: 255, g: 121, b: 0}}, xhr: {color: {r: 231, g: 231, b: 10}}, fonts: {color: {r: 255, g: 82, b: 62}}, other: {color: {r: 186, g: 186, b: 186}}};
-            for (var category in this._categories) {
+            for (var category in this._categories)
                 this._categories[category].title = WebInspector.resourceCategories[category].title;
-            }
         }
+
         return this._categories; 
     },
 
-    filter: function (category) {
-        if (this._filterCategory && this._filterCategory === category)
-            return;
-
-        if (this._filterCategory) {
-            var filterElement = this.filterBarElement.getElementsByClassName(this._filterCategory)[0];
-            filterElement.removeStyleClass("selected");
-            var oldClass = "filter-" + this._filterCategory;
-            this.resourcesTreeElement.childrenListElement.removeStyleClass(oldClass);
-            this.resourcesGraphsElement.removeStyleClass(oldClass);
+    filter: function(target, selectMultiple)
+    {
+        function unselectAll()
+        {
+            for (var i = 0; i < this.filterBarElement.childNodes.length; ++i) {
+                var child = this.filterBarElement.childNodes[i];
+                if (!child.category)
+                    continue;
+                
+                child.removeStyleClass("selected");
+                
+                var filterClass = "filter-" + child.category.toLowerCase();
+                this.resourcesGraphsElement.removeStyleClass(filterClass);
+                this.resourcesTreeElement.childrenListElement.removeStyleClass(filterClass);
+            }
         }
-        this._filterCategory = category;
-        var filterElement = this.filterBarElement.getElementsByClassName(this._filterCategory)[0];
-        filterElement.addStyleClass("selected");
-        var newClass = "filter-" + this._filterCategory;
-        this.resourcesTreeElement.childrenListElement.addStyleClass(newClass);
-        this.resourcesGraphsElement.addStyleClass(newClass);
+        
+        var targetFilterClass = "filter-" + target.category.toLowerCase();
+
+        if (target === this.allElement) {
+            if (target.hasStyleClass("selected")) {
+                // We can't unselect All, so we break early here
+                return;
+            }
+
+            // If All wasn't selected, and now is, unselect everything else.
+            unselectAll.call(this);
+        } else {
+            // Something other than All is being selected, so we want to unselect All.
+            if (this.allElement.hasStyleClass("selected")) {
+                this.allElement.removeStyleClass("selected");
+                this.resourcesGraphsElement.removeStyleClass("filter-all");
+                this.resourcesTreeElement.childrenListElement.removeStyleClass("filter-all");
+            }
+        }
+        
+        if (!selectMultiple) {
+            // If multiple selection is off, we want to unselect everything else
+            // and just select ourselves.
+            unselectAll.call(this);
+            
+            target.addStyleClass("selected");
+            this.resourcesGraphsElement.addStyleClass(targetFilterClass);
+            this.resourcesTreeElement.childrenListElement.addStyleClass(targetFilterClass);
+            
+            return;
+        }
+
+        if (target.hasStyleClass("selected")) {
+            // If selectMultiple is turned on, and we were selected, we just
+            // want to unselect ourselves.
+            target.removeStyleClass("selected");
+
+            this.resourcesGraphsElement.removeStyleClass(targetFilterClass);
+            this.resourcesTreeElement.childrenListElement.removeStyleClass(targetFilterClass);
+        } else {
+            // If selectMultiple is turned on, and we weren't selected, we just
+            // want to select ourselves.
+            target.addStyleClass("selected");
+
+            this.resourcesGraphsElement.addStyleClass(targetFilterClass);
+            this.resourcesTreeElement.childrenListElement.addStyleClass(targetFilterClass);
+        }
     },
 
-    _updateFilter: function (e) {
-        this.filter(e.target.category);
+    isCategoryVisible: function(categoryName)
+    {
+        return (this.resourcesGraphsElement.hasStyleClass("filter-all") || this.resourcesGraphsElement.hasStyleClass("filter-" + categoryName.toLowerCase()));
+    },
+
+    _updateFilter: function(e)
+    {
+        var isMac = InspectorController.platform().indexOf("mac-") === 0;
+        var selectMultiple = false;
+        if (isMac && e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey)
+            selectMultiple = true;
+        if (!isMac && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey)
+            selectMultiple = true;
+        
+        this.filter(e.target, selectMultiple);
     },
 
     get toolbarItemLabel()
@@ -254,7 +313,6 @@ WebInspector.ResourcesPanel.prototype = {
         WebInspector.Panel.prototype.show.call(this);
 
         this._updateDividersLabelBarPosition();
-        this._updateSidebarWidth();
         this.refreshIfNeeded();
 
         var visibleView = this.visibleView;
@@ -645,7 +703,7 @@ WebInspector.ResourcesPanel.prototype = {
 
         this.visibleResource = resource;
 
-        this._updateSidebarWidth();
+        this.updateSidebarWidth();
     },
 
     showView: function(view)
@@ -667,7 +725,7 @@ WebInspector.ResourcesPanel.prototype = {
         if (this._lastSelectedGraphTreeElement)
             this._lastSelectedGraphTreeElement.select(true);
 
-        this._updateSidebarWidth();
+        this.updateSidebarWidth();
     },
 
     resourceViewForResource: function(resource)
@@ -694,11 +752,6 @@ WebInspector.ResourcesPanel.prototype = {
 
         view.setupSourceFrameIfNeeded();
         return view.sourceFrame;
-    },
-
-    handleKeyEvent: function(event)
-    {
-        this.sidebarTree.handleKeyEvent(event);
     },
 
     _sortResourcesIfNeeded: function()
@@ -896,41 +949,8 @@ WebInspector.ResourcesPanel.prototype = {
         }
     },
 
-    _startSidebarDragging: function(event)
+    setSidebarWidth: function(width)
     {
-        WebInspector.elementDragStart(this.sidebarResizeElement, this._sidebarDragging.bind(this), this._endSidebarDragging.bind(this), event, "col-resize");
-    },
-
-    _sidebarDragging: function(event)
-    {
-        this._updateSidebarWidth(event.pageX);
-
-        event.preventDefault();
-    },
-
-    _endSidebarDragging: function(event)
-    {
-        WebInspector.elementDragEnd(event);
-    },
-
-    _updateSidebarWidth: function(width)
-    {
-        if (this.sidebarElement.offsetWidth <= 0) {
-            // The stylesheet hasn't loaded yet or the window is closed,
-            // so we can't calculate what is need. Return early.
-            return;
-        }
-
-        if (!("_currentSidebarWidth" in this))
-            this._currentSidebarWidth = this.sidebarElement.offsetWidth;
-
-        if (typeof width === "undefined")
-            width = this._currentSidebarWidth;
-
-        width = Number.constrain(width, Preferences.minSidebarWidth, window.innerWidth / 2);
-
-        this._currentSidebarWidth = width;
-
         if (this.visibleResource) {
             this.containerElement.style.width = width + "px";
             this.sidebarElement.style.removeProperty("width");
@@ -939,15 +959,15 @@ WebInspector.ResourcesPanel.prototype = {
             this.containerElement.style.removeProperty("width");
         }
 
+        this.sidebarResizeElement.style.left = (width - 3) + "px";
+    },
+
+    updateMainViewWidth: function(width)
+    {
         this.containerContentElement.style.left = width + "px";
         this.viewsContainerElement.style.left = width + "px";
-        this.sidebarResizeElement.style.left = (width - 3) + "px";
 
         this._updateGraphDividersIfNeeded();
-
-        var visibleView = this.visibleView;
-        if (visibleView && "resize" in visibleView)
-            visibleView.resize();
     },
 
     _enableResourceTracking: function()
@@ -1345,7 +1365,7 @@ WebInspector.ResourceSidebarTreeElement.prototype = {
 
     get selectable()
     {
-        return WebInspector.panels.resources._filterCategory == "all" || WebInspector.panels.resources._filterCategory == this.resource.category.name;
+        return WebInspector.panels.resources.isCategoryVisible(this.resource.category.name);
     },
 
     createIconElement: function()

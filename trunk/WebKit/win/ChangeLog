@@ -1,3 +1,87 @@
+2009-10-26  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Add contextForWorldID to the IWebFramePrivate interface.
+
+        * Interfaces/IWebFramePrivate.idl:
+        * WebFrame.h:
+
+2009-10-25  Sam Weinig  <sam@webkit.org>
+
+        Another try at fixing windows.
+
+        * DOMCreateInstance.cpp:
+
+2009-10-25  Sam Weinig  <sam@webkit.org>
+
+        Touch WebKit.idl in an effort to try and regenerate the COM bindings.
+
+        * Interfaces/WebKit.idl:
+
+2009-10-23  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.  Include config.h before including other files.
+
+        * AccessibleImage.cpp:
+
+2009-10-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30729
+        Provide private API to request the global context for a specific world.
+        Used to initialize parameters on the global object.
+
+        * WebFrame.cpp:
+        (WebFrame::contextForWorldID):
+        * WebFrame.h:
+
+2009-10-23  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Pan-scrolling pointer shows up in other tabs or windows, can't "fix" it.
+        <http://webkit.org/b/30732> and <rdar://7332018>.
+        
+        Turns off pan-scrolling on a WebView when it is about to lose focus.
+
+        * WebView.cpp:
+        (WebViewWndProc):
+
+2009-10-23  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: Name for image elements should use alt attribute text
+
+        https://bugs.webkit.org/show_bug.cgi?id=30727
+        <rdar://problem/7328291>
+
+        Reviewed by Alice Liu.
+
+        * AccessibleBase.cpp:
+        (AccessibleBase::createInstance):
+        If the AccessibilityObject is an image, return an AccessibleImage.
+
+        * AccessibleImage.cpp: Added.
+        (AccessibleImage::AccessibleImage):
+        Call the base constructor.
+        (AccessibleImage::name):
+        If the object is not an AccessibilityRenderObject, return the base's
+        name(). Look first for an ARIA "labeled-by" attribute, then look for an
+        alternate text attribute. Fall back to the base's name().
+
+        * AccessibleImage.h: Added.
+        (AccessibleImage::~AccessibleImage):
+
+        * WebKit.vcproj/WebKit.vcproj:
+        Add AccessibleImage to the project.
+
+2009-10-23  Sam Weinig  <sam@webkit.org>
+
+        Try and fix the windows build.
+
+        * Interfaces/WebKit.idl:
+
 2009-10-23  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Sam Weinig & Geoff Garen.

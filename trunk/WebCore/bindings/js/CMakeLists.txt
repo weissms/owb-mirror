@@ -57,7 +57,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSDataGridColumnListCustom.cpp
     bindings/js/JSDataGridDataSource.h
     bindings/js/JSDataGridDataSource.cpp
-    bindings/js/JSHTMLAllCollection.cpp
+    bindings/js/JSHTMLAllCollectionCustom.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCanvasElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp

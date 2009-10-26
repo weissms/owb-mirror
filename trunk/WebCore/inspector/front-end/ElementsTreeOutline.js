@@ -328,6 +328,8 @@ WebInspector.ElementsTreeElement.prototype = {
             if (this._addAttributeElement && this._addAttributeElement.parentNode)
                 this._addAttributeElement.parentNode.removeChild(this._addAttributeElement);
             delete this._addAttributeElement;
+
+            this.updateSelection();
         }
 
         if (!this._addAttributeElement && visible && !this._editing) {
@@ -342,7 +344,7 @@ WebInspector.ElementsTreeElement.prototype = {
         } else if (!visible && this._addAttributeElement)
             removeAddAttributeSpan.call(this);
     },
-    
+
     updateSelection: function()
     {
         var listItemElement = this.listItemElement;
@@ -510,6 +512,9 @@ WebInspector.ElementsTreeElement.prototype = {
         if (this._editing)
             return;
 
+        if (this.isEventWithinDisclosureTriangle(event))
+            return;
+
         if (this.treeOutline.showInElementsPanelEnabled) {    
             WebInspector.showElementsPanel();
             WebInspector.panels.elements.focusedDOMNode = this.representedObject;
@@ -528,11 +533,6 @@ WebInspector.ElementsTreeElement.prototype = {
         if (this._startEditingFromEvent(event, treeElement))
             return;
 
-        if (this.treeOutline.panel) {
-            this.treeOutline.rootDOMNode = this.representedObject.parentNode;
-            this.treeOutline.focusedDOMNode = this.representedObject;
-        }
-
         if (this.hasChildren && !this.expanded)
             this.expand();
     },
@@ -548,6 +548,8 @@ WebInspector.ElementsTreeElement.prototype = {
             tag.appendChild(node);
             tag.appendChild(document.createTextNode('>'));
         }
+
+        this.updateSelection();
     },
 
     _startEditingFromEvent: function(event, treeElement)

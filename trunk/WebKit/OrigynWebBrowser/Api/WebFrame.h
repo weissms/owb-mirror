@@ -374,6 +374,13 @@ public:
     virtual void reloadFromOrigin();
 
     /**
+     * contextForWorldID
+     * @abstract returns a reference to the global JavaScript global object associated with the world ID.
+     * @param worldID, the identifier of the isolated world.
+     */
+    virtual JSGlobalContextRef contextForWorldID(unsigned);
+
+    /**
      * test if the frame supports text encoding
      */
     virtual bool supportsTextEncoding();

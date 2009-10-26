@@ -522,6 +522,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\AccessibleImage.h"
+				>
+			</File>
+			<File
 				RelativePath=".\autoversion.h"
 				>
 			</File>
@@ -821,6 +825,10 @@
 		<Filter
 			Name="Classes"
 			>
+			<File
+				RelativePath="..\AccessibleImage.cpp"
+				>
+			</File>
 			<File
 				RelativePath="..\CFDictionaryPropertyBag.cpp"
 				>

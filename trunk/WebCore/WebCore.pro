@@ -394,6 +394,7 @@ IDL_BINDINGS += \
     html/DataGridColumnList.idl \
     html/File.idl \
     html/FileList.idl \
+    html/HTMLAllCollection.idl \
     html/HTMLAudioElement.idl \
     html/HTMLAnchorElement.idl \
     html/HTMLAppletElement.idl \
@@ -703,11 +704,12 @@ SOURCES += \
     bindings/js/JSEventTarget.cpp \
     bindings/js/JSExceptionBase.cpp \
     bindings/js/JSGeolocationCustom.cpp \
-    bindings/js/JSHTMLAllCollection.cpp \
     bindings/js/JSHistoryCustom.cpp \
     bindings/js/JSHTMLAppletElementCustom.cpp \
     bindings/js/JSHTMLCanvasElementCustom.cpp \
+    bindings/js/JSHTMLAllCollectionCustom.cpp \
     bindings/js/JSHTMLCollectionCustom.cpp \
+    bindings/js/JSHTMLCollectionFunctions.h \
     bindings/js/JSHTMLDataGridElementCustom.cpp \
     bindings/js/JSHTMLDocumentCustom.cpp \
     bindings/js/JSHTMLElementCustom.cpp \
@@ -990,6 +992,7 @@ SOURCES += \
     html/File.cpp \
     html/FileList.cpp \
     html/FormDataList.cpp \
+    html/HTMLAllCollection.cpp \
     html/HTMLAnchorElement.cpp \
     html/HTMLAppletElement.cpp \
     html/HTMLAreaElement.cpp \
@@ -1075,7 +1078,6 @@ SOURCES += \
     html/PreloadScanner.cpp \
     html/ValidityState.cpp \
     inspector/ConsoleMessage.cpp \
-    inspector/DOMDispatchTimelineItem.cpp \
     inspector/InspectorBackend.cpp \
     inspector/InspectorController.cpp \
     inspector/InspectorDatabaseResource.cpp \
@@ -1084,7 +1086,7 @@ SOURCES += \
     inspector/InspectorFrontend.cpp \
     inspector/InspectorResource.cpp \
     inspector/InspectorTimelineAgent.cpp \
-    inspector/TimelineItem.cpp \
+    inspector/TimelineItemFactory.cpp \
     loader/archive/ArchiveFactory.cpp \
     loader/archive/ArchiveResource.cpp \
     loader/archive/ArchiveResourceCollection.cpp \
@@ -1403,7 +1405,6 @@ HEADERS += \
     bindings/js/JSEventSourceConstructor.h \
     bindings/js/JSEventTarget.h \
     bindings/js/JSHistoryCustom.h \
-    bindings/js/JSHTMLAllCollection.h \
     bindings/js/JSHTMLAppletElementCustom.h \
     bindings/js/JSHTMLEmbedElementCustom.h \
     bindings/js/JSHTMLInputElementCustom.h \
@@ -1664,6 +1665,7 @@ HEADERS += \
     html/File.h \
     html/FileList.h \
     html/FormDataList.h \
+    html/HTMLAllCollection.h \
     html/HTMLAnchorElement.h \
     html/HTMLAppletElement.h \
     html/HTMLAreaElement.h \
@@ -1753,7 +1755,6 @@ HEADERS += \
     html/TimeRanges.h \
     html/ValidityState.h \
     inspector/ConsoleMessage.h \
-    inspector/DOMDispatchTimelineItem.h \
     inspector/InspectorBackend.h \
     inspector/InspectorController.h \
     inspector/InspectorDatabaseResource.h \
@@ -1765,7 +1766,7 @@ HEADERS += \
     inspector/JavaScriptDebugServer.h \
     inspector/JavaScriptProfile.h \
     inspector/JavaScriptProfileNode.h \
-    inspector/TimelineItem.h \
+    inspector/TimelineItemFactory.h \
     loader/appcache/ApplicationCacheGroup.h \
     loader/appcache/ApplicationCacheHost.h \
     loader/appcache/ApplicationCache.h \
@@ -2560,8 +2561,7 @@ contains(DEFINES, ENABLE_SQLITE=1) {
             LIBS *= $$QT_LFLAGS_SQLITE
         } else {
             INCLUDEPATH += $${SQLITE3SRCDIR}
-            symbian: LIBS += -lsqlite3.lib
-            else: LIBS += -lsqlite3
+            LIBS += -lsqlite3
         }
     }
 

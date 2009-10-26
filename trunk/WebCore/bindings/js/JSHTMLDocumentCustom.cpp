@@ -28,6 +28,7 @@
 
 #include "CharacterNames.h"
 #include "Frame.h"
+#include "HTMLAllCollection.h"
 #include "HTMLBodyElement.h"
 #include "HTMLCollection.h"
 #include "HTMLDocument.h"
@@ -37,6 +38,7 @@
 #include "JSDOMWindow.h"
 #include "JSDOMWindowCustom.h"
 #include "JSDOMWindowShell.h"
+#include "JSHTMLAllCollection.h"
 #include "JSHTMLCollection.h"
 #include "SegmentedString.h"
 #include "Tokenizer.h"

@@ -170,6 +170,12 @@ static PassRefPtr<IsolatedWorld> findWorld(unsigned worldID)
     return newWorld;
 }
 
+JSDOMWindow* ScriptController::globalObject(unsigned worldID)
+{
+    RefPtr<DOMWrapperWorld> world = findWorld(worldID);
+    return windowShell(world.get())->window();
+}
+
 ScriptValue ScriptController::evaluateInIsolatedWorld(unsigned worldID, const ScriptSourceCode& sourceCode) 
 {
     RefPtr<DOMWrapperWorld> world = findWorld(worldID);
@@ -457,6 +463,46 @@ void ScriptController::clearScriptObjects()
         m_windowScriptNPObject = 0;
     }
 #endif
+}
+
+ScriptValue ScriptController::executeScriptInIsolatedWorld(unsigned worldID, const String& script, bool forceUserGesture)
+{
+    ScriptSourceCode sourceCode(script, forceUserGesture ? KURL() : m_frame->loader()->url());
+
+    if (!isEnabled() || isPaused())
+        return ScriptValue();
+
+    bool wasInExecuteScript = m_inExecuteScript;
+    m_inExecuteScript = true;
+
+    ScriptValue result = evaluateInIsolatedWorld(worldID, sourceCode);
+
+    if (!wasInExecuteScript) {
+        m_inExecuteScript = false;
+        Document::updateStyleForAllDocuments();
+    }
+
+    return result;
+}
+
+ScriptValue ScriptController::executeScriptInIsolatedWorld(DOMWrapperWorld* world, const String& script, bool forceUserGesture)
+{
+    ScriptSourceCode sourceCode(script, forceUserGesture ? KURL() : m_frame->loader()->url());
+
+    if (!isEnabled() || isPaused())
+        return ScriptValue();
+
+    bool wasInExecuteScript = m_inExecuteScript;
+    m_inExecuteScript = true;
+
+    ScriptValue result = evaluateInWorld(sourceCode, world);
+
+    if (!wasInExecuteScript) {
+        m_inExecuteScript = false;
+        Document::updateStyleForAllDocuments();
+    }
+
+    return result;
 }
 
 } // namespace WebCore

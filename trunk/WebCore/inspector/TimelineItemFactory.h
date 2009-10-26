@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2009 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,14 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+#ifndef TimelineItemFactory_h
+#define TimelineItemFactory_h
 
-module html {
+namespace WebCore {
 
-    // This interface is used for undetectable HTMLCollections.
-    // An undetectable HTMLCollection behaves like an HTMLCollection
-    // when used, but the 'typeof' operator returns undefined and
-    // ToBoolean returns false.
-    interface HTMLAllCollection : HTMLCollection {
+    class Event;
+    class InspectorFrontend;
+    class ScriptObject;
+
+    class TimelineItemFactory {
+    public:
+        static ScriptObject createGenericTimelineItem(InspectorFrontend*, double startTime);
+        
+        static ScriptObject createDOMDispatchTimelineItem(InspectorFrontend*, double startTime, const Event&);                
+    private:
+        TimelineItemFactory() { }
     };
 
-}
+} // namespace WebCore
+
+#endif // !defined(TimelineItemFactory_h)
