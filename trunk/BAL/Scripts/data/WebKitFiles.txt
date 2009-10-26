@@ -93,6 +93,7 @@ WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
+WebCore/xml/XSLTProcessorLibxslt.cpp
 WebCore/xml/XSLTProcessor.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKitTools/DumpRenderTree/DumpRenderTree.h
