@@ -1071,7 +1071,7 @@ InjectedScript.CallFrameProxy.prototype = {
         var scopeChainProxy = [];
         for (var i = 0; i < scopeChain.length; ++i) {
             var scopeObject = scopeChain[i];
-            var scopeObjectProxy = InjectedScript.createProxyObject(scopeObject, { callFrame: this.id, chainIndex: WebCore/i }, true);
+            var scopeObjectProxy = InjectedScript.createProxyObject(scopeObject, { callFrame: this.id, chainIndex: i }, true);
 
             if (Object.prototype.toString.call(scopeObject) === "[object JSActivation]") {
                 if (!foundLocalScope)

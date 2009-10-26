@@ -132,7 +132,7 @@ function loadShader(ctx, shaderId)
 function makeBox(ctx)
 {
     // box
-    //    v6----- WebCore/v5
+    //    v6----- v5
     //   /|      /|
     //  v1------v0|
     //  | |     | |

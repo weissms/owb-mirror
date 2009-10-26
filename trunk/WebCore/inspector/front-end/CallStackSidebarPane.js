@@ -136,7 +136,7 @@ WebInspector.CallStackSidebarPane.prototype = {
         this._selectedPlacardByIndex(index - 1);
     },
 
-    _selectedPlacardByIndex: WebCore/function(index)
+    _selectedPlacardByIndex: function(index)
     {
         if (index < 0 || index >= this.placards.length)
             return;
@@ -144,7 +144,7 @@ WebInspector.CallStackSidebarPane.prototype = {
         this.selectedCallFrame = placard.callFrame
     },
 
-    _selectedCallFrameIndex: WebCore/function()
+    _selectedCallFrameIndex: function()
     {
         if (!this._selectedCallFrame)
             return -1;

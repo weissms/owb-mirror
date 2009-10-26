@@ -669,7 +669,7 @@ String.tokenizeFormatString = function(format)
 
     function addSpecifierToken(specifier, precision, substitutionIndex)
     {
-        tokens.push({ type: "specifier", specifier: specifier, precision: precision, substitutionIndex: WebCore/substitutionIndex });
+        tokens.push({ type: "specifier", specifier: specifier, precision: precision, substitutionIndex: substitutionIndex });
     }
 
     var index = 0;
