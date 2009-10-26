@@ -26,7 +26,6 @@
 
 #include "XSLTProcessor.h"
 
-#include "Console.h"
 #include "CString.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
@@ -48,6 +47,10 @@
 #include <wtf/Assertions.h>
 #include <wtf/Platform.h>
 #include <wtf/Vector.h>
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#endif
 
 #if PLATFORM(MAC)
 #include "SoftLinking.h"
@@ -73,9 +76,11 @@ void XSLTProcessor::genericErrorFunc(void*, const char*, ...)
 
 void XSLTProcessor::parseErrorFunc(void* userData, xmlError* error)
 {
+#if ENABLE(INSPECTOR)
     Console* console = static_cast<Console*>(userData);
     if (!console)
         return;
+#endif
 
     MessageLevel level;
     switch (error->level) {
@@ -92,7 +97,9 @@ void XSLTProcessor::parseErrorFunc(void* userData, xmlError* error)
         break;
     }
 
+#if ENABLE(INSPECTOR)
     console->addMessage(XMLMessageSource, LogMessageType, level, error->message, error->line, error->file);
+#endif
 }
 
 // FIXME: There seems to be no way to control the ctxt pointer for loading here, thus we have globals.
@@ -128,11 +135,13 @@ static xmlDocPtr docLoaderFunc(const xmlChar* uri,
             globalDocLoader->printAccessDeniedMessage(url);
         }
 
+#if ENABLE(INSPECTOR)
         Console* console = 0;
         if (Frame* frame = globalProcessor->xslStylesheet()->ownerDocument()->frame())
             console = frame->domWindow()->console();
         xmlSetStructuredErrorFunc(console, XSLTProcessor::parseErrorFunc);
         xmlSetGenericErrorFunc(console, XSLTProcessor::genericErrorFunc);
+#endif
 
         // We don't specify an encoding here. Neither Gecko nor WinIE respects
         // the encoding specified in the HTTP headers.

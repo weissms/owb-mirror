@@ -144,11 +144,13 @@ bool XSLStyleSheet::parseString(const String& string, bool)
         xmlFreeDoc(m_stylesheetDoc);
     m_stylesheetDocTaken = false;
 
+#if ENABLE(INSPECTOR)
     Console* console = 0;
     if (Frame* frame = ownerDocument()->frame())
         console = frame->domWindow()->console();
 
     XMLTokenizerScope scope(docLoader(), XSLTProcessor::genericErrorFunc, XSLTProcessor::parseErrorFunc, console);
+#endif
 
     const char* buffer = reinterpret_cast<const char*>(string.characters());
     int size = string.length() * sizeof(UChar);

@@ -1,3 +1,13 @@
+2009-10-26  Mario Bensi  <mbensi@pleyo.com>
+
+        build fix when xslt are active with inspector set to off
+
+        * xml/XSLStyleSheetLibxslt.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessorLibxslt.cpp:
+        (WebCore::XSLTProcessor::parseErrorFunc):
+        (WebCore::docLoaderFunc):
+
 2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
