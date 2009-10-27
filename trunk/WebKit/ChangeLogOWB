@@ -1,3 +1,14 @@
+2009-10-27  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add a page about how to integrate OWB in the documentation.
+        It explains how to build an application on top of OWB and covers
+        initializing the WebView with a native window and creating the event
+        loop.
+
+        * OrigynWebBrowser/Api/Docs/MainPage.dox:
+
 2009-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
