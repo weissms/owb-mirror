@@ -1,3 +1,45 @@
+2009-10-28  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Updated for refactoring in the date code.
+
+        * WebView/WebView.mm:
+        (aeDescFromJSValue): Since we just want a number of milliseconds, do that
+        instead of something more complicated.
+
+2009-10-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Move some WebView event handling code into its own file, WebViewEventHandling.mm
+
+        * WebView/WebView.mm:
+        (-[WebView _close]):
+        (-[WebView _selectedOrMainFrame]):
+        * WebView/WebViewEventHandling.mm: Added.
+        (-[WebView _closingEventHandling]):
+        (-[WebView _setMouseDownEvent:]):
+        (-[WebView mouseDown:]):
+        (-[WebView mouseUp:]):
+        (+[WebView _updateMouseoverWithEvent:]):
+        (-[WebView _updateMouseoverWithFakeEvent]):
+        (_updateMouseoverWithEvent:fakeEvent::if):
+        (-[WebView _stopAutoscrollTimer]):
+        (-[WebView _setToolTip:]):
+        * WebView/WebViewInternal.h:
+
+2009-10-26  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6988966> Hardware layers do not show up in page snapshots
+
+        * WebView/WebHTMLViewPrivate.h:
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _compositingLayersHostingView]):
+        Add a private method that returns the NSView used to host compositing layers.
+        
 2009-10-26  Mark Rowe  <mrowe@apple.com>
 
         Fix engineering builds in the mysterious future.

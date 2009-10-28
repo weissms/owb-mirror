@@ -35,7 +35,7 @@
 
 #include "Event.h"
 #include "InspectorFrontend.h"
-#include "TimelineItemFactory.h"
+#include "TimelineRecordFactory.h"
 
 #include <wtf/CurrentTime.h>
 
@@ -53,74 +53,122 @@ InspectorTimelineAgent::~InspectorTimelineAgent()
 
 void InspectorTimelineAgent::willDispatchDOMEvent(const Event& event)
 {
-    pushCurrentTimelineItem(TimelineItemFactory::createDOMDispatchTimelineItem(m_frontend, currentTimeInMilliseconds(), event), DOMDispatchTimelineItemType);
+    pushCurrentRecord(TimelineRecordFactory::createDOMDispatchRecord(m_frontend, currentTimeInMilliseconds(), event), DOMDispatchTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didDispatchDOMEvent()
 {
-    didCompleteCurrentRecord(DOMDispatchTimelineItemType);
+    didCompleteCurrentRecord(DOMDispatchTimelineRecordType);
 }
 
 void InspectorTimelineAgent::willLayout()
 {
-    pushCurrentTimelineItem(TimelineItemFactory::createGenericTimelineItem(m_frontend, currentTimeInMilliseconds()), LayoutTimelineItemType);
+    pushCurrentRecord(TimelineRecordFactory::createGenericRecord(m_frontend, currentTimeInMilliseconds()), LayoutTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didLayout()
 {
-    didCompleteCurrentRecord(LayoutTimelineItemType);
+    didCompleteCurrentRecord(LayoutTimelineRecordType);
 }
 
 void InspectorTimelineAgent::willRecalculateStyle()
 {
-    pushCurrentTimelineItem(TimelineItemFactory::createGenericTimelineItem(m_frontend, currentTimeInMilliseconds()), RecalculateStylesTimelineItemType);
+    pushCurrentRecord(TimelineRecordFactory::createGenericRecord(m_frontend, currentTimeInMilliseconds()), RecalculateStylesTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didRecalculateStyle()
 {
-    didCompleteCurrentRecord(RecalculateStylesTimelineItemType);
+    didCompleteCurrentRecord(RecalculateStylesTimelineRecordType);
 }
 
 void InspectorTimelineAgent::willPaint()
 {
-    pushCurrentTimelineItem(TimelineItemFactory::createGenericTimelineItem(m_frontend, currentTimeInMilliseconds()), PaintTimelineItemType);
+    pushCurrentRecord(TimelineRecordFactory::createGenericRecord(m_frontend, currentTimeInMilliseconds()), PaintTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didPaint()
 {
-    didCompleteCurrentRecord(PaintTimelineItemType);
+    didCompleteCurrentRecord(PaintTimelineRecordType);
 }
 
 void InspectorTimelineAgent::willWriteHTML()
 {
-    pushCurrentTimelineItem(TimelineItemFactory::createGenericTimelineItem(m_frontend, currentTimeInMilliseconds()), ParseHTMLTimelineItemType);
+    pushCurrentRecord(TimelineRecordFactory::createGenericRecord(m_frontend, currentTimeInMilliseconds()), ParseHTMLTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didWriteHTML()
 {
-    didCompleteCurrentRecord(ParseHTMLTimelineItemType);
+    didCompleteCurrentRecord(ParseHTMLTimelineRecordType);
+}
+
+void InspectorTimelineAgent::didInstallTimer(int timerId, int timeout, bool singleShot)
+{
+    addRecordToTimeline(TimelineRecordFactory::createTimerInstallRecord(m_frontend, currentTimeInMilliseconds(), timerId,
+        timeout, singleShot), TimerInstallTimelineRecordType);
+}
+
+void InspectorTimelineAgent::didRemoveTimer(int timerId)
+{
+    addRecordToTimeline(TimelineRecordFactory::createGenericTimerRecord(m_frontend, currentTimeInMilliseconds(), timerId),
+        TimerRemoveTimelineRecordType);
+}
+
+void InspectorTimelineAgent::willFireTimer(int timerId)
+{
+    pushCurrentRecord(TimelineRecordFactory::createGenericTimerRecord(m_frontend, currentTimeInMilliseconds(), timerId),
+        TimerFireTimelineRecordType); 
+}
+
+void InspectorTimelineAgent::didFireTimer()
+{
+    didCompleteCurrentRecord(TimerFireTimelineRecordType);
+}
+
+void InspectorTimelineAgent::willChangeXHRReadyState(const String& url, int readyState)
+{
+    pushCurrentRecord(TimelineRecordFactory::createXHRReadyStateChangeTimelineRecord(m_frontend, currentTimeInMilliseconds(), url, readyState),
+        XHRReadyStateChangeRecordType);
+}
+
+void InspectorTimelineAgent::didChangeXHRReadyState()
+{
+    didCompleteCurrentRecord(XHRReadyStateChangeRecordType);
+}
+
+void InspectorTimelineAgent::willLoadXHR(const String& url) {
+    pushCurrentRecord(TimelineRecordFactory::createXHRLoadTimelineRecord(m_frontend, currentTimeInMilliseconds(), url), XHRLoadRecordType);
+}
+
+void InspectorTimelineAgent::didLoadXHR()
+{
+    didCompleteCurrentRecord(XHRLoadRecordType);
 }
 
 void InspectorTimelineAgent::reset()
 {
-    m_itemStack.clear();
+    m_recordStack.clear();
 }
 
-void InspectorTimelineAgent::didCompleteCurrentRecord(TimelineItemType type)
+void InspectorTimelineAgent::addRecordToTimeline(ScriptObject record, TimelineRecordType type)
 {
-    TimelineItemEntry entry = m_itemStack.last();
-    m_itemStack.removeLast();
-    ASSERT(entry.type == type);
-    entry.item.set("type", type);
-    entry.item.set("children", entry.children);
-    entry.item.set("endTime", currentTimeInMilliseconds());
-    
-    if (m_itemStack.isEmpty()) {
-        m_frontend->addItemToTimeline(entry.item);
-    } else {
-        TimelineItemEntry parent = m_itemStack.last();
-        parent.children.set(parent.children.length(), entry.item);
+    record.set("type", type);
+    if (m_recordStack.isEmpty())
+        m_frontend->addRecordToTimeline(record);
+    else {
+        TimelineRecordEntry parent = m_recordStack.last();
+        parent.children.set(parent.children.length(), record);
     }
+}
+
+void InspectorTimelineAgent::didCompleteCurrentRecord(TimelineRecordType type)
+{
+    ASSERT(!m_recordStack.isEmpty());
+    TimelineRecordEntry entry = m_recordStack.last();
+    m_recordStack.removeLast();
+    ASSERT(entry.type == type);
+    entry.record.set("children", entry.children);
+    entry.record.set("endTime", currentTimeInMilliseconds());
+    addRecordToTimeline(entry.record, type);
 }
 
 double InspectorTimelineAgent::currentTimeInMilliseconds()
@@ -128,9 +176,9 @@ double InspectorTimelineAgent::currentTimeInMilliseconds()
     return currentTime() * 1000.0;
 }
 
-void InspectorTimelineAgent::pushCurrentTimelineItem(ScriptObject item, TimelineItemType type)
+void InspectorTimelineAgent::pushCurrentRecord(ScriptObject record, TimelineRecordType type)
 {
-    m_itemStack.append(TimelineItemEntry(item, m_frontend->newScriptArray(), type));
+    m_recordStack.append(TimelineRecordEntry(record, m_frontend->newScriptArray(), type));
 }
 
 } // namespace WebCore

@@ -28,8 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
-#ifndef TimelineItemFactory_h
-#define TimelineItemFactory_h
+#ifndef TimelineRecordFactory_h
+#define TimelineRecordFactory_h
+
+#include "PlatformString.h"
 
 namespace WebCore {
 
@@ -37,15 +39,24 @@ namespace WebCore {
     class InspectorFrontend;
     class ScriptObject;
 
-    class TimelineItemFactory {
+    class TimelineRecordFactory {
     public:
-        static ScriptObject createGenericTimelineItem(InspectorFrontend*, double startTime);
+        static ScriptObject createGenericRecord(InspectorFrontend*, double startTime);
+
+        static ScriptObject createDOMDispatchRecord(InspectorFrontend*, double startTime, const Event&);
+
+        static ScriptObject createGenericTimerRecord(InspectorFrontend*, double startTime, int timerId);
+
+        static ScriptObject createTimerInstallRecord(InspectorFrontend*, double startTime, int timerId, int timeout, bool singleShot);
+
+        static ScriptObject createXHRReadyStateChangeTimelineRecord(InspectorFrontend*, double startTime, const String& url, int readyState);
+
+        static ScriptObject createXHRLoadTimelineRecord(InspectorFrontend*, double startTime, const String& url);
         
-        static ScriptObject createDOMDispatchTimelineItem(InspectorFrontend*, double startTime, const Event&);                
     private:
-        TimelineItemFactory() { }
+        TimelineRecordFactory() { }
     };
 
 } // namespace WebCore
 
-#endif // !defined(TimelineItemFactory_h)
+#endif // !defined(TimelineRecordFactory_h)

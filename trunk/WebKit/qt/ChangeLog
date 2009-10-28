@@ -1,3 +1,156 @@
+2009-10-28  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Oliver Hunt.
+
+        Change two methods to be internal for DRT use only.
+
+        Part of [Qt] Review all new API in Qt 4.6
+        https://bugs.webkit.org/show_bug.cgi?id=29843#c11
+
+        * Api/qwebsecurityorigin.cpp:
+        (qt_drt_whiteListAccessFromOrigin):
+        (qt_drt_resetOriginAccessWhiteLists):
+        (QWebSecurityOrigin::localSchemes):
+        * Api/qwebsecurityorigin.h:
+
+2009-10-27  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Make sure that initiating a rotation while rotating won't make
+        it end up at rotation positions that are not a multiply of
+        180 degrees.
+
+        * QGVLauncher/main.cpp:
+        (MainView::animatedFlip):
+
+2009-10-27  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed Qt build fix.
+
+        Update the tests as well to the new API change.
+
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::clear):
+
+2009-10-27  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Tor Arne Vestbø.
+
+        [Qt] QWebElement::removeChildren() should be
+        QWebElement::removeAllChildren()
+        https://bugs.webkit.org/show_bug.cgi?id=30630
+
+        * Api/qwebelement.cpp:
+        (QWebElement::removeAllChildren):
+        * Api/qwebelement.h:
+
+2009-10-27  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Antti Koivisto and Holger Freyther.
+
+        Make QWebPagePrivate's (QWidget) view to be a QWeakPointer.
+        https://bugs.webkit.org/show_bug.cgi?id=30779
+
+        The fact that it was been set from external objects of qwebpage
+        and not being deleted internally can lead to dangling references.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::~QGraphicsWebView):
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        (QWebPagePrivate::createContextMenu):
+        (QWebPagePrivate::handleSoftwareInputPanel):
+        (QWebPagePrivate::keyPressEvent):
+        (QWebPage::setView):
+        (QWebPage::view):
+        (QWebPage::javaScriptAlert):
+        (QWebPage::javaScriptConfirm):
+        (QWebPage::javaScriptPrompt):
+        (QWebPage::shouldInterruptJavaScript):
+        (QWebPage::createWindow):
+        (QWebPage::extension):
+        (QWebPage::chooseFile):
+        (QWebPage::userAgentForUrl):
+        * Api/qwebpage_p.h:
+        * Api/qwebview.cpp:
+        (QWebView::~QWebView):
+
+2009-10-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed documentation fix from David Boddie (Qt Doc Team)
+
+        Removes the check around the RenderHints property documentation
+        that was clearly added to synchronize the source and header files
+        when the #if !defined(Q_OS_SYMBIAN) guards was added to the
+        property.
+
+        The documentation has also been updated to ensure that Symbian
+        users know that there is no actual RenderHints property on their
+        platform.
+
+        * Api/qwebview.cpp:
+
+2009-10-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed documentation fix from David Boddie (Qt Doc Team)
+
+        Ensure that qdoc will always see the RenderHints property.
+
+        The property was only defined in the header file if the Q_OS_SYMBIAN
+        symbol was not defined, resulting in the property not showing up
+        in the Qt documentation just because one platform doesn't support it.
+
+        A follow up commit will improve the documentation for the property
+        and note that it is not supported on the Symbiam platform.
+
+        * Api/qwebview.h:
+
+2009-10-26  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Reintroduce QWebElementCollection
+
+        Revert the patch that has replaced QWebElementCollection 
+        with QList<QWebElement>. Update the tests accordingly.
+
+        Remove the constness of the return type of QWebElement operator[]. 
+
+        https://bugs.webkit.org/show_bug.cgi?id=30767
+
+        * Api/qwebelement.cpp:
+        (QWebElement::findAll):
+        (QWebElementCollectionPrivate::QWebElementCollectionPrivate):
+        (QWebElementCollectionPrivate::create):
+        (QWebElementCollection::QWebElementCollection):
+        (QWebElementCollection::operator=):
+        (QWebElementCollection::~QWebElementCollection):
+        (QWebElementCollection::operator+):
+        (QWebElementCollection::append):
+        (QWebElementCollection::count):
+        (QWebElementCollection::at):
+        (QWebElementCollection::toList):
+        * Api/qwebelement.h:
+        (const_iterator::begin):
+        (const_iterator::end):
+        (const_iterator::operator[]):
+        * Api/qwebframe.cpp:
+        (QWebFrame::findAllElements):
+        * Api/qwebframe.h:
+        * QtLauncher/main.cpp:
+        (MainWindow::selectElements):
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::simpleCollection):
+        (tst_QWebElement::iteration):
+        (tst_QWebElement::emptyCollection):
+        (tst_QWebElement::appendCollection):
+        (tst_QWebElement::nullSelect):
+        (tst_QWebElement::hasSetFocus):
+        (tst_QWebElement::render):
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::inputMethods):
+
 2009-10-26  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Holger Freyther.

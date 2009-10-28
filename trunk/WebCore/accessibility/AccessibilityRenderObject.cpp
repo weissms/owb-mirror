@@ -1258,6 +1258,10 @@ bool AccessibilityRenderObject::ariaIsHidden() const
 
 bool AccessibilityRenderObject::accessibilityIsIgnored() const
 {
+    // is the platform is interested in this object?
+    if (accessibilityPlatformIncludesObject())
+        return false;
+
     // ignore invisible element
     if (!m_renderer || m_renderer->style()->visibility() != VISIBLE)
         return true;
@@ -1268,6 +1272,9 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
     if (isPresentationalChildOfAriaRole())
         return true;
         
+    if (roleValue() == IgnoredRole)
+        return true;
+    
     // ignore popup menu items because AppKit does
     for (RenderObject* parent = m_renderer->parent(); parent; parent = parent->parent()) {
         if (parent->isMenuList())
@@ -2278,6 +2285,7 @@ static const ARIARoleMap& createARIARoleMap()
         { "menuitemradio", MenuItemRole },
         { "note", DocumentNoteRole },
         { "navigation", LandmarkNavigationRole },
+        { "presentation", IgnoredRole },
         { "progressbar", ProgressIndicatorRole },
         { "radio", RadioButtonRole },
         { "radiogroup", RadioGroupRole },
@@ -2576,7 +2584,7 @@ void AccessibilityRenderObject::addChildren()
             for (Node* current = map->firstChild(); current; current = current->traverseNextNode(map)) {
 
                 // add an <area> element for this child if it has a link
-                if (current->isLink()) {
+                if (current->hasTagName(areaTag) && current->isLink()) {
                     AccessibilityImageMapLink* areaObject = static_cast<AccessibilityImageMapLink*>(m_renderer->document()->axObjectCache()->getOrCreate(ImageMapLinkRole));
                     areaObject->setHTMLAreaElement(static_cast<HTMLAreaElement*>(current));
                     areaObject->setHTMLMapElement(map);

@@ -1,3 +1,189 @@
+2009-10-28  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Samuel Q. Weinig.
+
+        Make the asserts protecting the offsets in the JIT more descriptive.
+
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compileGetByIdSlowCase):
+        (JSC::JIT::emit_op_put_by_id):
+
+2009-10-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        A little bit of refactoring in the date code.
+
+        * JavaScriptCore.exp: Don't export this unused symbol.
+
+        * runtime/DateConstructor.cpp:
+        (JSC::constructDate):
+
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::DateInstance):
+        * runtime/DateInstance.h: Removed some unused functions. Changed the default
+        constructor to ensure that a DateInstance is always initialized.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::DatePrototype::DatePrototype): Pass an initializer to our constructor,
+        since it now requires one.
+
+        * wtf/DateMath.cpp:
+        (WTF::msToGregorianDateTime): Only compute our offset from UTC if our
+        output will require it. Otherwise, our offset is 0.
+
+2009-10-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: Mark DateInstaceCache.h private, so other frameworks can see it.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-10-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: re-readded this file.
+
+        * runtime/DateInstanceCache.h: Added.
+        (JSC::DateInstanceData::create):
+        (JSC::DateInstanceData::DateInstanceData):
+        (JSC::DateInstanceCache::DateInstanceCache):
+        (JSC::DateInstanceCache::add):
+        (JSC::DateInstanceCache::lookup):
+
+2009-10-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler and Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30800
+        Cache recently computed date data.
+        
+        SunSpider reports a ~0.5% speedup, mostly from date-format-tofte.js.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added new file.
+
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::DateInstance):
+        (JSC::DateInstance::getGregorianDateTime): Use the shared cache.
+
+        * runtime/DateInstance.h: Renamed m_cache to m_data, to avoid the confusion
+        of a "cache cache".
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToISOString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear): Pass an ExecState to these functions, so they
+        can access the DateInstanceCache.
+
+        * runtime/JSGlobalData.h: Keep a DateInstanceCache.
+
+2009-10-27  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Ensures that JavaScriptCore/wtf/CurrentTime.cpp is not built in PLATFORM(CHROMIUM) builds.
+
+        Chromium uses a different method to calculate the current time than is used in
+        JavaScriptCore/wtf/CurrentTime.cpp. This can lead to time skew when calls to currentTime() and Chromium's time
+        function are mixed.  In particular, timers can get scheduled in the past which leads to 100% CPU use.
+        See http://code.google.com/p/chromium/issues/detail?id=25892 for an example.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30833
+
+        * JavaScriptCore.gyp/JavaScriptCore.gyp:
+        * wtf/CurrentTime.cpp:
+
+2009-10-27  Peter Varga  <pvarga@inf.u-szeged.hu>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Fix typo in RegexInterpreter.cpp and RegexJIT.cpp alterantive to
+        alternative.
+
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::ByteCompiler::alternativeBodyDisjunction):
+        (JSC::Yarr::ByteCompiler::alternativeDisjunction):
+        (JSC::Yarr::ByteCompiler::emitDisjunction):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateDisjunction):
+
+2009-10-26  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Make .rc files compile on Windows without depending on MFC headers
+        https://bugs.webkit.org/show_bug.cgi?id=30750
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.rc: Use
+        winresrc.h because it exists even when MFC is not installed, and is
+        all that's needed here.
+
+2009-10-26  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        The thunkReturnAddress is on JITStackFrame on ARM JIT as well
+        https://bugs.webkit.org/show_bug.cgi?id=30782
+
+        Move the thunkReturnAddress from top of the stack into the JITStackFrame
+        structure. This is a requirement for JSValue32_64 support on ARM.
+
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::ret): Return with link register
+        (JSC::MacroAssemblerARM::prepareCall): Store the return address in link register
+        * jit/JIT.h: Remove unused ctiReturnRegister
+        * jit/JITInlineMethods.h: Same as ARMv7
+        (JSC::JIT::restoreArgumentReference): Ditto.
+        (JSC::JIT::restoreArgumentReferenceForTrampoline): Ditto.
+        * jit/JITOpcodes.cpp: Remove ctiReturnRegister related instruction
+        * jit/JITStubs.cpp: Store thunkReturnAddress on JITStackFrame. Use
+        small trampoline functions which handle return addresses for each
+        CTI_STUB_FUNCTION.
+        * jit/JITStubs.h: Store thunkReturnAddress on JITStackFrame
+        (JSC::JITStackFrame::returnAddressSlot): Return with the address of thunkReturnAddress
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateEnter): Remove the unnecessary instruction
+
+2009-10-26  Steve Block  <steveblock@google.com>
+
+        Reviewed by Darin Adler.
+
+        Adds ability to disable ReadWriteLock on platforms (eg Android) that use pthreads but do not support pthread_rwlock.
+        https://bugs.webkit.org/show_bug.cgi?id=30713
+
+        * wtf/Platform.h: Modified. Defines HAVE_PTHREAD_RWLOCK for all platforms currently using pthreads.
+        * wtf/Threading.h: Modified. Use pthread_rwlock_t only when HAVE_PTHREAD_RWLOCK is defined.
+        * wtf/ThreadingPthreads.cpp: Modified. Build ReadWriteLock methods only when HAVE_PTHREAD_RWLOCK is defined.
+
 2009-10-26  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Holger Freyther.

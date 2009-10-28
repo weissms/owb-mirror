@@ -267,7 +267,7 @@ void Mutex::unlock()
     ASSERT_UNUSED(result, !result);
 }
 
-
+#if HAVE(PTHREAD_RWLOCK)
 ReadWriteLock::ReadWriteLock()
 {
     pthread_rwlock_init(&m_readWriteLock, NULL);
@@ -321,6 +321,7 @@ void ReadWriteLock::unlock()
     int result = pthread_rwlock_unlock(&m_readWriteLock);
     ASSERT_UNUSED(result, !result);
 }
+#endif  // HAVE(PTHREAD_RWLOCK)
 
 ThreadCondition::ThreadCondition()
 { 

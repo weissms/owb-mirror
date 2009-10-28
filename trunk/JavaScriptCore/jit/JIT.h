@@ -38,6 +38,8 @@
 #define JIT_CLASS_ALIGNMENT
 #endif
 
+#define ASSERT_JIT_OFFSET(actual, expected) ASSERT_WITH_MESSAGE(actual == expected, "JIT Offset \"%s\" shoud be %d, not %d.\n", #expected, actual, expected);
+
 #include "CodeBlock.h"
 #include "Interpreter.h"
 #include "JITCode.h"
@@ -249,7 +251,6 @@ namespace JSC {
 
         static const RegisterID timeoutCheckRegister = ARMRegisters::r5;
         static const RegisterID callFrameRegister = ARMRegisters::r4;
-        static const RegisterID ctiReturnRegister = ARMRegisters::r6;
 
         static const RegisterID regT0 = ARMRegisters::r0;
         static const RegisterID regT1 = ARMRegisters::r1;
@@ -619,7 +620,7 @@ namespace JSC {
 #if ENABLE(OPCODE_SAMPLING)
         #error "OPCODE_SAMPLING is not yet supported"
 #else
-        static const int patchOffsetGetByIdSlowCaseCall = 36;
+        static const int patchOffsetGetByIdSlowCaseCall = 28;
 #endif
         static const int patchOffsetOpCallCompareToJump = 12;
 
@@ -640,7 +641,7 @@ namespace JSC {
         static const int sequenceGetByIdHotPathInstructionSpace = 28;
         static const int sequenceGetByIdHotPathConstantSpace = 3;
         // sequenceGetByIdSlowCase
-        static const int sequenceGetByIdSlowCaseInstructionSpace = 40;
+        static const int sequenceGetByIdSlowCaseInstructionSpace = 32;
         static const int sequenceGetByIdSlowCaseConstantSpace = 2;
         // sequencePutById
         static const int sequencePutByIdInstructionSpace = 28;

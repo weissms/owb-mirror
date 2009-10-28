@@ -32,19 +32,13 @@ namespace JSC {
     class DateInstance : public JSWrapperObject {
     public:
         DateInstance(ExecState*, double);
-        explicit DateInstance(NonNullPassRefPtr<Structure>);
-        virtual ~DateInstance();
+        explicit DateInstance(ExecState*, NonNullPassRefPtr<Structure>);
 
         double internalNumber() const { return internalValue().uncheckedGetNumber(); }
 
-        bool getTime(WTF::GregorianDateTime&, int& offset) const;
-        bool getUTCTime(WTF::GregorianDateTime&) const;
-        bool getTime(double& milliseconds, int& offset) const;
-        bool getUTCTime(double& milliseconds) const;
-
         static JS_EXPORTDATA const ClassInfo info;
 
-        bool getGregorianDateTime(bool outputIsUTC, WTF::GregorianDateTime&) const;
+        bool getGregorianDateTime(ExecState*, bool outputIsUTC, WTF::GregorianDateTime&) const;
 
         static PassRefPtr<Structure> createStructure(JSValue prototype)
         {
@@ -57,9 +51,7 @@ namespace JSC {
     private:
         virtual const ClassInfo* classInfo() const { return &info; }
 
-
-        struct Cache;
-        mutable Cache* m_cache;
+        mutable RefPtr<DateInstanceData> m_data;
     };
 
     DateInstance* asDateInstance(JSValue);

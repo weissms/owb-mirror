@@ -374,6 +374,7 @@ WebInspector.loaded = function()
     document.body.addStyleClass("platform-" + platform);
 
     this._loadPreferences();
+    this.pendingDispatches = 0;
 
     this.drawer = new WebInspector.Drawer();
     this.console = new WebInspector.ConsoleView(this.drawer);
@@ -384,13 +385,13 @@ WebInspector.loaded = function()
     this.domAgent = new WebInspector.DOMAgent();
 
     this.resourceCategories = {
-        documents: new WebInspector.ResourceCategory(WebInspector.UIString("Documents"), "documents"),
-        stylesheets: new WebInspector.ResourceCategory(WebInspector.UIString("Stylesheets"), "stylesheets"),
-        images: new WebInspector.ResourceCategory(WebInspector.UIString("Images"), "images"),
-        scripts: new WebInspector.ResourceCategory(WebInspector.UIString("Scripts"), "scripts"),
-        xhr: new WebInspector.ResourceCategory(WebInspector.UIString("XHR"), "xhr"),
-        fonts: new WebInspector.ResourceCategory(WebInspector.UIString("Fonts"), "fonts"),
-        other: new WebInspector.ResourceCategory(WebInspector.UIString("Other"), "other")
+        documents: new WebInspector.ResourceCategory("documents", WebInspector.UIString("Documents"), "rgb(47,102,236)"),
+        stylesheets: new WebInspector.ResourceCategory("stylesheets", WebInspector.UIString("Stylesheets"), "rgb(157,231,119)"),
+        images: new WebInspector.ResourceCategory("images", WebInspector.UIString("Images"), "rgb(164,60,255)"),
+        scripts: new WebInspector.ResourceCategory("scripts", WebInspector.UIString("Scripts"), "rgb(255,121,0)"),
+        xhr: new WebInspector.ResourceCategory("xhr", WebInspector.UIString("XHR"), "rgb(231,231,10)"),
+        fonts: new WebInspector.ResourceCategory("fonts", WebInspector.UIString("Fonts"), "rgb(255,82,62)"),
+        other: new WebInspector.ResourceCategory("other", WebInspector.UIString("Other"), "rgb(186,186,186)")
     };
 
     this.panels = {};
@@ -497,7 +498,9 @@ WebInspector.dispatch = function() {
     function delayDispatch()
     {
         WebInspector[methodName].apply(WebInspector, parameters);
+        WebInspector.pendingDispatches--;
     }
+    WebInspector.pendingDispatches++;
     setTimeout(delayDispatch, 0);
 }
 
@@ -635,7 +638,9 @@ WebInspector.documentKeyDown = function(event)
 
                 break;
 
-            case "U+005B": // [ key
+            // Windows and Mac have two different definitions of [, so accept both.
+            case "U+005B":
+            case "U+00DB": // [ key
                 if (isMac)
                     var isRotateLeft = event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey;
                 else
@@ -650,7 +655,9 @@ WebInspector.documentKeyDown = function(event)
 
                 break;
 
-            case "U+005D": // ] key
+            // Windows and Mac have two different definitions of ], so accept both.
+            case "U+005D":
+            case "U+00DD":  // ] key
                 if (isMac)
                     var isRotateRight = event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey;
                 else
@@ -1174,7 +1181,7 @@ WebInspector.didCommitLoad = function()
     WebInspector.setDocument(null);
 }
 
-WebInspector.addMessageToConsole = function(payload)
+WebInspector.addConsoleMessage = function(payload)
 {
     var consoleMessage = new WebInspector.ConsoleMessage(
         payload.source,
@@ -1186,6 +1193,11 @@ WebInspector.addMessageToConsole = function(payload)
         payload.repeatCount);
     consoleMessage.setMessageBody(Array.prototype.slice.call(arguments, 1));
     this.console.addMessage(consoleMessage);
+}
+
+WebInspector.updateConsoleMessageRepeatCount = function(count)
+{
+    this.console.updateMessageRepeatCount(count);
 }
 
 WebInspector.log = function(message)

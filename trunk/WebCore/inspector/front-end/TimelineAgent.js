@@ -33,17 +33,22 @@ WebInspector.TimelineAgent = function() {
 }
 
 // Must be kept in sync with TimelineItem.h
-WebInspector.TimelineAgent.ItemType = {
-    DOMDispatch       : 0,
-    Layout            : 1,
-    RecalculateStyles : 2,
-    Paint             : 3,
-    ParseHTML         : 4
+WebInspector.TimelineAgent.RecordType = {
+    DOMDispatch         : 0,
+    Layout              : 1,
+    RecalculateStyles   : 2,
+    Paint               : 3,
+    ParseHTML           : 4,
+    TimerInstall        : 5,
+    TimerRemove         : 6,
+    TimerFire           : 7,
+    XHRReadyStateChange : 8,
+    XHRLoad             : 9
 };
 
-WebInspector.addItemToTimeline = function(record) {
+WebInspector.addRecordToTimeline = function(record) {
     if (WebInspector.panels.timeline)
-        WebInspector.panels.timeline.addItemToTimeline(record);
+        WebInspector.panels.timeline.addRecordToTimeline(record);
 }
 
 WebInspector.timelineProfilerWasStarted = function() {

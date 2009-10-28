@@ -119,10 +119,6 @@
 #include "SVGViewSpec.h"
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(WIN)
-#define PAGE_CACHE_ACCEPTS_UNLOAD_HANDLERS
-#endif
-
 namespace WebCore {
 
 #if ENABLE(SVG)
@@ -343,10 +339,9 @@ void FrameLoader::urlSelected(const ResourceRequest& request, const String& pass
 
     FrameLoadRequest frameRequest(request, target);
 
-    if (referrerPolicy == NoReferrer) {
+    if (referrerPolicy == NoReferrer)
         m_suppressOpenerInNewFrame = true;
-        setOpener(0);
-    } else if (frameRequest.resourceRequest().httpReferrer().isEmpty())
+    else if (frameRequest.resourceRequest().httpReferrer().isEmpty())
         frameRequest.resourceRequest().setHTTPReferrer(m_outgoingReferrer);
     addHTTPOriginIfNeeded(frameRequest.resourceRequest(), outgoingOrigin());
 
@@ -1479,9 +1474,7 @@ bool FrameLoader::canCachePageContainingThisFrame()
         // the right NPObjects. See <rdar://problem/5197041> for more information.
         && !m_containsPlugIns
         && !m_URL.protocolIs("https")
-#ifndef PAGE_CACHE_ACCEPTS_UNLOAD_HANDLERS
         && (!m_frame->domWindow() || !m_frame->domWindow()->hasEventListeners(eventNames().unloadEvent))
-#endif
 #if ENABLE(DATABASE)
         && !m_frame->document()->hasOpenDatabases()
 #endif
@@ -1626,10 +1619,8 @@ bool FrameLoader::logCanCacheFrameDecision(int indentLevel)
             { PCLOG("   -Frame contains plugins"); cannotCache = true; }
         if (m_URL.protocolIs("https"))
             { PCLOG("   -Frame is HTTPS"); cannotCache = true; }
-#ifndef PAGE_CACHE_ACCEPTS_UNLOAD_HANDLERS
         if (m_frame->domWindow() && m_frame->domWindow()->hasEventListeners(eventNames().unloadEvent))
             { PCLOG("   -Frame has an unload event listener"); cannotCache = true; }
-#endif
 #if ENABLE(DATABASE)
         if (m_frame->document()->hasOpenDatabases())
             { PCLOG("   -Frame has open database handles"); cannotCache = true; }
@@ -1740,10 +1731,13 @@ bool FrameLoader::isComplete() const
 void FrameLoader::completed()
 {
     RefPtr<Frame> protect(m_frame);
-    for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
-        child->redirectScheduler()->startTimer();
+
+    for (Frame* descendant = m_frame->tree()->traverseNext(m_frame); descendant; descendant = descendant->tree()->traverseNext(m_frame))
+        descendant->redirectScheduler()->startTimer();
+    
     if (Frame* parent = m_frame->tree()->parent())
         parent->loader()->checkCompleted();
+
     if (m_frame->view())
         m_frame->view()->maintainScrollPositionAtAnchor(0);
 }

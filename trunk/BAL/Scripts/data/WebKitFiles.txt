@@ -37,6 +37,7 @@ WebCore/loader/ThreadableLoader.cpp
 WebCore/page/Console.cpp
 WebCore/page/Chrome.cpp
 WebCore/page/ContextMenuController.cpp
+WebCore/page/DOMTimer.cpp
 WebCore/page/DOMWindow.cpp
 WebCore/page/DOMWindow.h
 WebCore/page/DOMWindow.idl
@@ -92,6 +93,7 @@ WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
+WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessorLibxslt.cpp
 WebCore/xml/XSLTProcessor.cpp

@@ -52,6 +52,10 @@
 #include <runtime/Protect.h>
 #endif
 
+#if ENABLE(INSPECTOR)
+#include "InspectorTimelineAgent.h"
+#endif
+
 namespace WebCore {
 
 #ifndef NDEBUG
@@ -250,10 +254,32 @@ void XMLHttpRequest::callReadyStateChangeListener()
     if (!scriptExecutionContext())
         return;
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = InspectorTimelineAgent::retrieve(scriptExecutionContext());
+    if (timelineAgent)
+        timelineAgent->willChangeXHRReadyState(m_url.string(), m_state);
+#endif
+
     dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().readystatechangeEvent));
 
-    if (m_state == DONE && !m_error)
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didChangeXHRReadyState();
+#endif
+
+    if (m_state == DONE && !m_error) {
+#if ENABLE(INSPECTOR)
+        if (timelineAgent)
+            timelineAgent->willLoadXHR(m_url.string());
+#endif
+
         dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadEvent));
+
+#if ENABLE(INSPECTOR)
+        if (timelineAgent)
+            timelineAgent->didLoadXHR();
+#endif
+    }
 }
 
 void XMLHttpRequest::setWithCredentials(bool value, ExceptionCode& ec)

@@ -1,6 +1,6 @@
 {
     'variables': {
-        'webcore_files': [
+        'webcore_bindings_idl_files': [
 
             #IDL files
             'css/CSSCharsetRule.idl',
@@ -374,6 +374,8 @@
             'xml/XPathNSResolver.idl',
             'xml/XPathResult.idl',
             'xml/XSLTProcessor.idl',
+        ],
+        'webcore_files': [
 
             # Source/Header Files
             'accessibility/AXObjectCache.cpp',
@@ -496,7 +498,6 @@
             'bindings/js/JSHTMLAppletElementCustom.h',
             'bindings/js/JSHTMLCanvasElementCustom.cpp',
             'bindings/js/JSHTMLCollectionCustom.cpp',
-            'bindings/js/JSHTMLCollectionFunctions.h',
             'bindings/js/JSHTMLDataGridElementCustom.cpp',
             'bindings/js/JSHTMLDocumentCustom.cpp',
             'bindings/js/JSHTMLElementCustom.cpp',
@@ -1537,8 +1538,8 @@
             'inspector/JavaScriptProfile.h',
             'inspector/JavaScriptProfileNode.cpp',
             'inspector/JavaScriptProfileNode.h',
-            'inspector/TimelineItemFactory.cpp',
-            'inspector/TimelineItemFactory.h',
+            'inspector/TimelineRecordFactory.cpp',
+            'inspector/TimelineRecordFactory.h',
             'loader/appcache/ApplicationCache.cpp',
             'loader/appcache/ApplicationCache.h',
             'loader/appcache/ApplicationCacheGroup.cpp',
@@ -2379,6 +2380,7 @@
             'platform/network/chromium/NetworkStateNotifierChromium.cpp',
             'platform/network/chromium/NetworkStateNotifierPrivate.h',
             'platform/network/chromium/ResourceError.h',
+            'platform/network/chromium/ResourceRequest.cpp',
             'platform/network/chromium/ResourceRequest.h',
             'platform/network/chromium/ResourceResponse.h',
             'platform/network/chromium/SocketStreamError.h',
@@ -3585,6 +3587,7 @@
         'webinspector_files': [
 
             'inspector/front-end/inspector.html',
+            'inspector/front-end/AbstractTimelinePanel.js',
             'inspector/front-end/BottomUpProfileDataGridTree.js',
             'inspector/front-end/Breakpoint.js',
             'inspector/front-end/BreakpointsSidebarPane.js',
@@ -3753,6 +3756,15 @@
             'inspector/front-end/Images/timelineHollowPillRed.png',
             'inspector/front-end/Images/timelineHollowPillYellow.png',
             'inspector/front-end/Images/timelineIcon.png',
+            'inspector/front-end/Images/timelineBarBlue.png',
+            'inspector/front-end/Images/timelineBarGray.png',
+            'inspector/front-end/Images/timelineBarGreen.png',
+            'inspector/front-end/Images/timelineBarOrange.png',
+            'inspector/front-end/Images/timelineBarPurple.png',
+            'inspector/front-end/Images/timelineBarRed.png',
+            'inspector/front-end/Images/timelineBarYellow.png',
+            'inspector/front-end/Images/timelineCheckmarks.png',
+            'inspector/front-end/Images/timelineDots.png',
             'inspector/front-end/Images/timelinePillBlue.png',
             'inspector/front-end/Images/timelinePillGray.png',
             'inspector/front-end/Images/timelinePillGreen.png',

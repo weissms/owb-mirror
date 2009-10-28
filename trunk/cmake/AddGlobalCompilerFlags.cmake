@@ -126,6 +126,7 @@ endif(USE_I18N_GENERIC)
 
 if(USE_THREADS_PTHREADS)
     add_definitions(-DWTF_USE_PTHREADS=1)
+    add_definitions(-DHAVE_PTHREAD_RWLOCK=1)
 endif(USE_THREADS_PTHREADS)
 
 include(AddCustomerCompilerFlags OPTIONAL)
