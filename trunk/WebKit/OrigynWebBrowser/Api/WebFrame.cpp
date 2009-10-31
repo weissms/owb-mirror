@@ -507,6 +507,20 @@ const char* WebFrame::renderTreeAsExternalRepresentation()
     return externalRepresentation(coreFrame->contentRenderer()).utf8().data();
 }
 
+char* WebFrame::counterValueForElementById(const char* id)
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return 0;
+
+    Element* element = frame->document()->getElementById(String(id));
+    if (!element)
+        return 0;
+
+    String counterValue = counterValueForElement(element);
+    return strdup(counterValue.utf8().data());
+}
+
 BalPoint WebFrame::scrollOffset()
 {
     Frame* coreFrame = core(this);

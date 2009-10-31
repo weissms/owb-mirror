@@ -1,3 +1,98 @@
+2009-10-30  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove ENABLE_RUBY guards as discussed with Dave Hyatt and Maciej Stachowiak.
+
+        Bug 28420 -  Implement HTML5 <ruby> rendering
+        (https://bugs.webkit.org/show_bug.cgi?id=28420)
+
+        No new tests (no functional change).
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-10-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Validate the stopSpeaking: selector so that is not always enabled when a WebView is first responder.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]):
+
+2009-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30932
+        <rdar://problem/7350269>
+        
+        REGRESSION: Crash when turning on Private Browsing on site with flash.
+        
+        Null check setValue.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView privateBrowsingModeDidChange]):
+
+2009-10-29  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Refactor some duplicate plug-in clean up code into shared functions.
+
+        * Plugins/WebPluginController.mm:
+        (-[WebPluginController stopOnePlugin:]): New, stop a plug-in.
+        (-[WebPluginController destroyOnePlugin:]): New, destroy plug-in.
+        (-[WebPluginController stopAllPlugins]): Call stopOnePlugin.
+        (-[WebPluginController destroyPlugin:]): Call stopOnePlugin and destroyOnePlugin.
+        (-[WebPluginController destroyAllPlugins]): Call destroyOnePlugin.
+
+2009-10-28  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7303145> 
+        Can't exit full screen mode or restart movie after pressing command -R.
+
+        * WebView/WebVideoFullscreenController.mm:
+        (-[WebVideoFullscreenController _requestExit]): 
+            New, call media element's exitFullscreen method.
+        (-[WebVideoFullscreenController requestExitFullscreenWithAnimation:]): 
+            Call mediaElement->exitFullscreen() after a delay as it turns around and calls
+            WebVideoFullscreenController:exitFullscreen.
+
+        * WebView/WebVideoFullscreenHUDWindowController.h:
+        * WebView/WebVideoFullscreenHUDWindowController.mm:
+        (-[WebVideoFullscreenHUDWindow resignFirstResponder]):
+            New, don't give up responder status.
+        (-[WebVideoFullscreenHUDWindow performKeyEquivalent:]):
+            New, block all command key events.
+        (-[WebVideoFullscreenHUDWindowController exitFullscreen:]):
+            Remember when we are in the process of exiting fullscreen, don't allow recursion.
+
+        * WebView/WebView.mm:
+        (-[WebView _exitFullscreen]):
+            Early return if fullscreen controller is nil.
+
+        * WebView/WebWindowAnimation.h: 
+            Correct comment about _window retain status.
+        * WebView/WebWindowAnimation.m:
+        (-[WebWindowScaleAnimation dealloc]):
+            Don't release _window, we never reatained it.
+
+2009-10-27  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Provide a way to get counter values with layoutTestContoller
+        https://bugs.webkit.org/show_bug.cgi?id=30555
+
+        Add counterValueForElement in WebFrame to call WebCore::counterValueForElement.
+
+        * Misc/WebCoreStatistics.h:
+        * Misc/WebCoreStatistics.mm:
+        (-[WebFrame counterValueForElement:]):
+
 2009-10-28  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Sam Weinig.

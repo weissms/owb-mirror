@@ -45,6 +45,7 @@
 #include "NotImplemented.h"
 #include "Page.h"
 #include "OriginQuotaManager.h"
+#include "ScriptController.h"
 #include "SQLiteDatabase.h"
 #include "SQLiteFileSystem.h"
 #include "SQLiteStatement.h"
@@ -60,7 +61,6 @@
 
 #if USE(JSC)
 #include "JSDOMWindow.h"
-#include <runtime/InitializeThreading.h>
 #endif
 
 namespace WebCore {
@@ -155,8 +155,8 @@ Database::Database(Document* document, const String& name, const String& expecte
     , m_document(document)
     , m_name(name.crossThreadString())
     , m_guid(0)
-    , m_expectedVersion(expectedVersion)
-    , m_displayName(displayName)
+    , m_expectedVersion(expectedVersion.crossThreadString())
+    , m_displayName(displayName.crossThreadString())
     , m_estimatedSize(estimatedSize)
     , m_deleted(false)
     , m_stopped(false)
@@ -169,9 +169,7 @@ Database::Database(Document* document, const String& name, const String& expecte
     if (m_name.isNull())
         m_name = "";
 
-#if USE(JSC)
-    JSC::initializeThreading();
-#endif
+    ScriptController::initializeThreading();
 
     m_guid = guidForOriginAndName(m_mainThreadSecurityOrigin->toString(), name);
 

@@ -185,6 +185,17 @@ void QWEBKIT_EXPORT qt_drt_garbageCollector_collectOnAlternateThread(bool waitUn
     gcController().garbageCollectOnAlternateThreadForDebugging(waitUntilDone);
 }
 
+// Returns the value of counter in the element specified by \a id.
+QString QWEBKIT_EXPORT qt_drt_counterValueForElementById(QWebFrame* qFrame, const QString& id)
+{
+    Frame* frame = QWebFramePrivate::core(qFrame);
+    if (Document* document = frame->document()) {
+        Element* element = document->getElementById(id);
+        return WebCore::counterValueForElement(element);
+    }
+    return QString();
+}
+
 QWebFrameData::QWebFrameData(WebCore::Page* parentPage, WebCore::Frame* parentFrame,
                              WebCore::HTMLFrameOwnerElement* ownerFrameElement,
                              const WebCore::String& frameName)
@@ -723,6 +734,11 @@ void QWebFrame::load(const QNetworkRequest &req,
         case QNetworkAccessManager::PostOperation:
             request.setHTTPMethod("POST");
             break;
+#if QT_VERSION >= 0x040600
+        case QNetworkAccessManager::DeleteOperation:
+            request.setHTTPMethod("DELETE");
+            break;
+#endif
         case QNetworkAccessManager::UnknownOperation:
             // eh?
             break;
@@ -1429,7 +1445,6 @@ QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult 
     if (!hitTest.innerNode())
         return;
     pos = hitTest.point();
-    boundingRect = hitTest.boundingBox();
     WebCore::TextDirection dir;
     title = hitTest.title(dir);
     linkText = hitTest.textContent();
@@ -1439,6 +1454,7 @@ QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult 
     imageUrl = hitTest.absoluteImageURL();
     innerNode = hitTest.innerNode();
     innerNonSharedNode = hitTest.innerNonSharedNode();
+    boundingRect = innerNonSharedNode ? innerNonSharedNode->renderer()->absoluteBoundingBoxRect(true) : IntRect();
     WebCore::Image *img = hitTest.image();
     if (img) {
         QPixmap *pix = img->nativeImageForCurrentFrame();
@@ -1686,4 +1702,3 @@ QWebFrame *QWebHitTestResult::frame() const
         return 0;
     return d->frame;
 }
-

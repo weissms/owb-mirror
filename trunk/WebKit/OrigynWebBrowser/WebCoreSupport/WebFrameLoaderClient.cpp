@@ -1216,25 +1216,9 @@ PassRefPtr<Widget> WebFrameLoaderClient::createJavaAppletWidget(const IntSize& p
     return pluginView;
 }
 
-ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const String& mimeTypeIn)
+ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const String& mimeType)
 {
-    String mimeType = mimeTypeIn;
-    if (mimeType.isEmpty())
-        mimeType = MIMETypeRegistry::getMIMETypeForExtension(url.path().substring(url.path().reverseFind('.') + 1));
-
-    if (mimeType.isEmpty())
-        return ObjectContentFrame; // Go ahead and hope that we can display the content.
-
-    if (MIMETypeRegistry::isSupportedImageMIMEType(mimeType))
-        return WebCore::ObjectContentImage;
-
-    if (PluginDatabase::installedPlugins()->isMIMETypeRegistered(mimeType))
-        return WebCore::ObjectContentNetscapePlugin;
-
-    if (MIMETypeRegistry::isSupportedNonImageMIMEType(mimeType))
-        return WebCore::ObjectContentFrame;
-
-    return WebCore::ObjectContentNone;
+    return WebCore::FrameLoader::defaultObjectContentType(url, mimeType);
 }
 
 String WebFrameLoaderClient::overrideMediaType() const

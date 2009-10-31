@@ -255,6 +255,12 @@ void LayoutTestController::setCacheModel(int)
     // FIXME: implement
 }
 
+JSRetainPtr<JSStringRef> LayoutTestController::counterValueForElementById(JSStringRef id)
+{
+    // FIXME: implement
+    return 0;
+}
+
 bool LayoutTestController::isCommandEnabled(JSStringRef /*name*/)
 {
     // FIXME: implement

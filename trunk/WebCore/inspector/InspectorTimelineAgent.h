@@ -53,6 +53,7 @@ namespace WebCore {
         TimerFireTimelineRecordType = 7,
         XHRReadyStateChangeRecordType = 8,
         XHRLoadRecordType = 9,
+        EvaluateScriptTagTimelineRecordType = 10,
     };
 
     class InspectorTimelineAgent {
@@ -61,6 +62,7 @@ namespace WebCore {
         ~InspectorTimelineAgent();
 
         void reset();
+        void resetFrontendProxyObject(InspectorFrontend*);
 
         // Methods called from WebCore.
         void willDispatchDOMEvent(const Event&);
@@ -87,6 +89,9 @@ namespace WebCore {
         void didChangeXHRReadyState();
         void willLoadXHR(const String&);
         void didLoadXHR();
+
+        void willEvaluateScriptTag(const String&, int);
+        void didEvaluateScriptTag();
 
         static InspectorTimelineAgent* retrieve(ScriptExecutionContext*);
     private:

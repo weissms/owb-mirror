@@ -4180,14 +4180,6 @@
 			<File
 				RelativePath="..\loader\cf\ResourceLoaderCFNet.cpp"
 				>
-			</File>
-			<File
-				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSInspectorBackend.cpp"
-				>
-			</File>
-			<File
-				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSInspectorBackend.cpp"
-				>
 				<FileConfiguration
 					Name="Debug_Cairo|Win32"
 					ExcludedFromBuild="true"
@@ -9829,6 +9821,54 @@
 				<File
 					RelativePath="..\bindings\js\GCController.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\GCController.h"
@@ -9901,6 +9941,54 @@
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLStatementErrorCallback.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLStatementErrorCallback.h"
@@ -9909,6 +9997,54 @@
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLTransactionCallback.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLTransactionCallback.h"
@@ -9917,6 +10053,54 @@
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLTransactionErrorCallback.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomSQLTransactionErrorCallback.h"
@@ -9925,6 +10109,54 @@
 				<File
 					RelativePath="..\bindings\js\JSCustomVoidCallback.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomVoidCallback.h"
@@ -9933,6 +10165,54 @@
 				<File
 					RelativePath="..\bindings\js\JSCustomXPathNSResolver.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomXPathNSResolver.h"
@@ -9985,6 +10265,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHistoryCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLAllCollection.h"
@@ -9993,6 +10321,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLAppletElementCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLCanvasElementCustom.cpp"
@@ -10001,6 +10377,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLCollectionCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLDataGridElementCustom.cpp"
@@ -10009,6 +10433,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLDocumentCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLElementCustom.cpp"
@@ -10033,6 +10505,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLFrameElementCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLFrameSetElementCustom.cpp"
@@ -10053,6 +10573,54 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLObjectElementCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLOptionElementConstructor.cpp"
@@ -10061,14 +10629,158 @@
 				<File
 					RelativePath="..\bindings\js\JSHTMLOptionElementConstructor.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLOptionsCollectionCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLSelectElementCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSHTMLSelectElementCustom.h"
@@ -10077,6 +10789,54 @@
 				<File
 					RelativePath="..\bindings\js\JSLocation.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSLocation.h"
@@ -10097,6 +10857,54 @@
 				<File
 					RelativePath="..\bindings\js\JSNodeCustom.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSNodeFilterCondition.cpp"
@@ -10209,6 +11017,54 @@
 				<File
 					RelativePath="..\bindings\js\kjs_binding.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\kjs_binding.h"
@@ -10217,6 +11073,54 @@
 				<File
 					RelativePath="..\bindings\js\kjs_css.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\kjs_css.h"
@@ -10273,6 +11177,54 @@
 				<File
 					RelativePath="..\bindings\js\PausedTimeouts.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\bindings\js\PausedTimeouts.h"
@@ -10285,6 +11237,54 @@
 				<File
 					RelativePath="..\bindings\js\ScheduledAction.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
       <File
@@ -10357,6 +11357,54 @@
 				<File
 					RelativePath="..\plugins\win\PluginDatabaseWin.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\plugins\win\PluginPackageWin.cpp"
@@ -10365,6 +11413,54 @@
 				<File
 					RelativePath="..\plugins\win\PluginViewWin.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>
@@ -11085,6 +12181,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGImage.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGImage.h"
@@ -11093,6 +12237,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServer.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServer.h"
@@ -11101,6 +12293,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerGradient.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerGradient.h"
@@ -11109,6 +12349,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerLinearGradient.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerLinearGradient.h"
@@ -11117,6 +12405,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerPattern.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerPattern.h"
@@ -11137,6 +12473,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGPaintServerSolid.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGResource.cpp"
@@ -11157,6 +12541,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGResourceFilter.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGResourceFilter.h"
@@ -11173,6 +12605,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGResourceMarker.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGResourceMasker.cpp"
@@ -11181,6 +12661,54 @@
 				<File
 					RelativePath="..\svg\graphics\SVGResourceMasker.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<Filter
 					Name="cg"
@@ -11405,6 +12933,54 @@
 				<File
 					RelativePath="..\ForwardingHeaders\wtf\AlwaysInline.h"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\ForwardingHeaders\wtf\Assertions.h"
@@ -11681,6 +13257,54 @@
 				<File
 					RelativePath="..\inspector\front-end\WatchExpressionsSidebarPane.js"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>

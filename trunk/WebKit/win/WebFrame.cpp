@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
+ * Copyright (C) Research In Motion Limited 2009. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,7 +78,6 @@
 #include <WebCore/HTMLPlugInElement.h>
 #include <WebCore/JSDOMWindow.h>
 #include <WebCore/KeyboardEvent.h>
-#include <WebCore/MIMETypeRegistry.h>
 #include <WebCore/MouseRelatedEvent.h>
 #include <WebCore/NotImplemented.h>
 #include <WebCore/Page.h>
@@ -821,6 +821,25 @@ HRESULT STDMETHODCALLTYPE WebFrame::renderTreeAsExternalRepresentation(
         return E_FAIL;
 
     *result = BString(externalRepresentation(coreFrame->contentRenderer())).release();
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebFrame::counterValueForElementById(
+    /* [in] */ BSTR id, /* [retval][out] */ BSTR *result)
+{
+    if (!result)
+        return E_POINTER;
+
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return E_FAIL;
+
+    String coreId = String(id, SysStringLen(id));
+
+    Element* element = coreFrame->document()->getElementById(coreId);
+    if (!element)
+        return E_FAIL;
+    *result = BString(counterValueForElement(element)).release();
     return S_OK;
 }
 
@@ -1682,25 +1701,9 @@ PassRefPtr<Widget> WebFrame::createJavaAppletWidget(const IntSize& pluginSize, H
     return pluginView;
 }
 
-ObjectContentType WebFrame::objectContentType(const KURL& url, const String& mimeTypeIn)
+ObjectContentType WebFrame::objectContentType(const KURL& url, const String& mimeType)
 {
-    String mimeType = mimeTypeIn;
-    if (mimeType.isEmpty())
-        mimeType = MIMETypeRegistry::getMIMETypeForExtension(url.path().substring(url.path().reverseFind('.') + 1));
-
-    if (mimeType.isEmpty())
-        return ObjectContentFrame; // Go ahead and hope that we can display the content.
-
-    if (MIMETypeRegistry::isSupportedImageMIMEType(mimeType))
-        return WebCore::ObjectContentImage;
-
-    if (PluginDatabase::installedPlugins()->isMIMETypeRegistered(mimeType))
-        return WebCore::ObjectContentNetscapePlugin;
-
-    if (MIMETypeRegistry::isSupportedNonImageMIMEType(mimeType))
-        return WebCore::ObjectContentFrame;
-
-    return WebCore::ObjectContentNone;
+    return WebCore::FrameLoader::defaultObjectContentType(url, mimeType);
 }
 
 String WebFrame::overrideMediaType() const

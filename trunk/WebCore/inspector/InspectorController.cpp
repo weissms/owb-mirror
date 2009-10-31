@@ -346,6 +346,7 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
             m_attachDebuggerWhenShown = true;
 #endif
         resetScriptObjects();
+        stopTimelineProfiler();
     }
     m_showAfterVisible = CurrentPanel;
 }
@@ -557,7 +558,8 @@ void InspectorController::setFrontendProxyObject(ScriptState* scriptState, Scrip
     m_frontend.set(new InspectorFrontend(this, scriptState, webInspectorObj));
     releaseDOMAgent();
     m_domAgent = InspectorDOMAgent::create(m_frontend.get());
-    m_timelineAgent = 0;
+    if (m_timelineAgent)
+        m_timelineAgent->resetFrontendProxyObject(m_frontend.get());
 }
 
 void InspectorController::show()
@@ -1117,14 +1119,6 @@ void InspectorController::stopTimelineProfiler()
     m_timelineAgent = 0;
     if (m_frontend)
         m_frontend->timelineProfilerWasStopped();
-}
-
-bool InspectorController::timelineProfilerEnabled() const
-{
-    if (!enabled())
-        return false;
-
-    return m_timelineAgent;
 }
 
 #if ENABLE(DATABASE)
@@ -1797,6 +1791,8 @@ InspectorController::SpecialPanels InspectorController::specialPanelForJSName(co
         return ResourcesPanel;
     else if (panelName == "scripts")
         return ScriptsPanel;
+    else if (panelName == "timeline")
+        return TimelinePanel;
     else if (panelName == "profiles")
         return ProfilesPanel;
     else if (panelName == "storage" || panelName == "databases")

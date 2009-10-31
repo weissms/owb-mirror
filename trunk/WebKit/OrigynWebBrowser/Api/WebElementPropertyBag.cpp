@@ -87,7 +87,9 @@ String WebElementPropertyBag::Read(String pszPropName)
         return S_OK;
     } else if (isEqual(WebElementImageRectKey, key)) {
         V_VT(pVar) = VT_ARRAY;
-        V_ARRAY(pVar) = MarshallingHelpers::intRectToSafeArray(m_result->boundingBox());
+        IntRect boundingBox = m_result->innerNonSharedNode() && m_result->innerNonSharedNode()->renderer() ?
+                                m_result->innerNonSharedNode()->renderer()->absoluteBoundingBoxRect(true) : IntRect();
+        V_ARRAY(pVar) = MarshallingHelpers::intRectToSafeArray(boundingBox);
         return S_OK;
     } else if (isEqual(WebElementImageURLKey, key))
         return convertStringToVariant(pVar, m_result->absoluteImageURL().string());

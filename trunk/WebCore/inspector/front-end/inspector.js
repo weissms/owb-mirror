@@ -143,8 +143,7 @@ var WebInspector = {
             this.panels.profiles = new WebInspector.ProfilesPanel();
             this.panels.profiles.registerProfileType(new WebInspector.CPUProfileType());
         }
-
-        // Uncomment this when timeline is ready.
+        // FIXME: Uncomment when ready.
         // if (hiddenPanels.indexOf("timeline") === -1 && hiddenPanels.indexOf("timeline") === -1)
         //     this.panels.timeline = new WebInspector.TimelinePanel();
 
@@ -1560,7 +1559,8 @@ WebInspector.UIString = function(string)
         string = window.localizedStrings[string];
     else {
         if (!(string in this.missingLocalizedStrings)) {
-            console.error("Localized string \"" + string + "\" not found.");
+            if (!WebInspector.InspectorControllerStub)
+                console.error("Localized string \"" + string + "\" not found.");
             this.missingLocalizedStrings[string] = true;
         }
 

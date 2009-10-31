@@ -265,6 +265,14 @@ public:
     virtual const char* renderTreeAsExternalRepresentation();
 
     /**
+     * counterValueForElementById
+     * @brief get the value associated with an element whose id is given.
+     * @param id, the id of the element whose value we want
+     * @return the counter value or 0 if the element was not found.
+     */
+    virtual char* counterValueForElementById(const char* /*id*/);
+
+    /**
      * get the scroll offset
      * @param[out]: scroll offset
      */

@@ -101,9 +101,10 @@ public:
         CurrentPanel,
         ConsolePanel,
         ElementsPanel,
-        ProfilesPanel,
         ResourcesPanel,
         ScriptsPanel,
+        TimelinePanel,
+        ProfilesPanel,
         StoragePanel
     } SpecialPanels;
 
@@ -230,7 +231,6 @@ public:
 
     void startTimelineProfiler();
     void stopTimelineProfiler();
-    bool timelineProfilerEnabled() const;
     InspectorTimelineAgent* timelineAgent() { return m_timelineAgent.get(); }
 
     void mainResourceFiredLoadEvent(DocumentLoader*, const KURL&);

@@ -1259,8 +1259,12 @@ bool AccessibilityRenderObject::ariaIsHidden() const
 bool AccessibilityRenderObject::accessibilityIsIgnored() const
 {
     // is the platform is interested in this object?
-    if (accessibilityPlatformIncludesObject())
+    AccessibilityObjectPlatformInclusion decision = accessibilityPlatformIncludesObject();
+    if (decision == IncludeObject)
         return false;
+    if (decision == IgnoreObject)
+        return true;
+    // the decision must, therefore, be DefaultBehavior.
 
     // ignore invisible element
     if (!m_renderer || m_renderer->style()->visibility() != VISIBLE)
@@ -2246,13 +2250,13 @@ AccessibilityObject* AccessibilityRenderObject::observableObject() const
     
 typedef HashMap<String, AccessibilityRole, CaseFoldingHash> ARIARoleMap;
 
+struct RoleEntry {
+    String ariaRole;
+    AccessibilityRole webcoreRole;
+};
+
 static const ARIARoleMap& createARIARoleMap()
 {
-    struct RoleEntry {
-        String ariaRole;
-        AccessibilityRole webcoreRole;
-    };
-
     const RoleEntry roles[] = {
         { "application", LandmarkApplicationRole },
         { "article", DocumentArticleRole },
@@ -2285,6 +2289,7 @@ static const ARIARoleMap& createARIARoleMap()
         { "menuitemradio", MenuItemRole },
         { "note", DocumentNoteRole },
         { "navigation", LandmarkNavigationRole },
+        { "option", ListBoxOptionRole },
         { "presentation", IgnoredRole },
         { "progressbar", ProgressIndicatorRole },
         { "radio", RadioButtonRole },
@@ -2531,6 +2536,8 @@ bool AccessibilityRenderObject::canHaveChildren() const
         case PopUpButtonRole:
         case CheckBoxRole:
         case RadioButtonRole:
+        case StaticTextRole:
+        case ListBoxOptionRole:
             return false;
         default:
             return true;

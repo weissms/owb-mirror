@@ -32,6 +32,7 @@
 #include "DumpRenderTree.h"
 #include "WorkQueue.h"
 #include "WorkQueueItem.h"
+#include <QDir>
 
 extern void qt_dump_editing_callbacks(bool b);
 extern void qt_dump_resource_load_callbacks(bool b);
@@ -40,6 +41,7 @@ extern bool qt_drt_pauseAnimation(QWebFrame*, const QString& name, double time, 
 extern bool qt_drt_pauseTransitionOfProperty(QWebFrame*, const QString& name, double time, const QString& elementId);
 extern int qt_drt_numberOfActiveAnimations(QWebFrame*);
 extern void qt_drt_whiteListAccessFromOrigin(const QString& sourceOrigin, const QString& destinationProtocol, const QString& destinationHost, bool allowDestinationSubdomains);
+extern QString qt_drt_counterValueForElementById(QWebFrame* qFrame, const QString& id);
 
 LayoutTestController::LayoutTestController(WebCore::DumpRenderTree* drt)
     : QObject()
@@ -109,6 +111,11 @@ void LayoutTestController::waitUntilDone()
     m_timeoutTimer.start(11000, this);
 }
 
+QString LayoutTestController::counterValueForElementById(const QString& id)
+{
+    return qt_drt_counterValueForElementById(m_drt->webPage()->mainFrame(), id);
+}
+
 void LayoutTestController::keepWebHistory()
 {
     // FIXME: implement
@@ -134,6 +141,12 @@ int LayoutTestController::windowCount()
 void LayoutTestController::clearBackForwardList()
 {
     m_drt->webPage()->history()->clear();
+}
+
+QString LayoutTestController::pathToLocalResource(const QString& url)
+{
+    // Function introduced in r28690.
+    return QLatin1String("file://") + QUrl(url).toLocalFile();
 }
 
 void LayoutTestController::dumpEditingCallbacks()
@@ -308,4 +321,3 @@ void LayoutTestController::overridePreference(const QString& name, const QVarian
     else if (name == "WebKitDefaultFontSize")
         settings->setFontSize(QWebSettings::DefaultFontSize, value.toInt());
 }
-

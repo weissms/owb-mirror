@@ -32,17 +32,22 @@ bool AccessibilityObject::accessibilityIgnoreAttachment() const
     return false;
 }
 
-bool AccessibilityObject::accessibilityPlatformIncludesObject() const
+AccessibilityObjectPlatformInclusion AccessibilityObject::accessibilityPlatformIncludesObject() const
 {
+    AccessibilityObject* parent = parentObject();
+    if (!parent)
+        return DefaultBehavior;
+
     // When a list item is made up entirely of children (e.g. paragraphs)
     // the list item gets ignored. We need it.
-    if (isGroup()) {
-        AccessibilityObject* parent = parentObject();
-        if (parent && parent->isList())
-            return true;
-    }
+    if (isGroup() && parent->isList())
+        return IncludeObject;
 
-    return false;
+    // Entries and password fields have extraneous children which we want to ignore.
+    if (parent->isPasswordField() || parent->isTextControl())
+        return IgnoreObject;
+
+    return DefaultBehavior;
 }
 
 AccessibilityObjectWrapper* AccessibilityObject::wrapper() const

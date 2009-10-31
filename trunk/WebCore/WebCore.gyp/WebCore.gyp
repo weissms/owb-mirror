@@ -180,6 +180,9 @@
           '../platform/mac',
           '../platform/text/mac',
         ],
+        # enable -Wall and -Werror, just in Mac build for now
+        # FIXME: Also enable this for Linux/Windows after verifying no warnings
+        'chromium_code': 1,
       }],
       ['OS=="win"', {
         'webcore_include_dirs': [
@@ -888,6 +891,7 @@
 
             # Use native Mac font code from WebCore.
             ['include', 'platform/(graphics/)?mac/[^/]*Font[^/]*\\.(cpp|mm?)$'],
+            ['include', 'platform/graphics/mac/ComplexText[^/]*\\.(cpp|h)$'],
 
             # Cherry-pick some files that can't be included by broader regexps.
             # Some of these are used instead of Chromium platform files, see
