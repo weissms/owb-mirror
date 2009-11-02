@@ -66,11 +66,15 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
         LOG_VERBOSE(Media, "Error: %d, %s", err->code,  err->message);
 
         error = MediaPlayer::Empty;
-        if (err->domain == GST_CORE_ERROR || err->domain == GST_LIBRARY_ERROR)
-            error = MediaPlayer::DecodeError;
-        else if (err->domain == GST_RESOURCE_ERROR)
+        if (err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND ||
+            err->code == GST_STREAM_ERROR_WRONG_TYPE ||
+            err->code == GST_STREAM_ERROR_FAILED ||
+            err->code == GST_CORE_ERROR_MISSING_PLUGIN ||
+            err->code == GST_RESOURCE_ERROR_NOT_FOUND)
             error = MediaPlayer::FormatError;
         else if (err->domain == GST_STREAM_ERROR)
+            error = MediaPlayer::DecodeError;
+        else if (err->domain == GST_RESOURCE_ERROR)
             error = MediaPlayer::NetworkError;
 
         if (mp)
@@ -661,23 +665,31 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     cairo_save(cr);
     cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 
+    // Calculate the display width/height from the storage width/height and the pixel aspect ratio
     displayWidth *= doublePixelAspectRatioNumerator / doublePixelAspectRatioDenominator;
     displayHeight *= doublePixelAspectRatioDenominator / doublePixelAspectRatioNumerator;
 
-    scale = MIN (rect.width () / displayWidth, rect.height () / displayHeight);
+    // Calculate the largest scale factor that would fill the target surface
+    scale = MIN(rect.width() / displayWidth, rect.height() / displayHeight);
+    // And calculate the new display width/height
     displayWidth *= scale;
     displayHeight *= scale;
 
-    // Calculate gap between border an picture
+    // Calculate gap between border an picture on every side
     gapWidth = (rect.width() - displayWidth) / 2.0;
     gapHeight = (rect.height() - displayHeight) / 2.0;
 
-    // paint the rectangle on the context and draw the surface inside.
+    // Paint the rectangle on the context and draw the buffer inside the rectangle
+
+    // Go to the new origin and center the video frame.
     cairo_translate(cr, rect.x() + gapWidth, rect.y() + gapHeight);
     cairo_rectangle(cr, 0, 0, rect.width(), rect.height());
+    // Scale the video frame according to the pixel aspect ratio.
     cairo_scale(cr, doublePixelAspectRatioNumerator / doublePixelAspectRatioDenominator,
                 doublePixelAspectRatioDenominator / doublePixelAspectRatioNumerator);
+    // Scale the video frame to fill the target surface as good as possible.
     cairo_scale(cr, scale, scale);
+    // And paint it.
     cairo_set_source_surface(cr, src, 0, 0);
     cairo_fill(cr);
     cairo_restore(cr);

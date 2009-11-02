@@ -43,6 +43,10 @@ list(APPEND WEBCORE_SRC
     rendering/RenderPartObject.cpp
     rendering/RenderReplaced.cpp
     rendering/RenderReplica.cpp
+    rendering/RenderRuby.cpp
+    rendering/RenderRubyBase.cpp
+    rendering/RenderRubyRun.cpp
+    rendering/RenderRubyText.cpp
     rendering/RenderScrollbar.cpp
     rendering/RenderScrollbarPart.cpp
     rendering/RenderScrollbarTheme.cpp

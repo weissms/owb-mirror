@@ -122,6 +122,10 @@ void WebChromeClient::takeFocus(FocusDirection direction)
 {
 }
 
+void WebChromeClient::focusedNodeChanged(WebCore::Node*)
+{
+}
+
 Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadRequest, const WindowFeatures& features)
 {
 #if PLATFORM(AMIGAOS4)

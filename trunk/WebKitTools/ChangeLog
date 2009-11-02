@@ -1,3 +1,157 @@
+2009-11-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        buildbots should use --exit-after-N-failures
+        https://bugs.webkit.org/show_bug.cgi?id=30809
+
+        Make the bots exit after 20 failures to prevent never-ending
+        test runs where every test spends a minute crashing.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+
+2009-11-01  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Turn on warnings for QtWebKit for gcc
+        https://bugs.webkit.org/show_bug.cgi?id=30958
+
+        * DumpRenderTree/qt/main.cpp: 
+        (crashHandler): Mark function NO_RETURN
+
+2009-11-01  Jessie Berlin  <jberlin@webkit.org>
+
+        Adding myself to the committers list.
+
+        * Scripts/modules/committers.py:
+
+2009-10-30  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Fix an issue that Adam noticed in DRT.
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::role):
+        Get the length of the role text, and create a buffer dynamically.
+
+2009-10-30  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r50105.
+        http://trac.webkit.org/changeset/50105
+
+        This commit was causing:
+        https://bugs.webkit.org/show_bug.cgi?id=30869
+        We'll re-implement the feature a different way.
+
+        * Scripts/bugzilla-tool:
+
+2009-10-29  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Test for MSAA: Accessibility of headings is not correct
+
+        https://bugs.webkit.org/show_bug.cgi?id=30937
+
+        Reviewed by Adam Roben.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::role):
+        Allow the role returned to be a BSTR.
+        (AccessibilityUIElement::description):
+        Fix a copy/paste error.
+
+2009-10-29  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Test for MSAA: Accessibility of links is wrong
+
+        https://bugs.webkit.org/show_bug.cgi?id=30928
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getAccessibilityValueCallback):
+        Return the accessibility value.
+        (AccessibilityUIElement::getJSClass):
+        Added "accessibilityValue" value.
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::accessibilityValue):
+        Stubbed.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::accessibilityValue):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::accessibilityValue):
+        Get the object's value, and return it as a JS string.
+
+2009-10-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Fix typo in command name used by wx build system.
+
+        * wx/build/build_utils.py:
+
+2009-10-30  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Patch v1 is a dumb default name for patches
+        https://bugs.webkit.org/show_bug.cgi?id=30952
+
+        Let's use "Patch" instead.
+
+        * Scripts/bugzilla-tool:
+
+2009-10-30  Andras Becsi  <becsi.andras@stud.u-szeged.hu>
+
+        Unreviewed trivial buildfix.
+
+        [Qt] Buildfix for r50333.
+
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+
+2009-10-30  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Remove qt/WorkQueue.cpp|h in favor of platform independent WorkQueue
+        https://bugs.webkit.org/show_bug.cgi?id=30953
+
+        DumpRenderTree/WorkQueue and DumpRenderTree/qt/WorkQueue share mostly the
+        same implementation. Some Q_ASSERTs differ from ASSERTs basically. Patch
+        makes qt DRT to share this implementation (as gtk and mac ports do).
+
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/WorkQueue.cpp: Removed.
+        * DumpRenderTree/qt/WorkQueue.h: Removed.
+
+2009-10-30  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed potential buildbot fix.
+
+        Second try: Reset page history before running each test.
+
+        Apparently the QWebHistory::clear() keeps the current page
+        in history which is not what we want, so we not additionally
+        sets the history capacity to 0 (forces removing everything)
+        and then sets it back to its original value.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+
+2009-10-30  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed potential buildbot fix.
+
+        Reset page history before running each test.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+
 2009-10-30  Roland Steiner  <rolandsteiner@chromium.org>
 
         Reviewed by Eric Seidel.

@@ -294,15 +294,15 @@ namespace WebCore {
 
         // Function for retrieving the line number and source name for the top
         // JavaScript stack frame.
-        static int sourceLineNumber();
-        static String sourceName();
+        //
+        // It will return true if the line number was successfully retrieved and written
+        // into the |result| parameter, otherwise the function will return false. It may
+        // fail due to a stck overflow in the underlying JavaScript implentation, handling
+        // of such exception is up to the caller.
+        static bool sourceLineNumber(int& result);
+        static bool sourceName(String& result);
 
         v8::Local<v8::Context> context();
-
-        PassRefPtr<V8ListenerGuard> listenerGuard()
-        {
-            return m_listenerGuard;
-        }
 
         bool setContextDebugId(int id);
         static int contextDebugId(v8::Handle<v8::Context>);
@@ -349,8 +349,6 @@ namespace WebCore {
         // the storage mutex.
         void releaseStorageMutex();
 
-        void disconnectEventListeners();
-        
         void resetIsolatedWorlds();
 
         void setInjectedScriptContextDebugId(v8::Handle<v8::Context> targetContext);
@@ -388,8 +386,6 @@ namespace WebCore {
         Frame* m_frame;
 
         v8::Persistent<v8::Context> m_context;
-
-        RefPtr<V8ListenerGuard> m_listenerGuard;
 
         // For each possible type of wrapper, we keep a boilerplate object.
         // The boilerplate is used to create additional wrappers of the same

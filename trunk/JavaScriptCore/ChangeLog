@@ -1,3 +1,88 @@
+2009-11-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fixed failing layout test: restore a special case I accidentally deleted.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::setNewValueFromDateArgs): In the case of applying a change to a date
+        that is NaN, reset the date to 0 *and* then apply the change; don't just
+        reset the date to 0.
+
+2009-10-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: update for object-to-pointer change.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+
+2009-10-29  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30942
+        Use pointers instead of copies to pass GregorianDateTime objects around.
+        
+        SunSpider reports a shocking 4.5% speedup on date-format-xparb, and 1.3%
+        speedup on date-format-tofte.
+
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::gregorianDateTime):
+        * runtime/DateInstance.h:
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToISOString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear): Renamed getGregorianDateTime to gregorianDateTime,
+        since it no longer has an out parameter. Uses 0 to indicate invalid dates.
+
+2009-10-30  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for JavaScriptCore's ListHashSet
+        https://bugs.webkit.org/show_bug.cgi?id=30853
+
+        Inherits ListHashSet class from FastAllocBase because it is
+        instantiated by 'new' in WebCore/rendering/RenderBlock.cpp:1813.
+
+        * wtf/ListHashSet.h:
+
+2009-10-30  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Regression: crash enumerating properties of an object with getters or setters
+        https://bugs.webkit.org/show_bug.cgi?id=30948
+
+        Add a guard to prevent us trying to cache property enumeration on
+        objects with getters or setters.
+
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::create):
+
 2009-10-30  Roland Steiner  <rolandsteiner@chromium.org>
 
         Reviewed by Eric Seidel.

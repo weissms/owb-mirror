@@ -102,6 +102,7 @@ public:
     virtual bool isReadOnly() const;
     virtual bool isVisited() const;        
     virtual bool isRequired() const;
+    virtual bool isLinked() const;
 
     const AtomicString& getAttribute(const QualifiedName&) const;
     virtual bool canSetFocusAttribute() const;
@@ -224,7 +225,12 @@ public:
     virtual IntRect doAXBoundsForRange(const PlainTextRange&) const;
     
     virtual void updateBackingStore();
-    
+
+    virtual String stringValueForMSAA() const;
+    virtual String stringRoleForMSAA() const;
+    virtual String nameForMSAA() const;
+    virtual String descriptionForMSAA() const;
+
 protected:
     RenderObject* m_renderer;
     AccessibilityRole m_ariaRole;
@@ -238,6 +244,7 @@ private:
     void ariaListboxSelectedChildren(AccessibilityChildrenVector&);
     void ariaListboxVisibleChildren(AccessibilityChildrenVector&);
     bool ariaIsHidden() const;
+    String positionalDescriptionForMSAA() const;
 
     Element* menuElementForMenuButton() const;
     Element* menuItemElementForMenu() const;

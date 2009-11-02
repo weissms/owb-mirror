@@ -137,21 +137,32 @@ static AccessibilityObject* core(AtkTable* table)
     return core(ATK_OBJECT(table));
 }
 
+static AccessibilityObject* core(AtkDocument* document)
+{
+    return core(ATK_OBJECT(document));
+}
+
+static const gchar* nameFromChildren(AccessibilityObject* object)
+{
+    if (!object)
+        return 0;
+
+    AccessibilityRenderObject::AccessibilityChildrenVector children = object->children();
+    // Currently, object->stringValue() should be an empty String. This might not be the case down the road.
+    String name = object->stringValue();
+    for (unsigned i = 0; i < children.size(); ++i)
+        name += children.at(i).get()->stringValue();
+    return returnString(name);
+}
+
 static const gchar* webkit_accessible_get_name(AtkObject* object)
 {
     AccessibilityObject* coreObject = core(object);
     if (coreObject->isControl()) {
         AccessibilityRenderObject* renderObject = static_cast<AccessibilityRenderObject*>(coreObject);
         AccessibilityObject* label = renderObject->correspondingLabelForControlElement();
-        if (label) {
-            AccessibilityRenderObject::AccessibilityChildrenVector children = label->children();
-            // Currently, label->stringValue() should be an empty String. This
-            // might not be the case down the road.
-            String name = label->stringValue();
-            for (unsigned i = 0; i < children.size(); ++i)
-                name += children.at(i).get()->stringValue();
-            return returnString(name);
-        }
+        if (label)
+            return returnString(nameFromChildren(label));
     }
     return returnString(coreObject->stringValue());
 }
@@ -1238,6 +1249,20 @@ static gint cellIndex(AccessibilityTableCell* AXCell, AccessibilityTable* AXTabl
     return position - allCells.begin();
 }
 
+static AccessibilityTableCell* cellAtIndex(AtkTable* table, gint index)
+{
+    AccessibilityObject* accTable = core(table);
+    if (accTable->isAccessibilityRenderObject()) {
+        AccessibilityObject::AccessibilityChildrenVector allCells;
+        static_cast<AccessibilityTable*>(accTable)->cells(allCells);
+        if (0 <= index && static_cast<unsigned>(index) < allCells.size()) {
+            AccessibilityObject* accCell = allCells.at(index).get();
+            return static_cast<AccessibilityTableCell*>(accCell);
+        }
+    }
+    return 0;
+}
+
 static AtkObject* webkit_accessible_table_ref_at(AtkTable* table, gint row, gint column)
 {
     AccessibilityTableCell* AXCell = cell(table, row, column);
@@ -1251,6 +1276,28 @@ static gint webkit_accessible_table_get_index_at(AtkTable* table, gint row, gint
     AccessibilityTableCell* AXCell = cell(table, row, column);
     AccessibilityTable* AXTable = static_cast<AccessibilityTable*>(core(table));
     return cellIndex(AXCell, AXTable);
+}
+
+static gint webkit_accessible_table_get_column_at_index(AtkTable* table, gint index)
+{
+    AccessibilityTableCell* axCell = cellAtIndex(table, index);
+    if (axCell){
+        pair<int, int> columnRange;
+        axCell->columnIndexRange(columnRange);
+        return columnRange.first;
+    }
+    return -1;
+}
+
+static gint webkit_accessible_table_get_row_at_index(AtkTable* table, gint index)
+{
+    AccessibilityTableCell* axCell = cellAtIndex(table, index);
+    if (axCell){
+        pair<int, int> rowRange;
+        axCell->rowIndexRange(rowRange);
+        return rowRange.first;
+    }
+    return -1;
 }
 
 static gint webkit_accessible_table_get_n_columns(AtkTable* table)
@@ -1291,6 +1338,13 @@ static gint webkit_accessible_table_get_row_extent_at(AtkTable* table, gint row,
     return 0;
 }
 
+static AtkObject* webkit_accessible_table_get_column_header(AtkTable* table, gint column)
+{
+    // FIXME: This needs to be implemented.
+    notImplemented();
+    return 0;
+}
+
 static AtkObject* webkit_accessible_table_get_row_header(AtkTable* table, gint row)
 {
     AccessibilityObject* accTable = core(table);
@@ -1308,15 +1362,81 @@ static AtkObject* webkit_accessible_table_get_row_header(AtkTable* table, gint r
     return 0;
 }
 
+static AtkObject* webkit_accessible_table_get_caption(AtkTable* table)
+{
+    AccessibilityObject* accTable = core(table);
+    if (accTable->isAccessibilityRenderObject()) {
+        Node* node = static_cast<AccessibilityRenderObject*>(accTable)->renderer()->node();
+        if (node && node->hasTagName(HTMLNames::tableTag)) {
+            HTMLTableCaptionElement* caption = static_cast<HTMLTableElement*>(node)->caption();
+            if (caption)
+                return AccessibilityObject::firstAccessibleObjectFromNode(caption->renderer()->node())->wrapper();
+        }
+    }
+    return 0;
+}
+
+static const gchar* webkit_accessible_table_get_column_description(AtkTable* table, gint column)
+{
+    AtkObject* columnHeader = atk_table_get_column_header(table, column);
+    if (columnHeader)
+        return returnString(nameFromChildren(core(columnHeader)));
+
+    return 0;
+}
+
+static const gchar* webkit_accessible_table_get_row_description(AtkTable* table, gint row)
+{
+    AtkObject* rowHeader = atk_table_get_row_header(table, row);
+    if (rowHeader)
+        return returnString(nameFromChildren(core(rowHeader)));
+
+    return 0;
+}
+
 static void atk_table_interface_init(AtkTableIface* iface)
 {
     iface->ref_at = webkit_accessible_table_ref_at;
     iface->get_index_at = webkit_accessible_table_get_index_at;
+    iface->get_column_at_index = webkit_accessible_table_get_column_at_index;
+    iface->get_row_at_index = webkit_accessible_table_get_row_at_index;
     iface->get_n_columns = webkit_accessible_table_get_n_columns;
     iface->get_n_rows = webkit_accessible_table_get_n_rows;
     iface->get_column_extent_at = webkit_accessible_table_get_column_extent_at;
     iface->get_row_extent_at = webkit_accessible_table_get_row_extent_at;
+    iface->get_column_header = webkit_accessible_table_get_column_header;
     iface->get_row_header = webkit_accessible_table_get_row_header;
+    iface->get_caption = webkit_accessible_table_get_caption;
+    iface->get_column_description = webkit_accessible_table_get_column_description;
+    iface->get_row_description = webkit_accessible_table_get_row_description;
+}
+
+static const gchar* webkit_accessible_document_get_attribute_value(AtkDocument* document, const gchar* attribute)
+{
+    // FIXME: This needs to be implemented.
+    notImplemented();
+    return 0;
+}
+
+static AtkAttributeSet* webkit_accessible_document_get_attributes(AtkDocument* document)
+{
+    // FIXME: This needs to be implemented.
+    notImplemented();
+    return 0;
+}
+
+static const gchar* webkit_accessible_document_get_locale(AtkDocument* document)
+{
+    // FIXME: This needs to be implemented.
+    notImplemented();
+    return 0;
+}
+
+static void atk_document_interface_init(AtkDocumentIface* iface)
+{
+    iface->get_document_attribute_value = webkit_accessible_document_get_attribute_value;
+    iface->get_document_attributes = webkit_accessible_document_get_attributes;
+    iface->get_document_locale = webkit_accessible_document_get_locale;
 }
 
 static const GInterfaceInfo AtkInterfacesInitFunctions[] = {
@@ -1333,6 +1453,8 @@ static const GInterfaceInfo AtkInterfacesInitFunctions[] = {
     {(GInterfaceInitFunc)atk_image_interface_init,
      (GInterfaceFinalizeFunc) NULL, NULL},
     {(GInterfaceInitFunc)atk_table_interface_init,
+     (GInterfaceFinalizeFunc) NULL, NULL},
+    {(GInterfaceInitFunc)atk_document_interface_init,
      (GInterfaceFinalizeFunc) NULL, NULL}
 };
 
@@ -1343,7 +1465,8 @@ enum WAIType {
     WAI_TEXT,
     WAI_COMPONENT,
     WAI_IMAGE,
-    WAI_TABLE
+    WAI_TABLE,
+    WAI_DOCUMENT
 };
 
 static GType GetAtkInterfaceTypeFromWAIType(WAIType type)
@@ -1363,6 +1486,8 @@ static GType GetAtkInterfaceTypeFromWAIType(WAIType type)
       return ATK_TYPE_IMAGE;
   case WAI_TABLE:
       return ATK_TYPE_TABLE;
+  case WAI_DOCUMENT:
+      return ATK_TYPE_DOCUMENT;
   }
 
   return G_TYPE_INVALID;
@@ -1401,6 +1526,10 @@ static guint16 getInterfaceMaskFromObject(AccessibilityObject* coreObject)
     // Table
     if (role == TableRole)
         interfaceMask |= 1 << WAI_TABLE;
+
+    // Document
+    if (role == WebAreaRole)
+        interfaceMask |= 1 << WAI_DOCUMENT;
 
     return interfaceMask;
 }

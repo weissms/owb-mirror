@@ -43,8 +43,7 @@
 #include "CanvasTexture.h"
 #include "CanvasUnsignedByteArray.h"
 #include "CString.h"
-#include "HTMLCanvasElement.h"
-#include "HTMLImageElement.h"
+#include "Image.h"
 #include "ImageBuffer.h"
 #include "NotImplemented.h"
 #include "WebKitCSSMatrix.h"
@@ -855,16 +854,7 @@ int GraphicsContext3D::texImage2D(unsigned target, unsigned level, unsigned inte
     return -1;
 }
 
-int GraphicsContext3D::texImage2D(unsigned target, unsigned level, HTMLImageElement* image, bool flipY, bool premultiplyAlpha)
-{
-    // FIXME: need to support flipY and premultiplyAlpha
-    UNUSED_PARAM(flipY);
-    UNUSED_PARAM(premultiplyAlpha);
-    
-    return -1;
-}
-
-int GraphicsContext3D::texImage2D(unsigned target, unsigned level, HTMLCanvasElement* canvas, bool flipY, bool premultiplyAlpha)
+int GraphicsContext3D::texImage2D(unsigned target, unsigned level, Image* image, bool flipY, bool premultiplyAlpha)
 {
     // FIXME: need to support flipY and premultiplyAlpha
     UNUSED_PARAM(flipY);
@@ -916,7 +906,7 @@ int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned x
     return -1;
 }
 
-int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, HTMLImageElement* image, bool flipY, bool premultiplyAlpha)
+int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, Image* image, bool flipY, bool premultiplyAlpha)
 {
     // FIXME: we will need to deal with PixelStore params when dealing with image buffers that differ from the subimage size
     UNUSED_PARAM(target);
@@ -926,23 +916,6 @@ int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned x
     UNUSED_PARAM(width);
     UNUSED_PARAM(height);
     UNUSED_PARAM(image);
-
-    // FIXME: need to support flipY and premultiplyAlpha    
-    UNUSED_PARAM(flipY);
-    UNUSED_PARAM(premultiplyAlpha);
-    return -1;
-}
-
-int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, HTMLCanvasElement* canvas, bool flipY, bool premultiplyAlpha)
-{
-    // FIXME: we will need to deal with PixelStore params when dealing with image buffers that differ from the subimage size
-    UNUSED_PARAM(target);
-    UNUSED_PARAM(level);
-    UNUSED_PARAM(xoff);
-    UNUSED_PARAM(yoff);
-    UNUSED_PARAM(width);
-    UNUSED_PARAM(height);
-    UNUSED_PARAM(canvas);
 
     // FIXME: need to support flipY and premultiplyAlpha    
     UNUSED_PARAM(flipY);

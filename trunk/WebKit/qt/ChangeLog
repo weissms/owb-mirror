@@ -1,3 +1,42 @@
+2009-11-02  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Turn on warnings for QtWebKit for gcc
+        https://bugs.webkit.org/show_bug.cgi?id=30958
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate): Reorder initialization list 
+        to fix compiler warnings.
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::FrameLoaderClientQt): Ditto.
+
+2009-10-30  Evan Stade  <estade@chromium.org>
+
+        Reviewed by David Levin.
+
+        Notify the chrome when the focused node has changed.
+        https://bugs.webkit.org/show_bug.cgi?id=30832
+
+        Added stub implementation for new ChromeClient function.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::focusedNodeChanged):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2009-10-30  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Remove the QWebInspector::windowTitleChanged signal,
+        QEvent::WindowTitleChange can be used to achieve the same.
+        https://bugs.webkit.org/show_bug.cgi?id=30927
+
+        * Api/qwebinspector.cpp:
+        * Api/qwebinspector.h:
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::updateWindowTitle):
+
 2009-10-30  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Tor Arne Vestbø.
