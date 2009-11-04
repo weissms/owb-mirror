@@ -265,6 +265,16 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
                 return totalSize;
             }
         }
+        
+        // Ignore "100: Continue" as it's means that we should either:
+        //  * send the remainder of the request (cURL and readCallback() will take care of that), or 
+        //  * ignore this response if the request has already been completed
+        // In any case it's not a final server response and shouldn't be treated like one.
+        if (httpCode == 100) {
+            ASSERT(job->request().httpMethod() == "POST");
+            return totalSize;
+        }
+
         // Handle "417: Expectation failed" for requests as it could be the result of the "Expect: 100-Continue" header in the request
         // In this case, we issue another request without the header. We could also set an HTTP/1.0 request. 
         if (httpCode == 417 && d->m_shouldIncludeExpectHeader) {

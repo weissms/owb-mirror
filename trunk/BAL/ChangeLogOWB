@@ -1,3 +1,13 @@
+2009-11-02  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Julien Chaffraix.
+
+        Ticket #353: Improper handling of HTTP "100 Continue" response in
+        cURL backend
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::headerCallback): Ignore "100 Continue" response
+
 2009-10-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Gilles Bertal.
