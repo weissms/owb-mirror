@@ -77,6 +77,7 @@
 #if ENABLE(INSPECTOR)
 #include "Console.h"
 #include "InspectorController.h"
+#include "InspectorTimelineAgent.h"
 #endif
 
 #if ENABLE(NOTIFICATIONS)
@@ -1325,7 +1326,23 @@ bool DOMWindow::dispatchEvent(PassRefPtr<Event> prpEvent, PassRefPtr<EventTarget
     event->setCurrentTarget(this);
     event->setEventPhase(Event::AT_TARGET);
 
-    return fireEventListeners(event.get());
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = 0;
+    if (frame() && frame()->page())
+        timelineAgent = frame()->page()->inspectorTimelineAgent();
+    bool timelineAgentIsActive = timelineAgent && hasEventListeners(event->type());
+    if (timelineAgentIsActive)
+        timelineAgent->willDispatchEvent(*event);
+#endif
+
+    bool result = fireEventListeners(event.get());
+
+#if ENABLE(INSPECTOR)
+    if (timelineAgentIsActive)
+        timelineAgent->didDispatchEvent();
+#endif
+
+    return result;
 }
 
 void DOMWindow::removeAllEventListeners()

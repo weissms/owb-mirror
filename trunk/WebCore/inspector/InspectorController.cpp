@@ -345,6 +345,8 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
         if (debuggerWasEnabled)
             m_attachDebuggerWhenShown = true;
 #endif
+        if (m_searchingForNode)
+            toggleSearchForNodeInPage();
         resetScriptObjects();
         stopTimelineProfiler();
     }
@@ -413,6 +415,12 @@ void InspectorController::endGroup(MessageSource source, unsigned lineNumber, co
     --m_groupLevel;
 
     addConsoleMessage(0, new ConsoleMessage(source, EndGroupMessageType, LogMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
+}
+
+void InspectorController::markTimeline(const String& message)
+{
+    if (timelineAgent())
+        timelineAgent()->didMarkTimeline(message);
 }
 
 static unsigned constrainedAttachedWindowHeight(unsigned preferredHeight, unsigned totalWindowHeight)
@@ -1405,6 +1413,7 @@ ScriptObject InspectorController::createProfileHeader(const JSC::Profile& profil
     ScriptObject header = m_frontend->newScriptObject();
     header.set("title", profile.title());
     header.set("uid", profile.uid());
+    header.set("typeId", UString(CPUProfileType));
     return header;
 }
 

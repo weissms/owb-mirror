@@ -739,6 +739,11 @@ bool FrameView::useSlowRepaints() const
     return m_useSlowRepaints || m_slowRepaintObjectCount > 0 || m_isOverlapped || !m_contentIsOpaque;
 }
 
+bool FrameView::useSlowRepaintsIfNotOverlapped() const
+{
+    return m_useSlowRepaints || m_slowRepaintObjectCount > 0 || !m_contentIsOpaque;
+}
+
 void FrameView::setUseSlowRepaints()
 {
     m_useSlowRepaints = true;
@@ -1613,7 +1618,7 @@ void FrameView::paintContents(GraphicsContext* p, const IntRect& rect)
 #if ENABLE(INSPECTOR)
     InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent();
     if (timelineAgent)
-        timelineAgent->willPaint();
+        timelineAgent->willPaint(rect);
 #endif
 
     Document* document = frame()->document();

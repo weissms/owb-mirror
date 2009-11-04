@@ -1,5 +1,4 @@
 JavaScriptCore/interpreter/RegisterFile.cpp
-JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
@@ -16,7 +15,6 @@ WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
-WebCore/css/CSSPrimitiveValueMappings.h
 WebCore/css/CSSStyleSelector.cpp
 WebCore/css/CSSStyleSelector.h
 WebCore/css/MediaQueryEvaluator.cpp
@@ -63,7 +61,6 @@ WebCore/platform/graphics/qt/GraphicsContextQt.cpp BAL/Graphics/WebCore/Qt/BCGra
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
-WebCore/platform/image-decoders/ImageDecoder.h BAL/ImageDecoder/WebCore/WK/BCImageDecoderWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
 WebCore/platform/network/ResourceHandleInternal.h BAL/Network/WebCore/WK/BCResourceHandleInternalWK.h
@@ -96,7 +93,6 @@ WebCore/wml/WMLInputElement.cpp
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessorLibxslt.cpp
-WebCore/xml/XSLTProcessor.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKitTools/DumpRenderTree/DumpRenderTree.h
 WebKitTools/Scripts/prepare-ChangeLog

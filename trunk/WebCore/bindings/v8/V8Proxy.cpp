@@ -37,6 +37,7 @@
 #include "DOMObjectsInclude.h"
 #include "DocumentLoader.h"
 #include "FrameLoaderClient.h"
+#include "InspectorTimelineAgent.h"
 #include "Page.h"
 #include "PageGroup.h"
 #include "ScriptController.h"
@@ -373,6 +374,12 @@ v8::Local<v8::Value> V8Proxy::evaluate(const ScriptSourceCode& source, Node* nod
 {
     ASSERT(v8::Context::InContext());
 
+#if ENABLE(INSPECTOR)
+    InspectorTimelineAgent* timelineAgent = m_frame->page() ? m_frame->page()->inspectorTimelineAgent() : 0;
+    if (timelineAgent)
+        timelineAgent->willEvaluateScript(source.url().isNull() ? String() : source.url().string(), source.startLine());
+#endif
+
     v8::Local<v8::Value> result;
     {
         // Isolate exceptions that occur when compiling and executing
@@ -398,6 +405,12 @@ v8::Local<v8::Value> V8Proxy::evaluate(const ScriptSourceCode& source, Node* nod
         result = runScript(script, source.url().string().isNull());
     }
     ChromiumBridge::traceEventEnd("v8.run", node, "");
+
+#if ENABLE(INSPECTOR)
+    if (timelineAgent)
+        timelineAgent->didEvaluateScript();
+#endif
+
     return result;
 }
 
@@ -608,51 +621,6 @@ V8Proxy* V8Proxy::retrieve(ScriptExecutionContext* context)
 
 void V8Proxy::disconnectFrame()
 {
-}
-
-bool V8Proxy::isEnabled()
-{
-    Settings* settings = m_frame->settings();
-    if (!settings)
-        return false;
-
-    // In the common case, JavaScript is enabled and we're done.
-    if (settings->isJavaScriptEnabled())
-        return true;
-
-    // If JavaScript has been disabled, we need to look at the frame to tell
-    // whether this script came from the web or the embedder. Scripts from the
-    // embedder are safe to run, but scripts from the other sources are
-    // disallowed.
-    Document* document = m_frame->document();
-    if (!document)
-        return false;
-
-    SecurityOrigin* origin = document->securityOrigin();
-    if (origin->protocol().isEmpty())
-        return false; // Uninitialized document
-
-    if (origin->protocol() == "http" || origin->protocol() == "https")
-        return false; // Web site
-
-    // FIXME: the following are application decisions, and they should
-    // not be made at this layer. instead, we should bridge out to the
-    // embedder to allow them to override policy here.
-
-    if (origin->protocol() == ChromiumBridge::uiResourceProtocol())
-        return true;   // Embedder's scripts are ok to run
-
-    // If the scheme is ftp: or file:, an empty file name indicates a directory
-    // listing, which requires JavaScript to function properly.
-    const char* kDirProtocols[] = { "ftp", "file" };
-    for (size_t i = 0; i < arraysize(kDirProtocols); ++i) {
-        if (origin->protocol() == kDirProtocols[i]) {
-            const KURL& url = document->url();
-            return url.pathAfterLastSlash() == url.pathEnd();
-        }
-    }
-
-    return false; // Other protocols fall through to here
 }
 
 void V8Proxy::updateDocumentWrapper(v8::Handle<v8::Value> wrapper)

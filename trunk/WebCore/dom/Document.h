@@ -33,7 +33,6 @@
 #include "CollectionType.h"
 #include "Color.h"
 #include "DocumentMarker.h"
-#include "Page.h"
 #include "ScriptExecutionContext.h"
 #include "Timer.h"
 #include <wtf/HashCountedSet.h>
@@ -85,6 +84,7 @@ namespace WebCore {
     class MouseEventWithHitTestResults;
     class NodeFilter;
     class NodeIterator;
+    class Page;
     class PlatformMouseEvent;
     class ProcessingInstruction;
     class Range;
@@ -819,7 +819,7 @@ public:
     virtual void addMessage(MessageDestination, MessageSource, MessageType, MessageLevel, const String& message, unsigned lineNumber, const String& sourceURL);
     virtual void resourceRetrievedByXMLHttpRequest(unsigned long identifier, const ScriptString& sourceString);
     virtual void scriptImported(unsigned long, const String&);
-    virtual void postTask(PassRefPtr<Task>); // Executes the task on context's thread asynchronously.
+    virtual void postTask(PassOwnPtr<Task>); // Executes the task on context's thread asynchronously.
 
     typedef HashMap<WebCore::Node*, JSNode*> JSWrapperCache;
     typedef HashMap<DOMWrapperWorld*, JSWrapperCache*> JSWrapperCacheMap;
@@ -1174,12 +1174,6 @@ inline bool Node::isDocumentNode() const
 {
     return this == m_document;
 }
-
-#if ENABLE(INSPECTOR)
-inline InspectorTimelineAgent* Document::inspectorTimelineAgent() const {
-    return page() ? page()->inspectorTimelineAgent() : 0;
-}
-#endif
 
 } // namespace WebCore
 

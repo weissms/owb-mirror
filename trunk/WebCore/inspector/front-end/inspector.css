@@ -3275,8 +3275,114 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     height: 0;
 }
 
+#timeline-overview-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+}
+
+#timeline-overview-separator {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(236, 236, 236)), to(rgb(217, 217, 217)));
+    border-top: 1px solid rgb(163, 163, 163);
+    border-bottom: 1px solid rgb(163, 163, 163);
+    height: 10px;
+}
+
+#timeline-overview-sidebar {
+    position: absolute;
+    width: 200px;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    background-color: rgb(232, 232, 232);
+    border-right: 1px solid rgb(163, 163, 163);
+}
+
+#timeline-overview-grid {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 200px;
+    right: 0px;
+    background-color: rgb(232, 232, 232);
+}
+
+#timeline-overview-window {
+    background-color: white;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 150;
+}
+
+.timeline-window-resizer {
+    position: absolute;
+    top: 35px;
+    bottom: 15px;
+    width: 6px;
+    margin-left: -3px;
+    margin-right: -3px;
+    background-color: rgb(132, 132, 132);
+    z-index: 500;
+    cursor: col-resize;
+    border: 1px solid white;
+    -webkit-border-radius: 3px;
+}
+
+.timeline .sidebar-resizer-vertical {
+    top: 90px;
+}
+
+#timeline-overview-grid #resources-graphs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+}
+
+#timeline-container {
+    position: absolute;
+    top: 90px;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    border-right: 0 none transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 .timeline-clear-status-bar-item .glyph {
     -webkit-mask-image: url(Images/clearConsoleButtonGlyph.png);
+}
+
+.timeline-category-tree-item {
+    height: 20px;
+    padding-left: 6px;
+    padding-top: 2px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-weight: bold;
+}
+
+.timeline-tree-item .timeline-category-checkbox {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.timeline-category-tree-item:nth-of-type(2n) {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .timeline-tree-item {
@@ -3318,6 +3424,14 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     display: list-item;
 }
 
+#timeline-overview-graphs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 20px;
+}
+
 #timeline-graphs {
     position: absolute;
     left: 0;
@@ -3334,6 +3448,13 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     margin-top: 0px;
     border-top: 1px solid transparent;
     overflow: hidden;
+    pointer-events: none;
+}
+
+.timeline-overview-graph-side {
+    height: 20px;
+    z-index: 170;
+    pointer-events: none;
 }
 
 .timeline-graph-bar-area {
@@ -3342,6 +3463,7 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     bottom: 0;
     right: 8px;
     left: 9px;
+    pointer-events: none;
 }
 
 .timeline-graph-bar {
@@ -3354,6 +3476,7 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     min-width: 7px;
     opacity: 0.8;
     -webkit-border-image: url(Images/timelineBarGray.png) 4 4 5 4;
+    pointer-events: none;
 }
 
 .timeline-graph-side:nth-of-type(2n) {

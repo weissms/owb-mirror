@@ -37,13 +37,14 @@ namespace WebCore {
 
     class Event;
     class InspectorFrontend;
+    class IntRect;
     class ScriptObject;
 
     class TimelineRecordFactory {
     public:
         static ScriptObject createGenericRecord(InspectorFrontend*, double startTime);
 
-        static ScriptObject createDOMDispatchRecord(InspectorFrontend*, double startTime, const Event&);
+        static ScriptObject createEventDispatchRecord(InspectorFrontend*, double startTime, const Event&);
 
         static ScriptObject createGenericTimerRecord(InspectorFrontend*, double startTime, int timerId);
 
@@ -52,7 +53,11 @@ namespace WebCore {
         static ScriptObject createXHRReadyStateChangeTimelineRecord(InspectorFrontend*, double startTime, const String& url, int readyState);
         static ScriptObject createXHRLoadTimelineRecord(InspectorFrontend*, double startTime, const String& url);
         
-        static ScriptObject createEvaluateScriptTagTimelineRecord(InspectorFrontend*, double startTime, const String&, double lineNumber);
+        static ScriptObject createEvaluateScriptTimelineRecord(InspectorFrontend*, double startTime, const String&, double lineNumber);
+        
+        static ScriptObject createPaintTimelineRecord(InspectorFrontend*, double startTime, const IntRect&);
+
+        static ScriptObject createMarkTimelineRecord(InspectorFrontend*, double startTime, const String&);
 
     private:
         TimelineRecordFactory() { }

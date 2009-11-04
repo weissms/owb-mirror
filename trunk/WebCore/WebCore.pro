@@ -1187,6 +1187,7 @@ SOURCES += \
     platform/image-decoders/qt/RGBA32BufferQt.cpp \
     platform/graphics/filters/FEGaussianBlur.cpp \
     platform/graphics/FontDescription.cpp \
+    platform/graphics/FontFallbackList.cpp \
     platform/graphics/FontFamily.cpp \
     platform/graphics/BitmapImage.cpp \
     platform/graphics/Color.cpp \
@@ -1197,6 +1198,7 @@ SOURCES += \
     platform/graphics/FloatSize.cpp \
     platform/graphics/FontData.cpp \
     platform/graphics/Font.cpp \
+    platform/graphics/FontCache.cpp \
     platform/graphics/GeneratedImage.cpp \
     platform/graphics/Gradient.cpp \
     platform/graphics/GraphicsContext.cpp \
@@ -2332,6 +2334,7 @@ HEADERS += \
     xml/XSLTExtensions.h \
     xml/XSLTProcessor.h \
     xml/XSLTUnicodeSort.h \
+    $$PWD/../WebKit/qt/Api/qwebplugindatabase_p.h \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
     $$PWD/platform/network/qt/DnsPrefetchHelper.h
 
@@ -2381,7 +2384,6 @@ SOURCES += \
     platform/qt/SharedBufferQt.cpp \
     platform/graphics/qt/FontCacheQt.cpp \
     platform/graphics/qt/FontCustomPlatformData.cpp \
-    platform/graphics/qt/FontFallbackListQt.cpp \
     platform/graphics/qt/GlyphPageTreeNodeQt.cpp \
     platform/graphics/qt/SimpleFontDataQt.cpp \
     platform/qt/KURLQt.cpp \
@@ -2437,7 +2439,9 @@ SOURCES += \
     mac {
         SOURCES += \
             platform/text/cf/StringCF.cpp \
-            platform/text/cf/StringImplCF.cpp
+            platform/text/cf/StringImplCF.cpp \
+            platform/cf/SharedBufferCF.cpp \
+            editing/SmartReplaceCF.cpp
         LIBS_PRIVATE += -framework Carbon -framework AppKit
     }
 
@@ -2505,13 +2509,15 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
         }
     
         win32-* {
-            INCLUDEPATH += $$PWD/plugins/win
+            INCLUDEPATH += $$PWD/plugins/win \
+                           $$PWD/platform/win
     
             SOURCES += page/win/PageWin.cpp \
                        plugins/win/PluginDatabaseWin.cpp \
                        plugins/win/PluginPackageWin.cpp \
                        plugins/win/PluginMessageThrottlerWin.cpp \
-                       plugins/win/PluginViewWin.cpp
+                       plugins/win/PluginViewWin.cpp \
+                       platform/win/BitmapInfo.cpp
     
             LIBS += \
                 -ladvapi32 \

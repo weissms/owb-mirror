@@ -1,3 +1,102 @@
+2009-11-04  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by David Levin.
+
+        Start/Stop Web Socket and Web Socket Secure servers for layout tests.
+        https://bugs.webkit.org/show_bug.cgi?id=27491
+
+        The test path determination logic is changed to handle websocket and websocket/ssl cases.
+        The logic for non-http (and now also non-websocket) tests is moved toward the end of the if-elsif statement.
+
+        Functions to start or stop Web Socket servers are added.
+
+        * Scripts/run-webkit-tests:
+
+2009-11-03  Eric Seidel  <eric@webkit.org>
+
+        No review, just changing wording of log message.
+
+        Change log string to say "failed" instead of "rejected"
+        when a commit fails due to an out of date checkout.
+        This makes grepping the commit-queue log for rejected patches easier.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-03  Eric Seidel  <eric@webkit.org>
+
+        No review, adding commonly known committers missing from the file.
+
+        * Scripts/modules/committers.py: Add committers found by looking at SVN records.
+
+2009-11-03  Eric Seidel  <eric@webkit.org>
+
+        No review, just sort-order cleanup.
+
+        * Scripts/modules/committers.py: Sort committers/reviewers alphabetically.
+
+2009-11-03  Stephen White  <senorblanco@chromium.org>
+
+        (Unreviewed).
+
+        Add myself to committers.py.
+
+        * Scripts/modules/committers.py:
+
+2009-11-03  Robin Dunn  <robin@alldunn.com>
+
+        Reviewed by Kevin Ollviier.
+
+        Add packaging scripts for Debian-based Linux distros.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=31075
+
+        * wx/packaging/build-debian-installer.py: Added.
+        * wx/packaging/debian: Added.
+
+2009-11-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson and Beth Dakin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31070
+
+        Added an 'ondestroy' parameter to the test plug-in. When the plug-in is
+        destroyed, it executes the value of the 'ondestroy' parameter as a
+        script.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginAllocate): Initialize onDestroy.
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h: Define
+        onDestroy.
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New): Set onDestroy to the value of the 'ondestroy' parameter, if
+        specified.
+        (NPP_Destroy): Execute the value of 'ondestroy' as a script.
+
+2009-11-02  Joanmarie Diggs  <joanmarie.diggs@gmail.com>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31035
+        [GTK] some accessibility tests hitting assertion in debug builds
+
+        Get the correct Gtk+ object before attempting to turn it into an AtkObject.
+
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::rootElement):
+
+2009-11-02  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Support ARIA "tab" roles
+        https://bugs.webkit.org/show_bug.cgi?id=30842
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+
 2009-11-02  Eric Seidel  <eric@webkit.org>
 
         Reviewed by David Levin.

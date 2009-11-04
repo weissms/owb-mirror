@@ -35,6 +35,7 @@
 
 #include "Event.h"
 #include "InspectorFrontend.h"
+#include "IntRect.h"
 #include "TimelineRecordFactory.h"
 
 #include <wtf/CurrentTime.h>
@@ -51,14 +52,15 @@ InspectorTimelineAgent::~InspectorTimelineAgent()
 {
 }
 
-void InspectorTimelineAgent::willDispatchDOMEvent(const Event& event)
+void InspectorTimelineAgent::willDispatchEvent(const Event& event)
 {
-    pushCurrentRecord(TimelineRecordFactory::createDOMDispatchRecord(m_frontend, currentTimeInMilliseconds(), event), DOMDispatchTimelineRecordType);
+    pushCurrentRecord(TimelineRecordFactory::createEventDispatchRecord(m_frontend, currentTimeInMilliseconds(), event),
+        EventDispatchTimelineRecordType);
 }
 
-void InspectorTimelineAgent::didDispatchDOMEvent()
+void InspectorTimelineAgent::didDispatchEvent()
 {
-    didCompleteCurrentRecord(DOMDispatchTimelineRecordType);
+    didCompleteCurrentRecord(EventDispatchTimelineRecordType);
 }
 
 void InspectorTimelineAgent::willLayout()
@@ -81,9 +83,10 @@ void InspectorTimelineAgent::didRecalculateStyle()
     didCompleteCurrentRecord(RecalculateStylesTimelineRecordType);
 }
 
-void InspectorTimelineAgent::willPaint()
+void InspectorTimelineAgent::willPaint(const IntRect& rect)
 {
-    pushCurrentRecord(TimelineRecordFactory::createGenericRecord(m_frontend, currentTimeInMilliseconds()), PaintTimelineRecordType);
+    pushCurrentRecord(TimelineRecordFactory::createPaintTimelineRecord(m_frontend, currentTimeInMilliseconds(), rect),
+        PaintTimelineRecordType);
 }
 
 void InspectorTimelineAgent::didPaint()
@@ -145,14 +148,19 @@ void InspectorTimelineAgent::didLoadXHR()
     didCompleteCurrentRecord(XHRLoadRecordType);
 }
 
-void InspectorTimelineAgent::willEvaluateScriptTag(const String& url, int lineNumber)
+void InspectorTimelineAgent::willEvaluateScript(const String& url, int lineNumber)
 {
-    pushCurrentRecord(TimelineRecordFactory::createEvaluateScriptTagTimelineRecord(m_frontend, currentTimeInMilliseconds(), url, lineNumber), EvaluateScriptTagTimelineRecordType);
+    pushCurrentRecord(TimelineRecordFactory::createEvaluateScriptTimelineRecord(m_frontend, currentTimeInMilliseconds(), url, lineNumber), EvaluateScriptTimelineRecordType);
 }
     
-void InspectorTimelineAgent::didEvaluateScriptTag()
+void InspectorTimelineAgent::didEvaluateScript()
 {
-    didCompleteCurrentRecord(EvaluateScriptTagTimelineRecordType);
+    didCompleteCurrentRecord(EvaluateScriptTimelineRecordType);
+}
+
+void InspectorTimelineAgent::didMarkTimeline(const String& message)
+{
+    addRecordToTimeline(TimelineRecordFactory::createMarkTimelineRecord(m_frontend, currentTimeInMilliseconds(), message), MarkTimelineRecordType);
 }
 
 void InspectorTimelineAgent::reset()
@@ -180,13 +188,16 @@ void InspectorTimelineAgent::addRecordToTimeline(ScriptObject record, TimelineRe
 
 void InspectorTimelineAgent::didCompleteCurrentRecord(TimelineRecordType type)
 {
-    ASSERT(!m_recordStack.isEmpty());
-    TimelineRecordEntry entry = m_recordStack.last();
-    m_recordStack.removeLast();
-    ASSERT(entry.type == type);
-    entry.record.set("children", entry.children);
-    entry.record.set("endTime", currentTimeInMilliseconds());
-    addRecordToTimeline(entry.record, type);
+    // An empty stack could merely mean that the timeline agent was turned on in the middle of
+    // an event.  Don't treat as an error.
+    if (!m_recordStack.isEmpty()) {
+        TimelineRecordEntry entry = m_recordStack.last();
+        m_recordStack.removeLast();
+        ASSERT(entry.type == type);
+        entry.record.set("children", entry.children);
+        entry.record.set("endTime", currentTimeInMilliseconds());
+        addRecordToTimeline(entry.record, type);
+    }
 }
 
 double InspectorTimelineAgent::currentTimeInMilliseconds()

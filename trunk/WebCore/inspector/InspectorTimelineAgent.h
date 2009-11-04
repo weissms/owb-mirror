@@ -40,10 +40,11 @@
 namespace WebCore {
     class Event;
     class InspectorFrontend;
+    class IntRect;
 
     // Must be kept in sync with TimelineAgent.js
     enum TimelineRecordType {
-        DOMDispatchTimelineRecordType = 0,
+        EventDispatchTimelineRecordType = 0,
         LayoutTimelineRecordType = 1,
         RecalculateStylesTimelineRecordType = 2,
         PaintTimelineRecordType = 3,
@@ -53,7 +54,8 @@ namespace WebCore {
         TimerFireTimelineRecordType = 7,
         XHRReadyStateChangeRecordType = 8,
         XHRLoadRecordType = 9,
-        EvaluateScriptTagTimelineRecordType = 10,
+        EvaluateScriptTimelineRecordType = 10,
+        MarkTimelineRecordType = 11,
     };
 
     class InspectorTimelineAgent {
@@ -65,8 +67,8 @@ namespace WebCore {
         void resetFrontendProxyObject(InspectorFrontend*);
 
         // Methods called from WebCore.
-        void willDispatchDOMEvent(const Event&);
-        void didDispatchDOMEvent();
+        void willDispatchEvent(const Event&);
+        void didDispatchEvent();
 
         void willLayout();
         void didLayout();
@@ -74,7 +76,7 @@ namespace WebCore {
         void willRecalculateStyle();
         void didRecalculateStyle();
 
-        void willPaint();
+        void willPaint(const IntRect&);
         void didPaint();
 
         void willWriteHTML();
@@ -90,8 +92,10 @@ namespace WebCore {
         void willLoadXHR(const String&);
         void didLoadXHR();
 
-        void willEvaluateScriptTag(const String&, int);
-        void didEvaluateScriptTag();
+        void willEvaluateScript(const String&, int);
+        void didEvaluateScript();
+
+        void didMarkTimeline(const String&);
 
         static InspectorTimelineAgent* retrieve(ScriptExecutionContext*);
     private:

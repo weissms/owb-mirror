@@ -10,30 +10,37 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #if ENABLE(VIDEO)
 
 #import "WebVideoFullscreenHUDWindowController.h"
 
-#import <QTKit/QTKit.h>
 #import "WebKitSystemInterface.h"
 #import "WebTypesInternal.h"
-#import <wtf/RetainPtr.h>
-#import <limits>
+#import <JavaScriptCore/RetainPtr.h>
+#import <JavaScriptCore/UnusedParam.h>
+#import <WebCore/HTMLMediaElement.h>
 
+using namespace WebCore;
 using namespace std;
+
+static inline CGFloat webkit_CGFloor(CGFloat value)
+{
+    if (sizeof(value) == sizeof(float))
+        return floorf(value);
+    return floor(value);
+}
 
 #define HAVE_MEDIA_CONTROL (!defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD))
 
@@ -64,11 +71,6 @@ using namespace std;
 
 - (void)exitFullscreen:(id)sender;
 @end
-
-
-//
-// HUD Window
-//
 
 @interface WebVideoFullscreenHUDWindow : NSWindow
 @end
@@ -136,10 +138,6 @@ using namespace std;
 
 @end
 
-//
-// HUD Window Controller
-//
-
 static const CGFloat windowHeight = 59;
 static const CGFloat windowWidth = 438;
 
@@ -149,7 +147,7 @@ static const NSTimeInterval HUDWindowFadeOutDelay = 3;
 
 - (id)init
 {
-    NSWindow* window = [[WebVideoFullscreenHUDWindow alloc] initWithContentRect:NSMakeRect(0, 0, windowWidth, windowHeight)
+    NSWindow *window = [[WebVideoFullscreenHUDWindow alloc] initWithContentRect:NSMakeRect(0, 0, windowWidth, windowHeight)
                             styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
     self = [super initWithWindow:window];
     [window setDelegate:self];
@@ -236,7 +234,7 @@ static const NSTimeInterval HUDWindowFadeOutDelay = 3;
     // Note that this creates a retain cycle between the window and us.
     _timelineUpdateTimer = [[NSTimer timerWithTimeInterval:0.25 target:self selector:@selector(updateTime) userInfo:nil repeats:YES] retain];
 #if defined(BUILDING_ON_TIGER)
-    [[NSRunLoop currentRunLoop] addTimer:_timelineUpdateTimer forMode:(NSString*)kCFRunLoopCommonModes];
+    [[NSRunLoop currentRunLoop] addTimer:_timelineUpdateTimer forMode:(NSString *)kCFRunLoopCommonModes];
 #else
     [[NSRunLoop currentRunLoop] addTimer:_timelineUpdateTimer forMode:NSRunLoopCommonModes];
 #endif
@@ -326,7 +324,7 @@ static NSTextField *createTimeTextField(NSRect frame)
     NSTextField *textField = [[NSTextField alloc] initWithFrame:frame];
     [textField setTextColor:[NSColor whiteColor]];
     [textField setBordered:NO];
-    [textField setFont:[NSFont systemFontOfSize:10]];
+    [textField setFont:[NSFont boldSystemFontOfSize:10]];
     [textField setDrawsBackground:NO];
     [textField setBezeled:NO];
     [textField setEditable:NO];
@@ -336,10 +334,25 @@ static NSTextField *createTimeTextField(NSRect frame)
 
 - (void)windowDidLoad
 {
-    static const CGFloat kMargin = 9;
-    static const CGFloat kMarginTop = 9;
-    static const CGFloat kButtonSize = 25;
-    static const CGFloat kButtonMiniSize = 16;
+    static const CGFloat horizontalMargin = 10;
+    static const CGFloat playButtonWidth = 41;
+    static const CGFloat playButtonHeight = 35;
+    static const CGFloat playButtonTopMargin = 4;
+    static const CGFloat volumeSliderWidth = 50;
+    static const CGFloat volumeSliderHeight = 13;
+    static const CGFloat volumeButtonWidth = 18;
+    static const CGFloat volumeButtonHeight = 16;
+    static const CGFloat volumeUpButtonLeftMargin = 4;
+    static const CGFloat volumeControlsTopMargin = 13;
+    static const CGFloat exitFullScreenButtonWidth = 25;
+    static const CGFloat exitFullScreenButtonHeight = 21;
+    static const CGFloat exitFullScreenButtonTopMargin = 11;
+    static const CGFloat timelineWidth = 315;
+    static const CGFloat timelineHeight = 14;
+    static const CGFloat timelineBottomMargin = 7;
+    static const CGFloat timeTextFieldWidth = 54;
+    static const CGFloat timeTextFieldHeight = 13;
+    static const CGFloat timeTextFieldHorizontalMargin = 7;
 
     NSWindow *window = [self window];
     ASSERT(window);
@@ -351,53 +364,48 @@ static NSTextField *createTimeTextField(NSRect frame)
 #endif
     [window setContentView:background];
 #if !defined(BUILDING_ON_TIGER)
-    _area = [[NSTrackingArea alloc] initWithRect:[background bounds] options:NSTrackingMouseEnteredAndExited|NSTrackingActiveAlways owner:self userInfo:nil];
+    _area = [[NSTrackingArea alloc] initWithRect:[background bounds] options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways owner:self userInfo:nil];
     [background addTrackingArea:_area];
 #endif
     [background release];    
 
-    NSView *contentView = [[self window] contentView];
+    NSView *contentView = [window contentView];
 
-    CGFloat top = windowHeight - kMarginTop;
-    CGFloat center = (windowWidth - kButtonSize) / 2;
-    _playButton = createControlWithMediaUIControlType(WKMediaUIControlPlayPauseButton, NSMakeRect(center, top - kButtonSize, kButtonSize, kButtonSize));
+    CGFloat center = webkit_CGFloor((windowWidth - playButtonWidth) / 2);
+    _playButton = (NSButton *)createControlWithMediaUIControlType(WKMediaUIControlPlayPauseButton, NSMakeRect(center, windowHeight - playButtonTopMargin - playButtonHeight, playButtonWidth, playButtonHeight));
+    ASSERT([_playButton isKindOfClass:[NSButton class]]);
     [_playButton setTarget:self];
     [_playButton setAction:@selector(togglePlaying:)];
     [contentView addSubview:_playButton];
 
-    CGFloat closeToRight = windowWidth - 2 * kMargin - kButtonMiniSize;
-    NSControl *exitFullscreenButton = createControlWithMediaUIControlType(WKMediaUIControlExitFullscreenButton, NSMakeRect(closeToRight, top - kButtonSize / 2 - kButtonMiniSize / 2, kButtonMiniSize, kButtonMiniSize));
+    CGFloat closeToRight = windowWidth - horizontalMargin - exitFullScreenButtonWidth;
+    NSControl *exitFullscreenButton = createControlWithMediaUIControlType(WKMediaUIControlExitFullscreenButton, NSMakeRect(closeToRight, windowHeight - exitFullScreenButtonTopMargin - exitFullScreenButtonHeight, exitFullScreenButtonWidth, exitFullScreenButtonHeight));
     [exitFullscreenButton setAction:@selector(exitFullscreen:)];
     [exitFullscreenButton setTarget:self];
     [contentView addSubview:exitFullscreenButton];
     [exitFullscreenButton release];
     
-    CGFloat left = kMargin;
-    NSControl *volumeDownButton = createControlWithMediaUIControlType(WKMediaUIControlVolumeDownButton, NSMakeRect(left, top - kButtonSize / 2 - kButtonMiniSize / 2, kButtonMiniSize, kButtonMiniSize));
+    CGFloat volumeControlsBottom = windowHeight - volumeControlsTopMargin - volumeButtonHeight;
+    CGFloat left = horizontalMargin;
+    NSControl *volumeDownButton = createControlWithMediaUIControlType(WKMediaUIControlVolumeDownButton, NSMakeRect(left, volumeControlsBottom, volumeButtonWidth, volumeButtonHeight));
     [contentView addSubview:volumeDownButton];
     [volumeDownButton setTarget:self];
     [volumeDownButton setAction:@selector(setVolumeToZero:)];
     [volumeDownButton release];
 
-    static const int volumeSliderWidth = 50;
-
-    left = kMargin + kButtonMiniSize;
-    _volumeSlider = createControlWithMediaUIControlType(WKMediaUIControlSlider, NSMakeRect(left, top - kButtonSize / 2 - kButtonMiniSize / 2, volumeSliderWidth, kButtonMiniSize));
+    left += volumeButtonWidth;
+    _volumeSlider = createControlWithMediaUIControlType(WKMediaUIControlSlider, NSMakeRect(left, volumeControlsBottom + webkit_CGFloor((volumeButtonHeight - volumeSliderHeight) / 2), volumeSliderWidth, volumeSliderHeight));
     [_volumeSlider setValue:[NSNumber numberWithDouble:[self maxVolume]] forKey:@"maxValue"];
     [_volumeSlider setTarget:self];
     [_volumeSlider setAction:@selector(volumeChanged:)];
     [contentView addSubview:_volumeSlider];
 
-    left = kMargin + kButtonMiniSize + volumeSliderWidth + kButtonMiniSize / 2;
-    NSControl *volumeUpButton = createControlWithMediaUIControlType(WKMediaUIControlVolumeUpButton, NSMakeRect(left, top - kButtonSize / 2 - kButtonMiniSize / 2, kButtonMiniSize, kButtonMiniSize));
+    left += volumeSliderWidth + volumeUpButtonLeftMargin;
+    NSControl *volumeUpButton = createControlWithMediaUIControlType(WKMediaUIControlVolumeUpButton, NSMakeRect(left, volumeControlsBottom, volumeButtonWidth, volumeButtonHeight));
     [volumeUpButton setTarget:self];
     [volumeUpButton setAction:@selector(setVolumeToMaximum:)];
     [contentView addSubview:volumeUpButton];
     [volumeUpButton release];
-    
-    static const int timeTextWidth = 50;
-    static const int sliderHeight = 13;
-    static const int sliderMarginFixup = 4;
 
 #ifdef HAVE_MEDIA_CONTROL
     _timeline = WKCreateMediaUIControl(WKMediaUIControlTimeline);
@@ -406,26 +414,21 @@ static NSTextField *createTimeTextField(NSRect frame)
 #endif
     [_timeline setTarget:self];
     [_timeline setAction:@selector(timelinePositionChanged:)];
-    [_timeline setFrame:NSMakeRect(kMargin + timeTextWidth + kMargin/2, kMargin - sliderMarginFixup, windowWidth - 2 * (kMargin - sliderMarginFixup) - kMargin * 2 - 2 * timeTextWidth, sliderHeight)];
+    [_timeline setFrame:NSMakeRect(webkit_CGFloor((windowWidth - timelineWidth) / 2), timelineBottomMargin, timelineWidth, timelineHeight)];
     [contentView addSubview:_timeline];
 
-    static const int timeTextHeight = 11;
-
-    _elapsedTimeText = createTimeTextField(NSMakeRect(kMargin, kMargin, timeTextWidth, timeTextHeight));
+    _elapsedTimeText = createTimeTextField(NSMakeRect(timeTextFieldHorizontalMargin, timelineBottomMargin, timeTextFieldWidth, timeTextFieldHeight));
+    [_elapsedTimeText setAlignment:NSLeftTextAlignment];
     [contentView addSubview:_elapsedTimeText];
 
-    _remainingTimeText = createTimeTextField(NSMakeRect(windowWidth - kMargin - timeTextWidth, kMargin, timeTextWidth, timeTextHeight));
+    _remainingTimeText = createTimeTextField(NSMakeRect(windowWidth - timeTextFieldHorizontalMargin - timeTextFieldWidth, timelineBottomMargin, timeTextFieldWidth, timeTextFieldHeight));
+    [_remainingTimeText setAlignment:NSRightTextAlignment];
     [contentView addSubview:_remainingTimeText];
-    
+
     [window recalculateKeyViewLoop];
     [window setInitialFirstResponder:_playButton];
     [window center];
 }
-                                
-/*
- *  Bindings
- *
- */
 
 - (void)updateVolume
 {
@@ -437,14 +440,10 @@ static NSTextField *createTimeTextField(NSRect frame)
     [self updateVolume];
 
     [_timeline setFloatValue:[self currentTime]];
-    [(NSSlider*)_timeline setMaxValue:[self duration]];
+    [_timeline setValue:[NSNumber numberWithDouble:[self duration]] forKey:@"maxValue"];
 
     [_remainingTimeText setStringValue:[self remainingTimeText]];
     [_elapsedTimeText setStringValue:[self elapsedTimeText]];
-}
-
-- (void)fastForward
-{
 }
 
 - (void)timelinePositionChanged:(id)sender
@@ -565,46 +564,29 @@ static NSTextField *createTimeTextField(NSRect frame)
 
 static NSString *timeToString(double time)
 {
+    ASSERT_ARG(time, time >= 0);
+
     if (!isfinite(time))
         time = 0;
-    int seconds = (int)fabsf(time); 
+
+    int seconds = fabs(time); 
     int hours = seconds / (60 * 60);
     int minutes = (seconds / 60) % 60;
     seconds %= 60;
-    if (hours) {
-        if (hours > 9)
-            return [NSString stringWithFormat:@"%s%02d:%02d:%02d", (time < 0 ? "-" : ""), hours, minutes, seconds];
-        else
-            return [NSString stringWithFormat:@"%s%01d:%02d:%02d", (time < 0 ? "-" : ""), hours, minutes, seconds];
-    }
-    else
-        return [NSString stringWithFormat:@"%s%02d:%02d", (time < 0 ? "-" : ""), minutes, seconds];
-    
-}
 
-static NSString *stringToTimeTextAttributed(NSString *string, NSTextAlignment align)
-{
-    NSShadow *blackShadow = [[NSShadow alloc] init];
-    [blackShadow setShadowColor:[NSColor blackColor]];
-    [blackShadow setShadowBlurRadius:0];
-    [blackShadow setShadowOffset:NSMakeSize(0, -1)];
-    NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
-    [style setAlignment:align];
-    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:blackShadow, NSShadowAttributeName, style, NSParagraphStyleAttributeName, nil];
-    [style release];
-    [blackShadow release];
+    if (hours)
+        return [NSString stringWithFormat:@"%d:%02d:%02d", hours, minutes, seconds];
 
-    NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:string attributes:dict];
-    return [attrString autorelease];    
+    return [NSString stringWithFormat:@"%02d:%02d", minutes, seconds];    
 }
 
 - (NSString *)remainingTimeText
 {
-    if (![_delegate mediaElement])
+    HTMLMediaElement* mediaElement = [_delegate mediaElement];
+    if (!mediaElement)
         return @"";
 
-    // Negative number
-    return stringToTimeTextAttributed(timeToString([_delegate mediaElement]->currentTime() - [_delegate mediaElement]->duration()), NSLeftTextAlignment);
+    return [@"-" stringByAppendingString:timeToString(mediaElement->duration() - mediaElement->currentTime())];
 }
 
 - (NSString *)elapsedTimeText
@@ -612,13 +594,10 @@ static NSString *stringToTimeTextAttributed(NSString *string, NSTextAlignment al
     if (![_delegate mediaElement])
         return @"";
 
-    return stringToTimeTextAttributed(timeToString([_delegate mediaElement]->currentTime()), NSRightTextAlignment);
+    return timeToString([_delegate mediaElement]->currentTime());
 }
 
-/*
- *  Tracking area callbacks
- *
- */
+#pragma mark NSResponder
 
 - (void)mouseEntered:(NSEvent *)theEvent
 {
@@ -632,11 +611,6 @@ static NSString *stringToTimeTextAttributed(NSString *string, NSTextAlignment al
     _mouseIsInHUD = NO;
     [self fadeWindowIn];
 }
-
-/*
- *  Other Interface callbacks
- *
- */
 
 - (void)rewind:(id)sender
 {
@@ -659,10 +633,7 @@ static NSString *stringToTimeTextAttributed(NSString *string, NSTextAlignment al
     [_delegate requestExitFullscreen]; 
 }
 
-/*
- *  Window callback
- *
- */
+#pragma mark NSWindowDelegate
 
 - (void)windowDidExpose:(NSNotification *)notification
 {

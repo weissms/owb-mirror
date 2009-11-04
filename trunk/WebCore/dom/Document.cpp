@@ -1244,6 +1244,7 @@ void Document::recalcStyle(StyleChange change)
 
     m_inStyleRecalc = true;
     suspendPostAttachCallbacks();
+    RenderWidget::suspendWidgetHierarchyUpdates();
     if (view())
         view()->pauseScheduledEvents();
     
@@ -1306,6 +1307,7 @@ bail_out:
 
     if (view())
         view()->resumeScheduledEvents();
+    RenderWidget::resumeWidgetHierarchyUpdates();
     resumePostAttachCallbacks();
     m_inStyleRecalc = false;
 
@@ -4545,7 +4547,7 @@ void Document::scriptImported(unsigned long identifier, const String& sourceStri
 
 class ScriptExecutionContextTaskTimer : public TimerBase {
 public:
-    ScriptExecutionContextTaskTimer(PassRefPtr<Document> context, PassRefPtr<ScriptExecutionContext::Task> task)
+    ScriptExecutionContextTaskTimer(PassRefPtr<Document> context, PassOwnPtr<ScriptExecutionContext::Task> task)
         : m_context(context)
         , m_task(task)
     {
@@ -4559,18 +4561,18 @@ private:
     }
 
     RefPtr<Document> m_context;
-    RefPtr<ScriptExecutionContext::Task> m_task;
+    OwnPtr<ScriptExecutionContext::Task> m_task;
 };
 
-struct PerformTaskContext {
-    PerformTaskContext(ScriptExecutionContext* scriptExecutionContext, PassRefPtr<ScriptExecutionContext::Task> task)
+struct PerformTaskContext : Noncopyable {
+    PerformTaskContext(ScriptExecutionContext* scriptExecutionContext, PassOwnPtr<ScriptExecutionContext::Task> task)
         : scriptExecutionContext(scriptExecutionContext)
         , task(task)
     {
     }
 
     ScriptExecutionContext* scriptExecutionContext; // The context should exist until task execution.
-    RefPtr<ScriptExecutionContext::Task> task;
+    OwnPtr<ScriptExecutionContext::Task> task;
 };
 
 static void performTask(void* ctx)
@@ -4580,7 +4582,7 @@ static void performTask(void* ctx)
     delete ptctx;
 }
 
-void Document::postTask(PassRefPtr<Task> task)
+void Document::postTask(PassOwnPtr<Task> task)
 {
     if (isMainThread()) {
         ScriptExecutionContextTaskTimer* timer = new ScriptExecutionContextTaskTimer(static_cast<Document*>(this), task);
@@ -4642,6 +4644,13 @@ bool Document::isXHTMLMPDocument() const
     // MUST accept XHTMLMP document identified as "application/vnd.wap.xhtml+xml"
     // and SHOULD accept it identified as "application/xhtml+xml"
     return frame()->loader()->responseMIMEType() == "application/vnd.wap.xhtml+xml" || frame()->loader()->responseMIMEType() == "application/xhtml+xml";
+}
+#endif
+
+#if ENABLE(INSPECTOR)
+InspectorTimelineAgent* Document::inspectorTimelineAgent() const 
+{
+    return page() ? page()->inspectorTimelineAgent() : 0;
 }
 #endif
 

@@ -57,10 +57,13 @@ WebInspector.AbstractTimelinePanel.prototype = {
         // Should be implemented by the concrete subclasses.
     },
 
+    get items()
+    {
+        return this._items;
+    },
+
     createInterface: function()
     {
-        this._createFilterPanel();
-
         this.containerElement = document.createElement("div");
         this.containerElement.id = "resources-container";
         this.containerElement.addEventListener("scroll", this._updateDividersLabelBarPosition.bind(this), false);
@@ -70,10 +73,19 @@ WebInspector.AbstractTimelinePanel.prototype = {
         this.sidebarElement.id = "resources-sidebar";
         this.populateSidebar();
 
-        this._createGraph();
+        this._containerContentElement = document.createElement("div");
+        this._containerContentElement.id = "resources-container-content";
+        this.containerElement.appendChild(this._containerContentElement);
+
+        this.summaryBar = new WebInspector.SummaryBar(this.categories);
+        this.summaryBar.element.id = "resources-summary";
+        this._containerContentElement.appendChild(this.summaryBar.element);
+
+        this._timelineGrid = new WebInspector.TimelineGrid(this._containerContentElement);
+        this.itemsGraphsElement = this._timelineGrid.itemsGraphsElement;
     },
 
-    _createFilterPanel: function()
+    createFilterPanel: function()
     {
         this.filterBarElement = document.createElement("div");
         this.filterBarElement.id = "resources-filter";
@@ -108,14 +120,14 @@ WebInspector.AbstractTimelinePanel.prototype = {
             createFilterElement.call(this, category);
     },
 
-    _showCategory: function(category)
+    showCategory: function(category)
     {
         var filterClass = "filter-" + category.toLowerCase();
         this.itemsGraphsElement.addStyleClass(filterClass);
         this.itemsTreeElement.childrenListElement.addStyleClass(filterClass);
     },
 
-    _hideCategory: function(category)
+    hideCategory: function(category)
     {
         var filterClass = "filter-" + category.toLowerCase();
         this.itemsGraphsElement.removeStyleClass(filterClass);
@@ -132,7 +144,7 @@ WebInspector.AbstractTimelinePanel.prototype = {
                     continue;
 
                 child.removeStyleClass("selected");
-                this._hideCategory(child.category);
+                this.hideCategory(child.category);
             }
         }
 
@@ -148,7 +160,7 @@ WebInspector.AbstractTimelinePanel.prototype = {
             // Something other than All is being selected, so we want to unselect All.
             if (this.filterAllElement.hasStyleClass("selected")) {
                 this.filterAllElement.removeStyleClass("selected");
-                this._hideCategory("all");
+                this.hideCategory("all");
             }
         }
 
@@ -158,7 +170,7 @@ WebInspector.AbstractTimelinePanel.prototype = {
             unselectAll.call(this);
 
             target.addStyleClass("selected");
-            this._showCategory(target.category);
+            this.showCategory(target.category);
             return;
         }
 
@@ -166,12 +178,12 @@ WebInspector.AbstractTimelinePanel.prototype = {
             // If selectMultiple is turned on, and we were selected, we just
             // want to unselect ourselves.
             target.removeStyleClass("selected");
-            this._hideCategory(target.category);
+            this.hideCategory(target.category);
         } else {
             // If selectMultiple is turned on, and we weren't selected, we just
             // want to select ourselves.
             target.addStyleClass("selected");
-            this._showCategory(target.category);
+            this.showCategory(target.category);
         }
     },
 
@@ -191,33 +203,6 @@ WebInspector.AbstractTimelinePanel.prototype = {
         this.containerElement.scrollTop = 0;
     },
 
-    _createGraph: function()
-    {
-        this._containerContentElement = document.createElement("div");
-        this._containerContentElement.id = "resources-container-content";
-        this.containerElement.appendChild(this._containerContentElement);
-
-        this.summaryBar = new WebInspector.SummaryBar(this.categories);
-        this.summaryBar.element.id = "resources-summary";
-        this._containerContentElement.appendChild(this.summaryBar.element);
-
-        this.itemsGraphsElement = document.createElement("div");
-        this.itemsGraphsElement.id = "resources-graphs";
-        this._containerContentElement.appendChild(this.itemsGraphsElement);
-
-        this.dividersElement = document.createElement("div");
-        this.dividersElement.id = "resources-dividers";
-        this._containerContentElement.appendChild(this.dividersElement);
-
-        this.eventDividersElement = document.createElement("div");
-        this.eventDividersElement.id = "resources-event-dividers";
-        this._containerContentElement.appendChild(this.eventDividersElement);
-
-        this.dividersLabelBarElement = document.createElement("div");
-        this.dividersLabelBarElement.id = "resources-dividers-label-bar";
-        this._containerContentElement.appendChild(this.dividersLabelBarElement);
-    },
-
     updateGraphDividersIfNeeded: function(force)
     {
         if (!this.visible) {
@@ -231,43 +216,14 @@ WebInspector.AbstractTimelinePanel.prototype = {
             return false;
         }
 
-        var dividerCount = Math.round(this.dividersElement.offsetWidth / 64);
-        var slice = this.calculator.boundarySpan / dividerCount;
-        if (!force && this._currentDividerSlice === slice)
-            return false;
-
-        this._currentDividerSlice = slice;
-
-        this.dividersElement.removeChildren();
-        this.eventDividersElement.removeChildren();
-        this.dividersLabelBarElement.removeChildren();
-
-        for (var i = 1; i <= dividerCount; ++i) {
-            var divider = document.createElement("div");
-            divider.className = "resources-divider";
-            if (i === dividerCount)
-                divider.addStyleClass("last");
-            divider.style.left = ((i / dividerCount) * 100) + "%";
-
-            this.dividersElement.appendChild(divider.cloneNode());
-
-            var label = document.createElement("div");
-            label.className = "resources-divider-label";
-            if (!isNaN(slice))
-                label.textContent = this.calculator.formatValue(slice * i);
-            divider.appendChild(label);
-
-            this.dividersLabelBarElement.appendChild(divider);
-        }
+        return this._timelineGrid.updateDividers(force, this.calculator);
     },
 
     _updateDividersLabelBarPosition: function()
     {
         var scrollTop = this.containerElement.scrollTop;
         var dividersTop = (scrollTop < this.summaryBar.element.offsetHeight ? this.summaryBar.element.offsetHeight : scrollTop);
-        this.dividersElement.style.top = scrollTop + "px";
-        this.eventDividersElement.style.top = scrollTop + "px";
-        this.dividersLabelBarElement.style.top = dividersTop + "px";
+        this._timelineGrid.setScrollAndDividerTop(scrollTop, dividersTop);
     },
 
     get needsRefresh()
@@ -318,11 +274,17 @@ WebInspector.AbstractTimelinePanel.prototype = {
         this.updateGraphDividersIfNeeded();
     },
 
+    invalidateAllItems: function()
+    {
+        this._staleItems = this._items;
+    },
+
     refresh: function()
     {
         this.needsRefresh = false;
 
         var staleItemsLength = this._staleItems.length;
+
         var boundariesChanged = false;
 
         for (var i = 0; i < staleItemsLength; ++i) {
@@ -458,6 +420,11 @@ WebInspector.AbstractTimelinePanel.prototype = {
         // Prevent the container from being scrolled off the end.
         if ((this.containerElement.scrollTop + this.containerElement.offsetHeight) > this.sidebarElement.offsetHeight)
             this.containerElement.scrollTop = (this.sidebarElement.offsetHeight - this.containerElement.offsetHeight);
+    },
+
+    addEventDivider: function(divider)
+    {
+        this._timelineGrid.addEventDivider(divider);
     }
 }
 
@@ -544,5 +511,76 @@ WebInspector.AbstractTimelineCategory.prototype = {
     toString: function()
     {
         return this.title;
+    }
+}
+
+WebInspector.TimelineGrid = function(container)
+{
+    this._itemsGraphsElement = document.createElement("div");
+    this._itemsGraphsElement.id = "resources-graphs";
+    container.appendChild(this._itemsGraphsElement);
+
+    this._dividersElement = document.createElement("div");
+    this._dividersElement.id = "resources-dividers";
+    container.appendChild(this._dividersElement);
+
+    this._eventDividersElement = document.createElement("div");
+    this._eventDividersElement.id = "resources-event-dividers";
+    container.appendChild(this._eventDividersElement);
+
+    this._dividersLabelBarElement = document.createElement("div");
+    this._dividersLabelBarElement.id = "resources-dividers-label-bar";
+    container.appendChild(this._dividersLabelBarElement);
+}
+
+WebInspector.TimelineGrid.prototype = {
+    get itemsGraphsElement()
+    {
+        return this._itemsGraphsElement;
+    },
+
+    updateDividers: function(force, calculator)
+    {
+        var dividerCount = Math.round(this._dividersElement.offsetWidth / 64);
+        var slice = calculator.boundarySpan / dividerCount;
+        if (!force && this._currentDividerSlice === slice)
+            return false;
+
+        this._currentDividerSlice = slice;
+
+        this._dividersElement.removeChildren();
+        this._eventDividersElement.removeChildren();
+        this._dividersLabelBarElement.removeChildren();
+
+        for (var i = 1; i <= dividerCount; ++i) {
+            var divider = document.createElement("div");
+            divider.className = "resources-divider";
+            if (i === dividerCount)
+                divider.addStyleClass("last");
+            divider.style.left = ((i / dividerCount) * 100) + "%";
+
+            this._dividersElement.appendChild(divider.cloneNode());
+
+            var label = document.createElement("div");
+            label.className = "resources-divider-label";
+            if (!isNaN(slice))
+                label.textContent = calculator.formatValue(slice * i);
+            divider.appendChild(label);
+
+            this._dividersLabelBarElement.appendChild(divider);
+        }
+        return true;
+    },
+
+    addEventDivider: function(divider)
+    {
+        this._eventDividersElement.appendChild(divider);
+    },
+
+    setScrollAndDividerTop: function(scrollTop, dividersTop)
+    {
+        this._dividersElement.style.top = scrollTop + "px";
+        this._eventDividersElement.style.top = scrollTop + "px";
+        this._dividersLabelBarElement.style.top = dividersTop + "px";
     }
 }

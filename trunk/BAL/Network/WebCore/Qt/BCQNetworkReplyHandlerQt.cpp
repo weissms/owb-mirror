@@ -157,7 +157,11 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
     else
         m_method = QNetworkAccessManager::UnknownOperation;
 
-    m_request = r.toNetworkRequest();
+#if QT_VERSION < QT_VERSION_CHECK(4, 6, 0)
+    m_request = r.toNetworkRequest(0);
+#else
+    m_request = r.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
+#endif
 
     if (m_loadMode == LoadNormal)
         start();
@@ -341,11 +345,10 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
 
         client->willSendRequest(m_resourceHandle, newRequest, response);
         m_redirected = true;
-        m_request = newRequest.toNetworkRequest();
-
-#if 0
-        ResourceHandleInternal* d = m_resourceHandle->getInternal();
-        emit d->m_frame->page()->networkRequestStarted(d->m_frame, &m_request);
+#if QT_VERSION < QT_VERSION_CHECK(4, 6, 0)
+        m_request = newRequest.toNetworkRequest(0);
+#else
+        m_request = newRequest.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
 #endif
         return;
     }
@@ -388,7 +391,6 @@ void QNetworkReplyHandler::start()
 
 #if 0
     QNetworkAccessManager* manager = d->m_frame->page()->networkAccessManager();
-    emit d->m_frame->page()->networkRequestStarted(d->m_frame, &m_request);
 #else
     QNetworkAccessManager* manager = createAccessManager();
 #endif

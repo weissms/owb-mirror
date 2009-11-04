@@ -211,9 +211,9 @@ bool Database::openAndVerifyVersion(ExceptionCode& e)
 
     bool success = false;
     DatabaseTaskSynchronizer synchronizer;
-    RefPtr<DatabaseOpenTask> task = DatabaseOpenTask::create(this, &synchronizer, e, success);
+    OwnPtr<DatabaseOpenTask> task = DatabaseOpenTask::create(this, &synchronizer, e, success);
 
-    m_document->databaseThread()->scheduleImmediateTask(task);
+    m_document->databaseThread()->scheduleImmediateTask(task.release());
     synchronizer.waitForTaskCompletion();
 
     return success;
@@ -322,9 +322,9 @@ void Database::markAsDeletedAndClose()
     m_document->databaseThread()->unscheduleDatabaseTasks(this);
 
     DatabaseTaskSynchronizer synchronizer;
-    RefPtr<DatabaseCloseTask> task = DatabaseCloseTask::create(this, &synchronizer);
+    OwnPtr<DatabaseCloseTask> task = DatabaseCloseTask::create(this, &synchronizer);
 
-    m_document->databaseThread()->scheduleImmediateTask(task);
+    m_document->databaseThread()->scheduleImmediateTask(task.release());
     synchronizer.waitForTaskCompletion();
 }
 
@@ -542,7 +542,7 @@ void Database::scheduleTransaction()
     }
 
     if (transaction && m_document->databaseThread()) {
-        RefPtr<DatabaseTransactionTask> task = DatabaseTransactionTask::create(transaction);
+        OwnPtr<DatabaseTransactionTask> task = DatabaseTransactionTask::create(transaction);
         LOG(StorageAPI, "Scheduling DatabaseTransactionTask %p for transaction %p\n", task.get(), task->transaction());
         m_transactionInProgress = true;
         m_document->databaseThread()->scheduleTask(task.release());
@@ -555,7 +555,7 @@ void Database::scheduleTransactionStep(SQLTransaction* transaction, bool immedia
     if (!m_document->databaseThread())
         return;
 
-    RefPtr<DatabaseTransactionTask> task = DatabaseTransactionTask::create(transaction);
+    OwnPtr<DatabaseTransactionTask> task = DatabaseTransactionTask::create(transaction);
     LOG(StorageAPI, "Scheduling DatabaseTransactionTask %p for the transaction step\n", task.get());
     if (immediately)
         m_document->databaseThread()->scheduleImmediateTask(task.release());
@@ -632,9 +632,9 @@ Vector<String> Database::tableNames()
         return result;
 
     DatabaseTaskSynchronizer synchronizer;
-    RefPtr<DatabaseTableNamesTask> task = DatabaseTableNamesTask::create(this, &synchronizer, result);
+    OwnPtr<DatabaseTableNamesTask> task = DatabaseTableNamesTask::create(this, &synchronizer, result);
 
-    m_document->databaseThread()->scheduleImmediateTask(task);
+    m_document->databaseThread()->scheduleImmediateTask(task.release());
     synchronizer.waitForTaskCompletion();
 
     return result;
