@@ -135,6 +135,7 @@ BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/SimpleFontDataPango.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCacheQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontFallbackListQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformData.h
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformDataQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt.cpp
@@ -457,6 +458,8 @@ BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCU
 BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
+BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextCodecGtk.h
+BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextCodecGtk.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBoundariesICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorInternalICU.h

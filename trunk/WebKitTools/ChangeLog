@@ -1,3 +1,106 @@
+2009-11-06  Eric Seidel  <eric@webkit.org>
+
+        No review, just add a line which got left out of the patch uploaded for commit.
+
+        commit-queue is crashing when trying to reject patches after unknown failures
+        https://bugs.webkit.org/show_bug.cgi?id=31091
+
+        * Scripts/bugzilla-tool: Set bug_log = None after closing to we don't re-close and crash.
+
+2009-11-04  Adam Roben  <aroben@apple.com>
+
+        Remove bogus else clause in bugzilla-tool
+
+        Fixes <http://webkit.org/b/31125> REGRESSION (r47121): bugzilla-tool
+        create-bug raises exception after entering bug description
+
+        Reviewed by David Kilzer.
+
+        * Scripts/bugzilla-tool:
+        (CreateBug): else clauses are only hit if no exception is raised, so
+        it makes no sense to try to re-raise the exception in an else clause.
+        The exception will automatically be re-raised if it doesn't match any
+        of the except clauses, so we don't have to do anything special here at
+        all to get the desired behavior.
+
+2009-11-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        svn-apply's fixChangeLogPatch function seems broken
+        https://bugs.webkit.org/show_bug.cgi?id=30683
+
+        Update fixChangeLogPatch to be able to handle patches which
+        don't start at line 1.
+        Add unit tests for svn-apply to scm_unittest.py.
+
+        * Scripts/VCSUtils.pm:
+        * Scripts/modules/scm_unittest.py:
+
+2009-11-04  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Need to implement ARIA role="combobox"
+        https://bugs.webkit.org/show_bug.cgi?id=31096
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (showMenuCallback):
+        (getIsExpandedCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::isExpanded):
+        (AccessibilityUIElement::showMenu):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isExpanded):
+        (AccessibilityUIElement::showMenu):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::isSelected):
+        (AccessibilityUIElement::isExpanded):
+        (AccessibilityUIElement::showMenu):
+
+2009-11-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        commit-queue is crashing when trying to reject patches after unknown failures
+        https://bugs.webkit.org/show_bug.cgi?id=31091
+
+        * Scripts/bugzilla-tool:
+         - patch['id'] was a copy/paste mistake.  This code has no 'patch' variable
+           so we have to find out what the current patch is by asking bugzilla again.
+         - Discovered that this code was also leaking file descriptors, so fixed that.
+
+2009-11-04  Adam Roben  <aroben@apple.com>
+
+        Make run-webkit-tests work for the Debug_Internal Windows
+        configuration
+
+        In Debug_Internal, DumpRenderTree.exe and ImageDiff.exe have no _debug
+        suffix.
+
+        Fixes <http://webkit.org/b/31123>.
+
+        Reviewed by Sam Weinig.
+
+        * Scripts/run-webkit-tests: Don't add the _debug suffix in
+        Debug_Internal, either.
+
+2009-11-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        committers.py needs a way to store non-bugzilla email addresses
+        https://bugs.webkit.org/show_bug.cgi?id=31037
+
+        Make Committer and Reviewer constructors take a single email or a list of emails.
+        Change committer_by_bugzilla_email functions to committer_by_email to support lookup by any email.
+        Expose reviewers(), used by validate-committer-lists on bug 30970.
+
+        * Scripts/modules/committers.py:
+        * Scripts/modules/committers_unittest.py: Added tests for the new code.
+
 2009-11-04  Yuzo Fujishima  <yuzo@google.com>
 
         Reviewed by David Levin.

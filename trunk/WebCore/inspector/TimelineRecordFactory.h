@@ -38,6 +38,8 @@ namespace WebCore {
     class Event;
     class InspectorFrontend;
     class IntRect;
+    class ResourceRequest;
+    class ResourceResponse;
     class ScriptObject;
 
     class TimelineRecordFactory {
@@ -50,14 +52,21 @@ namespace WebCore {
 
         static ScriptObject createTimerInstallRecord(InspectorFrontend*, double startTime, int timerId, int timeout, bool singleShot);
 
-        static ScriptObject createXHRReadyStateChangeTimelineRecord(InspectorFrontend*, double startTime, const String& url, int readyState);
-        static ScriptObject createXHRLoadTimelineRecord(InspectorFrontend*, double startTime, const String& url);
+        static ScriptObject createXHRReadyStateChangeRecord(InspectorFrontend*, double startTime, const String& url, int readyState);
+        static ScriptObject createXHRLoadRecord(InspectorFrontend*, double startTime, const String& url);
         
-        static ScriptObject createEvaluateScriptTimelineRecord(InspectorFrontend*, double startTime, const String&, double lineNumber);
+        static ScriptObject createEvaluateScriptRecord(InspectorFrontend*, double startTime, const String&, double lineNumber);
         
-        static ScriptObject createPaintTimelineRecord(InspectorFrontend*, double startTime, const IntRect&);
-
         static ScriptObject createMarkTimelineRecord(InspectorFrontend*, double startTime, const String&);
+
+        static ScriptObject createResourceSendRequestRecord(InspectorFrontend*, double startTime,
+            unsigned long identifier, bool isMainResource, const ResourceRequest&);
+        static ScriptObject createResourceReceiveResponseRecord(InspectorFrontend*, double startTime,
+            unsigned long identifier, const ResourceResponse&);
+        static ScriptObject createResourceFinishRecord(InspectorFrontend*, double startTime,
+            unsigned long identifier, bool didFail);
+
+        static ScriptObject createPaintRecord(InspectorFrontend*, double startTime, const IntRect&);
 
     private:
         TimelineRecordFactory() { }

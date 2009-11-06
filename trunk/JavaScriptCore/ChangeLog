@@ -1,3 +1,192 @@
+2009-11-06  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31159
+        Fix branchDouble behaviour on ARM THUMB2 JIT.
+
+        The x86 branchDouble behaviour is reworked, and all JIT
+        ports should follow the x86 port. See bug 31104 and 31151
+
+        This patch contains a fix for the traditional ARM port
+
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::):
+        (JSC::ARMAssembler::fmrs_r):
+        (JSC::ARMAssembler::ftosid_r):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::):
+        (JSC::MacroAssemblerARM::branchDouble):
+        (JSC::MacroAssemblerARM::branchConvertDoubleToInt32):
+
+2009-11-05  Chris Jerdonek  <chris.jerdonek@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        Removed the "this is part of the KDE project" comments from 
+        all *.h, *.cpp, *.idl, and *.pm files.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=31167
+        
+        The maintenance and architecture page in the project wiki lists
+        this as a task.
+        
+        This change includes no changes or additions to test cases 
+        since the change affects only comments.
+        
+        * wtf/wince/FastMallocWince.h:
+
+2009-11-05  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Use ARMv7 specific encoding for immediate constants on ARMv7 target
+        https://bugs.webkit.org/show_bug.cgi?id=31060
+
+        * assembler/ARMAssembler.cpp:
+        (JSC::ARMAssembler::getOp2): Use INVALID_IMM
+        (JSC::ARMAssembler::getImm): Use encodeComplexImm for complex immediate
+        (JSC::ARMAssembler::moveImm): Ditto.
+        (JSC::ARMAssembler::encodeComplexImm): Encode a constant by one or two
+        instructions or a PC relative load.
+        * assembler/ARMAssembler.h: Use INVALID_IMM if a constant cannot be
+        encoded as an immediate constant.
+        (JSC::ARMAssembler::):
+        (JSC::ARMAssembler::movw_r): 16-bit immediate load
+        (JSC::ARMAssembler::movt_r): High halfword 16-bit immediate load
+        (JSC::ARMAssembler::getImm16Op2): Encode immediate constant for
+        movw_r and mowt_r
+
+2009-11-04  Mark Mentovai  <mark@chromium.org>
+
+        Reviewed by Mark Rowe.
+
+        Provide TARGETING_TIGER and TARGETING_LEOPARD as analogues to
+        BUILDING_ON_TIGER and BUILDING_ON_LEOPARD.  The TARGETING_ macros
+        consider the deployment target; the BUILDING_ON_ macros consider the
+        headers being built against.
+
+        * wtf/Platform.h:
+
+2009-11-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31151
+        Fix branchDouble behaviour on ARM THUMB2 JIT.
+
+        The ARMv7 JIT is currently using ARMv7Assembler::ConditionEQ to branch
+        for DoubleEqualOrUnordered, however this is incorrect – ConditionEQ won't
+        branch on unordered operands.  Similarly, DoubleLessThanOrUnordered &
+        DoubleLessThanOrEqualOrUnordered use ARMv7Assembler::ConditionLO &
+        ARMv7Assembler::ConditionLS, whereas they should be using
+        ARMv7Assembler::ConditionLT & ARMv7Assembler::ConditionLE.
+
+        Fix these, and fill out the missing DoubleConditions.
+
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::):
+        (JSC::MacroAssemblerARMv7::branchDouble):
+
+2009-11-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Oliver Hunt.
+
+        Enable native call optimizations on ARMv7.  (Existing ARM_TRADITIONAL
+        implementation was generic, worked perfectly, just needed turning on).
+
+        * jit/JITOpcodes.cpp:
+        * wtf/Platform.h:
+
+2009-11-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Mark Rowe, Oliver Hunt, and Sam Weinig.
+
+        Add a missing assert to the ARMv7 JIT.
+
+        * assembler/ARMv7Assembler.h:
+        (JSC::ARMThumbImmediate::ARMThumbImmediate):
+
+2009-11-04  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Remove bogus op_ prefix on dumped version of three opcodes.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+
+2009-11-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix dumping of constants in bytecode so that they aren't printed as large positive register numbers.
+
+        We do this by having the registerName function return information about the constant if the register
+        number corresponds to a constant.  This requires that registerName, and several functions that call it,
+        be converted to member functions of CodeBlock so that the constant value can be retrieved.  The
+        ExecState also needs to be threaded down through these functions so that it can be passed on to
+        constantName when needed.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::constantName):
+        (JSC::CodeBlock::registerName):
+        (JSC::CodeBlock::printUnaryOp):
+        (JSC::CodeBlock::printBinaryOp):
+        (JSC::CodeBlock::printConditionalJump):
+        (JSC::CodeBlock::printGetByIdOp):
+        (JSC::CodeBlock::printPutByIdOp):
+        (JSC::CodeBlock::dump):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::isConstantRegisterIndex):
+
+2009-11-04  Pavel Heimlich  <tropikhajma@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30647
+        Solaris build failure due to strnstr.
+
+        * wtf/StringExtras.h: Enable strnstr on Solaris, too.
+
+2009-11-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31104
+        Refactor x86-specific behaviour out of the JIT.
+
+        - Add explicit double branch conditions for ordered and unordered comparisons (presently the brehaviour is a mix).
+        - Refactor double to int conversion out into the MacroAssembler.
+        - Remove broken double to int conversion for !JSVALUE32_64 builds - this code was broken and slowing us down, fixing it showed it not to be an improvement.
+        - Remove exclusion of double to int conversion from (1 % X) cases in JSVALUE32_64 builds - if this was of benefit this is no longer the case; simplify.
+
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::):
+        (JSC::MacroAssemblerX86Common::convertInt32ToDouble):
+        (JSC::MacroAssemblerX86Common::branchDouble):
+        (JSC::MacroAssemblerX86Common::branchConvertDoubleToInt32):
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emitBinaryDoubleOp):
+        (JSC::JIT::emit_op_div):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_jfalse):
+
+2009-11-04  Mark Mentovai  <mark@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove BUILDING_ON_LEOPARD from JavaScriptCore.gyp.  This is supposed
+        to be set as needed only in wtf/Platform.h.
+
+        * JavaScriptCore.gyp/JavaScriptCore.gyp:
+
 2009-11-04  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Gavin Barraclough.

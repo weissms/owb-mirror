@@ -770,6 +770,7 @@ void InspectorController::didCommitLoad(DocumentLoader* loader)
         // resetScriptObjects should be called before database and DOM storage
         // resources are cleared so that it has a chance to unbind them.
         resetScriptObjects();
+
 #if ENABLE(DATABASE)
         m_databaseResources.clear();
 #endif
@@ -947,8 +948,11 @@ bool InspectorController::isMainResourceLoader(DocumentLoader* loader, const KUR
     return loader->frame() == m_inspectedPage->mainFrame() && requestUrl == loader->requestURL();
 }
 
-void InspectorController::willSendRequest(DocumentLoader*, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
+void InspectorController::willSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
+    if (m_timelineAgent)
+        m_timelineAgent->willSendResourceRequest(identifier, isMainResourceLoader(loader, request.url()), request);
+
     RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
@@ -966,6 +970,9 @@ void InspectorController::willSendRequest(DocumentLoader*, unsigned long identif
 
 void InspectorController::didReceiveResponse(DocumentLoader*, unsigned long identifier, const ResourceResponse& response)
 {
+    if (m_timelineAgent)
+        m_timelineAgent->didReceiveResourceResponse(identifier, response);
+
     RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
@@ -991,6 +998,9 @@ void InspectorController::didReceiveContentLength(DocumentLoader*, unsigned long
 
 void InspectorController::didFinishLoading(DocumentLoader*, unsigned long identifier)
 {
+    if (m_timelineAgent)
+        m_timelineAgent->didFinishLoadingResource(identifier, false);
+
     RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
@@ -1011,6 +1021,9 @@ void InspectorController::didFinishLoading(DocumentLoader*, unsigned long identi
 
 void InspectorController::didFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError& /*error*/)
 {
+    if (m_timelineAgent)
+        m_timelineAgent->didFinishLoadingResource(identifier, true);
+
     RefPtr<InspectorResource> resource = getTrackedResource(identifier);
     if (!resource)
         return;
