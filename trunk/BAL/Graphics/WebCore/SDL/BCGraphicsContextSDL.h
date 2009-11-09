@@ -76,10 +76,10 @@ namespace WebCore {
     // special singleton Gradient and Pattern color spaces to mark when
     // a fill or stroke is using a gradient or pattern instead of a solid color.
     // https://bugs.webkit.org/show_bug.cgi?id=20558
-    enum ColorSpace {
-        SolidColorSpace,
-        PatternColorSpace,
-        GradientColorSpace
+    enum FillOrStrokeType {
+        SolidColorType,
+        PatternType,
+        GradientType
     };
 
     enum InterpolationQuality {
@@ -104,8 +104,6 @@ namespace WebCore {
         Color strokeColor() const;
         void setStrokeColor(const Color&);
 
-        ColorSpace strokeColorSpace() const;
-
         void setStrokePattern(PassRefPtr<Pattern>);
         Pattern* strokePattern() const;
 
@@ -123,8 +121,6 @@ namespace WebCore {
 
         void setFillGradient(PassRefPtr<Gradient>);
         Gradient* fillGradient() const;
-
-        ColorSpace fillColorSpace() const;
 
         void setShadowsIgnoreTransforms(bool);
 

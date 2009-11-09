@@ -104,6 +104,8 @@ WebInspector.ElementsTreeOutline.prototype = {
 
     update: function()
     {
+        var selectedNode = this.selectedTreeElement ? this.selectedTreeElement.representedObject : null;
+
         this.removeChildren();
 
         if (!this.rootDOMNode)
@@ -125,7 +127,8 @@ WebInspector.ElementsTreeOutline.prototype = {
             }
         }
 
-        this.updateSelection();
+        if (selectedNode)
+            this.revealAndSelectNode(selectedNode);
     },
 
     updateSelection: function()
@@ -195,6 +198,7 @@ WebInspector.ElementsTreeOutline.prototype = {
         // Delete or backspace pressed, delete the node.
         if (event.keyCode === 8 || event.keyCode === 46) {
             selectedElement.remove();
+            event.preventDefault();
             return;
         }
 

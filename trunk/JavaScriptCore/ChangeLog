@@ -1,3 +1,197 @@
+2009-11-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Oliver Hunt.
+
+        Remove a magic number (1) from the JIT, instead compute the value with OBJECT_OFFSET.
+
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitPutJITStubArg):
+        (JSC::JIT::emitPutJITStubArgConstant):
+        (JSC::JIT::emitGetJITStubArg):
+        (JSC::JIT::emitPutJITStubArgFromVirtualRegister):
+        * jit/JITStubCall.h:
+        (JSC::JITStubCall::JITStubCall):
+        (JSC::JITStubCall::getArgument):
+        * jit/JITStubs.h:
+
+2009-11-08  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (speculative snow leopard and windows build fixes).
+
+        * wtf/DateMath.cpp:
+        (WTF::parseDateFromNullTerminatedCharacters):
+        (JSC::gregorianDateTimeToMS):
+        (JSC::msToGregorianDateTime):
+        (JSC::parseDateFromNullTerminatedCharacters):
+        * wtf/DateMath.h:
+        (JSC::GregorianDateTime::GregorianDateTime):
+
+2009-11-08  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (chromium build fix).
+        
+        Hopefully, the last build fix.
+
+        Create better separation in DateMath about the JSC
+        and non-JSC portions. Also, only expose the non-JSC
+        version in the exports.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * wtf/DateMath.cpp:
+        (WTF::parseDateFromNullTerminatedCharacters):
+        (JSC::getUTCOffset):
+        (JSC::gregorianDateTimeToMS):
+        (JSC::msToGregorianDateTime):
+        (JSC::parseDateFromNullTerminatedCharacters):
+        * wtf/DateMath.h:
+        (JSC::gmtoffset):
+
+2009-11-08  David Levin  <levin@chromium.org>
+
+        Reviewed by NOBODY (chromium build fix).
+
+        For the change in DateMath.
+
+        * config.h:
+        * wtf/DateMath.cpp:
+
+2009-11-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: export some symbols.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-11-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: updated export file.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-11-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: added some #includes.
+
+        * wtf/CurrentTime.h:
+        * wtf/DateMath.h:
+
+2009-11-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=31197
+        Implemented a timezone cache not based on Mac OS X's notify_check API.
+        
+        If the VM calculates the local timezone offset from UTC, it caches the
+        result until the end of the current VM invocation. (We don't want to cache
+        forever, because the user's timezone may change over time.)
+        
+        This removes notify_* overhead on Mac, and, more significantly, removes
+        OS time and date call overhead on non-Mac platforms.
+
+        ~8% speedup on Date microbenchmark on Mac. SunSpider reports maybe a tiny
+        speedup on Mac. (Speedup on non-Mac platforms should be even more noticeable.)
+
+        * JavaScriptCore.exp:
+
+        * interpreter/CachedCall.h:
+        (JSC::CachedCall::CachedCall):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        * runtime/JSGlobalObject.h:
+        (JSC::DynamicGlobalObjectScope::DynamicGlobalObjectScope): Made the 
+        DynamicGlobalObjectScope constructor responsible for checking whether a
+        dynamicGlobalObject has already been set. This eliminated some duplicate
+        client code, and allowed me to avoid adding even more duplicate client
+        code. Made DynamicGlobalObjectScope responsible for resetting the
+        local timezone cache upon first entry to the VM.
+
+        * runtime/DateConstructor.cpp:
+        (JSC::constructDate):
+        (JSC::callDate):
+        (JSC::dateParse):
+        (JSC::dateUTC):
+        * runtime/DateConversion.cpp:
+        (JSC::parseDate):
+        * runtime/DateConversion.h:
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::gregorianDateTime):
+        * runtime/DateInstance.h:
+        * runtime/DateInstanceCache.h:
+        * runtime/DatePrototype.cpp:
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        * runtime/JSGlobalData.h:
+        * wtf/DateMath.cpp:
+        (WTF::getCurrentUTCTime):
+        (WTF::getCurrentUTCTimeWithMicroseconds):
+        (WTF::getLocalTime):
+        (JSC::getUTCOffset): Use the new cache. Also, see below.
+        (JSC::gregorianDateTimeToMS):
+        (JSC::msToGregorianDateTime):
+        (JSC::initializeDates):
+        (JSC::parseDateFromNullTerminatedCharacters): Simplified the way this function
+        accounts for the local timezone offset, to accomodate our new caching API,
+        and a (possibly misguided) caller in WebCore. Also, see below.
+        * wtf/DateMath.h:
+        (JSC::GregorianDateTime::GregorianDateTime): Moved most of the code in
+        DateMath.* into the JSC namespace. The code needed to move so it could
+        naturally interact with ExecState and JSGlobalData to support caching.
+        Logically, it seemed right to move it, too, since this code is not really
+        as low-level as the WTF namespace might imply -- it implements a set of
+        date parsing and conversion quirks that are finely tuned to the JavaScript
+        language. Also removed the Mac OS X notify_* infrastructure.
+        
+        * wtf/CurrentTime.h:
+        (WTF::currentTimeMS):
+        (WTF::getLocalTime): Moved the rest of the DateMath code here, and renamed
+        it to make it consistent with WTF's currentTime function.
+
+2009-11-06  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Unreviewed trivial buildfix after r50595.
+
+        Rename the remaining rshiftPtr calls to rshift32
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_rshift):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitFastArithImmToInt):
+
+2009-11-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Tidy up the shift methods on the macro-assembler interface.
+
+        Currently behaviour of shifts of a magnitude > 0x1f is undefined.
+        Instead defined that all shifts are masked to this range.  This makes a lot of
+        practical sense, both since having undefined behaviour is not particularly
+        desirable, and because this behaviour is commonly required (particularly since
+        it is required bt ECMA-262 for shifts).
+
+        Update the ARM assemblers to provide this behaviour.  Remove (now) redundant
+        masks from JITArithmetic, and remove rshiftPtr (this was used in case that
+        could be rewritten in a simpler form using rshift32, only optimized JSVALUE32
+        on x86-64, which uses JSVALUE64!)
+
+        * assembler/MacroAssembler.h:
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::lshift32):
+        (JSC::MacroAssemblerARM::rshift32):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::lshift32):
+        (JSC::MacroAssemblerARMv7::rshift32):
+        * assembler/MacroAssemblerX86_64.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_lshift):
+        (JSC::JIT::emit_op_rshift):
+
 2009-11-06  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
 
         Reviewed by Gavin Barraclough.

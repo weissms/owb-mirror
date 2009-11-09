@@ -153,14 +153,7 @@ bool XSSAuditor::canLoadExternalScriptFromSrc(const String& context, const Strin
     if (!isEnabled())
         return true;
 
-    // If the script is loaded from the same URL as the enclosing page, it's
-    // probably not an XSS attack, so we reduce false positives by allowing the
-    // script. If the script has a query string, we're more suspicious,
-    // however, because that's pretty rare and the attacker might be able to
-    // trick a server-side script into doing something dangerous with the query
-    // string.
-    KURL scriptURL(m_frame->document()->url(), url);
-    if (m_frame->document()->url().host() == scriptURL.host() && scriptURL.query().isEmpty())
+    if (isSameOriginResource(url))
         return true;
 
     if (findInRequest(context + url)) {
@@ -178,6 +171,9 @@ bool XSSAuditor::canLoadObject(const String& url) const
     if (!isEnabled())
         return true;
 
+    if (isSameOriginResource(url))
+        return true;
+
     if (findInRequest(url)) {
 #if ENABLE(INSPECTOR)
         DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request"));
@@ -192,9 +188,11 @@ bool XSSAuditor::canSetBaseElementURL(const String& url) const
 {
     if (!isEnabled())
         return true;
-    
-    KURL baseElementURL(m_frame->document()->url(), url);
-    if (m_frame->document()->url().host() != baseElementURL.host() && findInRequest(url)) {
+
+    if (isSameOriginResource(url))
+        return true;
+
+    if (findInRequest(url)) {
 #if ENABLE(INSPECTOR)
         DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request"));
         m_frame->domWindow()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, consoleMessage, 1, String());
@@ -268,6 +266,18 @@ String XSSAuditor::decodeHTMLEntities(const String& string, bool leaveUndecodabl
     }
     
     return String::adopt(result);
+}
+
+bool XSSAuditor::isSameOriginResource(const String& url) const
+{
+    // If the resource is loaded from the same URL as the enclosing page, it's
+    // probably not an XSS attack, so we reduce false positives by allowing the
+    // request. If the resource has a query string, we're more suspicious,
+    // however, because that's pretty rare and the attacker might be able to
+    // trick a server-side script into doing something dangerous with the query
+    // string.
+    KURL resourceURL(m_frame->document()->url(), url);
+    return (m_frame->document()->url().host() == resourceURL.host() && resourceURL.query().isEmpty());
 }
 
 bool XSSAuditor::findInRequest(const String& string, bool decodeEntities, bool allowRequestIfNoIllegalURICharacters, 

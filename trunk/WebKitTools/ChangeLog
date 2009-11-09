@@ -1,3 +1,131 @@
+2009-11-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool crashed with exception
+        https://bugs.webkit.org/show_bug.cgi?id=31092
+
+        * Scripts/modules/bugzilla.py: Change a ',' to a '%' to fix the error.
+
+2009-11-09  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Jan Alonzo.
+
+        [GTK] Expose Page::tabKeyCyclesThroughElements in the API
+        https://bugs.webkit.org/show_bug.cgi?id=30482
+
+        LayoutTestControllerGtk now uses the exposed
+        Page::tabKeyCyclesThroughElements API
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setTabKeyCyclesThroughElements):
+
+2009-11-08  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Added support for key code 8 (backspace) in EventSenderQt.
+        This helps to pass the test case below. Also replaced hardcoded
+        code numbers with defined constants.
+        https://bugs.webkit.org/show_bug.cgi?id=31185
+        
+        Test: editing/undo/undo-deleteWord.html
+
+        * DumpRenderTree/qt/EventSenderQt.cpp:
+        (EventSender::keyDown):
+
+2009-11-07  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] [DRT] Fix wrong logic in LayoutTestController processWork
+        https://bugs.webkit.org/show_bug.cgi?id=31164
+
+        Fixed wrong logic to assume WorkQueue is done in QT's DRT.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::processWork):
+
+2009-11-05  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Qt][DRT] Replace queueScript by queueNonLoadingScript and queueLoadingScript method
+        https://bugs.webkit.org/show_bug.cgi?id=31158
+
+        By invoking a script queue'd by queueScript(), 'true' was beeing returned
+        always, which from WorkQueue prospective means that a load has been started
+        and the queue processing should stop and wait for the load to finish.
+        Spinning it off into a loading and a non-loading variants was the solution
+        adopted by Mac's DRT to work around this problem. The former keeps returning
+        'true' while the later executes the script synchronously and returns 'false'
+        making it possible to the WorkQueue to proceed right away.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::processWork):
+        (LayoutTestController::queueLoadingScript):
+        (LayoutTestController::queueNonLoadingScript):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/qt/WorkQueueItem.h:
+        (LoadingScriptItem::LoadingScriptItem):
+        (LoadingScriptItem::invoke):
+        (NonLoadingScriptItem::NonLoadingScriptItem):
+        (NonLoadingScriptItem::invoke):
+
+2009-11-07  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Invoke prepare-ChangeLog via an absolute path rather than assuming it can be found in PATH.
+
+        * Scripts/commit-log-editor:
+
+2009-11-07  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=28168>.
+        commit-log-editor does not support all the email address configurations that prepare-Changelog supports
+
+        Move logic for determining the name and email address to use in a ChangeLog entry from
+        prepare-ChangeLog to VCSUtils so that commit-log-editor can use it.  It wants to check
+        whether the author of the patch matches committer, and therefore needs access to the
+        email address that would be used in a ChangeLog entry.
+
+        Based on a patch by Pierre d'Herbemont.
+
+        * Scripts/VCSUtils.pm:
+        * Scripts/commit-log-editor:
+        * Scripts/prepare-ChangeLog:
+        * Scripts/webkitdirs.pm:
+
+2009-11-06  Anantanarayanan G Iyengar  <ananta@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Added functionality to the layout test plugin to invoke document.open and
+        window.open with default arguments. The associated webkit bug is
+        https://bugs.webkit.org/show_bug.cgi?id=31067, which affects Chromium. Basically
+        window.open and document.open calls issued by NPAPI plugins via NPN_Invoke don't
+        work in Chromium (V8) if there is no calling javascript context. To achieve this
+        effect we invoke these functions in the layout test plugin in the NPP_SetWindow
+        for the window.open test case and in NPP_DestroyStream for the document.open test case.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (testDocumentOpen):
+        (testWindowOpen):
+        (pluginAllocate):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_SetWindow):
+        (NPP_DestroyStream):
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_New):
+        (NPP_SetWindow):
+        (NPP_NewStream):
+        (NPP_DestroyStream):
+
 2009-11-06  Eric Seidel  <eric@webkit.org>
 
         No review, just add a line which got left out of the patch uploaded for commit.
