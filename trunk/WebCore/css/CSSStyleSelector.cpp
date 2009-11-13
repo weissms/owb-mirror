@@ -5270,6 +5270,17 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         m_style->setPointerEvents(*primitiveValue);
         return;
     }
+    case CSSPropertyWebkitColorCorrection:
+        if (isInherit) 
+            m_style->setColorSpace(m_parentStyle->colorSpace());
+        else if (isInitial)
+            m_style->setColorSpace(DeviceColorSpace);
+        else {
+            if (!primitiveValue)
+                return;
+            m_style->setColorSpace(*primitiveValue);
+        }
+        return;
     case CSSPropertyInvalid:
         return;
     case CSSPropertyFontStretch:

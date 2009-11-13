@@ -72,13 +72,34 @@ V8Extensions V8Proxy::m_extensions;
 const char* V8Proxy::kContextDebugDataType = "type";
 const char* V8Proxy::kContextDebugDataValue = "value";
 
-void batchConfigureAttributes(v8::Handle<v8::ObjectTemplate> instance, v8::Handle<v8::ObjectTemplate> proto, const BatchedAttribute* attributes, size_t attributeCount)
+void batchConfigureAttributes(v8::Handle<v8::ObjectTemplate> instance, 
+                              v8::Handle<v8::ObjectTemplate> proto, 
+                              const BatchedAttribute* attributes, 
+                              size_t attributeCount)
 {
     for (size_t i = 0; i < attributeCount; ++i)
         configureAttribute(instance, proto, attributes[i]);
 }
 
-void batchConfigureConstants(v8::Handle<v8::FunctionTemplate> functionDescriptor, v8::Handle<v8::ObjectTemplate> proto, const BatchedConstant* constants, size_t constantCount)
+void batchConfigureCallbacks(v8::Handle<v8::ObjectTemplate> proto, 
+                             v8::Handle<v8::Signature> signature, 
+                             v8::PropertyAttribute attributes,
+                             const BatchedCallback* callbacks,
+                             size_t callbackCount)
+{
+    for (size_t i = 0; i < callbackCount; ++i) {
+        proto->Set(v8::String::New(callbacks[i].name),
+                   v8::FunctionTemplate::New(callbacks[i].callback, 
+                                             v8::Handle<v8::Value>(),
+                                             signature),
+                   attributes);
+    }
+}
+
+void batchConfigureConstants(v8::Handle<v8::FunctionTemplate> functionDescriptor,
+                             v8::Handle<v8::ObjectTemplate> proto,
+                             const BatchedConstant* constants,
+                             size_t constantCount)
 {
     for (size_t i = 0; i < constantCount; ++i) {
         const BatchedConstant* constant = &constants[i];
@@ -374,6 +395,8 @@ v8::Local<v8::Value> V8Proxy::evaluate(const ScriptSourceCode& source, Node* nod
 {
     ASSERT(v8::Context::InContext());
 
+    V8GCController::checkMemoryUsage();
+
 #if ENABLE(INSPECTOR)
     if (InspectorTimelineAgent* timelineAgent = m_frame->page() ? m_frame->page()->inspectorTimelineAgent() : 0)
         timelineAgent->willEvaluateScript(source.url().isNull() ? String() : source.url().string(), source.startLine());
@@ -418,6 +441,7 @@ v8::Local<v8::Value> V8Proxy::runScript(v8::Handle<v8::Script> script, bool isIn
     if (script.IsEmpty())
         return notHandledByInterceptor();
 
+    V8GCController::checkMemoryUsage();
     // Compute the source string and prevent against infinite recursion.
     if (m_recursion >= kMaxRecursionDepth) {
         v8::Local<v8::String> code = v8ExternalString("throw RangeError('Recursion too deep')");
@@ -472,6 +496,7 @@ v8::Local<v8::Value> V8Proxy::runScript(v8::Handle<v8::Script> script, bool isIn
 
 v8::Local<v8::Value> V8Proxy::callFunction(v8::Handle<v8::Function> function, v8::Handle<v8::Object> receiver, int argc, v8::Handle<v8::Value> args[])
 {
+    V8GCController::checkMemoryUsage();
     v8::Local<v8::Value> result;
     {
         V8ConsoleMessage::Scope scope;
@@ -855,14 +880,20 @@ bool V8Proxy::canAccessPrivate(DOMWindow* targetWindow)
 
     String message;
 
-    DOMWindow* originWindow = retrieveWindow(currentContext());
-    if (originWindow == targetWindow)
+    v8::Local<v8::Context> activeContext = v8::Context::GetCalling();
+    if (activeContext.IsEmpty()) {
+        // There is a single activation record on the stack, so that must
+        // be the activeContext.
+        activeContext = v8::Context::GetCurrent();
+    }
+    DOMWindow* activeWindow = retrieveWindow(activeContext);
+    if (activeWindow == targetWindow)
         return true;
 
-    if (!originWindow)
+    if (!activeWindow)
         return false;
 
-    const SecurityOrigin* activeSecurityOrigin = originWindow->securityOrigin();
+    const SecurityOrigin* activeSecurityOrigin = activeWindow->securityOrigin();
     const SecurityOrigin* targetSecurityOrigin = targetWindow->securityOrigin();
 
     // We have seen crashes were the security origin of the target has not been
@@ -875,7 +906,7 @@ bool V8Proxy::canAccessPrivate(DOMWindow* targetWindow)
 
     // Allow access to a "about:blank" page if the dynamic context is a
     // detached context of the same frame as the blank page.
-    if (targetSecurityOrigin->isEmpty() && originWindow->frame() == targetWindow->frame())
+    if (targetSecurityOrigin->isEmpty() && activeWindow->frame() == targetWindow->frame())
         return true;
 
     return false;

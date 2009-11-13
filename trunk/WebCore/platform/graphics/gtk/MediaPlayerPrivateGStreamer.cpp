@@ -66,11 +66,11 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
         LOG_VERBOSE(Media, "Error: %d, %s", err->code,  err->message);
 
         error = MediaPlayer::Empty;
-        if (err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND ||
-            err->code == GST_STREAM_ERROR_WRONG_TYPE ||
-            err->code == GST_STREAM_ERROR_FAILED ||
-            err->code == GST_CORE_ERROR_MISSING_PLUGIN ||
-            err->code == GST_RESOURCE_ERROR_NOT_FOUND)
+        if (err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND
+            || err->code == GST_STREAM_ERROR_WRONG_TYPE
+            || err->code == GST_STREAM_ERROR_FAILED
+            || err->code == GST_CORE_ERROR_MISSING_PLUGIN
+            || err->code == GST_RESOURCE_ERROR_NOT_FOUND)
             error = MediaPlayer::FormatError;
         else if (err->domain == GST_STREAM_ERROR)
             error = MediaPlayer::DecodeError;
@@ -97,6 +97,33 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
         break;
     }
     return true;
+}
+
+static float playbackPosition(GstElement* playbin)
+{
+
+    float ret = 0.0;
+
+    GstQuery* query = gst_query_new_position(GST_FORMAT_TIME);
+    if (!gst_element_query(playbin, query)) {
+        LOG_VERBOSE(Media, "Position query failed...");
+        gst_query_unref(query);
+        return ret;
+    }
+
+    gint64 position;
+    gst_query_parse_position(query, 0, &position);
+
+    // Position is available only if the pipeline is not in NULL or
+    // READY state.
+    if (position !=  static_cast<gint64>(GST_CLOCK_TIME_NONE))
+        ret = static_cast<float>(position) / static_cast<float>(GST_SECOND);
+
+    LOG_VERBOSE(Media, "Position %" GST_TIME_FORMAT, GST_TIME_ARGS(position));
+
+    gst_query_unref(query);
+
+    return ret;
 }
 
 void mediaPlayerPrivateRepaintCallback(WebKitVideoSink*, GstBuffer *buffer, MediaPlayerPrivate* playerPrivate)
@@ -137,6 +164,7 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     , m_videoSink(0)
     , m_source(0)
     , m_seekTime(0)
+    , m_changingRate(false)
     , m_endTime(numeric_limits<float>::infinity())
     , m_networkState(MediaPlayer::Empty)
     , m_readyState(MediaPlayer::HaveNothing)
@@ -186,14 +214,26 @@ void MediaPlayerPrivate::load(const String& url)
 
 void MediaPlayerPrivate::play()
 {
-    LOG_VERBOSE(Media, "Play");
-    gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+    GstState state;
+    GstState pending;
+
+    gst_element_get_state(m_playBin, &state, &pending, 0);
+    if (state != GST_STATE_PLAYING && pending != GST_STATE_PLAYING) {
+        LOG_VERBOSE(Media, "Play");
+        gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+    }
 }
 
 void MediaPlayerPrivate::pause()
 {
-    LOG_VERBOSE(Media, "Pause");
-    gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+    GstState state;
+    GstState pending;
+
+    gst_element_get_state(m_playBin, &state, &pending, 0);
+    if (state != GST_STATE_PAUSED  && pending != GST_STATE_PAUSED) {
+        LOG_VERBOSE(Media, "Pause");
+        gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+    }
 }
 
 float MediaPlayerPrivate::duration() const
@@ -229,23 +269,8 @@ float MediaPlayerPrivate::currentTime() const
     if (m_seeking)
         return m_seekTime;
 
-    float ret = 0.0;
+    return playbackPosition(m_playBin);
 
-    GstQuery* query = gst_query_new_position(GST_FORMAT_TIME);
-    if (!gst_element_query(m_playBin, query)) {
-        LOG_VERBOSE(Media, "Position query failed...");
-        gst_query_unref(query);
-        return ret;
-    }
-
-    gint64 position;
-    gst_query_parse_position(query, 0, &position);
-    ret = (float) (position / 1000000000.0);
-    LOG_VERBOSE(Media, "Position %" GST_TIME_FORMAT, GST_TIME_ARGS(position));
-
-    gst_query_unref(query);
-
-    return ret;
 }
 
 void MediaPlayerPrivate::seek(float time)
@@ -320,10 +345,10 @@ IntSize MediaPlayerPrivate::naturalSize() const
         gfloat pixelAspectRatio;
         gint pixelAspectRatioNumerator, pixelAspectRatioDenominator;
 
-        if (!GST_IS_CAPS(caps) || !gst_caps_is_fixed(caps) ||
-            !gst_video_format_parse_caps(caps, NULL, &width, &height) ||
-            !gst_video_parse_caps_pixel_aspect_ratio(caps, &pixelAspectRatioNumerator,
-                                                           &pixelAspectRatioDenominator)) {
+        if (!GST_IS_CAPS(caps) || !gst_caps_is_fixed(caps)
+            || !gst_video_format_parse_caps(caps, 0, &width, &height)
+            || !gst_video_parse_caps_pixel_aspect_ratio(caps, &pixelAspectRatioNumerator,
+                                                        &pixelAspectRatioDenominator)) {
             gst_object_unref(GST_OBJECT(pad));
             return IntSize();
         }
@@ -363,16 +388,50 @@ void MediaPlayerPrivate::setVolume(float volume)
 
 void MediaPlayerPrivate::setRate(float rate)
 {
-    if (rate == 0.0) {
-        gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+    GstState state;
+    GstState pending;
+
+    gst_element_get_state(m_playBin, &state, &pending, 0);
+    if ((state != GST_STATE_PLAYING && state != GST_STATE_PAUSED)
+        || (pending == GST_STATE_PAUSED))
         return;
-    }
 
     if (m_isStreaming)
         return;
 
+    m_changingRate = true;
+    float currentPosition = playbackPosition(m_playBin) * GST_SECOND;
+    GstSeekFlags flags = (GstSeekFlags)(GST_SEEK_FLAG_FLUSH);
+    gint64 start, end;
+    bool mute = false;
+
     LOG_VERBOSE(Media, "Set Rate to %f", rate);
-    seek(currentTime());
+    if (rate >= 0) {
+        // Mute the sound if the playback rate is too extreme.
+        // TODO: in other cases we should perform pitch adjustments.
+        mute = (bool) (rate < 0.8 || rate > 2);
+        start = currentPosition;
+        end = GST_CLOCK_TIME_NONE;
+    } else {
+        start = 0;
+        mute = true;
+
+        // If we are at beginning of media, start from the end to
+        // avoid immediate EOS.
+        if (currentPosition <= 0)
+            end = duration() * GST_SECOND;
+        else
+            end = currentPosition;
+    }
+
+    LOG_VERBOSE(Media, "Need to mute audio: %d", (int) mute);
+
+    if (!gst_element_seek(m_playBin, rate, GST_FORMAT_TIME, flags,
+                          GST_SEEK_TYPE_SET, start,
+                          GST_SEEK_TYPE_SET, end))
+        LOG_VERBOSE(Media, "Set rate to %f failed", rate);
+    else
+        g_object_set(m_playBin, "mute", mute, NULL);
 }
 
 int MediaPlayerPrivate::dataRate() const
@@ -507,6 +566,11 @@ void MediaPlayerPrivate::updateStates()
         } else
             m_paused = true;
 
+        if (m_changingRate) {
+            m_player->rateChanged();
+            m_changingRate = false;
+        }
+
         if (m_seeking) {
             shouldUpdateAfterSeek = true;
             m_seeking = false;
@@ -570,11 +634,6 @@ void MediaPlayerPrivate::loadStateChanged()
     updateStates();
 }
 
-void MediaPlayerPrivate::rateChanged()
-{
-    updateStates();
-}
-
 void MediaPlayerPrivate::sizeChanged()
 {
     notImplemented();
@@ -634,27 +693,13 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
         return;
 
     int width = 0, height = 0;
-    int pixelAspectRatioNumerator = 0;
-    int pixelAspectRatioDenominator = 0;
-    double doublePixelAspectRatioNumerator = 0;
-    double doublePixelAspectRatioDenominator = 0;
-    double displayWidth;
-    double displayHeight;
-    double scale, gapHeight, gapWidth;
+    GstCaps *caps = gst_buffer_get_caps(m_buffer);
     GstVideoFormat format;
 
-    GstCaps *caps = gst_buffer_get_caps(m_buffer);
-
-    if (G_UNLIKELY(!gst_video_format_parse_caps(caps, &format, &width, &height) ||
-        !gst_video_parse_caps_pixel_aspect_ratio(caps, &pixelAspectRatioNumerator, &pixelAspectRatioDenominator))) {
+    if (!gst_video_format_parse_caps(caps, &format, &width, &height)) {
       gst_caps_unref(caps);
       return;
     }
-
-    displayWidth = width;
-    displayHeight = height;
-    doublePixelAspectRatioNumerator = pixelAspectRatioNumerator;
-    doublePixelAspectRatioDenominator = pixelAspectRatioDenominator;
 
     cairo_format_t cairoFormat;
     if (format == GST_VIDEO_FORMAT_ARGB || format == GST_VIDEO_FORMAT_BGRA)
@@ -669,34 +714,15 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
                                                                4 * width);
 
     cairo_save(cr);
-    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 
-    // Calculate the display width/height from the storage width/height and the pixel aspect ratio
-    displayWidth *= doublePixelAspectRatioNumerator / doublePixelAspectRatioDenominator;
-    displayHeight *= doublePixelAspectRatioDenominator / doublePixelAspectRatioNumerator;
+    // translate and scale the context to correct size
+    cairo_translate(cr, rect.x(), rect.y());
+    cairo_scale(cr, static_cast<double>(rect.width()) / width, static_cast<double>(rect.height()) / height);
 
-    // Calculate the largest scale factor that would fill the target surface
-    scale = MIN(rect.width() / displayWidth, rect.height() / displayHeight);
-    // And calculate the new display width/height
-    displayWidth *= scale;
-    displayHeight *= scale;
-
-    // Calculate gap between border an picture on every side
-    gapWidth = (rect.width() - displayWidth) / 2.0;
-    gapHeight = (rect.height() - displayHeight) / 2.0;
-
-    // Paint the rectangle on the context and draw the buffer inside the rectangle
-
-    // Go to the new origin and center the video frame.
-    cairo_translate(cr, rect.x() + gapWidth, rect.y() + gapHeight);
-    cairo_rectangle(cr, 0, 0, rect.width(), rect.height());
-    // Scale the video frame according to the pixel aspect ratio.
-    cairo_scale(cr, doublePixelAspectRatioNumerator / doublePixelAspectRatioDenominator,
-                doublePixelAspectRatioDenominator / doublePixelAspectRatioNumerator);
-    // Scale the video frame to fill the target surface as good as possible.
-    cairo_scale(cr, scale, scale);
     // And paint it.
     cairo_set_source_surface(cr, src, 0, 0);
+    cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_PAD);
+    cairo_rectangle(cr, 0, 0, width, height);
     cairo_fill(cr);
     cairo_restore(cr);
 
@@ -743,15 +769,15 @@ static HashSet<String> mimeTypeCache()
             // by default. In that case, we should not consider these types supportable by GStreamer.
             // Examples of what GStreamer can support but should not be added:
             // text/plain, text/html, image/jpeg, application/xml
-            if (g_str_equal(mimetype[0], "audio") ||
-                    g_str_equal(mimetype[0], "video") ||
-                    (g_str_equal(mimetype[0], "application") &&
-                        !ignoredApplicationSubtypes.contains(String(mimetype[1])))) {
+            if (g_str_equal(mimetype[0], "audio")
+                || g_str_equal(mimetype[0], "video")
+                || (g_str_equal(mimetype[0], "application")
+                    && !ignoredApplicationSubtypes.contains(String(mimetype[1])))) {
                 cache.add(String(capability[0]));
 
                 // These formats are supported by GStreamer, but not correctly advertised
-                if (g_str_equal(capability[0], "video/x-h264") ||
-                    g_str_equal(capability[0], "audio/x-m4a")) {
+                if (g_str_equal(capability[0], "video/x-h264")
+                    || g_str_equal(capability[0], "audio/x-m4a")) {
                     cache.add(String("video/mp4"));
                     cache.add(String("audio/aac"));
                 }
@@ -766,7 +792,7 @@ static HashSet<String> mimeTypeCache()
                     // This is what we are handling: mpegversion=(int)1, layer=(int)[ 1, 3 ]
                     gchar** versionAndLayer = g_strsplit(capability[1], ",", 2);
 
-                    if (g_str_has_suffix (versionAndLayer[0], "(int)1")) {
+                    if (g_str_has_suffix(versionAndLayer[0], "(int)1")) {
                         for (int i = 0; versionAndLayer[1][i] != '\0'; i++) {
                             if (versionAndLayer[1][i] == '1')
                                 cache.add(String("audio/mp1"));

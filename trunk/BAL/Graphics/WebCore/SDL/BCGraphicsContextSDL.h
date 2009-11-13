@@ -29,6 +29,8 @@
 #ifndef GraphicsContext_h
 #define GraphicsContext_h
 
+#include "BALBase.h"
+#include "ColorSpace.h"
 #include "DashArray.h"
 #include "FloatRect.h"
 #include "Image.h"
@@ -37,7 +39,6 @@
 #include "TextDirection.h"
 #include <wtf/Noncopyable.h>
 #include <wtf/Platform.h>
-#include "BALBase.h"
 
 namespace WebCore {
 
@@ -62,7 +63,7 @@ namespace WebCore {
     const int cTextFill = 1;
     const int cTextStroke = 2;
     const int cTextClip = 4;
-    
+
     enum StrokeStyle {
         NoStroke,
         SolidStroke,
@@ -70,12 +71,6 @@ namespace WebCore {
         DashedStroke
     };
 
-    // FIXME: This is a place-holder until we decide to add
-    // real color space support to WebCore.  At that time, ColorSpace will be a
-    // class and instances will be held  off of Colors.   There will be
-    // special singleton Gradient and Pattern color spaces to mark when
-    // a fill or stroke is using a gradient or pattern instead of a solid color.
-    // https://bugs.webkit.org/show_bug.cgi?id=20558
     enum FillOrStrokeType {
         SolidColorType,
         PatternType,
@@ -94,7 +89,7 @@ namespace WebCore {
     public:
         GraphicsContext(PlatformGraphicsContext*);
         ~GraphicsContext();
-       
+
         PlatformGraphicsContext* platformContext() const;
 
         float strokeThickness() const;
@@ -102,7 +97,8 @@ namespace WebCore {
         StrokeStyle strokeStyle() const;
         void setStrokeStyle(const StrokeStyle& style);
         Color strokeColor() const;
-        void setStrokeColor(const Color&);
+        ColorSpace strokeColorSpace() const;
+        void setStrokeColor(const Color&, ColorSpace);
 
         void setStrokePattern(PassRefPtr<Pattern>);
         Pattern* strokePattern() const;
@@ -112,9 +108,9 @@ namespace WebCore {
 
         WindRule fillRule() const;
         void setFillRule(WindRule);
-
         Color fillColor() const;
-        void setFillColor(const Color&);
+        ColorSpace fillColorSpace() const;
+        void setFillColor(const Color&, ColorSpace);
 
         void setFillPattern(PassRefPtr<Pattern>);
         Pattern* fillPattern() const;
@@ -126,11 +122,14 @@ namespace WebCore {
 
         void setShouldAntialias(bool);
         bool shouldAntialias() const;
-       
+
         void save();
         void restore();
 
         // These draw methods will do both stroking and filling.
+        // FIXME: ...except drawRect(), which fills properly but always strokes
+        // using a 1-pixel stroke inset from the rect borders (of the correct
+        // stroke color).
         void drawRect(const IntRect&);
         void drawLine(const IntPoint&, const IntPoint&);
         void drawEllipse(const IntRect&);
@@ -142,11 +141,11 @@ namespace WebCore {
 
         // Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
         void strokeArc(const IntRect&, int startAngle, int angleSpan);
-        
+
         void fillRect(const FloatRect&);
-        void fillRect(const FloatRect&, const Color&);
+        void fillRect(const FloatRect&, const Color&, ColorSpace);
         void fillRect(const FloatRect&, Generator&);
-        void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&);
+        void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&, ColorSpace);
 
         void clearRect(const FloatRect&);
 
@@ -161,12 +160,12 @@ namespace WebCore {
                        CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
         void drawTiledImage(Image*, const IntRect& destRect, const IntPoint& srcPoint, const IntSize& tileSize,
                        CompositeOperator = CompositeSourceOver);
-        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect, 
+        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect,
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
 
-        void setImageInterpolationQuality(InterpolationQuality) {}
-        InterpolationQuality imageInterpolationQuality() const { return InterpolationDefault; }
+        void setImageInterpolationQuality(InterpolationQuality);
+        InterpolationQuality imageInterpolationQuality() const;
 
         void clip(const FloatRect&);
         void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
@@ -182,23 +181,23 @@ namespace WebCore {
 
         void drawText(const Font&, const TextRun&, const IntPoint&, int from = 0, int to = -1);
         void drawBidiText(const Font&, const TextRun&, const FloatPoint&);
-        void drawHighlightForText(const Font&, const TextRun&, const IntPoint&, int h, const Color& backgroundColor, int from = 0, int to = -1);
+        void drawHighlightForText(const Font&, const TextRun&, const IntPoint&, int h, const Color& backgroundColor, ColorSpace, int from = 0, int to = -1);
 
         FloatRect roundToDevicePixels(const FloatRect&);
 
         void drawLineForText(const IntPoint&, int width, bool printing);
         void drawLineForMisspellingOrBadGrammar(const IntPoint&, int width, bool grammar);
- 
+
         bool paintingDisabled() const;
         void setPaintingDisabled(bool);
- 
+
         bool updatingControlTints() const;
         void setUpdatingControlTints(bool);
 
         void beginTransparencyLayer(float opacity);
         void endTransparencyLayer();
 
-        void setShadow(const IntSize&, int blur, const Color&);
+        void setShadow(const IntSize&, int blur, const Color&, ColorSpace);
         bool getShadow(IntSize&, int&, Color&) const;
         void clearShadow();
 
@@ -232,7 +231,7 @@ namespace WebCore {
         void rotate(float angleInRadians);
         void translate(float x, float y);
         IntPoint origin();
-        
+
         void setURLForRect(const KURL&, const IntRect&);
 
         void concatCTM(const TransformationMatrix&);
@@ -243,6 +242,7 @@ namespace WebCore {
         BalEventExpose* balExposeEvent() const;
         IntPoint translatePoint(const IntPoint&) const;
         float transparencyLayer();
+
     private:
         void savePlatformState();
         void restorePlatformState();
@@ -250,19 +250,19 @@ namespace WebCore {
         void setPlatformTextDrawingMode(int);
         void setPlatformFont(const Font& font);
 
-        void setPlatformStrokeColor(const Color&);
-        void setPlatformStrokePattern(Pattern*);
-        void setPlatformStrokeGradient(Gradient*);
+        void setPlatformStrokeColor(const Color&, ColorSpace);
         void setPlatformStrokeStyle(const StrokeStyle&);
         void setPlatformStrokeThickness(float);
+        void setPlatformStrokeGradient(Gradient*);
+        void setPlatformStrokePattern(Pattern*);
 
-        void setPlatformFillColor(const Color&);
-        void setPlatformFillPattern(Pattern*);
+        void setPlatformFillColor(const Color&, ColorSpace);
         void setPlatformFillGradient(Gradient*);
+        void setPlatformFillPattern(Pattern*);
 
         void setPlatformShouldAntialias(bool b);
 
-        void setPlatformShadow(const IntSize&, int blur, const Color&);
+        void setPlatformShadow(const IntSize&, int blur, const Color&, ColorSpace);
         void clearPlatformShadow();
 
         static void adjustLineToPixelBoundaries(FloatPoint& p1, FloatPoint& p2, float strokeWidth, const StrokeStyle&);
@@ -282,3 +282,4 @@ namespace WebCore {
 } // namespace WebCore
 
 #endif // GraphicsContext_h
+

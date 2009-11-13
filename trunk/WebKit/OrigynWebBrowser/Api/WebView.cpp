@@ -56,6 +56,7 @@
 #include "WebPluginHalterClient.h"
 #include "WebMutableURLRequest.h"
 #include "WebPreferences.h"
+#include "WebScriptWorld.h"
 #include "WebViewPrivate.h"
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
@@ -1628,10 +1629,10 @@ static PassOwnPtr<Vector<String> > toStringVector(unsigned patternsCount, const 
     return patternsVector;
 }
 
-bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime injectionTime)
+bool WebView::addUserScriptToGroup(const char* groupName, WebScriptWorld* world, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime injectionTime)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1639,7 +1640,7 @@ bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, cons
     if (!pageGroup)
         return false;
     
-    pageGroup->addUserScriptToWorld(worldID,
+    pageGroup->addUserScriptToWorld(world->world(),
                                     String(source),
                                     KURL(KURL(), String(url)),
                                     toStringVector(whitelistCount, whitelist),
@@ -1648,10 +1649,10 @@ bool WebView::addUserScriptToGroup(const char* groupName, unsigned worldID, cons
     return true;
 }
 
-bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist)
+bool WebView::addUserStyleSheetToGroup(const char* groupName, WebScriptWorld* world, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1659,7 +1660,7 @@ bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, 
     if (!pageGroup)
         return false;
  
-    pageGroup->addUserStyleSheetToWorld(worldID,
+    pageGroup->addUserStyleSheetToWorld(world->world(),
                                        String(source),
                                        KURL(KURL(), String(url)),
                                        toStringVector(whitelistCount, whitelist),
@@ -1667,10 +1668,10 @@ bool WebView::addUserStyleSheetToGroup(const char* groupName, unsigned worldID, 
     return true;
 }
 
-bool WebView::removeUserScriptFromGroup(const char* groupName, unsigned worldID, const char* url)
+bool WebView::removeUserScriptFromGroup(const char* groupName, WebScriptWorld* world, const char* url)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1678,14 +1679,14 @@ bool WebView::removeUserScriptFromGroup(const char* groupName, unsigned worldID,
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserScriptFromWorld(worldID, KURL(KURL(), url));
+    pageGroup->removeUserScriptFromWorld(world->world(), KURL(KURL(), url));
     return true;
 }
 
-bool WebView::removeUserStyleSheetFromWorld(const char* groupName, unsigned worldID, const char* url)
+bool WebView::removeUserStyleSheetFromWorld(const char* groupName, WebScriptWorld* world, const char* url)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1693,14 +1694,14 @@ bool WebView::removeUserStyleSheetFromWorld(const char* groupName, unsigned worl
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserStyleSheetFromWorld(worldID, KURL(KURL(), url));
+    pageGroup->removeUserStyleSheetFromWorld(world->world(), KURL(KURL(), url));
     return true;
 }
 
-bool WebView::removeUserScriptsFromGroup(const char* groupName, unsigned worldID)
+bool WebView::removeUserScriptsFromGroup(const char* groupName, WebScriptWorld* world)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1708,14 +1709,14 @@ bool WebView::removeUserScriptsFromGroup(const char* groupName, unsigned worldID
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserScriptsFromWorld(worldID);
+    pageGroup->removeUserScriptsFromWorld(world->world());
     return true;
 }
 
-bool WebView::removeUserStyleSheetsFromGroup(const char* groupName, unsigned worldID)
+bool WebView::removeUserStyleSheetsFromGroup(const char* groupName, WebScriptWorld* world)
 {
     String group(groupName);
-    if (group.isEmpty() || !worldID || worldID == numeric_limits<unsigned>::max())
+    if (group.isEmpty())
         return false;
 
     PageGroup* pageGroup = PageGroup::pageGroup(group);
@@ -1723,7 +1724,7 @@ bool WebView::removeUserStyleSheetsFromGroup(const char* groupName, unsigned wor
     if (!pageGroup)
         return false;
 
-    pageGroup->removeUserStyleSheetsFromWorld(worldID);
+    pageGroup->removeUserStyleSheetsFromWorld(world->world());
     return true;
 }
 

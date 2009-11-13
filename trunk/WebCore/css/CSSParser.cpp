@@ -1246,6 +1246,9 @@ bool CSSParser::parseValue(int propId, bool important)
     case CSSPropertyWebkitBoxSizing:
         valid_primitive = id == CSSValueBorderBox || id == CSSValueContentBox;
         break;
+    case CSSPropertyWebkitColorCorrection:
+        valid_primitive = id == CSSValueSrgb || id == CSSValueDefault;
+        break;
     case CSSPropertyWebkitMarquee: {
         const int properties[5] = { CSSPropertyWebkitMarqueeDirection, CSSPropertyWebkitMarqueeIncrement,
                                     CSSPropertyWebkitMarqueeRepetition,

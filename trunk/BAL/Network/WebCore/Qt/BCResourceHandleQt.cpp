@@ -133,6 +133,15 @@ bool ResourceHandle::start(Frame* frame)
     if (!page)
         return false;
 
+    if (!(d->m_user.isEmpty() || d->m_pass.isEmpty())) {
+        // If credentials were specified for this request, add them to the url,
+        // so that they will be passed to QNetworkRequest.
+        KURL urlWithCredentials(d->m_request.url());
+        urlWithCredentials.setUser(d->m_user);
+        urlWithCredentials.setPass(d->m_pass);
+        d->m_request.setURL(urlWithCredentials);
+    }
+
 #if QT_VERSION < 0x040400
     getInternal()->m_frame = static_cast<FrameLoaderClientQt*>(frame->loader()->client())->webFrame();
     return QWebNetworkManager::self()->add(this, getInternal()->m_frame->page()->d->networkInterface);
@@ -207,6 +216,14 @@ void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, S
     }
 #else
     ResourceHandleInternal *d = handle.getInternal();
+    if (!(d->m_user.isEmpty() || d->m_pass.isEmpty())) {
+        // If credentials were specified for this request, add them to the url,
+        // so that they will be passed to QNetworkRequest.
+        KURL urlWithCredentials(d->m_request.url());
+        urlWithCredentials.setUser(d->m_user);
+        urlWithCredentials.setPass(d->m_pass);
+        d->m_request.setURL(urlWithCredentials);
+    }
 #if 0
     d->m_frame = static_cast<FrameLoaderClientQt*>(frame->loader()->client())->webFrame();
 #endif

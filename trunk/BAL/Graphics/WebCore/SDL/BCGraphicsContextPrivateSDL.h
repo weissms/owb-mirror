@@ -39,9 +39,11 @@ namespace WebCore {
             , strokeThickness(0)
             , strokeType(SolidColorType)
             , strokeColor(Color::black)
+            , strokeColorSpace(DeviceColorSpace)
             , fillRule(RULE_NONZERO)
             , fillType(SolidColorType)
             , fillColor(Color::black)
+            , fillColorSpace(DeviceColorSpace)
             , shouldAntialias(true)
             , paintingDisabled(false)
             , shadowBlur(0)
@@ -55,6 +57,7 @@ namespace WebCore {
         float strokeThickness;
         FillOrStrokeType strokeType;
         Color strokeColor;
+        ColorSpace strokeColorSpace;
         RefPtr<Gradient> strokeGradient;
         RefPtr<Pattern> strokePattern;
 
@@ -62,6 +65,7 @@ namespace WebCore {
         GradientSpreadMethod spreadMethod;
         FillOrStrokeType fillType;
         Color fillColor;
+        ColorSpace fillColorSpace;
         RefPtr<Gradient> fillGradient;
         RefPtr<Pattern> fillPattern;
 

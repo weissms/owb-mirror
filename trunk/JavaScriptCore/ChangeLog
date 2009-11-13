@@ -1,3 +1,337 @@
+2009-11-12  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Use explicit parentheses to silence gcc 4.4 -Wparentheses warnings
+        https://bugs.webkit.org/show_bug.cgi?id=31040
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+
+2009-11-12  Steve VanDeBogart  <vandebo@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Calculate the time offset only if we were able to parse
+        the date string. This saves an IPC in Chromium for
+        invalid date strings.
+        https://bugs.webkit.org/show_bug.cgi?id=31416
+
+        * wtf/DateMath.cpp:
+        (WTF::parseDateFromNullTerminatedCharacters):
+        (JSC::parseDateFromNullTerminatedCharacters):
+
+2009-11-12  Oliver Hunt  <oliver@apple.com>
+
+        Rollout r50896 until i can work out why it causes failures.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitReturn):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        * parser/Nodes.cpp:
+        (JSC::EvalNode::emitBytecode):
+
+2009-11-12  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Stephanie Lewis.
+
+        Remove LIBRARY directive from def file to fix Debug_All target.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-11-12  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Rubber-stamped by Holger Freyther.
+
+        Revert r50204, since it makes DRT crash on 32 bits release builds
+        for GTK+.
+
+        * wtf/FastMalloc.h:
+
+2009-11-12  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Start unifying entry logic for function and eval code.
+
+        Eval now uses a ret instruction to end execution, and sets up
+        a callframe more in line with what we do for function entry.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitReturn):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        * parser/Nodes.cpp:
+        (JSC::EvalNode::emitBytecode):
+
+2009-11-12  Richard Moe Gustavsen  <richard.gustavsen@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Disable pthread_setname_np.
+
+        This allows Qt builds on Mac from 10.6 to run on earlier version
+        where this symbol is not present.
+        https://bugs.webkit.org/show_bug.cgi?id=31403
+
+        * wtf/Platform.h:
+
+2009-11-12  Thiago Macieira <thiago.macieira@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Fix linking on Linux 32-bit.
+
+        It was missing the ".text" directive at the top of the file,
+        indicating that code would follow. Without it, the assembler created
+        "NOTYPE" symbols, which would result in linker errors.
+        https://bugs.webkit.org/show_bug.cgi?id=30863
+
+        * jit/JITStubs.cpp:
+
+2009-11-11  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Refactor multiple JavaScriptCore threads
+        https://bugs.webkit.org/show_bug.cgi?id=31328
+
+        Remove the id field from the PlatformThread structure 
+        as it is not used.
+
+        * runtime/Collector.cpp:
+        (JSC::getCurrentPlatformThread):
+        (JSC::suspendThread):
+        (JSC::resumeThread):
+        (JSC::getPlatformThreadRegisters):
+
+2009-11-10  Geoffrey Garen  <ggaren@apple.com>
+
+        Linux build fix: Added an #include for UINT_MAX.
+
+        * runtime/WeakRandom.h:
+
+2009-11-10  Geoffrey Garen  <ggaren@apple.com>
+
+        JavaScriptGlue build fix: Marked a file 'private' instead of 'project'.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-11-10  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin "avGni arBalroguch" Barraclough.
+
+        Faster Math.random, based on GameRand.
+        
+        SunSpider says 1.4% faster.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added the header to the project.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        * runtime/JSGlobalData.h: Use an object to track random number generation
+        state, initialized to the current time.
+
+        * runtime/MathObject.cpp:
+        (JSC::MathObject::MathObject):
+        (JSC::mathProtoFuncRandom): Use the new hotness.
+
+        * runtime/WeakRandom.h: Added.
+        (JSC::WeakRandom::WeakRandom):
+        (JSC::WeakRandom::get):
+        (JSC::WeakRandom::advance): The new hotness.
+
+2009-11-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Imported the v8 DST cache.
+        
+        SunSpider says 1.5% faster.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::resetDateCache): Reset the DST cache when resetting
+        other date data.
+
+        * runtime/JSGlobalData.h:
+        (JSC::DSTOffsetCache::DSTOffsetCache):
+        (JSC::DSTOffsetCache::reset): Added a struct for the DST cache.
+
+        * wtf/DateMath.cpp:
+        (WTF::calculateDSTOffsetSimple):
+        (WTF::calculateDSTOffset):
+        (WTF::parseDateFromNullTerminatedCharacters):
+        (JSC::getDSTOffset):
+        (JSC::gregorianDateTimeToMS):
+        (JSC::msToGregorianDateTime):
+        (JSC::parseDateFromNullTerminatedCharacters):
+        * wtf/DateMath.h: The imported code for probing and updating the cache.
+
+2009-11-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fixed an edge case that could cause the engine not to notice a timezone
+        change.
+        
+        No test because this case would require manual intervention to change
+        the timezone during the test.
+        
+        SunSpider reports no change.
+
+        * runtime/DateInstanceCache.h:
+        (JSC::DateInstanceCache::DateInstanceCache):
+        (JSC::DateInstanceCache::reset): Added a helper function for resetting
+        this cache. Also, shrank the cache, since we'll be resetting it often.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::resetDateCache): Include resetting the DateInstanceCache
+        in resetting Date data. (Otherwise, a cache hit could bypass a necessary
+        timezone update check.)
+
+2009-11-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Some manual inlining and constant propogation in Date code.
+        
+        SunSpider reports a 0.4% speedup on date-*, no overall speedup. Shark
+        says some previously evident stalls are now gone.
+
+        * runtime/DateConstructor.cpp:
+        (JSC::callDate):
+        * runtime/DateConversion.cpp:
+        (JSC::formatTime):
+        (JSC::formatTimeUTC): Split formatTime into UTC and non-UTC variants.
+
+        * runtime/DateConversion.h:
+        * runtime/DateInstance.cpp:
+        (JSC::DateInstance::calculateGregorianDateTime):
+        (JSC::DateInstance::calculateGregorianDateTimeUTC):
+        * runtime/DateInstance.h:
+        (JSC::DateInstance::gregorianDateTime):
+        (JSC::DateInstance::gregorianDateTimeUTC): Split gregorianDateTime into
+        a UTC and non-UTC variant, and split each variant into a fast inline
+        case and a slow out-of-line case.
+
+        * runtime/DatePrototype.cpp:
+        (JSC::formatLocaleDate):
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToISOString):
+        (JSC::dateProtoFuncToDateString):
+        (JSC::dateProtoFuncToTimeString):
+        (JSC::dateProtoFuncGetFullYear):
+        (JSC::dateProtoFuncGetUTCFullYear):
+        (JSC::dateProtoFuncToGMTString):
+        (JSC::dateProtoFuncGetMonth):
+        (JSC::dateProtoFuncGetUTCMonth):
+        (JSC::dateProtoFuncGetDate):
+        (JSC::dateProtoFuncGetUTCDate):
+        (JSC::dateProtoFuncGetDay):
+        (JSC::dateProtoFuncGetUTCDay):
+        (JSC::dateProtoFuncGetHours):
+        (JSC::dateProtoFuncGetUTCHours):
+        (JSC::dateProtoFuncGetMinutes):
+        (JSC::dateProtoFuncGetUTCMinutes):
+        (JSC::dateProtoFuncGetSeconds):
+        (JSC::dateProtoFuncGetUTCSeconds):
+        (JSC::dateProtoFuncGetTimezoneOffset):
+        (JSC::setNewValueFromTimeArgs):
+        (JSC::setNewValueFromDateArgs):
+        (JSC::dateProtoFuncSetYear):
+        (JSC::dateProtoFuncGetYear): Updated for the gregorianDateTime change above.
+
+2009-11-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: export a new symbol.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-11-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam "Home Wrecker" Weinig.
+
+        Added a tiny cache for Date parsing.
+        
+        SunSpider says 1.2% faster.
+
+        * runtime/DateConversion.cpp:
+        (JSC::parseDate): Try to reuse the last parsed Date, if present.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::resetDateCache):
+        * runtime/JSGlobalData.h: Added storage for last parsed Date. Refactored
+        this code to make resetting the date cache easier.
+
+        * runtime/JSGlobalObject.h:
+        (JSC::DynamicGlobalObjectScope::DynamicGlobalObjectScope): Updated for
+        refactoring.
+
+        * wtf/DateMath.cpp:
+        (JSC::parseDateFromNullTerminatedCharacters):
+        * wtf/DateMath.h: Changed ExecState to be first parameter, as is the JSC custom.
+
+2009-11-09  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Can cache prototype lookups on uncacheable dictionaries.
+        https://bugs.webkit.org/show_bug.cgi?id=31198
+
+        Replace fromDictionaryTransition with flattenDictionaryObject and
+        flattenDictionaryStructure.  This change is necessary as we need to
+        guarantee that our attempt to convert away from a dictionary structure
+        will definitely succeed, and in some cases this requires mutating the
+        object storage itself.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::tryCacheGetByID):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/BatchedTransitionOptimizer.h:
+        (JSC::BatchedTransitionOptimizer::~BatchedTransitionOptimizer):
+        * runtime/JSObject.h:
+        (JSC::JSObject::flattenDictionaryObject):
+        * runtime/Operations.h:
+        (JSC::normalizePrototypeChain):
+        * runtime/Structure.cpp:
+        (JSC::Structure::flattenDictionaryStructure):
+        (JSC::comparePropertyMapEntryIndices):
+        * runtime/Structure.h:
+
+2009-11-09  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Not reviewed, build fix.
+
+        Remove extra character from r50701.
+
+        * JavaScriptCore.pri:
+
+2009-11-09  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Not reviewed, build fix.
+
+        Revert r50695 because it broke QtWebKit (clean builds).
+
+        * JavaScriptCore.pri:
+
+2009-11-09  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Prepended $$PWD to GENERATED_SOURCES_DIR to avoid potential ambiguities when included from WebCore.pro.
+        Some preprocessors consider this GENERATED_SOURCES_DIR relative to current invoking dir (e.g., ./WebCore),
+        and not the working dir of JavaCriptCore.pri (i.e., ../JavaScriptCore/).
+
+        * JavaScriptCore.pri:
+
 2009-11-09  Gavin Barraclough  <barraclough@apple.com>
 
         Rubber Stamped by Oliver Hunt.

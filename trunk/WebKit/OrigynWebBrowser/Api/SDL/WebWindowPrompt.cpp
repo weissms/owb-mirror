@@ -91,7 +91,7 @@ void WebWindowPrompt::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     ctx.save();
     // Paint background
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent);
+    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent, DeviceColorSpace);
     
 
     static RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
@@ -206,7 +206,7 @@ void WebWindowPrompt::onExpose(BalEventExpose event)
 
             // Draw default text inside text box
             IntPoint startDefaultText(m_textRect.x, m_textRect.y + font.size());
-            ctx.setFillColor(Color::black);
+            ctx.setFillColor(Color::black, DeviceColorSpace);
             TextRun defaultText(m_defaultText.c_str());
             getLineBreak(font, defaultText, lineLength, &lineEnd, &currentLineLength); // Get the computed index in text and the corresponding text length to perfectly display one line.
             xCenterOffset = (lineLength - currentLineLength) / 2; // x offset to display a centered text.
@@ -225,7 +225,7 @@ void WebWindowPrompt::onExpose(BalEventExpose event)
     }
 
     // Paint Window background
-    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 8), Color(0xFF0000CC));
+    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 8), Color(0xFF0000CC), DeviceColorSpace);
 
     // Draw Text
     FontDescription fontDescription;
@@ -270,12 +270,12 @@ void WebWindowPrompt::drawTextBox()
     // needed or else Assertion `m_fontList' will failed.
     font.update(0);
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun(m_defaultText.c_str());
 
     if (!isThemable) {
         // Draw text box bg
-        ctx.setFillColor(Color::white);
+        ctx.setFillColor(Color::white, DeviceColorSpace);
         ctx.drawRect(IntRect(50, (m_surface->h / 2) + (fontSize), m_surface->w - 100, 40));
         // Draw text box text
         ctx.drawText(font, textrun, IntPoint(55, (m_surface->h / 2) + fontSize + 25));
@@ -340,14 +340,14 @@ void WebWindowPrompt::drawButton()
     ctx.save();
     // Draw left button
     if (!m_stateLeft) {
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 3), 80, 40));
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 3), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 3), 80, 40));
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 3), 77, 37));
     }
 
@@ -359,25 +359,25 @@ void WebWindowPrompt::drawButton()
     // needed or else Assertion `m_fontList' will failed.
     font.update(0);
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun(m_buttonOk.c_str());
     ctx.drawText(font, textrun, IntPoint((m_surface->w / 2 ) - 85, (m_surface->h / 2) + (fontSize * 3) + 25));
 
     // Draw rigth button
 
     if (!m_stateRigth) {
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 3), 80, 40));
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 3), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 3), 80, 40));
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 3), 77, 37));
     }
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun2(m_buttonCancel.c_str());
     ctx.drawText(font, textrun2, IntPoint((m_surface->w / 2 ) + 45, (m_surface->h / 2) + (fontSize * 3) + 25));
 

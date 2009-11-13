@@ -39,12 +39,13 @@ public:
     QGraphicsWebViewPrivate(QGraphicsWebView* parent)
         : q(parent)
         , page(0)
-        , interactive(true)
     {}
 
+    virtual ~QGraphicsWebViewPrivate();
     virtual void scroll(int dx, int dy, const QRect&);
     virtual void update(const QRect& dirtyRect);
     virtual void setInputMethodEnabled(bool enable);
+    virtual bool inputMethodEnabled() const;
 #if QT_VERSION >= 0x040600
     virtual void setInputMethodHint(Qt::InputMethodHint hint, bool enable);
 #endif
@@ -64,9 +65,11 @@ public:
 
     QGraphicsWebView* q;
     QWebPage* page;
-
-    bool interactive;
 };
+
+QGraphicsWebViewPrivate::~QGraphicsWebViewPrivate()
+{
+}
 
 void QGraphicsWebViewPrivate::_q_doLoadFinished(bool success)
 {
@@ -92,6 +95,15 @@ void QGraphicsWebViewPrivate::setInputMethodEnabled(bool enable)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
     q->setFlag(QGraphicsItem::ItemAcceptsInputMethod, enable);
+#endif
+}
+
+bool QGraphicsWebViewPrivate::inputMethodEnabled() const
+{
+#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
+    return q->flags() & QGraphicsItem::ItemAcceptsInputMethod;
+#else
+    return false;
 #endif
 }
 
@@ -146,15 +158,99 @@ QObject* QGraphicsWebViewPrivate::pluginParent() const
 
 /*!
     \class QGraphicsWebView
-    \brief The QGraphicsWebView class allows web content to be added to a GraphicsView.
+    \brief The QGraphicsWebView class allows Web content to be added to a GraphicsView.
     \since 4.6
 
-    A WebGraphicsItem renders web content based on a URL or set data.
+    An instance of this class renders Web content from a URL or supplied as data, using
+    features of the QtWebKit module.
 
-    If the width and height of the item is not set, they will
-    dynamically adjust to a size appropriate for the content.
-    This width may be large (eg. 980) for typical online web pages.
+    If the width and height of the item are not set, they will default to 800 and 600,
+    respectively. If the Web page contents is larger than that, scrollbars will be shown
+    if not disabled explicitly.
+
+    \section1 Browser Features
+
+    Many of the functions, signals and properties provided by QWebView are also available
+    for this item, making it simple to adapt existing code to use QGraphicsWebView instead
+    of QWebView.
+
+    The item uses a QWebPage object to perform the rendering of Web content, and this can
+    be obtained with the page() function, enabling the document itself to be accessed and
+    modified.
+
+    As with QWebView, the item records the browsing history using a QWebHistory object,
+    accessible using the history() function. The QWebSettings object that defines the
+    configuration of the browser can be obtained with the settings() function, enabling
+    features like plugin support to be customized for each item.
+
+    \sa QWebView, QGraphicsTextItem
 */
+
+/*!
+    \fn void QGraphicsWebView::titleChanged(const QString &title)
+
+    This signal is emitted whenever the \a title of the main frame changes.
+
+    \sa title()
+*/
+
+/*!
+    \fn void QGraphicsWebView::urlChanged(const QUrl &url)
+
+    This signal is emitted when the \a url of the view changes.
+
+    \sa url(), load()
+*/
+
+/*!
+    \fn void QGraphicsWebView::statusChanged()
+
+    This signal is emitted when the status bar text is changed by the page.
+*/
+
+/*!
+    \fn void QGraphicsWebView::iconChanged()
+
+    This signal is emitted whenever the icon of the page is loaded or changes.
+
+    In order for icons to be loaded, you will need to set an icon database path
+    using QWebSettings::setIconDatabasePath().
+
+    \sa icon(), QWebSettings::setIconDatabasePath()
+*/
+
+/*!
+    \fn void QGraphicsWebView::loadStarted()
+
+    This signal is emitted when a new load of the page is started.
+
+    \sa progressChanged(), loadFinished()
+*/
+
+/*!
+    \fn void QGraphicsWebView::loadFinished(bool ok)
+
+    This signal is emitted when a load of the page is finished.
+    \a ok will indicate whether the load was successful or any error occurred.
+
+    \sa loadStarted()
+*/
+
+/*!
+    \fn void QGraphicsWebView::progressChanged(qreal progress)
+
+    This signal is emitted every time an element in the web page
+    completes loading and the overall loading progress advances.
+
+    This signal tracks the progress of all child frames.
+
+    The current value is provided by \a progress and scales from 0.0 to 1.0,
+    which is the default range of QProgressBar.
+
+    \sa loadStarted(), loadFinished()
+*/
+
+
 
 /*!
     Constructs an empty QGraphicsWebView with parent \a parent.
@@ -173,7 +269,7 @@ QGraphicsWebView::QGraphicsWebView(QGraphicsItem* parent)
 }
 
 /*!
-    Destroys the web graphicsitem.
+    Destroys the item.
 */
 QGraphicsWebView::~QGraphicsWebView()
 {
@@ -250,6 +346,24 @@ QVariant QGraphicsWebView::itemChange(GraphicsItemChange change, const QVariant&
     }
 
     return QGraphicsWidget::itemChange(change, value);
+}
+
+/*! \reimp
+*/
+QSizeF QGraphicsWebView::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
+{
+    if (which == Qt::PreferredSize)
+        return QSizeF(800, 600); // ###
+    return QGraphicsWidget::sizeHint(which, constraint);
+}
+
+/*! \reimp
+*/
+QVariant QGraphicsWebView::inputMethodQuery(Qt::InputMethodQuery query) const
+{
+    if (d->page)
+        return d->page->inputMethodQuery(query);
+    return QVariant();
 }
 
 /*! \reimp
@@ -341,6 +455,8 @@ void QGraphicsWebView::setPage(QWebPage* page)
             this, SLOT(_q_doLoadFinished(bool)));
     connect(d->page, SIGNAL(statusBarMessage(const QString&)),
             this, SIGNAL(statusBarMessage(const QString&)));
+    connect(d->page, SIGNAL(linkClicked(const QUrl &)),
+            this, SIGNAL(linkClicked(const QUrl &)));
 }
 
 /*!
@@ -411,7 +527,6 @@ void QGraphicsWebView::setZoomFactor(qreal factor)
         return;
 
     page()->mainFrame()->setZoomFactor(factor);
-    emit zoomFactorChanged();
 }
 
 qreal QGraphicsWebView::zoomFactor() const
@@ -525,15 +640,14 @@ void QGraphicsWebView::load(const QNetworkRequest& request,
 }
 
 /*!
-    \property QGraphicsWebView::html
-    This property provides an HTML interface to the text in the webview.
+    Sets the content of the web view to the specified \a html.
 
-    When setting this property, external objects such as stylesheets or images
-    referenced in the HTML document are located relative to \a baseUrl.
+    External objects such as stylesheets or images referenced in the HTML
+    document are located relative to \a baseUrl.
 
     The \a html is loaded immediately; external objects are loaded asynchronously.
 
-    When using these methods, WebKit assumes that external resources such as
+    When using this method, WebKit assumes that external resources such as
     JavaScript programs or style sheets are encoded in UTF-8 unless otherwise
     specified. For example, the encoding of an external script can be specified
     through the charset attribute of the HTML script tag. Alternatively, the
@@ -544,11 +658,6 @@ void QGraphicsWebView::load(const QNetworkRequest& request,
 void QGraphicsWebView::setHtml(const QString& html, const QUrl& baseUrl)
 {
     page()->mainFrame()->setHtml(html, baseUrl);
-}
-
-QString QGraphicsWebView::toHtml() const
-{
-    return page()->mainFrame()->toHtml();
 }
 
 /*!
@@ -577,25 +686,6 @@ void QGraphicsWebView::setContent(const QByteArray& data, const QString& mimeTyp
 QWebHistory* QGraphicsWebView::history() const
 {
     return page()->history();
-}
-
-/*!
-  \property QGraphicsWebView::interactive
-  \brief controls whether the item responds to mouse and key events.
-*/
-
-bool QGraphicsWebView::isInteractive() const
-{
-    return d->interactive;
-}
-
-void QGraphicsWebView::setInteractive(bool allowed)
-{
-    if (d->interactive == allowed)
-        return;
-
-    d->interactive = allowed;
-    emit interactivityChanged();
 }
 
 /*!
@@ -628,11 +718,53 @@ QWebSettings* QGraphicsWebView::settings() const
     return page()->settings();
 }
 
+/*!
+    Returns a pointer to a QAction that encapsulates the specified web action \a action.
+*/
+QAction *QGraphicsWebView::pageAction(QWebPage::WebAction action) const
+{
+    return page()->action(action);
+}
+
+/*!
+    Triggers the specified \a action. If it is a checkable action the specified
+    \a checked state is assumed.
+
+    \sa pageAction()
+*/
+void QGraphicsWebView::triggerPageAction(QWebPage::WebAction action, bool checked)
+{
+    page()->triggerAction(action, checked);
+}
+
+/*!
+    Finds the specified string, \a subString, in the page, using the given \a options.
+
+    If the HighlightAllOccurrences flag is passed, the function will highlight all occurrences
+    that exist in the page. All subsequent calls will extend the highlight, rather than
+    replace it, with occurrences of the new string.
+
+    If the HighlightAllOccurrences flag is not passed, the function will select an occurrence
+    and all subsequent calls will replace the current occurrence with the next one.
+
+    To clear the selection, just pass an empty string.
+
+    Returns true if \a subString was found; otherwise returns false.
+
+    \sa selectedText(), selectionChanged()
+*/
+bool QGraphicsWebView::findText(const QString &subString, QWebPage::FindFlags options)
+{
+    if (d->page)
+        return d->page->findText(subString, options);
+    return false;
+}
+
 /*! \reimp
 */
 void QGraphicsWebView::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         QMouseEvent me = QMouseEvent(QEvent::MouseMove,
                 ev->pos().toPoint(), Qt::NoButton,
@@ -656,7 +788,7 @@ void QGraphicsWebView::hoverLeaveEvent(QGraphicsSceneHoverEvent* ev)
 */
 void QGraphicsWebView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -670,7 +802,7 @@ void QGraphicsWebView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 */
 void QGraphicsWebView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -684,7 +816,7 @@ void QGraphicsWebView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 */
 void QGraphicsWebView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -698,7 +830,7 @@ void QGraphicsWebView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 */
 void QGraphicsWebView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -712,7 +844,7 @@ void QGraphicsWebView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 */
 void QGraphicsWebView::keyPressEvent(QKeyEvent* ev)
 {
-    if (d->interactive && d->page)
+    if (d->page)
         d->page->event(ev);
 
     if (!ev->isAccepted())
@@ -723,7 +855,7 @@ void QGraphicsWebView::keyPressEvent(QKeyEvent* ev)
 */
 void QGraphicsWebView::keyReleaseEvent(QKeyEvent* ev)
 {
-    if (d->interactive && d->page)
+    if (d->page)
         d->page->event(ev);
 
     if (!ev->isAccepted())
@@ -779,7 +911,7 @@ void QGraphicsWebView::dragEnterEvent(QGraphicsSceneDragDropEvent* ev)
 void QGraphicsWebView::dragLeaveEvent(QGraphicsSceneDragDropEvent* ev)
 {
 #ifndef QT_NO_DRAGANDDROP
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -797,7 +929,7 @@ void QGraphicsWebView::dragLeaveEvent(QGraphicsSceneDragDropEvent* ev)
 void QGraphicsWebView::dragMoveEvent(QGraphicsSceneDragDropEvent* ev)
 {
 #ifndef QT_NO_DRAGANDDROP
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -815,7 +947,7 @@ void QGraphicsWebView::dragMoveEvent(QGraphicsSceneDragDropEvent* ev)
 void QGraphicsWebView::dropEvent(QGraphicsSceneDragDropEvent* ev)
 {
 #ifndef QT_NO_DRAGANDDROP
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -846,7 +978,7 @@ void QGraphicsWebView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 */
 void QGraphicsWebView::wheelEvent(QGraphicsSceneWheelEvent* ev)
 {
-    if (d->interactive && d->page) {
+    if (d->page) {
         const bool accepted = ev->isAccepted();
         d->page->event(ev);
         ev->setAccepted(accepted);
@@ -861,11 +993,20 @@ void QGraphicsWebView::wheelEvent(QGraphicsSceneWheelEvent* ev)
 */
 void QGraphicsWebView::inputMethodEvent(QInputMethodEvent* ev)
 {
-    if (d->interactive && d->page)
+    if (d->page)
         d->page->event(ev);
 
     if (!ev->isAccepted())
         QGraphicsItem::inputMethodEvent(ev);
 }
+
+/*!
+    \fn void QGraphicsWebView::linkClicked(const QUrl &url)
+
+    This signal is emitted whenever the user clicks on a link and the page's linkDelegationPolicy
+    property is set to delegate the link handling for the specified \a url.
+
+    \sa QWebPage::linkDelegationPolicy()
+*/
 
 #include "moc_qgraphicswebview.cpp"

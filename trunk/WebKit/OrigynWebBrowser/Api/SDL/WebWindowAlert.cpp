@@ -84,7 +84,7 @@ void WebWindowAlert::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     ctx.save();
     // Paint background
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent);
+    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent, DeviceColorSpace);
 
     static RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
     if (cornerhl) {
@@ -190,7 +190,7 @@ void WebWindowAlert::onExpose(BalEventExpose event)
     }
 
     // Paint Window background
-    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 6), Color(0xFF0000CC));
+    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 6), Color(0xFF0000CC), DeviceColorSpace);
 
     // Draw Text
     FontDescription fontDescription;
@@ -226,14 +226,14 @@ void WebWindowAlert::drawButton()
     GraphicsContext ctx(m_surface);
     ctx.save();
     if (!m_state) {
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     }
     ctx.drawLine(IntPoint(m_surface->w/2 + 37, (m_surface->h / 2) + (fontSize * 2) + 37), IntPoint(m_surface->w/2 + 39, (m_surface->h / 2) + (fontSize * 2) + 39));
@@ -246,7 +246,7 @@ void WebWindowAlert::drawButton()
     // needed or else Assertion `m_fontList' will failed.
     font.update(0);
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun(m_buttonText.c_str());
     ctx.drawText(font, textrun, IntPoint((m_surface->w / 2 ) - 25, (m_surface->h / 2) + (fontSize * 2) + 25));
     //ctx.drawText(textrun, IntPoint(0, 0));

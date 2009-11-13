@@ -21,6 +21,7 @@
 #define QGraphicsWebView_h
 
 #include "qwebkitglobal.h"
+#include "qwebpage.h"
 #include <QtCore/qurl.h>
 #include <QtGui/qevent.h>
 #include <QtGui/qgraphicswidget.h>
@@ -39,17 +40,14 @@ class QWEBKIT_EXPORT QGraphicsWebView : public QGraphicsWidget {
 
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(QIcon icon READ icon NOTIFY iconChanged)
-    Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+    Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor)
 
-    Q_PROPERTY(QString html READ toHtml WRITE setHtml)
     Q_PROPERTY(QUrl url READ url WRITE setUrl NOTIFY urlChanged)
-
-    Q_PROPERTY(bool interactive READ isInteractive WRITE setInteractive NOTIFY interactivityChanged)
 
     Q_PROPERTY(bool modified READ isModified)
 
 public:
-    QGraphicsWebView(QGraphicsItem* parent = 0);
+    explicit QGraphicsWebView(QGraphicsItem* parent = 0);
     ~QGraphicsWebView();
 
     QWebPage* page() const;
@@ -64,15 +62,11 @@ public:
     qreal zoomFactor() const;
     void setZoomFactor(qreal);
 
-    bool isInteractive() const;
-    void setInteractive(bool);
-
     bool isModified() const;
 
     void load(const QUrl &url);
     void load(const QNetworkRequest& request, QNetworkAccessManager::Operation operation = QNetworkAccessManager::GetOperation, const QByteArray& body = QByteArray());
 
-    QString toHtml() const;
     void setHtml(const QString& html, const QUrl& baseUrl = QUrl());
     // FIXME: Consider rename to setHtml?
     void setContent(const QByteArray& data, const QString& mimeType = QString(), const QUrl& baseUrl = QUrl());
@@ -80,11 +74,20 @@ public:
     QWebHistory* history() const;
     QWebSettings* settings() const;
 
+    QAction* pageAction(QWebPage::WebAction action) const;
+    void triggerPageAction(QWebPage::WebAction action, bool checked = false);
+
+    bool findText(const QString& subString, QWebPage::FindFlags options = 0);
+
     virtual void setGeometry(const QRectF& rect);
     virtual void updateGeometry();
     virtual void paint(QPainter*, const QStyleOptionGraphicsItem* options, QWidget* widget = 0);
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value);
     virtual bool event(QEvent*);
+
+    virtual QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const;
+
+    virtual QVariant inputMethodQuery(Qt::InputMethodQuery query) const;
 
 public Q_SLOTS:
     void stop();
@@ -97,12 +100,11 @@ Q_SIGNALS:
     void loadFinished(bool);
 
     void loadProgress(int progress);
-    void interactivityChanged();
     void urlChanged(const QUrl&);
     void titleChanged(const QString&);
     void iconChanged();
     void statusBarMessage(const QString& message);
-    void zoomFactorChanged();
+    void linkClicked(const QUrl&);
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent*);

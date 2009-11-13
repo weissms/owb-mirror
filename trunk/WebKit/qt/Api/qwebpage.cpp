@@ -153,6 +153,7 @@ public:
     virtual void scroll(int dx, int dy, const QRect&);
     virtual void update(const QRect& dirtyRect);
     virtual void setInputMethodEnabled(bool enable);
+    virtual bool inputMethodEnabled() const;
 #if QT_VERSION >= 0x040600
     virtual void setInputMethodHint(Qt::InputMethodHint hint, bool enable);
 #endif
@@ -185,6 +186,12 @@ void QWebPageWidgetClient::setInputMethodEnabled(bool enable)
 {
     view->setAttribute(Qt::WA_InputMethodEnabled, enable);
 }
+
+bool QWebPageWidgetClient::inputMethodEnabled() const
+{
+    return view->testAttribute(Qt::WA_InputMethodEnabled);
+}
+
 #if QT_VERSION >= 0x040600
 void QWebPageWidgetClient::setInputMethodHint(Qt::InputMethodHint hint, bool enable)
 {
@@ -857,13 +864,13 @@ void QWebPagePrivate::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 void QWebPagePrivate::handleSoftwareInputPanel(Qt::MouseButton button)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
-    if (q->view() && q->view()->testAttribute(Qt::WA_InputMethodEnabled)
+    if (client && client->inputMethodEnabled()
         && button == Qt::LeftButton && qApp->autoSipEnabled()) {
         QStyle::RequestSoftwareInputPanel behavior = QStyle::RequestSoftwareInputPanel(
-            q->view()->style()->styleHint(QStyle::SH_RequestSoftwareInputPanel));
+            client->ownerWidget()->style()->styleHint(QStyle::SH_RequestSoftwareInputPanel));
         if (!clickCausedFocus || behavior == QStyle::RSIP_OnMouseClick) {
             QEvent event(QEvent::RequestSoftwareInputPanel);
-            QApplication::sendEvent(q->view(), &event);
+            QApplication::sendEvent(client->ownerWidget(), &event);
         }
     }
 
@@ -1303,16 +1310,16 @@ bool QWebPagePrivate::handleScrolling(QKeyEvent *ev, Frame *frame)
         granularity = ScrollByPage;
         direction = ScrollDown;
     } else if (ev == QKeySequence::MoveToPreviousPage
-               || (ev->key() == Qt::Key_Space) && (ev->modifiers() & Qt::ShiftModifier)) {
+               || ((ev->key() == Qt::Key_Space) && (ev->modifiers() & Qt::ShiftModifier))) {
         granularity = ScrollByPage;
         direction = ScrollUp;
     } else
 #endif // QT_NO_SHORTCUT
-    if (ev->key() == Qt::Key_Up && ev->modifiers() & Qt::ControlModifier
+    if ((ev->key() == Qt::Key_Up && ev->modifiers() & Qt::ControlModifier)
                || ev->key() == Qt::Key_Home) {
         granularity = ScrollByDocument;
         direction = ScrollUp;
-    } else if (ev->key() == Qt::Key_Down && ev->modifiers() & Qt::ControlModifier
+    } else if ((ev->key() == Qt::Key_Down && ev->modifiers() & Qt::ControlModifier)
                || ev->key() == Qt::Key_End) {
         granularity = ScrollByDocument;
         direction = ScrollDown;
@@ -1471,8 +1478,6 @@ QWebInspector* QWebPagePrivate::getOrCreateInspector()
     if (!inspector) {
         QWebInspector* insp = new QWebInspector;
         insp->setPage(q);
-        insp->connect(q, SIGNAL(webInspectorTriggered(const QWebElement&)), SLOT(show()));
-        insp->show(); // The inspector is expected to be shown on inspection
         inspectorIsInternalOnly = true;
 
         Q_ASSERT(inspector); // Associated through QWebInspector::setPage(q)
@@ -1677,7 +1682,7 @@ InspectorController* QWebPagePrivate::inspectorController()
 */
 
 /*!
-    Constructs an empty QWebView with parent \a parent.
+    Constructs an empty QWebPage with parent \a parent.
 */
 QWebPage::QWebPage(QObject *parent)
     : QObject(parent)
@@ -2018,11 +2023,9 @@ void QWebPage::triggerAction(WebAction action, bool)
             editor->setBaseWritingDirection(RightToLeftWritingDirection);
             break;
         case InspectElement: {
-            QWebElement inspectedElement(QWebElement::enclosingElement(d->hitTestResult.d->innerNonSharedNode.get()));
-            emit webInspectorTriggered(inspectedElement);
-
             if (!d->hitTestResult.isNull()) {
                 d->getOrCreateInspector(); // Make sure the inspector is created
+                d->inspector->show(); // The inspector is expected to be shown on inspection
                 d->page->inspectorController()->inspect(d->hitTestResult.d->innerNonSharedNode.get());
             }
             break;
@@ -2763,6 +2766,17 @@ void QWebPage::updatePositionDependentActions(const QPoint &pos)
     as a result of the user clicking on a "file upload" button in a HTML form where multiple
     file selection is allowed.
 
+    \omitvalue ErrorPageExtension (introduced in Qt 4.6)
+*/
+
+/*!
+    \enum QWebPage::ErrorDomain
+    \since 4.6
+    \internal
+
+    \value QtNetwork
+    \value Http
+    \value WebKit
 */
 
 /*!
@@ -2810,6 +2824,12 @@ void QWebPage::updatePositionDependentActions(const QPoint &pos)
     \a baseUrl.
 
     \sa QWebPage::ErrorPageExtensionOption, QString::toUtf8()
+*/
+
+/*!
+    \fn QWebPage::ErrorPageExtensionReturn::ErrorPageExtensionReturn()
+
+    Constructs a new error page object.
 */
 
 /*!
@@ -3420,24 +3440,6 @@ quint64 QWebPage::bytesReceived() const
     By default no links are delegated and are handled by QWebPage instead.
 
     \sa linkHovered()
-*/
-
-/*!
-    \fn void QWebPage::webInspectorTriggered(const QWebElement& inspectedElement);
-    \since 4.6
-
-    This signal is emitted when the user triggered an inspection through the
-    context menu. If a QWebInspector is associated to this page, it should be
-    visible to the user after this signal has been emitted.
-
-    If still no QWebInspector is associated to this QWebPage after the emission
-    of this signal, a privately owned inspector will be shown to the user.
-
-    \note \a inspectedElement contains the QWebElement under the context menu.
-    It is not garanteed to be the same as the focused element in the web
-    inspector.
-
-    \sa QWebInspector
 */
 
 /*!

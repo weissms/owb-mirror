@@ -125,10 +125,13 @@ namespace WebCore {
         public:
             Changes() : m_change(NoChange) {}
 
-            inline bool hasChange(ChangeType change) { return (m_change & change) || !(m_change + change); }
+            inline bool hasChange(ChangeType change)
+            {
+                return m_change & change || (m_change == NoChange && change == NoChange);
+            }
             inline void set(ChangeType change)
             {
-                m_change = static_cast<ChangeType>(static_cast<unsigned>(m_change) | static_cast<unsigned>(change));            
+                m_change = static_cast<ChangeType>(static_cast<unsigned>(m_change) | static_cast<unsigned>(change));
             }
             inline void clear(ChangeType change)
             {
@@ -145,6 +148,7 @@ namespace WebCore {
         InspectorResource(long long identifier, DocumentLoader*);
         Type type() const;
 
+        Type cachedResourceType() const;
         CachedResource* cachedResource() const;
 
         long long m_identifier;

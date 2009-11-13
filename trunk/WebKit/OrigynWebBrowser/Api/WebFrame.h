@@ -66,8 +66,9 @@ class WebFrameLoaderClient;
 class WebFrameObserver;
 class WebFramePolicyListener;
 class WebHistory;
-class WebView;
 class WebMutableURLRequest;
+class WebScriptWorld;
+class WebView;
 #if ENABLE(JS_ADDONS)
 class BindingJS;
 #endif
@@ -384,9 +385,9 @@ public:
     /**
      * contextForWorldID
      * @abstract returns a reference to the global JavaScript global object associated with the world ID.
-     * @param worldID, the identifier of the isolated world.
+     * @param WebScriptWorld, the isolated world.
      */
-    virtual JSGlobalContextRef contextForWorldID(unsigned);
+    virtual JSGlobalContextRef contextForScriptWorld(WebScriptWorld*);
 
     /**
      * test if the frame supports text encoding

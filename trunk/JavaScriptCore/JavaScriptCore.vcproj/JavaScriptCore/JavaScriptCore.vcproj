@@ -1220,6 +1220,10 @@
 				RelativePath="..\..\kjs\ustring.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\runtime\WeakRandom.h"
+				>
+			</File>
 			<Filter
 				Name="DerivedSources"
 				>

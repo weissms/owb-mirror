@@ -29,11 +29,12 @@
 namespace WebCore {
 
 class Element;
-class RenderObject;
+class Frame;
 class String;
+class RenderObject;
 class TextStream;                                                                                                                                                                                
                                                                                                                                                                                                    
-String externalRepresentation(RenderObject*);
+String externalRepresentation(Frame*);
 void write(TextStream&, const RenderObject&, int indent = 0);
   
 // Helper function shared with SVGRenderTreeAsText

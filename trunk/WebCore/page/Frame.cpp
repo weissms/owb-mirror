@@ -82,6 +82,10 @@
 #include <wtf/RefCountedLeakCounter.h>
 #include <wtf/StdLibExtras.h>
 
+#if PLATFORM(MAC) || (PLATFORM(CHROMIUM) && PLATFORM(DARWIN))
+#import <Carbon/Carbon.h>
+#endif
+
 #if USE(JSC)
 #include "JSDOMWindowShell.h"
 #include "runtime_root.h"
@@ -870,10 +874,10 @@ void Frame::injectUserScripts(UserScriptInjectionTime injectionTime)
         return;
     UserScriptMap::const_iterator end = userScripts->end();
     for (UserScriptMap::const_iterator it = userScripts->begin(); it != end; ++it)
-        injectUserScriptsForWorld(it->first, *it->second, injectionTime);
+        injectUserScriptsForWorld(it->first.get(), *it->second, injectionTime);
 }
 
-void Frame::injectUserScriptsForWorld(unsigned worldID, const UserScriptVector& userScripts, UserScriptInjectionTime injectionTime)
+void Frame::injectUserScriptsForWorld(DOMWrapperWorld* world, const UserScriptVector& userScripts, UserScriptInjectionTime injectionTime)
 {
     if (userScripts.isEmpty())
         return;
@@ -887,9 +891,8 @@ void Frame::injectUserScriptsForWorld(unsigned worldID, const UserScriptVector& 
     for (unsigned i = 0; i < count; ++i) {
         UserScript* script = userScripts[i].get();
         if (script->injectionTime() == injectionTime && UserContentURLPattern::matchesPatterns(doc->url(), script->whitelist(), script->blacklist()))
-            sourceCode.append(ScriptSourceCode(script->source(), script->url()));
+            m_script.evaluateInWorld(ScriptSourceCode(script->source(), script->url()), world);
     }
-    script()->evaluateInIsolatedWorld(worldID, sourceCode);
 }
 
 bool Frame::shouldChangeSelection(const VisibleSelection& newSelection) const
@@ -915,13 +918,36 @@ bool Frame::isContentEditable() const
     return m_doc->inDesignMode();
 }
 
-#if !PLATFORM(MAC)
-
-void Frame::setUseSecureKeyboardEntry(bool)
-{
-}
-
+#if PLATFORM(MAC) || (PLATFORM(CHROMIUM) && PLATFORM(DARWIN))
+const short enableRomanKeyboardsOnly = -23;
 #endif
+void Frame::setUseSecureKeyboardEntry(bool enable)
+{
+#if PLATFORM(MAC) || (PLATFORM(CHROMIUM) && PLATFORM(DARWIN))
+    if (enable == IsSecureEventInputEnabled())
+        return;
+    if (enable) {
+        EnableSecureEventInput();
+#ifdef BUILDING_ON_TIGER
+        KeyScript(enableRomanKeyboardsOnly);
+#else
+        // WebKit substitutes nil for input context when in password field, which corresponds to null TSMDocument. So, there is
+        // no need to call TSMGetActiveDocument(), which may return an incorrect result when selection hasn't been yet updated
+        // after focusing a node.
+        CFArrayRef inputSources = TISCreateASCIICapableInputSourceList();
+        TSMSetDocumentProperty(0, kTSMDocumentEnabledInputSourcesPropertyTag, sizeof(CFArrayRef), &inputSources);
+        CFRelease(inputSources);
+#endif
+    } else {
+        DisableSecureEventInput();
+#ifdef BUILDING_ON_TIGER
+        KeyScript(smKeyEnableKybds);
+#else
+        TSMRemoveDocumentProperty(0, kTSMDocumentEnabledInputSourcesPropertyTag);
+#endif
+    }
+#endif
+}
 
 void Frame::updateSecureKeyboardEntryIfActive()
 {

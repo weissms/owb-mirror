@@ -44,25 +44,25 @@
 #include <wtf/RefPtr.h>
 
 namespace WebCore {
-    class ResourceHandle;
+    class AuthenticationClient;
 }
+
 class WebURLAuthenticationChallenge;
 class WebURLCredential;
 
-class WebURLAuthenticationChallengeSender
-{
+class WebURLAuthenticationChallengeSender {
 public:
 
     /**
      * create a new instance of WebURLAuthenticationChallengeSender
      */
-    static WebURLAuthenticationChallengeSender* createInstance(PassRefPtr<WebCore::ResourceHandle>);
+    static WebURLAuthenticationChallengeSender* createInstance(PassRefPtr<WebCore::AuthenticationClient>);
 private:
 
     /**
      *  WebURLAuthenticationChallengeSender constructor
      */
-    WebURLAuthenticationChallengeSender(PassRefPtr<WebCore::ResourceHandle>);
+    WebURLAuthenticationChallengeSender(PassRefPtr<WebCore::AuthenticationClient>);
 public:
 
     /**
@@ -88,11 +88,11 @@ public:
     /**
      * get resource handle
      */
-    WebCore::ResourceHandle* resourceHandle() const;
+    WebCore::AuthenticationClient* authenticationClient() const;
 
 private:
 
-    RefPtr<WebCore::ResourceHandle> m_handle;
+    RefPtr<WebCore::AuthenticationClient> m_authenticationClient;
 };
 
 #endif

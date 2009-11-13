@@ -43,6 +43,7 @@
 #include "RenderTheme.h"
 #include "PlatformString.h"
 #include "PopupMenu.h"
+#include "ColorSpace.h"
 
 using namespace WebCore;
 
@@ -89,7 +90,7 @@ void WebPopup::onExpose(BalEventExpose event)
 
     // Paint background
     ctx.beginTransparencyLayer(0.8);
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color(0xA0A0A0A0));
+    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color(0xA0A0A0A0), DeviceColorSpace);
     ctx.endTransparencyLayer();
     paintPopup(m_popup->client()->selectedIndex());
 
@@ -110,7 +111,7 @@ void WebPopup::paintScrollbar()
     int sizeOut = m_popup->windowRect().bottom() - m_surface->h;
     int height = m_popup->windowRect().height() - sizeOut;
     IntRect scrollBg = IntRect(m_popup->windowRect().right(), m_popup->windowRect().y(), scrollbarSize, height);
-    ctx.fillRect(scrollBg, Color::white);
+    ctx.fillRect(scrollBg, Color::white, DeviceColorSpace);
     IntPoint p1 = IntPoint(m_popup->windowRect().right() + (scrollbarSize / 2), m_popup->windowRect().y());
     IntPoint p2 = IntPoint(m_popup->windowRect().right() + (scrollbarSize / 2), m_popup->windowRect().bottom() - sizeOut);
     ctx.drawLine(p1, p2);
@@ -119,7 +120,7 @@ void WebPopup::paintScrollbar()
     int itemCount = m_popup->client()->listSize();
     float per = (float)m_itemNumber / (float)itemCount;
     m_thumb = IntRect(m_popup->windowRect().right(), (int)(m_popup->windowRect().y() + (m_scrollIndex * m_popup->itemHeight() * per)), scrollbarSize, (int)(height * per));
-    ctx.fillRect(m_thumb, Color::gray);
+    ctx.fillRect(m_thumb, Color::gray, DeviceColorSpace);
     ctx.restore();
 }
 
@@ -152,11 +153,11 @@ void WebPopup::paintPopup(int highligth)
         
         // Draw the background for this menu item
         if (itemStyle.isVisible())
-            ctx.fillRect(IntRect(m_popup->windowRect().x(), m_popup->windowRect().y() + (m_popup->itemHeight() * (i - m_scrollIndex)), m_popup->windowRect().width(), m_popup->itemHeight()), optionBackgroundColor);
+            ctx.fillRect(IntRect(m_popup->windowRect().x(), m_popup->windowRect().y() + (m_popup->itemHeight() * (i - m_scrollIndex)), m_popup->windowRect().width(), m_popup->itemHeight()), optionBackgroundColor, DeviceColorSpace);
 
         if (m_popup->client()->itemIsSeparator(i)) {
             IntRect separatorRect(m_popup->windowRect().x() + separatorPadding, m_popup->windowRect().y() + (m_popup->itemHeight() - separatorHeight) / 2, m_popup->windowRect().width() - 2 * separatorPadding, separatorHeight);
-            ctx.fillRect(separatorRect, optionTextColor);
+            ctx.fillRect(separatorRect, optionTextColor, DeviceColorSpace);
             continue;
         }
 
@@ -168,7 +169,7 @@ void WebPopup::paintPopup(int highligth)
         const UChar* string = text.characters();
         TextRun textRun(string, length, false, 0, 0, text.defaultWritingDirection() == WTF::Unicode::RightToLeft);
 
-        ctx.setFillColor(optionTextColor);
+        ctx.setFillColor(optionTextColor, DeviceColorSpace);
 
         Font itemFont = m_popup->client()->menuStyle().font();
         if (m_popup->client()->itemIsLabel(i)) {
@@ -214,7 +215,7 @@ void WebPopup::valueChanged()
 {
     GraphicsContext ctx(m_surface);
     ctx.save();
-    ctx.fillRect(IntRect(m_popup->windowRect().x(), m_popup->windowRect().y() - m_popup->itemHeight(), m_popup->windowRect().width(), m_popup->itemHeight()), Color(0xFF000000));
+    ctx.fillRect(IntRect(m_popup->windowRect().x(), m_popup->windowRect().y() - m_popup->itemHeight(), m_popup->windowRect().width(), m_popup->itemHeight()), Color(0xFF000000), DeviceColorSpace);
 
     SDL_Rect sdlSrc, sdlDest;
     sdlSrc.x = m_popup->windowRect().x();

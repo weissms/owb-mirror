@@ -157,7 +157,7 @@ void WebFrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identi
 
 void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge& challenge)
 {
-    //ASSERT(challenge.sourceHandle());
+    //ASSERT(challenge.authenticationClient());
 
     /*WebView* webView = m_webFrame->webView();
     COMPtr<IWebResourceLoadDelegate> resourceLoadDelegate;
@@ -169,7 +169,7 @@ void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoa
 
     // If the ResourceLoadDelegate doesn't exist or fails to handle the call, we tell the ResourceHandle
     // to continue without credential - this is the best approximation of Mac behavior
-    //challenge.sourceHandle()->receivedRequestToContinueWithoutCredential(challenge);
+    //challenge.authenticationClient()->receivedRequestToContinueWithoutCredential(challenge);
 }
 
 void WebFrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()

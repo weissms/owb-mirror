@@ -4864,6 +4864,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\graphics\ColorPath.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\graphics\FloatPoint.cpp"
 					>
 				</File>
@@ -5403,6 +5407,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\platform\graphics\filters\ImageBufferFilter.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\filters\ImageBufferFilter.h"
+						>
+					</File>
+					<File
 						RelativePath="..\platform\graphics\filters\SourceAlpha.cpp"
 						>
 					</File>
@@ -5429,6 +5441,10 @@
 				</File>
 				<File
 					RelativePath="..\platform\network\AuthenticationChallengeBase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\network\AuthenticationClient.h"
 					>
 				</File>
 				<File

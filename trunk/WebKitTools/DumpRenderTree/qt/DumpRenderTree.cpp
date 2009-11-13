@@ -70,6 +70,7 @@ extern void qt_dump_frame_loader(bool b);
 extern void qt_drt_clearFrameName(QWebFrame* qFrame);
 extern void qt_drt_overwritePluginDirectories();
 extern void qt_drt_resetOriginAccessWhiteLists();
+extern bool qt_drt_hasDocumentElement(QWebFrame* qFrame);
 
 namespace WebCore {
 
@@ -249,8 +250,6 @@ DumpRenderTree::DumpRenderTree()
 
     connect(m_page->mainFrame(), SIGNAL(loadFinished(bool)), m_controller, SLOT(maybeDump(bool)));
 
-    m_page->mainFrame()->setScrollBarPolicy(Qt::Horizontal, Qt::ScrollBarAlwaysOff);
-    m_page->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
     connect(m_page->mainFrame(), SIGNAL(titleChanged(const QString&)),
             SLOT(titleChanged(const QString&)));
     connect(m_page, SIGNAL(databaseQuotaExceeded(QWebFrame*,QString)),
@@ -405,7 +404,7 @@ void DumpRenderTree::initJSObjects()
 
 QString DumpRenderTree::dumpFramesAsText(QWebFrame* frame)
 {
-    if (!frame)
+    if (!frame || !qt_drt_hasDocumentElement(frame))
         return QString();
 
     QString result;
@@ -416,7 +415,8 @@ QString DumpRenderTree::dumpFramesAsText(QWebFrame* frame)
         result.append(QLatin1String("'\n--------\n"));
     }
 
-    result.append(frame->toPlainText());
+    QString innerText = frame->toPlainText();
+    result.append(innerText);
     result.append(QLatin1String("\n"));
 
     if (m_controller->shouldDumpChildrenAsText()) {

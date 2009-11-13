@@ -58,6 +58,7 @@ class WebNotificationDelegate;
 class WebPluginHalterDelegate;
 class WebPreferences;
 class WebScriptObject;
+class WebScriptWorld;
 class WebViewPrivate;
 class WebView;
 class WebViewObserver;
@@ -1378,7 +1379,7 @@ private:
      * (example: http://google.com, file:///home/foobar/, ftp://mydomain.com/ [using * as the path matches all subdomains of the host])
      * @param WebUserScriptInjectionTime: where to inject the script at the start of the document or the end. This will determine when it will be executed.
      */
-    bool addUserScriptToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime);
+    bool addUserScriptToGroup(const char* groupName, WebScriptWorld* world, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist, WebUserScriptInjectionTime);
 
     /**
      * addUserStyleSheetToGroup add a user style sheet to world's page group matching some URL patterns.
@@ -1393,7 +1394,7 @@ private:
      * @param blacklistCount is the number of pattern definitions held in 'blacklist'
      * @param blacklist are the blacklist patterns which a page URL should match for the user style sheet to be injected (see addUserScriptToGroup to see some example of patterns)
      */
-    bool addUserStyleSheetToGroup(const char* groupName, unsigned worldID, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist);
+    bool addUserStyleSheetToGroup(const char* groupName, WebScriptWorld* world, const char* source, const char* url, unsigned whitelistCount, const char** whitelist, unsigned blacklistCount, const char** blacklist);
     /**
      * removeUserScriptFromGroup remove user script from a world's page group matching an origin URL
      * @result Returns true if the parameters were valid, false if not.
@@ -1401,7 +1402,7 @@ private:
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      * @param url is the URL associated with the content (script or style). It should match the url parameter in addUserScriptToGroup or addUserStyleSheetToGroup
      */
-    bool removeUserScriptFromGroup(const char* groupName, unsigned worldID, const char* url);
+    bool removeUserScriptFromGroup(const char* groupName, WebScriptWorld* world, const char* url);
 
 
     /**
@@ -1411,7 +1412,7 @@ private:
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      * @param url is the URL associated with the content (script or style). It should match the url parameter in addUserScriptToGroup or addUserStyleSheetToGroup
      */
-    bool removeUserStyleSheetFromWorld(const char* groupName, unsigned worldID, const char* url);
+    bool removeUserStyleSheetFromWorld(const char* groupName, WebScriptWorld* world, const char* url);
 
     /**
      * removeUserScriptsFromGroup remove user styleSheet from a world's page group
@@ -1419,7 +1420,7 @@ private:
      * @param groupName is the page group name
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      */
-    bool removeUserScriptsFromGroup(const char* groupName, unsigned worldID);
+    bool removeUserScriptsFromGroup(const char* groupName, WebScriptWorld* world);
 
     /**
      * removeUserStyleSheetsFromGroup remove user styleSheet from a world's page group
@@ -1427,7 +1428,7 @@ private:
      * @param groupName is the page group name
      * @param worldID is the world's ID (see addUserScriptToGroup for the discussion about group)
      */
-    bool removeUserStyleSheetsFromGroup(const char* groupName, unsigned worldID);
+    bool removeUserStyleSheetsFromGroup(const char* groupName, WebScriptWorld* world);
 
     /**
      * removeAllUserContentFromGroup remove all user content from a page group (including all worlds)

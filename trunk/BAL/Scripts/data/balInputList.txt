@@ -192,6 +192,7 @@ BAL/Skeletons/Graphics	WebCore/platform/DragData.h
 BAL/Skeletons/Graphics	WebCore/platform/DragImage.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/BitmapImage.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Color.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/ColorSpace.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/DashArray.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatPoint.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/FloatPoint3D.h
@@ -229,6 +230,7 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEComposite.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FEGaussianBlur.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/Filter.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
+BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/ImageBufferFilter.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
@@ -289,6 +291,7 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Color.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Color.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ColorSpace.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/DashArray.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/FloatPoint.h
@@ -374,6 +377,8 @@ BAL/Graphics/WebCore/WK/filters	WebCore/platform/graphics/filters/FEGaussianBlur
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/Filter.h BCFilterWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.h BCFilterEffectWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/FilterEffect.cpp BCFilterEffectWK.cpp
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/ImageBufferFilter.h
+BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/ImageBufferFilter.cpp
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.h BCSourceAlphaWK.h
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceAlpha.cpp BCSourceAlphaWK.cpp
 BAL/Graphics/WebCore/WK/filters WebCore/platform/graphics/filters/SourceGraphic.h BCSourceGraphicWK.h
@@ -562,6 +567,7 @@ BAL/Memory/WebCore/WK	WebCore/platform/AutodrainedPool.h
 BAL/Skeletons/Network	WebCore/platform/CookieJar.h
 BAL/Skeletons/Network	WebCore/platform/Cookie.h
 BAL/Skeletons/Network	WebCore/platform/network/AuthenticationChallengeBase.h
+BAL/Skeletons/Network	WebCore/platform/network/AuthenticationClient.h
 BAL/Skeletons/Network	WebCore/platform/network/Credential.h
 BAL/Skeletons/Network   WebCore/platform/network/CredentialStorage.h
 BAL/Skeletons/Network	WebCore/platform/network/FormData.h
@@ -626,6 +632,7 @@ BAL/Network/WebCore/WK	WebCore/platform/CookieJar.h
 BAL/Network/WebCore/WK	WebCore/platform/Cookie.h
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationChallengeBase.h
+BAL/Network/WebCore/WK	WebCore/platform/network/AuthenticationClient.h
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.cpp
 BAL/Network/WebCore/WK	WebCore/platform/network/Credential.h
 BAL/Network/WebCore/WK  WebCore/platform/network/CredentialStorage.h

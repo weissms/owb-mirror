@@ -210,11 +210,7 @@ static RHeap* userChunk = 0;
 #if PLATFORM(DARWIN)
 typedef mach_port_t PlatformThread;
 #elif PLATFORM(WIN_OS)
-struct PlatformThread {
-    PlatformThread(DWORD _id, HANDLE _handle) : id(_id), handle(_handle) {}
-    DWORD id;
-    HANDLE handle;
-};
+typedef HANDLE PlatformThread;
 #elif PLATFORM(BAL)
 typedef pthread_t PlatformThread;
 static pthread_mutex_t mutex;
@@ -755,8 +751,7 @@ static inline PlatformThread getCurrentPlatformThread()
 #if PLATFORM(DARWIN)
     return pthread_mach_thread_np(pthread_self());
 #elif PLATFORM(WIN_OS)
-    HANDLE threadHandle = pthread_getw32threadhandle_np(pthread_self());
-    return PlatformThread(GetCurrentThreadId(), threadHandle);
+    return pthread_getw32threadhandle_np(pthread_self());
 #elif PLATFORM(BAL)
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init (&cond, NULL);
@@ -924,7 +919,7 @@ static inline void suspendThread(const PlatformThread& platformThread)
 #if PLATFORM(DARWIN)
     thread_suspend(platformThread);
 #elif PLATFORM(WIN_OS)
-    SuspendThread(platformThread.handle);
+    SuspendThread(platformThread);
 #elif PLATFORM(BAL)
     pthread_mutex_lock(&mutex);
     pthread_cond_wait(&cond, &mutex);
@@ -939,7 +934,7 @@ static inline void resumeThread(const PlatformThread& platformThread)
 #if PLATFORM(DARWIN)
     thread_resume(platformThread);
 #elif PLATFORM(WIN_OS)
-    ResumeThread(platformThread.handle);
+    ResumeThread(platformThread);
 #elif PLATFORM(BAL)
     pthread_mutex_lock(&mutex);
     pthread_cond_signal(&cond);
@@ -1009,7 +1004,7 @@ static size_t getPlatformThreadRegisters(const PlatformThread& platformThread, P
 
 #elif PLATFORM(WIN_OS) && PLATFORM(X86)
     regs.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL | CONTEXT_SEGMENTS;
-    GetThreadContext(platformThread.handle, &regs);
+    GetThreadContext(platformThread, &regs);
     return sizeof(CONTEXT);
 #elif PLATFORM(BAL)
     size_t size;

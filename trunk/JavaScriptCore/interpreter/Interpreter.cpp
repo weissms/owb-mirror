@@ -1042,7 +1042,7 @@ NEVER_INLINE void Interpreter::tryCacheGetByID(CallFrame* callFrame, CodeBlock* 
         // Since we're accessing a prototype in a loop, it's a good bet that it
         // should not be treated as a dictionary.
         if (baseObject->structure()->isDictionary())
-            baseObject->setStructure(Structure::fromDictionaryTransition(baseObject->structure()));
+            baseObject->flattenDictionaryObject();
 
         ASSERT(!baseObject->structure()->isUncacheableDictionary());
 
@@ -1495,7 +1495,7 @@ JSValue Interpreter::privateExecute(ExecutionFlag flag, RegisterFile* registerFi
         int dst = vPC[1].u.operand;
         JSValue src1 = callFrame->r(vPC[2].u.operand).jsValue();
         JSValue src2 = callFrame->r(vPC[3].u.operand).jsValue();
-        if (src1.isInt32() && src2.isInt32() && !(src1.asInt32() | src2.asInt32() & 0xc0000000)) // no overflow
+        if (src1.isInt32() && src2.isInt32() && !(src1.asInt32() | (src2.asInt32() & 0xc0000000))) // no overflow
             callFrame->r(dst) = jsNumber(callFrame, src1.asInt32() + src2.asInt32());
         else {
             JSValue result = jsAdd(callFrame, src1, src2);
@@ -1582,7 +1582,7 @@ JSValue Interpreter::privateExecute(ExecutionFlag flag, RegisterFile* registerFi
         int dst = vPC[1].u.operand;
         JSValue src1 = callFrame->r(vPC[2].u.operand).jsValue();
         JSValue src2 = callFrame->r(vPC[3].u.operand).jsValue();
-        if (src1.isInt32() && src2.isInt32() && !(src1.asInt32() | src2.asInt32() & 0xc0000000)) // no overflow
+        if (src1.isInt32() && src2.isInt32() && !(src1.asInt32() | (src2.asInt32() & 0xc0000000))) // no overflow
             callFrame->r(dst) = jsNumber(callFrame, src1.asInt32() - src2.asInt32());
         else {
             JSValue result = jsNumber(callFrame, src1.toNumber(callFrame) - src2.toNumber(callFrame));

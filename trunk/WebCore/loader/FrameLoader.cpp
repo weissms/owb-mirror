@@ -611,8 +611,8 @@ KURL FrameLoader::iconURL()
     KURL url;
     url.setProtocol(m_URL.protocol());
     url.setHost(m_URL.host());
-    if (int port = m_URL.port())
-        url.setPort(port);
+    if (m_URL.hasPort())
+        url.setPort(m_URL.port());
     url.setPath("/favicon.ico");
     return url;
 }
@@ -1266,9 +1266,11 @@ bool FrameLoader::requestObject(RenderPart* renderer, const String& url, const A
 
     ASSERT(renderer->node()->hasTagName(objectTag) || renderer->node()->hasTagName(embedTag));
     HTMLPlugInElement* element = static_cast<HTMLPlugInElement*>(renderer->node());
-    
-    // FIXME: OK to always make a new frame? When does the old frame get removed?
-    return loadSubframe(element, completedURL, frameName, m_outgoingReferrer);
+
+    // If the plug-in element already contains a subframe, requestFrame will re-use it. Otherwise,
+    // it will create a new frame and set it as the RenderPart's widget, causing what was previously 
+    // in the widget to be torn down.
+    return requestFrame(element, completedURL, frameName);
 }
 
 bool FrameLoader::shouldUsePlugin(const KURL& url, const String& mimeType, bool hasFallback, bool& useFallback)

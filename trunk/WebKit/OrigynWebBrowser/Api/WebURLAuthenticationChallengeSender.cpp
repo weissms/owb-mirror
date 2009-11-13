@@ -32,43 +32,43 @@
 #include "WebURLAuthenticationChallenge.h"
 #include "WebURLCredential.h"
 
-#include <ResourceHandle.h>
+#include <AuthenticationClient.h>
 
 using namespace WebCore;
 
-WebURLAuthenticationChallengeSender::WebURLAuthenticationChallengeSender(PassRefPtr<ResourceHandle> handle)
-    : m_handle(handle)
+WebURLAuthenticationChallengeSender::WebURLAuthenticationChallengeSender(PassRefPtr<AuthenticationClient> authenticationClient)
+    : m_authenticationClient(authenticationClient)
 {
-    ASSERT(m_handle);
+    ASSERT(m_authenticationClient);
 }
 
 WebURLAuthenticationChallengeSender::~WebURLAuthenticationChallengeSender()
 {
 }
 
-WebURLAuthenticationChallengeSender* WebURLAuthenticationChallengeSender::createInstance(PassRefPtr<WebCore::ResourceHandle> handle)
+WebURLAuthenticationChallengeSender* WebURLAuthenticationChallengeSender::createInstance(PassRefPtr<WebCore::AuthenticationClient> authenticationClient)
 {
-    WebURLAuthenticationChallengeSender* instance = new WebURLAuthenticationChallengeSender(handle);
+    WebURLAuthenticationChallengeSender* instance = new WebURLAuthenticationChallengeSender(authenticationClient);
     return instance;
 }
 
 void WebURLAuthenticationChallengeSender::cancelAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    //m_handle->receivedCancellation(challenge->authenticationChallenge());
+    //m_authenticationClient->receivedCancellation(challenge->authenticationChallenge());
 }
 
 void WebURLAuthenticationChallengeSender::continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    //m_handle->receivedRequestToContinueWithoutCredential(challenge->authenticationChallenge());
+    //m_authenticationClient->receivedRequestToContinueWithoutCredential(challenge->authenticationChallenge());
 }
 
 void WebURLAuthenticationChallengeSender::useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge)
 {
-    //m_handle->receivedCredential(challenge->authenticationChallenge(), credential->credential());
+    //m_authenticationClient->receivedCredential(challenge->authenticationChallenge(), credential->credential());
 }
 
-ResourceHandle* WebURLAuthenticationChallengeSender::resourceHandle() const
+AuthenticationClient* WebURLAuthenticationChallengeSender::authenticationClient() const
 {
-    return m_handle.get();
+    return m_authenticationClient.get();
 }
 

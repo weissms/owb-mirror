@@ -90,7 +90,7 @@ void WebWindowConfirm::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     ctx.save();
     // Paint background
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent);
+    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent, DeviceColorSpace);
 
     static RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
     if (cornerhl) {
@@ -203,7 +203,7 @@ void WebWindowConfirm::onExpose(BalEventExpose event)
     }
     
     // Paint Window background
-    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 6), Color(0xFF0000CC));
+    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 6), Color(0xFF0000CC), DeviceColorSpace);
 
     // Draw Text
     FontDescription fontDescription;
@@ -241,14 +241,14 @@ void WebWindowConfirm::drawButton()
     ctx.save();
     // Draw left button
     if (!m_stateLeft) {
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 - 100, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     }
 
@@ -260,25 +260,25 @@ void WebWindowConfirm::drawButton()
     // needed or else Assertion `m_fontList' will failed.
     font.update(0);
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun(m_buttonOk.c_str());
     ctx.drawText(font, textrun, IntPoint((m_surface->w / 2 ) - 85, (m_surface->h / 2) + (fontSize * 2) + 25));
 
     // Draw rigth button
 
     if (!m_stateRigth) {
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray);
+        ctx.setFillColor(Color::gray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::darkGray);
+        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
         ctx.drawRect(IntRect(m_surface->w/2 + 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
     }
 
-    ctx.setFillColor(Color::black);
+    ctx.setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun2(m_buttonCancel.c_str());
     ctx.drawText(font, textrun2, IntPoint((m_surface->w / 2 ) + 45, (m_surface->h / 2) + (fontSize * 2) + 25));
 

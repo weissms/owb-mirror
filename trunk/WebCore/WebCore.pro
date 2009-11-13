@@ -12,10 +12,10 @@ symbian: {
     DEPLOYMENT += webkitlibs
 
     TARGET.UID3 = 0x200267C2
+    # RO text (code) section in qtwebkit.dll exceeds allocated space for gcce udeb target.
+    # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
+    MMP_RULES += "LINKEROPTION  armcc --rw-base 0xE00000"
 }
-# RO-section in qtwebkit.dll exceeds allocated space in SBSv2. Move RW-section
-# base address to start from 0x800000 instead of the toolchain default 0x400000.
-symbian-sbsv2: MMP_RULES += "LINKEROPTION  armcc --rw-base 0x800000"
 
 include($$PWD/../WebKit.pri)
 
@@ -296,10 +296,6 @@ STYLESHEETS_EMBED = \
     $$PWD/css/mediaControls.css \
     $$PWD/css/mediaControlsQt.css
 
-DOMLUT_FILES += \
-    bindings/js/JSDOMWindowBase.cpp \
-    bindings/js/JSWorkerContextBase.cpp
-
 IDL_BINDINGS += \
     css/Counter.idl \
     css/CSSCharsetRule.idl \
@@ -373,20 +369,20 @@ IDL_BINDINGS += \
     dom/WebKitAnimationEvent.idl \
     dom/WebKitTransitionEvent.idl \
     dom/WheelEvent.idl \
-    html/canvas/CanvasArray.idl \
-    html/canvas/CanvasArrayBuffer.idl \
-    html/canvas/CanvasByteArray.idl \
-    html/canvas/CanvasFloatArray.idl \
+    html/canvas/WebGLArray.idl \
+    html/canvas/WebGLArrayBuffer.idl \
+    html/canvas/WebGLByteArray.idl \
+    html/canvas/WebGLFloatArray.idl \
     html/canvas/CanvasGradient.idl \
-    html/canvas/CanvasIntArray.idl \
+    html/canvas/WebGLIntArray.idl \
     html/canvas/CanvasPattern.idl \
     html/canvas/CanvasRenderingContext.idl \
     html/canvas/CanvasRenderingContext2D.idl \
-    html/canvas/CanvasRenderingContext3D.idl \
-    html/canvas/CanvasShortArray.idl \
-    html/canvas/CanvasUnsignedByteArray.idl \
-    html/canvas/CanvasUnsignedIntArray.idl \
-    html/canvas/CanvasUnsignedShortArray.idl \
+    html/canvas/WebGLRenderingContext.idl \
+    html/canvas/WebGLShortArray.idl \
+    html/canvas/WebGLUnsignedByteArray.idl \
+    html/canvas/WebGLUnsignedIntArray.idl \
+    html/canvas/WebGLUnsignedShortArray.idl \
     html/DataGridColumn.idl \
     html/DataGridColumnList.idl \
     html/File.idl \
@@ -1920,6 +1916,7 @@ HEADERS += \
     platform/Logging.h \
     platform/MIMETypeRegistry.h \
     platform/network/AuthenticationChallengeBase.h \
+    platform/network/AuthenticationClient.h \
     platform/network/Credential.h \
     platform/network/FormDataBuilder.h \
     platform/network/FormData.h \
@@ -3184,14 +3181,6 @@ idl.depends = $$PWD/bindings/scripts/generate-bindings.pl \
               $$PWD/bindings/scripts/InFilesParser.pm
 idl.CONFIG += target_predeps
 addExtraCompilerWithHeader(idl)
-
-# GENERATOR 2-A: LUT creator
-domlut.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}${QMAKE_FILE_BASE}.lut.h
-domlut.commands = perl $$PWD/../JavaScriptCore/create_hash_table ${QMAKE_FILE_NAME} -n WebCore > ${QMAKE_FILE_OUT}
-domlut.depend = ${QMAKE_FILE_NAME}
-domlut.input = DOMLUT_FILES
-domlut.CONFIG += no_link
-addExtraCompiler(domlut)
 
 # GENERATOR 3: tokenizer (flex)
 tokenizer.output = $${GENERATED_SOURCES_DIR}$${QMAKE_DIR_SEP}${QMAKE_FILE_BASE}.cpp

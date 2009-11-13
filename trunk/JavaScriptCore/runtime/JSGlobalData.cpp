@@ -148,6 +148,7 @@ JSGlobalData::JSGlobalData(bool isShared, const VPtrSet& vptrSet)
     , firstStringifierToMark(0)
     , markStack(vptrSet.jsArrayVPtr)
     , cachedUTCOffset(NaN)
+    , weakRandom(static_cast<int>(currentTime()))
 #ifndef NDEBUG
     , mainThreadOnly(false)
 #endif
@@ -250,6 +251,14 @@ const Vector<Instruction>& JSGlobalData::numericCompareFunction(ExecState* exec)
 
 JSGlobalData::ClientData::~ClientData()
 {
+}
+
+void JSGlobalData::resetDateCache()
+{
+    cachedUTCOffset = NaN;
+    dstOffsetCache.reset();
+    cachedDateString = UString();
+    dateInstanceCache.reset();
 }
 
 void JSGlobalData::startSampling()

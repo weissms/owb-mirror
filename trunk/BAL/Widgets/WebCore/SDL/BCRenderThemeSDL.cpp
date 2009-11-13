@@ -28,14 +28,14 @@
 
 
 #include "config.h"
-#include "Logging.h"
-#include "InputElement.h"
-#include "RenderObject.h"
 #include "RenderThemeSDL.h"
 
 #include "GraphicsContext.h"
+#include "Logging.h"
+#include "InputElement.h"
 #include "Pen.h"
 #include "RenderBox.h"
+#include "RenderObject.h"
 
 #include <cstdio>
 
@@ -147,7 +147,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
 {
     i.context->save();
     i.context->setStrokeStyle(SolidStroke);
-    i.context->setStrokeColor(Color::black);
+    i.context->setStrokeColor(Color::black, DeviceColorSpace);
     PassRefPtr<RenderStyle> style = RenderStyle::create();
     addIntrinsicMargins(style.get());
 
@@ -170,7 +170,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     if( o->node()->active() ) {
         IntRect r2(r);
         r2.inflate(-2);
-        i.context->setFillColor(WebCore::Color(0xc0,0xc0,0xc0));
+        i.context->setFillColor(WebCore::Color(0xc0,0xc0,0xc0), DeviceColorSpace);
         i.context->drawRect(r2);
         v = GROOVE;
         style->setBorderTopStyle(v);
@@ -190,7 +190,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     }
     InputElement *input = toInputElement(static_cast<Element*>(o->node()));
     if(input && input->isChecked()) {
-        i.context->setStrokeColor(Color::black);
+        i.context->setStrokeColor(Color::black, DeviceColorSpace);
         i.context->setStrokeStyle(SolidStroke);
         IntRect r2(r);
         r2.inflate(-borderWidth-2);
@@ -305,7 +305,7 @@ bool RenderThemeBal::paintTextField(RenderObject* o, const RenderObject::PaintIn
 {
     i.context->save();
     i.context->setStrokeStyle(SolidStroke);
-    i.context->setStrokeColor(Color::black);
+    i.context->setStrokeColor(Color::black, DeviceColorSpace);
     PassRefPtr<RenderStyle> style = RenderStyle::create();
     addIntrinsicMargins(style.get());
 

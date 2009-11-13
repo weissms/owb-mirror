@@ -46,6 +46,7 @@
 #include "WebDataSource.h"
 #include "WebHistoryItem.h"
 #include "WebPreferences.h"
+#include "WebScriptWorld.h"
 #include "WebURLResponse.h"
 
 #include <PlatformString.h>
@@ -358,13 +359,13 @@ void WebFrame::loadURL(const char* url)
         coreFrame->loader()->load(ResourceRequest(KURL(KURL(), String::fromUTF8(url))), false);
 }
 
-JSGlobalContextRef WebFrame::contextForWorldID(unsigned worldID)
+JSGlobalContextRef WebFrame::contextForScriptWorld(WebScriptWorld* world)
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
         return 0;
 
-    return toGlobalRef(coreFrame->script()->globalObject(worldID)->globalExec());
+    return toGlobalRef(coreFrame->script()->globalObject(world->world())->globalExec());
 }
 
 void WebFrame::loadRequest(WebMutableURLRequest* request)
@@ -504,7 +505,7 @@ const char* WebFrame::renderTreeAsExternalRepresentation()
     if (!coreFrame)
         return "";
 
-    return externalRepresentation(coreFrame->contentRenderer()).utf8().data();
+    return externalRepresentation(coreFrame).utf8().data();
 }
 
 char* WebFrame::counterValueForElementById(const char* id)
@@ -1097,7 +1098,7 @@ const char* WebFrame::renderTreeDump() const
     if (coreFrame->view() && coreFrame->view()->layoutPending())
         coreFrame->view()->layout();
 
-    String string = externalRepresentation(coreFrame->contentRenderer());
+    String string = externalRepresentation(coreFrame);
     return strdup(string.utf8().data());
 }
 
@@ -1298,7 +1299,23 @@ bool WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(unsigned int worldID,
     // Get the frame from the global object we've settled on.
     Frame* frame = anyWorldGlobalObject->impl()->frame();
     ASSERT(frame->document());
-    JSC::JSValue result = frame->script()->executeScriptInIsolatedWorld(worldID, string, true).jsValue();
+
+
+    // Get the world to execute in based on the worldID. DRT expects that a
+    // worldID of 0 always corresponds to a newly-created world, while any
+    // other worldID corresponds to a world that is created once and then
+    // cached forever.
+    RefPtr<DOMWrapperWorld> world;
+    if (!worldID)
+        world = ScriptController::createWorld();
+    else {
+        static HashMap<unsigned, RefPtr<DOMWrapperWorld> >& worlds = *new HashMap<unsigned, RefPtr<DOMWrapperWorld> >;
+        RefPtr<DOMWrapperWorld>& worldSlot = worlds.add(worldID, 0).first->second;
+        if (!worldSlot)
+            worldSlot = ScriptController::createWorld();
+        world = worldSlot;
+    }
+    JSC::JSValue result = frame->script()->executeScriptInWorld(world.get(), string, true).jsValue();
 
     if (!frame) // In case the script removed our frame from the page.
         return false;

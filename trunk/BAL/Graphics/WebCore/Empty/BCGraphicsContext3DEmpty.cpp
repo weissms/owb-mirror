@@ -30,18 +30,18 @@
 #include "GraphicsContext3D.h"
 
 #include "CachedImage.h"
-#include "CanvasActiveInfo.h"
-#include "CanvasArray.h"
-#include "CanvasBuffer.h"
-#include "CanvasFramebuffer.h"
-#include "CanvasFloatArray.h"
-#include "CanvasIntArray.h"
 #include "CanvasObject.h"
-#include "CanvasProgram.h"
-#include "CanvasRenderbuffer.h"
-#include "CanvasShader.h"
-#include "CanvasTexture.h"
-#include "CanvasUnsignedByteArray.h"
+#include "WebGLActiveInfo.h"
+#include "WebGLArray.h"
+#include "WebGLBuffer.h"
+#include "WebGLFramebuffer.h"
+#include "WebGLFloatArray.h"
+#include "WebGLIntArray.h"
+#include "WebGLProgram.h"
+#include "WebGLRenderbuffer.h"
+#include "WebGLShader.h"
+#include "WebGLTexture.h"
+#include "WebGLUnsignedByteArray.h"
 #include "CString.h"
 #include "Image.h"
 #include "ImageBuffer.h"
@@ -75,7 +75,7 @@ void GraphicsContext3D::makeContextCurrent()
 {
 }
 
-void GraphicsContext3D::beginPaint(CanvasRenderingContext3D* context)
+void GraphicsContext3D::beginPaint(WebGLRenderingContext* context)
 {
     UNUSED_PARAM(context);
     notImplemented();
@@ -96,34 +96,34 @@ void GraphicsContext3D::activeTexture(unsigned long texture)
     notImplemented();
 }
 
-void GraphicsContext3D::attachShader(CanvasProgram* program, CanvasShader* shader)
+void GraphicsContext3D::attachShader(WebGLProgram* program, WebGLShader* shader)
 {
     notImplemented();
 }
 
-void GraphicsContext3D::bindAttribLocation(CanvasProgram* program, unsigned long index, const String& name)
+void GraphicsContext3D::bindAttribLocation(WebGLProgram* program, unsigned long index, const String& name)
 {
     notImplemented();
 }
 
-void GraphicsContext3D::bindBuffer(unsigned long target, CanvasBuffer* buffer)
-{
-    notImplemented();
-}
-
-
-void GraphicsContext3D::bindFramebuffer(unsigned long target, CanvasFramebuffer* buffer)
-{
-    notImplemented();
-}
-
-void GraphicsContext3D::bindRenderbuffer(unsigned long target, CanvasRenderbuffer* renderbuffer)
+void GraphicsContext3D::bindBuffer(unsigned long target, WebGLBuffer* buffer)
 {
     notImplemented();
 }
 
 
-void GraphicsContext3D::bindTexture(unsigned long target, CanvasTexture* texture)
+void GraphicsContext3D::bindFramebuffer(unsigned long target, WebGLFramebuffer* buffer)
+{
+    notImplemented();
+}
+
+void GraphicsContext3D::bindRenderbuffer(unsigned long target, WebGLRenderbuffer* renderbuffer)
+{
+    notImplemented();
+}
+
+
+void GraphicsContext3D::bindTexture(unsigned long target, WebGLTexture* texture)
 {
     notImplemented();
 }
@@ -158,12 +158,12 @@ void GraphicsContext3D::bufferData(unsigned long target, int size, unsigned long
 {
     notImplemented();
 }
-void GraphicsContext3D::bufferData(unsigned long target, CanvasArray* array, unsigned long usage)
+void GraphicsContext3D::bufferData(unsigned long target, WebGLArray* array, unsigned long usage)
 {
     notImplemented();
 }
 
-void GraphicsContext3D::bufferSubData(unsigned long target, long offset, CanvasArray* array)
+void GraphicsContext3D::bufferSubData(unsigned long target, long offset, WebGLArray* array)
 {
     notImplemented();
 }
@@ -199,7 +199,7 @@ void GraphicsContext3D::colorMask(bool red, bool green, bool blue, bool alpha)
     notImplemented();
 }
 
-void GraphicsContext3D::compileShader(CanvasShader* shader)
+void GraphicsContext3D::compileShader(WebGLShader* shader)
 {
     notImplemented();
 }
@@ -234,7 +234,7 @@ void GraphicsContext3D::depthRange(double zNear, double zFar)
     notImplemented();
 }
 
-void GraphicsContext3D::detachShader(CanvasProgram* program, CanvasShader* shader)
+void GraphicsContext3D::detachShader(WebGLProgram* program, WebGLShader* shader)
 {
     notImplemented();
 }
@@ -279,12 +279,12 @@ void GraphicsContext3D::flush()
     notImplemented();
 }
 
-void GraphicsContext3D::framebufferRenderbuffer(unsigned long target, unsigned long attachment, unsigned long renderbuffertarget, CanvasRenderbuffer* buffer)
+void GraphicsContext3D::framebufferRenderbuffer(unsigned long target, unsigned long attachment, unsigned long renderbuffertarget, WebGLRenderbuffer* buffer)
 {
     notImplemented();
 }
 
-void GraphicsContext3D::framebufferTexture2D(unsigned long target, unsigned long attachment, unsigned long textarget, CanvasTexture* texture, long level)
+void GraphicsContext3D::framebufferTexture2D(unsigned long target, unsigned long attachment, unsigned long textarget, WebGLTexture* texture, long level)
 {
     notImplemented();
 }
@@ -299,19 +299,19 @@ void GraphicsContext3D::generateMipmap(unsigned long target)
     notImplemented();
 }
 
-bool GraphicsContext3D::getActiveAttrib(CanvasProgram* program, unsigned long index, ActiveInfo& info)
+bool GraphicsContext3D::getActiveAttrib(WebGLProgram* program, unsigned long index, ActiveInfo& info)
 {
     notImplemented();
     return false;
 }
     
-bool GraphicsContext3D::getActiveUniform(CanvasProgram* program, unsigned long index, ActiveInfo& info)
+bool GraphicsContext3D::getActiveUniform(WebGLProgram* program, unsigned long index, ActiveInfo& info)
 {
     notImplemented();
     return false;
 }
 
-int GraphicsContext3D::getAttribLocation(CanvasProgram* program, const String& name)
+int GraphicsContext3D::getAttribLocation(WebGLProgram* program, const String& name)
 {
     notImplemented();
     return 0;
@@ -334,7 +334,7 @@ void GraphicsContext3D::hint(unsigned long target, unsigned long mode)
     notImplemented();
 }
 
-bool GraphicsContext3D::isBuffer(CanvasBuffer* buffer)
+bool GraphicsContext3D::isBuffer(WebGLBuffer* buffer)
 {
     notImplemented();
     return false;
@@ -346,31 +346,31 @@ bool GraphicsContext3D::isEnabled(unsigned long cap)
     return false;
 }
 
-bool GraphicsContext3D::isFramebuffer(CanvasFramebuffer* framebuffer)
+bool GraphicsContext3D::isFramebuffer(WebGLFramebuffer* framebuffer)
 {
     notImplemented();
     return false;
 }
 
-bool GraphicsContext3D::isProgram(CanvasProgram* program)
+bool GraphicsContext3D::isProgram(WebGLProgram* program)
 {
     notImplemented();
     return false;
 }
 
-bool GraphicsContext3D::isRenderbuffer(CanvasRenderbuffer* renderbuffer)
+bool GraphicsContext3D::isRenderbuffer(WebGLRenderbuffer* renderbuffer)
 {
     notImplemented();
     return false;
 }
 
-bool GraphicsContext3D::isShader(CanvasShader* shader)
+bool GraphicsContext3D::isShader(WebGLShader* shader)
 {
     notImplemented();
     return false;
 }
 
-bool GraphicsContext3D::isTexture(CanvasTexture* texture)
+bool GraphicsContext3D::isTexture(WebGLTexture* texture)
 {
     notImplemented();
     return false;
@@ -381,7 +381,7 @@ void GraphicsContext3D::lineWidth(double width)
     notImplemented();
 }
 
-void GraphicsContext3D::linkProgram(CanvasProgram* program)
+void GraphicsContext3D::linkProgram(WebGLProgram* program)
 {
     notImplemented();
 }
@@ -396,7 +396,7 @@ void GraphicsContext3D::polygonOffset(double factor, double units)
     notImplemented();
 }
 
-PassRefPtr<CanvasArray> GraphicsContext3D::readPixels(long x, long y, unsigned long width, unsigned long height, unsigned long format, unsigned long type)
+PassRefPtr<WebGLArray> GraphicsContext3D::readPixels(long x, long y, unsigned long width, unsigned long height, unsigned long format, unsigned long type)
 {
     notImplemented();
     return 0;
@@ -422,7 +422,7 @@ void GraphicsContext3D::scissor(long x, long y, unsigned long width, unsigned lo
     notImplemented();
 }
 
-void GraphicsContext3D::shaderSource(CanvasShader* shader, const String& string)
+void GraphicsContext3D::shaderSource(WebGLShader* shader, const String& string)
 {
     notImplemented();
 }
@@ -562,12 +562,12 @@ void GraphicsContext3D::uniformMatrix4fv(long location, bool transpose, float* a
     notImplemented();
 }
 
-void GraphicsContext3D::useProgram(CanvasProgram* program)
+void GraphicsContext3D::useProgram(WebGLProgram* program)
 {
     notImplemented();
 }
 
-void GraphicsContext3D::validateProgram(CanvasProgram* program)
+void GraphicsContext3D::validateProgram(WebGLProgram* program)
 {
     notImplemented();
 }
@@ -628,7 +628,7 @@ bool GraphicsContext3D::getBoolean(unsigned long pname)
     return false;
 }
 
-PassRefPtr<CanvasUnsignedByteArray> GraphicsContext3D::getBooleanv(unsigned long pname)
+PassRefPtr<WebGLUnsignedByteArray> GraphicsContext3D::getBooleanv(unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -640,7 +640,7 @@ float GraphicsContext3D::getFloat(unsigned long pname)
     return 0.0;
 }
 
-PassRefPtr<CanvasFloatArray> GraphicsContext3D::getFloatv(unsigned long pname)
+PassRefPtr<WebGLFloatArray> GraphicsContext3D::getFloatv(unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -652,7 +652,7 @@ int GraphicsContext3D::getInteger(unsigned long pname)
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getIntegerv(unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getIntegerv(unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -664,7 +664,7 @@ int GraphicsContext3D::getBufferParameteri(unsigned long target, unsigned long p
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getBufferParameteriv(unsigned long target, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getBufferParameteriv(unsigned long target, unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -676,25 +676,25 @@ int GraphicsContext3D::getFramebufferAttachmentParameteri(unsigned long target, 
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getFramebufferAttachmentParameteriv(unsigned long target, unsigned long attachment, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getFramebufferAttachmentParameteriv(unsigned long target, unsigned long attachment, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-int GraphicsContext3D::getProgrami(CanvasProgram* program, unsigned long pname)
+int GraphicsContext3D::getProgrami(WebGLProgram* program, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getProgramiv(CanvasProgram* program, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getProgramiv(WebGLProgram* program, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-String GraphicsContext3D::getProgramInfoLog(CanvasProgram* program)
+String GraphicsContext3D::getProgramInfoLog(WebGLProgram* program)
 {
     notImplemented();
     return String();
@@ -706,31 +706,31 @@ int GraphicsContext3D::getRenderbufferParameteri(unsigned long target, unsigned 
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getRenderbufferParameteriv(unsigned long target, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getRenderbufferParameteriv(unsigned long target, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-int GraphicsContext3D::getShaderi(CanvasShader* shader, unsigned long pname)
+int GraphicsContext3D::getShaderi(WebGLShader* shader, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getShaderiv(CanvasShader* shader, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getShaderiv(WebGLShader* shader, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-String GraphicsContext3D::getShaderInfoLog(CanvasShader* shader)
+String GraphicsContext3D::getShaderInfoLog(WebGLShader* shader)
 {
     notImplemented();
     return String();
 }
 
-String GraphicsContext3D::getShaderSource(CanvasShader* shader)
+String GraphicsContext3D::getShaderSource(WebGLShader* shader)
 {
     notImplemented();
     return String();
@@ -743,7 +743,7 @@ float GraphicsContext3D::getTexParameterf(unsigned long target, unsigned long pn
     return 0.0;
 }
 
-PassRefPtr<CanvasFloatArray> GraphicsContext3D::getTexParameterfv(unsigned long target, unsigned long pname)
+PassRefPtr<WebGLFloatArray> GraphicsContext3D::getTexParameterfv(unsigned long target, unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -755,22 +755,13 @@ int GraphicsContext3D::getTexParameteri(unsigned long target, unsigned long pnam
     return 0; 
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getTexParameteriv(unsigned long target, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getTexParameteriv(unsigned long target, unsigned long pname)
 {
     notImplemented();
     return 0;
 }
 
-float GraphicsContext3D::getUniformf(CanvasProgram* program, long location)
-{
-    // FIXME: We need to query glGetUniformLocation to determine the size needed
-    UNUSED_PARAM(program);
-    UNUSED_PARAM(location);
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<CanvasFloatArray> GraphicsContext3D::getUniformfv(CanvasProgram* program, long location)
+float GraphicsContext3D::getUniformf(WebGLProgram* program, long location)
 {
     // FIXME: We need to query glGetUniformLocation to determine the size needed
     UNUSED_PARAM(program);
@@ -779,7 +770,7 @@ PassRefPtr<CanvasFloatArray> GraphicsContext3D::getUniformfv(CanvasProgram* prog
     return 0;
 }
 
-int GraphicsContext3D::getUniformi(CanvasProgram* program, long location)
+PassRefPtr<WebGLFloatArray> GraphicsContext3D::getUniformfv(WebGLProgram* program, long location)
 {
     // FIXME: We need to query glGetUniformLocation to determine the size needed
     UNUSED_PARAM(program);
@@ -788,7 +779,7 @@ int GraphicsContext3D::getUniformi(CanvasProgram* program, long location)
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getUniformiv(CanvasProgram* program, long location)
+int GraphicsContext3D::getUniformi(WebGLProgram* program, long location)
 {
     // FIXME: We need to query glGetUniformLocation to determine the size needed
     UNUSED_PARAM(program);
@@ -797,7 +788,16 @@ PassRefPtr<CanvasIntArray> GraphicsContext3D::getUniformiv(CanvasProgram* progra
     return 0;
 }
 
-long GraphicsContext3D::getUniformLocation(CanvasProgram* program, const String& name)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getUniformiv(WebGLProgram* program, long location)
+{
+    // FIXME: We need to query glGetUniformLocation to determine the size needed
+    UNUSED_PARAM(program);
+    UNUSED_PARAM(location);
+    notImplemented();
+    return 0;
+}
+
+long GraphicsContext3D::getUniformLocation(WebGLProgram* program, const String& name)
 {
     notImplemented();
     return -1;
@@ -809,7 +809,7 @@ float GraphicsContext3D::getVertexAttribf(unsigned long index, unsigned long pna
     return 0.0;
 }
 
-PassRefPtr<CanvasFloatArray> GraphicsContext3D::getVertexAttribfv(unsigned long index, unsigned long pname)
+PassRefPtr<WebGLFloatArray> GraphicsContext3D::getVertexAttribfv(unsigned long index, unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -821,7 +821,7 @@ int GraphicsContext3D::getVertexAttribi(unsigned long index, unsigned long pname
     return 0;
 }
 
-PassRefPtr<CanvasIntArray> GraphicsContext3D::getVertexAttribiv(unsigned long index, unsigned long pname)
+PassRefPtr<WebGLIntArray> GraphicsContext3D::getVertexAttribiv(unsigned long index, unsigned long pname)
 {
     notImplemented();
     return 0;
@@ -833,7 +833,7 @@ long GraphicsContext3D::getVertexAttribOffset(unsigned long index, unsigned long
     return 0;
 }
 
-int GraphicsContext3D::texImage2D(unsigned target, unsigned level, unsigned internalformat, unsigned width, unsigned height, unsigned border, unsigned format, unsigned type, CanvasArray* pixels)
+int GraphicsContext3D::texImage2D(unsigned target, unsigned level, unsigned internalformat, unsigned width, unsigned height, unsigned border, unsigned format, unsigned type, WebGLArray* pixels)
 {
     notImplemented();
     return 0;
@@ -876,7 +876,7 @@ int GraphicsContext3D::texImage2D(unsigned target, unsigned level, HTMLVideoElem
     return -1;
 }
 
-int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, unsigned format, unsigned type, CanvasArray* pixels)
+int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, unsigned format, unsigned type, WebGLArray* pixels)
 {
     // FIXME: we will need to deal with PixelStore params when dealing with image buffers that differ from the subimage size
     UNUSED_PARAM(target);
@@ -1012,6 +1012,6 @@ int GraphicsContext3D::sizeInBytes(int type)
     return 0;
 }
 
-}
+} // namespace WebCore
 
 #endif // ENABLE(3D_CANVAS)

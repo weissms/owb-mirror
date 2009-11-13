@@ -44,7 +44,7 @@
 
 namespace WebCore {
 
-struct ScheduledRedirection {
+struct ScheduledRedirection : Noncopyable {
     enum Type { redirection, locationChange, historyNavigation, formSubmission };
 
     const Type type;
@@ -172,7 +172,7 @@ bool RedirectScheduler::mustLockBackForwardList(Frame* targetFrame)
     
     for (Frame* ancestor = targetFrame->tree()->parent(); ancestor; ancestor = ancestor->tree()->parent()) {
         Document* document = ancestor->document();
-        if (!ancestor->loader()->isComplete() || document && document->processingLoadEvent())
+        if (!ancestor->loader()->isComplete() || (document && document->processingLoadEvent()))
             return true;
     }
     return false;

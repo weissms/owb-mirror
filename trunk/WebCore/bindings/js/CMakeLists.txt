@@ -19,25 +19,9 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
     bindings/js/JSCallbackData.cpp
-    bindings/js/JSCanvasArrayBufferConstructor.cpp
-    bindings/js/JSCanvasArrayCustom.cpp
-    bindings/js/JSCanvasByteArrayConstructor.cpp
-    bindings/js/JSCanvasByteArrayCustom.cpp
-    bindings/js/JSCanvasFloatArrayConstructor.cpp
-    bindings/js/JSCanvasFloatArrayCustom.cpp
-    bindings/js/JSCanvasIntArrayConstructor.cpp
-    bindings/js/JSCanvasIntArrayCustom.cpp
     bindings/js/JSCanvasNumberArrayCustom.cpp
     bindings/js/JSCanvasRenderingContextCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
-    bindings/js/JSCanvasShortArrayConstructor.cpp
-    bindings/js/JSCanvasShortArrayCustom.cpp
-    bindings/js/JSCanvasUnsignedByteArrayConstructor.cpp
-    bindings/js/JSCanvasUnsignedByteArrayCustom.cpp
-    bindings/js/JSCanvasUnsignedIntArrayConstructor.cpp
-    bindings/js/JSCanvasUnsignedIntArrayCustom.cpp
-    bindings/js/JSCanvasUnsignedShortArrayConstructor.cpp
-    bindings/js/JSCanvasUnsignedShortArrayCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSCustomPositionCallback.cpp
     bindings/js/JSCustomPositionErrorCallback.cpp
@@ -99,6 +83,22 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp
     bindings/js/JSTreeWalkerCustom.cpp
+    bindings/js/JSWebGLArrayBufferConstructor.cpp
+    bindings/js/JSWebGLArrayCustom.cpp
+    bindings/js/JSWebGLByteArrayConstructor.cpp
+    bindings/js/JSWebGLByteArrayCustom.cpp
+    bindings/js/JSWebGLFloatArrayConstructor.cpp
+    bindings/js/JSWebGLFloatArrayCustom.cpp
+    bindings/js/JSWebGLIntArrayConstructor.cpp
+    bindings/js/JSWebGLIntArrayCustom.cpp
+    bindings/js/JSWebGLShortArrayConstructor.cpp
+    bindings/js/JSWebGLShortArrayCustom.cpp
+    bindings/js/JSWebGLUnsignedByteArrayConstructor.cpp
+    bindings/js/JSWebGLUnsignedByteArrayCustom.cpp
+    bindings/js/JSWebGLUnsignedIntArrayConstructor.cpp
+    bindings/js/JSWebGLUnsignedIntArrayCustom.cpp
+    bindings/js/JSWebGLUnsignedShortArrayConstructor.cpp
+    bindings/js/JSWebGLUnsignedShortArrayCustom.cpp
     bindings/js/JSWebKitCSSMatrixConstructor.cpp
     bindings/js/JSWebKitPointConstructor.cpp
     bindings/js/JSXMLHttpRequestConstructor.cpp
@@ -120,7 +120,7 @@ list(APPEND WEBCORE_SRC
 
 if(ENABLE_3D_CANVAS)
     list(APPEND WEBCORE_SRC
-        bindings/js/JSCanvasRenderingContext3DCustom.cpp
+        bindings/js/JSWebGLRenderingContextCustom.cpp
     )
 endif(ENABLE_3D_CANVAS)
 

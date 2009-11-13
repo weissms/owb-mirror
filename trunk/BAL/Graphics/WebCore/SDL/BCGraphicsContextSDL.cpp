@@ -483,7 +483,7 @@ void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points
     delete[] vy;
 }
 
-void GraphicsContext::fillRect(const FloatRect& rectangle, const Color& color)
+void GraphicsContext::fillRect(const FloatRect& rectangle, const Color& color, ColorSpace)
 {
     if (paintingDisabled())
         return;
@@ -519,7 +519,7 @@ void GraphicsContext::fillRect(const FloatRect& rectangle, const Color& color)
 
 void GraphicsContext::fillRect(const FloatRect& rect)
 {
-    fillRect(IntRect(rect), fillColor());
+    fillRect(IntRect(rect), fillColor(), DeviceColorSpace);
 }
 
 void GraphicsContext::clip(const FloatRect& rect)
@@ -625,14 +625,14 @@ IntPoint GraphicsContext::origin()
 }
 
 
-void GraphicsContext::setPlatformFillColor(const Color& col)
+void GraphicsContext::setPlatformFillColor(const Color& col, ColorSpace)
 {
     // FIXME: this is probably a no-op but I'm not sure
     // notImplemented(); // commented-out because it's chatty and clutters output
 	m_common->state.fillColor = col;
 }
 
-void GraphicsContext::setPlatformStrokeColor(const Color& col)
+void GraphicsContext::setPlatformStrokeColor(const Color& col, ColorSpace)
 {
     // FIXME: this is probably a no-op but I'm not sure
     //notImplemented(); // commented-out because it's chatty and clutters output
@@ -672,7 +672,7 @@ void GraphicsContext::clipToImageBuffer(const FloatRect& rect, const ImageBuffer
     notImplemented();
 }
 
-void GraphicsContext::setPlatformShadow(IntSize const&, int, Color const&)
+void GraphicsContext::setPlatformShadow(IntSize const&, int, Color const&, ColorSpace)
 {
     notImplemented();
 }
@@ -835,7 +835,7 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& r)
     NotImplemented();
 }
 
-void GraphicsContext::fillRoundedRect(const IntRect& r, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color& color)
+void GraphicsContext::fillRoundedRect(const IntRect& r, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color& color, ColorSpace)
 {
     if (paintingDisabled())
         return;
@@ -896,6 +896,10 @@ void GraphicsContext::setPlatformShouldAntialias(bool enable)
     // enables standard 'grayscale' antialiasing); false to explicitly disable
     // antialiasing. This is the same strategy as used in drawConvexPolygon().
     //cairo_set_antialias(m_data->cr, enable ? CAIRO_ANTIALIAS_DEFAULT : CAIRO_ANTIALIAS_NONE);
+}
+
+void GraphicsContext::setImageInterpolationQuality(InterpolationQuality)
+{
 }
 
 } // namespace WebCore

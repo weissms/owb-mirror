@@ -28,6 +28,7 @@
 
 #include "BALBase.h"
 #include "ChromeClient.h"
+#include "ColorSpace.h"
 #include "Frame.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
@@ -147,7 +148,7 @@ void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollb
         }
     } else {
         context->drawRect(rect);
-        context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+        context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray, DeviceColorSpace);
 
         if (start) {
             if (scrollbar->orientation() == HorizontalScrollbar) {
@@ -188,7 +189,7 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
 
         } else {
             context->drawRect(rect);
-            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray, DeviceColorSpace);
         }
     } else {
         static RefPtr<WebCore::Image> thumbV = Image::loadPlatformResource("/ScrollbarTheme/thumbV");
@@ -204,7 +205,7 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
             context->drawImage(thumbVD.get(), endPos);
         } else {
             context->drawRect(rect);
-            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray);
+            context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray, DeviceColorSpace);
         }
     }
     context->restore();
@@ -265,7 +266,7 @@ void ScrollbarThemeBal::paintTrackPiece(GraphicsContext* context, Scrollbar* scr
             context->drawTiledImage(bg.get(), destRect, IntPoint(0, 0), IntSize(bg->width(), bg->height()));
         }
     } else {
-        context->fillRect(rect, Color::white);
+        context->fillRect(rect, Color::white, DeviceColorSpace);
         if (scrollbar->orientation() == HorizontalScrollbar)
             context->drawLine(IntPoint(rect.x(), (rect.bottom() + rect.y()) / 2), IntPoint(rect.right(), (rect.bottom() + rect.y()) / 2));
         else

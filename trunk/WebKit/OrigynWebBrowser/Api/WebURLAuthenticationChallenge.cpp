@@ -76,7 +76,7 @@ void WebURLAuthenticationChallenge::initWithProtectionSpace(WebURLProtectionSpac
 void WebURLAuthenticationChallenge::initWithAuthenticationChallenge(WebURLAuthenticationChallenge* challenge, WebURLAuthenticationChallengeSender* sender)
 {
 /*#if USE(CFNETWORK)
-    m_authenticationChallenge = AuthenticationChallenge(webChallenge->authenticationChallenge().cfURLAuthChallengeRef(), webSender->resourceHandle());
+    m_authenticationChallenge = AuthenticationChallenge(webChallenge->authenticationChallenge().cfURLAuthChallengeRef(), webSender->authenticationClient());
 
     return S_OK;
 #else*/
@@ -113,11 +113,11 @@ WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
     if (!m_sender) {
 #if PLATFORM(QT) || USE(SOUP)
         // FIXME : implement this 
-        ResourceHandle* handle = 0;
+        AuthenticationClient* authenticationClient = 0;
 #else
-        ResourceHandle* handle = m_authenticationChallenge.sourceHandle();
+        AuthenticationClient* authenticationClient = m_authenticationChallenge.authenticationClient();
 #endif
-        m_sender = WebURLAuthenticationChallengeSender::createInstance(handle);
+        m_sender = WebURLAuthenticationChallengeSender::createInstance(authenticationClient);
     }
 
     return m_sender;

@@ -74,6 +74,7 @@ const double msPerSecond = 1000.0;
 const double msPerMinute = 60.0 * 1000.0;
 const double msPerHour = 60.0 * 60.0 * 1000.0;
 const double msPerDay = 24.0 * 60.0 * 60.0 * 1000.0;
+const double msPerMonth = 2592000000.0;
 
 } // namespace WTF
 
@@ -85,7 +86,7 @@ struct GregorianDateTime;
 void msToGregorianDateTime(ExecState*, double, bool outputIsUTC, GregorianDateTime&);
 double gregorianDateTimeToMS(ExecState*, const GregorianDateTime&, double, bool inputIsUTC);
 double getUTCOffset(ExecState*);
-double parseDateFromNullTerminatedCharacters(const char* dateString, ExecState*);
+double parseDateFromNullTerminatedCharacters(ExecState*, const char* dateString);
 
 // Intentionally overridding the default tm of the system.
 // The members of tm differ on various operating systems.
