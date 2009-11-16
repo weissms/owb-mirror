@@ -50,6 +50,7 @@ class AuthenticationChallenge;
 class CachedFrameBase;
 class CachedPage;
 class CachedResource;
+class DOMWrapperWorld;
 class Document;
 class DocumentLoader;
 class Event;
@@ -246,7 +247,8 @@ public:
 
     PassRefPtr<Widget> createJavaAppletWidget(const IntSize&, HTMLAppletElement*, const HashMap<String, String>& args);
 
-    void dispatchWindowObjectAvailable();
+    void dispatchDidClearWindowObjectInWorld(DOMWrapperWorld*);
+    void dispatchDidClearWindowObjectsInAllWorlds();
     void dispatchDocumentElementAvailable();
 
     // Mixed content related functions.

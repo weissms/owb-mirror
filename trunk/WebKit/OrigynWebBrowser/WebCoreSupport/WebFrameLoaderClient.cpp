@@ -1263,6 +1263,34 @@ void WebFrameLoaderClient::windowObjectCleared()
         webFrameLoadDelegate->windowObjectClearNotification(m_webFrame, (void*)context, (void*)windowObject);
 }
 
+void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(WebCore::DOMWrapperWorld* world)
+{
+/*
+    Frame* coreFrame = core(m_webFrame);
+    ASSERT(coreFrame);
+
+    Settings* settings = coreFrame->settings();
+    if (!settings || !settings->isJavaScriptEnabled())
+        return;
+    
+    WebFrameLoadDelegate* webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (!webFrameLoadDelegate)
+        return;
+        
+    webFrameLoadDelegate->didClearWindowObjectForFrameInScriptWorld(m_webFrame->webView(), this, WebScriptWorld::findOrCreateWorld(world).get());
+
+    if (world != mainThreadNormalWorld())
+        return;
+
+    JSContextRef context = toRef(coreFrame->script()->globalObject(world)->globalExec());
+    JSObjectRef windowObject = toRef(coreFrame->script()->globalObject(world));
+    ASSERT(windowObject);
+
+    if (!frameLoadDelegate->didClearWindowObject(m_webFrame->webView(), context, windowObject, this))
+        frameLoadDelegate->windowScriptObjectAvailable(m_webFrame->webView(), context, windowObject);
+*/
+}
+
 void WebFrameLoaderClient::documentElementAvailable()
 {                                             
 }

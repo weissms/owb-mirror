@@ -1,3 +1,99 @@
+2009-11-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        When exiting full-screen video, rather than resetting the system UI
+        mode, restore it to what it was when full-screen mode was entered.
+
+        * WebView/WebVideoFullscreenController.h: Cleaned up style, removed
+        unnecessary imports, and added _savedUIMode and _savedUIOptions ivars.
+        * WebView/WebVideoFullscreenController.mm:
+        (-[WebVideoFullscreenController delegate]): Cleaned up style.
+        (-[WebVideoFullscreenController setDelegate:]): Ditto.
+        (-[WebVideoFullscreenController windowDidExitFullscreen]): Restore the
+        system UI mode.
+        (-[WebVideoFullscreenController windowDidEnterFullscreen]): Save the
+        system UI mode.
+        * WebView/WebView.mm: Added now-necessary import.
+
+2009-11-14  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Need to implement ARIA role="directory"
+        https://bugs.webkit.org/show_bug.cgi?id=31516
+
+        Fix a spelling error in the comment of a localized (accessibility) string.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory AXARIAContentGroupText:]):
+
+2009-11-14  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/7287487> 
+        Do not use QuickTime version to detect media controller theme
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface): Initialize wkMediaControllerThemeAvailable.
+
+2009-11-13  Adam Roben  <aroben@apple.com>
+
+        Tell the WebFrameLoadDelegate when window objects in isolated worlds
+        are cleared
+
+        Fixes <http://webkit.org/b/31124>.
+
+        Reviewed by Dave Hyatt.
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld):
+        Replaced windowObjectCleared with this function. If the delegate
+        implements it, call
+        -webView:didClearWindowObjectForFrame:inScriptWorld:. Otherwise, if
+        the passed-in world is the mainThreadNormalWorld(), call
+        -webView:didClearWindowObject:forFrame:.
+
+        * WebView/WebDelegateImplementationCaching.h: Added a new entry in the
+        frame load delegate implementation cache for the new delegate method.
+
+        * WebView/WebFrameLoadDelegatePrivate.h:
+        * WebView/WebScriptWorld.mm:
+        (allWorlds): Added. Returns a HashMap of all the WebScriptWorlds in
+        existence.
+        (-[WebScriptWorld initWithWorld:]): Add ourselves to allWorlds().
+        (-[WebScriptWorld dealloc]): Remove ourselves from allWorlds().
+        (+[WebScriptWorld findOrCreateWorld:]): Returns the existing
+        WebScriptWorld for this DOMWrapperWorld, or a new one if one doesn't
+        already exist.
+
+        * WebView/WebScriptWorldInternal.h: Declared +findOrCreateWorld:.
+
+        * WebView/WebView.mm:
+        (-[WebView _cacheFrameLoadDelegateImplementations]): Cache the
+        implementation of the new frame load delegate method.
+
+2009-11-13  Adam Roben  <aroben@apple.com>
+
+        Finish replacing worldIDs with world objects
+
+        The only remaining use of worldIDs was in a method only used by DRT
+        for the isolated worlds tests.
+
+        Fixes <http://webkit.org/b/31414> Replace worldIDs with world objects
+
+        Reviewed by Mark Rowe.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:withGlobalObject:inScriptWorld:]):
+        * WebView/WebFramePrivate.h:
+        Renamed from
+        _stringByEvaluatingJavaScriptInIsolatedWorld:WithGobalObject:FromString:.
+        Now takes a WebScriptWorld instead of a worldID, so we don't need to
+        maintain a map of worldID -> world anymore.
+
 2009-11-12  Mark Mentovai  <mark@chromium.org>
 
         Reviewed by Dan Bernstein.

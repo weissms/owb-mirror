@@ -1,3 +1,192 @@
+2009-11-16  Anantanarayanan G Iyengar  <ananta@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        The document-open.html test was flaky at times. The test invokes the layout test plugin
+        which in its destroy stream handler opens a new document. This basically tears down the
+        stream and the associated plugin instance. The pluginLog function in the layout test
+        plugin attempts to retrieve the window script object on a torn down plugin instance
+        which crashed consistently on windows in the debugger. The functions which issue
+        these logs already have a valid window script object. We now have variants of the pluginLog
+        function which take in a window script object with and without variable arguments. 
+
+        https://bugs.webkit.org/show_bug.cgi?id=31067
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginLogWithWindowObject):
+        (pluginLogWithWindowObjectVariableArgs):
+        (pluginLog):
+        (notifyTestCompletion):
+        (testDocumentOpen):
+        (testWindowOpen):
+
+2009-11-15  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        svn-apply may not handle git patches created by bugzilla-tool
+        https://bugs.webkit.org/show_bug.cgi?id=31457
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+
+2009-11-15  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool should post git binary diff
+        https://bugs.webkit.org/show_bug.cgi?id=31458
+
+        Add --binary option to Git.create_patch.
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+
+2009-11-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Add bugzilla-tool check-style
+        https://bugs.webkit.org/show_bug.cgi?id=31515
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+
+2009-11-13  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Make the Qt Linux only --valgrind feature, suppress errors
+        defined in the SuppressedValgrindErrors file.
+
+        * Scripts/run-webkit-tests:
+
+2009-11-13  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Set the locale to C and not to the current one in use on the system.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+
+2009-11-13  Adam Roben  <aroben@apple.com>
+
+        Add support for
+        http/tests/security/isolatedWorld/didClearWindowObject.html
+
+        Fixes <http://webkit.org/b/31124> Tell the WebFrameLoadDelegate when
+        window objects in isolated worlds are cleared
+
+        Reviewed by Dave Hyatt.
+
+        * DumpRenderTree/mac/DumpRenderTreeMac.h: Declared worldIDForWorld.
+
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate didClearWindowObjectInStandardWorldForFrame:]):
+        Added. Moved code here from -webView:didClearWindowObject:forFrame:.
+        (-[FrameLoadDelegate didClearWindowObjectForFrame:inIsolatedWorld:]):
+        Added. Sets a __worldID property on the global object whose value is
+        the ID of this world.
+        (-[FrameLoadDelegate webView:didClearWindowObjectForFrame:inScriptWorld:]):
+        Respond to this new delegate callback by calling through to one of the
+        above new methods.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (worldMap): Added. Returns a HashMap containing all the worlds we've
+        created.
+        (worldIDForWorld): Added. Returns the ID for this world, or 0 if we
+        haven't kept track of this world.
+        (LayoutTestController::evaluateScriptInIsolatedWorld): Use worldMap()
+        instead of declaring our own.
+
+        * DumpRenderTree/win/DumpRenderTreeWin.h: Declared worldIDForWorld.
+
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::didClearWindowObject): Moved code from hear to
+        didClearWindowObjectForFrameInStandardWorld.
+        (FrameLoadDelegate::didClearWindowObjectForFrameInScriptWorld):
+        Respond to this new delegate callback by calling through to one of the
+        below new methods.
+        (FrameLoadDelegate::didClearWindowObjectForFrameInIsolatedWorld):
+        Added. Sets a __worldID property on the gobal object whose value is
+        the ID of this world.
+        (FrameLoadDelegate::didClearWindowObjectForFrameInStandardWorld):
+        Added. Moved code here from didClearWindowObject.
+
+        * DumpRenderTree/win/FrameLoadDelegate.h: Added the
+        didClearWindowObjectForFrame* functions.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (worldMap): Added. Returns a HashMap containing all the worlds we've
+        created.
+        (worldIDForWorld): Added. Returns the ID of this world, or 0 if we
+        haven't kept track of this world.
+        (LayoutTestController::evaluateScriptInIsolatedWorld): Use worldMap()
+        instead of declaring our own.
+
+2009-11-13  Adam Roben  <aroben@apple.com>
+
+        Finish replacing worldIDs with world objects
+
+        The only remaining use of worldIDs was in a method only used by DRT
+        for the isolated worlds tests.
+
+        Fixes <http://webkit.org/b/31414> Replace worldIDs with world objects
+
+        Reviewed by Mark Rowe.
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+        Updated for changes to WebFrame. Now holds the map of worldID -> world
+        at this level instead of making WebKit do it.
+
+2009-11-13  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Ensure the DRT does not output anything until first test is run
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        * DumpRenderTree/qt/DumpRenderTree.h:
+
+2009-11-13  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Clear the undo stack in before each new test run.
+
+        Locally fixes 3 incorrect layouts, 9 timeouts and 7 crashes.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+
+2009-11-13  Andras Becsi  <becsi.andras@stud.u-szeged.hu>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Add WebKitUsesPageCachePreferenceKey overriding support to DRT's LayoutTestController.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::overridePreference):
+
+2009-11-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Update committers.py based on svn records
+        https://bugs.webkit.org/show_bug.cgi?id=31366
+
+        This list was generated using validate-committer-lists from
+        https://bugs.webkit.org/show_bug.cgi?id=30970
+        and makes committers.py current for committers who have
+        committed in the last 3 years.
+
+        * Scripts/modules/committers.py:
+
 2009-11-12  Simon Hausmann  <simon.hausmann@nokia.com>
 
         Adding Kenneth to the reviewers list.

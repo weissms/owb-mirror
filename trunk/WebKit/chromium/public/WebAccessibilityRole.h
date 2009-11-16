@@ -107,6 +107,7 @@ enum WebAccessibilityRole {
     WebAccessibilityRoleTabPanel,
     WebAccessibilityRoleTreeRole,
     WebAccessibilityRoleTreeItemRole,
+    WebAccessibilityRoleDirectory,
 
     WebAccessibilityRoleLandmarkApplication,
     WebAccessibilityRoleLandmarkBanner,

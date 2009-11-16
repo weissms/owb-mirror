@@ -12,6 +12,9 @@ symbian: {
     DEPLOYMENT += webkitlibs
 
     TARGET.UID3 = 0x200267C2
+    # Need to guarantee that these come before system includes of /epoc32/include
+    MMP_RULES += "USERINCLUDE rendering"
+    MMP_RULES += "USERINCLUDE platform/text"
     # RO text (code) section in qtwebkit.dll exceeds allocated space for gcce udeb target.
     # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
     MMP_RULES += "LINKEROPTION  armcc --rw-base 0xE00000"
@@ -331,6 +334,7 @@ IDL_BINDINGS += \
     dom/Clipboard.idl \
     dom/CDATASection.idl \
     dom/Comment.idl \
+    dom/CompositionEvent.idl \
     dom/DocumentFragment.idl \
     dom/Document.idl \
     dom/DocumentType.idl \
@@ -852,6 +856,7 @@ SOURCES += \
     dom/Clipboard.cpp \
     dom/ClipboardEvent.cpp \
     dom/Comment.cpp \
+    dom/CompositionEvent.cpp \
     dom/ContainerNode.cpp \
     dom/CSSMappedAttributeDeclaration.cpp \
     dom/Document.cpp \

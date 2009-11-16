@@ -248,12 +248,7 @@ public:
         /* [in] */ BSTR url,
         /* [retval][out] */ BOOL* result);
 
-    virtual HRESULT STDMETHODCALLTYPE stringByEvaluatingJavaScriptInIsolatedWorld( 
-        /* [in] */ unsigned int worldID,
-        /* [in] */ OLE_HANDLE jsGlobalObject,
-        /* [in] */ BSTR script,
-        /* [retval][out] */ BSTR* evaluationResult);
-
+    virtual HRESULT STDMETHODCALLTYPE stringByEvaluatingJavaScriptInScriptWorld(IWebScriptWorld*, JSObjectRef globalObjectRef, BSTR script, BSTR* evaluationResult);
     virtual JSGlobalContextRef STDMETHODCALLTYPE globalContextForScriptWorld(IWebScriptWorld*);
 
     // IWebDocumentText
@@ -317,7 +312,7 @@ public:
     virtual WebCore::ObjectContentType objectContentType(const WebCore::KURL& url, const WebCore::String& mimeType);
     virtual WebCore::String overrideMediaType() const;
 
-    virtual void windowObjectCleared();
+    virtual void dispatchDidClearWindowObjectInWorld(WebCore::DOMWrapperWorld*);
     virtual void documentElementAvailable();
     virtual void didPerformFirstNavigation() const;
 

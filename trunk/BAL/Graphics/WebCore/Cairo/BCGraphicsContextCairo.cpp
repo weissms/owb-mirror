@@ -33,23 +33,26 @@
 #if PLATFORM(CAIRO)
 
 #include "CairoPath.h"
-#include "FEGaussianBlur.h"
 #include "FloatRect.h"
 #include "Font.h"
 #include "ImageBuffer.h"
-#include "ImageBufferFilter.h"
 #include "IntRect.h"
 #include "NotImplemented.h"
 #include "Path.h"
 #include "Pattern.h"
 #include "SimpleFontData.h"
-#include "SourceGraphic.h"
 #include "TransformationMatrix.h"
 
 #include <cairo.h>
 #include <math.h>
 #include <stdio.h>
 #include <wtf/MathExtras.h>
+
+#if ENABLE(FILTERS)
+#include "FEGaussianBlur.h"
+#include "ImageBufferFilter.h"
+#include "SourceGraphic.h"
+#endif
 
 #if PLATFORM(GTK)
 #include <gdk/gdk.h>
@@ -75,11 +78,12 @@ static inline void setColor(cairo_t* cr, const Color& col)
 
 static inline void setPlatformFill(GraphicsContext* context, cairo_t* cr, GraphicsContextPrivate* gcp)
 {
+    cairo_save(cr);
     switch (gcp->state.fillType) {
     case SolidColorType: {
-        Color fillColor = colorWithOverrideAlpha(context->fillColor().rgb(), context->fillColor().alpha() / 255.f * gcp->state.globalAlpha);
-        setColor(cr, fillColor);
-        cairo_fill_preserve(cr);
+        setColor(cr, context->fillColor());
+        cairo_clip_preserve(cr);
+        cairo_paint_with_alpha(cr, gcp->state.globalAlpha);
         break;
     }
     case PatternType: {
@@ -95,10 +99,12 @@ static inline void setPlatformFill(GraphicsContext* context, cairo_t* cr, Graphi
         cairo_paint_with_alpha(cr, gcp->state.globalAlpha);
         break;
     }
+    cairo_restore(cr);
 }
 
 static inline void setPlatformStroke(GraphicsContext* context, cairo_t* cr, GraphicsContextPrivate* gcp)
 {
+    cairo_save(cr);
     switch (gcp->state.strokeType) {
     case SolidColorType: {
         Color strokeColor = colorWithOverrideAlpha(context->strokeColor().rgb(), context->strokeColor().alpha() / 255.f * gcp->state.globalAlpha);
@@ -120,6 +126,7 @@ static inline void setPlatformStroke(GraphicsContext* context, cairo_t* cr, Grap
         cairo_pop_group_to_source(cr);
     }
     cairo_stroke_preserve(cr);
+    cairo_restore(cr);
 }
 
 // A fillRect helper
@@ -134,9 +141,13 @@ static inline void fillRectSourceOver(cairo_t* cr, const FloatRect& rect, const 
 static inline void copyContextProperties(cairo_t* srcCr, cairo_t* dstCr)
 {
     cairo_set_antialias(dstCr, cairo_get_antialias(srcCr));
-    double dashes, offset;
-    cairo_get_dash(srcCr, &dashes, &offset);
-    cairo_set_dash(dstCr, &dashes, cairo_get_dash_count(srcCr), offset);
+
+    size_t dashCount = cairo_get_dash_count(srcCr);
+    Vector<double> dashes(dashCount);
+
+    double offset;
+    cairo_get_dash(srcCr, dashes.data(), &offset);
+    cairo_set_dash(dstCr, dashes.data(), dashCount, offset);
     cairo_set_line_cap(dstCr, cairo_get_line_cap(srcCr));
     cairo_set_line_join(dstCr, cairo_get_line_join(srcCr));
     cairo_set_line_width(dstCr, cairo_get_line_width(srcCr));
@@ -172,7 +183,10 @@ static inline void drawPathShadow(GraphicsContext* context, GraphicsContextPriva
     cairo_t* cr = context->platformContext();
     cairo_path_t* path = cairo_copy_path(cr);
     double x0, x1, y0, y1;
-    cairo_stroke_extents(cr, &x0, &y0, &x1, &y1);
+    if (strokeShadow)
+        cairo_stroke_extents(cr, &x0, &y0, &x1, &y1);
+    else
+        cairo_fill_extents(cr, &x0, &y0, &x1, &y1);
     FloatRect rect(x0, y0, x1 - x0, y1 - y0);
 
     IntSize shadowBufferSize;

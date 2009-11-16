@@ -119,6 +119,7 @@ extern "C" {
 
 using namespace WebCore;
 using namespace HTMLNames;
+using namespace std;
 
 using JSC::JSGlobalObject;
 using JSC::JSLock;
@@ -1716,7 +1717,7 @@ String WebFrame::overrideMediaType() const
     return String();
 }
 
-void WebFrame::windowObjectCleared()
+void WebFrame::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
 {
     Frame* coreFrame = core(this);
     ASSERT(coreFrame);
@@ -1726,14 +1727,24 @@ void WebFrame::windowObjectCleared()
         return;
 
     COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
-    if (SUCCEEDED(d->webView->frameLoadDelegate(&frameLoadDelegate))) {
-        JSContextRef context = toRef(coreFrame->script()->globalObject(mainThreadNormalWorld())->globalExec());
-        JSObjectRef windowObject = toRef(coreFrame->script()->globalObject(mainThreadNormalWorld()));
-        ASSERT(windowObject);
+    if (FAILED(d->webView->frameLoadDelegate(&frameLoadDelegate)))
+        return;
 
-        if (FAILED(frameLoadDelegate->didClearWindowObject(d->webView, context, windowObject, this)))
-            frameLoadDelegate->windowScriptObjectAvailable(d->webView, context, windowObject);
+    COMPtr<IWebFrameLoadDelegatePrivate2> delegatePrivate(Query, frameLoadDelegate);
+    if (delegatePrivate) {
+        delegatePrivate->didClearWindowObjectForFrameInScriptWorld(d->webView, this, WebScriptWorld::findOrCreateWorld(world).get());
+        return;
     }
+
+    if (world != mainThreadNormalWorld())
+        return;
+
+    JSContextRef context = toRef(coreFrame->script()->globalObject(world)->globalExec());
+    JSObjectRef windowObject = toRef(coreFrame->script()->globalObject(world));
+    ASSERT(windowObject);
+
+    if (FAILED(frameLoadDelegate->didClearWindowObject(d->webView, context, windowObject, this)))
+        frameLoadDelegate->windowScriptObjectAvailable(d->webView, context, windowObject);
 }
 
 void WebFrame::documentElementAvailable()
@@ -2173,18 +2184,20 @@ HRESULT STDMETHODCALLTYPE WebFrame::isDescendantOfFrame(
     return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(
-    /* [in] */ unsigned int worldID,
-    /* [in] */ OLE_HANDLE jsGlobalObject,
-    /* [in] */ BSTR script,
-    /* [retval][out] */ BSTR* evaluationResult)
+HRESULT WebFrame::stringByEvaluatingJavaScriptInScriptWorld(IWebScriptWorld* iWorld, JSObjectRef globalObjectRef, BSTR script, BSTR* evaluationResult)
 {
     if (!evaluationResult)
         return E_POINTER;
     *evaluationResult = 0;
 
+    if (!iWorld)
+        return E_POINTER;
+
+    COMPtr<WebScriptWorld> world(Query, iWorld);
+    if (!world)
+        return E_INVALIDARG;
+
     Frame* coreFrame = core(this);
-    JSObjectRef globalObjectRef = reinterpret_cast<JSObjectRef>(jsGlobalObject);
     String string = String(script, SysStringLen(script));
 
     // Start off with some guess at a frame and a global object, we'll try to do better...!
@@ -2198,22 +2211,7 @@ HRESULT STDMETHODCALLTYPE WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(
     // Get the frame frome the global object we've settled on.
     Frame* frame = anyWorldGlobalObject->impl()->frame();
     ASSERT(frame->document());
-
-    // Get the world to execute in based on the worldID. DRT expects that a
-    // worldID of 0 always corresponds to a newly-created world, while any
-    // other worldID corresponds to a world that is created once and then
-    // cached forever.
-    RefPtr<DOMWrapperWorld> world;
-    if (!worldID)
-        world = ScriptController::createWorld();
-    else {
-        static HashMap<unsigned, RefPtr<DOMWrapperWorld> >& worlds = *new HashMap<unsigned, RefPtr<DOMWrapperWorld> >;
-        RefPtr<DOMWrapperWorld>& worldSlot = worlds.add(worldID, 0).first->second;
-        if (!worldSlot)
-            worldSlot = ScriptController::createWorld();
-        world = worldSlot;
-    }
-    JSValue result = frame->script()->executeScriptInWorld(world.get(), string, true).jsValue();
+    JSValue result = frame->script()->executeScriptInWorld(world->world(), string, true).jsValue();
 
     if (!frame) // In case the script removed our frame from the page.
         return S_OK;

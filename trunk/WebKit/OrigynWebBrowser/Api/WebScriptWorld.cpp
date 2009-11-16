@@ -30,8 +30,33 @@
 #include "WebScriptWorld.h"
 
 #include "JSDOMBinding.h"
+#include "ScriptController.h"
 
 using namespace WebCore;
+
+typedef HashMap<DOMWrapperWorld*, WebScriptWorld*> WorldMap; 
+
+static WorldMap& allWorlds()
+{
+    static WorldMap& map = *new WorldMap;
+    return map;
+}
+
+WebScriptWorld* WebScriptWorld::createInstance()
+{
+    return createInstance(ScriptController::createWorld().get());
+}
+
+WebScriptWorld* WebScriptWorld::findOrCreateWorld(DOMWrapperWorld* world)
+{
+    if (world == mainThreadNormalWorld())
+        return standardWorld();
+
+    if (WebScriptWorld* existingWorld = allWorlds().get(world))
+        return existingWorld;
+
+    return createInstance(world);
+}
 
 WebScriptWorld* WebScriptWorld::createInstance(DOMWrapperWorld* world)
 {
@@ -41,16 +66,20 @@ WebScriptWorld* WebScriptWorld::createInstance(DOMWrapperWorld* world)
 WebScriptWorld::WebScriptWorld(DOMWrapperWorld* world)
     : m_world(world)
 {
+    ASSERT(!allWorlds().contains(m_world));
+    allWorlds().add(m_world, this);
     m_world->ref();
 }
 
 WebScriptWorld::~WebScriptWorld()
 {
+    ASSERT(allWorlds().contains(m_world));
+    allWorlds().remove(m_world);
     m_world->deref();
     m_world = 0;
 }
 
-WebScriptWorld* WebScriptWorld::standardWorld() const
+WebScriptWorld* WebScriptWorld::standardWorld()
 {
     static WebScriptWorld* standardWorld = new WebScriptWorld(mainThreadNormalWorld());
     return standardWorld;

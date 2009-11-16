@@ -16,6 +16,7 @@ list(APPEND WEBCORE_SRC
     dom/Clipboard.cpp
     dom/ClipboardEvent.cpp
     dom/Comment.cpp
+    dom/CompositionEvent.cpp
     dom/ContainerNode.cpp
     dom/DOMImplementation.cpp
     dom/Document.cpp
@@ -112,6 +113,7 @@ list(APPEND IDL_SRC
     dom/Clipboard.idl
     dom/CDATASection.idl
     dom/Comment.idl
+    dom/CompositionEvent.idl
     dom/DocumentFragment.idl
     dom/Document.idl
     dom/DocumentType.idl

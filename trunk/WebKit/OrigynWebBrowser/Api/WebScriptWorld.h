@@ -35,14 +35,16 @@ namespace WebCore {
 
 class WebScriptWorld {
 public:
-    static WebScriptWorld* createInstance(WebCore::DOMWrapperWorld* world);
+    static WebScriptWorld* standardWorld();
+    static WebScriptWorld* createInstance();
     ~WebScriptWorld();
+    
+    static WebScriptWorld* findOrCreateWorld(WebCore::DOMWrapperWorld*);
 
     WebCore::DOMWrapperWorld* world() const { return m_world; }
 
-    WebScriptWorld* standardWorld() const;
-
 private:
+    static WebScriptWorld* createInstance(WebCore::DOMWrapperWorld* world);
     WebScriptWorld(WebCore::DOMWrapperWorld*);
 
     WebCore::DOMWrapperWorld* m_world;

@@ -1,3 +1,108 @@
+2009-11-16  İsmail Dönmez  <ismail@namtrac.org>
+
+        Reviewed by Antti Koivisto.
+
+        Fix typo, ce_time.cpp should be ce_time.c
+
+        * JavaScriptCore.pri:
+
+2009-11-13  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31050
+
+        Adding optimization support for mode JSVALUE32_64
+        on ARM systems.
+
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compileGetByIdSlowCase):
+        (JSC::JIT::emit_op_put_by_id):
+
+2009-11-14  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31050
+
+        Adding JSVALUE32_64 support for ARM (but not turning it
+        on by default). All optimizations must be disabled, since
+        this patch is only the first of a series of patches.
+
+        During the work, a lot of x86 specific code revealed and
+        made platform independent.
+        See revisions: 50531 50541 50593 50594 50595
+
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::):
+        (JSC::ARMAssembler::fdivd_r):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::lshift32):
+        (JSC::MacroAssemblerARM::neg32):
+        (JSC::MacroAssemblerARM::rshift32):
+        (JSC::MacroAssemblerARM::branchOr32):
+        (JSC::MacroAssemblerARM::set8):
+        (JSC::MacroAssemblerARM::setTest8):
+        (JSC::MacroAssemblerARM::loadDouble):
+        (JSC::MacroAssemblerARM::divDouble):
+        (JSC::MacroAssemblerARM::convertInt32ToDouble):
+        (JSC::MacroAssemblerARM::zeroDouble):
+        * jit/JIT.cpp:
+        * jit/JIT.h:
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JITStubs.cpp:
+        * wtf/StdLibExtras.h:
+
+2009-11-13  Dominik Röttsches  <dominik.roettsches@access-company.com>
+
+        Reviewed by Eric Seidel.
+
+        Unify TextBoundaries implementations by only relying on WTF Unicode abstractions
+        https://bugs.webkit.org/show_bug.cgi?id=31468
+
+        Adding isAlphanumeric abstraction, required
+        by TextBoundaries.cpp.
+
+        * wtf/unicode/glib/UnicodeGLib.h:
+        (WTF::Unicode::isAlphanumeric):
+        * wtf/unicode/icu/UnicodeIcu.h:
+        (WTF::Unicode::isAlphanumeric):
+
+2009-11-13  Norbert Leser  <norbert.leser&nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Added macros for USERINCLUDE paths within symbian blocks
+        to guarantee inclusion of respective header files from local path
+        first (to avoid clashes with same names of header files in system include path).
+
+        * JavaScriptCore.pri:
+
+2009-11-13  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        JSValueProtect and JSValueUnprotect don't protect API wrapper values
+        https://bugs.webkit.org/show_bug.cgi?id=31485
+
+        Make JSValueProtect/Unprotect use a new 'toJS' function, 'toJSForGC' that
+        does not attempt to to strip out API wrapper objects.
+
+        * API/APICast.h:
+        (toJSForGC):
+        * API/JSValueRef.cpp:
+        (JSValueProtect):
+        (JSValueUnprotect):
+        * API/tests/testapi.c:
+        (makeGlobalNumberValue):
+        (main):
+
 2009-11-12  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Kenneth Rohde Christiansen.

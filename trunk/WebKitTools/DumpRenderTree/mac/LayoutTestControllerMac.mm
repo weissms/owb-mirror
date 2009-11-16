@@ -63,6 +63,7 @@
 #import <WebKit/WebView.h>
 #import <WebKit/WebViewPrivate.h>
 #import <WebKit/WebWorkersPrivate.h>
+#import <wtf/HashMap.h>
 #import <wtf/RetainPtr.h>
 
 @interface CommandValidationTarget : NSObject <NSValidatedUserInterfaceItem>
@@ -531,9 +532,40 @@ void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef scrip
     [[[mainFrame webView] inspector] evaluateInFrontend:nil callId:callId script:scriptNS];
 }
 
+typedef HashMap<unsigned, RetainPtr<WebScriptWorld> > WorldMap;
+static WorldMap& worldMap()
+{
+    static WorldMap& map = *new WorldMap;
+    return map;
+}
+
+unsigned worldIDForWorld(WebScriptWorld *world)
+{
+    WorldMap::const_iterator end = worldMap().end();
+    for (WorldMap::const_iterator it = worldMap().begin(); it != end; ++it) {
+        if (it->second == world)
+            return it->first;
+    }
+
+    return 0;
+}
+
 void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObjectRef globalObject, JSStringRef script)
 {
     RetainPtr<CFStringRef> scriptCF(AdoptCF, JSStringCopyCFString(kCFAllocatorDefault, script));
     NSString *scriptNS = (NSString *)scriptCF.get();
-    [mainFrame _stringByEvaluatingJavaScriptInIsolatedWorld:worldID WithGlobalObject:globalObject FromString:scriptNS];
+
+    // A worldID of 0 always corresponds to a new world. Any other worldID corresponds to a world
+    // that is created once and cached forever.
+    WebScriptWorld *world;
+    if (!worldID)
+        world = [WebScriptWorld world];
+    else {
+        RetainPtr<WebScriptWorld>& worldSlot = worldMap().add(worldID, 0).first->second;
+        if (!worldSlot)
+            worldSlot.adoptNS([[WebScriptWorld alloc] init]);
+        world = worldSlot.get();
+    }
+
+    [mainFrame _stringByEvaluatingJavaScriptFromString:scriptNS withGlobalObject:globalObject inScriptWorld:world];
 }

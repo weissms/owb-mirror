@@ -955,14 +955,45 @@ void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef scrip
     inspectorPrivate->evaluateInFrontend(callId, bstrT(script).GetBSTR());
 }
 
-void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldId, JSObjectRef globalObject, JSStringRef script)
+typedef HashMap<unsigned, COMPtr<IWebScriptWorld> > WorldMap;
+static WorldMap& worldMap()
+{
+    static WorldMap& map = *new WorldMap;
+    return map;
+}
+
+unsigned worldIDForWorld(IWebScriptWorld* world)
+{
+    WorldMap::const_iterator end = worldMap().end();
+    for (WorldMap::const_iterator it = worldMap().begin(); it != end; ++it) {
+        if (it->second == world)
+            return it->first;
+    }
+
+    return 0;
+}
+
+void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObjectRef globalObject, JSStringRef script)
 {
     COMPtr<IWebFramePrivate> framePrivate(Query, frame);
     if (!framePrivate)
         return;
 
+    // A worldID of 0 always corresponds to a new world. Any other worldID corresponds to a world
+    // that is created once and cached forever.
+    COMPtr<IWebScriptWorld> world;
+    if (!worldID) {
+        if (FAILED(WebKitCreateInstance(__uuidof(WebScriptWorld), 0, __uuidof(world), reinterpret_cast<void**>(&world))))
+            return;
+    } else {
+        COMPtr<IWebScriptWorld>& worldSlot = worldMap().add(worldID, 0).first->second;
+        if (!worldSlot && FAILED(WebKitCreateInstance(__uuidof(WebScriptWorld), 0, __uuidof(worldSlot), reinterpret_cast<void**>(&worldSlot))))
+            return;
+        world = worldSlot;
+    }
+
     BSTR result;
-    if (FAILED(framePrivate->stringByEvaluatingJavaScriptInIsolatedWorld(worldId, reinterpret_cast<OLE_HANDLE>(globalObject), bstrT(script).GetBSTR(), &result)))
+    if (FAILED(framePrivate->stringByEvaluatingJavaScriptInScriptWorld(world.get(), globalObject, bstrT(script).GetBSTR(), &result)))
         return;
     SysFreeString(result);
 }

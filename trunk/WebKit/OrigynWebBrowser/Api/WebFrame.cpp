@@ -1278,9 +1278,9 @@ void WebFrame::addToJSWindowObject(void* object)
     }
 }
 
-bool WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(unsigned int worldID, void* jsGlobalObject, const char* script, const char** evaluationResult)
+bool WebFrame::stringByEvaluatingJavaScriptInScriptWorld(WebScriptWorld* world, void* jsGlobalObject, const char* script, const char** evaluationResult)
 {
-    if (!jsGlobalObject || !evaluationResult)
+    if (!world || !jsGlobalObject || !evaluationResult)
         return false;
     *evaluationResult = 0;
 
@@ -1299,26 +1299,10 @@ bool WebFrame::stringByEvaluatingJavaScriptInIsolatedWorld(unsigned int worldID,
     // Get the frame from the global object we've settled on.
     Frame* frame = anyWorldGlobalObject->impl()->frame();
     ASSERT(frame->document());
-
-
-    // Get the world to execute in based on the worldID. DRT expects that a
-    // worldID of 0 always corresponds to a newly-created world, while any
-    // other worldID corresponds to a world that is created once and then
-    // cached forever.
-    RefPtr<DOMWrapperWorld> world;
-    if (!worldID)
-        world = ScriptController::createWorld();
-    else {
-        static HashMap<unsigned, RefPtr<DOMWrapperWorld> >& worlds = *new HashMap<unsigned, RefPtr<DOMWrapperWorld> >;
-        RefPtr<DOMWrapperWorld>& worldSlot = worlds.add(worldID, 0).first->second;
-        if (!worldSlot)
-            worldSlot = ScriptController::createWorld();
-        world = worldSlot;
-    }
-    JSC::JSValue result = frame->script()->executeScriptInWorld(world.get(), string, true).jsValue();
+    JSC::JSValue result = frame->script()->executeScriptInWorld(world->world(), string, true).jsValue();
 
     if (!frame) // In case the script removed our frame from the page.
-        return false;
+        return true;
 
     // This bizarre set of rules matches behavior from WebKit for Safari 2.0.
     // If you don't like it, use -[WebScriptObject evaluateWebScript:] or 

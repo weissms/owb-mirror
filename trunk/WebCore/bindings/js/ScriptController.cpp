@@ -51,6 +51,7 @@
 #endif
 
 using namespace JSC;
+using namespace std;
 
 namespace WebCore {
 
@@ -176,6 +177,11 @@ PassRefPtr<DOMWrapperWorld> ScriptController::createWorld()
     return IsolatedWorld::create(JSDOMWindow::commonJSGlobalData());
 }
 
+void ScriptController::getAllWorlds(Vector<DOMWrapperWorld*>& worlds)
+{
+    static_cast<WebCoreJSClientData*>(JSDOMWindow::commonJSGlobalData()->clientData)->getAllWorlds(worlds);
+}
+
 void ScriptController::clearWindowShell()
 {
     if (m_windowShells.isEmpty())
@@ -222,7 +228,7 @@ JSDOMWindowShell* ScriptController::initScript(DOMWrapperWorld* world)
 
     {
         EnterDOMWrapperWorld worldEntry(*JSDOMWindow::commonJSGlobalData(), world);
-        m_frame->loader()->dispatchWindowObjectAvailable();
+        m_frame->loader()->dispatchDidClearWindowObjectInWorld(world);
     }
 
     return windowShell;

@@ -181,6 +181,7 @@ public:
     virtual WebCore::String overrideMediaType() const;
 
     virtual void windowObjectCleared();
+    virtual void dispatchDidClearWindowObjectInWorld(WebCore::DOMWrapperWorld*);
     virtual void documentElementAvailable();
     virtual void didPerformFirstNavigation() const;
 
