@@ -1619,7 +1619,7 @@ bool protocolIs(const String& url, const char* protocol)
     }
 }
 
-bool protocolIsValid(const String& protocol)
+bool isValidProtocol(const String& protocol)
 {
     if (!isSchemeFirstChar(protocol[0]))
         return false;

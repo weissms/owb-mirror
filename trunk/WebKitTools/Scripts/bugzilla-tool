@@ -45,9 +45,11 @@ from modules.bugzilla import Bugzilla, parse_bug_id
 from modules.changelogs import ChangeLog
 from modules.comments import bug_comment_from_commit_text
 from modules.logging import error, log, tee
+from modules.patchcollection import PatchCollection
 from modules.scm import CommitMessage, detect_scm_system, ScriptError, CheckoutNeedsUpdate
 from modules.buildbot import BuildBot
 from modules.statusbot import StatusBot
+from modules.workqueue import WorkQueue, WorkQueueDelegate
 
 def plural(noun):
     # This is a dumb plural() implementation which was just enough for our uses.
@@ -135,64 +137,84 @@ class ReviewedPatchesOnBug(Command):
             print "%s" % patch['url']
 
 
-class CheckStyleOnBug(Command):
+class CheckStyle(Command):
     def __init__(self):
         options = WebKitLandingScripts.cleaning_options()
-        Command.__init__(self, 'Runs check-webkit-style on the r? patches on a bug', 'BUGID', options=options)
+        Command.__init__(self, 'Runs check-webkit-style on the specified attachment', 'ATTACHMENT_ID', options=options)
 
     @classmethod
-    def check_style(cls, bug_id, patch, options, tool):
+    def check_style(cls, patch, options, tool):
         tool.scm().update_webkit()
-        log("Checking style for patch %s from bug %s." % (patch['id'], bug_id))
+        log("Checking style for patch %s from bug %s." % (patch['id'], patch['bug_id']))
         try:
+            # FIXME: check-webkit-style shouldn't really have to apply the patch to check the style.
             tool.scm().apply_patch(patch)
             WebKitLandingScripts.run_webkit_script("check-webkit-style")
         except ScriptError, e:
-            log("Patch failed to apply and check style")
+            log("Patch %s from bug %s failed to apply and check style." % (patch['id'], patch['bug_id']))
             log(e.output)
 
-        tool.scm().ensure_clean_working_directory(True)
+        # This is safe because in order to get here the working directory had to be
+        # clean at the beginning.  Clean it out again before we exit.
+        tool.scm().ensure_clean_working_directory(force_clean=True)
 
     def execute(self, options, args, tool):
-        bug_id = args[0]
-        patches = tool.bugs.fetch_unreviewed_patches_from_bug(bug_id)
+        attachment_id = args[0]
+        attachment = tool.bugs.fetch_attachment(attachment_id)
 
-        WebKitLandingScripts.setup_for_landing(tool.scm(), options)
+        WebKitLandingScripts.prepare_clean_working_directory(tool.scm(), options)
+        self.check_style(attachment, options, tool)
 
-        for patch in patches:
-            self.check_style(bug_id, patch, options, tool)
+
+class ApplyAttachment(Command):
+    def __init__(self):
+        options = WebKitApplyingScripts.apply_options() + WebKitLandingScripts.cleaning_options()
+        Command.__init__(self, 'Applies an attachment to the local working directory.', 'ATTACHMENT_ID', options=options)
+
+    def execute(self, options, args, tool):
+        WebKitApplyingScripts.setup_for_patch_apply(tool.scm(), options)
+        attachment_id = args[0]
+        attachment = tool.bugs.fetch_attachment(attachment_id)
+        WebKitApplyingScripts.apply_patches_with_options(tool.scm(), [attachment], options)
 
 
 class ApplyPatchesFromBug(Command):
     def __init__(self):
-        options = [
+        options = WebKitApplyingScripts.apply_options() + WebKitLandingScripts.cleaning_options()
+        Command.__init__(self, 'Applies all patches on a bug to the local working directory.', 'BUGID', options=options)
+
+    def execute(self, options, args, tool):
+        WebKitApplyingScripts.setup_for_patch_apply(tool.scm(), options)
+        bug_id = args[0]
+        patches = tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
+        WebKitApplyingScripts.apply_patches_with_options(tool.scm(), patches, options)
+
+
+class WebKitApplyingScripts:
+    @staticmethod
+    def apply_options():
+        return [
             make_option("--no-update", action="store_false", dest="update", default=True, help="Don't update the working directory before applying patches"),
             make_option("--local-commit", action="store_true", dest="local_commit", default=False, help="Make a local commit for each applied patch"),
         ]
-        options += WebKitLandingScripts.cleaning_options()
-        Command.__init__(self, 'Applies all patches on a bug to the local working directory without committing.', 'BUGID', options=options)
 
     @staticmethod
-    def apply_patches(patches, scm, commit_each):
+    def setup_for_patch_apply(scm, options):
+        WebKitLandingScripts.prepare_clean_working_directory(scm, options, allow_local_commits=True)
+        if options.update:
+            scm.update_webkit()
+
+    @staticmethod
+    def apply_patches_with_options(scm, patches, options):
+        if options.local_commit and not scm.supports_local_commits():
+            error("--local-commit passed, but %s does not support local commits" % scm.display_name())
+
         for patch in patches:
+            log("Applying attachment %s from bug %s" % (patch['id'], patch['bug_id']))
             scm.apply_patch(patch)
-            if commit_each:
+            if options.local_commit:
                 commit_message = commit_message_for_this_commit(scm)
                 scm.commit_locally_with_message(commit_message.message() or patch['name'])
-
-    def execute(self, options, args, tool):
-        bug_id = args[0]
-        patches = tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
-        os.chdir(tool.scm().checkout_root)
-        if options.clean:
-            tool.scm().ensure_clean_working_directory(options.force_clean)
-        if options.update:
-            tool.scm().update_webkit()
-        
-        if options.local_commit and not tool.scm().supports_local_commits():
-            error("--local-commit passed, but %s does not support local commits" % tool.scm().display_name())
-        
-        self.apply_patches(patches, tool.scm(), options.local_commit)
 
 
 class WebKitLandingScripts:
@@ -211,7 +233,7 @@ class WebKitLandingScripts:
             make_option("--no-build", action="store_false", dest="build", default=True, help="Commit without building first, implies --no-test."),
             make_option("--no-test", action="store_false", dest="test", default=True, help="Commit without running run-webkit-tests."),
             make_option("--quiet", action="store_true", dest="quiet", default=False, help="Produce less console output."),
-            make_option("--commit-queue", action="store_true", dest="commit_queue", default=False, help="Run in commit queue mode (no user interaction)."),
+            make_option("--non-interactive", action="store_true", dest="non_interactive", default=False, help="Never prompt the user, fail as fast as possible."),
         ]
 
     @staticmethod
@@ -275,11 +297,12 @@ class WebKitLandingScripts:
         cls.run_and_throw_if_fail(args)
 
     @staticmethod
-    def setup_for_landing(scm, options):
+    def prepare_clean_working_directory(scm, options, allow_local_commits=False):
         os.chdir(scm.checkout_root)
-        scm.ensure_no_local_commits(options.force_clean)
+        if not allow_local_commits:
+            scm.ensure_no_local_commits(options.force_clean)
         if options.clean:
-            scm.ensure_clean_working_directory(options.force_clean)
+            scm.ensure_clean_working_directory(force_clean=options.force_clean)
 
     @classmethod
     def build_and_commit(cls, scm, options):
@@ -287,10 +310,49 @@ class WebKitLandingScripts:
             cls.build_webkit(quiet=options.quiet)
             if options.test:
                 # When running the commit-queue we don't want to launch Safari and we want to exit after the first failure.
-                cls.run_webkit_tests(launch_safari=not options.commit_queue, fail_fast=options.commit_queue, quiet=options.quiet)
+                cls.run_webkit_tests(launch_safari=not options.non_interactive, fail_fast=options.non_interactive, quiet=options.quiet)
         commit_message = commit_message_for_this_commit(scm)
         commit_log = scm.commit_with_message(commit_message.message())
         return bug_comment_from_commit_text(scm, commit_log)
+
+    @classmethod
+    def _close_bug_if_no_active_patches(cls, bugs, bug_id):
+        # Check to make sure there are no r? or r+ patches on the bug before closing.
+        # Assume that r- patches are just previous patches someone forgot to obsolete.
+        patches = bugs.fetch_patches_from_bug(bug_id)
+        for patch in patches:
+            review_flag = patch.get('review')
+            if review_flag == '?' or review_flag == '+':
+                log("Not closing bug %s as attachment %s has review=%s.  Assuming there are more patches to land from this bug." % (patch['bug_id'], patch['id'], review_flag))
+                return
+        bugs.close_bug_as_fixed(bug_id, "All reviewed patches have been landed.  Closing bug.")
+
+    @classmethod
+    def _land_patch(cls, patch, options, tool):
+        tool.scm().update_webkit() # Update before every patch in case the tree has changed
+        log("Applying patch %s from bug %s." % (patch['id'], patch['bug_id']))
+        tool.scm().apply_patch(patch, force=options.non_interactive)
+
+        # Make sure the tree is still green after updating, before building this patch.
+        # The first patch ends up checking tree status twice, but that's OK.
+        WebKitLandingScripts.ensure_builders_are_green(tool.buildbot, options)
+        comment_text = WebKitLandingScripts.build_and_commit(tool.scm(), options)
+        tool.bugs.clear_attachment_flags(patch['id'], comment_text)
+
+    @classmethod
+    def land_patch_and_handle_errors(cls, patch, options, tool):
+        try:
+            cls._land_patch(patch, options, tool)
+            if options.close_bug:
+                cls._close_bug_if_no_active_patches(tool.bugs, patch['bug_id'])
+        except CheckoutNeedsUpdate, e:
+            log("Commit failed because the checkout is out of date.  Please update and try again.")
+            log("You can pass --no-build to skip building/testing after update if you believe the new commits did not affect the results.")
+            WorkQueue.exit_after_handled_error(e)
+        except ScriptError, e:
+            # Mark the patch as commit-queue- and comment in the bug.
+            tool.bugs.reject_patch_from_commit_queue(patch['id'], e.message_with_output())
+            WorkQueue.exit_after_handled_error(e)
 
 
 class LandAndUpdateBug(Command):
@@ -326,11 +388,11 @@ class LandAndUpdateBug(Command):
             ChangeLog(changelog_path).set_reviewer(reviewer)
 
     def execute(self, options, args, tool):
-        bug_id = args[0] if len(args) else None
-        os.chdir(tool.scm().checkout_root)
+        bug_id = (args and args[0]) or parse_bug_id(tool.scm().create_patch())
 
         WebKitLandingScripts.ensure_builders_are_green(tool.buildbot, options)
 
+        os.chdir(tool.scm().checkout_root)
         self.update_changelogs_with_reviewer(options.reviewer, bug_id, tool)
 
         comment_text = WebKitLandingScripts.build_and_commit(tool.scm(), options)
@@ -347,76 +409,62 @@ class LandAndUpdateBug(Command):
             log("No bug id provided.")
 
 
-class LandPatchesFromBugs(Command):
-    def __init__(self):
-        options = WebKitLandingScripts.cleaning_options()
-        options += WebKitLandingScripts.land_options()
-        Command.__init__(self, 'Lands all patches on a bug optionally testing them first', 'BUGID', options=options)
-
-    @staticmethod
-    def handled_error(error):
-        log(error)
-        exit(2) # Exit 2 insted of 1 to indicate to the commit-queue to indicate we handled the error, and that the queue should keep looping.
-
-    @classmethod
-    def land_patches(cls, bug_id, patches, options, tool):
-        try:
-            comment_text = ""
-            for patch in patches:
-                tool.scm().update_webkit() # Update before every patch in case the tree has changed
-                log("Applying %s from bug %s." % (patch['id'], bug_id))
-                tool.scm().apply_patch(patch, force=options.commit_queue)
-                # Make sure the tree is still green after updating, before building this patch.
-                # The first patch ends up checking tree status twice, but that's OK.
-                WebKitLandingScripts.ensure_builders_are_green(tool.buildbot, options)
-                comment_text = WebKitLandingScripts.build_and_commit(tool.scm(), options)
-                tool.bugs.clear_attachment_flags(patch['id'], comment_text)
-
-            if options.close_bug:
-                tool.bugs.close_bug_as_fixed(bug_id, "All reviewed patches have been landed.  Closing bug.")
-        except CheckoutNeedsUpdate, e:
-            log("Commit failed because the checkout is out of date.  Please update and try again.")
-            log("You can pass --no-build to skip building/testing after update if you believe the new commits did not affect the results.")
-            cls.handled_error(e)
-        except ScriptError, e:
-            # Mark the patch as commit-queue- and comment in the bug.
-            tool.bugs.reject_patch_from_commit_queue(patch['id'], e.message_with_output())
-            cls.handled_error(e)
+class AbstractPatchLandingCommand(Command):
+    def __init__(self, description, args_description):
+        options = WebKitLandingScripts.cleaning_options() + WebKitLandingScripts.land_options()
+        Command.__init__(self, description, args_description, options=options)
 
     @staticmethod
     def _fetch_list_of_patches_to_land(options, args, tool):
+        raise NotImplementedError, "subclasses must implement"
+
+    @staticmethod
+    def _collect_patches_by_bug(patches):
         bugs_to_patches = {}
-        patch_count = 0
-        for bug_id in args:
-            patches = []
-            if options.commit_queue:
-                patches = tool.bugs.fetch_commit_queue_patches_from_bug(bug_id, reject_invalid_patches=True)
-            else:
-                patches = tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
-
-            patches_found = len(patches)
-            log("%s found on bug %s." % (pluralize("reviewed patch", patches_found), bug_id))
-
-            patch_count += patches_found
-            if patches_found:
-                bugs_to_patches[bug_id] = patches
-
-        log("Landing %s from %s." % (pluralize("patch", patch_count), pluralize("bug", len(args))))
+        for patch in patches:
+            bug_id = patch['bug_id']
+            bugs_to_patches[bug_id] = bugs_to_patches.get(bug_id, []).append(patch)
         return bugs_to_patches
 
     def execute(self, options, args, tool):
-        if not len(args):
-            error("bug-id(s) required")
+        if not args:
+            error("%s required" % self.argument_names)
 
-        # Check the tree status here so we can fail early
+        # Check the tree status first so we can fail early.
         WebKitLandingScripts.ensure_builders_are_green(tool.buildbot, options)
+        WebKitLandingScripts.prepare_clean_working_directory(tool.scm(), options)
 
-        bugs_to_patches = self._fetch_list_of_patches_to_land(options, args, tool)
+        patches = self._fetch_list_of_patches_to_land(options, args, tool)
 
-        WebKitLandingScripts.setup_for_landing(tool.scm(), options)
+        # It's nice to print out total statistics.
+        bugs_to_patches = self._collect_patches_by_bug(patches)
+        log("Landing %s from %s." % (pluralize("patch", len(patches)), pluralize("bug", len(bugs_to_patches))))
 
-        for bug_id in bugs_to_patches.keys():
-            self.land_patches(bug_id, bugs_to_patches[bug_id], options, tool)
+        for patch in patches:
+            WebKitLandingScripts.land_patch_and_handle_errors(patch, options, tool)
+
+
+class LandAttachment(AbstractPatchLandingCommand):
+    def __init__(self):
+        AbstractPatchLandingCommand.__init__(self, 'Lands a patches from bugzilla, optionally building and testing them first', 'ATTACHMENT_ID [ATTACHMENT_IDS]')
+
+    @staticmethod
+    def _fetch_list_of_patches_to_land(options, args, tool):
+        return map(lambda patch_id: tool.bugs.fetch_attachment(patch_id), args)
+
+
+class LandPatchesFromBugs(AbstractPatchLandingCommand):
+    def __init__(self):
+        AbstractPatchLandingCommand.__init__(self, 'Lands all patches on the given bugs, optionally building and testing them first', 'BUGID [BUGIDS]')
+
+    @staticmethod
+    def _fetch_list_of_patches_to_land(options, args, tool):
+        all_patches = []
+        for bug_id in args:
+            patches = tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
+            log("%s found on bug %s." % (pluralize("reviewed patch", len(patches)), bug_id))
+            all_patches += patches
+        return all_patches
 
 
 class CommitMessageForCurrentDiff(Command):
@@ -573,7 +621,7 @@ class RolloutCommit(Command):
             else:
                 log("Failed to parse bug number from diff.  No bugs will be updated/reopened after the rollout.")
 
-        WebKitLandingScripts.setup_for_landing(tool.scm(), options)
+        WebKitLandingScripts.prepare_clean_working_directory(tool.scm(), options)
         tool.scm().update_webkit()
         tool.scm().apply_reverse_diff(revision)
         self._create_changelogs_for_revert(tool.scm(), revision)
@@ -674,138 +722,116 @@ class CheckTreeStatus(Command):
             print "%s : %s" % (status_string.ljust(4), builder['name'])
 
 
-class LandPatchesFromCommitQueue(Command):
-    def __init__(self):
+class AbstractQueue(Command, WorkQueueDelegate):
+    def __init__(self, name):
+        self._name = name
         options = [
             make_option("--no-confirm", action="store_false", dest="confirm", default=True, help="Do not ask the user for confirmation before running the queue.  Dangerous!"),
-            make_option("--status-host", action="store", type="string", dest="status_host", default=StatusBot.default_host, help="Do not ask the user for confirmation before running the queue.  Dangerous!"),
+            make_option("--status-host", action="store", type="string", dest="status_host", default=StatusBot.default_host, help="Hostname (e.g. localhost or commit.webkit.org) where status updates should be posted."),
         ]
-        Command.__init__(self, 'Run the commit queue.', options=options)
-        self._original_stdout = None
-        self._original_stderr = None
-        self._files_for_output = []
+        Command.__init__(self, 'Run the %s.' % self._name, options=options)
 
-    queue_log_path = 'commit_queue.log'
-    bug_logs_directory = 'commit_queue_logs'
+    def queue_log_path(self):
+        return '%s.log' % self._name
 
-    log_date_format = "%Y-%m-%d %H:%M:%S"
-    sleep_duration_text = "5 mins"
-    seconds_to_sleep = 300
+    def work_logs_directory(self):
+        return '%s-logs' % self._name
 
-    def _tee_outputs_to_files(self, files):
-        if not self._original_stdout:
-            self._original_stdout = sys.stdout
-            self._original_stderr = sys.stderr
-        if files and len(files):
-            sys.stdout = tee(self._original_stdout, *files)
-            sys.stderr = tee(self._original_stderr, *files)
-        else:
-            sys.stdout = self._original_stdout
-            sys.stderr = self._original_stderr
+    def status_host(self):
+        return self.options.status_host
 
-    @classmethod
-    def _sleep_message(cls, message):
-        wake_time = datetime.now() + timedelta(seconds=cls.seconds_to_sleep)
-        return "%s Sleeping until %s (%s)." % (message, wake_time.strftime(cls.log_date_format), cls.sleep_duration_text)
-
-    @classmethod
-    def _sleep(cls, message):
-        log(cls._sleep_message(message))
-        time.sleep(cls.seconds_to_sleep)
-
-    def _update_status_and_sleep(self, message):
-        status_message = self._sleep_message(message)
-        self.status_bot.update_status(status_message)
-        log(status_message)
-        time.sleep(self.seconds_to_sleep)
-
-    @staticmethod
-    def _open_log_file(log_path):
-        (log_directory, log_name) = os.path.split(log_path)
-        if log_directory and not os.path.exists(log_directory):
-            os.makedirs(log_directory)
-        return open(log_path, 'a+')
-
-    def _add_log_to_output_tee(self, path):
-        log_file = self._open_log_file(path)
-        self._files_for_output.append(log_file)
-        self._tee_outputs_to_files(self._files_for_output)
-        return log_file
-
-    def _remove_log_from_output_tee(self, log_file):
-        self._files_for_output.remove(log_file)
-        self._tee_outputs_to_files(self._files_for_output)
-        log_file.close()
-
-    def execute(self, options, args, tool):
-        log("CAUTION: commit-queue will discard all local changes in %s" % tool.scm().checkout_root)
-        if options.confirm:
+    def begin_work_queue(self):
+        log("CAUTION: %s will discard all local changes in %s" % (self._name, self.tool.scm().checkout_root))
+        if self.options.confirm:
             response = raw_input("Are you sure?  Type 'yes' to continue: ")
             if (response != 'yes'):
                 error("User declined.")
+        log("Running WebKit %s. %s" % (self._name, datetime.now().strftime(WorkQueue.log_date_format)))
 
-        queue_log = self._add_log_to_output_tee(self.queue_log_path)
-        log("Running WebKit Commit Queue. %s" % datetime.now().strftime(self.log_date_format))
+    def should_continue_work_queue(self):
+        return True
 
-        self.status_bot = StatusBot(host=options.status_host)
+    def next_work_item(self):
+        raise NotImplementedError, "subclasses must implement"
 
-        bug_log = None
-        while (True):
-            # If we still have a bug log open from the last loop, close it.
-            if bug_log:
-                self._remove_log_from_output_tee(bug_log)
-                bug_log = None
-            # Either of these calls could throw URLError which shouldn't stop the queue.
-            # We catch all exceptions just in case.
-            try:
-                # Fetch patches instead of just bug ids to that we validate reviewer/committer flags on every patch.
-                patches = tool.bugs.fetch_patches_from_commit_queue(reject_invalid_patches=True)
-                if not len(patches):
-                    self._update_status_and_sleep("Empty queue.")
-                    continue
-                patch_ids = map(lambda patch: patch['id'], patches)
-                first_bug_id = patches[0]['bug_id']
-                log("%s in commit queue [%s]" % (pluralize('patch', len(patches)), ", ".join(patch_ids)))
+    def should_proceed_with_work_item(self, work_item):
+        raise NotImplementedError, "subclasses must implement"
 
-                red_builders_names = tool.buildbot.red_core_builders_names()
-                if red_builders_names:
-                    red_builders_names = map(lambda name: '"%s"' % name, red_builders_names) # Add quotes around the names.
-                    self._update_status_and_sleep("Builders [%s] are red. See http://build.webkit.org." % ", ".join(red_builders_names))
-                    continue
+    def process_work_item(self, work_item):
+        raise NotImplementedError, "subclasses must implement"
 
-                self.status_bot.update_status("Landing patches from bug %s." % first_bug_id, bug_id=first_bug_id)
-            except Exception, e:
-                # Don't try tell the status bot, in case telling it causes an exception.
-                self._sleep("Exception while checking queue and bots: %s." % e)
-                continue
+    def handle_unexpected_error(self, work_item, message):
+        raise NotImplementedError, "subclasses must implement"
 
-            # Try to land patches on the first bug in the queue before looping
-            bug_log_path = os.path.join(self.bug_logs_directory, "%s.log" % first_bug_id)
-            bug_log = self._add_log_to_output_tee(bug_log_path)
-            bugzilla_tool_path = __file__ # re-execute this script
-            bugzilla_tool_args = [bugzilla_tool_path, 'land-patches', '--force-clean', '--commit-queue', '--quiet', first_bug_id]
-            try:
-                WebKitLandingScripts.run_and_throw_if_fail(bugzilla_tool_args)
-            except ScriptError, e:
-                # Unexpected failure!  Mark the patch as commit-queue- and comment in the bug.
-                # exit(2) is a special exit code we use to indicate that the error was already handled by land-patches and we should keep looping anyway.
-                if e.exit_code == 2:
-                    continue
-                message = "Unexpected failure when landing patch!  Please file a bug against bugzilla-tool.\n%s" % e.message_with_output()
-                # We don't have a patch id at this point, so try to grab the first patch off of the bug in question.
-                patches = tool.bugs.fetch_commit_queue_patches_from_bug(first_bug_id)
-                non_obsolete_patches = filter(lambda patch: not patch['is_obsolete'], patches)
-                if not len(non_obsolete_patches):
-                    # If there are no patches left on the bug, assume land-patches already closed it before dying, and just continue.
-                    log(message)
-                    continue
-                first_patch_id = non_obsolete_patches[0]['id']
-                tool.bugs.reject_patch_from_commit_queue(first_patch_id, message)
+    @staticmethod
+    def run_bugzilla_tool(args):
+        bugzilla_tool_path = __file__ # re-execute this script
+        bugzilla_tool_args = [bugzilla_tool_path] + args
+        WebKitLandingScripts.run_and_throw_if_fail(bugzilla_tool_args)
 
-        # Never reached.
-        if bug_log:
-            self._remove_log_from_output_tee(bug_log)
-        self._remove_log_from_output_tee(queue_log)
+    def log_progress(self, patch_ids):
+        log("%s in %s [%s]" % (pluralize('patch', len(patch_ids)), self._name, ", ".join(patch_ids)))
+
+    def execute(self, options, args, tool):
+        self.options = options
+        self.tool = tool
+        work_queue = WorkQueue(self)
+        work_queue.run()
+
+
+class CommitQueue(AbstractQueue):
+    def __init__(self):
+        AbstractQueue.__init__(self, "commit-queue")
+
+    def begin_work_queue(self):
+        AbstractQueue.begin_work_queue(self)
+        self._patches = PatchCollection(self.tool.bugs)
+
+    def next_work_item(self):
+        if not len(self._patches):
+            # Fetch patches instead of just bug ids to that we validate reviewer/committer flags on every patch.
+            self._patches.add_patches(self.tool.bugs.fetch_patches_from_commit_queue(reject_invalid_patches=True))
+        self.log_progress(self._patches.patch_ids())
+        return self._patches.next()
+
+    def should_proceed_with_work_item(self, patch):
+        red_builders_names = self.tool.buildbot.red_core_builders_names()
+        if red_builders_names:
+            red_builders_names = map(lambda name: '"%s"' % name, red_builders_names) # Add quotes around the names.
+            return (False, "Builders [%s] are red. See http://build.webkit.org." % ", ".join(red_builders_names), None)
+        return (True, "Landing patch %s from bug %s." % (patch['id'], patch['bug_id']), patch['bug_id'])
+
+    def process_work_item(self, patch):
+        self.run_bugzilla_tool(['land-attachment', '--force-clean', '--non-interactive', '--quiet', patch['id']])
+
+    def handle_unexpected_error(self, patch, message):
+        self.tool.bugs.reject_patch_from_commit_queue(patch['id'], message)
+
+
+class StyleQueue(AbstractQueue):
+    def __init__(self):
+        AbstractQueue.__init__(self, "style-queue")
+
+    def status_host(self):
+        return None # FIXME: A hack until we come up with a more generic status page.
+
+    def begin_work_queue(self):
+        AbstractQueue.begin_work_queue(self)
+        self._patches = PatchCollection(self.tool.bugs)
+        self._patches.add_patches(self.tool.bugs.fetch_patches_from_review_queue(limit=10))
+
+    def next_work_item(self):
+        self.log_progress(self._patches.patch_ids())
+        return self._patches.next()
+
+    def should_proceed_with_work_item(self, patch):
+        return (True, "Checking style for patch %s on bug %s." % (patch['id'], patch['bug_id']), patch['bug_id'])
+
+    def process_work_item(self, patch):
+        self.run_bugzilla_tool(['check-style', '--force-clean', patch['id']])
+
+    def handle_unexpected_error(self, patch, message):
+        log(message)
 
 
 class NonWrappingEpilogIndentedHelpFormatter(IndentedHelpFormatter):
@@ -837,16 +863,19 @@ class BugzillaTool:
             { 'name' : 'patches-to-commit', 'object' : PatchesInCommitQueue() },
             { 'name' : 'reviewed-patches', 'object' : ReviewedPatchesOnBug() },
             { 'name' : 'create-bug', 'object' : CreateBug() },
+            { 'name' : 'apply-attachment', 'object' : ApplyAttachment() },
             { 'name' : 'apply-patches', 'object' : ApplyPatchesFromBug() },
             { 'name' : 'land-diff', 'object' : LandAndUpdateBug() },
+            { 'name' : 'land-attachment', 'object' : LandAttachment() },
             { 'name' : 'land-patches', 'object' : LandPatchesFromBugs() },
-            { 'name' : 'check-style', 'object' : CheckStyleOnBug() },
+            { 'name' : 'check-style', 'object' : CheckStyle() },
             { 'name' : 'commit-message', 'object' : CommitMessageForCurrentDiff() },
             { 'name' : 'obsolete-attachments', 'object' : ObsoleteAttachmentsOnBug() },
             { 'name' : 'post-diff', 'object' : PostDiffAsPatchToBug() },
             { 'name' : 'post-commits', 'object' : PostCommitsAsPatchesToBug() },
             { 'name' : 'tree-status', 'object' : CheckTreeStatus() },
-            { 'name' : 'commit-queue', 'object' : LandPatchesFromCommitQueue() },
+            { 'name' : 'commit-queue', 'object' : CommitQueue() },
+            { 'name' : 'style-queue', 'object' : StyleQueue() },
             { 'name' : 'rollout', 'object' : RolloutCommit() },
         ]
 

@@ -64,6 +64,7 @@ void LayoutTestController::reset()
     m_timeoutTimer.stop();
     m_topLoadingFrame = 0;
     m_waitForPolicy = false;
+    m_handleErrorPages = false;
     qt_dump_editing_callbacks(false);
     qt_dump_resource_load_callbacks(false);
 }
@@ -108,7 +109,7 @@ void LayoutTestController::waitUntilDone()
 {
     //qDebug() << ">>>>waitForDone";
     m_waitForDone = true;
-    m_timeoutTimer.start(11000, this);
+    m_timeoutTimer.start(15000, this);
 }
 
 QString LayoutTestController::counterValueForElementById(const QString& id)
@@ -124,10 +125,14 @@ void LayoutTestController::keepWebHistory()
 void LayoutTestController::notifyDone()
 {
     qDebug() << ">>>>notifyDone";
+
     if (!m_timeoutTimer.isActive())
         return;
+
     m_timeoutTimer.stop();
     emit done();
+
+    // FIXME: investigate why always resetting these result in timeouts
     m_isLoading = false;
     m_waitForDone = false;
     m_waitForPolicy = false;
@@ -208,7 +213,9 @@ void LayoutTestController::provisionalLoad()
 void LayoutTestController::timerEvent(QTimerEvent *ev)
 {
     if (ev->timerId() == m_timeoutTimer.timerId()) {
-        //qDebug() << ">>>>>>>>>>>>> timeout";
+        const char* message = "FAIL: Timed out waiting for notifyDone to be called\n";
+        fprintf(stderr, "%s", message);
+        fprintf(stdout, "%s", message);
         notifyDone();
     } else
         QObject::timerEvent(ev);

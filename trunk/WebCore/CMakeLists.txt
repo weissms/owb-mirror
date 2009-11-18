@@ -223,6 +223,7 @@ endif(NOT EXISTS ${WEBCORE_GENERATED_DIR})
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/ColorData.c
     COMMAND echo ARGS '\#include <string.h>' > ColorData.c
+    COMMAND echo '\#undef __GNUC_GNU_INLINE__' > ColorData.c
     COMMAND ${GPERF_EXECUTABLE} ARGS -CDEot -L ANSI-C -k \"*\" -N findColor -D -s 2 < ${OWB_SOURCE_DIR}/WebCore/platform/ColorData.gperf >> ColorData.c
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/platform/ColorData.gperf
@@ -248,6 +249,8 @@ add_custom_command(
     #COMMAND if sort ${WEBCORE_CSS_PROPERTY_NAMES} | uniq -d | grep -E '^[^#]'; then echo 'Duplicate value!'; exit 1; fi
     COMMAND cat ${WEBCORE_CSS_PROPERTY_NAMES} > ${WEBCORE_GENERATED_DIR}/CSSPropertyNames.in
     COMMAND ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/makeprop.pl
+    COMMAND echo "#undef __GNUC_GNU_INLINE__" | cat - CSSPropertyNames.cpp > CSSPropertyNames.tmp
+    COMMAND cp CSSPropertyNames.tmp CSSPropertyNames.cpp
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${WEBCORE_CSS_PROPERTY_NAMES}
     VERBATIM
@@ -258,6 +261,8 @@ add_custom_command(
     COMMAND ${PERL_EXECUTABLE} -ne 'print lc' ${WEBCORE_CSS_VALUE_KEYWORDS} > ${WEBCORE_GENERATED_DIR}/CSSValueKeywords.in
     #COMMAND if sort CSSValueKeywords.in | uniq -d | grep -E '^[^#]'; then echo 'Duplicate value!'; exit 1; fi
     COMMAND ${PERL_EXECUTABLE} ${OWB_SOURCE_DIR}/WebCore/css/makevalues.pl
+    COMMAND echo '\#undef __GNUC_GNU_INLINE__' | cat - CSSValueKeywords.c > CSSValueKeywords.tmp
+    COMMAND cp CSSValueKeywords.tmp CSSValueKeywords.c
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${WEBCORE_CSS_VALUE_KEYWORDS}
 )
@@ -265,6 +270,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/DocTypeStrings.cpp
     COMMAND echo '\#include <string.h>' > html/DocTypeStrings.cpp
+    COMMAND echo '\#undef __GNUC_GNU_INLINE__' > html/DocTypeStrings.cpp
     COMMAND ${GPERF_EXECUTABLE} -CEot -L ANSI-C -k \"*\" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${OWB_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf >> html/DocTypeStrings.cpp
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf
@@ -273,6 +279,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLEntityNames.c
     COMMAND echo '\#include <string.h>' > html/HTMLEntityNames.c
+    COMMAND echo '\#undef __GNUC_GNU_INLINE__' > html/HTMLEntityNames.c
     COMMAND ${GPERF_EXECUTABLE} -a -L ANSI-C -C -G -c -o -t --key-positions="*" -N findEntity -D -s 2 < ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf >> html/HTMLEntityNames.c
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf

@@ -1,3 +1,97 @@
+2009-11-18  Joerg Bornemann  <joerg.bornemann@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix Qt build on Windows CE 6.
+
+        * JavaScriptCore.pri: Add missing include path.
+        * wtf/Platform.h: Include ce_time.h for Windows CE 6.
+
+2009-11-17  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Add JSContextRefPrivate.h to list of copied files.
+
+        Reviewed by Mark Rowe.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make:
+
+2009-11-17  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Adam Barth.
+
+        [GTK] Style cleanup for GOwnPtr
+        https://bugs.webkit.org/show_bug.cgi?id=31506
+
+        Remove forward declaration in GOwnPtr and do some style cleanup.
+
+        * wtf/GOwnPtr.cpp:
+        * wtf/GOwnPtr.h:
+        (WTF::GOwnPtr::GOwnPtr):
+        (WTF::GOwnPtr::~GOwnPtr):
+        (WTF::GOwnPtr::get):
+        (WTF::GOwnPtr::release):
+        (WTF::GOwnPtr::outPtr):
+        (WTF::GOwnPtr::set):
+        (WTF::GOwnPtr::clear):
+        (WTF::GOwnPtr::operator*):
+        (WTF::GOwnPtr::operator->):
+        (WTF::GOwnPtr::operator!):
+        (WTF::GOwnPtr::operator UnspecifiedBoolType):
+        (WTF::GOwnPtr::swap):
+        (WTF::swap):
+        (WTF::operator==):
+        (WTF::operator!=):
+        (WTF::getPtr):
+        (WTF::freeOwnedGPtr):
+
+2009-11-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Incorrect use of JavaScriptCore API in DumpRenderTree
+        https://bugs.webkit.org/show_bug.cgi?id=31577
+
+        Add assertions to the 'toJS' functions to catch mistakes like
+        this early.  Restructure existing code which blindly passed potentially
+        null values to toJS when forwarding exceptions so that a null check is
+        performed first.
+
+        * API/APICast.h:
+        (toJS):
+        (toJSForGC):
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::getOwnPropertySlot):
+        (JSC::::put):
+        (JSC::::deleteProperty):
+        (JSC::::construct):
+        (JSC::::hasInstance):
+        (JSC::::call):
+        (JSC::::toNumber):
+        (JSC::::toString):
+        (JSC::::staticValueGetter):
+        (JSC::::callbackGetter):
+        * API/tests/testapi.c: Fix errors in the API tester.
+        (MyObject_getProperty):
+        (MyObject_convertToType):
+        (EvilExceptionObject_convertToType):
+
+2009-11-16  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31050
+
+        Minor fixes for JSVALUE32_64: branchConvertDoubleToInt32
+        failed on a CortexA8 CPU, but not on a simulator; and
+        JITCall.cpp modifications was somehow not committed to mainline.
+
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::fmrs_r):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::branchConvertDoubleToInt32):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+
 2009-11-16  İsmail Dönmez  <ismail@namtrac.org>
 
         Reviewed by Antti Koivisto.

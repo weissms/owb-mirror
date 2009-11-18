@@ -1,3 +1,470 @@
+2009-11-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Refactor bugzilla-tool to allow for multiple queues
+        https://bugs.webkit.org/show_bug.cgi?id=31513
+
+        Divide the commit queue class into three class to make creating
+        additional queues easier.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-17  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        <http://webkit.org/b/31603> WebSocket server is confused if WebKit tests run from within /tmp on Mac OS X
+
+        * pywebsocket/mod_pywebsocket/dispatch.py: Use os.path.realpath as it returns the canonical path of a file.
+        This prevents symlinks from confusing the descendant check.
+
+2009-11-17  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        <http://webkit.org/b/31602> Failing to start the WebSocket server shouldn’t terminate entire test run
+
+        If the WebSocket server fails to start have DRT load an error page in place of tests that require the
+        server to be up rather than having run-webkit-tests abort immediately.
+
+        * Scripts/run-webkit-tests:
+
+2009-11-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        commit-queue is failing to set reviewer in ChangeLogs
+        https://bugs.webkit.org/show_bug.cgi?id=31592
+
+        * Scripts/bugzilla-tool: Clarify the "applying" log message.
+        * Scripts/modules/bugzilla.py:
+         - Add a new _validate_committer_and_reviewer function as a
+           temporary solution until we can make a real Attachment object
+           which knows how to fill in its committer/reviewer fields automatically.
+
+2009-11-17  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed buildbot fix.
+
+        Revert part of earlier patch and add comment, as it
+        was causing timeouts on the buildbot.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::notifyDone):
+
+2009-11-17  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Make the timeout 15 sec as for the other DRT's and make
+        it print out the same output when a test timeout.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::waitUntilDone):
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::timerEvent):
+
+2009-11-17  Joseph Pecoraro  <joepeck@webkit.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Fixed typos in comments.
+
+        * Scripts/modules/committers.py:
+
+2009-11-17  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Make DRT show web inspector for tests in inspector/ folder.
+        - Updated DRT to show/close inspector for all tests under /inspector
+        - Introduced LayoutTestController::setTimelineProfilingEnabled and
+          WebInspector::setTimelineProfilingEnabled beside setJavaScriptProfilingEnabled
+        - Removed reload on each inspector test
+        - Renamed fast/inspector to fast/inspector-support in order not to trigger
+        inspector for those.
+        - Reimplemented timeline tests in order to get rid of reload there.
+        - Moved tests that don't require harness into the fast group.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31472
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setTimelineProfilingEnabledCallback):
+        (closeWebInspectorCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (shouldOpenWebInspector):
+        (runTest):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setTimelineProfilingEnabled):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (shouldOpenWebInspector):
+        (runTest):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setTimelineProfilingEnabled):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (shouldOpenWebInspector):
+        (runTest):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setTimelineProfilingEnabled):
+
+2009-11-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Incorrect use of JavaScriptCore API in DumpRenderTree
+        https://bugs.webkit.org/show_bug.cgi?id=31577
+
+        Return undefined rather than a literal null.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (setSelectedTextRangeCallback):
+        (incrementCallback):
+        (decrementCallback):
+        (showMenuCallback):
+
+2009-11-16  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        AX: aria-labelledby duplicates some of its WAI-ARIA label
+        https://bugs.webkit.org/show_bug.cgi?id=31565
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (titleUIElementCallback):
+        (getIsValidCallback):
+        (AccessibilityUIElement::getJSClass):
+
+2009-11-16  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        r50942 broke output from created windows. Make the
+        m_enableTextOutput a member of the DRT and not the
+        WebPage.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::javaScriptAlert):
+        (WebCore::WebPage::javaScriptConsoleMessage):
+        (WebCore::WebPage::javaScriptConfirm):
+        (WebCore::WebPage::javaScriptPrompt):
+        (WebCore::WebPage::acceptNavigationRequest):
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::open):
+        (WebCore::DumpRenderTree::createWindow):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        (WebCore::DumpRenderTree::setTextOutputEnabled):
+        (WebCore::DumpRenderTree::isTextOutputEnabled):
+        (WebCore::WebPage::shouldInterruptJavaScript):
+        (WebCore::WebPage::isTextOutputEnabled):
+        (WebCore::WebPage::setViewGeometry):
+
+2009-11-16  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Moved DumpRenderTree/gtk/TestNetscapePlugin to DumpRenderTree/unix/TestNetscapePlugin
+        as the implementation is being used by at least Qt and Gtk+.
+
+        Update buildsystems as well.
+
+        * DumpRenderTree/qt/TestNetscapePlugin/TestNetscapePlugin.pro:
+        * DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders/WebKit/npapi.h:
+        * DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders/WebKit/npfunctions.h:
+        * DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders/WebKit/npruntime.h:
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        * GNUmakefile.am:
+
+2009-11-16  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Disable wss until all platforms support pyOpenSSL
+
+        https://bugs.webkit.org/show_bug.cgi?id=31479
+
+        * Scripts/run-webkit-tests:
+
+2009-11-14  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Kenneth Christiansen.
+
+        [Qt] Implement load error pages support for Qt's DRT.
+        https://bugs.webkit.org/show_bug.cgi?id=31509
+
+        For now, it will not be a default feature, and layout tests
+        that want to make use of this have to explicitily call
+        'handleErrorPages();' for the test source.
+
+        Any of the other DumpRenderTree's (mac, win and gtk)
+        support handling error pages. Qt's will be the first.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::supportsExtension):
+        (WebCore::WebPage::extension):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::reset):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        (LayoutTestController::shouldHandleErrorPages):
+        (LayoutTestController::handleErrorPages):
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Rename the --commit-queue flag on land-* now that the commit-queue needs no special treatment
+        https://bugs.webkit.org/show_bug.cgi?id=31549
+
+        Renamed --commit-queue to --non-interactive in most places
+        and remove the code in land-patches which is no longer needed.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        The commit-queue should use land-attachment
+        https://bugs.webkit.org/show_bug.cgi?id=31548
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Convert CommitQueue over to PatchCollection
+        https://bugs.webkit.org/show_bug.cgi?id=31547
+
+        Also fixes a bug in workqueue and adds a test!
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/workqueue.py:
+        * Scripts/modules/workqueue_unittest.py:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move StyleQueue over to using PatchCollection
+        https://bugs.webkit.org/show_bug.cgi?id=31544
+
+        That's what the class it's for.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/patchcollection.py:
+        * Scripts/modules/patchcollection_unittest.py:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool needs a land-attachment command
+        https://bugs.webkit.org/show_bug.cgi?id=31546
+
+        * Scripts/bugzilla-tool:
+         - Move all the logic into AbstractLandingCommand and
+           add a new LandAttachment command subclass.
+         - Split out _collect_patches_by_bug logging from _fetch_list_of_patches_to_land.
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Move more patch-landing code into WebKitLandingScripts in preparation for land-attachment
+        https://bugs.webkit.org/show_bug.cgi?id=31543
+
+        Just moving code and updating the one caller to use WebKitLandingScripts instead of 'self'.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Disable the style queue from posting to the commit queue status page.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Implement PatchCollection
+        https://bugs.webkit.org/show_bug.cgi?id=31541
+
+        This class holds a set of patches and lets clients iterate through
+        them.  Optionally, clients can install a filter.
+
+        * Scripts/modules/patchcollection.py: Added.
+        * Scripts/modules/patchcollection_unittest.py: Added.
+        * Scripts/run-webkit-unittests:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool land-patches will close bugs with patches r=?
+        https://bugs.webkit.org/show_bug.cgi?id=28230
+
+        The commit-queue shouldn't close patches with outstanding reviews on them,
+        even if many reviewers seem to be against multi-patch bugs.
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool check-style should work with attachment ids instead of bug ids
+        https://bugs.webkit.org/show_bug.cgi?id=31540
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        WorkQueue is the only place that should know about special exit codes
+        https://bugs.webkit.org/show_bug.cgi?id=31534
+
+        Move LandPatchesFromBugs.handled_error to WorkQueue.exit_after_handled_error
+        and add tests for handling exit codes.
+        I also cleaned up workqueue_unittest.py more.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/workqueue.py:
+        * Scripts/modules/workqueue_unittest.py:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Re-factor workqueue_unittest to allow for more than one test.
+        https://bugs.webkit.org/show_bug.cgi?id=31535
+
+        * Scripts/modules/workqueue_unittest.py:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        land-patches needs to be re-factored into smaller chunks
+        https://bugs.webkit.org/show_bug.cgi?id=31532
+
+        * Scripts/bugzilla-tool: fix a couple obvious typos.
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        land-patches needs to be re-factored into smaller chunks
+        https://bugs.webkit.org/show_bug.cgi?id=31532
+
+        The next patch will move these methods into WebKitLandingScripts.
+
+        * Scripts/bugzilla-tool:
+         - Split out _land_patch and _close_bug_if_no_active_patches.
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix silly copy-and-paste code.  I am a terrible coder.
+
+        * Scripts/modules/bugzilla.py:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Implement a StyleQueue
+        https://bugs.webkit.org/show_bug.cgi?id=31537
+
+        The first iteration of the style queue only produces output locally.
+        There is also a limit of 10 patches because it's not that useful to
+        iterate through the entire review queue at this point.  We can remove
+        the limit later.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/bugzilla.py:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Unit test WorkQueue
+        https://bugs.webkit.org/show_bug.cgi?id=31531
+
+        Adds basic unit testing for WorkQueue.  Just runs through one cycle.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/statusbot.py:
+        * Scripts/modules/workqueue.py:
+        * Scripts/modules/workqueue_unittest.py: Added.
+        * Scripts/run-webkit-unittests:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool land-diff should know how to parse bug ids out of ChangeLogs
+        https://bugs.webkit.org/show_bug.cgi?id=31530
+
+        * Scripts/bugzilla-tool:
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla-tool needs apply-attachment
+        https://bugs.webkit.org/show_bug.cgi?id=31528
+
+        * Scripts/bugzilla-tool:
+         - Add ApplyAttachment command.
+         - Abstract applying code into WebKitApplyingScripts.
+         - Rename setup_for_landing to prepare_clean_working_directory and make local_commit checking optional.
+        * Scripts/modules/bugzilla.py:
+         - Add fetch_attachment and bug_id_for_attachment_id.
+        * Scripts/modules/bugzilla_unittest.py:
+         - Add test for new parsing.
+         - Fix previous parsing test which broke with Adam's check-style patch (bug 31515).
+
+2009-11-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Document check-style's use of force_clean.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/scm.py:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move WorkQueue to its own file
+        https://bugs.webkit.org/show_bug.cgi?id=31529
+
+        WorkQueue and WorkQueueDelegate are separate concerns from
+        bugzilla-tool.  Also added a missing include to logging.py.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/logging.py:
+        * Scripts/modules/workqueue.py:
+
+2009-11-16  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move OutputTee to logging.py.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/logging.py:
+
 2009-11-16  Anantanarayanan G Iyengar  <ananta@chromium.org>
 
         Reviewed by Adam Barth.

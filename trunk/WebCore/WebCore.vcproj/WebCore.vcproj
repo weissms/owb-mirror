@@ -9848,6 +9848,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\html\ISODateTime.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\ISODateTime.h"
+				>
+			</File>
+			<File
 				RelativePath="..\html\ImageData.cpp"
 				>
 			</File>

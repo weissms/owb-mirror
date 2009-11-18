@@ -39,6 +39,7 @@
 #include <WebCore/HTMLInputElement.h>
 #include <WebCore/HTMLNames.h>
 #include <WebCore/HTMLOptionElement.h>
+#include <WebCore/HTMLOptionsCollection.h>
 #include <WebCore/HTMLSelectElement.h>
 #include <WebCore/HTMLTextAreaElement.h>
 #include <WebCore/IntRect.h>
@@ -134,11 +135,34 @@ HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::QueryInterface(REFIID riid, 
 
 // DOMHTMLOptionsCollection ---------------------------------------------------
 
-HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::length( 
-    /* [retval][out] */ unsigned int* /*result*/)
+DOMHTMLOptionsCollection::DOMHTMLOptionsCollection(WebCore::HTMLOptionsCollection* collection)
+    : m_collection(collection)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+}
+
+IDOMHTMLOptionsCollection* DOMHTMLOptionsCollection::createInstance(WebCore::HTMLOptionsCollection* collection)
+{
+    if (!collection)
+        return 0;
+
+    IDOMHTMLOptionsCollection* optionsCollection = 0;
+    DOMHTMLOptionsCollection* newCollection = new DOMHTMLOptionsCollection(collection);
+    if (FAILED(newCollection->QueryInterface(IID_IDOMHTMLOptionsCollection, (void**)&optionsCollection))) {
+        delete newCollection;
+        return 0;
+    }
+
+    return optionsCollection;
+}
+
+HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::length( 
+    /* [retval][out] */ unsigned int* result)
+{
+    if (!result)
+        return E_POINTER;
+
+    *result = m_collection->length();
+    return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::setLength( 
@@ -149,16 +173,20 @@ HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::setLength(
 }
 
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::item( 
-    /* [in] */ unsigned int /*index*/,
-    /* [retval][out] */ IDOMNode** /*result*/)
+    /* [in] */ unsigned int index,
+    /* [retval][out] */ IDOMNode** result)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!result)
+        return E_POINTER;
+
+    *result = DOMNode::createInstance(m_collection->item(index));
+
+    return *result ? S_OK : E_FAIL;
 }
 
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionsCollection::namedItem( 
     /* [in] */ BSTR /*name*/,
-    /* [retval][out] */ IDOMNode* /*result*/)
+    /* [retval][out] */ IDOMNode** /*result*/)
 {
     ASSERT_NOT_REACHED();
     return E_NOTIMPL;
@@ -667,10 +695,22 @@ HRESULT STDMETHODCALLTYPE DOMHTMLSelectElement::form(
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLSelectElement::options( 
-        /* [retval][out] */ IDOMHTMLOptionsCollection** /*result*/)
+        /* [retval][out] */ IDOMHTMLOptionsCollection** result)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!result)
+        return E_POINTER;
+
+    *result = 0;
+
+    ASSERT(m_element);
+    ASSERT(m_element->hasTagName(selectTag));
+    HTMLSelectElement* selectElement = static_cast<HTMLSelectElement*>(m_element);
+
+    if (!selectElement->options())
+        return E_FAIL;
+
+    *result = DOMHTMLOptionsCollection::createInstance(selectElement->options().get());
+    return S_OK;
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLSelectElement::disabled( 
@@ -761,10 +801,17 @@ HRESULT STDMETHODCALLTYPE DOMHTMLSelectElement::remove(
 // DOMHTMLSelectElement - IFormsAutoFillTransitionSelect ----------------------
 
 HRESULT STDMETHODCALLTYPE DOMHTMLSelectElement::activateItemAtIndex( 
-    /* [in] */ int /*index*/)
+    /* [in] */ int index)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;    
+    ASSERT(m_element);
+    ASSERT(m_element->hasTagName(selectTag));
+    HTMLSelectElement* selectElement = static_cast<HTMLSelectElement*>(m_element);
+
+    if (index >= selectElement->length())
+        return E_FAIL;
+
+    selectElement->setSelectedIndex(index);
+    return S_OK;
 }
 
 // DOMHTMLOptionElement - IUnknown --------------------------------------------
@@ -805,10 +852,19 @@ HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::setDefaultSelected(
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::text( 
-        /* [retval][out] */ BSTR* /*result*/)
+        /* [retval][out] */ BSTR* result)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!result)
+        return E_POINTER;
+
+    *result = 0;
+
+    ASSERT(m_element);
+    ASSERT(m_element->hasTagName(optionTag));
+    HTMLOptionElement* optionElement = static_cast<HTMLOptionElement*>(m_element);
+
+    *result = BString(optionElement->text()).release();
+    return S_OK;
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::index( 
@@ -833,10 +889,19 @@ HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::setDisabled(
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::label( 
-        /* [retval][out] */ BSTR* /*result*/)
+        /* [retval][out] */ BSTR* result)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!result)
+        return E_POINTER;
+
+    *result = 0;
+
+    ASSERT(m_element);
+    ASSERT(m_element->hasTagName(optionTag));
+    HTMLOptionElement* optionElement = static_cast<HTMLOptionElement*>(m_element);
+
+    *result = BString(optionElement->label()).release();
+    return S_OK;
 }
     
 HRESULT STDMETHODCALLTYPE DOMHTMLOptionElement::setLabel( 
@@ -1231,23 +1296,35 @@ HRESULT STDMETHODCALLTYPE DOMHTMLInputElement::rectOnScreen(
     if (!renderer || !view)
         return E_FAIL;
 
-    IntRect coreRect = renderer->absoluteBoundingBoxRect();
-    coreRect.setLocation(view->contentsToWindow(coreRect.location()));
+    IntRect coreRect = view->contentsToScreen(renderer->absoluteBoundingBoxRect());
     rect->left = coreRect.x();
     rect->top = coreRect.y();
     rect->right = coreRect.right();
     rect->bottom = coreRect.bottom();
+
     return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE DOMHTMLInputElement::replaceCharactersInRange( 
-    /* [in] */ int /*startTarget*/,
-    /* [in] */ int /*endTarget*/,
-    /* [in] */ BSTR /*replacementString*/,
-    /* [in] */ int /*index*/)
+    /* [in] */ int startTarget,
+    /* [in] */ int endTarget,
+    /* [in] */ BSTR replacementString,
+    /* [in] */ int index)
 {
-    ASSERT_NOT_REACHED();
-    return E_NOTIMPL;
+    if (!replacementString)
+        return E_POINTER;
+
+    ASSERT(m_element);
+    ASSERT(m_element->hasTagName(inputTag));
+    HTMLInputElement* inputElement = static_cast<HTMLInputElement*>(m_element);
+
+    String newValue = inputElement->value();
+    String webCoreReplacementString(static_cast<UChar*>(replacementString), SysStringLen(replacementString));
+    newValue.replace(startTarget, endTarget - startTarget, webCoreReplacementString);
+    inputElement->setValue(newValue);
+    inputElement->setSelectionRange(index, newValue.length());
+
+    return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE DOMHTMLInputElement::selectedRange( 

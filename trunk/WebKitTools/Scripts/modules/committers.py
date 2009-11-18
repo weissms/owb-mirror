@@ -45,7 +45,7 @@ class Reviewer(Committer):
         Committer.__init__(self, name, email_or_emails)
         self.can_review = True
 
-# This is intended as a cannonical, machine-readable list of all non-reviewer committers for WebKit.
+# This is intended as a canonical, machine-readable list of all non-reviewer committers for WebKit.
 # If your name is missing here and you are a committer, please add it.  No review needed.
 # All reviewers are committers, so this list is only of committers who are not reviewers.
 committers_unable_to_review = [
@@ -81,6 +81,7 @@ committers_unable_to_review = [
     Committer("Eric Roman", "eroman@chromium.org"),
     Committer("Feng Qian", "feng@chromium.org"),
     Committer("Fumitoshi Ukai", "ukai@chromium.org"),
+    Committer("Girish Ramakrishnan", ["girish@forwardbias.in", "ramakrishnan.girish@gmail.com"]),
     Committer("Graham Dennis", ["Graham.Dennis@gmail.com", "gdennis@webkit.org"]),
     Committer("Greg Bolsinga", "bolsinga@apple.com"),
     Committer("Hin-Chung Lam", ["hclam@google.com", "hclam@chromium.org"]),
@@ -95,6 +96,7 @@ committers_unable_to_review = [
     Committer("Julie Parent", ["jparent@google.com", "jparent@chromium.org"]),
     Committer("Julien Chaffraix", ["jchaffraix@webkit.org", "julien.chaffraix@gmail.com"]),
     Committer("Jungshik Shin", "jshin@chromium.org"),
+    Committer("Keishi Hattori", "keishi@webkit.org"),
     Committer("Kent Tamura", "tkent@chromium.org"),
     Committer("Krzysztof Kowalczyk", "kkowalczyk@gmail.com"),
     Committer("Laszlo Gombos", "laszlo.1.gombos@nokia.com"),
@@ -130,7 +132,7 @@ committers_unable_to_review = [
     Committer("Zoltan Horvath", "zoltan@webkit.org"),
 ]
 
-# This is intended as a cannonical, machine-readable list of all reviewers for WebKit.
+# This is intended as a canonical, machine-readable list of all reviewers for WebKit.
 # If your name is missing here and you are a reviewer, please add it.  No review needed.
 reviewers_list = [
     Reviewer("Ada Chan", "adachan@apple.com"),

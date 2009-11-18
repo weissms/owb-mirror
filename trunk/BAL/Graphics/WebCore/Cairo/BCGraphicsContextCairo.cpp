@@ -33,26 +33,23 @@
 #if PLATFORM(CAIRO)
 
 #include "CairoPath.h"
+#include "FEGaussianBlur.h"
 #include "FloatRect.h"
 #include "Font.h"
 #include "ImageBuffer.h"
+#include "ImageBufferFilter.h"
 #include "IntRect.h"
 #include "NotImplemented.h"
 #include "Path.h"
 #include "Pattern.h"
 #include "SimpleFontData.h"
+#include "SourceGraphic.h"
 #include "TransformationMatrix.h"
 
 #include <cairo.h>
 #include <math.h>
 #include <stdio.h>
 #include <wtf/MathExtras.h>
-
-#if ENABLE(FILTERS)
-#include "FEGaussianBlur.h"
-#include "ImageBufferFilter.h"
-#include "SourceGraphic.h"
-#endif
 
 #if PLATFORM(GTK)
 #include <gdk/gdk.h>
@@ -179,7 +176,7 @@ static inline void drawPathShadow(GraphicsContext* context, GraphicsContextPriva
     if (!context->getShadow(shadowSize, shadowBlur, shadowColor))
         return;
     
-    //calculate filter values
+    // Calculate filter values to create appropriate shadow.
     cairo_t* cr = context->platformContext();
     cairo_path_t* path = cairo_copy_path(cr);
     double x0, x1, y0, y1;
@@ -191,13 +188,13 @@ static inline void drawPathShadow(GraphicsContext* context, GraphicsContextPriva
 
     IntSize shadowBufferSize;
     FloatRect shadowRect;
-    float kernelSize (0.0);
+    float kernelSize = 0;
     GraphicsContext::calculateShadowBufferDimensions(shadowBufferSize, shadowRect, kernelSize, rect, shadowSize, shadowBlur);
 
-    // create suitably-sized ImageBuffer to hold the shadow
+    // Create suitably-sized ImageBuffer to hold the shadow.
     OwnPtr<ImageBuffer> shadowBuffer = ImageBuffer::create(shadowBufferSize);
 
-    //draw shadow into a new ImageBuffer
+    // Draw shadow into a new ImageBuffer.
     cairo_t* shadowContext = shadowBuffer->context()->platformContext();
     copyContextProperties(cr, shadowContext);
     cairo_translate(shadowContext, -rect.x() + kernelSize, -rect.y() + kernelSize);
@@ -568,11 +565,36 @@ void GraphicsContext::fillRect(const FloatRect& rect)
     fillPath();
 }
 
+static void drawBorderlessRectShadow(GraphicsContext* context, const FloatRect& rect, const Color& rectColor)
+{
+#if ENABLE(FILTERS)
+    IntSize shadowSize;
+    int shadowBlur;
+    Color shadowColor;
+
+    if (!context->getShadow(shadowSize, shadowBlur, shadowColor))
+        return;
+
+    IntSize shadowBufferSize;
+    FloatRect shadowRect;
+    float kernelSize = 0;
+    GraphicsContext::calculateShadowBufferDimensions(shadowBufferSize, shadowRect, kernelSize, rect, shadowSize, shadowBlur);
+
+    // Draw shadow into a new ImageBuffer
+    OwnPtr<ImageBuffer> shadowBuffer = ImageBuffer::create(shadowBufferSize);
+    GraphicsContext* shadowContext = shadowBuffer->context();
+    shadowContext->fillRect(FloatRect(FloatPoint(kernelSize, kernelSize), rect.size()), rectColor, DeviceColorSpace);
+
+    context->createPlatformShadow(shadowBuffer.release(), shadowColor, shadowRect, kernelSize);
+#endif
+}
+
 void GraphicsContext::fillRect(const FloatRect& rect, const Color& color, ColorSpace colorSpace)
 {
     if (paintingDisabled())
         return;
 
+    drawBorderlessRectShadow(this, rect, color);
     if (color.alpha())
         fillRectSourceOver(m_data->cr, rect, color);
 }
@@ -1116,7 +1138,7 @@ void GraphicsContext::clipOut(const IntRect& r)
     cairo_t* cr = m_data->cr;
     double x1, y1, x2, y2;
     cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
-    cairo_rectangle(cr, x1, x2, x2 - x1, y2 - y1);
+    cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1);
     cairo_rectangle(cr, r.x(), r.y(), r.width(), r.height());
     cairo_fill_rule_t savedFillRule = cairo_get_fill_rule(cr);
     cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
@@ -1144,6 +1166,7 @@ void GraphicsContext::fillRoundedRect(const IntRect& r, const IntSize& topLeft, 
     beginPath();
     addPath(Path::createRoundedRectangle(r, topLeft, topRight, bottomLeft, bottomRight));
     setColor(cr, color);
+    drawPathShadow(this, m_common, true, false);
     cairo_fill(cr);
     cairo_restore(cr);
 }

@@ -89,6 +89,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLUListElement.cpp
     html/HTMLViewSourceDocument.cpp
     html/ImageData.cpp
+    html/ISODateTime.cpp
     html/PreloadScanner.cpp
     html/TimeRanges.cpp
     html/ValidityState.cpp

@@ -172,6 +172,34 @@ class Bugzilla:
             attachments.append(attachment)
         return attachments
 
+    def _parse_bug_id_from_attachment_page(self, page):
+        up_link = BeautifulSoup(page).find('link', rel='Up') # The "Up" relation happens to point to the bug.
+        if not up_link:
+            return None # This attachment does not exist (or you don't have permissions to view it).
+        match = re.search("show_bug.cgi\?id=(?P<bug_id>\d+)", up_link['href'])
+        return int(match.group('bug_id'))
+
+    def bug_id_for_attachment_id(self, attachment_id):
+        attachment_url = self.attachment_url_for_id(attachment_id, 'edit')
+        log("Fetching: %s" % attachment_url)
+        page = urllib2.urlopen(attachment_url)
+        return self._parse_bug_id_from_attachment_page(page)
+
+    # This should really return an Attachment object
+    # which can lazily fetch any missing data.
+    def fetch_attachment(self, attachment_id):
+        # We could grab all the attachment details off of the attachment edit page
+        # but we already have working code to do so off of the bugs page, so re-use that.
+        bug_id = self.bug_id_for_attachment_id(attachment_id)
+        if not bug_id:
+            return None
+        attachments = self.fetch_attachments_from_bug(bug_id)
+        for attachment in attachments:
+            if attachment['id'] == attachment_id:
+                self._validate_committer_and_reviewer(attachment)
+                return attachment
+        return None # This should never be hit.
+
     def fetch_title_from_bug(self, bug_id):
         bug_url = self.bug_url_for_bug_id(bug_id, xml=True)
         page = urllib2.urlopen(bug_url)
@@ -213,6 +241,13 @@ class Bugzilla:
     def _validate_committer(self, patch, reject_invalid_patches):
         return self._validate_setter_email(patch, 'committer', self.committers.committer_by_email, self.reject_patch_from_commit_queue, reject_invalid_patches)
 
+    # FIXME: This is a hack until we have a real Attachment object.
+    # _validate_committer and _validate_reviewer fill in the 'reviewer' and 'committer'
+    # keys which other parts of the code expect to be filled in.
+    def _validate_committer_and_reviewer(self, patch):
+        self._validate_reviewer(patch, reject_invalid_patches=False)
+        self._validate_committer(patch, reject_invalid_patches=False)
+
     def fetch_unreviewed_patches_from_bug(self, bug_id):
         unreviewed_patches = []
         for attachment in self.fetch_attachments_from_bug(bug_id):
@@ -234,10 +269,8 @@ class Bugzilla:
                 commit_queue_patches.append(attachment)
         return commit_queue_patches
 
-    def fetch_bug_ids_from_commit_queue(self):
-        commit_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=commit-queue%2B"
-
-        page = urllib2.urlopen(commit_queue_url)
+    def _fetch_bug_ids_advanced_query(self, query):
+        page = urllib2.urlopen(query)
         soup = BeautifulSoup(page)
 
         bug_ids = []
@@ -248,12 +281,29 @@ class Bugzilla:
 
         return bug_ids
 
+    def fetch_bug_ids_from_commit_queue(self):
+        commit_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=commit-queue%2B"
+        return self._fetch_bug_ids_advanced_query(commit_queue_url)
+
+    def fetch_bug_ids_from_review_queue(self):
+        review_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review?"
+        return self._fetch_bug_ids_advanced_query(review_queue_url)
+
     def fetch_patches_from_commit_queue(self, reject_invalid_patches=False):
         patches_to_land = []
         for bug_id in self.fetch_bug_ids_from_commit_queue():
             patches = self.fetch_commit_queue_patches_from_bug(bug_id, reject_invalid_patches)
             patches_to_land += patches
         return patches_to_land
+
+    def fetch_patches_from_review_queue(self, limit):
+        patches_to_review = []
+        for bug_id in self.fetch_bug_ids_from_review_queue():
+            if len(patches_to_review) >= limit:
+                break
+            patches = self.fetch_unreviewed_patches_from_bug(bug_id)
+            patches_to_review += patches
+        return patches_to_review
 
     def authenticate(self):
         if self.authenticated:

@@ -382,3 +382,7 @@ void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObj
 {
     // FIXME: Implement this.
 }
+
+void LayoutTestController::setTimelineProfilingEnabled(bool flag)
+{
+}
