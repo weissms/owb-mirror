@@ -465,7 +465,6 @@ BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextCodecGtk.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextCodecGtk.cpp
-BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBoundariesICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextBreakIteratorInternalICU.h
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.cpp
