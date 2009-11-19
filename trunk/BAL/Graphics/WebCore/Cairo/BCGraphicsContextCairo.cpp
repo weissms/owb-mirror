@@ -33,23 +33,26 @@
 #if PLATFORM(CAIRO)
 
 #include "CairoPath.h"
-#include "FEGaussianBlur.h"
 #include "FloatRect.h"
 #include "Font.h"
 #include "ImageBuffer.h"
-#include "ImageBufferFilter.h"
 #include "IntRect.h"
 #include "NotImplemented.h"
 #include "Path.h"
 #include "Pattern.h"
 #include "SimpleFontData.h"
-#include "SourceGraphic.h"
 #include "TransformationMatrix.h"
 
 #include <cairo.h>
 #include <math.h>
 #include <stdio.h>
 #include <wtf/MathExtras.h>
+
+#if ENABLE(FILTERS)
+#include "FEGaussianBlur.h"
+#include "ImageBufferFilter.h"
+#include "SourceGraphic.h"
+#endif
 
 #if PLATFORM(GTK)
 #include <gdk/gdk.h>
