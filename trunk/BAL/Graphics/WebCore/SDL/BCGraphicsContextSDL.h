@@ -46,17 +46,17 @@ namespace WebCore {
     const int cMisspellingLinePatternWidth = 4;
     const int cMisspellingLinePatternGapWidth = 1;
 
-    class TransformationMatrix;
     class Font;
     class Generator;
     class Gradient;
-    class GraphicsContextPrivate;
     class GraphicsContextPlatformPrivate;
+    class GraphicsContextPrivate;
     class ImageBuffer;
     class KURL;
     class Path;
     class Pattern;
     class TextRun;
+    class TransformationMatrix;
 
     // These bits can be ORed together for a total of 8 possible text drawing modes.
     const int cTextInvisible = 0;
@@ -69,12 +69,6 @@ namespace WebCore {
         SolidStroke,
         DottedStroke,
         DashedStroke
-    };
-
-    enum FillOrStrokeType {
-        SolidColorType,
-        PatternType,
-        GradientType
     };
 
     enum InterpolationQuality {
@@ -152,17 +146,17 @@ namespace WebCore {
         void strokeRect(const FloatRect&);
         void strokeRect(const FloatRect&, float lineWidth);
 
-        void drawImage(Image*, const IntPoint&, CompositeOperator = CompositeSourceOver);
-        void drawImage(Image*, const IntRect&, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
-        void drawImage(Image*, const IntPoint& destPoint, const IntRect& srcRect, CompositeOperator = CompositeSourceOver);
-        void drawImage(Image*, const IntRect& destRect, const IntRect& srcRect, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
-        void drawImage(Image*, const FloatRect& destRect, const FloatRect& srcRect = FloatRect(0, 0, -1, -1),
-                       CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
-        void drawTiledImage(Image*, const IntRect& destRect, const IntPoint& srcPoint, const IntSize& tileSize,
-                       CompositeOperator = CompositeSourceOver);
-        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect,
-                            Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
-                            CompositeOperator = CompositeSourceOver);
+        void drawImage(Image*, ColorSpace styleColorSpace, const IntPoint&, CompositeOperator = CompositeSourceOver);
+        void drawImage(Image*, ColorSpace styleColorSpace, const IntRect&, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
+        void drawImage(Image*, ColorSpace styleColorSpace, const IntPoint& destPoint, const IntRect& srcRect, CompositeOperator = CompositeSourceOver);
+        void drawImage(Image*, ColorSpace styleColorSpace, const IntRect& destRect, const IntRect& srcRect, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
+        void drawImage(Image*, ColorSpace styleColorSpace, const FloatRect& destRect, const FloatRect& srcRect = FloatRect(0, 0, -1, -1),
+                        CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
+        void drawTiledImage(Image*, ColorSpace styleColorSpace, const IntRect& destRect, const IntPoint& srcPoint, const IntSize& tileSize,
+                        CompositeOperator = CompositeSourceOver);
+        void drawTiledImage(Image*, ColorSpace styleColorSpace, const IntRect& destRect, const IntRect& srcRect,
+                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
+                             CompositeOperator = CompositeSourceOver);
 
         void setImageInterpolationQuality(InterpolationQuality);
         InterpolationQuality imageInterpolationQuality() const;

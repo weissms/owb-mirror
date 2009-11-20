@@ -24,7 +24,7 @@
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #include "config.h"
@@ -670,12 +670,8 @@ void InspectorController::populateScriptObjects()
     m_domAgent->setDocument(m_inspectedPage->mainFrame()->document());
 
     ResourcesMap::iterator resourcesEnd = m_resources.end();
-    for (ResourcesMap::iterator it = m_resources.begin(); it != resourcesEnd; ++it) {
+    for (ResourcesMap::iterator it = m_resources.begin(); it != resourcesEnd; ++it)
         it->second->createScriptObject(m_frontend.get());
-        KURL resourceURL = it->second->frame()->document()->url();
-        if (resourceURL.protocolInHTTPFamily() || resourceURL.protocolIs("file"))
-            m_frontend->addCookieDomain(resourceURL.host());
-    }
 
     unsigned messageCount = m_consoleMessages.size();
     for (unsigned i = 0; i < messageCount; ++i)
@@ -1011,12 +1007,8 @@ void InspectorController::didFinishLoading(DocumentLoader*, unsigned long identi
 
     addResource(resource.get());
 
-    if (windowVisible()) {
+    if (windowVisible())
         resource->updateScriptObject(m_frontend.get());
-        KURL resourceURL = resource->frame()->document()->url();
-        if (resourceURL.protocolInHTTPFamily() || resourceURL.protocolIs("file"))
-            m_frontend->addCookieDomain(resourceURL.host());
-    }
 }
 
 void InspectorController::didFailLoading(DocumentLoader*, unsigned long identifier, const ResourceError& /*error*/)

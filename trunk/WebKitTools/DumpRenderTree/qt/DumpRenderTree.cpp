@@ -247,17 +247,27 @@ DumpRenderTree::DumpRenderTree()
     qt_drt_overwritePluginDirectories();
     QWebSettings::enablePersistentStorage();
 
-    m_controller = new LayoutTestController(this);
-    connect(m_controller, SIGNAL(done()), this, SLOT(dump()));
-
+    // create our primary testing page/view.
     QWebView *view = new QWebView(0);
     view->resize(QSize(maxViewWidth, maxViewHeight));
     m_page = new WebPage(view, this);
     view->setPage(m_page);
-    connect(m_page, SIGNAL(frameCreated(QWebFrame *)), this, SLOT(connectFrame(QWebFrame *)));
+
+    // create out controllers. This has to be done before connectFrame,
+    // as it exports there to the JavaScript DOM window.
+    m_controller = new LayoutTestController(this);
+    connect(m_controller, SIGNAL(done()), this, SLOT(dump()));
+    m_eventSender = new EventSender(m_page);
+    m_textInputController = new TextInputController(m_page);
+    m_gcController = new GCController(m_page);
+
+    // now connect our different signals
+    connect(m_page, SIGNAL(frameCreated(QWebFrame *)),
+            this, SLOT(connectFrame(QWebFrame *)));
     connectFrame(m_page->mainFrame());
 
-    connect(m_page->mainFrame(), SIGNAL(loadFinished(bool)), m_controller, SLOT(maybeDump(bool)));
+    connect(m_page->mainFrame(), SIGNAL(loadFinished(bool)),
+            m_controller, SLOT(maybeDump(bool)));
 
     connect(m_page->mainFrame(), SIGNAL(titleChanged(const QString&)),
             SLOT(titleChanged(const QString&)));
@@ -265,10 +275,6 @@ DumpRenderTree::DumpRenderTree()
             this, SLOT(dumpDatabaseQuota(QWebFrame*,QString)));
     connect(m_page, SIGNAL(statusBarMessage(const QString&)),
             this, SLOT(statusBarMessage(const QString&)));
-
-    m_eventSender = new EventSender(m_page);
-    m_textInputController = new TextInputController(m_page);
-    m_gcController = new GCController(m_page);
 
     QObject::connect(this, SIGNAL(quit()), qApp, SLOT(quit()), Qt::QueuedConnection);
     qt_drt_run(true);
@@ -297,37 +303,47 @@ void DumpRenderTree::open()
     }
 }
 
+static void clearHistory(QWebPage* page)
+{
+    // QWebHistory::clear() leaves current page, so remove it as well by setting
+    // max item count to 0, and then setting it back to it's original value.
+
+    QWebHistory* history = page->history();
+    int itemCount = history->maximumItemCount();
+
+    history->clear();
+    history->setMaximumItemCount(0);
+    history->setMaximumItemCount(itemCount);
+}
+
 void DumpRenderTree::resetToConsistentStateBeforeTesting()
 {
-    closeRemainingWindows();
-
-    // Reset so that any current loads are stopped
+    // reset so that any current loads are stopped
+    // NOTE: that this has to be done before the layoutTestController is
+    // reset or we get timeouts for some tests.
     m_page->blockSignals(true);
     m_page->triggerAction(QWebPage::Stop);
     m_page->blockSignals(false);
 
-    m_page->mainFrame()->setZoomFactor(1.0);
+    // reset the layoutTestController at this point, so that we under no
+    // circumstance dump (stop the waitUntilDone timer) during the reset
+    // of the DRT.
+    m_controller->reset();
 
-    // clear leaves current page, so remove it as well by
-    // setting max item count to 0, and then setting it back
-    // to it's original value.
-    QWebHistory* history = m_page->history();
-    history->clear();
-    int itemCount = history->maximumItemCount();
-    history->setMaximumItemCount(0);
-    history->setMaximumItemCount(itemCount);
+    closeRemainingWindows();
 
     static_cast<WebPage*>(m_page)->resetSettings();
+    m_page->undoStack()->clear();
+    m_page->mainFrame()->setZoomFactor(1.0);
+    clearHistory(m_page);
     qt_drt_clearFrameName(m_page->mainFrame());
 
     WorkQueue::shared()->clear();
-    // Causes timeout, why?
+    // The below line is used in other ports, but for us it results in
+    // a timeout for fast/frames/frame-navigation.html
     //WorkQueue::shared()->setFrozen(false);
 
-    m_controller->reset();
     qt_drt_resetOriginAccessWhiteLists();
-
-    m_page->undoStack()->clear();
 
     QLocale::setDefault(QLocale::c());
     setlocale(LC_ALL, "");
@@ -653,7 +669,7 @@ QWebPage *DumpRenderTree::createWindow()
     container->hide();
     WebPage *page = new WebPage(container, this);
     connectFrame(page->mainFrame());
-    connect(m_page, SIGNAL(frameCreated(QWebFrame *)), this, SLOT(connectFrame(QWebFrame *)));
+    connect(page, SIGNAL(frameCreated(QWebFrame *)), this, SLOT(connectFrame(QWebFrame *)));
     windows.append(container);
     return page;
 }

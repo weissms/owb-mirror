@@ -786,7 +786,7 @@ bool DOMHTMLInputElement::isUserEdited()
     if (!textField)
         return false;
     RenderObject* renderer = m_element->renderer();
-    if (renderer && static_cast<WebCore::RenderTextControl*>(renderer)->isUserEdited())
+    if (renderer && static_cast<WebCore::RenderTextControl*>(renderer)->lastChangeWasUserEdit())
         return true;
     return false;
 }
@@ -903,7 +903,7 @@ bool DOMHTMLTextAreaElement::isUserEdited()
 {
     ASSERT(m_element);
     RenderObject* renderer = m_element->renderer();
-    if (renderer && static_cast<WebCore::RenderTextControl*>(renderer)->isUserEdited())
+    if (renderer && static_cast<WebCore::RenderTextControl*>(renderer)->lastChangeWasUserEdit())
         return true;
     return false;
 }

@@ -70,6 +70,7 @@ preloadImages();
 var WebInspector = {
     resources: {},
     resourceURLMap: {},
+    cookieDomains: {},
     missingLocalizedStrings: {},
 
     get previousFocusElement()
@@ -500,7 +501,7 @@ var windowLoaded = function()
         localizedStringsScriptElement.addEventListener("load", WebInspector.loaded.bind(WebInspector), false);
         localizedStringsScriptElement.type = "text/javascript";
         localizedStringsScriptElement.src = localizedStringsURL;
-        document.getElementsByTagName("head").item(0).appendChild(localizedStringsScriptElement);
+        document.head.appendChild(localizedStringsScriptElement);
     } else
         WebInspector.loaded();
 
@@ -984,6 +985,10 @@ WebInspector.addResource = function(identifier, payload)
 
     if (this.panels.resources)
         this.panels.resources.addResource(resource);
+
+    var match = payload.documentURL.match(/^(http[s]?|file):\/\/([\/]*[^\/]+)/i);
+    if (match)
+        this.addCookieDomain(match[1].toLowerCase() === "file" ? "" : match[2]);
 }
 
 WebInspector.clearConsoleMessages = function()
@@ -1095,6 +1100,11 @@ WebInspector.addDatabase = function(payload)
 
 WebInspector.addCookieDomain = function(domain)
 {
+    // Eliminate duplicate domains from the list.
+    if (domain in this.cookieDomains)
+        return;
+    this.cookieDomains[domain] = true;
+
     if (!this.panels.storage)
         return;
     this.panels.storage.addCookieDomain(domain);
@@ -1195,6 +1205,7 @@ WebInspector.reset = function()
 
     this.resources = {};
     this.resourceURLMap = {};
+    this.cookieDomains = {};
     this.hoveredDOMNode = null;
 
     delete this.mainResource;
@@ -1680,6 +1691,8 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
         if (isEnterKey(event)) {
             editingCommitted.call(element);
             event.preventDefault();
+            event.stopPropagation();
+            event.handled = true;
         } else if (event.keyCode === 27) { // Escape key
             editingCancelled.call(element);
             event.preventDefault();

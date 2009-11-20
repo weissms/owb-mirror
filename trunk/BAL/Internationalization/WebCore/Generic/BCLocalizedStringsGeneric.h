@@ -107,6 +107,14 @@ namespace WebCore {
     String contextMenuItemTagTextDirectionMenu();
 
     String imageTitle(const String& filename, const IntSize& size);
+
+    String validationMessageValueMissingText();
+    String validationMessageTypeMismatchText();
+    String validationMessagePatternMismatchText();
+    String validationMessageTooLongText();
+    String validationMessageRangeUnderflowText();
+    String validationMessageRangeOverflowText();
+    String validationMessageStepMismatchText();
 }
 
 #endif

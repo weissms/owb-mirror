@@ -1,3 +1,127 @@
+2009-11-20  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add QtLauncher support for opening links in the default browser
+
+        This can be triggered by either the context menu or by clicking a link
+        while holding down the Alt key. Opening a link in a new windows is
+        triggered by holding down Shift.
+
+        * QtLauncher/main.cpp:
+
+2009-11-19  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Add instantiation tests for QWebInspector.
+
+        * tests/qwebinspector/qwebinspector.pro: Added.
+        * tests/qwebinspector/tst_qwebinspector.cpp: Added.
+        (tst_QWebInspector::attachAndDestroy):
+        * tests/tests.pro:
+
+2009-11-19  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Fix QWebInspector destruction problem.
+        https://bugs.webkit.org/show_bug.cgi?id=31664
+
+        * Api/qwebpage.cpp:
+        (QWebPage::~QWebPage):
+
+2009-11-19  Olivier Goffart  <ogoffart@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Normalize signal and slot signatures.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::setPage):
+        * Api/qwebview.cpp:
+        (QWebView::setPage):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::setFrame):
+        * docs/webkitsnippets/qtwebkit_qwebinspector_snippet.cpp:
+        (wrapInFunction):
+        * tests/qwebframe/tst_qwebframe.cpp:
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::modified):
+        (tst_QWebPage::database):
+
+2009-11-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Remove support for Qt v4.3 or older versions
+        https://bugs.webkit.org/show_bug.cgi?id=29469
+
+        * Api/qcookiejar.cpp: Removed.
+        * Api/qcookiejar.h: Removed.
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::event):
+        * Api/qwebframe.cpp:
+        (QWebFrame::load):
+        * Api/qwebframe.h:
+        * Api/qwebkitglobal.h:
+        * Api/qwebnetworkinterface.cpp: Removed.
+        * Api/qwebnetworkinterface.h: Removed.
+        * Api/qwebnetworkinterface_p.h: Removed.
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        (QWebPagePrivate::acceptNavigationRequest):
+        (QWebPage::acceptNavigationRequest):
+        (QWebPage::action):
+        (QWebPage::userAgentForUrl):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * Api/qwebview.cpp:
+        (QWebView::load):
+        (QWebView::event):
+        * Api/qwebview.h:
+        * QtLauncher/main.cpp:
+        (MainWindow::print):
+        (MainWindow::setupUI):
+        (main):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::download):
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNewWindowAction):
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNavigationAction):
+        (WebCore::FrameLoaderClientQt::startDownload):
+        (WebCore::FrameLoaderClientQt::createPlugin):
+
+2009-11-18  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Add support for displaying deleteButton.
+        https://bugs.webkit.org/show_bug.cgi?id=31560
+
+        Test: LayoutTests/editing/deleting/5408255.html
+
+        * Api/qwebsettings.cpp:
+        (graphics):
+        * Api/qwebsettings.h:
+
+2009-11-18  Paul Olav Tvete  <paul.tvete@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Make the QWebElement::render() test pass when pixmaps aren't 32 bit.
+
+        * tests/qwebelement/tst_qwebelement.cpp:
+        (tst_QWebElement::render):
+
+2009-11-18  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Clarify and simplify the legal section in the overview documentation,
+        after review with our legal team.
+
+        * docs/qtwebkit.qdoc:
+
 2009-11-18  Antonio Gomes  <tonikitoo@webkit.org>
 
         Reviewed by Antti Koivisto.

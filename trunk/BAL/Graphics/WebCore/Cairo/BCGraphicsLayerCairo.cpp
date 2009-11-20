@@ -40,10 +40,6 @@ GraphicsLayer::CompositingCoordinatesOrientation GraphicsLayer::compositingCoord
     return CompositingCoordinatesTopDown;
 }
 
-bool GraphicsLayer::showDebugBorders()
-{
-    return false;
-}
 
 GraphicsLayerCairo::GraphicsLayerCairo(GraphicsLayerClient* client)
 : GraphicsLayer(client)

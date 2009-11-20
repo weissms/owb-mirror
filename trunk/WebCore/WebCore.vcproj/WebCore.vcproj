@@ -7763,6 +7763,10 @@
 			<File
 				RelativePath="..\xml\XPathParser.cpp"
 				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSInspectorBackend.cpp"
+				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
@@ -9848,19 +9852,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\html\ISODateTime.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\html\ISODateTime.h"
-				>
-			</File>
-			<File
 				RelativePath="..\html\ImageData.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\html\ImageData.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\ISODateTime.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\ISODateTime.h"
 				>
 			</File>
 			<File

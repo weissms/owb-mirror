@@ -134,41 +134,41 @@ void WebWindowConfirm::onExpose(BalEventExpose event)
 
             // Fill popup with popup bg image.
             // Then draw borders.
-            ctx.drawImage(bg.get(), IntRect(startPos, IntSize(popupWidth, popupHeight)));
+            ctx.drawImage(bg.get(), DeviceColorSpace, IntRect(startPos, IntSize(popupWidth, popupHeight)));
 
             // Left side
             IntPoint topLeft(startPos);
-            ctx.drawImage(cornerhl.get(), topLeft);
+            ctx.drawImage(cornerhl.get(), DeviceColorSpace, topLeft);
             IntRect leftBorder(IntPoint(topLeft.x(), topLeft.y() + cornerhl->height()), IntSize(borderl->width(), popupHeight - 2 * cornerhl->height()));
-            ctx.drawImage(borderl.get(), leftBorder);
+            ctx.drawImage(borderl.get(), DeviceColorSpace, leftBorder);
             IntPoint bottomLeft(topLeft.x(), topLeft.y() + popupHeight - cornerbl->height());
-            ctx.drawImage(cornerbl.get(), bottomLeft);
+            ctx.drawImage(cornerbl.get(), DeviceColorSpace, bottomLeft);
 
             // Right side
             IntPoint topRight(startPos.x() + popupWidth - cornerhr->width(), startPos.y());
-            ctx.drawImage(cornerhr.get(), topRight);
+            ctx.drawImage(cornerhr.get(), DeviceColorSpace, topRight);
             IntRect rightBorder(IntPoint(topRight.x(), topRight.y() + cornerhr->height()), IntSize(borderr->width(), popupHeight - 2 * cornerhr->height()));
-            ctx.drawImage(borderr.get(), rightBorder);
+            ctx.drawImage(borderr.get(), DeviceColorSpace, rightBorder);
             IntPoint bottomRight(topRight.x(), topRight.y() + popupHeight - cornerbr->height());
-            ctx.drawImage(cornerbr.get(), bottomRight);
+            ctx.drawImage(cornerbr.get(), DeviceColorSpace, bottomRight);
 
             // Top border
             IntRect topBorder(startPos.x() + borderh->width(), startPos.y(), popupWidth - 2 * borderh->width(), borderh->height());
-            ctx.drawImage(borderh.get(), topBorder);
+            ctx.drawImage(borderh.get(), DeviceColorSpace, topBorder);
 
             // Bottom border
             IntRect bottomBorder(startPos.x() + borderb->width(), startPos.y() + popupHeight - borderb->height(), popupWidth - 2 * borderb->width(), borderb->height());
-            ctx.drawImage(borderb.get(), bottomBorder);
+            ctx.drawImage(borderb.get(), DeviceColorSpace, bottomBorder);
 
             // Draw OK button at a centered position
             // Specific hack: a bit lower
             m_buttonOKRect = IntRect(startPos.x() + (popupWidth - minWidth) / 2 + borderl->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonOK->height(), buttonOK->width(), buttonOK->height());
-            ctx.drawImage(buttonOK.get(), m_buttonOKRect);
+            ctx.drawImage(buttonOK.get(), DeviceColorSpace, m_buttonOKRect);
             
             // Draw Cancel button at a centered position
             // Specific hack: a bit lower
             m_buttonCancelRect = IntRect(m_buttonOKRect.x + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
-            ctx.drawImage(buttonCancel.get(), m_buttonCancelRect);
+            ctx.drawImage(buttonCancel.get(), DeviceColorSpace, m_buttonCancelRect);
 
             // Draw text line by line
             IntPoint startText(startPos.x() + borderl->width(), startPos.y() + borderh->height() + font.size());

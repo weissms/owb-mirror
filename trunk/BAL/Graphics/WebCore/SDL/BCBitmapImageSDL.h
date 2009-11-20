@@ -124,7 +124,7 @@ protected:
 
     BitmapImage(NativeImagePtr, ImageObserver* = 0);
     BitmapImage(ImageObserver* = 0);
-    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
+    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, ColorSpace styleColorSpace, CompositeOperator);
     size_t currentFrame() const { return m_currentFrame; }
     size_t frameCount();
     NativeImagePtr frameAtIndex(size_t);

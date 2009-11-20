@@ -132,18 +132,18 @@ void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollb
         IntPoint startPos(rect.location());
         if (start) {
             if (scrollbar->orientation() == HorizontalScrollbar)
-                context->drawImage(left.get(), startPos);
+                context->drawImage(left.get(), DeviceColorSpace, startPos);
             else {
                 static RefPtr<WebCore::Image> up = Image::loadPlatformResource("/ScrollbarTheme/up");
-                context->drawImage(up.get(), startPos);
+                context->drawImage(up.get(), DeviceColorSpace, startPos);
             }
         } else {
             if (scrollbar->orientation() == HorizontalScrollbar) {
                 static RefPtr<WebCore::Image> right = Image::loadPlatformResource("/ScrollbarTheme/right");
-                context->drawImage(right.get(), startPos);
+                context->drawImage(right.get(), DeviceColorSpace, startPos);
             } else {
                 static RefPtr<WebCore::Image> down = Image::loadPlatformResource("/ScrollbarTheme/down");
-                context->drawImage(down.get(), startPos);
+                context->drawImage(down.get(), DeviceColorSpace, startPos);
             }
         }
     } else {
@@ -183,9 +183,9 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
             IntPoint endPos(rect.right() - thumbHR->width(), rect.y());
             IntRect destRect(rect.x() + thumbHL->width() - 1, rect.y(), rect.width() - thumbHR->width() - thumbHL->width() + 1, rect.height());
 
-            context->drawImage(thumbHL.get(), startPos);
-            context->drawTiledImage(thumbH.get(), destRect, IntPoint(0, 0), IntSize(thumbH->width(), thumbH->height()));
-            context->drawImage(thumbHR.get(), endPos);
+            context->drawImage(thumbHL.get(), DeviceColorSpace, startPos);
+            context->drawTiledImage(thumbH.get(), DeviceColorSpace, destRect, IntPoint(0, 0), IntSize(thumbH->width(), thumbH->height()));
+            context->drawImage(thumbHR.get(), DeviceColorSpace, endPos);
 
         } else {
             context->drawRect(rect);
@@ -200,9 +200,9 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
             IntPoint endPos(rect.x(), rect.bottom() - thumbVD->height());
             IntRect destRect(rect.x(), rect.y() + thumbVU->height(), rect.width(), rect.height() - thumbVU->height() - thumbVD->height());
 
-            context->drawImage(thumbVU.get(), startPos);
-            context->drawTiledImage(thumbV.get(), destRect, IntPoint(0, 0), IntSize(thumbV->width(), thumbV->height()));
-            context->drawImage(thumbVD.get(), endPos);
+            context->drawImage(thumbVU.get(), DeviceColorSpace, startPos);
+            context->drawTiledImage(thumbV.get(), DeviceColorSpace, destRect, IntPoint(0, 0), IntSize(thumbV->width(), thumbV->height()));
+            context->drawImage(thumbVD.get(), DeviceColorSpace, endPos);
         } else {
             context->drawRect(rect);
             context->fillRect(IntRect(rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2), Color::gray, DeviceColorSpace);
@@ -260,10 +260,10 @@ void ScrollbarThemeBal::paintTrackPiece(GraphicsContext* context, Scrollbar* scr
         if (scrollbar->orientation() == HorizontalScrollbar) {
             static RefPtr<WebCore::Image> bgh = Image::loadPlatformResource("/ScrollbarTheme/bgh");
             IntRect destRect(rect.x() - 1, rect.y(), rect.width() + 2, rect.height());
-            context->drawTiledImage(bgh.get(), destRect, IntPoint(0, 0), IntSize(bgh->width(), bgh->height()));
+            context->drawTiledImage(bgh.get(), DeviceColorSpace, destRect, IntPoint(0, 0), IntSize(bgh->width(), bgh->height()));
         } else {
             IntRect destRect(rect.x(), rect.y() - 1, rect.width(), rect.height() + 2 );
-            context->drawTiledImage(bg.get(), destRect, IntPoint(0, 0), IntSize(bg->width(), bg->height()));
+            context->drawTiledImage(bg.get(), DeviceColorSpace, destRect, IntPoint(0, 0), IntSize(bg->width(), bg->height()));
         }
     } else {
         context->fillRect(rect, Color::white, DeviceColorSpace);

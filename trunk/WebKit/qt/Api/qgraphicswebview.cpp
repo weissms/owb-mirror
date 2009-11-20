@@ -368,7 +368,6 @@ bool QGraphicsWebView::event(QEvent* event)
 #endif // QT_NO_CONTEXTMENU
         {
 #ifndef QT_NO_CURSOR
-#if QT_VERSION >= 0x040400
             if (event->type() == QEvent::CursorChange) {
                 // An unsetCursor will set the cursor to Qt::ArrowCursor.
                 // Thus this cursor change might be a QWidget::unsetCursor()
@@ -381,7 +380,6 @@ bool QGraphicsWebView::event(QEvent* event)
                 if (cursor().shape() == Qt::ArrowCursor)
                     d->resetCursor();
             }
-#endif
 #endif
         }
     }
@@ -420,22 +418,22 @@ void QGraphicsWebView::setPage(QWebPage* page)
 
     QWebFrame* mainFrame = d->page->mainFrame();
 
-    connect(mainFrame, SIGNAL(titleChanged(const QString&)),
-            this, SIGNAL(titleChanged(const QString&)));
+    connect(mainFrame, SIGNAL(titleChanged(QString)),
+            this, SIGNAL(titleChanged(QString)));
     connect(mainFrame, SIGNAL(iconChanged()),
             this, SIGNAL(iconChanged()));
-    connect(mainFrame, SIGNAL(urlChanged(const QUrl&)),
-            this, SIGNAL(urlChanged(const QUrl&)));
+    connect(mainFrame, SIGNAL(urlChanged(QUrl)),
+            this, SIGNAL(urlChanged(QUrl)));
     connect(d->page, SIGNAL(loadStarted()),
             this, SIGNAL(loadStarted()));
     connect(d->page, SIGNAL(loadProgress(int)),
             this, SIGNAL(loadProgress(int)));
     connect(d->page, SIGNAL(loadFinished(bool)),
             this, SLOT(_q_doLoadFinished(bool)));
-    connect(d->page, SIGNAL(statusBarMessage(const QString&)),
-            this, SIGNAL(statusBarMessage(const QString&)));
-    connect(d->page, SIGNAL(linkClicked(const QUrl &)),
-            this, SIGNAL(linkClicked(const QUrl &)));
+    connect(d->page, SIGNAL(statusBarMessage(QString)),
+            this, SIGNAL(statusBarMessage(QString)));
+    connect(d->page, SIGNAL(linkClicked(QUrl)),
+            this, SIGNAL(linkClicked(QUrl)));
 }
 
 /*!

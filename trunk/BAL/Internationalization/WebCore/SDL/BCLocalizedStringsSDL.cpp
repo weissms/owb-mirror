@@ -476,4 +476,39 @@ String localizedMediaTimeDescription(float time)
 
 #endif // ENABLE(VIDEO)
 
+String validationMessageValueMissingText()
+{
+    return String();
+}
+
+String validationMessageTypeMismatchText()
+{
+    return String();
+}
+
+String validationMessagePatternMismatchText()
+{
+    return String();
+}
+
+String validationMessageTooLongText()
+{
+    return String();
+}
+
+String validationMessageRangeUnderflowText()
+{
+    return String();
+}
+
+String validationMessageRangeOverflowText()
+{
+    return String();
+}
+
+String validationMessageStepMismatchText()
+{
+    return String();
+}
+
 } // namespace WebCore

@@ -50,7 +50,6 @@ GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR${QMAKE_DIR_SEP}
 
 unix {
     QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui QtNetwork
-    lessThan(QT_MINOR_VERSION, 4): QMAKE_PKGCONFIG_REQUIRES += QtXml
 }
 
 unix:!mac:*-g++*:QMAKE_CXXFLAGS += -ffunction-sections -fdata-sections 
@@ -180,7 +179,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
     else:DEFINES += ENABLE_XSLT=0
 }
 
-DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
+DEFINES += WTF_CHANGES=1
 
 # Used to compute defaults for the build-webkit script
 CONFIG(compute_defaults) {
@@ -253,7 +252,6 @@ INCLUDEPATH = \
     $$INCLUDEPATH
 
 QT += network
-lessThan(QT_MINOR_VERSION, 4): QT += xml
 
 QMAKE_EXTRA_TARGETS += generated_files
 
@@ -2352,7 +2350,6 @@ SOURCES += \
     platform/graphics/qt/TransformationMatrixQt.cpp \
     platform/graphics/qt/ColorQt.cpp \
     platform/graphics/qt/FontQt.cpp \
-    platform/graphics/qt/FontQt43.cpp \
     platform/graphics/qt/FontPlatformDataQt.cpp \
     platform/graphics/qt/FloatPointQt.cpp \
     platform/graphics/qt/FloatRectQt.cpp \
@@ -2454,20 +2451,6 @@ SOURCES += \
         LIBS += -lwinmm
     }
     wince*: LIBS += -lmmtimer
-
-    # Files belonging to the Qt 4.3 build
-    lessThan(QT_MINOR_VERSION, 4) {
-        HEADERS += \
-            $$PWD/../WebKit/qt/Api/qwebnetworkinterface.h \
-            $$PWD/../WebKit/qt/Api/qwebnetworkinterface_p.h \
-            $$PWD/../WebKit/qt/Api/qcookiejar.h
-
-        SOURCES += \
-            ../WebKit/qt/Api/qwebnetworkinterface.cpp \
-            ../WebKit/qt/Api/qcookiejar.cpp
-
-        DEFINES += QT_BEGIN_NAMESPACE="" QT_END_NAMESPACE=""
-     }
 
 contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
 

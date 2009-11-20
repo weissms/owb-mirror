@@ -46,7 +46,7 @@
 #include "Page.h"
 #include "FocusController.h"
 #include "PlatformMouseEvent.h"
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
 #include "PluginMessageThrottlerWin.h"
 #endif
 #include "PluginPackage.h"
@@ -307,7 +307,6 @@ void PluginView::stop()
     JSC::JSLock::DropAllLocks dropAllLocks(JSC::SilenceAssertionsOnly);
 
 #if ENABLE(NETSCAPE_PLUGIN_API)
-#if !PLATFORM(WX) // FIXME: Revisit this when implementing plugins for wx
 #ifdef XP_WIN
     // Unsubclass the window
     if (m_isWindowed) {
@@ -324,7 +323,6 @@ void PluginView::stop()
 #endif
     }
 #endif // XP_WIN
-#endif // !PLATFORM(WX)
 #endif // ENABLE(NETSCAPE_PLUGIN_API)
 
 #if !defined(XP_MACOSX)
@@ -806,7 +804,7 @@ PluginView::PluginView(Frame* parentFrame, const IntSize& size, PluginPackage* p
 #if defined(XP_UNIX) || defined(Q_WS_X11)
     , m_needsXEmbed(false)
 #endif
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
     , m_pluginWndProc(0)
     , m_lastMessage(0)
     , m_isCallingPluginWndProc(false)
@@ -1200,7 +1198,7 @@ void PluginView::paintMissingPluginIcon(GraphicsContext* context, const IntRect&
 
     context->save();
     context->clip(windowClipRect());
-    context->drawImage(nullPluginImage.get(), imageRect.location());
+    context->drawImage(nullPluginImage.get(), DeviceColorSpace, imageRect.location());
     context->restore();
 }
 

@@ -106,7 +106,7 @@ BitmapImage::BitmapImage(BalSurface* surface, ImageObserver* observer)
 }
 
 
-void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const FloatRect& src, CompositeOperator op)
+void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const FloatRect& src, ColorSpace styleColorSpace, CompositeOperator op)
 {
     SDL_Surface* image = frameAtIndex(m_currentFrame);
     if (!image) // If it's too early we won't have an image yet.
@@ -116,7 +116,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
     FloatRect destRect(dst);
 
     if (mayFillWithSolidColor()) {
-        fillWithSolidColor(context, destRect, solidColor(), op);
+        fillWithSolidColor(context, dst, solidColor(), styleColorSpace, op);
         return;
     }
 
@@ -195,7 +195,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
 }
 
 void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, const TransformationMatrix& patternTransform,
-                        const FloatPoint& phase, CompositeOperator op, const FloatRect& destRect)
+                        const FloatPoint& phase, ColorSpace, CompositeOperator op, const FloatRect& destRect)
 {
     if (destRect.isEmpty())
         return;

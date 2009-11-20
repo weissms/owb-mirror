@@ -1,3 +1,78 @@
+2009-11-20  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Add Preferences for WebKitShowDebugBorders and WebKitShowRepaintCounter
+        https://bugs.webkit.org/show_bug.cgi?id=31601
+
+        These are used to debug accelerated compositing layers
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences showDebugBorders]):
+        (-[WebPreferences setShowDebugBorders:]):
+        (-[WebPreferences showRepaintCounter]):
+        (-[WebPreferences setShowRepaintCounter:]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2009-11-19  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/7035231>
+        Support closed caption in <video> element
+
+        * WebCoreSupport/WebSystemInterface.m:
+        (InitWebCoreSystemInterface):
+            Add QTMovieHasClosedCaptions and QTMovieSetShowClosedCaptions.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory localizedMediaControlElementString:]):
+        (-[WebViewFactory localizedMediaControlElementHelpText:]):
+            Add accessibility help strings for media controller closed caption button.
+
+2009-11-18  Michelangelo De Simone  <micdesim@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <https://bugs.webkit.org/show_bug.cgi?id=27959>.
+        Support for validationMessage attribute, as per HTML5 specs.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory validationMessageValueMissingText]):
+        (-[WebViewFactory validationMessageTypeMismatchText]):
+        (-[WebViewFactory validationMessagePatternMismatchText]):
+        (-[WebViewFactory validationMessageTooLongText]):
+        (-[WebViewFactory validationMessageRangeUnderflowText]):
+        (-[WebViewFactory validationMessageRangeOverflowText]):
+        (-[WebViewFactory validationMessageStepMismatchText]):
+
+2009-11-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Make the Mac Geolocation API async.
+
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::requestGeolocationPermissionForFrame):
+        (-[WebGeolocationPolicyListener initWithGeolocation:]):
+        (-[WebGeolocationPolicyListener allow]):
+        (-[WebGeolocationPolicyListener deny]):
+        Add WebGeolocationPolicyListener implementation of the new WebGeolocationPolicyListener
+        protocol and use if to implement requestGeolocationPermissionForFrame using the new async
+        API.
+        
+        * WebCoreSupport/WebGeolocation.mm: Removed.
+        * WebCoreSupport/WebGeolocationInternal.h: Removed.
+        * WebCoreSupport/WebGeolocationMock.mm: Remove bogus include.
+        * WebCoreSupport/WebGeolocationPrivate.h: Removed.
+        * WebView/WebUIDelegatePrivate.h: Remove requestGeolocationPermission and add
+        WebGeolocationPolicyListener protocol and decidePolicyForGeolocationRequestFromOrigin delegate
+        method.
+
 2009-11-18  Pavel Feldman  <pfeldman@chromium.org>
 
         Reviewed by Timothy Hatcher.

@@ -40,11 +40,6 @@ GraphicsLayer::CompositingCoordinatesOrientation GraphicsLayer::compositingCoord
     return CompositingCoordinatesTopDown;
 }
 
-bool GraphicsLayer::showDebugBorders()
-{
-    return false;
-}
-
 GraphicsLayerSDL::GraphicsLayerSDL(GraphicsLayerClient* client)
 : GraphicsLayer(client)
 {

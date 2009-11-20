@@ -48,7 +48,7 @@
 #include "BALBase.h"
 #endif
 
-#if PLATFORM(WIN_OS) && PLATFORM(QT)
+#if PLATFORM(WIN_OS) && (PLATFORM(QT) || PLATFORM(WX))
 typedef struct HWND__* HWND;
 typedef HWND PlatformPluginWidget;
 #else
@@ -68,7 +68,7 @@ namespace WebCore {
     class KeyboardEvent;
     class MouseEvent;
     class KURL;
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
     class PluginMessageThrottlerWin;
 #endif
     class PluginPackage;
@@ -186,7 +186,7 @@ namespace WebCore {
         const String& mimeType() const { return m_mimeType; }
         const KURL& url() const { return m_url; }
 
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
         static LRESULT CALLBACK PluginViewWndProc(HWND, UINT, WPARAM, LPARAM);
         LRESULT wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
         WNDPROC pluginWndProc() const { return m_pluginWndProc; }
@@ -229,7 +229,7 @@ namespace WebCore {
 
         void invalidateWindowlessPluginRect(const IntRect&);
 
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
         void paintWindowedPluginIntoContext(GraphicsContext*, const IntRect&);
         static HDC WINAPI hookedBeginPaint(HWND, PAINTSTRUCT*);
         static BOOL WINAPI hookedEndPaint(HWND, const PAINTSTRUCT*);
@@ -299,7 +299,7 @@ namespace WebCore {
         bool m_needsXEmbed;
 #endif
 
-#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(WIN_OS) && ENABLE(NETSCAPE_PLUGIN_API)
         OwnPtr<PluginMessageThrottlerWin> m_messageThrottler;
         WNDPROC m_pluginWndProc;
         unsigned m_lastMessage;
@@ -308,7 +308,7 @@ namespace WebCore {
         bool m_haveUpdatedPluginWidget;
 #endif
 
-#if (PLATFORM(QT) && PLATFORM(WIN_OS)) || defined(XP_MACOSX)
+#if ((PLATFORM(QT) || PLATFORM(WX)) && PLATFORM(WIN_OS)) || defined(XP_MACOSX)
         // On Mac OSX and Qt/Windows the plugin does not have its own native widget,
         // but is using the containing window as its reference for positioning/painting.
         PlatformPluginWidget m_window;
@@ -327,12 +327,10 @@ private:
         void setNPWindowIfNeeded();
 #elif defined(XP_MACOSX)
         NP_CGContext m_npCgContext;
-        OwnPtr<Timer<PluginView> > m_nullEventTimer;
         NPDrawingModel m_drawingModel;
         NPEventModel m_eventModel;
 
         void setNPWindowIfNeeded();
-        void nullEventTimerFired(Timer<PluginView>*);
         Point globalMousePosForPlugin() const;
 #endif
 

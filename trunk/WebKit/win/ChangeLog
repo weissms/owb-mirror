@@ -1,3 +1,56 @@
+2009-11-20  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31186
+
+        Changes associated with renaming RenderTextControl::isUserEdited.
+
+        * DOMHTMLClasses.cpp:
+        (DOMHTMLInputElement::isUserEdited): Formerly named isUserEdited.
+        (DOMHTMLTextAreaElement::isUserEdited): Ditto.
+
+2009-11-19  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31690
+        Make SocketStreamHandleCFNet work on Windows
+
+        * WebDownloadCFNet.cpp:
+        (WebDownload::init):
+        (WebDownload::initWithRequest):
+        (WebDownload::initToResumeWithBundle):
+        Update for loaderRunLoop() now being in its own header.
+
+2009-11-19  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/7035231>
+        Support closed caption in <video> element
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::localizedMediaControlElementString):
+        (WebCore::localizedMediaControlElementHelpText):
+            Add accessibility help strings for media controller closed caption button.
+
+2009-11-18  Michelangelo De Simone  <micdesim@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <https://bugs.webkit.org/show_bug.cgi?id=27959>.
+        Support for validationMessage attribute, as per HTML5 specs.
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::validationMessageValueMissingText):
+        (WebCore::validationMessageTypeMismatchText):
+        (WebCore::validationMessagePatternMismatchText):
+        (WebCore::validationMessageTooLongText):
+        (WebCore::validationMessageRangeUnderflowText):
+        (WebCore::validationMessageRangeOverflowText):
+        (WebCore::validationMessageStepMismatchText):
+
 2009-11-18  Pavel Feldman  <pfeldman@chromium.org>
 
         Reviewed by Timothy Hatcher.

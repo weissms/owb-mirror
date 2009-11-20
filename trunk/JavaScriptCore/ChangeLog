@@ -1,3 +1,193 @@
+2009-11-20  Harald Fernengel  <harald.fernengel@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix detection of linux-g++
+
+        Never use "linux-g++*" to check for linux-g++, since this will break embedded
+        builds which use linux-arm-g++ and friends. Use 'linux*-g++*' to check for any
+        g++ on linux mkspec.
+
+        * JavaScriptCore.pri:
+
+2009-11-19  Steve Block  <steveblock@google.com>
+
+        Android port lacks configuration in Platform.h and config.h.
+        https://bugs.webkit.org/show_bug.cgi?id=31671
+
+        * wtf/Platform.h: Modified. Added Android-specific configuration.
+
+2009-11-19  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31690
+        Make SocketStreamHandleCFNet work on Windows
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * wtf/MainThread.cpp:
+        (WTF::FunctionWithContext::FunctionWithContext):
+        (WTF::dispatchFunctionsFromMainThread):
+        (WTF::callOnMainThreadAndWait):
+        * wtf/MainThread.h:
+        Re-add callOnMainThreadAndWait(), which was removed in bug 23926.
+
+2009-11-19  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by David Levin.
+
+        isMainThread() on Chromium (Mac and Linux) is so slow it timeouts LayoutTests..
+        https://bugs.webkit.org/show_bug.cgi?id=31693
+
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::initializeThreading): grab and use the pthread_t of the main thread instead of ThreadIdentifier.
+        (WTF::isMainThread): Ditto.
+
+2009-11-19  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Remove HAVE(STRING_H) guard from JavaScriptCore
+        https://bugs.webkit.org/show_bug.cgi?id=31668
+
+        * config.h:
+        * runtime/UString.cpp:
+
+2009-11-19  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Fixing a bug in MessageQueue::removeIf() that leads to an
+        assertion failure.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31657
+
+        * wtf/MessageQueue.h:
+        (WTF::MessageQueue::removeIf):
+
+2009-11-19  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Remove HAVE(FLOAT_H) guard
+        https://bugs.webkit.org/show_bug.cgi?id=31661
+
+        JavaScriptCore has a dependency on float.h, there is
+        no need to guard float.h.
+
+        * runtime/DatePrototype.cpp: Remove include directive 
+        for float.h as it is included in MathExtras.h already.
+        * runtime/Operations.cpp: Ditto.
+        * runtime/UString.cpp: Ditto.
+        * wtf/dtoa.cpp: Ditto.
+        * wtf/MathExtras.h: Remove HAVE(FLOAT_H) guard.
+        * wtf/Platform.h: Ditto.
+
+2009-11-19  Thiago Macieira <thiago.macieira@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Build fix for 32-bit Sparc machines: these machines are big-endian.
+
+        * wtf/Platform.h:
+
+2009-11-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Remove support for Qt v4.3 or older versions
+        https://bugs.webkit.org/show_bug.cgi?id=29469
+
+        * JavaScriptCore.pro:
+        * jsc.pro:
+        * wtf/unicode/qt4/UnicodeQt4.h:
+
+2009-11-18  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Move UString::from(double) implementation to new
+        WTF::doubleToStringInJavaScriptFormat(), and expose it because WebCore
+        code will use it.
+        https://bugs.webkit.org/show_bug.cgi?id=31330
+
+        - Introduce new function createRep(const char*, unsigned) and
+          UString::UString(const char*, unsigned) to reduce 2 calls to strlen().
+        - Fix a bug that dtoa() doesn't update *rve if the input value is NaN
+          or Infinity.
+
+        No new tests because this doesn't change the behavior.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * runtime/UString.cpp:
+        (JSC::createRep):
+        (JSC::UString::UString):
+        (JSC::UString::from): Move the code to doubleToStringInJavaScriptFormat().
+        * runtime/UString.h:
+        * wtf/dtoa.cpp:
+        (WTF::dtoa): Fix a bug about rve.
+        (WTF::append): A helper for doubleToStringInJavaScriptFormat().
+        (WTF::doubleToStringInJavaScriptFormat): Move the code from UString::from(double).
+        * wtf/dtoa.h:
+
+2009-11-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Remove WTF_USE_JAVASCRIPTCORE_BINDINGS as it is no longer used
+        https://bugs.webkit.org/show_bug.cgi?id=31643
+
+        * JavaScriptCore.pro:
+
+2009-11-18  Nate Chapin  <japhet@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Remove Chromium's unnecessary dependency on wtf's tcmalloc files.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31648
+
+        * JavaScriptCore.gyp/JavaScriptCore.gyp:
+
+2009-11-18  Thiago Macieira <thiago.macieira@nokia.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [Qt] Implement symbol hiding for JSC's JIT functions.
+
+        These functions are implemented directly in assembly, so they need the
+        proper directives to enable/disable visibility. On ELF systems, it's
+        .hidden, whereas on Mach-O systems (Mac) it's .private_extern. On
+        Windows, it's not necessary since you have to explicitly export. I
+        also implemented the AIX idiom, though it's unlikely anyone will
+        implement AIX/POWER JIT.
+        https://bugs.webkit.org/show_bug.cgi?id=30864
+
+        * jit/JITStubs.cpp:
+
+2009-11-18  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Interpreter may do an out of range access when throwing an exception in the profiler.
+        https://bugs.webkit.org/show_bug.cgi?id=31635
+
+        Add bounds check.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::throwException):
+
+2009-11-18  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Fix the clobber list of cacheFlush for ARM and Thumb2 on Linux
+        https://bugs.webkit.org/show_bug.cgi?id=31631
+
+        * jit/ExecutableAllocator.h:
+        (JSC::ExecutableAllocator::cacheFlush):
+
 2009-11-18  Joerg Bornemann  <joerg.bornemann@trolltech.com>
 
         Reviewed by Simon Hausmann.

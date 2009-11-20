@@ -37,11 +37,11 @@ namespace WebCore {
             : textDrawingMode(cTextFill)
             , strokeStyle(SolidStroke)
             , strokeThickness(0)
-            , strokeType(SolidColorType)
+            //, strokeType(SolidColorType)
             , strokeColor(Color::black)
             , strokeColorSpace(DeviceColorSpace)
             , fillRule(RULE_NONZERO)
-            , fillType(SolidColorType)
+            //, fillType(SolidColorType)
             , fillColor(Color::black)
             , fillColorSpace(DeviceColorSpace)
             , shouldAntialias(true)
@@ -55,7 +55,7 @@ namespace WebCore {
 
         StrokeStyle strokeStyle;
         float strokeThickness;
-        FillOrStrokeType strokeType;
+        //FillOrStrokeType strokeType;
         Color strokeColor;
         ColorSpace strokeColorSpace;
         RefPtr<Gradient> strokeGradient;
@@ -63,7 +63,7 @@ namespace WebCore {
 
         WindRule fillRule;
         GradientSpreadMethod spreadMethod;
-        FillOrStrokeType fillType;
+        //FillOrStrokeType fillType;
         Color fillColor;
         ColorSpace fillColorSpace;
         RefPtr<Gradient> fillGradient;

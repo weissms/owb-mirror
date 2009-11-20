@@ -37,11 +37,13 @@
 #include "HTMLCanvasElement.h"
 #include "HTMLElement.h"
 #include "HTMLNames.h"
+#include "InspectorTimelineAgent.h"
 #include "RenderBox.h"
 #include "RenderImage.h"
 #include "RenderLayerCompositor.h"
 #include "RenderVideo.h"
 #include "RenderView.h"
+#include "Settings.h"
 
 #include "RenderLayerBacking.h"
 
@@ -899,9 +901,9 @@ void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext*
             
             int rw;
             int rh;
-            if (box->view()->frameView()) {
-                rw = box->view()->frameView()->contentsWidth();
-                rh = box->view()->frameView()->contentsHeight();
+            if (FrameView* frameView = box->view()->frameView()) {
+                rw = frameView->contentsWidth();
+                rh = frameView->contentsHeight();
             } else {
                 rw = box->view()->width();
                 rh = box->view()->height();
@@ -1002,9 +1004,25 @@ void RenderLayerBacking::paintIntoLayer(RenderLayer* rootLayer, GraphicsContext*
     ASSERT(!m_owningLayer->m_usedTransparency);
 }
 
+static InspectorTimelineAgent* inspectorTimelineAgent(RenderObject* renderer)
+{
+    Frame* frame = renderer->document()->frame();
+    if (!frame)
+        return 0;
+    Page* page = frame->page();
+    if (!page)
+        return 0;
+    return page->inspectorTimelineAgent();
+}
+
 // Up-call from compositing layer drawing callback.
 void RenderLayerBacking::paintContents(const GraphicsLayer*, GraphicsContext& context, GraphicsLayerPaintingPhase paintingPhase, const IntRect& clip)
 {
+#if ENABLE(INSPECTOR)
+    if (InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent(m_owningLayer->renderer()))
+        timelineAgent->willPaint(clip);
+#endif
+
     // We have to use the same root as for hit testing, because both methods
     // can compute and cache clipRects.
     IntRect enclosingBBox = compositedBounds();
@@ -1022,6 +1040,21 @@ void RenderLayerBacking::paintContents(const GraphicsLayer*, GraphicsContext& co
     dirtyRect.intersect(clipRect);
 
     paintIntoLayer(m_owningLayer, &context, dirtyRect, PaintRestrictionNone, paintingPhase, renderer());
+
+#if ENABLE(INSPECTOR)
+    if (InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent(m_owningLayer->renderer()))
+        timelineAgent->didPaint();
+#endif
+}
+
+bool RenderLayerBacking::showDebugBorders() const
+{
+    return compositor() ? compositor()->showDebugBorders() : false;
+}
+
+bool RenderLayerBacking::showRepaintCounter() const
+{
+    return compositor() ? compositor()->showRepaintCounter() : false;
 }
 
 bool RenderLayerBacking::startAnimation(double beginTime, const Animation* anim, const KeyframeList& keyframes)

@@ -79,6 +79,8 @@ RenderLayerCompositor::RenderLayerCompositor(RenderView* renderView)
     : m_renderView(renderView)
     , m_rootPlatformLayer(0)
     , m_hasAcceleratedCompositing(true)
+    , m_showDebugBorders(false)
+    , m_showRepaintCounter(false)
     , m_compositingConsultsOverlap(true)
     , m_compositing(false)
     , m_rootLayerAttached(false)
@@ -109,16 +111,24 @@ void RenderLayerCompositor::enableCompositingMode(bool enable /* = true */)
     }
 }
 
-void RenderLayerCompositor::cacheAcceleratedCompositingEnabledFlag()
+void RenderLayerCompositor::cacheAcceleratedCompositingFlags()
 {
     bool hasAcceleratedCompositing = false;
-    if (Settings* settings = m_renderView->document()->settings())
+    bool showDebugBorders = false;
+    bool showRepaintCounter = false;
+    
+    if (Settings* settings = m_renderView->document()->settings()) {
         hasAcceleratedCompositing = settings->acceleratedCompositingEnabled();
+        showDebugBorders = settings->showDebugBorders();
+        showRepaintCounter = settings->showRepaintCounter();
+    }
 
-    if (hasAcceleratedCompositing != m_hasAcceleratedCompositing)
+    if (hasAcceleratedCompositing != m_hasAcceleratedCompositing || showDebugBorders != m_showDebugBorders || showRepaintCounter != m_showRepaintCounter)
         setCompositingLayersNeedRebuild();
         
     m_hasAcceleratedCompositing = hasAcceleratedCompositing;
+    m_showDebugBorders = showDebugBorders;
+    m_showRepaintCounter = showRepaintCounter;
 }
 
 void RenderLayerCompositor::setCompositingLayersNeedRebuild(bool needRebuild)
@@ -476,7 +486,7 @@ void RenderLayerCompositor::computeCompositingRequirements(RenderLayer* layer, O
 
                 // If we have to make a layer for this child, make one now so we can have a contents layer
                 // (since we need to ensure that the -ve z-order child renders underneath our contents).
-                if (childState.m_subtreeIsCompositing) {
+                if (!willBeComposited && childState.m_subtreeIsCompositing) {
                     // make layer compositing
                     layer->setMustOverlapCompositedLayers(true);
                     childState.m_compositingAncestor = layer;
@@ -509,7 +519,7 @@ void RenderLayerCompositor::computeCompositingRequirements(RenderLayer* layer, O
     // If we have a software transform, and we have layers under us, we need to also
     // be composited. Also, if we have opacity < 1, then we need to be a layer so that
     // the child layers are opaque, then rendered with opacity on this layer.
-    if (childState.m_subtreeIsCompositing && requiresCompositingWhenDescendantsAreCompositing(layer->renderer())) {
+    if (!willBeComposited && childState.m_subtreeIsCompositing && requiresCompositingWhenDescendantsAreCompositing(layer->renderer())) {
         layer->setMustOverlapCompositedLayers(true);
         if (overlapMap)
             addToOverlapMap(*overlapMap, layer, absBounds, haveComputedBounds);
