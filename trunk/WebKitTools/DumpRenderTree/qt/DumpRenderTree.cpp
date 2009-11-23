@@ -49,6 +49,8 @@
 #include <QFileInfo>
 #include <QFocusEvent>
 #include <QFontDatabase>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUndoStack>
 
@@ -79,6 +81,35 @@ namespace WebCore {
 const unsigned int maxViewWidth = 800;
 const unsigned int maxViewHeight = 600;
 
+NetworkAccessManager::NetworkAccessManager(QObject* parent)
+    : QNetworkAccessManager(parent)
+{
+#ifndef QT_NO_SSL
+    connect(this, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError>&)),
+            this, SLOT(sslErrorsEncountered(QNetworkReply*, const QList<QSslError>&)));
+#endif
+}
+
+#ifndef QT_NO_SSL
+void NetworkAccessManager::sslErrorsEncountered(QNetworkReply* reply, const QList<QSslError>& errors)
+{
+    if (reply->url().host() == "127.0.0.1" || reply->url().host() == "localhost") {
+        bool ignore = true;
+
+        // Accept any HTTPS certificate.
+        foreach (const QSslError& error, errors) {
+            if (error.error() < QSslError::UnableToGetIssuerCertificate || error.error() > QSslError::HostNameMismatch) {
+                ignore = false;
+                break;
+            }
+        }
+
+        if (ignore)
+            reply->ignoreSslErrors();
+    }
+}
+#endif
+
 WebPage::WebPage(QWidget *parent, DumpRenderTree *drt)
     : QWebPage(parent)
     , m_drt(drt)
@@ -102,6 +133,7 @@ WebPage::WebPage(QWidget *parent, DumpRenderTree *drt)
     connect(this, SIGNAL(geometryChangeRequested(const QRect &)),
             this, SLOT(setViewGeometry(const QRect & )));
 
+    setNetworkAccessManager(new NetworkAccessManager(this));
     setPluginFactory(new TestPlugin(this));
 }
 
@@ -266,7 +298,7 @@ DumpRenderTree::DumpRenderTree()
             this, SLOT(connectFrame(QWebFrame *)));
     connectFrame(m_page->mainFrame());
 
-    connect(m_page->mainFrame(), SIGNAL(loadFinished(bool)),
+    connect(m_page, SIGNAL(loadFinished(bool)),
             m_controller, SLOT(maybeDump(bool)));
 
     connect(m_page->mainFrame(), SIGNAL(titleChanged(const QString&)),
@@ -339,9 +371,7 @@ void DumpRenderTree::resetToConsistentStateBeforeTesting()
     qt_drt_clearFrameName(m_page->mainFrame());
 
     WorkQueue::shared()->clear();
-    // The below line is used in other ports, but for us it results in
-    // a timeout for fast/frames/frame-navigation.html
-    //WorkQueue::shared()->setFrozen(false);
+    WorkQueue::shared()->setFrozen(false);
 
     qt_drt_resetOriginAccessWhiteLists();
 

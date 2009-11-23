@@ -410,6 +410,16 @@ AccessibilityUIElement AccessibilityUIElement::disclosedRowAtIndex(unsigned inde
     return 0;
 }
 
+AccessibilityUIElement AccessibilityUIElement::ariaOwnsElementAtIndex(unsigned index)
+{
+    return 0;
+}
+
+AccessibilityUIElement AccessibilityUIElement::ariaFlowToElementAtIndex(unsigned index)
+{
+    return 0;
+}
+
 AccessibilityUIElement AccessibilityUIElement::selectedRowAtIndex(unsigned index)
 {
     return 0;

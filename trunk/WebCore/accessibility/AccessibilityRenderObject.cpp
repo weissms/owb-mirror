@@ -1263,6 +1263,8 @@ void AccessibilityRenderObject::addRadioButtonGroupMembers(AccessibilityChildren
 // or an internal anchor connection
 void AccessibilityRenderObject::linkedUIElements(AccessibilityChildrenVector& linkedUIElements) const
 {
+    ariaFlowToElements(linkedUIElements);
+
     if (isAnchor()) {
         AccessibilityObject* linkedAXElement = internalLinkElement();
         if (linkedAXElement)
@@ -1281,6 +1283,27 @@ bool AccessibilityRenderObject::hasTextAlternative() const
         return true;
         
     return false;   
+}
+    
+bool AccessibilityRenderObject::supportsARIAFlowTo() const
+{
+    return !getAttribute(aria_flowtoAttr).string().isEmpty();
+}
+    
+void AccessibilityRenderObject::ariaFlowToElements(AccessibilityChildrenVector& flowTo) const
+{
+    Vector<Element*> elements;
+    elementsFromAttribute(elements, aria_flowtoAttr);
+    
+    AXObjectCache* cache = axObjectCache();
+    unsigned count = elements.size();
+    for (unsigned k = 0; k < count; ++k) {
+        Element* element = elements[k];
+        AccessibilityObject* flowToElement = cache->getOrCreate(element->renderer());
+        if (flowToElement)
+            flowTo.append(flowToElement);
+    }
+        
 }
     
 bool AccessibilityRenderObject::exposesTitleUIElement() const
@@ -1821,6 +1844,29 @@ void AccessibilityRenderObject::setValue(const String& string)
     }
 }
 
+void AccessibilityRenderObject::ariaOwnsElements(AccessibilityChildrenVector& axObjects) const
+{
+    Vector<Element*> elements;
+    elementsFromAttribute(elements, aria_ownsAttr);
+    
+    unsigned count = elements.size();
+    for (unsigned k = 0; k < count; ++k) {
+        RenderObject* render = elements[k]->renderer();
+        AccessibilityObject* obj = axObjectCache()->getOrCreate(render);
+        if (obj)
+            axObjects.append(obj);
+    }
+}
+
+bool AccessibilityRenderObject::supportsARIAOwns() const
+{
+    if (!m_renderer)
+        return false;
+    const AtomicString& ariaOwns = getAttribute(aria_ownsAttr).string();
+
+    return !ariaOwns.isEmpty();
+}
+    
 bool AccessibilityRenderObject::isEnabled() const
 {
     ASSERT(m_renderer);

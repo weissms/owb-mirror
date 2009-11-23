@@ -139,7 +139,6 @@ BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontFallbackListQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformData.h
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformDataQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt.cpp
-BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt43.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/GlyphPageTreeNodeQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/SimpleFontDataQt.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/Font.cpp

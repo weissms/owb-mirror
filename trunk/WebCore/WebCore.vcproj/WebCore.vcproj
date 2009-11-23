@@ -13346,6 +13346,10 @@
 					RelativePath="..\history\cf\HistoryPropertyList.h"
 					>
 				</File>
+                <File
+                    RelativePath="..\inspector\front-end\ConsolePanel.js"
+                    >
+                </File>
 				<File
 					RelativePath="..\inspector\front-end\WatchExpressionsSidebarPane.js"
 					>

@@ -57,9 +57,6 @@ WebInspector.ConsoleView = function(drawer)
     this.toggleConsoleButton.title = WebInspector.UIString("Show console.");
     this.toggleConsoleButton.addEventListener("click", this._toggleConsoleButtonClicked.bind(this), false);
 
-    var anchoredStatusBar = document.getElementById("anchored-status-bar-items");
-    anchoredStatusBar.appendChild(this.toggleConsoleButton);
-    
     // Will hold the list of filter elements
     this.filterBarElement = document.getElementById("console-filter");
     
@@ -101,7 +98,7 @@ WebInspector.ConsoleView.prototype = {
     
     _updateFilter: function(e)
     {
-        var isMac = InspectorController.platform().indexOf("mac-") === 0;
+        var isMac = WebInspector.isMac();
         var selectMultiple = false;
         if (isMac && e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey)
             selectMultiple = true;

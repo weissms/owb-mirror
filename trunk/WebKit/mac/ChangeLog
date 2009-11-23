@@ -1,3 +1,34 @@
+2009-11-23  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        WAI-ARIA: add support for 'math' role
+        https://bugs.webkit.org/show_bug.cgi?id=31706
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory AXARIAContentGroupText:]):
+
+2009-11-20  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Make sure to export WebSerializedJSValue.
+
+        * WebKit.exp:
+
+2009-11-20  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt and Jon Honeycutt.
+
+        Add support for WebSerializedJSValue to WebKit.  This object wraps the SerializedScriptValue functionality in WebCore
+        and exposes the ability to do JS value serialization/deserialization to WebKit clients.
+
+        * WebView/WebSerializedJSValue.h: Added.
+        * WebView/WebSerializedJSValue.mm: Added.
+        (-[WebSerializedJSValue initWithValue:context:]):
+        (-[WebSerializedJSValue deserialize:]):
+        (-[WebSerializedJSValue dealloc]):
+
 2009-11-20  Chris Marrin  <cmarrin@apple.com>
 
         Reviewed by Simon Fraser.

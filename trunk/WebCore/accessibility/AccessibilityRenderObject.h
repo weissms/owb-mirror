@@ -141,6 +141,8 @@ public:
     virtual AccessibilityObject* correspondingControlForLabelElement() const;
     virtual AccessibilityObject* correspondingLabelForControlElement() const;
 
+    virtual void ariaOwnsElements(AccessibilityChildrenVector&) const;
+    virtual bool supportsARIAOwns() const;
     virtual AccessibilityRole ariaRoleAttribute() const;
     virtual bool isPresentationalChildOfAriaRole() const;
     virtual bool ariaRoleHasPresentationalChildren() const;
@@ -217,7 +219,9 @@ public:
     virtual VisiblePositionRange visiblePositionRangeForLine(unsigned) const;
     virtual IntRect boundsForVisiblePositionRange(const VisiblePositionRange&) const;
     virtual void setSelectedVisiblePositionRange(const VisiblePositionRange&) const;
-    
+    virtual bool supportsARIAFlowTo() const;
+    virtual void ariaFlowToElements(AccessibilityChildrenVector&) const;
+
     virtual VisiblePosition visiblePositionForPoint(const IntPoint&) const;
     virtual VisiblePosition visiblePositionForIndex(unsigned indexValue, bool lastIndexOK) const;    
     virtual int index(const VisiblePosition&) const;

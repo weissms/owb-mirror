@@ -86,7 +86,10 @@ DOMNode* DOMNode::parentNode()
 
 DOMNodeList* DOMNode::childNodes()
 {
-    return 0;
+    if (!m_node)
+        return 0;
+
+    return DOMNodeList::createInstance(m_node->childNodes().get());
 }
 
 DOMNode* DOMNode::firstChild()
@@ -503,7 +506,10 @@ void DOMElement::lineBoxRects(BalRectangle* /*rects*/, int /*cRects*/)
 
 const char* DOMElement::tagName()
 {
-    return "";
+    if (!m_element)
+        return "";
+
+    return strdup(m_element->tagName().utf8().data());
 }
     
 const char* DOMElement::getAttribute(const char* name)

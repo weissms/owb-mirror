@@ -1,3 +1,100 @@
+2009-11-23  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt and Jon Honeycutt.
+
+        Add support for WebSerializedJSValue to WebKit.  This object wraps the SerializedScriptValue functionality in WebCore
+        and exposes the ability to do JS value serialization/deserialization to WebKit clients.
+
+        * Interfaces/IWebSerializedJSValue.idl: Added.
+        * Interfaces/WebKit.idl:
+        * WebKit.vcproj/WebKit.vcproj:
+        * WebSerializedJSValue.cpp: Added.
+        (WebSerializedJSValue::WebSerializedJSValue):
+        (WebSerializedJSValue::~WebSerializedJSValue):
+        (WebSerializedJSValue::createInstance):
+        (WebSerializedJSValue::AddRef):
+        (WebSerializedJSValue::Release):
+        (WebSerializedJSValue::QueryInterface):
+        (WebSerializedJSValue::deserialize):
+        * WebSerializedJSValue.h: Added.
+
+2009-11-21  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Windows build fix. Unreviewed.
+
+        * Interfaces/IWebSerializedJSValue.idl:
+
+2009-11-20  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        DOMElement::tagName() is unimplemented
+
+        https://bugs.webkit.org/show_bug.cgi?id=31746
+
+        Reviewed by Darin Adler.
+
+        * DOMCoreClasses.cpp:
+        (DOMElement::tagName):
+        Create a BString from the element's tag name, and release its BSTR
+        into result.
+
+2009-11-20  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        DOMNode::childNodes() is unimplemented
+
+        https://bugs.webkit.org/show_bug.cgi?id=31745
+
+        Reviewed by Darin Adler.
+
+        * DOMCoreClasses.cpp:
+        (DOMNode::childNodes):
+        Create a DOMNodeList from the node's child nodes.
+
+2009-11-20  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Change WebSerializedJSValue on Windows to have a zero-argument createInstance call.  Move the
+        serialization into a separate serialize() function that can be called after the object has been
+        created.
+
+        Fix a typo in serialize() caused when fixing build bustage (put a ! back in).
+
+        * Interfaces/IWebSerializedJSValue.idl:
+        * WebSerializedJSValue.cpp:
+        (WebSerializedJSValue::WebSerializedJSValue):
+        (WebSerializedJSValue::createInstance):
+        (WebSerializedJSValue::serialize):
+        (WebSerializedJSValue::deserialize):
+        * WebSerializedJSValue.h:
+
+2009-11-20  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Another go at the Windows Build Fix - this is a couple steps of it,
+        so a little more involved than most build fixes.
+
+        * Interfaces/IWebSerializedJSValue.idl:
+        * Interfaces/JavaScriptCoreAPITypes.idl:
+        * WebKit.vcproj/Interfaces.vcproj:
+        * WebSerializedJSValue.cpp:
+        (WebSerializedJSValue::deserialize):
+        * WebSerializedJSValue.h:
+
+2009-11-20  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Build fix for Windows - only declare JSContextRef once, instead
+        of in two different idl files. Create a new file to hold the
+        definition of JSContextRef.
+
+        * Interfaces/IWebFrameLoadDelegate.idl:
+        * Interfaces/IWebSerializedJSValue.idl:
+        * Interfaces/JavaScriptCoreAPITypes.idl: Added.
+        * Interfaces/WebKit.idl:
+        * WebKit.vcproj/Interfaces.vcproj:
+
 2009-11-20  Daniel Bates  <dbates@webkit.org>
 
         Reviewed by Darin Adler.

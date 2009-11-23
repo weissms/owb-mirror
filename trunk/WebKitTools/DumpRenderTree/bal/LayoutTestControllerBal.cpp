@@ -386,3 +386,8 @@ void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObj
 void LayoutTestController::setTimelineProfilingEnabled(bool flag)
 {
 }
+
+void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool flag)
+{
+    // FIXME: implement
+}
