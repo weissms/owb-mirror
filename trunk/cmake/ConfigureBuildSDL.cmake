@@ -19,6 +19,7 @@ set(ENABLE_EVENTSOURCE ON CACHE BOOLEAN "Enable HTML5 server-sent events support
 set(ENABLE_ICONDATABASE ON CACHE BOOLEAN "Enable icon database support" FORCE)
 set(ENABLE_OFFLINE_WEB_APPLICATIONS ON CACHE BOOLEAN "Enable HTML5 offline web applications support" FORCE)
 set(ENABLE_OFFLINE_DYNAMIC_ENTRIES ON CACHE BOOLEAN "Enable HTML5 offline dynamic entries support" FORCE)
+set(ENABLE_SHARED_SCRIPT OFF CACHE BOOLEAN "Enable shared script support" FORCE)
 
 set(ENABLE_GEOLOCATION ON CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)

@@ -52,7 +52,7 @@ my $startTime = time();
 
 my ($threeDCanvasSupport, $threeDRenderingSupport, $channelMessagingSupport, $databaseSupport, $datagridSupport, $datalistSupport, 
     $domStorageSupport, $eventsourceSupport, $filtersSupport, $geolocationSupport, $iconDatabaseSupport,
-    $javaScriptDebuggerSupport, $mathmlSupport, $offlineWebApplicationSupport, $sharedWorkersSupport, 
+    $javaScriptDebuggerSupport, $mathmlSupport, $offlineWebApplicationSupport, $sharedScriptSupport, $sharedWorkersSupport, 
     $svgSupport, $svgAnimationSupport, $svgAsImageSupport, $svgDOMObjCBindingsSupport, $svgFontsSupport,
     $svgForeignObjectSupport, $svgUseSupport, $videoSupport, $webSocketsSupport, $wmlSupport, $wcssSupport, $xhtmlmpSupport, $workersSupport,
     $xpathSupport, $xsltSupport, $coverageSupport, $notificationsSupport);
@@ -105,6 +105,9 @@ my @features = (
 
     { option => "offline-web-applications", desc => "Toggle Offline Web Application Support",
       define => "ENABLE_OFFLINE_WEB_APPLICATIONS", default => 1, value => \$offlineWebApplicationSupport },
+
+    { option => "shared-script", desc => "Toggle Shared Script Support",
+      define => "ENABLE_SHARED_SCRIPT", default => 0, value => \$sharedScriptSupport },
 
     { option => "shared-workers", desc => "Toggle SharedWorkers support",
       define => "ENABLE_SHARED_WORKERS", default => (isAppleWebKit() || isGtk()), value => \$sharedWorkersSupport },
@@ -361,7 +364,7 @@ for my $dir (@projects) {
         if (isAppleWinWebKit()) {
             print "\n\n===== BUILD FAILED ======\n\n";
             my $scriptDir = relativeScriptsDir();
-            print "Please ensure you have run $scriptDir/update-webkit to install depenedencies.\n\n";
+            print "Please ensure you have run $scriptDir/update-webkit to install dependencies.\n\n";
             my $baseProductDir = baseProductDir();
             print "You can view build errors by checking the BuildLog.htm files located at:\n$baseProductDir/obj/<project>/<config>.\n";
         }

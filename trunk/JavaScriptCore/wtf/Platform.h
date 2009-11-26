@@ -744,6 +744,10 @@
 #define ENABLE_NOTIFICATIONS 0
 #endif
 
+#if !defined(ENABLE_SHARED_SCRIPT)
+#define ENABLE_SHARED_SCRIPT 0
+#endif
+
 #if !defined(ENABLE_TEXT_CARET)
 #define ENABLE_TEXT_CARET 1
 #endif
@@ -900,6 +904,10 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 
 #if PLATFORM(IPHONE)
 #define WTF_USE_ACCELERATED_COMPOSITING 1
+#endif
+
+#if PLATFORM(WIN)
+#define WTF_USE_ACCELERATED_COMPOSITING 0
 #endif
 
 #if COMPILER(GCC)

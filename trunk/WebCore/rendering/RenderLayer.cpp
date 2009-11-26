@@ -375,6 +375,20 @@ TransformationMatrix RenderLayer::currentTransform() const
     return *m_transform;
 }
 
+TransformationMatrix RenderLayer::renderableTransform(PaintBehavior paintBehavior) const
+{
+    if (!m_transform)
+        return TransformationMatrix();
+    
+    if (paintBehavior & PaintBehaviorFlattenCompositingLayers) {
+        TransformationMatrix matrix = *m_transform;
+        makeMatrixRenderable(matrix, false /* flatten 3d */);
+        return matrix;
+    }
+
+    return *m_transform;
+}
+
 void RenderLayer::setHasVisibleContent(bool b)
 { 
     if (m_hasVisibleContent == b && !m_visibleContentStatusDirty)
@@ -740,9 +754,9 @@ RenderLayer* RenderLayer::transparentPaintingAncestor()
     return 0;
 }
 
-static IntRect transparencyClipBox(const RenderLayer* l, const RenderLayer* rootLayer);
+static IntRect transparencyClipBox(const RenderLayer* l, const RenderLayer* rootLayer, PaintBehavior paintBehavior);
 
-static void expandClipRectForDescendantsAndReflection(IntRect& clipRect, const RenderLayer* l, const RenderLayer* rootLayer)
+static void expandClipRectForDescendantsAndReflection(IntRect& clipRect, const RenderLayer* l, const RenderLayer* rootLayer, PaintBehavior paintBehavior)
 {
     // If we have a mask, then the clip is limited to the border box area (and there is
     // no need to examine child layers).
@@ -751,7 +765,7 @@ static void expandClipRectForDescendantsAndReflection(IntRect& clipRect, const R
         // a stacking context.  This means we can just walk the layer tree directly.
         for (RenderLayer* curr = l->firstChild(); curr; curr = curr->nextSibling()) {
             if (!l->reflection() || l->reflectionLayer() != curr)
-                clipRect.unite(transparencyClipBox(curr, rootLayer));
+                clipRect.unite(transparencyClipBox(curr, rootLayer, paintBehavior));
         }
     }
 
@@ -769,13 +783,13 @@ static void expandClipRectForDescendantsAndReflection(IntRect& clipRect, const R
     }
 }
 
-static IntRect transparencyClipBox(const RenderLayer* l, const RenderLayer* rootLayer)
+static IntRect transparencyClipBox(const RenderLayer* l, const RenderLayer* rootLayer, PaintBehavior paintBehavior)
 {
     // FIXME: Although this function completely ignores CSS-imposed clipping, we did already intersect with the
     // paintDirtyRect, and that should cut down on the amount we have to paint.  Still it
     // would be better to respect clips.
     
-    if (rootLayer != l && l->paintsWithTransform()) {
+    if (rootLayer != l && l->paintsWithTransform(paintBehavior)) {
         // The best we can do here is to use enclosed bounding boxes to establish a "fuzzy" enough clip to encompass
         // the transformed layer and all of its children.
         int x = 0;
@@ -787,28 +801,28 @@ static IntRect transparencyClipBox(const RenderLayer* l, const RenderLayer* root
         transform = *l->transform() * transform;
 
         IntRect clipRect = l->boundingBox(l);
-        expandClipRectForDescendantsAndReflection(clipRect, l, l);
+        expandClipRectForDescendantsAndReflection(clipRect, l, l, paintBehavior);
         return transform.mapRect(clipRect);
     }
     
     IntRect clipRect = l->boundingBox(rootLayer);
-    expandClipRectForDescendantsAndReflection(clipRect, l, rootLayer);
+    expandClipRectForDescendantsAndReflection(clipRect, l, rootLayer, paintBehavior);
     return clipRect;
 }
 
-void RenderLayer::beginTransparencyLayers(GraphicsContext* p, const RenderLayer* rootLayer)
+void RenderLayer::beginTransparencyLayers(GraphicsContext* p, const RenderLayer* rootLayer, PaintBehavior paintBehavior)
 {
-    if (p->paintingDisabled() || (paintsWithTransparency() && m_usedTransparency))
+    if (p->paintingDisabled() || (paintsWithTransparency(paintBehavior) && m_usedTransparency))
         return;
     
     RenderLayer* ancestor = transparentPaintingAncestor();
     if (ancestor)
-        ancestor->beginTransparencyLayers(p, rootLayer);
+        ancestor->beginTransparencyLayers(p, rootLayer, paintBehavior);
     
-    if (paintsWithTransparency()) {
+    if (paintsWithTransparency(paintBehavior)) {
         m_usedTransparency = true;
         p->save();
-        IntRect clipRect = transparencyClipBox(this, rootLayer);
+        IntRect clipRect = transparencyClipBox(this, rootLayer, paintBehavior);
         p->clip(clipRect);
         p->beginTransparencyLayer(renderer()->opacity());
 #ifdef REVEAL_TRANSPARENCY_LAYERS
@@ -2058,10 +2072,10 @@ bool RenderLayer::scroll(ScrollDirection direction, ScrollGranularity granularit
     return (didHorizontalScroll || didVerticalScroll);
 }
 
-void RenderLayer::paint(GraphicsContext* p, const IntRect& damageRect, PaintRestriction paintRestriction, RenderObject *paintingRoot)
+void RenderLayer::paint(GraphicsContext* p, const IntRect& damageRect, PaintBehavior paintBehavior, RenderObject *paintingRoot)
 {
     RenderObject::OverlapTestRequestMap overlapTestRequests;
-    paintLayer(this, p, damageRect, paintRestriction, paintingRoot, &overlapTestRequests);
+    paintLayer(this, p, damageRect, paintBehavior, paintingRoot, &overlapTestRequests);
     RenderObject::OverlapTestRequestMap::iterator end = overlapTestRequests.end();
     for (RenderObject::OverlapTestRequestMap::iterator it = overlapTestRequests.begin(); it != end; ++it)
         it->first->setOverlapTestResult(false);
@@ -2105,7 +2119,7 @@ static bool shouldDoSoftwarePaint(const RenderLayer* layer, bool paintingReflect
 #endif
 
 void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
-                        const IntRect& paintDirtyRect, PaintRestriction paintRestriction,
+                        const IntRect& paintDirtyRect, PaintBehavior paintBehavior,
                         RenderObject* paintingRoot, RenderObject::OverlapTestRequestMap* overlapTestRequests,
                         PaintLayerFlags paintFlags)
 {
@@ -2113,7 +2127,7 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     if (isComposited()) {
         // The updatingControlTints() painting pass goes through compositing layers,
         // but we need to ensure that we don't cache clip rects computed with the wrong root in this case.
-        if (p->updatingControlTints())
+        if (p->updatingControlTints() || (paintBehavior & PaintBehaviorFlattenCompositingLayers))
             paintFlags |= PaintLayerTemporaryClipRects;
         else if (!backing()->paintingGoesToWindow() && !shouldDoSoftwarePaint(this, paintFlags & PaintLayerPaintingReflection)) {
             // If this RenderLayer should paint into its backing, that will be done via RenderLayerBacking::paintIntoLayer().
@@ -2132,19 +2146,20 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     if (!renderer()->opacity())
         return;
 
-    if (paintsWithTransparency())
+    if (paintsWithTransparency(paintBehavior))
         paintFlags |= PaintLayerHaveTransparency;
 
     // Apply a transform if we have one.  A reflection is considered to be a transform, since it is a flip and a translate.
-    if (paintsWithTransform() && !(paintFlags & PaintLayerAppliedTransform)) {
+    if (paintsWithTransform(paintBehavior) && !(paintFlags & PaintLayerAppliedTransform)) {
+        TransformationMatrix layerTransform = renderableTransform(paintBehavior);
         // If the transform can't be inverted, then don't paint anything.
-        if (!m_transform->isInvertible())
+        if (!layerTransform.isInvertible())
             return;
 
         // If we have a transparency layer enclosing us and we are the root of a transform, then we need to establish the transparency
         // layer from the parent now.
         if (paintFlags & PaintLayerHaveTransparency)
-            parent()->beginTransparencyLayers(p, rootLayer);
+            parent()->beginTransparencyLayers(p, rootLayer, paintBehavior);
   
         // Make sure the parent's clip rects have been calculated.
         IntRect clipRect = paintDirtyRect;
@@ -2163,14 +2178,14 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
         convertToLayerCoords(rootLayer, x, y);
         TransformationMatrix transform;
         transform.translate(x, y);
-        transform = *m_transform * transform;
+        transform = layerTransform * transform;
         
         // Apply the transform.
         p->save();
         p->concatCTM(transform);
 
         // Now do a paint with the root layer shifted to be us.
-        paintLayer(this, p, transform.inverse().mapRect(paintDirtyRect), paintRestriction, paintingRoot, overlapTestRequests, paintFlags | PaintLayerAppliedTransform);
+        paintLayer(this, p, transform.inverse().mapRect(paintDirtyRect), paintBehavior, paintingRoot, overlapTestRequests, paintFlags | PaintLayerAppliedTransform);
 
         p->restore();
         
@@ -2187,7 +2202,7 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     if (m_reflection && !m_paintingInsideReflection) {
         // Mark that we are now inside replica painting.
         m_paintingInsideReflection = true;
-        reflectionLayer()->paintLayer(rootLayer, p, paintDirtyRect, paintRestriction, paintingRoot, overlapTestRequests, localPaintFlags | PaintLayerPaintingReflection);
+        reflectionLayer()->paintLayer(rootLayer, p, paintDirtyRect, paintBehavior, paintingRoot, overlapTestRequests, localPaintFlags | PaintLayerPaintingReflection);
         m_paintingInsideReflection = false;
     }
 
@@ -2202,8 +2217,8 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     // Ensure our lists are up-to-date.
     updateCompositingAndLayerListsIfNeeded();
 
-    bool selectionOnly = paintRestriction == PaintRestrictionSelectionOnly || paintRestriction == PaintRestrictionSelectionOnlyBlackText;
-    bool forceBlackText = paintRestriction == PaintRestrictionSelectionOnlyBlackText;
+    bool forceBlackText = paintBehavior & PaintBehaviorForceBlackText;
+    bool selectionOnly  = paintBehavior & PaintBehaviorSelectionOnly;
     
     // If this layer's renderer is a child of the paintingRoot, we render unconditionally, which
     // is done by passing a nil paintingRoot down to our renderer (as if no paintingRoot was ever set).
@@ -2221,7 +2236,7 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     if (shouldPaint && !selectionOnly && !damageRect.isEmpty()) {
         // Begin transparency layers lazily now that we know we have to paint something.
         if (haveTransparency)
-            beginTransparencyLayers(p, rootLayer);
+            beginTransparencyLayers(p, rootLayer, paintBehavior);
         
         // Paint our background first, before painting any child layers.
         // Establish the clip used to paint our background.
@@ -2238,13 +2253,13 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     // Now walk the sorted list of children with negative z-indices.
     if (m_negZOrderList)
         for (Vector<RenderLayer*>::iterator it = m_negZOrderList->begin(); it != m_negZOrderList->end(); ++it)
-            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintRestriction, paintingRoot, overlapTestRequests, localPaintFlags);
+            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintBehavior, paintingRoot, overlapTestRequests, localPaintFlags);
     
     // Now establish the appropriate clip and paint our child RenderObjects.
     if (shouldPaint && !clipRectToApply.isEmpty()) {
         // Begin transparency layers lazily now that we know we have to paint something.
         if (haveTransparency)
-            beginTransparencyLayers(p, rootLayer);
+            beginTransparencyLayers(p, rootLayer, paintBehavior);
 
         // Set up the clip used when painting our children.
         setClip(p, paintDirtyRect, clipRectToApply);
@@ -2277,12 +2292,12 @@ void RenderLayer::paintLayer(RenderLayer* rootLayer, GraphicsContext* p,
     // Paint any child layers that have overflow.
     if (m_normalFlowList)
         for (Vector<RenderLayer*>::iterator it = m_normalFlowList->begin(); it != m_normalFlowList->end(); ++it)
-            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintRestriction, paintingRoot, overlapTestRequests, localPaintFlags);
+            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintBehavior, paintingRoot, overlapTestRequests, localPaintFlags);
 
     // Now walk the sorted list of children with positive z-indices.
     if (m_posZOrderList)
         for (Vector<RenderLayer*>::iterator it = m_posZOrderList->begin(); it != m_posZOrderList->end(); ++it)
-            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintRestriction, paintingRoot, overlapTestRequests, localPaintFlags);
+            it[0]->paintLayer(rootLayer, p, paintDirtyRect, paintBehavior, paintingRoot, overlapTestRequests, localPaintFlags);
     
     if (renderer()->hasMask() && shouldPaint && !selectionOnly && !damageRect.isEmpty()) {
         setClip(p, paintDirtyRect, damageRect);

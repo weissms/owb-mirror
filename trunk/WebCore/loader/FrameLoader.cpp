@@ -518,7 +518,7 @@ void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy, DatabasePolic
                 m_unloadEventBeingDispatched = true;
                 if (m_frame->domWindow()) {
                     if (unloadEventPolicy == UnloadEventPolicyUnloadAndPageHide)
-                        m_frame->domWindow()->dispatchEvent(PageTransitionEvent::create(EventNames().pagehideEvent, m_frame->document()->inPageCache()), m_frame->document());
+                        m_frame->domWindow()->dispatchEvent(PageTransitionEvent::create(eventNames().pagehideEvent, m_frame->document()->inPageCache()), m_frame->document());
                     if (!m_frame->document()->inPageCache())
                         m_frame->domWindow()->dispatchEvent(Event::create(eventNames().unloadEvent, false, false), m_frame->domWindow()->document());
                 }
@@ -3273,10 +3273,16 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
     ResourceRequest initialRequest = request;
     initialRequest.setTimeoutInterval(10);
     
+    // Use the original request's cache policy for two reasons:
+    // 1. For POST requests, we mutate the cache policy for the main resource,
+    //    but we do not want this to apply to subresources
+    // 2. Delegates that modify the cache policy using willSendRequest: should
+    //    not affect any other resources. Such changes need to be done
+    //    per request.
     if (initialRequest.isConditional())
         initialRequest.setCachePolicy(ReloadIgnoringCacheData);
     else
-        initialRequest.setCachePolicy(documentLoader()->request().cachePolicy());
+        initialRequest.setCachePolicy(originalRequest().cachePolicy());
     
     if (!referrer.isEmpty())
         initialRequest.setHTTPReferrer(referrer);
@@ -3630,7 +3636,7 @@ void FrameLoader::pageHidden()
 {
     m_unloadEventBeingDispatched = true;
     if (m_frame->domWindow())
-        m_frame->domWindow()->dispatchEvent(PageTransitionEvent::create(EventNames().pagehideEvent, true), m_frame->document());
+        m_frame->domWindow()->dispatchEvent(PageTransitionEvent::create(eventNames().pagehideEvent, true), m_frame->document());
     m_unloadEventBeingDispatched = false;
 
     // Send pagehide event for subframes as well

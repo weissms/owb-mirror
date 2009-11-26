@@ -48,8 +48,9 @@ list(APPEND IDL_SRC
 
 if(ENABLE_3D_CANVAS)
     list(APPEND WEBCORE_SRC
-        html/canvas/WebGLRenderingContext.cpp
         html/canvas/WebGLBuffer.cpp
+        html/canvas/WebGLGetInfo.cpp
+        html/canvas/WebGLRenderingContext.cpp
     )
     list(APPEND IDL_SRC
         html/canvas/WebGLActiveInfo.idl

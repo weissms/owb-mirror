@@ -32,7 +32,10 @@
 #include "config.h"
 #include "SocketStreamHandle.h"
 
+#include "Credential.h"
+#include "CredentialStorage.h"
 #include "Logging.h"
+#include "ProtectionSpace.h"
 #include "SocketStreamError.h"
 #include "SocketStreamHandleClient.h"
 #include <wtf/MainThread.h>
@@ -43,17 +46,14 @@
 
 #if PLATFORM(WIN)
 #include "LoaderRunLoopCF.h"
+#include <WebKitSystemInterface/WebKitSystemInterface.h>
+#else
+#include "WebCoreSystemInterface.h"
 #endif
 
 #ifdef BUILDING_ON_TIGER
 #define CFN_EXPORT extern
 #endif
-
-extern "C" {
-CFN_EXPORT const CFStringRef kCFStreamPropertyCONNECTProxy;
-CFN_EXPORT const CFStringRef kCFStreamPropertyCONNECTProxyHost;
-CFN_EXPORT const CFStringRef kCFStreamPropertyCONNECTProxyPort;
-}
 
 namespace WebCore {
 
@@ -61,6 +61,7 @@ SocketStreamHandle::SocketStreamHandle(const KURL& url, SocketStreamHandleClient
     : SocketStreamHandleBase(url, client)
     , m_connectingSubstate(New)
     , m_connectionType(Unknown)
+    , m_sentStoredCredentials(false)
 {
     LOG(Network, "SocketStreamHandle %p new client %p", this, m_client);
 
@@ -69,13 +70,21 @@ SocketStreamHandle::SocketStreamHandle(const KURL& url, SocketStreamHandleClient
     if (!m_url.port())
         m_url.setPort(shouldUseSSL() ? 443 : 80);
 
-    KURL httpURL(KURL(), (shouldUseSSL() ? "https://" : "http://") + m_url.host());
-    m_httpURL.adoptCF(httpURL.createCFURL());
+    KURL httpsURL(KURL(), "https://" + m_url.host());
+    m_httpsURL.adoptCF(httpsURL.createCFURL());
 
     createStreams();
     ASSERT(!m_readStream == !m_writeStream);
     if (!m_readStream) // Doing asynchronous PAC file processing, streams will be created later.
         return;
+
+    scheduleStreams();
+}
+
+void SocketStreamHandle::scheduleStreams()
+{
+    ASSERT(m_readStream);
+    ASSERT(m_writeStream);
 
     CFStreamClientContext clientContext = { 0, this, 0, 0, copyCFStreamDescription };
     // FIXME: Pass specific events we're interested in instead of -1.
@@ -93,12 +102,73 @@ SocketStreamHandle::SocketStreamHandle(const KURL& url, SocketStreamHandleClient
     CFReadStreamOpen(m_readStream.get());
     CFWriteStreamOpen(m_writeStream.get());
 
+#ifndef BUILDING_ON_TIGER
+    if (m_pacRunLoopSource)
+        removePACRunLoopSource();
+#endif
+
     m_connectingSubstate = WaitingForConnect;
+}
+
+#ifndef BUILDING_ON_TIGER
+CFStringRef SocketStreamHandle::copyPACExecutionDescription(void*)
+{
+    return CFSTR("WebSocket proxy PAC file execution");
+}
+
+struct MainThreadPACCallbackInfo {
+    MainThreadPACCallbackInfo(SocketStreamHandle* handle, CFArrayRef proxyList) : handle(handle), proxyList(proxyList) { }
+    SocketStreamHandle* handle;
+    CFArrayRef proxyList;
+};
+
+void SocketStreamHandle::pacExecutionCallback(void* client, CFArrayRef proxyList, CFErrorRef)
+{
+    SocketStreamHandle* handle = static_cast<SocketStreamHandle*>(client);
+    MainThreadPACCallbackInfo info(handle, proxyList);
+    // If we're already on main thread (e.g. on Mac), callOnMainThreadAndWait() will be just a function call.
+    callOnMainThreadAndWait(pacExecutionCallbackMainThread, &info);
+}
+
+void SocketStreamHandle::pacExecutionCallbackMainThread(void* invocation)
+{
+    MainThreadPACCallbackInfo* info = static_cast<MainThreadPACCallbackInfo*>(invocation);
+    ASSERT(info->handle->m_connectingSubstate == ExecutingPACFile);
+    // This time, the array won't have PAC as a first entry.
+    info->handle->chooseProxyFromArray(info->proxyList);
+    info->handle->createStreams();
+    info->handle->scheduleStreams();
+}
+
+void SocketStreamHandle::executePACFileURL(CFURLRef pacFileURL)
+{
+    // CFNetwork returns an empty proxy array for WebScoket schemes, so use m_httpsURL.
+    CFStreamClientContext clientContext = { 0, this, 0, 0, copyPACExecutionDescription };
+    m_pacRunLoopSource.adoptCF(CFNetworkExecuteProxyAutoConfigurationURL(pacFileURL, m_httpsURL.get(), pacExecutionCallback, &clientContext));
+#if PLATFORM(WIN)
+    CFRunLoopAddSource(loaderRunLoop(), m_pacRunLoopSource.get(), kCFRunLoopDefaultMode);
+#else
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), m_pacRunLoopSource.get(), kCFRunLoopCommonModes);
+#endif
+    m_connectingSubstate = ExecutingPACFile;
+}
+
+void SocketStreamHandle::removePACRunLoopSource()
+{
+    ASSERT(m_pacRunLoopSource);
+
+    CFRunLoopSourceInvalidate(m_pacRunLoopSource.get());
+#if PLATFORM(WIN)
+    CFRunLoopRemoveSource(loaderRunLoop(), m_pacRunLoopSource.get(), kCFRunLoopDefaultMode);
+#else
+    CFRunLoopRemoveSource(CFRunLoopGetCurrent(), m_pacRunLoopSource.get(), kCFRunLoopCommonModes);
+#endif
+    m_pacRunLoopSource = 0;
 }
 
 void SocketStreamHandle::chooseProxy()
 {
-#if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)
+#ifndef BUILDING_ON_LEOPARD
     RetainPtr<CFDictionaryRef> proxyDictionary(AdoptCF, CFNetworkCopySystemProxySettings());
 #else
     // We don't need proxy information often, so there is no need to set up a permanent dynamic store session.
@@ -115,20 +185,38 @@ void SocketStreamHandle::chooseProxy()
         return;
     }
 
-#ifndef BUILDING_ON_TIGER
     // CFNetworkCopyProxiesForURL doesn't know about WebSocket schemes, so pretend to use http.
-    // Always use "https" to get HTTPS proxies in result - we'll try to use those for ws:. even though many are configured to reject connections to ports other than 443.
-    KURL httpsURL(KURL(), "https://" + m_url.host());
-    RetainPtr<CFURLRef> httpsURLCF(AdoptCF, httpsURL.createCFURL());
+    // Always use "https" to get HTTPS proxies in result - we'll try to use those for ws:// even though many are configured to reject connections to ports other than 443.
+    RetainPtr<CFArrayRef> proxyArray(AdoptCF, CFNetworkCopyProxiesForURL(m_httpsURL.get(), proxyDictionary.get()));
 
-    RetainPtr<CFArrayRef> proxyArray(AdoptCF, CFNetworkCopyProxiesForURL(httpsURLCF.get(), proxyDictionary.get()));
-    CFIndex proxyArrayCount = CFArrayGetCount(proxyArray.get());
+    chooseProxyFromArray(proxyArray.get());
+}
 
-    // FIXME: Support PAC files (always the preferred entry).
+void SocketStreamHandle::chooseProxyFromArray(CFArrayRef proxyArray)
+{
+    if (!proxyArray)
+        m_connectionType = Direct;
+
+    CFIndex proxyArrayCount = CFArrayGetCount(proxyArray);
+
+    // PAC is always the first entry, if present.
+    if (proxyArrayCount) {
+        CFDictionaryRef proxyInfo = static_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(proxyArray, 0));
+        CFTypeRef proxyType = CFDictionaryGetValue(proxyInfo, kCFProxyTypeKey);
+        if (proxyType && CFGetTypeID(proxyType) == CFStringGetTypeID()) {
+            if (CFEqual(proxyType, kCFProxyTypeAutoConfigurationURL)) {
+                CFTypeRef pacFileURL = CFDictionaryGetValue(proxyInfo, kCFProxyAutoConfigurationURLKey);
+                if (pacFileURL && CFGetTypeID(pacFileURL) == CFURLGetTypeID()) {
+                    executePACFileURL(static_cast<CFURLRef>(pacFileURL));
+                    return;
+                }
+            }
+        }
+    }
 
     CFDictionaryRef chosenProxy = 0;
     for (CFIndex i = 0; i < proxyArrayCount; ++i) {
-        CFDictionaryRef proxyInfo = static_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(proxyArray.get(), i));
+        CFDictionaryRef proxyInfo = static_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(proxyArray, i));
         CFTypeRef proxyType = CFDictionaryGetValue(proxyInfo, kCFProxyTypeKey);
         if (proxyType && CFGetTypeID(proxyType) == CFStringGetTypeID()) {
             if (CFEqual(proxyType, kCFProxyTypeSOCKS)) {
@@ -157,7 +245,27 @@ void SocketStreamHandle::chooseProxy()
             return;
         }
     }
+
+    m_connectionType = Direct;
+}
+
 #else // BUILDING_ON_TIGER
+
+void SocketStreamHandle::chooseProxy()
+{
+    // We don't need proxy information often, so there is no need to set up a permanent dynamic store session.
+    RetainPtr<CFDictionaryRef> proxyDictionary(AdoptCF, SCDynamicStoreCopyProxies(0));
+
+    // SOCKS or HTTPS (AKA CONNECT) proxies are supported.
+    // WebSocket protocol relies on handshake being transferred unchanged, so we need a proxy that will not modify headers.
+    // Since HTTP proxies must add Via headers, they are highly unlikely to work.
+    // Many CONNECT proxies limit connectivity to port 443, so we prefer SOCKS, if configured.
+
+    if (!proxyDictionary) {
+        m_connectionType = Direct;
+        return;
+    }
+
     // FIXME: check proxy bypass list and ExcludeSimpleHostnames.
     // FIXME: Support PAC files.
 
@@ -187,10 +295,10 @@ void SocketStreamHandle::chooseProxy()
             return;
         }
     }
-#endif
 
     m_connectionType = Direct;
 }
+#endif // BUILDING_ON_TIGER
 
 void SocketStreamHandle::createStreams()
 {
@@ -226,13 +334,9 @@ void SocketStreamHandle::createStreams()
         CFReadStreamSetProperty(m_readStream.get(), kCFStreamPropertySOCKSProxy, connectDictionary.get());
         break;
         }
-    case CONNECTProxy: {
-        const void* proxyKeys[] = { kCFStreamPropertyCONNECTProxyHost, kCFStreamPropertyCONNECTProxyPort };
-        const void* proxyValues[] = { m_proxyHost.get(), m_proxyPort.get() };
-        RetainPtr<CFDictionaryRef> connectDictionary(AdoptCF, CFDictionaryCreate(0, proxyKeys, proxyValues, sizeof(proxyKeys) / sizeof(*proxyKeys), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks));
-        CFReadStreamSetProperty(m_readStream.get(), kCFStreamPropertyCONNECTProxy, connectDictionary.get());
+    case CONNECTProxy:
+        wkSetCONNECTProxyForStream(m_readStream.get(), m_proxyHost.get(), m_proxyPort.get());
         break;
-        }
     }
 
     if (shouldUseSSL()) {
@@ -242,6 +346,84 @@ void SocketStreamHandle::createStreams()
         CFReadStreamSetProperty(m_readStream.get(), kCFStreamPropertySSLSettings, settings.get());
         CFWriteStreamSetProperty(m_writeStream.get(), kCFStreamPropertySSLSettings, settings.get());
     }
+}
+
+static bool getStoredCONNECTProxyCredentials(const ProtectionSpace& protectionSpace, String& login, String& password)
+{
+    // Try system credential storage first, matching HTTP behavior (CFNetwork only asks the client for password if it couldn't find it in Keychain).
+    Credential storedCredential = CredentialStorage::getFromPersistentStorage(protectionSpace);
+    if (storedCredential.isEmpty())
+        storedCredential = CredentialStorage::get(protectionSpace);
+
+    if (storedCredential.isEmpty())
+        return false;
+
+    login = storedCredential.user();
+    password = storedCredential.password();
+
+    return true;
+}
+
+static ProtectionSpaceAuthenticationScheme authenticationSchemeFromAuthenticationMethod(CFStringRef method)
+{
+    if (CFEqual(method, kCFHTTPAuthenticationSchemeBasic))
+        return ProtectionSpaceAuthenticationSchemeHTTPBasic;
+    if (CFEqual(method, kCFHTTPAuthenticationSchemeDigest))
+        return ProtectionSpaceAuthenticationSchemeHTTPDigest;
+#ifndef BUILDING_ON_TIGER
+    if (CFEqual(method, kCFHTTPAuthenticationSchemeNTLM))
+        return ProtectionSpaceAuthenticationSchemeNTLM;
+    if (CFEqual(method, kCFHTTPAuthenticationSchemeNegotiate))
+        return ProtectionSpaceAuthenticationSchemeNegotiate;
+#endif
+    ASSERT_NOT_REACHED();
+    return ProtectionSpaceAuthenticationSchemeDefault;
+}
+
+void SocketStreamHandle::addCONNECTCredentials(CFHTTPMessageRef proxyResponse)
+{
+    RetainPtr<CFHTTPAuthenticationRef> authentication(AdoptCF, CFHTTPAuthenticationCreateFromResponse(0, proxyResponse));
+
+    if (!CFHTTPAuthenticationRequiresUserNameAndPassword(authentication.get())) {
+        // That's all we can offer...
+        m_client->didFail(this, SocketStreamError()); // FIXME: Provide a sensible error.
+        return;
+    }
+
+    int port = 0;
+    CFNumberGetValue(m_proxyPort.get(), kCFNumberIntType, &port);
+    RetainPtr<CFStringRef> methodCF(AdoptCF, CFHTTPAuthenticationCopyMethod(authentication.get()));
+    RetainPtr<CFStringRef> realmCF(AdoptCF, CFHTTPAuthenticationCopyRealm(authentication.get()));
+    ProtectionSpace protectionSpace(String(m_proxyHost.get()), port, ProtectionSpaceProxyHTTPS, String(realmCF.get()), authenticationSchemeFromAuthenticationMethod(methodCF.get()));
+    String login;
+    String password;
+    if (!m_sentStoredCredentials && getStoredCONNECTProxyCredentials(protectionSpace, login, password)) {
+        // Try to apply stored credentials, if we haven't tried those already.
+        RetainPtr<CFStringRef> loginCF(AdoptCF, login.createCFString());
+        RetainPtr<CFStringRef> passwordCF(AdoptCF, password.createCFString());
+        // Creating a temporary request to make CFNetwork apply credentials to it. Unfortunately, this cannot work with NTLM authentication.
+        RetainPtr<CFHTTPMessageRef> dummyRequest(AdoptCF, CFHTTPMessageCreateRequest(0, CFSTR("GET"), m_httpsURL.get(), kCFHTTPVersion1_1));
+
+        Boolean appliedCredentials = CFHTTPMessageApplyCredentials(dummyRequest.get(), authentication.get(), loginCF.get(), passwordCF.get(), 0);
+        ASSERT_UNUSED(appliedCredentials, appliedCredentials);
+
+        RetainPtr<CFStringRef> proxyAuthorizationString(AdoptCF, CFHTTPMessageCopyHeaderFieldValue(dummyRequest.get(), CFSTR("Proxy-Authorization")));
+
+        if (!proxyAuthorizationString) {
+            // Fails e.g. for NTLM auth.
+            m_client->didFail(this, SocketStreamError()); // FIXME: Provide a sensible error.
+            return;
+        }
+
+        // Setting the authorization results in a new connection attempt.
+        wkSetCONNECTProxyAuthorizationForStream(m_readStream.get(), proxyAuthorizationString.get());
+        m_sentStoredCredentials = true;
+        return;
+    }
+
+    // FIXME: Ask the client if credentials could not be found.
+
+    m_client->didFail(this, SocketStreamError()); // FIXME: Provide a sensible error.
 }
 
 CFStringRef SocketStreamHandle::copyCFStreamDescription(void* info)
@@ -305,7 +487,13 @@ void SocketStreamHandle::readStreamCallback(CFStreamEventType type)
         break;
     case kCFStreamEventHasBytesAvailable: {
         if (m_connectingSubstate == WaitingForConnect) {
-            // FIXME: Handle CONNECT proxy credentials here.
+            if (m_connectionType == CONNECTProxy) {
+                RetainPtr<CFHTTPMessageRef> proxyResponse(AdoptCF, wkCopyCONNECTProxyResponse(m_readStream.get(), m_httpsURL.get()));
+                if (proxyResponse && (407 == CFHTTPMessageGetResponseStatusCode(proxyResponse.get()))) {
+                    addCONNECTCredentials(proxyResponse.get());
+                    return;
+                }
+            }
         } else if (m_connectingSubstate == WaitingForCredentials)
             break;
 
@@ -391,6 +579,10 @@ void SocketStreamHandle::writeStreamCallback(CFStreamEventType type)
 SocketStreamHandle::~SocketStreamHandle()
 {
     LOG(Network, "SocketStreamHandle %p dtor", this);
+
+#ifndef BUILDING_ON_TIGER
+    ASSERT(!m_pacRunLoopSource);
+#endif
 }
 
 int SocketStreamHandle::platformSend(const char* data, int length)
@@ -404,6 +596,11 @@ int SocketStreamHandle::platformSend(const char* data, int length)
 void SocketStreamHandle::platformClose()
 {
     LOG(Network, "SocketStreamHandle %p platformClose", this);
+
+#ifndef BUILDING_ON_TIGER
+    if (m_pacRunLoopSource) 
+        removePACRunLoopSource();
+#endif
 
     ASSERT(!m_readStream == !m_writeStream);
     if (!m_readStream)

@@ -1,3 +1,133 @@
+2009-11-25  Jian Li  <jianli@chromium.org>
+
+        Reviewed by NOBODY (Chromium build fix).
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::createShader):
+
+2009-11-24  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add ENABLE_SHARED_SCRIPT feature define and flag for build-webkit
+        https://bugs.webkit.org/show_bug.cgi?id=31444
+
+        * features.gypi:
+
+2009-11-24  Evan Stade  <estade@chromium.org>
+
+        Reviewed by David Levin.
+
+        Linux Chromium sends too many click events
+        https://bugs.webkit.org/show_bug.cgi?id=31841
+
+        Manually count number of clicks for double/triple click events. This
+        makes us match Firefox on http://www.quirksmode.org/js/events_mouse.html
+        Chromium side of this patch is here:
+        http://codereview.chromium.org/431031/show
+
+        * src/gtk/WebInputEventFactory.cpp:
+        (WebKit::WebInputEventFactory::mouseEvent):
+
+2009-11-24  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [Chromium] Renderer hang when using www.expedia.com
+        https://bugs.webkit.org/show_bug.cgi?id=31822
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchWillSendRequest):
+        Assign ReturnCacheDataDontLoad cache policy at the last moment
+        to match Safari.  This way the cache policy does not get stored
+        in DocumentLoader's originalRequest preventing it from being
+        inherited by subresource requests.
+        * src/ResourceHandle.cpp:
+        (WebCore::ResourceHandle::willLoadFromCache): Remove assignment
+        of ReturnCacheDataDontLoad cache policy so that it doesn't end
+        up applying to the DocumentLoader's originalRequest.
+
+2009-11-23  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        Change get... calls to latest spec
+        https://bugs.webkit.org/show_bug.cgi?id=30091
+
+        Removed old versions of get calls on WebGLRenderingContext and
+        added new ones per spec returning "any". New code simplifies
+        GraphicsContext3D and fixes previously unimplemented routines.
+        Added custom JS and V8 bindings. Added exhaustive test case
+        exercising all new code paths. Updated preexisting test cases for
+        new APIs. Fixed preexisting bugs in WebKit's and Chrome's WebGL
+        implementations.
+
+        Ran WebGL layout tests in WebKit (clean) and Chrome (couple of
+        preexisting known failures) and manual WebGL tests in both
+        browsers.
+
+        Test: fast/canvas/webgl/gl-object-get-calls.html
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::createFramebuffer):
+        (WebCore::GraphicsContext3D::createRenderbuffer):
+        (WebCore::GraphicsContext3D::deleteFramebuffer):
+        (WebCore::GraphicsContext3D::deleteRenderbuffer):
+        (WebCore::GraphicsContext3D::checkFramebufferStatus):
+        (WebCore::GraphicsContext3D::getBooleanv):
+        (WebCore::GraphicsContext3D::getBufferParameteriv):
+        (WebCore::GraphicsContext3D::getFloatv):
+        (WebCore::GraphicsContext3D::getFramebufferAttachmentParameteriv):
+        (WebCore::GraphicsContext3D::getIntegerv):
+        (WebCore::GraphicsContext3D::getProgramiv):
+        (WebCore::GraphicsContext3D::getRenderbufferParameteriv):
+        (WebCore::GraphicsContext3D::getShaderiv):
+        (WebCore::GraphicsContext3D::getTexParameterfv):
+        (WebCore::GraphicsContext3D::getTexParameteriv):
+        (WebCore::GraphicsContext3D::getUniformfv):
+        (WebCore::GraphicsContext3D::getUniformiv):
+        (WebCore::GraphicsContext3D::getVertexAttribfv):
+        (WebCore::GraphicsContext3D::getVertexAttribiv):
+        (WebCore::GraphicsContext3D::isFramebuffer):
+        (WebCore::GraphicsContext3D::isRenderbuffer):
+
+2009-11-24  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Chromium: Expose method for reporting user stats
+        to the host. Also includes drive-by default implementation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31830
+
+        * public/WebKitClient.h:
+
+2009-11-24  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [Chromium] Fix DOM storage layout tests
+        https://bugs.webkit.org/show_bug.cgi?id=31833
+
+        The issue is, essentially, that this code assumes that
+        SecurityOrigin::createString can re-create a SecurityOrigin given
+        the string produced from SecurityOrigin::toString.  This is a bogus
+        assumption in a number of corner cases (e.g., document.domain,
+        @sandbox).  A recent patch (http://trac.webkit.org/changeset/51294)
+        make this assumption further invalid in the case of of file:// URLs.
+
+        The correct fix is for this code to use WebSecurityOrigin objects
+        (and not strings) to represent SecurityOrigin objects.  However, the
+        expert on this code is on vacation, and I don't want to do major
+        surgery here without his involvement.  This patch is a temporary fix
+        to get these tests passing again.  We'll do the right fix once
+        jorlow gets back from vacation.
+
+        Tests: Covered by a number of existing DOM storage tests.
+
+        * src/WebStorageNamespaceImpl.cpp:
+        (WebKit::WebStorageNamespaceImpl::createStorageArea):
+
 2009-11-23  Jian Li  <jianli@chromium.org>
 
         Not reviewed. Fix chromium build.

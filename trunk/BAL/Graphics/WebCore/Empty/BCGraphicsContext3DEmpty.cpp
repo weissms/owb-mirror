@@ -622,76 +622,34 @@ void GraphicsContext3D::viewport(long x, long y, unsigned long width, unsigned l
     notImplemented();
 }
 
-bool GraphicsContext3D::getBoolean(unsigned long pname)
+void GraphicsContext3D::getBooleanv(unsigned long pname, unsigned char* value)
 {
     notImplemented();
-    return false;
 }
 
-PassRefPtr<WebGLUnsignedByteArray> GraphicsContext3D::getBooleanv(unsigned long pname)
+void GraphicsContext3D::getFloatv(unsigned long pname, float* value)
 {
     notImplemented();
-    return 0;
 }
 
-float GraphicsContext3D::getFloat(unsigned long pname)
+void GraphicsContext3D::getIntegerv(unsigned long pname, int* value)
 {
     notImplemented();
-    return 0.0;
 }
 
-PassRefPtr<WebGLFloatArray> GraphicsContext3D::getFloatv(unsigned long pname)
+void GraphicsContext3D::getBufferParameteriv(unsigned long target, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
 }
 
-int GraphicsContext3D::getInteger(unsigned long pname)
+void GraphicsContext3D::getFramebufferAttachmentParameteriv(unsigned long target, unsigned long attachment, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
 }
 
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getIntegerv(unsigned long pname)
+void GraphicsContext3D::getProgramiv(WebGLProgram* program, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getBufferParameteri(unsigned long target, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getBufferParameteriv(unsigned long target, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getFramebufferAttachmentParameteri(unsigned long target, unsigned long attachment, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getFramebufferAttachmentParameteriv(unsigned long target, unsigned long attachment, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getProgrami(WebGLProgram* program, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getProgramiv(WebGLProgram* program, unsigned long pname)
-{
-    notImplemented();
-    return 0;
 }
 
 String GraphicsContext3D::getProgramInfoLog(WebGLProgram* program)
@@ -700,28 +658,14 @@ String GraphicsContext3D::getProgramInfoLog(WebGLProgram* program)
     return String();
 }
 
-int GraphicsContext3D::getRenderbufferParameteri(unsigned long target, unsigned long pname)
+void GraphicsContext3D::getRenderbufferParameteriv(unsigned long target, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
 }
 
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getRenderbufferParameteriv(unsigned long target, unsigned long pname)
+void GraphicsContext3D::getShaderiv(WebGLShader* shader, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getShaderi(WebGLShader* shader, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getShaderiv(WebGLShader* shader, unsigned long pname)
-{
-    notImplemented();
-    return 0;
 }
 
 String GraphicsContext3D::getShaderInfoLog(WebGLShader* shader)
@@ -737,64 +681,32 @@ String GraphicsContext3D::getShaderSource(WebGLShader* shader)
 }
 
 
-float GraphicsContext3D::getTexParameterf(unsigned long target, unsigned long pname)
+void GraphicsContext3D::getTexParameterfv(unsigned long target, unsigned long pname, float* value)
 {
     notImplemented();
-    return 0.0;
 }
 
-PassRefPtr<WebGLFloatArray> GraphicsContext3D::getTexParameterfv(unsigned long target, unsigned long pname)
+void GraphicsContext3D::getTexParameteriv(unsigned long target, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
 }
 
-int GraphicsContext3D::getTexParameteri(unsigned long target, unsigned long pname)
-{
-    notImplemented();
-    return 0; 
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getTexParameteriv(unsigned long target, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-float GraphicsContext3D::getUniformf(WebGLProgram* program, long location)
+void GraphicsContext3D::getUniformfv(WebGLProgram* program, long location, float* value)
 {
     // FIXME: We need to query glGetUniformLocation to determine the size needed
     UNUSED_PARAM(program);
     UNUSED_PARAM(location);
+    UNUSED_PARAM(value);
     notImplemented();
-    return 0;
 }
 
-PassRefPtr<WebGLFloatArray> GraphicsContext3D::getUniformfv(WebGLProgram* program, long location)
+void GraphicsContext3D::getUniformiv(WebGLProgram* program, long location, int* value)
 {
     // FIXME: We need to query glGetUniformLocation to determine the size needed
     UNUSED_PARAM(program);
     UNUSED_PARAM(location);
+    UNUSED_PARAM(value);
     notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getUniformi(WebGLProgram* program, long location)
-{
-    // FIXME: We need to query glGetUniformLocation to determine the size needed
-    UNUSED_PARAM(program);
-    UNUSED_PARAM(location);
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getUniformiv(WebGLProgram* program, long location)
-{
-    // FIXME: We need to query glGetUniformLocation to determine the size needed
-    UNUSED_PARAM(program);
-    UNUSED_PARAM(location);
-    notImplemented();
-    return 0;
 }
 
 long GraphicsContext3D::getUniformLocation(WebGLProgram* program, const String& name)
@@ -803,28 +715,14 @@ long GraphicsContext3D::getUniformLocation(WebGLProgram* program, const String& 
     return -1;
 }
 
-float GraphicsContext3D::getVertexAttribf(unsigned long index, unsigned long pname)
+void GraphicsContext3D::getVertexAttribfv(unsigned long index, unsigned long pname, float* value)
 {
     notImplemented();
-    return 0.0;
 }
 
-PassRefPtr<WebGLFloatArray> GraphicsContext3D::getVertexAttribfv(unsigned long index, unsigned long pname)
+void GraphicsContext3D::getVertexAttribiv(unsigned long index, unsigned long pname, int* value)
 {
     notImplemented();
-    return 0;
-}
-
-int GraphicsContext3D::getVertexAttribi(unsigned long index, unsigned long pname)
-{
-    notImplemented();
-    return 0;
-}
-
-PassRefPtr<WebGLIntArray> GraphicsContext3D::getVertexAttribiv(unsigned long index, unsigned long pname)
-{
-    notImplemented();
-    return 0;
 }
 
 long GraphicsContext3D::getVertexAttribOffset(unsigned long index, unsigned long pname)
@@ -964,7 +862,7 @@ unsigned GraphicsContext3D::createRenderbuffer()
     return 0;
 }
 
-unsigned GraphicsContext3D::createShader(ShaderType type)
+unsigned GraphicsContext3D::createShader(unsigned long)
 {
     notImplemented();
     return 0;

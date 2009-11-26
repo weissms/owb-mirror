@@ -1,3 +1,66 @@
+2009-11-25  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Include "config.h" to meet Coding Style Guidelines
+        https://bugs.webkit.org/show_bug.cgi?id=31792
+
+        * GEN_DOMObject.cpp:
+        * WebScriptObject.cpp:
+
+2009-11-24  Chris Marrin  <cmarrin@apple.com>
+
+        Another Windows build fix
+        
+        Got rid of d3d.lib and d3dx9.lib dependency. Not needed until
+        we turn on ACCELERATED_COMPOSITING
+
+        * WebKit.vcproj/WebKit.vcproj:
+
+2009-11-24  Chris Marrin  <cmarrin@apple.com>
+
+        Fixed Windows build
+        
+        Got rid of QuartzCore.lib dependency. Not needed until
+        we turn on ACCELERATED_COMPOSITING
+
+        * WebKit.vcproj/WebKit.vcproj:
+
+2009-11-24  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Implement accelerated compositing
+        https://bugs.webkit.org/show_bug.cgi?id=27314
+        
+        This is the WebKit side of the implementation. It plumbs the root layer
+        from WebCore. It also makes changes to WebView which places the 
+        backing store of the page into the root compositing layer so it is 
+        properly composited with all the other layers. This deals with resizing, 
+        scrolling, and incremental repaint of the page.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::attachRootGraphicsLayer):
+        (WebChromeClient::scheduleCompositingLayerSync):
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::setNeedsOneShotDrawingSynchronization):
+        * WebKit.vcproj/WebKit.vcproj:
+        * WebView.cpp:
+        (WebView::WebView):
+        (WebView::close):
+        (WebView::repaint):
+        (WebView::scrollBackingStore):
+        (WebView::paint):
+        (WebViewWndProc):
+        (WebView::setRootChildLayer):
+        (WebView::setAcceleratedCompositing):
+        (WebView::setRootLayerContents):
+        * WebView.h:
+        (WebView::isAcceleratedCompositing):
+        (WebView::resizeLayerWindow):
+        (WebView::layerWindowBecameVisible):
+        (WebView::setRootLayerNeedsDisplay):
+
 2009-11-23  Dave Hyatt  <hyatt@apple.com>
 
         Reviewed by Oliver Hunt and Jon Honeycutt.

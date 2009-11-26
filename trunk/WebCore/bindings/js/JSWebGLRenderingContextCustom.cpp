@@ -33,11 +33,25 @@
 #include "ExceptionCode.h"
 #include "HTMLCanvasElement.h"
 #include "HTMLImageElement.h"
-#include "JSWebGLFloatArray.h"
-#include "JSWebGLIntArray.h"
 #include "JSHTMLCanvasElement.h"
 #include "JSHTMLImageElement.h"
+#include "JSWebGLBuffer.h"
+#include "JSWebGLFloatArray.h"
+#include "JSWebGLFramebuffer.h"
+#include "JSWebGLIntArray.h"
+#include "JSWebGLProgram.h"
+#include "JSWebGLRenderbuffer.h"
+#include "JSWebGLShader.h"
+#include "JSWebGLTexture.h"
+#include "JSWebGLUnsignedByteArray.h"
 #include "JSWebKitCSSMatrix.h"
+#include "NotImplemented.h"
+#include "WebGLBuffer.h"
+#include "WebGLGetInfo.h"
+#include "WebGLFloatArray.h"
+#include "WebGLFramebuffer.h"
+#include "WebGLIntArray.h"
+#include "WebGLProgram.h"
 #include <runtime/Error.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/OwnFastMallocPtr.h>
@@ -53,17 +67,19 @@ JSValue JSWebGLRenderingContext::bufferData(JSC::ExecState* exec, JSC::ArgList c
 
     unsigned target = args.at(0).toInt32(exec);
     unsigned usage = args.at(2).toInt32(exec);
+    ExceptionCode ec = 0;
 
     // If argument 1 is a number, we are initializing this buffer to that size
     if (!args.at(1).isObject()) {
         unsigned int count = args.at(1).toInt32(exec);
-        static_cast<WebGLRenderingContext*>(impl())->bufferData(target, count, usage);
-        return jsUndefined();
+        static_cast<WebGLRenderingContext*>(impl())->bufferData(target, count, usage, ec);
+    } else {
+        WebGLArray* array = toWebGLArray(args.at(1));
+        static_cast<WebGLRenderingContext*>(impl())->bufferData(target, array, usage, ec);
     }
 
-    WebGLArray* array = toWebGLArray(args.at(1));
-    
-    static_cast<WebGLRenderingContext*>(impl())->bufferData(target, array, usage);
+    if (ec != 0)
+        setDOMException(exec, ec);
     return jsUndefined();
 }
 
@@ -74,11 +90,223 @@ JSValue JSWebGLRenderingContext::bufferSubData(JSC::ExecState* exec, JSC::ArgLis
 
     unsigned target = args.at(0).toInt32(exec);
     unsigned offset = args.at(1).toInt32(exec);
+    ExceptionCode ec = 0;
     
     WebGLArray* array = toWebGLArray(args.at(2));
     
-    static_cast<WebGLRenderingContext*>(impl())->bufferSubData(target, offset, array);
+    static_cast<WebGLRenderingContext*>(impl())->bufferSubData(target, offset, array, ec);
+
+    if (ec != 0)
+        setDOMException(exec, ec);
     return jsUndefined();
+}
+
+static JSValue toJS(ExecState* exec, JSDOMGlobalObject* globalObject, const WebGLGetInfo& info)
+{
+    switch (info.getType()) {
+    case WebGLGetInfo::kTypeBool:
+        return jsBoolean(info.getBool());
+    case WebGLGetInfo::kTypeFloat:
+        return jsNumber(exec, info.getFloat());
+    case WebGLGetInfo::kTypeLong:
+        return jsNumber(exec, info.getLong());
+    case WebGLGetInfo::kTypeNull:
+        return jsNull();
+    case WebGLGetInfo::kTypeString:
+        return jsString(exec, info.getString());
+    case WebGLGetInfo::kTypeUnsignedLong:
+        return jsNumber(exec, info.getUnsignedLong());
+    case WebGLGetInfo::kTypeWebGLBuffer:
+        return toJS(exec, globalObject, info.getWebGLBuffer());
+    case WebGLGetInfo::kTypeWebGLFloatArray:
+        return toJS(exec, globalObject, info.getWebGLFloatArray());
+    case WebGLGetInfo::kTypeWebGLFramebuffer:
+        return toJS(exec, globalObject, info.getWebGLFramebuffer());
+    case WebGLGetInfo::kTypeWebGLIntArray:
+        return toJS(exec, globalObject, info.getWebGLIntArray());
+    // FIXME: implement WebGLObjectArray
+    // case WebGLGetInfo::kTypeWebGLObjectArray:
+    case WebGLGetInfo::kTypeWebGLProgram:
+        return toJS(exec, globalObject, info.getWebGLProgram());
+    case WebGLGetInfo::kTypeWebGLRenderbuffer:
+        return toJS(exec, globalObject, info.getWebGLRenderbuffer());
+    case WebGLGetInfo::kTypeWebGLTexture:
+        return toJS(exec, globalObject, info.getWebGLTexture());
+    case WebGLGetInfo::kTypeWebGLUnsignedByteArray:
+        return toJS(exec, globalObject, info.getWebGLUnsignedByteArray());
+    default:
+        notImplemented();
+        return jsUndefined();
+    }
+}
+
+enum ObjectType {
+    kBuffer, kRenderbuffer, kTexture, kVertexAttrib
+};
+
+static JSValue getObjectParameter(JSWebGLRenderingContext* obj, ExecState* exec, const ArgList& args, ObjectType objectType)
+{
+    if (args.size() != 2)
+        return throwError(exec, SyntaxError);
+
+    ExceptionCode ec = 0;
+    WebGLRenderingContext* context = static_cast<WebGLRenderingContext*>(obj->impl());
+    unsigned target = args.at(0).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    unsigned pname = args.at(1).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    WebGLGetInfo info;
+    switch (objectType) {
+    case kBuffer:
+        info = context->getBufferParameter(target, pname, ec);
+        break;
+    case kRenderbuffer:
+        info = context->getRenderbufferParameter(target, pname, ec);
+        break;
+    case kTexture:
+        info = context->getTexParameter(target, pname, ec);
+        break;
+    case kVertexAttrib:
+        // target => index
+        info = context->getVertexAttrib(target, pname, ec);
+        break;
+    default:
+        notImplemented();
+        break;
+    }
+    if (ec) {
+        setDOMException(exec, ec);
+        return jsUndefined();
+    }
+    return toJS(exec, obj->globalObject(), info);
+}
+
+enum WhichProgramCall {
+    kProgramParameter, kUniform
+};
+
+static JSValue getProgramParameterHelper(JSWebGLRenderingContext* obj, ExecState* exec, const ArgList& args, WhichProgramCall programCall)
+{
+    if (args.size() != 2)
+        return throwError(exec, SyntaxError);
+
+    ExceptionCode ec = 0;
+    WebGLRenderingContext* context = static_cast<WebGLRenderingContext*>(obj->impl());
+    WebGLProgram* program = toWebGLProgram(args.at(0));
+    unsigned pname = args.at(1).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    WebGLGetInfo info;
+    switch (programCall) {
+    case kProgramParameter:
+        info = context->getProgramParameter(program, pname, ec);
+        break;
+    case kUniform:
+        // pname -> location
+        info = context->getUniform(program, pname, ec);
+        break;
+    default:
+        notImplemented();
+        break;
+    }
+    if (ec) {
+        setDOMException(exec, ec);
+        return jsUndefined();
+    }
+    return toJS(exec, obj->globalObject(), info);
+}
+
+JSValue JSWebGLRenderingContext::getBufferParameter(ExecState* exec, const ArgList& args)
+{
+    return getObjectParameter(this, exec, args, kBuffer);
+}
+
+JSValue JSWebGLRenderingContext::getFramebufferAttachmentParameter(ExecState* exec, const ArgList& args)
+{
+    if (args.size() != 3)
+        return throwError(exec, SyntaxError);
+
+    ExceptionCode ec = 0;
+    WebGLRenderingContext* context = static_cast<WebGLRenderingContext*>(impl());
+    unsigned target = args.at(0).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    unsigned attachment = args.at(1).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    unsigned pname = args.at(2).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    WebGLGetInfo info = context->getFramebufferAttachmentParameter(target, attachment, pname, ec);
+    if (ec) {
+        setDOMException(exec, ec);
+        return jsUndefined();
+    }
+    return toJS(exec, globalObject(), info);
+}
+
+JSValue JSWebGLRenderingContext::getParameter(ExecState* exec, const ArgList& args)
+{
+    if (args.size() != 1)
+        return throwError(exec, SyntaxError);
+
+    ExceptionCode ec = 0;
+    WebGLRenderingContext* context = static_cast<WebGLRenderingContext*>(impl());
+    unsigned pname = args.at(0).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    WebGLGetInfo info = context->getParameter(pname, ec);
+    if (ec) {
+        setDOMException(exec, ec);
+        return jsUndefined();
+    }
+    return toJS(exec, globalObject(), info);
+}
+
+JSValue JSWebGLRenderingContext::getProgramParameter(ExecState* exec, const ArgList& args)
+{
+    return getProgramParameterHelper(this, exec, args, kProgramParameter);
+}
+
+JSValue JSWebGLRenderingContext::getRenderbufferParameter(ExecState* exec, const ArgList& args)
+{
+    return getObjectParameter(this, exec, args, kRenderbuffer);
+}
+
+JSValue JSWebGLRenderingContext::getShaderParameter(ExecState* exec, const ArgList& args)
+{
+    if (args.size() != 2)
+        return throwError(exec, SyntaxError);
+
+    ExceptionCode ec = 0;
+    WebGLRenderingContext* context = static_cast<WebGLRenderingContext*>(impl());
+    WebGLShader* shader = toWebGLShader(args.at(0));
+    unsigned pname = args.at(1).toInt32(exec);
+    if (exec->hadException())
+        return jsUndefined();
+    WebGLGetInfo info = context->getShaderParameter(shader, pname, ec);
+    if (ec) {
+        setDOMException(exec, ec);
+        return jsUndefined();
+    }
+    return toJS(exec, globalObject(), info);
+}
+
+JSValue JSWebGLRenderingContext::getTexParameter(ExecState* exec, const ArgList& args)
+{
+    return getObjectParameter(this, exec, args, kTexture);
+}
+
+JSValue JSWebGLRenderingContext::getUniform(ExecState* exec, const ArgList& args)
+{
+    return getProgramParameterHelper(this, exec, args, kUniform);
+}
+
+JSValue JSWebGLRenderingContext::getVertexAttrib(ExecState* exec, const ArgList& args)
+{
+    return getObjectParameter(this, exec, args, kVertexAttrib);
 }
 
 // void texImage2DHTML(in unsigned long target, in unsigned long level, in HTMLImageElement image);
@@ -192,10 +420,11 @@ JSValue JSWebGLRenderingContext::texSubImage2D(ExecState* exec, const ArgList& a
     } else if (o->inherits(&JSHTMLCanvasElement::s_info)) {
         HTMLCanvasElement* canvas = static_cast<HTMLCanvasElement*>(static_cast<JSHTMLElement*>(o)->impl());
         context->texSubImage2D(target, level, xoff, yoff, width, height, canvas, flipY, premultiplyAlpha, ec);
-    } else {
-        setDOMException(exec, TYPE_MISMATCH_ERR);
-    }
+    } else
+        ec = TYPE_MISMATCH_ERR;
     
+    if (ec != 0)
+        setDOMException(exec, ec);
     return jsUndefined();    
 }
 

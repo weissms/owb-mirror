@@ -1,3 +1,191 @@
+2009-11-25  Steve Block  <steveblock@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Android port lacks implementation of atomicIncrement and atomicDecrement.
+        https://bugs.webkit.org/show_bug.cgi?id=31715
+
+        * wtf/Threading.h: Modified.
+        (WTF::atomicIncrement): Added Android implementation.
+        (WTF::atomicDecrement): Added Android implementation.
+
+2009-11-24  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add ENABLE_SHARED_SCRIPT feature define and flag for build-webkit
+        https://bugs.webkit.org/show_bug.cgi?id=31444
+
+        * Configurations/FeatureDefines.xcconfig:
+        * wtf/Platform.h:
+
+2009-11-24  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Add ability to enable ACCELERATED_COMPOSITING on Windows (currently disabled)
+        https://bugs.webkit.org/show_bug.cgi?id=27314
+
+        * wtf/Platform.h:
+
+2009-11-24  Jason Smith  <dark.panda@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        RegExp#exec's returned Array-like object behaves differently from
+        regular Arrays
+        https://bugs.webkit.org/show_bug.cgi?id=31689
+
+        * JavaScriptCore/runtime/RegExpConstructor.cpp: ensure that undefined
+        values are added to the returned RegExpMatchesArray
+
+2009-11-24  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        JSON.stringify performance on undefined is very poor
+        https://bugs.webkit.org/show_bug.cgi?id=31839
+
+        Switch from a UString to a Vector<UChar> when building
+        the JSON string, allowing us to safely remove the substr-copy
+        we otherwise did when unwinding an undefined property.
+
+        Also turns out to be a ~5% speedup on stringification.
+
+        * runtime/JSONObject.cpp:
+        (JSC::Stringifier::StringBuilder::append):
+        (JSC::Stringifier::stringify):
+        (JSC::Stringifier::Holder::appendNextProperty):
+
+2009-11-24  Mark Rowe  <mrowe@apple.com>
+
+        Fix production builds where the source tree may be read-only.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-11-23  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Include "config.h" to meet Coding Style Guidelines
+        https://bugs.webkit.org/show_bug.cgi?id=31792
+
+        * wtf/unicode/UTF8.cpp:
+        * wtf/unicode/glib/UnicodeGLib.cpp:
+        * wtf/unicode/wince/UnicodeWince.cpp:
+
+2009-11-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Streamlined some Math functions where we expect or know the result not
+        to be representable as an int.
+        
+        SunSpider says 0.6% faster.
+
+        * runtime/JSNumberCell.h:
+        (JSC::JSValue::JSValue):
+        * runtime/JSValue.h:
+        (JSC::JSValue::):
+        (JSC::jsDoubleNumber):
+        (JSC::JSValue::JSValue): Added a function for making a numeric JSValue
+        and skipping the "can I encode this as an int?" check, avoiding the
+        overhead of int <-> double roundtripping and double <-> double comparison
+        and branching.
+
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncACos):
+        (JSC::mathProtoFuncASin):
+        (JSC::mathProtoFuncATan):
+        (JSC::mathProtoFuncATan2):
+        (JSC::mathProtoFuncCos):
+        (JSC::mathProtoFuncExp):
+        (JSC::mathProtoFuncLog):
+        (JSC::mathProtoFuncRandom):
+        (JSC::mathProtoFuncSin):
+        (JSC::mathProtoFuncSqrt):
+        (JSC::mathProtoFuncTan): For these functions, which we expect or know
+        to produce results not representable as ints, call jsDoubleNumber instead
+        of jsNumber.
+
+2009-11-23  Mark Rowe  <mrowe@apple.com>
+
+        Unreviewed. Unbreak the regression tests after r51329.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript): Null-check clientData before dereferencing it.
+        * API/JSObjectRef.cpp:
+        (JSObjectCallAsFunction): Ditto.
+
+2009-11-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Part 1/3 of <rdar://problem/7377477> REGRESSION: Many web pages fail to render after interesting script runs in isolated world
+
+        Some clients of the JavaScriptCore API expect to be able to make callbacks over the JSC API,
+        and for this to automagically cause execution to take place in the world associated with the
+        global object associated with the ExecState (JSContextRef) passed.  However this is not how
+        things work - the world must be explicitly set within WebCore.
+
+        Making this work just for API calls to evaluate & call will be a far from perfect solution,
+        since direct (non-API) use of JSC still relies on WebCore setting the current world correctly.
+        A better solution would be to make this all work automagically all throughout WebCore, but this
+        will require more refactoring.
+
+        Since the API is in JSC but worlds only exist in WebCore, add callbacks on the JSGlobalData::ClientData
+        to allow it to update the current world on entry/exit via the JSC API.  This is temporary duck
+        tape, and should be removed once the current world no longer needs to be explicitly tracked.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        * API/JSObjectRef.cpp:
+        (JSObjectCallAsFunction):
+        * JavaScriptCore.exp:
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::ClientData::beginningExecution):
+        (JSC::JSGlobalData::ClientData::completedExecution):
+        * runtime/JSGlobalData.h:
+
+2009-11-23  Steve Block  <steveblock@google.com>
+
+        Reviewed by Dmitry Titov.
+
+        Adds MainThreadAndroid.cpp with Android-specific WTF threading functions.
+        https://bugs.webkit.org/show_bug.cgi?id=31807
+
+        * wtf/android: Added.
+        * wtf/android/MainThreadAndroid.cpp: Added.
+        (WTF::timeoutFired):
+        (WTF::initializeMainThreadPlatform):
+        (WTF::scheduleDispatchFunctionsOnMainThread):
+
+2009-11-23  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31748
+        Make WebSocketHandleCFNet respect proxy auto-configuration files via CFProxySupport
+
+        * JavaScriptCore.exp: Export callOnMainThreadAndWait.
+
+2009-11-23  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Symbian] Fix lastIndexOf() for Symbian
+        https://bugs.webkit.org/show_bug.cgi?id=31773
+
+        Symbian soft floating point library has problems with operators
+        comparing NaN to numbers. Without a workaround lastIndexOf() 
+        function does not work.
+
+        Patch developed by David Leong.
+
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncLastIndexOf):Add an extra test 
+        to check for NaN for Symbian.
+
 2009-11-23  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Eric Seidel.
