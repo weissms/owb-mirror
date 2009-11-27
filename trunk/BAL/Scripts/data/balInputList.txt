@@ -471,7 +471,7 @@ BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.h
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextEncodingDetectorICU.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/qt/Localizations.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/StringQt.cpp
-BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBoundaries.cpp
+BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBoundariesQt.cpp BCTextBoundariesQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBreakIteratorQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.h
@@ -806,8 +806,8 @@ BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/ThreadingGtk.cpp	BCThreadingGtk.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/GOwnPtr.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/GOwnPtr.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/MainThreadGtk.cpp
 BAL/Types/WTF/None	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/ThreadingNone.cpp

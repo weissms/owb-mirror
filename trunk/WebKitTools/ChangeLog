@@ -1,3 +1,270 @@
+2009-11-27  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Abstract out capturing stdout/stderr into a new OutputCapture class for re-use among the various unit tests.
+        https://bugs.webkit.org/show_bug.cgi?id=31870
+
+        * Scripts/modules/commands/queries_unittest.py: Use the new class.
+        * Scripts/modules/multicommandtool_unittest.py: Ditto.
+        * Scripts/modules/outputcapture.py: Added.
+
+2009-11-27  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 6: Kill the rest.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/commands/queries.py:
+        * Scripts/modules/commands/upload.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/scm.py:
+        * Scripts/modules/webkitlandingscripts.py: Removed.
+
+2009-11-27  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Unit test upload commands
+        https://bugs.webkit.org/show_bug.cgi?id=31903
+
+        Adds unit tests for all but two of the upload commands.  The two
+        remaining ones are more difficult.  I'll return to them later.  The
+        goal of these tests is just to run the commands.  We can test more
+        detailed behavior later.
+
+        * Scripts/modules/commands/commandtest.py:
+        * Scripts/modules/commands/upload.py:
+        * Scripts/modules/commands/upload_unittest.py:
+        * Scripts/modules/mock.py: Added.
+        * Scripts/modules/mock_bugzillatool.py:
+
+2009-11-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 5: Kill run_and_throw_if_fail.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/processutils.py: Added.
+        * Scripts/modules/webkitlandingscripts.py:
+
+2009-11-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 4: Kill run_webkit_script.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/webkitlandingscripts.py:
+
+2009-11-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 3: Kill build_webkit.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/webkitlandingscripts.py:
+
+2009-11-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 2: Kill ensure_builders_are_green.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/webkitlandingscripts.py:
+
+2009-11-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Kill WebKitLandingScripts
+        https://bugs.webkit.org/show_bug.cgi?id=31904
+
+        Step 1: Kill prepare_clean_working_directory and run_webkit_tests.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/buildsteps.py: Added.
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/webkitlandingscripts.py:
+
+2009-11-26  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Remove directory prefixes from linux commands
+
+        SCM unittests can cause errors on some systems if we use absolute reference to
+        the commands, so directory prefixes have been removed.
+
+        * Scripts/modules/scm_unittest.py:
+
+2009-11-21  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Link DumpRenderTree to the Qt Ui Tools
+        https://bugs.webkit.org/show_bug.cgi?id=31203
+
+        Implement QWebPage::createPlugin using the Qt Ui Tools
+        to be able to create classes like QProgressBar from within
+        the <object></object> tags This is required for the
+        new automatic test of Qt Plugins.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::createPlugin):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+
+2009-11-25  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Update pywebsocket to 0.4.2
+
+        Update pywebsocket to 0.4.2
+        https://bugs.webkit.org/show_bug.cgi?id=31861
+
+        * pywebsocket/example/echo_client.py:
+        * pywebsocket/example/echo_wsh.py:
+        * pywebsocket/mod_pywebsocket/__init__.py:
+        * pywebsocket/mod_pywebsocket/dispatch.py:
+        * pywebsocket/mod_pywebsocket/msgutil.py:
+        * pywebsocket/mod_pywebsocket/standalone.py:
+        * pywebsocket/setup.py:
+        * pywebsocket/test/test_dispatch.py:
+        * pywebsocket/test/test_msgutil.py:
+
+2009-11-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add unit test for mark-fixed
+        https://bugs.webkit.org/show_bug.cgi?id=31896
+
+        * Scripts/modules/commands/commandtest.py: Added.
+        * Scripts/modules/commands/queries_unittest.py:
+        * Scripts/modules/commands/upload_unittest.py: Added.
+        * Scripts/modules/mock_bugzillatool.py:
+        * Scripts/run-webkit-unittests:
+
+2009-11-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        bugzilla-tool should have a mark-fixed command
+        https://bugs.webkit.org/show_bug.cgi?id=31853
+
+        Pretty simple stuff.
+
+        * Scripts/modules/commands/upload.py:
+
+2009-11-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        'bugzilla-tool help' should only show common commands like how 'git help' does
+        https://bugs.webkit.org/show_bug.cgi?id=31772
+
+        I also took this opportunity to make 'help' a real Command.
+        Making 'help' a real command required adding Command.tool (which we've wanted to do for a while).
+
+        * Scripts/bugzilla-tool:
+         - change should_show_command_help to should_show_in_main_help
+        * Scripts/modules/commands/download.py:
+         - Mark commands as being shown in main help or not.
+         - show_in_main_help = False is not required (default is false),
+           but it seemed to make the commands more self-documenting.
+        * Scripts/modules/commands/queries.py: ditto
+        * Scripts/modules/commands/queues.py: ditto
+        * Scripts/modules/commands/upload.py: ditto
+        * Scripts/modules/multicommandtool.py:
+         - Make Command hold a pointer to tool in self.tool.  Most Command
+           subclasses do not take advantage of this yet, but it was required
+           for HelpCommand to be able to reach the tool from _help_epilog().
+         - Move MultiCommandTool._standalone_help_for_command to Command.standalone_help
+         - Move MultiCommandTool._help_epilog to Command._help_epilog
+         - Move "help" logic into HelpCommand.execute()
+         - Change should_show_command_help to should_show_in_main_help and add a default implementation.
+        * Scripts/modules/multicommandtool_unittest.py:
+         - Test hiding of Commands in --help, and that all commands are shown in 'help --all-commands'
+
+2009-11-25  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Patch by Mark Rowe.
+
+        The buildbots are failing on Windows because when they were upgraded
+        to 4.0.4, Apple Application Support was not in their path. Add it to
+        the path to fix the buildots.
+
+        * Scripts/webkitdirs.pm:
+
+2009-11-25  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        run-webkit-tests doesn't accept directories/files with --skipped=only parameter
+        https://bugs.webkit.org/show_bug.cgi?id=31799
+
+        * Scripts/run-webkit-tests: Fixed.
+
+2009-11-25  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Change run_command to give back stderr by default
+        https://bugs.webkit.org/show_bug.cgi?id=31734
+
+        Change run_command to give back stderr by default.
+        Set run_commands's 'svn-create-patch' calling to put only the stdout into the patches.
+        Change the related unittest call.
+
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+
+2009-11-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Centralize required argument parsing in Command
+        https://bugs.webkit.org/show_bug.cgi?id=31872
+
+        * Scripts/modules/commands/download.py: remove custom required arg message.
+        * Scripts/modules/commands/upload.py: ditto.
+        * Scripts/modules/multicommandtool.py:
+         - Add _parse_required_arguments.
+         - Pass program name off to OptionParser.
+         - Add name() for access to tool name.
+         - Add check_arguments_and_execute and make it return a return code.
+         - Replace a couple uses of + with %.
+        * Scripts/modules/multicommandtool_unittest.py: test _parse_required_arguments
+
 2009-11-25  Jakub Wieczorek  <faw217@gmail.com>
 
         Reviewed by Kenneth Rohde Christiansen.

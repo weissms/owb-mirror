@@ -50,12 +50,12 @@ from modules.multicommandtool import MultiCommandTool, Command
 from modules.patchcollection import PatchCollection
 from modules.scm import CommitMessage, detect_scm_system, ScriptError, CheckoutNeedsUpdate
 from modules.statusbot import StatusBot
-from modules.webkitlandingscripts import WebKitLandingScripts, commit_message_for_this_commit
 from modules.webkitport import WebKitPort
 from modules.workqueue import WorkQueue, WorkQueueDelegate
 
 class BugsToCommit(Command):
     name = "bugs-to-commit"
+    show_in_main_help = False
     def __init__(self):
         Command.__init__(self, "List bugs in the commit-queue")
 
@@ -67,6 +67,7 @@ class BugsToCommit(Command):
 
 class PatchesToCommit(Command):
     name = "patches-to-commit"
+    show_in_main_help = False
     def __init__(self):
         Command.__init__(self, "List patches in the commit-queue")
 
@@ -79,6 +80,7 @@ class PatchesToCommit(Command):
 
 class ReviewedPatches(Command):
     name = "reviewed-patches"
+    show_in_main_help = False
     def __init__(self):
         Command.__init__(self, "List r+'d patches on a bug", "BUGID")
 
@@ -91,6 +93,7 @@ class ReviewedPatches(Command):
 
 class TreeStatus(Command):
     name = "tree-status"
+    show_in_main_help = True
     def __init__(self):
         Command.__init__(self, "Print the status of the %s buildbots" % BuildBot.default_host)
 

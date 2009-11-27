@@ -34,6 +34,7 @@ import re
 import subprocess
 
 # Import WebKit-specific modules.
+from modules.changelogs import ChangeLog
 from modules.logging import error, log
 
 def detect_scm_system(path):
@@ -123,7 +124,7 @@ class SCM:
         self.dryrun = dryrun
 
     @staticmethod
-    def run_command(args, cwd=None, input=None, error_handler=default_error_handler, return_exit_code=False, return_stderr=False):
+    def run_command(args, cwd=None, input=None, error_handler=default_error_handler, return_exit_code=False, return_stderr=True):
         if hasattr(input, 'read'): # Check if the input is a file.
             stdin = input
             string_to_communicate = None
@@ -209,6 +210,28 @@ class SCM:
             if os.path.basename(path) == "ChangeLog":
                 changelog_paths.append(path)
         return changelog_paths
+
+    # FIXME: Requires unit test
+    # FIXME: commit_message_for_this_commit and modified_changelogs don't
+    #        really belong here.  We should have a separate module for
+    #        handling ChangeLogs.
+    def commit_message_for_this_commit(self):
+        changelog_paths = self.modified_changelogs()
+        if not len(changelog_paths):
+            raise ScriptError(message="Found no modified ChangeLogs, cannot create a commit message.\n"
+                              "All changes require a ChangeLog.  See:\n"
+                              "http://webkit.org/coding/contributing.html")
+
+        changelog_messages = []
+        for changelog_path in changelog_paths:
+            log("Parsing ChangeLog: %s" % changelog_path)
+            changelog_entry = ChangeLog(changelog_path).latest_entry()
+            if not changelog_entry:
+                raise ScriptError(message="Failed to parse ChangeLog: " + os.path.abspath(changelog_path))
+            changelog_messages.append(changelog_entry)
+
+        # FIXME: We should sort and label the ChangeLog messages like commit-log-editor does.
+        return CommitMessage("".join(changelog_messages).splitlines())
 
     @staticmethod
     def in_working_directory(path):
@@ -364,7 +387,7 @@ class SVN(SCM):
         return "svn"
 
     def create_patch(self):
-        return self.run_command(self.script_path("svn-create-patch"), cwd=self.checkout_root)
+        return self.run_command(self.script_path("svn-create-patch"), cwd=self.checkout_root, return_stderr=False)
 
     def diff_for_revision(self, revision):
         return self.run_command(['svn', 'diff', '-c', str(revision)])

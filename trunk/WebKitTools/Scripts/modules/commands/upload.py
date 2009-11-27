@@ -50,22 +50,24 @@ from modules.multicommandtool import MultiCommandTool, Command
 from modules.patchcollection import PatchCollection
 from modules.scm import CommitMessage, detect_scm_system, ScriptError, CheckoutNeedsUpdate
 from modules.statusbot import StatusBot
-from modules.webkitlandingscripts import WebKitLandingScripts, commit_message_for_this_commit
 from modules.webkitport import WebKitPort
 from modules.workqueue import WorkQueue, WorkQueueDelegate
 
+# FIXME: Requires unit test.
 class CommitMessageForCurrentDiff(Command):
     name = "commit-message"
+    show_in_main_help = False
     def __init__(self):
         Command.__init__(self, "Print a commit message suitable for the uncommitted changes")
 
     def execute(self, options, args, tool):
         os.chdir(tool.scm().checkout_root)
-        print "%s" % commit_message_for_this_commit(tool.scm()).message()
+        print "%s" % tool.scm().commit_message_for_this_commit().message()
 
 
 class ObsoleteAttachments(Command):
     name = "obsolete-attachments"
+    show_in_main_help = False
     def __init__(self):
         Command.__init__(self, "Mark all attachments on a bug as obsolete", "BUGID")
 
@@ -79,6 +81,7 @@ class ObsoleteAttachments(Command):
 
 class PostDiff(Command):
     name = "post-diff"
+    show_in_main_help = True
     def __init__(self):
         options = [
             make_option("-m", "--description", action="store", type="string", dest="description", help="Description string for the attachment (default: \"patch\")"),
@@ -120,6 +123,7 @@ class PostDiff(Command):
 
 class PostCommits(Command):
     name = "post-commits"
+    show_in_main_help = True
     def __init__(self):
         options = [
             make_option("-b", "--bug-id", action="store", type="string", dest="bug_id", help="Specify bug id if no URL is provided in the commit log."),
@@ -142,9 +146,6 @@ class PostCommits(Command):
         return StringIO.StringIO(diff) # add_patch_to_bug expects a file-like object
 
     def execute(self, options, args, tool):
-        if not args:
-            error("%s argument is required" % self.argument_names)
-
         commit_ids = tool.scm().commit_ids_from_commitish_arguments(args)
         if len(commit_ids) > 10: # We could lower this limit, 10 is too many for one bug as-is.
             error("bugzilla-tool does not support attaching %s at once.  Are you sure you passed the right commit range?" % (pluralize("patch", len(commit_ids))))
@@ -169,8 +170,20 @@ class PostCommits(Command):
             tool.bugs.add_patch_to_bug(bug_id, diff_file, description, comment_text, mark_for_review=options.review, mark_for_commit_queue=options.request_commit)
 
 
+class MarkFixed(Command):
+    name = "mark-fixed"
+    show_in_main_help = False
+    def __init__(self):
+        Command.__init__(self, "Mark the specified bug as fixed", "BUG_ID REASON")
+
+    def execute(self, options, args, tool):
+        tool.bugs.close_bug_as_fixed(args[0], args[1])
+
+
+# FIXME: Requires unit test.  Blocking issue: too complex for now.
 class CreateBug(Command):
     name = "create-bug"
+    show_in_main_help = True
     def __init__(self):
         options = [
             make_option("--cc", action="store", type="string", dest="cc", help="Comma-separated list of email addresses to carbon-copy."),
@@ -215,7 +228,7 @@ class CreateBug(Command):
         if options.prompt:
             (bug_title, comment_text) = self.prompt_for_bug_title_and_comment()
         else:
-            commit_message = commit_message_for_this_commit(tool.scm())
+            commit_message = tool.scm().commit_message_for_this_commit()
             bug_title = commit_message.description(lstrip=True, strip_url=True)
             comment_text = commit_message.body(lstrip=True)
 

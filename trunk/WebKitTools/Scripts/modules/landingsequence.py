@@ -31,7 +31,6 @@
 from modules.comments import bug_comment_from_commit_text
 from modules.logging import log
 from modules.scm import ScriptError, CheckoutNeedsUpdate
-from modules.webkitlandingscripts import WebKitLandingScripts, commit_message_for_this_commit
 from modules.webkitport import WebKitPort
 from modules.workqueue import WorkQueue
 
@@ -68,7 +67,7 @@ class LandingSequence:
             WorkQueue.exit_after_handled_error(e)
 
     def clean(self):
-        WebKitLandingScripts.prepare_clean_working_directory(self._tool.scm(), self._options)
+        self._tool.steps.clean_working_directory(self._tool.scm(), self._options)
 
     def update(self):
         self._tool.scm().update_webkit()
@@ -80,15 +79,15 @@ class LandingSequence:
     def build(self):
         # Make sure the tree is still green after updating, before building this patch.
         # The first patch ends up checking tree status twice, but that's OK.
-        WebKitLandingScripts.ensure_builders_are_green(self._tool.buildbot, self._options)
-        WebKitLandingScripts.build_webkit(quiet=self._options.quiet, port=self._port)
+        self._tool.steps.ensure_builders_are_green(self._tool.buildbot, self._options)
+        self._tool.steps.build_webkit(quiet=self._options.quiet, port=self._port)
 
     def test(self):
         # When running non-interactively we don't want to launch Safari and we want to exit after the first failure.
-        WebKitLandingScripts.run_webkit_tests(launch_safari=not self._options.non_interactive, fail_fast=self._options.non_interactive, quiet=self._options.quiet, port=self._port)
+        self._tool.run_tests(launch_safari=not self._options.non_interactive, fail_fast=self._options.non_interactive, quiet=self._options.quiet, port=self._port)
 
     def commit(self):
-        commit_message = commit_message_for_this_commit(self._tool.scm())
+        commit_message = self._tool.scm().commit_message_for_this_commit()
         return self._tool.scm().commit_with_message(commit_message.message())
 
     def close_patch(self, commit_log):
