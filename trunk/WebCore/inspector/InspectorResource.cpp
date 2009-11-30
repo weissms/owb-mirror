@@ -46,7 +46,7 @@
 
 namespace WebCore {
 
-InspectorResource::InspectorResource(long long identifier, DocumentLoader* loader)
+InspectorResource::InspectorResource(unsigned long identifier, DocumentLoader* loader)
     : m_identifier(identifier)
     , m_loader(loader)
     , m_frame(loader->frame())
@@ -70,7 +70,7 @@ InspectorResource::~InspectorResource()
 {
 }
 
-PassRefPtr<InspectorResource> InspectorResource::createCached(long long identifier, DocumentLoader* loader, const CachedResource* cachedResource)
+PassRefPtr<InspectorResource> InspectorResource::createCached(unsigned long identifier, DocumentLoader* loader, const CachedResource* cachedResource)
 {
     PassRefPtr<InspectorResource> resource = create(identifier, loader);
 
@@ -381,6 +381,12 @@ void InspectorResource::addLength(int lengthReceived)
 {
     m_length += lengthReceived;
     m_changes.set(LengthChange);
+
+    // Update load time, otherwise the resource will
+    // have start time == end time and  0 load duration
+    // until its loading is completed.
+    m_endTime = currentTime();
+    m_changes.set(TimingChange);
 }
 
 } // namespace WebCore

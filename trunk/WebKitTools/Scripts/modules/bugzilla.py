@@ -43,7 +43,7 @@ from modules.committers import CommitterList
 
 # WebKit includes a built copy of BeautifulSoup in Scripts/modules
 # so this import should always succeed.
-from .BeautifulSoup import BeautifulSoup
+from .BeautifulSoup import BeautifulSoup, SoupStrainer
 
 try:
     from mechanize import Browser
@@ -287,6 +287,15 @@ class Bugzilla:
 
         return bug_ids
 
+    def _parse_attachment_ids_request_query(self, page):
+        digits = re.compile("\d+")
+        attachment_href = re.compile("attachment.cgi\?id=\d+&action=review")
+        attachment_links = SoupStrainer("a", href=attachment_href)
+        return [digits.search(tag["href"]).group(0) for tag in BeautifulSoup(page, parseOnlyThese=attachment_links)]
+
+    def _fetch_attachment_ids_request_query(self, query):
+        return self._parse_attachment_ids_request_query(urllib2.urlopen(query))
+
     def fetch_bug_ids_from_commit_queue(self):
         commit_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=commit-queue%2B"
         return self._fetch_bug_ids_advanced_query(commit_queue_url)
@@ -295,6 +304,10 @@ class Bugzilla:
         review_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review?"
         return self._fetch_bug_ids_advanced_query(review_queue_url)
 
+    def fetch_attachment_ids_from_review_queue(self):
+        review_queue_url = self.bug_server_url + "request.cgi?action=queue&type=review&group=type"
+        return self._fetch_attachment_ids_request_query(review_queue_url)
+
     def fetch_patches_from_commit_queue(self, reject_invalid_patches=False):
         patches_to_land = []
         for bug_id in self.fetch_bug_ids_from_commit_queue():
@@ -302,10 +315,10 @@ class Bugzilla:
             patches_to_land += patches
         return patches_to_land
 
-    def fetch_patches_from_review_queue(self, limit):
+    def fetch_patches_from_review_queue(self, limit=None):
         patches_to_review = []
         for bug_id in self.fetch_bug_ids_from_review_queue():
-            if len(patches_to_review) >= limit:
+            if limit and len(patches_to_review) >= limit:
                 break
             patches = self.fetch_unreviewed_patches_from_bug(bug_id)
             patches_to_review += patches
@@ -485,8 +498,20 @@ class Bugzilla:
             # Bugzilla has two textareas named 'comment', one is somehow hidden.  We want the first.
             self.browser.set_value(comment_text, name='comment', nr=0)
         self.browser.submit()
-    
-    def post_comment_to_bug(self, bug_id, comment_text):
+
+    def add_cc_to_bug(self, bug_id, email_address):
+        self.authenticate()
+
+        log("Adding %s to the CC list for bug %s" % (email_address, bug_id))
+        if self.dryrun:
+            return
+
+        self.browser.open(self.bug_url_for_bug_id(bug_id))
+        self.browser.select_form(name="changeform")
+        self.browser["newcc"] = email_address
+        self.browser.submit()
+
+    def post_comment_to_bug(self, bug_id, comment_text, cc=None):
         self.authenticate()
 
         log("Adding comment to bug %s" % bug_id)
@@ -496,7 +521,9 @@ class Bugzilla:
 
         self.browser.open(self.bug_url_for_bug_id(bug_id))
         self.browser.select_form(name="changeform")
-        self.browser['comment'] = comment_text
+        self.browser["comment"] = comment_text
+        if cc:
+            self.browser["newcc"] = cc
         self.browser.submit()
 
     def close_bug_as_fixed(self, bug_id, comment_text=None):

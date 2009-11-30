@@ -229,7 +229,7 @@ class AbstractPatchProcessingCommand(Command):
         bugs_to_patches = {}
         for patch in patches:
             bug_id = patch["bug_id"]
-            bugs_to_patches[bug_id] = bugs_to_patches.get(bug_id, []).append(patch)
+            bugs_to_patches[bug_id] = bugs_to_patches.get(bug_id, []) + [patch]
         return bugs_to_patches
 
     def execute(self, options, args, tool):
@@ -350,6 +350,7 @@ class LandPatches(AbstractPatchLandingCommand):
         return all_patches
 
 
+# FIXME: Requires unit test.
 class Rollout(Command):
     name = "rollout"
     show_in_main_help = True

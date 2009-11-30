@@ -44,10 +44,10 @@ from modules.buildbot import BuildBot
 from modules.changelogs import ChangeLog
 from modules.comments import bug_comment_from_commit_text
 from modules.grammar import pluralize
-from modules.landingsequence import LandingSequence, ConditionalLandingSequence
+from modules.landingsequence import LandingSequence, ConditionalLandingSequence, LandingSequenceErrorHandler
 from modules.logging import error, log, tee
 from modules.multicommandtool import MultiCommandTool, Command
-from modules.patchcollection import PatchCollection
+from modules.patchcollection import PatchCollection, PersistentPatchCollection, PersistentPatchCollectionDelegate
 from modules.processutils import run_and_throw_if_fail
 from modules.scm import CommitMessage, detect_scm_system, ScriptError, CheckoutNeedsUpdate
 from modules.statusbot import StatusBot
@@ -55,12 +55,19 @@ from modules.webkitport import WebKitPort
 from modules.workqueue import WorkQueue, WorkQueueDelegate
 
 class AbstractQueue(Command, WorkQueueDelegate):
+    watchers = "webkit-bot-watchers@googlegroups.com"
     def __init__(self, options=[]):
         options += [
             make_option("--no-confirm", action="store_false", dest="confirm", default=True, help="Do not ask the user for confirmation before running the queue.  Dangerous!"),
             make_option("--status-host", action="store", type="string", dest="status_host", default=StatusBot.default_host, help="Hostname (e.g. localhost or commit.webkit.org) where status updates should be posted."),
         ]
         Command.__init__(self, "Run the %s" % self.name, options=options)
+
+    def _cc_watchers(self, bug_id):
+        try:
+            self.tool.bugs.add_cc_to_bug(bug_id, self.watchers)
+        except Exception, e:
+            log("Failed to CC watchers: %s." % e)
 
     def queue_log_path(self):
         return "%s.log" % self.name
@@ -108,11 +115,13 @@ class AbstractQueue(Command, WorkQueueDelegate):
         work_queue.run()
 
 
-class CommitQueue(AbstractQueue):
+class CommitQueue(AbstractQueue, LandingSequenceErrorHandler):
     name = "commit-queue"
     show_in_main_help = False
     def __init__(self):
         AbstractQueue.__init__(self)
+
+    # AbstractQueue methods
 
     def begin_work_queue(self):
         AbstractQueue.begin_work_queue(self)
@@ -133,27 +142,45 @@ class CommitQueue(AbstractQueue):
         return (True, "Landing patch %s from bug %s." % (patch["id"], patch["bug_id"]), patch)
 
     def process_work_item(self, patch):
-        self.run_bugzilla_tool(["land-attachment", "--force-clean", "--non-interactive", "--quiet", patch["id"]])
+        self._cc_watchers(patch["bug_id"])
+        self.run_bugzilla_tool(["land-attachment", "--force-clean", "--non-interactive", "--parent-command=commit-queue", "--quiet", patch["id"]])
 
     def handle_unexpected_error(self, patch, message):
         self.tool.bugs.reject_patch_from_commit_queue(patch["id"], message)
 
+    # LandingSequenceErrorHandler methods
 
-class AbstractTryQueue(AbstractQueue):
+    @classmethod
+    def handle_script_error(cls, tool, patch, script_error):
+        tool.bugs.reject_patch_from_commit_queue(patch["id"], script_error.message_with_output())
+
+
+class AbstractTryQueue(AbstractQueue, PersistentPatchCollectionDelegate, LandingSequenceErrorHandler):
     def __init__(self, options=[]):
         AbstractQueue.__init__(self, options)
 
-    def status_host(self):
-        return None # FIXME: A hack until we come up with a more generic status page.
+    # PersistentPatchCollectionDelegate methods
+
+    def collection_name(self):
+        return self.name
+
+    def fetch_potential_patch_ids(self):
+        return self.tool.bugs.fetch_attachment_ids_from_review_queue()
+
+    def status_server(self):
+        return self.tool.status()
+
+    # AbstractQueue methods
 
     def begin_work_queue(self):
         AbstractQueue.begin_work_queue(self)
-        self._patches = PatchCollection(self.tool.bugs)
-        self._patches.add_patches(self.tool.bugs.fetch_patches_from_review_queue(limit=10))
+        self.tool.status().set_host(self.options.status_host)
+        self._patches = PersistentPatchCollection(self)
 
     def next_work_item(self):
-        self.log_progress(self._patches.patch_ids())
-        return self._patches.next()
+        patch_id = self._patches.next()
+        if patch_id:
+            return self.tool.bugs.fetch_attachment(patch_id)
 
     def should_proceed_with_work_item(self, patch):
         raise NotImplementedError, "subclasses must implement"
@@ -163,6 +190,13 @@ class AbstractTryQueue(AbstractQueue):
 
     def handle_unexpected_error(self, patch, message):
         log(message)
+        self._patches.done(patch)
+
+    # LandingSequenceErrorHandler methods
+
+    @classmethod
+    def handle_script_error(cls, tool, patch, script_error):
+        log(script_error.message_with_output())
 
 
 class StyleQueue(AbstractTryQueue):
@@ -175,7 +209,21 @@ class StyleQueue(AbstractTryQueue):
         return (True, "Checking style for patch %s on bug %s." % (patch["id"], patch["bug_id"]), patch)
 
     def process_work_item(self, patch):
-        self.run_bugzilla_tool(["check-style", "--force-clean", patch["id"]])
+        self.run_bugzilla_tool(["check-style", "--force-clean", "--non-interactive", "--parent-command=style-queue", patch["id"]])
+        self._patches.done(patch)
+
+    @classmethod
+    def handle_script_error(cls, tool, patch, script_error):
+        command = script_error.script_args
+        if type(command) is list:
+            command = command[0]
+        # FIXME: We shouldn't need to use a regexp here.  ScriptError should
+        #        have a better API.
+        if re.search("check-webkit-style", command):
+            message = "Attachment %s did not pass %s:\n\n%s" % (patch["id"], cls.name, script_error.message_with_output(output_limit=None))
+            # Local-only logging helpful for development:
+            # log("** BEGIN BUG POST **\n%s** END BUG POST **" % message)
+            tool.bugs.post_comment_to_bug(patch["bug_id"], message, cc=cls.watchers)
 
 
 class BuildQueue(AbstractTryQueue):
@@ -197,4 +245,5 @@ class BuildQueue(AbstractTryQueue):
         return (True, "Building patch %s on bug %s." % (patch["id"], patch["bug_id"]), patch)
 
     def process_work_item(self, patch):
-        self.run_bugzilla_tool(["build-attachment", self.port.flag(), "--force-clean", "--quiet", "--no-update", patch["id"]])
+        self.run_bugzilla_tool(["build-attachment", self.port.flag(), "--force-clean", "--quiet", "--non-interactive", "--parent-command=build-queue", "--no-update", patch["id"]])
+        self._patches.done(patch)

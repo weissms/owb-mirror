@@ -176,7 +176,7 @@ bool XSSAuditor::canLoadObject(const String& url) const
 
     if (findInRequest(url)) {
 #if ENABLE(INSPECTOR)
-        DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request"));
+        String consoleMessage = String::format("Refused to load an object. URL found within request: \"%s\".\n", url.utf8().data());
         m_frame->domWindow()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, consoleMessage, 1, String());
 #endif
         return false;
@@ -194,7 +194,7 @@ bool XSSAuditor::canSetBaseElementURL(const String& url) const
 
     if (findInRequest(url)) {
 #if ENABLE(INSPECTOR)
-        DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to execute a JavaScript script. Source code of script found within request"));
+        DEFINE_STATIC_LOCAL(String, consoleMessage, ("Refused to load from document base URL. URL found within request.\n"));
         m_frame->domWindow()->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, consoleMessage, 1, String());
 #endif
         return false;
