@@ -1,0 +1,6 @@
+CursorSDL.h
+handCursor.h
+iBeamCursor.h
+moveCursor.h
+noCursor.h
+pointerCursor.h

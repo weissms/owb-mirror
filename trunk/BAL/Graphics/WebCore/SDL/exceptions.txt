@@ -1,0 +1,4 @@
+BCApplyTransparencySDL.h ApplyTransparencySDL.h
+BCGraphicsContextPlatformPrivateSDL.h GraphicsContextPlatformPrivateSDL.h
+BCGraphicsLayerSDL.h GraphicsLayerSDL.h
+BCGraphicsLayerSDL.h GraphicsLayerSDL.h

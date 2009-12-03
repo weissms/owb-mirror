@@ -1,0 +1,1962 @@
+2009-12-02  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Build fix when notification is ON and workers is OFF
+
+        * notifications/Notification.cpp:
+        * notifications/NotificationCenter.cpp:
+        * notifications/NotificationCenter.h: Wrap #include with the right
+        ENABLE(WORKERS) guard.
+
+2009-11-30  Mario Bensi  <mbensi@pleyo.com>
+
+        build fix when xslt are active with inspector set to off
+
+        * xml/XSLStyleSheetLibxslt.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessorLibxslt.cpp:
+        (WebCore::XSLTProcessor::parseErrorFunc):
+        (WebCore::docLoaderFunc):
+
+2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Update calls to JSLock method to use the JSLockBehavior enum instead
+        of using a bool. This would lead to crashes in the bridge.
+
+        * bridge/bal/bal_class.cpp:
+        (JSC::Bindings::BalClass::~BalClass):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::getPropertyNames):
+        (JSC::Bindings::BalInstance::createRuntimeObject):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
+2009-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Correct leaks in the bridge.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod): Avoid leaking the vector's
+        pointers and the temporary value (it is ok as the internal JSValue is
+        copied).
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance): Delete the temporary
+        value.
+
+2009-11-25  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        nav-* should be mapped to the nav keys not using some modifiers.
+
+        This will make it on remote controls. The previous mapping was made
+        for a desktop machine, not for a set-up box.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent): Remove the modifiers checks.
+
+2009-11-24  Gilles Bertal  <gbertal@pleyo.com>
+
+        Moved CEHTML and DAE CSS features additions down to the BAL.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSComputedStyleDeclaration.h:
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSParser.h:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * css/CSSStyleSelector.h:
+        * plugins/CMakeLists.txt:
+
+2009-11-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Order the options according to their dependency.
+
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::toJS): Add a ENABLE_PVR guard.
+        * dom/EventNames.h: s/DAE_VIDEO/DAE_TUNER.
+
+2009-11-06  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Renamed WebEmbeddedWidget to EmbeddedWidget.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+
+2009-11-06  Gilles Bertal  <gbertal@pleyo.com>
+
+        Create DOM object wrapper for MetadataSearch and PVR events.
+
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::toJS):
+        * dom/EventNames.h:
+
+2009-11-05  Mario Bensi  <mbensi@pleyo.com>
+
+        remove ref on BalObject
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+
+2009-11-04  Mario Bensi  <mbensi@pleyo.com>
+
+        fix the ambiguity on ref
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+
+2009-11-03  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Move the Metadata related classes in the BAL.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        EmbeddedWidget is now a BALObject so updated static_cast and calls to
+        match that.
+
+2009-10-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Make BALArray, BALObject and BALValue RefCounted.
+        Make WebArray, WebObject and WebValue SharedObject.
+
+        * bridge/bal/BalClass.cpp:
+        (JSC::Bindings::BalClass::methodsNamed):Updated to manipulate
+        reference counted containers to the BAL* and Web* classes.
+        (JSC::Bindings::BalClass::fieldNamed): Ditto.
+        * bridge/bal/BalInstance.cpp:
+
+        (JSC::Bindings::BalRuntimeObjectImp::invalidate):
+        (JSC::Bindings::BalRuntimeObjectImp::removeInstanceFromCache):
+        (JSC::Bindings::BalInstance::~BalInstance):
+        We were hitting an assertion in the AddOns as we were trying to remove
+        the map associated to an invalid object. Moved the cleaning code into
+        BalRuntimeObjectImp::removeInstanceFromCache which is called from
+        invalidate that is when the RootObject is invalidated.
+
+        (JSC::Bindings::BalInstance::getClass): Updated to manipulate
+        reference counted containers to the BAL* and Web* classes.
+        (JSC::Bindings::BalInstance::invokeMethod): Ditto.
+        (JSC::Bindings::BalInstance::stringValue): Ditto.
+        (JSC::Bindings::BalInstance::getBalInstance): Ditto.
+        * bridge/bal/BalInstance.h:
+        (JSC::Bindings::BalInstance::getObject): We hold a strong reference on
+        the BALObject so fetch the raw pointer in this case.
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
+2009-10-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        WebObject should be in the BAL.
+
+        The BalInstance are mapped with the BALObject and WebFrame usage is replaced with Frame.
+        This cuts the dependency on the WebKit exposed objects.
+        All the methods, caches and names were updated to reflect those 2 major changes.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bridge/bal/BalClass.cpp:
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/BalClass.h:
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::~BalInstance):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::stringValue):
+        (JSC::Bindings::BalInstance::getPropertyNames):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * bridge/bal/BalInstance.h:
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+        * bridge/bal/BalRuntime.h:
+
+2009-10-21  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Workaround to prevent unvoluntary destruction of a WebEmbeddedWidget
+        object on re-entry caused by the fact that the WebEmbeddedWidget class
+        inherits from both WTF::RefCounted and SharedObject.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+
+2009-10-21  Mario Bensi  <mbensi@pleyo.com>
+
+        Add BindToCurrentChannel
+
+        * dom/EventNames.h:
+
+2009-10-20  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added newRuntimeObject() to replace createRuntimeObject(), which
+        now is defined in JSC::Bindings::Instance and invokes the former to
+        create the runtime object.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::newRuntimeObject):
+        * bridge/bal/BalInstance.h:
+
+2009-10-13  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Moved DAE/CEHTML specific changes on WebCore's HTMLObjectElement
+        and JSEventListener to the BAL.
+
+        * CMakeLists.txt:
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent):
+        * bindings/js/JSEventListener.h:
+        * html/CEHTMLAttributeNames.in: Removed.
+        * html/HTMLAttributeNamesExtensions.in: Removed.
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLObjectElement.h:
+
+2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Not reviewed (build fix for non DAE build).
+
+        * bridge/bal/BalInstance.h: Include WebObject.h instead of using a
+        forward reference.
+
+2009-10-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add computed style for nav-*.
+
+        Test: applications/nav-getProperty.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::propertyFromNavigationAtom): Static method that translate
+        the NavigationAtom into the CSS property.
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): Call
+        propertyFromNavigationAtom.
+
+2009-10-12  Mario Bensi  <mbensi@pleyo.com>
+
+        WebObject inherit of SharedPtr
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bridge/bal/BalClass.cpp:
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/BalClass.h:
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::~BalInstance):
+        (JSC::Bindings::BalInstance::stringValue):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * bridge/bal/BalInstance.h:
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
+2009-10-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Fully implement nav-* properties.
+
+        Test: applications/nav-multiframe.html
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue): Simplify the parsing procedure to
+        always add a second parameter to the list. This simplies the treatment
+        in CSSStyleSelector.
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty): Splitted the different
+        properties to handle the "inherit" keyword propertly.
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::setNavDown): Updated to match NavigationAtom
+        change.
+        (WebCore::InheritedFlags::setNavLeft): Ditto.
+        (WebCore::InheritedFlags::setNavRight): Ditto.
+        (WebCore::InheritedFlags::setNavUp): Ditto.
+        (WebCore::InheritedFlags::navDown): Ditto.
+        (WebCore::InheritedFlags::navLeft): Ditto.
+        (WebCore::InheritedFlags::navRight): Ditto.
+        (WebCore::InheritedFlags::navUp): Ditto.
+
+2009-10-07  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Moved the input-format CSS feature related changes under
+        ENABLE_CEHTML and moved nav-* CSS feature under ENABLE_DAE.
+
+        * CMakeLists.txt:
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSPrimitiveValueMappings.h:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent):
+        (WebCore::EventHandler::handleTextInputEvent):
+        * page/EventHandler.h:
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::NonInheritedFlags::operator==):
+        (WebCore::InheritedFlags::setBitDefaults):
+        * rendering/style/RenderStyleConstants.h:
+        * rendering/style/StyleRareNonInheritedData.h:
+
+2009-10-07  Gilles Bertal  <gbertal@pleyo.com>
+
+        Moving CEHTML-specific properties and value keywords definitions from
+        ./WebCore/css to ./BAL/CEHTML/WebCore/Common. Updated WebCore's cmake
+        to reference these files from their new location.
+
+        * CMakeLists.txt:
+        * css/CEHTMLCSSPropertyNames.in: Removed.
+        * css/CEHTMLCSSValueKeywords.in: Removed.
+
+2009-10-06  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Julien Chaffraix.
+
+        Added support for CEHTML CSS 'input-format' property.
+
+        Test: applications/input-format.html
+
+        * CMakeLists.txt:
+        * css/CEHTMLCSSValueKeywords.in: Added.
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSPrimitiveValueMappings.h:
+        (WebCore::CSSPrimitiveValue::CSSPrimitiveValue):
+        (WebCore::CSSPrimitiveValue::operator EInputFormat):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleTextInputEvent):
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::NonInheritedFlags::operator==):
+        (WebCore::InheritedFlags::setBitDefaults):
+        (WebCore::InheritedFlags::initialInputFormat):
+        (WebCore::InheritedFlags::setInputFormat):
+        (WebCore::InheritedFlags::inputFormat):
+        * rendering/style/RenderStyleConstants.h:
+        (WebCore::):
+
+2009-10-02  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Implement nav-* CSS properties.
+
+        Test: applications/nav.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): Stubbed
+        an implementation for now.
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue): Really parse the value and create a
+        list that is given to the parser.
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty): Apply the property by
+        filling the style/NavigationInfo.h object.
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleNavigationKey): Added this method to
+        handle nav-* navigation.
+        (WebCore::EventHandler::keyEvent): Mapped the handleNavigationKey to
+        the CTRL + SHIFT + arrows to avoid going against other mapping.
+        * page/EventHandler.h:
+        * rendering/style/NavigationInfo.h: Added.
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::setNavDown):
+        (WebCore::InheritedFlags::setNavLeft):
+        (WebCore::InheritedFlags::setNavRight):
+        (WebCore::InheritedFlags::setNavUp):
+        Nav-* setters.
+
+        (WebCore::InheritedFlags::navDown):
+        (WebCore::InheritedFlags::navLeft):
+        (WebCore::InheritedFlags::navRight):
+        (WebCore::InheritedFlags::navUp):
+        Nav-* getters.
+
+        * rendering/style/StyleRareNonInheritedData.h: Added the
+        NavigationInfo here.
+
+2009-10-05  Mario Bensi  <mbensi@pleyo.com>
+
+        Add WebArray in WebObject.
+        Move all DAE Object in BAL
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        * dom/CMakeLists.txt:
+        * dom/DAEEvent.h: Removed.
+        * dom/DAEVideoBroadcastEvent.cpp: Removed.
+        * dom/DAEVideoBroadcastEvent.h: Removed.
+        * dom/DAEWrapperEvent.h: Removed.
+        * dom/EventNames.h:
+        * dom/MetadataSearchEvent.h: Removed.
+        * dom/MetadataSearchEvent.idl: Removed.
+        * html/CEHTMLAttributeNames.in:
+        * html/HTMLAttributeNamesExtensions.in:
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+
+2009-09-30  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add "input-format" and "nav-*" to the CSS parser.
+
+        * CMakeLists.txt: Added CEHTMLCSSPropertyNames.in
+        * css/CEHTMLCSSPropertyNames.in: Added.
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::): Added the new values to the enum.
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): Added
+        cases statement for the new values.
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue): Added the new values to the switch
+        statement. Added the beginning of nav-* parsing according to CSS 3 UI.
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty): Added the new values to
+        the switch.
+
+2009-09-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add accesskey support for VK_* keys.
+
+        Test: applications/accesskey.html
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleAccessKey): If we fail to match a normal
+        accesskey (for example, 'a'), fall back to using a VK_* key.
+
+2009-09-23  Mario Bensi  <mbensi@pleyo.com>
+
+        The substitute data cannot valid if the security is not granted.
+
+        * dom/Document.cpp:
+        (WebCore::Document::initSecurityContext):
+
+2009-09-15  Gilles Bertal  <gbertal@pleyo.com>
+
+        Removed a leftover from the IBC demo code cleanup
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::error):
+
+2009-09-15  Gilles Bertal  <gbertal@pleyo.com>
+
+        Removed tweaks that were temporarily put in place
+        to support the IBC demo.
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::getEntityHandler):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::canLoad):
+
+2009-09-01  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add "onPlayStateChange" event listener define in CEHTML norm at
+        section 5.7.1
+
+        * CMakeLists.txt:
+        * dom/EventNames.h:
+        * dom/make_names.pl:
+        * html/CEHTMLAttributeNames.in: Added.
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+
+2009-08-31  Mario Bensi  <mbensi@pleyo.com>
+
+        Remove VKValue and use only KeyboardCodes
+
+        * CMakeLists.txt:
+
+2009-08-21  Mario Bensi  <mbensi@pleyo.com>
+
+        add idItemGetter for CEHTML document.
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::namedItemGetter):
+        (WebCore::idItemGetter):
+        (WebCore::JSDOMWindow::getOwnPropertySlot):
+        * dom/DOMImplementation.cpp:
+        (WebCore::DOMImplementation::createDocument):
+        * dom/Document.cpp:
+        (WebCore::Document::isCEHTMLDocument):
+        * dom/Document.h:
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::getEntityHandler):
+
+2009-08-20  Mario Bensi  <mbensi@pleyo.com>
+
+        create a xhtml document when we find ce-hmtl mimetype.
+        add a Hack for irt
+
+        * dom/DOMImplementation.cpp:
+        (WebCore::DOMImplementation::createDocument):
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::getEntityHandler):
+
+2009-08-17  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added a default (bool*) parameter to Node::dispatchKeyEvent()
+        in order to eventually indicate to clients whether the event
+        propagation got stopped/cancelled during the dispatch phase.
+
+        * dom/Node.cpp:
+        (WebCore::Node::dispatchKeyEvent):
+        * dom/Node.h:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent):
+
+2009-08-13  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        CMake coding style.
+
+        * CMakeLists.txt:
+
+2009-08-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Implement the video/broadcast state machine defined in HBBTV A.8
+
+        Test: applications/playStateEventDispatch.html
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent): Added a check and special
+        handling for NonDispatchedWrapperEvent.
+        * dom/DAEEvent.h:
+        (WebCore::DAEEvent::isNonDispatchedWrapperEvent): Added.
+        * dom/EventNames.h: Added "NonDispatchedWrapper" to the event names.
+        * dom/NonDispatchedWrapperEvent.h: Added.
+        (WebCore::NonDispatchedWrapperEvent::create):
+        (WebCore::NonDispatchedWrapperEvent::isDAEVideoBroadcastEvent):
+        (WebCore::NonDispatchedWrapperEvent::isNonDispatchedWrapperEvent):
+        (WebCore::NonDispatchedWrapperEvent::push):
+        (WebCore::NonDispatchedWrapperEvent::intValues):
+        (WebCore::NonDispatchedWrapperEvent::NonDispatchedWrapperEvent):
+        This class is just a wrapper to pass argument to a listener. For the
+        moment only int are supported, but this will be extended with use
+        cases.
+
+2009-08-12  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fixed-up breakage w/ non-DAE builds.
+
+        * dom/EventNames.h: Defined a couple missing macros
+        when ENABLE_DAE is not defined.
+
+2009-08-11  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        DAEEvent is no longer an abstract class.
+
+        * dom/DAEEvent.h: 
+        (WebCore::DAEEvent::create): Added
+        (WebCore::DAEEvent::isDAEApplicationEvent): Added
+        (WebCore::DAEEvent::isDAESystemEvent): Added
+        (WebCore::DAEEvent::isDAEVideoBroadcastEvent): No longer pure virtual,
+        implemented default.
+        * dom/EventNames.h:
+        Added DAE Application/System event names
+
+2009-08-10  Mario Bensi  <mbensi@pleyo.com>
+
+        fix a crash, the FrameLoaderclient are destroy before the FrameLoader
+        (ticket #27 ).
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::~FrameLoader):
+
+2009-08-07  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reverting changes @ revision 348.
+
+        * CMakeLists.txt:
+        * dom/make_names.pl:
+        * html/HTMLAttributeNames.in:
+        * html/HTMLAttributeNamesExtensions.in: Copied from WebCore/html/HTMLAttributeNamesExtensions.in
+        and added back onMetadataSearch.
+
+2009-08-06  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add MetaDataSearchEvent and all the event handler logic.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent): Use the custom way to handle
+        event only for DAEVideoBroadcastEvent.
+        * dom/CMakeLists.txt: Added the idl file.
+        * dom/DAEEvent.cpp: Removed.
+        * dom/DAEEvent.h:
+        (WebCore::DAEEvent::~DAEEvent): Inlined the method to remove the .cpp.
+        (WebCore::DAEEvent::isDAEEvent): Ditto.
+        (WebCore::DAEEvent::DAEEvent): Ditto.
+        * dom/EventNames.h:
+        * dom/MetadataSearchEvent.h: Added.
+        (WebCore::): Added this enum.
+        (WebCore::MetadataSearchEvent::create): Create method, matches other
+        events.
+        (WebCore::MetadataSearchEvent::isDAEVideoBroadcastEvent): Return
+        false.
+        (WebCore::MetadataSearchEvent::state): State getter. Needed by the
+        code generated from the idl.
+        (WebCore::MetadataSearchEvent::id): ID getter. Needed by the code
+        generated from the idl.
+        (WebCore::MetadataSearchEvent::MetadataSearchEvent):
+        * dom/MetadataSearchEvent.idl: Added.
+        * html/HTMLAttributeNames.in: Added onMetadataSearch.
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute): Added a special
+        case for onMetadataSearch.
+
+2009-08-05  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fixed-up a couple remaining issues on the initial
+        change introducing support for DAE video/broadcast events.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent):
+          Pass the event as argument to script event handlers for non-DAE events.
+        * dom/DAEVideoBroadcastEvent.h:
+        (WebCore::DAEVideoBroadcastEvent::):
+          Removed invalid typedef on enum.
+
+2009-08-05  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Julien Chaffraix.
+
+        Correcting previous change on make_names.pl that wasn't necessary
+        given there's already a built-in way to conditionally define attributes.
+
+        * CMakeLists.txt: Updated arguments passed to make_names.pl in order
+          to include DAE-specific attributes when ENABLE_DAE is defined
+        * dom/make_names.pl: Reverted previous change.
+        * html/HTMLAttributeNames.in: Conditionally include DAE-specific attributes
+        * html/HTMLAttributeNamesExtensions.in: Removed.
+
+2009-08-04  Gilles Bertal  <gbertal@pleyo.com>
+
+        Inlined isDAEEvent() implementation.
+
+        * dom/Event.cpp:
+        * dom/Event.h:
+        (WebCore::Event::isDAEEvent):
+
+2009-08-04  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fixed-up breakage w/ non-DAE builds.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent):
+
+2009-08-04  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added support for OIPF v5 DAE 7.4.2 video/broadcast events.
+
+        * CMakeLists.txt:
+          Pass an extra option to the make_names.pl script in order
+        to include DAE-specific attribute names definitions
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::handleEvent):
+          Updated to pass DAE event-specific arguments to the
+        JS handler in lieu of the usual event object.
+        * dom/CMakeLists.txt:
+          Conditionally include DAE-specific sources.
+        * dom/DAEEvent.cpp: Added.
+        (WebCore::DAEEvent::DAEEvent):
+        (WebCore::DAEEvent::~DAEEvent):
+        (WebCore::DAEEvent::isDAEEvent):
+        * dom/DAEEvent.h: Added.
+        (WebCore::DAEEvent::isDAEEvent):
+        * dom/DAEVideoBroadcastEvent.cpp: Added.
+        (WebCore::DAEVideoBroadcastEvent::DAEVideoBroadcastEvent):
+        (WebCore::DAEVideoBroadcastEvent::~DAEVideoBroadcastEvent):
+        (WebCore::DAEVideoBroadcastEvent::setErrorState):
+        (WebCore::DAEVideoBroadcastEvent::setChannelID):
+        * dom/DAEVideoBroadcastEvent.h: Added.
+        (WebCore::DAEVideoBroadcastEvent::):
+        (WebCore::DAEVideoBroadcastEvent::create):
+        (WebCore::DAEVideoBroadcastEvent::isDAEVideoBroadcastEvent):
+        (WebCore::DAEVideoBroadcastEvent::errorState):
+        (WebCore::DAEVideoBroadcastEvent::channelID):
+        * dom/Event.cpp:
+        (WebCore::Event::isDAEEvent):
+        * dom/Event.h:
+        * dom/EventNames.h:
+          Added DAE-specific video/broadcast object event names
+        * dom/make_names.pl:
+          Updated to take in an extra option parameter to include
+        DAE-specific attribute names definitions
+        * html/HTMLAttributeNamesExtensions.in: Added.
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+          Added support for DAE-specific attributes.
+
+2009-08-04  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Iterating over WebObject properties and methods does not work for
+        object inheriting from WebEmbeddedWidget.
+
+        Test: applications/forInMixedWebObject.html
+
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        (WebCore::JSHTMLObjectElement::getPropertyNames): Call the base class,
+        then call runtimeObjectGetPropertyNames to add our objects after
+        WebCore (the order in which properties / methods seems somehow random
+        so this order is not important).
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::runtimeObjectGetPropertyNames): Get the runtime object
+        associated with the HTMLElement and dump its propertyNames if it
+        exists.
+        * bindings/js/JSPluginElementFunctions.h: Added
+        runtimeObjectGetPropertyNames.
+        * html/HTMLObjectElement.idl: Add CustomGetPropertyName so that the
+        method is declared but not implemented.
+
+2009-08-04  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Iterating over webObject properties and methods does not work.
+
+        Test: applications/forInPureWebObject.html
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::getPropertyNames): Fill the
+        propertyNameArray with the information from our WebObject.
+
+2009-08-03  Mario Bensi  <mbensi@pleyo.com>
+
+        Change test in renderWidgetForJSBindings to call
+        updateLayoutIgnorePendingStylesheets when the renderWidget is null
+        and not just when the renderWidget->widget() is null.
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::renderWidgetForJSBindings):
+
+2009-07-31  Olivier DOLE  <odole@pleyo.com>
+
+        Clean cmake.
+
+        * CMakeLists.txt:
+
+2009-07-30  Olivier DOLE  <odole@pleyo.com>
+
+        Build fix in cmake.
+
+        * CMakeLists.txt:
+
+2009-07-30  Olivier DOLE  <odole@pleyo.com>
+
+        Fix Customer architecture.
+
+        * CMakeLists.txt: Include Customer CMakeLists from WebCore to be able
+        to correctly split open source and proprietary sources.
+
+2009-07-23  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Make us compliant with the CEHTML standard regarding event dispatching.
+
+        * manual-tests/Applications/event-dispatch.html: Added some
+        explanation and a <textarea>.
+
+2009-07-17  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Added a manual test for this change as I was unable to make an automated
+        test for that.
+
+        * manual-tests/applications: Added.
+        * manual-tests/applications/event-dispatch.html: Added.
+
+2009-07-16  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added a default bool* parameter so we get to know whether the key event
+        flow was altered (propagation stopped or bubbling cancelled) during the
+        dispatch phase.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent):
+        * page/EventHandler.h:
+
+2009-07-16  Mario Bensi  <mbensi@pleyo.com>
+
+        fix accessibility for BAL.
+
+        * accessibility/AccessibilityObject.h:
+
+2009-07-13  Mario Bensi  <mbensi@pleyo.com>
+
+        Added some #if PLATFORM(X11) to avoid linking with X11 when not
+        needed.
+        Enabling generic NPAPI support.
+
+        * bridge/npapi.h:
+        * bridge/npruntime_internal.h:
+        * plugins/CMakeLists.txt:
+        * plugins/Generic: Added.
+        * plugins/Generic/PluginDataGeneric.cpp: Added.
+        (WebCore::PluginData::initPlugins):
+        (WebCore::PluginData::refresh):
+        * plugins/Generic/PluginPackageGeneric.cpp: Added.
+        (WebCore::PluginPackage::fetchInfo):
+        (WebCore::PluginPackage::load):
+        * plugins/Generic/PluginViewGeneric.cpp: Added.
+        (WebCore::PluginView::updatePluginWidget):
+        (WebCore::PluginView::setFocus):
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        (WebCore::PluginView::setParent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::userAgent):
+        (WebCore::PluginView::userAgentStatic):
+        (WebCore::PluginView::invalidateRegion):
+        (WebCore::PluginView::handlePostReadFile):
+        (WebCore::PluginView::getValueStatic):
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::invalidateRect):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::~PluginView):
+        (WebCore::PluginView::init):
+        * plugins/PluginDatabase.cpp:
+        (WebCore::PluginDatabase::pluginForMIMEType):
+        (WebCore::PluginDatabase::getPluginPathsInDirectories):
+
+2009-07-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Use ENABLE_CEHTML instead of ENABLE_DAE.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * dom/KeyboardEvent.cpp:
+        (WebCore::KeyboardEvent::KeyboardEvent):
+        (WebCore::KeyboardEvent::keyCode):
+        * dom/KeyboardEvent.h:
+        * dom/KeyboardEvent.idl:
+
+2009-07-10  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Test: applications/initKeyEvent.html
+
+        Implement CE-HTML section 5.4.1 (Key-events)
+
+        Added the missing method KeyboardEvent.initKeyEvent
+
+        * CMakeLists.txt: Added ENABLE_DAE to FEATURE_DEFINES_JAVASCRIPT (it
+        is used when generating the sources from the idl files).
+        * bindings/js/CMakeLists.txt: Added JSKeyboardEventCustom.cpp.
+        * bindings/js/JSKeyboardEventCustom.cpp: Added.
+        (WebCore::JSKeyboardEvent::initKeyEvent): Added this method the calls
+        KeyboardEvent::initKeyEvent.
+        * dom/KeyboardEvent.cpp:
+        (WebCore::KeyboardEvent::KeyboardEvent): Added a flag
+        m_wasInitializedWithKeyCode;
+        (WebCore::KeyboardEvent::initKeyEvent): Added this method to set the
+        keyCode directly.
+        (WebCore::KeyboardEvent::keyCode): Added a shortcut for events
+        initialized with initKeyEvent.
+        * dom/KeyboardEvent.h: Added initKeyEvent and the flag.
+        * dom/KeyboardEvent.idl: Added initKeyEvent.
+
+2009-07-05  Mario Bensi  <mbensi@pleyo.com>
+
+        add WebFrame in WebValue constructor.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+
+2009-07-05  Mario Bensi  <mbensi@pleyo.com>
+
+        add WebFrame parameter in invoke, get/setProperties.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
+2009-07-05  Mario Bensi  <mbensi@pleyo.com>
+
+        fix assert on drt test.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/BalRuntime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+
+2009-06-30  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Update didReceiveSSLSecurityExtension signature to use a 
+        ResourceRequest as the ResourceResponse is empty when the certificate
+        is received.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::didReceiveSSLSecurityExtension):
+        * loader/FrameLoader.h:
+        * loader/FrameLoaderClient.h:
+        * loader/ResourceLoader.cpp:
+        (WebCore::ResourceLoader::didReceiveSSLSecurityExtension):
+        * loader/ResourceLoader.h:
+
+2009-06-30  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Tests: applications/reloadApplication-expected.html
+               applications/reloadApplication.html
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache): Remove an
+        assertion that was hit in the tests.
+
+2009-06-29  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Implement the Security mechanism required of the OIPF specification.
+
+        Added the needed methods to get the information in our code.
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyFrameLoaderClient::didReceiveSSLSecurityExtension):
+        Added to avoid breaking the build.
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::didReceiveSSLSecurityExtension): Call the
+        client.
+        * loader/FrameLoader.h: Added the method.
+        * loader/FrameLoaderClient.h: Ditto. It is implemented in the
+        WebFrameLoaderClient.
+        * loader/ResourceLoader.cpp:
+        (WebCore::ResourceLoader::didReceiveSSLSecurityExtension): Call the
+        FrameLoader.
+        * loader/ResourceLoader.h: Added the method.
+
+2009-06-17  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier Dole. 
+
+        Fix a bug in the bridge where BalInstance where not retained enough.
+
+        Switched the code to use WTF structure instead of those from the std
+        because we can have an optimized structure for our need and we can
+        ASSERT on several key parameters.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalInstance::~BalInstance): Using remove() here was
+        causing all the references associated with a WebObject to be lost. Now
+        we just remove the reference that is been destructed.
+        (JSC::Bindings::BalInstance::getBalInstance): Updated after
+        cachedInstance change.
+
+2009-06-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Fix an ASSERT seen in DEBUG.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache): Return when we
+        have found the pointer to remove. Also added an ASSERT to catch wrong
+        usage.
+
+2009-06-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Split WebValue definition into its own file.
+
+        * bridge/bal/BalInstance.cpp: Added a #include for WebValue.h.
+        * bridge/bal/BalRuntime.cpp: Ditto.
+
+2009-06-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add back to code to cache the JSObject associated with a BalInstance.
+
+        This partly solves some issues we had with JSObject comparison that
+        were wrongly failing.
+
+        * bridge/bal/BalInstance.cpp:
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache): Remove the
+        JSObject from the map.
+        (JSC::Bindings::BalInstance::createRuntimeObject): Use the cached
+        version if there is one. If not, cache our new instance for further
+        use.
+
+2009-06-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        WebCore bridge cleanup.
+
+        - Renamed file that started with bal_* to Bal*. Also camel-cased the
+        name to match WebCore.
+
+        - Removed some coding style issues.
+
+        - Sorted and sometimes simplified the include statements.
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        * bridge/CMakeLists.txt:
+        * bridge/bal/BalClass.cpp: Added.
+        (JSC::Bindings::BalClass::~BalClass):
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::name):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/BalClass.h: Added.
+        (JSC::Bindings::BalClass::BalClass):
+        * bridge/bal/BalInstance.cpp: Added.
+        (JSC::Bindings::BalRuntimeObjectImp::mark):
+        (JSC::Bindings::BalRuntimeObjectImp::classInfo):
+        (JSC::Bindings::):
+        (JSC::Bindings::BalRuntimeObjectImp::BalRuntimeObjectImp):
+        (JSC::Bindings::BalRuntimeObjectImp::~BalRuntimeObjectImp):
+        (JSC::Bindings::BalRuntimeObjectImp::invalidate):
+        (JSC::Bindings::BalRuntimeObjectImp::removeFromCache):
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::~BalInstance):
+        (JSC::Bindings::BalInstance::getClass):
+        (JSC::Bindings::BalInstance::supportsInvokeDefaultMethod):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::invokeDefaultMethod):
+        (JSC::Bindings::BalInstance::defaultValue):
+        (JSC::Bindings::BalInstance::stringValue):
+        (JSC::Bindings::BalInstance::numberValue):
+        (JSC::Bindings::BalInstance::booleanValue):
+        (JSC::Bindings::BalInstance::valueOf):
+        (JSC::Bindings::BalInstance::getPropertyNames):
+        (JSC::Bindings::BalInstance::createRuntimeObject):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * bridge/bal/BalInstance.h: Added.
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/BalRuntime.cpp: Added.
+        (JSC::Bindings::BalField::name):
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+        * bridge/bal/BalRuntime.h: Added.
+        (JSC::Bindings::BalField::BalField):
+        (JSC::Bindings::BalField::~BalField):
+        (JSC::Bindings::BalMethod::BalMethod):
+        (JSC::Bindings::BalMethod::~BalMethod):
+        (JSC::Bindings::BalMethod::name):
+        (JSC::Bindings::BalMethod::numParameters):
+        * bridge/bal/bal_class.cpp: Removed.
+        * bridge/bal/bal_class.h: Removed.
+        * bridge/bal/bal_instance.cpp: Removed.
+        * bridge/bal/bal_instance.h: Removed.
+        * bridge/bal/bal_runtime.cpp: Removed.
+        * bridge/bal/bal_runtime.h: Removed.
+
+2009-06-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Add svg/graphics sources in WebCore.
+
+        * svg/CMakeLists.txt:
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Avoid crashing when the client application returns 0.
+
+        Now we set the returned value to JS undefined.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret. 
+
+        Build fix when INSPECTOR is activated: 
+        ScriptObjectQuarantine.cpp is needed when INSPECTOR is ON 
+        but we were including Database.h which would break the build if 
+        DATABASE is OFF. 
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+
+2009-05-25  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Rubber-stamped by Mario Bensi.
+
+        Move all CE-HTML files to their own directory.
+
+        * CMakeLists.txt: Updated for file moves.
+
+2009-05-25  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Move VKValues.h generation from WebKit to WebCore.
+        
+        This change make it usable in the BAL. We were already doing it so it
+        fixes first compilation issue.
+
+        * CMakeLists.txt: Add VKValues.h generation. We need to compile it so
+        that add_custom_command is executed.
+
+2009-05-22  Mario Bensi  <mbensi@pleyo.com>
+
+        Add console symbole in DOMWindow when INSPECTOR is ON.
+
+        * CMakeLists.txt:
+
+2009-05-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        WebEmbeddedWidget should be able to choose to be tied to their 
+        RenderPart.
+
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::~RenderPart): Delete the widget if isWidgetTiedToRenderPart is
+        true.
+
+2009-05-11  Mario Bensi  <mbensi@pleyo.com>
+
+        Move test layout in LayoutTests.
+
+        Tests: applications/VKTests.html
+               applications/keysetGetValue.html
+               applications/keysetSetValue.html
+
+        * manual-tests/Applications/VKTests-expected.txt: Removed.
+        * manual-tests/Applications/VKTests.html: Removed.
+        * manual-tests/Applications/keysetGetValue-expected.txt: Removed.
+        * manual-tests/Applications/keysetGetValue.html: Removed.
+        * manual-tests/Applications/keysetSetValue-expected.txt: Removed.
+        * manual-tests/Applications/keysetSetValue.html: Removed.
+        * manual-tests/Applications/resources: Removed.
+        * manual-tests/Applications/resources/TEMPLATE.html: Removed.
+        * manual-tests/Applications/resources/VKTests.js: Removed.
+        * manual-tests/Applications/resources/js-test-post-function.js: Removed.
+        * manual-tests/Applications/resources/js-test-post-n.js: Removed.
+        * manual-tests/Applications/resources/js-test-post.js: Removed.
+        * manual-tests/Applications/resources/js-test-pre.js: Removed.
+        * manual-tests/Applications/resources/js-test-style.css: Removed.
+        * manual-tests/Applications/resources/keysetGetValue.js: Removed.
+        * manual-tests/Applications/resources/keysetSetValue.js: Removed.
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add the "value" property parsing code.
+
+        * manual-tests/Applications/keysetSetValue-expected.txt: Updated to
+        include the string parsing code.
+        * manual-tests/Applications/resources/keysetSetValue.js: Ditto.
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Avoid crashing when the client application returns 0.
+
+        Now we set the returned value to JS undefined.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Implement setProperty for JS number values.
+
+        Add tests.
+
+        * manual-tests/Applications/keysetSetValue-expected.txt: Added.
+        * manual-tests/Applications/keysetSetValue.html: Added.
+        * manual-tests/Applications/resources/keysetSetValue.js: Added.
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Add a test case for the keyset's value getting.
+
+        * manual-tests/Applications/keysetGetValue-expected.txt: Added.
+        * manual-tests/Applications/keysetGetValue.html: Added.
+        * manual-tests/Applications/resources/keysetGetValue.js: Added.
+
+2009-05-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Better build fix when INSPECTOR is activated:
+        ScriptObjectQuarantine.cpp is needed when INSPECTOR is ON
+        but we were including DATABASE which would break the build if
+        DATABASE is OFF.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+
+2009-05-05  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Better build fix when DOM_STORAGE is enabled but not INSPECTOR.
+        ScriptObjectQuarantine is a wrapper used only by the
+        WebInspector so I added an #if guard in the header and compile
+        the cpp file when both option are provided.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-04-02  Mario Bensi  <mbensi@pleyo.com>
+
+        fix compilation ScriptObjectQuarantine.cpp depend of storage and database.
+
+        * bindings/js/CMakeLists.txt:
+
+2009-04-02  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * CMakeLists.txt:
+        * bridge/npapi.h:
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        Fix Mac Compilation
+
+2009-04-01  Stanislaw Szymczyk  <sszymczy@gmail.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #334: File download implementation
+
+        Change ResourceHandle object ownership to avoid destroying it
+        during error handling.
+
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::continueAfterContentPolicy):
+
+2009-05-05  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add all the VK_* constants defined by CE-HTML.
+
+        Updated the test to cover all the constants.
+
+        * manual-tests/Applications/VKTests-expected.txt:
+        * manual-tests/Applications/resources/VKTests.js:
+
+2009-05-05  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+        Add the CE-HTML VK_* keys definiton
+
+        I added the JS testing framework as well as a test for the current
+        values that could be extended to encompass all the values defined in
+        the specification.
+
+        * manual-tests/Applications/VKTests-expected.txt: Added.
+        * manual-tests/Applications/VKTests.html: Added.
+        This test verifies that the new definitions are right and cannot be
+        changed.
+
+        * manual-tests/Applications/resources: Added.
+        * manual-tests/Applications/resources/TEMPLATE.html: Added.
+        * manual-tests/Applications/resources/VKTests.js: Added.
+        * manual-tests/Applications/resources/js-test-post-function.js: Added.
+        (isSuccessfullyParsed):
+        * manual-tests/Applications/resources/js-test-post-n.js: Added.
+        * manual-tests/Applications/resources/js-test-post.js: Added.
+        * manual-tests/Applications/resources/js-test-pre.js: Added.
+        * manual-tests/Applications/resources/js-test-style.css: Added.
+        Those previous files are part of the JS testing framework.
+
+2009-04-30  Mario Bensi  <mbensi@pleyo.com>
+
+        Remove printf.
+        add an alert on applicationManager
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * manual-tests/applicationTest.html:
+
+2009-04-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Avoid clipping the Frame size to the screen's
+        as it would conflict with WebApplication's standard
+        behaviour.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::adjustWindowRect):
+
+2009-04-27  Mario Bensi  <mbensi@pleyo.com>
+
+        add new test for application.
+
+        * manual-tests/applicationTest2.html: Added.
+
+2009-04-18  Mario Bensi  <mbensi@pleyo.com>
+
+        fix balInstance.
+        give the balInstance when the widget is a WebEmbeddedWidget in
+        ScriptController
+        change the test to apply the change
+
+        * bindings/js/ScriptControllerBAL.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::~BalInstance):
+        (JSC::Bindings::BalInstance::getBalInstance):
+        * manual-tests/applicationTest.html:
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::~RenderPart):
+
+2009-04-17  Mario Bensi  <mbensi@pleyo.com>
+
+        add cache on BalInstance
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::getBalInstance):
+
+2009-04-17  Mario Bensi  <mbensi@pleyo.com>
+
+        prepare change for ApplicationManager
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::~BalInstance):
+        (JSC::Bindings::BalInstance::getBalInstance):
+
+2009-04-09  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Better build fix when DOM_STORAGE is enabled but not INSPECTOR.
+        ScriptObjectQuarantine is a wrapper used only by the
+        WebInspector so I added an #if guard in the header and compile
+        the cpp file when both option are provided.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-04-01  Mario Bensi  <mbensi@pleyo.com>
+
+        add new test for application.
+
+        * manual-tests/applicationTest.html: Added.
+
+2009-03-31  Mario Bensi  <mbensi@pleyo.com>
+
+        fix bug on return BalObject by invoke method
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::invokeMethod):
+
+2009-03-31  Mario Bensi  <mbensi@pleyo.com>
+
+        fix a crash when BalClass are null when you need to get the
+        stringValue.
+
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::stringValue):
+
+2009-03-16  Mario Bensi  <mbensi@pleyo.com>
+
+        remove #if ENABLE(DATABASE) in ScriptObjectQuarantine
+        and compile ScriptObjectQuarantine.cpp when DATABASE is enabled by
+        cmake.
+
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/ScriptObjectQuarantine.cpp:
+        * bindings/js/ScriptObjectQuarantine.h:
+
+2009-02-23  Olivier DOLE  <odole@pleyo.com>
+
+        Fix test compilation in release.
+
+        * CMakeLists.txt:
+
+2009-02-13  Olivier DOLE  <odole@pleyo.com>
+
+        Build fix when DOM_STORAGE is enabled and INSPECTOR disabled.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::sessionStorage):
+        (WebCore::DOMWindow::localStorage):
+
+2009-02-03  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix cmake : creation of webcore directory is ok
+
+
+        * CMakeLists.txt:
+
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix bug #325 (build fix).
+
+        * loader/EmptyClients.h:
+        * svg/SVGDocumentExtensions.cpp:
+        (WebCore::SVGDocumentExtensions::reportWarning):
+        (WebCore::SVGDocumentExtensions::reportError):
+        * wml/WMLErrorHandling.cpp:
+        (WebCore::reportWMLError):
+
+2008-12-23  Mario Bensi  <mbensi@pleyo.com>
+
+        fix ticket #322.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::paintBorder):
+
+2008-12-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix parallel build for webcore.
+        Fix webcore dependency.
+
+        * CMakeLists.txt:
+
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Rename BalObject into WebObject.
+
+        * CMakeLists.txt:
+        * bridge/bal/bal_class.cpp:
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/bal_class.h:
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::stringValue):
+        * bridge/bal/bal_instance.h:
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+        * bridge/bal/bal_runtime.h:
+
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when XPATH and XSLT are enabled and INSPECTOR is disabled.
+
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessor.cpp:
+        (WebCore::XSLTProcessor::parseErrorFunc):
+        (WebCore::docLoaderFunc):
+
+2008-12-17  Mario  <mbensi@pleyo.com>
+
+        fix addons.
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * CMakeLists.txt:
+
+2008-12-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Not reviewed.
+
+        Fix build when the inscpector controller is disabled.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::printErrorMessage):
+        (WebCore::JSDOMWindowBase::supportsProfiling):
+        * loader/FrameLoader.cpp:
+
+2008-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        fix WebCore build for SVG.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        gtk build fix
+
+        * CMakeLists.txt:
+        * wml/CMakeLists.txt:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        remove Console when the Inspector is set to off
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::printErrorMessage):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::mark):
+        * dom/Document.cpp:
+        (WebCore::Document::reportException):
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::reportErrorToConsole):
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::printAccessDeniedMessage):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::reportLocalLoadFailed):
+        (WebCore::FrameLoader::shouldAllowNavigation):
+        * page/CMakeLists.txt:
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::clear):
+        (WebCore::DOMWindow::postMessageTimerFired):
+        * page/DOMWindow.h:
+        * page/DOMWindow.idl:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::reportUnsafeUsage):
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        build fix and merge
+
+        * CMakeLists.txt:
+        * ChangeLog:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/CMakeLists.txt:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSWorkerContext.cpp:
+        (WebCore::jsWorkerContextNavigator):
+        * bindings/js/ScriptCallFrame.cpp: Added.
+        (WebCore::ScriptCallFrame::ScriptCallFrame):
+        (WebCore::ScriptCallFrame::~ScriptCallFrame):
+        (WebCore::ScriptCallFrame::argumentAt):
+        * bindings/js/ScriptCallFrame.h: Added.
+        (WebCore::ScriptCallFrame::functionName):
+        (WebCore::ScriptCallFrame::sourceURL):
+        (WebCore::ScriptCallFrame::lineNumber):
+        (WebCore::ScriptCallFrame::argumentCount):
+        * bindings/js/ScriptCallStack.cpp: Added.
+        (WebCore::ScriptCallStack::ScriptCallStack):
+        (WebCore::ScriptCallStack::~ScriptCallStack):
+        (WebCore::ScriptCallStack::at):
+        (WebCore::ScriptCallStack::size):
+        (WebCore::ScriptCallStack::initialize):
+        * bindings/js/ScriptCallStack.h: Added.
+        (WebCore::ScriptCallStack::state):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::updateSecurityOrigin):
+        * bindings/js/ScriptController.h:
+        * bindings/js/ScriptString.h:
+        (WebCore::ScriptString::ScriptString):
+        (WebCore::ScriptString::operator==):
+        (WebCore::ScriptString::operator!=):
+        * bindings/js/ScriptValue.cpp:
+        (WebCore::ScriptValue::getString):
+        (WebCore::ScriptValue::isNull):
+        (WebCore::ScriptValue::isUndefined):
+        * bindings/js/ScriptValue.h:
+        * bindings/objc/DOMAbstractView.mm:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * css/CSSCursorImageValue.cpp:
+        (WebCore::CSSCursorImageValue::~CSSCursorImageValue):
+        (WebCore::CSSCursorImageValue::updateIfSVGCursorIsUsed):
+        (WebCore::CSSCursorImageValue::removeReferencedElement):
+        * css/CSSCursorImageValue.h:
+        * dom/Document.cpp:
+        (WebCore::Document::setDomain):
+        (WebCore::Document::resetWMLPageState):
+        * dom/Worker.cpp:
+        (WebCore::Worker::notifyFinished):
+        * dom/WorkerContext.cpp:
+        (WebCore::WorkerContext::WorkerContext):
+        (WebCore::WorkerContext::navigator):
+        * dom/WorkerContext.h:
+        (WebCore::WorkerContext::create):
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::create):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * dom/WorkerThread.h:
+        * html/HTMLInputElement.cpp:
+        (WebCore::notifyFormStateChanged):
+        (WebCore::HTMLInputElement::setInputType):
+        (WebCore::HTMLInputElement::type):
+        (WebCore::HTMLInputElement::attach):
+        (WebCore::HTMLInputElement::setValue):
+        (WebCore::HTMLInputElement::setValueFromRenderer):
+        (WebCore::HTMLInputElement::setFileListFromRenderer):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::setSelectedIndex):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::notifyFormStateChanged):
+        (WebCore::HTMLTextAreaElement::HTMLTextAreaElement):
+        (WebCore::HTMLTextAreaElement::updateValue):
+        (WebCore::HTMLTextAreaElement::setValue):
+        * inspector/InspectorController.cpp:
+        (WebCore::ConsoleMessage::ConsoleMessage):
+        (WebCore::ConsoleMessage::isEqual):
+        (WebCore::InspectorController::addMessageToConsole):
+        (WebCore::InspectorController::startGroup):
+        (WebCore::InspectorController::addScriptConsoleMessage):
+        (WebCore::InspectorController::count):
+        (WebCore::InspectorController::startTiming):
+        (WebCore::InspectorController::stopTiming):
+        * inspector/InspectorController.h:
+        * inspector/front-end/Console.js:
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::formStateDidChange):
+        * page/CMakeLists.txt:
+        * page/ChromeClient.h:
+        * page/Console.cpp:
+        (WebCore::getFirstArgumentAsString):
+        (WebCore::Console::addMessage):
+        (WebCore::Console::debug):
+        (WebCore::Console::error):
+        (WebCore::Console::info):
+        (WebCore::Console::log):
+        (WebCore::Console::dir):
+        (WebCore::Console::dirxml):
+        (WebCore::Console::trace):
+        (WebCore::Console::assertCondition):
+        (WebCore::Console::count):
+        (WebCore::Console::profile):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::time):
+        (WebCore::Console::timeEnd):
+        (WebCore::Console::group):
+        (WebCore::Console::warn):
+        * page/Console.h:
+        * page/Console.idl:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::createScrollbar):
+        * page/Navigator.cpp:
+        (WebCore::Navigator::appVersion):
+        (WebCore::Navigator::javaEnabled):
+        * page/Navigator.h:
+        * page/NavigatorBase.cpp: Added.
+        (WebCore::NavigatorBase::~NavigatorBase):
+        (WebCore::NavigatorBase::appName):
+        (WebCore::NavigatorBase::appVersion):
+        (WebCore::NavigatorBase::platform):
+        (WebCore::NavigatorBase::appCodeName):
+        (WebCore::NavigatorBase::product):
+        (WebCore::NavigatorBase::productSub):
+        (WebCore::NavigatorBase::vendor):
+        (WebCore::NavigatorBase::vendorSub):
+        (WebCore::NavigatorBase::onLine):
+        * page/NavigatorBase.h: Added.
+        * page/WorkerNavigator.cpp: Added.
+        (WebCore::WorkerNavigator::WorkerNavigator):
+        (WebCore::WorkerNavigator::~WorkerNavigator):
+        (WebCore::WorkerNavigator::userAgent):
+        * page/WorkerNavigator.h: Added.
+        (WebCore::WorkerNavigator::create):
+        * page/WorkerNavigator.idl: Added.
+        * platform/network/NetworkStateNotifier.cpp:
+        (WebCore::networkStateNotifier):
+        * platform/network/mac/NetworkStateNotifierMac.cpp:
+        (WebCore::NetworkStateNotifier::NetworkStateNotifier):
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::addChild):
+        (WebCore::RenderButton::styleDidChange):
+        (WebCore::RenderButton::setupInnerStyle):
+        * rendering/RenderButton.h:
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::adjustButtonInnerStyle):
+        * rendering/RenderTheme.h:
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::adjustSliderThumbSize):
+        (WebCore::RenderThemeWin::adjustButtonInnerStyle):
+        * rendering/RenderThemeWin.h:
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::~SVGCursorElement):
+        (WebCore::SVGCursorElement::addClient):
+        (WebCore::SVGCursorElement::removeClient):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::SVGElement):
+        (WebCore::SVGElement::~SVGElement):
+        * svg/SVGElement.h:
+        (WebCore::SVGElement::setCursorElement):
+        (WebCore::SVGElement::setCursorImageValue):
+        * wml/CMakeLists.txt:
+        * wml/WMLCardElement.cpp:
+        * wml/WMLCardElement.h:
+        * wml/WMLEventHandlingElement.cpp:
+        (WebCore::WMLEventHandlingElement::registerDoElement):
+        * wml/WMLEventHandlingElement.h:
+        * wml/WMLGoElement.cpp:
+        (WebCore::WMLGoElement::WMLGoElement):
+        (WebCore::WMLGoElement::registerPostfieldElement):
+        (WebCore::WMLGoElement::parseMappedAttribute):
+        (WebCore::WMLGoElement::executeTask):
+        (WebCore::WMLGoElement::parseContentType):
+        (WebCore::WMLGoElement::preparePOSTRequest):
+        (WebCore::WMLGoElement::prepareGETRequest):
+        * wml/WMLGoElement.h:
+        * wml/WMLPostfieldElement.cpp: Added.
+        (WebCore::WMLPostfieldElement::WMLPostfieldElement):
+        (WebCore::WMLPostfieldElement::parseMappedAttribute):
+        (WebCore::WMLPostfieldElement::insertedIntoDocument):
+        * wml/WMLPostfieldElement.h: Added.
+        (WebCore::WMLPostfieldElement::name):
+        (WebCore::WMLPostfieldElement::value):
+        * wml/WMLTagNames.in:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Clean in cmake
+
+        * bridge/CMakeLists.txt:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Fix cmake due to balwtf removal.
+
+        * CMakeLists.txt:
+
+2008-12-05  Olivier DOLE  <odole@pleyo.com>
+
+        Modify source code organization.
+
+        * CMakeLists.txt:
+
+2008-12-01  Olivier DOLE  <odole@pleyo.com>
+
+        Add SVG support.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * css/CMakeLists.txt:
+        * rendering/CMakeLists.txt:
+        * svg/CMakeLists.txt:
+
+2008-11-27  Olivier DOLE  <odole@pleyo.com>
+
+        Add NPAPI support.
+
+        * plugins/CMakeLists.txt:
+
+2008-11-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        Drop support for Dashboard.
+
+        * CMakeLists.txt:
+
+2008-10-20  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when inspector is disabled.
+
+        * bindings/js/CMakeLists.txt:
+
+2008-10-20  Olivier DOLE  <odole@pleyo.com>
+
+        Add #ifdef to disable inspector.
+
+        * bindings/js/CMakeLists.txt:
+        * html/HTMLDocument.cpp:
+        (WebCore::HTMLDocument::createTokenizer):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::detachFromParent):
+        (WebCore::FrameLoader::loadedResourceFromMemoryCache):
+        (WebCore::FrameLoader::dispatchWindowObjectAvailable):
+        (WebCore::FrameLoader::dispatchDidCommitLoad):
+        (WebCore::FrameLoader::dispatchAssignIdentifierToInitialRequest):
+        (WebCore::FrameLoader::dispatchWillSendRequest):
+        (WebCore::FrameLoader::dispatchDidReceiveResponse):
+        (WebCore::FrameLoader::dispatchDidReceiveContentLength):
+        (WebCore::FrameLoader::dispatchDidFinishLoading):
+        * page/CMakeLists.txt:
+        * page/Console.cpp:
+        (WebCore::Console::addMessage):
+        (WebCore::Console::error):
+        (WebCore::Console::info):
+        (WebCore::Console::log):
+        (WebCore::Console::dir):
+        (WebCore::Console::dirxml):
+        (WebCore::Console::assertCondition):
+        (WebCore::Console::count):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::time):
+        (WebCore::Console::timeEnd):
+        (WebCore::Console::group):
+        (WebCore::Console::groupEnd):
+        (WebCore::Console::warn):
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::handleContextMenuEvent):
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        (WebCore::Page::~Page):
+        * page/Page.h:
+        * storage/Database.cpp:
+        (WebCore::Database::openDatabase):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Fix webcore archive link.
+
+        * CMakeLists.txt:
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Add a dependency on kjs.
+
+        * CMakeLists.txt:
+
+2008-10-06  Olivier DOLE  <odole@pleyo.com>
+
+        Fix bindings/js/CMakeLists.txt for customer port + coding style.
+
+        * bindings/js/CMakeLists.txt:
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        First clean.
+
+        * CMakeLists.txt:
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        Fix Database and dependent option support.
+
+        * bindings/js/CMakeLists.txt:
+        * loader/CMakeLists.txt:
+        * loader/icon/CMakeLists.txt:
+        * storage/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Fix generic internationalization compilation.
+
+        * CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Rename ICU_LIBRARY to I18N_LIBRARIES.
+        Fix editing/CMakeLists.txt for internationalization.
+
+        * CMakeLists.txt:
+        * editing/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Add xml2 dependency at link for webcore.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        fix a generated source dependency.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        rewrite cmake to get a single library and more clean and modular
+		cmake.
+
+        * CMakeLists.txt:
+        * bindings/js/CMakeLists.txt:
+        * bridge/CMakeLists.txt:
+        * css/CMakeLists.txt:
+        * dom/CMakeLists.txt:
+        * editing/CMakeLists.txt:
+        * history/CMakeLists.txt:
+        * html/CMakeLists.txt:
+        * loader/CMakeLists.txt:
+        * loader/icon/CMakeLists.txt:
+        * page/CMakeLists.txt:
+        * platform/CMakeLists.txt:
+        * plugins/CMakeLists.txt:
+        * rendering/CMakeLists.txt:
+        * storage/CMakeLists.txt:
+        * xml/CMakeLists.txt:
+

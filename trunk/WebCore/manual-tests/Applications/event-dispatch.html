@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title> Event dispatch test </title>
+    <script>
+        function log(message)
+        {
+            document.getElementById("console").appendChild(document.createTextNode(message));
+            document.getElementById("console").appendChild(document.createElement("br"));
+        }
+
+        function addKeyListener()
+        {
+            var oipfConfiguration = document.getElementById("oipfConfiguration");
+            var keyset = oipfConfiguration.keyset;
+            keyset.value = keyset.NAVIGATION;
+
+            document.body.addEventListener("keydown", keydownListener, true);
+            document.body.addEventListener("keyup", keyupListener, true);
+        }
+
+        function keydownListener(ev)
+        {
+            log("Received keydown event: " + ev.toString());
+        }
+
+        function keyupListener(ev)
+        {
+            log("Received keyup event: " + ev.toString());
+        }
+    </script>
+</head>
+<body onload="addKeyListener()" style="background: white">
+<object type="application/oipfConfiguration" id="oipfConfiguration"> </object>
+<p> This test checks that event for keys (up, down...) are not dispatched when the focus is on a form-like element </p>
+<p> Type something into the 2 boxes and checks that when navigating, no event is dispatched </p>
+<input/>
+<textarea> </textarea>
+<div id="console"/>
+</body>
+</html>

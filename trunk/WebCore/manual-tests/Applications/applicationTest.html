@@ -1,0 +1,32 @@
+<html>
+<head>
+<script type="text/javascript">
+
+    function myfunc() {
+        var appMgr = document.getElementById("appManager");
+        alert(appMgr);
+        var self = appMgr.getOwnerApplication(window.document);
+        alert(self);
+        window.resizeTo(400, 100);
+        window.moveTo(50, 50);
+        alert(document);
+        self.show();
+        var sApp = self.createApplication("http://scantrad.fr", false);
+        var col = appMgr.getChildApplications(self);
+        alert(col.length)
+        var sApp = self.createApplication("http://google.fr", true);
+        var col2 = appMgr.getChildApplications(self);
+        alert(col2.length)
+        for (i=0; i < col2.length; i++) {
+            alert(col2.item(i));
+        }
+        self.destroyApplication();
+        alert(sApp);
+    }
+</script>
+</head>
+
+<body onload="myfunc();">
+<object type="application/oipfApplicationManager" id="appManager"> <object\>
+</body>
+</html>

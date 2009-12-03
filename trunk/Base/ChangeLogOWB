@@ -1,0 +1,26 @@
+2009-11-24  Gilles Bertal  <gbertal@pleyo.com>
+
+        Conditionally include customer base cmake file when
+        IGNORE_CUSTOMER is not defined.
+
+        * CMakeLists.txt:
+
+2009-07-16  Mario Bensi  <mbensi@pleyo.com>
+
+        Activate accessibility.
+
+        * wtf/Platform.h:
+
+2009-06-05  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Part of #12: Remove all warnings while compiling OWB.
+
+        Removed all the warnings about supressWarning being defined several
+        times.
+
+        * BALBase.h.in: Moved the code related to notImplemented in
+        NotImplemented.h.
+        * NotImplemented.h: Simplified a bit the different macros.
+

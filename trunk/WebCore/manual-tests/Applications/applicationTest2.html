@@ -1,0 +1,32 @@
+<html>
+<head>
+<script type="text/javascript">
+
+    var app = undefined;
+    var zap = 0;
+    function myfunc() {
+        var appMgr = document.getElementById("appManager");
+        var self = appMgr.getOwnerApplication(window.document);
+        app = self.createApplication("http://scantrad.fr", false);
+    }
+    function zapper(e) {
+       if (e.which==114) { // RED
+            if (zap == 0) {
+                alert("show");
+                app.show();
+                zap = 1;
+            } else {
+                alert("hide");
+                app.hide();
+                zap = 0;
+            }
+       }
+           
+    }
+</script>
+</head>
+
+<body onload="myfunc();" onkeypress="zapper(event);">
+<object type="application/oipfApplicationManager" id="appManager"> <object\>
+</body>
+</html>

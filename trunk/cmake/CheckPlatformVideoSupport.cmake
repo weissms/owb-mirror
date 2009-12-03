@@ -1,0 +1,65 @@
+if(ENABLE_CEHTML_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
+    set(HAS_VIDEO TRUE)
+    mark_as_advanced(HAS_VIDEO)
+else(ENABLE_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_CEHTML_VIDEO)
+    set(HAS_VIDEO FALSE)
+    mark_as_advanced(HAS_VIDEO)
+endif(ENABLE_CEHTML_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
+
+if(HAS_VIDEO)
+    if(USE_VIDEO STREQUAL "AMIGAOS4")
+        set(USE_VIDEO_AMIGAOS4 TRUE)
+        mark_as_advanced(USE_VIDEO_AMIGAOS4)
+    endif(USE_VIDEO STREQUAL "AMIGAOS4")
+
+    if(USE_VIDEO STREQUAL "GSTREAMER")
+        pkg_check_modules(GSTREAMER_VIDEO REQUIRED gstreamer-video-0.10>=0.10.17)
+        pkg_check_modules(GSTREAMER_PBUTILS REQUIRED gstreamer-pbutils-0.10)
+        pkg_check_modules(GIO REQUIRED gio-2.0)
+
+        list(APPEND VIDEO_INCLUDE_DIRS ${GSTREAMER_VIDEO_INCLUDE_DIRS})
+        list(APPEND VIDEO_INCLUDE_DIRS ${GSTREAMER_PBUTILS_INCLUDE_DIRS})
+        list(APPEND VIDEO_INCLUDE_DIRS ${GIO_INCLUDE_DIRS})
+
+        list(APPEND VIDEO_LIBRARIES ${GSTREAMER_VIDEO_LIBRARIES})
+        list(APPEND VIDEO_LIBRARIES ${GSTREAMER_PBUTILS_LIBRARIES})
+        list(APPEND VIDEO_LIBRARIES ${GIO_LIBRARIES})
+        
+        set(USE_VIDEO_GSTREAMER TRUE)
+        mark_as_advanced(USE_VIDEO_GSTREAMER)
+        set(USE_DAE_NONE TRUE)
+        mark_as_advanced(USE_DAE_NONE)
+    endif(USE_VIDEO STREQUAL "GSTREAMER")
+
+    if(USE_VIDEO STREQUAL "NONE")
+        set(USE_VIDEO_NONE TRUE)
+        mark_as_advanced(USE_VIDEO_NONE)
+        set(USE_DAE_NONE TRUE)
+        mark_as_advanced(USE_DAE_NONE)
+    endif(USE_VIDEO STREQUAL "NONE")
+
+    if(USE_VIDEO STREQUAL "PHONON")
+        pkg_check_modules(PHONON REQUIRED phonon)
+        list(APPEND VIDEO_INCLUDE_DIRS ${PHONON_INCLUDE_DIRS})
+        list(APPEND VIDEO_LIBRARIES ${PHONON_LIBRARIES})
+
+        set(USE_VIDEO_PHONON TRUE)
+        mark_as_advanced(USE_VIDEO_PHONON)
+    endif(USE_VIDEO STREQUAL "PHONON")
+
+    if(USE_AIT STREQUAL "NONE")
+        set(USE_AIT_NONE TRUE)
+        mark_as_advanced(USE_AIT_NONE)
+    endif(USE_AIT STREQUAL "NONE")
+
+    if(USE_PVR STREQUAL "NONE")
+        set(USE_PVR_NONE TRUE)
+        mark_as_advanced(USE_PVR_NONE)
+    endif(USE_PVR STREQUAL "NONE")
+
+    if(USE_METADATA STREQUAL "NONE")
+        set(USE_METADATA_NONE TRUE)
+        mark_as_advanced(USE_METADATA_NONE)
+    endif(USE_METADATA STREQUAL "NONE")
+        
+endif(HAS_VIDEO)

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This DTD validates how we layout information from the decoder.
+    It is inspired from ChannelConfig.
+-->
+<!ELEMENT DecoderConfig (LocalFile*)>
+
+<!ELEMENT CCID (#PCDATA)>
+<!-- HighDefinition is False or True. If not, present the default value is False. -->
+<!ELEMENT HighDefinition (#PCDATA)>
+
+<!-- LocalFile part -->
+<!ELEMENT LocalFile (CCID, Path, HighDefinition?)>
+<!ELEMENT Path (#PCDATA)>
+
