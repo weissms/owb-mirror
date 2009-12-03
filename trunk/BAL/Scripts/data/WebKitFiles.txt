@@ -73,6 +73,7 @@ WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
 WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
 WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp
+WebCore/platform/NotImplemented.h Base/NotImplemented.h
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/Scrollbar.cpp    BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
@@ -90,6 +91,7 @@ WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
 WebCore/platform/gtk/TemporaryLinkStubs.cpp
+WebCore/platform/KeyboardCodes.h BAL/Events/WebCore/WK/BCKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
 WebCore/platform/network/ResourceHandleClient.h BAL/Network/WebCore/WK/BCResourceHandleClientWK.h

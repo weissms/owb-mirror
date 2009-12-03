@@ -30,6 +30,9 @@
 
 #include <wtf/Platform.h>
 
+#if ENABLE(CEHTML)
+#include "KeyboardCodesCEHTML.h"
+#else
 // FIXME: We should get rid of these Chromium-related ifdefs.
 #if PLATFORM(CHROMIUM)
 
@@ -570,5 +573,6 @@ const int VK_UNKNOWN = 0;
 }
 
 #endif // PLATFORM(CHROMIUM)
+#endif //ENABLE(CEHTML)
 
 #endif

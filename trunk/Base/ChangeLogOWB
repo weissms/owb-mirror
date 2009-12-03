@@ -1,3 +1,9 @@
+2009-12-03  Mario Bensi  <mbensi@pleyo.com>
+
+        fix balNotImplemented.
+
+        * NotImplemented.h:
+
 2009-11-24  Gilles Bertal  <gbertal@pleyo.com>
 
         Conditionally include customer base cmake file when
