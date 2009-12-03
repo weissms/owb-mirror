@@ -80,6 +80,7 @@ WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
 WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.cpp
 WebCore/platform/graphics/MediaPlayer.h	BAL/Media/WebCore/WK/BCMediaPlayerWK.h
+WebCore/platform/graphics/MediaPlayerPrivate.h BAL/Media/WebCore/WK/BCMediaPlayerPrivateWK.h
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp BAL/Graphics/WebCore/Cairo/BCGraphicsContextCairo.cpp
 WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp BAL/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.cpp

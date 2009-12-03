@@ -1,5 +1,14 @@
 2009-12-03  Mario Bensi  <mbensi@pleyo.com>
 
+        fix MediaPlayer
+
+        * Media/WebCore/WK/BCMediaPlayerPrivateWK.h:
+        (WebCore::MediaPlayerPrivateInterface::stop):
+        (WebCore::MediaPlayerPrivateInterface::setAspect):
+        * Scripts/data/WebKitFiles.txt:
+
+2009-12-03  Mario Bensi  <mbensi@pleyo.com>
+
         fix KeyboardCodes for CEHTML
 
         * Events/WebCore/WK/BCKeyboardCodesWK.h:
