@@ -81,7 +81,6 @@ WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.c
 WebCore/platform/graphics/MediaPlayer.h	BAL/Media/WebCore/WK/BCMediaPlayerWK.h
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp BAL/Graphics/WebCore/Cairo/BCGraphicsContextCairo.cpp
-WebCore/platform/graphics/cairo/ImageSourceCairo.cpp BAL/Graphics/WebCore/Cairo/BCImageSourceCairo.cpp
 WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp BAL/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.cpp
 WebCore/platform/graphics/gtk/ImageGtk.cpp BAL/Graphics/WebCore/Gtk/BCImageGtk.cpp
 WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
