@@ -36,7 +36,6 @@ WebCore/dom/KeyboardEvent.cpp
 WebCore/dom/KeyboardEvent.h
 WebCore/dom/KeyboardEvent.idl
 WebCore/editing/TextIterator.cpp
-WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLObjectElement.cpp
 WebCore/html/HTMLObjectElement.idl
@@ -66,7 +65,6 @@ WebCore/page/DOMWindow.idl
 WebCore/page/Navigator.cpp
 WebCore/page/Page.cpp
 WebCore/page/Page.h
-ebCore/page/XSSAuditor.cpp
 WebCore/page/gtk/FrameGtk.cpp BAL/Widgets/WebCore/Gtk/BCFrameGtk.cpp
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
@@ -123,7 +121,6 @@ WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
 WebCore/xml/XMLHttpRequest.cpp
-WebCore/xml/XSLStyleSheet.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessorLibxslt.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
