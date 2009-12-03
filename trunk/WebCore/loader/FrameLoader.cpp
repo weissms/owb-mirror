@@ -202,6 +202,7 @@ FrameLoader::FrameLoader(Frame* frame, FrameLoaderClient* client)
     , m_didPerformFirstNavigation(false)
     , m_loadingFromCachedPage(false)
     , m_suppressOpenerInNewFrame(false)
+    , m_sandboxFlags(SandboxAll)
 #ifndef NDEBUG
     , m_didDispatchDidCommitLoad(false)
 #endif
@@ -234,6 +235,9 @@ void FrameLoader::init()
     m_frame->document()->cancelParsing();
     m_creatingInitialEmptyDocument = false;
     m_didCallImplicitClose = true;
+
+    // Propagate sandbox attributes to this Frameloader and its descendants.
+    updateSandboxFlags();
 }
 
 void FrameLoader::setDefersLoading(bool defers)
@@ -442,6 +446,9 @@ void FrameLoader::submitForm(const char* action, const String& url, PassRefPtr<F
     
     KURL u = completeURL(url.isNull() ? "" : url);
     if (u.isEmpty())
+        return;
+
+    if (isSandboxed(SandboxForms))
         return;
 
     if (protocolIsJavaScript(u)) {
@@ -1260,6 +1267,8 @@ bool FrameLoader::requestObject(RenderPart* renderer, const String& url, const A
         Settings* settings = m_frame->settings();
         if (!settings || !settings->arePluginsEnabled() || 
             (!settings->isJavaEnabled() && MIMETypeRegistry::isJavaAppletMIMEType(mimeType)))
+            return false;
+        if (isSandboxed(SandboxPlugins))
             return false;
         return loadPlugin(renderer, completedURL, mimeType, paramNames, paramValues, useFallback);
     }
@@ -2208,6 +2217,10 @@ bool FrameLoader::shouldAllowNavigation(Frame* targetFrame) const
     // Performance optimization.
     if (m_frame == targetFrame)
         return true;
+
+    // A sandboxed frame can only navigate itself and its descendants.
+    if (isSandboxed(SandboxNavigation) && !targetFrame->tree()->isDescendantOf(m_frame))
+        return false;
 
     // Let a frame navigate the top-level window that contains it.  This is
     // important to allow because it lets a site "frame-bust" (escape from a
@@ -3918,6 +3931,25 @@ void FrameLoader::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
     }
 #endif
 }
+
+void FrameLoader::updateSandboxFlags()
+{
+    SandboxFlags flags = SandboxNone;
+    if (Frame* parentFrame = m_frame->tree()->parent())
+        flags |= parentFrame->loader()->sandboxFlags();
+    if (HTMLFrameOwnerElement* ownerElement = m_frame->ownerElement())
+        flags |= ownerElement->sandboxFlags();
+
+    if (m_sandboxFlags == flags)
+        return;
+        
+    m_sandboxFlags = flags;
+
+    m_frame->document()->updateSandboxFlags();
+
+    for (Frame* child = m_frame->tree()->firstChild(); child; child = child->tree()->nextSibling())
+        child->loader()->updateSandboxFlags();
+ }
 
 PassRefPtr<Widget> FrameLoader::createJavaAppletWidget(const IntSize& size, HTMLAppletElement* element, const HashMap<String, String>& args)
 {

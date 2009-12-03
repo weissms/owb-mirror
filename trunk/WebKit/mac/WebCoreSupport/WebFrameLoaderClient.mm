@@ -953,7 +953,7 @@ bool WebFrameLoaderClient::canHandleRequest(const ResourceRequest& request) cons
 
 bool WebFrameLoaderClient::canShowMIMEType(const String& MIMEType) const
 {
-    return [WebView canShowMIMEType:MIMEType];
+    return [getWebView(m_webFrame.get()) _canShowMIMEType:MIMEType];
 }
 
 bool WebFrameLoaderClient::representationExistsForURLScheme(const String& URLScheme) const
@@ -1117,7 +1117,7 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
 
     if (usesDocumentViews) {
         // FIXME (Viewless): I assume we want the equivalent of this optimization for viewless mode too.
-        bool willProduceHTMLView = [[WebFrameView class] _viewClassForMIMEType:[dataSource _responseMIMEType]] == [WebHTMLView class];
+        bool willProduceHTMLView = [m_webFrame->_private->webFrameView _viewClassForMIMEType:[dataSource _responseMIMEType]] == [WebHTMLView class];
         bool canSkipCreation = core(m_webFrame.get())->loader()->committingFirstRealLoad() && willProduceHTMLView;
         if (canSkipCreation) {
             [[m_webFrame->_private->webFrameView documentView] setDataSource:dataSource];
@@ -1224,7 +1224,7 @@ String WebFrameLoaderClient::userAgent(const KURL& url)
     if (!webView)
         return String("");
 
-    return [webView _userAgentForURL:url];
+    return [webView userAgentForURL:url];
 }
 
 static const MouseEvent* findMouseEvent(const Event* event)
@@ -1365,7 +1365,7 @@ ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const
         return ObjectContentOtherPlugin;
     }
 
-    if ([WebFrameView _viewClassForMIMEType:type])
+    if ([m_webFrame->_private->webFrameView _viewClassForMIMEType:type])
         return ObjectContentFrame;
     
     return ObjectContentNone;

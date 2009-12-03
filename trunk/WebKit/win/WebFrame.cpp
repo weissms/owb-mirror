@@ -92,6 +92,7 @@
 #include <WebCore/RenderView.h>
 #include <WebCore/RenderTreeAsText.h>
 #include <WebCore/Settings.h>
+#include <WebCore/SVGSMILElement.h>
 #include <WebCore/TextIterator.h>
 #include <WebCore/JSDOMBinding.h>
 #include <WebCore/ScriptController.h>
@@ -1156,6 +1157,34 @@ HRESULT WebFrame::pauseTransition(BSTR propertyName, IDOMNode* node, double seco
     return S_OK;
 }
 
+HRESULT WebFrame::pauseSVGAnimation(BSTR elementId, IDOMNode* node, double secondsFromNow, BOOL* animationWasRunning)
+{
+    if (!node || !animationWasRunning)
+        return E_POINTER;
+
+    *animationWasRunning = FALSE;
+
+    Frame* frame = core(this);
+    if (!frame)
+        return E_FAIL;
+
+    Document* document = frame->document();
+    if (!document || !document->svgExtensions())
+        return E_FAIL;
+
+    COMPtr<DOMNode> domNode(Query, node);
+    if (!domNode || !SVGSMILElement::isSMILElement(domNode->node()))
+        return E_FAIL;
+
+#if ENABLE(SVG)
+    *animationWasRunning = document->accessSVGExtensions()->sampleAnimationAtTime(String(elementId, SysStringLen(elementId)), static_cast<SVGSMILElement*>(domNode->node()), secondsFromNow);
+#else
+    *animationWasRunning = FALSE;
+#endif
+
+    return S_OK;
+}
+
 HRESULT WebFrame::numberOfActiveAnimations(UINT* number)
 {
     if (!number)
@@ -1731,10 +1760,8 @@ void WebFrame::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
         return;
 
     COMPtr<IWebFrameLoadDelegatePrivate2> delegatePrivate(Query, frameLoadDelegate);
-    if (delegatePrivate) {
-        delegatePrivate->didClearWindowObjectForFrameInScriptWorld(d->webView, this, WebScriptWorld::findOrCreateWorld(world).get());
+    if (delegatePrivate && delegatePrivate->didClearWindowObjectForFrameInScriptWorld(d->webView, this, WebScriptWorld::findOrCreateWorld(world).get()) != E_NOTIMPL)
         return;
-    }
 
     if (world != mainThreadNormalWorld())
         return;

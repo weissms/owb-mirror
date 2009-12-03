@@ -83,7 +83,7 @@ WebInspector.ElementsTreeOutline.prototype = {
             this.focusedNodeChanged();
 
             if (x && !this.suppressSelectHighlight) {
-                InspectorController.highlightDOMNode(x.id);
+                InspectorBackend.highlightDOMNode(x.id);
 
                 if ("_restorePreviousHighlightNodeTimeout" in this)
                     clearTimeout(this._restorePreviousHighlightNodeTimeout);
@@ -92,9 +92,9 @@ WebInspector.ElementsTreeOutline.prototype = {
                 {
                     var hoveredNode = WebInspector.hoveredDOMNode;
                     if (hoveredNode)
-                        InspectorController.highlightDOMNode(hoveredNode.id);
+                        InspectorBackend.highlightDOMNode(hoveredNode.id);
                     else
-                        InspectorController.hideDOMNodeHighlight();
+                        InspectorBackend.hideDOMNodeHighlight();
                 }
 
                 this._restorePreviousHighlightNodeTimeout = setTimeout(restoreHighlightToHoveredNode, 2000);
@@ -336,9 +336,9 @@ WebInspector.ElementsTreeElement.prototype = {
 
             var tooltipText = null;
             if (properties.offsetHeight === properties.naturalHeight && properties.offsetWidth === properties.naturalWidth)
-                tooltipText = WebInspector.UIString("%d\u00d7%d pixels", properties.offsetWidth, properties.offsetHeight);
+                tooltipText = WebInspector.UIString("%d × %d pixels", properties.offsetWidth, properties.offsetHeight);
             else
-                tooltipText = WebInspector.UIString("%d\u00d7%d pixels (Natural: %d\u00d7%d pixels)", properties.offsetWidth, properties.offsetHeight, properties.naturalWidth, properties.naturalHeight);
+                tooltipText = WebInspector.UIString("%d × %d pixels (Natural: %d × %d pixels)", properties.offsetWidth, properties.offsetHeight, properties.naturalWidth, properties.naturalHeight);
             callback(tooltipText);
         }
         var objectProxy = new WebInspector.ObjectProxy(node.id);
@@ -945,7 +945,7 @@ WebInspector.ElementsTreeElement.prototype = {
         }
 
         var callId = WebInspector.Callback.wrap(removeNodeCallback);
-        InspectorController.removeNode(callId, this.representedObject.id);
+        InspectorBackend.removeNode(callId, this.representedObject.id);
     }
 }
 

@@ -693,7 +693,7 @@ static void CALLBACK waitUntilDoneWatchdogFired(HWND, UINT, UINT_PTR, DWORD)
 void LayoutTestController::setWaitToDump(bool waitUntilDone)
 {
     m_waitToDump = waitUntilDone;
-    if (false && m_waitToDump && !waitToDumpWatchdog)
+    if (m_waitToDump && !waitToDumpWatchdog)
         waitToDumpWatchdog = SetTimer(0, 0, waitToDumpWatchdogInterval * 1000, waitUntilDoneWatchdogFired);
 }
 
@@ -857,6 +857,31 @@ bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef prop
     BOOL wasRunning = FALSE;
     hr = framePrivate->pauseTransition(nameBSTR, element.get(), time, &wasRunning);
     SysFreeString(nameBSTR);
+
+    return SUCCEEDED(hr) && wasRunning;
+}
+
+bool LayoutTestController::sampleSVGAnimationForElementAtTime(JSStringRef animationId, double time, JSStringRef elementId)
+{
+    COMPtr<IDOMDocument> document;
+    if (FAILED(frame->DOMDocument(&document)))
+        return false;
+
+    BSTR idBSTR = JSStringCopyBSTR(animationId);
+    COMPtr<IDOMElement> element;
+    HRESULT hr = document->getElementById(idBSTR, &element);
+    SysFreeString(idBSTR);
+    if (FAILED(hr))
+        return false;
+
+    COMPtr<IWebFramePrivate> framePrivate(Query, frame);
+    if (!framePrivate)
+        return false;
+
+    BSTR elementIdBSTR = JSStringCopyBSTR(elementId);
+    BOOL wasRunning = FALSE;
+    hr = framePrivate->pauseSVGAnimation(elementIdBSTR, element.get(), time, &wasRunning);
+    SysFreeString(elementIdBSTR);
 
     return SUCCEEDED(hr) && wasRunning;
 }

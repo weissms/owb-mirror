@@ -28,32 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// ScriptObjectQuarantine is used in JSC for wrapping DOM objects of the page
-// before they are passed to Inspector's front-end. The wrapping prevents
-// malicious scripts from gaining privileges. For V8, we are currently just
-// passing the object itself, without any wrapping.
+#ifndef OpenTypeSanitizer_h
+#define OpenTypeSanitizer_h
 
-#ifndef ScriptObjectQuarantine_h
-#define ScriptObjectQuarantine_h
-
-#include "ScriptState.h"
+#if ENABLE(OPENTYPE_SANITIZER)
+#include <wtf/Forward.h>
 
 namespace WebCore {
 
-    class Database;
-    class DOMWindow;
-    class Node;
-    class ScriptObject;
-    class ScriptValue;
-    class Storage;
+class SharedBuffer;
 
-    ScriptValue quarantineValue(ScriptState*, const ScriptValue&);
+class OpenTypeSanitizer {
+public:
+    explicit OpenTypeSanitizer(SharedBuffer* buffer)
+        : m_buffer(buffer)
+    {
+    }
 
-    bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Storage* storage, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(Node* node, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
+    PassRefPtr<SharedBuffer> sanitize();
 
-}
+private:
+    SharedBuffer* const m_buffer;
+};
 
-#endif // ScriptObjectQuarantine_h
+} // namespace WebCore
+
+#endif // ENABLE(OPENTYPE_SANITIZER)
+#endif // OpenTypeSanitizer_h

@@ -26,15 +26,9 @@
 #ifndef MediaPlayerPrivate_h
 #define MediaPlayerPrivate_h
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO)
 
 #include "MediaPlayer.h"
-
-#if ENABLE(DAE_TUNER)
-#include "Channel.h"
-#endif
-
-class WebChannel;
 
 namespace WebCore {
 
@@ -46,9 +40,6 @@ class MediaPlayerPrivateInterface : public Noncopyable {
 public:
     virtual ~MediaPlayerPrivateInterface() { }
 
-#if ENABLE(DAE_TUNER)
-    virtual void load(PassRefPtr<Channel>) = 0;
-#endif
     virtual void load(const String& url) = 0;
     virtual void cancelLoad() = 0;
     
@@ -107,12 +98,6 @@ public:
     virtual void paintCurrentFrameInContext(GraphicsContext* c, const IntRect& r) { paint(c, r); }
 
     virtual void setAutobuffer(bool) { };
-
-#if ENABLE(CEHTML_VIDEO)
-    virtual void stop() { };
-    virtual void setAspect(MediaPlayer::VideoScale) { };
-    virtual WTF::Vector<float> playSpeeds() = 0; 
-#endif
 
     virtual bool canLoadPoster() const { return false; }
     virtual void setPoster(const String&) { }

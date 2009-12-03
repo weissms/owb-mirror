@@ -64,7 +64,7 @@ AccessibilityObject::AccessibilityObject()
     : m_id(0)
     , m_haveChildren(false)
     , m_role(UnknownRole)
-#if PLATFORM(GTK) || PLATFORM(BAL)
+#if PLATFORM(GTK)
     , m_wrapper(0)
 #endif
 {
@@ -905,6 +905,7 @@ static ARIARoleMap* createARIARoleMap()
         { "tab", TabRole },
         { "tablist", TabListRole },
         { "tabpanel", TabPanelRole },
+        { "text", StaticTextRole },
         { "textbox", TextAreaRole },
         { "timer", ApplicationTimerRole },
         { "toolbar", ToolbarRole },

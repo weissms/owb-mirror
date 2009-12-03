@@ -39,7 +39,7 @@ namespace WebCore {
 
 void Gradient::platformDestroy()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 PlatformGradient Gradient::platformGradient()
@@ -47,14 +47,14 @@ PlatformGradient Gradient::platformGradient()
     if (m_gradient)
         return m_gradient;
 
-    balNotImplemented();
+    notImplemented();
 
     return m_gradient;
 }
 
 void Gradient::fill(GraphicsContext* context, const FloatRect& rect)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 } //namespace

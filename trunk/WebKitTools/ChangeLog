@@ -1,3 +1,375 @@
+2009-12-03  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        update-webkit --chromium forces gclient sync
+
+        https://bugs.webkit.org/show_bug.cgi?id=31967
+
+        * Scripts/update-webkit-chromium:
+
+2009-12-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        REGRESSION(51595): commit-queue is throwing exceptions
+        https://bugs.webkit.org/show_bug.cgi?id=32083
+
+        * Scripts/modules/commands/queues.py:
+         - Don't use default value of [] as it ends up getting shared.
+         - Make log_progress accept arrays of ints as well as strings.
+         - Return an exit code from execute()
+        * Scripts/modules/commands/queues_unittest.py: Added.
+         - Test to make sure log_progress will accept ints.
+         - Test to make sure run_bugzilla_tool will accept ints.
+        * Scripts/modules/workqueue.py:
+         - Print the stack trace on unexpected exceptions for easier debugging.
+        * Scripts/run-webkit-unittests:
+         - Add queues_unittest.
+
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/commands/queues_unittest.py: Copied from WebKitTools/Scripts/modules/commands/commandtest.py.
+        * Scripts/modules/mock_bugzillatool.py:
+        * Scripts/modules/workqueue.py:
+        * Scripts/run-webkit-unittests:
+
+2009-12-02  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        check-webkit-style is too noisy about namespace indenting issues.
+        https://bugs.webkit.org/show_bug.cgi?id=32096
+
+        * Scripts/modules/cpp_style.py:
+        Added a _FileState object to be able to track file level information. In this
+        case, it simply tracks whether the error has already been given, so that it isn't
+        done again.
+        * Scripts/modules/cpp_style_unittest.py:
+        Modified test cases to pass in the _FileState object and fix a test that expected
+        to see the namespace error twice (now it only occurs once). No new tests because
+        existing tests cover the change in functionality.
+
+2009-12-01  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Eric Seidel.
+
+        [wx] Get DumpRenderTree building after waf switch.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=32041
+
+        * DumpRenderTree/wscript: Added.
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setTimelineProfilingEnabled):
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+        (LayoutTestController::disableImageLoading):
+        (LayoutTestController::whiteListAccessFromOrigin):
+        (LayoutTestController::counterValueForElementById):
+        * Scripts/build-webkit:
+
+2009-12-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] build-attachment shouldn't check whether the builders are red
+        https://bugs.webkit.org/show_bug.cgi?id=32062
+
+        build-attachment doesn't touch the remote repository, so there isn't a
+        need to hold off when the builders are red.
+
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/landingsequence.py:
+
+2009-12-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        REGRESSION(51590): style-queue and build-queue think their empty when they are not
+        https://bugs.webkit.org/show_bug.cgi?id=32061
+
+        * Scripts/modules/bugzilla.py: make all id lookups return ints instead of strings.
+        * Scripts/modules/bugzilla_unittest.py: Add and update unit tests to use ints.
+
+2009-12-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        build-queue is throwing exceptions and complaining about
+        lack of --no-update on build-attachment.  Make it stop.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+
+2009-12-02  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed "build" fix.  Forgot to declare my variables.  :(
+
+        * QueueStatusServer/queue_status.py:
+
+2009-12-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Implement status bubble view
+        https://bugs.webkit.org/show_bug.cgi?id=32057
+
+        The status bubble is a compact representation of the queue status for a
+        given patch.  This will eventually help us reduce the comment spam from
+        the queues.
+
+        * QueueStatusServer/index.html: Added HTML5 doctype for sanity.
+        * QueueStatusServer/queue_status.py:
+        * QueueStatusServer/status_bubble.html: Added.
+
+2009-12-02  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        trim commands/*.py includes now that commands are unit tested
+        https://bugs.webkit.org/show_bug.cgi?id=32056
+
+        In the course of ensuring that the unit tests still
+        passed after this change, I had to actually make them
+        pass in the first place.
+
+        * Scripts/modules/bugzilla.py:
+         - Fix _parse_attachment_ids_request_query to return ints instead of strings.
+        * Scripts/modules/commands/download.py: Remove unneeded imports.
+        * Scripts/modules/commands/queries.py: Ditto.
+        * Scripts/modules/commands/queues.py: Ditto.
+        * Scripts/modules/commands/upload.py: Ditto.
+        * Scripts/modules/scm_unittest.py:
+         - Fix to expect the \n after the path since echo adds an \n.
+
+2009-12-01  Yaar Schnitman  <yaar@chromium.org>
+
+        build-webkit: Remove flex,bison,gperf check for chromium
+        https://bugs.webkit.org/show_bug.cgi?id=32043
+
+        * Scripts/webkitdirs.pm:
+
+2009-12-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Build fixage for Windows/GTK for DumpRenderTree.
+
+        WAI-ARIA: implement support for ARIA drag and drop
+        https://bugs.webkit.org/show_bug.cgi?id=32007
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::ariaIsGrabbed):
+        (AccessibilityUIElement::ariaDropEffects):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::ariaIsGrabbed):
+        (AccessibilityUIElement::ariaDropEffects):
+
+2009-12-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WAI-ARIA: implement support for ARIA drag and drop
+        https://bugs.webkit.org/show_bug.cgi?id=32007
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getARIADropEffectsCallback):
+        (getARIAIsGrabbedCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::ariaIsGrabbed):
+        (AccessibilityUIElement::ariaDropEffects):
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Not reviewed. GTK DRT try 2.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Not reviewed. Try to fix gtk DRT build.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+
+2009-12-01  David Levin  <levin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        check-webkit-style does not understand (Prefix)Foo(Custom|Gtk|CG|Mac).cpp including Foo.h
+        https://bugs.webkit.org/show_bug.cgi?id=32033
+
+        * Scripts/modules/cpp_style.py: Changed check for a possible primary header to use find
+                                        instead of startswith.
+        * Scripts/modules/cpp_style_unittest.py: Added a unit test for the new behavior.
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Not reviewed. Qt build almost fixed, DumpRenderTree should compile now as well.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.h: Update old function signature.
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Simon Fraser.
+
+        Add SVG animation test framework with 'snapshot' functionality
+        https://bugs.webkit.org/show_bug.cgi?id=31897
+
+        Add new 'sampleSVGAnimationForElementAtTime' DRT method,
+        used by the new SVG animation testing framework, implemented
+        for qt/gtk/win/mac.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (sampleSVGAnimationForElementAtTimeCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::sampleSVGAnimationForElementAtTime):
+
+2009-12-01  Adam Roben  <aroben@apple.com>
+
+        Remove user content before running each test on Windows
+
+        Fixes <http://webkit.org/b/31479> Make websocket tests work on Windows
+
+        Reviewed by Alexey Proskuryakov.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting): Remove all user content
+        before each test, which matches Mac.
+
+2009-12-01  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Make pywebsocket log errors to a file
+        https://bugs.webkit.org/show_bug.cgi?id=31604
+
+        * Scripts/run-webkit-tests: Log output to a pywebsocket_log.txt file in results directory
+        (by passing the path to the server via a recently added -l option).
+
+2009-12-01  Adam Roben  <aroben@apple.com>
+
+        Fix tests that use the TestNetscapePlugin in Debug_Internal builds
+
+        Reviewed by Ada Chan.
+
+        Fixes <http://webkit.org/b/32027> REGRESSION (r49705): Tests that use
+        TestNetscapePlugin fail in Debug_Internal builds
+
+        * DumpRenderTree/win/DumpRenderTree.cpp: Use the "_Debug" plugin
+        directory in Debug and Debug_All builds, but not in Debug_Internal
+        builds.
+
+2009-12-01  Adam Roben  <aroben@apple.com>
+
+        Re-enable DRT's watchdog timer on Windows
+
+        It was accidentally disabled in r50907.
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setWaitToDump): Remove a "false &&" that snuck
+        into an if condition.
+
+2009-12-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        check-webkit-style complains about #imports with / in them
+        https://bugs.webkit.org/show_bug.cgi?id=32022
+
+        We need to exclude #import directives in addition to #include from the
+        binary operator whitespace checks.
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-11-30  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        check-webkit-style is slightly too verbose
+        https://bugs.webkit.org/show_bug.cgi?id=32010
+
+        check-webkit-style prints out a bunch of "done" lines that seem redundant,
+        especially for the style-queue.
+
+        * Scripts/modules/cpp_style.py:
+
+2009-11-30  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        [GTK] Moved the functions that are closing the result log of the
+        tests to the last line of the runTest function, this avoids
+        reporting crashes in the wrong test if there is a problem when
+        reseting the state after the test.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dump):
+        (runTest):
+
+2009-11-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=31286
+        fast/js/date-proto-generic-invocation breaks another test
+
+        Don't cache JSClassRefs, a change to the prototype chain will
+        last between tests.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (AccessibilityController::getJSClass):
+        * DumpRenderTree/GCController.cpp:
+        (GCController::getJSClass):
+        * DumpRenderTree/GCController.h:
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::getJSClass):
+
+2009-11-30  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Update pywebsocket to 0.4.2.1.
+        This is to fix a bug that some messages are logged to stderr even when the log file is specified.
+        https://bugs.webkit.org/show_bug.cgi?id=31976
+
+        * pywebsocket/mod_pywebsocket/standalone.py:
+        * pywebsocket/setup.py:
+
+2009-11-30  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Generate pass messages for style-queue
+        https://bugs.webkit.org/show_bug.cgi?id=31995
+
+        With this change, the style-queue posts "pass" messages to bugs as
+        well.  Also, added more information to the state store w.r.t. passing
+        and failing.
+
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/patchcollection.py:
+
+2009-11-30  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Simon Fraser.
+
+        Check for WEBKIT_TESTFONTS environment variable in
+        run-webkit-tests, for GTK+, to have a more prominent error
+        message.
+
+        * Scripts/run-webkit-tests:
+
 2009-11-30  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Adam Barth.

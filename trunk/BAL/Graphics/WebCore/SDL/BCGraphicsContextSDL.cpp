@@ -73,7 +73,7 @@ GraphicsContext::~GraphicsContext()
 
 TransformationMatrix GraphicsContext::getCTM() const
 {
-    balNotImplemented();
+    notImplemented();
     TransformationMatrix a;
     return a;
 }
@@ -612,7 +612,7 @@ void GraphicsContext::drawLineForText(const IntPoint& startPoint, int width, boo
 
 void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& origin, int width, bool grammar)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 FloatRect GraphicsContext::roundToDevicePixels(const FloatRect& frect)
@@ -659,17 +659,17 @@ void GraphicsContext::setPlatformStrokeStyle(const StrokeStyle& strokeStyle)
 
 void GraphicsContext::setURLForRect(const KURL& link, const IntRect& destRect)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::concatCTM(const TransformationMatrix& transform)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::addInnerRoundedRectClip(const IntRect& rect, int thickness)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clipToImageBuffer(const FloatRect& rect, const ImageBuffer* imageBuffer)
@@ -677,17 +677,17 @@ void GraphicsContext::clipToImageBuffer(const FloatRect& rect, const ImageBuffer
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setPlatformShadow(IntSize const&, int, Color const&, ColorSpace)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clearPlatformShadow()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::beginTransparencyLayer(float opacity)
@@ -723,7 +723,7 @@ void GraphicsContext::strokeRect(const FloatRect& rect, float width)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setLineCap(LineCap lineCap)
@@ -731,7 +731,7 @@ void GraphicsContext::setLineCap(LineCap lineCap)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setLineDash(const DashArray&, float dashOffset)
@@ -739,7 +739,7 @@ void GraphicsContext::setLineDash(const DashArray&, float dashOffset)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setLineJoin(LineJoin lineJoin)
@@ -747,7 +747,7 @@ void GraphicsContext::setLineJoin(LineJoin lineJoin)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setMiterLimit(float miter)
@@ -755,7 +755,7 @@ void GraphicsContext::setMiterLimit(float miter)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setAlpha(float)
@@ -773,7 +773,7 @@ void GraphicsContext::setCompositeOperation(CompositeOperator op)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::beginPath()
@@ -781,7 +781,7 @@ void GraphicsContext::beginPath()
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::addPath(const Path& path)
@@ -789,7 +789,7 @@ void GraphicsContext::addPath(const Path& path)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clip(const Path& path)
@@ -797,7 +797,7 @@ void GraphicsContext::clip(const Path& path)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::canvasClip(const Path& path)
@@ -805,7 +805,7 @@ void GraphicsContext::canvasClip(const Path& path)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clipOut(const Path& path)
@@ -813,7 +813,7 @@ void GraphicsContext::clipOut(const Path& path)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::rotate(float radians)
@@ -821,7 +821,7 @@ void GraphicsContext::rotate(float radians)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::scale(const FloatSize& size)
@@ -829,7 +829,7 @@ void GraphicsContext::scale(const FloatSize& size)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clipOut(const IntRect& r)
@@ -837,7 +837,7 @@ void GraphicsContext::clipOut(const IntRect& r)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::clipOutEllipseInRect(const IntRect& r)
@@ -845,7 +845,7 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& r)
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::fillRoundedRect(const IntRect& r, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color& color, ColorSpace)
@@ -853,7 +853,7 @@ void GraphicsContext::fillRoundedRect(const IntRect& r, const IntSize& topLeft, 
     if (paintingDisabled())
         return;
 
-    balNotImplemented();
+    notImplemented();
 }
 
 void GraphicsContext::setBalExposeEvent(BalEventExpose* expose)
@@ -884,7 +884,7 @@ float GraphicsContext::transparencyLayer()
 
 IntPoint GraphicsContext::translatePoint(const IntPoint& point) const
 {
-    balNotImplemented();
+    notImplemented();
     return point;
 }
 

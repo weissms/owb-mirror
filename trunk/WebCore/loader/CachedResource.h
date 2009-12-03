@@ -55,7 +55,7 @@ public:
         ImageResource,
         CSSStyleSheet,
         Script,
-        FontResource,
+        FontResource
 #if ENABLE(XSLT)
         , XSLStyleSheet
 #endif

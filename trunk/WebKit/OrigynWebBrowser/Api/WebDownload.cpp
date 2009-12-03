@@ -191,12 +191,12 @@ void DownloadClient::didFail(ResourceHandle*, const ResourceError& resourceError
 
 void DownloadClient::wasBlocked(ResourceHandle*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void DownloadClient::cannotShowURL(ResourceHandle*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 /*********************************************************************************************/
@@ -290,20 +290,20 @@ void WebDownload::initWithRequest(
         /* [in] */ WebMutableURLRequest* request,
         /* [in] */ TransferSharedPtr<WebDownloadDelegate> delegate)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebDownload::initToResumeWithBundle(
         /* [in] */ const char* bundlePath,
         /* [in] */ TransferSharedPtr<WebDownloadDelegate> delegate)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool WebDownload::canResumeDownloadDecodedWithEncodingMIMEType(
         /* [in] */ const char*)
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
@@ -338,7 +338,7 @@ void WebDownload::cancel()
 
 void WebDownload::cancelForResume()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool WebDownload::deletesFileUponFailure()
@@ -348,7 +348,7 @@ bool WebDownload::deletesFileUponFailure()
 
 char* WebDownload::bundlePathForTargetPath(const char* targetPath)
 {
-    balNotImplemented();
+    notImplemented();
     return NULL;
 }
 
@@ -359,7 +359,7 @@ WebMutableURLRequest* WebDownload::request()
 
 void WebDownload::setDeletesFileUponFailure(bool deletesFileUponFailure)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebDownload::setDestination(const char* path, bool allowOverwrite)
@@ -370,15 +370,15 @@ void WebDownload::setDestination(const char* path, bool allowOverwrite)
 
 void WebDownload::cancelAuthenticationChallenge(WebURLAuthenticationChallenge*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebDownload::continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebDownload::useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge)
 {
-    balNotImplemented();
+    notImplemented();
 }

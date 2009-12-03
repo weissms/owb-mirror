@@ -51,7 +51,7 @@ int screenDepth(Widget* widget)
 
 int screenDepthPerComponent(Widget*)
 {
-    balNotImplemented();
+    notImplemented();
     return 8;
 }
 

@@ -860,6 +860,9 @@ String AccessibilityRenderObject::stringValue() const
     if (!m_renderer || isPasswordField())
         return String();
     
+    if (ariaRoleAttribute() == StaticTextRole)
+        return text();
+        
     if (m_renderer->isText())
         return textUnderElement();
     
@@ -1306,6 +1309,40 @@ void AccessibilityRenderObject::ariaFlowToElements(AccessibilityChildrenVector& 
         
 }
     
+bool AccessibilityRenderObject::supportsARIADropping()
+{
+    const AtomicString& dropEffect = getAttribute(aria_dropeffectAttr).string();
+    return !dropEffect.isEmpty();
+}
+
+bool AccessibilityRenderObject::supportsARIADragging()
+{
+    const AtomicString& grabbed = getAttribute(aria_grabbedAttr).string();
+    return equalIgnoringCase(grabbed, "true") || equalIgnoringCase(grabbed, "false");   
+}
+
+bool AccessibilityRenderObject::isARIAGrabbed()
+{
+    return elementAttributeValue(aria_grabbedAttr);
+}
+
+void AccessibilityRenderObject::setARIAGrabbed(bool grabbed)
+{
+    setElementAttributeValue(aria_grabbedAttr, grabbed);
+}
+
+void AccessibilityRenderObject::determineARIADropEffects(Vector<String>& effects)
+{
+    String dropEffects = getAttribute(aria_dropeffectAttr).string();
+    if (dropEffects.isEmpty()) {
+        effects.clear();
+        return;
+    }
+    
+    dropEffects.replace('\n', ' ');
+    dropEffects.split(' ', effects);
+}
+    
 bool AccessibilityRenderObject::exposesTitleUIElement() const
 {
     if (!isControl())
@@ -1357,6 +1394,16 @@ bool AccessibilityRenderObject::ariaIsHidden() const
     return false;
 }
 
+bool AccessibilityRenderObject::isDescendantOfBarrenParent() const
+{
+    for (AccessibilityObject* object = parentObject(); object; object = object->parentObject()) {
+        if (!object->canHaveChildren())
+            return true;
+    }
+    
+    return false;
+}
+    
 bool AccessibilityRenderObject::accessibilityIsIgnored() const
 {
     // Is the platform interested in this object?
@@ -1377,6 +1424,10 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
     if (isPresentationalChildOfAriaRole())
         return true;
         
+    // If this element is within a parent that cannot have children, it should not be exposed.
+    if (isDescendantOfBarrenParent())
+        return true;    
+    
     if (roleValue() == IgnoredRole)
         return true;
     
@@ -1489,6 +1540,10 @@ int AccessibilityRenderObject::layoutCount() const
 
 String AccessibilityRenderObject::text() const
 {
+    // If this is a user defined static text, use the accessible name computation.
+    if (ariaRoleAttribute() == StaticTextRole)
+        return accessibilityDescription();
+    
     if (!isTextControl() || isPasswordField())
         return String();
     

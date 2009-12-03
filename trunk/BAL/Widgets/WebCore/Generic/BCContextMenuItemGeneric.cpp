@@ -48,7 +48,7 @@ ContextMenuItem::ContextMenuItem(BalMenuItem* item)
 
 ContextMenuItem::ContextMenuItem(ContextMenu*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 ContextMenuItem::ContextMenuItem(ContextMenuItemType type, ContextMenuAction action, const String& title, ContextMenu* subMenu)
@@ -98,13 +98,13 @@ void ContextMenuItem::setAction(ContextMenuAction action)
 
 String ContextMenuItem::title() const
 {
-    balNotImplemented();
+    notImplemented();
     return String();
 }
 
 void ContextMenuItem::setTitle(const String&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 PlatformMenuDescription ContextMenuItem::platformSubMenu() const

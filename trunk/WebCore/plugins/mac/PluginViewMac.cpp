@@ -402,7 +402,7 @@ void PluginView::setNPWindowIfNeeded()
     m_npWindow.clipRect.bottom = m_windowRect.y() + m_windowRect.height();
 
     LOG(Plugins, "PluginView::setNPWindowIfNeeded(): window=%p, context=%p,"
-            " window.x:%d window.y:%d window.width:%d window.height:%d window.clipRect size:%dx%d",
+            " window.x:%ld window.y:%ld window.width:%d window.height:%d window.clipRect size:%dx%d",
             newWindowRef, newContextRef, m_npWindow.x, m_npWindow.y, m_npWindow.width, m_npWindow.height,
             m_npWindow.clipRect.right - m_npWindow.clipRect.left, m_npWindow.clipRect.bottom - m_npWindow.clipRect.top);
 
@@ -566,11 +566,16 @@ void PluginView::handleMouseEvent(MouseEvent* event)
     if (platformPluginWidget()) {
         record.where = globalMousePosForPlugin();
     } else {
-        IntPoint postZoomPos = roundedIntPoint(m_element->renderer()->absoluteToLocal(event->absoluteLocation()));
-        record.where.h = postZoomPos.x() + m_windowRect.x();
-        // The number 22 is the height of the title bar. As to why it figures in the calculation below 
-        // is left as an exercise to the reader :-)
-        record.where.v = postZoomPos.y() + m_windowRect.y() - 22;
+        if (event->button() == 2) {
+            // always pass the global position for right-click since Flash uses it to position the context menu
+            record.where = globalMousePosForPlugin();
+        } else {
+            IntPoint postZoomPos = roundedIntPoint(m_element->renderer()->absoluteToLocal(event->absoluteLocation()));
+            record.where.h = postZoomPos.x() + m_windowRect.x();
+            // The number 22 is the height of the title bar. As to why it figures in the calculation below 
+            // is left as an exercise to the reader :-)
+            record.where.v = postZoomPos.y() + m_windowRect.y() - 22;
+        }
     }
     record.modifiers = modifiersForEvent(event);
 

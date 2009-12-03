@@ -28,31 +28,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# FIXME: Trim down this import list once we have unit tests.
 import os
-import re
-import StringIO
-import subprocess
-import sys
-import time
 
-from datetime import datetime, timedelta
 from optparse import make_option
 
-from modules.bugzilla import Bugzilla, parse_bug_id
-from modules.buildbot import BuildBot
+from modules.bugzilla import parse_bug_id
 from modules.buildsteps import BuildSteps
 from modules.changelogs import ChangeLog
 from modules.comments import bug_comment_from_commit_text
 from modules.grammar import pluralize
 from modules.landingsequence import LandingSequence, ConditionalLandingSequence
-from modules.logging import error, log, tee
-from modules.multicommandtool import MultiCommandTool, Command
-from modules.patchcollection import PatchCollection
-from modules.scm import CommitMessage, detect_scm_system, ScriptError, CheckoutNeedsUpdate
-from modules.statusbot import StatusBot
-from modules.webkitport import WebKitPort
-from modules.workqueue import WorkQueue, WorkQueueDelegate
+from modules.logging import error, log
+from modules.multicommandtool import Command
+from modules.scm import ScriptError
 
 
 class BuildSequence(ConditionalLandingSequence):
@@ -141,6 +129,7 @@ class LandDiffSequence(ConditionalLandingSequence):
         ConditionalLandingSequence.__init__(self, patch, options, tool)
 
     def run(self):
+        self.check_builders()
         self.build()
         self.test()
         commit_log = self.commit()
@@ -278,7 +267,7 @@ class CheckStyle(AbstractPatchProcessingCommand):
         sequence.run_and_handle_errors()
 
 
-class BuildAttachmentSequence(LandingSequence):
+class BuildAttachmentSequence(ConditionalLandingSequence):
     def __init__(self, patch, options, tool):
         LandingSequence.__init__(self, patch, options, tool)
 
@@ -295,6 +284,7 @@ class BuildAttachment(AbstractPatchProcessingCommand):
     def __init__(self):
         options = BuildSteps.cleaning_options()
         options += BuildSteps.build_options()
+        options += BuildSteps.land_options()
         AbstractPatchProcessingCommand.__init__(self, "Apply and build patches from bugzilla", "ATTACHMENT_ID [ATTACHMENT_IDS]", options)
 
     def _fetch_list_of_patches_to_process(self, options, args, tool):

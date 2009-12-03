@@ -35,7 +35,7 @@ namespace WebCore {
 
 Vector<String> supportedKeySizes()
 { 
-    balNotImplemented();
+    notImplemented();
     return Vector<String>();
 }
 
@@ -46,7 +46,7 @@ String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String &ch
 
 void getSupportedKeySizes(Vector<String>&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 }

@@ -185,6 +185,12 @@
 #include "StorageEvent.h"
 #endif // DOM_STORAGE
 
+// GEOLOCATION
+#include "Coordinates.h"
+#include "Geolocation.h"
+#include "Geoposition.h"
+#include "PositionError.h"
+
 #if ENABLE(SVG)
 #include "SVGAngle.h"
 #include "SVGAnimatedPoints.h"
@@ -257,7 +263,9 @@
 #endif // XSLT
 
 #if ENABLE(INSPECTOR)
+#include "InjectedScriptHost.h"
 #include "InspectorBackend.h"
+#include "InspectorFrontendHost.h"
 #endif // INSPECTOR
 
 namespace WebCore {

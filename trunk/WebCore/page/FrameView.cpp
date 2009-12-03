@@ -365,6 +365,9 @@ PassRefPtr<Scrollbar> FrameView::createScrollbar(ScrollbarOrientation orientatio
 
 void FrameView::setContentsSize(const IntSize& size)
 {
+    if (size == contentsSize())
+        return;
+
     m_deferSetNeedsLayouts++;
 
     ScrollView::setContentsSize(size);

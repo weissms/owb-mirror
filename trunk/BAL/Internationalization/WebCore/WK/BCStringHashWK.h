@@ -52,13 +52,13 @@ namespace WebCore {
             if (aLength != bLength)
                 return false;
 
-#if PLATFORM(ARM) || PLATFORM(SPARC)
+#if PLATFORM(ARM) || PLATFORM(SH4)
             const UChar* aChars = a->characters();
             const UChar* bChars = b->characters();
-            for (unsigned i = 0; i != aLength; ++i)
+            for (unsigned i = 0; i != aLength; ++i) {
                 if (*aChars++ != *bChars++)
                     return false;
-
+            }
             return true;
 #else
             /* Do it 4-bytes-at-a-time on architectures where it's safe */

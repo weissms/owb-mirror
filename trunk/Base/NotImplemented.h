@@ -35,15 +35,8 @@
     #include <QByteArray>
     #define supressNotImplementedWarning() !qgetenv("DISABLE_NI_WARNING").isEmpty()
 #else
-    #ifdef NDEBUG
-        #define supressNotImplementedWarning() true
-    #else
-        #define supressNotImplementedWarning() false
-    #endif
+    #define supressNotImplementedWarning() false
 #endif
-
-#define balNotImplemented() notImplemented();
-
 
 #if defined(NDEBUG)
     #define notImplemented() ((void)0)

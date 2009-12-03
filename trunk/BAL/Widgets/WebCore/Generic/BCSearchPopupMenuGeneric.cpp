@@ -40,22 +40,22 @@ namespace WebCore {
 SearchPopupMenu::SearchPopupMenu(PopupMenuClient* client)
     : PopupMenu(client)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void SearchPopupMenu::saveRecentSearches(const AtomicString&, const Vector<String>&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void SearchPopupMenu::loadRecentSearches(const AtomicString&, Vector<String>&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool SearchPopupMenu::enabled()
 {
-    balNotImplemented();
+    notImplemented();
     return true;
 }
 

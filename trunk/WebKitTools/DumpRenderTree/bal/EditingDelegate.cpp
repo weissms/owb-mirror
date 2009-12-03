@@ -30,6 +30,7 @@
 
 #include "DumpRenderTree.h"
 #include "LayoutTestController.h"
+#include <string.h>
 #include <string>
 
 using std::string;

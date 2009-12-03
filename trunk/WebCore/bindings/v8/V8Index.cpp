@@ -433,8 +433,16 @@
 #endif
 
 #if ENABLE(INSPECTOR)
+#include "V8InjectedScriptHost.h"
 #include "V8InspectorBackend.h"
+#include "V8InspectorFrontendHost.h"
 #endif
+
+// Geolocation
+#include "V8Coordinates.h"
+#include "V8Geolocation.h"
+#include "V8Geoposition.h"
+#include "V8PositionError.h"
 
 namespace WebCore {
 

@@ -939,22 +939,22 @@ WebHistory* WebFrameLoaderClient::webHistory() const
 
 void WebFrameLoaderClient::forceLayoutForNonHTML()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::setCopiesOnScroll()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::detachedFromParent2()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::detachedFromParent3()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::cancelPolicyCheck()
@@ -977,22 +977,22 @@ void WebFrameLoaderClient::dispatchWillSubmitForm(FramePolicyFunction function, 
 
 void WebFrameLoaderClient::revertToProvisionalState(DocumentLoader*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::setMainFrameDocumentReady(bool)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::willChangeTitle(DocumentLoader*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::didChangeTitle(DocumentLoader*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool WebFrameLoaderClient::canHandleRequest(const ResourceRequest& request) const
@@ -1008,13 +1008,13 @@ bool WebFrameLoaderClient::canShowMIMEType(const String& type) const
 
 bool WebFrameLoaderClient::representationExistsForURLScheme(const String& /*URLScheme*/) const
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
 String WebFrameLoaderClient::generatedMIMETypeForURLScheme(const String& /*URLScheme*/) const
 {
-    balNotImplemented();
+    notImplemented();
     ASSERT_NOT_REACHED();
     return String();
 }
@@ -1029,17 +1029,17 @@ void WebFrameLoaderClient::restoreViewState()
 
 void WebFrameLoaderClient::provisionalLoadStarted()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::didFinishLoad()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrameLoaderClient::prepareForDataSourceReplacement()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 String WebFrameLoaderClient::userAgent(const KURL& url)
@@ -1201,7 +1201,7 @@ void WebFrameLoaderClient::download(ResourceHandle* handle, const ResourceReques
 
 bool WebFrameLoaderClient::dispatchDidLoadResourceFromMemoryCache(DocumentLoader*, const ResourceRequest&, const ResourceResponse&, int /*length*/)
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
@@ -1225,7 +1225,7 @@ void WebFrameLoaderClient::dispatchDidFailLoad(const ResourceError& error)
 
 void WebFrameLoaderClient::startDownload(const ResourceRequest&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 PassRefPtr<Widget> WebFrameLoaderClient::createJavaAppletWidget(const IntSize& pluginSize, HTMLAppletElement* element, const KURL& /*baseURL*/, const Vector<String>& paramNames, const Vector<String>& paramValues)
@@ -1246,7 +1246,7 @@ ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const
 
 String WebFrameLoaderClient::overrideMediaType() const
 {
-    balNotImplemented();
+    notImplemented();
     return String();
 }
 
@@ -1322,7 +1322,7 @@ void WebFrameLoaderClient::registerForIconNotification(bool listen)
 
 void WebFrameLoaderClient::makeRepresentation(DocumentLoader*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool WebFrameLoaderClient::shouldUsePluginDocument(const String& mimeType) const

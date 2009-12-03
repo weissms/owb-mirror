@@ -49,6 +49,7 @@
 extern "C" {
 bool webkit_web_frame_pause_animation(WebKitWebFrame* frame, const gchar* name, double time, const gchar* element);
 bool webkit_web_frame_pause_transition(WebKitWebFrame* frame, const gchar* name, double time, const gchar* element);
+bool webkit_web_frame_pause_svg_animation(WebKitWebFrame* frame, const gchar* name, double time, const gchar* element);
 unsigned int webkit_web_frame_number_of_active_animations(WebKitWebFrame* frame);
 void webkit_application_cache_set_maximum_size(unsigned long long size);
 unsigned int webkit_worker_thread_count(void);
@@ -443,6 +444,16 @@ bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef prop
     gchar* name = JSStringCopyUTF8CString(propertyName);
     gchar* element = JSStringCopyUTF8CString(elementId);
     bool returnValue = webkit_web_frame_pause_transition(mainFrame, name, time, element);
+    g_free(name);
+    g_free(element);
+    return returnValue;
+}
+
+bool LayoutTestController::sampleSVGAnimationForElementAtTime(JSStringRef animationId, double time, JSStringRef elementId)
+{    
+    gchar* name = JSStringCopyUTF8CString(animationId);
+    gchar* element = JSStringCopyUTF8CString(elementId);
+    bool returnValue = webkit_web_frame_pause_svg_animation(mainFrame, name, time, element);
     g_free(name);
     g_free(element);
     return returnValue;

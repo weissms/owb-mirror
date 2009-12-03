@@ -57,7 +57,7 @@ void SimpleFontData::platformInit()
 
 void SimpleFontData::platformDestroy()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void SimpleFontData::platformCharWidthInit()
@@ -81,7 +81,7 @@ SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDes
 
 bool SimpleFontData::containsCharacters(const UChar* characters, int length) const
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 

@@ -45,40 +45,40 @@ PassRefPtr<Clipboard> Editor::newGeneralClipboard(ClipboardAccessPolicy policy)
 ClipboardBal::ClipboardBal(ClipboardAccessPolicy policy, bool forDragging)
     : Clipboard(policy, forDragging)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 ClipboardBal::~ClipboardBal()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void ClipboardBal::clearData(const String&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void ClipboardBal::clearAllData()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 String ClipboardBal::getData(const String&, bool &success) const
 {
-    balNotImplemented();
+    notImplemented();
     success = false;
     return String();
 }
 
 bool ClipboardBal::setData(const String&, const String&)
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
 HashSet<String> ClipboardBal::types() const
 {
-    balNotImplemented();
+    notImplemented();
     return HashSet<String>();
 }
 
@@ -90,56 +90,56 @@ PassRefPtr<FileList> ClipboardBal::files() const
 
 IntPoint ClipboardBal::dragLocation() const
 {
-    balNotImplemented();
+    notImplemented();
     return IntPoint(0, 0);
 }
 
 CachedImage* ClipboardBal::dragImage() const
 {
-    balNotImplemented();
+    notImplemented();
     return 0;
 }
 
 void ClipboardBal::setDragImage(CachedImage*, const IntPoint&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 Node* ClipboardBal::dragImageElement()
 {
-    balNotImplemented();
+    notImplemented();
     return 0;
 }
 
 void ClipboardBal::setDragImageElement(Node*, const IntPoint&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 DragImageRef ClipboardBal::createDragImage(IntPoint&) const
 {
-    balNotImplemented();
+    notImplemented();
     return 0;
 }
 
 void ClipboardBal::declareAndWriteDragImage(Element*, const KURL&, const String&, Frame*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void ClipboardBal::writeURL(const KURL&, const String&, Frame*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void ClipboardBal::writeRange(Range*, Frame*)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool ClipboardBal::hasData()
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 

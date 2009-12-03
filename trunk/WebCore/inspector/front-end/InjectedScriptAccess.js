@@ -47,7 +47,7 @@ InjectedScriptAccess._installHandler = function(methodName, async)
                 WebInspector.console.addMessage(new WebInspector.ConsoleTextMessage("Error dispatching: " + methodName));
         }
         var callId = WebInspector.Callback.wrap(myCallback);
-        InspectorController.dispatchOnInjectedScript(callId, methodName, argsString, !!async);
+        InspectorBackend.dispatchOnInjectedScript(callId, methodName, argsString, !!async);
     };
 }
 
@@ -70,6 +70,7 @@ InjectedScriptAccess._installHandler("getStyles");
 InjectedScriptAccess._installHandler("openInInspectedWindow");
 InjectedScriptAccess._installHandler("performSearch");
 InjectedScriptAccess._installHandler("pushNodeToFrontend");
+InjectedScriptAccess._installHandler("nodeByPath");
 InjectedScriptAccess._installHandler("searchCanceled");
 InjectedScriptAccess._installHandler("setPropertyValue");
 InjectedScriptAccess._installHandler("setStyleProperty");

@@ -52,7 +52,7 @@ Widget::~Widget()
 
 void Widget::setFocus()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Widget::setCursor(const Cursor& cursor)
@@ -61,12 +61,12 @@ void Widget::setCursor(const Cursor& cursor)
 
 void Widget::show()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Widget::hide()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Widget::paint(GraphicsContext* context, const IntRect &r)
@@ -75,7 +75,7 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
 
 void Widget::setIsSelected(bool)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Widget::invalidateRect(const IntRect& rect)

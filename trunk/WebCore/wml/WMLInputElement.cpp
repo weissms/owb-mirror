@@ -132,7 +132,7 @@ String WMLInputElement::value() const
     return value;
 }
 
-void WMLInputElement::setValue(const String& value)
+void WMLInputElement::setValue(const String& value, bool)
 {
     setFormControlValueMatchesRenderer(false);
     m_data.setValue(constrainValue(value));
@@ -149,6 +149,10 @@ void WMLInputElement::setValue(const String& value)
         cacheSelection(max, max);
 
     InputElement::notifyFormStateChanged(this);
+}
+
+void WMLInputElement::setValueForUser(const String& value)
+{
 }
 
 void WMLInputElement::setValueFromRenderer(const String& value)

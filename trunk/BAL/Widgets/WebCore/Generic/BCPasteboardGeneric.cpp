@@ -80,7 +80,7 @@ Pasteboard* Pasteboard::generalPasteboard()
 Pasteboard::Pasteboard()
 : m_data(0)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 Pasteboard::~Pasteboard()
@@ -99,7 +99,7 @@ void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete,
 
 void Pasteboard::writePlainText(const String&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
@@ -109,7 +109,7 @@ void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
 
 void Pasteboard::writeImage(Node* node, const KURL&, const String&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void Pasteboard::clear()
@@ -118,7 +118,7 @@ void Pasteboard::clear()
 
 bool Pasteboard::canSmartReplace()
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 

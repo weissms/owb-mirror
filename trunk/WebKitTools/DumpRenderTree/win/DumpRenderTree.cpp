@@ -66,7 +66,7 @@
 
 using namespace std;
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && (!defined(DEBUG_INTERNAL) || defined(DEBUG_ALL))
 const LPWSTR TestPluginDir = L"TestNetscapePlugin_Debug";
 #else
 const LPWSTR TestPluginDir = L"TestNetscapePlugin";
@@ -797,6 +797,12 @@ static void resetWebViewToConsistentStateBeforeTesting()
 
     webViewPrivate->clearMainFrameName();
     webViewPrivate->resetOriginAccessWhiteLists();
+
+    BSTR groupName;
+    if (SUCCEEDED(webView->groupName(&groupName))) {
+        webViewPrivate->removeAllUserContentFromGroup(groupName);
+        SysFreeString(groupName);
+    }
 
     sharedUIDelegate->resetUndoManager();
 

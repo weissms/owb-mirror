@@ -429,3 +429,14 @@ void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool flag)
 {
     // FIXME: implement
 }
+
+bool LayoutTestController::sampleSVGAnimationForElementAtTime(JSStringRef animationId, double time, JSStringRef elementId)
+{
+    char* name = JSStringCopyUTF8CString(animationId);
+    char* element = JSStringCopyUTF8CString(elementId);
+    WebView* webView = getWebView();
+    bool returnValue =  webView->mainFrame()->pauseSVGAnimation(name, time, element);
+    free(name);
+    free(element);
+    return returnValue;
+}

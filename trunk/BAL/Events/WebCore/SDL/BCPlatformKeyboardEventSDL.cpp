@@ -863,7 +863,7 @@ void PlatformKeyboardEvent::disambiguateKeyDownEvent(Type type, bool backwardCom
 
 bool PlatformKeyboardEvent::currentCapsLockState()
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 

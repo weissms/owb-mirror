@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Matt Lilek <webkit@mattlilek.com>
  * Copyright (C) 2009 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +30,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ScriptObjectQuarantine_h
-#define ScriptObjectQuarantine_h
+module core {
+    interface [
+        GenerateConstructor
+    ] InspectorFrontendHost {
+        void loaded();
+        void attach();
+        void detach();
+        void closeWindow();
+        void windowUnloading();
 
-#if ENABLE(INSPECTOR)
+        void setAttachedWindowHeight(in unsigned long height);
+        void moveWindowBy(in float x, in float y);
 
-#include "ScriptState.h"
+        DOMString localizedStringsURL();
+        DOMString hiddenPanels();
+        DOMString platform();
+        DOMString port();
 
-namespace WebCore {
+        void addResourceSourceToFrame(in long identifier, in Node frame);
+        boolean addSourceToFrame(in DOMString mimeType, in DOMString sourceValue, in Node frame);
 
-    class Database;
-    class DOMWindow;
-    class Node;
-    class ScriptObject;
-    class ScriptValue;
-    class Storage;
-
-    ScriptValue quarantineValue(ScriptState*, const ScriptValue&);
-
-#if ENABLE(DATABASE)
-    bool getQuarantinedScriptObject(Database* database, ScriptObject& quarantinedObject);
-#endif
-#if ENABLE(DOM_STORAGE)
-    bool getQuarantinedScriptObject(Storage* storage, ScriptObject& quarantinedObject);
-#endif
-    bool getQuarantinedScriptObject(Node* node, ScriptObject& quarantinedObject);
-    bool getQuarantinedScriptObject(DOMWindow* domWindow, ScriptObject& quarantinedObject);
-
+        [Custom] void search(in Node node, in DOMString query);
+        [Custom] DOMObject setting(in DOMString key);
+        [Custom] void setSetting(in DOMString key, in DOMObject  value);
+    };
 }
-
-#endif // ENABLE(INSPECTOR)
-
-#endif // ScriptObjectQuarantine_h

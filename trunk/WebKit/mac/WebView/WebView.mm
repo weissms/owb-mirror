@@ -822,17 +822,20 @@ static bool runningTigerMail()
     return uniqueExtensions;
 }
 
-+ (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType
++ (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType allowingPlugins:(BOOL)allowPlugins
 {
     MIMEType = [MIMEType lowercaseString];
     Class viewClass = [[WebFrameView _viewTypesAllowImageTypeOmission:YES] _webkit_objectForMIMEType:MIMEType];
     Class repClass = [[WebDataSource _repTypesAllowImageTypeOmission:YES] _webkit_objectForMIMEType:MIMEType];
-    
+
     if (!viewClass || !repClass || [[WebPDFView supportedMIMETypes] containsObject:MIMEType]) {
         // Our optimization to avoid loading the plug-in DB and image types for the HTML case failed.
-        // Load the plug-in DB allowing plug-ins to install types.
-        [WebPluginDatabase sharedDatabase];
-            
+
+        if (allowPlugins) {
+            // Load the plug-in DB allowing plug-ins to install types.
+            [WebPluginDatabase sharedDatabase];
+        }
+
         // Load the image types and get the view class and rep class. This should be the fullest picture of all handled types.
         viewClass = [[WebFrameView _viewTypesAllowImageTypeOmission:NO] _webkit_objectForMIMEType:MIMEType];
         repClass = [[WebDataSource _repTypesAllowImageTypeOmission:NO] _webkit_objectForMIMEType:MIMEType];
@@ -857,7 +860,7 @@ static bool runningTigerMail()
 
 - (BOOL)_viewClass:(Class *)vClass andRepresentationClass:(Class *)rClass forMIMEType:(NSString *)MIMEType
 {
-    if ([[self class] _viewClass:vClass andRepresentationClass:rClass forMIMEType:MIMEType])
+    if ([[self class] _viewClass:vClass andRepresentationClass:rClass forMIMEType:MIMEType allowingPlugins:[[[self _webView] preferences] arePlugInsEnabled]])
         return YES;
 
     if (_private->pluginDatabase) {
@@ -2379,13 +2382,26 @@ static PassOwnPtr<Vector<String> > toStringVector(NSArray* patterns)
     PageGroup::closeLocalStorage();
 }
 
++ (BOOL)_canShowMIMEType:(NSString *)MIMEType allowingPlugins:(BOOL)allowPlugins
+{
+    return [self _viewClass:nil andRepresentationClass:nil forMIMEType:MIMEType allowingPlugins:allowPlugins];
+}
+
 + (BOOL)canShowMIMEType:(NSString *)MIMEType
 {
-    return [self _viewClass:nil andRepresentationClass:nil forMIMEType:MIMEType];
+    return [self _canShowMIMEType:MIMEType allowingPlugins:YES];
+}
+
+- (BOOL)_canShowMIMEType:(NSString *)MIMEType
+{
+    return [[self class] _canShowMIMEType:MIMEType allowingPlugins:[[[self _webView] preferences] arePlugInsEnabled]];
 }
 
 - (WebBasePluginPackage *)_pluginForMIMEType:(NSString *)MIMEType
 {
+    if (![_private->preferences arePlugInsEnabled])
+        return nil;
+
     WebBasePluginPackage *pluginPackage = [[WebPluginDatabase sharedDatabase] pluginForMIMEType:MIMEType];
     if (pluginPackage)
         return pluginPackage;
@@ -2398,6 +2414,9 @@ static PassOwnPtr<Vector<String> > toStringVector(NSArray* patterns)
 
 - (WebBasePluginPackage *)_pluginForExtension:(NSString *)extension
 {
+    if (![_private->preferences arePlugInsEnabled])
+        return nil;
+
     WebBasePluginPackage *pluginPackage = [[WebPluginDatabase sharedDatabase] pluginForExtension:extension];
     if (pluginPackage)
         return pluginPackage;
@@ -2429,6 +2448,9 @@ static PassOwnPtr<Vector<String> > toStringVector(NSArray* patterns)
 
 - (BOOL)_isMIMETypeRegisteredAsPlugin:(NSString *)MIMEType
 {
+    if (![_private->preferences arePlugInsEnabled])
+        return NO;
+
     if ([[WebPluginDatabase sharedDatabase] isMIMETypeRegistered:MIMEType])
         return YES;
         
@@ -3197,7 +3219,14 @@ static bool needsWebViewInitThreadWorkaround()
 // Get the appropriate user-agent string for a particular URL.
 - (NSString *)userAgentForURL:(NSURL *)url
 {
-    return [self _userAgentForURL:KURL([url absoluteURL])];
+    if (_private->useSiteSpecificSpoofing) {
+        // No current site-specific spoofs.
+    }
+
+    if (_private->userAgent.isNull())
+        _private->userAgent = [[self class] _standardUserAgentWithApplicationName:_private->applicationNameForUserAgent];
+
+    return _private->userAgent;
 }
 
 - (void)setHostWindow:(NSWindow *)hostWindow
@@ -5298,19 +5327,6 @@ static WebFrameView *containingFrameView(NSView *view)
     [self _didChangeValueForKey:_WebMainFrameIconKey];
 }
 #endif // ENABLE(ICONDATABASE)
-
-// Get the appropriate user-agent string for a particular URL.
-- (WebCore::String)_userAgentForURL:(const WebCore::KURL&)url
-{
-    if (_private->useSiteSpecificSpoofing) {
-        // No current site-specific spoofs.
-    }
-
-    if (_private->userAgent.isNull())
-        _private->userAgent = [[self class] _standardUserAgentWithApplicationName:_private->applicationNameForUserAgent];
-
-    return _private->userAgent;
-}
 
 - (void)_addObject:(id)object forIdentifier:(unsigned long)identifier
 {

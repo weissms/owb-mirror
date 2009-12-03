@@ -94,7 +94,7 @@ bool SimpleFontData::containsCharacters(const UChar* characters, int length) con
 {
     FT_Face face = cairo_ft_scaled_font_lock_face(m_platformData.m_scaledFont);
 
-    if (!face || length < 0)
+    if (!face)
         return false;
 
     for (int i = 0; i < length; i++) {

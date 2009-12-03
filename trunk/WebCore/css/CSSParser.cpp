@@ -150,6 +150,9 @@ CSSParser::CSSParser(bool strictParsing)
     , m_defaultNamespace(starAtom)
     , m_data(0)
     , yy_start(1)
+    , m_allowImportRules(true)
+    , m_allowVariablesRules(true)
+    , m_allowNamespaceDeclarations(true)
     , m_floatingMediaQuery(0)
     , m_floatingMediaQueryExp(0)
     , m_floatingMediaQueryExpList(0)
@@ -237,6 +240,7 @@ void CSSParser::parseSheet(CSSStyleSheet* sheet, const String& string)
 PassRefPtr<CSSRule> CSSParser::parseRule(CSSStyleSheet* sheet, const String& string)
 {
     m_styleSheet = sheet;
+    m_allowNamespaceDeclarations = false;
     setupParser("@-webkit-rule{", string, "} ");
     cssyyparse(this);
     return m_rule.release();
@@ -4646,11 +4650,13 @@ static inline int yyerror(const char*) { return 1; }
 int CSSParser::lex(void* yylvalWithoutType)
 {
     YYSTYPE* yylval = static_cast<YYSTYPE*>(yylvalWithoutType);
-    int token = lex();
     int length;
+    
+    lex();
+
     UChar* t = text(&length);
 
-    switch (token) {
+    switch (token()) {
     case WHITESPACE:
     case SGML_CD:
     case INCLUDES:
@@ -4716,12 +4722,34 @@ int CSSParser::lex(void* yylvalWithoutType)
         break;
     }
 
-    return token;
+    return token();
 }
 
 static inline bool isCSSWhitespace(UChar c)
 {
     return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f';
+}
+
+void CSSParser::recheckAtKeyword(const UChar* str, int len)
+{
+    String ruleName(str, len);
+    if (equalIgnoringCase(ruleName, "@import"))
+        yyTok = IMPORT_SYM;
+    else if (equalIgnoringCase(ruleName, "@page"))
+        yyTok = PAGE_SYM;
+    else if (equalIgnoringCase(ruleName, "@media"))
+        yyTok = MEDIA_SYM;
+    else if (equalIgnoringCase(ruleName, "@font-face"))
+        yyTok = FONT_FACE_SYM;
+    else if (equalIgnoringCase(ruleName, "@charset"))
+        yyTok = CHARSET_SYM;
+    else if (equalIgnoringCase(ruleName, "@namespace"))
+        yyTok = NAMESPACE_SYM;
+    else if (equalIgnoringCase(ruleName, "@-webkit-keyframes"))
+        yyTok = WEBKIT_KEYFRAMES_SYM;
+    else if (equalIgnoringCase(ruleName, "@-webkit-mediaquery"))
+        yyTok = WEBKIT_MEDIAQUERY_SYM;
+    // FIXME: Add CSS Variables if we ever decide to turn it back on.
 }
 
 UChar* CSSParser::text(int *length)
@@ -4777,6 +4805,8 @@ UChar* CSSParser::text(int *length)
     UChar* out = start;
     UChar* escape = 0;
 
+    bool sawEscape = false;
+
     for (int i = 0; i < l; i++) {
         UChar* current = start + i;
         if (escape == current - 1) {
@@ -4821,6 +4851,7 @@ UChar* CSSParser::text(int *length)
         }
         if (!escape && *current == '\\') {
             escape = current;
+            sawEscape = true;
             continue;
         }
         *out++ = *current;
@@ -4841,6 +4872,12 @@ UChar* CSSParser::text(int *length)
     }
     
     *length = out - start;
+    
+    // If we have an unrecognized @-keyword, and if we handled any escapes at all, then
+    // we should attempt to adjust yyTok to the correct type.
+    if (yyTok == ATKEYWORD && sawEscape)
+        recheckAtKeyword(start, *length);
+
     return start;
 }
 
@@ -4971,7 +5008,7 @@ CSSRule* CSSParser::createCharsetRule(const CSSParserString& charset)
 
 CSSRule* CSSParser::createImportRule(const CSSParserString& url, MediaList* media)
 {
-    if (!media || !m_styleSheet)
+    if (!media || !m_styleSheet || !m_allowImportRules)
         return 0;
     RefPtr<CSSImportRule> rule = CSSImportRule::create(m_styleSheet, url, media);
     CSSImportRule* result = rule.get();
@@ -4983,6 +5020,7 @@ CSSRule* CSSParser::createMediaRule(MediaList* media, CSSRuleList* rules)
 {
     if (!media || !rules || !m_styleSheet)
         return 0;
+    m_allowImportRules = m_allowNamespaceDeclarations = m_allowVariablesRules = false;
     RefPtr<CSSMediaRule> rule = CSSMediaRule::create(m_styleSheet, media, rules);
     CSSMediaRule* result = rule.get();
     m_parsedStyleObjects.append(rule.release());
@@ -5000,6 +5038,7 @@ CSSRuleList* CSSParser::createRuleList()
 
 WebKitCSSKeyframesRule* CSSParser::createKeyframesRule()
 {
+    m_allowImportRules = m_allowNamespaceDeclarations = m_allowVariablesRules = false;
     RefPtr<WebKitCSSKeyframesRule> rule = WebKitCSSKeyframesRule::create(m_styleSheet);
     WebKitCSSKeyframesRule* rulePtr = rule.get();
     m_parsedStyleObjects.append(rule.release());
@@ -5008,6 +5047,7 @@ WebKitCSSKeyframesRule* CSSParser::createKeyframesRule()
 
 CSSRule* CSSParser::createStyleRule(Vector<CSSSelector*>* selectors)
 {
+    m_allowImportRules = m_allowNamespaceDeclarations = m_allowVariablesRules = false;
     CSSStyleRule* result = 0;
     if (selectors) {
         RefPtr<CSSStyleRule> rule = CSSStyleRule::create(m_styleSheet);
@@ -5024,6 +5064,7 @@ CSSRule* CSSParser::createStyleRule(Vector<CSSSelector*>* selectors)
 
 CSSRule* CSSParser::createFontFaceRule()
 {
+    m_allowImportRules = m_allowNamespaceDeclarations = m_allowVariablesRules = false;
     RefPtr<CSSFontFaceRule> rule = CSSFontFaceRule::create(m_styleSheet);
     for (unsigned i = 0; i < m_numParsedProperties; ++i) {
         CSSProperty* property = m_parsedProperties[i];
@@ -5039,6 +5080,15 @@ CSSRule* CSSParser::createFontFaceRule()
     CSSFontFaceRule* result = rule.get();
     m_parsedStyleObjects.append(rule.release());
     return result;
+}
+
+void CSSParser::addNamespace(const AtomicString& prefix, const AtomicString& uri)
+{
+    if (!m_styleSheet || !m_allowNamespaceDeclarations)
+        return;
+    m_allowImportRules = false;
+    m_allowVariablesRules = false;
+    m_styleSheet->addNamespace(this, prefix, uri);
 }
 
 #if !ENABLE(CSS_VARIABLES)
@@ -5062,6 +5112,9 @@ bool CSSParser::addVariableDeclarationBlock(const CSSParserString&)
 
 CSSRule* CSSParser::createVariablesRule(MediaList* mediaList, bool variablesKeyword)
 {
+    if (!m_allowVariablesRules)
+        return 0;
+    m_allowImportRules = false;
     RefPtr<CSSVariablesRule> rule = CSSVariablesRule::create(m_styleSheet, mediaList, variablesKeyword);
     rule->setDeclaration(CSSVariablesDeclaration::create(rule.get(), m_variableNames, m_variableValues));
     clearVariables();    

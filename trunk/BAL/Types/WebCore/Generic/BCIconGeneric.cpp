@@ -43,7 +43,7 @@ namespace WebCore {
 Icon::Icon()
     :  m_icon(0)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 Icon::~Icon()

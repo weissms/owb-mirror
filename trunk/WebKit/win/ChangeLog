@@ -1,3 +1,90 @@
+2009-12-03  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adam Roben.
+
+        WebKit clients that don't implement didClearWindowObjectForFrameInScriptWorld should fall back to didClearWindowObject
+        https://bugs.webkit.org/show_bug.cgi?id=31986
+
+        * WebFrame.cpp:
+        (WebFrame::dispatchDidClearWindowObjectInWorld): Fall back if E_NOTIMPL returned.
+
+2009-12-02  Timothy Hatcher  <timothy@apple.com>
+
+        Move setValueForUser to the end of the DOMHTMLInputElement interface
+        so it is fine for binary compatibility.
+
+        Directed by Steve Falkenburg.
+
+        * Interfaces/DOMHTML.idl:
+
+2009-12-02  Timothy Hatcher  <timothy@apple.com>
+
+        Expose setValueForUser for the COM DOMHTMLInputElement.
+
+        <rdar://problem/6760590> Would like a way to detect a login form AutoFill from JavaScript
+
+        Reviewed by Dan Bernstein.
+
+        * DOMHTMLClasses.cpp:
+        (DOMHTMLInputElement::setValueForUser):
+        * Interfaces/DOMHTML.idl:
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Not reviewed. Try to fix windows build.
+
+        * WebFrame.cpp:
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Simon Fraser.
+
+        Add SVG animation test framework with 'snapshot' functionality
+        https://bugs.webkit.org/show_bug.cgi?id=31897
+
+        Add API used by the new 'sampleSVGAnimationForElementAtTime' DRT method,
+        forwarding the call to SVGDocumentExtensions, if SVG is enabled.
+
+        Implemented just like the existing pauseAnimation* methods for CSS animations.
+
+        * Interfaces/IWebFramePrivate.idl:
+        * WebFrame.cpp:
+        (WebFrame::pauseSVGAnimation):
+        * WebFrame.h:
+
+2009-11-30  Adam Roben  <aroben@apple.com>
+
+        Fix double-free of BSTRs passed to WebNavigationData::createInstance
+
+        WebFrameLoaderClient::updateGlobalHistory was converting
+        WebCore::Strings to WebCore::BStrings, then passing them to
+        WebNavigationData::createInstance. But the latter function takes BSTR
+        parameters and adopts them into WebCore::BStrings. So the end result
+        was that two WebCore::BStrings would end up freeing each underlying
+        BSTR.
+
+        The fix is to only convert to WebCore::BString inside
+        WebNavigationData.
+
+        Fixes <http://webkit.org/b/31998> <rdar://problem/7383452> REGRESSION
+        (r49564): Crash in updateGlobalHistory when running Javascript iBench
+        test
+
+        I couldn't find a way to reproduce this in DumpRenderTree.
+
+        Reviewed by Steve Falkenburg.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory): Pass WebCore::Strings to
+        WebNavigationData::createInstance.
+
+        * WebNavigationData.cpp:
+        (WebNavigationData::WebNavigationData):
+        (WebNavigationData::createInstance):
+        * WebNavigationData.h:
+        Changed to take const WebCore::String&s instead of BSTRs and to
+        convert the Strings to BStrings at this level.
+
 2009-11-25  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Kenneth Rohde Christiansen.

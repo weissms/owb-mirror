@@ -1,3 +1,136 @@
+2009-12-03  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 31859 - Make world selection for JSC IsolatedWorlds automagical.
+
+        WebCore presently has to explicitly specify the world before entering into JSC,
+        which is a little fragile (particularly since property access via a
+        getter/setter might invoke execution). Instead derive the current world from
+        the lexical global object.
+
+        Since WebCore no longer needs to explicitly specify the world on entry to JSC DebuggerCallFrame::evaluate can be called directly.
+
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame evaluateWebScript:]):
+
+2009-12-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix a mistake in the previous change
+
+        * WebView/WebView.mm:
+        (+[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:]):
+        Make sure to include the image types’ view and representation classes
+        even when plug-ins are not allowed.
+
+2009-12-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fixed <rdar://problem/7254127> WebKit can load plug-ins even when
+        plug-ins are disabled
+
+        Ensure that the shared WebPluginDatabase is not instantiated if no
+        WebViews are used that have plug-ins enabled.
+
+        * DefaultDelegates/WebDefaultPolicyDelegate.m:
+        (-[WebDefaultPolicyDelegate webView:decidePolicyForMIMEType:request:frame:decisionListener:]):
+        Call -[WebView _canShowMIMEType:] on the WebView instead of calling the
+        class method.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::canShowMIMEType): Ditto.
+        (WebFrameLoaderClient::transitionToCommittedForNewPage): Call
+        -[WebFrameView _viewClassForMIMEType:] on the WebView instead of calling
+        the class method.
+        (WebFrameLoaderClient::objectContentType): Ditto.
+
+        * WebView/WebDataSource.mm:
+        (+[WebDataSource _representationClassForMIMEType:allowingPlugins:]):
+        Added the allowPlugins parameter, which is passed through to
+        +[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:].
+        (-[WebDataSource _makeRepresentation]): Pass an allowPlugins value
+        based on the WebView’s preferences.
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView _makeDocumentViewForDataSource:]): Call
+        -[WebFrameView _viewClassForMIMEType:] instead of calling the class
+        method.
+        (+[WebFrameView _viewClassForMIMEType:allowingPlugins:]): Added the
+        allowPlugins parameter, which is passed through to
+        +[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:].
+        (-[WebFrameView _viewClassForMIMEType:]): Added. Passes an allowPlugins
+        value based on the WebView’s preferences.
+
+        * WebView/WebFrameViewInternal.h:
+        * WebView/WebView.mm:
+        (+[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:]):
+        Added the allowPlugins parameter. If false, skip the instantiation of
+        the shared WebPluginDatabase.
+        (-[WebView _viewClass:andRepresentationClass:forMIMEType:]): Pass an
+        allowPlugins value based on the WebView’s preferences.
+        (+[WebView _canShowMIMEType:allowingPlugins:]): Passes allowPlugins to
+        +_viewClass:andRepresentationClass:forMIMEType:allowingPlugins:.
+        (+[WebView canShowMIMEType:]): Changed to pass YES to
+        +_canShowMIMEType:allowingPlugins:.
+        (-[WebView _canShowMIMEType:]): Added. Passes an allowPlugins value
+        based on the WebView’s preferences.
+        (-[WebView _pluginForMIMEType:]): Return nil if plug-ins are disabled.
+        (-[WebView _pluginForExtension:]): Ditto.
+        (-[WebView _isMIMETypeRegisteredAsPlugin:]): Return NO if plug-ins are
+        disabled.
+        * WebView/WebViewInternal.h:
+
+2009-12-02  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a crash when scrolling a frame that goes away mid-scroll.
+
+        <rdar://problem/7400263>
+
+        Reviewed by John Sullivan.
+
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView scrollWheel:]): Retain self incase the last
+        reference is released when calling super.
+
+2009-11-13  Timothy Hatcher  <timothy@apple.com>
+
+        Migrate DOMHTMLInputElementPrivate.h as a private header.
+
+        Reviewed by Darin Adler.
+
+        * MigrateHeaders.make:
+
+2009-12-01  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Simon Fraser.
+
+        Add SVG animation test framework with 'snapshot' functionality
+        https://bugs.webkit.org/show_bug.cgi?id=31897
+
+        Add API used by the new 'sampleSVGAnimationForElementAtTime' DRT method,
+        forwarding the call to SVGDocumentExtensions, if SVG is enabled.
+
+        Implemented just like the existing pauseAnimation* methods for CSS animations.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _pauseSVGAnimation:onSMILNode:atTime:]):
+        * WebView/WebFramePrivate.h:
+
+2009-12-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Simplify [WebView userAgentForURL:].  No need to call into helper function.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::userAgent):
+        * WebView/WebView.mm:
+        (-[WebView userAgentForURL:]):
+        * WebView/WebViewInternal.h:
+
 2009-11-30  Kevin Decker  <kdecker@apple.com>
 
         Reviewed by Adam Roben.

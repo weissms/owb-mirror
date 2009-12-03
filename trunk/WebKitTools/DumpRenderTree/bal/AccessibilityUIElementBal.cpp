@@ -450,4 +450,13 @@ JSStringRef AccessibilityUIElement::documentURI()
     return JSStringCreateWithCharacters(0, 0);
 }
 
+bool AccessibilityUIElement::ariaIsGrabbed() const
+{
+    return false;
+}
+
+JSStringRef AccessibilityUIElement::ariaDropEffects() const
+{
+    return 0;
+}
 

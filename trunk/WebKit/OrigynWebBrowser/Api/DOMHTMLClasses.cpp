@@ -180,15 +180,16 @@ const char* DOMHTMLDocument::cookie()
 {
     if (!m_document)
         return "";
-    return strdup(m_document->cookie().utf8().data());
+    WebCore::ExceptionCode ex = 0;
+    return strdup(m_document->cookie(ex).utf8().data());
 }
     
 void DOMHTMLDocument::setCookie(const char* cookie)
 {
     if (!m_document)
         return;
-
-    m_document->setCookie(cookie);
+    WebCore::ExceptionCode ex = 0;
+    m_document->setCookie(cookie, ex);
 }
     
 void DOMHTMLDocument::open()

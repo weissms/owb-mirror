@@ -28,12 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-if (!window.InspectorController) {
+if (!window.InspectorBackend) {
 
-WebInspector.InspectorControllerStub = function()
+WebInspector.InspectorBackendStub = function()
 {
     this._searchingForNode = false;
-    this._windowVisible = true;
     this._attachedWindowHeight = 0;
     this._debuggerEnabled = true;
     this._profilerEnabled = true;
@@ -42,15 +41,10 @@ WebInspector.InspectorControllerStub = function()
     this._settings = {};
 }
 
-WebInspector.InspectorControllerStub.prototype = {
+WebInspector.InspectorBackendStub.prototype = {
     wrapCallback: function(func)
     {
         return func;
-    },
-
-    isWindowVisible: function()
-    {
-        return this._windowVisible;
     },
 
     platform: function()
@@ -291,6 +285,6 @@ WebInspector.InspectorControllerStub.prototype = {
     }
 }
 
-window.InspectorController = new WebInspector.InspectorControllerStub();
+InspectorBackend = new WebInspector.InspectorBackendStub();
 
 }

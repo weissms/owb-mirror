@@ -141,19 +141,15 @@
 
 /* PLATFORM(CHROMIUM) */
 /* PLATFORM(QT) */
+/* PLATFORM(WX) */
 /* PLATFORM(GTK) */
+/* PLATFORM(HAIKU) */
 /* PLATFORM(MAC) */
 /* PLATFORM(WIN) */
 #if defined(BUILDING_CHROMIUM__)
 #define WTF_PLATFORM_CHROMIUM 1
 #elif defined(BUILDING_QT__)
 #define WTF_PLATFORM_QT 1
-
-/* PLATFORM(KDE) */
-#if defined(BUILDING_KDE__)
-#define WTF_PLATFORM_KDE 1
-#endif
-
 #elif defined(BUILDING_WX__)
 #define WTF_PLATFORM_WX 1
 #elif defined(BUILDING_GTK__)
@@ -476,8 +472,7 @@
 
 #endif  /* PLATFORM(WINCE) && !PLATFORM(QT) */
 
-/* for Unicode, KDE uses Qt */
-#if PLATFORM(KDE) || PLATFORM(QT)
+#if PLATFORM(QT)
 #define WTF_USE_QT4_UNICODE 1
 #elif PLATFORM(WINCE)
 #define WTF_USE_WINCE_UNICODE 1
@@ -927,5 +922,7 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 
 /* Set up a define for a common error that is intended to cause a build error -- thus the space after Error. */
 #define WTF_PLATFORM_CFNETWORK Error USE_macro_should_be_used_with_CFNETWORK
+
+#define ENABLE_JSC_ZOMBIES 0
 
 #endif /* WTF_Platform_h */

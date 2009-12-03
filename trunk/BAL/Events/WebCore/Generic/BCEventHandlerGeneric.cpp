@@ -78,7 +78,7 @@ bool EventHandler::passWidgetMouseDownEventToWidget(RenderWidget* renderWidget)
 
 bool EventHandler::passMouseDownEventToWidget(Widget* widget)
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
@@ -87,7 +87,7 @@ bool EventHandler::eventActivatedView(const PlatformMouseEvent&) const
     //GTK+ activation is not necessarily tied to mouse events, so it may
     //not make sense to implement this
 
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 

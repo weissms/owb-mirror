@@ -61,6 +61,7 @@ typedef struct OpaqueJSContext* JSGlobalContextRef;
 
 class DOMDocument;
 class DOMElement;
+class DOMNode;
 class WebArchive;
 class WebDataSource;
 class WebFrame;
@@ -540,6 +541,11 @@ public:
      * pause Transition
      */
     bool pauseTransition(const char* name, double time, const char* element);
+
+    /**
+     * pause SVG animation
+     */
+    bool pauseSVGAnimation(const char* animationId, double time, const char* elementId);
 
     /**
      * set frame editable

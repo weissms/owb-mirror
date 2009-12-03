@@ -222,6 +222,12 @@ public:
     virtual bool supportsARIAFlowTo() const;
     virtual void ariaFlowToElements(AccessibilityChildrenVector&) const;
 
+    virtual bool supportsARIADropping();
+    virtual bool supportsARIADragging();
+    virtual bool isARIAGrabbed();
+    virtual void setARIAGrabbed(bool);
+    virtual void determineARIADropEffects(Vector<String>&);
+    
     virtual VisiblePosition visiblePositionForPoint(const IntPoint&) const;
     virtual VisiblePosition visiblePositionForIndex(unsigned indexValue, bool lastIndexOK) const;    
     virtual int index(const VisiblePosition&) const;
@@ -256,6 +262,7 @@ private:
     void ariaListboxSelectedChildren(AccessibilityChildrenVector&);
     void ariaListboxVisibleChildren(AccessibilityChildrenVector&);
     bool ariaIsHidden() const;
+    bool isDescendantOfBarrenParent() const;
     bool hasTextAlternative() const;
     String positionalDescriptionForMSAA() const;
 

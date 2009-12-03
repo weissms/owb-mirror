@@ -96,25 +96,25 @@ bool Font::canReturnFallbackFontsForComplexText()
 
 void Font::drawComplexText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 
 float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* fallbackFonts) const
 {
-    balNotImplemented();
+    notImplemented();
     return 0.0;
 }
 
 int Font::offsetForPositionForComplexText(const TextRun& run, int x, bool includePartialGlyphs) const
 {
-    balNotImplemented();
+    notImplemented();
     return 0;
 }
 
 FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& point, int h, int from, int to) const
 {
-    balNotImplemented();
+    notImplemented();
     return FloatRect();
 }
 

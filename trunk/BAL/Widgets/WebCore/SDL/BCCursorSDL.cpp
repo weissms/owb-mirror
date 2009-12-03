@@ -57,7 +57,7 @@ Cursor::Cursor(const Cursor& other)
 
 Cursor::Cursor(Image*, const IntPoint&)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 Cursor::Cursor(const char* xpmCursor[])
@@ -122,7 +122,7 @@ const Cursor& pointerCursor()
 
 const Cursor& crossCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
@@ -147,246 +147,246 @@ const Cursor& iBeamCursor()
 
 const Cursor& waitCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& helpCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& eastResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northEastResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northWestResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& southResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& southEastResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& southWestResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& westResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northSouthResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& eastWestResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northEastSouthWestResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& northWestSouthEastResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 const Cursor& columnResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& rowResizeCursor()
 {
-    balNotImplemented();
+    notImplemented();
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
     return c;
 }
 
 const Cursor& middlePanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& eastPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& northPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& northEastPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& northWestPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& southPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& southEastPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& southWestPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& westPanningCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 // FIXME: should find better GDK cursors for those than a generic GDK_LEFT_PTR
 const Cursor& verticalTextCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& cellCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& contextMenuCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& noDropCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& copyCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& progressCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& aliasCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& noneCursor()
 {
-    balNotImplemented();
+    notImplemented();
     //FIXME: use SDL_ShowCursor(SDL_DISABLE) ?
     return pointerCursor();
 }
 
 const Cursor& notAllowedCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& zoomInCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& zoomOutCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& grabCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 
 const Cursor& grabbingCursor()
 {
-    balNotImplemented();
+    notImplemented();
     return pointerCursor();
 }
 

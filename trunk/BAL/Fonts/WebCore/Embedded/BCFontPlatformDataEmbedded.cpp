@@ -119,7 +119,7 @@ void FontPlatformData::setFont(BalFont* cr) const
 {
     ASSERT(m_scaledFont);
 
-    balNotImplemented();
+    notImplemented();
 }
 
 bool FontPlatformData::operator==(const FontPlatformData& other) const

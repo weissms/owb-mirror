@@ -60,6 +60,8 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSHistoryCustom.cpp
     bindings/js/JSImageConstructor.cpp
     bindings/js/JSImageDataCustom.cpp
+    bindings/js/JSInjectedScriptHostCustom.cpp
+    bindings/js/JSInspectorFrontendHostCustom.cpp
     bindings/js/JSLazyEventListener.cpp
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMessageChannelConstructor.cpp
@@ -156,12 +158,10 @@ endif(ENABLE_GEOLOCATION)
 
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
-        bindings/js/JSInspectorBackendCustom.cpp
         bindings/js/JSConsoleCustom.cpp
         bindings/js/JSInspectedObjectWrapper.cpp
         bindings/js/JSInspectorCallbackWrapper.cpp
         bindings/js/JSJavaScriptCallFrameCustom.cpp
-        bindings/js/ScriptObjectQuarantine.cpp
     )
 endif(ENABLE_INSPECTOR)
 

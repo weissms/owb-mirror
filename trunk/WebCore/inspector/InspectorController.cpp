@@ -53,8 +53,10 @@
 #include "HTMLFrameOwnerElement.h"
 #include "HitTestResult.h"
 #include "InspectorBackend.h"
+#include "InjectedScriptHost.h"
 #include "InspectorClient.h"
 #include "InspectorFrontend.h"
+#include "InspectorFrontendHost.h"
 #include "InspectorDatabaseResource.h"
 #include "InspectorDOMAgent.h"
 #include "InspectorDOMStorageResource.h"
@@ -70,7 +72,6 @@
 #include "ScriptCallStack.h"
 #include "ScriptFunctionCall.h"
 #include "ScriptObject.h"
-#include "ScriptObjectQuarantine.h"
 #include "ScriptString.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
@@ -134,7 +135,9 @@ InspectorController::InspectorController(Page* page, InspectorClient* client)
     , m_previousMessage(0)
     , m_resourceTrackingEnabled(false)
     , m_resourceTrackingSettingsLoaded(false)
-    , m_inspectorBackend(InspectorBackend::create(this, client))
+    , m_inspectorBackend(InspectorBackend::create(this))
+    , m_inspectorFrontendHost(InspectorFrontendHost::create(this, client))
+    , m_injectedScriptHost(InjectedScriptHost::create(this))
     , m_lastBoundObjectId(1)
 #if ENABLE(JAVASCRIPT_DEBUGGER)
     , m_debuggerEnabled(false)
@@ -174,15 +177,19 @@ InspectorController::~InspectorController()
     releaseDOMAgent();
 
     m_inspectorBackend->disconnectController();
+    m_inspectorFrontendHost->disconnectController();
+    m_injectedScriptHost->disconnectController();
 }
 
 void InspectorController::inspectedPageDestroyed()
 {
     close();
 
-    if (m_scriptState)
-        ScriptGlobalObject::remove(m_scriptState, "InspectorController");
-
+    if (m_scriptState) {
+        ScriptGlobalObject::remove(m_scriptState, "InspectorBackend");
+        ScriptGlobalObject::remove(m_scriptState, "InspectorFrontendHost");
+        ScriptGlobalObject::remove(m_scriptState, "InjectedScriptHost");
+    }
     ASSERT(m_inspectedPage);
     m_inspectedPage = 0;
 
@@ -521,8 +528,10 @@ void InspectorController::windowScriptObjectAvailable()
 
     // Grant the inspector the ability to script the inspected page.
     m_page->mainFrame()->document()->securityOrigin()->grantUniversalAccess();
-    m_scriptState = scriptStateFromPage(m_page);
-    ScriptGlobalObject::set(m_scriptState, "InspectorController", m_inspectorBackend.get());
+    m_scriptState = scriptStateFromPage(debuggerWorld(), m_page);
+    ScriptGlobalObject::set(m_scriptState, "InspectorBackend", m_inspectorBackend.get());
+    ScriptGlobalObject::set(m_scriptState, "InspectorFrontendHost", m_inspectorFrontendHost.get());
+    ScriptGlobalObject::set(m_scriptState, "InjectedScriptHost", m_injectedScriptHost.get());
 }
 
 void InspectorController::scriptObjectReady()
@@ -615,14 +624,17 @@ void InspectorController::close()
 #endif
     closeWindow();
 
-    m_frontend.set(0);
     m_injectedScriptObj = ScriptObject();
     releaseDOMAgent();
+    m_frontend.set(0);
     m_timelineAgent = 0;
     m_scriptState = 0;
-    if (m_page)
-        m_page->setParentInspectorController(0);
-    m_page = 0;
+    if (m_page) {
+        if (!m_page->mainFrame() || !m_page->mainFrame()->loader() || !m_page->mainFrame()->loader()->isLoading()) {
+            m_page->setParentInspectorController(0);
+            m_page = 0;
+        }
+    }
 }
 
 void InspectorController::showWindow()
@@ -652,7 +664,7 @@ void InspectorController::releaseDOMAgent()
     // m_domAgent is RefPtr. Remove DOM listeners first to ensure that there are
     // no references to the DOM agent from the DOM tree.
     if (m_domAgent)
-        m_domAgent->setDocument(0);
+        m_domAgent->reset();
     m_domAgent = 0;
 }
 
@@ -715,7 +727,7 @@ void InspectorController::resetScriptObjects()
         m_timelineAgent->reset();
 
     m_frontend->reset();
-    m_domAgent->setDocument(0);
+    m_domAgent->reset();
     m_objectGroups.clear();
     m_idToWrappedObject.clear();
 }
@@ -1190,10 +1202,14 @@ void InspectorController::getCookies(long callId, const String& host)
             Vector<Cookie> docCookiesList;
             rawCookiesImplemented = getRawCookies(document, document->cookieURL(), docCookiesList);
             
-            if (!rawCookiesImplemented)
-                // FIXME:We need duplication checking for the String representation of cookies.
-                stringCookiesList += document->cookie();
-            else {
+            if (!rawCookiesImplemented) {
+                // FIXME: We need duplication checking for the String representation of cookies.
+                ExceptionCode ec = 0;
+                stringCookiesList += document->cookie(ec);
+                // Exceptions are thrown by cookie() in sandboxed frames. That won't happen here
+                // because "document" is the document of the main frame of the page.
+                ASSERT(!ec);
+            } else {
                 int cookiesSize = docCookiesList.size();
                 for (int i = 0; i < cookiesSize; i++) {
                     if (!rawCookiesList.contains(docCookiesList[i]))
@@ -1606,7 +1622,7 @@ void InspectorController::evaluateForTestInFrontend(long callId, const String& s
 
 void InspectorController::didEvaluateForTestInFrontend(long callId, const String& jsonResult)
 {
-    ScriptState* scriptState = scriptStateFromPage(m_inspectedPage);
+    ScriptState* scriptState = scriptStateFromPage(debuggerWorld(), m_inspectedPage);
     ScriptObject window;
     ScriptGlobalObject::get(scriptState, "window", window);
     ScriptFunctionCall function(scriptState, window, "didEvaluateForTestInFrontend");
@@ -1868,5 +1884,5 @@ void InspectorController::deleteCookie(const String& cookieName, const String& d
 }
 
 } // namespace WebCore
-
+    
 #endif // ENABLE(INSPECTOR)

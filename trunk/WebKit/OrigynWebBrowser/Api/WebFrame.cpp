@@ -101,6 +101,10 @@
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
 
+#if ENABLE(SVG)
+#include <SVGSMILElement.h>
+#endif
+
 using namespace WebCore;
 
 #define FLASH_REDRAW 0
@@ -396,7 +400,7 @@ void WebFrame::loadAlternateHTMLString(const char* str, const char* baseURL, con
 
 void WebFrame::loadArchive(WebArchive* /*archive*/)
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 static inline WebDataSource *getWebDataSource(DocumentLoader* loader)
@@ -575,12 +579,12 @@ const char* WebFrame::selectedString()
 
 void WebFrame::selectAll()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 void WebFrame::deselectAll()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 Frame* WebFrame::init(WebView* webView, Page* page, HTMLFrameOwnerElement* ownerElement)
@@ -1190,12 +1194,12 @@ void WebFrame::updateBackground()
 
 void WebFrame::addHistoryItemForFragmentScroll()
 {
-    balNotImplemented();
+    notImplemented();
 }
 
 bool WebFrame::shouldTreatURLAsSameAsCurrent(const char*) const
 {
-    balNotImplemented();
+    notImplemented();
     return false;
 }
 
@@ -1226,6 +1230,22 @@ bool WebFrame::pauseTransition(const char* name, double time, const char* elemen
     if (!coreElement || !coreElement->renderer())
         return false;
     return core(this)->animation()->pauseTransitionAtTime(coreElement->renderer(), AtomicString(name), time);
+}
+
+bool WebFrame::pauseSVGAnimation(const char* animationId, double time, const char* elementId)
+{
+#if ENABLE(SVG)
+    Document* document = core(this)->document();
+    if (!document || !document->svgExtensions())
+        return false;
+    Element* coreElement = document->getElementById(AtomicString(animationId));
+    if (!coreElement || !SVGSMILElement::isSMILElement(coreElement))
+        return false;
+
+    return document->accessSVGExtensions()->sampleAnimationAtTime(elementId, static_cast<SVGSMILElement*>(coreElement), time);
+#else
+    return false;
+#endif
 }
 
 void WebFrame::setEditable(bool flag)

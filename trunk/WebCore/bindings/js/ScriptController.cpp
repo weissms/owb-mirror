@@ -129,7 +129,7 @@ ScriptValue ScriptController::evaluateInWorld(const ScriptSourceCode& sourceCode
 #endif
 
     exec->globalData().timeoutChecker.start();
-    Completion comp = WebCore::evaluateInWorld(exec, exec->dynamicGlobalObject()->globalScopeChain(), jsSourceCode, shell, world);
+    Completion comp = JSC::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), jsSourceCode, shell);
     exec->globalData().timeoutChecker.stop();
 
 #if ENABLE(INSPECTOR)
@@ -218,7 +218,7 @@ JSDOMWindowShell* ScriptController::initScript(DOMWrapperWorld* world)
 
     JSDOMWindowShell* windowShell = new JSDOMWindowShell(m_frame->domWindow(), world);
     m_windowShells.add(world, windowShell);
-    windowShell->window()->updateDocument(world);
+    windowShell->window()->updateDocument();
 
     if (Page* page = m_frame->page()) {
         if (world == debuggerWorld())
@@ -226,10 +226,7 @@ JSDOMWindowShell* ScriptController::initScript(DOMWrapperWorld* world)
         windowShell->window()->setProfileGroup(page->group().identifier());
     }
 
-    {
-        EnterDOMWrapperWorld worldEntry(*JSDOMWindow::commonJSGlobalData(), world);
-        m_frame->loader()->dispatchDidClearWindowObjectInWorld(world);
-    }
+    m_frame->loader()->dispatchDidClearWindowObjectInWorld(world);
 
     return windowShell;
 }
@@ -298,7 +295,7 @@ bool ScriptController::anyPageIsProcessingUserGesture() const
 bool ScriptController::isEnabled()
 {
     Settings* settings = m_frame->settings();
-    return m_frame->loader()->client()->allowJavaScript(settings && settings->isJavaScriptEnabled());
+    return m_frame->loader()->client()->allowJavaScript(settings && settings->isJavaScriptEnabled() && !m_frame->loader()->isSandboxed(SandboxScripts));
 }
 
 void ScriptController::attachDebugger(JSC::Debugger* debugger)
@@ -322,7 +319,7 @@ void ScriptController::updateDocument()
 
     JSLock lock(SilenceAssertionsOnly);
     for (ShellMap::iterator iter = m_windowShells.begin(); iter != m_windowShells.end(); ++iter)
-        iter->second->window()->updateDocument(iter->first.get());
+        iter->second->window()->updateDocument();
 }
 
 void ScriptController::updateSecurityOrigin()

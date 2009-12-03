@@ -47,6 +47,7 @@ endif(USE_GRAPHICS_GTK)
 if(USE_GRAPHICS_QT)
     list(APPEND DUMPRENDERTREE_SRC
         bal/qt/DumpRenderTreeQt.cpp
+        bal/qt/EventSenderQt.cpp
     )
 endif(USE_GRAPHICS_QT)
 

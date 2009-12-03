@@ -15,6 +15,8 @@ WebCore/bindings/js/JSEventCustom.cpp
 WebCore/bindings/js/JSEventListener.cpp
 WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bindings/js/JSHTMLObjectElementCustom.cpp
+WebCore/bindings/js/JSInjectedScriptHostCustom.cpp
+WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp
 WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
 WebCore/bindings/js/ScriptObjectQuarantine.h
@@ -92,6 +94,7 @@ WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BC
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
 WebCore/platform/network/ResourceHandleClient.h BAL/Network/WebCore/WK/BCResourceHandleClientWK.h
 WebCore/platform/network/ResourceHandleInternal.h BAL/Network/WebCore/WK/BCResourceHandleInternalWK.h
+WebCore/platform/network/curl/AuthenticationChallenge.h BAL/Network/WebCore/Curl/BCAuthenticationChallengeCurl.h
 WebCore/platform/network/curl/CookieJarCurl.cpp BAL/Network/WebCore/Curl/BCCookieJarCurl.cpp
 WebCore/platform/network/curl/ResourceHandleCurl.cpp BAL/Network/WebCore/Curl/BCResourceHandleCurl.cpp
 WebCore/platform/network/curl/ResourceHandleManager.cpp BAL/Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp
@@ -120,6 +123,7 @@ WebCore/svg/graphics/SVGImage.cpp
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp
+WebCore/wml/WMLInputElement.h
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessorLibxslt.cpp

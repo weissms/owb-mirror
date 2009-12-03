@@ -1,3 +1,147 @@
+2009-12-03  Jan-Arve Sæther  <jan-arve.saether@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix compilation with win32-icc
+
+        The Intel compiler does not support the __has_trivial_constructor type
+        trait.  The Intel Compiler can report itself as _MSC_VER >= 1400. The
+        reason for that is that the Intel Compiler depends on the Microsoft
+        Platform SDK, and in order to try to be "fully" MS compatible it will
+        "pretend" to be the same MS compiler as was shipped with the MS PSDK.
+        (Thus, compiling with win32-icc with VC8 SDK will make the source code
+        "think" the compiler at hand supports this type trait).
+
+        * wtf/TypeTraits.h:
+
+2009-12-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Add files missed in prior patch.
+
+        * runtime/JSZombie.cpp:
+        (JSC::):
+        (JSC::JSZombie::leakedZombieStructure):
+        * runtime/JSZombie.h: Added.
+        (JSC::JSZombie::JSZombie):
+        (JSC::JSZombie::isZombie):
+        (JSC::JSZombie::classInfo):
+        (JSC::JSZombie::isGetterSetter):
+        (JSC::JSZombie::isAPIValueWrapper):
+        (JSC::JSZombie::isPropertyNameIterator):
+        (JSC::JSZombie::getCallData):
+        (JSC::JSZombie::getConstructData):
+        (JSC::JSZombie::getUInt32):
+        (JSC::JSZombie::toPrimitive):
+        (JSC::JSZombie::getPrimitiveNumber):
+        (JSC::JSZombie::toBoolean):
+        (JSC::JSZombie::toNumber):
+        (JSC::JSZombie::toString):
+        (JSC::JSZombie::toObject):
+        (JSC::JSZombie::markChildren):
+        (JSC::JSZombie::put):
+        (JSC::JSZombie::deleteProperty):
+        (JSC::JSZombie::toThisObject):
+        (JSC::JSZombie::toThisString):
+        (JSC::JSZombie::toThisJSString):
+        (JSC::JSZombie::getJSNumber):
+        (JSC::JSZombie::getOwnPropertySlot):
+
+2009-12-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Add zombies to JSC
+        https://bugs.webkit.org/show_bug.cgi?id=32103
+
+        Add a compile time flag to make the JSC collector replace "unreachable"
+        objects with zombie objects.  The zombie object is a JSCell subclass that
+        ASSERTs on any attempt to use the JSCell methods.  In addition there are
+        a number of additional assertions in bottleneck code to catch zombie usage
+        as quickly as possible.
+
+        Grrr. Argh. Brains.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * interpreter/Register.h:
+        (JSC::Register::Register):
+        * runtime/ArgList.h:
+        (JSC::MarkedArgumentBuffer::append):
+        (JSC::ArgList::ArgList):
+        * runtime/Collector.cpp:
+        (JSC::Heap::destroy):
+        (JSC::Heap::sweep):
+        * runtime/Collector.h:
+        * runtime/JSCell.h:
+        (JSC::JSCell::isZombie):
+        (JSC::JSValue::isZombie):
+        * runtime/JSValue.h:
+        (JSC::JSValue::decode):
+        (JSC::JSValue::JSValue):
+        * wtf/Platform.h:
+
+2009-12-01  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Added variants of find/contains/add that allow a foreign key type to be used.
+        This will allow AtomicString-keyed maps to be queried by C string without
+        having to create a temporary AtomicString (see HTTPHeaderMap.)
+        The code for this is adapted from the equivalent in HashSet.h.
+
+        * wtf/HashMap.h:
+        (WTF::HashMap::find):
+        (WTF::HashMap::contains):
+        (WTF::HashMap::add):
+        * wtf/HashSet.h: Changed "method" to "function member" in a comment.
+
+2009-12-01  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Revert 51551 because it broke GTK+.
+
+        * wtf/Platform.h:
+
+2009-11-30  Gavin Barraclough  <barraclough@apple.com>
+
+        Windows Build fix.  Reviewed by NOBODY.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-11-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 31859 - Make world selection for JSC IsolatedWorlds automagical.
+
+        WebCore presently has to explicitly specify the world before entering into JSC,
+        which is a little fragile (particularly since property access via a
+        getter/setter might invoke execution). Instead derive the current world from
+        the lexical global object.
+        
+        Remove the temporary duct tape of willExecute/didExecute virtual hooks on the JSGlobalData::ClientData - these are no longer necessary.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        * API/JSObjectRef.cpp:
+        (JSObjectCallAsFunction):
+        * JavaScriptCore.exp:
+        * runtime/JSGlobalData.cpp:
+        * runtime/JSGlobalData.h:
+
+2009-11-30  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Remove obsolete PLATFORM(KDE) code
+        https://bugs.webkit.org/show_bug.cgi?id=31958
+
+        KDE is now using unpatched QtWebKit.
+
+        * parser/Lexer.cpp: Remove obsolete KDE_USE_FINAL guard
+        * wtf/Platform.h: Remove PLATFORM(KDE) definition and code 
+        section that is guarded with it.
+
 2009-11-30  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Unreviewed. 

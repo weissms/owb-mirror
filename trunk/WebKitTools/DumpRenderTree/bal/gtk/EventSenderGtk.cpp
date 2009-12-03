@@ -28,6 +28,8 @@
 
 
 #include "EventSender.h"
+
+#include "DumpRenderTree.h"
 #include <sys/time.h> 
 #include <unistd.h>
 
@@ -38,57 +40,51 @@
 
 static Message eventQueue[1024];*/
 
-unsigned getDelay(int pos)
-{
-    return 0;
-}
-
-void setDelay(int pos, unsigned d)
-{
-}
-
-void addEvent(BalEventMotion em, int pos) {
-}
-
-BalEventMotion makeMouseMotionEvent(bool state, int x, int y)
+BalEventMotion EventSenderController::makeMouseMotionEvent(bool state, int x, int y)
 {
     BalEventMotion me;
     return me;
 }
 
 
-void dispatchMouseMotion(BalEventMotion em)
+void EventSenderController::dispatchMouseMotion(BalEventMotion em)
 {
+#if ENABLE(DAE)
+    WebEventSender* eventSender = WebEventSender::getEventSender();
+    eventSender->onMouseMotion(em);
+#else
+    getWebView()->onMouseMotion(em);
+#endif
 }
 
-BalEventButton makeMouseButtonEvent(bool up, int x, int y)
+BalEventButton EventSenderController::makeMouseButtonEvent(bool up, int x, int y)
 {
     BalEventButton be;
     return be;
 }
 
-void addEvent(BalEventButton eb, int pos)
+void EventSenderController::dispatchMouseButton(BalEventButton eb)
 {
 }
 
-void dispatchMouseButton(BalEventButton eb)
-{
-}
-
-BalEventKey makeKeyboardEvent(bool up, bool shift, bool control, bool alt, bool meta, int charCode, bool isVKKey)
+BalEventKey EventSenderController::makeKeyboardEvent(bool up, bool shift, bool control, bool alt, bool meta, int charCode, bool isVKKey)
 {
     BalEventKey ke;
 
     return ke;
 }
 
-void dispatchKeyboardEvent(BalEventKey ek)
+void EventSenderController::dispatchKeyboardEvent(BalEventKey ek)
 {
+#if ENABLE(DAE)
     WebEventSender* eventSender = WebEventSender::getEventSender();
     eventSender->onKeyDown(ek);
+#else
+    getWebView()->onKeyDown(ek);
+#endif
 }
 
-int getCharCode(char *code)
+int EventSenderController::getCharCode(char *code)
 {
     return 0;    
 }

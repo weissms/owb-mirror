@@ -54,7 +54,7 @@ FontCustomPlatformData* createFontCustomPlatformData(SharedBuffer* buffer)
 {
     ASSERT_ARG(buffer, buffer);
 
-    balNotImplemented();
+    notImplemented();
     return new FontCustomPlatformData(/*fontFace*/0);
 }
 
