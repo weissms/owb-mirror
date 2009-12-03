@@ -1,9 +1,0 @@
-AccessibilityObjectWrapperAtk.h
-BCClipboardGtk.h ClipboardGtk.h
-BCDragControllerGtk.h
-BCPasteboardHelperGtk.h PasteboardHelper.h
-BCRenderThemeGtk.h RenderThemeGtk.h
-BCScrollbarGtk.h ScrollbarGtk.h
-BCScrollbarThemeGtk.h ScrollbarThemeGtk.h
-PasteboardHelperGtk.h PasteboardHelperGtk.h
-CursorGtk.h

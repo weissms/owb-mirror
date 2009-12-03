@@ -1,5 +1,0 @@
-if(ENABLE_TESTS)
-    pkg_check_modules(CPPUNIT REQUIRED cppunit)
-    include(CTest)
-    enable_testing()
-endif(ENABLE_TESTS)

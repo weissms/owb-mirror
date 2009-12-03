@@ -1,5 +1,0 @@
-if(ENABLE_NPAPI)
-    pkg_check_modules(XT REQUIRED xt)
-    set(NPAPI_INCLUDE_DIRS ${XT_INCLUDE_DIRS})
-    set(NPAPI_LIBRARIES ${XT_LDFLAGS})
-endif(ENABLE_NPAPI)
