@@ -205,6 +205,9 @@ public:
     virtual void dispatchDidCancelClientRedirect() { }
     virtual void dispatchWillPerformClientRedirect(const KURL&, double, double) { }
     virtual void dispatchDidChangeLocationWithinPage() { }
+    virtual void dispatchDidPushStateWithinPage() { }
+    virtual void dispatchDidReplaceStateWithinPage() { }
+    virtual void dispatchDidPopStateWithinPage() { }
     virtual void dispatchWillClose() { }
     virtual void dispatchDidReceiveIcon() { }
     virtual void dispatchDidStartProvisionalLoad() { }
@@ -284,6 +287,9 @@ public:
     virtual void updateGlobalHistory() { }
     virtual void updateGlobalHistoryRedirectLinks() { }
     virtual bool shouldGoToHistoryItem(HistoryItem*) const { return false; }
+    virtual void dispatchDidAddBackForwardItem(HistoryItem*) const { }
+    virtual void dispatchDidRemoveBackForwardItem(HistoryItem*) const { };
+    virtual void dispatchDidChangeBackForwardIndex() const { }
     virtual void saveViewStateToItem(HistoryItem*) { }
     virtual bool canCachePage() const { return false; }
     virtual void didDisplayInsecureContent() { }
@@ -486,9 +492,8 @@ public:
     virtual void hideHighlight() { }
     virtual void inspectedURLChanged(const String&) { }
 
-    virtual void populateSetting(const String&, InspectorController::Setting&) { }
-    virtual void storeSetting(const String&, const InspectorController::Setting&) { }
-    virtual void removeSetting(const String&) { }
+    virtual void populateSetting(const String&, String*) { }
+    virtual void storeSetting(const String&, const String&) { }
 
     virtual void inspectorWindowObjectCleared() { }
 };

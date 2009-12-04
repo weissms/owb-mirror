@@ -361,6 +361,12 @@ JSStringRef AccessibilityUIElement::subrole()
     return 0;
 }
 
+JSStringRef AccessibilityUIElement::roleDescription()
+{
+    // FIXME: implement
+    return JSStringCreateWithCharacters(0, 0);
+}
+
 void AccessibilityUIElement::increment()
 {
 }
@@ -434,6 +440,12 @@ int AccessibilityUIElement::hierarchicalLevel() const
 }
 
 JSStringRef AccessibilityUIElement::accessibilityValue() const
+{
+    // FIXME: implement
+    return JSStringCreateWithCharacters(0, 0);
+}
+
+JSStringRef AccessibilityUIElement::orientation() const
 {
     // FIXME: implement
     return JSStringCreateWithCharacters(0, 0);

@@ -1,3 +1,41 @@
+2009-12-04  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Brady Eidson.
+
+        [Android] The FrameLoaderClient is unaware of BackForwardList changes.
+        https://bugs.webkit.org/show_bug.cgi?id=31914
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidAddBackForwardItem): Add an empty implementation. Method added to FrameLoaderClient by Android (see bug).
+        (WebKit::FrameLoaderClient::dispatchDidRemoveBackForwardItem): ditto.
+        (WebKit::FrameLoaderClient::dispatchDidChangeBackForwardIndex): ditto.
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-12-03  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7214236> and http://webkit.org/b/32052 - Implement HTML5 state object history API
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidPushStateWithinPage):
+        (WebKit::FrameLoaderClient::dispatchDidReplaceStateWithinPage):
+        (WebKit::FrameLoaderClient::dispatchDidPopStateWithinPage):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2009-12-03  Pavel Feldman  <pfeldman@dhcp-172-28-174-220.spb.corp.google.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Simplify the settings support in inspector controller.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32076
+
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::InspectorClient::populateSetting):
+        (WebKit::InspectorClient::storeSetting):
+        * WebCoreSupport/InspectorClientGtk.h:
+
 2009-12-03  Xan Lopez  <xlopez@igalia.com>
 
         Reviewed by Gustavo Noronha.

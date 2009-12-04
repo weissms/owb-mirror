@@ -348,6 +348,12 @@ static JSValueRef getSubroleCallback(JSContextRef context, JSObjectRef thisObjec
     return JSValueMakeString(context, role.get());
 }
 
+static JSValueRef getRoleDescriptionCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+{
+    JSRetainPtr<JSStringRef> roleDesc(Adopt, toAXElement(thisObject)->roleDescription());
+    return JSValueMakeString(context, roleDesc.get());
+}
+
 static JSValueRef getTitleCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
     JSRetainPtr<JSStringRef> title(Adopt, toAXElement(thisObject)->title());
@@ -370,6 +376,12 @@ static JSValueRef getLanguageCallback(JSContextRef context, JSObjectRef thisObje
 {
     JSRetainPtr<JSStringRef> language(Adopt, toAXElement(thisObject)->language());
     return JSValueMakeString(context, language.get());
+}
+
+static JSValueRef getOrientationCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+{
+    JSRetainPtr<JSStringRef> orientation(Adopt, toAXElement(thisObject)->orientation());
+    return JSValueMakeString(context, orientation.get());
 }
 
 static JSValueRef getChildrenCountCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
@@ -502,6 +514,7 @@ JSClassRef AccessibilityUIElement::getJSClass()
         { "accessibilityValue", getAccessibilityValueCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "role", getRoleCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "subrole", getSubroleCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "roleDescription", getRoleDescriptionCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "title", getTitleCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "description", getDescriptionCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "language", getLanguageCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -527,6 +540,7 @@ JSClassRef AccessibilityUIElement::getJSClass()
         { "documentEncoding", getDocumentEncodingCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "documentURI", getDocumentURICallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "isValid", getIsValidCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "orientation", getOrientationCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "ariaIsGrabbed", getARIAIsGrabbedCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "ariaDropEffects", getARIADropEffectsCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0, 0 }

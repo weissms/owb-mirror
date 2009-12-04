@@ -62,7 +62,7 @@ namespace WebCore {
 static WTF::RefCountedLeakCounter xmlHttpRequestCounter("XMLHttpRequest");
 #endif
 
-struct XMLHttpRequestStaticData {
+struct XMLHttpRequestStaticData : Noncopyable {
     XMLHttpRequestStaticData();
     String m_proxyHeaderPrefix;
     String m_secHeaderPrefix;

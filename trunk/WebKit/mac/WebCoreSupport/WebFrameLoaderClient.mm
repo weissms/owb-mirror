@@ -538,6 +538,30 @@ void WebFrameLoaderClient::dispatchDidChangeLocationWithinPage()
         CallFrameLoadDelegate(implementations->didChangeLocationWithinPageForFrameFunc, webView, @selector(webView:didChangeLocationWithinPageForFrame:), m_webFrame.get());
 }
 
+void WebFrameLoaderClient::dispatchDidPushStateWithinPage()
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(webView);
+    if (implementations->didPushStateWithinPageForFrameFunc)
+        CallFrameLoadDelegate(implementations->didPushStateWithinPageForFrameFunc, webView, @selector(webView:didPushStateWithinPageForFrame:), m_webFrame.get());
+}
+
+void WebFrameLoaderClient::dispatchDidReplaceStateWithinPage()
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(webView);
+    if (implementations->didReplaceStateWithinPageForFrameFunc)
+        CallFrameLoadDelegate(implementations->didReplaceStateWithinPageForFrameFunc, webView, @selector(webView:didReplaceStateWithinPageForFrame:), m_webFrame.get());
+}
+
+void WebFrameLoaderClient::dispatchDidPopStateWithinPage()
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(webView);
+    if (implementations->didPopStateWithinPageForFrameFunc)
+        CallFrameLoadDelegate(implementations->didPopStateWithinPageForFrameFunc, webView, @selector(webView:didPopStateWithinPageForFrame:), m_webFrame.get());
+}
+
 void WebFrameLoaderClient::dispatchWillClose()
 {
     WebView *webView = getWebView(m_webFrame.get());   
@@ -875,6 +899,18 @@ bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem* item) const
     WebHistoryItem *webItem = kit(item);
     
     return [[view _policyDelegateForwarder] webView:view shouldGoToHistoryItem:webItem];
+}
+
+void WebFrameLoaderClient::dispatchDidAddBackForwardItem(HistoryItem*) const
+{
+}
+
+void WebFrameLoaderClient::dispatchDidRemoveBackForwardItem(HistoryItem*) const
+{
+}
+
+void WebFrameLoaderClient::dispatchDidChangeBackForwardIndex() const
+{
 }
 
 void WebFrameLoaderClient::didDisplayInsecureContent()

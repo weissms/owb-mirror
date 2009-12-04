@@ -304,6 +304,29 @@ void FrameLoaderClientQt::dispatchDidChangeLocationWithinPage()
     m_webFrame->page()->d->updateNavigationActions();
 }
 
+void FrameLoaderClientQt::dispatchDidPushStateWithinPage()
+{
+    if (dumpFrameLoaderCallbacks)
+        printf("%s - dispatchDidPushStateWithinPage\n", qPrintable(drtDescriptionSuitableForTestResult(m_frame)));
+        
+    notImplemented();
+}
+
+void FrameLoaderClientQt::dispatchDidReplaceStateWithinPage()
+{
+    if (dumpFrameLoaderCallbacks)
+        printf("%s - dispatchDidReplaceStateWithinPage\n", qPrintable(drtDescriptionSuitableForTestResult(m_frame)));
+        
+    notImplemented();
+}
+
+void FrameLoaderClientQt::dispatchDidPopStateWithinPage()
+{
+    if (dumpFrameLoaderCallbacks)
+        printf("%s - dispatchDidPopStateWithinPage\n", qPrintable(drtDescriptionSuitableForTestResult(m_frame)));
+        
+    notImplemented();
+}
 
 void FrameLoaderClientQt::dispatchWillClose()
 {
@@ -640,6 +663,18 @@ void FrameLoaderClientQt::updateGlobalHistoryRedirectLinks()
 bool FrameLoaderClientQt::shouldGoToHistoryItem(WebCore::HistoryItem *) const
 {
     return true;
+}
+
+void FrameLoaderClientQt::dispatchDidAddBackForwardItem(WebCore::HistoryItem*) const
+{
+}
+
+void FrameLoaderClientQt::dispatchDidRemoveBackForwardItem(WebCore::HistoryItem*) const
+{
+}
+
+void FrameLoaderClientQt::dispatchDidChangeBackForwardIndex() const
+{
 }
 
 void FrameLoaderClientQt::didDisplayInsecureContent()

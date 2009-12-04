@@ -374,6 +374,12 @@ JSStringRef AccessibilityUIElement::subrole()
     return concatenateAttributeAndValue(@"AXSubrole", role);
 }
 
+JSStringRef AccessibilityUIElement::roleDescription()
+{
+    NSString* role = descriptionOfValue([m_element accessibilityAttributeValue:NSAccessibilityRoleDescriptionAttribute], m_element);
+    return concatenateAttributeAndValue(@"AXRoleDescription", role);
+}
+
 JSStringRef AccessibilityUIElement::title()
 {
     NSString* title = descriptionOfValue([m_element accessibilityAttributeValue:NSAccessibilityTitleAttribute], m_element);
@@ -384,6 +390,12 @@ JSStringRef AccessibilityUIElement::description()
 {
     id description = descriptionOfValue([m_element accessibilityAttributeValue:NSAccessibilityDescriptionAttribute], m_element);
     return concatenateAttributeAndValue(@"AXDescription", description);
+}
+
+JSStringRef AccessibilityUIElement::orientation() const
+{
+    id description = descriptionOfValue([m_element accessibilityAttributeValue:NSAccessibilityOrientationAttribute], m_element);
+    return concatenateAttributeAndValue(@"AXOrientation", description);    
 }
 
 JSStringRef AccessibilityUIElement::stringValue()

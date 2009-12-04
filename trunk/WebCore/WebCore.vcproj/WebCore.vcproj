@@ -8531,6 +8531,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\PopStateEvent.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\PopStateEvent.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\Position.cpp"
 				>
 			</File>

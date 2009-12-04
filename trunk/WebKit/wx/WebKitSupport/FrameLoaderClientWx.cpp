@@ -262,6 +262,20 @@ void FrameLoaderClientWx::dispatchDidChangeLocationWithinPage()
     notImplemented();
 }
 
+void FrameLoaderClientWx::dispatchDidPushStateWithinPage()
+{
+    notImplemented();
+}
+
+void FrameLoaderClientWx::dispatchDidReplaceStateWithinPage()
+{
+    notImplemented();
+}
+
+void FrameLoaderClientWx::dispatchDidPopStateWithinPage()
+{
+    notImplemented();
+}
 
 void FrameLoaderClientWx::dispatchWillClose()
 {
@@ -545,6 +559,18 @@ bool FrameLoaderClientWx::shouldGoToHistoryItem(WebCore::HistoryItem*) const
 {
     notImplemented();
     return true;
+}
+
+void FrameLoaderClientWx::dispatchDidAddBackForwardItem(WebCore::HistoryItem*) const
+{
+}
+
+void FrameLoaderClientWx::dispatchDidRemoveBackForwardItem(WebCore::HistoryItem*) const
+{
+}
+
+void FrameLoaderClientWx::dispatchDidChangeBackForwardIndex() const
+{
 }
 
 void FrameLoaderClientWx::didDisplayInsecureContent()

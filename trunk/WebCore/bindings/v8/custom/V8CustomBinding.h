@@ -173,6 +173,8 @@ namespace WebCore {
 
         static const int kStyleSheetOwnerNodeIndex = kDefaultWrapperInternalFieldCount + 0;
         static const int kStyleSheetInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
+        static const int kNamedNodeMapOwnerNodeIndex = kDefaultWrapperInternalFieldCount + 0;
+        static const int kNamedNodeMapInternalFieldCount = kDefaultWrapperInternalFieldCount + 1;
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         static const int kDOMApplicationCacheCacheIndex = kDefaultWrapperInternalFieldCount + 0;
@@ -415,6 +417,9 @@ namespace WebCore {
         DECLARE_CALLBACK(ElementSetAttributeNS);
         DECLARE_CALLBACK(ElementSetAttributeNodeNS);
 
+        DECLARE_CALLBACK(HistoryPushState);
+        DECLARE_CALLBACK(HistoryReplaceState);
+
         DECLARE_PROPERTY_ACCESSOR_SETTER(LocationProtocol);
         DECLARE_PROPERTY_ACCESSOR_SETTER(LocationHost);
         DECLARE_PROPERTY_ACCESSOR_SETTER(LocationHostname);
@@ -431,7 +436,6 @@ namespace WebCore {
         DECLARE_CALLBACK(LocationReload);
         DECLARE_CALLBACK(LocationToString);
         DECLARE_CALLBACK(LocationValueOf);
-
         DECLARE_CALLBACK(NodeAddEventListener);
         DECLARE_CALLBACK(NodeRemoveEventListener);
         DECLARE_CALLBACK(NodeInsertBefore);

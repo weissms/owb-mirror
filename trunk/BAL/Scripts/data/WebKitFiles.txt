@@ -5,8 +5,6 @@ JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
 WebCore/accessibility/AccessibilityObject.cpp
 WebCore/accessibility/AccessibilityObject.h
-WebCore/accessibility/AccessibilityObject.cpp
-WebCore/accessibility/AccessibilityObject.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
@@ -19,7 +17,6 @@ WebCore/bindings/js/JSInjectedScriptHostCustom.cpp
 WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp
 WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
-WebCore/bindings/js/ScriptObjectQuarantine.h
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp

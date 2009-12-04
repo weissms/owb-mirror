@@ -599,6 +599,21 @@ void FrameLoaderClientImpl::dispatchDidChangeLocationWithinPage()
         webView->client()->didStopLoading();
 }
 
+void FrameLoaderClientImpl::dispatchDidPushStateWithinPage()
+{
+    // FIXME
+}
+
+void FrameLoaderClientImpl::dispatchDidReplaceStateWithinPage()
+{
+    // FIXME
+}
+
+void FrameLoaderClientImpl::dispatchDidPopStateWithinPage()
+{
+    // FIXME
+}
+
 void FrameLoaderClientImpl::dispatchWillClose()
 {
     if (m_webFrame->client())
@@ -1054,6 +1069,18 @@ bool FrameLoaderClientImpl::shouldGoToHistoryItem(HistoryItem*) const
 {
     // FIXME
     return true;
+}
+
+void FrameLoaderClientImpl::dispatchDidAddBackForwardItem(HistoryItem*) const
+{
+}
+
+void FrameLoaderClientImpl::dispatchDidRemoveBackForwardItem(HistoryItem*) const
+{
+}
+
+void FrameLoaderClientImpl::dispatchDidChangeBackForwardIndex() const
+{
 }
 
 void FrameLoaderClientImpl::didDisplayInsecureContent()

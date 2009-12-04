@@ -1,3 +1,152 @@
+2009-12-04  Andras Becsi  <abecsi@inf.u-szeged.hu>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Refactor DRT to not crash on tests which open child windows from javascript.
+        Prevent DRT from showing the main view if these childs get deleted.
+        This fixes https://bugs.webkit.org/show_bug.cgi?id=31591.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::~DumpRenderTree):
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+        (WebCore::DumpRenderTree::open):
+        (WebCore::DumpRenderTree::closeRemainingWindows):
+        (WebCore::DumpRenderTree::createWindow):
+        (WebCore::DumpRenderTree::windowCount):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+
+2009-12-03  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        check-webkit-style should check for camelCase variable names
+        https://bugs.webkit.org/show_bug.cgi?id=32051
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-12-03  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        AX: VO just says "term" on many web sites
+        https://bugs.webkit.org/show_bug.cgi?id=32139
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getRoleDescriptionCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::roleDescription):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::roleDescription):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::roleDescription):
+
+2009-12-03  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Implement WAI-ARIA scrollbar role and related property aria-orientation
+        https://bugs.webkit.org/show_bug.cgi?id=32126
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getOrientationCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::orientation):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::orientation):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::orientation):
+
+2009-12-03  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Minor correction to r51663.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (addQTDirToPATH):
+            GetEnvironmentVariable -> GetEnvironmentVariableW.
+
+2009-12-03  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adam Roben.
+
+        ~96 regression tests fail when using QuickTime 7.6 (they pass with QuickTime 7.3)
+        https://bugs.webkit.org/show_bug.cgi?id=30256
+
+        Add the QuickTime dll directory to the PATH environment variable so
+        inialization can succeed.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (addQTDirToPATH):
+        (initialize):
+
+2009-12-03  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] After revision 32643, sender() is of type QWebPage instead of QWebFrame.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::maybeDump):
+
+2009-12-03  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Update pywebsocket to 0.4.3
+        This version logs friendlier and higher-level messages in WARN level, which is used for LayoutTests.
+        Stack trace is logged now in INFO level.
+        https://bugs.webkit.org/show_bug.cgi?id=32097
+
+        * pywebsocket/mod_pywebsocket/dispatch.py:
+        * pywebsocket/mod_pywebsocket/msgutil.py:
+        * pywebsocket/mod_pywebsocket/standalone.py:
+        * pywebsocket/mod_pywebsocket/util.py:
+        * pywebsocket/setup.py:
+        * pywebsocket/test/test_dispatch.py:
+        * pywebsocket/test/test_util.py:
+
+2009-12-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix JSClassRef leak.
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (AccessibilityController::makeWindowObject):
+        * DumpRenderTree/GCController.cpp:
+        (GCController::makeWindowObject):
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::makeWindowObject):
+
+2009-12-03  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7214236> and http://webkit.org/b/32052 - Implement HTML5 state object history API
+
+        Keep DRT-win building...
+
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+        (FrameLoadDelegate::didPushStateWithinPageForFrame):
+        (FrameLoadDelegate::didReplaceStateWithinPageForFrame):
+        (FrameLoadDelegate::didPopStateWithinPageForFrame):
+
+2009-12-03  Andras Becsi  <abecsi@inf.u-szeged.hu>
+
+        Unreviewed build fix.
+
+        [Qt] ARM-Linux build fix after r51634 removed unused QBoxLayout include which included limits.h on ARM.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+
 2009-12-03  Yaar Schnitman  <yaar@chromium.org>
 
         Reviewed by Dimitri Glazkov.

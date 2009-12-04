@@ -35,9 +35,8 @@
 
 using namespace WebCore;
 
-
 WebInspectorClient::WebInspectorClient(WebView *view)
-:m_webView(view)
+    :m_webView(view)
 {
 }
 
@@ -93,7 +92,7 @@ void WebInspectorClient::setAttachedWindowHeight(unsigned height)
     notImplemented();
 }
 
-void WebInspectorClient::highlight(WebCore::Node* node)
+void WebInspectorClient::highlight(Node* node)
 {
     notImplemented();
 }
@@ -108,17 +107,12 @@ void WebInspectorClient::inspectedURLChanged(const String&)
     notImplemented();
 }
 
-void WebInspectorClient::populateSetting(const WebCore::String& key, WebCore::InspectorController::Setting&)
+void WebInspectorClient::populateSetting(const String& key, String*)
 {
     notImplemented();
 }
 
-void WebInspectorClient::storeSetting(const WebCore::String& key, const WebCore::InspectorController::Setting&)
-{
-    notImplemented();
-}
-
-void WebInspectorClient::removeSetting(const WebCore::String& key)
+void WebInspectorClient::storeSetting(const String& key, const String&)
 {
     notImplemented();
 }

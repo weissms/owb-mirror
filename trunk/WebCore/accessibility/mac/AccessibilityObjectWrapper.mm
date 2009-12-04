@@ -590,6 +590,9 @@ static WebCoreTextMarkerRange* textMarkerRangeFromVisiblePositions(VisiblePositi
     if (m_object->supportsARIAOwns())
         [additional addObject:NSAccessibilityOwnsAttribute];
 
+    if (m_object->isScrollbar())
+        [additional addObject:NSAccessibilityOrientationAttribute];
+    
     if (m_object->supportsARIADragging())
         [additional addObject:NSAccessibilityGrabbedAttribute];
 
@@ -1187,7 +1190,10 @@ static NSString* roleValueToNSString(AccessibilityRole value)
             return @"AXUserInterfaceTooltip";
         case TabPanelRole:
             return @"AXTabPanel";
-
+        case DefinitionListTermRole:
+            return @"AXTerm";
+        case DefinitionListDefinitionRole:
+            return @"AXDefinition";
         // Default doesn't return anything, so roles defined below can be chosen.
         default:
             break;
@@ -1256,6 +1262,10 @@ static NSString* roleValueToNSString(AccessibilityRole value)
                 return AXARIAContentGroupText(@"ARIAUserInterfaceTooltip");
             case TabPanelRole:
                 return AXARIAContentGroupText(@"ARIATabPanel");
+            case DefinitionListTermRole:
+                return AXDefinitionListTermText();
+            case DefinitionListDefinitionRole:
+                return AXDefinitionListDefinitionText();
         }
     }        
     
@@ -1448,7 +1458,7 @@ static NSString* roleValueToNSString(AccessibilityRole value)
             if ([[[self attachmentView] accessibilityAttributeNames] containsObject:NSAccessibilityValueAttribute]) 
                 return [[self attachmentView] accessibilityAttributeValue:NSAccessibilityValueAttribute];
         }
-        if (m_object->isProgressIndicator() || m_object->isSlider())
+        if (m_object->isProgressIndicator() || m_object->isSlider() || m_object->isScrollbar())
             return [NSNumber numberWithFloat:m_object->valueForRange()];
         if (m_object->hasIntValue())
             return [NSNumber numberWithInt:m_object->intValue()];
@@ -1636,14 +1646,18 @@ static NSString* roleValueToNSString(AccessibilityRole value)
     if (m_object->isTreeItem()) {
         if ([attributeName isEqualToString:NSAccessibilityIndexAttribute]) {
             AccessibilityObject* parent = m_object->parentObject();
+            for (; parent && !parent->isTree(); parent = parent->parentObject())
+            { }
+            
             if (!parent)
                 return nil;
             
             // Find the index of this item by iterating the parents.
-            const AccessibilityObject::AccessibilityChildrenVector& children = parent->children();
-            unsigned count = children.size();
-            for (unsigned k = 0; k < count; ++k)
-                if (children[k]->wrapper() == self)
+            AccessibilityObject::AccessibilityChildrenVector rowsCopy;
+            parent->ariaTreeRows(rowsCopy);
+            size_t count = rowsCopy.size();
+            for (size_t k = 0; k < count; ++k)
+                if (rowsCopy[k]->wrapper() == self)
                     return [NSNumber numberWithUnsignedInt:k];
             
             return nil;
@@ -2467,7 +2481,12 @@ static RenderObject* rendererForView(NSView* view)
     m_object->updateBackingStore();
     if (!m_object)
         return NSNotFound;
-
+    
+    // Tree objects return their rows as their children. We can use the original method
+    // here, because we won't gain any speed up.
+    if (m_object->isTree())
+        return [super accessibilityIndexOfChild:child];
+       
     const AccessibilityObject::AccessibilityChildrenVector& children = m_object->children();
        
     if (children.isEmpty())
@@ -2529,6 +2548,9 @@ static RenderObject* rendererForView(NSView* view)
             
             NSUInteger arrayLength = min(childCount - index, maxCount);
             return [children subarrayWithRange:NSMakeRange(index, arrayLength)];
+        } else if (m_object->isTree()) {
+            // Tree objects return their rows as their children. We can use the original method in this case.
+            return [super accessibilityArrayAttributeValues:attribute index:index maxCount:maxCount];
         }
         
         const AccessibilityObject::AccessibilityChildrenVector& children = m_object->children();

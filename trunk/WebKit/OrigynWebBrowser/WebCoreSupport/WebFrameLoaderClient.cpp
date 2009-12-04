@@ -394,6 +394,20 @@ void WebFrameLoaderClient::dispatchDidChangeLocationWithinPage()
     if (frameLoadDelegate)
         frameLoadDelegate->didChangeLocationWithinPageForFrame(m_webFrame);
 }
+void WebFrameLoaderClient::dispatchDidPushStateWithinPage()
+{
+    balNotImplemented();
+}
+
+void WebFrameLoaderClient::dispatchDidReplaceStateWithinPage()
+{
+    balNotImplemented();
+}
+
+void WebFrameLoaderClient::dispatchDidPopStateWithinPage()
+{
+    balNotImplemented();
+}
 
 void WebFrameLoaderClient::dispatchWillClose()
 {
@@ -710,6 +724,22 @@ bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem *item) const
     return item != 0;
 }
 
+void WebFrameLoaderClient::dispatchDidAddBackForwardItem(HistoryItem*) const
+{
+    balNotImplemented();
+}
+
+void WebFrameLoaderClient::dispatchDidRemoveBackForwardItem(HistoryItem*) const
+{
+    balNotImplemented();
+}
+
+void WebFrameLoaderClient::dispatchDidChangeBackForwardIndex() const
+{
+    balNotImplemented();
+}
+
+
 void WebFrameLoaderClient::didDisplayInsecureContent()
 {
 }
@@ -794,7 +824,7 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     item->setTitle(title.utf8().data());
 }
 
-void WebFrameLoaderClient::savePlatformDataToCachedFrame(WebCore::CachedFrame* cachedFrame)
+void WebFrameLoaderClient::savePlatformDataToCachedFrame(CachedFrame* cachedFrame)
 {
     Frame* coreFrame = core(m_webFrame);
     if (!coreFrame)
@@ -1097,7 +1127,7 @@ bool WebFrameLoaderClient::shouldFallBack(const ResourceError& error)
     return error.errorCode() != WebURLErrorCancelled;
 }
 
-WebFramePolicyListener* WebFrameLoaderClient::setUpPolicyListener(WebCore::FramePolicyFunction function)
+WebFramePolicyListener* WebFrameLoaderClient::setUpPolicyListener(FramePolicyFunction function)
 {
     // FIXME: <rdar://5634381> We need to support multiple active policy listeners.
 
@@ -1241,7 +1271,7 @@ PassRefPtr<Widget> WebFrameLoaderClient::createJavaAppletWidget(const IntSize& p
 
 ObjectContentType WebFrameLoaderClient::objectContentType(const KURL& url, const String& mimeType)
 {
-    return WebCore::FrameLoader::defaultObjectContentType(url, mimeType);
+    return FrameLoader::defaultObjectContentType(url, mimeType);
 }
 
 String WebFrameLoaderClient::overrideMediaType() const
@@ -1250,7 +1280,7 @@ String WebFrameLoaderClient::overrideMediaType() const
     return String();
 }
 
-void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(WebCore::DOMWrapperWorld* world)
+void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
 {
     Frame* coreFrame = core(m_webFrame);
     ASSERT(coreFrame);
@@ -1338,7 +1368,7 @@ bool WebFrameLoaderClient::shouldUsePluginDocument(const String& mimeType) const
 }
 
 #if USE(CURL_OPENSSL)
-void WebFrameLoaderClient::didReceiveSSLSecurityExtension(const WebCore::ResourceRequest& request, const char* securityExtension)
+void WebFrameLoaderClient::didReceiveSSLSecurityExtension(const ResourceRequest& request, const char* securityExtension)
 {
     // FIXME: This sanity check is failing because m_webFrame->url() is returning null, so disable it for now.
     //ASSERT(request.url().string() == m_webFrame->url());

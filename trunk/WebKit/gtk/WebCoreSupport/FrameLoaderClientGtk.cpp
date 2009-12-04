@@ -584,6 +584,18 @@ bool FrameLoaderClient::shouldGoToHistoryItem(HistoryItem* item) const
     return item != 0;
 }
 
+void FrameLoaderClient::dispatchDidAddBackForwardItem(HistoryItem*) const
+{
+}
+
+void FrameLoaderClient::dispatchDidRemoveBackForwardItem(HistoryItem*) const
+{
+}
+
+void FrameLoaderClient::dispatchDidChangeBackForwardIndex() const
+{
+}
+
 void FrameLoaderClient::didDisplayInsecureContent()
 {
     notImplemented();
@@ -655,6 +667,21 @@ void FrameLoaderClient::dispatchDidChangeLocationWithinPage()
     WebKitWebView* webView = getViewFromFrame(m_frame);
     if (m_frame == webkit_web_view_get_main_frame(webView))
         g_object_notify(G_OBJECT(webView), "uri");
+}
+
+void FrameLoaderClient::dispatchDidPushStateWithinPage()
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::dispatchDidReplaceStateWithinPage()
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::dispatchDidPopStateWithinPage()
+{
+    notImplemented();
 }
 
 void FrameLoaderClient::dispatchWillClose()

@@ -1,3 +1,43 @@
+2009-12-04  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Brady Eidson.
+
+        [Android] The FrameLoaderClient is unaware of BackForwardList changes.
+        https://bugs.webkit.org/show_bug.cgi?id=31914
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidAddBackForwardItem): Add an empty implementation. Method added to FrameLoaderClient by Android (see bug).
+        (WebFrameLoaderClient::dispatchDidRemoveBackForwardItem): ditto.
+        (WebFrameLoaderClient::dispatchDidChangeBackForwardIndex): ditto.
+        * WebCoreSupport/WebFrameLoaderClient.h:
+
+2009-12-03  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7214236> and http://webkit.org/b/32052 - Implement HTML5 state object history API
+
+        * Interfaces/IWebFrameLoadDelegatePrivate2.idl:
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidPushStateWithinPage):
+        (WebFrameLoaderClient::dispatchDidReplaceStateWithinPage):
+        (WebFrameLoaderClient::dispatchDidPopStateWithinPage):
+        * WebCoreSupport/WebFrameLoaderClient.h:
+
+2009-12-03  Pavel Feldman  <pfeldman@dhcp-172-28-174-220.spb.corp.google.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Simplify the settings support in inspector controller.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32076
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::attachWindow):
+        (WebInspectorClient::detachWindow):
+        (WebInspectorClient::showWindowWithoutNotifications):
+        * WebCoreSupport/WebInspectorClient.h:
+
 2009-12-03  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Adam Roben.

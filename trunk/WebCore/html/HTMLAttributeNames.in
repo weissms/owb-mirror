@@ -27,6 +27,7 @@ aria-labeledby
 aria-labelledby
 aria-level
 aria-multiselectable
+aria-orientation
 aria-owns
 aria-pressed
 aria-readonly
@@ -182,6 +183,7 @@ onpaste
 onpause
 onplay
 onplaying
+onpopstate
 onprogress
 onratechange
 onreset

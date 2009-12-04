@@ -80,6 +80,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginArrayCustom.cpp
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginElementFunctions.cpp
+    bindings/js/JSPopStateEventCustom.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSStyleSheetCustom.cpp
     bindings/js/JSStyleSheetListCustom.cpp

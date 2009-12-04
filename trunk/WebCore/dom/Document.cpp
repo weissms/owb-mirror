@@ -100,6 +100,7 @@
 #include "PageGroup.h"
 #include "PageTransitionEvent.h"
 #include "PlatformKeyboardEvent.h"
+#include "PopStateEvent.h"
 #include "ProcessingInstruction.h"
 #include "ProgressEvent.h"
 #include "RegisteredEventListener.h"
@@ -373,7 +374,6 @@ Document::Document(Frame* frame, bool isXHTML)
     m_ignoreAutofocus = false;
 
     m_frame = frame;
-    m_renderArena = 0;
 
     m_axObjectCache = 0;
     
@@ -381,7 +381,6 @@ Document::Document(Frame* frame, bool isXHTML)
 
     visuallyOrdered = false;
     m_bParsing = false;
-    m_tokenizer = 0;
     m_wellFormed = false;
 
     setParseMode(Strict);
@@ -452,8 +451,7 @@ void Document::removedLastRef()
         deleteAllValues(m_markers);
         m_markers.clear();
 
-        delete m_tokenizer;
-        m_tokenizer = 0;
+        m_tokenizer.clear();
 
         m_cssCanvasElements.clear();
 
@@ -487,18 +485,15 @@ Document::~Document()
     forgetAllDOMNodesForDocument(this);
 #endif
 
-    delete m_tokenizer;
+    m_tokenizer.clear();
     m_document = 0;
     delete m_styleSelector;
-    delete m_docLoader;
-    
-    if (m_renderArena) {
-        delete m_renderArena;
-        m_renderArena = 0;
-    }
+    m_docLoader.clear();
+
+    m_renderArena.clear();
 
 #if ENABLE(XBL)
-    delete m_bindingManager;
+    m_bindingManager.clear();
 #endif
 
     deleteAllValues(m_markers);
@@ -1411,7 +1406,7 @@ void Document::attach()
         m_renderArena = new RenderArena();
     
     // Create the rendering tree
-    setRenderer(new (m_renderArena) RenderView(this, view()));
+    setRenderer(new (m_renderArena.get()) RenderView(this, view()));
 #if USE(ACCELERATED_COMPOSITING)
     renderView()->didMoveOnscreen();
 #endif
@@ -1476,17 +1471,19 @@ void Document::detach()
     if (render)
         render->destroy();
     
+    HashSet<RefPtr<HistoryItem> > associatedHistoryItems;
+    associatedHistoryItems.swap(m_associatedHistoryItems);
+    HashSet<RefPtr<HistoryItem> >::iterator end = associatedHistoryItems.end();
+    for (HashSet<RefPtr<HistoryItem> >::iterator i = associatedHistoryItems.begin(); i != end; ++i)
+        (*i)->documentDetached(this);
+    
     // This is required, as our Frame might delete itself as soon as it detaches
     // us. However, this violates Node::detach() symantics, as it's never
     // possible to re-attach. Eventually Document::detach() should be renamed,
     // or this setting of the frame to 0 could be made explicit in each of the
     // callers of Document::detach().
     m_frame = 0;
-    
-    if (m_renderArena) {
-        delete m_renderArena;
-        m_renderArena = 0;
-    }
+    m_renderArena.clear();
 }
 
 void Document::removeAllEventListeners()
@@ -1601,8 +1598,7 @@ void Document::cancelParsing()
         // the onload handler when closing as a side effect of a cancel-style
         // change, such as opening a new document or closing the window while
         // still parsing
-        delete m_tokenizer;
-        m_tokenizer = 0;
+        m_tokenizer.clear();
         close();
     }
 }
@@ -1611,8 +1607,7 @@ void Document::implicitOpen()
 {
     cancelParsing();
 
-    delete m_tokenizer;
-    m_tokenizer = 0;
+    m_tokenizer.clear();
 
     removeChildren();
 
@@ -1709,8 +1704,7 @@ void Document::implicitClose()
 
     // We have to clear the tokenizer, in case someone document.write()s from the
     // onLoad event handler, as in Radar 3206524.
-    delete m_tokenizer;
-    m_tokenizer = 0;
+    m_tokenizer.clear();
 
     // Parser should have picked up all preloads by now
     m_docLoader->clearPreloads();
@@ -1747,6 +1741,9 @@ void Document::implicitClose()
     ImageLoader::dispatchPendingEvents();
     dispatchWindowLoadEvent();
     dispatchWindowEvent(PageTransitionEvent::create(eventNames().pageshowEvent, false), this);
+    if (m_pendingStateObject)
+        dispatchWindowEvent(PopStateEvent::create(m_pendingStateObject.release()));
+    
     if (f)
         f->loader()->handledOnloadEvents();
 #ifdef INSTRUMENT_LAYOUT_SCHEDULING
@@ -4347,6 +4344,40 @@ void Document::setSecurityOrigin(SecurityOrigin* securityOrigin)
     // FIXME: Find a better place to enable DNS prefetch, which is a loader concept,
     // not applicable to arbitrary documents.
     initDNSPrefetch();
+}
+
+void Document::updateURLForPushOrReplaceState(const KURL& url)
+{
+    Frame* f = frame();
+    if (!f)
+        return;
+
+    setURL(url);
+    f->loader()->documentLoader()->replaceRequestURLForSameDocumentNavigation(url);
+}
+
+void Document::statePopped(SerializedScriptValue* stateObject)
+{
+    Frame* f = frame();
+    if (!f)
+        return;
+    
+    if (f->loader()->isComplete())
+        dispatchWindowEvent(PopStateEvent::create(stateObject));
+    else
+        m_pendingStateObject = stateObject;
+}
+
+void Document::registerHistoryItem(HistoryItem* item)
+{
+    ASSERT(!m_associatedHistoryItems.contains(item));
+    m_associatedHistoryItems.add(item);
+}
+
+void Document::unregisterHistoryItem(HistoryItem* item)
+{
+    ASSERT(m_associatedHistoryItems.contains(item) || m_associatedHistoryItems.isEmpty());
+    m_associatedHistoryItems.remove(item);
 }
 
 void Document::updateSandboxFlags()
