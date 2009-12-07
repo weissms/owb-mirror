@@ -77,6 +77,7 @@ public:
     WebCore::File* outputChannel;
     DownloadClient* downloadClient;
     RefPtr<WebCore::ResourceHandle> resourceHandle;
+    WebCore::ResourceRequest* resourceRequest;
 };
 
 #endif

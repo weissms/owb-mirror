@@ -123,9 +123,16 @@
 #if ENABLE(DAE_METADATA)
 #include "SearchManagerElement.h"
 #endif
+
 #if ENABLE(DAE_PVR)
 #include "ProgrammeJSConstantHolder.h"
 #include "RecordingSchedulerElement.h"
+#endif
+
+#if ENABLE(DAE_DOWNLOAD)
+#include "WebDownloadManagerClient.h"
+#include "DownloadManagerElement.h"
+#include "DownloadTriggerElement.h"
 #endif
 
 using namespace WebCore;
@@ -938,6 +945,17 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
             ASSERT(element->hasTagName(objectTag));
             HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
             return adoptRef(static_cast<Widget*>(new RecordingSchedulerElement(objectElement)));
+        }
+#endif
+#if ENABLE(DAE_DOWNLOAD)
+        else if (mimeType == DownloadManagerElement::MIMEType) {
+            ASSERT(element->hasTagName(objectTag));
+            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
+            return adoptRef(static_cast<Widget*>(new DownloadManagerElement(objectElement, WebDownloadManagerClient::getInstance())));
+        } else if (mimeType == DownloadTriggerElement::MIMEType) {
+            ASSERT(element->hasTagName(objectTag));
+            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
+            return adoptRef(static_cast<Widget*>(new DownloadTriggerElement(objectElement, WebDownloadManagerClient::getInstance())));
         }
 #endif
     }

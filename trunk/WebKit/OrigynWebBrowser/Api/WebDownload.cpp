@@ -219,13 +219,15 @@ void WebDownload::init(ResourceHandle* handle, const ResourceRequest* request, c
     m_request = WebMutableURLRequest::createInstance(*request);
     m_response = WebURLResponse::createInstance(*response);
     m_priv->resourceHandle = handle;
+    m_priv->resourceRequest = NULL;
 }
 
 void WebDownload::init(const KURL& url, TransferSharedPtr<WebDownloadDelegate> delegate)
 {
     m_delegate = delegate;
 
-    m_request = WebMutableURLRequest::createInstance(ResourceRequest(url));
+    m_priv->resourceRequest = new ResourceRequest(url);
+    m_request = WebMutableURLRequest::createInstance(*m_priv->resourceRequest);
 
     m_priv->downloadClient = new DownloadClient(this);
     m_priv->currentSize = 0;
@@ -247,6 +249,9 @@ WebDownload::~WebDownload()
         m_priv->resourceHandle.release();
         m_priv->resourceHandle = NULL;
     }
+    
+    if (m_priv->resourceRequest)
+        delete m_priv->resourceRequest;
 
     delete m_priv->downloadClient;
 

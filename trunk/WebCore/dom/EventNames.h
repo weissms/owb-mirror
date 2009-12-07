@@ -77,6 +77,13 @@ namespace WebCore {
 #define DAE_VIDEOBROADCAST_EVENT_NAMES(macro)
 #endif
 
+#if ENABLE(DAE_DOWNLOAD)
+#define DAE_DOWNLOAD_EVENT_NAMES(macro) \
+    macro(downloadStatusChange)
+#else
+#define DAE_DOWNLOAD_EVENT_NAMES(macro)
+#endif
+
 #if ENABLE(DAE_PVR)
 #define DAE_PVR_EVENT_NAMES(macro) \
     macro(recordingChange)
@@ -209,7 +216,8 @@ namespace WebCore {
     DAE_SYSTEM_EVENT_NAMES(macro) \
     DAE_VIDEOBROADCAST_EVENT_NAMES(macro) \
     DAE_VIDEOBROADCAST_0_8_EVENT_NAMES(macro) \
-    DAE_PVR_EVENT_NAMES(macro)
+    DAE_PVR_EVENT_NAMES(macro) \
+    DAE_DOWNLOAD_EVENT_NAMES(macro)
 // end of DOM_EVENT_NAMES_FOR_EACH
 
     class EventNames : public Noncopyable {

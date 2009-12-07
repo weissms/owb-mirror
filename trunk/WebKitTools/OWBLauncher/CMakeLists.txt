@@ -23,6 +23,7 @@ link_directories(
     ${GRAPHICS_LIBRARY_DIRS}
 )
 
+include(AddDAECompilerFlags OPTIONAL)
 include(AddJSAddOnsCompilerFlags OPTIONAL)
 include(AddWidgetEngineCompilerFlags OPTIONAL)
 

@@ -35,6 +35,10 @@ if(ENABLE_DAE)
         )
     endif(ENABLE_DAE_APPLICATION)
 
+    if(ENABLE_DAE_DOWNLOAD)
+        aux_source_directory(DAE/Download WEBKIT_SRC)
+    endif(ENABLE_DAE_DOWNLOAD)
+
 endif(ENABLE_DAE)
 
 aux_source_directory(Api WEBKIT_SRC)
