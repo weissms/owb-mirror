@@ -20,9 +20,21 @@ if(ENABLE_DAE)
         ${CMAKE_BINARY_DIR}/generated_sources/WebKit/VKValuesJavaScript.cpp
     )
     aux_source_directory(Api/DAE WEBKIT_SRC)
-    if(ENABLE_DAE_TUNER)
+
+    if(ENABLE_DAE_TUNER AND ENABLE_DAE_APPLICATION)
         aux_source_directory(DAE/Video WEBKIT_SRC)
-    endif(ENABLE_DAE_TUNER)
+    endif(ENABLE_DAE_TUNER AND ENABLE_DAE_APPLICATION)
+
+    if(ENABLE_DAE_APPLICATION)
+        aux_source_directory(WebCoreSupport/DAE WEBKIT_SRC)
+    else(ENABLE_DAE_APPLICATION)
+        # FIXME: Temporary fix to compile.
+        list(REMOVE_ITEM WEBKIT_SRC
+            Api/DAE/WebEventSender.cpp 
+            Api/DAE/WebEventSenderPrivate.cpp 
+        )
+    endif(ENABLE_DAE_APPLICATION)
+
 endif(ENABLE_DAE)
 
 aux_source_directory(Api WEBKIT_SRC)

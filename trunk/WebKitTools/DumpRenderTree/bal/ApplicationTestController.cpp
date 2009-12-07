@@ -30,7 +30,6 @@
 
 #include "DumpRenderTree.h"
 #include "WebConfigLoading.h"
-#include "WebStringCollection.h"
 #include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSRetainPtr.h>
 
@@ -96,16 +95,17 @@ static JSValueRef fillChannelConfigurationFromFileCallBack(JSContextRef context,
 
 static JSValueRef setPermissionsForMainApplication(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
+#if ENABLE(DAE_APPLICATION)
     if (argumentCount < 1)
         return JSValueMakeUndefined(context);
 
     JSRetainPtr<JSStringRef> permissions(Adopt, JSValueToStringCopy(context, arguments[0], exception));
     //ASSERT(!*exception);
 
-    WebApplication* mainApplication = getWebView()->webApplication();
     // Clear permissions.
-    mainApplication->permissions()->clear();
-    mainApplication->setPermissions(JSStringCopyUTF8CString(permissions.get()));
+    getWebView()->setPermissions(0);
+    getWebView()->setPermissions(JSStringCopyUTF8CString(permissions.get()));
+#endif
 
     return JSValueMakeUndefined(context);
 }

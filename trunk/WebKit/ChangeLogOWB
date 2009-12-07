@@ -1,3 +1,72 @@
+2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Fully balify the Application.
+
+        * OrigynWebBrowser/Api/WebKit.h: Updated #if guard and removed some
+        headers that are not in the API anymore.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        Updated the includes.
+
+        (WebView::WebView): Updated #if guard and name.
+        (WebView::createInstance): Tweaked the method. Also added a new
+        overloaded version (that replace WebApplication::createApplication).
+
+        (WebView::shouldDispatchEvent): Used to know whether an event is
+        supposed to be dispatched.
+
+        (WebView::onKeyDown):
+        (WebView::onKeyUp):
+        (WebView::onMouseMotion):
+        (WebView::onMouseButtonDown):
+        (WebView::onMouseButtonUp):
+        (WebView::onScroll):
+        Inline DAE behaviour in those methods.
+
+        (WebView::onResize): Return a boolean now (needed by DAE).
+
+        (WebView::setWindowRect):
+        (WebView::setPermissions):
+        (WebView::show):
+        (WebView::hide):
+        (WebView::childAt):
+        (WebView::shouldCallDefaultHandlerForVKKey):
+        Added those methods. Needed by the event dispatchal system.
+
+        (WebView::mainFrameURL):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/DAE: Added.
+        * OrigynWebBrowser/WebCoreSupport/DAE/WebApplicationNotificationClient.cpp: Added.
+        (WebApplicationNotificationClient::WebApplicationNotificationClient):
+        (WebApplicationNotificationClient::~WebApplicationNotificationClient):
+        (WebApplicationNotificationClient::didCreateApplication):
+        (WebApplicationNotificationClient::didDeleteApplication):
+        (WebApplicationNotificationClient::didShowApplication):
+        (WebApplicationNotificationClient::didHideApplication):
+        (WebApplicationNotificationClient::didActivateApplication):
+        (WebApplicationNotificationClient::didDeactivateApplication):
+        (WebApplicationNotificationClient::willDestroyApplication):
+        (WebApplicationNotificationClient::isPrimaryReceiver):
+        (WebApplicationNotificationClient::setPrimaryReceiver):
+        (WebApplicationNotificationClient::dispatchSystemEvent):
+        * OrigynWebBrowser/WebCoreSupport/DAE/WebApplicationNotificationClient.h: Added.
+        Added this new client.
+
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::setWindowRect):
+        (WebChromeClient::windowRect):
+        Updated #if guard.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidHandleOnloadEvents):
+        (WebFrameLoaderClient::dispatchWillClose):
+        (WebFrameLoaderClient::createPlugin):
+        (WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld):
+        (WebFrameLoaderClient::shouldUsePluginDocument):
+        (WebFrameLoaderClient::didReceiveSSLSecurityExtension):
+        Updated #if guard.
+
 2009-11-30  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

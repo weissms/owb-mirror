@@ -1,3 +1,25 @@
+2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Fully balify the Application.
+
+        * DumpRenderTree/bal/ApplicationTestController.cpp:
+        (setPermissionsForMainApplication): Clear the permissions by setting
+        them to 0 and then set them to the right value.
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (getWebView): Removed conditional around getWebView.
+        (FrameLoadDelegate::didFinishLoad): Updated.
+        (dumpFramesAsText): Use the new API.
+        (dump): Removed #if guard.
+        (runTest): Use the new constructor.
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        * DumpRenderTree/bal/SDL/EventSenderSDL.cpp:
+        (EventSenderController::dispatchMouseMotion):
+        (EventSenderController::dispatchMouseButton):
+        (EventSenderController::dispatchKeyboardEvent):
+        * OWBLauncher/CMakeLists.txt:
+        Updated #if guard in the 3 previous files.
+
+
 2009-11-09  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

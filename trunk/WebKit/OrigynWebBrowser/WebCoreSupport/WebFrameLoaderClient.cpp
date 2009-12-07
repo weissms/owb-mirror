@@ -107,10 +107,10 @@
 #endif
 
 #if ENABLE(DAE)
+#include "Application.h"
 #include "ApplicationManager.h"
 #include "ApplicationManagerElement.h"
 #include "Configuration.h"
-#include "WebApplication.h"
 #endif
 
 #if ENABLE(DAE_TUNER)
@@ -358,12 +358,12 @@ void WebFrameLoaderClient::dispatchDidHandleOnloadEvents()
     if (frameLoadDelegate)
         frameLoadDelegate->didHandleOnloadEventsForFrame(m_webFrame);
 
-#if ENABLE(DAE)
-    WebApplication* app = m_webFrame->webView()->webApplication();
+#if ENABLE(DAE_APPLICATION)
+    Application* app = m_webFrame->webView()->application();
 
     // FIXME: Not conformant to spec.: event gets dispatched *after* the document onload event
     if (app)
-        app->dispatchApplicationEvent(ApplicationLoadedEvent);
+        app->dispatchApplicationEvent(eventNames().ApplicationLoadedEvent);
 #endif
 }
 
@@ -415,11 +415,11 @@ void WebFrameLoaderClient::dispatchWillClose()
     if (frameLoadDelegate)
         frameLoadDelegate->willCloseFrame(m_webFrame);
 
-#if ENABLE(DAE)
-    WebApplication* app = m_webFrame->webView()->webApplication();
+#if ENABLE(DAE_APPLICATION)
+    Application* app = m_webFrame->webView()->application();
 
     if (app)
-        app->dispatchApplicationEvent(ApplicationUnloadedEvent);
+        app->dispatchApplicationEvent(eventNames().ApplicationUnloadedEvent);
 #endif
 
 }
@@ -909,16 +909,16 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
     }
 #endif
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
     // Even if we have returned false in shouldUsePluginDocument, we may be called as a fallback so avoid matching them now.
-    if (WebApplication* webApplication = m_webFrame->webView()->webApplication()) {
+    if (Application* application = m_webFrame->webView()->application()) {
         // FIXME: This check should be case-sensitive but WebCore lower-cases the MIME Type.
         if (mimeType == "application/oipfapplicationmanager") {
             // We have encountered an iopfapplicationmanager so we have an OIPF application.
-            webApplication->setIsOIPFApplication();
+            application->setIsOIPFApplication();
             return adoptRef(static_cast<Widget*>(new ApplicationManagerElement()));
         } else if (mimeType == "application/oipfconfiguration")
-            return adoptRef(static_cast<Widget*>(new Configuration(webApplication->internalApplication())));
+            return adoptRef(static_cast<Widget*>(new Configuration(application)));
 #if ENABLE(DAE_TUNER)
         else if (mimeType == "video/broadcast") {
             ASSERT(element->hasTagName(objectTag));
@@ -1295,7 +1295,7 @@ void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* 
         webBindingJSDelegate->registerBinding(m_webFrame);
 #endif
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
     ApplicationManager* manager = ApplicationManager::getApplicationManager();
     manager->setDocumentOnCurrentApplication(coreFrame->document());
     m_webFrame->addVKToJSWindowObject();
@@ -1358,10 +1358,9 @@ void WebFrameLoaderClient::makeRepresentation(DocumentLoader*)
 bool WebFrameLoaderClient::shouldUsePluginDocument(const String& mimeType) const
 {
 #if ENABLE(DAE)
-    if (m_webFrame->webView()->webApplication() && (mimeType == "application/oipfapplicationmanager"
-                                                || mimeType == "video/mpeg" || mimeType == "video/mpeg4" || mimeType == "video/mp4"
-                                                || mimeType == "video/broadcast"
-                                                || mimeType == "application/oipfconfiguration"))
+    if (mimeType == "application/oipfapplicationmanager" || mimeType == "video/mpeg" 
+        || mimeType == "video/mpeg4" || mimeType == "video/mp4" || mimeType == "video/broadcast"
+        || mimeType == "application/oipfconfiguration")
         return true;
 #endif
     return false;
@@ -1373,8 +1372,8 @@ void WebFrameLoaderClient::didReceiveSSLSecurityExtension(const ResourceRequest&
     // FIXME: This sanity check is failing because m_webFrame->url() is returning null, so disable it for now.
     //ASSERT(request.url().string() == m_webFrame->url());
     UNUSED_PARAM(request); // For release build.
-#if ENABLE(DAE)
-    WebApplication* application = m_webFrame->webView()->webApplication();
+#if ENABLE(DAE_APPLICATION)
+    Application* application = m_webFrame->webView()->application();
     if (application)
         application->setPermissions(securityExtension);
 #endif

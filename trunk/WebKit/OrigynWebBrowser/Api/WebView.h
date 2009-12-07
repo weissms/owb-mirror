@@ -39,6 +39,7 @@
  * - $Date$
  */
 
+#include "SharedObject.h"
 #include "SharedPtr.h"
 #include "TransferSharedPtr.h"
 #include "WebKitTypes.h"
@@ -71,16 +72,18 @@ class WebView;
 class WebViewObserver;
 class WebWidgetEngineDelegate;
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
 class WebApplication;
 #endif
 
 namespace WebCore {
+    class Application;
     class FrameView;
-    class IntRect;
     class Image;
     class IntPoint;
+    class IntRect;
     class KeyboardEvent;
+    class KURL;
     class Page;
     class ResourceRequest;
 }
@@ -129,7 +132,7 @@ enum ScrollDirection {
 
 class MouseEventPrivate;
 
-class WEBKIT_OWB_API WebView {
+class WEBKIT_OWB_API WebView : public SharedObject<WebView> {
 public:
 
     /**
@@ -138,13 +141,22 @@ public:
     static WebView* createInstance();
 
     /**
+     * createInstance
+     * @brief create a new WebView's instance.
+     * 
+     * If the url passed to the method is not well formed, this method returns 0.
+     * @warning This is the only way to create a WebView when DAE_APPLICATION is enabled!
+     */
+    static WebView* createInstance(const BalRectangle&, const char* /*url*/, TransferSharedPtr<WebFrameLoadDelegate>, TransferSharedPtr<JSActionDelegate>);
+
+    /**
      * WebView destructor
      */
     virtual ~WebView();
 protected:
 
     /**
-     * WebView default constructor
+     * WebView constructor
      */
     WebView();
 
@@ -190,7 +202,8 @@ public:
         @param frame The frame used to create the view.
         @param frameName The name to use for the top level frame. May be nil.
         @param groupName The name of the webView set to which this webView will be added.  May be nil.
-        @result Returns an initialized WebView.
+        @warning When DAE_APPLICATION is ON, you should use \a createInstance(const BalRectangle&, const char*, TransferSharedPtr<WebFrameLoadDelegate>, TransferSharedPtr<JSActionDelegate>)
+        which will call this automatically. Not doing so, will result in bad behaviour.
      */
     virtual void initWithFrame(BalRectangle& frame, const char* frameName, const char* groupName);
 
@@ -1186,8 +1199,9 @@ public:
 
     /**
      *  give on resize event to the webview
+     *  @return whether the resize was done
      */
-    void onResize(BalResizeEvent);
+    bool onResize(BalResizeEvent);
 
     /**
      *  give on quit  event to the webview
@@ -1388,9 +1402,52 @@ public:
 
     void fireWebKitEvents();
 
-#if ENABLE(DAE)
-    WebApplication* webApplication() const;
-    void setWebApplication(WebApplication *);
+#if ENABLE(DAE_APPLICATION)
+    /**
+     * application
+     * @brief returns the WebCore underlying application.
+     * @internal
+     */
+    WebCore::Application* application() const { return m_application; }
+
+    /**
+     * setWindowRect
+     * @brief set the WebView's window rectangle.
+     * 
+     * This will make the webview resize on demand.
+     */
+    void setWindowRect(const BalRectangle&);
+
+    /**
+     * setPermissions
+     * Set the permission of the associated application
+     * @param permissions The space separated list of permissions. Permissions are cleared prior to being parsed so
+     * if the passed in string is 0, you will just clear the permissions.
+     * See the OIPF specification for the long list of permission.
+     *
+     */
+    void setPermissions(const char* /*permissions*/);
+
+    /**
+     * show
+     * @brief show the webview
+     */
+    void show();
+
+    /**
+     * hide
+     * @brief hide the webview
+     */
+    void hide();
+
+    /**
+     * childAt
+     * @brief returns the children at the position i. If i is greater that the children number, returns 0.
+     * @internal
+     * @deprecated
+     */
+    WebView* childAt(size_t i);
+
 #endif
 
     void resize(BalRectangle);
@@ -1450,6 +1507,13 @@ private:
      */
     bool active();
 
+#if ENABLE(DAE_APPLICATION)
+    /**
+     * setApplication
+     * @internal
+     */
+    void setApplication(WebCore::Application* application) { m_application =  application; }
+#endif
 
     enum WebUserScriptInjectionTime {
         WebUserScriptInjectAtDocumentStart,
@@ -1532,11 +1596,14 @@ private:
     bool removeAllUserContentFromGroup(const char* groupName);
 
 protected:
-    friend class WebViewPrivate;
+    friend class WebApplicationNotificationClient;
     friend class WebChromeClient;
     friend class WebEditorClient;
+    friend class WebEventSender;
     friend class WebFrameLoaderClient;
     friend class WebInspector;
+    friend class WebViewPrivate;
+
     friend WebCore::Page* core(WebView*);
 
     /**
@@ -1636,7 +1703,84 @@ protected:
     bool handleEditingKeyboardEvent(WebCore::KeyboardEvent*);
 
     /**
-     * get page 
+     * shouldDispatchEvent
+     * used by DAE to avoid event dispatching (for example, to abide by the keyset property).
+     * @internal
+     */
+    bool shouldDispatchEvent(int /*virtualKey*/) const;
+
+#if ENABLE(CEHTML)
+    /**
+     * shouldCallDefaultHandlerForVKKey
+     * @brief used to abide by the CE-HTML specification regarding event dispatching depending on the focused node (mostly when it is an input node).
+     * @result a boolean stating whether the event associated with the virtual key should call the default handler.
+     * @internal
+     */
+    bool shouldCallDefaultHandlerForVKKey(int /*virtualKey*/);
+
+#endif
+
+#if ENABLE(DAE_APPLICATION)
+    // Those conditional methods are implemented per platform.
+    // FIXME: Is it really needed to have such implementation as we can convert native types to WebCore's?
+
+
+    /**
+     * eventMotionInRect
+     * @brief returns whether an event motion falls into the rectangle.
+     * @param BalEventMotion the event to test
+     * @param BalRectangle the rectangle where the event would fall
+     * @result true if the event is in the rectangle (including the borders), false otherwise.
+     */
+    bool eventMotionInRect(BalEventMotion ev, const BalRectangle& r);
+
+    /*
+     * eventButtonInRect
+     * @brief returns whether an event motion falls into the rectangle.
+     * @param BalEventButton the event to test
+     * @param BalRectangle the rectangle where the event would fall
+     * @result true if the event is in the rectangle (including the borders), false otherwise.
+     */
+    bool eventButtonInRect(BalEventButton ev, const BalRectangle& r);
+
+    /*
+     * eventScrollInRect
+     * @brief returns whether an event motion falls into the rectangle.
+     * @param BalEventScroll the event to test
+     * @param BalRectangle the rectangle where the event would fall
+     * @result true if the event is in the rectangle (including the borders), false otherwise.
+     */
+    bool eventScrollInRect(BalEventScroll ev, const BalRectangle& r);
+
+    /**
+     * eventMotionToRelativeCoords
+     * @brief translate the event to the coordinates tied to the point
+     * @param BalEventMotion the event to transform
+     * @param BalPoint the reference point for the translation
+     */
+    void eventMotionToRelativeCoords(BalEventMotion& ev, const BalPoint& p);
+
+    /*
+     * eventButtonToRelativeCoords
+     * @brief translate the event to the coordinates tied to the point
+     * @param BalEventButton the event to transform
+     * @param BalPoint the reference point for the translation
+     */
+    void eventButtonToRelativeCoords(BalEventButton& ev, const BalPoint& p);
+
+    /*
+     * eventScrollToRelativeCoords
+     * @brief translate the event to the coordinates tied to the point
+     * @param BalEventScroll the event to transform
+     * @param BalPoint the reference point for the translation
+     */
+    void eventScrollToRelativeCoords(BalEventScroll& ev, const BalPoint& p);
+#endif // ENABLE(DAE)
+
+    /**
+     * page
+     * Return the underlying WebCore::Page 
+     * @internal
      */
 #if PLATFORM(AMIGAOS4)
 public:
@@ -1774,8 +1918,12 @@ protected:
     WebViewPrivate* d;
     WebViewObserver* m_webViewObserver;
 
-#if ENABLE(DAE)
-    WebApplication* m_webApplication;
+#if ENABLE(DAE_APPLICATION)
+    WebCore::Application* m_application;
+#endif
+
+#if ENABLE(CEHTML)
+    bool m_previousDownEventCalledDefaultHandler;
 #endif
 
     WebInspector *m_webInspector;

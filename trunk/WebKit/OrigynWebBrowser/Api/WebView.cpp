@@ -29,6 +29,7 @@
 #include "config.h"
 #include "WebView.h"
 
+#include "BALBase.h"
 #include "PtrAndFlags.h"
 #include "DefaultPolicyDelegate.h"
 #include "DOMCoreClasses.h"
@@ -140,6 +141,20 @@
 #include <intuition/gadgetclass.h>
 #else
 #include <sys/sysinfo.h>
+#endif
+
+#if ENABLE(DAE_APPLICATION)
+#include "Application.h"
+#include "ApplicationPrivateData.h"
+#include "Keyset.h"
+#include "Page.h"
+#include "WebApplicationNotificationClient.h"
+#include "WebEventSender.h"
+#endif
+
+#if ENABLE(CEHTML)
+#include "HTMLInputElement.h"
+#include "HTMLNames.h"
 #endif
 
 using namespace WebCore;
@@ -305,8 +320,11 @@ WebView::WebView()
     , m_topLevelParent(0)
     , d(new WebViewPrivate(this))
     , m_webViewObserver(new WebViewObserver(this))
-#if ENABLE(DAE)
-    , m_webApplication(0)
+#if ENABLE(DAE_APPLICATION)
+    , m_application(0)
+#endif
+#if ENABLE(CEHTML)
+    , m_previousDownEventCalledDefaultHandler(false)
 #endif
 #if ENABLE(INSPECTOR)
     , m_webInspector(0)
@@ -335,7 +353,6 @@ WebView::WebView()
 #endif
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
-
 }
 
 WebView::~WebView()
@@ -369,8 +386,23 @@ WebView::~WebView()
 
 WebView* WebView::createInstance()
 {
-    WebView* instance = new WebView();
-    return instance;
+    return new WebView();
+}
+
+WebView* WebView::createInstance(const BalRectangle& rectangle, const char* url, TransferSharedPtr<WebFrameLoadDelegate> frameLoadDelegate, TransferSharedPtr<JSActionDelegate> jsActionDelegate)
+{
+    WebView* view = new WebView();
+#if ENABLE(DAE_APPLICATION)
+    RefPtr<Application> application = Application::create(IntRect(rectangle), KURL(KURL(), url), Application::BroadcastIndependentRootApp, view->page(), 0, new WebApplicationNotificationClient());
+    view->setApplication(application.release().releaseRef());
+    view->setViewWindow(WebEventSender::getEventSender()->webWindow());
+    view->setWebFrameLoadDelegate(frameLoadDelegate);
+    view->setJSActionDelegate(jsActionDelegate);
+    view->setTransparent(true);
+#endif
+    view->initWithFrame(const_cast<BalRectangle&>(rectangle), (const char*)0, (const char*)0);
+    view->mainFrame()->loadURL(url);
+    return view;
 }
 
 void initializeStaticObservers()
@@ -671,39 +703,130 @@ BalRectangle WebView::onExpose(BalEventExpose ev)
     return d->onExpose(ev);
 }
 
+bool WebView::shouldDispatchEvent(int virtualKey) const
+{
+#if ENABLE(DAE_APPLICATION)
+    return !m_application->isOIPFApplication() || !m_application->applicationPrivateData()->keyset()->shouldDispatchEvent(virtualKey);
+#else
+    return true;
+#endif
+}
+
 bool WebView::onKeyDown(BalEventKey ev)
 {
+#if ENABLE(DAE)
+    PlatformKeyboardEvent keyboardEvent(&ev);
+    int virtualKey = keyboardEvent.windowsVirtualKeyCode();
+    if (shouldDispatchEvent(virtualKey)) {
+#if ENABLE(CEHTML)
+        if (shouldCallDefaultHandlerForVKKey(virtualKey)) {
+            m_previousDownEventCalledDefaultHandler = true;
+            return defaultActionOnFocusedNode(ev);
+        }
+        m_previousDownEventCalledDefaultHandler = false;
+#endif
+        return d->onKeyDown(ev);
+    }
+
+    return false;
+#else
     return d->onKeyDown(ev);
+#endif
 }
 
 bool WebView::onKeyUp(BalEventKey ev)
 {
+#if ENABLE(DAE)
+    PlatformKeyboardEvent keyboardEvent(&ev);
+    int virtualKey = keyboardEvent.windowsVirtualKeyCode();
+    if (shouldDispatchEvent(virtualKey)) {
+#if ENABLE(CEHTML)
+        if (m_previousDownEventCalledDefaultHandler) {
+            m_previousDownEventCalledDefaultHandler = false;
+            return defaultActionOnFocusedNode(ev);
+        }
+#endif
+        return d->onKeyUp(ev);
+    }
+
+    return false;
+#else
     return d->onKeyUp(ev);
+#endif
 }
 
 bool WebView::onMouseMotion(BalEventMotion ev)
 {
+#if ENABLE(DAE_APPLICATION)
+    IntPoint p(application()->pos());
+    IntRect r(application()->rect());
+    r.setX(r.x() + p.x());
+    r.setY(r.y() + p.y());
+    if (!eventMotionInRect(ev, r))
+        return false;
+    eventMotionToRelativeCoords(ev, application()->pos());
+    d->onMouseMotion(ev);
+    return true;
+#else
     return d->onMouseMotion(ev);
+#endif
 }
 
 bool WebView::onMouseButtonDown(BalEventButton ev)
 {
+#if ENABLE(DAE_APPLICATION)
+    IntPoint p(application()->pos());
+    IntRect r(application()->rect());
+    r.setX(r.x() + p.x());
+    r.setY(r.y() + p.y());
+    if (!eventButtonInRect(ev, r))
+        return false;
+    eventButtonToRelativeCoords(ev, application()->pos());
+    d->onMouseButtonDown(ev);
+    return true;
+#else
     return d->onMouseButtonDown(ev);
+#endif
 }
 
 bool WebView::onMouseButtonUp(BalEventButton ev)
 {
+#if ENABLE(DAE_APPLICATION)
+    IntPoint p(application()->pos());
+    IntRect r(application()->rect());
+    r.setX(r.x() + p.x());
+    r.setY(r.y() + p.y());
+    if (!eventButtonInRect(ev, r))
+        return false;
+    eventButtonToRelativeCoords(ev, application()->pos());
+    d->onMouseButtonUp(ev);
+    return true;
+#else
     return d->onMouseButtonUp(ev);
+#endif
 }
 
 bool WebView::onScroll(BalEventScroll ev)
 {
+#if ENABLE(DAE_APPLICATION)
+    IntPoint p(application()->pos());
+    IntRect r(application()->rect());
+    r.setX(r.x() + p.x());
+    r.setY(r.y() + p.y());
+    if (!eventScrollInRect(ev, r))
+        return false;
+    eventButtonToRelativeCoords(ev, application()->pos());
+    onScroll(ev);
+    return true;
+#else
     return d->onScroll(ev);
+#endif
 }
 
-void WebView::onResize(BalResizeEvent ev)
+bool WebView::onResize(BalResizeEvent ev)
 {
     d->onResize(ev);
+    return true;
 }
 
 void WebView::onQuit(BalQuitEvent ev)
@@ -736,6 +859,122 @@ bool WebView::defaultActionOnFocusedNode(BalEventKey event)
     
     return (keyEvent->defaultHandled() || keyEvent->defaultPrevented());
 }
+
+#if ENABLE(DAE_APPLICATION)
+
+void WebView::setWindowRect(const BalRectangle& rect)
+{
+    IntRect dirtyRect(application()->rect());
+    dirtyRect.setLocation(application()->pos());
+
+    IntRect newRect(rect);
+
+    // Save the location as rect should not contain the location.
+    IntPoint newPosition(newRect.location());
+    newRect.setLocation(IntPoint(0, 0));
+
+    if (newRect.width() && newRect.height()) {
+        IntRect currentRect(application()->rect());
+        int deltaWidth = newRect.width() - currentRect.width();
+        int deltaHeight = newRect.height() - currentRect.height();
+        if (deltaWidth || deltaHeight) {
+            application()->setWindowRect(newRect);
+            resize(rect);
+            WebEventSender::getEventSender()->repaintApplication(application(), dirtyRect);
+            return;
+        }
+    }
+
+    IntPoint currentPosition(application()->pos());
+    int deltaX = newPosition.x() - currentPosition.x();
+    int deltaY = newPosition.y() - currentPosition.y();
+    if (deltaX || deltaY) {
+        application()->setPosition(newPosition);
+        move(currentPosition, newPosition);
+        // We cannot have both a move and a resize.
+        return;
+    }
+
+    //repaint(dirtyRect);
+}
+
+void WebView::setPermissions(const char* permissions)
+{
+    m_application->setPermissions(String(permissions));
+}
+
+void WebView::show()
+{
+    m_application->show();
+}
+
+void WebView::hide()
+{
+    m_application->hide();
+}
+
+WebView* WebView::childAt(size_t i)
+{
+    ApplicationCollection* children = m_application->children();
+    RefPtr<Application> child = children->item(i);
+    if (!child)
+        return 0;
+
+    return kit(child->page());
+}
+#endif // DAE_APPLICATION
+
+#if ENABLE(CEHTML)
+// This method enforces requirement 5.4.1.f & g according to VK keys dispatch with regard to focused node.
+bool WebView::shouldCallDefaultHandlerForVKKey(int virtualKey)
+{
+    if (virtualKey < VK_LEFT || virtualKey > VK_DOWN)
+        return false;
+
+    Frame* frame = core(this)->focusController()->focusedOrMainFrame();
+    if (!frame)
+        return false;
+    WebCore::Node* focusedNode = frame->document()->focusedNode();
+    if (!focusedNode)
+        return false;
+
+    SelectionController* selectionController = frame->selection();
+    if (selectionController->isNone())
+        return false;
+
+    if (focusedNode->hasTagName(HTMLNames::textareaTag) || (focusedNode->hasTagName(HTMLNames::inputTag) && static_cast<HTMLInputElement*>(focusedNode)->isTextField())) {
+        switch(virtualKey) {
+        case VK_LEFT:
+        case VK_UP:
+        {
+            Position base = selectionController->isCaret() ? selectionController->selection().base() : selectionController->selection().end();
+            // If we are at the first position, we should dispatch the event so that navigation is possible.
+            if (base.atFirstEditingPositionForNode())
+                return false;
+
+            return true;
+        }
+        case VK_RIGHT:
+        case VK_DOWN:
+        {                                                                                                                                                                                        
+            Position base = selectionController->isCaret() ? selectionController->selection().base() : selectionController->selection().start();                                                 
+            // If we are at the last position, we should dispatch the event so that navigation is possible.
+            if (base.atLastEditingPositionForNode())
+                return false;
+
+            return true;
+        }
+        default:
+            return false;
+        }
+        ASSERT_NOT_REACHED();
+    }
+
+    // Other tags.
+    return false;
+}
+#endif
+
 
 void WebView::paint()
 {
@@ -2046,14 +2285,14 @@ void WebView::setMainFrameURL(const char* /*urlString*/)
 
 const char* WebView::mainFrameURL()
 {
-    OwnPtr<WebDataSource> dataSource(m_mainFrame->provisionalDataSource());
+    WebDataSource* dataSource(m_mainFrame->provisionalDataSource());
     if (!dataSource) {
         dataSource = m_mainFrame->dataSource();
         if (!dataSource)
             return 0;
     }
 
-    OwnPtr<WebMutableURLRequest> request(dataSource->request());
+    WebMutableURLRequest* request(dataSource->request());
     if (!request)
         return 0;
 
@@ -2815,18 +3054,6 @@ void WebView::setJavaScriptURLsAreAllowed(bool areAllowed)
 {
     m_page->setJavaScriptURLsAreAllowed(areAllowed);
 }
-
-#if ENABLE(DAE)
-WebApplication* WebView::webApplication() const
-{
-    return m_webApplication;
-}
-
-void WebView::setWebApplication(WebApplication *app)
-{
-    m_webApplication = app;
-}
-#endif
 
 void WebView::resize(BalRectangle r)
 {

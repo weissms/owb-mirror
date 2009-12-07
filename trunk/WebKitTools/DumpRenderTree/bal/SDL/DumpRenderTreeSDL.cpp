@@ -51,7 +51,7 @@ BalRectangle clientRect(bool isSVGW3CTest)
     return r; 
 }
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
 BalWidget* createWindow(WebView *webView, BalRectangle rect)
 {
     const SDL_VideoInfo* vi;

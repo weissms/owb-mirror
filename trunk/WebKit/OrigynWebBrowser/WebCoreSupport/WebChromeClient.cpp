@@ -64,7 +64,7 @@
 #endif
 
 #if ENABLE(DAE)
-#include "WebApplication.h"
+#include "Application.h"
 #endif
 
 #include <cstdio>
@@ -90,16 +90,16 @@ void WebChromeClient::chromeDestroyed()
 
 void WebChromeClient::setWindowRect(const FloatRect& r)
 {
-#if ENABLE(DAE)
-    m_webView->webApplication()->setWindowRect(IntRect(r));
+#if ENABLE(DAE_APPLICATION)
+    m_webView->application()->setWindowRect(IntRect(r));
 #endif
 }
 
 FloatRect WebChromeClient::windowRect()
 {
-#if ENABLE(DAE)
-    IntRect r(m_webView->webApplication()->rect());
-    IntPoint p(m_webView->webApplication()->pos());
+#if ENABLE(DAE_APPLICATION)
+    IntRect r(m_webView->application()->rect());
+    IntPoint p(m_webView->application()->pos());
     r.setLocation(p);
 
     return FloatRect(r);

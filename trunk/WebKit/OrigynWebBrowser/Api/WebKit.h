@@ -61,12 +61,9 @@
 #include "WebValue.h"
 #include "WebView.h"
 
-#if ENABLE(DAE)
-#include "WebApplication.h"
-#include "WebApplicationCollection.h"
+#if ENABLE(DAE_APPLICATION)
 #include "WebConfigLoading.h"
 #include "WebEventSender.h"
-#include "WebStringCollection.h"
 #endif
 
 #if PLATFORM(SDL)

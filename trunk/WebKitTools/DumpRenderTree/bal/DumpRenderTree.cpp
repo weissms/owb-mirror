@@ -52,7 +52,6 @@
 
 #if ENABLE(DAE)
 #include "ApplicationTestController.h"
-#include "WebApplicationCollection.h"
 #endif
 
 using namespace std;
@@ -64,11 +63,9 @@ BalRectangle clientRect(bool);
 BalWidget* createWindow(WebView *webView, BalRectangle rect);
 
 volatile bool done;
-#if ENABLE(DAE)
-static SharedPtr<WebApplication> webApplication = 0;
-ApplicationTestController* gApplicationTestController = 0;
-#else
 static WebView* webView = 0;
+#if ENABLE(DAE)
+ApplicationTestController* gApplicationTestController = 0;
 #endif
 WebFrame* topLoadingFrame = 0;
 LayoutTestController* gLayoutTestController = 0;
@@ -85,11 +82,7 @@ SharedPtr<EditingDelegate> sharedEditingDelegate;
 
 WebView *getWebView()
 {
-#if ENABLE(DAE)
-    return webApplication->webView();
-#else
     return webView;
-#endif
 }
 
 bool getDone()
@@ -188,11 +181,7 @@ public:
 
         topLoadingFrame = 0;
 
-#if ENABLE(DAE)
-        if (!webApplication)
-#else
         if (!webView)
-#endif
             return;
 
         WorkQueue::shared()->setFrozen(true); // first complete load freezes the queue for the rest of this test
@@ -323,13 +312,8 @@ const char* dumpFramesAsText(WebFrame* frame)
     if (!frame)
         return "";
 
-#if ENABLE(DAE)
-    WebApplication* app = frame->webView()->webApplication();
-    bool isMainFrame = (app->webView()->mainFrame() == frame);
-#else
     // Add header for all but the main frame.
-    bool isMainFrame = (getWebView()->mainFrame() == frame);
-#endif
+    bool isMainFrame = frame->webView()->mainFrame() == frame;
     string innerText = frame->toString();
     string result = "";
 
@@ -348,15 +332,15 @@ const char* dumpFramesAsText(WebFrame* frame)
             result += dumpFramesAsText(children->at(i));
     }
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
     if (gApplicationTestController->showChildApplications()) {
         // Dump child applications
-        SharedPtr<WebApplicationCollection> children = app->children();
-    
-        for(unsigned int i = 0; i < children->length(); ++i) {
+        size_t i = 0;
+
+        while (WebView* child = frame->webView()->childAt(i++)) {
             result += "\n--------\nChild";
             result += "\n--------\n";
-            result += dumpFramesAsText(children->item(i)->webView()->mainFrame());
+            result += dumpFramesAsText(child->mainFrame());
         }
     }
 #endif
@@ -374,11 +358,7 @@ static void invalidateAnyPreviousWaitToDumpWatchdog()
 
 void dump()
 {
-#if ENABLE(DAE)
-    if (!webApplication)
-#else
     if (!webView)
-#endif
         return;
 
     invalidateAnyPreviousWaitToDumpWatchdog();
@@ -517,8 +497,9 @@ void runTest(const string& testPathOrURL)
     SharedPtr<JSDelegate> jsActionDelegate = JSDelegate::createInstance();
 
 #if ENABLE(DAE)
-    BalWidget *view = createWindow(NULL, rect);
-    webApplication = WebApplication::createInstance(rect, url, BroadcastIndependent, 0, frameLoadDelegate, jsActionDelegate);
+    webView = WebView::createInstance(rect, url, frameLoadDelegate, jsActionDelegate);
+    BalWidget *view = createWindow(webView, rect);
+    //webApplication = WebApplication::createInstance(rect, url, BroadcastIndependent, 0, frameLoadDelegate, jsActionDelegate);
 #else
     webView = WebView::createInstance();
     BalWidget *view = createWindow(webView, rect);
@@ -551,11 +532,9 @@ void runTest(const string& testPathOrURL)
 
 #if ENABLE(DAE)
     delete gApplicationTestController;
-    webApplication = 0;
-#else
+#endif
     delete webView;
     webView = 0;
-#endif
     frameLoadDelegate = 0;
     jsActionDelegate = 0;
     policyDelegate = 0;

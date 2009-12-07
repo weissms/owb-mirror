@@ -53,10 +53,11 @@
 #include "WebView.h"
 #include "WebWindowAlert.h"
 
-#if ENABLE(DAE)
-#include "WebApplication.h"
+#if ENABLE(DAE_APPLICATION)
+#include "Application.h"
 #include "WebEventSender.h"
 #endif
+
 #if PLATFORM(SDL)
 #include "WebPopup.h"
 #endif
@@ -185,7 +186,7 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
     }
 
     if (frame->contentRenderer() && frame->view()) {
-#if !ENABLE(DAE)
+#if !ENABLE(DAE_APPLICATION)
         frame->view()->layoutIfNeededRecursive();
 #endif
         IntRect dirty = m_webView->dirtyRegion();
@@ -204,11 +205,11 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
             SDL_Delay (1);
 
 
-#if ENABLE(DAE)
-        WebApplication* app = m_webView->webApplication();
+#if ENABLE(DAE_APPLICATION)
+        Application* app = m_webView->application();
         cairo_surface_t* newsurface = 0;
         if (WebEventSender::getEventSender()->visibleApplicationCount() > 1) {
-            newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, app->rect().w, app->rect().h);
+            newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, app->rect().width(), app->rect().height());
             cr = cairo_create(newsurface);
         } else
             cr = m_cr;
@@ -220,20 +221,20 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
         
         ctx.save();
         ctx.clip(d);
-#if !ENABLE(DAE)
+#if !ENABLE(DAE_APPLICATION)
         if (m_webView->transparent())
             ctx.clearRect(d);
 #endif
         frame->view()->paint(&ctx, d);
 
-#if ENABLE(DAE)
+#if ENABLE(DAE_APPLICATION)
         if (WebEventSender::getEventSender()->visibleApplicationCount() > 1) {
             cairo_destroy (cr);
             cr = m_cr;
             cairo_save(cr);
             cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-            cairo_rectangle(cr, app->pos().x, app->pos().y, app->rect().w, app->rect().h);
-            cairo_set_source_surface(cr, newsurface, app->pos().x, app->pos().y);
+            cairo_rectangle(cr, app->pos().x(), app->pos().y(), app->rect().width(), app->rect().height());
+            cairo_set_source_surface(cr, newsurface, app->pos().x(), app->pos().y());
             cairo_fill(cr);
             cairo_restore(cr);  
             cairo_surface_destroy(newsurface);
@@ -242,7 +243,7 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
 
         SDL_UnlockSurface (m_webView->viewWindow());
 
-#if !ENABLE(DAE)
+#if !ENABLE(DAE_APPLICATION)
         updateView(m_webView->viewWindow(), dirty);
 #endif
         ctx.restore();
@@ -393,9 +394,9 @@ void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)
         return;
     rect.intersect(m_rect);
     /* use SDL_Flip only if double buffering is available */
-#if ENABLE(DAE)
-    WebApplication* app = m_webView->webApplication();
-    rect.move(app->pos().x, app->pos().y);
+#if ENABLE(DAE_APPLICATION)
+    Application* app = m_webView->application();
+    rect.move(app->pos().x(), app->pos().y());
 #endif
     SDL_Rect sdlRect = {rect.x(), rect.y(), rect.width(), rect.height()};
     sdlRect.x = max(sdlRect.x, (Sint16)0);
@@ -598,7 +599,7 @@ void WebViewPrivate::resize(BalRectangle r)
     m_rect.setWidth(r.w);
     m_rect.setHeight(r.h);
 
-#if !ENABLE(DAE)
+#if !ENABLE(DAE_APPLICATION)
     SDL_Surface *surf = m_webView->viewWindow();
     m_webView->setViewWindow(createWindow(r));
     SDL_FreeSurface(surf);
@@ -634,3 +635,45 @@ void WebViewPrivate::repaintAfterNavigationIfNeeded()
     }
 #endif
 }
+
+#if ENABLE(DAE_APPLICATION)
+bool eventInRect(int x, int y, const WebCore::IntRect& r)
+{
+    if (!r.contains(x, y))
+        return false;
+    return true;
+}
+
+bool WebView::eventMotionInRect(BalEventMotion ev, const BalRectangle& r)
+{
+    return eventInRect(ev.x, ev.y, r);
+}
+
+bool WebView::eventButtonInRect(BalEventButton ev, const BalRectangle& r)
+{
+    return eventInRect(ev.x, ev.y, r);
+}
+
+bool WebView::eventScrollInRect(BalEventScroll ev, const BalRectangle& r)
+{
+    return eventInRect(ev.x, ev.y, r);
+}
+
+void WebView::eventMotionToRelativeCoords(BalEventMotion& ev, const BalPoint& p)
+{
+    ev.x -= p.x;
+    ev.y -= p.y;
+}
+
+void WebView::eventButtonToRelativeCoords(BalEventButton& ev, const BalPoint& p)
+{
+    ev.x -= p.x;
+    ev.y -= p.y;
+}
+
+void WebView::eventScrollToRelativeCoords(BalEventScroll& ev, const BalPoint& p)
+{
+    ev.x -= p.x;
+    ev.y -= p.y;
+}
+#endif // ENABLE(DAE_APPLICATION)

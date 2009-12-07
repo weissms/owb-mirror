@@ -1,3 +1,21 @@
+2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Fully balify the Application.
+
+        Updated #if guards and for the changes on Application.
+
+        * Widgets/WebKit/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::updateView):
+        (WebViewPrivate::resize):
+        (eventInRect):
+        (WebView::eventMotionInRect):
+        (WebView::eventButtonInRect):
+        (WebView::eventScrollInRect):
+        (WebView::eventMotionToRelativeCoords):
+        (WebView::eventButtonToRelativeCoords):
+        (WebView::eventScrollToRelativeCoords):
+
 2009-12-03  Mario Bensi  <mbensi@pleyo.com>
 
         fix MediaPlayer
