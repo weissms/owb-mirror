@@ -1,3 +1,90 @@
+2009-12-07  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Prevent the inspector from closing its wrapping widget.
+        This is not necessary anymore since we now hide the embedded
+        close button.
+        https://bugs.webkit.org/show_bug.cgi?id=32149
+
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::showWindow):
+        (WebCore::InspectorClientQt::closeWindow):
+
+2009-12-04  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Corrects QtLauncher style
+
+        * QtLauncher/main.cpp:
+        (WebPage::acceptNavigationRequest):
+        (MainWindow::MainWindow):
+        (MainWindow::webPage):
+        (MainWindow::webView):
+        (MainWindow::changeLocation):
+        (MainWindow::loadFinished):
+        (MainWindow::showLinkHover):
+        (MainWindow::zoomIn):
+        (MainWindow::zoomOut):
+        (MainWindow::print):
+        (MainWindow::setEditable):
+        (MainWindow::dumpHtml):
+        (MainWindow::selectElements):
+        (MainWindow::newWindow):
+        (MainWindow::setupUI):
+        (WebPage::createWindow):
+        (WebPage::createPlugin):
+        (main):
+
+2009-12-04  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] QtLauncher: add a menu to show or hide the web inspector.
+        https://bugs.webkit.org/show_bug.cgi?id=32149
+
+        * QtLauncher/main.cpp:
+        (WebInspector::WebInspector):
+        (WebInspector::showEvent):
+        (WebInspector::hideEvent):
+        (MainWindow::MainWindow):
+        (MainWindow::setupUI):
+
+2009-12-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Split out the renderPrivate in two methods, one for working on
+        relative coordinates (relative to the viewport) and one for
+        working on absolute coordinates. The latter is more effecient
+        for implementing tiling, as you don't need translate the coords,
+        and because it avoid clipping to the viewport.
+
+        No behaviour changes, so no new tests.
+
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::renderContentsLayerAbsoluteCoords):
+        (QWebFramePrivate::renderRelativeCoords):
+        (QWebFrame::render):
+        * Api/qwebframe_p.h:
+
+2009-12-04  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Allow removing 'qrc' as a local security origin scheme
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+
+2009-12-04  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Clean up argument parsing in the QtLauncher
+
+        * QtLauncher/main.cpp:
+
 2009-12-04  Ben Murdoch  <benm@google.com>
 
         Reviewed by Brady Eidson.

@@ -472,3 +472,7 @@ JSStringRef AccessibilityUIElement::ariaDropEffects() const
     return 0;
 }
 
+bool AccessibilityUIElement::isAttributeSupported(JSStringRef attribute)
+{
+    return false;
+}

@@ -135,7 +135,6 @@ BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/SimpleFontDataPango.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCacheQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.h
-BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontFallbackListQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformData.h
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformDataQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontQt.cpp

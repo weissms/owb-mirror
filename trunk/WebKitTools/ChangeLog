@@ -1,3 +1,205 @@
+2009-12-07  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        REGRESSION: AX: buttons now extremely repetitive
+        https://bugs.webkit.org/show_bug.cgi?id=32164
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (isAttributeSupportedCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::isAttributeSupported):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isAttributeSupported):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::isAttributeSupported):
+
+2009-12-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add an API for uploading results files to StatusBot
+        https://bugs.webkit.org/show_bug.cgi?id=32210
+
+        Add Content-Type: plain/text which was forgotten
+        from the previous commit when I landed with land-patches
+        instead of land-diff.
+
+        * QueueStatusServer/queue_status.py:
+
+2009-12-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Status Server needs a way to handle uploaded results
+        https://bugs.webkit.org/show_bug.cgi?id=32209
+
+        * QueueStatusServer/queue_status.py: Add a ShowResults (results/*) command
+        * QueueStatusServer/update_status.html: Add file upload.
+
+2009-12-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add an API for uploading results files to StatusBot
+        https://bugs.webkit.org/show_bug.cgi?id=32210
+
+        * Scripts/modules/statusbot.py:
+
+2009-12-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Status Server needs a way to handle uploaded results
+        https://bugs.webkit.org/show_bug.cgi?id=32209
+
+        * QueueStatusServer/queue_status.py: Add a ShowResults (results/*) command
+        * QueueStatusServer/update_status.html: Add file upload.
+
+2009-12-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] BuildAttachment should not check the builders
+        https://bugs.webkit.org/show_bug.cgi?id=32207
+
+        This is code that got copied here by accident when the class was created.
+
+        * Scripts/modules/commands/download.py:
+
+2009-12-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Make LandingSequence.update aware of ports
+        https://bugs.webkit.org/show_bug.cgi?id=32208
+
+        This is required to make build work on the Chromium port because
+        Chromium has a custom update-webkit.
+
+        * Scripts/modules/landingsequence.py:
+
+2009-12-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add early warning system commands to bugzilla-tool.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/webkitport.py:
+
+2009-12-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Implement Qt EarlyWarningSystem and Chromium EarlyWarningSystem
+        https://bugs.webkit.org/show_bug.cgi?id=32205
+
+        * Scripts/modules/commands/early_warning_system.py: Added.
+        * Scripts/modules/commands/queues.py:
+
+2009-12-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        REGRESSION (r51728): update-webkit fails when the current directory is
+        not inside a Subversion working copy
+        https://bugs.webkit.org/show_bug.cgi?id=32204
+
+        * Scripts/update-webkit: Invoke isSVN() in the correct working
+        directory.
+
+2009-12-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Rename AbstractTryQueue to AbstractReviewQueue
+        https://bugs.webkit.org/show_bug.cgi?id=32202
+
+        * Scripts/modules/commands/queues.py:
+
+2009-12-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Implement ChromiumPort
+        https://bugs.webkit.org/show_bug.cgi?id=32182
+
+        * Scripts/modules/webkitport.py:
+        * Scripts/modules/webkitport_unittest.py:
+
+2009-12-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move update-webkit into BuildSteps
+        https://bugs.webkit.org/show_bug.cgi?id=32181
+
+        We need to move update-webkit out of SCM.py because SCM isn't supposed to know
+        that WebKit exists.  The proper place for the knowledge of the existence of
+        update-webkit is in WebKitPort because some ports have specialized update
+        scripts (analogous to build-webkit).
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/scm.py:
+        * Scripts/modules/webkitport.py:
+
+2009-12-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        update-webkit should call git svn rebase and resolve-ChangeLogs -f
+        https://bugs.webkit.org/show_bug.cgi?id=27162
+
+        Teach update-webkit about Git.  I didn't add the call to
+        resolve-ChangeLogs -f because sometimes that script goes bananas.  We
+        can iterate from here, however.
+
+        * Scripts/update-webkit:
+
+2009-12-04  Yael Aharon  <yael.aharon@nokia.com>
+
+        Unreviewed build fix.
+
+        [Qt] build fix after r51634 removed unused QBoxLayout include which included limits.h.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+
+2009-12-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Adam Treat.
+
+        Add some missing methods for showing and hiding the
+        Web Inspector.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::~WebPage):
+        (WebCore::WebPage::webInspector):
+        * DumpRenderTree/qt/DumpRenderTree.h:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::hideWebInspector):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2009-12-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Adam Treat.
+
+        Implement the setAllowUniversalAccessFromFileURLs method
+        for the Qt LayoutTestController.
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setAllowUniversalAccessFromFileURLs):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
 2009-12-04  Andras Becsi  <abecsi@inf.u-szeged.hu>
 
         Reviewed by Kenneth Rohde Christiansen.

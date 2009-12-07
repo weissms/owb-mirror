@@ -41,10 +41,10 @@ from modules.patchcollection import PatchCollection, PersistentPatchCollection, 
 from modules.processutils import run_and_throw_if_fail
 from modules.scm import ScriptError
 from modules.statusbot import StatusBot
-from modules.webkitport import WebKitPort
 from modules.workqueue import WorkQueue, WorkQueueDelegate
 
 class AbstractQueue(Command, WorkQueueDelegate):
+    show_in_main_help = False
     watchers = "webkit-bot-watchers@googlegroups.com"
     def __init__(self, options=None): # Default values should never be collections (like []) as default values are shared between invocations
         options_list = (options or []) + [
@@ -107,7 +107,6 @@ class AbstractQueue(Command, WorkQueueDelegate):
 
 class CommitQueue(AbstractQueue, LandingSequenceErrorHandler):
     name = "commit-queue"
-    show_in_main_help = False
     def __init__(self):
         AbstractQueue.__init__(self)
 
@@ -145,7 +144,7 @@ class CommitQueue(AbstractQueue, LandingSequenceErrorHandler):
         tool.bugs.reject_patch_from_commit_queue(patch["id"], script_error.message_with_output())
 
 
-class AbstractTryQueue(AbstractQueue, PersistentPatchCollectionDelegate, LandingSequenceErrorHandler):
+class AbstractReviewQueue(AbstractQueue, PersistentPatchCollectionDelegate, LandingSequenceErrorHandler):
     def __init__(self, options=None):
         AbstractQueue.__init__(self, options)
 
@@ -188,11 +187,10 @@ class AbstractTryQueue(AbstractQueue, PersistentPatchCollectionDelegate, Landing
         log(script_error.message_with_output())
 
 
-class StyleQueue(AbstractTryQueue):
+class StyleQueue(AbstractReviewQueue):
     name = "style-queue"
-    show_in_main_help = False
     def __init__(self):
-        AbstractTryQueue.__init__(self)
+        AbstractReviewQueue.__init__(self)
 
     def should_proceed_with_work_item(self, patch):
         return (True, "Checking style for patch %s on bug %s." % (patch["id"], patch["bug_id"]), patch)
@@ -217,26 +215,3 @@ class StyleQueue(AbstractTryQueue):
         if re.search("check-webkit-style", command):
             message = "Attachment %s did not pass %s:\n\n%s" % (patch["id"], cls.name, script_error.message_with_output(output_limit=5*1024))
             tool.bugs.post_comment_to_bug(patch["bug_id"], message, cc=cls.watchers)
-
-
-class BuildQueue(AbstractTryQueue):
-    name = "build-queue"
-    show_in_main_help = False
-    def __init__(self):
-        options = WebKitPort.port_options()
-        AbstractTryQueue.__init__(self, options)
-
-    def begin_work_queue(self):
-        AbstractTryQueue.begin_work_queue(self)
-        self.port = WebKitPort.port(self.options)
-
-    def should_proceed_with_work_item(self, patch):
-        try:
-            self.run_bugzilla_tool(["build", self.port.flag(), "--force-clean", "--quiet"])
-        except ScriptError, e:
-            return (False, "Unable to perform a build.", None)
-        return (True, "Building patch %s on bug %s." % (patch["id"], patch["bug_id"]), patch)
-
-    def process_work_item(self, patch):
-        self.run_bugzilla_tool(["build-attachment", self.port.flag(), "--force-clean", "--quiet", "--non-interactive", "--parent-command=build-queue", "--no-update", patch["id"]])
-        self._patches.did_pass(patch)

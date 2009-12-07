@@ -36,8 +36,6 @@ if(USE_FONTS_QT)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Qt BAL)
     list(REMOVE_ITEM WEBCORE_SRC
         ${BAL_DIR}/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
-        ${BAL_DIR}/Fonts/WebCore/WK/BCFontCacheWK.cpp
-        ${BAL_DIR}/Fonts/WebCore/WK/BCFontFallbackListWK.cpp
     	${BAL_DIR}/Fonts/WebCore/WK/BCFontFastPathWK.cpp
 	    ${BAL_DIR}/Fonts/WebCore/WK/BCGlyphPageTreeNodeWK.cpp
     )

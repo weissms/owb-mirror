@@ -26,6 +26,8 @@
 #ifndef SharedTimer_h
 #define SharedTimer_h
 
+#include <wtf/Noncopyable.h>
+
 namespace WebCore {
 
     // Each thread has its own single instance of shared timer, which implements this interface.

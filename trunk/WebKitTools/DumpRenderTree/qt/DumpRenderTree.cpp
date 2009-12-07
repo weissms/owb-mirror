@@ -64,9 +64,7 @@
 #include <fontconfig/fontconfig.h>
 #endif
 
-#if PLATFORM(ARM) && PLATFORM(LINUX)
 #include <limits.h>
-#endif
 
 #include <unistd.h>
 #include <qdebug.h>
@@ -116,6 +114,7 @@ void NetworkAccessManager::sslErrorsEncountered(QNetworkReply* reply, const QLis
 
 WebPage::WebPage(QObject* parent, DumpRenderTree* drt)
     : QWebPage(parent)
+    , m_webInspector(0)
     , m_drt(drt)
 {
     QWebSettings* globalSettings = QWebSettings::globalSettings();
@@ -141,6 +140,20 @@ WebPage::WebPage(QObject* parent, DumpRenderTree* drt)
     setPluginFactory(new TestPlugin(this));
 }
 
+WebPage::~WebPage()
+{
+    delete m_webInspector;
+}
+
+QWebInspector* WebPage::webInspector()
+{
+    if (!m_webInspector) {
+        m_webInspector = new QWebInspector;
+        m_webInspector->setPage(this);
+    }
+    return m_webInspector;
+}
+
 void WebPage::resetSettings()
 {
     // After each layout test, reset the settings that may have been changed by
@@ -152,6 +165,7 @@ void WebPage::resetSettings()
     settings()->resetAttribute(QWebSettings::PrivateBrowsingEnabled);
     settings()->resetAttribute(QWebSettings::LinksIncludedInFocusChain);
     settings()->resetAttribute(QWebSettings::OfflineWebApplicationCacheEnabled);
+    settings()->resetAttribute(QWebSettings::LocalContentCanAccessRemoteUrls);
     QWebSettings::setMaximumPagesInCache(0); // reset to default
 }
 

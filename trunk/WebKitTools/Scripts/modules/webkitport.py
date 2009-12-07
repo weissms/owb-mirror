@@ -45,11 +45,13 @@ class WebKitPort():
         ]
 
     @staticmethod
-    def port(options):
-        if options.port == "mac":
+    def port(port_name):
+        if port_name == "mac":
             return MacPort
-        if options.port == "qt":
+        if port_name == "qt":
             return QtPort
+        if port_name == "chromium":
+            return ChromiumPort
         # FIXME: We should default to WinPort on Windows.
         return MacPort
 
@@ -62,12 +64,16 @@ class WebKitPort():
         raise NotImplementedError, "subclasses must implement"
 
     @classmethod
-    def run_webkit_tests_command(cls):
-        return [cls.script_path("run-webkit-tests")]
+    def update_webkit_command(cls):
+        return [cls.script_path("update-webkit")]
 
     @classmethod
     def build_webkit_command(cls):
         return [cls.script_path("build-webkit")]
+
+    @classmethod
+    def run_webkit_tests_command(cls):
+        return [cls.script_path("run-webkit-tests")]
 
 
 class MacPort(WebKitPort):
@@ -93,4 +99,26 @@ class QtPort(WebKitPort):
     def build_webkit_command(cls):
         command = WebKitPort.build_webkit_command()
         command.append("--qt")
+        return command
+
+
+class ChromiumPort(WebKitPort):
+    @classmethod
+    def name(cls):
+        return "Chromium"
+
+    @classmethod
+    def flag(cls):
+        return "--port=chromium"
+
+    @classmethod
+    def update_webkit_command(cls):
+        command = WebKitPort.update_webkit_command()
+        command.append("--chromium")
+        return command
+
+    @classmethod
+    def build_webkit_command(cls):
+        command = WebKitPort.build_webkit_command()
+        command.append("--chromium")
         return command
