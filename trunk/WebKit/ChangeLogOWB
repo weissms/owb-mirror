@@ -1,3 +1,11 @@
+2009-12-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Regression: When DAE_APPLICATION is ON, no events are dispatched anymore.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::shouldDispatchEvent): We should dispatch if the current
+        WebView is not an DAE application or the keyset authorize the event!
+
 2009-12-08  Mario Bensi  <mbensi@pleyo.com>
 
         Add preferences to set limit and notification to stop loading and warn

@@ -723,7 +723,7 @@ BalRectangle WebView::onExpose(BalEventExpose ev)
 bool WebView::shouldDispatchEvent(int virtualKey) const
 {
 #if ENABLE(DAE_APPLICATION)
-    return !m_application->isOIPFApplication() || !m_application->applicationPrivateData()->keyset()->shouldDispatchEvent(virtualKey);
+    return !m_application->isOIPFApplication() || m_application->applicationPrivateData()->keyset()->shouldDispatchEvent(virtualKey);
 #else
     return true;
 #endif
