@@ -118,6 +118,11 @@ public:
      * dispatchDidFirstVisuallyNonEmptyLayout
      */
     virtual void dispatchDidFirstVisuallyNonEmptyLayout(WebFrame*) = 0;
+
+    /*
+     * dispatch not enought memory
+     */
+    virtual void dispatchNotEnoughtMemory(WebFrame*) = 0;
 };
 
 #endif // WebFrameLoadDelegate_h

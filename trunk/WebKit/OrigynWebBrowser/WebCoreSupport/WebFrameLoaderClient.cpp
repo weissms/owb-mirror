@@ -554,6 +554,9 @@ void WebFrameLoaderClient::postProgressStartedNotification()
     gettimeofday(&m_timerStart, NULL);
 #endif
 
+    m_webFrame->webView()->stopLoading(false);
+        
+
 #if ENABLE(ORIGYNSUITE)
     ResourceRequest request = core(m_webFrame)->loader()->originalRequest();
     // before each clic or new page, check if we have new infos from servers

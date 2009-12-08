@@ -1,3 +1,25 @@
+2009-12-08  Mario Bensi  <mbensi@pleyo.com>
+
+        Add preferences to set limit and notification to stop loading and warn
+        when the callback are call.
+
+        * OrigynWebBrowser/Api/WebPreferenceKeysPrivate.h:
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::setMemoryLimit):
+        (WebPreferences::memoryLimit):
+        * OrigynWebBrowser/Api/WebPreferences.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (MemoryEvent::MemoryEvent):
+        (MemoryEvent::call):
+        (WebView::WebView):
+        (WebView::~WebView):
+        (WebView::notifyPreferencesChanged):
+        (WebView::stopLoading):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::postProgressStartedNotification):
+
 2009-12-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Fix focus issues seen when testing

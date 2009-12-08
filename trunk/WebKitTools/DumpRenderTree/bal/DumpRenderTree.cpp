@@ -259,6 +259,9 @@ public:
     virtual void dispatchDidFirstLayout(WebFrame*) {}
 
     virtual void dispatchDidFirstVisuallyNonEmptyLayout(WebFrame*) {}
+
+    virtual void dispatchNotEnoughtMemory(WebFrame*) {}
+
 private:
     FrameLoadDelegate() { }
 };

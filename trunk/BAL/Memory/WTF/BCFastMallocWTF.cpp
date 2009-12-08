@@ -2691,8 +2691,30 @@ inline void TCMalloc_ThreadCache::Deallocate(void* ptr, size_t cl) {
   if (size_ >= per_thread_cache_size) Scavenge();
 }
 
+MemoryNotification* g_memoryNotification = 0;
+
+void setMemoryNotificationCallback(MemoryNotification* memoryNotification)
+{
+    if (g_memoryNotification == NULL)
+        g_memoryNotification = memoryNotification;
+}
+
+static size_t g_limit = 0;
+
+void setMemoryLimit(int limit)
+{
+    if (limit < 0)
+        g_limit = 0;
+    else
+        g_limit = limit;
+}
+
 // Remove some objects of class "cl" from central cache and add to thread heap
 ALWAYS_INLINE void TCMalloc_ThreadCache::FetchFromCentralCache(size_t cl, size_t allocationSize) {
+  if (g_limit != 0 && (size_ > g_limit)) {
+    if (g_memoryNotification)
+       g_memoryNotification->call();
+  }
   int fetch_count = num_objects_to_move[cl];
   void *start, *end;
   central_cache[cl].RemoveRange(&start, &end, &fetch_count);

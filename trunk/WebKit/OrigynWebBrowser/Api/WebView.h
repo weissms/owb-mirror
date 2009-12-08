@@ -48,6 +48,7 @@
 class DOMDocument;
 class DOMNode;
 class JSActionDelegate;
+class MemoryEvent;
 class WebArchive;
 class WebBackForwardList;
 class WebBindingJSDelegate;
@@ -1484,7 +1485,10 @@ public:
      *  allow local loads for all
      */
     void allowLocalLoadsForAll();
-    
+
+    void stopLoading(bool);
+    bool isStopped() { return m_isStopped; }
+
 private:
 
     /**
@@ -1943,8 +1947,9 @@ protected:
 #if ENABLE(CEHTML)
     bool m_previousDownEventCalledDefaultHandler;
 #endif
-
-    WebInspector *m_webInspector;
+    WebInspector* m_webInspector;
+    bool m_isStopped;
+    MemoryEvent* m_memoryEvent;
 };
 
 #endif

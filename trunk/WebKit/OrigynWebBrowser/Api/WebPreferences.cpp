@@ -205,7 +205,7 @@ void WebPreferences::initializeDefaultSettings()
 #else
     m_privatePrefs[WebKitAcceleratedCompositingEnabledPreferenceKey] = "0";
 #endif
-
+    m_privatePrefs[WebKitMemoryLimitPreferenceKey] = "0";
 }
 
 const char* WebPreferences::valueForKey(const char* key)
@@ -965,5 +965,16 @@ void WebPreferences::setFontSmoothingContrast(float contrast)
 void WebPreferences::addExtraPluginDirectory(const char* directory)
 {
     PluginDatabase::installedPlugins()->addExtraPluginDirectory(directory);
+}
+
+
+void WebPreferences::setMemoryLimit(int limit)
+{
+    setIntegerValue(WebKitMemoryLimitPreferenceKey, limit);
+}
+
+int WebPreferences::memoryLimit()
+{
+    return integerValueForKey(WebKitMemoryLimitPreferenceKey);
 }
 

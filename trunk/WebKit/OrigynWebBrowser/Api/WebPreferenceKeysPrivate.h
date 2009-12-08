@@ -132,3 +132,4 @@
 #define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"
 #define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
+#define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"

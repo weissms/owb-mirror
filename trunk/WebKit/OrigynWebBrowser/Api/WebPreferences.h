@@ -735,6 +735,9 @@ public:
      */
     void addExtraPluginDirectory(const char* directory);
 
+    void setMemoryLimit(int);
+    int memoryLimit();
+
 protected:
 
     /**

@@ -168,6 +168,19 @@ WebView* kit(Page* page)
     return page ? static_cast<WebChromeClient*>(page->chrome()->client())->webView() : 0;
 }
 
+class MemoryEvent : public WTF::MemoryNotification {
+public:
+    MemoryEvent(WebView* webView) { m_webView = webView; }
+
+    virtual void call()
+    {
+        if (!m_webView->isStopped())
+            m_webView->stopLoading(true);
+    }
+
+private:
+    WebView* m_webView;
+};
 
 class WebViewObserver : public ObserverData {
 public:
@@ -353,6 +366,8 @@ WebView::WebView()
 #endif
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
+    m_memoryEvent = new MemoryEvent(this);
+    WTF::setMemoryNotificationCallback(m_memoryEvent);
 }
 
 WebView::~WebView()
@@ -382,6 +397,8 @@ WebView::~WebView()
         delete d;
     if (m_webViewObserver)
         delete m_webViewObserver;
+    if (m_memoryEvent)
+        delete m_memoryEvent;
 }
 
 WebView* WebView::createInstance()
@@ -2754,6 +2771,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->localStorageEnabled();
     settings->setLocalStorageEnabled(enabled);
 
+    int limit = preferences->memoryLimit();  
+    WTF::setMemoryLimit(limit);
 /*    if (!m_closeWindowTimer.isActive())
         m_mainFrame->invalidate(); // FIXME*/
 
@@ -3226,4 +3245,12 @@ bool WebView::hasPluginForNodeBeenHalted(DOMNode* domNode)
         return false;
 
     return view->hasBeenHalted();
+}
+
+
+void WebView::stopLoading(bool stop)
+{
+    m_isStopped = stop;
+    if (stop)
+        core(mainFrame())->loader()->stopLoading(UnloadEventPolicyUnloadAndPageHide);
 }

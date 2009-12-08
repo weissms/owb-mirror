@@ -28,6 +28,14 @@
 
 namespace WTF {
 
+    class MemoryNotification {
+    public:
+        virtual void call() = 0;
+    };
+
+    void setMemoryNotificationCallback(MemoryNotification*);
+    void setMemoryLimit(int limit);
+
     // These functions call CRASH() if an allocation fails.
     void* fastMalloc(size_t);
     void* fastZeroedMalloc(size_t);

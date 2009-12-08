@@ -1,3 +1,13 @@
+2009-12-08  Mario Bensi  <mbensi@pleyo.com>
+
+        Add limit and notification
+
+        * Memory/WTF/BCFastMallocWTF.cpp:
+        (WTF::setMemoryNotificationCallback):
+        (WTF::setMemoryLimit):
+        (WTF::TCMalloc_ThreadCache::FetchFromCentralCache):
+        * Memory/WTF/BCFastMallocWTF.h:
+
 2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Fully balify the Application.
