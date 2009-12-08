@@ -39,8 +39,11 @@
 #include "WebEventSenderPrivate.h"
 #include "WebFrame.h"
 #include "WebFrameLoadDelegate.h"
-#include "WebServiceManager.h"
 #include "WebView.h"
+
+#if ENABLE(DAE_TUNER)
+#include "ServiceManager.h"
+#endif
 
 using namespace WebCore;
 
@@ -55,7 +58,7 @@ WebApplicationNotificationClient::~WebApplicationNotificationClient()
 void WebApplicationNotificationClient::didCreateApplication(Application* application)
 {
 #if ENABLE(DAE_TUNER)
-    WebServiceManager::serviceManager().setCurrentService(0);
+    ServiceManager::serviceManager().setCurrentService(0);
 #endif
 
     // Application created from JavaScript have no API component, so create it now.
@@ -86,13 +89,6 @@ void WebApplicationNotificationClient::didCreateApplication(Application* applica
     application->activate();
     if (application->broadcastRelation() == Application::BroadcastRelatedAutostart)
         application->show();
-    
-#if ENABLE(DAE_VIDEO)
-    // Invoking the Service Manager is required to sartup listening for AIT notifications
-    // FIXME: This should be moved to VideoBroadcastElement::setChannel() once the Service
-    // Manager gets moved down to the BAL
-    WebServiceManager::serviceManager();
-#endif
 }
 
 void WebApplicationNotificationClient::didDeleteApplication(Application* application)
