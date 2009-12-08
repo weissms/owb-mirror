@@ -122,19 +122,29 @@ float WebChromeClient::scaleFactor()
 
 void WebChromeClient::focus()
 {
+    // FIXME: Win uses its IWebUIDelegate here.
+    // Win should call this method from the delegate (which we do not have). So match what Qt does here and just update our focus,
+    // which is needed by WebCore.
+    m_webView->setFocus();
 }
 
 void WebChromeClient::unfocus()
 {
+    // FIXME: Win uses its IWebUIDelegate here.
+    // See comment in focus().
+    m_webView->clearFocus();
 }
 
 bool WebChromeClient::canTakeFocus(FocusDirection direction)
 {
-    return false;
+    // FIXME: Win uses its IWebUIDelegate here.
+    return true;
 }
 
 void WebChromeClient::takeFocus(FocusDirection direction)
 {
+    // FIXME: Win uses its IWebUIDelegate here.
+    balNotImplemented();
 }
 
 void WebChromeClient::focusedNodeChanged(WebCore::Node*)

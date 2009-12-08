@@ -1,3 +1,28 @@
+2009-12-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Fix focus issues seen when testing
+        
+        It may also solve ticket #260.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::initWithFrame): Also set the focus here (we were only
+        activating it). Also removed useless active variable (was always
+        true).
+        (WebView::setFocus): Added, to set the focus on the WebView.
+        (WebView::focused): Added, to get the focused status.
+        (WebView::clearFocus): Added, to clear the focus on the WebView.
+        (WebView::updateActiveState): Implemented thought it is not called
+        anymore. Maybe we should remove this part.
+
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::focus): Call setFocus on the WebView.
+        (WebChromeClient::unfocus): Call clearFocus on the WebView.
+        The 2 previous implementations are inspired on what Qt does.
+
+        (WebChromeClient::canTakeFocus): Return true now to match other ports.
+        (WebChromeClient::takeFocus): Added a command.
+
 2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Fully balify the Application.

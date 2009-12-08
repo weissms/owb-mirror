@@ -1352,10 +1352,11 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     PageGroup::setShouldTrackVisitedLinks(true);
 
     m_page->focusController()->setActive(true); 
-    bool active = m_page->focusController()->isActive();
+    m_page->focusController()->setFocused(true); 
+
     Frame* mainFrame = m_page->mainFrame();
     Frame* focusedFrame = m_page->focusController()->focusedOrMainFrame();
-    mainFrame->selection()->setFocused(active && mainFrame == focusedFrame);
+    mainFrame->selection()->setFocused(mainFrame == focusedFrame);
 }
 
 /*static bool initCommonControls()
@@ -2061,9 +2062,30 @@ bool WebView::removeAllUserContentFromGroup(const char* groupName)
     return true;
 }
 
+void WebView::setFocus()
+{
+    FocusController* focusController = m_page->focusController();
+    focusController->setFocused(true);
+    focusController->setActive(true);
+}
+
+bool WebView::focused() const
+{
+    return m_page->focusController()->isFocused();
+}
+
+void WebView::clearFocus()
+{
+    FocusController* focusController = m_page->focusController();
+    focusController->setFocused(false);
+    focusController->setActive(false);
+}
+
 void WebView::updateActiveState()
 {
-    m_page->focusController()->setActive(active());
+    FocusController* focusController = m_page->focusController();
+    focusController->setActive(active());
+    focusController->setFocused(focused());
 }
 
 void WebView::updateFocusedAndActiveState()

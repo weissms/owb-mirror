@@ -1388,6 +1388,24 @@ public:
     void updateActiveState();
 
     /**
+     * setFocus
+     * @brief set the focus on this WebView.
+     */
+    void setFocus();
+
+    /**
+     * clearFocus
+     * @brief clear the focus on this WebView.
+     */
+    void clearFocus();
+
+    /**
+     * focused
+     * @brief returns whether this WebView is focused.
+     */
+    bool focused() const;
+
+    /**
      * parse owb config file 
      */
     void parseConfigFile(const char* url = "");
