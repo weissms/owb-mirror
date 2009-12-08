@@ -1,3 +1,10 @@
+2009-12-08  Mario Bensi  <mbensi@pleyo.com>
+
+        add lowMemory Notification event
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (MemoryEvent::call):
+
 2009-12-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Regression: When DAE_APPLICATION is ON, no events are dispatched anymore.

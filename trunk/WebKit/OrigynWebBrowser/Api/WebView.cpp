@@ -174,8 +174,13 @@ public:
 
     virtual void call()
     {
-        if (!m_webView->isStopped())
+        if (!m_webView->isStopped()) {
             m_webView->stopLoading(true);
+#if ENABLE(DAE_APPLICATION)
+            if (m_webView->application())
+                m_webView->application()->dispatchApplicationEvent(eventNames().LowMemoryEvent);
+#endif
+        }
     }
 
 private:
