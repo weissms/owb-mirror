@@ -1,3 +1,9 @@
+2009-12-09  Mario Bensi  <mbensi@pleyo.com>
+
+        fix jsc api visibility and fix drt build
+
+        * cmake/AddWebCoreCompilerFlags.cmake:
+
 2009-11-24  Gilles Bertal  <gbertal@pleyo.com>
 
         Normalized tab spacing.
