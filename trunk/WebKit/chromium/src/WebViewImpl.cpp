@@ -33,6 +33,9 @@
 
 #include "AutocompletePopupMenuClient.h"
 #include "AXObjectCache.h"
+#include "ContextMenu.h"
+#include "ContextMenuController.h"
+#include "ContextMenuItem.h"
 #include "CSSStyleSelector.h"
 #include "CSSValueKeywords.h"
 #include "Cursor.h"
@@ -97,6 +100,9 @@
 #include "KeyboardCodesWin.h"
 #include "RenderThemeChromiumWin.h"
 #else
+#if PLATFORM(LINUX)
+#include "RenderThemeChromiumLinux.h"
+#endif
 #include "KeyboardCodesPosix.h"
 #include "RenderTheme.h"
 #endif
@@ -461,7 +467,7 @@ bool WebViewImpl::keyEvent(const WebKeyboardEvent& event)
     PlatformKeyboardEventBuilder evt(event);
 
     if (handler->keyEvent(evt)) {
-        if (WebInputEvent::RawKeyDown == event.type && !evt.isSystemKey())
+        if (WebInputEvent::RawKeyDown == event.type)
             m_suppressNextKeypressEvent = true;
         return true;
     }
@@ -526,21 +532,23 @@ bool WebViewImpl::charEvent(const WebKeyboardEvent& event)
     // handled by Webkit. A keyDown event is typically associated with a
     // keyPress(char) event and a keyUp event. We reset this flag here as it
     // only applies to the current keyPress event.
-    if (m_suppressNextKeypressEvent) {
-        m_suppressNextKeypressEvent = false;
-        return true;
-    }
+    bool suppress = m_suppressNextKeypressEvent;
+    m_suppressNextKeypressEvent = false;
 
     Frame* frame = focusedWebCoreFrame();
     if (!frame)
-        return false;
+        return suppress;
 
     EventHandler* handler = frame->eventHandler();
     if (!handler)
-        return keyEventDefault(event);
+        return suppress || keyEventDefault(event);
 
     PlatformKeyboardEventBuilder evt(event);
     if (!evt.isCharacterKey())
+        return true;
+
+    // Accesskeys are triggered by char events and can't be suppressed.
+    if (handler->handleAccessKey(evt))
         return true;
 
     // Safari 3.1 does not pass off windows system key messages (WM_SYSCHAR) to
@@ -548,9 +556,9 @@ bool WebViewImpl::charEvent(const WebKeyboardEvent& event)
     // for now we are converting other platform's key events to windows key
     // events.
     if (evt.isSystemKey())
-        return handler->handleAccessKey(evt);
+        return false;
 
-    if (!handler->keyEvent(evt))
+    if (!suppress && !handler->keyEvent(evt))
         return keyEventDefault(event);
 
     return true;
@@ -925,11 +933,11 @@ void WebViewImpl::setFocus(bool enable)
                 Element* element = static_cast<Element*>(focusedNode);
                 if (element->isTextFormControl())
                     element->updateFocusAppearance(true);
-                else {
+                else if (focusedNode->isContentEditable()) {
                     // updateFocusAppearance() selects all the text of
                     // contentseditable DIVs. So we set the selection explicitly
                     // instead. Note that this has the side effect of moving the
-                    // caret back to the begining of the text.
+                    // caret back to the beginning of the text.
                     Position position(focusedNode, 0,
                                       Position::PositionIsOffsetInAnchor);
                     focusedFrame->selection()->setSelection(
@@ -1581,6 +1589,19 @@ void WebViewImpl::hideAutofillPopup()
     hideAutoCompletePopup();
 }
 
+void WebViewImpl::performCustomContextMenuAction(unsigned action)
+{
+    if (!m_page)
+        return;
+    ContextMenu* menu = m_page->contextMenuController()->contextMenu();
+    if (!menu)
+        return;
+    ContextMenuItem* item = menu->itemWithAction(static_cast<ContextMenuAction>(ContextMenuItemBaseCustomTag + action));
+    if (item)
+        m_page->contextMenuController()->contextMenuItemSelected(item);
+    m_page->contextMenuController()->clearContextMenu();
+}
+
 // WebView --------------------------------------------------------------------
 
 bool WebViewImpl::setDropEffect(bool accept)
@@ -1619,6 +1640,16 @@ void WebViewImpl::setIsActive(bool active)
 bool WebViewImpl::isActive() const
 {
     return (page() && page()->focusController()) ? page()->focusController()->isActive() : false;
+}
+
+void WebViewImpl::setScrollbarColors(unsigned inactiveColor,
+                                     unsigned activeColor,
+                                     unsigned trackColor) {
+#if PLATFORM(LINUX)
+    RenderThemeChromiumLinux::setScrollbarColors(inactiveColor,
+                                                 activeColor,
+                                                 trackColor);
+#endif
 }
 
 void WebViewImpl::didCommitLoad(bool* isNewNavigation)

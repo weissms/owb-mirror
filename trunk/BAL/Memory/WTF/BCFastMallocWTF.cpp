@@ -347,6 +347,14 @@ FastMallocStatistics fastMallocStatistics()
     return statistics;
 }
 
+void setMemoryLimit(int)
+{
+}
+
+void setMemoryNotificationCallback(MemoryNotification*)
+{
+}
+
 } // namespace WTF
 
 #if PLATFORM(DARWIN)

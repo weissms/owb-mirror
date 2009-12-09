@@ -381,6 +381,16 @@
 #define WTF_PLATFORM_X86_64 1
 #endif
 
+/* PLATFORM(IA64) */
+#if defined(__ia64__)
+#define WTF_PLATFORM_IA64 1
+#endif
+
+/* PLATFORM(ALPHA) */
+#if defined(__alpha__)
+#define WTF_PLATFORM_ALPHA 1
+#endif
+
 /* PLATFORM(SH4) */
 #if defined(__SH4__)
 #define WTF_PLATFORM_SH4 1
@@ -570,6 +580,9 @@
 
 #if PLATFORM(WX)
 #define ENABLE_ASSEMBLER 1
+#if PLATFORM(DARWIN)
+#define WTF_PLATFORM_CF 1
+#endif
 #endif
 
 #if PLATFORM(GTK)
@@ -772,10 +785,6 @@
 #define ENABLE_NOTIFICATIONS 0
 #endif
 
-#if !defined(ENABLE_SHARED_SCRIPT)
-#define ENABLE_SHARED_SCRIPT 0
-#endif
-
 #if !defined(ENABLE_TEXT_CARET)
 #define ENABLE_TEXT_CARET 1
 #endif
@@ -785,7 +794,7 @@
 #endif
 
 #if !defined(WTF_USE_JSVALUE64) && !defined(WTF_USE_JSVALUE32) && !defined(WTF_USE_JSVALUE32_64)
-#if PLATFORM(X86_64) && (PLATFORM(DARWIN) || PLATFORM(LINUX) || PLATFORM(WIN_OS))
+#if (PLATFORM(X86_64) && (PLATFORM(UNIX) || PLATFORM(WIN_OS))) || PLATFORM(IA64) || PLATFORM(ALPHA)
 #define WTF_USE_JSVALUE64 1
 #elif PLATFORM(ARM) || PLATFORM(PPC64)
 #define WTF_USE_JSVALUE32 1

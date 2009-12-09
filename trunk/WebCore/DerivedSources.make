@@ -39,7 +39,6 @@ VPATH = \
     $(WebCore)/notifications \
     $(WebCore)/page \
     $(WebCore)/plugins \
-    $(WebCore)/SharedScript \
     $(WebCore)/storage \
     $(WebCore)/xml \
     $(WebCore)/wml \
@@ -89,6 +88,7 @@ DOM_CLASSES = \
     WebGLShader \
     WebGLShortArray \
     WebGLTexture \
+    WebGLUniformLocation \
     WebGLUnsignedByteArray \
     WebGLUnsignedIntArray \
     WebGLUnsignedShortArray \
@@ -236,7 +236,6 @@ DOM_CLASSES = \
     Range \
     RangeException \
     Rect \
-    SharedScriptContext \
     SharedWorker \
     SharedWorkerContext \
     SQLError \
@@ -405,7 +404,6 @@ DOM_CLASSES = \
     WebKitCSSKeyframesRule \
     WebKitCSSMatrix \
     WebKitCSSTransformValue \
-    WebKitSharedScript \
     WebKitPoint \
     WebKitTransitionEvent \
     WebSocket \

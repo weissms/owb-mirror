@@ -40,6 +40,11 @@
 #include "Editor.h"
 #include "Frame.h"
 #include "FrameLoader.h"
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
+
 #include "KURL.h"
 #include "LocalizedStrings.h"
 #include "Node.h"
@@ -781,6 +786,7 @@ void ContextMenu::checkOrEnableIfNeeded(ContextMenuItem& item) const
 #if ENABLE(INSPECTOR)
         case ContextMenuItemTagInspectElement:
 #endif
+        case ContextMenuItemBaseCustomTag:
         case ContextMenuItemBaseApplicationTag:
             break;
     }

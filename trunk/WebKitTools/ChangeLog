@@ -1,3 +1,289 @@
+2009-12-09  Dirk Schulze  <krit@webkit.org>
+
+        Not reviewed, adding myself to the reviewers list.
+
+        * Scripts/modules/committers.py:
+
+2009-12-09  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed "build" fix.  CheckStyle needs a --no-upate option.
+
+        * Scripts/modules/commands/download.py:
+
+2009-12-09  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Convert Build to use Sequence
+        https://bugs.webkit.org/show_bug.cgi?id=32310
+
+        So much prettier.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/stepsequence.py: Added.
+
+2009-12-09  Adam Barth  <abarth@webkit.org>
+
+        Add missing file.
+
+        * Scripts/modules/executive.py: Added.
+
+2009-12-09  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed "build" fix.
+
+        * Scripts/modules/landingsequence.py:
+
+2009-12-09  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Implement abstract Steps
+        https://bugs.webkit.org/show_bug.cgi?id=32212
+
+        This is a fairly disruptive change that refactors how we build
+        commands.  Instead of using a landing sequence, we can now assemble a
+        sequence of steps directly.  We still use the landing sequence in the
+        interim, but this will be removed soon.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/commands/early_warning_system.py:
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/commands/queues_unittest.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/mock_bugzillatool.py:
+        * Scripts/modules/processutils.py: Removed.
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+        * Scripts/modules/webkitport.py:
+
+2009-12-08  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        run_command and ScriptError should move into processutils.py
+        https://bugs.webkit.org/show_bug.cgi?id=32305
+
+        Turns out there are a zillion callers to run_command.
+
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/commands/early_warning_system.py:
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/landingsequence.py:
+        * Scripts/modules/logging_unittest.py:
+        * Scripts/modules/processutils.py:
+        * Scripts/modules/scm.py:
+        * Scripts/modules/scm_unittest.py:
+        * Scripts/modules/workqueue.py:
+        * Scripts/modules/workqueue_unittest.py:
+
+2009-12-08  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Mac plugins support.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=32236
+
+        * wx/browser/wscript:
+
+2009-12-08  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [check-webkit-style] False positive for DEFINE_OPCODE(op_jtrue) {
+        https://bugs.webkit.org/show_bug.cgi?id=32193
+
+        * Scripts/modules/cpp_style.py: For the function { rule, if there is space
+          at the beginning of line, ignore lines which then have a macro.
+        * Scripts/modules/cpp_style_unittest.py: Add tests to verify the
+          new behavior.
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by David Levin.
+
+        Revert and reopen "Add asserts to RefCounted to make sure ref/deref happens on the right thread."
+        It may have caused massive increase of reported leaks on the bots.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * DumpRenderTree/ForwardingHeaders/wtf/ThreadVerifier.h: Removed.
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add asserts to RefCounted to make sure ref/deref happens on the right thread.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * DumpRenderTree/ForwardingHeaders/wtf/ThreadVerifier.h: Added.
+
+2009-12-08  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [check-webkit-style] False positive for camel case of JSC op codes
+        https://bugs.webkit.org/show_bug.cgi?id=32192
+
+        * Scripts/modules/cpp_style.py: Added an exception for the JSC op
+          code functions and const_iterator as well since I noticed a false
+          positive there when testing the fix.
+        * Scripts/modules/cpp_style_unittest.py: Added tests for these
+          changes.
+
+2009-12-08  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Turn on (SVG) Filters for Win.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        * Scripts/webkitdirs.pm:
+
+2009-12-08  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Turn on (SVG) Filters for Gtk.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        * Scripts/build-webkit:
+
+2009-12-07  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Levin.
+
+        [check-webkit-style] S_OK is a fine identifier
+        https://bugs.webkit.org/show_bug.cgi?id=32225
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-12-07  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Turn on (SVG) Filters for Qt.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        * Scripts/build-webkit:
+
+2009-12-07  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Make run-webkit-websocketserver log to stderr rather than to a file.
+        https://bugs.webkit.org/show_bug.cgi?id=32234
+
+        * Scripts/run-webkit-websocketserver:
+
+2009-12-07  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove ENABLE_SHARED_SCRIPT flags
+        https://bugs.webkit.org/show_bug.cgi?id=32245
+        This patch was obtained by "git revert" command and then un-reverting of ChangeLog files.
+
+        * Scripts/build-webkit:
+
+2009-12-07  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/7450481> One compositing test keeps DRT in "compositing mode", breaks repaint tests
+
+        The counter that WebView used to keep track of the number of enclosed WebHTMLViews using
+        accelerated compositing was hard to manage, and maintained incorrectly in a number of cases.
+        This caused one compositing test make DumpRenderTree think that all subsequent tests
+        were compositing too.
+
+        Replace this counter with notifications, which are only fired if a client (DRT) requests them. The
+        notification informs the client that a WebHTMLView entered compositing mode (or an already-
+        compositing WebHTML was added); it does not say when a view becomes uncomposited, or all
+        compositing subviews were removed, since this is tricky to get right.
+        
+        DumpRenderTreeWindow listens for this notification, and uses it to turn on window
+        autodisplay, which is necessary to kick-start Core Animation rendering and animations.
+        We ensure that window autodisplay is turned off before every test.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (createWebViewAndOffscreenWindow):
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/mac/DumpRenderTreeWindow.h:
+        * DumpRenderTree/mac/DumpRenderTreeWindow.mm:
+        (-[DumpRenderTreeWindow close]):
+        (-[DumpRenderTreeWindow startListeningForAcceleratedCompositingChanges]):
+        (-[DumpRenderTreeWindow webViewStartedAcceleratedCompositing:]):
+
+2009-12-07  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Holger Hans Peter Freyther.
+
+        Turn on (SVG) Filters support, by default.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        For now only enable FILTERS build flag on WebKit/mac. Other platforms will follow soon.
+
+        * Scripts/build-webkit:
+
+2009-12-07  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Chromium buildbots are not red when they fail
+        https://bugs.webkit.org/show_bug.cgi?id=32235
+
+        * Scripts/build-webkit:
+
+2009-12-07  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Typo in chromium linux builder
+        https://bugs.webkit.org/show_bug.cgi?id=32238
+
+        * Scripts/webkitdirs.pm:
+
+2009-12-07  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        fixes to build-webkit --chromium
+        https://bugs.webkit.org/show_bug.cgi?id=32179
+
+        * Scripts/webkitdirs.pm:
+
+2009-12-07  Eric Seidel  <eric@webkit.org>
+
+        No review, just adding two recently approved committers.
+
+        * Scripts/modules/committers.py:
+
+2009-12-07  Alexey Proskuryakov  <ap@apple.com>
+
+        * Scripts/run-webkit-websocketserver: Added property svn:executable.
+
+2009-12-07  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Add run-webkit-websocketserver
+
+        https://bugs.webkit.org/show_bug.cgi?id=31390
+
+        * Scripts/run-webkit-websocketserver: Added.
+
+2009-12-07  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix. Be flexible about which version of ICU is used on Windows.
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj: Add optional xcopy commands to copy ICU 4.2.
+
 2009-12-07  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Darin Adler.

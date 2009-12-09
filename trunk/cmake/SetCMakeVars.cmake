@@ -169,13 +169,6 @@ if(ENABLE_NPAPI)
     )
 endif(ENABLE_NPAPI)
 
-if(ENABLE_SHARED_SCRIPT)
-    list(APPEND WEBCORE_INCLUDE_DIRS
-        ${OWB_BINARY_DIR}/generated_sources/WebCore/SharedScript
-        ${OWB_SOURCE_DIR}/WebCore/SharedScript
-    )
-endif(ENABLE_SHARED_SCRIPT)
-
 if(ENABLE_SVG OR ENABLE_FILTERS)
     list(APPEND WEBCORE_INCLUDE_DIRS
         ${OWB_SOURCE_DIR}/WebCore/svg

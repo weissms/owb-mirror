@@ -79,7 +79,7 @@ static bool isValidProtocolString(const WebCore::String& protocol)
         return false;
     const UChar* characters = protocol.characters();
     for (size_t i = 0; i < protocol.length(); i++) {
-        if (characters[i] < 0x21 || characters[i] > 0x7E)
+        if (characters[i] < 0x20 || characters[i] > 0x7E)
             return false;
     }
     return true;
@@ -126,6 +126,12 @@ void WebSocket::connect(const KURL& url, const String& protocol, ExceptionCode& 
 
     if (!m_url.protocolIs("ws") && !m_url.protocolIs("wss")) {
         LOG(Network, "Wrong url scheme for WebSocket %s", url.string().utf8().data());
+        m_state = CLOSED;
+        ec = SYNTAX_ERR;
+        return;
+    }
+    if (m_url.hasFragmentIdentifier()) {
+        LOG(Network, "URL has fragment component %s", url.string().utf8().data());
         m_state = CLOSED;
         ec = SYNTAX_ERR;
         return;

@@ -1,3 +1,250 @@
+2009-12-09  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Object.create fails if properties on the descriptor are getters
+        https://bugs.webkit.org/show_bug.cgi?id=32219
+
+        Correctly initialise the PropertySlots with the descriptor object.
+
+        * runtime/ObjectConstructor.cpp:
+        (JSC::toPropertyDescriptor):
+
+2009-12-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin Adler.
+
+        move code generation portions of Nodes.cpp to bytecompiler directory
+        https://bugs.webkit.org/show_bug.cgi?id=32284
+
+        * bytecompiler/NodesCodegen.cpp: Copied from parser/Nodes.cpp. Removed parts that
+        are not about codegen.
+        * parser/Nodes.cpp: Removed everything that is about codegen.
+
+        Update build systems:
+        
+        * Android.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+
+2009-12-08  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Mac plugins support.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=32236
+
+        * wtf/Platform.h:
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by David Levin.
+
+        Revert and reopen "Add asserts to RefCounted to make sure ref/deref happens on the right thread."
+        It may have caused massive increase of reported leaks on the bots.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure):
+        * wtf/RefCounted.h:
+        (WTF::RefCountedBase::ref):
+        (WTF::RefCountedBase::hasOneRef):
+        (WTF::RefCountedBase::refCount):
+        (WTF::RefCountedBase::derefBase):
+        * wtf/ThreadVerifier.h: Removed.
+
+2009-12-08  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Darin Adler.
+
+        Make WebKit build correctly on FreeBSD, IA64, and Alpha.
+        Based on work by Petr Salinger <Petr.Salinger@seznam.cz>,
+        and Colin Watson <cjwatson@ubuntu.com>.
+
+        * wtf/Platform.h:
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add asserts to RefCounted to make sure ref/deref happens on the right thread.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure): Disable thread verification on this class since it uses addressOfCount().
+        * wtf/RefCounted.h:
+        (WTF::RefCountedBase::ref): Add ASSERT.
+        (WTF::RefCountedBase::hasOneRef): Ditto.
+        (WTF::RefCountedBase::refCount): Ditto.
+        (WTF::RefCountedBase::derefBase): Ditto.
+        (WTF::RefCountedBase::disableThreadVerification): delegate to ThreadVerifier method.
+        * wtf/ThreadVerifier.h: Added.
+        (WTF::ThreadVerifier::ThreadVerifier): New Debug-only class to verify that ref/deref of RefCounted is done on the same thread.
+        (WTF::ThreadVerifier::activate): Activates checks. Called when ref count becomes above 2.
+        (WTF::ThreadVerifier::deactivate): Deactivates checks. Called when ref count drops below 2.
+        (WTF::ThreadVerifier::disableThreadVerification): used on objects that should not be checked (StringImpl etc)
+        (WTF::ThreadVerifier::verifyThread):
+        * GNUmakefile.am: Add ThreadVerifier.h to the build file.
+        * JavaScriptCore.gypi: Ditto.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Ditto.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Ditto.
+
+2009-12-08  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        [Android] Adds Makefiles for Android port.
+        https://bugs.webkit.org/show_bug.cgi?id=31325
+
+        * Android.mk: Added.
+        * Android.v8.wtf.mk: Added.
+
+2009-12-07  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove ENABLE_SHARED_SCRIPT flags
+        https://bugs.webkit.org/show_bug.cgi?id=32245
+        This patch was obtained by "git revert" command and then un-reverting of ChangeLog files.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * wtf/Platform.h:
+
+2009-12-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Windows build fixage part I).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32184
+        Handle out-of-memory conditions with JSC Ropes with a JS exception, rather than crashing.
+        Switch from using fastMalloc to tryFastMalloc, pass an ExecState to record the exception on.
+
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::toString):
+        * API/JSValueRef.cpp:
+        (JSValueIsStrictEqual):
+        * JavaScriptCore.exp:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitEqualityOp):
+        * debugger/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::functionName):
+        (JSC::DebuggerCallFrame::calculatedFunctionName):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::callEval):
+        (JSC::Interpreter::privateExecute):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * profiler/ProfileGenerator.cpp:
+        (JSC::ProfileGenerator::addParentForConsoleStart):
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::willExecute):
+        (JSC::Profiler::didExecute):
+        (JSC::Profiler::createCallIdentifier):
+        (JSC::createCallIdentifierFromFunctionImp):
+        * profiler/Profiler.h:
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncIndexOf):
+        (JSC::arrayProtoFuncLastIndexOf):
+        * runtime/DateConstructor.cpp:
+        (JSC::constructDate):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/InternalFunction.cpp:
+        (JSC::InternalFunction::name):
+        (JSC::InternalFunction::displayName):
+        (JSC::InternalFunction::calculatedDisplayName):
+        * runtime/InternalFunction.h:
+        * runtime/JSCell.cpp:
+        (JSC::JSCell::getString):
+        * runtime/JSCell.h:
+        (JSC::JSValue::getString):
+        * runtime/JSONObject.cpp:
+        (JSC::gap):
+        (JSC::Stringifier::Stringifier):
+        (JSC::Stringifier::appendStringifiedValue):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::putDirectFunction):
+        (JSC::JSObject::putDirectFunctionWithoutTransition):
+        (JSC::JSObject::defineOwnProperty):
+        * runtime/JSObject.h:
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::get):
+        * runtime/JSString.cpp:
+        (JSC::JSString::Rope::~Rope):
+        (JSC::JSString::resolveRope):
+        (JSC::JSString::getPrimitiveNumber):
+        (JSC::JSString::toNumber):
+        (JSC::JSString::toString):
+        (JSC::JSString::toThisString):
+        (JSC::JSString::getStringPropertyDescriptor):
+        * runtime/JSString.h:
+        (JSC::JSString::Rope::createOrNull):
+        (JSC::JSString::Rope::operator new):
+        (JSC::JSString::value):
+        (JSC::JSString::tryGetValue):
+        (JSC::JSString::getIndex):
+        (JSC::JSString::getStringPropertySlot):
+        (JSC::JSValue::toString):
+        * runtime/JSValue.h:
+        * runtime/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::NativeErrorConstructor):
+        * runtime/Operations.cpp:
+        (JSC::JSValue::strictEqualSlowCase):
+        * runtime/Operations.h:
+        (JSC::JSValue::equalSlowCaseInline):
+        (JSC::JSValue::strictEqualSlowCaseInline):
+        (JSC::JSValue::strictEqual):
+        (JSC::jsLess):
+        (JSC::jsLessEq):
+        (JSC::jsAdd):
+        (JSC::concatenateStrings):
+        * runtime/PropertyDescriptor.cpp:
+        (JSC::PropertyDescriptor::equalTo):
+        * runtime/PropertyDescriptor.h:
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace):
+        (JSC::stringProtoFuncToLowerCase):
+        (JSC::stringProtoFuncToUpperCase):
+
+2009-12-07  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Holger Freyther.
+
+        Turn on (SVG) Filters support, by default.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        * Configurations/FeatureDefines.xcconfig: Enable FILTERS build flag.
+
+2009-12-07  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix. Be flexible about which version of ICU is used on Windows.
+
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops: Add optional xcopy commands to copy ICU 4.2.
+
+2009-12-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        op_loop_if_less JIT codegen is broken for 64-bit
+        https://bugs.webkit.org/show_bug.cgi?id=32221
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_loop_if_false): Fix codegen in this version - test was backwards.
+
 2009-12-07  Kent Hansen  <kent.hansen@nokia.com>
 
         Reviewed by Darin Adler.

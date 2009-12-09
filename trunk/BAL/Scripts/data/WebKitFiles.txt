@@ -1,5 +1,7 @@
 JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/runtime/Collector.cpp
+JavaScriptCore/wtf/FastMalloc.cpp BAL/Memory/WTF/BCFastMallocWTF.cpp
+JavaScriptCore/wtf/FastMalloc.h BAL/Memory/WTF/BCFastMallocWTF.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp

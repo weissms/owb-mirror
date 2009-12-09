@@ -1,3 +1,17 @@
+2009-12-09  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Mac plugins support.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=32236
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::createPlugin):
+        (WebCore::FrameLoaderClientWx::redirectDataToPlugin):
+        * WebView.cpp:
+        (wxWebView::Create):
+
 2009-12-04  Ben Murdoch  <benm@google.com>
 
         Reviewed by Brady Eidson.

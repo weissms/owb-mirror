@@ -55,6 +55,11 @@
 #include <openssl/x509v3.h>
 #endif
 
+#if !PLATFORM(WIN_OS)
+#include <sys/param.h>
+#define MAX_PATH MAXPATHLEN
+#endif
+
 namespace WebCore {
 
 const int selectTimeoutMS = 5;

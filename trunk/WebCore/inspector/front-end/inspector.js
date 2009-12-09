@@ -74,6 +74,14 @@ var WebInspector = {
     missingLocalizedStrings: {},
     pendingDispatches: 0,
 
+    // RegExp groups:
+    // 1 - scheme
+    // 2 - hostname
+    // 3 - ?port
+    // 4 - ?path
+    // 5 - ?fragment
+    URLRegExp: /^(http[s]?|file):\/\/([^\/:]+)(?::([\d]+))?(?:(\/[^#]*)(?:#(.*))?)?$/i,
+
     get platform()
     {
         if (!("_platform" in this))
@@ -471,7 +479,7 @@ WebInspector.loaded = function()
     document.addEventListener("keyup", this.documentKeyUp.bind(this), true);
     document.addEventListener("beforecopy", this.documentCanCopy.bind(this), true);
     document.addEventListener("copy", this.documentCopy.bind(this), true);
-    document.addEventListener("contextmenu", this.contextMenu.bind(this), true);
+    document.addEventListener("contextmenu", this.contextMenuEventFired.bind(this), true);
 
     var mainPanelsElement = document.getElementById("main-panels");
     mainPanelsElement.handleKeyEvent = this.mainKeyDown.bind(this);
@@ -748,10 +756,14 @@ WebInspector.documentCopy = function(event)
         WebInspector[this.currentFocusElement.id + "Copy"](event);
 }
 
-WebInspector.contextMenu = function(event)
+WebInspector.contextMenuEventFired = function(event)
 {
     if (event.handled || event.target.hasStyleClass("popup-glasspane"))
         event.preventDefault();
+
+    if (!this.contextMenu)
+        this.contextMenu = new WebInspector.ContextMenu();
+    this.contextMenu.show(event);
 }
 
 WebInspector.mainKeyDown = function(event)
@@ -1005,6 +1017,7 @@ WebInspector.addResource = function(identifier, payload)
     var resource = new WebInspector.Resource(
         payload.requestHeaders,
         payload.requestURL,
+        payload.documentURL,
         payload.host,
         payload.path,
         payload.lastPathComponent,

@@ -27,25 +27,19 @@
 #include "config.h"
 #include "DNS.h"
 
-#if LIBSOUP_VERSION_NUM > 0x022903
 #include "CString.h"
 #include "ResourceHandle.h"
-#else
-#include "NotImplemented.h"
-#endif
 
 namespace WebCore {
 
 void prefetchDNS(const String& hostname)
 {
-#if LIBSOUP_VERSION_NUM > 0x022903
+    #ifdef HAVE_LIBSOUP_2_29_3
     String uri = "http://"+hostname;
     SoupURI* soupUri = soup_uri_new(uri.utf8().data());
     soup_session_prepare_for_uri(ResourceHandle::defaultSession(), soupUri);
     soup_uri_free(soupUri);
-#else
-    notImplemented();
-#endif
+    #endif
 }
 
 }

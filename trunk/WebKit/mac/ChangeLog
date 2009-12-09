@@ -1,3 +1,100 @@
+2009-12-09  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Holger Hans Peter Freyther.
+
+        Turn on (SVG) Filters support, by default.
+        https://bugs.webkit.org/show_bug.cgi?id=32224
+
+        * Configurations/FeatureDefines.xcconfig: Enable FILTERS build flag.
+
+2009-12-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/7295070> WebKit video fullscreen keeps playing after closing the window
+        
+        Fix a leak of the QTMovieView when exiting fullscreen video, and remove the
+        old workaround.
+
+        * WebView/WebVideoFullscreenController.mm:
+        (-[WebVideoFullscreenController windowDidLoad]): Set the movie view as the contentView directly.
+        (-[WebVideoFullscreenController setMediaElement:WebCore::]): Cast the contentView to a movie view.
+        (-[WebVideoFullscreenController windowDidExitFullscreen]): Remove the old workaround.
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by David Levin.
+
+        Revert and reopen "Add asserts to RefCounted to make sure ref/deref happens on the right thread."
+        It may have caused massive increase of reported leaks on the bots.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * ForwardingHeaders/wtf/ThreadVerifier.h: Removed.
+
+2009-12-08  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add asserts to RefCounted to make sure ref/deref happens on the right thread.
+        https://bugs.webkit.org/show_bug.cgi?id=31639
+
+        * ForwardingHeaders/wtf/ThreadVerifier.h: Added.
+
+2009-12-07  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove ENABLE_SHARED_SCRIPT flags
+        https://bugs.webkit.org/show_bug.cgi?id=32245
+        This patch was obtained by "git revert" command and then un-reverting of ChangeLog files.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2009-12-07  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/7450481> One compositing test keeps DRT in "compositing mode", breaks repaint tests
+
+        The counter that WebView used to keep track of the number of enclosed WebHTMLViews using
+        accelerated compositing was hard to manage, and maintained incorrectly in a number of cases.
+        This caused one compositing test make DumpRenderTree think that all subsequent tests
+        were compositing too.
+        
+        Replace this counter with notifications, which are only fired if a client (DRT) requests them. The
+        notification informs the client that a WebHTMLView entered compositing mode (or an already-
+        compositing WebHTML was added); it does not say when a view becomes uncomposited, or all
+        compositing subviews were removed, since this is tricky to get right.
+        
+        Change -[WebView _isUsingAcceleratedCompositing] to manually walk the frames, and
+        return YES if any document view is composited.
+
+        * WebKit.exp:
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView close]):
+        (-[WebHTMLView viewDidMoveToSuperview]):
+        (-[WebHTMLView attachRootLayer:]):
+        (-[WebHTMLView detachRootLayer]):
+        * WebView/WebView.mm:
+        (+[WebView automaticallyNotifiesObserversForKey:]):
+        (-[WebView _postsAcceleratedCompositingNotifications]):
+        (-[WebView _setPostsAcceleratedCompositingNotifications:]):
+        (-[WebView _isUsingAcceleratedCompositing]):
+        * WebView/WebViewData.h:
+        * WebView/WebViewInternal.h:
+        * WebView/WebViewPrivate.h:
+
+2009-12-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32184
+        Handle out-of-memory conditions with JSC Ropes with a JS exception, rather than crashing.
+        Switch from using fastMalloc to tryFastMalloc, pass an ExecState to record the exception on.
+
+        * WebView/WebView.mm:
+        (aeDescFromJSValue):
+
 2009-12-04  Ben Murdoch  <benm@google.com>
 
         Reviewed by Brady Eidson.

@@ -1901,7 +1901,8 @@ def check_braces(filename, clean_lines, line_number, error):
                   'This { should be at the end of the previous line')
     elif (search(r'\)\s*(const\s*)?{\s*$', line)
           and line.count('(') == line.count(')')
-          and not search(r'\b(if|for|foreach|while|switch)\b', line)):
+          and not search(r'\b(if|for|foreach|while|switch)\b', line)
+          and not match(r'\s+[A-Z_][A-Z_0-9]+\b', line)):
         error(filename, line_number, 'whitespace/braces', 4,
               'Place brace on its own line for function definitions.')
 
@@ -2704,7 +2705,7 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
     # Detect variable and functions.
     type_regexp = r'\w([\w]|\s*[*&]\s*|::)+'
     identifier_regexp = r'(?P<identifier>[\w:]+)'
-    character_after_identifier_regexp = r'(?P<character_after_identifier>[[;()=,])'
+    character_after_identifier_regexp = r'(?P<character_after_identifier>[[;()=,])(?!=)'
     declaration_without_type_regexp = r'\s*' + identifier_regexp + r'\s*' + character_after_identifier_regexp
     declaration_with_type_regexp = r'\s*' + type_regexp + r'\s' + declaration_without_type_regexp
     is_function_arguments = False
@@ -2734,7 +2735,10 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
         # Remove "m_" and "s_" to allow them.
         modified_identifier = sub(r'(^|(?<=::))[ms]_', '', identifier)
         if modified_identifier.find('_') >= 0:
-            error(filename, line_number, 'readability/naming', 4, identifier + " is incorrectly named. Don't use underscores in your identifier names.")
+            # Various exceptions to the rule: JavaScript op codes functions, const_iterator.
+            if (not (filename.find('JavaScriptCore') >= 0 and modified_identifier.find('_op_') >= 0)
+                and not modified_identifier == "const_iterator"):
+                error(filename, line_number, 'readability/naming', 4, identifier + " is incorrectly named. Don't use underscores in your identifier names.")
 
         # There can be only one declaration in non-for-control statements.
         if control_statement:

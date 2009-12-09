@@ -28,36 +28,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module window {
+#ifndef ContextMenuSelectionHandler_h
+#define ContextMenuSelectionHandler_h
 
-    interface [
-        Conditional=SHARED_SCRIPT,
-        CustomMarkFunction,
-        EventTarget,
-        ExtendsDOMGlobalObject,
-        IsWorkerContext,
-        GenerateNativeConverter,
-        LegacyParent=JSSharedScriptContextBase,
-        NoStaticTables
-    ] SharedScriptContext {
+#include <wtf/RefCounted.h>
 
-#if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
-        attribute [Replaceable] SharedScriptContext self;
-#endif
+namespace WebCore {
 
-        readonly attribute DOMString name;
-        attribute EventListener onerror;
+    class ContextMenuItem;
 
-        // EventTarget interface
-        [Custom] void addEventListener(in DOMString type, 
-                                       in EventListener listener, 
-                                       in boolean useCapture);
-        [Custom] void removeEventListener(in DOMString type, 
-                                          in EventListener listener, 
-                                          in boolean useCapture);
-        boolean dispatchEvent(in Event evt)
-            raises(EventException);
+    class ContextMenuSelectionHandler : public RefCounted<ContextMenuSelectionHandler> {
+    public:
+        ContextMenuSelectionHandler() { }
+        virtual ~ContextMenuSelectionHandler() { };
 
+        virtual void contextMenuItemSelected(ContextMenuItem*) = 0;
+        virtual void contextMenuCleared() = 0;
     };
 
 }
+
+#endif // ContextMenuSelectionHandler_h

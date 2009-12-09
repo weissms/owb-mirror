@@ -28,27 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module window {
+#ifndef WebMenuItemInfo_h
+#define WebMenuItemInfo_h
 
-    interface [
-        Conditional=SHARED_SCRIPT,
-        EventTarget,
-        GenerateToJS
-    ] WebKitSharedScript {
+#include "WebCommon.h"
+#include "WebString.h"
+#include "WebVector.h"
 
-        attribute EventListener onerror;
-        attribute EventListener onload;
+namespace WebKit {
 
-        // EventTarget interface
-        [Custom] void addEventListener(in DOMString type,
-                                       in EventListener listener,
-                                       in boolean useCapture);
-        [Custom] void removeEventListener(in DOMString type,
-                                          in EventListener listener,
-                                          in boolean useCapture);
-        boolean dispatchEvent(in Event evt)
-            raises(EventException);
-
-        readonly attribute SharedScriptContext context;
+struct WebMenuItemInfo {
+    enum Type {
+        Option,
+        CheckableOption,
+        Group,
+        Separator,
     };
-}
+    WebString label;
+    Type type;
+    unsigned action;
+    bool enabled;
+    bool checked;
+};
+
+} // namespace WebKit
+
+#endif

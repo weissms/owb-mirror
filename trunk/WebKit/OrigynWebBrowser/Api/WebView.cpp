@@ -124,6 +124,7 @@
 
 #include <Collector.h>
 #include <JSCell.h>
+#include <JSLock.h>
 #include <JSValue.h>
 #include <wtf/HashSet.h>
 #include "InitializeThreading.h"
@@ -1829,8 +1830,11 @@ const char* WebView::stringByEvaluatingJavaScriptFromString(const char* script)
     JSC::JSValue scriptExecutionResult = coreFrame->script()->executeScript(script, false).jsValue();
     if(!scriptExecutionResult)
         return NULL;
-    else if (scriptExecutionResult.isString())
-        return scriptExecutionResult.getString().ascii();
+    else if (scriptExecutionResult.isString()) {
+    	JSC::JSLock lock(JSC::SilenceAssertionsOnly);
+        JSC::ExecState* exec = coreFrame->script()->globalObject(mainThreadNormalWorld())->globalExec();
+        return scriptExecutionResult.getString(exec).ascii();
+    }
     return NULL;
 }
 

@@ -130,8 +130,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 }
 
 !contains(DEFINES, ENABLE_DASHBOARD_SUPPORT=.): DEFINES += ENABLE_DASHBOARD_SUPPORT=0
-!contains(DEFINES, ENABLE_FILTERS=.): DEFINES += ENABLE_FILTERS=0
-!contains(DEFINES, ENABLE_SHARED_SCRIPT=.): DEFINES += ENABLE_SHARED_SCRIPT=0
+!contains(DEFINES, ENABLE_FILTERS=.): DEFINES += ENABLE_FILTERS=1
 !contains(DEFINES, ENABLE_XPATH=.): DEFINES += ENABLE_XPATH=1
 #!contains(DEFINES, ENABLE_XBL=.): DEFINES += ENABLE_XBL=1
 !contains(DEFINES, ENABLE_WCSS=.): DEFINES += ENABLE_WCSS=0
@@ -1193,7 +1192,6 @@ SOURCES += \
     platform/FileChooser.cpp \
     platform/GeolocationService.cpp \
     platform/image-decoders/qt/RGBA32BufferQt.cpp \
-    platform/graphics/filters/FEGaussianBlur.cpp \
     platform/graphics/FontDescription.cpp \
     platform/graphics/FontFallbackList.cpp \
     platform/graphics/FontFamily.cpp \
@@ -1837,6 +1835,7 @@ HEADERS += \
     page/Chrome.h \
     page/Console.h \
     page/ContextMenuController.h \
+    page/ContextMenuSelectionHandler.h \
     page/Coordinates.h \
     page/DOMSelection.h \
     page/DOMTimer.h \
@@ -2662,10 +2661,6 @@ contains(DEFINES, ENABLE_ICONDATABASE=1) {
 } else {
     SOURCES += \
         loader/icon/IconDatabaseNone.cpp
-}
-
-contains(DEFINES, ENABLE_SHARED_SCRIPT=1) {
-    FEATURE_DEFINES_JAVASCRIPT += ENABLE_SHARED_SCRIPT=1
 }
 
 contains(DEFINES, ENABLE_WORKERS=1) {

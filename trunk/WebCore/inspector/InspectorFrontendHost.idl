@@ -55,5 +55,6 @@ module core {
         void setSetting(in DOMString key, in DOMString value);
 
         [Custom] void search(in Node node, in DOMString query);
+        [Custom] void showContextMenu(in MouseEvent event, in DOMObject items);
     };
 }

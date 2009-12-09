@@ -28,49 +28,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebKitSharedScriptRepository_h
-#define WebKitSharedScriptRepository_h
+WebInspector.ContextMenu = function() {
+    this._items = [];
+    this._handlers = {};
+    this._appendItem(WebInspector.UIString("Edit as HTML"), this._noop.bind(this));
+    this._appendItem(WebInspector.UIString("Add attribute"), this._noop.bind(this));
+    this._appendSeparator();
+    this._appendItem(WebInspector.UIString("Copy"), this._copy.bind(this));
+    this._appendItem(WebInspector.UIString("Delete"), this._delete.bind(this));
+}
 
-#if ENABLE(SHARED_SCRIPT)
+WebInspector.ContextMenu.prototype = {
+    show: function(event)
+    {
+        // FIXME: Uncomment when popup menu has meaningful items.
+        // InspectorFrontendHost.showContextMenu(event, this._items);
+        // event.preventDefault();
+    },
 
-#include <wtf/PassRefPtr.h>
-#include <wtf/Vector.h>
+    _appendItem: function(label, handler)
+    {
+        var id = this._items.length;
+        this._items.push({id: id, label: label});
+        this._handlers[id] = handler;
+    },
 
-namespace WebCore {
+    _appendSeparator: function()
+    {
+        this._items.push({});
+    },
 
-typedef int ExceptionCode;
+    itemSelected: function(id)
+    {
+        if (this._handlers[id])
+            this._handlers[id].call(this);
+    },
 
-class Document;
-class KURL;
-class SharedScriptContext;
-class String;
-class WebKitSharedScript;
+    _copy: function()
+    {
+        console.log("context menu: copy");
+    },
 
-// Interface to a repository which manages references to the set of active SharedScriptContexts.
-class WebKitSharedScriptRepository {
-public:
-    // Connects the passed WebKitSharedScript object with a SharedScriptContext, creating a new one if necessary.
-    static void connect(PassRefPtr<WebKitSharedScript>, const KURL&, const String& name, ExceptionCode&);
+    _delete: function()
+    {
+        console.log("context menu: delete");
+    },
 
-    static void removeSharedScriptContext(SharedScriptContext*);
-    static void documentDetached(Document*);
+    _noop: function()
+    {
+        console.log("context menu: noop");
+    }
+}
 
-private:
-    WebKitSharedScriptRepository() { }
-    static WebKitSharedScriptRepository& instance();
-    void connectToSharedScript(PassRefPtr<WebKitSharedScript>, const KURL&, const String& name, ExceptionCode&);
-    PassRefPtr<SharedScriptContext> getSharedScriptContext(const String& name, const KURL&);
 
-    // List of SharedScriptContexts.
-    // Expectation is that there will be a limited number of SharedScriptContexts, and so tracking them in a Vector is more efficient than nested HashMaps.
-    typedef Vector<SharedScriptContext*> SharedScriptContextList;
-    SharedScriptContextList m_sharedScriptContexts;
+WebInspector.contextMenuItemSelected = function(id)
+{
+    if (WebInspector.contextMenu)
+        WebInspector.contextMenu.itemSelected(id);
+}
 
-};
-
-} // namespace WebCore
-
-#endif // ENABLE(SHARED_SCRIPT)
-
-#endif // WebKitSharedScriptRepository_h
-
+WebInspector.contextMenuCleared = function()
+{
+    console.log("context menu: cleared");
+}

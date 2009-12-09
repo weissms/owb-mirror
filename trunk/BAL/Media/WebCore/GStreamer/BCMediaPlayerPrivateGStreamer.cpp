@@ -876,20 +876,13 @@ static HashSet<String> mimeTypeCache()
     static bool typeListInitialized = false;
 
     if (!typeListInitialized) {
-        // These subtypes are already beeing supported by WebKit itself
-        HashSet<String> ignoredApplicationSubtypes;
-        ignoredApplicationSubtypes.add(String("javascript"));
-        ignoredApplicationSubtypes.add(String("ecmascript"));
-        ignoredApplicationSubtypes.add(String("x-javascript"));
-        ignoredApplicationSubtypes.add(String("xml"));
-        ignoredApplicationSubtypes.add(String("xhtml+xml"));
-        ignoredApplicationSubtypes.add(String("rss+xml"));
-        ignoredApplicationSubtypes.add(String("atom+xml"));
-        ignoredApplicationSubtypes.add(String("x-ftp-directory"));
-        ignoredApplicationSubtypes.add(String("x-java-applet"));
-        ignoredApplicationSubtypes.add(String("x-java-bean"));
-        ignoredApplicationSubtypes.add(String("x-java-vm"));
-        ignoredApplicationSubtypes.add(String("x-shockwave-flash"));
+        // Build a whitelist of mime-types known to be supported by
+        // GStreamer.
+        HashSet<String> handledApplicationSubtypes;
+        handledApplicationSubtypes.add(String("ogg"));
+        handledApplicationSubtypes.add(String("x-3gp"));
+        handledApplicationSubtypes.add(String("vnd.rn-realmedia"));
+        handledApplicationSubtypes.add(String("x-pn-realaudio"));
 
         GList* factories = gst_type_find_factory_get_list();
         for (GList* iterator = factories; iterator; iterator = iterator->next) {
@@ -962,7 +955,7 @@ static HashSet<String> mimeTypeCache()
                     if (g_str_equal(mimetype[0], "audio")
                         || g_str_equal(mimetype[0], "video")
                         || (g_str_equal(mimetype[0], "application")
-                            && !ignoredApplicationSubtypes.contains(String(mimetype[1]))))
+                            && handledApplicationSubtypes.contains(String(mimetype[1]))))
                         cache.add(String(name));
 
                     g_strfreev(mimetype);

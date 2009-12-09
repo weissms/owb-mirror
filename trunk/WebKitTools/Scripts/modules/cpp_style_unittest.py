@@ -1118,6 +1118,12 @@ class CppStyleTest(CppStyleTestBase):
             'if (condition) {',
             '')
         self.assert_multi_line_lint(
+            '    MACRO1(macroArg) {',
+            '')
+        self.assert_multi_line_lint(
+            'ACCESSOR_GETTER(MessageEventPorts) {',
+            'Place brace on its own line for function definitions.  [whitespace/braces] [4]')
+        self.assert_multi_line_lint(
             'int foo() {',
             'Place brace on its own line for function definitions.  [whitespace/braces] [4]')
         self.assert_multi_line_lint(
@@ -3660,6 +3666,7 @@ class WebKitStyleTest(CppStyleTestBase):
                          'under_score' + name_error_message)
         self.assert_lint('while (foo & value_in_thirdparty_library) {', '')
         self.assert_lint('while (foo * value_in_thirdparty_library) {', '')
+        self.assert_lint('if (mli && S_OK == mli->foo()) {', '')
 
         # More member variables and functions.
         self.assert_lint('int SomeClass::s_validName', '')
@@ -3691,6 +3698,14 @@ class WebKitStyleTest(CppStyleTestBase):
         self.assert_lint('for (int variable_1, variable_2;;) {',
                          ['variable_1' + name_error_message,
                           'variable_2' + name_error_message])
+
+        # There is an exception for op code functions but only in the JavaScriptCore directory.
+        self.assert_lint('void this_op_code(int var1, int var2)', '', 'JavaScriptCore/foo.cpp')
+        self.assert_lint('void this_op_code(int var1, int var2)', 'this_op_code' + name_error_message)
+
+        # const_iterator is allowed as well.
+        self.assert_lint('typedef VectorType::const_iterator const_iterator;', '')
+
 
     def test_other(self):
         # FIXME: Implement this.

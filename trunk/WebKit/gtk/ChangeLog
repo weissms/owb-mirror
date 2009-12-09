@@ -1,3 +1,92 @@
+2009-12-09  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Xan Lopez.
+
+        New test to make sure we do not regress this feature anymore. All
+        test files were created by me.
+
+        [GTK] REGRESSION: webkit thinks it can render PDFs
+        https://bugs.webkit.org/show_bug.cgi?id=32183
+
+        * tests/resources/test.html: Added.
+        * tests/resources/test.ogg: Added.
+        * tests/resources/test.pdf: Added.
+        * tests/resources/test.txt: Added.
+        * tests/testmimehandling.c: Added.
+        (server_callback):
+        (idle_quit_loop_cb):
+        (mime_type_policy_decision_requested_cb):
+        (test_mime_type):
+        (test_mime_pdf):
+        (test_mime_html):
+        (test_mime_text):
+        (test_mime_ogg):
+        (main):
+
+2009-12-08  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Point out the meaning of "Content-Disposition" when implementing the
+        mime-type-policy-decision-requested signal.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+
+2009-12-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Doesn't respect Content-Disposition for downloads, and provides no way for apps to do that
+        https://bugs.webkit.org/show_bug.cgi?id=32247
+
+        Provide a way for applications to respect Content-Disposition, by
+        fetching the WebKitNetworkResponse from the frame during
+        mime-type-policy-decision-requested.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDecidePolicyForMIMEType): Download
+        content when Content-Disposition is attachment.
+        * tests/testmimehandling.c:
+        (server_callback):
+        (mime_type_policy_decision_requested_cb):
+        * tests/testwebframe.c:
+        (test_webkit_web_frame_response):
+        (main):
+        * webkit/webkitprivate.cpp:
+        (WebKit::core):
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_get_network_response):
+        * webkit/webkitwebframe.h:
+
+2009-12-07  Gyuyoung Kim  <gyuyoung@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32024
+        [GTK] WebKit does not compile without JAVASCRIPT_DEBUGGER
+
+        Fix build errors when javascript-debugger is disabled on GTK
+
+        * webkit/webkitwebinspector.cpp:
+        (webkit_web_inspector_set_property):
+        (webkit_web_inspector_get_property):
+
+2009-12-07  Joanmarie Diggs  <joanmarie.diggs@gmail.com>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=25415
+        [GTK][ATK] Please implement support for get_text_at_offset
+
+        Eliminate the segfaults which occur when accessing the text interface now
+        implemented by text controls.
+
+        * tests/testatk.c
+        (test_webkit_atk_get_text_at_offset_textarea):
+        (test_webkit_atk_get_text_at_offset_text_input):
+        (main):
+
 2009-12-07  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Xan Lopez.

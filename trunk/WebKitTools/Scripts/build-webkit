@@ -50,9 +50,9 @@ my $minimal = 0;
 my $makeArgs;
 my $startTime = time();
 
-my ($threeDCanvasSupport, $threeDRenderingSupport, $channelMessagingSupport, $databaseSupport, $datagridSupport, $datalistSupport, 
+my ($threeDCanvasSupport, $threeDRenderingSupport, $channelMessagingSupport, $databaseSupport, $datagridSupport, $datalistSupport,
     $domStorageSupport, $eventsourceSupport, $filtersSupport, $geolocationSupport, $iconDatabaseSupport,
-    $javaScriptDebuggerSupport, $mathmlSupport, $offlineWebApplicationSupport, $sharedScriptSupport, $sharedWorkersSupport, 
+    $javaScriptDebuggerSupport, $mathmlSupport, $offlineWebApplicationSupport, $sharedWorkersSupport,
     $svgSupport, $svgAnimationSupport, $svgAsImageSupport, $svgDOMObjCBindingsSupport, $svgFontsSupport,
     $svgForeignObjectSupport, $svgUseSupport, $videoSupport, $webSocketsSupport, $wmlSupport, $wcssSupport, $xhtmlmpSupport, $workersSupport,
     $xpathSupport, $xsltSupport, $coverageSupport, $notificationsSupport);
@@ -86,7 +86,7 @@ my @features = (
       define => "ENABLE_EVENTSOURCE", default => 1, value => \$eventsourceSupport },
 
     { option => "filters", desc => "Toggle Filters support",
-      define => "ENABLE_FILTERS", default => 0, value => \$filtersSupport },
+      define => "ENABLE_FILTERS", default => (isAppleWebKit() || isGtk() || isQt()), value => \$filtersSupport },
 
     { option => "geolocation", desc => "Toggle Geolocation support",
       define => "ENABLE_GEOLOCATION", default => isGtk(), value => \$geolocationSupport },
@@ -105,9 +105,6 @@ my @features = (
 
     { option => "offline-web-applications", desc => "Toggle Offline Web Application Support",
       define => "ENABLE_OFFLINE_WEB_APPLICATIONS", default => 1, value => \$offlineWebApplicationSupport },
-
-    { option => "shared-script", desc => "Toggle Shared Script Support",
-      define => "ENABLE_SHARED_SCRIPT", default => 0, value => \$sharedScriptSupport },
 
     { option => "shared-workers", desc => "Toggle SharedWorkers support",
       define => "ENABLE_SHARED_WORKERS", default => (isAppleWebKit() || isGtk()), value => \$sharedWorkersSupport },
@@ -325,7 +322,7 @@ if (isChromium()) {
     # Chromium doesn't build by project directories.
     @projects = ();
     my $result = buildChromium($clean, @options);
-    exit $result if $result;
+    exit exitStatus($result) if exitStatus($result);
 }
 
 # Build, and abort if the build fails.

@@ -102,13 +102,14 @@ namespace WebCore {
         ContextMenuItemTagDefaultDirection,
         ContextMenuItemTagLeftToRight,
         ContextMenuItemTagRightToLeft,
-	ContextMenuItemTagTextDirectionMenu, // Text Direction sub-menu
-	ContextMenuItemTagTextDirectionDefault,
-	ContextMenuItemTagTextDirectionLeftToRight,
-	ContextMenuItemTagTextDirectionRightToLeft,
+		ContextMenuItemTagTextDirectionMenu, // Text Direction sub-menu
+		ContextMenuItemTagTextDirectionDefault,
+		ContextMenuItemTagTextDirectionLeftToRight,
+		ContextMenuItemTagTextDirectionRightToLeft,
         ContextMenuItemTagPDFSinglePageScrolling,
         ContextMenuItemTagPDFFacingPagesScrolling,
-        ContextMenuItemTagInspectElement,
+        ContextMenuItemTagInspectElement, 
+        ContextMenuItemBaseCustomTag = 5000,
         ContextMenuItemBaseApplicationTag = 10000
     };
 

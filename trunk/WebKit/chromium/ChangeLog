@@ -1,3 +1,115 @@
+2009-12-09  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        [Chromium] Add declarations for DevTools message dispatching on IO thread
+        (see http://codereview.chromium.org/460018)
+
+        https://bugs.webkit.org/show_bug.cgi?id=32217
+
+        * public/WebDevToolsAgent.h:
+        * public/WebDevToolsAgentClient.h:
+
+2009-12-08  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Chromium: support custom WebCore context menu items in Chromium port.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32277
+
+        * public/WebContextMenuData.h:
+        * public/WebPopupMenuInfo.h:
+        (WebKit::WebPopupMenuInfo::Item::):
+        * public/WebView.h:
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::executeCustomContextMenuAction):
+        * src/WebViewImpl.h:
+
+2009-12-08  Albert J. Wong  <ajwong@chromium.org>
+
+        Not reviewed: Chromium build fix.
+
+        r51859 changed the case for some of the ResourceRequest::TargetType
+        enums.
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::determineTargetTypeFromLoader):
+
+2009-12-07  Zhe Su  <suzhe@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] accesskey is not supported on Chromium Mac.
+        https://bugs.webkit.org/show_bug.cgi?id=32213
+
+        This change fixes (partially) the accesskey issue by decoupling the
+        code for handling accesskeys and system keys. Because on Mac,
+        the modifiers of accesskeys are ctrl+alt, which are not marked as
+        system keys.
+        In order to fully fix this issue, some changes in Chromium code is
+        also required.
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::keyEvent):
+        (WebKit::WebViewImpl::charEvent):
+
+2009-12-07  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Chromium: theme scrollbars to match GTK theme.
+        Add API to set the colors.
+
+        Since the change is to the Chromium WebKit API layer, testing will
+        be in Chromium's test shell.
+        http://bugs.webkit.org/show_bug.cgi?id=32048
+
+        Patch from Markus Gutschke <markus@chromium.org>.
+
+        * public/WebView.h:
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::setScrollbarColors):
+        * src/WebViewImpl.h:
+
+2009-12-07  Finnur Thorarinsson  <finnur.webkit@gmail.com>
+
+        Reviewed by Darin Fisher.
+
+        A patch for Chromium to restrict the scope of the Gmail focus fix,
+        where we set the Selection to 0,0 for content-editable fields and
+        also make sure we set the selection end-state for find to select the
+        text found (when not focusing a link we found).
+        WebKit bug: https://bugs.webkit.org/show_bug.cgi?id=32248
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::setFindEndstateFocusAndSelection):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::setFocus):
+
+2009-12-07  Dmitry Titov  <dimich@chromium.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove ENABLE_SHARED_SCRIPT flags
+        https://bugs.webkit.org/show_bug.cgi?id=32245
+        This patch was obtained by "git revert" command and then un-reverting of ChangeLog files.
+
+        * features.gypi:
+
+2009-12-07  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        fixes to build-webkit --chromium
+        https://bugs.webkit.org/show_bug.cgi?id=32179
+
+        * DEPS:
+        * WebKit.gyp:
+        * gyp_webkit:
+
 2009-12-07  Peter Kasting  <pkasting@google.com>
 
         Reviewed by Darin Fisher.

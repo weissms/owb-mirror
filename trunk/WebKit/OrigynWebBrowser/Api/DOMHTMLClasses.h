@@ -1442,6 +1442,8 @@ public:
     virtual void selectedRange(int *start, int *end);
     
     virtual void setAutofilled(bool filled);
+    
+    virtual bool isAutofilled();
 
     // FormPromptAdditions
     virtual bool isUserEdited();

@@ -51,10 +51,12 @@ if(ENABLE_3D_CANVAS)
         html/canvas/WebGLBuffer.cpp
         html/canvas/WebGLGetInfo.cpp
         html/canvas/WebGLRenderingContext.cpp
+        html/canvas/WebGLUniformLocation.cpp
     )
     list(APPEND IDL_SRC
         html/canvas/WebGLActiveInfo.idl
         html/canvas/WebGLBuffer.idl
+        html/canvas/WebGLUniformLocation.idl
     )
 endif(ENABLE_3D_CANVAS)
 
