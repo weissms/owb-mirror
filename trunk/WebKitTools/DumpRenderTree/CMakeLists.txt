@@ -11,6 +11,7 @@ include_directories(
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/TestNetscapePlugIn.subproj
 )
 
+include(AddDAECompilerFlags OPTIONAL)
 
 list(APPEND DUMPRENDERTREE_SRC
     AccessibilityController.cpp

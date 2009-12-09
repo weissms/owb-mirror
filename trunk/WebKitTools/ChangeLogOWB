@@ -1,3 +1,10 @@
+2009-12-09  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Test fix when DRT is compiled with DAE_APPLICATION=ON.
+
+        * DumpRenderTree/CMakeLists.txt: Include the DAE flags or we would
+        miss some code needed for testing.
+
 2009-12-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Fully balify the Application.
