@@ -1479,6 +1479,9 @@ public:
     unsigned backgroundColor();
 
 
+    /*
+     * get webInspector
+     */
     virtual WebInspector* inspector();
 
     /*
