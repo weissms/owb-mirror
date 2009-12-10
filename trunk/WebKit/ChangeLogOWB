@@ -1,3 +1,10 @@
+2009-12-10  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix Scroll
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::onScroll):
+
 2009-12-08  Mario Bensi  <mbensi@pleyo.com>
 
         add lowMemory Notification event

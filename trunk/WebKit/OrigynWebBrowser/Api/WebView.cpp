@@ -839,7 +839,7 @@ bool WebView::onScroll(BalEventScroll ev)
     if (!eventScrollInRect(ev, r))
         return false;
     eventScrollToRelativeCoords(ev, application()->pos());
-    onScroll(ev);
+    d->onScroll(ev);
     return true;
 #else
     return d->onScroll(ev);
