@@ -2,7 +2,7 @@
 
         fix jsc api visibility and fix drt build
 
-        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/AddWebCoreCompilerFlags.cmake
 
 2009-11-24  Gilles Bertal  <gbertal@pleyo.com>
 
