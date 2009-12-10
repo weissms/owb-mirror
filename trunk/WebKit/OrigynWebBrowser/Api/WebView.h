@@ -1474,6 +1474,9 @@ public:
      */
     void resize(BalRectangle);
 
+    /*
+     * move
+     */
     void move(BalPoint lastPos, BalPoint newPos);
 
     /**
