@@ -1419,6 +1419,9 @@ public:
     void popupMenuHide();
     void popupMenuShow(void* userData);
 
+    /*
+     * send timer and thread events
+     */
     void fireWebKitEvents();
 
 #if ENABLE(DAE_APPLICATION)
