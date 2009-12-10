@@ -1486,6 +1486,9 @@ public:
      */
     void allowLocalLoadsForAll();
 
+    /*
+     * stop loading
+     */
     void stopLoading(bool);
     bool isStopped() { return m_isStopped; }
 
