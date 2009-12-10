@@ -1417,6 +1417,10 @@ public:
     //static STDMETHODIMP AccessibleObjectFromWindow(HWND, DWORD objectID, REFIID, void** ppObject);
 
     void popupMenuHide();
+
+    /*
+     * popupMenu show
+     */
     void popupMenuShow(void* userData);
 
     /*
