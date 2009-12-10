@@ -1490,6 +1490,10 @@ public:
      * stop loading
      */
     void stopLoading(bool);
+
+    /*
+     * test if the loading is stopped
+     */ 
     bool isStopped() { return m_isStopped; }
 
 private:
