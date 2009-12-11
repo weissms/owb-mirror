@@ -66,11 +66,6 @@ GraphicsContext3D::~GraphicsContext3D()
 {
 }
 
-void GraphicsContext3D::checkError() const
-{
-    notImplemented();
-}
-
 void GraphicsContext3D::makeContextCurrent()
 {
 }
@@ -900,6 +895,11 @@ void GraphicsContext3D::deleteShader(unsigned shader)
 }
 
 void GraphicsContext3D::deleteTexture(unsigned texture)
+{
+    notImplemented();
+}
+
+void GraphicsContext3D::synthesizeGLError(unsigned long error)
 {
     notImplemented();
 }

@@ -79,23 +79,25 @@ void CookieManager::setCookies(const KURL& url, const String& value)
 bool CookieManager::shouldRejectForSecurityReason(const ParsedCookie* cookie, const KURL& url)
 {
     // Check if path attribute is a prefix of the request URI.
-    if (!cookie->path().endsWith(url.path()) == -1) {
+    if (!url.path().startsWith(cookie->path())) {
         LOG_ERROR("Cookie %s is rejected because its path does not math the URL %s\n", cookie->toString().utf8().data(), url.string().utf8().data());
         return true;
     }
 
-    // Check if the domain starts with a dot.
-    // FIXME: This check is in fact disabled because the CookieParser prefix the domain if needed and should be removed.
-    if (cookie->domain()[0] != '.') {
-        LOG_ERROR("Cookie %s is rejected because its domain does not start with a dot.\n", cookie->toString().utf8().data());
-        return true;
-    }
+    if (!cookie->hasDefaultDomain()) {
+        // Check if the domain starts with a dot.
+        // FIXME: This check is in fact disabled because the CookieParser prefix the domain if needed and should be removed.
+        if (cookie->domain()[0] != '.') {
+            LOG_ERROR("Cookie %s is rejected because its domain does not start with a dot.\n", cookie->toString().utf8().data());
+            return true;
+        }
 
-    // Check if the domain contains an embedded dot.
-    int dotPosition = cookie->domain().find(".", 1);
-    if (dotPosition == -1 || static_cast<unsigned int>(dotPosition) == cookie->domain().length()) {
-        LOG_ERROR("Cookie %s is rejected because its domain does not contain an embedded dot.\n", cookie->toString().utf8().data());
-        return true;
+        // Check if the domain contains an embedded dot.
+        int dotPosition = cookie->domain().find(".", 1);
+        if (dotPosition == -1 || static_cast<unsigned int>(dotPosition) == cookie->domain().length()) {
+            LOG_ERROR("Cookie %s is rejected because its domain does not contain an embedded dot.\n", cookie->toString().utf8().data());
+            return true;
+        }
     }
 
     // The request host should domain match the Domain attribute.

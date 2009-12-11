@@ -85,6 +85,11 @@ void CookieBackingStore::close()
 
 void CookieBackingStore::insert(const ParsedCookie* cookie)
 {
+    // FIXME: This should be an ASSERT.
+    if (cookie->isSession())
+        return;
+
+
     if (!tableExists())
         return;
  
@@ -115,6 +120,10 @@ void CookieBackingStore::insert(const ParsedCookie* cookie)
 
 void CookieBackingStore::update(const ParsedCookie* cookie)
 {
+    // FIXME: This should be an ASSERT.
+    if (cookie->isSession())
+        return;
+
     if (!tableExists())
         return;
 
@@ -131,7 +140,7 @@ void CookieBackingStore::update(const ParsedCookie* cookie)
 
     // Binds all the values
     if (updateStatement.bindText(1, cookie->name()) || updateStatement.bindText(2, cookie->value())
-        || updateStatement.bindText(3, cookie->path()) || updateStatement.bindText(4, cookie->domain())
+        || updateStatement.bindText(3, cookie->domain()) || updateStatement.bindText(4, cookie->path())
         || updateStatement.bindDouble(5, cookie->expiry()) || updateStatement.bindDouble(6, cookie->lastAccessed())
         || updateStatement.bindInt64(7, cookie->isSecure()) || updateStatement.bindInt64(8, cookie->isHttpOnly())) {
         LOG_ERROR("Cannot update cookie");
@@ -147,6 +156,10 @@ void CookieBackingStore::update(const ParsedCookie* cookie)
 
 void CookieBackingStore::remove(const ParsedCookie* cookie)
 {
+    // FIXME: This should be an ASSERT.
+    if (cookie->isSession())
+        return;
+
     if (!tableExists())
         return;
 

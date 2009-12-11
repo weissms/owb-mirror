@@ -30,6 +30,8 @@
 
 namespace WebCore {
 
+    class KURL;
+
     /**
      * This class represents a cookie internally
      * It can either be created by the CookieParser which will then fill it
@@ -57,6 +59,10 @@ namespace WebCore {
         const String& domain() const { return m_domain; }
         void setDomain(const String& domain) { m_domain = domain; }
 
+        // This is a special method used to set the domain to the request's url.
+        void setDefaultDomain(const KURL&);
+        bool hasDefaultDomain() const { return m_hasDefaultDomain; }
+
         double expiry() const { return m_expiry; }
         void setExpiry(const String& expiry);
         void setMaxAge(const String& maxAge);
@@ -82,6 +88,7 @@ namespace WebCore {
         String m_name;
         String m_value;
         String m_domain;
+        bool m_hasDefaultDomain;
         String m_path;
         double m_expiry;
         bool m_isSecure;
@@ -91,6 +98,7 @@ namespace WebCore {
 
         // This is used for the LRU replacement policy.
         double m_lastAccessed;
+
     };
 
 } // namespace WebCore

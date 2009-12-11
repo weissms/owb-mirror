@@ -1,3 +1,156 @@
+2009-12-11  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Introduce a class for devtools message data
+
+        https://bugs.webkit.org/show_bug.cgi?id=32314
+
+        * WebKit.gyp:
+        * public/WebDevToolsAgent.h:
+        * public/WebDevToolsAgentClient.h:
+        (WebKit::WebDevToolsAgentClient::sendMessageToFrontend):
+        (WebKit::WebDevToolsAgentClient::forceRepaint):
+        (WebKit::WebDevToolsAgentClient::hostIdentifier):
+        (WebKit::WebDevToolsAgentClient::runtimeFeatureStateChanged):
+        * public/WebDevToolsFrontend.h:
+        * public/WebDevToolsFrontendClient.h:
+        (WebKit::WebDevToolsFrontendClient::sendMessageToAgent):
+        * public/WebDevToolsMessageData.h: Added.
+
+2009-12-10  Mike Belshe  <mike@belshe.com>
+
+        Unreviewed, build fix for chromium.
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchWillSendRequest):
+
+2009-12-10  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        Changed WebGLRenderingContext to synthesize GL errors rather than
+        raising JavaScript exceptions. Removed internal getError() calls
+        after each graphics call. The GraphicsContext3D maintains the
+        synthetic exceptions because only it has complete information
+        about certain conditions requiring them to be raised.
+
+        Based on idea from Ilmari Heikkinen, added create3DDebugContext()
+        to webgl-test.js and changed the WebGL layout tests expecting
+        error conditions to use it. Updated expected.txt files, which now
+        implicitly test the OpenGL error as it is part of the exception's
+        message.
+
+        Added new targeted test covering aspects of synthetic errors as
+        well as regression tests for bugs uncovered during its development.
+
+        Test: fast/canvas/webgl/error-reporting.html
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::reshape):
+        (WebCore::GraphicsContext3DInternal::getError):
+        (WebCore::GraphicsContext3DInternal::synthesizeGLError):
+        (WebCore::GraphicsContext3D::getActiveAttrib):
+        (WebCore::GraphicsContext3D::getActiveUniform):
+        (WebCore::GraphicsContext3D::getError):
+        (WebCore::GraphicsContext3D::synthesizeGLError):
+
+2009-12-10  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Darin Fisher.
+
+        Fix FrameLoader to use the new ResourceTypes properly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32336
+
+        * public/WebURLRequest.h:
+        (WebKit::WebURLRequest::):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::setTargetTypeFromLoader):
+        (WebKit::FrameLoaderClientImpl::dispatchWillSendRequest):
+
+2009-12-10  Ilya Tikhonovsky <loislo@google.com>
+
+        Reviewed by Pavel Feldman.
+
+        Chromium: Expose devtools agent API for inspector layout tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32379
+
+        * public/WebDevToolsAgent.h:
+        (WebKit::WebDevToolsAgent::setTimelineProfilingEnabled):
+        (WebKit::WebDevToolsAgent::evaluateInWebInspector):
+
+2009-12-09  Yury Semikhatsky  <yurys@chromium.org>
+
+        Unreviewed, build fix.
+
+        Change forward declaration of WebContextMenuData from class to
+        struct to match its definition. The bug was introduced by
+        http://trac.webkit.org/changeset/51874
+
+        * src/ContextMenuClientImpl.h:
+
+2009-12-09  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32324
+        [Chromium] Suppress WebFrameClient callbacks from a detached frame.
+
+        This change means that we no longer need the ClientHandle class.
+        FrameLoaderClient::detachedFromParent3() is called on each frame
+        in the frame tree from within frameDetached().
+
+        Test: http/tests/loading/gmail-assert-on-load.html
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::detachedFromParent3):
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::create):
+        (WebKit::WebFrameImpl::WebFrameImpl):
+        (WebKit::WebFrameImpl::createChildFrame):
+        * src/WebFrameImpl.h:
+        (WebKit::WebFrameImpl::client):
+        (WebKit::WebFrameImpl::dropClient):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::close):
+
+2009-12-08  Stuart Morgan  <stuartmorgan@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Include clickCount when doing MouseEvent -> WebMouseEvent conversion
+        in Chromium API.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32289
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::WebMouseEventBuilder::WebMouseEventBuilder):
+
+2009-12-09  Yury Semikhatsky  <yurys@chromium.org>
+
+        Unreviewed, build fix.
+
+        Add return statement to default implementation of hostIdentifier method
+        introduced in http://trac.webkit.org/changeset/51897
+
+        * public/WebDevToolsAgentClient.h:
+        (WebKit::WebDevToolsAgentClient::hostIdentifier):
+
+2009-12-09  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Add declaration of static methods that allow to dispatch
+        DevTools messages on the IO thread and accept WebDevToolsMessageData
+        argument.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32314
+
+        * public/WebDevToolsAgent.h:
+        * public/WebDevToolsAgentClient.h:
+
 2009-12-09  Mikhail Naganov  <mnaganov@chromium.org>
 
         Reviewed by Pavel Feldman.

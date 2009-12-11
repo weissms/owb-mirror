@@ -40,8 +40,14 @@ public:
 
     /**
      * shouldHaltPlugin
+     * @brief gives a way to stop plugin that have been running for too long.
+     * @param webView the webView associated with the plugin
+     * @param domNode the DOM node associated with the plugin
+     * @param isWindowed whether the plugin is windowed
+     * @param pluginName the plugin name
+     * @return true if the plugin should be halted, false otherwise
      */
-    virtual bool shouldHaltPlugin(WebView*, DOMNode*) = 0;
+    virtual bool shouldHaltPlugin(WebView*, DOMNode*, bool /*isWindowed*/, const char* /*pluginName*/) = 0;
 };
 
 #endif // WebPluginHalterDelegate_h

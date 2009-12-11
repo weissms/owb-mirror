@@ -75,6 +75,35 @@ namespace JSC {
                 Fiber(UString::Rep* string) : m_value(reinterpret_cast<intptr_t>(string)) {}
                 Fiber(Rope* rope) : m_value(reinterpret_cast<intptr_t>(rope) | 1) {}
 
+                void deref()
+                {
+                    if (isRope())
+                        rope()->deref();
+                    else
+                        string()->deref();
+                }
+
+                Fiber& ref()
+                {
+                    if (isString())
+                        string()->ref();
+                    else
+                        rope()->ref();
+                    return *this;
+                }
+
+                unsigned refAndGetLength()
+                {
+                    if (isString()) {
+                        UString::Rep* rep = string();
+                        return rep->ref()->len;
+                    } else {
+                        Rope* r = rope();
+                        r->ref();
+                        return r->stringLength();
+                    }
+                }
+
                 bool isRope() { return m_value & 1; }
                 Rope* rope() { return reinterpret_cast<Rope*>(m_value & ~1); }
                 bool isString() { return !isRope(); }
@@ -95,25 +124,26 @@ namespace JSC {
             }
 
             ~Rope();
+            void destructNonRecursive();
 
-            void initializeFiber(unsigned index, UString::Rep* string)
+            void append(unsigned &index, Fiber& fiber)
             {
-                string->ref();
-                m_fibers[index] = Fiber(string);
-                m_stringLength += string->len;
+                m_fibers[index++] = fiber;
+                m_stringLength += fiber.refAndGetLength();
             }
-            void initializeFiber(unsigned index, Rope* rope)
+            void append(unsigned &index, const UString& string)
             {
-                rope->ref();
-                m_fibers[index] = Fiber(rope);
-                m_stringLength += rope->stringLength();
+                UString::Rep* rep = string.rep();
+                m_fibers[index++] = Fiber(rep);
+                m_stringLength += rep->ref()->len;
             }
-            void initializeFiber(unsigned index, JSString* jsString)
+            void append(unsigned& index, JSString* jsString)
             {
-                if (jsString->isRope())
-                    initializeFiber(index, jsString->rope());
-                else
-                    initializeFiber(index, jsString->string().rep());
+                if (jsString->isRope()) {
+                    for (unsigned i = 0; i < jsString->m_ropeLength; ++i)
+                        append(index, jsString->m_fibers[i]);
+                } else
+                    append(index, jsString->string());
             }
 
             unsigned ropeLength() { return m_ropeLength; }
@@ -131,8 +161,9 @@ namespace JSC {
 
         JSString(JSGlobalData* globalData, const UString& value)
             : JSCell(globalData->stringStructure.get())
-            , m_length(value.size())
+            , m_stringLength(value.size())
             , m_value(value)
+            , m_ropeLength(0)
         {
             Heap::heap(this)->reportExtraMemoryCost(value.cost());
         }
@@ -140,46 +171,79 @@ namespace JSC {
         enum HasOtherOwnerType { HasOtherOwner };
         JSString(JSGlobalData* globalData, const UString& value, HasOtherOwnerType)
             : JSCell(globalData->stringStructure.get())
-            , m_length(value.size())
+            , m_stringLength(value.size())
             , m_value(value)
+            , m_ropeLength(0)
         {
         }
         JSString(JSGlobalData* globalData, PassRefPtr<UString::Rep> value, HasOtherOwnerType)
             : JSCell(globalData->stringStructure.get())
-            , m_length(value->size())
+            , m_stringLength(value->size())
             , m_value(value)
+            , m_ropeLength(0)
         {
         }
         JSString(JSGlobalData* globalData, PassRefPtr<JSString::Rope> rope)
             : JSCell(globalData->stringStructure.get())
-            , m_length(rope->stringLength())
-            , m_rope(rope)
+            , m_stringLength(rope->stringLength())
+            , m_ropeLength(1)
         {
+            m_fibers[0] = rope.releaseRef();
+        }
+        // This constructor constructs a new string by concatenating s1 & s2.
+        // This should only be called with ropeLength <= 3.
+        JSString(JSGlobalData* globalData, unsigned ropeLength, JSString* s1, JSString* s2)
+            : JSCell(globalData->stringStructure.get())
+            , m_stringLength(s1->length() + s2->length())
+            , m_ropeLength(ropeLength)
+        {
+            ASSERT(ropeLength <= s_maxInternalRopeLength);
+            unsigned index = 0;
+            appendStringInConstruct(index, s1);
+            appendStringInConstruct(index, s2);
+            ASSERT(ropeLength == index);
+        }
+        // This constructor constructs a new string by concatenating v1, v2 & v3.
+        // This should only be called with ropeLength <= 3 ... which since every
+        // value must require a ropeLength of at least one implies that the length
+        // for each value must be exactly 1!
+        JSString(ExecState* exec, JSValue v1, JSValue v2, JSValue v3)
+            : JSCell(exec->globalData().stringStructure.get())
+            , m_stringLength(0)
+            , m_ropeLength(s_maxInternalRopeLength)
+        {
+            unsigned index = 0;
+            appendValueInConstructAndIncrementLength(exec, index, v1);
+            appendValueInConstructAndIncrementLength(exec, index, v2);
+            appendValueInConstructAndIncrementLength(exec, index, v3);
+            ASSERT(index == s_maxInternalRopeLength);
+        }
+
+        ~JSString()
+        {
+            for (unsigned i = 0; i < m_ropeLength; ++i)
+                m_fibers[i].deref();
         }
 
         const UString& value(ExecState* exec) const
         {
-            if (m_rope)
+            if (isRope())
                 resolveRope(exec);
             return m_value;
         }
         const UString tryGetValue() const
         {
-            if (m_rope)
+            if (isRope())
                 UString();
             return m_value;
         }
-        unsigned length() { return m_length; }
-
-        bool isRope() const { return m_rope; }
-        Rope* rope() { ASSERT(isRope()); return m_rope.get(); }
-        UString& string() { ASSERT(!isRope()); return m_value; }
+        unsigned length() { return m_stringLength; }
 
         bool getStringPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
         bool getStringPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
         bool getStringPropertyDescriptor(ExecState*, const Identifier& propertyName, PropertyDescriptor&);
 
-        bool canGetIndex(unsigned i) { return i < m_length; }
+        bool canGetIndex(unsigned i) { return i < m_stringLength; }
         JSString* getIndex(ExecState*, unsigned);
 
         static PassRefPtr<Structure> createStructure(JSValue proto) { return Structure::create(proto, TypeInfo(StringType, OverridesGetOwnPropertySlot | NeedsThisConversion)); }
@@ -188,10 +252,35 @@ namespace JSC {
         enum VPtrStealingHackType { VPtrStealingHack };
         JSString(VPtrStealingHackType) 
             : JSCell(0)
+            , m_ropeLength(0)
         {
         }
 
         void resolveRope(ExecState*) const;
+
+        void appendStringInConstruct(unsigned& index, JSString* jsString)
+        {
+            if (jsString->isRope()) {
+                for (unsigned i = 0; i < jsString->m_ropeLength; ++i)
+                    m_fibers[index++] = jsString->m_fibers[i].ref();
+            } else
+                m_fibers[index++] = Rope::Fiber(jsString->string().rep()->ref());
+        }
+
+        void appendValueInConstructAndIncrementLength(ExecState* exec, unsigned& index, JSValue v)
+        {
+            if (v.isString()) {
+                ASSERT(asCell(v)->isString());
+                JSString* s = static_cast<JSString*>(asCell(v));
+                ASSERT(s->ropeLength() == 1);
+                appendStringInConstruct(index, s);
+                m_stringLength += s->length();
+            } else {
+                UString u(v.toString(exec));
+                m_fibers[index++] = Rope::Fiber(u.rep()->ref());
+                m_stringLength += u.size();
+            }
+        }
 
         virtual JSValue toPrimitive(ExecState*, PreferredPrimitiveType) const;
         virtual bool getPrimitiveNumber(ExecState*, double& number, JSValue& value);
@@ -209,10 +298,20 @@ namespace JSC {
         virtual bool getOwnPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
         virtual bool getOwnPropertyDescriptor(ExecState*, const Identifier&, PropertyDescriptor&);
 
+        static const unsigned s_maxInternalRopeLength = 3;
+
         // A string is represented either by a UString or a Rope.
-        unsigned m_length;
+        unsigned m_stringLength;
         mutable UString m_value;
-        mutable RefPtr<Rope> m_rope;
+        mutable unsigned m_ropeLength;
+        mutable Rope::Fiber m_fibers[s_maxInternalRopeLength];
+
+        bool isRope() const { return m_ropeLength; }
+        UString& string() { ASSERT(!isRope()); return m_value; }
+        unsigned ropeLength() { return m_ropeLength ? m_ropeLength : 1; }
+
+        friend JSValue jsString(ExecState* exec, JSString* s1, JSString* s2);
+        friend JSValue jsString(ExecState* exec, Register* strings, unsigned count);
     };
 
     JSString* asString(JSValue);
@@ -276,7 +375,7 @@ namespace JSC {
         }
         return new (globalData) JSString(globalData, s);
     }
-        
+
     inline JSString* jsSubstring(JSGlobalData* globalData, const UString& s, unsigned offset, unsigned length)
     {
         ASSERT(offset <= static_cast<unsigned>(s.size()));
@@ -317,13 +416,13 @@ namespace JSC {
     ALWAYS_INLINE bool JSString::getStringPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)
     {
         if (propertyName == exec->propertyNames().length) {
-            slot.setValue(jsNumber(exec, m_length));
+            slot.setValue(jsNumber(exec, m_stringLength));
             return true;
         }
 
         bool isStrictUInt32;
         unsigned i = propertyName.toStrictUInt32(&isStrictUInt32);
-        if (isStrictUInt32 && i < m_length) {
+        if (isStrictUInt32 && i < m_stringLength) {
             slot.setValue(jsSingleCharacterSubstring(exec, value(exec), i));
             return true;
         }
@@ -333,7 +432,7 @@ namespace JSC {
         
     ALWAYS_INLINE bool JSString::getStringPropertySlot(ExecState* exec, unsigned propertyName, PropertySlot& slot)
     {
-        if (propertyName < m_length) {
+        if (propertyName < m_stringLength) {
             slot.setValue(jsSingleCharacterSubstring(exec, value(exec), propertyName));
             return true;
         }

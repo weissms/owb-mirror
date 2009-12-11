@@ -847,6 +847,8 @@ NEVER_INLINE void JITThunks::tryCacheGetByID(CallFrame* callFrame, CodeBlock* co
         
         stubInfo->initGetByIdProto(structure, slotBaseObject->structure());
 
+        ASSERT(!structure->isDictionary());
+        ASSERT(!slotBaseObject->structure()->isDictionary());
         JIT::compileGetByIdProto(callFrame->scopeChain()->globalData, callFrame, codeBlock, stubInfo, structure, slotBaseObject->structure(), slot.cachedOffset(), returnAddress);
         return;
     }
@@ -1043,25 +1045,9 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_add)
 
     bool leftIsString = v1.isString();
     if (leftIsString && v2.isString()) {
-        if (asString(v1)->isRope() || asString(v2)->isRope()) {
-            RefPtr<JSString::Rope> rope = JSString::Rope::createOrNull(2);
-            if (UNLIKELY(!rope)) {
-                throwOutOfMemoryError(callFrame);
-                VM_THROW_EXCEPTION();
-            }
-            rope->initializeFiber(0, asString(v1));
-            rope->initializeFiber(1, asString(v2));
-            JSGlobalData* globalData = &callFrame->globalData();
-            return JSValue::encode(new (globalData) JSString(globalData, rope.release()));
-        }
-
-        RefPtr<UString::Rep> value = concatenate(asString(v1)->value(callFrame).rep(), asString(v2)->value(callFrame).rep());
-        if (UNLIKELY(!value)) {
-            throwOutOfMemoryError(callFrame);
-            VM_THROW_EXCEPTION();
-        }
-
-        return JSValue::encode(jsString(stackFrame.globalData, value.release()));
+        JSValue result = jsString(callFrame, asString(v1), asString(v2));
+        CHECK_FOR_EXCEPTION_AT_END();
+        return JSValue::encode(result);
     }
 
     if (rightIsNumber & leftIsString) {
@@ -1396,7 +1382,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_get_by_id_proto_list)
 
     CHECK_FOR_EXCEPTION();
 
-    if (!baseValue.isCell() || !slot.isCacheable() || asCell(baseValue)->structure()->isUncacheableDictionary()) {
+    if (!baseValue.isCell() || !slot.isCacheable() || asCell(baseValue)->structure()->isDictionary()) {
         ctiPatchCallByReturnAddress(callFrame->codeBlock(), STUB_RETURN_ADDRESS, FunctionPtr(cti_op_get_by_id_proto_fail));
         return JSValue::encode(result);
     }
@@ -1411,6 +1397,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_get_by_id_proto_list)
     if (slot.slotBase() == baseValue)
         ctiPatchCallByReturnAddress(codeBlock, STUB_RETURN_ADDRESS, FunctionPtr(cti_op_get_by_id_proto_fail));
     else if (slot.slotBase() == asCell(baseValue)->structure()->prototypeForLookup(callFrame)) {
+        ASSERT(!asCell(baseValue)->structure()->isDictionary());
         // Since we're accessing a prototype in a loop, it's a good bet that it
         // should not be treated as a dictionary.
         if (slotBaseObject->structure()->isDictionary())
@@ -1424,6 +1411,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_get_by_id_proto_list)
         if (listIndex == (POLYMORPHIC_LIST_CACHE_SIZE - 1))
             ctiPatchCallByReturnAddress(codeBlock, STUB_RETURN_ADDRESS, FunctionPtr(cti_op_get_by_id_proto_list_full));
     } else if (size_t count = normalizePrototypeChain(callFrame, baseValue, slot.slotBase())) {
+        ASSERT(!asCell(baseValue)->structure()->isDictionary());
         int listIndex;
         PolymorphicAccessStructureList* prototypeStructureList = getPolymorphicAccessStructureListSlot(stubInfo, listIndex);
 
@@ -2851,7 +2839,7 @@ DEFINE_STUB_FUNCTION(EncodedJSValue, op_strcat)
 {
     STUB_INIT_STACK_FRAME(stackFrame);
 
-    JSValue result = concatenateStrings(stackFrame.callFrame, &stackFrame.callFrame->registers()[stackFrame.args[0].int32()], stackFrame.args[1].int32());
+    JSValue result = jsString(stackFrame.callFrame, &stackFrame.callFrame->registers()[stackFrame.args[0].int32()], stackFrame.args[1].int32());
     CHECK_FOR_EXCEPTION_AT_END();
     return JSValue::encode(result);
 }

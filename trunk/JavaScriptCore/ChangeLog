@@ -1,3 +1,216 @@
+2009-12-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix some things found while trying to compile JavaScriptCore with clang++.
+
+        * wtf/FastMalloc.h:
+        Add correct exception specifications for the allocation/deallocation operators.
+        
+        * wtf/Vector.h:
+        * wtf/VectorTraits.h:
+        Fix a bunch of struct/class mismatches.
+
+2009-12-10  Adam Barth  <abarth@webkit.org>
+
+        No review, rolling out r51975.
+        http://trac.webkit.org/changeset/51975
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSString.h:
+        (JSC::JSString::JSString):
+        (JSC::JSString::appendStringInConstruct):
+        * runtime/Operations.cpp:
+        (JSC::jsAddSlowCase):
+        * runtime/Operations.h:
+        (JSC::jsString):
+        (JSC::jsAdd):
+
+2009-12-10  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Incorrect caching of prototype lookup with dictionary base
+        https://bugs.webkit.org/show_bug.cgi?id=32402
+
+        Make sure we don't add cached prototype lookup to the proto_list
+        lookup chain if the top level object is a dictionary.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCacheGetByID):
+
+2009-12-10  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32400
+        Switch remaining cases of string addition to use ropes.
+
+        ~1% progression on Sunspidey.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSString.h:
+        (JSC::JSString::JSString):
+        (JSC::JSString::appendStringInConstruct):
+        * runtime/Operations.cpp:
+        (JSC::jsAddSlowCase):
+        * runtime/Operations.h:
+        (JSC::jsString):
+        (JSC::jsAdd):
+
+2009-12-10  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Remove JSObject::getPropertyAttributes() and all usage of it.
+        https://bugs.webkit.org/show_bug.cgi?id=31933
+
+        getOwnPropertyDescriptor() should be used instead.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.order:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * debugger/DebuggerActivation.cpp:
+        (JSC::DebuggerActivation::getOwnPropertyDescriptor):
+        * debugger/DebuggerActivation.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::propertyIsEnumerable):
+        * runtime/JSObject.h:
+        * runtime/JSVariableObject.cpp:
+        * runtime/JSVariableObject.h:
+
+2009-12-10  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt & Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32367
+        Add support for short Ropes (up to 3 entries) inline within JSString.
+        (rather than externally allocating an object to hold the rope).
+        Switch jsAdd of (JSString* + JSString*) to now make use of Ropes.
+
+        ~1% progression on Sunspidey.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        (JSC::JSString::toBoolean):
+        (JSC::JSString::getStringPropertyDescriptor):
+        * runtime/JSString.h:
+        (JSC::JSString::Rope::Fiber::deref):
+        (JSC::JSString::Rope::Fiber::ref):
+        (JSC::JSString::Rope::Fiber::refAndGetLength):
+        (JSC::JSString::Rope::append):
+        (JSC::JSString::JSString):
+        (JSC::JSString::~JSString):
+        (JSC::JSString::value):
+        (JSC::JSString::tryGetValue):
+        (JSC::JSString::length):
+        (JSC::JSString::canGetIndex):
+        (JSC::JSString::appendStringInConstruct):
+        (JSC::JSString::appendValueInConstructAndIncrementLength):
+        (JSC::JSString::isRope):
+        (JSC::JSString::string):
+        (JSC::JSString::ropeLength):
+        (JSC::JSString::getStringPropertySlot):
+        * runtime/Operations.h:
+        (JSC::jsString):
+        (JSC::jsAdd):
+        (JSC::resolveBase):
+
+2009-12-09  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix three more things found by compiling with clang++.
+        
+        * runtime/Structure.h:
+        (JSC::StructureTransitionTable::reifySingleTransition):
+        Add the 'std' qualifier to the call to make_pair.
+
+        * wtf/DateMath.cpp:
+        (WTF::initializeDates):
+        Incrementing a bool is deprecated according to the C++ specification.
+        
+        * wtf/PtrAndFlags.h:
+        (WTF::PtrAndFlags::PtrAndFlags):
+        Name lookup should not be done in dependent bases, so explicitly qualify the call to set.
+
+2009-12-09  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Google reader gets stuck in the "Loading..." state and does not complete
+        https://bugs.webkit.org/show_bug.cgi?id=32256
+        <rdar://problem/7456388>
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emitSlow_op_jless): Fix some backward branches.
+
+2009-12-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32228
+        Make destruction of ropes non-recursive to prevent stack exhaustion.
+        Also, pass a UString& into initializeFiber rather than a Ustring::Rep*,
+        since the Rep is not being ref counted this could result in usage of a
+        Rep with refcount zero (where the Rep comes from a temporary UString
+        returned from a function).
+
+        * runtime/JSString.cpp:
+        (JSC::JSString::Rope::destructNonRecursive):
+        (JSC::JSString::Rope::~Rope):
+        * runtime/JSString.h:
+        (JSC::JSString::Rope::initializeFiber):
+        * runtime/Operations.h:
+        (JSC::concatenateStrings):
+
+2009-12-09  Zoltan Herczeg  <zherczeg@inf.u-szeged.hu>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31930
+
+        Update to r51457. ASSERTs changed to COMPILE_ASSERTs.
+        The speedup is 25%.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::VPtrSet::VPtrSet):
+
+2009-12-09  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        Updates Android Makefiles with latest additions.
+        https://bugs.webkit.org/show_bug.cgi?id=32278
+
+        * Android.mk: Modified.
+        * Android.v8.wtf.mk: Modified.
+
+2009-12-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix a bug found while trying to compile JavaScriptCore with clang++.
+
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::PatternTerm::PatternTerm): Don't self assign here.  Use false instead.
+
+2009-12-09  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Attempt to fix the Windows build.
+        
+        * wtf/FastMalloc.h:
+
 2009-12-09  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Maciej Stachowiak.

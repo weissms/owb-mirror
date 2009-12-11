@@ -126,7 +126,7 @@ void dumpFrameScrollPosition(WebKitWebFrame* frame)
 
 void displayWebView()
 {
-
+    gtk_widget_queue_draw(GTK_WIDGET(webView));
 }
 
 static void appendString(gchar*& target, gchar* string)
@@ -833,6 +833,7 @@ int main(int argc, char* argv[])
     gtk_container_add(GTK_CONTAINER(container), GTK_WIDGET(webView));
     gtk_widget_realize(GTK_WIDGET(webView));
     gtk_widget_show_all(container);
+    gtk_widget_grab_focus(GTK_WIDGET(webView));
     mainFrame = webkit_web_view_get_main_frame(webView);
 
     setDefaultsToConsistentStateValuesForTesting();

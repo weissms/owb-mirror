@@ -314,12 +314,16 @@ ParsedCookie* CookieParser::parseOneCookie(const String& cookie, unsigned start,
 
     // If no domain was provided, set it to the host
     if (!res->domain() || !res->domain().length())
-        res->setDomain("." + m_defaultCookieURL.host());
+        res->setDefaultDomain(m_defaultCookieURL);
 
     // If no path was provided, set it to the host's path
-    if (!res->path() || !res->path().length())
-        res->setPath(m_defaultCookieURL.path());
-
+    if (!res->path() || !res->path().length()) {
+        String path = m_defaultCookieURL.string().substring(m_defaultCookieURL.pathStart(), m_defaultCookieURL.pathAfterLastSlash() - m_defaultCookieURL.pathStart() - 1);
+        if (path.isEmpty())                                                                                                                                                                      
+            path = "/";                                                                                                                                                                          
+        res->setPath(path);
+    }
+ 
     return res;
 }
 

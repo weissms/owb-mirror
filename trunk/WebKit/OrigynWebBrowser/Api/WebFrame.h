@@ -396,14 +396,18 @@ public:
     virtual const char* selectedString();
 
     /**
-     * select all
+     * selectAll
+     * @brief select all the document
+     * @return true if the command was executed and worked, false otherwise
      */
-    virtual void selectAll();
+    virtual bool selectAll();
 
     /**
-     * deselect all
+     * deselectAll
+     * @brief remove the current selection
+     * @return true if the command was executed and worked, false otherwise
      */
-    virtual void deselectAll();
+    virtual bool deselectAll();
 
     /**
      *  shouldTreatURLAsSameAsCurrent

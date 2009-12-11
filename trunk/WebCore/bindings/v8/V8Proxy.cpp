@@ -389,11 +389,12 @@ bool V8Proxy::setInjectedScriptContextDebugId(v8::Handle<v8::Context> targetCont
     if (m_context.IsEmpty())
         return false;
     int debugId = contextDebugId(m_context);
-    if (debugId == -1)
-        return false;
 
     char buffer[32];
-    snprintf(buffer, sizeof(buffer), "injected,%d", debugId);
+    if (debugId == -1)
+        snprintf(buffer, sizeof(buffer), "injected");
+    else
+        snprintf(buffer, sizeof(buffer), "injected,%d", debugId);
     targetContext->SetData(v8::String::New(buffer));
 
     return true;
@@ -1206,8 +1207,13 @@ v8::Local<v8::Context> V8Proxy::context()
             return v8::Local<v8::Context>();
         return v8::Local<v8::Context>::New(context->get());
     }
+    return mainWorldContext();
+}
+
+v8::Local<v8::Context> V8Proxy::mainWorldContext()
+{
     initContextIfNeeded();
-    return v8::Local<v8::Context>::New(m_context);;
+    return v8::Local<v8::Context>::New(m_context);
 }
 
 v8::Local<v8::Context> V8Proxy::mainWorldContext(Frame* frame)
@@ -1216,8 +1222,7 @@ v8::Local<v8::Context> V8Proxy::mainWorldContext(Frame* frame)
     if (!proxy)
         return v8::Local<v8::Context>();
 
-    proxy->initContextIfNeeded();
-    return v8::Local<v8::Context>::New(proxy->m_context);
+    return proxy->mainWorldContext();
 }
 
 v8::Local<v8::Context> V8Proxy::currentContext()
@@ -1378,6 +1383,8 @@ int V8Proxy::contextDebugId(v8::Handle<v8::Context> context)
         return -1;
     v8::String::AsciiValue ascii(context->GetData());
     char* comma = strnstr(*ascii, ",", ascii.length());
+    if (!comma)
+        return -1;
     return atoi(comma + 1);
 }
 
@@ -1401,11 +1408,11 @@ void V8Proxy::installHiddenObjectPrototype(v8::Handle<v8::Context> context)
     context->Global()->SetHiddenValue(hiddenObjectPrototypeString, objectPrototype);
 }
 
-v8::Local<v8::Context> toV8Context(ScriptExecutionContext* context)
+v8::Local<v8::Context> toV8Context(ScriptExecutionContext* context, const WorldContextHandle& worldContext)
 {
     if (context->isDocument()) {
         if (V8Proxy* proxy = V8Proxy::retrieve(context))
-            return proxy->context();
+            return worldContext.adjustedContext(proxy);
     } else if (context->isWorkerContext()) {
         if (WorkerContextExecutionProxy* proxy = static_cast<WorkerContext*>(context)->script()->proxy())
             return proxy->context();

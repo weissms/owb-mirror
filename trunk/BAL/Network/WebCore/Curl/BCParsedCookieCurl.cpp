@@ -30,12 +30,13 @@
 #include "CString.h"
 #include "CurrentTime.h"
 #include "Logging.h"
+#include "KURL.h"
 #include <curl/curl.h>
 
 namespace WebCore {
 
 ParsedCookie::ParsedCookie(double currentTime)
-    : m_domain(String())
+    : m_hasDefaultDomain(false)
     , m_expiry(0)
     , m_isSecure(false)
     , m_isHttpOnly(false)
@@ -48,6 +49,7 @@ ParsedCookie::ParsedCookie(const String& name, const String& value, const String
     : m_name(name)
     , m_value(value)
     , m_domain(domain)
+    , m_hasDefaultDomain(false)
     , m_path(path)
     , m_expiry(expiry)
     , m_isSecure(isSecure)
@@ -92,6 +94,12 @@ void ParsedCookie::setMaxAge(const String& maxAge)
     // FIXME: is this necessary?
     if (m_expiry)
         m_expiry += currentTime();
+}
+
+void ParsedCookie::setDefaultDomain(const KURL& requestURL)
+{
+    m_domain = requestURL.host();
+    m_hasDefaultDomain = true;
 }
 
 bool ParsedCookie::hasExpired() const

@@ -577,14 +577,22 @@ const char* WebFrame::selectedString()
     return text.utf8().data();
 }
 
-void WebFrame::selectAll()
+bool WebFrame::selectAll()
 {
-    notImplemented();
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return false;
+
+    return coreFrame->editor()->command("SelectAll").execute();
 }
 
-void WebFrame::deselectAll()
+bool WebFrame::deselectAll()
 {
-    notImplemented();
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return false;
+
+    return coreFrame->editor()->command("Unselect").execute();
 }
 
 Frame* WebFrame::init(WebView* webView, Page* page, HTMLFrameOwnerElement* ownerElement)

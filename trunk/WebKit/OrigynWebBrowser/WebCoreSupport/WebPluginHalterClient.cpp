@@ -27,10 +27,13 @@
 #include "WebPluginHalterClient.h"
 
 #include "Assertions.h"
+#include "CString.h" // For UTF8 conversion.
 #include "DOMCoreClasses.h"
 #include "NotImplemented.h"
 #include "WebPluginHalterDelegate.h"
 #include "WebView.h"
+
+using namespace WebCore;
 
 WebPluginHalterClient::WebPluginHalterClient(WebView* webView)
     : m_webView(webView)
@@ -38,7 +41,7 @@ WebPluginHalterClient::WebPluginHalterClient(WebView* webView)
     ASSERT_ARG(webView, webView);
 }
 
-bool WebPluginHalterClient::shouldHaltPlugin(WebCore::Node* node) const
+bool WebPluginHalterClient::shouldHaltPlugin(Node* node, bool isWindowed, const String& pluginName) const
 {
     ASSERT_ARG(node, node);
 
@@ -48,7 +51,7 @@ bool WebPluginHalterClient::shouldHaltPlugin(WebCore::Node* node) const
         return false;
 
     DOMNode* domNode = DOMNode::createInstance(node);
-    return d->shouldHaltPlugin(m_webView, domNode);
+    return d->shouldHaltPlugin(m_webView, domNode, isWindowed, pluginName.utf8().data());
 }
 
 bool WebPluginHalterClient::enabled() const
