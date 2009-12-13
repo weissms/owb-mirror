@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer
+ * Copyright (C) 2009 Joerg Strohmayer
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,21 @@
 
 namespace WebCore {
 
+    // Each thread has its own single instance of shared timer, which implements this interface.
+    // This instance is shared by all timers in the thread.
+    // Not intended to be used directly; use the Timer class instead.
+    class SharedTimer {
+    public:
+        virtual ~SharedTimer() {}
+        virtual void setFiredFunction(void (*)()) = 0;
+
+        // The fire time is relative to the classic POSIX epoch of January 1, 1970,
+        // as the result of currentTime() is.
+        virtual void setFireTime(double) = 0;
+        virtual void stop() = 0;
+    };
+
+
     // Single timer, shared to implement all the timers managed by the Timer class.
     // Not intended to be used directly; use the Timer class instead.
 
@@ -45,8 +60,28 @@ namespace WebCore {
     void setSharedTimerFireTime(double fireTime);
     void stopSharedTimer();
 
+#if !PLATFORM(GTK)
     void fireTimerIfNeeded();
+#endif
 
+    // Implementation of SharedTimer for the main thread.
+    class MainThreadSharedTimer : public SharedTimer {
+    public:
+        virtual void setFiredFunction(void (*function)())
+        {
+            setSharedTimerFiredFunction(function);
+        }
+
+        virtual void setFireTime(double fireTime)
+        {
+            setSharedTimerFireTime(fireTime);
+        }
+
+        virtual void stop()
+        {
+            stopSharedTimer();
+        }
+    };
 }
 
 #endif

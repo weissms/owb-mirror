@@ -26,53 +26,46 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef Pasteboard_h
-#define Pasteboard_h
+/**
+ * @file  BCFileIOAmigaOS4.h
+ *
+ * Header file for BCGFileIOAmigaOS4.
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date$
+ */
 
-#include <wtf/Forward.h>
-#include <wtf/HashSet.h>
-#include <wtf/Noncopyable.h>
+#ifndef BCFILEAMIGAOS4_H
+#define BCFILEAMIGAOS4_H
 
-
-#include <PasteboardHelper.h>
-
-// FIXME: This class is too high-level to be in the platform directory, since it
-// uses the DOM and makes calls to Editor. It should either be divested of its
-// knowledge of the frame and editor or moved into the editing directory.
-
+#include "config.h"
+#include "PlatformString.h"
+#include <stdio.h>
 
 namespace WebCore {
 
-class CString;
-class DocumentFragment;
-class Frame;
-class HitTestResult;
-class KURL;
-class Node;
-class Range;
-class String;
-    
-class Pasteboard : Noncopyable {
+
+class File {
 public:
-    static Pasteboard* generalPasteboard();
-    void writeSelection(Range*, bool canSmartCopyOrDelete, Frame*);
-    void writeURL(const KURL&, const String&, Frame* = 0);
-    void writeImage(Node*, const KURL&, const String& title);
+    File(const String path);
+    virtual ~File();
 
-    void clear();
-    bool canSmartReplace();
-    PassRefPtr<DocumentFragment> documentFragment(Frame*, PassRefPtr<Range>, bool allowPlainText, bool& chosePlainText);
-    String plainText(Frame* = 0);
+    virtual int open(char openType);
 
-    void setHelper(PasteboardHelper*);
+    virtual void close();
 
+    virtual char* read(size_t size);
+    virtual void write(String dataToWrite);
+    virtual void write(const void* data, size_t length);
+
+    virtual int getSize();
 private:
-    Pasteboard();
-    ~Pasteboard();
-
-    PasteboardHelper* m_helper;
+    FILE* m_file;
+    const String m_filePath;
 };
 
-} // namespace WebCore
+}
 
-#endif // Pasteboard_h
+#endif //BCFILEAMIGAOS4_H

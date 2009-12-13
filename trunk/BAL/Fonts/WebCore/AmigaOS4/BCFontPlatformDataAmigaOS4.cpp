@@ -44,28 +44,143 @@ extern "C" {
 // OWB never calls anything which could free the fonts, have to track
 // and release them on exit.
 static List font_list, tracking_list;
-static void add_to_fontlist(struct OutlineFont *face) 
+static void add_to_fontlist(OutlineFont* face) 
 {
-    struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+    Node* node = (Node*)malloc(sizeof(struct Node));
     if (node) {
        node->ln_Name = (STRPTR)face;
        IExec->AddHead(&tracking_list, node);
     }
 }
 
+struct amigaFontFamily
+{
+    amigaFontFamily* next;
+    char *familyName, *regularName, *boldName, *italicName, *boldItalicName;
+};
+static amigaFontFamily* fontFamilies = 0;
+
+static void addFont(char* name, OutlineFont* olf)
+{
+    TagItem* tag;
+
+    if (strstr(name, "Condensed"))
+        return;
+
+    tag = IUtility->FindTagItem(OT_Engine, olf->olf_OTagList);
+    if (!tag || strcasecmp((char*)tag->ti_Data, "ft2"))
+        return;
+    tag = IUtility->FindTagItem(OT_Family, olf->olf_OTagList);
+    if (!tag)
+        return;
+
+    amigaFontFamily* family = fontFamilies;
+    while(family) {
+        if (!strcasecmp((char*)tag->ti_Data, family->familyName))
+            break;
+        family = family->next;
+    }
+
+    if (!family) {
+        family = (amigaFontFamily*)calloc(1, sizeof(struct amigaFontFamily));
+        if (!family)
+            return;
+        family->familyName = strdup((char*)tag->ti_Data);
+        family->next = fontFamilies;
+        fontFamilies = family;
+    }
+
+    if (family->regularName && family->boldName && family->italicName && family->boldItalicName)
+        return;
+
+    tag = IUtility->FindTagItem(OT_StemWeight, olf->olf_OTagList);
+    if (!tag)
+        return;
+    if (tag->ti_Data < OTS_Light)
+       return;
+    bool bold = tag->ti_Data >= OTS_SemiBold || strstr(name, "Demi") || strstr(name, "Medium");
+
+    tag = IUtility->FindTagItem(OT_SlantStyle, olf->olf_OTagList);
+    if (!tag)
+        return;
+    bool italic = tag->ti_Data == OTS_Italic || strstr(name, "Italic");
+
+    if (!bold && !italic) {
+        if (family->regularName && strstr(family->regularName, "Medium")) {
+            free(family->regularName);
+            family->regularName = strdup(name);
+        }
+        else if (!family->regularName)
+            family->regularName = strdup(name);
+    }
+    else if (bold && !italic) {
+        if (!family->boldName)
+            family->boldName = strdup(name);
+    }
+    else if (!bold && italic) {
+        if (family->italicName && strstr(family->italicName, "Medium")) {
+            free(family->italicName);
+            family->italicName = strdup(name);
+        }
+        else if (!family->italicName)
+            family->italicName = strdup(name);
+    }
+    else // (bold && italic)
+        if (!family->boldItalicName)
+           family->boldItalicName = strdup(name);
+}
+
 static void amiga_font_init(void) __attribute__((constructor));
 static void amiga_font_init(void)
 {
     IExec->NewList(&tracking_list);
+    IExec->NewList(&font_list);
+
+    int buffersize = 64 * 1024;
+    char* buffer = (char*)malloc(buffersize);
+    if (!buffer)
+        return;
+    int32 error;
+    do {
+        error = IDiskfont->AvailFonts(buffer, buffersize, AFF_DISK | AFF_TAGGED | AFF_OTAG | AFF_CHARSET | AFF_TYPE);
+        if (error) {
+            buffersize += error;
+            buffer = (char*)realloc(buffer, buffersize);
+            if (!buffer)
+                return;
+        }
+    } while (error);
+
+    AvailFontsHeader* afh = (AvailFontsHeader*)buffer;
+    TAvailFonts* taf = (TAvailFonts*)(buffer + sizeof(struct AvailFontsHeader));
+
+    for (int i = 0 ; i < afh->afh_NumEntries ; i++) {
+        if ((AFF_DISK|AFF_OTAG|AFF_SCALED) == taf[i].taf_Type) {
+            TagItem* tags = taf[i].taf_Attr.tta_Tags;
+            while (tags && tags->ti_Tag != TAG_DONE) {
+                if (TAG_MORE == tags->ti_Tag)
+                    break;
+                tags++;
+            }
+            OutlineFont* olf = IDiskfont->OpenOutlineFont(taf[i].taf_Attr.tta_Name, &font_list, OFF_OPEN);
+            if (olf) {
+                tags = olf->olf_OTagList;
+                addFont(taf[i].taf_Attr.tta_Name, olf);
+                IDiskfont->CloseOutlineFont(olf, &font_list);
+            }
+        }
+    }
+
+    free(buffer);
 }
 
 static void amiga_font_cleanup(void) __attribute__((destructor));
 static void amiga_font_cleanup(void)
 {
-    struct Node *node = IExec->GetHead(&tracking_list);
+    struct Node* node = IExec->GetHead(&tracking_list);
     while (node) {
         if (node->ln_Name) {
-            IDiskfont->CloseOutlineFont((struct OutlineFont *)node->ln_Name, &font_list);
+            IDiskfont->CloseOutlineFont((OutlineFont*)node->ln_Name, &font_list);
             node->ln_Name = 0;
         }
         IExec->Remove(node);
@@ -74,94 +189,101 @@ static void amiga_font_cleanup(void)
 }
 };
 
-static char *get_font_name(const char *family, const int type, const bool bold, const bool italic, struct List *list, bool &syntheticBold, bool &syntheticOblique)
+static char* get_font_name(const char* family, const int type, const bool bold, const bool italic, List* list)
 {
-    char *fontname = NULL;
+    char* fontname = 0;
 
     if (0 != family && 0 != *family) {
-        struct OutlineFont *face = IDiskfont->OpenOutlineFont(family, list, 0);
-        if (face) {
+        if (!strcasecmp(family, "-webkit-serif"))
+            family = "DejaVu Serif";
+        else if (!strcasecmp(family, "-webkit-sans-serif"))
+            family = "DejaVu Sans";
+        else if (!strcasecmp(family, "-webkit-monospace"))
+            family = "DejaVu Sans Mono";
+        // else -webkit-cursive
+        // else -webkit-fantasy
+        // else -webkit-standard
+        else if (!strncasecmp(family, "-webkit-", strlen("-webkit-")))
+           family = "DejaVu Serif";
+
+        amigaFontFamily* fontFamily = fontFamilies;
+        while (fontFamily) {
+            if (!strcasecmp(fontFamily->familyName, family))
+                break;
+            fontFamily = fontFamily->next;
+        }
+        if (fontFamily) {
             if (!bold && !italic) {
-                char *rname = (char *)IUtility->GetTagData(OT_RName, NULL, face->olf_OTagList);
-                if (rname)
-                    fontname = strdup(rname);
+                if (fontFamily->regularName)
+                    fontname = strdup(fontFamily->regularName);
                 else
-                    fontname = strdup(family);
+                    fprintf(stderr, "font family '%s' has no regular font\n", family);
             }
             else if (bold && !italic) {
-                char *bname = (char *)IUtility->GetTagData(OT_BName, NULL, face->olf_OTagList);
-                if (bname)
-                    fontname = strdup(bname);
-                else {
-                    fontname = strdup(family);
-                    syntheticBold = true;
+                if (fontFamily->boldName)
+                    fontname = strdup(fontFamily->boldName);
+                else
                     fprintf(stderr, "font family '%s' has no bold font\n", family);
-                }
             }
             else if (!bold && italic) {
-                char *iname = (char *)IUtility->GetTagData(OT_IName, NULL, face->olf_OTagList);
-                if (iname)
-                    fontname = strdup(iname);
-                else {
-                    fontname = strdup(family);
-                    syntheticOblique = true;
+                if (fontFamily->italicName)
+                    fontname = strdup(fontFamily->italicName);
+                else
                     fprintf(stderr, "font family '%s' has no italic font\n", family);
-                }
             }
             else { // (bold && italic)
-                char *biname = (char *)IUtility->GetTagData(OT_BIName, NULL, face->olf_OTagList);
-                if (biname)
-                    fontname = strdup(biname);
-                else {
-                    fontname = strdup(family);
-                    syntheticBold = true;
-                    syntheticOblique = true;
+                if (fontFamily->boldItalicName)
+                    fontname = strdup(fontFamily->boldItalicName);
+                else
                     fprintf(stderr, "font family '%s' has no bold italic font\n", family);
-                }
             }
-            IDiskfont->CloseOutlineFont(face, list);
         } else
             fprintf(stderr, "font family '%s' not found\n", family);
-    }
-
-    if (0 == fontname) {
-        const char *boldstr = bold ? " Bold" : "";
-        const char *italicstr = italic ? " Italic" : "";
-        char tempfontname[256];
-
-        switch (type) {
-        case FontDescription::SerifFamily:
-            snprintf(tempfontname, sizeof(tempfontname), "Times New Roman%s%s", boldstr, italicstr);
-            fontname = strdup(tempfontname);
-        break;
-
-        case FontDescription::SansSerifFamily:
-            snprintf(tempfontname, sizeof(tempfontname), "Arial%s%s", boldstr, italicstr);
-            fontname = strdup(tempfontname);
-        break;
-
-        case FontDescription::MonospaceFamily:
-            snprintf(tempfontname, sizeof(tempfontname), "Courier New%s%s", boldstr, italicstr);
-            fontname = strdup(tempfontname);
-        break;
-
-        case FontDescription::NoFamily:
-        case FontDescription::StandardFamily:
-        default:
-            snprintf(tempfontname, sizeof(tempfontname), "Arial%s%s", boldstr, italicstr);
-            fontname = strdup(tempfontname);
-        }
     }
 
     return fontname;
 }
 
-static char *get_font_name_fallback(const int type, const bool bold, const bool italic, struct List *list)
+static char* get_font_name_fallback(const int type, const bool bold, const bool italic, List* list)
 {
-    char *fontname = NULL;
-    const char *boldstr = bold ? " Bold" : "";
-    const char *italicstr = italic ? " Oblique" : "";
+    char* fontname = 0;
+    const char* boldstr = bold ? " Bold" : "";
+    const char* italicstr = italic ? " Italic" : "";
     char tempfontname[256];
+
+    switch (type) {
+    case FontDescription::SerifFamily:
+        snprintf(tempfontname, sizeof(tempfontname), "Times New Roman%s%s", boldstr, italicstr);
+        fontname = strdup(tempfontname);
+    break;
+
+    case FontDescription::SansSerifFamily:
+        snprintf(tempfontname, sizeof(tempfontname), "Arial%s%s", boldstr, italicstr);
+        fontname = strdup(tempfontname);
+    break;
+
+    case FontDescription::MonospaceFamily:
+        snprintf(tempfontname, sizeof(tempfontname), "Courier New%s%s", boldstr, italicstr);
+        fontname = strdup(tempfontname);
+    break;
+
+    case FontDescription::NoFamily:
+    case FontDescription::StandardFamily:
+    default:
+        snprintf(tempfontname, sizeof(tempfontname), "Arial%s%s", boldstr, italicstr);
+        fontname = strdup(tempfontname);
+    }
+
+    OutlineFont* face = IDiskfont->OpenOutlineFont(fontname, list, OFF_OPEN);
+    if (face) {
+        IDiskfont->CloseOutlineFont(face, list);
+        return fontname;
+    }
+
+    free(fontname);
+
+
+    italicstr = italic ? " Oblique" : "";
 
     switch (type) {
     case FontDescription::SerifFamily:
@@ -189,26 +311,29 @@ static char *get_font_name_fallback(const int type, const bool bold, const bool 
     return fontname;
 }
 
-static OutlineFont *openFont(const char* family, int type, bool bold, bool italic, float &size, char* &m_fontname, double &m_sizefactor, bool &syntheticBold, bool &syntheticOblique)
+static OutlineFont* openFont(const char* family, int type, bool bold, bool italic, float &size, char* &m_fontname, double &m_sizefactor)
 {
-    OutlineFont *fontFace = 0;
+    OutlineFont* fontFace = 0;
 
-    char *fontname = get_font_name(family, type, bold, italic, &font_list, syntheticBold, syntheticOblique);
+    char* fontname = 0;
+    if (family && *family)
+        fontname = get_font_name(family, type, bold, italic, &font_list);
     if (fontname) {
         fontFace = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
-        if (!fontFace)
+        if (!fontFace) {
             free(fontname);
+            fontname = 0;
+        }
     }
-    if (!fontFace) {
+    if (!fontFace && (!family || !*family)) {
         fontname = get_font_name_fallback(type, bold, italic, &font_list);
         if (fontname)
             fontFace = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
     }
     if (fontFace) {
         uint32 ysizefactor = IUtility->GetTagData(OT_YSizeFactor, 0x00010001, fontFace->olf_OTagList);
-        size *= ysizefactor >> 16;
-        size /= ysizefactor & 0xFFFF;
-        size = (int)(size + 0.45);
+//        m_sizefactor = (double)(ysizefactor & 0xFFFF) / (ysizefactor >> 16);
+        size = size * (ysizefactor >> 16) / (ysizefactor & 0xFFFF) + 0.5;
 
         if (size < amigaConfig.minFontSize)
             size = amigaConfig.minFontSize;
@@ -226,18 +351,6 @@ static OutlineFont *openFont(const char* family, int type, bool bold, bool itali
             fontFace = 0;
         }
         else {
-            if (syntheticBold) {
-                IDiskfont->ESetInfo(&fontFace->olf_EEngine,
-                                    OT_EmboldenX, 0x00000e75,
-                                    OT_EmboldenY, 0x0000099e,
-                                    TAG_END);
-            }
-            if (syntheticOblique) {
-                IDiskfont->ESetInfo(&fontFace->olf_EEngine,
-                                    OT_ShearSin, 0x00004690,
-                                    OT_ShearCos, 0x0000f615,
-                                    TAG_END);
-            }
             add_to_fontlist(fontFace);
             m_fontname = fontname;
             fontname = 0;
@@ -253,9 +366,10 @@ FontPlatformData::FontPlatformData(WTF::HashTableDeletedValueType)
     , m_sizefactor(-1)
     , m_syntheticBold(false)
     , m_syntheticOblique(false)
-    , m_face((OutlineFont *)-1)
+    , m_face((OutlineFont*)-1)
     , m_fontname(hashTableDeletedFontValue())
-{ }
+{
+}
 
 FontPlatformData::FontPlatformData()
     : m_size(0)
@@ -264,7 +378,8 @@ FontPlatformData::FontPlatformData()
     , m_syntheticOblique(false)
     , m_face(0)
     , m_fontname(0)
-{ }
+{
+}
 
 FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const AtomicString& familyName)
     : m_size(fontDescription.computedSize())
@@ -288,34 +403,53 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
         m_size = 256;
 
     int type = fontDescription.genericFamily();
-    bool bold = fontDescription.weight() >= FontWeight600;
-    bool italic = fontDescription.italic();
-    m_face = openFont(family, type, bold, italic, m_size, m_fontname, m_sizefactor, m_syntheticBold, m_syntheticOblique);
+    m_syntheticBold = fontDescription.weight() >= FontWeightBold;
+    m_syntheticOblique = fontDescription.italic();
+    
+    m_face = openFont(family, type, m_syntheticBold, m_syntheticOblique, m_size, m_fontname, m_sizefactor);
+    if (!m_face)
+        m_size = 0;
 }
 
 FontPlatformData::FontPlatformData(float size, bool bold, bool italic)
     : m_size(size)
-    , m_syntheticBold(false)
-    , m_syntheticOblique(false)
+    , m_syntheticBold(bold)
+    , m_syntheticOblique(italic)
     , m_fontname(0)
 {
-    m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname, m_sizefactor, m_syntheticBold, m_syntheticOblique);
+    if (0 == size) {
+        m_sizefactor = 0;
+        m_face = 0;
+    }
+    else
+        m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname, m_sizefactor);
 }
 
 FontPlatformData::FontPlatformData(BalFontFace* fontFace, int size, bool bold, bool italic)
     : m_size(size)
-    , m_syntheticBold(false)
-    , m_syntheticOblique(false)
+    , m_syntheticBold(bold)
+    , m_syntheticOblique(italic)
     , m_fontname(0)
 {
-    m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname, m_sizefactor, m_syntheticBold, m_syntheticOblique);
+    m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname, m_sizefactor);
+}
+
+FontPlatformData::FontPlatformData(const FontPlatformData& other)
+    : m_size(0)
+    , m_sizefactor(0)
+    , m_syntheticBold(false)
+    , m_syntheticOblique(false)
+    , m_face(0)
+    , m_fontname(0)
+{
+    if (0 != &other)
+        *this = other;
 }
 
 bool FontPlatformData::init()
 {
     static bool initialized = false;
     if (!initialized) {
-        IExec->NewList(&font_list);
         amigaConfig.unicodeFace = IDiskfont->OpenOutlineFont(amigaConfig.unicodeFontName, &font_list, OFF_OPEN);
         if (amigaConfig.unicodeFace)
             if (IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
@@ -334,7 +468,7 @@ bool FontPlatformData::init()
 
 FontPlatformData::~FontPlatformData()
 {
-//    fprintf(stderr, "%s: m_face = %p\n", __PRETTY_FUNCTION__, m_face); // only called once, with 0 m_face!?
+    free(m_fontname);
 }
 
 bool FontPlatformData::isFixedPitch()
@@ -356,6 +490,28 @@ void FontPlatformData::setFont(BalFont* cr) const
     balNotImplemented();
 }
 
+FontPlatformData& FontPlatformData::operator=(const FontPlatformData& other)
+{
+    if (0 == &other)
+        return *(new FontPlatformData());
+
+    // Check for self-assignment.
+    if (this == &other)
+        return *this;
+
+    m_size = other.m_size;
+    m_syntheticBold = other.m_syntheticBold;
+    m_syntheticOblique = other.m_syntheticOblique;
+    m_face = other.m_face;
+
+    if (other.m_fontname && other.m_fontname != hashTableDeletedFontValue())
+        m_fontname = strdup(other.m_fontname);
+    else
+        m_fontname = other.m_fontname;
+
+    return *this;
+}
+
 bool FontPlatformData::operator==(const FontPlatformData& other) const
 {
     if (m_face == other.m_face)
@@ -364,7 +520,7 @@ bool FontPlatformData::operator==(const FontPlatformData& other) const
      && m_syntheticBold == other.m_syntheticBold
      && m_syntheticOblique == other.m_syntheticOblique
      && m_fontname && other.m_fontname
-     && (m_fontname == other.m_fontname || !strcmp(m_fontname, other.m_fontname)))
+     && (m_fontname == other.m_fontname || !strcasecmp(m_fontname, other.m_fontname)))
         return true;
 
     return false;

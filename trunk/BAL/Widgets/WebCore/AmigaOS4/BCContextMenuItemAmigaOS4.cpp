@@ -38,7 +38,7 @@
 
 #define WEBKIT_CONTEXT_MENU_ACTION "webkit-context-menu"
 
-namespace WKAL {
+namespace WebCore {
 
 // Extract the ActionType from the menu item
 ContextMenuItem::ContextMenuItem(BalMenuItem* item)

@@ -29,7 +29,7 @@
 #ifndef LocalizedStrings_h
 #define LocalizedStrings_h
 
-namespace OWBAL {
+namespace WebCore {
 
     class String;
     class IntSize;
@@ -107,6 +107,20 @@ namespace OWBAL {
     String contextMenuItemTagTextDirectionMenu();
 
     String imageTitle(const String& filename, const IntSize& size);
+
+    String mediaElementLoadingStateText();
+    String mediaElementLiveBroadcastStateText();
+    String localizedMediaControlElementString(const String&);
+    String localizedMediaControlElementHelpText(const String&);
+    String localizedMediaTimeDescription(float);
+
+    String validationMessageValueMissingText();
+    String validationMessageTypeMismatchText();
+    String validationMessagePatternMismatchText();
+    String validationMessageTooLongText();
+    String validationMessageRangeUnderflowText();
+    String validationMessageRangeOverflowText();
+    String validationMessageStepMismatchText();
 }
 
 #endif

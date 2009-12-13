@@ -32,6 +32,7 @@
 #include "GlyphBuffer.h"
 #include "FontDescription.h"
 #include "BALBase.h"
+#include "StringHash.h"
 
 
 namespace WebCore {
@@ -43,6 +44,7 @@ public:
     FontPlatformData(const FontDescription&, const AtomicString& family);
     FontPlatformData(float size, bool bold, bool italic);
     FontPlatformData(BalFontFace* fontFace, int size, bool bold, bool italic);
+    FontPlatformData(const FontPlatformData&);
 
     ~FontPlatformData();
 
@@ -55,11 +57,12 @@ public:
 
     unsigned hash() const
     {
-        uint32_t hashCodes[4] = { StringImpl::computeHash(m_fontname), (uint32_t)m_size, m_syntheticBold, m_syntheticOblique };
+        uint32_t hashCodes[4] = { CaseFoldingHash::hash(String(m_fontname)), (uint32_t)m_size, m_syntheticBold, m_syntheticOblique };
         return StringImpl::computeHash(reinterpret_cast<UChar*>(hashCodes), sizeof(hashCodes) / sizeof(UChar));
     }
 
     bool operator==(const FontPlatformData&) const;
+    FontPlatformData& operator=(const FontPlatformData&);
     bool isHashTableDeletedValue() const {
         return m_fontname == hashTableDeletedFontValue();
     };
@@ -71,7 +74,7 @@ public:
     struct OutlineFont *m_face;
     char *m_fontname;
 private:
-    static char *hashTableDeletedFontValue() { return reinterpret_cast<char *>(-1); }
+    static char* hashTableDeletedFontValue() { return reinterpret_cast<char*>(-1); }
 };
 
 }

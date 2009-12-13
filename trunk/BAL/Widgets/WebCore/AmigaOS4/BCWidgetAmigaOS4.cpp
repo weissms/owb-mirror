@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,26 +38,10 @@
 #include "Logging.h"
 #include "NotImplemented.h"
 #include "RenderObject.h"
-#if PLATFORM(AMIGAOS4)
 #include "HostWindow.h"
 #include <proto/intuition.h>
-#else
-#include "SDL.h"
-#endif
 
 namespace WebCore {
-
-#if PLATFORM(AMIGAOS4)
-typedef void BalCursor;
-#else
-typedef SDL_Cursor BalCursor;
-#endif
-
-//TODO : redo the WidgetPrivate on SDL
-class WidgetPrivate {
-public:
-	BalCursor* cursor;
-};
 
 Widget::Widget(PlatformWidget widget)
 {
@@ -75,14 +60,13 @@ void Widget::setFocus()
 
 void Widget::setCursor(const Cursor& cursor)
 {
-#if PLATFORM(AMIGAOS4)
     if (!isFrameView())
         return;
 
-    static const Cursor *waitCursorPtr = &waitCursor();
-    HostWindow *hostWindow = static_cast<FrameView*>(this)->hostWindow();
-    BalWidget *widget = hostWindow ? hostWindow->platformWindow() : 0;
-    Window *window = widget ? widget->window : 0;
+    static const Cursor* waitCursorPtr = &waitCursor();
+    HostWindow* hostWindow = static_cast<FrameView*>(this)->hostWindow();
+    BalWidget* widget = hostWindow ? hostWindow->platformPageClient() : 0;
+    Window* window = widget ? widget->window : 0;
 
     if (window)
         if (waitCursorPtr == &cursor && !cursor.impl())
@@ -91,7 +75,6 @@ void Widget::setCursor(const Cursor& cursor)
             IIntuition->SetWindowPointer(window, WA_Pointer, cursor.impl(), TAG_DONE);
             widget->curentCursor = cursor.impl();
         }
-#endif
 }
 
 void Widget::show()
@@ -109,7 +92,7 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
     if (!platformWidget())
         return;
 
-#if !PLATFORM(AMIGAOS4)
+#if 0
     if (!context->balExposeEvent())
         return;
     
@@ -150,7 +133,7 @@ IntRect Widget::frameRect() const
 
 void Widget::setFrameRect(const IntRect& rect)
 {
-	m_frame = rect;
+    m_frame = rect;
 }
 
 }

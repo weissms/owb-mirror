@@ -47,7 +47,7 @@ public:
     virtual ~SimpleFontData();
 
 public:
-    const FontPlatformData& platformData() const { return m_font; }
+    const FontPlatformData& platformData() const { return m_platformData; }
     SimpleFontData* smallCapsFontData(const FontDescription& fontDescription) const;
 
     // vertical metrics
@@ -55,11 +55,18 @@ public:
     int descent() const { return m_descent; }
     int lineSpacing() const { return m_lineSpacing; }
     int lineGap() const { return m_lineGap; }
+    float maxCharWidth() const { return m_maxCharWidth; }
+    float avgCharWidth() const { return m_avgCharWidth; }
     float xHeight() const { return m_xHeight; }
     unsigned unitsPerEm() const { return m_unitsPerEm; }
 
     float widthForGlyph(Glyph) const;
     float platformWidthForGlyph(Glyph) const;
+
+    float spaceWidth() const { return m_spaceWidth; }
+    float adjustedSpaceWidth() const { return m_adjustedSpaceWidth; }
+
+    Glyph spaceGlyph() const { return m_spaceGlyph; }
 
     virtual const SimpleFontData* fontDataForCharacter(UChar32) const;
     virtual bool containsCharacters(const UChar*, int length) const;
@@ -85,8 +92,11 @@ public:
 private:
     void platformInit();
     void platformGlyphInit();
+    void platformCharWidthInit();
     void platformDestroy();
     
+    void initCharWidths();
+
     void commonInit();
 
 public:
@@ -94,10 +104,12 @@ public:
     int m_descent;
     int m_lineSpacing;
     int m_lineGap;
+    float m_maxCharWidth;
+    float m_avgCharWidth;
     float m_xHeight;
     unsigned m_unitsPerEm;
 
-    FontPlatformData m_font;
+    FontPlatformData m_platformData;
 
     mutable GlyphWidthMap m_glyphToWidthMap;
 
@@ -117,8 +129,20 @@ public:
     GlyphData m_missingGlyphData;
 
     mutable SimpleFontData* m_smallCapsFontData;
-
 };
+
+ALWAYS_INLINE float SimpleFontData::widthForGlyph(Glyph glyph) const
+{
+    float width = m_glyphToWidthMap.widthForGlyph(glyph);
+    if (width != cGlyphWidthUnknown)
+        return width;
+
+    width = platformWidthForGlyph(glyph);
+    m_glyphToWidthMap.setWidthForGlyph(glyph, width);
+
+    return width;
+}
+
 
 } // namespace WebCore
 

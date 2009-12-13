@@ -32,10 +32,11 @@
 #include "PlatformString.h"
 #include <wtf/Platform.h>
 #include "BALBase.h"
+#include <intuition/intuition.h>
 
 namespace WebCore {
 
-    class PlatformKeyboardEvent  {
+    class PlatformKeyboardEvent {
     public:
         enum Type {
             // KeyDown is sent by platforms such as Mac OS X, gtk and Qt, and has information about both physical pressed key, and its translation.
@@ -112,7 +113,7 @@ namespace WebCore {
         bool m_altKey;
         bool m_metaKey;
 
-        BalEventKey* m_balEventKey;
+        BalEventKey m_balEventKey;
     };
 
 } // namespace WebCore

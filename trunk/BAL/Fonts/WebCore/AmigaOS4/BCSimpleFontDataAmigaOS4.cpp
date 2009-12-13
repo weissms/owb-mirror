@@ -40,6 +40,7 @@
 #include <unicode/unorm.h>
 #include <wtf/MathExtras.h>
 #include <proto/diskfont.h>
+#include <proto/utility.h>
 #include <diskfont/diskfonttag.h>
 #include <diskfont/oterrors.h>
 
@@ -47,7 +48,7 @@ namespace WebCore {
 
 void SimpleFontData::platformInit()
 {
-    struct OutlineFont *face = m_font.m_face;
+    OutlineFont* face = m_platformData.m_face;
     if (face) {
         uint32 baseline;
         if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
@@ -70,7 +71,7 @@ void SimpleFontData::platformInit()
                 if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                                          OT_GlyphCode, i,
                                          TAG_END)) {
-                    struct GlyphMap *glyph;
+                    GlyphMap* glyph;
 
                     if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
                                                 OT_GlyphMap8Bit, &glyph,
@@ -92,13 +93,19 @@ void SimpleFontData::platformInit()
             m_descent = max_descent;
         }
 
-        m_lineSpacing = m_ascent + m_descent;
+        uint32 ysizefactor = IUtility->GetTagData(OT_YSizeFactor, 0x00010001, face->olf_OTagList);
+        m_ascent = m_ascent; // * (double)(ysizefactor & 0xFFFF) / (ysizefactor >> 16) + 0.5;
+        m_descent = m_descent; // * (double)(ysizefactor & 0xFFFF) / (ysizefactor >> 16) + 0.5;
 
-        m_xHeight = (int)(m_font.m_size * amigaConfig.fontYDPI / 72);
+//        m_lineSpacing = m_ascent + m_descent;
+        m_lineSpacing = (m_ascent + m_descent) * (double)(ysizefactor & 0xFFFF) / (ysizefactor >> 16) + 0.5;
+        m_lineGap = 0;
+
+        m_xHeight = (int)(m_platformData.m_size * amigaConfig.fontYDPI / 72);
         if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                                  OT_GlyphCode, 'x',
                                  TAG_END)) {
-           struct GlyphMap *glyph;
+           GlyphMap* glyph;
 
            if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
                                        OT_GlyphMap8Bit, &glyph,
@@ -114,12 +121,12 @@ void SimpleFontData::platformInit()
                                  OT_GlyphCode, ' ',
                                  OT_GlyphCode2, ' ',
                                  TAG_END)) {
-            struct MinList *widthlist = NULL;
+            MinList* widthlist = 0;
 
             if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
                                         OT_WidthList, (uint32)&widthlist,
                                         TAG_END)) {
-               struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+               GlyphWidthEntry* widthentry = (GlyphWidthEntry*)widthlist->mlh_Head;
 
                if (' ' == widthentry->gwe_Code)
                    spacewidth = widthentry->gwe_Width;
@@ -128,17 +135,23 @@ void SimpleFontData::platformInit()
             }
         }
 
-        m_spaceWidth = (int)(spacewidth / 65536.0 * m_font.m_size * amigaConfig.fontXDPI / 72);
-        m_lineGap = m_lineSpacing - m_ascent + m_descent;
+        m_spaceWidth = (int)(spacewidth / 65536.0 * m_platformData.m_size * amigaConfig.fontXDPI / 72);
     }
+}
+
+void SimpleFontData::platformCharWidthInit()
+{
+    m_avgCharWidth = 0.f;
+    m_maxCharWidth = 0.f;
+    initCharWidths();
 }
 
 void SimpleFontData::platformDestroy()
 {
-    fprintf(stderr, "%s: m_face = %p\n", __PRETTY_FUNCTION__, m_font.m_face); // never called!
+    fprintf(stderr, "%s: m_face = %p\n", __PRETTY_FUNCTION__, m_platformData.m_face); // never called!
     if (m_smallCapsFontData)
         delete m_smallCapsFontData;
-    m_smallCapsFontData = NULL;
+    m_smallCapsFontData = 0;
 }
 
 SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDescription) const
@@ -147,7 +160,10 @@ SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDes
         FontDescription desc = FontDescription(fontDescription);
         desc.setSpecifiedSize(0.70f*fontDescription.computedSize());
         const FontPlatformData* pdata = new FontPlatformData(desc, desc.family().family());
-        m_smallCapsFontData = new SimpleFontData(*pdata);
+        if (0.0f == pdata->size())
+            delete pdata;
+        else
+            m_smallCapsFontData = new SimpleFontData(*pdata);
     }
     return m_smallCapsFontData;
 }
@@ -160,7 +176,7 @@ bool SimpleFontData::containsCharacters(const UChar* characters, int length) con
 
 void SimpleFontData::determinePitch()
 {
-    m_treatAsFixedPitch = m_font.isFixedPitch();
+    m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
 float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
@@ -168,22 +184,25 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
     if (32 == glyph)
         return m_spaceWidth;
 
-    struct OutlineFont *face = m_font.m_face;
+    OutlineFont* face = m_platformData.m_face;
+
+    if (!face)
+        return m_spaceWidth;
 
     if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                              OT_GlyphCode, glyph,
                              OT_GlyphCode2, glyph,
                              TAG_END)) {
-        struct MinList *widthlist;
+        MinList* widthlist;
         double width = 0;
 
         if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
                                     OT_WidthList, (uint32)&widthlist,
                                     TAG_END)) {
-            struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+            GlyphWidthEntry* widthentry = (GlyphWidthEntry*)widthlist->mlh_Head;
 
             if (widthentry->gwe_Code == glyph)
-                width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+                width = widthentry->gwe_Width / 65536.0 * m_platformData.m_size;
 
             IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
@@ -191,17 +210,17 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
         if (0 == width
          && amigaConfig.unicodeFace
          && !IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
-                                 OT_PointHeight, ((int)(m_font.m_size)) << 16,
+                                 OT_PointHeight, ((int)(m_platformData.m_size)) << 16,
                                  OT_GlyphCode, glyph,
                                  OT_GlyphCode2, glyph,
                                  TAG_END)
          && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFace->olf_EEngine,
                                     OT_WidthList, (uint32)&widthlist,
                                     TAG_END)) {
-            struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+            GlyphWidthEntry *widthentry = (GlyphWidthEntry*)widthlist->mlh_Head;
 
             if (widthentry->gwe_Code == glyph)
-                width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+                width = widthentry->gwe_Width / 65536.0 * m_platformData.m_size;
 
             IDiskfont->EReleaseInfo(&amigaConfig.unicodeFace->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
@@ -214,10 +233,10 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
          && !IDiskfont->EObtainInfo(&face->olf_EEngine,
                                     OT_WidthList, (uint32)&widthlist,
                                     TAG_END)) {
-             struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+             GlyphWidthEntry* widthentry = (GlyphWidthEntry*)widthlist->mlh_Head;
 
              if (0xFFFD == widthentry->gwe_Code)
-                 width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+                 width = widthentry->gwe_Width / 65536.0 * m_platformData.m_size;
 
              IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
@@ -230,10 +249,10 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
          && !IDiskfont->EObtainInfo(&face->olf_EEngine,
                                     OT_WidthList, (uint32)&widthlist,
                                     TAG_END)) {
-             struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+             GlyphWidthEntry* widthentry = (GlyphWidthEntry*)widthlist->mlh_Head;
 
              if ('?' == widthentry->gwe_Code)
-                 width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+                 width = widthentry->gwe_Width / 65536.0 * m_platformData.m_size;
 
              IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
@@ -247,7 +266,7 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 void SimpleFontData::setFont(BalFont* cr) const
 {
     ASSERT(cr);
-    m_font.setFont(cr);
+    m_platformData.setFont(cr);
 }
 
 }

@@ -56,6 +56,9 @@ struct IFFCodeSet
     uint32 Reserved[7];
 };
 
+extern uint32 g_amigaCodeSet;
+extern uint32 amigaToUnicodeChar(uint32);
+
 #include <cstdio>
 
 namespace WebCore {
@@ -102,13 +105,6 @@ Pasteboard::Pasteboard()
 Pasteboard::~Pasteboard()
 {
     printf("Pasteboard::~Pasteboard\n");
-    delete m_helper;
-}
-
-void Pasteboard::setHelper(PasteboardHelper* helper)
-{
-    printf("Pasteboard::setHelper\n");
-    m_helper = helper;
 }
 
 static void writeUTF8(const char* data, size_t len)
@@ -149,20 +145,20 @@ static void writeUTF8(const char* data, size_t len)
 
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
-    CString utf8 = frame->selectedText().utf8(); //selectedRange->text().utf8();
-    const char *data = utf8.data();
-    size_t len = utf8.length();
+    CString utf8 = frame->selectedText().utf8();
+    writeUTF8(utf8.data(), utf8.length());
+}
 
-    writeUTF8(data, len);
+void Pasteboard::writePlainText(const String& text)
+{
+    CString utf8 = text.utf8();
+    writeUTF8(utf8.data(), utf8.length());
 }
 
 void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
 {
     CString utf8 = url.prettyURL().utf8();
-    const char *data = utf8.data();
-    size_t len = utf8.length();
-
-    writeUTF8(data, len);
+    writeUTF8(utf8.data(), utf8.length());
 }
 
 void Pasteboard::writeImage(Node* node, const KURL&, const String& title)
@@ -184,7 +180,6 @@ void Pasteboard::writeImage(Node* node, const KURL&, const String& title)
             bmh->bmh_Width = image->width();
             bmh->bmh_Height = image->height();
             bmh->bmh_Depth = 32;
-            bmh->bmh_Masking = mskHasAlpha;
 
             IDataTypes->SetDTAttrs(dto, NULL, NULL,
                                    DTA_ObjName, title.utf8().data(),
@@ -246,10 +241,18 @@ static void copycollection(String &str, CollectionItem* ci, uint32 codeSet)
 
     if (106 == codeSet) // UTF-8
         str.append(String().fromUTF8((const char *)ci->ci_Data, ci->ci_Size));
+    else if (g_amigaCodeSet == codeSet) {
+        STRPTR data = (STRPTR)ci->ci_Data;
+        UChar text[ci->ci_Size];
+        for (int i = 0 ; i < ci->ci_Size ; i++)
+            text[i] = amigaToUnicodeChar(data[i]);
+
+        str.append(String(text, ci->ci_Size));
+    }
     else if (0 == codeSet || 3 == codeSet || 4 == codeSet) // US-ASCII or ISO-8859-1
         str.append(String((const char *)ci->ci_Data, ci->ci_Size));
     else { // unsupported charset
-        STRPTR data = (STRPTR )ci->ci_Data;
+        STRPTR data = (STRPTR)ci->ci_Data;
         TEXT text[ci->ci_Size];
 
         for (int i = 0 ; i < ci->ci_Size ; i++)
@@ -278,7 +281,7 @@ String Pasteboard::plainText(Frame* frame)
                             IFFCodeSet cs;
                             CollectionItem *ci;
 
-                            cs.CodeSet = 0;
+                            cs.CodeSet = g_amigaCodeSet;
 
                             ci = IIFFParse->FindCollection(ih, ID_FTXT, ID_CSET);
                             if (ci && sizeof(cs) == ci->ci_Size)

@@ -41,7 +41,7 @@
 
 extern char* utf8ToAmiga(const char* utf8);
 
-namespace WKAL {
+namespace WebCore {
 
 // TODO: ref-counting correctness checking.
 // See http://bugs.webkit.org/show_bug.cgi?id=16115

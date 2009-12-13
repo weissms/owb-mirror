@@ -43,19 +43,52 @@ void FontCache::platformInit()
 
 const SimpleFontData* FontCache::getFontDataForCharacters(const Font& font, const UChar* characters, int length)
 {
+fprintf(stderr, "%s\n", __PRETTY_FUNCTION__);
     return new SimpleFontData(FontPlatformData(font.fontDescription(), font.family().family()));
 }
 
 FontPlatformData* FontCache::getSimilarFontPlatformData(const Font& font)
 {
-    return new FontPlatformData(font.fontDescription(), font.family().family());
+    FontPlatformData* data = 0;
+    if (font.family().family() == "-webkit-serif") {
+        FontPlatformData* data = new FontPlatformData(font.fontDescription(), "DejaVu Serif");
+        if (0.0f == data->size()) {
+            delete data;
+            data = 0;
+        }
+    }
+    else if (font.family().family() == "-webkit-sans-serif") {
+        FontPlatformData* data = new FontPlatformData(font.fontDescription(), "DejaVu Sans");
+        if (0.0f == data->size()) {
+            delete data;
+            data = 0;
+        }
+    }
+    else if (font.family().family() == "-webkit-monospace") {
+        FontPlatformData* data = new FontPlatformData(font.fontDescription(), "DejaVu Sans Mono");
+        if (0.0f == data->size()) {
+            delete data;
+            data = 0;
+        }
+    }
+    // else -webkit-cursive
+    // else -webkit-fantasy
+    // else -webkit-standard
+    else if (font.family().family().startsWith("-webkit-")) {
+        FontPlatformData* data = new FontPlatformData(font.fontDescription(), "DejaVu Serif");
+        if (0.0f == data->size()) {
+            delete data;
+            data = 0;
+        }
+    }
+    return data;
 }
 
 FontPlatformData* FontCache::getLastResortFallbackFont(const FontDescription& fontDescription)
 {
     // FIXME: Would be even better to somehow get the user's default font here.
     // For now we'll pick the default that the user would get without changing any prefs.
-    static AtomicString timesStr("Times New Roman");
+    static AtomicString timesStr("DejaVu Serif");
     return getCachedFontPlatformData(fontDescription, timesStr);
 }
 
@@ -65,7 +98,12 @@ void FontCache::getTraitsInFamily(const AtomicString& familyName, Vector<unsigne
 
 FontPlatformData* FontCache::createFontPlatformData(const FontDescription& fontDescription, const AtomicString& family)
 {
-    return new FontPlatformData(fontDescription, family);
+    FontPlatformData* fontPlatformData = new FontPlatformData(fontDescription, family);
+    if (0.0f == fontPlatformData->size()) {
+        delete fontPlatformData;
+        fontPlatformData = 0;
+    }
+    return fontPlatformData;
 }
 
 }

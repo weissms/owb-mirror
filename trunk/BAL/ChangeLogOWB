@@ -1,3 +1,187 @@
+2009-12-13  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+
+        Updated AmigaOS BAL parts.
+
+        * Events/WebCore/AmigaOS4/BCEventHandlerAmigaOS4.cpp:
+        (WebCore::EventHandler::passMousePressEventToSubframe):
+        (WebCore::EventHandler::passMouseMoveEventToSubframe):
+        * Events/WebCore/AmigaOS4/BCEventLoopAmigaOS4.h: Removed.
+        * Events/WebCore/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        (WebCore::PlatformKeyboardEvent::currentCapsLockState):
+        (WebCore::PlatformKeyboardEvent::balEventKey):
+        * Events/WebCore/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.h:
+        * Events/WebCore/AmigaOS4/BCPlatformMouseEventAmigaOS4.cpp:
+        (WebCore::PlatformMouseEvent::PlatformMouseEvent):
+        * Events/WebCore/AmigaOS4/BCPlatformWheelEventAmigaOS4.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * Events/WebCore/AmigaOS4/BCPlatformWheelEventAmigaOS4.h:
+        (WebCore::):
+        (WebCore::PlatformWheelEvent::wheelTicksX):
+        (WebCore::PlatformWheelEvent::wheelTicksY):
+        (WebCore::PlatformWheelEvent::turnVerticalTicksIntoHorizontal):
+        * Facilities/WebCore/AmigaOS4/BCFileChooserAmigaOS4.cpp: Added.
+        (WebCore::FileChooser::basenameForWidth):
+        * Facilities/WebCore/AmigaOS4/BCFileIOAmigaOS4.cpp: Added.
+        (WebCore::File::File):
+        (WebCore::File::~File):
+        (WebCore::File::open):
+        (WebCore::File::close):
+        (WebCore::File::read):
+        (WebCore::File::write):
+        (WebCore::File::getSize):
+        * Facilities/WebCore/AmigaOS4/BCFileIOAmigaOS4.h: Added.
+        * Facilities/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.cpp: Removed.
+        * Facilities/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.h: Removed.
+        * Filesystem/WebCore/AmigaOS4: Added.
+        * Filesystem/WebCore/AmigaOS4/BCFileSystemAmigaOS4.cpp: Added.
+        (WebCore::filenameFromString):
+        (WebCore::filenameToString):
+        (WebCore::fileExists):
+        (WebCore::deleteFile):
+        (WebCore::deleteEmptyDirectory):
+        (WebCore::getFileSize):
+        (WebCore::getFileModificationTime):
+        (WebCore::pathByAppendingComponent):
+        (WebCore::makeAllDirectories):
+        (WebCore::pathGetFileName):
+        (WebCore::directoryName):
+        (WebCore::listDirectory):
+        (WebCore::writeToFile):
+        (WebCore::fileSystemRepresentation):
+        (WebCore::closeFile):
+        (WebCore::unloadModule):
+        (WebCore::homeDirectoryPath):
+        (WebCore::openTemporaryFile):
+        * Fonts/WebCore/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WebCore::drawglyphs):
+        * Fonts/WebCore/AmigaOS4/BCFontCacheAmigaOS4.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        (WebCore::FontCache::getSimilarFontPlatformData):
+        (WebCore::FontCache::getLastResortFallbackFont):
+        (WebCore::FontCache::createFontPlatformData):
+        * Fonts/WebCore/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WebCore::):
+        (WebCore::amigaFontFamily::addFont):
+        (WebCore::amigaFontFamily::amiga_font_init):
+        (WebCore::amigaFontFamily::amiga_font_cleanup):
+        (WebCore::get_font_name):
+        (WebCore::get_font_name_fallback):
+        (WebCore::openFont):
+        (WebCore::FontPlatformData::FontPlatformData):
+        (WebCore::FontPlatformData::init):
+        (WebCore::FontPlatformData::~FontPlatformData):
+        (WebCore::FontPlatformData::operator=):
+        (WebCore::FontPlatformData::operator==):
+        * Fonts/WebCore/AmigaOS4/BCFontPlatformDataAmigaOS4.h:
+        (WebCore::FontPlatformData::hash):
+        (WebCore::FontPlatformData::hashTableDeletedFontValue):
+        * Fonts/WebCore/AmigaOS4/BCGlyphBufferAmigaOS4.h:
+        (WebCore::GlyphBuffer::add):
+        * Fonts/WebCore/AmigaOS4/BCGlyphPageTreeNodeAmigaOS4.cpp:
+        (WebCore::GlyphPage::fill):
+        * Fonts/WebCore/AmigaOS4/BCSimpleFontDataAmigaOS4.cpp:
+        (WebCore::SimpleFontData::platformInit):
+        (WebCore::SimpleFontData::platformCharWidthInit):
+        (WebCore::SimpleFontData::platformDestroy):
+        (WebCore::SimpleFontData::smallCapsFontData):
+        (WebCore::SimpleFontData::determinePitch):
+        (WebCore::SimpleFontData::platformWidthForGlyph):
+        (WebCore::SimpleFontData::setFont):
+        * Fonts/WebCore/AmigaOS4/BCSimpleFontDataAmigaOS4.h:
+        (WebCore::SimpleFontData::platformData):
+        (WebCore::SimpleFontData::maxCharWidth):
+        (WebCore::SimpleFontData::avgCharWidth):
+        (WebCore::SimpleFontData::spaceWidth):
+        (WebCore::SimpleFontData::adjustedSpaceWidth):
+        (WebCore::SimpleFontData::spaceGlyph):
+        (WebCore::SimpleFontData::widthForGlyph):
+        * Graphics/WebCore/AmigaOS4/BCImageAmigaOS4.cpp:
+        * Internationalization/WebCore/AmigaOS4/BCLocalizedStringsAmigaOS4.cpp:
+        (WebCore::contextMenuItemTagOpenLinkInNewWindow):
+        (WebCore::contextMenuItemTagOpenImageInNewWindow):
+        (WebCore::contextMenuItemTagOpenFrameInNewWindow):
+        (WebCore::mediaElementLoadingStateText):
+        (WebCore::mediaElementLiveBroadcastStateText):
+        (WebCore::localizedMediaControlElementString):
+        (WebCore::localizedMediaControlElementHelpText):
+        (WebCore::localizedMediaTimeDescription):
+        (WebCore::validationMessageValueMissingText):
+        (WebCore::validationMessageTypeMismatchText):
+        (WebCore::validationMessagePatternMismatchText):
+        (WebCore::validationMessageTooLongText):
+        (WebCore::validationMessageRangeUnderflowText):
+        (WebCore::validationMessageRangeOverflowText):
+        (WebCore::validationMessageStepMismatchText):
+        * Internationalization/WebCore/AmigaOS4/BCLocalizedStringsAmigaOS4.h:
+        * Timer/WebCore/AmigaOS4: Added.
+        * Timer/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.cpp: Added.
+        (WebCore::fireTimerIfNeeded):
+        (WebCore::timerint_func):
+        (WebCore::):
+        (WebCore::cleanup):
+        (WebCore::setSharedTimerFiredFunction):
+        (WebCore::setSharedTimerFireTime):
+        (WebCore::stopSharedTimer):
+        * Timer/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.h: Added.
+        (WebCore::SharedTimer::~SharedTimer):
+        (WebCore::MainThreadSharedTimer::setFiredFunction):
+        (WebCore::MainThreadSharedTimer::setFireTime):
+        (WebCore::MainThreadSharedTimer::stop):
+        * Widgets/WebCore/AmigaOS4/BCContextMenuAmigaOS4.cpp:
+        * Widgets/WebCore/AmigaOS4/BCContextMenuAmigaOS4.h: Removed.
+        * Widgets/WebCore/AmigaOS4/BCContextMenuItemAmigaOS4.cpp:
+        * Widgets/WebCore/AmigaOS4/BCContextMenuItemAmigaOS4.h: Removed.
+        * Widgets/WebCore/AmigaOS4/BCCursorAmigaOS4.cpp:
+        (WebCore::Cursor::Cursor):
+        (WebCore::grabCursor):
+        (WebCore::grabbingCursor):
+        * Widgets/WebCore/AmigaOS4/BCPasteboardAmigaOS4.cpp:
+        (WebCore::Pasteboard::~Pasteboard):
+        (WebCore::Pasteboard::writeSelection):
+        (WebCore::Pasteboard::writePlainText):
+        (WebCore::Pasteboard::writeURL):
+        (WebCore::Pasteboard::writeImage):
+        (WebCore::copycollection):
+        (WebCore::Pasteboard::plainText):
+        * Widgets/WebCore/AmigaOS4/BCPasteboardAmigaOS4.h: Removed.
+        * Widgets/WebCore/AmigaOS4/BCPlatformScreenAmigaOS4.h: Removed.
+        * Widgets/WebCore/AmigaOS4/BCPopupMenuAmigaOS4.cpp: Added.
+        (WebCore::PopupMenu::PopupMenu):
+        (WebCore::PopupMenu::~PopupMenu):
+        (WebCore::PopupMenu::show):
+        (WebCore::PopupMenu::hide):
+        (WebCore::PopupMenu::updateFromElement):
+        (WebCore::PopupMenu::itemWritingDirectionIsNatural):
+        * Widgets/WebCore/AmigaOS4/BCScrollbarThemeAmigaOS4.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::ScrollbarThemeBal::ScrollbarThemeBal):
+        (WebCore::ScrollbarThemeBal::~ScrollbarThemeBal):
+        (WebCore::ScrollbarThemeBal::scrollbarThickness):
+        (WebCore::ScrollbarThemeBal::hasThumb):
+        (WebCore::ScrollbarThemeBal::backButtonRect):
+        (WebCore::ScrollbarThemeBal::forwardButtonRect):
+        (WebCore::ScrollbarThemeBal::trackRect):
+        (WebCore::ScrollbarThemeBal::paintButton):
+        (WebCore::ScrollbarThemeBal::paintThumb):
+        (WebCore::ScrollbarThemeBal::paintTrackBackground):
+        (WebCore::ScrollbarThemeBal::invalidateOnMouseEnterExit):
+        (WebCore::ScrollbarThemeBal::themeChanged):
+        (WebCore::ScrollbarThemeBal::shouldCenterOnThumb):
+        (WebCore::ScrollbarThemeBal::shouldSnapBackToDragOrigin):
+        (WebCore::ScrollbarThemeBal::paintTrackPiece):
+        * Widgets/WebCore/AmigaOS4/BCScrollbarThemeAmigaOS4.h: Added.
+        (WebCore::ScrollbarThemeBal::hasButtons):
+        * Widgets/WebCore/AmigaOS4/BCSearchPopupMenuAmigaOS4.h: Removed.
+        * Widgets/WebCore/AmigaOS4/BCWidgetAmigaOS4.cpp:
+        (WebCore::Widget::setCursor):
+        (WebCore::Widget::paint):
+        (WebCore::Widget::setFrameRect):
+        * Widgets/WebKit/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::popupMenuShow):
+
 2009-12-08  Mario Bensi  <mbensi@pleyo.com>
 
         Add limit and notification

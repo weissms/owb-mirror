@@ -76,8 +76,8 @@ static void drawglyphs(GraphicsContext* context, const SimpleFontData* font, con
                       uint32 penalpha, uint32 penr, uint32 peng, uint32 penb, int shadowx, int shadowy)
 {
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    struct OutlineFont *face = font->m_font.m_face;
-    uint32 ysize = font->m_font.m_size;
+    struct OutlineFont *face = font->m_platformData.m_face;
+    uint32 ysize = font->m_platformData.m_size;
 
     int32 imagewidth = 0;
     uint32 onlyspaces = TRUE;

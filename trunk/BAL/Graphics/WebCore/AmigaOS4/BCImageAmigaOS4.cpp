@@ -44,7 +44,7 @@ static Vector<char> loadResourceIntoArray(const char* name)
     return array;
 }
 
-namespace WKAL {
+namespace WebCore {
 
 void BitmapImage::initPlatformData()
 {

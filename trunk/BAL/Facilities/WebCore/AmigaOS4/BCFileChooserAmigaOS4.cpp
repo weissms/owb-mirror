@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2009 Joerg Strohmayer
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,55 +27,36 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ContextMenu_h
-#define ContextMenu_h
+#include "config.h"
+#include "FileChooser.h"
 
-#include <wtf/Noncopyable.h>
+#include "CString.h"
+#include "Document.h"
+#include "FrameView.h"
+#include "Icon.h"
+#include "LocalizedStrings.h"
+#include "StringTruncator.h"
 
-#include "ContextMenuItem.h"
-#include "HitTestResult.h"
-#include "PlatformMenuDescription.h"
-#include "PlatformString.h"
+#include <proto/dos.h>
 
-namespace WKAL {
-class MenuEventProxy;
+#include <cstdio>
 
-    class ContextMenuController;
+namespace WebCore {
 
-    class ContextMenu : Noncopyable
-    {
-    public:
-        ContextMenu(const HitTestResult&);
-        ContextMenu(const HitTestResult&, const PlatformMenuDescription);
-        ~ContextMenu();
+String FileChooser::basenameForWidth(const Font& font, int width) const
+{
+    if (width <= 0)
+        return String();
 
-        void populate();
-        void addInspectElementItem();
-        void checkOrEnableIfNeeded(ContextMenuItem&) const;
+    String string = fileButtonNoFileSelectedLabel();
 
-        void insertItem(unsigned position, ContextMenuItem&);
-        void appendItem(ContextMenuItem&);
-        
-        ContextMenuItem* itemWithAction(unsigned);
-        ContextMenuItem* itemAtIndex(unsigned, const PlatformMenuDescription);
+    if (m_filenames.size() == 1) {
+        CString latin1 = m_filenames[0].latin1();
+        STRPTR filename = IDOS->FilePart(latin1.data());
+        string = String(filename);
+    } else if (m_filenames.size() > 1)
+        return StringTruncator::rightTruncate(multipleFileUploadText(m_filenames.size()), width, font, false);
 
-        unsigned itemCount() const;
-
-        HitTestResult hitTestResult() const { return m_hitTestResult; }
-        ContextMenuController* controller() const;
-
-        PlatformMenuDescription platformDescription() const;
-        void setPlatformDescription(PlatformMenuDescription);
-
-        PlatformMenuDescription releasePlatformDescription();
-
-    private:
-        HitTestResult m_hitTestResult;
-
-
-        PlatformMenuDescription m_platformDescription;
-    };
-
+    return StringTruncator::centerTruncate(string, width, font, false);
 }
-
-#endif // ContextMenu_h
+}

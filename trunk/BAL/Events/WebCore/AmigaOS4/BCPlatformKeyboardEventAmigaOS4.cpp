@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer
+ * Copyright (C) 2009 Joerg Strohmayer
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@
 #include "TextEncoding.h"
 #include "Unicode.h"
 #include "CString.h"
-#include <intuition/intuition.h>
 #include <libraries/keymap.h>
+#include <proto/input.h>
 
 extern uint32 amigaToUnicodeChar(uint32 c);
 
@@ -194,13 +194,13 @@ static WebCore::String keyIdentifierForAmigaKeyCode(struct IntuiMessage *im)
 
 PlatformKeyboardEvent::PlatformKeyboardEvent(BalEventKey* event)
     : m_type(KeyDown)
-    , m_autoRepeat(false)
+    , m_autoRepeat(event->Qualifier & IEQUALIFIER_REPEAT)
     , m_isKeypad(event->Qualifier & IEQUALIFIER_NUMERICPAD)
     , m_shiftKey(event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
     , m_ctrlKey(event->Qualifier & IEQUALIFIER_CONTROL)
     , m_altKey(event->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT))
     , m_metaKey(event->Qualifier & (IEQUALIFIER_LCOMMAND | IEQUALIFIER_RCOMMAND))
-    , m_balEventKey(event)
+    , m_balEventKey(*event)
 {
     UChar aSrc[2] = { 0, 0 };
     if (IDCMP_RAWKEY == event->Class) {
@@ -247,13 +247,12 @@ void PlatformKeyboardEvent::disambiguateKeyDownEvent(Type type, bool backwardCom
 
 bool PlatformKeyboardEvent::currentCapsLockState()
 {
-    notImplemented();
-    return false;
+    return IInput->PeekQualifier() & IEQUALIFIER_CAPSLOCK;
 }
 
 BalEventKey* PlatformKeyboardEvent::balEventKey() const
 {
-    return m_balEventKey;
+    return (BalEventKey*)&m_balEventKey;
 }
 
 }

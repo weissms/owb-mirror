@@ -96,6 +96,13 @@ public:
         m_advances.append(FloatSize(width, 0));
     }
     
+    void add(Glyph glyph, const SimpleFontData* font, GlyphBufferAdvance advance)
+    {
+        m_fontData.append(font);
+        m_glyphs.append(glyph);
+        m_advances.append(advance);
+    }
+
 private:
     Vector<const SimpleFontData*, 2048> m_fontData;
     Vector<GlyphBufferGlyph, 2048> m_glyphs;

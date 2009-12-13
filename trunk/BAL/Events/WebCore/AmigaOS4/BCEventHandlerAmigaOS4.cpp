@@ -29,7 +29,7 @@
 #include "config.h"
 #include "EventHandler.h"
 
-#include "ClipboardSDL.h"
+#include "ClipboardGeneric.h"
 #include "EventNames.h"
 #include "FloatPoint.h"
 #include "FocusController.h"
@@ -37,6 +37,7 @@
 #include "FrameView.h"
 #include "KeyboardEvent.h"
 #include "MouseEventWithHitTestResults.h"
+#include "NotImplemented.h"
 #include "BALBase.h"
 #include "Page.h"
 #include "PlatformKeyboardEvent.h"
@@ -106,14 +107,36 @@ PassRefPtr<Clipboard> EventHandler::createDraggingClipboard() const
 
 bool EventHandler::passMousePressEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
 {
+#if 0
+    // If we're clicking into a frame that is selected, the frame will appear
+    // greyed out even though we're clicking on the selection.  This looks
+    // really strange (having the whole frame be greyed out), so we deselect the
+    // selection.
+    IntPoint p = m_frame->view()->windowToContents(mev.event().pos());
+    if (m_frame->selection()->contains(p)) {
+        VisiblePosition visiblePos(
+            mev.targetNode()->renderer()->positionForPoint(mev.localPoint()));
+        VisibleSelection newSelection(visiblePos);
+        if (m_frame->shouldChangeSelection(newSelection))
+            m_frame->selection()->setSelection(newSelection);
+    }
+#endif
+
     subframe->eventHandler()->handleMousePressEvent(mev.event());
     return true;
 }
 
 bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe, HitTestResult* hoveredNode)
 {
+#if 0
+    if (m_mouseDownMayStartDrag && !m_mouseDownWasInSubframe)
+        return false;
+    return subframe->eventHandler()->handleMouseMoveEvent(mev.event(), hoveredNode);
+    return true;
+#else
     subframe->eventHandler()->handleMouseMoveEvent(mev.event(), hoveredNode);
     return true;
+#endif
 }
 
 bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)

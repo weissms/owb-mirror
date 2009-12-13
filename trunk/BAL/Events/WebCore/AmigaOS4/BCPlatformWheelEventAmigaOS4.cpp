@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include "PlatformWheelEvent.h"
+#include "Scrollbar.h"
 #include <cstdio>
 #include <intuition/intuition.h>
 
@@ -37,12 +38,10 @@ namespace WebCore {
 // Keep this in sync with the other platform event constructors
 PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
 {
-    static const float delta = 1;
-
     m_deltaX = 0;
     m_deltaY = 0;
 
-    struct IntuiWheelData *wd = (struct IntuiWheelData *)event->IAddress;
+    IntuiWheelData* wd = (IntuiWheelData*)event->IAddress;
 
     m_shiftKey = event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT);
     m_ctrlKey  = event->Qualifier & IEQUALIFIER_CONTROL;
@@ -61,17 +60,17 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
         double deltax, deltay;
 
         if (m_ctrlKey) {
-            m_granularity = ScrollByLineWheelEvent;
+            m_granularity = ScrollByPixelWheelEvent;
             deltax = wd->WheelX * -10000;
             deltay = wd->WheelY * -10000;
         } else if (m_shiftKey) {
-            m_granularity = ScrollByPageWheelEvent;
-            deltax = (int)wd->WheelX * event->IDCMPWindow->Width / -50;
-            deltay = (int)wd->WheelY * event->IDCMPWindow->Height / -50;
+            m_granularity = ScrollByPixelWheelEvent;
+            deltax = (int)wd->WheelX * event->IDCMPWindow->Width * -0.8;
+            deltay = (int)wd->WheelY * event->IDCMPWindow->Height * -0.8;
         } else {
-            m_granularity = ScrollByLineWheelEvent;
-            deltax = wd->WheelX * -3;
-            deltay = wd->WheelY * -3;
+            m_granularity = ScrollByPixelWheelEvent;
+            deltax = wd->WheelX * -cScrollbarPixelsPerLineStep;
+            deltay = wd->WheelY * -cScrollbarPixelsPerLineStep;
         }
 
         if (m_altKey) {
@@ -85,10 +84,11 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
         m_deltaY = deltay;
     }
 
+    m_wheelTicksX = m_deltaX;
+    m_wheelTicksY = m_deltaY;
     m_position = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_globalPosition = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_isAccepted = false;
-
 }
 
 }

@@ -25,29 +25,85 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "BCFileIOAmigaOS4.h"
+#include "owb-config.h"
+#include "CString.h"
 
 
-#ifndef PlatformScreen_h
-#define PlatformScreen_h
-
-#include "FloatRect.h"
-#include <wtf/Forward.h>
-#include <wtf/RefPtr.h>
-#include "BALBase.h"
+extern char* utf8ToAmiga(const char*);
 
 namespace WebCore {
 
-    class FloatRect;
-    class Widget;
+File::File(const String path)
+    : m_file(0)
+    , m_filePath(path)
+{
+}
 
-    int screenDepth(Widget*);
-    int screenDepthPerComponent(Widget*);
-    bool screenIsMonochrome(Widget*);
+File::~File()
+{
+    close();
+}
 
-    FloatRect screenRect(Widget*);
-    FloatRect screenAvailableRect(Widget*);
+int File::open(char openType)
+{
+    char* amigaPath = utf8ToAmiga(m_filePath.utf8().data());
 
+    if (openType == 'w')
+        m_file = ::fopen(amigaPath, "w");
+    else if (openType == 'r')
+        m_file = ::fopen(amigaPath, "r");
 
-} // namespace WebCore
+    free(amigaPath);
 
-#endif // PlatformScreen_h
+    if (m_file) {
+        setvbuf(m_file, 0, _IOFBF, 64 * 1024);
+        return 0;
+    }
+
+    return -1;
+}
+
+void File::close()
+{
+    if (m_file)
+        ::fclose(m_file);
+    m_file = 0;
+}
+
+char* File::read(size_t size)
+{
+    char* readData = new char[size + 1];
+    ::fread(readData, size, 1, m_file);
+    readData[size] = '\0';
+    return readData;
+}
+
+void File::write(String dataToWrite)
+{
+    ::fwrite(dataToWrite.utf8().data(), dataToWrite.length(), 1, m_file);
+}
+
+void File::write(const void* data, size_t length)
+{
+    ::fwrite(data, length, 1, m_file);
+}
+
+int File::getSize()
+{
+    int fileSize, current;
+
+    //save the current offset
+    current = ftell(m_file);
+
+    //save the size
+    fseek(m_file, 0, SEEK_END);
+    fileSize = ftell(m_file);
+
+    //go back to the previous offset
+    fseek(m_file, current, SEEK_SET);
+
+    return fileSize;
+}
+
+}

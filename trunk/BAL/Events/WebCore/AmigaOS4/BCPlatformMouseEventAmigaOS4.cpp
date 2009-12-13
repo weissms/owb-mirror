@@ -71,11 +71,15 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
                 m_eventType = MouseEventPressed;
 
                 static uint32 prevSeconds[2], prevMicros[2];
+                static int32 prevX[2], prevY[2];
                 uint32 currentSeconds, currentMicros;
+                int32 currentX, currentY;
                 IIntuition->CurrentTime(&currentSeconds, &currentMicros);
+                currentX = event->MouseX;
+                currentY = event->MouseY;
 
-                if (IIntuition->DoubleClick(prevSeconds[0], prevMicros[0], currentSeconds, currentMicros))
-                    if (IIntuition->DoubleClick(prevSeconds[1], prevMicros[1], prevSeconds[0], prevMicros[0]))
+                if (abs(currentX - prevX[0]) <= 3 && abs(currentY - prevY[0]) <= 3 && IIntuition->DoubleClick(prevSeconds[0], prevMicros[0], currentSeconds, currentMicros))
+                    if (abs(prevX[0] - prevX[1]) <= 3 && abs(prevY[0] - prevY[1]) <= 3 && IIntuition->DoubleClick(prevSeconds[1], prevMicros[1], prevSeconds[0], prevMicros[0]))
                         m_clickCount = 3;
                     else
                         m_clickCount = 2;
@@ -84,8 +88,12 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
 
                 prevSeconds[1] = prevSeconds[0];
                 prevMicros[1]  = prevMicros[0];
+                prevX[1]       = prevX[0];
+                prevY[1]       = prevY[0];
                 prevSeconds[0] = currentSeconds;
                 prevMicros[0]  = currentMicros;
+                prevX[0]       = currentX;
+                prevY[0]       = currentY;
             }
         }
     }

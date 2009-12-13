@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer.
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
     if (bufferLength > GlyphPage::size)
         return false;
 
-    struct OutlineFont *face = fontData->m_font.m_face;
+    struct OutlineFont *face = fontData->m_platformData.m_face;
 
     if (!face)
         return false;
@@ -69,9 +69,9 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
             uint32 ok = FALSE;
             if (amigaConfig.unicodeFontFace
              && !IDiskfont->ESetInfo(&amigaConfig.unicodeFontFace->olf_EEngine,
-                                     OT_PointHeight, ((int)(m_font.m_size)) << 16,
+                                     OT_PointHeight, ((int)(m_platformData.m_size)) << 16,
                                      OT_GlyphCode, glyphs[i],
-                                     TAG_END))
+                                     TAG_END)
              && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFontFace->olf_EEngine,
                                         OT_GlyphMap8Bit, &glyph,
                                         TAG_END)) {
@@ -107,6 +107,7 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
             }
             else
                 setGlyphDataForIndex(i, 0, 0);
+        }
     }
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Joerg Strohmayer.
+ * Copyright (C) 2009 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include "BALBase.h"
 #include "Cursor.h"
 #include "NotImplemented.h"
+#include <Image.h>
 #include <string.h>
 #include <proto/intuition.h>
 #include <proto/icon.h>
@@ -91,13 +92,59 @@ static const CONST_STRPTR pointerFiles[en_SIZE][2] =
 //   { "PROGDIR:Resources/scrollAllCursor",                "ENV:Sys/def_scrollallpointer" },
 };
 
-Cursor::Cursor(Image*, const IntPoint&)
+Cursor::Cursor(Image* image, const IntPoint& point)
     : m_impl(0)
     , m_dispose(false)
     , m_data(0)
 {
-    fprintf(stderr, "%s\n", __PRETTY_FUNCTION__);
-    balNotImplemented();
+    int32 width = image->width(), height = image->height();
+    cairo_surface_t* surface = image->nativeImageForCurrentFrame();
+    if (width > 0 && width <= 64 && height > 0 && height <= 64 && surface) {
+        int32 xoffset = point.x(), yoffset = point.y();
+
+        if (xoffset < 0 || xoffset >= width)
+            xoffset = 0;
+        if (yoffset < 0 || yoffset >= height)
+            yoffset = 0;
+
+        m_data = calloc(width * height * 4 + 32 / 8 * 64 + sizeof(BitMap), 1);
+        if (m_data) {
+            m_dispose = true;
+
+            for (int y=0 ; y < image->height() ; y++)
+            {
+                uint8* data = cairo_image_surface_get_data(surface) + y * cairo_image_surface_get_stride(surface);
+                memcpy((uint8*)m_data + y * cairo_image_surface_get_stride(surface), data, width * 4);
+            }
+
+            PLANEPTR singleColourPlane = (PLANEPTR)((uint32)m_data + width * height * 4);
+            BitMap* singleColourBitMap = (BitMap*)((uint32)m_data + width * height * 4 + 32 / 8 * 64);
+            singleColourBitMap->BytesPerRow = 32 / 8;
+            singleColourBitMap->Rows = height;
+            singleColourBitMap->Depth = 1;
+            singleColourBitMap->Planes[0] /*= singleColourBitMap->Planes[1]*/ = singleColourPlane;
+
+            uint32* data32 = (uint32*)m_data;
+            for (int y = 0 ; y < height ; y++)
+                for (int x = 0 ; x < width && x < 32 ; x++)
+                    if (0xFF000000 == (data32[y * width + x] & 0xFF000000))
+                        singleColourPlane[y * 32 / 8 + x / 8] |= 1 << (7 - (x & 7));
+
+            m_impl = IIntuition->NewObject(NULL, POINTERCLASS,
+                                           POINTERA_BitMap, singleColourBitMap,
+                                           POINTERA_XOffset, -xoffset,
+                                           POINTERA_YOffset, -yoffset,
+                                           POINTERA_WordWidth, 32 / 16,
+                                           POINTERA_XResolution, POINTERXRESN_SCREENRES,
+                                           POINTERA_YResolution, POINTERYRESN_SCREENRESASPECT,
+                                           POINTERA_ImageData, m_data,
+                                           POINTERA_Width, width,
+                                           POINTERA_Height, height,
+                                           TAG_DONE);
+        }
+    }
+    else
+        fprintf(stderr, "%s %ldx%ld %p\n", __PRETTY_FUNCTION__, width, height, surface);
 }
 
 Cursor::Cursor(PlatformCursor c)
@@ -176,9 +223,9 @@ Cursor::Cursor(enPointers num)
                                                        POINTERA_WordWidth, 32 / 16,
                                                        POINTERA_XResolution, POINTERXRESN_SCREENRES,
                                                        POINTERA_YResolution, POINTERYRESN_SCREENRESASPECT,
-                                                       POINTERA_Dummy + 0x07, m_data,
-                                                       POINTERA_Dummy + 0x08, width,
-                                                       POINTERA_Dummy + 0x09, height,
+                                                       POINTERA_ImageData, m_data,
+                                                       POINTERA_Width, width,
+                                                       POINTERA_Height, height,
                                                        TAG_DONE);
                     }
                 }
@@ -451,13 +498,13 @@ const Cursor& zoomOutCursor()
 const Cursor& grabCursor()
 {
     static Cursor c(en_grabCursor);
-    return pointerCursor();
+    return c;
 }
 
 const Cursor& grabbingCursor()
 {
     static Cursor c(en_grabbingCursor);
-    return pointerCursor();
+    return c;
 }
 
 }
