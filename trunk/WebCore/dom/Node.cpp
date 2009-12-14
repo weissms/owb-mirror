@@ -2835,6 +2835,21 @@ void Node::defaultEventHandler(Event* event)
         if (event->isTextEvent())
             if (Frame* frame = document()->frame())
                 frame->eventHandler()->defaultTextInputEventHandler(static_cast<TextEvent*>(event));
+#if ENABLE(PAN_SCROLLING)
+    } else if (eventType == eventNames().mousedownEvent) {
+        MouseEvent* mouseEvent = static_cast<MouseEvent*>(event);
+        if (mouseEvent->button() == MiddleButton && !this->isLink()) {
+            RenderObject* renderer = this->renderer();
+
+            while (renderer && (!renderer->isBox() || !toRenderBox(renderer)->canBeScrolledAndHasScrollableArea()))
+                renderer = renderer->parent();
+
+            if (renderer) {
+                if (Frame* frame = document()->frame())
+                    frame->eventHandler()->startPanScrolling(renderer);
+            }
+        }
+#endif
     }
 }
 

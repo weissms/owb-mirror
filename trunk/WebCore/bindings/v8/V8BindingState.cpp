@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2009 Google Inc. All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *
+ * 
  *     * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -28,24 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ContextMenuSelectionHandler_h
-#define ContextMenuSelectionHandler_h
+#include "config.h"
+#include "V8BindingState.h"
 
-#include <wtf/RefCounted.h>
+#include "V8Proxy.h"
+#include <wtf/StdLibExtras.h>
 
 namespace WebCore {
 
-    class ContextMenuItem;
-
-    class ContextMenuSelectionHandler : public RefCounted<ContextMenuSelectionHandler> {
-    public:
-        ContextMenuSelectionHandler() { }
-        virtual ~ContextMenuSelectionHandler() { };
-
-        virtual void contextMenuItemSelected(ContextMenuItem*) = 0;
-        virtual void contextMenuCleared() = 0;
-    };
-
+State<V8Binding>* State<V8Binding>::Only()
+{
+    DEFINE_STATIC_LOCAL(State, globalV8BindingState, ());
+    return &globalV8BindingState;
 }
 
-#endif // ContextMenuSelectionHandler_h
+DOMWindow* State<V8Binding>::getActiveWindow()
+{
+    v8::Local<v8::Context> activeContext = v8::Context::GetCalling();
+    if (activeContext.IsEmpty()) {
+        // There is a single activation record on the stack, so that must
+        // be the activeContext.
+        activeContext = v8::Context::GetCurrent();
+    }
+    return V8Proxy::retrieveWindow(activeContext);
+}
+
+void State<V8Binding>::immediatelyReportUnsafeAccessTo(Frame* target)
+{
+    V8Proxy::reportUnsafeAccessTo(target, V8Proxy::ReportNow);
+}
+
+}  // namespace WebCore

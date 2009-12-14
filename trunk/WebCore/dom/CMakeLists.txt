@@ -153,3 +153,17 @@ list(APPEND IDL_SRC
     dom/WebKitTransitionEvent.idl
     dom/WheelEvent.idl
 )
+
+if(ENABLE_TOUCH_EVENTS)
+    list(APPEND WEBCORE_SRC
+        dom/Touch.cpp
+        dom/TouchEvent.cpp
+        dom/TouchList.cpp
+    )
+
+    list(APPEND IDL_SRC
+        dom/Touch.idl
+        dom/TouchEvent.idl
+        dom/TouchList.idl
+    )
+endif(ENABLE_TOUCH_EVENTS)

@@ -68,6 +68,10 @@ else(ENABLE_EVENTSOURCE)
     add_definitions(-DENABLE_EVENTSOURCE=0)
 endif(ENABLE_EVENTSOURCE)
 
+if(ENABLE_TOUCH_EVENTS)
+    add_definitions(-DENABLE_TOUCH_EVENTS=1)
+endif(ENABLE_TOUCH_EVENTS)
+
 if(ENABLE_VIDEO)
     add_definitions(-DENABLE_VIDEO=1)
 endif(ENABLE_VIDEO)

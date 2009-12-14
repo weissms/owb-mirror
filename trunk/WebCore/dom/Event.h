@@ -129,6 +129,9 @@ namespace WebCore {
 #if ENABLE(WORKERS)
         virtual bool isErrorEvent() const;
 #endif
+#if ENABLE(TOUCH_EVENTS)
+        virtual bool isTouchEvent() const;
+#endif
         
         bool propagationStopped() const { return m_propagationStopped; }
 

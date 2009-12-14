@@ -48,10 +48,14 @@ BAL/Events/WebCore/Gtk	WebCore/platform/gtk/WheelEventGtk.cpp	BCPlatformWheelEve
 BAL/Events/WebCore/Qt	WebCore/platform/qt/EventLoopQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformKeyboardEventQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/PlatformMouseEventQt.cpp
+BAL/Events/WebCore/Qt   WebCore/platform/qt/PlatformTouchEventQt.cpp
+BAL/Events/WebCore/Qt   WebCore/platform/qt/PlatformTouchPointQt.cpp
 BAL/Events/WebCore/Qt	WebCore/platform/qt/WheelEventQt.cpp	BCPlatformWheelEventQt.cpp
 BAL/Events/WebCore/WK	WebCore/platform/EventLoop.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformKeyboardEvent.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformMouseEvent.h
+BAL/Events/WebCore/WK   WebCore/platform/PlatformTouchEvent.h
+BAL/Events/WebCore/WK   WebCore/platform/PlatformTouchPoint.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
 BAL/Events/WebCore/WK	WebCore/platform/KeyboardCodes.h
 

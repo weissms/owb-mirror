@@ -78,6 +78,11 @@
 #include "SVGZoomEvent.h"
 #endif
 
+#if ENABLE(TOUCH_EVENTS)
+#include "JSTouchEvent.h"
+#include "TouchEvent.h"
+#endif
+
 #if ENABLE(DAE)
 #include "DAEEvent.h"
 #include "JSMetadataSearchEvent.h"
@@ -123,6 +128,10 @@ JSValue toJS(ExecState* exec, JSDOMGlobalObject* globalObject, Event* event)
 #endif
         else if (event->isCompositionEvent())
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, CompositionEvent, event);
+#if ENABLE(TOUCH_EVENTS)
+        else if (event->isTouchEvent())
+            wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, TouchEvent, event);
+#endif
         else
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, UIEvent, event);
     } else if (event->isMutationEvent())

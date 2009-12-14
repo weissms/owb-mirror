@@ -53,6 +53,7 @@ class KeyboardEvent;
 class MouseEventWithHitTestResults;
 class Node;
 class PlatformKeyboardEvent;
+class PlatformTouchEvent;
 class PlatformWheelEvent;
 class RenderLayer;
 class RenderObject;
@@ -61,6 +62,7 @@ class Scrollbar;
 class String;
 class SVGElementInstance;
 class TextEvent;
+class TouchEvent;
 class Widget;
     
 #if ENABLE(DRAG_SUPPORT)
@@ -86,6 +88,7 @@ public:
     Node* mousePressNode() const;
     void setMousePressNode(PassRefPtr<Node>);
 
+    void startPanScrolling(RenderObject*);
     bool panScrollInProgress() { return m_panScrollInProgress; }
     void setPanScrollInProgress(bool inProgress) { m_panScrollInProgress = inProgress; }
 
@@ -190,6 +193,10 @@ public:
     void setActivationEventNumber(int num) { m_activationEventNumber = num; }
 
     static NSEvent *currentNSEvent();
+#endif
+
+#if ENABLE(TOUCH_EVENTS)
+    bool handleTouchEvent(const PlatformTouchEvent&);
 #endif
 
 private:
@@ -404,6 +411,12 @@ private:
     NSView *m_mouseDownView;
     bool m_sendingEventToSubview;
     int m_activationEventNumber;
+#endif
+#if ENABLE(TOUCH_EVENTS)
+    RefPtr<Node> m_touchEventTarget;
+    IntPoint m_firstTouchScreenPos;
+    IntPoint m_firstTouchPagePos;
+    RefPtr<TouchEvent> m_previousTouchEvent;
 #endif
 };
 

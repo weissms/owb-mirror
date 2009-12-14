@@ -64,6 +64,7 @@ cmake_dependent_option(ENABLE_SVG_FONTS "Enable support for SVG fonts (EXPERIMEN
 cmake_dependent_option(ENABLE_SVG_FOREIGN_OBJECT "Enable support for SVG foreign objects (EXPERIMENTAL)" OFF ENABLE_SVG OFF)
 cmake_dependent_option(ENABLE_SVG_USE_ELEMENT "Enable support for SVG use element (EXPERIMENTAL)" OFF ENABLE_SVG OFF)
 option(ENABLE_TESTS "Enable tests" ON)
+option(ENABLE_TOUCH_EVENTS "Enable touch events support" OFF)
 option(ENABLE_VIDEO "Enable HTML5 video support")
 option(ENABLE_WEB_SOCKETS "Enable Web Sockets support")
 option(ENABLE_WML "Enable WML support")

@@ -1,3 +1,37 @@
+2009-12-14  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Eric Seidel.
+
+        [GTK] Build with --disable-svg is broken
+        http://bugs.webkit.org/show_bug.cgi?id=32361
+
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_pause_svg_animation): Fix ENABLE(SVG) guards.
+
+2009-12-13  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        Also give the right click event to the frame's event handler, if
+        there WebCore decides to not generate the default context
+        menu. This fixes some pages that handle right-button clicks for
+        things other than context menu creation.
+
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_forward_context_menu_event):
+
+2009-12-13  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=31014
+        [Gtk] Build fails with gtk+-2.10 (no tested with older releases)
+
+        Guard GTK+ 2.12 specific tooltip code with #ifdef.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::mouseDidMoveOverElement):
+
 2009-12-11  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Xan Lopez.

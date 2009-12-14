@@ -210,6 +210,10 @@ namespace WebCore {
     \
     macro(orientationchange) \
     \
+    macro(touchstart) \
+    macro(touchmove) \
+    macro(touchend) \
+    \
     CEHTML_VIDEO_EVENT_NAMES(macro) \
     \
     DAE_APPLICATION_EVENT_NAMES(macro) \

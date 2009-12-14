@@ -565,6 +565,8 @@ void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy, DatabasePolic
 #if ENABLE(DATABASE)
         if (databasePolicy == DatabasePolicyStop)
             doc->stopDatabases();
+#else
+    UNUSED_PARAM(databasePolicy);
 #endif
     }
 
