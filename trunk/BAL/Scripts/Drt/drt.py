@@ -1,126 +1,64 @@
 #!/usr/bin/python
 
-import sys
-from configuration import configurationDRT
-from testsList import TestsList
+from parser import ParseDrtOptions
 from runtests import RunTests
+from testsList import TestsList
 import logging
 import os
+import pysvn
+import sys
 
-if len(sys.argv) < 2 :
-    print "drt [options] path to build directory"
-    print "argument not valid"
-    exit(0)
+usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM [extra-options] [directories]'
+feature_list = ['3d', 'geolocation', 'http', 'media', 'plugin', 'storage', 'svg', 'wml']
+webkit_layout_tests = 'http://svn.webkit.org/repository/webkit/trunk/LayoutTests'
+
+def update_tests():
+    svn = pysvn.Client()
+    try:
+        info = svn.info(config['layout'])
+    except pysvn.ClientError, e:
+        print str(e)
+        print 'to fix: svn checkout ' + webkit_layout_tests + ' ' + config['layout']
+        exit(1)
+    if info.url == webkit_layout_tests:
+        if config['revision']:
+            number = config['revision']
+        else:
+            print 'to update ' + config['layout'] + ' directory, you need to specify revision'
+            exit(1)
+        revision = pysvn.Revision(pysvn.opt_revision_kind.number, number)
+        if info.revision != revision:
+            svn.update(config['layout'], revision = revision)
+    else:
+        svn.update(config['layout'])
+
+drt_options = ParseDrtOptions(usage, feature_list)
+drt_options.initialize_options()
+(options, args) = drt_options.parse_args()
+
+# convert options to dictionary
+config = options.__dict__
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
                     filename='/tmp/drt.log',
                     filemode='w')
 
-conf = configurationDRT()
-
-def showHelp() : 
-    print "drt [options] -dp=dumpRendertreePath -lp=LayoutTestsPath -pl=platformName"
-    print "\t--help display the options list"
-    print "\t-v verbose"
-    print "\t-svg add svg tests"
-    print "\t-wml add wml tests"
-    print "\t-http add http tests"
-    print "\t-media add media tests"
-    print "\t-geolocation add geolocation tests"
-    print "\t-3d add 3D transforms tests"
-    print "\t-plugin add plugin tests"
-    print "\t-storage add storage tests"
-    print "\t-leak print leak result"
-    print "\t-o path to result by default it's in /tmp/DrtResult"
-    print "\t--config=path/congig/file give the config file with the to find it"
-    print "\t-dp=dumpRendertreePath"
-    print "\t-lp=LayoutTestsPath"
-    print "\t-pl=platformName for example sdl/gtk/qt..."
-
-layoutPath = ""
-drtPath = ""
-platform = ""
-destResult = ""
-tests = []
-i = 0
-
-for option in sys.argv[1:] :
-    for opt in option.split() :
-        if opt.find("--help") != -1 :
-           showHelp()
-           exit(0)
-        elif opt == "-svg" :
-            conf.setSupportSVG(True)
-        elif opt == "-wml" :
-            conf.setSupportWML(True)
-        elif opt == "-http" :
-            conf.setSupportHTTP(True)
-        elif opt == "-media" :
-            conf.setSupportMedia(True)
-        elif opt == "-geolocation" :
-            conf.setSupportGeolocation(True)
-        elif opt == "-3d" :
-            conf.setSupport3DTransforms(True)
-        elif opt == "-plugin" :
-            conf.setSupportPlugin(True)
-        elif opt == "-storage" :
-            conf.setSupportStorage(True)
-        elif opt.find("-o") != -1 :
-            destResult = opt[opt.find("=") + 1:]
-        elif opt == "-leak" :
-            conf.setSupportLeak(True)
-        elif opt == "-v" :
-            conf.setVerbose(True)
-        elif opt.find("--config") != -1 :
-            file = opt[opt.find("=") + 1:]
-            conf.parseConfig(file)
-        elif opt.find("-dp") != -1 :
-            drtPath = opt[opt.find("=") + 1:]
-        elif opt.find("-lp") != -1 :
-            layoutPath = opt[opt.find("=") + 1:]
-        elif opt.find("-pl") != -1 :
-            platform = opt[opt.find("=") + 1:]
-        elif opt.find("-path") != -1 :
-            path = os.getcwd()
-            drtPath =  path + drtPath
-            destResult = path + destResult
-            layoutPath = path + layoutPath       
-        else :
-            tests.append(opt)
-
-
-if layoutPath == "" or drtPath == "" or platform == "":
-    print "you forget to fill a argument mandatory (dp, lp or pl )"
-    showHelp()
-    exit(0)
+if config['update']:
+    update_tests()
 
 li = []
-if len(tests) == 0 :
-    List = TestsList(conf)
-    List.constructList(layoutPath)
+List = TestsList(config)
+if len(args) == 0 :
+    List.constructList(feature_list)
     li = List.getList()
 else :
-    List = TestsList(conf)
-    for t in tests :
-        if os.path.isdir(t) :
-            for l in List.createList(t) :
+    for path in args:
+        if os.path.isdir(path) :
+            for l in List.createList(path) :
                 li.append(l)
         else :
-            li.append(t)
+            li.append(path)
 
-#print li
-#print len(li) 
-
-if destResult != "" :
-    run = RunTests(conf, li, drtPath, layoutPath, platform, destResult)
-else :
-    run = RunTests(conf, li, drtPath, layoutPath, platform)
+run = RunTests(config, li)
 run.startDrt()
-
-#print List.getReverseList()
-#print
-#print List.getShuffleList()
-
-
-

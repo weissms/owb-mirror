@@ -1,10 +1,9 @@
-from configuration import configurationDRT
 import os
 import random
 
 class TestsList :
-    def __init__(self, conf) :
-        self.conf = conf
+    def __init__(self, config) :
+        self.config = config
         self.dirOut = [".svn", "resources", "platform", "conf", "js"]
 
     def createList(self, path) :
@@ -42,32 +41,22 @@ class TestsList :
                     testsList.append(pathName)
         return testsList
 
-    def constructList(self, path) :
-        if not self.conf.supportSVG() :
-            self.dirOut.append("svg")
-        if not self.conf.supportWML() :
-            self.dirOut.append("wml")
-        if not self.conf.supportHTTP() :
-            self.dirOut.append("http")
-        if not self.conf.supportMedia() :
-            self.dirOut.append("media")
-        if not self.conf.supportGeolocation() :
-            self.dirOut.append("geolocation")
-        if not self.conf.support3DTransforms() :
-            self.dirOut.append("3d")
-        if not self.conf.supportPlugin() :
-            self.dirOut.append("plugin")
-        if not self.conf.supportStorage() :
-            self.dirOut.append("storage")
-
-        self.list = self.createList(path)
+    def constructList(self, list) :
+        # remove Layout Tests directory from test
+        # if option is not enabled
+        for feature in list:
+            if not self.config[feature] :
+                self.dirOut.append(feature)
+        self.list = self.createList(self.config['layout'])
     
     def getList(self) :
         return self.list
+
     def getReverseList(self) :
         l = self.list
         l.reverse()
         return l
+
     def getShuffleList(self) :
         l = self.list
         random.shuffle(l)

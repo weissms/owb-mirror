@@ -1,3 +1,16 @@
+2009-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi
+
+        Add layout test update process in script + option refacto to ease
+        maintenability.
+
+        * Scripts/Drt/configuration.py: Removed.
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/parser.py: Added.
+        * Scripts/Drt/runtests.py:
+        * Scripts/Drt/testsList.py:
+
 2009-12-13  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

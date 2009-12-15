@@ -1,4 +1,3 @@
-from configuration import configurationDRT
 import os
 import time
 import logging
@@ -12,12 +11,9 @@ def handler(signum, frame):
     print ""
 
 class RunTests :
-    def __init__(self, conf, testsList, drtPath, layoutPath, platform, dstResult="/tmp/DstResult") :
-        self.conf = conf
+    def __init__(self, config, testsList) :
+        self.config = config
         self.testsList = testsList
-        self.drtPath = drtPath
-        self.layoutPath = layoutPath
-        self.platform = platform
         self.leakList = {}
         self.time = 0
         self.timeout = False
@@ -29,11 +25,10 @@ class RunTests :
         self.resultCrashed = {}
         self.resultNew = {}
         self.pid = 0
-        self.dstResult = dstResult
 
     def startDrt(self) :
-        if not os.path.exists(self.drtPath + "/DumpRenderTree") :
-            print "DumpRenderTree are not in " + self.drtPath
+        if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :
+            print "DumpRenderTree are not in " + self.config['drt']
             exit(0)
         for test in self.testsList :
             t = Timer(15.0, self.__timeout, [test])
@@ -66,12 +61,12 @@ class RunTests :
         else :
             print "total time = " + str(self.time)
 
-        self.__HtmlResult(self.dstResult)
+        self.__HtmlResult(self.config['output'])
 
 
     def __startTest(self, test) :
         self.startTime = time.time()       
-        out = subprocess.Popen(self.drtPath + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         (child_stdin, child_stdout, child_stderr) = (out.stdin, out.stdout, out.stderr)
         self.pid = out.pid
         out.wait()
@@ -109,7 +104,7 @@ class RunTests :
             cmp, diff = self.__compareResult(outprint, file)
             res = ""
             if cmp :
-                if self.conf.isVerbose() :
+                if self.config['verbose'] :
                     print test[test.rfind("/") + 1:] + ": success"
                 else :
                     sys.stderr.write(".")
@@ -135,7 +130,7 @@ class RunTests :
             f.close()
             self.resultNew[test] = [self.time, outprint, file]
 
-        if self.conf.supportLeak() :
+        if self.config['leak'] :
             #get LEAK
             f = open("/tmp/drt.tmp", "r")
             for leak in f :
@@ -165,10 +160,10 @@ class RunTests :
         ext = test[test.rfind("."):]
         expected = test.replace(ext, "-expected.txt")
         if test.find("http://") != -1 :
-            expected = expected.replace("http://localhost:8080", self.layoutPath + "http/")
+            expected = expected.replace("http://localhost:8080", self.config['layout'] + "http/")
         if not os.path.exists(expected) :
-            dir = self.layoutPath + "/platform/bal/" + self.platform + "/"
-            file = dir + expected[len(self.layoutPath):]
+            dir = self.config['layout'] + "/platform/bal/" + self.config['platform'] + "/"
+            file = dir + expected[len(self.config['layout']):]
             if not os.path.exists(file) :
                 return False, file
             else :
