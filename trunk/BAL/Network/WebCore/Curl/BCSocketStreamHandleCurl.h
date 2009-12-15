@@ -34,6 +34,7 @@
 
 #include "SocketStreamHandleBase.h"
 
+#include "Timer.h"
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
 
@@ -61,6 +62,15 @@ namespace WebCore {
         void receivedCredential(const AuthenticationChallenge&, const Credential&);
         void receivedRequestToContinueWithoutCredential(const AuthenticationChallenge&);
         void receivedCancellation(const AuthenticationChallenge&);
+
+        void createAndConnectSocket();
+
+        void pollCallback(Timer<SocketStreamHandle>* timer);
+
+        void closeSocket();
+
+        Timer<SocketStreamHandle> m_pollTimer;
+        int m_socketFD;
     };
 
 }  // namespace WebCore

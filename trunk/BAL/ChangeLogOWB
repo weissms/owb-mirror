@@ -1,3 +1,31 @@
+2009-12-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add a first implementation of the WebSocket on top of the socket API.
+
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp:
+        (WebCore::SocketStreamHandle::SocketStreamHandle): Properly set up the
+        socket and launch the timer.
+        (WebCore::SocketStreamHandle::~SocketStreamHandle): Properly close the
+        resources.
+        (WebCore::SocketStreamHandle::platformSend): Just call send on the
+        socket.
+        (WebCore::SocketStreamHandle::platformClose): Close the socket, 
+        stop the timer and call didClose if needed.
+        (WebCore::SocketStreamHandle::didReceiveAuthenticationChallenge):
+        Added call to the client. We need to think a bit more about it to
+        implement it properly so left the notImplemented().
+        (WebCore::SocketStreamHandle::receivedCancellation): Ditto.
+        (WebCore::SocketStreamHandle::closeSocket): This method is used
+        internally to close the socket and stop the poll timer.
+        (WebCore::SocketStreamHandle::createAndConnectSocket): Create the
+        socket and connect it on the remote server.
+        (WebCore::SocketStreamHandle::pollCallback): This is the poll callback
+        that regularly select the socket and read it if it is ready.
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.h: Added the previous
+        method as well as some members.
+
 2009-12-15  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi
