@@ -1,3 +1,10 @@
+2009-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        Fix for DRT script due to a strange buildbot behavior with
+        whitespaces...
+
+        * Scripts/Drt/parser.py:
+
 2009-12-15  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Gilles Bertal.

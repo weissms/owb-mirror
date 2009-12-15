@@ -38,7 +38,10 @@ class ParseDrtOptions(OptionParser):
             self.error('missing mandatory --layout-path option')
         if options.platform is None:
             self.error('missing mandatory --platform option')
-        options.layout = os.path.abspath(options.layout)
+        #strip whitespace...
+        options.drt = options.drt.strip()
+        options.layout = os.path.abspath(options.layout.strip())
+        options.platform = options.platform.strip()
         return (options, args)
 
     def __parse_config_file(self, option, opt_str, value, parser):
