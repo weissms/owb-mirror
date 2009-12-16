@@ -101,6 +101,8 @@ WebCore/platform/network/curl/CookieJarCurl.cpp BAL/Network/WebCore/Curl/BCCooki
 WebCore/platform/network/curl/ResourceHandleCurl.cpp BAL/Network/WebCore/Curl/BCResourceHandleCurl.cpp
 WebCore/platform/network/curl/ResourceHandleManager.cpp BAL/Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp
 WebCore/platform/network/curl/ResourceHandleManager.h BAL/Network/WebCore/Curl/BCResourceHandleManagerCurl.h
+WebCore/platform/network/curl/SocketStreamHandleCurl.cpp BAL/Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp
+WebCore/platform/network/curl/SocketStreamHandle.h BAL/Network/WebCore/Curl/BCSocketStreamHandleCurl.h
 WebCore/platform/network/qt/DnsPrefetchHelper.cpp BAL/Network/WebCore/Qt/BCDnsPrefetchHelperQt.cpp
 WebCore/platform/network/qt/DnsPrefetchHelper.h BAL/Network/WebCore/Qt/BCDnsPrefetchHelperQt.h
 WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp

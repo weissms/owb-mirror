@@ -1,5 +1,28 @@
 2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Not reviewed.
+
+        Check-in: "Add a first implementation of the WebSocket on top of the
+        socket API." again as it went away with the merge.
+
+        This time updated WebKitFiles.txt to avoid losing again at the next
+        merge.
+
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp:
+        (WebCore::SocketStreamHandle::SocketStreamHandle):
+        (WebCore::SocketStreamHandle::~SocketStreamHandle):
+        (WebCore::SocketStreamHandle::platformSend):
+        (WebCore::SocketStreamHandle::platformClose):
+        (WebCore::SocketStreamHandle::didReceiveAuthenticationChallenge):
+        (WebCore::SocketStreamHandle::receivedCancellation):
+        (WebCore::SocketStreamHandle::closeSocket):
+        (WebCore::SocketStreamHandle::createAndConnectSocket):
+        (WebCore::SocketStreamHandle::pollCallback):
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.h:
+        * Scripts/data/WebKitFiles.txt:
+
+2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         Add the possibility to add a client certificate with keys and password
