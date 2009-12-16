@@ -1,3 +1,10 @@
+2009-12-16  Mario Bensi  <mbensi@pleyo.com>
+
+        add some mimetypes for video object
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+
 2009-12-16  Gilles Bertal  <gbertal@pleyo.com>
 
         Updated the OIPF Configuration object class name and constructor parameter.
