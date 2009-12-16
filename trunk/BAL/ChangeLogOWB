@@ -1,5 +1,41 @@
 2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Reviewed by Gilles Bertal.
+
+        Migrate the initial WebSocket code to use cURL internally.
+
+        This leads to more cross-platform code and may give us the support for
+        "wss" secure socket.
+
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp:
+        (WebCore::SocketStreamHandle::SocketStreamHandle): Added an ASSERT and
+        the port checks part (this matches what mac does).
+
+        (WebCore::SocketStreamHandle::platformSend): Get the socket file
+        descriptor from cURL. The rest is kept.
+
+        (WebCore::SocketStreamHandle::~SocketStreamHandle): Updated after the
+        internal changes.
+        (WebCore::SocketStreamHandle::platformClose): Ditto.
+
+        (WebCore::SocketStreamHandle::createConnection): Renamed from
+        createAndConnectSocket as we now let cURL handle that! Also we now
+        need to return a CURLcode to know what error we may have.
+        (WebCore::SocketStreamHandle::closeConnection): Renamed from
+        closeSocket. Clean-up the curl easy handle and stop the timer.
+
+        (WebCore::SocketStreamHandle::pollCallback): The logic is kept but we
+        now get the socket file descriptor from cURL and we limit the code to
+        waiting 100ms to avoid starving the UI.
+
+        (WebCore::SocketStreamHandle::didOpenCallback): This is a new
+        independent timer for call didOpen asynchronously.
+
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.h:
+        (WebCore::SocketStreamHandle::shouldUseSSL):
+
+2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Not reviewed.
 
         Check-in: "Add a first implementation of the WebSocket on top of the

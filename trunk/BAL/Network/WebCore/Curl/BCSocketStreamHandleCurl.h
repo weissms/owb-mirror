@@ -35,6 +35,7 @@
 #include "SocketStreamHandleBase.h"
 
 #include "Timer.h"
+#include <curl/curl.h>
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
 
@@ -63,14 +64,18 @@ namespace WebCore {
         void receivedRequestToContinueWithoutCredential(const AuthenticationChallenge&);
         void receivedCancellation(const AuthenticationChallenge&);
 
-        void createAndConnectSocket();
+        CURLcode createConnection();
+        void closeConnection();
 
-        void pollCallback(Timer<SocketStreamHandle>* timer);
+        void pollCallback(Timer<SocketStreamHandle>*);
+        void didOpenCallback(Timer<SocketStreamHandle>*);
 
-        void closeSocket();
+        bool shouldUseSSL() const { return m_url.protocolIs("wss"); }
 
         Timer<SocketStreamHandle> m_pollTimer;
-        int m_socketFD;
+        Timer<SocketStreamHandle> m_didOpenAsyncCallTimer;
+        CURL* m_curlHandle;
+        char* m_curlURL;
     };
 
 }  // namespace WebCore
