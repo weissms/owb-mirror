@@ -110,7 +110,7 @@
 #include "Application.h"
 #include "ApplicationManager.h"
 #include "ApplicationManagerElement.h"
-#include "Configuration.h"
+#include "ConfigurationElement.h"
 #endif
 
 #if ENABLE(DAE_TUNER)
@@ -927,8 +927,11 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
             // We have encountered an iopfapplicationmanager so we have an OIPF application.
             application->setIsOIPFApplication();
             return adoptRef(static_cast<Widget*>(new ApplicationManagerElement()));
-        } else if (mimeType == "application/oipfconfiguration")
-            return adoptRef(static_cast<Widget*>(new Configuration(application)));
+        } else if (mimeType == ConfigurationElement::MIMEType) {
+            ASSERT(element->hasTagName(objectTag)); 
+            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element); 
+            return adoptRef(static_cast<Widget*>(new ConfigurationElement(objectElement))); 
+        }
 #if ENABLE(DAE_TUNER)
         else if (mimeType == "video/broadcast") {
             ASSERT(element->hasTagName(objectTag));
