@@ -326,7 +326,7 @@ public:
 #endif
 };
 
-class EmptyEditorClient : public EditorClient {
+class EmptyEditorClient : public EditorClient, public Noncopyable {
 public:
     virtual ~EmptyEditorClient() { }
     virtual void pageDestroyed() { }
@@ -468,7 +468,7 @@ public:
 #endif // ENABLE(DRAG_SUPPORT)
 
 #if ENABLE(INSPECTOR)
-class EmptyInspectorClient : public InspectorClient {
+class EmptyInspectorClient : public InspectorClient, public Noncopyable {
 public:
     virtual ~EmptyInspectorClient() { }
 
@@ -497,7 +497,7 @@ public:
 
     virtual void inspectorWindowObjectCleared() { }
 };
-#endif
+#endif // ENABLE(INSPECTOR)
 
 }
 

@@ -365,11 +365,18 @@ WebView::WebView()
     sharedPreferences->willAddToWebView();
     m_preferences = sharedPreferences;
 
+    m_page = new Page(new WebChromeClient(this),
+                      new WebContextMenuClient(this),
+                      new WebEditorClient(this),
+                      new WebDragClient(this),
 #if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this), new WebPluginHalterClient(this));
+                      new WebInspectorClient(this),
 #else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0, new WebPluginHalterClient(this));
+                      0,
 #endif
+                      new WebPluginHalterClient(this),
+                      0);
+
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
     m_memoryEvent = new MemoryEvent(this);

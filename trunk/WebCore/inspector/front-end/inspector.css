@@ -1047,7 +1047,7 @@ body.drawer-visible #drawer {
     background-color: rgb(212, 212, 212);
 }
 
-:focus .outline-disclosure li.selected .selection {
+.outline-disclosure ol:focus li.selected .selection {
     background-color: rgb(56, 121, 217);
 }
 
@@ -1075,11 +1075,11 @@ body.drawer-visible #drawer {
     text-indent: -2px
 }
 
-:focus .outline-disclosure li.selected {
+.outline-disclosure ol:focus li.selected {
     color: white;
 }
 
-:focus .outline-disclosure li.selected * {
+.outline-disclosure ol:focus li.selected * {
     color: inherit;
 }
 
@@ -1104,7 +1104,7 @@ body.drawer-visible #drawer {
     content: url(Images/treeRightTriangleBlack.png);
 }
 
-:focus .outline-disclosure li.parent.selected::before {
+.outline-disclosure ol:focus li.parent.selected::before {
     content: url(Images/treeRightTriangleWhite.png);
 }
 
@@ -1112,7 +1112,7 @@ body.drawer-visible #drawer {
     content: url(Images/treeDownTriangleBlack.png);
 }
 
-:focus .outline-disclosure li.parent.expanded.selected::before {
+.outline-disclosure ol:focus li.parent.expanded.selected::before {
     content: url(Images/treeDownTriangleWhite.png);
 }
 
@@ -2808,51 +2808,6 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
 
 .resources-category-xhr.resource-cached .resources-graph-bar {
     -webkit-border-image: url(Images/timelineHollowPillYellow.png) 6 7 6 7;
-}
-
-.tip-button {
-    background-image: url(Images/tipIcon.png);
-    border: none;
-    width: 16px;
-    height: 16px;
-    float: right;
-    background-color: transparent;
-    margin-top: 1px;
-}
-
-.tip-button:active {
-    background-image: url(Images/tipIconPressed.png);
-}
-
-.tip-balloon {
-    position: absolute;
-    left: 145px;
-    top: -5px;
-    z-index: 1000;
-    border-width: 51px 15px 18px 37px;
-    -webkit-border-image: url(Images/tipBalloon.png) 51 15 18 37;
-    width: 265px;
-}
-
-.tip-balloon.bottom {
-    position: absolute;
-    left: 145px;
-    top: auto;
-    bottom: -7px;
-    z-index: 1000;
-    border-width: 18px 15px 51px 37px;
-    -webkit-border-image: url(Images/tipBalloonBottom.png) 18 15 51 37;
-}
-
-.tip-balloon-content {
-    margin-top: -40px;
-    margin-bottom: -2px;
-    margin-left: 2px;
-}
-
-.tip-balloon.bottom .tip-balloon-content {
-    margin-top: -10px;
-    margin-bottom: -35px;
 }
 
 #resource-views {

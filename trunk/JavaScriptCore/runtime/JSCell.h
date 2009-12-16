@@ -133,7 +133,7 @@ namespace JSC {
 #if USE(JSVALUE32)
     inline bool JSCell::isNumber() const
     {
-        return Heap::isNumber(const_cast<JSCell*>(this));
+        return m_structure->typeInfo().type() == NumberType;
     }
 #endif
 
@@ -159,6 +159,11 @@ namespace JSC {
     inline void* JSCell::operator new(size_t size, JSGlobalData* globalData)
     {
         return globalData->heap.allocate(size);
+    }
+
+    inline void* JSCell::operator new(size_t size, ExecState* exec)
+    {
+        return exec->heap()->allocate(size);
     }
 
     // --- JavaScriptCore/JSValue inlines ----------------------------

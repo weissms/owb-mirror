@@ -68,7 +68,8 @@ endif(ENABLE_INSPECTOR)
 if(ENABLE_GEOLOCATION)
     list(APPEND WEBCORE_SRC
         page/Geolocation.cpp
-    )
+        page/GeolocationController.cpp
+        )
     list(APPEND IDL_SRC
         page/Geoposition.idl
         page/Geolocation.idl

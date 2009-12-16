@@ -1,3 +1,157 @@
+2009-12-16  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        GCC 4.3.x warning fixed. Suggested parantheses added.
+        warning: ../../../JavaScriptCore/wtf/StdLibExtras.h:77: warning: suggest parentheses around + or - in operand of &
+
+        * wtf/StdLibExtras.h:
+        (WTF::bitCount):
+
+2009-12-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam "r=me" Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32498
+        <rdar://problem/7471495>
+        REGRESSION(r51978-r52039): AJAX "Mark This Forum Read" function no longer
+        works
+        
+        Fixed a tyop.
+
+        * runtime/Operations.h:
+        (JSC::jsAdd): Use the '&&' operator, not the ',' operator.
+
+2009-12-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Try to fix the windows build: don't export this inlined function.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2009-12-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Inlined JSCell's operator new.
+        
+        3.7% speedup on bench-allocate-nonretained.js.
+
+        * JavaScriptCore.exp:
+        * runtime/JSCell.cpp:
+        * runtime/JSCell.h:
+        (JSC::JSCell::operator new):
+
+2009-12-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Removed the number heap, replacing it with a one-item free list for
+        numbers, taking advantage of the fact that two number cells fit inside
+        the space for one regular cell, and number cells don't require destruction.
+        
+        SunSpider says 1.6% faster in JSVALUE32 mode (the only mode that
+        heap-allocates numbers).
+        
+        SunSpider says 1.1% faster in JSVALUE32_64 mode. v8 says 0.8% faster
+        in JSVALUE32_64 mode. 10% speedup on bench-alloc-nonretained.js. 6%
+        speedup on bench-alloc-retained.js.
+        
+        There's a lot of formulaic change in this patch, but not much substance.
+
+        * JavaScriptCore.exp:
+        * debugger/Debugger.cpp:
+        (JSC::Debugger::recompileAllJSFunctions):
+        * runtime/Collector.cpp:
+        (JSC::Heap::Heap):
+        (JSC::Heap::destroy):
+        (JSC::Heap::allocateBlock):
+        (JSC::Heap::freeBlock):
+        (JSC::Heap::freeBlockPtr):
+        (JSC::Heap::freeBlocks):
+        (JSC::Heap::recordExtraCost):
+        (JSC::Heap::allocate):
+        (JSC::Heap::resizeBlocks):
+        (JSC::Heap::growBlocks):
+        (JSC::Heap::shrinkBlocks):
+        (JSC::Heap::markConservatively):
+        (JSC::Heap::clearMarkBits):
+        (JSC::Heap::markedCells):
+        (JSC::Heap::sweep):
+        (JSC::Heap::markRoots):
+        (JSC::Heap::objectCount):
+        (JSC::Heap::addToStatistics):
+        (JSC::Heap::statistics):
+        (JSC::Heap::isBusy):
+        (JSC::Heap::reset):
+        (JSC::Heap::collectAllGarbage):
+        (JSC::Heap::primaryHeapBegin):
+        (JSC::Heap::primaryHeapEnd):
+        * runtime/Collector.h:
+        (JSC::): Removed all code pertaining to the number heap, and changed all
+        heap template functions and classes to non-template functions and classes.
+
+        (JSC::Heap::allocateNumber): A new optimization to replace the number
+        heap: allocate half-sized number cells in pairs, returning the first
+        cell and caching the second cell for the next allocation.
+
+        * runtime/CollectorHeapIterator.h:
+        (JSC::LiveObjectIterator::LiveObjectIterator):
+        (JSC::LiveObjectIterator::operator++):
+        (JSC::DeadObjectIterator::DeadObjectIterator):
+        (JSC::DeadObjectIterator::operator++):
+        (JSC::ObjectIterator::ObjectIterator):
+        (JSC::ObjectIterator::operator++):
+        * runtime/JSCell.h:
+        (JSC::JSCell::isNumber): Removed all code pertaining to the number heap,
+        and changed all heap template functions and classes to non-template functions
+        and classes.
+
+2009-12-15  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for WeakGCMap class
+        https://bugs.webkit.org/show_bug.cgi?id=32547
+
+        Inherits WeakGCMap from FastAllocBase because it is instantiated by
+        'new' at: WebCore/dom/Document.cpp:512.
+
+        * runtime/WeakGCMap.h:
+
+2009-12-15  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Allow custom memory allocation control for dtoa's P5Node struct
+        https://bugs.webkit.org/show_bug.cgi?id=32544
+
+        Inherits P5Node struct from Noncopyable because it is instantiated by
+        'new' at wtf/dtoa.cpp:588 and don't need to be copyable.
+
+        * wtf/dtoa.cpp:
+
+2009-12-14  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32524
+        REGRESSION(52084): fast/dom/prototypes.html failing two CSS tests
+
+        * wtf/StdLibExtras.h:
+        (WTF::bitCount): The original patch put the parentheses in the wrong
+        place, completely changing the calculation and making it almost always
+        wrong. Moved the parentheses around the '+' operation, like the original
+        compiler warning suggested.
+
+2009-12-14  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Unreviewed trivial buildfix.
+
+        Fix crosses initialization of usedPrimaryBlocks for JSValue32
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::markConservatively):
+
 2009-12-14  Kent Tamura  <tkent@chromium.org>
 
         Reviewed by Darin Adler.

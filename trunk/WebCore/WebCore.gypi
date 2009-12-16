@@ -1791,6 +1791,11 @@
             'page/FrameView.h',
             'page/Geolocation.cpp',
             'page/Geolocation.h',
+            'page/GeolocationController.cpp'
+            'page/GeolocationController.h'
+            'page/GeolocationControllerClient.h'
+            'page/GeolocationError.h'
+            'page/GeolocationPosition.h'
             'page/Geoposition.h',
             'page/HaltablePlugin.h',
             'page/History.cpp',
@@ -3695,6 +3700,7 @@
             'inspector/front-end/Script.js',
             'inspector/front-end/ScriptsPanel.js',
             'inspector/front-end/ScriptView.js',
+            'inspector/front-end/Section.js',
             'inspector/front-end/SidebarPane.js',
             'inspector/front-end/SidebarTreeElement.js',
             'inspector/front-end/SourceFrame.js',
@@ -3836,10 +3842,6 @@
             'inspector/front-end/Images/timelinePillPurple.png',
             'inspector/front-end/Images/timelinePillRed.png',
             'inspector/front-end/Images/timelinePillYellow.png',
-            'inspector/front-end/Images/tipBalloon.png',
-            'inspector/front-end/Images/tipBalloonBottom.png',
-            'inspector/front-end/Images/tipIcon.png',
-            'inspector/front-end/Images/tipIconPressed.png',
             'inspector/front-end/Images/toolbarItemSelected.png',
             'inspector/front-end/Images/treeDownTriangleBlack.png',
             'inspector/front-end/Images/treeDownTriangleWhite.png',

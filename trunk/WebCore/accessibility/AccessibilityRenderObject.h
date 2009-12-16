@@ -96,7 +96,7 @@ public:
     virtual bool isHovered() const;
     virtual bool isIndeterminate() const;
     virtual bool isLoaded() const;
-    virtual bool isMultiSelect() const;
+    virtual bool isMultiSelectable() const;
     virtual bool isOffScreen() const;
     virtual bool isPressed() const;
     virtual bool isReadOnly() const;
@@ -264,6 +264,7 @@ private:
     void ariaListboxVisibleChildren(AccessibilityChildrenVector&);
     bool ariaIsHidden() const;
     bool isDescendantOfBarrenParent() const;
+    bool isAllowedChildOfTree() const;
     bool hasTextAlternative() const;
     String positionalDescriptionForMSAA() const;
 
@@ -279,7 +280,7 @@ private:
     AccessibilityObject* accessibilityImageMapHitTest(HTMLAreaElement*, const IntPoint&) const;
     AccessibilityObject* accessibilityParentForImageMap(HTMLMapElement* map) const;
 
-    void ariaTreeSelectedRows(AccessibilityChildrenVector&);
+    void ariaSelectedRows(AccessibilityChildrenVector&);
     
     bool elementAttributeValue(const QualifiedName&);
     void setElementAttributeValue(const QualifiedName&, bool);

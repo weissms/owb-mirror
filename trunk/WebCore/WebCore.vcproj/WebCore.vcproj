@@ -222,8 +222,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(DXSDK_DIR)\Include"
-				PreprocessorDefinitions="QUARTZCORE_DLL"
+				AdditionalIncludeDirectories=""
 				ForcedIncludeFiles=""
 			/>
 			<Tool

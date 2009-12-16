@@ -641,6 +641,22 @@ protected:
      */
     //WebCore::IntRect printerMarginRect(HDC);
 
+    /**
+     *  printerMarginRect
+     */
+    //void spoolPage (PlatformGraphicsContext* pctx, WebCore::GraphicsContext* spoolCtx, HDC printDC, IWebUIDelegate*, float headerHeight, float footerHeight, unsigned page, unsigned pageCount);
+    
+    /**
+     *  printerMarginRect
+     */
+    //void drawHeader(PlatformGraphicsContext* pctx, IWebUIDelegate*, const WebCore::IntRect& pageRect, float headerHeight);
+    
+    /**
+     *  printerMarginRect
+     */
+    //void drawFooter(PlatformGraphicsContext* pctx, IWebUIDelegate*, const WebCore::IntRect& pageRect, unsigned page, unsigned pageCount, float headerHeight, float footerHeight);
+
+
 private:
     /**
      * addToJSWindowObject
