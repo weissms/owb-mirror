@@ -738,6 +738,33 @@ public:
     void setMemoryLimit(int);
     int memoryLimit();
 
+
+    // OWB Extensions
+
+    /**
+     * addCertificateInfo
+     * @brief Adds a client certificate to be used for the given url
+     * Only one certificate can be send by host, so calling this method with several certificates will only result in sending the last.
+     * @param url the url to which the certificate will be send
+     * @param certificatePath the path to the certificate (for the moment, only PEM files are supported)
+     * @param keyPath the path to the key (for the moment only PEM files are supported)
+     * @param keyPassword the key's password.
+     * @warning This is only implemented on top of cURL.
+     */
+    static void addCertificateInfo(const char* /*url*/, const char* /*certificatePath*/, const char* /*keyPath*/, const char* /*keyPassword*/);
+
+    /**
+     * clearCertificateInfo
+     * @brief Clear the client certificate, key and key' password for the given URL
+     * @param url
+     */
+    static void clearCertificateInfo(const char* /*url*/);
+
+    /**
+     * clearAllCertificatesInfo
+     * @brief Clear all the client certificats, keys and keys' passwords for all URL
+     */
+    static void clearAllCertificatesInfo();
 protected:
 
     /**

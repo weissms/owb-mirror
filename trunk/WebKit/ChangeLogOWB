@@ -1,3 +1,19 @@
+2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add the possibility to add a client certificate with keys and password
+        to the cURL backend.
+
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::addCertificateInfo): This method adds a client
+        certificate with its optional key and password.
+        (WebPreferences::clearCertificateInfo): This method removes the
+        certificate information associate with a URL.
+        (WebPreferences::clearAllCertificatesInfo): This method removes all
+        the certificates.
+        * OrigynWebBrowser/Api/WebPreferences.h:
+
 2009-12-16  Mario Bensi  <mbensi@pleyo.com>
 
         add some mimetypes for video object

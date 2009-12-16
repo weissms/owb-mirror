@@ -849,7 +849,8 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
         ASSERT(error == CURLE_OK);
     }
 #endif
-#ifndef NDEBUG
+//#ifndef NDEBUG
+#if 1
     if (getenv("DEBUG_CURL"))
         curl_easy_setopt(d->m_handle, CURLOPT_VERBOSE, 1);
 #endif
@@ -930,6 +931,22 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
 // FIXME: use CURLOPT_USERPWD in this case!
 #warning "Disabled HTTP authentification because you need libcURL >= 7.19.1 for the support"
 #endif
+    }
+
+    // Add client certificate information.
+    const CertificateInfo* certificateInfo = m_certificateCache.getCertificateInfo(kurl);
+    if (certificateInfo) {
+        ASSERT(!certificateInfo->certificatePath().isNull());
+        CString certificatePath = certificateInfo->certificatePath().latin1();
+        curl_easy_setopt(d->m_handle, CURLOPT_SSLCERT, certificatePath.data());
+        if (!certificateInfo->keyPath().isEmpty()) {
+            CString keyPath = certificateInfo->keyPath().latin1();
+            curl_easy_setopt(d->m_handle, CURLOPT_SSLKEY, keyPath.data());
+            if (!certificateInfo->keyPassword().isEmpty()) {
+                CString keyPassword = certificateInfo->keyPassword().latin1();
+                curl_easy_setopt(d->m_handle, CURLOPT_KEYPASSWD, keyPassword.data());
+            }
+        }
     }
 
     if ("GET" == job->request().httpMethod())

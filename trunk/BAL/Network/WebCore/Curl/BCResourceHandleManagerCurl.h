@@ -28,6 +28,7 @@
 #ifndef ResourceHandleManager_h
 #define ResourceHandleManager_h
 
+#include "CertificateCache.h"
 #include "CString.h"
 #include "Frame.h"
 #include "PlatformString.h"
@@ -69,6 +70,8 @@ public:
                       const String& username = "",
                       const String& password = "");
 
+    CertificateCache& certificateCache() { return m_certificateCache; }
+
 private:
     ResourceHandleManager();
     ~ResourceHandleManager();
@@ -90,6 +93,7 @@ private:
     
     String m_proxy;
     ProxyType m_proxyType;
+    CertificateCache m_certificateCache;
 };
 
 }

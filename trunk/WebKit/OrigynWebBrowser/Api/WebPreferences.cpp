@@ -43,6 +43,11 @@
 #include <wtf/OwnArrayPtr.h>
 #include <map>
 
+#if USE(CURL)
+#include "KURL.h"
+#include "ResourceHandleManager.h"
+#endif
+
 using namespace WebCore;
 using namespace std;
 
@@ -206,6 +211,27 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitAcceleratedCompositingEnabledPreferenceKey] = "0";
 #endif
     m_privatePrefs[WebKitMemoryLimitPreferenceKey] = "0";
+}
+
+void WebPreferences::addCertificateInfo(const char* url, const char* certificatePath, const char* keyPath, const char* keyPassword)
+{
+#if USE(CURL)
+    ResourceHandleManager::sharedInstance()->certificateCache().add(KURL(KURL(), url), certificatePath, keyPath, keyPassword);
+#endif // USE(CURL)
+}
+
+void WebPreferences::clearCertificateInfo(const char* url)
+{
+#if USE(CURL)
+    ResourceHandleManager::sharedInstance()->certificateCache().remove(KURL(KURL(), url));
+#endif // USE(CURL)
+}
+
+void WebPreferences::clearAllCertificatesInfo()
+{
+#if USE(CURL)
+    ResourceHandleManager::sharedInstance()->certificateCache().clear();
+#endif // USE(CURL)
 }
 
 const char* WebPreferences::valueForKey(const char* key)

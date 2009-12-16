@@ -1,3 +1,33 @@
+2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add the possibility to add a client certificate with keys and password
+        to the cURL backend.
+
+        * Network/WebCore/Curl/BCCertificateCacheCurl.cpp: Added.
+        (WebCore::CertificateCache::CertificateCache):
+        (WebCore::CertificateCache::~CertificateCache):
+        (WebCore::CertificateCache::getCertificateInfo):
+        (WebCore::CertificateCache::add):
+        (WebCore::CertificateCache::remove):
+        (WebCore::CertificateCache::clear):
+        This is the certificate cache that contains the URL <-> certificate
+        information mapping.
+
+        * Network/WebCore/Curl/BCCertificateCacheCurl.h: Added.
+        (WebCore::CertificateInfo::CertificateInfo):
+        (WebCore::CertificateInfo::certificatePath):
+        (WebCore::CertificateInfo::keyPath):
+        (WebCore::CertificateInfo::keyPassword):
+        Helper class that contains all the information that cURL needs.
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::ResourceHandleManager::initializeHandle): Add the
+        certificate information if we have one.
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.h:
+        (WebCore::ResourceHandleManager::certificateCache): Helper method.
+
 2009-12-15  Olivier DOLE  <odole@pleyo.com>
 
         Fix for DRT script due to a strange buildbot behavior with
