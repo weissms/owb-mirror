@@ -210,7 +210,7 @@ BalWidget* createWindow(WebView **webView, BalRectangle rect)
     if (getenv("SDL_NOMOUSE"))
         SDL_ShowCursor(SDL_DISABLE);
 
-    *webView->setViewWindow(screen);
+    (*webView)->setViewWindow(screen);
     return screen;
 }
 
