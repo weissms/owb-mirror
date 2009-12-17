@@ -214,7 +214,11 @@ void LayoutTestController::setUserStyleSheetLocation(JSStringRef path)
 
 void LayoutTestController::setWindowIsKey(bool windowIsKey)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    if (windowIsKey)
+        webView->setFocus();
+    else
+        webView->clearFocus();
 }
 
 void LayoutTestController::setSmartInsertDeleteEnabled(bool flag)

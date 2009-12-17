@@ -1,5 +1,14 @@
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
+        Fix setFocus and clearFocus
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::initWithFrame): set Frame in FocusController
+        (WebView::setFocus): remove setActive because is send to focus event
+        (WebView::clearFocus): ditto
+
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
         Add webframe attribute in WebWidgetEngineDelegate.
 
         * OrigynWebBrowser/Api/WebWidgetEngineDelegate.h:

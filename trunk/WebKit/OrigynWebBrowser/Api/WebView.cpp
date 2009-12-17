@@ -1381,6 +1381,7 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     setSmartInsertDeleteEnabled(true);
     PageGroup::setShouldTrackVisitedLinks(true);
 
+    m_page->focusController()->setFocusedFrame(m_page->mainFrame());
     m_page->focusController()->setActive(true); 
     m_page->focusController()->setFocused(true); 
 
@@ -2099,7 +2100,8 @@ void WebView::setFocus()
 {
     FocusController* focusController = m_page->focusController();
     focusController->setFocused(true);
-    focusController->setActive(true);
+    if(!focusController->focusedFrame())
+        focusController->setFocusedFrame(m_page->mainFrame());
 }
 
 bool WebView::focused() const
@@ -2111,7 +2113,6 @@ void WebView::clearFocus()
 {
     FocusController* focusController = m_page->focusController();
     focusController->setFocused(false);
-    focusController->setActive(false);
 }
 
 void WebView::updateActiveState()
