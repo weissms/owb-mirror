@@ -1,5 +1,12 @@
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
+        Add progress bar for drt.
+
+        * Scripts/Drt/progress.py: Added.
+        * Scripts/Drt/runtests.py:
+
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
         Fix a problem on Thread with Qt when the application are not created
 
         * Scripts/data/WebKitFiles.txt:

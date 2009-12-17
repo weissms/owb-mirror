@@ -6,6 +6,7 @@ from threading import Timer
 import subprocess
 import difflib
 import signal
+import progress
 
 def handler(signum, frame):
     print ""
@@ -25,6 +26,8 @@ class RunTests :
         self.resultCrashed = {}
         self.resultNew = {}
         self.pid = 0
+        self.count = 0
+        self.prog = progress.ProgressBar(0, len(testsList), 77, mode='fixed')
 
     def startDrt(self) :
         if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :
@@ -79,7 +82,8 @@ class RunTests :
             outTemp = child_stdout.read()
         except Exception, e:
             if not str(e) == 'timeout':  # something else went wrong ..
-                print test[test.rfind("/") + 1:] + ": timeout"
+                self.__updateProgressBar() 
+                #print test[test.rfind("/") + 1:] + ": timeout"
         signal.alarm(0)
         if not self.timeout :
             outprint = outTemp
@@ -91,7 +95,8 @@ class RunTests :
                 self.timeout = False
         if outprint == "" :
             if not self.timeout :
-                print test[test.rfind("/") + 1:] + ": crashed"
+                #print test[test.rfind("/") + 1:] + ": crashed"
+                self.__updateProgressBar() 
                 self.resultCrashed[test] =  [self.time, "", ""]
                 return
             else :
@@ -104,14 +109,16 @@ class RunTests :
             cmp, diff = self.__compareResult(outprint, file)
             res = ""
             if cmp :
-                if self.config['verbose'] :
-                    print test[test.rfind("/") + 1:] + ": success"
-                else :
-                    sys.stderr.write(".")
+                #if self.config['verbose'] :
+                #    print test[test.rfind("/") + 1:] + ": success"
+                #else :
+                #    sys.stderr.write(".")
+                self.__updateProgressBar() 
                 self.resultSuccess[test] = [self.time, diff, file]
             else :
                 if not self.timeout :
-                    print test[test.rfind("/") + 1:] + ": failed"
+                    #print test[test.rfind("/") + 1:] + ": failed"
+                    self.__updateProgressBar() 
                     if (file.find("platform") == -1) :
                         self.resultFailed[test] = [self.time, diff, file]
                     else :
@@ -129,6 +136,7 @@ class RunTests :
             f.write(outprint)
             f.close()
             self.resultNew[test] = [self.time, outprint, file]
+            self.__updateProgressBar() 
 
         if self.config['leak'] :
             #get LEAK
@@ -242,3 +250,11 @@ class RunTests :
                 file.write("<td><a href=\"" + res[2] + "\">expected</a></td>")
             file.write("</tr>")
         file.write("</table>")
+
+    def __updateProgressBar(self) :
+        self.count += 1
+        oldprog = str(self.prog)
+        self.prog.update_amount(self.count)
+        if oldprog != str(self.prog):
+            print self.prog, "\r",
+            sys.stdout.flush()
