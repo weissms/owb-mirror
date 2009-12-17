@@ -1,3 +1,14 @@
+2009-12-17  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Remove WebApplicationNotificationClient.
+
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/DAE: Removed.
+        * OrigynWebBrowser/WebCoreSupport/DAE/WebApplicationNotificationClient.cpp: Removed.
+        * OrigynWebBrowser/WebCoreSupport/DAE/WebApplicationNotificationClient.h: Removed.
+
 2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

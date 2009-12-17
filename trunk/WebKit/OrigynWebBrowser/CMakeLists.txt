@@ -26,7 +26,7 @@ if(ENABLE_DAE)
     endif(ENABLE_DAE_TUNER AND ENABLE_DAE_APPLICATION)
 
     if(ENABLE_DAE_APPLICATION)
-        aux_source_directory(WebCoreSupport/DAE WEBKIT_SRC)
+        aux_source_directory(DAE/WebCoreSupport WEBKIT_SRC)
     else(ENABLE_DAE_APPLICATION)
         # FIXME: Temporary fix to compile.
         list(REMOVE_ITEM WEBKIT_SRC
