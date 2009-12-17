@@ -11,9 +11,9 @@ if(ENABLE_DAE)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMAND mkdir -p generated_sources/WebKit
         COMMAND
-        ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/DAE/VKParserJavaScript.py ${CMAKE_SOURCE_DIR}/BAL/CEHTML/WebCore/Common/BCKeyboardCodesCEHTMLCommon.h
+        ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/DAE/VKParserJavaScript.py ${CMAKE_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/BCKeyboardCodesCEHTMLGeneric.h
  > ${CMAKE_BINARY_DIR}/generated_sources/WebKit/VKValuesJavaScript.cpp
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/DAE/VKParserJavaScript.py ${CMAKE_SOURCE_DIR}/BAL/CEHTML/WebCore/Common/BCKeyboardCodesCEHTMLCommon.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/DAE/VKParserJavaScript.py ${CMAKE_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/BCKeyboardCodesCEHTMLGeneric.h
     )
 
     list(APPEND WEBKIT_SRC
