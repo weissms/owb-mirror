@@ -287,7 +287,7 @@ void WebFrameLoaderClient::dispatchDidReceiveResponse(DocumentLoader* loader, un
 #if ENABLE(WIDGET_ENGINE)
     SharedPtr<WebWidgetEngineDelegate> widgetEngineDelegate = m_webFrame->webView()->webWidgetEngineDelegate();
     if (widgetEngineDelegate && loader->responseMIMEType() == "application/widget") {
-        const char* url = widgetEngineDelegate->receiveWidget(strdup(loader->responseURL().string().utf8().data()));
+        const char* url = widgetEngineDelegate->receiveWidget(strdup(loader->responseURL().string().utf8().data()), m_webFrame);
         loader->stopLoading();
         if (url)
             m_webFrame->loadURL(url);

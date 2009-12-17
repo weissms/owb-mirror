@@ -31,6 +31,8 @@
 
 #include "SharedObject.h"
 
+class WebFrame;
+
 class WebWidgetEngineDelegate : public SharedObject<WebWidgetEngineDelegate> {
 
 public:
@@ -39,7 +41,7 @@ public:
     /**
      * registerBinding
      */
-    virtual const char* receiveWidget(const char* url) = 0;
+    virtual const char* receiveWidget(const char* url, WebFrame*) = 0;
 };
 
 #endif // WebWidgetEngineDelegate_h

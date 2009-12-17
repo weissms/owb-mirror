@@ -1,3 +1,11 @@
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
+        Add webframe attribute in WebWidgetEngineDelegate.
+
+        * OrigynWebBrowser/Api/WebWidgetEngineDelegate.h:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidReceiveResponse):
+
 2009-12-17  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
