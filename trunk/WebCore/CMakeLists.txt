@@ -53,16 +53,16 @@ endif(ENABLE_WCSS)
 
 if(ENABLE_CEHTML)
     list(APPEND WEBCORE_CSS_PROPERTY_NAMES
-        ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Common/CEHTMLCSSPropertyNames.in
+        ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/CEHTMLCSSPropertyNames.in
     )
     list(APPEND WEBCORE_CSS_VALUE_KEYWORDS
-        ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Common/CEHTMLCSSValueKeywords.in
+        ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/CEHTMLCSSValueKeywords.in
     )
 endif(ENABLE_CEHTML)
 
 if(ENABLE_DAE)
 list(APPEND WEBCORE_CSS_PROPERTY_NAMES
-        ${OWB_SOURCE_DIR}/BAL/DAE/WebCore/Common/DAECSSPropertyNames.in
+        ${OWB_SOURCE_DIR}/BAL/DAE/WebCore/Generic/DAECSSPropertyNames.in
     )
 endif(ENABLE_DAE)
 
@@ -154,13 +154,13 @@ add_custom_command(
 
 if(ENABLE_CEHTML_VIDEO)
     set(CEHTML_ATTRS --attrsCEHTML)
-    set(CEHTML_FILE ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Common/CEHTMLAttributeNames.in)
+    set(CEHTML_FILE ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/CEHTMLAttributeNames.in)
     set(CEHTML_EXTENSIONS ${CEHTML_ATTRS} ${CEHTML_FILE})
 endif(ENABLE_CEHTML_VIDEO)
 
 if(ENABLE_DAE)
     set(DAE_ATTRS --attrsDAE)
-    set(DAE_FILE ${OWB_SOURCE_DIR}/BAL/DAE/WebCore/Common/DAEHTMLAttributeNames.in)
+    set(DAE_FILE ${OWB_SOURCE_DIR}/BAL/DAE/WebCore/Generic/DAEHTMLAttributeNames.in)
     set(DAE_EXTENSIONS ${DAE_ATTRS} ${DAE_FILE})
 endif(ENABLE_DAE)
 
