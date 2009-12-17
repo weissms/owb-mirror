@@ -1,5 +1,12 @@
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
+        Build fix
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (runTest):
+
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
         Implement Qt backend for drt.
 
         * DumpRenderTree/CMakeLists.txt:

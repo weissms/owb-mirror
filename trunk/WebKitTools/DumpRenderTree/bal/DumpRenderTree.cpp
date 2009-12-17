@@ -506,7 +506,7 @@ void runTest(const string& testPathOrURL)
 
 #if ENABLE(DAE)
     webView = WebView::createInstance(rect, url, frameLoadDelegate, jsActionDelegate);
-    BalWidget *view = createWindow(webView, rect);
+    BalWidget *view = createWindow(&webView, rect);
     //webApplication = WebApplication::createInstance(rect, url, BroadcastIndependent, 0, frameLoadDelegate, jsActionDelegate);
 #else
 #if !PLATFORM(QT)
