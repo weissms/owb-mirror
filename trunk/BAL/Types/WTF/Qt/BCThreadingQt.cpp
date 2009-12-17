@@ -129,7 +129,11 @@ void initializeThreading()
         atomicallyInitializedStaticMutex = new Mutex;
         threadMapMutex();
         initializeRandomNumberGenerator();
-        QThread* mainThread = QCoreApplication::instance()->thread();
+        QThread* mainThread;
+        if (QCoreApplication::instance())
+            mainThread = QCoreApplication::instance()->thread();
+        else
+            mainThread = QThread::currentThread();
         mainThreadIdentifier = identifierByQthreadHandle(mainThread);
         if (!mainThreadIdentifier)
             mainThreadIdentifier = establishIdentifierForThread(mainThread);
@@ -195,7 +199,10 @@ ThreadIdentifier currentThread()
 
 bool isMainThread()
 {
-    return QThread::currentThread() == QCoreApplication::instance()->thread();
+    if (QCoreApplication::instance())
+        return QThread::currentThread() == QCoreApplication::instance()->thread();
+    else
+        return true;
 }
 
 Mutex::Mutex()

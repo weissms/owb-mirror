@@ -1,3 +1,35 @@
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
+        Implement Qt backend for drt.
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (setWebView):
+        (runTest):
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (createWindow):
+        * DumpRenderTree/bal/gtk/DumpRenderTreeGtk.cpp:
+        (createWindow):
+        * DumpRenderTree/bal/qt/DumpRenderTreeQt.cpp:
+        (QWebView::QWebView):
+        (QWebView::~QWebView):
+        (QWebView::setWebView):
+        (QWebView::webView):
+        (QWebView::event):
+        (QWebView::sizeHint):
+        (QWebView::quit):
+        (MainWindow::MainWindow):
+        (MainWindow::~MainWindow):
+        (MainWindow::qwebview):
+        (clientRect):
+        (createWindow):
+        (startEventLoop):
+        (stopEventLoop):
+        (QWebView::timerEvent):
+        (addTimetoDump):
+        (removeTimer):
+        * OWBLauncher/Qt/main.cpp:
+
 2009-12-09  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Test fix when DRT is compiled with DAE_APPLICATION=ON.

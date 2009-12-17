@@ -1,3 +1,12 @@
+2009-12-17  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix a problem on Thread with Qt when the application are not created
+
+        * Scripts/data/WebKitFiles.txt:
+        * Types/WTF/Qt/BCThreadingQt.cpp:
+        (WTF::initializeThreading):
+        (WTF::isMainThread):
+
 2009-12-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Gilles Bertal.

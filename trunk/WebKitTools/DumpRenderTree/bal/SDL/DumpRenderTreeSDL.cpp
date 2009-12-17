@@ -52,7 +52,7 @@ BalRectangle clientRect(bool isSVGW3CTest)
 }
 
 #if ENABLE(DAE_APPLICATION)
-BalWidget* createWindow(WebView *webView, BalRectangle rect)
+BalWidget* createWindow(WebView **webView, BalRectangle rect)
 {
     const SDL_VideoInfo* vi;
     int flags = SDL_RESIZABLE;
@@ -173,7 +173,7 @@ void waitEvent()
     }
 }
 #else
-BalWidget* createWindow(WebView *webView, BalRectangle rect)
+BalWidget* createWindow(WebView **webView, BalRectangle rect)
 {
     const SDL_VideoInfo* vi;
     int flags = SDL_RESIZABLE;
@@ -210,7 +210,7 @@ BalWidget* createWindow(WebView *webView, BalRectangle rect)
     if (getenv("SDL_NOMOUSE"))
         SDL_ShowCursor(SDL_DISABLE);
 
-    webView->setViewWindow(screen);
+    *webView->setViewWindow(screen);
     return screen;
 }
 

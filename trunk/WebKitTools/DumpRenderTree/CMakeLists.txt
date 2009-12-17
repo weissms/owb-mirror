@@ -50,6 +50,7 @@ if(USE_GRAPHICS_QT)
         bal/qt/DumpRenderTreeQt.cpp
         bal/qt/EventSenderQt.cpp
     )
+    owb_generate_moc(DUMPRENDERTREE_SRC ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/bal/qt/DumpRenderTreeQt.cpp DumpRenderTreeQt.moc)
 endif(USE_GRAPHICS_QT)
 
 if(USE_API_SDL)

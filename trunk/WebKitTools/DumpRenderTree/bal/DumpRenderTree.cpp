@@ -60,7 +60,7 @@ using namespace std;
 void startEventLoop(BalWidget *view);
 void stopEventLoop();
 BalRectangle clientRect(bool);
-BalWidget* createWindow(WebView *webView, BalRectangle rect);
+BalWidget* createWindow(WebView **webView, BalRectangle rect);
 
 volatile bool done;
 static WebView* webView = 0;
@@ -83,6 +83,11 @@ SharedPtr<EditingDelegate> sharedEditingDelegate;
 WebView *getWebView()
 {
     return webView;
+}
+
+void setWebView(WebView* w)
+{
+    webView = w;
 }
 
 bool getDone()
@@ -504,8 +509,10 @@ void runTest(const string& testPathOrURL)
     BalWidget *view = createWindow(webView, rect);
     //webApplication = WebApplication::createInstance(rect, url, BroadcastIndependent, 0, frameLoadDelegate, jsActionDelegate);
 #else
+#if !PLATFORM(QT)
     webView = WebView::createInstance();
-    BalWidget *view = createWindow(webView, rect);
+#endif
+    BalWidget *view = createWindow(&webView, rect);
     webView->initWithFrame(rect, "", "");
     webView->setWebFrameLoadDelegate(frameLoadDelegate);
     webView->setJSActionDelegate(jsActionDelegate);

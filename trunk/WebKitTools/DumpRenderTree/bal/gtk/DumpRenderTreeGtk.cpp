@@ -65,14 +65,14 @@ void init(int argc, char *argv[])
     gtk_init (&argc, &argv);
 }
 
-BalWidget* createWindow(WebView *webView, BalRectangle rect)
+BalWidget* createWindow(WebView **webView, BalRectangle rect)
 {
     main_window = create_window(rect);
 
     GtkWidget* scrolled_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-    BalWidget *view = webView->viewWindow();
+    BalWidget *view = *webView->viewWindow();
     gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (view));
     gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
     gtk_widget_realize(main_window);

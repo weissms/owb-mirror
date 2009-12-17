@@ -36,8 +36,6 @@
 #include <QFile>
 #include <QTextStream>
 
-using namespace WebCore;
-
 class QWebView : public QWidget
 {
     Q_OBJECT
