@@ -28,6 +28,7 @@
 
 #include "CertificateCache.h"
 #include "KURL.h"
+#include "Logging.h"
 #include "SQLiteStatement.h"
 
 namespace WebCore {
