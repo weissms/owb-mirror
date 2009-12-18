@@ -30,8 +30,6 @@
 #include "KURL.h"
 #include "SQLiteStatement.h"
 
-#include "Logging.h" // FIXME: unneeded !!!!
-
 namespace WebCore {
 
 static String tableName = "certificates";
@@ -56,7 +54,7 @@ void CertificateBackingStore::open(const String& certificateFilePath)
         close();
 
     if (!m_db.open(certificateFilePath)) {
-        LOG_OWB("", "Could not open the certificate database. No certificates will be stored!");
+        LOG(Network, "Could not open the certificate database. No certificates will be stored!");
         return;
     }
 
@@ -70,7 +68,7 @@ void CertificateBackingStore::open(const String& certificateFilePath)
     createTableQuery +=" (url TEXT UNIQUE ON CONFLICT REPLACE, certificatePath TEXT, keyPath TEXT, keyPassword TEXT);";
 
     if (!m_db.executeCommand(createTableQuery)) {
-        LOG_OWB("", "Could not create the table to store the certificates into. No certificate will be stored!");
+        LOG(Network, "Could not create the table to store the certificates into. No certificate will be stored!");
         close();
     }
 
@@ -92,19 +90,19 @@ void CertificateBackingStore::add(const String& url, const CertificateInfo& cert
     SQLiteStatement insertStatement(m_db, insertQuery);
 
     if (insertStatement.prepare()) {
-        LOG_OWB("", "Cannot save certificate (preparing the SQL statement failed)");
+        LOG(Network, "Cannot save certificate (preparing the SQL statement failed)");
         return;
     }
 
     // Binds all the values
     if (insertStatement.bindText(1, url) || insertStatement.bindText(2, certificateInfo.certificatePath())
         || insertStatement.bindText(3, certificateInfo.keyPath()) || insertStatement.bindText(4, certificateInfo.keyPassword())) {
-        LOG_OWB("", "Cannot save certificate (binding value on the SQL statement failed)");
+        LOG(Network, "Cannot save certificate (binding value on the SQL statement failed)");
         return;
     }
 
     if (!insertStatement.executeCommand()) {
-        LOG_OWB("", "Cannot save certificate (executing the SQL statement failed)");
+        LOG(Network, "Cannot save certificate (executing the SQL statement failed)");
         return;
     }
 
@@ -121,18 +119,18 @@ void CertificateBackingStore::remove(const String& url)
     SQLiteStatement deleteStatement(m_db, deleteQuery);
 
     if (deleteStatement.prepare()) {
-        LOG_OWB("", "Cannot delete certificate");
+        LOG(Network, "Cannot delete certificate");
         return;
     }
 
     // Binds all the values
     if (deleteStatement.bindText(1, url)) {
-        LOG_OWB("", "Cannot delete certificate");
+        LOG(Network, "Cannot delete certificate");
         return;
     }
 
     if (!deleteStatement.executeCommand()) {
-        LOG_OWB("", "Cannot delete the certificate from database");
+        LOG(Network, "Cannot delete the certificate from database");
         return;
     }
 
@@ -149,19 +147,18 @@ void CertificateBackingStore::clear()
 
     SQLiteStatement deleteStatement(m_db, deleteQuery);
     if (deleteStatement.prepare()) {
-        LOG_OWB("", "Could not prepare DELETE * statement");
+        LOG(Network, "Could not prepare DELETE * statement");
         return;
     }
 
     if (!deleteStatement.executeCommand()) {
-        LOG_OWB("", "Cannot delete certificate from database");
+        LOG(Network, "Cannot delete certificate from database");
         return;
     }
 }
 
 void CertificateBackingStore::getStoredCertificates()
 {
-    LOG_OWB("", "Called!\n");
     ASSERT(tableExists());    
     
     String selectQuery("SELECT url, certificatePath, keyPath, keyPassword FROM ");
@@ -171,13 +168,12 @@ void CertificateBackingStore::getStoredCertificates()
     SQLiteStatement selectStatement(m_db, selectQuery);
 
     if (selectStatement.prepare()) {
-        LOG_OWB("", "Cannot retrieved certificates from the database");
+        LOG(Network, "Cannot retrieved certificates from the database");
         return;
     }
 
     while (selectStatement.step() == SQLResultRow) {
         // There is a row to fetch
-        LOG_OWB("", "Fetched a row");
         String url = selectStatement.getColumnText(0);
         String certificatePath = selectStatement.getColumnText(1);
         String keyPath = selectStatement.getColumnText(2);

@@ -1,5 +1,20 @@
 2009-12-18  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Not reviewed.
+
+        Remove debugging code that I have landed as part of the certificate
+        change.
+
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCertificateDatabaseBackingStoreCurl.cpp:
+        (WebCore::CertificateBackingStore::open): Use LOG(Network, ...)
+        instead of LOG_OWB(.., ..).
+        (WebCore::CertificateBackingStore::add): Ditto.
+        (WebCore::CertificateBackingStore::remove): Ditto.
+        (WebCore::CertificateBackingStore::clear): Ditto.
+        (WebCore::CertificateBackingStore::getStoredCertificates): Ditto.
+
+2009-12-18  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         We need to be able to save the certificate in the database.
