@@ -1,3 +1,34 @@
+2009-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Implement LayoutControllerBAL
+        TODO: implement Database and History
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::setTabKeyCyclesThroughElements):
+        (LayoutTestController::setSmartInsertDeleteEnabled):
+        (LayoutTestController::setPrivateBrowsingEnabled):
+        (LayoutTestController::setXSSAuditorEnabled):
+        (LayoutTestController::setAuthorAndUserStylesEnabled):
+        (LayoutTestController::setSelectTrailingWhitespaceEnabled):
+        (LayoutTestController::setPopupBlockingEnabled):
+        (LayoutTestController::execCommand):
+        (LayoutTestController::counterValueForElementById):
+        (LayoutTestController::setPersistentUserStyleSheetLocation):
+        (LayoutTestController::clearPersistentUserStyleSheet):
+        (LayoutTestController::overridePreference):
+        (LayoutTestController::disableImageLoading):
+        (LayoutTestController::workerThreadCount):
+        (LayoutTestController::whiteListAccessFromOrigin):
+        (LayoutTestController::setAlwaysAcceptCookies):
+        (LayoutTestController::addUserScript):
+        (LayoutTestController::addUserStyleSheet):
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+        (LayoutTestController::evaluateInWebInspector):
+        (LayoutTestController::evaluateScriptInIsolatedWorld):
+        (LayoutTestController::setTimelineProfilingEnabled):
+        (LayoutTestController::setAllowUniversalAccessFromFileURLs):
+
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
         implement setWindowIsKey

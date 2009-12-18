@@ -40,7 +40,7 @@
  */
 #include <WebKit.h>
 
-class WebWorkersPrivate {
+class WEBKIT_OWB_API WebWorkersPrivate {
 public:
 
     /**

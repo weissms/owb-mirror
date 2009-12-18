@@ -29,11 +29,13 @@
 #ifndef WebScriptWorld_h
 #define WebScriptWorld_h
 
+#include "WebKitTypes.h"
+
 namespace WebCore {
     class DOMWrapperWorld;
 }
 
-class WebScriptWorld {
+class WEBKIT_OWB_API WebScriptWorld {
 public:
     static WebScriptWorld* standardWorld();
     static WebScriptWorld* createInstance();

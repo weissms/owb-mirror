@@ -120,6 +120,10 @@ public:
      */
     virtual void evaluateInFrontend(long callId, const char* script);
 
+    /*
+     * setTimelineProfilingEnabled
+     */
+    virtual void setTimelineProfilingEnabled(bool);
 private:
 
     /**

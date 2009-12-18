@@ -57,9 +57,11 @@
 #include "WebPreferences.h"
 #include "WebResourceLoadDelegate.h"
 #include "WebScriptObject.h"
+#include "WebScriptWorld.h"
 #include "WebURLResponse.h"
 #include "WebValue.h"
 #include "WebView.h"
+#include "WebWorkersPrivate.h"
 
 #if ENABLE(DAE_APPLICATION)
 #include "WebConfigLoading.h"

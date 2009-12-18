@@ -193,3 +193,18 @@ void WebInspector::evaluateInFrontend(long callId, const char* script)
     page->inspectorController()->evaluateForTestInFrontend(callId, inspectorScript);
     return;
 }
+
+void WebInspector::setTimelineProfilingEnabled(bool enabled)
+{
+    if (!m_webView)
+        return;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return;
+
+    if (enabled)
+        page->inspectorController()->startTimelineProfiler();
+    else
+        page->inspectorController()->stopTimelineProfiler();
+}

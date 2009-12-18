@@ -182,7 +182,7 @@ void LayoutTestController::setMainFrameIsFirstResponder(bool flag)
 
 void LayoutTestController::setTabKeyCyclesThroughElements(bool cycles)
 {
-    // FIXME: implement
+    getWebView()->setTabKeyCyclesThroughElements(cycles);
 }
 
 void LayoutTestController::setUseDashboardCompatibilityMode(bool flag)
@@ -223,7 +223,8 @@ void LayoutTestController::setWindowIsKey(bool windowIsKey)
 
 void LayoutTestController::setSmartInsertDeleteEnabled(bool flag)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    webView->setSmartInsertDeleteEnabled(flag);
 }
 
 void LayoutTestController::setWaitToDump(bool waitUntilDone)
@@ -243,17 +244,20 @@ int LayoutTestController::windowCount()
 
 void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    webView->preferences()->setPrivateBrowsingEnabled(privateBrowsingEnabled);
 }
 
 void LayoutTestController::setXSSAuditorEnabled(bool enabled)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    webView->preferences()->setXSSAuditorEnabled(enabled);
 }
 
 void LayoutTestController::setAuthorAndUserStylesEnabled(bool flag)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    webView->preferences()->setAuthorAndUserStylesEnabled(flag);
 }
 
 void LayoutTestController::setIconDatabaseEnabled(bool flag)
@@ -271,12 +275,13 @@ void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
 
 void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool flag)
 {
-    // FIXME: implement
+    getWebView()->setSelectTrailingWhitespaceEnabled(flag);
 }
 
 void LayoutTestController::setPopupBlockingEnabled(bool popupBlockingEnabled)
 {
-    // FIXME: implement
+    WebView* webView = getWebView();
+    webView->preferences()->setJavaScriptCanOpenWindowsAutomatically(!popupBlockingEnabled);
 }
 
 bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef id) 
@@ -287,7 +292,9 @@ bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef i
 
 void LayoutTestController::execCommand(JSStringRef name, JSStringRef value)
 {
-    // FIXME: implement
+    char* n = JSStringCopyUTF8CString(name);
+    char* val = JSStringCopyUTF8CString(value);
+    getWebView()->executeCoreCommandByName(n, val);
 }
 
 void LayoutTestController::setCacheModel(int)
@@ -297,8 +304,10 @@ void LayoutTestController::setCacheModel(int)
 
 JSRetainPtr<JSStringRef> LayoutTestController::counterValueForElementById(JSStringRef id)
 {
-    // FIXME: implement
-    return 0;
+    char* elementID = JSStringCopyUTF8CString(id);
+    const char* count = getWebView()->mainFrame()->counterValueForElementById(elementID);
+    JSRetainPtr<JSStringRef> counterValue(Adopt, JSStringCreateWithUTF8CString(count));
+    return counterValue;
 }
 
 bool LayoutTestController::isCommandEnabled(JSStringRef /*name*/)
@@ -309,12 +318,14 @@ bool LayoutTestController::isCommandEnabled(JSStringRef /*name*/)
 
 void LayoutTestController::setPersistentUserStyleSheetLocation(JSStringRef jsURL)
 {
-    // FIXME: implement
+    char* url = JSStringCopyUTF8CString(jsURL);
+    getWebView()->preferences()->setUserStyleSheetLocation(url);
+    getWebView()->preferences()->setUserStyleSheetEnabled(true);
 }
 
 void LayoutTestController::clearPersistentUserStyleSheet()
 {
-    // FIXME: implement
+    getWebView()->preferences()->setUserStyleSheetEnabled(false);
 }
 
 void LayoutTestController::clearAllDatabases()
@@ -324,6 +335,10 @@ void LayoutTestController::clearAllDatabases()
 
 void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value)
 {
+    char* name = JSStringCopyUTF8CString(key);
+    char* val = JSStringCopyUTF8CString(value);
+
+    getWebView()->preferences()->setPreferenceForTest(name, val);
     // FIXME: implement
 }
  
@@ -361,33 +376,47 @@ void LayoutTestController::setAppCacheMaximumSize(unsigned long long size)
 
 void LayoutTestController::disableImageLoading()
 {
-  // FIXME: implement
+    getWebView()->preferences()->setLoadsImagesAutomatically(false);
 }
 
 unsigned LayoutTestController::workerThreadCount() const
 {
-  // FIXME: implement
-    return 0;
+    WebWorkersPrivate* worker = WebWorkersPrivate::createInstance();
+    unsigned count =  worker->workerThreadCount();
+    return count;
 }
 
 void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
 {
-    // FIXME: Implement.
+    char* source = JSStringCopyUTF8CString(sourceOrigin);
+    char* destination = JSStringCopyUTF8CString(destinationProtocol);
+    char* host = JSStringCopyUTF8CString(destinationHost);
+    getWebView()->whiteListAccessFromOrigin(source, destination, host, allowDestinationSubdomains);
 }
 
 void LayoutTestController::setAlwaysAcceptCookies(bool alwaysAcceptCookies)
 {
-    // FIXME: Implement this (and restore the default value before running each test in DumpRenderTree.cpp).
+    if (alwaysAcceptCookies == m_alwaysAcceptCookies)
+        return;
+    if (alwaysAcceptCookies)
+        getWebView()->preferences()->setCookieStorageAcceptPolicy(WebKitCookieStorageAcceptPolicyAlways);
+    else
+        getWebView()->preferences()->setCookieStorageAcceptPolicy(WebKitCookieStorageAcceptPolicyOnlyFromMainDocumentDomain);
+    m_alwaysAcceptCookies = alwaysAcceptCookies;
 }
 
 void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)
 {
-    // FIXME: Implement.
+    WebScriptWorld* script = WebScriptWorld::createInstance();
+    char* src = JSStringCopyUTF8CString(source);
+    getWebView()->addUserScriptToGroup("org.webkit.DumpRenderTree", script, src, 0, 0, 0, 0, 0, runAtStart ? WebView::WebUserScriptInjectAtDocumentStart : WebView::WebUserScriptInjectAtDocumentEnd);
 }
 
 void LayoutTestController::addUserStyleSheet(JSStringRef source)
 {
-    // FIXME: Implement.
+    WebScriptWorld* script = WebScriptWorld::createInstance();
+    char* src = JSStringCopyUTF8CString(source);
+    getWebView()->addUserStyleSheetToGroup("org.webkit.DumpRenderTree", script, src, 0, 0, 0, 0, 0);
 }
 
 void LayoutTestController::setMockGeolocationPosition(double latitude, double longitude, double accuracy)
@@ -402,17 +431,18 @@ void LayoutTestController::setMockGeolocationError(int code, JSStringRef message
 
 void LayoutTestController::showWebInspector()
 {
-    //getWebView()->inspector()->show()
+    getWebView()->inspector()->show();
 }
 
 void LayoutTestController::closeWebInspector()
 {
-    //getWebView()->inspector()->close()
+    getWebView()->inspector()->close();
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)
 {
-    //getWebView()->inspector()->evaluateInFrontend(callId, char*);
+    char* source = JSStringCopyUTF8CString(script);
+    getWebView()->inspector()->evaluateInFrontend(callId, source);
 }
 
 void LayoutTestController::removeAllVisitedLinks()
@@ -422,16 +452,20 @@ void LayoutTestController::removeAllVisitedLinks()
 
 void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObjectRef globalObject, JSStringRef script)
 {
-    // FIXME: Implement this.
+    char* source = JSStringCopyUTF8CString(script);
+    const char *result;
+    WebScriptWorld* scriptWorld = WebScriptWorld::createInstance();
+    getWebView()->mainFrame()->stringByEvaluatingJavaScriptInScriptWorld(scriptWorld, globalObject, source, &result);
 }
 
 void LayoutTestController::setTimelineProfilingEnabled(bool flag)
 {
+    getWebView()->inspector()->setTimelineProfilingEnabled(flag);
 }
 
 void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool flag)
 {
-    // FIXME: implement
+    getWebView()->preferences()->setAllowUniversalAccessFromFileURLs(flag);
 }
 
 bool LayoutTestController::sampleSVGAnimationForElementAtTime(JSStringRef animationId, double time, JSStringRef elementId)

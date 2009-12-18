@@ -1512,53 +1512,15 @@ public:
      */ 
     bool isStopped() { return m_isStopped; }
 
-private:
-
     /**
-     *  setZoomMultiplier
-     *  @result Returns true if the zoom was set as-is, false if was rounded.
+     * @method whiteListAccessFromOrigin
+     * @discussion whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
+     * @param sourceOrigin the source host name that is given access to a destination host
+     * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
+     * @param destinationHost the destination host
+     * @param allowDestinationSubDomain whether to authorize destination sub-domains
      */
-    bool setZoomMultiplier(float multiplier, bool isTextOnly);
-
-    /**
-     *  zoomMultiplier 
-     */
-    float zoomMultiplier(bool isTextOnly);
-
-    /**
-     *  zoomIn
-     *  @result Returns true if the zoom was set as-is, false if was rounded.
-     */
-    bool zoomIn(bool isTextOnly);
-
-    /**
-     *  zoomOut
-     *  @result Returns true if the zoom was set as-is, false if was rounded.
-     */
-    bool zoomOut(bool isTextOnly);
-
-    /**
-     *  canResetZoom 
-     */
-    bool canResetZoom(bool isTextOnly);
-
-    /**
-     *  resetZoom 
-     */
-    void resetZoom(bool isTextOnly);
-
-    /**
-     *  active 
-     */
-    bool active();
-
-#if ENABLE(DAE_APPLICATION)
-    /**
-     * setApplication
-     * @internal
-     */
-    void setApplication(WebCore::Application* application) { m_application =  application; }
-#endif
+    void whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
 
     enum WebUserScriptInjectionTime {
         WebUserScriptInjectAtDocumentStart,
@@ -1639,6 +1601,54 @@ private:
      * @param groupName is the page group name
      */
     bool removeAllUserContentFromGroup(const char* groupName);
+private:
+
+    /**
+     *  setZoomMultiplier
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
+     */
+    bool setZoomMultiplier(float multiplier, bool isTextOnly);
+
+    /**
+     *  zoomMultiplier 
+     */
+    float zoomMultiplier(bool isTextOnly);
+
+    /**
+     *  zoomIn
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
+     */
+    bool zoomIn(bool isTextOnly);
+
+    /**
+     *  zoomOut
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
+     */
+    bool zoomOut(bool isTextOnly);
+
+    /**
+     *  canResetZoom 
+     */
+    bool canResetZoom(bool isTextOnly);
+
+    /**
+     *  resetZoom 
+     */
+    void resetZoom(bool isTextOnly);
+
+    /**
+     *  active 
+     */
+    bool active();
+
+#if ENABLE(DAE_APPLICATION)
+    /**
+     * setApplication
+     * @internal
+     */
+    void setApplication(WebCore::Application* application) { m_application =  application; }
+#endif
+
 
 protected:
     friend class WebApplicationNotificationClient;
@@ -1670,16 +1680,6 @@ protected:
      *  invalidateBackingStore 
      */
     bool invalidateBackingStore(const WebCore::IntRect*);
-
-    /**
-     * @method whiteListAccessFromOrigin
-     * @discussion whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
-     * @param sourceOrigin the source host name that is given access to a destination host
-     * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
-     * @param destinationHost the destination host
-     * @param allowDestinationSubDomain whether to authorize destination sub-domains
-     */
-    void whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
 
     /**
      * @method resetOriginAccessWhiteLists

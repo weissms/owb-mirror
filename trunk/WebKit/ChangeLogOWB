@@ -1,3 +1,18 @@
+2009-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Expose WebScriptWorld and WebWorkerPrivate and add some methods to
+        implement LayoutTestControllerBal.
+
+        Need a short description and bug URL (OOPS!)
+
+        * OrigynWebBrowser/Api/WebInspector.cpp:
+        (WebInspector::setTimelineProfilingEnabled):
+        * OrigynWebBrowser/Api/WebInspector.h:
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebScriptWorld.h:
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/WebWorkersPrivate.h:
+
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
         Fix setFocus and clearFocus
