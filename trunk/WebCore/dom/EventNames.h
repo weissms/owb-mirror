@@ -25,71 +25,19 @@
 #include "AtomicString.h"
 #include "ThreadGlobalData.h"
 
-namespace WebCore {
-
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
-#define CEHTML_VIDEO_EVENT_NAMES(macro) \
-    macro(playStateChange)
+#if ENABLE(CEHTML)
+#include "CEHTMLEventNames.h"
 #else
-#define CEHTML_VIDEO_EVENT_NAMES(macro)
-#endif
-
-
-#if ENABLE(HBBTV_0_8)
-#define DAE_VIDEOBROADCAST_0_8_EVENT_NAMES(macro) \
-    macro(programmesChanged)
-#else
-#define DAE_VIDEOBROADCAST_0_8_EVENT_NAMES(macro)
+#define CEHTML_EVENT_NAMES(macro)
 #endif
 
 #if ENABLE(DAE)
-#define DAE_APPLICATION_EVENT_NAMES(macro)  \
-    macro(ApplicationActivated) \
-    macro(ApplicationDeactivated) \
-    macro(ApplicationDestroyRequest) \
-    macro(ApplicationHidden) \
-    macro(ApplicationShown) \
-    macro(ApplicationPrimaryReceiver) \
-    macro(ApplicationNotPrimaryReceiver) \
-    macro(ApplicationTopmost) \
-    macro(ApplicationNotTopmost)
-
-#define DAE_SYSTEM_EVENT_NAMES(macro)  \
-    macro(ApplicationLoaded) \
-    macro(ApplicationUnloaded) \
-    macro(KeyDown) \
-    macro(KeyPress) \
-    macro(KeyUp) \
-    macro(LowMemory)
-
-#define DAE_VIDEOBROADCAST_EVENT_NAMES(macro)  \
-    macro(channelChangeError) \
-    macro(channelChangeSucceeded) \
-    macro(fullScreenChange) \
-    macro(metadataSearch) \
-    macro(parentalRatingChange) \
-    macro(parentalRatingError) \
-    macro(drmRightsError) \
-    macro(channelScan)
+#include "DAEEventNames.h"
 #else
-#define DAE_APPLICATION_EVENT_NAMES(macro)
-#define DAE_SYSTEM_EVENT_NAMES(macro)
-#define DAE_VIDEOBROADCAST_EVENT_NAMES(macro)
+#define DAE_EVENT_NAMES(macro)
 #endif
 
-#if ENABLE(DAE_DOWNLOAD)
-#define DAE_DOWNLOAD_EVENT_NAMES(macro) \
-    macro(downloadStatusChange)
-#else
-#define DAE_DOWNLOAD_EVENT_NAMES(macro)
-#endif
-
-#if ENABLE(DAE_PVR)
-#define DAE_PVR_EVENT_NAMES(macro) \
-    macro(recordingChange)
-#else
-#define DAE_PVR_EVENT_NAMES(macro)
-#endif
+namespace WebCore {
 
 #define DOM_EVENT_NAMES_FOR_EACH(macro) \
     \
@@ -214,14 +162,8 @@ namespace WebCore {
     macro(touchmove) \
     macro(touchend) \
     \
-    CEHTML_VIDEO_EVENT_NAMES(macro) \
-    \
-    DAE_APPLICATION_EVENT_NAMES(macro) \
-    DAE_SYSTEM_EVENT_NAMES(macro) \
-    DAE_VIDEOBROADCAST_EVENT_NAMES(macro) \
-    DAE_VIDEOBROADCAST_0_8_EVENT_NAMES(macro) \
-    DAE_PVR_EVENT_NAMES(macro) \
-    DAE_DOWNLOAD_EVENT_NAMES(macro)
+    CEHTML_EVENT_NAMES(macro) \
+    DAE_EVENT_NAMES(macro)
 // end of DOM_EVENT_NAMES_FOR_EACH
 
     class EventNames : public Noncopyable {

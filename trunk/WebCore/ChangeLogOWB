@@ -1,3 +1,9 @@
+2009-12-18  Gilles Bertal  <gbertal@pleyo.com>
+
+        Moved CEHTML and DAE event names definition to the BAL.
+
+        * dom/EventNames.h:
+
 2009-12-02  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Build fix when notification is ON and workers is OFF
