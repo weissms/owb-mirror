@@ -1385,11 +1385,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\runtime\JSAPIValueWrapper.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\runtime\JSAPIValueWrapper.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\API\JSBase.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\API\JSBase.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\API\JSBasePrivate.h"
 				>
 			</File>
 			<File
@@ -1414,6 +1426,10 @@
 			</File>
 			<File
 				RelativePath="..\..\API\JSCallbackObject.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\API\JSCallbackObjectFunctions.h"
 				>
 			</File>
 			<File
@@ -1494,14 +1510,10 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Profiler"
+			Name="profiler"
 			>
 			<File
-				RelativePath="..\..\profiler\HeavyProfile.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\profiler\HeavyProfile.h"
+				RelativePath="..\..\profiler\CallIdentifier.h"
 				>
 			</File>
 			<File

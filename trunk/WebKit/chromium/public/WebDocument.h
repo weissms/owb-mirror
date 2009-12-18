@@ -28,27 +28,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "FileList.h"
+#ifndef WebDocument_h
+#define WebDocument_h
 
-#include "File.h"
-#include "V8Binding.h"
-#include "V8CustomBinding.h"
-#include "V8Proxy.h"
+#include "WebNode.h"
 
-#include <wtf/RefPtr.h>
+#if WEBKIT_IMPLEMENTATION
+namespace WebCore { class Document; }
+namespace WTF { template <typename T> class PassRefPtr; }
+#endif
 
-namespace WebCore {
+namespace WebKit {
+class WebElement;
+class WebFrame;
+class WebNodeCollection;
+class WebString;
+class WebURL;
 
-INDEXED_PROPERTY_GETTER(FileList)
-{
-    INC_STATS("DOM.FileList.IndexedPropertyGetter");
-    FileList* fileList = V8DOMWrapper::convertToNativeObject<FileList>(V8ClassIndex::FILELIST, info.Holder());
-    RefPtr<File> file = fileList->item(index);
-    if (!file)
-        return notHandledByInterceptor();
+// Provides readonly access to some properties of a DOM document.
+class WebDocument : public WebNode {
+public:
+    WebDocument() { }
+    WebDocument(const WebDocument& e) : WebNode(e) { }
 
-    return V8DOMWrapper::convertToV8Object(V8ClassIndex::FILE, file.release());
-}
+    WebDocument& operator=(const WebDocument& e)
+    {
+        WebNode::assign(e);
+        return *this;
+    }
+    void assign(const WebDocument& e) { WebNode::assign(e); }
 
-} // namespace WebCore
+    // Returns the frame the document belongs to or 0 if the document is frameless.
+    WEBKIT_API WebFrame* frame() const;
+    WEBKIT_API bool isHTMLDocument() const;
+    WEBKIT_API WebURL baseURL() const;
+    WEBKIT_API WebElement body() const;
+    WEBKIT_API WebElement head();
+    WEBKIT_API WebNodeCollection all();
+    WEBKIT_API WebURL completeURL(const WebString&) const;
+
+#if WEBKIT_IMPLEMENTATION
+    WebDocument(const WTF::PassRefPtr<WebCore::Document>&);
+    WebDocument& operator=(const WTF::PassRefPtr<WebCore::Document>&);
+    operator WTF::PassRefPtr<WebCore::Document>() const;
+#endif
+};
+
+} // namespace WebKit
+
+#endif

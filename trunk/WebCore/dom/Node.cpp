@@ -52,6 +52,7 @@
 #include "HTMLNames.h"
 #include "KeyboardEvent.h"
 #include "Logging.h"
+#include "MappedAttribute.h"
 #include "MouseEvent.h"
 #include "MutationEvent.h"
 #include "NameNodeList.h"
@@ -146,7 +147,7 @@ void Node::dumpStatistics()
     size_t attrMaps = 0;
     size_t mappedAttrMaps = 0;
 
-    for (HashSet<Node*>::const_iterator it = liveNodeSet.begin(); it != liveNodeSet.end(); ++it) {
+    for (HashSet<Node*>::iterator it = liveNodeSet.begin(); it != liveNodeSet.end(); ++it) {
         Node* node = *it;
 
         if (node->hasRareData())
@@ -252,7 +253,7 @@ void Node::dumpStatistics()
     printf("  Number of XPathNS nodes: %zu\n", xpathNSNodes);
 
     printf("Element tag name distibution:\n");
-    for (HashMap<String, size_t>::const_iterator it = perTagCount.begin(); it != perTagCount.end(); ++it)
+    for (HashMap<String, size_t>::iterator it = perTagCount.begin(); it != perTagCount.end(); ++it)
         printf("  Number of <%s> tags: %zu\n", it->first.utf8().data(), it->second);
 
     printf("Attribute Maps:\n");

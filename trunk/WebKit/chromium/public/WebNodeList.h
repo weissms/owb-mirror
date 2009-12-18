@@ -28,28 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "ClientRectList.h"
+#ifndef WebNodeList_h
+#define WebNodeList_h
 
-#include "ClientRect.h"
+#include "WebCommon.h"
 
-#include "V8Binding.h"
-#include "V8CustomBinding.h"
-#include "V8Proxy.h"
+namespace WebCore { class NodeList; }
+#if WEBKIT_IMPLEMENTATION
+namespace WTF { template <typename T> class PassRefPtr; }
+#endif
 
-#include <wtf/RefPtr.h>
+namespace WebKit {
+class WebNode;
 
-namespace WebCore {
+// Provides readonly access to some properties of a DOM node.
+class WebNodeList {
+public:
+    ~WebNodeList() { reset(); }
 
-INDEXED_PROPERTY_GETTER(ClientRectList)
-{
-    INC_STATS("DOM.ClientRectList.IndexedPropertyGetter");
-    ClientRectList* imp = V8DOMWrapper::convertToNativeObject<ClientRectList>(V8ClassIndex::CLIENTRECTLIST, info.Holder());
-    RefPtr<ClientRect> result = imp->item(index);
-    if (!result)
-        return notHandledByInterceptor();
+    WebNodeList() : m_private(0) { }
+    WebNodeList(const WebNodeList& n) : m_private(0) { assign(n); }
+    WebNodeList& operator=(const WebNodeList& n)
+    {
+        assign(n);
+        return *this;
+    }
 
-    return V8DOMWrapper::convertToV8Object(V8ClassIndex::CLIENTRECT, result.release());
-}
+    WEBKIT_API void reset();
+    WEBKIT_API void assign(const WebNodeList&);
 
-} // namespace WebCore
+    WEBKIT_API unsigned length() const;
+    WEBKIT_API WebNode item(size_t) const;
+
+#if WEBKIT_IMPLEMENTATION
+    WebNodeList(const WTF::PassRefPtr<WebCore::NodeList>&);
+#endif
+
+private:
+    void assign(WebCore::NodeList*);
+    WebCore::NodeList* m_private;
+};
+
+} // namespace WebKit
+
+#endif

@@ -29,50 +29,76 @@
  */
 
 #include "config.h"
-#include "HTMLSelectElement.h"
+#include "WebDocument.h"
 
-#include "HTMLOptionsCollection.h"
-#include "V8Binding.h"
-#include "V8Collection.h"
-#include "V8CustomBinding.h"
-#include "V8NamedNodesCollection.h"
-#include "V8Proxy.h"
+#include "Document.h"
+#include "Element.h"
+#include "HTMLAllCollection.h"
+#include "HTMLBodyElement.h"
+#include "HTMLCollection.h"
+#include "HTMLElement.h"
+#include "HTMLHeadElement.h"
 
-namespace WebCore {
+#include "WebElement.h"
+#include "WebFrameImpl.h"
+#include "WebNodeCollection.h"
+#include "WebURL.h"
 
-NAMED_PROPERTY_GETTER(HTMLSelectElementCollection)
+#include <wtf/PassRefPtr.h>
+
+using namespace WebCore;
+
+namespace WebKit {
+
+WebDocument::WebDocument(const PassRefPtr<Document>& elem)
+    : WebNode(elem.releaseRef())
 {
-    INC_STATS("DOM.HTMLSelectElementCollection.NamedPropertySetter");
-    HTMLSelectElement* select = V8DOMWrapper::convertDOMWrapperToNode<HTMLSelectElement>(info.Holder());
-    v8::Handle<v8::Value> value = info.Holder()->GetRealNamedPropertyInPrototypeChain(name);
-
-    if (!value.IsEmpty())
-        return value;
-
-    // Search local callback properties next to find IDL defined properties.
-    if (info.Holder()->HasRealNamedCallbackProperty(name))
-        return notHandledByInterceptor();
-
-    PassRefPtr<HTMLOptionsCollection> collection = select->options();
-
-    Vector<RefPtr<Node> > items;
-    collection->namedItems(v8StringToAtomicWebCoreString(name), items);
-
-    if (!items.size())
-        return notHandledByInterceptor();
-
-    if (items.size() == 1)
-        return V8DOMWrapper::convertNodeToV8Object(items.at(0).release());
-
-    NodeList* list = new V8NamedNodesCollection(items);
-    return V8DOMWrapper::convertToV8Object(V8ClassIndex::NODELIST, list);
 }
 
-INDEXED_PROPERTY_SETTER(HTMLSelectElementCollection)
+WebDocument& WebDocument::operator=(const PassRefPtr<Document>& elem)
 {
-    INC_STATS("DOM.HTMLSelectElementCollection.IndexedPropertySetter");
-    HTMLSelectElement* select = V8DOMWrapper::convertDOMWrapperToNode<HTMLSelectElement>(info.Holder());
-    return toOptionsCollectionSetter(index, value, select);
+    WebNode::assign(elem.releaseRef());
+    return *this;
 }
 
-} // namespace WebCore
+WebDocument::operator PassRefPtr<Document>() const
+{
+    return PassRefPtr<Document>(static_cast<Document*>(m_private));
+}
+
+WebFrame* WebDocument::frame() const
+{
+    return WebFrameImpl::fromFrame(constUnwrap<Document>()->frame());
+}
+
+bool WebDocument::isHTMLDocument() const
+{  
+    return constUnwrap<Document>()->isHTMLDocument();
+}
+
+WebURL WebDocument::baseURL() const
+{
+    return constUnwrap<Document>()->baseURL();
+}
+
+WebElement WebDocument::body() const
+{
+    return WebElement(constUnwrap<Document>()->body());
+}
+
+WebElement WebDocument::head()
+{
+    return WebElement(unwrap<Document>()->head());
+}
+
+WebNodeCollection WebDocument::all()
+{
+    return WebNodeCollection(unwrap<Document>()->all());
+}
+
+WebURL WebDocument::completeURL(const WebString& partialURL) const
+{
+    return constUnwrap<Document>()->completeURL(partialURL);
+}
+
+} // namespace WebKit

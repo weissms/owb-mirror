@@ -31,6 +31,7 @@
 
 #include "CachedImage.h"
 #include "CanvasObject.h"
+#include "UnusedParam.h"
 #include "WebGLActiveInfo.h"
 #include "WebGLArray.h"
 #include "WebGLBuffer.h"

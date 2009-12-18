@@ -476,3 +476,9 @@ bool AccessibilityUIElement::isAttributeSupported(JSStringRef attribute)
 {
     return false;
 }
+
+JSStringRef AccessibilityUIElement::url()
+{
+    // FIXME: implement
+    return JSStringCreateWithCharacters(0, 0);
+}

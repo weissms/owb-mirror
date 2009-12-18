@@ -690,7 +690,7 @@ body.drawer-visible #drawer {
 
 .console-group-messages .outline-disclosure, .console-group-messages .outline-disclosure ol {
     font-size: inherit;
-    line-height: 1em;
+    line-height: 12px;
 }
 
 .console-group-messages .outline-disclosure.single-node li {
@@ -792,21 +792,18 @@ body.drawer-visible #drawer {
 .resource-view-headers .outline-disclosure .header-name {
     color: rgb(33%, 33%, 33%);
     display: inline-block;
-    width: 105px;
-    text-align: right;
     margin-right: 0.5em;
     font-weight: bold;
     vertical-align: top;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: pre-wrap;
 }
 
 .resource-view-headers .outline-disclosure .header-value {
-    display: inline-block;
-    white-space: normal;
-    word-break: break-word;
-    vertical-align: top;
+    display: inline;
     margin-right: 100px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-top: 1px;
 }
 
 .resource-view-headers .outline-disclosure .raw-form-data {
@@ -879,6 +876,7 @@ body.drawer-visible #drawer {
 }
 
 .resource-status-image {
+    margin-top: -3px;
     vertical-align: middle;
 }
 
@@ -1051,6 +1049,10 @@ body.drawer-visible #drawer {
     background-color: rgb(56, 121, 217);
 }
 
+.outline-disclosure {
+    font-size: 11px;
+}
+
 .outline-disclosure > ol {
     position: relative;
     padding: 2px 6px !important;
@@ -1062,17 +1064,39 @@ body.drawer-visible #drawer {
 
 .outline-disclosure, .outline-disclosure ol {
     list-style-type: none;
-    font-size: 11px;
     -webkit-padding-start: 12px;
     margin: 0;
 }
 
+.source-code {
+    font-family: monospace;
+    font-size: 11px;
+    white-space: pre-wrap;
+}
+
+body.platform-mac-tiger .source-code {
+    font-family: Monaco, monospace;
+}
+
+body.platform-mac-leopard .source-code {
+    font-family: Monaco, monospace;
+}
+
+body.platform-windows .source-code {
+    font-family: Consolas, Lucida Console, monospace;
+    font-size: 12px;
+}
+
 .outline-disclosure li {
-    padding: 0 0 2px 14px;
+    padding: 0 0 0 14px;
     margin-top: 1px;
     margin-bottom: 1px;
     word-wrap: break-word;
-    text-indent: -2px
+    text-indent: -2px;
+}
+
+.resources .outline-disclosure li {
+    text-indent: -1px;
 }
 
 .outline-disclosure ol:focus li.selected {
@@ -2826,7 +2850,7 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
 .sidebar-resizer-vertical {
     position: absolute;
     top: 0;
-    min-height: 100%;
+    bottom: 0;
     width: 5px;
     z-index: 500;
     cursor: col-resize;

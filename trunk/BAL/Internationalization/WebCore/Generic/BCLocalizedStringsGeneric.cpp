@@ -30,7 +30,8 @@
 
 #include "LocalizedStrings.h"
 #include "PlatformString.h"
-
+#include "wtf/MathExtras.h"
+#include <math.h>
 
 namespace WebCore {
 

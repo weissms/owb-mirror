@@ -42,6 +42,8 @@ public:
      * registerBinding
      */
     virtual const char* receiveWidget(const char* url, WebFrame*) = 0;
+
+    virtual int deleteWidget(const char* name, WebFrame*) = 0;
 };
 
 #endif // WebWidgetEngineDelegate_h

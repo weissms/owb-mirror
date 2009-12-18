@@ -1541,9 +1541,10 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @return: %TRUE if the download should be performed, %FALSE to cancel it.
      *
      * A new Download is being requested. By default, if the signal is
-     * not handled, the download is cancelled. Notice that while
-     * handling this signal you must set the target URI using
-     * webkit_download_set_target_uri().
+     * not handled, the download is cancelled. If you handle the download
+     * and call webkit_download_set_destination_uri(), it will be
+     * started for you. If you need to set the destination asynchronously
+     * you are responsible for starting or cancelling it yourself.
      *
      * If you intend to handle downloads yourself rather than using
      * the #WebKitDownload helper object you must handle this signal,
@@ -1578,6 +1579,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @frame: the frame going to do the load
      *
      * When a #WebKitWebFrame begins to load this signal is emitted.
+     *
+     * Deprecated: Use the "load-status" property instead.
      */
     webkit_web_view_signals[LOAD_STARTED] = g_signal_new("load-started",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1595,6 +1598,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @frame: the main frame that received the first data
      *
      * When a #WebKitWebFrame loaded the first data this signal is emitted.
+     *
+     * Deprecated: Use the "load-status" property instead.
      */
     webkit_web_view_signals[LOAD_COMMITTED] = g_signal_new("load-committed",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1611,6 +1616,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * WebKitWebView::load-progress-changed:
      * @web_view: the #WebKitWebView
      * @progress: the global progress
+     *
+     * Deprecated: Use the "progress" property instead.
      */
     webkit_web_view_signals[LOAD_PROGRESS_CHANGED] = g_signal_new("load-progress-changed",
             G_TYPE_FROM_CLASS(webViewClass),
@@ -1647,6 +1654,13 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             G_TYPE_STRING,
             G_TYPE_POINTER);
 
+    /**
+     * WebKitWebView::load-finished:
+     * @web_view: the #WebKitWebView
+     * @frame: the #WebKitWebFrame
+     *
+     * Deprecated: Use the "load-status" property instead.
+     */
     webkit_web_view_signals[LOAD_FINISHED] = g_signal_new("load-finished",
             G_TYPE_FROM_CLASS(webViewClass),
             (GSignalFlags)G_SIGNAL_RUN_LAST,
@@ -2389,6 +2403,8 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     *
     * Determines the current status of the load.
     *
+    * Connect to "notify::load-status" to monitor loading.
+    *
     * Since: 1.1.7
     */
     g_object_class_install_property(objectClass, PROP_LOAD_STATUS,
@@ -2441,7 +2457,8 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
         enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
         enablePrivateBrowsing, enableCaretBrowsing, enableHTML5Database, enableHTML5LocalStorage,
         enableXSSAuditor, javascriptCanOpenWindows, enableOfflineWebAppCache,
-        enableUniversalAccessFromFileURI, enableDOMPaste, tabKeyCyclesThroughElements;
+        enableUniversalAccessFromFileURI, enableDOMPaste, tabKeyCyclesThroughElements,
+        enableSiteSpecificQuirks;
 
     WebKitEditingBehavior editingBehavior;
 
@@ -2472,6 +2489,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "enable-universal-access-from-file-uris", &enableUniversalAccessFromFileURI,
                  "enable-dom-paste", &enableDOMPaste,
                  "tab-key-cycles-through-elements", &tabKeyCyclesThroughElements,
+                 "enable-site-specific-quirks", &enableSiteSpecificQuirks,
                  NULL);
 
     settings->setDefaultTextEncodingName(defaultEncoding);
@@ -2499,6 +2517,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setEditingBehavior(core(editingBehavior));
     settings->setAllowUniversalAccessFromFileURLs(enableUniversalAccessFromFileURI);
     settings->setDOMPasteAllowed(enableDOMPaste);
+    settings->setNeedsSiteSpecificQuirks(enableSiteSpecificQuirks);
 
     Page* page = core(webView);
     if (page)
@@ -2595,7 +2614,8 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         Page* page = core(webView);
         if (page)
             page->setTabKeyCyclesThroughElements(g_value_get_boolean(&value));
-    }
+    } else if (name == g_intern_string("enable-site-specific-quirks"))
+        settings->setNeedsSiteSpecificQuirks(g_value_get_boolean(&value));
     else if (!g_object_class_find_property(G_OBJECT_GET_CLASS(webSettings), name))
         g_warning("Unexpected setting '%s'", name);
     g_value_unset(&value);
@@ -2676,7 +2696,10 @@ void webkit_web_view_request_download(WebKitWebView* webView, WebKitNetworkReque
         return;
     }
 
-    webkit_download_start(download);
+    /* Start the download now if it has a destination URI, otherwise it
+        may be handled asynchronously by the application. */
+    if (webkit_download_get_destination_uri(download))
+        webkit_download_start(download);
 }
 
 bool webkit_web_view_use_primary_for_paste(WebKitWebView* webView)

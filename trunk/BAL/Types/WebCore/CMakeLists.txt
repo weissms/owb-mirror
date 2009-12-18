@@ -11,6 +11,7 @@ aux_source_directory(${TYPES_DIR}/Common WEBCORE_SRC)
 aux_source_directory(${TYPES_DIR}/WK WEBCORE_SRC)
 
 if(USE_GRAPHICS_GTK)
+    create_include_link(${TYPES_DIR}/Gtk BAL)
     aux_source_directory(${TYPES_DIR}/Gtk WEBCORE_SRC)
 endif(USE_GRAPHICS_GTK)
 

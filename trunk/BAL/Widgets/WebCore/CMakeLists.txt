@@ -29,6 +29,7 @@ if(USE_GRAPHICS_QT)
 
     aux_source_directory(${WIDGETS_DIR}/Qt WEBCORE_SRC)
     owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Widgets/WebCore/Qt/QWebPopup.h moc_QWebPopup.cpp)
+    owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Widgets/WebCore/Qt/BCQtFallbackWebPopupQt.h moc_QtFallbackWebPopup.cpp)
 endif(USE_GRAPHICS_QT)
 
 if(USE_WIDGETS_SDL)

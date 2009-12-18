@@ -1,3 +1,116 @@
+2009-12-18  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.  Disable debug variants of WebKit frameworks.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2009-12-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Add BUILDING_ON_SNOW_LEOPARD and TARGETING_SNOW_LEOPARD #defines.
+
+        * wtf/Platform.h:
+
+2009-12-17  Adam Roben  <aroben@apple.com>
+
+        Sync JavaScriptCore.vcproj with JavaScriptCore.xcodeproj and the
+        source tree
+
+        Fixes <http://webkit.org/b/32665>.
+
+        Reviewed by Ada Chan.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Moved
+        around files and filters so that the structure matches
+        JavaScriptCore.xcodeproj and the source tree. A few headers that were
+        previously omitted have been added, as well as JSZombie.{cpp,h}.
+
+2009-12-17  Adam Roben  <aroben@apple.com>
+
+        Remove HeavyProfile and TreeProfile completely
+
+        These were mostly removed in r42808, but the empty files were left in
+        place.
+
+        Fixes <http://webkit.org/b/32664>.
+
+        Reviewed by John Sullivan.
+
+        * Android.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCoreSources.bkl:
+        Removed HeavyProfile/TreeProfile source files.
+
+        * profiler/HeavyProfile.cpp: Removed.
+        * profiler/HeavyProfile.h: Removed.
+        * profiler/TreeProfile.cpp: Removed.
+        * profiler/TreeProfile.h: Removed.
+
+2009-12-17  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] WebKit GTK needs a wrapper for ref counted glib/gobject structs
+        https://bugs.webkit.org/show_bug.cgi?id=21599
+
+        Implement GRefPtr, a smart pointer for reference counted GObject types.
+
+        * GNUmakefile.am:
+        * wtf/gtk/GOwnPtr.cpp:
+        (WTF::GDir):
+        * wtf/gtk/GRefPtr.h: Added.
+        (WTF::):
+        (WTF::GRefPtr::GRefPtr):
+        (WTF::GRefPtr::~GRefPtr):
+        (WTF::GRefPtr::clear):
+        (WTF::GRefPtr::get):
+        (WTF::GRefPtr::operator*):
+        (WTF::GRefPtr::operator->):
+        (WTF::GRefPtr::operator!):
+        (WTF::GRefPtr::operator UnspecifiedBoolType):
+        (WTF::GRefPtr::hashTableDeletedValue):
+        (WTF::::operator):
+        (WTF::::swap):
+        (WTF::swap):
+        (WTF::operator==):
+        (WTF::operator!=):
+        (WTF::static_pointer_cast):
+        (WTF::const_pointer_cast):
+        (WTF::getPtr):
+        (WTF::adoptGRef):
+        (WTF::refGPtr):
+        (WTF::derefGPtr):
+
+2009-12-17  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed. Build fixes for make distcheck.
+
+        * GNUmakefile.am:
+
+2009-12-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fixed <rdar://problem/7355025> Interpreter::privateExecute macro generates
+        bloated code
+        
+        This patch cuts Interpreter stack use by about a third.
+
+        * bytecode/Opcode.h: Changed Opcode to const void* to work with the
+        const static initiliazation we want to do in Interpreter::privateExecute.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::Interpreter): Moved hashtable initialization here to
+        avoid polluting Interpreter::privateExecute's stack, and changed it from a
+        series of add() calls to one add() call in a loop, to cut down on code size.
+
+        (JSC::Interpreter::privateExecute): Changed a series of label computations
+        to a copy of a compile-time constant array to cut down on code size.
+
 2009-12-16  Csaba Osztrogonác  <ossy@webkit.org>
 
         Reviewed by Simon Hausmann.

@@ -179,6 +179,16 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
     else:DEFINES += ENABLE_XSLT=0
 }
 
+
+!contains(DEFINES, ENABLE_QT_BEARER=.) {
+    symbian: {
+        exists($${EPOCROOT}epoc32/release/winscw/udeb/QtBearer.lib)| \
+        exists($${EPOCROOT}epoc32/release/armv5/lib/QtBearer.lib) {
+            DEFINES += ENABLE_QT_BEARER=1
+        }
+    }
+}
+
 DEFINES += WTF_CHANGES=1
 
 # Enable touch event support with Qt 4.6
@@ -1966,7 +1976,8 @@ HEADERS += \
     platform/PlatformTouchPoint.h \
     platform/qt/ClipboardQt.h \
     platform/qt/QWebPageClient.h \
-    platform/qt/QWebPopup.h \
+    platform/qt/QtAbstractWebPopup.h \
+    platform/qt/QtFallbackWebPopup.h \
     platform/qt/RenderThemeQt.h \
     platform/qt/ScrollbarThemeQt.h \
     platform/Scrollbar.h \
@@ -2425,7 +2436,8 @@ SOURCES += \
     platform/qt/PlatformTouchEventQt.cpp \
     platform/qt/PlatformTouchPointQt.cpp \
     platform/qt/PopupMenuQt.cpp \
-    platform/qt/QWebPopup.cpp \
+    platform/qt/QtAbstractWebPopup.cpp \
+    platform/qt/QtFallbackWebPopup.cpp \
     platform/qt/RenderThemeQt.cpp \
     platform/qt/ScrollbarQt.cpp \
     platform/qt/ScrollbarThemeQt.cpp \
@@ -2887,6 +2899,17 @@ contains(DEFINES, ENABLE_WML=1) {
 
 contains(DEFINES, ENABLE_XHTMLMP=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_XHTMLMP=1
+}
+
+contains(DEFINES, ENABLE_QT_BEARER=1) {
+    HEADERS += \
+        platform/network/qt/NetworkStateNotifierPrivate.h
+
+    SOURCES += \
+        platform/network/qt/NetworkStateNotifierQt.cpp
+
+    LIBS += -lQtBearer
+
 }
 
 contains(DEFINES, ENABLE_SVG=1) {

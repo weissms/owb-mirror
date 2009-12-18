@@ -271,16 +271,9 @@ v8::Persistent<v8::FunctionTemplate> V8DOMWrapper::getTemplate(V8ClassIndex::V8W
         toStringTemplate = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(ConstructorToString));
     descriptor->Set(GetToStringName(), toStringTemplate);
     switch (type) {
-    case V8ClassIndex::CSSSTYLEDECLARATION:
-        // The named property handler for style declarations has a
-        // setter. Therefore, the interceptor has to be on the object
-        // itself and not on the prototype object.
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler( USE_NAMED_PROPERTY_GETTER(CSSStyleDeclaration), USE_NAMED_PROPERTY_SETTER(CSSStyleDeclaration));
-        break;
     case V8ClassIndex::HTMLALLCOLLECTION:
         descriptor->InstanceTemplate()->MarkAsUndetectable(); // fall through
     case V8ClassIndex::HTMLCOLLECTION:
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(HTMLCollection));
         descriptor->InstanceTemplate()->SetCallAsFunctionHandler(USE_CALLBACK(HTMLCollectionCallAsFunction));
         break;
     case V8ClassIndex::HTMLOPTIONSCOLLECTION:
@@ -289,9 +282,7 @@ v8::Persistent<v8::FunctionTemplate> V8DOMWrapper::getTemplate(V8ClassIndex::V8W
         descriptor->InstanceTemplate()->SetCallAsFunctionHandler(USE_CALLBACK(HTMLCollectionCallAsFunction));
         break;
     case V8ClassIndex::HTMLSELECTELEMENT:
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(HTMLSelectElementCollection));
-        descriptor->InstanceTemplate()->SetIndexedPropertyHandler(nodeCollectionIndexedPropertyGetter<HTMLSelectElement>, USE_INDEXED_PROPERTY_SETTER(HTMLSelectElementCollection),
-            0, 0, nodeCollectionIndexedPropertyEnumerator<HTMLSelectElement>, v8::Integer::New(V8ClassIndex::NODE));
+        descriptor->InstanceTemplate()->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(HTMLSelectElement), USE_INDEXED_PROPERTY_SETTER(HTMLSelectElement), 0, 0, nodeCollectionIndexedPropertyEnumerator<HTMLSelectElement>, v8::Integer::New(V8ClassIndex::NODE));
         break;
     case V8ClassIndex::HTMLDOCUMENT: {
         descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(HTMLDocument), 0, 0, USE_NAMED_PROPERTY_DELETER(HTMLDocument));
@@ -352,22 +343,14 @@ v8::Persistent<v8::FunctionTemplate> V8DOMWrapper::getTemplate(V8ClassIndex::V8W
         v8::Local<v8::ObjectTemplate> instanceTemplate = descriptor->InstanceTemplate();
         ASSERT(instanceTemplate->InternalFieldCount() == V8Custom::kDefaultWrapperInternalFieldCount);
         instanceTemplate->SetInternalFieldCount(V8Custom::kNamedNodeMapInternalFieldCount);
-        instanceTemplate->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(NamedNodeMap));
         instanceTemplate->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(NamedNodeMap), 0, 0, 0, collectionIndexedPropertyEnumerator<NamedNodeMap>, v8::Integer::New(V8ClassIndex::NODE));
         break;
     }
 #if ENABLE(DOM_STORAGE)
     case V8ClassIndex::STORAGE:
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(Storage), USE_NAMED_PROPERTY_SETTER(Storage), 0, USE_NAMED_PROPERTY_DELETER(Storage), V8Custom::v8StorageNamedPropertyEnumerator);
         descriptor->InstanceTemplate()->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(Storage), USE_INDEXED_PROPERTY_SETTER(Storage), 0, USE_INDEXED_PROPERTY_DELETER(Storage));
         break;
 #endif
-    case V8ClassIndex::NODELIST:
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(NodeList));
-        break;
-    case V8ClassIndex::STYLESHEETLIST:
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(StyleSheetList));
-        break;
     case V8ClassIndex::DOMWINDOW: {
         v8::Local<v8::Signature> defaultSignature = v8::Signature::New(descriptor);
 
@@ -564,18 +547,6 @@ v8::Persistent<v8::FunctionTemplate> V8DOMWrapper::getTemplate(V8ClassIndex::V8W
     case V8ClassIndex::XSLTPROCESSOR:
         descriptor->SetCallHandler(USE_CALLBACK(XSLTProcessorConstructor));
         break;
-    case V8ClassIndex::CLIENTRECTLIST:
-        descriptor->InstanceTemplate()->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(ClientRectList));
-        break;
-    case V8ClassIndex::FILELIST:
-        descriptor->InstanceTemplate()->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(FileList));
-        break;
-#if ENABLE(DATAGRID)
-    case V8ClassIndex::DATAGRIDCOLUMNLIST:
-        descriptor->InstanceTemplate()->SetIndexedPropertyHandler(USE_INDEXED_PROPERTY_GETTER(DataGridColumnList));
-        descriptor->InstanceTemplate()->SetNamedPropertyHandler(USE_NAMED_PROPERTY_GETTER(DataGridColumnList));
-        break;
-#endif
     default:
         break;
     }

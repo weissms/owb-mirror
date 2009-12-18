@@ -184,6 +184,14 @@ static void webkit_web_frame_class_init(WebKitWebFrameClass* frameClass)
             g_cclosure_marshal_VOID__VOID,
             G_TYPE_NONE, 0);
 
+    /**
+     * WebKitWebFrame::load-done
+     * @web_frame: the object on which the signal is emitted
+     *
+     * Emitted when frame loading is done.
+     *
+     * Deprecated: Use the "load-status" property instead.
+     */
     webkit_web_frame_signals[LOAD_COMMITTED] = g_signal_new("load-committed",
             G_TYPE_FROM_CLASS(frameClass),
             (GSignalFlags)G_SIGNAL_RUN_LAST,
@@ -199,7 +207,7 @@ static void webkit_web_frame_class_init(WebKitWebFrameClass* frameClass)
      *
      * Emitted when frame loading is done.
      *
-     * Deprecated: Use WebKitWebView::load-finished instead, and/or
+     * Deprecated: Use the "load-status" property instead, and/or
      * WebKitWebView::load-error to be notified of load errors
      */
     webkit_web_frame_signals[LOAD_DONE] = g_signal_new("load-done",
@@ -212,6 +220,15 @@ static void webkit_web_frame_class_init(WebKitWebFrameClass* frameClass)
             G_TYPE_NONE, 1,
             G_TYPE_BOOLEAN);
 
+    /**
+     * WebKitWebFrame::title-changed:
+     * @frame: the object on which the signal is emitted
+     * @title: the new title
+     *
+     * When a #WebKitWebFrame changes the document title this signal is emitted.
+     *
+     * Deprecated: 1.1.18: Use "notify::title" instead.
+     */
     webkit_web_frame_signals[TITLE_CHANGED] = g_signal_new("title-changed",
             G_TYPE_FROM_CLASS(frameClass),
             (GSignalFlags)G_SIGNAL_RUN_LAST,

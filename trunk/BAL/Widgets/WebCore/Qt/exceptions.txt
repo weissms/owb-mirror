@@ -1,4 +1,3 @@
 BCClipboardQt.h ClipboardQt.h
 BCRenderThemeQt.h RenderThemeQt.h
 BCScrollbarThemeQt.h ScrollbarThemeQt.h
-QWebPopup.h

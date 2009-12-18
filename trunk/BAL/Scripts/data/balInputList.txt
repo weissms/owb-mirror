@@ -622,6 +622,8 @@ BAL/Network/WebCore/Soup    WebCore/platform/network/soup/SocketStreamHandleSoup
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/AuthenticationChallenge.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/DnsPrefetchHelper.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/NetworkStateNotifierQt.cpp
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/NetworkStateNotifierPrivate.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/QNetworkReplyHandler.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceError.h
@@ -812,6 +814,8 @@ BAL/Types/WTF/Gtk	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/ThreadingGtk.cpp	BCThreadingGtk.cpp
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.cpp
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GRefPtr.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GRefPtr.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/MainThreadGtk.cpp
 BAL/Types/WTF/None	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/ThreadingNone.cpp
@@ -822,6 +826,8 @@ BAL/Types/WTF/Qt	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/MainThreadQt.cpp
 BAL/Types/WebCore/Gtk	WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.h
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/graphics/qt/IconQt.cpp       BCIconQt.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/qt/KURLQt.cpp
@@ -910,9 +916,11 @@ BAL/Widgets/WebCore/Qt	WebCore/platform/qt/CursorQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PasteboardQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PlatformScreenQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PopupMenuQt.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtFallbackWebPopup.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtFallbackWebPopup.cpp
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.h
+BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPageClient.h
-BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.cpp	QWebPopup.cpp
-BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPopup.h	QWebPopup.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollViewQt.cpp

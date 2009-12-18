@@ -29,6 +29,12 @@ if(ENABLE_MATHML)
     )
 endif(ENABLE_MATHML)
 
+if(USE_GRAPHICS_GTK)
+    list(APPEND USER_AGENT_STYLE_SHEETS
+        ${OWB_SOURCE_DIR}/WebCore/css/mediaControlsGtk.css
+    )
+endif(USE_GRAPHICS_GTK)
+
 if(ENABLE_SVG)
     add_svg_features()
     list(APPEND WEBCORE_CSS_PROPERTY_NAMES

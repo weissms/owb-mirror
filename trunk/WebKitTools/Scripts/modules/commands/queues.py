@@ -29,7 +29,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import re
 
 from datetime import datetime
 from optparse import make_option
@@ -45,7 +44,6 @@ from modules.stepsequence import StepSequenceErrorHandler
 from modules.workqueue import WorkQueue, WorkQueueDelegate
 
 class AbstractQueue(Command, WorkQueueDelegate):
-    show_in_main_help = False
     watchers = "webkit-bot-watchers@googlegroups.com"
     def __init__(self, options=None): # Default values should never be collections (like []) as default values are shared between invocations
         options_list = (options or []) + [
@@ -59,7 +57,7 @@ class AbstractQueue(Command, WorkQueueDelegate):
         except Exception, e:
             log("Failed to CC watchers: %s." % e)
 
-    def _update_status(self, message, patch, results_file=None):
+    def _update_status(self, message, patch=None, results_file=None):
         self.tool.status_bot.update_status(self.name, message, patch, results_file)
 
     def queue_log_path(self):
@@ -121,7 +119,7 @@ class CommitQueue(AbstractQueue, StepSequenceErrorHandler):
     def next_work_item(self):
         patches = self.tool.bugs.fetch_patches_from_commit_queue(reject_invalid_patches=True)
         if not patches:
-            self._update_status("Empty queue.", None)
+            self._update_status("Empty queue.")
             return None
         # Only bother logging if we have patches in the queue.
         self.log_progress([patch['id'] for patch in patches])
@@ -184,6 +182,7 @@ class AbstractReviewQueue(AbstractQueue, PersistentPatchCollectionDelegate, Step
         patch_id = self._patches.next()
         if patch_id:
             return self.tool.bugs.fetch_attachment(patch_id)
+        self._update_status("Empty queue.")
 
     def should_proceed_with_work_item(self, patch):
         raise NotImplementedError, "subclasses must implement"
@@ -222,11 +221,7 @@ class StyleQueue(AbstractReviewQueue):
 
     @classmethod
     def handle_script_error(cls, tool, state, script_error):
-        command = script_error.script_args
-        if type(command) is list:
-            command = command[0]
-        # FIXME: We shouldn't need to use a regexp here.  ScriptError should
-        #        have a better API.
-        if re.search("check-webkit-style", command):
-            message = "Attachment %s did not pass %s:\n\n%s" % (state["patch"]["id"], cls.name, script_error.message_with_output(output_limit=5*1024))
-            tool.bugs.post_comment_to_bug(state["patch"]["bug_id"], message, cc=cls.watchers)
+        if not script_error.command_name() == "check-webkit-style":
+            return
+        message = "Attachment %s did not pass %s:\n\n%s" % (state["patch"]["id"], cls.name, script_error.message_with_output(output_limit=5*1024))
+        tool.bugs.post_comment_to_bug(state["patch"]["bug_id"], message, cc=cls.watchers)

@@ -28,6 +28,10 @@ if(USE_NETWORK STREQUAL "QT")
 
     set(USE_NETWORK_QT TRUE)
     mark_as_advanced(USE_NETWORK_QT)
+
+    # This option was added but we do not have the right header so just disable it for now.
+    set(ENABLE_QT_BEARER FALSE)
+
 endif(USE_NETWORK STREQUAL "QT")
 
 if(USE_NETWORK STREQUAL "SOUP")
