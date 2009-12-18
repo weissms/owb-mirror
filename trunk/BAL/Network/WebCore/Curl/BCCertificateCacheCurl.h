@@ -29,6 +29,7 @@
 #ifndef CertificateCache_h
 #define CertificateCache_h
 
+#include "CertificateBackingStore.h"
 #include "PlatformString.h"
 #include "StringHash.h"
 
@@ -82,7 +83,12 @@ public:
     void clear();
 
 private:
+    friend class CertificateBackingStore;
+
+    void addWithoutBackingStoreUpdate(const KURL& /*url*/, const String& /*certificatePath*/, const String& /*keyPath*/, const String& /*keyPassword*/);
+
     HashMap<String, CertificateInfo > m_certificateInfoCache;
+    CertificateBackingStore m_backingStore;
 };
 
 } // namespace WebCore

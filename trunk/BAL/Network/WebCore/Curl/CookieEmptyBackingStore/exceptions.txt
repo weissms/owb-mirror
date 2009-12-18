@@ -1,1 +1,2 @@
 BCCookieBackingStoreCurl.h CookieBackingStore.h
+BCCertificateBackingStoreCurl.h CertificateBackingStore.h

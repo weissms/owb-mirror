@@ -26,18 +26,24 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
 #include "CertificateCache.h"
 
+#include "BALBase.h"
+#include "FileSystem.h"
 #include "KURL.h"
 
 namespace WebCore {
 
 CertificateCache::CertificateCache()
+    : m_backingStore(this)
 {
+    m_backingStore.open(pathByAppendingComponent(OWB_DATA, "certificates.db"));
 }
 
 CertificateCache::~CertificateCache()
 {
+    m_backingStore.close();
 }
 
 const CertificateInfo* CertificateCache::getCertificateInfo(const KURL& url) const
@@ -51,17 +57,25 @@ const CertificateInfo* CertificateCache::getCertificateInfo(const KURL& url) con
 
 void CertificateCache::add(const KURL& url, const String& certificatePath, const String& keyPath, const String& keyPassword)
 {
+    pair<HashMap<String, CertificateInfo >::iterator, bool> iter = m_certificateInfoCache.add(url.host(), CertificateInfo(certificatePath, keyPath, keyPassword));
+    m_backingStore.add(url.host(), (*iter.first).second);
+}
+
+void CertificateCache::addWithoutBackingStoreUpdate(const KURL& url, const String& certificatePath, const String& keyPath, const String& keyPassword)
+{
     m_certificateInfoCache.add(url.host(), CertificateInfo(certificatePath, keyPath, keyPassword));
 }
 
 void CertificateCache::remove(const KURL& url)
 {
     m_certificateInfoCache.remove(url.host());
+    m_backingStore.remove(url.host());
 }
 
 void CertificateCache::clear()
 {
     m_certificateInfoCache.clear();
+    m_backingStore.clear();
 }
 
 } // namespace WebCore

@@ -1,3 +1,58 @@
+2009-12-18  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        We need to be able to save the certificate in the database.
+
+        * Network/WebCore/Curl/BCCertificateCacheCurl.cpp:
+        (WebCore::CertificateCache::CertificateCache):
+        (WebCore::CertificateCache::~CertificateCache):
+        (WebCore::CertificateCache::add):
+        (WebCore::CertificateCache::remove):
+        (WebCore::CertificateCache::clear):
+        Added the call to the backing store.
+        (WebCore::CertificateCache::addWithoutBackingStoreUpdate): This method
+        is used by getStoredCertificates.
+
+        * Network/WebCore/Curl/BCCertificateCacheCurl.h:
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCertificateBackingStoreCurl.h: Added.
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/BCCertificateDatabaseBackingStoreCurl.cpp: Added.
+        (WebCore::CertificateBackingStore::CertificateBackingStore):
+        (WebCore::CertificateBackingStore::~CertificateBackingStore):
+        (WebCore::CertificateBackingStore::tableExists): Returns whether the
+        table exists. This is used around the code to know if we can do the
+        query.
+
+        (WebCore::CertificateBackingStore::open): Open the database and create
+        the table or get the stored certificate (if it was already created).
+        The table has a UNIQUE ON CONFLICT REPLACE on the url parameter to
+        match how the rest of the code works.
+
+        (WebCore::CertificateBackingStore::close): Close the database.
+        (WebCore::CertificateBackingStore::add): Add a certificate to the
+        database.
+        (WebCore::CertificateBackingStore::remove): Remove a certificate from
+        the database.
+        (WebCore::CertificateBackingStore::clear): Remove all certificates
+        from the database.
+        (WebCore::CertificateBackingStore::getStoredCertificates):
+
+        * Network/WebCore/Curl/CookieDatabaseBackingStore/exceptions.txt: Add
+        BCCertificateBackingStoreCurl.h.
+
+        * Network/WebCore/Curl/CookieEmptyBackingStore/BCCertificateBackingStoreCurl.h: Added.
+        (WebCore::CertificateBackingStore::CertificateBackingStore):
+        (WebCore::CertificateBackingStore::~CertificateBackingStore):
+        (WebCore::CertificateBackingStore::open):
+        (WebCore::CertificateBackingStore::close):
+        (WebCore::CertificateBackingStore::add):
+        (WebCore::CertificateBackingStore::remove):
+        (WebCore::CertificateBackingStore::clear):
+        This is an empty implementation needed to compile with ENABLE_DATABASE = OFF
+
+        * Network/WebCore/Curl/CookieEmptyBackingStore/exceptions.txt: Add
+        BCCertificateBackingStoreCurl.h.
+
 2009-12-17  Mario Bensi  <mbensi@pleyo.com>
 
         Add progress bar for drt.
