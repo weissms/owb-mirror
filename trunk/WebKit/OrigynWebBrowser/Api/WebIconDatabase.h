@@ -39,14 +39,9 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <IconDatabaseClient.h>
-#include <IconDatabaseClient.h>
-#include <IntSize.h>
-#include <IntSizeHash.h>
-
-#include <wtf/Vector.h>
-#include <wtf/Threading.h>
+#include "WebKitTypes.h"
+#include <map>
+#include <vector>
 
 namespace WebCore
 {
@@ -56,13 +51,13 @@ namespace WebCore
     class IntSize;
 }; //namespace WebCore
 
-using namespace WTF;
+class WebIconDatabaseClient;
 
 #define WebIconDatabaseDidAddIconNotification "WebIconDatabaseDidAddIconNotification"
 #define WebIconNotificationUserInfoURLKey "WebIconNotificationUserInfoURLKey"
 #define WebIconDatabaseDidRemoveAllIconsNotification "WebIconDatabaseDidRemoveAllIconsNotification"
 
-class WebIconDatabase : public WebCore::IconDatabaseClient
+class WEBKIT_OWB_API WebIconDatabase
 {
 public:
 
@@ -96,6 +91,8 @@ private:
      * @param[out]: 
      */
     void init();
+    void startUpIconDatabase();
+    void shutDownIconDatabase();
 public:
 
     /**
@@ -110,28 +107,28 @@ public:
      * @param[in]: 
      * @param[out]: WebIconDatabase instance
      */
-    virtual WebIconDatabase *sharedIconDatabase();
+    virtual WebIconDatabase* sharedIconDatabase();
 
     /**
         @method iconURLForURL:withSize:cache:
         @discussion Returns an icon URL for a web site URL from memory or disk. nil if none is found.
         @param URL
      */
-    virtual WebCore::Image *iconForURL(WebCore::String url, WebCore::IntSize size, bool cache);
+    virtual BalSurface* iconForURL(const char* url, BalPoint size, bool cache);
 
     /**
      @method retainIconForURL:
         @abstract Increments the retain count of the icon.
         @param URL
      */
-    virtual void retainIconForURL(WebCore::String url);
+    virtual void retainIconForURL(const char* url);
 
     /**
     @method releaseIconForURL:
         @abstract Decrements the retain count of the icon.
         @param URL
      */
-    virtual void releaseIconForURL(WebCore::String url);
+    virtual void releaseIconForURL(const char* url);
 
     /**
        @method removeAllIcons:
@@ -164,8 +161,17 @@ public:
         @param URL
 
      */
-    virtual WebCore::String iconURLForURL(WebCore::String url);
+    virtual const char* iconURLForURL(const char* url);
 
+    /*
+     * is enabled
+     */
+    virtual bool isEnabled();
+
+    /*
+     * set enable
+     */
+    virtual void setEnabled(bool);
 
     /**
      * dispatchDidRemoveAllIcons removes all icons
@@ -179,7 +185,7 @@ public:
      * @param[in]: page name
      * @param[out]: 
      */
-    virtual void dispatchDidAddIconForPageURL(const WebCore::String&);
+    virtual void dispatchDidAddIconForPageURL(const char*);
 
 
     /**
@@ -187,19 +193,19 @@ public:
      * @param[in]:  
      * @param[out]: WebCore::String for which icon has been added
      */
-    static WebCore::String iconDatabaseDidAddIconNotification();
+    static const char* iconDatabaseDidAddIconNotification();
 
     /**
      *  iconDatabaseDidRemoveAllIconsNotification notify of icon removal
      * @param[in]: 
      * @param[out]: 
      */
-    static WebCore::String iconDatabaseDidRemoveAllIconsNotification();
+    static const char* iconDatabaseDidRemoveAllIconsNotification();
 
     /**
      *  iconDatabaseNotificationUserInfoURLKey defines a topic for observer 
      */
-    static WebCore::String iconDatabaseNotificationUserInfoURLKey();
+    static const char* iconDatabaseNotificationUserInfoURLKey();
 protected:
     static WebIconDatabase* m_sharedWebIconDatabase;
 
@@ -213,25 +219,26 @@ protected:
      * @code
      * @endcode
      */
-    WebCore::Image* getOrCreateSharedBitmap(IntSize size);
+    BalSurface* getOrCreateSharedBitmap(BalPoint size);
 
     /**
      *  getOrCreateDefaultIconBitmap : create (or get) a share bitmap of size to create image
      * @param[in]: size
      * @param[out]: WebCore::Image*
      */
-    WebCore::Image* getOrCreateDefaultIconBitmap(IntSize size);
-    HashMap<IntSize, WebCore::Image*> m_defaultIconMap;
-    HashMap<IntSize, WebCore::Image*> m_sharedIconMap;
+    BalSurface* getOrCreateDefaultIconBitmap(BalPoint size);
+    std::map<BalPoint, BalSurface*> m_defaultIconMap;
+    std::map<BalPoint, BalSurface*> m_sharedIconMap;
 
-    Mutex m_notificationMutex;
-    Vector<WebCore::String> m_notificationQueue;
+    std::vector<const char*> m_notificationQueue;
 
     /**
      *  scheduleNotificationDelivery prepare notification
      */
     void scheduleNotificationDelivery();
     bool m_deliveryRequested;
+
+    WebIconDatabaseClient* m_webIconDatabaseClient;
 
 
     /**

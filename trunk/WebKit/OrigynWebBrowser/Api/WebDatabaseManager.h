@@ -39,17 +39,14 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <DatabaseTrackerClient.h>
-#include <DatabaseTrackerClient.h>
-#include "Vector.h"
+#include "WebKitTypes.h"
+#include <vector>
 
 namespace WebCore {
-    class SecurityOrigin;
-    class String;
     class DatabaseDetails;
 }
 
+class WebDatabaseTracker;
 class WebSecurityOrigin;
 
 #define WebDatabaseDisplayNameKey "WebDatabaseDisplayNameKey"
@@ -60,9 +57,35 @@ class WebSecurityOrigin;
 #define WebDatabaseDidModifyDatabaseNotification "WebDatabaseDidModifyDatabaseNotification"
 #define WebDatabaseNameKey "WebDatabaseNameKey"
 
+class WEBKIT_OWB_API WebDatabaseDetails {
+protected:
+    friend class WebDatabaseManager;
+    static WebDatabaseDetails* createInstance(const char* name, const char* displayName, unsigned long long expectedUsage, unsigned long long currentUsage);
+
+public:
+    ~WebDatabaseDetails();
+
+    const char* name() const { return m_name; }
+    const char* displayName() const { return m_displayName; }
+    unsigned long long expectedUsage() const { return m_expectedUsage; }
+    unsigned long long currentUsage() const { return m_currentUsage; }
+
+private:
+    WebDatabaseDetails(const char* name, const char* displayName, unsigned long long expectedUsage, unsigned long long currentUsage)
+    : m_name(name)
+    , m_displayName(displayName)
+    , m_expectedUsage(expectedUsage)
+    , m_currentUsage(currentUsage)
+    {}
+
+    const char* m_name;
+    const char* m_displayName;
+    unsigned long long m_expectedUsage;
+    unsigned long long m_currentUsage;
+};
 
 
-class WebDatabaseManager : private WebCore::DatabaseTrackerClient {
+class WEBKIT_OWB_API WebDatabaseManager {
 public:
 
     /**
@@ -96,7 +119,7 @@ public:
      * WTF::Vector<RefPtr<WebCore::SecurityOrigin> > s = d->origins();
      * @endcode
      */
-    virtual WTF::Vector<RefPtr<WebCore::SecurityOrigin> > origins();
+    virtual std::vector<WebSecurityOrigin*> origins();
 
     /**
      * get databases with origin
@@ -106,7 +129,7 @@ public:
      * WTF::Vector<WebCore::String> s = d->databasesWithOrigin(o);
      * @endcode
      */
-    virtual WTF::Vector<WebCore::String> databasesWithOrigin(WebSecurityOrigin* origin);
+    virtual std::vector<const char*> databasesWithOrigin(WebSecurityOrigin* origin);
 
     /**
      * get details for database
@@ -117,7 +140,7 @@ public:
      * WebCore::DatabaseDetails dd = d->detailsForDatabase(dn, o);
      * @endcode
      */
-    virtual WebCore::DatabaseDetails detailsForDatabase(WebCore::String databaseName, WebSecurityOrigin* origin);
+    virtual WebDatabaseDetails* detailsForDatabase(const char* databaseName, WebSecurityOrigin* origin);
 
     /**
      * delete all databases
@@ -142,14 +165,14 @@ public:
      * @param[in]: database name
      * @param[in]: WebSecurityOrigin
      */
-    virtual void deleteDatabase(WebCore::String databaseName, WebSecurityOrigin* origin);
+    virtual void deleteDatabase(const char* databaseName, WebSecurityOrigin* origin);
 
 
     /**
      * dispatch did modify origin
      * @param[in]: SecurityOrigin
      */
-    virtual void dispatchDidModifyOrigin(WebCore::SecurityOrigin*);
+    virtual void dispatchDidModifyOrigin(WebSecurityOrigin*);
 
     /**
      * dispatch did modify database
@@ -159,7 +182,9 @@ public:
      * @code
      * @endcode
      */
-    virtual void dispatchDidModifyDatabase(WebCore::SecurityOrigin*, const WebCore::String& databaseName);
+    virtual void dispatchDidModifyDatabase(WebSecurityOrigin*, const char* databaseName);
+
+    WebDatabaseTracker* webDatabaseTracker() { return m_webDatabaseTracker; }
 
 private:
 
@@ -167,6 +192,8 @@ private:
      * WebDatabaseManager default constructor
      */
     WebDatabaseManager();
+
+    WebDatabaseTracker* m_webDatabaseTracker;
 };
 
 

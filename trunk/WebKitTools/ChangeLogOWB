@@ -1,3 +1,15 @@
+2009-12-20  Mario Bensi  <mbensi@pleyo.com>
+
+        Implement LayoutControllerBAL.
+        TODO: History
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::setIconDatabaseEnabled):
+        (LayoutTestController::clearAllDatabases):
+        (LayoutTestController::overridePreference):
+        (LayoutTestController::setDatabaseQuota):
+
 2009-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         Implement LayoutControllerBAL

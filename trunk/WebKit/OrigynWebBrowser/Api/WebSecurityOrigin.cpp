@@ -29,7 +29,9 @@
 #include "config.h"
 #include "WebSecurityOrigin.h"
 
+#include <CString.h>
 #include <PlatformString.h>
+#include <SecurityOrigin.h>
 #if ENABLE(DATABASE)
 #include <DatabaseTracker.h>
 #endif
@@ -51,14 +53,14 @@ WebSecurityOrigin::~WebSecurityOrigin()
 {
 }
 
-WebCore::String WebSecurityOrigin::protocol()
+const char* WebSecurityOrigin::protocol()
 {
-    return m_securityOrigin->protocol();
+    return strdup(m_securityOrigin->protocol().utf8().data());
 }
 
-WebCore::String WebSecurityOrigin::domain()
+const char* WebSecurityOrigin::host()
 {
-    return m_securityOrigin->host();
+    return strdup(m_securityOrigin->host().utf8().data());
 }
 
 unsigned short WebSecurityOrigin::port()
@@ -69,7 +71,7 @@ unsigned short WebSecurityOrigin::port()
 unsigned long long WebSecurityOrigin::usage()
 {
 #if ENABLE(DATABASE)
-    return DatabaseTracker::tracker().usageForOrigin(m_securityOrigin.get());
+    return DatabaseTracker::tracker().usageForOrigin(m_securityOrigin);
 #else
     return 0;
 #endif
@@ -79,7 +81,7 @@ unsigned long long WebSecurityOrigin::usage()
 unsigned long long WebSecurityOrigin::quota()
 {
 #if ENABLE(DATABASE)
-    return DatabaseTracker::tracker().quotaForOrigin(m_securityOrigin.get());
+    return DatabaseTracker::tracker().quotaForOrigin(m_securityOrigin);
 #else
     return 0;
 #endif
@@ -88,6 +90,6 @@ unsigned long long WebSecurityOrigin::quota()
 void WebSecurityOrigin::setQuota(unsigned long long quota) 
 {
 #if ENABLE(DATABASE)
-    DatabaseTracker::tracker().setQuota(m_securityOrigin.get(), quota);
+    DatabaseTracker::tracker().setQuota(m_securityOrigin, quota);
 #endif
 }

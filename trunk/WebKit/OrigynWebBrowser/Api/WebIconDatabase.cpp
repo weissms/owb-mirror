@@ -32,6 +32,9 @@
 
 #include "WebPreferences.h"
 
+#include <BitmapImage.h>
+#include <CString.h>
+#include <IconDatabaseClient.h>
 #include <PlatformString.h>
 #include <FileSystem.h>
 #include <IconDatabase.h>
@@ -42,11 +45,29 @@
 
 using namespace WebCore;
 using namespace WTF;
+using namespace std;
+
+class WebIconDatabaseClient : public IconDatabaseClient {
+public:
+    WebIconDatabaseClient(WebIconDatabase* icon)
+    : m_webIconDatabase(icon)
+    {}
+
+    virtual ~WebIconDatabaseClient() { m_webIconDatabase = 0; }
+    virtual void dispatchDidRemoveAllIcons() { m_webIconDatabase->dispatchDidRemoveAllIcons(); }
+    virtual void dispatchDidAddIconForPageURL(const String& pageURL) { m_webIconDatabase->dispatchDidAddIconForPageURL(strdup(pageURL.utf8().data())); }
+
+    Mutex m_notificationMutex;
+private:
+    WebIconDatabase* m_webIconDatabase;
+};
+
 
 WebIconDatabase* WebIconDatabase::m_sharedWebIconDatabase = 0;
 
 WebIconDatabase::WebIconDatabase()
 : m_deliveryRequested(false)
+, m_webIconDatabaseClient(new WebIconDatabaseClient(this))
 {
 }
 
@@ -63,21 +84,26 @@ void WebIconDatabase::init()
 //     }
     iconDatabase()->setEnabled(!!enabled);
 
-    iconDatabase()->setClient(this);
+    startUpIconDatabase();
+}
+
+void WebIconDatabase::startUpIconDatabase()
+{
+    WebPreferences* standardPrefs = WebPreferences::sharedStandardPreferences();
+    iconDatabase()->setClient(m_webIconDatabaseClient);
 
     String databasePath = standardPrefs->iconDatabaseLocation();
-//     if (prefDatabasePath == String())
-//         LOG_ERROR("Unable to get icon database location preference");
 
-    if (databasePath.isEmpty()) {
+    if (databasePath.isEmpty())
         databasePath = homeDirectoryPath();
-        /*if (prefDatabasePath.isEmpty())
-            LOG_ERROR("Failed to construct default icon database path");*/
-    }
 
     bool ret = iconDatabase()->open(databasePath);
     if (!ret)
         LOG_ERROR("Failed to open icon database path");
+}
+
+void WebIconDatabase::shutDownIconDatabase()
+{
 }
 
 WebIconDatabase* WebIconDatabase::createInstance()
@@ -101,20 +127,24 @@ WebIconDatabase *WebIconDatabase::sharedIconDatabase()
     return sharedWebIconDatabase();
 }
 
-WebCore::Image *WebIconDatabase::iconForURL(WebCore::String url, IntSize size, bool /*cache*/)
+BalSurface* WebIconDatabase::iconForURL(const char* url, BalPoint size, bool /*cache*/)
 {
-    IntSize intSize(size);
+    IntPoint p(size);
+    IntSize intSize(p.x(), p.y());
 
     Image* icon = iconDatabase()->iconForPageURL(url, intSize);
-    return icon;
+    if (!icon)
+        return 0;
+    BalSurface* surf = icon->nativeImageForCurrentFrame();
+    return surf;
 }
 
-void WebIconDatabase::retainIconForURL(WebCore::String url)
+void WebIconDatabase::retainIconForURL(const char* url)
 {
     iconDatabase()->retainIconForPageURL(url);
 }
 
-void WebIconDatabase::releaseIconForURL(WebCore::String url)
+void WebIconDatabase::releaseIconForURL(const char* url)
 {
     iconDatabase()->releaseIconForPageURL(url);
 }
@@ -134,59 +164,78 @@ void WebIconDatabase::allowDatabaseCleanup()
     IconDatabase::allowDatabaseCleanup();
 }
 
-WebCore::String WebIconDatabase::iconURLForURL(WebCore::String url)
+const char* WebIconDatabase::iconURLForURL(const char* url)
 {
-    return iconDatabase()->iconURLForPageURL(url);
+    return strdup(iconDatabase()->iconURLForPageURL(url).utf8().data());
 }
 
 
-WebCore::Image* WebIconDatabase::getOrCreateSharedBitmap(IntSize size)
+BalSurface* WebIconDatabase::getOrCreateSharedBitmap(BalPoint s)
 {
-    WebCore::Image* result = m_sharedIconMap.get(size);
+    BalSurface* result = m_sharedIconMap[s];
     if (result)
         return result;
-//     result = new Image();
-//     result->setContainerSize(size);
-//     m_sharedIconMap.set(size, result);
+    RefPtr<BitmapImage> image = BitmapImage::create();
+    IntPoint p(s);
+    IntSize size(p.x(), p.y());
+    image->setContainerSize(size);
+    result = image->nativeImageForCurrentFrame();
+    m_sharedIconMap[s] = result;
     return result;
 }
 
-WebCore::Image* WebIconDatabase::getOrCreateDefaultIconBitmap(IntSize size)
+BalSurface* WebIconDatabase::getOrCreateDefaultIconBitmap(BalPoint s)
 {
-    WebCore::Image* result = m_defaultIconMap.get(size);
+    BalSurface* result = m_defaultIconMap[s];
     if (result)
         return result;
 
-//     result = new Image();
-//     result->setContainerSize(size);
-    static RefPtr<Image> defaultIconImage = 0;
-    if (!defaultIconImage) {
-        defaultIconImage = Image::loadPlatformResource("urlIcon");
+    RefPtr<BitmapImage> image = BitmapImage::create();
+    IntPoint p(s);
+    IntSize size(p.x(), p.y());
+    image->setContainerSize(size);
+
+    result = image->nativeImageForCurrentFrame();
+    m_defaultIconMap[s] = result;
+    return result;
+}
+
+bool WebIconDatabase::isEnabled()
+{
+    return iconDatabase()->isEnabled();
+}
+
+void WebIconDatabase::setEnabled(bool flag)
+{
+    bool currentlyEnabled = isEnabled();
+    if (currentlyEnabled && !flag) {
+        iconDatabase()->setEnabled(false);
+        shutDownIconDatabase();
+    } else if (!currentlyEnabled && flag) {
+        iconDatabase()->setEnabled(true);
+        startUpIconDatabase();
     }
-    m_defaultIconMap.set(size, defaultIconImage.get());
-
-    return result;
 }
 
 void WebIconDatabase::dispatchDidRemoveAllIcons()
 {
     // Queueing the empty string is a special way of saying "this queued notification is the didRemoveAllIcons notification"
-    MutexLocker locker(m_notificationMutex);
-    m_notificationQueue.append(String());
+    MutexLocker locker(m_webIconDatabaseClient->m_notificationMutex);
+    m_notificationQueue.push_back("");
     scheduleNotificationDelivery();
 }
 
-void WebIconDatabase::dispatchDidAddIconForPageURL(const String& pageURL)
+void WebIconDatabase::dispatchDidAddIconForPageURL(const char* pageURL)
 {   
-    MutexLocker locker(m_notificationMutex);
-    m_notificationQueue.append(pageURL.threadsafeCopy());
+    MutexLocker locker(m_webIconDatabaseClient->m_notificationMutex);
+    m_notificationQueue.push_back(pageURL);
     scheduleNotificationDelivery();
 }
 
 void WebIconDatabase::scheduleNotificationDelivery()
 {
     // Caller of this method must hold the m_notificationQueue lock
-    ASSERT(!m_notificationMutex.tryLock());
+    ASSERT(!m_webIconDatabaseClient->m_notificationMutex.tryLock());
 
     if (!m_deliveryRequested) {
         m_deliveryRequested = true;
@@ -194,21 +243,21 @@ void WebIconDatabase::scheduleNotificationDelivery()
     }
 }
 
-WebCore::String WebIconDatabase::iconDatabaseDidAddIconNotification()
+const char* WebIconDatabase::iconDatabaseDidAddIconNotification()
 {
-    static WebCore::String didAddIconName = WebIconDatabaseDidAddIconNotification;
+    static const char* didAddIconName = WebIconDatabaseDidAddIconNotification;
     return didAddIconName;
 }
 
-WebCore::String WebIconDatabase::iconDatabaseNotificationUserInfoURLKey()
+const char* WebIconDatabase::iconDatabaseNotificationUserInfoURLKey()
 {
-    static WebCore::String iconUserInfoURLKey = WebIconNotificationUserInfoURLKey;
+    static const char* iconUserInfoURLKey = WebIconNotificationUserInfoURLKey;
     return iconUserInfoURLKey;
 }
 
-String WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification()
+const char* WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification()
 {
-    static WebCore::String didRemoveAllIconsName = WebIconDatabaseDidRemoveAllIconsNotification;
+    static const char* didRemoveAllIconsName = WebIconDatabaseDidRemoveAllIconsNotification;
     return didRemoveAllIconsName;
 }
 
@@ -217,7 +266,7 @@ static void postDidRemoveAllIconsNotification(WebIconDatabase* iconDB)
     WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification(), "", iconDB);
 }
 
-static void postDidAddIconNotification(const String& pageURL, WebIconDatabase* iconDB)
+static void postDidAddIconNotification(const char* pageURL, WebIconDatabase* iconDB)
 {
     WebCore::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), pageURL, iconDB);
 }
@@ -230,18 +279,26 @@ void WebIconDatabase::deliverNotifications(void*)
 
     ASSERT(m_sharedWebIconDatabase->m_deliveryRequested);
 
-    Vector<String> queue;
+    vector<const char*> queue;
     {
-        MutexLocker locker(m_sharedWebIconDatabase->m_notificationMutex);
+        MutexLocker locker(m_sharedWebIconDatabase->m_webIconDatabaseClient->m_notificationMutex);
         queue.swap(m_sharedWebIconDatabase->m_notificationQueue);
         m_sharedWebIconDatabase->m_deliveryRequested = false;
     }
 
     for (unsigned i = 0; i < queue.size(); ++i) {
-        if (queue[i].isNull())
+        if (!queue[i])
             postDidRemoveAllIconsNotification(m_sharedWebIconDatabase);
         else
             postDidAddIconNotification(queue[i], m_sharedWebIconDatabase);
     }
 }
+
+bool operator<(BalPoint p1, BalPoint p2)
+{
+    IntPoint point1(p1);
+    IntPoint point2(p2);
+    return point1 < point2;
+}
+
 #endif

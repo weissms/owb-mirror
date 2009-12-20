@@ -12,6 +12,7 @@ include_directories(
 )
 
 include(AddDAECompilerFlags OPTIONAL)
+include(AddWebCoreCompilerFlags)
 
 list(APPEND DUMPRENDERTREE_SRC
     AccessibilityController.cpp

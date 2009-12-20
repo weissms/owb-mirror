@@ -58,10 +58,19 @@
 #include "WebResourceLoadDelegate.h"
 #include "WebScriptObject.h"
 #include "WebScriptWorld.h"
+#include "WebSecurityOrigin.h"
 #include "WebURLResponse.h"
 #include "WebValue.h"
 #include "WebView.h"
 #include "WebWorkersPrivate.h"
+
+#if ENABLE(DATABASE)
+#include "WebDatabaseManager.h"
+#endif
+
+#if ENABLE(ICONDATABASE)
+#include "WebIconDatabase.h"
+#endif
 
 #if ENABLE(DAE_APPLICATION)
 #include "WebConfigLoading.h"

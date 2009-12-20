@@ -76,7 +76,6 @@ typedef void BalFont;
 typedef void BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
-typedef _cairo_surface BalSurface;
 typedef void BalMenuItem;
 typedef void BalMenu;
 typedef void BalClipboard;

@@ -1,3 +1,10 @@
+2009-12-20  Mario Bensi  <mbensi@pleyo.com>
+
+        Add header DatabaseManager and IconDatabase in HEADER_API.
+
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/SetCMakeVars.cmake:
+
 2009-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         Add files in HEADER_API

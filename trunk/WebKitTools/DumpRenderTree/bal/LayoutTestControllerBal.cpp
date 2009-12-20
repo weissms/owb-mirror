@@ -262,7 +262,12 @@ void LayoutTestController::setAuthorAndUserStylesEnabled(bool flag)
 
 void LayoutTestController::setIconDatabaseEnabled(bool flag)
 {
-    // FIXME: implement
+#if ENABLE(ICONDATABASE)
+    WebIconDatabase* tmpIconDatabase = WebIconDatabase::createInstance();
+    WebIconDatabase* iconDatabase = tmpIconDatabase->sharedIconDatabase();
+
+    iconDatabase->setEnabled(flag);
+#endif
 }
 
 void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
@@ -330,7 +335,12 @@ void LayoutTestController::clearPersistentUserStyleSheet()
 
 void LayoutTestController::clearAllDatabases()
 {
-    // FIXME: implement
+#if ENABLE(DATABASE)
+    WebDatabaseManager* tmpDatabaseManager = WebDatabaseManager::createInstance();
+    WebDatabaseManager* databaseManager = tmpDatabaseManager->sharedWebDatabaseManager();
+
+    databaseManager->deleteAllDatabases();
+#endif
 }
 
 void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value)
@@ -339,12 +349,16 @@ void LayoutTestController::overridePreference(JSStringRef key, JSStringRef value
     char* val = JSStringCopyUTF8CString(value);
 
     getWebView()->preferences()->setPreferenceForTest(name, val);
-    // FIXME: implement
 }
  
 void LayoutTestController::setDatabaseQuota(unsigned long long quota)
-{    
-    // FIXME: implement
+{
+#if ENABLE(DATABASE)
+    WebDatabaseManager* tmpDatabaseManager = WebDatabaseManager::createInstance();
+    WebDatabaseManager* databaseManager = tmpDatabaseManager->sharedWebDatabaseManager();
+
+    databaseManager->setQuota("file:///", quota);
+#endif
 }
 
 bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(JSStringRef animationName, double time, JSStringRef elementId)

@@ -27,6 +27,10 @@
 #include "config.h"
 #include "PluginView.h"
 
+#undef None
+#undef Status
+#undef CursorShape
+
 #include "Document.h"
 #include "DocumentLoader.h"
 #include "Element.h"

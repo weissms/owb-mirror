@@ -26,6 +26,7 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebResourceLoadDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebScriptObject.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebScriptWorld.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebSecurityOrigin.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebURLResponse.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebValue.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebView.h
@@ -33,6 +34,18 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/Base/WebKitDefines.h
     ${OWB_SOURCE_DIR}/Base/WebKitTypes.h
 )
+
+if(ENABLE_DATABASE)
+    list(APPEND API_HEADER
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebDatabaseManager.h
+    )
+endif(ENABLE_DATABASE)
+
+if(ENABLE_ICONDATABASE)
+    list(APPEND API_HEADER
+        ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebIconDatabase.h
+    )
+endif(ENABLE_ICONDATABASE)
 
 if(USE_GRAPHICS_SDL)
     list(APPEND API_HEADER

@@ -38,12 +38,17 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <SecurityOrigin.h>
-#include <SecurityOrigin.h>
+#include "WebKitTypes.h"
 
-class WebSecurityOrigin {
-public:
+namespace WebCore {
+    class SecurityOrigin;
+}
+
+class WEBKIT_OWB_API WebSecurityOrigin {
+protected:
+    friend class WebChromeClient;
+    friend class WebDatabaseManager;
+    friend class WebDatabaseTracker;
 
     /**
      * create a new instance of WebSecurityOrigin
@@ -51,31 +56,26 @@ public:
     static WebSecurityOrigin* createInstance(WebCore::SecurityOrigin* origin);
 
     /**
-     *  create a new instance of WebSecurityOrigin
+     * get SecurityOrigin 
      */
-    static WebSecurityOrigin* createInstance(RefPtr<WebCore::SecurityOrigin> origin) { return createInstance(origin.get()); }
+    WebCore::SecurityOrigin* securityOrigin() const { return m_securityOrigin; }
+
+public:
 
     /**
      * WebSecurityOrigin destructor
      */
     virtual ~WebSecurityOrigin();
 
-
-    /**
-     * get SecurityOrigin 
-     */
-    WebCore::SecurityOrigin* securityOrigin() const { return m_securityOrigin.get(); }
-
-
     /**
      * get protocol
      */
-    virtual WebCore::String protocol();
+    virtual const char* protocol();
 
     /**
      * get domain
      */
-    virtual WebCore::String domain();
+    virtual const char* host();
 
     /**
      * get port
@@ -103,7 +103,7 @@ private:
      */
     WebSecurityOrigin(WebCore::SecurityOrigin*);
 
-    RefPtr<WebCore::SecurityOrigin> m_securityOrigin;
+    WebCore::SecurityOrigin* m_securityOrigin;
 };
 
 #endif // WebSecurityOrigin_h

@@ -1,3 +1,64 @@
+2009-12-20  Mario Bensi  <mbensi@pleyo.com>
+
+        Expose WebDatabaseManager and WebIconDatabase.
+
+        * OrigynWebBrowser/Api/WebDatabaseManager.cpp:
+        (WebDatabaseTracker::WebDatabaseTracker):
+        (WebDatabaseTracker::~WebDatabaseTracker):
+        (WebDatabaseTracker::dispatchDidModifyOrigin):
+        (WebDatabaseTracker::dispatchDidModifyDatabase):
+        (WebDatabaseDetails::createInstance):
+        (WebDatabaseDetails::~WebDatabaseDetails):
+        (WebDatabaseManager::WebDatabaseManager):
+        (WebDatabaseManager::~WebDatabaseManager):
+        (WebDatabaseManager::sharedWebDatabaseManager):
+        (WebDatabaseManager::origins):
+        (WebDatabaseManager::databasesWithOrigin):
+        (WebDatabaseManager::detailsForDatabase):
+        (WebDatabaseManager::deleteDatabase):
+        (WebDatabaseManager::dispatchDidModifyOrigin):
+        (WebDatabaseManager::dispatchDidModifyDatabase):
+        * OrigynWebBrowser/Api/WebDatabaseManager.h:
+        * OrigynWebBrowser/Api/WebIconDatabase.cpp:
+        (WebIconDatabaseClient::WebIconDatabaseClient):
+        (WebIconDatabaseClient::~WebIconDatabaseClient):
+        (WebIconDatabaseClient::dispatchDidRemoveAllIcons):
+        (WebIconDatabaseClient::dispatchDidAddIconForPageURL):
+        (WebIconDatabase::WebIconDatabase):
+        (WebIconDatabase::init):
+        (WebIconDatabase::startUpIconDatabase):
+        (WebIconDatabase::shutDownIconDatabase):
+        (WebIconDatabase::iconForURL):
+        (WebIconDatabase::retainIconForURL):
+        (WebIconDatabase::releaseIconForURL):
+        (WebIconDatabase::iconURLForURL):
+        (WebIconDatabase::getOrCreateSharedBitmap):
+        (WebIconDatabase::getOrCreateDefaultIconBitmap):
+        (WebIconDatabase::isEnabled):
+        (WebIconDatabase::setEnabled):
+        (WebIconDatabase::dispatchDidRemoveAllIcons):
+        (WebIconDatabase::dispatchDidAddIconForPageURL):
+        (WebIconDatabase::scheduleNotificationDelivery):
+        (WebIconDatabase::iconDatabaseDidAddIconNotification):
+        (WebIconDatabase::iconDatabaseNotificationUserInfoURLKey):
+        (WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification):
+        (postDidAddIconNotification):
+        (WebIconDatabase::deliverNotifications):
+        (operator<):
+        * OrigynWebBrowser/Api/WebIconDatabase.h:
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebSecurityOrigin.cpp:
+        (WebSecurityOrigin::protocol):
+        (WebSecurityOrigin::host):
+        (WebSecurityOrigin::usage):
+        (WebSecurityOrigin::quota):
+        (WebSecurityOrigin::setQuota):
+        * OrigynWebBrowser/Api/WebSecurityOrigin.h:
+        * OrigynWebBrowser/Api/WebWorkersPrivate.cpp:
+        (WebWorkersPrivate::workerThreadCount):
+        * OrigynWebBrowser/Api/WebWorkersPrivate.h:
+        * OrigynWebBrowser/webkit-owb.pc.in:
+
 2009-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         Expose WebScriptWorld and WebWorkerPrivate and add some methods to

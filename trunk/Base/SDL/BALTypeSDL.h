@@ -44,7 +44,6 @@ typedef void BalFont;
 typedef struct _FcPattern BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
-typedef SDL_Surface BalSurface;
 typedef void BalMenuItem;
 typedef SDL_Surface BalMenu;
 typedef void BalClipboard;

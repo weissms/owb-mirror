@@ -37,7 +37,6 @@ typedef void* DragDataRef;
 typedef SDL_Color BalColor;
 typedef cairo_matrix_t BalMatrix;
 typedef cairo_surface_t* NativeImagePtr;
-typedef cairo_surface_t* BalSurface;
 typedef cairo_pattern_t* PlatformGradient;
 typedef void BalDrawable;
 typedef void BalAdjustment;

@@ -36,6 +36,7 @@
 #include <gtk/gtk.h>
 
 typedef GtkWidget BalWidget;
+typedef struct _GdkPixbuf BalSurface;
 typedef struct _BalEventExpose{} BalEventExpose;
 typedef struct _BalResizeEvent{} BalResizeEvent;
 typedef struct _BalQuitEvent{} BalQuitEvent;
@@ -98,6 +99,7 @@ struct AmigaOWBWindow
 };
 
 typedef struct AmigaOWBWindow BalWidget;
+typedef _cairo_surface BalSurface;
 
 struct AmigaOWBResizeEvent
 {
@@ -134,6 +136,7 @@ typedef struct _BalRectangle{
 #include <QEvent>
 
 typedef QWidget BalWidget;
+typedef QPixmap BalSurface;
 typedef QPaintEvent BalEventExpose;
 typedef QResizeEvent BalResizeEvent;
 typedef QEvent BalQuitEvent;
@@ -151,6 +154,12 @@ typedef QRect BalRectangle;
 #include <SDL.h>
 
 typedef SDL_Surface BalWidget;
+#if PLATFORM(SDL)
+typedef SDL_Surface BalSurface;
+#else
+#include <cairo.h>
+typedef cairo_surface_t BalSurface;
+#endif
 
 typedef struct SDL_ExposeEvent BalEventExpose;
 typedef struct SDL_ResizeEvent BalResizeEvent;

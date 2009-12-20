@@ -34,8 +34,6 @@
 #include "WorkerThread.h"
 #endif
 
-using namespace WebCore;
-
 WebWorkersPrivate* WebWorkersPrivate::createInstance()
 {
     WebWorkersPrivate* worker = new WebWorkersPrivate();
@@ -53,7 +51,7 @@ WebWorkersPrivate::~WebWorkersPrivate()
 uint32_t WebWorkersPrivate::workerThreadCount()
 {
 #if ENABLE(WORKERS)
-    return WorkerThread::workerThreadCount();
+    return WebCore::WorkerThread::workerThreadCount();
 #else
     return 0;
 #endif

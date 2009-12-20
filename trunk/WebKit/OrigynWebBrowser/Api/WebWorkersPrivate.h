@@ -38,7 +38,7 @@
  * - $Rev$
  * - $Date$
  */
-#include <WebKit.h>
+#include <WebKitTypes.h>
 
 class WEBKIT_OWB_API WebWorkersPrivate {
 public:
