@@ -181,6 +181,9 @@ public:
             if (m_webView->application())
                 m_webView->application()->dispatchApplicationEvent(eventNames().LowMemoryEvent);
 #endif
+            SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webView->webFrameLoadDelegate();
+            if (webFrameLoadDelegate)
+                webFrameLoadDelegate->dispatchNotEnoughtMemory(m_webView->mainFrame());
         }
     }
 
