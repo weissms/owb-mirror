@@ -82,8 +82,9 @@ class RunTests :
             outTemp = child_stdout.read()
         except Exception, e:
             if not str(e) == 'timeout':  # something else went wrong ..
-                self.__updateProgressBar() 
-                print test[test.rfind("/") + 1:] + ": timeout"
+                self.__updateProgressBar()
+                if self.config['verbose'] :
+                    print test[test.rfind("/") + 1:] + ": timeout"
         signal.alarm(0)
         if not self.timeout :
             outprint = outTemp
@@ -95,7 +96,8 @@ class RunTests :
                 self.timeout = False
         if outprint == "" :
             if not self.timeout :
-                print test[test.rfind("/") + 1:] + ": crashed"
+                if self.config['verbose'] :
+                    print test[test.rfind("/") + 1:] + ": crashed"
                 self.__updateProgressBar() 
                 self.resultCrashed[test] =  [self.time, "", ""]
                 return
@@ -117,7 +119,8 @@ class RunTests :
                 self.resultSuccess[test] = [self.time, diff, file]
             else :
                 if not self.timeout :
-                    print test[test.rfind("/") + 1:] + ": failed"
+                    if self.config['verbose'] :
+                        print test[test.rfind("/") + 1:] + ": failed"
                     self.__updateProgressBar() 
                     if (file.find("platform") == -1) :
                         self.resultFailed[test] = [self.time, diff, file]
