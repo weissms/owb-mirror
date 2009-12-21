@@ -382,10 +382,7 @@ static void dumpHistoryItem(WebHistoryItem* item, int indent, bool current)
         return;
 
     if (strncmp("file://", url, 7) == 0) {
-        static string layoutTestsString = "/LayoutTests/";
-        static string fileTestString = "(file test):";
-
-        char* pos = strstr(url, layoutTestsString.c_str());
+        char* pos = strstr(url, "/LayoutTests/");
         if (pos == NULL)
             return;
 
