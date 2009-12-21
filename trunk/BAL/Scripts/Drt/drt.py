@@ -55,11 +55,9 @@ if len(args) == 0 :
 else :
     for path in args:
         if os.path.isdir(path) :
-            print "isdir"
             for l in List.createList(path) :
                 li.append(l)
         else :
-            print "not dir"
             li = List.changePathIfNeeded(li)
             li.append(path)
 
