@@ -36,7 +36,7 @@
 #include <gtk/gtk.h>
 
 typedef GtkWidget BalWidget;
-typedef struct _GdkPixbuf BalSurface;
+typedef cairo_surface_t BalSurface;
 typedef struct _BalEventExpose{} BalEventExpose;
 typedef struct _BalResizeEvent{} BalResizeEvent;
 typedef struct _BalQuitEvent{} BalQuitEvent;
