@@ -32,7 +32,7 @@ class TestsList :
                         pathName = path + "/" + fname
                     for li in self.createList(pathName) :
                         li = self.changePathIfNeeded(li)
-                        self.testsList.append(li)
+                        testsList.append(li)
             else :
                 #find all the .html, .shtml, .xml, .xhtml, .pl, .php (and svg) files in the test directory. 
                 if (fname.find(".html") != -1 
