@@ -6,6 +6,18 @@ class TestsList :
         self.config = config
         self.dirOut = [".svn", "resources", "platform", "conf", "js", "script-tests"]
 
+    def changePathIfNeeded(self, li) :
+        if li.find("/http") != -1 and li.find("local/") == -1:
+            rpl = li[:li.find("/http/tests") + 11]
+            if li.find("/http/tests/ssl") != -1 :
+                li = li.replace(rpl, "http://127.0.0.1:8443")
+            else :
+                li = li.replace(rpl, "http://127.0.0.1:8000")
+            if li.find("/websocket") != -1 :
+                 rpl = li[:li.find("/websocket/tests") + 16]
+                 li = li.replace(rpl, "http://127.0.0.1:8880")
+        return li
+
     def createList(self, path) :
         dirList = os.listdir(path)
         dirList.sort()
@@ -19,16 +31,8 @@ class TestsList :
                     else :
                         pathName = path + "/" + fname
                     for li in self.createList(pathName) :
-                        if li.find("/http") != -1 and li.find("/local") == -1:
-                            rpl = li[:li.find("/http/tests") + 11]
-                            if li.find("/http/tests/ssl") != -1 :
-                                li = li.replace(rpl, "http://127.0.0.1:8443")
-                            else : 
-                                li = li.replace(rpl, "http://127.0.0.1:8000")
-                        if li.find("/websocket") != -1 :
-                            rpl = li[:li.find("/websocket/tests") + 16]
-                            li = li.replace(rpl, "http://127.0.0.1:8880")
-                        testsList.append(li)
+                        li = self.changePathIfNeeded(li)
+                        self.testsList.append(li)
             else :
                 #find all the .html, .shtml, .xml, .xhtml, .pl, .php (and svg) files in the test directory. 
                 if (fname.find(".html") != -1 
@@ -44,6 +48,7 @@ class TestsList :
                         pathName = path + fname
                     else :
                         pathName = path + "/" + fname
+                    pathName = self.changePathIfNeeded(pathName)
                     testsList.append(pathName)
         return testsList
 
