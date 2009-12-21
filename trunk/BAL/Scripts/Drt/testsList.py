@@ -4,7 +4,7 @@ import random
 class TestsList :
     def __init__(self, config) :
         self.config = config
-        self.dirOut = [".svn", "resources", "platform", "conf", "js"]
+        self.dirOut = [".svn", "resources", "platform", "conf", "js", "script-tests"]
 
     def createList(self, path) :
         dirList = os.listdir(path)
@@ -20,8 +20,14 @@ class TestsList :
                         pathName = path + "/" + fname
                     for li in self.createList(pathName) :
                         if li.find("/http") != -1 and li.find("/local") == -1:
-                            rpl = li[:li.find("/http") + 5]
-                            li = li.replace(rpl, "http://localhost:8080")
+                            rpl = li[:li.find("/http/tests") + 11]
+                            if li.find("/http/tests/ssl") != -1 :
+                                li = li.replace(rpl, "http://127.0.0.1:8443")
+                            else : 
+                                li = li.replace(rpl, "http://127.0.0.1:8000")
+                        if li.find("/websocket") != -1 :
+                            rpl = li[:li.find("/websocket/tests") + 16]
+                            li = li.replace(rpl, "http://127.0.0.1:8880")
                         testsList.append(li)
             else :
                 #find all the .html, .shtml, .xml, .xhtml, .pl, .php (and svg) files in the test directory. 

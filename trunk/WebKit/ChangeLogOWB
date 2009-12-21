@@ -1,3 +1,29 @@
+2009-12-21  Mario Bensi  <mbensi@pleyo.com>
+
+        modify History api to be exposed.
+
+        * OrigynWebBrowser/Api/WebBackForwardList.cpp:
+        (WebBackForwardList::clear):
+        * OrigynWebBrowser/Api/WebBackForwardList.h:
+        * OrigynWebBrowser/Api/WebHistory.cpp:
+        (WebHistory::loadFromURL):
+        (WebHistory::saveToURL):
+        (WebHistory::addItems):
+        (WebHistory::removeItems):
+        (WebHistory::removeAllItems):
+        (WebHistory::itemForURL):
+        (WebHistory::visitedURL):
+        (WebHistory::itemForURLString):
+        (WebHistory::allItems):
+        * OrigynWebBrowser/Api/WebHistory.h:
+        * OrigynWebBrowser/Api/WebHistoryItem.cpp:
+        (WebHistoryItem::RSSFeedReferrer):
+        (WebHistoryItem::target):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory):
+        (WebFrameLoaderClient::updateGlobalHistoryRedirectLinks):
+        (WebFrameLoaderClient::setTitle):
+
 2009-12-20  Mario Bensi  <mbensi@pleyo.com>
 
         Expose WebDatabaseManager and WebIconDatabase.

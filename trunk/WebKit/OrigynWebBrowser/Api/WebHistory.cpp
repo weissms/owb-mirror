@@ -36,7 +36,9 @@
 #include <PageGroup.h>
 #include <HistoryItem.h>
 
+
 using namespace WebCore;
+using namespace std;
 
 
 WebHistory::WebHistory()
@@ -76,32 +78,33 @@ void WebHistory::setOptionalSharedHistory(WebHistory* history)
     PageGroup::removeAllVisitedLinks();
 }
 
-WebError* WebHistory::loadFromURL(String url)
+WebError* WebHistory::loadFromURL(const char* url)
 {
     return 0;
 }
 
 
-WebError* WebHistory::saveToURL(String url)
+WebError* WebHistory::saveToURL(const char* url)
 {
     return 0;
 }
 
 
 
-void WebHistory::addItems(int itemCount, WebHistoryItem** items)
+void WebHistory::addItems(vector<WebHistoryItem*> items)
 {
 }
 
-void WebHistory::removeItems(int itemCount, WebHistoryItem** items)
+void WebHistory::removeItems(vector<WebHistoryItem*> items)
 {
 }
 
 void WebHistory::removeAllItems()
 {
+    PageGroup::removeAllVisitedLinks();
 }
 
-WebHistoryItem* WebHistory::itemForURL(WebCore::String url)
+WebHistoryItem* WebHistory::itemForURL(const char* url)
 {
     return 0;
 }
@@ -145,7 +148,7 @@ int WebHistory::historyAgeInDaysLimit()
 }
 
 
-void WebHistory::visitedURL(const KURL& url, const String& title, const String& httpMethod, bool wasFailure)
+void WebHistory::visitedURL(const char* url, const char* title, const char* httpMethod, bool wasFailure)
 {
 }
 
@@ -153,7 +156,13 @@ void WebHistory::addVisitedLinksToPageGroup(PageGroup& group)
 {
 }
 
-WebHistoryItem* WebHistory::itemForURLString(const String& urlString) const
+WebHistoryItem* WebHistory::itemForURLString(const char* urlString) const
 {
     return 0;
+}
+
+std::vector<WebHistoryItem*> WebHistory::allItems()
+{
+    vector<WebHistoryItem*> items;
+    return items;
 }

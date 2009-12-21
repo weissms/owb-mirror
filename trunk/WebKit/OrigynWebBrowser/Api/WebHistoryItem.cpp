@@ -109,7 +109,7 @@ void WebHistoryItem::setTitle(const char* title)
 
 const char* WebHistoryItem::RSSFeedReferrer()
 {
-    return d->m_historyItem->referrer().utf8().data();
+    return strdup(d->m_historyItem->referrer().utf8().data());
 }
 
 void WebHistoryItem::setRSSFeedReferrer(const char* url)
@@ -130,7 +130,7 @@ void WebHistoryItem::setHasPageCache(bool /*hasCache*/)
 
 const char* WebHistoryItem::target()
 {
-    return d->m_historyItem->target().utf8().data();
+    return strdup(d->m_historyItem->target().utf8().data());
 }
 
 bool WebHistoryItem::isTargetItem()

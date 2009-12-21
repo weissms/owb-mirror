@@ -686,7 +686,7 @@ void WebFrameLoaderClient::updateGlobalHistory()
     if (!history)
         return;
 
-    history->visitedURL(loader->urlForHistory(), loader->title(), loader->originalRequestCopy().httpMethod(), loader->urlForHistoryReflectsFailure());
+    history->visitedURL(strdup(loader->urlForHistory().string().utf8().data()), strdup(loader->title().utf8().data()), strdup(loader->originalRequestCopy().httpMethod().utf8().data()), loader->urlForHistoryReflectsFailure());
 }
 
 void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
@@ -706,7 +706,7 @@ void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
             historyDelegate->didPerformClientRedirectFromURL(webView, sourceURL.utf8().data(), destinationURL.utf8().data(), m_webFrame);
         } else {
             if (history) {
-                if (WebHistoryItem* webHistoryItem = history->itemForURLString(loader->clientRedirectSourceForHistory()))
+                if (WebHistoryItem* webHistoryItem = history->itemForURLString(strdup(loader->clientRedirectSourceForHistory().utf8().data())))
                     webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->clientRedirectDestinationForHistory());
             }
         }
@@ -719,7 +719,7 @@ void WebFrameLoaderClient::updateGlobalHistoryRedirectLinks()
             historyDelegate->didPerformServerRedirectFromURL(webView, sourceURL.utf8().data(), destinationURL.utf8().data(), m_webFrame);
         } else {
             if (history) {
-                if (WebHistoryItem *webHistoryItem = history->itemForURLString(loader->serverRedirectSourceForHistory()))
+                if (WebHistoryItem *webHistoryItem = history->itemForURLString(strdup(loader->serverRedirectSourceForHistory().utf8().data())))
                     webHistoryItem->getPrivateItem()->m_historyItem.get()->addRedirectURL(loader->serverRedirectDestinationForHistory());
             }
         }
@@ -827,7 +827,7 @@ void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
     if (!history)
         return;
 
-    WebHistoryItem* item = history->itemForURL(url.string());
+    WebHistoryItem* item = history->itemForURL(strdup(url.string().utf8().data()));
     if (!item)
         return;
 

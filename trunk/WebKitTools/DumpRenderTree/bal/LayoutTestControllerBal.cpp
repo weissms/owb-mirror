@@ -102,8 +102,15 @@ void LayoutTestController::keepWebHistory()
 
 size_t LayoutTestController::webHistoryItemCount()
 {
-    // FIXME: implement
-    return 0;
+    WebView* webView = getWebView();
+
+    WebBackForwardList* backForwardList = webView->backForwardList();
+    if (!backForwardList)
+        return 0;
+
+    int forwardListCount = backForwardList->forwardListCount();
+    int backListCount = backForwardList->backListCount();
+    return forwardListCount + backListCount;
 }
 
 void LayoutTestController::notifyDone()
@@ -445,18 +452,27 @@ void LayoutTestController::setMockGeolocationError(int code, JSStringRef message
 
 void LayoutTestController::showWebInspector()
 {
-    getWebView()->inspector()->show();
+    WebView* webView = getWebView();
+    WebInspector *inspector = webView->inspector();
+    if (inspector) 
+        inspector->show();
 }
 
 void LayoutTestController::closeWebInspector()
 {
-    getWebView()->inspector()->close();
+    WebView* webView = getWebView();
+    WebInspector *inspector = webView->inspector();
+    if (inspector)
+        inspector->close();
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)
 {
     char* source = JSStringCopyUTF8CString(script);
-    getWebView()->inspector()->evaluateInFrontend(callId, source);
+    WebView* webView = getWebView();
+    WebInspector *inspector = webView->inspector();
+    if (inspector)
+        inspector->evaluateInFrontend(callId, source);
 }
 
 void LayoutTestController::removeAllVisitedLinks()
@@ -474,7 +490,10 @@ void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObj
 
 void LayoutTestController::setTimelineProfilingEnabled(bool flag)
 {
-    getWebView()->inspector()->setTimelineProfilingEnabled(flag);
+    WebView* webView = getWebView();
+    WebInspector *inspector = webView->inspector();
+    if (inspector)
+        inspector->setTimelineProfilingEnabled(flag);
 }
 
 void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool flag)

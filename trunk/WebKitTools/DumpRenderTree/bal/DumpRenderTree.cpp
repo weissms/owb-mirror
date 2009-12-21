@@ -68,6 +68,7 @@ static WebView* webView = 0;
 ApplicationTestController* gApplicationTestController = 0;
 #endif
 WebFrame* topLoadingFrame = 0;
+static WebHistoryItem* prevTestBFItem;  // current b/f item at the end of the previous test
 LayoutTestController* gLayoutTestController = 0;
 AccessibilityController* gAccessibilityController = 0;
 EventSenderController* gEventSenderController = 0;
@@ -364,6 +365,104 @@ static void invalidateAnyPreviousWaitToDumpWatchdog()
     }
 }
 
+static void dumpHistoryItem(WebHistoryItem* item, int indent, bool current)
+{
+    assert(item);
+
+    int start = 0;
+    if (current) {
+        printf("curr->");
+        start = 6;
+    }
+    for (int i = start; i < indent; i++)
+        putchar(' ');
+
+    const char* url = item->URLString();
+    if (!url)
+        return;
+
+    if (strncmp("file://", url, 7) == 0) {
+        static string layoutTestsString = "/LayoutTests/";
+        static string fileTestString = "(file test):";
+
+        char* pos = strstr(url, layoutTestsString.c_str());
+        if (pos == NULL)
+            return;
+
+        string result = "(file test):";
+        result += pos + strlen("/LayoutTests/");
+        printf("%s", result.c_str());
+    } else
+        printf("%s", url);
+
+    const char* target = item->target();
+    if (target && strlen(target) > 0)
+        printf(" (in frame \"%s\")", target);
+    bool isTargetItem = item->isTargetItem();
+    if (isTargetItem)
+        printf("  **nav target**");
+    putchar('\n');
+
+    std::vector<WebHistoryItem*> kids = item->children();
+    // must sort to eliminate arbitrary result ordering which defeats reproducible testing
+    //qsort(kidsVector.data(), kidsCount, sizeof(kidsVector[0]), compareHistoryItems);
+
+    for (unsigned i = 0; i < kids.size(); ++i) {
+        WebHistoryItem* item = kids[i];
+        dumpHistoryItem(item, indent + 4, false);
+    }
+}
+
+
+
+static void dumpBackForwardList()
+{
+    printf("\n============== Back Forward List ==============\n");
+
+    WebBackForwardList* bfList = getWebView()->backForwardList();
+    if (!bfList)
+        return;
+    // Print out all items in the list after prevTestBFItem, which was from the previous test
+    // Gather items from the end of the list, the print them out from oldest to newest
+
+    int forwardListCount = bfList->forwardListCount();
+
+    vector<WebHistoryItem*> itemsToPrint;
+    for (int i = forwardListCount; i > 0; --i) {
+        WebHistoryItem* item = bfList->itemAtIndex(i);
+        if (!item)
+            return;
+        // something is wrong if the item from the last test is in the forward part of the b/f list
+        assert(item != prevTestBFItem);
+        itemsToPrint.push_back(item);
+    }
+
+    WebHistoryItem* currentItem = bfList->currentItem();
+    if (!currentItem)
+        return;
+
+    assert(currentItem != prevTestBFItem);
+    itemsToPrint.push_back(currentItem);
+    int currentItemIndex = itemsToPrint.size() - 1;
+
+    int backListCount = bfList->backListCount();
+    for (int i = -1; i >= -backListCount; --i) {
+        WebHistoryItem* item = bfList->itemAtIndex(i);
+        if (!item)
+            return;
+        if (item == prevTestBFItem)
+            break;
+        itemsToPrint.push_back(item);
+    }
+
+    for (int i = itemsToPrint.size() - 1; i >= 0; --i) {
+        WebHistoryItem* historyItemToPrint = itemsToPrint[i];
+        dumpHistoryItem(historyItemToPrint, 8, i == currentItemIndex);
+    }
+
+    printf("===============================================\n");
+}
+
 void dump()
 {
     if (!webView)
@@ -403,7 +502,7 @@ void dump()
         }
 
         if (gLayoutTestController->dumpBackForwardList()) {
-            // FIXME: not implemented
+            dumpBackForwardList();
         }
 
         if (printSeparators) {
@@ -523,6 +622,10 @@ void runTest(const string& testPathOrURL)
     setPreferences();
     // FIXME : add ExtraPluginDirectory
     //PluginDatabase::installedPlugins()->addExtraPluginDirectory(filenameToString(directory));
+
+    WebBackForwardList* bfList = getWebView()->backForwardList();
+    if (bfList)
+        prevTestBFItem = bfList->currentItem();
 
 #if !ENABLE(DAE)
     webView->mainFrame()->loadURL(url);

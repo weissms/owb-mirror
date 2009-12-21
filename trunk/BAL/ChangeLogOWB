@@ -1,3 +1,10 @@
+2009-12-21  Mario Bensi  <mbensi@pleyo.com>
+
+        create correct url for http test.
+
+        * Scripts/Drt/runtests.py:
+        * Scripts/Drt/testsList.py:
+
 2009-12-21  Gilles Bertal  <gbertal@pleyo.com>
 
         Make sure the stop(), setAspect() and playSpeeds() methods

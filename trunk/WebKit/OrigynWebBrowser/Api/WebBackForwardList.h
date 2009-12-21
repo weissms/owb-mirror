@@ -29,6 +29,7 @@
 #ifndef WebBackForwardList_H
 #define WebBackForwardList_H
 
+#include "WebKitTypes.h"
 
 /**
  *  @file  WebBackForwardList.h
@@ -69,6 +70,7 @@ public:
      */
     virtual ~WebBackForwardList();
 
+    virtual void clear();
     /**
      * @param entry The entry to add.
         @discussion The added entry is inserted immediately after the current entry.

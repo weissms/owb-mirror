@@ -37,6 +37,8 @@
 
 #include <BackForwardList.h>
 #include <HistoryItem.h>
+#include <Page.h>
+#include <PageGroup.h>
 
 using std::min;
 using namespace WebCore;
@@ -73,6 +75,29 @@ WebBackForwardList* WebBackForwardList::createInstance(WebBackForwardListPrivate
         instance = new WebBackForwardList(priv);
 
     return instance;
+}
+
+void WebBackForwardList::clear()
+{
+    //shortcut to private BackForwardList
+    RefPtr<WebCore::BackForwardList> lst = d->m_backForwardList;
+
+    //clear visited links
+    WebCore::Page* page = lst->page();
+    if (page && page->groupPtr())
+        page->groupPtr()->removeVisitedLinks();
+
+    //if count() == 0 then just return
+    if (!lst->entries().size())
+        return;
+
+    RefPtr<WebCore::HistoryItem> current = lst->currentItem();
+    int capacity = lst->capacity();
+    lst->setCapacity(0);
+
+    lst->setCapacity(capacity);   //revert capacity
+    lst->addItem(current.get());  //insert old current item
+    lst->goToItem(current.get()); //and set it as current again
 }
 
 void WebBackForwardList::addItem(WebHistoryItem* item)

@@ -29,11 +29,11 @@
 #ifndef WebHistory_H
 #define WebHistory_H
 
+#include "WebKitTypes.h"
+#include <vector>
 
 namespace WebCore {
-    class KURL;
     class PageGroup;
-    class String;
 }
 
 class WebPreferences;
@@ -91,7 +91,7 @@ public:
         @result Returns YES if successful, NO otherwise.
 
      */
-    virtual WebError* loadFromURL(WebCore::String url);
+    virtual WebError* loadFromURL(const char* url);
 
     /**
         @method saveToURL:error:
@@ -101,20 +101,20 @@ public:
         @result Returns YES if successful, NO otherwise.
 
      */
-    virtual WebError* saveToURL(WebCore::String url);
+    virtual WebError* saveToURL(const char* url);
 
     /**
      @method addItems:
      @param newItems An array of WebHistoryItems to add to the WebHistory.
      */
-    virtual void addItems(int itemCount, WebHistoryItem** items);
+    virtual void addItems(std::vector<WebHistoryItem*> items);
 
     /**
         @method removeItems:
         @param items An array of WebHistoryItems to remove from the WebHistory.
 
      */
-    virtual void removeItems(int itemCount, WebHistoryItem** items);
+    virtual void removeItems(std::vector<WebHistoryItem*> items);
 
     /**
         @method orderedLastVisitedDays
@@ -127,7 +127,6 @@ public:
      */
     virtual void removeAllItems();
 
-
     /**
         @method itemForURL:
         @abstract Get an item for a specific URL
@@ -135,7 +134,7 @@ public:
         @result Returns an item matching the URL
 
      */
-    virtual WebHistoryItem* itemForURL(WebCore::String url);
+    virtual WebHistoryItem* itemForURL(const char* url);
 
     /**
       @method setHistoryItemLimit:
@@ -146,11 +145,7 @@ public:
     virtual void setHistoryItemLimit(int limit);
 
     /**
-        @method setHistoryAgeInDaysLimit:
-        @discussion setHistoryAgeInDaysLimit: sets the maximum number of days to be read from
-        stored history.
-        @param limit The maximum number of days to be read from stored history.
-
+     * get limit
      */
     virtual int historyItemLimit();
 
@@ -193,10 +188,15 @@ public:
     /**
        @method visitedURL
      */
-    void visitedURL(const WebCore::KURL&, const WebCore::String& title, const WebCore::String& httpMethod, bool wasFailure);
+    void visitedURL(const char*, const char* title, const char* httpMethod, bool wasFailure);
 
-    WebHistoryItem* itemForURLString(const WebCore::String&) const;
+    WebHistoryItem* itemForURLString(const char*) const;
 
+
+    virtual std::vector<WebHistoryItem*> allItems();
+
+protected:
+    friend class WebChromeClient;
     /**
      * @method adds a PageGroup to history
      */

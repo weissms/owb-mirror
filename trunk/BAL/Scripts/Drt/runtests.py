@@ -168,7 +168,12 @@ class RunTests :
         ext = test[test.rfind("."):]
         expected = test.replace(ext, "-expected.txt")
         if test.find("http://") != -1 :
-            expected = expected.replace("http://localhost:8080", self.config['layout'] + "http/")
+            if test.find("8000") != -1 :
+                expected = expected.replace("http://localhost:8000", self.config['layout'] + "http/tests")
+            if test.find("8443") != -1 :
+                expected = expected.replace("http://localhost:8443", self.config['layout'] + "http/tests")
+            if test.find("8880") != -1 :
+                expected = expected.replace("http://localhost:8880", self.config['layout'] + "websocket/tests")
         if not os.path.exists(expected) :
             dir = self.config['layout'] + "/platform/bal/" + self.config['platform'] + "/"
             file = dir + expected[len(self.config['layout']):]
