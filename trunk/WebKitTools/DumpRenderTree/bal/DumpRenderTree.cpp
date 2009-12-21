@@ -382,7 +382,7 @@ static void dumpHistoryItem(WebHistoryItem* item, int indent, bool current)
         return;
 
     if (strncmp("file://", url, 7) == 0) {
-        char* pos = strstr(url, "/LayoutTests/");
+        const char* pos = strstr(url, "/LayoutTests/");
         if (pos == NULL)
             return;
 
