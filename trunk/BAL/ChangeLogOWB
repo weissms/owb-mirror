@@ -1,3 +1,14 @@
+2009-12-21  Gilles Bertal  <gbertal@pleyo.com>
+
+        Make sure the stop(), setAspect() and playSpeeds() methods
+        are defined for both CEHTML video and DAE tuner.
+
+        * Media/WebCore/WK/BCMediaPlayerPrivateWK.h:
+        (WebCore::MediaPlayerPrivateInterface::setAutobuffer):
+        (WebCore::MediaPlayerPrivateInterface::stop):
+        (WebCore::MediaPlayerPrivateInterface::setAspect):
+        (WebCore::MediaPlayerPrivateInterface::playSpeeds):
+
 2009-12-18  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Not reviewed.

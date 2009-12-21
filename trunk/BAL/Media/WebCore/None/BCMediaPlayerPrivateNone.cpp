@@ -367,7 +367,7 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     context->restore();
 }
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
 void MediaPlayerPrivate::stop()
 {
 }

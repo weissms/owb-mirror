@@ -158,11 +158,11 @@ add_custom_command(
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf
 )
 
-if(ENABLE_CEHTML_VIDEO)
+if(ENABLE_CEHTML)
     set(CEHTML_ATTRS --attrsCEHTML)
     set(CEHTML_FILE ${OWB_SOURCE_DIR}/BAL/CEHTML/WebCore/Generic/CEHTMLAttributeNames.in)
     set(CEHTML_EXTENSIONS ${CEHTML_ATTRS} ${CEHTML_FILE})
-endif(ENABLE_CEHTML_VIDEO)
+endif(ENABLE_CEHTML)
 
 if(ENABLE_DAE)
     set(DAE_ATTRS --attrsDAE)

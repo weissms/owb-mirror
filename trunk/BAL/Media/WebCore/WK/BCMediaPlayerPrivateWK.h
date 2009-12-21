@@ -106,11 +106,11 @@ public:
 
     virtual void paintCurrentFrameInContext(GraphicsContext* c, const IntRect& r) { paint(c, r); }
 
-    virtual void setAutobuffer(bool) { };
+    virtual void setAutobuffer(bool) { }
 
-#if ENABLE(CEHTML_VIDEO)
-    virtual void stop() { };
-    virtual void setAspect(MediaPlayer::VideoScale) { };
+#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+    virtual void stop() { }
+    virtual void setAspect(MediaPlayer::VideoScale) { }
     virtual WTF::Vector<float> playSpeeds() = 0;
 #endif
 

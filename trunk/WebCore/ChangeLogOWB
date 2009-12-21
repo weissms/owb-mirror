@@ -1,3 +1,9 @@
+2009-12-21  Gilles Bertal  <gbertal@pleyo.com>
+
+        Make sure the CEHTML attributes are generated when CEHTML is enabled.
+
+        * CMakeLists.txt:
+
 2009-12-20  Mario Bensi  <mbensi@pleyo.com>
 
         fix qt build when NPAPI is set to OFF.
