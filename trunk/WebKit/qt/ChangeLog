@@ -1,3 +1,55 @@
+2009-12-21  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Fix infinite recursion in touch mocking.
+
+        Don't send the fake touch events to the view, as that'll trigger the
+        event filter again.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::sendTouchEvent):
+
+2009-12-18  Ariya Hidayat  <ariya.hidayat@gmail.com>
+
+        Build fix, not reviewed.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::setTouchMocking): Leave setTouchMocking as an empty
+        function for Qt < 4.6 so that moc still creates a slot for that.
+        Otherwise, it would have generated a linker error.
+
+2009-12-18  Adam Roben  <aroben@apple.com>
+
+        Qt build fix
+
+        * Api/qwebpage.cpp: Added #include.
+
+2009-12-18  Adam Roben  <aroben@apple.com>
+
+        Qt build fix
+
+        * Api/qwebpage.cpp:
+        Added #includes.
+
+2009-12-18  Joe Ligman  <joseph.ligman@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Add new API to QWebFrame to scrollRecursively starting with any css overflow 
+        then checking current frame and then ancestors
+        https://bugs.webkit.org/show_bug.cgi?id=32668
+
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::scrollOverflow):
+        (QWebFrame::scrollRecursively):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        * tests/qwebframe/qwebframe.qrc:
+        * tests/qwebframe/testiframe.html: Added.
+        * tests/qwebframe/testiframe2.html: Added.
+        * tests/qwebframe/tst_qwebframe.cpp:
+
 2009-12-18  Kim Grönholm  <kim.gronholm@nomovok.com>
 
         Reviewed by Simon Hausmann.

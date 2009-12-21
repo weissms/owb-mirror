@@ -28,6 +28,7 @@
 
 #include "config.h"
 
+#include "HashMap.h"
 #include "StringHash.h"
 #include "PlatformString.h"
 

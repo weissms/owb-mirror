@@ -32,6 +32,7 @@
 
 #include "CSSStyleSelector.h"
 #include "CSSStyleSheet.h"
+#include "Chrome.h"
 #if 0
 #include "ChromeClientQt.h"
 #endif

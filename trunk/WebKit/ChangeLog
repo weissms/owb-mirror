@@ -1,3 +1,17 @@
+2009-12-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Add Mac WebKit side of the client based geolocation provider.
+
+        * WebKit.xcodeproj/project.pbxproj:
+
+2009-12-18  Dan Bernstein  <mitz@apple.com>
+
+        Updated localizable strings after r52368
+
+        * English.lproj/Localizable.strings:
+
 2009-12-18  John Sullivan  <sullivan@apple.com>
 
         Brought this file up to date, sans review.

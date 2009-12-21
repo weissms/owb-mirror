@@ -630,6 +630,14 @@ WebInspector.documentClick = function(event)
 
 WebInspector.documentKeyDown = function(event)
 {
+    if (this.currentFocusElement && this.currentFocusElement.handleKeyEvent) {
+        this.currentFocusElement.handleKeyEvent(event);
+        if (event.handled) {
+            event.preventDefault();
+            return;
+        }
+    }
+
     if (this.currentPanel && this.currentPanel.handleShortcut) {
         this.currentPanel.handleShortcut(event);
         if (event.handled) {
@@ -1227,6 +1235,12 @@ WebInspector.didCommitLoad = function()
 {
     // Cleanup elements panel early on inspected page refresh.
     WebInspector.setDocument(null);
+}
+
+WebInspector.updateConsoleMessageExpiredCount = function(count)
+{
+    var message = String.sprintf(WebInspector.UIString("%d console messages are not shown."), count);
+    WebInspector.console.addMessage(new WebInspector.ConsoleTextMessage(message, WebInspector.ConsoleMessage.MessageLevel.Warning));
 }
 
 WebInspector.addConsoleMessage = function(payload)

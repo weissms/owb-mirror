@@ -1,3 +1,355 @@
+2009-12-21  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by David Levin.
+
+        Check one space before end of line comments.
+        https://bugs.webkit.org/show_bug.cgi?id=32597
+        
+        Fix to check one space before end of line comments in whitespace and build/header_guard.
+        Also fix build/header_guard to use WebKit header guard defines.
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-12-20  Chris Jerdonek  <chris.jerdonek@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        Created "style" folder for code supporting check-webkit-style.
+
+        * Scripts/modules/style: Added.
+
+2009-12-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION: error when running commit-queue
+        https://bugs.webkit.org/show_bug.cgi?id=32806
+
+        Fix typo and add test!
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/bugzilla_unittest.py:
+
+2009-12-20  Adam Barth  <abarth@webkit.org>
+
+        [bzt] Optimize status updates for new dashboard
+        https://bugs.webkit.org/show_bug.cgi?id=32797
+
+        This patch makes the queues slightly more chatty with the web service.
+        Also, this patch introduces some testing for the queues!
+
+        * Scripts/modules/commands/early_warning_system.py:
+        * Scripts/modules/commands/early_warning_system_unittest.py: Added.
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/commands/queues_unittest.py:
+        * Scripts/modules/commands/queuestest.py: Added.
+        * Scripts/modules/mock_bugzillatool.py:
+        * Scripts/modules/patchcollection.py:
+        * Scripts/modules/queueengine.py:
+        * Scripts/run-webkit-unittests:
+
+2009-12-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Prepare QueueStatusServer for new status messages
+        https://bugs.webkit.org/show_bug.cgi?id=32805
+
+        * QueueStatusServer/handlers/recentstatus.py:
+        * QueueStatusServer/index.html: Removed.
+        * QueueStatusServer/model/attachment.py:
+        * QueueStatusServer/model/queues.py: Added.
+        * QueueStatusServer/templates/recentstatus.html: Added.
+
+2009-12-20  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [check-webkit-style] static_cast is not misnamed!
+        https://bugs.webkit.org/show_bug.cgi?id=32796
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-12-20  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] Failing test platform/gtk/editing/pasteboard/middle-button-paste.html
+        https://bugs.webkit.org/show_bug.cgi?id=32788
+
+        Do not increase the click count if we are using a different button.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+
+2009-12-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [QueueStatusServer] Add a per-patch details page
+        https://bugs.webkit.org/show_bug.cgi?id=32784
+
+        This is a first cut at a per-patch details page.  I'm sure we'll have
+        to iterate.
+
+        * QueueStatusServer/filters/webkit_extras.py:
+        * QueueStatusServer/handlers/patch.py: Added.
+        * QueueStatusServer/index.yaml:
+        * QueueStatusServer/main.py:
+        * QueueStatusServer/model/attachment.py:
+        * QueueStatusServer/stylesheets/dashboard.css:
+        * QueueStatusServer/templates/dashboard.html:
+        * QueueStatusServer/templates/patch.html: Added.
+
+2009-12-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Use memcache to make dashboard to fast
+        https://bugs.webkit.org/show_bug.cgi?id=32780
+
+        * QueueStatusServer/app.yaml:
+        * QueueStatusServer/handlers/dashboard.py:
+        * QueueStatusServer/handlers/updatestatus.py:
+        * QueueStatusServer/model/attachment.py: Added.
+
+2009-12-19  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Provide an example implementation for printing under Windows.
+        http://bugs.webkit.org/show_bug.cgi?id=32504.`
+
+        * WinLauncher/PrintWebUIDelegate.cpp: Added.
+        (PrintWebUIDelegate::QueryInterface):
+        (PrintWebUIDelegate::AddRef):
+        (PrintWebUIDelegate::Release):
+        (PrintWebUIDelegate::webViewPrintingMarginRect):
+        * WinLauncher/PrintWebUIDelegate.h: Added.
+        (PrintWebUIDelegate::PrintWebUIDelegate):
+        (PrintWebUIDelegate::createWebViewWithRequest):
+        (PrintWebUIDelegate::webViewShow):
+        (PrintWebUIDelegate::webViewClose):
+        (PrintWebUIDelegate::webViewFocus):
+        (PrintWebUIDelegate::webViewUnfocus):
+        (PrintWebUIDelegate::webViewFirstResponder):
+        (PrintWebUIDelegate::makeFirstResponder):
+        (PrintWebUIDelegate::setStatusText):
+        (PrintWebUIDelegate::webViewStatusText):
+        (PrintWebUIDelegate::webViewAreToolbarsVisible):
+        (PrintWebUIDelegate::setToolbarsVisible):
+        (PrintWebUIDelegate::webViewIsStatusBarVisible):
+        (PrintWebUIDelegate::setStatusBarVisible):
+        (PrintWebUIDelegate::webViewIsResizable):
+        (PrintWebUIDelegate::setResizable):
+        (PrintWebUIDelegate::setFrame):
+        (PrintWebUIDelegate::webViewFrame):
+        (PrintWebUIDelegate::setContentRect):
+        (PrintWebUIDelegate::webViewContentRect):
+        (PrintWebUIDelegate::runJavaScriptAlertPanelWithMessage):
+        (PrintWebUIDelegate::runJavaScriptConfirmPanelWithMessage):
+        (PrintWebUIDelegate::runJavaScriptTextInputPanelWithPrompt):
+        (PrintWebUIDelegate::runBeforeUnloadConfirmPanelWithMessage):
+        (PrintWebUIDelegate::runOpenPanelForFileButtonWithResultListener):
+        (PrintWebUIDelegate::mouseDidMoveOverElement):
+        (PrintWebUIDelegate::contextMenuItemsForElement):
+        (PrintWebUIDelegate::validateUserInterfaceItem):
+        (PrintWebUIDelegate::shouldPerformAction):
+        (PrintWebUIDelegate::dragDestinationActionMaskForDraggingInfo):
+        (PrintWebUIDelegate::willPerformDragDestinationAction):
+        (PrintWebUIDelegate::dragSourceActionMaskForPoint):
+        (PrintWebUIDelegate::willPerformDragSourceAction):
+        (PrintWebUIDelegate::contextMenuItemSelected):
+        (PrintWebUIDelegate::hasCustomMenuImplementation):
+        (PrintWebUIDelegate::trackCustomPopupMenu):
+        (PrintWebUIDelegate::measureCustomMenuItem):
+        (PrintWebUIDelegate::drawCustomMenuItem):
+        (PrintWebUIDelegate::addCustomMenuDrawingData):
+        (PrintWebUIDelegate::cleanUpCustomMenuDrawingData):
+        (PrintWebUIDelegate::canTakeFocus):
+        (PrintWebUIDelegate::takeFocus):
+        (PrintWebUIDelegate::registerUndoWithTarget):
+        (PrintWebUIDelegate::removeAllActionsWithTarget):
+        (PrintWebUIDelegate::setActionTitle):
+        (PrintWebUIDelegate::undo):
+        (PrintWebUIDelegate::redo):
+        (PrintWebUIDelegate::canUndo):
+        (PrintWebUIDelegate::canRedo):
+        (PrintWebUIDelegate::printFrame):
+        (PrintWebUIDelegate::ftpDirectoryTemplatePath):
+        (PrintWebUIDelegate::webViewHeaderHeight):
+        (PrintWebUIDelegate::webViewFooterHeight):
+        (PrintWebUIDelegate::drawHeaderInRect):
+        (PrintWebUIDelegate::drawFooterInRect):
+        (PrintWebUIDelegate::canRunModal):
+        (PrintWebUIDelegate::createModalDialog):
+        (PrintWebUIDelegate::runModal):
+        (PrintWebUIDelegate::isMenuBarVisible):
+        (PrintWebUIDelegate::setMenuBarVisible):
+        (PrintWebUIDelegate::runDatabaseSizeLimitPrompt):
+        (PrintWebUIDelegate::paintCustomScrollbar):
+        (PrintWebUIDelegate::paintCustomScrollCorner):
+        * WinLauncher/WinLauncher.cpp: Add new UI delegate for print support.
+        (WinLauncherWebHost::updateAddressBar): check-webkit-style fixes.
+        (WinLauncherWebHost::QueryInterface): check-webkit-style fixes.
+        (WinLauncherWebHost::AddRef): check-webkit-style fixes.
+        (WinLauncherWebHost::Release): check-webkit-style fixes.
+        (resizeSubViews): check-webkit-style fixes.
+        (_tWinMain): check-webkit-style fixes.
+        (MyRegisterClass): check-webkit-style fixes.
+        (InitInstance): check-webkit-style fixes.
+        (AbortProc): New print support function.
+        (getPrinterDC): New print support function.
+        (initDocStruct): New print support function.
+        (PrintView): New printing implementation.
+        (WndProc): Add support for printing.
+        (MyEditProc): check-webkit-style fixes.
+        (About): check-webkit-style fixes.
+        (loadURL): check-webkit-style fixes.
+        * WinLauncher/WinLauncher.h:
+        (WinLauncherWebHost::WinLauncherWebHost):
+        (WinLauncherWebHost::didStartProvisionalLoadForFrame):
+        (WinLauncherWebHost::didReceiveServerRedirectForProvisionalLoadForFrame):
+        (WinLauncherWebHost::didFailProvisionalLoadWithError):
+        (WinLauncherWebHost::didCommitLoadForFrame):
+        (WinLauncherWebHost::didReceiveTitle):
+        (WinLauncherWebHost::didReceiveIcon):
+        (WinLauncherWebHost::didFinishLoadForFrame):
+        (WinLauncherWebHost::didFailLoadWithError):
+        (WinLauncherWebHost::didChangeLocationWithinPageForFrame):
+        (WinLauncherWebHost::willPerformClientRedirectToURL):
+        (WinLauncherWebHost::didCancelClientRedirectForFrame):
+        (WinLauncherWebHost::willCloseFrame):
+        (WinLauncherWebHost::windowScriptObjectAvailable):
+        * WinLauncher/WinLauncher.rc: Add menu entry for printing.
+        * WinLauncher/WinLauncher.vcproj: Add new files.
+        * WinLauncher/resource.h: Add menu entry for printing.
+
+2009-12-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Tweak the CSS to make the dashboard prettier.
+
+        * QueueStatusServer/stylesheets/dashboard.css:
+        * QueueStatusServer/templates/dashboard.html:
+
+2009-12-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        QueueStatusServer needs a human readable dashboard
+        https://bugs.webkit.org/show_bug.cgi?id=32769
+
+        Here is a first cut at the dashboard.  There's a lot left to do.
+
+        * QueueStatusServer/filters/webkit_extras.py:
+        * QueueStatusServer/handlers/dashboard.py: Added.
+        * QueueStatusServer/handlers/patchstatus.py:
+        * QueueStatusServer/handlers/recentstatus.py:
+        * QueueStatusServer/handlers/showresults.py:
+        * QueueStatusServer/handlers/statusbubble.py:
+        * QueueStatusServer/handlers/updatestatus.py:
+        * QueueStatusServer/main.py:
+        * QueueStatusServer/model/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+        * QueueStatusServer/model/queuestatus.py: Renamed from WebKitTools/QueueStatusServer/model.py.
+        * QueueStatusServer/stylesheets/dashboard.css: Added.
+        * QueueStatusServer/templates/dashboard.html: Added.
+        * QueueStatusServer/templates/statusbubble.html: Renamed from WebKitTools/QueueStatusServer/status_bubble.html.
+        * QueueStatusServer/templates/updatestatus.html: Renamed from WebKitTools/QueueStatusServer/update_status.html.
+
+2009-12-19  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32462
+
+        Added --inspector-frontend flag to build-webkit to copy any changes
+        to the inspector front-end files to the built WebCore framework. This
+        will make inspector development more consistent with the rest of
+        WebKit development.
+
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
+2009-12-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed fixes for me being terrible at python.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/run-webkit-unittests:
+
+2009-12-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Split QueueStatus server into modules
+        https://bugs.webkit.org/show_bug.cgi?id=32768
+
+        One monolithic file is no good.
+
+        * QueueStatusServer/app.yaml:
+        * QueueStatusServer/handlers/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+        * QueueStatusServer/handlers/patchstatus.py: Added.
+        * QueueStatusServer/handlers/recentstatus.py: Added.
+        * QueueStatusServer/handlers/showresults.py: Added.
+        * QueueStatusServer/handlers/statusbubble.py: Added.
+        * QueueStatusServer/handlers/updatestatus.py: Added.
+        * QueueStatusServer/main.py: Added.
+        * QueueStatusServer/model.py: Added.
+        * QueueStatusServer/queue_status.py: Removed.
+
+2009-12-18  Adam Barth  <abarth@webkit.org>
+
+        Rubber stamped by Eric Seidel.
+
+        Renamed WorkQueue to QueueEngine.  WorkQueue is not a queue.
+
+        * Scripts/modules/commands/queues.py:
+        * Scripts/modules/queueengine.py: Added.
+        * Scripts/modules/queueengine_unittest.py: Added.
+        * Scripts/modules/stepsequence.py:
+        * Scripts/modules/workqueue.py: Removed.
+        * Scripts/modules/workqueue_unittest.py: Removed.
+
+2009-12-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add watches for EWS
+        https://bugs.webkit.org/show_bug.cgi?id=32767
+
+        dglazkov wanted to be added.
+
+        * Scripts/modules/bugzilla.py:
+        * Scripts/modules/commands/early_warning_system.py:
+        * Scripts/modules/commands/queues.py:
+
+2009-12-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        move bugzilla.py off of urllib2
+        https://bugs.webkit.org/show_bug.cgi?id=32729
+
+        * Scripts/modules/bugzilla.py: use mechanize for all url fetching.
+
+2009-12-18  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Rubber-stamped by Xan Lopez.
+
+        [GTK] New events (pageshow and pagehide) tests failing
+        https://bugs.webkit.org/show_bug.cgi?id=28823
+
+        Original patch by Jan Michael Alonzo.
+
+        Disable page cache for tests.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (copyWebSettingKey):
+        (LayoutTestController::overridePreference):
+
 2009-12-18  Andreas Kling  <andreas.kling@nokia.com>
 
         Reviewed by Simon Hausmann.

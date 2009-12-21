@@ -38,10 +38,7 @@ from modules.executive import ScriptError
 from modules.logging import log, OutputTee
 from modules.statusbot import StatusBot
 
-class WorkQueueDelegate:
-    def queue_name(self):
-        raise NotImplementedError, "subclasses must implement"
-
+class QueueEngineDelegate:
     def queue_log_path(self):
         raise NotImplementedError, "subclasses must implement"
 
@@ -68,7 +65,7 @@ class WorkQueueDelegate:
         raise NotImplementedError, "subclasses must implement"
 
 
-class WorkQueue:
+class QueueEngine:
     def __init__(self, name, delegate):
         self._name = name
         self._delegate = delegate

@@ -77,6 +77,7 @@
 #include "KeyboardCodes.h"
 #include <PlatformString.h>
 #include <Cache.h>
+#include <Chrome.h>
 #include <ContextMenu.h>
 #include <ContextMenuController.h>
 #include <CrossOriginPreflightResultCache.h>

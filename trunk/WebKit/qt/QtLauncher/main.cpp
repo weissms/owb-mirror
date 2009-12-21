@@ -242,7 +242,7 @@ public:
 
         QTouchEvent touchEv(type);
         touchEv.setTouchPoints(touchPoints);
-        QCoreApplication::sendEvent(view, &touchEv);
+        QCoreApplication::sendEvent(view->page(), &touchEv);
 
         // After sending the event, remove all touchpoints that were released
         if (touchPoints[0].state() == Qt::TouchPointReleased)
@@ -464,12 +464,12 @@ protected slots:
         }
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
     void setTouchMocking(bool on)
     {
+#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
         touchMocking = on;
-    }
 #endif
+    }
 
 public slots:
 

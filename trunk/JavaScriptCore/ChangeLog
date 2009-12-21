@@ -1,3 +1,186 @@
+2009-12-21  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] Compile warning from line 29 of GRefPtr.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=32703
+
+        Fix memory leak and compiler warning in GRefPtr GHashTable template
+        specialization.
+
+        * wtf/gtk/GRefPtr.cpp:
+        (WTF::refGPtr):
+
+2009-12-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Move some build decisions from Qt build system into source files
+        https://bugs.webkit.org/show_bug.cgi?id=31956
+
+        * JavaScriptCore.pri: Compile files unconditionally
+        * jit/ExecutableAllocatorPosix.cpp: Guard with PLATFORM(UNIX) && !PLATFORM(SYMBIAN)
+        * jit/ExecutableAllocatorWin.cpp: Guard with PLATFORM(WIN_OS)
+        * runtime/MarkStackPosix.cpp: Guard with PLATFORM(UNIX) && !PLATFORM(SYMBIAN)
+        * runtime/MarkStackSymbian.cpp: Guard with PLATFORM(SYMBIAN)
+        * runtime/MarkStackWin.cpp: Guard with PLATFORM(WIN_OS)
+        * wtf/Platform.h: Guard ENABLE_JSC_MULTIPLE_THREADS with ENABLE_SINGLE_THREADED for the Qt port
+        * wtf/ThreadingNone.cpp: Guard with ENABLE(SINGLE_THREADED)
+        * wtf/qt/ThreadingQt.cpp: Guard with !ENABLE(SINGLE_THREADED)
+
+2009-12-18  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add createNonCopying method to UString to make replace constructor passed bool,
+        to make behaviour more explicit.  Add createFromUTF8 to UString (wrapping method
+        on UString::Rep), since other cases of transliteration (e.g.  from ascii) are
+        performed in UString constructors.  Add/use setHash & size() accessors on Rep,
+        rather than accessing _hash/len directly.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::OpaqueJSClass):
+        * API/OpaqueJSString.cpp:
+        (OpaqueJSString::ustring):
+        * JavaScriptCore.exp:
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::equal):
+        (JSC::CStringTranslator::translate):
+        (JSC::UCharBufferTranslator::translate):
+        (JSC::Identifier::addSlowCase):
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        * runtime/JSString.h:
+        (JSC::JSString::Rope::Fiber::refAndGetLength):
+        (JSC::JSString::Rope::append):
+        * runtime/StringBuilder.h:
+        (JSC::StringBuilder::release):
+        * runtime/StringConstructor.cpp:
+        (JSC::stringFromCharCodeSlowCase):
+        * runtime/StringPrototype.cpp:
+        (JSC::substituteBackreferencesSlow):
+        (JSC::stringProtoFuncToLowerCase):
+        (JSC::stringProtoFuncToUpperCase):
+        (JSC::stringProtoFuncFontsize):
+        (JSC::stringProtoFuncLink):
+        * runtime/UString.cpp:
+        (JSC::UString::UString):
+        (JSC::UString::createNonCopying):
+        (JSC::UString::createFromUTF8):
+        * runtime/UString.h:
+        (JSC::UString::Rep::setHash):
+        (JSC::UString::~UString):
+        (JSC::makeString):
+
+2009-12-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich and Gavin Barraclough.
+        
+        Changed Register constructors to assignment operators, to streamline
+        moving values into registers. (In theory, there's no difference between
+        the two, since the constructor should just inline away, but there seems
+        to be a big difference in the addled mind of the GCC optimizer.)
+
+        In the interpreter, this is a 3.5% SunSpider speedup and a 1K-2K
+        reduction in stack usage per privateExecute stack frame.
+
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::setCalleeArguments):
+        (JSC::ExecState::setCallerFrame):
+        (JSC::ExecState::setScopeChain):
+        (JSC::ExecState::init):
+        (JSC::ExecState::setArgumentCount):
+        (JSC::ExecState::setCallee):
+        (JSC::ExecState::setCodeBlock): Added a little bit of casting so these
+        functions could use the new Register assignment operators.
+
+        * interpreter/Register.h:
+        (JSC::Register::withInt):
+        (JSC::Register::Register):
+        (JSC::Register::operator=): Swapped in assignment operators for constructors.
+
+2009-12-18  Yongjun Zhang  <yongjun.zhang@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32713
+        [Qt] make wtf/Assertions.h compile in winscw compiler.
+
+        Add string arg before ellipsis to help winscw compiler resolve variadic
+        macro definitions in wtf/Assertions.h. 
+
+        * wtf/Assertions.h:
+
+2009-12-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fixed intermittent failure seen on Windows buildbot, and in other JSC
+        API clients.
+        
+        Added a WeakGCPtr class and changed OpaqueJSClass::cachedPrototype to
+        use it, to avoid vending a stale object as a prototype.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClassContextData::OpaqueJSClassContextData):
+        (OpaqueJSClass::prototype):
+        * API/JSClassRef.h: Use WeakGCPtr.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/WeakGCPtr.h: Added.
+        (JSC::WeakGCPtr::WeakGCPtr):
+        (JSC::WeakGCPtr::get):
+        (JSC::WeakGCPtr::clear):
+        (JSC::WeakGCPtr::operator*):
+        (JSC::WeakGCPtr::operator->):
+        (JSC::WeakGCPtr::operator!):
+        (JSC::WeakGCPtr::operator bool):
+        (JSC::WeakGCPtr::operator UnspecifiedBoolType):
+        (JSC::WeakGCPtr::assign):
+        (JSC::::operator):
+        (JSC::operator==):
+        (JSC::operator!=):
+        (JSC::static_pointer_cast):
+        (JSC::const_pointer_cast):
+        (JSC::getPtr): Added WeakGCPtr to the project.
+
+2009-12-18  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32720
+
+        * JavaScriptCore.exp:
+            - Remove exports for UString::append
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+            - Make StringBuilder a private header (was project).
+
+2009-12-18  Martin Robinson  <martin.james.robinson@gmail.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] GRefPtr does not take a reference when assigned a raw pointer
+        https://bugs.webkit.org/show_bug.cgi?id=32709
+
+        Ensure that when assigning a raw pointer to a GRefPtr, the reference
+        count is incremented. Also remove the GRefPtr conversion overload as
+        GRefPtr types have necessarily incompatible reference counting.
+
+        * wtf/gtk/GRefPtr.h:
+        (WTF::GRefPtr::operator=):
+
+2009-12-18  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Clean up the qmake build system to distinguish between trunk builds and package builds
+
+        https://bugs.webkit.org/show_bug.cgi?id=32716
+
+        * pcre/pcre.pri: Use standalone_package instead of QTDIR_build
+
 2009-12-18  Mark Rowe  <mrowe@apple.com>
 
         Build fix.  Disable debug variants of WebKit frameworks.

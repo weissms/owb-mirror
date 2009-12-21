@@ -30,6 +30,7 @@
 #define CertificateCache_h
 
 #include "CertificateBackingStore.h"
+#include "HashMap.h"
 #include "PlatformString.h"
 #include "StringHash.h"
 
