@@ -30,8 +30,10 @@
 #define WebWidgetEngineDelegate_h
 
 #include "SharedObject.h"
+#include <vector>
 
 class WebFrame;
+class WidgetsData;
 
 class WebWidgetEngineDelegate : public SharedObject<WebWidgetEngineDelegate> {
 
@@ -44,6 +46,8 @@ public:
     virtual const char* receiveWidget(const char* url, WebFrame*) = 0;
 
     virtual int deleteWidget(const char* name, WebFrame*) = 0;
+    virtual WidgetsData* getInfo(const char* name, WebFrame* frame) = 0;
+    virtual std::vector<WidgetsData*> getAll(WebFrame* frame) = 0;
 };
 
 #endif // WebWidgetEngineDelegate_h
