@@ -48,7 +48,7 @@ WebWorkersPrivate::~WebWorkersPrivate()
 {
 }
 
-uint32_t WebWorkersPrivate::workerThreadCount()
+unsigned int WebWorkersPrivate::workerThreadCount()
 {
 #if ENABLE(WORKERS)
     return WebCore::WorkerThread::workerThreadCount();

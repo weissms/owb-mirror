@@ -56,15 +56,13 @@ public:
     /**
      * get worker thread number
      */
-    virtual uint32_t workerThreadCount();
+    virtual unsigned int workerThreadCount();
 private:
 
     /**
      * WebWorkersPrivate constructor
      */
     WebWorkersPrivate();
-
-    uint32_t m_refCount;
 };
 
 #endif // WebWorkerPrivate_h
