@@ -84,7 +84,7 @@ class RunTests :
             if not str(e) == 'timeout':  # something else went wrong ..
                 self.__updateProgressBar()
                 if self.config['verbose'] :
-                    print test[test.rfind("/") + 1:] + ": timeout\n"
+                    print "\n" + test[test.rfind("/") + 1:] + ": timeout"
         signal.alarm(0)
         if not self.timeout :
             outprint = outTemp
@@ -97,7 +97,7 @@ class RunTests :
         if outprint == "" :
             if not self.timeout :
                 if self.config['verbose'] :
-                    print test[test.rfind("/") + 1:] + ": crashed\n"
+                    print "\n" + test[test.rfind("/") + 1:] + ": crashed"
                 self.__updateProgressBar() 
                 self.resultCrashed[test] =  [self.time, "", ""]
                 return
@@ -120,7 +120,7 @@ class RunTests :
             else :
                 if not self.timeout :
                     if self.config['verbose'] :
-                        print test[test.rfind("/") + 1:] + ": failed\n"
+                        print "\n" + test[test.rfind("/") + 1:] + ": failed"
                     self.__updateProgressBar() 
                     if (file.find("platform") == -1) :
                         self.resultFailed[test] = [self.time, diff, file]
@@ -172,11 +172,11 @@ class RunTests :
         expected = test.replace(ext, "-expected.txt")
         if test.find("http://") != -1 :
             if test.find("8000") != -1 :
-                expected = expected.replace("http://127.0.0.1:8000", self.config['layout'] + "http/tests")
+                expected = expected.replace("http://127.0.0.1:8000", self.config['layout'] + "/http/tests")
             if test.find("8443") != -1 :
-                expected = expected.replace("http://127.0.0.1:8443", self.config['layout'] + "http/tests")
+                expected = expected.replace("http://127.0.0.1:8443", self.config['layout'] + "/http/tests")
             if test.find("8880") != -1 :
-                expected = expected.replace("http://127.0.0.1:8880", self.config['layout'] + "websocket/tests")
+                expected = expected.replace("http://127.0.0.1:8880", self.config['layout'] + "/websocket/tests")
         if not os.path.exists(expected) :
             dir = self.config['layout'] + "/platform/bal/" + self.config['platform'] + "/"
             file = dir + expected[len(self.config['layout']):]
