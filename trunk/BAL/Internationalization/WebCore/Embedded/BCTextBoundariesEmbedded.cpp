@@ -41,43 +41,23 @@ namespace WebCore {
 
 int findNextWordFromIndex(const UChar* chars, int len, int position, bool forward)
 {
-    /*UBreakIterator* it = wordBreakIterator(chars, len);
-
-    if (forward) {
-        position = ubrk_following(it, position);
-        while (position != UBRK_DONE) {
-            // We stop searching when the character preceeding the break
-            // is alphanumeric.
-            if (position < len && u_isalnum(chars[position - 1]))
-                return position;
-
-            position = ubrk_following(it, position);
-        }
-
-        return len;
-    } else {
-        position = ubrk_preceding(it, position);
-        while (position != UBRK_DONE) {
-            // We stop searching when the character following the break
-            // is alphanumeric.
-            if (position > 0 && u_isalnum(chars[position]))
-                return position;
-
-            position = ubrk_preceding(it, position);
-        }
-
-        return 0;
-    }*/
-    return 0;
+    TextBreakIterator* it = wordBreakIterator(chars, len);
+    
+    return (forward) ? textBreakFollowing(it, position) : textBreakPreceding(it, position);
 }
 
 void findWordBoundary(const UChar* chars, int len, int position, int* start, int* end)
 {
-    /*UBreakIterator* it = wordBreakIterator(chars, len);
-    *end = ubrk_following(it, position);
+    TextBreakIterator* it = wordBreakIterator(chars, len);
+    
+    *end = textBreakFollowing(it, position);
     if (*end < 0)
-        *end = ubrk_last(it);
-    *start = ubrk_previous(it);*/
+        *end = textBreakLast(it);
+    
+    *start = textBreakPrevious(it);
+    
+    if (*start < 0)
+        *start = 0;
 }
 
 } // namespace WebCore

@@ -37,6 +37,25 @@
 #include <wtf/Assertions.h>
 
 namespace WebCore {
+    
+static bool isWordBreakChar(const UChar c)
+{
+    switch(c) {
+    case ' ':
+    case '\t':
+    case '\n':
+    case ',':
+    case ';':
+    case '.':
+    case ':':
+    case '"':
+    case '?':
+    case '!':
+        return true;
+    }
+    
+    return false;
+}
 
     class TextBreakIterator
     {
@@ -45,6 +64,10 @@ namespace WebCore {
         virtual int first() = 0;
         virtual int next() = 0;
         virtual int previous() = 0;
+        inline int last() {
+            return preceding(length - 1);
+        }
+        
         inline int following(int pos) {
             currentPos = pos;
             return next();
@@ -81,42 +104,35 @@ namespace WebCore {
     }
 
     int WordBreakIterator::next() {
-        if (currentPos == length) {
+        if (currentPos >= length) {
             currentPos = -1;
             return currentPos;
         }
-        bool haveSpace = false;
-        UChar c(' ');
         while (currentPos < length) {
-            if (haveSpace && !(string[currentPos] == 0x20) )
+            if (isWordBreakChar(string[currentPos]))
                 break;
-            if (string[currentPos] == 0x20)
-                haveSpace = true;
             ++currentPos;
         }
         return currentPos;
     }
     int WordBreakIterator::previous() {
-        if (currentPos == 0) {
+        if (currentPos <= 0) {
             currentPos = -1;
             return currentPos;
         }
-        bool haveSpace = false;
         while (currentPos > 0) {
-            if (haveSpace && !(string[currentPos] == 0x20) )
+            if (isWordBreakChar(string[currentPos]))
                 break;
-            if (string[currentPos] == 0x20)
-                haveSpace = true;
             --currentPos;
         }
-        return currentPos;
+        return (currentPos > 0) ? ++currentPos : -1;
     }
 
     int CharBreakIterator::first() {
         currentPos = 0;
         return currentPos;
     }
-
+    
     int CharBreakIterator::next() {
         if (currentPos == length)
             return -1;
@@ -182,9 +198,19 @@ int textBreakFirst(TextBreakIterator* bi)
     return bi->first();
 }
 
+int textBreakLast(TextBreakIterator* bi)
+{
+    return bi->last();
+}
+
 int textBreakNext(TextBreakIterator* bi)
 {
     return bi->next();
+}
+
+int textBreakPrevious(TextBreakIterator* bi)
+{
+    return bi->previous();
 }
 
 int textBreakPreceding(TextBreakIterator* bi, int pos)

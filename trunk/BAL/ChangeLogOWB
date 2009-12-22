@@ -1,3 +1,20 @@
+2009-12-22  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fix for a crash that used to occur w/ embedded I18N when double-clicking
+        on a text area in order to select a word.
+
+        * Internationalization/WebCore/Embedded/BCTextBoundariesEmbedded.cpp:
+        (WebCore::findNextWordFromIndex):
+        (WebCore::findWordBoundary):
+        * Internationalization/WebCore/Embedded/BCTextBreakIteratorEmbedded.cpp:
+        (WebCore::isWordBreakChar):
+        (WebCore::TextBreakIterator::last):
+        (WebCore::WordBreakIterator::next):
+        (WebCore::WordBreakIterator::previous):
+        (WebCore::textBreakLast):
+        (WebCore::textBreakPrevious):
+        * Internationalization/WebCore/Embedded/BCTextBreakIteratorEmbedded.h:
+
 2009-12-21  Mario Bensi  <mbensi@pleyo.com>
 
         create correct url for http test.
