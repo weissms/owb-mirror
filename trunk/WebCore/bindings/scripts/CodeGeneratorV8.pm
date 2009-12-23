@@ -156,7 +156,7 @@ sub AddIncludesForType
 
     # When we're finished with the one-file-per-class
     # reorganization, we won't need these special cases.
-    if ($codeGenerator->IsPrimitiveType($type) or AvoidInclusionOfType($type)) {
+    if ($codeGenerator->IsPrimitiveType($type) or AvoidInclusionOfType($type) or $type eq "Date") {
     } elsif ($type =~ /SVGPathSeg/) {
         $joinedName = $type;
         $joinedName =~ s/Abs|Rel//;
@@ -282,6 +282,16 @@ END
 END
     }
 
+
+    foreach my $function (@{$dataNode->functions}) {
+        my $name = $function->signature->name;
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> ${name}Callback(const v8::Arguments&);
+END
+    }
+
+    GenerateSpecialCaseHeaderDeclarations($dataNode);
+    
     push(@headerContent, <<END);
 
  private:
@@ -298,6 +308,14 @@ END
     push(@headerContent, "#endif // ${conditionalString}\n\n") if $conditionalString;
 }
 
+sub GenerateSpecialCaseHeaderDeclarations
+{
+    my $dataNode = shift;
+    
+    if ($dataNode->name eq "HTMLCollection" || $dataNode->name eq "HTMLAllCollection") {
+        push(@headerContent, "  static v8::Handle<v8::Value> callAsFunctionCallback(const v8::Arguments&);\n");
+    }
+}
 
 sub GenerateSetDOMException
 {
@@ -838,12 +856,7 @@ sub GetFunctionTemplateCallbackName
             $function->signature->extendedAttributes->{"V8Custom"}) {
             die "Custom and V8Custom should be mutually exclusive!"
         }
-        my $customFunc = $function->signature->extendedAttributes->{"Custom"} ||
-                         $function->signature->extendedAttributes->{"V8Custom"};
-        if ($customFunc eq 1) {
-            $customFunc = $interfaceName . $codeGenerator->WK_ucfirst($name);
-        }
-        return "V8Custom::v8${customFunc}Callback";
+        return "V8${interfaceName}::${name}Callback";
     } else {
         return "${interfaceName}Internal::${name}Callback";
     }
@@ -1972,6 +1985,7 @@ sub GetNativeType
     return "DOMTimeStamp" if $type eq "DOMTimeStamp";
     return "unsigned" if $type eq "unsigned int";
     return "Node*" if $type eq "EventTarget" and $isParameter;
+    return "double" if $type eq "Date";
 
     return "String" if $type eq "DOMUserData";  # FIXME: Temporary hack?
 
@@ -2106,6 +2120,7 @@ sub JSValueToNative
     return "toInt32($value${maybeOkParam})" if $type eq "unsigned long" or $type eq "unsigned short" or $type eq "long";
     return "static_cast<Range::CompareHow>($value->Int32Value())" if $type eq "CompareHow";
     return "static_cast<SVGPaint::SVGPaintType>($value->ToInt32()->Int32Value())" if $type eq "SVGPaintType";
+    return "toWebCoreDate($value)" if $type eq "Date";
 
     if ($type eq "DOMString" or $type eq "DOMUserData") {
         return $value;
@@ -2366,6 +2381,10 @@ sub ReturnNativeToJSValue
         my $classIndex = uc($type);
 
         return "return WorkerContextExecutionProxy::convertToV8Object(V8ClassIndex::$classIndex, $value)";
+    }
+
+    if ($type eq "Date") {
+        return "return v8DateOrNull($value);";
     }
 
     else {

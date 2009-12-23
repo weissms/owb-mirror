@@ -1,3 +1,145 @@
+2009-12-23  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Exception on queue status server
+        https://bugs.webkit.org/show_bug.cgi?id=32812
+
+        Turns out we need to pass the id to the filter.
+
+        * QueueStatusServer/filters/webkit_extras.py:
+        * QueueStatusServer/templates/patch.html:
+        * QueueStatusServer/templates/recentstatus.html:
+
+2009-12-22  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        [bzt] Don't call create-patch twice during post-diff
+        https://bugs.webkit.org/show_bug.cgi?id=32893
+
+        If we call create-patch to get the bug number, cache the diff in the
+        state so we don't need to call it again.
+
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/upload.py:
+
+2009-12-22  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32680
+
+        Fixes an issue in builtDylibPathForName so that it returns the correct
+        path to the built QtWebKit library on the Qt Windows port. Currently,
+        it returns the path to the file named QtWebKit.dll but this file does
+        not exist on the Qt Windows build. Instead, the file is named
+        QtWebKit4.dll.
+
+        * Scripts/webkitdirs.pm:
+
+2009-12-22  Marc-Antoine Ruel  <maruel@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Remove the only dependency on perl-libwin32 in cygwin
+
+        * Scripts/num-cpus:
+
+2009-12-22  Darin Adler  <darin@apple.com>
+
+        * pywebsocket/mod_pywebsocket: Added property svn:ignore to ignore
+        generated ".pyc" files.
+
+2009-12-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Turn off datagrid by default, at least for all platforms Apple ships.
+        The datagrid implementation isn't ready for general web use yet.
+
+        * Scripts/build-webkit: Turn off datagrid by default.
+
+2009-12-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        validate-committer-lists fails when run from an SVN checkout
+        https://bugs.webkit.org/show_bug.cgi?id=31974
+
+        * Scripts/validate-committer-lists:
+         - Make it print a warning message instead of throwing
+           an exception when running from an SVN checkout.
+
+2009-12-22  Philippe Normand  <pnormand@igalia.com>
+
+        Reviewed by Adam Barth.
+
+        check-webkit-style should not warn about NULL usage in g_object_{get,set}
+        https://bugs.webkit.org/show_bug.cgi?id=32858
+
+        * Scripts/modules/cpp_style.py:
+        * Scripts/modules/cpp_style_unittest.py:
+
+2009-12-22  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Holger Freyther.
+
+        Moved QtLauncher from WebKit/qt.
+
+        * QtLauncher: Copied from WebKit/qt/QtLauncher.
+        * QtLauncher/QtLauncher.pro:
+
+2009-12-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [bzt] Automate the process of calling prepare-ChangeLog
+        https://bugs.webkit.org/show_bug.cgi?id=32816
+
+        This patch automates the process of creating a bug and patch and
+        uploading it to bugzilla.  The first cut just calls
+        prepare-ChangeLog.
+
+        This patch required some refactoring of upload.py to the Step
+        model, but that's worth doing anyway.
+
+        * Scripts/bugzilla-tool:
+        * Scripts/modules/buildsteps.py:
+        * Scripts/modules/commands/download.py:
+        * Scripts/modules/commands/upload.py:
+        * Scripts/modules/commands/upload_unittest.py:
+        * Scripts/modules/mock_bugzillatool.py:
+
+2009-12-21  Darin Adler  <darin@apple.com>
+
+        * Scripts/do-webcore-rename: Did a rename, so checking in the
+        version of the script I used.
+
+2009-12-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Update status-bubble to show all the queues
+        https://bugs.webkit.org/show_bug.cgi?id=32838
+
+        Also, move statusbubble over to use memcache.
+
+        * QueueStatusServer/handlers/statusbubble.py:
+        * QueueStatusServer/templates/statusbubble.html:
+
+2009-12-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Delete the boring "Empty queue" status messages in QueueStatusServer
+        https://bugs.webkit.org/show_bug.cgi?id=32818
+
+        * QueueStatusServer/app.yaml:
+        * QueueStatusServer/cron.yaml:
+        * QueueStatusServer/handlers/gc.py:
+        * QueueStatusServer/main.py:
+
 2009-12-21  Fumitoshi Ukai  <ukai@chromium.org>
 
         Reviewed by David Levin.

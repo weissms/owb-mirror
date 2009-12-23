@@ -272,6 +272,11 @@ bool SVGImage::dataChanged(bool allDataReceived)
     return m_page;
 }
 
+String SVGImage::filenameExtension() const
+{
+    return "svg";
+}
+
 }
 
 #endif // ENABLE(SVG)

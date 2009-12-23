@@ -88,5 +88,7 @@ list(APPEND JSC_SRC
     runtime/Structure.cpp
     runtime/StructureChain.cpp
     runtime/UString.cpp
+    runtime/UStringImpl.h
+    runtime/UStringImpl.cpp
     runtime/TimeoutChecker.cpp
 )
