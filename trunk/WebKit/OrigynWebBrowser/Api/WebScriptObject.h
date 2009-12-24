@@ -26,11 +26,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebScriptObject_H
-#define WebScriptObject_H
+#ifndef WebScriptObject_h
+#define WebScriptObject_h
 
-class WebScriptObject
-{
+class WebScriptObject {
 public:
 
     /**
@@ -45,37 +44,30 @@ public:
 
 
     /**
-     * throw exception
-     * @discussion Throws an exception in the current script execution context.
-        @result Either NO if an exception could not be raised, YES otherwise.
+     * @brief Throws an exception in the current script execution context.
+     * @result true if the exception was raised, false if an error occurred.
      */
     virtual bool throwException(const char* exceptionMessage);
 
     /**
-     * remove web script key 
+     * @brief remove a web script key 
      * @param name The name of the method to call in the script environment.
-        @param args The arguments to pass to the script environment.
-        @discussion Calls the specified method in the script environment using the
-        specified arguments.
-        @result Returns the result of calling the script method.
      */
     virtual void removeWebScriptKey(const char* name);
 
     /**
-     *  stringRepresentation 
-     * @discussion Converts the target object to a string representation.  The coercion
-        of non string objects type is dependent on the script environment.
-        @result Returns the string representation of the object.
+     * @brief Converts the target object to a string representation.  The coercion
+     * of non string objects type is dependent on the script environment.
+     * @result Returns the string representation of the object.
      */
     virtual const char* stringRepresentation();
 
     /**
-     *  setException 
+     * @brief Raises an exception in the script environment in the context of the
+     * current object.
      * @param description The description of the exception.
-        @discussion Raises an exception in the script environment in the context of the
-        current object.
      */
     virtual void setException(const char* description);
 };
 
-#endif
+#endif // WebScriptObject_h

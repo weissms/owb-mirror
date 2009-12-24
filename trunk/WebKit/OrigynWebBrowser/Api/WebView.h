@@ -164,27 +164,23 @@ protected:
 public:
 
     /**
-     *  canShowMIMEType 
      * Checks if the WebKit can show content of a certain MIME type.
-        @param MIMEType The MIME type to check.
-        @result YES if the WebKit can show content with MIMEtype.
+     * @param mimeType The MIME type to check.
+     * @result true if the WebKit can show content with MIMEtype, false otherwise.
      */
     virtual bool canShowMIMEType(const char* mimeType);
 
     /**
-     *  canShowMIMETypeAsHTML 
      * Checks if the the MIME type is a type that the WebKit will interpret as HTML.
-        @param MIMEType The MIME type to check.
-        @result true if the MIMEtype in an HTML type.
+     * @param mimeType The MIME type to check.
+     * @result true if the MIMEtype in an HTML type, false otherwise.
      */
     virtual bool canShowMIMETypeAsHTML(const char * mimeType);
 
     /**
-     *  setMIMETypesShownAsHTML 
-     * @discussion Sets the array of NSString MIME types that WebKit will
-        attempt to render as HTML.  Typically you will retrieve the built-in
-        array using MIMETypesShownAsHTML and add additional MIME types to that
-        array.
+     * @brief Sets the array of MIME types that WebKit will attempt to render as HTML.
+     * @details Typically you will retrieve the built-in array using MIMETypesShownAsHTML
+     * and add additional MIME types to that array.
      */
     virtual void setMIMETypesShownAsHTML(const char* mimeTypes, int cMimeTypes);
 
@@ -194,47 +190,45 @@ public:
     void createWindow(BalRectangle frame);
 
     /**
-     *  initWithFrame 
-     * The designated initializer for WebView.
-        @discussion Initialize a WebView with the supplied parameters. This method will
-        create a main WebFrame with the view. Passing a top level frame name is useful if you
-        handle a targetted frame navigation that would normally open a window in some other
-        way that still ends up creating a new WebView.
-        @param frame The frame used to create the view.
-        @param frameName The name to use for the top level frame. May be nil.
-        @param groupName The name of the webView set to which this webView will be added.  May be nil.
-        @warning When DAE_APPLICATION is ON, you should use \a createInstance(const BalRectangle&, const char*, TransferSharedPtr<WebFrameLoadDelegate>, TransferSharedPtr<JSActionDelegate>)
-        which will call this automatically. Not doing so, will result in bad behaviour.
+     * @brief The designated initializer for WebView.
+     * @details Initialize a WebView with the supplied parameters. This method will
+     * create a main WebFrame with the view. Passing a top level frame name is useful if you
+     * handle a targetted frame navigation that would normally open a window in some other
+     * way that still ends up creating a new WebView.
+     * @param frame The frame used to create the view.
+     * @param frameName The name to use for the top level frame. May be nil.
+     * @param groupName The name of the webView set to which this webView will be added.  May be nil.
+     * @warning When DAE_APPLICATION is ON, you should use createInstance(const BalRectangle&, const char*, TransferSharedPtr<WebFrameLoadDelegate>, TransferSharedPtr<JSActionDelegate>)
+     * which will call this automatically. Not doing so, will result in bad behaviour.
      */
     virtual void initWithFrame(BalRectangle& frame, const char* frameName, const char* groupName);
 
     /**
-     *  setDownloadDelegate 
-     *  Set the WebView's WebDownloadDelegate.
-     *  @discussion The download delegate is retained by WebDownload when any downloads are in progress.
-     *              It is up to the application to take care of the correct deletion of the WebDownloadDelegate pointer.
-     *  @param delegate The WebDownloadDelegate to set as the download delegate.
+     * Set the WebView's WebDownloadDelegate.
+     * @details The download delegate is retained by WebDownload when any downloads are in progress.
+     *          It is up to the application to take care of the correct deletion of the WebDownloadDelegate pointer.
+     * @param delegate The WebDownloadDelegate to set as the download delegate.
+     * @sa downloadDelegate
      */
-    virtual void setDownloadDelegate(TransferSharedPtr<WebDownloadDelegate> d);
+    virtual void setDownloadDelegate(TransferSharedPtr<WebDownloadDelegate> delegate);
 
     /**
-     *  downloadDelegate 
-     *  Return the WebView's WebDownloadDelegate.
-     *  @result The WebView's WebDownloadDelegate.
+     *  @brief Return the WebView's WebDownloadDelegate.
+     *  @returns the WebView's WebDownloadDelegate.
+     *  @sa setDownloadDelegate
      */
     virtual TransferSharedPtr<WebDownloadDelegate> downloadDelegate();
 
     /**
-     *  setPolicyDelegate 
-     *  Set the WebView's WebPolicyDelegate delegate.
+     *  @brief Set the WebView's WebPolicyDelegate delegate.
      *  @param delegate The WebPolicyDelegate to set as the delegate.
+     *  @sa policyDelegate
      */
-    virtual void setPolicyDelegate(TransferSharedPtr<WebPolicyDelegate> d);
+    virtual void setPolicyDelegate(TransferSharedPtr<WebPolicyDelegate> delegate);
 
     /**
-     *  policyDelegate 
-     *  Return the WebView's WebPolicyDelegate.
-     *  @result The WebView's WebPolicyDelegate.
+     * @brief return the WebView's WebPolicyDelegate.
+     * @result The WebView's WebPolicyDelegate.
      */
     virtual TransferSharedPtr<WebPolicyDelegate> policyDelegate();
 

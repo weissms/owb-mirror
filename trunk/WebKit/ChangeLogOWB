@@ -1,3 +1,18 @@
+2009-12-24  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Remove some warnings when building the documentation.
+
+        - Removed unneeded method names at the start of doxygen command
+        - Cleaned wrong flags (\a, \discussion ...)
+        - Added some arguments name to avoid having warnings.
+
+        * OrigynWebBrowser/Api/WebFramePolicyListener.h:
+        * OrigynWebBrowser/Api/WebHistory.h:
+        (WebHistory::):
+        * OrigynWebBrowser/Api/WebObject.h:
+        * OrigynWebBrowser/Api/WebScriptObject.h:
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-12-21  Mario Bensi  <mbensi@pleyo.com>
 
         modify History api to be exposed.
@@ -89,8 +104,6 @@
 
         Expose WebScriptWorld and WebWorkerPrivate and add some methods to
         implement LayoutTestControllerBal.
-
-        Need a short description and bug URL (OOPS!)
 
         * OrigynWebBrowser/Api/WebInspector.cpp:
         (WebInspector::setTimelineProfilingEnabled):

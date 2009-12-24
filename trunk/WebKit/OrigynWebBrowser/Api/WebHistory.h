@@ -41,170 +41,154 @@ class WebHistoryItem;
 class WebError;
 
 class WebHistory {
-public:
 
+public:
     /**
-     *  createInstance creates an Instance of WebHistory
-     * @param[in]: 
-     * @param[out]: WebHistory
+     * createInstance
+     * @brief creates an Instance of WebHistory
+     * @return WebHistory
      */
     static WebHistory* createInstance();
+
 private:
 
     /**
-     *  WebHistory construtor
-     * @param[in]: 
-     * @param[out]: 
+     * WebHistory construtor
      */
     WebHistory();
 
 public:
 
     /**
-     *  ~WebHistory destructor
-     * @param[in]: 
-     * @param[out]: 
+     * ~WebHistory destructor
      */
     virtual ~WebHistory();
 
     /**
-       @method optionalSharedHistory
-       @abstract Returns a shared WebHistory instance initialized with the default history file.
-       @result A WebHistory object.
+     * optionalSharedHistory
+     * @brief Returns a shared WebHistory instance initialized with the default history file.
+     * @result A WebHistory object.
      */
     virtual WebHistory* optionalSharedHistory();
 
-    /**
-       @method loadFromURL:error:
-        @param URL The URL to use to initialize the WebHistory.
-        @param error Set to nil or an NSError instance if an error occurred.
-        @abstract The designated initializer for WebHistory.
-        @result Returns YES if successful, NO otherwise.
-     */
     virtual void setOptionalSharedHistory(WebHistory* history);
 
     /**
-        @method saveToURL:error:
-        @discussion Save history to URL. It is the client's responsibility to call this at appropriate times.
-        @param URL The URL to use to save the WebHistory.
-        @param error Set to nil or an NSError instance if an error occurred.
-        @result Returns YES if successful, NO otherwise.
-
+     * @brief The designated initializer for WebHistory.
+     * @param url The URL to use to initialize the WebHistory.
+     * @result Returns 0 if sucessfully or a WebError containing the error.
      */
     virtual WebError* loadFromURL(const char* url);
 
     /**
-        @method saveToURL:error:
-        @discussion Save history to URL. It is the client's responsibility to call this at appropriate times.
-        @param URL The URL to use to save the WebHistory.
-        @param error Set to nil or an NSError instance if an error occurred.
-        @result Returns YES if successful, NO otherwise.
-
+     *  @brief Save history to URL. It is the client's responsibility to call this at appropriate times.
+     *  @param url The URL to use to save the WebHistory.
+     *  @result Returns 0 if everything was alright, a point to a WebError if something failed.
      */
     virtual WebError* saveToURL(const char* url);
 
     /**
-     @method addItems:
-     @param newItems An array of WebHistoryItems to add to the WebHistory.
+     * @brief add some WebHistoryItem to the history.
+     * @param items An array of WebHistoryItems to add to the WebHistory.
      */
     virtual void addItems(std::vector<WebHistoryItem*> items);
 
     /**
-        @method removeItems:
-        @param items An array of WebHistoryItems to remove from the WebHistory.
-
+     *  @brief remove some WebHistoryItem to the history.
+     *  @param items An array of WebHistoryItems to remove from the WebHistory.
      */
     virtual void removeItems(std::vector<WebHistoryItem*> items);
 
     /**
-        @method orderedLastVisitedDays
-        @discussion Get an array of NSCalendarDates, each one representing a unique day that contains one
-        or more history items, ordered from most recent to oldest.
-        @result Returns an array of NSCalendarDates for which history items exist in the WebHistory.
-        
-        ADVISORY NOTE:  This method may change for the 1.0 SDK.
-
+     * @brief remove all the history items.
      */
     virtual void removeAllItems();
 
     /**
-        @method itemForURL:
-        @abstract Get an item for a specific URL
-        @param URL The URL of the history item to search for
-        @result Returns an item matching the URL
-
+     *  @brief Get an item for a specific URL
+     *  @param url The URL of the history item to search for
+     *  @result Returns an item matching the URL. If none is found, 0 is returned.
      */
     virtual WebHistoryItem* itemForURL(const char* url);
 
     /**
-      @method setHistoryItemLimit:
-        @discussion Limits the number of items that will be stored by the WebHistory.
-        @param limit The maximum number of items that will be stored by the WebHistory.
-
+     * @brief Limits the number of items that will be stored by the WebHistory.
+     * @param limit The maximum number of items that will be stored by the WebHistory.
      */
     virtual void setHistoryItemLimit(int limit);
 
     /**
-     * get limit
+     * @brief returns the current limit.
      */
     virtual int historyItemLimit();
 
     /**
-     * @method setVisitedLinkTrackingEnabled
-     * @discussion setVisitedLinkTrackingEnabled enable the link tracking code inside WebCore. if disabled, selector such as :visited would not work.
+     * @brief setVisitedLinkTrackingEnabled enable the link tracking code inside WebCore. if disabled, selector such as :visited would not work.
      * @param visitedLinkTrackingEnabled the new value.
+     * @note: setting this to true is needed for the acid3 test (http://acid3.acidtests.org).
      */
     virtual void setVisitedLinkTrackingEnabled(bool visitedLinkTrackingEnabled);
 
     /**
-     * @method removeAllVisitedLinks
-     * @discussion removeAllVisitedLinks remove the visited link cache. This will make links that were matched by the :visited selector to not be applied anymoe.
+     * removeAllVisitedLinks
+     * @brief removeAllVisitedLinks remove the visited link cache. This will make links that were matched by the :visited selector to not be applied anymoe.
      */
     virtual void removeAllVisitedLinks();
 
     /**
-        @method setHistoryAgeInDaysLimit:
-        @discussion setHistoryAgeInDaysLimit: sets the maximum number of days to be read from
-        stored history.
-        @param limit The maximum number of days to be read from stored history.
+     * setHistoryAgeInDaysLimit:
+     * @brief sets the maximum number of days to be read from stored history.
+     * @param limit The maximum number of days to be read from stored history.
      */
     virtual void setHistoryAgeInDaysLimit(int limit);
 
     /**
-        @method historyAgeInDaysLimit
-        @return Returns the maximum number of days to be read from stored history.
-
+     * historyAgeInDaysLimit
+     * @return Returns the maximum number of days to be read from stored history.
      */
     virtual int historyAgeInDaysLimit();
 
 
     /**
-     *  sharedHistory return a reference to WebHistory
-     * @param[in]: 
-     * @param[out]:  WebHistory*
+     * @brief return a reference to the shared WebHistory
+     * @return the shared WebHistory*
      */
     static WebHistory* sharedHistory();
 
     /**
-       @method visitedURL
+     * @brief add a visited URL to the history.
+     * @param url the URL
+     * @param title the page title
+     * @param httpMethod the HTTP method used to get the page (GET, POST ...)
+     * @param wasFailure whether the page load was a failure (true) or successfully (false).
      */
-    void visitedURL(const char*, const char* title, const char* httpMethod, bool wasFailure);
+    void visitedURL(const char* url, const char* title, const char* httpMethod, bool wasFailure);
 
-    WebHistoryItem* itemForURLString(const char*) const;
+    /**
+     * @brief get the WebHistoryItem for a URL
+     * @param url the URL
+     * @return a WebHistoryItem, 0 if nothing is found.
+     */
+    WebHistoryItem* itemForURLString(const char* url) const;
 
-
+    /**
+     * @brief returns all the WebHistoryItem for the history
+     * @return a std::vector containing the WebHistoryItem.
+     */
     virtual std::vector<WebHistoryItem*> allItems();
 
 protected:
     friend class WebChromeClient;
+
     /**
-     * @method adds a PageGroup to history
+     * addVisitedLinksToPageGroup
+     * @brief adds a PageGroup to history
+     * @internal
      */
     void addVisitedLinksToPageGroup(WebCore::PageGroup&);
 
 private:
-    enum NotificationType
-    {
+    enum NotificationType {
         kWebHistoryItemsAddedNotification = 0,
         kWebHistoryItemsRemovedNotification = 1,
         kWebHistoryAllItemsRemovedNotification = 2,

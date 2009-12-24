@@ -46,7 +46,6 @@ class WebValue;
 class WebFrame;
 
 /**
- * WebObject
  * This class is used to expose a native C++ object in JavaScript
  * To use it, just inherits from WebObject and call addMethod / addProperty
  * in your constructor to register the JavaScript method properties.
@@ -68,38 +67,34 @@ public:
     void removeProperty(const char*);
 
     /**
-     * invoke
-     * @abstract method called whenever JavaScript needs to execute a method on the object
+     * @brief method called whenever JavaScript needs to execute a method on the object
      * @warning this method will be called only for methods registered with addMethod.
-     * @param webFrame, the \a WebFrame in which the call was made.
-     * @param name, the string representing the name of the method to be invoked.
-     * @param args, a vector of \a WebValue representing the arguments given during the invocation.
+     * @param webFrame the WebFrame in which the call was made.
+     * @param name the string representing the name of the method to be invoked.
+     * @param args a vector of WebValue representing the arguments given during the invocation.
      */
-    virtual TransferSharedPtr<WebValue> invoke(WebFrame*, const char* /*name*/, const std::vector<SharedPtr<WebValue> >& /*args*/) = 0;
+    virtual TransferSharedPtr<WebValue> invoke(WebFrame* webFrame, const char* name, const std::vector<SharedPtr<WebValue> >& args) = 0;
 
     /**
-     * getProperty
-     * @abstract method called when JavaScript wants to get a property on the object.
+     * @brief method called when JavaScript wants to get a property on the object.
      * @warning this method will be called only for the properties registered with addProperty.
-     * @param webFrame, the \a WebFrame in which the property request was made.
-     * @param name, the string representing the name of the property.
-     * @return TransferSharedPtr<WebValue> a \a WebValue representing the property.
+     * @param webFrame the WebFrame in which the property request was made.
+     * @param name the string representing the name of the property.
+     * @return TransferSharedPtr<WebValue> a WebValue representing the property.
      */
-    virtual TransferSharedPtr<WebValue> getProperty(WebFrame*, const char* /*name*/) = 0;
+    virtual TransferSharedPtr<WebValue> getProperty(WebFrame* webFrame, const char* name) = 0;
 
     /**
-     * setProperty
-     * @abstract method called when JavaScript wants to set a property on the object.
+     * @brief method called when JavaScript wants to set a property on the object.
      * @warning this method will be called only for the properties registered with addProperty.
-     * @param webFrame, the \a WebFrame in which the property request was made.
-     * @param name, the string representing the name of the property.
-     * @parama value, the new value.
+     * @param webFrame the WebFrame in which the property request was made.
+     * @param name the string representing the name of the property.
+     * @param value the new value.
      */
-    virtual void setProperty(WebFrame*, const char* /*name*/, TransferSharedPtr<WebValue>) = 0;
+    virtual void setProperty(WebFrame* webFrame, const char* name, TransferSharedPtr<WebValue> value) = 0;
 
     /**
-     * internalObject
-     * @discussion For internal use only
+     * @internal
      */
     WebCore::BALObject* internalObject() const { return m_internalObject; }
 
