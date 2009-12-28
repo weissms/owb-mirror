@@ -90,7 +90,7 @@ class RunTests :
                 # update progressbar
                 self.__updateProgressBar()
                 if self.config['verbose'] :
-                    print "\n" + test[test.rfind("/") + 1:] + ": timeout"
+                    print "\n" + test + ": timeout"
         signal.alarm(0)
         if not self.timeout :
             outprint = outTemp
@@ -103,7 +103,7 @@ class RunTests :
         if outprint == "" :
             if not self.timeout :
                 if self.config['verbose'] :
-                    print "\n" + test[test.rfind("/") + 1:] + ": crashed"
+                    print "\n" + test + ": crashed"
                 self.__updateProgressBar() 
                 self.resultCrashed[test] =  [self.time, "", ""]
                 return
@@ -126,7 +126,7 @@ class RunTests :
             else :
                 if not self.timeout :
                     if self.config['verbose'] :
-                        print "\n" + test[test.rfind("/") + 1:] + ": failed"
+                        print "\n" + test + ": failed"
                     self.__updateProgressBar() 
                     if (file.find("platform") == -1) :
                         self.resultFailed[test] = [self.time, diff, file]
