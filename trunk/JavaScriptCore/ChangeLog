@@ -1,3 +1,87 @@
+2009-12-28  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        HTMLInputElement::valueAsDate getter support.
+        https://bugs.webkit.org/show_bug.cgi?id=32876
+
+        Expose dateToDaysFrom1970().
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * wtf/DateMath.cpp:
+        (WTF::dateToDaysFrom1970):
+        * wtf/DateMath.h:
+
+2009-12-27  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Adam Barth.
+
+        WinCE buildfix (HWND_MESSAGE isn't supported there)
+
+        * wtf/win/MainThreadWin.cpp:
+        (WTF::initializeMainThreadPlatform):
+
+2009-12-27  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Adam Barth.
+
+        Added a file with WinMain function to link agains in WinCE.
+
+        * os-win32/WinMain.cpp: Added.
+        (convertToUtf8):
+        (WinMain):
+
+2009-12-24  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed; revert of r52550.
+
+        The change regressed the following LayoutTests for QtWebKit.
+
+        fast/workers/worker-call.html -> crashed
+        fast/workers/worker-close.html -> crashed
+
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+
+2009-12-24  Shu Chang  <Chang.Shu@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] Fix memory leak by deleting instance of ThreadPrivate
+        in function waitForThreadCompletion(), synchronously, or in
+        detachThread(), asynchronously.
+        https://bugs.webkit.org/show_bug.cgi?id=32614 
+
+        * wtf/qt/ThreadingQt.cpp:
+        (WTF::waitForThreadCompletion):
+        (WTF::detachThread):
+
+2009-12-23  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Laszlo Gombos.
+
+        Include stddef.h for ptrdiff_t
+        https://bugs.webkit.org/show_bug.cgi?id=32891
+
+        ptrdiff_t is typedef-ed in stddef.h.
+        Include stddef.h in jit/ExecutableAllocator.h.
+
+        * jit/ExecutableAllocator.h:
+
+2009-12-23  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Eric Seidel.
+
+        Buildfix after r47092.
+
+        * wtf/wince/MemoryManager.cpp:
+        (WTF::tryFastMalloc):
+        (WTF::tryFastZeroedMalloc):
+        (WTF::tryFastCalloc):
+        (WTF::tryFastRealloc):
+
 2009-12-23  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Darin Adler.

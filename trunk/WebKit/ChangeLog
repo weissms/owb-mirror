@@ -1,3 +1,7 @@
+2009-12-28  Darin Adler  <darin@apple.com>
+
+        * StringsNotToBeLocalized.txt: Updated for recent changes.
+
 2009-12-21  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Dan Bernstein.

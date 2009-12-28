@@ -32,6 +32,7 @@
 #include "ImageBuffer.h"
 #include "ImageData.h"
 #include "MappedAttribute.h"
+#include "RenderObject.h"
 #include "RenderSVGContainer.h"
 #include "SVGLength.h"
 #include "SVGNames.h"
@@ -106,7 +107,7 @@ void SVGMaskElement::svgAttributeChanged(const QualifiedName& attrName)
 {
     SVGStyledElement::svgAttributeChanged(attrName);
 
-    if (!m_masker)
+    if (m_masker.isEmpty())
         return;
 
     if (attrName == SVGNames::maskUnitsAttr || attrName == SVGNames::maskContentUnitsAttr ||
@@ -117,20 +118,22 @@ void SVGMaskElement::svgAttributeChanged(const QualifiedName& attrName)
         SVGLangSpace::isKnownAttribute(attrName) ||
         SVGExternalResourcesRequired::isKnownAttribute(attrName) ||
         SVGStyledElement::isKnownAttribute(attrName))
-        m_masker->invalidate();
+        for (HashMap<const RenderObject*, RefPtr<SVGResourceMasker> >::iterator it = m_masker.begin(); it != m_masker.end(); ++it)
+            it->second->invalidate();
 }
 
 void SVGMaskElement::childrenChanged(bool changedByParser, Node* beforeChange, Node* afterChange, int childCountDelta)
 {
     SVGStyledElement::childrenChanged(changedByParser, beforeChange, afterChange, childCountDelta);
 
-    if (!m_masker)
+    if (m_masker.isEmpty())
         return;
 
-    m_masker->invalidate();
+    for (HashMap<const RenderObject*, RefPtr<SVGResourceMasker> >::iterator it = m_masker.begin(); it != m_masker.end(); ++it)
+        it->second->invalidate();
 }
 
-PassOwnPtr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& objectBoundingBox, FloatRect& maskDestRect) const
+PassOwnPtr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& objectBoundingBox, FloatRect& maskDestRect, bool& emptyMask) const
 {    
     // Determine specified mask size
     if (maskUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX)
@@ -171,7 +174,14 @@ PassOwnPtr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& objec
     repaintRect.intersect(maskDestRect);
     maskDestRect = repaintRect;
     IntRect maskImageRect = enclosingIntRect(maskDestRect);
+
     maskImageRect.setLocation(IntPoint());
+
+    // Don't create ImageBuffers with image size of 0
+    if (!maskImageRect.width() || !maskImageRect.height()) {
+        emptyMask = true;
+        return 0;
+    }
 
     // FIXME: This changes color space to linearRGB, the default color space
     // for masking operations in SVG. We need a switch for the other color-space
@@ -196,9 +206,6 @@ PassOwnPtr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& objec
 
 
     maskImageContext->restore();
-
-    if (!maskImageRect.width() || !maskImageRect.height())
-        return maskImage.release();
 
     // create the luminance mask
     RefPtr<ImageData> imageData(maskImage->getUnmultipliedImageData(maskImageRect));
@@ -228,11 +235,18 @@ RenderObject* SVGMaskElement::createRenderer(RenderArena* arena, RenderStyle*)
     return maskContainer;
 }
 
-SVGResource* SVGMaskElement::canvasResource()
+SVGResource* SVGMaskElement::canvasResource(const RenderObject* object)
 {
-    if (!m_masker)
-        m_masker = SVGResourceMasker::create(this);
-    return m_masker.get();
+    ASSERT(object);
+
+    if (m_masker.contains(object))
+        return m_masker.get(object).get();
+
+    RefPtr<SVGResourceMasker> masker = SVGResourceMasker::create(this);
+    SVGResourceMasker* maskerPtr = masker.get();
+    m_masker.set(object, masker.release());
+
+    return maskerPtr;
 }
 
 }
