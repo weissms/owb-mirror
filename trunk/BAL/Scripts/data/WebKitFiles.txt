@@ -6,6 +6,7 @@ JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
 JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
+JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
 WebCore/accessibility/AccessibilityObject.cpp
 WebCore/accessibility/AccessibilityObject.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp

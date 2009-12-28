@@ -174,8 +174,10 @@ bool isMainThread()
 }
 
 Mutex::Mutex()
-    : m_mutex(g_mutex_new())
 {
+    if (!g_thread_supported())
+        g_thread_init(NULL);
+    m_mutex.set(g_mutex_new());
 }
 
 Mutex::~Mutex()
