@@ -58,7 +58,7 @@ else :
             for l in List.createList(path) :
                 li.append(l)
         else :
-            li = List.changePathIfNeeded(li)
+            path = List.changePathIfNeeded(path)
             li.append(path)
 
 run = RunTests(config, li)

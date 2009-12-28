@@ -69,10 +69,10 @@ class RunTests :
 
     def __startTest(self, test) :
         self.startTime = time.time()       
-        out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        (child_stdin, child_stdout, child_stderr) = (out.stdin, out.stdout, out.stderr)
-        self.pid = out.pid
-        out.wait()
+        self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        (child_stdin, child_stdout, child_stderr) = (self.out.stdin, self.out.stdout, self.out.stderr)
+        self.pid = self.out.pid
+        self.out.wait()
         self.time += time.time() - self.startTime
         outprint = ""
         outTemp = ""
@@ -82,6 +82,12 @@ class RunTests :
             outTemp = child_stdout.read()
         except Exception, e:
             if not str(e) == 'timeout':  # something else went wrong ..
+                if self.timeoutPID == str(self.pid) :
+                    os.kill(self.pid + 1, signal.SIGKILL)
+                self.pid = 0
+                self.timeoutPID = 0
+
+                # update progressbar
                 self.__updateProgressBar()
                 if self.config['verbose'] :
                     print "\n" + test[test.rfind("/") + 1:] + ": timeout"
@@ -160,10 +166,21 @@ class RunTests :
         self.time += time.time() - self.startTime
         self.timeout = True
         if self.pid != 0 :
+            # Get parent pid on next pid of dumpRenderTree process
+            # We must do this because with process 2 process are created, one for /bin/sh and one for Drt
+            # And we call kill only on the first
+            # here we test the parent to don't kill a other process
+            f = open("/proc/" + str(self.pid + 1) + "/stat", "r")
+            stat = ""
+            for i in f:
+                stat += i
+            f.close()
+            s = stat.split()
+            self.timeoutPID = s[3]
             os.kill(self.pid, signal.SIGKILL)
             os.waitpid(-1, os.WNOHANG)
             #os.kill(self.pid, 9)
-            self.pid = 0
+            #self.pid = 0
         #print test[test.rfind("/") + 1:] + ": timeout"
 
     def __getExpected(self, test) :
