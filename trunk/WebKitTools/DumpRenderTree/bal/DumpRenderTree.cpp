@@ -283,7 +283,16 @@ public:
 
     virtual void consoleMessage(WebFrame *frame, int line, const char *message)
     {
-        fprintf(stdout, "CONSOLE MESSAGE: line %d: %s\n", line, message);
+        string newMessage;
+        if (message) {
+            newMessage = message;
+            size_t fileProtocol = newMessage.find("file://");
+            if (fileProtocol != string::npos) {
+                size_t pos = newMessage.find_last_of("/");
+                newMessage = newMessage.substr(0, fileProtocol) + newMessage.substr(pos + 1);
+            }
+    }
+        fprintf(stdout, "CONSOLE MESSAGE: line %d: %s\n", line, newMessage.c_str());
     }
 
     virtual bool jsAlert(WebFrame*, const char *message)
@@ -365,6 +374,13 @@ static void invalidateAnyPreviousWaitToDumpWatchdog()
     }
 }
 
+static bool compareHistoryItems(WebHistoryItem* item1, WebHistoryItem* item2)
+{
+    const char* target1 = item1->target();
+    const char* target2 = item2->target();
+    return strcasecmp(target1, target2) < 0;
+}
+
 static void dumpHistoryItem(WebHistoryItem* item, int indent, bool current)
 {
     assert(item);
@@ -402,7 +418,7 @@ static void dumpHistoryItem(WebHistoryItem* item, int indent, bool current)
 
     std::vector<WebHistoryItem*> kids = item->children();
     // must sort to eliminate arbitrary result ordering which defeats reproducible testing
-    //qsort(kidsVector.data(), kidsCount, sizeof(kidsVector[0]), compareHistoryItems);
+    sort(kids.begin(), kids.end(), compareHistoryItems);
 
     for (unsigned i = 0; i < kids.size(); ++i) {
         WebHistoryItem* item = kids[i];
