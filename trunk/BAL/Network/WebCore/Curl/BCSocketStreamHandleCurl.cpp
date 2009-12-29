@@ -176,6 +176,12 @@ void SocketStreamHandle::pollCallback(Timer<SocketStreamHandle>* timer)
     CURLcode result = curl_easy_getinfo(m_curlHandle, CURLINFO_LASTSOCKET, &socket);
     ASSERT_UNUSED(result, result == CURLE_OK);
 
+    if (socket < 0) {
+        platformClose();
+        m_client->didFail(this, SocketStreamError(errno));
+        return;
+    }
+
     fd_set read;
     FD_ZERO(&read);
     FD_SET(socket, &read);

@@ -1,3 +1,10 @@
+2009-12-29  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix a crash when socket length are negative.
+
+        * Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp:
+        (WebCore::SocketStreamHandle::pollCallback):
+
 2009-12-28  Mario Bensi  <mbensi@pleyo.com>
 
         fix drt.py when you give a file in param
