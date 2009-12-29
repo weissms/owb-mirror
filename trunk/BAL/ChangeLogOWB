@@ -1,5 +1,16 @@
 2009-12-29  Mario Bensi  <mbensi@pleyo.com>
 
+        add websocket option.
+        start websocket server if is necessary
+        add source path option for websocket server
+
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/parser.py:
+        * Scripts/Drt/runtests.py:
+        * Scripts/Drt/testsList.py:
+
+2009-12-29  Mario Bensi  <mbensi@pleyo.com>
+
         Fix a crash when socket length are negative.
 
         * Network/WebCore/Curl/BCSocketStreamHandleCurl.cpp:

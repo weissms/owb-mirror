@@ -8,8 +8,8 @@ import os
 import pysvn
 import sys
 
-usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM [extra-options] [directories]'
-feature_list = ['3d', 'geolocation', 'http', 'media', 'plugin', 'storage', 'svg', 'wml']
+usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM -s DIRECTORY [extra-options] [directories]'
+feature_list = ['3d', 'geolocation', 'http', 'media', 'plugin', 'storage', 'svg', 'websocket', 'wml']
 webkit_layout_tests = 'http://svn.webkit.org/repository/webkit/trunk/LayoutTests'
 
 def update_tests():

@@ -27,6 +27,7 @@ class ParseDrtOptions(OptionParser):
         self.add_option('-o', '--output', action = 'store', type = 'string', dest = 'output', metavar = 'DIRECTORY', default = '/tmp/DrtResult', help = 'DIRECTORY to store results [default = %default]')
         self.add_option('-p', '--platform', action = 'store', type = 'string', dest = 'platform', metavar = 'PLATFORM', help = 'PLATFORM name for Layout Tests [mandatory]')
         self.add_option('-r', '--revision', action = 'callback', callback = self.__revision, type = 'int', nargs = 1, dest = 'revision', metavar = 'REV', help = 'update Layout Tests to revision REV [require -u before]')
+        self.add_option('-s', '--source-path', action = 'store', type = 'string', dest = 'source', metavar = 'PATH', help = 'PATH to browser sources [MANDATORY if you enable websocket]')
         self.add_option('-u', '--update-tests', action = 'store_true', dest = 'update', default = False, help = 'update Layout Tests')
         self.add_option('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'verbose mode')
 
@@ -38,6 +39,8 @@ class ParseDrtOptions(OptionParser):
             self.error('missing mandatory --layout-path option')
         if options.platform is None:
             self.error('missing mandatory --platform option')
+        if options.source is None and options.websocket :
+            self.error('missing mandatory --source-path option if you have enabled websocket')
         #strip whitespace...
         options.drt = options.drt.strip()
         options.layout = os.path.abspath(options.layout.strip())

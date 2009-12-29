@@ -14,7 +14,7 @@ class TestsList :
             else :
                 li = li.replace(rpl, "http://127.0.0.1:8000")
         if li.find("/websocket") != -1 :
-            rpl = li[:li.find("/websocket/tests") + 16]
+            rpl = li[:li.find("/websocket")]
             li = li.replace(rpl, "http://127.0.0.1:8880")
         return li
 

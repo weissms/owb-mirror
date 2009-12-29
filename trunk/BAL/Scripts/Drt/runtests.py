@@ -28,6 +28,8 @@ class RunTests :
         self.pid = 0
         self.count = 0
         self.prog = progress.ProgressBar(0, len(testsList), 77, mode='fixed')
+        self.serverRunning = False
+        self.serverPID = 0
 
     def startDrt(self) :
         if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :
@@ -65,9 +67,13 @@ class RunTests :
             print "total time = " + str(self.time)
 
         self.__HtmlResult(self.config['output'])
+        self.__stopWebSocketServer()
 
 
     def __startTest(self, test) :
+        if test.find("8880") != -1 :
+            self.__startWebSocketServer()
+
         self.startTime = time.time()       
         self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         (child_stdin, child_stdout, child_stderr) = (self.out.stdin, self.out.stdout, self.out.stderr)
@@ -193,7 +199,7 @@ class RunTests :
             if test.find("8443") != -1 :
                 expected = expected.replace("http://127.0.0.1:8443", self.config['layout'] + "/http/tests")
             if test.find("8880") != -1 :
-                expected = expected.replace("http://127.0.0.1:8880", self.config['layout'] + "/websocket/tests")
+                expected = expected.replace("http://127.0.0.1:8880", self.config['layout'])
         if not os.path.exists(expected) :
             dir = self.config['layout'] + "/platform/bal/" + self.config['platform'] + "/"
             file = dir + expected[len(self.config['layout']):]
@@ -283,3 +289,25 @@ class RunTests :
         if oldprog != str(self.prog):
             print self.prog, "\r",
             sys.stdout.flush()
+
+    def __startWebSocketServer(self) :
+        if not self.serverRunning :
+            self.serverRunning = True
+            command = "PYTHONPATH=" + self.config['source'] + "/WebKitTools/pywebsocket/"
+            command += " python "
+            command += self.config['source'] +"/WebKitTools/pywebsocket/mod_pywebsocket/standalone.py"
+            command += " -p 8880"
+            command += " -d " + self.config['layout']
+            command += " -s " + self.config['layout'] + "/websocket/tests"
+            command += " -l /tmp/pywebsocket_log.txt"
+            command += " --strict"
+
+            out = subprocess.Popen(command, shell=True)
+            self.serverPID = out.pid
+
+
+    def __stopWebSocketServer(self) :
+        if self.serverRunning :
+            os.kill(self.serverPID, signal.SIGKILL)
+            os.waitpid(-1, os.WNOHANG)
+            self.serverRunning = True
