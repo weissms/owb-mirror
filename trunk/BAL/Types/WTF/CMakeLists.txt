@@ -16,6 +16,7 @@ endif(USE_THREADS_PTHREADS)
 if(USE_THREADS_QT)
     create_include_link(${BAL_DIR}/Types/WTF/Qt BAL/wtf)
     owb_generate_moc(WTF_SRC ${OWB_SOURCE_DIR}/BAL/Types/WTF/Qt/BCMainThreadQt.cpp MainThreadQt.moc)
+    owb_generate_moc(WTF_SRC ${OWB_SOURCE_DIR}/BAL/Types/WTF/Qt/BCThreadingQt.cpp ThreadingQt.moc)
     aux_source_directory(${BAL_DIR}/Types/WTF/Qt WTF_SRC)
 endif(USE_THREADS_QT)
 

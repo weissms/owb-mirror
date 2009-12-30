@@ -559,15 +559,14 @@ void GraphicsContext::clipPath(WindRule clipRule)
 
 }
 
-
-void GraphicsContext::drawFocusRing(const Color& color)
+void GraphicsContext::drawFocusRing(const Vector<IntRect>& rects, int width, int offset, const Color& color)
 {
     if (paintingDisabled())
         return;
-    int radius = (focusRingWidth() - 1) / 2;
-    int offset = radius + focusRingOffset();
 
-    const Vector<IntRect>& rects = focusRingRects();
+    int radius = (width - 1) / 2;
+    offset += radius;
+
     unsigned rectCount = rects.size();
     IntRect finalFocusRect;
     for (unsigned i = 0; i < rectCount; i++) {
@@ -761,11 +760,6 @@ void GraphicsContext::setMiterLimit(float miter)
 void GraphicsContext::setAlpha(float)
 {
     notImplemented();
-}
-
-float GraphicsContext::getAlpha()
-{
-    return 0.0;
 }
 
 void GraphicsContext::setCompositeOperation(CompositeOperator op)

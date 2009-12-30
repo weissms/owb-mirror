@@ -65,6 +65,10 @@
 #include "WMLNames.h"
 #endif
 
+#if ENABLE(SVG)
+#include "SVGRenderSupport.h"
+#endif
+
 using namespace std;
 
 namespace WebCore {
@@ -1009,13 +1013,12 @@ void RenderObject::paintOutline(GraphicsContext* graphicsContext, int tx, int ty
     if (style->outlineStyleIsAuto() || hasOutlineAnnotation()) {
         if (!theme()->supportsFocusRing(style)) {
             // Only paint the focus ring by hand if the theme isn't able to draw the focus ring.
-            graphicsContext->initFocusRing(ow, offset);
-            addFocusRingRects(graphicsContext, tx, ty);
+            Vector<IntRect> focusRingRects;
+            addFocusRingRects(focusRingRects, tx, ty);
             if (style->outlineStyleIsAuto())
-                graphicsContext->drawFocusRing(oc);
+                graphicsContext->drawFocusRing(focusRingRects, ow, offset, oc);
             else
-                addPDFURLRect(graphicsContext, graphicsContext->focusRingBoundingRect());
-            graphicsContext->clearFocusRing();
+                addPDFURLRect(graphicsContext, unionRect(focusRingRects));
         }
     }
 
@@ -2472,6 +2475,11 @@ VisiblePosition RenderObject::createVisiblePosition(const Position& position)
 }
 
 #if ENABLE(SVG)
+const SVGRenderBase* RenderObject::toSVGRenderBase() const
+{
+    ASSERT_NOT_REACHED();
+    return 0;
+}
 
 FloatRect RenderObject::objectBoundingBox() const
 {

@@ -31,6 +31,7 @@
 
 #include "IntPoint.h"
 #include <wtf/Platform.h>
+#include <wtf/Vector.h>
 #include "BALBase.h"
 
 
@@ -125,6 +126,8 @@ inline IntRect unionRect(const IntRect& a, const IntRect& b)
     c.unite(b);
     return c;
 }
+
+IntRect unionRect(const Vector<IntRect>&);
 
 inline bool operator==(const IntRect& a, const IntRect& b)
 {

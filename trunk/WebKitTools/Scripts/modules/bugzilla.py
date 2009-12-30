@@ -59,24 +59,105 @@ def timestamp():
     return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-class BugzillaError(Exception):
-    pass
+# FIXME: This class is kinda a hack for now.  It exists so we have one place
+# to hold bug logic, even if much of the code deals with dictionaries still.
+class Bug(object):
+    def __init__(self, bug_dictionary):
+        self.bug_dictionary = bug_dictionary
+
+    def assigned_to_email(self):
+        return self.bug_dictionary["assigned_to_email"]
+
+    # Rarely do we actually want obsolete attachments
+    def attachments(self, include_obsolete=False):
+        if include_obsolete:
+            return self.bug_dictionary["attachments"][:] # Return a copy in either case.
+        return [attachment for attachment in self.bug_dictionary["attachments"] if not attachment["is_obsolete"]]
+
+    def patches(self, include_obsolete=False):
+        return [patch for patch in self.attachments(include_obsolete) if patch["is_patch"]]
+
+    def unreviewed_patches(self):
+        return [patch for patch in self.patches() if patch.get("review") == "?"]
+
+
+# A container for all of the logic for making a parsing buzilla queries.
+class BugzillaQueries(object):
+    def __init__(self, bugzilla):
+        self.bugzila = bugzilla
+
+    def _load_query(self, query):
+        full_url = "%s%s" % (self.bugzilla.bug_server_url, query)
+        return self.bugzilla.browser.open(full_url)
+
+    def _fetch_bug_ids_advanced_query(self, query):
+        soup = BeautifulSoup(self._load_query(query))
+        # The contents of the <a> inside the cells in the first column happen to be the bug id.
+        return [int(bug_link_cell.find("a").string) for bug_link_cell in soup('td', "first-child")]
+
+    def _parse_attachment_ids_request_query(self, page):
+        digits = re.compile("\d+")
+        attachment_href = re.compile("attachment.cgi\?id=\d+&action=review")
+        attachment_links = SoupStrainer("a", href=attachment_href)
+        return [int(digits.search(tag["href"]).group(0)) for tag in BeautifulSoup(page, parseOnlyThese=attachment_links)]
+
+    def _fetch_attachment_ids_request_query(self, query):
+        return self._parse_attachment_ids_request_query(self._load_query(query))
+
+    # List of all r+'d bugs.
+    def fetch_bug_ids_from_pending_commit_list(self):
+        needs_commit_query_url = "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review%2B"
+        return self._fetch_bug_ids_advanced_query(needs_commit_query_url)
+
+    def fetch_patches_from_pending_commit_list(self):
+        # FIXME: This should not have to go through self.bugzilla
+        return sum([self.bugzilla.fetch_reviewed_patches_from_bug(bug_id) for bug_id in self.fetch_bug_ids_from_pending_commit_list()], [])
+
+    def fetch_bug_ids_from_commit_queue(self):
+        commit_queue_url = "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=commit-queue%2B"
+        return self._fetch_bug_ids_advanced_query(commit_queue_url)
+
+    def fetch_patches_from_commit_queue(self, reject_invalid_patches=False):
+        # FIXME: Once reject_invalid_patches is moved out of this function this becomes a simple list comprehension using fetch_bug_ids_from_commit_queue.
+        patches_to_land = []
+        for bug_id in self.fetch_bug_ids_from_commit_queue():
+            # FIXME: This should not have to go through self.bugzilla
+            patches = self.bugzilla.fetch_commit_queue_patches_from_bug(bug_id, reject_invalid_patches)
+            patches_to_land += patches
+        return patches_to_land
+
+    def _fetch_bug_ids_from_review_queue(self):
+        review_queue_url = "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review?"
+        return self._fetch_bug_ids_advanced_query(review_queue_url)
+
+    def fetch_patches_from_review_queue(self, limit=None):
+        # FIXME: We should probably have a self.fetch_bug to minimize the number of self.bugzilla calls.
+        return sum([self.bugzilla.fetch_bug(bug_id).unreviewed_patches() for bug_id in self._fetch_bug_ids_from_review_queue()[:limit]], []) # [:None] returns the whole array.
+
+    # FIXME: Why do we have both fetch_patches_from_review_queue and fetch_attachment_ids_from_review_queue??
+    # NOTE: This is also the only client of _fetch_attachment_ids_request_query
+    def fetch_attachment_ids_from_review_queue(self):
+        review_queue_url = "request.cgi?action=queue&type=review&group=type"
+        return self._fetch_attachment_ids_request_query(review_queue_url)
 
 
 class Bugzilla(object):
     def __init__(self, dryrun=False, committers=CommitterList()):
         self.dryrun = dryrun
         self.authenticated = False
+        self.queries = BugzillaQueries(self)
 
+        # FIXME: We should use some sort of Browser mock object when in dryrun mode (to prevent any mistakes).
         self.browser = Browser()
         # Ignore bugs.webkit.org/robots.txt until we fix it to allow this script
         self.browser.set_handle_robots(False)
         self.committers = committers
 
-    # Defaults (until we support better option parsing):
+    # FIXME: Much of this should go into some sort of config module:
     bug_server_host = "bugs.webkit.org"
     bug_server_regex = "https?://%s/" % re.sub('\.', '\\.', bug_server_host)
     bug_server_url = "https://%s/" % bug_server_host
+    unassigned_email = "webkit-unassigned@lists.webkit.org"
 
     def bug_url_for_bug_id(self, bug_id, xml=False):
         content_type = "&ctype=xml" if xml else ""
@@ -118,23 +199,23 @@ class Bugzilla(object):
         bug["id"] = int(soup.find("bug_id").string)
         bug["title"] = unicode(soup.find("short_desc").string)
         bug["reporter_email"] = str(soup.find("reporter").string)
-        bug["assign_to_email"] = str(soup.find("assigned_to").string)
+        bug["assigned_to_email"] = str(soup.find("assigned_to").string)
         bug["cc_emails"] = [str(element.string) for element in soup.findAll('cc')]
         bug["attachments"] = [self._parse_attachment_element(element, bug["id"]) for element in soup.findAll('attachment')]
         return bug
 
-    def fetch_bug(self, bug_id):
+    # Makes testing fetch_*_from_bug() possible until we have a better BugzillaNetwork abstration.
+    def _fetch_bug_page(self, bug_id):
         bug_url = self.bug_url_for_bug_id(bug_id, xml=True)
         log("Fetching: %s" % bug_url)
-        page = self.browser.open(bug_url)
-        return self._parse_bug_page(page)
+        return self.browser.open(bug_url)
 
-    # This should be an attachments() method on a Bug object.
-    def fetch_attachments_from_bug(self, bug_id):
-        bug = self.fetch_bug(bug_id)
-        if not bug:
-            return None
-        return bug["attachments"]
+    def fetch_bug_dictionary(self, bug_id):
+        return self._parse_bug_page(self._fetch_bug_page(bug_id))
+
+    # FIXME: A BugzillaCache object should provide all these fetch_ methods.
+    def fetch_bug(self, bug_id):
+        return Bug(self.fetch_bug_dictionary(bug_id))
 
     def _parse_bug_id_from_attachment_page(self, page):
         up_link = BeautifulSoup(page).find('link', rel='Up') # The "Up" relation happens to point to the bug.
@@ -157,8 +238,7 @@ class Bugzilla(object):
         bug_id = self.bug_id_for_attachment_id(attachment_id)
         if not bug_id:
             return None
-        attachments = self.fetch_attachments_from_bug(bug_id)
-        for attachment in attachments:
+        for attachment in self.fetch_bug(bug_id).attachments(include_obsolete=True):
             # FIXME: Once we have a real Attachment class we shouldn't paper over this possible comparison failure
             # and we should remove the int() == int() hacks and leave it just ==.
             if int(attachment['id']) == int(attachment_id):
@@ -166,8 +246,9 @@ class Bugzilla(object):
                 return attachment
         return None # This should never be hit.
 
+    # fetch_patches_from_bug exists until we expose a Bug class outside of bugzilla.py
     def fetch_patches_from_bug(self, bug_id):
-        return [patch for patch in self.fetch_attachments_from_bug(bug_id) if patch['is_patch'] and not patch['is_obsolete']]
+        return self.fetch_bug(bug_id).patches()
 
     # _view_source_link belongs in some sort of webkit_config.py module.
     def _view_source_link(self, local_path):
@@ -215,79 +296,21 @@ class Bugzilla(object):
         self._validate_reviewer(patch, reject_invalid_patches=False)
         self._validate_committer(patch, reject_invalid_patches=False)
 
-    def fetch_unreviewed_patches_from_bug(self, bug_id):
-        return [patch for patch in self.fetch_attachments_from_bug(bug_id) if patch.get('review') == '?' and not patch['is_obsolete']]
-
     # FIXME: fetch_reviewed_patches_from_bug and fetch_commit_queue_patches_from_bug
     # should share more code and use list comprehensions.
     def fetch_reviewed_patches_from_bug(self, bug_id, reject_invalid_patches=False):
         reviewed_patches = []
-        for attachment in self.fetch_attachments_from_bug(bug_id):
-            if self._validate_reviewer(attachment, reject_invalid_patches) and not attachment['is_obsolete']:
+        for attachment in self.fetch_bug(bug_id).attachments():
+            if self._validate_reviewer(attachment, reject_invalid_patches):
                 reviewed_patches.append(attachment)
         return reviewed_patches
 
     def fetch_commit_queue_patches_from_bug(self, bug_id, reject_invalid_patches=False):
         commit_queue_patches = []
         for attachment in self.fetch_reviewed_patches_from_bug(bug_id, reject_invalid_patches):
-            if self._validate_committer(attachment, reject_invalid_patches) and not attachment['is_obsolete']:
+            if self._validate_committer(attachment, reject_invalid_patches):
                 commit_queue_patches.append(attachment)
         return commit_queue_patches
-
-    def _fetch_bug_ids_advanced_query(self, query):
-        page = self.browser.open(query)
-        soup = BeautifulSoup(page)
-        # The contents of the <a> inside the cells in the first column happen to be the bug id.
-        return [int(bug_link_cell.find("a").string) for bug_link_cell in soup('td', "first-child")]
-
-    def _parse_attachment_ids_request_query(self, page):
-        digits = re.compile("\d+")
-        attachment_href = re.compile("attachment.cgi\?id=\d+&action=review")
-        attachment_links = SoupStrainer("a", href=attachment_href)
-        return [int(digits.search(tag["href"]).group(0)) for tag in BeautifulSoup(page, parseOnlyThese=attachment_links)]
-
-    def _fetch_attachment_ids_request_query(self, query):
-        return self._parse_attachment_ids_request_query(self.browser.open(query))
-
-    def fetch_bug_ids_from_commit_queue(self):
-        commit_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=commit-queue%2B"
-        return self._fetch_bug_ids_advanced_query(commit_queue_url)
-
-    # List of all r+'d bugs.
-    def fetch_bug_ids_from_needs_commit_list(self):
-        needs_commit_query_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review%2B"
-        return self._fetch_bug_ids_advanced_query(needs_commit_query_url)
-
-    def fetch_bug_ids_from_review_queue(self):
-        review_queue_url = self.bug_server_url + "buglist.cgi?query_format=advanced&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=review?"
-        return self._fetch_bug_ids_advanced_query(review_queue_url)
-
-    def fetch_attachment_ids_from_review_queue(self):
-        review_queue_url = self.bug_server_url + "request.cgi?action=queue&type=review&group=type"
-        return self._fetch_attachment_ids_request_query(review_queue_url)
-
-    def fetch_patches_from_commit_queue(self, reject_invalid_patches=False):
-        patches_to_land = []
-        for bug_id in self.fetch_bug_ids_from_commit_queue():
-            patches = self.fetch_commit_queue_patches_from_bug(bug_id, reject_invalid_patches)
-            patches_to_land += patches
-        return patches_to_land
-
-    def fetch_patches_from_pending_commit_list(self):
-        patches_needing_commit = []
-        for bug_id in self.fetch_bug_ids_from_needs_commit_list():
-            patches = self.fetch_reviewed_patches_from_bug(bug_id)
-            patches_needing_commit += patches
-        return patches_needing_commit
-
-    def fetch_patches_from_review_queue(self, limit=None):
-        patches_to_review = []
-        for bug_id in self.fetch_bug_ids_from_review_queue():
-            if limit and len(patches_to_review) >= limit:
-                break
-            patches = self.fetch_unreviewed_patches_from_bug(bug_id)
-            patches_to_review += patches
-        return patches_to_review
 
     def authenticate(self):
         if self.authenticated:
@@ -311,7 +334,7 @@ class Bugzilla(object):
         # If the resulting page has a title, and it contains the word "invalid" assume it's the login failure page.
         if match and re.search("Invalid", match.group(1), re.IGNORECASE):
             # FIXME: We could add the ability to try again on failure.
-            raise BugzillaError("Bugzilla login failed: %s" % match.group(1))
+            raise Exception("Bugzilla login failed: %s" % match.group(1))
 
         self.authenticated = True
 
@@ -361,7 +384,7 @@ class Bugzilla(object):
         if match:
             text_lines = BeautifulSoup(match.group('error_message')).findAll(text=True)
             error_message = "\n" + '\n'.join(["  " + line.strip() for line in text_lines if line.strip()])
-        raise BugzillaError("Bug not created: %s" % error_message)
+        raise Exception("Bug not created: %s" % error_message)
 
     def create_bug(self, bug_title, bug_description, component=None, patch_file_object=None, patch_description=None, cc=None, mark_for_review=False, mark_for_commit_queue=False):
         self.authenticate()
@@ -444,6 +467,7 @@ class Bugzilla(object):
         comment_text = "Rejecting patch %s from review queue." % attachment_id
         self._set_flag_on_attachment(attachment_id, 'review', '-', comment_text, additional_comment_text)
 
+    # FIXME: All of these bug editing methods have a ridiculous amount of copy/paste code.
     def obsolete_attachment(self, attachment_id, comment_text = None):
         self.authenticate()
 
@@ -506,6 +530,22 @@ class Bugzilla(object):
             self.browser['comment'] = comment_text
         self.browser['bug_status'] = ['RESOLVED']
         self.browser['resolution'] = ['FIXED']
+        self.browser.submit()
+
+    def reassign_bug(self, bug_id, assignee, comment_text=None):
+        self.authenticate()
+
+        log("Assigning bug %s to %s" % (bug_id, assignee))
+        if self.dryrun:
+            log(comment_text)
+            return
+
+        self.browser.open(self.bug_url_for_bug_id(bug_id))
+        self.browser.select_form(name="changeform")
+        if comment_text:
+            log(comment_text)
+            self.browser["comment"] = comment_text
+        self.browser["assigned_to"] = assignee
         self.browser.submit()
 
     def reopen_bug(self, bug_id, comment_text):

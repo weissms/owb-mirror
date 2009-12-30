@@ -195,11 +195,7 @@ namespace WebCore {
         bool getShadow(IntSize&, int&, Color&) const;
         void clearShadow();
 
-        void initFocusRing(int width, int offset);
-        void addFocusRingRect(const IntRect&);
-        void drawFocusRing(const Color&);
-        void clearFocusRing();
-        IntRect focusRingBoundingRect();
+        void drawFocusRing(const Vector<IntRect>&, int width, int offset, const Color&);
 
         void setLineCap(LineCap);
         void setLineDash(const DashArray&, float dashOffset);
@@ -265,10 +261,6 @@ namespace WebCore {
         void clearPlatformShadow();
 
         static void adjustLineToPixelBoundaries(FloatPoint& p1, FloatPoint& p2, float strokeWidth, const StrokeStyle&);
-
-        int focusRingWidth() const;
-        int focusRingOffset() const;
-        const Vector<IntRect>& focusRingRects() const;
 
         static GraphicsContextPrivate* createGraphicsContextPrivate();
         static void destroyGraphicsContextPrivate(GraphicsContextPrivate*);

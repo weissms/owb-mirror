@@ -54,9 +54,10 @@ private:
 
     virtual void layout();
 
-    virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
+    virtual void addFocusRingRects(Vector<IntRect>&, int tx, int ty);
 
     virtual FloatRect objectBoundingBox() const;
+    virtual FloatRect strokeBoundingBox() const;
     virtual FloatRect repaintRectInLocalCoordinates() const;
 
     virtual bool nodeAtFloatPoint(const HitTestRequest&, HitTestResult&, const FloatPoint& pointInParent, HitTestAction);
@@ -78,14 +79,14 @@ private:
 inline RenderSVGContainer* toRenderSVGContainer(RenderObject* object)
 {
     // Note: isSVGContainer is also true for RenderSVGViewportContainer, which is not derived from this.
-    ASSERT(!object || object->isSVGContainer() && strcmp(object->renderName(), "RenderSVGViewportContainer"));
+    ASSERT(!object || (object->isSVGContainer() && strcmp(object->renderName(), "RenderSVGViewportContainer")));
     return static_cast<RenderSVGContainer*>(object);
 }
 
 inline const RenderSVGContainer* toRenderSVGContainer(const RenderObject* object)
 {
     // Note: isSVGContainer is also true for RenderSVGViewportContainer, which is not derived from this.
-    ASSERT(!object || object->isSVGContainer() && strcmp(object->renderName(), "RenderSVGViewportContainer"));
+    ASSERT(!object || (object->isSVGContainer() && strcmp(object->renderName(), "RenderSVGViewportContainer")));
     return static_cast<const RenderSVGContainer*>(object);
 }
 

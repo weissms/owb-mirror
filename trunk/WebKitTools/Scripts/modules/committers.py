@@ -37,6 +37,10 @@ class Committer:
             self.emails = email_or_emails
         self.can_review = False
 
+    # FIXME: We're assuming the first email is a valid bugzilla email, which might not be right.
+    def bugzilla_email(self):
+        return self.emails[0]
+
     def __str__(self):
         return '"%s" <%s>' % (self.full_name, self.emails[0])
 
@@ -150,7 +154,7 @@ reviewers_list = [
     Reviewer("Alp Toker", ["alp@nuanti.com", "alp@atoker.com", "alp@webkit.org"]),
     Reviewer("Anders Carlsson", ["andersca@apple.com", "acarlsson@apple.com"]),
     Reviewer("Antti Koivisto", ["koivisto@iki.fi", "antti@apple.com"]),
-    Reviewer("Ariya Hidayat", ["ariya.hidayat@trolltech.com", "ariya.hidayat@gmail.com", "ariya@webkit.org"]),
+    Reviewer("Ariya Hidayat", ["ariya.hidayat@gmail.com", "ariya@webkit.org"]),
     Reviewer("Beth Dakin", "bdakin@apple.com"),
     Reviewer("Brady Eidson", "beidson@apple.com"),
     Reviewer("Cameron Zwarich", ["zwarich@apple.com", "cwzwarich@apple.com", "cwzwarich@webkit.org"]),

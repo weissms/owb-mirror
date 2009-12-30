@@ -36,12 +36,13 @@ import sys
 from optparse import make_option
 
 from modules.bugzilla import parse_bug_id
-from modules.buildsteps import PrepareChangeLogStep, CommandOptions, ObsoletePatchesOnBugStep, PostDiffToBugStep, PromptForBugOrTitleStep, CreateBugStep
+from modules.buildsteps import PrepareChangeLogStep, EditChangeLogStep, ConfirmDiffStep, CommandOptions, ObsoletePatchesOnBugStep, PostDiffToBugStep, PromptForBugOrTitleStep, CreateBugStep
 from modules.commands.download import AbstractSequencedCommmand
 from modules.comments import bug_comment_from_svn_revision
+from modules.committers import CommitterList
 from modules.grammar import pluralize
 from modules.logging import error, log
-from modules.multicommandtool import Command
+from modules.multicommandtool import Command, AbstractDeclarativeCommmand
 
 # FIXME: Requires unit test.
 class CommitMessageForCurrentDiff(Command):
@@ -52,6 +53,38 @@ class CommitMessageForCurrentDiff(Command):
     def execute(self, options, args, tool):
         os.chdir(tool.scm().checkout_root)
         print "%s" % tool.scm().commit_message_for_this_commit().message()
+
+
+class AssignToCommitter(AbstractDeclarativeCommmand):
+    name = "assign-to-committer"
+    help_text = "Assign bug to whoever attached the most recent r+'d patch"
+
+    def _assign_bug_to_last_patch_attacher(self, bug_id):
+        committers = CommitterList()
+        bug = self.tool.bugs.fetch_bug(bug_id)
+        assigned_to_email = bug.assigned_to_email()
+        if assigned_to_email != self.tool.bugs.unassigned_email:
+            log("Bug %s is already assigned to %s (%s)." % (bug_id, assigned_to_email, committers.committer_by_email(assigned_to_email)))
+            return
+
+        # FIXME: This should call a reviewed_patches() method on bug instead of re-fetching.
+        reviewed_patches = self.tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
+        if not reviewed_patches:
+            log("Bug %s has no non-obsolete patches, ignoring." % bug_id)
+            return
+        latest_patch = reviewed_patches[-1]
+        attacher_email = latest_patch["attacher_email"]
+        committer = committers.committer_by_email(attacher_email)
+        if not committer:
+            log("Attacher %s is not a committer.  Bug %s likely needs commit-queue+." % (attacher_email, bug_id))
+            return
+
+        reassign_message = "Attachment %s was posted by a committer and has review+, assigning to %s for commit." % (latest_patch["id"], committer.full_name)
+        self.tool.bugs.reassign_bug(bug_id, committer.bugzilla_email(), reassign_message)
+
+    def execute(self, options, args, tool):
+        for bug_id in tool.bugs.queries.fetch_bug_ids_from_pending_commit_list():
+            self._assign_bug_to_last_patch_attacher(bug_id)
 
 
 class ObsoleteAttachments(AbstractSequencedCommmand):
@@ -72,6 +105,7 @@ class PostDiff(AbstractSequencedCommmand):
     argument_names = "[BUGID]"
     show_in_main_help = True
     steps = [
+        ConfirmDiffStep,
         ObsoletePatchesOnBugStep,
         PostDiffToBugStep,
     ]
@@ -102,6 +136,33 @@ class PrepareDiff(AbstractSequencedCommmand):
     def _prepare_state(self, options, args, tool):
         bug_id = args and args[0]
         return { "bug_id" : bug_id }
+
+
+class CreateReview(AbstractSequencedCommmand):
+    name = "create-review"
+    help_text = "Adds a ChangeLog to the current diff and posts it to a (possibly new) bug"
+    argument_names = "[BUGID]"
+    steps = [
+        PromptForBugOrTitleStep,
+        CreateBugStep,
+        PrepareChangeLogStep,
+        EditChangeLogStep,
+        ConfirmDiffStep,
+        ObsoletePatchesOnBugStep,
+        PostDiffToBugStep,
+    ]
+
+    def _prepare_state(self, options, args, tool):
+        bug_id = args and args[0]
+        return { "bug_id" : bug_id }
+
+
+class EditChangeLog(AbstractSequencedCommmand):
+    name = "edit-changelog"
+    help_text = "Opens modified ChangeLogs in $EDITOR"
+    steps = [
+        EditChangeLogStep,
+    ]
 
 
 class PostCommits(Command):
@@ -222,7 +283,7 @@ class MarkBugFixed(Command):
             needs_prompt = True
             (bug_id, svn_revision) = self._determine_bug_id_and_svn_revision(tool, bug_id, svn_revision)
 
-        log("Bug: <%s> %s" % (tool.bugs.short_bug_url_for_bug_id(bug_id), tool.bugs.fetch_bug(bug_id)["title"]))
+        log("Bug: <%s> %s" % (tool.bugs.short_bug_url_for_bug_id(bug_id), tool.bugs.fetch_bug_dictionary(bug_id)["title"]))
         log("Revision: %s" % svn_revision)
 
         if options.open_bug:
