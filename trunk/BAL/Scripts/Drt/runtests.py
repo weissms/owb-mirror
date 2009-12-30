@@ -75,7 +75,7 @@ class RunTests :
             self.__startWebSocketServer()
 
         self.startTime = time.time()       
-        self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test + " 2> /tmp/drt.tmp", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         (child_stdin, child_stdout, child_stderr) = (self.out.stdin, self.out.stdout, self.out.stderr)
         self.pid = self.out.pid
         self.out.wait()
@@ -86,6 +86,7 @@ class RunTests :
         try:
             signal.alarm(2)
             outTemp = child_stdout.read()
+            self.err = child_stderr.read()
         except Exception, e:
             if not str(e) == 'timeout':  # something else went wrong ..
                 if self.timeoutPID == str(self.pid) :
@@ -155,7 +156,7 @@ class RunTests :
 
         if self.config['leak'] :
             #get LEAK
-            f = open("/tmp/drt.tmp", "r")
+            f = self.err.split('\n')
             for leak in f :
                 if leak.find("LEAK") != -1 :
                     le = leak.split()
