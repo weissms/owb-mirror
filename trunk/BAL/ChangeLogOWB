@@ -1,3 +1,9 @@
+2009-12-30  Mario Bensi  <mbensi@pleyo.com>
+
+        Test the stat path and test if the source path are not None
+
+        * Scripts/Drt/runtests.py:
+
 2009-12-29  Mario Bensi  <mbensi@pleyo.com>
 
         add websocket option.

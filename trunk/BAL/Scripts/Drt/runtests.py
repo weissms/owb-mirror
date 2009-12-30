@@ -176,13 +176,15 @@ class RunTests :
             # We must do this because with process 2 process are created, one for /bin/sh and one for Drt
             # And we call kill only on the first
             # here we test the parent to don't kill a other process
-            f = open("/proc/" + str(self.pid + 1) + "/stat", "r")
-            stat = ""
-            for i in f:
-                stat += i
-            f.close()
-            s = stat.split()
-            self.timeoutPID = s[3]
+            statFile = "/proc/" + str(self.pid + 1) + "/stat"
+            if os.path.exists(statFile) :
+                f = open(statFile, "r")
+                stat = ""
+                for i in f:
+                    stat += i
+                f.close()
+                s = stat.split()
+                self.timeoutPID = s[3]
             os.kill(self.pid, signal.SIGKILL)
             os.waitpid(-1, os.WNOHANG)
             #os.kill(self.pid, 9)
@@ -291,7 +293,7 @@ class RunTests :
             sys.stdout.flush()
 
     def __startWebSocketServer(self) :
-        if not self.serverRunning :
+        if not self.serverRunning and self.config['source'] is not None :
             self.serverRunning = True
             command = "PYTHONPATH=" + self.config['source'] + "/WebKitTools/pywebsocket/"
             command += " python "
