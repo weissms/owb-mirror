@@ -321,7 +321,7 @@ class RunTests :
             self.webSocketServerRunning = True
 
     def __startHttpServer(self) :
-        if not self.httpServerRunning :
+        if not self.httpServerRunning and self.config['source'] is not None :
             if not os.path.exists("/usr/sbin/apache2") :
                 return
             if not os.path.exists("/tmp/WebKit") :
@@ -329,7 +329,8 @@ class RunTests :
 
             self.httpServerRunning = True
             command = "/usr/sbin/apache2"
-            command += " -f " + self.config['layout'] + "/http/conf/apache2-debian-httpd.conf"
+            #command += " -f " + self.config['layout'] + "/http/conf/apache2-debian-httpd.conf"
+            command += " -f " + self.config['source'] + "/BAL/Scripts/data/apache2-gentoo-httpd.conf"
             command += " -C \"DocumentRoot " + self.config['layout'] + "/http/tests\""
             command += " -c \"Alias /js-test-resources " + self.config['layout'] + "/fast/js/resources\""
             command += " -C \"Listen 127.0.0.1:8000\""

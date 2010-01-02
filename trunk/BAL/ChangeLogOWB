@@ -1,5 +1,12 @@
 2010-01-02  Mario Bensi  <mbensi@pleyo.com>
 
+        add conf gentoo specific in Script/data
+
+        * Scripts/Drt/runtests.py:
+        * Scripts/data/apache2-gentoo-httpd.conf: Added.
+
+2010-01-02  Mario Bensi  <mbensi@pleyo.com>
+
         Start apache2 when test http are activated on drt.
 
         * Scripts/Drt/runtests.py:
