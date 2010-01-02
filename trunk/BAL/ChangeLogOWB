@@ -1,5 +1,13 @@
 2010-01-02  Mario Bensi  <mbensi@pleyo.com>
 
+        test source option when http is enabled.
+        test the platform to start the good apache binary and find the good conf.
+
+        * Scripts/Drt/parser.py:
+        * Scripts/Drt/runtests.py:
+
+2010-01-02  Mario Bensi  <mbensi@pleyo.com>
+
         add conf gentoo specific in Script/data
 
         * Scripts/Drt/runtests.py:

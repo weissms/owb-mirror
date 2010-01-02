@@ -39,7 +39,7 @@ class ParseDrtOptions(OptionParser):
             self.error('missing mandatory --layout-path option')
         if options.platform is None:
             self.error('missing mandatory --platform option')
-        if options.source is None and options.websocket :
+        if options.source is None and (options.websocket or options.http) :
             self.error('missing mandatory --source-path option if you have enabled websocket')
         #strip whitespace...
         options.drt = options.drt.strip()

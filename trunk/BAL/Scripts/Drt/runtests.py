@@ -322,15 +322,32 @@ class RunTests :
 
     def __startHttpServer(self) :
         if not self.httpServerRunning and self.config['source'] is not None :
-            if not os.path.exists("/usr/sbin/apache2") :
+            conf = ""
+            server = ""
+            if os.path.exists("/etc/gentoo-release") :
+                conf = self.config['source'] + "/BAL/Scripts/data/apache2-gentoo-httpd.conf"
+                server = "/usr/sbin/apache2"
+            elif os.path.exists("/etc/fedora-release") or os.path.exists("/etc/arch-release") :
+                conf = self.config['layout'] + "/http/conf/fedora-httpd.conf"
+                server = "/usr/sbin/httpd"
+            elif os.path.exists("/etc/debian_version") :
+                conf = self.config['layout'] + "/http/conf/apache2-debian-httpd.conf"
+                server = "/usr/sbin/apache2"
+            else :
+                server = "/usr/sbin/httpd"
+                conf = self.config['layout'] + "/http/conf/apache2-httpd.conf"
+                
+
+            if conf == "" :
                 return
+
             if not os.path.exists("/tmp/WebKit") :
                 os.mkdir(url + "/tmp/WebKit/")
 
             self.httpServerRunning = True
-            command = "/usr/sbin/apache2"
+            command = server
             #command += " -f " + self.config['layout'] + "/http/conf/apache2-debian-httpd.conf"
-            command += " -f " + self.config['source'] + "/BAL/Scripts/data/apache2-gentoo-httpd.conf"
+            command += " -f " + conf
             command += " -C \"DocumentRoot " + self.config['layout'] + "/http/tests\""
             command += " -c \"Alias /js-test-resources " + self.config['layout'] + "/fast/js/resources\""
             command += " -C \"Listen 127.0.0.1:8000\""
