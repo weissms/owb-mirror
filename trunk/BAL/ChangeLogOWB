@@ -1,3 +1,9 @@
+2010-01-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Start apache2 when test http are activated on drt.
+
+        * Scripts/Drt/runtests.py:
+
 2009-12-30  Mario Bensi  <mbensi@pleyo.com>
 
         drt.tmp are removed in this script.

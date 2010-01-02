@@ -28,8 +28,10 @@ class RunTests :
         self.pid = 0
         self.count = 0
         self.prog = progress.ProgressBar(0, len(testsList), 77, mode='fixed')
-        self.serverRunning = False
-        self.serverPID = 0
+        self.webSocketServerRunning = False
+        self.httpServerRunning = False
+        self.webSocketServerPID = 0
+        self.httpServerPID = 0
 
     def startDrt(self) :
         if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :
@@ -68,11 +70,14 @@ class RunTests :
 
         self.__HtmlResult(self.config['output'])
         self.__stopWebSocketServer()
+        self.__stopHttpServer()
 
 
     def __startTest(self, test) :
         if test.find("8880") != -1 :
             self.__startWebSocketServer()
+        if test.find("8000") != -1 or test.find("8443") != -1 :
+            self.__startHttpServer()
 
         self.startTime = time.time()       
         self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
@@ -294,8 +299,8 @@ class RunTests :
             sys.stdout.flush()
 
     def __startWebSocketServer(self) :
-        if not self.serverRunning and self.config['source'] is not None :
-            self.serverRunning = True
+        if not self.webSocketServerRunning and self.config['source'] is not None :
+            self.webSocketServerRunning = True
             command = "PYTHONPATH=" + self.config['source'] + "/WebKitTools/pywebsocket/"
             command += " python "
             command += self.config['source'] +"/WebKitTools/pywebsocket/mod_pywebsocket/standalone.py"
@@ -306,11 +311,44 @@ class RunTests :
             command += " --strict"
 
             out = subprocess.Popen(command, shell=True)
-            self.serverPID = out.pid
+            self.webSocketServerPID = out.pid
 
 
     def __stopWebSocketServer(self) :
-        if self.serverRunning :
-            os.kill(self.serverPID, signal.SIGKILL)
+        if self.webSocketServerRunning :
+            os.kill(self.webSocketServerPID, signal.SIGKILL)
             os.waitpid(-1, os.WNOHANG)
-            self.serverRunning = True
+            self.webSocketServerRunning = True
+
+    def __startHttpServer(self) :
+        if not self.httpServerRunning :
+            if not os.path.exists("/usr/sbin/apache2") :
+                return
+            if not os.path.exists("/tmp/WebKit") :
+                os.mkdir(url + "/tmp/WebKit/")
+
+            self.httpServerRunning = True
+            command = "/usr/sbin/apache2"
+            command += " -f " + self.config['layout'] + "/http/conf/apache2-debian-httpd.conf"
+            command += " -C \"DocumentRoot " + self.config['layout'] + "/http/tests\""
+            command += " -c \"Alias /js-test-resources " + self.config['layout'] + "/fast/js/resources\""
+            command += " -C \"Listen 127.0.0.1:8000\""
+            command += " -c \"TypesConfig " + self.config['layout'] + "/http/conf/mime.types\""
+            command += " -c \"CustomLog /tmp/access_log.txt common\""
+            command += " -c \"ErrorLog /tmp/error_log.txt\""
+            command += " -c \"SSLCertificateFile " + self.config['layout'] + "/http/conf/webkit-httpd.pem\""
+
+            out = subprocess.Popen(command, shell=True)
+            self.httpServerPID = out.pid
+
+    def __stopHttpServer(self) :
+        if self.httpServerRunning :
+            f = open("/tmp/WebKit/httpd.pid")
+            pid = f.read()
+            f.close()
+
+            p = int(pid)
+
+            os.kill(p, 15)
+            self.httpServerRunning = True
+
