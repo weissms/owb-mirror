@@ -1,3 +1,12 @@
+2010-01-04  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Fix ICU check in cmake which was setting a problem with cross compîled
+        builds.
+
+        * cmake/FindICU.cmake:
+
 2009-12-20  Mario Bensi  <mbensi@pleyo.com>
 
         Add header DatabaseManager and IconDatabase in HEADER_API.
