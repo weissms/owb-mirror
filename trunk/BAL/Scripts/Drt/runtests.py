@@ -342,7 +342,7 @@ class RunTests :
                 return
 
             if not os.path.exists("/tmp/WebKit") :
-                os.mkdir(url + "/tmp/WebKit/")
+                os.mkdir("/tmp/WebKit/")
 
             self.httpServerRunning = True
             command = server
