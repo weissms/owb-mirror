@@ -940,6 +940,7 @@ BAL/Widgets/WebCore/WK	WebCore/platform/Pasteboard.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PlatformMenuDescription.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PlatformScreen.h
 BAL/Widgets/WebCore/WK	WebCore/platform/PopupMenu.h
+BAL/Widgets/WebCore/WK  WebCore/platform/PopupMenuClient.h
 BAL/Widgets/WebCore/WK  WebCore/platform/PopupMenuStyle.h
 BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.cpp
 BAL/Widgets/WebCore/WK	WebCore/platform/Scrollbar.h

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2009 Google Inc. All rights reserved.
+# Copyright (c) 2009, Google Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -27,35 +27,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys
-import unittest
+class PersistentPatchCollectionDelegate:
+    def collection_name(self):
+        raise NotImplementedError, "subclasses must implement"
 
-from modules.bugzilla_unittest import *
-from modules.buildbot_unittest import *
-from modules.buildsteps_unittest import *
-from modules.changelogs_unittest import *
-from modules.commands.download_unittest import *
-from modules.commands.early_warning_system_unittest import *
-from modules.commands.upload_unittest import *
-from modules.commands.queries_unittest import *
-from modules.commands.queues_unittest import *
-from modules.committers_unittest import *
-from modules.credentials_unittest import *
-from modules.cpp_style_unittest import *
-from modules.diff_parser_unittest import *
-from modules.executive_unittest import *
-from modules.logging_unittest import *
-from modules.multicommandtool_unittest import *
-from modules.queueengine_unittest import *
-from modules.style_unittest import *
-from modules.text_style_unittest import *
-from modules.webkitport_unittest import *
+    def fetch_potential_patch_ids(self):
+        raise NotImplementedError, "subclasses must implement"
 
-if __name__ == "__main__":
-    # FIXME: This is a hack, but I'm tired of commenting out the test.
-    #        See https://bugs.webkit.org/show_bug.cgi?id=31818
-    if len(sys.argv) > 1 and sys.argv[1] == "--all":
-        sys.argv.remove("--all")
-        from modules.scm_unittest import *
+    def status_server(self):
+        raise NotImplementedError, "subclasses must implement"
 
-    unittest.main()
+
+class PersistentPatchCollection:
+    def __init__(self, delegate):
+        self._delegate = delegate
+        self._name = self._delegate.collection_name()
+        self._status = self._delegate.status_server()
+        self._status_cache = {}
+
+    def _cached_status(self, patch_id):
+        cached = self._status_cache.get(patch_id)
+        if cached:
+            return cached
+        status = self._status.patch_status(self._name, patch_id)
+        if status:
+            self._status_cache[patch_id] = status
+        return status
+
+    def next(self):
+        patch_ids = self._delegate.fetch_potential_patch_ids()
+        for patch_id in patch_ids:
+            status = self._cached_status(patch_id)
+            if not status:
+                return patch_id
+

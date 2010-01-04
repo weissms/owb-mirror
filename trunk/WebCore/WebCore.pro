@@ -146,7 +146,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 !contains(DEFINES, ENABLE_SHARED_WORKERS=.): DEFINES += ENABLE_SHARED_WORKERS=1
 !contains(DEFINES, ENABLE_WORKERS=.): DEFINES += ENABLE_WORKERS=1
 !contains(DEFINES, ENABLE_XHTMLMP=.): DEFINES += ENABLE_XHTMLMP=0
-!contains(DEFINES, ENABLE_DATAGRID=.): DEFINES += ENABLE_DATAGRID=1
+!contains(DEFINES, ENABLE_DATAGRID=.): DEFINES += ENABLE_DATAGRID=0
 
 # SVG support
 !contains(DEFINES, ENABLE_SVG=0) {
@@ -188,7 +188,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 }
 
 
-!contains(DEFINES, ENABLE_QT_BEARER=.) {
+!CONFIG(QTDIR_build):!contains(DEFINES, ENABLE_QT_BEARER=.) {
     symbian: {
         exists($${EPOCROOT}epoc32/release/winscw/udeb/QtBearer.lib)| \
         exists($${EPOCROOT}epoc32/release/armv5/lib/QtBearer.lib) {
@@ -3431,5 +3431,19 @@ CONFIG(standalone_package):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VER
    if(win32-msvc2005|win32-msvc2008):equals(TEMPLATE_PREFIX, "vc") {
         SOURCES += \
             plugins/win/PaintHooks.asm
+    }
+}
+
+symbian {
+    shared {
+        contains(MMP_RULES, defBlock) {
+            MMP_RULES -= defBlock
+
+            MMP_RULES += "$${LITERAL_HASH}ifdef WINSCW" \
+                    "DEFFILE ../WebKit/qt/symbian/bwins/$${TARGET}.def" \
+                    "$${LITERAL_HASH}elif defined EABI" \
+                    "DEFFILE ../WebKit/qt/symbian/eabi/$${TARGET}.def" \
+                    "$${LITERAL_HASH}endif"
+        }
     }
 }
