@@ -602,10 +602,6 @@ void runTest(const string& testPathOrURL)
     gEventSenderController = new EventSenderController();
 
     topLoadingFrame = 0;
-    gLayoutTestController->setIconDatabaseEnabled(false);
-    
-    if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
-        gLayoutTestController->setDumpFrameLoadCallbacks(true);    
     
     WorkQueue::shared()->clear();
     WorkQueue::shared()->setFrozen(false);
@@ -639,6 +635,11 @@ void runTest(const string& testPathOrURL)
     WebBackForwardList* bfList = getWebView()->backForwardList();
     if (bfList)
         prevTestBFItem = bfList->currentItem();
+
+    gLayoutTestController->setIconDatabaseEnabled(false);
+    
+    if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
+        gLayoutTestController->setDumpFrameLoadCallbacks(true);    
 
 #if !ENABLE(DAE)
     webView->mainFrame()->loadURL(url);

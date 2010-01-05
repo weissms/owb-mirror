@@ -1,3 +1,10 @@
+2010-01-05  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix crash on DRT, initialise IconDatabase before Webview are created.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (runTest):
+
 2009-12-28  Mario Bensi  <mbensi@pleyo.com>
 
         fix dumpHistoryItem add sort on list.
