@@ -1,3 +1,11 @@
+2010-01-05  Mario Bensi  <mbensi@pleyo.com>
+
+        add feature and add directory by feature to pass only test if the
+        feature associated are activated.
+
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/testsList.py:
+
 2010-01-05  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

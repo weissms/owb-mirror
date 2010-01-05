@@ -9,7 +9,39 @@ import pysvn
 import sys
 
 usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM -s DIRECTORY [extra-options] [directories]'
-feature_list = ['3d', 'geolocation', 'http', 'media', 'plugin', 'storage', 'svg', 'websocket', 'wml']
+feature_list = ['3d', 'appcache', 'cehtml', 'dae', 'datagrid', 'domstorage', 'eventsource', 
+                'inspector', 'geolocation', 'http', 'mathml', 'media', 'notifications', 
+                'plugin', 'sharedworkers', 'storage', 'svg', 'wcss', 'webgl', 'websocket', 
+                'workers', 'wml', 'xhtmlmp', 'xpath']
+
+#for each feature, the list of the path from LayoutTests directory available.
+ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
+                      'appcache' : ['http/tests/appcache'],
+                      'dae' : ['applications'],
+                      'datagrid' : ['fast/dom/HTMLDataGridElement'],
+                      'domstorage' : ['storage/domstorage'],
+                      'eventsource' : ['fast/eventsource', 'http/tests/eventsource'],
+                      'inspector' : ['inspector', 'fast/inspector'],
+                      'geolocation' : ['fast/dom/Geolocation'],
+                      'http' : ['http'],
+                      'mathml' : ['mathml'],
+                      'media' : ['media', 'http/tests/media'],
+                      'notifications' : ['fast/notifications'],
+                      'plugin' : ['plugins', 'http/tests/plugins'],
+                      'sharedworkers' : ['fast/workers/shared', 'http/tests/xmlhttprequest/workers/shared', 'http/tests/workers/shared'],
+                      'storage' : ['storage'],
+                      'svg' : ['svg', 'dom/svg'],
+                      'wcss' : ['fast/wcss'],
+                      'webgl' : ['fast/canvas/webgl'],
+                      'websocket' : ['websocket', 'fast/websockets'],
+                      'workers' : ['fast/workers', 'http/tests/xmlhttprequest/workers', 'http/tests/workers'],
+                      'wml' : ['wml', 'fast/wml', 'http/tests/wml'],
+                      'xhtmlmp' : ['fast/xhtmlmp'],
+                      'xpath' : ['fast/xpath', 'dom/svg/level3/xpath'],
+                      'xslt' : ['fast/xsl']}
+
+supportedFileExtensions = {'svg' : 'svg', 'wml' : 'wml'}
+
 webkit_layout_tests = 'http://svn.webkit.org/repository/webkit/trunk/LayoutTests'
 
 def update_tests():
@@ -50,7 +82,7 @@ if config['update']:
 li = []
 List = TestsList(config)
 if len(args) == 0 :
-    List.constructList(feature_list)
+    List.constructList(feature_list, ignoredDirectories, supportedFileExtensions)
     li = List.getList()
 else :
     for path in args:
