@@ -1,3 +1,11 @@
+2010-01-05  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Fix DumpRenderTree script on ubuntu with gtk build. It was hanging due to an uncatched timeout.
+
+        * Scripts/Drt/runtests.py:
+
 2010-01-05  Mario Bensi  <mbensi@pleyo.com>
 
         fix m_granularity

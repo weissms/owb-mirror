@@ -9,7 +9,7 @@ import signal
 import progress
 
 def handler(signum, frame):
-    print ""
+    raise Exception('timeout')
 
 class RunTests :
     def __init__(self, config, testsList) :
