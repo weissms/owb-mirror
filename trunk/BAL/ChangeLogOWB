@@ -1,3 +1,10 @@
+2010-01-05  Mario Bensi  <mbensi@pleyo.com>
+
+        fix m_granularity
+
+        * Events/WebCore/SDL/BCPlatformWheelEventSDL.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
 2010-01-02  Mario Bensi  <mbensi@pleyo.com>
 
         test source option when http is enabled.
