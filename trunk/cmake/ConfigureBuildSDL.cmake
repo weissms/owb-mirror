@@ -48,6 +48,7 @@ set(ENABLE_SVG_USE_ELEMENT ON CACHE BOOLEAN "Enable support for SVG use element 
 
 set(ENABLE_VIDEO ON CACHE BOOLEAN "Enable HTML5 video support" FORCE)
 set(ENABLE_WEB_SOCKETS ON CACHE BOOLEAN "Enable Web Sockets support" FORCE)
+set(ENABLE_WCSS ON CACHE BOOLEAN "Enable WCSS support" FORCE)
 set(ENABLE_WML ON CACHE BOOLEAN "Enable WML support" FORCE)
 # Enabling XHTMLP causes HUGE regressions (typically <noscript> been executed when JavaScript is enabled)
 # so it should be kept disabled.

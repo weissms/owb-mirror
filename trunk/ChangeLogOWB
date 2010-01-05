@@ -1,3 +1,11 @@
+2010-01-05  Mario Bensi  <mbensi@pleyo.com>
+
+        Reactivate WCSS option.
+
+        * CMakeLists.txt:
+        * cmake/ConfigureBuildGtk.cmake:
+        * cmake/ConfigureBuildSDL.cmake:
+
 2010-01-04  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
