@@ -10,9 +10,9 @@ import sys
 
 usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM -s DIRECTORY [extra-options] [directories]'
 feature_list = ['3d', 'appcache', 'cehtml', 'dae', 'datagrid', 'domstorage', 'eventsource', 
-                'inspector', 'geolocation', 'http', 'mathml', 'media', 'notifications', 
+                'geolocation', 'http', 'inspector', 'mathml', 'media', 'notifications', 
                 'plugin', 'sharedworkers', 'storage', 'svg', 'wcss', 'webgl', 'websocket', 
-                'workers', 'wml', 'xhtmlmp', 'xpath']
+                'wml', 'workers', 'xhtmlmp', 'xpath', 'xslt']
 
 #for each feature, the list of the path from LayoutTests directory available.
 ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
@@ -21,9 +21,9 @@ ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
                       'datagrid' : ['fast/dom/HTMLDataGridElement'],
                       'domstorage' : ['storage/domstorage'],
                       'eventsource' : ['fast/eventsource', 'http/tests/eventsource'],
-                      'inspector' : ['inspector', 'fast/inspector'],
                       'geolocation' : ['fast/dom/Geolocation'],
                       'http' : ['http'],
+                      'inspector' : ['inspector', 'fast/inspector'],
                       'mathml' : ['mathml'],
                       'media' : ['media', 'http/tests/media'],
                       'notifications' : ['fast/notifications'],
@@ -34,13 +34,38 @@ ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
                       'wcss' : ['fast/wcss'],
                       'webgl' : ['fast/canvas/webgl'],
                       'websocket' : ['websocket', 'fast/websockets'],
-                      'workers' : ['fast/workers', 'http/tests/xmlhttprequest/workers', 'http/tests/workers'],
                       'wml' : ['wml', 'fast/wml', 'http/tests/wml'],
+                      'workers' : ['fast/workers', 'http/tests/xmlhttprequest/workers', 'http/tests/workers'],
                       'xhtmlmp' : ['fast/xhtmlmp'],
                       'xpath' : ['fast/xpath', 'dom/svg/level3/xpath'],
                       'xslt' : ['fast/xsl']}
 
 supportedFileExtensions = {'svg' : 'svg', 'wml' : 'wml'}
+
+cmakeOptionWrapper = {'ENABLE_3D_RENDERING' : '3d',
+                      'ENABLE_OFFLINE_WEB_APPLICATIONS' : 'appcache',
+                      'ENABLE_CEHTML' : 'cehtml',
+                      'ENABLE_DAE' : 'dae',
+                      'ENABLE_DATAGRID' : 'datagrid',
+                      'ENABLE_DOM_STORAGE' : 'domstorage',
+                      'ENABLE_EVENTSOURCE' : 'eventsource',
+                      'ENABLE_GEOLOCATION' : 'geolocation',
+                      'ENABLE_INSPECTOR' : 'inspector',
+                      'ENABLE_MATHML' : 'mathml',
+                      'ENABLE_VIDEO' : 'media',
+                      'ENABLE_NOTIFICATIONS' : 'notifications',
+                      'ENABLE_NPAPI' : 'plugin',
+                      'ENABLE_SHARED_WORKERS' : 'sharedworkers',
+                      'ENABLE_DATABASE' : 'storage',
+                      'ENABLE_SVG' : 'svg',
+                      'ENABLE_WCSS' : 'wcss',
+                      'ENABLE_3D_CANVAS' : 'webgl',
+                      'ENABLE_WEB_SOCKETS' : 'websocket',
+                      'ENABLE_WML' : 'wml',
+                      'ENABLE_WORKERS' : 'workers',
+                      'ENABLE_XHTMLMP' : 'xhtmlmp',
+                      'ENABLE_XPATH' : 'xpath',
+                      'ENABLE_XSLT' : 'xslt'}
 
 webkit_layout_tests = 'http://svn.webkit.org/repository/webkit/trunk/LayoutTests'
 
@@ -64,7 +89,7 @@ def update_tests():
     else:
         svn.update(config['layout'])
 
-drt_options = ParseDrtOptions(usage, feature_list)
+drt_options = ParseDrtOptions(usage, feature_list, cmakeOptionWrapper)
 drt_options.initialize_options()
 (options, args) = drt_options.parse_args()
 

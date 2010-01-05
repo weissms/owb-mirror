@@ -1,5 +1,12 @@
 2010-01-05  Mario Bensi  <mbensi@pleyo.com>
 
+        implement parse config.
+
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/parser.py:
+
+2010-01-05  Mario Bensi  <mbensi@pleyo.com>
+
         add feature and add directory by feature to pass only test if the
         feature associated are activated.
 

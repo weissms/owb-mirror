@@ -5,9 +5,10 @@ import os
 # http://docs.python.org/library/optparse.html
 
 class ParseDrtOptions(OptionParser):
-    def __init__(self, usage, feature_list):
+    def __init__(self, usage, feature_list, cmakeOptionWrapper):
         OptionParser.__init__(self, usage)
         self.feature_list = feature_list
+        self.cmakeOptionWrapper = cmakeOptionWrapper
 
     def add_feature(self, feature):
         enable_option = '--enable-' + feature
@@ -49,65 +50,15 @@ class ParseDrtOptions(OptionParser):
 
     def __parse_config_file(self, option, opt_str, value, parser):
         CmakeFile = open(value, 'r')
-        l_svg, l_wml, l_geolocation, l_plugin, l_threeDTransforms, l_storage, l_debug = "", "", "", "", "", "", ""
         for line in CmakeFile:
-            if "ENABLE_SVG" in line :
-                l_svg = line.split("=")[1]
-                l_svg = l_svg.split("\n")[0]
-                if l_svg == 'ON':
-                    parser.values.svg = True
-                else:
-                    parser.values.svg = False
-            if "ENABLE_WML" in line :
-                l_wml = line.split("=")[1]
-                l_wml = l_wml.split("\n")[0]
-                if l_wml == 'ON':
-                    parser.values.wml = True
-                else:
-                    parser.values.wml = False
-            if "ENABLE_VIDEO" in line :
-                l_media = line.split("=")[1]
-                l_media = l_media.split("\n")[0]
-                if l_media == 'ON':
-                    parser.values.media = True
-                else:
-                    parser.values.media = False
-            if "ENABLE_GEOLOCATION" in line :
-                l_geolocation = line.split("=")[1]
-                l_geolocation = l_geolocation.split("\n")[0]
-                if l_geolocation == 'ON':
-                    parser.values.geolocation = True
-                else:
-                    parser.values.geolocation = False
-            if "ENABLE_NPAPI" in line :
-                l_plugin = line.split("=")[1]
-                l_plugin = l_plugin.split("\n")[0]
-                if l_plugin == 'ON':
-                    parser.values.plugin= True
-                else:
-                    parser.values.plugin = False
-            if "ENABLE_3D_RENDERING" in line :
-                l_threeDTransforms = line.split("=")[1]
-                l_threeDTransforms = l_threeDTransforms.split("\n")[0]
-                #FIXME
-                #if l_threeDTransforms == 'ON':
-                #    parser.values.3d = True
-                #else:
-                #    parser.values.3d = False
-            if "ENABLE_DOM_STORAGE" in line :
-                l_storage = line.split("=")[1]
-                l_storage = l_storage.split("\n")[0]
-                if l_storage == 'ON':
-                    parser.values.storage = True
-                else:
-                    parser.values.storage = False
-            if "ENABLE_DEBUG" in line :
-                l_debug = line.split("=")[1]
-                l_debug = l_debug.split("\n")[0]
-                if l_debug == 'ON':
+            pos = line.find("ENABLE")
+            if pos != -1 and line.find("=ON") != -1 :
+                colon = line.find(":", pos)
+                enable = line[pos:colon]
+                if enable in self.cmakeOptionWrapper.keys() :
+                    parser.values.__dict__[self.cmakeOptionWrapper[enable]] = True
+                elif "ENABLE_DEBUG" in line :
                     parser.values.leak = True
-                else:
-                    parser.values.leak = False
         CmakeFile.close()
         setattr(parser.values, option.dest, value)
 
