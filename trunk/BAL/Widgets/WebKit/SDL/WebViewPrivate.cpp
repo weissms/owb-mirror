@@ -529,7 +529,7 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
         }
 
         Uint32 rmask, gmask, bmask, amask;
-#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if !OS(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
         rmask = 0xff000000;
         gmask = 0x00ff0000;
         bmask = 0x0000ff00;
@@ -577,7 +577,7 @@ BalWidget *WebViewPrivate::createWindow(BalRectangle r)
     Uint32 rmask, gmask, bmask, amask;
     /* SDL interprets each pixel as a 32-bit number, so our masks must depend
     on the endianness (byte order) of the machine */
-#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if !OS(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
     bmask = 0x0000ff00;

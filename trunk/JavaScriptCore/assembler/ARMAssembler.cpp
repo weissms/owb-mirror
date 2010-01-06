@@ -26,7 +26,7 @@
 
 #include "config.h"
 
-#if ENABLE(ASSEMBLER) && PLATFORM(ARM_TRADITIONAL)
+#if ENABLE(ASSEMBLER) && CPU(ARM_TRADITIONAL)
 
 #include "ARMAssembler.h"
 
@@ -272,10 +272,8 @@ void ARMAssembler::moveImm(ARMWord imm, int dest)
 
 ARMWord ARMAssembler::encodeComplexImm(ARMWord imm, int dest)
 {
-    ARMWord tmp;
-
-#if ARM_ARCH_VERSION >= 7
-    tmp = getImm16Op2(imm);
+#if WTF_ARM_ARCH_AT_LEAST(7)
+    ARMWord tmp = getImm16Op2(imm);
     if (tmp != INVALID_IMM) {
         movw_r(dest, tmp);
         return dest;
@@ -402,4 +400,4 @@ void* ARMAssembler::executableCopy(ExecutablePool* allocator)
 
 } // namespace JSC
 
-#endif // ENABLE(ASSEMBLER) && PLATFORM(ARM_TRADITIONAL)
+#endif // ENABLE(ASSEMBLER) && CPU(ARM_TRADITIONAL)

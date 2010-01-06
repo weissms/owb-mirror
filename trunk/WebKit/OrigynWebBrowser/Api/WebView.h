@@ -1835,7 +1835,7 @@ protected:
      * Return the underlying WebCore::Page 
      * @internal
      */
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
 public:
     WebCore::Page* page();
 protected:
@@ -1891,12 +1891,12 @@ protected:
     /**
      *  onIMERequestCharPosition 
      */
-    //bool onIMERequestCharPosition(WebCore::Frame*, IMECHARPOSITION*, LRESULT*);
+    //LRESULT WebView::onIMERequestCharPosition(Frame* targetFrame, IMECHARPOSITION* charPos);
 
     /**
      *  onIMERequestReconvertString 
      */
-    //bool onIMERequestReconvertString(WebCore::Frame*, RECONVERTSTRING*, LRESULT*);
+    //LRESULT WebView::onIMERequestReconvertString(Frame* targetFrame, RECONVERTSTRING* reconvertString);
 
     /**
      * developerExtrasEnabled 

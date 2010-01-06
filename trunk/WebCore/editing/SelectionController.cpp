@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2008, 2009, 2010 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -70,6 +70,7 @@ SelectionController::SelectionController(Frame* frame, bool isDragCaretControlle
     , m_isDragCaretController(isDragCaretController)
     , m_isCaretBlinkingSuspended(false)
     , m_focused(frame && frame->page() && frame->page()->focusController()->focusedFrame() == frame)
+    , m_needsDisplayUpdate(false)
 {
 }
 
@@ -145,7 +146,8 @@ void SelectionController::setSelection(const VisibleSelection& s, bool closeTypi
     if (!s.isNone())
         m_frame->setFocusedNodeIfNeeded();
     
-    m_frame->selectionLayoutChanged();
+    setNeedsDisplayUpdate();
+
     // Always clear the x position used for vertical arrow navigation.
     // It will be restored by the vertical arrow navigation code if necessary.
     m_xPosForVerticalArrowNavigation = NoXPosForVerticalArrowNavigation;
@@ -817,11 +819,17 @@ void SelectionController::layout()
         return;
     }
 
-    m_selection.start().node()->document()->updateStyleIfNeeded();
-    
     m_caretRect = IntRect();
         
     if (isCaret()) {
+        Document* document = m_selection.start().node()->document();
+
+        document->updateStyleIfNeeded();
+        if (FrameView* view = document->view()) {
+            if (view->needsLayout())
+                view->layout();
+        }
+
         VisiblePosition pos(m_selection.start(), m_selection.affinity());
         if (pos.isNotNull()) {
             ASSERT(pos.deepEquivalent().node()->renderer());
@@ -918,9 +926,7 @@ bool SelectionController::recomputeCaretRect()
     if (!m_frame)
         return false;
         
-    FrameView* v = m_frame->document()->view();
-    if (!v)
-        return false;
+    ASSERT(!m_frame->view() || !m_frame->view()->needsLayout());
 
     if (!m_needsLayout)
         return false;
@@ -956,7 +962,12 @@ void SelectionController::invalidateCaretRect()
     if (!isCaret())
         return;
 
-    Document* d = m_selection.start().node()->document();
+    Document* document = m_selection.start().node()->document();
+
+    if (FrameView* frameView = document->view()) {
+        if (frameView->needsLayout())
+            frameView->layout();
+    }
 
     // recomputeCaretRect will always return false for the drag caret,
     // because its m_frame is always 0.
@@ -976,14 +987,16 @@ void SelectionController::invalidateCaretRect()
     m_needsLayout = true;
 
     if (!caretRectChanged) {
-        if (RenderView* view = toRenderView(d->renderer()))
+        if (RenderView* view = toRenderView(document->renderer()))
             view->repaintRectangleInViewAndCompositedLayers(caretRepaintRect(), false);
     }
 }
 
 void SelectionController::paintCaret(GraphicsContext* p, int tx, int ty, const IntRect& clipRect)
 {
-    if (! m_selection.isCaret())
+    ASSERT(!m_frame || !m_frame->view() || !m_frame->view()->needsLayout());
+
+    if (!isCaret())
         return;
 
     if (m_needsLayout)
@@ -1299,6 +1312,20 @@ void SelectionController::setFocused(bool flag)
 bool SelectionController::isFocusedAndActive() const
 {
     return m_focused && m_frame->page() && m_frame->page()->focusController()->isActive();
+}
+
+void SelectionController::setNeedsDisplayUpdate(bool needsUpdate)
+{
+    if (m_needsDisplayUpdate == needsUpdate)
+        return;
+    m_needsDisplayUpdate = needsUpdate;
+
+    if (!m_needsDisplayUpdate)
+        return;
+    FrameView* view = m_frame->view();
+    if (!view)
+        return;
+    view->scheduleRelayout();
 }
 
 #ifndef NDEBUG

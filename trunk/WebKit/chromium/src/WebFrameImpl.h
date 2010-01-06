@@ -39,6 +39,8 @@
 #include <wtf/OwnPtr.h>
 #include <wtf/RefCounted.h>
 
+#include "WebAnimationControllerImpl.h"
+
 namespace WebCore {
 class HistoryItem;
 class KURL;
@@ -62,6 +64,7 @@ class WebFrameImpl : public WebFrame, public RefCounted<WebFrameImpl> {
 public:
     // WebFrame methods:
     virtual WebString name() const;
+    virtual void clearName();
     virtual WebURL url() const;
     virtual WebURL favIconURL() const;
     virtual WebURL openSearchDescriptionURL() const;
@@ -85,6 +88,7 @@ public:
     virtual WebFrame* findChildByExpression(const WebString&) const;
     virtual WebDocument document() const;
     virtual void forms(WebVector<WebFormElement>&) const;
+    virtual WebAnimationController* animationController(); 
     virtual WebSecurityOrigin securityOrigin() const;
     virtual void grantUniversalAccess();
     virtual NPObject* windowObject() const;
@@ -157,6 +161,9 @@ public:
     virtual WebURL completeURL(const WebString& url) const;
     virtual WebString contentAsText(size_t maxChars) const;
     virtual WebString contentAsMarkup() const;
+    virtual WebString renderTreeAsText() const;
+    virtual WebString counterValueForElementById(const WebString& id) const;
+
     static PassRefPtr<WebFrameImpl> create(WebFrameClient* client);
     ~WebFrameImpl();
 
@@ -348,6 +355,9 @@ private:
     typedef HashMap<RefPtr<WebCore::HTMLInputElement>,
                     WebPasswordAutocompleteListener*> PasswordListenerMap;
     PasswordListenerMap m_passwordListeners;
+
+    // Keeps a reference to the frame's WebAnimationController.
+    WebAnimationControllerImpl m_animationController;
 };
 
 } // namespace WebKit

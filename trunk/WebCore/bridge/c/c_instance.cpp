@@ -261,7 +261,7 @@ void CInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray)
     {
         JSLock::DropAllLocks dropAllLocks(SilenceAssertionsOnly);
         ASSERT(globalExceptionString().isNull());
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
         bool ok = _object->_class->enumerate(_object, &identifiers, (uint32_t *)&count);
 #else
         bool ok = _object->_class->enumerate(_object, &identifiers, &count);

@@ -725,6 +725,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/RetainPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/SegmentedVector.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/StringExtras.cpp
 BAL/Skeletons/Types	JavaScriptCore/wtf/StringExtras.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/StringHashFunctions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/TCPackedCache.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/TCPageMap.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/TCSpinLock.h
@@ -798,6 +799,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/SegmentedVector.h
 BAL/Types/WTF	JavaScriptCore/wtf/StdLibExtras.h
 BAL/Types/WTF	JavaScriptCore/wtf/StringExtras.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/StringExtras.h
+BAL/Types/WTF	JavaScriptCore/wtf/StringHashFunctions.h
 BAL/Types/WTF	JavaScriptCore/wtf/TCPackedCache.h
 BAL/Types/WTF	JavaScriptCore/wtf/TCPageMap.h
 BAL/Types/WTF	JavaScriptCore/wtf/TCSpinLock.h

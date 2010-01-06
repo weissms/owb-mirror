@@ -88,6 +88,10 @@ void AccessibilityController::setLogFocusEvents(bool /*logFocusEvents*/)
 {
 }
 
+void AccessibilityController::setLogValueChangeEvents(bool /*logValueChangeEvents*/)
+{
+}
+
 void AccessibilityController::setLogScrollingStartEvents(bool /*logScrollingStartEvents*/)
 {
 }

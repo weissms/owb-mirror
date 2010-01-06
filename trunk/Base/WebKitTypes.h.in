@@ -49,7 +49,7 @@ typedef struct _BalEventScroll{} BalEventScroll;
 typedef GdkPoint BalPoint;
 typedef GdkRectangle BalRectangle;
 
-#elif PLATFORM(AMIGAOS4)
+#elif OS(AMIGAOS4)
 
 #include <cairo.h>
 

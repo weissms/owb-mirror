@@ -13,6 +13,6 @@ if(UNIX)
 
     if(APPLE)
         set(WITH_MACPORT_DIR "/opt/local" CACHE STRING "Set macport directory")
-        add_definitions(-DWTF_PLATFORM_MACPORT=1)
+        add_definitions(-DWTF_OS_MACPORT=1)
     endif(APPLE)
 endif(UNIX)

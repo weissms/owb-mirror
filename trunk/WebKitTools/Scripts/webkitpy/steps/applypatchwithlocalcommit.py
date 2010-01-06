@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Google Inc. All rights reserved.
+# Copyright (C) 2010 Google Inc. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -25,20 +25,19 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# A python shim for importing mechanize.
 
-# FIXME: We should try to download a copy instead of requiring root access.
-try:
-    from mechanize import Browser
-except ImportError, e:
-    print """
-mechanize is required.
+from webkitpy.steps.applypatch import ApplyPatch
+from webkitpy.steps.options import Options
 
-To install:
-sudo easy_install mechanize
+class ApplyPatchWithLocalCommit(ApplyPatch):
+    @classmethod
+    def options(cls):
+        return [
+            Options.local_commit,
+        ] + ApplyPatch.options()
 
-Or from the web:
-http://wwwsearch.sourceforge.net/mechanize/
-"""
-    exit(1)
+    def run(self, state):
+        ApplyPatch.run(self, state)
+        if self._options.local_commit:
+            commit_message = self._tool.scm().commit_message_for_this_commit()
+            self._tool.scm().commit_locally_with_message(commit_message.message() or state["patch"]["name"])

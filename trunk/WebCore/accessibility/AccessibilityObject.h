@@ -40,7 +40,7 @@
 
 #if PLATFORM(MAC)
 #include <wtf/RetainPtr.h>
-#elif PLATFORM(WIN) && !PLATFORM(WINCE)
+#elif PLATFORM(WIN) && !OS(WINCE)
 #include "AccessibilityObjectWrapperWin.h"
 #include "COMPtr.h"
 #elif PLATFORM(CHROMIUM) || PLATFORM(BAL)
@@ -424,6 +424,7 @@ public:
     virtual void decrement() { }
 
     virtual void childrenChanged() { }
+    virtual void contentChanged() { }
     virtual const AccessibilityChildrenVector& children() { return m_children; }
     virtual void addChildren() { }
     virtual bool canHaveChildren() const { return true; }
@@ -500,6 +501,14 @@ public:
     // Used by an ARIA tree item to get only its content, and not its child tree items and groups. 
     void ariaTreeItemContent(AccessibilityChildrenVector&);
     
+    // ARIA live-region features.
+    bool supportsARIALiveRegion() const;
+    bool isInsideARIALiveRegion() const;
+    virtual const AtomicString& ariaLiveRegionStatus() const { return nullAtom; }
+    virtual const AtomicString& ariaLiveRegionRelevant() const { return nullAtom; }
+    virtual bool ariaLiveRegionAtomic() const { return false; }
+    virtual bool ariaLiveRegionBusy() const { return false; }
+    
 #if HAVE(ACCESSIBILITY)
 #if PLATFORM(GTK)
     AccessibilityObjectWrapper* wrapper() const;
@@ -543,7 +552,7 @@ protected:
     
 #if PLATFORM(MAC)
     RetainPtr<AccessibilityObjectWrapper> m_wrapper;
-#elif PLATFORM(WIN) && !PLATFORM(WINCE)
+#elif PLATFORM(WIN) && !OS(WINCE)
     COMPtr<AccessibilityObjectWrapper> m_wrapper;
 #elif PLATFORM(GTK)
     AtkObject* m_wrapper;

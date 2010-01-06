@@ -1,3 +1,84 @@
+2010-01-05  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: Accessibility role of <select> elements is wrong
+
+        https://bugs.webkit.org/show_bug.cgi?id=33192
+
+        Reviewed by Sam Weinig.
+
+        * AccessibleBase.cpp:
+        (MSAARole):
+        Map WebCore::PopUpButtonRole to MSAA's ROLE_SYSTEM_COMBOBOX.
+
+2010-01-04  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33181
+        The first letter is not removed properly from inline input hole
+
+        * WebView.cpp: (WebView::onIMEEndComposition): If composition is ended before it was
+        confirmed, cancel it.
+
+2010-01-04  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33161
+        Assertion failure in WebView when using Chinese Simplified IME
+
+        * WebView.cpp: (WebView::onIMERequestCharPosition): Changed the assertion into release mode
+        check. We can't make assertions about arguments passed from outside WebKit.
+
+2010-01-04  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33157
+        Implement TextInput logging channel on Windows
+
+        * WebKitLogging.cpp: (WebKitInitializeLoggingChannelsIfNecessary):
+        * WebKitLogging.h:
+        Added a TextInput channel in place of unused Network one.
+
+        * WebView.cpp:
+        (WebView::WebViewWndProc): Changed onIMERequest to return result directly. We never forward
+        it to DefWindowProc, so there is no need to return an unused boolean result for "handled".
+        (WebView::onIMEStartComposition): Added logging.
+        (imeCompositionArgumentNames): A helper function for detailed logging in onIMEComposition.
+        (imeNotificationName): A helper function for detailed logging in onIMENotify.
+        (imeRequestName): A helper function for detailed logging in onIMERequest.
+        (WebView::onIMEComposition): Added logging.
+        (WebView::onIMEEndComposition): Ditto.
+        (WebView::onIMEChar): Ditto.
+        (WebView::onIMENotify): Ditto.
+        (WebView::onIMERequestCharPosition): Changed to return result directly.
+        (WebView::onIMERequestReconvertString): Ditto.
+        (WebView::onIMERequest): Changed to return result directly. Added logging.
+        (WebView::onIMESelect): Added logging.
+        (WebView::onIMESetContext): Added logging.
+
+        * WebView.h: onIMERequest functions now return result directly.
+
+2010-01-04  Adam Roben  <aroben@apple.com>
+
+        Add WebKitAPITest
+
+        Fixes <http://webkit.org/b/33167>.
+
+        Reviewed by Sam Weinig.
+
+        * WebKit.vcproj/WebKit.sln: Added WebKitAPITest.vcproj. It builds just
+        after DumpRenderTree.vcproj.
+
+2010-01-04  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Ada Chan and Mark Rowe.
+
+        Updated copyright string
+
+        * WebKit.vcproj/WebKit.rc:
+
 2009-12-23  Adam Roben  <aroben@apple.com>
 
         Add IWebPreferencesPrivate::[set]AcceleratedCompositingEnabled

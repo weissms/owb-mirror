@@ -92,7 +92,7 @@
 #include <ScriptString.h> 
 #include <Settings.h>
 #include <APICast.h>
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
 #include <proto/clicktab.h>
 #include <proto/intuition.h>
 #include <proto/layout.h>
@@ -482,7 +482,7 @@ void WebFrameLoaderClient::dispatchDidFirstLayout()
 
 Frame* WebFrameLoaderClient::dispatchCreatePage()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     extern BalWidget *createAmigaWindow(WebView *);
     extern void closeAmigaWindow(BalWidget *);
 
@@ -769,7 +769,7 @@ PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const Reso
 
 void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     if (!m_webFrame->parentFrame()) {
         BalWidget* viewWindow = m_webFrame->webView()->viewWindow();
         if (viewWindow && viewWindow->window) {

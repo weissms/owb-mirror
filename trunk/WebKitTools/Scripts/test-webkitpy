@@ -32,7 +32,6 @@ import unittest
 
 from webkitpy.bugzilla_unittest import *
 from webkitpy.buildbot_unittest import *
-from webkitpy.buildsteps_unittest import *
 from webkitpy.changelogs_unittest import *
 from webkitpy.commands.download_unittest import *
 from webkitpy.commands.early_warning_system_unittest import *
@@ -46,6 +45,8 @@ from webkitpy.diff_parser_unittest import *
 from webkitpy.executive_unittest import *
 from webkitpy.multicommandtool_unittest import *
 from webkitpy.queueengine_unittest import *
+from webkitpy.steps.steps_unittest import *
+from webkitpy.steps.updatechangelogswithreview_unittests import *
 from webkitpy.style_unittest import *
 from webkitpy.text_style_unittest import *
 from webkitpy.webkit_logging_unittest import *

@@ -55,7 +55,7 @@
 #include <openssl/x509v3.h>
 #endif
 
-#if !PLATFORM(WIN_OS)
+#if !OS(WINDOWS)
 #include <sys/param.h>
 #define MAX_PATH MAXPATHLEN
 #endif

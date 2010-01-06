@@ -64,16 +64,19 @@ _unassigned_email = "unassigned@example.com"
 # FIXME: The ids should be 1, 2, 3 instead of crazy numbers.
 _bug1 = {
     "id" : 42,
+    "title" : "The first bug",
     "assigned_to_email" : _unassigned_email,
     "attachments" : [_patch1, _patch2],
 }
 _bug2 = {
     "id" : 75,
+    "title" : "The second bug",
     "assigned_to_email" : "foo@foo.com",
     "attachments" : [],
 }
 _bug3 = {
     "id" : 76,
+    "title" : "The third bug",
     "assigned_to_email" : _unassigned_email,
     "attachments" : [],
 }
@@ -117,6 +120,9 @@ class MockBugzilla(Mock):
     
     def bug_url_for_bug_id(self, bug_id):
         return "%s/%s" % (self.bug_server_url, bug_id)
+
+    def fetch_bug_dictionary(self, bug_id):
+        return self.bug_cache.get(bug_id)
 
     def attachment_url_for_id(self, attachment_id, action):
         action_param = ""
@@ -186,10 +192,13 @@ class MockUser(object):
     def confirm(self, message=None):
         return True
 
+    def open_url(self, url):
+        pass
 
-class MockStatusBot(object):
+
+class MockStatusServer(object):
     def __init__(self):
-        self.statusbot_host = "example.com"
+        self.host = "example.com"
 
     def patch_status(self, queue_name, patch_id):
         return None
@@ -205,7 +214,7 @@ class MockBugzillaTool():
         self.executive = Mock()
         self.user = MockUser()
         self._scm = MockSCM()
-        self.status_bot = MockStatusBot()
+        self.status_server = MockStatusServer()
 
     def scm(self):
         return self._scm

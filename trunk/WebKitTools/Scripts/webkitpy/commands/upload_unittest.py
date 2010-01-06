@@ -30,9 +30,18 @@ import unittest
 
 from webkitpy.commands.commandtest import CommandsTest
 from webkitpy.commands.upload import *
+from webkitpy.mock import Mock
 from webkitpy.mock_bugzillatool import MockBugzillaTool
 
 class UploadCommandsTest(CommandsTest):
+    def test_commit_message_for_current_diff(self):
+        tool = MockBugzillaTool()
+        mock_commit_message_for_this_commit = Mock()
+        mock_commit_message_for_this_commit.message = lambda: "Mock message"
+        tool._scm.commit_message_for_this_commit = lambda: mock_commit_message_for_this_commit
+        expected_stdout = "Mock message\n"
+        self.assert_execute_outputs(CommitMessageForCurrentDiff(), [], expected_stdout=expected_stdout, tool=tool)
+
     def test_assign_to_committer(self):
         tool = MockBugzillaTool()
         expected_stderr = "Bug 75 is already assigned to foo@foo.com (None).\nBug 76 has no non-obsolete patches, ignoring.\n"
@@ -56,6 +65,14 @@ class UploadCommandsTest(CommandsTest):
     def test_submit_patch(self):
         expected_stderr = "Obsoleting 2 old patches on bug 42\n"
         self.assert_execute_outputs(SubmitPatch(), [42], expected_stderr=expected_stderr)
+
+    def test_mark_bug_fixed(self):
+        tool = MockBugzillaTool()
+        tool._scm.last_svn_commit_log = lambda: "r9876 |"
+        options = Mock()
+        options.bug_id = 42
+        expected_stderr = "Bug: <http://example.com/42> The first bug\nRevision: 9876\nAdding comment to Bug 42.\n"
+        self.assert_execute_outputs(MarkBugFixed(), [], expected_stderr=expected_stderr, tool=tool, options=options)
 
     def test_edit_changelog(self):
         self.assert_execute_outputs(EditChangeLog(), [])

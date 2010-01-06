@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2009, Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
@@ -32,10 +31,12 @@ import os
 
 from optparse import make_option
 
+import webkitpy.steps as steps
+
 from webkitpy.bugzilla import parse_bug_id
 # We could instead use from modules import buildsteps and then prefix every buildstep with "buildsteps."
-from webkitpy.buildsteps import *
 from webkitpy.changelogs import ChangeLog
+from webkitpy.commands.abstractsequencedcommand import AbstractSequencedCommmand
 from webkitpy.comments import bug_comment_from_commit_text
 from webkitpy.executive import ScriptError
 from webkitpy.grammar import pluralize
@@ -44,27 +45,13 @@ from webkitpy.multicommandtool import AbstractDeclarativeCommmand
 from webkitpy.stepsequence import StepSequence
 
 
-# FIXME: Move this to a more general location.
-class AbstractSequencedCommmand(AbstractDeclarativeCommmand):
-    steps = None
-    def __init__(self):
-        self._sequence = StepSequence(self.steps)
-        AbstractDeclarativeCommmand.__init__(self, self._sequence.options())
-
-    def _prepare_state(self, options, args, tool):
-        return None
-
-    def execute(self, options, args, tool):
-        self._sequence.run_and_handle_errors(tool, options, self._prepare_state(options, args, tool))
-
-
 class Build(AbstractSequencedCommmand):
     name = "build"
     help_text = "Update working copy and build"
     steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        BuildStep,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.Build,
     ]
 
 
@@ -72,10 +59,10 @@ class BuildAndTest(AbstractSequencedCommmand):
     name = "build-and-test"
     help_text = "Update working copy, build, and run the tests"
     steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        BuildStep,
-        RunTestsStep,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.Build,
+        steps.RunTests,
     ]
 
 
@@ -85,14 +72,17 @@ class LandDiff(AbstractSequencedCommmand):
     argument_names = "[BUGID]"
     show_in_main_help = True
     steps = [
-        EnsureBuildersAreGreenStep,
-        UpdateChangeLogsWithReviewerStep,
-        EnsureBuildersAreGreenStep,
-        BuildStep,
-        RunTestsStep,
-        CommitStep,
-        CloseBugForLandDiffStep,
+        steps.EnsureBuildersAreGreen,
+        steps.UpdateChangeLogsWithReviewer,
+        steps.EnsureBuildersAreGreen,
+        steps.Build,
+        steps.RunTests,
+        steps.Commit,
+        steps.CloseBugForLandDiff,
     ]
+    long_help = """land-diff commits the current working copy diff (just as svn or git commit would).
+land-diff will build and run the tests before committing.
+If a bug id is provided, or one can be found in the ChangeLog land-diff will update the bug after committing."""
 
     def _prepare_state(self, options, args, tool):
         return {
@@ -169,10 +159,10 @@ class CheckStyle(AbstractPatchSequencingCommand, ProcessAttachmentsMixin):
     help_text = "Run check-webkit-style on the specified attachments"
     argument_names = "ATTACHMENT_ID [ATTACHMENT_IDS]"
     main_steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        ApplyPatchStep,
-        CheckStyleStep,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.ApplyPatch,
+        steps.CheckStyle,
     ]
 
 
@@ -181,21 +171,21 @@ class BuildAttachment(AbstractPatchSequencingCommand, ProcessAttachmentsMixin):
     help_text = "Apply and build patches from bugzilla"
     argument_names = "ATTACHMENT_ID [ATTACHMENT_IDS]"
     main_steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        ApplyPatchStep,
-        BuildStep,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.ApplyPatch,
+        steps.Build,
     ]
 
 
 class AbstractPatchApplyingCommand(AbstractPatchSequencingCommand):
     prepare_steps = [
-        EnsureLocalCommitIfNeeded,
-        CleanWorkingDirectoryWithLocalCommitsStep,
-        UpdateStep,
+        steps.EnsureLocalCommitIfNeeded,
+        steps.CleanWorkingDirectoryWithLocalCommits,
+        steps.Update,
     ]
     main_steps = [
-        ApplyPatchWithLocalCommitStep,
+        steps.ApplyPatchWithLocalCommit,
     ]
 
 
@@ -215,18 +205,18 @@ class ApplyPatches(AbstractPatchApplyingCommand, ProcessBugsMixin):
 
 class AbstractPatchLandingCommand(AbstractPatchSequencingCommand):
     prepare_steps = [
-        EnsureBuildersAreGreenStep,
+        steps.EnsureBuildersAreGreen,
     ]
     main_steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        ApplyPatchStep,
-        EnsureBuildersAreGreenStep,
-        BuildStep,
-        RunTestsStep,
-        CommitStep,
-        ClosePatchStep,
-        CloseBugStep,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.ApplyPatch,
+        steps.EnsureBuildersAreGreen,
+        steps.Build,
+        steps.RunTests,
+        steps.Commit,
+        steps.ClosePatch,
+        steps.CloseBug,
     ]
 
 
@@ -248,13 +238,15 @@ class Rollout(AbstractSequencedCommmand):
     name = "rollout"
     show_in_main_help = True
     help_text = "Revert the given revision in the working copy and optionally commit the revert and re-open the original bug"
-    argument_names = "REVISION [BUGID]"
+    argument_names = "REVISION REASON"
     steps = [
-        CleanWorkingDirectoryStep,
-        UpdateStep,
-        RevertRevisionStep,
-        PrepareChangeLogForRevertStep,
-        CompleteRollout,
+        steps.CleanWorkingDirectory,
+        steps.Update,
+        steps.RevertRevision,
+        steps.PrepareChangeLogForRevert,
+        steps.EditChangeLog,
+        steps.ConfirmDiff,
+        steps.CompleteRollout,
     ]
 
     @staticmethod
@@ -272,6 +264,7 @@ class Rollout(AbstractSequencedCommmand):
 
     def execute(self, options, args, tool):
         revision = args[0]
+        reason = args[1]
         bug_id = self._parse_bug_id_from_revision_diff(tool, revision)
         if options.complete_rollout:
             if bug_id:
@@ -280,7 +273,8 @@ class Rollout(AbstractSequencedCommmand):
                 log("Failed to parse bug number from diff.  No bugs will be updated/reopened after the rollout.")
 
         state = {
-            "revision": revision,
-            "bug_id": bug_id,
+            "revision" : revision,
+            "bug_id" : bug_id,
+            "reason" : reason,
         }
         self._sequence.run_and_handle_errors(tool, options, state)

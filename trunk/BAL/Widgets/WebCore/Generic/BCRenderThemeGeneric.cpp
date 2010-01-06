@@ -217,7 +217,7 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
     style->setBorderLeftStyle(v);
     style->setBorderBottomStyle(v);
     style->setBorderRightStyle(v);
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     int borderWidth = 2;
 #else
     int borderWidth = 1;
@@ -235,7 +235,7 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
     InputElement *input = toInputElement(static_cast<Element*>(o->node()));
     if(input && input->isChecked()) {
         IntRect r2(r);
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
         r2.inflate(-borderWidth - 1);
         i.context->setFillColor(Color(0xFF618ECE));
 #else
@@ -393,7 +393,7 @@ bool RenderThemeBal::paintSearchField(RenderObject* o, const RenderObject::Paint
 
 Color RenderThemeBal::platformActiveSelectionBackgroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF618ECE);
 #else
     Color c(0, 0, 255);
@@ -403,7 +403,7 @@ Color RenderThemeBal::platformActiveSelectionBackgroundColor() const
 
 Color RenderThemeBal::platformInactiveSelectionBackgroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFFCFCFCF);
 #else
     Color c(0, 0, 255);
@@ -413,7 +413,7 @@ Color RenderThemeBal::platformInactiveSelectionBackgroundColor() const
 
 Color RenderThemeBal::platformActiveSelectionForegroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF000000);
 #else
     Color c(255, 255, 255);
@@ -423,7 +423,7 @@ Color RenderThemeBal::platformActiveSelectionForegroundColor() const
 
 Color RenderThemeBal::platformInactiveSelectionForegroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF3F3F3F);
 #else
     Color c(255, 255, 255);
@@ -433,7 +433,7 @@ Color RenderThemeBal::platformInactiveSelectionForegroundColor() const
 
 Color RenderThemeBal::activeListBoxSelectionBackgroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF618ECE);
 #else
     Color c(0, 0, 255);
@@ -443,7 +443,7 @@ Color RenderThemeBal::activeListBoxSelectionBackgroundColor() const
 
 Color RenderThemeBal::inactiveListBoxSelectionBackgroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFFCFCFCF);
 #else
     Color c(0, 0, 255);
@@ -453,7 +453,7 @@ Color RenderThemeBal::inactiveListBoxSelectionBackgroundColor() const
 
 Color RenderThemeBal::activeListBoxSelectionForegroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF000000);
 #else
     Color c(255, 255, 255);
@@ -463,7 +463,7 @@ Color RenderThemeBal::activeListBoxSelectionForegroundColor() const
 
 Color RenderThemeBal::inactiveListBoxSelectionForegroundColor() const
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     Color c(0xFF3F3F3F);
 #else
     Color c(255, 255, 255);

@@ -170,7 +170,7 @@ void WebPreferences::initializeDefaultSettings()
 
     m_privatePrefs[WebKitHistoryItemLimitKey] = "10";
     m_privatePrefs[WebKitHistoryAgeInDaysLimitKey] = "7";
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     m_privatePrefs[WebKitIconDatabaseLocationKey] = "PROGDIR:";
 #else
     m_privatePrefs[WebKitIconDatabaseLocationKey] = OWB_DATA;

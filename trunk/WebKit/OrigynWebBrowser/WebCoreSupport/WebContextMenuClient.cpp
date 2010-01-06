@@ -43,7 +43,7 @@
 #include <ResourceRequest.h>
 #include <NotImplemented.h>
 
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
 #include <FrameView.h>
 #include <proto/intuition.h>
 #include <proto/popupmenu.h>
@@ -68,7 +68,7 @@ void WebContextMenuClient::contextMenuDestroyed()
 
 PlatformMenuDescription WebContextMenuClient::getCustomMenuFromDefaultItems(ContextMenu* menu)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     PlatformMenuDescription platformMenuDescription = menu->releasePlatformDescription();
     struct IntuitionBase* intuitionBase = (struct IntuitionBase*)IIntuition->Data.LibBase;
     IIntuition->SetAttrs((Object*)platformMenuDescription,

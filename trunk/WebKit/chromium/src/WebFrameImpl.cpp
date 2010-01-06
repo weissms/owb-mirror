@@ -104,6 +104,7 @@
 #include "PlatformContextSkia.h"
 #include "PrintContext.h"
 #include "RenderFrame.h"
+#include "RenderTreeAsText.h"
 #include "RenderView.h"
 #include "RenderWidget.h"
 #include "ReplaceSelectionCommand.h"
@@ -120,6 +121,7 @@
 #include "SubstituteData.h"
 #include "TextAffinity.h"
 #include "TextIterator.h"
+#include "WebAnimationControllerImpl.h"
 #include "WebConsoleMessage.h"
 #include "WebDataSourceImpl.h"
 #include "WebDocument.h"
@@ -143,11 +145,11 @@
 #include <wtf/CurrentTime.h>
 
 
-#if PLATFORM(DARWIN)
+#if OS(DARWIN)
 #include "LocalCurrentGraphicsContext.h"
 #endif
 
-#if PLATFORM(LINUX)
+#if OS(LINUX)
 #include <gdk/gdk.h>
 #endif
 
@@ -355,6 +357,11 @@ WebString WebFrameImpl::name() const
     return m_frame->tree()->name();
 }
 
+void WebFrameImpl::clearName()
+{
+    m_frame->tree()->clearName();
+}
+
 WebURL WebFrameImpl::url() const
 {
     const WebDataSource* ds = dataSource();
@@ -550,6 +557,11 @@ void WebFrameImpl::forms(WebVector<WebFormElement>& results) const
             temp[i] = static_cast<HTMLFormElement*>(node);
     }
     results.swap(temp);
+}
+
+WebAnimationController* WebFrameImpl::animationController()
+{
+    return &m_animationController;
 }
 
 WebSecurityOrigin WebFrameImpl::securityOrigin() const
@@ -1043,7 +1055,7 @@ WebString WebFrameImpl::selectionAsText() const
         return WebString();
 
     String text = range->text();
-#if PLATFORM(WIN_OS)
+#if OS(WINDOWS)
     replaceNewlinesWithWindowsStyleNewlines(text);
 #endif
     replaceNBSPWithSpace(text);
@@ -1093,10 +1105,10 @@ float WebFrameImpl::printPage(int page, WebCanvas* canvas)
         return 0;
     }
 
-#if PLATFORM(WIN_OS) || PLATFORM(LINUX) || PLATFORM(FREEBSD)
+#if OS(WINDOWS) || OS(LINUX) || OS(FREEBSD)
     PlatformContextSkia context(canvas);
     GraphicsContext spool(&context);
-#elif PLATFORM(DARWIN)
+#elif OS(DARWIN)
     GraphicsContext spool(canvas);
     LocalCurrentGraphicsContext localContext(&spool);
 #endif
@@ -1461,6 +1473,23 @@ WebString WebFrameImpl::contentAsMarkup() const
     return createFullMarkup(m_frame->document());
 }
 
+WebString WebFrameImpl::renderTreeAsText() const
+{
+    return externalRepresentation(m_frame);
+}
+
+WebString WebFrameImpl::counterValueForElementById(const WebString& id) const
+{
+    if (!m_frame)
+        return WebString();
+
+    Element* element = m_frame->document()->getElementById(id);
+    if (!element)
+        return WebString();
+
+    return counterValueForElement(element);
+}
+
 // WebFrameImpl public ---------------------------------------------------------
 
 int WebFrameImpl::m_liveObjectCount = 0;
@@ -1482,6 +1511,7 @@ WebFrameImpl::WebFrameImpl(WebFrameClient* client)
     , m_framesScopingCount(-1)
     , m_scopingComplete(false)
     , m_nextInvalidateAfter(0)
+    , m_animationController(this)
 {
     ChromiumBridge::incrementStatsCounter(webFrameActiveCount);
     m_liveObjectCount++;

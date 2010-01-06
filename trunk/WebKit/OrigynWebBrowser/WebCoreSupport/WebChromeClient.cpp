@@ -53,7 +53,7 @@
 #include <NotImplemented.h>
 #include <Page.h>
 #include <WindowFeatures.h>
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
 #include <FrameLoader.h>
 #include <proto/requester.h>
 #include <proto/intuition.h>
@@ -154,7 +154,7 @@ void WebChromeClient::focusedNodeChanged(WebCore::Node*)
 
 Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadRequest, const WindowFeatures& features)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     if (features.dialog) {
         fprintf(stderr, "%s: features.dialog not implemented on AmigaOS4.\n", __PRETTY_FUNCTION__);
         return 0;
@@ -256,7 +256,7 @@ void WebChromeClient::setToolbarsVisible(bool visible)
 
 bool WebChromeClient::toolbarsVisible()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     return true;
 #endif
     return m_webView->toolbarsVisible();
@@ -269,7 +269,7 @@ void WebChromeClient::setStatusbarVisible(bool visible)
 
 bool WebChromeClient::statusbarVisible()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     return true;
 #endif
     return m_webView->statusbarVisible();
@@ -299,7 +299,7 @@ void WebChromeClient::setMenubarVisible(bool visible)
 
 bool WebChromeClient::menubarVisible()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     return true;
 #endif
     return m_webView->menubarVisible();
@@ -311,7 +311,7 @@ void WebChromeClient::setResizable(bool resizable)
 
 void WebChromeClient::addMessageToConsole(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned line, const String& url)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     printf("JavaScript '%s' line %u: %s\n", url.latin1().data(), line, message.latin1().data());
 #else
     SharedPtr<JSActionDelegate> jsActionDelegate = m_webView->jsActionDelegate();
@@ -360,7 +360,7 @@ void WebChromeClient::runJavaScriptAlert(Frame* frame, const String& message)
 
 bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     extern char* utf8ToAmiga(const char* utf8);
 
     char* messageAmiga = utf8ToAmiga(message.utf8().data());
@@ -402,7 +402,7 @@ bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
 
 bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, const String& defaultValue, String& result)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     extern char* utf8ToAmiga(const char* utf8);
     TEXT buffer[1024];
 
@@ -467,7 +467,7 @@ bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, c
 
 void WebChromeClient::setStatusbarText(const String& statusText)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     BalWidget *widget = m_webView ? m_webView->viewWindow() : 0;
     if (widget && widget->gad_status) {
         extern char* utf8ToAmiga(const char* utf8);

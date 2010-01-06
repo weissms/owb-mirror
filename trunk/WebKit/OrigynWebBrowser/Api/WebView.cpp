@@ -133,10 +133,10 @@
 #include "owb-config.h"
 #include "FileIO.h"
 
-#if PLATFORM(MACPORT)
+#if OS(MACPORT)
 #include <sys/types.h>
 #include <sys/sysctl.h>
-#elif PLATFORM(AMIGAOS4)
+#elif OS(AMIGAOS4)
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/layout.h>
@@ -463,7 +463,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     unsigned long long memSize = 256;
     //unsigned long long diskFreeSize = 4096;
     
-#if PLATFORM(MACPORT)
+#if OS(MACPORT)
     unsigned int physmem;
     size_t len = sizeof physmem;
     static int mib[2] = { CTL_HW, HW_PHYSMEM };
@@ -471,7 +471,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
   
     if (sysctl (mib, miblen, &physmem, &len, NULL, 0) == 0 && len == sizeof (physmem))
        memSize=physmem / (1024*1024);
-#elif PLATFORM(AMIGAOS4)
+#elif OS(AMIGAOS4)
     memSize = IExec->AvailMem(MEMF_TOTAL) / (1024 * 1024);
 #else
     struct sysinfo info;
@@ -1029,7 +1029,7 @@ BalRectangle WebView::frameRect()
 
 void WebView::closeWindowSoon()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     closeWindow();
 #else
     d->closeWindowSoon();
@@ -1038,7 +1038,7 @@ void WebView::closeWindowSoon()
 
 void WebView::closeWindow()
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     extern void closeAmigaWindow(BalWidget *owbwindow);
 
     closeAmigaWindow(viewWindow());
@@ -1063,7 +1063,7 @@ void WebView::reloadFromOrigin()
 
 const char* WebView::standardUserAgentWithApplicationName(const char* applicationName)
 {
-#if PLATFORM(MACPORT)
+#if OS(MACPORT)
     // We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
 #if ENABLE(DAE)
     return "HBBTV/1.0.0 (OITF_HD_UIPROF+PVR+DL;) Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 CE-HTML/1.0";
@@ -1071,7 +1071,7 @@ const char* WebView::standardUserAgentWithApplicationName(const char* applicatio
     return  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Wedison";
 #endif
 
-#elif PLATFORM(AMIGAOS4)
+#elif OS(AMIGAOS4)
     if (IExec->Data.LibBase->lib_Version < 53)
         return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; ppc; U; en) AppleWebKit/528.5+ (KHTML, like Gecko, Safari/528.5+)";
     else
@@ -1112,7 +1112,7 @@ Page* WebView::page()
 static const unsigned CtrlKey = 1 << 0;
 static const unsigned AltKey = 1 << 1;
 static const unsigned ShiftKey = 1 << 2;
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
 static const unsigned AmigaKey = 1 << 4;
 #endif
 
@@ -1197,7 +1197,7 @@ static const KeyDownEntry keyDownEntries[] = {
     { 'V',       CtrlKey,            "Paste"                                       },
     { 'X',       CtrlKey,            "Cut"                                         },
     { 'A',       CtrlKey,            "SelectAll"                                   },
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     { 'C',       AmigaKey,           "Copy"                                        },
     { 'V',       AmigaKey,           "Paste"                                       },
     { 'X',       AmigaKey,           "Cut"                                         },
@@ -1253,7 +1253,7 @@ const char* WebView::interpretKeyEvent(const KeyboardEvent* evt)
         modifiers |= AltKey;
     if (evt->ctrlKey())
         modifiers |= CtrlKey;
-#if PLATFORM (AMIGAOS4)
+#if OS(AMIGAOS4)
     if (evt->metaKey())
         modifiers |= AmigaKey;
 #endif
@@ -1430,7 +1430,7 @@ dsf
 
 void WebView::setToolTip(const char* toolTip)
 {
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     extern char* utf8ToAmiga(const char* utf8);
 
     if (toolTip == m_toolTip)
@@ -2736,7 +2736,7 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->zoomsTextOnly();
     settings->setZoomsTextOnly(!!enabled);
 
-#if PLATFORM(AMIGAOS4)
+#if OS(AMIGAOS4)
     settings->setShowsURLsInToolTips(true);
 #else
     settings->setShowsURLsInToolTips(false);

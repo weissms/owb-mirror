@@ -35,16 +35,17 @@ import sys
 
 from optparse import make_option
 
+import webkitpy.steps as steps
+
 from webkitpy.bugzilla import parse_bug_id
-from webkitpy.buildsteps import PrepareChangeLogStep, EditChangeLogStep, ConfirmDiffStep, CommandOptions, ObsoletePatchesOnBugStep, PostDiffToBugStep, PromptForBugOrTitleStep, CreateBugStep
-from webkitpy.commands.download import AbstractSequencedCommmand
+from webkitpy.commands.abstractsequencedcommand import AbstractSequencedCommmand
 from webkitpy.comments import bug_comment_from_svn_revision
 from webkitpy.committers import CommitterList
 from webkitpy.grammar import pluralize
 from webkitpy.webkit_logging import error, log
+from webkitpy.mock import Mock
 from webkitpy.multicommandtool import AbstractDeclarativeCommmand
 
-# FIXME: Requires unit test.
 class CommitMessageForCurrentDiff(AbstractDeclarativeCommmand):
     name = "commit-message"
     help_text = "Print a commit message suitable for the uncommitted changes"
@@ -91,7 +92,7 @@ class ObsoleteAttachments(AbstractSequencedCommmand):
     help_text = "Mark all attachments on a bug as obsolete"
     argument_names = "BUGID"
     steps = [
-        ObsoletePatchesOnBugStep,
+        steps.ObsoletePatches,
     ]
 
     def _prepare_state(self, options, args, tool):
@@ -114,9 +115,9 @@ class PostDiff(AbstractPatchUploadingCommand):
     argument_names = "[BUGID]"
     show_in_main_help = True
     steps = [
-        ConfirmDiffStep,
-        ObsoletePatchesOnBugStep,
-        PostDiffToBugStep,
+        steps.ConfirmDiff,
+        steps.ObsoletePatches,
+        steps.PostDiff,
     ]
 
     def _prepare_state(self, options, args, tool):
@@ -132,9 +133,9 @@ class PrepareDiff(AbstractSequencedCommmand):
     help_text = "Creates a bug (or prompts for an existing bug) and prepares the ChangeLogs"
     argument_names = "[BUGID]"
     steps = [
-        PromptForBugOrTitleStep,
-        CreateBugStep,
-        PrepareChangeLogStep,
+        steps.PromptForBugOrTitle,
+        steps.CreateBug,
+        steps.PrepareChangeLog,
     ]
 
     def _prepare_state(self, options, args, tool):
@@ -147,14 +148,21 @@ class SubmitPatch(AbstractPatchUploadingCommand):
     help_text = "Automates the process of uploading a patch for review"
     argument_names = "[BUGID]"
     steps = [
-        PromptForBugOrTitleStep,
-        CreateBugStep,
-        PrepareChangeLogStep,
-        EditChangeLogStep,
-        ConfirmDiffStep,
-        ObsoletePatchesOnBugStep,
-        PostDiffToBugStep,
+        steps.PromptForBugOrTitle,
+        steps.CreateBug,
+        steps.PrepareChangeLog,
+        steps.EditChangeLog,
+        steps.ConfirmDiff,
+        steps.ObsoletePatches,
+        steps.PostDiff,
     ]
+    long_help = """submit-patch uploads the current diff to bugs.webkit.org.
+    If no bug id is provided, submit-patch will create a bug.
+    If the current diff does not have a ChangeLog, submit-patch
+    will prepare a ChangeLog.  Once a patch is read, submit-patch
+    will open the ChangeLogs for editing using the command in the
+    EDITOR environment variable and will display the diff using the
+    command in the PAGER environment variable."""
 
     def _prepare_state(self, options, args, tool):
         state = {}
@@ -166,7 +174,7 @@ class EditChangeLog(AbstractSequencedCommmand):
     name = "edit-changelog"
     help_text = "Opens modified ChangeLogs in $EDITOR"
     steps = [
-        EditChangeLogStep,
+        steps.EditChangeLog,
     ]
 
 
@@ -181,9 +189,9 @@ class PostCommits(AbstractDeclarativeCommmand):
             make_option("-b", "--bug-id", action="store", type="string", dest="bug_id", help="Specify bug id if no URL is provided in the commit log."),
             make_option("--add-log-as-comment", action="store_true", dest="add_log_as_comment", default=False, help="Add commit log message as a comment when uploading the patch."),
             make_option("-m", "--description", action="store", type="string", dest="description", help="Description string for the attachment (default: description from commit message)"),
-            CommandOptions.obsolete_patches,
-            CommandOptions.review,
-            CommandOptions.request_commit,
+            steps.Options.obsolete_patches,
+            steps.Options.review,
+            steps.Options.request_commit,
         ]
         AbstractDeclarativeCommmand.__init__(self, options=options, requires_local_commits=True)
 
@@ -216,7 +224,7 @@ class PostCommits(AbstractDeclarativeCommmand):
 
             if options.obsolete_patches and bug_id not in have_obsoleted_patches:
                 state = { "bug_id": bug_id }
-                ObsoletePatchesOnBugStep(tool, options).run(state)
+                steps.ObsoletePatches(tool, options).run(state)
                 have_obsoleted_patches.add(bug_id)
 
             diff_file = self._diff_file_for_commit(tool, commit_id)
@@ -225,10 +233,8 @@ class PostCommits(AbstractDeclarativeCommmand):
             tool.bugs.add_patch_to_bug(bug_id, diff_file, description, comment_text, mark_for_review=options.review, mark_for_commit_queue=options.request_commit)
 
 
-# FIXME: Requires unit test.  Blocking issue: too complex for now.
 class MarkBugFixed(AbstractDeclarativeCommmand):
     name = "mark-bug-fixed"
-    show_in_main_help = True
     help_text = "Mark the specified bug as fixed"
     argument_names = "[SVN_REVISION]"
     def __init__(self):
@@ -267,17 +273,6 @@ class MarkBugFixed(AbstractDeclarativeCommmand):
 
         return (bug_id, svn_revision)
 
-    def _open_bug_in_web_browser(self, tool, bug_id):
-        if sys.platform == "darwin":
-            tool.executive.run_command(["open", tool.bugs.short_bug_url_for_bug_id(bug_id)])
-            return
-        log("WARNING: --open is only supported on Mac OS X.")
-
-    def _prompt_user_for_correctness(self, bug_id, svn_revision):
-        answer = raw_input("Is this correct (y/N)? ")
-        if not re.match("^\s*y(es)?", answer, re.IGNORECASE):
-            exit(1)
-
     def execute(self, options, args, tool):
         bug_id = options.bug_id
 
@@ -293,14 +288,15 @@ class MarkBugFixed(AbstractDeclarativeCommmand):
             needs_prompt = True
             (bug_id, svn_revision) = self._determine_bug_id_and_svn_revision(tool, bug_id, svn_revision)
 
-        log("Bug: <%s> %s" % (tool.bugs.short_bug_url_for_bug_id(bug_id), tool.bugs.fetch_bug_dictionary(bug_id)["title"]))
+        log("Bug: <%s> %s" % (tool.bugs.bug_url_for_bug_id(bug_id), tool.bugs.fetch_bug_dictionary(bug_id)["title"]))
         log("Revision: %s" % svn_revision)
 
         if options.open_bug:
-            self._open_bug_in_web_browser(tool, bug_id)
+            tool.user.open_url(tool.bugs.bug_url_for_bug_id(bug_id))
 
         if needs_prompt:
-            self._prompt_user_for_correctness(bug_id, svn_revision)
+            if not tool.user.confirm("Is this correct?"):
+                exit(1)
 
         bug_comment = bug_comment_from_svn_revision(svn_revision)
         if options.comment:
@@ -317,14 +313,13 @@ class MarkBugFixed(AbstractDeclarativeCommmand):
 # FIXME: Requires unit test.  Blocking issue: too complex for now.
 class CreateBug(AbstractDeclarativeCommmand):
     name = "create-bug"
-    show_in_main_help = True
     help_text = "Create a bug from local changes or local commits"
     argument_names = "[COMMITISH]"
 
     def __init__(self):
         options = [
-            CommandOptions.cc,
-            CommandOptions.component,
+            steps.Options.cc,
+            steps.Options.component,
             make_option("--no-prompt", action="store_false", dest="prompt", default=True, help="Do not prompt for bug title and comment; use commit log instead."),
             make_option("--no-review", action="store_false", dest="review", default=True, help="Do not mark the patch for review."),
             make_option("--request-commit", action="store_true", dest="request_commit", default=False, help="Mark the patch as needing auto-commit after review."),

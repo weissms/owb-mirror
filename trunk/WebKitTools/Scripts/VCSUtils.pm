@@ -362,13 +362,13 @@ sub svnStatus($)
 sub gitdiff2svndiff($)
 {
     $_ = shift @_;
-    if (m#^diff --git a/(.+) b/(.+)#) {
+    if (m#^diff --git \w/(.+) \w/(.+)#) {
         return "Index: WebKitTools/$1";
     } elsif (m#^index [0-9a-f]{7}\.\.[0-9a-f]{7} [0-9]{6}#) {
         return "===================================================================";
-    } elsif (m#^--- WebKitTools/a/(.+)#) {
+    } elsif (m#^--- WebKitTools/\w/(.+)#) {
         return "--- WebKitTools/$1";
-    } elsif (m#^\+\+\+ b/(.+)#) {
+    } elsif (m#^\+\+\+ \w/(.+)#) {
         return "+++ WebKitTools/$1";
     }
     return $_;
@@ -520,7 +520,7 @@ sub fixChangeLogPatch($)
 # Returns ($patchCommand, $isForcing).
 #
 # This subroutine has unit tests in VCSUtils_unittest.pl.
-sub generateRunPatchCommand($)
+sub generatePatchCommand($)
 {
     my ($passedArgsHashRef) = @_;
 
@@ -592,7 +592,7 @@ sub runPatchCommand($$$;$)
 {
     my ($patch, $repositoryRootPath, $pathRelativeToRoot, $args) = @_;
 
-    my ($patchCommand, $isForcing) = generateRunPatchCommand($args);
+    my ($patchCommand, $isForcing) = generatePatchCommand($args);
 
     # Temporarily change the working directory since the path found
     # in the patch's "Index:" line is relative to the repository root

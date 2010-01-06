@@ -3,7 +3,7 @@
  *                     1999 Lars Knoll <knoll@kde.org>
  *                     1999 Antti Koivisto <koivisto@kde.org>
  *                     2000 Dirk Mueller <mueller@kde.org>
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  *           (C) 2006 Graham Dennis (graham.dennis@gmail.com)
  *           (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  * Copyright (C) 2009 Google Inc. All rights reserved.
@@ -660,8 +660,14 @@ void FrameView::layout(bool allowSubtree)
 
     pauseScheduledEvents();
 
-    if (subtree)
-        root->view()->pushLayoutState(root);
+    bool disableLayoutState = false;
+    if (subtree) {
+        RenderView* view = root->view();
+        disableLayoutState = view->shouldDisableLayoutStateForSubtree(root);
+        view->pushLayoutState(root);
+        if (disableLayoutState)
+            view->disableLayoutState();
+    }
         
     m_midLayout = true;
     beginDeferredRepaints();
@@ -669,8 +675,12 @@ void FrameView::layout(bool allowSubtree)
     endDeferredRepaints();
     m_midLayout = false;
 
-    if (subtree)
-        root->view()->popLayoutState();
+    if (subtree) {
+        RenderView* view = root->view();
+        view->popLayoutState();
+        if (disableLayoutState)
+            view->enableLayoutState();
+    }
     m_layoutRoot = 0;
 
     m_frame->selection()->setNeedsLayout();
@@ -1199,7 +1209,8 @@ bool FrameView::needsLayout() const
         || m_layoutRoot
         || (document && document->childNeedsStyleRecalc()) // can occur when using WebKit ObjC interface
         || m_frame->needsReapplyStyles()
-        || (m_deferSetNeedsLayouts && m_setNeedsLayoutWasDeferred);
+        || (m_deferSetNeedsLayouts && m_setNeedsLayoutWasDeferred)
+        || m_frame->selection()->needsDisplayUpdate();
 }
 
 void FrameView::setNeedsLayout()

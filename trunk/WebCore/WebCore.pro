@@ -27,12 +27,6 @@ TARGET = QtWebKit
 
 contains(QT_CONFIG, embedded):CONFIG += embedded
 
-# Detect that we are building as a standalone package by the presence of
-# either the generated files directory or as part of the Qt package through
-# QTDIR_build
-CONFIG(QTDIR_build): CONFIG += standalone_package
-else:exists($$PWD/generated): CONFIG += standalone_package
-
 CONFIG(standalone_package) {
     GENERATED_SOURCES_DIR = $$PWD/generated
 
@@ -41,7 +35,6 @@ CONFIG(standalone_package) {
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
 } else {
-    !static: DEFINES += QT_MAKEDLL
 
     CONFIG(debug, debug|release) {
         isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = generated$${QMAKE_DIR_SEP}debug
@@ -51,7 +44,11 @@ CONFIG(standalone_package) {
         OBJECTS_DIR = obj/release
     }
 
+}
+
+!CONFIG(QTDIR_build) {
     DESTDIR = $$OUTPUT_DIR/lib
+    !static: DEFINES += QT_MAKEDLL
 }
 
 GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR${QMAKE_DIR_SEP}

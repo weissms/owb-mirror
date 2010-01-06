@@ -124,22 +124,56 @@ class ChangeLogsTest(unittest.TestCase):
         os.remove(changelog_path)
         self.assertEquals(actual_contents, expected_contents)
 
-    _expected_revert_entry = '''2009-08-19  Eric Seidel  <eric@webkit.org>
+    _revert_message = """        No review, rolling out r12345.
+        http://trac.webkit.org/changeset/12345
+        http://example.com/123
+
+        This is a very long reason which should be long enough so that
+        _message_for_revert will need to wrap it.  We'll also include
+        a
+        https://veryveryveryveryverylongbugurl.com/reallylongbugthingy.cgi?bug_id=12354
+        link so that we can make sure we wrap that right too.
+"""
+
+    def test_message_for_revert(self):
+        changelog = ChangeLog("/fake/path")
+        long_reason = "This is a very long reason which should be long enough so that _message_for_revert will need to wrap it.  We'll also include a https://veryveryveryveryverylongbugurl.com/reallylongbugthingy.cgi?bug_id=12354 link so that we can make sure we wrap that right too."
+        message = changelog._message_for_revert(12345, long_reason, "http://example.com/123")
+        self.assertEquals(message, self._revert_message)
+
+    _revert_entry_with_bug_url = '''2009-08-19  Eric Seidel  <eric@webkit.org>
 
         No review, rolling out r12345.
         http://trac.webkit.org/changeset/12345
+        http://example.com/123
+
+        Reason
 
         * Scripts/bugzilla-tool:
 '''
 
-    def test_update_for_revert(self):
+    _revert_entry_without_bug_url = '''2009-08-19  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r12345.
+        http://trac.webkit.org/changeset/12345
+
+        Reason
+
+        * Scripts/bugzilla-tool:
+'''
+
+    def _assert_update_for_revert_output(self, args, expected_entry):
         changelog_contents = "%s\n%s" % (self._new_entry_boilerplate, self._example_changelog)
         changelog_path = self._write_tmp_file_with_contents(changelog_contents)
         changelog = ChangeLog(changelog_path)
-        changelog.update_for_revert(12345)
+        changelog.update_for_revert(*args)
         actual_entry = changelog.latest_entry()
         os.remove(changelog_path)
-        self.assertEquals(actual_entry, self._expected_revert_entry)
+        self.assertEquals(actual_entry, expected_entry)
+
+    def test_update_for_revert(self):
+        self._assert_update_for_revert_output([12345, "Reason"], self._revert_entry_without_bug_url)
+        self._assert_update_for_revert_output([12345, "Reason", "http://example.com/123"], self._revert_entry_with_bug_url)
 
 if __name__ == '__main__':
     unittest.main()

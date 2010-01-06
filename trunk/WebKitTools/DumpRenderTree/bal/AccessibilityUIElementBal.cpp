@@ -102,6 +102,11 @@ AccessibilityUIElement AccessibilityUIElement::getChildAtIndex(unsigned index)
     return 0;
 }
 
+unsigned AccessibilityUIElement::indexOfChild(AccessibilityUIElement*)
+{
+    return 0;
+}
+
 JSStringRef AccessibilityUIElement::allAttributes()
 {
     return JSStringCreateWithCharacters(0, 0);
@@ -316,9 +321,14 @@ void AccessibilityUIElement::setSelectedTextRange(unsigned location, unsigned le
 {
 }
 
-JSStringRef AccessibilityUIElement::attributeValue(JSStringRef attribute)
+JSStringRef AccessibilityUIElement::stringAttributeValue(JSStringRef attribute)
 {
     return JSStringCreateWithCharacters(0, 0);
+}
+
+bool AccessibilityUIElement::boolAttributeValue(JSStringRef attribute)
+{
+    return false;
 }
 
 bool AccessibilityUIElement::isAttributeSettable(JSStringRef attribute)
@@ -482,3 +492,9 @@ JSStringRef AccessibilityUIElement::url()
     // FIXME: implement
     return JSStringCreateWithCharacters(0, 0);
 }
+
+bool AccessibilityUIElement::addNotificationListener(JSObjectRef functionCallback)
+{
+    return false;
+}
+

@@ -39,7 +39,7 @@ from webkitpy.grammar import pluralize
 from webkitpy.webkit_logging import error, log
 from webkitpy.multicommandtool import Command
 from webkitpy.patchcollection import PersistentPatchCollection, PersistentPatchCollectionDelegate
-from webkitpy.statusbot import StatusBot
+from webkitpy.statusserver import StatusServer
 from webkitpy.stepsequence import StepSequenceErrorHandler
 from webkitpy.queueengine import QueueEngine, QueueEngineDelegate
 
@@ -65,7 +65,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
             log("Failed to CC watchers: %s." % e)
 
     def _update_status(self, message, patch=None, results_file=None):
-        self.tool.status_bot.update_status(self.name, message, patch, results_file)
+        self.tool.status_server.update_status(self.name, message, patch, results_file)
 
     def _did_pass(self, patch):
         self._update_status(self._pass_status, patch)
@@ -86,7 +86,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
     def begin_work_queue(self):
         log("CAUTION: %s will discard all local changes in \"%s\"" % (self.name, self.tool.scm().checkout_root))
         if self.options.confirm:
-            response = raw_input("Are you sure?  Type \"yes\" to continue: ")
+            response = self.tool.user.prompt("Are you sure?  Type \"yes\" to continue: ")
             if (response != "yes"):
                 error("User declined.")
         log("Running WebKit %s." % self.name)
@@ -109,7 +109,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
     def run_bugzilla_tool(self, args):
         bugzilla_tool_args = [self.tool.path()]
         # FIXME: This is a hack, we should have a more general way to pass global options.
-        bugzilla_tool_args += ["--status-host=%s" % self.tool.status_bot.statusbot_host]
+        bugzilla_tool_args += ["--status-host=%s" % self.tool.status_server.host]
         bugzilla_tool_args += map(str, args)
         self.tool.executive.run_and_throw_if_fail(bugzilla_tool_args)
 
@@ -123,7 +123,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
 
     @classmethod
     def _update_status_for_script_error(cls, tool, state, script_error):
-        return tool.status_bot.update_status(cls.name, script_error.message, state["patch"], StringIO(script_error.output))
+        return tool.status_server.update_status(cls.name, script_error.message, state["patch"], StringIO(script_error.output))
 
 
 class CommitQueue(AbstractQueue, StepSequenceErrorHandler):
@@ -145,11 +145,28 @@ class CommitQueue(AbstractQueue, StepSequenceErrorHandler):
         self.log_progress([patch['id'] for patch in patches])
         return patches[0]
 
-    def should_proceed_with_work_item(self, patch):
+    def _can_build_and_test(self):
+        try:
+            self.run_bugzilla_tool(["build-and-test", "--force-clean", "--non-interactive", "--build-style=both", "--quiet"])
+        except ScriptError, e:
+            self._update_status("Unabled to successfully build and test", None)
+            return False
+        return True
+
+    def _builders_are_green(self):
         red_builders_names = self.tool.buildbot.red_core_builders_names()
         if red_builders_names:
             red_builders_names = map(lambda name: "\"%s\"" % name, red_builders_names) # Add quotes around the names.
             self._update_status("Builders [%s] are red. See http://build.webkit.org" % ", ".join(red_builders_names), None)
+            return False
+        return True
+
+    def should_proceed_with_work_item(self, patch):
+        if not self._builders_are_green():
+            return False
+        if not self._can_build_and_test():
+            return False
+        if not self._builders_are_green():
             return False
         self._update_status("Landing patch", patch)
         return True
@@ -157,7 +174,10 @@ class CommitQueue(AbstractQueue, StepSequenceErrorHandler):
     def process_work_item(self, patch):
         try:
             self._cc_watchers(patch["bug_id"])
-            self.run_bugzilla_tool(["land-attachment", "--force-clean", "--non-interactive", "--parent-command=commit-queue", "--build-style=both", "--quiet", patch["id"]])
+            # We pass --no-update here because we've already validated
+            # that the current revision actually builds and passes the tests.
+            # If we update, we risk moving to a revision that doesn't!
+            self.run_bugzilla_tool(["land-attachment", "--force-clean", "--non-interactive", "--no-update", "--parent-command=commit-queue", "--build-style=both", "--quiet", patch["id"]])
             self._did_pass(patch)
         except ScriptError, e:
             self._did_fail(patch)
@@ -172,7 +192,7 @@ class CommitQueue(AbstractQueue, StepSequenceErrorHandler):
     def _error_message_for_bug(tool, status_id, script_error):
         if not script_error.output:
             return script_error.message_with_output()
-        results_link = tool.status_bot.results_url_for_status(status_id)
+        results_link = tool.status_server.results_url_for_status(status_id)
         return "%s\nFull output: %s" % (script_error.message_with_output(), results_link)
 
     @classmethod
@@ -194,7 +214,7 @@ class AbstractReviewQueue(AbstractQueue, PersistentPatchCollectionDelegate, Step
         return self.tool.bugs.queries.fetch_attachment_ids_from_review_queue()
 
     def status_server(self):
-        return self.tool.status_bot
+        return self.tool.status_server
 
     # AbstractQueue methods
 
