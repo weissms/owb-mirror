@@ -1,3 +1,10 @@
+2010-01-06  Gilles Bertal  <gbertal@pleyo.com>
+
+        Removed the graphics lbraries and added the external dependent
+        libraries to the OWB target binary.
+
+        * OWBLauncher/CMakeLists.txt:
+
 2010-01-06  Mario Bensi  <mbensi@pleyo.com>
 
         send event quit to eventSender.

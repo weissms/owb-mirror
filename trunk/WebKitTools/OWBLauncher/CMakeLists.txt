@@ -57,7 +57,7 @@ endif(NOT IGNORE_CUSTOMER)
 
 target_link_libraries(owb
     webkit-owb
-    ${GRAPHICS_LIBRARIES}
+    ${EXTERNAL_DEPS_LIBRARIES}
 )
 
 if(ENABLE_ORIGYNSUITE)
