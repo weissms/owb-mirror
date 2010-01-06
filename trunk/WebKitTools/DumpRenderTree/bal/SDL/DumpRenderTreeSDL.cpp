@@ -162,7 +162,7 @@ void waitEvent()
                     break;
                 case SDL_QUIT:
                     //printf("SDL_QUIT\n");
-                    done = true;
+                    eventSender->onQuit(event.quit);
                     break;
                 default:
                     ;//printf("other event\n");

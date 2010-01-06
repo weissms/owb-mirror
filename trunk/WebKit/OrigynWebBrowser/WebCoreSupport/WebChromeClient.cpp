@@ -33,6 +33,7 @@
 #include "WebDesktopNotificationsDelegate.h"
 #include "WebHitTestResults.h"
 #include "WebFrame.h"
+#include "WebFrameLoadDelegate.h"
 #include "WebHistory.h"
 #include "WebHistoryDelegate.h"
 #include "WebMutableURLRequest.h"
@@ -186,18 +187,35 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
 
     return 0;
 #else
+
+#if ENABLE(DAE)
+    IntRect frameRect(m_webView->frameRect());
+    IntRect r(features.xSet ? features.x : 0, 
+              features.ySet ? features.y : 0, 
+              features.widthSet ? features.width : frameRect.width(),
+              features.heightSet ? features.height : frameRect.height());
+    RefPtr<Application> app = m_webView->application()->createApplication(frameLoadRequest.resourceRequest().url().string(), true, r);
+    if (!app->page())
+        return 0;
+
+    WebView* view = kit(app->page());
+    if (!view)
+        return 0;
+
+    view->setMenubarVisible(features.menuBarVisible);
+    view->setStatusbarVisible(features.statusBarVisible);
+    view->setToolbarsVisible(features.toolBarVisible);
+    view->setLocationbarVisible(features.locationBarVisible);
+    WebFrame* webFrame = view->topLevelFrame();
+    if (webFrame)
+        webFrame->setAllowsScrolling(features.scrollbarsVisible);
+    view->setWebFrameLoadDelegate(0);
+    return app->page();
+#else
+
     if (features.dialog) {
-        /*COMPtr<IWebUIDelegate3> delegate = uiDelegate3();
-        if (!delegate)
-            return 0;
-        COMPtr<IWebMutableURLRequest> request(AdoptCOM, WebMutableURLRequest::createInstance(frameLoadRequest.resourceRequest()));
-        COMPtr<IWebView> dialog;
-        if (FAILED(delegate->createModalDialog(m_webView, request.get(), &dialog)))
-            return 0;
-        return core(dialog.get());*/
         return 0;
     }
-
     Page* page = 0;
     //IWebUIDelegate* uiDelegate = 0;
     WebMutableURLRequest* request = WebMutableURLRequest::createInstance(frameLoadRequest.resourceRequest());
@@ -214,6 +232,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     delete request;
 
     return page;
+#endif
 #endif
 }
 
@@ -232,6 +251,7 @@ void WebChromeClient::runModal()
 
 void WebChromeClient::setToolbarsVisible(bool visible)
 {
+    m_webView->setToolbarsVisible(visible);
 }
 
 bool WebChromeClient::toolbarsVisible()
@@ -239,11 +259,12 @@ bool WebChromeClient::toolbarsVisible()
 #if PLATFORM(AMIGAOS4)
     return true;
 #endif
-    return false;
+    return m_webView->toolbarsVisible();
 }
 
 void WebChromeClient::setStatusbarVisible(bool visible)
 {
+    m_webView->setStatusbarVisible(visible);
 }
 
 bool WebChromeClient::statusbarVisible()
@@ -251,7 +272,7 @@ bool WebChromeClient::statusbarVisible()
 #if PLATFORM(AMIGAOS4)
     return true;
 #endif
-    return false;
+    return m_webView->statusbarVisible();
 }
 
 void WebChromeClient::setScrollbarsVisible(bool b)
@@ -273,6 +294,7 @@ bool WebChromeClient::scrollbarsVisible()
 
 void WebChromeClient::setMenubarVisible(bool visible)
 {
+    m_webView->setMenubarVisible(visible);
 }
 
 bool WebChromeClient::menubarVisible()
@@ -280,7 +302,7 @@ bool WebChromeClient::menubarVisible()
 #if PLATFORM(AMIGAOS4)
     return true;
 #endif
-    return false;
+    return m_webView->menubarVisible();
 }
 
 void WebChromeClient::setResizable(bool resizable)

@@ -1,3 +1,27 @@
+2010-01-06  Mario Bensi  <mbensi@pleyo.com>
+
+        implement createWindow and close window for dae.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::~WebFrame):
+        (WebFrame::setAllowsScrolling):
+        (WebFrame::allowsScrolling):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (WebView::closeWindowSoon):
+        (WebView::notifyPreferencesChanged):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::setToolbarsVisible):
+        (WebChromeClient::toolbarsVisible):
+        (WebChromeClient::setStatusbarVisible):
+        (WebChromeClient::statusbarVisible):
+        (WebChromeClient::setMenubarVisible):
+        (WebChromeClient::menubarVisible):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::frameLoaderDestroyed):
+
 2009-12-24  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Remove some warnings when building the documentation.

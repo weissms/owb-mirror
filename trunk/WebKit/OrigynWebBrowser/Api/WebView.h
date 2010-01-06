@@ -1595,6 +1595,20 @@ public:
      * @param groupName is the page group name
      */
     bool removeAllUserContentFromGroup(const char* groupName);
+
+
+    /*
+     * set/get view status
+     */
+    bool toolbarsVisible() { return m_toolbarsVisible;}
+    void setToolbarsVisible(bool flag) { m_toolbarsVisible = flag; }
+    bool statusbarVisible() { return m_statusbarVisible; }
+    void setStatusbarVisible(bool flag) { m_statusbarVisible = flag; }
+    bool menubarVisible() { return m_menubarVisible; }
+    void setMenubarVisible(bool flag) { m_menubarVisible = flag; }
+    bool locationbarVisible() { return m_locationbarVisible; }
+    void setLocationbarVisible(bool flag) { m_locationbarVisible = flag; }
+
 private:
 
     /**
@@ -1967,6 +1981,11 @@ protected:
     WebInspector* m_webInspector;
     bool m_isStopped;
     MemoryEvent* m_memoryEvent;
+
+    bool m_toolbarsVisible;
+    bool m_statusbarVisible;
+    bool m_menubarVisible;
+    bool m_locationbarVisible;
 };
 
 #endif

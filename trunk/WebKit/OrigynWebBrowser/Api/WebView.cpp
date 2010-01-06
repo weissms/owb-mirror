@@ -339,7 +339,6 @@ WebView::WebView()
     , m_deleteBackingStoreTimerActive(false)
     , m_transparent(false)
     , m_isInitialized(false)
-    // , m_closeWindowTimer(this, &WebView::closeWindowTimerFired)
     , m_topLevelParent(0)
     , d(new WebViewPrivate(this))
     , m_webViewObserver(new WebViewObserver(this))
@@ -352,6 +351,10 @@ WebView::WebView()
 #if ENABLE(INSPECTOR)
     , m_webInspector(0)
 #endif
+    , m_toolbarsVisible(true)
+    , m_statusbarVisible(true)
+    , m_menubarVisible(true)
+    , m_locationbarVisible(true)
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
@@ -1026,16 +1029,12 @@ BalRectangle WebView::frameRect()
 
 void WebView::closeWindowSoon()
 {
-//    m_closeWindowTimer.startOneShot(0);
 #if PLATFORM(AMIGAOS4)
     closeWindow();
-#endif    
+#else
+    d->closeWindowSoon();
+#endif
 }
-
-/*void WebView::closeWindowTimerFired(WebCore::Timer<WebView>*)
-{
-    closeWindow();
-}*/
 
 void WebView::closeWindow()
 {
@@ -2794,8 +2793,6 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 
     int limit = preferences->memoryLimit();  
     WTF::setMemoryLimit(limit);
-/*    if (!m_closeWindowTimer.isActive())
-        m_mainFrame->invalidate(); // FIXME*/
 
     updateSharedSettingsFromPreferencesIfNeeded(preferences);
 }

@@ -222,8 +222,6 @@ WebFrame::~WebFrame()
         delete (*it);
 
     delete d;
-    if (m_loadClient)
-        delete m_loadClient;
 }
 
 WebFrame* WebFrame::createInstance()
@@ -234,17 +232,16 @@ WebFrame* WebFrame::createInstance()
 
 void WebFrame::setAllowsScrolling(bool flag)
 {
-    /*if (Frame* frame = core(this))
+    if (Frame* frame = core(this))
         if (FrameView* view = frame->view())
-            view->setCanHaveScrollbars(!!flag);*/
+            view->setCanHaveScrollbars(flag);
 }
 
 bool WebFrame::allowsScrolling()
 {
-    /*if (flag)
-        if (Frame* frame = core(this))
-            if (FrameView* view = frame->view())
-                return view->canHaveScrollbars();*/
+    if (Frame* frame = core(this))
+        if (FrameView* view = frame->view())
+            return view->canHaveScrollbars();
 
     return false;
 }

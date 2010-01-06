@@ -116,8 +116,13 @@ public:
 
     void repaintAfterNavigationIfNeeded();
 
+    void closeWindowSoon();
+
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);
+    void closeWindowTimerFired(WebCore::Timer<WebViewPrivate>*);
+    void closeWindow();
+
     WebCore::IntRect m_rect;
     WebView* m_webView;
     bool isInitialized;
@@ -136,6 +141,7 @@ private:
 #if PLATFORM(SDLCAIRO)
     cairo_t* m_cr;
 #endif
+    WebCore::Timer<WebViewPrivate> m_closeWindowTimer;
 };
 
 

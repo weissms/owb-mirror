@@ -70,6 +70,7 @@ WebViewPrivate::WebViewPrivate(WebView *webView)
     , m_shouldDestroyViewWindow(false)
     , m_scrollSurface(0)
     , m_clickCount(0)
+    , m_closeWindowTimer(this, &WebViewPrivate::closeWindowTimerFired)
 {
     gettimeofday(&m_timerClick, NULL);
 }
@@ -633,6 +634,31 @@ void WebViewPrivate::repaintAfterNavigationIfNeeded()
         IntRect dirty(0, 0, m_rect.width(), m_rect.height());
         frame->view()->paint(&ctx, dirty);
     }
+#endif
+}
+
+void WebViewPrivate::closeWindowSoon()
+{
+    m_closeWindowTimer.startOneShot(0); 
+}
+
+void WebViewPrivate::closeWindowTimerFired(WebCore::Timer<WebViewPrivate>*)
+{
+    closeWindow();
+}
+
+
+void WebViewPrivate::closeWindow()
+{
+    /*SDL_Event ev;
+    ev.type = SDL_QUIT;
+    SDL_PushEvent(&ev);*/
+#if ENABLE(DAE_APPLICATION)
+    m_webView->application()->destroyApplication();
+#else
+    SDL_Event ev;
+    ev.type = SDL_QUIT;
+    SDL_PushEvent(&ev);
 #endif
 }
 

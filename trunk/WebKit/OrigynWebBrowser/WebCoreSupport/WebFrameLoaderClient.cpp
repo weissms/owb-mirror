@@ -1369,6 +1369,7 @@ void WebFrameLoaderClient::frameLoaderDestroyed()
     // The FrameLoader going away is equivalent to the Frame going away,
     // so we now need to clear our frame pointer.
     //deref();
+    delete this;
 }
 
 void WebFrameLoaderClient::registerForIconNotification(bool listen)
