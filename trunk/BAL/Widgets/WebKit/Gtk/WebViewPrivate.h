@@ -167,6 +167,8 @@ public:
 
     void move(BalPoint lastPos, BalPoint newPos) {}
 
+    void closeWindowSoon() {}
+
 private:
     WebCore::IntRect m_rect;
     GtkWidget *m_view;

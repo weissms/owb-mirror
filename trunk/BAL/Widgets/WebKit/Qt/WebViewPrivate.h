@@ -121,6 +121,8 @@ public:
 
     void move(BalPoint lastPos, BalPoint newPos);
 
+    void closeWindowSoon() {};
+
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);
     BalRectangle paint(QPainter *painter, const QRegion &clip);
