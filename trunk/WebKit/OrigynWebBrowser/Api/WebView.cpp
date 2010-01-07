@@ -898,43 +898,6 @@ bool WebView::defaultActionOnFocusedNode(BalEventKey event)
 }
 
 #if ENABLE(DAE_APPLICATION)
-
-void WebView::setWindowRect(const BalRectangle& rect)
-{
-    IntRect dirtyRect(application()->rect());
-    dirtyRect.setLocation(application()->pos());
-
-    IntRect newRect(rect);
-
-    // Save the location as rect should not contain the location.
-    IntPoint newPosition(newRect.location());
-    newRect.setLocation(IntPoint(0, 0));
-
-    if (newRect.width() && newRect.height()) {
-        IntRect currentRect(application()->rect());
-        int deltaWidth = newRect.width() - currentRect.width();
-        int deltaHeight = newRect.height() - currentRect.height();
-        if (deltaWidth || deltaHeight) {
-            application()->setWindowRect(newRect);
-            resize(rect);
-            WebEventSender::getEventSender()->repaintApplication(application(), dirtyRect);
-            return;
-        }
-    }
-
-    IntPoint currentPosition(application()->pos());
-    int deltaX = newPosition.x() - currentPosition.x();
-    int deltaY = newPosition.y() - currentPosition.y();
-    if (deltaX || deltaY) {
-        application()->setPosition(newPosition);
-        move(currentPosition, newPosition);
-        // We cannot have both a move and a resize.
-        return;
-    }
-
-    //repaint(dirtyRect);
-}
-
 void WebView::setPermissions(const char* permissions)
 {
     m_application->setPermissions(String(permissions));

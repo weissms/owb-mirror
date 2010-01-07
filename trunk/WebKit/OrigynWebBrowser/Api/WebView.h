@@ -1431,14 +1431,6 @@ public:
     WebCore::Application* application() const { return m_application; }
 
     /**
-     * setWindowRect
-     * @brief set the WebView's window rectangle.
-     * 
-     * This will make the webview resize on demand.
-     */
-    void setWindowRect(const BalRectangle&);
-
-    /**
      * setPermissions
      * Set the permission of the associated application
      * @param permissions The space separated list of permissions. Permissions are cleared prior to being parsed so
