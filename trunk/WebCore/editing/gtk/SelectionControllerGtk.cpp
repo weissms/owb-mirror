@@ -20,15 +20,19 @@
 #include "config.h"
 #include "SelectionController.h"
 
-#include "AXObjectCache.h"
 #include "Frame.h"
 
 #include <gtk/gtk.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 namespace WebCore {
 
 void SelectionController::notifyAccessibilityForSelectionChange()
 {
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled() && m_selection.start().isNotNull() && m_selection.end().isNotNull()) {
         RenderObject* focusedNode = m_selection.end().node()->renderer();
         AccessibilityObject* accessibilityObject = m_frame->document()->axObjectCache()->getOrCreate(focusedNode);
@@ -40,6 +44,7 @@ void SelectionController::notifyAccessibilityForSelectionChange()
                 g_signal_emit_by_name(wrapper, "text-selection-changed");
         }
     }
+#endif
 }
 
 } // namespace WebCore
