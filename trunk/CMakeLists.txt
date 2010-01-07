@@ -37,6 +37,7 @@ include(DAEOptions OPTIONAL RESULT_VARIABLE HAS_DAE)
 
 option(ENABLE_3D_CANVAS "Enable 3D canvas support")
 option(ENABLE_3D_RENDERING "Enable 3d rendering support")
+option(ENABLE_ACCESSIBILITY "Enable accessibility support")
 option(ENABLE_DATABASE "Enable HTML5 client-side database storage support")
 cmake_dependent_option(ENABLE_DOM_STORAGE "Enable HTML5 client-side session and persistent storage support" OFF ENABLE_DATABASE OFF)
 cmake_dependent_option(ENABLE_ICONDATABASE "Enable icon database support" OFF ENABLE_DATABASE OFF)
