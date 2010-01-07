@@ -32,7 +32,6 @@
 
 #include "config.h"
 
-#include "AXObjectCache.h"
 #include "DNS.h"
 #include "CString.h"
 #include "CachedResource.h"
@@ -71,6 +70,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace WebCore;
 
