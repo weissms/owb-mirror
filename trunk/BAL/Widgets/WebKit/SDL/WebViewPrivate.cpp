@@ -209,7 +209,7 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
 #if ENABLE(DAE_APPLICATION)
         Application* app = m_webView->application();
         cairo_surface_t* newsurface = 0;
-        if (WebEventSender::getEventSender()->visibleApplicationCount() > 1) {
+        if (WebEventSender::getEventSender()->visibleApplicationCount() > 0) {
             newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, app->rect().width(), app->rect().height());
             cr = cairo_create(newsurface);
         } else
@@ -229,7 +229,7 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
         frame->view()->paint(&ctx, d);
 
 #if ENABLE(DAE_APPLICATION)
-        if (WebEventSender::getEventSender()->visibleApplicationCount() > 1) {
+        if (WebEventSender::getEventSender()->visibleApplicationCount() > 0) {
             cairo_destroy (cr);
             cr = m_cr;
             cairo_save(cr);
