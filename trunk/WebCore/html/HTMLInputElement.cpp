@@ -26,7 +26,6 @@
 #include "config.h"
 #include "HTMLInputElement.h"
 
-#include "AXObjectCache.h"
 #include "CSSPropertyNames.h"
 #include "ChromeClient.h"
 #include "Document.h"
@@ -66,6 +65,10 @@
 #include <wtf/MathExtras.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/dtoa.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 
@@ -1208,8 +1211,10 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
     // Ideally we'd do this from the render tree (matching
     // RenderTextView), but it's not possible to do it at the moment
     // because of the way the code is structured.
+#if ENABLE(ACCESSIBILITY)
     if (renderer() && AXObjectCache::accessibilityEnabled())
         renderer()->document()->axObjectCache()->postNotification(renderer(), AXObjectCache::AXCheckedStateChanged, true);
+#endif
 
     // Only send a change event for items in the document (avoid firing during
     // parsing) and don't send a change event for a radio button that's getting

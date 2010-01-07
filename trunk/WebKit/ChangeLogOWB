@@ -1,5 +1,11 @@
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
+        Add ENABLE_ACCESSIBILITY.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+
+2010-01-07  Mario Bensi  <mbensi@pleyo.com>
+
         Remove setWindowRect.
 
         * OrigynWebBrowser/Api/WebView.cpp:

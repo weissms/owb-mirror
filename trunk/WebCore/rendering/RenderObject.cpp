@@ -27,7 +27,6 @@
 #include "config.h"
 #include "RenderObject.h"
 
-#include "AXObjectCache.h"
 #include "Chrome.h"
 #include "CSSStyleSelector.h"
 #include "FloatQuad.h"
@@ -59,6 +58,10 @@
 
 #if USE(ACCELERATED_COMPOSITING)
 #include "RenderLayerCompositor.h"
+#endif
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
 #endif
 
 #if ENABLE(WML)
@@ -1607,8 +1610,10 @@ void RenderObject::styleWillChange(StyleDifference diff, const RenderStyle* newS
             if (visibilityChanged)
                 document()->setDashboardRegionsDirty(true);
 #endif
+#if ENABLE(ACCESSIBILITY)
             if (visibilityChanged && AXObjectCache::accessibilityEnabled())
                 document()->axObjectCache()->childrenChanged(this);
+#endif
 
             // Keep layer hierarchy visibility bits up to date if visibility changes.
             if (m_style->visibility() != newStyle->visibility()) {
@@ -1940,10 +1945,12 @@ void RenderObject::destroy()
     if (m_hasCounterNodeMap)
         RenderCounter::destroyCounterNodes(this);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled()) {
         document()->axObjectCache()->childrenChanged(this->parent());
         document()->axObjectCache()->remove(this);
     }
+#endif
     animation()->cancelAnimations(this);
 
     // By default no ref-counting. RenderWidget::destroy() doesn't call

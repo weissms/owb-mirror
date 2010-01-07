@@ -27,7 +27,6 @@
 #include "config.h"
 #include "EventHandler.h"
 
-#include "AXObjectCache.h"
 #include "CachedImage.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
@@ -69,6 +68,10 @@
 #include "TextEvent.h"
 #include "htmlediting.h" // for comparePositions()
 #include <wtf/StdLibExtras.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 #if ENABLE(SVG)
 #include "SVGDocument.h"
@@ -2184,9 +2187,11 @@ void EventHandler::defaultKeyboardEventHandler(KeyboardEvent* event)
         if (event->keyIdentifier() == "U+0009")
             defaultTabEventHandler(event);
 
+#if ENABLE(ACCESSIBILITY)
        // provides KB navigation and selection for enhanced accessibility users
        if (AXObjectCache::accessibilityEnhancedUserInterfaceEnabled())
-           handleKeyboardSelectionMovement(event);       
+           handleKeyboardSelectionMovement(event);
+#endif
     }
     if (event->type() == eventNames().keypressEvent) {
         m_frame->editor()->handleKeyboardEvent(event);

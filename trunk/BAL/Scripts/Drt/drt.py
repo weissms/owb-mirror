@@ -9,13 +9,14 @@ import pysvn
 import sys
 
 usage = 'drt -d DIRECTORY -l DIRECTORY -p PLATFORM -s DIRECTORY [extra-options] [directories]'
-feature_list = ['3d', 'appcache', 'cehtml', 'dae', 'datagrid', 'domstorage', 'eventsource', 
+feature_list = ['3d', 'accessibility', 'appcache', 'cehtml', 'dae', 'datagrid', 'domstorage', 'eventsource', 
                 'geolocation', 'http', 'inspector', 'mathml', 'media', 'notifications', 
                 'plugin', 'sharedworkers', 'storage', 'svg', 'wcss', 'webgl', 'websocket', 
                 'wml', 'workers', 'xhtmlmp', 'xpath', 'xslt']
 
 #for each feature, the list of the path from LayoutTests directory available.
 ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
+                      'accessibility' : ['accessibility'],
                       'appcache' : ['http/tests/appcache'],
                       'dae' : ['applications'],
                       'datagrid' : ['fast/dom/HTMLDataGridElement'],
@@ -43,6 +44,7 @@ ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
 supportedFileExtensions = {'svg' : 'svg', 'wml' : 'wml'}
 
 cmakeOptionWrapper = {'ENABLE_3D_RENDERING' : '3d',
+                      'ENABLE_ACCESSIBILITY' : 'accessibility', 
                       'ENABLE_OFFLINE_WEB_APPLICATIONS' : 'appcache',
                       'ENABLE_CEHTML' : 'cehtml',
                       'ENABLE_DAE' : 'dae',

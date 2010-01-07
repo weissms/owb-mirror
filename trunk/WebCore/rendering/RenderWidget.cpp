@@ -23,12 +23,15 @@
 #include "config.h"
 #include "RenderWidget.h"
 
-#include "AXObjectCache.h"
 #include "AnimationController.h"
 #include "GraphicsContext.h"
 #include "HitTestResult.h"
 #include "RenderView.h"
 #include "RenderWidgetProtector.h"
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 
@@ -114,10 +117,12 @@ void RenderWidget::destroy()
     if (RenderView* v = view())
         v->removeWidget(this);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled()) {
         document()->axObjectCache()->childrenChanged(this->parent());
         document()->axObjectCache()->remove(this);
     }
+#endif
     remove();
 
     setWidget(0);

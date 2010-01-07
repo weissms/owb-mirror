@@ -26,7 +26,6 @@
 #include "config.h"
 #include "Element.h"
 
-#include "AXObjectCache.h"
 #include "Attr.h"
 #include "CSSParser.h"
 #include "CSSSelectorList.h"
@@ -50,6 +49,10 @@
 #include "RenderWidget.h"
 #include "TextIterator.h"
 #include "XMLNames.h"
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 #if ENABLE(SVG)
 #include "SVGNames.h"
@@ -578,6 +581,7 @@ void Element::attributeChanged(Attribute* attr, bool)
 
 void Element::updateAfterAttributeChanged(Attribute* attr)
 {
+#if ENABLE(ACCESSIBILITY)
     AXObjectCache* axObjectCache = document()->axObjectCache();
     if (!axObjectCache->accessibilityEnabled())
         return;
@@ -596,6 +600,7 @@ void Element::updateAfterAttributeChanged(Attribute* attr)
         // If the content of an element changes due to an attribute change, notify accessibility.
         axObjectCache->contentChanged(renderer());
     }
+#endif
 }
     
 void Element::recalcStyleIfNeededAfterAttributeChanged(Attribute* attr)

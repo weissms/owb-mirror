@@ -25,7 +25,6 @@
 #include "config.h"
 #include "HTMLSelectElement.h"
 
-#include "AXObjectCache.h"
 #include "EventNames.h"
 #include "HTMLNames.h"
 #include "HTMLOptionElement.h"
@@ -34,6 +33,10 @@
 #include "RenderListBox.h"
 #include "RenderMenuList.h"
 #include "ScriptEventListener.h"
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 
@@ -266,8 +269,10 @@ void HTMLSelectElement::childrenChanged(bool changedByParser, Node* beforeChange
     setRecalcListItems();
     HTMLFormControlElementWithState::childrenChanged(changedByParser, beforeChange, afterChange, childCountDelta);
     
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled() && renderer())
         renderer()->document()->axObjectCache()->childrenChanged(renderer());
+#endif
 }
 
 void HTMLSelectElement::setRecalcListItems()

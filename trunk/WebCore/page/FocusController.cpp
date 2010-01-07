@@ -27,7 +27,6 @@
 #include "config.h"
 #include "FocusController.h"
 
-#include "AXObjectCache.h"
 #include "Chrome.h"
 #include "Document.h"
 #include "Editor.h"
@@ -51,6 +50,10 @@
 #include "Settings.h"
 #include "Widget.h"
 #include <wtf/Platform.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 namespace WebCore {
 

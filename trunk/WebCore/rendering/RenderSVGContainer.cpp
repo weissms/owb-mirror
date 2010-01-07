@@ -26,7 +26,6 @@
 #if ENABLE(SVG)
 #include "RenderSVGContainer.h"
 
-#include "AXObjectCache.h"
 #include "FloatQuad.h"
 #include "GraphicsContext.h"
 #include "RenderView.h"
@@ -34,6 +33,10 @@
 #include "SVGResourceFilter.h"
 #include "SVGStyledElement.h"
 #include "SVGURIReference.h"
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 namespace WebCore {
 

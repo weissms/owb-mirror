@@ -86,7 +86,6 @@ list(APPEND JAVASCRIPTCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/JavaScriptCore/yarr
 )
 list(APPEND WEBCORE_INCLUDE_DIRS
-    ${OWB_SOURCE_DIR}/WebCore/accessibility
     ${OWB_SOURCE_DIR}/WebCore/bindings/js
     ${OWB_SOURCE_DIR}/WebCore/bridge
     ${OWB_SOURCE_DIR}/WebCore/bridge/bal
@@ -109,6 +108,14 @@ list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebCore/rendering/style
     ${OWB_SOURCE_DIR}/WebCore/xml
 )
+
+if(ENABLE_ACCESSIBILITY)
+    list(APPEND WEBCORE_INCLUDE_DIRS
+        ${OWB_SOURCE_DIR}/WebCore/accessibility
+    )
+endif(ENABLE_ACCESSIBILITY)
+        
+
 list(APPEND WEBKIT_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api

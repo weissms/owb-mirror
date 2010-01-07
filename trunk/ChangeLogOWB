@@ -1,3 +1,10 @@
+2010-01-07  Mario Bensi  <mbensi@pleyo.com>
+
+        Add ENABLE_ACCESSIBILITY.
+
+        * cmake/CheckPlatformAccessibility.cmake:
+        * cmake/SetCMakeVars.cmake:
+
 2010-01-05  Mario Bensi  <mbensi@pleyo.com>
 
         Reactivate WCSS option.

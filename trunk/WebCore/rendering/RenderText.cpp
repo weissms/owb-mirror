@@ -25,7 +25,6 @@
 #include "config.h"
 #include "RenderText.h"
 
-#include "AXObjectCache.h"
 #include "CharacterNames.h"
 #include "EllipsisBox.h"
 #include "FloatQuad.h"
@@ -41,6 +40,10 @@
 #include "VisiblePosition.h"
 #include "break_lines.h"
 #include <wtf/AlwaysInline.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 using namespace WTF;
@@ -1017,9 +1020,11 @@ void RenderText::setText(PassRefPtr<StringImpl> text, bool force)
     setNeedsLayoutAndPrefWidthsRecalc();
     m_knownNotToUseFallbackFonts = false;
     
+#if ENABLE(ACCESSIBILITY)
     AXObjectCache* axObjectCache = document()->axObjectCache();
     if (axObjectCache->accessibilityEnabled())
         axObjectCache->contentChanged(this);
+#endif
 }
 
 int RenderText::lineHeight(bool firstLine, bool) const

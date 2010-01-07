@@ -71,7 +71,9 @@
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
 #include <ApplicationCacheStorage.h>
 #endif
+#if ENABLE(ACCESSIBILITY)
 #include <AXObjectCache.h>
+#endif
 #include "ObserverData.h"
 #include "ObserverServiceData.h"
 #include "KeyboardCodes.h"

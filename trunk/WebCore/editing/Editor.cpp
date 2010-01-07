@@ -27,7 +27,6 @@
 #include "config.h"
 #include "Editor.h"
 
-#include "AXObjectCache.h"
 #include "ApplyStyleCommand.h"
 #include "CharacterNames.h"
 #include "CompositionEvent.h"
@@ -70,6 +69,10 @@
 #include "markup.h"
 #include "visible_units.h"
 #include <wtf/UnusedParam.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 namespace WebCore {
 
@@ -391,11 +394,13 @@ void Editor::respondToChangedSelection(const VisibleSelection& oldSelection)
 
 void Editor::respondToChangedContents(const VisibleSelection& endingSelection)
 {
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled()) {
         Node* node = endingSelection.start().node();
         if (node)
             m_frame->document()->axObjectCache()->postNotification(node->renderer(), AXObjectCache::AXValueChanged, false);
     }
+#endif
     
     if (client())
         client()->respondToChangedContents();  

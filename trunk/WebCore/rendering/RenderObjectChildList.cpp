@@ -26,7 +26,6 @@
 #include "config.h"
 #include "RenderObjectChildList.h"
 
-#include "AXObjectCache.h"
 #include "RenderBlock.h"
 #include "RenderCounter.h"
 #include "RenderImageGeneratedContent.h"
@@ -36,6 +35,10 @@
 #include "RenderStyle.h"
 #include "RenderTextFragment.h"
 #include "RenderView.h"
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 namespace WebCore {
 
@@ -122,8 +125,10 @@ RenderObject* RenderObjectChildList::removeChildNode(RenderObject* owner, Render
     oldChild->setNextSibling(0);
     oldChild->setParent(0);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         owner->document()->axObjectCache()->childrenChanged(owner);
+#endif
 
     return oldChild;
 }
@@ -170,8 +175,10 @@ void RenderObjectChildList::appendChildNode(RenderObject* owner, RenderObject* n
     if (!owner->normalChildNeedsLayout())
         owner->setChildNeedsLayout(true); // We may supply the static position for an absolute positioned child.
     
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         owner->document()->axObjectCache()->childrenChanged(owner);
+#endif
 }
 
 void RenderObjectChildList::insertChildNode(RenderObject* owner, RenderObject* child, RenderObject* beforeChild, bool fullInsert)
@@ -227,8 +234,10 @@ void RenderObjectChildList::insertChildNode(RenderObject* owner, RenderObject* c
     if (!owner->normalChildNeedsLayout())
         owner->setChildNeedsLayout(true); // We may supply the static position for an absolute positioned child.
     
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         owner->document()->axObjectCache()->childrenChanged(owner);
+#endif
 }
 
 static RenderObject* beforeAfterContainer(RenderObject* container, PseudoId type)

@@ -27,7 +27,6 @@
 #include "config.h"
 #include "FrameView.h"
 
-#include "AXObjectCache.h"
 #include "CSSStyleSelector.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
@@ -57,6 +56,10 @@
 
 #if USE(ACCELERATED_COMPOSITING)
 #include "RenderLayerCompositor.h"
+#endif
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
 #endif
 
 #if ENABLE(INSPECTOR)
@@ -1327,8 +1330,10 @@ void FrameView::scrollToAnchor()
     // Align to the top and to the closest side (this matches other browsers).
     anchorNode->renderer()->enclosingLayer()->scrollRectToVisible(rect, true, ScrollAlignment::alignToEdgeIfNeeded, ScrollAlignment::alignTopAlways);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         m_frame->document()->axObjectCache()->handleScrolledToAnchor(anchorNode.get());
+#endif
 
     // scrollRectToVisible can call into scrollRectIntoViewRecursively(), which resets m_maintainScrollPositionAnchor.
     m_maintainScrollPositionAnchor = anchorNode;

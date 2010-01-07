@@ -24,7 +24,6 @@
 #include "config.h"
 #include "RenderMenuList.h"
 
-#include "AXObjectCache.h"
 #include "CSSStyleSelector.h"
 #include "Frame.h"
 #include "FrameView.h"
@@ -38,6 +37,10 @@
 #include "RenderTheme.h"
 #include "SelectElement.h"
 #include <math.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 
@@ -316,8 +319,10 @@ void RenderMenuList::didSetSelectedIndex()
 
     m_lastSelectedIndex = index;
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->postNotification(this, AXObjectCache::AXMenuListValueChanged, true, PostSynchronously);
+#endif
 }
 
 String RenderMenuList::itemText(unsigned listIndex) const

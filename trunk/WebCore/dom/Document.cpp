@@ -26,7 +26,6 @@
 #include "config.h"
 #include "Document.h"
 
-#include "AXObjectCache.h"
 #include "AnimationController.h"
 #include "Attr.h"
 #include "CDATASection.h"
@@ -137,6 +136,10 @@
 #include <wtf/MainThread.h>
 #include <wtf/PassRefPtr.h>
 #include <wtf/StdLibExtras.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 #if ENABLE(DATABASE)
 #include "Database.h"
@@ -1496,6 +1499,7 @@ RenderView* Document::renderView() const
 
 void Document::clearAXObjectCache()
 {
+#if ENABLE(ACCESSIBILITY)
     // clear cache in top document
     if (m_axObjectCache) {
         delete m_axObjectCache;
@@ -1507,10 +1511,12 @@ void Document::clearAXObjectCache()
     Document* doc = topDocument();
     if (doc != this)
         doc->clearAXObjectCache();
+#endif
 }
 
 AXObjectCache* Document::axObjectCache() const
 {
+#if ENABLE(ACCESSIBILITY)
     // The only document that actually has a AXObjectCache is the top-level
     // document.  This is because we need to be able to get from any WebCoreAXObject
     // to any other WebCoreAXObject on the same page.  Using a single cache allows
@@ -1544,6 +1550,9 @@ AXObjectCache* Document::axObjectCache() const
     // this is the top-level document, so install a new cache
     m_axObjectCache = new AXObjectCache;
     return m_axObjectCache;
+#else
+    return 0;
+#endif
 }
 
 void Document::setVisuallyOrdered()

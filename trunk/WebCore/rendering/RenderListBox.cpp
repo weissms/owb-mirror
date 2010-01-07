@@ -32,7 +32,6 @@
 #include "config.h"
 #include "RenderListBox.h"
 
-#include "AXObjectCache.h"
 #include "CSSStyleSelector.h"
 #include "Document.h"
 #include "EventHandler.h"
@@ -54,6 +53,10 @@
 #include "SelectionController.h"
 #include "NodeRenderStyle.h"
 #include <math.h>
+
+#if ENABLE(ACCESSIBILITY)
+#include "AXObjectCache.h"
+#endif
 
 using namespace std;
 
@@ -138,8 +141,10 @@ void RenderListBox::selectionChanged()
             scrollToRevealSelection();
     }
     
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->selectedChildrenChanged(this);
+#endif
 }
 
 void RenderListBox::layout()
