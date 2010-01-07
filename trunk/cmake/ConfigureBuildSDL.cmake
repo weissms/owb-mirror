@@ -12,6 +12,7 @@ set(ENABLE_TESTS ON CACHE BOOLEAN "Enable tests" FORCE)
 
 set(ENABLE_3D_CANVAS ON CACHE BOOLEAN "Enable 3D canvas support" FORCE)
 set(ENABLE_3D_RENDERING ON CACHE BOOLEAN "Enable 3d rendering support" FORCE)
+set(ENABLE_ACCESSIBILITY ON CACHE BOOLEAN "Enable accessibility support" FORCE)
 set(ENABLE_DATABASE ON CACHE BOOLEAN "Enable HTML5 client-side database storage support" FORCE)
 set(ENABLE_DATAGRID ON CACHE BOOLEAN "Enable datagrid support" FORCE)
 set(ENABLE_DOM_STORAGE ON CACHE BOOLEAN "Enable HTML5 client-side session and persistent storage support" FORCE)
