@@ -1,5 +1,11 @@
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
+        clean editor cmakelist and move gtk/qt/icu files in bal.
+
+        * editing/CMakeLists.txt:
+
+2010-01-07  Mario Bensi  <mbensi@pleyo.com>
+
         Add ENABLE_ACCESSIBILITY.
 
         * accessibility/CMakeLists.txt:

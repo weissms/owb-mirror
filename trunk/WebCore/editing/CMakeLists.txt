@@ -46,21 +46,3 @@ list(APPEND WEBCORE_SRC
     editing/visible_units.cpp
     editing/WrapContentsInDummySpanCommand.cpp
 )
-
-if(USE_I18N_ICU OR USE_I18N_GLIB)
-    list(APPEND WEBCORE_SRC
-        editing/SmartReplaceICU.cpp
-    )
-endif(USE_I18N_ICU OR USE_I18N_GLIB)
-
-if(USE_I18N_QT)
-    list(APPEND WEBCORE_SRC
-        editing/qt/EditorQt.cpp
-    )
-endif(USE_I18N_QT)
-
-if(USE_GRAPHICS_GTK)
-    list(APPEND WEBCORE_SRC
-       editing/gtk/SelectionControllerGtk.cpp
-    )
-endif(USE_GRAPHICS_GTK)

@@ -1,5 +1,14 @@
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
+        clean editor cmakelist and move gtk/qt/icu files in bal.
+
+        * Internationalization/WebCore/ICU/BCSmartReplaceICU.cpp: Copied from WebCore/editing/SmartReplaceICU.cpp.
+        * Scripts/data/balInputList.txt:
+        * Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp: Copied from WebCore/editing/gtk/SelectionControllerGtk.cpp.
+        * Widgets/WebCore/Qt/BCEditorQt.cpp: Copied from WebCore/editing/qt/EditorQt.cpp.
+
+2010-01-07  Mario Bensi  <mbensi@pleyo.com>
+
         Add ENABLE_ACCESSIBILITY.
 
         * Accessibility/WebCore/CMakeLists.txt:
