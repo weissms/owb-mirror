@@ -3825,7 +3825,7 @@ void* realloc(void* old_ptr, size_t new_size) {
     return new_ptr;
   } else {
 #if ENABLE(FAST_MALLOC_MATCH_VALIDATION)
-    old_ptr = pByte + sizeof(AllocAlignmentInteger);  // Set old_ptr back to the user pointer.
+    old_ptr = static_cast<AllocAlignmentInteger*>(old_ptr) + 1; // Set old_ptr back to the user pointer.
 #endif
     return old_ptr;
   }

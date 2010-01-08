@@ -19,6 +19,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderButton.cpp
     rendering/RenderCounter.cpp
     rendering/RenderDataGrid.cpp
+    rendering/RenderEmbeddedObject.cpp
     rendering/RenderFieldset.cpp
     rendering/RenderFileUploadControl.cpp
     rendering/RenderFlexibleBox.cpp
@@ -94,6 +95,7 @@ if(ENABLE_SVG)
         rendering/SVGCharacterLayoutInfo.cpp
         rendering/SVGInlineFlowBox.cpp
         rendering/SVGInlineTextBox.cpp
+        rendering/SVGMarkerLayoutInfo.cpp 
         rendering/SVGRenderSupport.cpp
         rendering/SVGRenderTreeAsText.cpp
         rendering/SVGRootInlineBox.cpp

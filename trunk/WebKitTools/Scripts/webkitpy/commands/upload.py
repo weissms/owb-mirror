@@ -109,12 +109,13 @@ class AbstractPatchUploadingCommand(AbstractSequencedCommmand):
         return bug_id
 
 
-class PostDiff(AbstractPatchUploadingCommand):
-    name = "post-diff"
+class Post(AbstractPatchUploadingCommand):
+    name = "post"
     help_text = "Attach the current working directory diff to a bug as a patch file"
     argument_names = "[BUGID]"
     show_in_main_help = True
     steps = [
+        steps.CheckStyle,
         steps.ConfirmDiff,
         steps.ObsoletePatches,
         steps.PostDiff,
@@ -128,10 +129,11 @@ class PostDiff(AbstractPatchUploadingCommand):
         return state
 
 
-class PrepareDiff(AbstractSequencedCommmand):
-    name = "prepare-diff"
+class Prepare(AbstractSequencedCommmand):
+    name = "prepare"
     help_text = "Creates a bug (or prompts for an existing bug) and prepares the ChangeLogs"
     argument_names = "[BUGID]"
+    show_in_main_help = True
     steps = [
         steps.PromptForBugOrTitle,
         steps.CreateBug,
@@ -143,11 +145,13 @@ class PrepareDiff(AbstractSequencedCommmand):
         return { "bug_id" : bug_id }
 
 
-class SubmitPatch(AbstractPatchUploadingCommand):
-    name = "submit-patch"
+class Upload(AbstractPatchUploadingCommand):
+    name = "upload"
     help_text = "Automates the process of uploading a patch for review"
     argument_names = "[BUGID]"
+    show_in_main_help = True
     steps = [
+        steps.CheckStyle,
         steps.PromptForBugOrTitle,
         steps.CreateBug,
         steps.PrepareChangeLog,
@@ -156,10 +160,10 @@ class SubmitPatch(AbstractPatchUploadingCommand):
         steps.ObsoletePatches,
         steps.PostDiff,
     ]
-    long_help = """submit-patch uploads the current diff to bugs.webkit.org.
-    If no bug id is provided, submit-patch will create a bug.
-    If the current diff does not have a ChangeLog, submit-patch
-    will prepare a ChangeLog.  Once a patch is read, submit-patch
+    long_help = """upload uploads the current diff to bugs.webkit.org.
+    If no bug id is provided, upload will create a bug.
+    If the current diff does not have a ChangeLog, upload
+    will prepare a ChangeLog.  Once a patch is read, upload
     will open the ChangeLogs for editing using the command in the
     EDITOR environment variable and will display the diff using the
     command in the PAGER environment variable."""
@@ -170,9 +174,10 @@ class SubmitPatch(AbstractPatchUploadingCommand):
         return state
 
 
-class EditChangeLog(AbstractSequencedCommmand):
-    name = "edit-changelog"
+class EditChangeLogs(AbstractSequencedCommmand):
+    name = "edit-changelogs"
     help_text = "Opens modified ChangeLogs in $EDITOR"
+    show_in_main_help = True
     steps = [
         steps.EditChangeLog,
     ]
@@ -180,10 +185,9 @@ class EditChangeLog(AbstractSequencedCommmand):
 
 class PostCommits(AbstractDeclarativeCommmand):
     name = "post-commits"
-    show_in_main_help = True
     help_text = "Attach a range of local commits to bugs as patch files"
     argument_names = "COMMITISH"
-    
+
     def __init__(self):
         options = [
             make_option("-b", "--bug-id", action="store", type="string", dest="bug_id", help="Specify bug id if no URL is provided in the commit log."),
@@ -210,7 +214,7 @@ class PostCommits(AbstractDeclarativeCommmand):
     def execute(self, options, args, tool):
         commit_ids = tool.scm().commit_ids_from_commitish_arguments(args)
         if len(commit_ids) > 10: # We could lower this limit, 10 is too many for one bug as-is.
-            error("bugzilla-tool does not support attaching %s at once.  Are you sure you passed the right commit range?" % (pluralize("patch", len(commit_ids))))
+            error("webkit-patch does not support attaching %s at once.  Are you sure you passed the right commit range?" % (pluralize("patch", len(commit_ids))))
 
         have_obsoleted_patches = set()
         for commit_id in commit_ids:

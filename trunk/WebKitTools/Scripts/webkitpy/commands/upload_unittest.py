@@ -52,19 +52,19 @@ class UploadCommandsTest(CommandsTest):
         expected_stderr = "Obsoleting 2 old patches on bug 42\n"
         self.assert_execute_outputs(ObsoleteAttachments(), [42], expected_stderr=expected_stderr)
 
-    def test_post_diff(self):
-        expected_stderr = "Obsoleting 2 old patches on bug 42\n"
-        self.assert_execute_outputs(PostDiff(), [42], expected_stderr=expected_stderr)
+    def test_post(self):
+        expected_stderr = "Running check-webkit-style\nObsoleting 2 old patches on bug 42\n"
+        self.assert_execute_outputs(Post(), [42], expected_stderr=expected_stderr)
 
     def test_prepare_diff_with_arg(self):
-        self.assert_execute_outputs(PrepareDiff(), [42])
+        self.assert_execute_outputs(Prepare(), [42])
 
-    def test_prepare_diff(self):
-        self.assert_execute_outputs(PrepareDiff(), [])
+    def test_prepare(self):
+        self.assert_execute_outputs(Prepare(), [])
 
-    def test_submit_patch(self):
-        expected_stderr = "Obsoleting 2 old patches on bug 42\n"
-        self.assert_execute_outputs(SubmitPatch(), [42], expected_stderr=expected_stderr)
+    def test_upload(self):
+        expected_stderr = "Running check-webkit-style\nObsoleting 2 old patches on bug 42\n"
+        self.assert_execute_outputs(Upload(), [42], expected_stderr=expected_stderr)
 
     def test_mark_bug_fixed(self):
         tool = MockBugzillaTool()
@@ -75,4 +75,4 @@ class UploadCommandsTest(CommandsTest):
         self.assert_execute_outputs(MarkBugFixed(), [], expected_stderr=expected_stderr, tool=tool, options=options)
 
     def test_edit_changelog(self):
-        self.assert_execute_outputs(EditChangeLog(), [])
+        self.assert_execute_outputs(EditChangeLogs(), [])

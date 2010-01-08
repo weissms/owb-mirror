@@ -29,6 +29,8 @@
 
 #include "PurgeableBuffer.h"
 
+using namespace std;
+
 namespace WebCore {
 
 static const unsigned segmentSize = 0x1000;
@@ -114,7 +116,7 @@ const char* SharedBuffer::data() const
     return buffer().data();
 }
 
-void SharedBuffer::append(const char* data, int length)
+void SharedBuffer::append(const char* data, unsigned length)
 {
     ASSERT(!m_purgeableBuffer);
 
@@ -137,18 +139,18 @@ void SharedBuffer::append(const char* data, int length)
         segment = m_segments.last() + positionInSegment;
 
     unsigned segmentFreeSpace = segmentSize - positionInSegment;
-    unsigned bytesToCopy = static_cast<unsigned>(length) < segmentFreeSpace ? static_cast<unsigned>(length) : segmentFreeSpace;
+    unsigned bytesToCopy = min(length, segmentFreeSpace);
 
     for (;;) {
         memcpy(segment, data, bytesToCopy);
-        if (length == bytesToCopy)
+        if (static_cast<unsigned>(length) == bytesToCopy)
             break;
 
         length -= bytesToCopy;
         data += bytesToCopy;
         segment = allocateSegment();
         m_segments.append(segment);
-        bytesToCopy = length < segmentSize ? length : segmentSize;
+        bytesToCopy = min(length, segmentSize);
     }
 }
 
@@ -196,7 +198,7 @@ const Vector<char>& SharedBuffer::buffer() const
         char* destination = m_buffer.data() + bufferSize;
         unsigned bytesLeft = m_size - bufferSize;
         for (unsigned i = 0; i < m_segments.size(); ++i) {
-            unsigned bytesToCopy = bytesLeft < segmentSize ? bytesLeft : segmentSize;
+            unsigned bytesToCopy = min(bytesLeft, segmentSize);
             memcpy(destination, m_segments[i], bytesToCopy);
             destination += bytesToCopy;
             bytesLeft -= bytesToCopy;

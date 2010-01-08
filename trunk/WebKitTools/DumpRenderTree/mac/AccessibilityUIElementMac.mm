@@ -28,6 +28,7 @@
 #import "AccessibilityUIElement.h"
 
 #import <Foundation/Foundation.h>
+#import <JavaScriptCore/JSRetainPtr.h>
 #import <JavaScriptCore/JSStringRef.h>
 #import <JavaScriptCore/JSStringRefCF.h>
 #import <WebKit/WebFrame.h>
@@ -469,7 +470,7 @@ double AccessibilityUIElement::clickPointY()
     return static_cast<double>([positionValue pointValue].y);
 }
 
-double AccessibilityUIElement::intValue()
+double AccessibilityUIElement::intValue() const
 {
     id value = [m_element accessibilityAttributeValue:NSAccessibilityValueAttribute];
     if ([value isKindOfClass:[NSNumber class]])
@@ -545,6 +546,12 @@ bool AccessibilityUIElement::isExpanded() const
     if ([value isKindOfClass:[NSNumber class]])
         return [value boolValue];
     return false;
+}
+
+bool AccessibilityUIElement::isChecked() const
+{
+    // On the Mac, intValue()==1 if a a checkable control is checked.
+    return intValue() == 1;
 }
 
 int AccessibilityUIElement::hierarchicalLevel() const
@@ -753,8 +760,9 @@ static void _accessibilityNotificationCallback(id element, NSString* notificatio
 {
     if (!AXNotificationFunctionCallback)
         return;
-    
-    JSValueRef argument = JSValueMakeString([mainFrame globalContext], JSStringCreateWithCFString((CFStringRef)notification));    
+
+    JSRetainPtr<JSStringRef> jsNotification(Adopt, [notification createJSStringRef]);
+    JSValueRef argument = JSValueMakeString([mainFrame globalContext], jsNotification.get());
     JSObjectCallAsFunction([mainFrame globalContext], AXNotificationFunctionCallback, NULL, 1, &argument, NULL);
 }
 

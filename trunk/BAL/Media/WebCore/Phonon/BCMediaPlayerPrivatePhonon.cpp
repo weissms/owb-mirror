@@ -37,7 +37,8 @@
 #include <QMetaEnum>
 #include <QUrl>
 #include <QEvent>
-//#include <phonon>
+
+#include <phonon/path.h>
 #include <phonon/audiooutput.h>
 #include <phonon/mediaobject.h>
 #include <phonon/videoplayer.h>

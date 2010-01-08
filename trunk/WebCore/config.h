@@ -36,8 +36,10 @@
 #else
 #define WEBKIT_EXPORTDATA __declspec(dllimport)
 #endif
+#define JS_EXPORTCLASS JS_EXPORTDATA
 #else
 #define JS_EXPORTDATA
+#define JS_EXPORTCLASS
 #define WEBKIT_EXPORTDATA
 #endif
 
@@ -92,6 +94,7 @@
 #define ENABLE_VIDEO 1
 #define ENABLE_WORKERS 1
 #define ENABLE_XBL 0
+#define ENABLE_XHTMLMP 0
 #define ENABLE_XPATH 0
 #define ENABLE_XSLT 0
 #define ENABLE_ARCHIVE 0

@@ -296,6 +296,9 @@ bool WebView::s_allowSiteSpecificHacks = false;
 
 WebView::WebView()
     : m_refCount(0)
+#if !ASSERT_DISABLED
+    , m_deletionHasBegun(false)
+#endif
     , m_hostWindow(0)
     , m_viewWindow(0)
     , m_mainFrame(0)
@@ -351,18 +354,13 @@ WebView::~WebView()
 {
     deleteBackingStore();
 
-    // <rdar://4958382> m_viewWindow will be destroyed when m_hostWindow is destroyed, but if
-    // setHostWindow was never called we will leak our HWND. If we still have a valid HWND at
-    // this point, we should just destroy it ourselves.
-    if (!isBeingDestroyed() && ::IsWindow(m_viewWindow))
-        ::DestroyWindow(m_viewWindow);
-
     // the tooltip window needs to be explicitly destroyed since it isn't a WS_CHILD
     if (::IsWindow(m_toolTipHwnd))
         ::DestroyWindow(m_toolTipHwnd);
 
     ASSERT(!m_page);
     ASSERT(!m_preferences);
+    ASSERT(!m_viewWindow);
 
     WebViewCount--;
     gClassCount--;
@@ -632,9 +630,10 @@ HRESULT STDMETHODCALLTYPE WebView::close()
 
     removeFromAllWebViewsSet();
 
-    Frame* frame = m_page->mainFrame();
-    if (frame)
-        frame->loader()->detachFromParent();
+    if (m_page) {
+        if (Frame* frame = m_page->mainFrame())
+            frame->loader()->detachFromParent();
+    }
 
     if (m_mouseOutTracker) {
         m_mouseOutTracker->dwFlags = TME_CANCEL;
@@ -642,6 +641,18 @@ HRESULT STDMETHODCALLTYPE WebView::close()
         m_mouseOutTracker.set(0);
     }
     
+    revokeDragDrop();
+
+    if (m_viewWindow) {
+        // We can't check IsWindow(m_viewWindow) here, because that will return true even while
+        // we're already handling WM_DESTROY. So we check !isBeingDestroyed() instead.
+        if (!isBeingDestroyed())
+            DestroyWindow(m_viewWindow);
+        // Either we just destroyed m_viewWindow, or it's in the process of being destroyed. Either
+        // way, we clear it out to make sure we don't try to use it later.
+        m_viewWindow = 0;
+    }
+
     setHostWindow(0);
 
     setDownloadDelegate(0);
@@ -665,17 +676,18 @@ HRESULT STDMETHODCALLTYPE WebView::close()
     IWebNotificationCenter* notifyCenter = WebNotificationCenter::defaultCenterInternal();
     notifyCenter->removeObserver(this, WebPreferences::webPreferencesChangedNotification(), static_cast<IWebPreferences*>(m_preferences.get()));
 
-    BSTR identifier = 0;
-    m_preferences->identifier(&identifier);
+    if (COMPtr<WebPreferences> preferences = m_preferences) {
+        BSTR identifier = 0;
+        preferences->identifier(&identifier);
 
-    COMPtr<WebPreferences> preferences = m_preferences;
-    m_preferences = 0;
-    preferences->didRemoveFromWebView();
-    // Make sure we release the reference, since WebPreferences::removeReferenceForIdentifier will check for last reference to WebPreferences
-    preferences = 0;
-    if (identifier) {
-        WebPreferences::removeReferenceForIdentifier(identifier);
-        SysFreeString(identifier);
+        m_preferences = 0;
+        preferences->didRemoveFromWebView();
+        // Make sure we release the reference, since WebPreferences::removeReferenceForIdentifier will check for last reference to WebPreferences
+        preferences = 0;
+        if (identifier) {
+            WebPreferences::removeReferenceForIdentifier(identifier);
+            SysFreeString(identifier);
+        }
     }
 
     deleteBackingStore();
@@ -1905,7 +1917,6 @@ LRESULT CALLBACK WebView::WebViewWndProc(HWND hWnd, UINT message, WPARAM wParam,
         case WM_DESTROY:
             webView->setIsBeingDestroyed();
             webView->close();
-            webView->revokeDragDrop();
             break;
         case WM_GESTURENOTIFY:
             handled = webView->gestureNotify(wParam, lParam);
@@ -1954,10 +1965,6 @@ LRESULT CALLBACK WebView::WebViewWndProc(HWND hWnd, UINT message, WPARAM wParam,
             break;
         // FIXME: We need to check WM_UNICHAR to support supplementary characters (that don't fit in 16 bits).
         case WM_SIZE:
-            if (webView->isBeingDestroyed())
-                // If someone has sent us this message while we're being destroyed, we should bail out so we don't crash.
-                break;
-
             if (lParam != 0) {
                 webView->deleteBackingStore();
 #if USE(ACCELERATED_COMPOSITING)
@@ -2271,14 +2278,29 @@ HRESULT STDMETHODCALLTYPE WebView::QueryInterface(REFIID riid, void** ppvObject)
 
 ULONG STDMETHODCALLTYPE WebView::AddRef(void)
 {
+    ASSERT(!m_deletionHasBegun);
     return ++m_refCount;
 }
 
 ULONG STDMETHODCALLTYPE WebView::Release(void)
 {
+    ASSERT(!m_deletionHasBegun);
+
+    if (m_refCount == 1) {
+        // Call close() now so that clients don't have to. (It's harmless to call close() multiple
+        // times.) We do this here instead of in our destructor because close() can cause AddRef()
+        // and Release() to be called, and if that happened in our destructor we would be destroyed
+        // more than once.
+        close();
+    }
+
     ULONG newRef = --m_refCount;
-    if (!newRef)
+    if (!newRef) {
+#if !ASSERT_DISABLED
+        m_deletionHasBegun = true;
+#endif
         delete(this);
+    }
 
     return newRef;
 }
@@ -3052,8 +3074,7 @@ HRESULT STDMETHODCALLTYPE WebView::setHostWindow(
 
     m_hostWindow = window;
 
-    if (m_viewWindow)
-        windowAncestryDidChange();
+    windowAncestryDidChange();
 
     return S_OK;
 }
@@ -4933,7 +4954,9 @@ HRESULT WebView::registerDragDrop()
 
 HRESULT WebView::revokeDragDrop()
 {
-    ASSERT(::IsWindow(m_viewWindow));
+    if (!m_viewWindow)
+        return S_OK;
+
     return ::RevokeDragDrop(m_viewWindow);
 }
 
@@ -5361,7 +5384,15 @@ HRESULT STDMETHODCALLTYPE WebView::inspector(IWebInspector** inspector)
 
 HRESULT STDMETHODCALLTYPE WebView::windowAncestryDidChange()
 {
-    HWND newParent = findTopLevelParent(m_hostWindow);
+    HWND newParent;
+    if (m_viewWindow)
+        newParent = findTopLevelParent(m_hostWindow);
+    else {
+        // There's no point in tracking active state changes of our parent window if we don't have
+        // a window ourselves.
+        newParent = 0;
+    }
+
     if (newParent == m_topLevelParent)
         return S_OK;
 

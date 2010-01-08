@@ -1,3 +1,91 @@
+2010-01-07  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32987
+
+        Added ENABLE_XHTMLMP flag. Disabled by default.
+
+        * features.gypi:
+
+2010-01-07  Adam Barth  <abarth@webkit.org>
+
+        No review, rolling out r52847.
+        http://trac.webkit.org/changeset/52847
+        https://bugs.webkit.org/show_bug.cgi?id=33232
+
+        Might have caused a perf regression.
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::detachedFromParent3):
+
+2010-01-06  Mike Belshe  <mike@belshe.com>
+
+        Add a flag to the ResourceResponse for tracking if a request was
+        fetched via SPDY.  This is plumbed through so that we can inform
+        a webpage via JavaScript if it was fecthed via the experimental
+        SPDY protocol.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33186
+
+        * public/WebURLResponse.h:
+        * src/WebURLResponse.cpp:
+        (WebKit::WebURLResponse::wasFetchedViaSpdy):
+        (WebKit::WebURLResponse::setWasFetchedViaSpdy):
+
+2010-01-06  Darin Fisher  <darin@chromium.org>
+
+        Fix release build bustage.
+
+        * src/WebKit.cpp: Need to include Logging.h
+
+2010-01-05  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [Chromium] Expose more APIs to eliminate WebCore usage in Chromium.
+        https://bugs.webkit.org/show_bug.cgi?id=33249
+
+        * WebKit.gyp:
+        * public/WebFrame.h:
+        * public/WebGlyphCache.h: Added.
+        * public/WebKit.h:
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrame::instanceCount):
+        (WebKit::WebFrameImpl::WebFrameImpl):
+        (WebKit::WebFrameImpl::~WebFrameImpl):
+        * src/WebFrameImpl.h:
+        * src/WebGlyphCache.cpp: Added.
+        (WebKit::WebGlyphCache::pageCount):
+        * src/WebKit.cpp:
+        (WebKit::enableLogChannel):
+
+2010-01-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [v8] Move V8DOMWindowShell to ScriptController
+        https://bugs.webkit.org/show_bug.cgi?id=33232
+
+        Update FrameLoaderClientImpl.cpp to call clearForClose on
+        ScriptController instead of on V8Proxy.
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::detachedFromParent3):
+
+2010-01-05  Rachel Petterson  <rlp@google.com>
+
+        Reviewed by Adam Barth.
+
+        Matches the texImage2D and texSubImage2D functions to their
+        declarations. Elminates uncessary versions of those functions.
+        https://bugs.webkit.org/show_bug.cgi?id=31562
+        Also bug: https://bugs.webkit.org/show_bug.cgi?id=31493
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::texImage2D):
+        (WebCore::GraphicsContext3D::texSubImage2D):
+
 2010-01-05  Maciej Stachowiak  <mjs@apple.com>
 
         Reviewed by Darin Fisher.

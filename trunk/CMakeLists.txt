@@ -80,7 +80,7 @@ set(USE_FONTS "CAIRO" CACHE STRING "Choose the font engine, options are: GTK CAI
 set(USE_GRAPHICS "SDLCAIRO" CACHE STRING "Choose the graphic backend, options are: GTK SDL SDLCAIRO QT")
 set(USE_I18N "ICU" CACHE STRING "Choose the internationalization library, options are: ICU EMBEDDED GLIB QT")
 set(USE_NETWORK "CURL" CACHE STRING "Choose the network backend, options are: CURL QT SOUP")
-set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are: GTHREADS PTHREADS NONE QT")
+set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are: PTHREADS NONE QT")
 set(USE_TIMER "LINUX" CACHE STRING "Choose the timer backend, options are: GLIB LINUX QT")
 if(ENABLE_CEHTML_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
     set(USE_VIDEO "NONE" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON")

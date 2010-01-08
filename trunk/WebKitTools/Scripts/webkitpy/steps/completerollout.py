@@ -26,6 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from webkitpy.comments import bug_comment_from_commit_text
 from webkitpy.steps.build import Build
 from webkitpy.steps.commit import Commit
 from webkitpy.steps.metastep import MetaStep
@@ -50,14 +51,16 @@ class CompleteRollout(MetaStep):
         # FIXME: Fully automated rollout is not 100% idiot-proof yet, so for now just log with instructions on how to complete the rollout.
         # Once we trust rollout we will remove this option.
         if not self._options.complete_rollout:
-            log("\nNOTE: Rollout support is experimental.\nPlease verify the rollout diff and use \"bugzilla-tool land-diff %s\" to commit the rollout." % bug_id)
+            log("\nNOTE: Rollout support is experimental.\nPlease verify the rollout diff and use \"webkit-patch land %s\" to commit the rollout." % bug_id)
             return
 
         MetaStep.run(self, state)
 
+        commit_comment = bug_comment_from_commit_text(self._tool.scm(), state["commit_text"])
+        comment_text = "Reverted r%s for reason:\n\n%s\n\n%s" % (state["revision"], state["reason"], commit_comment)
+
         if not bug_id:
-            log(state["commit_text"])
-            log("No bugs were updated or re-opened to reflect this rollout.")
+            log(comment_text)
+            log("No bugs were updated.")
             return
-        # FIXME: I'm not sure state["commit_text"] is quite right here.
-        self._tool.bugs.reopen_bug(bug_id, state["commit_text"])
+        self._tool.bugs.reopen_bug(bug_id, comment_text)

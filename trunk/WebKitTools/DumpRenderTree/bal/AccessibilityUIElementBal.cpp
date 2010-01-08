@@ -225,7 +225,7 @@ double AccessibilityUIElement::height()
     return 0;
 }
 
-double AccessibilityUIElement::intValue()
+double AccessibilityUIElement::intValue() const
 {
     /*BSTR valueBSTR;
     if (FAILED(m_element->get_accValue(self(), &valueBSTR)) || !valueBSTR)
@@ -494,6 +494,11 @@ JSStringRef AccessibilityUIElement::url()
 }
 
 bool AccessibilityUIElement::addNotificationListener(JSObjectRef functionCallback)
+{
+    return false;
+}
+
+bool AccessibilityUIElement::isChecked() const
 {
     return false;
 }

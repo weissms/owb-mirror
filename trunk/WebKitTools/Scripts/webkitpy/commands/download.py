@@ -66,8 +66,8 @@ class BuildAndTest(AbstractSequencedCommmand):
     ]
 
 
-class LandDiff(AbstractSequencedCommmand):
-    name = "land-diff"
+class Land(AbstractSequencedCommmand):
+    name = "land"
     help_text = "Land the current working directory diff and updates the associated bug if any"
     argument_names = "[BUGID]"
     show_in_main_help = True
@@ -80,9 +80,9 @@ class LandDiff(AbstractSequencedCommmand):
         steps.Commit,
         steps.CloseBugForLandDiff,
     ]
-    long_help = """land-diff commits the current working copy diff (just as svn or git commit would).
-land-diff will build and run the tests before committing.
-If a bug id is provided, or one can be found in the ChangeLog land-diff will update the bug after committing."""
+    long_help = """land commits the current working copy diff (just as svn or git commit would).
+land will build and run the tests before committing.
+If a bug id is provided, or one can be found in the ChangeLog land will update the bug after committing."""
 
     def _prepare_state(self, options, args, tool):
         return {
@@ -187,6 +187,8 @@ class AbstractPatchApplyingCommand(AbstractPatchSequencingCommand):
     main_steps = [
         steps.ApplyPatchWithLocalCommit,
     ]
+    long_help = """Updates the working copy.
+Downloads and applies the patches, creating local commits if necessary."""
 
 
 class ApplyAttachment(AbstractPatchApplyingCommand, ProcessAttachmentsMixin):
@@ -196,8 +198,8 @@ class ApplyAttachment(AbstractPatchApplyingCommand, ProcessAttachmentsMixin):
     show_in_main_help = True
 
 
-class ApplyPatches(AbstractPatchApplyingCommand, ProcessBugsMixin):
-    name = "apply-patches"
+class ApplyFromBug(AbstractPatchApplyingCommand, ProcessBugsMixin):
+    name = "apply-from-bug"
     help_text = "Apply reviewed patches from provided bugs to the local working directory"
     argument_names = "BUGID [BUGIDS]"
     show_in_main_help = True
@@ -218,6 +220,14 @@ class AbstractPatchLandingCommand(AbstractPatchSequencingCommand):
         steps.ClosePatch,
         steps.CloseBug,
     ]
+    long_help = """Checks to make sure builders are green.
+Updates the working copy.
+Applies the patch.
+Builds.
+Runs the layout tests.
+Commits the patch.
+Clears the flags on the patch.
+Closes the bug if no patches are marked for review."""
 
 
 class LandAttachment(AbstractPatchLandingCommand, ProcessAttachmentsMixin):
@@ -227,8 +237,8 @@ class LandAttachment(AbstractPatchLandingCommand, ProcessAttachmentsMixin):
     show_in_main_help = True
 
 
-class LandPatches(AbstractPatchLandingCommand, ProcessBugsMixin):
-    name = "land-patches"
+class LandFromBug(AbstractPatchLandingCommand, ProcessBugsMixin):
+    name = "land-from-bug"
     help_text = "Land all patches on the given bugs, optionally building and testing them first"
     argument_names = "BUGID [BUGIDS]"
     show_in_main_help = True
@@ -239,6 +249,12 @@ class Rollout(AbstractSequencedCommmand):
     show_in_main_help = True
     help_text = "Revert the given revision in the working copy and optionally commit the revert and re-open the original bug"
     argument_names = "REVISION REASON"
+    long_help = """Updates the working copy.
+Applies the inverse diff for the provided revision.
+Creates an appropriate rollout ChangeLog, including a trac link and bug link.
+Opens the generated ChangeLogs in $EDITOR.
+Shows the prepared diff for confirmation.
+Commits the revert and updates the bug (including re-opening the bug if necessary)."""
     steps = [
         steps.CleanWorkingDirectory,
         steps.Update,
@@ -253,14 +269,6 @@ class Rollout(AbstractSequencedCommmand):
     def _parse_bug_id_from_revision_diff(tool, revision):
         original_diff = tool.scm().diff_for_revision(revision)
         return parse_bug_id(original_diff)
-
-    @staticmethod
-    def _reopen_bug_after_rollout(tool, bug_id, comment_text):
-        if bug_id:
-            tool.bugs.reopen_bug(bug_id, comment_text)
-        else:
-            log(comment_text)
-            log("No bugs were updated or re-opened to reflect this rollout.")
 
     def execute(self, options, args, tool):
         revision = args[0]

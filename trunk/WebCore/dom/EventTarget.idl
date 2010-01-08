@@ -25,7 +25,6 @@ module events {
         ObjCProtocol,
         PureInterface,
         OmitConstructor
-        InterfaceUUID=1D71C7EC-0BA0-4044-BDFD-56B3E8F5F9D4
     ] EventTarget {
         [OldStyleObjC] void addEventListener(in DOMString type, 
                                              in EventListener listener, 

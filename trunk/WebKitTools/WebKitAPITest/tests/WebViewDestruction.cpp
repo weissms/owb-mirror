@@ -34,7 +34,7 @@ namespace WebKitAPITest {
 template <typename T>
 static HRESULT WebKitCreateInstance(REFCLSID clsid, T** object)
 {
-    return WebKitCreateInstance(clsid, 0, __uuidof(T), reinterpret_cast<void**>(&object));
+    return WebKitCreateInstance(clsid, 0, __uuidof(T), reinterpret_cast<void**>(object));
 }
 
 static int webViewCount()
@@ -48,19 +48,21 @@ static int webViewCount()
     return count;
 }
 
-static COMPtr<IWebView> createWebView(const HostWindow& window)
+static void createAndInitializeWebView(COMPtr<IWebView>& outWebView, HostWindow& window, HWND& viewWindow)
 {
     COMPtr<IWebView> webView;
-    if (FAILED(WebKitCreateInstance(__uuidof(WebView), &webView)))
-        return 0;
+    TEST_ASSERT(SUCCEEDED(WebKitCreateInstance(__uuidof(WebView), &webView)));
 
-    if (FAILED(webView->setHostWindow(reinterpret_cast<OLE_HANDLE>(window.window()))))
-        return 0;
+    TEST_ASSERT(window.initialize());
+    TEST_ASSERT(SUCCEEDED(webView->setHostWindow(reinterpret_cast<OLE_HANDLE>(window.window()))));
+    TEST_ASSERT(SUCCEEDED(webView->initWithFrame(window.clientRect(), 0, 0)));
 
-    if (FAILED(webView->initWithFrame(window.clientRect(), 0, 0)))
-        return 0;
+    COMPtr<IWebViewPrivate> viewPrivate(Query, webView);
+    TEST_ASSERT(viewPrivate);
+    TEST_ASSERT(SUCCEEDED(viewPrivate->viewWindow(reinterpret_cast<OLE_HANDLE*>(&viewWindow))));
+    TEST_ASSERT(IsWindow(viewWindow));
 
-    return webView;
+    outWebView.adoptRef(webView.releaseRef());
 }
 
 static void runMessagePump(DWORD timeoutMilliseconds)
@@ -68,7 +70,7 @@ static void runMessagePump(DWORD timeoutMilliseconds)
     DWORD startTickCount = GetTickCount();
     MSG msg;
     BOOL result;
-    while ((result = GetMessage(&msg, 0, 0, 0)) && GetTickCount() - startTickCount <= timeoutMilliseconds) {
+    while ((result = PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) && GetTickCount() - startTickCount <= timeoutMilliseconds) {
         if (result == -1)
             break;
         TranslateMessage(&msg);
@@ -76,60 +78,153 @@ static void runMessagePump(DWORD timeoutMilliseconds)
     }
 }
 
-// Tests that calling IWebView::close without calling DestroyWindow, then releasing a WebView doesn't crash. <http://webkit.org/b/32827>
-TEST(WebViewDestruction, CloseWithoutDestroyWindow)
+static void finishWebViewDestructionTest(COMPtr<IWebView>& webView, HWND viewWindow)
 {
-    HostWindow window;
-    TEST_ASSERT(window.initialize());
-    COMPtr<IWebView> webView = createWebView(window);
-    TEST_ASSERT(webView);
-
-    TEST_ASSERT(SUCCEEDED(webView->close()));
-
-    // Allow window messages to be processed to trigger the crash.
+    // Allow window messages to be processed, because in some cases that would trigger a crash (e.g., <http://webkit.org/b/32827>).
     runMessagePump(50);
 
-    // We haven't crashed. Release the WebView and ensure that its view window gets destroyed and the WebView doesn't leak.
-    COMPtr<IWebViewPrivate> viewPrivate(Query, webView);
-    TEST_ASSERT(viewPrivate);
-
-    HWND viewWindow;
-    TEST_ASSERT(SUCCEEDED(viewPrivate->viewWindow(reinterpret_cast<OLE_HANDLE*>(&viewWindow))));
-    TEST_ASSERT(viewWindow);
-
+    // We haven't crashed. Release the WebView and ensure that its view window has been destroyed and the WebView doesn't leak.
     int currentWebViewCount = webViewCount();
     TEST_ASSERT(currentWebViewCount > 0);
 
     webView = 0;
-    viewPrivate = 0;
 
     TEST_ASSERT(webViewCount() == currentWebViewCount - 1);
     TEST_ASSERT(!IsWindow(viewWindow));
 }
 
+// Tests that releasing a WebView without calling IWebView::initWithFrame works.
+TEST(WebViewDestruction, NoInitWithFrame)
+{
+    COMPtr<IWebView> webView;
+    TEST_ASSERT(SUCCEEDED(WebKitCreateInstance(__uuidof(WebView), &webView)));
+
+    finishWebViewDestructionTest(webView, 0);
+}
+
+TEST(WebViewDestruction, CloseWithoutInitWithFrame)
+{
+    COMPtr<IWebView> webView;
+    TEST_ASSERT(SUCCEEDED(WebKitCreateInstance(__uuidof(WebView), &webView)));
+
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+
+    finishWebViewDestructionTest(webView, 0);
+}
+
+// Tests that releasing a WebView without calling IWebView::close or DestroyWindow doesn't leak. <http://webkit.org/b/33162>
+TEST(WebViewDestruction, NoCloseOrDestroyViewWindow)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+// Tests that calling IWebView::close without calling DestroyWindow, then releasing a WebView doesn't crash. <http://webkit.org/b/32827>
+TEST(WebViewDestruction, CloseWithoutDestroyViewWindow)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, DestroyViewWindowWithoutClose)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    DestroyWindow(viewWindow);
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, CloseThenDestroyViewWindow)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+    DestroyWindow(viewWindow);
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, DestroyViewWindowThenClose)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    DestroyWindow(viewWindow);
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, DestroyHostWindow)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    DestroyWindow(window.window());
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, DestroyHostWindowThenClose)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    DestroyWindow(window.window());
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
+TEST(WebViewDestruction, CloseThenDestroyHostWindow)
+{
+    COMPtr<IWebView> webView;
+    HostWindow window;
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
+
+    TEST_ASSERT(SUCCEEDED(webView->close()));
+    DestroyWindow(window.window());
+
+    finishWebViewDestructionTest(webView, viewWindow);
+}
+
 // Tests that calling IWebView::mainFrame after calling IWebView::close doesn't crash. <http://webkit.org/b/32868>
 TEST(WebViewDestruction, MainFrameAfterClose)
 {
+    COMPtr<IWebView> webView;
     HostWindow window;
-    TEST_ASSERT(window.initialize());
-    COMPtr<IWebView> webView = createWebView(window);
-    TEST_ASSERT(webView);
+    HWND viewWindow;
+    createAndInitializeWebView(webView, window, viewWindow);
 
     TEST_ASSERT(SUCCEEDED(webView->close()));
     COMPtr<IWebFrame> mainFrame;
     TEST_ASSERT(SUCCEEDED(webView->mainFrame(&mainFrame)));
-}
 
-// Tests that releasing a WebView without calling IWebView::close or DestroyWindow doesn't leak. <http://webkit.org/b/33162>
-TEST(WebViewDestruction, NoCloseOrDestroyWindow)
-{
-    HostWindow window;
-    TEST_ASSERT(window.initialize());
-    COMPtr<IWebView> webView = createWebView(window);
-    TEST_ASSERT(webView);
-
-    webView = 0;
-    TEST_ASSERT(!webViewCount());
+    finishWebViewDestructionTest(webView, viewWindow);
 }
 
 } // namespace WebKitAPITest

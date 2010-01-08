@@ -38,6 +38,6 @@ set(USE_FONTS "GTK" CACHE STRING "Choose the font engine, options are: GTK FREET
 set(USE_GRAPHICS "GTK" CACHE STRING "Choose the graphic backend, options are: GTK SDL" FORCE)
 set(USE_I18N "GLIB" CACHE STRING "Choose the internationalization library, options are: ICU GENERIC GLIB" FORCE)
 set(USE_NETWORK "SOUP" CACHE STRING "Choose the network backend, options are: CURL QT SOUP")
-set(USE_THREADS "GTHREADS" CACHE STRING "Choose the thread backend, options are: GTHREADS PTHREADS NONE" FORCE)
+set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are: GTHREADS PTHREADS NONE" FORCE)
 set(USE_TIMER "GLIB" CACHE STRING "Choose the timer backend, options are: GLIB LINUX" FORCE)
 set(USE_VIDEO "GSTREAMER" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON" FORCE)

@@ -42,6 +42,7 @@
 #include "V8Proxy.h"
 #include "V8Utilities.h"
 #include "V8WorkerContextEventListener.h"
+#include "WebSocket.h"
 #include "WorkerContext.h"
 #include "WorkerContextExecutionProxy.h"
 
@@ -51,6 +52,13 @@ namespace WebCore {
 bool V8WorkerContext::WebkitNotificationsEnabled()
 {
     return RuntimeEnabledFeatures::notificationsEnabled();
+}
+#endif
+
+#if ENABLE(WEB_SOCKETS)
+bool V8WorkerContext::WebSocketEnabled()
+{
+    return WebSocket::isAvailable();
 }
 #endif
 

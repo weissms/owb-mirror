@@ -103,7 +103,7 @@ public:
     double y();
     double width();
     double height();
-    double intValue();
+    double intValue() const;
     double minValue();
     double maxValue();
     JSStringRef valueDescription();
@@ -113,6 +113,7 @@ public:
     bool isRequired() const;
     bool isSelected() const;
     bool isExpanded() const;
+    bool isChecked() const;
     int hierarchicalLevel() const;
     double clickPointX();
     double clickPointY();

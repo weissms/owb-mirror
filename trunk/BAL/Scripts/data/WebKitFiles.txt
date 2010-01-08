@@ -140,6 +140,7 @@ WebCore/rendering/RenderWidget.cpp
 WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/svg/graphics/SVGImage.cpp
+WebCore/websockets/ThreadableWebSocketChannel.cpp
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
 WebCore/wml/WMLInputElement.cpp

@@ -31,6 +31,7 @@ CONFIG(standalone_package) {
     GENERATED_SOURCES_DIR = $$PWD/generated
 
     CONFIG(QTDIR_build):include($$QT_SOURCE_TREE/src/qbase.pri)
+    else: VERSION = 4.7.0
 
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
@@ -1087,7 +1088,6 @@ SOURCES += \
     html/HTMLPreElement.cpp \
     html/HTMLQuoteElement.cpp \
     html/HTMLScriptElement.cpp \
-    html/HTMLNoScriptElement.cpp \
     html/HTMLSelectElement.cpp \
     html/HTMLStyleElement.cpp \
     html/HTMLTableCaptionElement.cpp \
@@ -1324,6 +1324,7 @@ SOURCES += \
     rendering/RenderButton.cpp \
     rendering/RenderCounter.cpp \
     rendering/RenderDataGrid.cpp \
+    rendering/RenderEmbeddedObject.cpp \
     rendering/RenderFieldset.cpp \
     rendering/RenderFileUploadControl.cpp \
     rendering/RenderFlexibleBox.cpp \
@@ -2049,6 +2050,7 @@ HEADERS += \
     rendering/RenderButton.h \
     rendering/RenderCounter.h \
     rendering/RenderDataGrid.h \
+    rendering/RenderEmbeddedObject.h \
     rendering/RenderFieldset.h \
     rendering/RenderFileUploadControl.h \
     rendering/RenderFlexibleBox.h \
@@ -2143,6 +2145,8 @@ HEADERS += \
     rendering/SVGCharacterLayoutInfo.h \
     rendering/SVGInlineFlowBox.h \
     rendering/SVGInlineTextBox.h \
+    rendering/SVGMarkerData.h \
+    rendering/SVGMarkerLayoutInfo.h \
     rendering/SVGRenderSupport.h \
     rendering/SVGRenderTreeAsText.h \
     rendering/SVGRootInlineBox.h \
@@ -2904,6 +2908,9 @@ contains(DEFINES, ENABLE_WML=1) {
 
 contains(DEFINES, ENABLE_XHTMLMP=1) {
     FEATURE_DEFINES_JAVASCRIPT += ENABLE_XHTMLMP=1
+    
+    SOURCES += \
+        html/HTMLNoScriptElement.cpp
 }
 
 contains(DEFINES, ENABLE_QT_BEARER=1) {
@@ -2913,8 +2920,8 @@ contains(DEFINES, ENABLE_QT_BEARER=1) {
     SOURCES += \
         platform/network/qt/NetworkStateNotifierQt.cpp
 
-    LIBS += -lQtBearer
-
+    CONFIG += mobility
+    MOBILITY += bearer
 }
 
 contains(DEFINES, ENABLE_SVG=1) {
@@ -3119,6 +3126,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/SVGCharacterLayoutInfo.cpp \
         rendering/SVGInlineFlowBox.cpp \
         rendering/SVGInlineTextBox.cpp \
+        rendering/SVGMarkerLayoutInfo.cpp \
         rendering/SVGRenderSupport.cpp \
         rendering/SVGRootInlineBox.cpp
 
@@ -3219,6 +3227,12 @@ SOURCES += \
     platform/network/qt/SocketStreamHandleSoup.cpp \
     bindings/js/JSWebSocketCustom.cpp \
     bindings/js/JSWebSocketConstructor.cpp
+
+contains(DEFINES, ENABLE_WORKERS=1) {
+SOURCES += \
+    websockets/ThreadableWebSocketChannel.cpp \
+    websockets/WorkerThreadableWebSocketChannel.cpp
+}
 }
 
 # GENERATOR 1: IDL compiler

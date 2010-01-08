@@ -119,6 +119,7 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/SegmentedFontData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/SimpleFontData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/StringTruncator.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/TextRun.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/TypesettingFeatures.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/WidthIterator.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontPlatformData.h
@@ -173,6 +174,7 @@ BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/StringTruncator.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/TextRun.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/TypesettingFeatures.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/WidthIterator.h
 

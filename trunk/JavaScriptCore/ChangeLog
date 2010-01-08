@@ -1,3 +1,318 @@
+2010-01-07  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Allow call sites to determine if ASSERT_* and LOG_* macros are operational
+        https://bugs.webkit.org/show_bug.cgi?id=33020
+
+        * wtf/Assertions.h: Set ASSERT_MSG_DISABLED, FATAL_DISABLED,
+        ERROR_DISABLED, LOG_DISABLED to 1 if the compiler does not support
+        variadic macros. Refactor for better readibility.
+
+2010-01-07  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32987
+
+        Added ENABLE_XHTMLMP flag. Disabled by default.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-01-07  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [Symbian] Port ARM traditional JIT Trampolines to RVCT
+        https://bugs.webkit.org/show_bug.cgi?id=30552
+
+        Take the GCC implementation and mechanically convert
+        it to RVCT syntax.
+
+        Use 'bx rX' instead of 'mov pc, rX' when it is available.
+
+        Developed in cooperation with Iain Campbell and Gabor Loki.
+
+        * JavaScriptCore.pri: Extra step to generate RVCT stubs. The 
+        script generation intentionally executed all the time not just
+        for RVCT targets.
+
+        * create_rvct_stubs: Added. Perl script to expand precompiler macros
+        for RVCT assembler - the template is defined in JITStubs.cpp.
+
+        * jit/JITStubs.cpp:
+        (JSC::ctiTrampoline):
+        (JSC::ctiVMThrowTrampoline):
+        (JSC::ctiOpThrowNotCaught):
+
+2010-01-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix a crash seen on the buildbots.
+
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::init): Disable specific function tracking here,
+        instead of in WebCore, to ensure that the disabling happens before a
+        specific function can be registered.
+
+2010-01-07  Alexey Proskuryakov  <ap@apple.com>
+
+        Mac build fix.
+
+        * JavaScriptCore.exp: Export new JSGlobalData static data members.
+
+2010-01-07  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33057
+        REGRESSION(r49365): typeof(xhr.responseText) != "string" in Windows
+
+        <rdar://problem/7296920> REGRESSION: WebKit fails to start PeaceKeeper benchmark
+
+        Test: fast/js/webcore-string-comparison.html
+
+        In r49365, some code was moved from JSString.cpp to JSString.h, and as a result, WebCore
+        got a way to directly instantiate JSStrings over DLL borders. Since vftable for JSString was
+        not exported, objects created from WebCore got a different vptr, and JavaScriptCore
+        optimizations that relied on vptr of all JSString objects being equal failed.
+
+        * config.h: Added a JS_EXPORTCLASS macro for exporting classes. It's currently the same as
+        JS_EXPORTDATA, but it clearly needed a new name.
+
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::storeVPtrs):
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::createNonDefault):
+        (JSC::JSGlobalData::create):
+        (JSC::JSGlobalData::sharedInstance):
+        * runtime/JSGlobalData.h:
+        Store vptrs just once, no need to repeatedly pick and copy them. This makes it possible to
+        assert vptr correctness in object destructors (which don't have access to JSGlobalData,
+        and even Heap::heap(this) will fail for fake objects created from storeVPtrs()).
+
+        * runtime/JSArray.cpp: (JSC::JSArray::~JSArray): Assert that vptr is what we expect it to be.
+        It's important to assert in destructor, because MSVC changes the vptr after constructor
+        is invoked.
+        * runtime/JSByteArray.cpp: (JSC::JSByteArray::~JSByteArray): Ditto.
+        * runtime/JSByteArray.h: Ditto.
+        * runtime/JSFunction.h: Ditto.
+        * runtime/JSFunction.cpp: (JSC::JSFunction::~JSFunction): Ditto.
+
+        * runtime/JSCell.h: (JSC::JSCell::setVPtr): Added a method to substitute vptr for another
+        one.
+
+        * runtime/JSString.h: Export JSString class together with its vftable, and tell other
+        libraries tp import it. This is needed on platforms that have a separate JavaScriptCore
+        dynamic library - and on Mac, we already did the export via JavaScriptCore.exp.
+        (JSC::JSString::~JSString): Assert tha vptr is what we expect it to be.
+        (JSC::fixupVPtr): Store a previously saved primary vftable pointer (do nothing if building
+        JavaScriptCore itself).
+        (JSC::jsSingleCharacterString): Call fixupVPtr in case this is call across DLL boundary.
+        (JSC::jsSingleCharacterSubstring): Ditto.
+        (JSC::jsNontrivialString): Ditto.
+        (JSC::jsString): Ditto.
+        (JSC::jsSubstring): Ditto.
+        (JSC::jsOwnedString): Ditto.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def: Export the new static
+        JSGlobalData members that are used in WebCore via inline functions.
+
+2010-01-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Safari memory usage skyrockets using new Google AdWords interface
+        https://bugs.webkit.org/show_bug.cgi?id=33343
+
+        The memory use was caused by the global object creating too many structures
+        as it thrashed between different specific functions.
+
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::changePrototypeTransition):
+        (JSC::Structure::despecifyFunctionTransition):
+        (JSC::Structure::addAnonymousSlotsTransition):
+        (JSC::Structure::getterSetterTransition):
+        (JSC::Structure::toDictionaryTransition):
+        (JSC::Structure::addPropertyWithoutTransition):
+        (JSC::Structure::despecifyAllFunctions):
+        * runtime/Structure.h:
+        (JSC::Structure::disableSpecificFunctionTracking): Track a thrash count
+        for specific functions. Disable specific function tracking once the
+        thrash count has been hit.
+
+2010-01-07  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Enable JIT in debug mode on win32 after r51141 fixed the crashes.
+
+        * JavaScriptCore.pri:
+
+2010-01-07  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Mac] Build fix when FAST_MALLOC_MATCH_VALIDATION=1
+        https://bugs.webkit.org/show_bug.cgi?id=33312
+
+        Using of operator += cause compile error on Mac, so it is changed to
+        "= static_cast<AllocAlignmentInteger*>(old_ptr) + 1".
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMallocStats::realloc):
+
+2010-01-07  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Qt] Build fix when FAST_MALLOC_MATCH_VALIDATION=1
+        https://bugs.webkit.org/show_bug.cgi?id=33312
+
+        Remove pByte (committed in r42344 from #20422), because pByte doesn't
+        exist and it is unnecessary.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMallocStats::realloc):
+
+2010-01-06  Gavin Barraclough  <barraclough@apple.com>
+
+        QT build fix.
+
+        * runtime/Identifier.cpp:
+        (JSC::createIdentifierTableSpecific):
+
+2010-01-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Windows build fix part I.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-01-06  Dan Bernstein  <mitz@apple.com>
+
+        Build fix
+
+        * runtime/Identifier.cpp:
+        (JSC::createIdentifierTableSpecificCallback):
+
+2010-01-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33236
+        Remove m_identifierTable pointer from UString
+
+        Currently every string holds a pointer so that during destruction,
+        if a string has been used as an identifier, it can remove itself
+        from the table.  By instead accessing the identifierTable via a
+        thread specific tracking the table associated with the current
+        globaldata, we can save the memory cost of this pointer.
+
+        * API/APIShims.h:
+        (JSC::APIEntryShimWithoutLock::APIEntryShimWithoutLock):
+        (JSC::APIEntryShimWithoutLock::~APIEntryShimWithoutLock):
+        (JSC::APICallbackShim::APICallbackShim):
+        (JSC::APICallbackShim::~APICallbackShim):
+
+            - change the API shims to track the identifierTable of the current JSGlobalData.
+
+        * API/JSContextRef.cpp:
+        (JSContextGroupCreate):
+
+            - update creation of JSGlobalData for API usage to use new create method.
+            - fix shim instanciation bug in JSGlobalContextCreateInGroup.
+
+        * JavaScriptCore.exp:
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+
+            - add asserts to check the identifierTable is being tracked correctly.
+
+        * runtime/Identifier.cpp:
+        (JSC::IdentifierTable::~IdentifierTable):
+        (JSC::IdentifierTable::add):
+        (JSC::Identifier::remove):
+        (JSC::Identifier::checkSameIdentifierTable):
+        (JSC::createIdentifierTableSpecificCallback):
+        (JSC::createIdentifierTableSpecific):
+        (JSC::createDefaultDataSpecific):
+
+            - Use currentIdentifierTable() instead of UStringImpl::m_identifierTable.
+            - Define methods to access the thread specific identifier tables.
+
+        * runtime/Identifier.h:
+        (JSC::ThreadIdentifierTableData::ThreadIdentifierTableData):
+        (JSC::defaultIdentifierTable):
+        (JSC::setDefaultIdentifierTable):
+        (JSC::currentIdentifierTable):
+        (JSC::setCurrentIdentifierTable):
+        (JSC::resetCurrentIdentifierTable):
+
+            - Declare methods to access the thread specific identifier tables.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::createNonDefault):
+        (JSC::JSGlobalData::create):
+        (JSC::JSGlobalData::sharedInstance):
+
+            - creation of JSGlobalData objects, other than for API usage, associate themselves with the current thread.
+
+        * runtime/JSGlobalData.h:
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::destroy):
+
+            - destroy() method should be using isIdentifier().
+
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::isIdentifier):
+        (JSC::UStringImpl::setIsIdentifier):
+        (JSC::UStringImpl::checkConsistency):
+        (JSC::UStringImpl::UStringImpl):
+
+            - replace m_identifierTable with a single m_isIdentifier bit.
+
+        * wtf/StringHashFunctions.h:
+        (WTF::stringHash):
+
+            - change string hash result from 32-bit to 31-bit, to free a bit in UStringImpl for m_isIdentifier.
+
+2009-12-25 Patrick Gansterer <paroga@paroga.com>
+ 
+        Reviewed by Eric Seidel.
+
+        Buildfix for WinCE + style fixes.
+        https://bugs.webkit.org/show_bug.cgi?id=32939
+
+        * jsc.cpp:
+        (functionPrint):
+        (functionQuit):
+        (parseArguments):
+        (fillBufferWithContentsOfFile):
+ 
+2010-01-05  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Eric Seidel.
+
+        WinCE buildfix after r52791 (renamed PLATFORM(WINCE) to OS(WINCE)).
+        https://bugs.webkit.org/show_bug.cgi?id=33205
+
+        * jit/ExecutableAllocator.h:
+
+2010-01-05  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Darin Adler.
+
+        Added compiler error for unsupported platforms.
+        https://bugs.webkit.org/show_bug.cgi?id=33112
+
+        * jit/JITStubs.cpp:
+
 2010-01-05  Gabor Loki  <loki@webkit.org>
 
         Reviewed by Maciej Stachowiak.

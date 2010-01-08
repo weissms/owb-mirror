@@ -53,6 +53,7 @@
 #include "HitTestResult.h"
 #include "LocalizedStrings.h"
 #include "NodeList.h"
+#include "ProgressTracker.h"
 #include "RenderButton.h"
 #include "RenderFieldset.h"
 #include "RenderFileUploadControl.h"
@@ -363,11 +364,21 @@ bool AccessibilityRenderObject::isChecked() const
     if (!m_renderer->node() || !m_renderer->node()->isElementNode())
         return false;
 
+    // First test for native checkedness semantics
     InputElement* inputElement = toInputElement(static_cast<Element*>(m_renderer->node()));
-    if (!inputElement)
-        return false;
+    if (inputElement)
+        return inputElement->isChecked();
 
-    return inputElement->isChecked();
+    // Else, if this is an ARIA checkbox or radio, respect the aria-checked attribute
+    AccessibilityRole ariaRole = ariaRoleAttribute();
+    if (ariaRole == RadioButtonRole || ariaRole == CheckBoxRole) {
+        if (equalIgnoringCase(getAttribute(aria_checkedAttr), "true"))
+            return true;
+        return false;
+    }
+
+    // Otherwise it's not checked
+    return false;
 }
 
 bool AccessibilityRenderObject::isHovered() const
@@ -1513,6 +1524,16 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
     if (node && node->hasTagName(labelTag))
         return false;
     
+    // Anything that is content editable should not be ignored.
+    // However, one cannot just call node->isContentEditable() since that will ask if its parents
+    // are also editable. Only the top level content editable region should be exposed.
+    if (node && node->isElementNode()) {
+        Element* element = static_cast<Element*>(node);
+        const AtomicString& contentEditable = element->getAttribute(contenteditableAttr);
+        if (equalIgnoringCase(contentEditable, "true"))
+            return false;
+    }
+    
     if (m_renderer->isBlockFlow() && m_renderer->childrenInline())
         return !toRenderBlock(m_renderer)->firstLineBox() && !mouseButtonListener();
     
@@ -1563,6 +1584,21 @@ bool AccessibilityRenderObject::isLoaded() const
     return !m_renderer->document()->tokenizer();
 }
 
+double AccessibilityRenderObject::estimatedLoadingProgress() const
+{
+    if (!m_renderer)
+        return 0;
+    
+    if (isLoaded())
+        return 1.0;
+    
+    Page* page = m_renderer->document()->page();
+    if (!page)
+        return 0;
+    
+    return page->progress()->estimatedProgress();
+}
+    
 int AccessibilityRenderObject::layoutCount() const
 {
     if (!m_renderer->isRenderView())
@@ -2765,10 +2801,9 @@ bool AccessibilityRenderObject::canSetValueAttribute() const
     if (equalIgnoringCase(getAttribute(aria_readonlyAttr).string(), "true"))
         return false;
 
-    if (isWebArea() || isTextControl()) 
-        return !isReadOnly();
-
-    return isProgressIndicator() || isSlider();
+    // Any node could be contenteditable, so isReadOnly should be relied upon
+    // for this information for all elements.
+    return isProgressIndicator() || isSlider() || !isReadOnly();
 }
 
 bool AccessibilityRenderObject::canSetTextRangeAttributes() const

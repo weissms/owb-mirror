@@ -332,7 +332,7 @@ SYMBOL_STRING(ctiOpThrowNotCaught) ":" "\n"
     "mov pc, lr" "\n"
 );
 
-#elif COMPILER(MSVC)
+#elif COMPILER(MSVC) && CPU(X86)
 
 #if USE(JIT_STUB_ARGUMENT_VA_LIST)
 #error "JIT_STUB_ARGUMENT_VA_LIST configuration not supported on MSVC."
@@ -396,7 +396,9 @@ extern "C" {
     }
 }
 
-#endif // COMPILER(GCC) && CPU(X86)
+#else
+    #error "JIT not supported on this platform."
+#endif
 
 #else // USE(JSVALUE32_64)
 
@@ -639,7 +641,47 @@ SYMBOL_STRING(ctiOpThrowNotCaught) ":" "\n"
     "mov pc, lr" "\n"
 );
 
-#elif COMPILER(MSVC)
+#elif COMPILER(RVCT) && CPU(ARM_TRADITIONAL)
+
+__asm EncodedJSValue ctiTrampoline(void*, RegisterFile*, CallFrame*, JSValue*, Profiler**, JSGlobalData*)
+{
+    ARM
+    stmdb sp!, {r1-r3}
+    stmdb sp!, {r4-r8, lr}
+    sub sp, sp, #36
+    mov r4, r2
+    mov r5, #512
+    mov lr, pc
+    bx r0
+    add sp, sp, #36
+    ldmia sp!, {r4-r8, lr}
+    add sp, sp, #12
+    bx lr
+}
+
+__asm void ctiVMThrowTrampoline()
+{
+    ARM
+    PRESERVE8
+    IMPORT cti_vm_throw
+    mov r0, sp
+    bl cti_vm_throw
+    add sp, sp, #36
+    ldmia sp!, {r4-r8, lr}
+    add sp, sp, #12
+    bx lr
+}
+
+__asm void ctiOpThrowNotCaught()
+{
+    ARM
+    add sp, sp, #36
+    ldmia sp!, {r4-r8, lr}
+    add sp, sp, #12
+    bx lr
+}
+
+#elif COMPILER(MSVC) && CPU(X86)
 
 #if USE(JIT_STUB_ARGUMENT_VA_LIST)
 #error "JIT_STUB_ARGUMENT_VA_LIST configuration not supported on MSVC."
@@ -702,7 +744,9 @@ extern "C" {
      }
 }
 
-#endif // COMPILER(GCC) && CPU(X86)
+#else
+    #error "JIT not supported on this platform."
+#endif
 
 #endif // USE(JSVALUE32_64)
 
@@ -1007,6 +1051,32 @@ COMPILE_ASSERT(offsetof(struct JITStackFrame, thunkReturnAddress) == THUNK_RETUR
         "mov pc, lr" "\n" \
         ); \
     rtype JITStubThunked_##op(STUB_ARGS_DECLARATION)
+
+#elif CPU(ARM_TRADITIONAL) && COMPILER(RVCT)
+
+#define DEFINE_STUB_FUNCTION(rtype, op) rtype JITStubThunked_##op(STUB_ARGS_DECLARATION)
+
+/* The following is a workaround for RVCT toolchain; precompiler macros are not expanded before the code is passed to the assembler */
+
+/* The following section is a template to generate code for GeneratedJITStubs_RVCT.h */
+/* The pattern "#xxx#" will be replaced with "xxx" */
+
+/*
+RVCT(extern "C" #rtype# JITStubThunked_#op#(STUB_ARGS_DECLARATION);)
+RVCT(__asm #rtype# cti_#op#(STUB_ARGS_DECLARATION))
+RVCT({)
+RVCT(    ARM)
+RVCT(    IMPORT JITStubThunked_#op#)
+RVCT(    str lr, [sp, #32])
+RVCT(    bl JITStubThunked_#op#)
+RVCT(    ldr lr, [sp, #32])
+RVCT(    bx lr))
+RVCT(})
+RVCT()
+*/
+
+/* Include the generated file */
+#include "GeneratedJITStubs_RVCT.h"
 
 #else
 #define DEFINE_STUB_FUNCTION(rtype, op) rtype JIT_STUB cti_##op(STUB_ARGS_DECLARATION)

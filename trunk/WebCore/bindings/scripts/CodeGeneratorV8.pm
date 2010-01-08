@@ -287,6 +287,8 @@ END
         my $name = $function->signature->name;
         my $attrExt = $function->signature->extendedAttributes;
 
+        # FIXME: We should only be generating callback declarations for functions labeled [Custom] or [V8Custom],
+        # but we can't do that due to some mislabeled functions in the idl's (https://bugs.webkit.org/show_bug.cgi?id=33066).
         push(@headerContent, <<END);
   static v8::Handle<v8::Value> ${name}Callback(const v8::Arguments&);
 END
@@ -316,7 +318,15 @@ END
     }
 
     GenerateHeaderRuntimeEnablerDeclarations(@enabledAtRuntime);
+    GenerateHeaderNamedAndIndexedPropertyAccessors($dataNode);
     GenerateHeaderCustomCall($dataNode);
+    
+    if ($dataNode->extendedAttributes->{"CheckDomainSecurity"}) {
+        push(@headerContent, <<END);
+  static bool namedSecurityCheck(v8::Local<v8::Object> host, v8::Local<v8::Value> key, v8::AccessType, v8::Local<v8::Value> data);
+  static bool indexedSecurityCheck(v8::Local<v8::Object> host, uint32_t index, v8::AccessType, v8::Local<v8::Value> data);
+END
+    }
 
     push(@headerContent, <<END);
 
@@ -350,6 +360,75 @@ END
         if ($enabledAtRuntimeConditionalString) {
             push(@headerContent, "#endif\n");
         }
+    }
+}
+
+my %indexerSpecialCases = (
+    "Storage" => 1,
+    "HTMLAppletElement" => 1,
+    "HTMLEmbedElement" => 1,
+    "HTMLObjectElement" => 1
+);
+
+sub GenerateHeaderNamedAndIndexedPropertyAccessors
+{
+    my $dataNode = shift;
+    my $interfaceName = $dataNode->name;
+    my $hasCustomIndexedGetter = $dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"CustomGetOwnPropertySlot"};
+    my $hasCustomIndexedSetter = $dataNode->extendedAttributes->{"HasCustomIndexSetter"} && !$dataNode->extendedAttributes->{"HasNumericIndexGetter"};
+    my $hasCustomNamedGetter = $dataNode->extendedAttributes->{"HasNameGetter"} || $dataNode->extendedAttributes->{"HasOverridingNameGetter"} || $dataNode->extendedAttributes->{"CustomGetOwnPropertySlot"};
+    my $hasCustomNamedSetter = $dataNode->extendedAttributes->{"DelegatingPutFunction"};
+    my $hasCustomDeleters = $dataNode->extendedAttributes->{"CustomDeleteProperty"};
+    my $hasCustomEnumerator = $dataNode->extendedAttributes->{"CustomGetPropertyNames"};
+    if ($interfaceName eq "HTMLOptionsCollection") {
+        $interfaceName = "HTMLCollection";
+        $hasCustomIndexedGetter = 1;
+        $hasCustomNamedGetter = 1;
+    }
+    if ($interfaceName eq "DOMWindow") {
+        $hasCustomDeleterr = 0;
+        $hasEnumerator = 0;
+    }
+    if ($interfaceName eq "HTMLSelectElement") {
+        $hasCustomNamedGetter = 1;
+    }
+    my $isIndexerSpecialCase = exists $indexerSpecialCases{$interfaceName};
+
+    if ($hasCustomIndexedGetter || $isIndexerSpecialCase) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> indexedPropertyGetter(uint32_t index, const v8::AccessorInfo& info);
+END
+    }
+      
+    if ($isIndexerSpecialCase || $hasCustomIndexedSetter) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> indexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+END
+    }
+    if ($hasCustomDeleters) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Boolean> indexedPropertyDeleter(uint32_t index, const v8::AccessorInfo& info);
+END
+    }
+    if ($hasCustomNamedGetter) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> namedPropertyGetter(v8::Local<v8::String> name, const v8::AccessorInfo& info);
+END
+    }
+    if ($hasCustomNamedSetter) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> namedPropertySetter(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+END
+    }
+    if ($hasCustomDeleters || $interfaceName eq "HTMLDocument") {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Boolean> namedPropertyDeleter(v8::Local<v8::String> name, const v8::AccessorInfo& info);
+END
+    }
+    if ($hasCustomEnumerator) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Array> namedPropertyEnumerator(const v8::AccessorInfo& info);
+END
     }
 }
 
@@ -1194,13 +1273,6 @@ sub GenerateSingleBatchedAttribute
 END
 }
 
-my %indexerSpecialCases = (
-    "Storage" => 1,
-    "HTMLAppletElement" => 1,
-    "HTMLEmbedElement" => 1,
-    "HTMLObjectElement" => 1
-);
-
 sub GenerateImplementationIndexer
 {
     my $dataNode = shift;
@@ -1214,6 +1286,11 @@ sub GenerateImplementationIndexer
     # FIXME: Find a way to not have to special-case HTMLOptionsCollection.
     if ($interfaceName eq "HTMLOptionsCollection") {
         $hasGetter = 1;
+    }
+    # FIXME: If the parent interface of $dataNode already has
+    # HasIndexGetter, we don't need to handle the getter here.
+    if ($interfaceName eq "WebKitCSSTransformValue") {
+        $hasGetter = 0;
     }
 
     # FIXME: Investigate and remove this nastinesss. In V8, named property handling and indexer handling are apparently decoupled,
@@ -1273,10 +1350,10 @@ END
         $hasDeleter = 0;
     }
 
-    push(@implContent, "  desc->${setOn}Template()->SetIndexedPropertyHandler(V8Custom::v8${interfaceName}IndexedPropertyGetter");
-    push(@implContent, $hasCustomSetter ? ", V8Custom::v8${interfaceName}IndexedPropertySetter" : ", 0");
+    push(@implContent, "  desc->${setOn}Template()->SetIndexedPropertyHandler(V8${interfaceName}::indexedPropertyGetter");
+    push(@implContent, $hasCustomSetter ? ", V8${interfaceName}::indexedPropertySetter" : ", 0");
     push(@implContent, ", 0"); # IndexedPropertyQuery -- not being used at the moment.
-    push(@implContent, $hasDeleter ? ", V8Custom::v8${interfaceName}IndexedPropertyDeleter" : ", 0");
+    push(@implContent, $hasDeleter ? ", V8${interfaceName}::indexedPropertyDeleter" : ", 0");
     push(@implContent, ", nodeCollectionIndexedPropertyEnumerator<${interfaceName}>, v8::Integer::New(V8ClassIndex::NODE)") if $hasEnumerator;
     push(@implContent, ");\n");
 }
@@ -1326,11 +1403,11 @@ END
         $hasEnumerator = 0;
     }
 
-    push(@implContent, "  desc->${setOn}Template()->SetNamedPropertyHandler(V8Custom::v8${interfaceName}NamedPropertyGetter, ");
-    push(@implContent, $hasSetter ? "V8Custom::v8${interfaceName}NamedPropertySetter, " : "0, ");
+    push(@implContent, "  desc->${setOn}Template()->SetNamedPropertyHandler(V8${interfaceName}::namedPropertyGetter, ");
+    push(@implContent, $hasSetter ? "V8${interfaceName}::namedPropertySetter, " : "0, ");
     push(@implContent, "0 ,"); # NamedPropertyQuery -- not being used at the moment.
-    push(@implContent, $hasDeleter ? "V8Custom::v8${interfaceName}NamedPropertyDeleter, " : "0, ");
-    push(@implContent, $hasEnumerator ? "V8Custom::v8${interfaceName}NamedPropertyEnumerator" : "0");
+    push(@implContent, $hasDeleter ? "V8${interfaceName}::namedPropertyDeleter, " : "0, ");
+    push(@implContent, $hasEnumerator ? "V8${interfaceName}::namedPropertyEnumerator" : "0");
     push(@implContent, ");\n");
 }
 
@@ -1567,7 +1644,7 @@ END
 
     my $access_check = "";
     if ($dataNode->extendedAttributes->{"CheckDomainSecurity"} && !($interfaceName eq "DOMWindow")) {
-        $access_check = "instance->SetAccessCheckCallbacks(V8Custom::v8${interfaceName}NamedSecurityCheck, V8Custom::v8${interfaceName}IndexedSecurityCheck, v8::Integer::New(V8ClassIndex::ToInt(V8ClassIndex::${classIndex})));";
+        $access_check = "instance->SetAccessCheckCallbacks(V8${interfaceName}::namedSecurityCheck, V8${interfaceName}::indexedSecurityCheck, v8::Integer::New(V8ClassIndex::ToInt(V8ClassIndex::${classIndex})));";
     }
 
     # For the DOMWindow interface, generate the shadow object template
