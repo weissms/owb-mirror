@@ -70,7 +70,7 @@ using namespace WTF;
  */
 
 // This workaround is need for the ST toolchain that's why we enable it only when compiling to SH4
-#if PLATFORM(SH4)
+#if CPU(SH4)
 #define ENABLE_PCREL_ERROR_WORKAROUND
 #endif
 
