@@ -63,6 +63,8 @@ static GtkWidget* create_window (BalRectangle rect)
 void init(int argc, char *argv[])
 {
     gtk_init (&argc, &argv);
+    if (!g_thread_supported())
+        g_thread_init(NULL);
 }
 
 BalWidget* createWindow(WebView **webView, BalRectangle rect)
