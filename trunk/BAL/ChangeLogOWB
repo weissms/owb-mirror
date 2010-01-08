@@ -1,3 +1,24 @@
+2010-01-08  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix plugin gtk network stream
+
+        * Widgets/WebKit/Gtk/browserWidget.cpp:
+        * Widgets/WebKit/Gtk/webkit-marshal.list:
+        * Widgets/WebKit/Gtk/webkitsoupauthdialog.cpp: Added.
+        (webkit_soup_auth_dialog_class_init):
+        (webkit_soup_auth_dialog_init):
+        (webkit_soup_auth_dialog_session_feature_init):
+        (free_authData):
+        (save_password_callback):
+        (response_callback):
+        (table_add_entry):
+        (session_can_save_passwords):
+        (show_auth_dialog):
+        (session_authenticate):
+        (attach):
+        (detach):
+        * Widgets/WebKit/Gtk/webkitsoupauthdialog.h: Added.
+
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
         clean editor cmakelist and move gtk/qt/icu files in bal.

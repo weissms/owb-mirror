@@ -24,6 +24,7 @@
 #include "Platform.h"
 #include "browserWidget.h"
 #include "webkit-marshal.h"
+#include "webkitsoupauthdialog.h"
 //#include "webkitprivate.h"
 //#include "webkitwebbackforwardlist.h"
 //#include "webkitwebhistoryitem.h"
@@ -35,6 +36,7 @@
 #include "WebChromeClient.h"
 #include "ContextMenu.h"
 #include "WebContextMenuClient.h"
+#include "Chrome.h"
 #include "ContextMenuController.h"
 #include "Cursor.h"
 #include "WebDragClient.h"
@@ -57,6 +59,9 @@
 #include "Page.h"
 #include "PlatformKeyboardEvent.h"
 #include "PlatformWheelEvent.h"
+#include "ResourceHandle.h"
+#include "ResourceHandleClient.h"
+#include "ResourceHandleInternal.h"
 #include "Settings.h"
 #include "Scrollbar.h"
 #include "SubstituteData.h"
@@ -246,7 +251,7 @@ static bool shouldCoalesce(GdkRectangle rect, GdkRectangle* rects, int count)
 
 static gboolean webkit_web_view_expose_event(GtkWidget* widget, GdkEventExpose* event)
 {
-    Frame* frame = core(webView_s->mainFrame());
+    WebCore::Frame* frame = core(webView_s->mainFrame());
     if (frame->contentRenderer() && frame->view()) {
         frame->view()->layoutIfNeededRecursive();
 
@@ -288,7 +293,7 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
 {
 //    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
 
     if (frame->eventHandler()->keyEvent(keyboardEvent))
@@ -350,7 +355,7 @@ static gboolean webkit_web_view_key_release_event(GtkWidget* widget, GdkEventKey
 {
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
 
     if (frame->eventHandler()->keyEvent(keyboardEvent))
@@ -364,7 +369,7 @@ static gboolean webkit_web_view_button_press_event(GtkWidget* widget, GdkEventBu
 {
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s->mainFrame());
+    WebCore::Frame* frame = core(webView_s->mainFrame());
 
     // FIXME: need to keep track of subframe focus for key events
     gtk_widget_grab_focus(widget);
@@ -379,7 +384,7 @@ static gboolean webkit_web_view_button_release_event(GtkWidget* widget, GdkEvent
 {
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
     ////WebKitWebViewPrivate* priv = webView->priv;
-    Frame* focusedFrame = core(webView_s)->focusController()->focusedFrame();
+    WebCore::Frame* focusedFrame = core(webView_s)->focusController()->focusedFrame();
 
     if (focusedFrame && focusedFrame->editor()->canEdit()) {
         GdkWindow* window = gtk_widget_get_parent_window(widget);
@@ -397,7 +402,7 @@ static gboolean webkit_web_view_motion_event(GtkWidget* widget, GdkEventMotion* 
 {
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s->mainFrame());
+    WebCore::Frame* frame = core(webView_s->mainFrame());
     return frame->eventHandler()->mouseMoved(PlatformMouseEvent(event));
 }
 
@@ -405,7 +410,7 @@ static gboolean webkit_web_view_scroll_event(GtkWidget* widget, GdkEventScroll* 
 {
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s->mainFrame());
+    WebCore::Frame* frame = core(webView_s->mainFrame());
     PlatformWheelEvent wheelEvent(event);
     return frame->eventHandler()->handleWheelEvent(wheelEvent);
 }
@@ -416,7 +421,7 @@ static void webkit_web_view_size_allocate(GtkWidget* widget, GtkAllocation* allo
 
     //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = core(webView_s->mainFrame());
+    WebCore::Frame* frame = core(webView_s->mainFrame());
     frame->view()->resize(allocation->width, allocation->height);
     frame->view()->forceLayout();
     frame->view()->adjustViewSize();
@@ -430,7 +435,7 @@ static gboolean webkit_web_view_focus_in_event(GtkWidget* widget, GdkEventFocus*
     if (GTK_WIDGET_TOPLEVEL(toplevel) && gtk_window_has_toplevel_focus(GTK_WINDOW(toplevel))) {
         //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-        Frame* frame = core(webView_s->mainFrame());
+        WebCore::Frame* frame = core(webView_s->mainFrame());
         core(webView_s)->focusController()->setActive(frame);
     }
     return GTK_WIDGET_CLASS(webkit_web_view_parent_class)->focus_in_event(widget, event);
@@ -636,25 +641,25 @@ static gboolean webkit_web_view_real_console_message(WebKitWebView*, const gchar
 
 static void webkit_web_view_real_select_all(WebKitWebView*)
 {
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("SelectAll").execute();
 }
 
 static void webkit_web_view_real_cut_clipboard(WebKitWebView*)
 {
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Cut").execute();
 }
 
 static void webkit_web_view_real_copy_clipboard(WebKitWebView*)
 {
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Copy").execute();
 }
 
 static void webkit_web_view_real_paste_clipboard(WebKitWebView*)
 {
-    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
+    WebCore::Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Paste").execute();
 }
 
@@ -1135,6 +1140,31 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     const gchar* name = g_intern_string(pspec->name);
     printf("name = %s\n", name);
 }*/
+static GtkWidget* currentToplevelCallback(WebKitSoupAuthDialog* feature, SoupMessage* message, gpointer userData)
+{
+    gpointer messageData = g_object_get_data(G_OBJECT(message), "resourceHandle");
+    if (!messageData)
+        return NULL;
+
+    ResourceHandle* handle = static_cast<ResourceHandle*>(messageData);
+    if (!handle)
+        return NULL;
+
+    ResourceHandleInternal* d = handle->getInternal();
+    if (!d)
+        return NULL;
+
+    WebCore::Frame* frame = d->m_frame;
+    if (!frame)
+        return NULL;
+
+    GtkWidget* toplevel =  gtk_widget_get_toplevel(GTK_WIDGET(frame->page()->chrome()->platformPageClient()));
+    if (GTK_WIDGET_TOPLEVEL(toplevel))
+        return toplevel;
+    else
+        return NULL;
+}
+
 
 static void webkit_web_view_init(WebKitWebView* webView)
 {
@@ -1155,6 +1185,16 @@ static void webkit_web_view_init(WebKitWebView* webView)
     paste_target_list = gtk_target_list_new(NULL, 0);
     gtk_target_list_add(paste_target_list, textHtml, 0, WEBKIT_WEB_VIEW_TARGET_INFO_HTML);
     gtk_target_list_add_text_targets(paste_target_list, WEBKIT_WEB_VIEW_TARGET_INFO_TEXT);
+
+    SoupSession* session = ResourceHandle::defaultSession();
+    SoupSessionFeature* authDialog = static_cast<SoupSessionFeature*>(g_object_new(WEBKIT_TYPE_SOUP_AUTH_DIALOG, NULL));
+    g_signal_connect(authDialog, "current-toplevel", G_CALLBACK(currentToplevelCallback), NULL);
+    soup_session_add_feature(session, authDialog);
+    g_object_unref(authDialog);
+
+    SoupSessionFeature* sniffer = static_cast<SoupSessionFeature*>(g_object_new(SOUP_TYPE_CONTENT_SNIFFER, NULL));
+    soup_session_add_feature(session, sniffer);
+    g_object_unref(sniffer);
 
     //g_signal_connect(webView, "screen-changed", G_CALLBACK(webkit_web_view_screen_changed), NULL);
     //g_signal_connect(webView, "notify", G_CALLBACK(webkit_web_view_settings_notify), NULL);
