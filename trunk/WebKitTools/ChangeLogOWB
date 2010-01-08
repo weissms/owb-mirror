@@ -1,3 +1,14 @@
+2010-01-08  Mario Bensi  <mbensi@pleyo.com>
+
+        remove bal TestNetscapePlugin and use unix TestNetscapePlugin.
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders/WebKit: Removed.
+        * DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders/WebKit/npapi.h: Removed.
+        * DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders/WebKit/npfunctions.h: Removed.
+        * DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders/WebKit/npruntime.h: Removed.
+        * DumpRenderTree/bal/TestNetscapePlugin/TestNetscapePlugin.cpp: Removed.
+
 2010-01-06  Gilles Bertal  <gbertal@pleyo.com>
 
         Removed the graphics lbraries and added the external dependent

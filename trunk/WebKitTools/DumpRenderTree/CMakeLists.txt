@@ -6,8 +6,8 @@ include_directories(
     ${OWB_SOURCE_DIR}/WebCore
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/bal
-    ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders
-    ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/bal/TestNetscapePlugin/ForwardingHeaders/WebKit
+    ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders
+    ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders/WebKit
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/TestNetscapePlugIn.subproj
 )
 
@@ -70,7 +70,7 @@ target_link_libraries(DumpRenderTree webkit-owb ${GRAPHICS_LIBRARIES} ${EXTERNAL
 add_definitions(-DTEST_PLUGIN_DIR=\"${CMAKE_BINARY_DIR}/lib\")
 
 list(APPEND TESTPLUGIN_SRC
-    bal/TestNetscapePlugin/TestNetscapePlugin.cpp
+    unix/TestNetscapePlugin/TestNetscapePlugin.cpp
     TestNetscapePlugIn.subproj/PluginObject.cpp
     TestNetscapePlugIn.subproj/TestObject.cpp
 )
