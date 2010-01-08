@@ -180,7 +180,7 @@ BalWidget* createWindow(WebView **webView, BalRectangle rect)
     int h = rect.h;
     int w = rect.w;
 
-    putenv("SDL_VIDEODRIVER=dummy");
+    putenv((char*)"SDL_VIDEODRIVER=dummy");
 
     vi = SDL_GetVideoInfo();
     if (vi && vi->wm_available) /* Change title */
@@ -232,6 +232,7 @@ void waitEvent()
                         webView->addToDirtyRegion(rect);
                     }
                     SDL_ExposeEvent ev;
+                    memset(&ev, 0, sizeof(SDL_ExposeEvent));
                     webView->onExpose(ev);
                     break;
                 case SDL_KEYDOWN:

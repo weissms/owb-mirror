@@ -75,28 +75,31 @@ void File::close()
 char* File::read(size_t size)
 {
     // Check that we try to read on a valid file descriptor.
+    ssize_t result;
     if (m_fd == -1)
         return NULL;
     char* readData = new char[size + 1];
-    ::read(m_fd, readData, size);
-    readData[size] = '\0';
+    result = ::read(m_fd, readData, size);
+    readData[result] = '\0';
     return readData;
 }
 
 void File::write(String dataToWrite)
 {
     // Check that we try to write on a valid file descriptor.
+    ssize_t result;
     if (m_fd == -1)
         return;
-    ::write(m_fd, dataToWrite.utf8().data(), dataToWrite.length());
+    result = ::write(m_fd, dataToWrite.utf8().data(), dataToWrite.length());
 }
 
 void File::write(const void *data, size_t length)
 {
     // Check that we try to write on a valid file descriptor.
+    ssize_t result;
     if (m_fd == -1)
         return;
-    ::write(m_fd, data, length);
+    result = ::write(m_fd, data, length);
 }
 
 int File::getSize()

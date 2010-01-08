@@ -61,6 +61,7 @@ void WebWindow::show()
     while (!quit) {
         if (!isInitialized) {
             SDL_ExposeEvent ev;
+            memset(&ev, 0, sizeof(SDL_ExposeEvent));
             onExpose(ev);
             isInitialized = true;
         }
@@ -74,6 +75,7 @@ void WebWindow::show()
                         m_view->addToDirtyRegion(IntRect(0, 0, 800, 480));
                     }*/
                     SDL_ExposeEvent ev;
+                    memset(&ev, 0, sizeof(SDL_ExposeEvent));
                     onExpose(ev);
                     break;
                 case SDL_KEYDOWN:
