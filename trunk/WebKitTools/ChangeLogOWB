@@ -1,5 +1,12 @@
 2010-01-11  Olivier DOLE  <odole@pleyo.com>
 
+        Build fix for DumpRenderTree when NPAPI is disabled.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (setPreferences):
+
+2010-01-11  Olivier DOLE  <odole@pleyo.com>
+
         Compile testnetscapeplugin only if NPAPI option is enabled.
 
         * DumpRenderTree/CMakeLists.txt:

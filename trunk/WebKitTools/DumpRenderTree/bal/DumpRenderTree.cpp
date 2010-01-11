@@ -568,7 +568,9 @@ void setPreferences()
     preferences->setEditableLinkBehavior(WebKitEditableLinkOnlyLiveWithShiftKey);
     preferences->setFontSmoothing(FontSmoothingTypeStandard);
     preferences->setUsesPageCache(false);
+#if ENABLE(NETSCAPE_PLUGIN_API)
     preferences->addExtraPluginDirectory(TEST_PLUGIN_DIR);
+#endif
 }
 
 void runTest(const string& testPathOrURL)
