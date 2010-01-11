@@ -1,3 +1,10 @@
+2010-01-11  Olivier DOLE  <odole@pleyo.com>
+
+        Add ENABLE_TESTS_CPPUNIT option.
+
+        * CMakeLists.txt:
+        * cmake/CheckCppUnit.cmake:
+
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
         Add ENABLE_ACCESSIBILITY.

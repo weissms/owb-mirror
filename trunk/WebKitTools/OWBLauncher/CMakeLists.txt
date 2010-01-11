@@ -78,7 +78,7 @@ if(ENABLE_WIDGET_ENGINE)
     )
 endif(ENABLE_WIDGET_ENGINE)
 
-if(ENABLE_TESTS)
+if(ENABLE_TESTS_CPPUNIT)
     add_executable(WebViewTests Tests/WebViewTests.cpp)
     target_link_libraries(WebViewTests
         webkit-owb
@@ -118,7 +118,7 @@ if(ENABLE_TESTS)
     )
     ADD_TEST(WebViewPlatformTestsCommon ${OWB_BINARY_DIR}/bin/WebViewPlatformTestsCommon)
 
-endif(ENABLE_TESTS)
+endif(ENABLE_TESTS_CPPUNIT)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb
