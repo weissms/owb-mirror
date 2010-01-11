@@ -1,5 +1,11 @@
 2010-01-11  Olivier DOLE  <odole@pleyo.com>
 
+        Compile testnetscapeplugin only if NPAPI option is enabled.
+
+        * DumpRenderTree/CMakeLists.txt:
+
+2010-01-11  Olivier DOLE  <odole@pleyo.com>
+
         Add ENABLE_TESTS_CPPUNIT option.
 
         * OWBLauncher/CMakeLists.txt:

@@ -67,12 +67,14 @@ set_source_files_properties(${DUMPRENDERTREE_SRC}
 add_executable(DumpRenderTree ${DUMPRENDERTREE_SRC})
 target_link_libraries(DumpRenderTree webkit-owb ${GRAPHICS_LIBRARIES} ${EXTERNAL_DEPS_LIBRARIES})
 
-add_definitions(-DTEST_PLUGIN_DIR=\"${CMAKE_BINARY_DIR}/lib\")
+if(ENABLE_NPAPI)
+    add_definitions(-DTEST_PLUGIN_DIR=\"${CMAKE_BINARY_DIR}/lib\")
 
-list(APPEND TESTPLUGIN_SRC
-    unix/TestNetscapePlugin/TestNetscapePlugin.cpp
-    TestNetscapePlugIn.subproj/PluginObject.cpp
-    TestNetscapePlugIn.subproj/TestObject.cpp
-)
+    list(APPEND TESTPLUGIN_SRC
+        unix/TestNetscapePlugin/TestNetscapePlugin.cpp
+        TestNetscapePlugIn.subproj/PluginObject.cpp
+        TestNetscapePlugIn.subproj/TestObject.cpp
+    )
 
-add_library(testnetscapeplugin SHARED ${TESTPLUGIN_SRC})
+    add_library(testnetscapeplugin SHARED ${TESTPLUGIN_SRC})
+endif(ENABLE_NPAPI)
