@@ -104,6 +104,7 @@
 #include <KeyboardEvent.h>
 #include <Logging.h>
 #include <MIMETypeRegistry.h>
+#include <NotImplemented.h>
 #include <Page.h>
 #include <PageCache.h>
 #include <PageGroup.h>
@@ -3236,4 +3237,14 @@ void WebView::stopLoading(bool stop)
     m_isStopped = stop;
     if (stop)
         core(mainFrame())->loader()->stopLoading(UnloadEventPolicyUnloadAndPageHide);
+}
+
+void WebView::enterFullscreenForNode(WebCore::Node*)
+{
+    notImplemented();
+}
+
+void WebView::exitFullscreen()
+{
+    notImplemented();
 }

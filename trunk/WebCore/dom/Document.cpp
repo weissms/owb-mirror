@@ -336,6 +336,9 @@ Document::Document(Frame* frame, bool isXHTML)
     , m_rawTitle("")
     , m_titleSetExplicitly(false)
     , m_updateFocusAppearanceTimer(this, &Document::updateFocusAppearanceTimerFired)
+    , m_startTime(currentTime())
+    , m_overMinimumLayoutThreshold(false)
+    , m_extraLayoutDelay(0)
     , m_executeScriptSoonTimer(this, &Document::executeScriptSoonTimerFired)
     , m_xmlVersion("1.0")
     , m_xmlStandalone(false)
@@ -416,9 +419,6 @@ Document::Document(Frame* frame, bool isXHTML)
     resetActiveLinkColor();
 
     m_processingLoadEvent = false;
-    m_startTime = currentTime();
-    m_overMinimumLayoutThreshold = false;
-    m_extraLayoutDelay = 0;
     
     initSecurityContext();
     initDNSPrefetch();
@@ -3085,7 +3085,7 @@ String Document::cookie(ExceptionCode& ec) const
     // INVALID_STATE_ERR exception on getting if the Document has no
     // browsing context.
 
-    if (securityOrigin()->isSandboxed(SandboxOrigin)) {
+    if (!securityOrigin()->canAccessCookies()) {
         ec = SECURITY_ERR;
         return String();
     }
@@ -3106,7 +3106,7 @@ void Document::setCookie(const String& value, ExceptionCode& ec)
     // INVALID_STATE_ERR exception on setting if the Document has no
     // browsing context.
 
-    if (securityOrigin()->isSandboxed(SandboxOrigin)) {
+    if (!securityOrigin()->canAccessCookies()) {
         ec = SECURITY_ERR;
         return;
     }
@@ -4357,10 +4357,8 @@ void Document::initSecurityContext()
     // loading URL.
     const KURL& url = m_frame->loader()->url();
     m_cookieURL = url;
-    ScriptExecutionContext::setSecurityOrigin(SecurityOrigin::create(url));
+    ScriptExecutionContext::setSecurityOrigin(SecurityOrigin::create(url, m_frame->loader()->sandboxFlags()));
 
-    updateSandboxFlags();
- 
     if (SecurityOrigin::allowSubstituteDataAccessToLocal()) {
         // If this document was loaded with substituteData, then the document can
         // load local resources.  See https://bugs.webkit.org/show_bug.cgi?id=16756

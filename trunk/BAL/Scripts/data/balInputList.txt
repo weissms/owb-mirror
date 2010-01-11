@@ -925,8 +925,6 @@ BAL/Widgets/WebCore/Qt	WebCore/platform/qt/CursorQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PasteboardQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PlatformScreenQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PopupMenuQt.cpp
-BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtFallbackWebPopup.h
-BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtFallbackWebPopup.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPageClient.h
@@ -938,6 +936,8 @@ BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollbarThemeQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/ScrollbarThemeQt.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/SearchPopupMenuQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/WidgetQt.cpp
+BAL/Widgets/WebCore/Qt  WebKit/qt/WebCoreSupport/QtFallbackWebPopup.cpp BCQtFallbackWebPopupQt.cpp
+BAL/Widgets/WebCore/Qt  WebKit/qt/WebCoreSupport/QtFallbackWebPopup.h BCQtFallbackWebPopupQt.h
 BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenu.cpp
 BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenu.h
 BAL/Widgets/WebCore/WK	WebCore/platform/ContextMenuItem.h

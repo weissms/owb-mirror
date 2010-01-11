@@ -28,18 +28,18 @@ namespace WebCore {
 class QtFallbackWebPopup : private QComboBox, public QtAbstractWebPopup {
     Q_OBJECT
 public:
-    QtFallbackWebPopup(PopupMenuClient* client);
+    QtFallbackWebPopup();
 
     virtual void show(const QRect& geometry, int selectedIndex);
     virtual void hide() { hidePopup(); }
+    virtual void populate(const QFont& font, const QList<Item>& items);
+    virtual void setParent(QWidget* parent);
 
 private slots:
     void activeChanged(int);
 
 private:
     bool m_popupVisible;
-
-    void populate();
 
     virtual void showPopup();
     virtual void hidePopup();

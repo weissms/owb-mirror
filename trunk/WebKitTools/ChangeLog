@@ -1,3 +1,211 @@
+2010-01-11  Adam Barth  <abarth@webkit.org>
+
+        Rubber stamped by David Kilzer.
+
+        bugzilla-tool submit-patch mistakenly picks up bug URLs in non-ChangeLog files
+        https://bugs.webkit.org/show_bug.cgi?id=33197
+
+        Fix a typo: Commmand -> Command.
+
+        * Scripts/webkitpy/commands/abstractsequencedcommand.py:
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commands/queries.py:
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/multicommandtool.py:
+
+2010-01-10  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Let webkit-patch work with options in $EDITOR
+        https://bugs.webkit.org/show_bug.cgi?id=33414
+
+        The $EDITOR evironment variable might have command line options like
+        bbedit -w.  This patch lets us run those $EDITORs.
+
+        * Scripts/webkitpy/user.py:
+
+2010-01-10  Robert Hogan  <robert@roberthogan.net>
+
+        Reviewed by Adam Barth.
+
+        [Qt] Add enableXSSAuditor support to QWebSettings and DRT.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33419
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::resetSettings):
+        (WebCore::DumpRenderTree::createWindow):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-01-10  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed cosmetic change.  Remove the status bubble for mac-ews
+        because we don't have hardware for it at the moment.
+
+        * QueueStatusServer/templates/statusbubble.html:
+
+2010-01-09  Daniel Bates  <dbates@webkit.org>
+
+        No review, rolling out r53044.
+        http://trac.webkit.org/changeset/53044
+        https://bugs.webkit.org/show_bug.cgi?id=33419
+        
+        We need to look into this some more because the Qt
+        bot is failing the XSSAuditor tests. See bug #33419
+        for more details.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-01-09  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33419
+
+        Adds support for the XSSAuditor to the Qt DRT.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setXSSAuditorEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-01-09  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Retry writes to QueueStatusServer when we get 500 errors
+        https://bugs.webkit.org/show_bug.cgi?id=33412
+
+        This prevents the queues from failing to mark a patch as "pass" or
+        "fail" when AppEngine throws 500 errors.
+
+        * Scripts/test-webkitpy:
+        * Scripts/webkitpy/networktransaction.py: Added.
+        * Scripts/webkitpy/networktransaction_unittest.py: Added.
+        * Scripts/webkitpy/statusserver.py:
+        * Scripts/webkitpy/steps/closebugformarkbugfixed.py: Added.
+        * Scripts/webkitpy/steps/closebugregardlessofpatches.py: Added.
+        * Scripts/webkitpy/steps/findbugidfromsvnrevision.py: Added.
+
+2010-01-09  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/33430> Fix rounded borders in queue status on older Firefox and Safari browsers
+
+        Reviewed by Eric Seidel.
+
+        * QueueStatusServer/templates/statusbubble.html: Added
+        -moz-border-radius and -webkit-border-radius to provide rounded
+        borders in older Firefox and Safari browsers.
+
+2010-01-09  Chris Jerdonek  <chris.jerdonek@gmail.com>
+
+        Reviewed by David Kilzer.
+
+        Modified VCSUtils::gitdiff2svndiff() to accept strings that
+        end in vertical white space.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33415
+
+        * Scripts/VCSUtils.pm:
+        * Scripts/webkitperl/VCSUtils_unittest/gitdiff2svndiff.pl:
+
+2010-01-08  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        run-javascriptcore-tests needs a --quiet flag
+        https://bugs.webkit.org/show_bug.cgi?id=33399
+
+        Until run-javascriptcore-tests has a --quiet flag, lets just stiffle the output in webkit-patch.
+
+        * Scripts/webkitpy/steps/runtests.py:
+
+2010-01-08  Andras Becsi  <abecsi@inf.u-szeged.hu>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Only run http and websocket tests as last if no argument is given to be able to explicitly control the test order.
+
+        To be able to run multiple instances of run-webkit-tests besides each other on the same machine we need to minimize
+        the time when Apache and WebSocketServer is locked by tests.
+        Because closeHTTPD() and closeWebSocketServer() is only called at the end of the testing,
+        we need to run http and websocket tests after all other tests.
+        If one however explicitly specifies the tests to run in the argument list of run-webkit-tests
+        we need to preserve the given order.
+
+        * Scripts/run-webkit-tests:
+
+2010-01-08  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Don't post style-queue pass messages to bugs
+        https://bugs.webkit.org/show_bug.cgi?id=33404
+
+        These messages aren't needed any more now that we have the status
+        bubble reporting pass events passively.
+
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-08  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Optimize the number of CPUs used for building Qt and Gtk
+        https://bugs.webkit.org/show_bug.cgi?id=33394
+
+        Instead of hardcoding the number 8, we should read the number of CPUs
+        from the environment.
+
+        * Scripts/webkitpy/executive.py:
+        * Scripts/webkitpy/webkitport.py:
+        * Scripts/webkitpy/webkitport_unittest.py:
+
+2010-01-08  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION(52819?): AXLoadComplete and AXLayoutComplete causes 4 tests fail on Snow Leopard Debug bot
+        https://bugs.webkit.org/show_bug.cgi?id=33300
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::AccessibilityUIElement):
+        (AccessibilityUIElement::~AccessibilityUIElement):
+        (_accessibilityNotificationCallback):
+        (AccessibilityUIElement::addNotificationListener):
+
+2010-01-08  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        commit-queue should run run-javascriptcore-tests
+        https://bugs.webkit.org/show_bug.cgi?id=33376
+
+        I also made it run the python and perl unit tests.
+
+        * Scripts/webkitpy/steps/runtests.py:
+        * Scripts/webkitpy/webkitport.py:
+
+2010-01-07  Andras Becsi  <abecsi@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Run the http and websocket tests after all other tests.
+        https://bugs.webkit.org/show_bug.cgi?id=33153
+
+        * Scripts/run-webkit-tests:
+
 2010-01-07  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Eric Seidel.

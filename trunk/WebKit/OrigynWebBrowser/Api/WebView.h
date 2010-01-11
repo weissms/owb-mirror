@@ -85,6 +85,7 @@ namespace WebCore {
     class IntRect;
     class KeyboardEvent;
     class KURL;
+    class Node;
     class Page;
     class ResourceRequest;
 }
@@ -1587,6 +1588,9 @@ public:
      * @param groupName is the page group name
      */
     bool removeAllUserContentFromGroup(const char* groupName);
+    
+    void enterFullscreenForNode(WebCore::Node*);
+    void exitFullscreen();
 
 
     /*

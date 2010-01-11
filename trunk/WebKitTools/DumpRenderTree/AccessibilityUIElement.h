@@ -163,6 +163,7 @@ private:
     static JSClassRef getJSClass();
 
     PlatformUIElement m_element;
+    JSObjectRef m_notificationFunctionCallback;
 };
 
 #endif // AccessibilityUIElement_h

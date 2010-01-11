@@ -49,6 +49,7 @@
 #include <Frame.h>
 #include <FrameLoadRequest.h>
 #include <FrameView.h>
+#include <HTMLNames.h>
 #include <IntRect.h>
 #include <NotImplemented.h>
 #include <Page.h>
@@ -643,4 +644,23 @@ void WebChromeClient::attachRootGraphicsLayer(WebCore::Frame* frame, WebCore::Gr
 void WebChromeClient::setNeedsOneShotDrawingSynchronization()
 {
 }
+#endif
+
+#if ENABLE(VIDEO)
+
+bool WebChromeClient::supportsFullscreenForNode(const Node* node)
+{
+    return node->hasTagName(HTMLNames::videoTag);
+}
+
+void WebChromeClient::enterFullscreenForNode(Node* node)
+{
+    m_webView->enterFullscreenForNode(node);
+}
+
+void WebChromeClient::exitFullscreenForNode(Node*)
+{
+    m_webView->exitFullscreen();
+}
+
 #endif
