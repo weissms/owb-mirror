@@ -32,14 +32,13 @@
 #include <JavaScriptCore/JSBase.h>
 #include <WebKit.h>
 #include <string>
+#include <time.h>
 
 class PolicyDelegate;
 #if PLATFORM(GTK)|| PLATFORM(QT)
 extern unsigned int waitToDumpWatchdog;
-#elif PLATFORM(SDL) || PLATFORM(SDLCAIRO)
-extern SDL_TimerID waitToDumpWatchdog;
 #else
-#error "DumpRenderTree not supported on this platform"
+extern timer_t waitToDumpWatchdog;
 #endif
 extern WebFrame* topLoadingFrame;
 extern SharedPtr<PolicyDelegate> policyDelegate;

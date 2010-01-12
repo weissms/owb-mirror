@@ -1,3 +1,15 @@
+2010-01-12  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Implement and use POSIX timers instead of SDL timers.
+
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (waitToDumpWatchdogFired):
+        (addTimetoDump):
+        (removeTimer):
+
 2010-01-11  Olivier DOLE  <odole@pleyo.com>
 
         Build fix for DumpRenderTree when NPAPI is disabled.

@@ -29,6 +29,7 @@
 
 #include "SDL.h"
 #include "SDL_getenv.h"
+#include <signal.h>
 #include <DumpRenderTree.h>
 #include <WebKit.h>
 
@@ -36,7 +37,7 @@
 // Choose some default values.
 const unsigned int maxViewWidth = 800;
 const unsigned int maxViewHeight = 600;
-SDL_TimerID waitToDumpWatchdog = 0;
+timer_t waitToDumpWatchdog;
 
 void init(int argc, char *argv[])
 {
@@ -307,23 +308,34 @@ void stopEventLoop()
     done = true;
 }
 
-static Uint32 waitToDumpWatchdogFired(Uint32 interval, void* param)
+static void waitToDumpWatchdogFired(sigval_t signal)
 {
     const char* message = "FAIL: Timed out waiting for notifyDone to be called\n";
     fprintf(stderr, "%s", message);
     fprintf(stdout, "%s", message);
-    waitToDumpWatchdog = 0;
+    removeTimer();
     dump();
-    return false;
 }
 
 
 void addTimetoDump(int timeoutSeconds)
 {
-    waitToDumpWatchdog = SDL_AddTimer(timeoutSeconds * 1000, waitToDumpWatchdogFired, 0);
+    //FIXME: check return value from timer_create()
+    struct sigevent handler;
+    memset(&waitToDumpWatchdog, 0, sizeof(timer_t));
+    memset(&handler, 0, sizeof(sigevent));
+    handler.sigev_notify = SIGEV_THREAD;
+    handler.sigev_notify_function = waitToDumpWatchdogFired;
+    timer_create(CLOCK_REALTIME, &handler, &waitToDumpWatchdog);
+
+    struct itimerspec timeout;
+    memset(&timeout, 0, sizeof(itimerspec));
+    timeout.it_value.tv_sec = timeoutSeconds;
+    timer_settime(waitToDumpWatchdog, 0, &timeout, NULL);
 }
 
 void removeTimer()
 {
-    SDL_RemoveTimer(waitToDumpWatchdog);
+    timer_delete(waitToDumpWatchdog);
+    memset(&waitToDumpWatchdog, 0, sizeof(timer_t));
 }
