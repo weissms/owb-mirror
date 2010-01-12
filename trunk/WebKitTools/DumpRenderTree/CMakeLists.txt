@@ -10,6 +10,11 @@ include_directories(
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/unix/TestNetscapePlugin/ForwardingHeaders/WebKit
     ${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/TestNetscapePlugIn.subproj
 )
+link_directories(
+    ${LIBRARY_OUTPUT_PATH}
+    ${GRAPHICS_LIBRARY_DIRS}
+)
+
 
 include(AddDAECompilerFlags OPTIONAL)
 include(AddWebCoreCompilerFlags)

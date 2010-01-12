@@ -1,5 +1,11 @@
 2010-01-12  Olivier DOLE  <odole@pleyo.com>
 
+        DumpRenderTree fix when cross compiling.
+
+        * DumpRenderTree/CMakeLists.txt:
+
+2010-01-12  Olivier DOLE  <odole@pleyo.com>
+
         cmake modification to enable DRT compilation for customers.
 
         * DumpRenderTree/CMakeLists.txt:
