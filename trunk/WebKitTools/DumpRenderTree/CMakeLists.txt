@@ -61,6 +61,8 @@ if(USE_API_SDL)
     )
 endif(USE_API_SDL)
 
+include(${OWB_SOURCE_DIR}/WebKitTools/DumpRenderTree/bal/Customer/CMakeLists.txt OPTIONAL)
+
 set_source_files_properties(${DUMPRENDERTREE_SRC}
     PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
 )
