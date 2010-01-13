@@ -54,8 +54,11 @@ class WebBackForwardList;
 class WebBindingJSDelegate;
 class WebDownloadDelegate;
 class WebEditingDelegate;
+class WebError;
 class WebFrame;
 class WebFrameLoadDelegate;
+class WebGeolocationProvider;
+class WebGeolocationPosition;
 class WebHistoryDelegate;
 class WebHistoryItem;
 class WebHitTestResults;
@@ -1736,6 +1739,11 @@ protected:
      */
     bool hasPluginForNodeBeenHalted(DOMNode* domNode);
 
+    void setGeolocationProvider(WebGeolocationProvider* locationProvider);
+    WebGeolocationProvider* geolocationProvider();
+    void geolocationDidChangePosition(WebGeolocationPosition* position);
+    void geolocationDidFailWithError(WebError* error);
+
     /**
      * repaint
      */
@@ -1928,6 +1936,8 @@ protected:
     SharedPtr<WebWidgetEngineDelegate> m_webWidgetEngineDelegate;
     SharedPtr<WebPluginHalterDelegate> m_pluginHalterDelegate;
     SharedPtr<WebHistoryDelegate> m_historyDelegate;
+    WebGeolocationProvider* m_geolocationProvider;
+
     WebPreferences* m_preferences;
 
     bool m_userAgentOverridden;

@@ -33,6 +33,11 @@
 #include "Frame.h"
 #include "FrameView.h"
 #include "InlineTextBox.h"
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif // ENABLE(INSPECTOR)
+
 #include "MutationEvent.h"
 #include "Page.h"
 #include "RenderTheme.h"
@@ -869,6 +874,13 @@ static void dispatchChildInsertionEvents(Node* child)
 {
     ASSERT(!eventDispatchForbidden());
 
+#if ENABLE(INSPECTOR)
+    if (Page* page = child->document()->page()) {
+        if (InspectorController* inspectorController = page->inspectorController())
+            inspectorController->didInsertDOMNode(child);
+    }
+#endif
+
     RefPtr<Node> c = child;
     RefPtr<Document> document = child->document();
 
@@ -891,6 +903,13 @@ static void dispatchChildInsertionEvents(Node* child)
 
 static void dispatchChildRemovalEvents(Node* child)
 {
+#if ENABLE(INSPECTOR)    
+    if (Page* page = child->document()->page()) {
+        if (InspectorController* inspectorController = page->inspectorController())
+            inspectorController->didRemoveDOMNode(child);
+    }
+#endif
+
     RefPtr<Node> c = child;
     RefPtr<Document> document = child->document();
 

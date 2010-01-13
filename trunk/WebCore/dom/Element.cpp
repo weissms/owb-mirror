@@ -41,6 +41,11 @@
 #include "FrameView.h"
 #include "HTMLElement.h"
 #include "HTMLNames.h"
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif // ENABLE(INSPECTOR)
+
 #include "NamedNodeMap.h"
 #include "NodeList.h"
 #include "NodeRenderStyle.h"
@@ -1010,6 +1015,14 @@ void Element::finishParsingChildren()
 void Element::dispatchAttrRemovalEvent(Attribute*)
 {
     ASSERT(!eventDispatchForbidden());
+
+#if ENABLE(INSPECTOR)
+    if (Page* page = document()->page()) {
+      if (InspectorController* inspectorController = page->inspectorController())
+          inspectorController->didModifyDOMAttr(this);
+    }
+#endif
+
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
         return;
@@ -1022,6 +1035,14 @@ void Element::dispatchAttrRemovalEvent(Attribute*)
 void Element::dispatchAttrAdditionEvent(Attribute*)
 {
     ASSERT(!eventDispatchForbidden());
+
+#if ENABLE(INSPECTOR)
+    if (Page* page = document()->page()) {
+      if (InspectorController* inspectorController = page->inspectorController())
+          inspectorController->didModifyDOMAttr(this);
+    }
+#endif
+
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
         return;
@@ -1432,7 +1453,7 @@ bool Element::webkitMatchesSelector(const String& selector, ExceptionCode& ec)
 
 KURL Element::getURLAttribute(const QualifiedName& name) const
 {
-#ifndef NDEBUG
+#if !ASSERT_DISABLED
     if (namedAttrMap) {
         if (Attribute* attribute = namedAttrMap->getAttributeItem(name))
             ASSERT(isURLAttribute(attribute));

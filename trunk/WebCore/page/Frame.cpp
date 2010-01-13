@@ -672,11 +672,13 @@ void Frame::selectionLayoutChanged()
         // as the start of the selection, the selection painting code will think that content on the line containing 'foo' is selected
         // and will fill the gap before 'bar'.
         Position startPos = selection.start();
-        if (startPos.downstream().isCandidate())
-            startPos = startPos.downstream();
+        Position candidate = startPos.downstream();
+        if (candidate.isCandidate())
+            startPos = candidate;
         Position endPos = selection.end();
-        if (endPos.upstream().isCandidate())
-            endPos = endPos.upstream();
+        candidate = endPos.upstream();
+        if (candidate.isCandidate())
+            endPos = candidate;
 
         // We can get into a state where the selection endpoints map to the same VisiblePosition when a selection is deleted
         // because we don't yet notify the SelectionController of text removal.
@@ -1561,12 +1563,6 @@ unsigned Frame::markAllMatchesForText(const String& target, bool caseFlag, unsig
             continue;
         }
 
-        // A non-collapsed result range can in some funky whitespace cases still not
-        // advance the range's start position (4509328). Break to avoid infinite loop.
-        VisiblePosition newStart = endVisiblePosition(resultRange.get(), DOWNSTREAM);
-        if (newStart == startVisiblePosition(searchRange.get(), DOWNSTREAM))
-            break;
-
         // Only treat the result as a match if it is visible
         if (editor()->insideVisibleArea(resultRange.get())) {
             ++matchCount;
@@ -1577,7 +1573,12 @@ unsigned Frame::markAllMatchesForText(const String& target, bool caseFlag, unsig
         if (limit > 0 && matchCount >= limit)
             break;
 
-        setStart(searchRange.get(), newStart);
+        // Set the new start for the search range to be the end of the previous
+        // result range. There is no need to use a VisiblePosition here,
+        // since findPlainText will use a TextIterator to go over the visible
+        // text nodes. 
+        searchRange->setStart(resultRange->endContainer(exception), resultRange->endOffset(exception), exception);
+
         Node* shadowTreeRoot = searchRange->shadowTreeRootNode();
         if (searchRange->collapsed(exception) && shadowTreeRoot)
             searchRange->setEnd(shadowTreeRoot, shadowTreeRoot->childNodeCount(), exception);

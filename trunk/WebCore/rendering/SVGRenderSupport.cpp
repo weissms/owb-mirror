@@ -40,8 +40,6 @@
 #include "TransformationMatrix.h"
 #include <wtf/UnusedParam.h>
 
-using namespace std;
-
 namespace WebCore {
 
 SVGRenderBase::~SVGRenderBase()
@@ -59,48 +57,6 @@ IntRect SVGRenderBase::clippedOverflowRectForRepaint(RenderObject* object, Rende
     IntRect repaintRect = enclosingIntRect(object->repaintRectInLocalCoordinates());
     object->computeRectForRepaint(repaintContainer, repaintRect);
     return repaintRect;
-}
-
-static void getSVGShadowExtent(ShadowData* shadow, int& top, int& right, int& bottom, int& left)
-{
-    top = 0;
-    right = 0;
-    bottom = 0;
-    left = 0;
-
-    int blurAndSpread = shadow->blur + shadow->spread;
-
-    top = min(top, shadow->y - blurAndSpread);
-    right = max(right, shadow->x + blurAndSpread);
-    bottom = max(bottom, shadow->y + blurAndSpread);
-    left = min(left, shadow->x - blurAndSpread);
-}
-
-void SVGRenderBase::inflateForShadow(RenderStyle* style, IntRect& repaintRect) const
-{
-    ASSERT(style);
-    if (!style)
-        return;
-
-    ShadowData* shadow = style->svgStyle()->shadow();
-    if (!shadow)
-        return;
-
-    int shadowTop;
-    int shadowRight;
-    int shadowBottom;
-    int shadowLeft;
-    getSVGShadowExtent(shadow, shadowTop, shadowRight, shadowBottom, shadowLeft);
-
-    int overflowLeft = repaintRect.x() + shadowLeft;
-    int overflowRight = repaintRect.right() + shadowRight;
-    int overflowTop = repaintRect.y() + shadowTop;
-    int overflowBottom = repaintRect.bottom() + shadowBottom;
-
-    repaintRect.setX(overflowLeft);
-    repaintRect.setY(overflowTop);
-    repaintRect.setWidth(overflowRight - overflowLeft);
-    repaintRect.setHeight(overflowBottom - overflowTop);
 }
 
 void SVGRenderBase::computeRectForRepaint(RenderObject* object, RenderBoxModelObject* repaintContainer, IntRect& repaintRect, bool fixed)
@@ -136,21 +92,20 @@ bool SVGRenderBase::prepareToRenderSVGContent(RenderObject* object, RenderObject
     const SVGRenderStyle* svgStyle = style->svgStyle();
     ASSERT(svgStyle);
 
+    ShadowData* shadow = svgStyle->shadow();
+    IntRect repaintIntRectWithShadow = enclosingIntRect(repaintRect);
+    if (shadow)
+        svgStyle->inflateForShadow(repaintIntRectWithShadow);
+
     // Setup transparency layers before setting up filters!
     float opacity = style->opacity(); 
     if (opacity < 1.0f) {
-        paintInfo.context->clip(enclosingIntRect(repaintRect));
+        paintInfo.context->clip(repaintIntRectWithShadow);
         paintInfo.context->beginTransparencyLayer(opacity);
     }
 
-    if (ShadowData* shadow = svgStyle->shadow()) {
-        int xShift = shadow->x < 0 ? shadow->x : 0;
-        int yShift = shadow->y < 0 ? shadow->y :0;
-        int widthShift = shadow->x < 0 ? 0 : shadow->x;
-        int heightShift = shadow->y < 0 ? 0 : shadow->y;
-        FloatRect shadowRect = FloatRect(repaintRect.x() + xShift, repaintRect.y() + yShift,
-            repaintRect.width() + widthShift, repaintRect.height() + heightShift);
-        paintInfo.context->clip(enclosingIntRect(shadowRect));
+    if (shadow) {
+        paintInfo.context->clip(repaintIntRectWithShadow);
         paintInfo.context->setShadow(IntSize(shadow->x, shadow->y), shadow->blur, shadow->color, style->colorSpace());
         paintInfo.context->beginTransparencyLayer(1.0f);
     }

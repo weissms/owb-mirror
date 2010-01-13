@@ -32,9 +32,12 @@
 #define V8Index_h
 
 #include <v8.h>
-#include "PlatformString.h"  // for WebCore::String
 
 namespace WebCore {
+
+static const int v8DOMWrapperTypeIndex = 0;
+static const int v8DOMWrapperObjectIndex = 1;
+static const int v8DefaultWrapperInternalFieldCount = 2;
 
 typedef v8::Persistent<v8::FunctionTemplate> (*FunctionTemplateFactory)();
 
@@ -388,6 +391,7 @@ typedef v8::Persistent<v8::FunctionTemplate> (*FunctionTemplateFactory)();
     V(PAGETRANSITIONEVENT, PageTransitionEvent)                         \
     V(PLUGIN, Plugin)                                                   \
     V(PLUGINARRAY, PluginArray)                                         \
+    V(POPSTATEEVENT, PopStateEvent)                                     \
     V(PROGRESSEVENT, ProgressEvent)                                     \
     V(RANGE, Range)                                                     \
     V(RANGEEXCEPTION, RangeException)                                   \

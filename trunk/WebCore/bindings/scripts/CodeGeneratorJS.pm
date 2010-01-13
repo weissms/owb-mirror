@@ -647,7 +647,7 @@ sub GenerateHeader
 
     # Custom getPropertyNames function exists on DOMWindow
     if ($interfaceName eq "DOMWindow") {
-        push(@headerContent, "    virtual void getPropertyNames(JSC::ExecState*, JSC::PropertyNameArray&);\n");
+        push(@headerContent, "    virtual void getPropertyNames(JSC::ExecState*, JSC::PropertyNameArray&, JSC::EnumerationMode mode = JSC::ExcludeDontEnumProperties);\n");
         $structureFlags{"JSC::OverridesGetPropertyNames"} = 1;
     }
 
@@ -656,7 +656,7 @@ sub GenerateHeader
 
     # Custom getOwnPropertyNames function
     if ($dataNode->extendedAttributes->{"CustomGetPropertyNames"} || $dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasCustomIndexGetter"} || $dataNode->extendedAttributes->{"HasNumericIndexGetter"}) {
-        push(@headerContent, "    virtual void getOwnPropertyNames(JSC::ExecState*, JSC::PropertyNameArray&);\n");
+        push(@headerContent, "    virtual void getOwnPropertyNames(JSC::ExecState*, JSC::PropertyNameArray&, JSC::EnumerationMode mode = JSC::ExcludeDontEnumProperties);\n");
         $structureFlags{"JSC::OverridesGetPropertyNames"} = 1;       
     }
 
@@ -1538,13 +1538,13 @@ sub GenerateImplementation
     }
 
     if (($dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasCustomIndexGetter"} || $dataNode->extendedAttributes->{"HasNumericIndexGetter"}) && !$dataNode->extendedAttributes->{"CustomGetPropertyNames"}) {
-        push(@implContent, "void ${className}::getOwnPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)\n");
+        push(@implContent, "void ${className}::getOwnPropertyNames(ExecState* exec, PropertyNameArray& propertyNames, EnumerationMode mode)\n");
         push(@implContent, "{\n");
         if ($dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasCustomIndexGetter"} || $dataNode->extendedAttributes->{"HasNumericIndexGetter"}) {
             push(@implContent, "    for (unsigned i = 0; i < static_cast<${implClassName}*>(impl())->length(); ++i)\n");
             push(@implContent, "        propertyNames.add(Identifier::from(exec, i));\n");
         }
-        push(@implContent, "     Base::getOwnPropertyNames(exec, propertyNames);\n");
+        push(@implContent, "     Base::getOwnPropertyNames(exec, propertyNames, mode);\n");
         push(@implContent, "}\n\n");
     }
 
@@ -1588,8 +1588,28 @@ sub GenerateImplementation
                 push(@implContent, "        return jsUndefined();\n");
             }
 
+            # Special case for JSSVGLengthList / JSSVGTransformList / JSSVGPointList / JSSVGNumberList
+            # Instead of having JSSVG*Custom.cpp implementations for the SVGList interface for all of these
+            # classes, we directly forward the calls to JSSVGPODListCustom, which centralizes the otherwise
+            # duplicated code for the JSSVG*List classes mentioned above.
+            my $svgPODListType;
+            if ($implClassName =~ /SVG.*List/) {
+                $svgPODListType = $implClassName;
+                $svgPODListType =~ s/List$//;
+                $svgPODListType = "" unless $codeGenerator->IsPodType($svgPODListType);
+                
+                # Ignore additional (non-SVGList) SVGTransformList methods, that are not handled through JSSVGPODListCustom
+                $svgPODListType = "" if $functionImplementationName =~ /createSVGTransformFromMatrix/;
+                $svgPODListType = "" if $functionImplementationName =~ /consolidate/;
+            }
+
             if ($function->signature->extendedAttributes->{"Custom"} || $function->signature->extendedAttributes->{"JSCCustom"}) {
                 push(@implContent, "    return castedThisObj->" . $functionImplementationName . "(exec, args);\n");
+            } elsif ($svgPODListType) {
+                $implIncludes{"JS${svgPODListType}.h"} = 1;
+                $implIncludes{"JSSVGPODListCustom.h"} = 1;
+                push(@implContent, "    return JSSVGPODListCustom::$functionImplementationName<$className, " . GetNativeType($svgPODListType)
+                                 . ">(castedThisObj, exec, args, to" . $svgPODListType . ");\n");
             } else {
                 if ($podType) {
                     push(@implContent, "    JSSVGPODTypeWrapper<$podType>* wrapper = castedThisObj->impl();\n");

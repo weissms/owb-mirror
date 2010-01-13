@@ -26155,82 +26155,6 @@
 						</FileConfiguration>
 					</File>
 				</Filter>
-				<Filter
-					Name="xbm"
-					>
-					<File
-						RelativePath="..\platform\image-decoders\xbm\XBMImageDecoder.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_All|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath="..\platform\image-decoders\xbm\XBMImageDecoder.h"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCustomBuildTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCustomBuildTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_Internal|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCustomBuildTool"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Debug_All|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCustomBuildTool"
-							/>
-						</FileConfiguration>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="animation"
@@ -39124,63 +39048,11 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\bindings\js\JSSVGPODListCustom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\bindings\js\JSSVGPODTypeWrapper.h"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSSVGPointListCustom.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Internal|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_All|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSSVGTransformListCustom.cpp"
 					>
 				</File>
 				<File

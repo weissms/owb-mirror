@@ -180,8 +180,6 @@ if(ENABLE_SVG)
         bindings/js/JSSVGMatrixCustom.cpp
         bindings/js/JSSVGPathSegCustom.cpp
         bindings/js/JSSVGPathSegListCustom.cpp
-        bindings/js/JSSVGPointListCustom.cpp
-        bindings/js/JSSVGTransformListCustom.cpp
     )
 endif(ENABLE_SVG)
 

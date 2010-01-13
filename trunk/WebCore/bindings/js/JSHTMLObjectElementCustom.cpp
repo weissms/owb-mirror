@@ -63,7 +63,7 @@ JSValue JSHTMLObjectElement::nameGetter(ExecState* exec, const Identifier& prope
     return runtimeObjectGetter(exec, propertyName, slot);
 }
 
-void JSHTMLObjectElement::getOwnPropertyNames(JSC::ExecState* exec, JSC::PropertyNameArray& propertyNames)
+void JSHTMLObjectElement::getOwnPropertyNames(JSC::ExecState* exec, JSC::PropertyNameArray& propertyNames, JSC::EnumerationMode mode)
 {
     Base::getOwnPropertyNames(exec, propertyNames);
     runtimeObjectGetPropertyNames(exec, propertyNames, impl()); 

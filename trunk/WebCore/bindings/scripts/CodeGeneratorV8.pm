@@ -265,9 +265,8 @@ sub GenerateHeader
     push(@headerContent, "#include <v8.h>\n");
     push(@headerContent, "#include <wtf/HashMap.h>\n");
     push(@headerContent, "#include \"StringHash.h\"\n");
-
-    push(@headerContent, "\nnamespace WebCore {\n\n");
-    push(@headerContent, "class V8ClassIndex;\n");
+    push(@headerContent, "#include \"V8Index.h\"\n");
+    push(@headerContent, "\nnamespace WebCore {\n");
     push(@headerContent, "\nclass $className {\n");
     push(@headerContent, <<END);
 
@@ -320,6 +319,7 @@ END
     GenerateHeaderRuntimeEnablerDeclarations(@enabledAtRuntime);
     GenerateHeaderNamedAndIndexedPropertyAccessors($dataNode);
     GenerateHeaderCustomCall($dataNode);
+    GenerateHeaderCustomInternalFieldIndices($dataNode);
     
     if ($dataNode->extendedAttributes->{"CheckDomainSecurity"}) {
         push(@headerContent, <<END);
@@ -342,6 +342,53 @@ END
     push(@headerContent, "#endif // $className" . "_H\n");
 
     push(@headerContent, "#endif // ${conditionalString}\n\n") if $conditionalString;
+}
+
+sub GetInternalFields
+{
+    my $dataNode = shift;
+    my $name = $dataNode->name;
+    
+    # FIXME: I am hideous and hard-coded.  Make me beautiful.
+    return ("cacheIndex", "implementationIndex") if ($name eq "Document") || ($name eq "SVGDocument");
+    return ("cacheIndex", "implementationIndex", "markerIndex", "shadowIndex") if $name eq "HTMLDocument";
+    return ("cacheIndex") if IsNodeSubType($dataNode);
+    return ("cacheIndex") if $name eq "XMLHttpRequest";
+    return ("cacheIndex") if $name eq "XMLHttpRequestUpload";
+    return ("cacheIndex") if $name eq "MessagePort";
+    return ("port1Index", "port2Index") if ($name eq "MessageChannel");
+    return ("cacheIndex") if $name eq "AbstractWorker";
+    return ("abstractWorkerCacheIndex", "cacheIndex") if $name eq "Worker";
+    return ("abstractWorkerCacheIndex", "cacheIndex") if $name eq "WorkerContext";
+    return ("abstractWorkerCacheIndex", "workerContextCacheIndex", "cacheIndex") if $name eq "DedicatedWorkerContext";
+    return ("abstractWorkerCacheIndex", "cacheIndex") if $name eq "SharedWorker";
+    return ("abstractWorkerCacheIndex", "workerContextCacheIndex", "cacheIndex") if $name eq "SharedWorkerContext";
+    return ("cacheIndex") if $name eq "Notification";
+    return ("cacheIndex") if $name eq "SVGElementInstance";
+    return ("consoleIndex", "historyIndex", "locationbarIndex", "menubarIndex", "navigatorIndex", "personalbarIndex",
+        "screenIndex", "scrollbarsIndex", "selectionIndex", "statusbarIndex", "toolbarIndex", "locationIndex",
+        "domSelectionIndex", "cacheIndex", "enteredIsolatedWorldIndex") if $name eq "DOMWindow";
+    return ("cacheIndex") if $name eq "DOMApplicationCache";
+    return ("cacheIndex") if $name eq "WebSocket";
+    return ("ownerNodeIndex") if ($name eq "StyleSheet") || ($name eq "CSSStyleSheet");
+    return ("ownerNodeIndex") if ($name eq "NamedNodeMap");
+    return ();
+}
+
+sub GenerateHeaderCustomInternalFieldIndices
+{
+    my $dataNode = shift;
+    my @customInternalFields = GetInternalFields($dataNode);
+    my $customFieldCounter = 0;
+    foreach my $customInternalField (@customInternalFields) {
+        push(@headerContent, <<END);
+  static const int ${customInternalField} = v8DefaultWrapperInternalFieldCount + ${customFieldCounter};
+END
+        $customFieldCounter++;
+    }
+    push(@headerContent, <<END);
+  static const int internalFieldCount = v8DefaultWrapperInternalFieldCount + ${customFieldCounter};
+END
 }
 
 sub GenerateHeaderRuntimeEnablerDeclarations
@@ -472,28 +519,6 @@ sub IsNodeSubType
         return 1 if $parent eq "Node";
     }
     return 0;
-}
-
-sub GetHiddenDependencyIndex
-{
-    my $dataNode = shift;
-    my $attribute = shift;
-    my $name = $dataNode->name;
-    return "V8Custom::kNodeEventListenerCacheIndex" if IsNodeSubType($dataNode);
-    return "V8Custom::kSVGElementInstanceEventListenerCacheIndex" if $name eq "SVGElementInstance";
-    return "V8Custom::kAbstractWorkerRequestCacheIndex" if $name eq "AbstractWorker";
-    return "V8Custom::kWorkerRequestCacheIndex" if $name eq "Worker";
-    return "V8Custom::kDedicatedWorkerContextRequestCacheIndex" if $name eq "DedicatedWorkerContext";
-    return "V8Custom::kWorkerContextRequestCacheIndex" if $name eq "WorkerContext";
-    return "V8Custom::kWorkerContextRequestCacheIndex" if $name eq "SharedWorkerContext";
-    return "V8Custom::kMessagePortRequestCacheIndex" if $name eq "MessagePort";
-    return "V8Custom::kWebSocketCacheIndex" if $name eq "WebSocket";
-    return "V8Custom::kXMLHttpRequestCacheIndex" if $name eq "XMLHttpRequest";
-    return "V8Custom::kXMLHttpRequestCacheIndex" if $name eq "XMLHttpRequestUpload";
-    return "V8Custom::kDOMApplicationCacheCacheIndex" if $name eq "DOMApplicationCache";
-    return "V8Custom::kNotificationRequestCacheIndex" if $name eq "Notification";
-    return "V8Custom::kDOMWindowEventListenerCacheIndex" if $name eq "DOMWindow";
-    die "Unexpected name " . $name . " when generating " . $attribute;
 }
 
 sub HolderToNative
@@ -941,8 +966,7 @@ END
         } elsif ($attribute->signature->type eq "EventListener") {
             $implIncludes{"V8AbstractEventListener.h"} = 1;
             $implIncludes{"V8CustomBinding.h"} = 1;
-            $cacheIndex = GetHiddenDependencyIndex($dataNode, $attrName);
-            push(@implContentDecls, "    transferHiddenDependency(holder, imp->$attrName(), value, $cacheIndex);\n");
+            push(@implContentDecls, "    transferHiddenDependency(holder, imp->$attrName(), value, V8${interfaceName}::cacheIndex);\n");
             push(@implContentDecls, "    imp->set$implSetterFunctionName(V8DOMWrapper::getEventListener(imp, value, true, ListenerFindOrCreate)");
         } else {
             push(@implContentDecls, "    imp->set$implSetterFunctionName($result");
@@ -1670,18 +1694,12 @@ END
         $parentClassIndex = uc($codeGenerator->StripModule($parent));
         last;
     }
-
-    # find the field count
-    my $fieldCount = "V8Custom::kDefaultWrapperInternalFieldCount";
-    if (IsNodeSubType($dataNode)) {
-        $fieldCount = "V8Custom::kNodeMinimumInternalFieldCount";
-    }
     
     # Generate the template configuration method
     push(@implContent,  <<END);
 static v8::Persistent<v8::FunctionTemplate> Configure${className}Template(v8::Persistent<v8::FunctionTemplate> desc) {
   v8::Local<v8::Signature> default_signature = configureTemplate(desc, \"${interfaceName}\",
-      V8ClassIndex::$parentClassIndex, $fieldCount,
+      V8ClassIndex::$parentClassIndex, V8${interfaceName}::internalFieldCount,
 END
 
     # Set up our attributes if we have them
@@ -2083,100 +2101,20 @@ sub GetNativeTypeFromSignature
 sub IsRefPtrType
 {
     my $type = shift;
-    return 1 if $type eq "Attr";
-    return 1 if $type eq "CanvasBooleanArray";
-    return 1 if $type eq "CanvasGradient";
-    return 1 if $type eq "CanvasObject";
-    return 1 if $type eq "ClientRect";
-    return 1 if $type eq "ClientRectList";
-    return 1 if $type eq "CDATASection";
-    return 1 if $type eq "Comment";
-    return 1 if $type eq "CSSRule";
-    return 1 if $type eq "CSSStyleRule";
-    return 1 if $type eq "CSSCharsetRule";
-    return 1 if $type eq "CSSImportRule";
-    return 1 if $type eq "CSSMediaRule";
-    return 1 if $type eq "CSSFontFaceRule";
-    return 1 if $type eq "CSSPageRule";
-    return 1 if $type eq "CSSPrimitiveValue";
-    return 1 if $type eq "CSSStyleSheet";
-    return 1 if $type eq "CSSStyleDeclaration";
-    return 1 if $type eq "CSSValue";
-    return 1 if $type eq "CSSRuleList";
-    return 1 if $type eq "Database";
-    return 1 if $type eq "Document";
-    return 1 if $type eq "DocumentFragment";
-    return 1 if $type eq "DocumentType";
-    return 1 if $type eq "Element";
-    return 1 if $type eq "EntityReference";
-    return 1 if $type eq "Event";
-    return 1 if $type eq "EventListener";
-    return 1 if $type eq "FileList";
-    return 1 if $type eq "HTMLCollection";
-    return 1 if $type eq "HTMLAllCollection";
-    return 1 if $type eq "HTMLDocument";
-    return 1 if $type eq "HTMLElement";
-    return 1 if $type eq "HTMLOptionsCollection";
-    return 1 if $type eq "ImageData";
-    return 1 if $type eq "Media";
-    return 1 if $type eq "MediaError";
-    return 1 if $type eq "MimeType";
-    return 1 if $type eq "Node";
-    return 1 if $type eq "NodeList";
-    return 1 if $type eq "NodeFilter";
-    return 1 if $type eq "NodeIterator";
-    return 1 if $type eq "NSResolver";
-    return 1 if $type eq "Plugin";
-    return 1 if $type eq "ProcessingInstruction";
-    return 1 if $type eq "Range";
-    return 1 if $type eq "RGBColor";
-    return 1 if $type eq "Text";
-    return 1 if $type eq "TextMetrics";
-    return 1 if $type eq "TimeRanges";
-    return 1 if $type eq "TreeWalker";
-    return 1 if $type eq "WebGLActiveInfo";
-    return 1 if $type eq "WebGLArray";
-    return 1 if $type eq "WebGLArrayBuffer";
-    return 1 if $type eq "WebGLByteArray";
-    return 1 if $type eq "WebGLBuffer";
-    return 1 if $type eq "WebGLFloatArray";
-    return 1 if $type eq "WebGLFramebuffer";
-    return 1 if $type eq "WebGLIntArray";
-    return 1 if $type eq "WebGLProgram";
-    return 1 if $type eq "WebGLRenderbuffer";
-    return 1 if $type eq "WebGLShader";
-    return 1 if $type eq "WebGLShortArray";
-    return 1 if $type eq "WebGLTexture";
-    return 1 if $type eq "WebGLUniformLocation";
-    return 1 if $type eq "WebGLUnsignedByteArray";
-    return 1 if $type eq "WebGLUnsignedIntArray";
-    return 1 if $type eq "WebGLUnsignedShortArray";
-    return 1 if $type eq "WebKitCSSMatrix";
-    return 1 if $type eq "WebKitPoint";
-    return 1 if $type eq "XPathExpression";
-    return 1 if $type eq "XPathNSResolver";
-    return 1 if $type eq "XPathResult";
 
-    return 1 if $type eq "SVGElementInstance";
-    return 1 if $type eq "SVGElementInstanceList";
-    return 1 if $type =~ /^SVGPathSeg/;
+    return 0 if $type eq "boolean";
+    return 0 if $type eq "float";
+    return 0 if $type eq "int";
+    return 0 if $type eq "Date";
+    return 0 if $type eq "DOMString";
+    return 0 if $type eq "double";
+    return 0 if $type eq "short";
+    return 0 if $type eq "long";
+    return 0 if $type eq "unsigned";
+    return 0 if $type eq "unsigned long";
+    return 0 if $type eq "unsigned short";
 
-    return 1 if $type =~ /^SVGAnimated/;
-
-    return 0;
-}
-
-sub IsVideoClassName
-{
-    my $class = shift;
-    return 1 if $class eq "V8HTMLAudioElement";
-    return 1 if $class eq "V8HTMLMediaElement";
-    return 1 if $class eq "V8HTMLSourceElement";
-    return 1 if $class eq "V8HTMLVideoElement";
-    return 1 if $class eq "V8MediaError";
-    return 1 if $class eq "V8TimeRanges";
-
-    return 0;
+    return 1;
 }
 
 sub IsWorkerClassName

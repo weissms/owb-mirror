@@ -13,6 +13,236 @@
         * Scripts/webkitpy/commands/upload.py:
         * Scripts/webkitpy/multicommandtool.py:
 
+2010-01-13  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Unreviewed. Now I can review :)
+
+        * Scripts/webkitpy/committers.py:
+
+2010-01-12  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Extend WinLauncher example with better printing features.
+
+        * WinLauncher/PrintWebUIDelegate.cpp:
+        (PrintWebUIDelegate::webViewPrintingMarginRect): Provide slightly
+         larger margins.
+        (PrintWebUIDelegate::webViewHeaderHeight): Compute header height based
+         on text metrics.
+        (PrintWebUIDelegate::webViewFooterHeight): Compute footer height based
+         on text metrics.
+        (PrintWebUIDelegate::drawHeaderInRect): Write useful header, along
+         with separating line.
+        (PrintWebUIDelegate::drawFooterInRect):
+        * WinLauncher/PrintWebUIDelegate.h: Remove stubs.
+        * WinLauncher/WinLauncher.cpp:
+        (PrintView): Correct loop used to print individual pages.
+         Previously it started at 0, which is a wild-card to print all
+         pages at once.
+
+2010-01-12  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33540
+        Make it possible to build in debug mode with assertions disabled
+
+        * DumpRenderTree/mac/ObjCController.m: (-[ObjCController accessStoredWebScriptObject]):
+
+2010-01-11  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [Chromium] "build-webkit --chromium" should run "make all" on Linux
+        https://bugs.webkit.org/show_bug.cgi?id=33500
+
+        * Scripts/webkitdirs.pm:
+
+2010-01-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        AssignToCommitter does not need to fetch bugs twice
+        https://bugs.webkit.org/show_bug.cgi?id=33530
+
+        This is a no-brainer patch now that we've added Bug.reviewed_patches
+
+        * Scripts/webkitpy/commands/upload.py:
+
+2010-01-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        bugzilla.py should have an Attachment object instead of passing around dictionaries
+        https://bugs.webkit.org/show_bug.cgi?id=31594
+
+        * Scripts/webkitpy/bugzilla.py:
+         - Add a new Attachment class, with accessor methods for all the necessary properties.
+         - Update Bug to carry a pointer back to bugzilla (attachments need to access Bugzilla for committer validation and url())
+         - Move reviewed_patches and commit_queued_patches out of Bugzilla custom methods and onto Bug
+         - Move committer validation logic into its own class.
+         - Committer rejection is only used in one place.  Make the new Bug reviewed_patches and commit_queued_patches
+           handle the common case (of returning "reviewer" or "committer" as None), and let CommitterValidation handle
+           the case where we want to reject patches in bugzilla.
+         - Simplify fetch_patches_from_commit_queue now that committer validation is simpler.
+         - Make all self.bugzilla.fetch_bug access go through BugzillaQueries._fetch_bug.
+         - Mark set_flag_on_attachment as non-private to denote that CommitterValidation depends on it.
+         - Move fetch_reviewed_patches_from_bug and fetch_commit_queue_patches_from_bug logic onto the Bug class.
+        * Scripts/webkitpy/bugzilla_unittest.py:
+         - Move test_flag_permission_rejection_message into a new CommitterValidationTest class.
+        * Scripts/webkitpy/commands/download.py:
+         - Store "bug_id" in state instead of making a fake patch object.
+         - Update to use Attachment and Bug objects.
+        * Scripts/webkitpy/commands/download_unittest.py:
+         - Update expected results now that our testing framework covers more code.
+        * Scripts/webkitpy/commands/early_warning_system.py: Update to use new Attachment class.
+        * Scripts/webkitpy/commands/queries.py: Remove unused ReviewedPatches class.
+        * Scripts/webkitpy/commands/queries_unittest.py: ditto.
+        * Scripts/webkitpy/commands/queues.py: Update to use new Attachment and CommitterValidator classes.
+        * Scripts/webkitpy/commands/queuestest.py: ditto.
+        * Scripts/webkitpy/commands/upload.py: ditto.
+        * Scripts/webkitpy/mock_bugzillatool.py:
+         - Now that more logic has moved into Attachment and Bug, we have to actually
+           provide real reviewer emails as well as real reviewer flags.
+         - Update mock methods to return Attachment objects.
+        * Scripts/webkitpy/scm.py: Update to use Attachment class.
+        * Scripts/webkitpy/scm_unittest.py: Update to use Attachment class.
+        * Scripts/webkitpy/statusserver.py: ditto.
+        * Scripts/webkitpy/steps/applypatch.py: ditto.
+        * Scripts/webkitpy/steps/applypatchwithlocalcommit.py: ditto.
+        * Scripts/webkitpy/steps/closebug.py: ditto.
+        * Scripts/webkitpy/steps/closebugforlanddiff.py: Handle either state["bug_id"] or state["patch"].bug_id()
+        * Scripts/webkitpy/steps/closepatch.py: Update to use Attachment class.
+        * Scripts/webkitpy/steps/obsoletepatches.py: ditto.
+        * Scripts/webkitpy/steps/updatechangelogswithreviewer.py: ditto.
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed typo fix.  :(
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Add "error" to the right part of the message.
+
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        EWS should show purple when svn-apply fails
+        https://bugs.webkit.org/show_bug.cgi?id=33527
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove copy/paste code from subclasses of AbstractReviewQueue
+        https://bugs.webkit.org/show_bug.cgi?id=33525
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Gustavo and Xan as gtk-ews watchers
+        https://bugs.webkit.org/show_bug.cgi?id=33519
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch shouldn't waste my time for with a component prompt
+        https://bugs.webkit.org/show_bug.cgi?id=33521
+
+        The component field isn't very useful for bugs created with
+        webkit-patch because they're likely to be resolved quickly.  Instead of
+        always prompting for a component, we should just default to the "New
+        Bugs" component.  If the bug stays around for more than five minutes,
+        we can assign it a proper component.
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-01-12  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add experimental "land-safely" command to webkit-patch
+        https://bugs.webkit.org/show_bug.cgi?id=33518
+
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/commands/upload_unittest.py:
+        * Scripts/webkitpy/steps/__init__.py:
+        * Scripts/webkitpy/steps/postdiffforcommit.py: Added.
+
+2010-01-11  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix after introduction of JS_NO_EXPORT
+        
+        * wx/build/settings.py:
+
+2010-01-11  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r53079.
+        http://trac.webkit.org/changeset/53079
+        https://bugs.webkit.org/show_bug.cgi?id=33197
+
+        Adam doens't think this actually works, and believe it caused
+        a regression https://bugs.webkit.org/show_bug.cgi?id=33488 so
+        rolling this out.
+
+        * Scripts/test-webkitpy:
+        * Scripts/webkitpy/commands/abstractdiffcommand.py: Removed.
+        * Scripts/webkitpy/commands/abstractdiffcommand_unittest.py: Removed.
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+
+2010-01-10  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        bugzilla-tool submit-patch mistakenly picks up bug URLs in non-ChangeLog files
+        https://bugs.webkit.org/show_bug.cgi?id=33197
+
+        We should just search for bug numbers in the ChangeLogs instead of in
+        the whole diff.
+ 
+        * Scripts/test-webkitpy:
+        * Scripts/webkitpy/commands/abstractdiffcommand.py: Added.
+        * Scripts/webkitpy/commands/abstractdiffcommand_unittest.py: Added.
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+
+2010-01-11  Chris Jerdonek  <chris.jerdonek@gmail.com>
+
+        Reviewed by David Kilzer.
+
+        Created a unit-tested function to parse the header block of
+        a Git or SVN diff -- for future refactoring of svn-apply and
+        svn-unapply.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33447
+
+        * Scripts/VCSUtils.pm:
+          - Added parseDiffHeader().
+          - Removed irrelevant comment from gitdiff2svndiff().
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl: Added.
+          - Added 48 unit tests for parseDiffHeader().
+
 2010-01-10  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Darin Adler.

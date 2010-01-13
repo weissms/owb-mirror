@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc. All rights reserved.
+ * Copyright (C) 2009 Google Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,30 +28,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebKitTest_h
-#define WebKitTest_h
+#include "config.h"
+#include "SocketStreamHandle.h"
 
-#include <gtest/gtest.h>
+#include "KURL.h"
+#include "Logging.h"
+#include "NotImplemented.h"
+#include "SocketStreamHandleClient.h"
 
-#include "WebKit.h"
-#include "WebKitClient.h"
+namespace WebCore {
 
-class WebKitTest : public testing::Test {
-public:
-    virtual void SetUp()
-    {
-        WebKit::initialize(&m_dummyClient);
-    }
+SocketStreamHandle::SocketStreamHandle(const KURL& url, SocketStreamHandleClient* client)
+    : SocketStreamHandleBase(url, client)
+{
+    LOG(Network, "SocketStreamHandle %p new client %p", this, m_client);
+    notImplemented();
+}
 
-    virtual void TearDown()
-    {
-        WebKit::shutdown();
-    }
+SocketStreamHandle::~SocketStreamHandle()
+{
+    LOG(Network, "SocketStreamHandle %p delete", this);
+    setClient(0);
+    notImplemented();
+}
 
-private:
-    // WebKitClient has a protected destructor, so we need to subclass.
-    class DummyClient : public WebKit::WebKitClient {};
-    DummyClient m_dummyClient;
-};
+int SocketStreamHandle::platformSend(const char*, int)
+{
+    LOG(Network, "SocketStreamHandle %p platformSend", this);
+    notImplemented();
+    return 0;
+}
 
-#endif
+void SocketStreamHandle::platformClose()
+{
+    LOG(Network, "SocketStreamHandle %p platformClose", this);
+    notImplemented();
+}
+
+void SocketStreamHandle::didReceiveAuthenticationChallenge(const AuthenticationChallenge&)
+{
+    notImplemented();
+}
+
+void SocketStreamHandle::receivedCredential(const AuthenticationChallenge&, const Credential&)
+{
+    notImplemented();
+}
+
+void SocketStreamHandle::receivedRequestToContinueWithoutCredential(const AuthenticationChallenge&)
+{
+    notImplemented();
+}
+
+void SocketStreamHandle::receivedCancellation(const AuthenticationChallenge&)
+{
+    notImplemented();
+}
+
+} // namespace WebCore

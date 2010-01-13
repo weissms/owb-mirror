@@ -634,6 +634,7 @@ BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceHandleQt.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceRequest.h
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceRequestQt.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/network/qt/ResourceResponse.h
+BAL/Network/WebCore/Qt	WebCore/platform/network/qt/SocketStreamHandleQt.cpp
 BAL/Network/WebCore/Qt	WebCore/platform/qt/CookieJarQt.cpp
 BAL/Network/WebCore/WK	WebCore/platform/CookieJar.h
 BAL/Network/WebCore/WK	WebCore/platform/Cookie.h

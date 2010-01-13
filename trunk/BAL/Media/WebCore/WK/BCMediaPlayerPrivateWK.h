@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2009, 2010 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -113,6 +113,8 @@ public:
     virtual void setAspect(MediaPlayer::VideoScale) { }
     virtual WTF::Vector<float> playSpeeds() = 0;
 #endif
+
+    virtual bool hasAvailableVideoFrame() const { return readyState() >= MediaPlayer::HaveCurrentData; }
 
     virtual bool canLoadPoster() const { return false; }
     virtual void setPoster(const String&) { }

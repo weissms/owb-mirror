@@ -986,9 +986,10 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& xPos, i
 {
     if (ancestorLayer == this)
         return;
-        
-    if (renderer()->style()->position() == FixedPosition) {
-        // Add in the offset of the view.  We can obtain this by calling
+
+    EPosition position = renderer()->style()->position();
+    if (position == FixedPosition && (!ancestorLayer || ancestorLayer == renderer()->view()->layer())) {
+        // If the fixed layer's container is the root, just add in the offset of the view. We can obtain this by calling
         // localToAbsolute() on the RenderView.
         FloatPoint absPos = renderer()->localToAbsolute(FloatPoint(), true);
         xPos += absPos.x();
@@ -997,8 +998,11 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& xPos, i
     }
  
     RenderLayer* parentLayer;
-    if (renderer()->style()->position() == AbsolutePosition) {
-        // Do what enclosingPositionedAncestor() does, but check for ancestorLayer along the way
+    // For a fixed layer, if we're asking for coords relative to some other ancestor, then it must be
+    // enclosed in a fixed position container (e.g. a transformed element), so it behaves like an absolutely
+    // positioned element.
+    if (position == AbsolutePosition || position == FixedPosition) {
+        // Do what enclosingPositionedAncestor() does, but check for ancestorLayer along the way.
         parentLayer = parent();
         bool foundAncestorFirst = false;
         while (parentLayer) {
@@ -3302,7 +3306,7 @@ void RenderLayer::repaintIncludingNonCompositingDescendants(RenderBoxModelObject
 
 bool RenderLayer::shouldBeNormalFlowOnly() const
 {
-    return (renderer()->hasOverflowClip() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isVideo()) &&
+    return (renderer()->hasOverflowClip() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isVideo() || renderer()->isEmbeddedObject()) &&
            !renderer()->isPositioned() &&
            !renderer()->isRelPositioned() &&
            !renderer()->hasTransform() &&
@@ -3311,7 +3315,7 @@ bool RenderLayer::shouldBeNormalFlowOnly() const
 
 bool RenderLayer::isSelfPaintingLayer() const
 {
-    return !isNormalFlowOnly() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isTableRow() || renderer()->isVideo();
+    return !isNormalFlowOnly() || renderer()->hasReflection() || renderer()->hasMask() || renderer()->isTableRow() || renderer()->isVideo() || renderer()->isEmbeddedObject();
 }
 
 void RenderLayer::styleChanged(StyleDifference diff, const RenderStyle*)

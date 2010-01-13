@@ -67,19 +67,18 @@ class AssignToCommitter(AbstractDeclarativeCommand):
             log("Bug %s is already assigned to %s (%s)." % (bug_id, assigned_to_email, committers.committer_by_email(assigned_to_email)))
             return
 
-        # FIXME: This should call a reviewed_patches() method on bug instead of re-fetching.
-        reviewed_patches = self.tool.bugs.fetch_reviewed_patches_from_bug(bug_id)
+        reviewed_patches = bug.reviewed_patches()
         if not reviewed_patches:
             log("Bug %s has no non-obsolete patches, ignoring." % bug_id)
             return
         latest_patch = reviewed_patches[-1]
-        attacher_email = latest_patch["attacher_email"]
+        attacher_email = latest_patch.attacher_email()
         committer = committers.committer_by_email(attacher_email)
         if not committer:
             log("Attacher %s is not a committer.  Bug %s likely needs commit-queue+." % (attacher_email, bug_id))
             return
 
-        reassign_message = "Attachment %s was posted by a committer and has review+, assigning to %s for commit." % (latest_patch["id"], committer.full_name)
+        reassign_message = "Attachment %s was posted by a committer and has review+, assigning to %s for commit." % (latest_patch.id(), committer.full_name)
         self.tool.bugs.reassign_bug(bug_id, committer.bugzilla_email(), reassign_message)
 
     def execute(self, options, args, tool):
@@ -108,6 +107,13 @@ class AbstractPatchUploadingCommand(AbstractSequencedCommand):
             bug_id = parse_bug_id(state["diff"])
         return bug_id
 
+    def _prepare_state(self, options, args, tool):
+        state = {}
+        state["bug_id"] = self._bug_id(args, tool, state)
+        if not state["bug_id"]:
+            error("No bug id passed and no bug url found in diff.")
+        return state
+
 
 class Post(AbstractPatchUploadingCommand):
     name = "post"
@@ -121,12 +127,15 @@ class Post(AbstractPatchUploadingCommand):
         steps.PostDiff,
     ]
 
-    def _prepare_state(self, options, args, tool):
-        state = {}
-        state["bug_id"] = self._bug_id(args, tool, state)
-        if not state["bug_id"]:
-            error("No bug id passed and no bug url found in diff, can't post.")
-        return state
+
+class LandSafely(AbstractPatchUploadingCommand):
+    name = "land-safely"
+    help_text = "Land the current diff via the commit-queue (Experimental)"
+    argument_names = "[BUGID]"
+    steps = [
+        steps.UpdateChangeLogsWithReviewer,
+        steps.PostDiffForCommit,
+    ]
 
 
 class Prepare(AbstractSequencedCommand):

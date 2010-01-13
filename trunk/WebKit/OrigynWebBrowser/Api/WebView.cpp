@@ -47,6 +47,9 @@
 #include "WebEditorClient.h"
 #include "WebFrame.h"
 #include "WebFrameLoadDelegate.h"
+#include "WebGeolocationControllerClient.h"
+#include "WebGeolocationPosition.h"
+#include "WebGeolocationProvider.h"
 #include "WebHistoryDelegate.h"
 #include "WebHitTestResults.h"
 #include "WebHistoryItem.h"
@@ -96,6 +99,10 @@
 #include <FrameTree.h>
 #include <FrameView.h>
 #include <Frame.h>
+#if ENABLE(CLIENT_BASED_GEOLOCATION)
+#include <GeolocationController.h>
+#include <GeolocationError.h>
+#endif
 #include <GraphicsContext.h>
 #include <HistoryItem.h>
 #include <HitTestResult.h>
@@ -323,6 +330,7 @@ WebView::WebView()
     , m_webWidgetEngineDelegate(0)
     , m_pluginHalterDelegate(0)
     , m_historyDelegate(0)
+    , m_geolocationProvider(0)
     , m_preferences(0)
     , m_userAgentOverridden(false)
     , m_useBackForwardList(true)
@@ -375,6 +383,12 @@ WebView::WebView()
     sharedPreferences->willAddToWebView();
     m_preferences = sharedPreferences;
 
+#if ENABLE(CLIENT_BASED_GEOLOCATION)
+    WebGeolocationControllerClient* geolocationControllerClient = new WebGeolocationControllerClient(this);
+#else
+    WebGeolocationControllerClient* geolocationControllerClient = 0;
+#endif
+
     m_page = new Page(new WebChromeClient(this),
                       new WebContextMenuClient(this),
                       new WebEditorClient(this),
@@ -385,7 +399,7 @@ WebView::WebView()
                       0,
 #endif
                       new WebPluginHalterClient(this),
-                      0);
+                      geolocationControllerClient);
 
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
@@ -1559,6 +1573,43 @@ void WebView::setPluginHalterDelegate(TransferSharedPtr<WebPluginHalterDelegate>
 TransferSharedPtr<WebPluginHalterDelegate> WebView::pluginHalterDelegate()
 {
     return m_pluginHalterDelegate;
+}
+
+
+void WebView::setGeolocationProvider(WebGeolocationProvider* locationProvider)
+{
+    m_geolocationProvider = locationProvider;
+}
+
+WebGeolocationProvider* WebView::geolocationProvider()
+{
+    return m_geolocationProvider;
+}
+
+void WebView::geolocationDidChangePosition(WebGeolocationPosition* position)
+{
+#if ENABLE(CLIENT_BASED_GEOLOCATION)
+    if (!m_page)
+        return;
+    m_page->geolocationController()->positionChanged(core(position));
+#endif
+}
+
+void WebView::geolocationDidFailWithError(WebError* error)
+{
+#if ENABLE(CLIENT_BASED_GEOLOCATION)
+    if (!m_page)
+        return;
+    if (!error)
+        return;
+
+    const char* description = error->localizedDescription();
+    if (!description)
+        return;
+
+    RefPtr<GeolocationError> geolocationError = GeolocationError::create(GeolocationError::PositionUnavailable, description);
+    m_page->geolocationController()->errorOccurred(geolocationError.get());
+#endif
 }
 
 WebFrame* WebView::mainFrame()

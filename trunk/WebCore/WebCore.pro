@@ -9,6 +9,15 @@ symbian: {
 
     webkitlibs.sources = QtWebKit.dll
     webkitlibs.path = /sys/bin
+    vendorinfo = \
+        "; Localised Vendor name" \
+        "%{\"Nokia, Qt\"}" \
+        " " \
+        "; Unique Vendor name" \
+        ":\"Nokia, Qt\"" \
+        " "
+    webkitlibs.pkg_prerules = vendorinfo
+
     DEPLOYMENT += webkitlibs
 
     TARGET.UID3 = 0x200267C2
@@ -2938,8 +2947,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         bindings/js/JSSVGMatrixCustom.cpp \
         bindings/js/JSSVGPathSegCustom.cpp \
         bindings/js/JSSVGPathSegListCustom.cpp \
-        bindings/js/JSSVGPointListCustom.cpp \
-        bindings/js/JSSVGTransformListCustom.cpp \
         css/SVGCSSComputedStyleDeclaration.cpp \
         css/SVGCSSParser.cpp \
         css/SVGCSSStyleSelector.cpp \
@@ -3224,7 +3231,7 @@ SOURCES += \
     websockets/WebSocketHandshake.cpp \
     platform/network/SocketStreamErrorBase.cpp \
     platform/network/SocketStreamHandleBase.cpp \
-    platform/network/qt/SocketStreamHandleSoup.cpp \
+    platform/network/qt/SocketStreamHandleQt.cpp \
     bindings/js/JSWebSocketCustom.cpp \
     bindings/js/JSWebSocketConstructor.cpp
 
