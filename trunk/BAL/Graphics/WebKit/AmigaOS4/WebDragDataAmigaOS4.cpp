@@ -29,11 +29,12 @@
 
 #include "config.h"
 #include "WebDragData.h"
+#include "WebDragData_p.h"
 #include "DragData.h"
 
 using namespace std;
 
-DragDataRef WebDragData::platformDragData()
+WebDragDataPrivate* WebDragData::platformDragData()
 {
     return 0;
 }
