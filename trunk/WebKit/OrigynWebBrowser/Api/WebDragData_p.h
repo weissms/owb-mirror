@@ -31,6 +31,7 @@
 
 #include "WebKitTypes.h"
 #include "BALBase.h"
+#include "DragData.h"
 #include <string>
 #include <vector>
 
