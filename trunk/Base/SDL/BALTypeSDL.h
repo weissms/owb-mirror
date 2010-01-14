@@ -61,7 +61,9 @@ typedef struct _BalMatrix{double m11; double m12; double m13; double m14;
 typedef SDL_Surface PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
 typedef void* PlatformPatternPtr;
-class DataObject;
+namespace WebCore {
+    class DataObject;
+}
 typedef DataObject* DragDataRef;
 
 namespace WebCore {

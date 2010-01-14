@@ -46,7 +46,9 @@ typedef SDL_Surface BalMenu;
 typedef void BalMenuItem;
 typedef void BalClipboard;
 typedef void BalTargetList;
-class DataObject;
+namespace WebCore {
+    class DataObject;
+}
 typedef DataObject* DragDataRef;
 
 namespace WebCore {
