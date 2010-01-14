@@ -33,7 +33,7 @@
 
 using namespace std;
 
-DragDataRef platformDragData()
+DragDataRef WebDragData::platformDragData()
 {
     return 0;
 }
