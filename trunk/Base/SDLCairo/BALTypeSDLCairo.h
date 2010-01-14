@@ -46,6 +46,8 @@ typedef SDL_Surface BalMenu;
 typedef void BalMenuItem;
 typedef void BalClipboard;
 typedef void BalTargetList;
+class DataObject;
+typedef DataObject* DragDataRef;
 
 namespace WebCore {
     struct CairoPath;
@@ -57,8 +59,6 @@ namespace WebCore {
     typedef SDL_Cursor* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* PlatformCursorHandle;
-    class DataObject;
-    typedef DataObject* DragDataRef;
 }
 
 #endif

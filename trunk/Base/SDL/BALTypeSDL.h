@@ -61,6 +61,8 @@ typedef struct _BalMatrix{double m11; double m12; double m13; double m14;
 typedef SDL_Surface PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
 typedef void* PlatformPatternPtr;
+class DataObject;
+typedef DataObject* DragDataRef;
 
 namespace WebCore {
     typedef void* PlatformGradient;
@@ -68,8 +70,6 @@ namespace WebCore {
     typedef void* PlatformPath;
     typedef SDL_Cursor* PlatformCursor;
     typedef void* DragImageRef;
-    class DataObject;
-    typedef DataObject* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;
     typedef WebCore::FloatSize GlyphBufferAdvance;
     typedef void* PlatformCursorHandle;
