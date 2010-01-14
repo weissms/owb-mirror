@@ -49,7 +49,7 @@ typedef void BalTargetList;
 namespace WebCore {
     class DataObject;
 }
-typedef DataObject* DragDataRef;
+typedef WebCore::DataObject* DragDataRef;
 
 namespace WebCore {
     struct CairoPath;

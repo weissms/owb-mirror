@@ -64,7 +64,7 @@ typedef void* PlatformPatternPtr;
 namespace WebCore {
     class DataObject;
 }
-typedef DataObject* DragDataRef;
+typedef WebCore::DataObject* DragDataRef;
 
 namespace WebCore {
     typedef void* PlatformGradient;
