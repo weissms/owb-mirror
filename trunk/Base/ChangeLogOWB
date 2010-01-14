@@ -1,3 +1,10 @@
+2010-01-14  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix some tests in Editing.
+
+        * SDL/BALTypeSDL.h:
+        * SDLCairo/BALTypeSDLCairo.h:
+
 2009-12-20  Mario Bensi  <mbensi@pleyo.com>
 
         Add BalSurface in WebKitTypes.

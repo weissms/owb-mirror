@@ -122,3 +122,8 @@ void removeTimer()
 {
     g_source_remove(waitToDumpWatchdog);
 }
+
+void getBalPoint(int x, int y, BalPoint* point)
+{
+    
+}

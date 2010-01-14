@@ -297,6 +297,8 @@ bool WebViewPrivate::onMouseMotion(BalEventMotion event)
     Frame* frame = core(m_webView->mainFrame());
     if (!frame)
         return false;
+
+    m_clickCount = 0;
     return frame->eventHandler()->mouseMoved(PlatformMouseEvent(&event));
 }
 

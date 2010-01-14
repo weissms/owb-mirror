@@ -50,31 +50,117 @@ using namespace WebCore;
 using namespace HTMLNames;
 
 
-class WebUndoCommand {
+class WebEditorUndoCommand
+{
 public:
-    WebUndoCommand() {}
-    virtual ~WebUndoCommand() {}
-    virtual void execute() = 0;
+    WebEditorUndoCommand(PassRefPtr<EditCommand> editCommand, bool isUndo);
+    void execute();
+    bool isUndo() { return m_isUndo; }
+
+private:
+    RefPtr<EditCommand> m_editCommand;
+    bool m_isUndo;
 };
+
+WebEditorUndoCommand::WebEditorUndoCommand(PassRefPtr<EditCommand> editCommand, bool isUndo)
+    : m_editCommand(editCommand)
+    , m_isUndo(isUndo) 
+{ 
+}
+
+void WebEditorUndoCommand::execute()
+{
+    if (m_isUndo)
+        m_editCommand->unapply();
+    else
+        m_editCommand->reapply();
+}
 
 class WebEditorUndoTarget
 {
 public:
     WebEditorUndoTarget();
-    virtual ~WebEditorUndoTarget() {}
-    virtual void invoke(String actionName, WebUndoCommand *obj);
+    ~WebEditorUndoTarget();
+    void invoke(String actionName, WebEditorUndoCommand* obj);
+    void append(String actionName, WebEditorUndoCommand* obj);
+    void clear();
+    bool canUndo();
+    bool canRedo();
+    void undo();
+    void redo();
 
+private:
+    Vector<WebEditorUndoCommand*> m_undoCommandList;
+    Vector<String> m_actionName;
 };
 
 WebEditorUndoTarget::WebEditorUndoTarget()
 {
 }
 
+WebEditorUndoTarget::~WebEditorUndoTarget()
+{
+    clear();
+}
 
-void WebEditorUndoTarget::invoke(String actionName, WebUndoCommand *undoCommand)
+void WebEditorUndoTarget::invoke(String actionName, WebEditorUndoCommand *undoCommand)
 {
     if(undoCommand) {
         undoCommand->execute();
+    }
+}
+
+
+void WebEditorUndoTarget::append(String actionName, WebEditorUndoCommand *undoCommand)
+{
+    m_undoCommandList.append(undoCommand);
+    m_actionName.append(actionName);
+}
+
+void WebEditorUndoTarget::clear()
+{
+    m_undoCommandList.clear();
+    m_actionName.clear();
+}
+
+bool WebEditorUndoTarget::canUndo()
+{
+    for (unsigned i = 0; i < m_undoCommandList.size(); ++i) {
+        if (m_undoCommandList[i]->isUndo())
+            return true;
+    }
+    return false;
+}
+
+bool WebEditorUndoTarget::canRedo()
+{
+    for (unsigned i = 0; i < m_undoCommandList.size(); ++i) {
+        if (!m_undoCommandList[i]->isUndo())
+            return true;
+    }
+    return false;
+}
+
+
+void WebEditorUndoTarget::undo()
+{
+    for (int i = m_undoCommandList.size() - 1; i >= 0; --i) {
+        if (m_undoCommandList[i]->isUndo()) {
+            m_undoCommandList[i]->execute();
+            m_undoCommandList.remove(i);
+            return;
+        }
+    }
+}
+
+void WebEditorUndoTarget::redo()
+{
+    for (int i = m_undoCommandList.size() - 1; i >= 0; --i) {
+        if (!m_undoCommandList[i]->isUndo()) {
+            m_undoCommandList[i]->execute();
+            m_undoCommandList.remove(i);
+            return;
+        }
     }
 }
 
@@ -255,7 +341,9 @@ bool WebEditorClient::shouldApplyStyle(CSSStyleDeclaration* style, Range* toElem
 }
 
 bool WebEditorClient::shouldMoveRangeAfterDelete(Range* /*range*/, Range* /*rangeToBeReplaced*/)
-{ notImplemented(); return true; }
+{ 
+    notImplemented(); return true; 
+}
 
 bool WebEditorClient::shouldChangeTypingStyle(CSSStyleDeclaration* currentStyle, CSSStyleDeclaration* toProposedStyle)
 {
@@ -286,10 +374,13 @@ void WebEditorClient::webViewDidChangeSelection(WebNotification* /*notification*
 }
 
 bool WebEditorClient::shouldShowDeleteInterface(HTMLElement* /*element*/)
-{ notImplemented(); return false; }
+{
+    notImplemented(); 
+    return false; 
+}
 
 bool WebEditorClient::smartInsertDeleteEnabled(void)
-{ 
+{
     return m_webView->smartInsertDeleteEnabled();
 }
 
@@ -417,33 +508,9 @@ void WebEditorClient::textDidChangeInTextArea(Element* e)
     }*/
 }
 
-class WebEditorUndoCommand : public WebUndoCommand
-{
-public:
-    WebEditorUndoCommand(PassRefPtr<EditCommand> editCommand, bool isUndo);
-    void execute();
-
-private:
-    RefPtr<EditCommand> m_editCommand;
-    bool m_isUndo;
-};
-
-WebEditorUndoCommand::WebEditorUndoCommand(PassRefPtr<EditCommand> editCommand, bool isUndo)
-    : m_editCommand(editCommand)
-    , m_isUndo(isUndo) 
-{ 
-}
-
-void WebEditorUndoCommand::execute()
-{
-    if (m_isUndo)
-        m_editCommand->unapply();
-    else
-        m_editCommand->reapply();
-}
 
 
-/*static String undoNameForEditAction(EditAction editAction)
+static String undoNameForEditAction(EditAction editAction)
 {
     switch (editAction) {
         case EditActionUnspecified: return "";
@@ -485,89 +552,49 @@ void WebEditorUndoCommand::execute()
         case EditActionOutdent: return "Outdent";
     }
     return String();
-}*/
+}
 
 void WebEditorClient::registerCommandForUndo(PassRefPtr<EditCommand> command)
 {
-    /*IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        LPCTSTR actionName = undoNameForEditAction(command->editingAction());
-        WebEditorUndoCommand* undoCommand = new WebEditorUndoCommand(command, true);
-        if (!undoCommand)
-            return;
-        uiDelegate->registerUndoWithTarget(m_undoTarget, 0, undoCommand);
-        undoCommand->Release(); // the undo manager owns the reference
-        BSTR actionNameBSTR = SysAllocString(actionName);
-        if (actionNameBSTR) {
-            uiDelegate->setActionTitle(actionNameBSTR);
-            SysFreeString(actionNameBSTR);
-        }
-        uiDelegate->Release();
-    }*/
+    String actionName = undoNameForEditAction(command->editingAction());
+    WebEditorUndoCommand* undoCommand = new WebEditorUndoCommand(command, true);
+    if (!undoCommand)
+        return;
+    m_undoTarget->append(actionName, undoCommand);
 }
 
 void WebEditorClient::registerCommandForRedo(PassRefPtr<EditCommand> command)
 {
-    /*IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        WebEditorUndoCommand* undoCommand = new WebEditorUndoCommand(command, false);
-        if (!undoCommand)
-            return;
-        uiDelegate->registerUndoWithTarget(m_undoTarget, 0, undoCommand);
-        undoCommand->Release(); // the undo manager owns the reference
-        uiDelegate->Release();
-    }*/
+    String actionName = undoNameForEditAction(command->editingAction());
+    WebEditorUndoCommand* undoCommand = new WebEditorUndoCommand(command, false);
+    if (!undoCommand)
+        return;
+    m_undoTarget->append(actionName, undoCommand);
 }
 
 void WebEditorClient::clearUndoRedoOperations()
 {
-    /*IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        uiDelegate->removeAllActionsWithTarget(m_undoTarget);
-        uiDelegate->Release();
-    }*/
+    m_undoTarget->clear();
 }
 
 bool WebEditorClient::canUndo() const
 {
-    /*BOOL result = FALSE;
-    IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        uiDelegate->canUndo(&result);
-        uiDelegate->Release();
-    }
-    return !!result;*/
-    return false;
+    return m_undoTarget->canUndo();
 }
 
 bool WebEditorClient::canRedo() const
 {
-    /*BOOL result = FALSE;
-    IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        uiDelegate->canRedo(&result);
-        uiDelegate->Release();
-    }
-    return !!result;*/
-    return false;
+    return m_undoTarget->canRedo();
 }
 
 void WebEditorClient::undo()
-{
-    /*IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        uiDelegate->undo();
-        uiDelegate->Release();
-    }*/
+{   
+    m_undoTarget->undo();
 }
 
 void WebEditorClient::redo()
 {
-    /*IWebUIDelegate* uiDelegate = 0;
-    if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        uiDelegate->redo();
-        uiDelegate->Release();
-    }*/
+    m_undoTarget->redo();
 }
 
 void WebEditorClient::handleKeyboardEvent(KeyboardEvent* evt)
@@ -723,5 +750,5 @@ void WebEditorClient::getGuessesForWord(const String& word, Vector<String>& gues
 
 void WebEditorClient::setInputMethodState(bool enabled)
 {
-    //m_webView->setInputMethodState(enabled);
+    m_webView->setInputMethodState(enabled);
 }

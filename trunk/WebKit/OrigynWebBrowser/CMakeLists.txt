@@ -1,3 +1,4 @@
+include(${OWB_SOURCE_DIR}/BAL/Graphics/WebKit/CMakeLists.txt)
 include(${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/CMakeLists.txt)
 
 if(ENABLE_CEHTML)

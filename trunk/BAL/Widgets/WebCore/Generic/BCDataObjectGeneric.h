@@ -26,53 +26,55 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BALType_h
-#define BALType_h
+#ifndef DataObject_h
+#define DataObject_h
 
-struct SDL_Surface;
-struct SDL_Color;
-struct SDL_Cursor;
-struct FT_FaceRec_;
-struct _FcPattern;
-
-namespace WebCore {
-    class FloatSize;
-}
-
-typedef FT_FaceRec_ BalFontFace;
-typedef void BalFont;
-typedef struct _FcPattern BalPattern;
-typedef void BalScaledFont;
-typedef void BalDrawable;
-typedef void BalMenuItem;
-typedef SDL_Surface BalMenu;
-typedef void BalClipboard;
-typedef void BalTargetList;
-typedef void BalAdjustment;
-typedef void BalContainer;
-typedef void BalPixbuf;
-typedef SDL_Color BalColor;
-typedef struct _BalMatrix{double m11; double m12; double m13; double m14;
-                          double m21; double m22; double m23; double m24;
-                          double m31; double m32; double m33; double m34;
-                          double m41; double m42; double m43; double m44;} BalMatrix;
-
-
-typedef SDL_Surface PlatformGraphicsContext;
-typedef BalWidget* PlatformWidget;
-typedef void* PlatformPatternPtr;
+#include "KURL.h"
+#include "PlatformString.h"
+#include <wtf/RefPtr.h>
+#include <wtf/Vector.h>
 
 namespace WebCore {
-    typedef void* PlatformGradient;
-    typedef BalSurface* NativeImagePtr;
-    typedef void* PlatformPath;
-    typedef SDL_Cursor* PlatformCursor;
-    typedef void* DragImageRef;
-    class DataObject;
-    typedef DataObject* DragDataRef;
-    typedef unsigned short GlyphBufferGlyph;
-    typedef WebCore::FloatSize GlyphBufferAdvance;
-    typedef void* PlatformCursorHandle;
-}
+
+    // A data object for holding data that would be in a clipboard or moved
+    // during a drag-n-drop operation.  This is the data that WebCore is aware
+    // of and is not specific to a platform.
+    class DataObject : public RefCounted<DataObject> {
+    public:
+        static PassRefPtr<DataObject> create()
+        {
+            return adoptRef(new DataObject);
+        }
+
+        PassRefPtr<DataObject> copy() const
+        {
+            return adoptRef(new DataObject(*this));
+        }
+
+        void clear();
+        bool hasData() const;
+
+        KURL url;
+        String urlTitle;
+
+        KURL downloadURL;
+
+        String fileExtension;
+        Vector<String> filenames;
+
+        String plainText;
+
+        String textHtml;
+        KURL htmlBaseUrl;
+
+        String fileContentFilename;
+        RefPtr<SharedBuffer> fileContent;
+
+    private:
+        DataObject() {}
+        DataObject(const DataObject&);
+    };
+
+} // namespace WebCore
 
 #endif

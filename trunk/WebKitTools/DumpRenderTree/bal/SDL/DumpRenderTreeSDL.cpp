@@ -339,3 +339,10 @@ void removeTimer()
     timer_delete(waitToDumpWatchdog);
     memset(&waitToDumpWatchdog, 0, sizeof(timer_t));
 }
+
+
+void getBalPoint(int x, int y, BalPoint* point)
+{
+    point->x = x;
+    point->y = y;
+}

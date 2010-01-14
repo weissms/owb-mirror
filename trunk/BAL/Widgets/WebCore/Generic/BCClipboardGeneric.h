@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,51 +27,64 @@
  */
 
 
-#ifndef ClipboardGeneric_h
-#define ClipboardGeneric_h
+#ifndef ClipboardBal_h
+#define ClipboardBal_h
 
 #include "Clipboard.h"
-#include "BALBase.h"
+
+#include "CachedResourceClient.h"
 
 namespace WebCore {
 
     class CachedImage;
-    class FileList;
+    class DataObject;
+    class IntPoint;
 
-    // State available during IE's events for drag and drop and copy/paste
-    // Created from the EventHandlerGtk to be used by the dom
-    class ClipboardBal : public Clipboard {
+    class ClipboardBal : public Clipboard, public CachedResourceClient {
     public:
-        static PassRefPtr<ClipboardBal> create(ClipboardAccessPolicy policy, bool isForDragging)
-        {
-            return adoptRef(new ClipboardBal(policy, isForDragging));
-        }
-        virtual ~ClipboardBal();
+        ~ClipboardBal() {}
 
+        static PassRefPtr<ClipboardBal> create(
+            bool isForDragging, PassRefPtr<DataObject>, ClipboardAccessPolicy);
 
-        void clearData(const String&);
+        // Returns the file name (not including the extension). This removes any
+        // invalid file system characters as well as making sure the
+        // path + extension is not bigger than allowed by the file system.
+        // This may change the file extension in dataObject.
+        static String validateFileName(const String& title, DataObject* dataObject);
+
+        virtual void clearData(const String& type);
         void clearAllData();
-        String getData(const String&, bool&) const;
-        bool setData(const String&, const String&);
+        String getData(const String& type, bool& success) const;
+        bool setData(const String& type, const String& data);
 
-        HashSet<String> types() const;
+        // extensions beyond IE's API
+        virtual HashSet<String> types() const;
         virtual PassRefPtr<FileList> files() const;
 
-        IntPoint dragLocation() const;
-        CachedImage* dragImage() const;
         void setDragImage(CachedImage*, const IntPoint&);
-        Node* dragImageElement();
         void setDragImageElement(Node*, const IntPoint&);
 
-        virtual DragImageRef createDragImage(IntPoint&) const;
-        virtual void declareAndWriteDragImage(Element*, const KURL&, const String&, Frame*);
+        PassRefPtr<DataObject> dataObject()
+        {
+            return m_dataObject;
+        }
+
+        virtual DragImageRef createDragImage(IntPoint& dragLoc) const;
+        virtual void declareAndWriteDragImage(Element*, const KURL&, const String& title, Frame*);
         virtual void writeURL(const KURL&, const String&, Frame*);
         virtual void writeRange(Range*, Frame*);
 
         virtual bool hasData();
-    private:
-        ClipboardBal(ClipboardAccessPolicy, bool);
-    };
-}
 
-#endif
+    private:
+        ClipboardBal(bool, PassRefPtr<DataObject>, ClipboardAccessPolicy);
+
+        void resetFromClipboard();
+        void setDragImage(CachedImage*, Node*, const IntPoint&);
+        RefPtr<DataObject> m_dataObject;
+    };
+
+} // namespace WebCore
+
+#endif // ClipboardBal_h

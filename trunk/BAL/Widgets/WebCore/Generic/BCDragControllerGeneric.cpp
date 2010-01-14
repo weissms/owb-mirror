@@ -55,17 +55,13 @@ bool DragController::isCopyKeyDown()
 
 DragOperation DragController::dragOperation(DragData* dragData)
 {
-    //FIXME: This logic is incomplete
-     if (dragData->containsURL())
-        return DragOperationCopy;
-
-   return DragOperationNone;
+     ASSERT(dragData);
+     return dragData->containsURL() && !m_didInitiateDrag ? DragOperationCopy : DragOperationNone;
 }
 
 const IntSize& DragController::maxDragImageSize()
 {
-    static const IntSize maxDragImageSize(400, 400);
-
+    static const IntSize maxDragImageSize(200, 200);
     return maxDragImageSize;
 }
 

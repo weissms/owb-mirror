@@ -69,14 +69,11 @@ WebDragClient::~WebDragClient()
 
 DragDestinationAction WebDragClient::actionMaskForDrag(DragData* dragData)
 {
-    //COMPtr<IWebUIDelegate> delegateRef = 0;
-    //Default behaviour (eg. no delegate, or callback not implemented) is to allow
-    //any action
-    WebDragDestinationAction mask = WebDragDestinationActionAny;
-    /*if (SUCCEEDED(m_webView->uiDelegate(&delegateRef)))
-        delegateRef->dragDestinationActionMaskForDraggingInfo(m_webView, dragData->platformData(), &mask);*/
+    //if (m_webView->client() && m_webView->client()->acceptsLoadDrops())
+        return DragDestinationActionAny;
 
-    return (DragDestinationAction)mask;
+    /*return static_cast<DragDestinationAction>(
+        DragDestinationActionDHTML | DragDestinationActionEdit);*/
 }
 
 void WebDragClient::willPerformDragDestinationAction(DragDestinationAction action, DragData* dragData)
@@ -90,12 +87,7 @@ void WebDragClient::willPerformDragDestinationAction(DragDestinationAction actio
 
 DragSourceAction WebDragClient::dragSourceActionMaskForPoint(const IntPoint& windowPoint)
 {
-   //COMPtr<IWebUIDelegate> delegateRef = 0;
-   WebDragSourceAction action = WebDragSourceActionAny;
-   /*POINT localpt = core(m_webView)->mainFrame()->view()->windowToContents(windowPoint);
-   if (SUCCEEDED(m_webView->uiDelegate(&delegateRef)))
-       delegateRef->dragSourceActionMaskForPoint(m_webView, &localpt, &action);*/
-   return (DragSourceAction)action;
+    return DragSourceActionAny;
 }
 
 void WebDragClient::willPerformDragSourceAction(DragSourceAction, const IntPoint&, Clipboard*)
@@ -106,9 +98,16 @@ void WebDragClient::willPerformDragSourceAction(DragSourceAction, const IntPoint
 
 void WebDragClient::startDrag(DragImageRef image, const IntPoint& imageOrigin, const IntPoint& dragPoint, Clipboard* clipboard, Frame* frame, bool isLink)
 {
-    //FIXME: Allow UIDelegate to override behaviour <rdar://problem/5015953>
+    RefPtr<Frame> frameProtector = frame;
 
-    //We liberally protect everything, to protect against a load occurring mid-drag
+    //WebDragData dragData = static_cast<ClipboardBal*>(clipboard)->dataObject();
+
+    /*DragOperation dragOperationMask;
+    if (!clipboard->sourceOperation(dragOperationMask))
+        dragOperationMask = DragOperationEvery;*/
+
+    //m_webView->startDragging(eventPos, dragData, static_cast<WebDragOperationsMask>(dragOperationMask)); 
+
     /*RefPtr<Frame> frameProtector = frame;
     COMPtr<IDragSourceHelper> helper;
     COMPtr<IDataObject> dataObject;

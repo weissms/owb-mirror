@@ -54,4 +54,6 @@ void setDone(bool);
 
 extern std::string dumpPath(DOMNode* node);
 
+void getBalPoint(int x, int y, BalPoint* point);
+
 #endif // DumpRenderTreeGtk_h

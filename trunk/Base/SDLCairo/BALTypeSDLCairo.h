@@ -33,7 +33,6 @@
 #include "cairo.h"
 
 typedef BalWidget* PlatformWidget;
-typedef void* DragDataRef;
 typedef SDL_Color BalColor;
 typedef cairo_matrix_t BalMatrix;
 typedef cairo_surface_t* NativeImagePtr;
@@ -58,6 +57,8 @@ namespace WebCore {
     typedef SDL_Cursor* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* PlatformCursorHandle;
+    class DataObject;
+    typedef DataObject* DragDataRef;
 }
 
 #endif

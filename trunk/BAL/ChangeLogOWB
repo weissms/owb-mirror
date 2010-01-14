@@ -1,3 +1,98 @@
+2010-01-14  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix some tests in Editing.
+
+        * Events/WebCore/Generic/BCEventHandlerGeneric.cpp:
+        (WebCore::EventHandler::createDraggingClipboard):
+        * Events/WebCore/SDL/BCEventHandlerSDL.cpp:
+        (WebCore::EventHandler::createDraggingClipboard):
+        * Graphics/WebCore/Generic/BCDragDataGeneric.cpp:
+        (WebCore::DirectoryExists):
+        (WebCore::DragData::createClipboard):
+        (WebCore::DragData::containsURL):
+        (WebCore::DragData::asURL):
+        (WebCore::DragData::containsFiles):
+        (WebCore::DragData::asFilenames):
+        (WebCore::DragData::containsPlainText):
+        (WebCore::DragData::asPlainText):
+        (WebCore::DragData::containsColor):
+        (WebCore::DragData::asColor):
+        (WebCore::DragData::canSmartReplace):
+        (WebCore::DragData::containsCompatibleContent):
+        (WebCore::DragData::asFragment):
+        * Graphics/WebCore/Generic/BCDragDataGeneric.h: Added.
+        (WebCore::DragData::clientPosition):
+        (WebCore::DragData::globalPosition):
+        (WebCore::DragData::platformData):
+        (WebCore::DragData::draggingSourceOperationMask):
+        * Graphics/WebKit: Added.
+        * Graphics/WebKit/AmigaOS4: Added.
+        * Graphics/WebKit/AmigaOS4/WebDragDataAmigaOS4.cpp: Added.
+        (platformDragData):
+        * Graphics/WebKit/CMakeLists.txt: Added.
+        * Graphics/WebKit/Generic: Added.
+        * Graphics/WebKit/Generic/WebDragDataGeneric.cpp: Added.
+        (WebDragData::platformDragData):
+        * Graphics/WebKit/Gtk: Added.
+        * Graphics/WebKit/Gtk/WebDragDataGtk.cpp: Added.
+        (platformDragData):
+        * Graphics/WebKit/Qt: Added.
+        * Graphics/WebKit/Qt/WebDragDataQt.cpp: Added.
+        (platformDragData):
+        * Widgets/WebCore/Generic/BCClipboardGeneric.cpp:
+        (WebCore::Editor::newGeneralClipboard):
+        (WebCore::):
+        (WebCore::clipboardTypeFromMIMEType):
+        (WebCore::ClipboardBal::ClipboardBal):
+        (WebCore::ClipboardBal::create):
+        (WebCore::ClipboardBal::clearData):
+        (WebCore::ClipboardBal::clearAllData):
+        (WebCore::ClipboardBal::getData):
+        (WebCore::ClipboardBal::setData):
+        (WebCore::ClipboardBal::types):
+        (WebCore::ClipboardBal::files):
+        (WebCore::ClipboardBal::setDragImage):
+        (WebCore::ClipboardBal::setDragImageElement):
+        (WebCore::ClipboardBal::createDragImage):
+        (WebCore::imageToMarkup):
+        (WebCore::getCachedImage):
+        (WebCore::writeImageToDataObject):
+        (WebCore::ClipboardBal::declareAndWriteDragImage):
+        (WebCore::urlToMarkup):
+        (WebCore::replaceNBSPWithSpace):
+        (WebCore::ClipboardBal::writeURL):
+        (WebCore::ClipboardBal::writeRange):
+        (WebCore::ClipboardBal::hasData):
+        * Widgets/WebCore/Generic/BCClipboardGeneric.h:
+        (WebCore::ClipboardBal::~ClipboardBal):
+        (WebCore::ClipboardBal::dataObject):
+        * Widgets/WebCore/Generic/BCDataObjectGeneric.cpp: Added.
+        (WebCore::DataObject::clear):
+        (WebCore::DataObject::hasData):
+        (WebCore::DataObject::DataObject):
+        * Widgets/WebCore/Generic/BCDataObjectGeneric.h: Added.
+        (WebCore::DataObject::create):
+        (WebCore::DataObject::copy):
+        (WebCore::DataObject::DataObject):
+        * Widgets/WebCore/Generic/BCDragControllerGeneric.cpp:
+        (WebCore::DragController::dragOperation):
+        (WebCore::DragController::maxDragImageSize):
+        * Widgets/WebCore/Generic/BCPasteboardGeneric.cpp:
+        (WebCore::PasteboardSelectionData::PasteboardSelectionData):
+        (WebCore::PasteboardSelectionData::~PasteboardSelectionData):
+        (WebCore::PasteboardSelectionData::clear):
+        (WebCore::Pasteboard::Pasteboard):
+        (WebCore::replacePasteboardNBSPWithSpace):
+        (WebCore::Pasteboard::writeSelection):
+        (WebCore::Pasteboard::writePlainText):
+        (WebCore::Pasteboard::writeURL):
+        (WebCore::Pasteboard::writeImage):
+        (WebCore::Pasteboard::clear):
+        (WebCore::Pasteboard::documentFragment):
+        (WebCore::Pasteboard::plainText):
+        * Widgets/WebKit/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onMouseMotion):
+
 2010-01-08  Mario Bensi  <mbensi@pleyo.com>
 
         Fix plugin gtk network stream

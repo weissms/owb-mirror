@@ -97,7 +97,9 @@ void EventSenderController::dispatchMouseButton(BalEventButton eb)
 
 static SDLKey ConvertKeycodeToSDLKey(const int keycode)
 {
+    //printf("ConvertKeycodeToSDLKey %d %d\n", keycode, SDLK_DELETE);
     switch (keycode) {
+        case 8:
         case 127:
             return SDLK_BACKSPACE; // (08) BACKSPACE key
         case 9:
@@ -286,13 +288,13 @@ void EventSenderController::dispatchKeyboardEvent(BalEventKey ek)
 #endif
 }
 
-int EventSenderController::getCharCode(char *code)
+int EventSenderController::getCharCode(char* code)
 {
     if (!strcmp(code, "leftArrow"))
         return 52;
     else if (!strcmp(code, "rightArrow"))
         return 54;
-    else if (strcmp(code, "upArrow"))
+    else if (!strcmp(code, "upArrow"))
         return 56;
     else if (!strcmp(code, "downArrow"))
         return 50;
@@ -305,6 +307,6 @@ int EventSenderController::getCharCode(char *code)
     else if (!strcmp(code, "end"))
         return SDLK_END;
     else if (!strcmp(code, "delete"))
-        return SDLK_DELETE;
+        return SDLK_BACKSPACE;
     return 0;    
 }

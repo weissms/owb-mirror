@@ -1,3 +1,28 @@
+2010-01-14  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix some tests in Editing.
+
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/EventSender.cpp:
+        (mouseUpCallback):
+        (mouseMoveToCallback):
+        (keyDownCallback):
+        (beginDragWithFilesCallback):
+        (EventSenderController::getJSClass):
+        (EventSenderController::EventSenderController):
+        (EventSenderController::~EventSenderController):
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::isCommandEnabled):
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (getBalPoint):
+        * DumpRenderTree/bal/SDL/EventSenderSDL.cpp:
+        (ConvertKeycodeToSDLKey):
+        (EventSenderController::getCharCode):
+        * DumpRenderTree/bal/gtk/DumpRenderTreeGtk.cpp:
+        (getBalPoint):
+        * DumpRenderTree/bal/qt/DumpRenderTreeQt.cpp:
+        (getBalPoint):
+
 2010-01-12  Olivier DOLE  <odole@pleyo.com>
 
         DumpRenderTree fix when cross compiling.

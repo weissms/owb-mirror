@@ -41,7 +41,10 @@
 #include "Range.h"
 #include "RenderImage.h"
 
-#include <cstdio>
+#if ENABLE(SVG)
+#include "SVGNames.h"
+#include "XLinkNames.h"
+#endif
 
 namespace WebCore {
 
@@ -54,21 +57,30 @@ typedef enum
 
 class PasteboardSelectionData {
 public:
-    PasteboardSelectionData(char* text, char* markup)
-        : m_text(text)
-        , m_markup(markup) { }
-
-    ~PasteboardSelectionData() {
-        free(m_text);
-        free(m_markup);
+    PasteboardSelectionData() 
+    : m_text("")
+    , m_markup("")
+    , m_title("")
+    , m_image(0)
+    {
     }
 
-    const char* text() const { return m_text; }
-    const char* markup() const { return m_markup; }
+    ~PasteboardSelectionData() {
+    }
 
-private:
-    char* m_text;
-    char* m_markup;
+    void clear() {
+        m_text = "";
+        m_markup = "";
+        m_url = KURL();
+        m_title = "";
+        m_image = 0;
+    }
+
+    String m_text;
+    String m_markup;
+    KURL m_url;
+    String m_title;
+    NativeImagePtr m_image;
 };
 
 Pasteboard* Pasteboard::generalPasteboard()
@@ -78,7 +90,7 @@ Pasteboard* Pasteboard::generalPasteboard()
 }
 
 Pasteboard::Pasteboard()
-: m_data(0)
+: m_data(new PasteboardSelectionData())
 {
     notImplemented();
 }
@@ -88,32 +100,72 @@ Pasteboard::~Pasteboard()
     delete m_data;
 }
 
+void replacePasteboardNBSPWithSpace(String& str)
+{
+    static const UChar NonBreakingSpaceCharacter = 0xA0;
+    static const UChar SpaceCharacter = ' ';
+    str.replace(NonBreakingSpaceCharacter, SpaceCharacter);
+}
+
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
-    char* text = strdup(frame->selectedText().utf8().data());
-    char* markup = strdup(createMarkup(selectedRange, 0, AnnotateForInterchange).utf8().data());
-    if (m_data)
-        delete m_data;
-    m_data = new PasteboardSelectionData(text, markup);
+    m_data->m_text = frame->selectedText();
+    m_data->m_markup = createMarkup(selectedRange, 0, AnnotateForInterchange);
+    ExceptionCode ec = 0;
+    KURL url = selectedRange->startContainer(ec)->document()->url();
+    m_data->m_url = url;
+    replacePasteboardNBSPWithSpace(m_data->m_text);
 }
 
-void Pasteboard::writePlainText(const String&)
+void Pasteboard::writePlainText(const String& text)
 {
-    notImplemented();
+    m_data->m_text = text;
 }
 
-void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
+void Pasteboard::writeURL(const KURL& url, const String& titleStr, Frame* frame)
 {
-
+    m_data->m_url = url;
+    String title(titleStr);
+    if (title.isEmpty()) {
+        title = url.lastPathComponent();
+        if (title.isEmpty())
+            title = url.host();
+    }
+    m_data->m_title = title;
 }
 
-void Pasteboard::writeImage(Node* node, const KURL&, const String&)
+void Pasteboard::writeImage(Node* node, const KURL&, const String& title)
 {
-    notImplemented();
+    ASSERT(node);
+    ASSERT(node->renderer());
+    ASSERT(node->renderer()->isImage());
+    RenderImage* renderer = toRenderImage(node->renderer());
+    CachedImage* cachedImage = renderer->cachedImage();
+    ASSERT(cachedImage);
+    Image* image = cachedImage->image();
+    ASSERT(image);
+
+    // If the image is wrapped in a link, |url| points to the target of the
+    // link.  This isn't useful to us, so get the actual image URL.
+    AtomicString urlString;
+    if (node->hasTagName(HTMLNames::imgTag) || node->hasTagName(HTMLNames::inputTag))
+        urlString = static_cast<Element*>(node)->getAttribute(HTMLNames::srcAttr);
+#if ENABLE(SVG)
+    else if (node->hasTagName(SVGNames::imageTag))
+        urlString = static_cast<Element*>(node)->getAttribute(XLinkNames::hrefAttr);
+#endif
+    else if (node->hasTagName(HTMLNames::embedTag) || node->hasTagName(HTMLNames::objectTag)) {
+        Element* element = static_cast<Element*>(node);
+        urlString = element->getAttribute(element->imageSourceAttributeName());
+    }
+    KURL url = urlString.isEmpty() ? KURL() : node->document()->completeURL(deprecatedParseURL(urlString));
+
+    m_data->m_image = image->nativeImageForCurrentFrame();
 }
 
 void Pasteboard::clear()
 {
+    m_data->clear();
 }
 
 bool Pasteboard::canSmartReplace()
@@ -129,9 +181,9 @@ PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefP
         return 0;
 
     chosePlainText = false;
-    String html = m_data->markup();
+    String html = m_data->m_markup;
     if (!html.isEmpty()) {
-        RefPtr<DocumentFragment> fragment = createFragmentFromMarkup(frame->document(), html, "");
+        RefPtr<DocumentFragment> fragment = createFragmentFromMarkup(frame->document(), html, m_data->m_url);
         if (fragment)
             return fragment.release();
     }
@@ -140,7 +192,7 @@ PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefP
     if (!allowPlainText)
         return 0;
 
-    String text = String::fromUTF8(m_data->text());
+    String text = m_data->m_text;
 
     chosePlainText = true;
     RefPtr<DocumentFragment> fragment = createFragmentFromText(context.get(), text);
@@ -154,7 +206,7 @@ String Pasteboard::plainText(Frame* frame)
 {
     if (!m_data)
         return String();
-    return String::fromUTF8(m_data->text());
+    return m_data->m_text;
 }
 
 }

@@ -43,6 +43,7 @@
 #include "SharedPtr.h"
 #include "TransferSharedPtr.h"
 #include "WebKitTypes.h"
+#include "WebDragData.h"
 #include <string>
 
 class DOMDocument;
@@ -591,6 +592,18 @@ public:
      */
     virtual void centerSelectionInVisibleArea();
 
+    WebDragOperation dragEnter(WebDragData* webDragData, int identity,
+                               const BalPoint& clientPoint, const BalPoint& screenPoint, 
+                               WebDragOperation operationsAllowed);
+    WebDragOperation dragOver(const BalPoint& clientPoint, const BalPoint& screenPoint, WebDragOperation operationsAllowed);
+    void dragTargetDragLeave();
+    void dragTargetDrop(const BalPoint& clientPoint, const BalPoint& screenPoint);
+    int dragIdentity();
+
+    void dragSourceSystemDragEnded();
+    void dragSourceEndedAt(const BalPoint& clientPoint, const BalPoint& screenPoint, WebDragOperation operation);
+
+
     /**
      *  moveDragCaretToPoint 
      * @param point A point in the coordinates of the WebView
@@ -995,6 +1008,11 @@ public:
      *  executeCoreCommandByName 
      */
     virtual void executeCoreCommandByName(const char* name, const char* value);
+
+    /**
+     * test if a command is enabled
+     */
+    bool commandEnabled(const char* command);
 
     /**
      *  markAllMatchesForText 
@@ -1608,6 +1626,9 @@ public:
     bool locationbarVisible() { return m_locationbarVisible; }
     void setLocationbarVisible(bool flag) { m_locationbarVisible = flag; }
 
+    void setInputMethodState(bool inputState) { m_inputState = inputState; }
+    bool inputMethodState() { return m_inputState; }
+
 private:
 
     /**
@@ -1992,6 +2013,32 @@ protected:
     bool m_statusbarVisible;
     bool m_menubarVisible;
     bool m_locationbarVisible;
+    bool m_inputState;
+
+        // True while dispatching system drag and drop events to drag/drop targets
+    // within this WebView.
+    bool m_dragTargetDispatch;
+
+    // Valid when m_dragTargetDispatch is true; the identity of the drag data
+    // copied from the WebDropData object sent from the browser process.
+    int m_dragIdentity;
+
+    // Valid when m_dragTargetDispatch is true.  Used to override the default
+    // browser drop effect with the effects "none" or "copy".
+    enum DragTargetDropEffect {
+        DropEffectDefault = -1,
+        DropEffectNone,
+        DropEffectCopy
+    } m_dropEffect;
+
+    // The available drag operations (copy, move link...) allowed by the source.
+    WebDragOperation m_operationsAllowed;
+
+    // The current drag operation as negotiated by the source and destination.
+    // When not equal to DragOperationNone, the drag data can be dropped onto the
+    // current drop target in this WebView (the drop target can accept the drop).
+    WebDragOperation m_dragOperation;
+    WebDragData* m_currentDragData;
 };
 
 #endif

@@ -1,3 +1,81 @@
+2010-01-14  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix some tests in Editing.
+
+        * OrigynWebBrowser/Api/WebDragData.cpp: Added.
+        (WebDragData::create):
+        (WebDragData::WebDragData):
+        (WebDragData::~WebDragData):
+        (WebDragData::reset):
+        (WebDragData::assign):
+        (WebDragData::url):
+        (WebDragData::setURL):
+        (WebDragData::urlTitle):
+        (WebDragData::setURLTitle):
+        (WebDragData::downloadURL):
+        (WebDragData::setDownloadURL):
+        (WebDragData::fileExtension):
+        (WebDragData::setFileExtension):
+        (WebDragData::hasFileNames):
+        (WebDragData::fileNames):
+        (WebDragData::setFileNames):
+        (WebDragData::appendToFileNames):
+        (WebDragData::plainText):
+        (WebDragData::setPlainText):
+        (WebDragData::htmlText):
+        (WebDragData::setHTMLText):
+        (WebDragData::htmlBaseURL):
+        (WebDragData::setHTMLBaseURL):
+        (WebDragData::fileContentFileName):
+        (WebDragData::setFileContentFileName):
+        (WebDragData::fileContent):
+        (WebDragData::setFileContent):
+        * OrigynWebBrowser/Api/WebDragData.h: Added.
+        * OrigynWebBrowser/Api/WebDragData_p.h: Added.
+        (WebDragDataPrivate::WebDragDataPrivate):
+        (WebDragDataPrivate::~WebDragDataPrivate):
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (WebView::commandEnabled):
+        (WebView::dragEnter):
+        (WebView::dragOver):
+        (WebView::dragTargetDragLeave):
+        (WebView::dragTargetDrop):
+        (WebView::dragIdentity):
+        (WebView::dragSourceEndedAt):
+        (WebView::dragSourceSystemDragEnded):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/WebDragClient.cpp:
+        (WebDragClient::actionMaskForDrag):
+        (WebDragClient::dragSourceActionMaskForPoint):
+        (WebDragClient::startDrag):
+        * OrigynWebBrowser/WebCoreSupport/WebEditorClient.cpp:
+        (WebEditorUndoCommand::isUndo):
+        (WebEditorUndoCommand::WebEditorUndoCommand):
+        (WebEditorUndoCommand::execute):
+        (WebEditorUndoTarget::~WebEditorUndoTarget):
+        (WebEditorUndoTarget::invoke):
+        (WebEditorUndoTarget::append):
+        (WebEditorUndoTarget::clear):
+        (WebEditorUndoTarget::canUndo):
+        (WebEditorUndoTarget::canRedo):
+        (WebEditorUndoTarget::undo):
+        (WebEditorUndoTarget::redo):
+        (WebEditorClient::shouldMoveRangeAfterDelete):
+        (WebEditorClient::shouldShowDeleteInterface):
+        (WebEditorClient::smartInsertDeleteEnabled):
+        (undoNameForEditAction):
+        (WebEditorClient::registerCommandForUndo):
+        (WebEditorClient::registerCommandForRedo):
+        (WebEditorClient::clearUndoRedoOperations):
+        (WebEditorClient::canUndo):
+        (WebEditorClient::canRedo):
+        (WebEditorClient::undo):
+        (WebEditorClient::redo):
+        (WebEditorClient::setInputMethodState):
+
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
         Add ENABLE_ACCESSIBILITY.

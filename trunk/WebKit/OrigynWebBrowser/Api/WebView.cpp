@@ -43,6 +43,8 @@
 #include "WebDocumentLoader.h"
 #include "WebDownloadDelegate.h"
 #include "WebDragClient.h"
+#include "WebDragData.h"
+#include "WebDragData_p.h"
 #include "WebEditingDelegate.h"
 #include "WebEditorClient.h"
 #include "WebFrame.h"
@@ -366,6 +368,13 @@ WebView::WebView()
     , m_statusbarVisible(true)
     , m_menubarVisible(true)
     , m_locationbarVisible(true)
+    , m_inputState(false)
+    , m_dragTargetDispatch(false)
+    , m_dragIdentity(0)
+    , m_dropEffect(DropEffectDefault)
+    , m_operationsAllowed(WebDragOperationNone)
+    , m_dragOperation(WebDragOperationNone)
+    , m_currentDragData(0)
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
@@ -2206,6 +2215,15 @@ void WebView::executeCoreCommandByName(const char* name, const char* value)
     m_page->focusController()->focusedOrMainFrame()->editor()->command(name).execute(value);
 }
 
+bool WebView::commandEnabled(const char* commandName)
+{
+    if (!commandName)
+        return false;
+
+    Editor::Command command = m_page->focusController()->focusedOrMainFrame()->editor()->command(commandName);
+    return command.isEnabled();
+}
+
 unsigned int WebView::markAllMatchesForText(const char* str, bool caseSensitive, bool highlight, unsigned int limit)
 {
     if (!m_page || !m_page->mainFrame())
@@ -2337,6 +2355,144 @@ void WebView::centerSelectionInVisibleArea()
     coreFrame->revealSelection(ScrollAlignment::alignCenterAlways);
 }
 
+WebDragOperation WebView::dragEnter(WebDragData* webDragData, int identity,
+                                    const BalPoint& clientPoint, const BalPoint& screenPoint, 
+                                    WebDragOperation operationsAllowed)
+{
+    ASSERT(!m_currentDragData);
+
+    m_currentDragData = webDragData;
+    m_dragIdentity = identity;
+    m_operationsAllowed = operationsAllowed;
+
+    DragData dragData(
+        m_currentDragData->platformDragData()->m_dragDataRef,
+        clientPoint,
+        screenPoint,
+        static_cast<DragOperation>(operationsAllowed));
+
+    m_dropEffect = DropEffectDefault;
+    m_dragTargetDispatch = true;
+    DragOperation effect = m_page->dragController()->dragEntered(&dragData);
+    // Mask the operation against the drag source's allowed operations.
+    if ((effect & dragData.draggingSourceOperationMask()) != effect)
+        effect = DragOperationNone;
+    m_dragTargetDispatch = false;
+
+    if (m_dropEffect != DropEffectDefault) {
+        m_dragOperation = (m_dropEffect != DropEffectNone) ? WebDragOperationCopy
+                                                           : WebDragOperationNone;
+    } else
+        m_dragOperation = static_cast<WebDragOperation>(effect);
+    return m_dragOperation;
+}
+
+WebDragOperation WebView::dragOver(const BalPoint& clientPoint, const BalPoint& screenPoint, WebDragOperation operationsAllowed)
+{
+    ASSERT(m_currentDragData);
+
+    m_operationsAllowed = operationsAllowed;
+    DragData dragData(
+        m_currentDragData->platformDragData()->m_dragDataRef,
+        clientPoint,
+        screenPoint,
+        static_cast<DragOperation>(operationsAllowed));
+
+    m_dropEffect = DropEffectDefault;
+    m_dragTargetDispatch = true;
+    DragOperation effect = m_page->dragController()->dragUpdated(&dragData);
+    // Mask the operation against the drag source's allowed operations.
+    if ((effect & dragData.draggingSourceOperationMask()) != effect)
+        effect = DragOperationNone;
+    m_dragTargetDispatch = false;
+
+    if (m_dropEffect != DropEffectDefault) {
+        m_dragOperation = (m_dropEffect != DropEffectNone) ? WebDragOperationCopy
+                                                           : WebDragOperationNone;
+    } else
+        m_dragOperation = static_cast<WebDragOperation>(effect);
+    return m_dragOperation;
+}
+
+void WebView::dragTargetDragLeave()
+{
+    ASSERT(m_currentDragData);
+
+    DragData dragData(
+        m_currentDragData->platformDragData()->m_dragDataRef,
+        IntPoint(),
+        IntPoint(),
+        static_cast<DragOperation>(m_operationsAllowed));
+
+    m_dragTargetDispatch = true;
+    m_page->dragController()->dragExited(&dragData);
+    m_dragTargetDispatch = false;
+
+    m_currentDragData = 0;
+    m_dropEffect = DropEffectDefault;
+    m_dragOperation = WebDragOperationNone;
+    m_dragIdentity = 0;
+}
+
+void WebView::dragTargetDrop(const BalPoint& clientPoint,
+                                 const BalPoint& screenPoint)
+{
+    ASSERT(m_currentDragData);
+
+    // If this webview transitions from the "drop accepting" state to the "not
+    // accepting" state, then our IPC message reply indicating that may be in-
+    // flight, or else delayed by javascript processing in this webview.  If a
+    // drop happens before our IPC reply has reached the browser process, then
+    // the browser forwards the drop to this webview.  So only allow a drop to
+    // proceed if our webview m_dragOperation state is not DragOperationNone.
+
+    if (m_dragOperation == WebDragOperationNone) { // IPC RACE CONDITION: do not allow this drop.
+        dragTargetDragLeave();
+        return;
+    }
+
+    DragData dragData(
+        m_currentDragData->platformDragData()->m_dragDataRef,
+        clientPoint,
+        screenPoint,
+        static_cast<DragOperation>(m_operationsAllowed));
+
+    m_dragTargetDispatch = true;
+    m_page->dragController()->performDrag(&dragData);
+    m_dragTargetDispatch = false;
+
+    m_currentDragData = 0;
+    m_dropEffect = DropEffectDefault;
+    m_dragOperation = WebDragOperationNone;
+    m_dragIdentity = 0;
+}
+
+int WebView::dragIdentity()
+{
+    if (m_dragTargetDispatch)
+        return m_dragIdentity;
+    return 0;
+}
+
+void WebView::dragSourceEndedAt(const BalPoint& clientPoint, const BalPoint& screenPoint, WebDragOperation operation)
+{
+    PlatformMouseEvent pme(clientPoint,
+                           screenPoint,
+                           LeftButton, MouseEventMoved, 0, false, false, false,
+                           false, 0);
+    m_page->mainFrame()->eventHandler()->dragSourceEndedAt(pme,
+        static_cast<DragOperation>(operation));
+}
+
+void WebView::dragSourceSystemDragEnded()
+{
+    // It's possible for us to get this callback while not doing a drag if
+    // it's from a previous page that got unloaded.
+    //if (m_doingDragAndDrop) {
+        m_page->dragController()->dragEnded();
+        //m_doingDragAndDrop = false;
+    //}
+}
 
 void WebView::moveDragCaretToPoint(BalPoint& /*point*/)
 {

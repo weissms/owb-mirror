@@ -41,6 +41,7 @@
 #include "WebBackForwardList.h"
 #include "WebDownloadDelegate.h"
 #include "WebDownload.h"
+#include "WebDragData.h"
 #include "WebEditingDelegate.h"
 #include "WebError.h"
 #include "WebFrame.h"

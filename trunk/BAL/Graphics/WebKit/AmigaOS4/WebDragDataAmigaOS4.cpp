@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,53 +26,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BALType_h
-#define BALType_h
 
-struct SDL_Surface;
-struct SDL_Color;
-struct SDL_Cursor;
-struct FT_FaceRec_;
-struct _FcPattern;
+#include "config.h"
+#include "WebDragData.h"
+#include "DragData.h"
 
-namespace WebCore {
-    class FloatSize;
+using namespace std;
+
+DragDataRef platformDragData()
+{
+    return 0;
 }
-
-typedef FT_FaceRec_ BalFontFace;
-typedef void BalFont;
-typedef struct _FcPattern BalPattern;
-typedef void BalScaledFont;
-typedef void BalDrawable;
-typedef void BalMenuItem;
-typedef SDL_Surface BalMenu;
-typedef void BalClipboard;
-typedef void BalTargetList;
-typedef void BalAdjustment;
-typedef void BalContainer;
-typedef void BalPixbuf;
-typedef SDL_Color BalColor;
-typedef struct _BalMatrix{double m11; double m12; double m13; double m14;
-                          double m21; double m22; double m23; double m24;
-                          double m31; double m32; double m33; double m34;
-                          double m41; double m42; double m43; double m44;} BalMatrix;
-
-
-typedef SDL_Surface PlatformGraphicsContext;
-typedef BalWidget* PlatformWidget;
-typedef void* PlatformPatternPtr;
-
-namespace WebCore {
-    typedef void* PlatformGradient;
-    typedef BalSurface* NativeImagePtr;
-    typedef void* PlatformPath;
-    typedef SDL_Cursor* PlatformCursor;
-    typedef void* DragImageRef;
-    class DataObject;
-    typedef DataObject* DragDataRef;
-    typedef unsigned short GlyphBufferGlyph;
-    typedef WebCore::FloatSize GlyphBufferAdvance;
-    typedef void* PlatformCursorHandle;
-}
-
-#endif

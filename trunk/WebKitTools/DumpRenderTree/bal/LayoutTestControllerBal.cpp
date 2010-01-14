@@ -322,10 +322,10 @@ JSRetainPtr<JSStringRef> LayoutTestController::counterValueForElementById(JSStri
     return counterValue;
 }
 
-bool LayoutTestController::isCommandEnabled(JSStringRef /*name*/)
+bool LayoutTestController::isCommandEnabled(JSStringRef name)
 {
-    // FIXME: implement
-    return false;
+    char* command = JSStringCopyUTF8CString(name);
+    return getWebView()->commandEnabled(command);
 }
 
 void LayoutTestController::setPersistentUserStyleSheetLocation(JSStringRef jsURL)

@@ -48,6 +48,9 @@
 
 static bool down;
 static bool dragMode = true;
+static WebDragData *current_drag_data = WebDragData::create();
+static WebDragOperation current_drag_effect;
+static WebDragOperation current_drag_effects_allowed;
 static int timeOffset;
 static unsigned eventStartTime;
 struct Point {
@@ -112,6 +115,26 @@ static JSValueRef mouseUpCallback(JSContextRef context, JSObjectRef function, JS
 {
     EventSenderController* eventSender = toEventSenderController(thisObject);
     eventSender->dispatchMouseButton(eventSender->makeMouseButtonEvent(true, lastMousePosition.x, lastMousePosition.y));
+    
+    // If we're in a drag operation, complete it.
+   /* if (!current_drag_data->isNull()) {
+        BalPoint client_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &client_point);
+        BalPoint screen_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &screen_point);
+
+        current_drag_effect = getWebView()->dragOver(client_point, screen_point, current_drag_effects_allowed);
+        if (current_drag_effect) {
+            getWebView()->dragTargetDrop(client_point, screen_point);
+        } else {
+            getWebView()->dragTargetDragLeave();
+        }
+        getWebView()->dragSourceEndedAt(client_point, screen_point, current_drag_effect);
+        getWebView()->dragSourceSystemDragEnded();
+
+        //current_drag_data->reset();
+    }*/
+
     down = false;
 
     return JSValueMakeUndefined(context);
@@ -128,6 +151,15 @@ static JSValueRef mouseMoveToCallback(JSContextRef context, JSObjectRef function
     EventSenderController* eventSender = toEventSenderController(thisObject);
     eventSender->dispatchMouseMotion(eventSender->makeMouseMotionEvent(down, lastMousePosition.x, lastMousePosition.y));
 
+    /*if (down && !current_drag_data->isNull()) {
+        BalPoint client_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &client_point);
+        BalPoint screen_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &screen_point);
+
+        current_drag_effect = getWebView()->dragOver(client_point, screen_point, current_drag_effects_allowed);
+    }*/
+
     return JSValueMakeUndefined(context);
 }
 
@@ -143,6 +175,7 @@ static JSValueRef keyDownCallback(JSContextRef context, JSObjectRef function, JS
     int charCode = 0;
     bool needsShiftKeyModifier = false;
     bool isVKKey = false; // This is only set when CEHTML is activated.
+
     if (JSStringIsEqualToUTF8CString(character, "leftArrow") 
      || JSStringIsEqualToUTF8CString(character, "rightArrow")
      || JSStringIsEqualToUTF8CString(character, "upArrow")
@@ -169,7 +202,6 @@ static JSValueRef keyDownCallback(JSContextRef context, JSObjectRef function, JS
         }
     }
     JSStringRelease(character);
-
     bool shift = needsShiftKeyModifier;
     bool control = false;
     bool alt = false;
@@ -234,6 +266,56 @@ static JSValueRef clearKillRingCallback(JSContextRef context, JSObjectRef functi
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef beginDragWithFilesCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+    JSObjectRef filesArray = JSValueToObject(context, arguments[0], 0);
+    if (filesArray) {
+        static const JSStringRef lengthProperty = JSStringCreateWithUTF8CString("length");
+        int filesCount = JSValueToNumber(context, JSObjectGetProperty(context, filesArray, lengthProperty, 0), 0);
+        for (int i = 0; i < filesCount; ++i) {
+            JSValueRef value = JSObjectGetPropertyAtIndex(context, filesArray, i, 0);
+            JSStringRef string = JSValueToStringCopy(context, value, 0);
+
+            char *file = JSStringCopyUTF8CString(string);
+            /*
+            if (strncmp("http://", relativeURL, 7) != 0
+            && strncmp("https://", relativeURL, 8) != 0
+            && strncmp("data:", relativeURL, 5) != 0
+            && strncmp("file://", relativeURL, 7) != 0) {
+                WebView* webView = getWebView();
+                string mainFrameURL = webView->mainFrameURL();
+                size_t pos = mainFrameURL.find_last_of("/");
+                string absoluteURL = mainFrameURL.substr(0, pos + 1);
+                absoluteURL += relativeURL;
+                size_t pos2 = absoluteURL.find_last_of("?");
+                if (pos2 == absoluteURL.size() - 1)
+                    absoluteURL = absoluteURL.substr(0, pos2);
+
+            }*/
+            current_drag_data->appendToFileNames(file);
+            JSStringRelease(string);
+        }
+
+        current_drag_effects_allowed = WebDragOperationCopy;
+
+        BalPoint client_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &client_point);
+        BalPoint screen_point;
+        getBalPoint(lastMousePosition.x, lastMousePosition.y, &screen_point);
+        getWebView()->dragEnter(current_drag_data, 0, client_point, screen_point, current_drag_effects_allowed);
+
+        dragMode = false;
+        //we need to wait 1 second to don't generate a double click
+        sleep(1);
+        down = true;
+        EventSenderController* eventSender = toEventSenderController(thisObject);
+        eventSender->dispatchMouseButton(eventSender->makeMouseButtonEvent(false, lastMousePosition.x, lastMousePosition.y));
+    }
+    return JSValueMakeUndefined(context);
+}
+
 JSClassRef EventSenderController::getJSClass()
 {
     static JSStaticFunction staticFunctions[] = {
@@ -248,6 +330,7 @@ JSClassRef EventSenderController::getJSClass()
         { "zoomPageIn", zoomPageInCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "zoomPageOut", zoomPageOutCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "clearKillRing", clearKillRingCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "beginDragWithFiles", beginDragWithFilesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0}
     };
 
@@ -270,6 +353,9 @@ EventSenderController::EventSenderController()
 {
     down = false;
     dragMode = true;
+    current_drag_data->reset();
+    current_drag_effect = WebDragOperationNone;
+    current_drag_effects_allowed = WebDragOperationNone;
     struct timezone tz;
     struct timeval val;
     gettimeofday(&val, &tz);
@@ -287,6 +373,9 @@ EventSenderController::EventSenderController()
 
 EventSenderController::~EventSenderController()
 {
+    // FIXME : crash on exit, pb malloc vs FastMalloc
+    /*if(current_drag_data)
+        delete current_drag_data;*/
 }
 
 void EventSenderController::makeWindowObject(JSContextRef context, JSObjectRef windowObject, JSValueRef* exception)

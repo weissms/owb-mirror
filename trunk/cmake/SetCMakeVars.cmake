@@ -8,6 +8,7 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebBackForwardList.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebDownloadDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebDownload.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebDragData.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebEditingDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebError.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrame.h

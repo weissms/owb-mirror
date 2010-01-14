@@ -230,4 +230,9 @@ void removeTimer()
     m_timeoutTimer.stop();
 }
 
+void getBalPoint(int x, int y, BalPoint* point)
+{
+    *point = QPoint(x, y);    
+}
+
 #include "DumpRenderTreeQt.moc"
