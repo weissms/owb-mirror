@@ -166,7 +166,7 @@ static inline Qt::FillRule toQtFillRule(WindRule rule)
     return Qt::OddEvenFill;
 }
 
-struct TransparencyLayer {
+struct TransparencyLayer : FastAllocBase {
     TransparencyLayer(const QPainter* p, const QRect &rect)
         : pixmap(rect.width(), rect.height())
     {
@@ -198,7 +198,7 @@ private:
     TransparencyLayer & operator=(const TransparencyLayer &) { return *this; }
 };
 
-class GraphicsContextPlatformPrivate {
+class GraphicsContextPlatformPrivate : public Noncopyable {
 public:
     GraphicsContextPlatformPrivate(QPainter* painter);
     ~GraphicsContextPlatformPrivate();

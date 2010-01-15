@@ -131,6 +131,7 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             void startEndPointTimerIfNeeded();
 
             void createGSTPlayBin(String url);
+            bool changePipelineState(GstState state);
 
         private:
             MediaPlayer* m_player;
@@ -151,6 +152,7 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
 
             bool m_paused;
             bool m_seeking;
+            float m_playbackRate;
             bool m_errorOccured;
             guint m_volumeIdleId;
     };

@@ -1,3 +1,135 @@
+2010-01-15  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        [Chromium] Forgot to adopt a ref counted object in StorageNamespaceProxy
+        https://bugs.webkit.org/show_bug.cgi?id=33704
+
+        * src/StorageNamespaceProxy.cpp:
+        (WebCore::StorageNamespace::localStorageNamespace):
+        (WebCore::StorageNamespace::sessionStorageNamespace):
+
+2010-01-14  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Adds WebKit::WebSecurityOrigin::createFromDatabaseIdentifier.
+        https://bugs.webkit.org/show_bug.cgi?id=33648
+
+        * public/WebSecurityOrigin.h:
+        * src/WebSecurityOrigin.cpp:
+        (WebKit::WebSecurityOrigin::createFromDatabaseIdentifier):
+
+2010-01-14  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Drag and Drop source/destination code needs cleanup.
+        <https://bugs.webkit.org/show_bug.cgi?id=33691>.
+        
+        Update to new way of calling sourceOperation.
+
+        * src/DragClientImpl.cpp:
+        (WebKit::DragClientImpl::startDrag):
+
+2010-01-14  Nate Chapin  <japhet@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Remove references to V8DOMWrapper::convertToNative*().
+
+        https://bugs.webkit.org/show_bug.cgi?id=33677
+
+        * src/WebBindings.cpp:
+        (WebKit::getDragDataImpl):
+        (WebKit::getRangeImpl):
+
+2010-01-14  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Introduce WebFileChooserParams to convey parameters for
+        WebViewClient::runFileChooser(), and add new parameters to it.
+        https://bugs.webkit.org/show_bug.cgi?id=32473
+
+        The new parameters are
+         - selected file names
+         - "accept" attribute value
+
+        * WebKit.gyp: Add WebFileChooserParams.h
+        * public/WebFileChooserParams.h: Added.
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::runFileChooser):
+          Add runFileChooser() with WebFileChooserParams, and mark the old one deprecated.
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::runOpenPanel):
+          Call the new runFileChooser() first, then call the old
+          runFileChooser() if the new one failed.
+
+2010-01-13  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        Need to implement WebGLContextAttributes
+        https://bugs.webkit.org/show_bug.cgi?id=31169
+
+        Added the WebGLContextAttributes class and custom JavaScript
+        bindings to accept a native object as the second argument to
+        getContext("experimental-webgl") per the WebGL specification.
+        Added GraphicsContext3D::Attributes struct to isolate DOM and
+        graphics layers. Added getContextAttributes() to
+        WebGLRenderingContext. Added test case ensuring that context
+        attributes can be passed down and returned. Tested in Safari and
+        Chromium. The attributes will be hooked up to the creation of the
+        OpenGL context in bug 33416.
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::GraphicsContext3DInternal):
+        (WebCore::GraphicsContext3DInternal::getContextAttributes):
+        (WebCore::GraphicsContext3D::create):
+        (WebCore::GraphicsContext3D::GraphicsContext3D):
+        (WebCore::GraphicsContext3D::getContextAttributes):
+
+2010-01-13  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: selected, selectable, extended selectable, and multiple
+        selectable states are not reported
+
+        https://bugs.webkit.org/show_bug.cgi?id=33574
+        <rdar://problem/7536826>
+
+        Reviewed by Darin Adler.
+
+        * public/WebAccessibilityObject.h:
+        Update for WebCore::AccessibilityObject function rename.
+
+        * src/WebAccessibilityObject.cpp:
+        (WebKit::WebAccessibilityObject::isMultiSelectable):
+        Ditto.
+
+2010-01-13  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Move getSessionStorageNamespace from WebKitClient to WebViewClient
+        https://bugs.webkit.org/show_bug.cgi?id=33492
+
+        * public/WebKitClient.h:
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createSessionStorageNamespace):
+        * src/StorageNamespaceProxy.cpp:
+        (WebCore::StorageNamespace::sessionStorageNamespace):
+
+2010-01-13  Jeremy Orlow  <jorlow@chromium.org>
+
+        No reviewer.  More or less a build fix.  My 53180 broke some 
+        stuff on the Chromium port so I'm reverting.
+
+        * public/WebKitClient.h:
+        * public/WebViewClient.h:
+        * src/StorageNamespaceProxy.cpp:
+        (WebCore::StorageNamespace::sessionStorageNamespace):
+
 2010-01-13  Jeremy Orlow  <jorlow@chromium.org>
 
         Reviewed by Darin Fisher.

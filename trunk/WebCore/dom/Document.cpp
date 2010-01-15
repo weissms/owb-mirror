@@ -182,6 +182,10 @@
 #include "SVGStyleElement.h"
 #endif
 
+#if ENABLE(TOUCH_EVENTS)
+#include "TouchEvent.h"
+#endif
+
 #if ENABLE(WML)
 #include "WMLDocument.h"
 #include "WMLElement.h"
@@ -362,6 +366,9 @@ Document::Document(Frame* frame, bool isXHTML)
     , m_useSecureKeyboardEntryWhenActive(false)
     , m_isXHTML(isXHTML)
     , m_numNodeListCaches(0)
+#if USE(JSC)
+    , m_normalWorldWrapperCache(0)
+#endif
 #if ENABLE(DATABASE)
     , m_hasOpenDatabases(false)
 #endif
@@ -525,6 +532,10 @@ Document::JSWrapperCache* Document::createWrapperCache(DOMWrapperWorld* world)
 {
     JSWrapperCache* wrapperCache = new JSWrapperCache();
     m_wrapperCacheMap.set(world, wrapperCache);
+    if (world->isNormal()) {
+        ASSERT(!m_normalWorldWrapperCache);
+        m_normalWorldWrapperCache = wrapperCache;
+    }
     world->rememberDocument(this);
     return wrapperCache;
 }
@@ -3021,6 +3032,10 @@ PassRefPtr<Event> Document::createEvent(const String& eventType, ExceptionCode& 
         event = Event::create();
     else if (eventType == "SVGZoomEvents")
         event = SVGZoomEvent::create();
+#endif
+#if ENABLE(TOUCH_EVENTS)
+    else if (eventType == "TouchEvent")
+        event = TouchEvent::create();
 #endif
     if (event) {
         event->setCreatedByDOM(true);

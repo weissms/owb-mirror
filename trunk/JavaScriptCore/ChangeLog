@@ -1,3 +1,177 @@
+2010-01-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33705
+        UStringImpl::create() should use internal storage
+
+        When creating a UStringImpl copying of a UChar*, we can use an internal buffer,
+        by calling UStringImpl::tryCreateUninitialized().
+
+        Also, remove duplicate of copyChars from JSString, call UStringImpl's version.
+
+        Small (max 0.5%) progression on Sunspidey.
+
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::create):
+
+2010-01-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Make naming & behaviour of UString[Impl] methods more consistent.
+        https://bugs.webkit.org/show_bug.cgi?id=33702
+
+        UString::create() creates a copy of the UChar* passed, but UStringImpl::create() assumes
+        that it should assume ownership of the provided buffer (with UString::createNonCopying()
+        and UStringImpl::createCopying() providing the alternate behaviours).  Unify on create()
+        taking a copy of the provided buffer.  For non-copying cases, use the name 'adopt', and
+        make this method take a Vector<UChar>&.  For cases where non-copying construction was being
+        used, other than from a Vector<UChar>, change the code to allocate the storage along with
+        the UStringImpl using UStringImpl::createUninitialized().  (The adopt() method also more
+        closely matches that of WebCore::StringImpl).
+
+        Also, UString::createUninitialized() and UStringImpl::createUninitialized() have incompatible
+        behaviours, in that the UString form sets the provided UChar* to a null or non-null value to
+        indicate success or failure, but UStringImpl uses the returned PassRefPtr<UStringImpl> to
+        indicate when allocation has failed (potentially leaving the output Char* uninitialized).
+        This is also incompatible with WebCore::StringImpl's behaviour, in that
+        StringImpl::createUninitialized() will CRASH() if unable to allocate.  Some uses of
+        createUninitialized() in JSC are unsafe, since they do not test the result for null.
+        UStringImpl's indication is preferable, since we may want a successful call to set the result
+        buffer to 0 (specifically, StringImpl returns 0 for the buffer where createUninitialized()
+        returns the empty string, which seems reasonable to catch bugs early).  UString's method
+        cannot support UStringImpl's behaviour directly, since it returns an object rather than a
+        pointer.
+            - remove UString::createUninitialized(), replace with calls to UStringImpl::createUninitialized()
+            - create a UStringImpl::tryCreateUninitialized() form UStringImpl::createUninitialized(),
+              with current behaviour, make createUninitialized() crash on failure to allocate.
+            - make cases in JSC that do not check the result call createUninitialized(), and cases that do
+              check call tryCreateUninitialized().
+
+        Rename computedHash() to existingHash(), to bring this in line wih WebCore::StringImpl.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClassContextData::OpaqueJSClassContextData):
+        * JavaScriptCore.exp:
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        * runtime/Identifier.cpp:
+        (JSC::CStringTranslator::translate):
+        (JSC::UCharBufferTranslator::translate):
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        * runtime/Lookup.cpp:
+        (JSC::HashTable::createTable):
+        * runtime/Lookup.h:
+        (JSC::HashTable::entry):
+        * runtime/StringBuilder.h:
+        (JSC::StringBuilder::release):
+        * runtime/StringConstructor.cpp:
+        (JSC::stringFromCharCodeSlowCase):
+        * runtime/StringPrototype.cpp:
+        (JSC::substituteBackreferencesSlow):
+        (JSC::stringProtoFuncToLowerCase):
+        (JSC::stringProtoFuncToUpperCase):
+        (JSC::stringProtoFuncFontsize):
+        (JSC::stringProtoFuncLink):
+        * runtime/Structure.cpp:
+        (JSC::Structure::despecifyDictionaryFunction):
+        (JSC::Structure::get):
+        (JSC::Structure::despecifyFunction):
+        (JSC::Structure::put):
+        (JSC::Structure::remove):
+        (JSC::Structure::insertIntoPropertyMapHashTable):
+        (JSC::Structure::checkConsistency):
+        * runtime/Structure.h:
+        (JSC::Structure::get):
+        * runtime/StructureTransitionTable.h:
+        (JSC::StructureTransitionTableHash::hash):
+        * runtime/UString.cpp:
+        (JSC::createRep):
+        (JSC::UString::UString):
+        (JSC::UString::spliceSubstringsWithSeparators):
+        (JSC::UString::replaceRange):
+        (JSC::UString::operator=):
+        * runtime/UString.h:
+        (JSC::UString::adopt):
+        (JSC::IdentifierRepHash::hash):
+        (JSC::makeString):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::adopt):
+        (JSC::UStringImpl::create):
+        (JSC::UStringImpl::createUninitialized):
+        (JSC::UStringImpl::tryCreateUninitialized):
+        (JSC::UStringImpl::existingHash):
+
+2010-01-13  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Oliver Hunt.
+
+        JSON.stringify and JSON.parse needlessly process properties in the prototype chain
+        https://bugs.webkit.org/show_bug.cgi?id=33053
+
+        * runtime/JSONObject.cpp:
+        (JSC::Stringifier::Holder::appendNextProperty):
+        (JSC::Walker::walk):
+
+2010-01-13  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (buildfix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-01-13  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33641
+        Assertion failure in Lexer.cpp if input stream ends while in string escape
+
+        Test: fast/js/end-in-string-escape.html
+
+        * parser/Lexer.cpp: (JSC::Lexer::lex): Bail out quickly on end of stream, not giving the
+        assertion a chance to fire.
+
+2010-01-13  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (buildfix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-01-13  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig & Darin Adler.
+
+        Three quick fixes to UStringImpl.
+            - The destroy() method can be switched back to a normal destructor; since we've switched
+              the way we protect static strings to be using an odd ref-count the destroy() won't abort.
+            - The cost() calculation logic was wrong.  If you have multiple JSStrings wrapping substrings
+              of a base string, they would each report the full cost of the base string to the heap.
+              Instead we should only be reporting once for the base string.
+            - Remove the overloaded new operator calling fastMalloc, replace this with a 'using' to pick
+              up the implementation from the parent class.
+
+        * JavaScriptCore.exp:
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::~UStringImpl):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::cost):
+        (JSC::UStringImpl::deref):
+
+2010-01-13  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Split the build process in two different .pro files.
+        This allows qmake to be run once all source files are available.
+
+        * DerivedSources.pro: Added.
+        * JavaScriptCore.pri: Moved source generation to DerivedSources.pro
+        * pcre/pcre.pri: Moved source generation to DerivedSources.pro
+
 2010-01-13  Kent Hansen  <kent.hansen@nokia.com>
 
         Reviewed by Geoffrey Garen.

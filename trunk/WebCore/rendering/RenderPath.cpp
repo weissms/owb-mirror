@@ -121,11 +121,10 @@ FloatRect RenderPath::strokeBoundingBox() const
     if (!m_cachedLocalStrokeBBox.isEmpty())
         return m_cachedLocalStrokeBBox;
 
-    if (!style()->svgStyle()->hasStroke())
-        m_cachedLocalStrokeBBox = objectBoundingBox();
-    else {
+    m_cachedLocalStrokeBBox = objectBoundingBox();
+    if (style()->svgStyle()->hasStroke()) {
         BoundingRectStrokeStyleApplier strokeStyle(this, style());
-        m_cachedLocalStrokeBBox = m_path.strokeBoundingRect(&strokeStyle);
+        m_cachedLocalStrokeBBox.unite(m_path.strokeBoundingRect(&strokeStyle));
     }
 
     return m_cachedLocalStrokeBBox;
@@ -168,6 +167,8 @@ FloatRect RenderPath::repaintRectInLocalCoordinates() const
     rect = maskerBoundingBoxForRenderer(this);
     if (!rect.isEmpty())
         m_cachedLocalRepaintRect.intersect(rect);
+
+    style()->svgStyle()->inflateForShadow(m_cachedLocalRepaintRect);
 
     return m_cachedLocalRepaintRect;
 }

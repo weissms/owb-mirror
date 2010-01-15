@@ -52,19 +52,25 @@
 
 namespace WebCore {
 
-PassOwnPtr<GraphicsContext3D> GraphicsContext3D::create()
+PassOwnPtr<GraphicsContext3D> GraphicsContext3D::create(GraphicsContext3D::Attributes attributes)
 {
-    OwnPtr<GraphicsContext3D> context(new GraphicsContext3D());
+    OwnPtr<GraphicsContext3D> context(new GraphicsContext3D(attributes));
     //return context->m_contextObj ? context.release() : 0;
     return context.release();
 }
 
-GraphicsContext3D::GraphicsContext3D()
+GraphicsContext3D::GraphicsContext3D(GraphicsContext3D::Attributes)
 {
 }
 
 GraphicsContext3D::~GraphicsContext3D()
 {
+}
+
+GraphicsContext3D::Attributes GraphicsContext3D::getContextAttributes()
+{
+    GraphicsContext3D::Attributes attr;
+    return attr;
 }
 
 void GraphicsContext3D::makeContextCurrent()

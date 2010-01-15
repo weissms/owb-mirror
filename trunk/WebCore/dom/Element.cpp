@@ -542,7 +542,7 @@ void Element::setAttribute(const AtomicString& name, const AtomicString& value, 
 
     if (localName == idAttributeName().localName())
         updateId(old ? old->value() : nullAtom, value);
-    
+
     if (old && value.isNull())
         namedAttrMap->removeAttribute(old->name());
     else if (!old && !value.isNull())
@@ -551,6 +551,13 @@ void Element::setAttribute(const AtomicString& name, const AtomicString& value, 
         old->setValue(value);
         attributeChanged(old);
     }
+
+#if ENABLE(INSPECTOR)
+    if (Page* page = document()->page()) {
+        if (InspectorController* inspectorController = page->inspectorController())
+            inspectorController->didModifyDOMAttr(this);
+    }
+#endif
 }
 
 void Element::setAttribute(const QualifiedName& name, const AtomicString& value, ExceptionCode&)
@@ -562,7 +569,7 @@ void Element::setAttribute(const QualifiedName& name, const AtomicString& value,
 
     if (name == idAttributeName())
         updateId(old ? old->value() : nullAtom, value);
-    
+
     if (old && value.isNull())
         namedAttrMap->removeAttribute(name);
     else if (!old && !value.isNull())
@@ -571,6 +578,13 @@ void Element::setAttribute(const QualifiedName& name, const AtomicString& value,
         old->setValue(value);
         attributeChanged(old);
     }
+
+#if ENABLE(INSPECTOR)
+    if (Page* page = document()->page()) {
+        if (InspectorController* inspectorController = page->inspectorController())
+            inspectorController->didModifyDOMAttr(this);
+    }
+#endif
 }
 
 PassRefPtr<Attribute> Element::createAttribute(const QualifiedName& name, const AtomicString& value)
@@ -1016,13 +1030,6 @@ void Element::dispatchAttrRemovalEvent(Attribute*)
 {
     ASSERT(!eventDispatchForbidden());
 
-#if ENABLE(INSPECTOR)
-    if (Page* page = document()->page()) {
-      if (InspectorController* inspectorController = page->inspectorController())
-          inspectorController->didModifyDOMAttr(this);
-    }
-#endif
-
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
         return;
@@ -1035,13 +1042,6 @@ void Element::dispatchAttrRemovalEvent(Attribute*)
 void Element::dispatchAttrAdditionEvent(Attribute*)
 {
     ASSERT(!eventDispatchForbidden());
-
-#if ENABLE(INSPECTOR)
-    if (Page* page = document()->page()) {
-      if (InspectorController* inspectorController = page->inspectorController())
-          inspectorController->didModifyDOMAttr(this);
-    }
-#endif
 
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
@@ -1182,6 +1182,14 @@ void Element::removeAttribute(const String& name, ExceptionCode& ec)
         if (ec == NOT_FOUND_ERR)
             ec = 0;
     }
+    
+#if ENABLE(INSPECTOR)
+    if (Page* page = document()->page()) {
+        if (InspectorController* inspectorController = page->inspectorController())
+            inspectorController->didModifyDOMAttr(this);
+    }
+#endif
+    
 }
 
 void Element::removeAttributeNS(const String& namespaceURI, const String& localName, ExceptionCode& ec)

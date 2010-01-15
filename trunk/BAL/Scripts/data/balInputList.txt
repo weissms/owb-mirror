@@ -892,6 +892,8 @@ BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/DragControllerGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/page/gtk/FrameGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/DataObjectGtk.h
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/DataObjectGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuGtk.cpp	BCContextMenuGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuItemGtk.cpp	BCContextMenuItemGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.h	CursorGtk.h

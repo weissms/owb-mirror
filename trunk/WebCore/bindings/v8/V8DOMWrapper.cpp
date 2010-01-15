@@ -58,6 +58,7 @@
 #include "V8Proxy.h"
 #include "V8StyleSheet.h"
 #include "WebGLArray.h"
+#include "WebGLContextAttributes.h"
 #include "WebGLUniformLocation.h"
 #include "WorkerContextExecutionProxy.h"
 
@@ -663,11 +664,6 @@ V8ClassIndex::V8WrapperType V8DOMWrapper::domWrapperType(v8::Handle<v8::Object> 
     ASSERT(V8DOMWrapper::maybeDOMWrapper(object));
     v8::Handle<v8::Value> type = object->GetInternalField(v8DOMWrapperTypeIndex);
     return V8ClassIndex::FromInt(type->Int32Value());
-}
-
-void* V8DOMWrapper::convertToSVGPODTypeImpl(V8ClassIndex::V8WrapperType type, v8::Handle<v8::Value> object)
-{
-    return isWrapperOfType(object, type) ? convertDOMWrapperToNative<void>(v8::Handle<v8::Object>::Cast(object)) : 0;
 }
 
 PassRefPtr<NodeFilter> V8DOMWrapper::wrapNativeNodeFilter(v8::Handle<v8::Value> filter)
@@ -1521,7 +1517,7 @@ v8::Handle<v8::Value> V8DOMWrapper::convertWindowToV8Object(DOMWindow* window)
     v8::Handle<v8::Object> currentGlobal = currentContext->Global();
     v8::Handle<v8::Object> windowWrapper = V8DOMWrapper::lookupDOMWrapper(V8ClassIndex::DOMWINDOW, currentGlobal);
     if (!windowWrapper.IsEmpty()) {
-        if (convertDOMWrapperToNative<DOMWindow>(windowWrapper) == window)
+        if (V8DOMWindow::toNative(windowWrapper) == window)
             return currentGlobal;
     }
 

@@ -3285,6 +3285,8 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
 .timeline .sidebar {
     overflow-y: hidden;
     z-index: 100;
+    min-height: 100%;
+    bottom: auto;
 }
 
 #timeline-overview-separator {
@@ -3788,7 +3790,7 @@ ol.breakpoint-list {
     overflow: auto;
 }
 
-.text-editor-sheet {
+.text-editor-sheet, .text-editor-clip {
     opacity: 0;
 }
 

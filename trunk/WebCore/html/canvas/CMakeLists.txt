@@ -1,4 +1,5 @@
 list(APPEND WEBCORE_SRC
+    html/canvas/CanvasContextAttributes.cpp
     html/canvas/CanvasGradient.cpp
     html/canvas/CanvasNumberArray.cpp
     html/canvas/CanvasObject.cpp
@@ -10,6 +11,7 @@ list(APPEND WEBCORE_SRC
     html/canvas/WebGLArray.cpp
     html/canvas/WebGLArrayBuffer.cpp
     html/canvas/WebGLByteArray.cpp
+    html/canvas/WebGLContextAttributes.cpp
     html/canvas/WebGLFloatArray.cpp
     html/canvas/WebGLFramebuffer.cpp
     html/canvas/WebGLIntArray.cpp
@@ -32,6 +34,7 @@ list(APPEND IDL_SRC
     html/canvas/WebGLArray.idl
     html/canvas/WebGLArrayBuffer.idl
     html/canvas/WebGLByteArray.idl
+    html/canvas/WebGLContextAttributes.idl
     html/canvas/WebGLFloatArray.idl
     html/canvas/WebGLFramebuffer.idl
     html/canvas/WebGLIntArray.idl

@@ -1,3 +1,44 @@
+2010-01-15  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: selected, selectable, extended selectable, and multiple
+        selectable states are not reported
+
+        https://bugs.webkit.org/show_bug.cgi?id=33574
+        <rdar://problem/7536826>
+
+        Reviewed by Darin Adler.
+
+        * AccessibleBase.cpp:
+        (AccessibleBase::get_accState):
+        Remove the call to isMultiSelect(). Call the correctly-named
+        isMultiSelectable(), and if it returns true, set both the "extended
+        selectable" and "multiple selectable" states. Check whether the object
+        is selected or selectable, and report those states.
+
+2010-01-13  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add additional Geolocation interfaces in WebKit for Windows.
+
+        * Interfaces/IWebGeolocationPolicyListener.idl: Added.
+        * Interfaces/IWebUIDelegatePrivate.idl: Add decidePolicyForGeolocationRequest to IWebUIDelegatePrivate2.
+        Append since this version hasn't shipped.
+        * Interfaces/WebKit.idl: Add include of IWebGeolocationPolicyListener.idl.
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::requestGeolocationPermissionForFrame): Call into decidePolicyForGeolocationRequest.
+        * WebCoreSupport/WebGeolocationControllerClient.cpp:
+        (WebGeolocationControllerClient::WebGeolocationControllerClient): Moved *.
+        * WebGeolocationPolicyListener.cpp: Added.
+        * WebGeolocationPolicyListener.h: Added.
+        * WebKit.vcproj/Interfaces.vcproj: Added IWebGeolocationPolicyListener.
+        * WebKit.vcproj/WebKit.vcproj: Added WebGeolocationPolicyListener, WebGeolocationPolicyListener.
+        * WebView.cpp:
+        (WebView::setGeolocationProvider): Removed extraneous STDMETHODCALLTYPE.
+        (WebView::geolocationProvider): Removed extraneous STDMETHODCALLTYPE.
+        (WebView::geolocationDidChangePosition): Removed extraneous STDMETHODCALLTYPE.
+        (WebView::geolocationDidFailWithError): Removed extraneous STDMETHODCALLTYPE.
+
 2010-01-13  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Adam Roben, Sam Weinig.

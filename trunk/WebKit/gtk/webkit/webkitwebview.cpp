@@ -1053,6 +1053,7 @@ static void webkit_web_view_finalize(GObject* object)
     WebKitWebView* webView = WEBKIT_WEB_VIEW(object);
     WebKitWebViewPrivate* priv = webView->priv;
 
+    g_free(priv->tooltipText);
     g_free(priv->mainResourceIdentifier);
     g_free(priv->encoding);
     g_free(priv->customEncoding);
@@ -1275,6 +1276,20 @@ static void webkit_web_view_drag_data_get(GtkWidget* widget, GdkDragContext* con
     gtk_clipboard_request_contents(gtk_clipboard_get(selection_atom), target_atom,
                                    clipboard_contents_received, contents_request);
 }
+
+#if GTK_CHECK_VERSION(2, 12, 0)
+static gboolean webkit_web_view_query_tooltip(GtkWidget *widget, gint x, gint y, gboolean keyboard_mode, GtkTooltip *tooltip)
+{
+    WebKitWebViewPrivate* priv = WEBKIT_WEB_VIEW_GET_PRIVATE(widget);
+
+    if (priv->tooltipText) {
+        gtk_tooltip_set_text(tooltip, priv->tooltipText);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+#endif
 
 static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
 {
@@ -2145,6 +2160,9 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     widgetClass->screen_changed = webkit_web_view_screen_changed;
     widgetClass->drag_end = webkit_web_view_drag_end;
     widgetClass->drag_data_get = webkit_web_view_drag_data_get;
+#if GTK_CHECK_VERSION(2, 12, 0)
+    widgetClass->query_tooltip = webkit_web_view_query_tooltip;
+#endif
 
     GtkContainerClass* containerClass = GTK_CONTAINER_CLASS(webViewClass);
     containerClass->add = webkit_web_view_container_add;
@@ -2410,6 +2428,14 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
     *
     * Connect to "notify::load-status" to monitor loading.
     *
+    * Some versions of WebKitGTK+ emitted this signal for the default
+    * error page, while loading it. This behavior was considered bad,
+    * because it was essentially exposing an implementation
+    * detail. From 1.1.19 onwards this signal is no longer emitted for
+    * the default error pages, but keep in mind that if you override
+    * the error pages by using webkit_web_frame_load_alternate_string()
+    * the signals will be emitted.
+    *
     * Since: 1.1.7
     */
     g_object_class_install_property(objectClass, PROP_LOAD_STATUS,
@@ -2667,6 +2693,8 @@ static void webkit_web_view_init(WebKitWebView* webView)
     priv->webWindowFeatures = webkit_web_window_features_new();
 
     priv->subResources = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+
+    priv->tooltipText = 0;
 }
 
 GtkWidget* webkit_web_view_new(void)
@@ -4019,6 +4047,27 @@ static IntPoint documentPointForWindowPoint(Frame* frame, const IntPoint& window
     // FIXME: Is it really OK to use the wrong coordinates here when view is 0?
     // Historically the code would just crash; this is clearly no worse than that.
     return view ? view->windowToContents(windowPoint) : windowPoint;
+}
+
+void webkit_web_view_set_tooltip_text(WebKitWebView* webView, const char* tooltip)
+{
+#if GTK_CHECK_VERSION(2, 12, 0)
+    WebKitWebViewPrivate* priv = webView->priv;
+    g_free(priv->tooltipText);
+    if (tooltip && *tooltip != '\0') {
+        priv->tooltipText = g_strdup(tooltip);
+        gtk_widget_set_has_tooltip(GTK_WIDGET(webView), TRUE);
+    } else {
+        priv->tooltipText = 0;
+        gtk_widget_set_has_tooltip(GTK_WIDGET(webView), FALSE);
+    }
+
+    gtk_widget_trigger_tooltip_query(GTK_WIDGET(webView));
+#else
+    // TODO: Support older GTK+ versions
+    // See http://bugs.webkit.org/show_bug.cgi?id=15793
+    notImplemented();
+#endif
 }
 
 /**

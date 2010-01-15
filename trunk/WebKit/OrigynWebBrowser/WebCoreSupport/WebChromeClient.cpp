@@ -34,6 +34,7 @@
 #include "WebHitTestResults.h"
 #include "WebFrame.h"
 #include "WebFrameLoadDelegate.h"
+#include "WebGeolocationPolicyListener.h"
 #include "WebHistory.h"
 #include "WebHistoryDelegate.h"
 #include "WebMutableURLRequest.h"
@@ -67,6 +68,10 @@
 
 #if ENABLE(DAE)
 #include "Application.h"
+#endif
+
+#if ENABLE(GEOLOCATION)
+#include <Geolocation.h>
 #endif
 
 #include <cstdio>
@@ -621,9 +626,11 @@ IntPoint WebChromeClient::screenToWindow(const WebCore::IntPoint& p) const
     return p;
 }
 
-void WebChromeClient::requestGeolocationPermissionForFrame(Frame*, Geolocation*)
+void WebChromeClient::requestGeolocationPermissionForFrame(Frame* frame, Geolocation* geolocation)
 {
-    // See the comment in WebCore/page/ChromeClient.h
+#if ENABLE(GEOLOCATION)
+    geolocation->setIsAllowed(false);
+#endif
 }
 
 void WebChromeClient::scrollbarsModeDidChange() const

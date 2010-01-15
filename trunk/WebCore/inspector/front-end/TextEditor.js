@@ -31,7 +31,7 @@
 WebInspector.TextEditor = function(platform)
 {
     this._textModel = new WebInspector.TextEditorModel(this._textChanged.bind(this));
-    this._highlighter = new WebInspector.TextEditorHighlighter(this._textModel);
+    this._highlighter = new WebInspector.TextEditorHighlighter(this._textModel, this._highlightChanged.bind(this));
 
     this.element = document.createElement("div");
     this.element.className = "text-editor";
@@ -48,6 +48,10 @@ WebInspector.TextEditor = function(platform)
     this._sheet = document.createElement("div");
     this._sheet.className = "text-editor-sheet";
     this._container.appendChild(this._sheet);
+
+    this._clipboard = document.createElement("textarea");
+    this._clipboard.className = "text-editor-clip";
+    this._container.appendChild(this._clipboard);
 
     var cursorElement = document.createElement("div");
     cursorElement.className = "text-editor-cursor";
@@ -94,6 +98,7 @@ WebInspector.TextEditor = function(platform)
     this._longestLineNumber = 0;
 
     this._lineOffsetsCache = [0];
+    this._readOnly = false;
 }
 
 WebInspector.TextEditor.prototype = {
@@ -105,6 +110,26 @@ WebInspector.TextEditor.prototype = {
         this._setCaretLocation(0, 0);
     },
 
+    get textModel()
+    {
+        return this._textModel;
+    },
+
+    set readOnly(readOnly)
+    {
+        this._readOnly = readOnly;
+    },
+
+    set lineNumberDecorator(lineNumberDecorator)
+    {
+        this._lineNumberDecorator = lineNumberDecorator;
+    },
+
+    set lineDecorator(lineDecorator)
+    {
+        this._lineDecorator = lineDecorator;
+    },
+
     setSelection: function(startLine, startColumn, endLine, endColumn)
     {
         var start = this._fit(startLine, startColumn);
@@ -112,12 +137,12 @@ WebInspector.TextEditor.prototype = {
         this._setSelectionEnd(endLine, endColumn);
     },
 
-    _offsetToLineNumber: function(offset)
+    _offsetToLine: function(offset)
     {
         if (offset > this._lineOffsetsCache[this._lineOffsetsCache.length - 1]) {
             // Seeking outside cached area. Fill the cache.
             var lineNumber = this._lineOffsetsCache.length;
-            while (this._lineNumberToOffset(lineNumber) < offset)
+            while (this._lineToOffset(lineNumber) < offset)
                 lineNumber++;
             return lineNumber;
         }
@@ -135,7 +160,7 @@ WebInspector.TextEditor.prototype = {
         return to;
     },
 
-    _lineNumberToOffset: function(lineNumber)
+    _lineToOffset: function(lineNumber)
     {
         var offset = this._lineOffsetsCache[lineNumber];
         if (offset)
@@ -158,7 +183,7 @@ WebInspector.TextEditor.prototype = {
     },
 
     reveal: function(line, column) {
-        var maxScrollTop = this._lineNumberToOffset(line);
+        var maxScrollTop = this._lineToOffset(line);
         var minScrollTop = maxScrollTop + this._lineHeight(line) - this._canvas.height;
         if (this._scrollTop > maxScrollTop)
             this._container.scrollTop = maxScrollTop;
@@ -167,7 +192,7 @@ WebInspector.TextEditor.prototype = {
 
         var firstColumn = this._columnForOffset(line, this._scrollLeft);
         var maxScrollLeft = this._columnToOffset(line, column);
-        var minScrollLeft = maxScrollLeft - this._container.clientWidth + this._lineNumberOffset;
+        var minScrollLeft = maxScrollLeft - this._container.clientWidth + this._lineNumberWidth;
         if (this._scrollLeft < minScrollLeft)
             this._container.scrollLeft = minScrollLeft + 100;
         if (this._scrollLeft > maxScrollLeft)
@@ -183,14 +208,18 @@ WebInspector.TextEditor.prototype = {
             // Lines shifted, invalidate all under start line. Also clear lines that now are outside model range.
             this._invalidateLines(newRange.startLine, this._textModel.linesCount + Math.max(0, oldRange.endLine - newRange.endLine));
 
-        this._invalidateHighlight(newRange.startLine);
+        if (this._highlightingEnabled) {
+            var lastVisibleLine = Math.min(this._textModel.linesCount, this._offsetToLine(this._scrollTop + this._canvas.height) + 1);
+            this._highlighter.updateHighlight(newRange.startLine, lastVisibleLine);
+        }
+
         this._updateSize(newRange.startLine, Math.max(newRange.endLine, oldRange.endLine));
         if (oldRange.linesCount !== newRange.linesCount) {
             // Invalidate offset cache.
             this._lineOffsetsCache.length = oldRange.startLine + 1;
             // Force linenumber cache to be continuous.
-            this._lineNumberToOffset(oldRange.startLine);
-            this._paintLineNumbers();
+            this._lineToOffset(oldRange.startLine);
+            this.paintLineNumbers();
         }
         this._paint();
     },
@@ -208,11 +237,14 @@ WebInspector.TextEditor.prototype = {
         this._paint();
     },
 
+    _highlightChanged: function(fromLine, toLine)
+    {
+        this._invalidateLines(fromLine, toLine);
+        this._paint();
+    },
+
     _updateSize: function(startLine, endLine)
     {
-        var newLineNumberDigits = this._decimalDigits(this._textModel.linesCount);
-        this._lineNumberOffset = (newLineNumberDigits + 2) * this._digitWidth;
-
         var guardedEndLine = Math.min(this._textModel.linesCount, endLine + 1);
         var newMaximum = false;
         for (var i = startLine; i < guardedEndLine; ++i) {
@@ -236,13 +268,28 @@ WebInspector.TextEditor.prototype = {
             }
         }
 
-        this._sheet.style.width = this._textWidth + this._lineNumberOffset + "px";
-        this._sheet.style.height = this._lineNumberToOffset(this._textModel.linesCount) + "px";
+        var newLineNumberDigits = this._decimalDigits(this._textModel.linesCount);
+        this._lineNumberWidth = (newLineNumberDigits + 2) * this._digitWidth;
 
-        if (this._canvas.width !== this._container.clientWidth || this._canvas.height !== this._container.clientHeight || newLineNumberDigits !== this._lineNumberDigits) {
+        var newWidth = this._textWidth + this._lineNumberWidth + "px";
+        var newHeight = this._lineToOffset(this._textModel.linesCount) + "px";
+        this._sheet.style.width = newWidth;
+        this._sheet.style.height = newHeight;
+
+        if (newLineNumberDigits !== this._lineNumberDigits) {
+            this._lineNumberDigits = newLineNumberDigits;
+            this._repaintAll();
+        }
+        
+        // Changes to size can change the client area (scrollers can appear/disappear)
+        this.updateCanvasSize();
+    },
+
+    updateCanvasSize: function()
+    {
+        if (this._canvas.width !== this._container.clientWidth || this._canvas.height !== this._container.clientHeight) {
             this._canvas.width = this._container.clientWidth;
             this._canvas.height = this._container.clientHeight;
-            this._lineNumberDigits = newLineNumberDigits;
             this._repaintAll();
         }
     },
@@ -250,7 +297,7 @@ WebInspector.TextEditor.prototype = {
     _repaintAll: function()
     {
         this._invalidateLines(0, this._textModel.linesCount);
-        this._paintLineNumbers();
+        this.paintLineNumbers();
         this._paint();
         this._updateCursor(this._selection.endLine, this._selection.endColumn);
     },
@@ -286,18 +333,18 @@ WebInspector.TextEditor.prototype = {
     {
         this._ctx.font = this._font;
         this._ctx.textBaseline = "bottom";
-        
-        firstLine = Math.max(firstLine, this._offsetToLineNumber(this._scrollTop) - 1);
-        lastLine = Math.min(lastLine, this._offsetToLineNumber(this._scrollTop + this._canvas.height) + 1);
+
+        firstLine = Math.max(firstLine, this._offsetToLine(this._scrollTop) - 1);
+        lastLine = Math.min(lastLine, this._offsetToLine(this._scrollTop + this._canvas.height) + 1);
         if (firstLine > lastLine)
             return;
 
         if (this._debugMode) {
             WebInspector.log("Repaint %d:%d", firstLine, lastLine);
             this._ctx.fillStyle = "rgb(255,255,0)";
-            var fromOffset = this._lineNumberToOffset(firstLine);
-            var toOffset = this._lineNumberToOffset(lastLine);
-            this._ctx.fillRect(this._lineNumberOffset - 1, fromOffset - this._scrollTop, this._canvas.width - this._lineNumberOffset + 1, toOffset - fromOffset);
+            var fromOffset = this._lineToOffset(firstLine);
+            var toOffset = this._lineToOffset(lastLine);
+            this._ctx.fillRect(this._lineNumberWidth - 1, fromOffset - this._scrollTop, this._canvas.width - this._lineNumberWidth + 1, toOffset - fromOffset);
             setTimeout(this._paintLinesContinuation.bind(this, firstLine, lastLine), 100);
         } else
             this._paintLinesContinuation(firstLine, lastLine);
@@ -307,41 +354,46 @@ WebInspector.TextEditor.prototype = {
         // Clip editor area.
         this._ctx.save();
         this._ctx.beginPath();
-        this._ctx.rect(this._lineNumberOffset - 1, 0, this._canvas.width - this._lineNumberOffset + 1, this._canvas.height);
+        this._ctx.rect(this._lineNumberWidth - 1, 0, this._canvas.width - this._lineNumberWidth + 1, this._canvas.height);
         this._ctx.clip();
 
         // First clear the region, then update last line to fit model (this clears removed lines from the end of the document).
-        var fromOffset = this._lineNumberToOffset(firstLine);
-        var toOffset = lastLine < this._textModel.linesCount ? this._lineNumberToOffset(lastLine) : this._canvas.height + this._scrollTop;
+        var fromOffset = this._lineToOffset(firstLine);
+        var toOffset = lastLine < this._textModel.linesCount ? this._lineToOffset(lastLine) : this._canvas.height + this._scrollTop;
+
         // Do not clear region when paintCurrentLine is likely to do all the necessary work.
-        if (firstLine + 1 != lastLine || this._selection.endLine != firstLine) {
+        if (this._readOnly || firstLine + 1 != lastLine || this._selection.endLine != firstLine) {
             this._ctx.fillStyle = "rgb(255,255,255)";
             this._ctx.fillRect(0, fromOffset - this._scrollTop, this._canvas.width, toOffset - fromOffset);
         }
         lastLine = Math.min(lastLine, this._textModel.linesCount);
 
-        if (this._selection.startLine === this._selection.endLine && firstLine <= this._selection.startLine && this._selection.startLine < lastLine)
+        // Paint current line for editable mode only.
+        if (!this._readOnly && this._selection.startLine === this._selection.endLine && firstLine <= this._selection.startLine && this._selection.startLine < lastLine)
             this._paintCurrentLine(this._selection.startLine);
-
-        if (this._highlightingEnabled)
-            this._highlighter.highlight(firstLine, lastLine);
 
         this._paintSelection(firstLine, lastLine);
 
+        if (this._highlightingEnabled)
+            this._highlighter.highlight(lastLine);
+
         for (var i = firstLine; i < lastLine; ++i) {
             var line = this._textModel.line(i);
-            var lineOffset = this._lineNumberToOffset(i) + this._textLineHeight - this._scrollTop;
+            var lineOffset = this._lineToOffset(i) - this._scrollTop;
+
+            if (this._lineDecorator)
+                this._lineDecorator.decorate(i, this._ctx, this._lineNumberWidth - 1, lineOffset, this._canvas.width - this._lineNumberWidth + 1, this._lineHeight(i), this._textLineHeight);
 
             if (!this._highlightingEnabled) {
                 this._ctx.fillStyle = "rgb(0,0,0)";
-                this._ctx.fillText(line, this._lineNumberOffset - this._scrollLeft, lineOffset);
+                this._ctx.fillText(line, this._lineNumberWidth - this._scrollLeft, lineOffset + this._textLineHeight);
                 continue;
             }
 
-            var attributes = this._textModel.getAttributes(i, "highlight");
+            var highlighterState = this._textModel.getAttribute(i, "highlighter-state");
             var plainTextStart = -1;
             for (var j = 0; j < line.length;) {
-                var attribute = attributes && attributes[j];
+                var attribute = highlighterState && highlighterState.attributes[j];
                 if (!attribute || !attribute.style) {
                     if (plainTextStart === -1)
                         plainTextStart = j;
@@ -349,46 +401,49 @@ WebInspector.TextEditor.prototype = {
                 } else {
                     if (plainTextStart !== -1) {
                         this._ctx.fillStyle = "rgb(0,0,0)";
-                        this._ctx.fillText(line.substring(plainTextStart, j), this._lineNumberOffset - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset);
+                        this._ctx.fillText(line.substring(plainTextStart, j), this._lineNumberWidth - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset + this._textLineHeight);
                         plainTextStart = -1;
                     }
                     this._ctx.fillStyle = attribute.style;
-                    this._ctx.fillText(line.substring(j, j + attribute.length), this._lineNumberOffset - this._scrollLeft + this._columnToOffset(i, j), lineOffset);
+                    this._ctx.fillText(line.substring(j, j + attribute.length), this._lineNumberWidth - this._scrollLeft + this._columnToOffset(i, j), lineOffset + this._textLineHeight);
                     j += attribute.length;
                 }
             }
             if (plainTextStart !== -1) {
                 this._ctx.fillStyle = "rgb(0,0,0)";
-                this._ctx.fillText(line.substring(plainTextStart, line.length), this._lineNumberOffset - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset);
+                this._ctx.fillText(line.substring(plainTextStart, line.length), this._lineNumberWidth - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset + this._textLineHeight);
             }
         }
         this._ctx.restore();
     },
 
-    _paintLineNumbers: function()
+    paintLineNumbers: function()
     {
         this._ctx.font = this._font;
         this._ctx.textBaseline = "bottom";
 
         this._ctx.fillStyle = "rgb(255,255,255)";
-        this._ctx.fillRect(0, 0, this._lineNumberOffset - 2, this._canvas.height);
+        this._ctx.fillRect(0, 0, this._lineNumberWidth - 2, this._canvas.height);
 
         this._ctx.fillStyle = "rgb(235,235,235)";
-        this._ctx.fillRect(this._lineNumberOffset - 2, 0, 1, this._canvas.height);
+        this._ctx.fillRect(this._lineNumberWidth - 2, 0, 1, this._canvas.height);
 
-        var firstLine = Math.max(0, this._offsetToLineNumber(this._scrollTop) - 1);
-        var lastLine = Math.min(this._textModel.linesCount, this._offsetToLineNumber(this._scrollTop + this._canvas.height) + 1);
+        var firstLine = Math.max(0, this._offsetToLine(this._scrollTop) - 1);
+        var lastLine = Math.min(this._textModel.linesCount, this._offsetToLine(this._scrollTop + this._canvas.height) + 1);
 
-        this._ctx.fillStyle = "rgb(155,155,155)";
-        for (var i = firstLine; i < lastLine; ++i)
-           this._ctx.fillText(i + 1, (this._lineNumberDigits - this._decimalDigits(i + 1) + 1) * this._digitWidth, this._lineNumberToOffset(i) + this._textLineHeight - this._scrollTop);
+        for (var i = firstLine; i < lastLine; ++i) {
+            var lineOffset = this._lineToOffset(i) - this._scrollTop;
+            this._ctx.fillStyle = "rgb(155,155,155)";
+            if (this._lineNumberDecorator && this._lineNumberDecorator.decorate(i, this._ctx, 0, lineOffset, this._lineNumberWidth, this._lineHeight(i), this._textLineHeight))
+                continue;
+            this._ctx.fillText(i + 1, (this._lineNumberDigits - this._decimalDigits(i + 1) + 1) * this._digitWidth, lineOffset + this._textLineHeight);
+        }
     },
 
     _paintCurrentLine: function(line)
     {
         this._ctx.fillStyle = "rgb(232, 242, 254)";
-        this._ctx.fillRect(0, this._lineNumberToOffset(line) - this._scrollTop, this._canvas.width, this._lineHeight(line));
-        this._ctx.fillStyle = "rgb(0, 0, 0)";
+        this._ctx.fillRect(0, this._lineToOffset(line) - this._scrollTop, this._canvas.width, this._lineHeight(line));
     },
 
     _scroll: function(e)
@@ -415,6 +470,12 @@ WebInspector.TextEditor.prototype = {
     _mouseDown: function(e)
     {
         var location = this._caretForMouseEvent(e);
+
+        if (e.x < this._lineNumberWidth && this._lineNumberDecorator) {
+            if (this._lineNumberDecorator.mouseDown(location.line, e))            
+                return;
+        }
+
         if (e.shiftKey)
             this._setSelectionEnd(location.line, location.column);
         else
@@ -445,9 +506,9 @@ WebInspector.TextEditor.prototype = {
 
     _caretForMouseEvent: function(e)
     {
-        var lineNumber = Math.max(0, this._offsetToLineNumber(e.y + this._scrollTop) - 1);
+        var lineNumber = Math.max(0, this._offsetToLine(e.y + this._scrollTop) - 1);
         var line = this._textModel.line(lineNumber);
-        var offset = e.x + this._scrollLeft - this._lineNumberOffset - this._digitWidth;
+        var offset = e.x + this._scrollLeft - this._lineNumberWidth - this._digitWidth;
         return { line: lineNumber, column: this._columnForOffset(lineNumber, offset) };
     },
 
@@ -483,6 +544,9 @@ WebInspector.TextEditor.prototype = {
             e.stopPropagation();
             return;
         }
+
+        if (this._readOnly)
+            return;
 
         var keyCodes = WebInspector.KeyboardShortcut.KeyCodes;
         switch (e.keyCode) {
@@ -524,8 +588,8 @@ WebInspector.TextEditor.prototype = {
                     if (e.keyCode === keyCodes.Up)
                         arrowAction.call(this, caretLine - 1, this._desiredCaretColumn, true);
                     else {
-                        var offset = Math.max(0, this._lineNumberToOffset(caretLine) - this._canvas.height);
-                        arrowAction.call(this, this._offsetToLineNumber(offset), this._desiredCaretColumn, true);
+                        var offset = Math.max(0, this._lineToOffset(caretLine) - this._canvas.height);
+                        arrowAction.call(this, this._offsetToLine(offset), this._desiredCaretColumn, true);
                     }
                 }
                 break;
@@ -539,8 +603,8 @@ WebInspector.TextEditor.prototype = {
                     if (e.keyCode === keyCodes.Down)
                         arrowAction.call(this, caretLine + 1, this._desiredCaretColumn, true);
                     else {
-                        var offset = this._lineNumberToOffset(caretLine) + this._canvas.height;
-                        arrowAction.call(this, this._offsetToLineNumber(offset), this._desiredCaretColumn, true);
+                        var offset = this._lineToOffset(caretLine) + this._canvas.height;
+                        arrowAction.call(this, this._offsetToLine(offset), this._desiredCaretColumn, true);
                     }
                 }
                 break;
@@ -588,6 +652,9 @@ WebInspector.TextEditor.prototype = {
 
     _textInput: function(e)
     {
+        if (this._readOnly)
+            return;
+
         if (e.data && !e.altKey && !e.ctrlKey && !e.metaKey) {
             this._replaceSelectionWith(e.data);
             e.preventDefault();
@@ -616,10 +683,10 @@ WebInspector.TextEditor.prototype = {
         if (line >= this._textModel.linesCount)
             return;
         var offset = this._columnToOffset(line, column);
-        if (offset >= this._container.scrollLeft)
-            this._cursor.setLocation(this._lineNumberOffset + offset - 1, this._lineNumberToOffset(line));
+        if (offset >= this._container.scrollLeft && !this._readOnly)
+            this._cursor.setLocation(this._lineNumberWidth + offset - 1, this._lineToOffset(line));
         else
-            this._cursor.setLocation(0, 0);
+            this._cursor.hide();
     },
 
     _fit: function(line, column)
@@ -628,18 +695,6 @@ WebInspector.TextEditor.prototype = {
         var lineLength = this._textModel.lineLength(line);
         column = Math.max(0, Math.min(column, lineLength));
         return { line: line, column: column };
-    },
-
-    _invalidateHighlight: function(startLine)
-    {
-        if (!this._highlightingEnabled)
-            return;
-        var firstVisibleLine = Math.max(0, this._offsetToLineNumber(this._scrollTop) - 1);
-        var lastVisibleLine = Math.min(this._textModel.linesCount, this._offsetToLineNumber(this._scrollTop + this._canvas.height) + 1);
-
-        var damage = this._highlighter.highlight(startLine, lastVisibleLine);
-        for (var line in damage)
-            this._invalidateLines(line, parseInt(line) + 1);
     },
 
     _paintSelection: function(firstLine, lastLine)
@@ -658,17 +713,17 @@ WebInspector.TextEditor.prototype = {
 
             if (i === range.startLine) {
                 var offset = this._columnToOffset(range.startLine, range.startColumn);
-                from = offset - this._scrollLeft + this._lineNumberOffset - 1;
+                from = offset - this._scrollLeft + this._lineNumberWidth - 1;
             } else
                 from = 0;
 
             if (i === range.endLine) {
                 var offset = this._columnToOffset(range.endLine, range.endColumn);
-                to = offset - this._scrollLeft + this._lineNumberOffset - 1;
+                to = offset - this._scrollLeft + this._lineNumberWidth - 1;
             } else
                 to = this._canvas.width;
 
-            this._ctx.fillRect(from, this._lineNumberToOffset(i) - this._scrollTop, to - from, this._textLineHeight);
+            this._ctx.fillRect(from, this._lineToOffset(i) - this._scrollTop, to - from, this._textLineHeight);
         }
         this._ctx.fillStyle = "rgb(0, 0, 0)";
     },
@@ -684,9 +739,8 @@ WebInspector.TextEditor.prototype = {
         var range = this._selection.range();
         var text = this._textModel.copyRange(range);
 
-        e.preventDefault();
-        e.clipboardData.clearData();
-        e.clipboardData.setData("Text", text);
+        this._clipboard.value = text;
+        this._clipboard.select();
     },
 
     _beforeCut: function(e)
@@ -709,6 +763,11 @@ WebInspector.TextEditor.prototype = {
 
     _paste: function(e)
     {
+        if (this._readOnly) {
+            e.preventDefault();
+            return;
+        }
+
         var text = e.clipboardData.getData("Text");
         if (!text)
             return;
@@ -767,6 +826,7 @@ WebInspector.TextEditor.prototype = {
 
         this._textLineHeight = Math.floor(this._fontSize * 1.4);
         this._cursor.setTextLineHeight(this._textLineHeight);
+        this._lineOffsetsCache = [0];
     },
 
     _registerShortcuts: function()
@@ -954,6 +1014,15 @@ WebInspector.TextCursor.prototype = {
         }
         this._paintInterval = window.setInterval(this._paint.bind(this, false), 500);
         this._paint(true);
+    },
+
+    hide: function()
+    {
+        if (this._paintInterval) {
+            window.clearInterval(this._paintInterval);
+            delete this._paintInterval;
+        }
+        this._cursorElement.style.display = "none";
     },
 
     setTextLineHeight: function(textLineHeight)

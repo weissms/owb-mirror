@@ -1,5 +1,6 @@
 AccessibilityObjectWrapperAtk.h
 BCClipboardGtk.h ClipboardGtk.h
+BCDataObjectGtk.h DataObjectGtk.h
 BCDragControllerGtk.h
 BCPasteboardHelperGtk.h PasteboardHelper.h
 BCRenderThemeGtk.h RenderThemeGtk.h
