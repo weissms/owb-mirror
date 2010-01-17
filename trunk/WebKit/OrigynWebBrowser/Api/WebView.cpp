@@ -3455,3 +3455,14 @@ void WebView::exitFullscreen()
 {
     notImplemented();
 }
+
+const char* WebView::inspectorSettings() const
+{
+    return m_inspectorSettings.c_str();
+}
+
+void WebView::setInspectorSettings(const char* settings)
+{
+    m_inspectorSettings = settings;
+}
+

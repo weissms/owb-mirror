@@ -71,7 +71,13 @@ public:
     virtual void inspectorWindowObjectCleared();
 
 private:
+    void loadSettings();
+    void saveSettings();
+
     WebView *m_webView;
+
+    typedef HashMap<WebCore::String, WebCore::String> SettingsMap;
+    OwnPtr<SettingsMap> m_settings;
 };
 
 #endif

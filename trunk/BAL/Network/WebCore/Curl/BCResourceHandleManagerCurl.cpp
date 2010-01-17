@@ -215,8 +215,15 @@ static void handleLocalReceiveResponse (CURL* handle, ResourceHandle* job, Resou
     // which means the ResourceLoader's response does not contain the URL.
     // Run the code here for local files to resolve the issue.
     // TODO: See if there is a better approach for handling this.
+    CURLcode err;
+
+    // get content length
+    double contentLength = 0;
+    err = curl_easy_getinfo(handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &contentLength);
+    d->m_response.setExpectedContentLength(static_cast<long long int>(contentLength));
+
      const char* hdr;
-     CURLcode err = curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &hdr);
+     err = curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &hdr);
      ASSERT(CURLE_OK == err);
      d->m_response.setURL(KURL(ParsedURLString, hdr));
      if (d->client())

@@ -334,6 +334,19 @@ public:
     virtual TransferSharedPtr<WebPluginHalterDelegate> pluginHalterDelegate();
 
     /**
+     * @method setHistoryDelegate
+     * @discussion setHistoryDelegate set the history delegate. It is used to populate this WebView links, get notified when an event occurs related to history (redirection, title change ...).
+     * @param historyDelegate the new history delegate.
+     */
+    void setHistoryDelegate(TransferSharedPtr<WebHistoryDelegate> historyDelegate);
+
+    /**
+     * @method historyDelegate
+     * @discussion historyDelegate returns the current hold history delegate.
+     */
+    TransferSharedPtr<WebHistoryDelegate> historyDelegate() const;
+
+    /**
      * mainFrame 
      * Return the frame that has the current focus
      */
@@ -1629,6 +1642,9 @@ public:
     void setInputMethodState(bool inputState) { m_inputState = inputState; }
     bool inputMethodState() { return m_inputState; }
 
+    const char* inspectorSettings() const;
+    void setInspectorSettings(const char*);
+
 private:
 
     /**
@@ -1677,7 +1693,7 @@ private:
     void setApplication(WebCore::Application* application) { m_application =  application; }
 #endif
 
-
+    
 protected:
     friend class WebApplicationNotificationClient;
     friend class WebChromeClient;
@@ -1685,6 +1701,7 @@ protected:
     friend class WebEventSender;
     friend class WebFrameLoaderClient;
     friend class WebInspector;
+    friend class WebInspectorClient;
     friend class WebViewPrivate;
 
     friend WebCore::Page* core(WebView*);
@@ -1714,19 +1731,6 @@ protected:
      * @discussion resetOriginAccessWhiteLists reset (i.e. remove all) the white list accesses set up with whiteListAccessFromOrigin
      */
     void resetOriginAccessWhiteLists() const;
-
-    /**
-     * @method setHistoryDelegate
-     * @discussion setHistoryDelegate set the history delegate. It is used to populate this WebView links, get notified when an event occurs related to history (redirection, title change ...).
-     * @param historyDelegate the new history delegate.
-     */
-    void setHistoryDelegate(TransferSharedPtr<WebHistoryDelegate> historyDelegate);
-
-    /**
-     * @method historyDelegate
-     * @discussion historyDelegate returns the current hold history delegate.
-     */
-    TransferSharedPtr<WebHistoryDelegate> historyDelegate() const;
 
     /**
      * @method addVisitedLinks
@@ -2039,6 +2043,7 @@ protected:
     // current drop target in this WebView (the drop target can accept the drop).
     WebDragOperation m_dragOperation;
     WebDragData* m_currentDragData;
+    std::string m_inspectorSettings;
 };
 
 #endif

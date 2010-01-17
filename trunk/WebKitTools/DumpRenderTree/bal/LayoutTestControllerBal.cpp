@@ -281,8 +281,10 @@ void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
 {
     WebView* webView = getWebView();
     WebInspector *inspector = webView->inspector();
-    if (inspector)
+    if (inspector) {
+        webView->preferences()->setDeveloperExtrasEnabled(flag);
         inspector->setJavaScriptProfilingEnabled(flag);
+    }
 }
 
 void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool flag)
@@ -464,6 +466,8 @@ void LayoutTestController::closeWebInspector()
     WebInspector *inspector = webView->inspector();
     if (inspector)
         inspector->close();
+    webView->preferences()->setDeveloperExtrasEnabled(false);
+
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)

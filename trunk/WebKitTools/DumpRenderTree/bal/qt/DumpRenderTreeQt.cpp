@@ -235,4 +235,8 @@ void getBalPoint(int x, int y, BalPoint* point)
     *point = QPoint(x, y);    
 }
 
+void displayWebView()
+{
+}
+
 #include "DumpRenderTreeQt.moc"

@@ -1,3 +1,22 @@
+2010-01-17  Mario Bensi  <mbensi@pleyo.com>
+
+        implement Inspector client and fix layoutTests.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::inspectorSettings):
+        (WebView::setInspectorSettings):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::createPage):
+        (WebInspectorClient::showWindow):
+        (WebInspectorClient::closeWindow):
+        (WebInspectorClient::inspectedURLChanged):
+        (WebInspectorClient::populateSetting):
+        (WebInspectorClient::storeSetting):
+        (WebInspectorClient::loadSettings):
+        (WebInspectorClient::saveSettings):
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.h:
+
 2010-01-14  Mario Bensi  <mbensi@pleyo.com>
 
         Fix some tests in Editing.

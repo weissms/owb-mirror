@@ -127,3 +127,8 @@ void getBalPoint(int x, int y, BalPoint* point)
 {
     
 }
+
+void displayWebView()
+{
+}
+

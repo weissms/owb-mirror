@@ -60,7 +60,7 @@ BalWidget* createWindow(WebView **webView, BalRectangle rect)
     int h = rect.h;
     int w = rect.w;
 
-    putenv("SDL_VIDEODRIVER=dummy");
+    putenv((char*)"SDL_VIDEODRIVER=dummy");
 
     vi = SDL_GetVideoInfo();
     if (vi && vi->wm_available) /* Change title */
@@ -114,6 +114,7 @@ void waitEvent()
                         webView->addToDirtyRegion(rect);
                     }
                     SDL_ExposeEvent ev;
+                    ev.type = SDL_VIDEOEXPOSE; 
                     eventSender->onExpose(ev);
                     break;
                 case SDL_KEYDOWN:
@@ -346,3 +347,17 @@ void getBalPoint(int x, int y, BalPoint* point)
     point->x = x;
     point->y = y;
 }
+
+void displayWebView()
+{
+    getWebView()->addToDirtyRegion(getWebView()->frameRect());
+    SDL_ExposeEvent ev;
+    ev.type = SDL_VIDEOEXPOSE; 
+#if ENABLE(DAE_APPLICATION)
+    WebEventSender* eventSender = WebEventSender::getEventSender();
+    eventSender->onExpose(ev);
+#else
+    getWebView()->onExpose(ev);
+#endif
+}
+

@@ -112,12 +112,6 @@ static char* autocorrectURL(const char* url)
     return strdup(url);
 }
 
-static bool shouldLogFrameLoadDelegates(const char* pathOrURL)
-{
-    return strstr(pathOrURL, "loading/");
-}
-
-
 static bool processWork()
 {
     // if we finish all the commands, we're ready to dump state
@@ -318,10 +312,6 @@ private:
 };
 
 void dumpFrameScrollPosition(WebFrame* frame)
-{
-}
-
-void displayWebView()
 {
 }
 
@@ -571,6 +561,32 @@ void setPreferences()
 #if ENABLE(NETSCAPE_PLUGIN_API)
     preferences->addExtraPluginDirectory(TEST_PLUGIN_DIR);
 #endif
+    WebInspector *inspector = getWebView()->inspector();
+    if (inspector) 
+        inspector->setJavaScriptProfilingEnabled(false);
+}
+
+static bool shouldLogFrameLoadDelegates(const char* pathOrURL)
+{
+    return strstr(pathOrURL, "/loading/") || strstr(pathOrURL, "\\loading\\");
+}
+
+static bool shouldLogHistoryDelegates(const char* pathOrURL)
+{
+    return strstr(pathOrURL, "/globalhistory/") || strstr(pathOrURL, "\\globalhistory\\");
+}
+
+static bool shouldOpenWebInspector(const char* pathOrURL)
+{
+    return strstr(pathOrURL, "/inspector/") || strstr(pathOrURL, "\\inspector\\");
+}
+
+static bool inspectorURLAvailable()
+{
+    string inspectorURL = getenv("INSPECTOR_URL");
+    if (!inspectorURL.empty())
+        return true;
+    return false;
 }
 
 void runTest(const string& testPathOrURL)
@@ -634,14 +650,29 @@ void runTest(const string& testPathOrURL)
     // FIXME : add ExtraPluginDirectory
     //PluginDatabase::installedPlugins()->addExtraPluginDirectory(filenameToString(directory));
 
+
     WebBackForwardList* bfList = getWebView()->backForwardList();
     if (bfList)
         prevTestBFItem = bfList->currentItem();
 
     gLayoutTestController->setIconDatabaseEnabled(false);
     
+    if (shouldOpenWebInspector(pathOrURL.c_str())) {
+        if (!inspectorURLAvailable()) {
+            printf("You must set environment variable INSPECTOR_URL correctly\n");
+            exit(1);
+        }
+        gLayoutTestController->showWebInspector();
+    }
+
     if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
-        gLayoutTestController->setDumpFrameLoadCallbacks(true);    
+        gLayoutTestController->setDumpFrameLoadCallbacks(true);
+
+    /*if (shouldLogHistoryDelegates(pathOrURL.c_str())) {
+        gLayoutTestController->setDumpHistoryDelegateCallbacks(true);
+        getWebView()->setHistoryDelegate(sharedHistoryDelegate.get());
+    } else
+        getWebView()->setHistoryDelegate(0);*/
 
 #if !ENABLE(DAE)
     webView->mainFrame()->loadURL(url);
@@ -650,6 +681,9 @@ void runTest(const string& testPathOrURL)
     url = NULL;
 
     startEventLoop(view);
+
+    if (shouldOpenWebInspector(pathOrURL.c_str()))
+        gLayoutTestController->closeWebInspector();
     // A blank load seems to be necessary to reset state after certain tests.
     //webApplication->webView()->mainFrame()->loadURL("about:blank");
     

@@ -78,6 +78,8 @@ class RunTests :
             self.__startWebSocketServer()
         if test.find("8000") != -1 or test.find("8443") != -1 :
             self.__startHttpServer()
+        if test.find("inspector") != -1 :
+            os.environ["INSPECTOR_URL"]=self.config['source'] + "/WebCore/inspector/front-end/inspector.html"
 
         self.startTime = time.time()       
         self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
