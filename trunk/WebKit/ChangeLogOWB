@@ -1,3 +1,18 @@
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
+        fix closeInspector and add WebUtils to merge somes function use by all
+        api.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::loadURL):
+        * OrigynWebBrowser/Api/WebUtils.cpp: Added.
+        (isAbsolute):
+        * OrigynWebBrowser/Api/WebUtils.h: Added.
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::createPage):
+        (WebInspectorClient::closeWindow):
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.h:
+
 2010-01-17  Mario Bensi  <mbensi@pleyo.com>
 
         implement Inspector client and fix layoutTests.

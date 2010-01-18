@@ -26,64 +26,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef InspectorClientBal_h
-#define InspectorClientBal_h
+#include "WebUtils.h"
 
-#include "InspectorClient.h"
 
-namespace WebCore {
-#if ENABLE(DAE)
-    class Application;
-#endif
-    class Node;
-    class Page;
-    class String;
+bool isAbsolute(const char *url)
+{
+    if (!url)
+        return false;
+    if (url[0] == '/')
+        return true;
+    return false;
 }
-
-class WebView;
-
-class WebInspectorClient : public WebCore::InspectorClient {
-public:
-    WebInspectorClient(WebView*);
-    virtual ~WebInspectorClient();
-
-    virtual void inspectorDestroyed();
-
-    virtual WebCore::Page* createPage();
-
-    virtual WebCore::String localizedStringsURL();
-
-    virtual WebCore::String hiddenPanels();
-
-    virtual void showWindow();
-    virtual void closeWindow();
-
-    virtual void attachWindow();
-    virtual void detachWindow();
-
-    virtual void setAttachedWindowHeight(unsigned height);
-
-    virtual void highlight(WebCore::Node*);
-    virtual void hideHighlight();
-    virtual void inspectedURLChanged(const WebCore::String& newURL);
-
-    virtual void populateSetting(const WebCore::String& key, WebCore::String* value);
-    virtual void storeSetting(const WebCore::String& key, const WebCore::String& value);
-
-
-    virtual void inspectorWindowObjectCleared();
-
-private:
-    void loadSettings();
-    void saveSettings();
-
-    WebView *m_webView;
-
-    typedef HashMap<WebCore::String, WebCore::String> SettingsMap;
-    OwnPtr<SettingsMap> m_settings;
-#if ENABLE(DAE)
-    RefPtr<WebCore::Application> m_application;
-#endif
-};
-
-#endif

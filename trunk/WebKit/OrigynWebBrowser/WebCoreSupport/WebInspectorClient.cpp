@@ -36,15 +36,18 @@
 #include "WebFrameLoadDelegate.h"
 #include "JSActionDelegate.h"
 #include "WebPreferences.h"
+#include "WebUtils.h"
 #include "WebView.h"
 
 #include <stdlib.h>
+#include <string>
 
 #if ENABLE(DAE)
 #include "Application.h"
 #endif
 
 using namespace WebCore;
+using namespace std;
 
 WebInspectorClient::WebInspectorClient(WebView *view)
     :m_webView(view)
@@ -62,19 +65,29 @@ void WebInspectorClient::inspectorDestroyed()
 
 Page* WebInspectorClient::createPage()
 {
-    
+#if ENABLE(DAE)
+    if (m_application)
+        return m_application->page();
+#endif
+
     const char* inspectorURL = getenv("INSPECTOR_URL");
     if (!inspectorURL)
         return 0;
+
+    string url = inspectorURL;
+    if (isAbsolute(inspectorURL)) {
+        url = "file://";
+        url += inspectorURL;
+    }
 #if ENABLE(DAE)
     IntRect frameRect(m_webView->frameRect());
     frameRect.setY((frameRect.height()*2)/3);
     frameRect.setHeight(frameRect.height()/3);
-    RefPtr<Application> app = m_webView->application()->createApplication(inspectorURL, true, frameRect);
-    if (!app->page())
+    m_application = m_webView->application()->createApplication(url.c_str(), true, frameRect);
+    if (!m_application->page())
         return 0;
 
-    WebView* view = kit(app->page());
+    WebView* view = kit(m_application->page());
     if (!view)
         return 0;
 
@@ -82,7 +95,7 @@ Page* WebInspectorClient::createPage()
     view->setWebFrameLoadDelegate(0);
     view->setJSActionDelegate(0);
 
-    return app->page();
+    return m_application->page();
 #else
     notImplemented();
     return 0;
@@ -111,6 +124,10 @@ void WebInspectorClient::closeWindow()
 {
     if (m_webView->page())
         m_webView->page()->inspectorController()->setWindowVisible(false);
+#if ENABLE(DAE)
+    if (m_application)
+        m_application->hide();
+#endif
 }
 
 void WebInspectorClient::attachWindow()

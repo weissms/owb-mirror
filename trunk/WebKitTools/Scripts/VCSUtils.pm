@@ -441,9 +441,9 @@ sub parseDiffHeader($$)
 
         # Fix paths on ""---" and "+++" lines to match the leading
         # index line.
-        if (s/^--- WebKitTools/\S+/--- WebKitTools/$indexPath/) {
+        if (s/^--- WebKitTools\/\S+/--- WebKitTools\/$indexPath/) {
             # ---
-            if (/^--- WebKitTools/.+\(revision (\d+)\)/) {
+            if (/^--- WebKitTools\/.+\(revision (\d+)\)/) {
                 $sourceRevision = $1 if ($1 != 0);
                 if (/\(from (\S+):(\d+)\)$/) {
                     # The "from" clause is created by svn-create-patch, in

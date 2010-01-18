@@ -49,6 +49,7 @@
 #include "WebPreferences.h"
 #include "WebScriptWorld.h"
 #include "WebURLResponse.h"
+#include "WebUtils.h"
 
 #include <PlatformString.h>
 #include <Bookmarklet.h>
@@ -326,15 +327,6 @@ JSGlobalContextRef WebFrame::globalContext()
         return 0;
 
     return toGlobalRef(coreFrame->script()->globalObject(mainThreadNormalWorld())->globalExec());
-}
-
-bool isAbsolute(const char *url)
-{
-    if (!url)
-        return false;
-    if (url[0] == '/')
-        return true;
-    return false;
 }
 
 void WebFrame::loadURL(const char* url)
