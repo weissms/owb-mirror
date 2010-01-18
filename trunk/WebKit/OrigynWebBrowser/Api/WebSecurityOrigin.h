@@ -49,6 +49,7 @@ protected:
     friend class WebChromeClient;
     friend class WebDatabaseManager;
     friend class WebDatabaseTracker;
+    friend class WebFrameLoaderClient;
 
     /**
      * create a new instance of WebSecurityOrigin

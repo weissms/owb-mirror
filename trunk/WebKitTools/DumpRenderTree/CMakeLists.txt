@@ -31,6 +31,7 @@ list(APPEND DUMPRENDERTREE_SRC
     bal/EditingDelegate.cpp
     bal/EventSender.cpp
     bal/GCControllerBal.cpp
+    bal/HistoryDelegate.cpp
     bal/LayoutTestControllerBal.cpp    
     bal/PolicyDelegate.cpp
     bal/ResourceLoadDelegate.cpp

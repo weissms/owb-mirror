@@ -33,6 +33,7 @@
 
 class WebFrame;
 class WebError;
+class WebSecurityOrigin;
 
 class WebFrameLoadDelegate : public SharedObject<WebFrameLoadDelegate> {
 
@@ -123,6 +124,16 @@ public:
      * dispatch not enought memory
      */
     virtual void dispatchNotEnoughtMemory(WebFrame*) = 0;
+
+    /*
+     * didDisplayInsecureContent
+     */
+    virtual void didDisplayInsecureContent(WebFrame*) = 0;
+
+    /*
+     * didRunInsecureContent
+     */
+    virtual void didRunInsecureContent(WebFrame*, WebSecurityOrigin*) = 0;
 };
 
 #endif // WebFrameLoadDelegate_h

@@ -32,6 +32,7 @@
 #include "AccessibilityController.h"
 #include "EditingDelegate.h"
 #include "EventSender.h"
+#include "HistoryDelegate.h"
 #include "LayoutTestController.h"
 #include "PolicyDelegate.h"
 #include "ResourceLoadDelegate.h"
@@ -79,6 +80,7 @@ static int dumpTree = 1;
 SharedPtr<PolicyDelegate> policyDelegate;
 SharedPtr<ResourceLoadDelegate> resourceLoadDelegate;
 SharedPtr<EditingDelegate> sharedEditingDelegate;
+SharedPtr<HistoryDelegate> sharedHistoryDelegate;
 
 
 WebView *getWebView()
@@ -159,11 +161,23 @@ public:
             topLoadingFrame = frame;
     }
 
-    virtual void didReceiveServerRedirectForProvisionalLoadForFrame(WebFrame*) { }
+    virtual void didReceiveServerRedirectForProvisionalLoadForFrame(WebFrame* frame) 
+    { 
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("%s - didReceiveServerRedirectForProvisionalLoadForFrame\n", descriptionSuitableForTestResult(frame).c_str());
+    }
 
-    virtual void willPerformClientRedirectToURL(WebFrame*, const char* url, double delaySeconds, double fireDate) { }
+    virtual void willPerformClientRedirectToURL(WebFrame* frame, const char* url, double delaySeconds, double fireDate) 
+    { 
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("%s - willPerformClientRedirectToURL: %s \n", descriptionSuitableForTestResult(frame).c_str(), url);
+    }
 
-    virtual void didCancelClientRedirectForFrame(WebFrame*) { }
+    virtual void didCancelClientRedirectForFrame(WebFrame* frame) 
+    { 
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("%s - didCancelClientRedirectForFrame\n", descriptionSuitableForTestResult(frame).c_str());
+    }
 
     virtual void didCommitLoad(WebFrame* frame) 
     { 
@@ -247,8 +261,11 @@ public:
             printf("%s - didHandleOnloadEventsForFrame\n", descriptionSuitableForTestResult(frame).c_str());
     }
 
-    virtual void titleChange(WebFrame*, const char *title)
+    virtual void titleChange(WebFrame* frame, const char *title)
     {
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("%s - didReceiveTitle: %s\n", descriptionSuitableForTestResult(frame).c_str(), title);
+
         if (gLayoutTestController->dumpTitleChanges() && !done)
             printf("TITLE CHANGED: %s\n", title ? title : "");
     }
@@ -261,6 +278,18 @@ public:
     virtual void dispatchDidFirstVisuallyNonEmptyLayout(WebFrame*) {}
 
     virtual void dispatchNotEnoughtMemory(WebFrame*) {}
+
+    virtual void didDisplayInsecureContent(WebFrame*)
+    {
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("didDisplayInsecureContent\n");
+    }
+
+    virtual void didRunInsecureContent(WebFrame *, WebSecurityOrigin *)
+    {
+        if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
+            printf("didRunInsecureContent\n");
+    }
 
 private:
     FrameLoadDelegate() { }
@@ -609,6 +638,7 @@ void runTest(const string& testPathOrURL)
     policyDelegate->setControllerToNotifyDone(0);
 
     sharedEditingDelegate = EditingDelegate::createInstance();
+    sharedHistoryDelegate = HistoryDelegate::createInstance();
 
     resourceLoadDelegate = ResourceLoadDelegate::createInstance();
 
@@ -647,8 +677,6 @@ void runTest(const string& testPathOrURL)
     getWebView()->setWebEditingDelegate(sharedEditingDelegate);
     getWebView()->setWebResourceLoadDelegate(resourceLoadDelegate);
     setPreferences();
-    // FIXME : add ExtraPluginDirectory
-    //PluginDatabase::installedPlugins()->addExtraPluginDirectory(filenameToString(directory));
 
 
     WebBackForwardList* bfList = getWebView()->backForwardList();
@@ -668,11 +696,11 @@ void runTest(const string& testPathOrURL)
     if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
         gLayoutTestController->setDumpFrameLoadCallbacks(true);
 
-    /*if (shouldLogHistoryDelegates(pathOrURL.c_str())) {
+    if (shouldLogHistoryDelegates(pathOrURL.c_str())) {
         gLayoutTestController->setDumpHistoryDelegateCallbacks(true);
-        getWebView()->setHistoryDelegate(sharedHistoryDelegate.get());
+        getWebView()->setHistoryDelegate(sharedHistoryDelegate);
     } else
-        getWebView()->setHistoryDelegate(0);*/
+        getWebView()->setHistoryDelegate(0);
 
 #if !ENABLE(DAE)
     webView->mainFrame()->loadURL(url);
@@ -703,6 +731,7 @@ void runTest(const string& testPathOrURL)
     policyDelegate = 0;
     sharedEditingDelegate = 0;
     resourceLoadDelegate = 0;
+    sharedHistoryDelegate = 0;
 }
 
 void init(int argc, char *argv[]);

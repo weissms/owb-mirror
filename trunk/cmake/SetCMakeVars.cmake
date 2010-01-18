@@ -14,12 +14,14 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrame.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFrameLoadDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebFramePolicyListener.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebHistoryDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebHistoryItem.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebHitTestResults.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebInspector.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebKit.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebMutableURLRequest.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebNavigationAction.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebNavigationData.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebNotificationDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebObject.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebPolicyDelegate.h

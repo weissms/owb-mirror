@@ -28,13 +28,14 @@
 #ifndef WebNavigationData_h
 #define WebNavigationData_h
 
+#include <WebKitTypes.h>
 #include <string>
 
 class WebNavigationData;
 class WebMutableURLRequest;
 class WebURLResponse;
 
-class WebNavigationData {
+class WEBKIT_OWB_API WebNavigationData {
 
     public:
     static WebNavigationData* createInstance(const char* url, const char* title, WebMutableURLRequest* request, WebURLResponse* response, bool hasSubstituteData, const char* clientRedirectSource)

@@ -1,3 +1,27 @@
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
+        implement HistoryDelegate
+
+        * DumpRenderTree/CMakeLists.txt:
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (FrameLoadDelegate::didReceiveServerRedirectForProvisionalLoadForFrame):
+        (FrameLoadDelegate::willPerformClientRedirectToURL):
+        (FrameLoadDelegate::didCancelClientRedirectForFrame):
+        (FrameLoadDelegate::titleChange):
+        (FrameLoadDelegate::didDisplayInsecureContent):
+        (FrameLoadDelegate::didRunInsecureContent):
+        (runTest):
+        * DumpRenderTree/bal/HistoryDelegate.cpp: Added.
+        (HistoryDelegate::didNavigateWithNavigationData):
+        (HistoryDelegate::didPerformClientRedirectFromURL):
+        (HistoryDelegate::didPerformServerRedirectFromURL):
+        (HistoryDelegate::updateHistoryTitle):
+        (HistoryDelegate::populateVisitedLinksForWebView):
+        * DumpRenderTree/bal/HistoryDelegate.h: Added.
+        (HistoryDelegate::createInstance):
+        (HistoryDelegate::~HistoryDelegate):
+        (HistoryDelegate::HistoryDelegate):
+
 2010-01-17  Mario Bensi  <mbensi@pleyo.com>
 
         implement Inspector client and fix layoutTests.

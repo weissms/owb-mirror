@@ -51,6 +51,7 @@
 #include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
 #include "WebResourceLoadDelegate.h"
+#include "WebSecurityOrigin.h"
 #include "WebURLAuthenticationChallenge.h"
 #include "WebURLResponse.h"
 #include "WebView.h"
@@ -752,10 +753,19 @@ void WebFrameLoaderClient::dispatchDidChangeBackForwardIndex() const
 
 void WebFrameLoaderClient::didDisplayInsecureContent()
 {
+    SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate) {
+        webFrameLoadDelegate->didDisplayInsecureContent(m_webFrame);
+    }
 }
 
 void WebFrameLoaderClient::didRunInsecureContent(SecurityOrigin* origin)
 {
+    SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate) {
+        WebSecurityOrigin* webSecurityOrigin = WebSecurityOrigin::createInstance(origin);
+        webFrameLoadDelegate->didRunInsecureContent(m_webFrame, webSecurityOrigin);
+    }
 }
 
 PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const ResourceRequest& request, const SubstituteData& substituteData)

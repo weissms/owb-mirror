@@ -1,5 +1,17 @@
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 
+
+        * OrigynWebBrowser/Api/WebFrameLoadDelegate.h: complete delegate
+        * OrigynWebBrowser/Api/WebKit.h: add headers
+        * OrigynWebBrowser/Api/WebNavigationData.h: expose header
+        * OrigynWebBrowser/Api/WebSecurityOrigin.h: add friend
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp: implement
+        didDisplayInsecureContent and didRunInsecureContent
+        (WebFrameLoaderClient::didDisplayInsecureContent):
+        (WebFrameLoaderClient::didRunInsecureContent):
+
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
         fix closeInspector and add WebUtils to merge somes function use by all
         api.
 
