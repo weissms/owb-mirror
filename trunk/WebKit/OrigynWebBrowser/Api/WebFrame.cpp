@@ -65,6 +65,7 @@
 #include <HistoryItem.h>
 #include <HTMLAppletElement.h>
 #include <HTMLFormElement.h>
+#include <HTMLInputElement.h>
 #include <HTMLPlugInElement.h>
 #include <JSDOMWindow.h>
 #include <KeyboardEvent.h>
@@ -107,6 +108,7 @@
 #endif
 
 using namespace WebCore;
+using namespace HTMLNames;
 
 #define FLASH_REDRAW 0
 
@@ -1211,6 +1213,31 @@ int WebFrame::numberOfActiveAnimations()
         return 0;
 
     return controller->numberOfActiveAnimations();
+}
+
+static HTMLInputElement* inputElementFromDOMElement(DOMElement* element)
+{
+    if (!element)
+        return 0;
+
+        //FIXME : fix this conversion
+        Element* ele = static_cast<WebCore::Element*>(element->coreElement());
+        if (ele && ele->hasTagName(inputTag))
+            return static_cast<HTMLInputElement*>(ele);
+    return 0;
+}
+
+
+bool WebFrame::elementDoesAutoComplete(DOMElement *element)
+{
+    if (!element)
+        return false;
+
+    HTMLInputElement *inputElement = inputElementFromDOMElement(element);
+    if (!inputElement)
+        return false;
+    else
+        return (inputElement->inputType() == HTMLInputElement::TEXT && inputElement->autoComplete());
 }
 
 bool WebFrame::pauseAnimation(const char* name, double time, const char* element)

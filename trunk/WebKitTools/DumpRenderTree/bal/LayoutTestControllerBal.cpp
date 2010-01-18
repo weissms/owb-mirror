@@ -300,8 +300,16 @@ void LayoutTestController::setPopupBlockingEnabled(bool popupBlockingEnabled)
 
 bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef id) 
 {
-    // FIXME: implement
-    return false;
+    DOMDocument* document = getWebView()->mainFrame()->domDocument();
+    if (!document)
+        return false;
+
+    char* ident = JSStringCopyUTF8CString(id);
+    DOMElement* element = document->getElementById(ident);
+    if (!element)
+        return false;
+
+    return getWebView()->mainFrame()->elementDoesAutoComplete(element);
 }
 
 void LayoutTestController::execCommand(JSStringRef name, JSStringRef value)

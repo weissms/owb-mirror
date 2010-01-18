@@ -1,5 +1,14 @@
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 
+        implement elementDoesAutoComplete.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (inputElementFromDOMElement):
+        (WebFrame::elementDoesAutoComplete):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
 
         * OrigynWebBrowser/Api/WebFrameLoadDelegate.h: complete delegate
         * OrigynWebBrowser/Api/WebKit.h: add headers

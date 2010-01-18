@@ -536,6 +536,11 @@ public:
      */
     bool allowsFollowingLink(const char* url) const;
 
+    /*
+     * elementDoesAutoComplete
+     */
+    bool elementDoesAutoComplete(DOMElement *element);
+
     /**
      * pause Animation
      */

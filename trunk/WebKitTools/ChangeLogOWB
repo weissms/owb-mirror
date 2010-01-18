@@ -1,5 +1,12 @@
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 
+        Implement elementDoesAutoCompleteForElementWithId.
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
+
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
         implement HistoryDelegate
 
         * DumpRenderTree/CMakeLists.txt:
