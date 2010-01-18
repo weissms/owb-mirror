@@ -29,7 +29,7 @@
 #include "DumpRenderTree.h"
 #include "DumpRenderTreeBal.h"
 #include "LayoutTestController.h"
-#include <string>
+#include <string.h>
 
 void HistoryDelegate::didNavigateWithNavigationData(WebView* webView, WebNavigationData* navigationData, WebFrame* webFrame)
 {
