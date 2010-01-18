@@ -312,7 +312,7 @@ void RenderObject::addChild(RenderObject* newChild, RenderObject* beforeChild)
         // Just add it...
         children->insertChildNode(this, newChild, beforeChild);
     }
-    
+    RenderCounter::rendererSubtreeAttached(newChild);
     if (newChild->isText() && newChild->style()->textTransform() == CAPITALIZE) {
         RefPtr<StringImpl> textToTransform = toRenderText(newChild)->originalText();
         if (textToTransform)
@@ -2516,14 +2516,14 @@ FloatRect RenderObject::repaintRectInLocalCoordinates() const
 
 TransformationMatrix RenderObject::localTransform() const
 {
-    return TransformationMatrix();
+    static const TransformationMatrix identity;
+    return identity;
 }
 
-TransformationMatrix RenderObject::localToParentTransform() const
+const TransformationMatrix& RenderObject::localToParentTransform() const
 {
-    // FIXME: This double virtual call indirection is temporary until I can land the
-    // rest of the of the localToParentTransform() support for SVG.
-    return localTransform();
+    static const TransformationMatrix identity;
+    return identity;
 }
 
 TransformationMatrix RenderObject::absoluteTransform() const

@@ -221,24 +221,27 @@ TransformationMatrix RenderSVGRoot::localToRepaintContainerTransform(const IntPo
 {
     TransformationMatrix parentToContainer;
     parentToContainer.translate(parentOriginInContainer.x(), parentOriginInContainer.y());
-    return localToParentTransform() * parentToContainer;
+    TransformationMatrix localToParent = localToParentTransform();
+    return localToParent * parentToContainer;
 }
 
-TransformationMatrix RenderSVGRoot::localToParentTransform() const
+const TransformationMatrix& RenderSVGRoot::localToParentTransform() const
 {
     IntSize parentToBorderBoxOffset = parentOriginToBorderBox();
 
     TransformationMatrix borderBoxOriginToParentOrigin;
     borderBoxOriginToParentOrigin.translate(parentToBorderBoxOffset.width(), parentToBorderBoxOffset.height());
 
-    return localToBorderBoxTransform() * borderBoxOriginToParentOrigin;
+    m_localToParentTransform = localToBorderBoxTransform() * borderBoxOriginToParentOrigin;
+    return m_localToParentTransform;
 }
 
 // FIXME: This method should be removed as soon as callers to RenderBox::absoluteTransform() can be removed.
 TransformationMatrix RenderSVGRoot::absoluteTransform() const
 {
+    TransformationMatrix localToParent = localToParentTransform();
     // This would apply localTransform() twice if localTransform() were not the identity.
-    return localToParentTransform() * RenderBox::absoluteTransform();
+    return localToParent * RenderBox::absoluteTransform();
 }
 
 FloatRect RenderSVGRoot::objectBoundingBox() const

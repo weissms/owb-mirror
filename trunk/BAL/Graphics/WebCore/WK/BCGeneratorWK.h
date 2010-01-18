@@ -30,9 +30,10 @@
 
 namespace WebCore {
 
-class IntSize;
 class FloatRect;
 class GraphicsContext;
+class IntSize;
+class FloatRect;
 
 class Generator : public RefCounted<Generator> {
 public:

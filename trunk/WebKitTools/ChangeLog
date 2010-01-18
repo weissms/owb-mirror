@@ -1,3 +1,215 @@
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        style-queue complains about one-line macros that include multiple statements
+        https://bugs.webkit.org/show_bug.cgi?id=33173
+
+        Add an exception for multiple statements on a line that starts a macro.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        [check-webkit-style] qt unit testing false positives
+        https://bugs.webkit.org/show_bug.cgi?id=32833
+
+        Exempt the Qt API and unit tests from the style checker.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        style-check script reports loads of errors on gtk2drawing.c
+        https://bugs.webkit.org/show_bug.cgi?id=33771
+
+        Exempt WebCore/platform/gtk/gtk2drawing.c and
+        WebCore/platform/gtk/gtk2drawing.h from style checks.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-17  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Finished eliminating _cpp_style_state global state variable from
+        check-webkit-style code and eliminating _CppStyleState class.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33764
+
+        * Scripts/webkitpy/style/checker.py:
+          - Minor updates caused by changes to cpp_style.py.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+          - Removed _CppStyleState class.
+          - Removed verbose_level functions.
+          - Added verbosity as a parameter to _FunctionState constructor.
+          - Added verbosity as a parameter to process_file().
+          - Added verbosity as a parameter to process_file_data().
+
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+          - Added helper functions to set verbosity while running tests.
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        check-webkit-style underscore check should be disabled for Qt methods starting with qt_
+        https://bugs.webkit.org/show_bug.cgi?id=33663
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        style-queue complains about missing #include of config.h for non-WebCore projects
+        https://bugs.webkit.org/show_bug.cgi?id=33170
+
+        WebKitAPITests are consumers of the WebKit API and therefore do not
+        need to follow the same include discipline as the rest of WebKit.  This
+        patch exempts them from the include checks.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        EWS (Early Warning Systems) should build both debug and release
+        https://bugs.webkit.org/show_bug.cgi?id=33681
+
+        Build both debug and release for chromium-ews.
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+
+2010-01-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        style-queue should include instructions for how to file bugs against check-webkit-style
+        https://bugs.webkit.org/show_bug.cgi?id=32345
+
+        Added some text to the error message asking folks to file bugs against
+        false positives.
+
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-01-17  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Eliminated the error_count global variable and related
+        check-webkit-style refactoring.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33678
+
+        * Scripts/check-webkit-style:
+          - Updated to use webkit_argument_defaults().
+          - Renamed styleChecker to style_checker.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Prefixed the three default arguments with WEBKIT_DEFAULT.
+          - Added webkit_argument_defaults().
+          - Added default filter_rules parameter to CategoryFilter constructor.
+          - Added __ne__() to CategoryFilter class.
+          - Added __eq__() and __ne__() to ProcessorOptions class.
+          - Added error_count and _write_error attributes to StyleChecker class.
+          - Made StyleChecker._handle_error() increment the error count.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Improved CategoryFilterTest.test_eq().
+          - Added CategoryFilterTest.test_ne().
+          - Added test_eq() and test_ne() to ProcessorOptionsTest class.
+          - Updated unit tests to use webkit_argument_defaults().
+          - Added StyleCheckerTest class.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+          - Removed references to global error_count.
+
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+          - Removed CppStyleStateTest class.
+
+2010-01-15  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        get_accParent should try to retrieve parent AccessibilityObject, before
+        calling upon window
+
+        https://bugs.webkit.org/show_bug.cgi?id=22893
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::parentElement):
+        Get the object's parent. Query it for IAccessible, and return it.
+
+2010-01-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/7529519> DumpRenderTree crashes in makeLargeMallocFailSilently()
+
+        * DumpRenderTree/mac/CheckedMalloc.cpp:
+        (makeLargeMallocFailSilently): Temporarily allow writing to the default
+        malloc zone structure while modifying it.
+
+2010-01-16  David Kilzer  <ddkilzer@apple.com>
+
+        Added back removed properties to iExploder input files
+
+        While the update-iexploder-cssproperties script works great to
+        add new properties, it has the side-effect of removing old
+        properties that once were parsed.
+
+        * iExploder/htdocs/cssproperties.in: Added back removed
+        properties into their own section.
+        * iExploder/htdocs/htmlattrs.in: Ditto.
+
+2010-01-16  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by David Kilzer.
+
+        Update iExploder/htdocs/*.in by running update-iexploder-cssproperties 
+        https://bugs.webkit.org/show_bug.cgi?id=33756
+
+        * iExploder/htdocs/cssproperties.in: New CSS attributes
+        * iExploder/htdocs/htmlattrs.in: New HTML attributes
+        * iExploder/htdocs/htmltags.in: New HTML tags
+
+2010-01-15  Chris Jerdonek  <chris.jerdonek@gmail.com>
+
+        Reviewed by David Kilzer.
+
+        Altered parseDiffHeader() to skip unrecognized lines and
+        other minor clean-ups.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33476
+
+        * Scripts/VCSUtils.pm:
+          - Changed parseDiffHeader() as follows:
+            - Skips over unrecognized lines.
+            - Addressed FIXME to remove substitution for "diff" line.
+            - Renamed "version" header hash key to "sourceRevision".
+            - Eliminated "copiedFromVersion" header hash key.
+            - Included "sourceRevision" also for copied files.
+            - Checks that copy revision number matches "sourceRevision".
+            - No longer returns $foundHeaderEnding.
+            - Dies if header ending not found.
+            - Diff header dividing line now always added.
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl:
+          - Made necessary changes in parseDiffHeader() unit tests.
+          - Shortened the file paths in some test cases.
+
 2010-01-15  Yuzo Fujishima  <yuzo@google.com>
 
         Reviewed by Alexey Proskuryakov.

@@ -242,53 +242,19 @@ class _IncludeState(dict):
         return error_message
 
 
-class _CppStyleState(object):
-    """Maintains module-wide state.."""
-
-    def __init__(self):
-        self.verbose_level = 1  # global setting.
-        self.error_count = 0    # global count of reported errors
-
-    def set_verbose_level(self, level):
-        """Sets the module's verbosity, and returns the previous setting."""
-        last_verbose_level = self.verbose_level
-        self.verbose_level = level
-        return last_verbose_level
-
-    def reset_error_count(self):
-        """Sets the module's error statistic back to zero."""
-        self.error_count = 0
-
-    def increment_error_count(self):
-        """Bumps the module's error statistic."""
-        self.error_count += 1
-
-
-_cpp_style_state = _CppStyleState()
-
-
-def _verbose_level():
-    """Returns the module's verbosity setting."""
-    return _cpp_style_state.verbose_level
-
-
-def _set_verbose_level(level):
-    """Sets the module's verbosity, and returns the previous setting."""
-    return _cpp_style_state.set_verbose_level(level)
-
-
-def error_count():
-    """Returns the global count of reported errors."""
-    return _cpp_style_state.error_count
-
-
 class _FunctionState(object):
-    """Tracks current function name and the number of lines in its body."""
+    """Tracks current function name and the number of lines in its body.
+
+    Attributes:
+      verbosity: The verbosity level to use while checking style.
+
+    """
 
     _NORMAL_TRIGGER = 250  # for --v=0, 500 for --v=1, etc.
     _TEST_TRIGGER = 400    # about 50% more than _NORMAL_TRIGGER.
 
-    def __init__(self):
+    def __init__(self, verbosity):
+        self.verbosity = verbosity
         self.in_a_function = False
         self.lines_in_function = 0
         self.current_function = ''
@@ -320,7 +286,7 @@ class _FunctionState(object):
             base_trigger = self._TEST_TRIGGER
         else:
             base_trigger = self._NORMAL_TRIGGER
-        trigger = base_trigger * 2 ** _verbose_level()
+        trigger = base_trigger * 2 ** self.verbosity
 
         if self.lines_in_function > trigger:
             error_level = int(math.log(self.lines_in_function / base_trigger, 2))
@@ -1972,7 +1938,8 @@ def check_style(filename, clean_lines, line_number, file_extension, file_state, 
         # It's ok to have many commands in a switch case that fits in 1 line
         and not ((cleansed_line.find('case ') != -1
                   or cleansed_line.find('default:') != -1)
-                 and cleansed_line.find('break;') != -1)):
+                 and cleansed_line.find('break;') != -1)
+        and not cleansed_line.startswith('#define ')):
         error(filename, line_number, 'whitespace/newline', 4,
               'More than one command on the same line')
 
@@ -2121,6 +2088,12 @@ def check_include_line(filename, clean_lines, line_number, include_state, error)
       include_state: An _IncludeState instance in which the headers are inserted.
       error: The function to call with any errors found.
     """
+
+    if filename.find('WebKitTools/WebKitAPITest/') >= 0:
+        # Files in this directory are consumers of the WebKit API and
+        # therefore do not follow the same header including discipline as
+        # WebCore.
+        return
 
     line = clean_lines.lines[line_number]
 
@@ -2491,6 +2464,8 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
             # Various exceptions to the rule: JavaScript op codes functions, const_iterator.
             if (not (filename.find('JavaScriptCore') >= 0 and modified_identifier.find('_op_') >= 0)
                 and not modified_identifier.startswith('tst_')
+                and not modified_identifier.startswith('qt_')
+                and not modified_identifier.find('::qt_') >= 0
                 and not modified_identifier == "const_iterator"):
                 error(filename, line_number, 'readability/naming', 4, identifier + " is incorrectly named. Don't use underscores in your identifier names.")
 
@@ -2837,7 +2812,7 @@ def process_line(filename, file_extension,
     check_invalid_increment(filename, clean_lines, line, error)
 
 
-def process_file_data(filename, file_extension, lines, error):
+def process_file_data(filename, file_extension, lines, error, verbosity):
     """Performs lint checks and reports any errors to the given error function.
 
     Args:
@@ -2851,7 +2826,7 @@ def process_file_data(filename, file_extension, lines, error):
              ['// marker so line numbers end in a known way'])
 
     include_state = _IncludeState()
-    function_state = _FunctionState()
+    function_state = _FunctionState(verbosity)
     class_state = _ClassState()
     file_state = _FileState()
 
@@ -2876,12 +2851,14 @@ def process_file_data(filename, file_extension, lines, error):
     check_for_new_line_at_eof(filename, lines, error)
 
 
-def process_file(filename, error):
+def process_file(filename, error, verbosity):
     """Performs cpp_style on a single file.
 
     Args:
       filename: The name of the file to parse.
       error: The function to call with any errors found.
+      verbosity: An integer that is the verbosity level to use while
+                 checking style.
     """
     try:
         # Support the UNIX convention of using "-" for stdin.  Note that
@@ -2921,8 +2898,10 @@ def process_file(filename, error):
     # should rely on the extension.
     if (filename != '-' and not can_handle(filename)):
         sys.stderr.write('Ignoring %s; not a .cpp, .c or .h file\n' % filename)
+    elif is_exempt(filename):
+        sys.stderr.write('Ignoring %s; This file is exempt from the style guide.\n' % filename)
     else:
-        process_file_data(filename, file_extension, lines, error)
+        process_file_data(filename, file_extension, lines, error, verbosity)
         if carriage_return_found and os.linesep != '\r\n':
             # Use 0 for line_number since outputing only one error for potentially
             # several lines.
@@ -2938,3 +2917,23 @@ def can_handle(filename):
       filename: A filename. It may contain directory names.
      """
     return os.path.splitext(filename)[1] in ('.h', '.cpp', '.c')
+
+
+def is_exempt(filename):
+    """Checks if the given file is exempt from the style guide.  For example,
+    some files are purposefully mantained in Mozilla style to ease future
+    merges.
+
+    Args:
+      filename: A filename. It may contain directory names.
+     """
+    if (filename.find('WebKit/qt/Api/') >= 0
+        or filename.find('WebKit/qt/tests/') >= 0):
+        # The Qt API and tests do not follow WebKit style.
+        # They follow Qt style. :)
+        return True
+
+    return os.path.basename(filename) in (
+        'gtk2drawing.c',
+        'gtk2drawing.h',
+    )

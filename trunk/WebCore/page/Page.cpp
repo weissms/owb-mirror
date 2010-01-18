@@ -292,13 +292,6 @@ void Page::goBackOrForward(int distance)
 
 void Page::goToItem(HistoryItem* item, FrameLoadType type)
 {
-#if !ASSERT_DISABLED
-    // If we're navigating to an item with history state for a Document other than the
-    // current Document, the new Document had better be in the page cache.
-    if (item->stateObject() && item->document() != m_mainFrame->document())
-        ASSERT(item->document()->inPageCache());
-#endif
-
     // Abort any current load unless we're navigating the current document to a new state object
     if (!item->stateObject() || item->document() != m_mainFrame->document()) {
         // Define what to do with any open database connections. By default we stop them and terminate the database thread.
@@ -321,7 +314,7 @@ void Page::goToItem(HistoryItem* item, FrameLoadType type)
 
 int Page::getHistoryLength()
 {
-    return m_backForwardList->backListCount() + 1;
+    return m_backForwardList->backListCount() + 1 + m_backForwardList->forwardListCount();
 }
 
 void Page::setGlobalHistoryItem(HistoryItem* item)

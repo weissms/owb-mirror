@@ -646,7 +646,6 @@ void JIT::patchMethodCallProto(CodeBlock* codeBlock, MethodCallLinkInfo& methodC
     structure->ref();
 
     Structure* prototypeStructure = proto->structure();
-    ASSERT(!methodCallLinkInfo.cachedPrototypeStructure);
     methodCallLinkInfo.cachedPrototypeStructure = prototypeStructure;
     prototypeStructure->ref();
 
@@ -1596,7 +1595,6 @@ void JIT::patchMethodCallProto(CodeBlock* codeBlock, MethodCallLinkInfo& methodC
     structure->ref();
 
     Structure* prototypeStructure = proto->structure();
-    ASSERT(!methodCallLinkInfo.cachedPrototypeStructure);
     methodCallLinkInfo.cachedPrototypeStructure = prototypeStructure;
     prototypeStructure->ref();
 

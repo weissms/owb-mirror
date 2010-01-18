@@ -1,3 +1,97 @@
+2010-01-18  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33731
+        Remove UntypedPtrAndBitfield from UStringImpl (akin to PtrAndFlags).
+
+        This break the OS X Leaks tool.  Instead, free up some more bits from the refCount.
+
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::sharedBuffer):
+        (JSC::UStringImpl::~UStringImpl):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::cost):
+        (JSC::UStringImpl::checkConsistency):
+        (JSC::UStringImpl::UStringImpl):
+        (JSC::UStringImpl::bufferOwnerString):
+        (JSC::UStringImpl::):
+        * wtf/StringHashFunctions.h:
+        (WTF::stringHash):
+
+2010-01-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33731
+        Remove uses of PtrAndFlags from JIT data stuctures.
+
+        These break the OS X Leaks tool.  Free up a bit in CallLinkInfo, and invalid
+        permutation of pointer states in MethodCallLinkInfo to represent the removed bits.
+
+        * bytecode/CodeBlock.h:
+        (JSC::CallLinkInfo::seenOnce):
+        (JSC::CallLinkInfo::setSeen):
+        (JSC::MethodCallLinkInfo::MethodCallLinkInfo):
+        (JSC::MethodCallLinkInfo::seenOnce):
+        (JSC::MethodCallLinkInfo::setSeen):
+        * jit/JIT.cpp:
+        (JSC::JIT::unlinkCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::patchMethodCallProto):
+        * runtime/UString.h:
+
+2010-01-16  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Cache JS string values made from DOM strings (Dromaeo speedup)
+        https://bugs.webkit.org/show_bug.cgi?id=33768
+        <rdar://problem/7353576>
+
+        * runtime/JSString.h:
+        (JSC::jsStringWithFinalizer): Added new mechanism for a string to have an optional
+        finalizer callback, for the benefit of weak-referencing caches.
+        (JSC::):
+        (JSC::Fiber::JSString):
+        (JSC::Fiber::~JSString):
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope): Clear fibers so this doesn't look like a string with a finalizer.
+        * runtime/WeakGCMap.h: Include "Collector.h" to make this header includable by itself.
+
+2010-01-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix for <rdar://problem/7548432>
+        Add ALWAYS_INLINE to jsLess for a 1% speedup on llvm-gcc.
+
+        * runtime/Operations.h:
+        (JSC::jsLess):
+
+2010-01-14  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        REGRESISON: Google maps buttons not working properly
+        https://bugs.webkit.org/show_bug.cgi?id=31871
+
+        REGRESSION(r52948): JavaScript exceptions thrown on Google Maps when
+        getting directions for a second time
+        https://bugs.webkit.org/show_bug.cgi?id=33446
+        
+        SunSpider and v8 report no change.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::tryCacheGetByID): Update our cached offset in case
+        flattening the dictionary changed any of its offsets.
+
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/Operations.h:
+        (JSC::normalizePrototypeChain): ditto
+
 2010-01-15  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.

@@ -909,6 +909,7 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/SearchPopupMenuGtk.cpp	BCSearchPopupMenuGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/WidgetGtk.cpp	BCWidgetGtk.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/gtk2drawing.c gtk2drawing.c
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/gtkdrawing.h
 BAL/Widgets/WebCore/Gtk	WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp PasteboardHelperGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.h PasteboardHelperGtk.h

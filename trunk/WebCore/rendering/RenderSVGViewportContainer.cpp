@@ -105,11 +105,12 @@ TransformationMatrix RenderSVGViewportContainer::viewportTransform() const
     return TransformationMatrix();
 }
 
-TransformationMatrix RenderSVGViewportContainer::localToParentTransform() const
+const TransformationMatrix& RenderSVGViewportContainer::localToParentTransform() const
 {
     TransformationMatrix viewportTranslation;
     viewportTranslation.translate(m_viewport.x(), m_viewport.y());
-    return viewportTransform() * viewportTranslation;
+    m_localToParentTransform = viewportTransform() * viewportTranslation;
+    return m_localToParentTransform;
     // If this class were ever given a localTransform(), then the above would read:
     // return viewportTransform() * localTransform() * viewportTranslation;
 }
@@ -117,8 +118,10 @@ TransformationMatrix RenderSVGViewportContainer::localToParentTransform() const
 // FIXME: This method should be removed as soon as callers to RenderBox::absoluteTransform() can be removed.
 TransformationMatrix RenderSVGViewportContainer::absoluteTransform() const
 {
+    TransformationMatrix localToParent = localToParentTransform();
+    
     // This would apply localTransform() twice if localTransform() were not the identity.
-    return localToParentTransform() * RenderSVGContainer::absoluteTransform();
+    return localToParent * RenderSVGContainer::absoluteTransform();
 }
 
 bool RenderSVGViewportContainer::pointIsInsideViewportClip(const FloatPoint& pointInParent)

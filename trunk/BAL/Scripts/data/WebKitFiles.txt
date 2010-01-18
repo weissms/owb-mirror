@@ -85,6 +85,7 @@ WebCore/platform/NotImplemented.h Base/NotImplemented.h
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/Scrollbar.cpp    BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
+WebCore/platform/graphics/Generator.h BAL/Graphics/WebCore/WK/BCGeneratorWK.h
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
 WebCore/platform/graphics/MediaPlayer.cpp BAL/Media/WebCore/WK/BCMediaPlayerWK.cpp
 WebCore/platform/graphics/MediaPlayer.h	BAL/Media/WebCore/WK/BCMediaPlayerWK.h
@@ -135,6 +136,8 @@ WebCore/rendering/RenderMenuList.cpp
 WebCore/rendering/RenderObject.cpp
 WebCore/rendering/RenderObjectChildList.cpp
 WebCore/rendering/RenderSVGContainer.cpp
+WebCore/rendering/RenderSVGRoot.cpp
+WebCore/rendering/RenderSVGViewportContainer.cpp
 WebCore/rendering/RenderText.cpp
 WebCore/rendering/RenderTextControl.cpp
 WebCore/rendering/RenderWidget.cpp

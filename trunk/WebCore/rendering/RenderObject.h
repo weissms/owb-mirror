@@ -281,6 +281,7 @@ public:
     virtual bool isRenderInline() const { return false; }
     virtual bool isRenderPart() const { return false; }
     virtual bool isRenderView() const { return false; }
+    virtual bool isReplica() const { return false; }
     virtual bool isRuby() const { return false; }
     virtual bool isRubyBase() const { return false; }
     virtual bool isRubyRun() const { return false; }
@@ -346,7 +347,7 @@ public:
 
     // Returns the full transform mapping from local coordinates to local coords for the parent SVG renderer
     // This includes any viewport transforms and x/y offsets as well as the transform="" value off the element.
-    virtual TransformationMatrix localToParentTransform() const;
+    virtual const TransformationMatrix& localToParentTransform() const;
 
     // Walks up the parent chain to create a transform which maps from local to document coords
     // NOTE: This method is deprecated!  It doesn't respect scroll offsets or repaint containers.
