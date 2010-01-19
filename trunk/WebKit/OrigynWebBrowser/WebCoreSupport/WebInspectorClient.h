@@ -31,16 +31,19 @@
 
 #include "InspectorClient.h"
 
+#include "SharedPtr.h"
+
 namespace WebCore {
-#if ENABLE(DAE)
-    class Application;
-#endif
     class Node;
     class Page;
     class String;
 }
 
 class WebView;
+
+#if ENABLE(DAE)
+class WebApplication;
+#endif
 
 class WebInspectorClient : public WebCore::InspectorClient {
 public:
@@ -82,7 +85,7 @@ private:
     typedef HashMap<WebCore::String, WebCore::String> SettingsMap;
     OwnPtr<SettingsMap> m_settings;
 #if ENABLE(DAE)
-    RefPtr<WebCore::Application> m_application;
+    SharedPtr<WebApplication> m_application;
 #endif
 };
 

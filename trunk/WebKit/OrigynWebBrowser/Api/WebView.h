@@ -77,10 +77,6 @@ class WebView;
 class WebViewObserver;
 class WebWidgetEngineDelegate;
 
-#if ENABLE(DAE_APPLICATION)
-class WebApplication;
-#endif
-
 namespace WebCore {
     class Application;
     class FrameView;
@@ -1457,46 +1453,6 @@ public:
      */
     void fireWebKitEvents();
 
-#if ENABLE(DAE_APPLICATION)
-    /**
-     * application
-     * @brief returns the WebCore underlying application.
-     * @internal
-     */
-    WebCore::Application* application() const { return m_application; }
-
-    /**
-     * setPermissions
-     * Set the permission of the associated application
-     * @param permissions The space separated list of permissions. Permissions are cleared prior to being parsed so
-     * if the passed in string is 0, you will just clear the permissions.
-     * See the OIPF specification for the long list of permission.
-     *
-     */
-    void setPermissions(const char* /*permissions*/);
-
-    /**
-     * show
-     * @brief show the webview
-     */
-    void show();
-
-    /**
-     * hide
-     * @brief hide the webview
-     */
-    void hide();
-
-    /**
-     * childAt
-     * @brief returns the children at the position i. If i is greater that the children number, returns 0.
-     * @internal
-     * @deprecated
-     */
-    WebView* childAt(size_t i);
-
-#endif
-
     /*
      * resize
      */
@@ -1684,18 +1640,10 @@ private:
      *  active 
      */
     bool active();
-
-#if ENABLE(DAE_APPLICATION)
-    /**
-     * setApplication
-     * @internal
-     */
-    void setApplication(WebCore::Application* application) { m_application =  application; }
-#endif
-
     
 protected:
-    friend class WebApplicationNotificationClient;
+    friend class WebApplicationClient;
+    friend class WebApplicationManager;
     friend class WebChromeClient;
     friend class WebEditorClient;
     friend class WebEventSender;
@@ -1784,13 +1732,6 @@ protected:
      */
     bool handleEditingKeyboardEvent(WebCore::KeyboardEvent*);
 
-    /**
-     * shouldDispatchEvent
-     * used by DAE to avoid event dispatching (for example, to abide by the keyset property).
-     * @internal
-     */
-    bool shouldDispatchEvent(int /*virtualKey*/) const;
-
 #if ENABLE(CEHTML)
     /**
      * shouldCallDefaultHandlerForVKKey
@@ -1857,6 +1798,10 @@ protected:
      * @param BalPoint the reference point for the translation
      */
     void eventScrollToRelativeCoords(BalEventScroll& ev, const BalPoint& p);
+
+    void addWidgetOnParentWidget(BalRectangle dirty);
+    
+    void cleanBackground(BalRectangle dirty, bool refresh);
 #endif // ENABLE(DAE)
 
     /**
@@ -2001,10 +1946,6 @@ protected:
     BalWidget* m_topLevelParent;
     WebViewPrivate* d;
     WebViewObserver* m_webViewObserver;
-
-#if ENABLE(DAE_APPLICATION)
-    WebCore::Application* m_application;
-#endif
 
 #if ENABLE(CEHTML)
     bool m_previousDownEventCalledDefaultHandler;

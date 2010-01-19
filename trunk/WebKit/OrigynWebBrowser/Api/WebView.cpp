@@ -159,11 +159,10 @@
 
 #if ENABLE(DAE_APPLICATION)
 #include "Application.h"
+#include "ApplicationManager.h"
 #include "ApplicationPrivateData.h"
 #include "Keyset.h"
 #include "Page.h"
-#include "WebApplicationNotificationClient.h"
-#include "WebEventSender.h"
 #endif
 
 #if ENABLE(CEHTML)
@@ -191,8 +190,8 @@ public:
         if (!m_webView->isStopped()) {
             m_webView->stopLoading(true);
 #if ENABLE(DAE_APPLICATION)
-            if (m_webView->application())
-                m_webView->application()->dispatchApplicationEvent(eventNames().LowMemoryEvent);
+            if (webAppMgr().application(m_webView))
+                webAppMgr().application(m_webView)->dispatchApplicationEvent(eventNames().LowMemoryEvent);
 #endif
             SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webView->webFrameLoadDelegate();
             if (webFrameLoadDelegate)
@@ -355,9 +354,6 @@ WebView::WebView()
     , m_topLevelParent(0)
     , d(new WebViewPrivate(this))
     , m_webViewObserver(new WebViewObserver(this))
-#if ENABLE(DAE_APPLICATION)
-    , m_application(0)
-#endif
 #if ENABLE(CEHTML)
     , m_previousDownEventCalledDefaultHandler(false)
 #endif
@@ -450,22 +446,6 @@ WebView::~WebView()
 WebView* WebView::createInstance()
 {
     return new WebView();
-}
-
-WebView* WebView::createInstance(const BalRectangle& rectangle, const char* url, TransferSharedPtr<WebFrameLoadDelegate> frameLoadDelegate, TransferSharedPtr<JSActionDelegate> jsActionDelegate)
-{
-    WebView* view = new WebView();
-#if ENABLE(DAE_APPLICATION)
-    RefPtr<Application> application = Application::create(IntRect(rectangle), KURL(KURL(), url), Application::BroadcastIndependentRootApp, view->page(), 0, new WebApplicationNotificationClient());
-    view->setApplication(application.release().releaseRef());
-    view->setViewWindow(WebEventSender::getEventSender()->webWindow());
-    view->setWebFrameLoadDelegate(frameLoadDelegate);
-    view->setJSActionDelegate(jsActionDelegate);
-    view->setTransparent(true);
-#endif
-    view->initWithFrame(const_cast<BalRectangle&>(rectangle), (const char*)0, (const char*)0);
-    view->mainFrame()->loadURL(url);
-    return view;
 }
 
 void initializeStaticObservers()
@@ -766,124 +746,49 @@ BalRectangle WebView::onExpose(BalEventExpose ev)
     return d->onExpose(ev);
 }
 
-bool WebView::shouldDispatchEvent(int virtualKey) const
-{
-#if ENABLE(DAE_APPLICATION)
-    return !m_application->isOIPFApplication() || m_application->applicationPrivateData()->keyset()->shouldDispatchEvent(virtualKey);
-#else
-    return true;
-#endif
-}
-
 bool WebView::onKeyDown(BalEventKey ev)
 {
-#if ENABLE(DAE)
-    PlatformKeyboardEvent keyboardEvent(&ev);
-    int virtualKey = keyboardEvent.windowsVirtualKeyCode();
-    if (shouldDispatchEvent(virtualKey)) {
 #if ENABLE(CEHTML)
+        PlatformKeyboardEvent keyboardEvent(&ev);
+        int virtualKey = keyboardEvent.windowsVirtualKeyCode();
         if (shouldCallDefaultHandlerForVKKey(virtualKey)) {
             m_previousDownEventCalledDefaultHandler = true;
             return defaultActionOnFocusedNode(ev);
         }
         m_previousDownEventCalledDefaultHandler = false;
 #endif
-        return d->onKeyDown(ev);
-    }
-
-    return false;
-#else
     return d->onKeyDown(ev);
-#endif
 }
 
 bool WebView::onKeyUp(BalEventKey ev)
 {
-#if ENABLE(DAE)
-    PlatformKeyboardEvent keyboardEvent(&ev);
-    int virtualKey = keyboardEvent.windowsVirtualKeyCode();
-    if (shouldDispatchEvent(virtualKey)) {
 #if ENABLE(CEHTML)
         if (m_previousDownEventCalledDefaultHandler) {
             m_previousDownEventCalledDefaultHandler = false;
             return defaultActionOnFocusedNode(ev);
         }
 #endif
-        return d->onKeyUp(ev);
-    }
-
-    return false;
-#else
     return d->onKeyUp(ev);
-#endif
 }
 
 bool WebView::onMouseMotion(BalEventMotion ev)
 {
-#if ENABLE(DAE_APPLICATION)
-    IntPoint p(application()->pos());
-    IntRect r(application()->rect());
-    r.setX(r.x() + p.x());
-    r.setY(r.y() + p.y());
-    if (!eventMotionInRect(ev, r))
-        return false;
-    eventMotionToRelativeCoords(ev, application()->pos());
-    d->onMouseMotion(ev);
-    return true;
-#else
     return d->onMouseMotion(ev);
-#endif
 }
 
 bool WebView::onMouseButtonDown(BalEventButton ev)
 {
-#if ENABLE(DAE_APPLICATION)
-    IntPoint p(application()->pos());
-    IntRect r(application()->rect());
-    r.setX(r.x() + p.x());
-    r.setY(r.y() + p.y());
-    if (!eventButtonInRect(ev, r))
-        return false;
-    eventButtonToRelativeCoords(ev, application()->pos());
-    d->onMouseButtonDown(ev);
-    return true;
-#else
     return d->onMouseButtonDown(ev);
-#endif
 }
 
 bool WebView::onMouseButtonUp(BalEventButton ev)
 {
-#if ENABLE(DAE_APPLICATION)
-    IntPoint p(application()->pos());
-    IntRect r(application()->rect());
-    r.setX(r.x() + p.x());
-    r.setY(r.y() + p.y());
-    if (!eventButtonInRect(ev, r))
-        return false;
-    eventButtonToRelativeCoords(ev, application()->pos());
-    d->onMouseButtonUp(ev);
-    return true;
-#else
     return d->onMouseButtonUp(ev);
-#endif
 }
 
 bool WebView::onScroll(BalEventScroll ev)
 {
-#if ENABLE(DAE_APPLICATION)
-    IntPoint p(application()->pos());
-    IntRect r(application()->rect());
-    r.setX(r.x() + p.x());
-    r.setY(r.y() + p.y());
-    if (!eventScrollInRect(ev, r))
-        return false;
-    eventScrollToRelativeCoords(ev, application()->pos());
-    d->onScroll(ev);
-    return true;
-#else
     return d->onScroll(ev);
-#endif
 }
 
 bool WebView::onResize(BalResizeEvent ev)
@@ -922,33 +827,6 @@ bool WebView::defaultActionOnFocusedNode(BalEventKey event)
     
     return (keyEvent->defaultHandled() || keyEvent->defaultPrevented());
 }
-
-#if ENABLE(DAE_APPLICATION)
-void WebView::setPermissions(const char* permissions)
-{
-    m_application->setPermissions(String(permissions));
-}
-
-void WebView::show()
-{
-    m_application->show();
-}
-
-void WebView::hide()
-{
-    m_application->hide();
-}
-
-WebView* WebView::childAt(size_t i)
-{
-    ApplicationCollection* children = m_application->children();
-    RefPtr<Application> child = children->item(i);
-    if (!child)
-        return 0;
-
-    return kit(child->page());
-}
-#endif // DAE_APPLICATION
 
 #if ENABLE(CEHTML)
 // This method enforces requirement 5.4.1.f & g according to VK keys dispatch with regard to focused node.

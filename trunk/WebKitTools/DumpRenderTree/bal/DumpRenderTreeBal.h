@@ -35,6 +35,13 @@
 #include <vector>
 #include <time.h>
 
+#if ENABLE(DAE)
+#include "WebApplicationManager.h"
+#define EVENT_SINK          (&(webAppMgr()))
+#else
+#define EVENT_SINK          getWebView()
+#endif
+
 class PolicyDelegate;
 #if PLATFORM(GTK)|| PLATFORM(QT)
 extern unsigned int waitToDumpWatchdog;

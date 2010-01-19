@@ -372,13 +372,17 @@ const char* dumpFramesAsText(WebFrame* frame)
 
 #if ENABLE(DAE_APPLICATION)
     if (gApplicationTestController->showChildApplications()) {
-        // Dump child applications
-        size_t i = 0;
+        // Dump child applications      
+        SharedPtr<WebApplication> webApp = webAppMgr().application(frame->webView());
 
-        while (WebView* child = frame->webView()->childAt(i++)) {
+        for(size_t i = 0; webApp && i < webApp->numChildren(); ++i) {
+            SharedPtr<WebApplication> child = webApp->childAt(i);
             result += "\n--------\nChild";
             result += "\n--------\n";
-            result += dumpFramesAsText(child->mainFrame());
+            if (child && child->webView())
+                result += dumpFramesAsText(child->webView()->mainFrame());
+            else
+                result += "ERROR: Child application web view is NULL!";
         }
     }
 #endif
@@ -664,9 +668,9 @@ void runTest(const string& testPathOrURL)
     SharedPtr<JSDelegate> jsActionDelegate = JSDelegate::createInstance();
 
 #if ENABLE(DAE)
-    webView = WebView::createInstance(rect, url, frameLoadDelegate, jsActionDelegate);
-    BalWidget *view = createWindow(&webView, rect);
-    //webApplication = WebApplication::createInstance(rect, url, BroadcastIndependent, 0, frameLoadDelegate, jsActionDelegate);
+    BalWidget *view = createWindow(0, rect);
+    SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
+    webView = application->webView();
 #else
 #if !PLATFORM(QT)
     webView = WebView::createInstance();

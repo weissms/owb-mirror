@@ -38,6 +38,7 @@
 #define LOG_OWB(prefix, ...)        ((void)0)
 #endif
 
+#define LOG_APPMGR(...)             LOG_OWB("[Application Manager] ", __VA_ARGS__)
 #define LOG_SRVMGR(...)             LOG_OWB("[Service Manager] ", __VA_ARGS__)
 
 namespace WebCore {

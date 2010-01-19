@@ -108,10 +108,10 @@
 #endif
 
 #if ENABLE(DAE)
-#include "Application.h"
-#include "ApplicationManager.h"
 #include "ApplicationManagerElement.h"
 #include "ConfigurationElement.h"
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
 #endif
 
 #if ENABLE(DAE_TUNER)
@@ -365,10 +365,9 @@ void WebFrameLoaderClient::dispatchDidHandleOnloadEvents()
     SharedPtr<WebFrameLoadDelegate> frameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
     if (frameLoadDelegate)
         frameLoadDelegate->didHandleOnloadEventsForFrame(m_webFrame);
-
+    
 #if ENABLE(DAE_APPLICATION)
-    Application* app = m_webFrame->webView()->application();
-
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
     // FIXME: Not conformant to spec.: event gets dispatched *after* the document onload event
     if (app)
         app->dispatchApplicationEvent(eventNames().ApplicationLoadedEvent);
@@ -424,12 +423,10 @@ void WebFrameLoaderClient::dispatchWillClose()
         frameLoadDelegate->willCloseFrame(m_webFrame);
 
 #if ENABLE(DAE_APPLICATION)
-    Application* app = m_webFrame->webView()->application();
-
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
     if (app)
         app->dispatchApplicationEvent(eventNames().ApplicationUnloadedEvent);
 #endif
-
 }
 
 void WebFrameLoaderClient::dispatchDidReceiveIcon()
@@ -934,12 +931,13 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
 #endif
 
 #if ENABLE(DAE_APPLICATION)
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
     // Even if we have returned false in shouldUsePluginDocument, we may be called as a fallback so avoid matching them now.
-    if (Application* application = m_webFrame->webView()->application()) {
+    if (app) {
         // FIXME: This check should be case-sensitive but WebCore lower-cases the MIME Type.
         if (mimeType == "application/oipfapplicationmanager") {
             // We have encountered an iopfapplicationmanager so we have an OIPF application.
-            application->setIsOIPFApplication();
+            app->setIsOIPFApplication();
             return adoptRef(static_cast<Widget*>(new ApplicationManagerElement()));
         } else if (mimeType == ConfigurationElement::MIMEType) {
             ASSERT(element->hasTagName(objectTag)); 
@@ -1334,8 +1332,9 @@ void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* 
 #endif
 
 #if ENABLE(DAE_APPLICATION)
-    ApplicationManager* manager = ApplicationManager::getApplicationManager();
-    manager->setDocumentOnCurrentApplication(coreFrame->document());
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
+    if (app)
+        webAppMgr().setDocumentOwnerApplication(app, coreFrame->document());
     m_webFrame->addVKToJSWindowObject();
 #endif
 #if ENABLE(DAE_TUNER)
@@ -1412,9 +1411,9 @@ void WebFrameLoaderClient::didReceiveSSLSecurityExtension(const ResourceRequest&
     //ASSERT(request.url().string() == m_webFrame->url());
     UNUSED_PARAM(request); // For release build.
 #if ENABLE(DAE_APPLICATION)
-    Application* application = m_webFrame->webView()->application();
-    if (application)
-        application->setPermissions(securityExtension);
+    SharedPtr<WebApplication> webApp = webAppMgr().application(m_webFrame->webView());
+    if (webApp)
+        webApp->setPermissions(securityExtension);
 #endif
 }
 #endif

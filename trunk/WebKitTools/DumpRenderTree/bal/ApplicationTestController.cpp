@@ -103,8 +103,11 @@ static JSValueRef setPermissionsForMainApplication(JSContextRef context, JSObjec
     //ASSERT(!*exception);
 
     // Clear permissions.
-    getWebView()->setPermissions(0);
-    getWebView()->setPermissions(JSStringCopyUTF8CString(permissions.get()));
+    SharedPtr<WebApplication> webApp = webAppMgr().application(getWebView());
+    if (webApp) {
+        webApp->setPermissions(0);
+        webApp->setPermissions(JSStringCopyUTF8CString(permissions.get()));
+    }
 #endif
 
     return JSValueMakeUndefined(context);

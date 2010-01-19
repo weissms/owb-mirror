@@ -1,3 +1,35 @@
+2010-01-19  Gilles Bertal  <gbertal@pleyo.com>
+
+        Misc. changes related to the DAE event sender functionality
+        move over to the application manager.
+
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (MemoryEvent::call):
+        (WebView::WebView):
+        (WebView::onKeyDown):
+        (WebView::onKeyUp):
+        (WebView::onMouseMotion):
+        (WebView::onMouseButtonDown):
+        (WebView::onMouseButtonUp):
+        (WebView::onScroll):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::setWindowRect):
+        (WebChromeClient::windowRect):
+        (WebChromeClient::createWindow):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidHandleOnloadEvents):
+        (WebFrameLoaderClient::dispatchWillClose):
+        (WebFrameLoaderClient::createPlugin):
+        (WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld):
+        (WebFrameLoaderClient::didReceiveSSLSecurityExtension):
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::createPage):
+        (WebInspectorClient::showWindow):
+        * OrigynWebBrowser/WebCoreSupport/WebInspectorClient.h:
+
 2010-01-19  Mario Bensi  <mbensi@pleyo.com>
 
         add host and protocol method in WebMutableURLRequest.

@@ -51,12 +51,7 @@ BalEventMotion EventSenderController::makeMouseMotionEvent(bool state, int x, in
 
 void EventSenderController::dispatchMouseMotion(BalEventMotion em)
 {
-#if ENABLE(DAE_APPLICATION)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
-    eventSender->onMouseMotion(em);
-#else
-    getWebView()->onMouseMotion(em);
-#endif
+    EVENT_SINK->onMouseMotion(em);
 }
 
 BalEventButton EventSenderController::makeMouseButtonEvent(bool up, int x, int y)
@@ -81,18 +76,10 @@ BalEventButton EventSenderController::makeMouseButtonEvent(bool up, int x, int y
 
 void EventSenderController::dispatchMouseButton(BalEventButton eb)
 {
-#if ENABLE(DAE_APPLICATION)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
     if (eb.type == SDL_MOUSEBUTTONUP)
-        eventSender->onMouseButtonUp(eb);
+        EVENT_SINK->onMouseButtonUp(eb);
     else
-        eventSender->onMouseButtonDown(eb);
-#else
-    if (eb.type == SDL_MOUSEBUTTONUP)
-        getWebView()->onMouseButtonUp(eb);
-    else
-        getWebView()->onMouseButtonDown(eb);
-#endif
+        EVENT_SINK->onMouseButtonDown(eb);
 }
 
 static SDLKey ConvertKeycodeToSDLKey(const int keycode)
@@ -280,12 +267,7 @@ BalEventKey EventSenderController::makeKeyboardEvent(bool up, bool shift, bool c
 
 void EventSenderController::dispatchKeyboardEvent(BalEventKey ek)
 {
-#if ENABLE(DAE_APPLICATION)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
-    eventSender->onKeyDown(ek);
-#else
-    getWebView()->onKeyDown(ek);
-#endif
+    EVENT_SINK->onKeyDown(ek);
 }
 
 int EventSenderController::getCharCode(char* code)

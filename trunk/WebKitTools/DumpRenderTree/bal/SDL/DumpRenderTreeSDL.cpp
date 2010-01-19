@@ -90,7 +90,6 @@ BalWidget* createWindow(WebView **webView, BalRectangle rect)
     if (getenv("SDL_NOMOUSE"))
         SDL_ShowCursor(SDL_DISABLE);
 
-    WebEventSender::getEventSender()->setWebWindow(screen);
     return screen;
 }
 
@@ -98,7 +97,6 @@ void waitEvent()
 {
     SDL_Event event;
     WebView* webView = getWebView();
-    WebEventSender* eventSender = WebEventSender::getEventSender();
 
     //SDL_Surface* scr;
     while (!done) {
@@ -114,34 +112,34 @@ void waitEvent()
                         webView->addToDirtyRegion(rect);
                     }
                     SDL_ExposeEvent ev;
-                    ev.type = SDL_VIDEOEXPOSE; 
-                    eventSender->onExpose(ev);
+                    ev.type = SDL_VIDEOEXPOSE;
+                    webAppMgr().onExpose(ev);
                     break;
                 case SDL_KEYDOWN:
                     //printf("La touche %s a été préssée!\n", SDL_GetKeyName(event.key.keysym.sym));
-                    eventSender->onKeyDown(event.key);
+                    webAppMgr().onKeyDown(event.key);
                     break;
                 case SDL_KEYUP:
                     //printf("La touche %s a été relachée!\n", SDL_GetKeyName(event.key.keysym.sym));
-                    eventSender->onKeyUp(event.key);
+                    webAppMgr().onKeyUp(event.key);
                     break;
                 case SDL_MOUSEMOTION:
                     //printf("mouse motion\n");
-                    eventSender->onMouseMotion(event.motion);
+                    webAppMgr().onMouseMotion(event.motion);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     //printf("bouton mouse down\n");
                     if(event.button.button == SDL_BUTTON_WHEELUP || event.button.button == SDL_BUTTON_WHEELDOWN)
-                        eventSender->onScroll(event.button);
+                        webAppMgr().onScroll(event.button);
                     else
-                        eventSender->onMouseButtonDown(event.button);
+                        webAppMgr().onMouseButtonDown(event.button);
                     break;
                 case SDL_MOUSEBUTTONUP:
                     //printf("button mouse up\n");
                     if(event.button.button == SDL_BUTTON_WHEELUP || event.button.button == SDL_BUTTON_WHEELDOWN) 
-                        eventSender->onScroll(event.button);
+                        webAppMgr().onScroll(event.button);
                     else
-                        eventSender->onMouseButtonUp(event.button);
+                        webAppMgr().onMouseButtonUp(event.button);
                     break;
                 case SDL_VIDEORESIZE:
                     //printf("video resize\n");
@@ -153,24 +151,24 @@ void waitEvent()
                     break;
                 case SDL_VIDEOEXPOSE:
                     //printf("#######################video expose\n");
-                    eventSender->onExpose(event.expose);
+                    webAppMgr().onExpose(event.expose);
                     break;
                 case SDL_USEREVENT:
                     //printf("user event\n");
-                    eventSender->onUserEvent(event.user);
+                    webAppMgr().onUserEvent(event.user);
                     break;
                 case SDL_SYSWMEVENT:
                     //printf("sys wm event\n");
                     break;
                 case SDL_QUIT:
                     //printf("SDL_QUIT\n");
-                    eventSender->onQuit(event.quit);
+                    webAppMgr().onQuit(event.quit);
                     break;
                 default:
                     ;//printf("other event\n");
             }
         } else {
-            eventSender->fireWebKitEvents();
+            webAppMgr().fireWebKitEvents();
         }
     }
 }
@@ -354,8 +352,7 @@ void displayWebView()
     SDL_ExposeEvent ev;
     ev.type = SDL_VIDEOEXPOSE; 
 #if ENABLE(DAE_APPLICATION)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
-    eventSender->onExpose(ev);
+    webAppMgr().onExpose(ev);
 #else
     getWebView()->onExpose(ev);
 #endif

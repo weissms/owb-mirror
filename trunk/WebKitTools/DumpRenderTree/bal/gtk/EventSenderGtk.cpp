@@ -49,12 +49,7 @@ BalEventMotion EventSenderController::makeMouseMotionEvent(bool state, int x, in
 
 void EventSenderController::dispatchMouseMotion(BalEventMotion em)
 {
-#if ENABLE(DAE)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
-    eventSender->onMouseMotion(em);
-#else
-    getWebView()->onMouseMotion(em);
-#endif
+    EVENT_SINK->onMouseMotion(em);
 }
 
 BalEventButton EventSenderController::makeMouseButtonEvent(bool up, int x, int y)
@@ -76,12 +71,7 @@ BalEventKey EventSenderController::makeKeyboardEvent(bool up, bool shift, bool c
 
 void EventSenderController::dispatchKeyboardEvent(BalEventKey ek)
 {
-#if ENABLE(DAE)
-    WebEventSender* eventSender = WebEventSender::getEventSender();
-    eventSender->onKeyDown(ek);
-#else
-    getWebView()->onKeyDown(ek);
-#endif
+    EVENT_SINK->onKeyDown(ek);
 }
 
 int EventSenderController::getCharCode(char *code)

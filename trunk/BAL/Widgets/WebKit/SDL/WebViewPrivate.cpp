@@ -54,8 +54,8 @@
 #include "WebWindowAlert.h"
 
 #if ENABLE(DAE_APPLICATION)
-#include "Application.h"
-#include "WebEventSender.h"
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
 #endif
 
 #if PLATFORM(SDL)
@@ -207,9 +207,9 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
 
 
 #if ENABLE(DAE_APPLICATION)
-        Application* app = m_webView->application();
+        SharedPtr<WebApplication> app = webAppMgr().application(m_webView);
         cairo_surface_t* newsurface = 0;
-        if (WebEventSender::getEventSender()->visibleApplicationCount() > 0) {
+        if (webAppMgr().visibleApplicationCount() > 0) {
             newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, app->rect().width(), app->rect().height());
             cr = cairo_create(newsurface);
         } else
@@ -226,10 +226,11 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
         if (m_webView->transparent())
             ctx.clearRect(d);
 #endif
+
         frame->view()->paint(&ctx, d);
 
 #if ENABLE(DAE_APPLICATION)
-        if (WebEventSender::getEventSender()->visibleApplicationCount() > 0) {
+        if (webAppMgr().visibleApplicationCount() > 0) {
             cairo_destroy (cr);
             cr = m_cr;
             cairo_save(cr);
@@ -247,6 +248,7 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
 #if !ENABLE(DAE_APPLICATION)
         updateView(m_webView->viewWindow(), dirty);
 #endif
+
         ctx.restore();
         return dirty;
     }
@@ -395,10 +397,11 @@ void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)
 {
     if (!surf || rect.isEmpty())
         return;
+
     rect.intersect(m_rect);
     /* use SDL_Flip only if double buffering is available */
 #if ENABLE(DAE_APPLICATION)
-    Application* app = m_webView->application();
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webView);
     rect.move(app->pos().x(), app->pos().y());
 #endif
     SDL_Rect sdlRect = {rect.x(), rect.y(), rect.width(), rect.height()};
@@ -427,7 +430,7 @@ void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentCha
     
     if (rect.isEmpty())
         return;
-
+    
     if (contentChanged) {
         m_webView->addToDirtyRegion(rect);
 #if 0
@@ -652,11 +655,8 @@ void WebViewPrivate::closeWindowTimerFired(WebCore::Timer<WebViewPrivate>*)
 
 void WebViewPrivate::closeWindow()
 {
-    /*SDL_Event ev;
-    ev.type = SDL_QUIT;
-    SDL_PushEvent(&ev);*/
 #if ENABLE(DAE_APPLICATION)
-    m_webView->application()->destroyApplication();
+    webAppMgr().destroyApplication(webAppMgr().application(m_webView));
 #else
     SDL_Event ev;
     ev.type = SDL_QUIT;
@@ -703,5 +703,49 @@ void WebView::eventScrollToRelativeCoords(BalEventScroll& ev, const BalPoint& p)
 {
     ev.x -= p.x;
     ev.y -= p.y;
+}
+
+void WebView::addWidgetOnParentWidget(BalRectangle dirty)
+{
+    SDL_Rect sdlRect = dirty;
+    if (sdlRect.w == 0 || sdlRect.h ==0)
+        return;
+    SDL_Rect sdlDest = dirty;
+    SharedPtr<WebApplication> app = webAppMgr().application(this);
+    sdlDest.x += app->pos().x();
+    sdlDest.y += app->pos().y();
+
+    SDL_Surface* view = viewWindow();
+
+    sdlDest.x = max(sdlDest.x, (Sint16)0);
+    sdlDest.y = max(sdlDest.y, (Sint16)0);
+    if ((sdlDest.x + sdlDest.w) > view->w)
+        sdlDest.w = view->w - sdlDest.x;
+    if ((sdlDest.y + sdlDest.h) > view->h)
+        sdlDest.h = view->h - sdlDest.y;
+
+    if (view->flags & SDL_DOUBLEBUF)
+        SDL_Flip(view);
+    else
+        SDL_UpdateRect(view, sdlDest.x, sdlDest.y, sdlDest.w, sdlDest.h);
+}
+
+void WebView::cleanBackground(BalRectangle dirty, bool refresh)
+{
+    SDL_Rect sdlRect = dirty;
+    if (sdlRect.w == 0 || sdlRect.h ==0)
+        return;
+
+    SDL_Surface *view = viewWindow();
+
+    SDL_FillRect(view, &sdlRect, 0x00000000);
+
+    if (!refresh)
+        return;
+
+    if (view->flags & SDL_DOUBLEBUF)
+        SDL_Flip(view);
+    else
+        SDL_UpdateRect(view, sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
 }
 #endif // ENABLE(DAE_APPLICATION)

@@ -76,8 +76,9 @@
 #endif
 
 #if ENABLE(DAE_APPLICATION)
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
 #include "WebConfigLoading.h"
-#include "WebEventSender.h"
 #endif
 
 #if PLATFORM(SDL)

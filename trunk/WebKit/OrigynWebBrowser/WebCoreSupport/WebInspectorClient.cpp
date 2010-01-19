@@ -30,6 +30,7 @@
 #include "WebInspectorClient.h"
 
 #include "CString.h"
+#include "IntRect.h"
 #include "NotImplemented.h"
 #include "Page.h"
 #include "PlatformString.h"
@@ -43,7 +44,8 @@
 #include <string>
 
 #if ENABLE(DAE)
-#include "Application.h"
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
 #endif
 
 using namespace WebCore;
@@ -67,7 +69,7 @@ Page* WebInspectorClient::createPage()
 {
 #if ENABLE(DAE)
     if (m_application)
-        return m_application->page();
+        return core(m_application->webView());
 #endif
 
     const char* inspectorURL = getenv("INSPECTOR_URL");
@@ -83,11 +85,9 @@ Page* WebInspectorClient::createPage()
     IntRect frameRect(m_webView->frameRect());
     frameRect.setY((frameRect.height()*2)/3);
     frameRect.setHeight(frameRect.height()/3);
-    m_application = m_webView->application()->createApplication(url.c_str(), true, frameRect);
-    if (!m_application->page())
-        return 0;
+    m_application = webAppMgr().createApplication(0, frameRect, url.c_str(), 0, 0);
 
-    WebView* view = kit(m_application->page());
+    WebView* view = m_application->webView();
     if (!view)
         return 0;
 
@@ -95,7 +95,7 @@ Page* WebInspectorClient::createPage()
     view->setWebFrameLoadDelegate(0);
     view->setJSActionDelegate(0);
 
-    return m_application->page();
+    return core(view);
 #else
     notImplemented();
     return 0;
@@ -118,6 +118,10 @@ void WebInspectorClient::showWindow()
 {
     if (m_webView->page())
         m_webView->page()->inspectorController()->setWindowVisible(true, true);
+#if ENABLE(DAE)
+    if (m_application)
+        m_application->show();
+#endif
 }
 
 void WebInspectorClient::closeWindow()

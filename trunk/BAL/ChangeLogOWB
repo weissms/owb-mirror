@@ -1,3 +1,17 @@
+2010-01-19  Gilles Bertal  <gbertal@pleyo.com>
+
+        Misc. changes related to the DAE event sender functionality
+        move over to the application manager.
+
+        * Facilities/WebCore/WK/BCLoggingWK.h:
+        * Widgets/WebKit/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::updateView):
+        (WebViewPrivate::repaint):
+        (WebViewPrivate::closeWindow):
+        (WebView::addWidgetOnParentWidget):
+        (WebView::cleanBackground):
+
 2010-01-17  Mario Bensi  <mbensi@pleyo.com>
 
         implement Inspector client and fix layoutTests.

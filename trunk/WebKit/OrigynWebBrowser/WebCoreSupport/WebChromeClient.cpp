@@ -67,7 +67,8 @@
 #endif
 
 #if ENABLE(DAE)
-#include "Application.h"
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
 #endif
 
 #if ENABLE(GEOLOCATION)
@@ -98,15 +99,16 @@ void WebChromeClient::chromeDestroyed()
 void WebChromeClient::setWindowRect(const FloatRect& r)
 {
 #if ENABLE(DAE_APPLICATION)
-    m_webView->application()->setWindowRect(IntRect(r));
+    webAppMgr().application(m_webView)->setWindowRect(IntRect(r));
 #endif
 }
 
 FloatRect WebChromeClient::windowRect()
 {
 #if ENABLE(DAE_APPLICATION)
-    IntRect r(m_webView->application()->rect());
-    IntPoint p(m_webView->application()->pos());
+    SharedPtr<WebApplication> app = webAppMgr().application(m_webView);
+    IntRect r(app->rect());
+    IntPoint p(app->pos());
     r.setLocation(p);
 
     return FloatRect(r);
@@ -193,21 +195,19 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
 
     return 0;
 #else
-
 #if ENABLE(DAE)
     IntRect frameRect(m_webView->frameRect());
     IntRect r(features.xSet ? features.x : 0, 
               features.ySet ? features.y : 0, 
               features.widthSet ? features.width : frameRect.width(),
               features.heightSet ? features.height : frameRect.height());
-    RefPtr<Application> app = m_webView->application()->createApplication(frameLoadRequest.resourceRequest().url().string(), true, r);
-    if (!app->page())
+    
+    SharedPtr<WebApplication> app = webAppMgr().createApplication(0, r, frameLoadRequest.resourceRequest().url().string().utf8().data(), 0, 0);
+    
+    if (!app || !app->webView())
         return 0;
-
-    WebView* view = kit(app->page());
-    if (!view)
-        return 0;
-
+    
+    WebView* view = app->webView();
     view->setMenubarVisible(features.menuBarVisible);
     view->setStatusbarVisible(features.statusBarVisible);
     view->setToolbarsVisible(features.toolBarVisible);
@@ -216,7 +216,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     if (webFrame)
         webFrame->setAllowsScrolling(features.scrollbarsVisible);
     view->setWebFrameLoadDelegate(0);
-    return app->page();
+    return core(view);
 #else
 
     if (features.dialog) {

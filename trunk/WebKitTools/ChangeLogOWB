@@ -1,3 +1,30 @@
+2010-01-19  Gilles Bertal  <gbertal@pleyo.com>
+
+        Misc. changes related to the DAE event sender functionality
+        move over to the application manager.
+
+        * DumpRenderTree/bal/ApplicationTestController.cpp:
+        (setPermissionsForMainApplication):
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (dumpFramesAsText):
+        (runTest):
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (createWindow):
+        (waitEvent):
+        (displayWebView):
+        * DumpRenderTree/bal/SDL/EventSenderSDL.cpp:
+        (EventSenderController::dispatchMouseMotion):
+        (EventSenderController::dispatchMouseButton):
+        (EventSenderController::dispatchKeyboardEvent):
+        * DumpRenderTree/bal/gtk/EventSenderGtk.cpp:
+        (EventSenderController::dispatchMouseMotion):
+        (EventSenderController::dispatchKeyboardEvent):
+        * DumpRenderTree/bal/qt/EventSenderQt.cpp:
+        (EventSenderController::dispatchMouseMotion):
+        (EventSenderController::dispatchMouseButton):
+        (EventSenderController::dispatchKeyboardEvent):
+
 2010-01-19  Mario Bensi  <mbensi@pleyo.com>
 
         implement addDisallowedURL.
