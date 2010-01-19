@@ -1,3 +1,27 @@
+2010-01-19  Mario Bensi  <mbensi@pleyo.com>
+
+        add Encoding in i18n and implement this on ICU.
+
+        * Internationalization/WTF/Embedded/BCEncodingEmbedded.h: Added.
+        (WTF::Unicode::IDNToASCII):
+        (WTF::Unicode::IDNToUnicode):
+        (WTF::Unicode::allCharactersInIDNScriptWhiteList):
+        * Internationalization/WTF/GLib/BCEncodingGLib.h: Added.
+        (WTF::Unicode::IDNToASCII):
+        (WTF::Unicode::IDNToUnicode):
+        (WTF::Unicode::allCharactersInIDNScriptWhiteList):
+        * Internationalization/WTF/ICU/BCEncodingICU.h: Added.
+        (WTF::Unicode::):
+        (WTF::Unicode::IDNToASCII):
+        (WTF::Unicode::IDNToUnicode):
+        (WTF::Unicode::isLookalikeCharacter):
+        (WTF::Unicode::createIDNScriptWhiteList):
+        (WTF::Unicode::allCharactersInIDNScriptWhiteList):
+        * Internationalization/WTF/Qt/BCEncodingQt.h: Added.
+        (WTF::Unicode::IDNToASCII):
+        (WTF::Unicode::IDNToUnicode):
+        (WTF::Unicode::allCharactersInIDNScriptWhiteList):
+
 2010-01-19  Gilles Bertal  <gbertal@pleyo.com>
 
         Misc. changes related to the DAE event sender functionality

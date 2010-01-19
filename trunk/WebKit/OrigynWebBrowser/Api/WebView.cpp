@@ -139,6 +139,7 @@
 #include <JSCell.h>
 #include <JSLock.h>
 #include <JSValue.h>
+#include <wtf/unicode/Encoding.h>
 #include <wtf/HashSet.h>
 #include "InitializeThreading.h"
 
@@ -174,7 +175,7 @@ using namespace WebCore;
 using std::min;
 using std::max;
 
-//static HMODULE accessibilityLib;
+#define HOST_NAME_BUFFER_LENGTH 2048
 
 WebView* kit(Page* page)
 {
@@ -3343,4 +3344,64 @@ void WebView::setInspectorSettings(const char* settings)
 {
     m_inspectorSettings = settings;
 }
+
+
+const char* WebView::encodeHostName(const char* source)
+{
+    UChar destinationBuffer[HOST_NAME_BUFFER_LENGTH];
+
+    String src = String::fromUTF8(source);
+    int length = src.length();
+
+    if (src.find("%") != -1)
+        src = decodeURLEscapeSequences(src);
+
+    const UChar* sourceBuffer = src.characters();
+
+    bool error = false;
+    int32_t numCharactersConverted = WTF::Unicode::IDNToASCII(sourceBuffer, length, destinationBuffer, HOST_NAME_BUFFER_LENGTH, &error);
+
+    if (error)
+        return source;
+    if (numCharactersConverted == length && memcmp(sourceBuffer, destinationBuffer, length * sizeof(UChar)) == 0) {
+        return source;
+    }
+   
+    if (!numCharactersConverted)
+        return source;
+
+    String result(destinationBuffer, numCharactersConverted);
+    return strdup(result.utf8().data()); 
+}
+
+const char* WebView::decodeHostName(const char* source)
+{
+    UChar destinationBuffer[HOST_NAME_BUFFER_LENGTH];
+
+    String src = String::fromUTF8(source);
+
+
+    const UChar* sourceBuffer = src.characters();
+    int length = src.length();
+
+    bool error = false;
+    int32_t numCharactersConverted = WTF::Unicode::IDNToUnicode(sourceBuffer, length, destinationBuffer, HOST_NAME_BUFFER_LENGTH, &error);
+
+    if (error)
+        return source;
+
+    if (numCharactersConverted == length && memcmp(sourceBuffer, destinationBuffer, length * sizeof(UChar)) == 0) {
+        return source;
+    }
+    if (!WTF::Unicode::allCharactersInIDNScriptWhiteList(destinationBuffer, numCharactersConverted)) {
+        return source; 
+    }
+
+    if (!numCharactersConverted)
+        return source;
+
+    String result(destinationBuffer, numCharactersConverted);
+    return strdup(result.utf8().data()); 
+}
+
 

@@ -1,3 +1,11 @@
+2010-01-19  Mario Bensi  <mbensi@pleyo.com>
+
+        implement copyDecodedHostName and copyEncodedHostName.
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::copyDecodedHostName):
+        (LayoutTestController::copyEncodedHostName):
+
 2010-01-19  Gilles Bertal  <gbertal@pleyo.com>
 
         Misc. changes related to the DAE event sender functionality

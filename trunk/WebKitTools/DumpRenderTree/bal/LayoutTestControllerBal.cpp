@@ -76,14 +76,14 @@ void LayoutTestController::clearBackForwardList()
 
 JSStringRef LayoutTestController::copyDecodedHostName(JSStringRef name)
 {
-    // FIXME: implement
-    return 0;
+    char* decode = JSStringCopyUTF8CString(name);
+    return JSStringCreateWithUTF8CString(getWebView()->decodeHostName(decode));
 }
 
 JSStringRef LayoutTestController::copyEncodedHostName(JSStringRef name)
 {
-    // FIXME: implement
-    return 0;
+    char* encode = JSStringCopyUTF8CString(name);
+    return JSStringCreateWithUTF8CString(getWebView()->encodeHostName(encode));
 }
 
 void LayoutTestController::display()
