@@ -31,10 +31,6 @@
 
 #include <stdlib.h>
 
-#include <unicode/uchar.h>
-#include <unicode/ustring.h>
-#include <unicode/utf16.h>
-
 namespace WTF {
     namespace Unicode {
         inline int IDNToASCII(const UChar *src, int srcLength, UChar *dest, int destCapacity, bool *error) {
