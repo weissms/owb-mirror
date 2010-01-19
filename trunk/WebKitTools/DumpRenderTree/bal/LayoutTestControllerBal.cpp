@@ -48,7 +48,8 @@ LayoutTestController::~LayoutTestController()
 
 void LayoutTestController::addDisallowedURL(JSStringRef url)
 {
-    // FIXME: implement
+    char* URL = JSStringCopyUTF8CString(url);
+    disallowedURLs.push_back(URL);
 }
 
 void LayoutTestController::clearBackForwardList()

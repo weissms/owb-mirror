@@ -1,3 +1,16 @@
+2010-01-19  Mario Bensi  <mbensi@pleyo.com>
+
+        implement addDisallowedURL.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (runTest):
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::addDisallowedURL):
+        * DumpRenderTree/bal/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::willSendRequest):
+        (ResourceLoadDelegate::didReceiveResponse):
+
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 
         Implement elementDoesAutoCompleteForElementWithId.

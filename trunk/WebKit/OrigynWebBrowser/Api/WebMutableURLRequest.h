@@ -165,6 +165,16 @@ public:
     virtual const char* URL();
 
     /**
+     * get host
+     */
+    virtual const char* host();
+
+    /**
+     * scheme
+     */
+    virtual const char* protocol();
+
+    /**
      * get value for HTTP header field
      */
     virtual const char* valueForHTTPHeaderField(const char* field);

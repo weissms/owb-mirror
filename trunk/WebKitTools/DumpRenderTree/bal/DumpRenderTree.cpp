@@ -81,6 +81,7 @@ SharedPtr<PolicyDelegate> policyDelegate;
 SharedPtr<ResourceLoadDelegate> resourceLoadDelegate;
 SharedPtr<EditingDelegate> sharedEditingDelegate;
 SharedPtr<HistoryDelegate> sharedHistoryDelegate;
+std::vector<std::string> disallowedURLs;
 
 
 WebView *getWebView()
@@ -632,6 +633,8 @@ void runTest(const string& testPathOrURL)
     char* url = autocorrectURL(pathOrURL.c_str());
     const string testURL(url);
     done = false;
+
+    disallowedURLs.clear();
 
     policyDelegate = PolicyDelegate::createInstance();
     policyDelegate->setPermissive(false);

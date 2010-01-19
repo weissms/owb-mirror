@@ -175,6 +175,31 @@ WebMutableURLRequest* ResourceLoadDelegate::willSendRequest(WebView* webView, un
     if (!done && gLayoutTestController->dumpResourceLoadCallbacks())
         printf("%s - willSendRequest %s redirectResponse %s\n", descriptionSuitableForTestResult(identifier).c_str(), descriptionSuitableForTestResult(request).c_str(), descriptionSuitableForTestResult(redirectResponse).c_str());
 
+    if (!done && gLayoutTestController->willSendRequestReturnsNull())
+        return 0;
+
+    if (!done && gLayoutTestController->willSendRequestReturnsNullOnRedirect() && redirectResponse) {
+        printf("Returning null for this redirect\n");
+        return 0;
+    }
+
+    const char* url = request->URL();
+    const char* host = request->host();
+    const char* protocol = request->protocol();
+    if (host
+        && (!strcmp(protocol,"http") || !strcmp(protocol,"https"))
+        && strcmp(host,"127.0.0.1")
+        && strcmp(host,"255.255.255.255") // used in some tests that expect to get back an error
+        && strcmp(host,"localhost")) {
+        printf("Blocked access to external URL %s\n", url);
+        return 0;
+    }
+
+    for(size_t i = 0; i < disallowedURLs.size(); ++i) {
+        if (!strcmp(url, disallowedURLs[i].c_str()))
+            return 0;
+    }
+
     return request;
 }
 
@@ -199,4 +224,7 @@ void ResourceLoadDelegate::didReceiveResponse(WebView *webView, unsigned long id
     
     if (!done && gLayoutTestController->dumpResourceLoadCallbacks())
         printf("%s - didReceiveResponse %s\n", descriptionSuitableForTestResult(identifier).c_str(), descriptionSuitableForTestResult(response).c_str());
+
+    if (!done && gLayoutTestController->dumpResourceResponseMIMETypes())
+        printf("%s has MIME type %s\n", response->URL(), response->MIMEType());
 }

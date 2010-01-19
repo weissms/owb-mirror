@@ -146,6 +146,16 @@ const char* WebMutableURLRequest::URL()
     return strdup(m_request->url().string().utf8().data());
 }
 
+const char* WebMutableURLRequest::host()
+{
+    return strdup(m_request->url().host().utf8().data());
+}
+
+const char* WebMutableURLRequest::protocol()
+{
+    return strdup(m_request->url().protocol().utf8().data());
+}
+
 const char* WebMutableURLRequest::valueForHTTPHeaderField(const char* field)
 {
     return strdup(m_request->httpHeaderField(field).utf8().data());

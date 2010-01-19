@@ -32,6 +32,7 @@
 #include <JavaScriptCore/JSBase.h>
 #include <WebKit.h>
 #include <string>
+#include <vector>
 #include <time.h>
 
 class PolicyDelegate;
@@ -42,6 +43,7 @@ extern timer_t waitToDumpWatchdog;
 #endif
 extern WebFrame* topLoadingFrame;
 extern SharedPtr<PolicyDelegate> policyDelegate;
+extern std::vector<std::string> disallowedURLs;
 
 char* JSStringCopyUTF8CString(JSStringRef jsString);
 
@@ -55,5 +57,4 @@ void setDone(bool);
 extern std::string dumpPath(DOMNode* node);
 
 void getBalPoint(int x, int y, BalPoint* point);
-
 #endif // DumpRenderTreeGtk_h
