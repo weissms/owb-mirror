@@ -35,6 +35,8 @@
 #include <map>
 #include <string>
 
+#include <string.h>
+
 using std::string;
 using std::iostream;
 
