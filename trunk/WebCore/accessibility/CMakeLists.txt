@@ -9,6 +9,9 @@ if(ENABLE_ACCESSIBILITY)
         accessibility/AccessibilityListBox.cpp
         accessibility/AccessibilityListBoxOption.cpp
         accessibility/AccessibilityMediaControls.cpp
+        accessibility/AccessibilityMenuList.cpp
+        accessibility/AccessibilityMenuListOption.cpp
+        accessibility/AccessibilityMenuListPopup.cpp
         accessibility/AccessibilityObject.cpp
         accessibility/AccessibilityRenderObject.cpp
         accessibility/AccessibilitySlider.cpp

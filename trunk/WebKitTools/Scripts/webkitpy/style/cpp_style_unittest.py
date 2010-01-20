@@ -2187,6 +2187,12 @@ class OrderOfIncludesTest(CppStyleTestBase):
                                          'Found header this file implements after a header this file implements.'
                                          ' Should be: config.h, primary header, blank line, and then alphabetically sorted.'
                                          '  [build/include_order] [4]')
+        self.assert_language_rules_check('ResourceHandleWin.cpp',
+                                         '#include "config.h"\n'
+                                         '#include "ResourceHandle.h"\n'
+                                         '\n'
+                                         '#include "ResourceHandleWin.h"\n',
+                                         '')
 
     def test_try_drop_common_suffixes(self):
         self.assertEqual('foo/foo', cpp_style._drop_common_suffixes('foo/foo-inl.h'))
@@ -3562,6 +3568,10 @@ class WebKitStyleTest(CppStyleTestBase):
         # There is an exception for op code functions but only in the JavaScriptCore directory.
         self.assert_lint('void this_op_code(int var1, int var2)', '', 'JavaScriptCore/foo.cpp')
         self.assert_lint('void this_op_code(int var1, int var2)', 'this_op_code' + name_error_message)
+
+        # GObject requires certain magical names in class declarations.
+        self.assert_lint('void webkit_dom_object_init();', '')
+        self.assert_lint('void webkit_dom_object_class_init();', '')
 
         # There is an exception for some unit tests that begin with "tst_".
         self.assert_lint('void tst_QWebFrame::arrayObjectEnumerable(int var1, int var2)', '')

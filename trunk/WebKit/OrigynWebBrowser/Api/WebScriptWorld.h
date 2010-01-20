@@ -30,6 +30,7 @@
 #define WebScriptWorld_h
 
 #include "WebKitTypes.h"
+#include "WebFrame.h"
 
 namespace WebCore {
     class DOMWrapperWorld;
@@ -38,6 +39,7 @@ namespace WebCore {
 class WEBKIT_OWB_API WebScriptWorld {
 public:
     static WebScriptWorld* standardWorld();
+    static WebScriptWorld* scriptWorldForGlobalContext(JSGlobalContextRef);
     static WebScriptWorld* createInstance();
     ~WebScriptWorld();
     

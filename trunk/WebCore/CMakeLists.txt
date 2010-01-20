@@ -231,6 +231,13 @@ add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.c
 )
 endif(ENABLE_MATHML)
 
+add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/xml/XMLNSNames.cpp ${WEBCORE_GENERATED_DIR}/xml/XMLNSNames.h
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${OWB_SOURCE_DIR}/WebCore/xml/xmlnsattrs.in --output xml
+    WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
+    DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/xml/xmlnsattrs.in
+    VERBATIM
+)
+
 add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/xml/XMLNames.cpp ${WEBCORE_GENERATED_DIR}/xml/XMLNames.h
     COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${OWB_SOURCE_DIR}/WebCore/xml/xmlattrs.in --output xml
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
@@ -277,6 +284,7 @@ list(APPEND WEBCORE_SRC
     ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp
     ${WEBCORE_GENERATED_DIR}/tokenizer.cpp
     ${WEBCORE_GENERATED_DIR}/UserAgentStyleSheetsData.cpp
+    ${WEBCORE_GENERATED_DIR}/xml/XMLNSNames.cpp
     ${WEBCORE_GENERATED_DIR}/xml/XMLNames.cpp
 )
 

@@ -129,6 +129,7 @@
 #include "WebKitTransitionEvent.h"
 #include "WheelEvent.h"
 #include "XMLHttpRequest.h"
+#include "XMLNSNames.h"
 #include "XMLNames.h"
 #include "XMLTokenizer.h"
 #include "htmlediting.h"
@@ -330,7 +331,7 @@ static bool disableRangeMutation(Page* page)
 
 static HashSet<Document*>* documentsThatNeedStyleRecalc = 0;
 
-Document::Document(Frame* frame, bool isXHTML)
+Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     : ContainerNode(0)
     , m_domtree_version(0)
     , m_styleSheets(StyleSheetList::create(this))
@@ -365,6 +366,7 @@ Document::Document(Frame* frame, bool isXHTML)
     , m_inPageCache(false)
     , m_useSecureKeyboardEntryWhenActive(false)
     , m_isXHTML(isXHTML)
+    , m_isHTML(isHTML)
     , m_numNodeListCaches(0)
 #if USE(JSC)
     , m_normalWorldWrapperCache(0)
@@ -799,21 +801,17 @@ PassRefPtr<Node> Document::adoptNode(PassRefPtr<Node> source, ExceptionCode& ec)
 
 bool Document::hasPrefixNamespaceMismatch(const QualifiedName& qName)
 {
-    DEFINE_STATIC_LOCAL(const AtomicString, xmlnsNamespaceURI, ("http://www.w3.org/2000/xmlns/"));
-    DEFINE_STATIC_LOCAL(const AtomicString, xmlns, ("xmlns"));
-    DEFINE_STATIC_LOCAL(const AtomicString, xml, ("xml"));
-
     // These checks are from DOM Core Level 2, createElementNS
     // http://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-DocCrElNS
     if (!qName.prefix().isEmpty() && qName.namespaceURI().isNull()) // createElementNS(null, "html:div")
         return true;
-    if (qName.prefix() == xml && qName.namespaceURI() != XMLNames::xmlNamespaceURI) // createElementNS("http://www.example.com", "xml:lang")
+    if (qName.prefix() == xmlAtom && qName.namespaceURI() != XMLNames::xmlNamespaceURI) // createElementNS("http://www.example.com", "xml:lang")
         return true;
 
     // Required by DOM Level 3 Core and unspecified by DOM Level 2 Core:
     // http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html#ID-DocCrElNS
     // createElementNS("http://www.w3.org/2000/xmlns/", "foo:bar"), createElementNS(null, "xmlns:bar")
-    if ((qName.prefix() == xmlns && qName.namespaceURI() != xmlnsNamespaceURI) || (qName.prefix() != xmlns && qName.namespaceURI() == xmlnsNamespaceURI))
+    if ((qName.prefix() == xmlnsAtom && qName.namespaceURI() != XMLNSNames::xmlnsNamespaceURI) || (qName.prefix() != xmlnsAtom && qName.namespaceURI() == XMLNSNames::xmlnsNamespaceURI))
         return true;
 
     return false;
@@ -3150,6 +3148,11 @@ String Document::domain() const
 
 void Document::setDomain(const String& newDomain, ExceptionCode& ec)
 {
+    if (SecurityOrigin::isDomainRelaxationForbiddenForURLScheme(securityOrigin()->protocol())) {
+        ec = SECURITY_ERR;
+        return;
+    }
+
     // Both NS and IE specify that changing the domain is only allowed when
     // the new domain is a suffix of the old domain.
 
@@ -4052,7 +4055,7 @@ PassRefPtr<Attr> Document::createAttributeNS(const String& namespaceURI, const S
     }
 
     // Spec: DOM Level 2 Core: http://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-DocCrAttrNS
-    if (!shouldIgnoreNamespaceChecks && qName.localName() == "xmlns" && qName.namespaceURI() != "http://www.w3.org/2000/xmlns/") {
+    if (!shouldIgnoreNamespaceChecks && qName.localName() == xmlnsAtom && qName.namespaceURI() != XMLNSNames::xmlnsNamespaceURI) {
         ec = NAMESPACE_ERR;
         return 0;
     }

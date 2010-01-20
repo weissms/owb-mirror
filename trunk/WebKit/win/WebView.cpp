@@ -5989,8 +5989,7 @@ void WebView::updateRootLayerContents()
         return;
     FrameView* frameView = coreFrame->view();
 
-    m_layerRenderer->setScrollFrame(frameView->layoutWidth(), frameView->layoutHeight(), 
-                                 frameView->scrollX(), frameView->scrollY());
+    m_layerRenderer->setScrollFrame(IntRect(frameView->scrollX(), frameView->scrollY(), frameView->layoutWidth(), frameView->layoutHeight()));
 }
 #endif
 
@@ -6124,6 +6123,12 @@ HRESULT WebView::geolocationDidFailWithError(IWebError* error)
 #else
     return E_NOTIMPL;
 #endif
+}
+
+HRESULT WebView::setDomainRelaxationForbiddenForURLScheme(BOOL forbidden, BSTR scheme)
+{
+    SecurityOrigin::setDomainRelaxationForbiddenForURLScheme(forbidden, String(scheme, SysStringLen(scheme)));
+    return S_OK;
 }
 
 class EnumTextMatches : public IEnumTextMatches

@@ -26,7 +26,9 @@
 #define Element_h
 
 #include "ContainerNode.h"
+#include "Document.h"
 #include "HTMLNames.h"
+#include "MappedAttributeEntry.h"
 #include "QualifiedName.h"
 #include "ScrollTypes.h"
 
@@ -186,7 +188,7 @@ public:
     virtual void attributeChanged(Attribute*, bool preserveDecls = false);
 
     // not part of the DOM
-    void setAttributeMap(PassRefPtr<NamedNodeMap>);
+    void setAttributeMap(PassRefPtr<NamedNodeMap>, FragmentScriptingPermission = FragmentScriptingAllowed);
     NamedNodeMap* attributeMap() const { return namedAttrMap.get(); }
 
     virtual void copyNonAttributeProperties(const Element* /*source*/) { }
@@ -346,6 +348,36 @@ inline Element* Node::parentElement() const
 inline const QualifiedName& Element::idAttributeName() const
 {
     return hasRareData() ? rareIDAttributeName() : HTMLNames::idAttr;
+}
+
+inline NamedNodeMap* Element::attributes(bool readonly) const
+{
+    if (!m_isStyleAttributeValid)
+        updateStyleAttribute();
+
+#if ENABLE(SVG)
+    if (!m_areSVGAttributesValid)
+        updateAnimatedSVGAttribute(String());
+#endif
+
+    if (!readonly && !namedAttrMap)
+        createAttributeMap();
+    return namedAttrMap.get();
+}
+
+inline void Element::updateId(const AtomicString& oldId, const AtomicString& newId)
+{
+    if (!inDocument())
+        return;
+
+    if (oldId == newId)
+        return;
+
+    Document* doc = document();
+    if (!oldId.isEmpty())
+        doc->removeElementById(oldId, this);
+    if (!newId.isEmpty())
+        doc->addElementById(newId, this);
 }
 
 } //namespace

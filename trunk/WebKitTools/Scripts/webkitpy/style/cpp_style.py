@@ -2068,6 +2068,11 @@ def _classify_include(filename, include, is_system, include_state):
     # In case the two filename bases are the same then the above lenient check
     # probably was a false positive.
     elif include_state.visited_primary_section() and target_base == include_base:
+        if include == "ResourceHandleWin.h":
+            # FIXME: Thus far, we've only seen one example of these, but if we
+            # start to see more, please consider generalizing this check
+            # somehow.
+            return _OTHER_HEADER
         return _PRIMARY_HEADER
 
     return _OTHER_HEADER
@@ -2464,6 +2469,7 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
             # Various exceptions to the rule: JavaScript op codes functions, const_iterator.
             if (not (filename.find('JavaScriptCore') >= 0 and modified_identifier.find('_op_') >= 0)
                 and not modified_identifier.startswith('tst_')
+                and not modified_identifier.startswith('webkit_dom_object_')
                 and not modified_identifier.startswith('qt_')
                 and not modified_identifier.find('::qt_') >= 0
                 and not modified_identifier == "const_iterator"):

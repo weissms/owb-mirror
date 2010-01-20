@@ -1,3 +1,280 @@
+2010-01-20  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Don't use QSocketNotifier in the DRT for reading stdin
+
+        QSocketNotifier is not available on Windows. Instead we read
+        stdin synchronously after each test using signals and slots.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/main.cpp:
+
+2010-01-19  Adam Barth  <abarth@webkit.org>
+
+        Rubber stamped by Eric Seidel.
+
+        Move chromium-ews back to building release only to make the EWS faster.
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+
+2010-01-17  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: The child <option> elements of a non-multiple <select> are not
+        exposed
+
+        https://bugs.webkit.org/show_bug.cgi?id=33773
+        <rdar://problem/7550556>
+
+        Reviewed by Alice Liu.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getIsVisibleCallback):
+        Call the object's isVisible() function.
+        (getIsOffScreenCallback):
+        Ditto, for isOffScreen().
+        (getIsCollapsedCallback):
+        Ditto, for isCollapsed().
+        (getHasPopupCallback):
+        Ditto, for hasPopup().
+        (AccessibilityUIElement::getJSClass):
+        Add isVisible and isOffScreen attributes.
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+        Declare new functions.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::isVisible):
+        Stubbed.
+        (AccessibilityUIElement::isOffScreen):
+        Stubbed.
+        (AccessibilityUIElement::isCollapsed):
+        Stubbed.
+        (AccessibilityUIElement::hasPopup):
+        Stubbed.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::isVisible):
+        Stubbed.
+        (AccessibilityUIElement::isOffScreen):
+        Stubbed.
+        (AccessibilityUIElement::isCollapsed):
+        Stubbed.
+        (AccessibilityUIElement::hasPopup):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::showMenu):
+        Call the object's accDoDefaultAction() to show its popup menu.
+        (AccessibilityUIElement::isEnabled):
+        Check that the object does not have the "unavailable" state.
+        (AccessibilityUIElement::isVisible):
+        Check that the object does not have the "invisible" state.
+        (AccessibilityUIElement::isOffScreen):
+        Check whether the object has the "offscreen" state.
+        (AccessibilityUIElement::isCollapsed):
+        Check whether the object has the "collapsed" state.
+        (AccessibilityUIElement::hasPopup):
+        Check whether the object has the "has popup" state.
+
+2010-01-19  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Correct committer name.
+        https://bugs.webkit.org/show_bug.cgi?id=33868
+
+        * Scripts/webkitpy/committers.py:
+
+2010-01-19  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        [DRT][Mac] Add modifiers parameter to eventSender.mouseDown() and eventSender.mouseUp()
+        https://bugs.webkit.org/show_bug.cgi?id=33783
+
+        Some listbox tests check selection behavior by click events with
+        "meta" or "shift" keys. Behaviors for such modifier keys are
+        platform-dependent. The new parameter of mouseDown() and mouseUp()
+        allows to specify not only concrete modifier keys such as
+        "shiftKey" "metaKey", but also functional names like
+        "addSelectionKey" "rangeSelectionKey".
+
+        * DumpRenderTree/mac/EventSendingController.mm:
+        (+[EventSendingController isSelectorExcludedFromWebScript:]):
+        (+[EventSendingController webScriptNameForSelector:]):
+        (buildModifierFlags):
+        (-[EventSendingController mouseDown:withModifiers:]):
+        (-[EventSendingController mouseDown:]):
+        (-[EventSendingController mouseUp:withModifiers:]):
+        (-[EventSendingController mouseUp:]):
+        (-[EventSendingController keyDown:withModifiers:withLocation:]):
+
+2010-01-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Unbreak --request-commit
+        https://bugs.webkit.org/show_bug.cgi?id=33832
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-01-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        validate-committer-lists throws exception and committers.py needs a refresh
+        https://bugs.webkit.org/show_bug.cgi?id=33831
+
+        * Scripts/validate-committer-lists: use webkit_logging
+        * Scripts/webkitpy/committers.py: Add recently minted committers.  Fix Simon Hausmanns email address list to include his webkit-committers@lists address.
+
+2010-01-18  Adam Roben  <aroben@apple.com>
+
+        Add LayoutTestController support for calling new WebKit SPI to
+        disallow setting document.domain
+
+        DRT part of fixing <http://webkit.org/b/33806>
+        <rdar://problem/7552837> Would like API to disallow setting of
+        document.domain for pages with certain URL schemes
+
+        Reviewed by Sam Weinig.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setDomainRelaxationForbiddenForURLSchemeCallback): Added. Calls
+        through to LayoutTestController.
+        (LayoutTestController::staticFunctions): Added
+        setDomainRelaxationForbiddenForURLScheme.
+
+        * DumpRenderTree/LayoutTestController.h: Added
+        setDomainRelaxationForbiddenForURLScheme.
+
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setDomainRelaxationForbiddenForURLScheme):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setDomainRelaxationForbiddenForURLScheme):
+        Added. Calls through to WebKit.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setDomainRelaxationForbiddenForURLScheme):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setDomainRelaxationForbiddenForURLScheme):
+        Stubbed out.
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Rename patches-to-commit to patches-in-commit-queue
+        https://bugs.webkit.org/show_bug.cgi?id=33789
+
+        The command really lists the patches in the commit-queue not all the
+        patches that are pending-commit (as the FIXME commands).
+
+        * Scripts/webkitpy/commands/queries.py:
+        * Scripts/webkitpy/commands/queries_unittest.py:
+
+2010-01-18  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Force qmake to generate a single makefile for DerivedSources.pro
+
+        * Scripts/webkitdirs.pm:
+
+2010-01-18  Adam Roben  <aroben@apple.com>
+
+        Clean up use of /useenv when invoking Visual C++
+
+        This change reverts things to their pre-r49485 state. That revision
+        (and, subsequently, r49664 and r51788) started passing /useenv to
+        Visual C++, even in cases where we don't want to do so (such as when
+        invoking Visual C++ Express), in the name of making the Chromium build
+        work. Now that Chromium isn't using buildVisualStudioProject or
+        pdevenv, we can put things back they way they were.
+
+        Fixes <http://webkit.org/b/33797> build-webkit fails with VC++ Express
+        (due to /useenv flag)
+
+        Reviewed by Sam Weinig.
+
+        * Scripts/pdevenv: Always pass /useenv. Chromium doesn't use this
+        script anymore.
+        * Scripts/webkitdirs.pm:
+        (buildVisualStudioProject): Never pass /useenv anymore. pdevenv takes
+        care of this itself, and we don't want to pass /useenv when not using
+        pdevenv (e.g., when using VC++ Express, because that will cause it to
+        ignore the Platform SDK).
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch land-safely should obsolete old patches
+        https://bugs.webkit.org/show_bug.cgi?id=33788
+
+        When posting a commit-queue+ patch with land-safely, we should
+        obsolete the old patches on the bug.  They're really confusing
+        because the main use case is to address reviewer feedback on a
+        previous patch.
+
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/commands/upload_unittest.py:
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by David Levin.
+
+        webkit-patch should authenticate more often
+        https://bugs.webkit.org/show_bug.cgi?id=33701
+
+        This makes it easier to work with security patches.
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        style checker needs to know about GObject-specific requirements
+        inside WebCore/bindings/gobject/
+        https://bugs.webkit.org/show_bug.cgi?id=33606
+
+        Add an exception to the underscore rule for certain
+        GObject-specific names.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        [check-webkit-style] does understand ResourceHandleWin.h
+        https://bugs.webkit.org/show_bug.cgi?id=32975
+
+        I'm not 100% convinced this fix is correct, but without more examples,
+        it's hard to generalize.  We can always generalize the fix in the
+        future.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed "build" fix.
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-01-18  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Actually make land-safely mark commit-queue+ as
+        discussed with Eric.
+
+        * Scripts/webkitpy/bugzilla.py:
+        * Scripts/webkitpy/steps/postdiffforcommit.py:
+
 2010-01-18  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Darin Adler.

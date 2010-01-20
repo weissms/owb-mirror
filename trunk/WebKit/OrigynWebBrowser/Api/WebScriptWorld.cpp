@@ -29,6 +29,7 @@
 #include "config.h"
 #include "WebScriptWorld.h"
 
+#include "APICast.h"
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
 
@@ -83,4 +84,9 @@ WebScriptWorld* WebScriptWorld::standardWorld()
 {
     static WebScriptWorld* standardWorld = new WebScriptWorld(mainThreadNormalWorld());
     return standardWorld;
+}
+
+WebScriptWorld* WebScriptWorld::scriptWorldForGlobalContext(JSGlobalContextRef context)
+{
+    return findOrCreateWorld(currentWorld(toJS(context)));
 }

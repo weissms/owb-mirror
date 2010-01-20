@@ -30,7 +30,7 @@
 #ifndef BALArray_h
 #define BALArray_h
 
-#include "runtime.h"
+#include "Bridge.h"
 #include "JSValue.h"
 #include "Vector.h"
 

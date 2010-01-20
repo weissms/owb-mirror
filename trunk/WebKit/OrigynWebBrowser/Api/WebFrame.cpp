@@ -743,13 +743,17 @@ HRESULT WebFrame::elementIsPassword(IDOMElement *element, bool *result)
     return S_OK;
 }
 
-HRESULT WebFrame::searchForLabelsBeforeElement(const BSTR* labels, int cLabels, IDOMElement* beforeElement, BSTR* result)
+HRESULT WebFrame::searchForLabelsBeforeElement(const BSTR* labels, unsigned cLabels, IDOMElement* beforeElement, unsigned* resultDistance, BOOL* resultIsInCellAbove, BSTR* result);
 {
     if (!result) {
         ASSERT_NOT_REACHED();
         return E_POINTER;
     }
 
+    if (outResultDistance)
+        *outResultDistance = 0;
+    if (outResultIsInCellAbove)
+        *outResultIsInCellAbove = FALSE;
     *result = 0;
 
     if (!cLabels)
@@ -768,11 +772,18 @@ HRESULT WebFrame::searchForLabelsBeforeElement(const BSTR* labels, int cLabels, 
     if (!coreElement)
         return E_FAIL;
 
-    String label = coreFrame->searchForLabelsBeforeElement(labelStrings, coreElement);
+    size_t resultDistance;
+    bool resultIsInCellAbove;
+    String label = coreFrame->searchForLabelsBeforeElement(labelStrings, coreElement, &resultDistance, &resultIsInCellAbove);
 
     *result = SysAllocStringLen(label.characters(), label.length());
     if (label.length() && !*result)
         return E_OUTOFMEMORY;
+    if (outResultDistance)
+        *outResultDistance = resultDistance;
+    if (outResultIsInCellAbove)
+        *outResultIsInCellAbove = resultIsInCellAbove;
+
     return S_OK;
 }
 

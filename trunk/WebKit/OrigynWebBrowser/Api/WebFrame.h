@@ -500,7 +500,7 @@ public:
      *  searchForLabelsBeforeElement
      * Not Implemented
      */
-    //HRESULT searchForLabelsBeforeElement(const BSTR* labels, int cLabels, IDOMElement* beforeElement, BSTR* result);
+    //HRESULT searchForLabelsBeforeElement(const BSTR* labels, unsigned cLabels, IDOMElement* beforeElement, unsigned* resultDistance, BOOL* resultIsInCellAbove, BSTR* result);
 
     /**
      *  matchLabelsAgainstElement

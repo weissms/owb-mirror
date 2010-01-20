@@ -29,7 +29,7 @@
 #ifndef BalRuntime_h
 #define BalRuntime_h
 
-#include "runtime.h"
+#include "Bridge.h"
 
 namespace JSC {
 

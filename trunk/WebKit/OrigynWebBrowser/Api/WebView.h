@@ -1721,6 +1721,11 @@ protected:
     void geolocationDidFailWithError(WebError* error);
 
     /**
+     * setDomainRelaxationForbiddenForURLScheme
+     */
+    //void setDomainRelaxationForbiddenForURLScheme(bool forbidden, const char* scheme);
+
+    /**
      * repaint
      */
     void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);

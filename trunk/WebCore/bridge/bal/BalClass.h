@@ -29,7 +29,7 @@
 #ifndef BalClass_h
 #define BalClass_h
 
-#include "runtime.h"
+#include "Bridge.h"
 
 namespace WebCore {
     class BALObject;

@@ -39,7 +39,7 @@
 #include "JSDOMWindow.h"
 #include "JSGlobalObject.h"
 #include "ScriptController.h"
-#include "runtime.h"
+#include "Bridge.h"
 #include "runtime_root.h"
 #include "WebFrame.h"
 #include "WebObject.h"

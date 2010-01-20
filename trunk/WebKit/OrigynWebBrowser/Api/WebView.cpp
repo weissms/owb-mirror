@@ -1500,6 +1500,11 @@ void WebView::geolocationDidFailWithError(WebError* error)
 #endif
 }
 
+/*void WebView::setDomainRelaxationForbiddenForURLScheme(bool forbidden, const char* scheme)
+{
+    SecurityOrigin::setDomainRelaxationForbiddenForURLScheme(forbidden, String(scheme, SysStringLen(scheme)));
+}*/
+
 WebFrame* WebView::mainFrame()
 {
     return m_mainFrame;

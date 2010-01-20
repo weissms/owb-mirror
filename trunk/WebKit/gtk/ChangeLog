@@ -1,3 +1,54 @@
+2010-01-20  Joanmarie Diggs  <joanmarie.diggs@gmail.com>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=30883
+        [Gtk] Implement AtkText for HTML elements which contain text
+
+        Adds two news tests.
+
+        * tests/testatk.c
+        (testWebkitAtkGetTextInParagraphAndBodySimple):
+        (testWebkitAtkGetTextInParagraphAndBodyModerate):
+        (main):
+
+2010-01-19  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Unreviewed. Changes to the test I forgot to make after a last
+        minute change before landing 53294 - this causes make distcheck to
+        fail.
+
+        * tests/testloading.c:
+        (load_error_status_changed_cb):
+        (test_loading_error):
+
+2010-01-19  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Xan Lopez.
+
+        News items for 1.1.19.
+
+        * NEWS:
+
+2010-01-19  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] More crashes related to the clipboard management
+        https://bugs.webkit.org/show_bug.cgi?id=33746
+
+        Pass the WebKitWebView object (which is a GObject, thus
+        ref-counted) to the clipboard functions instead of passing the
+        Page - this allows us to explicitely protect the object inbetween
+        the clipboard call and its callbacks, which fixes the crash.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::respondToChangedSelection):
+        * WebCoreSupport/PasteboardHelperGtk.cpp:
+        (WebKit::getClipboardContentsCallback):
+        (WebKit::clearClipboardContentsCallback):
+        (WebKit::PasteboardHelperGtk::writeClipboardContents):
+
 2010-01-18  Alejandro G. Castro  <alex@igalia.com>
 
         Reviewed by Xan Lopez.

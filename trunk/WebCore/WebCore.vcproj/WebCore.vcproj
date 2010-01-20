@@ -19397,6 +19397,14 @@
 				>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\XMLNSNames.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\XMLNSNames.h"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\XMLNames.cpp"
 				>
 			</File>
@@ -19926,6 +19934,30 @@
 			</File>
 			<File
 				RelativePath="..\accessibility\AccessibilityMediaControls.h"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuList.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuListOption.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuListOption.h"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuListPopup.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\accessibility\AccessibilityMenuListPopup.h"
 				>
 			</File>
 			<File
@@ -27457,6 +27489,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderSVGShadowTreeRootContainer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGShadowTreeRootContainer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderSVGText.cpp"
 				>
 			</File>
@@ -27787,6 +27827,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\SVGShadowTreeElements.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\SVGShadowTreeElements.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\TableLayout.h"
 				>
 			</File>
@@ -27796,6 +27844,10 @@
 			</File>
 			<File
 				RelativePath="..\rendering\TextControlInnerElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\TrailingFloatsRootInlineBox.h"
 				>
 			</File>
 			<File
@@ -41979,7 +42031,7 @@
 					RelativePath="..\ForwardingHeaders\runtime\UString.h"
 					>
 				</File>
-                <File
+				<File
 					RelativePath="..\ForwardingHeaders\runtime\UStringImpl.h"
 					>
 				</File>
@@ -42413,11 +42465,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\bridge\runtime.cpp"
+				RelativePath="..\bridge\Bridge.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\bridge\runtime.h"
+				RelativePath="..\bridge\Bridge.h"
 				>
 			</File>
 			<File

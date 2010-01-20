@@ -38,5 +38,6 @@ bool RuntimeEnabledFeatures::isLocalStorageEnabled = true;
 bool RuntimeEnabledFeatures::isSessionStorageEnabled = true;
 bool RuntimeEnabledFeatures::isNotificationsEnabled = false;
 bool RuntimeEnabledFeatures::isApplicationCacheEnabled = false;
+bool RuntimeEnabledFeatures::isGeolocationEnabled = false;
 
 } // namespace WebCore

@@ -30,7 +30,7 @@
 #ifndef BalInstance_h
 #define BalInstance_h
 
-#include "runtime.h"
+#include "Bridge.h"
 #include "runtime_root.h"
 #include "BALObject.h"
 

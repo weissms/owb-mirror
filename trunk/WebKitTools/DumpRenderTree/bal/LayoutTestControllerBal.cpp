@@ -379,6 +379,11 @@ void LayoutTestController::setDatabaseQuota(unsigned long long quota)
 #endif
 }
 
+void LayoutTestController::setDomainRelaxationForbiddenForURLScheme(bool, JSStringRef)
+{
+    // FIXME: implement
+}
+
 bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(JSStringRef animationName, double time, JSStringRef elementId)
 {    
     char* name = JSStringCopyUTF8CString(animationName);

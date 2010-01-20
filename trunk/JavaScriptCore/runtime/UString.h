@@ -31,6 +31,7 @@
 #include <wtf/CrossThreadRefCounted.h>
 #include <wtf/OwnFastMallocPtr.h>
 #include <wtf/PassRefPtr.h>
+#include <wtf/PtrAndFlags.h>
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
 #include <wtf/unicode/Unicode.h>
@@ -205,7 +206,7 @@ namespace JSC {
         friend bool operator==(const UString&, const UString&);
     };
 
-    inline bool operator==(const UString& s1, const UString& s2)
+    ALWAYS_INLINE bool operator==(const UString& s1, const UString& s2)
     {
         int size = s1.size();
         switch (size) {

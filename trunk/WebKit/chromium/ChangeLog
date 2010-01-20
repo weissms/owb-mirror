@@ -1,3 +1,48 @@
+2010-01-20  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] computePageRectsForFrame seems to be unnecessary
+        https://bugs.webkit.org/show_bug.cgi?id=33881
+
+        * src/WebFrameImpl.cpp: Stop including FrameChromium.h
+
+2010-01-19  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Chromium build fix.
+
+        * public/WebAccessibilityRole.h:
+        (WebKit::):
+        Correct enum names.
+
+        * src/LocalizedStrings.cpp:
+        (WebCore::AXMenuListPopupActionVerb):
+        Stubbed.
+        (WebCore::AXMenuListActionVerb):
+        Stubbed.
+
+2010-01-19  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Chromium build fix.
+
+        * public/WebAccessibilityRole.h:
+        (WebKit::):
+
+        * src/AssertMatchingEnums.cpp:
+
+2010-01-18  Jonathan Dixon  <joth@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for enabling navigator.geolocation at runtime in the V8 bindings.
+        Adds the [EnabledAtRuntime] modifier to the navigator IDL.
+        https://bugs.webkit.org/show_bug.cgi?id=33467
+
+        * public/WebRuntimeFeatures.h:
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enableGeolocation):
+        (WebKit::WebRuntimeFeatures::isGeolocationEnabled):
+
 2010-01-18  Kent Tamura  <tkent@chromium.org>
 
         Reviewed by Shinichiro Hamaji.

@@ -26,7 +26,7 @@ symbian: {
     MMP_RULES += "USERINCLUDE platform/text"
     # RO text (code) section in qtwebkit.dll exceeds allocated space for gcce udeb target.
     # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
-    MMP_RULES += "LINKEROPTION  armcc --rw-base 0xE00000"
+    QMAKE_LFLAGS.ARMCC += --rw-base 0xE00000
     MMP_RULES += ALWAYS_BUILD_AS_ARM
     QMAKE_CXXFLAGS.ARMCC += -OTime -O3
 }
@@ -339,11 +339,11 @@ SOURCES += \
     bindings/js/ScheduledAction.cpp \
     bindings/js/SerializedScriptValue.cpp \
     bindings/ScriptControllerBase.cpp \
+    bridge/Bridge.cpp \
     bridge/IdentifierRep.cpp \
     bridge/NP_jsobject.cpp \
     bridge/npruntime.cpp \
     bridge/runtime_array.cpp \
-    bridge/runtime.cpp \
     bridge/runtime_method.cpp \
     bridge/runtime_object.cpp \
     bridge/runtime_root.cpp \
@@ -1026,6 +1026,7 @@ HEADERS += \
     bindings/js/SerializedScriptValue.h \
     bindings/js/StringSourceProvider.h \
     bindings/js/WorkerScriptController.h \
+    bridge/Bridge.h \
     bridge/c/c_class.h \
     bridge/c/c_instance.h \
     bridge/c/c_runtime.h \
@@ -1037,7 +1038,6 @@ HEADERS += \
     bridge/qt/qt_instance.h \
     bridge/qt/qt_runtime.h \
     bridge/runtime_array.h \
-    bridge/runtime.h \
     bridge/runtime_method.h \
     bridge/runtime_object.h \
     bridge/runtime_root.h \
@@ -1634,6 +1634,7 @@ HEADERS += \
     rendering/RenderSVGInlineText.h \
     rendering/RenderSVGModelObject.h \
     rendering/RenderSVGRoot.h \
+    rendering/RenderSVGShadowTreeRootContainer.h \
     rendering/RenderSVGText.h \
     rendering/RenderSVGTextPath.h \
     rendering/RenderSVGTransformableContainer.h \
@@ -1691,6 +1692,7 @@ HEADERS += \
     rendering/SVGRenderSupport.h \
     rendering/SVGRenderTreeAsText.h \
     rendering/SVGRootInlineBox.h \
+    rendering/SVGShadowTreeElements.h \
     rendering/TextControlInnerElements.h \
     rendering/TransformState.h \
     svg/animation/SMILTimeContainer.h \
@@ -2578,6 +2580,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGInlineText.cpp \
         rendering/RenderSVGModelObject.cpp \
         rendering/RenderSVGRoot.cpp \
+        rendering/RenderSVGShadowTreeRootContainer.cpp \
         rendering/RenderSVGText.cpp \
         rendering/RenderSVGTextPath.cpp \
         rendering/RenderSVGTransformableContainer.cpp \
@@ -2588,7 +2591,8 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/SVGInlineTextBox.cpp \
         rendering/SVGMarkerLayoutInfo.cpp \
         rendering/SVGRenderSupport.cpp \
-        rendering/SVGRootInlineBox.cpp
+        rendering/SVGRootInlineBox.cpp \
+        rendering/SVGShadowTreeElements.cpp
 }
 
 contains(DEFINES, ENABLE_JAVASCRIPT_DEBUGGER=1) {
@@ -2718,6 +2722,8 @@ symbian {
                     "$${LITERAL_HASH}elif defined EABI" \
                     "DEFFILE ../WebKit/qt/symbian/eabi/$${TARGET}.def" \
                     "$${LITERAL_HASH}endif"
+        } else {
+            MMP_RULES += EXPORTUNFROZEN
         }
     }
 }

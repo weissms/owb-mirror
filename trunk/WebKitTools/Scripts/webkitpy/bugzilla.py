@@ -171,6 +171,8 @@ class BugzillaQueries(object):
 
     # Note: _load_query and _fetch_bug are the only two methods which access self._bugzilla.
     def _load_query(self, query):
+        self._bugzilla.authenticate()
+
         full_url = "%s%s" % (self._bugzilla.bug_server_url, query)
         return self._bugzilla.browser.open(full_url)
 
@@ -353,6 +355,8 @@ class Bugzilla(object):
         return int(match.group('bug_id'))
 
     def bug_id_for_attachment_id(self, attachment_id):
+        self.authenticate()
+
         attachment_url = self.attachment_url_for_id(attachment_id, 'edit')
         log("Fetching: %s" % attachment_url)
         page = self.browser.open(attachment_url)
@@ -396,18 +400,25 @@ class Bugzilla(object):
 
         self.authenticated = True
 
-    def _fill_attachment_form(self, description, patch_file_object, comment_text=None, mark_for_review=False, mark_for_commit_queue=False, bug_id=None):
+    def _fill_attachment_form(self, description, patch_file_object, comment_text=None, mark_for_review=False, mark_for_commit_queue=False, mark_for_landing=False, bug_id=None):
         self.browser['description'] = description
         self.browser['ispatch'] = ("1",)
         self.browser['flag_type-1'] = ('?',) if mark_for_review else ('X',)
-        self.browser['flag_type-3'] = ('?',) if mark_for_commit_queue else ('X',)
+
+        if mark_for_landing:
+            self.browser['flag_type-3'] = ('+',)
+        elif mark_for_commit_queue:
+            self.browser['flag_type-3'] = ('?',)
+        else:
+            self.browser['flag_type-3'] = ('X',)
+
         if bug_id:
             patch_name = "bug-%s-%s.patch" % (bug_id, timestamp())
         else:
             patch_name ="%s.patch" % timestamp()
         self.browser.add_file(patch_file_object, "text/plain", patch_name, 'data')
 
-    def add_patch_to_bug(self, bug_id, patch_file_object, description, comment_text=None, mark_for_review=False, mark_for_commit_queue=False):
+    def add_patch_to_bug(self, bug_id, patch_file_object, description, comment_text=None, mark_for_review=False, mark_for_commit_queue=False, mark_for_landing=False):
         self.authenticate()
 
         log('Adding patch "%s" to %sshow_bug.cgi?id=%s' % (description, self.bug_server_url, bug_id))
@@ -418,7 +429,7 @@ class Bugzilla(object):
 
         self.browser.open("%sattachment.cgi?action=enter&bugid=%s" % (self.bug_server_url, bug_id))
         self.browser.select_form(name="entryform")
-        self._fill_attachment_form(description, patch_file_object, mark_for_review=mark_for_review, mark_for_commit_queue=mark_for_commit_queue, bug_id=bug_id)
+        self._fill_attachment_form(description, patch_file_object, mark_for_review=mark_for_review, mark_for_commit_queue=mark_for_commit_queue, mark_for_landing=mark_for_landing, bug_id=bug_id)
         if comment_text:
             log(comment_text)
             self.browser['comment'] = comment_text

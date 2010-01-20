@@ -74,6 +74,8 @@ class LocalizedStringsTestTest : public CppUnit::TestFixture
     CPPUNIT_TEST(AXTextFieldActionVerb);
     CPPUNIT_TEST(AXCheckedCheckBoxActionVerb);
     CPPUNIT_TEST(AXUncheckedCheckBoxActionVerb);
+    CPPUNIT_TEST(AXMenuListActionVerb);
+    CPPUNIT_TEST(AXMenuListPopupActionVerb);
     CPPUNIT_TEST(AXLinkActionVerb);
 
     CPPUNIT_TEST(unknownFileSizeText);

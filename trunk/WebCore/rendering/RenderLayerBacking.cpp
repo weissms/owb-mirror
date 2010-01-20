@@ -67,6 +67,8 @@ static inline bool is3DCanvas(RenderObject* renderer)
 #if ENABLE(3D_CANVAS)    
     if (renderer->isCanvas())
         return static_cast<HTMLCanvasElement*>(renderer->node())->is3D();
+#else
+    UNUSED_PARAM(renderer);
 #endif
     return false;
 }
@@ -369,8 +371,9 @@ void RenderLayerBacking::updateGraphicsLayerGeometry()
         
         // The reflection layer has the bounds of m_owningLayer->reflectionLayer(),
         // but the reflected layer is the bounds of this layer, so we need to position it appropriately.
-        FloatRect reflectedLayerBounds = compositedBounds();
-        reflectionBacking->graphicsLayer()->setReplicatedLayerPosition(reflectedLayerBounds.location());
+        FloatRect layerBounds = compositedBounds();
+        FloatRect reflectionLayerBounds = reflectionBacking->compositedBounds();
+        reflectionBacking->graphicsLayer()->setReplicatedLayerPosition(FloatPoint() + (layerBounds.location() - reflectionLayerBounds.location()));
     }
 
     m_graphicsLayer->setContentsRect(contentsBox());

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
- * Copyright (C) 2008 Google Inc.
+ * Copyright (C) 2010 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -24,16 +23,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef FrameChromium_h
-#define FrameChromium_h
+#ifndef AccessibilityMenuList_h
+#define AccessibilityMenuList_h
 
-#include "Frame.h"
+#include "AccessibilityObject.h"
+#include "AccessibilityRenderObject.h"
 
 namespace WebCore {
 
-    // printRect is only used for the width/height ratio. Their absolute values aren't used.
-    void computePageRectsForFrame(Frame*, const IntRect& printRect, float headerHeight, float footerHeight, float userScaleFactor, Vector<IntRect>& pages, int& pageHeight);
+class AccessibilityMenuList;
+class AccessibilityMenuListPopup;
+class HTMLOptionElement;
 
-}
+class AccessibilityMenuList : public AccessibilityRenderObject {
+public:
+    static PassRefPtr<AccessibilityMenuList> create(RenderObject* renderer) { return adoptRef(new AccessibilityMenuList(renderer)); }
 
-#endif
+    virtual bool isCollapsed() const;
+    virtual bool press() const;
+
+private:
+    AccessibilityMenuList(RenderObject*);
+
+    virtual bool isMenuList() const { return true; }
+    virtual AccessibilityRole roleValue() const { return PopUpButtonRole; }
+    virtual bool accessibilityIsIgnored() const { return false; }
+    virtual bool canSetFocusAttribute() const { return true; }
+
+    virtual void addChildren();
+    virtual void childrenChanged();
+};
+
+} // namespace WebCore
+
+#endif // AccessibilityMenuList_h

@@ -37,7 +37,7 @@
 #include "JSValue.h"
 #include "JSDOMWindow.h"
 #include "JSGlobalObject.h"
-#include "runtime.h"
+#include "Bridge.h"
 #include "runtime_array.h"
 #include "runtime_root.h"
 #include "ScriptController.h"

@@ -1,3 +1,12 @@
+2010-01-20  Steve Block  <steveblock@google.com>
+
+        Reviewed by Adam Barth.
+
+        Renames WebCore/bridge/runtime.[cpp|h] to WebCore/bridge/Bridge.[cpp|h]
+        https://bugs.webkit.org/show_bug.cgi?id=33801
+
+        * Api/qwebframe.cpp:
+
 2010-01-15  Brian Weinstein  <bweinstein@apple.com>
 
         Reviewed by Adam Roben.

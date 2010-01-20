@@ -920,7 +920,10 @@ void Node::notifyLocalNodeListsAttributeChanged()
     if (!data->nodeLists())
         return;
 
-    data->nodeLists()->invalidateCachesThatDependOnAttributes();
+    if (!isAttributeNode())
+        data->nodeLists()->invalidateCachesThatDependOnAttributes();
+    else
+        data->nodeLists()->invalidateCaches();
 
     if (data->nodeLists()->isEmpty()) {
         data->clearNodeLists();
@@ -1059,7 +1062,7 @@ void Node::checkSetPrefix(const AtomicString& prefix, ExceptionCode& ec)
 
     const AtomicString& nodeNamespaceURI = namespaceURI();
     if ((nodeNamespaceURI.isEmpty() && !prefix.isEmpty())
-        || (prefix == "xml" && nodeNamespaceURI != XMLNames::xmlNamespaceURI)) {
+        || (prefix == xmlAtom && nodeNamespaceURI != XMLNames::xmlNamespaceURI)) {
         ec = NAMESPACE_ERR;
         return;
     }
@@ -1782,7 +1785,7 @@ bool Node::isDefaultNamespace(const AtomicString& namespaceURIMaybeEmpty) const
                 for (unsigned i = 0; i < attrs->length(); i++) {
                     Attribute* attr = attrs->attributeItem(i);
                     
-                    if (attr->localName() == "xmlns")
+                    if (attr->localName() == xmlnsAtom)
                         return attr->value() == namespaceURI;
                 }
             }
@@ -1868,12 +1871,12 @@ String Node::lookupNamespaceURI(const String &prefix) const
                 for (unsigned i = 0; i < attrs->length(); i++) {
                     Attribute *attr = attrs->attributeItem(i);
                     
-                    if (attr->prefix() == "xmlns" && attr->localName() == prefix) {
+                    if (attr->prefix() == xmlnsAtom && attr->localName() == prefix) {
                         if (!attr->value().isEmpty())
                             return attr->value();
                         
                         return String();
-                    } else if (attr->localName() == "xmlns" && prefix.isNull()) {
+                    } else if (attr->localName() == xmlnsAtom && prefix.isNull()) {
                         if (!attr->value().isEmpty())
                             return attr->value();
                         
@@ -1923,7 +1926,7 @@ String Node::lookupNamespacePrefix(const AtomicString &_namespaceURI, const Elem
         for (unsigned i = 0; i < attrs->length(); i++) {
             Attribute *attr = attrs->attributeItem(i);
             
-            if (attr->prefix() == "xmlns" &&
+            if (attr->prefix() == xmlnsAtom &&
                 attr->value() == _namespaceURI &&
                 originalElement->lookupNamespaceURI(attr->localName()) == _namespaceURI)
                 return attr->localName();

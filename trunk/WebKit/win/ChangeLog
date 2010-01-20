@@ -1,3 +1,105 @@
+2010-01-20  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: The child <option> elements of a non-multiple <select> are not
+        exposed
+
+        https://bugs.webkit.org/show_bug.cgi?id=33773
+        <rdar://problem/7550556>
+
+        Reviewed by Alice Liu.
+
+        * AccessibleBase.cpp:
+        (AccessibleBase::get_accState):
+        If the object is invisible, set the invisible state flag. If the object
+        is collapsed, set the collapsed state. If the object is a combo box,
+        set the has popup flag, and if it's not collapsed, set the expanded
+        flag.
+        (MSAARole):
+        Add new WebCore to MSAA role mappings.
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::AXMenuListActionVerb):
+        Return the action verb that Firefox uses for <select> elements with
+        popups.
+        (WebCore::AXMenuListPopupActionVerb):
+        Return the verb that Firefox uses for a popup list.
+
+2010-01-19  John Sullivan  <sullivan@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=33854
+        Would like a variant of WebHTMLRepresentation's searchForLabelsBeforeElement that returns 
+        more info about where the result was found
+
+        Reviewed by Darin Adler
+
+        * Interfaces/IWebHTMLRepresentation.idl:
+        Created variant of searchForLabels that includes additional in/out parameters resultDistance and resultIsInCellAbove.
+        
+        * Interfaces/WebKit.idl:
+        Touched in order to get other idl change to propagate correctly.
+
+        * WebHTMLRepresentation.cpp:
+        (WebHTMLRepresentation::deprecatedSearchForLabels):
+        Renamed since iDL doesn't support two functions with the same name but different signatures.
+        (WebHTMLRepresentation::searchForLabels):
+        Implemented variant of searchForLabels that includes additional in/out parameters resultDistance and resultIsInCellAbove.
+
+        * WebHTMLRepresentation.h:
+        Declared variant of searchForLabels that includes additional in/out parameters resultDistance and resultIsInCellAbove.
+
+2010-01-19  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebScriptWorld.cpp: Added missing #include.
+
+2010-01-19  Dave Hyatt  <hyatt@apple.com>
+
+        Build bustage fix. Make sure the newly added scriptWorldForGlobalContext function is [local] in the IDL.
+
+        * Interfaces/IWebScriptWorld.idl:
+
+2010-01-19  Dave Hyatt  <hyatt@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add an API to obtain a WebScriptWorld from a JSGlobalContextRef.
+
+        * Interfaces/IWebScriptWorld.idl:
+        * WebScriptWorld.cpp:
+        (WebScriptWorld::scriptWorldForGlobalContext):
+        * WebScriptWorld.h:
+
+2010-01-18  Adam Roben  <aroben@apple.com>
+
+        Add IWebViewPrivate::setDomainRelaxationForbiddenForURLScheme
+
+        WebKit/win part of fixing <http://webkit.org/b/33806>
+        <rdar://problem/7552837> Would like API to disallow setting of
+        document.domain for pages with certain URL schemes
+
+        Reviewed by Sam Weinig.
+
+        * Interfaces/IWebViewPrivate.idl: Added
+        setDomainRelaxationForbiddenForURLScheme.
+
+        * Interfaces/WebKit.idl: Touched to force a build.
+
+        * WebView.cpp:
+        (WebView::setDomainRelaxationForbiddenForURLScheme):
+        * WebView.h:
+        Added. Calls through to SecurityOrigin.
+
+2010-01-18  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Use new setScrollFrame API
+        https://bugs.webkit.org/show_bug.cgi?id=32279
+
+        * WebView.cpp:
+        (WebView::updateRootLayerContents):
+
 2010-01-18  Jon Honeycutt  <jhoneycutt@apple.com>
 
         MSAA: Screen rect for <option> elements is always the zero rect

@@ -311,6 +311,16 @@ String AXLinkActionVerb()
     return String();
 }
 
+String AXMenuListPopupActionVerb()
+{
+    return String();
+}
+
+String AXMenuListActionVerb()
+{
+    return String();
+}
+
 String unknownFileSizeText()
 {
     return String::fromUTF8("Unknown");

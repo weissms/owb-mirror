@@ -52,7 +52,7 @@
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
 #include "npruntime_impl.h"
-#include "runtime.h"
+#include "Bridge.h"
 #include "runtime_root.h"
 #include <runtime/JSLock.h>
 #include <runtime/JSValue.h>
