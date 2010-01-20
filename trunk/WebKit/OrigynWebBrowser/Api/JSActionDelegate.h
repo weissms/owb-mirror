@@ -32,6 +32,7 @@
 #include "SharedObject.h"
 
 class WebFrame;
+class WebSecurityOrigin;
 
 class JSActionDelegate : public SharedObject<JSActionDelegate> {
 
@@ -58,6 +59,12 @@ public:
      * jsPrompt : call a js prompt window
      */
     virtual bool jsPrompt(WebFrame*, const char*, const char*, char**) = 0;
+
+    /**
+     * exceededDatabaseQuota
+     */
+    virtual void exceededDatabaseQuota(WebFrame *frame, WebSecurityOrigin *origin, const char* databaseIdentifier) = 0;
+
 };
 
 #endif // JSActionDelegate_h

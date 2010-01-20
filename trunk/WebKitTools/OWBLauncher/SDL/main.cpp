@@ -333,6 +333,12 @@ public:
 #endif
     }
 
+    virtual void exceededDatabaseQuota(WebFrame *frame, WebSecurityOrigin *origin, const char* databaseIdentifier)
+    {
+        static const unsigned long long defaultQuota = 5 * 1024 * 1024;
+        origin->setQuota(defaultQuota);
+    }
+
 private:
     MainJSActionDelegate() { }
 };

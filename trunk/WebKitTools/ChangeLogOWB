@@ -1,3 +1,14 @@
+2010-01-20  Mario Bensi  <mbensi@pleyo.com>
+
+        add exceededDatabaseQuota method in JSActionDelegate.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (JSDelegate::exceededDatabaseQuota):
+        * OWBLauncher/SDL/main.cpp:
+        (MainJSActionDelegate::exceededDatabaseQuota):
+        * OWBLauncher/gtk/main.cpp:
+        (MainJSActionDelegate::exceededDatabaseQuota):
+
 2010-01-19  Mario Bensi  <mbensi@pleyo.com>
 
         implement copyDecodedHostName and copyEncodedHostName.

@@ -337,6 +337,20 @@ public:
         *value = strdup(defaultValue);
         return true;
     }
+
+    virtual void exceededDatabaseQuota(WebFrame *frame, WebSecurityOrigin *origin, const char* databaseIdentifier)
+    {
+        const char* protocol = origin->protocol();
+        const char* host = origin->host();
+        unsigned short port = origin->port();
+
+        if (!done && gLayoutTestController->dumpDatabaseCallbacks())
+            printf("UI DELEGATE DATABASE CALLBACK: exceededDatabaseQuotaForSecurityOrigin:{%s, %s, %i} database:%s\n", protocol, host, port, databaseIdentifier);
+
+        static const unsigned long long defaultQuota = 5 * 1024 * 1024;
+        origin->setQuota(defaultQuota);
+    }
+
 private:
     JSDelegate() { }
 };

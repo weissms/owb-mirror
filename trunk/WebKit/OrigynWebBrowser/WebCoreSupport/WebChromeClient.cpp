@@ -202,7 +202,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
               features.widthSet ? features.width : frameRect.width(),
               features.heightSet ? features.height : frameRect.height());
     
-    SharedPtr<WebApplication> app = webAppMgr().createApplication(0, r, frameLoadRequest.resourceRequest().url().string().utf8().data(), 0, 0);
+    SharedPtr<WebApplication> app = webAppMgr().createApplication(0, r, frameLoadRequest.resourceRequest().url().string().utf8().data(), m_webView->webFrameLoadDelegate(), 0);
     
     if (!app || !app->webView())
         return 0;
@@ -215,7 +215,6 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     WebFrame* webFrame = view->topLevelFrame();
     if (webFrame)
         webFrame->setAllowsScrolling(features.scrollbarsVisible);
-    view->setWebFrameLoadDelegate(0);
     return core(view);
 #else
 
@@ -560,8 +559,13 @@ void WebChromeClient::exceededDatabaseQuota(Frame* frame, const String& database
 {
 #if ENABLE(DATABASE)
     WebSecurityOrigin *origin = WebSecurityOrigin::createInstance(frame->document()->securityOrigin());
-    const unsigned long long defaultQuota = 5 * 1024 * 1024; // 5 megabytes should hopefully be enough to test storage support.
-    origin->setQuota(defaultQuota);
+    SharedPtr<JSActionDelegate> jsActionDelegate = m_webView->jsActionDelegate();
+    if (jsActionDelegate)
+        jsActionDelegate->exceededDatabaseQuota(m_webView->mainFrame(), origin, databaseIdentifier.utf8().data());
+    else {
+        const unsigned long long defaultQuota = 5 * 1024 * 1024; // 5 megabytes should hopefully be enough to test storage support.
+        origin->setQuota(defaultQuota);
+    }
     delete origin;
 #endif
 }

@@ -1,3 +1,15 @@
+2010-01-20  Mario Bensi  <mbensi@pleyo.com>
+
+        add delegate for exceededDatabaseQuota and give the
+        MainFrameLoadDelete to the created window.
+
+        Need a short description and bug URL (OOPS!)
+
+        * OrigynWebBrowser/Api/JSActionDelegate.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::exceededDatabaseQuota):
+
 2010-01-19  Mario Bensi  <mbensi@pleyo.com>
 
         add encodeHostName and decodeHostName.
