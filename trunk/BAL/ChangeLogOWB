@@ -1,3 +1,10 @@
+2010-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        get absolute path from --source-path option so that a relative path
+        can be set on the command line
+
+        * Scripts/Drt/runtests.py:
+
 2010-01-21  Mario Bensi  <mbensi@pleyo.com>
 
         option --source-path are mandatory.

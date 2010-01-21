@@ -343,6 +343,8 @@ class RunTests :
 
             if conf == "" :
                 return
+            else :
+                conf = os.path.abspath(conf)
 
             if not os.path.exists("/tmp/WebKit") :
                 os.mkdir("/tmp/WebKit/")
@@ -372,4 +374,3 @@ class RunTests :
 
             os.kill(p, 15)
             self.httpServerRunning = True
-
