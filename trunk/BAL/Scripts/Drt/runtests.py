@@ -49,12 +49,20 @@ class RunTests :
 
         total = len(self.resultSuccess) + len(self.resultFailed) + len(self.resultPlatformFailed) + len(self.resultTimeout) + len(self.resultCrashed) + len(self.resultNew)
         print "total tests = " + str(total)
-        percentSuccess = (float(len(self.resultSuccess)) / float(total)) * 100.0
-        percentFailed = (float(len(self.resultFailed)) / float(total)) * 100.0
-        percentPlatformFailed = (float(len(self.resultPlatformFailed)) / float(total)) * 100.0
-        percentTimeout = (float(len(self.resultTimeout)) / float(total)) * 100.0
-        percentCrashed = (float(len(self.resultCrashed)) / float(total)) * 100.0
-        percentNew = (float(len(self.resultNew)) / float(total)) * 100.0
+        if total :
+            percentSuccess = (float(len(self.resultSuccess)) / float(total)) * 100.0
+            percentFailed = (float(len(self.resultFailed)) / float(total)) * 100.0
+            percentPlatformFailed = (float(len(self.resultPlatformFailed)) / float(total)) * 100.0
+            percentTimeout = (float(len(self.resultTimeout)) / float(total)) * 100.0
+            percentCrashed = (float(len(self.resultCrashed)) / float(total)) * 100.0
+            percentNew = (float(len(self.resultNew)) / float(total)) * 100.0
+        else :
+            percentSuccess = 0
+            percentFailed = 0
+            percentPlatformFailed = 0
+            percentTimeout = 0
+            percentCrashed = 0
+            percentNew = 0
         print "success (" + str(len(self.resultSuccess)) + ") : " + str(percentSuccess)
         print "failed (" + str(len(self.resultFailed)) + ") : " + str(percentFailed)
         print "platform failed (" + str(len(self.resultPlatformFailed)) + ") : " + str(percentPlatformFailed)
