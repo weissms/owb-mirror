@@ -342,13 +342,12 @@ bool LayoutTestController::isCommandEnabled(JSStringRef name)
 void LayoutTestController::setPersistentUserStyleSheetLocation(JSStringRef jsURL)
 {
     char* url = JSStringCopyUTF8CString(jsURL);
-    getWebView()->preferences()->setUserStyleSheetLocation(url);
-    getWebView()->preferences()->setUserStyleSheetEnabled(true);
+    ::setPersistentUserStyleSheetLocation(url);
 }
 
 void LayoutTestController::clearPersistentUserStyleSheet()
 {
-    getWebView()->preferences()->setUserStyleSheetEnabled(false);
+    ::setPersistentUserStyleSheetLocation(0);
 }
 
 void LayoutTestController::clearAllDatabases()

@@ -1,0 +1,3 @@
+These fonts are the URW fonts as distributed by ghostscript plus the
+AHEM test font.  They are used by DumpRenderTree to generate reliable
+output on X11.

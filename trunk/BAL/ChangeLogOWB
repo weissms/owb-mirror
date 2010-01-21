@@ -1,3 +1,11 @@
+2010-01-21  Mario Bensi  <mbensi@pleyo.com>
+
+        option --source-path are mandatory.
+        WEBKIT_TESTFONTS added to use test fonts
+
+        * Scripts/Drt/parser.py:
+        * Scripts/Drt/runtests.py:
+
 2010-01-19  Mario Bensi  <mbensi@pleyo.com>
 
         add Encoding in i18n and implement this on ICU.

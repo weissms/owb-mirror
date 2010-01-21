@@ -32,6 +32,7 @@ class RunTests :
         self.httpServerRunning = False
         self.webSocketServerPID = 0
         self.httpServerPID = 0
+        os.environ["WEBKIT_TESTFONTS"]=self.config['source'] + "/WebKitTools/DumpRenderTree/bal/fonts/"
 
     def startDrt(self) :
         if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :

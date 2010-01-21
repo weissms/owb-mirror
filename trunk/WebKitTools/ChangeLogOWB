@@ -1,3 +1,103 @@
+2010-01-21  Mario Bensi  <mbensi@pleyo.com>
+
+        Add test fonts.
+        implement setPersistentUserStyleSheetLocation
+        implement dumpFrameScrollPosition
+        implement initializeFonts
+        add preferences
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (setPersistentUserStyleSheetLocation):
+        (dumpFrameScrollPosition):
+        (initializeFonts):
+        (setPreferences):
+        (runTest):
+        * DumpRenderTree/bal/DumpRenderTreeBal.h:
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::setPersistentUserStyleSheetLocation):
+        (LayoutTestController::clearPersistentUserStyleSheet):
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (getX):
+        (getY):
+        * DumpRenderTree/bal/fonts: Added.
+        * DumpRenderTree/bal/fonts/AHEM____.TTF: Added.
+        * DumpRenderTree/bal/fonts/Baldur.svg: Added.
+        * DumpRenderTree/bal/fonts/COPYING: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSans-Bold.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSans-BoldOblique.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSans-Oblique.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSans.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSansMono-Bold.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSansMono-BoldOblique.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSansMono-Oblique.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSansMono.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSerif-Bold.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSerif-BoldItalic.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSerif-Italic.svg: Added.
+        * DumpRenderTree/bal/fonts/DejaVuSerif.svg: Added.
+        * DumpRenderTree/bal/fonts/FormalScript.svg: Added.
+        * DumpRenderTree/bal/fonts/FormalScriptBold.svg: Added.
+        * DumpRenderTree/bal/fonts/Makefile: Added.
+        * DumpRenderTree/bal/fonts/README: Added.
+        * DumpRenderTree/bal/fonts/README.DejaVu: Added.
+        * DumpRenderTree/bal/fonts/README.webkit: Added.
+        * DumpRenderTree/bal/fonts/a010013l.pfb: Added.
+        * DumpRenderTree/bal/fonts/a010015l.pfb: Added.
+        * DumpRenderTree/bal/fonts/a010033l.pfb: Added.
+        * DumpRenderTree/bal/fonts/a010035l.pfb: Added.
+        * DumpRenderTree/bal/fonts/b018012l.pfb: Added.
+        * DumpRenderTree/bal/fonts/b018015l.pfb: Added.
+        * DumpRenderTree/bal/fonts/b018032l.pfb: Added.
+        * DumpRenderTree/bal/fonts/b018035l.pfb: Added.
+        * DumpRenderTree/bal/fonts/c059013l.pfb: Added.
+        * DumpRenderTree/bal/fonts/c059016l.pfb: Added.
+        * DumpRenderTree/bal/fonts/c059033l.pfb: Added.
+        * DumpRenderTree/bal/fonts/c059036l.pfb: Added.
+        * DumpRenderTree/bal/fonts/d050000l.pfb: Added.
+        * DumpRenderTree/bal/fonts/fonts.bin: Added.
+        * DumpRenderTree/bal/fonts/fonts.conf: Added.
+        * DumpRenderTree/bal/fonts/fonts.css: Added.
+        * DumpRenderTree/bal/fonts/fonts.qrc: Added.
+        * DumpRenderTree/bal/fonts/n019003l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019004l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019023l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019024l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019043l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019044l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019063l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n019064l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n021003l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n021004l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n021023l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n021024l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n022003l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n022004l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n022023l.pfb: Added.
+        * DumpRenderTree/bal/fonts/n022024l.pfb: Added.
+        * DumpRenderTree/bal/fonts/p052003l.pfb: Added.
+        * DumpRenderTree/bal/fonts/p052004l.pfb: Added.
+        * DumpRenderTree/bal/fonts/p052023l.pfb: Added.
+        * DumpRenderTree/bal/fonts/p052024l.pfb: Added.
+        * DumpRenderTree/bal/fonts/s050000l.pfb: Added.
+        * DumpRenderTree/bal/fonts/z003034l.pfb: Added.
+        * DumpRenderTree/bal/gtk/DumpRenderTreeGtk.cpp:
+        (getX):
+        (getY):
+        * DumpRenderTree/bal/qt/DumpRenderTreeQt.cpp:
+        (getX):
+        (getY):
+        * DumpRenderTree/fonts/WebKit Layout Tests 2.ttf: Added.
+        * DumpRenderTree/fonts/WebKit Layout Tests.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher100.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher200.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher300.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher400.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher500.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher600.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher700.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher800.ttf: Added.
+        * DumpRenderTree/fonts/WebKitWeightWatcher900.ttf: Added.
+
 2010-01-20  Mario Bensi  <mbensi@pleyo.com>
 
         add exceededDatabaseQuota method in JSActionDelegate.

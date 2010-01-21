@@ -55,6 +55,10 @@
 #include "ApplicationTestController.h"
 #endif
 
+#if defined(USE_FREETYPE)
+#include <fontconfig/fontconfig.h>
+#endif
+
 using namespace std;
 
 
@@ -82,6 +86,7 @@ SharedPtr<ResourceLoadDelegate> resourceLoadDelegate;
 SharedPtr<EditingDelegate> sharedEditingDelegate;
 SharedPtr<HistoryDelegate> sharedHistoryDelegate;
 std::vector<std::string> disallowedURLs;
+static const char* persistentUserStyleSheetLocation = 0;
 
 
 WebView *getWebView()
@@ -113,6 +118,11 @@ static char* autocorrectURL(const char* url)
     }
 
     return strdup(url);
+}
+
+void setPersistentUserStyleSheetLocation(const char* url)
+{
+    persistentUserStyleSheetLocation = url;
 }
 
 static bool processWork()
@@ -357,6 +367,27 @@ private:
 
 void dumpFrameScrollPosition(WebFrame* frame)
 {
+    if (!frame)
+        return;
+
+    BalPoint scrollPosition = frame->scrollOffset();
+    int x = getX(scrollPosition);
+    int y = getY(scrollPosition);
+
+    if (abs(x) > 0 || abs(y) > 0) {
+        WebFrame* parent = frame->parentFrame();
+        if (parent) {
+            const char* name = frame->name();
+            printf("frame '%s' ", name ? name : "");
+        }
+        printf("scrolled to %.f,%.f\n", (double)x, (double)y);
+    }
+
+    if (::gLayoutTestController->dumpChildFrameScrollPositions()) {
+        std::vector<WebFrame*>* children = frame->children();
+        for(size_t i = 0; i < children->size(); ++i)
+            dumpFrameScrollPosition(children->at(i));
+    }
 }
 
 const char* dumpFramesAsText(WebFrame* frame)
@@ -587,28 +618,106 @@ static void crashHandler(int sig)
     exit(128 + sig);
 }
 
+#if defined(USE_FREETYPE)
+void initializeFonts()
+{
+    static int numFonts = -1;
+
+    // Some test cases may add or remove application fonts (via @font-face).
+    // Make sure to re-initialize the font set if necessary.
+    FcFontSet* appFontSet = FcConfigGetFonts(0, FcSetApplication);
+    if (appFontSet && numFonts >= 0 && appFontSet->nfont == numFonts)
+        return;
+
+    string fontDir = getenv("WEBKIT_TESTFONTS");
+    // TODO : test if the directory exists
+    if (fontDir.empty()) {
+        fprintf(stderr,
+                "\n\n"
+                "----------------------------------------------------------------------\n"
+                "WEBKIT_TESTFONTS environment variable is not set correctly.\n"
+                "This variable has to point to the directory containing the fonts\n"
+                "you can clone from git://gitorious.org/qtwebkit/testfonts.git\n"
+                "----------------------------------------------------------------------\n"
+               );
+        exit(1);
+    }
+
+    FcConfig *config = FcConfigCreate();
+    string configFile = fontDir + "/fonts.conf";
+    if (!FcConfigParseAndLoad (config, (FcChar8*) configFile.c_str(), true)) {
+        fprintf(stderr, "Couldn't load font configuration file");
+        exit(1);
+    }
+
+    if (!FcConfigAppFontAddDir (config, (FcChar8*) fontDir.c_str())) {
+        fprintf(stderr, "Couldn't add font dir!");
+        exit(1);
+    }
+    FcConfigSetCurrent(config);
+
+    appFontSet = FcConfigGetFonts(config, FcSetApplication);
+    numFonts = appFontSet->nfont;
+}
+#endif
 
 void setPreferences()
 {
     WebPreferences* preferences = getWebView()->preferences();
 
+#if 0
     preferences->setStandardFontFamily("Times");
     preferences->setFixedFontFamily("Courier");
     preferences->setSerifFontFamily("Times");
     preferences->setSansSerifFontFamily("Helvetica");
+    preferences->setCursiveFontFamily("Apple Chancery");
+    preferences->setFantasyFontFamily("Papyrus");
+#else
+    preferences->setStandardFontFamily("Times New Roman");
+    preferences->setFixedFontFamily("Courier New");
+    preferences->setSerifFontFamily("Times New Roman");
+    preferences->setSansSerifFontFamily("Arial");
     preferences->setCursiveFontFamily("Comic Sans MS");
     preferences->setFantasyFontFamily("Times New Roman");
+#endif
 
     preferences->setAutosaves(false);
+    preferences->setDefaultFontSize(16);
+    preferences->setDefaultFixedFontSize(13);
+    preferences->setMinimumFontSize(1);
     preferences->setJavaEnabled(false);
     preferences->setPlugInsEnabled(true);
     preferences->setDOMPasteAllowed(true);
     preferences->setEditableLinkBehavior(WebKitEditableLinkOnlyLiveWithShiftKey);
     preferences->setFontSmoothing(FontSmoothingTypeStandard);
     preferences->setUsesPageCache(false);
+    preferences->setPrivateBrowsingEnabled(false);
+    preferences->setJavaScriptCanOpenWindowsAutomatically(true);
+    preferences->setJavaScriptEnabled(true);
+    preferences->setTabsToLinks(false);
+    preferences->setShouldPrintBackgrounds(true);
+    preferences->setLoadsImagesAutomatically(true);
+
+    if (persistentUserStyleSheetLocation) {
+        preferences->setUserStyleSheetLocation(persistentUserStyleSheetLocation);
+        preferences->setUserStyleSheetEnabled(true);
+    } else
+        preferences->setUserStyleSheetEnabled(false);
+
+    preferences->setAllowUniversalAccessFromFileURLs(true);
+    preferences->setAuthorAndUserStylesEnabled(true);
+    preferences->setDeveloperExtrasEnabled(false);
+    preferences->setExperimentalNotificationsEnabled(true);
+    preferences->setShouldPaintNativeControls(false); // FIXME - need to make DRT pass with Windows native controls <http://bugs.webkit.org/show_bug.cgi?id=25592>
+    preferences->setXSSAuditorEnabled(false);
+    preferences->setOfflineWebApplicationCacheEnabled(true);
+    
+    //setAlwaysAcceptCookies(false);
+
 #if ENABLE(NETSCAPE_PLUGIN_API)
     preferences->addExtraPluginDirectory(TEST_PLUGIN_DIR);
 #endif
+    
     WebInspector *inspector = getWebView()->inspector();
     if (inspector) 
         inspector->setJavaScriptProfilingEnabled(false);
@@ -698,6 +807,10 @@ void runTest(const string& testPathOrURL)
     getWebView()->setWebEditingDelegate(sharedEditingDelegate);
     getWebView()->setWebResourceLoadDelegate(resourceLoadDelegate);
     setPreferences();
+
+#if defined(USE_FREETYPE)
+    initializeFonts();
+#endif
 
 
     WebBackForwardList* bfList = getWebView()->backForwardList();

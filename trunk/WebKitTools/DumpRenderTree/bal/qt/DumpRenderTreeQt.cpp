@@ -239,4 +239,14 @@ void displayWebView()
 {
 }
 
+int getX(BalPoint pos)
+{
+    return pos.x();
+}
+
+int getY(BalPoint pos)
+{
+    return pos.y();
+}
+
 #include "DumpRenderTreeQt.moc"

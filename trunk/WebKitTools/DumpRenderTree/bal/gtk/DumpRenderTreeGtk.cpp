@@ -132,3 +132,12 @@ void displayWebView()
 {
 }
 
+int getX(BalPoint pos)
+{
+    return 0;
+}
+
+int getY(BalPoint pos)
+{
+    return 0;
+}

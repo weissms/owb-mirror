@@ -1,0 +1,137 @@
+/* These font-face definitions are used by the Qt DRT
+   to ensure unified font metrics across platforms. */
+
+/* Serif families */
+
+@font-face {
+    font-family: -webkit-serif, -webkit-standard, Times, Times New Roman;
+    font-style: normal;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSerif.svg#DejaVuSerif) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-serif, -webkit-standard, Times, Times New Roman;
+    font-style: normal;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSerif-Bold.svg#DejaVuSerif-Bold) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-serif, -webkit-standard, Times, Times New Roman;
+    font-style: normal;
+    font-style: italic;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSerif-BoldItalic.svg#DejaVuSerif-BoldItalic) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-serif, -webkit-standard, Times, Times New Roman;
+    font-style: normal;
+    font-style: italic;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSerif-Italic.svg#DejaVuSerif-Italic) format('svg');    
+}
+
+/* Sans-Serif families */
+
+@font-face {
+    font-family: -webkit-sans-serif, Helvetica, Lucida Grande, Arial;
+    font-style: normal;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSans.svg#DejaVuSans) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-sans-serif, Helvetica, Lucida Grande, Arial;
+    font-style: normal;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSans-Bold.svg#DejaVuSans-Bold) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-sans-serif, Helvetica, Lucida Grande, Arial;
+    font-style: oblique;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSans-Oblique.svg#DejaVuSans-Oblique) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-sans-serif, Helvetica, Lucida Grande, Arial;
+    font-style: oblique;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSans-BoldOblique.svg#DejaVuSans-BoldOblique) format('svg');    
+}
+
+/* Monospace families */
+
+@font-face {
+    font-family: -webkit-monospace, Monaco, Courier, Courier New;
+    font-style: normal;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSansMono.svg#DejaVuSansMono) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-monospace, Monaco, Courier, Courier New;
+    font-style: normal;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSansMono-Bold.svg#DejaVuSansMono-Bold) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-monospace, Monaco, Courier, Courier New;
+    font-style: italic;
+    font-weight: bold;
+    
+    src: url(qrc:/DejaVuSansMono-BoldOblique.svg#DejaVuSansMono-BoldOblique) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-monospace, Monaco, Courier, Courier New;
+    font-style: italic;
+    font-weight: normal;
+    
+    src: url(qrc:/DejaVuSansMono-Oblique.svg#DejaVuSansMono-Oblique) format('svg');    
+}
+
+
+/* Cursive families */
+
+@font-face {
+    font-family: -webkit-cursive;
+    font-style: normal;
+    font-weight: normal;
+    
+    src: url(qrc:/FormalScript.svg#FormalScript) format('svg');    
+}
+
+@font-face {
+    font-family: -webkit-cursive;
+    font-style: normal;
+    font-weight: bold;
+    
+    src: url(qrc:/FormalScriptBold.svg#FormalScriptBold) format('svg');    
+}
+
+
+/* Fantasy families */
+
+@font-face {
+    font-family: -webkit-fantasy;
+    font-style: normal;
+    font-weight: normal;
+    
+    src: url(qrc:/Baldur.svg#Baldur) format('svg');    
+}
+

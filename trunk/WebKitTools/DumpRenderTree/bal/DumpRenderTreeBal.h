@@ -63,5 +63,9 @@ void setDone(bool);
 
 extern std::string dumpPath(DOMNode* node);
 
+void setPersistentUserStyleSheetLocation(const char*);
+
 void getBalPoint(int x, int y, BalPoint* point);
+int getX(BalPoint pos);
+int getY(BalPoint pos);
 #endif // DumpRenderTreeGtk_h
