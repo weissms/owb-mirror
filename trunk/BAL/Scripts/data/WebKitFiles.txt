@@ -23,7 +23,7 @@ WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
-WebCore/bridge/runtime.cpp
+WebCore/bridge/Bridge.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
