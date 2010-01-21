@@ -1,9 +1,15 @@
+2010-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Remove some "printf" about cache stats which only appear in debug mode
+        but which cause failure in Layout tests.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::close):
+
 2010-01-20  Mario Bensi  <mbensi@pleyo.com>
 
         add delegate for exceededDatabaseQuota and give the
         MainFrameLoadDelete to the created window.
-
-        Need a short description and bug URL (OOPS!)
 
         * OrigynWebBrowser/Api/JSActionDelegate.h:
         * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:

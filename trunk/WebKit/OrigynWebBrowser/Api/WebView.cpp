@@ -608,20 +608,6 @@ void WebView::close()
 
     m_didClose = true;
 
-#ifndef NDEBUG
-    Cache::Statistics stats = cache()->getStatistics();
-    printf("stats about cache:\n");
-    printf("\timages: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.images.count, stats.images.size, stats.images.liveSize, stats.images.decodedSize);
-    printf("\tcssStyleSheets: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.cssStyleSheets.count, stats.cssStyleSheets.size, stats.cssStyleSheets.liveSize, stats.cssStyleSheets.decodedSize);
-    printf("\tscripts: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.scripts.count, stats.scripts.size, stats.scripts.liveSize, stats.scripts.decodedSize);
-    printf("\tfonts: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.fonts.count, stats.fonts.size, stats.fonts.liveSize, stats.fonts.decodedSize);
-#if ENABLE(XSLT)
-    printf("\txslStyleSheets: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.xslStyleSheets.count, stats.xslStyleSheets.size, stats.xslStyleSheets.liveSize, stats.xslStyleSheets.decodedSize);
-#endif
-#if ENABLE(XBL)
-    printf("\txblDocs: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.xblDocs.count, stats.xblDocs.size, stats.xblDocs.liveSize, stats.xblDocs.decodedSize);
-#endif
-#endif
     // Purge page cache
     // The easiest way to do that is to disable page cache
     // The preferences can be null.
