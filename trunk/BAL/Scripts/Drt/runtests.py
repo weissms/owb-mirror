@@ -169,8 +169,7 @@ class RunTests :
 
         if self.config['leak'] :
             #get LEAK
-            f = self.err.split('\n')
-            for leak in f :
+            for leak in self.err.split('\n') :
                 if leak.find("LEAK") != -1 :
                     le = leak.split()
                     try :
@@ -179,8 +178,6 @@ class RunTests :
                         count = 0
                     count += int(le[1])
                     self.leakList[le[2]] = count
-
-            f.close()
 
     def __timeout(self, test) :
         self.time += time.time() - self.startTime

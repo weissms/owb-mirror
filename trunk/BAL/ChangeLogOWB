@@ -1,5 +1,11 @@
 2010-01-21  Olivier DOLE  <odole@pleyo.com>
 
+        Fix for Drt script when running with a build in debug mode.
+
+        * Scripts/Drt/runtests.py:
+
+2010-01-21  Olivier DOLE  <odole@pleyo.com>
+
         Quick fix in Drt scripts to avoid division by 0.
 
         * Scripts/Drt/progress.py:
