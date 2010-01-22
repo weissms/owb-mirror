@@ -629,9 +629,9 @@ void initializeFonts()
     if (appFontSet && numFonts >= 0 && appFontSet->nfont == numFonts)
         return;
 
-    string fontDir = getenv("WEBKIT_TESTFONTS");
+    const char* fontDir = getenv("WEBKIT_TESTFONTS");
     // TODO : test if the directory exists
-    if (fontDir.empty()) {
+    if (!fontDir) {
         fprintf(stderr,
                 "\n\n"
                 "----------------------------------------------------------------------\n"
@@ -644,13 +644,14 @@ void initializeFonts()
     }
 
     FcConfig *config = FcConfigCreate();
-    string configFile = fontDir + "/fonts.conf";
+    string configFile = fontDir;
+    configFile += "/fonts.conf";
     if (!FcConfigParseAndLoad (config, (FcChar8*) configFile.c_str(), true)) {
         fprintf(stderr, "Couldn't load font configuration file");
         exit(1);
     }
 
-    if (!FcConfigAppFontAddDir (config, (FcChar8*) fontDir.c_str())) {
+    if (!FcConfigAppFontAddDir (config, (FcChar8*) fontDir)) {
         fprintf(stderr, "Couldn't add font dir!");
         exit(1);
     }
