@@ -69,7 +69,7 @@
 #include "htmlediting.h" // for comparePositions()
 #include <wtf/StdLibExtras.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -2187,7 +2187,7 @@ void EventHandler::defaultKeyboardEventHandler(KeyboardEvent* event)
         if (event->keyIdentifier() == "U+0009")
             defaultTabEventHandler(event);
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
        // provides KB navigation and selection for enhanced accessibility users
        if (AXObjectCache::accessibilityEnhancedUserInterfaceEnabled())
            handleKeyboardSelectionMovement(event);

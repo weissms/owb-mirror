@@ -24,7 +24,7 @@
 
 #include <gtk/gtk.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AccessibilityObjectWrapperAtk.h"
 #include "AXObjectCache.h"
 #endif
@@ -33,7 +33,7 @@ namespace WebCore {
 
 void SelectionController::notifyAccessibilityForSelectionChange()
 {
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled() && m_selection.start().isNotNull() && m_selection.end().isNotNull()) {
         RenderObject* focusedNode = m_selection.end().node()->renderer();
         AccessibilityObject* accessibilityObject = m_frame->document()->axObjectCache()->getOrCreate(focusedNode);

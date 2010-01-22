@@ -41,7 +41,7 @@
 #include "break_lines.h"
 #include <wtf/AlwaysInline.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -1020,7 +1020,7 @@ void RenderText::setText(PassRefPtr<StringImpl> text, bool force)
     setNeedsLayoutAndPrefWidthsRecalc();
     m_knownNotToUseFallbackFonts = false;
     
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     AXObjectCache* axObjectCache = document()->axObjectCache();
     if (axObjectCache->accessibilityEnabled())
         axObjectCache->contentChanged(this);

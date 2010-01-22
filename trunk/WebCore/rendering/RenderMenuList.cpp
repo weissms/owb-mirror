@@ -38,7 +38,7 @@
 #include "SelectElement.h"
 #include <math.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -319,7 +319,7 @@ void RenderMenuList::didSetSelectedIndex()
 
     m_lastSelectedIndex = index;
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->postNotification(this, AXObjectCache::AXMenuListValueChanged, true, PostSynchronously);
 #endif

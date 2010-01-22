@@ -39,6 +39,7 @@ WebCore/dom/KeyboardEvent.idl
 WebCore/dom/ScriptExecutionContext.cpp
 WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
+WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLInputElement.cpp
 WebCore/html/HTMLObjectElement.cpp
@@ -121,6 +122,7 @@ WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
 WebCore/platform/qt/PopupMenuQt.cpp BAL/Widgets/WebCore/Qt/BCPopupMenuQt.cpp
 WebCore/platform/qt/RenderThemeQt.cpp BAL/Widgets/WebCore/Qt/BCRenderThemeQt.cpp
 WebCore/platform/qt/SharedTimerQt.cpp BAL/Timer/WebCore/Qt/BCSharedTimerQt.cpp
+WebCore/platform/qt/TemporaryLinkStubs.cpp
 WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp

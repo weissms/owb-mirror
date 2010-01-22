@@ -60,7 +60,7 @@
 #include "RenderLayerCompositor.h"
 #endif
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -1605,7 +1605,7 @@ void RenderObject::styleWillChange(StyleDifference diff, const RenderStyle* newS
             if (visibilityChanged)
                 document()->setDashboardRegionsDirty(true);
 #endif
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
             if (visibilityChanged && AXObjectCache::accessibilityEnabled())
                 document()->axObjectCache()->childrenChanged(this);
 #endif
@@ -1953,7 +1953,7 @@ void RenderObject::destroy()
     if (m_hasCounterNodeMap)
         RenderCounter::destroyCounterNodes(this);
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled()) {
         document()->axObjectCache()->childrenChanged(this->parent());
         document()->axObjectCache()->remove(this);

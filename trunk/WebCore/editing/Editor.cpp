@@ -70,7 +70,7 @@
 #include "visible_units.h"
 #include <wtf/UnusedParam.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -394,7 +394,7 @@ void Editor::respondToChangedSelection(const VisibleSelection& oldSelection)
 
 void Editor::respondToChangedContents(const VisibleSelection& endingSelection)
 {
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled()) {
         Node* node = endingSelection.start().node();
         if (node)

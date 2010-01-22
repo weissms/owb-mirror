@@ -1,3 +1,9 @@
+2010-01-22  Olivier DOLE  <odole@pleyo.com>
+
+        fix cmake for accessibility
+
+        * cmake/AddGlobalCompilerFlags.cmake:
+
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 
         Add some headers.

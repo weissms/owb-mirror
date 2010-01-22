@@ -66,7 +66,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/dtoa.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -1207,7 +1207,7 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
     // Ideally we'd do this from the render tree (matching
     // RenderTextView), but it's not possible to do it at the moment
     // because of the way the code is structured.
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (renderer() && AXObjectCache::accessibilityEnabled())
         renderer()->document()->axObjectCache()->postNotification(renderer(), AXObjectCache::AXCheckedStateChanged, true);
 #endif

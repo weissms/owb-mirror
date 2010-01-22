@@ -55,7 +55,7 @@
 #include "TextIterator.h"
 #include "XMLNames.h"
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -585,7 +585,7 @@ void Element::attributeChanged(Attribute* attr, bool)
 
 void Element::updateAfterAttributeChanged(Attribute* attr)
 {
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (!AXObjectCache::accessibilityEnabled())
         return;
 

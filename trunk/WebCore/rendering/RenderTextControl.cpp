@@ -38,7 +38,7 @@
 #include "TextControlInnerElements.h"
 #include "TextIterator.h"
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -184,7 +184,7 @@ void RenderTextControl::setInnerTextValue(const String& innerTextValue)
             if (Frame* frame = document()->frame()) {
                 frame->editor()->clearUndoRedoOperations();
                 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
                 if (AXObjectCache::accessibilityEnabled())
                     document()->axObjectCache()->postNotification(this, AXObjectCache::AXValueChanged, false);
 #endif

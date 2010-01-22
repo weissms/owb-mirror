@@ -1,3 +1,11 @@
+2010-01-22  Olivier DOLE  <odole@pleyo.com>
+
+        replace ENABLE(ACCESSIBILITY) by HAVE(ACCESSIBILITY)
+
+        * Scripts/data/WebKitFiles.txt:
+        * Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp:
+        (WebCore::SelectionController::notifyAccessibilityForSelectionChange):
+
 2010-01-21  Olivier DOLE  <odole@pleyo.com>
 
         Fix for Drt script when running with a build in debug mode.

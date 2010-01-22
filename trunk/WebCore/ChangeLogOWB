@@ -1,3 +1,41 @@
+2010-01-22  Olivier DOLE  <odole@pleyo.com>
+
+        replace ENABLE(ACCESSIBILITY) by HAVE(ACCESSIBILITY)
+
+        * dom/Element.cpp:
+        (WebCore::Element::updateAfterAttributeChanged):
+        * editing/Editor.cpp:
+        (WebCore::Editor::respondToChangedContents):
+        * editing/gtk/SelectionControllerGtk.cpp:
+        (WebCore::SelectionController::notifyAccessibilityForSelectionChange):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::setChecked):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::childrenChanged):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::defaultKeyboardEventHandler):
+        * page/FocusController.cpp:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::scrollToAnchor):
+        * platform/qt/TemporaryLinkStubs.cpp:
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::selectionChanged):
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::didSetSelectedIndex):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::styleWillChange):
+        (WebCore::RenderObject::destroy):
+        * rendering/RenderObjectChildList.cpp:
+        (WebCore::RenderObjectChildList::removeChildNode):
+        (WebCore::RenderObjectChildList::appendChildNode):
+        (WebCore::RenderObjectChildList::insertChildNode):
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::setText):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::setInnerTextValue):
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::destroy):
+
 2010-01-07  Mario Bensi  <mbensi@pleyo.com>
 
         clean editor cmakelist and move gtk/qt/icu files in bal.

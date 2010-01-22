@@ -51,7 +51,7 @@
 #include "Widget.h"
 #include <wtf/Platform.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 

@@ -54,7 +54,7 @@
 #include "NodeRenderStyle.h"
 #include <math.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -141,7 +141,7 @@ void RenderListBox::selectionChanged()
             scrollToRevealSelection();
     }
     
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->selectedChildrenChanged(this);
 #endif

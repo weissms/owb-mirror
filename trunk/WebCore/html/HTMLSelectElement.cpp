@@ -34,7 +34,7 @@
 #include "RenderMenuList.h"
 #include "ScriptEventListener.h"
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
@@ -269,7 +269,7 @@ void HTMLSelectElement::childrenChanged(bool changedByParser, Node* beforeChange
     setRecalcListItems();
     HTMLFormControlElementWithState::childrenChanged(changedByParser, beforeChange, afterChange, childCountDelta);
     
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     if (AXObjectCache::accessibilityEnabled() && renderer())
         renderer()->document()->axObjectCache()->childrenChanged(renderer());
 #endif

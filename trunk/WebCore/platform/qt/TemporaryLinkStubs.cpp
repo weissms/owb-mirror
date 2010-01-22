@@ -71,7 +71,7 @@
 #include <stdlib.h>
 #include <float.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
 #endif
 
