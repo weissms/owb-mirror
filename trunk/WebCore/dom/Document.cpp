@@ -36,6 +36,7 @@
 #include "CString.h"
 #include "CachedCSSStyleSheet.h"
 #include "Chrome.h"
+#include "ChromeClient.h"
 #include "Comment.h"
 #if ENABLE(INSPECTOR)
 #include "Console.h"
@@ -139,13 +140,8 @@
 #include <wtf/PassRefPtr.h>
 #include <wtf/StdLibExtras.h>
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
-#endif
-
-#if ENABLE(DATABASE)
-#include "Database.h"
-#include "DatabaseThread.h"
 #endif
 
 #if ENABLE(SHARED_WORKERS)
@@ -154,10 +150,6 @@
 
 #if ENABLE(DOM_STORAGE)
 #include "StorageEvent.h"
-#endif
-
-#if ENABLE(SHARED_WORKERS)
-#include "SharedWorkerRepository.h"
 #endif
 
 #if ENABLE(XPATH)
@@ -331,6 +323,35 @@ static bool disableRangeMutation(Page* page)
 
 static HashSet<Document*>* documentsThatNeedStyleRecalc = 0;
 
+class DocumentWeakReference : public ThreadSafeShared<DocumentWeakReference> {
+public:
+    static PassRefPtr<DocumentWeakReference> create(Document* document)
+    {
+        return adoptRef(new DocumentWeakReference(document));
+    }
+
+    Document* document()
+    {
+        ASSERT(isMainThread());
+        return m_document;
+    }
+
+    void clear()
+    {
+        ASSERT(isMainThread());
+        m_document = 0;
+    }
+
+private:
+    DocumentWeakReference(Document* document)
+        : m_document(document)
+    {
+        ASSERT(isMainThread());
+    }
+
+    Document* m_document;
+};
+
 Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     : ContainerNode(0)
     , m_domtree_version(0)
@@ -370,9 +391,6 @@ Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     , m_numNodeListCaches(0)
 #if USE(JSC)
     , m_normalWorldWrapperCache(0)
-#endif
-#if ENABLE(DATABASE)
-    , m_hasOpenDatabases(false)
 #endif
     , m_usingGeolocation(false)
 #if ENABLE(WML)
@@ -518,13 +536,6 @@ Document::~Document()
     unsigned count = sizeof(m_nameCollectionInfo) / sizeof(m_nameCollectionInfo[0]);
     for (unsigned i = 0; i < count; i++)
         deleteAllValues(m_nameCollectionInfo[i]);
-
-#if ENABLE(DATABASE)
-    if (m_databaseThread) {
-        ASSERT(m_databaseThread->terminationRequested());
-        m_databaseThread = 0;
-    }
-#endif
 
     if (m_styleSheets)
         m_styleSheets->documentDestroyed();
@@ -1573,7 +1584,7 @@ RenderView* Document::renderView() const
 
 void Document::clearAXObjectCache()
 {
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
     // clear cache in top document
     if (m_axObjectCache) {
         delete m_axObjectCache;
@@ -1590,12 +1601,12 @@ void Document::clearAXObjectCache()
 
 AXObjectCache* Document::axObjectCache() const
 {
-#if ENABLE(ACCESSIBILITY)
     // The only document that actually has a AXObjectCache is the top-level
     // document.  This is because we need to be able to get from any WebCoreAXObject
     // to any other WebCoreAXObject on the same page.  Using a single cache allows
     // lookups across nested webareas (i.e. multiple documents).
     
+#if HAVE(ACCESSIBILITY)
     if (m_axObjectCache) {
         // return already known top-level cache
         if (!ownerElement())
@@ -2009,9 +2020,9 @@ void Document::updateBaseURL()
         m_baseURL = KURL();
 
     if (m_elemSheet)
-        m_elemSheet->setHref(m_baseURL.string());
+        m_elemSheet->setBaseURL(m_baseURL);
     if (m_mappedElementSheet)
-        m_mappedElementSheet->setHref(m_baseURL.string());
+        m_mappedElementSheet->setBaseURL(m_baseURL);
 }
 
 String Document::userAgent(const KURL& url) const
@@ -2033,7 +2044,7 @@ CSSStyleSheet* Document::pageUserSheet()
         return 0;
     
     // Parse the sheet and cache it.
-    m_pageUserSheet = CSSStyleSheet::create(this, settings()->userStyleSheetLocation());
+    m_pageUserSheet = CSSStyleSheet::createInline(this, settings()->userStyleSheetLocation());
     m_pageUserSheet->setIsUserStyleSheet(true);
     m_pageUserSheet->parseString(userSheetText, !inCompatMode());
     return m_pageUserSheet.get();
@@ -2068,7 +2079,7 @@ const Vector<RefPtr<CSSStyleSheet> >* Document::pageGroupUserSheets() const
             const UserStyleSheet* sheet = sheets->at(i).get();
             if (!UserContentURLPattern::matchesPatterns(url(), sheet->whitelist(), sheet->blacklist()))
                 continue;
-            RefPtr<CSSStyleSheet> parsedSheet = CSSStyleSheet::create(const_cast<Document*>(this), sheet->url());
+            RefPtr<CSSStyleSheet> parsedSheet = CSSStyleSheet::createInline(const_cast<Document*>(this), sheet->url());
             parsedSheet->setIsUserStyleSheet(true);
             parsedSheet->parseString(sheet->source(), !inCompatMode());
             if (!m_pageGroupUserSheets)
@@ -2090,14 +2101,14 @@ void Document::clearPageGroupUserSheets()
 CSSStyleSheet* Document::elementSheet()
 {
     if (!m_elemSheet)
-        m_elemSheet = CSSStyleSheet::create(this, m_baseURL.string());
+        m_elemSheet = CSSStyleSheet::createInline(this, m_baseURL);
     return m_elemSheet.get();
 }
 
 CSSStyleSheet* Document::mappedElementSheet()
 {
     if (!m_mappedElementSheet)
-        m_mappedElementSheet = CSSStyleSheet::create(this, m_baseURL.string());
+        m_mappedElementSheet = CSSStyleSheet::createInline(this, m_baseURL);
     return m_mappedElementSheet.get();
 }
 
@@ -2820,7 +2831,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
         }
     }
 
-#if ENABLE(ACCESSIBILITY)
+#if HAVE(ACCESSIBILITY)
 #if ((PLATFORM(MAC) || PLATFORM(WIN)) && !PLATFORM(CHROMIUM)) || PLATFORM(GTK) || PLATFORM(BAL)
     if (!focusChangeBlocked && m_focusedNode && AXObjectCache::accessibilityEnabled()) {
         RenderObject* oldFocusedRenderer = 0;
@@ -3076,7 +3087,8 @@ void Document::addListenerTypeIfNeeded(const AtomicString& eventType)
         addListenerType(BEFORELOAD_LISTENER);
     else if (eventType == eventNames().touchstartEvent
              || eventType == eventNames().touchmoveEvent
-             || eventType == eventNames().touchendEvent)
+             || eventType == eventNames().touchendEvent
+             || eventType == eventNames().touchcancelEvent)
         addListenerType(TOUCH_LISTENER);
 }
 
@@ -4385,7 +4397,7 @@ void Document::initSecurityContext()
         // load local resources.  See https://bugs.webkit.org/show_bug.cgi?id=16756
         // and https://bugs.webkit.org/show_bug.cgi?id=19760 for further
         // discussion.
-        
+         
 #if 0
         // FIXME : the substitute data is always invalid 
         // because we cannot download the local resource 
@@ -4434,6 +4446,29 @@ void Document::setSecurityOrigin(SecurityOrigin* securityOrigin)
     // FIXME: Find a better place to enable DNS prefetch, which is a loader concept,
     // not applicable to arbitrary documents.
     initDNSPrefetch();
+}
+
+#if ENABLE(DATABASE)
+
+bool Document::isDatabaseReadOnly() const
+{
+    if (!page() || page()->settings()->privateBrowsingEnabled())
+        return true;
+    return false;
+}
+
+void Document::databaseExceededQuota(const String& name)
+{
+    Page* currentPage = page();
+    if (currentPage)
+        currentPage->chrome()->client()->exceededDatabaseQuota(document()->frame(), name);
+}
+
+#endif
+
+bool Document::isContextThread() const
+{
+    return isMainThread();
 }
 
 void Document::updateURLForPushOrReplaceState(const KURL& url)
@@ -4535,57 +4570,6 @@ DOMSelection* Document::getSelection() const
 {
     return frame() ? frame()->domWindow()->getSelection() : 0;
 }
-
-#if ENABLE(DATABASE)
-
-void Document::addOpenDatabase(Database* database)
-{
-    if (!m_openDatabaseSet)
-        m_openDatabaseSet.set(new DatabaseSet);
-
-    ASSERT(!m_openDatabaseSet->contains(database));
-    m_openDatabaseSet->add(database);
-}
-
-void Document::removeOpenDatabase(Database* database)
-{
-    ASSERT(m_openDatabaseSet && m_openDatabaseSet->contains(database));
-    if (!m_openDatabaseSet)
-        return;
-        
-    m_openDatabaseSet->remove(database);
-}
-
-DatabaseThread* Document::databaseThread()
-{
-    if (!m_databaseThread && !m_hasOpenDatabases) {
-        // Create the database thread on first request - but not if at least one database was already opened,
-        // because in that case we already had a database thread and terminated it and should not create another.
-        m_databaseThread = DatabaseThread::create();
-        if (!m_databaseThread->start())
-            m_databaseThread = 0;
-    }
-
-    return m_databaseThread.get();
-}
-
-void Document::stopDatabases()
-{
-    if (m_openDatabaseSet) {
-        DatabaseSet::iterator i = m_openDatabaseSet->begin();
-        DatabaseSet::iterator end = m_openDatabaseSet->end();
-        for (; i != end; ++i) {
-            (*i)->stop();
-            if (m_databaseThread)
-                m_databaseThread->unscheduleDatabaseTasks(*i);
-        }
-    }
-    
-    if (m_databaseThread)
-        m_databaseThread->requestTermination();
-}
-
-#endif
 
 #if ENABLE(WML)
 void Document::resetWMLPageState()
@@ -4830,23 +4814,5 @@ InspectorTimelineAgent* Document::inspectorTimelineAgent() const
     return page() ? page()->inspectorTimelineAgent() : 0;
 }
 #endif
-
-inline DocumentWeakReference::DocumentWeakReference(Document* document)
-    : m_document(document)
-{
-    ASSERT(isMainThread());
-}
-
-inline Document* DocumentWeakReference::document()
-{
-    ASSERT(isMainThread());
-    return m_document;
-}
-
-inline void DocumentWeakReference::clear()
-{
-    ASSERT(isMainThread());
-    m_document = 0;
-}
 
 } // namespace WebCore

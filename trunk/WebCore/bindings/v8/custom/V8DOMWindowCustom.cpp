@@ -33,6 +33,7 @@
 
 #include "Base64.h"
 #include "Chrome.h"
+#include "Database.h"
 #include "DOMTimer.h"
 #include "DOMWindow.h"
 #include "ExceptionCode.h"
@@ -296,7 +297,7 @@ bool V8DOMWindow::WebSocketEnabled()
 #if ENABLE(DATABASE)
 bool V8DOMWindow::OpenDatabaseEnabled()
 {
-    return WebCore::RuntimeEnabledFeatures::databaseEnabled();
+    return Database::isAvailable();
 }
 #endif
 
@@ -411,7 +412,7 @@ v8::Handle<v8::Value> V8DOMWindow::postMessageCallback(const v8::Arguments& args
     ASSERT(source->frame());
 
     v8::TryCatch tryCatch;
-    RefPtr<SerializedScriptValue> message = SerializedScriptValue::create(toWebCoreString(args[0]));
+    RefPtr<SerializedScriptValue> message = SerializedScriptValue::create(args[0]);
     MessagePortArray portArray;
     String targetOrigin;
 

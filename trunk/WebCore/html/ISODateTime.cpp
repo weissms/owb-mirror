@@ -450,6 +450,23 @@ bool ISODateTime::parseDateTime(const UChar* src, unsigned length, unsigned star
     return true;
 }
 
+static inline double positiveFmod(double value, double divider)
+{
+    double remainder = fmod(value, divider);
+    return remainder < 0 ? remainder + divider : remainder;
+}
+
+void ISODateTime::setMillisecondsSinceMidnightInternal(double msInDay)
+{
+    ASSERT(msInDay >= 0 && msInDay < msPerDay);
+    m_millisecond = static_cast<int>(fmod(msInDay, msPerSecond));
+    double value = floor(msInDay / msPerSecond);
+    m_second = static_cast<int>(fmod(value, secondsPerMinute));
+    value = floor(value / secondsPerMinute);
+    m_minute = static_cast<int>(fmod(value, minutesPerHour));
+    m_hour = static_cast<int>(value / minutesPerHour);
+}
+
 bool ISODateTime::setMillisecondsSinceEpochForDateInternal(double ms)
 {
     m_year = msToYear(ms);
@@ -459,16 +476,55 @@ bool ISODateTime::setMillisecondsSinceEpochForDateInternal(double ms)
     return true;
 }
 
-bool ISODateTime::setMillisecondsSinceEpochForMonth(double ms)
+bool ISODateTime::setMillisecondsSinceEpochForDate(double ms)
 {
+    m_type = Invalid;
     if (!isfinite(ms))
         return false;
+    if (!setMillisecondsSinceEpochForDateInternal(round(ms)))
+        return false;
+    if (beforeGregorianStartDate(m_year, m_month, m_monthDay))
+        return false;
+    m_type = Date;
+    return true;
+}
+
+bool ISODateTime::setMillisecondsSinceEpochForDateTime(double ms)
+{
+    m_type = Invalid;
+    if (!isfinite(ms))
+        return false;
+    ms = round(ms);
+    setMillisecondsSinceMidnightInternal(positiveFmod(ms, msPerDay));
     if (!setMillisecondsSinceEpochForDateInternal(ms))
+        return false;
+    if (beforeGregorianStartDate(m_year, m_month, m_monthDay))
+        return false;
+    m_type = DateTime;
+    return true;
+}
+
+bool ISODateTime::setMillisecondsSinceEpochForMonth(double ms)
+{
+    m_type = Invalid;
+    if (!isfinite(ms))
+        return false;
+    if (!setMillisecondsSinceEpochForDateInternal(round(ms)))
         return false;
     // Ignore m_monthDay updated by setMillisecondsSinceEpochForDateInternal().
     if (beforeGregorianStartDate(m_year, m_month, gregorianStartDay))
         return false;
     m_type = Month;
+    return true;
+}
+
+bool ISODateTime::setMillisecondsSinceMidnight(double ms)
+{
+    m_type = Invalid;
+    if (!isfinite(ms))
+        return false;
+    setMillisecondsSinceMidnightInternal(positiveFmod(round(ms), msPerDay));
+    m_type = Time;
     return true;
 }
 
@@ -505,11 +561,40 @@ double ISODateTime::millisecondsSinceEpoch() const
     return invalidMilliseconds();
 }
 
-String ISODateTime::toString() const
+String ISODateTime::toStringForTime(SecondFormat format) const
+{
+    ASSERT(m_type == DateTime || m_type == DateTimeLocal || m_type == Time);
+    SecondFormat effectiveFormat = format;
+    if (m_millisecond)
+        effectiveFormat = Millisecond;
+    else if (format == None && m_second)
+        effectiveFormat = Second;
+
+    switch (effectiveFormat) {
+    default:
+        ASSERT_NOT_REACHED();
+        // Fallback to None.
+    case None:
+        return String::format("%02d:%02d", m_hour, m_minute);
+    case Second:
+        return String::format("%02d:%02d:%02d", m_hour, m_minute, m_second);
+    case Millisecond:
+        return String::format("%02d:%02d:%02d.%03d", m_hour, m_minute, m_second, m_millisecond);
+    }
+}
+
+String ISODateTime::toString(SecondFormat format) const
 {
     switch (m_type) {
+    case Date:
+        return String::format("%04d-%02d-%02d", m_year, m_month + 1, m_monthDay);
+    case DateTime:
+        return String::format("%04d-%02d-%02dT", m_year, m_month + 1, m_monthDay)
+            + toStringForTime(format) + String("Z");
     case Month:
         return String::format("%04d-%02d", m_year, m_month + 1);
+    case Time:
+        return toStringForTime(format);
 
     // FIXME: implementations for other types.
     default:

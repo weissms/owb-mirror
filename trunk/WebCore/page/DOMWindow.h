@@ -330,6 +330,7 @@ namespace WebCore {
         DEFINE_ATTRIBUTE_EVENT_LISTENER(touchstart);
         DEFINE_ATTRIBUTE_EVENT_LISTENER(touchmove);
         DEFINE_ATTRIBUTE_EVENT_LISTENER(touchend);
+        DEFINE_ATTRIBUTE_EVENT_LISTENER(touchcancel);
 #endif
         void captureEvents();
         void releaseEvents();
@@ -350,6 +351,7 @@ namespace WebCore {
 #endif
         Navigator* optionalNavigator() const { return m_navigator.get(); }
         Location* optionalLocation() const { return m_location.get(); }
+        Media* optionalMedia() const { return m_media.get(); }
 #if ENABLE(DOM_STORAGE)
         Storage* optionalSessionStorage() const { return m_sessionStorage.get(); }
         Storage* optionalLocalStorage() const { return m_localStorage.get(); }
@@ -388,6 +390,7 @@ namespace WebCore {
 #endif
         mutable RefPtr<Navigator> m_navigator;
         mutable RefPtr<Location> m_location;
+        mutable RefPtr<Media> m_media;
 #if ENABLE(DOM_STORAGE)
         mutable RefPtr<Storage> m_sessionStorage;
         mutable RefPtr<Storage> m_localStorage;

@@ -39,6 +39,10 @@
 #include <utility>
 #include <wtf/Noncopyable.h>
 
+#if ENABLE(DATABASE)
+#include "DatabaseTask.h"
+#endif
+
 namespace WebCore {
 
 static Mutex& threadCountMutex()
@@ -135,9 +139,8 @@ void* WorkerThread::workerThread()
 
     ThreadIdentifier threadID = m_threadID;
 
-    m_workerContext->stopActiveDOMObjects();
-    m_workerContext->clearScript();
     ASSERT(m_workerContext->hasOneRef());
+
     // The below assignment will destroy the context, which will in turn notify messaging proxy.
     // We cannot let any objects survive past thread exit, because no other thread will run GC or otherwise destroy them.
     m_workerContext = 0;
@@ -154,17 +157,74 @@ void WorkerThread::runEventLoop()
     m_runLoop.run(m_workerContext.get());
 }
 
+class WorkerThreadShutdownFinishTask : public ScriptExecutionContext::Task {
+public:
+    static PassOwnPtr<WorkerThreadShutdownFinishTask> create()
+    {
+        return new WorkerThreadShutdownFinishTask();
+    }
+
+    virtual void performTask(ScriptExecutionContext *context)
+    {
+        ASSERT(context->isWorkerContext());
+        WorkerContext* workerContext = static_cast<WorkerContext*>(context);
+        workerContext->thread()->runLoop().terminate();
+    }
+
+    virtual bool isCleanupTask() const { return true; }
+};
+
+class WorkerThreadShutdownStartTask : public ScriptExecutionContext::Task {
+public:
+    static PassOwnPtr<WorkerThreadShutdownStartTask> create()
+    {
+        return new WorkerThreadShutdownStartTask();
+    }
+
+    virtual void performTask(ScriptExecutionContext *context)
+    {
+        ASSERT(context->isWorkerContext());
+        WorkerContext* workerContext = static_cast<WorkerContext*>(context);
+
+#if ENABLE(DATABASE)
+        // We currently ignore any DatabasePolicy used for the document's
+        // databases; if it's actually used anywhere, this should be revisited.
+        DatabaseTaskSynchronizer cleanupSync;
+        workerContext->stopDatabases(&cleanupSync);
+#endif
+
+        workerContext->stopActiveDOMObjects();
+        workerContext->clearScript();
+
+#if ENABLE(DATABASE)
+        // We wait for the database thread to clean up all its stuff so that we
+        // can do more stringent leak checks as we exit.
+        cleanupSync.waitForTaskCompletion();
+#endif
+
+        // Stick a shutdown command at the end of the queue, so that we deal
+        // with all the cleanup tasks the databases post first.
+        workerContext->postTask(WorkerThreadShutdownFinishTask::create());
+    }
+
+    virtual bool isCleanupTask() const { return true; }
+};
+
 void WorkerThread::stop()
 {
     // Mutex protection is necessary because stop() can be called before the context is fully created.
     MutexLocker lock(m_threadCreationMutex);
 
     // Ensure that tasks are being handled by thread event loop. If script execution weren't forbidden, a while(1) loop in JS could keep the thread alive forever.
-    if (m_workerContext)
+    if (m_workerContext) {
         m_workerContext->script()->forbidExecution();
 
     // FIXME: Rudely killing the thread won't work when we allow nested workers, because they will try to post notifications of their destruction.
-    m_runLoop.terminate();
+    // This can likely use the same mechanism as used for databases above.
+
+        m_runLoop.postTask(WorkerThreadShutdownStartTask::create());
+    } else
+        m_runLoop.terminate();
 }
 
 } // namespace WebCore

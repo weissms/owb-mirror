@@ -93,9 +93,7 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
 {
     // Hint to Phonon to disable overlay painting
     m_videoWidget->setAttribute(Qt::WA_DontShowOnScreen);
-#if QT_VERSION < 0x040500
     m_videoWidget->setAttribute(Qt::WA_QuitOnClose, false);
-#endif
 
     createPath(m_mediaObject, m_videoWidget);
     createPath(m_mediaObject, m_audioOutput);
@@ -267,11 +265,6 @@ float MediaPlayerPrivate::currentTime() const
     return currentTime;
 }
 
-void MediaPlayerPrivate::setEndTime(float)
-{
-    notImplemented();
-}
-
 PassRefPtr<TimeRanges> MediaPlayerPrivate::buffered() const
 {
     notImplemented();
@@ -288,12 +281,6 @@ unsigned MediaPlayerPrivate::bytesLoaded() const
 {
     notImplemented();
     return 0;
-}
-
-bool MediaPlayerPrivate::totalBytesKnown() const
-{
-    //notImplemented();
-    return false;
 }
 
 unsigned MediaPlayerPrivate::totalBytes() const
@@ -318,14 +305,6 @@ void MediaPlayerPrivate::setMuted(bool muted)
     LOG(Media, "MediaPlayerPrivatePhonon::setMuted()");
     m_audioOutput->setMuted(muted);
 }
-
-
-int MediaPlayerPrivate::dataRate() const
-{
-    // This is not used at the moment
-    return 0;
-}
-
 
 MediaPlayer::NetworkState MediaPlayerPrivate::networkState() const
 {

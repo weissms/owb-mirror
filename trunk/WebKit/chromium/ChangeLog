@@ -1,3 +1,112 @@
+2010-01-22  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Added a blank line requested by the great an powerful
+        fishd.
+
+        * public/WebFrameClient.h:
+
+2010-01-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        [chromium] Add allowPlugins callback to allow per-site enabling of plugins
+        https://bugs.webkit.org/show_bug.cgi?id=33974
+
+        Forward the new allowPlugins callback to WebKitClient so that it can
+        make the policy decision.
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::allowPlugins):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::allowJavaScript):
+        (WebKit::FrameLoaderClientImpl::allowPlugins):
+        * src/FrameLoaderClientImpl.h:
+
+2010-01-21  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Bumps the refcount when WebNode::toElement/toConstElement are called.
+        https://bugs.webkit.org/show_bug.cgi?id=33977
+        
+        Ensures that when a wrapper around a WebNode is create via the
+        toElement() or toConstElement() calls that the refcount on the WebNode
+        is increased, by forcing a call to WebNode::assign().  This is needed
+        so that the following code:
+        {
+          WebNode n = someNode();
+          WebElement e = n.toElement<WebElement>();
+        }
+        does not decrease the overall refcount on the Node that someNode()
+        returns.
+
+        This caused crashes in the 'Save page as..' feature.
+
+        * public/WebNode.h:
+        (WebKit::WebNode::toElement):
+        (WebKit::WebNode::toConstElement):
+
+2010-01-21  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Adds WebKit::WebDataSource::applicationCacheHost() to the API.
+        https://bugs.webkit.org/show_bug.cgi?id=33880
+
+        * WebKit.gyp:
+        * public/WebDataSource.h:
+        * src/ApplicationCacheHost.cpp:
+        * src/ApplicationCacheHostInternal.h: Copied from WebKit/chromium/src/ApplicationCacheHost.cpp.
+        (WebCore::ApplicationCacheHostInternal::notifyEventListener):
+        (WebCore::ApplicationCacheHostInternal::toWebApplicationCacheHost):
+        * src/WebDataSourceImpl.cpp:
+        (WebKit::WebDataSourceImpl::applicationCacheHost):
+        * src/WebDataSourceImpl.h:
+
+2010-01-21  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Add changes missing from r53595, without which Chromium has no database.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33966
+
+        No new tests - fixes database layout tests in Chromium.
+
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enableDatabase):
+        (WebKit::WebRuntimeFeatures::isDatabaseEnabled):
+
+2010-01-21  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        [Chromium] Implement texSubImage2D taking WebGLArray
+        https://bugs.webkit.org/show_bug.cgi?id=33932
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::texSubImage2D):
+
+2010-01-20  Vitaly Repeshko  <vitalyr@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        [V8] Support SerializedScriptValue.
+        https://bugs.webkit.org/show_bug.cgi?id=32920
+        http://crbug.com/30620
+
+        Updated uses of SerializedScriptValue:
+        * src/PlatformMessagePortChannel.cpp:
+        (WebCore::PlatformMessagePortChannel::postMessageToRemote):
+        (WebCore::PlatformMessagePortChannel::tryGetMessageFromRemote):
+        * src/WebWorkerBase.cpp:
+        (WebKit::WebWorkerBase::postMessageToWorkerObject):
+        * src/WebWorkerClientImpl.cpp:
+        (WebKit::WebWorkerClientImpl::postMessageToWorkerContext):
+        (WebKit::WebWorkerClientImpl::postMessageToWorkerObjectTask):
+        * src/WebWorkerImpl.cpp:
+        (WebKit::WebWorkerImpl::postMessageToWorkerContextTask):
+
 2010-01-20  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Reviewed by Darin Fisher.

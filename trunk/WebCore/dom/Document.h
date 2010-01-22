@@ -64,6 +64,7 @@ namespace WebCore {
     class DocLoader;
     class DocumentFragment;
     class DocumentType;
+    class DocumentWeakReference;
     class EditingText;
     class Element;
     class EntityReference;
@@ -174,19 +175,6 @@ struct FormElementKeyHashTraits : WTF::GenericHashTraits<FormElementKey> {
     static bool isDeletedValue(const FormElementKey& value) { return value.isHashTableDeletedValue(); }
 };
 
-class DocumentWeakReference : public ThreadSafeShared<DocumentWeakReference> {
-public:
-    static PassRefPtr<DocumentWeakReference> create(Document* document)
-    {
-        return adoptRef(new DocumentWeakReference(document));
-    }
-    Document* document();
-    void clear();
-private:
-    DocumentWeakReference(Document*);
-    Document* m_document;
-};
-
 class Document : public ContainerNode, public ScriptExecutionContext {
 public:
     static PassRefPtr<Document> create(Frame* frame)
@@ -273,6 +261,7 @@ public:
     DEFINE_ATTRIBUTE_EVENT_LISTENER(touchstart);
     DEFINE_ATTRIBUTE_EVENT_LISTENER(touchmove);
     DEFINE_ATTRIBUTE_EVENT_LISTENER(touchend);
+    DEFINE_ATTRIBUTE_EVENT_LISTENER(touchcancel);
 #endif
 
     DocumentType* doctype() const { return m_docType.get(); }
@@ -927,13 +916,11 @@ public:
     bool processingLoadEvent() const { return m_processingLoadEvent; }
 
 #if ENABLE(DATABASE)
-    void addOpenDatabase(Database*);
-    void removeOpenDatabase(Database*);
-    DatabaseThread* databaseThread();   // Creates the thread as needed, but not if it has been already terminated.
-    void setHasOpenDatabases() { m_hasOpenDatabases = true; }
-    bool hasOpenDatabases() { return m_hasOpenDatabases; }
-    void stopDatabases();
+    virtual bool isDatabaseReadOnly() const;
+    virtual void databaseExceededQuota(const String& name);
 #endif
+
+    virtual bool isContextThread() const;
 
     void setUsingGeolocation(bool f) { m_usingGeolocation = f; }
     bool usingGeolocation() const { return m_usingGeolocation; };
@@ -1198,13 +1185,6 @@ private:
     JSWrapperCache* m_normalWorldWrapperCache;
 #endif
 
-#if ENABLE(DATABASE)
-    RefPtr<DatabaseThread> m_databaseThread;
-    bool m_hasOpenDatabases;    // This never changes back to false, even as the database thread is closed.
-    typedef HashSet<Database*> DatabaseSet;
-    OwnPtr<DatabaseSet> m_openDatabaseSet;
-#endif
-    
     bool m_usingGeolocation;
 
 #if ENABLE(WML)

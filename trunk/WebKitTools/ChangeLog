@@ -1,3 +1,433 @@
+2010-01-22  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactored to move file name and file-reading related code
+        from cpp_style.py and text_style.py to checker.py.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33775
+
+        * Scripts/check-webkit-style:
+          - Updates caused by changes to checker.py.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added SKIPPED_FILES_WITH_WARNING list.
+          - Added SKIPPED_FILES_WITHOUT_WARNING list.
+          - Added FileType class.
+          - Added ProcessorDispatcher class.
+          - In StyleChecker class:
+            - Renamed process_patch() to check_patch().
+            - Renamed process_file() to check_file().
+            - Added _process_file().
+            - Related refactoring.
+            - Addressed check_patch() FIXME to share code with process_file().
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added ProcessorDispatcherSkipTest class.
+          - Added ProcessorDispatcherDispatchTest class.
+          - Added StyleCheckerCheckFileTest class.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+          - Renamed process_file_data() to _process_lines.
+          - Removed process_file() (moved logic to checker.py).
+          - Removed can_handle() (moved logic to checker.py).
+          - Added CppProcessor class.
+          - Removed is_exempt() (moved logic to checker.py).
+          - Added process_file_data() back as a wrapper function.
+
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+          - Removed test_can_handle().
+          - Removed test_is_exempt().
+          - Added CppProcessorTest class.
+
+        * Scripts/webkitpy/style/text_style.py:
+          - Added TextProcessor class.
+          - Removed process_file().
+          - Removed can_handle().
+
+        * Scripts/webkitpy/style/text_style_unittest.py:
+          - Removed test_can_handle().
+          - Added TextProcessorTest class.
+
+2010-01-21  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        Create a unit-tested subroutine to parse patch files created
+        by svn-create-patch.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33475
+
+        * Scripts/VCSUtils.pm:
+          - Added parseDiff().
+          - Added parsePatch().
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiff.pl: Added.
+          - Added unit tests for parseDiff().
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl:
+          - Total number of tests now computed dynamically.
+
+        * Scripts/webkitperl/VCSUtils_unittest/parsePatch.pl: Added.
+          - Added unit tests for parsePatch().
+
+2010-01-21  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix, add new directory to dir list.
+
+        * wx/build/settings.py:
+
+2010-01-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Make the EWS transactional
+        https://bugs.webkit.org/show_bug.cgi?id=33978
+
+        Now if the EWS gets interrupted in the middle of processing a patch,
+        the bots will re-process the patch.
+
+        * Scripts/test-webkitpy:
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/commands/queues_unittest.py:
+        * Scripts/webkitpy/patchcollection.py:
+        * Scripts/webkitpy/patchcollection_unittest.py: Added.
+
+2010-01-21  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Add missing "ago" for style in the status bubble.
+
+        * QueueStatusServer/templates/statusbubble.html:
+
+2010-01-21  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by David Levin.
+
+        [style-queue] should not complain about identifier names with underscores under WebKit/gtk/webkit/
+        https://bugs.webkit.org/show_bug.cgi?id=33356
+
+        White list unix_hacker_style names in WebKit/gtk/webkit because these
+        are used in the GTK+ API.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-21  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] add setDomainRelaxationForbiddenForURLScheme in Qt DRT
+        https://bugs.webkit.org/show_bug.cgi?id=33945
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setDomainRelaxationForbiddenForURLScheme):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-01-21  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        No review, rolling out 53615 as it causes two
+        crashes on the bot.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::createWindow):
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::maybeDump):
+
+2010-01-21  Robert Hogan  <robert@roberthogan.net>
+
+        Reviewed by Simon Hausmann.
+
+        Qt DRT: respect window.close() and window.closed()
+
+        Qt DRT needs to maintain a correct count of open windows
+        for windowCount(). It also needs to delete windows that
+        have been closed by window.close().
+
+        This fixes the following tests:
+
+        plugins/destroy-during-npp-new.html
+        fast/dom/Document/early-document-access.html
+        fast/dom/Window/window-early-properties.html
+        fast/events/open-window-from-another-frame.html
+        fast/events/popup-blocking-click-in-iframe.html
+
+        https://bugs.webkit.org/show_bug.cgi?id=32953
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::createWindow):
+        (WebCore::DumpRenderTree::windowCloseRequested):
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::maybeDump):
+
+2010-01-20  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r53593.
+        http://trac.webkit.org/changeset/53593
+        https://bugs.webkit.org/show_bug.cgi?id=33496
+
+        Re-rollout this patch, the commit-queue should not have landed
+        it again, but it did due to land-diff and rollout both not
+        clearing flags.
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/queueengine.py:
+        * Scripts/webkitpy/scm.py:
+        * Scripts/webkitpy/scm_unittest.py:
+
+2010-01-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        webkit-commit-queue status page is confusing
+        https://bugs.webkit.org/show_bug.cgi?id=33496
+
+        This should improve the status page by removing more Fail messages.
+        To do this, I re-factored the CommitQueue and the AbstractReviewQueues
+        to behave more like one another.  This meant moving where the failure reporting was done.
+        Previously the AbstractReviewQueue always used the parent process to report the error,
+        while CommitQueue used the subprocess when possible, and the parent only reported errors
+        that we didn't know how to handle (bugs in the commit-queue itself).
+        Now the AbstractReviewQueue follow's the commit-queue's model.  This got rid of a try-block
+        in both implementations and required teaching handle_script_error in each to post Fail messages
+        to the status server instead of calling exit(1).
+
+        This will also make the style-queue share more bug posting logic with other queues:
+        https://bugs.webkit.org/show_bug.cgi?id=33871
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+         - Don't exit(1) as that will cause the calling queue to also report Fail to the status server.
+           Implementors of handle_script_error are expected to update the status server if needed, but only exit if the error could not be handled.
+           So we instead pass patch_has_failed_this_queue=True to _update_status_for_script_error in the case that this was a real failure.
+           _update_status_for_script_error knows how to post the Fail message to the status server.
+         - Teach _update_status_for_script_error how to post Fail messages to the status server.
+        * Scripts/webkitpy/commands/queues.py:
+         - Remove the try block from process_work_item since the caller already has one.
+         - Only CC watchers on failure to cut down on commit-queue generated mail.
+         - handle_unexpected_error needs to mark _did_fail now that the try block is gone from process_work_item.
+         - Abstract _format_script_error_output_for_bug to share code between all queues.
+         - The new _format_script_error_output_for_bug allows the style-queue to share the posting limit with other queues, as well as support linking to the full output.
+         - Rename _can_build_and_test to _current_checkout_builds_and_passes_tests to better explain what revision it's testing.
+         - Move logging out of _can_build_and_test and make the logs explain what revision we're testing.
+         - handle_script_error now posts Fail instead of the try block in process_work_item handling it.
+        * Scripts/webkitpy/queueengine.py:
+         - QueueEngine is no longer used just by the commit-queue, update the logging to say "processing" instead of landing.
+        * Scripts/webkitpy/scm.py:
+         - Add new checkout_revision function.
+        * Scripts/webkitpy/scm_unittest.py:
+         - Test our new checkout_revision function.
+
+2010-01-20  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        WebSocket: Missing Request-URI, when no tralling slash in host
+        https://bugs.webkit.org/show_bug.cgi?id=33689
+
+        Update pywebsocket to 0.4.7.1, which supports alias for resource
+        name, so that we could test for ws://127.0.0.1:8880
+
+        * Scripts/run-webkit-tests:
+        * Scripts/run-webkit-websocketserver:
+        * pywebsocket/mod_pywebsocket/dispatch.py:
+        * pywebsocket/mod_pywebsocket/handshake.py:
+        * pywebsocket/mod_pywebsocket/standalone.py:
+        * pywebsocket/setup.py:
+        * pywebsocket/test/test_dispatch.py:
+        * pywebsocket/test/test_handshake.py:
+
+2010-01-20  Eric Seidel  <eric@webkit.org>
+
+        No review, rolling out r53537.
+        http://trac.webkit.org/changeset/53537
+        https://bugs.webkit.org/show_bug.cgi?id=33496
+
+        Added a failure condition to the commit-queue and looks to
+        have broken the EWS bots
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/queueengine.py:
+        * Scripts/webkitpy/scm.py:
+        * Scripts/webkitpy/scm_unittest.py:
+
+2010-01-20  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: accSelect() is not implemented
+
+        https://bugs.webkit.org/show_bug.cgi?id=33918
+        <rdar://problem/7436861>
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (takeFocusCallback):
+        Call the object's takeFocus() function.
+        (takeSelectionCallback):
+        Call its takeSelection() function.
+        (addSelectionCallback):
+        Call its addSelection() function.
+        (removeSelectionCallback):
+        Call its removeSelection() function.
+        (AccessibilityUIElement::getJSClass):
+        Add new functions to the JS class definition.
+
+        * DumpRenderTree/AccessibilityUIElement.h:
+        Declare new functions.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::takeFocus):
+        Stubbed.
+        (AccessibilityUIElement::takeSelection):
+        Stubbed.
+        (AccessibilityUIElement::addSelection):
+        Stubbed.
+        (AccessibilityUIElement::removeSelection):
+        Stubbed.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::takeFocus):
+        Stubbed.
+        (AccessibilityUIElement::takeSelection):
+        Stubbed.
+        (AccessibilityUIElement::addSelection):
+        Stubbed.
+        (AccessibilityUIElement::removeSelection):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::takeFocus):
+        Call the object's accSelect() function, passing the appropriate flag.
+        (AccessibilityUIElement::takeSelection):
+        Ditto.
+        (AccessibilityUIElement::addSelection):
+        Ditto.
+        (AccessibilityUIElement::removeSelection):
+        Ditto.
+
+2010-01-20  Andras Becsi  <abecsi@inf.u-szeged.hu>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Extract Apache handling to httpd.pm module and use the provided functionality
+        in scripts where Apache is needed.
+        The module httpd.pm stores the PID of Apache in a variable and cleans up
+        the PID directory after Apache properly shut down. Catching INT and TERM
+        signals allows the scripts to close Apache and clean up its PID directory
+        even if the testing was interrupted.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33153
+
+        * Scripts/webkitperl/httpd.pm: Added.
+        * Scripts/run-iexploder-tests:
+        * Scripts/run-webkit-httpd:
+        * Scripts/run-webkit-tests:
+
+2010-01-20  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Make DumpRenderTree build on Windows
+
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/main.cpp:
+
+2010-01-20  Steve Block  <steveblock@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix commit bot to land patches in order of the bug last modification date.
+        https://bugs.webkit.org/show_bug.cgi?id=33395
+
+        * Scripts/webkitpy/bugzilla.py: Modified. Added 'order=Last+Changed' to bugzilla commit queue URL.
+
+2010-01-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Teach check-webkit-style about WebKit/gtk/tests
+        https://bugs.webkit.org/show_bug.cgi?id=33892
+
+        Removes false positives found in
+        https://bugs.webkit.org/show_bug.cgi?id=30883
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Teach check-webkit-style about QGVLauncher
+        https://bugs.webkit.org/show_bug.cgi?id=33890
+
+        Remove false positives found in
+        https://bugs.webkit.org/show_bug.cgi?id=33708
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
+2010-01-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        webkit-commit-queue status page is confusing
+        https://bugs.webkit.org/show_bug.cgi?id=33496
+
+        This should improve the status page by removing more Fail messages.
+        To do this, I re-factored the CommitQueue and the AbstractReviewQueues
+        to behave more like one another.  This meant moving where the failure reporting was done.
+        Previously the AbstractReviewQueue always used the parent process to report the error,
+        while CommitQueue used the subprocess when possible, and the parent only reported errors
+        that we didn't know how to handle (bugs in the commit-queue itself).
+        Now the AbstractReviewQueue follow's the commit-queue's model.  This got rid of a try-block
+        in both implementations and required teaching handle_script_error in each to post Fail messages
+        to the status server instead of calling exit(1).
+
+        This will also make the style-queue share more bug posting logic with other queues:
+        https://bugs.webkit.org/show_bug.cgi?id=33871
+
+        * Scripts/webkitpy/commands/early_warning_system.py:
+         - Don't exit(1) as that will cause the calling queue to also report Fail to the status server.
+           Implementors of handle_script_error are expected to update the status server if needed, but only exit if the error could not be handled.
+           So we instead pass patch_has_failed_this_queue=True to _update_status_for_script_error in the case that this was a real failure.
+           _update_status_for_script_error knows how to post the Fail message to the status server.
+         - Teach _update_status_for_script_error how to post Fail messages to the status server.
+        * Scripts/webkitpy/commands/queues.py:
+         - Remove the try block from process_work_item since the caller already has one.
+         - Only CC watchers on failure to cut down on commit-queue generated mail.
+         - handle_unexpected_error needs to mark _did_fail now that the try block is gone from process_work_item.
+         - Abstract _format_script_error_output_for_bug to share code between all queues.
+         - The new _format_script_error_output_for_bug allows the style-queue to share the posting limit with other queues, as well as support linking to the full output.
+         - Rename _can_build_and_test to _current_checkout_builds_and_passes_tests to better explain what revision it's testing.
+         - Move logging out of _can_build_and_test and make the logs explain what revision we're testing.
+         - handle_script_error now posts Fail instead of the try block in process_work_item handling it.
+        * Scripts/webkitpy/queueengine.py:
+         - QueueEngine is no longer used just by the commit-queue, update the logging to say "processing" instead of landing.
+        * Scripts/webkitpy/scm.py:
+         - Add new checkout_revision function.
+        * Scripts/webkitpy/scm_unittest.py:
+         - Test our new checkout_revision function.
+
+2010-01-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Exempt JavaScriptCore/qt/api from style checks
+        https://bugs.webkit.org/show_bug.cgi?id=33879
+
+        Apparently there is a JavaScriptCore API for Qt as well as a WebKit
+        API.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+
 2010-01-20  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
 
         Reviewed by Simon Hausmann.

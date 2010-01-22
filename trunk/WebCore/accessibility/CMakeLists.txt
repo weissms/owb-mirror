@@ -14,6 +14,7 @@ if(ENABLE_ACCESSIBILITY)
         accessibility/AccessibilityMenuListPopup.cpp
         accessibility/AccessibilityObject.cpp
         accessibility/AccessibilityRenderObject.cpp
+        accessibility/AccessibilityScrollbar.cpp
         accessibility/AccessibilitySlider.cpp
         accessibility/AccessibilityTable.cpp
         accessibility/AccessibilityTableCell.cpp

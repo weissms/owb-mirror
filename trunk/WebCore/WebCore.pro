@@ -72,6 +72,7 @@ unix {
 
 unix:!mac:*-g++*:QMAKE_CXXFLAGS += -ffunction-sections -fdata-sections 
 unix:!mac:*-g++*:QMAKE_LFLAGS += -Wl,--gc-sections
+linux*-g++*:QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF
 
 CONFIG(release):!CONFIG(standalone_package) {
     contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
@@ -156,6 +157,7 @@ INCLUDEPATH = \
     $$PWD/bindings/js \
     $$PWD/bridge \
     $$PWD/bridge/c \
+    $$PWD/bridge/jsc \
     $$PWD/css \
     $$PWD/dom \
     $$PWD/dom/default \
@@ -224,11 +226,15 @@ contains(DEFINES, ENABLE_WCSS=1) {
 SOURCES += \
     accessibility/AccessibilityImageMapLink.cpp \
     accessibility/AccessibilityMediaControls.cpp \    
+    accessibility/AccessibilityMenuList.cpp \
+    accessibility/AccessibilityMenuListOption.cpp \
+    accessibility/AccessibilityMenuListPopup.cpp \
     accessibility/AccessibilityObject.cpp \    
     accessibility/AccessibilityList.cpp \    
     accessibility/AccessibilityListBox.cpp \    
     accessibility/AccessibilityListBoxOption.cpp \    
     accessibility/AccessibilityRenderObject.cpp \    
+    accessibility/AccessibilityScrollbar.cpp \
     accessibility/AccessibilitySlider.cpp \    
     accessibility/AccessibilityARIAGrid.cpp \    
     accessibility/AccessibilityARIAGridCell.cpp \    
@@ -339,7 +345,6 @@ SOURCES += \
     bindings/js/ScheduledAction.cpp \
     bindings/js/SerializedScriptValue.cpp \
     bindings/ScriptControllerBase.cpp \
-    bridge/Bridge.cpp \
     bridge/IdentifierRep.cpp \
     bridge/NP_jsobject.cpp \
     bridge/npruntime.cpp \
@@ -351,6 +356,7 @@ SOURCES += \
     bridge/c/c_instance.cpp \
     bridge/c/c_runtime.cpp \
     bridge/c/c_utility.cpp \
+    bridge/jsc/BridgeJSC.cpp \
     css/CSSBorderImageValue.cpp \
     css/CSSCanvasValue.cpp \
     css/CSSCharsetRule.cpp \
@@ -551,6 +557,7 @@ SOURCES += \
     history/HistoryItem.cpp \
     history/qt/HistoryItemQt.cpp \
     history/PageCache.cpp \
+    html/Blob.cpp \
     html/canvas/CanvasGradient.cpp \
     html/canvas/CanvasPattern.cpp \
     html/canvas/CanvasPixelArray.cpp \
@@ -954,6 +961,7 @@ HEADERS += \
     accessibility/AccessibilityMediaControls.h \
     accessibility/AccessibilityObject.h \
     accessibility/AccessibilityRenderObject.h \
+    accessibility/AccessibilityScrollbar.h \
     accessibility/AccessibilitySlider.h \
     accessibility/AccessibilityTableCell.h \
     accessibility/AccessibilityTableColumn.h \
@@ -1031,12 +1039,14 @@ HEADERS += \
     bridge/c/c_instance.h \
     bridge/c/c_runtime.h \
     bridge/c/c_utility.h \
+    bridge/jsc/BridgeJSC.h \
     bridge/IdentifierRep.h \
     bridge/NP_jsobject.h \
     bridge/npruntime.h \
     bridge/qt/qt_class.h \
     bridge/qt/qt_instance.h \
     bridge/qt/qt_runtime.h \
+    bridge/qt/qt_pixmapruntime.h \
     bridge/runtime_array.h \
     bridge/runtime_method.h \
     bridge/runtime_object.h \
@@ -1235,6 +1245,7 @@ HEADERS += \
     history/CachedPage.h \
     history/HistoryItem.h \
     history/PageCache.h \
+    html/Blob.h \
     html/canvas/CanvasGradient.h \
     html/canvas/CanvasPattern.h \
     html/canvas/CanvasPixelArray.h \
@@ -1937,6 +1948,7 @@ SOURCES += \
     bindings/js/ScriptControllerQt.cpp \
     bridge/qt/qt_class.cpp \
     bridge/qt/qt_instance.cpp \
+    bridge/qt/qt_pixmapruntime.cpp \
     bridge/qt/qt_runtime.cpp \
     page/qt/DragControllerQt.cpp \
     page/qt/EventHandlerQt.cpp \
@@ -2080,7 +2092,10 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
                 INCLUDEPATH += platform/mac
                 # Note: XP_MACOSX is defined in npapi.h
             } else {
-                !embedded: CONFIG += x11
+                !embedded {
+                    CONFIG += x11
+                    LIBS += -lXrender
+                }
                 SOURCES += \
                     plugins/qt/PluginContainerQt.cpp \
                     plugins/qt/PluginPackageQt.cpp \
@@ -2315,7 +2330,7 @@ contains(DEFINES, ENABLE_XPATH=1) {
 unix:!mac:CONFIG += link_pkgconfig
 
 contains(DEFINES, ENABLE_XSLT=1) {
-    QT += xmlpatterns
+    tobe|!tobe: QT += xmlpatterns
 
     SOURCES += \
         bindings/js/JSXSLTProcessorConstructor.cpp \
@@ -2711,17 +2726,24 @@ CONFIG(standalone_package):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VER
             plugins/win/PaintHooks.asm
     }
 }
+contains(DEFINES, WTF_USE_ACCELERATED_COMPOSITING) {
+HEADERS += \
+    rendering/RenderLayerBacking.h \
+    rendering/RenderLayerCompositor.h \
+    platform/graphics/GraphicsLayer.h \
+    platform/graphics/GraphicsLayerClient.h \
+    platform/graphics/qt/GraphicsLayerQt.h
+SOURCES += \
+    platform/graphics/GraphicsLayer.cpp \
+    platform/graphics/qt/GraphicsLayerQt.cpp \
+    rendering/RenderLayerBacking.cpp \
+    rendering/RenderLayerCompositor.cpp
+}
 
 symbian {
     shared {
-        contains(MMP_RULES, defBlock) {
-            MMP_RULES -= defBlock
-
-            MMP_RULES += "$${LITERAL_HASH}ifdef WINSCW" \
-                    "DEFFILE ../WebKit/qt/symbian/bwins/$${TARGET}.def" \
-                    "$${LITERAL_HASH}elif defined EABI" \
-                    "DEFFILE ../WebKit/qt/symbian/eabi/$${TARGET}.def" \
-                    "$${LITERAL_HASH}endif"
+        contains(CONFIG, def_files) {
+            defFilePath=../WebKit/qt/symbian
         } else {
             MMP_RULES += EXPORTUNFROZEN
         }

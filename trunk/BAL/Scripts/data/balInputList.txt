@@ -272,6 +272,8 @@ BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatPointQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatRectQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GradientQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsContextQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsLayerQt.cpp
+BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsLayerQt.h
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageBufferData.h
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageBufferQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ImageDecoderQt.cpp

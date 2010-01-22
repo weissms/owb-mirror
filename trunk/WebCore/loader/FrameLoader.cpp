@@ -572,7 +572,7 @@ void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy, DatabasePolic
 
 #if ENABLE(DATABASE)
         if (databasePolicy == DatabasePolicyStop)
-            doc->stopDatabases();
+            doc->stopDatabases(0);
 #else
     UNUSED_PARAM(databasePolicy);
 #endif
@@ -1280,8 +1280,8 @@ bool FrameLoader::requestObject(RenderPart* renderer, const String& url, const A
     bool useFallback;
     if (shouldUsePlugin(completedURL, mimeType, renderer->hasFallbackContent(), useFallback)) {
         Settings* settings = m_frame->settings();
-        if (!settings || !settings->arePluginsEnabled() || 
-            (!settings->isJavaEnabled() && MIMETypeRegistry::isJavaAppletMIMEType(mimeType)))
+        if (!m_client->allowPlugins(settings && settings->arePluginsEnabled())
+            || (!settings->isJavaEnabled() && MIMETypeRegistry::isJavaAppletMIMEType(mimeType)))
             return false;
         if (isSandboxed(SandboxPlugins))
             return false;
@@ -2323,6 +2323,8 @@ void FrameLoader::stopAllLoaders(DatabasePolicy databasePolicy)
     
     if (m_documentLoader)
         m_documentLoader->clearArchiveResources();
+
+    m_checkTimer.stop();
 
     m_inStopAllLoaders = false;    
 }
@@ -3714,9 +3716,6 @@ void FrameLoader::navigateWithinDocument(HistoryItem* item)
     loadInSameDocument(item->url(), item->stateObject(), false);
 
     // Restore user view state from the current history item here since we don't do a normal load.
-    // Even though we just manually set the current history item, this ASSERT verifies nothing 
-    // inside of loadInSameDocument() caused it to change.
-    ASSERT(history()->currentItem() == item);
     history()->restoreScrollPositionAndViewState();
 }
 

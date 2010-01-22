@@ -224,6 +224,7 @@ namespace WebCore {
 
         void scale(const FloatSize&);
         void rotate(float angleInRadians);
+        void translate(const FloatSize& size) { translate(size.width(), size.height()); }
         void translate(float x, float y);
         IntPoint origin();
 

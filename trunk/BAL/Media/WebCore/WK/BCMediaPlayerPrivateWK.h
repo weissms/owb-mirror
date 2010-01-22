@@ -76,8 +76,6 @@ public:
 
     virtual float startTime() const { return 0; }
 
-    virtual void setEndTime(float) = 0;
-
     virtual void setRate(float) = 0;
     virtual void setPreservesPitch(bool) { }
 
@@ -94,10 +92,6 @@ public:
     virtual float maxTimeSeekable() const = 0;
     virtual PassRefPtr<TimeRanges> buffered() const = 0;
 
-    virtual int dataRate() const = 0;
-
-    virtual bool totalBytesKnown() const { return totalBytes() > 0; }
-    virtual unsigned totalBytes() const = 0;
     virtual unsigned bytesLoaded() const = 0;
 
     virtual void setSize(const IntSize&) = 0;

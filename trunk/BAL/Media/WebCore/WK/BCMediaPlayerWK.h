@@ -175,8 +175,6 @@ public:
 
     float startTime() const;
     
-    void setEndTime(float time);
-    
     float rate() const;
     void setRate(float);
 
@@ -187,16 +185,12 @@ public:
     float maxTimeSeekable();
 
     unsigned bytesLoaded();
-    bool totalBytesKnown();
-    unsigned totalBytes();
     
     float volume() const;
     void setVolume(float);
 
     bool hasClosedCaptions() const;
     void setClosedCaptionsVisible(bool closedCaptionsVisible);
-
-    int dataRate() const;
 
     bool autobuffer() const;    
     void setAutobuffer(bool);

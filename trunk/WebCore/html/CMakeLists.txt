@@ -1,4 +1,5 @@
 list(APPEND WEBCORE_SRC
+    html/Blob.cpp
     html/CollectionCache.cpp
     html/DataGridColumn.cpp
     html/DataGridColumnList.cpp
@@ -96,6 +97,7 @@ list(APPEND WEBCORE_SRC
 )
 
 list(APPEND IDL_SRC
+    html/Blob.idl
     html/DataGridColumnList.idl
     html/DataGridColumn.idl
     html/File.idl

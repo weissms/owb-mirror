@@ -51,6 +51,10 @@
 #include <wtf/RefPtr.h>
 #include <wtf/UnusedParam.h>
 
+#if ENABLE(DATABSE)
+#include "Database.h"
+#endif
+
 #if ENABLE(NOTIFICATIONS)
 #include "NotificationCenter.h"
 #endif
@@ -253,6 +257,27 @@ NotificationCenter* WorkerContext::webkitNotifications() const
     return m_notifications.get();
 }
 #endif
+
+#if ENABLE(DATABASE)
+PassRefPtr<Database> WorkerContext::openDatabase(const String& name, const String& version, const String& displayName, unsigned long estimatedSize, ExceptionCode& ec)
+{
+    if (!securityOrigin()->canAccessDatabase()) {
+        ec = SECURITY_ERR;
+        return 0;
+    }
+
+    ASSERT(Database::isAvailable());
+    if (!Database::isAvailable())
+        return 0;
+
+    return Database::openDatabase(this, name, version, displayName, estimatedSize, ec);
+}
+#endif
+
+bool WorkerContext::isContextThread() const
+{
+    return currentThread() == thread()->threadID();
+}
 
 EventTargetData* WorkerContext::eventTargetData()
 {

@@ -175,6 +175,7 @@ HTMLTokenizer::HTMLTokenizer(HTMLDocument* doc, bool reportErrors)
     , m_parser(new HTMLParser(doc, reportErrors))
     , m_inWrite(false)
     , m_fragment(false)
+    , m_scriptingPermission(FragmentScriptingAllowed)
 {
     begin();
 }
@@ -195,6 +196,7 @@ HTMLTokenizer::HTMLTokenizer(HTMLViewSourceDocument* doc)
     , m_parser(0)
     , m_inWrite(false)
     , m_fragment(false)
+    , m_scriptingPermission(FragmentScriptingAllowed)
 {
     begin();
 }
@@ -214,6 +216,7 @@ HTMLTokenizer::HTMLTokenizer(DocumentFragment* frag, FragmentScriptingPermission
     , m_parser(new HTMLParser(frag, scriptingPermission))
     , m_inWrite(false)
     , m_fragment(true)
+    , m_scriptingPermission(scriptingPermission)
 {
     begin();
 }
@@ -471,6 +474,13 @@ HTMLTokenizer::State HTMLTokenizer::scriptHandler(State state)
 
     state = processListing(SegmentedString(m_scriptCode, m_scriptCodeSize), state);
     RefPtr<Node> node = processToken();
+    
+    if (node && m_scriptingPermission == FragmentScriptingNotAllowed) {
+        ExceptionCode ec;
+        node->remove(ec);
+        node = 0;
+    }
+    
     String scriptString = node ? node->textContent() : "";
     m_currentToken.tagName = scriptTag.localName();
     m_currentToken.beginTag = false;

@@ -1,3 +1,190 @@
+2010-01-22  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Add ThreadSpecific for ENABLE(SINGLE_THREADED)
+        https://bugs.webkit.org/show_bug.cgi?id=33878
+
+        Implement ThreadSpecific with a simple getter/setter
+        when ENABLE(SINGLE_THREADED) is true.
+
+        Due to the change in https://bugs.webkit.org/show_bug.cgi?id=33236,
+        an implementation of ThreadSpecific must be available to build WebKit.
+        This causes a build failure for platforms without a proper
+        ThreadSpecific implementation.
+
+        * wtf/ThreadSpecific.h:
+        (WTF::::ThreadSpecific):
+        (WTF::::~ThreadSpecific):
+        (WTF::::get):
+        (WTF::::set):
+        (WTF::::destroy):
+
+2010-01-21  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add fastStrDup to FastMalloc
+        https://bugs.webkit.org/show_bug.cgi?id=33937
+
+        The new string returned by fastStrDup is obtained with fastMalloc,
+        and can be freed with fastFree. This makes the memory management 
+        more consistent because we don't need to keep strdup allocated pointers
+        and free them with free(). Instead we can use fastFree everywhere.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::fastStrDup):
+        * wtf/FastMalloc.h:
+
+2010-01-21  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        history.back() for same-document history traversals isn't synchronous as the specification states.
+        <rdar://problem/7535011> and https://bugs.webkit.org/show_bug.cgi?id=33538
+
+        * wtf/Platform.h: Add a "HISTORY_ALWAYS_ASYNC" enable and turn it on for Chromium.
+
+2010-01-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Always create a prototype for automatically managed classes.
+        
+        This fixes some errors where prototype chains were not correctly hooked
+        up, and also ensures that API classes work correctly with features like
+        instanceof.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::create): Cleaned up some of this code. Also changed it
+        to always create a prototype class.
+
+        * API/tests/testapi.c:
+        (Derived2_class):
+        (main): Fixed a null value crash in the exception checking code.
+        * API/tests/testapi.js: Added some tests for the case where a prototype
+        chain would not be hooked up correctly.
+
+2010-01-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Force JSC to create a prototype chain for API classes with a
+        parent class but no static functions.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::create):
+
+2010-01-21  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Object.getOwnPropertyDescriptor always returns undefined for JS API objects
+        https://bugs.webkit.org/show_bug.cgi?id=33946
+
+        Ideally the getOwnPropertyDescriptor() reimplementation should return an
+        access descriptor that wraps the property getter and setter callbacks, but
+        that approach is much more involved than returning a value descriptor.
+        Keep it simple for now.
+
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::getOwnPropertyDescriptor):
+        * API/tests/testapi.js:
+
+2010-01-20  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::initializeScavenger): Remove unnecessary function call.
+
+2010-01-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Use the inline i386 assembly for x86_64 as well rather than falling back to using pthread mutexes.
+
+        * wtf/TCSpinLock.h:
+        (TCMalloc_SpinLock::Lock):
+        (TCMalloc_SpinLock::Unlock):
+        (TCMalloc_SlowLock):
+
+2010-01-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/7215063> Use GCD instead of an extra thread for FastMalloc scavenging on platforms where it is supported
+
+        Abstract the background scavenging slightly so that an alternate implementation that uses GCD can be used on platforms
+        where it is supported.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::init):
+        (WTF::TCMalloc_PageHeap::initializeScavenger):
+        (WTF::TCMalloc_PageHeap::signalScavenger):
+        (WTF::TCMalloc_PageHeap::shouldContinueScavenging):
+        (WTF::TCMalloc_PageHeap::Delete):
+        (WTF::TCMalloc_PageHeap::periodicScavenge):
+        * wtf/Platform.h:
+
+2010-01-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/7562708> REGRESSION(53460): Heap::destroy may not run
+        all destructors
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::freeBlocks): Instead of fully marking protected objects,
+        just set their mark bits. This prevents protected objects from keeping
+        unprotected objects alive. Destructor order is not guaranteed, so it's
+        OK to destroy objects pointed to by protected objects before destroying
+        protected objects.
+
+2010-01-19  David Levin  <levin@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        CrossThreadCopier needs to support ThreadSafeShared better.
+        https://bugs.webkit.org/show_bug.cgi?id=33698
+
+        * wtf/TypeTraits.cpp: Added tests for the new type traits.
+        * wtf/TypeTraits.h:
+        (WTF::IsSubclass): Determines if a class is a derived from another class.
+        (WTF::IsSubclassOfTemplate): Determines if a class is a derived from a
+        template class (with one parameter that is unknown).
+        (WTF::RemoveTemplate): Reveals the type for a template parameter.
+
+2010-01-20  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Darin Adler and Adam Roben.
+
+        Feature defines are difficult to maintain on Windows builds
+        https://bugs.webkit.org/show_bug.cgi?id=33883
+
+        FeatureDefines.vsprops are now maintained in a way similar to
+        Configurations/FeatureDefines.xcconfig, with the added advantage
+        of having a single FeatureDefines file across all projects.
+
+        * Configurations/FeatureDefines.xcconfig: Add comments about keeping feature definitions in sync.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Add FeatureDefines.vsprops inherited property sheet.
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj: Add FeatureDefines.vsprops inherited property sheet.
+
+2010-01-20  Csaba Osztrogonác  <ossy@webkit.org>
+
+        [Qt] Unreviewed buildfix for r53547.
+
+        * DerivedSources.pro:
+
+2010-01-20  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Make extraCompilers for generated sources depend on their scripts
+
+        * DerivedSources.pro:
+
 2010-01-20  Brian Weinstein  <bweinstein@apple.com>
 
         Reviewed by Tim Hatcher.

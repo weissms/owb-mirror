@@ -34,6 +34,7 @@
 #include <JavaScriptCore/APICast.h>
 #include <runtime/DateInstance.h>
 #include <runtime/ExceptionHelpers.h>
+#include <runtime/JSLock.h>
 #include <runtime/PropertyNameArray.h>
 #include <wtf/HashTraits.h>
 #include <wtf/Vector.h>
@@ -704,6 +705,7 @@ private:
 
 JSValue SerializedScriptValueData::deserialize(ExecState* exec, bool mustCopy) const
 {
+    JSLock lock(SilenceAssertionsOnly);
     DeserializingTreeWalker context(exec, mustCopy);
     return walk<DeserializingTreeWalker>(context, *this);
 }

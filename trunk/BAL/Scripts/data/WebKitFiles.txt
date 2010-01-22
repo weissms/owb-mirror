@@ -4,10 +4,8 @@ JavaScriptCore/wtf/FastMalloc.cpp BAL/Memory/WTF/BCFastMallocWTF.cpp
 JavaScriptCore/wtf/FastMalloc.h BAL/Memory/WTF/BCFastMallocWTF.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
-JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
 JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
 JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
-WebCore/accessibility/AccessibilityObject.cpp
 WebCore/accessibility/AccessibilityObject.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
@@ -23,7 +21,7 @@ WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
-WebCore/bridge/Bridge.cpp
+WebCore/bridge/jsc/BridgeJSC.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
@@ -48,7 +46,6 @@ WebCore/html/HTMLObjectElement.idl
 WebCore/html/HTMLParser.cpp
 WebCore/html/HTMLSelectElement.cpp
 WebCore/html/HTMLTokenizer.cpp
-WebCore/inspector/InspectorController.cpp
 WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
 WebCore/loader/EmptyClients.h
@@ -74,7 +71,6 @@ WebCore/page/FocusController.cpp
 WebCore/page/FrameView.cpp
 WebCore/page/Navigator.cpp
 WebCore/page/Page.cpp
-WebCore/page/Page.h
 WebCore/page/gtk/FrameGtk.cpp BAL/Widgets/WebCore/Gtk/BCFrameGtk.cpp
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
@@ -97,10 +93,11 @@ WebCore/platform/graphics/gtk/ImageGtk.cpp BAL/Graphics/WebCore/Gtk/BCImageGtk.c
 WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
 WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h
 WebCore/platform/graphics/qt/GraphicsContextQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsContextQt.cpp
+WebCore/platform/graphics/qt/GraphicsLayerQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsLayerQt.cpp
+WebCore/platform/graphics/qt/GraphicsLayerQt.h BAL/Graphics/WebCore/Qt/BCGraphicsLayerQt.h
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
-WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/KeyboardCodes.h BAL/Events/WebCore/WK/BCKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
@@ -135,7 +132,6 @@ WebCore/rendering/RenderListBox.cpp
 WebCore/rendering/RenderMenuList.cpp
 WebCore/rendering/RenderObject.cpp
 WebCore/rendering/RenderObjectChildList.cpp
-WebCore/rendering/RenderSVGContainer.cpp
 WebCore/rendering/RenderSVGRoot.cpp
 WebCore/rendering/RenderSVGViewportContainer.cpp
 WebCore/rendering/RenderText.cpp
@@ -147,8 +143,9 @@ WebCore/svg/graphics/SVGImage.cpp
 WebCore/websockets/ThreadableWebSocketChannel.cpp
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
-WebCore/wml/WMLInputElement.cpp
-WebCore/wml/WMLInputElement.h
+WebCore/workers/WorkerContext.cpp
+WebCore/workers/WorkerContext.h
+WebCore/workers/WorkerThread.cpp
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp
 WebCore/xml/XSLTProcessorLibxslt.cpp

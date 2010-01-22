@@ -50,6 +50,9 @@ WebGeolocationPosition::~WebGeolocationPosition()
 
 void WebGeolocationPosition::initWithTimestamp(double timestamp, double latitude, double longitude, double accuracy)
 {
+#if ENABLE(CLIENT_BASED_GEOLOCATION)
+    m_position = GeolocationPosition::create(timestamp, latitude, longitude, accuracy).get();
+#endif
 }
 
 #if ENABLE(CLIENT_BASED_GEOLOCATION)
