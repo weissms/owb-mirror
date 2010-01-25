@@ -1,3 +1,36 @@
+2010-01-25  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34025
+        Enable client-based Geolocation abstraction for Mac, Windows AppleWebKit targets.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-01-22  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        [WebFrame loadRequest:] does not null check the WebCore::Frame
+        <rdar://problem/7416286> and https://bugs.webkit.org/show_bug.cgi?id=34021
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame loadRequest:]): Null check the WebCore::Frame as it can disappear
+          out of underneath a WebFrame.
+
+2010-01-22  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        When scrolling by page, hold back 1/8th of the visible size instead of
+        40 px.
+        https://bugs.webkit.org/show_bug.cgi?id=32595
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView _verticalPageScrollDistance]):
+        (-[WebFrameView initWithFrame:]):
+        (-[WebFrameView _horizontalPageScrollDistance]):
+
 2010-01-22  Jian Li  <jianli@chromium.org>
 
         Reviewed by Dmitry Titov.

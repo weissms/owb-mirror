@@ -155,6 +155,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitExperimentalNotificationsEnabledPreferenceKey] = "0";
 #endif
 
+    m_privatePrefs[WebKitZoomsTextOnlyPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitAllowAnimatedImagesPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitAllowAnimatedImageLoopingPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitDisplayImagesKey] = "1";//TRUE

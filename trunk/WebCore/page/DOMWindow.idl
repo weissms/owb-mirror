@@ -479,6 +479,7 @@ module window {
 
         attribute FileConstructor File;
         attribute FileListConstructor FileList;
+        attribute BlobConstructor Blob;
 
         attribute NodeFilterConstructor NodeFilter;
         attribute RangeConstructor Range;

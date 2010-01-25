@@ -499,6 +499,9 @@ MediaPlayerPrivate::MediaRenderingMode MediaPlayerPrivate::preferredRenderingMod
 
 void MediaPlayerPrivate::setUpVideoRendering()
 {
+    if (!isReadyForRendering())
+        return;
+
     MediaRenderingMode currentMode = currentRenderingMode();
     MediaRenderingMode preferredMode = preferredRenderingMode();
     if (currentMode == preferredMode && currentMode != MediaRenderingNone)
@@ -967,7 +970,7 @@ void MediaPlayerPrivate::updateStates()
         }
     }
 
-    if (isReadyForRendering() && !hasSetUpVideoRendering())
+    if (!hasSetUpVideoRendering())
         setUpVideoRendering();
 
     if (seeking())
@@ -1042,8 +1045,11 @@ void MediaPlayerPrivate::didEnd()
 
     // Hang onto the current time and use it as duration from now on since QuickTime is telling us we
     // are at the end. Do this because QuickTime sometimes reports one time for duration and stops
-    // playback at another time, which causes problems in HTMLMediaElement.
-    m_cachedDuration = currentTime();
+    // playback at another time, which causes problems in HTMLMediaElement. QTKit's 'ended' event 
+    // fires when playing in reverse so don't update duration when at time zero!
+    float now = currentTime();
+    if (now > 0)
+        m_cachedDuration = now;
 
     updateStates();
     m_player->timeChanged();
@@ -1064,10 +1070,9 @@ void MediaPlayerPrivate::setVisible(bool b)
 {
     if (m_visible != b) {
         m_visible = b;
-        if (b) {
-            if (m_readyState >= MediaPlayer::HaveMetadata)
-                setUpVideoRendering();
-        } else
+        if (b)
+            setUpVideoRendering();
+        else
             tearDownVideoRendering();
     }
 }

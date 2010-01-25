@@ -1,3 +1,118 @@
+2010-01-25  Elliot Glaysher  <erg@chromium.org>
+
+        Reviewed by David Levin.
+
+        Chromium: theme selection colors to match gtk theme
+        Add functions to RenderThemeChromiumLinux to change the selection color
+        according to the current GTK+ theme.
+
+        Since the change is to the Chromium WebKit API layer, testing is done
+        in Chromium's test shell (see Chromium side of this patch:
+        http://codereview.chromium.org/554004)
+
+        https://bugs.webkit.org/show_bug.cgi?id=33921
+
+        * public/WebView.h: Adds interface to change the selection colors
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::setSelectionColors): Implements new interface.
+        * src/WebViewImpl.h:
+
+2010-01-22  Steve VanDeBogart  <vandebo@chromium.org>
+
+        Reviewed by David Levin.
+
+        Middle clicking the main scroll bars should not trigger a paste event
+        in Linux chromium.
+        https://bugs.webkit.org/show_bug.cgi?id=33062
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::mouseUp):
+
+2010-01-22  Albert J. Wong  <ajwong@chromium.org>
+
+        Not reviewed.  backout.
+
+        Backout r53705.
+        Causes ui_tests to timeout, and browser_tests to fail with
+        TestConnectToBadPort and WindowOpenInvalidExtension.
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidChangeLocationWithinPage):
+        (WebKit::FrameLoaderClientImpl::postProgressStartedNotification):
+        (WebKit::FrameLoaderClientImpl::postProgressFinishedNotification):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::WebViewImpl):
+        * src/WebViewImpl.h:
+
+2010-01-22  Peter Kasting  <pkasting@google.com>
+
+        Not reviewed, backout.
+
+        Back out r52673, which caused several regressions.
+        https://bugs.webkit.org/show_bug.cgi?id=32533
+
+        * src/AutocompletePopupMenuClient.cpp:
+        (WebKit::AutocompletePopupMenuClient::initialize):
+        (WebKit::AutocompletePopupMenuClient::popupDidHide):
+        (WebKit::AutocompletePopupMenuClient::setTextFromItem):
+        * src/AutocompletePopupMenuClient.h:
+
+2010-01-21  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        The Chromium WebKit API needs to expose storage event related data
+        https://bugs.webkit.org/show_bug.cgi?id=33985
+
+        setItem and removeItem on WebStorageArea need to expose what the previous
+        value was for the key being modified.  Clear needs to return whether it
+        actually cleared anything.
+
+        * public/WebStorageArea.h:
+        (WebKit::WebStorageArea::setItem):
+        (WebKit::WebStorageArea::removeItem):
+        (WebKit::WebStorageArea::clear):
+        * src/StorageAreaProxy.cpp:
+        (WebCore::StorageAreaProxy::StorageAreaProxy):
+        (WebCore::StorageAreaProxy::setItem):
+        (WebCore::StorageAreaProxy::removeItem):
+        (WebCore::StorageAreaProxy::clear):
+        (WebCore::StorageAreaProxy::storageEvent):
+        * src/StorageAreaProxy.h:
+        * src/StorageNamespaceProxy.cpp:
+        (WebCore::StorageNamespace::localStorageNamespace):
+        (WebCore::StorageNamespace::sessionStorageNamespace):
+        (WebCore::StorageNamespaceProxy::StorageNamespaceProxy):
+        (WebCore::StorageNamespaceProxy::copy):
+        (WebCore::StorageNamespaceProxy::storageArea):
+        * src/StorageNamespaceProxy.h:
+        * src/WebStorageAreaImpl.cpp:
+        (WebKit::WebStorageAreaImpl::setItem):
+        (WebKit::WebStorageAreaImpl::removeItem):
+        (WebKit::WebStorageAreaImpl::clear):
+        * src/WebStorageAreaImpl.h:
+
+2010-01-21  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] spurious WebViewClient::didStopLoading if changing
+        location.hash while a subframe is still loading
+
+        https://bugs.webkit.org/show_bug.cgi?id=33884
+
+        This is a refinement of http://trac.webkit.org/changeset/51548
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidChangeLocationWithinPage):
+        (WebKit::FrameLoaderClientImpl::postProgressStartedNotification):
+        (WebKit::FrameLoaderClientImpl::postProgressFinishedNotification):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::WebViewImpl):
+        (WebKit::WebViewImpl::didStartLoading):
+        (WebKit::WebViewImpl::didStopLoading):
+        * src/WebViewImpl.h:
+
 2010-01-22  Adam Barth  <abarth@webkit.org>
 
         Unreviewed.  Added a blank line requested by the great an powerful

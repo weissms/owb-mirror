@@ -3,6 +3,8 @@ if(ENABLE_MATHML)
         mathml/MathMLElement.cpp
         mathml/MathMLInlineContainerElement.cpp
         mathml/MathMLMathElement.cpp
+        mathml/MathMLTextElement.cpp
+        mathml/RenderMathMLBlock.cpp
     )
     list(APPEND IDL_SRC
     )

@@ -456,7 +456,7 @@ int RenderMenuList::selectedIndex() const
     return select->optionToListIndex(select->selectedIndex());
 }
 
-void RenderMenuList::popupDidHide(bool)
+void RenderMenuList::popupDidHide()
 {
     m_popupIsVisible = false;
 }

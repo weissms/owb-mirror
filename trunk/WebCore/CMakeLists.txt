@@ -224,9 +224,9 @@ add_custom_command(
 if(ENABLE_MATHML)
 add_custom_command(OUTPUT ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.cpp ${WEBCORE_GENERATED_DIR}/mathml/MathMLElementFactory.h
     ${WEBCORE_GENERATED_DIR}/mathml/MathMLNames.cpp ${WEBCORE_GENERATED_DIR}/mathml/MathMLNames.h
-    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags  ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/mathml
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl --tags  ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in --attrs ${OWB_SOURCE_DIR}/WebCore/mathml/mathattrs.in --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/mathml
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
-    DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in
+    DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/mathml/mathtags.in ${OWB_SOURCE_DIR}/WebCore/mathml/mathattrs.in
     VERBATIM
 )
 endif(ENABLE_MATHML)

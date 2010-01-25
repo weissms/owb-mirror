@@ -1103,7 +1103,9 @@ PassRefPtr<WebKitPoint> DOMWindow::webkitConvertPointFromNodeToPage(Node* node, 
 {
     if (!node || !p)
         return 0;
-        
+
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
+
     FloatPoint pagePoint(p->x(), p->y());
     pagePoint = node->convertToPage(pagePoint);
     return WebKitPoint::create(pagePoint.x(), pagePoint.y());
@@ -1113,7 +1115,9 @@ PassRefPtr<WebKitPoint> DOMWindow::webkitConvertPointFromPageToNode(Node* node, 
 {
     if (!node || !p)
         return 0;
-        
+
+    m_frame->document()->updateLayoutIgnorePendingStylesheets();
+
     FloatPoint nodePoint(p->x(), p->y());
     nodePoint = node->convertFromPage(nodePoint);
     return WebKitPoint::create(nodePoint.x(), nodePoint.y());

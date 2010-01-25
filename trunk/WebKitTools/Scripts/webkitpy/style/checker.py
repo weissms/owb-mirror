@@ -34,7 +34,7 @@ import getopt
 import os.path
 import sys
 
-from diff_parser import DiffParser
+from .. style_references import parse_patch
 from cpp_style import CppProcessor
 from text_style import TextProcessor
 
@@ -880,6 +880,9 @@ class StyleChecker(object):
         processor = dispatcher.dispatch_processor(file_path,
                                                   handle_style_error,
                                                   verbosity)
+        if processor is None:
+            return
+
         process_file(processor, file_path, handle_style_error)
 
     def check_patch(self, patch_string):
@@ -889,8 +892,8 @@ class StyleChecker(object):
           patch_string: A string that is a patch string.
 
         """
-        patch = DiffParser(patch_string.splitlines())
-        for file_path, diff in patch.files.iteritems():
+        patch_files = parse_patch(patch_string)
+        for file_path, diff in patch_files.iteritems():
             line_numbers = set()
 
             def error_for_patch(file_path, line_number, category, confidence, message):

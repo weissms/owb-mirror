@@ -186,7 +186,7 @@ ThreadIdentifier createThreadInternal(ThreadFunction entryPoint, void* data, con
     return establishIdentifierForThread(threadRef);
 }
 
-void setThreadNameInternal(const char*)
+void initializeCurrentThreadInternal(const char*)
 {
 }
 

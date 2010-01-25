@@ -1382,7 +1382,6 @@ void HTMLInputElement::setValue(const String& value, bool sendChangeEvent)
 double HTMLInputElement::valueAsDate() const
 {
     switch (inputType()) {
-    // valueAsDate doesn't work for the DATETIMELOCAL type according to the standard.
     case DATE:
     case DATETIME:
     case MONTH:
@@ -1393,9 +1392,29 @@ double HTMLInputElement::valueAsDate() const
             return ISODateTime::invalidMilliseconds();
         return dateTime.millisecondsSinceEpoch();
     }
-    default:
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIMELOCAL: // valueAsDate doesn't work for the DATETIMELOCAL type according to the standard.
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case NUMBER:
+    case PASSWORD:
+    case RADIO:
+    case RANGE:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case URL:
         return ISODateTime::invalidMilliseconds();
     }
+    ASSERT_NOT_REACHED();
+    return ISODateTime::invalidMilliseconds();
 }
 
 void HTMLInputElement::setValueAsDate(double value, ExceptionCode& ec)
@@ -1415,10 +1434,33 @@ void HTMLInputElement::setValueAsDate(double value, ExceptionCode& ec)
     case TIME:
         success = dateTime.setMillisecondsSinceMidnight(value);
         break;
-    // FIXME: implementations for other supported types.
-    default:
+    case WEEK:
+        success = dateTime.setMillisecondsSinceEpochForWeek(value);
+        break;
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIMELOCAL: // valueAsDate doesn't work for the DATETIMELOCAL type according to the standard.
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case NUMBER:
+    case PASSWORD:
+    case RADIO:
+    case RANGE:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case URL:
         ec = INVALID_STATE_ERR;
         return;
+    default:
+        ASSERT_NOT_REACHED();
+        success = false;
     }
     if (!success) {
         setValue(String());
