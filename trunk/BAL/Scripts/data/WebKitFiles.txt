@@ -99,6 +99,7 @@ WebCore/platform/graphics/qt/GraphicsLayerQt.h BAL/Graphics/WebCore/Qt/BCGraphic
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
+WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/KeyboardCodes.h BAL/Events/WebCore/WK/BCKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h

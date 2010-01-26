@@ -1,3 +1,9 @@
+2010-01-26  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when accessibility is disabled.
+
+        * platform/gtk/TemporaryLinkStubs.cpp:
+
 2010-01-22  Olivier DOLE  <odole@pleyo.com>
 
         replace ENABLE(ACCESSIBILITY) by HAVE(ACCESSIBILITY)
