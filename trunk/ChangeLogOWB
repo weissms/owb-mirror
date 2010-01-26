@@ -1,5 +1,13 @@
 2010-01-26  Olivier DOLE  <odole@pleyo.com>
 
+        Better organization of files related to cpack.
+
+        * CMakeLists.txt:
+        * cmake/Package.cmake: Added.
+        * cmake/karmicPackage.cmake:
+
+2010-01-26  Olivier DOLE  <odole@pleyo.com>
+
         First release to generate a .deb package on ubuntu karmic with cpack.
 
         * CMakeLists.txt:
