@@ -15,6 +15,7 @@ if(USE_GRAPHICS STREQUAL "GTK")
     mark_as_advanced(USE_GRAPHICS_GTK)
 
     set(REQUIREMENT "gtk+-2.0 >= 2.8")
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libcairo2 (>= 1.8.8-2ubuntu1), libgtk2.0-0 (>= 2.18.3-1ubuntu2.1), libgail18 (>= 2.18.3-1ubuntu2.1)")
 endif(USE_GRAPHICS STREQUAL "GTK")
 
 if(USE_GRAPHICS STREQUAL "QT")
@@ -25,6 +26,7 @@ if(USE_GRAPHICS STREQUAL "QT")
 
     set(USE_GRAPHICS_QT TRUE)
     mark_as_advanced(USE_GRAPHICS_QT)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqtgui4 (>= 4.5.3really4.5.2-0ubuntu1)")
 endif(USE_GRAPHICS STREQUAL "QT")
 
 if(USE_GRAPHICS MATCHES "^SDL*")
@@ -46,6 +48,7 @@ if(USE_GRAPHICS MATCHES "^SDL*")
         mark_as_advanced(USE_GRAPHICS_SDLCAIRO)
         set(USE_GRAPHICS_CAIRO TRUE)
         mark_as_advanced(USE_GRAPHICS_CAIRO)
+        set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libcairo2 (>= 1.8.8-2ubuntu1)")
     endif(USE_GRAPHICS STREQUAL "SDLCAIRO")
 
     if(USE_GRAPHICS STREQUAL "SDL")
@@ -67,4 +70,5 @@ if(USE_GRAPHICS MATCHES "^SDL*")
     mark_as_advanced(USE_GRAPHICS_GENERIC)
 
     set(REQUIREMENT "sdl >= 1.2.10")
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libsdl1.2debian (>= 1.2.13-4ubuntu4), libsdl-gfx1.2-4 (>= 2.0.19-2)")
 endif(USE_GRAPHICS MATCHES "^SDL*")

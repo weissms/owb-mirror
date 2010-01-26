@@ -1,6 +1,7 @@
 if(ENABLE_XSLT)
     IF(NOT WIN32)
         pkg_check_modules(LIBXSLT REQUIRED libxslt>=1.1.7)
+        set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libxslt1.1 (>= 1.1.24-2ubuntu2)")
     ELSE(NOT WIN32)
         ## Pkg-config under cygwin gives to cmake .a lib and we need .lib for Visual Studio projects. 
         find_path(LIB_XSLT_PATH libxslt.lib ${WINLIB_LIB_PATH})

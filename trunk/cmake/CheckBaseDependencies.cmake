@@ -18,6 +18,7 @@ endif(NOT GPERF_EXECUTABLE)
 
 IF(NOT WIN32)
     pkg_check_modules(OWB_BASE_DEPS REQUIRED libxml-2.0>=2.6)
+    set(DEB_PACKAGE_DEPENDS "libc6-i686 (>= 2.10.1-0ubuntu16), libstdc++6 (>= 4.4.1-4ubuntu9), libgcc1 (>= 1:4.4.1-4ubuntu9), libxml2 (>= 2.7.5.dfsg-1ubuntu1)")
 ELSE(NOT WIN32)
     ## Pkg-config under cygwin gives to cmake .a lib and we need .lib for Visual Studio projects. 
     find_path(LIB_XML2_PATH libxml2.lib ${WINLIB_LIB_PATH})

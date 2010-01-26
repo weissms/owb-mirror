@@ -18,6 +18,7 @@ if(USE_NETWORK STREQUAL "CURL")
  
     set(USE_NETWORK_CURL TRUE)
     mark_as_advanced(USE_NETWORK_CURL)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libcurl3 (>= 7.19.5-1ubuntu2)")
 endif(USE_NETWORK STREQUAL "CURL")
 
 if(USE_NETWORK STREQUAL "QT")
@@ -28,6 +29,7 @@ if(USE_NETWORK STREQUAL "QT")
 
     set(USE_NETWORK_QT TRUE)
     mark_as_advanced(USE_NETWORK_QT)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqtcore4 (>= 4.5.3really4.5.2-0ubuntu1), libqt4-network (>= 4.5.3really4.5.2-0ubuntu1)")
 
     # This option was added but we do not have the right header so just disable it for now.
     set(ENABLE_QT_BEARER FALSE)
@@ -41,4 +43,5 @@ if(USE_NETWORK STREQUAL "SOUP")
 
     set(USE_NETWORK_SOUP TRUE)
     mark_as_advanced(USE_NETWORK_SOUP)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libsoup2.4-1 (>= 2.28.1-2)")
 endif(USE_NETWORK STREQUAL "SOUP")

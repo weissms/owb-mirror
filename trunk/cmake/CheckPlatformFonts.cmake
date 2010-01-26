@@ -15,6 +15,7 @@ if(USE_FONTS STREQUAL "CAIRO")
 
     set(USE_FONTS_CAIRO TRUE)
     mark_as_advanced(USE_FONTS_CAIRO)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libfontconfig1 (>= 2.6.0-1ubuntu12), libfreetype6 (>= 2.3.9-5), libcairo2 (>= 1.8.8-2ubuntu1)")
 endif(USE_FONTS STREQUAL "CAIRO")
 
 if(USE_FONTS STREQUAL "EMBEDDED")
@@ -39,6 +40,7 @@ if(USE_FONTS STREQUAL "FREETYPE")
 
     set(USE_FONTS_FREETYPE TRUE)
     mark_as_advanced(USE_FONTS_FREETYPE)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libfontconfig1 (>= 2.6.0-1ubuntu12), libfreetype6 (>= 2.3.9-5)")
 endif(USE_FONTS STREQUAL "FREETYPE")
 
 if(USE_FONTS STREQUAL "GTK")
@@ -51,6 +53,7 @@ if(USE_FONTS STREQUAL "GTK")
 
     set(USE_FONTS_GTK TRUE)
     mark_as_advanced(USE_FONTS_GTK)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libfontconfig1 (>= 2.6.0-1ubuntu12), libfreetype6 (>= 2.3.9-5), libcairo2 (>= 1.8.8-2ubuntu1), libgtk2.0-0 (>= 2.18.3-1ubuntu2.1)")
 endif(USE_FONTS STREQUAL "GTK")
 
 if(USE_FONTS STREQUAL "QT")
@@ -60,4 +63,5 @@ if(USE_FONTS STREQUAL "QT")
 
     set(USE_FONTS_QT TRUE)
     mark_as_advanced(USE_FONTS_QT)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqtcore4 (>= 4.5.3really4.5.2-0ubuntu1)")
 endif(USE_FONTS STREQUAL "QT")

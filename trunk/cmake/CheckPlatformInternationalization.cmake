@@ -18,6 +18,7 @@ if(USE_I18N STREQUAL "GLIB")
 
     set(USE_I18N_GLIB TRUE)
     mark_as_advanced(USE_I18N_GLIB)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libicu40 (>= 4.0.1-2ubuntu2), libglib2.0-0 (>= 2.22.3-0ubuntu1), libpango1.0-0 (>= 1.26.0-1)")
 endif(USE_I18N STREQUAL "GLIB")
 
 if(USE_I18N STREQUAL "ICU")
@@ -42,6 +43,7 @@ if(USE_I18N STREQUAL "ICU")
 
     set(USE_I18N_ICU TRUE)
     mark_as_advanced(USE_I18N_ICU)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libicu40 (>= 4.0.1-2ubuntu2)")
 endif(USE_I18N STREQUAL "ICU")
 
 if(USE_I18N STREQUAL "QT")
@@ -51,6 +53,7 @@ if(USE_I18N STREQUAL "QT")
 
     set(USE_I18N_QT TRUE)
     mark_as_advanced(USE_I18N_QT)
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqtcore4 (>= 4.5.3really4.5.2-0ubuntu1)")
 endif(USE_I18N STREQUAL "QT")
 
 if(USE_GRAPHICS MATCHES "^SDL*")

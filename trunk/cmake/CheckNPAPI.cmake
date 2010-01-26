@@ -3,6 +3,7 @@ if(ENABLE_NPAPI)
         pkg_check_modules(XT REQUIRED xt)
         set(NPAPI_INCLUDE_DIRS ${XT_INCLUDE_DIRS})
         set(NPAPI_LIBRARIES ${XT_LDFLAGS})
+        set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libxt6 (>= 1:1.0.5-3ubuntu1)")
     endif(USE_GRAPHICS_GTK OR USE_GRAPHICS_QT)
 
     if(USE_GRAPHICS MATCHES "^SDL*")

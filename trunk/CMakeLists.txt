@@ -176,5 +176,6 @@ if(ENABLE_TESTS)
 endif(ENABLE_TESTS)
 add_subdirectory(WebKitTools/OWBLauncher)
 
+include(karmicPackage)
 include(CPack)
 

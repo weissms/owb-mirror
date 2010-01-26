@@ -29,6 +29,7 @@ if(HAS_VIDEO)
         mark_as_advanced(USE_VIDEO_GSTREAMER)
         set(USE_DAE_NONE TRUE)
         mark_as_advanced(USE_DAE_NONE)
+        set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libgstreamer-plugins-base0.10-0 (>= 0.10.25-2ubuntu1.2), libglib2.0-0 (>= 2.22.3-0ubuntu1)")
     endif(USE_VIDEO STREQUAL "GSTREAMER")
 
     if(USE_VIDEO STREQUAL "NONE")
@@ -45,6 +46,7 @@ if(HAS_VIDEO)
 
         set(USE_VIDEO_PHONON TRUE)
         mark_as_advanced(USE_VIDEO_PHONON)
+        set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqt4-phonon")
     endif(USE_VIDEO STREQUAL "PHONON")
 
     if(USE_AIT STREQUAL "NONE")

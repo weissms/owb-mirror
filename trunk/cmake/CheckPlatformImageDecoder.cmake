@@ -22,5 +22,7 @@ if(NOT HAS_CUSTOMER)
         ${PNG12_LIBRARIES}
         ${JPEG_LIBRARY}
     )
+
+    set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libjpeg62 (>= 6b-14build1), libpng12-0 (>= 1.2.37-1)")
 endif(NOT HAS_CUSTOMER)
 

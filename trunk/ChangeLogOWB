@@ -1,3 +1,23 @@
+2010-01-26  Olivier DOLE  <odole@pleyo.com>
+
+        First release to generate a .deb package on ubuntu karmic with cpack.
+
+        * CMakeLists.txt:
+        * cmake/CheckBaseDependencies.cmake:
+        * cmake/CheckCppUnit.cmake:
+        * cmake/CheckNPAPI.cmake:
+        * cmake/CheckPlatformFileSystem.cmake:
+        * cmake/CheckPlatformFonts.cmake:
+        * cmake/CheckPlatformGeolocation.cmake:
+        * cmake/CheckPlatformGraphics.cmake:
+        * cmake/CheckPlatformImageDecoder.cmake:
+        * cmake/CheckPlatformInternationalization.cmake:
+        * cmake/CheckPlatformNetwork.cmake:
+        * cmake/CheckPlatformVideoSupport.cmake:
+        * cmake/CheckSqlite3.cmake:
+        * cmake/CheckXSLT.cmake:
+        * cmake/karmicPackage.cmake: Added.
+
 2010-01-22  Olivier DOLE  <odole@pleyo.com>
 
         fix cmake for accessibility
