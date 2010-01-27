@@ -6,6 +6,7 @@ symbian: {
     TARGET.EPOCALLOWDLLDATA=1
     TARGET.EPOCHEAPSIZE = 0x20000 0x2000000 // Min 128kB, Max 32MB
     TARGET.CAPABILITY = All -Tcb
+    TARGET.UID3 = 0x200267C2
 
     webkitlibs.sources = QtWebKit.dll
     webkitlibs.path = /sys/bin
@@ -18,9 +19,11 @@ symbian: {
         " "
     webkitlibs.pkg_prerules = vendorinfo
 
-    DEPLOYMENT += webkitlibs
+    webkitbackup.sources = ../WebKit/qt/symbian/backup_registration.xml
+    webkitbackup.path = /private/10202D56/import/packages/$$replace(TARGET.UID3, 0x,)
 
-    TARGET.UID3 = 0x200267C2
+    DEPLOYMENT += webkitlibs webkitbackup
+
     # Need to guarantee that these come before system includes of /epoc32/include
     MMP_RULES += "USERINCLUDE rendering"
     MMP_RULES += "USERINCLUDE platform/text"
@@ -116,7 +119,7 @@ symbian:!CONFIG(QTDIR_build): CONFIG += system-sqlite
 RESOURCES += \
     $$PWD/../WebCore/WebCore.qrc
 
-!symbian {
+!symbian:!maemo5 {
     RESOURCES += $$PWD/../WebCore/inspector/front-end/WebKit.qrc
 }
 
@@ -1742,6 +1745,10 @@ HEADERS += \
     svg/SVGAnimateColorElement.h \
     svg/SVGAnimatedPathData.h \
     svg/SVGAnimatedPoints.h \
+    svg/SVGAnimatedProperty.h \
+    svg/SVGAnimatedPropertySynchronizer.h \
+    svg/SVGAnimatedPropertyTraits.h \
+    svg/SVGAnimatedTemplate.h \
     svg/SVGAnimateElement.h \
     svg/SVGAnimateMotionElement.h \
     svg/SVGAnimateTransformElement.h \
@@ -1865,7 +1872,6 @@ HEADERS += \
     svg/SVGViewSpec.h \
     svg/SVGZoomAndPan.h \
     svg/SVGZoomEvent.h \
-    svg/SynchronizablePropertyController.h \
     wml/WMLAccessElement.h \
     wml/WMLAElement.h \
     wml/WMLAnchorElement.h \
@@ -2554,7 +2560,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/SVGViewElement.cpp \
         svg/SVGViewSpec.cpp \
         svg/SVGZoomAndPan.cpp \
-        svg/SynchronizablePropertyController.cpp \
         svg/animation/SMILTime.cpp \
         svg/animation/SMILTimeContainer.cpp \
         svg/animation/SVGSMILElement.cpp \
@@ -2636,6 +2641,7 @@ SOURCES += \
     websockets/WebSocket.cpp \
     websockets/WebSocketChannel.cpp \
     websockets/WebSocketHandshake.cpp \
+    websockets/ThreadableWebSocketChannel.cpp \
     platform/network/SocketStreamErrorBase.cpp \
     platform/network/SocketStreamHandleBase.cpp \
     platform/network/qt/SocketStreamHandleQt.cpp \
@@ -2644,7 +2650,6 @@ SOURCES += \
 
 contains(DEFINES, ENABLE_WORKERS=1) {
 SOURCES += \
-    websockets/ThreadableWebSocketChannel.cpp \
     websockets/WorkerThreadableWebSocketChannel.cpp
 }
 }

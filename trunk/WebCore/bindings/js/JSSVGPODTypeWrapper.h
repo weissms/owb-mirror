@@ -49,7 +49,7 @@ public:
 // in WebCore/svg (aka. 'POD types'). For instance SVGMatrix is mapped to TransformationMatrix, and
 // passed around as const reference. SVG DOM demands these objects to be "live", changes to any
 // of the writable attributes of SVGMatrix need to be reflected in the object which exposed the
-// SVGMatrix object (ie. 'someElement.transform.matrix.a = 50.0', in that case 'SVGTransform').
+// SVGMatrix object (i.e. 'someElement.transform.matrix.a = 50.0', in that case 'SVGTransform').
 // The SVGTransform class stores its "TransformationMatrix m_matrix" object on the stack. If it would
 // be stored as pointer we could just build an auto-generated JSSVG* wrapper object around it
 // and all changes to that object would automatically affect the TransformationMatrix* object stored
@@ -77,7 +77,7 @@ template<typename PODType, typename PODTypeCreator>
 class JSSVGDynamicPODTypeWrapper : public JSSVGPODTypeWrapper<PODType> {
 public:
     typedef PODType (PODTypeCreator::*GetterMethod)() const; 
-    typedef void (PODTypeCreator::*SetterMethod)(PODType);
+    typedef void (PODTypeCreator::*SetterMethod)(const PODType&);
 
     static PassRefPtr<JSSVGDynamicPODTypeWrapper> create(PassRefPtr<PODTypeCreator> creator, GetterMethod getter, SetterMethod setter)
     {
@@ -114,9 +114,9 @@ private:
     SetterMethod m_setter;
 };
 
-// Represents a JS wrapper object for SVG POD types (not for SVGAnimated* clases). Any modification to the SVG POD
+// Represents a JS wrapper object for SVG POD types (not for SVGAnimated* classes). Any modification to the SVG POD
 // types don't cause any updates unlike JSSVGDynamicPODTypeWrapper. This class is used for return values (ie. getBBox())
-// and for properties where SVG specification explicitely states, that the contents of the POD type are immutable.
+// and for properties where SVG specification explicitly states, that the contents of the POD type are immutable.
 
 template<typename PODType>
 class JSSVGStaticPODTypeWrapper : public JSSVGPODTypeWrapper<PODType> {
@@ -226,7 +226,7 @@ public:
     typedef SVGPODListItem<PODType> PODListItemPtrType;
 
     typedef PODType (SVGPODListItem<PODType>::*GetterMethod)() const; 
-    typedef void (SVGPODListItem<PODType>::*SetterMethod)(PODType);
+    typedef void (SVGPODListItem<PODType>::*SetterMethod)(const PODType&);
 
     static PassRefPtr<JSSVGPODTypeWrapperCreatorForList> create(PassRefPtr<PODListItemPtrType> creator, const QualifiedName& attributeName)
     {
@@ -270,7 +270,7 @@ private:
 template<typename PODType, typename PODTypeCreator>
 struct PODTypeWrapperCacheInfo {
     typedef PODType (PODTypeCreator::*GetterMethod)() const; 
-    typedef void (PODTypeCreator::*SetterMethod)(PODType);
+    typedef void (PODTypeCreator::*SetterMethod)(const PODType&);
 
     // Empty value
     PODTypeWrapperCacheInfo()
@@ -357,7 +357,7 @@ template<typename PODType, typename PODTypeCreator>
 class JSSVGDynamicPODTypeWrapperCache {
 public:
     typedef PODType (PODTypeCreator::*GetterMethod)() const; 
-    typedef void (PODTypeCreator::*SetterMethod)(PODType);
+    typedef void (PODTypeCreator::*SetterMethod)(const PODType&);
 
     typedef PODTypeWrapperCacheInfo<PODType, PODTypeCreator> CacheInfo;
     typedef PODTypeWrapperCacheInfoHash<PODType, PODTypeCreator> CacheInfoHash;

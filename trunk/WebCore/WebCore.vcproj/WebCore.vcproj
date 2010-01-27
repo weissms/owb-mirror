@@ -40877,6 +40877,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\svg\SVGAnimatedProperty.h"
+				>
+			</File>
+			<File
+				RelativePath="..\svg\SVGAnimatedPropertySynchronizer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\svg\SVGAnimatedPropertyTraits.h"
+				>
+			</File>
+			<File
 				RelativePath="..\svg\SVGAnimatedTemplate.h"
 				>
 			</File>
@@ -41706,10 +41718,6 @@
 			</File>
 			<File
 				RelativePath="..\svg\SVGZoomEvent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\svg\SynchronizablePropertyController.h"
 				>
 			</File>
 			<Filter
@@ -42924,10 +42932,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\inspector\front-end\JavaScriptTokenizer.js"
-					>
-				</File>
-				<File
 					RelativePath="..\inspector\front-end\MetricsSidebarPane.js"
 					>
 				</File>
@@ -43028,11 +43032,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\inspector\front-end\SourceCSSTokenizer.js"
+					>
+				</File>
+				<File
 					RelativePath="..\inspector\front-end\SourceFrame.js"
 					>
 				</File>
 				<File
 					RelativePath="..\inspector\front-end\SourceFrame2.js"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\SourceHTMLTokenizer.js"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\SourceJavaScriptTokenizer.js"
 					>
 				</File>
 				<File
@@ -43073,6 +43089,10 @@
 				</File>
 				<File
 					RelativePath="..\inspector\front-end\TextEditorModel.js"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\textEditor.css"
 					>
 				</File>
 				<File

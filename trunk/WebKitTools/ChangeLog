@@ -1,3 +1,170 @@
+2010-01-27  Daniel Bates  <dbates@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34070
+
+        Moves the try/catch for OSError exceptions in Executive.run_command
+        to Credentials.read_credentials() so that the unit test
+        webkitpy.scm_unittest.SCMClassTests.test_error_handlers can
+        assert that Executive.run_command throws an OSError exception.
+
+        * Scripts/webkitpy/credentials.py:
+        * Scripts/webkitpy/executive.py: Moved try/catch for OSError to
+        method Credentials.read_credentials().
+        * Scripts/webkitpy/executive_unittest.py: Removed tests that no longer
+        apply: test_run_command_with_bad_command_check_return_code and
+        test_run_command_with_bad_command_check_calls_error_handler. Added new
+        test to assert that run_command throws OSError exceptions.
+
+2010-01-26  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] DRT WebHistory support
+        https://bugs.webkit.org/show_bug.cgi?id=34167
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::reset):
+        (LayoutTestController::webHistoryItemCount):
+        (LayoutTestController::keepWebHistory):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-01-26  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [Win] Add modifiers parameter support to Windows DumpRenderTree
+        https://bugs.webkit.org/show_bug.cgi?id=34068
+
+        Add support for functional name modifiers; "addSelectionKey" and
+        "rangeSelectionKey", and modifiers parameter to eventSender.mouseDown()
+        and eventSender.mouseUp().
+        This change is similar to r53498 for Mac.
+        
+        * DumpRenderTree/win/EventSender.cpp:
+        (buildModifierFlags): New function to set MK_CONTROL or MK_SHIFT to WPARAM.
+        (mouseDownCallback): Call buidlModifiersFlags().
+        (mouseUpCallback): ditto.
+        (keyDownCallback): Add support for "addSelectionkey" and "rangeSelectionKey".
+
+2010-01-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        The Python autoinstall cache directory now only gets created
+        in the directory containing autoinstall.py.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33365
+
+        * Scripts/webkitpy/autoinstall.py:
+          - Also added a README file to the cache directory saying
+            where it came from.
+
+2010-01-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Moved the check-webkit-style processors into a new
+        webkitpy/style/processors directory.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34060
+
+        * Scripts/webkitpy/style/checker.py:
+        * Scripts/webkitpy/style/checker_unittest.py:
+        * Scripts/webkitpy/style/cpp_style.py: Removed.
+        * Scripts/webkitpy/style/cpp_style_unittest.py: Removed.
+        * Scripts/webkitpy/style/processors: Added.
+        * Scripts/webkitpy/style/processors/__init__.py: Added.
+        * Scripts/webkitpy/style/processors/cpp.py: Copied from WebKitTools/Scripts/webkitpy/style/cpp_style.py.
+        * Scripts/webkitpy/style/processors/cpp_unittest.py: Copied from WebKitTools/Scripts/webkitpy/style/cpp_style_unittest.py.
+        * Scripts/webkitpy/style/processors/text.py: Copied from WebKitTools/Scripts/webkitpy/style/text_style.py.
+        * Scripts/webkitpy/style/processors/text_unittest.py: Copied from WebKitTools/Scripts/webkitpy/style/text_style_unittest.py.
+        * Scripts/webkitpy/style/text_style.py: Removed.
+        * Scripts/webkitpy/style/text_style_unittest.py: Removed.
+        * Scripts/webkitpy/style/unittests.py:
+
+2010-01-26  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix, make sure stub function returns a value.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::counterValueForElementById):
+
+2010-01-26  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Windows build references non-existent include paths
+        https://bugs.webkit.org/show_bug.cgi?id=34175
+
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+        * DumpRenderTree/win/ImageDiff.vcproj:
+        * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
+
+2010-01-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Separating out the UrlLoader from the QtLauncher in it's
+        own implementation and header file.
+
+        * QtLauncher/main.cpp:
+        (main):
+        * QtLauncher/urlloader.cpp: Added.
+        (UrlLoader::UrlLoader):
+        (UrlLoader::loadNext):
+        (UrlLoader::init):
+        (UrlLoader::getUrl):
+        * QtLauncher/urlloader.h: Added.
+
+2010-01-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactored check-webkit-style by removing the file path
+        parameter from the style error handler functions.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34031
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added _default_style_error_handler() to StyleChecker class.
+          - Moved handle_style_error() to inside _default_style_error_handler().
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Removed file path from calls to error handler.
+
+        * Scripts/webkitpy/style/cpp_style.py:
+          - Removed file path from calls to error handler.
+
+        * Scripts/webkitpy/style/cpp_style_unittest.py:
+          - Removed file path from calls to error handler.
+
+        * Scripts/webkitpy/style/text_style.py:
+          - Removed file path from calls to error handler.
+
+        * Scripts/webkitpy/style/text_style_unittest.py:
+          - Removed file path from calls to error handler.
+
+2010-01-25  Jeremy Orlow  <jorlow@chromium.org>
+
+        Adding myself as reviewer.  No review necessary.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-01-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Improved prepare-ChangeLog so that it preserves the relative
+        indentation of a git commit message.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34058
+
+        * Scripts/prepare-ChangeLog:
+          - Also adjusted the script so that it does not add white
+            space characters to empty lines.
+
 2010-01-25  Eric Seidel  <eric@webkit.org>
 
         No review, rolling out r53763.

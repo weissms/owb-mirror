@@ -31,8 +31,8 @@
 
 import unittest
 
-import text_style
-from text_style import TextProcessor
+import text as text_style
+from text import TextProcessor
 
 class TextStyleTestCase(unittest.TestCase):
     """TestCase for text_style.py"""
@@ -41,7 +41,7 @@ class TextStyleTestCase(unittest.TestCase):
         """Asserts that the specified lines has no errors."""
         self.had_error = False
 
-        def error_for_test(filename, line_number, category, confidence, message):
+        def error_for_test(line_number, category, confidence, message):
             """Records if an error occurs."""
             self.had_error = True
 
@@ -52,7 +52,7 @@ class TextStyleTestCase(unittest.TestCase):
         """Asserts that the specified lines has an error."""
         self.had_error = False
 
-        def error_for_test(filename, line_number, category, confidence, message):
+        def error_for_test(line_number, category, confidence, message):
             """Checks if the expected error occurs."""
             self.assertEquals(expected_line_number, line_number)
             self.assertEquals('whitespace/tab', category)

@@ -42,6 +42,7 @@ class WebGeolocationControllerClient : public WebCore::GeolocationControllerClie
 public:
     WebGeolocationControllerClient(WebView*);
 
+    virtual void geolocationDestroyed();
     virtual void startUpdating();
     virtual void stopUpdating();
     virtual WebCore::GeolocationPosition* lastPosition();

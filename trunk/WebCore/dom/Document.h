@@ -349,6 +349,7 @@ public:
         ASSERT(type >= FirstUnnamedDocumentCachedType);
         unsigned index = type - FirstUnnamedDocumentCachedType;
         ASSERT(index < NumUnnamedDocumentCachedTypes);
+        m_collectionInfo[index].checkConsistency();
         return &m_collectionInfo[index]; 
     }
 
@@ -622,6 +623,9 @@ public:
     void dispatchWindowEvent(PassRefPtr<Event>, PassRefPtr<EventTarget> = 0);
     void dispatchWindowLoadEvent();
 
+    void enqueueStorageEvent(PassRefPtr<Event>);
+    void storageEventTimerFired(Timer<Document>*);
+
     PassRefPtr<Event> createEvent(const String& eventType, ExceptionCode&);
 
     // keep track of what types of event listeners are registered, so we don't
@@ -827,7 +831,7 @@ public:
     void updateFocusAppearanceSoon();
     void cancelFocusAppearanceUpdate();
         
-    // FF method for accessing the selection added for compatability.
+    // FF method for accessing the selection added for compatibility.
     DOMSelection* getSelection() const;
     
     // Extension for manipulating canvas drawing contexts for use in CSS
@@ -932,6 +936,9 @@ public:
     void resetWMLPageState();
     void initializeWMLPageState();
 #endif
+    
+    bool containsValidityStyleRules() const { return m_containsValidityStyleRules; }
+    void setContainsValidityStyleRules() { m_containsValidityStyleRules = true; }
 
 protected:
     Document(Frame*, bool isXHTML, bool isHTML);
@@ -1071,6 +1078,7 @@ private:
     bool m_isDNSPrefetchEnabled;
     bool m_haveExplicitlyDisabledDNSPrefetch;
     bool m_frameElementsShouldIgnoreScrolling;
+    bool m_containsValidityStyleRules;
 
     String m_title;
     String m_rawTitle;
@@ -1186,6 +1194,9 @@ private:
 #endif
 
     bool m_usingGeolocation;
+
+    Timer<Document> m_storageEventTimer;
+    Vector<RefPtr<Event> > m_storageEventQueue;
 
 #if ENABLE(WML)
     bool m_containsWMLContent;

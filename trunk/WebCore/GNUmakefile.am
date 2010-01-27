@@ -518,6 +518,7 @@ webcore_sources += \
 	WebCore/bridge/jni/JNIBridge.h \
 	WebCore/bridge/jni/JNIUtility.h \
 	WebCore/bridge/jni/jni_jsobject.h \
+	WebCore/bridge/jni/jsc/JNIBridgeJSC.h \
 	WebCore/bridge/jni/jsc/JavaClassJSC.h \
 	WebCore/bridge/jni/jsc/JavaInstanceJSC.h \
 	WebCore/bridge/jsc/BridgeJSC.h \
@@ -3025,6 +3026,8 @@ webcore_sources += \
 	WebCore/svg/SVGAnimatedPoints.cpp \
 	WebCore/svg/SVGAnimatedPoints.h \
 	WebCore/svg/SVGAnimatedProperty.h \
+	WebCore/svg/SVGAnimatedPropertySynchronizer.h \
+	WebCore/svg/SVGAnimatedPropertyTraits.h \
 	WebCore/svg/SVGAnimatedTemplate.h \
 	WebCore/svg/SVGAnimationElement.cpp \
 	WebCore/svg/SVGAnimationElement.h \
@@ -3274,9 +3277,6 @@ webcore_sources += \
 	WebCore/svg/SVGZoomAndPan.h \
 	WebCore/svg/SVGZoomEvent.cpp \
 	WebCore/svg/SVGZoomEvent.h \
-	WebCore/svg/SynchronizablePropertyController.cpp \
-	WebCore/svg/SynchronizablePropertyController.h \
-	WebCore/svg/SynchronizableTypeWrapper.h \
 	WebCore/svg/animation/SMILTime.cpp \
 	WebCore/svg/animation/SMILTime.h \
 	WebCore/svg/animation/SMILTimeContainer.cpp \

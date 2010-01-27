@@ -1,3 +1,33 @@
+2010-01-27  Anders Carlsson  <andersca@apple.com>
+
+        Featureless build fixes.
+
+        * Misc/WebCache.mm:
+        (+[WebCache empty]):
+        * WebCoreSupport/WebApplicationCache.mm:
+        * WebCoreSupport/WebChromeClient.h:
+        * WebView/WebDataSource.mm:
+        (-[WebDataSource _transferApplicationCache:]):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _cacheabilityDictionary]):
+        * WebView/WebView.mm:
+        (WebKitInitializeApplicationCachePathIfNecessary):
+        (-[WebView _close]):
+        * WebView/WebViewData.mm:
+        (-[WebViewPrivate dealloc]):
+        (-[WebViewPrivate finalize]):
+
+2010-01-25  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        A WebGeolocationControllerClient is leaked for every WebView
+        https://bugs.webkit.org/show_bug.cgi?id=34145
+
+        * WebCoreSupport/WebGeolocationControllerClient.h:
+        * WebCoreSupport/WebGeolocationControllerClient.mm:
+        (WebGeolocationControllerClient::geolocationDestroyed):
+
 2010-01-25  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Darin Adler.

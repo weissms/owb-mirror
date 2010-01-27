@@ -124,6 +124,16 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
     return true;
 }
 
+void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec, gpointer data)
+{
+    MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
+    GstElement* element;
+
+    g_object_get(mp->m_playBin, "source", &element, NULL);
+    gst_object_replace((GstObject**) &mp->m_source, (GstObject*) element);
+    gst_object_unref(element);
+}
+
 void mediaPlayerPrivateVolumeChangedCallback(GObject *element, GParamSpec *pspec, gpointer data)
 {
     MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
@@ -237,6 +247,7 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     , m_playbackRate(1)
     , m_errorOccured(false)
     , m_volumeIdleId(-1)
+    , m_mediaDuration(0.0)
 {
     doGstInit();
 }
@@ -255,6 +266,11 @@ MediaPlayerPrivate::~MediaPlayerPrivate()
     if (m_mediaLocations) {
         gst_structure_free(m_mediaLocations);
         m_mediaLocations = 0;
+    }
+
+    if (m_source) {
+        gst_object_unref(m_source);
+        m_source = 0;
     }
 
     if (m_playBin) {
@@ -327,6 +343,9 @@ float MediaPlayerPrivate::duration() const
 
     if (m_errorOccured)
         return 0.0;
+
+    if (m_mediaDuration)
+        return m_mediaDuration;
 
     GstFormat timeFormat = GST_FORMAT_TIME;
     gint64 timeLength = 0;
@@ -650,6 +669,11 @@ void MediaPlayerPrivate::updateStates()
         if (state == GST_STATE_PLAYING) {
             m_readyState = MediaPlayer::HaveEnoughData;
             m_paused = false;
+            if (!m_mediaDuration) {
+                float newDuration = duration();
+                if (!isinf(newDuration))
+                    m_mediaDuration = newDuration;
+            }
         } else
             m_paused = true;
 
@@ -664,10 +688,6 @@ void MediaPlayerPrivate::updateStates()
         }
 
         m_networkState = MediaPlayer::Loaded;
-
-        g_object_get(m_playBin, "source", &m_source, NULL);
-        if (!m_source)
-            LOG_VERBOSE(Media, "m_source is 0");
         break;
     case GST_STATE_CHANGE_ASYNC:
         LOG_VERBOSE(Media, "Async: State: %s, pending: %s",
@@ -833,11 +853,27 @@ void MediaPlayerPrivate::timeChanged()
 
 void MediaPlayerPrivate::didEnd()
 {
+    // EOS was reached but in case of reverse playback the position is
+    // not always 0. So to not confuse the HTMLMediaElement we
+    // synchronize position and duration values.
+    float now = currentTime();
+    if (now > 0)
+        m_mediaDuration = now;
+    gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+
     timeChanged();
 }
 
 void MediaPlayerPrivate::durationChanged()
 {
+    // Reset cached media duration
+    m_mediaDuration = 0;
+
+    // And re-cache it if possible.
+    float newDuration = duration();
+    if (!isinf(newDuration))
+        m_mediaDuration = newDuration;
+
     m_player->durationChanged();
 }
 
@@ -1058,6 +1094,7 @@ void MediaPlayerPrivate::createGSTPlayBin(String url)
     g_object_set(m_playBin, "uri", url.utf8().data(), NULL);
 
     g_signal_connect(m_playBin, "notify::volume", G_CALLBACK(mediaPlayerPrivateVolumeChangedCallback), this);
+    g_signal_connect(m_playBin, "notify::source", G_CALLBACK(mediaPlayerPrivateSourceChangedCallback), this);
 
     m_videoSink = webkit_video_sink_new();
 

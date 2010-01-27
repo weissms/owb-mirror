@@ -28,7 +28,7 @@
 
 #if ENABLE(MAC_JAVA_BRIDGE)
 
-#include "JNIBridge.h"
+#include "JNIBridgeJSC.h"
 #include "JNIUtility.h"
 #include "JNIUtilityPrivate.h"
 #include "JavaClassJSC.h"
@@ -90,6 +90,11 @@ JSValue JavaInstance::stringValue(ExecState* exec) const
     JSLock lock(SilenceAssertionsOnly);
 
     jstring stringValue = (jstring)callJNIMethod<jobject>(m_instance->m_instance, "toString", "()Ljava/lang/String;");
+
+    // Should throw a JS exception, rather than returning ""? - but better than a null dereference.
+    if (!stringValue)
+        return jsString(exec, UString());
+
     JNIEnv* env = getJNIEnv();
     const jchar* c = getUCharactersFromJStringInEnv(env, stringValue);
     UString u((const UChar*)c, (int)env->GetStringLength(stringValue));
@@ -152,7 +157,7 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
     jvalue result;
 
     // Try to use the JNI abstraction first, otherwise fall back to
-    // nornmal JNI.  The JNI dispatch abstraction allows the Java plugin
+    // normal JNI.  The JNI dispatch abstraction allows the Java plugin
     // to dispatch the call on the appropriate internal VM thread.
     RootObject* rootObject = this->rootObject();
     if (!rootObject)
@@ -320,7 +325,7 @@ JObjectWrapper::JObjectWrapper(jobject instance)
 {
     assert(instance);
 
-    // Cache the JNIEnv used to get the global ref for this java instanace.
+    // Cache the JNIEnv used to get the global ref for this java instance.
     // It'll be used to delete the reference.
     m_env = getJNIEnv();
 

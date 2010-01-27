@@ -41,13 +41,13 @@ import os
 import random
 import re
 import unittest
-import cpp_style
-from cpp_style import CppProcessor
+import cpp as cpp_style
+from cpp import CppProcessor
 
 # FIXME: Remove the need to import anything from checker. See the
 #        FIXME notes near the STYLE_CATEGORIES definition for a
 #        suggestion on how to best do this.
-from checker import STYLE_CATEGORIES
+from .. checker import STYLE_CATEGORIES
 
 # This class works as an error collector and replaces cpp_style.Error
 # function for the unit tests.  We also verify each category we see
@@ -62,8 +62,7 @@ class ErrorCollector:
         self._assert_fn = assert_fn
         self._errors = []
 
-    def __call__(self, unused_filename, unused_linenum,
-                 category, confidence, message):
+    def __call__(self, unused_linenum, category, confidence, message):
         self._assert_fn(category in self._all_style_categories,
                         'Message "%s" has category "%s",'
                         ' which is not in STYLE_CATEGORIES' % (message, category))

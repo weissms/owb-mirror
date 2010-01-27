@@ -58,20 +58,21 @@ WebInspector.TextEditor = function(platform)
     this._container.appendChild(cursorElement);
     this._cursor = new WebInspector.TextCursor(cursorElement);
 
-    this._container.addEventListener("scroll", this._scroll.bind(this));
-    this._sheet.addEventListener("mouseup", this._mouseUp.bind(this));
-    this._sheet.addEventListener("mousedown", this._mouseDown.bind(this));
-    this._sheet.addEventListener("mousemove", this._mouseMove.bind(this));
-    this._sheet.addEventListener("mouseout", this._mouseOut.bind(this));
-    this._sheet.addEventListener("dblclick", this._dblClick.bind(this));
-    this.element.addEventListener("keydown", this._keyDown.bind(this));
-    this.element.addEventListener("textInput", this._textInput.bind(this));
-    this.element.addEventListener("beforecopy", this._beforeCopy.bind(this));
-    this.element.addEventListener("copy", this._copy.bind(this));
-    this.element.addEventListener("beforecut", this._beforeCut.bind(this));
-    this.element.addEventListener("cut", this._cut.bind(this));
-    this.element.addEventListener("beforepaste", this._beforePaste.bind(this));
-    this.element.addEventListener("paste", this._paste.bind(this));
+    this._container.addEventListener("scroll", this._scroll.bind(this), false);
+    this._sheet.addEventListener("mouseup", this._mouseUp.bind(this), false);
+    this._sheet.addEventListener("mousedown", this._mouseDown.bind(this), false);
+    this._sheet.addEventListener("mousemove", this._mouseMove.bind(this), false);
+    this._sheet.addEventListener("mouseout", this._mouseOut.bind(this), false);
+    this._sheet.addEventListener("dblclick", this._dblClick.bind(this), false);
+    this._sheet.addEventListener("contextmenu", this._contextMenu.bind(this), false);
+    this.element.addEventListener("keydown", this._keyDown.bind(this), false);
+    this.element.addEventListener("textInput", this._textInput.bind(this), false);
+    this.element.addEventListener("beforecopy", this._beforeCopy.bind(this), false);
+    this.element.addEventListener("copy", this._copy.bind(this), false);
+    this.element.addEventListener("beforecut", this._beforeCut.bind(this), false);
+    this.element.addEventListener("cut", this._cut.bind(this), false);
+    this.element.addEventListener("beforepaste", this._beforePaste.bind(this), false);
+    this.element.addEventListener("paste", this._paste.bind(this), false);
 
     this._desiredCaretColumn = 0;
     this._scrollLeft = 0;
@@ -110,6 +111,11 @@ WebInspector.TextEditor.prototype = {
         this._setCaretLocation(0, 0);
     },
 
+    set mimeType(mimeType)
+    {
+        this._highlighter.mimeType = mimeType;
+    },
+
     get textModel()
     {
         return this._textModel;
@@ -118,6 +124,10 @@ WebInspector.TextEditor.prototype = {
     set readOnly(readOnly)
     {
         this._readOnly = readOnly;
+        if (readOnly)
+            this.element.addStyleClass("text-editor-readonly")
+        else
+            this.element.removeStyleClass("text-editor-readonly")
     },
 
     set lineNumberDecorator(lineNumberDecorator)
@@ -135,6 +145,23 @@ WebInspector.TextEditor.prototype = {
         var start = this._fit(startLine, startColumn);
         this._selection.setStart(start.line, start.column);
         this._setSelectionEnd(endLine, endColumn);
+    },
+
+    setDivDecoration: function(lineNumber, element)
+    {
+        var divDecoration = this._textModel.getAttribute(lineNumber, "div-decoration");
+        if (divDecoration && divDecoration.element && divDecoration.element.parentNode)
+            divDecoration.element.parentNode.removeChild(divDecoration.element);
+        this._textModel.removeAttribute(lineNumber, "div-decoration");
+
+        if (element) {
+            divDecoration = { element: element };
+            this.element.appendChild(element);
+    
+            this._textModel.setAttribute(lineNumber, "div-decoration", divDecoration);
+        }
+
+        this.packAndRepaintAll();
     },
 
     _offsetToLine: function(offset)
@@ -179,16 +206,19 @@ WebInspector.TextEditor.prototype = {
 
     _lineHeight: function(lineNumber)
     {
-        return this._debugMode ? this._textLineHeight * (1 + lineNumber % 3) : this._textLineHeight;
+        var divDecoration = this._textModel.getAttribute(lineNumber, "div-decoration");
+        if (divDecoration)
+            return 2 * this._textLineHeight + divDecoration.element.clientHeight;
+        return this._textLineHeight;
     },
 
     reveal: function(line, column) {
         var maxScrollTop = this._lineToOffset(line);
         var minScrollTop = maxScrollTop + this._lineHeight(line) - this._canvas.height;
         if (this._scrollTop > maxScrollTop)
-            this._container.scrollTop = maxScrollTop;
+            this._container.scrollTop = maxScrollTop - this._textLineHeight * 2;
         else if (this._scrollTop < minScrollTop)
-            this._container.scrollTop = minScrollTop;
+            this._container.scrollTop = minScrollTop + this._textLineHeight * 2;
 
         var firstColumn = this._columnForOffset(line, this._scrollLeft);
         var maxScrollLeft = this._columnToOffset(line, column);
@@ -239,12 +269,25 @@ WebInspector.TextEditor.prototype = {
 
     _highlightChanged: function(fromLine, toLine)
     {
+        if (this._muteHighlightListener)
+            return;
+
         this._invalidateLines(fromLine, toLine);
         this._paint();
     },
 
+    packAndRepaintAll: function()
+    {
+        this.setCoalescingUpdate(true);
+        this._lineOffsetsCache = [0];
+        this._updateSize(0, this._textModel.linesCount);
+        this.repaintAll();
+        this.setCoalescingUpdate(false);
+    },
+
     _updateSize: function(startLine, endLine)
     {
+        this.setCoalescingUpdate(true);
         var guardedEndLine = Math.min(this._textModel.linesCount, endLine + 1);
         var newMaximum = false;
         for (var i = startLine; i < guardedEndLine; ++i) {
@@ -278,11 +321,12 @@ WebInspector.TextEditor.prototype = {
 
         if (newLineNumberDigits !== this._lineNumberDigits) {
             this._lineNumberDigits = newLineNumberDigits;
-            this._repaintAll();
+            this.repaintAll();
         }
-        
+
         // Changes to size can change the client area (scrollers can appear/disappear)
         this.updateCanvasSize();
+        this.setCoalescingUpdate(false);
     },
 
     updateCanvasSize: function()
@@ -290,16 +334,14 @@ WebInspector.TextEditor.prototype = {
         if (this._canvas.width !== this._container.clientWidth || this._canvas.height !== this._container.clientHeight) {
             this._canvas.width = this._container.clientWidth;
             this._canvas.height = this._container.clientHeight;
-            this._repaintAll();
+            this.repaintAll();
         }
     },
 
-    _repaintAll: function()
+    repaintAll: function()
     {
         this._invalidateLines(0, this._textModel.linesCount);
-        this.paintLineNumbers();
         this._paint();
-        this._updateCursor(this._selection.endLine, this._selection.endColumn);
     },
 
     _invalidateLines: function(startLine, endLine)
@@ -324,9 +366,14 @@ WebInspector.TextEditor.prototype = {
         if (this._paintCoalescingLevel)
             return;
 
+        this.paintLineNumbers();
+
         for (var i = 0; this._damage && i < this._damage.length; ++i)
             this._paintLines(this._damage[i].startLine, this._damage[i].endLine);
         delete this._damage;
+
+        this._updateDivDecorations();
+        this._updateCursor(this._selection.endLine, this._selection.endColumn);
     },
 
     _paintLines: function(firstLine, lastLine)
@@ -374,9 +421,11 @@ WebInspector.TextEditor.prototype = {
 
         this._paintSelection(firstLine, lastLine);
 
-        if (this._highlightingEnabled)
+        if (this._highlightingEnabled) {
+            this._muteHighlightListener = true;
             this._highlighter.highlight(lastLine);
-
+            delete this._muteHighlightListener;
+        }
         for (var i = firstLine; i < lastLine; ++i) {
             var line = this._textModel.line(i);
             var lineOffset = this._lineToOffset(i) - this._scrollTop;
@@ -384,16 +433,31 @@ WebInspector.TextEditor.prototype = {
             if (this._lineDecorator)
                 this._lineDecorator.decorate(i, this._ctx, this._lineNumberWidth - 1, lineOffset, this._canvas.width - this._lineNumberWidth + 1, this._lineHeight(i), this._textLineHeight);
 
+            var divDecoration = this._textModel.getAttribute(i, "div-decoration");
+            if (divDecoration)
+                this._positionDivDecoration(i, divDecoration, true);
+
             if (!this._highlightingEnabled) {
                 this._ctx.fillStyle = "rgb(0,0,0)";
                 this._ctx.fillText(line, this._lineNumberWidth - this._scrollLeft, lineOffset + this._textLineHeight);
                 continue;
             }
 
+            if (line.length > 1000) {
+                // Optimization: no need to paint decorations outside visible area.
+                var firstColumn = this._columnForOffset(i, this._scrollLeft);
+                var lastColumn = this._columnForOffset(i, this._scrollLeft + this._canvas.width);
+            }
             var highlighterState = this._textModel.getAttribute(i, "highlighter-state");
             var plainTextStart = -1;
             for (var j = 0; j < line.length;) {
                 var attribute = highlighterState && highlighterState.attributes[j];
+                if (attribute && firstColumn && j + attribute.length < firstColumn) {
+                    j += attribute.length;
+                    continue;
+                }
+                if (attribute && lastColumn && j > lastColumn)
+                    break;
                 if (!attribute || !attribute.style) {
                     if (plainTextStart === -1)
                         plainTextStart = j;
@@ -411,7 +475,7 @@ WebInspector.TextEditor.prototype = {
             }
             if (plainTextStart !== -1) {
                 this._ctx.fillStyle = "rgb(0,0,0)";
-                this._ctx.fillText(line.substring(plainTextStart, line.length), this._lineNumberWidth - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset + this._textLineHeight);
+                this._ctx.fillText(line.substring(plainTextStart, j), this._lineNumberWidth - this._scrollLeft + this._columnToOffset(i, plainTextStart), lineOffset + this._textLineHeight);
             }
         }
         this._ctx.restore();
@@ -458,7 +522,7 @@ WebInspector.TextEditor.prototype = {
         if (this._scrollTop !== this._container.scrollTop || this._scrollLeft !== this._container.scrollLeft) {
             this._scrollTop = this._container.scrollTop;
             this._scrollLeft = this._container.scrollLeft;
-            this._repaintAll();
+            this.repaintAll();
         }
     },
 
@@ -471,7 +535,7 @@ WebInspector.TextEditor.prototype = {
     {
         var location = this._caretForMouseEvent(e);
 
-        if (e.x < this._lineNumberWidth && this._lineNumberDecorator) {
+        if (e.offsetX < this._lineNumberWidth && this._lineNumberDecorator) {
             if (this._lineNumberDecorator.mouseDown(location.line, e))            
                 return;
         }
@@ -494,7 +558,6 @@ WebInspector.TextEditor.prototype = {
 
     _mouseOut: function(e)
     {
-        this._isDragging = false;
     },
 
     _dblClick: function(e)
@@ -504,20 +567,32 @@ WebInspector.TextEditor.prototype = {
         this.setSelection(range.startLine, range.startColumn, range.endLine, range.endColumn);
     },
 
+    _contextMenu: function(e)
+    {
+        if (e.offsetX < this._lineNumberWidth && this._lineNumberDecorator) {
+            var location = this._caretForMouseEvent(e);
+            var line = location.line;
+            if (this._lineNumberDecorator.contextMenu(location.line, e))
+                return;
+        }
+    },
+
     _caretForMouseEvent: function(e)
     {
-        var lineNumber = Math.max(0, this._offsetToLine(e.y + this._scrollTop) - 1);
+        var lineNumber = Math.max(0, this._offsetToLine(e.offsetY) - 1);
         var line = this._textModel.line(lineNumber);
-        var offset = e.x + this._scrollLeft - this._lineNumberWidth - this._digitWidth;
+        var offset = e.offsetX + this._scrollLeft - this._lineNumberWidth - this._digitWidth;
         return { line: lineNumber, column: this._columnForOffset(lineNumber, offset) };
     },
 
     _columnForOffset: function(lineNumber, offset)
     {
+        var length = 0;
         var line = this._textModel.line(lineNumber);
         for (var column = 0; column < line.length; ++column) {
-            if (this._ctx.measureText(line.substring(0, column)).width > offset)
+            if (length > offset)
                 break;
+            length += this._ctx.measureText(line.charAt(column)).width;
         }
         return column;
     },
@@ -608,6 +683,18 @@ WebInspector.TextEditor.prototype = {
                     }
                 }
                 break;
+            case keyCodes.Home:
+                if (this._isMetaCtrl(e))
+                    arrowAction.call(this, 0, 0, true);
+                else
+                    arrowAction.call(this, this._selection.endLine, 0);
+                break;
+            case keyCodes.End:
+                if (this._isMetaCtrl(e))
+                    arrowAction.call(this, this._textModel.linesCount - 1, this._textModel.lineLength(this._textModel.linesCount - 1), true);
+                else
+                    arrowAction.call(this, this._selection.endLine, this._textModel.lineLength(this._selection.endLine));
+                break;
             case keyCodes.Left:
                 if (!e.shiftKey && !e.metaKey && !this._isAltCtrl(e) && !this._selection.isEmpty()) {
                     // Reset selection
@@ -678,6 +765,27 @@ WebInspector.TextEditor.prototype = {
         this._updateCursor(end.line, end.column);
     },
 
+    _updateDivDecorations: function()
+    {
+        var firstLine = this._offsetToLine(this._scrollTop) - 1;
+        var lastLine = this._offsetToLine(this._scrollTop + this._canvas.height) + 1;
+
+        var linesCount = this._textModel.linesCount;
+        for (var i = 0; i < linesCount; ++i) {
+            var divDecoration = this._textModel.getAttribute(i, "div-decoration");
+            if (divDecoration)
+                this._positionDivDecoration(i, divDecoration, i > firstLine && i < lastLine);
+        }
+    },
+
+    _positionDivDecoration: function(lineNumber, divDecoration, visible)
+    {
+        divDecoration.element.style.position = "absolute";
+        divDecoration.element.style.top = this._lineToOffset(lineNumber) - this._scrollTop + this._textLineHeight + "px";
+        divDecoration.element.style.left = this._lineNumberWidth + "px";
+        divDecoration.element.style.setProperty("max-width", this._canvas.width + "px");
+    },
+
     _updateCursor: function(line, column)
     {
         if (line >= this._textModel.linesCount)
@@ -723,7 +831,7 @@ WebInspector.TextEditor.prototype = {
             } else
                 to = this._canvas.width;
 
-            this._ctx.fillRect(from, this._lineToOffset(i) - this._scrollTop, to - from, this._textLineHeight);
+            this._ctx.fillRect(from, this._lineToOffset(i) - this._scrollTop, to - from, this._lineHeight(i));
         }
         this._ctx.fillStyle = "rgb(0, 0, 0)";
     },
@@ -780,14 +888,13 @@ WebInspector.TextEditor.prototype = {
     _replaceSelectionWith: function(newText, overrideRange)
     {
         var range = overrideRange || this._selection.range();
-
-        this._setCoalescingUpdate(true);
+        this.setCoalescingUpdate(true);
         var newRange = this._textModel.setText(range, newText);
         this._setCaretLocation(newRange.endLine, newRange.endColumn);
-        this._setCoalescingUpdate(false);
+        this.setCoalescingUpdate(false);
     },
 
-    _setCoalescingUpdate: function(enabled)
+    setCoalescingUpdate: function(enabled)
     {
         if (enabled)
             this._paintCoalescingLevel++;
@@ -849,20 +956,20 @@ WebInspector.TextEditor.prototype = {
 
     _handleUndo: function()
     {
-        this._setCoalescingUpdate(true);
+        this.setCoalescingUpdate(true);
         var range = this._textModel.undo();
         if (range)
             this._setCaretLocation(range.endLine, range.endColumn);
-        this._setCoalescingUpdate(false);
+        this.setCoalescingUpdate(false);
     },
 
     _handleRedo: function()
     {
-        this._setCoalescingUpdate(true);
+        this.setCoalescingUpdate(true);
         var range = this._textModel.redo();
         if (range)
             this._setCaretLocation(range.endLine, range.endColumn);
-        this._setCoalescingUpdate(false);
+        this.setCoalescingUpdate(false);
     },
 
     _handleDeleteKey: function()
@@ -927,7 +1034,7 @@ WebInspector.TextEditor.prototype = {
     _changeFont: function(sansSerif, fontSize) {
         this._initFont(sansSerif, fontSize);
         this._updateSize(0, this._textModel.linesCount);
-        this._repaintAll();
+        this.repaintAll();
     },
 
     _handleToggleHighlightMode: function()

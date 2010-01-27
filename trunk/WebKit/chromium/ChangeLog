@@ -1,3 +1,25 @@
+2010-01-27  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Add KeyboardTest to WebKit API tests
+        https://bugs.webkit.org/show_bug.cgi?id=34178
+
+        * WebKit.gyp:
+        * tests/KeyboardTest.cpp: Added.
+
+2010-01-22  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Make storage events match the spec.
+        https://bugs.webkit.org/show_bug.cgi?id=30546
+
+        Update the storageEvent algorithm to match the change in WebCore.
+
+        * src/StorageAreaProxy.cpp:
+        (WebCore::StorageAreaProxy::storageEvent):
+
 2010-01-25  Elliot Glaysher  <erg@chromium.org>
 
         Reviewed by David Levin.

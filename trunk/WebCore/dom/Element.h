@@ -74,7 +74,7 @@ public:
     DEFINE_ATTRIBUTE_EVENT_LISTENER(select);
     DEFINE_ATTRIBUTE_EVENT_LISTENER(submit);
 
-    // These 4 attribute event handler attributes are overrided by HTMLBodyElement
+    // These four attribute event handler attributes are overridden by HTMLBodyElement
     // and HTMLFrameSetElement to forward to the DOMWindow.
     DEFINE_VIRTUAL_ATTRIBUTE_EVENT_LISTENER(blur);
     DEFINE_VIRTUAL_ATTRIBUTE_EVENT_LISTENER(error);
@@ -113,7 +113,7 @@ public:
     const AtomicString& getAttributeNS(const String& namespaceURI, const String& localName) const;
 
     void setAttribute(const AtomicString& name, const AtomicString& value, ExceptionCode&);
-    void setAttributeNS(const AtomicString& namespaceURI, const AtomicString& qualifiedName, const AtomicString& value, ExceptionCode&);
+    void setAttributeNS(const AtomicString& namespaceURI, const AtomicString& qualifiedName, const AtomicString& value, ExceptionCode&, FragmentScriptingPermission = FragmentScriptingAllowed);
 
     const QualifiedName& idAttributeName() const;
 
@@ -301,7 +301,7 @@ private:
     virtual void updateStyleAttribute() const { }
 
 #if ENABLE(SVG)
-    virtual void updateAnimatedSVGAttribute(const String&) const { }
+    virtual void updateAnimatedSVGAttribute(const QualifiedName&) const { }
 #endif
 
     void updateFocusAppearanceSoonAfterAttach();
@@ -358,7 +358,7 @@ inline NamedNodeMap* Element::attributes(bool readonly) const
 
 #if ENABLE(SVG)
     if (!m_areSVGAttributesValid)
-        updateAnimatedSVGAttribute(String());
+        updateAnimatedSVGAttribute(anyQName());
 #endif
 
     if (!readonly && !namedAttrMap)

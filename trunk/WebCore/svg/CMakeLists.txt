@@ -131,7 +131,6 @@ if(ENABLE_SVG)
         svg/SVGViewSpec.cpp
         svg/SVGZoomAndPan.cpp
         svg/SVGZoomEvent.cpp
-        svg/SynchronizablePropertyController.cpp
         svg/animation/SMILTime.cpp
         svg/animation/SMILTimeContainer.cpp
         svg/animation/SVGSMILElement.cpp

@@ -27,9 +27,7 @@
 
 #include "config.h"
 
-#if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
-#endif
 #include "DNS.h"
 #include "Editor.h"
 #include "FrameView.h"

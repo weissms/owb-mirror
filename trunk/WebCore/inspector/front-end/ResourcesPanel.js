@@ -193,8 +193,8 @@ WebInspector.ResourcesPanel.prototype = {
 
         var visibleView = this.visibleView;
         if (this.visibleResource) {
-            visibleView.headersVisible = true;
-            visibleView.show(this.viewsContainerElement);
+            this.visibleView.headersVisible = true;
+            this.visibleView.show(this.viewsContainerElement);
         } else if (visibleView)
             visibleView.show();
 

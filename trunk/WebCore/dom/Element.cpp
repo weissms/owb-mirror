@@ -189,7 +189,7 @@ const AtomicString& Element::getAttribute(const QualifiedName& name) const
 
 #if ENABLE(SVG)
     if (!m_areSVGAttributesValid)
-        updateAnimatedSVGAttribute(name.localName());
+        updateAnimatedSVGAttribute(name);
 #endif
 
     if (namedAttrMap)
@@ -495,8 +495,10 @@ const AtomicString& Element::getAttribute(const String& name) const
         updateStyleAttribute();
 
 #if ENABLE(SVG)
-    if (!m_areSVGAttributesValid)
-        updateAnimatedSVGAttribute(name);
+    if (!m_areSVGAttributesValid) {
+        // We're not passing a namespace argument on purpose. SVGNames::*Attr are defined w/o namespaces as well.
+        updateAnimatedSVGAttribute(QualifiedName(nullAtom, name, nullAtom));
+    }
 #endif
 
     if (namedAttrMap)
@@ -625,7 +627,12 @@ static bool isEventHandlerAttribute(const QualifiedName& name)
 {
     return name.namespaceURI().isNull() && name.localName().startsWith("on");
 }
-    
+
+static bool isAttributeToRemove(const QualifiedName& name, const AtomicString& value)
+{    
+    return (name.localName().endsWith(hrefAttr.localName()) || name == srcAttr || name == actionAttr) && protocolIsJavaScript(deprecatedParseURL(value));       
+}
+
 void Element::setAttributeMap(PassRefPtr<NamedNodeMap> list, FragmentScriptingPermission scriptingPermission)
 {
     document()->incDOMTreeVersion();
@@ -657,7 +664,7 @@ void Element::setAttributeMap(PassRefPtr<NamedNodeMap> list, FragmentScriptingPe
                     continue;
                 }
 
-                if ((attributeName.localName().endsWith(hrefAttr.localName()) || attributeName == srcAttr || attributeName == actionAttr) && protocolIsJavaScript(deprecatedParseURL(namedAttrMap->m_attributes[i]->value())))
+                if (isAttributeToRemove(attributeName, namedAttrMap->m_attributes[i]->value()))
                     namedAttrMap->m_attributes[i]->setValue(nullAtom);
                 i++;
             }
@@ -676,7 +683,7 @@ bool Element::hasAttributes() const
 
 #if ENABLE(SVG)
     if (!m_areSVGAttributesValid)
-        updateAnimatedSVGAttribute(String());
+        updateAnimatedSVGAttribute(anyQName());
 #endif
 
     return namedAttrMap && namedAttrMap->length() > 0;
@@ -1162,13 +1169,17 @@ PassRefPtr<Attr> Element::removeAttributeNode(Attr* attr, ExceptionCode& ec)
     return static_pointer_cast<Attr>(attrs->removeNamedItem(attr->qualifiedName(), ec));
 }
 
-void Element::setAttributeNS(const AtomicString& namespaceURI, const AtomicString& qualifiedName, const AtomicString& value, ExceptionCode& ec)
+void Element::setAttributeNS(const AtomicString& namespaceURI, const AtomicString& qualifiedName, const AtomicString& value, ExceptionCode& ec, FragmentScriptingPermission scriptingPermission)
 {
     String prefix, localName;
     if (!Document::parseQualifiedName(qualifiedName, prefix, localName, ec))
         return;
 
     QualifiedName qName(prefix, localName, namespaceURI);
+
+    if (scriptingPermission == FragmentScriptingNotAllowed && (isEventHandlerAttribute(qName) || isAttributeToRemove(qName, value)))
+        return;
+
     setAttribute(qName, value, ec);
 }
 
@@ -1287,7 +1298,7 @@ void Element::updateFocusAppearance(bool /*restorePreviousSelection*/)
         }
     }
     // FIXME: I'm not sure all devices will want this off, but this is
-    // currently turned off for Andriod.
+    // currently turned off for Android.
 #if !ENABLE(DIRECTIONAL_PAD_NAVIGATION)
     else if (renderer() && !renderer()->isWidget())
         renderer()->enclosingLayer()->scrollRectToVisible(getRect());
