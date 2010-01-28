@@ -1,3 +1,12 @@
+2010-01-28  Olivier DOLE  <odole@pleyo.com>
+
+        Add SunSpider/make-hosted.py which is exactly the transcription from
+        PERL to Python of SunSpider/make-hosted PERL script. So this script is
+        only functional in SunSpider directory for the moment.
+
+        * Scripts/SunSpider: Added.
+        * Scripts/SunSpider/make-hosted.py: Added.
+
 2010-01-26  Olivier DOLE  <odole@pleyo.com>
 
         Fix build when accessibility is disabled.
