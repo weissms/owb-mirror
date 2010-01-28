@@ -26,15 +26,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import optparse
+import os
 import shutil
 
-template = open('resources/TEMPLATE.html', 'r')
+parser = optparse.OptionParser()
+parser.add_option('--with-sunspider-dir', action = 'store', type = 'string', dest = 'sunspider', metavar = 'DIR', default = './', help = 'SunSpider DIR [default = %default]')
+parser.add_option('--with-hosted-dir', action = 'store', type = 'string', dest = 'hosted', metavar = 'DIR', default = './hosted', help = 'DIR to store generated files [default = %default]')
+(options, args) = parser.parse_args()
+
+sunspiderDir = os.path.abspath(options.sunspider) + '/'
+hostedDir = os.path.abspath(options.hosted) + '/'
+if not os.path.exists(hostedDir):
+    os.makedirs(hostedDir, 0755)
+
+template = open(sunspiderDir + 'resources/TEMPLATE.html', 'r')
 templateBuffer = template.read()
 template.close()
 
 tests = []
 categories = []
-testList = open('tests/LIST', 'r')
+testList = open(sunspiderDir + 'tests/LIST', 'r')
 for line in testList:
     tests.append(line.rstrip())
     category = tests[-1].split('-')[0]
@@ -43,25 +55,29 @@ for line in testList:
 testList.close()
 
 for test in tests:
-    script = open('tests/' + test + '.js', 'r')
+    script = open(sunspiderDir + 'tests/' + test + '.js', 'r')
     scriptBuffer = script.read()
     script.close()
 
     tmpBuffer = templateBuffer.replace('@NAME@', test)
     outputBuffer = tmpBuffer.replace('@SCRIPT@', scriptBuffer)
 
-    output = open('hosted/' + test + '.html', 'w')
+    output = open(hostedDir + test + '.html', 'w')
     output.write(outputBuffer)
     output.close()
 
 prefixBuffer = 'var tests = ' + str(tests) + ';\n'
 prefixBuffer += 'var categories = ' + str(categories) + ';\n'
 
-prefix = open('hosted/sunspider-test-prefix.js', 'w')
+prefix = open(hostedDir + 'sunspider-test-prefix.js', 'w')
 prefix.write(prefixBuffer)
 prefix.close()
 
-shutil.copy('resources/sunspider-analyze-results.js', 'hosted/')
-shutil.copy('resources/sunspider-compare-results.js', 'hosted/')
+if not os.path.samefile(hostedDir, sunspiderDir + 'hosted'):
+    for file in os.listdir(sunspiderDir + 'hosted'):
+        if os.path.isfile(sunspiderDir + 'hosted/' + file):
+            shutil.copy(sunspiderDir + 'hosted/' + file, hostedDir)
+shutil.copy(sunspiderDir + 'resources/sunspider-analyze-results.js', hostedDir)
+shutil.copy(sunspiderDir + 'resources/sunspider-compare-results.js', hostedDir)
 
-print 'hosted/sunspider.html is ready to use.'
+print hostedDir + 'sunspider.html is ready to use.'

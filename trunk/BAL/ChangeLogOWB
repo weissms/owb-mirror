@@ -1,5 +1,12 @@
 2010-01-28  Olivier DOLE  <odole@pleyo.com>
 
+        Add options to run make-hosted script from any location and to store
+        results in any directory.
+
+        * Scripts/SunSpider/make-hosted.py:
+
+2010-01-28  Olivier DOLE  <odole@pleyo.com>
+
         Add SunSpider/make-hosted.py which is exactly the transcription from
         PERL to Python of SunSpider/make-hosted PERL script. So this script is
         only functional in SunSpider directory for the moment.
