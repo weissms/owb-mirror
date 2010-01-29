@@ -423,10 +423,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSImageDataCustom.cpp \
 	WebCore/bindings/js/JSInjectedScriptHostCustom.cpp \
 	WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp \
-	WebCore/bindings/js/JSInspectedObjectWrapper.cpp \
-	WebCore/bindings/js/JSInspectedObjectWrapper.h \
-	WebCore/bindings/js/JSInspectorCallbackWrapper.cpp \
-	WebCore/bindings/js/JSInspectorCallbackWrapper.h \
 	WebCore/bindings/js/JSJavaScriptCallFrameCustom.cpp \
 	WebCore/bindings/js/JSLazyEventListener.cpp \
 	WebCore/bindings/js/JSLazyEventListener.h \
@@ -454,8 +450,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSPluginElementFunctions.cpp \
 	WebCore/bindings/js/JSPluginElementFunctions.h \
 	WebCore/bindings/js/JSPopStateEventCustom.cpp \
-	WebCore/bindings/js/JSQuarantinedObjectWrapper.cpp \
-	WebCore/bindings/js/JSQuarantinedObjectWrapper.h \
 	WebCore/bindings/js/JSStorageCustom.h \
 	WebCore/bindings/js/JSStyleSheetCustom.cpp \
 	WebCore/bindings/js/JSStyleSheetListCustom.cpp \
@@ -986,6 +980,8 @@ webcore_sources += \
 	WebCore/html/DataGridColumnList.cpp \
 	WebCore/html/DataGridColumnList.h \
 	WebCore/html/DataGridDataSource.h \
+	WebCore/html/DateComponents.cpp \
+	WebCore/html/DateComponents.h \
 	WebCore/html/DOMDataGridDataSource.cpp \
 	WebCore/html/DOMDataGridDataSource.h \
 	WebCore/html/File.cpp \
@@ -1157,8 +1153,6 @@ webcore_sources += \
 	WebCore/html/HTMLUListElement.h \
 	WebCore/html/HTMLViewSourceDocument.cpp \
 	WebCore/html/HTMLViewSourceDocument.h \
-	WebCore/html/ISODateTime.cpp \
-	WebCore/html/ISODateTime.h \
 	WebCore/html/ImageData.cpp \
 	WebCore/html/ImageData.h \
 	WebCore/html/MediaError.h \
@@ -3055,6 +3049,7 @@ webcore_sources += \
 	WebCore/svg/SVGElementInstance.h \
 	WebCore/svg/SVGElementInstanceList.cpp \
 	WebCore/svg/SVGElementInstanceList.h \
+	WebCore/svg/SVGElementRareData.h \
 	WebCore/svg/SVGEllipseElement.cpp \
 	WebCore/svg/SVGEllipseElement.h \
 	WebCore/svg/SVGException.h \

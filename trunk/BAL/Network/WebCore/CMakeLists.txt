@@ -26,6 +26,10 @@ if(USE_NETWORK_QT)
         ${OWB_SOURCE_DIR}/BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
         moc_QNetworkReplyHandler.cpp
     )
+    owb_generate_moc(WEBCORE_SRC
+        ${OWB_SOURCE_DIR}/BAL/Network/WebCore/Qt/BCSocketStreamHandlePrivateQt.h
+        moc_SocketStreamHandlePrivate.cpp
+    )
 
     if(NOT ENABLE_QT_BEARER)
         list(REMOVE_ITEM WEBCORE_SRC

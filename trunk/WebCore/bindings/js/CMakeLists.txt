@@ -81,7 +81,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginElementFunctions.cpp
     bindings/js/JSPopStateEventCustom.cpp
-    bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSStyleSheetCustom.cpp
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp
@@ -160,8 +159,6 @@ endif(ENABLE_GEOLOCATION)
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
         bindings/js/JSConsoleCustom.cpp
-        bindings/js/JSInspectedObjectWrapper.cpp
-        bindings/js/JSInspectorCallbackWrapper.cpp
         bindings/js/JSJavaScriptCallFrameCustom.cpp
     )
 endif(ENABLE_INSPECTOR)

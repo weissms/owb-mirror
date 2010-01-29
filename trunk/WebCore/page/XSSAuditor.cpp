@@ -215,6 +215,7 @@ bool XSSAuditor::canSetBaseElementURL(const String& url) const
     
     FindTask task;
     task.string = url;
+    task.allowRequestIfNoIllegalURICharacters = true;
 
     if (findInRequest(task)) {
 #if ENABLE(INSPECTOR)

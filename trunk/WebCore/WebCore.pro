@@ -52,6 +52,8 @@ CONFIG(standalone_package) {
 
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
+
+    symbian: CONFIG += def_files
 } else {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = generated
     isEmpty(JSC_GENERATED_SOURCES_DIR):JSC_GENERATED_SOURCES_DIR = ../JavaScriptCore/generated
@@ -300,9 +302,7 @@ SOURCES += \
     bindings/js/JSImageConstructor.cpp \
     bindings/js/JSImageDataCustom.cpp \
     bindings/js/JSInjectedScriptHostCustom.cpp \
-    bindings/js/JSInspectedObjectWrapper.cpp \
     bindings/js/JSInspectorFrontendHostCustom.cpp \
-    bindings/js/JSInspectorCallbackWrapper.cpp \
     bindings/js/JSLocationCustom.cpp \
     bindings/js/JSNamedNodeMapCustom.cpp \
     bindings/js/JSNavigatorCustom.cpp  \
@@ -312,7 +312,6 @@ SOURCES += \
     bindings/js/JSNodeIteratorCustom.cpp \
     bindings/js/JSNodeListCustom.cpp \
     bindings/js/JSOptionConstructor.cpp \
-    bindings/js/JSQuarantinedObjectWrapper.cpp \
     bindings/js/JSStyleSheetCustom.cpp \
     bindings/js/JSStyleSheetListCustom.cpp \
     bindings/js/JSTextCustom.cpp \
@@ -570,6 +569,7 @@ SOURCES += \
     html/CollectionCache.cpp \
     html/DataGridColumn.cpp \
     html/DataGridColumnList.cpp \
+    html/DateComponents.cpp \
     html/DOMDataGridDataSource.cpp \
     html/File.cpp \
     html/FileList.cpp \
@@ -655,7 +655,6 @@ SOURCES += \
     html/HTMLTokenizer.cpp \
     html/HTMLUListElement.cpp \
     html/HTMLViewSourceDocument.cpp \
-    html/ISODateTime.cpp \
     html/ImageData.cpp \
     html/PreloadScanner.cpp \
     html/ValidityState.cpp \
@@ -1002,15 +1001,12 @@ HEADERS += \
     bindings/js/JSHTMLObjectElementCustom.h \
     bindings/js/JSHTMLSelectElementCustom.h \
     bindings/js/JSImageConstructor.h \
-    bindings/js/JSInspectedObjectWrapper.h \
-    bindings/js/JSInspectorCallbackWrapper.h \
     bindings/js/JSLazyEventListener.h \
     bindings/js/JSLocationCustom.h \
     bindings/js/JSMessageChannelConstructor.h \
     bindings/js/JSNodeFilterCondition.h \
     bindings/js/JSOptionConstructor.h \
     bindings/js/JSPluginElementFunctions.h \
-    bindings/js/JSQuarantinedObjectWrapper.h \
     bindings/js/JSSharedWorkerConstructor.h \
     bindings/js/JSStorageCustom.h \
     bindings/js/JSWebKitCSSMatrixConstructor.h \
@@ -1258,6 +1254,7 @@ HEADERS += \
     html/CollectionCache.h \
     html/DataGridColumn.h \
     html/DataGridColumnList.h \
+    html/DateComponents.h \
     html/DOMDataGridDataSource.h \
     html/File.h \
     html/FileList.h \
@@ -1347,7 +1344,6 @@ HEADERS += \
     html/HTMLUListElement.h \
     html/HTMLVideoElement.h \
     html/HTMLViewSourceDocument.h \
-    html/ISODateTime.h \
     html/ImageData.h \
     html/PreloadScanner.h \
     html/TimeRanges.h \
@@ -1765,6 +1761,7 @@ HEADERS += \
     svg/SVGElement.h \
     svg/SVGElementInstance.h \
     svg/SVGElementInstanceList.h \
+    svg/SVGElementRareData.h \
     svg/SVGEllipseElement.h \
     svg/SVGExternalResourcesRequired.h \
     svg/SVGFEBlendElement.h \
@@ -2637,6 +2634,9 @@ SOURCES += \
 }
 
 contains(DEFINES, ENABLE_WEB_SOCKETS=1) {
+HEADERS += \
+    platform/network/qt/SocketStreamHandlePrivate.h \
+
 SOURCES += \
     websockets/WebSocket.cpp \
     websockets/WebSocketChannel.cpp \
@@ -2665,6 +2665,7 @@ HEADERS += $$WEBKIT_API_HEADERS
 
     win32-*|wince* {
         DLLDESTDIR = $$OUTPUT_DIR/bin
+        TARGET = $$qtLibraryTarget($$TARGET)
 
         dlltarget.commands = $(COPY_FILE) $(DESTDIR)$(TARGET) $$[QT_INSTALL_BINS]
         dlltarget.CONFIG = no_path

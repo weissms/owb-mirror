@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -28,19 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "V8XMLSerializer.h"
+#ifndef WebEventListener_h
+#define WebEventListener_h
 
-#include "V8Binding.h"
-#include "V8Proxy.h"
-#include "XMLSerializer.h"
+#if WEBKIT_IMPLEMENTATION
+namespace WebCore { class Node; }
+#endif
 
-namespace WebCore {
+namespace WebKit {
 
-v8::Handle<v8::Value> V8Custom::v8XMLSerializerConstructorCallback(const v8::Arguments& args)
-{
-    INC_STATS("DOM.XMLSerializer.Constructor");
-    return V8Proxy::constructDOMObject<V8ClassIndex::XMLSERIALIZER, XMLSerializer>(args);
-}
+class EventListenerWrapper;
+class WebEvent;
+class WebEventListenerPrivate;
+class WebNode;
+class WebString;
 
-} // namespace WebCore
+class WebEventListener {
+public:
+    WebEventListener();
+    virtual ~WebEventListener();
+
+    // Called when an event is received.
+    virtual void handleEvent(const WebEvent&) = 0;
+
+#if WEBKIT_IMPLEMENTATION
+    void notifyEventListenerDeleted(EventListenerWrapper*);
+    EventListenerWrapper* createEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::Node* node);
+    EventListenerWrapper* getEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::Node* node);
+#endif
+
+private:
+    WebEventListenerPrivate* m_private;
+};
+
+} // namespace WebKit
+
+#endif

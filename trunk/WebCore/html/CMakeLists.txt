@@ -3,6 +3,7 @@ list(APPEND WEBCORE_SRC
     html/CollectionCache.cpp
     html/DataGridColumn.cpp
     html/DataGridColumnList.cpp
+    html/DateComponents.cpp
     html/DOMDataGridDataSource.cpp
     html/File.cpp
     html/FileList.cpp
@@ -90,7 +91,6 @@ list(APPEND WEBCORE_SRC
     html/HTMLUListElement.cpp
     html/HTMLViewSourceDocument.cpp
     html/ImageData.cpp
-    html/ISODateTime.cpp
     html/PreloadScanner.cpp
     html/TimeRanges.cpp
     html/ValidityState.cpp

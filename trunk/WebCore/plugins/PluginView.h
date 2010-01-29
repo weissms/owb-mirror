@@ -271,7 +271,7 @@ namespace WebCore {
 
         void handleKeyboardEvent(KeyboardEvent*);
         void handleMouseEvent(MouseEvent*);
-#if defined(Q_WS_X11) && ENABLE(NETSCAPE_PLUGIN_API)
+#if defined(XP_UNIX) && ENABLE(NETSCAPE_PLUGIN_API) && !PLATFORM(BAL)
         void handleFocusInEvent();
         void handleFocusOutEvent();
 #endif
@@ -304,7 +304,7 @@ namespace WebCore {
         bool m_haveInitialized;
         bool m_isWaitingToStart;
 
-#if defined(XP_UNIX) || defined(Q_WS_X11) || PLATFORM(BAL)
+#if defined(XP_UNIX) || PLATFORM(BAL)
         bool m_needsXEmbed;
 #endif
 
@@ -332,7 +332,7 @@ public:
 
 private:
 
-#if defined(XP_UNIX) || defined(Q_WS_X11) || OS(SYMBIAN)
+#if defined(XP_UNIX) || PLATFORM(SYMBIAN)
         void setNPWindowIfNeeded();
 #elif defined(XP_MACOSX)
         NP_CGContext m_npCgContext;
@@ -348,7 +348,7 @@ private:
         Point globalMousePosForPlugin() const;
 #endif
 
-#if defined(Q_WS_X11) && ENABLE(NETSCAPE_PLUGIN_API)
+#if defined(XP_UNIX) && ENABLE(NETSCAPE_PLUGIN_API) && !PLATFORM(BAL)
         bool m_hasPendingGeometryChange;
         Pixmap m_drawable;
         Visual* m_visual;

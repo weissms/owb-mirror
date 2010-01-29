@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2009 Company 100, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,31 +23,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef JSInspectorCallbackWrapper_h
-#define JSInspectorCallbackWrapper_h
+#include "config.h"
 
-#include "JSQuarantinedObjectWrapper.h"
+#include "MarkStack.h"
 
-namespace WebCore {
+#include "FastMalloc.h"
 
-    class JSInspectorCallbackWrapper : public JSQuarantinedObjectWrapper {
-    public:
-        static JSC::JSValue wrap(JSC::ExecState* unwrappedExec, JSC::JSValue unwrappedValue);
+namespace JSC {
 
-        virtual ~JSInspectorCallbackWrapper();
+void MarkStack::initializePagesize()
+{
+    MarkStack::s_pageSize = 4096;
+}
 
-        virtual const JSC::ClassInfo* classInfo() const { return &s_info; }
-        static const JSC::ClassInfo s_info;
+void* MarkStack::allocateStack(size_t size)
+{
+    return fastMalloc(size);
+}
 
-    protected:
-        JSInspectorCallbackWrapper(JSC::ExecState* unwrappedExec, JSC::JSObject* unwrappedObject, NonNullPassRefPtr<JSC::Structure>);
+void MarkStack::releaseStack(void* addr, size_t)
+{
+    return fastFree(addr);
+}
 
-        virtual bool allowsCallAsFunction() const { return true; }
-
-        virtual JSC::JSValue prepareIncomingValue(JSC::ExecState* unwrappedExec, JSC::JSValue unwrappedValue) const;
-        virtual JSC::JSValue wrapOutgoingValue(JSC::ExecState* unwrappedExec, JSC::JSValue unwrappedValue) const { return wrap(unwrappedExec, unwrappedValue); }
-    };
-
-} // namespace WebCore
-
-#endif // JSInspectorCallbackWrapper_h
+}

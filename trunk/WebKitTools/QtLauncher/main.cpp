@@ -31,7 +31,6 @@
  */
 
 #include <QtGui>
-#include <QtNetwork/QNetworkProxy>
 #include <QtNetwork/QNetworkRequest>
 #if !defined(QT_NO_PRINTER)
 #include <QPrintPreviewDialog>
@@ -44,124 +43,59 @@
 #include <QDebug>
 
 #include <cstdio>
+#include "mainwindow.h"
 #include <qevent.h>
 #include <qwebelement.h>
 #include <qwebframe.h>
 #include <qwebinspector.h>
 #include <qwebsettings.h>
-#include <qwebview.h>
 #include "urlloader.h"
+#include "utils.h"
 #include "webinspector.h"
 #include "webpage.h"
+#include "webview.h"
 
 #ifndef NDEBUG
 void QWEBKIT_EXPORT qt_drt_garbageCollector_collect();
 #endif
 
-static QUrl urlFromUserInput(const QString& input)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
-    return QUrl::fromUserInput(input);
-#else
-    return QUrl(input);
-#endif
-}
-
-class WebView : public QWebView {
+class LauncherWindow : public MainWindow {
     Q_OBJECT
+
 public:
-    WebView(QWidget* parent) : QWebView(parent) {}
-
-protected:
-    virtual void contextMenuEvent(QContextMenuEvent* event)
+    LauncherWindow(QString url = QString())
+        : MainWindow(url)
+        , currentZoom(100)
     {
-        QMenu* menu = page()->createStandardContextMenu();
-
-        QWebHitTestResult r = page()->mainFrame()->hitTestContent(event->pos());
-
-        if (!r.linkUrl().isEmpty()) {
-            QAction* newTabAction = menu->addAction(tr("Open in Default &Browser"), this, SLOT(openUrlInDefaultBrowser()));
-            newTabAction->setData(r.linkUrl());
-            menu->insertAction(menu->actions().at(2), newTabAction);
-        }
-
-        menu->exec(mapToGlobal(event->pos()));
-        delete menu;
-    }
-
-    virtual void mousePressEvent(QMouseEvent* event)
-    {
-        setProperty("mouseButtons", QVariant::fromValue(int(event->buttons())));
-        setProperty("keyboardModifiers", QVariant::fromValue(int(event->modifiers())));
-
-        QWebView::mousePressEvent(event);
-    }
-
-};
-
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-public:
-    MainWindow(QString url = QString()): currentZoom(100)
-    {
-        setAttribute(Qt::WA_DeleteOnClose);
-#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
-        if (qgetenv("QTLAUNCHER_USE_ARGB_VISUALS").toInt() == 1)
-            setAttribute(Qt::WA_TranslucentBackground);
-#endif
-
         QSplitter* splitter = new QSplitter(Qt::Vertical, this);
         setCentralWidget(splitter);
 
-        view = new WebView(splitter);
-        WebPage* page = new WebPage(view);
-        view->setPage(page);
+        view = new WebViewTraditional(splitter);
+        view->setPage(page());
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
         view->installEventFilter(this);
         touchMocking = false;
 #endif
 
-        connect(view, SIGNAL(loadFinished(bool)),
-                this, SLOT(loadFinished()));
-        connect(view, SIGNAL(titleChanged(const QString&)),
-                this, SLOT(setWindowTitle(const QString&)));
-        connect(view->page(), SIGNAL(linkHovered(const QString&, const QString&, const QString &)),
+        connect(page(), SIGNAL(loadStarted()), this, SLOT(loadStarted()));
+        connect(page(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinished()));
+        connect(page(), SIGNAL(linkHovered(const QString&, const QString&, const QString&)),
                 this, SLOT(showLinkHover(const QString&, const QString&)));
-        connect(view->page(), SIGNAL(windowCloseRequested()), this, SLOT(close()));
 
         inspector = new WebInspector(splitter);
-        inspector->setPage(page);
+        inspector->setPage(page());
         inspector->hide();
         connect(this, SIGNAL(destroyed()), inspector, SLOT(deleteLater()));
 
         setupUI();
 
-        // set the proxy to the http_proxy env variable - if present
-        QUrl proxyUrl = urlFromUserInput(qgetenv("http_proxy"));
-
-        if (proxyUrl.isValid() && !proxyUrl.host().isEmpty()) {
-            int proxyPort = (proxyUrl.port() > 0)  ? proxyUrl.port() : 8080;
-            page->networkAccessManager()->setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, proxyUrl.host(), proxyPort));
-        }
-
-        QFileInfo fi(url);
-        if (fi.exists() && fi.isRelative())
-            url = fi.absoluteFilePath();
-
-        QUrl qurl = urlFromUserInput(url);
-        if (qurl.scheme().isEmpty())
-            qurl = QUrl("http://" + url + "/");
-        if (qurl.isValid()) {
-            urlEdit->setText(qurl.toString());
-            view->load(qurl);
-        }
-
         // the zoom values are chosen to be like in Mozilla Firefox 3
         zoomLevels << 30 << 50 << 67 << 80 << 90;
         zoomLevels << 100;
         zoomLevels << 110 << 120 << 133 << 150 << 170 << 200 << 240 << 300;
+
+        load(url);
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
@@ -180,13 +114,13 @@ public:
 
         QTouchEvent touchEv(type);
         touchEv.setTouchPoints(touchPoints);
-        QCoreApplication::sendEvent(view->page(), &touchEv);
+        QCoreApplication::sendEvent(page(), &touchEv);
 
         // After sending the event, remove all touchpoints that were released
         if (touchPoints[0].state() == Qt::TouchPointReleased)
             touchPoints.removeAt(0);
         if (touchPoints.size() > 1 && touchPoints[1].state() == Qt::TouchPointReleased)
-            touchPoints.removeAt(1);        
+            touchPoints.removeAt(1);
     }
 
     bool eventFilter(QObject* obj, QEvent* event)
@@ -218,11 +152,11 @@ public:
             touchPoint.setPressure(1);
 
             // If the point already exists, update it. Otherwise create it.
-            if (touchPoints.size() > 0 && !touchPoints[0].id()) 
+            if (touchPoints.size() > 0 && !touchPoints[0].id())
                 touchPoints[0] = touchPoint;
-            else if (touchPoints.size() > 1 && !touchPoints[1].id()) 
+            else if (touchPoints.size() > 1 && !touchPoints[1].id())
                 touchPoints[1] = touchPoint;
-            else 
+            else
                 touchPoints.append(touchPoint);
 
             sendTouchEvent();
@@ -244,7 +178,7 @@ public:
                 touchPoint.setId(1);
                 touchPoint.setScreenPos(QCursor::pos());
                 touchPoint.setPos(view->mapFromGlobal(QCursor::pos()));
-                touchPoint.setPressure(1);            
+                touchPoint.setPressure(1);
                 touchPoints.append(touchPoint);
                 sendTouchEvent();
 
@@ -256,59 +190,22 @@ public:
     }
 #endif // QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
 
-    QWebPage* webPage() const
-    {
-        return view->page();
-    }
-
     QWebView* webView() const
     {
         return view;
     }
 
 protected slots:
-
-    void openFile()
+    void loadStarted()
     {
-        static const QString filter("HTML Files (*.htm *.html);;Text Files (*.txt);;Image Files (*.gif *.jpg *.png);;All Files (*)");
-
-        QFileDialog fileDialog(this, tr("Open"), QString(), filter);
-        fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-        fileDialog.setFileMode(QFileDialog::ExistingFile);
-        fileDialog.setOptions(QFileDialog::ReadOnly);
-
-        if (fileDialog.exec()) {
-            QString selectedFile = fileDialog.selectedFiles()[0];
-            if (!selectedFile.isEmpty())
-                loadURL(QUrl::fromLocalFile(selectedFile));
-        }
-    }
-
-    void changeLocation()
-    {
-        QString string = urlEdit->text();
-        QUrl url = urlFromUserInput(string);
-        if (url.scheme().isEmpty())
-            url = QUrl("http://" + string + "/");
-        loadURL(url);
+        view->setFocus(Qt::OtherFocusReason);
     }
 
     void loadFinished()
     {
-        urlEdit->setText(view->url().toString());
-
-        QUrl::FormattingOptions opts;
-        opts |= QUrl::RemoveScheme;
-        opts |= QUrl::RemoveUserInfo;
-        opts |= QUrl::StripTrailingSlash;
-        QString s = view->url().toString(opts);
-        s = s.mid(2);
-        if (s.isEmpty())
-            return;
-
-        if (!urlList.contains(s))
-            urlList += s;
-        urlModel.setStringList(urlList);
+        QUrl url = page()->mainFrame()->url();
+        setAddressUrl(url.toString());
+        addCompleterEntry(url);
     }
 
     void showLinkHover(const QString &link, const QString &toolTip)
@@ -327,7 +224,7 @@ protected slots:
         if (i < zoomLevels.count() - 1)
             currentZoom = zoomLevels[i + 1];
 
-        view->setZoomFactor(qreal(currentZoom) / 100.0);
+        page()->mainFrame()->setZoomFactor(qreal(currentZoom) / 100.0);
     }
 
     void zoomOut()
@@ -337,18 +234,18 @@ protected slots:
         if (i > 0)
             currentZoom = zoomLevels[i - 1];
 
-        view->setZoomFactor(qreal(currentZoom) / 100.0);
+        page()->mainFrame()->setZoomFactor(qreal(currentZoom) / 100.0);
     }
 
     void resetZoom()
     {
        currentZoom = 100;
-       view->setZoomFactor(1.0);
+       page()->mainFrame()->setZoomFactor(1.0);
     }
 
     void toggleZoomTextOnly(bool b)
     {
-        view->page()->settings()->setAttribute(QWebSettings::ZoomTextOnly, b);
+        page()->settings()->setAttribute(QWebSettings::ZoomTextOnly, b);
     }
 
     void print()
@@ -397,7 +294,7 @@ protected slots:
 
     void dumpHtml()
     {
-        qDebug() << "HTML: " << view->page()->mainFrame()->toHtml();
+        qDebug() << "HTML: " << page()->mainFrame()->toHtml();
     }
 
     void selectElements()
@@ -407,7 +304,7 @@ protected slots:
                                             QLineEdit::Normal, "a", &ok);
 
         if (ok && !str.isEmpty()) {
-            QWebElementCollection result =  view->page()->mainFrame()->findAllElements(str);
+            QWebElementCollection result =  page()->mainFrame()->findAllElements(str);
             foreach (QWebElement e, result)
                 e.setStyleProperty("background-color", "yellow");
             statusBar()->showMessage(QString("%1 element(s) selected").arg(result.count()), 5000);
@@ -423,9 +320,9 @@ protected slots:
 
 public slots:
 
-    void newWindow(const QString &url = QString())
+    void newWindow(const QString& url = QString())
     {
-        MainWindow* mw = new MainWindow(url);
+        LauncherWindow* mw = new LauncherWindow(url);
         mw->show();
     }
 
@@ -434,45 +331,9 @@ private:
     QVector<int> zoomLevels;
     int currentZoom;
 
-    void loadURL(const QUrl& url)
-    {
-        if (!url.isValid())
-            return;
-    
-        urlEdit->setText(url.toString());
-        view->load(url);
-        view->setFocus(Qt::OtherFocusReason);
-    }
-
     // create the status bar, tool bar & menu
     void setupUI()
     {
-        progress = new QProgressBar(this);
-        progress->setRange(0, 100);
-        progress->setMinimumSize(100, 20);
-        progress->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-        progress->hide();
-        statusBar()->addPermanentWidget(progress);
-
-        connect(view, SIGNAL(loadProgress(int)), progress, SLOT(show()));
-        connect(view, SIGNAL(loadProgress(int)), progress, SLOT(setValue(int)));
-        connect(view, SIGNAL(loadFinished(bool)), progress, SLOT(hide()));
-
-        urlEdit = new QLineEdit(this);
-        urlEdit->setSizePolicy(QSizePolicy::Expanding, urlEdit->sizePolicy().verticalPolicy());
-        connect(urlEdit, SIGNAL(returnPressed()),
-                SLOT(changeLocation()));
-        QCompleter* completer = new QCompleter(this);
-        urlEdit->setCompleter(completer);
-        completer->setModel(&urlModel);
-
-        QToolBar* bar = addToolBar("Navigation");
-        bar->addAction(view->pageAction(QWebPage::Back));
-        bar->addAction(view->pageAction(QWebPage::Forward));
-        bar->addAction(view->pageAction(QWebPage::Reload));
-        bar->addAction(view->pageAction(QWebPage::Stop));
-        bar->addWidget(urlEdit);
-
         QMenu* fileMenu = menuBar()->addMenu("&File");
         fileMenu->addAction("New Window", this, SLOT(newWindow()), QKeySequence::New);
         fileMenu->addAction(tr("Open File..."), this, SLOT(openFile()), QKeySequence::Open);
@@ -484,12 +345,12 @@ private:
         fileMenu->addAction("Quit", QApplication::instance(), SLOT(closeAllWindows()), QKeySequence(Qt::CTRL | Qt::Key_Q));
 
         QMenu* editMenu = menuBar()->addMenu("&Edit");
-        editMenu->addAction(view->pageAction(QWebPage::Undo));
-        editMenu->addAction(view->pageAction(QWebPage::Redo));
+        editMenu->addAction(page()->action(QWebPage::Undo));
+        editMenu->addAction(page()->action(QWebPage::Redo));
         editMenu->addSeparator();
-        editMenu->addAction(view->pageAction(QWebPage::Cut));
-        editMenu->addAction(view->pageAction(QWebPage::Copy));
-        editMenu->addAction(view->pageAction(QWebPage::Paste));
+        editMenu->addAction(page()->action(QWebPage::Cut));
+        editMenu->addAction(page()->action(QWebPage::Copy));
+        editMenu->addAction(page()->action(QWebPage::Paste));
         editMenu->addSeparator();
         QAction* setEditable = editMenu->addAction("Set Editable", this, SLOT(setEditable(bool)));
         setEditable->setCheckable(true);
@@ -506,34 +367,22 @@ private:
         zoomTextOnly->setChecked(false);
         viewMenu->addSeparator();
         viewMenu->addAction("Dump HTML", this, SLOT(dumpHtml()));
-        //viewMenu->addAction("Dump plugins", this, SLOT(dumpPlugins()));
+        // viewMenu->addAction("Dump plugins", this, SLOT(dumpPlugins()));
 
         QMenu* formatMenu = new QMenu("F&ormat", this);
         formatMenuAction = menuBar()->addMenu(formatMenu);
         formatMenuAction->setVisible(false);
-        formatMenu->addAction(view->pageAction(QWebPage::ToggleBold));
-        formatMenu->addAction(view->pageAction(QWebPage::ToggleItalic));
-        formatMenu->addAction(view->pageAction(QWebPage::ToggleUnderline));
+        formatMenu->addAction(page()->action(QWebPage::ToggleBold));
+        formatMenu->addAction(page()->action(QWebPage::ToggleItalic));
+        formatMenu->addAction(page()->action(QWebPage::ToggleUnderline));
         QMenu* writingMenu = formatMenu->addMenu(tr("Writing Direction"));
-        writingMenu->addAction(view->pageAction(QWebPage::SetTextDirectionDefault));
-        writingMenu->addAction(view->pageAction(QWebPage::SetTextDirectionLeftToRight));
-        writingMenu->addAction(view->pageAction(QWebPage::SetTextDirectionRightToLeft));
+        writingMenu->addAction(page()->action(QWebPage::SetTextDirectionDefault));
+        writingMenu->addAction(page()->action(QWebPage::SetTextDirectionLeftToRight));
+        writingMenu->addAction(page()->action(QWebPage::SetTextDirectionRightToLeft));
 
-        view->pageAction(QWebPage::Back)->setShortcut(QKeySequence::Back);
-        view->pageAction(QWebPage::Stop)->setShortcut(Qt::Key_Escape);
-        view->pageAction(QWebPage::Forward)->setShortcut(QKeySequence::Forward);
-        view->pageAction(QWebPage::Reload)->setShortcut(QKeySequence::Refresh);
-        view->pageAction(QWebPage::Undo)->setShortcut(QKeySequence::Undo);
-        view->pageAction(QWebPage::Redo)->setShortcut(QKeySequence::Redo);
-        view->pageAction(QWebPage::Cut)->setShortcut(QKeySequence::Cut);
-        view->pageAction(QWebPage::Copy)->setShortcut(QKeySequence::Copy);
-        view->pageAction(QWebPage::Paste)->setShortcut(QKeySequence::Paste);
         zoomIn->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus));
         zoomOut->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
         resetZoom->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_0));
-        view->pageAction(QWebPage::ToggleBold)->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
-        view->pageAction(QWebPage::ToggleItalic)->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
-        view->pageAction(QWebPage::ToggleUnderline)->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_U));
 
         QMenu* toolsMenu = menuBar()->addMenu("&Develop");
         toolsMenu->addAction("Select Elements...", this, SLOT(selectElements()));
@@ -548,15 +397,11 @@ private:
 #endif
     }
 
+private:
     QWebView* view;
-    QLineEdit* urlEdit;
-    QProgressBar* progress;
     WebInspector* inspector;
 
     QAction* formatMenuAction;
-
-    QStringList urlList;
-    QStringListModel urlModel;
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
     QList<QTouchEvent::TouchPoint> touchPoints;
@@ -567,17 +412,13 @@ private:
 
 QWebPage* WebPage::createWindow(QWebPage::WebWindowType)
 {
-    MainWindow* mw = new MainWindow;
+    LauncherWindow* mw = new LauncherWindow;
     mw->show();
-    return mw->webPage();
+    return mw->page();
 }
 
-QObject* WebPage::createPlugin(const QString &classId, const QUrl &url, const QStringList &paramNames, const QStringList &paramValues)
+QObject* WebPage::createPlugin(const QString &classId, const QUrl&, const QStringList&, const QStringList&)
 {
-    Q_UNUSED(url);
-    Q_UNUSED(paramNames);
-    Q_UNUSED(paramValues);
-
     if (classId == "alien_QLabel") {
         QLabel* l = new QLabel;
         l->winId();
@@ -637,7 +478,7 @@ int main(int argc, char **argv)
             qDebug() << "Usage: QtLauncher -r listfile";
             exit(0);
         }
-        MainWindow* window = new MainWindow;
+        LauncherWindow* window = new LauncherWindow;
         QWebView* view = window->webView();
         UrlLoader loader(view->page()->mainFrame(), listFile);
         QObject::connect(view->page()->mainFrame(), SIGNAL(loadFinished(bool)), &loader, SLOT(loadNext()));
@@ -645,13 +486,13 @@ int main(int argc, char **argv)
         window->show();
         launcherMain(app);
     } else {
-        MainWindow* window = 0;
+        LauncherWindow* window = 0;
 
         // Look though the args for something we can open
         for (int i = 1; i < args.count(); i++) {
             if (!args.at(i).startsWith("-")) {
                 if (!window)
-                    window = new MainWindow(args.at(i));
+                    window = new LauncherWindow(args.at(i));
                 else
                     window->newWindow(args.at(i));
             }
@@ -659,7 +500,7 @@ int main(int argc, char **argv)
 
         // If not, just open the default URL
         if (!window)
-            window = new MainWindow(defaultUrl);
+            window = new LauncherWindow(defaultUrl);
 
         window->show();
         launcherMain(app);

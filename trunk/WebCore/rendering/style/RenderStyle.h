@@ -208,26 +208,27 @@ protected:
     struct NonInheritedFlags {
         bool operator==(const NonInheritedFlags& other) const
         {
-            return (_effectiveDisplay == other._effectiveDisplay) &&
-            (_originalDisplay == other._originalDisplay) &&
-            (_overflowX == other._overflowX) &&
-            (_overflowY == other._overflowY) &&
-            (_vertical_align == other._vertical_align) &&
-            (_clear == other._clear) &&
-            (_position == other._position) &&
-            (_floating == other._floating) &&
-            (_table_layout == other._table_layout) &&
-            (_page_break_before == other._page_break_before) &&
-            (_page_break_after == other._page_break_after) &&
-            (_styleType == other._styleType) &&
-            (_affectedByHover == other._affectedByHover) &&
-            (_affectedByActive == other._affectedByActive) &&
-            (_affectedByDrag == other._affectedByDrag) &&
-            (_pseudoBits == other._pseudoBits) &&
+            return _effectiveDisplay == other._effectiveDisplay
+            && _originalDisplay == other._originalDisplay
+            && _overflowX == other._overflowX
+            && _overflowY == other._overflowY
+            && _vertical_align == other._vertical_align
+            && _clear == other._clear
+            && _position == other._position
+            && _floating == other._floating
+            && _table_layout == other._table_layout
+            && _page_break_before == other._page_break_before
+            && _page_break_after == other._page_break_after
+            && _page_break_inside == other._page_break_inside
+            && _styleType == other._styleType
+            && _affectedByHover == other._affectedByHover
+            && _affectedByActive == other._affectedByActive
+            && _affectedByDrag == other._affectedByDrag
+            && _pseudoBits == other._pseudoBits
 #if ENABLE(CEHTML)
-            (_inputFormat == other._inputFormat) &&
+            && _inputFormat == other._inputFormat
 #endif
-            (_unicodeBidi == other._unicodeBidi);
+            && _unicodeBidi == other._unicodeBidi;
         }
 
         bool operator!=(const NonInheritedFlags& other) const { return !(*this == other); }
@@ -244,6 +245,7 @@ protected:
 
         unsigned _page_break_before : 2; // EPageBreak
         unsigned _page_break_after : 2; // EPageBreak
+        unsigned _page_break_inside : 2; // EPageBreak
 
         unsigned _styleType : 5; // PseudoId
         bool _affectedByHover : 1;
@@ -254,7 +256,7 @@ protected:
 #if ENABLE(CEHTML)
         unsigned _inputFormat : 2; // EInputFormat
 #endif
-        // 48 bits
+        // 50 bits
     } noninherited_flags;
 
 // !END SYNC!
@@ -290,6 +292,7 @@ protected:
         noninherited_flags._table_layout = initialTableLayout();
         noninherited_flags._page_break_before = initialPageBreak();
         noninherited_flags._page_break_after = initialPageBreak();
+        noninherited_flags._page_break_inside = initialPageBreak();
         noninherited_flags._styleType = NOPSEUDO;
         noninherited_flags._affectedByHover = false;
         noninherited_flags._affectedByActive = false;
@@ -594,7 +597,7 @@ public:
 
     short widows() const { return inherited->widows; }
     short orphans() const { return inherited->orphans; }
-    EPageBreak pageBreakInside() const { return static_cast<EPageBreak>(inherited->page_break_inside); }
+    EPageBreak pageBreakInside() const { return static_cast<EPageBreak>(noninherited_flags._page_break_inside); }
     EPageBreak pageBreakBefore() const { return static_cast<EPageBreak>(noninherited_flags._page_break_before); }
     EPageBreak pageBreakAfter() const { return static_cast<EPageBreak>(noninherited_flags._page_break_after); }
 
@@ -930,7 +933,7 @@ public:
 
     void setWidows(short w) { SET_VAR(inherited, widows, w); }
     void setOrphans(short o) { SET_VAR(inherited, orphans, o); }
-    void setPageBreakInside(EPageBreak b) { SET_VAR(inherited, page_break_inside, b); }
+    void setPageBreakInside(EPageBreak b) { noninherited_flags._page_break_inside = b; }
     void setPageBreakBefore(EPageBreak b) { noninherited_flags._page_break_before = b; }
     void setPageBreakAfter(EPageBreak b) { noninherited_flags._page_break_after = b; }
 

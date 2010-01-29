@@ -299,6 +299,12 @@ END
             push(@enabledAtRuntime, $function);
         }
     }
+
+    if ($dataNode->extendedAttributes->{"CustomConstructor"} || $dataNode->extendedAttributes->{"CanBeConstructed"}) {
+        push(@headerContent, <<END);
+  static v8::Handle<v8::Value> constructorCallback(const v8::Arguments& args);
+END
+    }
     
     foreach my $attribute (@{$dataNode->attributes}) {
         my $name = $attribute->signature->name;
@@ -357,6 +363,7 @@ sub GetInternalFields
     return ("cacheIndex", "implementationIndex") if ($name eq "Document") || ($name eq "SVGDocument");
     return ("cacheIndex", "implementationIndex", "markerIndex", "shadowIndex") if $name eq "HTMLDocument";
     return ("cacheIndex") if IsNodeSubType($dataNode);
+    return ("cacheIndex") if $name eq "EventSource";
     return ("cacheIndex") if $name eq "XMLHttpRequest";
     return ("cacheIndex") if $name eq "XMLHttpRequestUpload";
     return ("cacheIndex") if $name eq "MessagePort";
@@ -428,6 +435,7 @@ END
 my %indexerSpecialCases = (
     "Storage" => 1,
     "HTMLAppletElement" => 1,
+    "HTMLDocument" => 1,
     "HTMLEmbedElement" => 1,
     "HTMLObjectElement" => 1
 );
@@ -1236,7 +1244,7 @@ sub GenerateSingleBatchedAttribute
         }
 
         # Custom Getter
-        if ($attrExt->{"CustomGetter"} || $attrExt->{"Custom"} || $attrExt->{"V8Custom"}) {
+        if ($attrExt->{"CustomGetter"} || $attrExt->{"V8CustomGetter"} || $attrExt->{"Custom"} || $attrExt->{"V8Custom"}) {
             $getter = "V8${customAccessor}AccessorGetter";
         }
     }
@@ -1304,7 +1312,9 @@ sub GenerateImplementationIndexer
     my $isSpecialCase = exists $indexerSpecialCases{$interfaceName};
     if ($isSpecialCase) {
         $hasGetter = 1;
-        $hasCustomSetter = 1;
+        if ($dataNode->extendedAttributes->{"DelegatingPutFunction"}) {
+            $hasCustomSetter = 1;
+        }
     }
 
     if (!$hasGetter) {
@@ -1410,7 +1420,7 @@ END
 
     push(@implContent, "  desc->${setOn}Template()->SetNamedPropertyHandler(V8${interfaceName}::namedPropertyGetter, ");
     push(@implContent, $hasSetter ? "V8${interfaceName}::namedPropertySetter, " : "0, ");
-    push(@implContent, "0 ,"); # NamedPropertyQuery -- not being used at the moment.
+    push(@implContent, "0, "); # NamedPropertyQuery -- not being used at the moment.
     push(@implContent, $hasDeleter ? "V8${interfaceName}::namedPropertyDeleter, " : "0, ");
     push(@implContent, $hasEnumerator ? "V8${interfaceName}::namedPropertyEnumerator" : "0");
     push(@implContent, ");\n");
@@ -1487,7 +1497,8 @@ sub GenerateImplementation
 
         # Generate special code for the constructor attributes.
         if ($attrType =~ /Constructor$/) {
-            if ($attribute->signature->extendedAttributes->{"CustomGetter"}) {
+            if ($attribute->signature->extendedAttributes->{"CustomGetter"} ||
+                $attribute->signature->extendedAttributes->{"V8CustomGetter"}) {
                 $implIncludes{"V8CustomBinding.h"} = 1;
             } else {
                 $hasConstructors = 1;
@@ -1509,7 +1520,8 @@ sub GenerateImplementation
         }
 
         # Generate the accessor.
-        if ($attribute->signature->extendedAttributes->{"CustomGetter"}) {
+        if ($attribute->signature->extendedAttributes->{"CustomGetter"} ||
+            $attribute->signature->extendedAttributes->{"V8CustomGetter"}) {
             $implIncludes{"V8CustomBinding.h"} = 1;
         } else {
             GenerateNormalAttrGetter($attribute, $dataNode, $classIndex, $implClassName, $interfaceName);
@@ -1528,7 +1540,7 @@ sub GenerateImplementation
     if ($hasConstructors) {
         GenerateConstructorGetter($implClassName, $classIndex);
     }
-
+   
     my $indexer;
     my $namedPropertyGetter;
     # Generate methods for functions.
@@ -1646,6 +1658,17 @@ END
 
     push(@implContentDecls, "} // namespace ${interfaceName}Internal\n\n");
 
+    # In namespace WebCore, add generated implementation for 'CanBeConstructed'.
+    if ($dataNode->extendedAttributes->{"CanBeConstructed"} && !$dataNode->extendedAttributes->{"CustomConstructor"}) {
+        push(@implContent, <<END);
+ v8::Handle<v8::Value> ${className}::constructorCallback(const v8::Arguments& args)
+  {
+    INC_STATS("DOM.${interfaceName}.Contructor");
+    return V8Proxy::constructDOMObject<V8ClassIndex::${classIndex}, $interfaceName>(args);
+  }
+END
+   }
+
     my $access_check = "";
     if ($dataNode->extendedAttributes->{"CheckDomainSecurity"} && !($interfaceName eq "DOMWindow")) {
         $access_check = "instance->SetAccessCheckCallbacks(V8${interfaceName}::namedSecurityCheck, V8${interfaceName}::indexedSecurityCheck, v8::Integer::New(V8ClassIndex::ToInt(V8ClassIndex::${classIndex})));";
@@ -1685,7 +1708,6 @@ static v8::Persistent<v8::FunctionTemplate> Configure${className}Template(v8::Pe
   v8::Local<v8::Signature> default_signature = configureTemplate(desc, \"${interfaceName}\",
       V8ClassIndex::$parentClassIndex, V8${interfaceName}::internalFieldCount,
 END
-
     # Set up our attributes if we have them
     if ($has_attributes) {
         push(@implContent, <<END);
@@ -1704,6 +1726,12 @@ END
     } else {
         push(@implContent, <<END);
       NULL, 0);
+END
+    }
+
+    if ($dataNode->extendedAttributes->{"CustomConstructor"} || $dataNode->extendedAttributes->{"CanBeConstructed"}) {
+        push(@implContent, <<END);
+      desc->SetCallHandler(V8${interfaceName}::constructorCallback);
 END
     }
 

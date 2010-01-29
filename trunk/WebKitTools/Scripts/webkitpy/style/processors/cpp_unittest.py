@@ -44,17 +44,12 @@ import unittest
 import cpp as cpp_style
 from cpp import CppProcessor
 
-# FIXME: Remove the need to import anything from checker. See the
-#        FIXME notes near the STYLE_CATEGORIES definition for a
-#        suggestion on how to best do this.
-from .. checker import STYLE_CATEGORIES
-
 # This class works as an error collector and replaces cpp_style.Error
 # function for the unit tests.  We also verify each category we see
 # is in STYLE_CATEGORIES, to help keep that list up to date.
 class ErrorCollector:
-    _all_style_categories = STYLE_CATEGORIES
-    # This a list including all categories seen in any unit test.
+    _all_style_categories = CppProcessor.categories
+    # This is a list including all categories seen in any unit test.
     _seen_style_categories = {}
 
     def __init__(self, assert_fn):
@@ -110,6 +105,16 @@ class MockIo:
         return self.mock_file
 
 
+class CppFunctionsTest(unittest.TestCase):
+
+    """Supports testing functions that do not need CppStyleTestBase."""
+
+    def test_is_c_or_objective_c(self):
+        self.assertTrue(cpp_style.is_c_or_objective_c("c"))
+        self.assertTrue(cpp_style.is_c_or_objective_c("m"))
+        self.assertFalse(cpp_style.is_c_or_objective_c("cpp"))
+
+
 class CppStyleTestBase(unittest.TestCase):
     """Provides some useful helper functions for cpp_style tests.
 
@@ -133,7 +138,7 @@ class CppStyleTestBase(unittest.TestCase):
     def perform_single_line_lint(self, code, file_name):
         error_collector = ErrorCollector(self.assert_)
         lines = code.split('\n')
-        cpp_style.remove_multi_line_comments(file_name, lines, error_collector)
+        cpp_style.remove_multi_line_comments(lines, error_collector)
         clean_lines = cpp_style.CleansedLines(lines)
         include_state = cpp_style._IncludeState()
         function_state = cpp_style._FunctionState(self.verbosity)
@@ -150,19 +155,18 @@ class CppStyleTestBase(unittest.TestCase):
         return error_collector.results()
 
     # Perform lint over multiple lines and return the error message.
-    def perform_multi_line_lint(self, code, file_name):
+    def perform_multi_line_lint(self, code, file_extension):
         error_collector = ErrorCollector(self.assert_)
         lines = code.split('\n')
-        cpp_style.remove_multi_line_comments(file_name, lines, error_collector)
+        cpp_style.remove_multi_line_comments(lines, error_collector)
         lines = cpp_style.CleansedLines(lines)
-        ext = file_name[file_name.rfind('.') + 1:]
         class_state = cpp_style._ClassState()
         file_state = cpp_style._FileState()
         for i in xrange(lines.num_lines()):
-            cpp_style.check_style(file_name, lines, i, ext, file_state, error_collector)
-            cpp_style.check_for_non_standard_constructs(file_name, lines, i, class_state,
+            cpp_style.check_style(lines, i, file_extension, file_state, error_collector)
+            cpp_style.check_for_non_standard_constructs(lines, i, class_state,
                                                         error_collector)
-        class_state.check_finished(file_name, error_collector)
+        class_state.check_finished(error_collector)
         return error_collector.results()
 
     # Similar to perform_multi_line_lint, but calls check_language instead of
@@ -171,7 +175,7 @@ class CppStyleTestBase(unittest.TestCase):
         error_collector = ErrorCollector(self.assert_)
         include_state = cpp_style._IncludeState()
         lines = code.split('\n')
-        cpp_style.remove_multi_line_comments(file_name, lines, error_collector)
+        cpp_style.remove_multi_line_comments(lines, error_collector)
         lines = cpp_style.CleansedLines(lines)
         ext = file_name[file_name.rfind('.') + 1:]
         for i in xrange(lines.num_lines()):
@@ -194,14 +198,13 @@ class CppStyleTestBase(unittest.TestCase):
         Returns:
           The accumulated errors.
         """
-        file_name = 'foo.cpp'
         error_collector = ErrorCollector(self.assert_)
         function_state = cpp_style._FunctionState(self.verbosity)
         lines = code.split('\n')
-        cpp_style.remove_multi_line_comments(file_name, lines, error_collector)
+        cpp_style.remove_multi_line_comments(lines, error_collector)
         lines = cpp_style.CleansedLines(lines)
         for i in xrange(lines.num_lines()):
-            cpp_style.check_for_function_lengths(file_name, lines, i,
+            cpp_style.check_for_function_lengths(lines, i,
                                                  function_state, error_collector)
         return error_collector.results()
 
@@ -210,10 +213,11 @@ class CppStyleTestBase(unittest.TestCase):
         error_collector = ErrorCollector(self.assert_)
         include_state = cpp_style._IncludeState()
         lines = code.split('\n')
-        cpp_style.remove_multi_line_comments(filename, lines, error_collector)
+        cpp_style.remove_multi_line_comments(lines, error_collector)
         lines = cpp_style.CleansedLines(lines)
+        file_extension = filename[filename.rfind('.') + 1:]
         for i in xrange(lines.num_lines()):
-            cpp_style.check_language(filename, lines, i, '.h', include_state,
+            cpp_style.check_language(filename, lines, i, file_extension, include_state,
                                      error_collector)
         # We could clear the error_collector here, but this should
         # also be fine, since our IncludeWhatYouUse unittests do not
@@ -237,10 +241,12 @@ class CppStyleTestBase(unittest.TestCase):
         self.assertEquals(expected_message, messages)
 
     def assert_multi_line_lint(self, code, expected_message, file_name='foo.h'):
-        self.assertEquals(expected_message, self.perform_multi_line_lint(code, file_name))
+        file_extension = file_name[file_name.rfind('.') + 1:]
+        self.assertEquals(expected_message, self.perform_multi_line_lint(code, file_extension))
 
     def assert_multi_line_lint_re(self, code, expected_message_re, file_name='foo.h'):
-        message = self.perform_multi_line_lint(code, file_name)
+        file_extension = file_name[file_name.rfind('.') + 1:]
+        message = self.perform_multi_line_lint(code, file_extension)
         if not re.search(expected_message_re, message):
             self.fail('Message was:\n' + message + 'Expected match to "' + expected_message_re + '"')
 
@@ -1167,10 +1173,16 @@ class CppStyleTest(CppStyleTestBase):
                          '  [whitespace/parens] [5]')
         self.assert_lint('for (foo; ba; bar ) {', 'Mismatching spaces inside () in for'
                          '  [whitespace/parens] [5]')
+        self.assert_lint('for ((foo); (ba); (bar) ) {', 'Mismatching spaces inside () in for'
+                         '  [whitespace/parens] [5]')
         self.assert_lint('for (; foo; bar) {', '')
+        self.assert_lint('for (; (foo); (bar)) {', '')
         self.assert_lint('for ( ; foo; bar) {', '')
+        self.assert_lint('for ( ; (foo); (bar)) {', '')
         self.assert_lint('for ( ; foo; bar ) {', '')
+        self.assert_lint('for ( ; (foo); (bar) ) {', '')
         self.assert_lint('for (foo; bar; ) {', '')
+        self.assert_lint('for ((foo); (bar); ) {', '')
         self.assert_lint('foreach (foo, foos ) {', 'Mismatching spaces inside () in foreach'
                          '  [whitespace/parens] [5]')
         self.assert_lint('foreach ( foo, foos) {', 'Mismatching spaces inside () in foreach'
@@ -2998,12 +3010,15 @@ class WebKitStyleTest(CppStyleTestBase):
             '        doIt();\n',
             '')
         self.assert_multi_line_lint(
+            '    if (condition) \\\n'
+            '        doIt();\n',
+            '')
+        self.assert_multi_line_lint(
             '    x++; y++;',
             'More than one command on the same line  [whitespace/newline] [4]')
-        # FIXME: Make this fail.
-        # self.assert_multi_line_lint(
-        #     '    if (condition) doIt();\n',
-        #     '')
+        self.assert_multi_line_lint(
+            '    if (condition) doIt();\n',
+            'More than one command on the same line in if  [whitespace/parens] [4]')
 
         # 2. An else statement should go on the same line as a preceding
         #   close brace if one is present, else it should line up with the
@@ -3035,6 +3050,13 @@ class WebKitStyleTest(CppStyleTestBase):
             '#define TEST_ASSERT(expression) do { if (!(expression)) { TestsController::shared().testFailed(__FILE__, __LINE__, #expression); return; } } while (0)\n',
             '')
         self.assert_multi_line_lint(
+            '#define TEST_ASSERT(expression) do { if ( !(expression)) { TestsController::shared().testFailed(__FILE__, __LINE__, #expression); return; } } while (0)\n',
+            'Mismatching spaces inside () in if  [whitespace/parens] [5]')
+        # FIXME: currently we only check first conditional, so we cannot detect errors in next ones.
+        # self.assert_multi_line_lint(
+        #     '#define TEST_ASSERT(expression) do { if (!(expression)) { TestsController::shared().testFailed(__FILE__, __LINE__, #expression); return; } } while (0 )\n',
+        #     'Mismatching spaces inside () in if  [whitespace/parens] [5]')
+        self.assert_multi_line_lint(
             'if (condition) {\n'
             '    doSomething();\n'
             '    doSomethingAgain();\n'
@@ -3047,13 +3069,14 @@ class WebKitStyleTest(CppStyleTestBase):
         self.assert_multi_line_lint(
             'if (condition) doSomething(); else doSomethingElse();\n',
             ['More than one command on the same line  [whitespace/newline] [4]',
-             'Else clause should never be on same line as else (use 2 lines)  [whitespace/newline] [4]'])
-        # FIXME: Make this fail.
-        # self.assert_multi_line_lint(
-        #     'if (condition) doSomething(); else {\n'
-        #     '    doSomethingElse();\n'
-        #     '}\n',
-        #     '')
+             'Else clause should never be on same line as else (use 2 lines)  [whitespace/newline] [4]',
+             'More than one command on the same line in if  [whitespace/parens] [4]'])
+        self.assert_multi_line_lint(
+            'if (condition) doSomething(); else {\n'
+            '    doSomethingElse();\n'
+            '}\n',
+            ['More than one command on the same line in if  [whitespace/parens] [4]',
+             'One line control clauses should not use braces.  [whitespace/braces] [4]'])
 
         # 3. An else if statement should be written as an if statement
         #    when the prior if concludes with a return statement.

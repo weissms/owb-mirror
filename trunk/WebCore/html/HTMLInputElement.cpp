@@ -28,6 +28,7 @@
 
 #include "CSSPropertyNames.h"
 #include "ChromeClient.h"
+#include "DateComponents.h"
 #include "Document.h"
 #include "Editor.h"
 #include "Event.h"
@@ -44,7 +45,6 @@
 #include "HTMLImageLoader.h"
 #include "HTMLNames.h"
 #include "HTMLOptionElement.h"
-#include "ISODateTime.h"
 #include "ScriptEventListener.h"
 #include "KeyboardEvent.h"
 #include "LocalizedStrings.h"
@@ -82,9 +82,11 @@ const int maxSavedResults = 256;
 static const double numberDefaultStep = 1.0;
 static const double numberStepScaleFactor = 1.0;
 // Constant values for minimum().
+static const double dateDefaultMinimum = -12219292800000.0; // This means 1582-10-15T00:00Z.
 static const double numberDefaultMinimum = -DBL_MAX;
 static const double rangeDefaultMinimum = 0.0;
 // Constant values for maximum().
+static const double dateDefaultMaximum = DBL_MAX;
 static const double numberDefaultMaximum = DBL_MAX;
 static const double rangeDefaultMaximum = 100.0;
 
@@ -269,46 +271,153 @@ bool HTMLInputElement::tooLong() const
 
 bool HTMLInputElement::rangeUnderflow() const
 {
-    if (inputType() == NUMBER || inputType() == RANGE) {
-        double doubleValue;
-        if (formStringToDouble(value(), &doubleValue))
-            return doubleValue < minimum();
+    const double nan = numeric_limits<double>::quiet_NaN();
+    switch (inputType()) {
+    case DATE:
+    case NUMBER:
+    case RANGE: {
+        double doubleValue = parseToDouble(value(), nan);
+        return isfinite(doubleValue) && doubleValue < minimum();
+    }
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case MONTH:
+    case PASSWORD:
+    case RADIO:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case TIME:
+    case URL:
+    case WEEK:
+        break;
     }
     return false;
 }
 
 bool HTMLInputElement::rangeOverflow() const
 {
-    if (inputType() == NUMBER || inputType() == RANGE) {
-        double doubleValue;
-        if (formStringToDouble(value(), &doubleValue))
-            return doubleValue > maximum();
+    const double nan = numeric_limits<double>::quiet_NaN();
+    switch (inputType()) {
+    case DATE:
+    case NUMBER:
+    case RANGE: {
+        double doubleValue = parseToDouble(value(), nan);
+        return isfinite(doubleValue) && doubleValue >  maximum();
+    }
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case MONTH:
+    case PASSWORD:
+    case RADIO:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case TIME:
+    case URL:
+    case WEEK:
+        break;
     }
     return false;
 }
 
 double HTMLInputElement::minimum() const
 {
-    ASSERT(inputType() == NUMBER || inputType() == RANGE);
-    double min = inputType() == RANGE ? rangeDefaultMinimum : numberDefaultMinimum;
-    formStringToDouble(getAttribute(minAttr), &min);
-    return min;
+    switch (inputType()) {
+    case DATE:
+        return parseToDouble(getAttribute(minAttr), dateDefaultMinimum);
+    case NUMBER:
+        return parseToDouble(getAttribute(minAttr), numberDefaultMinimum);
+    case RANGE:
+        return parseToDouble(getAttribute(minAttr), rangeDefaultMinimum);
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case MONTH:
+    case PASSWORD:
+    case RADIO:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case TIME:
+    case URL:
+    case WEEK:
+        break;
+    }
+    ASSERT_NOT_REACHED();
+    return 0;
 }
 
 double HTMLInputElement::maximum() const
 {
-    ASSERT(inputType() == NUMBER || inputType() == RANGE);
-    double defaultMaximum = inputType() == RANGE ? rangeDefaultMaximum : numberDefaultMaximum;
-    double max = defaultMaximum;
-    formStringToDouble(getAttribute(maxAttr), &max);
-    if (inputType() == RANGE) {
+    switch (inputType()) {
+    case DATE:
+        return parseToDouble(getAttribute(maxAttr), dateDefaultMaximum);
+    case NUMBER:
+        return parseToDouble(getAttribute(maxAttr), numberDefaultMaximum);
+    case RANGE: {
+        double max = parseToDouble(getAttribute(maxAttr), rangeDefaultMaximum);
         // A remedy for the inconsistent min/max values for RANGE.
         // Sets the maximum to the default or the minimum value.
         double min = minimum();
         if (max < min)
-            max = std::max(min, defaultMaximum);
+            max = std::max(min, rangeDefaultMaximum);
+        return max;
     }
-    return max;
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case MONTH:
+    case PASSWORD:
+    case RADIO:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case TIME:
+    case URL:
+    case WEEK:
+        break;
+    }
+    ASSERT_NOT_REACHED();
+    return 0;
 }
 
 double HTMLInputElement::stepBase() const
@@ -1379,6 +1488,53 @@ void HTMLInputElement::setValue(const String& value, bool sendChangeEvent)
     updateValidity();
 }
 
+double HTMLInputElement::parseToDouble(const String& src, double defaultValue) const
+{
+    switch (inputType()) {
+    case DATE:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case MONTH:
+    case TIME:
+    case WEEK: {
+        DateComponents date;
+        if (!formStringToDateComponents(inputType(), src, &date))
+            return defaultValue;
+        double msec = date.millisecondsSinceEpoch();
+        ASSERT(isfinite(msec));
+        return msec;
+    }
+    case NUMBER:
+    case RANGE: {
+        double numberValue;
+        if (!formStringToDouble(src, &numberValue))
+            return defaultValue;
+        ASSERT(isfinite(numberValue));
+        return numberValue;
+    }
+
+    case BUTTON:
+    case CHECKBOX:
+    case COLOR:
+    case EMAIL:
+    case FILE:
+    case HIDDEN:
+    case IMAGE:
+    case ISINDEX:
+    case PASSWORD:
+    case RADIO:
+    case RESET:
+    case SEARCH:
+    case SUBMIT:
+    case TELEPHONE:
+    case TEXT:
+    case URL:
+        return defaultValue;
+    }
+    ASSERT_NOT_REACHED();
+    return defaultValue;
+}
+
 double HTMLInputElement::valueAsDate() const
 {
     switch (inputType()) {
@@ -1386,12 +1542,9 @@ double HTMLInputElement::valueAsDate() const
     case DATETIME:
     case MONTH:
     case TIME:
-    case WEEK: {
-        ISODateTime dateTime;
-        if (!formStringToISODateTime(inputType(), value(), &dateTime))
-            return ISODateTime::invalidMilliseconds();
-        return dateTime.millisecondsSinceEpoch();
-    }
+    case WEEK:
+        return parseToDouble(value(), DateComponents::invalidMilliseconds());
+
     case BUTTON:
     case CHECKBOX:
     case COLOR:
@@ -1411,31 +1564,31 @@ double HTMLInputElement::valueAsDate() const
     case TELEPHONE:
     case TEXT:
     case URL:
-        return ISODateTime::invalidMilliseconds();
+        return DateComponents::invalidMilliseconds();
     }
     ASSERT_NOT_REACHED();
-    return ISODateTime::invalidMilliseconds();
+    return DateComponents::invalidMilliseconds();
 }
 
 void HTMLInputElement::setValueAsDate(double value, ExceptionCode& ec)
 {
-    ISODateTime dateTime;
+    DateComponents date;
     bool success;
     switch (inputType()) {
     case DATE:
-        success = dateTime.setMillisecondsSinceEpochForDate(value);
+        success = date.setMillisecondsSinceEpochForDate(value);
         break;
     case DATETIME:
-        success = dateTime.setMillisecondsSinceEpochForDateTime(value);
+        success = date.setMillisecondsSinceEpochForDateTime(value);
         break;
     case MONTH:
-        success = dateTime.setMillisecondsSinceEpochForMonth(value);
+        success = date.setMillisecondsSinceEpochForMonth(value);
         break;
     case TIME:
-        success = dateTime.setMillisecondsSinceMidnight(value);
+        success = date.setMillisecondsSinceMidnight(value);
         break;
     case WEEK:
-        success = dateTime.setMillisecondsSinceEpochForWeek(value);
+        success = date.setMillisecondsSinceEpochForWeek(value);
         break;
     case BUTTON:
     case CHECKBOX:
@@ -1469,7 +1622,7 @@ void HTMLInputElement::setValueAsDate(double value, ExceptionCode& ec)
     // FIXME: We should specify SecondFormat.
     // e.g. If the step value is 60, use SecondFormat::None.
     //      If the step value is 1, use SecondFormat::Second.
-    setValue(dateTime.toString());
+    setValue(date.toString());
 }
 
 double HTMLInputElement::valueAsNumber() const
@@ -1478,26 +1631,17 @@ double HTMLInputElement::valueAsNumber() const
     switch (inputType()) {
     case DATE:
     case DATETIME:
+    case DATETIMELOCAL:
     case MONTH:
-    case TIME:
-    case WEEK: {
-        ISODateTime dateTime;
-        if (!formStringToISODateTime(inputType(), value(), &dateTime))
-            return nan;
-        return dateTime.millisecondsSinceEpoch();
-    }
     case NUMBER:
-    case RANGE: {
-        double numberValue;
-        if (!formStringToDouble(value(), &numberValue))
-            return nan;
-        return numberValue;
-    }
+    case RANGE:
+    case TIME:
+    case WEEK:
+        return parseToDouble(value(), nan);
 
     case BUTTON:
     case CHECKBOX:
     case COLOR:
-    case DATETIMELOCAL: // FIXME: Unlike valueAsDate, valueAsNumber should support DATETIMELOCAL type.
     case EMAIL:
     case FILE:
     case HIDDEN:
@@ -1531,12 +1675,23 @@ void HTMLInputElement::setValueAsNumber(double newValue, ExceptionCode& ec)
     case WEEK:
         setValueAsDate(newValue, ec);
         return;
+    case DATETIMELOCAL: {
+        DateComponents date;
+        if (!date.setMillisecondsSinceEpochForDateTimeLocal(newValue)) {
+            setValue(String());
+            return;
+        }
+        // FIXME: We should specify SecondFormat.
+        // e.g. If the step value is 60, use SecondFormat::None.
+        //      If the step value is 1, use SecondFormat::Second.
+        setValue(date.toString());
+        return;
+    }
     case NUMBER:
     case RANGE:
         setValue(formStringFromDouble(newValue));
         return;
 
-    case DATETIMELOCAL: // FIXME: implement ISODateTime.toString()
     case BUTTON:
     case CHECKBOX:
     case COLOR:
@@ -2298,11 +2453,11 @@ bool HTMLInputElement::formStringToDouble(const String& src, double* out)
     return true;
 }
 
-bool HTMLInputElement::formStringToISODateTime(InputType type, const String& formString, ISODateTime* out)
+bool HTMLInputElement::formStringToDateComponents(InputType type, const String& formString, DateComponents* out)
 {
     if (formString.isEmpty())
         return false;
-    ISODateTime ignoredResult;
+    DateComponents ignoredResult;
     if (!out)
         out = &ignoredResult;
     const UChar* characters = formString.characters();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -29,18 +29,37 @@
  */
 
 #include "config.h"
-#include "V8XPathEvaluator.h"
+#include "WebMutationEvent.h"
 
-#include "V8Binding.h"
-#include "V8Proxy.h"
-#include "XPathEvaluator.h"
+#include "MutationEvent.h"
 
-namespace WebCore {
+using namespace WebCore;
 
-v8::Handle<v8::Value> V8Custom::v8XPathEvaluatorConstructorCallback(const v8::Arguments& args)
+namespace WebKit {
+
+WebNode WebMutationEvent::relatedNode() const
 {
-    INC_STATS("DOM.XPathEvaluator.Constructor");
-    return V8Proxy::constructDOMObject<V8ClassIndex::XPATHEVALUATOR, XPathEvaluator>(args);
+    return WebNode(constUnwrap<MutationEvent>()->relatedNode());
 }
 
-} // namespace WebCore
+WebString WebMutationEvent::prevValue() const
+{
+    return WebString(constUnwrap<MutationEvent>()->prevValue());
+}
+
+WebString WebMutationEvent::newValue() const
+{
+    return WebString(constUnwrap<MutationEvent>()->newValue());
+}
+
+WebString WebMutationEvent::attrName() const
+{
+    return WebString(constUnwrap<MutationEvent>()->attrName());
+}
+
+WebMutationEvent::AttrChangeType WebMutationEvent::attrChange() const
+{
+    return static_cast<AttrChangeType>(constUnwrap<MutationEvent>()->attrChange());
+}
+
+} // namespace WebKit
