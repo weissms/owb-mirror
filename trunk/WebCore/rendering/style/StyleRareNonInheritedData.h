@@ -72,6 +72,9 @@ public:
 #if ENABLE(XBL)
     bool bindingsEquivalent(const StyleRareNonInheritedData&) const;
 #endif
+#if ENABLE(DAE)
+    bool navInfoEquivalent(const StyleRareNonInheritedData&) const;
+#endif
 
     bool operator==(const StyleRareNonInheritedData&) const;
     bool operator!=(const StyleRareNonInheritedData& o) const { return !(*this == o); }

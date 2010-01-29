@@ -94,6 +94,9 @@ StyleRareNonInheritedData::StyleRareNonInheritedData(const StyleRareNonInherited
 #if ENABLE(XBL)
     , bindingURI(o.bindingURI ? o.bindingURI->copy() : 0)
 #endif
+#if ENABLE(DAE)
+    , navInfo(o.navInfo)
+#endif
 {
 }
 
@@ -144,6 +147,9 @@ bool StyleRareNonInheritedData::operator==(const StyleRareNonInheritedData& o) c
         && m_maskBoxImage == o.m_maskBoxImage
 #if ENABLE(XBL)
         && bindingsEquivalent(o)
+#endif
+#if ENABLE(DAE)
+        && navInfoEquivalent(o)
 #endif
         && (m_transformStyle3D == o.m_transformStyle3D)
         && (m_backfaceVisibility == o.m_backfaceVisibility)

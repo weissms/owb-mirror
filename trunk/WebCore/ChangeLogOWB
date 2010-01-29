@@ -1,3 +1,12 @@
+2010-01-29  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fix DRT failures on spatial navigation.
+
+        * rendering/style/StyleRareNonInheritedData.cpp:
+        (WebCore::StyleRareNonInheritedData::StyleRareNonInheritedData):
+        (WebCore::StyleRareNonInheritedData::operator==):
+        * rendering/style/StyleRareNonInheritedData.h:
+
 2010-01-26  Olivier DOLE  <odole@pleyo.com>
 
         Fix build when accessibility is disabled.
