@@ -738,6 +738,16 @@ public:
     void setMemoryLimit(int);
     int memoryLimit();
 
+    /**
+     * Allow or deny window.close() function
+     */
+    void setAllowScriptsToCloseWindows(bool);
+
+    /**
+     * Check wether scripts can close a window
+     */
+    bool allowScriptsToCloseWindows();
+
 
     // OWB Extensions
 

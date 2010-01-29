@@ -212,6 +212,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitAcceleratedCompositingEnabledPreferenceKey] = "0";
 #endif
     m_privatePrefs[WebKitMemoryLimitPreferenceKey] = "0";
+    m_privatePrefs[WebKitAllowScriptsToCloseWindowsPreferenceKey] = "1"; //TRUE
 }
 
 void WebPreferences::addCertificateInfo(const char* url, const char* certificatePath, const char* keyPath, const char* keyPassword)
@@ -1003,5 +1004,15 @@ void WebPreferences::setMemoryLimit(int limit)
 int WebPreferences::memoryLimit()
 {
     return integerValueForKey(WebKitMemoryLimitPreferenceKey);
+}
+
+void WebPreferences::setAllowScriptsToCloseWindows(bool allowed)
+{
+    setBoolValue(WebKitAllowScriptsToCloseWindowsPreferenceKey, allowed);
+}
+
+bool WebPreferences::allowScriptsToCloseWindows()
+{
+    return boolValueForKey(WebKitAllowScriptsToCloseWindowsPreferenceKey);
 }
 

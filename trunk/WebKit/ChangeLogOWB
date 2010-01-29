@@ -1,3 +1,19 @@
+2010-01-29  Olivier DOLE  <odole@pleyo.com>
+
+        Add a preference to allow scripts to close windows i.e. do a
+        window.close() in JavaScript.
+        I have enabled this option by default as it will be usefull for
+        some testing purpose.
+
+        * OrigynWebBrowser/Api/WebPreferenceKeysPrivate.h:
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::setAllowScriptsToCloseWindows):
+        (WebPreferences::allowScriptsToCloseWindows):
+        * OrigynWebBrowser/Api/WebPreferences.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
 2010-01-22  Olivier DOLE  <odole@pleyo.com>
 
         replace ENABLE(ACCESSIBILITY) by HAVE(ACCESSIBILITY)

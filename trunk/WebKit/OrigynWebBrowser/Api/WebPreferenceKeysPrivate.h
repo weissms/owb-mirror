@@ -133,3 +133,4 @@
 #define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
 #define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"
+#define WebKitAllowScriptsToCloseWindowsPreferenceKey "WebKitAllowScriptsToCloseWindows"

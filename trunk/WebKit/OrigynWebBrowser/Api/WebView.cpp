@@ -2837,6 +2837,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     int limit = preferences->memoryLimit();  
     WTF::setMemoryLimit(limit);
 
+    enabled = preferences->allowScriptsToCloseWindows();
+    settings->setAllowScriptsToCloseWindows(enabled);
+
     updateSharedSettingsFromPreferencesIfNeeded(preferences);
 }
 
