@@ -187,61 +187,33 @@ BalRectangle WebViewPrivate::onExpose(BalEventExpose event)
     }
 
     if (frame->contentRenderer() && frame->view()) {
-#if !ENABLE(DAE_APPLICATION)
         frame->view()->layoutIfNeededRecursive();
-#endif
         IntRect dirty = m_webView->dirtyRegion();
-        IntRect d = dirty;
-    
-        //printf("dirty x=%d y=%d w=%d h=%d\n", dirty.x(), dirty.y(), dirty.width(), dirty.height());
-
+        
         m_webView->clearDirtyRegion();
 
         if (dirty.isEmpty())
             return IntRect();
 
-        cairo_t *cr;
-
         while (SDL_LockSurface (m_webView->viewWindow()) != 0)
             SDL_Delay (1);
 
+        GraphicsContext ctx(m_cr);
+        ctx.save();
 
 #if ENABLE(DAE_APPLICATION)
         SharedPtr<WebApplication> app = webAppMgr().application(m_webView);
-        cairo_surface_t* newsurface = 0;
-        if (webAppMgr().visibleApplicationCount() > 0) {
-            newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, app->rect().width(), app->rect().height());
-            cr = cairo_create(newsurface);
-        } else
-            cr = m_cr;
-#else
-        cr = m_cr;
+        ctx.translate(app->pos().x(), app->pos().y());
 #endif
 
-        GraphicsContext ctx(cr);
-        
-        ctx.save();
-        ctx.clip(d);
+        ctx.clip(dirty);
+                
 #if !ENABLE(DAE_APPLICATION)
         if (m_webView->transparent())
-            ctx.clearRect(d);
+            ctx.clearRect(dirty);
 #endif
 
-        frame->view()->paint(&ctx, d);
-
-#if ENABLE(DAE_APPLICATION)
-        if (webAppMgr().visibleApplicationCount() > 0) {
-            cairo_destroy (cr);
-            cr = m_cr;
-            cairo_save(cr);
-            cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-            cairo_rectangle(cr, app->pos().x(), app->pos().y(), app->rect().width(), app->rect().height());
-            cairo_set_source_surface(cr, newsurface, app->pos().x(), app->pos().y());
-            cairo_fill(cr);
-            cairo_restore(cr);  
-            cairo_surface_destroy(newsurface);
-        }
-#endif
+        frame->view()->paint(&ctx, dirty);
 
         SDL_UnlockSurface (m_webView->viewWindow());
 
@@ -711,9 +683,6 @@ void WebView::addWidgetOnParentWidget(BalRectangle dirty)
     if (sdlRect.w == 0 || sdlRect.h ==0)
         return;
     SDL_Rect sdlDest = dirty;
-    SharedPtr<WebApplication> app = webAppMgr().application(this);
-    sdlDest.x += app->pos().x();
-    sdlDest.y += app->pos().y();
 
     SDL_Surface* view = viewWindow();
 
