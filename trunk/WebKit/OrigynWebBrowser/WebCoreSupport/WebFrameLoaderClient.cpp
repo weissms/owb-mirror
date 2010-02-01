@@ -224,6 +224,22 @@ void WebFrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
     SharedPtr<WebFrameLoadDelegate> frameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
     if (frameLoadDelegate)
         frameLoadDelegate->dispatchDidFirstVisuallyNonEmptyLayout(m_webFrame);
+    
+#if ENABLE(HBBTV_0_8)
+    Frame* coreFrame = core(m_webFrame);
+    if (coreFrame->document()) {
+        HTMLElement* body = coreFrame->document()->body();
+        
+        // When HBBTV_0_8 is enabled, windows are created opaque by default.
+        // Fixup the window transparency based on the page's background color
+        // - necessary to support displaying multiple applications on the same
+        // native window.
+        if (body && body->renderer()->style()->hasBackground()) {
+            Color backgroundColor = body->renderer()->style()->backgroundColor();
+            coreFrame->view()->updateBackgroundRecursively(backgroundColor, backgroundColor.hasAlpha());
+        }
+    }
+#endif
 }
 
 
