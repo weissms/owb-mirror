@@ -1,3 +1,12 @@
+2010-02-01  Gilles Bertal  <gbertal@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Mapped CEHTML and DAE compile-time options to the list of features
+        that might be included/excluded for DRT testing.
+
+        * Scripts/Drt/drt.py:
+
 2010-01-28  Olivier DOLE  <odole@pleyo.com>
 
         Add options to run make-hosted script from any location and to store
