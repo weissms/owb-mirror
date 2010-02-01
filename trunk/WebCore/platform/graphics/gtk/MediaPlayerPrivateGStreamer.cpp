@@ -29,6 +29,9 @@
 
 #include "CString.h"
 #include "DataSourceGStreamer.h"
+#include "Document.h"
+#include "Frame.h"
+#include "FrameView.h"
 #include "GraphicsContext.h"
 #include "IntRect.h"
 #include "KURL.h"
@@ -150,12 +153,27 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
 
         SoupURI* uri = soup_uri_new(location);
         g_free(location);
+
+        // Let Apple web servers know we want to access their nice movie trailers.
+        if (g_str_equal(uri->host, "movies.apple.com"))
+            g_object_set(element, "user-agent", "Quicktime/7.2.0", NULL);
+
         char* cookies = soup_cookie_jar_get_cookies(cookieJar, uri, FALSE);
         soup_uri_free(uri);
 
         char* cookiesStrv[] = {cookies, NULL};
         g_object_set(element, "cookies", cookiesStrv, NULL);
         g_free(cookies);
+
+        Frame* frame = mp->m_player->frameView() ? mp->m_player->frameView()->frame() : 0;
+        Document* document = frame ? frame->document() : 0;
+        if (document) {
+            GstStructure* extraHeaders = gst_structure_new("extra-headers",
+                                                           "Referer", G_TYPE_STRING,
+                                                           document->documentURI().utf8().data(), 0);
+            g_object_set(element, "extra-headers", extraHeaders, NULL);
+            gst_structure_free(extraHeaders);
+        }
     }
 
     gst_object_unref(element);

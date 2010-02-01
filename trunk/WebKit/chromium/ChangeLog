@@ -1,3 +1,42 @@
+2010-02-01  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        [Chromium] Fix a bug that a selected word is not recognized as a
+        spell-check source.
+        https://bugs.webkit.org/show_bug.cgi?id=33660
+
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::isASingleWord): Use wordBreakIterator(), and correctly check
+        the return value of textBreakNext().
+
+2010-01-29  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        A first step towards the Indexed Database API
+        https://bugs.webkit.org/show_bug.cgi?id=34342
+
+        Add runtime enable support for Indexed Database API.
+
+        * features.gypi:
+        * public/WebRuntimeFeatures.h:
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enableIndexedDatabase):
+        (WebKit::WebRuntimeFeatures::isIndexedDatabaseEnabled):
+
+2010-01-29  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Add API methods for loading inspector utility scripts.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34326
+
+        * public/WebDevToolsAgentClient.h:
+        (WebKit::WebDevToolsAgentClient::injectedScriptSource):
+        (WebKit::WebDevToolsAgentClient::injectedScriptDispatcherSource):
+
 2010-01-29  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Adam Barth.

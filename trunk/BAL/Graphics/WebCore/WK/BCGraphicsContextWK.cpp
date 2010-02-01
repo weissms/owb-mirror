@@ -507,7 +507,7 @@ void GraphicsContext::setPlatformTextDrawingMode(int mode)
 }
 #endif
 
-#if !PLATFORM(QT) && !PLATFORM(CAIRO) && !PLATFORM(SKIA) && !PLATFORM(HAIKU) && !PLATFORM(BAL)
+#if !PLATFORM(QT) && !PLATFORM(CAIRO) && !PLATFORM(SKIA) && !PLATFORM(HAIKU) && !PLATFORM(OPENVG) && !PLATFORM(BAL)
 void GraphicsContext::setPlatformStrokeStyle(const StrokeStyle&)
 {
 }

@@ -134,3 +134,4 @@
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
 #define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"
 #define WebKitAllowScriptsToCloseWindowsPreferenceKey "WebKitAllowScriptsToCloseWindows"
+#define WebKitCustomDragCursorsEnabledPreferenceKey "WebKitCustomDragCursorsEnabled"

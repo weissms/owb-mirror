@@ -155,6 +155,7 @@ WebCore/xml/XSLTProcessorLibxslt.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKit/qt/WebCoreSupport/QtFallbackWebPopup.cpp BAL/Widgets/WebCore/Qt/BCQtFallbackWebPopupQt.cpp
 WebKit/qt/WebCoreSupport/QtFallbackWebPopup.h BAL/Widgets/WebCore/Qt/BCQtFallbackWebPopupQt.h
+WebKitTools/DumpRenderTree/AccessibilityController.h
 WebKitTools/DumpRenderTree/DumpRenderTree.h
 WebKitTools/Scripts/prepare-ChangeLog
 WebKitTools/Scripts/resolve-ChangeLogs

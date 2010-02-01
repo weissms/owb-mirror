@@ -55,13 +55,6 @@ var WebInspector = {
     cookieDomains: {},
     missingLocalizedStrings: {},
     pendingDispatches: 0,
-    OS: {
-        Windows: "windows",
-        WindowsVistaOrLater: "windows-vista-or-later",
-        MacTiger: "mac-tiger",
-        MacLeopard: "mac-leopard",
-        MacSnowLeopard: "mac-snowleopard"
-    },
 
     // RegExp groups:
     // 1 - scheme
@@ -90,18 +83,18 @@ var WebInspector = {
                 return WebInspector.OS.WindowsVistaOrLater;
             return WebInspector.OS.Windows;
         } else if (nativePlatform === "mac") {
-            var match = userAgent.match(/Mac OS X\s*(?:(\d+)_(\d+)_(?:\d+))?/);
+            var match = userAgent.match(/Mac OS X\s*(?:(\d+)_(\d+))?/);
             if (!match || match[1] != 10)
-                return WebInspector.OS.MacLeopard;
+                return WebInspector.OS.MacSnowLeopard;
             switch (Number(match[2])) {
                 case 4:
                     return WebInspector.OS.MacTiger;
                 case 5:
                     return WebInspector.OS.MacLeopard;
                 case 6:
+                default:
                     return WebInspector.OS.MacSnowLeopard;
             }
-            return WebInspector.OS.MacLeopard;
         }
 
         return nativePlatform;
@@ -420,6 +413,14 @@ var WebInspector = {
             this.showingDOMNodeHighlight = false;
         }
     }
+}
+
+WebInspector.OS = {
+    Windows: "windows",
+    WindowsVistaOrLater: "windows-vista-or-later",
+    MacTiger: "mac-tiger",
+    MacLeopard: "mac-leopard",
+    MacSnowLeopard: "mac-snowleopard"
 }
 
 WebInspector.loaded = function()

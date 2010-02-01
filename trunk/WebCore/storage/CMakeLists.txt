@@ -43,3 +43,16 @@ if(ENABLE_DOM_STORAGE)
         storage/StorageEvent.idl
     )
 endif(ENABLE_DOM_STORAGE)
+
+if(ENABLE_INDEXED_DATABASE)
+    list(APPEND WEBCORE_SRC
+        storage/IDBRequest.cpp
+        storage/IndexedDatabaseRequest.cpp
+    )
+    list(APPEND IDL_SRC
+        storage/IDBDatabaseError.idl
+        storage/IDBDatabaseException.idl
+        storage/IDBRequest.idl
+        storage/IndexedDatabaseRequest.idl
+    )
+endif(ENABLE_INDEXED_DATABASE)

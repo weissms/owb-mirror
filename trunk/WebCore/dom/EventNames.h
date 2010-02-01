@@ -163,6 +163,8 @@ namespace WebCore {
     macro(touchend) \
     macro(touchcancel) \
     \
+    macro(success) \
+    \
     CEHTML_EVENT_NAMES(macro) \
     DAE_EVENT_NAMES(macro)
 // end of DOM_EVENT_NAMES_FOR_EACH

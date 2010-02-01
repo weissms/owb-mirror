@@ -36,6 +36,8 @@
 #include <QtGui>
 #include "webpage.h"
 
+class LocationEdit;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -59,9 +61,7 @@ private:
 
     QStringListModel urlModel;
     QStringList urlList;
-    QLineEdit* urlEdit;
-
-    QProgressBar* progress;
+    LocationEdit* urlEdit;
 
     WebPage* m_page;
 };

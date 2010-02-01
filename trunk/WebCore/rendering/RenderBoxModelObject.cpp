@@ -50,8 +50,9 @@ static const double cLowQualityTimeThreshold = 0.500; // 500 ms
 
 class RenderBoxModelScaleData : public Noncopyable {
 public:
-    RenderBoxModelScaleData(RenderBoxModelObject* object, const IntSize& size, double time, bool lowQualityScale)
+    RenderBoxModelScaleData(RenderBoxModelObject* object, const IntSize& size, const TransformationMatrix& transform, double time, bool lowQualityScale)
         : m_size(size)
+        , m_transform(transform)
         , m_lastPaintTime(time)
         , m_lowQualityScale(lowQualityScale)
         , m_highQualityRepaintTimer(object, &RenderBoxModelObject::highQualityRepaintTimerFired)
@@ -70,6 +71,8 @@ public:
     double lastPaintTime() const { return m_lastPaintTime; }
     void setLastPaintTime(double t) { m_lastPaintTime = t; }
     bool useLowQualityScale() const { return m_lowQualityScale; }
+    const TransformationMatrix& transform() const { return m_transform; }
+    void setTransform(const TransformationMatrix& transform) { m_transform = transform; }
     void setUseLowQualityScale(bool b)
     {
         m_highQualityRepaintTimer.stop();
@@ -80,6 +83,7 @@ public:
 
 private:
     IntSize m_size;
+    TransformationMatrix m_transform;
     double m_lastPaintTime;
     bool m_lowQualityScale;
     Timer<RenderBoxModelObject> m_highQualityRepaintTimer;
@@ -126,7 +130,8 @@ bool RenderBoxModelScaleObserver::shouldPaintBackgroundAtLowQuality(GraphicsCont
     if (gBoxModelObjects)
         data = gBoxModelObjects->get(object);
 
-    bool contextIsScaled = !context->getCTM().isIdentityOrTranslation();
+    const TransformationMatrix& currentTransform = context->getCTM();
+    bool contextIsScaled = !currentTransform.isIdentityOrTranslation();
     if (!contextIsScaled && imageSize == size) {
         // There is no scale in effect.  If we had a scale in effect before, we can just delete this data.
         if (data) {
@@ -146,7 +151,7 @@ bool RenderBoxModelScaleObserver::shouldPaintBackgroundAtLowQuality(GraphicsCont
     // If there is no data yet, we will paint the first scale at high quality and record the paint time in case a second scale happens
     // very soon.
     if (!data) {
-        data = new RenderBoxModelScaleData(object, size, currentTime(), false);
+        data = new RenderBoxModelScaleData(object, size, currentTransform, currentTime(), false);
         if (!gBoxModelObjects)
             gBoxModelObjects = new HashMap<RenderBoxModelObject*, RenderBoxModelScaleData*>;
         gBoxModelObjects->set(object, data);
@@ -154,7 +159,7 @@ bool RenderBoxModelScaleObserver::shouldPaintBackgroundAtLowQuality(GraphicsCont
     }
 
     // We are scaled, but we painted already at this size, so just keep using whatever mode we last painted with.
-    if (!contextIsScaled && data->size() == size)
+    if ((!contextIsScaled || data->transform() == currentTransform) && data->size() == size)
         return data->useLowQualityScale();
 
     // We have data and our size just changed.  If this change happened quickly, go into low quality mode and then set a repaint
@@ -162,6 +167,7 @@ bool RenderBoxModelScaleObserver::shouldPaintBackgroundAtLowQuality(GraphicsCont
     double newTime = currentTime();
     data->setUseLowQualityScale(newTime - data->lastPaintTime() < cLowQualityTimeThreshold);
     data->setLastPaintTime(newTime);
+    data->setTransform(currentTransform);
     data->setSize(size);
     return data->useLowQualityScale();
 }

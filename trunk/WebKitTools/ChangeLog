@@ -1,3 +1,382 @@
+2010-02-01  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Moved style error handler code to their own classes, and
+        related refactoring. Increased unit test code coverage of
+        style error handling.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34379
+
+        * Scripts/check-webkit-style:
+          - Minor change: added error_count variable.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Renamed ProcessorOptions.should_report_error() to is_reportable().
+          - In the StyleChecker class--
+            - Removed _default_style_error_handler().
+            - Added _increment_error_count().
+            - Refactored to use DefaultStyleErrorHandler and
+              PatchStyleErrorHandler constructors.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - In the StyleStyleCheckerTest class--
+            - Removed write_sample_error().
+            - Removed test_default_style_error_handler().
+
+        * Scripts/webkitpy/style/error_handlers.py: Added.
+          - Added DefaultStyleErrorHandler class.
+          - Added PatchStyleErrorHandler class.
+
+        * Scripts/webkitpy/style/error_handlers_unittest.py: Added.
+          - Added unit tests for DefaultStyleErrorHandler and
+            PatchStyleErrorHandler.
+
+        * Scripts/webkitpy/style/unittests.py:
+          - Added error_handlers unit tests.
+
+2010-01-29  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Stephanie Lewis.
+
+        Fix run-leaks with newer versions of the leaks tool.
+
+        * Scripts/run-leaks:
+
+2010-01-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Siedel.
+
+        Top-level test drivers for running the Chromium port of run-webkit-tests
+        and being able to rebaseline test results from the test bots.  The
+        files in the Scripts directory are simply wrappers around the files
+        in webkitpy/layout_tests for convenience.
+ 
+        https://bugs.webkit.org/show_bug.cgi?id=31498
+
+        * Scripts/rebaseline-chromium-webkit-tests: Added.
+        * Scripts/run-chromium-webkit-tests: Added.
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py: Added.
+        * Scripts/webkitpy/layout_tests/run_chromium_webkit_tests.py: Added.
+
+2010-01-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Siedel.
+
+        Add in the second block of python code for the Chromium port
+        of run-webkit-tests. These files execute different diffs to classify
+        the various types of failures from a test.
+
+        * Scripts/webkitpy/layout_tests/test_types: Added.
+        * Scripts/webkitpy/layout_tests/test_types/__init__.py: Added.
+        * Scripts/webkitpy/layout_tests/test_types/fuzzy_image_diff.py: Added.
+        * Scripts/webkitpy/layout_tests/test_types/image_diff.py: Added.
+        * Scripts/webkitpy/layout_tests/test_types/test_type_base.py: Added.
+        * Scripts/webkitpy/layout_tests/test_types/text_diff.py: Added.
+
+2010-01-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Siedel.
+
+        Check in the first part of the Chromium Python port of the 
+        run-webkit-tests test driver. The files under 
+        layout_tests/layout_layout constitute most of the implementation;
+        they can be roughly divided into code that parses the 
+        "test_expectations.txt" file that describes how we expect tests to
+        pass or fail, platform-specific hooks for the different Chromium 
+        ports (in platform_utils*), code for parsing the output of the
+        tests and generating results files and HTML and JSON for the
+        dashboards, auxiliary scripts for starting and stopping HTTP and
+        Web Socket servers, and then one of the actual driver files 
+        (test_shell_thread). Code for actually parsing test output for 
+        failures and the top-level driver scripts will follow shortly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31498
+
+        * Scripts/webkitpy/layout_tests: Added.
+        * Scripts/webkitpy/layout_tests/layout_package: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/__init__.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/apache_http_server.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/http_server.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/http_server_base.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/httpd2.pem: Added.
+          - scripts to start and stop apache. Note that the apache file
+            generates a conf file dynamically, and we should switch to 
+            using the same static conf file that the regular run-webkit-tests
+            uses, and we can also use the same httpd2.pem file.
+
+        * Scripts/webkitpy/layout_tests/layout_package/json_layout_results_generator.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/json_results_generator.py: Added.
+          - scripts to generate the JSON layout test dashboard and the
+            flakiness dashboard
+        * Scripts/webkitpy/layout_tests/layout_package/lighttpd.conf: Added.
+          - default configuration for LigHTTPd (used on Windows)
+        * Scripts/webkitpy/layout_tests/layout_package/metered_stream.py: Added.
+          - utility class that implements progress bars on the console to
+            be displayed while the tests are running
+        * Scripts/webkitpy/layout_tests/layout_package/path_utils.py: Added.
+          - various routines for manipulating paths and URIs
+        * Scripts/webkitpy/layout_tests/layout_package/platform_utils.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/platform_utils_linux.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/platform_utils_mac.py: Added.
+        * Scripts/webkitpy/layout_tests/layout_package/platform_utils_win.py: Added.
+          - platform-specific aspects of the drivers (binary names, paths,
+            process control, etc.)
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py: Added.
+          - code for parsing the 'test_expectations.txt' file to determine
+            which tests are expected to fail (and how) on which platforms
+        * Scripts/webkitpy/layout_tests/layout_package/test_failures.py: Added.
+          - code for handling different kinds of failures (generating output
+            in the results, etc.)
+        * Scripts/webkitpy/layout_tests/layout_package/test_files.py: Added.
+          - code to gather the lists of tests
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py: Added.
+          - code to actually execute tests via TestShell and process
+            the output
+        * Scripts/webkitpy/layout_tests/layout_package/websocket_server.py: Added.
+          - scripts to start and stop the pywebsocket server
+
+2010-01-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Check in a copy of the simplejson library; it will be used by
+        the Chromium port of run-webkit-tests.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=31498
+
+        * simplejson: Added.
+        * simplejson/LICENSE.txt: Added.
+        * simplejson/README.txt: Added.
+        * simplejson/__init__.py: Added.
+        * simplejson/_speedups.c: Added.
+        (ascii_escape_char):
+        (ascii_escape_unicode):
+        (ascii_escape_str):
+        (py_encode_basestring_ascii):
+        (init_speedups):
+        * simplejson/decoder.py: Added.
+        * simplejson/encoder.py: Added.
+        * simplejson/jsonfilter.py: Added.
+        * simplejson/scanner.py: Added.
+
+2010-01-29  Dirk Pranke  <dpranke@chromium.org>
+
+        No review
+
+        Add myself to the committers list
+
+        * Scripts/webkitpy/committers.py:
+
+2010-01-29  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        A first step towards the Indexed Database API
+        https://bugs.webkit.org/show_bug.cgi?id=34342
+
+        Add indexed database API.
+
+        * Scripts/build-webkit:
+
+2010-01-29  Andras Becsi  <abecsi@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Correct openHTTPD() to print requests to stdout if run-webkit-httpd is used.
+        This fixes a regression introduced in r53559.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34336
+
+        * Scripts/webkitperl/httpd.pm:
+
+2010-01-28  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        MSAA: Crash when posting a notification for a detached object
+
+        https://bugs.webkit.org/show_bug.cgi?id=34309
+        <rdar://problem/7409759>
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/AccessibilityController.h:
+        Declare new functions. Add new members to store the event hook and the
+        mapping of accessibility elements to their JS callbacks.
+
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::notificationReceived):
+        Stubbed.
+        (AccessibilityController::addNotificationListener):
+        Stubbed.
+
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::notificationReceived):
+        Stubbed.
+        (AccessibilityController::addNotificationListener):
+        Stubbed.
+
+        * DumpRenderTree/win/AccessibilityControllerWin.cpp:
+        (AccessibilityController::AccessibilityController):
+        Initialize the event hook.
+        (AccessibilityController::~AccessibilityController):
+        Remove the event hook. Unprotect all of the JS functions that are stored
+        in the map.
+        (logEventProc):
+        Clean-up a variable.
+        (stringEvent):
+        Return a string description of the MSAA event code.
+        (notificationListenerProc):
+        Get the accessible object from the event, and query it for IAccessible.
+        Call the AccessibilityController's notificationReceived().
+        (comparableObject):
+        Use QueryService to obtain the IAccessibleComparable for the
+        IServiceProvider.
+        (AccessibilityController::notificationReceived):
+        Iterate the map of objects that have registered for notification
+        callbacks. Query each for IServiceProvider, then use comparableObject()
+        to get an IAccessibleComparable. If we find an object matching the
+        notified object, call its callback, passing the event that was received.
+        (AccessibilityController::addNotificationListener):
+        If we have not created the event hook, create it. Protect the JS
+        callback function object, and add the object and its callback to our
+        map.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::addNotificationListener):
+        Call through to the AccessibilityController's addNotificationListener().
+
+        * DumpRenderTree/win/DumpRenderTreeWin.h:
+        Add an extern declaration for the shared FrameLoadDelegate extern, so we
+        can access it from AccessibilityController.
+
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+        (FrameLoadDelegate::accessibilityController):
+        Return the AccessibilityController.
+
+2010-01-29  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        prepare-ChangeLog outputs useless messages for a nonexistent bug ID
+        https://bugs.webkit.org/show_bug.cgi?id=34313
+
+        * Scripts/prepare-ChangeLog:
+
+2010-01-29  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Simon Hausmann.
+
+        [Qt] Separate implementation from class definition.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::webView):
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::~LauncherWindow):
+        (LauncherWindow::keyPressEvent):
+        (LauncherWindow::grabZoomKeys):
+        (LauncherWindow::sendTouchEvent):
+        (LauncherWindow::eventFilter):
+        (LauncherWindow::loadStarted):
+        (LauncherWindow::loadFinished):
+        (LauncherWindow::showLinkHover):
+        (LauncherWindow::zoomIn):
+        (LauncherWindow::zoomOut):
+        (LauncherWindow::resetZoom):
+        (LauncherWindow::toggleZoomTextOnly):
+        (LauncherWindow::print):
+        (LauncherWindow::screenshot):
+        (LauncherWindow::setEditable):
+        (LauncherWindow::dumpHtml):
+        (LauncherWindow::selectElements):
+        (LauncherWindow::setTouchMocking):
+        (LauncherWindow::newWindow):
+        (LauncherWindow::setupUI):
+
+2010-01-29  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] On Maemo5, a click/touch in the location bar (when unfocused)
+        should result in all text selected.
+
+        * QtLauncher/locationedit.cpp:
+        (LocationEdit::focusInEvent):
+        * QtLauncher/locationedit.h:
+
+2010-01-29  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Show progress reaching 100% for loads.
+
+        * QtLauncher/locationedit.cpp:
+        (LocationEdit::LocationEdit):
+        (LocationEdit::setProgress):
+        (LocationEdit::reset):
+        (LocationEdit::paintEvent):
+        * QtLauncher/locationedit.h:
+
+2010-01-29  Andreas Kling  <andreas.kling@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Disable the QtLauncher statusbar on Maemo
+
+        https://bugs.webkit.org/show_bug.cgi?id=34330
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::showLinkHover):
+        (LauncherWindow::selectElements):
+
+2010-01-29  Andreas Kling  <andreas.kling@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Display page loading progress inside the QtLauncher location bar
+
+        https://bugs.webkit.org/show_bug.cgi?id=34210
+
+        * QtLauncher/QtLauncher.pro:
+        * QtLauncher/locationedit.cpp: Added.
+        (LocationEdit::LocationEdit):
+        (LocationEdit::setProgress):
+        (LocationEdit::paintEvent):
+        * QtLauncher/locationedit.h: Added.
+        * QtLauncher/mainwindow.cpp:
+        (MainWindow::buildUI):
+        * QtLauncher/mainwindow.h:
+
+2010-01-29  Andreas Kling  <andreas.kling@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Add support for Maemo zoom keys in QtLauncher
+
+        https://bugs.webkit.org/show_bug.cgi?id=34160
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::~LauncherWindow):
+        (LauncherWindow::keyPressEvent):
+        (LauncherWindow::grabZoomKeys):
+
+2010-01-29  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Implement the display() method of the layout test controller
+        https://bugs.webkit.org/show_bug.cgi?id=34258
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::showPage):
+        (WebCore::DumpRenderTree::hidePage):
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::reset):
+        (LayoutTestController::display):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
 2010-01-29  Kevin Ollivier  <kevino@theolliviers.com>
 
         [wx] Build fix for MSW, use ThreadingWin.cpp as the Windows pthreads implementation

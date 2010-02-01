@@ -83,7 +83,8 @@ body.inactive #toolbar {
     border-bottom: 1px solid rgb(64%, 64%, 64%);
 }
 
-body.detached.platform-mac-leopard #toolbar {
+body.detached.platform-mac-leopard #toolbar,
+body.detached.platform-mac-snowleopard #toolbar {
     background: transparent !important;
 }
 
@@ -245,11 +246,13 @@ body.attached.port-qt .toolbar-item.close-left, body.attached.port-qt .toolbar-i
     display: none;
 }
 
-body.platform-mac-tiger .toolbar-item.close-right, body.platform-mac-leopard .toolbar-item.close-right { 
+body.platform-mac-tiger .toolbar-item.close-right,
+body.platform-mac-leopard .toolbar-item.close-right,
+body.platform-mac-snowleopard .toolbar-item.close-right {
     display: none;
 }
 
-body:not(.platform-mac-tiger):not(.platform-mac-leopard) .toolbar-item.close-left { 
+body:not(.platform-mac-tiger):not(.platform-mac-leopard):not(.platform-mac-snowleopard) .toolbar-item.close-left {
     display: none;
 }
 
@@ -586,6 +589,7 @@ body.platform-windows .source-code, body.platform-windows-vista-or-later .source
     margin-right: 4px;
     text-align: left;
     font-size: 11px;
+    line-height: normal;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: bold;
     text-shadow: none;
@@ -3068,6 +3072,7 @@ body.inactive .sidebar-tree-item .disclosure-button:active {
     padding: 1px 4px;
     text-align: center;
     font-size: 11px;
+    line-height: normal;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: bold;
     text-shadow: none;
@@ -3812,7 +3817,6 @@ ol.breakpoint-list {
 }
 
 .source-breakpoint-condition {
-    position: absolute;
     z-index: 30;
     padding: 4px;
     background-color: rgb(203, 226, 255);

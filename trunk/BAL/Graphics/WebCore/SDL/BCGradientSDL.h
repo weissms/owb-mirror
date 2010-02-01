@@ -93,6 +93,7 @@ namespace WebCore {
         void platformDestroy();
 
         int findStop(float value) const;
+        void sortStopsIfNecessary();
 
         bool m_radial;
         FloatPoint m_p0, m_p1;

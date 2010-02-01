@@ -623,6 +623,10 @@ public:
     virtual unsigned int pluginAllowedRunTime();
 
     virtual void setPreferenceForTest(const char* key, const char* value);
+    
+    virtual void setCustomDragCursorsEnabled(bool);
+    
+    virtual bool customDragCursorsEnabled();
 
     /*
      * Enable or disable WebGL

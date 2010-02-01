@@ -137,6 +137,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitWebSecurityEnabledPreferenceKey] = "1"; //TRUE
     m_privatePrefs[WebKitAllowUniversalAccessFromFileURLsPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitXSSAuditorEnabledPreferenceKey] =  "1";//FALSE
+    m_privatePrefs[WebKitCustomDragCursorsEnabledPreferenceKey] = "0";//FALSE
     m_privatePrefs[WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitPluginsEnabledPreferenceKey] = "1";//TRUE
 #if ENABLE(DATABASE)
@@ -570,6 +571,16 @@ void WebPreferences::setPreferenceForTest(const char* key, const char* value)
     setValueForKey(key, value); 
     postPreferencesChangesNotification();
 } 
+
+void WebPreferences::setCustomDragCursorsEnabled(bool enabled)
+{
+    setBoolValue(WebKitCustomDragCursorsEnabledPreferenceKey, enabled);
+}
+    
+bool WebPreferences::customDragCursorsEnabled()
+{
+    return boolValueForKey(WebKitCustomDragCursorsEnabledPreferenceKey);
+}
 
 bool WebPreferences::javaScriptCanOpenWindowsAutomatically()
 {
