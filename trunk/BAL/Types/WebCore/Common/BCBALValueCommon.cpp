@@ -48,6 +48,7 @@ namespace WebCore {
 BALValue::BALValue(Frame* frame)
     : m_obj(0)
     , m_array(0)
+    , m_val(JSC::jsUndefined())
     , m_exec(frame->script()->globalObject(mainThreadNormalWorld())->globalExec())
     , m_frame(frame)
     , m_isException(false)

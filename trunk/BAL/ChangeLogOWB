@@ -1,3 +1,10 @@
+2010-02-02  Gilles Bertal  <gbertal@pleyo.com>
+
+        Fix for crasher w/ widgets demo running on MIPS target w/ JIT enabled.
+
+        * Types/WebCore/Common/BCBALValueCommon.cpp:
+        (WebCore::BALValue::BALValue): Initialize m_val to JSValue::JSUndefined.
+
 2010-02-02  Guillaume Penin  <gpenin@pleyo.com>
 
         Fixed internal memory allocator (used in release mode).
