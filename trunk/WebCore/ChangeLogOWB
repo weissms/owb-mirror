@@ -1,3 +1,12 @@
+2010-02-02  Guillaume Penin  <gpenin@pleyo.com>
+
+        Fixed internal memory allocator (used in debug mode).
+
+        Padded info structure so that its size doesn't cause alignment
+        problems, required for 'double' data type used in timers.
+
+        * rendering/RenderArena.cpp:
+
 2010-01-29  Gilles Bertal  <gbertal@pleyo.com>
 
         Fix DRT failures on spatial navigation.

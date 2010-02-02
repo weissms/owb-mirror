@@ -1,3 +1,10 @@
+2010-02-02  Guillaume Penin  <gpenin@pleyo.com>
+
+        Fixed WEBKKIT_LD_FLAGS so that libwebkit-owb is automatically rebuilt
+        when libwtf, libjsc or libwebcore is updated.
+
+        * cmake/AddWebCoreCompilerFlags.cmake:
+
 2010-01-26  Olivier DOLE  <odole@pleyo.com>
 
         Better organization of files related to cpack.

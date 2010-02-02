@@ -130,6 +130,7 @@ WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTex
 WebCore/plugins/PluginView.cpp
 WebCore/plugins/PluginView.h
 WebCore/plugins/PluginViewNone.cpp
+WebCore/rendering/RenderArena.cpp
 WebCore/rendering/RenderLayerCompositor.h
 WebCore/rendering/RenderListBox.cpp
 WebCore/rendering/RenderMenuList.cpp

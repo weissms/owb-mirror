@@ -52,12 +52,16 @@ typedef struct {
     RenderArena* arena;
     size_t size;
     int signature;
+    char padding[4];    // round up size of struct
 } RenderArenaDebugHeader;
 
 #endif
 
 RenderArena::RenderArena(unsigned arenaSize)
 {
+    // Make sure that size of struct will not cause alignment problems
+    ASSERT(sizeof(RenderArenaDebugHeader) % sizeof(double) == 0);
+    
     // Initialize the arena pool
     INIT_ARENA_POOL(&m_pool, "RenderArena", arenaSize);
 
