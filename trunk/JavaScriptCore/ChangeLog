@@ -1,3 +1,215 @@
+2010-02-03  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Crash in CollectorBitmap::get at nbcolympics.com
+        https://bugs.webkit.org/show_bug.cgi?id=34504
+
+        This was caused by the use of m_offset to determine the offset of
+        a new property into the property storage.  This patch corrects
+        the effected cases by incorporating the anonymous slot count. It
+        also removes the duplicate copy of anonymous slot count from the
+        property table as keeping this up to date merely increased the
+        chance of a mismatch.  Finally I've added a large number of
+        assertions in an attempt to prevent such a bug from happening
+        again.
+
+        With the new assertions in place the existing anonymous slot tests
+        all fail without the m_offset fixes.
+
+        * runtime/PropertyMapHashTable.h:
+        * runtime/Structure.cpp:
+        (JSC::Structure::materializePropertyMap):
+        (JSC::Structure::addPropertyTransitionToExistingStructure):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::removePropertyTransition):
+        (JSC::Structure::flattenDictionaryStructure):
+        (JSC::Structure::addPropertyWithoutTransition):
+        (JSC::Structure::removePropertyWithoutTransition):
+        (JSC::Structure::copyPropertyTable):
+        (JSC::Structure::get):
+        (JSC::Structure::put):
+        (JSC::Structure::remove):
+        (JSC::Structure::insertIntoPropertyMapHashTable):
+        (JSC::Structure::createPropertyMapHashTable):
+        (JSC::Structure::rehashPropertyMapHashTable):
+        (JSC::Structure::checkConsistency):
+
+2010-02-02  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Copyright year updating for Windows version resources should be automatic
+        https://bugs.webkit.org/show_bug.cgi?id=34503
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.rc:
+
+2010-02-02  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Add dummy main thread functions
+        https://bugs.webkit.org/show_bug.cgi?id=33569
+
+        Add dummy initializeMainThreadPlatform and
+        scheduleDispatchFunctionsOnMainThread.
+
+        * wtf/brew/MainThreadBrew.cpp: Added.
+        (WTF::initializeMainThreadPlatform):
+        (WTF::scheduleDispatchFunctionsOnMainThread):
+
+2010-02-02  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Darin Adler.
+
+        Add using WTF::getLocalTime to CurrentTime.h
+        https://bugs.webkit.org/show_bug.cgi?id=34493
+
+        * wtf/CurrentTime.h:
+
+2010-02-02  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Add HAVE_XXX definitions
+        https://bugs.webkit.org/show_bug.cgi?id=34414
+
+        Add HAVE_ERRNO_H=1
+
+        * wtf/Platform.h:
+
+2010-02-02  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Don't define HAVE_TM_GMTOFF, HAVE_TM_ZONE and HAVE_TIMEGM
+        https://bugs.webkit.org/show_bug.cgi?id=34388
+
+        BREWMP does not have these features.
+
+        * wtf/Platform.h:
+
+2010-02-02  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Define WTF_PLATFORM_BREWMP=1 when BUILDING_BREWMP is defined
+        https://bugs.webkit.org/show_bug.cgi?id=34386
+
+        Define WTF_PLATFORM_BREWMP=1 so that PLATFORM(BREWMP) guard can be used.
+
+        * wtf/Platform.h:
+
+2010-02-01  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Date.UTC() should apply TimeClip operation.
+        https://bugs.webkit.org/show_bug.cgi?id=34461
+
+        ECMAScript 5 15.9.4.3:
+        > 9 Return TimeClip(MakeDate(MakeDay(yr, m, dt), MakeTime(h, min, s, milli))).
+
+        * runtime/DateConstructor.cpp:
+        (JSC::dateUTC): Calls WTF::timeClip().
+
+2010-02-01  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Fix a bug that Math.round() retunrs incorrect results for huge integers
+        https://bugs.webkit.org/show_bug.cgi?id=34462
+
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncRound): Avoid "arg + 0.5".
+
+2010-02-01  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Port WTF's currentTime
+        https://bugs.webkit.org/show_bug.cgi?id=33567
+
+        Combine GETUTCSECONDS and GETTIMEMS to calculate the number
+        of milliseconds since 1970/01/01 00:00:00 UTC.
+
+        * wtf/CurrentTime.cpp:
+        (WTF::currentTime):
+
+2010-02-01  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Darin Adler.
+
+        [Qt] WinCE buildfix after r52729 and fix for Q_BIG_ENDIAN typo.
+        https://bugs.webkit.org/show_bug.cgi?id=34378
+
+        * wtf/Platform.h:
+
+2010-02-01  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Structure not accounting for anonymous slots when computing property storage size
+        https://bugs.webkit.org/show_bug.cgi?id=34441
+
+        Previously any Structure with anonymous storage would have a property map, so we
+        were only including anonymous slot size if there was a property map.  Given this
+        is no longer the case we should always include the anonymous slot count in the
+        property storage size.
+
+        * runtime/Structure.h:
+        (JSC::Structure::propertyStorageSize):
+
+2010-02-01  Oliver Hunt  <oliver@apple.com>
+
+        Windows build fix, update exports file (again)
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-02-01  Oliver Hunt  <oliver@apple.com>
+
+        Windows build fix, update exports file
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-01-31  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        JSC is failing to propagate anonymous slot count on some transitions
+        https://bugs.webkit.org/show_bug.cgi?id=34321
+
+        Remove secondary Structure constructor, and make Structure store a copy
+        of the number of anonymous slots directly so saving an immediate allocation
+        of a property map for all structures with anonymous storage, which also
+        avoids the leaked property map on new property transition in the original
+        version of this patch.
+
+        We need to propagate the the anonymous slot count otherwise we can end up
+        with a structure recording incorrect information about the available and
+        needed space for property storage, or alternatively incorrectly reusing
+        some slots.
+
+        * JavaScriptCore.exp:
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure):
+        (JSC::Structure::materializePropertyMap):
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::changePrototypeTransition):
+        (JSC::Structure::despecifyFunctionTransition):
+        (JSC::Structure::getterSetterTransition):
+        (JSC::Structure::toDictionaryTransition):
+        (JSC::Structure::flattenDictionaryStructure):
+        (JSC::Structure::copyPropertyTable):
+        (JSC::Structure::put):
+        (JSC::Structure::remove):
+        (JSC::Structure::insertIntoPropertyMapHashTable):
+        (JSC::Structure::createPropertyMapHashTable):
+        * runtime/Structure.h:
+        (JSC::Structure::create):
+        (JSC::Structure::hasAnonymousSlots):
+        (JSC::Structure::anonymousSlotCount):
+
 2010-02-01  Patrick Gansterer  <paroga@paroga.com>
 
         Reviewed by Darin Adler.

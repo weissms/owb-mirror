@@ -297,9 +297,9 @@ void MediaPlayerPrivate::timeChanged()
     m_player->timeChanged();
 }
 
-void MediaPlayerPrivate::volumeChanged()
+void MediaPlayerPrivate::volumeChanged(float newVolume)
 {
-    m_player->volumeChanged();
+    m_player->volumeChanged(newVolume);
 }
 
 void MediaPlayerPrivate::didEnd()

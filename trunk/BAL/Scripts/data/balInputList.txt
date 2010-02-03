@@ -237,6 +237,7 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/FilterEffect.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/ImageBufferFilter.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceAlpha.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/filters/SourceGraphic.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/AffineTransform.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
@@ -341,8 +342,6 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
-BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
-BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
@@ -352,6 +351,8 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GeneratedImage.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/Generator.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/UnitBezier.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/AffineTransform.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/AffineTransform.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/Matrix3DTransformOperation.cpp
@@ -365,6 +366,8 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/ScaleTransformOpera
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/ScaleTransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/SkewTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/SkewTransformOperation.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations.h

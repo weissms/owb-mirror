@@ -46,10 +46,13 @@ namespace WebCore {
         virtual ~Pattern();
         
         Image* tileImage() const { return m_tileImage.get(); }
+        
+        void platformDestroy();
 
         // Pattern space is an abstract space that maps to the default user space by the transformation 'userSpaceTransformation'
         PlatformPatternPtr createPlatformPattern(const TransformationMatrix& userSpaceTransformation) const;
-        void setPatternSpaceTransform(const TransformationMatrix& patternSpaceTransformation) { m_patternSpaceTransformation = patternSpaceTransformation;}
+        void setPatternSpaceTransform(const TransformationMatrix& patternSpaceTransformation);
+        void setPlatformPatternSpaceTransform();
 
     private:
         Pattern(Image*, bool repeatX, bool repeatY);

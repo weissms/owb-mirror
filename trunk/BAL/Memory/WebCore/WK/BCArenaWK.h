@@ -40,8 +40,7 @@
 #ifndef Arena_h
 #define Arena_h
 
-// Align for biggest data type (double)
-#define ARENA_ALIGN_MASK 7
+#define ARENA_ALIGN_MASK 3
 
 namespace WebCore {
 

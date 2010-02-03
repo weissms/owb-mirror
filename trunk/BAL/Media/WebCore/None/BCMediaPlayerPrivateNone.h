@@ -89,7 +89,7 @@ namespace WebCore {
         void rateChanged();
         void sizeChanged();
         void timeChanged();
-        void volumeChanged();
+        void volumeChanged(float);
         void didEnd();
         void loadingFailed();
 

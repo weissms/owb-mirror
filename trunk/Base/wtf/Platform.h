@@ -435,6 +435,8 @@
 #define WTF_PLATFORM_GTK 1
 #elif defined(BUILDING_HAIKU__)
 #define WTF_PLATFORM_HAIKU 1
+#elif defined(BUILDING_BREWMP__)
+#define WTF_PLATFORM_BREWMP 1
 #elif OS(DARWIN) && !OS(MACPORT)
 #define WTF_PLATFORM_MAC 1
 #elif OS(WINDOWS)
@@ -501,10 +503,10 @@
 */
 #if OS(WINCE) && PLATFORM(QT)
 #   include <QtGlobal>
-#   undef WTF_PLATFORM_BIG_ENDIAN
-#   undef WTF_PLATFORM_MIDDLE_ENDIAN
-#   if Q_BYTE_ORDER == Q_BIG_EDIAN
-#       define WTF_PLATFORM_BIG_ENDIAN 1
+#   undef WTF_CPU_BIG_ENDIAN
+#   undef WTF_CPU_MIDDLE_ENDIAN
+#   if Q_BYTE_ORDER == Q_BIG_ENDIAN
+#       define WTF_CPU_BIG_ENDIAN 1
 #   endif
 
 #   include <ce_time.h>
@@ -651,7 +653,7 @@
 
 #if !OS(WINDOWS) && !OS(SOLARIS) && !OS(QNX) \
     && !OS(SYMBIAN) && !OS(HAIKU) && !OS(RVCT) \
-    && !OS(ANDROID) && !OS(AMIGAOS4)
+    && !OS(ANDROID) && !PLATFORM(BREWMP) && !OS(AMIGAOS4)
 #define HAVE_TM_GMTOFF 1
 #define HAVE_TM_ZONE 1
 #define HAVE_TIMEGM 1
@@ -706,6 +708,10 @@
 #if !COMPILER(RVCT)
 #define HAVE_SYS_PARAM_H 1
 #endif
+
+#elif PLATFORM(BREWMP)
+
+#define HAVE_ERRNO_H 1
 
 #elif OS(QNX)
 

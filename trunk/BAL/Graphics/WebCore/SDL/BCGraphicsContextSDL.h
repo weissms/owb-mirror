@@ -46,6 +46,7 @@ namespace WebCore {
     const int cMisspellingLinePatternWidth = 4;
     const int cMisspellingLinePatternGapWidth = 1;
 
+    class AffineTransform;
     class Font;
     class Generator;
     class Gradient;
@@ -232,6 +233,7 @@ namespace WebCore {
         void setURLForRect(const KURL&, const IntRect&);
 
         void concatCTM(const TransformationMatrix&);
+        void concatCTM(const AffineTransform&);
         TransformationMatrix getCTM() const;
 
         void setBalExposeEvent(BalEventExpose*);

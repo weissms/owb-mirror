@@ -671,6 +671,11 @@ void GraphicsContext::concatCTM(const TransformationMatrix& transform)
     notImplemented();
 }
 
+void GraphicsContext::concatCTM(const AffineTransform& transform)
+{
+    notImplemented();
+}
+
 void GraphicsContext::addInnerRoundedRectClip(const IntRect& rect, int thickness)
 {
     notImplemented();

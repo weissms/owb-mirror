@@ -173,6 +173,11 @@ void Path::apply(void* info, PathApplierFunction function) const
     //printf("Path::apply\n");
 }
 
+void Path::transform(const AffineTransform& transform)
+{
+    //printf("Path::transform\n");
+}
+
 void Path::transform(const TransformationMatrix& trans)
 {
     //printf("Path::transform\n");

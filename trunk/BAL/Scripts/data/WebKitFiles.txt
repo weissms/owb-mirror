@@ -37,6 +37,7 @@ WebCore/dom/KeyboardEvent.cpp
 WebCore/dom/KeyboardEvent.h
 WebCore/dom/KeyboardEvent.idl
 WebCore/dom/ScriptExecutionContext.cpp
+WebCore/dom/make_names.pl
 WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp

@@ -804,6 +804,7 @@ SOURCES += \
     platform/graphics/Pen.cpp \
     platform/graphics/SegmentedFontData.cpp \
     platform/graphics/SimpleFontData.cpp \
+    platform/graphics/transforms/AffineTransform.cpp \
     platform/graphics/transforms/TransformationMatrix.cpp \
     platform/graphics/transforms/MatrixTransformOperation.cpp \
     platform/graphics/transforms/Matrix3DTransformOperation.cpp \
@@ -2660,7 +2661,19 @@ SOURCES += \
 
 include($$PWD/../WebKit/qt/Api/headers.pri)
 HEADERS += $$WEBKIT_API_HEADERS
-!CONFIG(standalone_package) {
+CONFIG(standalone_package) {
+
+    !symbian {
+        target.path = $$[QT_INSTALL_LIBS]
+        INSTALLS += target
+    }
+
+    include($$PWD/../include/QtWebKit/headers.pri)
+    headers.files = $$SYNCQT.HEADER_FILES $$SYNCQT.HEADER_CLASSES
+    headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
+    INSTALLS += headers
+
+} else {
     target.path = $$[QT_INSTALL_LIBS]
     headers.files = $$WEBKIT_API_HEADERS
     headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
