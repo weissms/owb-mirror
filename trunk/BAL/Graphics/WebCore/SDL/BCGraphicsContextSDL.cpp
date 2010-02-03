@@ -71,10 +71,17 @@ GraphicsContext::~GraphicsContext()
     delete m_data;
 }
 
-TransformationMatrix GraphicsContext::getAffineCTM() const
+TransformationMatrix GraphicsContext::getCTM() const
 {
     notImplemented();
     TransformationMatrix a;
+    return a;
+}
+
+AffineTransform GraphicsContext::getAffineCTM() const
+{
+    notImplemented();
+    AffineTransform a;
     return a;
 }
 
