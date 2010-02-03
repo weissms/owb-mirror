@@ -134,7 +134,8 @@ void waitEventUntilLoaded()
                     ;
             }
         } else {
-            s_webView->fireWebKitEvents();
+            s_webView->fireWebKitThreadEvents();
+            s_webView->fireWebKitTimerEvents();
         }
         quit = !s_webView->isLoading();
     }
