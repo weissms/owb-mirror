@@ -2884,6 +2884,7 @@ BalWidget* WebView::viewWindow()
 void WebView::setViewWindow(BalWidget* view)
 {
     m_viewWindow = view;
+    d->viewWindowSetted();
 }
 
 BalPoint WebView::scrollOffset()
@@ -3150,10 +3151,16 @@ void WebView::popupMenuShow(void* userData)
     d->popupMenuShow(userData);
 }
 
-void WebView::fireWebKitEvents()
+void WebView::fireWebKitTimerEvents()
 {
-    d->fireWebKitEvents();
+    d->fireWebKitTimerEvents();
 }
+
+void WebView::fireWebKitThreadEvents()
+{
+    d->fireWebKitThreadEvents();
+}
+
 
 void WebView::setJavaScriptURLsAreAllowed(bool areAllowed)
 {

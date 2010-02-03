@@ -109,7 +109,8 @@ public:
     
     void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
 
-    void fireWebKitEvents();
+    void fireWebKitTimerEvents();
+    void fireWebKitThreadEvents();
 
     void resize(BalRectangle);
     void move(BalPoint lastPos, BalPoint newPos);
@@ -117,6 +118,8 @@ public:
     void repaintAfterNavigationIfNeeded();
 
     void closeWindowSoon();
+
+    void viewWindowSetted() {}
 
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);

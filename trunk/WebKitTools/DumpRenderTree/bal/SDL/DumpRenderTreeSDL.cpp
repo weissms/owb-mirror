@@ -168,7 +168,8 @@ void waitEvent()
                     ;//printf("other event\n");
             }
         } else {
-            webAppMgr().fireWebKitEvents();
+            webAppMgr().fireWebKitThreadEvents();
+            webAppMgr().fireWebKitTimerEvents();
         }
     }
 }
@@ -289,7 +290,8 @@ void waitEvent()
                     ;//printf("other event\n");
             }
         } else {
-            webView->fireWebKitEvents();
+            webView->fireWebKitThreadEvents();
+            webView->fireWebKitTimerEvents();
         }
     }
 }

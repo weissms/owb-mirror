@@ -4,6 +4,7 @@ JavaScriptCore/wtf/FastMalloc.cpp BAL/Memory/WTF/BCFastMallocWTF.cpp
 JavaScriptCore/wtf/FastMalloc.h BAL/Memory/WTF/BCFastMallocWTF.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
+JavaScriptCore/wtf/MainThread.h BAL/Types/WTF/BCMainThreadWTF.h
 JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
 JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
 WebCore/accessibility/AccessibilityObject.h

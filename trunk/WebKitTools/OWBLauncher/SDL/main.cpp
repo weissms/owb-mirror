@@ -233,7 +233,8 @@ void waitEvent()
                     ;//printf("other event\n");
             }
         } else {
-            webView->fireWebKitEvents();
+            webView->fireWebKitThreadEvents();
+            webView->fireWebKitTimerEvents();
         }
     }
 }

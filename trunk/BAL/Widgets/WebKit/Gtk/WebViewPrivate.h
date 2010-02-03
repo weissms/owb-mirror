@@ -159,7 +159,8 @@ public:
         m_backingStoreDirtyRegion.unite(dirtyRect);
     }
 
-    void fireWebKitEvents() {}
+    void fireWebKitTimerEvents() {}
+    void fireWebKitThreadEvents() {}
 
     void repaintAfterNavigationIfNeeded() { }
 
@@ -168,6 +169,8 @@ public:
     void move(BalPoint lastPos, BalPoint newPos) {}
 
     void closeWindowSoon() {}
+
+    void viewWindowSetted() {}
 
 private:
     WebCore::IntRect m_rect;

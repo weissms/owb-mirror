@@ -53,6 +53,7 @@ namespace WebCore {
     // Not intended to be used directly; use the Timer class instead.
 
     void setSharedTimerFiredFunction(void (*)());
+    void setIncrementTimerCountCallback(void(*)());
 
     // The fire time is relative to the classic POSIX epoch of January 1, 1970,
     // as the result of currentTime() is.

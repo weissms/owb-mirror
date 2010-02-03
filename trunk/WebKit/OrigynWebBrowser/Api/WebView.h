@@ -1451,7 +1451,8 @@ public:
     /*
      * send timer and thread events
      */
-    void fireWebKitEvents();
+    void fireWebKitTimerEvents();
+    void fireWebKitThreadEvents();
 
     /*
      * resize

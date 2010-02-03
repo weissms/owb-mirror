@@ -61,10 +61,6 @@ WebViewPrivate::WebViewPrivate(WebView *webView)
 {
 }
 
-void WebViewPrivate::fireWebKitEvents()
-{
-}
-
 BalRectangle WebViewPrivate::onExpose(BalEventExpose ev){
     QPainter painter(m_webView->viewWindow());
     const QRegion clip = ev.region();

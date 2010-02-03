@@ -81,9 +81,8 @@ WebViewPrivate::~WebViewPrivate()
         SDL_FreeSurface(m_webView->viewWindow());
 }
 
-void WebViewPrivate::fireWebKitEvents()
+void WebViewPrivate::fireWebKitTimerEvents() 
 {
-    WTF::dispatchFunctionsFromMainThread();
     while (fireTimerCount())
         fireTimerIfNeeded();
 #if USE(VIDEO_GSTREAMER)
@@ -93,6 +92,12 @@ void WebViewPrivate::fireWebKitEvents()
 #endif
     usleep(10000);
 }
+
+void WebViewPrivate::fireWebKitThreadEvents()
+{
+    WTF::dispatchFunctionsFromMainThread();
+}
+
 
 #if PLATFORM(SDL)
 BalRectangle WebViewPrivate::onExpose(BalEventExpose event)

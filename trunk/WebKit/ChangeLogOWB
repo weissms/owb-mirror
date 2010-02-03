@@ -1,3 +1,13 @@
+2010-02-03  Mario Bensi  <mbensi@pleyo.com>
+
+        add fireWebKitTimerEvents and fireWebKitThreadEvents
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setViewWindow):
+        (WebView::fireWebKitTimerEvents):
+        (WebView::fireWebKitThreadEvents):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2010-01-29  Olivier DOLE  <odole@pleyo.com>
 
         Add a preference to allow scripts to close windows i.e. do a

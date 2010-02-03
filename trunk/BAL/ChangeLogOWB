@@ -1,3 +1,34 @@
+2010-02-03  Mario Bensi  <mbensi@pleyo.com>
+
+        split fireWebKitEvents in fireWebKitTimerEvents and
+        fireWebKitThreadEvents.
+        Add setMainThreadFiredFunction in Mainthread and
+        setIncrementTimerCountCallback in SharedTimer
+
+        * Scripts/data/WebKitFiles.txt:
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp:
+        (WebCore::incrementTimerCount):
+        (WebCore::setIncrementTimerCountCallback):
+        * Timer/WebCore/Linux/BCSharedTimerLinux.h:
+        * Types/WTF/BCMainThreadWTF.h:
+        * Types/WTF/Pthreads/BCMainThreadPthreads.cpp:
+        (WTF::setMainThreadFiredFunction):
+        (WTF::scheduleDispatchFunctionsOnMainThread):
+        * Widgets/WebKit/Gtk/WebViewPrivate.h:
+        (WebViewPrivate::fireWebKitTimerEvents):
+        (WebViewPrivate::fireWebKitThreadEvents):
+        (WebViewPrivate::viewWindowSetted):
+        * Widgets/WebKit/Qt/WebViewPrivate.cpp:
+        * Widgets/WebKit/Qt/WebViewPrivate.h:
+        (WebViewPrivate::fireWebKitTimerEvents):
+        (WebViewPrivate::fireWebKitThreadEvents):
+        (WebViewPrivate::viewWindowSetted):
+        * Widgets/WebKit/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::fireWebKitTimerEvents):
+        (WebViewPrivate::fireWebKitThreadEvents):
+        * Widgets/WebKit/SDL/WebViewPrivate.h:
+        (WebViewPrivate::viewWindowSetted):
+
 2010-02-02  Gilles Bertal  <gbertal@pleyo.com>
 
         Fix for crasher w/ widgets demo running on MIPS target w/ JIT enabled.

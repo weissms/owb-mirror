@@ -48,6 +48,9 @@ void initializeMainThread();
 
 // These functions are internal to the callOnMainThread implementation.
 void initializeMainThreadPlatform();
+#if USE(PTHREADS)
+void setMainThreadFiredFunction(void (*)());
+#endif
 void scheduleDispatchFunctionsOnMainThread();
 Mutex& mainThreadFunctionQueueMutex();
 void dispatchFunctionsFromMainThread();

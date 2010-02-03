@@ -31,12 +31,22 @@
 
 namespace WTF {
 
+void (*mainThreadFiredFunction)() = NULL;
+
 void initializeMainThreadPlatform()
 {
 }
 
+void setMainThreadFiredFunction(void (*f)())
+{
+    if(!mainThreadFiredFunction)
+        mainThreadFiredFunction = f;
+}
+
 void scheduleDispatchFunctionsOnMainThread()
 {
+    if (mainThreadFiredFunction)
+        mainThreadFiredFunction();
 }
 
 }

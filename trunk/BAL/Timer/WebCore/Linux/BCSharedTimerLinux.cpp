@@ -43,6 +43,7 @@ static struct itimerval itimer;
 static struct sigaction sa;
 
 void (*sharedTimerFiredFunction)() = NULL;
+void (*incrementTimerCountCallback)() = NULL;
 
 // Single timer, shared to implement all the timers managed by the Timer class.
 // Not intended to be used directly; use the Timer class instead.
@@ -71,6 +72,8 @@ void incrementTimerCount()
 {
     ENTER_CRITICAL_SECTION;
     m_count++;
+    if (incrementTimerCountCallback != NULL)
+        incrementTimerCountCallback();
     LEAVE_CRITICAL_SECTION;
 }
 
@@ -120,6 +123,12 @@ void setSharedTimerFiredFunction(void (*f)())
             exit(1);
         }
     }
+}
+
+void setIncrementTimerCountCallback(void(*f)())
+{
+    if (incrementTimerCountCallback == NULL)
+        incrementTimerCountCallback = f;
 }
 
 // The fire time is relative to the classic POSIX epoch of January 1, 1970,
