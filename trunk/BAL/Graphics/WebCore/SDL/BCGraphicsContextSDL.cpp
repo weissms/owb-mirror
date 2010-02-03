@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GraphicsContext.h"
 
+#include "AffineTransform.h"
 #include "TransformationMatrix.h"
 #include "FloatRect.h"
 #include "Font.h"
