@@ -29,8 +29,6 @@
 #include "WebViewWindow.h"
 
 #include "JSActionDelegate.h"
-#include "WebApplication.h"
-#include "WebApplicationManager.h"
 #include "WebFrame.h"
 #include "WebFrameLoadDelegate.h"
 #include "WebView.h"
@@ -39,6 +37,11 @@
 #include "Frame.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
+
+#if ENABLE(DAE_APPLICATION)
+#include "WebApplication.h"
+#include "WebApplicationManager.h"
+#endif
  
 using namespace WebCore;
 
