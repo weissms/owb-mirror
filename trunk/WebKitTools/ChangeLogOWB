@@ -1,3 +1,14 @@
+2010-02-04  Gilles Bertal  <gbertal@pleyo.com>
+
+        Do not explicitly delete the WebView which is a shared object.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (getWebView):
+        (setWebView):
+        (FrameLoadDelegate::didFinishLoad):
+        (dump):
+        (runTest):
+
 2010-02-03  Mario Bensi  <mbensi@pleyo.com>
 
         adapt the change on fireWebkitEvent.

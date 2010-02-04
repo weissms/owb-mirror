@@ -68,7 +68,7 @@ BalRectangle clientRect(bool);
 BalWidget* createWindow(WebView **webView, BalRectangle rect);
 
 volatile bool done;
-static WebView* webView = 0;
+SharedPtr<WebView> gWebView = 0;
 #if ENABLE(DAE)
 ApplicationTestController* gApplicationTestController = 0;
 #endif
@@ -91,12 +91,12 @@ static const char* persistentUserStyleSheetLocation = 0;
 
 WebView *getWebView()
 {
-    return webView;
+    return gWebView.get();
 }
 
 void setWebView(WebView* w)
 {
-    webView = w;
+    gWebView = w;
 }
 
 bool getDone()
@@ -206,7 +206,7 @@ public:
 
         topLoadingFrame = 0;
 
-        if (!webView)
+        if (!gWebView)
             return;
 
         WorkQueue::shared()->setFrozen(true); // first complete load freezes the queue for the rest of this test
@@ -547,7 +547,7 @@ static void dumpBackForwardList()
 
 void dump()
 {
-    if (!webView)
+    if (!gWebView)
         return;
 
     invalidateAnyPreviousWaitToDumpWatchdog();
@@ -794,15 +794,19 @@ void runTest(const string& testPathOrURL)
 #if ENABLE(DAE)
     BalWidget *view = createWindow(0, rect);
     SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
-    webView = application->webView();
+    gWebView = application->webView();
 #else
 #if !PLATFORM(QT)
-    webView = WebView::createInstance();
+    gWebView = WebView::createInstance();
 #endif
+    WebView* webView;
     BalWidget *view = createWindow(&webView, rect);
-    webView->initWithFrame(rect, "", "");
-    webView->setWebFrameLoadDelegate(frameLoadDelegate);
-    webView->setJSActionDelegate(jsActionDelegate);
+    if (webView != gWebView.get())
+        gWebView = webView;
+    
+    getWebView()->initWithFrame(rect, "", "");
+    getWebView()->setWebFrameLoadDelegate(frameLoadDelegate);
+    getWebView()->setJSActionDelegate(jsActionDelegate);
 #endif
     getWebView()->setPolicyDelegate(0);
     getWebView()->setWebEditingDelegate(sharedEditingDelegate);
@@ -838,7 +842,7 @@ void runTest(const string& testPathOrURL)
         getWebView()->setHistoryDelegate(0);
 
 #if !ENABLE(DAE)
-    webView->mainFrame()->loadURL(url);
+    getWebView()->mainFrame()->loadURL(url);
 #endif
     free(url);
     url = NULL;
@@ -859,8 +863,7 @@ void runTest(const string& testPathOrURL)
 #if ENABLE(DAE)
     delete gApplicationTestController;
 #endif
-    delete webView;
-    webView = 0;
+    
     frameLoadDelegate = 0;
     jsActionDelegate = 0;
     policyDelegate = 0;
