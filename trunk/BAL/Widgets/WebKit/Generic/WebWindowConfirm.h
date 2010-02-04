@@ -25,38 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef WebWindowConfirm_H
+#define WebWindowConfirm_H
 
-#ifndef WebWindow_H
-#define WebWindow_H
-  
-#include "WebKitTypes.h"
+#include "WebWindow.h"
+#include <string>
+
+namespace WebCore {
+    class Font;
+    class TextRun;
+}
 
 class WebView;
 
-class WebWindow
+class WEBKIT_OWB_API WebWindowConfirm : public WebWindow
 {
 public:
-    virtual ~WebWindow() {};
-    virtual void onExpose(BalEventExpose event) = 0;
-    virtual void onKeyDown(BalEventKey event) = 0;
-    virtual void onKeyUp(BalEventKey event) = 0;
-    virtual void onMouseMotion(BalEventMotion event) = 0;
-    virtual void onMouseButtonDown(BalEventButton event) = 0;
-    virtual void onMouseButtonUp(BalEventButton event) = 0;
-    virtual void onScroll(BalEventScroll event) = 0;
-    virtual void onResize(BalResizeEvent event) = 0;
-    virtual void onQuit(BalQuitEvent) = 0;
-    virtual void onUserEvent(BalUserEvent) = 0;
-    virtual void show();
-    virtual void hide();
-protected:
-    void setMainWindow(WebView *view);
+    static WebWindowConfirm* createWebWindowConfirm(bool modal, const char* text, WebView *);
+    virtual ~WebWindowConfirm();
+    virtual bool onKeyDown(BalEventKey event);
+    virtual bool onMouseMotion(BalEventMotion event);
+    virtual bool onMouseButtonDown(BalEventButton event);
+    virtual bool onQuit(BalQuitEvent);
 
-    BalWidget* m_surface;
-    BalWidget* m_mainSurface;
+    bool value();
+protected:
+    virtual void paint(BalRectangle rect);
 private:
-    bool quit;
+    WebWindowConfirm(bool modal, const char* text, WebView *);
+    void drawButton();
+    void updateButton();
+    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
+
+    std::string m_text;
+    std::string m_buttonOk;
+    std::string m_buttonCancel;
+    bool m_button;
+    bool m_stateLeft;
+    bool m_stateRigth;
+    WebView *m_view;
+    bool isPainted;
+    bool m_value;
+    bool m_confirm;
+    bool isThemable;
+    BalRectangle m_buttonOKRect;
+    BalRectangle m_buttonCancelRect;
 };
 
 #endif
+
 

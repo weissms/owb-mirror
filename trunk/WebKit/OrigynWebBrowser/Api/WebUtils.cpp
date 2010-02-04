@@ -27,13 +27,38 @@
  */
 
 #include "WebUtils.h"
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <string.h>
+#include <string>
 
+#include "stdio.h"
 
-bool isAbsolute(const char *url)
+using namespace std;
+
+bool isAbsolute(const char* url)
 {
     if (!url)
         return false;
     if (url[0] == '/')
         return true;
     return false;
+}  
+
+bool isDirectory(const char* url)
+{
+    string urlDir = url;
+    if (!strncmp("file://", url, 7))
+       urlDir = urlDir.substr(7);
+
+    DIR* dir = opendir(urlDir.c_str());
+    if (!dir) {
+        if (errno == ENOTDIR || errno == ENOENT)
+            return false;
+        return true;
+    }
+    closedir(dir);
+    return true;
 }
+

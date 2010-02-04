@@ -94,7 +94,7 @@ public:
      * d->decidePolicyForMIMEType(webView, type, request, frame, listener);
      * @endcode
      */
-    virtual void decidePolicyForMIMEType( 
+    virtual bool decidePolicyForMIMEType( 
         /* [in] */ WebView *webView,
         /* [in] */ const char* type,
         /* [in] */ WebMutableURLRequest *request,

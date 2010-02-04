@@ -817,7 +817,7 @@ DOMElement* DOMElement::createInstance(WebCore::Element* e)
     else if (e->hasTagName(textareaTag))
         domElement = new DOMHTMLTextAreaElement(e);
     else if (e->isHTMLElement())
-        domElement = new DOMHTMLElement(e);
+        domElement = DOMHTMLElement::createInstance(e);
     else
         domElement = new DOMElement(e);
 

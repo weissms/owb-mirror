@@ -1250,7 +1250,7 @@ static bool setGlobalFlagCallback(JSContextRef context, JSObjectRef thisObject, 
 
 static void layoutTestControllerObjectFinalize(JSObjectRef object)
 {
-    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(object));
+    //LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(object));
     //controller->deref();
 }
 

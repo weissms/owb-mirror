@@ -1,5 +1,6 @@
 list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMCoreClasses.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMHTMLClasses.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMRange.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/JSActionDelegate.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/SharedObject.h
@@ -50,14 +51,14 @@ if(ENABLE_ICONDATABASE)
     )
 endif(ENABLE_ICONDATABASE)
 
-if(USE_GRAPHICS_SDL)
+if(USE_API_SDL)
     list(APPEND API_HEADER
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/SDL/WebWindow.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/SDL/WebWindowAlert.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/SDL/WebWindowConfirm.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/SDL/WebWindowPrompt.h
+        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindow.h
+        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowAlert.h
+        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowConfirm.h
+        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowPrompt.h
     )
-endif(USE_GRAPHICS_SDL)
+endif(USE_API_SDL)
 
 list(APPEND BASE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}
@@ -124,6 +125,7 @@ list(APPEND WEBKIT_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/WebCoreSupport
+    ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/
 )
 if(USE_GRAPHICS_SDL)
     list(APPEND WEBKIT_INCLUDE_DIRS

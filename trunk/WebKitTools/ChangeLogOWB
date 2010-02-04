@@ -1,3 +1,42 @@
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
+        remove warnings.
+        apply change on delegate
+
+        Need a short description and bug URL (OOPS!)
+
+        * DumpRenderTree/AccessibilityController.h:
+        * DumpRenderTree/LayoutTestController.cpp:
+        (layoutTestControllerObjectFinalize):
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (getWebView):
+        (setWebView):
+        (FrameLoadDelegate::~FrameLoadDelegate):
+        (FrameLoadDelegate::didStartProvisionalLoad):
+        (FrameLoadDelegate::didFinishLoad):
+        (FrameLoadDelegate::windowObjectClearNotification):
+        (FrameLoadDelegate::FrameLoadDelegate):
+        (dump):
+        (setPreferences):
+        (runTest):
+        * DumpRenderTree/bal/EditingDelegate.cpp:
+        (EditingDelegate::shouldShowDeleteInterface):
+        * DumpRenderTree/bal/EditingDelegate.h:
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::pathToLocalResource):
+        * DumpRenderTree/bal/PolicyDelegate.cpp:
+        (PolicyDelegate::decidePolicyForNavigationAction):
+        (PolicyDelegate::decidePolicyForMIMEType):
+        * DumpRenderTree/bal/PolicyDelegate.h:
+        * DumpRenderTree/bal/ResourceLoadDelegate.cpp:
+        (descriptionSuitableForTestResult):
+
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Remove warnings
+
+        * DumpRenderTree/AccessibilityController.h:
+
 2010-02-04  Gilles Bertal  <gbertal@pleyo.com>
 
         Do not explicitly delete the WebView which is a shared object.

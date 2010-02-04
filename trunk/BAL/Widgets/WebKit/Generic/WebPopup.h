@@ -25,11 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebUtils_H
-#define WebUtils_H
 
-bool isAbsolute(const char* url);
+#ifndef WebPopup_H
+#define WebPopup_H
 
-bool isDirectory(const char* url);
+#include "BALBase.h"
+#include "WebWindow.h"
+#include "SDL/SDL.h"
+#include "PlatformString.h"
+#include "GraphicsContext.h"
+#include "IntRect.h"
+#include "PopupMenu.h"
+
+class WebView;
+
+class WebPopup : public WebWindow
+{
+public:
+    WebPopup(WebCore::PopupMenu*, WebView *, bool modal = true);
+    virtual ~WebPopup();
+
+    virtual bool onKeyDown(BalEventKey event);
+    virtual bool onMouseMotion(BalEventMotion event);
+    virtual bool onMouseButtonDown(BalEventButton event);
+    virtual bool onMouseButtonUp(BalEventButton event);
+    virtual bool onScroll(BalEventScroll event);
+
+protected:
+    virtual void paint(BalRectangle rect);
+private:
+    void paintScrollbar();
+    void paintPopup(int i);
+    void updatePopup();
+    void valueChanged();
+
+    bool m_state;
+    bool isPainted;
+    bool isThemable;
+    WebCore::PopupMenu* m_popup;
+    int m_lastPosition;
+    bool m_scrollNeeded;
+    int m_scrollIndex;
+    int m_itemNumber;
+    bool m_isInitialized;
+    WebCore::IntRect m_thumb;
+    bool m_scrolled;
+    int m_position;
+    int m_keyPos;
+    BalRectangle m_popupRect;
+};
 
 #endif
+

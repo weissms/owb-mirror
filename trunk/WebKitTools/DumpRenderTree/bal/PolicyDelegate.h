@@ -52,12 +52,12 @@ public:
         /* [in] */ const char* frameName,
         /* [in] */ WebFramePolicyListener *listener) {}
     
-    virtual void decidePolicyForMIMEType(
+    virtual bool decidePolicyForMIMEType(
         /* [in] */ WebView *webView,
         /* [in] */ const char* type,
         /* [in] */ WebMutableURLRequest *request,
         /* [in] */ WebFrame *frame,
-        /* [in] */ WebFramePolicyListener *listener) {}
+        /* [in] */ WebFramePolicyListener *listener);
     
     virtual void unableToImplementPolicyWithError(
         /* [in] */ WebView *webView,

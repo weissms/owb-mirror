@@ -72,6 +72,7 @@
 #include "WebScriptWorld.h"
 #include "WebViewPrivate.h"
 #include "WebWidgetEngineDelegate.h"
+#include "WebWindow.h"
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
 #include <ApplicationCacheStorage.h>
@@ -442,6 +443,7 @@ WebView::~WebView()
         delete m_webViewObserver;
     if (m_memoryEvent)
         delete m_memoryEvent;
+    m_children.clear();
 }
 
 WebView* WebView::createInstance()
@@ -730,20 +732,27 @@ void WebView::selectionChanged()
 
 BalRectangle WebView::onExpose(BalEventExpose ev)
 {
-    return d->onExpose(ev);
+    BalRectangle rect = d->onExpose(ev);
+    for (size_t i = 0; i < m_children.size(); ++i)
+        m_children[i]->onExpose(ev, rect);
+    return rect;
 }
 
 bool WebView::onKeyDown(BalEventKey ev)
 {
 #if ENABLE(CEHTML)
-        PlatformKeyboardEvent keyboardEvent(&ev);
-        int virtualKey = keyboardEvent.windowsVirtualKeyCode();
-        if (shouldCallDefaultHandlerForVKKey(virtualKey)) {
-            m_previousDownEventCalledDefaultHandler = true;
-            return defaultActionOnFocusedNode(ev);
-        }
-        m_previousDownEventCalledDefaultHandler = false;
+    PlatformKeyboardEvent keyboardEvent(&ev);
+    int virtualKey = keyboardEvent.windowsVirtualKeyCode();
+    if (shouldCallDefaultHandlerForVKKey(virtualKey)) {
+        m_previousDownEventCalledDefaultHandler = true;
+        return defaultActionOnFocusedNode(ev);
+    }
+    m_previousDownEventCalledDefaultHandler = false;
 #endif
+    
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onKeyDown(ev))
+            return true;
     return d->onKeyDown(ev);
 }
 
@@ -755,42 +764,66 @@ bool WebView::onKeyUp(BalEventKey ev)
             return defaultActionOnFocusedNode(ev);
         }
 #endif
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onKeyUp(ev))
+            return true;
     return d->onKeyUp(ev);
 }
 
 bool WebView::onMouseMotion(BalEventMotion ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onMouseMotion(ev))
+            return true;
     return d->onMouseMotion(ev);
 }
 
 bool WebView::onMouseButtonDown(BalEventButton ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onMouseButtonDown(ev))
+            return true;
     return d->onMouseButtonDown(ev);
 }
 
 bool WebView::onMouseButtonUp(BalEventButton ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onMouseButtonUp(ev))
+            return true;
     return d->onMouseButtonUp(ev);
 }
 
 bool WebView::onScroll(BalEventScroll ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onScroll(ev))
+            return true;
     return d->onScroll(ev);
 }
 
 bool WebView::onResize(BalResizeEvent ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onResize(ev))
+            return true;
     d->onResize(ev);
     return true;
 }
 
 void WebView::onQuit(BalQuitEvent ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onQuit(ev))
+            return;
     d->onQuit(ev);
 }
 
 void WebView::onUserEvent(BalUserEvent ev)
 {
+    for (int i = m_children.size() - 1; i >= 0; --i)
+        if(m_children[i]->onUserEvent(ev))
+            return;
     d->onUserEvent(ev);
 }
 
@@ -3405,4 +3438,25 @@ const char* WebView::decodeHostName(const char* source)
     return strdup(result.utf8().data()); 
 }
 
+void WebView::addChildren(WebWindow* webWindow)
+{
+    if (webWindow)
+        m_children.push_back(webWindow);
+}
 
+void WebView::removeChildren(WebWindow* webWindow)
+{
+    vector<WebWindow*>::iterator it = m_children.begin();
+    for(; it != m_children.end(); ++it) {
+        if ((*it) == webWindow) {
+            m_children.erase(it);
+            break;
+        }
+    }
+}
+
+void WebView::sendExposeEvent(BalRectangle rect)
+{
+    addToDirtyRegion(rect);
+    d->sendExposeEvent(rect);
+}

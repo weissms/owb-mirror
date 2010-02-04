@@ -36,6 +36,7 @@
 #include <FrameView.h>
 #include <HTMLCollection.h>
 #include <HTMLDocument.h>
+#include <HTMLElement.h>
 #include <HTMLFormElement.h>
 #include <HTMLInputElement.h>
 #include <HTMLNames.h>
@@ -140,7 +141,7 @@ DOMHTMLElement* DOMHTMLDocument::body()
         return 0;
 
     HTMLDocument* htmlDoc = static_cast<HTMLDocument*>(m_document);
-    return new DOMHTMLElement(htmlDoc->body());
+    return DOMHTMLElement::createInstance(htmlDoc->body());
 }
     
 void DOMHTMLDocument::setBody(DOMHTMLElement* /*body*/)
@@ -219,6 +220,14 @@ DOMNodeList* DOMHTMLDocument::getElementsByName(const char* /*elementName*/)
 }
 
 // DOMHTMLElement -------------------------------------------------------------
+//
+DOMHTMLElement* DOMHTMLElement::createInstance(WebCore::Element* e)
+{
+    if (!e)
+        return 0;
+
+    return new DOMHTMLElement(e);
+}
 
 const char* DOMHTMLElement::idName()
 {
@@ -258,7 +267,7 @@ void DOMHTMLElement::setDir(const char* /*dir*/)
     
 const char* DOMHTMLElement::className()
 {
-    return "";
+    return strdup(static_cast<HTMLElement*>(element())->getAttribute(HTMLNames::classAttr).string().utf8().data());
 }
     
 void DOMHTMLElement::setClassName(const char* /*className*/)
@@ -549,7 +558,7 @@ void DOMHTMLInputElement::setDefaultChecked(const char* /*checked*/)
 DOMHTMLElement* DOMHTMLInputElement::form()
 {
     ASSERT(m_element && m_element->hasTagName(inputTag));
-    return new DOMHTMLElement(static_cast<HTMLInputElement*>(m_element));
+    return DOMHTMLElement::createInstance(static_cast<HTMLInputElement*>(m_element));
 }
     
 const char* DOMHTMLInputElement::accept()
@@ -747,7 +756,7 @@ bool DOMHTMLInputElement::isTextField()
     return inputElement->isTextField() ? true : false;
 }
 
-WebCore::IntRect DOMHTMLInputElement::rectOnScreen()
+BalRectangle DOMHTMLInputElement::rectOnScreen()
 {
     RenderObject* renderer = m_element->renderer();
     FrameView* view = m_element->document()->view();
@@ -814,7 +823,7 @@ void DOMHTMLTextAreaElement::setDefaultValue(const char* /*val*/)
 DOMHTMLElement* DOMHTMLTextAreaElement::form()
 {
     ASSERT(m_element && m_element->hasTagName(textareaTag));
-    return new DOMHTMLElement(static_cast<HTMLTextAreaElement*>(m_element));
+    return DOMHTMLElement::createInstance(static_cast<HTMLTextAreaElement*>(m_element));
 }
     
 const char* DOMHTMLTextAreaElement::accessKey()

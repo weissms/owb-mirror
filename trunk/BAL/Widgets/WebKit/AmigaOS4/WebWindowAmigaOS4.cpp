@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,54 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebWindowAlert_H
-#define WebWindowAlert_H
+#include "config.h"
 
+#include "GraphicsContext.h"
 #include "WebWindow.h"
-#include <string>
+#include "WebView.h"
 
-namespace WebCore {
-    class Font;
-    class TextRun;
-}
-
-namespace WebCore {
-    class Font;
-    class TextRun;
-}
-
-class WebView;
-
-class WEBKIT_OWB_API WebWindowAlert : public WebWindow
+using namespace WebCore;
+static bool quit = false;
+ 
+void WebWindow::createPlatformWindow()
 {
-public:
-    static WebWindowAlert* createWebWindowAlert(const char* text, WebView *);
-    virtual ~WebWindowAlert();
-    virtual void onExpose(BalEventExpose event);
-    virtual void onKeyDown(BalEventKey event);
-    virtual void onKeyUp(BalEventKey event);
-    virtual void onMouseMotion(BalEventMotion event);
-    virtual void onMouseButtonDown(BalEventButton event);
-    virtual void onMouseButtonUp(BalEventButton event);
-    virtual void onScroll(BalEventScroll event);
-    virtual void onResize(BalResizeEvent event);
-    virtual void onQuit(BalQuitEvent);
-    virtual void onUserEvent(BalUserEvent);
+}
 
-private:
-    WebWindowAlert(const char* text, WebView *);
-    void drawButton();
-    void updateButton();
-    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
+GraphicsContext* WebWindow::createContext()
+{
+    return 0;
+}
 
-    std::string m_text;
-    std::string m_buttonText;
-    bool m_state;
-    WebView *m_view;
-    bool isPainted;
-    bool isThemable;
-    BalRectangle m_buttonRect;
-};
+void WebWindow::releaseContext(GraphicsContext* ctx)
+{
+}
 
-#endif
+void WebWindow::updateRect(BalRectangle src, BalRectangle dest)
+{
+}
 
+void WebWindow::runMainLoop()
+{
+}
+
+void WebWindow::stopMainLoop()
+{
+}

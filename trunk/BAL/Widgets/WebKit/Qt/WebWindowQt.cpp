@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,61 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "config.h"
 
-#ifndef WebPopup_H
-#define WebPopup_H
-
-#include "WebKit.h"
-
-#include "IntRect.h"
+#include "GraphicsContext.h"
 #include "WebWindow.h"
-#include "SDL/SDL.h"
+#include "WebView.h"
 
-class WebView;
-
-namespace WebCore {
-    class PopupMenu;
+using namespace WebCore;
+static bool quit = false;
+ 
+void WebWindow::createPlatformWindow()
+{
 }
 
-class WebPopup : public WebWindow
+GraphicsContext* WebWindow::createContext()
 {
-public:
-    WebPopup(WebCore::PopupMenu*, WebView *);
-    virtual ~WebPopup();
-    virtual void onExpose(BalEventExpose event);
-    virtual void onKeyDown(BalEventKey event);
-    virtual void onKeyUp(BalEventKey event);
-    virtual void onMouseMotion(BalEventMotion event);
-    virtual void onMouseButtonDown(BalEventButton event);
-    virtual void onMouseButtonUp(BalEventButton event);
-    virtual void onScroll(BalEventScroll event);
-    virtual void onResize(BalResizeEvent event);
-    virtual void onQuit(BalQuitEvent);
-    virtual void onUserEvent(BalUserEvent);
+    return 0;
+}
 
-private:
-    void paintScrollbar();
-    void paintPopup(int i);
-    void updatePopup();
-    void valueChanged();
+void WebWindow::releaseContext(GraphicsContext* ctx)
+{
+}
 
-    bool m_state;
-    WebView *m_view;
-    bool isPainted;
-    bool isThemable;
-    WebCore::IntRect m_buttonRect;
-    WebCore::PopupMenu* m_popup;
-    int m_lastPosition;
-    bool m_scrollNeeded;
-    int m_scrollIndex;
-    int m_itemNumber;
-    bool m_isInitialized;
-    WebCore::IntRect m_thumb;
-    bool m_scrolled;
-    int m_position;
-    int m_keyPos;
-    BalRectangle m_popupRect;
-};
+void WebWindow::updateRect(BalRectangle src, BalRectangle dest)
+{
+}
 
-#endif
+void WebWindow::runMainLoop()
+{
+}
 
+void WebWindow::stopMainLoop()
+{
+}

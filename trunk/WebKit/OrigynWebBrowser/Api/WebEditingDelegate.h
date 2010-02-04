@@ -34,6 +34,7 @@
 #include "DOMRange.h"
 
 class DOMCSSStyleDeclaration;
+class DOMHTMLElement;
 class DOMNode;
 class WebView;
 
@@ -93,6 +94,8 @@ public:
     virtual void showSpellingUI(bool show) = 0;
         
     virtual bool spellingUIIsShowing() = 0;
+
+    virtual bool shouldShowDeleteInterface(DOMHTMLElement*) = 0;
         
     //virtual EnumSpellingGuesses* guessesForWord(const char* word) = 0;
 };

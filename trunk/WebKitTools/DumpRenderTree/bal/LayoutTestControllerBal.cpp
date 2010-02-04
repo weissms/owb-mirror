@@ -130,8 +130,22 @@ void LayoutTestController::notifyDone()
 
 JSStringRef LayoutTestController::pathToLocalResource(JSContextRef context, JSStringRef url)
 {
-    // Function introduced in r28690. This may need special-casing on Windows.
-    return JSStringRetain(url); // Do nothing on Unix.
+    // FIX the path because url begin by /tmp/LayoutTests and for us LayoutTest can be anywhere on disk.
+    char* URL = JSStringCopyUTF8CString(url);
+    string resourceURL = URL;
+    size_t pos = resourceURL.find("LayoutTests");
+    if (pos == string::npos)
+        return JSStringRetain(url);
+
+    resourceURL = resourceURL.substr(pos);
+
+    WebView* webView = getWebView();
+    string mainUrl = webView->mainFrameURL();
+    pos = mainUrl.find("LayoutTests");
+    string base = mainUrl.substr(0, pos);
+
+    resourceURL = base + resourceURL;
+    return JSStringCreateWithUTF8CString(resourceURL.c_str());
 }
 
 void LayoutTestController::queueLoad(JSStringRef url, JSStringRef target)

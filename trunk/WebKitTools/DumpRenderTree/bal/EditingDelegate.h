@@ -83,6 +83,8 @@ public:
     virtual void showSpellingUI(bool show) {}
         
     virtual bool spellingUIIsShowing() { return false;}
+    
+    virtual bool shouldShowDeleteInterface(DOMHTMLElement*);
         
     //virtual EnumSpellingGuesses* guessesForWord(const char* word) { return 0;}
 

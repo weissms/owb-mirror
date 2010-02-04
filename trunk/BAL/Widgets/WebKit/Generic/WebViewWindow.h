@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,11 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebUtils_H
-#define WebUtils_H
 
-bool isAbsolute(const char* url);
+#ifndef WebViewWindow_H
+#define WebViewWindow_H
+  
+#include "SharedPtr.h"
+#include "WebKitTypes.h"
+#include "WebWindow.h"
 
-bool isDirectory(const char* url);
+class WebApplication;
+class WebView;
+
+class WEBKIT_OWB_API WebViewWindow : public WebWindow
+{
+public:
+    WebViewWindow(bool modal, WebView* webView, BalRectangle rect);
+    virtual ~WebViewWindow();
+    void loadUrl(const char* url);
+    WebView* webView() { return m_winWebView; }
+    virtual bool onQuit(BalQuitEvent);
+    virtual bool onIdle();
+protected:
+    virtual void paint(BalRectangle);
+private:
+    WebView* m_winWebView;
+    bool m_isInitialized;
+    SharedPtr<WebApplication> m_app;
+};
 
 #endif
+

@@ -96,7 +96,15 @@ void PolicyDelegate::decidePolicyForNavigationAction(
             typeDescription = "illegal value";
     }
 
-    string message = "Policy delegate: attempt to load " + url + " with navigation type '" + typeDescription + "'";
+    string newUrl;
+    if (!url.c_str() || url.find("file://") == string::npos)
+        newUrl = url;
+    else {
+        size_t pos = url.find_last_of("/");
+        newUrl = url.substr(pos + 1);
+    }
+
+    string message = "Policy delegate: attempt to load " + newUrl + " with navigation type '" + typeDescription + "'";
 
     WebHitTestResults *results = actionInformation->webHitTestResults();
     if (results) {
@@ -132,3 +140,9 @@ void PolicyDelegate::unableToImplementPolicyWithError(
     
     printf("Policy delegate: unable to implement policy with error domain '%s', error code %d, in frame '%s'", domainMessage.c_str(), code, frameNameMessage.c_str());
 }
+
+bool PolicyDelegate::decidePolicyForMIMEType(WebView *webView, const char* type, WebMutableURLRequest *request, WebFrame *frame, WebFramePolicyListener *listener) 
+{ 
+    return false; 
+}
+    

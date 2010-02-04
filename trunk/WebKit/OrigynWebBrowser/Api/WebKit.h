@@ -33,6 +33,7 @@
 #include "WebKitTypes.h"
 
 #include "DOMCoreClasses.h"
+#include "DOMHTMLClasses.h"
 #include "DOMRange.h"
 #include "JSActionDelegate.h"
 #include "SharedObject.h"
@@ -81,11 +82,9 @@
 #include "WebConfigLoading.h"
 #endif
 
-#if PLATFORM(SDL)
 #include "WebWindow.h"
 #include "WebWindowAlert.h"
 #include "WebWindowConfirm.h"
 #include "WebWindowPrompt.h"
-#endif
 
 #endif//WebKit_h

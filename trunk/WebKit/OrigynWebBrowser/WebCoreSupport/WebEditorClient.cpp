@@ -31,6 +31,7 @@
 
 #include "DOMRange.h"
 #include "DOMCSSClasses.h"
+#include "DOMHTMLClasses.h"
 #include "WebEditingDelegate.h"
 #include "WebView.h"
 
@@ -373,10 +374,14 @@ void WebEditorClient::webViewDidChangeSelection(WebNotification* /*notification*
         editing->webViewDidChangeSelection();
 }
 
-bool WebEditorClient::shouldShowDeleteInterface(HTMLElement* /*element*/)
+bool WebEditorClient::shouldShowDeleteInterface(HTMLElement* element)
 {
-    notImplemented(); 
-    return false; 
+    SharedPtr<WebEditingDelegate> editing = m_webView->webEditingDelegate();
+    if (editing) {
+        DOMHTMLElement* elem = DOMHTMLElement::createInstance(element);
+        return editing->shouldShowDeleteInterface(elem);
+    }
+    return false;
 }
 
 bool WebEditorClient::smartInsertDeleteEnabled(void)

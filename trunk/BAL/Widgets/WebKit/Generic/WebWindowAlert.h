@@ -25,11 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebUtils_H
-#define WebUtils_H
+#ifndef WebWindowAlert_H
+#define WebWindowAlert_H
 
-bool isAbsolute(const char* url);
+#include "WebWindow.h"
+#include <string>
 
-bool isDirectory(const char* url);
+namespace WebCore {
+    class Font;
+    class TextRun;
+}
+
+namespace WebCore {
+    class Font;
+    class TextRun;
+}
+
+class WebView;
+
+class WEBKIT_OWB_API WebWindowAlert : public WebWindow
+{
+public:
+    static WebWindowAlert* createWebWindowAlert(bool modal, WebView* webView, const char* text);
+    virtual ~WebWindowAlert();
+    virtual bool onKeyDown(BalEventKey event);
+    virtual bool onMouseMotion(BalEventMotion event);
+    virtual bool onMouseButtonDown(BalEventButton event);
+    virtual bool onQuit(BalQuitEvent);
+protected:
+    virtual void paint(BalRectangle rect);
+private:
+    WebWindowAlert(bool modal, WebView* webView, const char* text);
+    void drawButton();
+    void updateButton();
+    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
+
+    std::string m_text;
+    std::string m_buttonText;
+    bool m_state;
+    WebView *m_view;
+    bool isPainted;
+    bool isThemable;
+    BalRectangle m_buttonRect;
+};
 
 #endif
+

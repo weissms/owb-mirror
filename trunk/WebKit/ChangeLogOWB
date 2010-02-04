@@ -1,5 +1,59 @@
 2010-02-04  Mario Bensi  <mbensi@pleyo.com>
 
+        Expose DOMHTMLClasses.
+        add methods in WebEditingDelegate and WebPolicyDelegate
+        add WebWindow in WebView
+        implement open/close window (working progress)
+
+        * OrigynWebBrowser/Api/DOMCoreClasses.cpp:
+        (DOMElement::createInstance):
+        * OrigynWebBrowser/Api/DOMHTMLClasses.cpp:
+        (DOMHTMLDocument::body):
+        (DOMHTMLElement::createInstance):
+        (DOMHTMLElement::className):
+        (DOMHTMLInputElement::form):
+        (DOMHTMLInputElement::rectOnScreen):
+        (DOMHTMLTextAreaElement::form):
+        * OrigynWebBrowser/Api/DOMHTMLClasses.h:
+        * OrigynWebBrowser/Api/DefaultPolicyDelegate.cpp:
+        (DefaultPolicyDelegate::decidePolicyForNavigationAction):
+        (DefaultPolicyDelegate::decidePolicyForMIMEType):
+        * OrigynWebBrowser/Api/DefaultPolicyDelegate.h:
+        * OrigynWebBrowser/Api/WebEditingDelegate.h:
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebPolicyDelegate.h:
+        * OrigynWebBrowser/Api/WebUtils.cpp:
+        (isAbsolute):
+        (isDirectory):
+        * OrigynWebBrowser/Api/WebUtils.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::~WebView):
+        (WebView::onExpose):
+        (WebView::onKeyDown):
+        (WebView::onKeyUp):
+        (WebView::onMouseMotion):
+        (WebView::onMouseButtonDown):
+        (WebView::onMouseButtonUp):
+        (WebView::onScroll):
+        (WebView::onResize):
+        (WebView::onQuit):
+        (WebView::onUserEvent):
+        (WebView::addChildren):
+        (WebView::removeChildren):
+        (WebView::sendExposeEvent):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        * OrigynWebBrowser/WebCoreSupport/WebEditorClient.cpp:
+        (WebEditorClient::shouldShowDeleteInterface):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchWillSendRequest):
+        (WebFrameLoaderClient::createPlugin):
+        (WebFrameLoaderClient::dispatchDecidePolicyForMIMEType):
+        (WebFrameLoaderClient::shouldUsePluginDocument):
+
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
         rename method
 
         * OrigynWebBrowser/Api/WebView.cpp:

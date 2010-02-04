@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2010 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,58 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebWindowConfirm_H
-#define WebWindowConfirm_H
+#include "config.h"
 
+#include "GraphicsContext.h"
 #include "WebWindow.h"
-#include <string>
+#include "WebView.h"
 
-namespace WebCore {
-    class Font;
-    class TextRun;
+using namespace WebCore;
+static bool quit = false;
+ 
+void WebWindow::createPlatformWindow()
+{
 }
 
-class WebView;
-
-class WEBKIT_OWB_API WebWindowConfirm : public WebWindow
+GraphicsContext* WebWindow::createContext()
 {
-public:
-    static WebWindowConfirm* createWebWindowConfirm(const char* text, WebView *);
-    virtual ~WebWindowConfirm();
-    virtual void onExpose(BalEventExpose event);
-    virtual void onKeyDown(BalEventKey event);
-    virtual void onKeyUp(BalEventKey event);
-    virtual void onMouseMotion(BalEventMotion event);
-    virtual void onMouseButtonDown(BalEventButton event);
-    virtual void onMouseButtonUp(BalEventButton event);
-    virtual void onScroll(BalEventScroll event);
-    virtual void onResize(BalResizeEvent event);
-    virtual void onQuit(BalQuitEvent);
-    virtual void onUserEvent(BalUserEvent);
+    return 0;
+}
 
-    bool value();
+void WebWindow::releaseContext(GraphicsContext* ctx)
+{
+}
 
-private:
-    WebWindowConfirm(const char* text, WebView *);
-    void drawButton();
-    void updateButton();
-    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
+void WebWindow::updateRect(BalRectangle src, BalRectangle dest)
+{
+}
 
-    std::string m_text;
-    std::string m_buttonOk;
-    std::string m_buttonCancel;
-    bool m_button;
-    bool m_stateLeft;
-    bool m_stateRigth;
-    WebView *m_view;
-    bool isPainted;
-    bool m_value;
-    bool m_confirm;
-    bool isThemable;
-    BalRectangle m_buttonOKRect;
-    BalRectangle m_buttonCancelRect;
-};
+void WebWindow::runMainLoop()
+{
+}
 
-#endif
-
-
+void WebWindow::stopMainLoop()
+{
+}

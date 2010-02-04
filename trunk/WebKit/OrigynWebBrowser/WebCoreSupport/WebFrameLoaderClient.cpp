@@ -284,15 +284,18 @@ void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsig
 
     WebMutableURLRequest* newWebURLRequest = resourceLoadDelegate->willSendRequest(webView, identifier, webURLRequest, webURLRedirectResponse, getWebDataSource(loader));
     delete webURLRedirectResponse; 
-    if (!newWebURLRequest) {
-        delete webURLRequest;
-        return;
-    }
 
     if (webURLRequest == newWebURLRequest) {
         delete webURLRequest;
         return;
     }
+
+    if (!newWebURLRequest) {
+        request = ResourceRequest();
+        delete webURLRequest;
+        return;
+    }
+
     delete webURLRequest;
 
     request = newWebURLRequest->resourceRequest();
@@ -939,7 +942,8 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
      || mimeType == "video/mpeg4" 
      || mimeType == "video/mp4" 
      || mimeType == "video/h264"
-     || mimeType == "video/vnd.dlna.mpeg-tts") {
+     || mimeType == "video/vnd.dlna.mpeg-tts"
+     || mimeType == "audio/mpeg") {
         ASSERT(element->hasTagName(objectTag));
         HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
         return adoptRef(static_cast<Widget*>(new CEHTMLVideoElement(objectElement)));
@@ -1216,9 +1220,14 @@ void WebFrameLoaderClient::dispatchDecidePolicyForMIMEType(FramePolicyFunction f
 
     WebMutableURLRequest* urlRequest = WebMutableURLRequest::createInstance(request);
 
-    policyDelegate->decidePolicyForMIMEType(m_webFrame->webView(), mimeType.utf8().data(), urlRequest, m_webFrame, setUpPolicyListener(function));
+    if (policyDelegate->decidePolicyForMIMEType(m_webFrame->webView(), mimeType.utf8().data(), urlRequest, m_webFrame, setUpPolicyListener(function))) {
+        delete urlRequest;
+        return;
+    }
 
-    delete urlRequest;
+    Frame* coreFrame = core(m_webFrame);
+    (coreFrame->loader()->policyChecker()->*function)(PolicyUse);
+
 }
 
 void WebFrameLoaderClient::dispatchDecidePolicyForNewWindowAction(FramePolicyFunction function, const NavigationAction& action, const ResourceRequest& request, PassRefPtr<FormState> formState, const String& frameName)
@@ -1414,7 +1423,7 @@ bool WebFrameLoaderClient::shouldUsePluginDocument(const String& mimeType) const
 #if ENABLE(DAE)
     if (mimeType == "application/oipfapplicationmanager" || mimeType == "video/mpeg" 
         || mimeType == "video/mpeg4" || mimeType == "video/mp4" || mimeType == "video/broadcast"
-        || mimeType == "application/oipfconfiguration")
+        || mimeType == "application/oipfconfiguration" || mimeType == "audio/mpeg")
         return true;
 #endif
     return false;

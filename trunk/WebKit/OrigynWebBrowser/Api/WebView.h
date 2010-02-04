@@ -76,6 +76,7 @@ class WebViewPrivate;
 class WebView;
 class WebViewObserver;
 class WebWidgetEngineDelegate;
+class WebWindow;
 
 namespace WebCore {
     class Application;
@@ -1605,6 +1606,11 @@ public:
     const char* encodeHostName(const char* source);
     const char* decodeHostName(const char* source);
 
+    void addChildren(WebWindow*);
+    void removeChildren(WebWindow*);
+
+    void sendExposeEvent(BalRectangle rect);
+
 private:
 
     /**
@@ -1994,6 +2000,8 @@ protected:
     WebDragOperation m_dragOperation;
     WebDragData* m_currentDragData;
     std::string m_inspectorSettings;
+
+    std::vector<WebWindow *> m_children; 
 };
 
 #endif

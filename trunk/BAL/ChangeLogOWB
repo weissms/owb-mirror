@@ -1,5 +1,123 @@
 2010-02-04  Mario Bensi  <mbensi@pleyo.com>
 
+        Add WebWindow* with a generic implementation.
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::handleLocalReceiveResponse):
+        (WebCore::writeCallback):
+        (WebCore::ResourceHandleManager::downloadTimerCallback):
+        (WebCore::ResourceHandleManager::initializeHandle):
+        * Widgets/WebKit/AmigaOS4/WebWindowAmigaOS4.cpp: Added.
+        (WebWindow::createPlatformWindow):
+        (WebWindow::createContext):
+        (WebWindow::releaseContext):
+        (WebWindow::updateRect):
+        (WebWindow::runMainLoop):
+        (WebWindow::stopMainLoop):
+        * Widgets/WebKit/CMakeLists.txt:
+        * Widgets/WebKit/Generic: Added.
+        * Widgets/WebKit/Generic/WebPopup.cpp: Added.
+        (WebPopup::WebPopup):
+        (WebPopup::~WebPopup):
+        (WebPopup::paint):
+        (WebPopup::paintScrollbar):
+        (WebPopup::paintPopup):
+        (WebPopup::updatePopup):
+        (WebPopup::valueChanged):
+        * Widgets/WebKit/Generic/WebPopup.h: Added.
+        * Widgets/WebKit/Generic/WebViewWindow.cpp: Added.
+        (WebViewWindow::WebViewWindow):
+        (WebViewWindow::~WebViewWindow):
+        (WebViewWindow::paint):
+        (WebViewWindow::loadUrl):
+        (WebViewWindow::onQuit):
+        (WebViewWindow::onIdle):
+        * Widgets/WebKit/Generic/WebViewWindow.h: Added.
+        * Widgets/WebKit/Generic/WebWindow.cpp: Added.
+        (WebWindow::WebWindow):
+        (WebWindow::~WebWindow):
+        (WebWindow::onExpose):
+        (WebWindow::onKeyDown):
+        (WebWindow::onKeyUp):
+        (WebWindow::onMouseMotion):
+        (WebWindow::onMouseButtonDown):
+        (WebWindow::onMouseButtonUp):
+        (WebWindow::onScroll):
+        (WebWindow::onResize):
+        (WebWindow::onQuit):
+        (WebWindow::onUserEvent):
+        (WebWindow::onIdle):
+        (WebWindow::show):
+        (WebWindow::hide):
+        (WebWindow::setMainWindow):
+        (WebWindow::paintDecoration):
+        (WebWindow::mainWindowRect):
+        * Widgets/WebKit/Generic/WebWindow.h: Added.
+        * Widgets/WebKit/Generic/WebWindowAlert.cpp: Added.
+        (WebWindowAlert::createWebWindowAlert):
+        (WebWindowAlert::WebWindowAlert):
+        (WebWindowAlert::~WebWindowAlert):
+        (WebWindowAlert::paint):
+        (WebWindowAlert::drawButton):
+        (WebWindowAlert::updateButton):
+        (WebWindowAlert::onKeyDown):
+        (WebWindowAlert::onMouseMotion):
+        (WebWindowAlert::onMouseButtonDown):
+        (WebWindowAlert::onQuit):
+        (WebWindowAlert::getLineBreak):
+        * Widgets/WebKit/Generic/WebWindowAlert.h: Added.
+        * Widgets/WebKit/Generic/WebWindowConfirm.cpp: Added.
+        (WebWindowConfirm::createWebWindowConfirm):
+        (WebWindowConfirm::WebWindowConfirm):
+        (WebWindowConfirm::~WebWindowConfirm):
+        (WebWindowConfirm::paint):
+        (WebWindowConfirm::drawButton):
+        (WebWindowConfirm::updateButton):
+        * Widgets/WebKit/Generic/WebWindowConfirm.h: Added.
+        * Widgets/WebKit/Generic/WebWindowPrompt.cpp: Added.
+        (WebWindowPrompt::createWebWindowPrompt):
+        (WebWindowPrompt::WebWindowPrompt):
+        (WebWindowPrompt::~WebWindowPrompt):
+        (WebWindowPrompt::paint):
+        (WebWindowPrompt::drawTextBox):
+        (WebWindowPrompt::updateTextBox):
+        (WebWindowPrompt::drawButton):
+        (WebWindowPrompt::updateButton):
+        * Widgets/WebKit/Generic/WebWindowPrompt.h: Added.
+        * Widgets/WebKit/Gtk/WebWindowGtk.cpp: Added.
+        (WebWindow::createPlatformWindow):
+        (WebWindow::createContext):
+        (WebWindow::releaseContext):
+        (WebWindow::updateRect):
+        (WebWindow::runMainLoop):
+        (WebWindow::stopMainLoop):
+        * Widgets/WebKit/Qt/WebWindowQt.cpp: Added.
+        (WebWindow::createPlatformWindow):
+        (WebWindow::createContext):
+        (WebWindow::releaseContext):
+        (WebWindow::updateRect):
+        (WebWindow::runMainLoop):
+        (WebWindow::stopMainLoop):
+        * Widgets/WebKit/SDL/WebPopup.cpp: Removed.
+        * Widgets/WebKit/SDL/WebPopup.h: Removed.
+        * Widgets/WebKit/SDL/WebWindow.h: Removed.
+        * Widgets/WebKit/SDL/WebWindowAlert.cpp: Removed.
+        * Widgets/WebKit/SDL/WebWindowAlert.h: Removed.
+        * Widgets/WebKit/SDL/WebWindowConfirm.cpp: Removed.
+        * Widgets/WebKit/SDL/WebWindowConfirm.h: Removed.
+        * Widgets/WebKit/SDL/WebWindowPrompt.cpp: Removed.
+        * Widgets/WebKit/SDL/WebWindowPrompt.h: Removed.
+        * Widgets/WebKit/SDL/WebWindowSDL.cpp: Added.
+        (WebWindow::createPlatformWindow):
+        (WebWindow::createContext):
+        (WebWindow::releaseContext):
+        (WebWindow::updateRect):
+        (quitCatcher):
+        (WebWindow::runMainLoop):
+        (WebWindow::stopMainLoop):
+
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
         rename methods
         call callback when we receive a fire timer.
 

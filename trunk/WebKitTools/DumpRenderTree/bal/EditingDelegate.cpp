@@ -183,3 +183,8 @@ void EditingDelegate::webViewDidChangeSelection()
     if (::gLayoutTestController->dumpEditingCallbacks() && !done)
         printf("EDITING DELEGATE: webViewDidChangeSelection:WebViewDidChangeSelectionNotification\n");
 }
+
+bool EditingDelegate::shouldShowDeleteInterface(DOMHTMLElement* element)
+{
+    return !strcmp(element->className(), "needsDeletionUI");
+}

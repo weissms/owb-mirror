@@ -31,12 +31,10 @@
 
 #include "DOMCoreClasses.h"
 #include "WebScriptObject.h"
-#include "IntRect.h"
-
-#include <RefPtr.h>
 
 namespace WebCore {
     class HTMLCollection;
+    class HTMLElement;
 }
 
 class DOMHTMLElement;
@@ -103,7 +101,7 @@ public:
     virtual DOMNode* namedItem(const char* name);
 
 protected:
-    RefPtr<WebCore::HTMLCollection> m_collection;
+    WebCore::HTMLCollection* m_collection;
 };
 
 class DOMHTMLOptionsCollection : public DOMObject
@@ -356,8 +354,9 @@ class DOMHTMLElement : public DOMElement
 {
 protected:
     DOMHTMLElement();
-public:
     DOMHTMLElement(WebCore::Element* e) : DOMElement(e) {}
+public:
+    static DOMHTMLElement* createInstance(WebCore::Element*);
 
     /**
      * throw exception
@@ -1435,7 +1434,7 @@ public:
     // FormsAutoFillTransition
     virtual bool isTextField();
     
-    virtual WebCore::IntRect rectOnScreen();
+    virtual BalRectangle rectOnScreen();
     
     virtual void replaceCharactersInRange(int startTarget, int endTarget, const char* replacementString, int index);
     

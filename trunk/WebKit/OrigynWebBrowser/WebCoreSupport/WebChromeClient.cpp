@@ -41,6 +41,7 @@
 #include "WebPreferences.h"
 #include "WebSecurityOrigin.h"
 #include "WebView.h"
+#include "WebViewWindow.h"
 
 #include <PlatformString.h>
 #include "CString.h"
@@ -186,6 +187,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
                                             features.widthSet ? features.width : newowbwindow->window->Width,
                                             features.heightSet ? features.height : newowbwindow->window->Height);
 
+            printf("url = %s\n", frameLoadRequest.resourceRequest().url().prettyURL().utf8().data());
             newWebView->mainFrame()->loadURL(frameLoadRequest.resourceRequest().url().prettyURL().utf8().data());
 
             return core(newWebView);
@@ -195,19 +197,19 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
 
     return 0;
 #else
-#if ENABLE(DAE)
     IntRect frameRect(m_webView->frameRect());
     IntRect r(features.xSet ? features.x : 0, 
               features.ySet ? features.y : 0, 
               features.widthSet ? features.width : frameRect.width(),
               features.heightSet ? features.height : frameRect.height());
     
-    SharedPtr<WebApplication> app = webAppMgr().createApplication(0, r, frameLoadRequest.resourceRequest().url().string().utf8().data(), m_webView->webFrameLoadDelegate(), 0);
-    
-    if (!app || !app->webView())
-        return 0;
-    
-    WebView* view = app->webView();
+    bool modal = false;
+    if (features.dialog)
+        modal = true;
+        
+    WebViewWindow* win = new WebViewWindow(modal, m_webView, r);
+    win->loadUrl(frameLoadRequest.resourceRequest().url().string().utf8().data());
+    WebView* view = win->webView();
     view->setMenubarVisible(features.menuBarVisible);
     view->setStatusbarVisible(features.statusBarVisible);
     view->setToolbarsVisible(features.toolBarVisible);
@@ -215,29 +217,8 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     WebFrame* webFrame = view->topLevelFrame();
     if (webFrame)
         webFrame->setAllowsScrolling(features.scrollbarsVisible);
+    win->show();
     return core(view);
-#else
-
-    if (features.dialog) {
-        return 0;
-    }
-    Page* page = 0;
-    //IWebUIDelegate* uiDelegate = 0;
-    WebMutableURLRequest* request = WebMutableURLRequest::createInstance(frameLoadRequest.resourceRequest());
-
-    /*if (SUCCEEDED(m_webView->uiDelegate(&uiDelegate))) {
-        IWebView* webView = 0;
-        if (SUCCEEDED(uiDelegate->createWebViewWithRequest(m_webView, request, &webView))) {
-            page = core(webView);
-            webView->Release();
-        }
-    
-        uiDelegate->Release();
-    }*/
-    delete request;
-
-    return page;
-#endif
 #endif
 }
 

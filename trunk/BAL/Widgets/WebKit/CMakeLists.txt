@@ -1,5 +1,10 @@
 set(WIDGETS_DIR ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit)
 
+include_directories(
+    ${WIDGETS_DIR}/Generic
+)
+aux_source_directory(${WIDGETS_DIR}/Generic WEBKIT_SRC)
+
 if(USE_GRAPHICS_GTK)
     add_custom_command(OUTPUT ${OWB_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.h ${OWB_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
         WORKING_DIRECTORY ${OWB_BINARY_DIR}

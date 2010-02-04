@@ -25,11 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebUtils_H
-#define WebUtils_H
+#ifndef WebWindowPrompt_H
+#define WebWindowPrompt_H
 
-bool isAbsolute(const char* url);
+#include "WebWindow.h"
+#include <string>
 
-bool isDirectory(const char* url);
+namespace WebCore {
+    class Font;
+    class TextRun;
+}
+
+class WebView;
+
+class WEBKIT_OWB_API WebWindowPrompt : public WebWindow
+{
+public:
+    static WebWindowPrompt* createWebWindowPrompt(bool modal, const char* text, const char* defaultText, WebView *);
+    virtual ~WebWindowPrompt();
+    virtual bool onKeyDown(BalEventKey event);
+    virtual bool onMouseMotion(BalEventMotion event);
+    virtual bool onMouseButtonDown(BalEventButton event);
+    virtual bool onQuit(BalQuitEvent);
+
+    const char* value();
+protected:
+    virtual void paint(BalRectangle rect);
+private:
+    WebWindowPrompt(bool modal, const char* text, const char* defaultText, WebView *);
+    void drawTextBox();
+    void updateTextBox();
+    void drawButton();
+    void updateButton();
+    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
+
+    std::string m_text;
+    std::string m_defaultText;
+    std::string m_buttonOk;
+    std::string m_buttonCancel;
+    bool m_button;
+    bool m_stateLeft;
+    bool m_stateRigth;
+    WebView *m_view;
+    bool isPainted;
+    std::string m_value;
+    bool m_Prompt;
+    bool isThemable;
+    BalRectangle m_buttonOKRect;
+    BalRectangle m_buttonCancelRect;
+    BalRectangle m_textRect;
+};
 
 #endif
+

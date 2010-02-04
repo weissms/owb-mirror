@@ -35,6 +35,9 @@
 #include "GraphicsContext.h"
 #include "Image.h"
 #include "IntRect.h"
+#include "KeyboardCodes.h"
+#include "PlatformKeyboardEvent.h"
+#include "PlatformMouseEvent.h"
 #include "TextBreakIterator.h"
 #include "WebView.h"
 #include "WebFrame.h"
@@ -43,48 +46,37 @@ using namespace WebCore;
 
 static int fontSize = 12;
 
-WebWindowAlert* WebWindowAlert::createWebWindowAlert(const char* text, WebView *webview)
+WebWindowAlert* WebWindowAlert::createWebWindowAlert(bool modal, WebView* webView, const char* text)
 {
-    return new WebWindowAlert(text, webview);
+    return new WebWindowAlert(modal, webView, text);
 }
 
-WebWindowAlert::WebWindowAlert(const char* text, WebView *view)
-    : m_text(text)
+WebWindowAlert::WebWindowAlert(bool modal, WebView* webView, const char* text)
+    : WebWindow(modal, webView, webView->frameRect())
+    , m_text(text)
     , m_buttonText("OK")
     , m_state(false)
-    , m_view(view)
     , isPainted(false)
     , isThemable(false)
 {
-    m_mainSurface = m_view->viewWindow();
-    setMainWindow(m_view);
 }
 
 WebWindowAlert::~WebWindowAlert()
 {
-    if (m_surface)
-        SDL_FreeSurface(m_surface);
 }
 
-void WebWindowAlert::onExpose(BalEventExpose event)
+void WebWindowAlert::paint(BalRectangle rect)
 {
     if (!m_surface || isPainted)
         return;
 
     isPainted = true;
-    SDL_Rect sdlSrc, sdlDest;
-    sdlSrc.x = 0;
-    sdlSrc.y = 0;
-    sdlDest.x = m_view->frameRect().x;
-    sdlDest.y = m_view->frameRect().y;
-    sdlSrc.w = sdlDest.w = m_surface->w;
-    sdlSrc.h = sdlDest.h = m_surface->h;
 
-    GraphicsContext ctx(m_surface);
-    ctx.setBalExposeEvent(&event);
-    ctx.save();
+    IntRect mainSurfaceRect(mainWindowRect());
+    GraphicsContext* ctx = createContext();
+    ctx->save();
     // Paint background
-    ctx.fillRect(IntRect(0, 0, m_surface->w, m_surface->h), Color::transparent, DeviceColorSpace);
+    ctx->fillRect(IntRect(0, 0, mainSurfaceRect.width(), mainSurfaceRect.height()), Color::transparent, DeviceColorSpace);
 
     static RefPtr<WebCore::Image> cornerhl = Image::loadPlatformResource("/Alert/cornerhl");
     if (cornerhl) {
@@ -110,7 +102,7 @@ void WebWindowAlert::onExpose(BalEventExpose event)
             font.update(0);
 
             int textWidth = font.width(TextRun(m_text.c_str()));
-            int lines = 2 * textWidth / m_surface->w + 1;
+            int lines = 2 * textWidth / mainSurfaceRect.width() + 1;
             int popupHeight = borderh->height() * 2 + buttonOK->height() + lines * font.height();
             int popupWidth = textWidth + 2 * borderl->width();
 
@@ -118,44 +110,44 @@ void WebWindowAlert::onExpose(BalEventExpose event)
             if (popupWidth < minWidth)
                 popupWidth = minWidth;
 
-            if (textWidth > m_surface->w / 2)
-                popupWidth = m_surface->w / 2;
+            if (textWidth > mainSurfaceRect.width() / 2)
+                popupWidth = mainSurfaceRect.width() / 2;
 
             // Compute popup top left corner to have a centered popup.
-            IntPoint startPos((m_surface->w - popupWidth) / 2, (m_surface->h - popupHeight) / 2);
+            IntPoint startPos((mainSurfaceRect.width() - popupWidth) / 2, (mainSurfaceRect.height() - popupHeight) / 2);
 
             // Fill popup with popup bg image.
             // Then draw borders.
-            ctx.drawImage(bg.get(), DeviceColorSpace, IntRect(startPos, IntSize(popupWidth, popupHeight)));
+            ctx->drawImage(bg.get(), DeviceColorSpace, IntRect(startPos, IntSize(popupWidth, popupHeight)));
 
             // Left side
             IntPoint topLeft(startPos);
-            ctx.drawImage(cornerhl.get(), DeviceColorSpace, topLeft);
+            ctx->drawImage(cornerhl.get(), DeviceColorSpace, topLeft);
             IntRect leftBorder(IntPoint(topLeft.x(), topLeft.y() + cornerhl->height()), IntSize(borderl->width(), popupHeight - 2 * cornerhl->height()));
-            ctx.drawImage(borderl.get(), DeviceColorSpace, leftBorder);
+            ctx->drawImage(borderl.get(), DeviceColorSpace, leftBorder);
             IntPoint bottomLeft(topLeft.x(), topLeft.y() + popupHeight - cornerbl->height());
-            ctx.drawImage(cornerbl.get(), DeviceColorSpace, bottomLeft);
+            ctx->drawImage(cornerbl.get(), DeviceColorSpace, bottomLeft);
 
             // Right side
             IntPoint topRight(startPos.x() + popupWidth - cornerhr->width(), startPos.y());
-            ctx.drawImage(cornerhr.get(), DeviceColorSpace, topRight);
+            ctx->drawImage(cornerhr.get(), DeviceColorSpace, topRight);
             IntRect rightBorder(IntPoint(topRight.x(), topRight.y() + cornerhr->height()), IntSize(borderr->width(), popupHeight - 2 * cornerhr->height()));
-            ctx.drawImage(borderr.get(), DeviceColorSpace, rightBorder);
+            ctx->drawImage(borderr.get(), DeviceColorSpace, rightBorder);
             IntPoint bottomRight(topRight.x(), topRight.y() + popupHeight - cornerbr->height());
-            ctx.drawImage(cornerbr.get(), DeviceColorSpace, bottomRight);
+            ctx->drawImage(cornerbr.get(), DeviceColorSpace, bottomRight);
             
             // Top border
             IntRect topBorder(startPos.x() + borderh->width(), startPos.y(), popupWidth - 2 * borderh->width(), borderh->height());
-            ctx.drawImage(borderh.get(), DeviceColorSpace, topBorder);
+            ctx->drawImage(borderh.get(), DeviceColorSpace, topBorder);
 
             // Bottom border
             IntRect bottomBorder(startPos.x() + borderb->width(), startPos.y() + popupHeight - borderb->height(), popupWidth - 2 * borderb->width(), borderb->height());
-            ctx.drawImage(borderb.get(), DeviceColorSpace, bottomBorder);
+            ctx->drawImage(borderb.get(), DeviceColorSpace, bottomBorder);
 
             // Draw OK button
             // Specific hack: a bit lower
             m_buttonRect = IntRect(startPos.x() + (popupWidth - buttonOK->width()) / 2, startPos.y() + popupHeight - borderb->height() / 2 - buttonOK->height(), buttonOK->width(), buttonOK->height());
-            ctx.drawImage(buttonOK.get(), DeviceColorSpace, m_buttonRect);
+            ctx->drawImage(buttonOK.get(), DeviceColorSpace, m_buttonRect);
 
             // Draw text line by line
             IntPoint startText(startPos.x() + borderl->width(), startPos.y() + borderh->height() + font.size());
@@ -168,7 +160,7 @@ void WebWindowAlert::onExpose(BalEventExpose event)
             startText.move(xCenterOffset, 0);
             TextRun textLine(textrun.characters(), textrun.length());
             for (int line = 0; line < lines; line++) {
-                font.drawText(&ctx, textLine, startText, 0, lineEnd);
+                font.drawText(ctx, textLine, startText, 0, lineEnd);
                 // Undo the previous x move to correctly center next line.
                 startText.move(-xCenterOffset, 0);
                 textLine.setText(textLine.data(lineEnd), textLine.length() - lineEnd);
@@ -178,19 +170,20 @@ void WebWindowAlert::onExpose(BalEventExpose event)
                 startText.move(xCenterOffset, font.lineSpacing());
             }
 
-            SDL_BlitSurface(m_surface, &sdlSrc, m_mainSurface, &sdlSrc);
-            SDL_BlitSurface(m_mainSurface, &sdlSrc, SDL_GetVideoSurface(), &sdlDest);
-            if (SDL_GetVideoSurface()->flags & SDL_DOUBLEBUF)
-                SDL_Flip(SDL_GetVideoSurface());
-            else
-                SDL_UpdateRect(SDL_GetVideoSurface(), sdlDest.x, sdlDest.y, sdlDest.w, sdlDest.h);
-            ctx.restore();
+
+            IntRect source(m_rect);
+            source.setLocation(IntPoint(0, 0));
+            IntRect destination(m_rect);
+
+            updateRect(source, destination);
+            ctx->restore();
+            releaseContext(ctx);
             return;
         }
     }
 
     // Paint Window background
-    ctx.fillRect(IntRect(0, (m_surface->h / 2) - (fontSize * 2), m_surface->w, fontSize * 6), Color(0xFF0000CC), DeviceColorSpace);
+    ctx->fillRect(IntRect(0, (mainSurfaceRect.height() / 2) - (fontSize * 2), mainSurfaceRect.width(), fontSize * 6), Color(0xFF0000CC), DeviceColorSpace);
 
     // Draw Text
     FontDescription fontDescription;
@@ -202,20 +195,19 @@ void WebWindowAlert::onExpose(BalEventExpose event)
     font.update(0);
 
     TextRun textrun(m_text.c_str());
-    ctx.drawText(font, textrun, IntPoint(((m_surface->w / 2 ) - (textrun.length() * fontSize / 3)), m_surface->h / 2));
+    ctx->drawText(font, textrun, IntPoint(((mainSurfaceRect.width() / 2 ) - (textrun.length() * fontSize / 3)), mainSurfaceRect.height() / 2));
 
     // draw button
     m_state = false;
     drawButton();
 
     // Blit and update
-    SDL_BlitSurface(m_surface, &sdlSrc, m_mainSurface, &sdlSrc);
-    SDL_BlitSurface(m_mainSurface, &sdlSrc, SDL_GetVideoSurface(), &sdlDest);
-    if (SDL_GetVideoSurface()->flags & SDL_DOUBLEBUF)
-        SDL_Flip(SDL_GetVideoSurface());
-    else
-        SDL_UpdateRect(SDL_GetVideoSurface(), sdlDest.x, sdlDest.y, sdlDest.w, sdlDest.h);
-    ctx.restore();
+    IntRect source(m_rect);
+    source.setLocation(IntPoint(0, 0));
+    IntRect destination(m_rect);
+    updateRect(source, destination);
+    ctx->restore();
+    releaseContext(ctx);
 }
 
 void WebWindowAlert::drawButton()
@@ -223,20 +215,21 @@ void WebWindowAlert::drawButton()
     if (isThemable)
         return;
 
-    GraphicsContext ctx(m_surface);
-    ctx.save();
+    IntRect mainSurfaceRect(mainWindowRect());
+    GraphicsContext* ctx = createContext();
+    ctx->save();
     if (!m_state) {
-        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
-        ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::gray, DeviceColorSpace);
-        ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
+        ctx->setFillColor(Color::darkGray, DeviceColorSpace);
+        ctx->drawRect(IntRect(mainSurfaceRect.width()/2 - 40, (mainSurfaceRect.height() / 2) + (fontSize * 2), 80, 40));
+        ctx->setFillColor(Color::gray, DeviceColorSpace);
+        ctx->drawRect(IntRect(mainSurfaceRect.width()/2 - 40, (mainSurfaceRect.height() / 2) + (fontSize * 2), 77, 37));
     } else {
-        ctx.setFillColor(Color::gray, DeviceColorSpace);
-        ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 80, 40));
-        ctx.setFillColor(Color::darkGray, DeviceColorSpace);
-        ctx.drawRect(IntRect(m_surface->w/2 - 40, (m_surface->h / 2) + (fontSize * 2), 77, 37));
+        ctx->setFillColor(Color::gray, DeviceColorSpace);
+        ctx->drawRect(IntRect(mainSurfaceRect.width()/2 - 40, (mainSurfaceRect.height() / 2) + (fontSize * 2), 80, 40));
+        ctx->setFillColor(Color::darkGray, DeviceColorSpace);
+        ctx->drawRect(IntRect(mainSurfaceRect.width()/2 - 40, (mainSurfaceRect.height() / 2) + (fontSize * 2), 77, 37));
     }
-    ctx.drawLine(IntPoint(m_surface->w/2 + 37, (m_surface->h / 2) + (fontSize * 2) + 37), IntPoint(m_surface->w/2 + 39, (m_surface->h / 2) + (fontSize * 2) + 39));
+    ctx->drawLine(IntPoint(mainSurfaceRect.width()/2 + 37, (mainSurfaceRect.height() / 2) + (fontSize * 2) + 37), IntPoint(mainSurfaceRect.width()/2 + 39, (mainSurfaceRect.height() / 2) + (fontSize * 2) + 39));
 
     FontDescription fontDescription;
     // this is normally computed by CSS and fixes the minimum size
@@ -246,12 +239,13 @@ void WebWindowAlert::drawButton()
     // needed or else Assertion `m_fontList' will failed.
     font.update(0);
 
-    ctx.setFillColor(Color::black, DeviceColorSpace);
+    ctx->setFillColor(Color::black, DeviceColorSpace);
     TextRun textrun(m_buttonText.c_str());
-    ctx.drawText(font, textrun, IntPoint((m_surface->w / 2 ) - 25, (m_surface->h / 2) + (fontSize * 2) + 25));
+    ctx->drawText(font, textrun, IntPoint((mainSurfaceRect.width() / 2 ) - 25, (mainSurfaceRect.height() / 2) + (fontSize * 2) + 25));
     //ctx.drawText(textrun, IntPoint(0, 0));
 
-    ctx.restore();
+    ctx->restore();
+    releaseContext(ctx);
 }
 
 void WebWindowAlert::updateButton()
@@ -259,62 +253,49 @@ void WebWindowAlert::updateButton()
     if (isThemable)
         return;
     
-    SDL_Rect sdlSrc, sdlDest;
-    sdlSrc.x = sdlDest.x = m_surface->w/2 - 40;
-    sdlSrc.y = sdlDest.y = (m_surface->h / 2) + (fontSize * 2);
-    sdlDest.x += m_view->frameRect().x;
-    sdlDest.y += m_view->frameRect().y;
-    sdlSrc.w = sdlDest.w = 80;
-    sdlSrc.h = sdlDest.h = 40;
-    SDL_BlitSurface(m_surface, &sdlSrc, m_mainSurface, &sdlSrc);
-    SDL_BlitSurface(m_mainSurface, &sdlSrc, SDL_GetVideoSurface(), &sdlDest);
-    if (SDL_GetVideoSurface()->flags & SDL_DOUBLEBUF)
-        SDL_Flip(SDL_GetVideoSurface());
-    else
-        SDL_UpdateRect(SDL_GetVideoSurface(), sdlDest.x, sdlDest.y, sdlDest.w, sdlDest.h);
+    IntRect mainSurfaceRect(mainWindowRect());
+    IntRect src(mainSurfaceRect.width()/2 - 40,
+                (mainSurfaceRect.height() / 2) + (fontSize * 2),
+                80,
+                40);
+    IntRect dst(mainSurfaceRect.width()/2 - 40 + mainSurfaceRect.x(),
+                (mainSurfaceRect.height() / 2) + (fontSize * 2) + mainSurfaceRect.y(),
+                80,
+                40);
+    updateRect(src, dst);
 }
 
-void WebWindowAlert::onKeyDown(BalEventKey event)
+bool WebWindowAlert::onKeyDown(BalEventKey event)
 {
     if (!m_surface)
-        return;
-
-    switch (event.keysym.sym) {
-    case SDLK_RETURN:
-    {
+        return false;
+    PlatformKeyboardEvent keyboardEvent(&event);
+#if ENABLE(CEHTML)
+    if (keyboardEvent.windowsVirtualKeyCode() == VK_ENTER)
+#else
+    if (keyboardEvent.windowsVirtualKeyCode() == VK_RETURN)
+#endif
         hide();
-        m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
-        SDL_Event ev;
-        ev.type = SDL_VIDEOEXPOSE;
-        SDL_PushEvent(&ev);
-        return;
-    }
-    default:
-        return;
-    }
+    return true;
 }
 
-void WebWindowAlert::onKeyUp(BalEventKey event)
+bool WebWindowAlert::onMouseMotion(BalEventMotion ev)
 {
     if (!m_surface)
-        return;
-}
+        return false;
 
-void WebWindowAlert::onMouseMotion(BalEventMotion event)
-{
-    if (!m_surface)
-        return;
-
+    PlatformMouseEvent event(&ev);
+    IntRect mainSurfaceRect(mainWindowRect());
     if (isThemable) {
         IntRect buttonRect = m_buttonRect;
-        if ((event.x > buttonRect.x() + m_view->frameRect().x && event.x < buttonRect.right() + m_view->frameRect().x) && (event.y > buttonRect.y() + m_view->frameRect().y && event.y < buttonRect.bottom() + m_view->frameRect().y)) {
+        if ((event.x() > buttonRect.x() + mainSurfaceRect.x() && event.x() < buttonRect.right() + mainSurfaceRect.x()) && (event.y() > buttonRect.y() + mainSurfaceRect.y() && event.y() < buttonRect.bottom() + mainSurfaceRect.y())) {
             if (!m_state) {
                 m_state = true;
                 drawButton();
                 updateButton();
             }
         }
-    } else if ((event.x > (m_surface->w/2 - 40) + m_view->frameRect().x && event.x < (m_surface->w/2 + 40) + m_view->frameRect().x ) && ( event.y > (m_surface->h / 2) + m_view->frameRect().y + (fontSize * 2) && event.y < (m_surface->h / 2) + (fontSize * 2) + 40 + m_view->frameRect().y)) {
+    } else if ((event.x() > (mainSurfaceRect.width()/2 - 40) + mainSurfaceRect.x() && event.x() < (mainSurfaceRect.width()/2 + 40) + mainSurfaceRect.x() ) && ( event.y() > (mainSurfaceRect.height() / 2) + mainSurfaceRect.y() + (fontSize * 2) && event.y() < (mainSurfaceRect.height() / 2) + (fontSize * 2) + 40 + mainSurfaceRect.y())) {
         if (!m_state) {
             m_state = true;
             drawButton();
@@ -327,59 +308,31 @@ void WebWindowAlert::onMouseMotion(BalEventMotion event)
             updateButton();
         }
     }
+    return true;
 }
 
-void WebWindowAlert::onMouseButtonDown(BalEventButton event)
+bool WebWindowAlert::onMouseButtonDown(BalEventButton ev)
 {
     if (!m_surface)
-        return;
+        return false;
 
+    IntRect mainSurfaceRect(mainWindowRect());
+    PlatformMouseEvent event(&ev, 1);
     if (isThemable) {
         IntRect buttonRect = m_buttonRect;
-        if ((event.x > buttonRect.x() + m_view->frameRect().x && event.x < buttonRect.right() + m_view->frameRect().x) && (event.y > buttonRect.y() + m_view->frameRect().y && event.y < buttonRect.bottom() + m_view->frameRect().y)) {
+        if ((event.x() > buttonRect.x() + mainSurfaceRect.x() && event.x() < buttonRect.right() + mainSurfaceRect.x()) && (event.y() > buttonRect.y() + mainSurfaceRect.y() && event.y() < buttonRect.bottom() + mainSurfaceRect.y()))
             hide();
-            m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
-            SDL_Event ev;
-            ev.type = SDL_VIDEOEXPOSE;
-            SDL_PushEvent(&ev);
-        }
-    } else if ((event.x > (m_surface->w/2 - 40) + m_view->frameRect().x && event.x < (m_surface->w/2 + 40) + m_view->frameRect().x) && ( event.y > (m_surface->h / 2) + (fontSize * 2) + m_view->frameRect().y && event.y < (m_surface->h / 2) + (fontSize * 2) + 40 + m_view->frameRect().y)) {
+    } else if ((event.x() > (mainSurfaceRect.width()/2 - 40) + mainSurfaceRect.x() && event.x() < (mainSurfaceRect.width()/2 + 40) + mainSurfaceRect.x()) && ( event.y() > (mainSurfaceRect.height() / 2) + (fontSize * 2) + mainSurfaceRect.y() && event.y() < (mainSurfaceRect.height() / 2) + (fontSize * 2) + 40 + mainSurfaceRect.y()))
         hide();
-        m_view->addToDirtyRegion(IntRect(0, 0, m_surface->w, m_surface->h));
-        SDL_Event ev;
-        ev.type = SDL_VIDEOEXPOSE;
-        SDL_PushEvent(&ev);
-    }
+    return true;
 }
 
-void WebWindowAlert::onMouseButtonUp(BalEventButton event)
+bool WebWindowAlert::onQuit(BalQuitEvent)
 {
     if (!m_surface)
-        return;
-}
-
-void WebWindowAlert::onScroll(BalEventScroll event)
-{
-    if (!m_surface)
-        return;
-}
-
-void WebWindowAlert::onResize(BalResizeEvent event)
-{
-    if (!m_surface)
-        return;
-}
-
-void WebWindowAlert::onQuit(BalQuitEvent)
-{
-    if (!m_surface)
-        return;
-}
-
-void WebWindowAlert::onUserEvent(BalUserEvent)
-{
-    if (!m_surface)
-        return;
+        return false;
+    hide();
+    return true;
 }
 
 void WebWindowAlert::getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength)

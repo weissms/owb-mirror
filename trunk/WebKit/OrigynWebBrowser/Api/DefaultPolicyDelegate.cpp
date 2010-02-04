@@ -28,12 +28,13 @@
 
 #include "config.h"
 #include "DefaultPolicyDelegate.h"
-#include "WebNavigationAction.h"
-#include "WebFramePolicyListener.h"
 #include "WebError.h"
 #include "WebFrame.h"
-#include "WebView.h"
+#include "WebFramePolicyListener.h"
 #include "WebMutableURLRequest.h"
+#include "WebNavigationAction.h"
+#include "WebView.h"
+#include "WebUtils.h"
 
 #include <PlatformString.h>
 #include "CString.h"
@@ -82,7 +83,7 @@ void DefaultPolicyDelegate::decidePolicyForNavigationAction(WebView* webView,
     /*[in]*/ WebFrame* /*frame*/, 
     /*[in]*/ WebFramePolicyListener* listener)
 {
-    int navType = 0;
+    int navType = actionInformation->type();
 
     //String ret = actionInformation->Read(WebActionNavigationTypeKey);
     //navType = ret.toInt();
@@ -114,7 +115,7 @@ void DefaultPolicyDelegate::decidePolicyForNewWindowAction(
     listener->use();
 }
 
-void DefaultPolicyDelegate::decidePolicyForMIMEType(
+bool DefaultPolicyDelegate::decidePolicyForMIMEType(
     /*[in]*/ WebView* webView, 
     /*[in]*/ const char* type, 
     /*[in]*/ WebMutableURLRequest* request, 
@@ -123,13 +124,21 @@ void DefaultPolicyDelegate::decidePolicyForMIMEType(
 {
     bool canShowMIMEType = webView->canShowMIMEType(type);
 
-    if (!canShowMIMEType && type && 0 == strlen(type))
-        canShowMIMEType = true;
+    const char* url = request->URL();
 
-    if (canShowMIMEType)
+    if (String(url).startsWith("file:")) {
+        bool isDir = isDirectory(url);
+        if (isDir)
+            listener->ignore();
+        else if(canShowMIMEType)
+            listener->use();
+        else
+            listener->ignore();
+    } else if (canShowMIMEType)
         listener->use();
     else
-        listener->download(); 
+        listener->ignore();
+    return true;
 }
 
 void DefaultPolicyDelegate::unableToImplementPolicyWithError(

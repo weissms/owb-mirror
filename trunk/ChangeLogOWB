@@ -1,3 +1,11 @@
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
+        add resources and headers.
+
+        * Resources/deleteButton.png: Added.
+        * Resources/deleteButtonPressed.png: Added.
+        * cmake/SetCMakeVars.cmake:
+
 2010-02-02  Guillaume Penin  <gpenin@pleyo.com>
 
         Fixed WEBKKIT_LD_FLAGS so that libwebkit-owb is automatically rebuilt

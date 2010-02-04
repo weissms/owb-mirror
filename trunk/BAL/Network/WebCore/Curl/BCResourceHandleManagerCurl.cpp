@@ -222,13 +222,13 @@ static void handleLocalReceiveResponse (CURL* handle, ResourceHandle* job, Resou
     err = curl_easy_getinfo(handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &contentLength);
     d->m_response.setExpectedContentLength(static_cast<long long int>(contentLength));
 
-     const char* hdr;
-     err = curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &hdr);
-     ASSERT(CURLE_OK == err);
-     d->m_response.setURL(KURL(ParsedURLString, hdr));
-     if (d->client())
-         d->client()->didReceiveResponse(job, d->m_response);
-     d->m_response.setResponseFired(true);
+    const char* hdr;
+    err = curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &hdr);
+    ASSERT(CURLE_OK == err);
+    d->m_response.setURL(KURL(ParsedURLString, hdr));
+    if (d->client())
+        d->client()->didReceiveResponse(job, d->m_response);
+    d->m_response.setResponseFired(true);
 }
 
 
@@ -261,6 +261,7 @@ static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* data)
         if (d->m_cancelled)
             return 0;
     }
+
     if (d->m_cancelled)
         return totalSize;
 
@@ -528,7 +529,7 @@ void ResourceHandleManager::downloadTimerCallback(Timer<ResourceHandleManager>* 
                 }
             }
 
-            if (d->client())
+            if (d->client()) 
                 d->client()->didFinishLoading(job);
         } else {
             char* url = 0;
@@ -830,7 +831,7 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
         String query = kurl.query();
         // Remove any query part sent to a local file.
         if (!query.isEmpty()) {
-            int queryIndex = url.find(query);
+            int queryIndex = url.reverseFind(query);
             if (queryIndex != -1)
                 url = url.left(queryIndex - 1);
         // Remove ? without query after.

@@ -32,6 +32,7 @@
 #include "AccessibilityController.h"
 #include "EditingDelegate.h"
 #include "EventSender.h"
+#include "GCController.h"
 #include "HistoryDelegate.h"
 #include "LayoutTestController.h"
 #include "PolicyDelegate.h"
@@ -161,15 +162,29 @@ public:
         return new FrameLoadDelegate();
     }
 
-    ~FrameLoadDelegate() { }
+    ~FrameLoadDelegate() 
+    { 
+        delete m_gcController;
+    }
 
     virtual void didStartProvisionalLoad(WebFrame* frame)
     {
         if (!done && gLayoutTestController->dumpFrameLoadCallbacks())
             printf("%s - didStartProvisionalLoadForFrame\n", descriptionSuitableForTestResult(frame).c_str());
 
-        if (!topLoadingFrame && !done)
+        if (!topLoadingFrame && !done) {
+#if ENABLE(DAE)
+            if (!getWebView())
+                topLoadingFrame = frame;
+#else                
             topLoadingFrame = frame;
+#endif
+        }
+
+        if (!done && gLayoutTestController->stopProvisionalFrameLoads()) {
+            printf ("%s - stopping load in didStartProvisionalLoadForFrame callback\n", descriptionSuitableForTestResult(frame).c_str());
+            frame->stopLoading();
+        }
     }
 
     virtual void didReceiveServerRedirectForProvisionalLoadForFrame(WebFrame* frame) 
@@ -242,6 +257,9 @@ public:
         gLayoutTestController->makeWindowObject((JSGlobalContextRef)context, (JSObjectRef)windowObject, &exception);
         assert(!exception);
 
+        m_gcController->makeWindowObject((JSGlobalContextRef)context, (JSObjectRef)windowObject, &exception);
+        assert(!exception);
+
         gAccessibilityController->makeWindowObject((JSGlobalContextRef)context, (JSObjectRef)windowObject, &exception);
         assert(!exception);
 
@@ -303,7 +321,11 @@ public:
     }
 
 private:
-    FrameLoadDelegate() { }
+    FrameLoadDelegate()
+    : m_gcController(new GCController())
+    { }
+
+    GCController* m_gcController;
 };
 
 class JSDelegate : public JSActionDelegate {
@@ -722,6 +744,8 @@ void setPreferences()
     WebInspector *inspector = getWebView()->inspector();
     if (inspector) 
         inspector->setJavaScriptProfilingEnabled(false);
+
+    setlocale(LC_ALL, "");
 }
 
 static bool shouldLogFrameLoadDelegates(const char* pathOrURL)
@@ -808,6 +832,7 @@ void runTest(const string& testPathOrURL)
     getWebView()->setWebFrameLoadDelegate(frameLoadDelegate);
     getWebView()->setJSActionDelegate(jsActionDelegate);
 #endif
+    getWebView()->setGroupName("org.webkit.DumpRenderTree");
     getWebView()->setPolicyDelegate(0);
     getWebView()->setWebEditingDelegate(sharedEditingDelegate);
     getWebView()->setWebResourceLoadDelegate(resourceLoadDelegate);
@@ -851,6 +876,10 @@ void runTest(const string& testPathOrURL)
 
     if (shouldOpenWebInspector(pathOrURL.c_str()))
         gLayoutTestController->closeWebInspector();
+
+    const char* groupName = getWebView()->groupName();
+    if (groupName)
+        getWebView()->removeAllUserContentFromGroup(groupName);
     // A blank load seems to be necessary to reset state after certain tests.
     //webApplication->webView()->mainFrame()->loadURL("about:blank");
     

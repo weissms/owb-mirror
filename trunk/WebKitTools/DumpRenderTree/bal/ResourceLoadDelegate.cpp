@@ -94,7 +94,9 @@ static string descriptionSuitableForTestResult(WebMutableURLRequest* request)
     
     string mainDocumentURL = urlSuitable(requestMainDocumentURL);
 
-    return "<NSURLRequest URL " + url + ", main document URL " + mainDocumentURL + ">";
+    string httpMethod = request->HTTPMethod();
+
+    return "<NSURLRequest URL " + url + ", main document URL " + mainDocumentURL + ", http method " + httpMethod + ">";
 }
 
 static string descriptionSuitableForTestResult(WebURLResponse* response)
@@ -106,7 +108,13 @@ static string descriptionSuitableForTestResult(WebURLResponse* response)
     
     string url = urlSuitable(responseUrl);
 
-    return "<NSURLResponse " + url + ">";
+    int code = response->statusCode();
+    std::stringstream ss;
+    std::string statusCode;
+    ss << code;
+    ss >> statusCode;
+
+    return "<NSURLResponse " + url + ", http status code " + statusCode + ">";
 }
 
 static string descriptionSuitableForTestResult(WebError* error, unsigned long identifier)

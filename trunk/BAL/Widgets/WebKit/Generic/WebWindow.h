@@ -25,60 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WebWindowPrompt_H
-#define WebWindowPrompt_H
 
-#include "WebWindow.h"
-#include <string>
-
-namespace WebCore {
-    class Font;
-    class TextRun;
-}
+#ifndef WebWindow_H
+#define WebWindow_H
+  
+#include "WebKitTypes.h"
 
 class WebView;
+namespace WebCore {
+    class GraphicsContext;
+}
 
-class WEBKIT_OWB_API WebWindowPrompt : public WebWindow
+class WEBKIT_OWB_API WebWindow
 {
 public:
-    static WebWindowPrompt* createWebWindowPrompt(const char* text, const char* defaultText, WebView *);
-    virtual ~WebWindowPrompt();
-    virtual void onExpose(BalEventExpose event);
-    virtual void onKeyDown(BalEventKey event);
-    virtual void onKeyUp(BalEventKey event);
-    virtual void onMouseMotion(BalEventMotion event);
-    virtual void onMouseButtonDown(BalEventButton event);
-    virtual void onMouseButtonUp(BalEventButton event);
-    virtual void onScroll(BalEventScroll event);
-    virtual void onResize(BalResizeEvent event);
-    virtual void onQuit(BalQuitEvent);
-    virtual void onUserEvent(BalUserEvent);
+    WebWindow(bool modal, WebView* webView, BalRectangle rect);
+    virtual ~WebWindow();
 
-    const char* value();
+    virtual bool onExpose(BalEventExpose event, BalRectangle&);
+    virtual bool onKeyDown(BalEventKey event);
+    virtual bool onKeyUp(BalEventKey event);
+    virtual bool onMouseMotion(BalEventMotion event);
+    virtual bool onMouseButtonDown(BalEventButton event);
+    virtual bool onMouseButtonUp(BalEventButton event);
+    virtual bool onScroll(BalEventScroll event);
+    virtual bool onResize(BalResizeEvent event);
+    virtual bool onQuit(BalQuitEvent);
+    virtual bool onUserEvent(BalUserEvent);
+    virtual bool onIdle();
+    void show();
+    void hide();
 
+    BalRectangle mainWindowRect();
+protected:
+    void setMainWindow();
+    void createPlatformWindow();
+    virtual void paint(BalRectangle) = 0;
+    void paintDecoration(BalRectangle);
+    WebCore::GraphicsContext* createContext();
+    void releaseContext(WebCore::GraphicsContext* ctx);
+    void updateRect(BalRectangle src, BalRectangle dest);
+    void runMainLoop();
+    void stopMainLoop();
+
+    BalSurface* m_surface;
+    BalWidget* m_mainSurface;
+    BalRectangle m_rect;
 private:
-    WebWindowPrompt(const char* text, const char* defaultText, WebView *);
-    void drawTextBox();
-    void updateTextBox();
-    void drawButton();
-    void updateButton();
-    void getLineBreak(WebCore::Font& font, WebCore::TextRun& text, uint16_t maxLength, uint8_t* wordBreak, uint16_t* wordLength);
-
-    std::string m_text;
-    std::string m_defaultText;
-    std::string m_buttonOk;
-    std::string m_buttonCancel;
-    bool m_button;
-    bool m_stateLeft;
-    bool m_stateRigth;
-    WebView *m_view;
-    bool isPainted;
-    std::string m_value;
-    bool m_Prompt;
-    bool isThemable;
-    BalRectangle m_buttonOKRect;
-    BalRectangle m_buttonCancelRect;
-    BalRectangle m_textRect;
+    bool m_modal;
+    bool m_visible;
+    WebView *m_webView;
 };
 
 #endif

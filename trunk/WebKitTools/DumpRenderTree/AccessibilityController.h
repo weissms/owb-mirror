@@ -30,7 +30,7 @@
 #include "AccessibilityUIElement.h"
 #include <JavaScriptCore/JSObjectRef.h>
 #include <string>
-#include <wtf/Platform.h>
+//#include <wtf/Platform.h>
 #if PLATFORM(WIN)
 #include <wtf/HashMap.h>
 #include <windows.h>
