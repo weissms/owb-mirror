@@ -160,7 +160,8 @@ void WebWindowConfirm::paint(BalRectangle rect)
             
             // Draw Cancel button at a centered position
             // Specific hack: a bit lower
-            m_buttonCancelRect = IntRect(m_buttonOKRect.x + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
+            IntRect buttonOKRect(m_buttonOKRect);
+            m_buttonCancelRect = IntRect(buttonOKRect.x() + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
             ctx->drawImage(buttonCancel.get(), DeviceColorSpace, m_buttonCancelRect);
 
             // Draw text line by line
@@ -324,7 +325,11 @@ bool WebWindowConfirm::onMouseMotion(BalEventMotion ev)
     if (!m_surface)
         return false;
     
+#if PLATFORM(QT)
+    PlatformMouseEvent event(&ev, 0);
+#else
     PlatformMouseEvent event(&ev);
+#endif
     IntRect mainSurfaceRect(mainWindowRect());
     if (isThemable) {
         IntRect buttonOKRect = m_buttonOKRect;

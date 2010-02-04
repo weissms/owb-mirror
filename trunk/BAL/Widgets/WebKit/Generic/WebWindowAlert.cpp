@@ -284,7 +284,11 @@ bool WebWindowAlert::onMouseMotion(BalEventMotion ev)
     if (!m_surface)
         return false;
 
+#if PLATFORM(QT)
+    PlatformMouseEvent event(&ev, 0);
+#else
     PlatformMouseEvent event(&ev);
+#endif
     IntRect mainSurfaceRect(mainWindowRect());
     if (isThemable) {
         IntRect buttonRect = m_buttonRect;
