@@ -27,12 +27,18 @@ if(USE_GRAPHICS_GTK)
         ${WIDGETS_DIR}/Gtk
         ${OWB_BINARY_DIR}/generated_sources/WebKit
     )
+    list(REMOVE_ITEM WEBKIT_SRC
+        ${WIDGETS_DIR}/Generic/WebPopup.cpp
+    )
 endif(USE_GRAPHICS_GTK)
 
 if(USE_GRAPHICS_QT)
     aux_source_directory(${WIDGETS_DIR}/Qt WEBKIT_SRC)
     include_directories(
         ${WIDGETS_DIR}/Qt
+    )
+    list(REMOVE_ITEM WEBKIT_SRC
+        ${WIDGETS_DIR}/Generic/WebPopup.cpp
     )
 endif(USE_GRAPHICS_QT)
 
@@ -41,13 +47,4 @@ if(USE_API_SDL)
     include_directories(
         ${WIDGETS_DIR}/SDL
     )
-    if(USE_GRAPHICS_SDLCAIRO)
-        list(REMOVE_ITEM WEBKIT_SRC
-            ${WIDGETS_DIR}/SDL/WebPopup.cpp
-            ${WIDGETS_DIR}/SDL/WebWindow.cpp
-            ${WIDGETS_DIR}/SDL/WebWindowAlert.cpp
-            ${WIDGETS_DIR}/SDL/WebWindowConfirm.cpp
-            ${WIDGETS_DIR}/SDL/WebWindowPrompt.cpp
-        )
-    endif(USE_GRAPHICS_SDLCAIRO)
 endif(USE_API_SDL)

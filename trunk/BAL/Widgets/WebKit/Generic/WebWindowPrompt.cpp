@@ -172,7 +172,8 @@ void WebWindowPrompt::paint(BalRectangle rect)
 
             // Draw Cancel button at a centered position
             // Specific hack: a bit lower
-            m_buttonCancelRect = IntRect(m_buttonOKRect.x + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
+            IntRect buttonOKRect(m_buttonOKRect);
+            m_buttonCancelRect = IntRect(buttonOKRect.x() + buttonOK->width() + bg->width(), startPos.y() + popupHeight - borderb->height() / 2 - buttonCancel->height(), buttonCancel->width(), buttonCancel->height());
             ctx->drawImage(buttonCancel.get(), DeviceColorSpace, m_buttonCancelRect);
 
             // Draw text line by line
@@ -197,7 +198,8 @@ void WebWindowPrompt::paint(BalRectangle rect)
             }
 
             // Draw default text inside text box
-            IntPoint startDefaultText(m_textRect.x, m_textRect.y + font.size());
+            IntRect textRext(m_textRect);
+            IntPoint startDefaultText(textRect.x(), textRect.y() + font.size());
             ctx->setFillColor(Color::black, DeviceColorSpace);
             TextRun defaultText(m_defaultText.c_str());
             getLineBreak(font, defaultText, lineLength, &lineEnd, &currentLineLength); // Get the computed index in text and the corresponding text length to perfectly display one line.
@@ -312,8 +314,9 @@ void WebWindowPrompt::updateTextBox()
         src.setHeight(40);
         dst.setHeight(40);
     } else {
-        src = IntRect(m_textRect.x, m_textRect.y, m_textRect.w, m_textRect.h);
-        src = IntRect(m_textRect.x + mainSurfaceRect.width(), m_textRect.y + mainSurfaceRect.height(), m_textRect.w, m_textRect.h);
+        IntRect textRect(m_textRect);
+        src = IntRect(textRect.x(), textRect.y(), textRect.width(), textRect.height());
+        src = IntRect(textRect.x() + mainSurfaceRect.width(), textRect.y() + mainSurfaceRect.height(), textRect.width(), textRect.height());
     }
     updateRect(src, dst);
 }
@@ -422,7 +425,11 @@ bool WebWindowPrompt::onMouseMotion(BalEventMotion ev)
         return false;
 
     IntRect mainSurfaceRect(mainWindowRect());
+#if PLATFORM(QT)
+    PlatformMouseEvent event(&ev, 0);
+#else
     PlatformMouseEvent event(&ev);
+#endif
     if (isThemable) {
         IntRect buttonOKRect = m_buttonOKRect;
         IntRect buttonCancelRect = m_buttonCancelRect;
