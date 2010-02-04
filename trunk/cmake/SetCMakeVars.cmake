@@ -1,4 +1,8 @@
 list(APPEND API_HEADER
+    ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindow.h
+    ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowAlert.h
+    ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowConfirm.h
+    ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowPrompt.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMCoreClasses.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMHTMLClasses.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/DOMRange.h
@@ -50,15 +54,6 @@ if(ENABLE_ICONDATABASE)
         ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebIconDatabase.h
     )
 endif(ENABLE_ICONDATABASE)
-
-if(USE_API_SDL)
-    list(APPEND API_HEADER
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindow.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowAlert.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowConfirm.h
-        ${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/Generic/WebWindowPrompt.h
-    )
-endif(USE_API_SDL)
 
 list(APPEND BASE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}
