@@ -2884,7 +2884,7 @@ BalWidget* WebView::viewWindow()
 void WebView::setViewWindow(BalWidget* view)
 {
     m_viewWindow = view;
-    d->viewWindowSetted();
+    d->setViewWindow(view);
 }
 
 BalPoint WebView::scrollOffset()

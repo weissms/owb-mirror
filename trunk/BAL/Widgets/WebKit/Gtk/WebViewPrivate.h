@@ -170,7 +170,7 @@ public:
 
     void closeWindowSoon() {}
 
-    void viewWindowSetted() {}
+    void setViewWindow(BalWidget*) {}
 
 private:
     WebCore::IntRect m_rect;

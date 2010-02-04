@@ -1,3 +1,10 @@
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
+        rename method
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setViewWindow):
+
 2010-02-03  Mario Bensi  <mbensi@pleyo.com>
 
         add fireWebKitTimerEvents and fireWebKitThreadEvents

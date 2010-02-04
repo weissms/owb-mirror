@@ -1,3 +1,21 @@
+2010-02-04  Mario Bensi  <mbensi@pleyo.com>
+
+        rename methods
+        call callback when we receive a fire timer.
+
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp:
+        (WebCore::incrementTimerCount):
+        (WebCore::fireTimerIfNeeded):
+        (WebCore::setSharedTimerFiredFunction):
+        (WebCore::setSharedTimerFireTime):
+        (WebCore::stopSharedTimer):
+        * Widgets/WebKit/Gtk/WebViewPrivate.h:
+        (WebViewPrivate::setViewWindow):
+        * Widgets/WebKit/Qt/WebViewPrivate.h:
+        (WebViewPrivate::setViewWindow):
+        * Widgets/WebKit/SDL/WebViewPrivate.h:
+        (WebViewPrivate::setViewWindow):
+
 2010-02-03  Mario Bensi  <mbensi@pleyo.com>
 
         split fireWebKitEvents in fireWebKitTimerEvents and

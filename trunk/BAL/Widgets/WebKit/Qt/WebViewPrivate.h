@@ -124,7 +124,7 @@ public:
 
     void closeWindowSoon() {};
 
-    void viewWindowSetted() {}
+    void setViewWindow(BalWidget*) {}
 
 private:
     void updateView(BalWidget* widget, WebCore::IntRect rect);
