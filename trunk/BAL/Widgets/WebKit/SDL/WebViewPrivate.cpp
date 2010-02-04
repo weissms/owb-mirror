@@ -50,6 +50,7 @@
 #include "CString.h"
 #include "FileIO.h"
 #include "WebFrame.h"
+#include "WebPopup.h"
 #include "WebView.h"
 #include "WebWindowAlert.h"
 
@@ -58,9 +59,6 @@
 #include "WebApplicationManager.h"
 #endif
 
-#if PLATFORM(SDL)
-#include "WebPopup.h"
-#endif
 
 using namespace WebCore;
 
@@ -83,8 +81,7 @@ WebViewPrivate::~WebViewPrivate()
 
 void WebViewPrivate::fireWebKitTimerEvents() 
 {
-    while (fireTimerCount())
-        fireTimerIfNeeded();
+    fireTimerIfNeeded();
 #if USE(VIDEO_GSTREAMER)
     GMainContext* glibContext = g_main_context_default();
     if (glibContext)
@@ -362,12 +359,10 @@ void WebViewPrivate::popupMenuHide()
 
 void WebViewPrivate::popupMenuShow(void *popupInfo)
 {
-#if PLATFORM(SDL)
     PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
     WebPopup* webPopup = new WebPopup(pop, m_webView);
     webPopup->show();
     delete webPopup;
-#endif
 }
 
 void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)
@@ -632,13 +627,9 @@ void WebViewPrivate::closeWindowTimerFired(WebCore::Timer<WebViewPrivate>*)
 
 void WebViewPrivate::closeWindow()
 {
-#if ENABLE(DAE_APPLICATION)
-    webAppMgr().destroyApplication(webAppMgr().application(m_webView));
-#else
     SDL_Event ev;
     ev.type = SDL_QUIT;
     SDL_PushEvent(&ev);
-#endif
 }
 
 #if ENABLE(DAE_APPLICATION)
