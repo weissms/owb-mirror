@@ -297,7 +297,7 @@ public:
     virtual bool jsAlert(WebFrame *frame, const char *message)
     {
 #if PLATFORM(SDL)
-        WebWindowAlert* alert = WebWindowAlert::createWebWindowAlert(message, frame->webView());
+        WebWindowAlert* alert = WebWindowAlert::createWebWindowAlert(true, frame->webView(), message);
         alert->show();
         delete alert; 
 #endif
@@ -307,7 +307,7 @@ public:
     virtual bool jsConfirm(WebFrame *frame, const char *message)
     {
 #if PLATFORM(SDL)
-        WebWindowConfirm* confirm = WebWindowConfirm::createWebWindowConfirm(message, frame->webView());
+        WebWindowConfirm* confirm = WebWindowConfirm::createWebWindowConfirm(true, message, frame->webView());
         confirm->show();
         bool val = confirm->value();;
         delete confirm;
@@ -320,7 +320,7 @@ public:
     virtual bool jsPrompt(WebFrame *frame, const char *message, const char *defaultValue, char **value)
     {
 #if PLATFORM(SDL)
-        WebWindowPrompt* prompt = WebWindowPrompt::createWebWindowPrompt(message, defaultValue, frame->webView());
+        WebWindowPrompt* prompt = WebWindowPrompt::createWebWindowPrompt(true, message, defaultValue, frame->webView());
         prompt->show();
         const char *val = prompt->value();
         delete prompt;
