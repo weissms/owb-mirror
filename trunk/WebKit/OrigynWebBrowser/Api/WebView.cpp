@@ -811,12 +811,13 @@ bool WebView::onResize(BalResizeEvent ev)
     return true;
 }
 
-void WebView::onQuit(BalQuitEvent ev)
+bool WebView::onQuit(BalQuitEvent ev)
 {
     for (int i = m_children.size() - 1; i >= 0; --i)
         if(m_children[i]->onQuit(ev))
-            return;
+            return false;
     d->onQuit(ev);
+    return true;
 }
 
 void WebView::onUserEvent(BalUserEvent ev)

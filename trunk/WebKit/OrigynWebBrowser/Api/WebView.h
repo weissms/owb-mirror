@@ -1233,7 +1233,7 @@ public:
     /**
      *  give on quit  event to the webview
      */
-    void onQuit(BalQuitEvent);
+    bool onQuit(BalQuitEvent);
 
     /**
      *  give on user event to the webview
