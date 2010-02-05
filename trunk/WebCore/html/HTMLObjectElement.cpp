@@ -41,6 +41,11 @@
 #include "ScriptController.h"
 #include "Text.h"
 
+#if ENABLE(CEHTML)
+#include "CEHTMLAudioElement.h"
+#include "RenderCEHTMLAudioObject.h"
+#endif
+
 namespace WebCore {
 
 using namespace HTMLNames;
@@ -147,6 +152,11 @@ bool HTMLObjectElement::rendererIsNeeded(RenderStyle* style)
 
 RenderObject *HTMLObjectElement::createRenderer(RenderArena* arena, RenderStyle* style)
 {
+#if ENABLE(CEHTML)
+    if (hasTagName(objectTag) && CEHTMLAudioElement::supportsType(serviceType()))
+        return new (arena) RenderCEHTMLAudioObject(this);
+#endif
+
     if (m_useFallbackContent)
         return RenderObject::createObject(this, style);
     if (isImageType())

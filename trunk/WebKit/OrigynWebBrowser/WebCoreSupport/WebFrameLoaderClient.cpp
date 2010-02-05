@@ -104,6 +104,7 @@
 #include <cstdio>
 
 #if ENABLE(CEHTML_VIDEO)
+#include "CEHTMLAudioElement.h"
 #include "CEHTMLVideoElement.h"
 #endif
 
@@ -938,15 +939,16 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
 PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
 #if ENABLE(CEHTML_VIDEO)
-    if (mimeType == "video/mpeg" 
-     || mimeType == "video/mpeg4" 
-     || mimeType == "video/mp4" 
-     || mimeType == "video/h264"
-     || mimeType == "video/vnd.dlna.mpeg-tts"
-     || mimeType == "audio/mpeg") {
+    if (CEHTMLVideoElement::supportsType(mimeType)) {
         ASSERT(element->hasTagName(objectTag));
         HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
         return adoptRef(static_cast<Widget*>(new CEHTMLVideoElement(objectElement)));
+    }
+    
+    if (CEHTMLAudioElement::supportsType(mimeType)) {
+        ASSERT(element->hasTagName(objectTag));
+        HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
+        return adoptRef(static_cast<Widget*>(new CEHTMLAudioElement(objectElement)));
     }
 #endif
 

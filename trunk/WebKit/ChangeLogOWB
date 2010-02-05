@@ -1,3 +1,12 @@
+2010-02-05  Gilles Bertal  <gbertal@pleyo.com>
+
+        Return CEHTML audio object for CEHTML supported audio MIME types.
+        Replaced inline MIME types check for video MIME types w/ a
+        call to CEHTMLVideoElement::supportsType().
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+
 2010-02-05  Mario Bensi  <mbensi@pleyo.com>
 
         onQuit return bool now.

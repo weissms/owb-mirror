@@ -1,3 +1,10 @@
+2010-02-05  Gilles Bertal  <gbertal@pleyo.com>
+
+        Create specialized renderer for CEHTML audio objects.
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::createRenderer):
+
 2010-02-02  Guillaume Penin  <gpenin@pleyo.com>
 
         Fixed internal memory allocator (used in debug mode).
