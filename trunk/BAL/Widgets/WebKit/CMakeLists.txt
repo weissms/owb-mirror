@@ -29,9 +29,6 @@ if(USE_GRAPHICS_GTK)
     )
     list(REMOVE_ITEM WEBKIT_SRC
         ${WIDGETS_DIR}/Generic/WebPopup.cpp
-        ${WIDGETS_DIR}/Generic/WebWindowConfirm.cpp
-        ${WIDGETS_DIR}/Generic/WebWindowPrompt.cpp
-        ${WIDGETS_DIR}/Generic/WebWindowAlert.cpp
     )
 endif(USE_GRAPHICS_GTK)
 

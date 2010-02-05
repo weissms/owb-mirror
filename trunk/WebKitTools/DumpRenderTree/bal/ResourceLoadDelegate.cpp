@@ -194,6 +194,7 @@ WebMutableURLRequest* ResourceLoadDelegate::willSendRequest(WebView* webView, un
     }
 
     const char* url = request->URL();
+    /*
     const char* host = request->host();
     const char* protocol = request->protocol();
     if (host
@@ -204,6 +205,7 @@ WebMutableURLRequest* ResourceLoadDelegate::willSendRequest(WebView* webView, un
         printf("Blocked access to external URL %s\n", url);
         return 0;
     }
+    */
 
     for(size_t i = 0; i < disallowedURLs.size(); ++i) {
         if (!strcmp(url, disallowedURLs[i].c_str()))
