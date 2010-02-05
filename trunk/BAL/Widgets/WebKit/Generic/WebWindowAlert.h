@@ -29,6 +29,7 @@
 #define WebWindowAlert_H
 
 #include "WebWindow.h"
+#include <stdint.h>
 #include <string>
 
 namespace WebCore {
