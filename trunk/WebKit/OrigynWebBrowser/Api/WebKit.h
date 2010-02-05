@@ -82,11 +82,9 @@
 #include "WebConfigLoading.h"
 #endif
 
-#if !PLATFORM(GTK)
 #include "WebWindow.h"
 #include "WebWindowAlert.h"
 #include "WebWindowConfirm.h"
 #include "WebWindowPrompt.h"
-#endif
 
 #endif//WebKit_h
