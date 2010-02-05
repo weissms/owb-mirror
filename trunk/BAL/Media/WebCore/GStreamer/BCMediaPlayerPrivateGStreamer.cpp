@@ -65,6 +65,7 @@
 
 #if PLATFORM(GTK)
 #include <wtf/gtk/GOwnPtr.h>
+#include "GOwnPtrGtk.h"
 #endif
 
 using namespace std;
@@ -170,13 +171,13 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
     if (!element)
         return;
 
+#if USE(SOUP)
     GOwnPtr<char> location;
     g_object_get(element.get(), "location", &location.outPtr(), NULL);
 
     // Do injection only for elements dealing with uris.
     if (!gst_uri_is_valid(location.get()))
         return;
-#if USE(SOUP)
     GOwnPtr<SoupURI> uri(soup_uri_new(location.get()));
 
     // Do injection only for http(s) uris.
@@ -205,7 +206,7 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
     // of the format we expect
     if (!cookiesParamSpec || cookiesParamSpec->value_type != G_TYPE_STRV)
         return;
-
+	
     // Then get the cookies for the URI and set them
     SoupSession* session = ResourceHandle::defaultSession();
     SoupSessionFeature* cookieJarFeature = soup_session_get_feature(session, SOUP_TYPE_COOKIE_JAR);
