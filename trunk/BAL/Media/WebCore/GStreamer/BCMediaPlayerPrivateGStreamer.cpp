@@ -185,7 +185,7 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
 
     // Let Apple web servers know we want to access their nice movie trailers.
     if (g_str_equal(uri->host, "movies.apple.com"))
-        g_object_set(element.get(), "user-agent", "Quicktime/7.2.0", NULL);
+        g_object_set(element, "user-agent", "Quicktime/7.2.0", NULL);
 
     // Set the HTTP referer.
     Frame* frame = mp->m_player->frameView() ? mp->m_player->frameView()->frame() : 0;
@@ -194,12 +194,12 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
         GstStructure* extraHeaders = gst_structure_new("extra-headers",
                                                        "Referer", G_TYPE_STRING,
                                                        document->documentURI().utf8().data(), 0);
-        g_object_set(element.get(), "extra-headers", extraHeaders, NULL);
+        g_object_set(element, "extra-headers", extraHeaders, NULL);
         gst_structure_free(extraHeaders);
     }
 
     // Deal with the cookies from now on.
-    GParamSpec* cookiesParamSpec = g_object_class_find_property(G_OBJECT_GET_CLASS(element.get()), "cookies");
+    GParamSpec* cookiesParamSpec = g_object_class_find_property(G_OBJECT_GET_CLASS(element), "cookies");
 
     // First check if the source element has a cookies property
     // of the format we expect
@@ -215,7 +215,7 @@ void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec,
     SoupCookieJar* cookieJar = SOUP_COOKIE_JAR(cookieJarFeature);
     GOwnPtr<char> cookies(soup_cookie_jar_get_cookies(cookieJar, uri.get(), FALSE));
     char* cookiesStrv[] = {cookies.get(), 0};
-    g_object_set(element.get(), "cookies", cookiesStrv, NULL);
+    g_object_set(element, "cookies", cookiesStrv, NULL);
 #endif
 }
 
