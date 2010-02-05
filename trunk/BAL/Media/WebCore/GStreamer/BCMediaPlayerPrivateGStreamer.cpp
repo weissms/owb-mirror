@@ -32,7 +32,6 @@
 #include "Document.h"
 #include "Frame.h"
 #include "FrameView.h"
-#include "GOwnPtrGtk.h"
 #include "GraphicsContext.h"
 #include "IntRect.h"
 #include "KURL.h"
@@ -163,17 +162,17 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
 void mediaPlayerPrivateSourceChangedCallback(GObject *object, GParamSpec *pspec, gpointer data)
 {
     MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
-    GOwnPtr<GstElement> element;
+    GstElement* element;
 
-    g_object_get(mp->m_playBin, "source", &element.outPtr(), NULL);
-    gst_object_replace((GstObject**) &mp->m_source, (GstObject*) element.get());
+    g_object_get(mp->m_playBin, "source", &element, NULL);
+    gst_object_replace((GstObject**) &mp->m_source, (GstObject*) element);
 
     if (!element)
         return;
 
 #if USE(SOUP)
     GOwnPtr<char> location;
-    g_object_get(element.get(), "location", &location.outPtr(), NULL);
+    g_object_get(element, "location", &location.outPtr(), NULL);
 
     // Do injection only for elements dealing with uris.
     if (!gst_uri_is_valid(location.get()))
