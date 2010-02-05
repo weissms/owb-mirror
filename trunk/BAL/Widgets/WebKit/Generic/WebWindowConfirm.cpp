@@ -387,7 +387,11 @@ bool WebWindowConfirm::onMouseButtonDown(BalEventButton ev)
     if (!m_surface)
         return false;
 
+#if PLATFORM(GTK)
+    PlatformMouseEvent event(&ev);
+#else
     PlatformMouseEvent event(&ev, 1);
+#endif
     IntRect mainSurfaceRect(mainWindowRect());
     if (isThemable) {
         IntRect buttonOKRect = m_buttonOKRect;

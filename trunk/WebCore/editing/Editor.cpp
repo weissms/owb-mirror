@@ -1009,16 +1009,6 @@ bool Editor::insertParagraphSeparator()
     return true;
 }
 
-static bool nodeIsInTextFormControl(Node* node)
-{
-    if (!node)
-        return false;
-    Node* ancestor = node->shadowAncestorNode();
-    if (ancestor == node)
-        return false;
-    return ancestor->isElementNode() && static_cast<Element*>(ancestor)->isTextFormControl();
-}
-
 void Editor::cut()
 {
     if (tryDHTMLCut())
@@ -1029,7 +1019,7 @@ void Editor::cut()
     }
     RefPtr<Range> selection = selectedRange();
     if (shouldDeleteRange(selection.get())) {
-        if (nodeIsInTextFormControl(m_frame->selection()->start().node()))
+        if (isNodeInTextFormControl(m_frame->selection()->start().node()))
             Pasteboard::generalPasteboard()->writePlainText(m_frame->selectedText());
         else
             Pasteboard::generalPasteboard()->writeSelection(selection.get(), canSmartCopyOrDelete(), m_frame);
@@ -1047,7 +1037,7 @@ void Editor::copy()
         return;
     }
 
-    if (nodeIsInTextFormControl(m_frame->selection()->start().node()))
+    if (isNodeInTextFormControl(m_frame->selection()->start().node()))
         Pasteboard::generalPasteboard()->writePlainText(m_frame->selectedText());
     else {
         Document* document = m_frame->document();

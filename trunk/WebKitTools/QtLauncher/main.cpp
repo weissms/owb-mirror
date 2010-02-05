@@ -525,8 +525,6 @@ QObject* WebPage::createPlugin(const QString &classId, const QUrl&, const QStrin
 }
 
 
-#include "main.moc"
-
 int launcherMain(const QApplication& app)
 {
 #ifndef NDEBUG
@@ -539,60 +537,158 @@ int launcherMain(const QApplication& app)
 #endif
 }
 
-int main(int argc, char **argv)
+class LauncherApplication : public QApplication {
+    Q_OBJECT
+
+public:
+    LauncherApplication(int& argc, char** argv);
+    QStringList urls() const { return m_urls; }
+    bool isRobotized() const { return m_isRobotized; }
+
+private:
+    void handleUserOptions();
+    void applyDefaultSettings();
+
+private:
+    bool m_isRobotized;
+    QStringList m_urls;
+};
+
+void LauncherApplication::applyDefaultSettings()
 {
-    QApplication app(argc, argv);
-    QString defaultUrl = QString("file://%1/%2").arg(QDir::homePath()).arg(QLatin1String("index.html"));
-
     QWebSettings::setMaximumPagesInCache(4);
-
-    app.setApplicationName("QtLauncher");
-    app.setApplicationVersion("0.1");
 
     QWebSettings::setObjectCacheCapacities((16*1024*1024) / 8, (16*1024*1024) / 8, 16*1024*1024);
 
     QWebSettings::globalSettings()->setAttribute(QWebSettings::PluginsEnabled, true);
     QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     QWebSettings::enablePersistentStorage();
+}
 
+LauncherApplication::LauncherApplication(int& argc, char** argv)
+    : QApplication(argc, argv)
+    , m_isRobotized(false)
+{
     // To allow QWebInspector's configuration persistence
-    QCoreApplication::setOrganizationName("Nokia");
-    QCoreApplication::setApplicationName("QtLauncher");
+    setOrganizationName("Nokia");
+    setApplicationName("QtLauncher");
+    setApplicationVersion("0.1");
 
-    const QStringList args = app.arguments();
+    applyDefaultSettings();
 
-    if (args.contains(QLatin1String("-r"))) {
-        // robotized
-        QString listFile = args.at(2);
-        if (!(args.count() == 3) && QFile::exists(listFile)) {
-            qDebug() << "Usage: QtLauncher -r listfile";
-            exit(0);
-        }
+    handleUserOptions();
+}
+
+static bool useGraphicsView = false;
+static void requiresGraphicsView(const QString& option)
+{
+    if (useGraphicsView)
+        return;
+    appQuit(1, QString("%1 only works in combination with the -graphicsbased option").arg(option));
+}
+
+void LauncherApplication::handleUserOptions()
+{
+    QStringList args = arguments();
+    QFileInfo program(args.at(0));
+    QString programName("QtLauncher");
+    if (program.exists())
+        programName = program.baseName();
+
+    QList<QString> updateModes(enumToKeys(QGraphicsView::staticMetaObject,
+            "ViewportUpdateMode", "ViewportUpdate"));
+
+    if (args.contains("-help")) {
+        qDebug() << "Usage:" << programName.toLatin1().data()
+             << "[-graphicsbased]"
+             << "[-compositing]"
+             << QString("[-viewport-update-mode %1]").arg(formatKeys(updateModes)).toLatin1().data()
+             << "[-cache-webview]"
+             << "[-r list]"
+             << "URLs";
+        appQuit(0);
+    }
+
+    if (args.contains("-graphicsbased"))
+        useGraphicsView = true;
+
+    if (args.contains("-compositing")) {
+        requiresGraphicsView("-compositing");
+        QWebSettings::globalSettings()->setAttribute(QWebSettings::AcceleratedCompositingEnabled, true);
+    }
+
+    if (args.contains("-cache-webview")) {
+        requiresGraphicsView("-cache-webview");
+        // view->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+    }
+
+    QString arg1("-viewport-update-mode");
+    int modeIndex = args.indexOf(arg1);
+    if (modeIndex != -1) {
+        requiresGraphicsView(arg1);
+
+        QString mode = takeOptionValue(&args, modeIndex);
+        if (mode.isEmpty())
+            appQuit(1, QString("%1 needs a value of one of [%2]").arg(arg1).arg(formatKeys(updateModes)));
+        int idx = updateModes.indexOf(mode);
+        if (idx == -1)
+            appQuit(1, QString("%1 value has to be one of [%2]").arg(arg1).arg(formatKeys(updateModes)));
+
+        // view->setViewportUpdateMode(static_cast<QGraphicsView::ViewportUpdateMode>(idx));
+    }
+
+    int robotIndex = args.indexOf("-r");
+    if (robotIndex != -1) {
+        QString listFile = takeOptionValue(&args, robotIndex);
+        if (listFile.isEmpty())
+            appQuit(1, "-r needs a list file to start in robotized mode");
+        if (!QFile::exists(listFile))
+            appQuit(1, "The list file supplied to -r does not exist.");
+
+        m_isRobotized = true;
+        m_urls = QStringList(listFile);
+        return;
+    }
+
+    int lastArg = args.lastIndexOf(QRegExp("^-.*"));
+    m_urls = (lastArg != -1) ? args.mid(++lastArg) : args.mid(1);
+}
+
+
+int main(int argc, char **argv)
+{
+    LauncherApplication app(argc, argv);
+
+    if (app.isRobotized()) {
         LauncherWindow* window = new LauncherWindow;
         QWebView* view = window->webView();
-        UrlLoader loader(view->page()->mainFrame(), listFile);
+        UrlLoader loader(view->page()->mainFrame(), app.urls().at(0));
         QObject::connect(view->page()->mainFrame(), SIGNAL(loadFinished(bool)), &loader, SLOT(loadNext()));
         loader.loadNext();
         window->show();
-        launcherMain(app);
-    } else {
-        LauncherWindow* window = 0;
-
-        // Look though the args for something we can open
-        for (int i = 1; i < args.count(); i++) {
-            if (!args.at(i).startsWith("-")) {
-                if (!window)
-                    window = new LauncherWindow(args.at(i));
-                else
-                    window->newWindow(args.at(i));
-            }
-        }
-
-        // If not, just open the default URL
-        if (!window)
-            window = new LauncherWindow(defaultUrl);
-
-        window->show();
-        launcherMain(app);
+        return launcherMain(app);
     }
+
+    QStringList urls = app.urls();
+
+    if (urls.isEmpty()) {
+        QString defaultUrl = QString("file://%1/%2").arg(QDir::homePath()).arg(QLatin1String("index.html"));
+        if (QDir(defaultUrl).exists())
+            urls.append(defaultUrl);
+        else
+            urls.append("");
+    }
+
+    LauncherWindow* window = 0;
+    foreach (QString url, urls) {
+        if (!window)
+            window = new LauncherWindow(url);
+        else
+            window->newWindow(url);
+    }
+
+    window->show();
+    return launcherMain(app);
 }
+
+#include "main.moc"

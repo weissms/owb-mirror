@@ -484,6 +484,9 @@ webcore_sources += \
 	WebCore/bindings/js/ScriptInstance.h \
 	WebCore/bindings/js/ScriptObject.cpp \
 	WebCore/bindings/js/ScriptObject.h \
+	WebCore/bindings/js/ScriptProfile.h \
+	WebCore/bindings/js/ScriptProfiler.cpp \
+	WebCore/bindings/js/ScriptProfiler.h \
 	WebCore/bindings/js/ScriptSourceCode.h \
 	WebCore/bindings/js/ScriptSourceProvider.h \
 	WebCore/bindings/js/ScriptState.cpp \
@@ -1191,6 +1194,8 @@ webcore_sources += \
 	WebCore/icu/unicode/uversion.h \
 	WebCore/inspector/ConsoleMessage.cpp \
 	WebCore/inspector/ConsoleMessage.h \
+	WebCore/inspector/InjectedScript.cpp \
+	WebCore/inspector/InjectedScript.h \
 	WebCore/inspector/InjectedScriptHost.cpp \
 	WebCore/inspector/InjectedScriptHost.h \
 	WebCore/inspector/InspectorBackend.cpp \
@@ -2006,6 +2011,8 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/FileSystemGtk.cpp \
 	WebCore/platform/gtk/GRefPtrGtk.cpp \
 	WebCore/platform/gtk/GRefPtrGtk.h \
+	WebCore/platform/gtk/GOwnPtrGtk.cpp \
+	WebCore/platform/gtk/GOwnPtrGtk.h \
 	WebCore/platform/gtk/GtkPluginWidget.cpp \
 	WebCore/platform/gtk/GtkPluginWidget.h \
 	WebCore/platform/gtk/KURLGtk.cpp \
@@ -2715,7 +2722,11 @@ webcore_sources += \
 	WebCore/mathml/MathMLInlineContainerElement.cpp \
 	WebCore/mathml/MathMLInlineContainerElement.h  \
 	WebCore/mathml/MathMLMathElement.cpp \
-	WebCore/mathml/MathMLMathElement.h
+	WebCore/mathml/MathMLMathElement.h \
+	WebCore/mathml/MathMLTextElement.cpp \
+	WebCore/mathml/MathMLTextElement.h \
+	WebCore/mathml/RenderMathMLBlock.cpp \
+	WebCore/mathml/RenderMathMLBlock.h
 
 webcore_built_sources += \
 	DerivedSources/MathMLElementFactory.cpp \

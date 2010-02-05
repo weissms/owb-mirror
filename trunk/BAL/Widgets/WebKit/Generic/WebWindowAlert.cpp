@@ -320,8 +320,13 @@ bool WebWindowAlert::onMouseButtonDown(BalEventButton ev)
     if (!m_surface)
         return false;
 
-    IntRect mainSurfaceRect(mainWindowRect());
+#if PLATFORM(GTK)
+    PlatformMouseEvent event(&ev);
+#else
     PlatformMouseEvent event(&ev, 1);
+#endif
+
+    IntRect mainSurfaceRect(mainWindowRect());
     if (isThemable) {
         IntRect buttonRect = m_buttonRect;
         if ((event.x() > buttonRect.x() + mainSurfaceRect.x() && event.x() < buttonRect.right() + mainSurfaceRect.x()) && (event.y() > buttonRect.y() + mainSurfaceRect.y() && event.y() < buttonRect.bottom() + mainSurfaceRect.y()))

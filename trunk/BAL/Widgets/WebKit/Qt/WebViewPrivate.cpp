@@ -131,16 +131,16 @@ bool WebViewPrivate::onKeyDown(BalEventKey ev)
 
         switch (ev.key()) {
         case Qt::Key_Down:
-            view->scrollBy(IntSize(0, (int)cScrollbarPixelsPerLineStep));
+            view->scrollBy(IntSize(0, (int)Scrollbar::pixelsPerLineStep()));
             break;
         case Qt::Key_Up:
-            view->scrollBy(IntSize(0, (int)-cScrollbarPixelsPerLineStep));
+            view->scrollBy(IntSize(0, (int)-Scrollbar::pixelsPerLineStep()));
             break;
         case Qt::Key_Right:
-            view->scrollBy(IntSize((int)cScrollbarPixelsPerLineStep, 0));
+            view->scrollBy(IntSize((int)Scrollbar::pixelsPerLineStep(), 0));
             break;
         case Qt::Key_Left:
-            view->scrollBy(IntSize((int)-cScrollbarPixelsPerLineStep, 0));
+            view->scrollBy(IntSize((int)-Scrollbar::pixelsPerLineStep(), 0));
             break;
         case Qt::Key_Home:
             frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);

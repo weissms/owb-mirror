@@ -120,11 +120,11 @@ PassRefPtr<Element> Element::cloneElementWithoutChildren()
     // This is a sanity check as HTML overloads some of the DOM methods.
     ASSERT(isHTMLElement() == clone->isHTMLElement());
 
+    clone->copyNonAttributeProperties(this);
+
     // Clone attributes.
     if (namedAttrMap)
         clone->attributes()->setAttributes(*attributes(true)); // Call attributes(true) to force attribute synchronization to occur (for svg and style) before cloning happens.
-
-    clone->copyNonAttributeProperties(this);
     
     return clone.release();
 }
@@ -711,7 +711,8 @@ void Element::setPrefix(const AtomicString& prefix, ExceptionCode& ec)
 
 KURL Element::baseURI() const
 {
-    KURL base(KURL(), getAttribute(baseAttr));
+    const AtomicString& baseAttribute = getAttribute(baseAttr);
+    KURL base(KURL(), baseAttribute);
     if (!base.protocol().isEmpty())
         return base;
 
@@ -723,7 +724,7 @@ KURL Element::baseURI() const
     if (parentBase.isNull())
         return base;
 
-    return KURL(parentBase, base.string());
+    return KURL(parentBase, baseAttribute);
 }
 
 void Element::createAttributeMap() const

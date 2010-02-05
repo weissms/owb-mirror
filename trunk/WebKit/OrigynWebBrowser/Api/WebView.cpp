@@ -2941,16 +2941,16 @@ void WebView::scrollWithDirection(::ScrollDirection direction)
 {
     switch (direction) {
     case Up:
-        m_page->mainFrame()->view()->scrollBy(IntSize(0, (int)-cScrollbarPixelsPerLineStep));
+        m_page->mainFrame()->view()->scrollBy(IntSize(0, (int)-Scrollbar::pixelsPerLineStep()));
         break;
     case Down:
-        m_page->mainFrame()->view()->scrollBy(IntSize(0, (int)cScrollbarPixelsPerLineStep));
+        m_page->mainFrame()->view()->scrollBy(IntSize(0, (int)Scrollbar::pixelsPerLineStep()));
         break;
     case Left:
-        m_page->mainFrame()->view()->scrollBy(IntSize((int)-cScrollbarPixelsPerLineStep, 0));
+        m_page->mainFrame()->view()->scrollBy(IntSize((int)-Scrollbar::pixelsPerLineStep(), 0));
         break;
     case Right:
-        m_page->mainFrame()->view()->scrollBy(IntSize((int)cScrollbarPixelsPerLineStep, 0));
+        m_page->mainFrame()->view()->scrollBy(IntSize((int)Scrollbar::pixelsPerLineStep(), 0));
         break;
     default:
         ASSERT_NOT_REACHED();

@@ -1956,9 +1956,13 @@ sub GenerateToV8Converters
     push(@implContent, <<END);   
 
 v8::Handle<v8::Object> ${className}::wrap(${nativeType}* impl${forceNewObjectInput}) {
-  V8Proxy* proxy = 0;
   v8::Handle<v8::Object> wrapper;
 END
+    if (!NeedsWorkerContextExecutionProxyToV8($interfaceName)) {
+        push(@implContent, <<END);
+  V8Proxy* proxy = 0;
+END
+    }
 
     if (IsNodeSubType($dataNode)) {
         push(@implContent, <<END);
@@ -1997,9 +2001,16 @@ END
 END
     }
 
-    push(@implContent, <<END);
+    if (NeedsWorkerContextExecutionProxyToV8($interfaceName)) {
+        $implIncludes{"WorkerContextExecutionProxy.h"} = 1;
+        push(@implContent, <<END);
+  wrapper = WorkerContextExecutionProxy::toV8(${wrapperType}, impl);
+END
+    } else {
+        push(@implContent, <<END);
   wrapper = V8DOMWrapper::instantiateV8Object(proxy, ${wrapperType}, impl);
 END
+    }
 
     if (IsNodeSubType($dataNode)) {
         push(@implContent, <<END);
@@ -2047,6 +2058,19 @@ END
     }
 }
 
+sub NeedsWorkerContextExecutionProxyToV8 {
+    # These objects can be constructed under WorkerContextExecutionProxy. They need special
+    # handling, since if we call V8Proxy::retrieve(), we will crash.
+    # FIXME: websocket?
+    $interfaceName = shift;
+    return 1 if $interfaceName eq "DOMCoreException";
+    return 1 if $interfaceName eq "EventException";
+    return 1 if $interfaceName eq "RangeException";
+    return 1 if $interfaceName eq "XMLHttpRequestException";
+    return 1 if $interfaceName eq "MessagePort";
+    return 0;
+}
+
 sub HasCustomToV8Implementation {
     # FIXME: This subroutine is lame. Probably should be an .idl attribute (CustomToV8)?
     $dataNode = shift;
@@ -2056,7 +2080,6 @@ sub HasCustomToV8Implementation {
     return 1 if $interfaceName eq "BarInfo";
     return 1 if $interfaceName eq "CSSStyleSheet";
     return 1 if $interfaceName eq "CanvasPixelArray";
-    return 1 if $interfaceName eq "Console";
     return 1 if $interfaceName eq "DOMSelection";
     return 1 if $interfaceName eq "DOMWindow";
     return 1 if $interfaceName eq "Element";

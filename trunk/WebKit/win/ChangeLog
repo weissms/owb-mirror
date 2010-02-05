@@ -1,3 +1,82 @@
+2010-02-05  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34612 " MSAA: accSelect returns error 
+        codes for most elements that arent listbox or menupopup related"
+        <rdar://problem/7436861>
+
+        * AccessibleBase.cpp:
+        (AccessibleBase::accSelect):
+        - Stop sending E_INVALIDARG for elements that request TAKE_SELECTION that 
+          aren't beneath listboxes or menupopups.  This was too restrictive since 
+          any element can be selectable.
+        - Correct the misinterpretation of MSDN's stipulation of situations involving 
+          adding, removing, and extending selection on single-select elements
+
+2010-02-04  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Properly handle margin settings when printing Plugins in WinCairo.
+        https://bugs.webkit.org/show_bug.cgi?id=34613
+
+        * WebFrame.cpp:
+        (WebFrame::spoolPage): Adjust the GraphicsContext passed to the
+          paintContents method so that the World Transform is properly
+          positioned to account for margin settings at the time that
+          PluginViewWin.cpp processes the drawing operations.
+
+2010-02-04  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Properly handle margin settings in WinCairo.
+        https://bugs.webkit.org/show_bug.cgi?id=34545
+
+        * WebFrame.cpp:
+        (scaleFactor): Require the margin information as an input
+          parameter, and use them when computing the scaling factor.
+        (WebFrame::drawHeader): Pass margin size to scaleFactor.
+        (WebFrame::drawFooter): Pass margin size to scaleFactor.
+        (WebFrame::spoolPage):
+          1. Pass margin size to scaleFactor.
+          2. Recognize that the return value of printerMarginRect is
+             already in device units, and therefore scale it so that
+             the Cairo drawing is correct.
+          3. Remove scaling call for margins in GDI code, as it is
+             already in scaled units.
+
+2010-02-03  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Steve Falkenburg.
+
+        Scroll does not work with IBM Thinkpad.
+        <https://bugs.webkit.org/show_bug.cgi?id=14227>
+        <rdar://7142545>
+        
+        When initializing the WebView, add two scrollbar Windows inside of
+        our WebView, to allow it to receive WM_VSCROLL and WM_HSCROLL events.
+        (similar to what Firefox did in: <https://bugzilla.mozilla.org/show_bug.cgi?id=507222>.
+        
+        Only do this if the user has installed some kind of Trackpoint driver, using an algorithm
+        like <https://bugzilla.mozilla.org/show_bug.cgi?id=514927>.
+        
+        Also, add code to handle WM_HSCROLL and WM_VSCROLL messages to scroll
+        the WebView.
+
+        * WebView.cpp:
+        (WebView::verticalScroll): Handle the WM_VSCROLL messages, and scroll up and down
+            by lines or pages.
+        (WebView::horizontalScroll): Handle the WM_HSCROLL messages, and scroll left or right
+            by lines or pages.
+        (WebView::WebViewWndProc): Add cases for WM_VSCROLL and WM_HSCROLL.
+        (WebView::initWithFrame): Call shouldInitializeTrackPointHack, and if we should, create
+            vertical and horizontal scrollbars to receive WM_VSCROLL and WM_HSCROLL messages.
+        (WebView::shouldInitializeTrackPointHack): Check if there is a registry key for
+            the some kind of IBM Trackpoint driver.
+        * WebView.h:
+
 2010-02-03  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Darin Adler.

@@ -842,8 +842,10 @@ BAL/Types/WTF/Qt	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/MainThreadQt.cpp
 BAL/Types/WebCore/Gtk	WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
-BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.h
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GOwnPtrGtk.cpp
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GOwnPtrGtk.h
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.cpp
+BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.h
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/graphics/qt/IconQt.cpp       BCIconQt.cpp
 BAL/Types/WebCore/Qt	WebCore/platform/qt/KURLQt.cpp

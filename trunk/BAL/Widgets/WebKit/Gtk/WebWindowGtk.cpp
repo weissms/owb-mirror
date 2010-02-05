@@ -32,7 +32,6 @@
 #include "WebView.h"
 
 using namespace WebCore;
-static bool quit = false;
  
 void WebWindow::createPlatformWindow()
 {

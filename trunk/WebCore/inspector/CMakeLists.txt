@@ -1,6 +1,7 @@
 if(ENABLE_INSPECTOR)
     list(APPEND WEBCORE_SRC
         inspector/ConsoleMessage.cpp
+        inspector/InjectedScript.cpp
         inspector/InjectedScriptHost.cpp
         inspector/InspectorBackend.cpp
         inspector/InspectorController.cpp

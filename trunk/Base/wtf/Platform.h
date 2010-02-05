@@ -437,6 +437,11 @@
 #define WTF_PLATFORM_HAIKU 1
 #elif defined(BUILDING_BREWMP__)
 #define WTF_PLATFORM_BREWMP 1
+#if defined(AEE_SIMULATOR)
+#define WTF_PLATFORM_BREWMP_SIMULATOR 1
+#else
+#define WTF_PLATFORM_BREWMP_SIMULATOR 0
+#endif
 #elif OS(DARWIN) && !OS(MACPORT)
 #define WTF_PLATFORM_MAC 1
 #elif OS(WINDOWS)
@@ -877,7 +882,7 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
     #define ENABLE_JIT 1
 #endif
 
-#if PLATFORM(QT)
+#if PLATFORM(QT) || PLATFORM(WX)
 #if CPU(X86_64) && OS(DARWIN)
     #define ENABLE_JIT 1
 #elif CPU(X86) && OS(DARWIN)
@@ -941,7 +946,8 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 #if (CPU(X86) && PLATFORM(MAC)) \
     || (CPU(X86_64) && PLATFORM(MAC)) \
     || (CPU(ARM_THUMB2) && PLATFORM(IPHONE)) \
-    || (CPU(X86) && PLATFORM(WIN))
+    || (CPU(X86) && PLATFORM(WIN)) \
+    || (CPU(X86) && PLATFORM(WX))
 #define ENABLE_YARR 1
 #define ENABLE_YARR_JIT 1
 #endif

@@ -402,6 +402,13 @@ void ClipboardBal::writeRange(Range* selectedRange, Frame* frame)
     m_dataObject->plainText = str;
 }
 
+void ClipboardBal::writePlainText(const String& plain)
+{
+    if (!m_dataObject)
+        return;
+    m_dataObject->plainText = plain;
+}
+
 bool ClipboardBal::hasData()
 {
     if (!m_dataObject)

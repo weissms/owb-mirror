@@ -77,8 +77,8 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     
     //printf("m_deltaY = %f m_deltaX=%f delta=%f\n", m_deltaY, m_deltaX, delta);
     // FIXME: retrieve the user setting for the number of lines to scroll on each wheel event
-    m_deltaX *= static_cast<float>(cScrollbarPixelsPerLineStep);
-    m_deltaY *= static_cast<float>(cScrollbarPixelsPerLineStep);
+    m_deltaX *= static_cast<float>(Scrollbar::pixelsPerLineStep());
+    m_deltaY *= static_cast<float>(Scrollbar::pixelsPerLineStep());
     m_granularity = ScrollByPixelWheelEvent;
     m_wheelTicksX = m_deltaX;
     m_wheelTicksY = m_deltaY;

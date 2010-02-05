@@ -1,3 +1,165 @@
+2010-02-05  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstreaming gtests from chromium: UniscribeHelper and TransparencyWin
+        https://bugs.webkit.org/show_bug.cgi?id=34509
+
+        Resubmit: The previous commit (r54333) was rolled back.
+
+        * WebKit.gyp:
+        * tests/TransparencyWinTest.cpp: Added.
+        (WebCore::RECTToFloatRect):
+        (WebCore::drawNativeRect):
+        (WebCore::getPixelAt):
+        (WebCore::clearTopLayerAlphaChannel):
+        (WebCore::clearTopLayerAlphaPixel):
+        (WebCore::operator<<):
+        (WebCore::TEST):
+        * tests/UniscribeHelperTest.cpp: Added.
+        (WebCore::UniscribeTest::UniscribeTest):
+        (WebCore::UniscribeTest::MakeFont):
+        (WebCore::UniscribeTest::SetUp):
+        (WebCore::UniscribeTest::TearDown):
+        (TEST_F):
+
+2010-02-04  Drew Wilson  <atwilson@chromium.org>
+
+        Reviewed by David Levin.
+
+        WorkerContext.close() does not work in the chromium port
+        https://bugs.webkit.org/show_bug.cgi?id=34551
+
+        Test: Adding new downstream test.
+
+        * src/WebWorkerBase.cpp:
+        (WebKit::WebWorkerBase::workerContextClosedTask):
+        Now shuts down the worker thread when WorkerContext::close() is invoked.
+
+2010-02-04  Chris Guillory  <chris.guillory@google.com>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Add function for AccessibilityObject state change notifications.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=34464
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::didChangeAccessibilityObjectState):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::didChangeAccessibilityObjectState):
+        * src/ChromeClientImpl.h:
+
+2010-02-04  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Update comments to better document the possible values of the
+        writing direction menu state variables.
+
+        * public/WebContextMenuData.h:
+
+2010-02-04  Nate Chapin  <japhet@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Remove references to V8Custom.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32638
+
+        * src/DebuggerAgentImpl.cpp:
+        * src/WebDevToolsFrontendImpl.cpp:
+
+2010-02-04  Yury Semikhatsky  <yurys@chromium.org>
+
+        Unreviewed. Revert 54333 which broke Chromium build.
+
+        * WebKit.gyp:
+        * tests/TransparencyWinTest.cpp: Removed.
+        * tests/UniscribeHelperTest.cpp: Removed.
+
+2010-02-04  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Upstreaming gtests from chromium: UniscribeHelper and TransparencyWin.
+        https://bugs.webkit.org/show_bug.cgi?id=34509
+
+        * WebKit.gyp:
+        * tests/TransparencyWinTest.cpp: Added.
+        (WebCore::RECTToFloatRect):
+        (WebCore::drawNativeRect):
+        (WebCore::getPixelAt):
+        (WebCore::clearTopLayerAlphaChannel):
+        (WebCore::clearTopLayerAlphaPixel):
+        (WebCore::operator<<):
+        (WebCore::TEST):
+        * tests/UniscribeHelperTest.cpp: Added.
+        (WebCore::UniscribeTest::UniscribeTest):
+        (WebCore::UniscribeTest::MakeFont):
+        (WebCore::UniscribeTest::SetUp):
+        (WebCore::UniscribeTest::TearDown):
+        (WebCore::TEST_F):
+
+2010-02-04  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] WebKit side of "Writing direction" context menu on OS X.
+        https://bugs.webkit.org/show_bug.cgi?id=34524
+
+        * public/WebContextMenuData.h:
+        (WebKit::WebContextMenuData::):
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+
+2010-02-03  Drew Wilson  <atwilson@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        SharedWorkerScriptLoader should not be an ActiveDOMObject
+        https://bugs.webkit.org/show_bug.cgi?id=34513
+
+        * src/SharedWorkerRepository.cpp:
+        (WebCore::SharedWorkerScriptLoader::SharedWorkerScriptLoader):
+        Changed SharedWorkerScriptLoader to manage its own lifecycle without using ActiveDOMObject.
+        (WebCore::SharedWorkerScriptLoader::parentContext):
+        (WebCore::pendingLoaders):
+        Now we manually track pending loads so we can shut them down when the parent context shuts down.
+        (WebCore::SharedWorkerScriptLoader::contextDetached):
+        Shuts down/frees any pending worker loads.
+        (WebCore::SharedWorkerScriptLoader::~SharedWorkerScriptLoader):
+        Marks the SharedWorker object as not having pending activity if there was a load active (handles case where load was pending when parent document exits).
+        (WebCore::SharedWorkerScriptLoader::load):
+        (WebCore::SharedWorkerRepository::documentDetached):
+        Now calls SharedWorkerScriptLoader::contextDetached() to shutdown any pending worker loads.
+
+2010-02-03  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        [Chromium] Return a consistent set of platforms from WebDevToolsFrontendImpl
+        https://bugs.webkit.org/show_bug.cgi?id=34523
+
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::jsPlatform):
+
+2010-02-02  Joel Stanley  <joel@jms.id.au>
+
+        Reviewed by David Levin.
+
+        [Chromium] Add API method for setting caret blink frequency.
+        https://bugs.webkit.org/show_bug.cgi?id=31704
+
+        This enables the RenderThemeChromiumLinux::setCaretBlinkInterval method
+        to be called Chromium's API.  The API is linux-only as it is currently
+        the only port to implement RenderTheme::setCaretBlinkInterval.
+
+        * WebKit.gyp:  Add WebRenderTheme.{h,cpp}
+        * public/linux/WebRenderTheme.h: Added.
+        * src/linux/WebRenderTheme.cpp: Added.
+        (WebKit::setCaretBlinkInterval): Exposed API
+
 2010-02-03  Shinichiro Hamaji  <hamaji@chromium.org>
 
         Reviewed by Dimitri Glazkov.

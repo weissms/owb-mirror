@@ -1,3 +1,240 @@
+2010-02-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Build fix.  Remove a symbol corresponding to an inline function from the linker export
+        file to prevent a weak external failure.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Accommodate rename of script.
+
+2010-02-04  Daniel Bates  <dbates@webkit.org>
+
+        [Qt] Unreviewed, build fix for Qt bot.
+
+        * runtime/JSStringBuilder.h: Changed #include <X.h> notation #include "X.h".
+
+2010-02-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: export a header.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2010-02-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add a JSStringBuilder class (similar-to, and derived-from StringBuilder) to
+        construct JSStrings, throwing a JS exception should we run out of memory whilst
+        allocating storage for the string.
+
+        Similarly, add jsMakeNontrivialString methods to use in cases where previously
+        we were calling makeString & passing the result to jsNontrivialString.  Again,
+        these new methods throw if we hit an out of memory condition.
+
+        Move throwOutOfMemoryError into ExceptionHelpers, to make it more widely available.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        (JSC::arrayProtoFuncToLocaleString):
+        (JSC::arrayProtoFuncJoin):
+        * runtime/DateConstructor.cpp:
+        (JSC::callDate):
+        * runtime/DatePrototype.cpp:
+        (JSC::dateProtoFuncToString):
+        (JSC::dateProtoFuncToUTCString):
+        (JSC::dateProtoFuncToGMTString):
+        * runtime/ErrorPrototype.cpp:
+        (JSC::errorProtoFuncToString):
+        * runtime/ExceptionHelpers.cpp:
+        (JSC::throwOutOfMemoryError):
+        * runtime/ExceptionHelpers.h:
+        * runtime/JSStringBuilder.h: Added.
+        (JSC::JSStringBuilder::releaseJSString):
+        (JSC::jsMakeNontrivialString):
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToPrecision):
+        * runtime/ObjectPrototype.cpp:
+        (JSC::objectProtoFuncToString):
+        * runtime/Operations.cpp:
+        * runtime/Operations.h:
+        * runtime/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncToString):
+        * runtime/StringBuilder.h:
+        (JSC::StringBuilder::append):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncBig):
+        (JSC::stringProtoFuncSmall):
+        (JSC::stringProtoFuncBlink):
+        (JSC::stringProtoFuncBold):
+        (JSC::stringProtoFuncFixed):
+        (JSC::stringProtoFuncItalics):
+        (JSC::stringProtoFuncStrike):
+        (JSC::stringProtoFuncSub):
+        (JSC::stringProtoFuncSup):
+        (JSC::stringProtoFuncFontcolor):
+        (JSC::stringProtoFuncFontsize):
+        (JSC::stringProtoFuncAnchor):
+
+2010-02-04  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+
+        * wtf/MathExtras.h:
+
+2010-02-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by David Levin.
+
+        Make MathExtras.h compatible with <cmath>
+        https://bugs.webkit.org/show_bug.cgi?id=34618
+
+        * wtf/MathExtras.h: Include <cmath> instead of <math.h>.
+        Use "using" as we do elsewhere in WTF for the four functions from <cmath>
+        we want to use without the prefix. Later we could consider making the std
+        explicit at call sites instead.
+
+2010-02-04  Tamas Szirbucz  <szirbucz@inf.u-szeged.hu>
+
+        Reviewed by Gavin Barraclough.
+
+        Use an easily appendable structure for trampolines instead of pointer parameters.
+        https://bugs.webkit.org/show_bug.cgi?id=34424
+
+        * assembler/ARMAssembler.cpp:
+        (JSC::ARMAssembler::executableCopy):
+        * jit/JIT.h:
+        (JSC::JIT::compileCTIMachineTrampolines):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+        * jit/JITStubs.h:
+        (JSC::JITThunks::ctiStringLengthTrampoline):
+        (JSC::JITThunks::ctiVirtualCallLink):
+        (JSC::JITThunks::ctiVirtualCall):
+        (JSC::JITThunks::ctiNativeCallThunk):
+
+2010-02-04  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Increase test coverage for the QScriptValue.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34533
+
+        * qt/tests/qscriptvalue/qscriptvalue.pro:
+        * qt/tests/qscriptvalue/tst_qscriptvalue.cpp:
+        (tst_QScriptValue::tst_QScriptValue):
+        (tst_QScriptValue::~tst_QScriptValue):
+        (tst_QScriptValue::dataHelper):
+        (tst_QScriptValue::newRow):
+        (tst_QScriptValue::testHelper):
+        (tst_QScriptValue::ctor):
+        * qt/tests/qscriptvalue/tst_qscriptvalue.h: Added.
+        * qt/tests/qscriptvalue/tst_qscriptvalue_generated.cpp: Added.
+        (tst_QScriptValue::initScriptValues):
+        (tst_QScriptValue::isValid_initData):
+        (tst_QScriptValue::isValid_makeData):
+        (tst_QScriptValue::isValid_test):
+        (tst_QScriptValue::isBool_initData):
+        (tst_QScriptValue::isBool_makeData):
+        (tst_QScriptValue::isBool_test):
+        (tst_QScriptValue::isBoolean_initData):
+        (tst_QScriptValue::isBoolean_makeData):
+        (tst_QScriptValue::isBoolean_test):
+        (tst_QScriptValue::isFunction_initData):
+        (tst_QScriptValue::isFunction_makeData):
+        (tst_QScriptValue::isFunction_test):
+        (tst_QScriptValue::isNull_initData):
+        (tst_QScriptValue::isNull_makeData):
+        (tst_QScriptValue::isNull_test):
+        (tst_QScriptValue::isString_initData):
+        (tst_QScriptValue::isString_makeData):
+        (tst_QScriptValue::isString_test):
+        (tst_QScriptValue::isUndefined_initData):
+        (tst_QScriptValue::isUndefined_makeData):
+        (tst_QScriptValue::isUndefined_test):
+        (tst_QScriptValue::isObject_initData):
+        (tst_QScriptValue::isObject_makeData):
+        (tst_QScriptValue::isObject_test):
+
+2010-02-03  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Define WTF_PLATFORM_BREWMP_SIMULATOR when AEE_SIMULATOR is defined
+        https://bugs.webkit.org/show_bug.cgi?id=34514
+
+        PLATFORM(BREWMP_SIMULATOR) guard is needed to make distinction between BREWMP
+        and BREWMP simulator.
+
+        * wtf/Platform.h:
+
+2010-02-03  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Remove COMPILE_ASSERT conflict with the underlying PLATFORM
+        https://bugs.webkit.org/show_bug.cgi?id=34190
+
+        COMPILE_ASSERT conflicts with the underlying PLATFORM because it is defined
+        both in WTF's Assertions.h and BREWMP's AEEClassIDs.h. Include AEEClassIDs.h
+        in Assertions.h and undef COMPILE_ASSERT to avoid redefining COMPILE_ASSERT.
+
+        * wtf/Assertions.h:
+
+2010-02-03  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Implement OwnPtrBrew to make sure BREW instances are freed.
+        https://bugs.webkit.org/show_bug.cgi?id=34518
+
+        Add OwnPtrBrew to release IFile, IFileMgr and IBitmap instances.
+
+        * wtf/brew/OwnPtrBrew.cpp: Added.
+        (WTF::IFileMgr):
+        (WTF::IFile):
+        (WTF::IBitmap):
+        (WTF::freeOwnedPtrBrew):
+        * wtf/brew/OwnPtrBrew.h: Added.
+        (WTF::OwnPtrBrew::OwnPtrBrew):
+        (WTF::OwnPtrBrew::~OwnPtrBrew):
+        (WTF::OwnPtrBrew::get):
+        (WTF::OwnPtrBrew::release):
+        (WTF::OwnPtrBrew::outPtr):
+        (WTF::OwnPtrBrew::set):
+        (WTF::OwnPtrBrew::clear):
+        (WTF::OwnPtrBrew::operator*):
+        (WTF::OwnPtrBrew::operator->):
+        (WTF::OwnPtrBrew::operator!):
+        (WTF::OwnPtrBrew::operator UnspecifiedBoolType):
+        (WTF::OwnPtrBrew::swap):
+        (WTF::swap):
+        (WTF::operator==):
+        (WTF::operator!=):
+        (WTF::getPtr):
+
+2010-02-03  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Darin Adler.
+
+        Export WTF::fastStrDup symbol
+        https://bugs.webkit.org/show_bug.cgi?id=34526
+
+        * JavaScriptCore.exp:
+
+2010-02-03  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Enable JIT compilation for wx.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=34536
+
+        * wtf/Platform.h:
+
 2010-02-03  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Geoffrey Garen.

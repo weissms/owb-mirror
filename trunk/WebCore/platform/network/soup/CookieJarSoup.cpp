@@ -24,6 +24,7 @@
 #include "Cookie.h"
 #include "CString.h"
 #include "Document.h"
+#include "GOwnPtrGtk.h"
 #include "KURL.h"
 
 namespace WebCore {
@@ -54,16 +55,26 @@ void setDefaultCookieJar(SoupCookieJar* jar)
         g_object_ref(cookieJar);
 }
 
-void setCookies(Document* /*document*/, const KURL& url, const String& value)
+void setCookies(Document* document, const KURL& url, const String& value)
 {
     SoupCookieJar* jar = defaultCookieJar();
     if (!jar)
         return;
 
-    SoupURI* origin = soup_uri_new(url.string().utf8().data());
+    GOwnPtr<SoupURI> origin(soup_uri_new(url.string().utf8().data()));
 
-    soup_cookie_jar_set_cookie(jar, origin, value.utf8().data());
-    soup_uri_free(origin);
+#ifdef HAVE_LIBSOUP_2_29_90
+    GOwnPtr<SoupURI> firstParty(soup_uri_new(document->firstPartyForCookies().string().utf8().data()));
+
+    soup_cookie_jar_set_cookie_with_first_party(jar,
+                                                origin.get(),
+                                                firstParty.get(),
+                                                value.utf8().data());
+#else
+    soup_cookie_jar_set_cookie(jar,
+                               origin.get(),
+                               value.utf8().data());
+#endif
 }
 
 String cookies(const Document* /*document*/, const KURL& url)

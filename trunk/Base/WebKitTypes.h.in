@@ -41,10 +41,10 @@ typedef struct _BalEventExpose{} BalEventExpose;
 typedef struct _BalResizeEvent{} BalResizeEvent;
 typedef struct _BalQuitEvent{} BalQuitEvent;
 typedef struct _BalUserEvent{} BalUserEvent;
-typedef struct _GdkEventKey BalEventKey;
-typedef struct _GdkEventButton BalEventButton;
-typedef struct _GdkEventMotion BalEventMotion;
-typedef struct _GdkEventScroll BalEventScroll;
+typedef GdkEventKey BalEventKey;
+typedef GdkEventButton BalEventButton;
+typedef GdkEventMotion BalEventMotion;
+typedef GdkEventScroll BalEventScroll;
 
 typedef GdkPoint BalPoint;
 typedef GdkRectangle BalRectangle;
