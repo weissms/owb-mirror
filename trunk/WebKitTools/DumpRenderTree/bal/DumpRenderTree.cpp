@@ -823,10 +823,8 @@ void runTest(const string& testPathOrURL)
 #if !PLATFORM(QT)
     gWebView = WebView::createInstance();
 #endif
-    WebView* webView;
-    BalWidget *view = createWindow(&webView, rect);
-    if (webView != gWebView.get())
-        gWebView = webView;
+    WebView* webview = gWebView.get();
+    BalWidget *view = createWindow(&webview, rect);
     
     getWebView()->initWithFrame(rect, "", "");
     getWebView()->setWebFrameLoadDelegate(frameLoadDelegate);
