@@ -360,6 +360,7 @@ Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     , m_styleRecalcTimer(this, &Document::styleRecalcTimerFired)
     , m_frameElementsShouldIgnoreScrolling(false)
     , m_containsValidityStyleRules(false)
+    , m_updateFocusAppearanceRestoresSelection(false)
     , m_title("")
     , m_rawTitle("")
     , m_titleSetExplicitly(false)
@@ -4516,8 +4517,9 @@ void Document::updateSandboxFlags()
         securityOrigin()->setSandboxFlags(m_frame->loader()->sandboxFlags());
 }
 
-void Document::updateFocusAppearanceSoon()
+void Document::updateFocusAppearanceSoon(bool restorePreviousSelection)
 {
+    m_updateFocusAppearanceRestoresSelection = restorePreviousSelection;
     if (!m_updateFocusAppearanceTimer.isActive())
         m_updateFocusAppearanceTimer.startOneShot(0);
 }
@@ -4539,7 +4541,7 @@ void Document::updateFocusAppearanceTimerFired(Timer<Document>*)
 
     Element* element = static_cast<Element*>(node);
     if (element->isFocusable())
-        element->updateFocusAppearance(false);
+        element->updateFocusAppearance(m_updateFocusAppearanceRestoresSelection);
 }
 
 void Document::executeScriptSoonTimerFired(Timer<Document>* timer)

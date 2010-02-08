@@ -542,7 +542,7 @@ void InspectorController::scriptObjectReady()
 void InspectorController::setFrontendProxyObject(ScriptState* scriptState, ScriptObject webInspectorObj, ScriptObject)
 {
     m_frontendScriptState = scriptState;
-    m_frontend.set(new InspectorFrontend(this, scriptState, webInspectorObj));
+    m_frontend.set(new InspectorFrontend(this, webInspectorObj));
     releaseDOMAgent();
     m_domAgent = InspectorDOMAgent::create(m_frontend.get());
     if (m_timelineAgent)
@@ -1569,8 +1569,8 @@ void InspectorController::didPause()
     ScriptState* scriptState = callFrame->scopeChain()->globalObject->globalExec();
     ASSERT(scriptState);
     InjectedScript injectedScript = m_injectedScriptHost->injectedScriptFor(scriptState);
-    String callFrames = injectedScript.callFrames();
-    m_frontend->pausedScript(callFrames);
+    RefPtr<SerializedScriptValue> callFrames = injectedScript.callFrames();
+    m_frontend->pausedScript(callFrames.get());
 }
 
 void InspectorController::didContinue()
@@ -1593,7 +1593,7 @@ void InspectorController::didEvaluateForTestInFrontend(long callId, const String
     ScriptState* scriptState = scriptStateFromPage(debuggerWorld(), m_inspectedPage);
     ScriptObject window;
     ScriptGlobalObject::get(scriptState, "window", window);
-    ScriptFunctionCall function(scriptState, window, "didEvaluateForTestInFrontend");
+    ScriptFunctionCall function(window, "didEvaluateForTestInFrontend");
     function.appendArgument(callId);
     function.appendArgument(jsonResult);
     function.call();
@@ -1802,7 +1802,7 @@ void InspectorController::deleteCookie(const String& cookieName, const String& d
     for (ResourcesMap::iterator it = m_resources.begin(); it != resourcesEnd; ++it) {
         Document* document = it->second->frame()->document();
         if (document->url().host() == domain)
-            WebCore::deleteCookie(document, document->cookieURL(), cookieName);
+            WebCore::deleteCookie(document, it->second->requestURL(), cookieName);
     }
 }
 

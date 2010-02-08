@@ -546,6 +546,8 @@ BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStr
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.h VideoSinkGStreamer.h
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStreamer.cpp BCWebKitWebSourceGStreamer.cpp
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStreamer.h BCWebKitWebSourceGStreamer.h
 BAL/Media/WebCore/Gtk	WebCore/platform/gtk/SoundGtk.cpp	BCSoundGtk.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h

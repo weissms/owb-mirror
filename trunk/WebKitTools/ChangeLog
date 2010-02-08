@@ -1,3 +1,169 @@
+2010-02-08  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34670
+        TestNetscapePlugin should work with Firefox
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp: (NPP_New): Default to Carbon if
+        browser doesn't tell what it supports.
+
+2010-02-05  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [Gtk] Implement layoutTestController.pageNumberForElementById
+        https://bugs.webkit.org/show_bug.cgi?id=34572
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::pageNumberForElementById):
+
+2010-02-03  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a simple test implementation and the WebKit Mac implementation
+        for the layout_tests/port package. Also add a simple test driver of
+        that interface.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34511
+
+        * Scripts/webkitpy/layout_tests/driver_test.py: Added.
+        * Scripts/webkitpy/layout_tests/port/__init__.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py: Added.
+        * Scripts/webkitpy/layout_tests/port/test.py: Added.
+
+2010-02-03  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Siedel.
+
+        Refactor the port package into an object-oriented style and merge
+        path_utils into it. We add a 'base' and a 'chromium' object to the
+        port package; this will allow us to easily add new ports (like
+        WebKit Mac).
+
+        https://bugs.webkit.org/show_bug.cgi?id=34511
+
+        * Scripts/rebaseline-chromium-webkit-tests:
+        * Scripts/run-chromium-webkit-tests:
+        * Scripts/webkitpy/layout_tests/layout_package/json_layout_results_generator.py:
+        * Scripts/webkitpy/layout_tests/layout_package/json_results_generator.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_files.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+        * Scripts/webkitpy/layout_tests/port/__init__.py:
+        * Scripts/webkitpy/layout_tests/port/apache_http_server.py:
+        * Scripts/webkitpy/layout_tests/port/base.py: Added.
+        * Scripts/webkitpy/layout_tests/port/chromium.py: Added.
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+        * Scripts/webkitpy/layout_tests/port/http_server_base.py:
+        * Scripts/webkitpy/layout_tests/port/path_utils.py: Removed.
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/run_chromium_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/test_types/fuzzy_image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/test_type_base.py:
+        * Scripts/webkitpy/layout_tests/test_types/text_diff.py:
+
+2010-01-19  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Dave Hyatt.
+
+        Implement flattening of framesets
+        https://bugs.webkit.org/show_bug.cgi?id=32717
+
+        Add support for testing frame flattening with the Qt DRT
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setFrameSetFlatteningEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-02-03  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Provided a way in check-webkit-style to specify filter rules
+        on a per file or folder basis, via a configuration variable.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33684
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added _PATH_RULES_SPECIFIER configuration variable.
+          - In ProcessorOptions class--
+            - Changed the CategoryFilter attribute to FilterConfiguration.
+            - Added path parameter to is_reportable().
+          - Renamed ArgumentDefaults filter_rules attribute to
+            base_filter_rules.
+          - Updated ArgumentPrinter class.
+          - Added filter rule validation to ArgumentParser (instead of
+            in CategoryFilter constructor).
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated unit tests as necessary.
+          - Added unit tests for PATH_RULES_SPECIFIER.
+
+        * Scripts/webkitpy/style/error_handlers.py:
+          - Updated DefaultStyleErrorHandler to use file path when
+            calling is_reportable().
+
+        * Scripts/webkitpy/style/error_handlers_unittest.py:
+          - Updated unit tests as necessary.
+
+        * Scripts/webkitpy/style/filter.py:
+          - Marked CategoryFilter internal with an underscore.
+          - Removed argument validation from CategoryFilter.
+          - Added FilterConfiguration class.
+
+        * Scripts/webkitpy/style/filter_unittest.py:
+          - Updated CategoryFilterTest class.
+          - Added FilterConfigurationTest unit tests.
+
+        * Scripts/webkitpy/style/processors/cpp.py:
+          - Removed _is_test_filename() code.
+          - Removed hard-coded path checks from check_include_line().
+
+        * Scripts/webkitpy/style/processors/cpp_unittest.py:
+          - Removed three unit tests related to exempted files.
+
+2010-02-05  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Apply the command line options as settings to the
+        graphics system.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (requiresGraphicsView):
+        (LauncherApplication::handleUserOptions):
+        * QtLauncher/webview.h:
+        (WebViewGraphicsBased::setItemCacheMode):
+
+2010-02-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Generate convenience headers (QWebView, etc) using qmake
+
+        In Qt this is done using syncqt, but we use a pro-file instead
+        that generates makefile-rules for each of the extra headers.
+
+        These extra headers are installed alongside the normal headers.
+
+        * Scripts/webkitdirs.pm: Run qmake and make on new API-DerivedSources
+
+2010-02-05  Andras Becsi  <abecsi@webkit.org>
+
+        Unreviewed typo fix.
+
+        Fix wrong whitespace alignment introduced in r54342.
+
+        * Scripts/run-webkit-tests:
+
 2010-02-05  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Timothy Hatcher.
@@ -8,6 +174,33 @@
         * Scripts/check-for-weak-vtables-and-externals: Renamed from WebKitTools/Scripts/check-for-weak-vtables.
         Teach the script how to detect weak external symbols so that these errors can be caught immediately
         in the future.
+
+2010-02-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Rubberstamped by Oliver Hunt.
+
+        [Qt] Make it possible to choose whether the launcher should
+        use the traditional QWidget based QWebView or the newer
+        QGraphics based QGraphicsWebView on a QGraphicsView.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::eventFilter):
+        (LauncherWindow::loadStarted):
+        (LauncherWindow::print):
+        (LauncherWindow::screenshot):
+        (LauncherWindow::setEditable):
+        (LauncherWindow::setupUI):
+        (main):
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::WebViewGraphicsBased):
+        (WebViewGraphicsBased::resizeEvent):
+        (GraphicsWebView::mousePressEvent):
+        (GraphicsWebView::contextMenuEvent):
+        * QtLauncher/webview.h:
+        (WebViewTraditional::WebViewTraditional):
+        (GraphicsWebView::GraphicsWebView):
+        (WebViewGraphicsBased::setPage):
 
 2010-02-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
 
