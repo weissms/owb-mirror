@@ -825,8 +825,8 @@ void runTest(const string& testPathOrURL)
 #endif
     WebView* webview = gWebView.get();
     BalWidget *view = createWindow(&webview, rect);
-    if (webView != gWebView.get()) 
-        gWebView = webView; 
+    if (webview != gWebView.get()) 
+        gWebView = webview; 
     
     getWebView()->initWithFrame(rect, "", "");
     getWebView()->setWebFrameLoadDelegate(frameLoadDelegate);
