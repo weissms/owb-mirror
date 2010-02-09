@@ -21,8 +21,6 @@
 
 #include "CString.h"
 #include "Document.h"
-#include "GOwnPtr.h"
-#include "GRefPtr.h"
 #include "Noncopyable.h"
 #include "NotImplemented.h"
 #include "ResourceHandleClient.h"
@@ -31,6 +29,11 @@
 #include "ResourceResponse.h"
 #include <gst/app/gstappsrc.h>
 #include <gst/pbutils/missing-plugins.h>
+
+#if PLATFORM(GTK)
+#include "GOwnPtr.h"
+#include "GRefPtr.h"
+#endif
 
 using namespace WebCore;
 
@@ -378,10 +381,13 @@ static bool webKitWebSrcStart(WebKitWebSrc* src)
     }
 
     if (priv->requestedOffset) {
+#if PLATFORM(GTK)
         GOwnPtr<gchar> val;
-
         val.set(g_strdup_printf("bytes=%" G_GUINT64_FORMAT "-", priv->requestedOffset));
         request.setHTTPHeaderField("Range", val.get());
+#else
+        request.setHTTPHeaderField("Range", g_strdup_printf("bytes=%" G_GUINT64_FORMAT "-", priv->requestedOffset));
+#endif
     }
 
     if (priv->iradioMode)
@@ -481,6 +487,7 @@ static gboolean webKitWebSrcSetUri(GstURIHandler* handler, const gchar* uri)
     if (!uri)
         return TRUE;
 
+#if USE(NETWORK_SOUP)
     SoupURI* soupUri = soup_uri_new(uri);
 
     if (!soupUri || !SOUP_URI_VALID_FOR_HTTP(soupUri)) {
@@ -491,6 +498,7 @@ static gboolean webKitWebSrcSetUri(GstURIHandler* handler, const gchar* uri)
 
     priv->uri = soup_uri_to_string(soupUri, FALSE);
     soup_uri_free(soupUri);
+#endif
 
     return TRUE;
 }
@@ -511,9 +519,11 @@ static gboolean webKitWebSrcNeedDataMainCb(WebKitWebSrc* src)
 {
     WebKitWebSrcPrivate* priv = src->priv;
 
+#if USE(NETWORK_SOUP)
     ResourceHandleInternal* d = priv->resourceHandle->getInternal();
     if (d->m_msg)
         soup_session_unpause_message(ResourceHandle::defaultSession(), d->m_msg);
+#endif
 
     priv->paused = FALSE;
     priv->needDataID = 0;
@@ -536,9 +546,11 @@ static gboolean webKitWebSrcEnoughDataMainCb(WebKitWebSrc* src)
 {
     WebKitWebSrcPrivate* priv = src->priv;
 
+#if USE(NETWORK_SOUP)
     ResourceHandleInternal* d = priv->resourceHandle->getInternal();
     soup_session_pause_message(ResourceHandle::defaultSession(), d->m_msg);
-    
+#endif
+
     priv->paused = TRUE;
     priv->enoughDataID = 0;
     return FALSE;
