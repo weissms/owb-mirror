@@ -39,6 +39,7 @@
  * - $Date$
  */
 #include "WebKitTypes.h"
+#include "WebValue.h"
 #include <vector>
 
 namespace WebCore {
@@ -597,6 +598,11 @@ public:
      */
     //virtual void observe(const const char* &topic, BalObject* obj);
     //virtual void observe(const const char* &topic, OWBAL::Bookmarklet* bookmarklet);
+    
+    TransferSharedPtr<WebValue> getWrappedAttributeEventListener(const char* name);
+    void addEventListener(const char* name, TransferSharedPtr<WebValue> value);
+    void removeEventListener(const char* name, TransferSharedPtr<WebValue> value);
+    void dispatchEvent(const char* name);
 
 protected:
      friend WebCore::Frame* core(WebFrame*);

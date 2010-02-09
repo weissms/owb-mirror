@@ -1,3 +1,9 @@
+2010-02-09  Mario Bensi  <mbensi@pleyo.com>
+
+        add AddOnEvents
+
+        * dom/EventNames.h:
+
 2010-02-05  Gilles Bertal  <gbertal@pleyo.com>
 
         Create specialized renderer for CEHTML audio objects.

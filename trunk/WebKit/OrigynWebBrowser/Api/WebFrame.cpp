@@ -30,6 +30,7 @@
 #include "WebFrame.h"
 
 #include "BalInstance.h"
+#include "BALValue.h"
 #include "DefaultPolicyDelegate.h"
 #include "DOMCoreClasses.h"
 #include "FormValuesPropertyBag.h"
@@ -68,6 +69,7 @@
 #include <HTMLInputElement.h>
 #include <HTMLPlugInElement.h>
 #include <JSDOMWindow.h>
+#include <JSEventListener.h>
 #include <KeyboardEvent.h>
 #include <MIMETypeRegistry.h>
 #include <MouseRelatedEvent.h>
@@ -689,21 +691,6 @@ HRESULT WebFrame::formForElement(IDOMElement* element, IDOMElement** form)
         return E_FAIL;
 
     *form = DOMElement::createInstance(formElement);
-    return S_OK;
-}
-
-HRESULT WebFrame::elementDoesAutoComplete(IDOMElement *element, bool *result)
-{
-    *result = false;
-    if (!element)
-        return E_INVALIDARG;
-
-    HTMLInputElement *inputElement = inputElementFromDOMElement(element);
-    if (!inputElement)
-        *result = false;
-    else
-        *result = (inputElement->inputType() == HTMLInputElement::TEXT && inputElement->autoComplete());
-
     return S_OK;
 }
 
@@ -1377,3 +1364,58 @@ bool WebFrame::stringByEvaluatingJavaScriptInScriptWorld(WebScriptWorld* world, 
 
     return true;
 }
+
+TransferSharedPtr<WebValue> WebFrame::getWrappedAttributeEventListener(const char* name)
+{
+    AtomicString type(name);
+    Frame* coreFrame = core(this);
+    if (!coreFrame && !coreFrame->document())
+        return 0;
+    EventListener* listener = coreFrame->document()->getWindowAttributeEventListener(type);
+    if (listener && listener->type() == EventListener::JSEventListenerType) {
+        JSEventListener* jsListener = static_cast<JSEventListener*>(listener);
+        JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(coreFrame->document(), mainThreadNormalWorld());
+        JSC::ExecState* execState = globalObject->globalExec();
+        return WebValue::createInstance(BALValue::create(coreFrame, execState, jsListener->jsFunction(coreFrame->document())).get());
+    }
+    return 0;
+}
+
+void WebFrame::addEventListener(const char* name, TransferSharedPtr<WebValue> value)
+{
+    if (!value->m_val->isJSObject())
+        return;
+
+    AtomicString type(name);
+    Frame* frame = core(this);
+    if (!frame && !frame->document())
+        return;
+    JSC::JSGlobalObject* global = frame->script()->globalObject(mainThreadNormalWorld());
+    frame->document()->setWindowAttributeEventListener(type, JSEventListener::create(value->m_val->toJSObject(frame->script()->globalObject(mainThreadNormalWorld())->globalExec()), global, false, mainThreadNormalWorld()));
+}
+
+void WebFrame::removeEventListener(const char* name, TransferSharedPtr<WebValue> value)
+{
+    if (!value->m_val->isJSObject())
+        return;
+
+    AtomicString type(name);
+    Frame* frame = core(this);
+    if (!frame && !frame->document())
+        return;
+    JSC::JSGlobalObject* global = frame->script()->globalObject(mainThreadNormalWorld());
+    RefPtr<JSEventListener> listener = JSEventListener::create(value->m_val->toJSObject(frame->script()->globalObject(mainThreadNormalWorld())->globalExec()), global, false, mainThreadNormalWorld());
+
+    frame->document()->domWindow()->removeEventListener(type, listener.get(), false);
+}
+
+void WebFrame::dispatchEvent(const char* name)
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame->document())
+        return;
+    AtomicString type(name);
+    RefPtr<Event> ev = Event::create(type, false, false);
+    coreFrame->document()->dispatchWindowEvent(ev);
+}
+

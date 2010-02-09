@@ -92,6 +92,7 @@ public:
 
     private:
     friend class WebValueHelper;
+    friend class WebFrame;
 
     WebValue(WebFrame*);
     explicit WebValue(WebCore::BALValue*);

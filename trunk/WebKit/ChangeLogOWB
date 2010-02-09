@@ -1,3 +1,15 @@
+2010-02-09  Mario Bensi  <mbensi@pleyo.com>
+
+        Add listener methods.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::getWrappedAttributeEventListener):
+        (WebFrame::addEventListener):
+        (WebFrame::removeEventListener):
+        (WebFrame::dispatchEvent):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebValue.h:
+
 2010-02-05  Gilles Bertal  <gbertal@pleyo.com>
 
         Return CEHTML audio object for CEHTML supported audio MIME types.

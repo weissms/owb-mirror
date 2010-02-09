@@ -25,6 +25,12 @@
 #include "AtomicString.h"
 #include "ThreadGlobalData.h"
 
+#if ENABLE(JS_ADDONS)
+#include "AddOnsEventNames.h"
+#else
+#define ADDONS_EVENT_NAMES(macro)
+#endif
+
 #if ENABLE(CEHTML)
 #include "CEHTMLEventNames.h"
 #else
@@ -165,8 +171,9 @@ namespace WebCore {
     \
     macro(success) \
     \
+    ADDONS_EVENT_NAMES(macro) \
     CEHTML_EVENT_NAMES(macro) \
-    DAE_EVENT_NAMES(macro)
+    DAE_EVENT_NAMES(macro) 
 // end of DOM_EVENT_NAMES_FOR_EACH
 
     class EventNames : public Noncopyable {
