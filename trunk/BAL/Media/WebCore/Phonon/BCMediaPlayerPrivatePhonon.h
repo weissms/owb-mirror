@@ -114,6 +114,14 @@ namespace WebCore {
         void setSize(const IntSize&);
 
         void paint(GraphicsContext*, const IntRect&);
+        
+#if ENABLE(CEHTML_VIDEO)
+        bool nextTrack();
+        bool previousTrack();
+        unsigned int numTracks();
+        unsigned int currentTrack();
+        void setCurrentTrack(unsigned int);
+#endif
 
     protected:
         bool eventFilter(QObject*, QEvent*);

@@ -1,3 +1,43 @@
+2010-02-09  Gilles Bertal  <gbertal@pleyo.com>
+
+        Plugged in playlists-related JS properties and methods requirements
+        for CEHTML media objects to the media player backend.
+
+        * Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp:
+        (WebCore::MediaPlayerPrivate::nextTrack):
+        (WebCore::MediaPlayerPrivate::previousTrack):
+        (WebCore::MediaPlayerPrivate::numTracks):
+        (WebCore::MediaPlayerPrivate::currentTrack):
+        (WebCore::MediaPlayerPrivate::setCurrentTrack):
+        * Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h:
+        * Media/WebCore/None/BCMediaPlayerPrivateNone.cpp:
+        (MediaPlayerPrivate::nextTrack):
+        (MediaPlayerPrivate::previousTrack):
+        (MediaPlayerPrivate::numTracks):
+        (MediaPlayerPrivate::currentTrack):
+        (MediaPlayerPrivate::setCurrentTrack):
+        * Media/WebCore/None/BCMediaPlayerPrivateNone.h:
+        * Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::nextTrack):
+        (WebCore::MediaPlayerPrivate::previousTrack):
+        (WebCore::MediaPlayerPrivate::numTracks):
+        (WebCore::MediaPlayerPrivate::currentTrack):
+        (WebCore::MediaPlayerPrivate::setCurrentTrack):
+        * Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h:
+        * Media/WebCore/WK/BCMediaPlayerPrivateWK.h:
+        * Media/WebCore/WK/BCMediaPlayerWK.cpp:
+        (WebCore::NullMediaPlayerPrivate::nextTrack):
+        (WebCore::NullMediaPlayerPrivate::previousTrack):
+        (WebCore::NullMediaPlayerPrivate::numTracks):
+        (WebCore::NullMediaPlayerPrivate::currentTrack):
+        (WebCore::NullMediaPlayerPrivate::setCurrentTrack):
+        (WebCore::MediaPlayer::nextTrack):
+        (WebCore::MediaPlayer::previousTrack):
+        (WebCore::MediaPlayer::numTracks):
+        (WebCore::MediaPlayer::currentTrack):
+        (WebCore::MediaPlayer::setCurrentTrack):
+        * Media/WebCore/WK/BCMediaPlayerWK.h:
+
 2010-02-04  Mario Bensi  <mbensi@pleyo.com>
 
         Add WebWindow* with a generic implementation.

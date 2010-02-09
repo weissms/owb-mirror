@@ -496,6 +496,40 @@ void MediaPlayerPrivate::totalTimeChanged(qint64 totalTime)
     LOG_MEDIAOBJECT();
 }
 
+#if ENABLE(CEHTML_VIDEO)
+bool MediaPlayerPrivate::nextTrack()
+{
+    notImplemented();
+    return false;
+}
+
+bool MediaPlayerPrivate::previousTrack()
+{
+    notImplemented();
+    return false;
+}
+
+unsigned int MediaPlayerPrivate::numTracks()
+{
+    if (m_networkState != MediaPlayer::Loaded)
+        return 0;
+    
+    notImplemented();
+    return 1;
+}
+
+unsigned int MediaPlayerPrivate::currentTrack()
+{
+    notImplemented();
+    return 0;
+}
+
+void MediaPlayerPrivate::setCurrentTrack(unsigned int index)
+{
+    notImplemented();
+}
+#endif
+
 } // namespace WebCore
 
 #include "MediaPlayerPrivatePhonon.moc"

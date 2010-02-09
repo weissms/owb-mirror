@@ -128,12 +128,21 @@ public:
 #endif
 
     virtual bool hasSingleSecurityOrigin() const { return true; }
+
 #if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
     virtual WTF::Vector<float> playSpeeds()
     {
         WTF::Vector<float> speed;
         return speed;
     }
+#endif
+
+#if ENABLE(CEHTML_VIDEO)
+    virtual bool nextTrack() { return false; }
+    virtual bool previousTrack() { return false; }
+    virtual unsigned int numTracks() { return 0; }
+    virtual unsigned int currentTrack() { return 0; }
+    virtual void setCurrentTrack(unsigned int) {}
 #endif
 };
 
@@ -661,6 +670,33 @@ void MediaPlayer::setAspect(VideoScale scale)
 WTF::Vector<float> MediaPlayer::playSpeeds()
 {
     return m_private->playSpeeds();
+}
+#endif
+
+#if ENABLE(CEHTML_VIDEO)
+bool MediaPlayer::nextTrack()
+{
+    return m_private->nextTrack();
+}
+
+bool MediaPlayer::previousTrack()
+{
+    return m_private->previousTrack();
+}
+
+unsigned int MediaPlayer::numTracks()
+{
+    return m_private->numTracks();
+}
+
+unsigned int MediaPlayer::currentTrack()
+{
+    return m_private->currentTrack();
+}
+
+void MediaPlayer::setCurrentTrack(unsigned int index)
+{
+    m_private->setCurrentTrack(index);
 }
 #endif
 

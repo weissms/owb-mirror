@@ -228,7 +228,7 @@ public:
     MediaPlayerClient* mediaPlayerClient() const { return m_mediaPlayerClient; }
 
     bool hasAvailableVideoFrame() const;
-
+    
 #if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
     void setMediaPlayerClient(MediaPlayerClient* client) { m_mediaPlayerClient = client; }
 
@@ -236,6 +236,14 @@ public:
     enum VideoScale { ArbitraryScale, Quatersize, NoScale, Fullscreen };
     void setAspect(VideoScale);
     WTF::Vector<float> playSpeeds(); 
+#endif
+
+#if ENABLE(CEHTML_VIDEO)
+    bool nextTrack();
+    bool previousTrack();
+    unsigned int numTracks();
+    unsigned int currentTrack();
+    void setCurrentTrack(unsigned int);
 #endif
 
     bool canLoadPoster() const;

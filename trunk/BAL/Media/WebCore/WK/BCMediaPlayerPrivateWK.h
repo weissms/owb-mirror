@@ -111,6 +111,14 @@ public:
     virtual WTF::Vector<float> playSpeeds() = 0;
 #endif
 
+#if ENABLE(CEHTML_VIDEO)
+    virtual bool nextTrack() = 0;
+    virtual bool previousTrack() = 0;
+    virtual unsigned int numTracks() = 0;
+    virtual unsigned int currentTrack() = 0;
+    virtual void setCurrentTrack(unsigned int) = 0;
+#endif
+
     virtual bool hasAvailableVideoFrame() const { return readyState() >= MediaPlayer::HaveCurrentData; }
 
     virtual bool canLoadPoster() const { return false; }

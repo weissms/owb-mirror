@@ -95,11 +95,19 @@ namespace WebCore {
 
         void repaint();
         void paint(GraphicsContext*, const IntRect&);
-
-#if ENABLE(CEHTML_VIDEO)
+        
+#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
         void stop();
         void setAspect(MediaPlayer::VideoScale);
         WTF::Vector<float> playSpeeds();
+#endif
+
+#if ENABLE(CEHTML_VIDEO)
+        bool nextTrack();
+        bool previousTrack();
+        unsigned int numTracks();
+        unsigned int currentTrack();
+        void setCurrentTrack(unsigned int);
 #endif
 
     private:

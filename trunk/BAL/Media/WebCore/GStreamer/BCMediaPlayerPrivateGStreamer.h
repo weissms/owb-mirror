@@ -124,6 +124,14 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             WTF::Vector<float> playSpeeds();
 #endif
 
+#if ENABLE(CEHTML_VIDEO)
+            bool nextTrack();
+            bool previousTrack();
+            unsigned int numTracks();
+            unsigned int currentTrack();
+            void setCurrentTrack(unsigned int);
+#endif
+
         private:
 
             MediaPlayerPrivate(MediaPlayer*);
