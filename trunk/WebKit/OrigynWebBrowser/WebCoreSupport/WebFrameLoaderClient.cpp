@@ -103,6 +103,10 @@
 
 #include <cstdio>
 
+#if ENABLE(CEHTML)
+#include "CEHTMLJSWindowExtensions.h"
+#endif
+
 #if ENABLE(CEHTML_VIDEO)
 #include "CEHTMLAudioElement.h"
 #include "CEHTMLVideoElement.h"
@@ -1357,7 +1361,9 @@ void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* 
     if (webBindingJSDelegate)
         webBindingJSDelegate->registerBinding(m_webFrame);
 #endif
-
+#if ENABLE(CEHTML)
+    addCEHTMLJSWindowExtensions(coreFrame->script()->globalObject(world));
+#endif
 #if ENABLE(DAE_APPLICATION)
     SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
     if (app)

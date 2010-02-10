@@ -1,3 +1,10 @@
+2010-02-10  Gilles Bertal  <gbertal@pleyo.com>
+
+        Hooked up CEHTML extensions to the Window JS object.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld):
+
 2010-02-09  Mario Bensi  <mbensi@pleyo.com>
 
         Add listener methods.
