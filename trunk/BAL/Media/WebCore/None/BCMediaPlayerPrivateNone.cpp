@@ -398,8 +398,6 @@ MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& type, c
     return type == "video/x-theora+ogg" ? (!codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported) : MediaPlayer::IsNotSupported;
 }
 
-}
-
 #if ENABLE(CEHTML_VIDEO)
 bool MediaPlayerPrivate::nextTrack()
 {
@@ -415,9 +413,6 @@ bool MediaPlayerPrivate::previousTrack()
 
 unsigned int MediaPlayerPrivate::numTracks()
 {
-    if (m_networkState != MediaPlayer::Loaded)
-        return 0;
-    
     notImplemented();
     return 1;
 }
@@ -434,5 +429,6 @@ void MediaPlayerPrivate::setCurrentTrack(unsigned int index)
 }
 #endif
 
+}
 
 #endif
