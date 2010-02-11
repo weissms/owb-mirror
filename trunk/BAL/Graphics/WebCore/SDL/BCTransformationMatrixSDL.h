@@ -29,6 +29,7 @@
 #ifndef TransformationMatrix_h
 #define TransformationMatrix_h
 
+#include "AffineTransform.h"
 #include "BALBase.h"
 #include "FloatPoint.h"
 #include "IntPoint.h"
@@ -247,6 +248,8 @@ public:
 
     // Throw away the non-affine parts of the matrix (lossy!)
     void makeAffine();
+    
+    AffineTransform toAffineTransform() const;
 
     bool operator==(const TransformationMatrix& m2) const
     {

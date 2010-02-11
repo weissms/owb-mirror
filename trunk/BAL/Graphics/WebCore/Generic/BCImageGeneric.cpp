@@ -29,7 +29,7 @@
 
 //#if PLATFORM(CAIRO)
 
-#include "TransformationMatrix.h"
+#include "AffineTransform.h"
 #include "FloatRect.h"
 #include "GraphicsContext.h"
 #include "ImageObserver.h"

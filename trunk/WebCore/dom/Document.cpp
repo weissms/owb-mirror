@@ -375,7 +375,6 @@ Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     , m_bindingManager(new XBLBindingManager(this))
 #endif
     , m_savedRenderer(0)
-    , m_secureForms(0)
     , m_designMode(inherit)
     , m_selfOnlyRefCount(0)
 #if ENABLE(SVG)
@@ -2013,9 +2012,9 @@ void Document::updateBaseURL()
         m_baseURL = KURL();
 
     if (m_elemSheet)
-        m_elemSheet->setBaseURL(m_baseURL);
+        m_elemSheet->setFinalURL(m_baseURL);
     if (m_mappedElementSheet)
-        m_mappedElementSheet->setBaseURL(m_baseURL);
+        m_mappedElementSheet->setFinalURL(m_baseURL);
 }
 
 String Document::userAgent(const KURL& url) const
@@ -4509,12 +4508,6 @@ void Document::statePopped(SerializedScriptValue* stateObject)
         dispatchWindowEvent(PopStateEvent::create(stateObject));
     else
         m_pendingStateObject = stateObject;
-}
-
-void Document::updateSandboxFlags()
-{
-    if (m_frame && securityOrigin())
-        securityOrigin()->setSandboxFlags(m_frame->loader()->sandboxFlags());
 }
 
 void Document::updateFocusAppearanceSoon(bool restorePreviousSelection)

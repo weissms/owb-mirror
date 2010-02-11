@@ -28,7 +28,7 @@
 #include "config.h"
 #include "Path.h"
 
-#include "TransformationMatrix.h"
+#include "AffineTransform.h"
 #include "FloatRect.h"
 #include "NotImplemented.h"
 #include "PlatformString.h"

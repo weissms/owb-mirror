@@ -143,7 +143,7 @@ ResourceHandleManager::~ResourceHandleManager()
 
 void ResourceHandleManager::setCookieJarFileName(const char* cookieJarFileName)
 {
-    cookieManager().setCookieJar(strdup(cookieJarFileName));
+    cookieManager().setCookieJar(fastStrDup(cookieJarFileName));
 }
 
 ResourceHandleManager* ResourceHandleManager::sharedInstance()
@@ -888,14 +888,14 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
     // url must remain valid through the request
     ASSERT(!d->m_url);
 
+    // url is in ASCII so latin1() will only convert it to char* without character translation.
+    d->m_url = fastStrDup(url.latin1().data());
+    curl_easy_setopt(d->m_handle, CURLOPT_URL, d->m_url);
+
 #if USE(CURL_OPENSSL)
     curl_easy_setopt(d->m_handle, CURLOPT_SSL_CTX_FUNCTION, sslContextGetter);
     curl_easy_setopt(d->m_handle, CURLOPT_SSL_CTX_DATA, job);
 #endif
-
-    // url is in ASCII so latin1() will only convert it to char* without character translation.
-    d->m_url = strdup(url.latin1().data());
-    curl_easy_setopt(d->m_handle, CURLOPT_URL, d->m_url);
 
     struct curl_slist* headers = 0;
     if (job->request().httpHeaderFields().size() > 0) {

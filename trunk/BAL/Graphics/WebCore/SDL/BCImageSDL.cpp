@@ -29,7 +29,7 @@
 #include "owb-config.h"
 #include "BitmapImage.h"
 
-#include "TransformationMatrix.h"
+#include "AffineTransform.h"
 #include "ApplyTransparencySDL.h"
 #include "FloatRect.h"
 #include "GraphicsContext.h"
@@ -179,7 +179,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
         imageObserver()->didDraw(this);
 }
 
-void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, const TransformationMatrix& patternTransform,
+void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, const AffineTransform& patternTransform,
                         const FloatPoint& phase, ColorSpace, CompositeOperator op, const FloatRect& destRect)
 {
     if (destRect.isEmpty())

@@ -53,8 +53,8 @@
 #include "GraphicsContext.h"
 #include "HTMLFrameOwnerElement.h"
 #include "HitTestResult.h"
-#include "InjectedScriptHost.h"
 #include "InjectedScript.h"
+#include "InjectedScriptHost.h"
 #include "InspectorBackend.h"
 #include "InspectorClient.h"
 #include "InspectorDOMAgent.h"
@@ -72,6 +72,7 @@
 #include "ResourceRequest.h"
 #include "ResourceResponse.h"
 #include "ScriptCallStack.h"
+#include "ScriptDebugServer.h"
 #include "ScriptFunctionCall.h"
 #include "ScriptObject.h"
 #include "ScriptProfile.h"
@@ -146,7 +147,9 @@ InspectorController::InspectorController(Page* page, InspectorClient* client)
 #if ENABLE(JAVASCRIPT_DEBUGGER) && USE(JSC)
     , m_debuggerEnabled(false)
     , m_attachDebuggerWhenShown(false)
-    , m_profilerEnabled(false)
+#endif
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+    , m_profilerEnabled(!WTF_USE_JSC)
     , m_recordingUserInitiatedProfile(false)
     , m_currentUserInitiatedProfileNumber(-1)
     , m_nextUserInitiatedProfileNumber(1)
@@ -1342,7 +1345,7 @@ void InspectorController::moveWindowBy(float x, float y) const
     m_page->chrome()->setWindowRect(frameRect);
 }
 
-#if ENABLE(JAVASCRIPT_DEBUGGER) && USE(JSC)
+#if ENABLE(JAVASCRIPT_DEBUGGER)
 void InspectorController::addProfile(PassRefPtr<ScriptProfile> prpProfile, unsigned lineNumber, const String& sourceURL)
 {
     if (!enabled())
@@ -1352,7 +1355,9 @@ void InspectorController::addProfile(PassRefPtr<ScriptProfile> prpProfile, unsig
     m_profiles.add(profile->uid(), profile);
 
     if (m_frontend) {
+#if USE(JSC)
         JSLock lock(SilenceAssertionsOnly);
+#endif
         m_frontend->addProfileHeader(createProfileHeader(*profile));
     }
 
@@ -1390,8 +1395,10 @@ void InspectorController::getProfile(long callId, unsigned uid)
     if (!m_frontend)
         return;
     ProfilesMap::iterator it = m_profiles.find(uid);
+#if USE(JSC)
     if (it != m_profiles.end())
         m_frontend->didGetProfile(callId, toJS(m_frontendScriptState, it->second.get()));
+#endif
 }
 
 ScriptObject InspectorController::createProfileHeader(const ScriptProfile& profile)
@@ -1423,14 +1430,18 @@ void InspectorController::startUserInitiatedProfiling(Timer<InspectorController>
 
     if (!profilerEnabled()) {
         enableProfiler(false, true);
-        JavaScriptDebugServer::shared().recompileAllJSFunctions();
+        ScriptDebugServer::recompileAllJSFunctions();
     }
 
     m_recordingUserInitiatedProfile = true;
 
     String title = getCurrentUserInitiatedProfileName(true);
 
+#if USE(JSC)
     ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame(), debuggerWorld())->globalExec();
+#else
+    ScriptState* scriptState = 0;
+#endif
     ScriptProfiler::start(scriptState, title);
 
     addStartProfilingMessageToConsole(title, 0, String());
@@ -1447,7 +1458,11 @@ void InspectorController::stopUserInitiatedProfiling()
 
     String title = getCurrentUserInitiatedProfileName();
 
+#if USE(JSC)
     ExecState* scriptState = toJSDOMWindow(m_inspectedPage->mainFrame(), debuggerWorld())->globalExec();
+#else
+    ScriptState* scriptState = 0;
+#endif
     RefPtr<ScriptProfile> profile = ScriptProfiler::stop(scriptState, title);
     if (profile)
         addProfile(profile, 0, String());
@@ -1473,7 +1488,7 @@ void InspectorController::enableProfiler(bool always, bool skipRecompile)
     m_profilerEnabled = true;
 
     if (!skipRecompile)
-        JavaScriptDebugServer::shared().recompileAllJSFunctionsSoon();
+        ScriptDebugServer::recompileAllJSFunctionsSoon();
 
     if (m_frontend)
         m_frontend->profilerWasEnabled();
@@ -1489,12 +1504,14 @@ void InspectorController::disableProfiler(bool always)
 
     m_profilerEnabled = false;
 
-    JavaScriptDebugServer::shared().recompileAllJSFunctionsSoon();
+    ScriptDebugServer::recompileAllJSFunctionsSoon();
 
     if (m_frontend)
         m_frontend->profilerWasDisabled();
 }
+#endif
 
+#if ENABLE(JAVASCRIPT_DEBUGGER) && USE(JSC)
 void InspectorController::enableDebuggerFromFrontend(bool always)
 {
     if (always)

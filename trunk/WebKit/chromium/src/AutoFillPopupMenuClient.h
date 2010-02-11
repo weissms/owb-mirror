@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,16 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "RuntimeEnabledFeatures.h"
+#ifndef AutoFillPopupMenuClient_h
+#define AutoFillPopupMenuClient_h
+
+#include "SuggestionsPopupMenuClient.h"
 
 namespace WebCore {
+class HTMLInputElement;
+}
 
-bool RuntimeEnabledFeatures::isLocalStorageEnabled = true;
-bool RuntimeEnabledFeatures::isSessionStorageEnabled = true;
-bool RuntimeEnabledFeatures::isNotificationsEnabled = false;
-bool RuntimeEnabledFeatures::isApplicationCacheEnabled = false;
-bool RuntimeEnabledFeatures::isGeolocationEnabled = false;
-bool RuntimeEnabledFeatures::isIndexedDatabaseEnabled = false;
+namespace WebKit {
+class WebString;
+template <typename T> class WebVector;
 
-} // namespace WebCore
+// The AutoFill suggestions popup menu client, used to display name suggestions
+// with right-justified labels.
+class AutoFillPopupMenuClient : public SuggestionsPopupMenuClient {
+public:
+    // SuggestionsPopupMenuClient implementation:
+    virtual unsigned getSuggestionsCount() const;
+    virtual WebString getSuggestion(unsigned listIndex) const;
+    virtual void removeSuggestionAtIndex(unsigned listIndex);
+
+    void initialize(WebCore::HTMLInputElement*,
+                    const WebVector<WebString>& names,
+                    const WebVector<WebString>& labels,
+                    int defaultSuggestionIndex);
+
+    void setSuggestions(const WebVector<WebString>& names,
+                        const WebVector<WebString>& labels);
+
+private:
+    Vector<WebCore::String> m_names;
+    Vector<WebCore::String> m_labels;
+};
+
+} // namespace WebKit
+
+#endif

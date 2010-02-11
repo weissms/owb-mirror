@@ -79,6 +79,12 @@ void DebuggerAgentImpl::getContextId()
     m_delegate->setContextId(m_webdevtoolsAgent->hostId());
 }
 
+void DebuggerAgentImpl::processDebugCommands()
+{
+    DebuggerAgentManager::UtilityContextScope utilityScope;
+    v8::Debug::ProcessDebugMessages();
+}
+
 void DebuggerAgentImpl::debuggerOutput(const String& command)
 {
     m_delegate->debuggerOutput(command);
@@ -93,7 +99,7 @@ void DebuggerAgentImpl::createUtilityContext(Frame* frame, v8::Persistent<v8::Co
     // Set up the DOM window as the prototype of the new global object.
     v8::Handle<v8::Context> windowContext = V8Proxy::context(frame);
     v8::Handle<v8::Object> windowGlobal = windowContext->Global();
-    v8::Handle<v8::Object> windowWrapper = V8DOMWrapper::lookupDOMWrapper(V8ClassIndex::DOMWINDOW, windowGlobal);
+    v8::Handle<v8::Object> windowWrapper = V8DOMWrapper::lookupDOMWrapper(V8DOMWindow::GetTemplate(), windowGlobal);
 
     ASSERT(V8DOMWindow::toNative(windowWrapper) == frame->domWindow());
 
@@ -177,22 +183,6 @@ String DebuggerAgentImpl::executeUtilityFunction(
         return "";
     }
     return WebCore::toWebCoreStringWithNullCheck(resObj);
-}
-
-void DebuggerAgentImpl::executeVoidJavaScript(v8::Handle<v8::Context> context)
-{
-    v8::HandleScope scope;
-    ASSERT(!context.IsEmpty());
-    v8::Context::Scope contextScope(context);
-    DebuggerAgentManager::UtilityContextScope utilityScope;
-
-    v8::Handle<v8::Value> function =
-        context->Global()->Get(v8::String::New("devtools$$void"));
-    ASSERT(function->IsFunction());
-    v8::Handle<v8::Value> args[] = {
-        v8::Local<v8::Value>()
-    };
-    v8::Handle<v8::Function>::Cast(function)->Call(context->Global(), 0, args);
 }
 
 WebCore::Page* DebuggerAgentImpl::page()

@@ -234,8 +234,7 @@ namespace WebCore {
 
         void concatCTM(const TransformationMatrix&);
         void concatCTM(const AffineTransform&);
-        TransformationMatrix getCTM() const;
-        AffineTransform getAffineCTM() const;
+        AffineTransform getCTM() const;
 
         void setBalExposeEvent(BalEventExpose*);
         BalDrawable* balDrawable() const;

@@ -76,7 +76,6 @@ void PluginView::setNPWindowRect(const IntRect&)
 NPError PluginView::handlePostReadFile(Vector<char>&, uint32, const char*)
 {
     notImplemented();
-
     return 0;
 }
 
@@ -85,6 +84,15 @@ NPError PluginView::getValue(NPNVariable, void*)
     notImplemented();
     return 0;
 }
+
+#if ENABLE(NETSCAPE_PLUGIN_API)
+/*
+NPError PluginView::getValueStatic(NPNVariable, void*)
+{
+    return 0;
+}
+*/
+#endif
 
 void PluginView::invalidateRect(NPRect*)
 {
@@ -109,7 +117,6 @@ void PluginView::forceRedraw()
 bool PluginView::platformStart()
 {
     notImplemented();
-
     return true;
 }
 
@@ -137,5 +144,12 @@ void PluginView::restart()
 {
     notImplemented();
 }
+
+/*
+void PluginView::keepAlive(NPP)
+{
+    notImplemented();
+}
+*/
 
 } // namespace WebCore

@@ -29,7 +29,6 @@
 #include "GraphicsContext.h"
 
 #include "AffineTransform.h"
-#include "TransformationMatrix.h"
 #include "FloatRect.h"
 #include "Font.h"
 #include "ImageBuffer.h"
@@ -72,14 +71,7 @@ GraphicsContext::~GraphicsContext()
     delete m_data;
 }
 
-TransformationMatrix GraphicsContext::getCTM() const
-{
-    notImplemented();
-    TransformationMatrix a;
-    return a;
-}
-
-AffineTransform GraphicsContext::getAffineCTM() const
+AffineTransform GraphicsContext::getCTM() const
 {
     notImplemented();
     AffineTransform a;

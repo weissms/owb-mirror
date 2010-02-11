@@ -30,7 +30,7 @@
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
 #include <wtf/RefPtr.h>
-#include "TransformationMatrix.h"
+#include "AffineTransform.h"
 #include "BALBase.h"
 
 namespace WebCore {
@@ -51,7 +51,7 @@ namespace WebCore {
 
         // Pattern space is an abstract space that maps to the default user space by the transformation 'userSpaceTransformation'
         PlatformPatternPtr createPlatformPattern(const TransformationMatrix& userSpaceTransformation) const;
-        void setPatternSpaceTransform(const TransformationMatrix& patternSpaceTransformation);
+        void setPatternSpaceTransform(const AffineTransform& patternSpaceTransformation);
         void setPlatformPatternSpaceTransform();
 
     private:
@@ -60,7 +60,7 @@ namespace WebCore {
         RefPtr<Image> m_tileImage;
         bool m_repeatX;
         bool m_repeatY;
-        TransformationMatrix m_patternSpaceTransformation;
+        AffineTransform m_patternSpaceTransformation;
     };
 
 } //namespace

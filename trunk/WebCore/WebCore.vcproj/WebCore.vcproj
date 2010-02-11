@@ -5373,7 +5373,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLFrameSetElement.cpp"
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLFrameSetElement.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -5425,7 +5425,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLFrameSetElement.h"
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\JSHTMLFrameSetElement.h"
 				>
 			</File>
 			<File
@@ -42700,11 +42700,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\inspector\front-end\AuditCategories.js"
+					>
+				</File>
+				<File
 					RelativePath="..\inspector\front-end\AuditLauncherView.js"
 					>
 				</File>
 				<File
 					RelativePath="..\inspector\front-end\AuditResultView.js"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\AuditRules.js"
 					>
 				</File>
 				<File

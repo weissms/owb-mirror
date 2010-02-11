@@ -130,6 +130,7 @@
 
 #define WebKitExperimentalNotificationsEnabledPreferenceKey "WebKitExperimentalNotificationsEnabled"
 #define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"
+#define WebKitFrameSetFlatteningEnabledPreferenceKey "WebKitFrameSetFlatteningEnabled"
 #define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
 #define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"

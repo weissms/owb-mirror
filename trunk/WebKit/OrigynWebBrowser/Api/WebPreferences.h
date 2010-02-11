@@ -622,6 +622,10 @@ public:
 
     virtual unsigned int pluginAllowedRunTime();
 
+    virtual bool isFrameSetFlatteningEnabled();
+    
+    virtual void setFrameSetFlatteningEnabled(bool enabled);
+    
     virtual void setPreferenceForTest(const char* key, const char* value);
     
     virtual void setCustomDragCursorsEnabled(bool);

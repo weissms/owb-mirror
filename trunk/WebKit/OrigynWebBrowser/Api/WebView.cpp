@@ -2859,6 +2859,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->pluginAllowedRunTime();
     settings->setPluginAllowedRunTime(enabled);
 
+    enabled = preferences->isFrameSetFlatteningEnabled();
+    settings->setFrameSetFlatteningEnabled(enabled);
+    
     enabled = preferences->webGLEnabled();
     settings->setWebGLEnabled(enabled);
 
@@ -3051,7 +3054,7 @@ void WebView::clearUndoRedoOperations()
 
 bool WebView::shouldClose()
 {
-    if (Frame* frame = m_page->focusController()->focusedOrMainFrame())
+    if (Frame* frame = m_page->mainFrame())
         return frame->shouldClose() ? true : false;
     return true;
 }

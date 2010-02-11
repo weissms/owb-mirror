@@ -138,7 +138,7 @@ BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontPlatformDataPango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/SimpleFontDataPango.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCacheQt.cpp
-BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.cpp
+BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformDataQt.cpp
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontCustomPlatformData.h
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformData.h
 BAL/Fonts/WebCore/Qt	WebCore/platform/graphics/qt/FontPlatformDataQt.cpp
@@ -744,7 +744,9 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/TCSpinLock.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/ThreadSpecific.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Threading.h
 BAL/Skeletons/Types JavaScriptCore/wtf/TypeTraits.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ValueCheck.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Vector.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/Vector3.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/VectorTraits.h
 BAL/Skeletons/Types WebCore/platform/ContentType.h
 BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrList.h
@@ -819,7 +821,9 @@ BAL/Types/WTF	JavaScriptCore/wtf/ThreadSpecific.h
 BAL/Types/WTF	JavaScriptCore/wtf/Threading.cpp
 BAL/Types/WTF   JavaScriptCore/wtf/TypeTraits.h
 BAL/Types/WTF   JavaScriptCore/wtf/TypeTraits.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/ValueCheck.h
 BAL/Types/WTF	JavaScriptCore/wtf/Vector.h
+BAL/Types/WTF	JavaScriptCore/wtf/Vector3.h
 BAL/Types/WTF	JavaScriptCore/wtf/VectorTraits.h
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.h

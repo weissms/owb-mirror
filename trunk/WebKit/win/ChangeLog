@@ -1,3 +1,64 @@
+2010-02-11  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Support frameset flattening
+        https://bugs.webkit.org/show_bug.cgi?id=32717
+
+        Add support for enabling/disabling FrameSet Flattening on the Windows port.
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::isFrameSetFlatteningEnabled):
+        (WebPreferences::setFrameSetFlatteningEnabled):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2010-02-10  Adam Roben  <aroben@apple.com>
+
+        Remove unnecessary #include of shfolder.h
+
+        shfolder.h has been deprecated in newer versions of the Windows SDK.
+
+        Fixes <http://webkit.org/b/34803> WebPreferences.cpp fails to compile
+        under VS2010 RC due to #include of shfolder.h.
+
+        Reviewed by Darin Adler.
+
+        * WebPreferences.cpp: Removed #include.
+
+2010-02-08  Charlie Reis  <creis@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        onbeforeunload not called at window close + frame or iframe focused
+        https://bugs.webkit.org/show_bug.cgi?id=27481
+        
+        Chromium and WebKit on Windows will now fire beforeunload handlers
+        even if an inner frame is focused.  
+
+        Layout tests aren't able to test this bug, since it requires closing
+        the actual browser window, not calling window.close().  Instead,
+        test with WebCore/manual-tests/onbeforeunload-focused-iframe.html.
+
+        * WebView.cpp:
+        (WebView::shouldClose):
+
+2010-02-08  Brent Fulgham  <bfulgham@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Include header position in World Transform used for plugin positioning.
+        https://bugs.webkit.org/show_bug.cgi?id=34709
+
+        * WebFrame.cpp:
+        (WebFrame::spoolPage): Correct WinCairo plugin print positioning to
+          account for header size.  Existing code ignored this, causing
+          plugins to overlay other elements.
+
 2010-02-05  Alice Liu  <alice.liu@apple.com>
 
         Reviewed by Jon Honeycutt.

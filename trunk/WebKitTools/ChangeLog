@@ -1,3 +1,327 @@
+2010-02-11  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix various minor bugs keeping run-chromium-webkit-tests from actually
+        working on the linux and win ports of Chromium.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34739
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+        * Scripts/webkitpy/layout_tests/port/__init__.py:
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-02-10  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        run-chromium-webkit-tests --platform=mac-leopard crashes when using a custom build directory
+        https://bugs.webkit.org/show_bug.cgi?id=34817
+
+        This doesn't fix the root cause of us not
+        correctly failing when support binaries are missing.
+        This only causes the DumpRenderTree binary not to be
+        missing in the custom build directory case.
+        Later patches will make us correctly fail fast when
+        support binaries (like DumpRenderTree or ImageDiff) are missing.
+
+        * Scripts/webkit-build-directory: Added.
+         - Need a way to re-use the perl logic for finding build directories in non-perl scripts.
+        * Scripts/webkitpy/layout_tests/port/base.py: Add a FIXME.
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+         - Call webkit-build-directory to find the build directory instead of assuming "WebKitBuild"
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py: Add FIXMEs.
+
+2010-02-10  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Add Windows complex text support.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=34759
+
+        * wx/build/settings.py:
+
+2010-02-10  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix. Add stub for new LayoutTestController method.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::numberOfPages):
+
+2010-02-10  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Unreviewed. Roll out r54626, because it broke GTK and Win build.
+        https://bugs.webkit.org/show_bug.cgi?id=32717
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+
+2010-02-10  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Support frameset flattening
+        https://bugs.webkit.org/show_bug.cgi?id=32717
+
+        Add FrameSet Flattening support to Mac DRT.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setFrameSetFlatteningEnabledCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setFrameSetFlatteningEnabled):
+
+2010-02-08  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        <rdar://problem/7436875> Crash in Flash when visiting
+        http://www.cctv.com/default.shtml (WER ID 819298200) [watson 2502260]
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (executeScript):
+        Moved to an earlier point in the file.
+        (NPP_New):
+        If the plug-in has an onDestroy attribute, store its value.
+        (NPP_Destroy):
+        If the plug-in has code to run on destruction, run it and free it.
+
+2010-02-10  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Implement pageNumberForElementById() method in Qt DRT LayoutTestController,
+        to make Qt DRT able to get page number.
+
+        LayoutTests:
+            printing/page-break-always.html
+            printing/pageNumerForElementById.html
+            printing/css2.1/page-break-before-000.html
+            printing/css2.1/page-break-after-000.html
+            printing/css2.1/page-break-after-004.html
+            printing/css2.1/page-break-before-001.html
+            printing/css2.1/page-break-after-001.html
+            printing/css2.1/page-break-after-002.html
+            printing/css2.1/page-break-before-002.html
+            printing/css2.1/page-break-inside-000.html
+
+        [Qt] Make possible Qt DRT get a page number for element by ID
+        https://bugs.webkit.org/show_bug.cgi?id=34777
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::pageNumberForElementById):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-02-10  Andras Becsi  <abecsi@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Make run-iexploder-tests work on Linux.
+        https://bugs.webkit.org/show_bug.cgi?id=34748
+
+        Extract the platform dependant Apache configuration checking code in httpd.pm to a separate function
+        called getHTTPDConfigPathForTestDirectory and use run-launcher instead of run-safari if run on Linux.
+
+        * Scripts/run-iexploder-tests:
+        * Scripts/webkitperl/httpd.pm:
+
+2010-02-09  Csaba Osztrogonác  <ossy@webkit.org>
+
+        [Qt] Unreviewed. Roll-out r54543, because layout tests crash in debug mode.
+        https://bugs.webkit.org/show_bug.cgi?id=34713
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2010-02-09  Alejandro G. Castro  <alex@igalia.com>
+
+        Unreviewed; added myself to committers
+
+        * Scripts/webkitpy/committers.py:
+
+2010-02-09  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Webkit in Qt does not have window.showModalDialog
+        https://bugs.webkit.org/show_bug.cgi?id=25585
+
+        Set the modality flag when createWindow is called with window type WebWindowDialog.
+
+        * QtLauncher/main.cpp:
+        (WebPage::createWindow):
+
+2010-02-09  Andras Becsi  <abecsi@webkit.org>
+
+        Unreviewed trivial warning fix.
+
+        * Scripts/build-webkit:
+
+2010-02-09 Gabor Rapcsanyi <rgabor@inf.u-szeged.hu>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Add possibility of passing parameters to build-webkit by environment variable,
+        because the buildbot slaves can't control the arguments.
+
+        * Scripts/build-webkit:
+
+2010-02-09  Chang Shu  <Chang.Shu@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] Enable appcache feature.
+        https://bugs.webkit.org/show_bug.cgi?id=34713
+
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+
+2010-02-09  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Provide a way to get total number of pages to be printed
+        https://bugs.webkit.org/show_bug.cgi?id=34699
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (parsePageParameters):
+        (pageNumberForElementByIdCallback):
+        (numberOfPagesCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::numberOfPages):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::numberOfPages):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::numberOfPages):
+
+2010-02-08  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34727
+        Assertion crashes and freezes when plug-in property access results in an exception
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginGetProperty): Raise an exception when accessing a particular property.
+        (pluginSetProperty): Ditto.
+        (pluginInvoke): Added methods to get and set host object properties.
+
+2010-02-08  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Ariya Hidayat.
+
+        [Qt] Backport No'am Rosenthal's frame rate measurement
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherApplication::handleUserOptions):
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::WebViewGraphicsBased):
+        (WebViewGraphicsBased::enableFrameRateMeasurement):
+        (WebViewGraphicsBased::updateFrameRate):
+        (WebViewGraphicsBased::paintEvent):
+        * QtLauncher/webview.h:
+
+2010-02-08  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Make overridePreference complain when it does not
+        support the preference given.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::overridePreference):
+
+2010-02-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Set stdout/stderr to binary mode for DRT on Windows
+
+        This makes sure we don't end up with lots of CRLFs in the
+        DRT output, which breaks tons of results. Matches what
+        the Windows DRT does.
+
+        * DumpRenderTree/qt/main.cpp:
+
+2010-02-08  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Build fix for Qt on Windows.
+
+        Don't use noreturn directly since it's a gcc attribute.
+        Instead use the NO_RETURN macro from AlwaysInline.h
+
+        * QtLauncher/QtLauncher.pro:
+        * QtLauncher/utils.h:
+
+2010-02-05  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Suppressed check-webkit-style's underscore check in Qt's autotests.
+        Also made the path-specific filter check case-insensitive.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34574
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added a list element to _PATH_RULES_SPECIFIER for
+            directories that should be excluded from the
+            "readability/naming" category (the category that relates to
+            underscores in identifiers, for example).
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added an "end-to-end" test for "WebKit/qt/tests/".
+
+        * Scripts/webkitpy/style/filter.py:
+          - Altered FilterConfiguration's should_check() method to
+            check for path substring matches case-insensitively.
+
+        * Scripts/webkitpy/style/filter_unittest.py:
+          - Added a test to check case-insensitive path substring matching.
+
+        * Scripts/webkitpy/style/processors/cpp.py:
+          - Removed the hard-coded "WebKit/gtk/webkit/" path reference
+            since this is now taken care of by the _PATH_RULES_SPECIFIER
+            configuration variable.
+
+        * Scripts/webkitpy/style/processors/cpp_unittest.py:
+          - Removed the unit test for the GTK directory since this
+            is now taken care of by the checker._PATH_RULES_SPECIFIER
+            end-to-end tests.
+
+2010-02-08  Leith Bade  <leith@leithalweapon.geek.nz>
+
+        Reviewed by Darin Adler.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=34637
+        Corrects the newline inserted into WebKitOutputDir, and WebKitLibrariesDir Windows
+        environemnt variables when there is a space in the user's /home path.
+
+        * Scripts/webkitdirs.pm:
+         - Added missing quotes around $sourceDir in argument list of cygpath in determineWindowsSourceDir().
+
 2010-02-08  Alexey Proskuryakov  <ap@apple.com>
 
         Reviewed by Oliver Hunt.
@@ -142,6 +466,17 @@
         (LauncherApplication::handleUserOptions):
         * QtLauncher/webview.h:
         (WebViewGraphicsBased::setItemCacheMode):
+
+2010-02-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Notify user that run-webkit-tests has to be run under Cygwin
+
+        The script will bail out if run under Windows shell or Msys.
+
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
 
 2010-02-05  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
 

@@ -86,7 +86,7 @@ void WebCoreSynchronousLoader::didFail(ResourceHandle*, const ResourceError& err
 
 ResourceHandleInternal::~ResourceHandleInternal()
 {
-    free(m_url);
+    fastFree(m_url);
     if (m_customHeaders)
         curl_slist_free_all(m_customHeaders);
 }
