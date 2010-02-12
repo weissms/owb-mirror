@@ -50,7 +50,7 @@ namespace WebCore {
         void platformDestroy();
 
         // Pattern space is an abstract space that maps to the default user space by the transformation 'userSpaceTransformation'
-        PlatformPatternPtr createPlatformPattern(const TransformationMatrix& userSpaceTransformation) const;
+        PlatformPatternPtr createPlatformPattern(const AffineTransform& userSpaceTransformation) const;
         void setPatternSpaceTransform(const AffineTransform& patternSpaceTransformation);
         void setPlatformPatternSpaceTransform();
 
