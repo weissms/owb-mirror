@@ -31,7 +31,7 @@
 
 namespace WebCore {
 
-PlatformPatternPtr Pattern::createPlatformPattern(const TransformationMatrix& patternTransform) const
+PlatformPatternPtr Pattern::createPlatformPattern(const AffineTransform& userSpaceTransformation) const
 {
     return 0;
 }
