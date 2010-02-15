@@ -1,12 +1,16 @@
-import os
-import time
-import logging
-import sys
-from threading import Timer
-import subprocess
 import difflib
-import signal
+import logging
+import multiprocessing
+import os
 import progress
+import Queue
+import runThreadTests
+import signal
+import subprocess
+import sys
+import threading
+import time
+from threading import Timer
 
 def handler(signum, frame):
     raise Exception('timeout')
@@ -38,14 +42,72 @@ class RunTests :
         if not os.path.exists(self.config['drt'] + "/DumpRenderTree") :
             print "DumpRenderTree are not in " + self.config['drt']
             exit(0)
-        for test in self.testsList :
-            t = Timer(15.0, self.__timeout, [test])
-            t.start()
-            self.__startTest(test)
-            t.cancel()
+        threads = []
+        start = 0
+        start_time = time.time()
+        cpu_count = multiprocessing.cpu_count()
+        while start < len(self.testsList) :
+            inc = cpu_count
+            if (start + inc) > len(self.testsList) :
+                inc = len(self.testsList) - start
+            for i in xrange(start, start + inc) :
+                # we cannot have more than one thread for storage also we have lock error on base.
+                if self.testsList[i].find("/storage") != -1 :
+                    if i == start :
+                        threads.append(self.__startTest(self.testsList[i]))
+                        inc = 1;
+                        break
+                    else :
+                        inc = i - start
+                        break
+                else :
+                    threads.append(self.__startTest(self.testsList[i]))
+
+            try:
+                for thread in threads :
+                    if thread.isAlive():
+                        thread.join()
+            except KeyboardInterrupt:
+                #for thread in threads:
+                #    thread.Cancel()
+                raise
+
+            for thread in threads:
+                self.__updateProgressBar()
+                if thread.isTimeouted() :
+                    if self.config['verbose'] :
+                        print "\n" + thread.getTest() + ": timeout"
+                    self.resultTimeout[thread.getTest()] = [thread.getTime(), "", ""]
+                elif thread.isCrashed() :
+                    if self.config['verbose'] :
+                        print "\n" + thread.getTest() + ": crashed"
+                    self.resultCrashed[thread.getTest()] =  [thread.getTime(), "", ""]
+                elif thread.isFailed() :
+                    if self.config['verbose'] :
+                        print "\n" + thread.getTest() + ": failed"
+                    self.resultFailed[thread.getTest()] = [thread.getTime(), thread.getDiff(), thread.getFile()]
+                elif thread.isPlatformFailed() :
+                    if self.config['verbose'] :
+                        print "\n" + thread.getTest() + ": platform failed"
+                    self.resultPlatformFailed[thread.getTest()] = [thread.getTime(), thread.getDiff(), thread.getFile()]
+                elif thread.isNewTest() :
+                    if self.config['verbose'] :
+                        print "\n" + thread.getTest() + ": new test"
+                    self.resultNew[thread.getTest()] = [thread.getTime(), thread.getOutput(), thread.getFile()]
+                else :
+                    self.resultSuccess[thread.getTest()] = [thread.getTime(), thread.getDiff(), thread.getFile()]
+                if self.config['leak'] :
+                    for k in thread.getLeaks().keys() :
+                        self.leakList[k] += thread.getLeaks()[k]
+           
+            del threads[:]
+            start += inc
 
         print
         print self.leakList
+
+        stop_time = time.time()
+        self.time = stop_time - start_time
 
         total = len(self.resultSuccess) + len(self.resultFailed) + len(self.resultPlatformFailed) + len(self.resultTimeout) + len(self.resultCrashed) + len(self.resultNew)
         print "total tests = " + str(total)
@@ -90,136 +152,10 @@ class RunTests :
         if test.find("inspector") != -1 :
             os.environ["INSPECTOR_URL"]=self.config['source'] + "/WebCore/inspector/front-end/inspector.html"
 
-        self.startTime = time.time()       
-        self.out = subprocess.Popen(self.config['drt'] + "/DumpRenderTree " + test, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        (child_stdin, child_stdout, child_stderr) = (self.out.stdin, self.out.stdout, self.out.stderr)
-        self.pid = self.out.pid
-        self.out.wait()
-        self.time += time.time() - self.startTime
-        outprint = ""
-        outTemp = ""
-        signal.signal(signal.SIGALRM, handler)
-        try:
-            signal.alarm(2)
-            outTemp = child_stdout.read()
-            self.err = child_stderr.read()
-        except Exception, e:
-            if not str(e) == 'timeout':  # something else went wrong ..
-                self.pid = 0
-
-                # update progressbar
-                self.__updateProgressBar()
-                if self.config['verbose'] :
-                    print "\n" + test + ": timeout"
-        signal.alarm(0)
-        if not self.timeout :
-            outprint = outTemp
-            outprint = outprint[:outprint.find("#EOF")]
-        else :
-            if outTemp.find("#EOF") != -1 :
-                outprint = outTemp
-                outprint = outprint[:outprint.find("#EOF")]
-                self.timeout = False
-        if outprint == "" :
-            if not self.timeout :
-                if self.config['verbose'] :
-                    print "\n" + test + ": crashed"
-                self.__updateProgressBar() 
-                self.resultCrashed[test] =  [self.time, "", ""]
-                return
-            else :
-                self.resultTimeout[test] = [self.time, "", ""]
-                self.timeout = False
-                return
-        result, file = self.__getExpected(test) 
-        if result :
-            #compare result
-            cmp, diff = self.__compareResult(outprint, file)
-            res = ""
-            if cmp :
-                #if self.config['verbose'] :
-                #    print test[test.rfind("/") + 1:] + ": success"
-                #else :
-                #    sys.stderr.write(".")
-                self.__updateProgressBar() 
-                self.resultSuccess[test] = [self.time, diff, file]
-            else :
-                if not self.timeout :
-                    if self.config['verbose'] :
-                        print "\n" + test + ": failed"
-                    self.__updateProgressBar() 
-                    if (file.find("platform") == -1) :
-                        self.resultFailed[test] = [self.time, diff, file]
-                    else :
-                        self.resultPlatformFailed[test] = [self.time, diff, file]
-                else :
-                    self.resultTimeout[test] = [self.time, "", ""]
-                    self.timeout = False
-        else :
-            #create expected
-            try :
-                os.makedirs(file[:file.rfind("/")], 0755)
-            except OSError :
-               logging.warning("dir exist : " + file[:file.rfind("/")])
-            f = open(file, "w")
-            f.write(outprint)
-            f.close()
-            self.resultNew[test] = [self.time, outprint, file]
-            self.__updateProgressBar() 
-
-        if self.config['leak'] :
-            #get LEAK
-            for leak in self.err.split('\n') :
-                if leak.find("LEAK") != -1 :
-                    le = leak.split()
-                    try :
-                        count = int(self.leakList[le[2]])
-                    except KeyError :
-                        count = 0
-                    count += int(le[1])
-                    self.leakList[le[2]] = count
-
-    def __timeout(self, test) :
-        self.time += time.time() - self.startTime
-        self.timeout = True
-        if self.pid != 0 :
-            self.out.kill()
-        #print test[test.rfind("/") + 1:] + ": timeout"
-
-    def __getExpected(self, test) :
-        #get extension
-        ext = test[test.rfind("."):]
-        expected = test.replace(ext, "-expected.txt")
-        if test.find("http://") != -1 :
-            if test.find("8000") != -1 :
-                expected = expected.replace("http://127.0.0.1:8000", self.config['layout'] + "/http/tests")
-            if test.find("8443") != -1 :
-                expected = expected.replace("http://127.0.0.1:8443", self.config['layout'] + "/http/tests")
-            if test.find("8880") != -1 :
-                expected = expected.replace("http://127.0.0.1:8880", self.config['layout'])
-        if not os.path.exists(expected) :
-            dir = self.config['layout'] + "/platform/bal/" + self.config['platform'] + "/"
-            file = dir + expected[len(self.config['layout']):]
-            if not os.path.exists(file) :
-                return False, file
-            else :
-                return True, file
-        else : 
-            return True, expected
-   
-    def __compareResult(self, out, expectedFile) :
-        f = open(expectedFile)
-        expected = f.read()
-        f.close()
-
-        if out == expected :
-            return True, ""
-        else :
-            diff = difflib.unified_diff(expected.split("\n"), out.split("\n"))
-            outDiff = ""
-            for line in diff :
-                outDiff += line + "\n"
-            return False, outDiff
+        command = self.config['drt'] + "/DumpRenderTree " + test
+        thread = runThreadTests.runTestThread(test, command, self.config);
+        thread.start()
+        return thread
 
     def __createImage(self) :
         print "create image"

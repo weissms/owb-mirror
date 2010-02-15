@@ -119,6 +119,10 @@
 #include "WebApplicationManager.h"
 #endif
 
+#if ENABLE(DAE_DRM)
+#include "DRMAgentElement.h"
+#endif
+
 #if ENABLE(DAE_TUNER)
 #include "AVComponentJSConstantHolder.h"
 #include "ChannelJSConstantHolder.h"
@@ -1001,6 +1005,13 @@ PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize,
             HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
             return adoptRef(static_cast<Widget*>(new DownloadTriggerElement(objectElement, WebDownloadManagerClient::getInstance())));
         }
+#endif
+#if ENABLE(DAE_DRM)
+       else if (mimeType == "application/oipfDrmAgent") {
+            ASSERT(element->hasTagName(objectTag));
+            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
+            return adoptRef(static_cast<Widget*>(new DRMAgentElement(objectElement)));
+       }
 #endif
     }
 #endif

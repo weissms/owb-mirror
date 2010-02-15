@@ -79,7 +79,6 @@ void WebWindow::releaseContext(GraphicsContext* ctx)
 
 void WebWindow::updateRect(BalRectangle src, BalRectangle dest)
 {
-    
 #if !PLATFORM(SDLCAIRO)
     SDL_BlitSurface(m_surface, &src, m_mainSurface, &src);
     SDL_BlitSurface(m_mainSurface, &src, SDL_GetVideoSurface(), &dest);

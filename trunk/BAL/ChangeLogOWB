@@ -1,3 +1,12 @@
+2010-02-15  Mario Bensi  <mbensi@pleyo.com>
+
+        add Threads on drt.
+
+        * Scripts/Drt/runThreadTests.py: Added.
+        * Scripts/Drt/runtests.py:
+        * Widgets/WebKit/SDL/WebWindowSDL.cpp: remove space
+        (WebWindow::updateRect):
+
 2010-02-09  Gilles Bertal  <gbertal@pleyo.com>
 
         Plugged in playlists-related JS properties and methods requirements
