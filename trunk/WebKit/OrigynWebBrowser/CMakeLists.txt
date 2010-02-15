@@ -39,6 +39,23 @@ endif(ENABLE_DAE)
 aux_source_directory(Api WEBKIT_SRC)
 aux_source_directory(WebCoreSupport WEBKIT_SRC)
 
+# Generate WebKitVersion.h
+set(WEBKIT_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebKit)
+if(NOT EXISTS ${WEBKIT_GENERATED_DIR})
+    execute_process(COMMAND mkdir ${WEBKIT_GENERATED_DIR})
+endif(NOT EXISTS ${WEBKIT_GENERATED_DIR})
+
+list(APPEND WEBKIT_SRC ${WEBKIT_GENERATED_DIR}/WebKitVersion.h)
+
+set(WEBKIT_VERSION_SCRIPT ${OWB_SOURCE_DIR}/WebKit/scripts/generate-webkitversion.pl)
+set(WEBKIT_VERSION_CONFIG ${OWB_SOURCE_DIR}/WebKit/mac/Configurations/Version.xcconfig)
+add_custom_command(
+    OUTPUT ${WEBKIT_GENERATED_DIR}/WebKitVersion.h
+    COMMAND ${PERL_EXECUTABLE} ${WEBKIT_VERSION_SCRIPT} --config ${WEBKIT_VERSION_CONFIG} --outputDir ${WEBKIT_GENERATED_DIR}
+    WORKING_DIRECTORY ${WEBKIT_GENERATED_DIR}
+    DEPENDS ${WEBKIT_VERSION_SCRIPT} ${WEBKIT_VERSION_CONFIG}
+)
+
 if(NOT ENABLE_INSPECTOR)
     list(REMOVE_ITEM WEBKIT_SRC
         Api/WebInspector.cpp
@@ -55,6 +72,7 @@ include_directories(
     ${JAVASCRIPTCORE_INCLUDE_DIRS}
     ${WEBCORE_INCLUDE_DIRS}
     ${WEBKIT_INCLUDE_DIRS}
+    ${WEBKIT_GENERATED_DIR}
     ${OWB_BINARY_DIR}/generated_sources/WebCore
     ${OWB_BINARY_DIR}/generated_sources/WebKit
     ${OWB_BINARY_DIR}/generated_sources/WebCore/html
