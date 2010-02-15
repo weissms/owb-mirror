@@ -772,6 +772,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/Assertions.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/Assertions.h
 BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.h
+BAL/Types/WTF   JavaScriptCore/wtf/Complex.h
 BAL/Types/WTF   JavaScriptCore/wtf/CrossThreadRefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
