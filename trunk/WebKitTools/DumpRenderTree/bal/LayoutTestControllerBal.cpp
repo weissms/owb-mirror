@@ -554,3 +554,8 @@ bool LayoutTestController::sampleSVGAnimationForElementAtTime(JSStringRef animat
     free(element);
     return returnValue;
 }
+
+void LayoutTestController::setFrameSetFlatteningEnabled(bool flag)
+{
+    // FIXME: implement
+}

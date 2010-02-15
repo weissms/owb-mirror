@@ -1,6 +1,7 @@
 list(APPEND WEBCORE_SRC
     rendering/AutoTableLayout.cpp
     rendering/break_lines.cpp
+    rendering/BidiRun.cpp
     rendering/CounterNode.cpp
     rendering/EllipsisBox.cpp
     rendering/FixedTableLayout.cpp

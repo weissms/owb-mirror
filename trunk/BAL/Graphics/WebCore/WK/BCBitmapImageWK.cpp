@@ -114,6 +114,7 @@ void BitmapImage::cacheFrame(size_t index)
 {
     size_t numFrames = frameCount();
     ASSERT(m_decodedSize == 0 || numFrames > 1);
+    printf(">> m_decodedSize = %d, numFrames = %d\n", m_decodedSize, numFrames);
     
     if (m_frames.size() < numFrames)
         m_frames.grow(numFrames);

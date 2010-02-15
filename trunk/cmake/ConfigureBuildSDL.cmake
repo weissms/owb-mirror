@@ -39,6 +39,8 @@ set(ENABLE_SHARED_WORKERS ON CACHE BOOLEAN "Enable shared workers support" FORCE
 set(ENABLE_NOTIFICATIONS ON CACHE BOOLEAN "Enable notification support" FORCE)
 set(ENABLE_NPAPI ON CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 
+set(ENABLE_RUBY ON CACHE BOOLEAN "Enable HTML5 ruby support" FORCE)
+
 set(ENABLE_SVG ON CACHE BOOLEAN "Enable SVG support" FORCE)
 set(ENABLE_SVG_ANIMATION ON CACHE BOOLEAN "Enable support for SVG animation (EXPERIMENTAL)" FORCE)
 set(ENABLE_SVG_AS_IMAGE ON CACHE BOOLEAN "Enable SVG as Image support (EXPERIMENTAL)" FORCE)

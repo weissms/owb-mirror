@@ -1195,6 +1195,8 @@ static void webkit_web_view_init(WebKitWebView* webView)
     SoupSessionFeature* sniffer = static_cast<SoupSessionFeature*>(g_object_new(SOUP_TYPE_CONTENT_SNIFFER, NULL));
     soup_session_add_feature(session, sniffer);
     g_object_unref(sniffer);
+    
+    soup_session_add_feature_by_type(session, SOUP_TYPE_CONTENT_DECODER);
 
     //g_signal_connect(webView, "screen-changed", G_CALLBACK(webkit_web_view_screen_changed), NULL);
     //g_signal_connect(webView, "notify", G_CALLBACK(webkit_web_view_settings_notify), NULL);

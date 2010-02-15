@@ -1736,6 +1736,8 @@ webcore_sources += \
 	WebCore/plugins/npfunctions.h \
 	WebCore/rendering/AutoTableLayout.cpp \
 	WebCore/rendering/AutoTableLayout.h \
+	WebCore/rendering/BidiRun.cpp \
+	WebCore/rendering/BidiRun.h \
 	WebCore/rendering/CounterNode.cpp \
 	WebCore/rendering/CounterNode.h \
 	WebCore/rendering/EllipsisBox.cpp \
@@ -1750,6 +1752,7 @@ webcore_sources += \
 	WebCore/rendering/InlineBox.h \
 	WebCore/rendering/InlineFlowBox.cpp \
 	WebCore/rendering/InlineFlowBox.h \
+	WebCore/rendering/InlineIterator.h \
 	WebCore/rendering/InlineRunBox.h \
 	WebCore/rendering/InlineTextBox.cpp \
 	WebCore/rendering/InlineTextBox.h \
@@ -2435,6 +2438,16 @@ webcore_sources += \
 	WebCore/html/HTMLNoScriptElement.cpp \
 	WebCore/html/HTMLNoScriptElement.h
 endif # END ENABLE_XHTMLMP
+
+# ----
+# Ruby Support
+# ----
+if ENABLE_RUBY
+
+HTML_FEATURES += ENABLE_RUBY=1
+webcore_cppflags += -DENABLE_RUBY=1
+
+endif # END ENABLE_RUBY
 
 # ----
 # XPath Support

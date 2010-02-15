@@ -2596,7 +2596,7 @@ void WebView::initializeToolTipWindow()
     if (!initCommonControls())
         return;
 
-    m_toolTipHwnd = CreateWindowEx(0, TOOLTIPS_CLASS, 0, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+    m_toolTipHwnd = CreateWindowEx(WS_EX_TRANSPARENT, TOOLTIPS_CLASS, 0, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
                                    CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                                    m_viewWindow, 0, 0, 0);
     if (!m_toolTipHwnd)
@@ -4658,7 +4658,7 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
 #endif
 
 #if ENABLE(3D_CANVAS)
-    settings->setExperimentalWebGLEnabled(true);
+    settings->setWebGLEnabled(true);
 #endif  // ENABLE(3D_CANVAS)
 
     if (!m_closeWindowTimer.isActive())

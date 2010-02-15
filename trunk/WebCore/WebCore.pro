@@ -213,6 +213,7 @@ INCLUDEPATH = \
     $$PWD/platform/graphics/qt \
     $$PWD/platform/network/qt \
     $$PWD/platform/qt \
+    $$PWD/../WebKit/qt/Api \
     $$PWD/../WebKit/qt/WebCoreSupport \
     $$INCLUDEPATH
 
@@ -865,6 +866,7 @@ SOURCES += \
     plugins/PluginView.cpp \
     rendering/AutoTableLayout.cpp \
     rendering/break_lines.cpp \
+    rendering/BidiRun.cpp \
     rendering/CounterNode.cpp \
     rendering/EllipsisBox.cpp \
     rendering/FixedTableLayout.cpp \
@@ -2663,35 +2665,41 @@ SOURCES += \
 }
 }
 
-CONFIG(standalone_package) {
-    include($$PWD/../include/headers.pri)
-} else {
-    include($$OUTPUT_DIR/include/headers.pri)
-}
-
-HEADERS += $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
+include($$PWD/../WebKit/qt/Api/headers.pri)
+include(../include/QtWebKit/classheaders.pri)
+HEADERS += $$WEBKIT_API_HEADERS
+WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
 
 !symbian {
+    headers.files = $$WEBKIT_INSTALL_HEADERS
+    headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
     target.path = $$[QT_INSTALL_LIBS]
-    INSTALLS += target
+
+    INSTALLS += target headers
+} else {
+    # INSTALLS is not implemented in qmake's s60 generators, copy headers manually
+    inst_headers.commands = $$QMAKE_COPY ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+    inst_headers.input = WEBKIT_INSTALL_HEADERS
+    inst_headers.output = $$[QT_INSTALL_HEADERS]/QtWebKit/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
+    QMAKE_EXTRA_COMPILERS += inst_headers
+
+    install.depends += compiler_inst_headers_make_all
+    QMAKE_EXTRA_TARGETS += install
 }
 
-headers.files = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS $$OUTPUT_DIR/include/headers.pri
-headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
-INSTALLS += headers
+# Qt will set the version for us when building in Qt's tree
+!CONFIG(QTDIR_build): VERSION=$${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
+
+win32-*|wince* {
+    DLLDESTDIR = $$OUTPUT_DIR/bin
+    TARGET = $$qtLibraryTarget($$TARGET)
+
+    dlltarget.commands = $(COPY_FILE) $(DESTDIR_TARGET) $$[QT_INSTALL_BINS]
+    dlltarget.CONFIG = no_path
+    INSTALLS += dlltarget
+}
 
 !CONFIG(standalone_package) {
-
-    VERSION=$${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
-
-    win32-*|wince* {
-        DLLDESTDIR = $$OUTPUT_DIR/bin
-        TARGET = $$qtLibraryTarget($$TARGET)
-
-        dlltarget.commands = $(COPY_FILE) $(DESTDIR)$(TARGET) $$[QT_INSTALL_BINS]
-        dlltarget.CONFIG = no_path
-        INSTALLS += dlltarget
-    }
 
     unix {
         CONFIG += create_pc create_prl

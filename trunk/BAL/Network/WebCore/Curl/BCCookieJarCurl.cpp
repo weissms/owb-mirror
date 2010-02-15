@@ -40,6 +40,13 @@ String cookies(const Document* document, const KURL& url)
     return cookieManager().getCookie(cookieURL, NoHttpOnlyCookie);
 }
 
+String cookieRequestHeaderFieldValue(const Document* document, const KURL& url)
+{
+    const KURL& documentURL = document->url();
+    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
+    return cookieManager().getCookie(cookieURL, WithHttpOnlyCookies);
+}
+
 bool cookiesEnabled(const Document* /*document*/)
 {
     return true;

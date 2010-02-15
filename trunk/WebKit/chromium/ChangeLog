@@ -1,3 +1,104 @@
+2010-02-15  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Add support for the showDebugBorders setting to Chromium.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34906
+
+        * public/WebSettings.h: Add declaration for setShowDebugBorders
+        * src/WebSettingsImpl.cpp:
+        (WebKit::WebSettingsImpl::setShowDebugBorders): Add method implementation
+        * src/WebSettingsImpl.h: Added declaration for setShowDebugBorders
+
+2010-02-11  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Introduce WebCookieJar, and provide for a frame specific cookie jar.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34878
+
+        * WebKit.gyp:
+        * public/WebCookieJar.h: Added.
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::cookieJar):
+        * public/WebKitClient.h:
+        (WebKit::WebKitClient::cookieJar):
+        (WebKit::WebKitClient::setCookies):
+        (WebKit::WebKitClient::cookies):
+        (WebKit::WebKitClient::rawCookies):
+        (WebKit::WebKitClient::deleteCookie):
+        (WebKit::WebKitClient::cookiesEnabled):
+        * src/ChromiumBridge.cpp:
+        (WebCore::getCookieJar):
+        (WebCore::ChromiumBridge::setCookies):
+        (WebCore::ChromiumBridge::cookies):
+        (WebCore::ChromiumBridge::rawCookies):
+        (WebCore::ChromiumBridge::deleteCookie):
+        (WebCore::ChromiumBridge::cookiesEnabled):
+
+2010-02-12  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by David Levin.
+
+        Chromium: provide theme overrides for Chromium devtools on Mac.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34856
+
+        * src/js/devTools.css:
+
+2010-02-12  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Add a blockedByPolicy output to WebStorageArea::setItem.
+        https://bugs.webkit.org/show_bug.cgi?id=34897
+
+        * public/WebStorageArea.h:
+        (WebKit::WebStorageArea::setItem):
+        * src/WebStorageAreaImpl.cpp:
+        (WebKit::WebStorageAreaImpl::setItem):
+        * src/WebStorageAreaImpl.h:
+
+2010-02-11  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] Add ENABLE_RUBY to the feature defines gypi
+        https://bugs.webkit.org/show_bug.cgi?id=34841
+
+        * features.gypi:
+
+2010-02-12  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Chromium: Web Inspector on an element in a page where JS is blocked crashes the renderer
+
+        https://bugs.webkit.org/show_bug.cgi?id=34890
+
+        * src/DebuggerAgentImpl.cpp:
+        (WebKit::DebuggerAgentImpl::createUtilityContext):
+
+2010-02-11  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        [Chromium] Ignore subsequent requests of the same profiler log
+        chunks. This eliminates emission of several instances for the same
+        heap snapshot.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34833
+
+        * src/js/ProfilerAgent.js:
+        (devtools.ProfilerAgent):
+        (devtools.ProfilerAgent.prototype.initializeProfiling):
+        (devtools.ProfilerAgent.prototype._getNextLogLines):
+        (devtools.ProfilerAgent.prototype.startProfiling):
+        (devtools.ProfilerAgent.prototype._didGetActiveProfilerModules):
+        (devtools.ProfilerAgent.prototype._didGetLogLines):
+
 2010-02-11  James Hawkins  <jhawkins@chromium.org>
 
         Reviewed by Eric Seidel.

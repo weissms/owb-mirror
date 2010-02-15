@@ -30,6 +30,7 @@
 """WebKit Mac implementation of the Port interface."""
 
 import fcntl
+import logging
 import os
 import pdb
 import platform
@@ -179,7 +180,7 @@ class MacPort(base.Port):
 
     def _build_path(self, *comps):
         if not self._cached_build_root:
-            self._cached_build_root = executive.run_command(["webkit-build-directory", "--base"]).rstrip()
+            self._cached_build_root = executive.run_command(["webkit-build-directory", "--top-level"]).rstrip()
         return os.path.join(self._cached_build_root, self._options.target, *comps)
 
     def _kill_process(self, pid):
@@ -272,8 +273,12 @@ class MacDriver(base.Driver):
             cmd += self._options.wrapper.split()
         # FIXME: Using arch here masks any possible file-not-found errors from a non-existant driver executable.
         cmd += ['arch', '-i386', port._path_to_driver(), '-']
+
+        # FIXME: This is a hack around our lack of ImageDiff support for now.
         if not self._port._options.no_pixel_tests:
-            cmd.append('--pixel-tests')
+            logging.warn("This port does not yet support pixel tests.")
+            self._port._options.no_pixel_tests = True
+            #cmd.append('--pixel-tests')
 
         #if driver_options:
         #    cmd += driver_options

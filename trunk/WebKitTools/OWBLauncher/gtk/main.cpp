@@ -34,7 +34,7 @@
 #include <string.h>
 
 static GtkWidget* main_window;
-static WebView* webView = NULL;
+static SharedPtr<WebView> webView = NULL;
 
 using namespace WebCore;
 
@@ -167,6 +167,5 @@ int main (int argc, char* argv[])
 
     delete mainWebNotificationDelegate;
     delete mainJSActionDelegate;
-    delete webView;
     return 0;
 }

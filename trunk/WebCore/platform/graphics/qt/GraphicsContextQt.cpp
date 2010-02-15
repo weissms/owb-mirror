@@ -219,6 +219,7 @@ public:
     QStack<TransparencyLayer*> layers;
     QPainter* redirect;
 
+    // reuse this brush for solid color (to prevent expensive QBrush construction)
     QBrush solidColor;
 
     InterpolationQuality imageInterpolationQuality;
@@ -949,7 +950,7 @@ void GraphicsContext::clipOut(const Path& path)
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
     if (p->hasClipping()) {
-        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addRect(p->clipRegion().boundingRect());
         newClip.addPath(clippedOut);
         p->setClipPath(newClip, Qt::IntersectClip);
     } else {
@@ -1018,7 +1019,7 @@ void GraphicsContext::clipOut(const IntRect& rect)
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
     if (p->hasClipping()) {
-        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addRect(p->clipRegion().boundingRect());
         newClip.addRect(QRect(rect));
         p->setClipPath(newClip, Qt::IntersectClip);
     } else {
@@ -1040,7 +1041,7 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
     QPainterPath newClip;
     newClip.setFillRule(Qt::OddEvenFill);
     if (p->hasClipping()) {
-        newClip.addRect(p->clipPath().boundingRect());
+        newClip.addRect(p->clipRegion().boundingRect());
         newClip.addEllipse(QRect(rect));
         p->setClipPath(newClip, Qt::IntersectClip);
     } else {
@@ -1112,7 +1113,8 @@ void GraphicsContext::setPlatformStrokeColor(const Color& color, ColorSpace colo
         return;
     QPainter* p = m_data->p();
     QPen newPen(p->pen());
-    newPen.setColor(color);
+    m_data->solidColor.setColor(color);
+    newPen.setBrush(m_data->solidColor);
     p->setPen(newPen);
 }
 

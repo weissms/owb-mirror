@@ -1,3 +1,228 @@
+2010-02-15  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Adam Barth.
+
+        Implement NEVER_INLINE and NO_RETURN for RVCT
+        https://bugs.webkit.org/show_bug.cgi?id=34740
+
+        * wtf/AlwaysInline.h:
+
+2010-02-12  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33731
+        Remove uses of PtrAndFlags from JIT data stuctures.
+
+        These break the OS X Leaks tool.  Free up a bit in CallLinkInfo, and invalid
+        permutation of pointer states in MethodCallLinkInfo to represent the removed bits.
+
+        * bytecode/CodeBlock.h:
+        (JSC::CallLinkInfo::seenOnce):
+        (JSC::CallLinkInfo::setSeen):
+        (JSC::MethodCallLinkInfo::MethodCallLinkInfo):
+        (JSC::MethodCallLinkInfo::seenOnce):
+        (JSC::MethodCallLinkInfo::setSeen):
+        * jit/JIT.cpp:
+        (JSC::JIT::unlinkCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::patchMethodCallProto):
+        * runtime/UString.h:
+
+2010-02-12  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33731
+        Many false leaks in release builds due to PtrAndFlags
+
+        Remove UntypedPtrAndBitfield (similar to PtrAndFlags) in UStringImpl,
+        and steal bits from the refCount instead.
+
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::baseSharedBuffer):
+        (JSC::UStringImpl::~UStringImpl):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::cost):
+        (JSC::UStringImpl::isIdentifier):
+        (JSC::UStringImpl::setIsIdentifier):
+        (JSC::UStringImpl::ref):
+        (JSC::UStringImpl::deref):
+        (JSC::UStringImpl::UStringImpl):
+        (JSC::UStringImpl::bufferOwnerString):
+        (JSC::UStringImpl::bufferOwnership):
+        (JSC::UStringImpl::isStatic):
+        (JSC::UStringImpl::):
+
+2010-02-12  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Removed an unnecessary data dependency from my last patch.
+
+        * runtime/SmallStrings.cpp:
+        (JSC::SmallStrings::markChildren): Since isAnyStringMarked being false
+        is a condition of entering the loop, we can just use '=' instead of '|='.
+
+2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Additional refptr/passrefptr workarounds for WINSCW compiler
+        https://bugs.webkit.org/show_bug.cgi?id=28054
+
+        * wtf/PassRefPtr.h:
+        (WTF::refIfNotNull):
+        (WTF::PassRefPtr::PassRefPtr):
+        (WTF::PassRefPtr::~PassRefPtr):
+        (WTF::PassRefPtr::clear):
+        (WTF::::operator):
+        * wtf/RefPtr.h:
+        (WTF::RefPtr::RefPtr):
+        (WTF::::operator):
+
+2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Don't import the cmath functions from std:: for WINSCW.
+
+        * wtf/MathExtras.h:
+
+2010-02-12  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Adam Barth.
+
+        Typedef both JSChar and UChar to wchar_t in RVCT.
+        https://bugs.webkit.org/show_bug.cgi?id=34560
+
+        Define both JSChar and UChar to wchar_t as the size
+        of wchar_t is 2 bytes in RVCT.
+
+        * API/JSStringRef.h:
+        * wtf/unicode/qt4/UnicodeQt4.h:
+
+2010-02-11  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt and Darin Adler.
+
+        The rest of the fix for
+        https://bugs.webkit.org/show_bug.cgi?id=34864 | <rdar://problem/7594198>
+        Many objects left uncollected after visiting mail.google.com and closing
+        window
+        
+        Don't unconditionally hang onto small strings. Instead, hang onto all
+        small strings as long as any small string is still referenced.
+        
+        SunSpider reports no change.
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::markRoots): Mark the small strings cache last, so it can
+        check if anything else has kept any strings alive.
+
+        * runtime/SmallStrings.cpp:
+        (JSC::isMarked):
+        (JSC::SmallStrings::markChildren): Only keep our strings alive if some
+        other reference to at least one of them exists, too.
+
+2010-02-11  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Some progress toward fixing
+        https://bugs.webkit.org/show_bug.cgi?id=34864 | <rdar://problem/7594198>
+        Many objects left uncollected after visiting mail.google.com and closing
+        window
+        
+        SunSpider reports no change.
+        
+        Keep weak references, rather than protected references, to cached for-in
+        property name enumerators.
+        
+        One problem with protected references is that a chain like 
+            [ gc object 1 ] => [ non-gc object ] => [ gc object 2 ]
+        takes two GC passes to break, since the first pass collects [ gc object 1 ],
+        releasing [ non-gc object ] and unprotecting [ gc object 2 ], and only
+        then can a second pass collect [ gc object 2 ].
+        
+        Another problem with protected references is that they can keep a bunch
+        of strings alive long after they're useful. In SunSpider and a few popular
+        websites, the size-speed tradeoff seems to favor weak references.
+
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::JSPropertyNameIterator): Moved this constructor
+        into the .cpp file, since it's not used elsewhere.
+
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator): Added a destructor
+        to support our weak reference.
+
+        * runtime/JSPropertyNameIterator.h:
+        (JSC::Structure::setEnumerationCache):
+        (JSC::Structure::clearEnumerationCache):
+        (JSC::Structure::enumerationCache): Added a function for clearing a
+        Structure's enumeration cache, used by our new destructor. Also fixed
+        indentation to match the rest of the file.
+
+        * runtime/Structure.h: Changed from protected pointer to weak pointer.
+
+2010-02-11  Chris Rogers  <crogers@google.com>
+
+        Reviewed by David Levin.
+
+        audio engine: add Complex number class
+        https://bugs.webkit.org/show_bug.cgi?id=34538
+
+        * wtf/Complex.h: Added.
+        (WebCore::complexFromMagnitudePhase):
+
+2010-02-10  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Added an SPI for asking about all the different live objects on the heap.
+        Useful for memory debugging.
+
+        * JavaScriptCore.exp: Export the new SPI.
+
+        * runtime/Collector.cpp:
+        (JSC::typeName): Use a little capitalization. Don't crash in the case of
+        a non-object cell, since it might just be an uninitialized cell.
+
+        (JSC::Heap::objectTypeCounts): The new SPI.
+
+        * runtime/Collector.h:
+        * runtime/CollectorHeapIterator.h:
+        (JSC::CollectorHeapIterator::advance):
+        (JSC::LiveObjectIterator::operator++):
+        (JSC::DeadObjectIterator::operator++):
+        (JSC::ObjectIterator::operator++): Made 2 tweaks to these iterators:
+        (1) Skip the last cell in the block, since it's a dummy sentinel, and
+        we don't want it to confuse the object count; (2) Fixed a logic error
+        in LiveObjectIterator that could cause it to iterate dead objects if
+        m_block were equal to m_heap.nextBlock and m_cell were less than
+        m_heap.nextCell. No test for this since I can't think of a way that this
+        could make WebKit behave badly.
+
+2010-02-11  Steve Block  <steveblock@google.com>
+
+        Reviewed by Darin Adler.
+
+        Guard cmath using declarations in MathExtras.h on Android
+        https://bugs.webkit.org/show_bug.cgi?id=34840
+
+        Android does not provide these functions.
+
+        * wtf/MathExtras.h:
+
+2010-02-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Restore ENABLE_RUBY flag so vendors can ship with Ruby disabled if they choose.
+        https://bugs.webkit.org/show_bug.cgi?id=34698
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2010-02-11  Kevin Watters  <kevinwatters@gmail.com>
 
         Reviewed by Kevin Ollivier.

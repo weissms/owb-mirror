@@ -59,6 +59,7 @@ cmake_dependent_option(ENABLE_WORKERS "Enable workers support" OFF ENABLE_MULTIP
 cmake_dependent_option(ENABLE_SHARED_WORKERS "Enable shared workers support" OFF ENABLE_WORKERS OFF)
 option(ENABLE_NOTIFICATIONS "Enable notification support")
 option(ENABLE_NPAPI "Enable Netscape Plugin API support")
+option(ENABLE_RUBY "Enable HTML5 ruby support")
 option(ENABLE_SVG "Enable SVG support")
 cmake_dependent_option(ENABLE_SVG_ANIMATION "Enable support for SVG animation (EXPERIMENTAL)" OFF ENABLE_SVG OFF)
 cmake_dependent_option(ENABLE_SVG_AS_IMAGE "Enable SVG as Image support (EXPERIMENTAL)" OFF ENABLE_SVG OFF)
