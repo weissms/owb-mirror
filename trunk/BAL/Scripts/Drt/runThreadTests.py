@@ -101,7 +101,7 @@ class runTestThread(threading.Thread):
 
             if self.config['leak'] :
                 #get LEAK
-                err = self.proc.stdout.read()
+                err = self.worker.getProcess().stderr.read()
                 for leak in err.split('\n') :
                     if leak.find("LEAK") != -1 :
                         le = leak.split()
