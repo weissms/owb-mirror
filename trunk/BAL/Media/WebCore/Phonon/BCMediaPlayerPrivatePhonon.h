@@ -115,7 +115,7 @@ namespace WebCore {
 
         void paint(GraphicsContext*, const IntRect&);
         
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
         bool nextTrack();
         bool previousTrack();
         unsigned int numTracks();

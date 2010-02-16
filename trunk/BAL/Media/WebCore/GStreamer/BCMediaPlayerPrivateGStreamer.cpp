@@ -22,7 +22,7 @@
 
 #include "config.h"
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #include "MediaPlayerPrivateGStreamer.h"
 
@@ -752,7 +752,7 @@ void MediaPlayerPrivate::cancelLoad()
         return;
 
     if (m_playBin)
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
         stop();
 #else
         gst_element_set_state(m_playBin, GST_STATE_NULL);
@@ -1108,7 +1108,7 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     gst_caps_unref(caps);
 }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 void MediaPlayerPrivate::stop()
 {
     gst_element_set_state(m_playBin, GST_STATE_NULL);
@@ -1140,7 +1140,7 @@ WTF::Vector<float> MediaPlayerPrivate::playSpeeds()
 }
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
 bool MediaPlayerPrivate::nextTrack()
 {
     notImplemented();

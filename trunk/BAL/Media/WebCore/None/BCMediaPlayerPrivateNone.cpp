@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #include "MediaPlayerPrivateNone.h"
 
@@ -367,7 +367,7 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     context->restore();
 }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 void MediaPlayerPrivate::stop()
 {
 }
@@ -398,7 +398,7 @@ MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& type, c
     return type == "video/x-theora+ogg" ? (!codecs.isEmpty() ? MediaPlayer::MayBeSupported : MediaPlayer::IsSupported) : MediaPlayer::IsNotSupported;
 }
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
 bool MediaPlayerPrivate::nextTrack()
 {
     notImplemented();

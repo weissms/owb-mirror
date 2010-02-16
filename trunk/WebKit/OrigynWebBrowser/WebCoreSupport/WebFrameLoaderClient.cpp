@@ -107,7 +107,7 @@
 #include "CEHTMLJSWindowExtensions.h"
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
 #include "CEHTMLAudioElement.h"
 #include "CEHTMLVideoElement.h"
 #endif
@@ -946,7 +946,7 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
 
 PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
     if (CEHTMLVideoElement::supportsType(mimeType)) {
         ASSERT(element->hasTagName(objectTag));
         HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);

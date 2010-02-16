@@ -1,5 +1,12 @@
 2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
 
+        Renamed ENABLE_CEHTML_VIDEO to ENABLE_CEHTML_MEDIA_OBJECTS.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+
+2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
+
         Reviewed by Mario Bensi.
 
         Use std::string for the user-agent related WebView APIs.

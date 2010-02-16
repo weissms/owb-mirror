@@ -26,7 +26,7 @@
 #ifndef MediaPlayerPrivate_h
 #define MediaPlayerPrivate_h
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #include "MediaPlayer.h"
 
@@ -105,13 +105,13 @@ public:
 
     virtual void setAutobuffer(bool) { }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
     virtual void stop() { }
     virtual void setAspect(MediaPlayer::VideoScale) { }
     virtual WTF::Vector<float> playSpeeds() = 0;
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
     virtual bool nextTrack() = 0;
     virtual bool previousTrack() = 0;
     virtual unsigned int numTracks() = 0;

@@ -22,7 +22,7 @@
 #ifndef MediaPlayerPrivateGStreamer_h
 #define MediaPlayerPrivateGStreamer_h
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #include "MediaPlayerPrivate.h"
 #include "Timer.h"
@@ -118,13 +118,13 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
 
             bool pipelineReset() const { return m_resetPipeline; }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
             void stop();
             void setAspect(MediaPlayer::VideoScale);
             WTF::Vector<float> playSpeeds();
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
             bool nextTrack();
             bool previousTrack();
             unsigned int numTracks();

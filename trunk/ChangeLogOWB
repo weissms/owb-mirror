@@ -1,3 +1,10 @@
+2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Renamed ENABLE_CEHTML_VIDEO to ENABLE_CEHTML_MEDIA_OBJECTS.
+
+        * CMakeLists.txt:
+        * cmake/CheckPlatformVideoSupport.cmake:
+
 2010-02-04  Mario Bensi  <mbensi@pleyo.com>
 
         add resources and headers.

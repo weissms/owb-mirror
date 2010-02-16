@@ -85,9 +85,9 @@ set(USE_I18N "ICU" CACHE STRING "Choose the internationalization library, option
 set(USE_NETWORK "CURL" CACHE STRING "Choose the network backend, options are: CURL QT SOUP")
 set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are: PTHREADS NONE QT")
 set(USE_TIMER "LINUX" CACHE STRING "Choose the timer backend, options are: GLIB LINUX QT")
-if(ENABLE_CEHTML_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
+if(ENABLE_CEHTML_MEDIA_OBJECTS OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
     set(USE_VIDEO "NONE" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON")
-endif(ENABLE_CEHTML_VIDEO OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
+endif(ENABLE_CEHTML_MEDIA_OBJECTS OR ENABLE_DAE_TUNER OR ENABLE_VIDEO)
 
 
 set(WITH_OWB_CONFIG_DIR "$ENV{HOME}/.owb/conf/" CACHE STRING "Set configuration directory for owb")

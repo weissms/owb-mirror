@@ -26,7 +26,7 @@
 #ifndef MediaPlayer_h
 #define MediaPlayer_h
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
 #include "MediaPlayerProxy.h"
@@ -39,7 +39,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/PassOwnPtr.h>
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 #include <wtf/Vector.h>
 #endif
 
@@ -229,7 +229,7 @@ public:
 
     bool hasAvailableVideoFrame() const;
     
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
     void setMediaPlayerClient(MediaPlayerClient* client) { m_mediaPlayerClient = client; }
 
     void stop();
@@ -238,7 +238,7 @@ public:
     WTF::Vector<float> playSpeeds(); 
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
     bool nextTrack();
     bool previousTrack();
     unsigned int numTracks();
@@ -293,6 +293,6 @@ typedef void (*MediaEngineRegistrar)(CreateMediaEnginePlayer, MediaEngineSupport
 
 }
 
-#endif // ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO)
+#endif // ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS)
 
 #endif

@@ -1,5 +1,20 @@
 2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
 
+        Renamed ENABLE_CEHTML_VIDEO to ENABLE_CEHTML_MEDIA_OBJECTS.
+
+        * Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp:
+        (WebCore::MediaPlayerPrivate::cancelLoad):
+        * Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h:
+        * Media/WebCore/None/BCMediaPlayerPrivateNone.cpp:
+        * Media/WebCore/None/BCMediaPlayerPrivateNone.h:
+        * Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp:
+        * Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h:
+        * Media/WebCore/WK/BCMediaPlayerPrivateWK.h:
+        * Media/WebCore/WK/BCMediaPlayerWK.cpp:
+        * Media/WebCore/WK/BCMediaPlayerWK.h:
+
+2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
+
         Mapped HBBTV-specific MIME type: application/vnd.hbbtv.xhtml+xml.
 
         * Facilities/WebCore/Generic/BCMIMETypeRegistryGeneric.cpp:

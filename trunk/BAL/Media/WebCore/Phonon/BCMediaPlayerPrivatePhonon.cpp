@@ -496,7 +496,7 @@ void MediaPlayerPrivate::totalTimeChanged(qint64 totalTime)
     LOG_MEDIAOBJECT();
 }
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
 bool MediaPlayerPrivate::nextTrack()
 {
     notImplemented();

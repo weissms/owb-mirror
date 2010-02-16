@@ -25,7 +25,7 @@
 
 #include "config.h"
 
-#if ENABLE(VIDEO) || ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 #include "MediaPlayer.h"
 #include "MediaPlayerPrivate.h"
 
@@ -129,7 +129,7 @@ public:
 
     virtual bool hasSingleSecurityOrigin() const { return true; }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
     virtual WTF::Vector<float> playSpeeds()
     {
         WTF::Vector<float> speed;
@@ -137,7 +137,7 @@ public:
     }
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
     virtual bool nextTrack() { return false; }
     virtual bool previousTrack() { return false; }
     virtual unsigned int numTracks() { return 0; }
@@ -656,7 +656,7 @@ void MediaPlayer::rateChanged()
         m_mediaPlayerClient->mediaPlayerRateChanged(this);
 }
 
-#if ENABLE(CEHTML_VIDEO) || ENABLE(DAE_TUNER)
+#if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 void MediaPlayer::stop()
 {
     m_private->stop();
@@ -673,7 +673,7 @@ WTF::Vector<float> MediaPlayer::playSpeeds()
 }
 #endif
 
-#if ENABLE(CEHTML_VIDEO)
+#if ENABLE(CEHTML_MEDIA_OBJECTS)
 bool MediaPlayer::nextTrack()
 {
     return m_private->nextTrack();
