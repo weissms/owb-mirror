@@ -1,3 +1,12 @@
+2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Mapped HBBTV-specific MIME type: application/vnd.hbbtv.xhtml+xml.
+
+        * Facilities/WebCore/Generic/BCMIMETypeRegistryGeneric.cpp:
+        (WebCore::):
+        * Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp:
+        (WebCore::initializeSupportedNonImageMimeTypes):
+
 2010-02-15  Mario Bensi  <mbensi@pleyo.com>
 
         add Threads on drt.

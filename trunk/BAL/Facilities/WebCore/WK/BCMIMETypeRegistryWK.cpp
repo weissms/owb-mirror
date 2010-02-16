@@ -206,6 +206,9 @@ static void initializeSupportedNonImageMimeTypes()
         "application/ce-html+xml",
         "application/x-ce-html+xml",
 #endif
+#if ENABLE(DAE)
+        "application/vnd.hbbtv.xhtml+xml",
+#endif
         "application/xml",
         "application/xhtml+xml",
 #if ENABLE(XHTMLMP)

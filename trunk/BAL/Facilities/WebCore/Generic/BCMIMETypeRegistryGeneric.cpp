@@ -42,6 +42,9 @@ static const ExtensionMap extensionMap [] = {
 #if ENABLE(CEHTML)
     { "cehtml", "application/ce-html+xml"},
 #endif
+#if ENABLE(DAE)
+    { "hbbtv", "application/vnd.hbbtv.xhtml+xml"},
+#endif
     { "gif", "image/gif" },
     { "html", "text/html" },
     { "htm", "text/html" },
