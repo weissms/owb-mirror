@@ -416,13 +416,13 @@ public:
         that are chosen for best results in rendering web pages.
         @param applicationName The application name
      */
-    virtual void setApplicationNameForUserAgent(const char* applicationName);
+    virtual void setApplicationNameForUserAgent(const string& applicationName);
 
     /**
      *  applicationNameForUserAgent 
      * The name of the application as used in the user-agent string.
      */
-    virtual const char* applicationNameForUserAgent();
+    virtual const string& applicationNameForUserAgent();
 
     /**
      *  setCustomUserAgent 
@@ -433,13 +433,13 @@ public:
         for best results rendering web pages.
         @param userAgentString The user agent description
      */
-    virtual void setCustomUserAgent(const char* userAgentString);
+    virtual void setCustomUserAgent(const string& userAgentString);
 
     /**
      *  customUserAgent 
      * @result The custom user-agent string or nil if no custom user-agent string has been set.
      */
-    virtual const char* customUserAgent();
+    virtual const string& customUserAgent();
 
     /**
      *  userAgentForURL 
@@ -447,7 +447,7 @@ public:
         @param URL The URL.
         @result The user-agent string for the supplied URL.
      */
-    virtual const char* userAgentForURL(const char* url);
+    virtual const string& userAgentForURL(const string& url);
 
     /**
      *  supportsTextEncoding 
@@ -1321,7 +1321,7 @@ public:
     /**
      * get user agent for url
      */
-    const char* userAgentForKURL(const char* url);
+    const string& userAgentForKURL(const string& url);
 
 
 
@@ -1891,11 +1891,6 @@ protected:
      * developerExtrasEnabled 
      */
     bool developerExtrasEnabled() const;
-
-    /**
-     * Internal method to get the User-Agent string from the application name.
-     */
-    static const char* standardUserAgentWithApplicationName(const char*);
 
     /**
      *  windowReceivedMessage 

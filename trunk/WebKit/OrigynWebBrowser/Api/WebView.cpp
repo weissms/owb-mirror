@@ -59,6 +59,7 @@
 #if ENABLE(ICONDATABASE)
 #include "WebIconDatabase.h"
 #endif
+#include "WebKitVersion.h"
 #if ENABLE(INSPECTOR)
 #include "WebInspector.h"
 #include "WebInspectorClient.h"
@@ -159,6 +160,16 @@
 #include <sys/sysinfo.h>
 #endif
 
+#if ENABLE(CEHTML)
+#include "CEHTMLUserAgent.h"
+#include "HTMLInputElement.h"
+#include "HTMLNames.h"
+#endif
+
+#if ENABLE(DAE)
+#include "DAEUserAgent.h"
+#endif
+
 #if ENABLE(DAE_APPLICATION)
 #include "Application.h"
 #include "ApplicationManager.h"
@@ -167,16 +178,30 @@
 #include "Page.h"
 #endif
 
-#if ENABLE(CEHTML)
-#include "HTMLInputElement.h"
-#include "HTMLNames.h"
-#endif
-
 using namespace WebCore;
 using std::min;
 using std::max;
 
 #define HOST_NAME_BUFFER_LENGTH 2048
+
+#if OS(MACPORT)
+#define UA_PLATFORM     "Macintosh"
+#elif OS(AMIGAOS4)
+#define UA_PLATFORM     "compatible"
+#else
+#define UA_PLATFORM     "X11"
+#endif
+
+#if OS(MACPORT)
+#define UA_OS           "Intel Mac OS X"
+#elif OS(AMIGAOS4)
+#define UA_OS           ((IExec->Data.LibBase->lib_Version < 53) ? "AmigaOS 4.0 ppc" : "AmigaOS 4.1 ppc")
+#else
+#define UA_OS           "Linux i686"
+#endif
+
+#define UA_SECURITY     "U"
+#define UA_LOCALE       "en-US"
 
 WebView* kit(Page* page)
 {
@@ -949,31 +974,26 @@ void WebView::reloadFromOrigin()
     m_mainFrame->reloadFromOrigin();
 }
 
-const char* WebView::standardUserAgentWithApplicationName(const char* applicationName)
+static string standardUserAgentWithApplicationName(const string& applicationName)
 {
-#if OS(MACPORT)
-    // We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
+    String userAgent = String::format("Mozilla/5.0 (%s; %s; %s; %s) AppleWebKit/%d.%d (KHTML, like Gecko)%s%s",
+                                      UA_PLATFORM,
+                                      UA_SECURITY,
+                                      UA_OS,
+                                      UA_LOCALE,
+                                      WEBKIT_MAJOR_VERSION,
+                                      WEBKIT_MINOR_VERSION,
+                                      applicationName.empty() ? "" : " ",
+                                      applicationName.empty() ? "" : applicationName.c_str());
+
+    
 #if ENABLE(DAE)
-    return "HBBTV/1.0.0 (OITF_HD_UIPROF+PVR+DL;) Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 CE-HTML/1.0";
-#else
-    return  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Wedison";
+    userAgent = String::format("%s %s", userAgent.utf8().data(), HBBTVUserAgent::userAgent().utf8().data());
+#elif ENABLE(CEHTML)
+    userAgent = String::format("%s %s", userAgent.utf8().data(), CEHTMLUserAgent::userAgent().utf8().data());
 #endif
 
-#elif OS(AMIGAOS4)
-    if (IExec->Data.LibBase->lib_Version < 53)
-        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; ppc; U; en) AppleWebKit/528.5+ (KHTML, like Gecko, Safari/528.5+)";
-    else
-        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; ppc; U; en) AppleWebKit/528.5+ (KHTML, like Gecko, Safari/528.5+)";
-#else
-    // NOTE: some pages don't render with this UA.
-    // m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
-#if ENABLE(DAE)
-    return "HBBTV/1.0.0 (OITF_HD_UIPROF+PVR+DL;) Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+) CE-HTML/1.0";
-#else
-    return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
-#endif
-    /*m_userAgentStandard = String::format("Mozilla/5.0 (Windows; U; %s; %s) AppleWebKit/%s (KHTML, like Gecko)%s%s", osVersion().latin1().data(), defaultLanguage().latin1().data(), webKitVersion().latin1().data(), (m_applicationName.length() ? " " : ""), m_applicationName.latin1().data());*/
-#endif
+    return userAgent.utf8().data();
 }
 
 void WebView::setCookieEnabled(bool enable)
@@ -1199,19 +1219,19 @@ bool WebView::developerExtrasEnabled() const
 #endif
 }
 
-const char* WebView::userAgentForKURL(const char*)
+const string& WebView::userAgentForKURL(const string&)
 {
     if (m_userAgentOverridden)
-        return m_userAgentCustom.c_str();
+        return m_userAgentCustom;
 
     char* userAgent = getenv("OWB_USER_AGENT");
     if (userAgent)
         m_userAgentStandard = userAgent;
 
     if (!m_userAgentStandard.length())
-        m_userAgentStandard = WebView::standardUserAgentWithApplicationName(m_applicationName.c_str());
+        m_userAgentStandard = standardUserAgentWithApplicationName(m_applicationName);
 
-    return m_userAgentStandard.c_str();
+    return m_userAgentStandard;
 }
 
 bool WebView::canShowMIMEType(const char* mimeType)
@@ -1689,33 +1709,31 @@ void WebView::makeTextStandardSize()
 
 
 
-void WebView::setApplicationNameForUserAgent(const char* applicationName)
+void WebView::setApplicationNameForUserAgent(const string& applicationName)
 {
     m_applicationName = applicationName;
     m_userAgentStandard = "";
 }
 
-const char* WebView::applicationNameForUserAgent()
+const string& WebView::applicationNameForUserAgent()
 {
-    return m_applicationName.c_str();
+    return m_applicationName;
 }
 
-void WebView::setCustomUserAgent(const char* userAgentString)
+void WebView::setCustomUserAgent(const string& userAgentString)
 {
     m_userAgentOverridden = true;
-    m_userAgentCustom = string(userAgentString);
+    m_userAgentCustom = userAgentString;
 }
 
-const char* WebView::customUserAgent()
+const string& WebView::customUserAgent()
 {
-    return m_userAgentCustom.c_str();
+    return m_userAgentCustom;
 }
 
-const char* WebView::userAgentForURL(const char* url)
+const string& WebView::userAgentForURL(const string& url)
 {
-    String ua = this->userAgentForKURL(url);
-    printf("UA: %s", ua.latin1().data());
-    return ua.utf8().data();
+    return userAgentForKURL(url);
 }
 
 bool WebView::supportsTextEncoding()

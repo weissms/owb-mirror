@@ -1,3 +1,24 @@
+2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Reviewed by Mario Bensi.
+
+        Use std::string for the user-agent related WebView APIs.
+        Cleaned-up user-agent string assembly routine, use WebKit version
+        numbering macros from WebKitVersion.h, setup specific user-agent
+        string for CEHTML 1.0/HBBTV 1.0.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (standardUserAgentWithApplicationName):
+        (WebView::userAgentForKURL):
+        (WebView::setApplicationNameForUserAgent):
+        (WebView::applicationNameForUserAgent):
+        (WebView::setCustomUserAgent):
+        (WebView::customUserAgent):
+        (WebView::userAgentForURL):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::userAgent):
+
 2010-02-15  Mario Bensi  <mbensi@pleyo.com>
 
         Add test in createPlugin.

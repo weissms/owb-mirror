@@ -1147,7 +1147,7 @@ void WebFrameLoaderClient::prepareForDataSourceReplacement()
 
 String WebFrameLoaderClient::userAgent(const KURL& url)
 {
-    return m_webFrame->webView()->userAgentForKURL(url.string().utf8().data());
+    return m_webFrame->webView()->userAgentForKURL(url.string().utf8().data()).c_str();
 }
 
 void WebFrameLoaderClient::transitionToCommittedFromCachedPage(CachedPage*)
