@@ -66,7 +66,7 @@ protected:
         WebView* view = WebView::createInstance();
         const char* foobarUA = "foobarUA";
         view->setApplicationNameForUserAgent(foobarUA);
-        CPPUNIT_ASSERT(!strncmp(foobarUA, view->applicationNameForUserAgent(), strlen(foobarUA)));
+        CPPUNIT_ASSERT(!strncmp(foobarUA, view->applicationNameForUserAgent().c_str(), strlen(foobarUA)));
         delete view;
     }
 
