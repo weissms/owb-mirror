@@ -83,7 +83,6 @@ noframes interfaceName=HTMLElement
 nolayer interfaceName=HTMLElement
 object constructorNeedsCreatedByParser
 ol interfaceName=HTMLOListElement, createWithNew
-op interfaceName=CEHTMLOpElement, createWithNew, conditional=CEHTML
 optgroup interfaceName=HTMLOptGroupElement, constructorNeedsFormElement, createWithNew
 option constructorNeedsFormElement, createWithNew
 p interfaceName=HTMLParagraphElement, createWithNew
@@ -123,6 +122,10 @@ var interfaceName=HTMLElement
 video wrapperOnlyIfMediaIsAvailable, conditional=VIDEO, createWithNew
 wbr interfaceName=HTMLElement
 xmp interfaceName=HTMLPreElement, createWithNew
+
+#if ENABLE_CEHTML
+op interfaceName=CEHTMLOpElement, createWithNew, conditional=CEHTML
+#endif
 
 #if ENABLE_XHTMLMP
 noscript interfaceName=HTMLNoScriptElement, createWithNew
