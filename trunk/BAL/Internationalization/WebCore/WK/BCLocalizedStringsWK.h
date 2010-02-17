@@ -152,6 +152,9 @@ namespace WebCore {
     String validationMessageRangeOverflowText();
     String validationMessageStepMismatchText();
 
+#if ENABLE(CEHTML)
+    String opCodeElementReplacementText(int);
+#endif
 }
 
 #endif

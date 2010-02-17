@@ -1,3 +1,10 @@
+2010-02-17  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Mapped the <op> element for the CEA-2014-A 5.2.9 tagged opcode
+        requirement.
+
+        * html/HTMLTagNames.in:
+
 2010-02-09  Mario Bensi  <mbensi@pleyo.com>
 
         add AddOnEvents

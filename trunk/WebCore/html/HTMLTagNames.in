@@ -83,6 +83,7 @@ noframes interfaceName=HTMLElement
 nolayer interfaceName=HTMLElement
 object constructorNeedsCreatedByParser
 ol interfaceName=HTMLOListElement, createWithNew
+op interfaceName=CEHTMLOpElement, createWithNew, conditional=CEHTML
 optgroup interfaceName=HTMLOptGroupElement, constructorNeedsFormElement, createWithNew
 option constructorNeedsFormElement, createWithNew
 p interfaceName=HTMLParagraphElement, createWithNew
