@@ -170,9 +170,19 @@ if(ENABLE_DAE)
     set(DAE_EXTENSIONS ${DAE_ATTRS} ${DAE_FILE})
 endif(ENABLE_DAE)
 
+# The WebCore compiler flags need to be included before generating the list of compiler defines below
+include(AddWebCoreCompilerFlags)
+
+# Generate a list of compiler defines to pass as argument to the make_names.pl script
+# so the preprocessor-dependent HTML tag names definitions get generated appropriately
+get_directory_property(PREPROCESSOR_DEFINITIONS COMPILE_DEFINITIONS)
+foreach(define ${PREPROCESSOR_DEFINITIONS})
+    set(EXTRA_DEFINES "${EXTRA_DEFINES} ${define}")
+endforeach(define)
+
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp ${WEBCORE_GENERATED_DIR}/html/HTMLNames.h ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.cpp
-    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_EXTENSIONS} ${CEHTML_EXTENSIONS} ${HTML_FEATURES} --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --extraDefines ${EXTRA_DEFINES} --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_EXTENSIONS} ${CEHTML_EXTENSIONS} ${HTML_FEATURES} --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_FILE} ${CEHTML_FILE}
     VERBATIM
@@ -405,8 +415,6 @@ include_directories(
     ${WEBCORE_GENERATED_DIR}/xml
     ${WEBKIT_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS})
-
-include(AddWebCoreCompilerFlags)
 
 set_source_files_properties(${WEBCORE_SRC}
     PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"

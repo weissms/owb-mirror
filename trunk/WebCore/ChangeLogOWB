@@ -1,3 +1,13 @@
+2010-02-18  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Reviewed by Olivier Dole.
+
+        Generate a list of compiler defines to pass as argument to the
+        make_names.pl script so the preprocessor-dependent HTML tag 
+        names definitions get generated appropriately.
+
+        * CMakeLists.txt:
+
 2010-02-17  Gilles Bertal  <gbertal@sand-labs.org>
 
         Mapped the <op> element for the CEA-2014-A 5.2.9 tagged opcode
