@@ -98,6 +98,8 @@ class RunTests :
                     self.resultSuccess[thread.getTest()] = [thread.getTime(), thread.getDiff(), thread.getFile()]
                 if self.config['leak'] :
                     for k in thread.getLeaks().keys() :
+                        if not self.leakList.has_key(k):
+                            self.leakList[k] = 0
                         self.leakList[k] += thread.getLeaks()[k]
            
             del threads[:]

@@ -1,3 +1,9 @@
+2010-02-18  Olivier DOLE  <odole@sand-labs.org>
+
+        Fix DRT script when running with a debug build.
+
+        * Scripts/Drt/runtests.py:
+
 2010-02-17  Gilles Bertal  <gbertal@sand-labs.org>
 
         Added opCodeElementReplacementText() as a mean to provide physical key
