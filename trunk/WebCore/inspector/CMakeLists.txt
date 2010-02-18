@@ -14,8 +14,6 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorTimelineAgent.cpp
         inspector/JavaScriptCallFrame.cpp
         inspector/JavaScriptDebugServer.cpp
-        inspector/JavaScriptProfile.cpp
-        inspector/JavaScriptProfileNode.cpp
         inspector/TimelineRecordFactory.cpp
     )
     list(APPEND IDL_SRC

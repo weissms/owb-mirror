@@ -467,10 +467,8 @@ static JSValueRef notifyDoneCallback(JSContextRef context, JSObjectRef function,
 
 static bool parsePageParameters(JSContextRef context, int argumentCount, const JSValueRef* arguments, JSValueRef* exception, float& pageWidthInPixels, float& pageHeightInPixels)
 {
-    // FIXME: These values should sync with maxViewWidth/Height in
-    //        DumpRenderTree.mm. Factor these values out to somewhere.
-    pageWidthInPixels = 800;
-    pageHeightInPixels = 600;
+    pageWidthInPixels = LayoutTestController::maxViewWidth;
+    pageHeightInPixels = LayoutTestController::maxViewHeight;
     switch (argumentCount) {
     case 2:
         pageWidthInPixels = static_cast<float>(JSValueToNumber(context, arguments[0], exception));
@@ -940,6 +938,18 @@ static JSValueRef setAllowUniversalAccessFromFileURLsCallback(JSContextRef conte
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef setAllowFileAccessFromFileURLsCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    // Has mac & windows implementation
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setAllowFileAccessFromFileURLs(JSValueToBoolean(context, arguments[0]));
+
+    return JSValueMakeUndefined(context);
+}
+
 static JSValueRef setTabKeyCyclesThroughElementsCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     // Has mac & windows implementation
@@ -1380,6 +1390,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "repaintSweepHorizontally", repaintSweepHorizontallyCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAcceptsEditing", setAcceptsEditingCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAllowUniversalAccessFromFileURLs", setAllowUniversalAccessFromFileURLsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setAllowFileAccessFromFileURLs", setAllowFileAccessFromFileURLsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAlwaysAcceptCookies", setAlwaysAcceptCookiesCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAppCacheMaximumSize", setAppCacheMaximumSizeCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete }, 
         { "setAuthenticationPassword", setAuthenticationPasswordCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1492,3 +1503,6 @@ void LayoutTestController::setPOSIXLocale(JSStringRef locale)
     JSStringGetUTF8CString(locale, localeBuf, sizeof(localeBuf));
     setlocale(LC_ALL, localeBuf);
 }
+
+const unsigned LayoutTestController::maxViewWidth = 800;
+const unsigned LayoutTestController::maxViewHeight = 600;

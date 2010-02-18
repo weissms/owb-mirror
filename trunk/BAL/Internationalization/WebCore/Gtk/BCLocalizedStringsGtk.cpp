@@ -40,10 +40,6 @@
 #include <gtk/gtk.h>
 #include <math.h>
 
-#if ENABLE(CEHTML)
-#include "KeyboardCodesCEHTML.h"
-#endif
-
 namespace WebCore {
 
 static const char* gtkStockLabel(const char* stockID)
@@ -525,16 +521,5 @@ String validationMessageStepMismatchText()
 {
     return String::fromUTF8(_("step mismatch"));
 }
-
-#if ENABLE(CEHTML)
-
-String opCodeElementReplacementText(int keyCode)
-{
-    // Default to translating key code to corresponding key literal
-    return convertVKKeyToString(keyCode);
-}
-
-#endif // ENABLE(CEHTML)
-
 
 }

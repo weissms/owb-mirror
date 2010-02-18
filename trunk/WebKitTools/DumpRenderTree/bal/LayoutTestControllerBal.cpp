@@ -559,3 +559,8 @@ void LayoutTestController::setFrameSetFlatteningEnabled(bool flag)
 {
     // FIXME: implement
 }
+
+void LayoutTestController::setAllowFileAccessFromFileURLs(bool enabled)
+{
+    // FIXME: implement
+}

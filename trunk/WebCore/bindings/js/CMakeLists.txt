@@ -11,6 +11,8 @@ endif(ENABLE_WORKERS)
 list(APPEND WEBCORE_SRC
     bindings/ScriptControllerBase.cpp
     bindings/js/GCController.cpp
+    bindings/js/JavaScriptProfile.cpp
+    bindings/js/JavaScriptProfileNode.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp

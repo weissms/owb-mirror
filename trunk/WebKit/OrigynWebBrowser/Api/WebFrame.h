@@ -271,6 +271,23 @@ public:
     virtual char* counterValueForElementById(const char* /*id*/);
 
     /**
+     * get the page number for element by id
+     * @param id The name of element.
+     * @param pageWidthInPixels The width of page in pixels.
+     * @param pageHeightInPixels The height of page in pixels.
+     * @param[out]: page number
+     */
+    virtual int pageNumberForElementById(const char* id, float pageWidthInPixels, float pageHeightInPixels);
+
+    /**
+     * get the number of pages
+     * @param pageWidthInPixels The width of page in pixels.
+     * @param pageHeightInPixels The height of page in pixels.
+     * @param[out]: number of pages
+     */
+    virtual int numberOfPages(float pageWidthInPixels, float pageHeightInPixels);
+
+    /**
      * get the scroll offset
      * @param[out]: scroll offset
      */
@@ -385,6 +402,11 @@ public:
      * @param WebScriptWorld, the isolated world.
      */
     virtual JSGlobalContextRef contextForScriptWorld(WebScriptWorld*);
+
+    /**
+     * get visible content rect
+     */
+    virtual BalRectangle visibleContentRect();
 
     /**
      * test if the frame supports text encoding

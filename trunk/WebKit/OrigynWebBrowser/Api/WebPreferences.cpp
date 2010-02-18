@@ -136,6 +136,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitJavaScriptEnabledPreferenceKey] = "1"; //TRUE
     m_privatePrefs[WebKitWebSecurityEnabledPreferenceKey] = "1"; //TRUE
     m_privatePrefs[WebKitAllowUniversalAccessFromFileURLsPreferenceKey] = "1";//TRUE
+    m_privatePrefs[WebKitAllowFileAccessFromFileURLsPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitXSSAuditorEnabledPreferenceKey] =  "1";//TRUE
     m_privatePrefs[WebKitFrameSetFlatteningEnabledPreferenceKey] =  "0";//FALSE
     m_privatePrefs[WebKitCustomDragCursorsEnabledPreferenceKey] = "0";//FALSE
@@ -481,6 +482,16 @@ bool WebPreferences::allowUniversalAccessFromFileURLs()
 void WebPreferences::setAllowUniversalAccessFromFileURLs(bool allowAccess)
 {
     setBoolValue(WebKitAllowUniversalAccessFromFileURLsPreferenceKey, allowAccess);
+}
+
+bool WebPreferences::allowFileAccessFromFileURLs()
+{
+    return boolValueForKey(WebKitAllowFileAccessFromFileURLsPreferenceKey);
+}
+
+void WebPreferences::setAllowFileAccessFromFileURLs(bool allowAccess)
+{
+    setBoolValue(WebKitAllowFileAccessFromFileURLsPreferenceKey, allowAccess);
 }
 
 bool WebPreferences::userStyleSheetEnabled()

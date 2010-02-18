@@ -133,6 +133,7 @@ namespace WebCore {
 #endif
 
         void runOpenPanel(Frame*, PassRefPtr<FileChooser>);
+        void iconForFiles(const Vector<String>&, PassRefPtr<FileChooser>);
 
         bool setCursor(PlatformCursorHandle);
 

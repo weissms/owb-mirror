@@ -605,6 +605,16 @@ public:
     virtual void setAllowUniversalAccessFromFileURLs(bool);
 
     /**
+     * get allow file access from File Urls status
+     */
+    virtual bool allowFileAccessFromFileURLs();
+
+    /**
+     * allow file access from File Urls
+     */
+    virtual void setAllowFileAccessFromFileURLs(bool allowAccess);
+
+    /**
      * Is XSS auditor enabled
      */
     virtual bool isXSSAuditorEnabled();

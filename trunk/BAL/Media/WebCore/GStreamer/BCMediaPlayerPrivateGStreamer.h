@@ -2,6 +2,7 @@
  * Copyright (C) 2007, 2009 Apple Inc.  All rights reserved.
  * Copyright (C) 2007 Collabora Ltd. All rights reserved.
  * Copyright (C) 2007 Alp Toker <alp@atoker.com>
+ * Copyright (C) 2009, 2010 Igalia S.L
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -90,6 +91,9 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             void muteChanged();
             void muteChangedCallback();
 
+            void setAutobuffer(bool);
+            bool queryBufferingStats();
+
             MediaPlayer::NetworkState networkState() const;
             MediaPlayer::ReadyState readyState() const;
 
@@ -147,8 +151,10 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             float maxTimeLoaded() const;
             void startEndPointTimerIfNeeded();
 
-            void createGSTPlayBin(String url);
+            void createGSTPlayBin();
             bool changePipelineState(GstState state);
+
+            void processBufferingStats(GstMessage* message);
 
         private:
             MediaPlayer* m_player;
@@ -176,6 +182,10 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             guint m_volumeIdleId;
             gfloat m_mediaDuration;
             guint m_muteIdleId;
+            bool m_startedBuffering;
+            guint m_fillTimeoutId;
+            float m_maxTimeLoaded;
+            gdouble m_fillStatus;
     };
 }
 

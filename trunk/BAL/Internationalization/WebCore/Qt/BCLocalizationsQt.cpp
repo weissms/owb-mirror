@@ -37,10 +37,6 @@
 #include <QCoreApplication>
 #include <QLocale>
 
-#if ENABLE(CEHTML)
-#include "KeyboardCodesCEHTML.h"
-#endif
-
 namespace WebCore {
 
 String submitButtonDefaultLabel()
@@ -527,16 +523,6 @@ String validationMessageStepMismatchText()
     notImplemented();
     return String();
 }
-
-#if ENABLE(CEHTML)
-
-String opCodeElementReplacementText(int keyCode)
-{
-    // Default to translating key code to corresponding key literal
-    return convertVKKeyToString(keyCode);
-}
-
-#endif // ENABLE(CEHTML)
 
 }
 // vim: ts=4 sw=4 et

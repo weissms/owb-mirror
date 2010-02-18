@@ -52,6 +52,7 @@ WebInspector.TextViewer = function(textModel, platform, url)
     this._paintCoalescingLevel = 0;
 
     this.freeCachedElements();
+    this._buildChunks();
 }
 
 WebInspector.TextViewer.prototype = {
@@ -98,7 +99,10 @@ WebInspector.TextViewer.prototype = {
             this._rangeToMark = range;
             this.revealLine(range.startLine);
             this._paintLines(range.startLine, range.startLine + 1);
+            if (this._markedRangeElement)
+                this._markedRangeElement.scrollIntoViewIfNeeded();
         }
+        delete this._markedRangeElement;
     },
 
     highlightLine: function(lineNumber)
@@ -192,7 +196,11 @@ WebInspector.TextViewer.prototype = {
 
     _scroll: function()
     {
-        this._repaintAll();
+        var scrollTop = this.element.scrollTop;
+        setTimeout(function() {
+            if (scrollTop === this.element.scrollTop)
+                this._repaintAll();
+        }.bind(this), 50);
     },
 
     beginUpdates: function(enabled)
@@ -327,7 +335,7 @@ WebInspector.TextViewer.prototype = {
 
         if (!highlighterState) {
             if (this._rangeToMark && this._rangeToMark.startLine === lineNumber)
-                this._markRange(element, line, this._rangeToMark.startColumn, this._rangeToMark.endColumn);
+                this._markedRangeElement = highlightSearchResult(element, this._rangeToMark.startColumn, this._rangeToMark.endColumn - this._rangeToMark.startColumn);
             return;
         }
 
@@ -337,6 +345,7 @@ WebInspector.TextViewer.prototype = {
         for (var j = 0; j < line.length;) {
             if (j > 1000) {
                 // This line is too long - do not waste cycles on minified js highlighting.
+                plainTextStart = j;
                 break;
             }
             var attribute = highlighterState && highlighterState.attributes[j];
@@ -356,7 +365,7 @@ WebInspector.TextViewer.prototype = {
         if (plainTextStart !== -1)
             this._appendTextNode(element, line.substring(plainTextStart, line.length));
         if (this._rangeToMark && this._rangeToMark.startLine === lineNumber)
-            this._markRange(element, line, this._rangeToMark.startColumn, this._rangeToMark.endColumn);
+            this._markedRangeElement = highlightSearchResult(element, this._rangeToMark.startColumn, this._rangeToMark.endColumn - this._rangeToMark.startColumn);
         if (lineRow.decorationsElement)
             element.appendChild(lineRow.decorationsElement);
     },
@@ -531,48 +540,6 @@ WebInspector.TextViewer.prototype = {
         return WebInspector.completeURL(this._url, hrefValue);
     },
 
-    _markRange: function(element, lineText, startOffset, endOffset)
-    {
-        var markNode = document.createElement("span");
-        markNode.className = "webkit-markup";
-        markNode.textContent = lineText.substring(startOffset, endOffset);
-
-        var markLength = endOffset - startOffset;
-        var boundary = element.rangeBoundaryForOffset(startOffset);
-        var textNode = boundary.container;
-        var text = textNode.textContent;
-
-        if (boundary.offset + markLength < text.length) {
-            // Selection belong to a single split mode.
-            textNode.textContent = text.substring(boundary.offset + markLength);
-            textNode.parentElement.insertBefore(markNode, textNode);
-            var prefixNode = document.createTextNode(text.substring(0, boundary.offset));
-            textNode.parentElement.insertBefore(prefixNode, markNode);
-            return;
-        }
-
-        var parentElement = textNode.parentElement;
-        var anchorElement = textNode.nextSibling;
-
-        markLength -= text.length - boundary.offset;
-        textNode.textContent = text.substring(0, boundary.offset);
-        textNode = textNode.traverseNextTextNode(element);
-
-        while (textNode) {
-            var text = textNode.textContent;
-            if (markLength < text.length) {
-                textNode.textContent = text.substring(markLength);
-                break;
-            }
-
-            markLength -= text.length;
-            textNode.textContent = "";
-            textNode = textNode.traverseNextTextNode(element);
-        }
-
-        parentElement.insertBefore(markNode, anchorElement);
-    },
-
     resize: function()
     {
         this._repaintAll();
@@ -595,7 +562,6 @@ WebInspector.TextChunk = function(textViewer, startLine, endLine)
 
     this._lineNumberElement = document.createElement("td");
     this._lineNumberElement.className = "webkit-line-number";
-    this._lineNumberElement.textContent = this._lineNumberText(this.startLine);
     this.element.appendChild(this._lineNumberElement);
 
     this._lineContentElement = document.createElement("td");
@@ -604,9 +570,13 @@ WebInspector.TextChunk = function(textViewer, startLine, endLine)
 
     this._expanded = false;
 
+    var lineNumbers = [];
     var lines = [];
-    for (var i = this.startLine; i < this.startLine + this.linesCount; ++i)
+    for (var i = startLine; i < endLine; ++i) {
+        lineNumbers.push(i + 1);
         lines.push(this._textModel.line(i));
+    }
+    this._lineNumberElement.textContent = lineNumbers.join("\n");
     this._lineContentElement.textContent = lines.join("\n");
 }
 
@@ -691,18 +661,6 @@ WebInspector.TextChunk.prototype = {
         return result;
     },
 
-    _lineNumberText: function(lineNumber)
-    {
-        var totalDigits = Math.ceil(Math.log(this._textModel.linesCount + 1) / Math.log(10));
-        var digits = Math.ceil(Math.log(lineNumber + 2) / Math.log(10));
-
-        var text = "";
-        for (var i = digits; i < totalDigits; ++i)
-            text += " ";
-        text += lineNumber + 1;
-        return text;
-    },
-
     _createRow: function(lineNumber)
     {
         var cachedRows = this._textViewer._cachedRows;
@@ -723,7 +681,7 @@ WebInspector.TextChunk.prototype = {
             lineRow.appendChild(lineContentElement);        
         }
         lineRow.lineNumber = lineNumber;
-        lineNumberElement.textContent = this._lineNumberText(lineNumber);
+        lineNumberElement.textContent = lineNumber + 1;
         lineContentElement.textContent = this._textModel.line(lineNumber);
         return lineRow;
     }

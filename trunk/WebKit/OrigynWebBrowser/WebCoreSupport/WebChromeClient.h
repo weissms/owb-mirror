@@ -131,6 +131,8 @@ public:
     virtual bool paintCustomScrollCorner(WebCore::GraphicsContext*, const WebCore::FloatRect&);
       
     virtual void runOpenPanel(WebCore::Frame*, PassRefPtr<WebCore::FileChooser>);
+    
+    virtual void iconForFiles(const Vector<WebCore::String>&, PassRefPtr<WebCore::FileChooser>);
 
     virtual bool setCursor(WebCore::PlatformCursorHandle cursor);
 

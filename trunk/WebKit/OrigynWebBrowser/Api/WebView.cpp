@@ -2867,6 +2867,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->allowUniversalAccessFromFileURLs();
     settings->setAllowUniversalAccessFromFileURLs(!!enabled);
 
+    enabled = preferences->allowFileAccessFromFileURLs();
+    settings->setAllowFileAccessFromFileURLs(!!enabled);
+
     enabled = preferences->isXSSAuditorEnabled();
     settings->setXSSAuditorEnabled(!!enabled);
 

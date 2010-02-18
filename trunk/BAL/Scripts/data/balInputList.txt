@@ -314,6 +314,7 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Gradient.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext3D.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContext3D.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/GraphicsContextPrivate.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/GraphicsLayerClient.h
@@ -728,7 +729,6 @@ BAL/Skeletons/Types JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Skeletons/Types JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PassRefPtr.h
 BAL/Skeletons/Types JavaScriptCore/wtf/PossiblyNull.h
-BAL/Skeletons/Types	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCounted.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCountedLeakCounter.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtr.h
@@ -803,7 +803,6 @@ BAL/Types/WTF   JavaScriptCore/wtf/OwnPtrCommon.h
 BAL/Types/WTF   JavaScriptCore/wtf/PassOwnPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/PassRefPtr.h
 BAL/Types/WTF   JavaScriptCore/wtf/PossiblyNull.h
-BAL/Types/WTF	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.h

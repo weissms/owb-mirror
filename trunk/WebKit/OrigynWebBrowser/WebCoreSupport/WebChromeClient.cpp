@@ -600,6 +600,12 @@ void WebChromeClient::runOpenPanel(Frame*, PassRefPtr<FileChooser> prpFileChoose
 
 }
 
+void WebChromeClient::iconForFiles(const Vector<String>&, PassRefPtr<FileChooser>)
+{
+    // FIXME: Move the code of Icon::createIconForFiles() here.
+    notImplemented();
+}
+
 bool WebChromeClient::setCursor(WebCore::PlatformCursorHandle cursor)
 {
     //FIXME: implement me!

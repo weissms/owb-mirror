@@ -944,6 +944,10 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
     return childFrame.release();
 }
 
+void WebFrameLoaderClient::didTransferChildFrameToNewDocument()
+{
+}
+
 PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
 #if ENABLE(CEHTML_MEDIA_OBJECTS)

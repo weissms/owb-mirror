@@ -79,6 +79,7 @@
 #include <PluginInfoStore.h>
 #include <PluginDatabase.h>
 #include <PluginView.h>
+#include <PrintContext.h>
 #include <PutPropertySlot.h>
 #include <ResourceHandle.h>
 #include <ResourceHandle.h>
@@ -510,6 +511,30 @@ char* WebFrame::counterValueForElementById(const char* id)
     return strdup(counterValue.utf8().data());
 }
 
+int WebFrame::pageNumberForElementById(const char* id, float pageWidthInPixels, float pageHeightInPixels)
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return 0;
+
+    String coreId = String(id, strlen(id));
+
+    Element* element = coreFrame->document()->getElementById(coreId);
+    if (!element)
+        return 0;
+
+    return PrintContext::pageNumberForElement(element, FloatSize(pageWidthInPixels, pageHeightInPixels));
+}
+
+int WebFrame::numberOfPages(float pageWidthInPixels, float pageHeightInPixels)
+{
+    Frame* coreFrame = core(this);
+    if (!coreFrame)
+        return 0;
+
+    return PrintContext::numberOfPages(coreFrame, FloatSize(pageWidthInPixels, pageHeightInPixels));
+}
+
 BalPoint WebFrame::scrollOffset()
 {
     Frame* coreFrame = core(this);
@@ -522,6 +547,19 @@ BalPoint WebFrame::scrollOffset()
 
     IntPoint p(view->scrollOffset().width(), view->scrollOffset().height());
     return p;
+}
+
+BalRectangle WebFrame::visibleContentRect()
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return BalRectangle();
+
+    FrameView* view = frame->view();
+    if (!view)
+        return BalRectangle();
+
+    return view->visibleContentRect(false);
 }
 
 void WebFrame::layout()
