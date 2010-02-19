@@ -107,42 +107,9 @@
 #include "CEHTMLJSWindowExtensions.h"
 #endif
 
-#if ENABLE(CEHTML_MEDIA_OBJECTS)
-#include "CEHTMLAudioElement.h"
-#include "CEHTMLVideoElement.h"
-#endif
-
 #if ENABLE(DAE)
-#include "ApplicationManagerElement.h"
-#include "ConfigurationElement.h"
 #include "WebApplication.h"
 #include "WebApplicationManager.h"
-#endif
-
-#if ENABLE(DAE_DRM)
-#include "DRMAgentElement.h"
-#endif
-
-#if ENABLE(DAE_TUNER)
-#include "AVComponentJSConstantHolder.h"
-#include "ChannelJSConstantHolder.h"
-#include "VideoBroadcastElement.h"
-#include "VideoBroadcastJSConstantHolder.h"
-#endif
-
-#if ENABLE(DAE_METADATA)
-#include "SearchManagerElement.h"
-#endif
-
-#if ENABLE(DAE_PVR)
-#include "ProgrammeJSConstantHolder.h"
-#include "RecordingSchedulerElement.h"
-#endif
-
-#if ENABLE(DAE_DOWNLOAD)
-#include "WebDownloadManagerClient.h"
-#include "DownloadManagerElement.h"
-#include "DownloadTriggerElement.h"
 #endif
 
 using namespace WebCore;
@@ -950,74 +917,14 @@ void WebFrameLoaderClient::didTransferChildFrameToNewDocument()
 
 PassRefPtr<Widget> WebFrameLoaderClient::createPlugin(const IntSize& pluginSize, HTMLPlugInElement* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
-#if ENABLE(CEHTML_MEDIA_OBJECTS)
-    if (CEHTMLVideoElement::supportsType(mimeType)) {
-        ASSERT(element->hasTagName(objectTag));
-        HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-        return adoptRef(static_cast<Widget*>(new CEHTMLVideoElement(objectElement)));
-    }
-    
-    if (CEHTMLAudioElement::supportsType(mimeType)) {
-        ASSERT(element->hasTagName(objectTag));
-        HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-        return adoptRef(static_cast<Widget*>(new CEHTMLAudioElement(objectElement)));
-    }
+#if ENABLE(CEHTML)
+    if (isCEHTMLSupportedMIMEType(mimeType))
+        return createCEHTMLPlugin(pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
 #endif
 
-#if ENABLE(DAE_APPLICATION)
-    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
-    // Even if we have returned false in shouldUsePluginDocument, we may be called as a fallback so avoid matching them now.
-    if (app) {
-        // FIXME: This check should be case-sensitive but WebCore lower-cases the MIME Type.
-        if (mimeType == "application/oipfapplicationmanager") {
-            // We have encountered an iopfapplicationmanager so we have an OIPF application.
-            app->setIsOIPFApplication();
-            return adoptRef(static_cast<Widget*>(new ApplicationManagerElement()));
-        } else if (mimeType == ConfigurationElement::MIMEType) {
-            ASSERT(element->hasTagName(objectTag)); 
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element); 
-            return adoptRef(static_cast<Widget*>(new ConfigurationElement(objectElement))); 
-        }
-#if ENABLE(DAE_TUNER)
-        else if (mimeType == "video/broadcast") {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new VideoBroadcastElement(objectElement)));
-        }
-#endif
-#if ENABLE(DAE_METADATA)
-        else if (mimeType == "application/oipfsearchmanager") {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new SearchManagerElement(objectElement)));
-        }
-#endif
-#if ENABLE(DAE_PVR)
-        else if (mimeType == "application/oipfrecordingscheduler") {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new RecordingSchedulerElement(objectElement)));
-        }
-#endif
-#if ENABLE(DAE_DOWNLOAD)
-        else if (mimeType == DownloadManagerElement::MIMEType) {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new DownloadManagerElement(objectElement, WebDownloadManagerClient::getInstance())));
-        } else if (mimeType == DownloadTriggerElement::MIMEType) {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new DownloadTriggerElement(objectElement, WebDownloadManagerClient::getInstance())));
-        }
-#endif
-#if ENABLE(DAE_DRM)
-       else if (mimeType == "application/oipfDrmAgent") {
-            ASSERT(element->hasTagName(objectTag));
-            HTMLObjectElement* objectElement = static_cast<HTMLObjectElement*>(element);
-            return adoptRef(static_cast<Widget*>(new DRMAgentElement(objectElement)));
-       }
-#endif
-    }
+#if ENABLE(DAE)
+    if (isDAESupportedMIMEType(mimeType))
+        return createDAEPlugin(pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
 #endif
 
     Frame* frame = core(m_webFrame);
@@ -1379,19 +1286,8 @@ void WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* 
 #if ENABLE(CEHTML)
     addCEHTMLJSWindowExtensions(coreFrame->script()->globalObject(world));
 #endif
-#if ENABLE(DAE_APPLICATION)
-    SharedPtr<WebApplication> app = webAppMgr().application(m_webFrame->webView());
-    if (app)
-        webAppMgr().setDocumentOwnerApplication(app, coreFrame->document());
-    m_webFrame->addVKToJSWindowObject();
-#endif
-#if ENABLE(DAE_TUNER)
-    m_webFrame->addToJSWindowObject(new AVComponentJSConstantHolder());
-    m_webFrame->addToJSWindowObject(new ChannelJSConstantHolder());
-    m_webFrame->addToJSWindowObject(new VideoBroadcastJSConstantHolder());
-#endif
-#if ENABLE(DAE_PVR)
-    m_webFrame->addToJSWindowObject(new ProgrammeJSConstantHolder());
+#if ENABLE(DAE)
+    addDAEJSWindowExtensions();
 #endif
  
     JSGlobalContextRef context = toGlobalRef(coreFrame->script()->globalObject(world)->globalExec());

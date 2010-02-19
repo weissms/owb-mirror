@@ -210,6 +210,17 @@ private:
     void receivedData(const char*, int, const WebCore::String&);
     WebHistory* webHistory() const;
 
+#if ENABLE(CEHTML)
+    bool isCEHTMLSupportedMIMEType(const WebCore::String& mimeType) const;
+    PassRefPtr<WebCore::Widget> createCEHTMLPlugin(const WebCore::IntSize&, WebCore::HTMLPlugInElement*, const WebCore::KURL&, const Vector<WebCore::String>&, const Vector<WebCore::String>&, const WebCore::String&, bool loadManually);
+#endif
+    
+#if ENABLE(DAE)
+    bool isDAESupportedMIMEType(const WebCore::String& mimeType) const;
+    PassRefPtr<WebCore::Widget> createDAEPlugin(const WebCore::IntSize&, WebCore::HTMLPlugInElement*, const WebCore::KURL&, const Vector<WebCore::String>&, const Vector<WebCore::String>&, const WebCore::String&, bool loadManually);
+    void addDAEJSWindowExtensions();
+#endif
+    
     WebFrame* m_webFrame;
 
     // Points to the plugin view that data should be redirected to.

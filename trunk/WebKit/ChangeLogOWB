@@ -1,3 +1,13 @@
+2010-02-19  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Moved DAE/CEHTML code intrusions from createPlugin() and
+        dispatchDidClearWindowObjectInWorld() to separate methods.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+        (WebFrameLoaderClient::dispatchDidClearWindowObjectInWorld):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.h:
+
 2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
 
         Renamed ENABLE_CEHTML_VIDEO to ENABLE_CEHTML_MEDIA_OBJECTS.
