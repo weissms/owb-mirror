@@ -2,6 +2,7 @@ include(${OWB_SOURCE_DIR}/BAL/Graphics/WebKit/CMakeLists.txt)
 include(${OWB_SOURCE_DIR}/BAL/Widgets/WebKit/CMakeLists.txt)
 
 if(ENABLE_CEHTML)
+    include(${OWB_SOURCE_DIR}/BAL/CEHTML/WebKit/CMakeLists.txt)
     aux_source_directory(Api/CEHTML WEBKIT_SRC)
 endif(ENABLE_CEHTML)
 
