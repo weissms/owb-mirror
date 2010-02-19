@@ -73,7 +73,6 @@ list(APPEND WEBCORE_CSS_PROPERTY_NAMES
 endif(ENABLE_DAE)
 
 if(ENABLE_VIDEO)
-    list(APPEND HTML_FEATURES --extraDefines ENABLE_VIDEO=1)
     list(APPEND USER_AGENT_STYLE_SHEETS
         ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
     )
@@ -182,7 +181,7 @@ endforeach(define)
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/HTMLNames.cpp ${WEBCORE_GENERATED_DIR}/html/HTMLNames.h ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.cpp ${WEBCORE_GENERATED_DIR}/html/JSHTMLElementWrapperFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.h ${WEBCORE_GENERATED_DIR}/html/HTMLElementFactory.cpp
-    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --extraDefines ${EXTRA_DEFINES} --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_EXTENSIONS} ${CEHTML_EXTENSIONS} ${HTML_FEATURES} --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
+    COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --extraDefines ${EXTRA_DEFINES} --attrs ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_EXTENSIONS} ${CEHTML_EXTENSIONS} --factory --wrapperFactory --outputDir ${WEBCORE_GENERATED_DIR}/html
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     DEPENDS ${OWB_SOURCE_DIR}/WebCore/dom/make_names.pl ${OWB_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${OWB_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in ${DAE_FILE} ${CEHTML_FILE}
     VERBATIM
