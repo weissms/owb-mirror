@@ -600,6 +600,7 @@ static bool shouldEnableLoadDeferring()
     _private->drawsBackground = YES;
     _private->backgroundColor = [[NSColor colorWithDeviceWhite:1 alpha:1] retain];
     _private->usesDocumentViews = usesDocumentViews;
+    _private->includesFlattenedCompositingLayersWhenDrawingToBitmap = YES;
 
     WebFrameView *frameView = nil;
     if (_private->usesDocumentViews) {
@@ -2144,19 +2145,42 @@ static inline IMP getMethod(id o, SEL s)
 - (BOOL)_isUsingAcceleratedCompositing
 {
 #if USE(ACCELERATED_COMPOSITING)
-    Frame* coreFrame = [self _mainCoreFrame];
     if (_private->usesDocumentViews) {
+        Frame* coreFrame = [self _mainCoreFrame];
         for (Frame* frame = coreFrame; frame; frame = frame->tree()->traverseNext(coreFrame)) {
             NSView *documentView = [[kit(frame) frameView] documentView];
             if ([documentView isKindOfClass:[WebHTMLView class]] && [(WebHTMLView *)documentView _isUsingAcceleratedCompositing])
                 return YES;
         }
     }
-
-    return NO;
-#else
-    return NO;
 #endif
+    return NO;
+}
+
+- (BOOL)_isSoftwareRenderable
+{
+#if USE(ACCELERATED_COMPOSITING)
+    if (_private->usesDocumentViews) {
+        Frame* coreFrame = [self _mainCoreFrame];
+        for (Frame* frame = coreFrame; frame; frame = frame->tree()->traverseNext(coreFrame)) {
+            if (FrameView* view = frame->view()) {
+                if (!view->isSoftwareRenderable())
+                    return NO;
+            }
+        }
+    }
+#endif
+    return YES;
+}
+
+- (void)_setIncludesFlattenedCompositingLayersWhenDrawingToBitmap:(BOOL)flag
+{
+    _private->includesFlattenedCompositingLayersWhenDrawingToBitmap = flag;
+}
+
+- (BOOL)_includesFlattenedCompositingLayersWhenDrawingToBitmap
+{
+    return _private->includesFlattenedCompositingLayersWhenDrawingToBitmap;
 }
 
 static WebBaseNetscapePluginView *_pluginViewForNode(DOMNode *node)

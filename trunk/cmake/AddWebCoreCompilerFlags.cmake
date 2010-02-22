@@ -79,6 +79,10 @@ if(ENABLE_RUBY)
     add_definitions(-DENABLE_RUBY=1)
 endif(ENABLE_RUBY)
 
+if(ENABLE_SANDBOX)
+    add_definitions(-DENABLE_SANDBOX=1)
+endif(ENABLE_SANDBOX)
+
 if(ENABLE_TOUCH_EVENTS)
     add_definitions(-DENABLE_TOUCH_EVENTS=1)
 endif(ENABLE_TOUCH_EVENTS)

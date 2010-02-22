@@ -1,3 +1,144 @@
+2010-02-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        False warnings about needing layout in
+        -[WebHTMLView _recursiveDisplayRectIfNeededIgnoringOpacity:isVisibleRect:rectIsVisibleRectForView:topView:]
+        https://bugs.webkit.org/show_bug.cgi?id=35218
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _recursiveDisplayRectIfNeededIgnoringOpacity:isVisibleRect:rectIsVisibleRectForView:topView:]):
+        Suppress the warning and the forced layout if the view is not being drawn
+        in this display operation.
+
+2010-02-21  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        plugInViewWithArguments: API sends wrong parameter for WebPlugInBaseURLKey
+        https://bugs.webkit.org/show_bug.cgi?id=35215
+        <rdar://problem/7673157>
+        
+        The plugInViewWithArguments: API passes a dictionary of plugin arguments. One of the parameters
+        is WebPlugInBaseURLKey, which is a key that represents the base URL of the document containing
+        the plug-in's view. Instead of sending the base URL, code in  WebFrameLoaderClient::createPlugin
+        would incorrectly pass the source URL of the plug-in resource.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::createPlugin): When building the plug-in arguments dictionary, pass the
+        real base URL for the WebPlugInBaseURLKey key.
+
+2010-02-19  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by David Levin.
+
+        Add an ENABLE flag for sandboxed iframes to make it possible to disable it in releases
+        https://bugs.webkit.org/show_bug.cgi?id=35147
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-02-19  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35132
+        <rdar://problem/7664353> Mouse cursor sometimes flickers over Flash content (35132)
+
+        * Plugins/WebNetscapePluginEventHandlerCarbon.mm:
+        (WebNetscapePluginEventHandlerCarbon::mouseMoved): Send adjustCursor events on every mouse
+        move. This matches Firefox, and is actually required for plug-ins to manipulate cursor wihout
+        resorting to techniques such as fast firing timers.
+
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView handleMouseEntered:]): Some plug-ins handle mouse cursor internally,
+        but those that don't just need to get an arrow cursor (matching Firefox). This means that
+        e.g. a plugin inside <A> won't get a finger mouse pointer.
+
+        * Plugins/WebHostedNetscapePluginView.mm:
+        (-[WebNetscapePluginView handleMouseEntered:]):
+        (-[WebNetscapePluginView handleMouseExited:]):
+        Implement this behavior here, too. Also, out of process code didn't reset mouse pointer on
+        mouse exit, which it needed to do.
+
+        * WebView/WebHTMLView.mm:
+        (needsCursorRectsSupportAtPoint):
+        (setCursor):
+        (resetCursorRects):
+        Make sure that the same workaround we have for Web content also applies to Netscape plug-ins,
+        as AppKit would reset the mouse pointer to arrow if given a chance.
+        (+[WebHTMLViewPrivate initialize]): Renamed setCursorIMP on Leopard and higher to prevent
+        confusion - the method we override is completely different.
+        (-[WebHTMLView hitTest:]): Added a FIXME about a likely bug.
+
+2010-02-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/7535894> Page contents missing from snapshot on Newsweek.com article
+        
+        Followup to avoid capturing compositing layers twice in snapshots. Add private
+        methods to WebView to specify whether drawing the WebView into an image will
+        include flattened compositing layers (the default behavior) or not.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _drawRect:contentsOnly:]): Consult the WebView flag to see if we
+        want flattening.
+        
+        * WebView/WebViewPrivate.h: New methods.
+        * WebView/WebView.mm: Ditto.
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]):
+        (-[WebView _setIncludesFlattenedCompositingLayersWhenDrawingToBitmap:]):
+        (-[WebView _includesFlattenedCompositingLayersWhenDrawingToBitmap]):
+
+        * WebView/WebViewData.h: New member variable.
+
+2010-02-19  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35165
+        plugins/set-status.html fails on Windows bot
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::status):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView status:]):
+        Match Windows port behavior (and also Firefox one, in a way) - pass null status messages as
+        empty ones to chrome.
+
+2010-02-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/7535894> Page contents missing from snapshot on Newsweek.com article
+
+        Add logic to determine when painting via the software rendering path will give an equivalent
+        result to the accelerated compositing presentation. This tests for the presence of 3D transforms.
+
+        Also have -[WebFrame _drawRect:contentsOnly:] set the PaintBehaviorFlattenCompositingLayers
+        paint behavior when painting into a bitmap context, so that snapshots contain composited layers.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _drawRect:contentsOnly:]): Set the PaintBehaviorFlattenCompositingLayers flag
+        when painting into a bitmap context.
+        * WebView/WebView.mm:
+        (-[WebView _isSoftwareRenderable]): Returns YES if all frames can be software-rendered.
+        * WebView/WebViewPrivate.h: New _isSoftwareRenderable method.
+
+2010-02-18  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35134
+        <rdar://problem/7246280> Crash when a plugin calls NPN_SetStatus(0)
+
+        Test: plugins/set-status.html
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::status):
+        (WebKit::NetscapePluginInstanceProxy::loadURL):
+        Added null checks for CFStringCreateWithCString arguments.
+
 2010-02-18  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by David Levin, Darin Fisher, Simon Hausmann.

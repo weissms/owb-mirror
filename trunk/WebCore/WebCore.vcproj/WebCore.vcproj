@@ -27621,6 +27621,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderSVGResource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGResourceMasker.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGResourceMasker.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderSVGRoot.cpp"
 				>
 			</File>
@@ -41771,14 +41783,6 @@
 					RelativePath="..\svg\graphics\SVGResourceMarker.h"
 					>
 				</File>
-				<File
-					RelativePath="..\svg\graphics\SVGResourceMasker.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\svg\graphics\SVGResourceMasker.h"
-					>
-				</File>
 				<Filter
 					Name="filters"
 					>
@@ -42685,15 +42689,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\inspector\JavaScriptDebugListener.h"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\JavaScriptDebugServer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\JavaScriptDebugServer.h"
+				RelativePath="..\inspector\ScriptBreakpoint.h"
 				>
 			</File>
 			<File
@@ -42884,7 +42880,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\inspector\front-end\Popup.js"
+					RelativePath="..\inspector\front-end\popover.css"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\Popover.js"
 					>
 				</File>
 				<File

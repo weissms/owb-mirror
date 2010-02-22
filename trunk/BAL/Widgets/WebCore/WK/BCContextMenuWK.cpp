@@ -53,7 +53,6 @@
 #include "SelectionController.h"
 #include "Settings.h"
 #include "TextIterator.h"
-#include <memory>
 
 using namespace std;
 using namespace WTF;
@@ -70,9 +69,9 @@ ContextMenuController* ContextMenu::controller() const
     return 0;
 }
 
-static auto_ptr<ContextMenuItem> separatorItem()
+static PassOwnPtr<ContextMenuItem> separatorItem()
 {
-    return auto_ptr<ContextMenuItem>(new ContextMenuItem(SeparatorType, ContextMenuItemTagNoAction, String()));
+    return new ContextMenuItem(SeparatorType, ContextMenuItemTagNoAction, String());
 }
 
 static void createAndAppendFontSubMenu(const HitTestResult& result, ContextMenuItem& fontMenuItem)

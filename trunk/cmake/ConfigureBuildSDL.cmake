@@ -40,6 +40,7 @@ set(ENABLE_NOTIFICATIONS ON CACHE BOOLEAN "Enable notification support" FORCE)
 set(ENABLE_NPAPI ON CACHE BOOLEAN "Enable Netscape Plugin API support" FORCE)
 
 set(ENABLE_RUBY ON CACHE BOOLEAN "Enable HTML5 ruby support" FORCE)
+set(ENABLE_SANDBOX ON CACHE BOOLEAN "Enable HTML5 sandbox attribute for iframes" FORCE)
 
 set(ENABLE_SVG ON CACHE BOOLEAN "Enable SVG support" FORCE)
 set(ENABLE_SVG_ANIMATION ON CACHE BOOLEAN "Enable support for SVG animation (EXPERIMENTAL)" FORCE)

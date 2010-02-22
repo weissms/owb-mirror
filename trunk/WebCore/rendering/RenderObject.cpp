@@ -69,6 +69,7 @@
 #endif
 
 #if ENABLE(SVG)
+#include "RenderSVGResource.h"
 #include "SVGRenderSupport.h"
 #endif
 
@@ -1181,13 +1182,14 @@ void RenderObject::repaintRectangle(const IntRect& r, bool immediate)
     repaintUsingContainer(repaintContainer ? repaintContainer : view, dirtyRect, immediate);
 }
 
-bool RenderObject::repaintAfterLayoutIfNeeded(RenderBoxModelObject* repaintContainer, const IntRect& oldBounds, const IntRect& oldOutlineBox)
+bool RenderObject::repaintAfterLayoutIfNeeded(RenderBoxModelObject* repaintContainer, const IntRect& oldBounds, const IntRect& oldOutlineBox, const IntRect* newBoundsPtr, const IntRect* newOutlineBoxRectPtr)
 {
     RenderView* v = view();
     if (v->printing())
         return false; // Don't repaint if we're printing.
 
-    IntRect newBounds = clippedOverflowRectForRepaint(repaintContainer);
+    ASSERT(!newBoundsPtr || *newBoundsPtr == clippedOverflowRectForRepaint(repaintContainer));
+    IntRect newBounds = newBoundsPtr ? *newBoundsPtr : clippedOverflowRectForRepaint(repaintContainer);
     IntRect newOutlineBox;
 
     bool fullRepaint = selfNeedsLayout();
@@ -1195,7 +1197,8 @@ bool RenderObject::repaintAfterLayoutIfNeeded(RenderBoxModelObject* repaintConta
     if (!fullRepaint && style()->borderFit() == BorderFitLines)
         fullRepaint = true;
     if (!fullRepaint) {
-        newOutlineBox = outlineBoundsForRepaint(repaintContainer);
+        ASSERT(!newOutlineBoxRectPtr || *newOutlineBoxRectPtr == outlineBoundsForRepaint(repaintContainer));
+        newOutlineBox = newOutlineBoxRectPtr ? *newOutlineBoxRectPtr : outlineBoundsForRepaint(repaintContainer);
         if (newOutlineBox.location() != oldOutlineBox.location() || (mustRepaintBackgroundOrBorder() && (newBounds != oldBounds || newOutlineBox != oldOutlineBox)))
             fullRepaint = true;
     }
@@ -2532,6 +2535,12 @@ VisiblePosition RenderObject::createVisiblePosition(const Position& position)
 
 #if ENABLE(SVG)
 const SVGRenderBase* RenderObject::toSVGRenderBase() const
+{
+    ASSERT_NOT_REACHED();
+    return 0;
+}
+
+RenderSVGResource* RenderObject::toRenderSVGResource()
 {
     ASSERT_NOT_REACHED();
     return 0;

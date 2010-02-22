@@ -754,6 +754,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     if (!_isStarted)
         return;
 
+    // Set cursor to arrow. Plugins often handle cursor internally, but those that don't will just get this default one.
+    [[NSCursor arrowCursor] set];
+
     _eventHandler->mouseEntered(theEvent);
 }
 
@@ -1904,12 +1907,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 -(void)status:(const char *)message
 {    
-    if (!message) {
-        LOG_ERROR("NPN_Status passed a NULL status message");
-        return;
-    }
-
-    CFStringRef status = CFStringCreateWithCString(NULL, message, kCFStringEncodingUTF8);
+    CFStringRef status = CFStringCreateWithCString(NULL, message ? message : "", kCFStringEncodingUTF8);
     if (!status) {
         LOG_ERROR("NPN_Status: the message was not valid UTF-8");
         return;

@@ -79,7 +79,7 @@ SharedUChar* UStringImpl::baseSharedBuffer()
 
     if (bufferOwnership() != BufferShared) {
         m_refCountAndFlags = (m_refCountAndFlags & ~s_refCountMaskBufferOwnership) | BufferShared;
-        m_bufferShared = SharedUChar::create(new OwnFastMallocPtr<UChar>(m_data)).releaseRef();
+        m_bufferShared = SharedUChar::create(new SharableUChar(m_data)).releaseRef();
     }
 
     return m_bufferShared;
@@ -108,7 +108,7 @@ UStringImpl::~UStringImpl()
 
     if (bufferOwnership() != BufferInternal) {
         if (bufferOwnership() == BufferOwned)
-            fastFree(m_data);
+            fastFree(const_cast<UChar*>(m_data));
         else if (bufferOwnership() == BufferSubstring)
             m_bufferSubstring->deref();
         else {
@@ -147,6 +147,26 @@ void URopeImpl::destructNonRecursive()
         rope->derefFibersNonRecursive(workQueue);
         delete rope;
     }
+}
+
+PassRefPtr<UStringImpl> singleCharacterSubstring(UStringOrRopeImpl* impl, unsigned index)
+{
+top:
+    if (impl->isRope()) {
+        URopeImpl* rope = static_cast<URopeImpl*>(impl);
+        for (unsigned i = 0; i < rope->m_fiberCount; ++i) {
+            UStringOrRopeImpl* currentFiber = rope->fibers(i);
+            unsigned fiberLength = currentFiber->length();
+            if (index < fiberLength) {
+                impl = currentFiber;
+                goto top;
+            }
+            index -= fiberLength;
+        }
+        CRASH();
+    }
+
+    return static_cast<UStringImpl*>(impl)->singleCharacterSubstring(index);
 }
 
 } // namespace JSC

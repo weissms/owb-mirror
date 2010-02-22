@@ -43,7 +43,6 @@
 #include "ResourceError.h"
 #include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
-#include "ResourceLoader.h"
 #include "ResourceResponse.h"
 #include "TextEncoding.h"
 
@@ -161,24 +160,7 @@ static gboolean statusWillBeHandledBySoup(guint statusCode)
 
 static void fillResponseFromMessage(SoupMessage* msg, ResourceResponse* response)
 {
-    SoupMessageHeadersIter iter;
-    const char* name = 0;
-    const char* value = 0;
-    soup_message_headers_iter_init(&iter, msg->response_headers);
-    while (soup_message_headers_iter_next(&iter, &name, &value))
-        response->setHTTPHeaderField(name, value);
-
-    String contentType = soup_message_headers_get_one(msg->response_headers, "Content-Type");
-    response->setMimeType(extractMIMETypeFromMediaType(contentType));
-
-    char* uri = soup_uri_to_string(soup_message_get_uri(msg), false);
-    response->setURL(KURL(KURL(), uri));
-    g_free(uri);
-    response->setTextEncodingName(extractCharsetFromMediaType(contentType));
-    response->setExpectedContentLength(soup_message_headers_get_content_length(msg->response_headers));
-    response->setHTTPStatusCode(msg->status_code);
-    response->setHTTPStatusText(msg->reason_phrase);
-    response->setSuggestedFilename(filenameFromHTTPContentDisposition(response->httpHeaderField("Content-Disposition")));
+    response->updateFromSoupMessage(msg);
 }
 
 // Called each time the message is going to be sent again except the first time.
@@ -358,11 +340,6 @@ static gboolean parseDataUrl(gpointer callback_data)
     if (!client)
         return false;
 
-    // Ugly hack to avoid crashing in this function, by having
-    // didReceiveResponse destroy the loader. This condition is
-    // impossible to detect the way data: URLs are handled, currently.
-    RefPtr<ResourceLoader> resourceLoader(reinterpret_cast<ResourceLoader*>(client));
-
     String url = handle->request().url().string();
     ASSERT(url.startsWith("data:", false));
 
@@ -394,7 +371,10 @@ static gboolean parseDataUrl(gpointer callback_data)
         response.setTextEncodingName(charset);
         client->didReceiveResponse(handle, response);
 
-        if (d->m_cancelled)
+        // The load may be cancelled, and the client may be destroyed
+        // by any of the client reporting calls, so we check, and bail
+        // out in either of those cases.
+        if (!handle->client() || d->m_cancelled)
             return false;
 
         // Use the GLib Base64, since WebCore's decoder isn't
@@ -411,15 +391,14 @@ static gboolean parseDataUrl(gpointer callback_data)
         response.setTextEncodingName("UTF-16");
         client->didReceiveResponse(handle, response);
 
-        if (d->m_cancelled)
+        if (!handle->client() || d->m_cancelled)
             return false;
 
         if (data.length() > 0)
             client->didReceiveData(handle, reinterpret_cast<const char*>(data.characters()), data.length() * sizeof(UChar), 0);
     }
 
-
-    if (d->m_cancelled || !resourceLoader->frameLoader())
+    if (!handle->client() || d->m_cancelled)
         return false;
 
     client->didFinishLoading(handle);

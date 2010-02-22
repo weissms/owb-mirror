@@ -32,27 +32,16 @@
 #include "JNIUtility.h"
 #include "JNIUtilityPrivate.h"
 #include "JavaClassJSC.h"
+#include "Logging.h"
 #include "runtime_object.h"
 #include "runtime_root.h"
 #include <runtime/ArgList.h>
 #include <runtime/Error.h>
 #include <runtime/JSLock.h>
 
-#if PLATFORM(ANDROID)
-#include <assert.h>
-#endif
-
-#ifdef NDEBUG
-#define JS_LOG(formatAndArgs...) ((void)0)
-#else
-#define JS_LOG(formatAndArgs...) { \
-    fprintf(stderr, "%s:%d -- %s:  ", __FILE__, __LINE__, __FUNCTION__); \
-    fprintf(stderr, formatAndArgs); \
-}
-#endif
-
 using namespace JSC::Bindings;
 using namespace JSC;
+using namespace WebCore;
 
 JavaInstance::JavaInstance(jobject instance, PassRefPtr<RootObject> rootObject)
     : Instance(rootObject)
@@ -116,8 +105,8 @@ JSValue JavaInstance::booleanValue() const
 
 JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList &args)
 {
-    int i, count = args.size();
-    jvalue* jArgs;
+    int i;
+    int count = args.size();
     JSValue resultValue;
     Method* method = 0;
     size_t numMethods = methodList.size();
@@ -127,31 +116,27 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
     // notion of method overloading and Java does.  We could
     // get a bit more sophisticated and attempt to does some
     // type checking as we as checking the number of parameters.
-    Method* aMethod;
     for (size_t methodIndex = 0; methodIndex < numMethods; methodIndex++) {
-        aMethod = methodList[methodIndex];
+        Method* aMethod = methodList[methodIndex];
         if (aMethod->numParameters() == count) {
             method = aMethod;
             break;
         }
     }
     if (!method) {
-        JS_LOG("unable to find an appropiate method\n");
+        LOG(LiveConnect, "JavaInstance::invokeMethod unable to find an appropiate method");
         return jsUndefined();
     }
 
     const JavaMethod* jMethod = static_cast<const JavaMethod*>(method);
-    JS_LOG("call %s %s on %p\n", UString(jMethod->name()).UTF8String().c_str(), jMethod->signature(), m_instance->m_instance);
+    LOG(LiveConnect, "JavaInstance::invokeMethod call %s %s on %p", UString(jMethod->name()).UTF8String().c_str(), jMethod->signature(), m_instance->m_instance);
 
-    if (count > 0)
-        jArgs = (jvalue*)malloc(count * sizeof(jvalue));
-    else
-        jArgs = 0;
+    Vector<jvalue> jArgs(count);
 
     for (i = 0; i < count; i++) {
         JavaParameter* aParameter = jMethod->parameterAt(i);
         jArgs[i] = convertValueToJValue(exec, args.at(i), aParameter->getJNIType(), aParameter->type());
-        JS_LOG("arg[%d] = %s\n", i, args.at(i).toString(exec).ascii());
+        LOG(LiveConnect, "JavaInstance::invokeMethod arg[%d] = %s", i, args.at(i).toString(exec).ascii());
     }
 
     jvalue result;
@@ -168,55 +153,53 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
         jobject obj = m_instance->m_instance;
         JSValue exceptionDescription;
         const char *callingURL = 0; // FIXME, need to propagate calling URL to Java
-        handled = dispatchJNICall(exec, rootObject->nativeHandle(), obj, jMethod->isStatic(), jMethod->JNIReturnType(), jMethod->methodID(obj), jArgs, result, callingURL, exceptionDescription);
+        handled = dispatchJNICall(exec, rootObject->nativeHandle(), obj, jMethod->isStatic(), jMethod->JNIReturnType(), jMethod->methodID(obj), jArgs.data(), result, callingURL, exceptionDescription);
         if (exceptionDescription) {
             throwError(exec, GeneralError, exceptionDescription.toString(exec));
-            free(jArgs);
             return jsUndefined();
         }
     }
 
-    // The following code can be conditionally removed once we have a Tiger update that
-    // contains the new Java plugin.  It is needed for builds prior to Tiger.
+#ifdef BUILDING_ON_TIGER
     if (!handled) {
         jobject obj = m_instance->m_instance;
         switch (jMethod->JNIReturnType()) {
         case void_type:
-            callJNIMethodIDA<void>(obj, jMethod->methodID(obj), jArgs);
+            callJNIMethodIDA<void>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case object_type:
-            result.l = callJNIMethodIDA<jobject>(obj, jMethod->methodID(obj), jArgs);
+            result.l = callJNIMethodIDA<jobject>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case boolean_type:
-            result.z = callJNIMethodIDA<jboolean>(obj, jMethod->methodID(obj), jArgs);
+            result.z = callJNIMethodIDA<jboolean>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case byte_type:
-            result.b = callJNIMethodIDA<jbyte>(obj, jMethod->methodID(obj), jArgs);
+            result.b = callJNIMethodIDA<jbyte>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case char_type:
-            result.c = callJNIMethodIDA<jchar>(obj, jMethod->methodID(obj), jArgs);
+            result.c = callJNIMethodIDA<jchar>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case short_type:
-            result.s = callJNIMethodIDA<jshort>(obj, jMethod->methodID(obj), jArgs);
+            result.s = callJNIMethodIDA<jshort>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case int_type:
-            result.i = callJNIMethodIDA<jint>(obj, jMethod->methodID(obj), jArgs);
+            result.i = callJNIMethodIDA<jint>(obj, jMethod->methodID(obj), jArgs.data());
             break;
-
         case long_type:
-            result.j = callJNIMethodIDA<jlong>(obj, jMethod->methodID(obj), jArgs);
+            result.j = callJNIMethodIDA<jlong>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case float_type:
-            result.f = callJNIMethodIDA<jfloat>(obj, jMethod->methodID(obj), jArgs);
+            result.f = callJNIMethodIDA<jfloat>(obj, jMethod->methodID(obj), jArgs.data());
             break;
         case double_type:
-            result.d = callJNIMethodIDA<jdouble>(obj, jMethod->methodID(obj), jArgs);
+            result.d = callJNIMethodIDA<jdouble>(obj, jMethod->methodID(obj), jArgs.data());
             break;
+        case array_type:
         case invalid_type:
-        default:
             break;
         }
     }
+#endif
 
     switch (jMethod->JNIReturnType()) {
     case void_type:
@@ -228,6 +211,7 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
     case object_type:
         {
             if (result.l) {
+                // FIXME: array_type return type is handled below, can we actually get an array here?
                 const char* arrayType = jMethod->returnType();
                 if (arrayType[0] == '[')
                     resultValue = JavaArray::convertJObjectToArray(exec, result.l, arrayType, rootObject);
@@ -286,15 +270,20 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
         }
         break;
 
+    case array_type:
+        {
+            const char* arrayType = jMethod->returnType();
+            ASSERT(arrayType[0] == '[');
+            resultValue = JavaArray::convertJObjectToArray(exec, result.l, arrayType, rootObject);
+        }
+        break;
+
     case invalid_type:
-    default:
         {
             resultValue = jsUndefined();
         }
         break;
     }
-
-    free(jArgs);
 
     return resultValue;
 }
@@ -323,7 +312,7 @@ JSValue JavaInstance::valueOf(ExecState* exec) const
 JObjectWrapper::JObjectWrapper(jobject instance)
     : m_refCount(0)
 {
-    assert(instance);
+    ASSERT(instance);
 
     // Cache the JNIEnv used to get the global ref for this java instance.
     // It'll be used to delete the reference.
@@ -331,15 +320,15 @@ JObjectWrapper::JObjectWrapper(jobject instance)
 
     m_instance = m_env->NewGlobalRef(instance);
 
-    JS_LOG("new global ref %p for %p\n", m_instance, instance);
+    LOG(LiveConnect, "JObjectWrapper ctor new global ref %p for %p", m_instance, instance);
 
-    if  (!m_instance)
-        fprintf(stderr, "%s:  could not get GlobalRef for %p\n", __PRETTY_FUNCTION__, instance);
+    if (!m_instance)
+        LOG_ERROR("Could not get GlobalRef for %p", instance);
 }
 
 JObjectWrapper::~JObjectWrapper()
 {
-    JS_LOG("deleting global ref %p\n", m_instance);
+    LOG(LiveConnect, "JObjectWrapper dtor deleting global ref %p", m_instance);
     m_env->DeleteGlobalRef(m_instance);
 }
 

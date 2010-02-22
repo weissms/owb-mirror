@@ -145,7 +145,6 @@ if(ENABLE_SVG)
         svg/graphics/SVGResourceClipper.cpp
         svg/graphics/SVGResourceFilter.cpp
         svg/graphics/SVGResourceMarker.cpp
-        svg/graphics/SVGResourceMasker.cpp
         svg/graphics/filters/SVGFilter.cpp
         svg/graphics/filters/SVGFilterBuilder.cpp
         svg/graphics/filters/SVGFEConvolveMatrix.cpp

@@ -1,3 +1,202 @@
+2010-02-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Make UString::m_data be const, and make the UChar owned/ref-counted by CrossThreadRefCounted be const too.
+
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::baseSharedBuffer):
+        (JSC::UStringImpl::~UStringImpl):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::create):
+        (JSC::UStringImpl::data):
+        (JSC::UStringImpl::UStringImpl):
+        * wtf/OwnFastMallocPtr.h:
+        (WTF::OwnFastMallocPtr::~OwnFastMallocPtr):
+
+2010-02-21  Yuta Kitamura  <yutak@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        HashMapTranslatorAdapter::translate() needs to set the mapped value.
+
+        HTTPHeaderMap::add(const char*, const String&) does not work
+        https://bugs.webkit.org/show_bug.cgi?id=35227
+
+        * wtf/HashMap.h:
+        (WTF::HashMapTranslatorAdapter::translate):
+
+2010-02-19  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by David Levin.
+
+        Add an ENABLE flag for sandboxed iframes to make it possible to disable it in releases
+        https://bugs.webkit.org/show_bug.cgi?id=35147
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-02-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        JSString::getIndex() calls value() to resolve the string value (is a rope)
+        to a UString, then passes the result to jsSingleCharacterSubstring without
+        checking for an exception.  In case of out-of-memory the returned UString
+        is null(), which may result in an out-of-buounds substring being created.
+        This is bad.
+
+        Simple fix is to be able to get an index from a rope without resolving to
+        UString.  This may be a useful optimization in some test cases.
+
+        The same bug exists in some other methods is JSString, these can be fixed
+        by changing them to call getIndex().
+
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        (JSC::JSString::getStringPropertyDescriptor):
+        * runtime/JSString.h:
+        (JSC::jsSingleCharacterSubstring):
+        (JSC::JSString::getIndex):
+        (JSC::jsSingleCharacterString):
+        (JSC::JSString::getStringPropertySlot):
+        * runtime/UStringImpl.cpp:
+        (JSC::singleCharacterSubstring):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::singleCharacterSubstring):
+
+2010-02-19  Oliver Hunt  <oliver@apple.com>
+
+        RS = Gavin Barraclough.
+
+        Split the 32/64 version of JITPropertyAccess into a separate file.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/JITPropertyAccess.cpp:
+        * jit/JITPropertyAccess32_64.cpp: Added.
+        (JSC::JIT::emit_op_put_by_index):
+        (JSC::JIT::emit_op_put_getter):
+        (JSC::JIT::emit_op_put_setter):
+        (JSC::JIT::emit_op_del_by_id):
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::emitSlow_op_method_check):
+        (JSC::JIT::emit_op_get_by_val):
+        (JSC::JIT::emitSlow_op_get_by_val):
+        (JSC::JIT::emit_op_put_by_val):
+        (JSC::JIT::emitSlow_op_put_by_val):
+        (JSC::JIT::emit_op_get_by_id):
+        (JSC::JIT::emitSlow_op_get_by_id):
+        (JSC::JIT::emit_op_put_by_id):
+        (JSC::JIT::emitSlow_op_put_by_id):
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compileGetByIdSlowCase):
+        (JSC::JIT::compilePutDirectOffset):
+        (JSC::JIT::compileGetDirectOffset):
+        (JSC::JIT::testPrototype):
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::patchGetByIdSelf):
+        (JSC::JIT::patchMethodCallProto):
+        (JSC::JIT::patchPutByIdReplace):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        (JSC::JIT::emit_op_get_by_pname):
+        (JSC::JIT::emitSlow_op_get_by_pname):
+
+2010-02-19  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Laszlo Gombos.
+
+        Added additional parameter to create_rvct_stubs 
+        for setting the regularexpression prefix.
+        Renamed it because it now works for other platforms too.
+        https://bugs.webkit.org/show_bug.cgi?id=34951
+
+        * DerivedSources.pro:
+        * create_jit_stubs: Copied from JavaScriptCore/create_rvct_stubs.
+        * create_rvct_stubs: Removed.
+
+2010-02-18  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Improve interpreter getter performance
+        https://bugs.webkit.org/show_bug.cgi?id=35138
+
+        Improve the performance of getter dispatch by making it possible
+        for the interpreter to cache the GetterSetter object lookup.
+
+        To do this we simply need to make PropertySlot aware of getters
+        as a potentially cacheable property, and record the base and this
+        objects for a getter access.  This allows us to use more-or-less
+        identical code to that used by the normal get_by_id caching, with
+        the dispatch being the only actual difference.
+
+        I'm holding off of implementing this in the JIT until I do some
+        cleanup to try and making coding in the JIT not be as horrible
+        as it is currently.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::derefStructures):
+        (JSC::CodeBlock::refStructures):
+        * bytecode/Opcode.h:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolveGlobal):
+        (JSC::Interpreter::tryCacheGetByID):
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::fillGetterPropertySlot):
+        * runtime/PropertySlot.cpp:
+        (JSC::PropertySlot::functionGetter):
+        * runtime/PropertySlot.h:
+        (JSC::PropertySlot::isGetter):
+        (JSC::PropertySlot::isCacheable):
+        (JSC::PropertySlot::isCacheableValue):
+        (JSC::PropertySlot::setValueSlot):
+        (JSC::PropertySlot::setGetterSlot):
+        (JSC::PropertySlot::setCacheableGetterSlot):
+        (JSC::PropertySlot::clearOffset):
+        (JSC::PropertySlot::thisValue):
+
+2010-02-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fixed a portion of:
+        <rdar://problem/7165917> | https://bugs.webkit.org/show_bug.cgi?id=28676
+        Safari 4 does not release memory back to the operating system fast enough (28676)
+        
+        This patch fixes a surprisingly common edge case in which the page heap
+        would have only one free span, but that span would be larger than the
+        minimum free size, so we would decide not to free it, even though it
+        could be as large as 100MB or more!
+        
+        SunSpider reports no change on Mac or Windows.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::scavenge): Call shouldContinueScavenging() instead
+        of doing the math ourselves. Don't keep a local value for pagesDecommitted
+        because that lets free_committed_pages_ be wrong temporarily. Instead,
+        update free_committed_pages_ as we go. ASSERT that we aren't releasing
+        a span that has already been released, because we think this is impossible.
+        Finally, don't be afraid to release all free memory in the page heap when
+        scavenging. We only scavenge after 5 seconds of the application's working
+        set not growing, and we keep both thread caches and a central cache on
+        top of the page heap, so the extra free pages in the page heap were just
+        overkill.
+
 2010-02-18  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.

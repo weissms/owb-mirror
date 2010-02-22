@@ -564,3 +564,8 @@ void LayoutTestController::setAllowFileAccessFromFileURLs(bool enabled)
 {
     // FIXME: implement
 }
+
+void LayoutTestController::apiTestNewWindowDataLoadBaseURL(JSStringRef utf8Data, JSStringRef baseURL)
+{
+    // FIXME: implement
+}

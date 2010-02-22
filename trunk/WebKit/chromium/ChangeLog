@@ -1,3 +1,135 @@
+2010-02-22  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Chromium DevTools: kepp debugger API in sync with inspector.
+
+        https://bugs.webkit.org/show_bug.cgi?id=28799
+
+        * src/js/DebuggerAgent.js:
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl.prototype.setBreakpoint):
+
+2010-02-19  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by David Levin.
+
+        Add an ENABLE flag for sandboxed iframes to make it possible to disable it in releases
+        https://bugs.webkit.org/show_bug.cgi?id=35147
+
+        * features.gypi:
+
+2010-02-19  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Call WebViewClient::didAcceptAutoFillSuggestion when the
+        user selects a suggestion from the AutoFill suggestions popup.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35174
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::didAcceptAutoFillSuggestion):
+        * src/AutoFillPopupMenuClient.cpp:
+        (WebKit::AutoFillPopupMenuClient::valueChanged):
+        * src/AutoFillPopupMenuClient.h:
+
+2010-02-19  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [Chromium] Use the m_suggestionsPopupClient pointer to refer to the
+        popup client, as the Autocomplete popup might not be the current
+        popup.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35172
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::autocompleteHandleKeyEvent):
+        (WebKit::WebViewImpl::refreshSuggestionsPopup):
+
+2010-02-19  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [Chromium] Rename EditorClientImpl::onAutofillSuggestionAccepted to
+        onAutocompleteSuggestionAccepted to better match the purpose of the
+        function.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35171
+
+        * src/EditorClientImpl.cpp:
+        (WebKit::EditorClientImpl::onAutocompleteSuggestionAccepted):
+        * src/EditorClientImpl.h:
+        * src/SuggestionsPopupMenuClient.cpp:
+        (WebKit::SuggestionsPopupMenuClient::valueChanged):
+
+2010-02-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Add an isImageBlocked bool to the WebContextMenuData struct.
+        https://bugs.webkit.org/show_bug.cgi?id=35136
+        
+        This lets us properly enable/disable the "Copy Image" context menu entry
+        (and, in the future, maybe add a "Load Image" function).
+
+        * public/WebContextMenuData.h:
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+
+2010-02-19  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Fixes GeolocationServiceBridgeImpl::stopUpdating (it can be called multiple times).
+
+        * src/GeolocationServiceBridgeChromium.cpp:
+        (WebKit::GeolocationServiceBridgeImpl::stopUpdating):
+
+2010-02-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed. Chromium build fix: reverting r54997 and r54998.
+
+        * DEPS:
+
+2010-02-19  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed. Chromium tests fix: update devtools code to match new
+        web inspector object proxy format.
+
+        * src/js/DebuggerAgent.js:
+        (devtools.DebuggerAgent.prototype.formatCallFrame_):
+        (devtools.DebuggerAgent.formatObjectProxy_):
+
+2010-02-12  Kent Tamura  <tkent@chromium.org>
+
+        Unreviewed. Fix Chromium build.
+
+        * DEPS: Bump Google URL revision to 123.
+
+2010-02-18  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Don't truncate long lines when evaluating expressions on a breakpoint.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35102
+
+        * src/js/DebuggerAgent.js:
+
+2010-02-18  Jay Campan  <jcampan@google.com>
+
+        Reviewed by Adam Barth.
+
+        Exposing the title in WebDocument.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=35058
+
+        * public/WebDocument.h:
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::title):
+
 2010-02-18  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by David Levin, Darin Fisher, Simon Hausmann.
