@@ -135,11 +135,11 @@ class RunTests :
         print "new (" + str(len(self.resultNew)) + ") : " + str(percentNew)
 
         if self.time >= 3600.0 :
-            print "total time = " + time.strftime('%H h %M m %S s',time.localtime(self.time))
+            print "elapsed time = " + time.strftime('%H h %M m %S s',time.localtime(self.time))
         elif self.time >= 0.01 :
-            print "total time = " + time.strftime('%M m %S s',time.localtime(self.time))
+            print "elapsed time = " + time.strftime('%M m %S s',time.localtime(self.time))
         else :
-            print "total time = " + str(self.time)
+            print "elapsed time = " + str(self.time)
 
         self.__HtmlResult(self.config['output'])
         self.__stopWebSocketServer()

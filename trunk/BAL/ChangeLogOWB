@@ -1,3 +1,9 @@
+2010-02-22  Olivier DOLE  <odole@sand-labs.org>
+
+        Rename "total time" to "elapsed time"
+
+        * Scripts/Drt/runtests.py:
+
 2010-02-18  Olivier DOLE  <odole@sand-labs.org>
 
         Fix DRT script when running with a debug build.
