@@ -1,3 +1,9 @@
+2010-02-24  Olivier DOLE  <odole@sand-labs.org>
+
+        Just generate .tar.gz archive when running "make package"
+
+        * cmake/Package.cmake:
+
 2010-02-16  Gilles Bertal  <gbertal@sand-labs.org>
 
         Renamed ENABLE_CEHTML_VIDEO to ENABLE_CEHTML_MEDIA_OBJECTS.
@@ -92,7 +98,7 @@
 
         Reviewed by Mario Bensi.
 
-        Fix ICU check in cmake which was setting a problem with cross compîled
+        Fix ICU check in cmake which was setting a problem with cross compiled
         builds.
 
         * cmake/FindICU.cmake:
