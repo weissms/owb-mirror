@@ -46,6 +46,11 @@
 #include "WebKitWebSourceGStreamer.h"
 #include "Widget.h"
 
+#if PLATFORM(GTK)
+#include <GOwnPtr.h>
+#include "GOwnPtrGtk.h"
+#endif // PLATFORM(GTK)
+
 #include <gst/gst.h>
 #include <gst/interfaces/mixer.h>
 #include <gst/interfaces/xoverlay.h>
@@ -62,11 +67,6 @@
 
 #if USE(SOUP)
 #include "ResourceHandle.h"
-#endif
- 
-#if PLATFORM(GTK)
-#include <wtf/gtk/GOwnPtr.h>
-#include "GOwnPtrGtk.h"
 #endif
 
 // GstPlayFlags flags from playbin2. It is the policy of GStreamer to

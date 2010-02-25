@@ -2,11 +2,6 @@ TARGET = DumpRenderTree
 CONFIG  -= app_bundle
 CONFIG += uitools
 
-mac:!static:contains(QT_CONFIG, qt_framework):!CONFIG(webkit_no_framework) {
-    CONFIG -= debug
-    CONFIG += release
-}
-
 BASEDIR = $$PWD/../
 
 include(../../../WebKit.pri)
@@ -17,7 +12,7 @@ INCLUDEPATH += ../../../JavaScriptCore/ForwardingHeaders
 INCLUDEPATH += $$BASEDIR
 DESTDIR = ../../../bin
 
-!win32 {
+!win32:!symbian {
     CONFIG += link_pkgconfig
     PKGCONFIG += fontconfig
 }

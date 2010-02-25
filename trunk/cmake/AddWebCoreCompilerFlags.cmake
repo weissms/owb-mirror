@@ -130,6 +130,8 @@ if(HAS_VIDEO)
         add_definitions(-DWTF_USE_VIDEO_NONE=1)
     elseif(USE_VIDEO_PHONON)
         add_definitions(-DWTF_USE_VIDEO_PHONON=1)
+    elseif(USE_VIDEO_QT)
+        add_definitions(-DWTF_USE_VIDEO_QT=1)
     endif(USE_VIDEO_GSTREAMER)
 endif(HAS_VIDEO)
 

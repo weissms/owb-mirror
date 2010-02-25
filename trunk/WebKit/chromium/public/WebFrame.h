@@ -123,6 +123,9 @@ public:
     // NOTE: These routines do not force page layout so their results may
     // not be accurate if the page layout is out-of-date.
 
+    // If set to false, do not draw scrollbars on this frame's view.
+    virtual void setCanHaveScrollbars(bool) = 0;
+
     // The scroll offset from the top-left corner of the frame in pixels.
     virtual WebSize scrollOffset() const = 0;
 
@@ -491,6 +494,12 @@ public:
     virtual int pageNumberForElementById(const WebString& id,
                                          float pageWidthInPixels,
                                          float pageHeightInPixels) const = 0;
+
+    // Returns the bounds rect for current selection. If selection is performed
+    // on transformed text, the rect will still bound the selection but will
+    // not be transformed itself. If no selection is present, the rect will be
+    // empty ((0,0), (0,0)).
+    virtual WebRect selectionBoundsRect() const = 0;
 
 protected:
     ~WebFrame() { }

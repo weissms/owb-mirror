@@ -1,3 +1,196 @@
+2010-02-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        [REGRESSION in r55185] EXC_BAD_ACCESS on opening inspector.
+        https://bugs.webkit.org/show_bug.cgi?id=35335
+
+        compileGetDirectOffset modifies the contents of the object register
+        when the object is not using the inline storage array.  As the object
+        register contains our 'this' pointer we can't allow it to be clobbered.
+        The fix is simply to copy the register into a separate scratch register
+        when we're loading off an object that doesn't use inline storage.
+
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::privateCompileGetByIdSelfList):
+
+2010-02-24  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Speed up getter performance in the jit
+        https://bugs.webkit.org/show_bug.cgi?id=35332
+
+        Implement getter lookup caching in the interpreter.
+        The getter stubs are generated through basically the
+        same code paths as the normal get_by_id caching.
+        Instead of simply loading a property and returning,
+        we load the getter slot, and pass the getter, base value
+        and return address to a shared stub used for getter
+        dispatch.
+
+        * jit/JIT.h:
+        (JSC::JIT::compileGetByIdProto):
+        (JSC::JIT::compileGetByIdSelfList):
+        (JSC::JIT::compileGetByIdProtoList):
+        (JSC::JIT::compileGetByIdChainList):
+        (JSC::JIT::compileGetByIdChain):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::tryCacheGetByID):
+        (JSC::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::):
+        * runtime/GetterSetter.h:
+
+2010-02-23  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Web Inspector: Regression: r55027+: Inspector broken
+        https://bugs.webkit.org/show_bug.cgi?id=35253
+
+        op_get_by_id_getter_chain was not passing the correct this parameter.
+        The bug was caused by incorrect use of baseCell instead of baseValue,
+        baseValue contains the original object for the lookup (and hence the
+        correct this object), baseCell is clobbered as part of walking the
+        prototype chain.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+
+2010-02-23  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Rubber-stamped by Dimitri Glazkov.
+
+        Chromium build fix.
+
+        * JavaScriptCore.gyp/JavaScriptCore.gyp:
+
+2010-02-23  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Changes references of GOwnPtr to reflect their new place.
+        http://webkit.org/b/35084
+
+        * JavaScriptCore/JavaScriptCore.gypi:
+        * JavaScriptCore/wtf/Threading.h:
+        * JavaScriptCore/wtf/unicode/glib/UnicodeGLib.h:
+
+2010-02-23  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Adding the EFL implementation of JavaScriptCore.
+        See https://bugs.webkit.org/show_bug.cgi?id=35084 for details.
+
+        * GNUmakefile.am: Updated to reflect the new location of GOwnPtr and
+                          GRefPtr.
+        * wtf/efl/MainThreadEfl.cpp: Added.
+        * wtf/gobject/GOwnPtr.cpp: Moved from wtf/gtk.
+        * wtf/gobject/GOwnPtr.h: Moved from wtf/gtk.
+        * wtf/gobject/GRefPtr.cpp: Moved from wtf/gtk.
+        * wtf/gobject/GRefPtr.h: Moved from wtf/gtk.
+
+2010-02-22  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Remove auto_ptr usage in JavaScriptCore.
+        https://bugs.webkit.org/show_bug.cgi?id=35221
+
+        * parser/Nodes.h: Removed now unneeded adopt method.
+        * parser/Parser.cpp: Removed <memory> include as it is not required anymore.
+        * wtf/OwnPtr.h: Removed the constructor from auto_ptr.
+        * wtf/VectorTraits.h: Removed a template specialization for auto_ptr.
+        * wtf/unicode/Collator.h: Made userDefault return a PassOwnPtr.
+        * wtf/unicode/CollatorDefault.cpp:
+        (WTF::Collator::userDefault): Changed the method to match the next signature.
+        * wtf/unicode/icu/CollatorICU.cpp:
+        (WTF::Collator::userDefault): Ditto.
+
+2010-02-22  Huahui Wu  <hwu@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Add code that enables SquirrelFish Extreme (a.k.a JSCX, JSC JIT)
+        in Android. It's disabled by default, but is enabled when the 
+        enveronment variable ENABLE_JSC_JIT is set to true.
+        https://bugs.webkit.org/show_bug.cgi?id=34855
+
+        * Android.mk:
+        * wtf/Platform.h:
+
+2010-02-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        JSStringBuilder should not CRASH if allocation fails, it should throw a JSException.
+
+        * runtime/JSGlobalObjectFunctions.cpp:
+        * runtime/JSStringBuilder.h:
+        (JSC::JSStringBuilder::JSStringBuilder):
+        (JSC::JSStringBuilder::append):
+        (JSC::JSStringBuilder::build):
+        * runtime/StringBuilder.h:
+        (JSC::StringBuilder::build):
+        * wtf/Vector.h:
+        (WTF::VectorBufferBase::tryAllocateBuffer):
+        (WTF::):
+        (WTF::VectorBuffer::tryAllocateBuffer):
+        (WTF::::tryExpandCapacity):
+        (WTF::::tryReserveCapacity):
+        (WTF::::tryAppend):
+
+2010-02-22  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Map FastMalloc to BREW memory allocator
+        https://bugs.webkit.org/show_bug.cgi?id=33570
+
+        Use MALLOC macro instead of the standard malloc function.
+        Although RVCT provides malloc, we can't use it in BREW
+        because the loader does not initialize the base address properly.
+
+        * wtf/FastMalloc.cpp:
+        * wtf/brew/SystemMallocBrew.h: Added.
+        (mallocBrew):
+        (callocBrew):
+        (freeBrew):
+        (reallocBrew):
+
+2010-02-22  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Build fix for make distcheck.
+
+        * GNUmakefile.am:
+
+2010-02-22  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed build fix.
+
+        [Qt] Build fix for RVCT.
+
+        Fix after r55024. The "-i" option is for perl not for the
+        script.
+
+        * DerivedSources.pro:
+
 2010-02-22  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.

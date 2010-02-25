@@ -495,7 +495,7 @@ class TestRunner:
         return test_args, png_path, shell_args
 
     def _contains_tests(self, subdir):
-        for test_file in self._test_files_list:
+        for test_file in self._test_files:
             if test_file.find(subdir) >= 0:
                 return True
         return False
@@ -579,7 +579,6 @@ class TestRunner:
         except KeyboardInterrupt:
             for thread in threads:
                 thread.cancel()
-            self._port.stop_helper()
             raise
         for thread in threads:
             # Check whether a TestShellThread died before normal completion.
@@ -593,6 +592,10 @@ class TestRunner:
         # Make sure we pick up any remaining tests.
         self.update_summary(result_summary)
         return (thread_timings, test_timings, individual_test_timings)
+
+    def needs_http(self):
+        """Returns whether the test runner needs an HTTP server."""
+        return self._contains_tests(self.HTTP_SUBDIR)
 
     def run(self, result_summary):
         """Run all our tests on all our test files.
@@ -610,11 +613,7 @@ class TestRunner:
             return 0
         start_time = time.time()
 
-        # Start up any helper needed
-        if not self._options.no_pixel_tests:
-            self._port.start_helper()
-
-        if self._contains_tests(self.HTTP_SUBDIR):
+        if self.needs_http():
             self._port.start_http_server()
 
         if self._contains_tests(self.WEBSOCKET_SUBDIR):
@@ -637,7 +636,6 @@ class TestRunner:
             self._run_tests(failures.keys(), retry_summary)
             failures = self._get_failures(retry_summary, include_crashes=True)
 
-        self._port.stop_helper()
         end_time = time.time()
 
         write = create_logging_writer(self._options, 'timing')
@@ -1456,11 +1454,6 @@ def main(options, args):
             "lint succeeded.")
         sys.exit(0)
 
-    # Check that the system dependencies (themes, fonts, ...) are correct.
-    if not options.nocheck_sys_deps:
-        if not port_obj.check_sys_deps():
-            sys.exit(1)
-
     write = create_logging_writer(options, "config")
     write("Using port '%s'" % port_obj.name())
     write("Placing test results in %s" % options.results_directory)
@@ -1474,6 +1467,13 @@ def main(options, args):
     meter.update("Parsing expectations ...")
     test_runner.parse_expectations(port_obj.test_platform_name(),
                                    options.target == 'Debug')
+
+    port_obj.start_helper()
+
+    # Check that the system dependencies (themes, fonts, ...) are correct.
+    if (not options.nocheck_sys_deps and
+         not port_obj.check_sys_deps(test_runner.needs_http())):
+        sys.exit(1)
 
     meter.update("Preparing tests ...")
     write = create_logging_writer(options, "expected")
@@ -1489,6 +1489,8 @@ def main(options, args):
 
     meter.update("Starting ...")
     has_new_failures = test_runner.run(result_summary)
+
+    port_obj.stop_helper()
 
     logging.debug("Exit status: %d" % has_new_failures)
     sys.exit(has_new_failures)

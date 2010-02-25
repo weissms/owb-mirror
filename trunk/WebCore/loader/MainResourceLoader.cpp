@@ -288,7 +288,7 @@ void MainResourceLoader::continueAfterContentPolicy(PolicyAction policy)
 #if PLATFORM(QT)
 void MainResourceLoader::substituteMIMETypeFromPluginDatabase(const ResourceResponse& r)
 {
-    if (!m_frame->settings()->arePluginsEnabled())
+    if (!m_frame->loader()->client()->allowPlugins(m_frame->settings()->arePluginsEnabled()))
         return;
 
     String filename = r.url().lastPathComponent();

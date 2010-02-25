@@ -196,6 +196,7 @@ public:
     void setDefersLoading(bool);
       
     const ResourceRequest& request() const;
+    const String& lastHTTPMethod() const;
 
     void fireFailure(Timer<ResourceHandle>*);
 

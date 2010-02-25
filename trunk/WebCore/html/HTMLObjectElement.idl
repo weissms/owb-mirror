@@ -23,9 +23,8 @@ module html {
     interface [
         DelegatingPutFunction,
         DelegatingGetOwnPropertySlot,
-        CustomCall,
         CustomGetPropertyNames,
-        HasOverridingNameGetter
+        CustomCall
     ] HTMLObjectElement : HTMLElement {
         readonly attribute HTMLFormElement form;
                  attribute [ConvertNullToNullString, Reflect] DOMString       code;

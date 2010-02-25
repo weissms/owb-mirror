@@ -1,3 +1,54 @@
+2010-02-25  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher and Pavel Feldman.
+
+        Regression (r55107) - WebInspector docking is busted.
+        https://bugs.webkit.org/show_bug.cgi?id=35274
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::showWindowWithoutNotifications): Swap the order of the "should attach?" check
+          to get the expected behavior.
+
+2010-02-23  Steve Block  <steveblock@google.com>
+
+        Reviewed by Darin Adler.
+
+        Adds ChromeClient::cancelGeolocationPermissionRequestForFrame
+        https://bugs.webkit.org/show_bug.cgi?id=34962
+
+        This method is required so that a Geolocation object can cancel an
+        asynchronous permission request. This allows the chrome client to cancel
+        any UI it is showing for the permission request.
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::cancelGeolocationPermissionRequestForFrame):
+
+2010-02-22  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebKit on Windows should pick up system setting changes without requiring explicit API calls
+        https://bugs.webkit.org/show_bug.cgi?id=35269
+
+        * WebKit.vcproj/WebKit.def: Removed WebKitSystemParameterChanged.
+        * WebKit.vcproj/WebKit_debug.def: Removed WebKitSystemParameterChanged.
+        * WebKitGraphics.cpp: Removed WebKitSystemParameterChanged.
+        * WebKitGraphics.h: Removed WebKitSystemParameterChanged.
+        * WebView.cpp:
+        (systemParameterChanged): Call through to wkSystemFontSmoothingChanged for font changes.
+        (WebView::windowReceivedMessage): Pick up WM_SETTINGCHANGE from windowReceivedMessage.
+
+2010-02-22  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Disable WebView docking to views that are too small.
+        <rdar://problem/7248409> and https://bugs.webkit.org/show_bug.cgi?id=35254
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::showWindowWithoutNotifications): No matter the preference, don't open the inspector 
+          window attached if WebCore says it shouldn't be attached.
+
 2010-02-22  Steve Falkenburg  <sfalken@apple.com>
 
         Reviewed by Dan Bernstein.

@@ -37,4 +37,4 @@ set(USE_I18N "QT" CACHE STRING "Choose the internationalization library, options
 set(USE_NETWORK "QT" CACHE STRING "Choose the network backend, options are: CURL QT")
 set(USE_THREADS "QT" CACHE STRING "Choose the thread backend, options are: GTHREADS PTHREADS NONE" FORCE)
 set(USE_TIMER "QT" CACHE STRING "Choose the timer backend, options are: GLIB LINUX" FORCE)
-set(USE_VIDEO "PHONON" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON" FORCE)
+set(USE_VIDEO "PHONON" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON QT" FORCE)

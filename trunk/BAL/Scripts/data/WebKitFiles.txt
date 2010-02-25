@@ -63,6 +63,7 @@ WebCore/notifications/Notification.cpp
 WebCore/notifications/NotificationCenter.cpp
 WebCore/notifications/NotificationCenter.h
 WebCore/page/Chrome.cpp
+WebCore/page/Chrome.h
 WebCore/page/Console.cpp
 WebCore/page/ContextMenuController.cpp
 WebCore/page/DOMTimer.cpp

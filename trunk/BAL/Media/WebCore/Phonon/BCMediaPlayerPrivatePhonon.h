@@ -21,6 +21,8 @@
 #ifndef MediaPlayerPrivatePhonon_h
 #define MediaPlayerPrivatePhonon_h
 
+#ifdef WTF_USE_VIDEO_PHONON
+
 #include "MediaPlayerPrivate.h"
 
 #include <QObject>
@@ -159,5 +161,7 @@ namespace WebCore {
         bool m_isVisible;
     };
 }
+
+#endif // WTF_USE_VIDEO_PHONON
 
 #endif // MediaPlayerPrivatePhonon_h

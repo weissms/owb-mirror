@@ -312,14 +312,16 @@ void GraphicsContext::drawRect(const IntRect& rect)
     const bool antiAlias = p->testRenderHint(QPainter::Antialiasing);
     p->setRenderHint(QPainter::Antialiasing, m_data->antiAliasingForRectsAndLines);
 
-    IntSize shadowSize;
-    int shadowBlur;
-    Color shadowColor;
-    if (getShadow(shadowSize, shadowBlur, shadowColor)) {
-        IntRect shadowRect = rect;
-        shadowRect.move(shadowSize.width(), shadowSize.height());
-        shadowRect.inflate(static_cast<int>(p->pen().widthF()));
-        p->fillRect(shadowRect, QColor(shadowColor));
+    if (m_common->state.shadowColor.isValid()) {
+        IntSize shadowSize;
+        int shadowBlur;
+        Color shadowColor;
+        if (getShadow(shadowSize, shadowBlur, shadowColor)) {
+            IntRect shadowRect = rect;
+            shadowRect.move(shadowSize.width(), shadowSize.height());
+            shadowRect.inflate(static_cast<int>(p->pen().widthF()));
+            p->fillRect(shadowRect, QColor(shadowColor));
+        }
     }
 
     p->drawRect(rect);
@@ -624,7 +626,8 @@ void GraphicsContext::fillRect(const FloatRect& rect)
     QPainter* p = m_data->p();
 
     if (m_common->state.fillPattern || m_common->state.fillGradient || fillColor().alpha()) {
-        drawBorderlessRectShadow(this, p, rect);
+        if (m_common->state.shadowColor.isValid())
+            drawBorderlessRectShadow(this, p, rect);
         if (m_common->state.fillPattern) {
             AffineTransform affine;
             p->fillRect(rect, QBrush(m_common->state.fillPattern->createPlatformPattern(affine)));
@@ -646,7 +649,8 @@ void GraphicsContext::fillRect(const FloatRect& rect, const Color& c, ColorSpace
 
     m_data->solidColor.setColor(c);
     QPainter* p = m_data->p();
-    drawBorderlessRectShadow(this, p, rect);
+    if (m_common->state.shadowColor.isValid())
+        drawBorderlessRectShadow(this, p, rect);
     p->fillRect(rect, m_data->solidColor);
 }
 

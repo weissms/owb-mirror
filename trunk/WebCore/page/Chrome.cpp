@@ -416,6 +416,11 @@ void Chrome::requestGeolocationPermissionForFrame(Frame* frame, Geolocation* geo
 {
     m_client->requestGeolocationPermissionForFrame(frame, geolocation);
 }
+
+void Chrome::cancelGeolocationPermissionRequestForFrame(Frame* frame)
+{
+    m_client->cancelGeolocationPermissionRequestForFrame(frame);
+}
 #endif
 
 void Chrome::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> fileChooser)

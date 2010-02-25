@@ -89,6 +89,7 @@ NPError PluginView::getValue(NPNVariable, void*)
 /*
 NPError PluginView::getValueStatic(NPNVariable, void*)
 {
+    notImplemented();
     return 0;
 }
 */
@@ -145,11 +146,13 @@ void PluginView::restart()
     notImplemented();
 }
 
+#if ENABLE(NETSCAPE_PLUGIN_API)
 /*
 void PluginView::keepAlive(NPP)
 {
     notImplemented();
 }
 */
+#endif
 
 } // namespace WebCore

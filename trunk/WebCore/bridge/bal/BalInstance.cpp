@@ -59,7 +59,7 @@ static BALObjectInstanceMap cachedInstances;
 typedef HashMap<BalInstance*, JSObject*> InstanceJSObjectMap;
 static InstanceJSObjectMap cachedObjects;
 
-class BalRuntimeObjectImp : public RuntimeObjectImp {
+class BalRuntimeObjectImp : public RuntimeObject {
 public:
     BalRuntimeObjectImp(ExecState*, PassRefPtr<Instance>);
     ~BalRuntimeObjectImp();
@@ -72,7 +72,7 @@ public:
 /*        BalInstance* instance = static_cast<BalInstance*>(getInternalInstance());
         if (instance)
             instance->mark();*/
-        RuntimeObjectImp::markChildren(markStack);
+        RuntimeObject::markChildren(markStack);
     }
 
 protected:
@@ -83,10 +83,10 @@ private:
     virtual const ClassInfo* classInfo() const { return &s_info; }
 };
 
-const ClassInfo BalRuntimeObjectImp::s_info = { "BalRuntimeObject", &RuntimeObjectImp::s_info, 0, 0 };
+const ClassInfo BalRuntimeObjectImp::s_info = { "BalRuntimeObject", &RuntimeObject::s_info, 0, 0 };
 
 BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
-    : RuntimeObjectImp(exec, WebCore::deprecatedGetDOMStructure<BalRuntimeObjectImp>(exec), instance)
+    : RuntimeObject(exec, WebCore::deprecatedGetDOMStructure<BalRuntimeObjectImp>(exec), instance)
 {
 }
 
@@ -99,7 +99,7 @@ void BalRuntimeObjectImp::invalidate()
 {
     removeFromCache();
     removeInstanceFromCache();
-    RuntimeObjectImp::invalidate();
+    RuntimeObject::invalidate();
 }
 
 void BalRuntimeObjectImp::removeInstanceFromCache()
@@ -249,10 +249,10 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
         nameArray.add(Identifier(exec, properties[i]));
 }
 
-RuntimeObjectImp* BalInstance::newRuntimeObject(ExecState* exec)
+RuntimeObject* BalInstance::newRuntimeObject(ExecState* exec)
 {
     JSLock lock(SilenceAssertionsOnly);
-    RuntimeObjectImp* object = static_cast<RuntimeObjectImp*>(cachedObjects.get(this));
+    RuntimeObject* object = static_cast<RuntimeObject*>(cachedObjects.get(this));
     if (!object) {
         object = new (exec) BalRuntimeObjectImp(exec, this);
         cachedObjects.set(this, object);

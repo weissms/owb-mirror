@@ -1,3 +1,94 @@
+2010-02-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium API] Disambiguate allowJavaScript from didNotAllowScript
+        https://bugs.webkit.org/show_bug.cgi?id=35205
+
+        Make these two callsites explicit about not running script immediately.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::getWindowNPObject):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValueFromArray):
+
+2010-02-23  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher and Pavel Feldman.
+
+        Regression (r55107) - WebInspector docking is busted.
+        https://bugs.webkit.org/show_bug.cgi?id=35274
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController showWindow:]): Swap the order of the "should attach?" check
+          to get the expected behavior.
+
+2010-02-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7611158> Incomplete repaint of YouTube timeline thumb while scrolling
+        https://bugs.webkit.org/show_bug.cgi?id=34381
+
+        Test: fast/repaint/repaint-during-scroll.html
+
+        NSClipView offsets any rects marked as needing display during scrolling
+        by the scroll offset. Compensate for this when -setNeedsDisplay: is called
+        during scrolling.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _frameOrBoundsChanged]): Set inScrollPositionChanged to YES
+        around to call to FrameView::scrollPositionChanged().
+        (-[WebHTMLView setNeedsDisplayInRect:]): When called beneath
+        scrollPositionChanged(), adjust the rect by the inverse of the scroll offset.
+
+2010-02-23  Steve Block  <steveblock@google.com>
+
+        Reviewed by Darin Adler.
+
+        Adds ChromeClient::cancelGeolocationPermissionRequestForFrame
+        https://bugs.webkit.org/show_bug.cgi?id=34962
+
+        This method is required so that a Geolocation object can cancel an
+        asynchronous permission request. This allows the chrome client to cancel
+        any UI it is showing for the permission request.
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::cancelGeolocationPermissionRequestForFrame):
+
+2010-02-22  Alexey Proskuryakov  <ap@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        Rename RuntimeObjectImp to RuntimeObject.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::addValueToArray):
+        (WebKit::NetscapePluginInstanceProxy::retainLocalObject):
+        (WebKit::NetscapePluginInstanceProxy::releaseLocalObject):
+
+2010-02-22  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Disable WebView docking to views that are too small.
+        <rdar://problem/7248409> and https://bugs.webkit.org/show_bug.cgi?id=35254
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController showWindow:]): No matter the preference, don't open the inspector 
+          window attached if WebCore says it shouldn't be attached.
+
+2010-02-22  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by John Sullivan.
+
+        <rdar://problem/7285392> 
+        On Leopard, we have to disable hardware acceleration if we detect that the
+        installed Core Video framework has bug <rdar://problem/7228836>.
+        
+        * WebView/WebView.mm:
+        (coreVideoHas7228836Fix):
+        (-[WebView _preferencesChangedNotification:]):
+
 2010-02-22  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Darin Adler.

@@ -102,11 +102,6 @@ namespace WebKit {
     WebKit::PasteboardHelperGtk* pasteboardHelperInstance();
 }
 
-typedef struct {
-    EnchantBroker* config;
-    EnchantDict* speller;
-} SpellLanguage;
-
 extern "C" {
     void webkit_init();
 
@@ -301,6 +296,9 @@ extern "C" {
     WEBKIT_API int
     webkit_web_frame_page_number_for_element_by_id(WebKitWebFrame* frame, const gchar* id, float pageWidth, float pageHeight);
 
+    WEBKIT_API int
+    webkit_web_frame_number_of_pages(WebKitWebFrame* frame, float pageWidth, float pageHeight);
+
     WEBKIT_API guint
     webkit_web_frame_get_pending_unload_event_count(WebKitWebFrame* frame);
 
@@ -332,7 +330,7 @@ extern "C" {
     webkit_web_settings_add_extra_plugin_directory (WebKitWebView *web_view, const gchar* directory);
 
     GSList*
-    webkit_web_settings_get_spell_languages(WebKitWebView* web_view);
+    webkit_web_settings_get_enchant_dicts(WebKitWebView* web_view);
 
     bool
     webkit_web_view_use_primary_for_paste(WebKitWebView* web_view);

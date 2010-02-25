@@ -596,7 +596,7 @@ NPObject* WebFrameImpl::windowObject() const
 void WebFrameImpl::bindToWindowObject(const WebString& name, NPObject* object)
 {
     ASSERT(m_frame);
-    if (!m_frame || !m_frame->script()->canExecuteScripts())
+    if (!m_frame || !m_frame->script()->canExecuteScripts(NotAboutToExecuteScript))
         return;
 
     String key = name;
@@ -1134,7 +1134,7 @@ float WebFrameImpl::printPage(int page, WebCanvas* canvas)
         return 0;
     }
 
-#if OS(WINDOWS) || OS(LINUX) || OS(FREEBSD)
+#if OS(WINDOWS) || OS(LINUX) || OS(FREEBSD) || OS(SOLARIS)
     PlatformContextSkia context(canvas);
     GraphicsContext spool(&context);
 #elif OS(DARWIN)
@@ -1534,6 +1534,14 @@ int WebFrameImpl::pageNumberForElementById(const WebString& id,
     return PrintContext::pageNumberForElement(element, pageSize);
 }
 
+WebRect WebFrameImpl::selectionBoundsRect() const
+{
+    if (hasSelection())
+        return IntRect(frame()->selectionBounds(false));
+
+    return WebRect();
+}
+
 // WebFrameImpl public ---------------------------------------------------------
 
 PassRefPtr<WebFrameImpl> WebFrameImpl::create(WebFrameClient* client)
@@ -1720,7 +1728,7 @@ WebFrameImpl* WebFrameImpl::fromFrameOwnerElement(Element* element)
         static_cast<HTMLFrameOwnerElement*>(element);
     return fromFrame(frameElement->contentFrame());
 }
-    
+
 WebViewImpl* WebFrameImpl::viewImpl() const
 {
     if (!m_frame)
@@ -1795,9 +1803,9 @@ void WebFrameImpl::didFail(const ResourceError& error, bool wasProvisional)
         client()->didFailLoad(this, webError);
 }
 
-void WebFrameImpl::setAllowsScrolling(bool flag)
+void WebFrameImpl::setCanHaveScrollbars(bool canHaveScrollbars)
 {
-    m_frame->view()->setCanHaveScrollbars(flag);
+    m_frame->view()->setCanHaveScrollbars(canHaveScrollbars);
 }
 
 void WebFrameImpl::registerPasswordListener(

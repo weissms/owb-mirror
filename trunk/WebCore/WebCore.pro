@@ -47,9 +47,6 @@ CONFIG(standalone_package) {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = $$PWD/generated
     isEmpty(JSC_GENERATED_SOURCES_DIR):JSC_GENERATED_SOURCES_DIR = $$PWD/../JavaScriptCore/generated
 
-    CONFIG(QTDIR_build):include($$QT_SOURCE_TREE/src/qbase.pri)
-    else: VERSION = 4.7.0
-
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
 
@@ -66,7 +63,11 @@ CONFIG(standalone_package) {
 
 }
 
-!CONFIG(QTDIR_build) {
+CONFIG(QTDIR_build) {
+    include($$QT_SOURCE_TREE/src/qbase.pri)
+    # Qt will set the version for us when building in Qt's tree
+} else {
+    VERSION = $${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
     DESTDIR = $$OUTPUT_DIR/lib
     !static: DEFINES += QT_MAKEDLL
 }
@@ -131,11 +132,21 @@ mameo5|symbian|embedded {
 
 include($$PWD/../JavaScriptCore/JavaScriptCore.pri)
 
-# Disable HTML5 media compilation if phonon is unavailable
-!contains(DEFINES, ENABLE_VIDEO=1) {
-    !contains(QT_CONFIG, phonon) {
-        DEFINES -= ENABLE_VIDEO=1
-        DEFINES += ENABLE_VIDEO=0
+
+# HTML5 Media Support
+# We require phonon for versions of Qt < 4.7
+# We require QtMultimedia for versions of Qt >= 4.7
+!contains(DEFINES, ENABLE_VIDEO=.) {
+    DEFINES -= ENABLE_VIDEO=1
+    DEFINES += ENABLE_VIDEO=0
+
+    lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, phonon) {
+        DEFINES -= ENABLE_VIDEO=0
+        DEFINES += ENABLE_VIDEO=1
+    }
+    !lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, multimedia) {
+        DEFINES -= ENABLE_VIDEO=0
+        DEFINES += ENABLE_VIDEO=1
     }
 }
 
@@ -436,6 +447,7 @@ SOURCES += \
     dom/BeforeTextInsertedEvent.cpp \
     dom/BeforeUnloadEvent.cpp \
     dom/CDATASection.cpp \
+    dom/CanvasSurface.cpp \
     dom/CharacterData.cpp \
     dom/CheckedRadioButtons.cpp \
     dom/ChildNodeList.cpp \
@@ -748,6 +760,7 @@ SOURCES += \
     page/FrameView.cpp \
     page/Geolocation.cpp \
     page/GeolocationController.cpp \
+    page/GeolocationPositionCache.cpp \
     page/History.cpp \
     page/Location.cpp \
     page/MouseEventWithHitTestResults.cpp \
@@ -1005,6 +1018,7 @@ HEADERS += \
     bindings/js/JSDOMWindowBase.h \
     bindings/js/JSDOMWindowCustom.h \
     bindings/js/JSDOMWindowShell.h \
+    bindings/js/JSDOMWrapper.h \
     bindings/js/JSEventListener.h \
     bindings/js/JSEventSourceConstructor.h \
     bindings/js/JSEventTarget.h \
@@ -1018,6 +1032,7 @@ HEADERS += \
     bindings/js/JSLazyEventListener.h \
     bindings/js/JSLocationCustom.h \
     bindings/js/JSMessageChannelConstructor.h \
+    bindings/js/JSNodeCustom.h \
     bindings/js/JSNodeFilterCondition.h \
     bindings/js/JSOptionConstructor.h \
     bindings/js/JSPluginElementFunctions.h \
@@ -1446,6 +1461,7 @@ HEADERS += \
     page/FrameTree.h \
     page/FrameView.h \
     page/Geolocation.h \
+    page/GeolocationPositionCache.h \
     page/Geoposition.h \
     page/HaltablePlugin.h \
     page/History.h \
@@ -2304,21 +2320,29 @@ contains(DEFINES, ENABLE_VIDEO=1) {
         rendering/RenderMedia.cpp \
         bindings/js/JSAudioConstructor.cpp
 
-        HEADERS += \
-            platform/graphics/qt/MediaPlayerPrivatePhonon.h
+        # QtMultimedia since 4.7
+        greaterThan(QT_MINOR_VERSION, 6) {
+            HEADERS += platform/graphics/qt/MediaPlayerPrivateQt.h
+            SOURCES += platform/graphics/qt/MediaPlayerPrivateQt.cpp
 
-        SOURCES += \
-            platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
+            QT += multimedia
+        } else {
+            HEADERS += \
+                platform/graphics/qt/MediaPlayerPrivatePhonon.h
 
-        # Add phonon manually to prevent it from coming first in
-        # the include paths, as Phonon's path.h conflicts with
-        # WebCore's Path.h on case-insensitive filesystems.
-        qtAddLibrary(phonon)
-        INCLUDEPATH -= $$QMAKE_INCDIR_QT/phonon
-        INCLUDEPATH += $$QMAKE_INCDIR_QT/phonon
-        mac {
-            INCLUDEPATH -= $$QMAKE_LIBDIR_QT/phonon.framework/Headers
-            INCLUDEPATH += $$QMAKE_LIBDIR_QT/phonon.framework/Headers
+            SOURCES += \
+                platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
+
+            # Add phonon manually to prevent it from coming first in
+            # the include paths, as Phonon's path.h conflicts with
+            # WebCore's Path.h on case-insensitive filesystems.
+            qtAddLibrary(phonon)
+            INCLUDEPATH -= $$QMAKE_INCDIR_QT/phonon
+            INCLUDEPATH += $$QMAKE_INCDIR_QT/phonon
+            mac {
+                INCLUDEPATH -= $$QMAKE_LIBDIR_QT/phonon.framework/Headers
+                INCLUDEPATH += $$QMAKE_LIBDIR_QT/phonon.framework/Headers
+            }
         }
 
 }
@@ -2686,19 +2710,15 @@ WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
     QMAKE_EXTRA_TARGETS += install
 }
 
-# Qt will set the version for us when building in Qt's tree
-!CONFIG(QTDIR_build): VERSION=$${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
+!CONFIG(QTDIR_build) {
+    win32-*|wince* {
+        DLLDESTDIR = $$OUTPUT_DIR/bin
+        TARGET = $$qtLibraryTarget($$TARGET)
 
-win32-*|wince* {
-    DLLDESTDIR = $$OUTPUT_DIR/bin
-    TARGET = $$qtLibraryTarget($$TARGET)
-
-    dlltarget.commands = $(COPY_FILE) $(DESTDIR_TARGET) $$[QT_INSTALL_BINS]
-    dlltarget.CONFIG = no_path
-    INSTALLS += dlltarget
-}
-
-!CONFIG(standalone_package) {
+        dlltarget.commands = $(COPY_FILE) $(DESTDIR_TARGET) $$[QT_INSTALL_BINS]
+        dlltarget.CONFIG = no_path
+        INSTALLS += dlltarget
+    }
 
     unix {
         CONFIG += create_pc create_prl

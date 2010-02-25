@@ -1,3 +1,27 @@
+2010-02-25  Mario Blättermann  <mariobl@freenet.de>
+
+        Reviewed by Gustavo Noronha.
+
+        German translation update.
+
+        * de.po:
+
+2010-02-23  Daniel Nylander  <po@danielnylander.se>
+
+        Reviewed by Gustavo Noronha.
+
+        Swedish translation update.
+
+        * sv.po:
+
+2010-02-23  Ankit Patel  <ankit@redhat.com>
+
+        Reviewed by Gustavo Noronha.
+
+        Gujarati translation.
+
+        * gu.po: Added.
+
 2010-02-22  A S Alam  <amanpreet.alam@gmail.com>
 
         Punjabi translation.

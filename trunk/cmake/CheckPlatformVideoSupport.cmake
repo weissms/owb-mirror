@@ -52,6 +52,12 @@ if(HAS_VIDEO)
         set(DEB_PACKAGE_DEPENDS "${DEB_PACKAGE_DEPENDS}, libqt4-phonon")
     endif(USE_VIDEO STREQUAL "PHONON")
 
+    # This one should be used instead of PHONON when Qt version >= 4.7
+    if(USE_VIDEO STREQUAL "QT")
+        set(USE_VIDEO_QT TRUE)
+        mark_as_advanced(USE_VIDEO_QT)
+    endif(USE_VIDEO STREQUAL "QT")
+
     if(USE_AIT STREQUAL "NONE")
         set(USE_AIT_NONE TRUE)
         mark_as_advanced(USE_AIT_NONE)

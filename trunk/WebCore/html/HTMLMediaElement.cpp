@@ -70,7 +70,7 @@
 #endif
 
 #if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
-#include "RenderPartObject.h"
+#include "RenderEmbeddedObject.h"
 #include "Widget.h"
 #endif
 
@@ -706,6 +706,16 @@ void HTMLMediaElement::cancelPendingEventsAndCallbacks()
     }
 }
 
+Document* HTMLMediaElement::mediaPlayerOwningDocument()
+{
+    Document* d = document();
+    
+    if (!d)
+        d = ownerDocument();
+    
+    return d;
+}
+
 void HTMLMediaElement::mediaPlayerNetworkStateChanged(MediaPlayer*)
 {
     beginProcessingMediaPlayerCallback();
@@ -1194,7 +1204,7 @@ bool HTMLMediaElement::controls() const
     Frame* frame = document()->frame();
 
     // always show controls when scripting is disabled
-    if (frame && !frame->script()->canExecuteScripts())
+    if (frame && !frame->script()->canExecuteScripts(NotAboutToExecuteScript))
         return true;
 
     return hasAttribute(controlsAttr);
@@ -1235,7 +1245,7 @@ void HTMLMediaElement::setMuted(bool muted)
         m_muted = muted;
         // Avoid recursion when the player reports volume changes.
         if (!processingMediaPlayerCallback()) {
-            if (m_player && m_player->supportsMuting()) {
+            if (m_player) {
                 m_player->setMuted(m_muted);
                 if (renderer())
                     renderer()->updateFromElement();
@@ -1639,7 +1649,8 @@ void HTMLMediaElement::updateVolume()
         Page* page = document()->page();
         float volumeMultiplier = page ? page->mediaVolume() : 1;
     
-        m_player->setVolume(m_muted ? 0 : m_volume * volumeMultiplier);
+        m_player->setMuted(m_muted);
+        m_player->setVolume(m_volume * volumeMultiplier);
     }
     
     if (renderer())

@@ -53,32 +53,20 @@ class Frame;
 class FrameView;
 class Page;
 class PageGroup;
+class ScriptDebugListener;
 class JavaScriptCallFrame;
-
-class Frame;
-class Page;
-class String;
 
 class ScriptDebugServer : JSC::Debugger, public Noncopyable {
 public:
-    class Listener {
-    public:
-        virtual ~Listener() { }
-
-        virtual void didParseSource(const String&  sourceID, const String& url, const String& data, int firstLine) = 0;
-        virtual void failedToParseSource(const String& url, const String& data, int firstLine, int errorLine, const String& errorMessage) = 0;
-        virtual void didPause() = 0;
-        virtual void didContinue() = 0;
-    };
-
     static ScriptDebugServer& shared();
 
-    void addListener(Listener*, Page*);
-    void removeListener(Listener*, Page*);
+    void addListener(ScriptDebugListener*, Page*);
+    void removeListener(ScriptDebugListener*, Page*);
 
     void setBreakpoint(const String& sourceID, unsigned lineNumber, ScriptBreakpoint breakpoint);
     void removeBreakpoint(const String& sourceID, unsigned lineNumber);
     void clearBreakpoints();
+    void setBreakpointsActivated(bool activated);
 
     enum PauseOnExceptionsState {
         DontPauseOnExceptions,
@@ -103,8 +91,8 @@ public:
     void pageCreated(Page*);
 
 private:
-    typedef HashSet<Listener*> ListenerSet;
-    typedef void (Listener::*JavaScriptExecutionCallback)();
+    typedef HashSet<ScriptDebugListener*> ListenerSet;
+    typedef void (ScriptDebugListener::*JavaScriptExecutionCallback)();
 
     ScriptDebugServer();
     ~ScriptDebugServer();
@@ -151,6 +139,7 @@ private:
     bool m_pauseOnNextStatement;
     bool m_paused;
     bool m_doneProcessingDebuggerEvents;
+    bool m_breakpointsActivated;
     JavaScriptCallFrame* m_pauseOnCallFrame;
     RefPtr<JavaScriptCallFrame> m_currentCallFrame;
     BreakpointsMap m_breakpoints;

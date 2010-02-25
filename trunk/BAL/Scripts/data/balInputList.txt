@@ -552,6 +552,8 @@ BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStream
 BAL/Media/WebCore/Gtk	WebCore/platform/gtk/SoundGtk.cpp	BCSoundGtk.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h
+BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp
+BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h
 BAL/Media/WebCore/Qt	WebCore/platform/qt/SoundQt.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.h
@@ -832,11 +834,11 @@ BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/ThreadingGtk.cpp	BCThreadingGtk.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GOwnPtr.h
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GRefPtr.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/GRefPtr.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/MainThreadGtk.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GOwnPtr.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GOwnPtr.h
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GRefPtr.cpp
+BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GRefPtr.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/ThreadingNone.cpp
 BAL/Types/WTF/Pthreads	JavaScriptCore/wtf/Threading.h

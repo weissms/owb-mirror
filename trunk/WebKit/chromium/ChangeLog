@@ -1,3 +1,127 @@
+2010-02-25  Jay Campan  <jcampan@google.com>
+
+        Reviewed by David Levin.
+
+        Don't show the autofill popup when the input text is disabled or read only.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35129
+
+        * src/EditorClientImpl.cpp:
+        (WebKit::EditorClientImpl::autofill):
+
+2010-02-24  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium API] Disambiguate allowJavaScript from didNotAllowScript
+        https://bugs.webkit.org/show_bug.cgi?id=35205
+
+        Plumb didNotAllowScript through Chromium's WebKit API.
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::didNotAllowScript):
+        * src/DebuggerAgentImpl.cpp:
+        (WebKit::DebuggerAgentImpl::createUtilityContext):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::didNotAllowScript):
+        * src/FrameLoaderClientImpl.h:
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::bindToWindowObject):
+
+2010-02-23  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Implement WebDocument::getElementsByTagName.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35272
+
+        * public/WebDocument.h:
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::getElementsByTagName):
+
+2010-02-23  Steve Block  <steveblock@google.com>
+
+        Reviewed by Jeremy Orlow.
+
+        Removes redundant Settings::setGeolocationEnabled and Settings::geolocationEnabled
+        https://bugs.webkit.org/show_bug.cgi?id=35242
+
+        This removes Chromium's WebSettings::setGeolocationEnabled
+
+        * public/WebSettings.h:
+        * src/WebSettingsImpl.cpp:
+        * src/WebSettingsImpl.h:
+
+2010-02-23  Dmitriy Belenko  <dbelenko@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Chromium: Need to be able to get the bounds of selection
+        rectangle(s)
+        https://bugs.webkit.org/show_bug.cgi?id=34915
+
+        This change will enable about 30 test cases to pass in Chromium.
+        All of these test cases are related to selection rect boundaries.
+        This change will enable the test cases to retrieve the selection
+        rect boundary rectangle for the current selection.
+
+        * public/WebFrame.h:
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::selectionBoundsRect):
+        * src/WebFrameImpl.h:
+
+2010-02-23  Steve Block  <steveblock@google.com>
+
+        Reviewed by Darin Adler.
+
+        Adds ChromeClient::cancelGeolocationPermissionRequestForFrame
+        https://bugs.webkit.org/show_bug.cgi?id=34962
+
+        This method is required so that a Geolocation object can cancel an
+        asynchronous permission request. This allows the chrome client to cancel
+        any UI it is showing for the permission request.
+
+        * src/ChromeClientImpl.h:
+        (WebKit::ChromeClientImpl::cancelGeolocationPermissionRequestForFrame):
+
+2009-02-22  Adam Langley  <agl@google.com>
+
+        Reviewed by Darin Fisher.
+
+        fontconfig on Linux can change the render preferences on a per strike
+        basis (a strike a combination of face and size). Because of this, we
+        need to query fontconfig each time a new FontPlatformData is created
+        for a new size.
+
+        This patch adds support for querying this via ChromiumBridge.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33065
+
+        * WebKit.gyp:
+        * public/gtk/WebFontInfo.h:
+        * public/linux/WebSandboxSupport.h:
+        * src/ChromiumBridge.cpp:
+        (WebCore::ChromiumBridge::getRenderStyleForStrike):
+        * src/gtk/WebFontInfo.cpp:
+        (WebKit::WebFontInfo::renderStyleForStrike):
+
+2010-02-22  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: there should be a way to "deactivate" or "skip" all breakpoints while debugging.
+        https://bugs.webkit.org/show_bug.cgi?id=33217
+
+        * src/js/DebuggerAgent.js:
+        (devtools.DebuggerAgent):
+        (devtools.DebuggerAgent.prototype.setBreakpointsActivated):
+        (devtools.DebuggerAgent.prototype.handleBreakEvent_):
+        (devtools.DebuggerAgent.prototype.handleExceptionEvent_):
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl.prototype.activateBreakpoints):
+        (devtools.InspectorBackendImpl.prototype.deactivateBreakpoints):
+
 2010-02-22  Pavel Feldman  <pfeldman@chromium.org>
 
         Reviewed by Timothy Hatcher.
@@ -2908,7 +3032,6 @@
         (WebKit::AutocompletePopupMenuClient::setTextFromItem):
         (WebKit::AutocompletePopupMenuClient::resetLastFieldValue):
         * src/AutocompletePopupMenuClient.h:
-
 
 2009-12-30  Kinuko Yasuda  <kinuko@chromium.org>
 

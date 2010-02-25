@@ -18,6 +18,8 @@
     Boston, MA 02110-1301, USA.
 */
 
+#ifdef WTF_USE_VIDEO_PHONON
+
 #include "config.h"
 #include "MediaPlayerPrivatePhonon.h"
 
@@ -533,3 +535,5 @@ void MediaPlayerPrivate::setCurrentTrack(unsigned int index)
 } // namespace WebCore
 
 #include "MediaPlayerPrivatePhonon.moc"
+
+#endif // WTF_USE_VIDEO_PHONON

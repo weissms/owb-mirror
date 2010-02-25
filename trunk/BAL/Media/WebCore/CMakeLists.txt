@@ -25,6 +25,13 @@ if(HAS_VIDEO)
         aux_source_directory(${BAL_DIR}/Media/WebCore/Phonon WEBCORE_SRC)
         owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h MediaPlayerPrivatePhonon.moc)
     endif(USE_VIDEO_PHONON)
+
+    # This one should be used instead of PHONON when Qt version >= 4.7
+    if(USE_VIDEO_QT)
+        create_include_link(${BAL_DIR}/Media/WebCore/Phonon BAL)
+        aux_source_directory(${BAL_DIR}/Media/WebCore/Phonon WEBCORE_SRC)
+        owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Media/WebCore/Phonon/BCMediaPlayerPrivateQt.h moc_MediaPlayerPrivateQt.cpp)
+    endif(USE_VIDEO_QT)
 endif(HAS_VIDEO)
 
 if(USE_GRAPHICS_AMIGAOS4)

@@ -69,6 +69,7 @@ if(ENABLE_GEOLOCATION)
     list(APPEND WEBCORE_SRC
         page/Geolocation.cpp
         page/GeolocationController.cpp
+        page/GeolocationPositionCache.cpp
         )
     list(APPEND IDL_SRC
         page/Geoposition.idl

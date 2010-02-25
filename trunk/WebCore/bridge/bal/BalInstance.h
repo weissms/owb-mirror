@@ -62,7 +62,7 @@ public:
     virtual JSValue invokeDefaultMethod (ExecState* exec, const ArgList& args);
     virtual void getPropertyNames(ExecState*, PropertyNameArray&);
 
-    virtual RuntimeObjectImp* newRuntimeObject(ExecState*);
+    virtual RuntimeObject* newRuntimeObject(ExecState*);
 
     JSValue stringValue(ExecState*) const;
     JSValue numberValue(ExecState*) const;

@@ -40,4 +40,4 @@ set(USE_I18N "GLIB" CACHE STRING "Choose the internationalization library, optio
 set(USE_NETWORK "SOUP" CACHE STRING "Choose the network backend, options are: CURL QT SOUP")
 set(USE_THREADS "PTHREADS" CACHE STRING "Choose the thread backend, options are: GTHREADS PTHREADS NONE" FORCE)
 set(USE_TIMER "GLIB" CACHE STRING "Choose the timer backend, options are: GLIB LINUX" FORCE)
-set(USE_VIDEO "GSTREAMER" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON" FORCE)
+set(USE_VIDEO "GSTREAMER" CACHE STRING "Choose the video backend, options are: AMIGAOS4 GSTREAMER NONE PHONON QT" FORCE)
