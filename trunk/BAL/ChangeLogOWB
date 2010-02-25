@@ -1,3 +1,10 @@
+2010-02-25  Olivier DOLE  <odole@sand-labs.org>
+
+        fix bug in drt script.
+
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/testsList.py:
+
 2010-02-22  Olivier DOLE  <odole@sand-labs.org>
 
         Rename "total time" to "elapsed time"

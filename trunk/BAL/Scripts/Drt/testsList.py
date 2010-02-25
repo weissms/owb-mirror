@@ -5,7 +5,7 @@ class TestsList :
     def __init__(self, config) :
         self.config = config
         self.dirOut = [".svn", "resources", "platform", "conf", "js", "script-tests"]
-        self.extension = [".html", ".cehtml", ".shtml", ".xml", ".xhtml", ".pl", ".php"]
+        self.extension = [".html", ".shtml", ".xml", ".xhtml", ".pl", ".php"]
 
     def changePathIfNeeded(self, li) :
         if li.find("/http") != -1 and li.find("local/") == -1:

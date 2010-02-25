@@ -48,7 +48,7 @@ ignoredDirectories = {'3d' : ['compositing', 'animations/3d', 'transforms/3d'],
                       'xpath' : ['fast/xpath', 'dom/svg/level3/xpath'],
                       'xslt' : ['fast/xsl']}
 
-supportedFileExtensions = {'svg' : 'svg', 'wml' : 'wml'}
+supportedFileExtensions = {'cehtml' : '.cehtml', 'svg' : '.svg', 'wml' : '.wml'}
 
 cmakeOptionWrapper = {'ENABLE_3D_RENDERING' : '3d',
                       'ENABLE_ACCESSIBILITY' : 'accessibility', 
