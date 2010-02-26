@@ -1,3 +1,11 @@
+2010-02-26  Olivier DOLE  <odole@sand-labs.org>
+
+        fix bug in drt.py when passing arguments (some tests were not
+        discarded.)
+
+        * Scripts/Drt/drt.py:
+        * Scripts/Drt/testsList.py:
+
 2010-02-25  Olivier DOLE  <odole@sand-labs.org>
 
         fix bug in drt script.

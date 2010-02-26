@@ -19,7 +19,9 @@ class TestsList :
             li = li.replace(rpl, "http://127.0.0.1:8880")
         return li
 
-    def createList(self, path) :
+    def createList(self, path = None) :
+        if path is None:
+            path = self.config['layout']
         dirList = os.listdir(path)
         dirList.sort()
         testsList = []
@@ -56,6 +58,7 @@ class TestsList :
                                 pathName = self.changePathIfNeeded(pathName)
                                 testsList.append(pathName)
                             break;
+        self.list = testsList
         return testsList
 
     def constructList(self, list, ignoredDirectories, supportedFileExtensions) :
@@ -67,7 +70,6 @@ class TestsList :
                     self.dirOut.append(dir)
             if self.config[feature] and feature in supportedFileExtensions.keys() :
                 self.extension.append(supportedFileExtensions[feature])
-        self.list = self.createList(self.config['layout'])
     
     def getList(self) :
         return self.list

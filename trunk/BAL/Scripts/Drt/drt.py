@@ -120,9 +120,9 @@ if config['update']:
 
 li = []
 List = TestsList(config)
+List.constructList(feature_list, ignoredDirectories, supportedFileExtensions)
 if len(args) == 0 :
-    List.constructList(feature_list, ignoredDirectories, supportedFileExtensions)
-    li = List.getList()
+    li = List.createList()
 else :
     for path in args:
         if os.path.isdir(path) :
