@@ -71,7 +71,7 @@ macro(generate_sources_from_idl _target)
             OUTPUT ${OWB_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.cpp ${OWB_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.h
             COMMAND mkdir -p ${OWB_BINARY_DIR}/generated_sources/WebCore/
             COMMAND ${PERL_EXECUTABLE} -I${OWB_SOURCE_DIR}/WebCore/bindings/scripts ${OWB_SOURCE_DIR}/WebCore/bindings/scripts/generate-bindings.pl  --defines \"${FEATURE_DEFINES_JAVASCRIPT}\" --generator JS --include ${OWB_SOURCE_DIR}/WebCore/dom --include ${OWB_SOURCE_DIR}/WebCore/html --include ${OWB_SOURCE_DIR}/WebCore/xml --include ${OWB_SOURCE_DIR}/WebCore/svg --outputdir ${OWB_BINARY_DIR}/generated_sources/WebCore ${OWB_SOURCE_DIR}/WebCore/${idl}
-            DEPENDS ${SCRIPTS_BINDINGS}
+            DEPENDS ${SCRIPTS_BINDINGS} ${idl}
             )
         list(APPEND ${_target} 
             ${OWB_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.cpp
