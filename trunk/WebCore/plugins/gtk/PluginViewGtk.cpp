@@ -2,6 +2,7 @@
  * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  * Copyright (C) 2008 Collabora Ltd. All rights reserved.
  * Copyright (C) 2009, 2010 Kakai, Inc. <brian@kakai.com>
+ * Copyright (C) 2010 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -753,12 +754,6 @@ static Display* getPluginDisplay()
 #endif
 }
 
-static gboolean
-plug_removed_cb(GtkSocket* socket, gpointer)
-{
-    return TRUE;
-}
-
 #if defined(XP_UNIX)
 static void getVisualAndColormap(int depth, Visual** visual, Colormap* colormap)
 {
@@ -797,6 +792,27 @@ static void getVisualAndColormap(int depth, Visual** visual, Colormap* colormap)
 }
 #endif
 
+static gboolean plugRemovedCallback(GtkSocket* socket, gpointer)
+{
+    return TRUE;
+}
+
+static void plugAddedCallback(GtkSocket* socket, PluginView* view)
+{
+    if (!socket || !view)
+        return;
+
+    // FIXME: Java Plugins do not seem to draw themselves properly the
+    // first time unless we do a size-allocate after they have done
+    // the plug operation on their side, which in general does not
+    // happen since we do size-allocates before setting the
+    // NPWindow. Apply this workaround until we figure out a better
+    // solution, if any.
+    IntRect rect = view->frameRect();
+    GtkAllocation allocation = { rect.x(), rect.y(), rect.width(), rect.height() };
+    gtk_widget_size_allocate(GTK_WIDGET(socket), &allocation);
+}
+
 bool PluginView::platformStart()
 {
     ASSERT(m_isStarted);
@@ -813,15 +829,25 @@ bool PluginView::platformStart()
 
     if (m_isWindowed) {
 #if defined(XP_UNIX)
+        GtkWidget* pageClient = m_parentFrame->view()->hostWindow()->platformPageClient();
+
         if (m_needsXEmbed) {
+            // If our parent is not anchored the startup process will
+            // fail miserably for XEmbed plugins a bit later on when
+            // we try to get the ID of our window (since realize will
+            // fail), so let's just abort here.
+            if (!gtk_widget_get_parent(pageClient))
+                return false;
+
             setPlatformWidget(gtk_socket_new());
-            gtk_container_add(GTK_CONTAINER(m_parentFrame->view()->hostWindow()->platformPageClient()), platformPluginWidget());
-            g_signal_connect(platformPluginWidget(), "plug_removed", G_CALLBACK(plug_removed_cb), NULL);
+            gtk_container_add(GTK_CONTAINER(pageClient), platformPluginWidget());
+            g_signal_connect(platformPluginWidget(), "plug-added", G_CALLBACK(plugAddedCallback), this);
+            g_signal_connect(platformPluginWidget(), "plug-removed", G_CALLBACK(plugRemovedCallback), NULL);
         } else
-            setPlatformWidget(gtk_xtbin_new(m_parentFrame->view()->hostWindow()->platformPageClient()->window, 0));
+            setPlatformWidget(gtk_xtbin_new(pageClient->window, 0));
 #else
         setPlatformWidget(gtk_socket_new());
-        gtk_container_add(GTK_CONTAINER(m_parentFrame->view()->hostWindow()->platformPageClient()), platformPluginWidget());
+        gtk_container_add(GTK_CONTAINER(pageClient), platformPluginWidget());
 #endif
     } else {
         setPlatformWidget(0);

@@ -27633,6 +27633,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderSVGResourceClipper.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGResourceClipper.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderSVGResourceMasker.cpp"
 				>
 			</File>
@@ -41780,14 +41788,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\svg\graphics\SVGResourceClipper.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\svg\graphics\SVGResourceClipper.h"
-					>
-				</File>
-				<File
 					RelativePath="..\svg\graphics\SVGResourceFilter.cpp"
 					>
 				</File>
@@ -42497,6 +42497,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\bridge\c\CRuntimeObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\bridge\c\CRuntimeObject.h"
+				>
+			</File>
+			<File
 				RelativePath="..\bridge\c\c_class.cpp"
 				>
 			</File>
@@ -42853,6 +42861,10 @@
 				</File>
 				<File
 					RelativePath="..\inspector\front-end\ImageView.js"
+					>
+				</File>
+				<File
+					RelativePath="..\inspector\front-end\InjectedFakeWorker.js"
 					>
 				</File>
 				<File

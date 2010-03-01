@@ -108,6 +108,9 @@ JSValue JavaField::valueFromInstance(ExecState* exec, const Instance* i) const
             jvalue result = dispatchValueFromInstance(exec, instance, "get", "(Ljava/lang/Object;)Ljava/lang/Object;", object_type);
             jobject anObject = result.l;
 
+            if (!anObject)
+                return jsNull();
+
             const char* arrayType = type();
             if (arrayType[0] == '[')
                 jsresult = JavaArray::convertJObjectToArray(exec, anObject, arrayType, instance->rootObject());
@@ -181,7 +184,7 @@ void JavaField::dispatchSetValueToInstance(ExecState* exec, const JavaInstance* 
 void JavaField::setValueToInstance(ExecState* exec, const Instance* i, JSValue aValue) const
 {
     const JavaInstance* instance = static_cast<const JavaInstance*>(i);
-    jvalue javaValue = convertValueToJValue(exec, aValue, m_JNIType, type());
+    jvalue javaValue = convertValueToJValue(exec, i->rootObject(), aValue, m_JNIType, type());
 
     LOG(LiveConnect, "JavaField::setValueToInstance setting value %s to %s", UString(name()).UTF8String().c_str(), aValue.toString(exec).ascii());
 
@@ -278,7 +281,7 @@ void JavaArray::setValueAt(ExecState* exec, unsigned index, JSValue aValue) cons
         javaClassName = strdup(&m_type[2]);
         javaClassName[strchr(javaClassName, ';')-javaClassName] = 0;
     }
-    jvalue aJValue = convertValueToJValue(exec, aValue, arrayType, javaClassName);
+    jvalue aJValue = convertValueToJValue(exec, m_rootObject.get(), aValue, arrayType, javaClassName);
 
     switch (arrayType) {
     case object_type:

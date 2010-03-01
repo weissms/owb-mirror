@@ -37,6 +37,10 @@
 class NSView;
 #endif
 
+#if ENABLE(TOUCH_EVENTS)
+#include <wtf/HashMap.h>
+#endif
+
 namespace WebCore {
 
 class AtomicString;
@@ -415,7 +419,8 @@ private:
     int m_activationEventNumber;
 #endif
 #if ENABLE(TOUCH_EVENTS)
-    RefPtr<Node> m_touchEventTarget;
+    typedef HashMap<int, RefPtr<EventTarget> > TouchTargetMap;
+    TouchTargetMap m_originatingTouchPointTargets;
 #endif
 };
 

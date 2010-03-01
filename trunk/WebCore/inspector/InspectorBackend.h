@@ -68,6 +68,7 @@ public:
     void disableResourceTracking(bool always);
     bool resourceTrackingEnabled() const;
     void getResourceContent(long callId, unsigned long identifier);
+    void reloadPage();
 
     void startTimelineProfiler();
     void stopTimelineProfiler();
@@ -105,6 +106,8 @@ public:
 
     void setInjectedScriptSource(const String& source);
     void dispatchOnInjectedScript(long callId, long injectedScriptId, const String& methodName, const String& arguments, bool async);
+    void addScriptToEvaluateOnLoad(const String& source);
+    void removeAllScriptsToEvaluateOnLoad();
     void getChildNodes(long callId, long nodeId);
     void setAttribute(long callId, long elementId, const String& name, const String& value);
     void removeAttribute(long callId, long elementId, const String& name);

@@ -76,7 +76,7 @@ static bool gUseCompositing = false;
 static bool gCacheWebView = false;
 static bool gShowFrameRate = false;
 static QGraphicsView::ViewportUpdateMode gViewportUpdateMode = QGraphicsView::MinimalViewportUpdate;
-
+static QUrl gInspectorUrl;
 
 class LauncherWindow : public MainWindow {
     Q_OBJECT
@@ -117,6 +117,7 @@ protected slots:
 
     void setTouchMocking(bool on);
     void toggleAcceleratedCompositing(bool toggle);
+    void toggleWebGL(bool toggle);
     void initializeView(bool useGraphicsView = false);
 
 public slots:
@@ -188,6 +189,9 @@ void LauncherWindow::init(bool useGraphicsView)
     connect(page(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinished()));
     connect(page(), SIGNAL(linkHovered(const QString&, const QString&, const QString&)),
             this, SLOT(showLinkHover(const QString&, const QString&)));
+
+    if (!gInspectorUrl.isEmpty())
+      page()->settings()->setInspectorUrl(gInspectorUrl);
 
     inspector = new WebInspector(splitter);
     inspector->setPage(page());
@@ -463,6 +467,11 @@ void LauncherWindow::toggleAcceleratedCompositing(bool toggle)
     page()->settings()->setAttribute(QWebSettings::AcceleratedCompositingEnabled, toggle);
 }
 
+void LauncherWindow::toggleWebGL(bool toggle)
+{
+    page()->settings()->setAttribute(QWebSettings::WebGLEnabled, toggle);
+}
+
 void LauncherWindow::initializeView(bool useGraphicsView)
 {
     delete m_view;
@@ -579,6 +588,10 @@ void LauncherWindow::setupUI()
     QAction* toggleGraphicsView = graphicsViewMenu->addAction("Toggle use of QGraphicsView", this, SLOT(initializeView(bool)));
     toggleGraphicsView->setCheckable(true);
     toggleGraphicsView->setChecked(false);
+
+    QAction* toggleWebGL = toolsMenu->addAction("Toggle WebGL", this, SLOT(toggleWebGL(bool)));
+    toggleWebGL->setCheckable(true);
+    toggleWebGL->setChecked(false);
 
     QAction* toggleAcceleratedCompositing = graphicsViewMenu->addAction("Toggle Accelerated Compositing", this, SLOT(toggleAcceleratedCompositing(bool)));
     toggleAcceleratedCompositing->setCheckable(true);
@@ -710,6 +723,7 @@ void LauncherApplication::handleUserOptions()
              << "[-cache-webview]"
              << "[-show-fps]"
              << "[-r list]"
+             << "[-inspector-url location]"
              << "URLs";
         appQuit(0);
     }
@@ -746,6 +760,11 @@ void LauncherApplication::handleUserOptions()
 
         gViewportUpdateMode = static_cast<QGraphicsView::ViewportUpdateMode>(idx);
     }
+
+    QString inspectorUrlArg("-inspector-url");
+    int inspectorUrlIndex = args.indexOf(inspectorUrlArg);
+    if (inspectorUrlIndex != -1)
+       gInspectorUrl = takeOptionValue(&args, inspectorUrlIndex);
 
     int robotIndex = args.indexOf("-r");
     if (robotIndex != -1) {

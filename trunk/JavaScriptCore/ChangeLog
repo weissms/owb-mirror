@@ -1,3 +1,225 @@
+2010-03-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Geoff Garen.
+
+        Remove wrec.  All builds should have switched to yarr by now.
+
+        * Android.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreCommon.vsprops:
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::match):
+        * runtime/RegExp.h:
+        * wrec: Removed.
+        * wrec/CharacterClass.cpp: Removed.
+        * wrec/CharacterClass.h: Removed.
+        * wrec/CharacterClassConstructor.cpp: Removed.
+        * wrec/CharacterClassConstructor.h: Removed.
+        * wrec/Escapes.h: Removed.
+        * wrec/Quantifier.h: Removed.
+        * wrec/WREC.cpp: Removed.
+        * wrec/WREC.h: Removed.
+        * wrec/WRECFunctors.cpp: Removed.
+        * wrec/WRECFunctors.h: Removed.
+        * wrec/WRECGenerator.cpp: Removed.
+        * wrec/WRECGenerator.h: Removed.
+        * wrec/WRECParser.cpp: Removed.
+        * wrec/WRECParser.h: Removed.
+        * wscript:
+
+2010-02-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Make the lookup table generator include an explicit cast to expected
+        type of the function.  We do this because otherwise the blind intptr_t
+        cast that is subsequently applied allows incorrectly typed functions
+        to be inserted into the table, where they will only fail at runtime.
+        This change makes such errors produce a compile time failure.
+
+        * create_hash_table:
+
+2010-02-26  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Symbian specific getCPUTime implemetation
+        https://bugs.webkit.org/show_bug.cgi?id=34742
+
+        Default implementation doesn't work on Symbian devices.
+        This change adds a proper implementation by
+        asking thread execution time from the current thread.
+
+        * runtime/TimeoutChecker.cpp:
+        (JSC::getCPUTime):
+
+2010-02-25  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35406
+        <rdar://problem/6945502> Make generic array methods work with JavaArray
+
+        Renamed lazyCreationData to subclassData. This is extra data that can be used by JSArray
+        subclasses (you can't add new data members, because it wouldn't fit in JSCell otherwise).
+
+        * JavaScriptCore.exp:
+        * runtime/JSArray.cpp:
+        (JSC::JSArray::JSArray):
+        (JSC::JSArray::subclassData):
+        (JSC::JSArray::setSubclassData):
+        * runtime/JSArray.h:
+        * runtime/RegExpConstructor.cpp:
+        (JSC::RegExpMatchesArray::RegExpMatchesArray):
+        (JSC::RegExpMatchesArray::~RegExpMatchesArray):
+        (JSC::RegExpMatchesArray::fillArrayInstance):
+        * runtime/RegExpMatchesArray.h:
+        (JSC::RegExpMatchesArray::getOwnPropertySlot):
+        (JSC::RegExpMatchesArray::getOwnPropertyDescriptor):
+        (JSC::RegExpMatchesArray::put):
+        (JSC::RegExpMatchesArray::deleteProperty):
+        (JSC::RegExpMatchesArray::getOwnPropertyNames):
+
+2010-02-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        JSC crashes like crazy in the JSPropertyNameIterator destructor
+
+        Add back null check of m_cachedStructure.  Curse last minute changes.
+
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator):
+
+2010-02-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Race condition in JSPropertyNameIterator and Structure destruction
+        https://bugs.webkit.org/show_bug.cgi?id=35398
+
+        JSPropertyNameIterator and Structure have a cyclic dependency that they
+        manage by clearing the appropriate reference in each other during their
+        destruction.  However if the Structure is destroyed while the 
+        JSPropertyNameIterator is dead but not yet finalized the Structures
+        WeakGCPtr will return null, and so prevent Structure from clearing
+        the m_cachedStructure pointer of the iterator.  When the iterator is
+        then finalised the m_cachedStructure is invalid, and the attempt to
+        clear the structures back reference fails.
+
+        To fix this we simply make JSPropertyNameIterator keep the Structure
+        alive, using the weak pointer to break the ref cycle.
+
+        * runtime/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator):
+          The iterator now keeps m_cachedStructure alive itself, so no longer needs
+          to check for it being cleared
+        * runtime/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::setCachedStructure):
+          Add an assertion to ensure correct usage
+        (JSC::JSPropertyNameIterator::cachedStructure):
+          Add .get()
+        * runtime/Structure.cpp:
+        (JSC::Structure::~Structure):
+          Add an assertion that our iterator isn't already dead, and remove
+          the now unnecessary attempt to clear the ref in the iterator
+        * runtime/WeakGCPtr.h:
+        (JSC::WeakGCPtr::hasDeadObject):
+          An assert-only function to allow us to assert correct behaviour
+          in the Structure destructor
+
+2010-02-25  Jochen Eisinger  <jochen@chromium.org>
+ 
+        Reviewed by Jeremy Orlow.
+ 
+        Make the context that was passed to the ThreadFunction accessible.
+        https://bugs.webkit.org/show_bug.cgi?id=35379
+
+        When a database is opened, right now you
+        don't have any context from where it is opened. The problem is that
+        the actual calls that open a database go through the sqlite3 vfs
+        layer, so there's no easy way to pass this function down to to
+        platform/sql/chromium/SQLFileSystemChromium*.cpp
+
+        This patch will allow you to get from anywhere within webkit a pointer
+        to the Thread object that actually created the thread you're currently
+        on (in case of the database, this can be either a thread forked of
+        from the main thread or from a worker thread), and query the object
+        for context information.
+
+        * wtf/Threading.h:
+        * wtf/ThreadingNone.cpp:
+        (WTF::threadContext):
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::):
+        (WTF::identifierByPthreadHandle):
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::pthreadHandleForIdentifier):
+        (WTF::contextForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::currentThread):
+        (WTF::threadContext):
+        * wtf/ThreadingWin.cpp:
+        (WTF::):
+        (WTF::threadMap):
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::threadHandleForIdentifier):
+        (WTF::contextForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::threadContext):
+
+2010-02-25  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reverting to re-submit with better change log.
+
+        * wtf/Threading.h:
+        * wtf/ThreadingNone.cpp:
+        (WTF::isMainThread):
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::identifierByPthreadHandle):
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::pthreadHandleForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::currentThread):
+        * wtf/ThreadingWin.cpp:
+        (WTF::threadMap):
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::threadHandleForIdentifier):
+        (WTF::createThreadInternal):
+
+2010-02-25  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Make the context that was passed to the ThreadFunction accessible.
+        https://bugs.webkit.org/show_bug.cgi?id=35379
+
+        * wtf/Threading.h:
+        * wtf/ThreadingNone.cpp:
+        (WTF::threadContext):
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::):
+        (WTF::identifierByPthreadHandle):
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::pthreadHandleForIdentifier):
+        (WTF::contextForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::currentThread):
+        (WTF::threadContext):
+        * wtf/ThreadingWin.cpp:
+        (WTF::):
+        (WTF::threadMap):
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::threadHandleForIdentifier):
+        (WTF::contextForIdentifier):
+        (WTF::createThreadInternal):
+        (WTF::threadContext):
+
 2010-02-25  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Geoffrey Garen.

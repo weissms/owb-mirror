@@ -44,11 +44,17 @@ def get(port_name=None, options=None):
         elif sys.platform == 'linux2':
             port_to_use = 'chromium-linux'
         elif sys.platform == 'darwin':
-            port_to_use = 'chromium-mac'
+            if options.chromium:
+                port_to_use = 'chromium-mac'
+            else:
+                port_to_use = 'mac'
 
     if port_to_use == 'test':
         import test
         return test.TestPort(port_name, options)
+    elif port_to_use.startswith('passing'):
+        import passing
+        return passing.PassingPort(port_name, options)
     elif port_to_use.startswith('mac'):
         import mac
         return mac.MacPort(port_name, options)

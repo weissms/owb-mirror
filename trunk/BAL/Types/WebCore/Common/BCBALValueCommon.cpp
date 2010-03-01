@@ -67,8 +67,8 @@ BALValue::BALValue(Frame* frame, JSC::ExecState* exec, const JSC::JSValue& value
     // Translate the JSValue to its BALObject if possible.
     if (m_val.isObject()) {
         JSObject* object = m_val.toObject(m_exec);
-        if (object->inherits(&RuntimeObject::s_info)) {
-            RuntimeObject* imp = static_cast<JSC::RuntimeObject*>(object);
+        if (object->inherits(&JSC::Bindings::RuntimeObject::s_info)) {
+            JSC::Bindings::RuntimeObject* imp = static_cast<JSC::Bindings::RuntimeObject*>(object);
             Bindings::BalInstance* instance = static_cast<JSC::Bindings::BalInstance*>(imp->getInternalInstance());
             if (instance)
                 m_obj = instance->getObject();

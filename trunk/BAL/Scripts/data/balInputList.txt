@@ -272,6 +272,7 @@ BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/ColorQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatPointQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/FloatRectQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GradientQt.cpp
+BAL/Graphics/WebCore/Qt WebCore/platform/graphics/qt/GraphicsContext3DQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsContextQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsLayerQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/GraphicsLayerQt.h
@@ -552,8 +553,8 @@ BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStream
 BAL/Media/WebCore/Gtk	WebCore/platform/gtk/SoundGtk.cpp	BCSoundGtk.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h
-BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp
-BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h
+BAL/Media/WebCore/Qt	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp
+BAL/Media/WebCore/Qt	WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h
 BAL/Media/WebCore/Qt	WebCore/platform/qt/SoundQt.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.cpp
 BAL/Media/WebCore/WK	WebCore/platform/graphics/MediaPlayer.h

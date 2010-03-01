@@ -39,6 +39,7 @@
 #import "WebChromeClient.h"
 #import "WebDataSourceInternal.h"
 #import "WebDocumentLoaderMac.h"
+#import "WebDynamicScrollBarsView.h"
 #import "WebFrameLoaderClient.h"
 #import "WebFrameViewInternal.h"
 #import "WebHTMLView.h"
@@ -1281,6 +1282,22 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     return toGlobalRef(coreFrame->script()->globalObject(coreWorld)->globalExec());
 }
 
+- (void)setAllowScrollersToOverlapContent:(BOOL)flag
+{
+    ASSERT([[[self frameView] _scrollView] isKindOfClass:[WebDynamicScrollBarsView class]]);
+    [(WebDynamicScrollBarsView *)[[self frameView] _scrollView] setAllowScrollersToOverlapContent:flag];
+}
+
+- (void)setAlwaysHideHorizontalScroller:(BOOL)flag
+{
+    ASSERT([[[self frameView] _scrollView] isKindOfClass:[WebDynamicScrollBarsView class]]);
+    [(WebDynamicScrollBarsView *)[[self frameView] _scrollView] setAlwaysHideHorizontalScroller:flag];
+}
+- (void)setAlwaysHideVerticalScroller:(BOOL)flag
+{
+    ASSERT([[[self frameView] _scrollView] isKindOfClass:[WebDynamicScrollBarsView class]]);
+    [(WebDynamicScrollBarsView *)[[self frameView] _scrollView] setAlwaysHideVerticalScroller:flag];
+}
 @end
 
 @implementation WebFrame

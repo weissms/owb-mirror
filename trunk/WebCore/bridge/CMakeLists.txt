@@ -9,6 +9,7 @@ list(APPEND WEBCORE_SRC
     bridge/bal/BalClass.cpp
     bridge/bal/BalInstance.cpp
     bridge/bal/BalRuntime.cpp
+    bridge/c/CRuntimeObject.cpp
     bridge/c/c_class.cpp
     bridge/c/c_instance.cpp
     bridge/c/c_runtime.cpp

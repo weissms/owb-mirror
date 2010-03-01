@@ -1,3 +1,85 @@
+2010-03-01  Jing Jin  <jjin@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Move implementation of Bug 35449 into WebFramePrivate.
+
+        * WebView/WebFrame.h:
+        * WebView/WebFrame.mm:
+        (-[WebFrame setAllowScrollersToOverlapContent:]):
+        (-[WebFrame setAlwaysHideHorizontalScroller:]):
+        (-[WebFrame setAlwaysHideVerticalScroller:]):
+        * WebView/WebFramePrivate.h:
+
+2010-02-26  Jing Jin  <jjin@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35449
+        Add ability to hide WebFrame scrollbars and to allow scrollbars to overlap with content.
+
+        * WebView/WebDynamicScrollBarsView.h:
+        * WebView/WebDynamicScrollBarsView.mm:
+        (-[WebDynamicScrollBarsView setAllowScrollersToOverlapContent:]): Allows scrollbars to 
+        overlap with the document and re-layouts the document.
+        (-[WebDynamicScrollBarsView setAlwaysHideHorizontalScroller:]): Hides the horizontal scrollbar.
+        (-[WebDynamicScrollBarsView setAlwaysHideVerticalScroller:]): Hides the vertical scrollbar.
+        (-[WebDynamicScrollBarsView contentViewFrame]): Calculates the appropriate frame based
+        on allowScrollersToOverlapContent.
+        (-[WebDynamicScrollBarsView tile]): If allowScrollersToOverlapContent is YES, set the
+        contentView's frame so it overlaps with the scrollbar.
+        (-[WebDynamicScrollBarsView updateScrollers]): Take into account hideHorizontalScroller
+        and hideVerticalScroller.
+        (-[WebDynamicScrollBarsView reflectScrolledClipView:]): set drawsBackground to NO when
+        scrollbars are overlapping with content, so we don't get trails during scrollbar draw updates.
+        * WebView/WebDynamicScrollBarsViewInternal.h:
+        * WebView/WebFrame.h:
+        * WebView/WebFrame.mm:
+        (-[WebFrame setAllowScrollersToOverlapContent:]): Hook for [WebDynamicScrollBarsView setAllowScrollersToOverlapContent:]
+        (-[WebFrame setAlwaysHideHorizontalScroller:]): Hook for [WebDynamicScrollBarsView setAlwaysHideHorizontalScroller:]
+        (-[WebFrame setAlwaysHideVerticalScroller:]): Hook for [WebDynamicScrollBarsView setAlwaysHideVerticalScroller:]
+
+2010-02-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 35401 - Fix handling of errors in handling calls over bridge,
+        where base object bridge-type does not match method bridge-type.
+
+        The code assumes users will only attempt to invoke a Java method
+        on a Java base object, etc.
+        Add language specific subclasses of RuntimeMethod, and pass the
+        RuntimeMethod into invokeMethod, so we can typecheck before
+        casting.  Throw an exception on type mismatch.
+
+        * Plugins/Hosted/ProxyInstance.h:
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::PluginRuntimeMethod::PluginRuntimeMethod): new class to distinguish this type of RuntimeMethod.
+        (WebKit::ProxyInstance::getMethod): create an appropriate sublclass of RuntimeMethod.
+        (WebKit::ProxyInstance::invokeMethod): dynamically check the type of the RuntimeMethod.
+
+2010-02-25  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35394
+        <rdar://problem/7685262> Make passing objects between Java and plug-ins work
+
+        Added a ProxyInstance implementation of RuntimeObject.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::addValueToArray):
+        * Plugins/Hosted/ProxyInstance.h:
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyInstance::newRuntimeObject):
+        (WebKit::ProxyInstance::getClass):
+        * Plugins/Hosted/ProxyRuntimeObject.h: Added.
+        (WebKit::ProxyRuntimeObject::classInfo):
+        * Plugins/Hosted/ProxyRuntimeObject.mm: Added.
+        (WebKit::ProxyRuntimeObject::ProxyRuntimeObject):
+        (WebKit::ProxyRuntimeObject::~ProxyRuntimeObject):
+        (WebKit::ProxyRuntimeObject::getInternalProxyInstance):
+
 2010-02-25  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Darin Fisher.

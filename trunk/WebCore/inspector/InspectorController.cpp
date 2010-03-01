@@ -24,7 +24,7 @@
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #include "config.h"
@@ -76,6 +76,7 @@
 #include "ScriptObject.h"
 #include "ScriptProfile.h"
 #include "ScriptProfiler.h"
+#include "ScriptSourceCode.h"
 #include "ScriptString.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
@@ -802,6 +803,12 @@ void InspectorController::didCommitLoad(DocumentLoader* loader)
     for (Frame* frame = loader->frame(); frame; frame = frame->tree()->traverseNext(loader->frame()))
         if (ResourcesMap* resourceMap = m_frameResources.get(frame))
             pruneResources(resourceMap, loader);
+
+    for (Vector<String>::iterator it = m_scriptsToEvaluateOnLoad.begin();
+         it != m_scriptsToEvaluateOnLoad.end(); ++it) {
+        ScriptSourceCode scriptSourceCode(*it);
+        loader->frame()->script()->evaluate(scriptSourceCode);
+    }
 }
 
 void InspectorController::frameDetachedFromParent(Frame* frame)
@@ -1018,7 +1025,8 @@ void InspectorController::didFinishLoading(unsigned long identifier)
 
     resource->endTiming();
 
-    if (resource != m_mainResource && windowVisible())
+    // No need to mute this event for main resource since it happens after did commit load.
+    if (windowVisible())
         resource->updateScriptObject(m_frontend.get());
 }
 
@@ -1034,7 +1042,8 @@ void InspectorController::didFailLoading(unsigned long identifier, const Resourc
     resource->markFailed();
     resource->endTiming();
 
-    if (resource != m_mainResource && windowVisible())
+    // No need to mute this event for main resource since it happens after did commit load.
+    if (windowVisible())
         resource->updateScriptObject(m_frontend.get());
 }
 
@@ -1898,6 +1907,16 @@ InjectedScript InspectorController::injectedScriptForNodeId(long id)
         return m_injectedScriptHost->injectedScriptFor(mainWorldScriptState(frame));
 
     return InjectedScript();
+}
+
+void InspectorController::addScriptToEvaluateOnLoad(const String& source)
+{
+    m_scriptsToEvaluateOnLoad.append(source);
+}
+
+void InspectorController::removeAllScriptsToEvaluateOnLoad()
+{
+    m_scriptsToEvaluateOnLoad.clear();
 }
 
 } // namespace WebCore

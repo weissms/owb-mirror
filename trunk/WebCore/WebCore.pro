@@ -31,7 +31,7 @@ symbian: {
     # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
     QMAKE_LFLAGS.ARMCC += --rw-base 0xE00000
     MMP_RULES += ALWAYS_BUILD_AS_ARM
-    QMAKE_CXXFLAGS.ARMCC += -OTime -O3
+    CONFIG(release, debug|release): QMAKE_CXXFLAGS.ARMCC += -OTime -O3
 }
 
 include($$PWD/../WebKit.pri)
@@ -376,6 +376,7 @@ SOURCES += \
     bridge/runtime_method.cpp \
     bridge/runtime_object.cpp \
     bridge/runtime_root.cpp \
+    bridge/c/CRuntimeObject.cpp \
     bridge/c/c_class.cpp \
     bridge/c/c_instance.cpp \
     bridge/c/c_runtime.cpp \
@@ -1063,6 +1064,7 @@ HEADERS += \
     bindings/js/StringSourceProvider.h \
     bindings/js/WorkerScriptController.h \
     bridge/Bridge.h \
+    bridge/c/CRuntimeObject.h \
     bridge/c/c_class.h \
     bridge/c/c_instance.h \
     bridge/c/c_runtime.h \
@@ -1672,6 +1674,7 @@ HEADERS += \
     rendering/RenderSVGInlineText.h \
     rendering/RenderSVGModelObject.h \
     rendering/RenderSVGResource.h \
+    rendering/RenderSVGResourceClipper.h \
     rendering/RenderSVGResourceMasker.h \
     rendering/RenderSVGRoot.h \
     rendering/RenderSVGShadowTreeRootContainer.h \
@@ -1760,7 +1763,6 @@ HEADERS += \
     svg/graphics/SVGPaintServerPattern.h \
     svg/graphics/SVGPaintServerRadialGradient.h \
     svg/graphics/SVGPaintServerSolid.h \
-    svg/graphics/SVGResourceClipper.h \
     svg/graphics/SVGResourceFilter.h \
     svg/graphics/SVGResource.h \
     svg/graphics/SVGResourceMarker.h \
@@ -2618,7 +2620,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/SVGPaintServerPattern.cpp \
         svg/graphics/SVGPaintServerRadialGradient.cpp \
         svg/graphics/SVGPaintServerSolid.cpp \
-        svg/graphics/SVGResourceClipper.cpp \
         svg/graphics/SVGResource.cpp \
         svg/graphics/SVGResourceFilter.cpp \
         svg/graphics/SVGResourceMarker.cpp \
@@ -2632,6 +2633,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGInline.cpp \
         rendering/RenderSVGInlineText.cpp \
         rendering/RenderSVGModelObject.cpp \
+        rendering/RenderSVGResourceClipper.cpp \
         rendering/RenderSVGResourceMasker.cpp \
         rendering/RenderSVGRoot.cpp \
         rendering/RenderSVGShadowTreeRootContainer.cpp \
@@ -2687,6 +2689,87 @@ SOURCES += \
     websockets/WorkerThreadableWebSocketChannel.cpp
 }
 }
+
+contains(DEFINES, ENABLE_3D_CANVAS=1) {
+QT += opengl
+HEADERS += \
+	bindings/js/JSWebGLArrayBufferConstructor.h \
+	bindings/js/JSWebGLArrayHelper.h \
+	bindings/js/JSWebGLByteArrayConstructor.h \
+	bindings/js/JSWebGLFloatArrayConstructor.h \
+	bindings/js/JSWebGLIntArrayConstructor.h \
+	bindings/js/JSWebGLShortArrayConstructor.h \
+	bindings/js/JSWebGLUnsignedByteArrayConstructor.h \
+	bindings/js/JSWebGLUnsignedIntArrayConstructor.h \
+	bindings/js/JSWebGLUnsignedShortArrayConstructor.h \
+	html/canvas/CanvasContextAttributes.h \
+	html/canvas/CanvasObject.h \
+	html/canvas/WebGLActiveInfo.h \
+	html/canvas/WebGLArrayBuffer.h \
+	html/canvas/WebGLArray.h \
+	html/canvas/WebGLBuffer.h \
+	html/canvas/WebGLByteArray.h \
+	html/canvas/WebGLContextAttributes.h \
+	html/canvas/WebGLFloatArray.h \
+	html/canvas/WebGLFramebuffer.h \
+	html/canvas/WebGLGetInfo.h \
+	html/canvas/WebGLIntArray.h \
+	html/canvas/WebGLProgram.h \
+	html/canvas/WebGLRenderbuffer.h \
+	html/canvas/WebGLRenderingContext.h \
+	html/canvas/WebGLShader.h \
+	html/canvas/WebGLShortArray.h \
+	html/canvas/WebGLTexture.h \
+	html/canvas/WebGLUniformLocation.h \
+	html/canvas/WebGLUnsignedByteArray.h \
+	html/canvas/WebGLUnsignedIntArray.h \
+	html/canvas/WebGLUnsignedShortArray.h \
+    platform/graphics/GraphicsContext3D.h 
+
+SOURCES += \
+	bindings/js/JSWebGLArrayBufferConstructor.cpp \
+	bindings/js/JSWebGLArrayCustom.cpp \
+	bindings/js/JSWebGLByteArrayConstructor.cpp \
+	bindings/js/JSWebGLByteArrayCustom.cpp \
+	bindings/js/JSWebGLFloatArrayConstructor.cpp \
+	bindings/js/JSWebGLFloatArrayCustom.cpp \
+	bindings/js/JSWebGLIntArrayConstructor.cpp \
+	bindings/js/JSWebGLIntArrayCustom.cpp \
+	bindings/js/JSWebGLRenderingContextCustom.cpp \
+	bindings/js/JSWebGLShortArrayConstructor.cpp \
+	bindings/js/JSWebGLShortArrayCustom.cpp \
+	bindings/js/JSWebGLUnsignedByteArrayConstructor.cpp \
+	bindings/js/JSWebGLUnsignedByteArrayCustom.cpp \
+	bindings/js/JSWebGLUnsignedIntArrayConstructor.cpp \
+	bindings/js/JSWebGLUnsignedIntArrayCustom.cpp \
+	bindings/js/JSWebGLUnsignedShortArrayConstructor.cpp \
+	bindings/js/JSWebGLUnsignedShortArrayCustom.cpp \
+	html/canvas/CanvasContextAttributes.cpp \
+    html/canvas/CanvasObject.cpp \
+	html/canvas/WebGLArrayBuffer.cpp \
+	html/canvas/WebGLArray.cpp \
+	html/canvas/WebGLBuffer.cpp \
+	html/canvas/WebGLByteArray.cpp \
+	html/canvas/WebGLContextAttributes.cpp \
+	html/canvas/WebGLFloatArray.cpp \
+	html/canvas/WebGLFramebuffer.cpp \
+	html/canvas/WebGLGetInfo.cpp \
+	html/canvas/WebGLIntArray.cpp \
+	html/canvas/WebGLProgram.cpp \
+	html/canvas/WebGLRenderbuffer.cpp \
+	html/canvas/WebGLRenderingContext.cpp \
+	html/canvas/WebGLShader.cpp \
+	html/canvas/WebGLShortArray.cpp \
+	html/canvas/WebGLTexture.cpp \
+	html/canvas/WebGLUniformLocation.cpp \
+	html/canvas/WebGLUnsignedByteArray.cpp \
+	html/canvas/WebGLUnsignedIntArray.cpp \
+	html/canvas/WebGLUnsignedShortArray.cpp \
+    platform/graphics/GraphicsContext3D.cpp \
+    platform/graphics/qt/GraphicsContext3DQt.cpp \
+
+}
+
 
 include($$PWD/../WebKit/qt/Api/headers.pri)
 include(../include/QtWebKit/classheaders.pri)

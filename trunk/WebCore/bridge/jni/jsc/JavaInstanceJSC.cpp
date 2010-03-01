@@ -28,11 +28,13 @@
 
 #if ENABLE(MAC_JAVA_BRIDGE)
 
+#include "JavaRuntimeObject.h"
 #include "JNIBridgeJSC.h"
 #include "JNIUtility.h"
 #include "JNIUtilityPrivate.h"
 #include "JavaClassJSC.h"
 #include "Logging.h"
+#include "runtime_method.h"
 #include "runtime_object.h"
 #include "runtime_root.h"
 #include <runtime/ArgList.h>
@@ -53,6 +55,11 @@ JavaInstance::JavaInstance(jobject instance, PassRefPtr<RootObject> rootObject)
 JavaInstance::~JavaInstance()
 {
     delete m_class;
+}
+
+RuntimeObject* JavaInstance::newRuntimeObject(ExecState* exec)
+{
+    return new (exec) JavaRuntimeObject(exec, this);
 }
 
 #define NUM_LOCAL_REFS 64
@@ -103,8 +110,33 @@ JSValue JavaInstance::booleanValue() const
     return jsBoolean(booleanValue);
 }
 
-JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList &args)
+class JavaRuntimeMethod : public RuntimeMethod {
+public:
+    JavaRuntimeMethod(ExecState* exec, const Identifier& name, Bindings::MethodList& list)
+        : RuntimeMethod(exec, name, list)
+    {
+    }
+
+    virtual const ClassInfo* classInfo() const { return &s_info; }
+
+    static const ClassInfo s_info;
+};
+
+const ClassInfo JavaRuntimeMethod::s_info = { "JavaRuntimeMethod", &RuntimeMethod::s_info, 0, 0 };
+
+JSValue JavaInstance::getMethod(ExecState* exec, const Identifier& propertyName)
 {
+    MethodList methodList = getClass()->methodsNamed(propertyName, this);
+    return new (exec) JavaRuntimeMethod(exec, propertyName, methodList);
+}
+
+JSValue JavaInstance::invokeMethod(ExecState* exec, RuntimeMethod* runtimeMethod, const ArgList &args)
+{
+    if (!asObject(runtimeMethod)->inherits(&JavaRuntimeMethod::s_info))
+        return throwError(exec, TypeError, "Attempt to invoke non-Java method on Java object.");
+
+    const MethodList& methodList = *runtimeMethod->methods();
+
     int i;
     int count = args.size();
     JSValue resultValue;
@@ -135,7 +167,7 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
 
     for (i = 0; i < count; i++) {
         JavaParameter* aParameter = jMethod->parameterAt(i);
-        jArgs[i] = convertValueToJValue(exec, args.at(i), aParameter->getJNIType(), aParameter->type());
+        jArgs[i] = convertValueToJValue(exec, m_rootObject.get(), args.at(i), aParameter->getJNIType(), aParameter->type());
         LOG(LiveConnect, "JavaInstance::invokeMethod arg[%d] = %s", i, args.at(i).toString(exec).ascii());
     }
 
@@ -215,10 +247,24 @@ JSValue JavaInstance::invokeMethod(ExecState* exec, const MethodList& methodList
                 const char* arrayType = jMethod->returnType();
                 if (arrayType[0] == '[')
                     resultValue = JavaArray::convertJObjectToArray(exec, result.l, arrayType, rootObject);
-                else
-                    resultValue = JavaInstance::create(result.l, rootObject)->createRuntimeObject(exec);
+                else {
+                    jobject classOfInstance = callJNIMethod<jobject>(result.l, "getClass", "()Ljava/lang/Class;");
+                    jstring className = static_cast<jstring>(callJNIMethod<jobject>(classOfInstance, "getName", "()Ljava/lang/String;"));
+                    if (!strcmp(JavaString(className).UTF8String(), "sun.plugin.javascript.webkit.JSObject")) {
+                        // Pull the nativeJSObject value from the Java instance.  This is a pointer to the JSObject.
+                        JNIEnv* env = getJNIEnv();
+                        jfieldID fieldID = env->GetFieldID(static_cast<jclass>(classOfInstance), "nativeJSObject", "J");
+                        jlong nativeHandle = env->GetLongField(result.l, fieldID);
+                        // FIXME: Handling of undefined values differs between functions in JNIUtilityPrivate.cpp and those in those in jni_jsobject.mm,
+                        // and so it does between different versions of LiveConnect spec. There should not be multiple code paths to do the same work.
+                        if (nativeHandle == 1 /* UndefinedHandle */)
+                            return jsUndefined();
+                        return static_cast<JSObject*>(jlong_to_ptr(nativeHandle));
+                    } else
+                        return JavaInstance::create(result.l, rootObject)->createRuntimeObject(exec);
+                }
             } else
-                resultValue = jsUndefined();
+                return jsUndefined();
         }
         break;
 

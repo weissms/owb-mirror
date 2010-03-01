@@ -1,3 +1,370 @@
+2010-03-01  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Exempted WebKitTools/Scripts/webkitpy/thirdparty from all
+        style checks except for the whitespace/carriage_return check
+        and the pep8 tab and trailing white space checks.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35497
+
+        * Scripts/webkitpy/style/checker.py:
+          - Adjusted the _PATH_RULES_SPECIFIER configuration as necessary.
+          - Added enough pep8 categories to _all_categories() for the
+            unit tests to pass.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated the test_path_rules_specifier() unit test.
+
+2010-02-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by David Levin.
+
+        Rewrote autoinstall.py to support unzipping *.zip files after
+        download, unzipping and extracting *.tar.gz files after download,
+        and copying installed files to a destination directory.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35163
+
+        These changes will allow us to autoinstall pep8.py from the web
+        and to put our third-party autoinstalled code in an explicit
+        directory like webkitpy/thirdparty/autoinstalled. They should
+        also speed up imports from autoinstalled *.zip packages slightly
+        since *.pyc files cannot be generated when importing from
+        zipped packages.
+
+        * Scripts/webkitpy/__init__.py:
+          - Updated the autoinstall lines to use the new autoinstall methods.
+          - Added pep8.py to the list of auto-installed packages.
+
+        * Scripts/webkitpy/bugzilla.py:
+          - Updated mechanize import path.
+
+        * Scripts/webkitpy/init/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+
+        * Scripts/webkitpy/init/autoinstall.py: Added.
+          - Added AutoInstaller class.
+          - Added sample testing usage to __main__.
+
+        * Scripts/webkitpy/networktransaction.py:
+          - Updated mechanize import path.
+
+        * Scripts/webkitpy/networktransaction_unittest.py:
+          - Updated mechanize import path.
+
+        * Scripts/webkitpy/statusserver.py:
+          - Updated mechanize import path.
+
+        * Scripts/webkitpy/thirdparty/autoinstall.py: Removed.
+          - Replaced with rewritten autoinstall in init/autoinstall.py.
+
+2010-02-26  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Change the default port for new-run-webkit-tests when running on
+        a Mac from 'chromium-mac' to 'mac'. Add a '--chromium' switch to
+        pick up the default platform-specific version of chromium instead.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35462
+
+        * Scripts/webkitpy/layout_tests/port/factory.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-02-26  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, build fix
+
+        third time's the charm getting this path right?
+
+        * pywebsocket/mod_pywebsocket/standalone.py:
+
+2010-02-26  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Unreviewed, build fix.
+
+        * pywebsocket/mod_pywebsocket/standalone.py:
+
+2010-02-26  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Moving the script to the right location.
+
+        * pywebsocket/mod_pywebsocket: Added.
+        * pywebsocket/mod_pywebsocket/standalone.py: Copied from WebKitTools/pywebsocket/standalone.py.
+        * pywebsocket/standalone.py: Removed.
+
+2010-02-26  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Unreviewed, fixing the license.
+
+        * pywebsocket/standalone.py:
+
+2010-02-26  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Adding pywebsocket/standalone.py back to fix the Chromium webkit
+        canaries. Once all layout tests pass, we can get in the patch that
+        moves this directorty to WebKitTools/Scripts, update all Chromium
+        scripts, and revert this patch.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35464
+
+        * pywebsocket: Added.
+        * pywebsocket/standalone.py: Added.
+
+2010-02-26  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Needs proper reporting of frame loader callbacks, in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=32170
+
+        Fix reporting of unload handlers, so that it is emitted where
+        needed, not after it.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewLoadFinished):
+        (webViewDocumentLoadFinished):
+        (createWebView):
+
+2010-02-26  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Gustavo Noronha.
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        [Gtk] Make DRT EventSender::keyDown to consider 'hardware_keycode' field when synthesizing an event.
+        https://bugs.webkit.org/show_bug.cgi?id=35432
+
+        When a directional key-press event (arrow keys, End, Home, PageUp,
+        PageDown, etc) is synthesized by DRT's EventSender and it targets
+        an editor (e.g. <input type=text>, <textare>, etc), event is processed
+        by WebCore::EventHandler. On the other hand, if event target is not
+        an editor, event is bubbled up to Gtk+ for processing. In such cases,
+        if 'hardware_keycode' is not provided at event synthesize time
+        its processing fails (at some point in gtk_bindings_activate_event),
+        and no scroll action is performed.
+
+        Unskip fast/events/node-event-anchor-lock.html
+
+        * DumpRenderTree/win/EventSender.cpp:
+        (keyDownCallback):
+        * platform/gtk/Skipped:
+
+2010-02-26  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by David Levin.
+
+        new-webkit-run-tests: Extraneous parenthesis in websocket_server.py
+        https://bugs.webkit.org/show_bug.cgi?id=35436
+
+         * Scripts/webkitpy/layout_tests/port/websocket_server.py: Removed extra paren.
+
+2010-02-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by David Levin.
+
+        Moved pywebsocket into the webkitpy/thirdparty directory and added
+        an associated README.webkit file to the pywebsocket directory.
+        This makes pywebsocket more consistent with the other third-party
+        Python code in our repository.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35198
+
+        * Scripts/run-webkit-tests:
+          - Updated paths to pywebsocket.
+
+        * Scripts/run-webkit-websocketserver:
+          - Updated paths to pywebsocket.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+          - Updated paths to pywebsocket.
+
+        * Scripts/webkitpy/thirdparty/pywebsocket: Copied from WebKitTools/pywebsocket.
+        * Scripts/webkitpy/thirdparty/pywebsocket/README.webkit: Added.
+          - Added a file containing information about the contents
+            of the pywebsocket directory. This will make it easier to
+            understand where the third-party code came from and what
+            local changes have been made.
+
+        * pywebsocket: Removed.
+        * pywebsocket/COPYING: Removed.
+        * pywebsocket/MANIFEST.in: Removed.
+        * pywebsocket/README: Removed.
+        * pywebsocket/example: Removed.
+        * pywebsocket/example/echo_client.py: Removed.
+        * pywebsocket/example/echo_wsh.py: Removed.
+        * pywebsocket/mod_pywebsocket: Removed.
+        * pywebsocket/mod_pywebsocket/__init__.py: Removed.
+        * pywebsocket/mod_pywebsocket/dispatch.py: Removed.
+        * pywebsocket/mod_pywebsocket/handshake.py: Removed.
+        * pywebsocket/mod_pywebsocket/headerparserhandler.py: Removed.
+        * pywebsocket/mod_pywebsocket/memorizingfile.py: Removed.
+        * pywebsocket/mod_pywebsocket/msgutil.py: Removed.
+        * pywebsocket/mod_pywebsocket/standalone.py: Removed.
+        * pywebsocket/mod_pywebsocket/util.py: Removed.
+        * pywebsocket/setup.py: Removed.
+        * pywebsocket/test: Removed.
+        * pywebsocket/test/config.py: Removed.
+        * pywebsocket/test/mock.py: Removed.
+        * pywebsocket/test/run_all.py: Removed.
+        * pywebsocket/test/test_dispatch.py: Removed.
+        * pywebsocket/test/test_handshake.py: Removed.
+        * pywebsocket/test/test_memorizingfile.py: Removed.
+        * pywebsocket/test/test_mock.py: Removed.
+        * pywebsocket/test/test_msgutil.py: Removed.
+        * pywebsocket/test/test_util.py: Removed.
+        * pywebsocket/test/testdata: Removed.
+        * pywebsocket/test/testdata/handlers: Removed.
+        * pywebsocket/test/testdata/handlers/blank_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/origin_check_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub: Removed.
+        * pywebsocket/test/testdata/handlers/sub/exception_in_transfer_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub/no_wsh_at_the_end.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub/non_callable_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub/plain_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub/wrong_handshake_sig_wsh.py: Removed.
+        * pywebsocket/test/testdata/handlers/sub/wrong_transfer_sig_wsh.py: Removed.
+
+2010-02-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Changed the diff_parser module to log to a module-specific
+        logging.logger rather than the root logger.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35391
+
+        * Scripts/webkitpy/diff_parser.py:
+
+2010-02-26  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] LayoutTestController.numberOfPages() should have default parameters
+        https://bugs.webkit.org/show_bug.cgi?id=35428
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp: maxViewWidth and maxViewHeight moved to
+        LayoutTestController to converge to platform independent implementation.
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::open):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp: Initialization of maxViewWidth and maxViewHeight added.
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+         - Default parameters for LayoutTestController.numberOfPages() added.
+         - maxViewWidth and maxViewHeight members added.
+
+2010-02-26  Jamey Hicks  <jamey.hicks@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] added QWebSettings::setInspectorUrl() and QWebSettings::inspectorUrl()
+
+        Enables the use of alternate Web Inspector frontends by changing
+        the location of the frontend. The location is specified by providing 
+            -inspector-url url
+        as an argument to QtLauncher.
+
+        This is required so that the Web Inspector may be run from an
+        external process or an external tool such as Eclipse or Aptana may
+        be used instead of the in-process Web Inspector UI.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=35340
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::init):
+        (LauncherApplication::handleUserOptions):
+
+2010-02-25  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a 'passing' port implementation to new-run-webkit-tests that
+        acts as a wrapper around an existing implementation but stubs out
+        the actual test invocations (instead, the expected results are echoed
+        back to the harness). This is useful for coverage and perf testing
+        of the harness (especially perf testing as it essentially provides
+        a lower bound on how fast the harness can run).
+
+        Also added a --nostart-helper flag to new-run-webkit-tests so that
+        you can skip starting the layout_test_helper and actually run the
+        harness even if you don't have a build of that port.
+
+        Also fix a bug in the 'test' port implementation to actually
+        create the results directory under /tmp instead of /.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35370
+
+        * Scripts/webkitpy/layout_tests/port/factory.py: Modified.
+        * Scripts/webkitpy/layout_tests/port/passing.py: Added.
+        * Scripts/webkitpy/layout_tests/port/test.py: Added.
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py: Modified.
+
+2010-02-25  Eric Seidel  <eric@webkit.org>
+
+        Fix typo in my last change.  No review.
+
+        Rename run-chromium-webkit-tests to new-run-webkit-tests to stop confusion
+        https://bugs.webkit.org/show_bug.cgi?id=35408
+
+        * Scripts/new-run-webkit-tests:
+
+2010-02-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Rename run-chromium-webkit-tests to new-run-webkit-tests to stop confusion
+        https://bugs.webkit.org/show_bug.cgi?id=35408
+
+        * Scripts/new-run-webkit-tests: Added.
+        * Scripts/run-chromium-webkit-tests: Removed.
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py: Renamed from WebKitTools/Scripts/webkitpy/layout_tests/run_chromium_webkit_tests.py.
+
+2010-02-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by David Levin.
+
+        EWS leaks memory slowly
+        https://bugs.webkit.org/show_bug.cgi?id=35395
+
+        The EWS bots leak memory very slowly.  If you run them for about a
+        month, each one will take up around 1 GB of virutal memory.  If you run
+        several of them on one machine, you'll eventually exhaust all available
+        memory and grind the bots to a halt.
+
+        This patch introduces a --exit-after-iteration option to the queues so
+        that we run them for a finite amount of time.  Once they exit and
+        restart, they'll reclaim the leaked memory.  I'm not sure how many
+        iterations I'll end up running them for.  I'll need to sort that out
+        operationally, but my initial guess is around 1000.
+
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/commands/queues_unittest.py:
+
+2010-02-25  Jarkko Sakkinen  <jarkko.sakkinen@tieto.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Qt WebGL support
+
+        Adds toggling of WebGL support to QtLauncher.
+        https://bugs.webkit.org/show_bug.cgi?id=35153
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::toggleWebGL):
+        (LauncherWindow::setupUI):
+
+2010-02-25  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        The target element of a Touch should be the target where that touch originated, not where it is now.
+        https://bugs.webkit.org/show_bug.cgi?id=34585
+
+        * DumpRenderTree/qt/EventSenderQt.cpp:
+        (EventSender::addTouchPoint): Fix a bug where touch points were not being given unique ids.
+
 2010-02-25  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
 
         Reviewed by Kenneth Rohde Christiansen.

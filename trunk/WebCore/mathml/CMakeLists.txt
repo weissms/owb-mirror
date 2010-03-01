@@ -5,6 +5,7 @@ if(ENABLE_MATHML)
         mathml/MathMLMathElement.cpp
         mathml/MathMLTextElement.cpp
         mathml/RenderMathMLBlock.cpp
+        mathml/RenderMathMLUnderOver.cpp
     )
     list(APPEND IDL_SRC
     )

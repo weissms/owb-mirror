@@ -6,7 +6,7 @@
  *  Copyright (C) 2008 Jan Alonzo <jmalonzo@unpluggable.com>
  *  Copyright (C) 2008 Gustavo Noronha Silva <gns@gnome.org>
  *  Copyright (C) 2008 Nuanti Ltd.
- *  Copyright (C) 2008, 2009 Collabora Ltd.
+ *  Copyright (C) 2008, 2009, 2010 Collabora Ltd.
  *  Copyright (C) 2009 Igalia S.L.
  *  Copyright (C) 2009 Movial Creative Technologies Inc.
  *  Copyright (C) 2009 Bobby Powers
@@ -158,6 +158,7 @@ enum {
     REDO,
     DATABASE_QUOTA_EXCEEDED,
     RESOURCE_REQUEST_STARTING,
+    DOCUMENT_LOAD_FINISHED,
     LAST_SIGNAL
 };
 
@@ -640,6 +641,8 @@ static void webkit_web_view_grab_focus(GtkWidget* widget)
         WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
         FocusController* focusController = core(webView)->focusController();
 
+        focusController->setActive(true);
+
         if (focusController->focusedFrame())
             focusController->setFocused(true);
         else
@@ -676,8 +679,13 @@ static gboolean webkit_web_view_focus_out_event(GtkWidget* widget, GdkEventFocus
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    core(webView)->focusController()->setActive(false);
-    core(webView)->focusController()->setFocused(false);
+    // We may hit this code while destroying the widget, and we might
+    // no longer have a page, then.
+    Page* page = core(webView);
+    if (page) {
+        page->focusController()->setActive(false);
+        page->focusController()->setFocused(false);
+    }
 
     return GTK_WIDGET_CLASS(webkit_web_view_parent_class)->focus_out_event(widget, event);
 }
@@ -2156,6 +2164,30 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             WEBKIT_TYPE_WEB_RESOURCE,
             WEBKIT_TYPE_NETWORK_REQUEST,
             WEBKIT_TYPE_NETWORK_RESPONSE);
+
+    /*
+     * DOM-related signals. These signals are experimental, for now,
+     * and may change API and ABI. Their comments lack one * on
+     * purpose, to make them not be catched by gtk-doc.
+     */
+
+    /*
+     * WebKitWebView::document-load-finished
+     * @web_view: the object which received the signal
+     * @web_frame: the #WebKitWebFrame whose load dispatched this request
+     *
+     * Emitted when the DOM document object load is finished for the
+     * given frame.
+     */
+    webkit_web_view_signals[DOCUMENT_LOAD_FINISHED] = g_signal_new("document-load-finished",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+            0,
+            NULL, NULL,
+            g_cclosure_marshal_VOID__OBJECT,
+            G_TYPE_NONE, 1,
+            WEBKIT_TYPE_WEB_FRAME);
+
 
     /*
      * implementations of virtual methods

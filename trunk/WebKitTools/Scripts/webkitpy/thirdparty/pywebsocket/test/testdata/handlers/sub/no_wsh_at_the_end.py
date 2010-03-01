@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# Copyright (C) 2010 Google Inc. All rights reserved.
+# Copyright 2009, Google Inc.
+# All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -27,17 +27,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Wrapper around webkitpy/layout_tests/run-chromium-webkit-tests.py"""
-import os
-import sys
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
-                             "webkitpy", "layout_tests"))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
-                             "webkitpy", "thirdparty"))  # For simplejson.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-import run_chromium_webkit_tests
+"""Correct signatures, wrong file name.
+"""
 
-if __name__ == '__main__':
-    options, args = run_chromium_webkit_tests.parse_args()
-    run_chromium_webkit_tests.main(options, args)
+
+def web_socket_do_extra_handshake(request):
+    pass
+
+
+def web_socket_transfer_data(request):
+    request.connection.write(
+            'sub/no_wsh_at_the_end.py is called for %s, %s' %
+            (request.ws_resource, request.ws_protocol))
+
+
+# vi:sts=4 sw=4 et

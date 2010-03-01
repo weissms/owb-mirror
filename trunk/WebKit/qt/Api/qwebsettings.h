@@ -70,7 +70,8 @@ public:
         LocalContentCanAccessFileUrls,
         DnsPrefetchEnabled,
         XSSAuditorEnabled,
-        AcceleratedCompositingEnabled
+        AcceleratedCompositingEnabled,
+        WebGLEnabled
     };
     enum WebGraphic {
         MissingImageGraphic,
@@ -132,6 +133,9 @@ public:
     
     void setLocalStoragePath(const QString& path);
     QString localStoragePath() const; 
+
+    void setInspectorUrl(const QUrl &location);
+    QUrl inspectorUrl() const;
 
     static void clearMemoryCaches();
 

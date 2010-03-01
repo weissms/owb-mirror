@@ -1,3 +1,86 @@
+2010-03-01  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Needs proper reporting of frame loader callbacks, in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=32170
+
+        Add new signal to report when the document load is finished for a
+        frame.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFinishDocumentLoad):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_class_init):
+
+2010-02-26  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Complementary commit of r55300. Missing "notify::" to signal name.
+
+        * tests/testwebview.c:
+        (test_webkit_web_view_grab_focus):
+
+2010-02-26  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Xan Lopez.
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        [GTK] Make webkit_web_view_grab_focus to active focus controller.
+        https://bugs.webkit.org/show_bug.cgi?id=35402
+
+        When programatically setting focus to an element in an inner document,
+        calling "hasFocus()" from this document returns FALSE, because
+        document's FocusController is not activated. It does not happen
+        if |document| is the main document.
+
+        Making webkit_web_view_grab_focus to actually activate the FocusController,
+        fixes the issue.
+
+        * tests/testwebview.c:
+        (server_callback):
+        (test_webkit_web_view_grab_focus):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_grab_focus):
+
+2010-02-26  Alejandro G. Castro  <alex@igalia.com>
+
+        Unreviewed.
+
+        Reverted last patch (r55295), it causes problems with the frames.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+
+2010-02-19  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Some region checks in scroll are not required
+        https://bugs.webkit.org/show_bug.cgi?id=35142
+
+        Removes some of the operations checking the moved and invalidated
+        regions when scrolling, it is done already in
+        gdk_window_move_region.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+
+2010-02-25  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] crashed when destroying
+        https://bugs.webkit.org/show_bug.cgi?id=31271
+
+        NULL-check the page before relaying the focus out event, since
+        this might happen when destroying the widget without destroying
+        its parent, and we currently crash.
+
+        * tests/testwebview.c:
+        (delayed_destroy):
+        (test_webkit_web_view_destroy):
+        (main):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_focus_in_event):
+
 2010-02-25  Krzysztof Kotlenga <pocek@users.sf.net>
 
         Reviewed by Gustavo Noronha Silva.

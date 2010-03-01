@@ -47,7 +47,7 @@
 #include "PlatformScreen.h"
 #include <wtf/HashMap.h>
 
-#if ENABLE(3D_RENDERING)
+#if ENABLE(3D_RENDERING) && USE(ACCELERATED_COMPOSITING)
 #include "RenderLayerCompositor.h"
 #endif
 

@@ -44,6 +44,7 @@
 #include "SharedPtr.h"
 #include <wtf/HashMap.h>
 #include "runtime_array.h"
+#include "runtime_method.h"
 #include "runtime_object.h"
 
 using namespace WebCore;
@@ -163,10 +164,17 @@ bool BalInstance::supportsInvokeDefaultMethod() const
     return false;//m_object->_class->invokeDefault;
 }
 
-JSValue BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
+JSValue BalInstance::getMethod(ExecState* exec, const Identifier& propertyName)
 {
-    ASSERT(methodList.size() == 1);
+    MethodList methodList = getClass()->methodsNamed(propertyName, this);
+    return new (exec) RuntimeMethod(exec, propertyName, methodList);
+}
 
+JSValue BalInstance::invokeMethod(ExecState* exec, RuntimeMethod* runtimeMethod, const ArgList& args)
+{
+    const MethodList& methodList = *runtimeMethod->methods(); 
+    ASSERT(methodList.size() == 1);
+    
     BalMethod* method = static_cast<BalMethod*>(methodList[0]);
 
     const char* ident = method->name();

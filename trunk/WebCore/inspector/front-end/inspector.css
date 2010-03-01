@@ -2411,12 +2411,12 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
 }
 
 .toggle-breakpoints .glyph {
-    -webkit-mask-image: url(Images/deactivateBreakpointsDisabledButtonGlyph.png);
+    -webkit-mask-image: url(Images/breakpointsActivateButtonGlyph.png);
     background-color: rgb(96, 96, 96) !important;
 }
 
 .toggle-breakpoints.toggled-on .glyph {
-    -webkit-mask-image: url(Images/deactivateBreakpointsButtonGlyph.png);
+    -webkit-mask-image: url(Images/breakpointsDeactivateButtonGlyph.png);
 }
 
 #scripts-debugger-status {
@@ -3846,4 +3846,19 @@ ol.breakpoint-list {
     border: 1px solid rgb(163, 41, 34);
     margin: -1px;
     background-color: rgb(255, 255, 194);
+}
+
+.timeline-details-row-title {
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.timeline-details-row-data {
+    white-space: nowrap;
+}
+
+.timeline-details-title {
+    font-weight: bold;
+    white-space: nowrap;
 }

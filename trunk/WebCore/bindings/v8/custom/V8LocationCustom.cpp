@@ -75,9 +75,14 @@ void V8Location::hashAccessorSetter(v8::Local<v8::String> name, v8::Local<v8::Va
 
     if (hash.startsWith("#"))
         hash = hash.substring(1);
-    if (oldRef == hash || (oldRef.isNull() && hash.isEmpty()))
-        return;
+
+    // Note that by parsing the URL and *then* comparing fragments, we are
+    // comparing fragments post-canonicalization, and so this handles the
+    // cases where fragment identifiers are ignored or invalid.
     url.setFragmentIdentifier(hash);
+    String newRef = url.fragmentIdentifier();
+    if (oldRef == newRef || (oldRef.isNull() && newRef.isEmpty()))
+        return;
 
     navigateIfAllowed(frame, url, false, false);
 }
@@ -185,7 +190,10 @@ void V8Location::protocolAccessorSetter(v8::Local<v8::String> name, v8::Local<v8
         return;
 
     KURL url = frame->loader()->url();
-    url.setProtocol(protocol);
+    if (!url.setProtocol(protocol)) {
+        throwError("Can't set protocol", V8Proxy::SyntaxError);
+        return;
+    }
 
     navigateIfAllowed(frame, url, false, false);
 }

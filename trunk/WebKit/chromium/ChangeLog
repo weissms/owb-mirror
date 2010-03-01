@@ -1,3 +1,129 @@
+2010-03-01  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: reload inspected page on Cmd+R / Ctrl+R / F5 key event in inspector.
+
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::jsCanAttachWindow):
+        * src/WebDevToolsFrontendImpl.h:
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+        (devtools.InspectorBackendImpl.prototype.toggleNodeSearch):
+
+2010-02-26  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Verify that the Nodes being enumerated are HTML elements.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35463
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::forms):
+
+2010-02-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        Expose an API for ports to add schemes to the mixed content whitelist
+        https://bugs.webkit.org/show_bug.cgi?id=35438
+
+        Expose registerURLSchemeAsSecure via the WebKit API.
+
+        * public/WebSecurityPolicy.h:
+        * src/WebSecurityPolicy.cpp:
+        (WebKit::WebSecurityPolicy::registerURLSchemeAsSecure):
+
+2010-02-26  Brett Wilson  <brettw@chromium.org>
+
+        Fix chromium build. This test's expectation became obsolete with
+        recent changes to KURL which my previous change brings Chromium's
+        port in compliance with.
+
+        * tests/KURLTest.cpp:
+        (ComponentCase::TEST):
+
+2010-02-26  Yaar Schnitman  <yaar@chromium.org>
+
+        Chromium build fix.
+
+        * features.gypi: Added missing new variable enable_svg.
+
+2010-02-26  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [V8] Auto-generate and split DerivedSourcesAllInOne.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=33048
+
+        * DEPS: Incremented gyp revision.
+
+2010-02-26  Darin Fisher  <darin@chromium.org>
+
+        Fix mac warning (that gets treated as an error in the chromium build).
+
+        * src/ChromiumBridge.cpp:
+        (WebCore::ChromiumBridge::cookiesEnabled):
+
+2010-02-25  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        Remove deprecated cookie methods.
+        https://bugs.webkit.org/show_bug.cgi?id=35420
+
+        * public/WebFrameClient.h:
+        * public/WebKitClient.h:
+        * src/ChromiumBridge.cpp:
+        (WebCore::ChromiumBridge::setCookies):
+        (WebCore::ChromiumBridge::cookies):
+        (WebCore::ChromiumBridge::cookieRequestHeaderFieldValue):
+        (WebCore::ChromiumBridge::rawCookies):
+        (WebCore::ChromiumBridge::deleteCookie):
+        (WebCore::ChromiumBridge::cookiesEnabled):
+
+2010-02-25  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Implement WebLabelElement.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35317
+
+        * WebKit.gyp:
+        * public/WebLabelElement.h: Added.
+        * src/WebLabelElement.cpp: Added.
+
+2010-02-25  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Web Inspector: make script lines count calculation lazy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35392
+
+        * src/js/Tests.js:
+        (.TestSuite.prototype.testScriptsTabIsPopulatedOnInspectedPageRefresh.waitUntilScriptIsParsed):
+        (.TestSuite.prototype.testScriptsTabIsPopulatedOnInspectedPageRefresh.checkScriptsPanel):
+        (.TestSuite.prototype.testScriptsTabIsPopulatedOnInspectedPageRefresh):
+        (.TestSuite.prototype.testNoScriptDuplicatesOnPanelSwitch.checkScriptsPanel):
+        (.TestSuite.prototype.testAutoContinueOnSyntaxError.checkScriptsList):
+        (.TestSuite.prototype._executeFunctionForStepTest):
+
+2010-02-24  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add a missing WebString.h include.
+        https://bugs.webkit.org/show_bug.cgi?id=35360
+
+        This is required since some of the methods have implementations that
+        return a WebString.
+
+        * public/WebCookieJar.h:
+
 2010-02-25  Jay Campan  <jcampan@google.com>
 
         Reviewed by David Levin.

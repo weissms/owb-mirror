@@ -38,12 +38,12 @@ vars = {
   'chromium_rev': '38580',
   'google-url_rev': '121',
   'gtest_rev': '359',
-  'gyp_rev': '781',
+  'gyp_rev': '790',
   'icu_rev': '37341',
   'openvcdiff_rev': '28',
   'ots_rev': '26',
   'skia_rev': '490',
-  'v8_rev': '3781',
+  'v8_rev': '3963',
 
   # Windows:
   'cygwin_rev': '11984',

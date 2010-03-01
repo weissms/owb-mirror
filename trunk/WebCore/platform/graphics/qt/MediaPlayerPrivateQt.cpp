@@ -74,7 +74,7 @@ void MediaPlayerPrivate::getSupportedTypes(HashSet<String> &supported)
 
 MediaPlayer::SupportsType MediaPlayerPrivate::supportsType(const String& mime, const String& codec)
 {
-    if (!mime.startsWith("audio/") || !mime.startsWith("video/"))
+    if (!mime.startsWith("audio/") && !mime.startsWith("video/"))
         return MediaPlayer::IsNotSupported;
 
     if (QMediaPlayer::hasSupport(mime, QStringList(codec)) >= QtMultimedia::ProbablySupported)
@@ -537,7 +537,7 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     QPainter* painter = context->platformContext();
 
     // Render the video
-    m_videoScene->render(painter, QRectF(QRect(rect)));
+    m_videoScene->render(painter, QRectF(QRect(rect)), m_videoItem->sceneBoundingRect());
 }
 
 void MediaPlayerPrivate::repaint()

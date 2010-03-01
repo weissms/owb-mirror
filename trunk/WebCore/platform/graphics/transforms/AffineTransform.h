@@ -74,6 +74,7 @@ public:
     IntRect mapRect(const IntRect&) const;
 
     FloatRect mapRect(const FloatRect&) const;
+    FloatQuad mapQuad(const FloatQuad&) const;
 
     bool isIdentity() const;
 
@@ -119,6 +120,11 @@ public:
     bool isIdentityOrTranslation() const
     {
         return m_transform[0] == 1 && m_transform[1] == 0 && m_transform[2] == 0 && m_transform[3] == 1;
+    }
+    
+    bool isIdentityOrTranslationOrFlipped() const
+    {
+        return m_transform[0] == 1 && m_transform[1] == 0 && m_transform[2] == 0 && (m_transform[3] == 1 || m_transform[3] == -1);
     }
 
     bool operator== (const AffineTransform& m2) const

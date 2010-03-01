@@ -622,17 +622,17 @@ WebInspector.documentClick = function(event)
     function followLink()
     {
         // FIXME: support webkit-html-external-link links here.
-        if (WebInspector.canShowSourceLineForURL(anchor.href, anchor.preferredPanel)) {
+        if (WebInspector.canShowSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel)) {
             if (anchor.hasStyleClass("webkit-html-external-link")) {
                 anchor.removeStyleClass("webkit-html-external-link");
                 anchor.addStyleClass("webkit-html-resource-link");
             }
 
-            WebInspector.showSourceLineForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel);
+            WebInspector.showSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel);
         } else {
             var profileString = WebInspector.ProfileType.URLRegExp.exec(anchor.href);
             if (profileString)
-                WebInspector.showProfileForURL(anchor.href);
+                WebInspector.showProfile(anchor.href, anchor.lineNumber);
         }
     }
 
@@ -689,7 +689,13 @@ WebInspector.documentKeyDown = function(event)
                 WebInspector.focusSearchField();
                 event.preventDefault();
             }
+            break;
 
+        case "F3":
+            if (!isMac) {
+                WebInspector.focusSearchField();
+                event.preventDefault();
+            }
             break;
 
         case "U+0047": // G key
@@ -758,6 +764,14 @@ WebInspector.documentKeyDown = function(event)
                 this.currentPanel = this.panels.audits;
             }
 
+            break;
+        case "U+0052": // R key
+            if ((event.metaKey && isMac) || (event.ctrlKey && !isMac))
+                InspectorBackend.reloadPage();
+            break;
+        case "F5":
+            if (!isMac)
+                InspectorBackend.reloadPage();
             break;
     }
 }
@@ -885,8 +899,8 @@ WebInspector.focusSearchField = function()
 
 WebInspector.toggleAttach = function()
 {
-    if (!this.attached && InspectorFrontendHost.canAttachWindow && !InspectorFrontendHost.canAttachWindow())
-            return;
+    if (!this.attached && !InspectorFrontendHost.canAttachWindow())
+        return;
 
     this.attached = !this.attached;
     this.drawer.resize();
@@ -1465,27 +1479,27 @@ WebInspector.resourceForURL = function(url)
     return null;
 }
 
-WebInspector._choosePanelToShowSourceLineForURL = function(url, preferredPanel)
+WebInspector._choosePanelToShowSourceLine = function(url, line, preferredPanel)
 {
     preferredPanel = preferredPanel || "resources";
     var panel = this.panels[preferredPanel];
-    if (panel && panel.canShowSourceLineForURL(url))
+    if (panel && panel.canShowSourceLine(url, line))
         return panel;
     panel = this.panels.resources;
-    return panel.canShowSourceLineForURL(url) ? panel : null;
+    return panel.canShowSourceLine(url, line) ? panel : null;
 }
 
-WebInspector.canShowSourceLineForURL = function(url, preferredPanel)
+WebInspector.canShowSourceLine = function(url, line, preferredPanel)
 {
-    return !!this._choosePanelToShowSourceLineForURL(url, preferredPanel);
+    return !!this._choosePanelToShowSourceLine(url, line, preferredPanel);
 }
 
-WebInspector.showSourceLineForURL = function(url, line, preferredPanel)
+WebInspector.showSourceLine = function(url, line, preferredPanel)
 {
-    this.currentPanel = this._choosePanelToShowSourceLineForURL(url, preferredPanel);
+    this.currentPanel = this._choosePanelToShowSourceLine(url, line, preferredPanel);
     if (!this.currentPanel)
         return false;
-    this.currentPanel.showSourceLineForURL(url, line);
+    this.currentPanel.showSourceLine(url, line);
     return true;
 }
 
@@ -1548,6 +1562,17 @@ WebInspector.linkifyURL = function(url, linkText, classes, isExternal, tooltipTe
     // Use the DOM version of this function so as to avoid needing to escape attributes.
     // FIXME:  Get rid of linkifyURL entirely.
     return WebInspector.linkifyURLAsNode(url, linkText, classes, isExternal, tooltipText).outerHTML;
+}
+
+WebInspector.linkifyResourceAsNode = function(url, preferredPanel, lineNumber, classes, tooltipText)
+{
+    var linkText = WebInspector.displayNameForURL(url);
+    if (lineNumber)
+        linkText += ":" + lineNumber;
+    var node = WebInspector.linkifyURLAsNode(url, linkText, classes, false, tooltipText);
+    node.lineNumber = lineNumber;
+    node.preferredPanel = preferredPanel;
+    return node;
 }
 
 WebInspector.completeURL = function(baseURL, href)

@@ -40,13 +40,14 @@ class ArgList;
 class Identifier;
 class JSGlobalObject;
 class PropertyNameArray;
-class RuntimeObject;
+class RuntimeMethod;
 
 namespace Bindings {
 
 class Instance;
 class Method;
 class RootObject;
+class RuntimeObject;
 
 typedef Vector<Method*> MethodList;
 
@@ -90,7 +91,8 @@ public:
     // Returns false if the value was not set successfully.
     virtual bool setValueOfUndefinedField(ExecState*, const Identifier&, JSValue) { return false; }
 
-    virtual JSValue invokeMethod(ExecState*, const MethodList&, const ArgList& args) = 0;
+    virtual JSValue getMethod(ExecState* exec, const Identifier& propertyName) = 0;
+    virtual JSValue invokeMethod(ExecState*, RuntimeMethod* method, const ArgList& args) = 0;
 
     virtual bool supportsInvokeDefaultMethod() const { return false; }
     virtual JSValue invokeDefaultMethod(ExecState*, const ArgList&) { return jsUndefined(); }
