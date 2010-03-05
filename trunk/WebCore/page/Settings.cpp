@@ -27,6 +27,9 @@
 #include "Settings.h"
 
 #include "BackForwardList.h"
+#if ENABLE(DATABASE)
+#include "Database.h"
+#endif
 #include "Frame.h"
 #include "FrameTree.h"
 #include "FrameView.h"
@@ -64,6 +67,7 @@ Settings::Settings(Page* page)
     , m_maximumDecodedImageSize(numeric_limits<size_t>::max())
     , m_localStorageQuota(5 * 1024 * 1024)  // Suggested by the HTML5 spec.
     , m_pluginAllowedRunTime(numeric_limits<unsigned>::max())
+    , m_zoomMode(ZoomPage)
     , m_isJavaEnabled(false)
     , m_loadsImagesAutomatically(false)
     , m_privateBrowsingEnabled(false)
@@ -102,7 +106,6 @@ Settings::Settings(Page* page)
     , m_inApplicationChromeMode(false)
     , m_offlineWebApplicationCacheEnabled(false)
     , m_shouldPaintCustomScrollbars(false)
-    , m_zoomsTextOnly(false)
     , m_enforceCSSMIMETypeInStrictMode(true)
     , m_usesEncodingDetector(false)
     , m_allowScriptsToCloseWindows(false)
@@ -263,6 +266,9 @@ void Settings::setPluginsEnabled(bool arePluginsEnabled)
 void Settings::setDatabasesEnabled(bool databasesEnabled)
 {
     m_databasesEnabled = databasesEnabled;
+#if ENABLE(DATABASE)
+    Database::setIsAvailable(databasesEnabled);
+#endif
 }
 
 void Settings::setLocalStorageEnabled(bool localStorageEnabled)
@@ -277,7 +283,11 @@ void Settings::setLocalStorageQuota(unsigned localStorageQuota)
 
 void Settings::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
 {
+    if (m_privateBrowsingEnabled == privateBrowsingEnabled)
+        return;
+
     m_privateBrowsingEnabled = privateBrowsingEnabled;
+    m_page->privateBrowsingStateChanged();
 }
 
 void Settings::setJavaScriptCanOpenWindowsAutomatically(bool javaScriptCanOpenWindowsAutomatically)
@@ -467,12 +477,12 @@ void Settings::setShouldPaintCustomScrollbars(bool shouldPaintCustomScrollbars)
     m_shouldPaintCustomScrollbars = shouldPaintCustomScrollbars;
 }
 
-void Settings::setZoomsTextOnly(bool zoomsTextOnly)
+void Settings::setZoomMode(ZoomMode mode)
 {
-    if (zoomsTextOnly == m_zoomsTextOnly)
+    if (mode == m_zoomMode)
         return;
     
-    m_zoomsTextOnly = zoomsTextOnly;
+    m_zoomMode = mode;
     setNeedsReapplyStylesInAllFrames(m_page);
 }
 

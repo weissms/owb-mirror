@@ -1543,6 +1543,11 @@ void WebView::geolocationDidFailWithError(WebError* error)
 /*void WebView::setDomainRelaxationForbiddenForURLScheme(bool forbidden, const char* scheme)
 {
     SecurityOrigin::setDomainRelaxationForbiddenForURLScheme(forbidden, String(scheme, SysStringLen(scheme)));
+}
+
+void WebView::registerURLSchemeAsSecure(const char* scheme)
+{
+    SecurityOrigin::registerURLSchemeAsSecure(toString(scheme));
 }*/
 
 WebFrame* WebView::mainFrame()
@@ -1619,10 +1624,10 @@ bool WebView::setZoomMultiplier(float multiplier, bool isTextOnly)
     }
 
     m_zoomMultiplier = multiplier;
-    m_page->settings()->setZoomsTextOnly(isTextOnly);
+    m_page->settings()->setZoomMode(isTextOnly ? ZoomTextOnly : ZoomPage);
     Frame* coreFrame = core(m_mainFrame);
     if (coreFrame && coreFrame->document())
-        coreFrame->setZoomFactor(multiplier, isTextOnly);
+        coreFrame->setZoomFactor(multiplier, isTextOnly ? ZoomTextOnly : ZoomPage);
 
     return !hasRounded;
 }
@@ -1639,7 +1644,8 @@ float WebView::pageSizeMultiplier()
 
 float WebView::zoomMultiplier(bool isTextOnly)
 {
-    if (isTextOnly != m_page->settings()->zoomsTextOnly())
+    ZoomMode zoomMode = isTextOnly ? ZoomTextOnly : ZoomPage;
+    if (zoomMode != m_page->settings()->zoomMode())
         return 1.0f;
     return m_zoomMultiplier;
 }
@@ -1688,12 +1694,12 @@ void WebView::resetZoom(bool isTextOnly)
 
 bool WebView::makeTextLarger()
 {
-    return zoomIn(m_page->settings()->zoomsTextOnly());
+    return zoomIn(m_page->settings()->zoomMode() == ZoomTextOnly);
 }
 
 bool WebView::makeTextSmaller()
 {
-    return zoomOut(m_page->settings()->zoomsTextOnly());
+    return zoomOut(m_page->settings()->zoomMode() == ZoomTextOnly);
 }
 
 bool WebView::canMakeTextStandardSize()
@@ -2829,7 +2835,7 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     settings->setShouldPaintCustomScrollbars(!!enabled);
 
     enabled = preferences->zoomsTextOnly();
-    settings->setZoomsTextOnly(!!enabled);
+    settings->setZoomMode(enabled ? ZoomTextOnly : ZoomPage);
 
 #if OS(AMIGAOS4)
     settings->setShowsURLsInToolTips(true);

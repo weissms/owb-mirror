@@ -52,18 +52,18 @@ class TestPort(base.Port):
     def baseline_search_path(self):
         return [self.baseline_path()]
 
-    def check_sys_deps(self, needs_http):
+    def check_build(self, needs_http):
         return True
 
-    def diff_image(self, actual_filename, expected_filename,
+    def compare_text(self, expected_text, actual_text):
+        return False
+
+    def diff_image(self, expected_filename, actual_filename,
                    diff_filename=None):
         return False
 
-    def compare_text(self, actual_text, expected_text):
-        return False
-
-    def diff_text(self, actual_text, expected_text,
-                  actual_filename, expected_filename):
+    def diff_text(self, expected_text, actual_text,
+                  expected_filename, actual_filename):
         return ''
 
     def name(self):
@@ -93,16 +93,10 @@ class TestPort(base.Port):
     def start_websocket_server(self):
         pass
 
-    def start_helper(self):
-        pass
-
     def stop_http_server(self):
         pass
 
     def stop_websocket_server(self):
-        pass
-
-    def stop_helper(self):
         pass
 
     def test_expectations(self):
@@ -120,7 +114,7 @@ class TestPort(base.Port):
     def version():
         return ''
 
-    def wdiff_text(self, actual_filename, expected_filename):
+    def wdiff_text(self, expected_filename, actual_filename):
         return ''
 
 

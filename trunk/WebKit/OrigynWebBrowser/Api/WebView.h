@@ -1731,6 +1731,11 @@ protected:
      * setDomainRelaxationForbiddenForURLScheme
      */
     //void setDomainRelaxationForbiddenForURLScheme(bool forbidden, const char* scheme);
+    
+    /**
+     * registerURLSchemeAsSecure
+     */
+    //void registerURLSchemeAsSecure(const char* scheme);
 
     /**
      * repaint

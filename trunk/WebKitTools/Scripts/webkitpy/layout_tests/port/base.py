@@ -68,22 +68,28 @@ class Port(object):
         baselines. The directories are searched in order."""
         raise NotImplementedError('Port.baseline_search_path')
 
+    def check_build(self, needs_http):
+        """This routine is used to ensure that the build is up to date
+        and all the needed binaries are present."""
+        raise NotImplementedError('Port.check_build')
+
     def check_sys_deps(self, needs_http):
         """If the port needs to do some runtime checks to ensure that the
-        tests can be run successfully, they should be done here.
+        tests can be run successfully, it should override this routine.
+        This step can be skipped with --nocheck-sys-deps.
 
         Returns whether the system is properly configured."""
-        raise NotImplementedError('Port.check_sys_deps')
+        return True
 
-    def compare_text(self, actual_text, expected_text):
+    def compare_text(self, expected_text, actual_text):
         """Return whether or not the two strings are *not* equal. This
         routine is used to diff text output.
 
         While this is a generic routine, we include it in the Port
         interface so that it can be overriden for testing purposes."""
-        return actual_text != expected_text
+        return expected_text != actual_text
 
-    def diff_image(self, actual_filename, expected_filename,
+    def diff_image(self, expected_filename, actual_filename,
                    diff_filename=None):
         """Compare two image files and produce a delta image file.
 
@@ -94,7 +100,7 @@ class Port(object):
         While this is a generic routine, we include it in the Port
         interface so that it can be overriden for testing purposes."""
         executable = self._path_to_image_diff()
-        cmd = [executable, '--diff', actual_filename, expected_filename]
+        cmd = [executable, '--diff', expected_filename, actual_filename]
         if diff_filename:
             cmd.append(diff_filename)
         result = 1
@@ -111,8 +117,8 @@ class Port(object):
             pass
         return result
 
-    def diff_text(self, actual_text, expected_text,
-                  actual_filename, expected_filename):
+    def diff_text(self, expected_text, actual_text,
+                  expected_filename, actual_filename):
         """Returns a string containing the diff of the two text strings
         in 'unified diff' format.
 
@@ -381,10 +387,10 @@ class Port(object):
         raise NotImplementedError('Port.start_driver')
 
     def start_helper(self):
-        """Start a layout test helper if needed on this port. The test helper
-        is used to reconfigure graphics settings and do other things that
-        may be necessary to ensure a known test configuration."""
-        raise NotImplementedError('Port.start_helper')
+        """If a port needs to reconfigure graphics settings or do other
+        things to ensure a known test configuration, it should override this
+        method."""
+        pass
 
     def start_http_server(self):
         """Start a web server if it is available. Do nothing if
@@ -408,8 +414,9 @@ class Port(object):
 
     def stop_helper(self):
         """Shut down the test helper if it is running. Do nothing if
-        it isn't, or it isn't available."""
-        raise NotImplementedError('Port.stop_helper')
+        it isn't, or it isn't available. If a port overrides start_helper()
+        it must override this routine as well."""
+        pass
 
     def stop_http_server(self):
         """Shut down the http server if it is running. Do nothing if
@@ -476,8 +483,8 @@ class Port(object):
                '--end-delete=##WDIFF_END##',
                '--start-insert=##WDIFF_ADD##',
                '--end-insert=##WDIFF_END##',
-               expected_filename,
-               actual_filename]
+               actual_filename,
+               expected_filename]
         global _wdiff_available
         result = ''
         try:

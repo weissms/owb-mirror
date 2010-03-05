@@ -125,14 +125,14 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontPlatformData.h
 
 BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCairo.cpp
-BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCacheGtk.cpp	BCFontCacheCairo.cpp
-BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.cpp
-BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCacheCairo.cpp	BCFontCacheCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCustomPlatformData.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCustomPlatformData.h
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontPlatformData.h
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontPlatformDataCairo.cpp	BCFontPlatformDataCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/GlyphPageTreeNodeCairo.cpp	BCGlyphPageTreeNodeCairo.cpp
+BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/SimpleFontDataCairo.cpp	BCSimpleFontDataCairo.cpp
 BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontGtk.cpp	BCFontGtk.cpp
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformData.h
-BAL/Fonts/WebCore/Gtk	WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp	BCFontPlatformDataGtk.cpp
-BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/GlyphPageTreeNodeGtk.cpp	BCGlyphPageTreeNodeCairo.cpp
-BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/gtk/SimpleFontDataGtk.cpp	BCSimpleFontDataCairo.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontCustomPlatformDataPango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/FontPlatformDataPango.cpp
 BAL/Fonts/WebCore/Pango	WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp
@@ -216,6 +216,7 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageBuffer.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageObserver.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/ImageSource.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/IntPoint.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/IntPointHash.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/IntRect.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/IntSize.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/IntSizeHash.h
@@ -331,6 +332,7 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageObserver.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/ImageSource.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntPoint.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntPointHash.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntRect.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/IntSize.h
@@ -542,14 +544,14 @@ BAL/Skeletons/Media	WebCore/platform/Sound.h
 BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h
 BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
 
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.h 
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/DataSourceGStreamer.cpp 
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gtk/VideoSinkGStreamer.h VideoSinkGStreamer.h
-BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStreamer.cpp BCWebKitWebSourceGStreamer.cpp
-BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gtk/WebKitWebSourceGStreamer.h BCWebKitWebSourceGStreamer.h
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.cpp 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.h VideoSinkGStreamer.h
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gstreamer/WebKitWebSourceGStreamer.cpp BCWebKitWebSourceGStreamer.cpp
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gstreamer/WebKitWebSourceGStreamer.h BCWebKitWebSourceGStreamer.h
 BAL/Media/WebCore/Gtk	WebCore/platform/gtk/SoundGtk.cpp	BCSoundGtk.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp
 BAL/Media/WebCore/Phonon	WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h
@@ -575,6 +577,7 @@ BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.h
 BAL/Memory/WTF	JavaScriptCore/wtf/MallocZoneSupport.h
 BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.cpp
 BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.h
+BAL/Memory/WTF	JavaScriptCore/wtf/VMTags.h
 BAL/Memory/WebCore/WK	WebCore/platform/Arena.cpp
 BAL/Memory/WebCore/WK	WebCore/platform/Arena.h
 BAL/Memory/WebCore/WK	WebCore/platform/AutodrainedPool.h

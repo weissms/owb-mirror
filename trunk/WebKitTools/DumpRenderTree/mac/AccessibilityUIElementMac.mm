@@ -59,6 +59,7 @@ typedef void (*AXPostedNotificationCallback)(id element, NSString* notification,
 - (NSArray *)accessibilityArrayAttributeValues:(NSString *)attribute index:(NSUInteger)index maxCount:(NSUInteger)maxCount;
 - (void)accessibilitySetPostedNotificationCallback:(AXPostedNotificationCallback)function withContext:(void*)context;
 - (NSUInteger)accessibilityIndexOfChild:(id)child;
+- (NSUInteger)accessibilityArrayAttributeCount:(NSString *)attribute;
 @end
 
 AccessibilityUIElement::AccessibilityUIElement(PlatformUIElement element)
@@ -674,6 +675,16 @@ JSStringRef AccessibilityUIElement::attributesOfHeader()
     Vector<AccessibilityUIElement> headerVector;
     headerVector.append(headerObject);
     return descriptionOfElements(headerVector);
+}
+
+int AccessibilityUIElement::rowCount()
+{
+    return [m_element accessibilityArrayAttributeCount:NSAccessibilityRowsAttribute];
+}
+
+int AccessibilityUIElement::columnCount()
+{
+    return [m_element accessibilityArrayAttributeCount:NSAccessibilityColumnsAttribute];
 }
 
 int AccessibilityUIElement::indexInTable()

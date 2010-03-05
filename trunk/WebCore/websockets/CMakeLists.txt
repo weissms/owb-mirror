@@ -3,6 +3,7 @@ if(ENABLE_WEB_SOCKETS)
         websockets/WebSocket.cpp
         websockets/WebSocketChannel.cpp
         websockets/WebSocketHandshake.cpp
+        websockets/WebSocketHandshakeRequest.cpp
         websockets/ThreadableWebSocketChannel.cpp
     )
     list(APPEND IDL_SRC

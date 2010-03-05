@@ -30,6 +30,7 @@
 """Front end of some style-checker modules."""
 
 import codecs
+import logging
 import os.path
 import sys
 
@@ -39,11 +40,12 @@ from error_handlers import PatchStyleErrorHandler
 from filter import FilterConfiguration
 from optparser import ArgumentParser
 from optparser import DefaultCommandOptionValues
-from processors.common import check_no_carriage_return
 from processors.common import categories as CommonCategories
+from processors.common import CarriageReturnProcessor
 from processors.cpp import CppProcessor
 from processors.text import TextProcessor
 
+_log = logging.getLogger("webkitpy.style.checker")
 
 # These are default option values for the command-line option parser.
 _DEFAULT_VERBOSITY = 1
@@ -224,6 +226,88 @@ def check_webkit_style_configuration(options):
                verbosity=options.verbosity)
 
 
+# FIXME: Add support for more verbose logging for debug purposes.
+#        This can use a formatter like the following, for example--
+#
+#        formatter = logging.Formatter("%(name)s: [%(levelname)s] %(message)s")
+def configure_logging(stream):
+    """Configure logging, and return the list of handlers added.
+
+    Configures the root logger to log INFO messages and higher.
+    Formats WARNING messages and above to display the logging level
+    and messages strictly below WARNING not to display it.
+
+    Returns:
+      A list of references to the logging handlers added to the root
+      logger.  This allows the caller to later remove the handlers
+      using logger.removeHandler.  This is useful primarily during unit
+      testing where the caller may want to configure logging temporarily
+      and then undo the configuring.
+
+    Args:
+      stream: A file-like object to which to log.  The stream must
+              define an "encoding" data attribute, or else logging
+              raises an error.
+
+    """
+    # If the stream does not define an "encoding" data attribute, the
+    # logging module can throw an error like the following:
+    #
+    # Traceback (most recent call last):
+    #   File "/System/Library/Frameworks/Python.framework/Versions/2.6/...
+    #         lib/python2.6/logging/__init__.py", line 761, in emit
+    #     self.stream.write(fs % msg.encode(self.stream.encoding))
+    # LookupError: unknown encoding: unknown
+
+    # Handles logging.WARNING and above.
+    error_handler = logging.StreamHandler(stream)
+    error_handler.setLevel(logging.WARNING)
+    formatter = logging.Formatter("%(levelname)s: %(message)s")
+    error_handler.setFormatter(formatter)
+
+    # Handles records strictly below logging.WARNING.
+    non_error_handler = logging.StreamHandler(stream)
+    non_error_filter = _LevelLoggingFilter(logging.WARNING)
+    non_error_handler.addFilter(non_error_filter)
+    formatter = logging.Formatter("%(message)s")
+    non_error_handler.setFormatter(formatter)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    handlers = [error_handler, non_error_handler]
+
+    for handler in handlers:
+        logger.addHandler(handler)
+
+    return handlers
+
+
+# FIXME: Consider moving this class into a module in webkitpy.init after
+#        getting more experience with its use.  We want to make sure
+#        we have the right API before doing so.  For example, we may
+#        want to provide a constructor that has both upper and lower
+#        bounds, and not just an upper bound.
+class _LevelLoggingFilter(object):
+
+    """A logging filter for blocking records at or above a certain level."""
+
+    def __init__(self, logging_level):
+        """Create a _LevelLoggingFilter.
+
+        Args:
+          logging_level: The logging level cut-off.  Logging levels at
+                         or above this level will not be logged.
+
+        """
+        self._logging_level = logging_level
+
+    # The logging module requires that this method be defined.
+    def filter(self, log_record):
+        """Return whether given the LogRecord should be logged."""
+        return log_record.levelno < self._logging_level
+
+
 # Enum-like idiom
 class FileType:
 
@@ -322,6 +406,8 @@ class ProcessorDispatcher(object):
         return processor
 
 
+# FIXME: Remove the stderr_write attribute from this class and replace
+#        its use with calls to a logging module logger.
 class StyleCheckerConfiguration(object):
 
     """Stores configuration values for the StyleChecker class.
@@ -439,54 +525,52 @@ class StyleChecker(object):
         self.error_count = 0
         self.file_count = 0
 
-    def _stderr_write(self, message):
-        self._configuration.stderr_write(message)
-
     def _increment_error_count(self):
         """Increment the total count of reported errors."""
         self.error_count += 1
 
-    def _process_file(self, processor, file_path, handle_style_error):
-        """Process the file using the given processor."""
-        try:
-            # Support the UNIX convention of using "-" for stdin.  Note that
-            # we are not opening the file with universal newline support
-            # (which codecs doesn't support anyway), so the resulting lines do
-            # contain trailing '\r' characters if we are reading a file that
-            # has CRLF endings.
-            # If after the split a trailing '\r' is present, it is removed
-            # below. If it is not expected to be present (i.e. os.linesep !=
-            # '\r\n' as in Windows), a warning is issued below if this file
-            # is processed.
-            if file_path == '-':
-                file = codecs.StreamReaderWriter(sys.stdin,
-                                                 codecs.getreader('utf8'),
-                                                 codecs.getwriter('utf8'),
-                                                 'replace')
-            else:
-                file = codecs.open(file_path, 'r', 'utf8', 'replace')
+    def _read_lines(self, file_path):
+        """Read the file at a path, and return its lines.
 
-            contents = file.read()
+        Raises:
+          IOError: if the file does not exist or cannot be read.
 
-        except IOError:
-            self._stderr_write("Skipping input '%s': Can't open for reading\n" % file_path)
-            return
+        """
+        # Support the UNIX convention of using "-" for stdin.
+        if file_path == '-':
+            file = codecs.StreamReaderWriter(sys.stdin,
+                                             codecs.getreader('utf8'),
+                                             codecs.getwriter('utf8'),
+                                             'replace')
+        else:
+            # We do not open the file with universal newline support
+            # (codecs does not support it anyway), so the resulting
+            # lines contain trailing "\r" characters if we are reading
+            # a file with CRLF endings.
+            file = codecs.open(file_path, 'r', 'utf8', 'replace')
+
+        contents = file.read()
 
         lines = contents.split("\n")
+        return lines
 
-        for line_number in range(len(lines)):
-            # FIXME: We should probably use the SVN "eol-style" property
-            #        or a white list to decide whether or not to do
-            #        the carriage-return check. Originally, we did the
-            #        check only if (os.linesep != '\r\n').
-            #
-            # FIXME: As a minor optimization, we can have
-            #        check_no_carriage_return() return whether
-            #        the line ends with "\r".
-            check_no_carriage_return(lines[line_number], line_number,
-                                     handle_style_error)
-            if lines[line_number].endswith("\r"):
-                lines[line_number] = lines[line_number].rstrip("\r")
+    def _process_file(self, processor, file_path, handle_style_error):
+        """Process the file using the given style processor."""
+        try:
+            lines = self._read_lines(file_path)
+        except IOError:
+            message = 'Could not read file. Skipping: "%s"' % file_path
+            _log.warn(message)
+            return
+
+        # Check for and remove trailing carriage returns ("\r").
+        #
+        # FIXME: We should probably use the SVN "eol-style" property
+        #        or a white list to decide whether or not to do
+        #        the carriage-return check. Originally, we did the
+        #        check only if (os.linesep != '\r\n').
+        carriage_return_processor = CarriageReturnProcessor(handle_style_error)
+        lines = carriage_return_processor.process(lines)
 
         processor.process(lines)
 
@@ -520,8 +604,8 @@ class StyleChecker(object):
         if dispatcher.should_skip_without_warning(file_path):
             return
         if dispatcher.should_skip_with_warning(file_path):
-            self._stderr_write('Ignoring "%s": this file is exempt from the '
-                               "style guide.\n" % file_path)
+            _log.warn('File exempt from style guide. Skipping: "%s"'
+                      % file_path)
             return
 
         verbosity = self._configuration.verbosity

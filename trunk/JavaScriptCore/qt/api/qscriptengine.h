@@ -20,6 +20,7 @@
 #ifndef qscriptengine_h
 #define qscriptengine_h
 
+#include "qscriptstring.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
@@ -37,6 +38,8 @@ public:
 
     QScriptValue evaluate(const QString& program, const QString& fileName = QString(), int lineNumber = 1);
     void collectGarbage();
+
+    QScriptString toStringHandle(const QString& str);
 
     QScriptValue nullValue();
     QScriptValue undefinedValue();

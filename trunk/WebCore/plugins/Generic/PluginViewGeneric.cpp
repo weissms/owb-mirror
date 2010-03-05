@@ -221,7 +221,7 @@ NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const c
 }
 
 
-NPError PluginView::getValueStatic(NPNVariable variable, void* value)
+bool PluginView::platformGetValueStatic(NPNVariable variable, void* value, NPError* result)
 {
     switch (variable) {
     case NPNVToolkit:
@@ -230,7 +230,8 @@ NPError PluginView::getValueStatic(NPNVariable variable, void* value)
 #else
         *static_cast<uint32*>(value) = 0;
 #endif
-        return NPERR_NO_ERROR;
+        *result = NPERR_NO_ERROR;
+        return true;
 
     case NPNVSupportsXEmbedBool:
 #if PLATFORM(X11)
@@ -238,18 +239,20 @@ NPError PluginView::getValueStatic(NPNVariable variable, void* value)
 #else
         *static_cast<NPBool*>(value) = false;
 #endif
-        return NPERR_NO_ERROR;
+        *result = NPERR_NO_ERROR;
+        return true;
 
     case NPNVjavascriptEnabledBool:
         *static_cast<NPBool*>(value) = true;
-        return NPERR_NO_ERROR;
+        *result = NPERR_NO_ERROR;
+        return true;
 
     default:
-        return NPERR_GENERIC_ERROR;
+        return false;
     }
 }
 
-NPError PluginView::getValue(NPNVariable variable, void* value)
+bool PluginView::platformGetValue(NPNVariable variable, void* value, NPError* result)
 {
         switch (variable) {
     case NPNVxDisplay:
@@ -258,9 +261,10 @@ NPError PluginView::getValue(NPNVariable variable, void* value)
             *(void **)value = (void *)GDK_DISPLAY();
         else
             *(void **)value = (void *)GTK_XTBIN(platformPluginWidget())->xtclient.xtdisplay;*/
-        return NPERR_NO_ERROR;
+        *result = NPERR_NO_ERROR;
+        return true;
 #else
-        return NPERR_GENERIC_ERROR;
+        return false;
 #endif
 
 #if PLATFORM(X11)
@@ -268,45 +272,10 @@ NPError PluginView::getValue(NPNVariable variable, void* value)
         if (!m_needsXEmbed) {
 //            *(void **)value = XtDisplayToApplicationContext (GTK_XTBIN(platformPluginWidget())->xtclient.xtdisplay);
 
-            return NPERR_NO_ERROR;
+            *result = NPERR_NO_ERROR;
+            return true;
         } else
-            return NPERR_GENERIC_ERROR;
-#endif
-#if ENABLE(NETSCAPE_PLUGIN_API)
-        case NPNVWindowNPObject: {
-            if (m_isJavaScriptPaused)
-                return NPERR_GENERIC_ERROR;
-
-            NPObject* windowScriptObject = m_parentFrame->script()->windowScriptNPObject();
-
-            // Return value is expected to be retained, as described here: <http://www.mozilla.org/projects/plugin/npruntime.html>
-            if (windowScriptObject)
-                _NPN_RetainObject(windowScriptObject);
-
-            void** v = (void**)value;
-            *v = windowScriptObject;
-
-            return NPERR_NO_ERROR;
-        }
-
-        case NPNVPluginElementNPObject: {
-            if (m_isJavaScriptPaused)
-                return NPERR_GENERIC_ERROR;
-
-            NPObject* pluginScriptObject = 0;
-
-            if (m_element->hasTagName(appletTag) || m_element->hasTagName(embedTag) || m_element->hasTagName(objectTag))
-                pluginScriptObject = static_cast<HTMLPlugInElement*>(m_element)->getNPObject();
-
-            // Return value is expected to be retained, as described here: <http://www.mozilla.org/projects/plugin/npruntime.html>
-            if (pluginScriptObject)
-                _NPN_RetainObject(pluginScriptObject);
-
-            void** v = (void**)value;
-            *v = pluginScriptObject;
-
-            return NPERR_NO_ERROR;
-        }
+            return false;
 #endif
 
         case NPNVnetscapeWindow: {
@@ -318,11 +287,12 @@ NPError PluginView::getValue(NPNVariable variable, void* value)
             HGDIOBJ* w = reinterpret_cast<HGDIOBJ*>(value);
             *w = GDK_WINDOW_HWND(m_parentFrame->view()->hostWindow()->platformWindow()->window);
 #endif*/
-            return NPERR_NO_ERROR;
+            *result = NPERR_NO_ERROR;
+            return true;
         }
 
         default:
-            return getValueStatic(variable, value);
+            return false;
     }
 }
 

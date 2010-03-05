@@ -271,6 +271,8 @@ namespace WebCore {
         // that need to know if JavaScript is enabled but are not necessarily
         // preparing to execute script.
         virtual void didNotAllowScript() { }
+        // This callback is similar, but for plugins.
+        virtual void didNotAllowPlugins() { }
     };
 
 } // namespace WebCore

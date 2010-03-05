@@ -8,9 +8,6 @@ aux_source_directory(${BAL_DIR}/Fonts/WebCore/WK WEBCORE_SRC)
 if(USE_FONTS_CAIRO)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Cairo BAL)
     create_include_link(${BAL_DIR}/Fonts/WebCore/Gtk BAL)
-    list(APPEND WEBCORE_SRC
-        ${BAL_DIR}/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.cpp
-    )
     aux_source_directory(${BAL_DIR}/Fonts/WebCore/Cairo WEBCORE_SRC)
     aux_source_directory(${BAL_DIR}/Fonts/WebCore/SDLCairo WEBCORE_SRC)
 endif(USE_FONTS_CAIRO)

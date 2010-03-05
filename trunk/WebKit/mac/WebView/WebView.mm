@@ -106,6 +106,7 @@
 #import <WebCore/Cache.h>
 #import <WebCore/ColorMac.h>
 #import <WebCore/Cursor.h>
+#import <WebCore/Database.h>
 #import <WebCore/Document.h>
 #import <WebCore/DocumentLoader.h>
 #import <WebCore/DragController.h>
@@ -1305,6 +1306,9 @@ static bool fastDocumentTeardownEnabled()
     settings->setMinimumLogicalFontSize([preferences minimumLogicalFontSize]);
     settings->setPluginsEnabled([preferences arePlugInsEnabled]);
     settings->setDatabasesEnabled([preferences databasesEnabled]);
+#if ENABLE(DATABASE)
+    Database::setIsAvailable([preferences databasesEnabled]);
+#endif
     settings->setLocalStorageEnabled([preferences localStorageEnabled]);
     settings->setExperimentalNotificationsEnabled([preferences experimentalNotificationsEnabled]);
     settings->setPrivateBrowsingEnabled([preferences privateBrowsingEnabled]);
@@ -1339,7 +1343,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setWebArchiveDebugModeEnabled([preferences webArchiveDebugModeEnabled]);
     settings->setLocalFileContentSniffingEnabled([preferences localFileContentSniffingEnabled]);
     settings->setOfflineWebApplicationCacheEnabled([preferences offlineWebApplicationCacheEnabled]);
-    settings->setZoomsTextOnly([preferences zoomsTextOnly]);
+    settings->setZoomMode([preferences zoomsTextOnly] ? ZoomTextOnly : ZoomPage);
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
     settings->setAcceleratedCompositingEnabled(coreVideoHas7228836Fix() && [preferences acceleratedCompositingEnabled]);
@@ -2388,6 +2392,11 @@ static PassOwnPtr<Vector<String> > toStringVector(NSArray* patterns)
     SecurityOrigin::setDomainRelaxationForbiddenForURLScheme(forbidden, scheme);
 }
 
++ (void)_registerURLSchemeAsSecure:(NSString *)scheme
+{
+    SecurityOrigin::registerURLSchemeAsSecure(scheme);
+}
+
 @end
 
 @implementation _WebSafeForwarder
@@ -3115,13 +3124,13 @@ static bool needsWebViewInitThreadWorkaround()
     _private->zoomMultiplier = m;
     ASSERT(_private->page);
     if (_private->page)
-        _private->page->settings()->setZoomsTextOnly(isTextOnly);
+        _private->page->settings()->setZoomMode(isTextOnly ? ZoomTextOnly : ZoomPage);
     
     // FIXME: it would be nice to rework this code so that _private->zoomMultiplier doesn't exist and callers
     // all access _private->page->settings().
     Frame* coreFrame = [self _mainCoreFrame];
     if (coreFrame)
-        coreFrame->setZoomFactor(m, isTextOnly);
+        coreFrame->setZoomFactor(m, isTextOnly ? ZoomTextOnly : ZoomPage);
 }
 
 - (float)_zoomMultiplier:(BOOL)isTextOnly
@@ -3141,7 +3150,7 @@ static bool needsWebViewInitThreadWorkaround()
     if (!_private->page)
         return NO;
     
-    return _private->page->settings()->zoomsTextOnly();
+    return _private->page->settings()->zoomMode() == ZoomTextOnly;
 }
 
 #define MinimumZoomMultiplier       0.5f

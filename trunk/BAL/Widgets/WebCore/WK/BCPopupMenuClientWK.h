@@ -40,6 +40,9 @@ public:
 
     virtual String itemText(unsigned listIndex) const = 0;
     virtual String itemToolTip(unsigned listIndex) const = 0;
+#if HAVE(ACCESSIBILITY)
+    virtual String itemAccessibilityText(unsigned listIndex) const = 0;
+#endif
     virtual bool itemIsEnabled(unsigned listIndex) const = 0;
     virtual PopupMenuStyle itemStyle(unsigned listIndex) const = 0;
     virtual PopupMenuStyle menuStyle() const = 0;

@@ -31,6 +31,7 @@
 
 #include "webkitdownload.h"
 #include "webkitenumtypes.h"
+#include "webkitgeolocationpolicydecision.h"
 #include "webkitmarshal.h"
 #include "webkitnetworkrequest.h"
 #include "webkitnetworkresponse.h"
@@ -48,6 +49,7 @@
 #include "ContextMenu.h"
 #include "CString.h"
 #include "Cursor.h"
+#include "Database.h"
 #include "Document.h"
 #include "DocumentLoader.h"
 #include "DragClientGtk.h"
@@ -159,6 +161,8 @@ enum {
     DATABASE_QUOTA_EXCEEDED,
     RESOURCE_REQUEST_STARTING,
     DOCUMENT_LOAD_FINISHED,
+    GEOLOCATION_POLICY_DECISION_REQUESTED,
+    GEOLOCATION_POLICY_DECISION_CANCELLED,
     LAST_SIGNAL
 };
 
@@ -202,33 +206,69 @@ static void destroy_menu_cb(GtkObject* object, gpointer data)
     priv->currentMenu = NULL;
 }
 
+static void PopupMenuPositionFunc(GtkMenu* menu, gint *x, gint *y, gboolean *pushIn, gpointer userData)
+{
+    WebKitWebView* view = WEBKIT_WEB_VIEW(userData);
+    WebKitWebViewPrivate* priv = WEBKIT_WEB_VIEW_GET_PRIVATE(view);
+    GdkScreen* screen = gtk_widget_get_screen(GTK_WIDGET(view));
+    GtkRequisition menuSize;
+
+    gtk_widget_size_request(GTK_WIDGET(menu), &menuSize);
+
+    *x = priv->lastPopupXPosition;
+    if ((*x + menuSize.width) >= gdk_screen_get_width(screen))
+      *x -= menuSize.width;
+
+    *y = priv->lastPopupYPosition;
+    if ((*y + menuSize.height) >= gdk_screen_get_height(screen))
+      *y -= menuSize.height;
+
+    *pushIn = FALSE;
+}
+
 static gboolean webkit_web_view_forward_context_menu_event(WebKitWebView* webView, const PlatformMouseEvent& event)
 {
     Page* page = core(webView);
     page->contextMenuController()->clearContextMenu();
-    Frame* focusedFrame = page->focusController()->focusedOrMainFrame();
+    Frame* focusedFrame;
+    Frame* mainFrame = page->mainFrame();
+    gboolean mousePressEventResult = FALSE;
 
-    if (!focusedFrame->view())
+    if (!mainFrame->view())
         return FALSE;
 
-    focusedFrame->view()->setCursor(pointerCursor());
+    mainFrame->view()->setCursor(pointerCursor());
+    if (page->frameCount()) {
+        HitTestRequest request(HitTestRequest::Active);
+        IntPoint point = mainFrame->view()->windowToContents(event.pos());
+        MouseEventWithHitTestResults mev = mainFrame->document()->prepareMouseEvent(request, point, event);
+
+        Frame* targetFrame = EventHandler::subframeForTargetNode(mev.targetNode());
+        if (!targetFrame)
+            targetFrame = mainFrame;
+
+        focusedFrame = page->focusController()->focusedOrMainFrame();
+        if (targetFrame != focusedFrame) {
+            page->focusController()->setFocusedFrame(targetFrame);
+            focusedFrame = targetFrame;
+        }
+    } else
+        focusedFrame = mainFrame;
+
+    if (focusedFrame->view() && focusedFrame->eventHandler()->handleMousePressEvent(event))
+        mousePressEventResult = TRUE;
+
+
     bool handledEvent = focusedFrame->eventHandler()->sendContextMenuEvent(event);
     if (!handledEvent)
         return FALSE;
 
     // If coreMenu is NULL, this means WebCore decided to not create
-    // the default context menu; this may still mean that the frame
-    // wants to consume the event - this happens when the page is
-    // handling the right-click for reasons other than a context menu,
-    // so we give it to it.
+    // the default context menu; this may happen when the page is
+    // handling the right-click for reasons other than the context menu.
     ContextMenu* coreMenu = page->contextMenuController()->contextMenu();
-    if (!coreMenu) {
-        Frame* frame = core(webView)->mainFrame();
-        if (frame->view() && frame->eventHandler()->handleMousePressEvent(PlatformMouseEvent(event)))
-            return TRUE;
-
-        return FALSE;
-    }
+    if (!coreMenu)
+        return mousePressEventResult;
 
     // If we reach here, it's because WebCore is going to show the
     // default context menu. We check our setting to figure out
@@ -262,8 +302,8 @@ static gboolean webkit_web_view_forward_context_menu_event(WebKitWebView* webVie
                      NULL);
 
     gtk_menu_popup(menu, NULL, NULL,
-                   NULL,
-                   priv, event.button() + 1, gtk_get_current_event_time());
+                   &PopupMenuPositionFunc,
+                   webView, event.button() + 1, gtk_get_current_event_time());
     return TRUE;
 }
 
@@ -273,17 +313,19 @@ static gboolean webkit_web_view_popup_menu_handler(GtkWidget* widget)
 
     // The context menu event was generated from the keyboard, so show the context menu by the current selection.
     Page* page = core(WEBKIT_WEB_VIEW(widget));
-    FrameView* view = page->mainFrame()->view();
+    Frame* frame = page->focusController()->focusedOrMainFrame();
+    FrameView* view = frame->view();
     if (!view)
         return FALSE;    
 
-    Position start = page->mainFrame()->selection()->selection().start();
-    Position end = page->mainFrame()->selection()->selection().end();
+    Position start = frame->selection()->selection().start();
+    Position end = frame->selection()->selection().end();
 
     int rightAligned = FALSE;
     IntPoint location;
 
-    if (!start.node() || !end.node())
+    if (!start.node() || !end.node()
+        || (frame->selection()->selection().isCaret() && !frame->selection()->selection().isContentEditable()))
         location = IntPoint(rightAligned ? view->contentsWidth() - contextMenuMargin : contextMenuMargin, contextMenuMargin);
     else {
         RenderObject* renderer = start.node()->renderer();
@@ -329,8 +371,17 @@ static gboolean webkit_web_view_popup_menu_handler(GtkWidget* widget)
     // FIXME: The IntSize(0, -1) is a hack to get the hit-testing to result in the selected element.
     // Ideally we'd have the position of a context menu event be separate from its target node.
     location = view->contentsToWindow(location) + IntSize(0, -1);
+    if (location.y() < 0)
+        location.setY(contextMenuMargin);
+    else if (location.y() > view->height())
+        location.setY(view->height() - contextMenuMargin);
+    if (location.x() < 0)
+        location.setX(contextMenuMargin);
+    else if (location.x() > view->width())
+        location.setX(view->width() - contextMenuMargin);
     IntPoint global = location + IntSize(x, y);
-    PlatformMouseEvent event(location, global, NoButton, MouseEventPressed, 0, false, false, false, false, gtk_get_current_event_time());
+
+    PlatformMouseEvent event(location, global, RightButton, MouseEventPressed, 0, false, false, false, false, gtk_get_current_event_time());
 
     return webkit_web_view_forward_context_menu_event(WEBKIT_WEB_VIEW(widget), event);
 }
@@ -2165,6 +2216,48 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             WEBKIT_TYPE_NETWORK_REQUEST,
             WEBKIT_TYPE_NETWORK_RESPONSE);
 
+    /**
+     * WebKitWebView::geolocation-policy-decision-requested:
+     * @web_view: the object on which the signal is emitted
+     * @frame: the frame that requests permission
+     * @policy_decision: a WebKitGeolocationPolicyDecision
+     *
+     * When a @frame wants to get its geolocation permission.
+     * The receiver must reply with a boolean wether it handled or not the
+     * request. If the request is not handled, default behaviour is to deny
+     * geolocation.
+     *
+     * Since: 1.1.23
+     */
+    webkit_web_view_signals[GEOLOCATION_POLICY_DECISION_REQUESTED] = g_signal_new("geolocation-policy-decision-requested",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST),
+            0,
+            NULL, NULL,
+            webkit_marshal_BOOLEAN__OBJECT_OBJECT,
+            G_TYPE_BOOLEAN, 2,
+            WEBKIT_TYPE_WEB_FRAME,
+            WEBKIT_TYPE_GEOLOCATION_POLICY_DECISION);
+
+    /**
+     * WebKitWebView::geolocation-policy-decision-cancelled:
+     * @web_view: the object on which the signal is emitted
+     * @frame: the frame that cancels geolocation request.
+     *
+     * When a @frame wants to cancel geolocation permission it had requested
+     * before.
+     *
+     * Since: 1.1.23
+     */
+    webkit_web_view_signals[GEOLOCATION_POLICY_DECISION_REQUESTED] = g_signal_new("geolocation-policy-decision-cancelled",
+            G_TYPE_FROM_CLASS(webViewClass),
+            (GSignalFlags)(G_SIGNAL_RUN_LAST),
+            0,
+            NULL, NULL,
+            g_cclosure_marshal_VOID__OBJECT,
+            G_TYPE_NONE, 1,
+            WEBKIT_TYPE_WEB_FRAME);
+
     /*
      * DOM-related signals. These signals are experimental, for now,
      * and may change API and ABI. Their comments lack one * on
@@ -2637,6 +2730,9 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setPrivateBrowsingEnabled(enablePrivateBrowsing);
     settings->setCaretBrowsingEnabled(enableCaretBrowsing);
     settings->setDatabasesEnabled(enableHTML5Database);
+#if ENABLE(DATABASE)
+    Database::setIsAvailable(enableHTML5Database);
+#endif
     settings->setLocalStorageEnabled(enableHTML5LocalStorage);
     settings->setXSSAuditorEnabled(enableXSSAuditor);
     settings->setJavaScriptCanOpenWindowsAutomatically(javascriptCanOpenWindows);
@@ -2724,8 +2820,12 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setPrivateBrowsingEnabled(g_value_get_boolean(&value));
     else if (name == g_intern_string("enable-caret-browsing"))
         settings->setCaretBrowsingEnabled(g_value_get_boolean(&value));
-    else if (name == g_intern_string("enable-html5-database"))
+#if ENABLE(DATABASE)
+    else if (name == g_intern_string("enable-html5-database")) {
         settings->setDatabasesEnabled(g_value_get_boolean(&value));
+        Database::setIsAvailable(g_value_get_boolean(&value));
+    }
+#endif
     else if (name == g_intern_string("enable-html5-local-storage"))
         settings->setLocalStorageEnabled(g_value_get_boolean(&value));
     else if (name == g_intern_string("enable-xss-auditor"))
@@ -3711,7 +3811,7 @@ static void webkit_web_view_apply_zoom_level(WebKitWebView* webView, gfloat zoom
         return;
 
     WebKitWebViewPrivate* priv = webView->priv;
-    frame->setZoomFactor(zoomLevel, !priv->zoomFullContent);
+    frame->setZoomFactor(zoomLevel, priv->zoomFullContent ? ZoomPage : ZoomTextOnly);
 }
 
 /**

@@ -66,8 +66,9 @@ class MacPort(base.Port):
         dirs.append(self._webkit_baseline_path('mac'))
         return dirs
 
-    def check_sys_deps(self, needs_http):
-        if executive.run_command([self.script_path("build-dumprendertree")], return_exit_code=True) != 0:
+    def check_build(self, needs_http):
+        if executive.run_command([self.script_path("build-dumprendertree")],
+                                 return_exit_code=True):
             return False
 
         driver_path = self._path_to_driver()
@@ -75,7 +76,8 @@ class MacPort(base.Port):
             logging.error("DumpRenderTree was not found at %s" % driver_path)
             return False
 
-        # This should also validate that the ImageDiff path is valid (once this script knows how to use ImageDiff).
+        # This should also validate that the ImageDiff path is valid
+        # (once this script knows how to use ImageDiff).
         # https://bugs.webkit.org/show_bug.cgi?id=34826
         return True
 
@@ -97,14 +99,6 @@ class MacPort(base.Port):
     def start_driver(self, image_path, options):
         """Starts a new Driver and returns a handle to it."""
         return MacDriver(self, image_path, options)
-
-    def start_helper(self):
-        # This port doesn't use a helper process.
-        pass
-
-    def stop_helper(self):
-        # This port doesn't use a helper process.
-        pass
 
     def test_base_platform_names(self):
         # At the moment we don't use test platform names, but we have
@@ -327,10 +321,14 @@ class MacDriver(base.Driver):
 
     def restart(self):
         self.stop()
+        # We need to pass close_fds=True to work around Python bug #2320
+        # (otherwise we can hang when we kill test_shell when we are running
+        # multiple threads). See http://bugs.python.org/issue2320 .
         self._proc = subprocess.Popen(self._cmd, stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
-                                      env=self._env)
+                                      env=self._env,
+                                      close_fds=True)
 
     def returncode(self):
         return self._proc.returncode
@@ -431,13 +429,23 @@ class MacDriver(base.Driver):
             self._proc.stdout.close()
             if self._proc.stderr:
                 self._proc.stderr.close()
-            if (sys.platform not in ('win32', 'cygwin') and
-                not self._proc.poll()):
-                # Closing stdin/stdout/stderr hangs sometimes on OS X.
-                null = open(os.devnull, "w")
-                subprocess.Popen(["kill", "-9",
-                                 str(self._proc.pid)], stderr=null)
-                null.close()
+            if sys.platform not in ('win32', 'cygwin'):
+                # Closing stdin/stdout/stderr hangs sometimes on OS X,
+                # (see restart(), above), and anyway we don't want to hang
+                # the harness if test_shell is buggy, so we wait a couple
+                # seconds to give test_shell a chance to clean up, but then
+                # force-kill the process if necessary.
+                KILL_TIMEOUT = 3.0
+                timeout = time.time() + KILL_TIMEOUT
+                while self._proc.poll() is None and time.time() < timeout:
+                    time.sleep(0.1)
+                if self._proc.poll() is None:
+                    logging.warning('stopping test driver timed out, '
+                                    'killing it')
+                    null = open(os.devnull, "w")
+                    subprocess.Popen(["kill", "-9",
+                                     str(self._proc.pid)], stderr=null)
+                    null.close()
 
     def _read_line(self, timeout, stop_time, image_length=0):
         now = time.time()

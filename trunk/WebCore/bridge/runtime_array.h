@@ -61,8 +61,8 @@ public:
 
 private:
     static const unsigned StructureFlags = OverridesGetOwnPropertySlot | OverridesGetPropertyNames | JSObject::StructureFlags;
-    static JSValue lengthGetter(ExecState*, const Identifier&, const PropertySlot&);
-    static JSValue indexGetter(ExecState*, const Identifier&, const PropertySlot&);
+    static JSValue lengthGetter(ExecState*, JSValue, const Identifier&);
+    static JSValue indexGetter(ExecState*, JSValue, unsigned);
 };
     
 } // namespace JSC

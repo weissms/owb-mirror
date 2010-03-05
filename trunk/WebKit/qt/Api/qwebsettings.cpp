@@ -26,6 +26,7 @@
 
 #include "Cache.h"
 #include "CrossOriginPreflightResultCache.h"
+#include "Database.h"
 #include "FontCache.h"
 #include "Page.h"
 #include "PageCache.h"
@@ -201,15 +202,18 @@ void QWebSettingsPrivate::apply()
 
         value = attributes.value(QWebSettings::ZoomTextOnly,
                                  global->attributes.value(QWebSettings::ZoomTextOnly));
-        settings->setZoomsTextOnly(value);
+        settings->setZoomMode(value ? WebCore::ZoomTextOnly : WebCore::ZoomPage);
 
         value = attributes.value(QWebSettings::PrintElementBackgrounds,
                                       global->attributes.value(QWebSettings::PrintElementBackgrounds));
         settings->setShouldPrintBackgrounds(value);
 
+#if ENABLE(DATABASE)
         value = attributes.value(QWebSettings::OfflineStorageDatabaseEnabled,
                                       global->attributes.value(QWebSettings::OfflineStorageDatabaseEnabled));
         settings->setDatabasesEnabled(value);
+        WebCore::Database::setIsAvailable(value);
+#endif
 
         value = attributes.value(QWebSettings::OfflineWebApplicationCacheEnabled,
                                       global->attributes.value(QWebSettings::OfflineWebApplicationCacheEnabled));

@@ -78,6 +78,7 @@ LIST (APPEND WEBKIT_SRC
     WebCoreSupport/InspectorClientGtk.cpp
 #    WebCoreSupport/PasteboardHelperGtk.cpp
 
+    webkit/webkitgeolocationpolicydecision.cpp
     webkit/webkitnetworkrequest.cpp
     webkit/webkitprivate.cpp
     webkit/webkitwebbackforwardlist.cpp

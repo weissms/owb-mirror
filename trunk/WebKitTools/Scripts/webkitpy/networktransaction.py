@@ -28,7 +28,7 @@
 
 import time
 
-from webkitpy.thirdparty.autoinstalled.mechanize import HTTPError
+from mechanize import HTTPError
 from webkitpy.webkit_logging import log
 
 
@@ -37,7 +37,7 @@ class NetworkTimeout(Exception):
 
 
 class NetworkTransaction(object):
-    def __init__(self, initial_backoff_seconds=10, grown_factor=1.1, timeout_seconds=5*60*60):
+    def __init__(self, initial_backoff_seconds=10, grown_factor=1.5, timeout_seconds=10*60):
         self._initial_backoff_seconds = initial_backoff_seconds
         self._grown_factor = grown_factor
         self._timeout_seconds = timeout_seconds

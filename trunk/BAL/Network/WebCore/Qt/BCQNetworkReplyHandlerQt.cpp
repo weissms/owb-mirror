@@ -21,6 +21,7 @@
 #include "config.h"
 #include "QNetworkReplyHandler.h"
 
+#include "CString.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "ResourceHandle.h"
@@ -160,6 +161,10 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
         m_method = QNetworkAccessManager::PostOperation;
     else if (r.httpMethod() == "PUT")
         m_method = QNetworkAccessManager::PutOperation;
+#if QT_VERSION >= 0x040700
+    else if (r.httpMethod() == "OPTIONS")
+        m_method = QNetworkAccessManager::CustomOperation;
+#endif
     else
         m_method = QNetworkAccessManager::UnknownOperation;
 
@@ -169,7 +174,7 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
     m_request = r.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
 #endif
 
-    if (m_loadMode == LoadNormal)
+    if (m_loadMode = LoadNormal)
         start();
 }
 
@@ -455,6 +460,11 @@ void QNetworkReplyHandler::start()
             putDevice->setParent(m_reply);
             break;
         }
+#if QT_VERSION >= 0x040700
+        case QNetworkAccessManager::CustomOperation:
+            m_reply = manager->sendCustomRequest(m_request, m_resourceHandle->request().httpMethod().latin1().data());
+            break;
+#endif
         case QNetworkAccessManager::UnknownOperation: {
             m_reply = 0;
             ResourceHandleClient* client = m_resourceHandle->client();

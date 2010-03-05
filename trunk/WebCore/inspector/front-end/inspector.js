@@ -632,7 +632,7 @@ WebInspector.documentClick = function(event)
         } else {
             var profileString = WebInspector.ProfileType.URLRegExp.exec(anchor.href);
             if (profileString)
-                WebInspector.showProfile(anchor.href, anchor.lineNumber);
+                WebInspector.showProfileForURL(anchor.href);
         }
     }
 
@@ -1096,7 +1096,7 @@ WebInspector.updateResource = function(identifier, payload)
     }
 
     if (payload.didLengthChange) {
-        resource.contentLength = payload.contentLength;
+        resource.resourceSize = payload.resourceSize;
     }
 
     if (payload.didCompletionChange) {

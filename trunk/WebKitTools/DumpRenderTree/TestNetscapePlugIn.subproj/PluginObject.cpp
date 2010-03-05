@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
  * Copyright (C) 2009 Holger Hans Peter Freyther
+ * Copyright (C) 2010 Collabora Ltd.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -406,8 +407,8 @@ static bool testCallback(PluginObject* obj, const NPVariant* args, uint32_t argC
     free(callbackString);
 
     NPVariant browserResult;
-    browser->invoke(obj->npp, windowScriptObject, callbackIdentifier, 0, 0, &browserResult);
-    browser->releasevariantvalue(&browserResult);
+    if (browser->invoke(obj->npp, windowScriptObject, callbackIdentifier, 0, 0, &browserResult))
+        browser->releasevariantvalue(&browserResult);
 
     browser->releaseobject(windowScriptObject);
     
@@ -520,8 +521,8 @@ static bool testEnumerate(PluginObject* obj, const NPVariant* args, uint32_t arg
             NPVariant args[1];
             STRINGZ_TO_NPVARIANT(string, args[0]);
             NPVariant browserResult;
-            browser->invoke(obj->npp, outArray, pushIdentifier, args, 1, &browserResult);
-            browser->releasevariantvalue(&browserResult);
+            if (browser->invoke(obj->npp, outArray, pushIdentifier, args, 1, &browserResult))
+                browser->releasevariantvalue(&browserResult);
             browser->memfree(string);
         }
 
@@ -711,8 +712,10 @@ bool testDocumentOpen(NPP npp)
 
     NPVariant docVariant;
     browser->getproperty(npp, windowObject, documentId, &docVariant);
-    if (docVariant.type != NPVariantType_Object)
+    if (docVariant.type != NPVariantType_Object) {
+        browser->releaseobject(windowObject);
         return false;
+    }
 
     NPObject *documentObject = NPVARIANT_TO_OBJECT(docVariant);
 
@@ -721,17 +724,25 @@ bool testDocumentOpen(NPP npp)
     STRINGZ_TO_NPVARIANT("_blank", openArgs[1]);
 
     NPVariant result;
-    browser->invoke(npp, documentObject, openId, openArgs, 2, &result);
-    browser->releaseobject(documentObject);
-
-    if (result.type == NPVariantType_Object) {
-        pluginLogWithWindowObjectVariableArgs(windowObject, npp, "DOCUMENT OPEN SUCCESS");
-        notifyTestCompletion(npp, result.value.objectValue);
-        browser->releaseobject(result.value.objectValue);
-        return true;
+    if (!browser->invoke(npp, documentObject, openId, openArgs, 2, &result)) {
+        browser->releaseobject(windowObject);
+        browser->releaseobject(documentObject);
+        return false;
     }
 
-    return false;
+    browser->releaseobject(documentObject);
+
+    if (result.type != NPVariantType_Object) {
+        browser->releaseobject(windowObject);
+        browser->releasevariantvalue(&result);
+        return false;
+    }
+
+    pluginLogWithWindowObjectVariableArgs(windowObject, npp, "DOCUMENT OPEN SUCCESS");
+    notifyTestCompletion(npp, result.value.objectValue);
+    browser->releaseobject(result.value.objectValue);
+    browser->releaseobject(windowObject);
+    return true;
 }
 
 bool testWindowOpen(NPP npp)
@@ -748,14 +759,22 @@ bool testWindowOpen(NPP npp)
     STRINGZ_TO_NPVARIANT("_blank", openArgs[1]);
 
     NPVariant result;
-    browser->invoke(npp, windowObject, openId, openArgs, 2, &result);
-    if (result.type == NPVariantType_Object) {
-        pluginLogWithWindowObjectVariableArgs(windowObject, npp, "WINDOW OPEN SUCCESS");
-        notifyTestCompletion(npp, result.value.objectValue);
-        browser->releaseobject(result.value.objectValue);
-        return true;
+    if (!browser->invoke(npp, windowObject, openId, openArgs, 2, &result)) {
+        browser->releaseobject(windowObject);
+        return false;
     }
-    return false;
+
+    if (result.type != NPVariantType_Object) {
+        browser->releaseobject(windowObject);
+        browser->releasevariantvalue(&result);
+        return false;
+    }
+
+    pluginLogWithWindowObjectVariableArgs(windowObject, npp, "WINDOW OPEN SUCCESS");
+    notifyTestCompletion(npp, result.value.objectValue);
+    browser->releaseobject(result.value.objectValue);
+    browser->releaseobject(windowObject);
+    return true;
 }
 
 static bool testSetStatus(PluginObject* obj, const NPVariant* args, uint32_t argCount, NPVariant* result)
@@ -948,8 +967,8 @@ void handleCallback(PluginObject* object, const char *url, NPReason reason, void
         NULL_TO_NPVARIANT(args[1]);
 
     NPVariant browserResult;
-    browser->invoke(object->npp, windowScriptObject, callbackIdentifier, args, 2, &browserResult);
-    browser->releasevariantvalue(&browserResult);
+    if (browser->invoke(object->npp, windowScriptObject, callbackIdentifier, args, 2, &browserResult))
+        browser->releasevariantvalue(&browserResult);
 
     free(strHdr);
 }

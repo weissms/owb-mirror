@@ -731,8 +731,8 @@ FrameView* AccessibilityObject::documentFrameView() const
 
 void AccessibilityObject::clearChildren()
 {
-    m_haveChildren = false;
     m_children.clear();
+    m_haveChildren = false;
 }
 
 AccessibilityObject* AccessibilityObject::anchorElementForNode(Node* node)
@@ -835,6 +835,18 @@ const String& AccessibilityObject::actionVerb() const
     }
 }
  
+const AtomicString& AccessibilityObject::getAttribute(Node* node, const QualifiedName& attribute)
+{
+    if (!node)
+        return nullAtom;
+    
+    if (!node->isElementNode())
+        return nullAtom;
+    
+    Element* element = static_cast<Element*>(node);
+    return element->getAttribute(attribute);
+}
+    
 // Lacking concrete evidence of orientation, horizontal means width > height. vertical is height > width;
 AccessibilityOrientation AccessibilityObject::orientation() const
 {

@@ -192,6 +192,9 @@ public:
 
     virtual void frameRectsChanged() {}
 
+    // Notifies this widget that other widgets on the page have been repositioned.
+    virtual void widgetPositionsUpdated() {}
+
 #if PLATFORM(MAC)
     NSView* getOuterView() const;
     

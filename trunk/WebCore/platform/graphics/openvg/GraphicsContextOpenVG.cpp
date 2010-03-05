@@ -20,11 +20,12 @@
 #include "config.h"
 #include "GraphicsContext.h"
 
+#include "AffineTransform.h"
 #include "GraphicsContextPrivate.h"
+#include "KURL.h"
 #include "NotImplemented.h"
 #include "PainterOpenVG.h"
 #include "SurfaceOpenVG.h"
-#include "TransformationMatrix.h"
 
 #include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
@@ -69,12 +70,12 @@ PlatformGraphicsContext* GraphicsContext::platformContext() const
     return m_data->baseSurface();
 }
 
-TransformationMatrix GraphicsContext::getCTM() const
+AffineTransform GraphicsContext::getCTM() const
 {
     if (paintingDisabled())
-        return TransformationMatrix();
+        return AffineTransform();
 
-    return m_data->transformationMatrix();
+    return m_data->transformation();
 }
 
 void GraphicsContext::savePlatformState()
@@ -143,7 +144,7 @@ void GraphicsContext::fillPath()
     if (paintingDisabled())
         return;
 
-    notImplemented();
+    m_data->drawPath(VG_FILL_PATH, m_common->state.fillRule);
 }
 
 void GraphicsContext::strokePath()
@@ -151,7 +152,15 @@ void GraphicsContext::strokePath()
     if (paintingDisabled())
         return;
 
-    notImplemented();
+    m_data->drawPath(VG_STROKE_PATH, m_common->state.fillRule);
+}
+
+void GraphicsContext::drawPath()
+{
+    if (paintingDisabled())
+        return;
+
+    m_data->drawPath(VG_FILL_PATH | VG_STROKE_PATH, m_common->state.fillRule);
 }
 
 void GraphicsContext::fillRect(const FloatRect& rect)
@@ -193,7 +202,7 @@ void GraphicsContext::beginPath()
     if (paintingDisabled())
         return;
 
-    notImplemented();
+    m_data->beginPath();
 }
 
 void GraphicsContext::addPath(const Path& path)
@@ -201,7 +210,7 @@ void GraphicsContext::addPath(const Path& path)
     if (paintingDisabled())
         return;
 
-    notImplemented();
+    m_data->addPath(path);
 }
 
 void GraphicsContext::clip(const FloatRect& rect)
@@ -281,7 +290,7 @@ FloatRect GraphicsContext::roundToDevicePixels(const FloatRect& rect)
     if (paintingDisabled())
         return FloatRect();
 
-    return FloatRect(enclosingIntRect(m_data->transformationMatrix().mapRect(rect)));
+    return FloatRect(enclosingIntRect(m_data->transformation().mapRect(rect)));
 }
 
 void GraphicsContext::setPlatformShadow(const IntSize& size, int blur, const Color& color, ColorSpace colorSpace)
@@ -451,8 +460,8 @@ IntPoint GraphicsContext::origin()
     if (paintingDisabled())
         return IntPoint();
 
-    TransformationMatrix matrix = m_data->transformationMatrix();
-    return IntPoint(roundf(matrix.m41()), roundf(matrix.m42()));
+    AffineTransform transformation = m_data->transformation();
+    return IntPoint(roundf(transformation.e()), roundf(transformation.f()));
 }
 
 void GraphicsContext::clipOut(const IntRect& rect)
@@ -493,12 +502,12 @@ void GraphicsContext::addInnerRoundedRectClip(const IntRect& rect, int thickness
     UNUSED_PARAM(thickness);
 }
 
-void GraphicsContext::concatCTM(const TransformationMatrix& transform)
+void GraphicsContext::concatCTM(const AffineTransform& transformation)
 {
     if (paintingDisabled())
         return;
 
-    m_data->concatTransformationMatrix(transform);
+    m_data->concatTransformation(transformation);
 }
 
 void GraphicsContext::setURLForRect(const KURL& link, const IntRect& destRect)

@@ -42,7 +42,6 @@ aria-valuemax
 aria-valuemin
 aria-valuenow
 aria-valuetext
-autobuffer
 autocomplete
 autofocus
 autoplay
@@ -88,6 +87,7 @@ disabled
 draggable
 enctype
 end
+event
 expanded
 face
 focused
@@ -222,6 +222,7 @@ placeholder
 pluginurl
 poster
 precision
+preload
 primary
 profile
 progress

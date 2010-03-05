@@ -74,6 +74,7 @@ WebCore/page/FocusController.cpp
 WebCore/page/FrameView.cpp
 WebCore/page/Navigator.cpp
 WebCore/page/Page.cpp
+WebCore/page/Settings.cpp
 WebCore/page/gtk/FrameGtk.cpp BAL/Widgets/WebCore/Gtk/BCFrameGtk.cpp
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
@@ -104,6 +105,8 @@ WebCore/platform/graphics/qt/GraphicsLayerQt.h BAL/Graphics/WebCore/Qt/BCGraphic
 WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
+WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.cpp
+WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.h
 WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/KeyboardCodes.h BAL/Events/WebCore/WK/BCKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
@@ -139,12 +142,14 @@ WebCore/rendering/RenderArena.cpp
 WebCore/rendering/RenderLayerCompositor.h
 WebCore/rendering/RenderListBox.cpp
 WebCore/rendering/RenderMenuList.cpp
+WebCore/rendering/RenderMenuList.h
 WebCore/rendering/RenderObject.cpp
 WebCore/rendering/RenderObjectChildList.cpp
 WebCore/rendering/RenderSVGRoot.cpp
 WebCore/rendering/RenderSVGViewportContainer.cpp
 WebCore/rendering/RenderText.cpp
 WebCore/rendering/RenderTextControl.cpp
+WebCore/rendering/RenderTextControlSingleLine.h
 WebCore/rendering/RenderWidget.cpp
 WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp

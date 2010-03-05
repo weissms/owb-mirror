@@ -654,7 +654,7 @@ void WebFrame::setTextSizeMultiplier(float multiplier)
 {
     Frame* coreFrame = core(this);
     ASSERT(coreFrame);
-    coreFrame->setZoomFactor(multiplier, true);
+    coreFrame->setZoomFactor(multiplier, ZoomTextOnly);
 }
 
 bool WebFrame::inViewSourceMode()

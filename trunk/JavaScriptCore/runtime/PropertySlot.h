@@ -34,6 +34,8 @@ namespace JSC {
 
 #define JSC_VALUE_SLOT_MARKER 0
 #define JSC_REGISTER_SLOT_MARKER reinterpret_cast<GetValueFunc>(1)
+#define INDEX_GETTER_MARKER reinterpret_cast<GetValueFunc>(2)
+#define GETTER_FUNCTION_MARKER reinterpret_cast<GetValueFunc>(3)
 
     class PropertySlot {
     public:
@@ -51,7 +53,8 @@ namespace JSC {
             clearValue();
         }
 
-        typedef JSValue (*GetValueFunc)(ExecState*, const Identifier&, const PropertySlot&);
+        typedef JSValue (*GetValueFunc)(ExecState*, JSValue slotBase, const Identifier&);
+        typedef JSValue (*GetIndexValueFunc)(ExecState*, JSValue slotBase, unsigned);
 
         JSValue getValue(ExecState* exec, const Identifier& propertyName) const
         {
@@ -59,7 +62,11 @@ namespace JSC {
                 return *m_data.valueSlot;
             if (m_getValue == JSC_REGISTER_SLOT_MARKER)
                 return (*m_data.registerSlot).jsValue();
-            return m_getValue(exec, propertyName, *this);
+            if (m_getValue == INDEX_GETTER_MARKER)
+                return m_getIndexValue(exec, slotBase(), index());
+            if (m_getValue == GETTER_FUNCTION_MARKER)
+                return functionGetter(exec);
+            return m_getValue(exec, slotBase(), propertyName);
         }
 
         JSValue getValue(ExecState* exec, unsigned propertyName) const
@@ -68,7 +75,11 @@ namespace JSC {
                 return *m_data.valueSlot;
             if (m_getValue == JSC_REGISTER_SLOT_MARKER)
                 return (*m_data.registerSlot).jsValue();
-            return m_getValue(exec, Identifier::from(exec, propertyName), *this);
+            if (m_getValue == INDEX_GETTER_MARKER)
+                return m_getIndexValue(exec, m_slotBase, m_data.index);
+            if (m_getValue == GETTER_FUNCTION_MARKER)
+                return functionGetter(exec);
+            return m_getValue(exec, slotBase(), Identifier::from(exec, propertyName));
         }
 
         bool isGetter() const { return m_isGetter; }
@@ -132,14 +143,16 @@ namespace JSC {
             ASSERT(slotBase);
             ASSERT(getValue);
             m_getValue = getValue;
+            m_getIndexValue = 0;
             m_slotBase = slotBase;
         }
 
-        void setCustomIndex(JSValue slotBase, unsigned index, GetValueFunc getValue)
+        void setCustomIndex(JSValue slotBase, unsigned index, GetIndexValueFunc getIndexValue)
         {
             ASSERT(slotBase);
-            ASSERT(getValue);
-            m_getValue = getValue;
+            ASSERT(getIndexValue);
+            m_getValue = INDEX_GETTER_MARKER;
+            m_getIndexValue = getIndexValue;
             m_slotBase = slotBase;
             m_data.index = index;
         }
@@ -148,7 +161,7 @@ namespace JSC {
         {
             ASSERT(getterFunc);
             m_thisValue = m_slotBase;
-            m_getValue = functionGetter;
+            m_getValue = GETTER_FUNCTION_MARKER;
             m_data.getterFunc = getterFunc;
             m_isGetter = true;
         }
@@ -156,7 +169,7 @@ namespace JSC {
         void setCacheableGetterSlot(JSValue slotBase, JSObject* getterFunc, unsigned offset)
         {
             ASSERT(getterFunc);
-            m_getValue = functionGetter;
+            m_getValue = GETTER_FUNCTION_MARKER;
             m_thisValue = m_slotBase;
             m_slotBase = slotBase;
             m_data.getterFunc = getterFunc;
@@ -209,9 +222,10 @@ namespace JSC {
 
         JSValue thisValue() const { return m_thisValue; }
     private:
-        static JSValue functionGetter(ExecState*, const Identifier&, const PropertySlot&);
+        JSValue functionGetter(ExecState*) const;
 
         GetValueFunc m_getValue;
+        GetIndexValueFunc m_getIndexValue;
         
         JSValue m_slotBase;
         union {

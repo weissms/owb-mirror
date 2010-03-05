@@ -1,3 +1,109 @@
+2010-03-04  Fridrich Strba  <fridrich.strba@bluewin.ch>
+
+        Reviewed by Xan Lopez.
+
+        Miscellaneous little fixes for the windows build of webkit-gtk
+        https://bugs.webkit.org/show_bug.cgi?id=35640
+
+        * webkit/webkitdownload.cpp: Windows headers define ERROR
+        which breaks the build. Undef ERROR if it is defined.
+
+2010-03-03  Philippe Normand  <pnormand@igalia.com>
+
+        Unreviewed, build fix after r55452.
+
+        * webkit/webkitwebview.cpp:
+        (DNDContentsRequest::webkit_web_view_settings_notify): added missing braces.
+
+2010-03-02  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by David Levin.
+
+        Move database enable bit fully out of settings
+        This is stage one of a three-stage commit [webkit, then chromium, then
+        webkit again].  In this change I'm adding calls to
+        Database::setIsAvailable inside Settings::setDatabaseEnabled and
+        anywhere else that called it, and switching webkit fully over to using
+        that flag [added in a previous checkin].  Phase two will remove
+        Chromium's use of Settings for the Database, and phase three will remove
+        the Setting for the Database enable entirely, leaving only
+        Database::isAvailable/setIsAvailable.
+
+        No new tests; tested by existing storage tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35310
+
+        * webkit/webkitwebview.cpp:  Add calls to Database::setIsAvailable
+        (DNDContentsRequest::webkit_web_view_update_settings):
+        (DNDContentsRequest::webkit_web_view_settings_notify):
+
+2010-03-02  Arno Renevier  <arno@renevier.net>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [Gtk] implements ChromeClient::requestGeolocationPermissionForFrame
+        https://bugs.webkit.org/show_bug.cgi?id=35210
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        * WebCoreSupport/ChromeClientGtk.h:
+        * docs/webkitgtk-sections.txt:
+        * webkit/webkit.h:
+        * webkit/webkitdefines.h:
+        * webkit/webkitgeolocationpolicydecision.cpp: Added.
+        (webkit_geolocation_policy_decision_class_init):
+        (webkit_geolocation_policy_decision_init):
+        (webkit_geolocation_policy_decision_new):
+        (webkit_geolocation_policy_allow):
+        (webkit_geolocation_policy_deny):
+        * webkit/webkitgeolocationpolicydecision.h: Added.
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+        (DNDContentsRequest::webkit_web_view_class_init):
+        * webkitmarshal.list:
+
+2010-03-01  José Millán Soto  <jmillan@igalia.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] Right click does not activate text entry
+        https://bugs.webkit.org/show_bug.cgi?id=29177
+
+        Makes the frame handle the mouse click event before sending the
+        context menu event.
+
+        * webkit/webkitwebview.cpp:
+        (PopupMenuPositionFunc):
+        Function created to make the popup menu appear in the correct position, especially
+        when invoked from the keyboard.
+        (webkit_web_view_forward_context_menu_event):
+        Mouse click event is sent to frame before creating context menu,
+        PopupMenuPositionFunc used to determine the position where the menu should appear.
+        (webkit_web_view_popup_menu_handler):
+        Improved focused node position detection. Event button set to right button.
+
+2010-03-01  Jakob Petsovits  <jpetsovits@rim.com>
+
+        Reviewed by Adam Barth.
+
+        Adapt to the new ZoomMode enum.
+        https://bugs.webkit.org/show_bug.cgi?id=35347
+
+        * webkit/webkitwebview.cpp:
+        (DNDContentsRequest::webkit_web_view_apply_zoom_level):
+
+2010-03-01  Kalle Vahlman  <zuh@iki.fi>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Queue a resize when either of the content dimensions change
+        https://bugs.webkit.org/show_bug.cgi?id=35489
+
+        The check for size changes only queued a resize if both of the content
+        dimensions change, leaving the widget size out-of-sync if eg. only the
+        width changes.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+
 2010-03-01  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
 
         Reviewed by Xan Lopez.

@@ -454,11 +454,30 @@ if (!$testMedia) {
     $ignoredDirectories{'http/tests/media'} = 1;
 }
 
-if (!checkWebCoreFeatureSupport("Accelerated Compositing", 0)) {
+my $supportedFeaturesResult = "";
+
+if (isCygwin()) {
+    # Collect supported features list
+    my $supportedFeaturesCommand = $dumpTool . " --print-supported-features 2>&1";
+    $supportedFeaturesResult = `$supportedFeaturesCommand 2>&1`;
+}
+
+my $hasAcceleratedCompositing = 0;
+my $has3DRendering = 0;
+
+if (isCygwin()) {
+    $hasAcceleratedCompositing = $supportedFeaturesResult =~ /AcceleratedCompositing/;
+    $has3DRendering = $supportedFeaturesResult =~ /3DRendering/;
+} else {
+    $hasAcceleratedCompositing = checkWebCoreFeatureSupport("Accelerated Compositing", 0);
+    $has3DRendering = checkWebCoreFeatureSupport("3D Rendering", 0);
+}
+
+if (!$hasAcceleratedCompositing) {
     $ignoredDirectories{'compositing'} = 1;
 }
 
-if (!checkWebCoreFeatureSupport("3D Rendering", 0)) {
+if (!$has3DRendering) {
     $ignoredDirectories{'animations/3d'} = 1;
     $ignoredDirectories{'transforms/3d'} = 1;
 }
@@ -1129,6 +1148,8 @@ sub countAndPrintLeaks($$$)
         push @callStacksToExclude, (
             "readMakerNoteProps", # <rdar://problem/7156432> leak in ImageIO
             "QTKitMovieControllerView completeUISetup", # <rdar://problem/7155156> leak in QTKit
+            "getVMInitArgs", # <rdar://problem/7714444> leak in Java
+            "Java_java_lang_System_initProperties", # <rdar://problem/7714465> leak in Java
         );
     }
 

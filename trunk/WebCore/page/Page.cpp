@@ -50,6 +50,7 @@
 #include "PageGroup.h"
 #include "PluginData.h"
 #include "PluginHalter.h"
+#include "PluginView.h"
 #include "ProgressTracker.h"
 #include "RenderWidget.h"
 #include "RenderTheme.h"
@@ -295,7 +296,7 @@ void Page::goToItem(HistoryItem* item, FrameLoadType type)
 {
     // Abort any current load unless we're navigating the current document to a new state object
     HistoryItem* currentItem = m_mainFrame->loader()->history()->currentItem();
-    if (!item->stateObject() || !currentItem || item->documentSequenceNumber() != currentItem->documentSequenceNumber()) {
+    if (!item->stateObject() || !currentItem || item->documentSequenceNumber() != currentItem->documentSequenceNumber() || item == currentItem) {
         // Define what to do with any open database connections. By default we stop them and terminate the database thread.
         DatabasePolicy databasePolicy = DatabasePolicyStop;
 
@@ -392,7 +393,7 @@ void Page::refreshPlugins(bool reload)
 
 PluginData* Page::pluginData() const
 {
-    if (!mainFrame()->loader()->client()->allowPlugins(settings()->arePluginsEnabled()))
+    if (!mainFrame()->loader()->allowPlugins(NotAboutToInstantiatePlugin))
         return 0;
     if (!m_pluginData)
         m_pluginData = PluginData::create(this);
@@ -777,6 +778,35 @@ InspectorTimelineAgent* Page::inspectorTimelineAgent() const
     return m_inspectorController->timelineAgent();
 }
 #endif
+
+void Page::privateBrowsingStateChanged()
+{
+    bool privateBrowsingEnabled = m_settings->privateBrowsingEnabled();
+
+    // Collect the PluginViews in to a vector to ensure that action the plug-in takes
+    // from below privateBrowsingStateChanged does not affect their lifetime.
+
+    Vector<RefPtr<PluginView>, 32> pluginViews;
+    for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext()) {
+        FrameView* view = frame->view();
+        if (!view)
+            return;
+
+        const HashSet<RefPtr<Widget> >* children = view->children();
+        ASSERT(children);
+
+        HashSet<RefPtr<Widget> >::const_iterator end = children->end();
+        for (HashSet<RefPtr<Widget> >::const_iterator it = children->begin(); it != end; ++it) {
+            Widget* widget = (*it).get();
+            if (!widget->isPluginView())
+                continue;
+            pluginViews.append(static_cast<PluginView*>(widget));
+        }
+    }
+
+    for (size_t i = 0; i < pluginViews.size(); i++)
+        pluginViews[i]->privateBrowsingStateChanged(privateBrowsingEnabled);
+}
 
 void Page::pluginAllowedRunTimeChanged()
 {

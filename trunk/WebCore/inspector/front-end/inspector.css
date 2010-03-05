@@ -520,6 +520,11 @@ body.platform-windows .monospace, body.platform-windows .source-code {
     font-family: Consolas, Lucida Console, monospace;
 }
 
+body.platform-linux .monospace, body.platform-linux .source-code {
+    font-size: 11px;
+    font-family: dejavu sans mono, monospace;
+}
+
 #console-messages {
     position: absolute;
     z-index: 0;
@@ -2756,6 +2761,10 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
     margin-right: 5px;
 }
 
+.resources-graph-label.waiting-right {
+    margin-left: 5px;
+}
+
 .resources-graph-label.before {
     color: rgba(0, 0, 0, 0.7);
     text-shadow: none;
@@ -2824,7 +2833,7 @@ button.enable-toggle-status-bar-item.toggled-on .glyph {
     display: block;
 }
 
-.resources-graph-bar.waiting {
+.resources-graph-bar.waiting, .resources-graph-bar.waiting-right {
     opacity: 0.35;
 }
 

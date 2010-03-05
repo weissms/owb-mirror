@@ -569,3 +569,9 @@ void LayoutTestController::apiTestNewWindowDataLoadBaseURL(JSStringRef utf8Data,
 {
     // FIXME: implement
 }
+
+void LayoutTestController::apiTestGoToCurrentBackForwardItem()
+{
+    // FIXME: implement
+}
+

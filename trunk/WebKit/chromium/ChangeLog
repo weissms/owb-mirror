@@ -1,3 +1,140 @@
+2010-03-04  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Fix failing DevToolsSanityTest.TestResourceContentLength
+        https://bugs.webkit.org/show_bug.cgi?id=35725
+
+        http://trac.webkit.org/changeset/55466 missed one more spot
+        where contentLength needed to be renamed resourceSize.
+
+        * src/js/Tests.js:
+
+2010-03-03  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Adding touch event type and point type. Tested against the try bots.
+        https://bugs.webkit.org/show_bug.cgi?id=35691
+
+        * public/WebInputEvent.h:
+        (WebKit::WebInputEvent::):
+        (WebKit::WebInputEvent::isTouchEventType):
+        (WebKit::WebTouchEvent::WebTouchEvent):
+        * public/WebTouchPoint.h: Added.
+        (WebKit::WebTouchPoint::WebTouchPoint):
+        (WebKit::WebTouchPoint::):
+
+2010-03-02  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        add a flag to WebURLResponse so we can identify multipart content
+        https://bugs.webkit.org/show_bug.cgi?id=35628
+
+        * public/WebURLResponse.h:
+        * src/WebURLResponse.cpp:
+        (WebKit::WebURLResponse::isMultipartPayload):
+        (WebKit::WebURLResponse::setIsMultipartPayload):
+
+2010-03-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        Google Analytics triggers "blocked plugin" UI
+        https://bugs.webkit.org/show_bug.cgi?id=35565
+
+        Plumb didNotAllowPlugins to the client.
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::didNotAllowPlugins):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::didNotAllowPlugins):
+        * src/FrameLoaderClientImpl.h:
+
+2010-03-02  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        aria-label isn't respected on option elements
+        https://bugs.webkit.org/show_bug.cgi?id=35400
+
+        * src/SuggestionsPopupMenuClient.h:
+        (WebKit::SuggestionsPopupMenuClient::itemAccessibilityText):
+
+2010-03-02  Mads Ager  <ager@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [V8] V8 should be notified of context disposals
+        https://bugs.webkit.org/show_bug.cgi?id=35526
+
+        Update V8 DEPS in order to get V8 API changes needed for context
+        disposal notifications.
+
+        * DEPS:
+
+2010-03-02  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Add EnabledAtRuntime attribute to WebGLArray constructors
+        https://bugs.webkit.org/show_bug.cgi?id=35558
+
+        * public/WebRuntimeFeatures.h:
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enableWebGL):
+        (WebKit::WebRuntimeFeatures::isWebGLEnabled):
+
+2010-03-02  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Implement WebNode::equals and add inline operators for ==
+        and !=.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35543
+
+        * public/WebNode.h:
+        (WebKit::operator==):
+        (WebKit::operator!=):
+        * src/WebNode.cpp:
+        (WebKit::WebNode::equals):
+
+2010-03-01  Jakob Petsovits  <jpetsovits@rim.com>
+
+        Reviewed by Adam Barth.
+
+        Adapt to the new ZoomMode enum.
+        https://bugs.webkit.org/show_bug.cgi?id=35347
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::setZoomLevel):
+
+2010-03-01  Thatcher Ulrich  <tulrich@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Fix chromium iframe shims.  Add another test case to the
+        iframes-shims test.  After r53637, the plugin widget doesn't get
+        moved every paint.  This used to hide the bug that if an iframe
+        gets added, the plugin's cutout rectangles don't get updated until
+        a layout happens.
+        https://bugs.webkit.org/show_bug.cgi?id=35184
+
+        * src/WebPluginContainerImpl.cpp:
+        (WebKit::WebPluginContainerImpl::widgetPositionsUpdated): do reportGeometry() to ensure that
+            the plugin is aware of the positions of cutouts on the page (for iframe shim behavior).
+        * src/WebPluginContainerImpl.h:
+
+2010-02-27  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Chromium: remove DevTools part that has been upstreamed.
+
+        * src/js/DevTools.js:
+
 2010-03-01  Pavel Feldman  <pfeldman@chromium.org>
 
         Reviewed by Timothy Hatcher.

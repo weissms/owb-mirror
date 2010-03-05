@@ -1,3 +1,490 @@
+2010-03-04  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Add a missing 'm_' to class variables names.
+
+        [Qt] QtLauncher is not respecting class variable names
+        https://bugs.webkit.org/show_bug.cgi?id=35542
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::init):
+        (LauncherWindow::sendTouchEvent):
+        (LauncherWindow::eventFilter):
+        (LauncherWindow::zoomIn):
+        (LauncherWindow::zoomOut):
+        (LauncherWindow::resetZoom):
+        (LauncherWindow::setEditable):
+        (LauncherWindow::setTouchMocking):
+        (LauncherWindow::initializeView):
+        (LauncherWindow::createChrome):
+
+2010-03-03  Alexey Proskuryakov  <ap@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        Exclude leaks in Java that build bot complains about.
+
+        * Scripts/run-webkit-tests:
+
+2010-03-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Additional change to separate Accelerated Compositing test from 3D Rendering test
+        https://bugs.webkit.org/show_bug.cgi?id=35610
+        
+        I am now using #if ENABLED(3D_RENDERING) to emit the 3DRendering string from
+        DRT or not. This allows these flags to set independently. I also improved
+        the code flow in run-webkit-tests a bit.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+        * Scripts/run-webkit-tests:
+
+2010-03-03  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Added ability to print supported features to console to DRT
+        https://bugs.webkit.org/show_bug.cgi?id=35610
+        
+        This currently only prints whether or not Accelerated Compositing 
+        and 3D Rendering are supported, which is the only way to tell if you 
+        can run the compositing LayoutTests on Windows. But it can be expanded 
+        to give more information as needed. Currently it prints that both
+        AcceleratedCompositing and 3DRendering are available if accelerated compositing
+        is enabled since both have to be turned on together. This allows me to maintain
+        separate checks for them.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:Added --print-supported-features flag
+        (main):
+        * Scripts/run-webkit-tests:Runs DRT and enabled compositing tests if HW comp is available on Windows
+
+2010-03-03  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Refactor QtLauncher so it respects command line arguments
+        and inherits settings when you clone or create a new window.
+
+        Implemented with help of Kenneth Rohde Christiansen.
+
+        [Qt] QtLauncher must be refactored to fix command line arguments usage
+        https://bugs.webkit.org/show_bug.cgi?id=35536
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::init):
+        (LauncherWindow::isGraphicsBased):
+        (applySetting):
+        (LauncherWindow::applyPrefs):
+        (LauncherWindow::initializeView):
+        (LauncherWindow::newWindow):
+        (LauncherWindow::cloneWindow):
+        (LauncherWindow::createChrome):
+        (main):
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::WebViewGraphicsBased):
+        (WebViewGraphicsBased::setFrameRateMeasurementEnabled):
+        * QtLauncher/webview.h:
+        (WebViewGraphicsBased::itemCacheMode):
+        (WebViewGraphicsBased::frameRateMeasurementEnabled):
+
+2010-03-02  Arno Renevier  <arno@renevier.net>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [Gtk] implements ChromeClient::requestGeolocationPermissionForFrame
+        https://bugs.webkit.org/show_bug.cgi?id=35210
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (geolocationPolicyDecisionRequested):
+        (createWebView):
+
+2010-03-02  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by David Levin.
+
+        Revert r55339 - the Chromium codebase downstream had a temporary
+        need for WebKitTools/pywebsocket to still exist after Chris Jerdonek
+        had moved it (scripts still referenced the old location). Those
+        scripts have been updated to the new location, so it should be safe
+        to delete this now.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35614
+
+        * pywebsocket/mod_pywebsocket/standalone.py: Removed.
+
+2010-03-02  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        new-run-webkit-tests on chromium-linux tests to see if
+        layout_test_helper exists, but we don't use layout_test_helper on
+        linux. The test derefences a None object, and we crash. This fixes
+        that.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35602
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+ 2010-03-02  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        r55388 (bug 35553) worked around a bug in Python's subprocess.Popen()
+        that was causing DRT to hang on exit in new-run-webkit-tests.
+        Unfortunately, that workaround doesn't work on chromium-win
+        (and the script fails completely). The good news is that the check
+        isn't actually necessary, and so this change makes it conditional.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35601
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+2010-03-02  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 35576: WebKit should tell plug-in instances when private browsing state changes
+        <http://webkit.org/b/35576>
+
+        TestNetscapePlugin is another bit of plug-in code where copy-paste was heavily used
+        when porting.  Update the Windows and UNIX implementations of NPP_New and NPP_SetValue
+        to provide the expected behavior related to NPNVprivateModeBool.  Hopefully this code
+        duplication can be cleaned up in the future.
+
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_new_instance):
+        (webkit_test_plugin_set_value):
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_New):
+        (NPP_SetValue):
+
+2010-03-02  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Test plugin still has issues with releasing objects, and variants
+        https://bugs.webkit.org/show_bug.cgi?id=35587
+
+        Fix the conditions for releasing the variants after calling
+        invoke, and avoid having a number of objects leak.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (testDocumentOpen):
+        (testWindowOpen):
+
+2010-03-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactored the StyleChecker class's file-processing method
+        _process_file().  This will make it easier to add new
+        file-processing capabilities to check-webkit-style.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35490
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added a _read_lines() method to the StyleChecker class
+            that extracts the lines from a file.
+          - Replaced part of _process_file() with a call to the new
+            _read_lines() method.
+          - Replaced another part of _process_file() with a call
+            to the new CarriageReturnProcessor.process() method.
+
+        * Scripts/webkitpy/style/processors/common.py:
+          - Replaced the check_no_carriage_return() function with a
+            new CarriageReturnProcessor class.
+
+        * Scripts/webkitpy/style/processors/common_unittest.py:
+          - Renamed the CarriageReturnTest class to
+            CarriageReturnProcessorTest and updated it as necessary.
+
+2010-03-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Started using the logging module in check-webkit-style.
+        This provides more options for debugging and a more flexible,
+        uniform way to report messages to the end-user.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35484
+
+        Also included classes in a central location to facilitate
+        the unit testing of logging code (setUp and tearDown of unit
+        test logging configurations, etc).
+
+        * Scripts/check-webkit-style:
+          - Added a call to configure_logging() in the beginning of main().
+          - Replaced two calls to sys.stderr.write() with appropriate
+            logging calls.
+
+        * Scripts/webkitpy/init/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+
+        * Scripts/webkitpy/init/logtesting.py: Added.
+          - Added a UnitTestLogStream class to capture log output
+            during unit tests.
+          - Added a UnitTestLog class that provides convenience methods
+            for unit-testing logging code.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added a configure_logging() method.
+          - Added a _LevelLoggingFilter class to filter out log messages
+            above a certain logging level.
+          - Removed the _stderr_write() method from the StyleChecker class
+            and replaced its use with appropriate logging calls.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added a ConfigureLoggingTest class to unit test the
+            configure_logging() method.
+          - Updated the StyleCheckerCheckFileTest class as necessary.
+
+        * Scripts/webkitpy/style_references.py:
+          - Added references to logtesting.UnitTestLog and
+            logtesting.UnitTestLogStream.
+
+2010-03-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Fixing broken DRT on Leopard/Tiger. Second try.
+
+        AX: changes to WAI-ARIA grid aren't perceived correctly by VoiceOver
+        https://bugs.webkit.org/show_bug.cgi?id=35514
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+
+2010-03-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Fixing broken DRT on Leopard/Tiger.
+
+        AX: changes to WAI-ARIA grid aren't perceived correctly by VoiceOver
+        https://bugs.webkit.org/show_bug.cgi?id=35514
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+
+2010-03-01  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Eric Seidel.
+
+        [GTK] plugins/setProperty.html fails on 64bit Release
+        https://bugs.webkit.org/show_bug.cgi?id=35425
+
+        Check invoke's return code before releasing the variant, since
+        there's a chance it won't be properly initialized, leading to
+        memory corruption, in some cases.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (testCallback):
+        (testEnumerate):
+        (testDocumentOpen):
+        (testWindowOpen):
+        (handleCallback):
+
+2010-03-01  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by nobody. Build bustage :(
+
+        Fix stupid typo that I committed even after David Levin pointed
+        it out to me :(
+
+        https://bugs.webkit.org/show_bug.cgi?id=35553
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        AX: changes to WAI-ARIA grid aren't perceived correctly by VoiceOver
+        https://bugs.webkit.org/show_bug.cgi?id=35514
+
+        Add rowCount, columnCount for tables.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (rowCountCallback):
+        (columnCountCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::rowCount):
+        (AccessibilityUIElement::columnCount):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::rowCount):
+        (AccessibilityUIElement::columnCount):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::rowCount):
+        (AccessibilityUIElement::columnCount):
+
+2010-03-01  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Work around a bug in Python's subprocess.Popen() that keeps us from
+        cleaning up DumpRenderTree / test_shell properly when we finish the
+        tests in new-run-webkit-tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35553
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-01  Arno Renevier  <arno@renevier.net>
+
+        Reviewed by Xan Lopez.
+
+        webkit-build could pass unknown arguments to autogen.sh
+        https://bugs.webkit.org/show_bug.cgi?id=35454
+
+        * Scripts/build-webkit:
+
+2010-03-01  Dirk Pranke  <dpranke@chromium.org>
+
+        Rubber-stamped by Dimitri Glazkov.
+
+        Fix breakage from r55372.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35549
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+2010-03-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        EWS can hang for five hours when compile output is too big
+        https://bugs.webkit.org/show_bug.cgi?id=35545
+
+        * Scripts/webkitpy/commands/queues.py: Limit uploads to 1MB instead of
+        5MB.  AppEngine seems to not like 5MB uploads.  I'm not sure what the
+        limit is.  Let's try 1MB for a while and see how it goes.
+        * Scripts/webkitpy/networktransaction.py: Tune the default parameters
+        to our exponential backoff.  I'm not sure why I picked five hours as
+        the retry limit.  That seems way too large.
+
+2010-03-01  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        REGRESSION: Telling a WebView to go to its current WebHistoryItem is broken.
+        <rdar://problem/7699371> and https://bugs.webkit.org/show_bug.cgi?id=35532
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (apiTestGoToCurrentBackForwardItemCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::apiTestGoToCurrentBackForwardItem):
+
+        Stubs for now:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::apiTestGoToCurrentBackForwardItem):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::apiTestGoToCurrentBackForwardItem):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::apiTestGoToCurrentBackForwardItem):
+
+2010-03-01  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by David Levin.
+
+        General cleanup of error handling in new-run-webkit-tests.
+
+        Add Port.check_build() call that is separate from Port.check_sys_deps()
+        (and add a --nocheck-build flag to skip). This breaks a circular
+        dependency where you would start the layout test helper before
+        checking sys deps, but checking sys deps was the thing that told
+        you if your binaries where there.
+
+        Also, made Port.check_sys_deps(), start_helper() and stop_helper()
+        optional by providing default implementations in the base class
+        rather than requiring ports to implement the routines regardless
+        of whether or not they were needed.
+
+        Lastly, tweak a bunch of log messages to be cleaner, including
+        changing messages in thirdparty/autoinstall.py to be silent at
+        the default log level.
+
+        http://bugs.webkit.org/show_bug.cgi?id=35416
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/port/passing.py:
+        * Scripts/webkitpy/layout_tests/port/test.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+        * Scripts/webkitpy/thirdparty/autoinstall.py
+
+2010-03-01  Dirk Pranke <dpranke@chromium.org>
+
+         Reviewed by David Levin.
+
+         new-chromium-webkit-tests --platform=mac-leopard diffs are backwards
+         https://bugs.webkit.org/show_bug.cgi?id=35265
+
+         Some parts of the code passed arguments as
+         "actual, expected" and some passed as "expected, actual".
+         As you might imagine, this lead to great confusion and wrongness.
+         Standardize on "expected, actual" as that's the order which is
+         passed to the underlying diff tool.
+
+         Based on a patch by Eric Siedel <eric@webkit.org>.
+
+         * Scripts/webkitpy/layout_tests/port/base.py:
+         * Scripts/webkitpy/layout_tests/port/chromium.py:
+         * Scripts/webkitpy/layout_tests/port/test.py:
+         * Scripts/webkitpy/layout_tests/test_types/image_diff.py
+
+2010-03-01  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Rolling out: http://trac.webkit.org/changeset/55348
+
+        https://bugs.webkit.org/show_bug.cgi?id=35163
+
+        Rolling out since the changes to autoinstall do not work
+        with Python 2.4. In particular, ZipFile.extractall() was
+        added in Python 2.6.
+
+        * Scripts/webkitpy/__init__.py:
+        * Scripts/webkitpy/bugzilla.py:
+        * Scripts/webkitpy/init/__init__.py: Removed.
+        * Scripts/webkitpy/init/autoinstall.py: Removed.
+        * Scripts/webkitpy/networktransaction.py:
+        * Scripts/webkitpy/networktransaction_unittest.py:
+        * Scripts/webkitpy/statusserver.py:
+        * Scripts/webkitpy/thirdparty/autoinstall.py: Added.
+
+2010-03-01  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Rolling out r55350: http://trac.webkit.org/changeset/55350
+
+        https://bugs.webkit.org/show_bug.cgi?id=33639
+
+        Need to roll out because this patch (pep8) depends on the newly
+        rewritten autoinstall.py (r55348), which is breaking for people
+        with Python 2.4:
+
+        https://bugs.webkit.org/show_bug.cgi?id=35163#c21
+
+        That revision also needs to be rolled out and will be rolled out next.
+
+        * Scripts/webkitpy/style/checker.py:
+        * Scripts/webkitpy/style/checker_unittest.py:
+        * Scripts/webkitpy/style/processors/python.py: Removed.
+        * Scripts/webkitpy/style/processors/python_unittest.py: Removed.
+        * Scripts/webkitpy/style/processors/python_unittest_input.py: Removed.
+        * Scripts/webkitpy/style/unittests.py:
+        * Scripts/webkitpy/style_references.py:
+
 2010-03-01  Chris Jerdonek  <cjerdonek@webkit.org>
 
         Reviewed by Shinichiro Hamaji.
@@ -15,6 +502,39 @@
 
         * Scripts/webkitpy/style/checker_unittest.py:
           - Updated the test_path_rules_specifier() unit test.
+
+2010-02-27  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by David Levin.
+
+        Added Python style checking to check-webkit-style using
+        the third-party pep8 module (via autoinstall).
+
+        https://bugs.webkit.org/show_bug.cgi?id=33639
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added PYTHON to FileType.
+          - Updated ProcessorDispatcher to return a PythonProcessor
+            for *.py files.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated the ProcessorDispatcher unit tests for *.py files.
+
+        * Scripts/webkitpy/style/processors/python.py: Added.
+          - Added PythonProcessor class.
+
+        * Scripts/webkitpy/style/processors/python_unittest.py: Added.
+          - Added PythonProcessor unit tests.
+
+        * Scripts/webkitpy/style/processors/python_unittest_input.py: Added.
+          - Added a sample Python file to test the PythonProcessor.process()
+            code path (since pep8 accepts a file path).
+
+        * Scripts/webkitpy/style/unittests.py:
+          - Updated the style unit test file to import python_unittest.py.
+
+        * Scripts/webkitpy/style_references.py:
+          - Adjusted style references to import pep8.
 
 2010-02-26  Chris Jerdonek  <cjerdonek@webkit.org>
 

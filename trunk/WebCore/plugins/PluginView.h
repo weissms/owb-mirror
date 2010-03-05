@@ -162,6 +162,8 @@ namespace WebCore {
 
         void setJavaScriptPaused(bool);
 
+        void privateBrowsingStateChanged(bool);
+
         void disconnectStream(PluginStream*);
         void streamDidFinishLoading(PluginStream* stream) { disconnectStream(stream); }
 
@@ -249,6 +251,9 @@ namespace WebCore {
         static HDC WINAPI hookedBeginPaint(HWND, PAINTSTRUCT*);
         static BOOL WINAPI hookedEndPaint(HWND, const PAINTSTRUCT*);
 #endif
+
+        static bool platformGetValueStatic(NPNVariable variable, void* value, NPError* result);
+        bool platformGetValue(NPNVariable variable, void* value, NPError* result);
 
         RefPtr<Frame> m_parentFrame;
         RefPtr<PluginPackage> m_plugin;
