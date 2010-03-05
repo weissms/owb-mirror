@@ -30,6 +30,8 @@
 
 #include "LocalizedStrings.h"
 #include "PlatformString.h"
+#include "wtf/MathExtras.h"
+#include <math.h>
 
 #if ENABLE(CEHTML)
 #include "KeyboardCodesCEHTML.h"
