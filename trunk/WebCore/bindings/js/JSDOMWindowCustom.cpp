@@ -163,9 +163,9 @@ static JSValue namedItemGetter(ExecState* exec, JSValue slotBase, const Identifi
     return toJS(exec, collection.get());
 }
 
-static JSValue idItemGetter(ExecState* exec, const Identifier& propertyName, const PropertySlot& slot)
+static JSValue idItemGetter(ExecState* exec, JSValue slotBase, const Identifier& propertyName)
 {
-    JSDOMWindowBase* thisObj = static_cast<JSDOMWindow*>(asObject(slot.slotBase()));
+    JSDOMWindowBase* thisObj = static_cast<JSDOMWindow*>(asObject(slotBase));
     Document* document = thisObj->impl()->frame()->document();
 
     ASSERT(thisObj->allowsAccessFrom(exec));
