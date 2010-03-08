@@ -38,7 +38,7 @@
 #include "Path.h"
 #include "TextDirection.h"
 #include <wtf/Noncopyable.h>
-#include <wtf/Platform.h>
+#include <wtf/PassOwnPtr.h>
 
 namespace WebCore {
 
