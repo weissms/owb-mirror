@@ -33,6 +33,7 @@
 #include "FloatRect.h"
 #include "GraphicsContext.h"
 #include "ImageObserver.h"
+#include "SharedBuffer.h"
 #include <math.h>
 
 namespace WebCore {

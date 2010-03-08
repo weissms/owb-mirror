@@ -1,3 +1,170 @@
+2010-03-08  Mark Rowe  <mrowe@apple.com>
+
+        Chromium build fix.
+
+        * src/ChromiumBridge.cpp: Include SharedBuffer.h since WebCore::SharedBuffer is being used.
+
+2010-03-07  Mark Rowe  <mrowe@apple.com>
+
+        Chromium build fix.
+
+        * src/ResourceHandle.cpp: Include SharedBuffer.h since WebCore::SharedBuffer is being used.
+
+2010-03-06  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Chromium: Restore devtools window activate upon node search complete.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35832
+
+        * src/js/DevTools.js:
+
+2010-03-06  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] Embedder initiated loads should not always stop existing loads
+        https://bugs.webkit.org/show_bug.cgi?id=33862
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::reload):
+        (WebKit::WebFrameImpl::loadRequest):
+        (WebKit::WebFrameImpl::loadHistoryItem):
+        (WebKit::WebFrameImpl::loadData):
+
+2010-03-06  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] spurious WebViewClient::didStopLoading if changing
+        location.hash while a subframe is still loading
+
+        https://bugs.webkit.org/show_bug.cgi?id=33884
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidChangeLocationWithinPage):
+        Call isLoadingInAPISense, which checks subframes.
+
+2010-03-06  Hironori Bono  <hbono@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [Chromium] Typing into Flash with wmode = opaque|transparent and
+        non-latin language active outputs as if US keyboard layout active
+
+        https://bugs.webkit.org/show_bug.cgi?id=34936
+
+        This change is a WebKit-side change for this issue. It dispatches
+        Char events to plug-ins so plug-ins can receive non-ASCII characters
+        as well as ASCII characters.
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::keyEvent):
+
+2010-03-06  Kavita Kanetkar  <kkanetkar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Create WebKit API for  WebCore::ImageDecoder
+        https://bugs.webkit.org/show_bug.cgi?id=35415
+
+        * WebKit.gyp:
+        * public/WebImageDecoder.h: Added.
+        * src/WebImageDecoder.cpp: Added.
+
+2010-03-05  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Take out code hack that flips the result of NPP_HandleEvent.  This needs to move to
+        the NPAPI code so that Pepper plugins don't hit it.
+        https://bugs.webkit.org/show_bug.cgi?id=35779
+
+        * public/WebPluginContainer.h:
+        * src/WebPluginContainerImpl.cpp:
+        (WebKit::WebPluginContainerImpl::handleMouseEvent):
+        (WebKit::WebPluginContainerImpl::handleKeyboardEvent):
+
+2010-03-05  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Do not show link helper in popovers and/or for external resources.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35785
+
+        * src/js/DebuggerAgent.js:
+        (devtools.DebuggerAgent.prototype.initUI):
+        (devtools.DebuggerAgent.prototype.addScriptInfo_):
+
+2010-03-04  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Adding PlatformTouchEventBuilder and PlatformTouchPointBuilder for
+        converting Chromium WebTouchEvent and WebTouchPoint types to
+        corresponding WebCore types.
+        https://bugs.webkit.org/show_bug.cgi?id=35760
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchEventType):
+        (WebKit::toPlatformTouchPointState):
+        (WebKit::PlatformTouchPointBuilder::PlatformTouchPointBuilder):
+        (WebKit::PlatformTouchEventBuilder::PlatformTouchEventBuilder):
+        * src/WebInputEventConversion.h:
+
+2010-03-04  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] WebDocument:applicationID() crashes on <meta> tag with no http-equiv attribute
+        https://bugs.webkit.org/show_bug.cgi?id=35771
+
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::applicationID):
+        check for presence of http-equiv attribute before lower()ing it.
+
+2010-03-04  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        [chromium] make history.{push,replace}State enabled at runtime
+        https://bugs.webkit.org/show_bug.cgi?id=35753
+
+        * public/WebRuntimeFeatures.h:
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enablePushState):
+        (WebKit::WebRuntimeFeatures::isPushStateEnabled):
+
+2010-03-04  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed: chromium tests fix.
+
+        * src/js/Tests.js:
+
+2010-03-03  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Remove two last synchronous calls from front-end to InspectorBackend.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=35720
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+        (devtools.InspectorBackendImpl.prototype.setPauseOnExceptionsState):
+
+2010-03-03  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Remove sync access to resourceTrackingEnabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35693
+
+        * src/js/DevTools.js:
+
 2010-03-04  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Pavel Feldman.

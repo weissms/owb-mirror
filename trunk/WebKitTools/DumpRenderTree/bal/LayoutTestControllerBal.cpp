@@ -575,3 +575,7 @@ void LayoutTestController::apiTestGoToCurrentBackForwardItem()
     // FIXME: implement
 }
 
+void LayoutTestController::setSpatialNavigationEnabled(bool enabled)
+{
+    // FIXME: implement
+}

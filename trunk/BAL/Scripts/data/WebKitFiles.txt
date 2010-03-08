@@ -83,6 +83,7 @@ WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
 WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
 WebCore/platform/MIMETypeRegistry.cpp BAL/Facilities/WebCore/WK/BCMIMETypeRegistryWK.cpp
 WebCore/platform/NotImplemented.h Base/NotImplemented.h
+WebCore/platform/PopupMenuClient.h BAL/Widgets/WebCore/WK/BCPopupMenuClientWK.h
 WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/Scrollbar.cpp    BAL/Widgets/WebCore/WK/BCScrollbarWK.cpp
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
@@ -93,11 +94,10 @@ WebCore/platform/graphics/MediaPlayer.h	BAL/Media/WebCore/WK/BCMediaPlayerWK.h
 WebCore/platform/graphics/MediaPlayerPrivate.h BAL/Media/WebCore/WK/BCMediaPlayerPrivateWK.h
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp BAL/Graphics/WebCore/Cairo/BCGraphicsContextCairo.cpp
-WebCore/platform/graphics/gtk/FontPlatformDataGtk.cpp BAL/Fonts/WebCore/Gtk/BCFontPlatformDataGtk.cpp
 WebCore/platform/graphics/gtk/ImageGtk.cpp BAL/Graphics/WebCore/Gtk/BCImageGtk.cpp
-WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
-WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h
-WebCore/platform/graphics/gtk/WebKitWebSourceGStreamer.cpp BAL/Media/WebCore/GStreamer/BCWebKitWebSourceGStreamer.cpp
+WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
+WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h
+WebCore/platform/graphics/gstreamer/WebKitWebSourceGStreamer.cpp BAL/Media/WebCore/GStreamer/BCWebKitWebSourceGStreamer.cpp
 WebCore/platform/graphics/qt/GraphicsContextQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsContextQt.cpp
 WebCore/platform/graphics/qt/GraphicsContext3DQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsContext3DQt.cpp
 WebCore/platform/graphics/qt/GraphicsLayerQt.cpp BAL/Graphics/WebCore/Qt/BCGraphicsLayerQt.cpp
@@ -134,6 +134,7 @@ WebCore/platform/qt/SharedTimerQt.cpp BAL/Timer/WebCore/Qt/BCSharedTimerQt.cpp
 WebCore/platform/qt/TemporaryLinkStubs.cpp
 WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
+WebCore/platform/text/CString.h BAL/Internationalization/WebCore/WK/BCCStringWK.h
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/plugins/PluginView.cpp
 WebCore/plugins/PluginView.h

@@ -91,24 +91,16 @@ void InspectorBackend::storeLastActivePanel(const String& panelName)
         m_inspectorController->storeLastActivePanel(panelName);
 }
 
-void InspectorBackend::toggleNodeSearch()
+void InspectorBackend::enableSearchingForNode()
 {
     if (m_inspectorController)
-        m_inspectorController->toggleSearchForNodeInPage();
+        m_inspectorController->setSearchingForNode(true);
 }
 
-bool InspectorBackend::searchingForNode()
+void InspectorBackend::disableSearchingForNode()
 {
     if (m_inspectorController)
-        return m_inspectorController->searchingForNodeInPage();
-    return false;
-}
-
-bool InspectorBackend::resourceTrackingEnabled() const
-{
-    if (m_inspectorController)
-        return m_inspectorController->resourceTrackingEnabled();
-    return false;
+        m_inspectorController->setSearchingForNode(false);
 }
 
 void InspectorBackend::enableResourceTracking(bool always)
@@ -216,14 +208,11 @@ void InspectorBackend::stepOutOfFunctionInDebugger()
     ScriptDebugServer::shared().stepOutOfFunction();
 }
 
-long InspectorBackend::pauseOnExceptionsState()
-{
-    return ScriptDebugServer::shared().pauseOnExceptionsState();
-}
-
 void InspectorBackend::setPauseOnExceptionsState(long pauseState)
 {
     ScriptDebugServer::shared().setPauseOnExceptionsState(static_cast<ScriptDebugServer::PauseOnExceptionsState>(pauseState));
+    if (InspectorFrontend* frontend = inspectorFrontend())
+        frontend->updatePauseOnExceptionsState(ScriptDebugServer::shared().pauseOnExceptionsState());
 }
 
 #endif

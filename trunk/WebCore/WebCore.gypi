@@ -462,6 +462,10 @@
             'bindings/generic/RuntimeEnabledFeatures.h',
             'bindings/js/CachedScriptSourceProvider.h',
             'bindings/js/DOMObjectWithSVGContext.h',
+            'bindings/js/DOMObjectHashTableMap.cpp',
+            'bindings/js/DOMObjectHashTableMap.h',
+            'bindings/js/DOMWrapperWorld.cpp',
+            'bindings/js/DOMWrapperWorld.h',
             'bindings/js/GCController.cpp',
             'bindings/js/GCController.h',
             'bindings/js/JSCallbackData.cpp',
@@ -501,6 +505,8 @@
             'bindings/js/JSDataGridDataSource.cpp',
             'bindings/js/JSDataGridDataSource.h',
             'bindings/js/JSDedicatedWorkerContextCustom.cpp',
+            'bindings/js/JSDebugWrapperSet.cpp',
+            'bindings/js/JSDebugWrapperSet.h',
             'bindings/js/JSDocumentCustom.cpp',
             'bindings/js/JSDocumentFragmentCustom.cpp',
             'bindings/js/JSDOMApplicationCacheCustom.cpp',
@@ -514,6 +520,7 @@
             'bindings/js/JSDOMWindowCustom.h',
             'bindings/js/JSDOMWindowShell.cpp',
             'bindings/js/JSDOMWindowShell.h',
+            'bindings/js/JSDOMWrapper.cpp',
             'bindings/js/JSDOMWrapper.h',
             'bindings/js/JSElementCustom.cpp',
             'bindings/js/JSEventCustom.cpp',
@@ -659,6 +666,7 @@
             'bindings/js/ScriptValue.h',
             'bindings/js/ScriptWrappable.h',
             'bindings/js/StringSourceProvider.h',
+            'bindings/js/WebCoreJSClientData.h',
             'bindings/js/WorkerScriptController.cpp',
             'bindings/js/WorkerScriptController.h',
             'bindings/ScriptControllerBase.cpp',
@@ -1839,13 +1847,13 @@
             'page/FrameView.h',
             'page/Geolocation.cpp',
             'page/Geolocation.h',
-            'page/GeolocationController.cpp'
-            'page/GeolocationController.h'
-            'page/GeolocationControllerClient.h'
-            'page/GeolocationError.h'
-            'page/GeolocationPosition.h'
-            'page/GeolocationPositionCache.cpp'
-            'page/GeolocationPositionCache.h'
+            'page/GeolocationController.cpp',
+            'page/GeolocationController.h',
+            'page/GeolocationControllerClient.h',
+            'page/GeolocationError.h',
+            'page/GeolocationPosition.h',
+            'page/GeolocationPositionCache.cpp',
+            'page/GeolocationPositionCache.h',
             'page/Geoposition.h',
             'page/HaltablePlugin.h',
             'page/History.cpp',
@@ -1882,6 +1890,8 @@
             'page/SecurityOriginHash.h',
             'page/Settings.cpp',
             'page/Settings.h',
+            'page/SpatialNavigation.h',
+            'page/SpatialNavigation.cpp',
             'page/UserContentURLPattern.cpp',
             'page/UserContentURLPattern.h',
             'page/UserScript.h',

@@ -137,3 +137,4 @@
 #define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"
 #define WebKitAllowScriptsToCloseWindowsPreferenceKey "WebKitAllowScriptsToCloseWindows"
 #define WebKitCustomDragCursorsEnabledPreferenceKey "WebKitCustomDragCursorsEnabled"
+#define WebKitSpatialNavigationEnabledPreferenceKey "WebKitSpatialNavigationEnabled"

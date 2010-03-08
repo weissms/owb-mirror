@@ -1,3 +1,46 @@
+2010-03-08  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Remove unnecessary includes from header files, adding them to the handful of implementation files that need them.
+
+        * Misc/WebIconDatabase.mm:
+
+2010-03-07  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Remove unnecessary includes from header files, adding them to the handful of implementation files that need them.
+
+        * Misc/WebNSPasteboardExtras.mm:
+
+2010-03-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7717249> DOMSVG.h includes a non-existent DOMSVGFEMorphologyElement.h
+
+        * MigrateHeaders.make: Migrate DOMSVGFEMorphologyElement.h and DOMSVGFEMorphologyElementInternal.h.
+
+2010-03-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Use a framework-style include to pull in WebInspector.h for consistency
+        with other parts of WebKit.
+
+        * WebInspector/WebInspectorPrivate.h:
+
+2010-03-04  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        REGRESSION (31281): -[WebArchive initWithCoder:] leaks
+        <rdar://problem/7702420> and https://bugs.webkit.org/show_bug.cgi?id=35534
+
+        * WebView/WebArchive.mm:
+        (-[WebArchive initWithCoder:]): Don't retain objects we don't own.
+
 2010-03-04  Alexey Proskuryakov  <ap@apple.com>
 
         Reviewed by Timothy Hatcher.

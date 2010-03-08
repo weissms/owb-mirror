@@ -1,3 +1,321 @@
+2010-03-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        [iexploder] Automatically update htmltags.in and htmlattrs.in too
+        https://bugs.webkit.org/show_bug.cgi?id=33755
+
+        Change the update-iexploder-cssproperites script to update
+        the htmlattrs.in and htmltags.in of WebKitTools/iExploder/htdocs
+        automatically as well.
+
+        Change the reading and writing code to work with parameters
+        and extend the method that is parsing the .in files to handle
+        the HTMLTagNames.in and the HTMLAttributeNames.in files.
+
+        Remove custom code to determine the revision of files with a
+        utility of VCUtils.pm to determine the revision of the directory
+        these files are located in. This will also work with git checkout.
+
+        * Scripts/update-iexploder-cssproperties:
+
+2010-03-07  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        check-webkit-style: false positive for empty loop
+        https://bugs.webkit.org/show_bug.cgi?id=35717
+
+        * Scripts/webkitpy/style/processors/cpp.py:
+        * Scripts/webkitpy/style/processors/cpp_unittest.py:
+
+2010-03-07  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add AccessibilityController and AccessibilityUIElement
+        https://bugs.webkit.org/show_bug.cgi?id=35774
+
+        Add AccessibilityController and AccessibilityUIElement classes,
+        which are going to be used by DumpRenderTree Chromium port. These
+        files are based on:
+        - src/webkit/tools/test_shell/accessibility_controller.{cc,h} and
+        - src/webkit/tools/test_shell/accessibility_ui_element.{cc,h}
+        of Chromium rev.40492.
+
+        * DumpRenderTree/chromium/AccessibilityController.cpp: Added.
+        * DumpRenderTree/chromium/AccessibilityController.h: Added.
+        * DumpRenderTree/chromium/AccessibilityUIElement.cpp: Added.
+        * DumpRenderTree/chromium/AccessibilityUIElement.h: Added.
+
+2010-03-06  Hironori Bono  <hbono@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [Chromium] Typing into Flash with wmode = opaque|transparent and
+        non-latin language active outputs as if US keyboard layout active
+
+        https://bugs.webkit.org/show_bug.cgi?id=34936
+
+        To test keyboard events on the test plugin, this change implements
+        NPCocoaEventKeyDown and NPCocoaEventKeyUp handlers so the plugin
+        can write log messages.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (handleEventCocoa): Implemented the event handlers for NPCocoaKeyDown
+        and NPCocoaEventKeyUp.
+
+2010-03-05  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix Print option on QtLauncher by calling print directly from QWebFrame.
+
+        [Qt] QtLauncher Print option is not working on QGraphicsView mode
+        https://bugs.webkit.org/show_bug.cgi?id=35769
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::print):
+
+2010-03-05  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Changed the logging code for new-run-webkit-tests to use
+        module-specific loggers rather than the root logger. This is
+        a standard practice that allows logging specific to a package
+        to be configured independently of other modules.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35194
+
+        Added a line of the form "_log = logging.getLogger(<module>)"
+        to each module below, where <module> is the fully-qualified
+        name of the module, and updated the log lines to use the new
+        _log logger.
+
+        * Scripts/webkitpy/layout_tests/layout_package/json_results_generator.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+        * Scripts/webkitpy/layout_tests/port/apache_http_server.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+        * Scripts/webkitpy/layout_tests/port/http_server_base.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/test_types/fuzzy_image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/test_type_base.py:
+        * Scripts/webkitpy/layout_tests/test_types/text_diff.py:
+
+2010-03-05  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Siedel.
+
+        Split the command-line invocation of the Chromium/python LigHTTPd
+        server implementation out into its own top level script to make it
+        a more "public" interface and to resolve some awkward layering
+        issues. This script will be called directly by other test scripts in
+        the Chromium tree.
+
+        At some point this script should be made to work with Apache-based
+        implementations and on other ports. I have filed
+        https://bugs.webkit.org/show_bug.cgi?id=35820 for this.
+
+        Also fix a bug in port/factory where options.chromium could be
+        dereferenced even if it wasn't set, raising an exception.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35812
+
+        * Scripts/webkitpy/layout_tests/port/factory.py:
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+        * Scripts/new-run-webkit-httpd: Added
+
+2010-03-02  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Holger Freyther
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        [Gtk] Implement setSpatialNavigationEnabled in DRT.
+        https://bugs.webkit.org/show_bug.cgi?id=35705
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setSpatialNavigationEnabled):
+
+2010-02-23  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Kenneth Christiansen.
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        Add toggle on/off stub methods for Spatial Navigation in win, gtk and mac LayoutTestController class implementations.
+        https://bugs.webkit.org/show_bug.cgi?id=35699
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setSpatialNavigationEnabledCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setSpatialNavigationEnabled):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setSpatialNavigationEnabled):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setSpatialNavigationEnabled):
+
+2010-02-18  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Kenneth Christiansen.
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        Add toggle on/off mechanism for Spatial Navigation in QtLauncher.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::toggleSpatialNavigation):
+        (LauncherWindow::setupUI):
+
+2010-03-02  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Simon Hausmann.
+        Patch by Antonio Gomes <tonikitoo@webkit.org>
+
+        [Qt] Add setSpatialNavigationEnabled method DRT
+        https://bugs.webkit.org/show_bug.cgi?id=33715
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setSpatialNavigationEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+        Unskipped fast/events/spatialnavigation/
+
+2010-03-04  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Alice Liu.
+
+        Find the framework relative to TARGET_BUILD_DIR as that has a more obvious value during production builds.
+
+        * Scripts/check-for-webkit-framework-include-consistency:
+
+2010-03-04  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add CppVariant and CppBoundClass
+        https://bugs.webkit.org/show_bug.cgi?id=35634
+
+        Add CppVariant and CppBoundClass classes, which are going to be
+        used by DumpRenderTree Chromium port. These files are based on:
+        - src/webkit/glue/cpp_variant.{cc,h} and
+        - src/webkit/glue/cpp_bound_class.{cc,h}
+        of Chromium rev.40492.
+
+        * DumpRenderTree/chromium/CppBoundClass.cpp: Added.
+        * DumpRenderTree/chromium/CppBoundClass.h: Added.
+        * DumpRenderTree/chromium/CppVariant.cpp: Added.
+        * DumpRenderTree/chromium/CppVariant.h: Added.
+
+2010-03-04  Mark Rowe  <mrowe@apple.com>
+
+        Build fix for older versions of Ruby.
+
+        * Scripts/check-for-webkit-framework-include-consistency:
+
+2010-03-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add a script to verify that WebKit framework headers are internally consistent.
+
+        This script detects the following problematic situations:
+        * An exported WebKit header that includes a header from WebCore.
+        * An exported WebKit header that includes a header that does not exist in the WebKit framework.
+        * A public WebKit header that includes a private WebKit header.
+
+        * Scripts/check-for-webkit-framework-include-consistency: Added.
+
+2010-03-04  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Adam Roben.
+
+        Making sure that the correct path is set before invoking
+        DumpRenderTree on cygwin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35768
+
+        * Scripts/run-webkit-tests:
+
+2010-03-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Revert the exceptions I just added, and make the error clearer.
+
+        * Scripts/check-for-global-initializers:
+
+2010-03-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Build fix: add exceptions to the check-for-global-initializers script
+        for FocusController and SpatialNavigation, and improve the script
+        to actually print out the globals found.
+
+        * Scripts/check-for-global-initializers:
+
+2010-03-04  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix dangling reference to "port" instead of "self._port_obj" that
+        was preventing the http_server from starting on Windows.
+
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+
+2010-03-04  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Make Qt DumpRenderTree EventSender able to send double click events
+
+        LayoutTests:
+            fast/events/dblclick-addEventListener.html
+
+        [Qt] DRT: Send double click event from EventSender
+        https://bugs.webkit.org/show_bug.cgi?id=35255
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::resetToConsistentStateBeforeTesting):
+        * DumpRenderTree/qt/EventSenderQt.cpp:
+        (EventSender::EventSender):
+        (EventSender::mouseDown):
+        * DumpRenderTree/qt/EventSenderQt.h:
+        (EventSender::resetClickCount):
+
+2010-03-04  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] Make the OUTPUT_DIR variable in qmake projects independent of build-webkit's logic.
+
+        This also allows shadow builds relying only on qmake to work properly.
+
+        * DumpRenderTree/qt/DumpRenderTree.pro:
+        * DumpRenderTree/qt/ImageDiff.pro:
+        * DumpRenderTree/qt/TestNetscapePlugin/TestNetscapePlugin.pro:
+        * QtLauncher/QtLauncher.pro:
+
+2010-03-04  Gabor Rapcsanyi  <rgabor@inf.u-szeged.hu>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Enable to use built-product-archive on Qt platform.
+
+        * BuildSlaveSupport/built-product-archive:
+
 2010-03-04  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
 
         Reviewed by Simon Hausmann.

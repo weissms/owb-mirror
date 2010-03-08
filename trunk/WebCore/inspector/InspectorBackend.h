@@ -61,12 +61,11 @@ public:
 
     void storeLastActivePanel(const String& panelName);
 
-    void toggleNodeSearch();
-    bool searchingForNode();
+    void enableSearchingForNode();
+    void disableSearchingForNode();
 
     void enableResourceTracking(bool always);
     void disableResourceTracking(bool always);
-    bool resourceTrackingEnabled() const;
     void getResourceContent(long callId, unsigned long identifier);
     void reloadPage();
 
@@ -85,7 +84,6 @@ public:
     void pauseInDebugger();
     void resumeDebugger();
 
-    long pauseOnExceptionsState();
     void setPauseOnExceptionsState(long pauseState);
 
     void stepOverStatementInDebugger();

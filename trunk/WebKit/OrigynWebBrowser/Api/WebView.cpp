@@ -2903,6 +2903,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 
     enabled = preferences->allowScriptsToCloseWindows();
     settings->setAllowScriptsToCloseWindows(enabled);
+    
+    settings->setSpatialNavigationEnabled(preferences->spatialNavigationEnabled());
 
     updateSharedSettingsFromPreferencesIfNeeded(preferences);
 }

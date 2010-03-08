@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2010 Company 100, Inc.
+ *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
+ *  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
+ *  Copyright (C) 2007 Samuel Weinig <sam@webkit.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -17,35 +19,19 @@
  */
 
 #include "config.h"
-#include "OwnPtrBrew.h"
+#include "DOMObjectHashTableMap.h"
 
-#include <AEEBitmap.h>
-#include <AEEFile.h>
-#include <AEEStdLib.h>
+#include "WebCoreJSClientData.h"
 
-namespace WTF {
+using namespace JSC;
 
-template <> void freeOwnedPtrBrew<IFileMgr>(IFileMgr* ptr)
+namespace WebCore{
+
+DOMObjectHashTableMap& DOMObjectHashTableMap::mapFor(JSGlobalData& globalData)
 {
-    if (ptr)
-        IFILEMGR_Release(ptr);
+    JSGlobalData::ClientData* clientData = globalData.clientData;
+    ASSERT(clientData);
+    return static_cast<WebCoreJSClientData*>(clientData)->hashTableMap;
 }
 
-template <> void freeOwnedPtrBrew<IFile>(IFile* ptr)
-{
-    if (ptr)
-        IFILE_Release(ptr);
-}
-
-template <> void freeOwnedPtrBrew<IBitmap>(IBitmap* ptr)
-{
-    if (ptr)
-        IBitmap_Release(ptr);
-}
-
-template <typename T> void freeOwnedPtrBrew(T* ptr)
-{
-    FREEIF(ptr);
-}
-
-} // namespace WTF
+} // namespace WebCore

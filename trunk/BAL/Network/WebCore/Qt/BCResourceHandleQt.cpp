@@ -28,22 +28,24 @@
  */
 
 #include "config.h"
-
-#include "Frame.h"
-#include "DocLoader.h"
 #include "ResourceHandle.h"
+
+#include "DocLoader.h"
+#include "Frame.h"
+#include "NotImplemented.h"
+#include "Page.h"
+#include "QNetworkReplyHandler.h"
 #include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
+#include "SharedBuffer.h"
+
 #if 0
-#include "qwebpage_p.h"
+// FIXME: WebCore including these headers from WebKit is a massive layering violation.
 #include "qwebframe_p.h"
+#include "qwebpage_p.h"
 #include "ChromeClientQt.h"
 #include "FrameLoaderClientQt.h"
 #endif
-#include "Page.h"
-#include "QNetworkReplyHandler.h"
-
-#include "NotImplemented.h"
 
 #if QT_VERSION >= 0x040500
 #include <QAbstractNetworkCache>

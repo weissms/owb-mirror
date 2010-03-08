@@ -137,8 +137,6 @@ void JSEventListener::handleEvent(ScriptExecutionContext* scriptExecutionContext
             }
         }
 
-        if (scriptExecutionContext->isDocument())
-            Document::updateStyleForAllDocuments();
         deref();
     }
 }

@@ -45,7 +45,6 @@
 #include <libxslt/variables.h>
 #include <libxslt/xsltutils.h>
 #include <wtf/Assertions.h>
-#include <wtf/Platform.h>
 #include <wtf/Vector.h>
 
 #if ENABLE(INSPECTOR)

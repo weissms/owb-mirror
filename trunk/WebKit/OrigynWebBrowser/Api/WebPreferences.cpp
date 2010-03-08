@@ -216,6 +216,7 @@ void WebPreferences::initializeDefaultSettings()
 #endif
     m_privatePrefs[WebKitMemoryLimitPreferenceKey] = "0";
     m_privatePrefs[WebKitAllowScriptsToCloseWindowsPreferenceKey] = "1"; //TRUE
+    m_privatePrefs[WebKitSpatialNavigationEnabledPreferenceKey] = "1"; // TRUE
 }
 
 void WebPreferences::addCertificateInfo(const char* url, const char* certificatePath, const char* keyPath, const char* keyPassword)
@@ -1048,3 +1049,12 @@ bool WebPreferences::allowScriptsToCloseWindows()
     return boolValueForKey(WebKitAllowScriptsToCloseWindowsPreferenceKey);
 }
 
+bool WebPreferences::spatialNavigationEnabled()
+{
+    return boolValueForKey(WebKitSpatialNavigationEnabledPreferenceKey);
+}
+
+void WebPreferences::setSpatialNavigationEnabled(bool enabled)
+{
+    setBoolValue(WebKitSpatialNavigationEnabledPreferenceKey, enabled);
+}

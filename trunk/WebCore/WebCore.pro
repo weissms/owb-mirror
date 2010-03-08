@@ -34,14 +34,13 @@ symbian: {
     CONFIG(release, debug|release): QMAKE_CXXFLAGS.ARMCC += -OTime -O3
 }
 
+isEmpty(OUTPUT_DIR): OUTPUT_DIR = ..
 include($$PWD/../WebKit.pri)
 
 TEMPLATE = lib
 TARGET = QtWebKit
 
 contains(QT_CONFIG, embedded):CONFIG += embedded
-
-isEmpty(OUTPUT_DIR): OUTPUT_DIR = ..
 
 CONFIG(standalone_package) {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = $$PWD/generated
@@ -126,7 +125,7 @@ RESOURCES += \
     RESOURCES += $$PWD/../WebCore/inspector/front-end/WebKit.qrc
 }
 
-mameo5|symbian|embedded {
+maemo5|symbian|embedded {
     DEFINES += ENABLE_FAST_MOBILE_SCROLLING=1
 }
 
@@ -267,6 +266,8 @@ SOURCES += \
     accessibility/AccessibilityTableRow.cpp \    
     accessibility/AXObjectCache.cpp \
     bindings/js/GCController.cpp \
+    bindings/js/DOMObjectHashTableMap.cpp \
+    bindings/js/DOMWrapperWorld.cpp \
     bindings/js/JSCallbackData.cpp \
     bindings/js/JSAttrCustom.cpp \
     bindings/js/JSCDATASectionCustom.cpp \
@@ -285,12 +286,14 @@ SOURCES += \
     bindings/js/JSCustomXPathNSResolver.cpp \
     bindings/js/JSDataGridColumnListCustom.cpp \
     bindings/js/JSDataGridDataSource.cpp \
+    bindings/js/JSDebugWrapperSet.cpp \
     bindings/js/JSDocumentCustom.cpp \
     bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMGlobalObject.cpp \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSDOMWindowCustom.cpp \
     bindings/js/JSDOMWindowShell.cpp \
+    bindings/js/JSDOMWrapper.cpp \
     bindings/js/JSElementCustom.cpp \
     bindings/js/JSEventCustom.cpp \
     bindings/js/JSEventSourceConstructor.cpp \
@@ -774,6 +777,7 @@ SOURCES += \
     page/SecurityOrigin.cpp \
     page/Screen.cpp \
     page/Settings.cpp \
+    page/SpatialNavigation.cpp \
     page/UserContentURLPattern.cpp \
     page/WindowFeatures.cpp \
     page/XSSAuditor.cpp \
@@ -1001,6 +1005,8 @@ HEADERS += \
     accessibility/AXObjectCache.h \
     bindings/js/CachedScriptSourceProvider.h \
     bindings/js/GCController.h \
+    bindings/js/DOMObjectHashTableMap.h \
+    bindings/js/DOMWrapperWorld.h \
     bindings/js/JSCallbackData.h \
     bindings/js/JSAudioConstructor.h \
     bindings/js/JSCSSStyleDeclarationCustom.h \
@@ -1013,6 +1019,7 @@ HEADERS += \
     bindings/js/JSCustomVoidCallback.h \
     bindings/js/JSCustomXPathNSResolver.h \
     bindings/js/JSDataGridDataSource.h \
+    bindings/js/JSDebugWrapperSet.h \
     bindings/js/JSDOMBinding.h \
     bindings/js/JSDOMGlobalObject.h \
     bindings/js/JSDOMWindowBase.h \
@@ -1062,6 +1069,7 @@ HEADERS += \
     bindings/js/ScriptWrappable.h \
     bindings/js/SerializedScriptValue.h \
     bindings/js/StringSourceProvider.h \
+    bindings/js/WebCoreJSClientData.h \
     bindings/js/WorkerScriptController.h \
     bridge/Bridge.h \
     bridge/c/CRuntimeObject.h \
@@ -1480,6 +1488,7 @@ HEADERS += \
     page/Screen.h \
     page/SecurityOrigin.h \
     page/Settings.h \
+    page/SpatialNavigation.h \
     page/WindowFeatures.h \
     page/WorkerNavigator.h \
     page/XSSAuditor.h \
@@ -2147,12 +2156,12 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
             INCLUDEPATH += $$PWD/plugins/win \
                            $$PWD/platform/win
     
-            SOURCES += page/win/PageWin.cpp \
-                       plugins/win/PluginDatabaseWin.cpp \
+            SOURCES += plugins/win/PluginDatabaseWin.cpp \
                        plugins/win/PluginPackageWin.cpp \
                        plugins/win/PluginMessageThrottlerWin.cpp \
                        plugins/win/PluginViewWin.cpp \
-                       platform/win/BitmapInfo.cpp
+                       platform/win/BitmapInfo.cpp \
+                       platform/win/WebCoreInstanceHandle.cpp
     
             LIBS += \
                 -ladvapi32 \

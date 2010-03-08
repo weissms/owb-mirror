@@ -10,6 +10,8 @@ endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
     bindings/ScriptControllerBase.cpp
+    bindings/js/DOMWrapperWorld.cpp
+    bindings/js/DOMObjectHashTableMap.cpp
     bindings/js/GCController.cpp
     bindings/js/JavaScriptProfile.cpp
     bindings/js/JavaScriptProfileNode.cpp
@@ -28,12 +30,14 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSCustomPositionCallback.cpp
     bindings/js/JSCustomPositionErrorCallback.cpp
     bindings/js/JSCustomVoidCallback.cpp
+    bindings/js/JSDebugWrapperSet.cpp
     bindings/js/JSDOMBinding.cpp
     bindings/js/JSDOMGlobalObject.cpp
     bindings/js/JSDOMWindowBase.cpp
     bindings/js/JSDOMWindowCustom.cpp
     bindings/js/JSDOMWindowShell.cpp
     bindings/js/JSDocumentCustom.cpp
+    bindings/js/JSDOMWrapper.cpp
     bindings/js/JSDocumentFragmentCustom.cpp
     bindings/js/JSElementCustom.cpp
     bindings/js/JSEventCustom.cpp

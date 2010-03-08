@@ -121,8 +121,8 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/StringTruncator.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/TextRun.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/TypesettingFeatures.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/WidthIterator.h
-BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontCustomPlatformData.h
-BAL/Skeletons/Fonts	WebCore/platform/graphics/gtk/FontPlatformData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/cairo/FontCustomPlatformData.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/cairo/FontPlatformData.h
 
 BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCairo.cpp
 BAL/Fonts/WebCore/Cairo	WebCore/platform/graphics/cairo/FontCacheCairo.cpp	BCFontCacheCairo.cpp

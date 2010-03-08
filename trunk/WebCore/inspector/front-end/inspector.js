@@ -63,6 +63,7 @@ var WebInspector = {
     // 4 - ?path
     // 5 - ?fragment
     URLRegExp: /^(http[s]?|file):\/\/([^\/:]*)(?::([\d]+))?(?:(\/[^#]*)(?:#(.*))?)?$/i,
+    GenericURLRegExp: /^([^:]+):\/\/([^\/:]*)(?::([\d]+))?(?:(\/[^#]*)(?:#(.*))?)?$/i,
 
     get platform()
     {
@@ -610,6 +611,25 @@ WebInspector.close = function(event)
     InspectorFrontendHost.closeWindow();
 }
 
+WebInspector.documentMouseOver = function(event)
+{
+    if (event.target.tagName !== "A")
+        return;
+
+    const anchor = event.target;
+    if (!anchor.hasStyleClass("webkit-html-resource-link"))
+        return;
+    if (WebInspector.canShowSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel) || WebInspector.ProfileType.URLRegExp.exec(anchor.href)) {
+        if (event.target.originalTitle)
+            event.target.title = event.target.originalTitle;
+        return;
+    }
+
+    if (!event.target.originalTitle)
+        event.target.originalTitle = event.target.title;
+    event.target.title = WebInspector.UIString("Cannot open this link. Make sure that resource tracking is enabled in the Resources panel.");
+}
+
 WebInspector.documentClick = function(event)
 {
     var anchor = event.target.enclosingNodeOrSelfWithNodeName("a");
@@ -629,10 +649,23 @@ WebInspector.documentClick = function(event)
             }
 
             WebInspector.showSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel);
-        } else {
-            var profileString = WebInspector.ProfileType.URLRegExp.exec(anchor.href);
-            if (profileString)
-                WebInspector.showProfileForURL(anchor.href);
+            return;
+        }
+
+        const profileMatch = WebInspector.ProfileType.URLRegExp.exec(anchor.href);
+        if (profileMatch) {
+            WebInspector.showProfileForURL(anchor.href);
+            return;
+        }
+
+        const urlMatch = WebInspector.GenericURLRegExp.exec(anchor.href);
+        if (urlMatch && urlMatch[1] === "webkit-link-action") {
+            if (urlMatch[2] === "show-panel") {
+                const panel = urlMatch[4].substring(1);
+                if (WebInspector.panels[panel])
+                    WebInspector.currentPanel = WebInspector.panels[panel];
+            }
+            return;
         }
     }
 
@@ -1199,6 +1232,17 @@ WebInspector.resourceTrackingWasDisabled = function()
     this.panels.resources.resourceTrackingWasDisabled();
 }
 
+
+WebInspector.searchingForNodeWasEnabled = function()
+{
+    this.panels.elements.searchingForNodeWasEnabled();
+}
+
+WebInspector.searchingForNodeWasDisabled = function()
+{
+    this.panels.elements.searchingForNodeWasDisabled();
+}
+
 WebInspector.attachDebuggerWhenShown = function()
 {
     this.panels.scripts.attachDebuggerWhenShown();
@@ -1207,6 +1251,11 @@ WebInspector.attachDebuggerWhenShown = function()
 WebInspector.debuggerWasEnabled = function()
 {
     this.panels.scripts.debuggerWasEnabled();
+}
+
+WebInspector.updatePauseOnExceptionsState = function(pauseOnExceptionsState)
+{
+    this.panels.scripts.updatePauseOnExceptionsState(pauseOnExceptionsState);
 }
 
 WebInspector.debuggerWasDisabled = function()
@@ -1594,6 +1643,7 @@ WebInspector.addMainEventListeners = function(doc)
     doc.defaultView.addEventListener("focus", this.windowFocused.bind(this), false);
     doc.defaultView.addEventListener("blur", this.windowBlurred.bind(this), false);
     doc.addEventListener("click", this.documentClick.bind(this), true);
+    doc.addEventListener("mouseover", this.documentMouseOver.bind(this), true);
 }
 
 WebInspector._searchFieldManualFocus = function(event)

@@ -32,9 +32,7 @@
 #include <cairo-ft.h>
 #include <cairo.h>
 #include <fontconfig/fcfreetype.h>
-#if PLATFORM(GTK)
 #include <gtk/gtk.h>
-#endif
 
 namespace WebCore {
 
@@ -111,12 +109,8 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     cairo_matrix_init_scale(&fontMatrix, fontDescription.computedPixelSize(), fontDescription.computedPixelSize());
     cairo_matrix_init_identity(&ctm);
 
-#if PLATFORM(GTK)
-#if GTK_CHECK_VERSION(2,10,0)
     if (GdkScreen* screen = gdk_screen_get_default())
         options = gdk_screen_get_font_options(screen);
-#endif
-#endif
 
     // gdk_screen_get_font_options() returns NULL if no default options are
     // set, so we always have to check.
@@ -155,12 +149,8 @@ FontPlatformData::FontPlatformData(cairo_font_face_t* fontFace, int size, bool b
     static const cairo_font_options_t* defaultOptions = cairo_font_options_create();
     const cairo_font_options_t* options = NULL;
 
-#if PLATFORM(GTK)
-#if GTK_CHECK_VERSION(2,10,0)
     if (GdkScreen* screen = gdk_screen_get_default())
         options = gdk_screen_get_font_options(screen);
-#endif
-#endif
 
     // gdk_screen_get_font_options() returns NULL if no default options are
     // set, so we always have to check.

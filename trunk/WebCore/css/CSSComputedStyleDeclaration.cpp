@@ -154,6 +154,7 @@ static const int computedProperties[] = {
     CSSPropertyWebkitAnimationDelay,
     CSSPropertyWebkitAnimationDirection,
     CSSPropertyWebkitAnimationDuration,
+    CSSPropertyWebkitAnimationFillMode,
     CSSPropertyWebkitAnimationIterationCount,
     CSSPropertyWebkitAnimationName,
     CSSPropertyWebkitAnimationPlayState,
@@ -1214,6 +1215,30 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         }
         case CSSPropertyWebkitAnimationDuration:
             return getDurationValue(style->animations());
+        case CSSPropertyWebkitAnimationFillMode: {
+            RefPtr<CSSValueList> list = CSSValueList::createCommaSeparated();
+            const AnimationList* t = style->animations();
+            if (t) {
+                for (size_t i = 0; i < t->size(); ++i) {
+                    switch (t->animation(i)->fillMode()) {
+                    case AnimationFillModeNone:
+                        list->append(CSSPrimitiveValue::createIdentifier(CSSValueNone));
+                        break;
+                    case AnimationFillModeForwards:
+                        list->append(CSSPrimitiveValue::createIdentifier(CSSValueForwards));
+                        break;
+                    case AnimationFillModeBackwards:
+                        list->append(CSSPrimitiveValue::createIdentifier(CSSValueBackwards));
+                        break;
+                    case AnimationFillModeBoth:
+                        list->append(CSSPrimitiveValue::createIdentifier(CSSValueBoth));
+                        break;
+                    }
+                }
+            } else
+                list->append(CSSPrimitiveValue::createIdentifier(CSSValueNone));
+            return list.release();
+        }
         case CSSPropertyWebkitAnimationIterationCount: {
             RefPtr<CSSValueList> list = CSSValueList::createCommaSeparated();
             const AnimationList* t = style->animations();

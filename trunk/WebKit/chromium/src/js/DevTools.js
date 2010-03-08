@@ -151,31 +151,12 @@ devtools.ToolsAgent.prototype.evaluate = function(expr)
 
 
 /**
- * Enables / disables resources panel in the ui.
- * @param {boolean} enabled New panel status.
- */
-WebInspector.setResourcesPanelEnabled = function(enabled)
-{
-    InspectorBackend._resourceTrackingEnabled = enabled;
-    WebInspector.panels.resources.reset();
-};
-
-
-/**
  * Prints string  to the inspector console or shows alert if the console doesn't
  * exist.
  * @param {string} text
  */
 function debugPrint(text) {
-    var console = WebInspector.console;
-    if (console) {
-        console.addMessage(new WebInspector.ConsoleMessage(
-            WebInspector.ConsoleMessage.MessageSource.JS,
-            WebInspector.ConsoleMessage.MessageType.Log,
-            WebInspector.ConsoleMessage.MessageLevel.Log,
-            1, "chrome://devtools/<internal>", undefined, -1, text));
-    } else
-        alert(text);
+    WebInspector.log(text);
 }
 
 
@@ -292,6 +273,17 @@ WebInspector.UIString = function(string)
     return String.vsprintf(string, Array.prototype.slice.call(arguments, 1));
 };
 
+// Activate window upon node search complete. This will go away once InspectorFrontendClient is landed.
+(function() {
+    var original = WebInspector.searchingForNodeWasDisabled;
+    WebInspector.searchingForNodeWasDisabled = function()
+    {
+        if (this.panels.elements._nodeSearchButton.toggled)
+            InspectorFrontendHost.activateWindow();
+        original.apply(this, arguments);
+    }
+})();
+
 
 // There is no clear way of setting frame title yet. So sniffing main resource
 // load.
@@ -377,32 +369,6 @@ InjectedScriptAccess.prototype.evaluateInCallFrame = function(callFrameId, code,
 })();
 
 
-WebInspector.resourceTrackingWasEnabled = function()
-{
-      InspectorBackend._resourceTrackingEnabled = true;
-      this.panels.resources.resourceTrackingWasEnabled();
-};
-
-WebInspector.resourceTrackingWasDisabled = function()
-{
-      InspectorBackend._resourceTrackingEnabled = false;
-      this.panels.resources.resourceTrackingWasDisabled();
-};
-
-(function()
-{
-var orig = WebInspector.ConsoleMessage.prototype.setMessageBody;
-WebInspector.ConsoleMessage.prototype.setMessageBody = function(args)
-{
-    for (var i = 0; i < args.length; ++i) {
-        if (typeof args[i] === "string")
-            args[i] = WebInspector.ObjectProxy.wrapPrimitiveValue(args[i]);
-    }
-    orig.call(this, args);
-};
-})();
-
-
 (function()
 {
 var orig = InjectedScriptAccess.prototype.getCompletions;
@@ -412,16 +378,6 @@ InjectedScriptAccess.prototype.getCompletions = function(expressionString, inclu
         devtools.tools.getDebuggerAgent().resolveCompletionsOnFrame(expressionString, callFrameId, reportCompletions);
     else
         return orig.apply(this, arguments);
-};
-})();
-
-
-(function()
-{
-WebInspector.ElementsPanel.prototype._nodeSearchButtonClicked = function( event)
-{
-    InspectorBackend.toggleNodeSearch();
-    this.nodeSearchButton.toggled = !this.nodeSearchButton.toggled;
 };
 })();
 

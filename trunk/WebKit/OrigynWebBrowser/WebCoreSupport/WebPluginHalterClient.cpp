@@ -30,6 +30,7 @@
 #include "CString.h" // For UTF8 conversion.
 #include "DOMCoreClasses.h"
 #include "NotImplemented.h"
+#include "PlatformString.h"
 #include "WebPluginHalterDelegate.h"
 #include "WebView.h"
 

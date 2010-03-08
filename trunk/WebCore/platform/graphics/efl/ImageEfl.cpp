@@ -1,5 +1,8 @@
 /*
- * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Kenneth Rohde Christiansen.  All rights reserved.
+ * Copyright (C) 2009-2010 ProFUSION embedded systems
+ * Copyright (C) 2009-2010 Samsung Electronics
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,14 +23,45 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
-#include "Page.h"
+#include "Image.h"
+
+#include "BitmapImage.h"
+
+#include <cairo.h>
 
 namespace WebCore {
 
-HINSTANCE Page::s_instanceHandle = 0;
+void BitmapImage::initPlatformData()
+{
+}
 
-} // namespace WebCore
+void BitmapImage::invalidatePlatformData()
+{
+}
+
+static PassRefPtr<SharedBuffer> loadResourceSharedBufferFallback()
+{
+    return SharedBuffer::create(); // TODO: fallback image?
+}
+
+static PassRefPtr<SharedBuffer> loadResourceSharedBuffer(const char* name)
+{
+    RefPtr<SharedBuffer> buffer = SharedBuffer::createWithContentsOfFile(String::format(DATA_DIR "/webkit-1.0/images/%s.png", name));
+    if (buffer)
+        return buffer.release();
+    return loadResourceSharedBufferFallback();
+}
+
+PassRefPtr<Image> Image::loadPlatformResource(const char* name)
+{
+    RefPtr<BitmapImage> img = BitmapImage::create();
+    RefPtr<SharedBuffer> buffer = loadResourceSharedBuffer(name);
+    img->setData(buffer.release(), true);
+    return img.release();
+}
+
+}

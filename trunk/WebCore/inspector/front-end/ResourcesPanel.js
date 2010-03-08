@@ -47,6 +47,7 @@ WebInspector.ResourcesPanel = function()
     this.reset();
     this.filter(this.filterAllElement, false);
     this.graphsTreeElement.children[0].select();
+    this._resourceTrackingEnabled = false;
 }
 
 WebInspector.ResourcesPanel.prototype = {
@@ -124,6 +125,11 @@ WebInspector.ResourcesPanel.prototype = {
         this.sidebarTree.appendChild(this.itemsTreeElement);
 
         this.itemsTreeElement.expand();
+    },
+
+    get resourceTrackingEnabled()
+    {
+        return this._resourceTrackingEnabled;
     },
 
     _createPanelEnabler: function()
@@ -282,7 +288,7 @@ WebInspector.ResourcesPanel.prototype = {
     {
         if (this.visibleResource)
             return this.visibleResource._resourcesView;
-        return InspectorBackend.resourceTrackingEnabled() ? null : this.panelEnablerView;
+        return this._resourceTrackingEnabled ? null : this.panelEnablerView;
     },
 
     get sortingFunction()
@@ -311,11 +317,13 @@ WebInspector.ResourcesPanel.prototype = {
 
     resourceTrackingWasEnabled: function()
     {
+        this._resourceTrackingEnabled = true;
         this.reset();
     },
 
     resourceTrackingWasDisabled: function()
     {
+        this._resourceTrackingEnabled = false;
         this.reset();
     },
 
@@ -347,7 +355,7 @@ WebInspector.ResourcesPanel.prototype = {
 
         this.summaryBar.reset();
 
-        if (InspectorBackend.resourceTrackingEnabled()) {
+        if (this._resourceTrackingEnabled) {
             this.enableToggleButton.title = WebInspector.UIString("Resource tracking enabled. Click to disable.");
             this.enableToggleButton.toggled = true;
             this.largerResourcesButton.visible = true;
@@ -459,7 +467,7 @@ WebInspector.ResourcesPanel.prototype = {
 
     canShowSourceLine: function(url, line)
     {
-        return !!WebInspector.resourceForURL(url);
+        return this._resourceTrackingEnabled && !!WebInspector.resourceForURL(url);
     },
 
     showSourceLine: function(url, line)
@@ -479,6 +487,7 @@ WebInspector.ResourcesPanel.prototype = {
 
         var view = this.resourceViewForResource(resource);
         view.headersVisible = true;
+        view.selectContentTab();
         view.show(this.viewsContainerElement);
 
         if (line) {
@@ -690,16 +699,18 @@ WebInspector.ResourcesPanel.prototype = {
 
     _enableResourceTracking: function()
     {
-        if (InspectorBackend.resourceTrackingEnabled())
+        if (this._resourceTrackingEnabled)
             return;
         this._toggleResourceTracking(this.panelEnablerView.alwaysEnabled);
     },
 
     _toggleResourceTracking: function(optionalAlways)
     {
-        if (InspectorBackend.resourceTrackingEnabled()) {
+        if (this._resourceTrackingEnabled) {
             this.largerResourcesButton.visible = false;
             this.sortingSelectElement.visible = false;
+            WebInspector.resources = {};
+            WebInspector.resourceURLMap = {};
             InspectorBackend.disableResourceTracking(true);
         } else {
             this.largerResourcesButton.visible = true;

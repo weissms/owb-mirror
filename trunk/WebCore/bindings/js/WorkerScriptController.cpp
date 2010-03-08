@@ -34,6 +34,7 @@
 #include "JSDedicatedWorkerContext.h"
 #include "ScriptSourceCode.h"
 #include "ScriptValue.h"
+#include "WebCoreJSClientData.h"
 #include "WorkerContext.h"
 #include "WorkerObjectProxy.h"
 #include "WorkerThread.h"

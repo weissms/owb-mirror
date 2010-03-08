@@ -20973,6 +20973,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\page\SpatialNavigation.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\page\SpatialNavigation.h"
+				>
+			</File>
+			<File
 				RelativePath="..\page\UserContentURLPattern.cpp"
 				>
 			</File>
@@ -21093,10 +21101,6 @@
 				</File>
 				<File
 					RelativePath="..\page\win\FrameWin.h"
-					>
-				</File>
-				<File
-					RelativePath="..\page\win\PageWin.cpp"
 					>
 				</File>
 			</Filter>
@@ -22267,6 +22271,14 @@
 				</File>
 				<File
 					RelativePath="..\platform\win\WCDataObject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\win\WebCoreInstanceHandle.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\platform\win\WebCoreInstanceHandle.h"
 					>
 				</File>
 				<File
@@ -34196,7 +34208,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\bindings\js\DOMObjectHashTableMap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\DOMObjectHashTableMap.h"
+					>
+				</File>
+				<File
 					RelativePath="..\bindings\js\DOMObjectWithSVGContext.h"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\DOMWrapperWorld.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\DOMWrapperWorld.h"
 					>
 				</File>
 				<File
@@ -35772,6 +35800,14 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\bindings\js\JSDebugWrapperSet.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSDebugWrapperSet.h"
+					>
+				</File>
+				<File
 					RelativePath="..\bindings\js\JSDOMBinding.cpp"
 					>
 					<FileConfiguration
@@ -35993,6 +36029,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSDOMWindowCustom.h"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSDOMWrapper.cpp"
 					>
 				</File>
 				<File
@@ -40609,6 +40649,10 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\StringSourceProvider.h"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\WebCoreJSClientData.h"
 					>
 				</File>
 				<File

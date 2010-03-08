@@ -25,6 +25,7 @@
 
 #include "ActiveDOMObject.h"
 #include "DOMCoreException.h"
+#include "DOMObjectHashTableMap.h"
 #include "Document.h"
 #include "EventException.h"
 #include "ExceptionBase.h"
@@ -33,10 +34,11 @@
 #include "HTMLAudioElement.h"
 #include "HTMLCanvasElement.h"
 #include "HTMLImageElement.h"
-#include "HTMLScriptElement.h"
 #include "HTMLNames.h"
+#include "HTMLScriptElement.h"
 #include "JSDOMCoreException.h"
 #include "JSDOMWindowCustom.h"
+#include "JSDebugWrapperSet.h"
 #include "JSEventException.h"
 #include "JSExceptionBase.h"
 #include "JSNode.h"
@@ -48,6 +50,7 @@
 #include "ScriptCachedFrameData.h"
 #include "ScriptController.h"
 #include "Settings.h"
+#include "WebCoreJSClientData.h"
 #include "XMLHttpRequestException.h"
 #include <runtime/DateInstance.h>
 #include <runtime/Error.h>
@@ -66,11 +69,6 @@
 #include "XPathException.h"
 #endif
 
-#if ENABLE(WORKERS)
-#include <wtf/ThreadSpecific.h>
-using namespace WTF;
-#endif
-
 using namespace JSC;
 
 namespace WebCore {
@@ -79,74 +77,6 @@ using namespace HTMLNames;
 
 typedef Document::JSWrapperCache JSWrapperCache;
 typedef Document::JSWrapperCacheMap JSWrapperCacheMap;
-
-// For debugging, keep a set of wrappers currently cached, and check that
-// all are uncached before they are destroyed. This helps us catch bugs like:
-//     - wrappers being deleted without being removed from the cache
-//     - wrappers being cached twice
-
-static void willCacheWrapper(DOMObject* wrapper);
-static void didUncacheWrapper(DOMObject* wrapper);
-
-#ifdef NDEBUG
-
-static inline void willCacheWrapper(DOMObject*)
-{
-}
-
-static inline void didUncacheWrapper(DOMObject*)
-{
-}
-
-#else
-
-static HashSet<DOMObject*>& wrapperSet()
-{
-#if ENABLE(WORKERS)
-    DEFINE_STATIC_LOCAL(ThreadSpecific<HashSet<DOMObject*> >, staticWrapperSet, ());
-    return *staticWrapperSet;
-#else
-    DEFINE_STATIC_LOCAL(HashSet<DOMObject*>, staticWrapperSet, ());
-    return staticWrapperSet;
-#endif
-}
-
-static void willCacheWrapper(DOMObject* wrapper)
-{
-    ASSERT(!wrapperSet().contains(wrapper));
-    wrapperSet().add(wrapper);
-}
-
-static void didUncacheWrapper(DOMObject* wrapper)
-{
-    if (!wrapper)
-        return;
-    ASSERT(wrapperSet().contains(wrapper));
-    wrapperSet().remove(wrapper);
-}
-
-DOMObject::~DOMObject()
-{
-    ASSERT(!wrapperSet().contains(this));
-}
-
-#endif
-
-DOMWrapperWorld::DOMWrapperWorld(JSC::JSGlobalData* globalData, bool isNormal)
-    : m_globalData(globalData)
-    , m_isNormal(isNormal)
-{
-}
-
-DOMWrapperWorld::~DOMWrapperWorld()
-{
-    JSGlobalData::ClientData* clientData = m_globalData->clientData;
-    ASSERT(clientData);
-    static_cast<WebCoreJSClientData*>(clientData)->forgetWorld(this);
-
-    for (HashSet<Document*>::iterator iter = documentsWithWrappers.begin(); iter != documentsWithWrappers.end(); ++iter)
-        forgetWorldOfDOMNodesForDocument(*iter, this);
-}
 
 class JSGlobalDataWorldIterator {
 public:
@@ -184,27 +114,6 @@ private:
     HashSet<DOMWrapperWorld*>::iterator m_end;
 };
 
-DOMWrapperWorld* normalWorld(JSC::JSGlobalData& globalData)
-{
-    JSGlobalData::ClientData* clientData = globalData.clientData;
-    ASSERT(clientData);
-    return static_cast<WebCoreJSClientData*>(clientData)->normalWorld();
-}
-
-DOMWrapperWorld* mainThreadNormalWorld()
-{
-    ASSERT(isMainThread());
-    static DOMWrapperWorld* cachedNormalWorld = normalWorld(*JSDOMWindow::commonJSGlobalData());
-    return cachedNormalWorld;
-}
-
-DOMObjectHashTableMap& DOMObjectHashTableMap::mapFor(JSGlobalData& globalData)
-{
-    JSGlobalData::ClientData* clientData = globalData.clientData;
-    ASSERT(clientData);
-    return static_cast<WebCoreJSClientData*>(clientData)->hashTableMap;
-}
-
 const JSC::HashTable* getHashTableForGlobalData(JSGlobalData& globalData, const JSC::HashTable* staticTable)
 {
     return DOMObjectHashTableMap::mapFor(globalData).get(staticTable);
@@ -235,7 +144,7 @@ DOMObject* getCachedDOMObjectWrapper(JSC::ExecState* exec, void* objectHandle)
 
 void cacheDOMObjectWrapper(JSC::ExecState* exec, void* objectHandle, DOMObject* wrapper) 
 {
-    willCacheWrapper(wrapper);
+    JSDebugWrapperSet::willCacheWrapper(wrapper);
     domObjectWrapperMapFor(exec).set(objectHandle, wrapper);
 }
 
@@ -261,7 +170,7 @@ void forgetDOMObject(DOMObject* wrapper, void* objectHandle)
     ASSERT(clientData);
     DOMObjectWrapperMap& wrappers = static_cast<WebCoreJSClientData*>(clientData)->normalWorld()->m_wrappers;
     if (wrappers.uncheckedRemove(objectHandle, wrapper)) {
-        didUncacheWrapper(wrapper);
+        JSDebugWrapperSet::didUncacheWrapper(wrapper);
         return;
     }
 
@@ -271,7 +180,7 @@ void forgetDOMObject(DOMObject* wrapper, void* objectHandle)
         if (worldIter->m_wrappers.uncheckedRemove(objectHandle, wrapper))
             break;
     }
-    didUncacheWrapper(wrapper);
+    JSDebugWrapperSet::didUncacheWrapper(wrapper);
 }
 
 void forgetDOMNode(JSNode* wrapper, Node* node, Document* document)
@@ -290,12 +199,12 @@ void forgetDOMNode(JSNode* wrapper, Node* node, Document* document)
         if (wrappersIter->second->uncheckedRemove(node, wrapper))
             break;
     }
-    didUncacheWrapper(wrapper);
+    JSDebugWrapperSet::didUncacheWrapper(wrapper);
 }
 
 void cacheDOMNodeWrapper(JSC::ExecState* exec, Document* document, Node* node, JSNode* wrapper)
 {
-    willCacheWrapper(wrapper);
+    JSDebugWrapperSet::willCacheWrapper(wrapper);
 
     if (!document)
         domObjectWrapperMapFor(exec).set(node, wrapper);
@@ -315,13 +224,6 @@ void forgetAllDOMNodesForDocument(Document* document)
         delete wrappersMapIter->second;
         wrappersMapIter->first->forgetDocument(document);
     }
-}
-
-void forgetWorldOfDOMNodesForDocument(Document* document, DOMWrapperWorld* world)
-{
-    JSWrapperCache* wrappers = document->wrapperCacheMap().take(world);
-    ASSERT(wrappers); // 'world' should only know about 'document' if 'document' knows about 'world'!
-    delete wrappers;
 }
 
 static inline bool isObservableThroughDOM(JSNode* jsNode, DOMWrapperWorld* world)
@@ -445,7 +347,7 @@ static inline void takeWrappers(Node* node, Document* document, WrapperSet& wrap
         JSWrapperCacheMap& wrapperCacheMap = document->wrapperCacheMap();
         for (JSWrapperCacheMap::iterator iter = wrapperCacheMap.begin(); iter != wrapperCacheMap.end(); ++iter) {
             if (JSNode* wrapper = iter->second->take(node)) {
-                didUncacheWrapper(wrapper);
+                JSDebugWrapperSet::didUncacheWrapper(wrapper);
                 wrapperSet.append(WrapperAndWorld(wrapper, iter->first));
             }
         }
@@ -453,7 +355,7 @@ static inline void takeWrappers(Node* node, Document* document, WrapperSet& wrap
         for (JSGlobalDataWorldIterator worldIter(JSDOMWindow::commonJSGlobalData()); worldIter; ++worldIter) {
             DOMWrapperWorld* world = *worldIter;
             if (JSNode* wrapper = static_cast<JSNode*>(world->m_wrappers.take(node))) {
-                didUncacheWrapper(wrapper);
+                JSDebugWrapperSet::didUncacheWrapper(wrapper);
                 wrapperSet.append(WrapperAndWorld(wrapper, world));
             }
         }
@@ -469,7 +371,7 @@ void updateDOMNodeDocument(Node* node, Document* oldDocument, Document* newDocum
 
     for (unsigned i = 0; i < wrapperSet.size(); ++i) {
         JSNode* wrapper = wrapperSet[i].first;
-        willCacheWrapper(wrapper);
+        JSDebugWrapperSet::willCacheWrapper(wrapper);
         if (newDocument)
             newDocument->getWrapperCache(wrapperSet[i].second)->set(node, wrapper);
         else
@@ -833,12 +735,6 @@ JSC::JSObject* toJSSequence(ExecState* exec, JSValue value, unsigned& length)
         return 0;
 
     return object;
-}
-
-bool DOMObject::defineOwnProperty(ExecState* exec, const Identifier&, PropertyDescriptor&, bool)
-{
-    throwError(exec, TypeError, "defineProperty is not supported on DOM Objects");
-    return false;
 }
 
 } // namespace WebCore

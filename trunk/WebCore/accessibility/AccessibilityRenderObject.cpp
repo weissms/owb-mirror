@@ -1341,13 +1341,13 @@ void AccessibilityRenderObject::ariaFlowToElements(AccessibilityChildrenVector& 
         
 }
     
-bool AccessibilityRenderObject::supportsARIADropping()
+bool AccessibilityRenderObject::supportsARIADropping() const 
 {
     const AtomicString& dropEffect = getAttribute(aria_dropeffectAttr).string();
     return !dropEffect.isEmpty();
 }
 
-bool AccessibilityRenderObject::supportsARIADragging()
+bool AccessibilityRenderObject::supportsARIADragging() const
 {
     const AtomicString& grabbed = getAttribute(aria_grabbedAttr).string();
     return equalIgnoringCase(grabbed, "true") || equalIgnoringCase(grabbed, "false");   
@@ -1548,6 +1548,10 @@ bool AccessibilityRenderObject::accessibilityIsIgnored() const
         if (equalIgnoringCase(contentEditable, "true"))
             return false;
     }
+    
+    // if this element has aria attributes on it, it should not be ignored.
+    if (supportsARIAAttributes())
+        return false;
     
     if (m_renderer->isBlockFlow() && m_renderer->childrenInline())
         return !toRenderBlock(m_renderer)->firstLineBox() && !mouseButtonListener();
@@ -2731,7 +2735,7 @@ AccessibilityRole AccessibilityRenderObject::determineAccessibilityRole()
 
 #if PLATFORM(GTK)
     // Gtk ATs expect all tables, data and layout, to be exposed as tables.
-    if (node && node->hasTagName(tdTag))
+    if (node && (node->hasTagName(tdTag) || node->hasTagName(thTag)))
         return CellRole;
 
     if (node && node->hasTagName(tableTag))

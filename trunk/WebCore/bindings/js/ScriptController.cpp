@@ -35,6 +35,7 @@
 #include "ScriptSourceCode.h"
 #include "ScriptValue.h"
 #include "Settings.h"
+#include "WebCoreJSClientData.h"
 #include "XSSAuditor.h"
 #include "npruntime_impl.h"
 #include "runtime_root.h"

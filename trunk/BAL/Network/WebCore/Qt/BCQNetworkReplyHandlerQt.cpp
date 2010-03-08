@@ -174,7 +174,7 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
     m_request = r.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
 #endif
 
-    if (m_loadMode = LoadNormal)
+    if (m_loadMode == LoadNormal)
         start();
 }
 

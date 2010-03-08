@@ -5,6 +5,9 @@ if(ENABLE_MATHML)
         mathml/MathMLMathElement.cpp
         mathml/MathMLTextElement.cpp
         mathml/RenderMathMLBlock.cpp
+        mathml/RenderMathMLMath.cpp
+        mathml/RenderMathMLOperator.cpp
+        mathml/RenderMathMLRow.cpp
         mathml/RenderMathMLSubSup.cpp
         mathml/RenderMathMLUnderOver.cpp
     )

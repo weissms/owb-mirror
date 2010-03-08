@@ -42,7 +42,7 @@ WebInspector.Script = function(sourceID, sourceURL, source, startingLine, errorL
         var match = pattern.exec(source);
 
         if (match)
-            this.sourceURL = WebInspector.UIString("(program): %s", match[1]);
+            this.sourceURL = match[1];
     }
 }
 

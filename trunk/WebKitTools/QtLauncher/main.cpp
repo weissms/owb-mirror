@@ -118,6 +118,7 @@ protected slots:
     void toggleAcceleratedCompositing(bool toggle);
     void toggleWebGL(bool toggle);
     void initializeView(bool useGraphicsView = false);
+    void toggleSpatialNavigation(bool b);
 
 public slots:
     void newWindow();
@@ -430,7 +431,7 @@ void LauncherWindow::print()
 #if !defined(QT_NO_PRINTER)
     QPrintPreviewDialog dlg(this);
     connect(&dlg, SIGNAL(paintRequested(QPrinter*)),
-            m_view, SLOT(print(QPrinter*)));
+            page()->mainFrame(), SLOT(print(QPrinter*)));
     dlg.exec();
 #endif
 }
@@ -536,6 +537,11 @@ void LauncherWindow::initializeView(bool useGraphicsView)
 #endif
 }
 
+void LauncherWindow::toggleSpatialNavigation(bool b)
+{
+    page()->settings()->setAttribute(QWebSettings::SpatialNavigationEnabled, b);
+}
+
 void LauncherWindow::newWindow()
 {
     LauncherWindow* mw = new LauncherWindow(this, false);
@@ -628,6 +634,10 @@ void LauncherWindow::createChrome()
     toggleAcceleratedCompositing->setChecked(settings->testAttribute(QWebSettings::AcceleratedCompositingEnabled));
     toggleAcceleratedCompositing->setEnabled(isGraphicsBased());
     toggleAcceleratedCompositing->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
+
+    QAction* spatialNavigationAction = toolsMenu->addAction("Toggle Spatial Navigation", this, SLOT(toggleSpatialNavigation(bool)));
+    spatialNavigationAction->setCheckable(true);
+    spatialNavigationAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
 
     graphicsViewMenu->addSeparator();
 

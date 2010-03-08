@@ -765,6 +765,16 @@ public:
      * Check wether scripts can close a window
      */
     bool allowScriptsToCloseWindows();
+    
+    /**
+     * Checks whether spatial navigation support is activated
+     */
+    bool spatialNavigationEnabled();
+    
+    /**
+     * Activates spatial navigation support
+     */
+    void setSpatialNavigationEnabled(bool);
 
 
     // OWB Extensions

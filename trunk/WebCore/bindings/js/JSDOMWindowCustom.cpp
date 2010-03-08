@@ -21,7 +21,6 @@
 #include "JSDOMWindowCustom.h"
 
 #include "AtomicString.h"
-#include "Base64.h"
 #include "Chrome.h"
 #include "DOMWindow.h"
 #include "Document.h"
@@ -972,57 +971,6 @@ JSValue JSDOMWindow::setInterval(ExecState* exec, const ArgList& args)
     setDOMException(exec, ec);
 
     return jsNumber(exec, result);
-}
-
-JSValue JSDOMWindow::atob(ExecState* exec, const ArgList& args)
-{
-    if (args.size() < 1)
-        return throwError(exec, SyntaxError, "Not enough arguments");
-
-    JSValue v = args.at(0);
-    if (v.isNull())
-        return jsEmptyString(exec);
-
-    UString s = v.toString(exec);
-    if (!s.is8Bit()) {
-        setDOMException(exec, INVALID_CHARACTER_ERR);
-        return jsUndefined();
-    }
-
-    Vector<char> in(s.size());
-    for (unsigned i = 0; i < s.size(); ++i)
-        in[i] = static_cast<char>(s.data()[i]);
-    Vector<char> out;
-
-    if (!base64Decode(in, out))
-        return throwError(exec, GeneralError, "Cannot decode base64");
-
-    return jsString(exec, String(out.data(), out.size()));
-}
-
-JSValue JSDOMWindow::btoa(ExecState* exec, const ArgList& args)
-{
-    if (args.size() < 1)
-        return throwError(exec, SyntaxError, "Not enough arguments");
-
-    JSValue v = args.at(0);
-    if (v.isNull())
-        return jsEmptyString(exec);
-
-    UString s = v.toString(exec);
-    if (!s.is8Bit()) {
-        setDOMException(exec, INVALID_CHARACTER_ERR);
-        return jsUndefined();
-    }
-
-    Vector<char> in(s.size());
-    for (unsigned i = 0; i < s.size(); ++i)
-        in[i] = static_cast<char>(s.data()[i]);
-    Vector<char> out;
-
-    base64Encode(in, out);
-
-    return jsString(exec, String(out.data(), out.size()));
 }
 
 JSValue JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)

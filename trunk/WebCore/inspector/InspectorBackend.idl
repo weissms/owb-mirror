@@ -36,10 +36,9 @@ module core {
 
         void saveFrontendSettings(in DOMString settings);
 
-        void toggleNodeSearch();
-        boolean searchingForNode();
+        void enableSearchingForNode();
+        void disableSearchingForNode();
 
-        boolean resourceTrackingEnabled();
         void enableResourceTracking(in boolean always);
         void disableResourceTracking(in boolean always);
         void getResourceContent(in long callId, in unsigned long identifier);
@@ -64,7 +63,6 @@ module core {
         void stepIntoStatementInDebugger();
         void stepOutOfFunctionInDebugger();
 
-        long pauseOnExceptionsState();
         void setPauseOnExceptionsState(in long pauseOnExceptionsState);
 
         void enableProfiler(in boolean always);

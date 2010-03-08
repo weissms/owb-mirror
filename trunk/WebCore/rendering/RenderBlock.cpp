@@ -770,8 +770,7 @@ void RenderBlock::layoutBlock(bool relayoutChildren)
     if (previousHeight != height())
         relayoutChildren = true;
 
-    // It's weird that we're treating float information as normal flow overflow, but we do this because floatRect() isn't
-    // able to be propagated up the render tree yet.  Overflow information is however.  This check is designed to catch anyone
+    // This check is designed to catch anyone
     // who wasn't going to propagate float information up to the parent and yet could potentially be painted by its ancestor.
     if (isRoot() || expandsToEncloseOverhangingFloats())
         addOverflowFromFloats();
@@ -2633,24 +2632,6 @@ RenderBlock::floatBottom() const
     return bottom;
 }
 
-IntRect RenderBlock::floatRect() const
-{
-    IntRect result;
-    if (!m_floatingObjects || hasOverflowClip() || hasColumns())
-        return result;
-    FloatingObject* r;
-    DeprecatedPtrListIterator<FloatingObject> it(*m_floatingObjects);
-    for (; (r = it.current()); ++it) {
-        if (r->m_shouldPaint && !r->m_renderer->hasSelfPaintingLayer()) {
-            IntRect childRect = r->m_renderer->visibleOverflowRect();
-            childRect.move(r->m_left + r->m_renderer->marginLeft(), r->m_top + r->m_renderer->marginTop());
-            result.unite(childRect);
-        }
-    }
-
-    return result;
-}
-
 int RenderBlock::lowestPosition(bool includeOverflowInterior, bool includeSelf) const
 {
     int bottom = includeSelf && width() > 0 ? height() : 0;
@@ -3201,6 +3182,32 @@ void RenderBlock::markAllDescendantsWithFloatsForLayout(RenderBox* floatToRemove
     }
 }
 
+int RenderBlock::visibleTopOfHighestFloatExtendingBelow(int bottom, int maxHeight) const
+{
+    int top = bottom;
+    if (m_floatingObjects) {
+        FloatingObject* floatingObject;
+        for (DeprecatedPtrListIterator<FloatingObject> it(*m_floatingObjects); (floatingObject = it.current()); ++it) {
+            RenderBox* floatingBox = floatingObject->m_renderer;
+            IntRect visibleOverflow = floatingBox->visibleOverflowRect();
+            visibleOverflow.move(floatingBox->x(), floatingBox->y());
+            if (visibleOverflow.y() < top && visibleOverflow.bottom() > bottom && visibleOverflow.height() <= maxHeight && floatingBox->containingBlock() == this)
+                top = visibleOverflow.y();
+        }
+    }
+
+    if (!childrenInline()) {
+        for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
+            if (child->isFloatingOrPositioned() || !child->isRenderBlock())
+                continue;
+            RenderBlock* childBlock = toRenderBlock(child);
+            top = min(top, childBlock->y() + childBlock->visibleTopOfHighestFloatExtendingBelow(bottom - childBlock->y(), maxHeight));
+        }
+    }
+
+    return top;
+}
+
 int RenderBlock::getClearDelta(RenderBox* child, int yPos)
 {
     // There is no need to compute clearance if we have no floats.
@@ -3742,11 +3749,13 @@ int RenderBlock::layoutColumns(int endOfContent, int requestedColumnHeight)
 
         // This represents the real column position.
         IntRect colRect(currX, top, desiredColumnWidth, colHeight);
-        
+
+        int truncationPoint = visibleTopOfHighestFloatExtendingBelow(currY + colHeight, colHeight);
+
         // For the simulated paint, we pretend like everything is in one long strip.
-        IntRect pageRect(left, currY, desiredColumnWidth, colHeight);
+        IntRect pageRect(left, currY, desiredColumnWidth, truncationPoint - currY);
         v->setPrintRect(pageRect);
-        v->setTruncatedAt(currY + colHeight);
+        v->setTruncatedAt(truncationPoint);
         GraphicsContext context((PlatformGraphicsContext*)0);
         RenderObject::PaintInfo paintInfo(&context, pageRect, PaintPhaseForeground, false, 0, 0);
         
@@ -3761,7 +3770,7 @@ int RenderBlock::layoutColumns(int endOfContent, int requestedColumnHeight)
 
         int adjustedBottom = v->bestTruncatedAt();
         if (adjustedBottom <= currY)
-            adjustedBottom = currY + colHeight;
+            adjustedBottom = truncationPoint;
         
         colRect.setHeight(adjustedBottom - currY);
         
@@ -3836,8 +3845,20 @@ void RenderBlock::adjustPointToColumnContents(IntPoint& point) const
         // Add in half the column gap to the left and right of the rect.
         IntRect colRect = colRects->at(i);
         IntRect gapAndColumnRect(colRect.x() - leftGap, colRect.y(), colRect.width() + colGap, colRect.height());
-        
-        if (gapAndColumnRect.contains(point)) {
+
+        if (point.x() >= gapAndColumnRect.x() && point.x() < gapAndColumnRect.right()) {
+            // FIXME: The clamping that follows is not completely right for right-to-left
+            // content.
+            // Clamp everything above the column to its top left.
+            if (point.y() < gapAndColumnRect.y())
+                point = gapAndColumnRect.location();
+            // Clamp everything below the column to the next column's top left. If there is
+            // no next column, this still maps to just after this column.
+            else if (point.y() >= gapAndColumnRect.bottom()) {
+                point = gapAndColumnRect.location();
+                point.move(0, gapAndColumnRect.height());
+            }
+
             // We're inside the column.  Translate the x and y into our column coordinate space.
             point.move(columnPoint.x() - colRect.x(), yOffset);
             return;

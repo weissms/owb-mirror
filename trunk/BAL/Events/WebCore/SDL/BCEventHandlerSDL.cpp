@@ -45,6 +45,7 @@
 #include "PlatformWheelEvent.h"
 #include "RenderWidget.h"
 #include "Scrollbar.h"
+#include "SharedBuffer.h"
 
 namespace WebCore {
 

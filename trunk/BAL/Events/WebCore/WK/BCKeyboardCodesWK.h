@@ -28,8 +28,6 @@
 #ifndef KeyboardCodes_h
 #define KeyboardCodes_h
 
-#include <wtf/Platform.h>
-
 #if ENABLE(CEHTML)
 #include "KeyboardCodesCEHTML.h"
 #else

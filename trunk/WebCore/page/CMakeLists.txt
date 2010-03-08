@@ -28,6 +28,7 @@ list(APPEND WEBCORE_SRC
     page/PluginHalter.cpp
     page/PrintContext.cpp
     page/Screen.cpp
+    page/SpatialNavigation.cpp
     page/SecurityOrigin.cpp
     page/Settings.cpp
     page/UserContentURLPattern.cpp
