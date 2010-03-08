@@ -2525,13 +2525,13 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EInputFormat e)
     : m_type(CSS_IDENT)
 {
     switch (e) {
-        case None:
+        case InputFormatNone:
             m_value.ident = CSSValueNone;
             break;
-        case Numeric:
+        case InputFormatNumeric:
             m_value.ident = CSSValueNumeric;
             break;
-        case Alphanumeric:
+        case InputFormatAlphanumeric:
             m_value.ident = CSSValueAlphaNumeric;
             break;
     }
@@ -2541,14 +2541,14 @@ template<> inline CSSPrimitiveValue::operator EInputFormat() const
 {
     switch (m_value.ident) {
         case CSSValueNone:
-            return None;
+            return InputFormatNone;
         case CSSValueNumeric:
-            return Numeric; 
+            return InputFormatNumeric; 
         case CSSValueAlphaNumeric:
-            return Alphanumeric; 
+            return InputFormatAlphanumeric; 
         default:
             ASSERT_NOT_REACHED();
-            return None;
+            return InputFormatNone;
     }
 }
 #endif

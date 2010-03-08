@@ -1223,7 +1223,7 @@ public:
 #endif
 
 #if ENABLE(CEHTML)
-    static EInputFormat initialInputFormat() { return None; }
+    static EInputFormat initialInputFormat() { return InputFormatNone; }
     void setInputFormat(EInputFormat f) { noninherited_flags._inputFormat = f; }
     EInputFormat inputFormat() const { return static_cast<EInputFormat>(noninherited_flags._inputFormat); }
 #endif

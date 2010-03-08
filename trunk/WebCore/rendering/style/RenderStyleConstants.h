@@ -405,7 +405,7 @@ enum ELineClampType { LineClampLineCount, LineClampPercentage };
 
 #if ENABLE(CEHTML)
 enum EInputFormat {
-    None, Numeric, Alphanumeric
+    InputFormatNone, InputFormatNumeric, InputFormatAlphanumeric
 };
 #endif
 
