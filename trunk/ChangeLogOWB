@@ -1,3 +1,10 @@
+2010-03-10  Guillaume Penin  <gpenin@sand-labs.org>
+
+        Fixed KJS_LD_FLAGS so that JavaScriptCore programs are rebuilt
+        when libwtf is updated.
+
+        * cmake/AddJavaScriptCoreCompilerFlags.cmake:
+
 2010-02-24  Olivier DOLE  <odole@sand-labs.org>
 
         Just generate .tar.gz archive when running "make package"

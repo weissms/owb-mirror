@@ -12,7 +12,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
     endif(NOT ENABLE_DEBUG)
 
-    set(KJS_LD_FLAGS "-Wl,-whole-archive -lwtf -Wl,-no-whole-archive")
+    set(KJS_LD_FLAGS -Wl,-whole-archive wtf -Wl,-no-whole-archive)
 else(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Flag for Windows compiler is not implemented")
 endif(CMAKE_COMPILER_IS_GNUCXX)
