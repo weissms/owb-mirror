@@ -1,3 +1,12 @@
+2010-03-10  Gilles Bertal  <gbertal@sand-labs.org>
+
+        Fixed issue that prevented GStreamer from streaming data through the
+        HTTP streaming source recently introduced to leverage WebKit's network
+        infrastructure.
+
+        * Media/WebCore/GStreamer/BCWebKitWebSourceGStreamer.cpp:
+        (webKitWebSrcSetUri):
+
 2010-02-26  Olivier DOLE  <odole@sand-labs.org>
 
         fix bug in drt.py when passing arguments (some tests were not

@@ -522,6 +522,8 @@ static gboolean webKitWebSrcSetUri(GstURIHandler* handler, const gchar* uri)
 
     priv->uri = soup_uri_to_string(soupUri, FALSE);
     soup_uri_free(soupUri);
+#else
+    priv->uri = g_strdup(uri);
 #endif
 
     return TRUE;
