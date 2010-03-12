@@ -13,6 +13,11 @@ if(HAS_VIDEO)
     if(USE_VIDEO_GSTREAMER)
         create_include_link(${BAL_DIR}/Media/WebCore/GStreamer BAL)
         aux_source_directory(${BAL_DIR}/Media/WebCore/GStreamer WEBCORE_SRC)
+        if(NOT USE_GRAPHICS_GTK)
+            list(REMOVE_ITEM WEBCORE_SRC
+                ${BAL_DIR}/Media/WebCore/GStreamer/BCGOwnPtrGStreamer.cpp
+            )
+        endif(NOT USE_GRAPHICS_GTK)
     endif(USE_VIDEO_GSTREAMER)
 
     if(USE_VIDEO_NONE)

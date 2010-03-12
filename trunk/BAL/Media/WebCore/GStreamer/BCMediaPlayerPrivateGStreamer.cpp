@@ -1324,7 +1324,6 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
 void MediaPlayerPrivate::stop()
 {
     gst_element_set_state(m_playBin, GST_STATE_NULL);
-    m_startedPlaying = false;
     m_paused = true;
 }
 

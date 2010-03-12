@@ -840,13 +840,13 @@ BAL/Types/WTF	JavaScriptCore/wtf/dtoa.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.cpp
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
+BAL/Types/WTF/GLib	JavaScriptCore/wtf/gobject/GOwnPtr.cpp
+BAL/Types/WTF/GLib	JavaScriptCore/wtf/gobject/GOwnPtr.h
+BAL/Types/WTF/GLib	JavaScriptCore/wtf/gobject/GRefPtr.cpp
+BAL/Types/WTF/GLib	JavaScriptCore/wtf/gobject/GRefPtr.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/ThreadingGtk.cpp	BCThreadingGtk.cpp
 BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gtk/MainThreadGtk.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GOwnPtr.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GOwnPtr.h
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GRefPtr.cpp
-BAL/Types/WTF/Gtk	JavaScriptCore/wtf/gobject/GRefPtr.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/None	JavaScriptCore/wtf/ThreadingNone.cpp
 BAL/Types/WTF/Pthreads	JavaScriptCore/wtf/Threading.h

@@ -15,6 +15,8 @@ if(USE_THREADS_PTHREADS)
     if(USE_GRAPHICS_GTK)
         create_include_link(${BAL_DIR}/Types/WTF/Gtk BAL/wtf)
         aux_source_directory(${BAL_DIR}/Types/WTF/Gtk WTF_SRC)
+        create_include_link(${BAL_DIR}/Types/WTF/GLib BAL/wtf)
+        aux_source_directory(${BAL_DIR}/Types/WTF/GLib WTF_SRC)
         list(REMOVE_ITEM WTF_SRC
             ${BAL_DIR}/Types/WTF/Gtk/BCThreadingGtk.cpp
             ${BAL_DIR}/Types/WTF/Pthreads/BCMainThreadPthreads.cpp
