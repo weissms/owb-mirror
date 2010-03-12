@@ -103,6 +103,7 @@ list(APPEND WEBCORE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}/WebCore/loader/icon
     ${OWB_SOURCE_DIR}/WebCore/page
     ${OWB_SOURCE_DIR}/WebCore/page/animation
+    ${OWB_SOURCE_DIR}/WebCore/platform
     ${OWB_SOURCE_DIR}/WebCore/plugins
     ${OWB_SOURCE_DIR}/WebCore/rendering
     ${OWB_SOURCE_DIR}/WebCore/rendering/style

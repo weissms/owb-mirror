@@ -975,8 +975,6 @@ static bool shouldEnableLoadDeferring()
     WTF::RefCountedLeakCounter::suppressMessages("At least one WebView was closed with fast teardown.");
 #endif
 
-    _private->closed = YES;
-    
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
@@ -1008,6 +1006,8 @@ static bool fastDocumentTeardownEnabled()
 {
     if (!_private || _private->closed)
         return;
+
+    _private->closed = YES;
 
     [self _closingEventHandling];
 
@@ -1041,9 +1041,6 @@ static bool fastDocumentTeardownEnabled()
     [self setUIDelegate:nil];
 
     [_private->inspector webViewClosed];
-
-    // setHostWindow:nil must be called before this value is set (see 5408186)
-    _private->closed = YES;
 
     // To avoid leaks, call removeDragCaret in case it wasn't called after moveDragCaretToPoint.
     [self removeDragCaret];
@@ -1305,7 +1302,6 @@ static bool fastDocumentTeardownEnabled()
     settings->setMinimumFontSize([preferences minimumFontSize]);
     settings->setMinimumLogicalFontSize([preferences minimumLogicalFontSize]);
     settings->setPluginsEnabled([preferences arePlugInsEnabled]);
-    settings->setDatabasesEnabled([preferences databasesEnabled]);
 #if ENABLE(DATABASE)
     Database::setIsAvailable([preferences databasesEnabled]);
 #endif
@@ -1346,7 +1342,10 @@ static bool fastDocumentTeardownEnabled()
     settings->setZoomMode([preferences zoomsTextOnly] ? ZoomTextOnly : ZoomPage);
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
-    settings->setAcceleratedCompositingEnabled(coreVideoHas7228836Fix() && [preferences acceleratedCompositingEnabled]);
+    
+    // FIXME: Enabling accelerated compositing when WebGL is enabled causes tests to fail on Leopard which expect HW compositing to be disabled.
+    // Until we fix that, I will comment out the test (CFM)
+    settings->setAcceleratedCompositingEnabled((coreVideoHas7228836Fix() || [preferences webGLEnabled]) && [preferences acceleratedCompositingEnabled]);
     settings->setShowDebugBorders([preferences showDebugBorders]);
     settings->setShowRepaintCounter([preferences showRepaintCounter]);
     settings->setPluginAllowedRunTime([preferences pluginAllowedRunTime]);
@@ -3337,7 +3336,7 @@ static bool needsWebViewInitThreadWorkaround()
 
 - (void)setHostWindow:(NSWindow *)hostWindow
 {
-    if (_private->closed)
+    if (_private->closed && hostWindow)
         return;
     if (hostWindow == _private->hostWindow)
         return;

@@ -1,3 +1,172 @@
+2010-03-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35975
+        <rdar://problem/7739922> Flash 10.1b crashes when generating snapshots
+
+        Do a version check before sending a drawRect event to a Flash plugin,
+        since 10.1.d51 has a bug that crashes when called this way.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView drawRect:]):
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView supportsSnapshotting]):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView drawRect:]):
+
+2010-03-10  John Sullivan  <sullivan@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/7735387> input type other than text won't work with autofill
+        <https://bugs.webkit.org/show_bug.cgi?id=35963>
+
+        * WebView/WebHTMLRepresentation.mm:
+        (-[WebHTMLRepresentation elementDoesAutoComplete:]):
+        Return true for any text field that's not a password, rather than only
+        for TEXT type.
+
+2010-03-09  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        REGRESSION: WebInspector docking busted on Windows
+        <rdar://problem/7728433> and https://bugs.webkit.org/show_bug.cgi?id=35953
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController showWindow:]): Use the InspectorController:: copy of the should attach settings key.
+        (-[WebInspectorWindowController attach]): Ditto.
+        (-[WebInspectorWindowController detach]): Ditto.
+
+2010-03-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Updated for FastMalloc reporting changes.
+        
+        * Misc/WebCoreStatistics.mm:
+        (+[WebCoreStatistics memoryStatistics]):
+
+2010-03-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Move the new method to the end of the MIG definitions file, to avoid breaking
+        compatibility between WebKit and older versions of WebKitPluginHost.
+
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2010-03-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        <rdar://problem/7714340> Need to grab image snapshot of Core Animation plugins
+        
+        Allow plug-ins using the Core Animation drawing model to be captured when doing a flattening paint,
+        by sending them a drawRect event as if they were software-painting.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::snapshot):
+        New snapshot() method that calls over to the plugin host, and then draws the image that comes back.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView drawRect:]): If we don't have a software renderer, but we're doing
+        a flattening paint, then call the snapshot method.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs: Added snapshot method.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView inFlatteningPaint]):
+        New utility method that asks the FrameView whether the current paint behavior is
+        flattening.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView drawRect:]): If the plug-in is using CA but this is a flattening
+        paint, go ahead and send a drawRect event to the plug-in.
+
+2010-03-08  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix crash when you quit inside an unload handler.
+        rdar://problem/6958347
+
+        Test: manual-tests/quit-inside-unload.html
+
+        * WebView/WebView.mm:
+        (-[WebView _closeWithFastTeardown]): Removed code to set
+        _private->closed since _close now does this earlier, before
+        calling this method.
+        (-[WebView _close]): Moved code to set _private->closed to the
+        top of this method.
+        (-[WebView setHostWindow:]): Rewrote the code that forbade
+        setting the host window after closing so that it only forbids
+        non-nil host windows. That way, the code to clear away the host
+        window can run safely after setting _private->closed, yet client
+        code cannot set a new host window after closing.
+
+2010-03-08  Darin Adler  <darin@apple.com>
+
+        Roll out a file I checked in by accident.
+
+        * WebView/WebView.mm: Back to previous version.
+
+2010-03-08  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Turn on HW accel on Leopard even if coreVideoHas7228836Fix() is false, when WebGL is enabled
+        https://bugs.webkit.org/show_bug.cgi?id=35759
+
+        This allows WebGL to work on Leopard without the fix. It exposes these users to the crash
+        that happens because of the CoreVideo bug, but it limits the exposure to those who have 
+        chosen to enable WebGL.
+
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2010-03-02  Adam Treat  <atreat@rim.com>
+
+        Reviewed by Dave Hyatt.
+
+        Adapt the mac port to the refactoring of repaint methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34214
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::invalidateContents):
+        (WebChromeClient::invalidateWindow):
+        (WebChromeClient::invalidateContentsAndWindow):
+        (WebChromeClient::invalidateContentsForSlowScroll):
+
+2010-03-08  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Blob.slice support.
+        https://bugs.webkit.org/show_bug.cgi?id=32993
+
+        Add ENABLE_BLOB_SLICE feature define.
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-03-08  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by David Levin.
+
+        Remove the now-redundant Settings fields for the Database
+        https://bugs.webkit.org/show_bug.cgi?id=35763
+
+        No new tests; this code isn't called.
+
+        * WebView/WebView.mm: Remove the call into Settings.
+        (-[WebView _preferencesChangedNotification:]):
+
 2010-03-08  Mark Rowe  <mrowe@apple.com>
 
         Rubber-stamped by Cameron Zwarich.

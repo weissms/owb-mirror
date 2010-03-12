@@ -981,8 +981,8 @@ webcore_sources += \
 	WebCore/history/HistoryItem.h \
 	WebCore/history/PageCache.cpp \
 	WebCore/history/PageCache.h \
-        WebCore/html/Blob.cpp \
-        WebCore/html/Blob.h \
+	WebCore/html/Blob.cpp \
+	WebCore/html/Blob.h \
 	WebCore/html/canvas/CanvasContextAttributes.h \
 	WebCore/html/canvas/CanvasGradient.cpp \
 	WebCore/html/canvas/CanvasGradient.h \
@@ -1008,6 +1008,8 @@ webcore_sources += \
 	WebCore/html/DateComponents.h \
 	WebCore/html/DOMDataGridDataSource.cpp \
 	WebCore/html/DOMDataGridDataSource.h \
+	WebCore/html/DOMFormData.cpp \
+	WebCore/html/DOMFormData.h \
 	WebCore/html/File.cpp \
 	WebCore/html/File.h \
 	WebCore/html/FileList.cpp \
@@ -1521,6 +1523,7 @@ webcore_sources += \
 	WebCore/platform/ScrollbarThemeComposite.cpp \
 	WebCore/platform/ScrollbarThemeComposite.h \
 	WebCore/platform/SearchPopupMenu.h \
+	WebCore/platform/SecureTextInput.h \
 	WebCore/platform/SharedBuffer.cpp \
 	WebCore/platform/SharedBuffer.h \
 	WebCore/platform/SharedTimer.h \
@@ -2037,8 +2040,6 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/FileSystemGtk.cpp \
 	WebCore/platform/gtk/GRefPtrGtk.cpp \
 	WebCore/platform/gtk/GRefPtrGtk.h \
-	WebCore/platform/gtk/GOwnPtrGtk.cpp \
-	WebCore/platform/gtk/GOwnPtrGtk.h \
 	WebCore/platform/gtk/GtkPluginWidget.cpp \
 	WebCore/platform/gtk/GtkPluginWidget.h \
 	WebCore/platform/gtk/KURLGtk.cpp \
@@ -2095,6 +2096,8 @@ webcoregtk_sources += \
 	WebCore/platform/network/soup/ResourceResponseSoup.cpp \
 	WebCore/platform/network/soup/ResourceRequest.h \
 	WebCore/platform/network/soup/ResourceResponse.h \
+	WebCore/platform/network/soup/GOwnPtrSoup.h \
+	WebCore/platform/network/soup/GOwnPtrSoup.cpp \
 	WebCore/workers/SharedWorkerRepository.h
 
 # ----
@@ -2238,6 +2241,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSCustomSQLTransactionCallback.h \
 	WebCore/bindings/js/JSCustomSQLTransactionErrorCallback.cpp \
 	WebCore/bindings/js/JSCustomSQLTransactionErrorCallback.h \
+	WebCore/bindings/js/JSDatabaseCallback.cpp \
+	WebCore/bindings/js/JSDatabaseCallback.h \
 	WebCore/bindings/js/JSDatabaseCustom.cpp \
 	WebCore/bindings/js/JSSQLResultSetRowListCustom.cpp \
 	WebCore/bindings/js/JSSQLTransactionCustom.cpp \
@@ -2258,6 +2263,7 @@ webcore_sources += \
 	WebCore/storage/Database.h \
 	WebCore/storage/DatabaseAuthorizer.cpp \
 	WebCore/storage/DatabaseAuthorizer.h \
+	WebCore/storage/DatabaseCallback.h \
 	WebCore/storage/DatabaseDetails.h \
 	WebCore/storage/DatabaseTask.cpp \
 	WebCore/storage/DatabaseTask.h \
@@ -2436,6 +2442,8 @@ webcoregtk_sources += \
 	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.h \
 	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.cpp \
 	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h \
+	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.cpp \
+	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.h \
 	WebCore/platform/graphics/gstreamer/WebKitWebSourceGStreamer.cpp \
 	WebCore/platform/graphics/gstreamer/WebKitWebSourceGStreamer.h
 
@@ -2633,7 +2641,7 @@ FEATURE_DEFINES += ENABLE_SHARED_WORKERS=1
 webcore_cppflags += \
 	-DENABLE_SHARED_WORKERS=1
 
-webcore_built_sources += \
+webcore_sources += \
 	WebCore/bindings/js/JSSharedWorkerConstructor.cpp \
 	WebCore/bindings/js/JSSharedWorkerConstructor.h \
 	WebCore/bindings/js/JSSharedWorkerCustom.cpp \
@@ -3503,6 +3511,14 @@ webcoregtk_sources += \
 else
 webcore_cppflags += -DENABLE_WEB_SOCKETS=0
 endif  # END ENABLE_WEB_SOCKETS
+
+# ---
+# Blob.slice support
+# ---
+if ENABLE_BLOB_SLICE
+FEATURE_DEFINES += ENABLE_BLOB_SLICE=1
+webcore_cppflags += -DENABLE_BLOB_SLICE=1
+endif  # END ENABLE_BLOB_SLICE
 
 
 DerivedSources/CSSPropertyNames.h: $(WEBCORE_CSS_PROPERTY_NAMES) $(WebCore)/css/makeprop.pl

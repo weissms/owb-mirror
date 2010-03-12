@@ -1,3 +1,314 @@
+2010-03-11  Gabor Loki  <loki@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Buildfix for Thumb-2 after r55684. Add branch8 and branchTest8 functions.
+        https://bugs.webkit.org/show_bug.cgi?id=35892
+
+        * assembler/ARMv7Assembler.h:
+        (JSC::ARMv7Assembler::):
+        (JSC::ARMv7Assembler::ldrb):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::load8):
+        (JSC::MacroAssemblerARMv7::branch8):
+        (JSC::MacroAssemblerARMv7::branchTest8):
+        (JSC::MacroAssemblerARMv7::setTest8):
+
+2010-03-10  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Oliver Hunt.
+        
+        Rename JSC::UStringImpl::data() to characters(), to match WebCore::StringImpl.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClassContextData::OpaqueJSClassContextData):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::keyForCharacterSwitch):
+        * bytecompiler/NodesCodegen.cpp:
+        (JSC::processClauseList):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::equal):
+        (JSC::Identifier::addSlowCase):
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        * runtime/UString.cpp:
+        (JSC::UString::toStrictUInt32):
+        (JSC::equal):
+        * runtime/UString.h:
+        (JSC::UString::data):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::characters):
+        (JSC::UStringImpl::hash):
+        (JSC::UStringImpl::setHash):
+
+2010-03-10  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler, Geoffrey Garen, Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35991
+        Would be faster to not use a thread specific to implement StringImpl::empty()
+
+        Change JSC::UStringImpl's implementation of empty() match to match StringImpl's new implementation
+        (use a static defined within the empty() method), and change the interface to match too (return
+        a pointer not a reference). 
+
+        ~0% performance impact (possible minor progression from moving empty() from .h to .cpp).
+
+        * JavaScriptCore.exp:
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add):
+        (JSC::Identifier::addSlowCase):
+        * runtime/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * runtime/UString.cpp:
+        (JSC::initializeUString):
+        (JSC::UString::UString):
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::empty):
+        (JSC::UStringImpl::create):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::adopt):
+        (JSC::UStringImpl::createUninitialized):
+        (JSC::UStringImpl::tryCreateUninitialized):
+
+2010-03-10  Dmitry Titov  <dimich@chromium.org>
+
+        Not reviewed, fixing Snow Leopard build.
+
+        * wtf/mac/MainThreadMac.mm: Forgot 'static' for a new local function.
+        (WTF::postTimer):
+
+2010-03-10  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Make Document::postTask to use a single queue of tasks, to fire them in order
+        https://bugs.webkit.org/show_bug.cgi?id=35943
+
+        The patch uses CFRunLoopTimer to schedule execution of tasks instead of performSelectorOnMainThread which apparently can starve other event sources.
+        The timer is used when the schedule request is coming on the main thread itself. This happens when the task is posted on the main thread or
+        when too many tasks are posted and the queue does 'stop and re-schedule' to make sure run loop has a chance to execute other events.
+
+        * wtf/mac/MainThreadMac.mm:
+        (WTF::timerFired):
+        (WTF::postTimer):
+        (WTF::scheduleDispatchFunctionsOnMainThread): Use timer posted to the current RunLoop if scheduling the task execution while on the main thread.
+
+2010-03-10  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: added new symbol.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-10  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: removed old symbol.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Alexey Proskuryakov, Darin Adler, and Sam Weinig.
+
+        Refactored fastCheckConsistency to match some review comments:
+            - renamed fastCheckConsistency to fastMallocSize, and changed ValueCheck
+              to ASSERT that a pointer's fastMallocSize is not 0.
+            - implemented a version of fastMallocSize for tcmalloc.
+            
+        Also moved some pre-existing code around to avoid a problem related to
+        mismatched #define/#undef of malloc/free in this source file.
+
+        * JavaScriptCore.exp:
+        * wtf/FastMalloc.cpp:
+        (WTF::fastMallocSize): Renamed. Fixed indentation.
+
+        (WTF::TCMalloc_PageHeap::scavenge): Removed an incorrect ASSERT that
+        got in the way of testing the tcmalloc implementation. (More information
+        on why this ASSERT is incorrect is in <rdar://problem/7165917>.)
+
+        (WTF::TCMallocStats::fastMallocSize): Implemented for tcmalloc.
+
+        * wtf/FastMalloc.h: Updated for rename.
+
+        * wtf/ValueCheck.h:
+        (WTF::): Moved the ASSERT that used to be in fastCheckConsistency here.
+
+2010-03-10  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Eric Seidel.
+
+        Make global new/delete operators configurable for all ports and disable it
+        for the wx port for now.
+
+        * wtf/FastMalloc.h:
+        * wtf/Platform.h:
+
+2010-03-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (reverting r54510).
+
+        This caused a performance regression, by breaking the code
+        generator's logic to calculate the skip level for resolving
+        variables (traced by rdar:7683350)  Reverting for now.
+
+        * parser/Grammar.y:
+        * parser/NodeConstructors.h:
+        (JSC::ContinueNode::ContinueNode):
+        (JSC::BreakNode::BreakNode):
+        (JSC::ForInNode::ForInNode):
+        * runtime/CommonIdentifiers.cpp:
+        (JSC::CommonIdentifiers::CommonIdentifiers):
+        * runtime/CommonIdentifiers.h:
+        * runtime/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::FunctionPrototype):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add):
+        * runtime/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+
+2010-03-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Changed FastMalloc statistics reporting to be a bit clearer. We now
+        report:
+            - Reserved VM Bytes: the VM that has been mapped into the process.
+            - Committed VM Bytes: the subset of Reserved VM Bytes actually in use.
+            - Free List Bytes: the subset of Committed VM Bytes in a free list.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::fastMallocStatistics):
+        (WTF::TCMallocStats::fastMallocStatistics): Updated to report the statistics
+        above. Standardized use of "ifdef WTF_CHANGES". Added a SpinLockHolder
+        around all statistics gathering, since it reads from the page heap.
+
+        * wtf/FastMalloc.h: Updated to report the statistics above. 
+
+2010-03-09  Gabor Loki  <loki@webkit.org>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Buildfix for ARM after r55684. Add branch8 and branchTest8 functions.
+        https://bugs.webkit.org/show_bug.cgi?id=35892
+
+        * assembler/ARMAssembler.cpp:
+        (JSC::ARMAssembler::dataTransfer32):
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::load8):
+        (JSC::MacroAssemblerARM::branch8):
+        (JSC::MacroAssemblerARM::branchTest8):
+
+2010-03-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: 'P' is not a type. Luckily, 'void' is.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::fastCheckConsistency):
+
+2010-03-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix: export a new symbol.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-08  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Switching malloc implementations requires a world rebuild
+        https://bugs.webkit.org/show_bug.cgi?id=35899
+
+        * wtf/FastMalloc.cpp:
+        (WTF::fastCheckConsistency):
+        (WTF::TCMallocStats::fastCheckConsistency):
+        * wtf/FastMalloc.h:
+        * wtf/ValueCheck.h:
+        (WTF::): Moved pointer checking into a helper function in FastMalloc.cpp,
+        so you can switch malloc implementations without rebuilding the world.
+
+2010-03-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        TypeInfo is unnecessarily large
+        https://bugs.webkit.org/show_bug.cgi?id=35850
+
+        Reduce the size of the type and flags members to a single
+        byte each, reducing the size of Structure by 8 bytes.
+
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::branch8):
+        (JSC::MacroAssemblerX86Common::branchTest8):
+        (JSC::MacroAssemblerX86Common::setTest8):
+          Add single byte branches, and correct setTest8 to do a
+          single byte read from memory, and actually store the result
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::cmpb_im):
+        (JSC::X86Assembler::testb_im):
+        * jit/JITCall.cpp:
+        (JSC::JIT::emit_op_construct_verify):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_instanceof):
+        (JSC::JIT::emit_op_jeq_null):
+        (JSC::JIT::emit_op_jneq_null):
+        (JSC::JIT::emit_op_get_pnames):
+        (JSC::JIT::emit_op_convert_this):
+        (JSC::JIT::emit_op_construct_verify):
+        (JSC::JIT::emit_op_to_jsnumber):
+        (JSC::JIT::emit_op_eq_null):
+        (JSC::JIT::emit_op_neq_null):
+        * runtime/JSTypeInfo.h:
+        (JSC::TypeInfo::TypeInfo):
+        (JSC::TypeInfo::type):
+
+2010-03-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (reverting regression).
+
+        Reverting 55035, this caused a regression.
+        (https://bugs.webkit.org/show_bug.cgi?id=35843)
+
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        (JSC::JSString::getStringPropertyDescriptor):
+        * runtime/JSString.h:
+        (JSC::jsSingleCharacterSubstring):
+        (JSC::JSString::getIndex):
+        (JSC::JSString::getStringPropertySlot):
+        * runtime/UStringImpl.cpp:
+        * runtime/UStringImpl.h:
+
+2010-03-08  Stuart Morgan  <stuartmorgan@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Added a new USE definition for secure text mode on the Mac.
+        https://bugs.webkit.org/show_bug.cgi?id=31265
+
+        * wtf/Platform.h:
+
+2010-03-08  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Blob.slice support.
+        https://bugs.webkit.org/show_bug.cgi?id=32993
+
+        Add ENABLE_BLOB_SLICE feature define.
+        Also fix a problem that JSValue.toInteger is not exposed on Windows.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
 2010-03-08  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
 
         Reviewed by Simon Hausmann.

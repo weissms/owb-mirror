@@ -159,6 +159,8 @@ WebCore/svg/graphics/SVGImage.cpp
 WebCore/websockets/ThreadableWebSocketChannel.cpp
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
+WebCore/workers/AbstractWorker.cpp
+WebCore/workers/Worker.cpp
 WebCore/workers/WorkerContext.cpp
 WebCore/workers/WorkerContext.h
 WebCore/workers/WorkerThread.cpp

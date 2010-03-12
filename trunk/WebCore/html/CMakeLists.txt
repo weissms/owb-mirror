@@ -5,6 +5,7 @@ list(APPEND WEBCORE_SRC
     html/DataGridColumnList.cpp
     html/DateComponents.cpp
     html/DOMDataGridDataSource.cpp
+    html/DOMFormData.cpp
     html/File.cpp
     html/FileList.cpp
     html/FormDataList.cpp

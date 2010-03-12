@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,6 +85,7 @@ class ConsoleMessage;
 class InspectorDatabaseResource;
 class InspectorDOMStorageResource;
 class InspectorResource;
+class InspectorWorkerResource;
 
 class InspectorController
 #if ENABLE(JAVASCRIPT_DEBUGGER)
@@ -100,6 +101,7 @@ public:
     typedef HashMap<int, RefPtr<InspectorDOMStorageResource> > DOMStorageResourcesMap;
 
     typedef enum {
+        AuditsPanel,
         CurrentPanel,
         ConsolePanel,
         ElementsPanel,
@@ -185,11 +187,14 @@ public:
 
     void mainResourceFiredLoadEvent(DocumentLoader*, const KURL&);
     void mainResourceFiredDOMContentEvent(DocumentLoader*, const KURL&);
-    
+
     void didInsertDOMNode(Node*);
     void didRemoveDOMNode(Node*);
     void didModifyDOMAttr(Element*);
-                                                        
+#if ENABLE(WORKERS)
+    void didCreateWorker(long id, const String& url, bool isSharedWorker);
+    void willDestroyWorker(long id);
+#endif
     void getCookies(long callId);
 
 #if ENABLE(DATABASE)
@@ -252,8 +257,11 @@ public:
     void addScriptToEvaluateOnLoad(const String& source);
     void removeAllScriptsToEvaluateOnLoad();
 
+    static const String& inspectorStartsAttachedSettingName();
+
 private:
-    static const char* const FrontendSettingsSettingName;
+    static const String& frontendSettingsSettingName();
+
     friend class InspectorBackend;
     friend class InspectorFrontendHost;
     friend class InjectedScriptHost;
@@ -367,6 +375,11 @@ private:
     unsigned m_nextUserInitiatedProfileNumber;
     Timer<InspectorController> m_startProfiling;
     ProfilesMap m_profiles;
+#endif
+#if ENABLE(WORKERS)
+    typedef HashMap<long, RefPtr<InspectorWorkerResource> > WorkersMap;
+
+    WorkersMap m_workers;
 #endif
 };
 

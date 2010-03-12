@@ -34,7 +34,7 @@
 #include "DocLoader.h"
 #include "FileSystem.h"
 #include "Frame.h"
-#include "GOwnPtrGtk.h"
+#include "GOwnPtrSoup.h"
 #include "HTTPParsers.h"
 #include "Logging.h"
 #include "MIMETypeRegistry.h"
@@ -648,7 +648,7 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&, Frame*)
 void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, StoredCredentials /*storedCredentials*/, ResourceError& error, ResourceResponse& response, Vector<char>& data, Frame* frame)
 {
     WebCoreSynchronousLoader syncLoader(error, response, data);
-    ResourceHandle handle(request, &syncLoader, true, false, true);
+    ResourceHandle handle(request, &syncLoader, true, false);
 
     handle.start(frame);
     syncLoader.run();

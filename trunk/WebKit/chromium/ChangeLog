@@ -1,3 +1,316 @@
+2010-03-11  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Add API wrapper for WebCore::SerializedScriptValue
+        https://bugs.webkit.org/show_bug.cgi?id=35988
+
+        WebSerializedScriptValue is a wrapper around SerializedScriptValue.
+
+        WebPrivatePtr is used to simplify wrapping reference counted WebCore
+        types.  This class is used to cleanup WebHistoryItem, and will be used
+        to clean up other classes in the WebKit API in a follow-up patch.
+
+        * WebKit.gyp:
+        * public/WebHistoryItem.h:
+        * public/WebPrivatePtr.h: Added.
+        * public/WebSerializedScriptValue.h: Added.
+        * src/WebHistoryItem.cpp:
+        * src/WebSerializedScriptValue.cpp: Added.
+
+2010-03-10  Sanjeev Radhakrishnan  <sanjeevr@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Allow a plugin to participate in the browser's print workflow.
+        https://bugs.webkit.org/show_bug.cgi?id=35550
+
+        * public/WebFrame.h:
+        * public/WebPlugin.h:
+        * src/WebFrameImpl.cpp:
+        * src/WebFrameImpl.h:
+        * src/WebPluginContainerImpl.cpp:
+        * src/WebPluginContainerImpl.h:
+
+2010-03-10  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        [chromium]: Fix regression in mouse capture on Mac/Linux
+        https://bugs.webkit.org/show_bug.cgi?id=35987
+
+        * src/WebViewImpl.cpp:
+
+2010-03-10  Evan Stade  <estade@chromium.org>
+
+        Reviewed by David Levin.
+
+        [chromium] add functionality to activate the focused node in a WebView
+        https://bugs.webkit.org/show_bug.cgi?id=35407
+
+        * public/WebDocument.h:
+        * public/WebNode.h:
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::focusedNode): Added
+        * src/WebNode.cpp:
+        (WebKit::WebNode::simulateClick): Added
+
+2010-03-10  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35952
+        Propagate mouse wheel events to Pepper plugins.
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::WebMouseWheelEventBuilder::WebMouseWheelEventBuilder):
+        * src/WebInputEventConversion.h:
+        * src/WebPluginContainerImpl.cpp:
+        (WebKit::WebPluginContainerImpl::handleEvent):
+        (WebKit::WebPluginContainerImpl::handleMouseEvent):
+        (WebKit::WebPluginContainerImpl::handleWheelEvent):
+        (WebKit::WebPluginContainerImpl::handleKeyboardEvent):
+        * src/WebPluginContainerImpl.h:
+
+2010-03-10  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Add support for converting WebTouchEvents to PlatformTouchEvents and
+        routing them into the EventHandler for the frame in which they
+        originate.
+        https://bugs.webkit.org/show_bug.cgi?id=35874
+
+        * src/ChromeClientImpl.h:
+        (WebKit::ChromeClientImpl::needTouchEvents):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::touchEvent): Handle incoming WebTouchEvents,
+        converting them to PlatformTouchEvents and sending them to the
+        EventHandler.
+        (WebKit::WebViewImpl::handleInputEvent): Now routes WebTouchEvents to
+        the touchEvent handler.
+        * src/WebViewImpl.h:
+
+2010-03-10  Nate Chapin  <japhet@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Wrap and unwrap v8 objects with WrapperTypeInfo instead of V8ClassIndex::V8WrapperType.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35941
+
+        * src/WebBindings.cpp:
+        (WebKit::getRangeImpl):
+        * src/WebDevToolsAgentImpl.cpp:
+        (WebKit::WebDevToolsAgentImpl::createInspectorBackendV8Wrapper):
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::jsShowContextMenu):
+
+2010-03-10  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Fixing build warning caused by using 0 instead of NULL as the sentiel
+        in a varargs call.
+        https://bugs.webkit.org/show_bug.cgi?id=35898
+
+        * src/gtk/WebInputEventFactory.cpp:
+
+2010-03-10  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Add IndexedDatabase class and hook it up.
+        https://bugs.webkit.org/show_bug.cgi?id=35927
+
+        This change is mostly just adding the plumbing necessary for
+        the IndexedDatabaseRequest and IndexedDatabaseSync (not written
+        yet).
+
+        * WebKit.gyp:
+        * public/WebIndexedDatabase.h: Added.
+        (WebKit::WebIndexedDatabase::~WebIndexedDatabase):
+        * public/WebKitClient.h:
+        (WebKit::WebKitClient::getIndexedDatabase):
+        * src/ChromiumBridge.cpp:
+        (WebCore::ChromiumBridge::getIndexedDatabase):
+        * src/IndexedDatabaseProxy.cpp: Added.
+        (WebCore::IndexedDatabaseProxy::create):
+        (WebCore::IndexedDatabaseProxy::IndexedDatabaseProxy):
+        (WebCore::IndexedDatabaseProxy::~IndexedDatabaseProxy):
+        (WebCore::IndexedDatabaseProxy::open):
+        * src/IndexedDatabaseProxy.h: Added.
+
+2010-03-10  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: display list of active workers & support debugging
+        with fake workers
+        https://bugs.webkit.org/show_bug.cgi?id=35568
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-03-10  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35956
+        Create a grd file upstream for resources that chromium uses
+        that are pulled directly from the upstream repository.
+
+        * WebKit.grd: Added.
+
+2010-03-10  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by David Levin.
+
+        Bug 28293 -  [Chromium] event.datatransfer.getdata("text/uri-list") is treated the same as getdata("URL")
+        https://bugs.webkit.org/show_bug.cgi?id=28293
+        
+        Change ChromiumDataObject such that it treats types "URL" and "text/uri-list"
+        correctly for event.dataTransfer.getData/setData. Currently both are treated
+        as synonyms, but for "URL", getData is supposed to only return the first valid URL
+        contained within the data for "text/uri-list" (see HTML5 spec).
+
+        Tests: editing/pasteboard/dataTransfer-setData-getData.html
+
+        * src/WebDragData.cpp:
+        (WebKit::WebDragData::url):
+        (WebKit::WebDragData::setURL):
+
+2010-03-08  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Need to send mouse events to plugin when it has mouse capture
+        https://bugs.webkit.org/show_bug.cgi?id=35900
+
+        * public/WebInputEvent.h:
+        (WebKit::WebInputEvent::isMouseEventType):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::WebViewImpl):
+        (WebKit::WebViewImpl::mouseDown):
+        (WebKit::WebViewImpl::mouseUp):
+        (WebKit::WebViewImpl::handleInputEvent):
+        * src/WebViewImpl.h:
+
+2010-03-09  Anton Muhin  <antonm@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Accept and bailout NULL widgets in ChromiumBridge
+        https://bugs.webkit.org/show_bug.cgi?id=35796
+
+        * src/ChromiumBridge.cpp:
+        (WebCore::toChromeClientImpl):
+
+2010-03-09  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Use clean global object for devtools utility context instead of
+        trying to simulate inspected context. 
+    
+        https://bugs.webkit.org/show_bug.cgi?id=35923
+
+        * src/DebuggerAgentImpl.cpp:
+        * src/DebuggerAgentImpl.h:
+        * src/WebDevToolsAgentImpl.cpp:
+        (WebKit::WebDevToolsAgentImpl::resetInspectorFrontendProxy):
+
+2010-03-08  Alexey Proskuryakov  <ap@apple.com>
+
+        Chromium build fix.
+
+        Updated for the removal of "mightDownloadFromHandle".
+
+        * src/ResourceHandle.cpp:
+        (WebCore::ResourceHandle::ResourceHandle):
+        (WebCore::ResourceHandle::create):
+
+2010-03-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Reset multiple form submission protection on mouse events.
+        https://bugs.webkit.org/show_bug.cgi?id=35128
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::mouseDown):
+
+2010-03-08  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Quick fix for a chromium unit test failures around r55675 (repaint refactoring).
+        This change restores the tests for empty rects that were deleted.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35878
+
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::invalidateContentsAndWindow):
+        * src/WebPopupMenuImpl.cpp:
+        (WebKit::WebPopupMenuImpl::invalidateContentsAndWindow):
+
+2010-03-02  Adam Treat  <atreat@rim.com>
+
+        Reviewed by Dave Hyatt.
+
+        Adapt the chromium port to the refactoring of repaint methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34214
+
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::invalidateContents):
+        (WebKit::ChromeClientImpl::invalidateWindow):
+        (WebKit::ChromeClientImpl::invalidateContentsAndWindow):
+        (WebKit::ChromeClient::invalidateContentsForSlowScroll):
+        * src/ChromeClientImpl.h:
+
+2010-03-08  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Blob.slice support.
+        https://bugs.webkit.org/show_bug.cgi?id=32993
+
+        Add ENABLE_BLOB_SLICE feature define.
+
+        * features.gypi:
+
+2010-03-08  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by David Levin.
+
+        Remove the now-redundant Settings fields for the Database
+        https://bugs.webkit.org/show_bug.cgi?id=35763
+
+        No new tests; this code isn't called.
+
+        * public/WebSettings.h:
+        * src/WebSettingsImpl.cpp:
+        * src/WebSettingsImpl.h:
+
+2010-03-08  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Pass the WebFrame into WebStorageArea::setItem so we can figure out the routing ID
+        https://bugs.webkit.org/show_bug.cgi?id=35758
+
+        This is necessary since setItem is sometimes blocked and the embedder might need
+        to display some piece of UI associated with such an event.
+
+        * public/WebStorageArea.h:
+        (WebKit::WebStorageArea::setItem):
+        * src/StorageAreaProxy.cpp:
+        (WebCore::StorageAreaProxy::setItem):
+        * src/WebStorageAreaImpl.cpp:
+        (WebKit::WebStorageAreaImpl::setItem):
+        * src/WebStorageAreaImpl.h:
+
 2010-03-08  Mark Rowe  <mrowe@apple.com>
 
         Chromium build fix.

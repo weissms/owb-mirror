@@ -326,7 +326,7 @@ void WebDownload::start()
     else
     {
         m_priv->downloadClient->didStart();
-        m_priv->resourceHandle = ResourceHandle::create(m_request->resourceRequest(), m_priv->downloadClient, 0, false, false, false);
+        m_priv->resourceHandle = ResourceHandle::create(m_request->resourceRequest(), m_priv->downloadClient, 0, false, false);
     }
 }
 

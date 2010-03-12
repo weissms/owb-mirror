@@ -4393,7 +4393,7 @@ void Document::setUseSecureKeyboardEntryWhenActive(bool usesSecureKeyboard)
         return;
         
     m_useSecureKeyboardEntryWhenActive = usesSecureKeyboard;
-    m_frame->updateSecureKeyboardEntryIfActive();
+    m_frame->selection()->updateSecureKeyboardEntryIfActive();
 }
 
 bool Document::useSecureKeyboardEntryWhenActive() const
@@ -4706,25 +4706,6 @@ void Document::scriptImported(unsigned long identifier, const String& sourceStri
 #endif
 }
 
-class ScriptExecutionContextTaskTimer : public TimerBase {
-public:
-    ScriptExecutionContextTaskTimer(PassRefPtr<Document> context, PassOwnPtr<ScriptExecutionContext::Task> task)
-        : m_context(context)
-        , m_task(task)
-    {
-    }
-
-private:
-    virtual void fired()
-    {
-        m_task->performTask(m_context.get());
-        delete this;
-    }
-
-    RefPtr<Document> m_context;
-    OwnPtr<ScriptExecutionContext::Task> m_task;
-};
-
 struct PerformTaskContext : Noncopyable {
     PerformTaskContext(PassRefPtr<DocumentWeakReference> documentReference, PassOwnPtr<ScriptExecutionContext::Task> task)
         : documentReference(documentReference)
@@ -4751,12 +4732,7 @@ static void performTask(void* ctx)
 
 void Document::postTask(PassOwnPtr<Task> task)
 {
-    if (isMainThread()) {
-        ScriptExecutionContextTaskTimer* timer = new ScriptExecutionContextTaskTimer(static_cast<Document*>(this), task);
-        timer->startOneShot(0);
-    } else {
-        callOnMainThread(performTask, new PerformTaskContext(m_weakReference, task));
-    }
+    callOnMainThread(performTask, new PerformTaskContext(m_weakReference, task));
 }
 
 Element* Document::findAnchor(const String& name)
@@ -4809,8 +4785,9 @@ bool Document::isXHTMLMPDocument() const
         return false;
     // As per section 7.2 of OMA-WAP-XHTMLMP-V1_1-20061020-A.pdf, a conforming user agent
     // MUST accept XHTMLMP document identified as "application/vnd.wap.xhtml+xml"
-    // and SHOULD accept it identified as "application/xhtml+xml"
-    return frame()->loader()->responseMIMEType() == "application/vnd.wap.xhtml+xml" || frame()->loader()->responseMIMEType() == "application/xhtml+xml";
+    // and SHOULD accept it identified as "application/xhtml+xml" , "application/xhtml+xml" is a 
+    // general MIME type for all XHTML documents, not only for XHTMLMP
+    return frame()->loader()->responseMIMEType() == "application/vnd.wap.xhtml+xml";
 }
 #endif
 
@@ -4827,6 +4804,11 @@ bool Document::isCEHTMLDocument() const
 InspectorTimelineAgent* Document::inspectorTimelineAgent() const 
 {
     return page() ? page()->inspectorTimelineAgent() : 0;
+}
+
+InspectorController* Document::inspectorController() const 
+{
+    return page() ? page()->inspectorController() : 0;
 }
 #endif
 

@@ -1,3 +1,51 @@
+2010-03-11  Philippe Normand  <pnormand@igalia.com>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] testkeyevents doesn't stop if input event injection fails
+        https://bugs.webkit.org/show_bug.cgi?id=35922
+
+        * tests/testkeyevents.c:
+        (load_status_cb): Added a safeguard to exit from the test if the
+        input event injection failed.
+
+2010-03-09  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Unreviewed. Documentation control files update for 1.1.23.
+
+        * docs/webkitgtk-docs.sgml:
+
+2010-03-08  Csaba Osztrogonác  <ossy@webkit.org>
+
+        [GTK] Unreviewed buildfix after r55688.
+
+        * webkit/webkitdownload.cpp:
+        (webkit_download_start):
+
+2010-03-02  Adam Treat  <atreat@rim.com>
+
+        Reviewed by Dave Hyatt.
+
+        Adapt the gtk port to the refactoring of repaint methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34214
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2010-03-08  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by David Levin.
+
+        Remove the now-redundant Settings fields for the Database
+        https://bugs.webkit.org/show_bug.cgi?id=35763
+
+        No new tests; this code isn't called.
+
+        * webkit/webkitwebview.cpp: Remove the calls into Settings.
+        (DNDContentsRequest::webkit_web_view_update_settings):
+        (DNDContentsRequest::webkit_web_view_settings_notify):
+
 2010-03-08  Arno Renevier  <arno@renevier.net>
 
         Reviewed by Eric Seidel.

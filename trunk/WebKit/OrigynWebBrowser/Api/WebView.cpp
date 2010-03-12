@@ -92,6 +92,9 @@
 #include <CrossOriginPreflightResultCache.h>
 #include <CString.h>
 #include <Cursor.h>
+#if ENABLE(DATABASE)
+#include <Database.h>
+#endif
 #include <DragController.h>
 #include <DragData.h>
 #include <Editor.h>
@@ -2861,8 +2864,10 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->offlineWebApplicationCacheEnabled();
     settings->setOfflineWebApplicationCacheEnabled(enabled);
 
+#if ENABLE(DATABASE)
     enabled = preferences->databasesEnabled();
-    settings->setDatabasesEnabled(enabled);
+    Database::setIsAvailable(enabled);
+#endif
 
     enabled = preferences->experimentalNotificationsEnabled();
     settings->setExperimentalNotificationsEnabled(enabled);

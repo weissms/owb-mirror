@@ -37,6 +37,7 @@ namespace WebCore {
 class Frame;
 class GraphicsContext;
 class RenderObject;
+class RenderView;
 class VisiblePosition;
 
 class SelectionController : public Noncopyable {
@@ -130,6 +131,8 @@ public:
     // Painting.
     void updateAppearance();
 
+    void updateSecureKeyboardEntryIfActive();
+
 #ifndef NDEBUG
     void formatForDebugger(char* buffer, unsigned length) const;
     void showTreeForThis() const;
@@ -155,6 +158,7 @@ private:
 
     void layout();
     IntRect caretRepaintRect() const;
+    bool shouldRepaintCaret(const RenderView* view) const;
 
     int xPosForVerticalArrowNavigation(EPositionType);
     
@@ -166,6 +170,8 @@ private:
     IntRect absoluteBoundsForLocalRect(const IntRect&) const;
 
     void caretBlinkTimerFired(Timer<SelectionController>*);
+
+    void setUseSecureKeyboardEntry(bool);
 
     Frame* m_frame;
 

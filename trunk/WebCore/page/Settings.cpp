@@ -75,7 +75,6 @@ Settings::Settings(Page* page)
     , m_caretBrowsingEnabled(false)
     , m_areImagesEnabled(true)
     , m_arePluginsEnabled(false)
-    , m_databasesEnabled(false)
     , m_localStorageEnabled(false)
     , m_isJavaScriptEnabled(false)
     , m_isWebSecurityEnabled(true)
@@ -267,14 +266,6 @@ void Settings::setImagesEnabled(bool areImagesEnabled)
 void Settings::setPluginsEnabled(bool arePluginsEnabled)
 {
     m_arePluginsEnabled = arePluginsEnabled;
-}
-
-void Settings::setDatabasesEnabled(bool databasesEnabled)
-{
-    m_databasesEnabled = databasesEnabled;
-#if ENABLE(DATABASE)
-    Database::setIsAvailable(databasesEnabled);
-#endif
 }
 
 void Settings::setLocalStorageEnabled(bool localStorageEnabled)

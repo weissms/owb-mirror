@@ -218,7 +218,7 @@ bool ResourceHandle::loadsBlocked()
 void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, StoredCredentials storedCredentials, ResourceError& error, ResourceResponse& response, Vector<char>& data, Frame*)
 {
     WebCoreSynchronousLoader syncLoader;
-    ResourceHandle handle(request, &syncLoader, true, false, true);
+    ResourceHandle handle(request, &syncLoader, true, false);
 
     ResourceHandleManager* manager = ResourceHandleManager::sharedInstance();
 
@@ -259,7 +259,7 @@ void ResourceHandle::receivedCredential(const AuthenticationChallenge& challenge
     
     // Clone our ResourceHandle and add it so that it is send with the credential.
     // FIXME: We should have a way of cloning an handle.
-    RefPtr<ResourceHandle> newHandle = ResourceHandle::create(request(), client(), 0, d->m_defersLoading, shouldContentSniff(), d->m_mightDownloadFromHandle);
+    RefPtr<ResourceHandle> newHandle = ResourceHandle::create(request(), client(), 0, d->m_defersLoading, shouldContentSniff());
     setClient(0); // Clear the client to avoid it being cleared by WebCore.
     AuthenticationChallenge newAuthenticationChallenge(challenge.protectionSpace(), credential, challenge.previousFailureCount() + 1, challenge.failureResponse(), challenge.error());
 

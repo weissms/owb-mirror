@@ -625,6 +625,8 @@
 		2ECF7ADD10162B3800427DE7 /* JSErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 2ECF7ADB10162B3800427DE7 /* JSErrorEvent.h */; };
 		2ECF7AE110162B5800427DE7 /* ErrorEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ECF7ADE10162B5800427DE7 /* ErrorEvent.cpp */; };
 		2ECF7AE210162B5800427DE7 /* ErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 2ECF7ADF10162B5800427DE7 /* ErrorEvent.h */; };
+		2ED609BC1145B07100C8684E /* DOMFormData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ED609BA1145B07100C8684E /* DOMFormData.cpp */; };
+		2ED609BD1145B07100C8684E /* DOMFormData.h in Headers */ = {isa = PBXBuildFile; fileRef = 2ED609BB1145B07100C8684E /* DOMFormData.h */; };
 		31288E720E3005D6003619AE /* WebKitCSSKeyframeRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31288E6E0E3005D6003619AE /* WebKitCSSKeyframeRule.cpp */; };
 		31288E730E3005D6003619AE /* WebKitCSSKeyframeRule.h in Headers */ = {isa = PBXBuildFile; fileRef = 31288E6F0E3005D6003619AE /* WebKitCSSKeyframeRule.h */; };
 		31288E740E3005D6003619AE /* WebKitCSSKeyframesRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31288E700E3005D6003619AE /* WebKitCSSKeyframesRule.cpp */; };
@@ -680,6 +682,8 @@
 		3390CA550FFC157B00921962 /* NotificationCenter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3390CA510FFC157B00921962 /* NotificationCenter.cpp */; };
 		3390CA560FFC157B00921962 /* NotificationCenter.h in Headers */ = {isa = PBXBuildFile; fileRef = 3390CA520FFC157B00921962 /* NotificationCenter.h */; };
 		3390CA580FFC157B00921962 /* NotificationContents.h in Headers */ = {isa = PBXBuildFile; fileRef = 3390CA540FFC157B00921962 /* NotificationContents.h */; };
+		33C0CCD4112C5E6200CE057D /* SecureTextInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 33C0CCD2112C5E6200CE057D /* SecureTextInput.cpp */; };
+		33C0CCD5112C5E6200CE057D /* SecureTextInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C0CCD3112C5E6200CE057D /* SecureTextInput.h */; };
 		371F4F400D25B9AF00ECE0D5 /* FontData.h in Headers */ = {isa = PBXBuildFile; fileRef = 371F4F3E0D25B9AF00ECE0D5 /* FontData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		371F4F410D25B9AF00ECE0D5 /* FontData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 371F4F3F0D25B9AF00ECE0D5 /* FontData.cpp */; };
 		371F4FFC0D25E7F300ECE0D5 /* SegmentedFontData.h in Headers */ = {isa = PBXBuildFile; fileRef = 371F4FFA0D25E7F300ECE0D5 /* SegmentedFontData.h */; };
@@ -4119,6 +4123,9 @@
 		B5A684240FFABEAA00D24689 /* SQLiteFileSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5A684230FFABEAA00D24689 /* SQLiteFileSystem.cpp */; };
 		B5C1123B102B6C4600096578 /* SQLTransactionCoordinator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5C11239102B6C4600096578 /* SQLTransactionCoordinator.cpp */; };
 		B5C1123C102B6C4600096578 /* SQLTransactionCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = B5C1123A102B6C4600096578 /* SQLTransactionCoordinator.h */; };
+		B5D3601A112F8B560048DEA8 /* DatabaseCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = B5D36019112F8B560048DEA8 /* DatabaseCallback.h */; };
+		B5D3601D112F8BA00048DEA8 /* JSDatabaseCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = B5D3601C112F8BA00048DEA8 /* JSDatabaseCallback.h */; };
+		B5D3601F112F8BA80048DEA8 /* JSDatabaseCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5D3601E112F8BA80048DEA8 /* JSDatabaseCallback.cpp */; };
 		B71FE6DF11091CB300DAEF77 /* PrintContext.h in Headers */ = {isa = PBXBuildFile; fileRef = B776D43A1104525D00BEB0EC /* PrintContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B776D43D1104527500BEB0EC /* PrintContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B776D43C1104527500BEB0EC /* PrintContext.cpp */; };
 		BC00F0040E0A185500FD04E3 /* DOMFile.h in Headers */ = {isa = PBXBuildFile; fileRef = BC00EFFE0E0A185500FD04E3 /* DOMFile.h */; };
@@ -5988,6 +5995,8 @@
 		2ECF7ADE10162B5800427DE7 /* ErrorEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ErrorEvent.cpp; sourceTree = "<group>"; };
 		2ECF7ADF10162B5800427DE7 /* ErrorEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ErrorEvent.h; sourceTree = "<group>"; };
 		2ECF7AE010162B5800427DE7 /* ErrorEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ErrorEvent.idl; sourceTree = "<group>"; };
+		2ED609BA1145B07100C8684E /* DOMFormData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DOMFormData.cpp; sourceTree = "<group>"; };
+		2ED609BB1145B07100C8684E /* DOMFormData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMFormData.h; sourceTree = "<group>"; };
 		31288E6E0E3005D6003619AE /* WebKitCSSKeyframeRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitCSSKeyframeRule.cpp; sourceTree = "<group>"; };
 		31288E6F0E3005D6003619AE /* WebKitCSSKeyframeRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebKitCSSKeyframeRule.h; sourceTree = "<group>"; };
 		31288E700E3005D6003619AE /* WebKitCSSKeyframesRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitCSSKeyframesRule.cpp; sourceTree = "<group>"; };
@@ -6051,6 +6060,8 @@
 		3390CA520FFC157B00921962 /* NotificationCenter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NotificationCenter.h; path = notifications/NotificationCenter.h; sourceTree = "<group>"; };
 		3390CA530FFC157B00921962 /* NotificationCenter.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = NotificationCenter.idl; path = notifications/NotificationCenter.idl; sourceTree = "<group>"; };
 		3390CA540FFC157B00921962 /* NotificationContents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NotificationContents.h; path = notifications/NotificationContents.h; sourceTree = "<group>"; };
+		33C0CCD2112C5E6200CE057D /* SecureTextInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SecureTextInput.cpp; sourceTree = "<group>"; };
+		33C0CCD3112C5E6200CE057D /* SecureTextInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SecureTextInput.h; sourceTree = "<group>"; };
 		371F4F3E0D25B9AF00ECE0D5 /* FontData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontData.h; sourceTree = "<group>"; };
 		371F4F3F0D25B9AF00ECE0D5 /* FontData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontData.cpp; sourceTree = "<group>"; };
 		371F4FFA0D25E7F300ECE0D5 /* SegmentedFontData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SegmentedFontData.h; sourceTree = "<group>"; };
@@ -9397,6 +9408,9 @@
 		B5A684230FFABEAA00D24689 /* SQLiteFileSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SQLiteFileSystem.cpp; path = sql/SQLiteFileSystem.cpp; sourceTree = "<group>"; };
 		B5C11239102B6C4600096578 /* SQLTransactionCoordinator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SQLTransactionCoordinator.cpp; sourceTree = "<group>"; };
 		B5C1123A102B6C4600096578 /* SQLTransactionCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQLTransactionCoordinator.h; sourceTree = "<group>"; };
+		B5D36019112F8B560048DEA8 /* DatabaseCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseCallback.h; sourceTree = "<group>"; };
+		B5D3601C112F8BA00048DEA8 /* JSDatabaseCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDatabaseCallback.h; sourceTree = "<group>"; };
+		B5D3601E112F8BA80048DEA8 /* JSDatabaseCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDatabaseCallback.cpp; sourceTree = "<group>"; };
 		B776D43A1104525D00BEB0EC /* PrintContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintContext.h; sourceTree = "<group>"; };
 		B776D43C1104527500BEB0EC /* PrintContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrintContext.cpp; sourceTree = "<group>"; };
 		BC00EFFE0E0A185500FD04E3 /* DOMFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMFile.h; sourceTree = "<group>"; };
@@ -10604,6 +10618,7 @@
 				519611600CAC56570010A80C /* Database.idl */,
 				51A45B550CAD7FD7000D2BE9 /* DatabaseAuthorizer.cpp */,
 				51A45B540CAD7FD7000D2BE9 /* DatabaseAuthorizer.h */,
+				B5D36019112F8B560048DEA8 /* DatabaseCallback.h */,
 				5116D9750CF177BD00C2B84D /* DatabaseDetails.h */,
 				519611E90CAC749C0010A80C /* DatabaseTask.cpp */,
 				519611E80CAC749C0010A80C /* DatabaseTask.h */,
@@ -12870,6 +12885,8 @@
 				F5D3A57B106B83B300545297 /* DateComponents.h */,
 				BC7DAAEC0FF9615D00CE0138 /* DOMDataGridDataSource.cpp */,
 				BC7DAAED0FF9615D00CE0138 /* DOMDataGridDataSource.h */,
+				2ED609BA1145B07100C8684E /* DOMFormData.cpp */,
+				2ED609BB1145B07100C8684E /* DOMFormData.h */,
 				BCDBB8CC0E08958400C60FF6 /* File.cpp */,
 				BCDBB8CB0E08958400C60FF6 /* File.h */,
 				BC1881D90E08C4ED00048C13 /* File.idl */,
@@ -14695,6 +14712,8 @@
 				BC53DA2D1143121E000D817E /* DOMWrapperWorld.h */,
 				1432E8480C51493F00B1500F /* GCController.cpp */,
 				1432E8460C51493800B1500F /* GCController.h */,
+				B5D3601E112F8BA80048DEA8 /* JSDatabaseCallback.cpp */,
+				B5D3601C112F8BA00048DEA8 /* JSDatabaseCallback.h */,
 				BC53DAC411432FD9000D817E /* JSDebugWrapperSet.cpp */,
 				BC53DAC111432EEE000D817E /* JSDebugWrapperSet.h */,
 				93B70D4709EB0C7C009D8468 /* JSDOMBinding.cpp */,
@@ -15319,6 +15338,8 @@
 				BC2441C30E8B65D00055320F /* ScrollView.cpp */,
 				BC6D6E2509AF943500F59759 /* ScrollView.h */,
 				AB7170880B3118080017123E /* SearchPopupMenu.h */,
+				33C0CCD2112C5E6200CE057D /* SecureTextInput.cpp */,
+				33C0CCD3112C5E6200CE057D /* SecureTextInput.h */,
 				1A4A954B0B4EDCCB002D8C3C /* SharedBuffer.cpp */,
 				1A4A954C0B4EDCCB002D8C3C /* SharedBuffer.h */,
 				93309EA0099EB78C0056E581 /* SharedTimer.h */,
@@ -18645,6 +18666,7 @@
 				931BCC611124DFCB00BE70DD /* MediaCanStartListener.h in Headers */,
 				9F2A322C1125A0A2003C3056 /* JavaScriptProfile.h in Headers */,
 				9F2A322E1125A0A2003C3056 /* JavaScriptProfileNode.h in Headers */,
+				33C0CCD5112C5E6200CE057D /* SecureTextInput.h in Headers */,
 				7AFD4A8B1131C2760035B883 /* ScriptBreakpoint.h in Headers */,
 				7AFD4FF4113277B60035B883 /* ScriptDebugListener.h in Headers */,
 				E169803D1133542D00894115 /* CRuntimeObject.h in Headers */,
@@ -18661,6 +18683,9 @@
 				BC53DA2E1143121E000D817E /* DOMWrapperWorld.h in Headers */,
 				BC53DA601143141A000D817E /* DOMObjectHashTableMap.h in Headers */,
 				BC53DAC211432EEE000D817E /* JSDebugWrapperSet.h in Headers */,
+				2ED609BD1145B07100C8684E /* DOMFormData.h in Headers */,
+				B5D3601A112F8B560048DEA8 /* DatabaseCallback.h in Headers */,
+				B5D3601D112F8BA00048DEA8 /* JSDatabaseCallback.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -20846,6 +20871,7 @@
 				76FF17E311235673001D61B5 /* PluginViewNone.cpp in Sources */,
 				9F2A322B1125A0A2003C3056 /* JavaScriptProfile.cpp in Sources */,
 				9F2A322D1125A0A2003C3056 /* JavaScriptProfileNode.cpp in Sources */,
+				33C0CCD4112C5E6200CE057D /* SecureTextInput.cpp in Sources */,
 				6E21C6C01126338500A7BE02 /* GraphicsContext3D.cpp in Sources */,
 				6E21C6C21126339900A7BE02 /* GraphicsContext3DCG.cpp in Sources */,
 				E16980491133644700894115 /* CRuntimeObject.cpp in Sources */,
@@ -20859,6 +20885,8 @@
 				BC53DA62114314BD000D817E /* DOMObjectHashTableMap.cpp in Sources */,
 				BC53DAC511432FD9000D817E /* JSDebugWrapperSet.cpp in Sources */,
 				BC53DAC711433064000D817E /* JSDOMWrapper.cpp in Sources */,
+				2ED609BC1145B07100C8684E /* DOMFormData.cpp in Sources */,
+				B5D3601F112F8BA80048DEA8 /* JSDatabaseCallback.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

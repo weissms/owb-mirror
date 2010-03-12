@@ -42,6 +42,7 @@ namespace WTF {
     void* fastCalloc(size_t numElements, size_t elementSize);
     void* fastRealloc(void*, size_t);
     char* fastStrDup(const char*);
+    size_t fastMallocSize(const void*);
 
     struct TryMallocReturnValue {
         TryMallocReturnValue(void* data)
@@ -90,10 +91,9 @@ namespace WTF {
     void releaseFastMallocFreeMemory();
     
     struct FastMallocStatistics {
-        size_t heapSize;
-        size_t freeSizeInHeap;
-        size_t freeSizeInCaches;
-        size_t returnedSize;
+        size_t reservedVMBytes;
+        size_t committedVMBytes;
+        size_t freeListBytes;
     };
     FastMallocStatistics fastMallocStatistics();
 
@@ -223,8 +223,7 @@ using WTF::fastMallocAllow;
 // debug-only code to make sure we don't use the system malloc via the default operator
 // new by accident.
 
-// We musn't customize the global operator new and delete for the Qt port.
-#if !PLATFORM(QT)
+#if ENABLE(GLOBAL_FASTMALLOC_NEW)
 
 #if COMPILER(MSVC)
 #pragma warning(push)

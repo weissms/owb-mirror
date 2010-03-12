@@ -380,7 +380,7 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
             ASSERT(job->request().httpMethod() == "POST");
             // We cancel the currrent job so that it is properly cleaned-up.
             d->m_cancelled = true;
-            RefPtr<ResourceHandle> newHandle = ResourceHandle::create(job->request(), client, reinterpret_cast<Frame*>(0x1), d->m_defersLoading, job->shouldContentSniff(), d->m_mightDownloadFromHandle);
+            RefPtr<ResourceHandle> newHandle = ResourceHandle::create(job->request(), client, reinterpret_cast<Frame*>(0x1), d->m_defersLoading, job->shouldContentSniff());
             job->setClient(0); // Clear the client to avoid it being cleared by WebCore.
             newHandle->getInternal()->m_shouldIncludeExpectHeader = false;
             return totalSize;

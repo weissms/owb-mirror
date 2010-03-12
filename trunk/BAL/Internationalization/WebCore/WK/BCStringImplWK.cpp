@@ -57,7 +57,7 @@ StringImpl::StringImpl()
     : m_data(0)
     , m_sharedBuffer(0)
     , m_length(0)
-    , m_refCountAndFlags(s_refCountIncrement | BufferInternal)
+    , m_refCountAndFlags(s_refCountFlagStatic | BufferInternal)
     , m_hash(0)
 {
     // Ensure that the hash is computed so that AtomicStringHash can call existingHash()
@@ -120,7 +120,8 @@ StringImpl::~StringImpl()
 
 StringImpl* StringImpl::empty()
 {
-    return threadGlobalData().emptyString();
+    DEFINE_STATIC_LOCAL(StringImpl, emptyString, ());
+    return &emptyString;
 }
 
 bool StringImpl::containsOnlyWhitespace()
@@ -1004,9 +1005,6 @@ PassRefPtr<StringImpl> StringImpl::createWithTerminatingNullCharacter(const Stri
 
 PassRefPtr<StringImpl> StringImpl::threadsafeCopy() const
 {
-    // Special-case empty strings to make sure that per-thread empty string instance isn't returned.
-    if (m_length == 0)
-        return adoptRef(new StringImpl);
     return create(m_data, m_length);
 }
 

@@ -146,17 +146,15 @@ bool operator==(const CString& c1, const CString& c2)
     return len == c2.size() && (len == 0 || memcmp(c1.c_str(), c2.c_str(), len) == 0);
 }
 
-// These static strings are immutable, except for rc, whose initial value is chosen to
-// reduce the possibility of it becoming zero due to ref/deref not being thread-safe.
-static UChar sharedEmptyChar;
-UStringImpl* UStringImpl::s_empty;
-
+// The null string is immutable, except for refCount.
 UString::Rep* UString::s_nullRep;
 UString* UString::s_nullUString;
 
 void initializeUString()
 {
-    UStringImpl::s_empty = new UStringImpl(&sharedEmptyChar, 0, UStringImpl::ConstructStaticString);
+    // UStringImpl::empty() does not construct its static string in a threadsafe fashion,
+    // so ensure it has been initialized from here.
+    UStringImpl::empty();
 
     UString::s_nullRep = new UStringImpl(0, 0, UStringImpl::ConstructStaticString);
     UString::s_nullUString = new UString;
@@ -173,11 +171,8 @@ UString::UString(const char* c, unsigned length)
 }
 
 UString::UString(const UChar* c, unsigned length)
+    : m_rep(Rep::create(c, length))
 {
-    if (length == 0)
-        m_rep = &Rep::empty();
-    else
-        m_rep = Rep::create(c, length);
 }
 
 UString UString::from(int i)
@@ -498,7 +493,7 @@ uint32_t UString::toStrictUInt32(bool* ok) const
     unsigned len = m_rep->length();
     if (len == 0)
         return 0;
-    const UChar* p = m_rep->data();
+    const UChar* p = m_rep->characters();
     unsigned short c = p[0];
 
     // If the first digit is 0, only 0 itself is OK.
@@ -715,8 +710,8 @@ bool equal(const UString::Rep* r, const UString::Rep* b)
     unsigned length = r->length();
     if (length != b->length())
         return false;
-    const UChar* d = r->data();
-    const UChar* s = b->data();
+    const UChar* d = r->characters();
+    const UChar* s = b->characters();
     for (unsigned i = 0; i != length; ++i) {
         if (d[i] != s[i])
             return false;

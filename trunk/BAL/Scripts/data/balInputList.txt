@@ -544,8 +544,10 @@ BAL/Skeletons/Media	WebCore/platform/Sound.h
 BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h
 BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
 
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h 
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.cpp 
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.cpp
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.h GOwnPtrGStreamerGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
@@ -627,6 +629,8 @@ BAL/Network/WebCore/Soup	WebCore/platform/network/soup/AuthenticationChallenge.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
 BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.cpp
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.h GOwnPtrSoupSoup.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h
@@ -854,8 +858,6 @@ BAL/Types/WTF/Qt	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/MainThreadQt.cpp
 BAL/Types/WebCore/Gtk	WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
-BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GOwnPtrGtk.cpp
-BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GOwnPtrGtk.h
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.h
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp

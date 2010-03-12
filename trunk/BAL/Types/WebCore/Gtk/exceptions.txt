@@ -1,2 +1,1 @@
 BCGRefPtrGtk.h GRefPtrGtk.h
-BCGOwnPtrGtk.h GOwnPtrGtk.h

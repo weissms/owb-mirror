@@ -1273,7 +1273,7 @@ bool WebFrame::elementDoesAutoComplete(DOMElement *element)
     if (!inputElement)
         return false;
     else
-        return (inputElement->inputType() == HTMLInputElement::TEXT && inputElement->autoComplete());
+        return inputElement->isTextField() && inputElement->inputType() != HTMLInputElement::PASSWORD && inputElement->autoComplete();
 }
 
 bool WebFrame::pauseAnimation(const char* name, double time, const char* element)

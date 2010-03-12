@@ -35,6 +35,7 @@
 #include "HTMLDocument.h"
 #include "History.h"
 #include "JSAudioConstructor.h"
+#include "JSDatabaseCallback.h"
 #include "JSDOMWindowShell.h"
 #include "JSEvent.h"
 #include "JSEventListener.h"
@@ -47,6 +48,11 @@
 #include "JSMessagePort.h"
 #include "JSMessagePortCustom.h"
 #include "JSOptionConstructor.h"
+
+#if ENABLE(DATABASE)
+#include "Database.h"
+#include "JSDatabase.h"
+#endif
 
 #if ENABLE(SHARED_WORKERS)
 #include "JSSharedWorkerConstructor.h"
@@ -162,6 +168,7 @@ static JSValue namedItemGetter(ExecState* exec, JSValue slotBase, const Identifi
     return toJS(exec, collection.get());
 }
 
+#if ENABLE(CEHTML)
 static JSValue idItemGetter(ExecState* exec, JSValue slotBase, const Identifier& propertyName)
 {
     JSDOMWindowBase* thisObj = static_cast<JSDOMWindow*>(asObject(slotBase));
@@ -172,7 +179,7 @@ static JSValue idItemGetter(ExecState* exec, JSValue slotBase, const Identifier&
 
     return toJS(exec, document->getElementById(propertyName));
 }
-
+#endif
 
 bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)
 {
@@ -1000,6 +1007,26 @@ JSValue JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
     impl()->removeEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false, currentWorld(exec)).get(), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
+
+#if ENABLE(DATABASE)
+JSValue JSDOMWindow::openDatabase(ExecState* exec, const ArgList& args)
+{
+    if (!allowsAccessFrom(exec) || (args.size() < 4))
+        return jsUndefined();
+    ExceptionCode ec = 0;
+    const UString& name = args.at(0).toString(exec);
+    const UString& version = args.at(1).toString(exec);
+    const UString& displayName = args.at(2).toString(exec);
+    unsigned long estimatedSize = args.at(3).toInt32(exec);
+    RefPtr<DatabaseCallback> creationCallback;
+    if ((args.size() >= 5) && args.at(4).isObject())
+        creationCallback = JSDatabaseCallback::create(asObject(args.at(4)), globalObject());
+
+    JSValue result = toJS(exec, globalObject(), WTF::getPtr(impl()->openDatabase(name, version, displayName, estimatedSize, creationCallback.release(), ec)));
+    setDOMException(exec, ec);
+    return result;
+}
+#endif
 
 DOMWindow* toDOMWindow(JSValue value)
 {

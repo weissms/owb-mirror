@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008, 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Matt Lilek <webkit@mattlilek.com>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@
 #include "InspectorFrontend.h"
 #include "InspectorFrontendHost.h"
 #include "InspectorResource.h"
+#include "InspectorWorkerResource.h"
 #include "InspectorTimelineAgent.h"
 #include "Page.h"
 #include "ProgressTracker.h"
@@ -119,7 +120,18 @@ static const char* const debuggerEnabledSettingName = "debuggerEnabled";
 static const char* const profilerEnabledSettingName = "profilerEnabled";
 static const char* const inspectorAttachedHeightName = "inspectorAttachedHeight";
 static const char* const lastActivePanelSettingName = "lastActivePanel";
-const char* const InspectorController::FrontendSettingsSettingName = "frontendSettings";
+
+const String& InspectorController::frontendSettingsSettingName()
+{
+    DEFINE_STATIC_LOCAL(String, settingName, ("frontendSettings"));
+    return settingName;
+}
+
+const String& InspectorController::inspectorStartsAttachedSettingName()
+{
+    DEFINE_STATIC_LOCAL(String, settingName, ("inspectorStartsAttached"));
+    return settingName;
+}
 
 static const unsigned defaultAttachedHeight = 300;
 static const float minimumAttachedHeight = 250.0f;
@@ -300,8 +312,8 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
         populateScriptObjects();
 
         if (m_showAfterVisible == CurrentPanel) {
-          String lastActivePanelSetting = setting(lastActivePanelSettingName);
-          m_showAfterVisible = specialPanelForJSName(lastActivePanelSetting);
+            String lastActivePanelSetting = setting(lastActivePanelSettingName);
+            m_showAfterVisible = specialPanelForJSName(lastActivePanelSetting);
         }
 
         if (m_nodeToFocus)
@@ -480,6 +492,8 @@ void InspectorController::mouseDidMoveOverElement(const HitTestResult& result, u
         return;
 
     Node* node = result.innerNode();
+    while (node && node->nodeType() == Node::TEXT_NODE)
+        node = node->parentNode();
     if (node)
         highlight(node);
 }
@@ -552,8 +566,15 @@ void InspectorController::scriptObjectReady()
         enableProfiler();
 #endif
 
+    // If no preference is set - default to an attached window. This is important for inspector LayoutTests.
+    String shouldAttachValue = setting(inspectorStartsAttachedSettingName());
+    bool shouldAttach = shouldAttachValue != "false";
+    
+    if (shouldAttach && !canAttachWindow())
+        shouldAttach = false;
+
     // Make sure our window is visible now that the page loaded
-    showWindow();
+    setWindowVisible(true, shouldAttach);
 
     m_client->inspectorWindowObjectCleared();
 }
@@ -669,7 +690,7 @@ void InspectorController::populateScriptObjects()
     if (!m_frontend)
         return;
 
-    m_frontend->populateFrontendSettings(setting(FrontendSettingsSettingName));
+    m_frontend->populateFrontendSettings(setting(frontendSettingsSettingName()));
 
     if (m_resourceTrackingEnabled)
         m_frontend->resourceTrackingWasEnabled();
@@ -710,6 +731,11 @@ void InspectorController::populateScriptObjects()
     for (DOMStorageResourcesMap::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
         it->second->bind(m_frontend.get());
 #endif
+#if ENABLE(WORKERS)
+    WorkersMap::iterator workersEnd = m_workers.end();
+    for (WorkersMap::iterator it = m_workers.begin(); it != workersEnd; ++it)
+        m_frontend->didCreateWorker(*it->second);
+#endif
 
     m_frontend->populateInterface();
 
@@ -738,7 +764,9 @@ void InspectorController::resetScriptObjects()
     for (DOMStorageResourcesMap::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it)
         it->second->unbind();
 #endif
-
+#if ENABLE(WORKERS)
+    m_workers.clear();
+#endif
     if (m_timelineAgent)
         m_timelineAgent->reset();
 
@@ -825,10 +853,12 @@ void InspectorController::didCommitLoad(DocumentLoader* loader)
         if (ResourcesMap* resourceMap = m_frameResources.get(frame))
             pruneResources(resourceMap, loader);
 
-    for (Vector<String>::iterator it = m_scriptsToEvaluateOnLoad.begin();
-         it != m_scriptsToEvaluateOnLoad.end(); ++it) {
-        ScriptSourceCode scriptSourceCode(*it);
-        loader->frame()->script()->evaluate(scriptSourceCode);
+    if (m_scriptsToEvaluateOnLoad.size()) {
+        ScriptState* scriptState = mainWorldScriptState(loader->frame());
+        for (Vector<String>::iterator it = m_scriptsToEvaluateOnLoad.begin();
+             it != m_scriptsToEvaluateOnLoad.end(); ++it) {
+            m_injectedScriptHost->injectScript(*it, scriptState);
+        }
     }
 }
 
@@ -1117,7 +1147,7 @@ void InspectorController::enableResourceTracking(bool always, bool reload)
         m_frontend->resourceTrackingWasEnabled();
 
     if (reload)
-        m_inspectedPage->mainFrame()->loader()->reload();
+        m_inspectedPage->mainFrame()->redirectScheduler()->scheduleRefresh(true);
 }
 
 void InspectorController::disableResourceTracking(bool always)
@@ -1170,6 +1200,32 @@ void InspectorController::stopTimelineProfiler()
     if (m_frontend)
         m_frontend->timelineProfilerWasStopped();
 }
+
+#if ENABLE(WORKERS)
+void InspectorController::didCreateWorker(long id, const String& url, bool isSharedWorker)
+{
+    if (!enabled())
+        return;
+
+    RefPtr<InspectorWorkerResource> workerResource(InspectorWorkerResource::create(id, url, isSharedWorker));
+    m_workers.set(id, workerResource);
+    if (m_frontend)
+        m_frontend->didCreateWorker(*workerResource);
+}
+
+void InspectorController::willDestroyWorker(long id)
+{
+    if (!enabled())
+        return;
+
+    WorkersMap::iterator workerResource = m_workers.find(id);
+    if (workerResource == m_workers.end())
+        return;
+    if (m_frontend)
+        m_frontend->willDestroyWorker(*workerResource->second);
+    m_workers.remove(workerResource);
+}
+#endif // ENABLE(WORKERS)
 
 #if ENABLE(DATABASE)
 void InspectorController::selectDatabase(Database* database)
@@ -1894,6 +1950,8 @@ InspectorController::SpecialPanels InspectorController::specialPanelForJSName(co
         return ProfilesPanel;
     if (panelName == "storage" || panelName == "databases")
         return StoragePanel;
+    if (panelName == "audits")
+        return AuditsPanel;
     if (panelName == "console")
         return ConsolePanel;
     return ElementsPanel;

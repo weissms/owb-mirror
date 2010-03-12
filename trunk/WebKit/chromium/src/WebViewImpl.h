@@ -76,6 +76,7 @@ class WebKeyboardEvent;
 class WebMouseEvent;
 class WebMouseWheelEvent;
 class WebSettingsImpl;
+class WebTouchEvent;
 
 class WebViewImpl : public WebView, public RefCounted<WebViewImpl> {
 public:
@@ -229,6 +230,7 @@ public:
     void mouseWheel(const WebMouseWheelEvent&);
     bool keyEvent(const WebKeyboardEvent&);
     bool charEvent(const WebKeyboardEvent&);
+    bool touchEvent(const WebTouchEvent&);
 
     // Handles context menu events orignated via the the keyboard. These
     // include the VK_APPS virtual key and the Shift+F10 combine.  Code is
@@ -445,6 +447,8 @@ private:
     // The provider of desktop notifications;
     NotificationPresenterImpl m_notificationPresenter;
 #endif
+
+    bool m_haveMouseCapture;
 
     static const WebInputEvent* m_currentInputEvent;
 };

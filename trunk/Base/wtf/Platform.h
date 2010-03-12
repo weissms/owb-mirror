@@ -599,10 +599,15 @@
 #define HAVE_RUNLOOP_TIMER 1
 #endif /* PLATFORM(MAC) && !PLATFORM(IPHONE) */
 
+#if PLATFORM(MAC)
+#define WTF_USE_CARBON_SECURE_INPUT_MODE 1
+#endif
+
 #if PLATFORM(CHROMIUM) && OS(DARWIN)
 #define WTF_PLATFORM_CF 1
 #define WTF_USE_PTHREADS 1
 #define HAVE_PTHREAD_RWLOCK 1
+#define WTF_USE_CARBON_SECURE_INPUT_MODE 1
 #endif
 
 #if PLATFORM(QT) && OS(DARWIN)
@@ -644,6 +649,7 @@
 
 #if PLATFORM(WX)
 #define ENABLE_ASSEMBLER 1
+#define ENABLE_GLOBAL_FASTMALLOC_NEW 0
 #if OS(DARWIN)
 #define WTF_PLATFORM_CF 1
 #endif
@@ -786,6 +792,11 @@
 
 /* ENABLE macro defaults */
 
+#if PLATFORM(QT)
+// We musn't customize the global operator new and delete for the Qt port.
+#define ENABLE_GLOBAL_FASTMALLOC_NEW 0
+#endif
+
 /* fastMalloc match validation allows for runtime verification that
    new is matched by delete, fastMalloc is matched by fastFree, etc. */
 #if !defined(ENABLE_FAST_MALLOC_MATCH_VALIDATION)
@@ -842,6 +853,10 @@
 
 #if !defined(ENABLE_OPCODE_STATS)
 #define ENABLE_OPCODE_STATS 0
+#endif
+
+#if !defined(ENABLE_GLOBAL_FASTMALLOC_NEW)
+#define ENABLE_GLOBAL_FASTMALLOC_NEW 1
 #endif
 
 #define ENABLE_SAMPLING_COUNTERS 0

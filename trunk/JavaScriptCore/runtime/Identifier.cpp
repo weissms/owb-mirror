@@ -81,7 +81,7 @@ void deleteIdentifierTable(IdentifierTable* table)
 bool Identifier::equal(const UString::Rep* r, const char* s)
 {
     int length = r->length();
-    const UChar* d = r->data();
+    const UChar* d = r->characters();
     for (int i = 0; i != length; ++i)
         if (d[i] != (unsigned char)s[i])
             return false;
@@ -92,7 +92,7 @@ bool Identifier::equal(const UString::Rep* r, const UChar* s, unsigned length)
 {
     if (r->length() != length)
         return false;
-    const UChar* d = r->data();
+    const UChar* d = r->characters();
     for (unsigned i = 0; i != length; ++i)
         if (d[i] != s[i])
             return false;
@@ -124,11 +124,14 @@ struct CStringTranslator {
 
 PassRefPtr<UString::Rep> Identifier::add(JSGlobalData* globalData, const char* c)
 {
-    ASSERT(c);
-
+    if (!c) {
+        UString::Rep* rep = UString::null().rep();
+        rep->hash();
+        return rep;
+    }
     if (!c[0]) {
-        UString::Rep::empty().hash();
-        return &UString::Rep::empty();
+        UString::Rep::empty()->hash();
+        return UString::Rep::empty();
     }
     if (!c[1])
         return add(globalData, globalData->smallStrings.singleCharacterStringRep(static_cast<unsigned char>(c[0])));
@@ -191,8 +194,8 @@ PassRefPtr<UString::Rep> Identifier::add(JSGlobalData* globalData, const UChar* 
             return add(globalData, globalData->smallStrings.singleCharacterStringRep(c));
     }
     if (!length) {
-        UString::Rep::empty().hash();
-        return &UString::Rep::empty();
+        UString::Rep::empty()->hash();
+        return UString::Rep::empty();
     }
     UCharBuffer buf = {s, length}; 
     pair<HashSet<UString::Rep*>::iterator, bool> addResult = globalData->identifierTable->add<UCharBuffer, UCharBufferTranslator>(buf);
@@ -211,7 +214,7 @@ PassRefPtr<UString::Rep> Identifier::addSlowCase(JSGlobalData* globalData, UStri
 {
     ASSERT(!r->isIdentifier());
     if (r->length() == 1) {
-        UChar c = r->data()[0];
+        UChar c = r->characters()[0];
         if (c <= 0xFF)
             r = globalData->smallStrings.singleCharacterStringRep(c);
             if (r->isIdentifier()) {
@@ -222,8 +225,8 @@ PassRefPtr<UString::Rep> Identifier::addSlowCase(JSGlobalData* globalData, UStri
             }
     }
     if (!r->length()) {
-        UString::Rep::empty().hash();
-        return &UString::Rep::empty();
+        UString::Rep::empty()->hash();
+        return UString::Rep::empty();
     }
     return *globalData->identifierTable->add(r).first;
 }

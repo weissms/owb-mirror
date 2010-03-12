@@ -1,3 +1,406 @@
+2010-03-11  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35840
+
+        Updates the subroutine builtDylibPathForName() so that it adds the "d" suffix to
+        the QtWebKit library name on Windows. This change makes run-launcher work again
+        under Windows. Moreover, this change corresponds to the change made in change-
+        set 53924 <http://trac.webkit.org/changeset/53924>.
+
+        * Scripts/webkitdirs.pm:
+
+2010-03-10  Adam Roben  <aroben@apple.com>
+
+        Roll out the prepare-ChangeLog part of r55870
+
+        This change wasn't needed (prepare-ChangeLog calls svn-create-patch
+        when it's asked to print out diffs for the user) and was screwing up
+        its ability to find changed function names.
+
+        * Scripts/prepare-ChangeLog:
+        (diffCommand): Change the options we pass to svn-diff back to their
+        pre-r55870 form.
+
+2010-03-10  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add Support for WebKitEnableCaretBrowsing to Qt DRT
+
+        Unskip test fast/events/multiline-link-arrow-navigation.html
+
+        https://bugs.webkit.org/show_bug.cgi?id=35593
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::overridePreference):
+        (LayoutTestController::setCaretBrowsingEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-03-10  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        QtLauncher: Fix typo in conditional statement in
+                    WebViewGraphicsBased::setFrameRateMeasurementEnabled.
+
+        '=' should be '=='!
+
+        https://bugs.webkit.org/show_bug.cgi?id=35877
+
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::setFrameRateMeasurementEnabled):
+
+2010-03-10  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactored and cleaned up the code for unit-testing logging.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35845
+
+        * Scripts/webkitpy/init/logtesting.py:
+          - Added more information to the module docstring.
+          - Added an assertMessages() method to the UnitTestLogStream
+            class.  This simplifies the calling code.
+          - Renamed the UnitTestLog class to LogTesting, and reformulated
+            it as follows:
+              - Moved the logging configuration code from the __init__
+                method to a new static setUp() method.
+              - Documented the __init__ method to be private.
+              - Improved the code so that the root logger does not have
+                its logging level changed.  Instead we set the handler's
+                level.  This makes the unit testing more unintrusive.
+              - Updated the assertMessages() method to call the
+                UnitTestLogStream class's assertMessages() method.
+              - More fully documented the class.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added a logger parameter to the configure_logging() method.
+            This allows us to prevent test messages from being sent
+            to the root logger during unit testing, which may be
+            rendering to the screen, etc.
+          - Simplified the code by removing the _LevelLoggingFilter class.
+          - Replaced the _LevelLoggingFilter class with a one-line lambda
+            expression in configure_logging().
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Changed relative imports to absolute to comply more with PEP8.
+          - In the ConfigureLoggingTest class:
+            - Changed the setUp() method to prevent test messages from
+              being propagated to the root logger.
+            - Changed the _log() method to a data attribute.
+            - Updated to accommodate changes to logtesting.py.
+
+        * Scripts/webkitpy/style_references.py:
+          - Updated an import statement.
+
+2010-03-10  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Python code for GDB 7 to support native printing of some WebCore types.
+
+        * gdb/webcore.py: Added.
+
+2010-03-10  Adam Roben  <aroben@apple.com>
+
+        Make svn-create-patch and prepare-ChangeLog show better section
+        headings for ObjC files
+
+        This makes the text at the end of each "@@" line in a diff actually
+        show the ObjC method or interface that contains the change, rather
+        than whatever the most-recently-defined C function was.
+
+        Fixes <http://webkit.org/b/35970>.
+
+        Reviewed by John Sullivan.
+
+        * Scripts/svn-create-patch: Pass -F'^[-+@]' to diff so that it will
+        treat any lines starting with -, +, or @ as section heading lines.
+        This works well for ObjC files, and shouldn't affect other types of
+        files.
+
+        * Scripts/prepare-ChangeLog: Changed the options passed to diff to
+        match those used in svn-create-patch.
+
+2010-03-10  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Link QtLauncher against the WebKit library using a relative rpath.
+
+        This makes the launcher and the lib relocatable.
+
+        * QtLauncher/QtLauncher.pro:
+
+2010-03-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [iExploder] Add new CSS Properties and HTML Attributes
+
+        The update-iexploder-cssproperties script was used to update
+        the various input files. The autobuffer HTML Attribute was removed
+        from WebKit and I manually added it back to the htmlattrs.in like
+        we have done it for other attributes in the past.
+
+        * iExploder/htdocs/cssproperties.in:
+        * iExploder/htdocs/htmlattrs.in:
+        * iExploder/htdocs/htmltags.in:
+
+2010-03-09  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed.
+
+        Obvious fix for --cgi-paths of pywebsocket.
+
+        * Scripts/run-webkit-websocketserver:
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-03-09  Jakub Wieczorek  <jwieczorek@webkit.org>
+
+        Unreviewed.
+
+        Adding myself to committers.py.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-09  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        Fix --clobber-old-results in new-run-webkit-tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35778
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-03-09  Andy Estes  <aestes@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Add the ability to dispatch scroll wheel events in DRT.  This was
+        necessary in order to write a test for
+        https://bugs.webkit.org/show_bug.cgi?id=34700.
+
+        * DumpRenderTree/mac/EventSendingController.mm: Add support for two
+        new methods to EventSender: mouseScrollBy(x, y) and
+        continuousMouseScrollBy(x, y).  The API to generate scroll events on
+        the mac was added in 10.5, so these methods are NOOPs on Tiger.
+        (+[EventSendingController isSelectorExcludedFromWebScript:]):
+        Regiester mouseScrollByX:andY: and continuousMouseScrollByX:andY:
+        (+[EventSendingController webScriptNameForSelector:]): Map JavaScript
+        method names to ObjC selectors.
+        (-[EventSendingController mouseScrollByX:andY:continuously:]): Generate
+        a scroll wheel event using CGEventCreateScrollWheelEvent() and dispatch
+        it to WebKit.
+        (-[EventSendingController continuousMouseScrollByX:andY:]): Generate a
+        continuous scrolling event by x and y pixels.
+        (-[EventSendingController mouseScrollByX:andY:]): Generate a notchy
+        scrolling event by x and y lines.
+
+2010-03-09  Chris Fleizach  <cfleizach@apple.com>
+
+        DRT build fix for Tiger. No review.
+
+        AX: hit testing a list box doesn't work anymore
+        https://bugs.webkit.org/show_bug.cgi?id=35893
+
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::elementAtPoint):
+
+2010-03-09  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        AX: hit testing a list box doesn't work anymore
+        https://bugs.webkit.org/show_bug.cgi?id=35893
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (getElementAtPointCallback):
+        (AccessibilityController::getJSClass):
+        * DumpRenderTree/AccessibilityController.h:
+        * DumpRenderTree/gtk/AccessibilityControllerGtk.cpp:
+        (AccessibilityController::elementAtPoint):
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::elementAtPoint):
+        * DumpRenderTree/win/AccessibilityControllerWin.cpp:
+        (AccessibilityController::elementAtPoint):
+
+2010-03-03  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        pywebsocket should support html and cgi in the same directory.
+        https://bugs.webkit.org/show_bug.cgi?id=34879
+
+        Import pywebsocket 0.4.9.2
+        Specify --server-host 127.0.0.1, so that it only binds listening socket
+        to 127.0.0.1 to prevent access from non-localhost.
+        Change --cgi-paths from /websocket/tests/cookies to /websocket/tests,
+        because pywebsocket 0.4.9.2 supports html and cgi in the same directory
+        and only executable (httponly-cookies.pl) will be handled as cgi
+        script.
+
+        * Scripts/run-webkit-tests:
+        * Scripts/run-webkit-websocketserver:
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/README.webkit:
+        * Scripts/webkitpy/thirdparty/pywebsocket/example/echo_client.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/example/handler_map.txt: Added.
+        * Scripts/webkitpy/thirdparty/pywebsocket/mod_pywebsocket/standalone.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/mod_pywebsocket/util.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/setup.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/test/test_util.py:
+        * Scripts/webkitpy/thirdparty/pywebsocket/test/testdata/README: Added.
+        * Scripts/webkitpy/thirdparty/pywebsocket/test/testdata/hello.pl: Added.
+
+2010-03-09  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Simplified check-webkit-style's argument parsing code by removing
+        support for the vestigial "extra flag values" parameter.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34677
+
+        The "extra flag values" parameter was needed before WebKit
+        forked check-webkit-style from Google.  It was used to pass
+        through the option parser those command-line flags that WebKit
+        required but that Google's parser did not support (the --git-commit
+        flag in particular).
+            We can remove the parameter now because it is no longer
+        needed and unnecessarily clutters the argument-parsing code.
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Removed the extra_flag_values parameter from the
+            CommandOptionValues class's constructor.
+          - Removed the extra_flags parameter from the ArgumentParser
+            class's parse() method.
+
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Removed from the unit tests all references to the
+            extra_flag_values variable.
+
+2010-03-08  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add EventSender
+        https://bugs.webkit.org/show_bug.cgi?id=35859
+
+        Add EventSender classes, which are going to be used by
+        DumpRenderTree Chromium port. These files are based on:
+        - src/webkit/tools/test_shell/event_sending_controller.cc
+        - src/webkit/tools/test_shell/event_sending_controller.h
+        of Chromium rev.40492.
+
+        * DumpRenderTree/chromium/EventSender.cpp: Added.
+        * DumpRenderTree/chromium/EventSender.h: Added.
+
+2010-03-08  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add PlainTextController and TextInputController
+        https://bugs.webkit.org/show_bug.cgi?id=35852
+
+        Add PlainTextController and TextInputController classes, which are going
+        to be used by DumpRenderTree Chromium port. These files are based on:
+        - src/webkit/tools/test_shell/plain_text_controller.{cc,h} and
+        - src/webkit/tools/test_shell/text_input_controller.{cc,h}
+        of Chromium rev.40492.
+
+        * DumpRenderTree/chromium/PlainTextController.cpp: Added.
+        * DumpRenderTree/chromium/PlainTextController.h: Added.
+        * DumpRenderTree/chromium/TextInputController.cpp: Added.
+        * DumpRenderTree/chromium/TextInputController.h: Added.
+
+2010-03-08  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Unreviewed, Chromium build fix.
+
+        Reverting r55689.
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-03-08  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Fix webkit-patch post and land to work well with security bug
+        https://bugs.webkit.org/show_bug.cgi?id=35733
+
+        Bugzilla requires authentication to access security bug page,
+        so call authenticate() if it failed to fetch bug page.
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-03-04  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitry Glazkov.
+
+        Fix --clobber-old-results in new-run-webkit-tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35778
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-03-08  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by NOBODY (but suggested by Steve Falkenburg and fixing a boneheaded mistake on my part last week)
+
+        Followup to https://bugs.webkit.org/show_bug.cgi?id=35532
+
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::apiTestGoToCurrentBackForwardItem): Can't pass in a null BOOL to WebKit APIs.
+
+2010-03-08  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Fixed incorrect import statement in validate-committer-lists:
+        webkitpy.BeautifulSoup -> webkitpy.thirdparty.BeautifulSoup.
+
+        * Scripts/validate-committer-lists:
+
+2010-03-08  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Blob.slice support.
+        https://bugs.webkit.org/show_bug.cgi?id=32993
+
+        Add ENABLE_BLOB_SLICE feature define and  flag for build-webkit. It is
+        currently only turned on for Mac.
+
+        * Scripts/build-webkit:
+
+2010-03-08  Gustavo Noronha Silva  <gns@gnome.org>
+
+        No review, rolling out r55662.
+        http://trac.webkit.org/changeset/55662
+        https://bugs.webkit.org/show_bug.cgi?id=35863
+
+        Need to be coordinated with bots setup
+
+        * Scripts/run-webkit-tests:
+
+2010-03-08  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        [GTK] Tests fail when running with ipv6 addresses available, on Debian systems
+        https://bugs.webkit.org/show_bug.cgi?id=35863
+
+        If running on a Debian-based system, also listen on the ipv6 address.
+
+        * Scripts/run-webkit-tests:
+
 2010-03-08  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Darin Adler.

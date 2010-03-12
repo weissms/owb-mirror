@@ -140,6 +140,7 @@ if(ENABLE_DATABASE)
         bindings/js/JSCustomSQLStatementErrorCallback.cpp
         bindings/js/JSCustomSQLTransactionCallback.cpp
         bindings/js/JSCustomSQLTransactionErrorCallback.cpp
+        bindings/js/JSDatabaseCallback.cpp
         bindings/js/JSDatabaseCustom.cpp
         bindings/js/JSSQLResultSetRowListCustom.cpp
         bindings/js/JSSQLTransactionCustom.cpp

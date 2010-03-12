@@ -34,6 +34,9 @@
 #include "CSSStyleSelector.h"
 #include "CString.h"
 #include "Chrome.h"
+#if ENABLE(DATABASE)
+#include "DatabaseCallback.h"
+#endif
 #include "DOMApplicationCache.h"
 #include "DOMSelection.h"
 #include "DOMTimer.h"
@@ -1193,7 +1196,7 @@ double DOMWindow::devicePixelRatio() const
 }
 
 #if ENABLE(DATABASE)
-PassRefPtr<Database> DOMWindow::openDatabase(const String& name, const String& version, const String& displayName, unsigned long estimatedSize, ExceptionCode& ec)
+PassRefPtr<Database> DOMWindow::openDatabase(const String& name, const String& version, const String& displayName, unsigned long estimatedSize, PassRefPtr<DatabaseCallback> creationCallback, ExceptionCode& ec)
 {
     if (!m_frame)
         return 0;
@@ -1205,7 +1208,7 @@ PassRefPtr<Database> DOMWindow::openDatabase(const String& name, const String& v
     if (!document->securityOrigin()->canAccessDatabase())
         return 0;
 
-    return Database::openDatabase(document, name, version, displayName, estimatedSize, ec);
+    return Database::openDatabase(document, name, version, displayName, estimatedSize, creationCallback, ec);
 }
 #endif
 

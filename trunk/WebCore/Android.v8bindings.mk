@@ -72,7 +72,6 @@ LOCAL_SRC_FILES += \
 	bindings/v8/V8GCController.cpp \
 	bindings/v8/V8Helpers.cpp \
 	bindings/v8/V8HiddenPropertyName.cpp \
-	bindings/v8/V8Index.cpp \
 	bindings/v8/V8IsolatedWorld.cpp \
 	bindings/v8/V8LazyEventListener.cpp \
 	bindings/v8/V8NPObject.cpp \
@@ -108,6 +107,7 @@ LOCAL_SRC_FILES += \
 	bindings/v8/custom/V8DOMSelectionCustom.cpp \
 	bindings/v8/custom/V8DOMWindowCustom.cpp \
 	bindings/v8/custom/V8DataGridColumnListCustom.cpp \
+	bindings/v8/custom/V8DatabaseCallback.cpp \
 	bindings/v8/custom/V8DatabaseCustom.cpp \
 	bindings/v8/custom/V8DedicatedWorkerContextCustom.cpp \
 	bindings/v8/custom/V8DocumentCustom.cpp \

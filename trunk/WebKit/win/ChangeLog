@@ -1,3 +1,84 @@
+2010-03-11  Eric Uhrhane  <ericu@chromium.org>
+
+        Reviewed by David Levin.
+
+        The build fix for my patch on bug #35763 wasn't quite right--it removed
+        the call entirely, instead of replacing it with the new API.  This adds
+        the call to Database::setIsAvailable.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35763
+
+        * WebView.cpp: Added a call to Database::setIsAvailable where change 55667 removed the old Settings API call <http://trac.webkit.org/changeset/55667>.
+        (WebView::notifyPreferencesChanged):
+
+2010-03-10  John Sullivan  <sullivan@apple.com>
+
+        Reviewed by Tim Hatcher.
+        
+        <rdar://problem/7735387> input type other than text won't work with autofill
+        <https://bugs.webkit.org/show_bug.cgi?id=35963>
+
+        * WebFrame.cpp:
+        (WebFrame::elementDoesAutoComplete):
+        Return true for any text field that's not a password, rather than only
+        for TEXT type.
+
+2010-03-09  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        REGRESSION: WebInspector docking busted on Windows
+        <rdar://problem/7728433> and https://bugs.webkit.org/show_bug.cgi?id=35953
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::attachWindow): Use the InspectorController:: copy of the should attach settings key.
+        (WebInspectorClient::detachWindow): Ditto.
+        (WebInspectorClient::showWindowWithoutNotifications): Ditto.
+
+2010-03-09  John Sullivan  <sullivan@apple.com>
+
+        Fixed localized string key collision. update-webkit-localized-strings now
+        runs without errors.
+
+        Reviewed by Adam Roben.
+
+        * WebCoreLocalizedStrings.cpp:
+        (WebCore::AXMenuListPopupActionVerb):
+        Used LPCTSTR_UI_STRING_KEY for the 2nd use of "press".
+
+2010-03-08  Adam Treat  <atreat@rim.com>
+
+        Unreviewed build fix for Windows.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::invalidateContents):
+
+2010-03-02  Adam Treat  <atreat@rim.com>
+
+        Reviewed by Dave Hyatt.
+
+        Adapt the win port to the refactoring of repaint methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34214
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::invalidateContents):
+        (WebChromeClient::invalidateWindow):
+        (WebChromeClient::invalidateContentsAndWindow):
+        (WebChromeClient::invalidateContentsForSlowScroll):
+        * WebCoreSupport/WebChromeClient.h:
+
+2010-03-08  Daniel Bates  <dbates@rim.com>
+
+        Unreviewed, build fix.
+
+        Attempt to fix the Windows builds by applying the corresponding change
+        made in bug #35763 <https://bugs.webkit.org/show_bug.cgi?id=35763>.
+
+        * WebView.cpp: Removed call to settings->setDatabasesEnabled since this
+        setting no longer exists following changeset 55666 <http://trac.webkit.org/changeset/55666>.
+        (WebView::notifyPreferencesChanged):
+
 2010-03-08  Mark Rowe  <mrowe@apple.com>
 
         Windows build fix.

@@ -560,7 +560,30 @@ String WebHaltablePlugin::pluginName() const
     NSWindow *window = [self window];
     return !window || [window isMiniaturized] || [NSApp isHidden] || ![self isDescendantOf:[[self window] contentView]] || [self isHiddenOrHasHiddenAncestor];
 }
+
+- (BOOL)inFlatteningPaint
+{
+    RenderObject* renderer = _element->renderer();
+    if (renderer && renderer->view()) {
+        if (FrameView* frameView = renderer->view()->frameView())
+            return frameView->paintBehavior() & PaintBehaviorFlattenCompositingLayers;
+    }
+
+    return NO;
+}
+
+- (BOOL)supportsSnapshotting
+{
+    NSBundle *pluginBundle = [_pluginPackage.get() bundle];
+    if (![[pluginBundle bundleIdentifier] isEqualToString:@"com.macromedia.Flash Player.plugin"])
+        return YES;
     
+    // Flash has a bogus Info.plist entry for CFBundleVersionString, so use CFBundleShortVersionString.
+    NSString *versionString = [pluginBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    // Flash 10.1d51 has a crashing bug if sent a drawRect event when using the CA rendering model: <rdar://problem/7739922>
+    return ![versionString isEqual:@"10.1.51.95"];
+}
+
 - (BOOL)hasBeenHalted
 {
     return _hasBeenHalted;

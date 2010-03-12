@@ -77,6 +77,7 @@
 #include "FrameView.h"
 #include "GeolocationServiceBridgeChromium.h"
 #include "GraphicsContext.h"
+#include "IndexedDatabaseProxy.h"
 #include "KURL.h"
 #include "NotImplemented.h"
 #include "PlatformContextSkia.h"
@@ -93,6 +94,9 @@ namespace WebCore {
 
 static ChromeClientImpl* toChromeClientImpl(Widget* widget)
 {
+    if (!widget)
+        return 0;
+
     FrameView* view;
     if (widget->isFrameView())
         view = static_cast<FrameView*>(widget);
@@ -388,6 +392,15 @@ long long ChromiumBridge::databaseGetFileSize(const String& vfsFileName)
     return webKitClient()->databaseGetFileSize(WebString(vfsFileName));
 }
 #endif
+
+// Indexed Database -----------------------------------------------------------
+
+PassRefPtr<IndexedDatabase> ChromiumBridge::indexedDatabase()
+{
+    // There's no reason why we need to allocate a new proxy each time, but
+    // there's also no strong reason not to.
+    return IndexedDatabaseProxy::create();
+}
 
 // Keygen ---------------------------------------------------------------------
 

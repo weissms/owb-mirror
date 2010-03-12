@@ -58,7 +58,7 @@ void XBMImageDecoder::setData(SharedBuffer* data, bool allDataReceived)
 
 bool XBMImageDecoder::isSizeAvailable()
 {
-    if (!ImageDecoder::isSizeAvailable() && !m_failed)
+    if (!ImageDecoder::isSizeAvailable() && !failed())
         decode(true);
 
     return ImageDecoder::isSizeAvailable();
@@ -81,7 +81,7 @@ RGBA32Buffer* XBMImageDecoder::frameBufferAtIndex(size_t index)
     if (!failed() && ImageDecoder::isSizeAvailable()
         && (buffer.status() == RGBA32Buffer::FrameEmpty)) {
         if (!buffer.setSize(size().width(), size().height())) {
-            m_failed = true;
+            setFailed();
             return 0;
         }
         buffer.setStatus(RGBA32Buffer::FramePartial);

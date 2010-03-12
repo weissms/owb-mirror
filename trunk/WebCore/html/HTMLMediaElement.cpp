@@ -105,6 +105,7 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document* doc)
     , m_preload(MediaPlayer::Auto)
     , m_playing(false)
     , m_processingMediaPlayerCallback(0)
+    , m_isWaitingUntilMediaCanStart(false)
     , m_processingLoad(false)
     , m_delayingTheLoadEvent(false)
     , m_haveFiredLoadedData(false)
@@ -129,6 +130,11 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document* doc)
 
 HTMLMediaElement::~HTMLMediaElement()
 {
+    if (m_isWaitingUntilMediaCanStart) {
+        if (Page* page = document()->page())
+            page->removeMediaCanStartListener(this);
+    }
+
     document()->unregisterForDocumentActivationCallbacks(this);
     document()->unregisterForMediaVolumeCallbacks(this);
 }
@@ -464,6 +470,16 @@ void HTMLMediaElement::prepareForLoad()
 
 void HTMLMediaElement::loadInternal()
 {
+    // If we can't start a load right away, start it later.
+    Page* page = document()->page();
+    if (page && !page->canStartMedia()) {
+        if (m_isWaitingUntilMediaCanStart)
+            return;
+        page->addMediaCanStartListener(this);
+        m_isWaitingUntilMediaCanStart = true;
+        return;
+    }
+
     // If the load() method for this element is already being invoked, then abort these steps.
     if (m_processingLoad)
         return;
@@ -1812,12 +1828,11 @@ void HTMLMediaElement::mediaVolumeDidChange()
     updateVolume();
 }
 
-const IntRect HTMLMediaElement::screenRect()
+IntRect HTMLMediaElement::screenRect()
 {
-    IntRect elementRect;
-    if (renderer())
-        elementRect = renderer()->view()->frameView()->contentsToScreen(renderer()->absoluteBoundingBoxRect());
-    return elementRect;
+    if (!renderer())
+        return IntRect();
+    return renderer()->view()->frameView()->contentsToScreen(renderer()->absoluteBoundingBoxRect());
 }
     
 void HTMLMediaElement::defaultEventHandler(Event* event)
@@ -1959,6 +1974,13 @@ bool HTMLMediaElement::webkitClosedCaptionsVisible() const
 bool HTMLMediaElement::webkitHasClosedCaptions() const
 {
     return hasClosedCaptions();
+}
+
+void HTMLMediaElement::mediaCanStart()
+{
+    ASSERT(m_isWaitingUntilMediaCanStart);
+    m_isWaitingUntilMediaCanStart = false;
+    loadInternal();
 }
 
 }
