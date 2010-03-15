@@ -45,8 +45,11 @@ QNetworkRequest ResourceRequest::toNetworkRequest(QObject* originatingFrame) con
 {
     QNetworkRequest request;
     request.setUrl(url());
+
+#if 0   // FIXME: Disabled given OWB's WebFrame does not inherit from QObject
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
     request.setOriginatingObject(originatingFrame);
+#endif
 #endif
 
     const HTTPHeaderMap &headers = httpHeaderFields();

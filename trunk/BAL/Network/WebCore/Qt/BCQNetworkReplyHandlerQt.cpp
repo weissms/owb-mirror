@@ -168,11 +168,7 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
     else
         m_method = QNetworkAccessManager::UnknownOperation;
 
-#if QT_VERSION < QT_VERSION_CHECK(4, 6, 0)
-    m_request = r.toNetworkRequest(0);
-#else
     m_request = r.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
-#endif
 
     if (m_loadMode == LoadNormal)
         start();
@@ -370,11 +366,8 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
         if (!m_resourceHandle) // network error did cancel the request
             return;
 
-#if QT_VERSION < QT_VERSION_CHECK(4, 6, 0)
-        m_request = newRequest.toNetworkRequest(0);
-#else
         m_request = newRequest.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
-#endif
+
         return;
     }
 
