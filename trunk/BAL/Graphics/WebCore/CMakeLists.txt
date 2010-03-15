@@ -25,10 +25,7 @@ if(USE_GRAPHICS_QT)
     create_include_link(${GRAPHICS_DIR}/Qt BAL)
     aux_source_directory(${GRAPHICS_DIR}/Qt WEBCORE_SRC)
     if(ENABLE_3D_RENDERING)
-        # The line below is currently not needed and produces this message:
-        # "Warning: No relevant classes found. No output generated."
-        #
-        # owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Graphics/WebCore/Qt/BCGraphicsLayerQt.h GraphicsLayerQt.moc)
+        owb_generate_moc(WEBCORE_SRC ${OWB_SOURCE_DIR}/BAL/Graphics/WebCore/Qt/BCGraphicsLayerQt.h GraphicsLayerQt.moc)
     endif(ENABLE_3D_RENDERING)
 endif(USE_GRAPHICS_QT)
 
