@@ -1,3 +1,582 @@
+2010-03-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Operational scripts from running the EWS
+        https://bugs.webkit.org/show_bug.cgi?id=36097
+
+        These are the scripts I use to manage the EWS on EC2.  If someone other
+        than me wants to run the EWS, these scripts might be helpful.
+
+        * EWSTools/boot.sh: Added.
+        * EWSTools/create-webkit-git: Added.
+        * EWSTools/screen-config: Added.
+        * EWSTools/start-queue.sh: Added.
+
+2010-03-14  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Fix the webkit-patch bots.  Turns out they need the path of the main
+        script to run properly.
+
+        * Scripts/webkit-patch:
+        * Scripts/webkitpy/patch/patcher.py:
+
+2010-03-14  Darin Adler  <darin@apple.com>
+
+        Tell Subversion about more directories that expect to have .pyc files.
+
+        * Scripts/webkitpy/init: Added property svn:ignore.
+        * Scripts/webkitpy/patch: Added property svn:ignore.
+        * Scripts/webkitpy/thirdparty: Added property svn:ignore.
+        * Scripts/webkitpy/thirdparty/autoinstalled: Added property svn:ignore.
+
+2010-03-14  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35146
+        Support tiled backing store
+
+        QtLauncher support and build flag in build-webkit.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::applyPrefs):
+        (LauncherWindow::toggleTiledBackingStore):
+        (LauncherWindow::toggleResizesToContents):
+        (LauncherWindow::createChrome):
+        (LauncherApplication::handleUserOptions):
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::WebViewGraphicsBased):
+        (WebViewGraphicsBased::setResizesToContents):
+        (WebViewGraphicsBased::resizeEvent):
+        * QtLauncher/webview.h:
+        * Scripts/build-webkit:
+
+2010-03-13  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        The webkit-patch script now displays a warning if run using
+        a version of Python less than 2.5.  This will help users
+        understand why webkit-patch is erroring out if they are
+        using Python 2.4, for example.
+
+        https://bugs.webkit.org/show_bug.cgi?id=31533
+
+        * Scripts/webkit-patch:
+          - Moved most of the file contents to webkitpy/patch/patcher.py
+            so the Python version can be checked before interpreting
+            any code that can cause the script to error out.
+          - Added a configure_logging() method to enable any version
+            warnings to show up.
+          - Added a main() method with calls to configure_logging(),
+            check_version(), and the main webkit patch method.
+
+        * Scripts/webkitpy/patch/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+          - This file is required to make a folder a package.
+
+        * Scripts/webkitpy/patch/patcher.py: Added.
+          - Moved code from Scripts/webkit-patch.
+
+2010-03-13  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Changed test-webkitpy so that messages logged as a side-effect
+        of unit-testing code do not get displayed to the screen.  These
+        messages clutter up the unit test results if not filtered out.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35835
+
+        * Scripts/test-webkitpy:
+          - Adjusted the configure_logging() method to filter out any
+            log messages from webkitpy.
+          - Also added an INFO message stating that most console logging
+            is getting suppressed.
+
+        * Scripts/webkitpy/init/versioning.py:
+          - Added a log parameter to the check_version() method.
+
+        * Scripts/webkitpy/init/versioning_unittest.py:
+          - Qualified a call to check_version() with the parameter names.
+
+2010-03-13  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        The test-webkitpy script now warns the user if the script is
+        being run using a Python version different from the minimum
+        version the webkitpy package was meant to support.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35788
+
+        Warning developers if their Python version is too low will help
+        them understand why test-webkitpy is failing.  Secondly, warning
+        developers if their Python version is higher than the minimum will
+        help them understand that their changes may not be okay for the
+        minimum supported version, even if test-webkitpy is passing.
+
+        * Scripts/test-webkitpy:
+          - Moved the "from ..._unittest import *" lines to the new
+            file Scripts/webkitpy/unittests.py.  This will allow the
+            version-check warning to be displayed even if an error occurs
+            while interpreting (i.e. importing) the unit test code.
+          - Added configure_logging() to configur logging for test-webkitpy.
+          - Added an init() method to configure logging and check the
+            current Python version.
+
+        * Scripts/webkitpy/init/unittests.py: Added.
+          - Added a file to import all unit test modules in the
+            webkitpy.init package.
+
+        * Scripts/webkitpy/init/versioning.py: Added.
+          - Added a _MINIMUM_SUPPORTED_PYTHON_VERSION variable and set
+            it equal to 2.5.
+          - Added a compare_version() method to compare the current Python
+            version against a target version.
+          - Added a check_version() method to check the current Python
+            version against the current minimum supported version, and to
+            log a warning message if the check fails.
+
+        * Scripts/webkitpy/init/versioning_unittest.py: Added.
+          - Added unit tests for the functions in versioning.py.
+
+        * Scripts/webkitpy/style/unittests.py:
+          - Fixed/updated a code comment.
+
+        * Scripts/webkitpy/unittests.py: Added.
+          - Moved the "from ..._unittest import *" lines from test-webkitpy.
+
+2010-03-13  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Moved all code in webkitpy/__init__.py to another location.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35828
+
+        Keeping webkitpy/__init__.py free of non-trivial code allows
+        calling code to import initialization code from webkitpy
+        before any errors or log messages occur due to code in
+        __init__.py.  Such initialization code can include things like
+        version checking code and logging configuration code.  This
+        also lets us move the autoinstall initialization code to a
+        location where it only executes if it is needed -- something
+        we have done in this patch.
+
+        * Scripts/webkitpy/__init__.py:
+          - Moved all executable code to the following location:
+            webkitpy/thirdparty/autoinstalled/__init__.py
+          - Added a code comment to keep this file free of non-trivial
+            code.
+
+        * Scripts/webkitpy/bugzilla.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/networktransaction.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/networktransaction_unittest.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/statusserver.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/thirdparty/autoinstalled/__init__.py: Added.
+          - Copied the code from webkitpy/__init__.py and updated it
+            as necessary.
+
+2010-03-13  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Moved webkitpy/mock.py into webkitpy/thirdparty since it is
+        third-party code.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35499
+
+        Updated the import statement in all of the below except where noted.
+
+        * Scripts/webkitpy/bugzilla_unittest.py:
+        * Scripts/webkitpy/commands/commandtest.py:
+        * Scripts/webkitpy/commands/download_unittest.py:
+        * Scripts/webkitpy/commands/early_warning_system_unittest.py:
+        * Scripts/webkitpy/commands/queries_unittest.py:
+        * Scripts/webkitpy/commands/queues_unittest.py:
+        * Scripts/webkitpy/commands/queuestest.py:
+        * Scripts/webkitpy/commands/upload.py:
+        * Scripts/webkitpy/commands/upload_unittest.py:
+        * Scripts/webkitpy/commands_references.py: Added.
+          - Added a file containing an absolute import of Mock so that
+            the imports in the commands folder can import from this file
+            (similar to style_references.py).  This helps limit the
+            number of affected files in future refactorings.
+
+        * Scripts/webkitpy/credentials_unittest.py:
+        * Scripts/webkitpy/mock.py: Removed.
+          - Moved to Scripts/webkitpy/thirdparty.
+
+        * Scripts/webkitpy/mock_bugzillatool.py:
+        * Scripts/webkitpy/patchcollection_unittest.py:
+        * Scripts/webkitpy/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/steps/steps_unittest.py:
+        * Scripts/webkitpy/steps/updatechangelogswithreview_unittests.py:
+        * Scripts/webkitpy/steps_references.py: Added.
+          - Added a file containing an absolute import of Mock so that
+            the imports in the steps folder can import from this file
+            (similar to style_references.py).  This helps limit the
+            number of affected files in future refactorings.
+
+        * Scripts/webkitpy/thirdparty/mock.py: Copied from WebKitTools/Scripts/webkitpy/mock.py.
+          - Also eliminated trailing white space and carriage returns.
+
+2010-03-12  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Amend incorrect typo patch for QtLauncher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35877
+
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::setFrameRateMeasurementEnabled):
+
+2010-03-13  Victor Wang  <victorw@chromium.org>
+
+        Add appengine app to host and serve webkit layout test results.
+
+        The app allows you post test result files (json) and serve them up.
+        Chromium flakiness dashboard will first use this app to host results.json
+        and expectations.json, but the files hosted by this app are not limited
+        to chromium results or json files. It can be used to host other files if needed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35944
+
+        * TestResultServer: Added.
+        * TestResultServer/app.yaml: Added.
+        * TestResultServer/handlers: Added.
+        * TestResultServer/handlers/__init__.py: Added.
+        * TestResultServer/handlers/menu.py: Added.
+        * TestResultServer/handlers/testfilehandler.py: Added.
+        * TestResultServer/index.yaml: Added.
+        * TestResultServer/main.py: Added.
+        * TestResultServer/model: Added.
+        * TestResultServer/model/__init__.py: Added.
+        * TestResultServer/model/testfile.py: Added.
+        * TestResultServer/stylesheets: Added.
+        * TestResultServer/stylesheets/form.css: Added.
+        * TestResultServer/stylesheets/menu.css: Added.
+        * TestResultServer/stylesheets/testfile.css: Added.
+        * TestResultServer/templates: Added.
+        * TestResultServer/templates/menu.html: Added.
+        * TestResultServer/templates/showfilelist.html: Added.
+        * TestResultServer/templates/uploadform.html: Added.
+
+2010-03-13  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by David Levin.
+
+        new-run-webkit-tests fails with --debug option.
+        https://bugs.webkit.org/show_bug.cgi?id=36067
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-13  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add "Show FPS" menu option to QtLauncher.
+
+        [Qt] QtLauncher need a menu option to show/hide FPS
+        https://bugs.webkit.org/show_bug.cgi?id=35794
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::showFPS):
+        (LauncherWindow::createChrome):
+
+2010-03-13  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add a "Toggle FullScreen" option to QtLauncher Menu.
+
+        [Qt] QtLauncher needs an option to toggle FullScreen Mode
+        https://bugs.webkit.org/show_bug.cgi?id=35755
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::init):
+        (LauncherWindow::eventFilter):
+        (LauncherWindow::initializeView):
+        (LauncherWindow::toggleFullScreenMode):
+        (LauncherWindow::createChrome):
+
+2010-03-12  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix typo in websocket_server (path_from_base instead of 
+        path_from_chromium_base).
+
+        https://bugs.webkit.org/show_bug.cgi?id=36074
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-03-12  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests --new-baseline doesn't work at all.
+
+        It attempts to call a method that isn't defined. To fix it, I
+        removed the unnecessary and unnecessarily confusing 'platform'
+        argument to the test_type constructor and use the Port object that
+        is passed in instead, since we are only ever generating a baseline
+        from the port that is currently executing.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36046
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/test_types/test_type_base.py:
+
+2010-03-12  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Fix new-run-webkit-tests --run-singly
+
+        This script option is currently broken - the script attempts to
+        dereference methods and variables that don't exist, which causes
+        the Chromium Linux valgrind bot to be quite unhappy. This has been
+        broken since r54449 when I renamed Port.start_test_driver to
+        Port.start_driver.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36042
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+
+2010-03-12  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Fix critical being printed to stderr on every test. This is
+        because the jar is only being created when soup hits the HTTP
+        path. We should reconsider the time of its creation.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+
+2010-03-12  Adam Roben  <aroben@apple.com>
+
+        Teach prepare-ChangeLog to find modified selectors in CSS files
+
+        Reviewed by Tim Hatcher.
+
+        Fixes <http://webkit.org/b/36064> prepare-ChangeLog should extract
+        modified selectors from CSS files
+
+        * Scripts/prepare-ChangeLog:
+        (get_function_line_ranges): Call get_selector_line_ranges_for_css for
+        .css files.
+        (get_selector_line_ranges_for_css): Added. Finds selectors and their
+        line ranges and returns them.
+
+2010-03-12  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Build fix (for EWS). Make sure the new code builds on older soup.
+
+        Thanks to Dan Winship.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setAlwaysAcceptCookies):
+
+2010-03-12  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Eric Carlson.
+
+        [GTK] DRT does not handle cookie policy setting
+        https://bugs.webkit.org/show_bug.cgi?id=36056
+
+        Implement cookie accept policy setting for GTK+'s LayoutTestController.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setAlwaysAcceptCookies):
+
+2010-03-12  Adam Langley  <agl@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium]: update Linux layout test scripts for RedHat like systems.
+
+        (Tested on Fedora 12.)
+
+        https://bugs.webkit.org/show_bug.cgi?id=35867
+
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+
+2010-03-12  Adam Roben  <aroben@apple.com>
+
+        Make svn-create-patch's diffs of ObjC header files more readable
+
+        Fixes <http://webkit.org/b/36055>.
+
+        Reviewed by John Sullivan.
+
+        * Scripts/svn-create-patch:
+        (diffOptionsForFile): Added. Returns the options that should be passed
+        to diff for the given file. All the options are the same for all
+        files, except for the option to specify which lines should be used as
+        hunk headers.
+        (generateDiff): Use diffOptionsForFile to get the options to pass to
+        diff.
+        (hunkHeaderLineRegExForFile): Added. Returns the regular expression
+        that should be used by diff to identify lines that should be included
+        after the "@@" in the hunk header lines of the diff. For ObjC[++]
+        source files, we use any lines starting with -, +, or
+        @implementation/@interface/@protocol. For ObjC[++] header files (which
+        we assume to be any .h files in a mac/ or objc/ directory), we use any
+        lines starting with @implementation/@interface/@protocol.
+
+2010-03-12  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Introduce setWillSendRequestClearHeader to LayoutTestController to selectively remove headers in willSendRequest. Used in http/tests/security/no-referrer.html
+        https://bugs.webkit.org/show_bug.cgi?id=35920
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setWillSendRequestClearHeaderCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::willSendRequestClearHeaders):
+        (LayoutTestController::setWillSendRequestClearHeader):
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm:
+        (-[ResourceLoadDelegate webView:resource:willSendRequest:redirectResponse:fromDataSource:]):
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::willSendRequest):
+
+2010-03-11  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed.
+
+        Fix typo in websocket_server.py
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-03-11  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Fixing minor typo in the commit queue status page.
+        https://bugs.webkit.org/show_bug.cgi?id=35979
+
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-03-11  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed.
+
+        Fix for WebSocket layout test runner on chromium/win port.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: register_cygwin and set CYGWIN_PATH
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by David Kilzer.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Default to using the appropriate SDK if the target Mac OS X version is not the current Mac OS X version.
+
+        * DumpRenderTree/mac/Configurations/Base.xcconfig:
+
+2010-03-11  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by dglazkov@chromium.org.
+
+        rebaseline_chromium_webkit_tests can generate new baselines for
+        all platforms so it needs to know two ports in order to work correctly:
+        the port that the script is running on and the port that it generates
+        new baselines for. Update rebaselining tool to handle both port correctly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36032
+
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Introduce TARGET_MAC_OS_X_VERSION_MAJOR to represent the Mac OS X version that is being targeted.  It defaults to the
+        current Mac OS X version unless otherwise specified.
+
+        Key off TARGET_MAC_OS_X_VERSION_MAJOR where we'd previously been keying off MAC_OS_X_VERSION_MAJOR.
+
+        Explicitly map from the target Mac OS X version to the preferred compiler since Xcode's default compiler choice
+        may not be usable when targetting a different Mac OS X version.
+
+        Key off TARGET_GCC_VERSION rather than MAC_OS_X_VERSION_MAJOR in locations where we'd previously been keying off
+        MAC_OS_X_VERSION_MAJOR but the decision is really related to the compiler version being used.
+
+        * DumpRenderTree/mac/Configurations/Base.xcconfig:
+        * DumpRenderTree/mac/Configurations/DebugRelease.xcconfig:
+        * DumpRenderTree/mac/DumpRenderTree.mm: Wrap the include of mach-o/getsect.h in 'extern "C"' as some versions of the
+        header in older SDKs do not do this inside the header.
+
+2010-03-11  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35965
+        <rdar://problem/7742771> Crash when passing an object returned from plug-in back to the plug-in
+
+        Made rememberedObject a member of PluginObject. A plug-in must not use its references
+        to browser NPObjects after being destroyed, but this wasn't the case with static variable.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginInvoke):
+        (pluginInvalidate):
+        (pluginAllocate):
+        (pluginDeallocate):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+
+2010-03-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35905
+        REGRESSION(55699?): media/video-no-autoplay.html times out on Leopard Commit Bot
+
+        Make sure we reset the WebGL preference, so that WebGL doesn't get left
+        on after being enabled via layoutTestController.overridePreference(),
+        which in turn causes accelerated compositing to be enabled on Leopard
+        when we don't want it to be.
+        
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+
+2010-03-10  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        rebaseline_chromium_webkit_tests doesn't handle other plaforms
+        correctly (e.g., if you run on the Mac platform and try to
+        rebaseline the WIN results, the result gets written into
+        platform/mac instead of platform/chromium-win). Also, this script
+        doesn't work on non-Chromium ports, so we need to fix that at some
+        point.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35982
+
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+
 2010-03-11  Daniel Bates  <dbates@rim.com>
 
         Reviewed by Simon Hausmann.

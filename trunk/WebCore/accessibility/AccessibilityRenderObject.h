@@ -115,7 +115,7 @@ public:
     virtual bool hasIntValue() const;
     
     // Provides common logic used by all elements when determining isIgnored.
-    bool accessibilityIsIgnoredBase() const;
+    AccessibilityObjectInclusion accessibilityIsIgnoredBase() const;
     virtual bool accessibilityIsIgnored() const;
     
     virtual int headingLevel() const;
@@ -193,7 +193,6 @@ public:
     virtual Widget* widgetForAttachmentView() const;
     virtual void getDocumentLinks(AccessibilityChildrenVector&);
     virtual FrameView* documentFrameView() const;
-    virtual String language() const;
     virtual unsigned hierarchicalLevel() const;
 
     virtual const AccessibilityChildrenVector& children();
@@ -275,6 +274,7 @@ private:
     bool isAllowedChildOfTree() const;
     bool hasTextAlternative() const;
     String positionalDescriptionForMSAA() const;
+    virtual String language() const;
 
     Element* menuElementForMenuButton() const;
     Element* menuItemElementForMenu() const;

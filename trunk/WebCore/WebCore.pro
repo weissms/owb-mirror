@@ -666,6 +666,7 @@ SOURCES += \
     html/HTMLPlugInElement.cpp \
     html/HTMLPlugInImageElement.cpp \
     html/HTMLPreElement.cpp \
+    html/HTMLProgressElement.cpp \
     html/HTMLQuoteElement.cpp \
     html/HTMLScriptElement.cpp \
     html/HTMLSelectElement.cpp \
@@ -831,6 +832,7 @@ SOURCES += \
     platform/graphics/Pen.cpp \
     platform/graphics/SegmentedFontData.cpp \
     platform/graphics/SimpleFontData.cpp \
+    platform/graphics/TiledBackingStore.cpp \
     platform/graphics/transforms/AffineTransform.cpp \
     platform/graphics/transforms/TransformationMatrix.cpp \
     platform/graphics/transforms/MatrixTransformOperation.cpp \
@@ -929,6 +931,7 @@ SOURCES += \
     rendering/RenderObjectChildList.cpp \
     rendering/RenderPart.cpp \
     rendering/RenderPartObject.cpp \
+    rendering/RenderProgress.cpp \
     rendering/RenderReplaced.cpp \
     rendering/RenderReplica.cpp \
     rendering/RenderRuby.cpp \
@@ -1367,6 +1370,7 @@ HEADERS += \
     html/HTMLPlugInElement.h \
     html/HTMLPlugInImageElement.h \
     html/HTMLPreElement.h \
+    html/HTMLProgressElement.h \
     html/HTMLQuoteElement.h \
     html/HTMLScriptElement.h \
     html/HTMLSelectElement.h \
@@ -1547,6 +1551,9 @@ HEADERS += \
     platform/graphics/qt/StillImageQt.h \
     platform/graphics/SegmentedFontData.h \
     platform/graphics/SimpleFontData.h \
+    platform/graphics/Tile.h \
+    platform/graphics/TiledBackingStore.h \    
+    platform/graphics/TiledBackingStoreClient.h \
     platform/graphics/transforms/Matrix3DTransformOperation.h \
     platform/graphics/transforms/MatrixTransformOperation.h \
     platform/graphics/transforms/PerspectiveTransformOperation.h \
@@ -1670,6 +1677,7 @@ HEADERS += \
     rendering/RenderPart.h \
     rendering/RenderPartObject.h \
     rendering/RenderPath.h \
+    rendering/RenderProgress.h \
     rendering/RenderReplaced.h \
     rendering/RenderReplica.h \
     rendering/RenderRuby.h \
@@ -2040,6 +2048,7 @@ SOURCES += \
     platform/graphics/qt/FontCustomPlatformDataQt.cpp \
     platform/graphics/qt/GlyphPageTreeNodeQt.cpp \
     platform/graphics/qt/SimpleFontDataQt.cpp \
+    platform/graphics/qt/TileQt.cpp \
     platform/qt/KURLQt.cpp \
     platform/qt/Localizations.cpp \
     platform/qt/MIMETypeRegistryQt.cpp \
@@ -2798,6 +2807,13 @@ SOURCES += \
 
 }
 
+contains(DEFINES, ENABLE_SYMBIAN_DIALOG_PROVIDERS) {
+    # this feature requires the S60 platform private BrowserDialogsProvider.h header file
+    # and is therefore not enabled by default but only meant for platform builds.
+    symbian {
+        LIBS += -lbrowserdialogsprovider
+    }
+}
 
 include($$PWD/../WebKit/qt/Api/headers.pri)
 include(../include/QtWebKit/classheaders.pri)
@@ -2864,7 +2880,7 @@ WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
     }
 }
 
-CONFIG(standalone_package):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VERSION, 4) {
+CONFIG(QTDIR_build):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VERSION, 4) {
     # start with 4.5
     # Remove the following 2 lines if you want debug information in WebCore
     CONFIG -= separate_debug_info

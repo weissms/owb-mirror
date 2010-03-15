@@ -1,3 +1,106 @@
+2010-03-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebKit part of removing support for legacy versions of Core Graphics
+
+        * WebKitClassFactory.cpp:
+        (WebKitClassFactory::WebKitClassFactory): Removed call to populateFontDatabase().
+        * WebKitGraphics.cpp:
+        (makeFont): Ditto.
+        * WebTextRenderer.cpp:
+        (WebTextRenderer::registerPrivateFont): Removed call to wkAddFontsAtPath().
+
+2010-03-12  Enrica Casucci  <enrica@apple.com>
+
+        Fixed broken build on Windows.
+        Added contditional compilation for accelerated compositing.
+
+        * WebView.cpp:
+        (WebView::deleteBackingStore):
+        (WebView::addToDirtyRegion):
+        (WebView::updateBackingStore):
+
+2010-03-12  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=34942 Fullscreen 
+        API naming is inconsistent
+        -and corresponding-
+        <rdar://problem/7729165>
+
+        This patch changes all occurrences of "fullScreen" to the more 
+        popular "fullscreen."
+
+        * FullscreenVideoController.cpp:
+        (FullscreenVideoController::onMouseDown):
+        (FullscreenVideoController::onMouseMove):
+        (FullscreenVideoController::onMouseUp):
+        * FullscreenVideoController.h:
+        (FullscreenVideoController::fullscreenToHUDCoordinates):
+
+2010-03-12  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=33739 Fullscreen 
+        video HUD stays on top when switching to another window (e.g. via 
+        Alt-Tab)
+        -and corresponding-
+        <rdar://problem/7547574>
+
+        The HUD was always on top because it had the WS_EX_TOPMOST style. 
+        So I removed the style and made m_videoWindow the owner of 
+        m_hudWindow. This keeps m_hudWindow on top only when m_videoWindow 
+        is the focused window.
+
+        * FullscreenVideoController.cpp:
+        (FullscreenVideoController::exitFullscreen): ASSERT that movie()->exitFullscreen() also destroyed the hud.
+        (FullscreenVideoController::createHUDWindow):
+
+2010-03-12  Enrica Casucci  <enrica@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Content of 3D tests appears at the bottom right corner sometimes.
+        <rdar://problem/7556244>
+        <https://bugs.webkit.org/show_bug.cgi?id=36027>
+
+        See detailed comments in WebCore/ChangeLog.
+
+        * WebView.cpp:
+        (WebView::deleteBackingStore): Reset the dirty flag when deleting the backing store.
+        (WebView::addToDirtyRegion): Set the dirty flag when adding dirty rectangles to the
+        backing store dirty region.
+        (WebView::updateBackingStore): Reset the dirty flag after painting into the backing store.
+        (WebView::setAcceleratedCompositing): Removed unnecessary call to updateRootLayerContents.
+        (WebView::updateRootLayerContents): Changed the way we pass parameters to setScrollFrame.
+        We are passing width and height of the view content together with the offset for the scrolling.
+        It was confusing to pass it all as a rectangle, when it is not a rectangle.
+        
+2010-03-11  Aaron Boodman  <aa@chromium.org>
+
+        Kill WebDocument::applicationID() (part 1).
+
+        Modify interface to WebCore::NotificationPresenter::checkPermission()
+        and remove implementation of WebDocument::applicationID(). Breaking
+        API changes will be in a subsequent change.
+        https://bugs.webkit.org/show_bug.cgi?id=35846
+
+        * WebCoreSupport/WebDesktopNotificationsDelegate.cpp:
+        (WebDesktopNotificationsDelegate::checkPermission):
+        * WebCoreSupport/WebDesktopNotificationsDelegate.h:
+
+2010-03-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Remove invalidateContents, it isn't used and it never makes sense to only invalidate the contents.
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        * WebCoreSupport/WebChromeClient.h:
+
 2010-03-11  Eric Uhrhane  <ericu@chromium.org>
 
         Reviewed by David Levin.

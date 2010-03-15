@@ -36,6 +36,7 @@ class WebView;
 namespace WebCore {
     class Document;
     class KURL;
+    class SecurityOrigin;
 }
 
 class WebDesktopNotificationsDelegate : public WebCore::NotificationPresenter {
@@ -48,6 +49,7 @@ public:
     virtual void notificationObjectDestroyed(WebCore::Notification* object);
     virtual void requestPermission(WebCore::SecurityOrigin* origin, PassRefPtr<WebCore::VoidCallback> callback);
     virtual WebCore::NotificationPresenter::Permission checkPermission(const WebCore::KURL& url, WebCore::Document* document);
+    virtual WebCore::NotificationPresenter::Permission checkPermission(WebCore::SecurityOrigin* origin);
 
 private:
     WebView* m_webView;

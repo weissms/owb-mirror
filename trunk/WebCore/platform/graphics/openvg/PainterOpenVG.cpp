@@ -107,6 +107,10 @@ struct PlatformPainterState {
 
     bool scissoringEnabled;
     FloatRect scissorRect;
+#ifdef OPENVG_VERSION_1_1
+    bool maskingChangedAndEnabled;
+    VGMaskLayer mask;
+#endif
 
     Color fillColor;
     StrokeStyle strokeStyle;
@@ -118,12 +122,17 @@ struct PlatformPainterState {
     DashArray strokeDashArray;
     float strokeDashOffset;
 
+    int textDrawingMode;
     bool antialiasingEnabled;
 
     PlatformPainterState()
         : compositeOperation(CompositeSourceOver)
         , opacity(1.0)
         , scissoringEnabled(false)
+#ifdef OPENVG_VERSION_1_1
+        , maskingChangedAndEnabled(false)
+        , mask(VG_INVALID_HANDLE)
+#endif
         , fillColor(Color::black)
         , strokeStyle(NoStroke)
         , strokeThickness(0.0)
@@ -131,8 +140,20 @@ struct PlatformPainterState {
         , strokeLineJoin(MiterJoin)
         , strokeMiterLimit(4.0)
         , strokeDashOffset(0.0)
+        , textDrawingMode(cTextFill)
         , antialiasingEnabled(true)
     {
+    }
+
+    ~PlatformPainterState()
+    {
+#ifdef OPENVG_VERSION_1_1
+        if (maskingChangedAndEnabled && mask != VG_INVALID_HANDLE) {
+            vgDestroyMaskLayer(mask);
+            ASSERT_VG_NO_ERROR();
+            mask = VG_INVALID_HANDLE;
+        }
+#endif
     }
 
     PlatformPainterState(const PlatformPainterState& state)
@@ -141,7 +162,16 @@ struct PlatformPainterState {
 
         scissoringEnabled = state.scissoringEnabled;
         scissorRect = state.scissorRect;
+#ifdef OPENVG_VERSION_1_1
+        maskingChangedAndEnabled = false;
+        mask = state.mask;
+#endif
         copyPaintState(&state);
+    }
+
+    inline bool maskingEnabled()
+    {
+        return maskingChangedAndEnabled || mask != VG_INVALID_HANDLE;
     }
 
     void copyPaintState(const PlatformPainterState* other)
@@ -159,6 +189,7 @@ struct PlatformPainterState {
         strokeDashArray = other->strokeDashArray;
         strokeDashOffset = other->strokeDashOffset;
 
+        textDrawingMode = other->textDrawingMode;
         antialiasingEnabled = other->antialiasingEnabled;
     }
 
@@ -184,6 +215,16 @@ struct PlatformPainterState {
 
         applyTransformation(painter);
         applyScissorRect();
+
+#ifdef OPENVG_VERSION_1_1
+        if (maskingEnabled()) {
+            vgSeti(VG_MASKING, VG_TRUE);
+            if (mask != VG_INVALID_HANDLE)
+                vgMask(mask, VG_SET_MASK, 0, 0, painter->surface()->width(), painter->surface()->height());
+        } else
+            vgSeti(VG_MASKING, VG_FALSE);
+#endif
+        ASSERT_VG_NO_ERROR();
     }
 
     void applyBlending(PainterOpenVG* painter)
@@ -334,6 +375,22 @@ struct PlatformPainterState {
     inline bool fillDisabled() const
     {
         return (compositeOperation == CompositeSourceOver && !fillColor.alpha());
+    }
+
+    void saveMaskIfNecessary(PainterOpenVG* painter)
+    {
+#ifdef OPENVG_VERSION_1_1
+        if (maskingChangedAndEnabled) {
+            if (mask != VG_INVALID_HANDLE) {
+                vgDestroyMaskLayer(mask);
+                ASSERT_VG_NO_ERROR();
+            }
+            mask = vgCreateMaskLayer(painter->surface()->width(), painter->surface()->height());
+            ASSERT(mask != VG_INVALID_HANDLE);
+            vgCopyMask(mask, 0, 0, 0, 0, painter->surface()->width(), painter->surface()->height());
+            ASSERT_VG_NO_ERROR();
+        }
+#endif
     }
 };
 
@@ -598,6 +655,18 @@ void PainterOpenVG::setFillColor(const Color& color)
     setVGSolidColor(VG_FILL_PATH, color);
 }
 
+int PainterOpenVG::textDrawingMode() const
+{
+    ASSERT(m_state);
+    return m_state->textDrawingMode;
+}
+
+void PainterOpenVG::setTextDrawingMode(int mode)
+{
+    ASSERT(m_state);
+    m_state->textDrawingMode = mode;
+}
+
 bool PainterOpenVG::antialiasingEnabled() const
 {
     ASSERT(m_state);
@@ -730,9 +799,43 @@ void PainterOpenVG::intersectClipRect(const FloatRect& rect)
         intersectScissorRect(effectiveScissorQuad.boundingBox());
     else {
         // The transformed scissorRect cannot be represented as FloatRect
-        // anymore, so we need to perform masking instead. Not yet implemented.
-        notImplemented();
+        // anymore, so we need to perform masking instead.
+        Path scissorRectPath;
+        scissorRectPath.addRect(rect);
+        clipPath(scissorRectPath, PainterOpenVG::IntersectClip);
     }
+}
+
+void PainterOpenVG::clipPath(const Path& path, PainterOpenVG::ClipOperation maskOp, WindRule clipRule)
+{
+#ifdef OPENVG_VERSION_1_1
+    ASSERT(m_state);
+    m_surface->makeCurrent();
+
+    if (m_state->mask != VG_INVALID_HANDLE && !m_state->maskingChangedAndEnabled) {
+        // The parent's mask has been inherited - dispose the handle so that
+        // it won't be overwritten.
+        m_state->maskingChangedAndEnabled = true;
+        m_state->mask = VG_INVALID_HANDLE;
+    } else if (!m_state->maskingEnabled()) {
+        // None of the parent painter states had a mask enabled yet.
+        m_state->maskingChangedAndEnabled = true;
+        vgSeti(VG_MASKING, VG_TRUE);
+        // Make sure not to inherit previous mask state from previously written
+        // (but disabled) masks. For VG_FILL_MASK the first argument is ignored,
+        // we pass VG_INVALID_HANDLE which is what the OpenVG spec suggests.
+        vgMask(VG_INVALID_HANDLE, VG_FILL_MASK, 0, 0, m_surface->width(), m_surface->height());
+    }
+
+    // Intersect the path from the mask, or subtract it from there.
+    // (In either case we always decrease the visible area, never increase it,
+    // which means masking never has to modify scissor rectangles.)
+    vgSeti(VG_FILL_RULE, toVGFillRule(clipRule));
+    vgRenderToMask(path.platformPath()->vgPath(), VG_FILL_PATH, (VGMaskOperation) maskOp);
+    ASSERT_VG_NO_ERROR();
+#elseif
+    notImplemented();
+#endif
 }
 
 void PainterOpenVG::drawRect(const FloatRect& rect, VGbitfield specifiedPaintModes)
@@ -982,6 +1085,58 @@ void PainterOpenVG::drawPolygon(size_t numPoints, const FloatPoint* points, VGbi
     ASSERT_VG_NO_ERROR();
 }
 
+#ifdef OPENVG_VERSION_1_1
+void PainterOpenVG::drawText(VGFont vgFont, Vector<VGuint>& characters, VGfloat* adjustmentsX, VGfloat* adjustmentsY, const FloatPoint& point)
+{
+    ASSERT(m_state);
+
+    VGbitfield paintModes = 0;
+
+    if (m_state->textDrawingMode & cTextClip)
+        return; // unsupported for every port except CG at the time of writing
+    if (m_state->textDrawingMode & cTextFill && !m_state->fillDisabled())
+        paintModes |= VG_FILL_PATH;
+    if (m_state->textDrawingMode & cTextStroke && !m_state->strokeDisabled())
+        paintModes |= VG_STROKE_PATH;
+
+    m_surface->makeCurrent();
+
+    FloatPoint effectivePoint = m_state->surfaceTransformation.mapPoint(point);
+    FloatPoint p = point;
+    AffineTransform* originalTransformation = 0;
+
+    // In case the font isn't drawn at a pixel-exact baseline and we can easily
+    // fix that (which is the case for non-rotated affine transforms), let's
+    // align the starting point to the pixel boundary in order to prevent
+    // font rendering issues such as glyphs that appear off by a pixel.
+    // This causes us to have inconsistent spacing between baselines in a
+    // larger paragraph, but that seems to be the least of all evils.
+    if ((fmod(effectivePoint.x() + 0.01, 1.0) > 0.02 || fmod(effectivePoint.y() + 0.01, 1.0) > 0.02)
+        && isNonRotatedAffineTransformation(m_state->surfaceTransformation))
+    {
+        originalTransformation = new AffineTransform(m_state->surfaceTransformation);
+        setTransformation(AffineTransform(
+            m_state->surfaceTransformation.a(), 0,
+            0, m_state->surfaceTransformation.d(),
+            roundf(effectivePoint.x()), roundf(effectivePoint.y())));
+        p = FloatPoint();
+    }
+
+    const VGfloat vgPoint[2] = { p.x(), p.y() };
+    vgSetfv(VG_GLYPH_ORIGIN, 2, vgPoint);
+    ASSERT_VG_NO_ERROR();
+
+    vgDrawGlyphs(vgFont, characters.size(), characters.data(),
+        adjustmentsX, adjustmentsY, paintModes, VG_TRUE /* allow autohinting */);
+    ASSERT_VG_NO_ERROR();
+
+    if (originalTransformation) {
+        setTransformation(*originalTransformation);
+        delete originalTransformation;
+    }
+}
+#endif
+
 void PainterOpenVG::save(PainterOpenVG::SaveMode saveMode)
 {
     ASSERT(m_state);
@@ -993,15 +1148,18 @@ void PainterOpenVG::save(PainterOpenVG::SaveMode saveMode)
     m_surface->makeCurrent(SurfaceOpenVG::DontSaveOrApplyPainterState);
 
     if (saveMode == PainterOpenVG::CreateNewState) {
+        m_state->saveMaskIfNecessary(this);
         PlatformPainterState* state = new PlatformPainterState(*m_state);
         m_stateStack.append(state);
         m_state = m_stateStack.last();
-    } else { // if (saveMode == PainterOpenVG::CreateNewStateWithPaintStateOnly) {
+    } else if (saveMode == PainterOpenVG::CreateNewStateWithPaintStateOnly) {
+        m_state->saveMaskIfNecessary(this);
         PlatformPainterState* state = new PlatformPainterState();
         state->copyPaintState(m_state);
         m_stateStack.append(state);
         m_state = m_stateStack.last();
-    }
+    } else // if (saveMode == PainterOpenVG::KeepCurrentState)
+        m_state->saveMaskIfNecessary(this);
 }
 
 void PainterOpenVG::restore()

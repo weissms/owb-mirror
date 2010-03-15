@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  *
  * Portions are Copyright (C) 1998 Netscape Communications Corporation.
  *
@@ -1235,15 +1235,24 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
         view->updateWidgetPositions();
     }
 
-    // The caret rect needs to be invalidated after scrolling
+    RenderBoxModelObject* repaintContainer = renderer()->containerForRepaint();
+    IntRect rectForRepaint = renderer()->clippedOverflowRectForRepaint(repaintContainer);
+
     Frame* frame = renderer()->document()->frame();
-    if (frame)
+    if (frame) {
+        // The caret rect needs to be invalidated after scrolling
         frame->selection()->setNeedsLayout();
 
+        FloatQuad quadForFakeMouseMoveEvent = FloatQuad(rectForRepaint);
+        if (repaintContainer)
+            quadForFakeMouseMoveEvent = repaintContainer->localToAbsoluteQuad(quadForFakeMouseMoveEvent);
+        frame->eventHandler()->dispatchFakeMouseMoveEventSoonInQuad(quadForFakeMouseMoveEvent);
+    }
+
     // Just schedule a full repaint of our object.
-    if (repaint)
-        renderer()->repaint();
-    
+    if (view && repaint)
+        renderer()->repaintUsingContainer(repaintContainer, rectForRepaint);
+
     if (updateScrollbars) {
         if (m_hBar)
             m_hBar->setValue(scrollXOffset());
@@ -2972,7 +2981,7 @@ IntRect RenderLayer::localBoundingBox() const
         int top = firstBox->topVisibleOverflow();
         int bottom = inlineFlow->lastLineBox()->bottomVisibleOverflow();
         int left = firstBox->x();
-        for (InlineRunBox* curr = firstBox->nextLineBox(); curr; curr = curr->nextLineBox())
+        for (InlineFlowBox* curr = firstBox->nextLineBox(); curr; curr = curr->nextLineBox())
             left = min(left, curr->x());
         result = IntRect(left, top, width(), bottom - top);
     } else if (renderer()->isTableRow()) {

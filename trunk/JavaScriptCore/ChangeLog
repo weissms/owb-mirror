@@ -1,3 +1,200 @@
+2010-03-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-12  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 36075 - Clean up screwyness re static string impls & Identifiers.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::~OpaqueJSClass): Classname may be null/empty, and these are an identifer.  This is okay, since the null/empty strings are shared across all threads.
+        * JavaScriptCore.exp:
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add): No need to explicitly hash null reps, this is done in the ststic UStringImpl constructor.
+        (JSC::Identifier::addSlowCase): UStringImpl::empty() handled & checkCurrentIdentifierTable now called in the header.
+        (JSC::Identifier::checkCurrentIdentifierTable): Replaces checkSameIdentifierTable (this no longer checked the rep since the identifierTable pointer was removed from UString::Rep long ago).
+        * runtime/Identifier.h:
+        (JSC::Identifier::add): Replace call to checkSameIdentifierTable with call to checkCurrentIdentifierTable at head of function.
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::~UStringImpl): Remove call to checkConsistency - this function no longer checks anything interesting.
+        * runtime/UStringImpl.h:
+        (JSC::UStringOrRopeImpl::UStringOrRopeImpl): Set s_refCountFlagIsIdentifier in static constructor.
+        (JSC::UStringImpl::UStringImpl): remove calls to checkConsistency (see above), add new ASSERT to substring constructor.
+        (JSC::UStringImpl::setHash): ASSERT not static (static strings set the hash in their constructor, should not reach this code path).
+        (JSC::UStringImpl::create): Add missing ASSERT.
+        (JSC::UStringImpl::setIsIdentifier): ASSERT !isStatic() (static strings hash set in constructor).
+
+2010-03-12  Peter Varga  <pvarga@inf.u-szeged.hu>
+
+        Reviewed by David Levin.
+
+        Two functions tryConsumeCharacter() and tryConsumeCharacterClass() are
+        removed from yarr/RegexInterpreter.cpp because they are never called.
+
+        * yarr/RegexInterpreter.cpp:
+
+2010-03-11  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Mac OS X: Use deployment target to determine whether memory tagging should be enabled
+        https://bugs.webkit.org/show_bug.cgi?id=34888
+
+        Use TARGETING_TIGER rather than BUILDING_ON_TIGER to determine the tags.
+
+        * wtf/VMTags.h:
+
+2010-03-11  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        The JSNative state was renamed to JSPrimitive. The new name better
+        coresponds to the ECMAScript standard.
+
+        Enum QScriptValuePrivate::States was renamed to State to obey Qt
+        coding style rules ("States" name suggests that a state could
+        mixed together with an other state using bitwise logic operators.
+
+        [Qt] QScriptValuePrivate::States has naming issues
+        https://bugs.webkit.org/show_bug.cgi?id=35968
+
+        * qt/api/qscriptvalue_p.h:
+        (QScriptValuePrivate::):
+        (QScriptValuePrivate::QScriptValuePrivate):
+        (QScriptValuePrivate::isBool):
+        (QScriptValuePrivate::isNumber):
+        (QScriptValuePrivate::isNull):
+        (QScriptValuePrivate::isString):
+        (QScriptValuePrivate::isUndefined):
+        (QScriptValuePrivate::toString):
+        (QScriptValuePrivate::toNumber):
+        (QScriptValuePrivate::toBool):
+        (QScriptValuePrivate::assignEngine):
+        (QScriptValuePrivate::refinedJSValue):
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Windows build fix).
+
+        Add export.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Windows build fix).
+
+        Add export.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Oliver Hunt.
+
+        Remove nonsense comments used in development & commited in error.
+
+        * runtime/UStringImpl.h:
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Windows build fix).
+
+        Remove export.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-03-11  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36041
+        Remove unnecessary differences in common code between WebCore::StringImpl & JSC::UStringImpl
+
+        Much of the code in WebCore::StringImpl and JSC::UStringImpl is now very similar,
+        but has trivial and unnecessary formatting differences, such as the exact wording
+        of comments, missing ASSERTs, functions implemented in the .h vs .cpp etc.
+
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add): UStringImpl::empty() now automatically hashes, uas per WebCore strings.
+        (JSC::Identifier::addSlowCase): UStringImpl::empty() now automatically hashes, uas per WebCore strings.
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::~UStringImpl): Only call bufferOwnership() once, add missing ASSERTs.
+        (JSC::UStringImpl::createUninitialized): Move from .h, not commonly called, no need to inline.
+        (JSC::UStringImpl::create): Move from .h, not commonly called, no need to inline.
+        (JSC::UStringImpl::sharedBuffer): Rewritten to more closely match WebCore implementation, remove need for separate baseSharedBuffer() method.
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::UStringImpl): Automatically hash static strings, ASSERT m_data & m_length are non-null/non-zero in non-static strings.
+        (JSC::UStringImpl::setHash): Add missing ASSERT.
+        (JSC::UStringImpl::create): Moved to .cpp / added missing check for empty string creation.
+        (JSC::UStringImpl::adopt): Vector.size() returns size_t, not unsigned.
+        (JSC::UStringImpl::cost): Renamed m_bufferSubstring -> m_substringBuffer
+        (JSC::UStringImpl::hash): Reordered in file.
+        (JSC::UStringImpl::existingHash): Reordered in file.
+        (JSC::UStringImpl::computeHash): Reordered in file, renamed parameter.
+        (JSC::UStringImpl::checkConsistency): rewrote ASSERT.
+        (JSC::UStringImpl::bufferOwnership): Return type should be BufferOwnership.
+        (JSC::UStringImpl::): Moved friends to head of class.
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by David Kilzer.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Default to using the appropriate SDK if the target Mac OS X version is not the current Mac OS X version.
+
+        * Configurations/Base.xcconfig:
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Introduce TARGET_MAC_OS_X_VERSION_MAJOR to represent the Mac OS X version that is being targeted.  It defaults to the
+        current Mac OS X version unless otherwise specified.
+
+        Key off TARGET_MAC_OS_X_VERSION_MAJOR where we'd previously been keying off MAC_OS_X_VERSION_MAJOR.
+
+        Explicitly map from the target Mac OS X version to the preferred compiler since Xcode's default compiler choice
+        may not be usable when targetting a different Mac OS X version.
+
+        Key off TARGET_GCC_VERSION rather than MAC_OS_X_VERSION_MAJOR in locations where we'd previously been keying off
+        MAC_OS_X_VERSION_MAJOR but the decision is really related to the compiler version being used.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/FeatureDefines.xcconfig:
+        * Configurations/JavaScriptCore.xcconfig:
+        * Configurations/Version.xcconfig:
+
+2010-03-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Sort the project file.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2010-03-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Sort the project file .
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
 2010-03-11  Gabor Loki  <loki@webkit.org>
 
         Reviewed by Gavin Barraclough.

@@ -319,8 +319,9 @@ bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& property
             slot.setCustom(this, namedItemGetter);
             return true;
         }
+    }
 #if ENABLE(CEHTML)
-    } else {
+    else {
         if (document->isCEHTMLDocument()) {
             AtomicStringImpl* atomicPropertyName = AtomicString::find(propertyName);
             if (atomicPropertyName) {
@@ -331,8 +332,6 @@ bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& property
                 return true;
             }
         }
-    }
-#else
     }
 #endif
 

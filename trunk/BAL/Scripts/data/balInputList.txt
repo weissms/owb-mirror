@@ -289,6 +289,7 @@ BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/PathQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/PatternQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/StillImageQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/StillImageQt.h
+BAL/Graphics/WebCore/Qt WebCore/platform/graphics/qt/TileQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/graphics/qt/TransformationMatrixQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/qt/DragDataQt.cpp
 BAL/Graphics/WebCore/Qt	WebCore/platform/qt/DragImageQt.cpp
@@ -346,6 +347,10 @@ BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pattern.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Pen.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/Tile.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/TiledBackingStore.cpp
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/TiledBackingStore.h
+BAL/Graphics/WebCore/WK WebCore/platform/graphics/TiledBackingStoreClient.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
@@ -547,7 +552,7 @@ BAL/Skeletons/Media WebCore/platform/graphics/MediaPlayerPrivate.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.cpp
-BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.h GOwnPtrGStreamerGStreamer.h
+BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.h BCGOwnPtrGStreamerGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
@@ -630,7 +635,7 @@ BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
 BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.cpp
-BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.h GOwnPtrSoupSoup.h
+BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.h BCGOwnPtrSoupSoup.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceHandleSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceRequest.h

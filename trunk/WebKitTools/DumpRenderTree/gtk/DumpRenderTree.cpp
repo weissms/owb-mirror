@@ -347,6 +347,16 @@ static void resetDefaultsToConsistentValues()
 
     webkit_reset_origin_access_white_lists();
 
+#ifdef HAVE_LIBSOUP_2_29_90
+    SoupSession* session = webkit_get_default_session();
+    SoupCookieJar* jar = reinterpret_cast<SoupCookieJar*>(soup_session_get_feature(session, SOUP_TYPE_COOKIE_JAR));
+
+    // We only create the jar when the soup backend needs to do
+    // HTTP. Should we initialize it earlier, perhaps?
+    if (jar)
+        g_object_set(G_OBJECT(jar), SOUP_COOKIE_JAR_ACCEPT_POLICY, SOUP_COOKIE_JAR_ACCEPT_NO_THIRD_PARTY, NULL);
+#endif
+
     setlocale(LC_ALL, "");
 }
 

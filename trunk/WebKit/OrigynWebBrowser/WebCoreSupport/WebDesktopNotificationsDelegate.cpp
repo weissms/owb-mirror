@@ -77,4 +77,9 @@ NotificationPresenter::Permission WebDesktopNotificationsDelegate::checkPermissi
     return (NotificationPresenter::Permission) out;
 }
 
+NotificationPresenter::Permission WebDesktopNotificationsDelegate::checkPermission(SecurityOrigin* origin)
+{
+    return NotificationPresenter::PermissionNotAllowed;
+}
+
 #endif  // ENABLE(NOTIFICATIONS)

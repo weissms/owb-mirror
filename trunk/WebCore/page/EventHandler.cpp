@@ -68,6 +68,7 @@
 #include "TextEvent.h"
 #include "WheelEvent.h"
 #include "htmlediting.h" // for comparePositions()
+#include <wtf/CurrentTime.h>
 #include <wtf/StdLibExtras.h>
 
 #if HAVE(ACCESSIBILITY)
@@ -114,6 +115,8 @@ using namespace SVGNames;
 
 // When the autoscroll or the panScroll is triggered when do the scroll every 0.05s to make it smooth
 const double autoscrollInterval = 0.05;
+
+const double fakeMouseMoveInterval = 0.1;
 
 static Frame* subframeForHitTestResult(const MouseEventWithHitTestResults&);
 
@@ -177,6 +180,7 @@ EventHandler::EventHandler(Frame* frame)
     , m_autoscrollInProgress(false)
     , m_mouseDownMayStartAutoscroll(false)
     , m_mouseDownWasInSubframe(false)
+    , m_fakeMouseMoveEventTimer(this, &EventHandler::fakeMouseMoveEventTimerFired)
 #if ENABLE(SVG)
     , m_svgPan(false)
 #endif
@@ -196,6 +200,7 @@ EventHandler::EventHandler(Frame* frame)
 
 EventHandler::~EventHandler()
 {
+    ASSERT(!m_fakeMouseMoveEventTimer.isActive());
 }
     
 #if ENABLE(DRAG_SUPPORT)
@@ -209,6 +214,7 @@ EventHandler::EventHandlerDragState& EventHandler::dragState()
 void EventHandler::clear()
 {
     m_hoverTimer.stop();
+    m_fakeMouseMoveEventTimer.stop();
     m_resizeLayer = 0;
     m_nodeUnderMouse = 0;
     m_lastNodeUnderMouse = 0;
@@ -383,6 +389,8 @@ bool EventHandler::handleMousePressEvent(const MouseEventWithHitTestResults& eve
     // Reset drag state.
     dragState().m_dragSrc = 0;
 #endif
+
+    cancelFakeMouseMoveEvent();
 
     if (ScrollView* scrollView = m_frame->view()) {
         if (scrollView->isPointInScrollbarCorner(event.event().pos()))
@@ -1159,6 +1167,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
 {
     RefPtr<FrameView> protector(m_frame->view());
 
+    cancelFakeMouseMoveEvent();
     m_mousePressed = true;
     m_capturesDragging = true;
     m_currentMousePosition = mouseEvent.pos();
@@ -1349,6 +1358,8 @@ bool EventHandler::handleMouseMoveEvent(const PlatformMouseEvent& mouseEvent, Hi
 
     if (m_hoverTimer.isActive())
         m_hoverTimer.stop();
+
+    cancelFakeMouseMoveEvent();
 
 #if ENABLE(SVG)
     if (m_svgPan) {
@@ -1950,6 +1961,43 @@ void EventHandler::scheduleHoverStateUpdate()
 {
     if (!m_hoverTimer.isActive())
         m_hoverTimer.startOneShot(0);
+}
+
+void EventHandler::dispatchFakeMouseMoveEventSoonInQuad(const FloatQuad& quad)
+{
+    FrameView* view = m_frame->view();
+    if (!view)
+        return;
+
+    if (m_mousePressed || !quad.containsPoint(view->windowToContents(m_currentMousePosition)))
+        return;
+
+    if (!m_fakeMouseMoveEventTimer.isActive())
+        m_fakeMouseMoveEventTimer.startOneShot(fakeMouseMoveInterval);
+}
+
+void EventHandler::cancelFakeMouseMoveEvent()
+{
+    m_fakeMouseMoveEventTimer.stop();
+}
+
+void EventHandler::fakeMouseMoveEventTimerFired(Timer<EventHandler>* timer)
+{
+    ASSERT_UNUSED(timer, timer == &m_fakeMouseMoveEventTimer);
+    ASSERT(!m_mousePressed);
+
+    FrameView* view = m_frame->view();
+    if (!view)
+        return;
+
+    bool shiftKey;
+    bool ctrlKey;
+    bool altKey;
+    bool metaKey;
+    PlatformKeyboardEvent::getCurrentModifierState(shiftKey, ctrlKey, altKey, metaKey);
+    IntPoint globalPoint = view->contentsToScreen(IntRect(view->windowToContents(m_currentMousePosition), IntSize())).location();
+    PlatformMouseEvent fakeMouseMoveEvent(m_currentMousePosition, globalPoint, NoButton, MouseEventMoved, 0, shiftKey, ctrlKey, altKey, metaKey, currentTime());
+    mouseMoved(fakeMouseMoveEvent);
 }
 
 // Whether or not a mouse down can begin the creation of a selection.  Fires the selectStart event.
@@ -2647,7 +2695,7 @@ static PassRefPtr<TouchList> assembleTargetTouches(Touch* touchTarget, TouchList
 {
     RefPtr<TouchList> targetTouches = TouchList::create();
 
-    for (int i = 0; i < touches->length(); ++i) {
+    for (unsigned i = 0; i < touches->length(); ++i) {
         if (touches->item(i)->target()->toNode()->isSameNode(touchTarget->target()->toNode()))
             targetTouches->append(touches->item(i));
     }
@@ -2666,7 +2714,7 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
     const Vector<PlatformTouchPoint>& points = event.touchPoints();
     AtomicString* eventName = 0;
 
-    for (int i = 0; i < points.size(); ++i) {
+    for (unsigned i = 0; i < points.size(); ++i) {
         const PlatformTouchPoint& point = points[i];
         IntPoint pagePoint = documentPointForWindowPoint(m_frame, point.pos());
         HitTestResult result = hitTestResultAtPoint(pagePoint, /*allowShadowContent*/ false);
@@ -2746,7 +2794,6 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
                                                    *eventName, touchEventTarget->toNode()->document()->defaultView(),
                                                    0, 0, 0, 0, event.ctrlKey(), event.altKey(), event.shiftKey(),
                                                    event.metaKey());
-
         ExceptionCode ec = 0;
         touchEventTarget->dispatchEvent(cancelEv.get(), ec);
         defaultPrevented |= cancelEv->defaultPrevented();

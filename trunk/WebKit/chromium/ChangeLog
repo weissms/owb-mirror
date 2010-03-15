@@ -1,4 +1,185 @@
+2010-03-15  Eric Roman  <eroman@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add a firstPartyForCookies() property to WebDocument.
+        https://bugs.webkit.org/show_bug.cgi?id=35592
+
+        * public/WebDocument.h:
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::firstPartyForCookies):
+
+2010-03-12  Garret Kelly  <gdk@chromium.org>
+
+        Unreiviewed.
+
+        Fix Chromium Mac build. Last patch did not apply properly.
+        (Garret assures me this patch will actually work.)
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchEventType):
+        (WebKit::toPlatformTouchPointState):
+
+2010-03-12  Garret Kelly  <gdk@chromium.org>
+
+        Unreviewed.
+
+        Fix Chromium Mac build. This time, with actual fixing goodness.
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchEventType):
+        (WebKit::toPlatformTouchPointState):
+
+2010-03-12  Garret Kelly  <gdk@chromium.org>
+
+        Unreviewed.
+
+        Fix Chromium Mac build.
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchEventType):
+        (WebKit::toPlatformTouchPointState):
+
+2010-03-12  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Enable touch events in Chromium features gypi file.
+        https://bugs.webkit.org/show_bug.cgi?id=35994
+
+        * features.gypi:
+
+2010-03-12  Darin Fisher  <darin@chromium.org>
+
+        Fix Chromium build bustage.
+
+        Wrap usage of WebPrivatePtr from WebNode.h in a #if
+        WEBKIT_IMPLEMENTATION guard.
+
+        * public/WebNode.h:
+
+2010-03-12  Nicolas Weber  <thakis@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] Cmd-clicking submit buttons should submit in new tab 
+        https://bugs.webkit.org/show_bug.cgi?id=36023
+
+        Take modifiers into account when clicking form buttons. E.g.
+        cmd-clicking a submit button will submit in a new background tab,
+        cmd-shift-clicking in a new foreground tab, shift-clicking in a new
+        window. (On windows/linux, it's ctrl instead of cmd.)
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::actionSpecifiesNavigationPolicy):
+
+2010-03-12  Kavita Kanetkar  <kkanetkar@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Fix memory leak in WebImageDecoder API
+        https://bugs.webkit.org/show_bug.cgi?id=35946
+
+        * src/WebImageDecoder.cpp:
+        (WebKit::WebImageDecoder::setData):
+        (WebKit::WebImageDecoder::getFrameAtIndex):
+
+2010-03-11  Aaron Boodman  <aa@chromium.org>
+
+        Kill WebDocument::applicationID() (part 1).
+
+        Modify interface to WebCore::NotificationPresenter::checkPermission()
+        and remove implementation of WebDocument::applicationID(). Breaking
+        API changes will be in a subsequent change.
+        https://bugs.webkit.org/show_bug.cgi?id=35846
+
+        * public/WebNotificationPresenter.h:
+        * src/NotificationPresenterImpl.cpp:
+        (WebKit::NotificationPresenterImpl::checkPermission):
+        * src/NotificationPresenterImpl.h:
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::applicationID):
+
+2010-03-11  Stuart Morgan  <stuartmorgan@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Fix the screen coordinate conversion of Chromium Mac mouse events for
+        multiple-moniter setups. Also changes the global coordinate values
+        to be computed from the event, rather than the instantaneous mouse
+        location, and reduces code duplication for location conversion.
+
+        Dual-sided patch with http://codereview.chromium.org/751002
+
+        https://bugs.webkit.org/show_bug.cgi?id=35950
+
+        * src/mac/WebInputEventFactory.mm:
+        (WebKit::setWebEventLocationFromEventInView):
+        (WebKit::WebInputEventFactory::mouseEvent):
+        (WebKit::WebInputEventFactory::mouseWheelEvent):
+
+2010-03-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Remove invalidateContents, it isn't used and it never makes sense to only invalidate the contents.
+
+        * src/ChromeClientImpl.cpp:
+        * src/ChromeClientImpl.h:
+
 2010-03-11  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Use WebPrivatePtr for WebNode
+        https://bugs.webkit.org/show_bug.cgi?id=36005
+
+        * public/WebElement.h:
+        * public/WebFormElement.h:
+        * public/WebInputElement.h:
+        * public/WebLabelElement.h:
+        * public/WebNode.h:
+        (WebKit::WebNode::WebNode):
+        (WebKit::WebNode::isNull):
+        (WebKit::WebNode::unwrap):
+        (WebKit::WebNode::constUnwrap):
+        * public/WebPrivatePtr.h:
+        (WebKit::WebPrivatePtr::assign):
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::WebDocument):
+        (WebKit::WebDocument::operator=):
+        (WebKit::WebDocument::operator PassRefPtr<Document>):
+        * src/WebElement.cpp:
+        (WebKit::WebElement::hasTagName):
+        (WebKit::WebElement::WebElement):
+        (WebKit::WebElement::operator=):
+        (WebKit::WebElement::operator PassRefPtr<Element>):
+        * src/WebFormElement.cpp:
+        (WebKit::WebFormElement::WebFormElement):
+        (WebKit::WebFormElement::operator=):
+        (WebKit::WebFormElement::operator PassRefPtr<HTMLFormElement>):
+        * src/WebInputElement.cpp:
+        (WebKit::WebInputElement::WebInputElement):
+        (WebKit::WebInputElement::operator=):
+        (WebKit::WebInputElement::operator PassRefPtr<HTMLInputElement>):
+        * src/WebLabelElement.cpp:
+        (WebKit::WebLabelElement::correspondingControl):
+        (WebKit::WebLabelElement::operator=):
+        (WebKit::WebLabelElement::operator PassRefPtr<HTMLLabelElement>):
+        * src/WebNode.cpp:
+        (WebKit::WebNode::reset):
+        (WebKit::WebNode::assign):
+        (WebKit::WebNode::equals):
+        (WebKit::WebNode::parentNode):
+        (WebKit::WebNode::createMarkup):
+        (WebKit::WebNode::addEventListener):
+        (WebKit::WebNode::removeEventListener):
+        (WebKit::WebNode::simulateClick):
+        (WebKit::WebNode::WebNode):
+        (WebKit::WebNode::operator=):
+        (WebKit::WebNode::operator PassRefPtr<Node>):
+
+2010-03-10  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Jeremy Orlow.
 

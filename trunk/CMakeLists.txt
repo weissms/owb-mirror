@@ -69,6 +69,7 @@ cmake_dependent_option(ENABLE_SVG_FOREIGN_OBJECT "Enable support for SVG foreign
 cmake_dependent_option(ENABLE_SVG_USE_ELEMENT "Enable support for SVG use element (EXPERIMENTAL)" OFF ENABLE_SVG OFF)
 option(ENABLE_TESTS "Enable tests" ON)
 cmake_dependent_option(ENABLE_TESTS_CPPUNIT "Enable unit tests based on cppunit framework" ON ENABLE_TESTS OFF)
+option(ENABLE_TILED_BACKING_STORE "Enable tiled backing store support" OFF)
 option(ENABLE_TOUCH_EVENTS "Enable touch events support" OFF)
 option(ENABLE_VIDEO "Enable HTML5 video support")
 option(ENABLE_WEB_SOCKETS "Enable Web Sockets support")

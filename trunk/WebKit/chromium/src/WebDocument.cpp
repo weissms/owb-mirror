@@ -32,7 +32,6 @@
 #include "WebDocument.h"
 
 #include "Document.h"
-#include "DocumentLoader.h"
 #include "Element.h"
 #include "HTMLAllCollection.h"
 #include "HTMLBodyElement.h"
@@ -53,22 +52,6 @@ using namespace WebCore;
 
 namespace WebKit {
 
-WebDocument::WebDocument(const PassRefPtr<Document>& elem)
-    : WebNode(elem)
-{
-}
-
-WebDocument& WebDocument::operator=(const PassRefPtr<Document>& elem)
-{
-    WebNode::assign(elem.releaseRef());
-    return *this;
-}
-
-WebDocument::operator PassRefPtr<Document>() const
-{
-    return PassRefPtr<Document>(static_cast<Document*>(m_private));
-}
-
 WebFrame* WebDocument::frame() const
 {
     return WebFrameImpl::fromFrame(constUnwrap<Document>()->frame());
@@ -82,6 +65,11 @@ bool WebDocument::isHTMLDocument() const
 WebURL WebDocument::baseURL() const
 {
     return constUnwrap<Document>()->baseURL();
+}
+
+WebURL WebDocument::firstPartyForCookies() const
+{
+    return constUnwrap<Document>()->firstPartyForCookies();
 }
 
 WebElement WebDocument::documentElement() const
@@ -126,40 +114,28 @@ WebNodeList WebDocument::getElementsByTagName(const WebString& tag)
 
 WebString WebDocument::applicationID() const
 {
-    const char* kChromeApplicationHeader = "x-chrome-application";
-
-    // First check if the document's response included a header indicating the
-    // application it should go with.
-    const Document* document = constUnwrap<Document>();
-    Frame* frame = document->frame();
-    if (!frame)
-        return WebString();
-
-    DocumentLoader* loader = frame->loader()->documentLoader();
-    if (!loader)
-        return WebString();
-
-    WebString headerValue =
-        loader->response().httpHeaderField(kChromeApplicationHeader);
-    if (!headerValue.isEmpty())
-        return headerValue;
-
-    // Otherwise, fall back to looking for the meta tag.
-    RefPtr<NodeList> metaTags =
-        const_cast<Document*>(document)->getElementsByTagName("meta");
-    for (unsigned i = 0; i < metaTags->length(); ++i) {
-        Element* element = static_cast<Element*>(metaTags->item(i));
-        if (element->hasAttribute("http-equiv")
-            && element->getAttribute("http-equiv").lower() == kChromeApplicationHeader)
-            return element->getAttribute("value");
-    }
-
     return WebString();
 }
 
 WebNode WebDocument::focusedNode() const
 {
     return WebNode(constUnwrap<Document>()->focusedNode());
+}
+
+WebDocument::WebDocument(const PassRefPtr<Document>& elem)
+    : WebNode(elem)
+{
+}
+
+WebDocument& WebDocument::operator=(const PassRefPtr<Document>& elem)
+{
+    m_private = elem;
+    return *this;
+}
+
+WebDocument::operator PassRefPtr<Document>() const
+{
+    return static_cast<Document*>(m_private.get());
 }
 
 } // namespace WebKit

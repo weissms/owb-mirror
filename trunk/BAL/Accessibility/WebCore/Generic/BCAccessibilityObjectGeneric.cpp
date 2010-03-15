@@ -37,7 +37,7 @@ bool AccessibilityObject::accessibilityIgnoreAttachment() const
     return false;
 }
 
-AccessibilityObjectPlatformInclusion AccessibilityObject::accessibilityPlatformIncludesObject() const
+AccessibilityObjectInclusion AccessibilityObject::accessibilityPlatformIncludesObject() const
 {
     return DefaultBehavior;
 }

@@ -1,5 +1,9 @@
 /*
- * Copyright (C) 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2007 Apple Inc.  All rights reserved.
+ * Copyright (C) 2007 Holger Hans Peter Freyther
+ * Copyright (C) 2008 INdT - Instituto Nokia de Tecnologia
+ * Copyright (C) 2009-2010 ProFUSION embedded systems
+ * Copyright (C) 2009-2010 Samsung Electronics
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,7 +14,7 @@
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ * 3.  Neither the name of Apple, Inc. ("Apple") nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -26,13 +30,25 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FontDatabase_h
-#define FontDatabase_h
+#ifndef DragClientEfl_h
+#define DragClientEfl_h
+
+#include "DragClient.h"
 
 namespace WebCore {
+class DragClientEfl : public WebCore::DragClient {
+public:
+    virtual void willPerformDragDestinationAction(WebCore::DragDestinationAction, WebCore::DragData*);
+    virtual void willPerformDragSourceAction(WebCore::DragSourceAction, const WebCore::IntPoint&, WebCore::Clipboard*);
+    virtual WebCore::DragDestinationAction actionMaskForDrag(WebCore::DragData*);
 
-    void populateFontDatabase();
+    virtual WebCore::DragSourceAction dragSourceActionMaskForPoint(const WebCore::IntPoint& windowPoint);
 
-} // namespace WebCore
+    virtual void startDrag(WebCore::DragImageRef dragImage, const WebCore::IntPoint& dragImageOrigin, const WebCore::IntPoint& eventPos, WebCore::Clipboard*, WebCore::Frame*, bool linkDrag = false);
+    virtual WebCore::DragImageRef createDragImageForLink(WebCore::KURL&, const WebCore::String& label, WebCore::Frame*);
 
-#endif // !defined(FontDatabase_h)
+    virtual void dragControllerDestroyed();
+};
+}
+
+#endif // DragClientEfl_h

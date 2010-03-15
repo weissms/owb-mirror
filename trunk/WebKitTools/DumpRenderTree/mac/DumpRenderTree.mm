@@ -76,12 +76,15 @@
 #import <WebKit/WebTypesInternal.h>
 #import <WebKit/WebViewPrivate.h>
 #import <getopt.h>
-#import <mach-o/getsect.h>
 #import <objc/objc-runtime.h>
 #import <wtf/Assertions.h>
 #import <wtf/RetainPtr.h>
 #import <wtf/Threading.h>
 #import <wtf/OwnPtr.h>
+
+extern "C" {
+#import <mach-o/getsect.h>
+}
 
 using namespace std;
 
@@ -434,6 +437,7 @@ static void resetDefaultsToConsistentValues()
     // So, turn it off for now, but we might want to turn it back on some day.
     [preferences setUsesPageCache:NO];
     [preferences setAcceleratedCompositingEnabled:YES];
+    [preferences setWebGLEnabled:NO];
 
     [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookieAcceptPolicy:NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain];
 

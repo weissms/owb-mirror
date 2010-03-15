@@ -466,11 +466,6 @@ IntRect ChromeClientImpl::windowResizerRect() const
     return result;
 }
 
-void ChromeClientImpl::invalidateContents(const IntRect&, bool)
-{
-    notImplemented();
-}
-
 void ChromeClientImpl::invalidateWindow(const IntRect&, bool)
 {
     notImplemented();
@@ -676,6 +671,7 @@ void ChromeClientImpl::getPopupMenuInfo(PopupContainer* popupContainer,
     }
 
     info->itemHeight = popupContainer->menuItemHeight();
+    info->itemFontSize = popupContainer->menuItemFontSize();
     info->selectedIndex = popupContainer->selectedIndex();
     info->items.swap(outputItems);
 }

@@ -43,6 +43,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderObjectChildList.cpp
     rendering/RenderPart.cpp
     rendering/RenderPartObject.cpp
+    rendering/RenderProgress.cpp
     rendering/RenderReplaced.cpp
     rendering/RenderReplica.cpp
     rendering/RenderRuby.cpp

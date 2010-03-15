@@ -1,3 +1,92 @@
+2010-03-15  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35925
+
+        * efl/ewk/ewk_history.cpp: Added.
+        * efl/ewk/ewk_history.h: Added.
+
+2010-03-13  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35928
+
+        * efl/ewk/ewk_main.cpp: Added.
+        * efl/ewk/ewk_main.h: Added.
+
+2010-03-13  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35924
+
+        * efl/ewk/ewk_frame.cpp: Added.
+        * efl/ewk/ewk_frame.h: Added.
+
+2010-03-13  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35936
+
+        * efl/ewk/ewk_view_single.c: Added.
+
+2010-03-13  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35929
+
+        * efl/ewk/ewk_util.cpp: Added.
+        * efl/ewk/ewk_util.h: Added.
+
+2010-03-13  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add EFL port files to efl/ewk.
+        http://webkit.org/b/35934
+
+        * efl/ewk/EWebKit.h: Added.
+        * efl/ewk/ewk_eapi.h: Added.
+        * efl/ewk/ewk_logging.h: Added.
+        * efl/ewk/ewk_private.h: Added.
+
+2010-03-11  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Add EFL port files to efl/WebCoreSupport.
+        http://webkit.org/b/35917
+
+        * efl/WebCoreSupport/InspectorClientEfl.h: Added.
+        * efl/WebCoreSupport/InspectorClientEfl.cpp: Added.
+
+2010-03-11  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        Add EFL port files to efl/WebCoreSupport.
+        http://webkit.org/b/35914
+
+        * efl/WebCoreSupport/DragClientEfl.h: Added.
+        * efl/WebCoreSupport/DragClientEfl.cpp: Added.
+
+2010-03-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Sort the project file.
+
+        * WebKit.xcodeproj/project.pbxproj:
+
 2010-03-11  Leandro Pereira  <leandro@profusion.mobi>
 
         Reviewed by Holger Freyther.

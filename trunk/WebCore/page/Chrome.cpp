@@ -73,11 +73,6 @@ Chrome::~Chrome()
     m_client->chromeDestroyed();
 }
 
-void Chrome::invalidateContents(const IntRect& updateRect, bool immediate)
-{
-    m_client->invalidateContents(updateRect, immediate);
-}
-
 void Chrome::invalidateWindow(const IntRect& updateRect, bool immediate)
 {
     m_client->invalidateWindow(updateRect, immediate);

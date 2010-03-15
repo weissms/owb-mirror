@@ -29,7 +29,7 @@ EXPORTS
     ??1RefCountedLeakCounter@WTF@@QAE@XZ
     ??1Structure@JSC@@QAE@XZ
     ??1ThreadCondition@WTF@@QAE@XZ
-    ??1UStringImpl@JSC@@AAE@XZ
+    ??1UStringImpl@JSC@@QAE@XZ
     ??2JSGlobalObject@JSC@@SAPAXIPAVJSGlobalData@1@@Z
     ??8JSC@@YA_NABVUString@0@0@Z
     ?NaN@JSC@@3NB
@@ -52,8 +52,8 @@ EXPORTS
     ?callOnMainThread@WTF@@YAXP6AXPAX@Z0@Z
     ?callOnMainThreadAndWait@WTF@@YAXP6AXPAX@Z0@Z
     ?changePrototypeTransition@Structure@JSC@@SA?AV?$PassRefPtr@VStructure@JSC@@@WTF@@PAV12@VJSValue@2@@Z
-    ?checkSameIdentifierTable@Identifier@JSC@@CAXPAVExecState@2@PAVUStringImpl@2@@Z
-    ?checkSameIdentifierTable@Identifier@JSC@@CAXPAVJSGlobalData@2@PAVUStringImpl@2@@Z
+    ?checkCurrentIdentifierTable@Identifier@JSC@@CAXPAVExecState@2@@Z
+    ?checkCurrentIdentifierTable@Identifier@JSC@@CAXPAVJSGlobalData@2@@Z
     ?checkSyntax@JSC@@YA?AVCompletion@1@PAVExecState@1@ABVSourceCode@1@@Z
     ?classInfo@InternalFunction@JSC@@UBEPBUClassInfo@2@XZ
     ?classInfo@JSCell@JSC@@UBEPBUClassInfo@2@XZ
@@ -70,6 +70,7 @@ EXPORTS
     ?create@ByteArray@WTF@@SA?AV?$PassRefPtr@VByteArray@WTF@@@2@I@Z
     ?create@JSGlobalData@JSC@@SA?AV?$PassRefPtr@VJSGlobalData@JSC@@@WTF@@XZ
     ?create@OpaqueJSString@@SA?AV?$PassRefPtr@UOpaqueJSString@@@WTF@@ABVUString@JSC@@@Z
+    ?create@UStringImpl@JSC@@SA?AV?$PassRefPtr@VUStringImpl@JSC@@@WTF@@V?$PassRefPtr@V?$CrossThreadRefCounted@V?$OwnFastMallocPtr@$$CB_W@WTF@@@WTF@@@4@PB_WI@Z
     ?createEmptyString@SmallStrings@JSC@@AAEXPAVJSGlobalData@2@@Z
     ?createInheritorID@JSObject@JSC@@AAEPAVStructure@2@XZ
     ?createInterruptedExecutionException@JSC@@YA?AVJSValue@1@PAVJSGlobalData@1@@Z

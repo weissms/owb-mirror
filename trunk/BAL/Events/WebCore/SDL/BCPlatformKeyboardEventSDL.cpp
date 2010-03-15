@@ -872,4 +872,14 @@ BalEventKey* PlatformKeyboardEvent::balEventKey() const
     return m_balEventKey;
 }
 
+void PlatformKeyboardEvent::getCurrentModifierState(bool& shiftKey, bool& ctrlKey, bool& altKey, bool& metaKey)
+{
+    SDLMod modState = SDL_GetModState();
+    
+    shiftKey = modState & (KMOD_LSHIFT | KMOD_RSHIFT);
+    ctrlKey = modState & (KMOD_LCTRL | KMOD_RCTRL);
+    altKey = modState & (KMOD_LALT | KMOD_RALT);
+    metaKey = modState & (KMOD_LMETA | KMOD_RMETA);
+}
+
 }

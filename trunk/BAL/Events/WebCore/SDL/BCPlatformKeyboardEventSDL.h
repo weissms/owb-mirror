@@ -95,6 +95,7 @@ namespace WebCore {
         }
 
         static bool currentCapsLockState();
+        static void getCurrentModifierState(bool& shiftKey, bool& ctrlKey, bool& altKey, bool& metaKey);
 
         PlatformKeyboardEvent(BalEventKey*);
         BalEventKey* balEventKey() const;

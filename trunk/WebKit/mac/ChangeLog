@@ -1,3 +1,129 @@
+2010-03-15  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Remove unneeded dependency on non-string identifier for an NSTableColumn
+        https://bugs.webkit.org/show_bug.cgi?id=36106
+
+        * WebView/WebTextCompletionController.mm:
+        (-[WebTextCompletionController _buildUI]): Use init instead of initWithIdentifier:
+        because the table has only one column and that column does not need an identifier.
+
+2010-03-12  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=34942 Fullscreen 
+        API naming is inconsistent
+        -and corresponding-
+        <rdar://problem/7729165>
+
+        This patch changes all occurrences of "fullScreen" to the more 
+        popular "fullscreen."
+
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        (WebKit::NetscapePluginHostProxy::isFullscreenWindowShowing):
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+        (WebKit::NetscapePluginHostProxy::didEnterFullscreen):
+        (WebKit::NetscapePluginHostProxy::didExitFullscreen):
+        (WebKit::NetscapePluginHostProxy::setFullscreenWindowIsShowing):
+        (WKPCSetFullscreenWindowIsShowing):
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView _workaroundSilverlightFullscreenBug:]):
+        (-[WebNetscapePluginView _createPlugin]):
+        (-[WebNetscapePluginView _destroyPlugin]):
+        * WebView/WebVideoFullscreenHUDWindowController.mm:
+        (-[WebVideoFullscreenHUDWindowController windowDidLoad]):
+
+2010-03-12  Andy Estes  <aestes@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        Expose WebPDFView's underlying PDFDocument.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36045
+
+        * WebView/WebDocumentPrivate.h: Create a new protocol called
+        WebDocumentPDF.
+        * WebView/WebPDFView.h: Have WebPDFView implement said protocol.
+        * WebView/WebPDFView.mm:
+        (-[WebPDFView PDFDocument]): Expose WebPDFView's underlying
+        PDFDocument by implementing -(PDFDocument*)PDFDocument from
+        WebDocumentPDF.
+
+2010-03-12  Andy Estes  <aestes@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        Remove an unused method.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35940
+
+        * Plugins/WebPluginController.mm:
+        removed - (void)showURL:(NSURL *) inFrame:(NSString *)
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by David Kilzer.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Default to using the appropriate SDK if the target Mac OS X version is not the current Mac OS X version.
+
+        * Configurations/Base.xcconfig:
+
+2010-03-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/7745082> Make it possible to build WebKit for older Mac OS X versions from the current Mac OS X version
+
+        Introduce TARGET_MAC_OS_X_VERSION_MAJOR to represent the Mac OS X version that is being targeted.  It defaults to the
+        current Mac OS X version unless otherwise specified.
+
+        Key off TARGET_MAC_OS_X_VERSION_MAJOR where we'd previously been keying off MAC_OS_X_VERSION_MAJOR.
+
+        Explicitly map from the target Mac OS X version to the preferred compiler since Xcode's default compiler choice
+        may not be usable when targetting a different Mac OS X version.
+
+        Key off TARGET_GCC_VERSION rather than MAC_OS_X_VERSION_MAJOR in locations where we'd previously been keying off
+        MAC_OS_X_VERSION_MAJOR but the decision is really related to the compiler version being used.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/FeatureDefines.xcconfig:
+        * Configurations/Version.xcconfig:
+
+2010-03-11  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Remove invalidateContents, it isn't used and it never makes sense to only invalidate the contents.
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+
+2010-03-11  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35965
+        <rdar://problem/7742771> Crash when passing an object returned from plug-in back to the plug-in
+
+        Test: plugins/round-trip-npobject.html
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::retainLocalObject): Corrected the check - there is
+        now a separate ProxyRuntimeObject class for proxy pbjects.
+        (WebKit::NetscapePluginInstanceProxy::releaseLocalObject): Ditto.
+
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyInstance::invoke): Check if m_instanceProxy is still non-zero. The plug-in
+        could have crashed while we were waiting for response.
+        (WebKit::ProxyInstance::setFieldValue): Ditto.
+
 2010-03-11  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Darin Adler.

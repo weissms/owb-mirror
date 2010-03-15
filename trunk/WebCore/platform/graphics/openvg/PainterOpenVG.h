@@ -47,7 +47,12 @@ public:
 
     enum SaveMode {
         CreateNewState,
+        KeepCurrentState,
         CreateNewStateWithPaintStateOnly // internal usage only, do not use outside PainterOpenVG
+    };
+    enum ClipOperation {
+        IntersectClip = VG_INTERSECT_MASK,
+        SubtractClip = VG_SUBTRACT_MASK
     };
 
     PainterOpenVG();
@@ -84,6 +89,9 @@ public:
     Color fillColor() const;
     void setFillColor(const Color&);
 
+    int textDrawingMode() const;
+    void setTextDrawingMode(int mode);
+
     bool antialiasingEnabled() const;
     void setAntialiasingEnabled(bool);
 
@@ -93,6 +101,9 @@ public:
     void drawArc(const IntRect& ellipseBounds, int startAngle, int angleSpan, VGbitfield paintModes = (VG_STROKE_PATH | VG_FILL_PATH));
     void drawEllipse(const IntRect& bounds, VGbitfield paintModes = (VG_STROKE_PATH | VG_FILL_PATH));
     void drawPolygon(size_t numPoints, const FloatPoint* points, VGbitfield paintModes = (VG_STROKE_PATH | VG_FILL_PATH));
+#ifdef OPENVG_VERSION_1_1
+    void drawText(VGFont, Vector<VGuint>& characters, VGfloat* adjustmentsX, VGfloat* adjustmentsY, const FloatPoint&);
+#endif
 
     void scale(const FloatSize& scaleFactors);
     void rotate(float radians);
@@ -104,6 +115,7 @@ public:
     void drawPath(VGbitfield paintModes = (VG_STROKE_PATH | VG_FILL_PATH), WindRule fillRule = RULE_NONZERO);
 
     void intersectClipRect(const FloatRect&);
+    void clipPath(const Path&, PainterOpenVG::ClipOperation, WindRule clipRule = RULE_NONZERO);
 
     void save(PainterOpenVG::SaveMode saveMode = CreateNewState);
     void restore();

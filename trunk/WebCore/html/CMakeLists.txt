@@ -74,6 +74,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLPlugInElement.cpp
     html/HTMLPlugInImageElement.cpp
     html/HTMLPreElement.cpp
+    html/HTMLProgressElement.cpp
     html/HTMLQuoteElement.cpp
     html/HTMLScriptElement.cpp
     html/HTMLSelectElement.cpp
@@ -158,6 +159,7 @@ list(APPEND IDL_SRC
     html/HTMLParagraphElement.idl
     html/HTMLParamElement.idl
     html/HTMLPreElement.idl
+    html/HTMLProgressElement.idl
     html/HTMLQuoteElement.idl
     html/HTMLScriptElement.idl
     html/HTMLSelectElement.idl
